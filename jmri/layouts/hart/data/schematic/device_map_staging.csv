@@ -98,7 +98,7 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,East End,block,OS Switch 29,IB:AUTO:0043,IB:AUTO:0043,12,,"East End, Switch 29; occupancy Block 12-5 / M2S1204","OS Switch 29, Track e5",,,,,,,
 1,East End,block,OS Switch 31,IB:AUTO:0042,IB:AUTO:0042,12,,"East End, Switch 31; occupancy Block 12-7 / M2S1206","OS Switch 31, Track e3, Track e4",,,,,,,
 1,East End,block,OS Switch 33,IB:AUTO:0030,IB:AUTO:0030,12,,"East End, Switch 33; occupancy Block 12-8 / M2S1207",OS Switch 33,,,,,,,
-1,Princess,block,OS Switch 35a,IB:AUTO:0046,IB:AUTO:0046,1,,"Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points); occupancy Block 1-6 / M2S105","OS 35 at TOL29970, Track e24",,,,,,,
+1,Princess,block,OS Switch 35a,IB:AUTO:0046,IB:AUTO:0046,1,,"Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points); occupancy Block 1-6 / M2S105",OS 35 at TOL29970,,,,,,,
 1,Princess,block,OS Switch 35b,IB:AUTO:0047,IB:AUTO:0047,1,,Princess crossover Switch 35 north/main leg; occupancy Block 1-5 / M2S104,"OS 35 at TOL29967, Track e12 1/2",,,,,,,
 1,Princess,block,OS Switch 37,IB:AUTO:0032,IB:AUTO:0032,1,,"Princess, Switch 37; occupancy Block 1-3 / M2S102",OS Switch 37,,,,,,,
 1,Princess,block,OS Switch 39,IB:AUTO:0040,IB:AUTO:0040,1,,"Princess, Switch 39; occupancy Block 1-4 / M2S103","OS Switch 39, Track e12 2/2",,,,,,,

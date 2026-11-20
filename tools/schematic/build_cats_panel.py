@@ -137,7 +137,7 @@ class StagingTracks:
         if len(set(blocks)) != 1:
             raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
                              f"{', '.join(sorted(set(blocks)))}; give it to the one its gap leaves it in "
-                             "(device_map_staging.csv trial_name)")
+                             "(short_tracks_staging.csv, or its own block row in device_map_staging.csv)")
         return blocks[0]
 
 

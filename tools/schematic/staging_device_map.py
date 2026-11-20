@@ -27,6 +27,11 @@ Files (jmri/layouts/hart/data/schematic/):
   A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
   up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
   device_map_main_upper.csv, which names the same block for the piece on its level (shared_blocks).
+- short_tracks_staging.csv (SHORT_COLUMNS): a short track between two switches with no block row of its own takes
+  the OS block whose gap it sits inside (one of its two switches'), keyed by the two switch numbers, never by an
+  edge id (read_short_tracks, short_track_blocks: a track with no row, a row with no such track or with a track that
+  has its own block, or two tracks between the same switches, stops). Today the track from Switch 35 to Switch 37,
+  in OS Switch 35a.
 - control_points_staging.csv, the columns of control_points_main_upper.csv: the staging stations of
   staging.plan_overrides.json's control_points (the schematic's source), held equal by --check.
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
@@ -57,6 +62,7 @@ System (jmri/layouts/hart/parked/staging_panel_lamps.json).
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import re
@@ -87,6 +93,10 @@ LIST = ";"
 # what staging.signals.json names as its source: the file the masts were first read from (the hand-drawn panel's)
 SIGNALS_SOURCE = "tables.xml"
 CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "notes"]
+# short_tracks_staging.csv: a short track between two switches with no block of its own, and the OS block whose gap it
+# sits inside (owner, 2026-11-20), keyed by the two switches, never by the drawing's edge ids
+SHORT_TRACKS = pd.DATA / "short_tracks_staging.csv"
+SHORT_COLUMNS = ["switch_a", "switch_b", "block", "notes"]
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 TRACK_RE = re.compile(r"Track (\S+?)(?: (\d+)/(\d+))?")
 
@@ -162,6 +172,81 @@ def mast_kind(r: dict) -> str:
 def occupancy_blocks(r: dict) -> list[str]:
     """The blocks an occupancy row's detector serves, its `blocks` column ("Track S-1;Track S-1 West")."""
     return railroad.device_list(r["blocks"])
+
+
+def read_short_tracks(path: Path | None = None) -> dict:
+    """{(switch, switch) in number order: (OS block, line)} of short_tracks_staging.csv. Stops on a file not in its
+    shape, a row naming one switch twice or a block that is no OS block, or a pair given twice (a short track takes
+    one block)."""
+    path = path or SHORT_TRACKS
+    out, bad = {}, []
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)                     # none is right: a staging with no short track
+    except OSError as exc:
+        raise StagingMapError(f"cannot read {paths.rel(path)}: {exc}") from None
+    if reader.fieldnames != SHORT_COLUMNS:
+        raise StagingMapError(f"{paths.rel(path)}: columns {reader.fieldnames}, not {SHORT_COLUMNS}")
+    for i, r in enumerate(rows, 2):
+        a, b = r["switch_a"].strip(), r["switch_b"].strip()
+        if not (a.isdigit() and b.isdigit()) or a == b or not r["block"].startswith("OS Switch "):
+            bad.append(f"line {i}: switches {a!r} and {b!r} are two switch numbers and {r['block']!r} an OS block")
+            continue
+        key = tuple(sorted((a, b), key=int))
+        if key in out:
+            bad.append(f"line {i}: the track from Switch {key[0]} to Switch {key[1]} is given a block twice "
+                       f"(line {out[key][1]})")
+            continue
+        out[key] = (r["block"], i)
+    if bad:
+        raise StagingMapError(f"{paths.rel(path)}: " + "; ".join(bad))
+    return out
+
+
+def short_track_blocks(band, names: dict, strands: list, short: dict) -> tuple[dict, list]:
+    """({strand id: [OS block]}, problems) for the staging tracks the device map gives no block (no trial name):
+    each must run from one switch to another, be the only such track between them, and have its row in `short`
+    (read_short_tracks), naming the OS block of one of its two switches, the one whose gap it sits inside. Every
+    row of `short` must be used (a stale row stops)."""
+    nodes, out, bad, used = band["nodes"], {}, [], set()
+    pairs = defaultdict(list)
+    for sid in strands:
+        s = band["strands"][sid]
+        ends = [s["src"][0], s["dst"][0]]
+        if all(nodes[n]["kind"] == "switch" for n in ends):
+            pairs[tuple(sorted((lc.bare(nodes[n].get("label")) for n in ends), key=int))].append((sid, ends))
+    for sid in strands:
+        s = band["strands"][sid]
+        ends = [s["src"][0], s["dst"][0]]
+        if sid in names["blocks"]:
+            continue
+        if not all(nodes[n]["kind"] == "switch" for n in ends):
+            bad.append(f"track {sid}: no block in the device map, and it does not run between two switches")
+            continue
+        key = tuple(sorted((lc.bare(nodes[n].get("label")) for n in ends), key=int))
+        what = f"the short track from Switch {key[0]} to Switch {key[1]} ({sid})"
+        if key not in short:
+            bad.append(f"{what} has no block: give it the OS block whose gap it sits inside in {SHORT_TRACKS.name}")
+            continue
+        if len(pairs[key]) != 1:
+            bad.append(f"{what}: {len(pairs[key])} tracks join those switches, so {SHORT_TRACKS.name} cannot tell "
+                       "which it means")
+            continue
+        block = short[key][0]
+        own = {names["os"].get(n) for n in ends}
+        if block not in own:
+            bad.append(f"{what}: {SHORT_TRACKS.name} gives it {block}, which is the OS block of neither of its "
+                       f"switches ({', '.join(sorted(b for b in own if b))})")
+            continue
+        out[sid] = [block]
+        used.add(key)
+    for key in sorted(set(short) - used, key=lambda k: (int(k[0]), int(k[1]))):
+        ids = [sid for sid, _e in pairs.get(key, [])]
+        why = "the device map gives it a block of its own" if any(i in names["blocks"] for i in ids) else \
+            "the staging drawing has no such track"
+        bad.append(f"{SHORT_TRACKS.name} line {short[key][1]}: Switch {key[0]} to Switch {key[1]}: {why}")
+    return out, bad
 
 
 def stop_token(comment: str) -> bool:
@@ -322,7 +407,7 @@ def normal_legs(band, names: dict) -> dict:
 
 
 def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path: Path = CPS,
-         turnout_idents: bool = True, with_masts: bool = True) -> dict:
+         turnout_idents: bool = True, with_masts: bool = True, short_path: Path | None = None) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on any placeholder no row names, any row the drawing does not use, a broken k/n run,
@@ -374,11 +459,17 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
             runs[m.group(1)][k] = (count, ph)
     for sid in strands:
         got = runs.pop(sid, {})
+        if not got:
+            continue                    # no block row: a short track, given its OS block below
         counts = {c for c, _ph in got.values()}
         if len(counts) != 1 or sorted(got) != list(range(1, next(iter(counts)) + 1)):
             bad.append(f"track {sid}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n to n/n")
             continue
         names["blocks"][sid] = [get(got[k][1], "block") for k in sorted(got)]
+    if not bad:
+        got_short, problems = short_track_blocks(band, names, strands, read_short_tracks(short_path))
+        names["blocks"].update(got_short)
+        bad += problems
     for sid, got in runs.items():
         bad.append(f"trial names for track {sid}, which the staging drawing does not have: "
                    f"{sorted(ph for _c, ph in got.values())}")
