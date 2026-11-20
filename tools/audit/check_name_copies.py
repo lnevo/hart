@@ -101,12 +101,6 @@ ALLOW: dict[str, tuple[frozenset[str] | None, str]] = {
     "jmri/layouts/hart/scripts/ctc_logic_smoke.py": (None, "the USS CTC machine, parked (2026-11-17); updated on unpark"),
     "jmri/layouts/hart/scripts/build_ctc_full_15col.py": (
         None, "the USS CTC machine, parked (2026-11-17); updated on unpark"),
-    "tools/schematic/le_tables.py": (
-        frozenset({"OS Switch 225"}),
-        "BLOCK_NUMBERED_AS gives corner block OS Switch 225a the system number of the block it replaced, so it "
-        "keeps that block's old name (the helix-join release, 2026-11-17). The same text is also the CATS desk's "
-        "name for the middle of 225's X, a desk-only block with no Layout Editor block; it is not corner a",
-    ),
 }
 
 

@@ -4,6 +4,7 @@ candidate unchanged."""
 from __future__ import annotations
 
 import copy
+import csv
 import sys
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -20,12 +21,44 @@ from approval import canon_sorted, element_label  # noqa: E402  as the approval 
 
 
 # Blocks added after the cut-over take the next numbers at the end (owner, 2026-11-16: append), so no main or upper
-# system name shifts: BLOCK_NUMBERED_AS gives a renamed block the sort place of the name it replaces, and
-# APPENDED_BLOCKS come last, in this order. The balloon loop's split: Loop 1 keeps the loop's numbers; double
-# crossover 225's corners: a keeps OS Switch 225's.
-BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
-                     "Track 227-241 1": "Track 227-241"}
-APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d", "Track 227-241 2")
+# system name shifts. block_numbering.csv holds them: a renamed block gets the sort place of the name it replaces
+# (numbered_as), an appended one comes last in append_order. Read and checked here, so a stale row stops the build.
+NUMBERING = paths.LAYOUT_DATA / "schematic" / "block_numbering.csv"
+
+
+def load_numbering(path: Path = NUMBERING) -> tuple[dict, tuple]:
+    """(BLOCK_NUMBERED_AS, APPENDED_BLOCKS) from block_numbering.csv. Each row is either numbered_as or
+    append_order, never both or neither; blocks are listed once, append_order counts 1, 2, 3 ... without a gap, and
+    a name a block is numbered as is not itself a listed block."""
+    with open(path, newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    if not rows or set(rows[0]) != {"block", "numbered_as", "append_order", "notes"}:
+        raise BuildError(f"{path.name}: expected the columns block, numbered_as, append_order, notes")
+    numbered, appended, seen = {}, {}, set()
+    for n, r in enumerate(rows, 2):
+        name = r["block"].strip()
+        if not name or name in seen:
+            raise BuildError(f"{path.name} line {n}: block {name!r} is empty or listed twice")
+        seen.add(name)
+        as_, order = r["numbered_as"].strip(), r["append_order"].strip()
+        if bool(as_) == bool(order):
+            raise BuildError(f"{path.name} line {n} ({name}): give numbered_as or append_order, one of the two")
+        if as_:
+            numbered[name] = as_
+        elif not order.isdigit():
+            raise BuildError(f"{path.name} line {n} ({name}): append_order {order!r} is not a whole number")
+        else:
+            appended[int(order)] = name
+    if sorted(appended) != list(range(1, len(appended) + 1)):
+        raise BuildError(f"{path.name}: append_order must count 1, 2, 3 ... without a gap or repeat, got "
+                         f"{sorted(appended)}")
+    clash = sorted(set(numbered.values()) & seen)
+    if clash:
+        raise BuildError(f"{path.name}: {', '.join(clash)} is both a block and the name another is numbered as")
+    return numbered, tuple(appended[k] for k in sorted(appended))
+
+
+BLOCK_NUMBERED_AS, APPENDED_BLOCKS = load_numbering()
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 
 
@@ -343,10 +376,15 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     return notes
 
 
-def numbered_blocks(blocks) -> list:
+def numbered_blocks(blocks, require_listed: bool = False) -> list:
     """The main and upper blocks in the order their system names are numbered: by block_sort (a block in
-    BLOCK_NUMBERED_AS in the place of the name it replaces), then APPENDED_BLOCKS."""
+    BLOCK_NUMBERED_AS in the place of the name it replaces), then APPENDED_BLOCKS. With require_listed (the build),
+    a block named in block_numbering.csv that is not among `blocks` stops it: the row is stale."""
     blocks = set(blocks)
+    missing = sorted((set(BLOCK_NUMBERED_AS) | set(APPENDED_BLOCKS)) - blocks) if require_listed else []
+    if missing:
+        raise BuildError(f"{NUMBERING.name} names {', '.join(missing)}, which the main and upper levels no longer "
+                         "have; take the row out or rename it")
     tail = [b for b in APPENDED_BLOCKS if b in blocks]
     return sorted(blocks - set(tail), key=lambda b: block_sort(BLOCK_NUMBERED_AS.get(b, b))) + tail
 
@@ -525,7 +563,7 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     (add_level_clear). Stops on a block the device map gives no sensor."""
     new_turnouts = sorted({t for k, v in names.items() if k != STAGING for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
-    new_blocks = numbered_blocks(b for b in P.blocks if b not in staging_blocks)
+    new_blocks = numbered_blocks((b for b in P.blocks if b not in staging_blocks), require_listed=True)
     if set(new_blocks) - set(lengths):
         raise BuildError(f"blocks with no source: {sorted(set(new_blocks) - set(lengths))}")
     taken_users = {tables.user_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
