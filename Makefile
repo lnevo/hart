@@ -16,6 +16,7 @@ check:  ## Run every repo check
 	./tools/check.sh
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
+	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }
 	./tools/hosts/win_run.sh -- bash -c '$(subst ','"'"',$(CMD))'
 
 portal-check:  ## Build the website and test its links
