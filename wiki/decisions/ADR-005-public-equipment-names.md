@@ -80,7 +80,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 | Script | Hardcoded names |
 |--------|-----------------|
 | `gen_ctc_track_plan.py` | `SIGNALS` mast keys; lamp labels Track Scale / T6 / Track S-R / Track East Lead |
-| `polish_hart_layout_editor.py` | Reads positions from `--reference`; no hard-coded mast xy since 2026-11-18 |
+| `parked/polish_hart_layout_editor.py` | Reads positions from `--reference`; no hard-coded mast xy since 2026-11-18 |
 | `add_digicon_le_signal_icons.py` | Archived 2026-11-18 (`archive/jmri-scripts/`) |
 | `reconcile_dispatcher_stations.py` | Station `Track East Lead` (icon xy table removed 2026-11-18) |
 | `audit_panel_contracts.py` | `Track East Lead` stop contract |

@@ -19,7 +19,7 @@ Modes (--mode):
   lock  Full interlock: Hold at Stop until a route is clicked, reserve
         the path. CATS CTC and USS Logic off while this is on.
 
-Switch later: python3 apply_nx_layer.py --mode lock && deploy.
+Switch later: python3 jmri/layouts/hart/parked/apply_nx_layer.py --mode lock && deploy.
 
 A mast whose NX sensor is already bound somewhere on the panel (a turnout leg's
 <sensorX> or an anchor's east/westboundsensor) gets no second binding.
@@ -38,7 +38,7 @@ import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-_SCRIPT_DIR = Path(__file__).resolve().parent
+_SCRIPT_DIR = Path(__file__).resolve().parent.parent / "scripts"  # nx_contract.py stays there
 sys.path.insert(0, str(_SCRIPT_DIR))
 from nx_contract import (
     ISNX_SYSTEM,

@@ -17,8 +17,14 @@ REPO = SCRIPTS.parents[3]
 TABLES = REPO / "jmri/layouts/hart/output/tables.xml"
 
 
+def script_path(name):
+    """The script's file: in scripts/, or in parked/ for the ones moved there."""
+    here = SCRIPTS / f"{name}.py"
+    return here if here.is_file() else SCRIPTS.parent / "parked" / f"{name}.py"
+
+
 def load(name: str):
-    spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
+    spec = importlib.util.spec_from_file_location(name, script_path(name))
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     sys.modules[name] = mod  # dataclasses look their module up here

@@ -51,6 +51,57 @@ _last_fb_appearance = None
 _listener = None
 _click_busy = False
 _plant_count = 0
+# sys name -> feedback mode of each included plant. A full scan fills it; a turnout's own event updates its entry.
+_plant_modes = {}
+
+# Every listener this script attaches carries this attribute, so a second run of the script can find the first
+# run's listeners and remove them (otherwise one click toggles twice). Same approach as mimic_relay.py. Each arm
+# step drops the earlier run's listeners just before it attaches its own, so the old ones keep working until then.
+_MARK = "hart_panel_status"
+# The same classes before they carried _MARK (a re-run straight after the deploy that added it).
+_UNMARKED_CLASSES = ("_TurnoutListener", "_PowerListener", "_PanelLampClick")
+
+
+def _ours(listener):
+    if getattr(listener, _MARK, False):
+        return True
+    try:
+        return listener.__class__.__name__ in _UNMARKED_CLASSES
+    except Exception:
+        return False
+
+
+# A re-run's id, kept on __main__ (shared by every script run in this JMRI). The arm and click retry timers of an
+# earlier run see a newer id there and stop, so two runs never arm against each other.
+try:
+    import __main__ as _main
+
+    _RUN_ID = getattr(_main, "hart_panel_status_run", 0) + 1
+    _main.hart_panel_status_run = _RUN_ID
+except Exception:
+    _main = None
+    _RUN_ID = 0
+
+
+def _superseded(run_id):
+    """True when a later run of this script has started."""
+    try:
+        return _main is not None and getattr(_main, "hart_panel_status_run", run_id) != run_id
+    except Exception:
+        return False
+
+
+def _drop_ours(listeners, remove, keep=None):
+    """Remove every listener of ours except `keep`; returns how many went."""
+    n = 0
+    for old in list(listeners):
+        if old is not keep and _ours(old):
+            try:
+                remove(old)
+                n += 1
+            except Exception as e:
+                print("panel_status: detach failed: %s" % e)
+    return n
 
 
 def _has_two_fb_sensors(to):
@@ -60,19 +111,49 @@ def _has_two_fb_sensors(to):
         return False
 
 
+def _is_plant(to):
+    sn = to.getSystemName()
+    return sn.startswith("M2T") or sn.startswith("MTT")
+
+
 def _included_plant_turnouts():
     """M2T/MTT (MQTT/LCC plant) turnouts with both feedback sensors assigned."""
     out = []
     try:
         for to in turnouts.getNamedBeanSet():
-            sn = to.getSystemName()
-            if not (sn.startswith("M2T") or sn.startswith("MTT")):
-                continue
-            if _has_two_fb_sensors(to):
+            if _is_plant(to) and _has_two_fb_sensors(to):
                 out.append(to)
     except Exception as e:
         print("panel_status: scan turnouts failed: %s" % e)
     return out
+
+
+def _feedback_mode(to):
+    try:
+        return to.getFeedbackMode()
+    except Exception:
+        return None
+
+
+def _rescan_plant_modes():
+    """Full scan: refill the mode cache from every plant turnout."""
+    global _plant_modes
+    modes = {}
+    for to in _included_plant_turnouts():
+        modes[to.getSystemName()] = _feedback_mode(to)
+    _plant_modes = modes
+
+
+def _note_plant(to):
+    """One turnout changed: update only its entry (it may also have gained or lost a feedback sensor)."""
+    try:
+        sn = to.getSystemName()
+        if _is_plant(to) and _has_two_fb_sensors(to):
+            _plant_modes[sn] = _feedback_mode(to)
+        else:
+            _plant_modes.pop(sn, None)
+    except Exception as e:
+        print("panel_status: plant update failed: %s" % e)
 
 
 def _ensure_turnout_fb_head():
@@ -176,35 +257,36 @@ def _rebind_turnout_fb_icons(head):
 
 
 def sync_turnout_fb_lamp():
-    """Set IH9990 Green/Yellow/Red from included plant feedback modes."""
+    """Set IH9990 Green/Yellow/Red from included plant feedback modes (full scan of the turnouts)."""
+    _rescan_plant_modes()
+    _paint_turnout_fb_lamp()
+
+
+def _paint_turnout_fb_lamp():
+    """Set IH9990 from the mode cache, without scanning the turnouts."""
     global _last_fb_appearance
     head = _ensure_turnout_fb_head()
     if head is None:
         return
     _rebind_turnout_fb_icons(head)
 
-    included = _included_plant_turnouts()
-    if not included:
+    count = len(_plant_modes)
+    if not count:
         appearance = YELLOW
         label = "yellow(empty)"
     else:
-        modes = set()
-        for to in included:
-            try:
-                modes.add(to.getFeedbackMode())
-            except Exception:
-                modes.add(None)
+        modes = set(_plant_modes.values())
         if modes == {TWOSENSOR}:
             appearance = GREEN
-            label = "green(all TWOSENSOR, n=%d)" % len(included)
+            label = "green(all TWOSENSOR, n=%d)" % count
         elif modes == {DIRECT}:
             appearance = RED
-            label = "red(all DIRECT, n=%d)" % len(included)
+            label = "red(all DIRECT, n=%d)" % count
         else:
             appearance = YELLOW
             label = "yellow(mixed %s, n=%d)" % (
                 sorted(str(m) for m in modes),
-                len(included),
+                count,
             )
 
     try:
@@ -490,6 +572,8 @@ def _sync_track_power_sensor():
 
 
 class _PowerListener(PropertyChangeListener):
+    hart_panel_status = True  # _MARK: a re-run finds and replaces it
+
     def propertyChange(self, event):
         try:
             if event.getPropertyName() == "power":
@@ -509,6 +593,7 @@ def _arm_power_listener():
     if pm is None:
         return
     _power_listener = _PowerListener()
+    _drop_ours(pm.getPropertyChangeListeners(), pm.removePropertyChangeListener)
     pm.addPropertyChangeListener(_power_listener)
 
 
@@ -548,7 +633,8 @@ _sync_timer.setRepeats(False)
 
 class _DebouncedSync(ActionListener):
     def actionPerformed(self, event):
-        sync_lamps()
+        # turnout events have already updated their own cache entries; repaint without a full scan
+        _paint_turnout_fb_lamp()
 
 
 _sync_timer.addActionListener(_DebouncedSync())
@@ -569,10 +655,13 @@ def _schedule_sync():
 
 
 class _TurnoutListener(PropertyChangeListener):
+    hart_panel_status = True  # _MARK: a re-run finds and replaces it
+
     def propertyChange(self, event):
         try:
             name = event.getPropertyName()
             if name in ("KnownState", "FeedbackMode", "Sensor1", "Sensor2"):
+                _note_plant(event.getSource())
                 _schedule_sync()
         except Exception as e:
             print("panel_status: listener error: %s" % e)
@@ -652,6 +741,8 @@ def _lamp_at(lamps, scale, x, y):
 class _PanelLampClick(MouseAdapter):
     """One listener on an editor's target panel that finds the clicked status lamp at any zoom."""
 
+    hart_panel_status = True  # _MARK: a re-run finds and replaces it
+
     def __init__(self, editor):
         self._editor = editor
         self.lamps = []
@@ -728,7 +819,9 @@ def _arm_status_lamp_clicks():
                 handler = _panel_clicks.get(id(ed))
                 if handler is None:
                     handler = _PanelLampClick(ed)
-                    ed.getTargetPanel().addMouseListener(handler)
+                    target = ed.getTargetPanel()
+                    _drop_ours(target.getMouseListeners(), target.removeMouseListener)
+                    target.addMouseListener(handler)
                     _panel_clicks[id(ed)] = handler
                 handler.lamps = lamps
             except Exception as e:
@@ -796,15 +889,23 @@ def _raise_block_labels():
 
 
 def _arm_listeners():
-    """Attach plant listeners once (the Turnouts lamp). Independent of panel icons."""
+    """Attach plant listeners once (the Turnouts lamp). Independent of panel icons.
+
+    Every M2T/MTT turnout gets one, not only those with both feedback sensors, so a plant that gains its second
+    sensor later joins the lamp on its own event (_note_plant decides which are included)."""
     global _armed, _listener, _plant_count
     if _armed:
         return True
     _listener = _TurnoutListener()
-    plants = _included_plant_turnouts()
-    _plant_count = len(plants)
+    _plant_count = len(_included_plant_turnouts())
+    try:
+        plants = [to for to in turnouts.getNamedBeanSet() if _is_plant(to)]
+    except Exception as e:
+        print("panel_status: scan turnouts failed: %s" % e)
+        plants = []
     for to in plants:
         try:
+            _drop_ours(to.getPropertyChangeListeners(), to.removePropertyChangeListener)
             to.addPropertyChangeListener(_listener)
         except Exception:
             pass
@@ -819,9 +920,12 @@ class _ArmAttempt(ActionListener):
     def __init__(self, attempt, last=-1):
         self.attempt = attempt
         self.last = last
+        self.run = _RUN_ID
 
     def actionPerformed(self, event):
         event.getSource().stop()
+        if _superseded(self.run):
+            return
         n = len(_included_plant_turnouts())
         if n == 0 or n != self.last:
             if self.attempt + 1 >= _ARM_MAX_ATTEMPTS:
@@ -849,9 +953,12 @@ class _ArmAttempt(ActionListener):
 class _RetryClicks(ActionListener):
     def __init__(self, attempt):
         self.attempt = attempt
+        self.run = _RUN_ID
 
     def actionPerformed(self, event):
         event.getSource().stop()
+        if _superseded(self.run):
+            return
         try:
             if _arm_status_lamp_clicks():
                 return

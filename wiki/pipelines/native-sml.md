@@ -6,7 +6,7 @@ Layout Editor Discover writes Signal Mast Logic (and NX pairs) into the tables b
 
 NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at runtime (`useLayoutEditor=yes`); they are **not** stored in `tables.xml`. Digicon dests boot **Enabled=no**. Brick pairs without a stored dest use live connectivity.
 
-`ISNX:*` systemNames are frozen CTC numbers (`ISNX:100L` = `NX Mast 2L`). Do not re-run `apply_nx_layer.py` against live tables unless you have pulled `nx_contract.py` — an old copy would mint `ISNX:Mast 2L`.
+`ISNX:*` systemNames are frozen CTC numbers (`ISNX:100L` = `NX Mast 2L`). Do not re-run `jmri/layouts/hart/parked/apply_nx_layer.py` against live tables unless you have pulled `nx_contract.py` — an old copy would mint `ISNX:Mast 2L`.
 
 ## Inputs
 
