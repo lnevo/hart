@@ -10796,7 +10796,7 @@
               </switches>
               <OccupancyExternalSensors>
                 <sensor>BS Switch 35b</sensor>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
                 <sensor>BS K-1</sensor>
                 <sensor>BS K-2</sensor>
               </OccupancyExternalSensors>
@@ -10856,7 +10856,7 @@
               </switches>
               <OccupancyExternalSensors>
                 <sensor>BS Switch 35a</sensor>
-                <sensor>BS Switch 37 / BS McKeesport</sensor>
+                <sensor>BS Switch 37</sensor>
               </OccupancyExternalSensors>
               <OptionalExternalSensors />
             </TRL_TrafficLockingRule>
@@ -10879,7 +10879,7 @@
               <OccupancyExternalSensors>
                 <sensor>BS Switch 35a</sensor>
                 <sensor>BS Switch 35b</sensor>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
                 <sensor>BS K-1</sensor>
                 <sensor>BS K-2</sensor>
               </OccupancyExternalSensors>
@@ -10903,7 +10903,7 @@
               </switches>
               <OccupancyExternalSensors>
                 <sensor>BS Switch 35a</sensor>
-                <sensor>BS Switch 37 / BS McKeesport</sensor>
+                <sensor>BS Switch 37</sensor>
                 <sensor>BS K-2</sensor>
                 <sensor>BS K-1</sensor>
               </OccupancyExternalSensors>
@@ -10929,7 +10929,7 @@
           <SignalEtcNumber>28</SignalEtcNumber>
           <GUIColumnNumber>15</GUIColumnNumber>
           <CodeButtonInternalSensor>CTC 37 sig code</CodeButtonInternalSensor>
-          <OSSectionOccupiedExternalSensor>BS Switch 37 / BS McKeesport</OSSectionOccupiedExternalSensor>
+          <OSSectionOccupiedExternalSensor>BS Switch 37</OSSectionOccupiedExternalSensor>
           <OSSectionOccupiedExternalSensor2 />
           <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
           <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
@@ -10985,7 +10985,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 37 / BS McKeesport</sensor>
+                <sensor>BS Switch 37</sensor>
                 <sensor>BS Switch 35a</sensor>
                 <sensor>BS East Lead</sensor>
               </OccupancyExternalSensors>
@@ -11008,7 +11008,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 37 / BS McKeesport</sensor>
+                <sensor>BS Switch 37</sensor>
                 <sensor>BS Switch 35a</sensor>
                 <sensor>BS East Lead</sensor>
               </OccupancyExternalSensors>
@@ -11028,7 +11028,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 37 / BS McKeesport</sensor>
+                <sensor>BS Switch 37</sensor>
               </OccupancyExternalSensors>
               <OptionalExternalSensors />
             </TRL_TrafficLockingRule>
@@ -11044,7 +11044,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 37 / BS McKeesport</sensor>
+                <sensor>BS Switch 37</sensor>
                 <sensor>BS K-2</sensor>
               </OccupancyExternalSensors>
               <OptionalExternalSensors />
@@ -11069,7 +11069,7 @@
           <SignalEtcNumber>30</SignalEtcNumber>
           <GUIColumnNumber>16</GUIColumnNumber>
           <CodeButtonInternalSensor>CTC 39 sig code</CodeButtonInternalSensor>
-          <OSSectionOccupiedExternalSensor>BS Switch 39 / BS McKees Rocks</OSSectionOccupiedExternalSensor>
+          <OSSectionOccupiedExternalSensor>BS Switch 39</OSSectionOccupiedExternalSensor>
           <OSSectionOccupiedExternalSensor2 />
           <OSSectionSwitchSlavedToUniqueID>-1</OSSectionSwitchSlavedToUniqueID>
           <GUIGeneratedAtLeastOnceAlready>false</GUIGeneratedAtLeastOnceAlready>
@@ -11125,7 +11125,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
                 <sensor>BS Switch 35b</sensor>
                 <sensor>BS Switch 35a</sensor>
                 <sensor>BS East Lead</sensor>
@@ -11149,7 +11149,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
                 <sensor>BS Switch 35b</sensor>
                 <sensor>BS West Ext</sensor>
               </OccupancyExternalSensors>
@@ -11172,7 +11172,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
                 <sensor>BS Switch 35b</sensor>
                 <sensor>BS Switch 35a</sensor>
                 <sensor>BS East Lead</sensor>
@@ -11196,7 +11196,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
                 <sensor>BS Switch 35b</sensor>
                 <sensor>BS West Ext</sensor>
               </OccupancyExternalSensors>
@@ -11216,7 +11216,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
               </OccupancyExternalSensors>
               <OptionalExternalSensors />
             </TRL_TrafficLockingRule>
@@ -11232,7 +11232,7 @@
                 </switch>
               </switches>
               <OccupancyExternalSensors>
-                <sensor>BS Switch 39 / BS McKees Rocks</sensor>
+                <sensor>BS Switch 39</sensor>
                 <sensor>BS K-1</sensor>
               </OccupancyExternalSensors>
               <OptionalExternalSensors />
@@ -12789,7 +12789,7 @@
           </icons>
           <iconmaps />
         </turnouticon>
-        <sensoricon sensor="BS Switch 39 / BS McKees Rocks" x="1115" y="94" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+        <sensoricon sensor="BS Switch 39" x="1115" y="94" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <tooltip>OS Switch 39</tooltip>
           <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
             <rotation>0</rotation>
@@ -12965,7 +12965,7 @@
           </inconsistent>
           <iconmaps />
         </sensoricon>
-        <sensoricon sensor="BS Switch 37 / BS McKeesport" x="1115" y="115" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+        <sensoricon sensor="BS Switch 37" x="1115" y="115" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <tooltip>OS Switch 37</tooltip>
           <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
             <rotation>0</rotation>

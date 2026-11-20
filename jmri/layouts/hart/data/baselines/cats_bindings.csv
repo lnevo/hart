@@ -107,12 +107,12 @@ OS Switch 35a,BS Switch 35a,M2S105,
 OS Switch 35a,BS Switch 35a,M2S105,Mast 36RB
 OS Switch 35b,BS Switch 35b,M2S104,
 OS Switch 35b,BS Switch 35b,M2S104,Mast 36RA
-OS Switch 37,BS Switch 37 / BS McKeesport,M2S102,
-OS Switch 37,BS Switch 37 / BS McKeesport,M2S102,Mast 38LA
-OS Switch 37,BS Switch 37 / BS McKeesport,M2S102,Mast 38LB
-OS Switch 39,BS Switch 39 / BS McKees Rocks,M2S103,
-OS Switch 39,BS Switch 39 / BS McKees Rocks,M2S103,Mast 40LA
-OS Switch 39,BS Switch 39 / BS McKees Rocks,M2S103,Mast 40LB
+OS Switch 37,BS Switch 37,M2S102,
+OS Switch 37,BS Switch 37,M2S102,Mast 38LA
+OS Switch 37,BS Switch 37,M2S102,Mast 38LB
+OS Switch 39,BS Switch 39,M2S103,
+OS Switch 39,BS Switch 39,M2S103,Mast 40LA
+OS Switch 39,BS Switch 39,M2S103,Mast 40LB
 OS Switch 5,BS Switch 5,M2S404,Mast 6LA
 OS Switch 5,BS Switch 5,M2S404,Mast 6LB
 OS Switch 5,BS Switch 5,M2S404,Mast 6R
@@ -202,8 +202,6 @@ Track K-2,BS K-2,M2S101,
 Track K-2,BS K-2,M2S101,Mast 68
 Track Main East,BS Main East,M2S202,
 Track Main West,BS Main West,M2S200,
-Track McKees Rocks,BS Switch 39 / BS McKees Rocks,M2S103,
-Track McKeesport,BS Switch 37 / BS McKeesport,M2S102,
 Track S-1,BS S-1,M2S206,
 Track S-2,BS S-2,M2S205,
 Track S-3,BS S-3,M2S204,

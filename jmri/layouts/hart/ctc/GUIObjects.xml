@@ -1106,7 +1106,7 @@
       </icons>
       <iconmaps />
     </turnouticon>
-    <sensoricon sensor="BS Switch 39 / BS McKees Rocks" x="1115" y="94" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 39" x="1115" y="94" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 39</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>
@@ -1282,7 +1282,7 @@
       </inconsistent>
       <iconmaps />
     </sensoricon>
-    <sensoricon sensor="BS Switch 37 / BS McKeesport" x="1115" y="115" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+    <sensoricon sensor="BS Switch 37" x="1115" y="115" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="true" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
       <tooltip>OS Switch 37</tooltip>
       <active url="program:resources/icons/USS/sensor/red-on.gif" scale="1.0">
         <rotation>0</rotation>

@@ -572,7 +572,7 @@
    "xml": "<sensoricon sensor=\"BS Switch 31\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "lamp OS Switch 37: BS Switch 37 / BS McKeesport",
+   "id": "lamp OS Switch 37: BS Switch 37",
    "anchor": {
     "to": "block",
     "at": "centre",
@@ -584,10 +584,10 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"BS Switch 37 / BS McKeesport\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"BS Switch 37\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "lamp OS Switch 39: BS Switch 39 / BS McKees Rocks",
+   "id": "lamp OS Switch 39: BS Switch 39",
    "anchor": {
     "to": "block",
     "at": "centre",
@@ -599,7 +599,7 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"BS Switch 39 / BS McKees Rocks\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"BS Switch 39\" level=\"10\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
    "id": "lamp OS Switch 33: BS Switch 33",
@@ -1127,7 +1127,7 @@
    "xml": "<sensoricon sensor=\"MoveInProgressTrack_McKees_Rocks\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "station Track McKees Rocks: BS Switch 39 / BS McKees Rocks",
+   "id": "station Track McKees Rocks: BS Switch 39",
    "anchor": {
     "to": "block",
     "at": "centre",
@@ -1139,7 +1139,7 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"BS Switch 39 / BS McKees Rocks\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"BS Switch 39\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
    "id": "station Track McKeesport: MoveToTrack_McKeesport_stored",
@@ -1172,7 +1172,7 @@
    "xml": "<sensoricon sensor=\"MoveInProgressTrack_McKeesport\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "station Track McKeesport: BS Switch 37 / BS McKeesport",
+   "id": "station Track McKeesport: BS Switch 37",
    "anchor": {
     "to": "block",
     "at": "centre",
@@ -1184,7 +1184,7 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"BS Switch 37 / BS McKeesport\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"BS Switch 37\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   }
  ]
 }

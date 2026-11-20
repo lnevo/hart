@@ -33,10 +33,10 @@ Switch 31                                 241      0     9.5     1
 Switch 33                                 389      0    15.3     1
 East Lead                                2602      0   102.4     1
 Switch 35a                                364      0    14.3     1
-Switch 37 / BS McKeesport                 441      0    17.4     1
+Switch 37                 441      0    17.4     1
 K-2                                      2904      0   114.3     1
 K-1                                      3036      0   119.5     1
-Switch 39 / BS McKees Rocks               353      0    13.9     1
+Switch 39               353      0    13.9     1
 Switch 35b                                451      0    17.7     1
 West Ext                                 3958      0   155.8     1
 Switch 23a                                676      0    26.6     1
@@ -49,10 +49,10 @@ rows on both routes (loop 1 value from block_lengths.csv, this run beside it):
   Switch 33                          loop1     315 mm   loop2     389 mm      +74
   East Lead                          loop1    2233 mm   loop2    2602 mm     +370
   Switch 35a                         loop1     381 mm   loop2     364 mm      -17
-  Switch 37 / BS McKeesport          loop1     419 mm   loop2     441 mm      +22
+  Switch 37          loop1     419 mm   loop2     441 mm      +22
   K-2                                loop1    2885 mm   loop2    2904 mm      +19
   K-1                                loop1    2743 mm   loop2    3036 mm     +293
-  Switch 39 / BS McKees Rocks        loop1     244 mm   loop2     353 mm     +109
+  Switch 39        loop1     244 mm   loop2     353 mm     +109
   Switch 35b                         loop1     521 mm   loop2     451 mm      -70
   West Ext                           loop1    3965 mm   loop2    3958 mm       -7
   Switch 23a                         loop1     597 mm   loop2     676 mm      +80

@@ -100,8 +100,8 @@ STATION_OCCUPANCY = {
     "Track Barn": "BS Barn",
     "Track W-1": "BS W-1",
     "Track W-2": "BS W-2",
-    "Track McKees Rocks": "BS Switch 39 / BS McKees Rocks",
-    "Track McKeesport": "BS Switch 37 / BS McKeesport",
+    "Track McKees Rocks": "BS Switch 39",
+    "Track McKeesport": "BS Switch 37",
 }
 
 # Loco marker is ~60px; size-10 bold fits about 8 characters.

@@ -168,8 +168,9 @@ class Files(unittest.TestCase):
         self.assertIn(["Track Brick-Plane"], [seq for _s, seq, _e in runs])
         chains = sdm.staging_chains(self.band, self.names)
         self.assertEqual(len(chains), len(runs))
+        # the track from Switch 35 to Switch 37 is all OS Switch 35a: its gap is at Switch 37's points
         self.assertTrue(any({e[0] for e in c["ends"]} == {"TOR36", "TO113"} and
-                            c["blocks"] == ["OS Switch 35a", "OS Switch 37"] for c in chains))
+                            c["blocks"] == ["OS Switch 35a"] for c in chains))
 
     def test_the_signal_plan_reads_back(self):
         masts = sdm.load_signal_masts()

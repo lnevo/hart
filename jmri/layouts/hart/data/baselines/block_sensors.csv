@@ -58,8 +58,8 @@ OS Switch 31,BS Switch 31
 OS Switch 33,BS Switch 33
 OS Switch 35a,BS Switch 35a
 OS Switch 35b,BS Switch 35b
-OS Switch 37,BS Switch 37 / BS McKeesport
-OS Switch 39,BS Switch 39 / BS McKees Rocks
+OS Switch 37,BS Switch 37
+OS Switch 39,BS Switch 39
 OS Switch 5,BS Switch 5
 OS Switch 7,BS Switch 7
 OS Switch 7b,BS Switch 7b
@@ -157,8 +157,6 @@ Track K-1 West,BS K-1
 Track K-2,BS K-2
 Track Main East,BS Main East
 Track Main West,BS Main West
-Track McKees Rocks,BS Switch 39 / BS McKees Rocks
-Track McKeesport,BS Switch 37 / BS McKeesport
 Track S-1,BS S-1
 Track S-1 East,BS S-1
 Track S-1 West,BS S-1
