@@ -15,7 +15,8 @@ class HartTablesRefused(unittest.TestCase):
         env = {**os.environ, "HART_TABLES": "/nowhere/tables.xml", "HART_PI_SSH": "nobody@example.invalid",
                "HART_WIN_SSH": "nobody@example.invalid"}
         scripts = (("tools/hosts/sync_hart_package.sh", ["--stage-only", "/nowhere/stage"]),
-                   ("tools/hosts/redeploy_commit.sh", ["HEAD", "--pi"]))
+                   ("tools/hosts/redeploy_commit.sh", ["HEAD", "--pi"]),
+                   ("tools/hosts/run_panelpro_roundtrip.sh", []))
         for script, args in scripts:
             with self.subTest(script=script):
                 done = subprocess.run(["bash", str(ROOT / script), *args], env=env, capture_output=True,
@@ -39,7 +40,8 @@ class HartTablesRefused(unittest.TestCase):
     def test_one_shared_refusal(self) -> None:
         guard = (ROOT / "tools/hosts/profile_tables_guard.sh").read_text(encoding="utf-8")
         self.assertIn("refuse_hart_tables()", guard)
-        users = ["tools/hosts/sync_hart_package.sh", "tools/hosts/redeploy_commit.sh"] + [
+        users = ["tools/hosts/sync_hart_package.sh", "tools/hosts/redeploy_commit.sh",
+                 "tools/hosts/run_panelpro_roundtrip.sh"] + [
             f"jmri/layouts/hart/scripts/{n}" for n in ("run_panelpro_stage1.sh", "run_nx_discover.sh",
                                                      "run_sml_discover.sh", "run_panelpro_traininfo_repair.sh",
                                                      "run_panelpro_smoke_test.sh")]

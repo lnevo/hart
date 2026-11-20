@@ -25,18 +25,22 @@ The envelope is fixed: PROLOG and EPILOG around the root, jmriversion as the tem
 Store writes each time (ENVELOPE_DROPS: the file history, the "Written by" comment, the clock's time, the memory
 values). strip_envelope takes those out of a Store.
 
-Order. A section's beans, the template's and the master's together, stand in JMRI's system-name order (jmri_order:
-the AlphanumComparator order the managers keep their beans in), after the section's settings; the Layout Editor build
-appends the main and upper beans after them in its own order. The discovered logic keeps the order discovery wrote.
+Order. Every section's beans, the template's, the master's and the Layout Editor build's together, stand in the
+order a JMRI 5.16 Store writes them (jmri_sort: by system name, AlphanumComparator), so a load and Store gives the
+same bytes after normalise_store. The discovered logic keeps the order discovery wrote.
 
 Every failure is a TablesBuildError naming the file, section or row.
 """
 from __future__ import annotations
 
+import argparse
 import copy
 import csv
+import difflib
 import functools
 import re
+import struct
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Iterable, Mapping
@@ -185,6 +189,136 @@ def strip_envelope(root: ET.Element) -> None:
     for box in root.findall("memories"):
         for m in box.findall("memory"):
             m.attrib.pop("value", None)
+
+
+# What a PanelPro Store rewrites in a Layout Editor panel without changing it (the round trip of 2026-11-20; owner
+# decision: compare past these rewrites, never make the generated panel Store-shaped). normalise_panel applies them to
+# both sides of a comparison:
+# - PANEL_WINDOW_ATTRS: the window's place and state on the host that stored it (where it stood on that screen, its
+#   size there, the scroll bars), which differ on every host and every Store;
+# - attribute order: JMRI writes a panel's attributes in its own order (name first);
+# - element order: JMRI writes the labels and icons first, then the track (turnouts, segments, points, shapes);
+# - numbers: JMRI keeps panel coordinates and angles as Java floats and writes them back at that precision
+#   (1761.2 as 1761.199951171875, 90 as 90.0), so every number is compared as a float32 (_float32);
+# - PANEL_IGNORED_ATTRS: a block contents icon's editable flag, which a Store always writes false;
+# - a layout turnout's derived points: JMRI keeps a (version 1) turnout as its centre and two displacements and
+#   computes A and D from them (LayoutTurnoutView.getCoordsA, getCoordsD, JMRI 5.16), so a Store writes A and D
+#   as it computes them, not as the file held them; both sides take them from the centre, B and C (_derived_points).
+PANEL_WINDOW_ATTRS = ("x", "y", "sliders", "windowwidth", "windowheight")
+PANEL_IGNORED_ATTRS = {"BlockContentsIcon": ("editable",)}
+_NUMBER = re.compile(r"-?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?")
+
+
+def _float32(text: str) -> str:
+    """A number as the float32 JMRI holds it, written one way ("90" and "90.0" both "90.0"); other text unchanged."""
+    if not _NUMBER.fullmatch(text):
+        return text
+    return repr(struct.unpack("f", struct.pack("f", float(text)))[0])
+
+
+def _f32(text: str) -> float:
+    return struct.unpack("f", struct.pack("f", float(text)))[0]
+
+
+XOVER_TYPES = ("RH_XOVER", "LH_XOVER", "DOUBLE_XOVER")
+
+
+def _derived_points(turnout: ET.Element) -> None:
+    """Set a version 1 layout turnout's A and D points as JMRI computes them from its centre, B and C (read as Java
+    floats, worked in doubles): A = centre - (C - centre) on a crossover, centre - (B - centre) otherwise; D =
+    centre - (B - centre). A turnout without those coordinates, or of version 2 (its four points stored), is left
+    as it is."""
+    if turnout.get("ver", "1") != "1":
+        return
+    try:
+        cx, cy = _f32(turnout.get("xcen")), _f32(turnout.get("ycen"))
+        bx, by = _f32(turnout.get("xb")), _f32(turnout.get("yb"))
+        dx, dy = _f32(turnout.get("xc")), _f32(turnout.get("yc"))
+    except (TypeError, ValueError):
+        return
+    disp_b, disp_a = (bx - cx, by - cy), (dx - cx, dy - cy)
+    a = disp_a if turnout.get("type") in XOVER_TYPES else disp_b
+    turnout.set("xa", repr(cx - a[0]))
+    turnout.set("ya", repr(cy - a[1]))
+    if "xd" in turnout.attrib:
+        turnout.set("xd", repr(cx - disp_b[0]))
+        turnout.set("yd", repr(cy - disp_b[1]))
+
+
+def _panel_key(el: ET.Element) -> str:
+    """A stable sort key for a panel child: its tag, then the whole element as normalised text."""
+    return el.tag + "\0" + ET.tostring(el, encoding="unicode")
+
+
+def normalise_panel(panel: ET.Element) -> None:
+    """A Layout Editor panel with the rewrites a Store makes taken out (edited in place; the rules above)."""
+    for name in PANEL_WINDOW_ATTRS:
+        panel.attrib.pop(name, None)
+    for turnout in panel.findall("layoutturnout"):
+        _derived_points(turnout)
+    for el in panel.iter():
+        if not isinstance(el.tag, str):
+            continue
+        for name in PANEL_IGNORED_ATTRS.get(el.tag, ()):
+            el.attrib.pop(name, None)
+        items = sorted((k, _float32(v)) for k, v in el.attrib.items())
+        el.attrib.clear()
+        el.attrib.update(items)
+        if el.text is not None and el.text.strip():
+            el.text = _float32(el.text.strip())
+        el.tail = None
+        if el.text is not None and not el.text.strip():
+            el.text = None
+    kids = [c for c in panel if isinstance(c.tag, str)]
+    for c in list(panel):
+        panel.remove(c)
+    panel.extend(sorted(kids, key=_panel_key))
+
+
+def normalise_store(root: ET.Element) -> None:
+    """Tables `root` as compared after a Store (edited in place; used on both sides of a round trip, and by the pull):
+    the envelope out (strip_envelope), the block paths JMRI derives from the panel when it loads the file (ADR-029;
+    the round trip of 2026-11-20 rebuilt them on every staging block), and each Layout Editor panel normalised
+    (normalise_panel). Idempotent: a generated file normalises to the same bytes as a Store of it."""
+    strip_envelope(root)
+    for block in tables.blocks(root):
+        for path in block.findall("path"):
+            tables.remove_child(block, path)
+    for panel in tables.layout_editors(root):
+        normalise_panel(panel)
+    finish(root)
+
+
+def _sort_group(el: ET.Element) -> str:
+    """The run of beans a JMRI manager writes and sorts on its own: a block's names-only pass apart from its full pass
+    (BlockManagerXml writes every block twice), one group for every other bean of a section."""
+    if el.tag == "block":
+        return "block-names" if {c.tag for c in tables.elements(el)} <= {"systemName", "userName"} else "block"
+    return "bean"
+
+
+def jmri_sort(root: ET.Element) -> None:
+    """Put every section's beans in the order a JMRI 5.16 Store writes them (edited in place): each manager keeps its
+    beans in a set ordered by system name (NamedBean.compareTo, AlphanumComparator: jmri_order), so within each
+    group of a section (_sort_group) the beans take the group's places in that order; settings and other children
+    (Thread, InitializationTable, Clipboard, defaultspeed ...) keep their places. Checked against a PanelPro Store of
+    the generated file (2026-11-20). Signal Mast Logic carries no system name and keeps discovery's order."""
+    key = functools.cmp_to_key(_alphanum)
+    for sec in tables.elements(root):
+        kids = list(sec)
+        groups: dict[str, list[int]] = {}
+        for i, el in enumerate(kids):
+            if isinstance(el.tag, str) and tables.system_name(el):
+                groups.setdefault(_sort_group(el), []).append(i)
+        if not groups:
+            continue
+        for slots in groups.values():
+            ordered = sorted((kids[i] for i in slots), key=lambda e: key(tables.system_name(e)))
+            for i, el in zip(slots, ordered):
+                kids[i] = el
+        for el in list(sec):
+            sec.remove(el)
+        sec.extend(kids)
 
 
 def bean_names(root: ET.Element) -> set[str]:
@@ -533,3 +667,95 @@ def enabled_digicon(root: ET.Element, masts: set[str]) -> list[tuple[str, str]]:
     return [(logic.get("source"), d.get("destination")) for logic in tables.mast_logics(root)
             if logic.get("source") in masts for d in logic.findall("destinationMast")
             if (d.findtext("enabled") or "") != "no"]
+
+
+# ---------------------------------------------------------------- the PanelPro round trip
+
+def roundtrip_differences(store: bytes, generated: bytes, context: int = 40) -> list[str]:
+    """[] when a PanelPro Store of the generated tables and the generated tables are the same bytes once both are
+    normalised (normalise_store); else the first `context` lines of a unified diff (generated against Store).
+    ADR-029 gate 2."""
+    sides = []
+    for data in (generated, store):
+        doc = tables.loads(data)
+        normalise_store(doc.root)
+        sides.append(doc.tobytes())
+    want, got = sides
+    if got == want:
+        return []
+    diff = difflib.unified_diff(want.decode("utf-8").splitlines(), got.decode("utf-8").splitlines(),
+                                "generated", "store (normalised)", lineterm="", n=1)
+    return [line for _i, line in zip(range(context), diff)]
+
+
+def without_panels(data: bytes) -> bytes:
+    """Tables bytes with every Layout Editor panel taken out: the round trip reports the beans and the panel apart."""
+    doc = tables.loads(data)
+    for le in tables.layout_editors(doc.root):
+        tables.remove_child(doc.root, le)
+    finish(doc.root)
+    return doc.tobytes()
+
+
+def read_path_counts(path: Path) -> dict[str, tuple[str, int]]:
+    """{block system name: (user name, path count)} of the round trip's block path file."""
+    out = {}
+    with path.open(encoding="utf-8") as fh:
+        for n, line in enumerate(fh, 1):
+            parts = line.rstrip("\n").split("\t")
+            if len(parts) != 3 or not parts[2].isdigit():
+                raise TablesBuildError(f"{path}: line {n} is not system name, user name, path count")
+            out[parts[0]] = (parts[1], int(parts[2]))
+    return out
+
+
+def roundtrip_report(store: Path, counts: Path, generated: Path) -> tuple[bool, list[str]]:
+    """(passed, lines) of a PanelPro round trip: the normalised Store against the generated file, and the block
+    paths JMRI derived for the blocks of devices.csv (every staging block must have at least one)."""
+    lines, ok = [], True
+    try:
+        diff = roundtrip_differences(store.read_bytes(), generated.read_bytes())
+        paths_of = read_path_counts(counts)
+    except OSError as exc:
+        return False, [f"cannot read {exc.filename}: {exc.strerror}"]
+    staging = [r["jmri_name"] for r in devices.load() if r["level"] in GENERATED_LEVELS and r["layer"] == "block"]
+    none = [b for b in staging if paths_of.get(b, ("", 0))[1] == 0]
+    total = sum(n for _u, n in paths_of.values())
+    lines.append(f"block paths JMRI derived: {total} on {len(paths_of)} blocks "
+                 f"({sum(paths_of.get(b, ('', 0))[1] for b in staging)} on the {len(staging)} staging blocks)")
+    if none:
+        ok = False
+        lines.append(f"FAIL: staging blocks with no derived path: {', '.join(none)}")
+    if diff:
+        ok = False
+        lines.append("FAIL: the normalised Store differs from the generated tables.xml:")
+        rest = roundtrip_differences(without_panels(store.read_bytes()), without_panels(generated.read_bytes()))
+        lines.append("  without the Layout Editor panels: " + ("identical" if not rest else "they differ too"))
+        lines += [f"  {line}" for line in diff]
+    else:
+        lines.append("ok: the Store and the generated tables.xml are the same bytes once both are normalised "
+                     "(normalise_store)")
+    lines.append("PASS: the PanelPro round trip gives the generated tables.xml back" if ok
+                 else "FAIL: the PanelPro round trip does not give the generated tables.xml back")
+    return ok, lines
+
+
+def main(argv: list[str] | None = None) -> int:
+    ap = argparse.ArgumentParser(prog="python3 -m hartlib.tables_build",
+                                 description="Compare a PanelPro round trip's Store with the generated tables.xml.")
+    ap.add_argument("action", choices=("roundtrip",))
+    ap.add_argument("--store", type=Path, required=True, help="the Store PanelPro wrote")
+    ap.add_argument("--paths", type=Path, required=True, help="the block path counts the round trip wrote")
+    ap.add_argument("--generated", type=Path, default=paths.REPO_TABLES_XML)
+    args = ap.parse_args(argv)
+    try:
+        ok, lines = roundtrip_report(args.store, args.paths, args.generated)
+    except (TablesBuildError, devices.DevicesError, ET.ParseError) as exc:
+        print(f"tables_build: {exc}", file=sys.stderr)
+        return 2
+    print("\n".join(lines))
+    return 0 if ok else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

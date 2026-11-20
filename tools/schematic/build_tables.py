@@ -70,6 +70,7 @@ def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[
                                       "jmri/layouts/hart/scripts/run_sml_discover.sh")
     digicon = tb.digicon_masts(root)
     flipped, already = tb.disable_digicon(root, digicon)
+    tb.jmri_sort(root)          # the order a Store writes (ADR-029 gate 2)
     tb.finish(root)
     check(root)
     out = doc.tobytes()

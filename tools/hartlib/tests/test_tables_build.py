@@ -334,6 +334,149 @@ class Discovered(unittest.TestCase):
         self.assertEqual(set(), (named | set(props)) - masts)
 
 
+SORTABLE = b"""<?xml version="1.0" encoding="UTF-8"?>
+<layout-config>
+  <sensors class="x">
+    <defaultInitialState>unknown</defaultInitialState>
+    <sensor><systemName>ISCLOCKRUNNING</systemName></sensor>
+    <sensor><systemName>IS:SML_MODE</systemName></sensor>
+    <sensor><systemName>IS:HART:C3:B:101</systemName></sensor>
+  </sensors>
+  <blocks class="y">
+    <defaultspeed>Normal</defaultspeed>
+    <block systemName="IB:AUTO:0001"><systemName>IB:AUTO:0001</systemName></block>
+    <block systemName="IB24"><systemName>IB24</systemName></block>
+    <block systemName="IB:AUTO:0001" length="1.0"><systemName>IB:AUTO:0001</systemName><permissive>no</permissive></block>
+    <block systemName="IB24" length="2.0"><systemName>IB24</systemName><permissive>no</permissive>
+      <path block="IB:AUTO:0001" /></block>
+  </blocks>
+  <LogixNGs>
+    <Thread><id>0</id></Thread>
+    <LogixNG><systemName>IQ:AUTO:0001</systemName></LogixNG>
+    <LogixNG><systemName>IQ$HART:C3:X</systemName></LogixNG>
+    <InitializationTable />
+  </LogixNGs>
+</layout-config>
+"""
+
+
+class StoreOrder(unittest.TestCase):
+    def test_beans_take_jmri_order_and_settings_stay(self) -> None:
+        root = tables.loads(SORTABLE).root
+        tb.jmri_sort(root)
+        internal = root.find("sensors")
+        self.assertEqual(["defaultInitialState", "IS:HART:C3:B:101", "IS:SML_MODE", "ISCLOCKRUNNING"],
+                         [tables.system_name(e) or e.tag for e in tables.elements(internal)])
+        blocks = [(tables.system_name(e), bool(e.get("length"))) for e in root.find("blocks").findall("block")]
+        self.assertEqual([("IB24", False), ("IB:AUTO:0001", False), ("IB24", True), ("IB:AUTO:0001", True)], blocks)
+        self.assertEqual(["Thread", "IQ$HART:C3:X", "IQ:AUTO:0001", "InitializationTable"],
+                         [tables.system_name(e) or e.tag for e in tables.elements(root.find("LogixNGs"))])
+
+    def test_the_generated_file_is_in_store_order(self) -> None:
+        doc = tables.loads(paths.REPO_TABLES_XML.read_bytes())
+        tb.jmri_sort(doc.root)
+        tb.finish(doc.root)
+        self.assertEqual(paths.REPO_TABLES_XML.read_bytes(), doc.tobytes())
+
+
+class RoundTrip(unittest.TestCase):
+    def store_of(self, data: bytes) -> bytes:
+        """A Store as JMRI writes one: the file history and the "Written by" comment added, a clock time, the
+        derived block paths on every full block pass."""
+        doc = tables.loads(data)
+        root = doc.root
+        root.find("timebase").set("time", "Fri Nov 20 17:36:00 EST 2026")
+        for b in tables.blocks(root):
+            ET.SubElement(b, "path", block="IB1")
+        ET.SubElement(root, "filehistory")
+        root.append(ET.Comment("Written by JMRI version 5.16"))
+        tb.finish(root)
+        return doc.tobytes()
+
+    def test_a_store_of_the_generated_file_normalises_to_its_bytes(self) -> None:
+        generated = paths.REPO_TABLES_XML.read_bytes()
+        self.assertEqual([], tb.roundtrip_differences(self.store_of(generated), generated))
+
+    def test_a_changed_store_is_shown(self) -> None:
+        generated = paths.REPO_TABLES_XML.read_bytes()
+        store = self.store_of(generated).replace(b"<userName>Clock running</userName>",
+                                                 b"<userName>Clock</userName>")
+        diff = tb.roundtrip_differences(store, generated)
+        self.assertIn("-      <userName>Clock running</userName>", diff)
+        self.assertIn("+      <userName>Clock</userName>", diff)
+
+    def test_the_report_fails_a_staging_block_with_no_derived_path(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            store, counts = Path(tmp) / "store.xml", Path(tmp) / "paths.tsv"
+            store.write_bytes(self.store_of(paths.REPO_TABLES_XML.read_bytes()))
+            counts.write_text("IB1\tOS Switch 13\t3\nIB3\tTrack Scale\t0\n", encoding="utf-8")
+            ok, lines = tb.roundtrip_report(store, counts, paths.REPO_TABLES_XML)
+            self.assertFalse(ok)
+            self.assertTrue(any(line.startswith("FAIL: staging blocks with no derived path: ") and "IB3" in line
+                                for line in lines), lines)
+            self.assertTrue(any(line.startswith("ok: the Store and the generated tables.xml are the same bytes")
+                                for line in lines), lines)
+            self.assertEqual("FAIL: the PanelPro round trip does not give the generated tables.xml back", lines[-1])
+            counts.write_text("IB1 broken\n", encoding="utf-8")
+            with self.assertRaisesRegex(tb.TablesBuildError, "line 1 is not"):
+                tb.roundtrip_report(store, counts, paths.REPO_TABLES_XML)
+
+
+PANEL = (
+    '<layout-config>\n  <LayoutEditor class="LE" name="HART Railroad" x="0" y="0" sliders="no" windowwidth="1900" '
+    'windowheight="1140" panelwidth="2509">\n'
+    '    <layoutturnout ident="TOL15" type="LH_TURNOUT" ver="1" xcen="1018.6" ycen="282.0" xa="1011.3" ya="272.5" '
+    'xb="1026.0" yb="291.5" xc="1030.6" yc="282.0" xd="1011.3" yd="272.5" />\n'
+    '    <tracksegment ident="TG63" angle="90" />\n'
+    '    <positionablepoint ident="AGE1" x="1761.2" y="195.0" />\n'
+    '    <BlockContentsIcon blockcontents="OS Switch 1" editable="true" x="10" y="20" />\n'
+    '    <positionablelabel text="SW-1" x="389" y="159" />\n'
+    '  </LayoutEditor>\n</layout-config>\n')
+
+
+class PanelRewrites(unittest.TestCase):
+    """normalise_panel: each rewrite a PanelPro Store makes to the panel compares equal, and nothing more does."""
+
+    def same(self, store: str) -> list[str]:
+        return tb.roundtrip_differences(store.encode(), PANEL.encode())
+
+    def test_window_state(self) -> None:
+        self.assertEqual([], self.same(PANEL.replace('x="0" y="0" sliders="no" windowwidth="1900" windowheight="1140"',
+                                                     'x="270" y="147" sliders="yes" windowwidth="1600" '
+                                                     'windowheight="900"')))
+        self.assertNotEqual([], self.same(PANEL.replace('panelwidth="2509"', 'panelwidth="2600"')))
+
+    def test_attribute_order(self) -> None:
+        self.assertEqual([], self.same(PANEL.replace('class="LE" name="HART Railroad"',
+                                                     'name="HART Railroad" class="LE"')
+                                       .replace('ident="TG63" angle="90"', 'angle="90" ident="TG63"')))
+
+    def test_element_order(self) -> None:
+        moved = PANEL.replace('    <positionablelabel text="SW-1" x="389" y="159" />\n', '').replace(
+            '    <layoutturnout', '    <positionablelabel text="SW-1" x="389" y="159" />\n    <layoutturnout')
+        self.assertEqual([], self.same(moved))
+
+    def test_numbers_at_float32(self) -> None:
+        self.assertEqual([], self.same(PANEL.replace('x="1761.2"', 'x="1761.199951171875"')
+                                       .replace('angle="90"', 'angle="90.0"')))
+        self.assertNotEqual([], self.same(PANEL.replace('x="1761.2"', 'x="1761.3"')))      # no wider tolerance
+
+    def test_block_contents_editable(self) -> None:
+        self.assertEqual([], self.same(PANEL.replace('editable="true"', 'editable="false"')))
+        self.assertNotEqual([], self.same(PANEL.replace('blockcontents="OS Switch 1"', 'blockcontents="OS Switch 3"')))
+
+    def test_derived_turnout_points(self) -> None:
+        """JMRI computes a version 1 turnout's A and D from its centre and B (2 x 1018.6 - 1026.0, in doubles from
+        floats), so a Store writes 1011.199951171875 where the file held 1011.3; a changed B still differs."""
+        derived = PANEL.replace('xa="1011.3"', 'xa="1011.199951171875"').replace('xd="1011.3"',
+                                                                                 'xd="1011.199951171875"')
+        self.assertEqual([], self.same(derived))
+        self.assertNotEqual([], self.same(PANEL.replace('xb="1026.0"', 'xb="1026.5"')))
+
+    def test_a_label_change_still_differs(self) -> None:
+        self.assertNotEqual([], self.same(PANEL.replace('text="SW-1"', 'text="SW-2"')))
+
+
 class Envelope(unittest.TestCase):
     def test_strip_takes_out_what_a_store_writes(self) -> None:
         root = tables.loads(STORE.replace(b"<signalmasts>", b'<timebase time="x" /><memories><memory value="1">'
