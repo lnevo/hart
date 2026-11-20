@@ -171,8 +171,10 @@ class Generated(unittest.TestCase):
 
 class Skipped(unittest.TestCase):
     def test_check_skips_without_the_plugin_unless_required(self) -> None:
+        env = {k: v for k, v in os.environ.items() if k != "SCHEMATIC_REQUIRED"}   # CI sets it for every job
         with mock.patch.object(bt.ble, "plugin", side_effect=bt.ble.BuildError("no plugin")):
-            code, out, _err = run("--check")
+            with mock.patch.dict(os.environ, env, clear=True):
+                code, out, _err = run("--check")
             self.assertEqual((0, True), (code, "SKIPPED" in out))
             with mock.patch.dict(os.environ, {"SCHEMATIC_REQUIRED": "1"}):
                 self.assertEqual(bt.EXIT_NO_PLUGIN, run("--check")[0])
