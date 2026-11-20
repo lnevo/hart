@@ -114,7 +114,7 @@ Three hand lists reproduce exactly as rules, checked against the drawing:
 | Spur exit dwarf | The rule on every level; 242L stays visible; `signalled_spurs_main_upper.csv` goes |
 | Split tracks | **Not a rule.** A rule would catch every intermediate loop. They stay the owner's choice, kept as data in `block_splits.csv` (all levels, `level` column, marked as owner choices), replacing `split_tracks_main_upper.csv` |
 | Intermediates | One merged rule: one interlocking end is enough, the line code kept (A main, B upper, staging as today), main and upper's loop direction used; B92 and B93 stay, staging unchanged |
-| Virtual masts | Only where a visible mast needs one: where a visible mast's route ends at a buffer stop or a stub, so discovery has a destination. Count main and upper (and recheck staging's 10) and show the owner before building |
+| Virtual masts | Only as destinations (owner, 2026-11-20, after the count): place and prune the visible masts first (`reaches_signal` counts visible masts only, so 126L stays dropped), then walk every route of each kept visible mast; a route that reaches a buffer stop before a visible mast gets a virtual bumper mast there, facing it. Nothing else. 29 in all: staging 5 (4LA, 4LB, 10LA, 10LB, 12L), main 10, upper 14. Staging loses 8LC, 10RA, 10RB, 12R and 14R, so no Signal Mast Logic starts from the engine house tracks and westbound routes over Scale run to 6LA (accepted). Main and upper letters close up (102RA, 102RB); a clash with a visible name takes the next letter (120RC) |
 
 Hand facts left under the one process: `interlockings.csv`, `block_splits.csv`, the local-switch areas,
 `helix_tracks.csv`, staging's block rows and `block_lengths.csv` (main and upper still generate their own block
@@ -122,9 +122,9 @@ layer, so the block layer is not yet one process), the wired heads and `retired_
 
 ### Next
 
-1. Count the virtual masts the "needed" rule gives on every level; owner review.
+1. Virtual mast count: done and approved (29).
 2. Build, one PR, tests first: `interlockings.csv` and `block_splits.csv`; the running-track, spur and intermediate
    rules in `mast_rule`; one mast builder for every level (`build_staging_masts.py` and the mast part of
    `build_device_map.py`). Then stock discovery in a sandbox, `make panels CHECK=1`, before/after crops for the
-   changed masts (6LA, 8RA and any virtual mast change), the candidate installed in the Mac's `~/JMRI_UserFiles`,
+   changed masts (6LA, 8RA, the five staging virtual masts dropped, the 24 added on main and upper), the candidate installed in the Mac's `~/JMRI_UserFiles`,
    owner approval, `make panelpro-test`, deploy `--pi --win`.
