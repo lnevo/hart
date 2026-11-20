@@ -570,6 +570,13 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
 
 
 SIGNAL_NOTE = "virtual (device map); planned"     # + the planned physical head or mast, a draft
+UNPLANNED_NOTE = "virtual (device map); not on a node yet"    # no board room on the draft plant (ADR-024)
+
+
+def signal_note(planned: str | None) -> str:
+    """A main or upper head's or mast's comment after its place: the planned physical device (the device map's
+    system name, a draft), or that it has none yet."""
+    return f"{SIGNAL_NOTE} {planned}" if planned else UNPLANNED_NOTE
 HEAD_CLASS = "jmri.implementation.configurexml.VirtualSignalHeadXml"
 MAST_CLASS = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
 
@@ -592,12 +599,12 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
             el = ET.Element("signalhead", {"class": HEAD_CLASS})
             ET.SubElement(el, "systemName").text = h
             ET.SubElement(el, "userName").text = user
-            ET.SubElement(el, "comment").text = f"{where} | {SIGNAL_NOTE} {device.get(h, '?')}"
+            ET.SubElement(el, "comment").text = f"{where} | {signal_note(device.get(h))}"
             heads.append(el)
         el = ET.Element("signalmast", {"class": MAST_CLASS})
         ET.SubElement(el, "systemName").text = r["system_name"]
         ET.SubElement(el, "userName").text = r["mast"]
-        ET.SubElement(el, "comment").text = f"{where} | {SIGNAL_NOTE} {r['device_system_name']}"
+        ET.SubElement(el, "comment").text = f"{where} | {signal_note(r['device_system_name'])}"
         ET.SubElement(el, "unlit", {"allowed": "no"})
         masts.append(el)
     new = [x for e in heads + masts for x in (e.findtext("systemName"), e.findtext("userName"))]
