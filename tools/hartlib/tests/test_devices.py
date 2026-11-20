@@ -63,6 +63,57 @@ class TheCommittedMaster(unittest.TestCase):
         self.assertEqual(D.main(["check"]), 0)
 
 
+class TheMasterAgainstTables(unittest.TestCase):
+    """The guards public_name_map.csv had against tables.xml, now on the master."""
+
+    @classmethod
+    def setUpClass(cls):
+        import xml.etree.ElementTree as ET
+        from hartlib import paths
+        root = ET.parse(paths.REPO_TABLES_XML).getroot()
+        cls.rows = D.load()
+        cls.system_names = {e.text.strip() for e in root.iter("systemName") if e.text}
+
+        def beans(tag):
+            return [((e.findtext("systemName") or "").strip(), (e.findtext("userName") or "").strip())
+                    for e in root.iter(tag)]
+        cls.turnouts, cls.blocks, cls.heads = beans("turnout"), beans("block"), beans("signalhead")
+        cls.masts = beans("signalmast") + beans("virtualsignalmast")
+        cls.names = {layer: {r["user_name"] for r in cls.rows if r["layer"] == layer} for layer in D.LAYERS}
+
+    def test_every_live_user_name_on_a_turnout_block_mast_or_head_has_a_row(self):
+        missing = [f"{layer} {user} ({system})"
+                   for layer, beans in (("turnout", [b for b in self.turnouts if b[0].startswith("M2T")]),
+                                        ("block", self.blocks), ("mast", self.masts),
+                                        ("head", [b for b in self.heads if b[0].startswith("IH")]))
+                   for system, user in beans if user and user not in self.names[layer]]
+        self.assertEqual(missing, [])
+
+    def test_every_field_device_system_name_is_in_tables_xml(self):
+        missing = [f"{r['user_name']} {r['system_name']}" for r in self.rows
+                   if r["assignment"] == "field" and r["system_name"].startswith(("M2T", "M2S", "IH", "MTT"))
+                   and r["system_name"] not in self.system_names]
+        self.assertEqual(missing, [])
+
+    def test_field_rows_for_wired_hardware_carry_a_comment(self):
+        bare = [f"{r['layer']} {r['user_name']}" for r in self.rows
+                if r["assignment"] == "field" and r["system_name"].startswith(("M2T", "M2S", "IH", "MTT"))
+                and not (r["wiring"] or r["jmri_comment"])]
+        self.assertEqual(bare, [])
+
+    def test_mtt_100_to_119_are_lcc_aliases_named_dcc_switch(self):
+        by_system = {r["system_name"]: r for r in self.rows if r["system_name"].startswith("MTT")}
+        wrong = [name for name in (f"MTT{n}" for n in range(100, 120))
+                 if name not in by_system or by_system[name]["role"] != "lcc_alias"
+                 or not by_system[name]["user_name"].startswith("DCC Switch ")]
+        self.assertEqual(wrong, [])
+
+    def test_mast_comments_name_the_protected_switch(self):
+        masts = {r["user_name"]: r for r in self.rows if r["layer"] == "mast" and r["level"] == "1"}
+        self.assertEqual(masts["Mast 2L"]["jmri_comment"], "Brick | Switch 1")
+        self.assertEqual(masts["Mast 67"]["jmri_comment"], "Princess")
+
+
 class TheDictionary(unittest.TestCase):
     def read(self, text: str):
         with tempfile.TemporaryDirectory() as d:
@@ -307,6 +358,62 @@ class TheGeneratedFiles(unittest.TestCase):
         row = dict(TheRowForms.OLD, layer="sensor", user_name="SML Mode")
         with self.assertRaisesRegex(D.DevicesError, "has no sensor rows"):
             D.outputs_after("build_staging_masts.py", [row], self.files)
+
+
+class TheNits(unittest.TestCase):
+    def test_pnm_order_is_compared_as_a_number(self):
+        a = turnout(pnm_order="1")
+        b = turnout("Switch 3", pnm_order="01", system_name="M2T9", jmri_name="M2T9")
+        self.assertIn("pnm_order '01'", problems([a, b]))
+
+    def test_field_rows_with_no_system_name_do_not_clash_with_each_other(self):
+        fb = lambda user: blank(level="1", layer="fb", role="fb", user_name=user, assignment="field", description="x")
+        text = problems([fb("a"), fb("b")])
+        self.assertNotIn("is line", text)
+        self.assertIn("a field device needs", text)
+
+    def test_one_data_folder_moves_every_file(self):
+        f = D.Files.under(Path("/x/data"))
+        self.assertEqual({p.parent for p in (f.master, f.dictionary, f.name_map)}, {Path("/x/data")})
+        self.assertEqual({f.staging.parent, f.main_upper.parent}, {Path("/x/data/schematic")})
+
+    def test_a_row_with_a_wrong_column_set_is_a_devices_error(self):
+        with self.assertRaisesRegex(D.DevicesError, "misses columns"):
+            D.master_row({"layer": "turnout", "user_name": "x", "comment": "", "extra": ""}, "")
+
+    def test_a_stale_generated_file_points_at_regenerate(self):
+        f = D.Files.here()
+        self.assertIn("hartlib.devices regenerate", D.stale_message(f.staging, f, "tools/schematic/x.py"))
+        self.assertNotIn("regenerate", D.stale_message(f.master, f, "tools/schematic/x.py"))
+
+
+class ThePnmComments(unittest.TestCase):
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        (self.tmp / "schematic").mkdir()
+        self.files = D.Files.under(self.tmp)
+        for name in ("master", "dictionary", "staging", "main_upper", "name_map"):
+            shutil.copyfile(getattr(REAL, name), getattr(self.files, name))
+
+    def test_a_row_a_script_writes_is_refused_naming_the_writer(self):
+        head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"] and r["written_by"])
+        with self.assertRaisesRegex(D.DevicesError, f"held by {head['written_by']}"):
+            D.set_pnm_comments("head", {head["user_name"]: "a new comment"}, self.files)
+
+    def test_no_change_gives_no_texts(self):
+        head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"])
+        update = D.set_pnm_comments("head", {head["user_name"]: head["pnm_comment"] or head["user_name"]}, self.files) \
+            if head["pnm_comment"] else D.set_pnm_comments("head", {}, self.files)
+        self.assertEqual((update.changed, update.texts), (0, {}))
+
+    def test_a_hand_kept_row_changes_and_the_name_map_follows(self):
+        rows = [dict(r) for r in D.load(self.files)]
+        hand = next(r for r in rows if r["layer"] == "turnout" and r["pnm_order"] and not r["written_by"])
+        update = D.set_pnm_comments("turnout", {hand["user_name"]: "Node: 99"}, self.files)
+        self.assertEqual(update.changed, 1)
+        self.assertIn("Node: 99", update.texts[self.files.name_map])
+        self.assertNotIn("Node: 99", update.texts[self.files.staging])
 
 
 class TheMasterFile(unittest.TestCase):

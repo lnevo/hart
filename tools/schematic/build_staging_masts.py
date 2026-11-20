@@ -73,7 +73,7 @@ WRITES = ("mast", "head")              # the layers of the devices.csv rows this
 
 def device_files() -> devices.Files:
     """The master and its generated files as build() uses them: DEVICE_MAP, as it is when it runs (a test may patch it)."""
-    return devices.Files.here().but(staging=DEVICE_MAP)
+    return devices.Files.under(DEVICE_MAP.parent.parent)
 CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
 INTERLOCKINGS = DATA / "interlockings_staging.csv"   # the signal rule's control points (owner, 2026-11-19)
 LEVELS = {"Staging": 1}
@@ -544,6 +544,9 @@ def build():
     cp_of = {s.strip(): r["cp_name"] for r in sdm.read_rows(CPS, sdm.CP_COLUMNS) for s in r["switches"].split(",")}
     locks = interlockings(set(cp_of))
     files = device_files()
+    problems = devices.stale(files)       # the master is read below: stop if it or the files generated from it are off
+    if problems:
+        raise RuleError("; ".join(problems))
     old = devices.device_map_rows(devices.load(files), ("1",))    # the master's staging rows, as the old file reads
     wired = wired_heads(old)
     gen = generate(band, bands, runs, joined, names, locks, wired)
@@ -594,7 +597,7 @@ def main(argv=None) -> int:
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale:
-            print(f"{p.name} is stale: run python3 tools/schematic/build_staging_masts.py", file=sys.stderr)
+            print(devices.stale_message(p, device_files(), "tools/schematic/build_staging_masts.py"), file=sys.stderr)
         return 1 if stale else 0
     for p in stale:
         p.write_text(want[p], encoding="utf-8")

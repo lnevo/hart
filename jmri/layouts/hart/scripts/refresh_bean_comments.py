@@ -17,11 +17,11 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
+from hartlib import devices  # noqa: E402
 from hartlib.names import jmri_comment, row_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
-from apply_public_names import RenameEntry, apply_renames_to_text  # noqa: E402
 
 SIGNAL_WIRING = paths.SIGNAL_WIRING
 SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
@@ -258,32 +258,17 @@ def load_wiring_head_comments(
     return out
 
 
-def sync_map_head_comments(path: Path | None = None) -> int:
-    """Write wiring comments onto public_name_map.csv head rows (identity + aliases)."""
-    csv_path = path or PUBLIC_NAME_MAP
+def sync_map_head_comments(files: devices.Files | None = None) -> int:
+    """Write the wiring comments onto the head rows' pnm_comment column of devices.csv, then regenerate the files it
+    generates. Returns the rows changed. DevicesError, naming the writer, when a row to change is held by a script
+    (only hand-kept rows are this script's)."""
+    files = files or devices.Files.here()
     comments = load_wiring_head_comments()
-    if not csv_path.is_file() or not comments:
+    if not comments:
         return 0
-    with csv_path.open(newline="", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        fieldnames = list(reader.fieldnames or [])
-        rows = list(reader)
-    changed = 0
-    for row in rows:
-        if (row.get("layer") or "").strip() != "head":
-            continue
-        proposed = (row.get("proposed") or "").strip()
-        want = comments.get(proposed)
-        if not want or (row.get("comment") or "").strip() == want:
-            continue
-        row["comment"] = want
-        changed += 1
-    if changed:
-        with csv_path.open("w", newline="", encoding="utf-8") as handle:
-            writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
-            writer.writeheader()
-            writer.writerows(rows)
-    return changed
+    update = devices.set_pnm_comments("head", comments, files)
+    devices.write_all(files, update.texts)
+    return update.changed
 
 
 def switch_protected_by_mast(user_name: str) -> str | None:
@@ -376,31 +361,6 @@ def refresh_block_prose(comment: str) -> str:
         work = work.replace(f"__HART_PROSE_{index}__", original)
     return work
 
-RENAMES = [
-    RenameEntry("block", "Track Main West Brick–Plane", "Track Brick-Plane"),
-    RenameEntry("block", "Track Brick-Plane", "Track Brick-Plane"),
-    RenameEntry("block", "OS Switch 23a", "OS Switch 23a"),
-    RenameEntry("block", "OS Switch 23b", "OS Switch 23b"),
-    RenameEntry("block", "OS Switch 25", "OS Switch 25"),
-    RenameEntry("block", "OS Switch 27", "OS Switch 27"),
-    RenameEntry("block", "OS Switch 29", "OS Switch 29"),
-    RenameEntry("block", "OS Switch 31", "OS Switch 31"),
-    RenameEntry("block", "OS Switch 33", "OS Switch 33"),
-    RenameEntry("block", "OS Switch 35a", "OS Switch 35a"),
-    RenameEntry("block", "OS Switch 35b", "OS Switch 35b"),
-    RenameEntry("block", "OS Switch 37", "OS Switch 37"),
-    RenameEntry("block", "OS Switch 39", "OS Switch 39"),
-    RenameEntry("block", "OS Switch 15", "OS Switch 15"),
-    RenameEntry("block", "OS Switch 17", "OS Switch 17"),
-    RenameEntry("block", "OS Switch 19", "OS Switch 19"),
-    RenameEntry("block", "OS Switch 21", "OS Switch 21"),
-    RenameEntry("block", "OS Switch 7b (Track Barn)", "OS Switch 7b"),
-    RenameEntry("block", "OS Switch 7 (Track Barn)", "OS Switch 7"),
-    RenameEntry("block", "OS Switch 5", "OS Switch 5"),
-    RenameEntry("block", "OS Switch 1", "OS Switch 1"),
-    RenameEntry("block", "OS Switch 3", "OS Switch 3"),
-]
-RENAMES.sort(key=lambda item: len(item.current), reverse=True)
 
 BEAN_RE = re.compile(
     r"(<(sensor|turnout|block|layoutblock|memory|signalhead|signalmast|virtualsignalmast|route|LogixNG|ConditionalNG)\b[^>]*>)(.*?)(</\2>)",
@@ -1007,9 +967,13 @@ TARGETS = [
 
 def main() -> int:
     paths.exit_if_overridden(Path(__file__).name)
-    n_map = sync_map_head_comments()
+    try:
+        n_map = sync_map_head_comments()
+    except devices.DevicesError as exc:
+        print(f"refresh_bean_comments.py: {exc}", file=sys.stderr)
+        return 2
     if n_map:
-        print(f"public_name_map.csv: {n_map} head comments from signal_wiring.csv")
+        print(f"devices.csv: {n_map} head comments (pnm_comment) from signal_wiring.csv")
         global DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER
         DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
     files = 0
@@ -1022,8 +986,8 @@ def main() -> int:
                 text = path.read_text(encoding="utf-8")
             except UnicodeDecodeError:
                 continue
-            updated, counts = apply_renames_to_text(text, RENAMES)
-            if counts or path.name.endswith(".xml"):
+            updated, counts = text, {}
+            if path.name.endswith(".xml"):
                 if path.name.endswith(".xml") and path.name in {
                     "tables.xml",
                 }:

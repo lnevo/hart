@@ -298,7 +298,7 @@ def main(argv=None) -> int:
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale:
-            print(f"{p.name} is stale: run python3 tools/schematic/panel_items.py", file=sys.stderr)
+            print(devices.stale_message(p, files, "tools/schematic/panel_items.py"), file=sys.stderr)
         return 1 if stale else 0
     for p in devices.write_all(files, want):
         print(f"wrote {p.name}")

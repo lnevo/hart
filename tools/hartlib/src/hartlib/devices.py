@@ -81,10 +81,15 @@ class Files:
     name_map: Path
 
     @staticmethod
-    def here() -> "Files":
-        data = paths.LAYOUT_DATA
+    def under(data: Path) -> "Files":
+        """The files as they sit under a data folder (jmri/layouts/hart/data): one root, so a test or a script that
+        points it elsewhere moves every file together and cannot write the repo's."""
         return Files(data / "devices.csv", data / "devices.columns.csv", data / "schematic" / "device_map_staging.csv",
-                     data / "schematic" / "device_map_main_upper.csv", paths.PUBLIC_NAME_MAP)
+                     data / "schematic" / "device_map_main_upper.csv", data / "public_name_map.csv")
+
+    @staticmethod
+    def here() -> "Files":
+        return Files.under(paths.LAYOUT_DATA)
 
     def but(self, **changes) -> "Files":
         return replace(self, **changes)
@@ -201,10 +206,11 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
             elif r["system_name"] != jn and not (r["role"] == "turnout" and jn == r["user_name"]):
                 # a staging turnout the tables and panels bind by its user name (staging_device_map.py): the one exception
                 bad.append(f"{at}: field, but system_name {r['system_name']!r} is not jmri_name {jn!r}")
-            if r["system_name"] in field_systems.get(r["layer"], {}):
-                bad.append(f"{at}: field system_name {r['system_name']!r} is line "
-                           f"{field_systems[r['layer']][r['system_name']]}'s as well")
-            field_systems.setdefault(r["layer"], {})[r["system_name"]] = n
+            if r["system_name"]:
+                if r["system_name"] in field_systems.get(r["layer"], {}):
+                    bad.append(f"{at}: field system_name {r['system_name']!r} is line "
+                               f"{field_systems[r['layer']][r['system_name']]}'s as well")
+                field_systems.setdefault(r["layer"], {})[r["system_name"]] = n
         elif a == "virtual" and not jn:
             bad.append(f"{at}: a virtual device needs a jmri_name")
         elif a == "none" and jn:
@@ -219,9 +225,10 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
             bad.append(f"{at}: wiring and jmri_comment are both set; a row has one comment")
         pnms = [r[c] for c in COLUMNS if c.startswith("pnm_")]
         if r["pnm_order"]:
-            if not r["pnm_order"].isdigit() or r["pnm_order"] in pnm:
+            order = int(r["pnm_order"]) if r["pnm_order"].isdigit() else None
+            if order is None or order in pnm:
                 bad.append(f"{at}: pnm_order {r['pnm_order']!r} is not a number of its own")
-            pnm[r["pnm_order"]] = n
+            pnm[order] = n
         elif any(pnms):
             bad.append(f"{at}: pnm_ columns are set but pnm_order is empty")
         if not unknown:
@@ -337,7 +344,7 @@ def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | N
                description: str | None = None) -> dict[str, str]:
     """The master row of an old-form device-map row. `prior` is the row it replaces, whose pnm_ columns (and, for a
     hand-kept row, description) it keeps. DevicesError when the comment cannot be split back by device_map_row."""
-    if set(old) < set(DEVICE_COLUMNS):
+    if not set(DEVICE_COLUMNS) <= set(old):
         raise DevicesError(f"device-map row {old.get('user_name')!r} misses columns "
                            f"{sorted(set(DEVICE_COLUMNS) - set(old))}")
     r = {c: "" for c in COLUMNS}
@@ -456,6 +463,39 @@ def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Fil
     if held != want:
         raise DevicesError(f"{writer}: the rows written do not read back as given")
     return out
+
+
+@dataclass(frozen=True)
+class PnmUpdate:
+    texts: dict
+    changed: int
+
+
+def set_pnm_comments(layer: str, comments: Mapping[str, str], files: Files | None = None) -> PnmUpdate:
+    """The master and generated files' texts once the `pnm_comment` of each `layer` row in the name map whose user
+    name is in `comments` is the one given, and how many rows changed. Only hand-kept rows may change: a row a script
+    writes raises DevicesError naming that writer, since it would rewrite the column on its next run."""
+    f = files or Files.here()
+    rows, changed = [dict(r) for r in load(f)], 0
+    for r in rows:
+        want = comments.get(r["user_name"])
+        if r["layer"] != layer or not r["pnm_order"] or not want or r["pnm_comment"] == want:
+            continue
+        if r["written_by"]:
+            raise DevicesError(f"{layer} {r['user_name']!r}: pnm_comment is held by {r['written_by']}; change it there")
+        r["pnm_comment"] = want
+        changed += 1
+    check_rows(rows, "devices.csv after the comment update")
+    return PnmUpdate(texts(rows, f) if changed else {}, changed)
+
+
+def stale_message(path: Path, files: Files, script: str) -> str:
+    """What a --check says of a stale `path`: the writer to run, and for a generated file the command that rewrites it
+    from the master when the master itself is right."""
+    if path in files.generated():
+        return (f"{path.name} is stale: run python3 {script}, or, when only this generated file differs, "
+                f"python3 -m hartlib.devices regenerate")
+    return f"{path.name} is stale: run python3 {script}"
 
 
 def write_all(files: Files, content: Mapping[Path, str]) -> list[Path]:

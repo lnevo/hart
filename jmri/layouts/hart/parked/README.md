@@ -65,7 +65,7 @@ Still used by active tools, so they must keep working while parked:
   tests read the USS board grid through them.
 - `apply_dispatcher_roster_profiles.py`: the host apply step.
 - `ensure_dispatcher_roster_profiles.py`: `loco_roster_import.py` tells the operator to run it.
-- `cleanup_uss_ctc_leftovers.py`: `apply_public_names_tree.py` runs it in a rename pass.
+- `cleanup_uss_ctc_leftovers.py`: it was run in a rename pass by `apply_public_names_tree.py`, retired 2026-11-20.
 
 The three scripts that edit the panel work on the generated panel only (`hartlib.tables.require_generated_panel`: it
 holds the generated-panel marker, `hartlib.tables.GENERATED_PANEL_MARKER`) and refuse any other: the hand-drawn

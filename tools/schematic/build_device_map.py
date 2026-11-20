@@ -135,7 +135,7 @@ PIN_COLUMNS = TRACK_KEY_COLUMNS + ["half", "block", "node", "block_input", "note
 
 def device_files() -> devices.Files:
     """The master and its generated files as main() writes them: OUT, as it is when it runs (a test may patch it)."""
-    return devices.Files.here().but(main_upper=OUT)
+    return devices.Files.under(OUT.parent.parent)
 
 
 def sources() -> railroad.Sources:
@@ -863,7 +863,7 @@ def main(argv=None) -> int:
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale:
-            print(f"{p.name} is stale: run python3 tools/schematic/build_device_map.py", file=sys.stderr)
+            print(devices.stale_message(p, device_files(), "tools/schematic/build_device_map.py"), file=sys.stderr)
         return 1 if stale else 0
     for p in stale:
         p.write_text(want[p], encoding="utf-8")

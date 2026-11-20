@@ -216,8 +216,7 @@ and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a
   `save` on the repo file today, but on a fresh Store it drops the stylesheet line and the
   "Written by JMRI" comment and changes the declaration's quotes. A script moved onto
   hartlib keeps them.
-- Scripts that edit tables.xml as text with regexes (`apply_public_names.py`,
-  `refresh_bean_comments.py`, `apply_le_sml_facing.py`) keep untouched bytes by design.
+- Scripts that edit tables.xml as text with regexes (`refresh_bean_comments.py`, `apply_le_sml_facing.py`) keep untouched bytes by design.
   Move them only if the regex work is replaced by element edits and the output is the same.
 
 ### `hartlib.names`

@@ -23,7 +23,8 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 |------|------|
 | `anyrail/hart.xml` | Geometry source snapshot |
 | `output/tables.xml` | The one tables file: Layout Editor + SML. JMRI loads it and deploy ships it |
-| `data/public_name_map.csv` | Apply map (`current` live identity, `proposed` next pass, `dcc` address, `comment` from Device map) |
+| `data/devices.csv`, `data/devices.columns.csv` | The device master for all three levels: one row per device with its public name (`user_name`), JMRI names, wiring and DCC address; the column dictionary describes every column (`hartlib.devices`, ADR-029) |
+| `data/public_name_map.csv` | Generated from `devices.csv` (identity rows only; no alias rows). Do not edit it |
 | `data/control_points.csv` | CP → level, switches (generated from `data/schematic/control_points_staging.csv`) |
 | `data/switches.csv` | Per switch: level, Layout Editor turnout, CATS inversion, USS CTC lever, hand (`scripts/layout_facts.py` reads it) |
 | `data/mast_cells.csv` | Per mast: its cell on the USS CTC board's grid (the USS CTC machine is parked; the data is kept for unparking) and its icon (`gen_ctc_track_plan.py`); `edge`, `sig_location`, `sig_orient` are the hand-wired CATS desks' lamp placement (`check_layout_facts.py` reads them) |
@@ -36,7 +37,7 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 ```bash
 python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
-python3 jmri/layouts/hart/scripts/sync_public_name_map.py   # Device-map CSV identity + comments
+PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # devices.csv and the files it generates agree
 
 ```
 

@@ -58,6 +58,7 @@ SKIP_PREFIXES = (
     # the generated files of the schematic data; its hand-kept files (the staging device map, the overrides) are read
     "jmri/layouts/hart/data/schematic/staging.signals.json",          # build_signals.py --check
     "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
+    "jmri/layouts/hart/data/devices.csv",                             # the device master: it holds the names
     "jmri/layouts/hart/data/schematic/device_map_main_upper.csv",     # build_device_map.py --check
     "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
@@ -69,7 +70,7 @@ SKIP_PREFIXES = (
 )
 # Tests are not read. A test that asserts the real data fails by itself after a rename;
 # the rest hold fixture names (Mast 99X) or old names on purpose, to test the rename
-# and alias handling (apply_public_names, rename_extension_tracks).
+# and old-name handling (rename_extension_tracks).
 SKIP_PARTS = ("/tests/",)
 TEXT_SUFFIXES = (".py", ".sh", ".js", ".mjs", ".csv", ".json", ".xml", ".html", ".svg", ".txt", ".cmd", ".yml", ".yaml")
 
