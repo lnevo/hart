@@ -1,6 +1,7 @@
 """sync_staging_signals.py: the staging masts and heads of a tables file follow staging_masts.csv, and Signal Mast
 Logic naming a mast that went or changed goes. Every test works on a small hand-written tables file and CSVs in a
-temporary directory; only CommittedData reads the repo's files, and it writes nothing."""
+temporary directory; only CommittedData reads the repo's files, as data checks under a guard that fails any write
+into the repo (repo_read_only.py)."""
 from __future__ import annotations
 
 import contextlib
@@ -16,10 +17,12 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
 import sync_staging_signals as sss  # noqa: E402
 from hartlib import level_masts, paths, tables  # noqa: E402
+from repo_read_only import RepoReadOnly  # noqa: E402
 
 HEAD_XML = "jmri.implementation.configurexml.VirtualSignalHeadXml"
 SHSM_XML = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
@@ -393,8 +396,9 @@ class Cli(unittest.TestCase):
             self.assertEqual(self.run_main("--check")[0], 1)
 
 
-class CommittedData(unittest.TestCase):
-    """Read-only: the repo's tables.xml follows the repo's staging_masts.csv."""
+class CommittedData(RepoReadOnly, unittest.TestCase):
+    """Data checks, not rule tests: the repo's tables.xml follows the repo's staging_masts.csv. They run --check and
+    an in-memory sync under RepoReadOnly, so a write into the repo fails the test instead of changing a file."""
 
     def test_check_passes_on_the_committed_files_and_writes_nothing(self):
         before = paths.TABLES_XML.read_bytes()

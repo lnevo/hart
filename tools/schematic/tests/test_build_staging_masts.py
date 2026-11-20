@@ -1,5 +1,6 @@
 """build_staging_masts.py: staging's masts by rule. The rule functions on small hand-written inputs (names, numbers,
-control points, ordering, the rows it writes), main() on temporary files, and, read-only, the repo's committed data.
+control points, ordering, the rows it writes), main() on temporary files, and, as data checks under a guard that fails
+any write into the repo (repo_read_only.py), the repo's committed data.
 The wired heads have their own tests (tools/audit/tests/test_staging_wired_heads.py)."""
 from __future__ import annotations
 
@@ -13,12 +14,14 @@ import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
 import build_staging_masts as bsm  # noqa: E402
 import mast_rule  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import level_masts  # noqa: E402
+from repo_read_only import RepoReadOnly, in_repo, repo_read_only  # noqa: E402
 
 CM_PER_SCALE_MILE = 63360 * 2.54 / 87.1
 
@@ -73,7 +76,35 @@ class Numbers(unittest.TestCase):
 
     def test_the_tenth_is_cut_not_rounded(self):
         self.assertEqual(bsm.signal_number(6.799, False), 68)
-        self.assertEqual(bsm.signal_number(0.3, True), 3)           # 0.3 * 10 is 2.9999...: the 1e-9 keeps it 3
+        self.assertEqual(bsm.signal_number(6.799, True), 67)
+
+    def test_float_noise_under_a_tenth_still_counts_as_that_tenth(self):
+        # the 1e-9 in signal_number: a milepost summed from parts can land a hair under its tenth
+        mp = 0.7 + 0.1
+        self.assertLess(mp, 0.8)
+        self.assertEqual(int(mp * 10), 7)                           # without the guard this is tenth 7
+        self.assertEqual(bsm.signal_number(mp, True), 9)            # tenth 8: westward takes the next odd number
+        self.assertEqual(bsm.signal_number(mp, False), 8)
+        self.assertEqual(bsm.signal_number(0.8, True), 9)
+
+    def test_open_question_an_even_tenth_and_the_next_odd_tenth_share_the_westward_number(self):
+        # OPEN QUESTION for the staging signal rule (not decided here; this only pins what the code does today).
+        # At an even tenth the westward signal takes the next odd number, so MP 6.6 and MP 6.7 both give 67 westward,
+        # and the pair at MP 6.6 is 67/66 (west above east) while the pair at MP 6.7 is 67/68 (west below east).
+        # Two pairs a tenth apart would be given the same westward name, which generate() then stops on as a name
+        # given twice. Whether an even tenth should count down (65/66) is the rule owner's call.
+        self.assertEqual([bsm.signal_number(6.6, w) for w in (True, False)], [67, 66])
+        self.assertEqual([bsm.signal_number(6.7, w) for w in (True, False)], [67, 68])
+        self.assertEqual(bsm.signal_number(6.6, True), bsm.signal_number(6.7, True))
+
+    def test_open_question_the_message_says_98_but_99_is_given(self):
+        # OPEN QUESTION, same owner: the stop is on the tenth (99 and up), not on the number. MP 9.8 westward gives
+        # 99 although the message says "staging names stop at 98", and MP 9.9 is refused westward too, where the
+        # number would also be 99. Pinned as it is today.
+        self.assertEqual(bsm.signal_number(9.8, True), 99)
+        with self.assertRaisesRegex(bsm.RuleError, r"MP 9\.90 gives intermediate number 99 or more; "
+                                                   r"staging names stop at 98"):
+            bsm.signal_number(9.9, True)
 
     def test_numbers_stay_under_100(self):
         self.assertEqual([bsm.signal_number(9.8, w) for w in (True, False)], [99, 98])
@@ -457,12 +488,37 @@ class Cli(unittest.TestCase):
         self.assertEqual(err.strip(), "build_staging_masts.py: the rule names a mast twice: ['Mast 2L']")
 
 
-class CommittedData(unittest.TestCase):
-    """Read-only: the rule over the repo's committed plan and data (built once). These hold whatever masts the rule
-    places; they name no mast."""
+class WriteGuard(unittest.TestCase):
+    """The guard the data checks run under: a write inside the repo fails, one outside it goes through."""
+
+    def test_a_write_inside_the_repo_is_refused_before_it_happens(self):
+        target = Path(__file__).with_name("never_written.tmp")
+        self.assertTrue(in_repo(target))
+        with repo_read_only():
+            for write in (lambda: target.write_text("x", encoding="utf-8"), lambda: target.write_bytes(b"x"),
+                          lambda: open(target, "w"), lambda: target.open("a"), target.touch, target.mkdir,
+                          lambda: Path(__file__).rename(target)):
+                with self.assertRaisesRegex(AssertionError, "data checks only read it"):
+                    write()
+            self.assertEqual(Path(__file__).read_text(encoding="utf-8")[:3], '"""')      # reading still works
+        self.assertFalse(target.exists())
+
+    def test_a_write_outside_the_repo_goes_through(self):
+        with tempfile.TemporaryDirectory() as d, repo_read_only():
+            self.assertFalse(in_repo(d))
+            (Path(d) / "sub").mkdir()
+            (Path(d) / "sub" / "a.txt").write_text("x", encoding="utf-8")
+            self.assertEqual((Path(d) / "sub" / "a.txt").read_text(encoding="utf-8"), "x")
+
+
+class CommittedData(RepoReadOnly, unittest.TestCase):
+    """Data checks, not rule tests: the real build() over the repo's committed plan and data (built once), under
+    RepoReadOnly, so a write into the repo fails the test instead of changing a file. A failure here can mean the data
+    changed, not the code. These hold whatever masts the rule places; they name no mast."""
 
     @classmethod
     def setUpClass(cls):
+        super().setUpClass()
         cls.files = {p: p.read_bytes() for p in (bsm.MASTS, bsm.SIGNALS, bsm.DEVICE_MAP)}
         cls.want, cls.gen = bsm.build()
 
@@ -487,7 +543,8 @@ class CommittedData(unittest.TestCase):
         stations = {s.strip(): r["cp_name"] for r in sdm.read_rows(bsm.CPS, sdm.CP_COLUMNS)
                     for s in r["switches"].split(",")}
         locks = bsm.interlockings(set(stations))
-        self.assertLess(set(locks), set(stations))
+        # every interlocking switch is a station switch; how many station switches stay outside is the data's choice
+        self.assertLessEqual(set(locks), set(stations))
         for m in self.gen:
             self.assertIn(m["toward"], locks, m["mast"])
             self.assertEqual(m["cp"], stations[m["toward"]], m["mast"])       # the cp column is the station
