@@ -66,12 +66,12 @@ All in `jmri/scripts/signal_coordinator.py` unless named; tests belong in `jmri/
 
 | Item | Evidence | Size | State |
 |---|---|---|---|
-| Abort clears `_busy` under a running disable worker, which can later publish `disabled` over a new enable | `:463`, `:1020-1022` | S | verified |
+| Abort clears `_busy` under a running disable worker, which can later publish `disabled` over a new enable | `:463`, `:1020-1022` | S | Done (#721) |
 | Abort runs on the single MQTT callback thread and waits on the Swing thread, stalling all inbound MQTT. Run it on a worker thread | `:1349`, `:611` | S | Done, #721 |
 | Second run of the script leaves old listeners and the shutdown task, and the visible button stays on the old instance. Detach the previous instance as `mimic_relay.py` does | `:1455`, `:739`, `:282` | S/M | Done, #721 |
 | `panel_status.py` re-run doubles turnout and mouse listeners (one click toggles twice) | `jmri/layouts/hart/scripts/panel_status.py:46-48` | S | Done, #719 |
 | Stale retained `enabled` after a power cut leaves both hosts Disabled; re-run the take decision when `disabled` arrives while idle | `:852-860` | S | Done, #721 |
-| `windowClosing` sleeps 3 s on the Swing thread; `_button.setEnabled` is called off it | `:302`, `:362`, `:947`, `:979` | S | read |
+| `windowClosing` sleeps 3 s on the Swing thread; `_button.setEnabled` is called off it | `:302`, `:362`, `:947`, `:979` | S | Done (#721) |
 | `panel_status.py` rescans all turnouts on `KnownState`, and walks every editor per sync | `:573`, `:184` | S | Done, #719 (per-turnout update; editor walk skipped) |
 | Deploy does not check Windows is reachable before the Pi restarts; no ssh multiplexing; package staged twice | `tools/hosts/sync_hart_package.sh:520`, `:212-219` | M | read |
 | Untested: shutdown release, Hold sequences, bulk SML set and its timeout, `sts_car_sync` worker thread, `hide_cats_desk_windows` | | M | |
