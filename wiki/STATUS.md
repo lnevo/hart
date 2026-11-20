@@ -62,7 +62,7 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## In progress
 
-- AnyRail plan 5.3c into the schematic (Phase 2): built on the PR branch `agent/claude/anyrail-5-3c-phase2` with schematic-maps 0.1.45; the candidate panel and desks are installed on the Mac and wait for the owner's approval, then `check_approved.py --approve` and the deploy (handoff steps 8 and 9). Both hosts run 074bae53 (deployed 2026-11-19, #693 included).
+- AnyRail plan 5.3c into the schematic (Phase 2): done. The owner approved draft 2 on 2026-11-20 (Brick-Plane turnback kept; McKees Rocks and McKeesport blocks the full helix run, 947.2 and 916.5 in; OS Switch 235's icon drawn, overlaps allowed), merged as #732 and deployed to the Pi and Windows at cdaf52ab. A Main West turnback (draft 3) is parked on `agent/claude/anyrail-5-3c-phase2-draft3`: it renamed Masts 4RA/4RB and 2L/2R and stopped the CATS desk at Switches 1-3. Next on this line: the Princess 35-37 OS split (hart-e5) and the plan follow-up with the general short-track rule and one block per helix track (hart-6b).
 - 3D station maps: multi-colour fascia plates that hold Touch Toggles ([`docs/benchwork/station_maps_3d/`](../docs/benchwork/station_maps_3d/README.md)). Barn is the first and only map modelled so far. Its plate outline and thickness are placeholders until the frame is measured, and the toggle pocket depth is a guess.
 
 ## Future goals
