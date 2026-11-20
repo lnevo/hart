@@ -1490,7 +1490,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="11:12 PM">
+    <memory value="12:23 AM">
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -12690,7 +12690,7 @@
     <positionablelabel x="1908" y="637" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO UPPER LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1845" y="654" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="B" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1814" y="637" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO UPPER LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1676" y="1207" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HELIX TO STAGING" fontFamily="Dialog" fontname="Dialog" size="9" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1675" y="1239" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="HELIX TO STAGING" fontFamily="Dialog" fontname="Dialog" size="9" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1599" y="1272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="A" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1570" y="1254" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="TO MAIN LEVEL" fontFamily="Dialog" fontname="Dialog" size="8" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1385" y="1272" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="B" fontFamily="Dialog" fontname="Dialog" size="9" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -12801,8 +12801,8 @@
     <positionablelabel x="978" y="1185" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="217-219" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1543" y="1164" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="223-225 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1706" y="1149" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-227" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1834" y="1161" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-233" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1741" y="1253" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-231" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1791" y="1044" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-233" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1958" y="1017" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-243" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2060" y="1161" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-245" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1256" y="1161" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-221" fontFamily="Dialog" fontname="Dialog" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -12834,6 +12834,7 @@
     <positionablelabel x="1958" y="1164" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="237-245" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2021" y="1233" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="239-245" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2119" y="1212" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="245 Spur 2" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1884" y="1164" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="231 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1923" y="1068" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="235-243" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1981" y="1116" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="235 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2126" y="1160" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="245 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -12865,7 +12866,7 @@
     <positionablelabel x="521" y="1020" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="209 Spur 1" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="683" y="1068" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="213 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="360" y="1116" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="205 Spur" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1654" y="1242" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="McKeesport" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1572" y="1212" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="McKeesport" fontFamily="Dialog" fontname="Dialog" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <BlockContentsIcon blockcontents="OS Switch 29" x="1350" y="255" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-3" x="1154" y="382" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 13" x="922" y="207" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -12974,11 +12975,11 @@
     <BlockContentsIcon blockcontents="Track 225-227" x="1700" y="1185" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 233-235" x="1848" y="1141" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 231" x="1789" y="1156" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 233" x="1839" y="1161" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 229" x="1749" y="1113" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 227" x="1740" y="1227" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 227" x="1720" y="1202" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 223-225 2" x="1511" y="1185" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 231 Spur" x="1830" y="1185" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 233" x="1809" y="1046" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 127-131 2" x="1474" y="1206" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 201-203" x="238" y="1233" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 217-219" x="988" y="1147" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -12997,7 +12998,7 @@
     <BlockContentsIcon blockcontents="OS Switch 221" x="1208" y="1184" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 223" x="1443" y="1108" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 225a" x="1623" y="1185" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 225b" x="1607" y="1203" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 225b" x="1639" y="1203" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 225c" x="1623" y="1096" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 225d" x="1549" y="1113" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 235" x="1909" y="1108" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -13880,104 +13881,104 @@
   <filehistory>
     <operation>
       <type>app</type>
-      <date>Thu Nov 19 23:12:00 EST 2026</date>
+      <date>Fri Nov 20 00:23:28 EST 2026</date>
       <filename>PanelPro (v5.16.0)</filename>
     </operation>
     <operation>
       <type>Load OK</type>
-      <date>Thu Nov 19 23:12:09 EST 2026</date>
+      <date>Fri Nov 20 00:23:36 EST 2026</date>
       <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
       <filehistory>
         <operation>
           <type>app</type>
-          <date>Thu Nov 19 21:54:23 EST 2026</date>
+          <date>Thu Nov 19 23:12:00 EST 2026</date>
           <filename>PanelPro (v5.16.0)</filename>
         </operation>
         <operation>
           <type>Load OK</type>
-          <date>Thu Nov 19 21:54:29 EST 2026</date>
-          <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
+          <date>Thu Nov 19 23:12:09 EST 2026</date>
+          <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
           <filehistory>
             <operation>
               <type>app</type>
-              <date>Thu Nov 19 21:41:00 EST 2026</date>
+              <date>Thu Nov 19 21:54:23 EST 2026</date>
               <filename>PanelPro (v5.16.0)</filename>
             </operation>
             <operation>
               <type>Load OK</type>
-              <date>Thu Nov 19 21:41:08 EST 2026</date>
+              <date>Thu Nov 19 21:54:29 EST 2026</date>
               <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
               <filehistory>
                 <operation>
                   <type>app</type>
-                  <date>Thu Nov 19 20:21:45 EST 2026</date>
+                  <date>Thu Nov 19 21:41:00 EST 2026</date>
                   <filename>PanelPro (v5.16.0)</filename>
                 </operation>
                 <operation>
                   <type>Load OK</type>
-                  <date>Thu Nov 19 20:21:51 EST 2026</date>
+                  <date>Thu Nov 19 21:41:08 EST 2026</date>
                   <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                   <filehistory>
                     <operation>
                       <type>app</type>
-                      <date>Thu Nov 19 18:06:13 EST 2026</date>
+                      <date>Thu Nov 19 20:21:45 EST 2026</date>
                       <filename>PanelPro (v5.16.0)</filename>
                     </operation>
                     <operation>
                       <type>Load OK</type>
-                      <date>Thu Nov 19 18:06:20 EST 2026</date>
+                      <date>Thu Nov 19 20:21:51 EST 2026</date>
                       <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                       <filehistory>
                         <operation>
                           <type>app</type>
-                          <date>Thu Nov 19 17:24:15 EST 2026</date>
+                          <date>Thu Nov 19 18:06:13 EST 2026</date>
                           <filename>PanelPro (v5.16.0)</filename>
                         </operation>
                         <operation>
                           <type>Load OK</type>
-                          <date>Thu Nov 19 17:24:24 EST 2026</date>
+                          <date>Thu Nov 19 18:06:20 EST 2026</date>
                           <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                         <operation>
                           <type>Store</type>
-                          <date>Thu Nov 19 17:24:50 EST 2026</date>
+                          <date>Thu Nov 19 18:06:33 EST 2026</date>
                           <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                       </filehistory>
                     </operation>
                     <operation>
                       <type>Store</type>
-                      <date>Thu Nov 19 18:06:33 EST 2026</date>
+                      <date>Thu Nov 19 20:22:04 EST 2026</date>
                       <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                     </operation>
                   </filehistory>
                 </operation>
                 <operation>
                   <type>Store</type>
-                  <date>Thu Nov 19 20:22:04 EST 2026</date>
+                  <date>Thu Nov 19 21:41:22 EST 2026</date>
                   <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                 </operation>
               </filehistory>
             </operation>
             <operation>
               <type>Store</type>
-              <date>Thu Nov 19 21:41:22 EST 2026</date>
+              <date>Thu Nov 19 21:54:41 EST 2026</date>
               <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
             </operation>
           </filehistory>
         </operation>
         <operation>
           <type>Store</type>
-          <date>Thu Nov 19 21:54:41 EST 2026</date>
-          <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
+          <date>Thu Nov 19 23:12:25 EST 2026</date>
+          <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
         </operation>
       </filehistory>
     </operation>
     <operation>
       <type>Store</type>
-      <date>Thu Nov 19 23:12:25 EST 2026</date>
+      <date>Fri Nov 20 00:23:49 EST 2026</date>
       <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
     </operation>
   </filehistory>
-  <!--Written by JMRI version 5.16+R909e15189e on Thu Nov 19 23:12:25 EST 2026-->
+  <!--Written by JMRI version 5.16+R909e15189e on Fri Nov 20 00:23:49 EST 2026-->
 </layout-config>
