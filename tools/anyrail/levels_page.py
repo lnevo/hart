@@ -37,6 +37,8 @@ HELIX_CSV = paths.LAYOUT_DATA / "schematic" / "helix_tracks.csv"
 SITE_HTML = paths.REPO_ROOT / "www/build/track-plan.html"
 CM_PER_IN = 2.54
 FITTED = re.compile(r"AnyRail (\d+(?:\.\d+)*[a-z]?) loop")
+PASSES = re.compile(r"\(([^,()]+?), Switch 5 to Switch 15, steps (\d+) and (\d+)\)")
+PASSES_ANY = re.compile(r"\([^()]*\bsteps\b[^()]*\)")   # a note that names passes in any wording
 SPREAD = re.compile(r"\+-(\d+(?:\.\d+)?) in over (\d+) laps")
 LOOP_START = "OS Switch 5"          # the page runs the test loop from here
 LEVEL_NAMES = {"staging": "Staging", "main": "Main", "upper": "Upper"}
@@ -96,6 +98,27 @@ def loop_fit_plan(rows, notes):
     if len(found) != 1:
         raise SystemExit(f"the loop blocks' notes name {sorted(found) or 'no'} plan versions; expected one")
     return found.pop()
+
+
+def run_passes(rows, notes):
+    """(loco, first step, second step) of the timed passes over the Switch 5 to Switch 15 run, as the run blocks' notes
+    in block_lengths.csv give them ("timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48)").
+    A note that names passes in other words, or two equal steps, stops the build."""
+    found = set()
+    for r in rows:
+        for text in PASSES_ANY.findall(notes[r[0]]):
+            m = PASSES.fullmatch(text)
+            if not m:
+                raise SystemExit(f"{r[0]}'s note names passes as {text!r}; write it as "
+                                 "'(LOCO, Switch 5 to Switch 15, steps N and M)'")
+            found.add(m.groups())
+    if len(found) != 1:
+        raise SystemExit(f"the run blocks' notes name {sorted(found) or 'no'} timed passes (loco and two steps); "
+                         "expected one")
+    loco, first, second = found.pop()
+    if first == second:
+        raise SystemExit(f"the run's two timed passes are both at step {first}; the page says they ran at different speeds")
+    return loco, first, second
 
 
 def laps_note(rows):
@@ -217,14 +240,15 @@ def sections(levels, meta):
         % (low["switches"], low["flex_m"], low["ramp_m"], switch_note(low)))
     laps = laps_note(loop)
     loop_plan = loop_fit_plan(loop, notes)
+    loco, slow, fast = run_passes(run, notes)
     t["lengths"] = (
         '<h3>Plan lengths and timed lengths</h3>'
         '<p>Staging is drawn and signalled on the plan&rsquo;s lengths. JMRI holds a timed length for the blocks a loco was timed over and the plan length for the rest. '
         'The test loop was timed over %s with each block taken as its share of the loop, fitted to the turnout positions of plan %s. '
-        'CSX 2121 timed the Switch 5 to Switch 15 run on two passes at different speeds (steps 24 and 48). '
+        '%s timed the Switch 5 to Switch 15 run on two passes at different speeds (steps %s and %s). '
         'The loop blocks add up to %s in timed against %s in on plan %s.</p>'
         '<h3>Test loop</h3><p class="muted">Inches, in the order a loco runs the loop from Switch 5. &plusmn; is the spread over the laps.</p>'
-        % (laps, loop_plan, format(sum(r[2] for r in loop), ",.1f"), format(sum(r[1] for r in loop), ",.1f"), plan)
+        % (laps, loop_plan, loco, slow, fast, format(sum(r[2] for r in loop), ",.1f"), format(sum(r[1] for r in loop), ",.1f"), plan)
         + length_table(loop, "Loop total")
         + '<h3>Switch 5 to Switch 15 run</h3>' + length_table(run))
     t["main"] = (
