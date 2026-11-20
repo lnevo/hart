@@ -23,7 +23,7 @@ Outputs:
 - main_upper.plan_overrides.json, keys `control_points` and `stations`: the detail sheets (the "Main level" and
   "Upper level" sheets of main_upper.preferences.json) draw each control point's interlocking limits and name,
   and the overall sheet a bar per control point (no car count). A control point may list only switches on one
-  band, so a crossover whose halves sit on two bands (129, 135) lists the half on the control point's level. The
+  band, so a crossover whose halves sit on two bands (127, 131) lists the half on the control point's level. The
   bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
 - device_map_main_upper.csv: the one mapping from each main and upper JMRI device to its planned physical part. Per
@@ -338,7 +338,8 @@ def intermediates(bands, found, cp_of, running, split) -> list[dict]:
     even, westbound odd). The milepost is the plugin's count along the main route (the band's `mp`, the numbers the
     sheets print), at the middle of the folded track; east is the way it rises, so on a split track the eastbound mast
     faces the half the count starts on. A balloon loop starts and ends at one switch, so its eastbound mast faces
-    Loop 1. None into the helix: the home signals at 129 and 135 govern it (owner, 2026-11-19)."""
+    Loop 1. None into the helix: the home signals at 127 and 131 govern it (owner, 2026-11-19; 129 and 135
+    before that day's renumber)."""
     out = []
     for bi, (title, band, _) in enumerate(bands):
         lv = band_level(title)
@@ -353,7 +354,7 @@ def intermediates(bands, found, cp_of, running, split) -> list[dict]:
             if not cp:
                 continue                    # a track with no control point at either end gets no intermediates
             if any(k == "helix" for k, _v in t["ends"]):
-                continue                    # no signal into the helix: 129/135 govern it (owner, 2026-11-19)
+                continue                    # no signal into the helix: 127/131 govern it (owner, 2026-11-19)
             if not (t["loop"] or t["name"] in split) or not (t["main"] or t["name"] in running):
                 continue
             edge = re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][t["strands"][0]]["edge"])

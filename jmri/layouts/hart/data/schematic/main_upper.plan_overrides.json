@@ -208,7 +208,6 @@
  "_helix_side": "Fact, not a preference: the helix is at the east end of every level (ADR-022: timetable east runs toward Princess and the helix).",
  "helix_to": "Staging",
  "mast_prefix": "Mast ",
- "mast_dir_pattern": "\\d+([LR])",
  "control_points": {
   "CP 107": {
    "switches": [

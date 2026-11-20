@@ -105,7 +105,7 @@ def device_name(bands, cats, keys, F, log):
     rows = sorted(n for n, r in F.device.blocks.items() if r.trial & edges)
     numbers = {bdm.base(lb) for lb in ends}
     if not rows and len(numbers) == 1 and len(ends) > 1:
-        # the track between a crossover's halves (drawn on two bands, 129 and 135): the device map counts it in the
+        # the track between a crossover's halves (drawn on two bands, 127 and 131): the device map counts it in the
         # crossover's OS block
         name = f"OS Switch {numbers.pop()}"
         if name not in F.device.blocks:

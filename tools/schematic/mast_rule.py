@@ -56,7 +56,7 @@ def end_ref(bands, joined, bi, node_id, helix_tag, levels=None):
 
 def end_label(bands, joined, bi, node_id) -> str:
     """The switch label a track ends at, followed through a connector to the other band ("" at a bumper or
-    helix): the halves of the helix-top crossovers 129 and 135 sit on two bands, joined by connectors."""
+    helix): the halves of the helix-top crossovers 127 and 131 sit on two bands, joined by connectors."""
     d = bands[bi][1]["nodes"][node_id]
     if d["kind"] in ("switch", "dx"):
         return d.get("label") or ""
