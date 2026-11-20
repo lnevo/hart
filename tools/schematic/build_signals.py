@@ -21,8 +21,6 @@ two halves apart: a switch's mast the leg it stands at, an APB intermediate the 
 plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0, so a checkout
 without submodules still runs check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
-import csv
-import io
 import difflib
 import importlib
 import json
@@ -186,10 +184,9 @@ def main_upper_rows() -> list[dict]:
     dxs = {bdm.base(d["label"]) for t, b, _ in bands if bdm.band_level(t) for d in b["nodes"].values()
            if d["kind"] == "dx"}
     cb = {s: bdm.xover_corners(s, corners[s]) for s in dxs}
-    lists = [{r["track"] for r in csv.DictReader(io.StringIO(p.read_text(encoding="utf-8")))}
-             for p in (bdm.RUNNING, bdm.SPURS)]
+    lists = [bdm.track_list(p, found) for p in (bdm.RUNNING, bdm.SPURS)]
     placed = {m["name"]: m for m in mr.masts(bands, None, found, cp_of, cb, running_extra=lists[0], spurs=lists[1],
-                                             split=bdm.split_tracks(), joined=joined)}
+                                             split=bdm.split_tracks(found=found), joined=joined)}
     by_name = {t["name"]: t for t in found}
     plan = lambda sid, band: re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][sid]["edge"])   # noqa: E731
     rows = []

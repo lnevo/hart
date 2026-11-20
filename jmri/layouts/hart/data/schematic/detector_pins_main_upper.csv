@@ -1,5 +1,5 @@
-block,node,block_input,notes
-Track Helix Inner,41,1,"helix node 41, one DNCT2B: Block 41-1 (owner, 2026-11-20)"
-Track Helix Outer,41,2,"helix node 41: Block 41-2 (owner, 2026-11-20)"
-Track 227-241 1,41,3,"half 1 of the peninsula loop moves from 41-1 to 41-3 (owner, 2026-11-20)"
-Track 227-241 2,41,4,"half 2 of the peninsula loop, planned with no input until now: 41-4 (owner, 2026-11-20)"
+switch_a,switch_b,parallel,half,block,node,block_input,notes
+,,,,Track Helix Inner,41,1,"helix node 41, one DNCT2B: Block 41-1 (owner, 2026-11-20); a helix block is named in block, with no switches"
+,,,,Track Helix Outer,41,2,"helix node 41: Block 41-2 (owner, 2026-11-20)"
+227,241,,1,,41,3,"half 1 of the peninsula loop moves from 41-1 to 41-3 (owner, 2026-11-20)"
+227,241,,2,,41,4,"half 2 of the peninsula loop, planned with no input until now: 41-4 (owner, 2026-11-20)"

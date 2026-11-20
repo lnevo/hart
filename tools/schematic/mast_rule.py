@@ -172,6 +172,110 @@ def track_names(found, helix=None) -> None:
             t["name"] = stem if len(ts) == 1 else f"{stem} {i}"
 
 
+# ---------------------------------------------------------------- hand lists keyed by end switches
+
+TRACK_KEY_COLUMNS = ["switch_a", "switch_b", "parallel"]
+SWITCH_NUMBER = re.compile(r"\d+")
+
+
+def track_key(t: dict) -> tuple[str, str] | None:
+    """The end switches of a track entry, lower number first: (a, b) between two switches, (n, n) for a balloon loop
+    and (n, "") for a spur (one switch, a bumper at the other end). None for a track up the helix, which its helix
+    block names (helix_tracks.csv). Hand lists name a track by this key, so a renumbered switch moves the row with
+    it, where a generated name ("Track 119-121") would have to be retyped."""
+    if any(k == "helix" for k, _v in t["ends"]):
+        return None
+    sw = sorted((v for k, v in t["ends"] if k == "sw"), key=natural)
+    return (sw[0], sw[1] if len(sw) == 2 else "") if sw else None
+
+
+def key_problem(row: dict) -> str:
+    """Why a row's switch_a, switch_b and parallel are not a track key ("" when they are)."""
+    a, b, par = row["switch_a"], row["switch_b"], row["parallel"]
+    if not SWITCH_NUMBER.fullmatch(a) or (b and not SWITCH_NUMBER.fullmatch(b)):
+        return f"switch_a {a!r} and switch_b {b!r} are switch numbers (switch_b blank for a spur)"
+    if b and natural(a) > natural(b):
+        return f"switch_a {a} and switch_b {b} are in number order, lower first"
+    if par and par not in ("1", "2", "3", "4"):
+        return f"parallel {par!r} is blank or the track's place from the top, 1 to 4"
+    return ""
+
+
+def read_track_rows(path: Path, columns: list[str]) -> list[dict]:
+    """The rows of a hand list keyed by end switches (`columns` starts with TRACK_KEY_COLUMNS), each with its `line`.
+    switch_a and switch_b are switch numbers, lower first; switch_b is blank for a spur (a bumper at the other end);
+    `parallel` (1, 2, from the top row, as the generated names count) is needed only where two tracks run between
+    the same switches. Stops on columns not in that shape or a malformed row, naming the line."""
+    import csv
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)
+    except OSError as exc:
+        raise MapError(f"cannot read {path.name}: {exc}") from None
+    if reader.fieldnames != columns:
+        raise MapError(f"{path.name}: columns {reader.fieldnames}, not {columns}")
+    out, bad = [], []
+    for i, r in enumerate(rows, 2):
+        r = {k: (v or "").strip() for k, v in r.items()}
+        r["line"] = i
+        problem = key_problem(r)
+        if problem:
+            bad.append(f"line {i}: {problem}")
+        else:
+            out.append(r)
+    if bad:
+        raise MapError(f"{path.name}: " + "; ".join(bad))
+    return out
+
+
+def resolve_track(row: dict, found: list[dict]) -> dict | None:
+    """The one track entry of `found` the row's switches (and `parallel`) name, or None with the reason in
+    row["problem"]: no track, or several with no `parallel` to choose (the candidates named, in top-row order)."""
+    key = (row["switch_a"], row["switch_b"])
+    same = sorted((t for t in found if track_key(t) == key), key=lambda t: (t["row"], t["trial"]))
+    label = f"Switch {key[0]}" + (f" to Switch {key[1]}" if key[1] else " spur")
+    if not same:
+        near = sorted({t["name"] for t in found if track_key(t) and set(key[:1 + bool(key[1])]) & set(track_key(t))})
+        row["problem"] = f"no track runs {label} (tracks at those switches: {', '.join(near) or 'none'})"
+        return None
+    if row["parallel"]:
+        k = int(row["parallel"])
+        if len(same) < 2 or k > len(same):
+            row["problem"] = (f"parallel {k} of {label}, but {len(same)} track{'s' * (len(same) != 1)} run there "
+                              f"({', '.join(t['name'] for t in same)})")
+            return None
+        return same[k - 1]
+    if len(same) > 1:
+        row["problem"] = (f"{len(same)} tracks run {label} ({', '.join(t['name'] for t in same)}): "
+                          "give parallel, 1 from the top row")
+        return None
+    return same[0]
+
+
+def resolve_track_rows(path: Path, columns: list[str], found: list[dict]) -> list[tuple[dict, dict]]:
+    """[(row, track entry)] of the hand list at `path`, each row resolved by its end switches (resolve_track) in
+    `found`. Stops on every row that names no track or an unchosen one of several, and on a track two rows name."""
+    out, bad, seen = [], [], {}
+    for row in read_track_rows(path, columns):
+        t = resolve_track(row, found)
+        if t is None:
+            bad.append(f"line {row['line']}: {row['problem']}")
+        elif id(t) in seen:
+            bad.append(f"line {row['line']}: {t['name']} is already named on line {seen[id(t)]}")
+        else:
+            seen[id(t)] = row["line"]
+            out.append((row, t))
+    if bad:
+        raise MapError(f"{path.name}: " + "; ".join(bad))
+    return out
+
+
+def track_list(path: Path, found: list[dict]) -> set[str]:
+    """The names of the tracks a hand list (columns TRACK_KEY_COLUMNS + notes) names, resolved at build time."""
+    return {t["name"] for _r, t in resolve_track_rows(path, TRACK_KEY_COLUMNS + ["notes"], found)}
+
+
 def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_extra=frozenset(),
           spurs=frozenset(), split=frozenset(), *, joined) -> list[dict]:
     """Home masts where a track from outside a control point meets one of its switches, or where a track inside one
