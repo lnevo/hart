@@ -678,6 +678,36 @@ class IntermediateMasts(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Mast A83: Track 107 Loop 2 meets Track 111 Loop 1 at no turnback"):
             B.level_signals(intermediate_bands(), f, 0)
 
+    def test_a_facing_piece_at_a_level_link_is_passed_over(self):
+        # a level link's end (LINK:...) is no node of the band: the piece ending there is not read as a turnback
+        bands = intermediate_bands()
+        bands[1][1]["strands"]["e50"] = dict(strand(("S111", "A"), ("LINK:A1", 0)), edge="e50", cm=40.0)
+        blocks = {"Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e50", "Track e33 2"),
+                  "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2")}
+        B.level_signals(bands, intermediate_facts(blocks), 0)
+        sig = {s["mast"]: s for s in bands[1][2]["signals"]}
+        self.assertEqual((sig["A83"]["_edge"], sig["A83"]["_toward_node"]), ("e33~2", "turn:e33"))
+
+    def test_a_facing_block_on_two_bands_stands_where_it_meets_the_protected_half(self):
+        # the facing block is drawn on the main band away from any turnback and on the upper band at the loop's
+        # turnback: the main band's piece does not stop the build before the upper band is read
+        bands = intermediate_bands()
+        main = {"nodes": {"S1": node("1", "T1", {}, {}), "END:z": node("", "", {}, {}, kind="end")},
+                "strands": {"e50": dict(strand(("S1", "B"), ("END:z", "E")), edge="e50", cm=40.0)}}
+        bands = [bands[0], ("Main level", main, {"mast_prefix": "Mast "}),
+                 ("Upper level", bands[1][1], {"mast_prefix": "Mast "})]
+        blocks = {"Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e50", "Track e33 2"),
+                  "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2")}
+        B.level_signals(bands, intermediate_facts(blocks), 0)
+        self.assertNotIn("signals", bands[1][2])
+        sig = {s["mast"]: s for s in bands[2][2]["signals"]}
+        self.assertEqual((sig["A83"]["_edge"], sig["A84"]["_edge"]), ("e33~2", "e33~1"))
+        # met at two turnbacks, one per band: ambiguous, so it stops
+        two = intermediate_bands()
+        bands[1] = ("Main level", two[1][1], {"mast_prefix": "Mast "})
+        with self.assertRaisesRegex(SystemExit, "Mast A83: .* at 2 turnbacks on the desk"):
+            B.level_signals(bands, intermediate_facts(blocks), 0)
+
     def test_a_track_no_band_draws_stops(self):
         f = intermediate_facts()
         f.level_masts = [dict(f.level_masts[0], facing="Track 999")]
