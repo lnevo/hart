@@ -77,10 +77,8 @@ _UNIT_RE = (
 _MAST_NUM_RE = re.compile(r"^Mast\s+(\d+)[LR]", re.I)
 _PORT_ID_RE = re.compile(r"^C(\d+)-(OU|IN)(\d+)-(\d+)$", re.I)
 
-# Signal even → switch odd, except S-4 bumpers (26) sit on the last ladder frog.
+# Signal even → switch odd.
 MAST_SWITCH_OVERRIDE = {
-    "Mast 26L": "Switch 21",
-    "Mast 26R": "Switch 21",
     "Mast 8LC": "Switch 7",
 }
 

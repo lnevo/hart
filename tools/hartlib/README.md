@@ -144,6 +144,25 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 `KNOWN` in the module lists problems already reported to the owner, each by its exact message: they print and pass,
 anything else fails, and a `KNOWN` entry that no longer happens fails.
 
+### `hartlib.devices`
+
+`jmri/layouts/hart/data/devices.csv` is the one device master for all three levels (ADR-029); `devices.columns.csv`
+describes every column and a test holds the two to each other both ways. Staging, main and upper are one structure,
+a level differs in column values only. Until the readers move over, `device_map_staging.csv`,
+`device_map_main_upper.csv` and `public_name_map.csv` are generated from it and `tools/check.sh` fails on any
+difference. The name map has no alias rows (they and the retired identity rows were dropped 2026-11-20).
+
+- `assignment` is `field`, `virtual`, `none` or `spare`; `role` says what the device is; `written_by` is empty for a
+  hand-kept row, else a script in `devices.WRITERS` (the one list). A writer replaces only its own rows
+  (`replace_rows`) and stops, naming the row, on a key someone else holds.
+- `load()` reads and checks once per file state; `check_rows` holds the invariants (unique key, written_by and
+  assignment in their sets, field rows `system_name == jmri_name`, order, one comment per row, a description on every
+  row). Row order is level, layer, hand-kept rows, then each writer's.
+- Writers call `outputs_after(writer, old_form_rows)` (or `outputs_after_rows` with master rows) and write the texts it
+  gives: the master and the three generated files. Nothing is written until every check has passed.
+- `python3 -m hartlib.devices check` and `regenerate`. Errors are `DevicesError` (a `FactsError`).
+- The `pnm_*` columns hold what `public_name_map.csv` carried and go with that file.
+
 ### `hartlib.level_masts`
 
 The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by

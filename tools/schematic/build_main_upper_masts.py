@@ -16,6 +16,11 @@ signal_coordinator.py enrols and publishes a head only when its name is IH and d
 these reaches MQTT or the field (build_layout_le.py checks it with the coordinator's own test).
 
 --check regenerates in memory and exits 1 if the file differs.
+
+devices.csv: this script holds no rows of it today. Its output derives from the main and upper mast and head rows,
+which build_device_map.py writes (written_by build_device_map.py), and it reads them through the generated
+device_map_main_upper.csv until the readers move to the master. Its name is in hartlib.devices.WRITERS for when the
+builders merge.
 """
 import csv
 import io

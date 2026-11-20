@@ -416,7 +416,8 @@ class Invariants(Copy):
         """The staging switches' DCC addresses are aliases "DCC <n>" (owner, 2026-11-17), not "Switch <n>": an alias
         named like a main level turnout would rename it in a rename pass."""
         self.assertEqual(self.problems("name-clash", upto="device_map"), [])
-        self.edit("name_map", "turnout,DCC 107,Switch 25,", "turnout,Switch 107,Switch 25,")
+        # the generated map holds no alias rows now, so the test adds one
+        self.append("name_map", "turnout,Switch 107,Switch 25,East End,M2T1208,107,,historical alias")
         self.assertEqual(self.problems("name-clash", upto="device_map"),
                          ["public_name_map.csv: turnout Switch 107 is an alias of Switch 25 there and level 2 turnout "
                           "Switch 107 in device_map_main_upper.csv"])
@@ -446,14 +447,12 @@ class Invariants(Copy):
 
 class Known(unittest.TestCase):
     def broken_map(self) -> Path:
-        """A copy of the repo's name map with the Block 2-2 alias pointed at a name that has no live row."""
+        """A copy of the repo's name map with an alias row (the live map has none) pointed at a name with no live row."""
         d = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, d)
         src = R.Sources.under().name_map.read_text(encoding="utf-8")
-        old = "occupancy,Block 2-2,unused Block 2-2,"
-        self.assertIn(old, src)
         out = d / "public_name_map.csv"
-        out.write_text(src.replace(old, "occupancy,Block 2-2,BS unused,"), encoding="utf-8")
+        out.write_text(src + "occupancy,Block 2-2,BS unused,,M2S201,,,historical alias\n", encoding="utf-8")
         return out
 
     def test_unknown_problems_fail_and_stale_known_entries_fail(self) -> None:

@@ -1,5 +1,5 @@
-"""build_staging_masts.py: a wired staging head is read from device_map_staging.csv and kept on every rebuild; a wired
-head the rule cannot carry stops the build."""
+"""build_staging_masts.py: a wired staging head is read from the staging rows of devices.csv and kept on every rebuild;
+a wired head the rule cannot carry stops the build."""
 from __future__ import annotations
 
 import csv
@@ -15,12 +15,14 @@ sys.path.insert(0, str(ROOT / "tools/schematic"))
 import build_device_map as bdm  # noqa: E402
 import build_staging_masts as bsm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
+from hartlib import devices  # noqa: E402
 
 
 def row(layer, user, system, jmri=None, node="", notes=""):
     """A device map row (build_device_map.COLUMNS) of staging."""
     return dict(level="1", cp="Plane", layer=layer, user_name=user, system_name=system,
-                jmri_name=system if jmri is None else jmri, node=node, dcc="", comment="", trial_name="", notes=notes)
+                jmri_name=system if jmri is None else jmri, node=node, dcc="", comment="", trial_name="", notes=notes,
+                **dict.fromkeys(bdm.COLUMNS[11:], ""))
 
 
 def rows_of(text: str) -> list[dict]:
@@ -109,17 +111,23 @@ class Rebuild(unittest.TestCase):
         cls.want, cls.gen, _virtual = bsm.build()
 
     def build_with(self, edit):
-        """build() with DEVICE_MAP (in both modules) a copy of the repo's that `edit(rows)` changed; returns
-        ({path name: text}, generated masts)."""
+        """build() on a copy of the repo's devices.csv whose staging device-map rows `edit(rows)` changed (the mast and
+        head rows it gives are the ones bsm holds); returns ({path name: text}, generated masts)."""
         with tempfile.TemporaryDirectory() as d:
-            path = Path(d) / bsm.DEVICE_MAP.name
-            shutil.copy(bsm.DEVICE_MAP, path)
-            rows = edit(sdm.read_rows(path, bdm.COLUMNS))
-            with path.open("w", newline="", encoding="utf-8") as fh:
-                w = csv.DictWriter(fh, fieldnames=bdm.COLUMNS, lineterminator="\n")
-                w.writeheader()
-                w.writerows(rows)
-            with unittest.mock.patch.object(bsm, "DEVICE_MAP", path), unittest.mock.patch.object(sdm, "DEVICE_MAP", path):
+            real = devices.Files.here()
+            files = real.but(master=Path(d) / "devices.csv", staging=Path(d) / real.staging.name,
+                             main_upper=Path(d) / real.main_upper.name, name_map=Path(d) / real.name_map.name)
+            held = list(devices.load(real))
+            rows = edit(devices.device_map_rows(held, ("1",)))
+            prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
+            mine = [devices.master_row(r, "build_staging_masts.py", prior.get((r["level"], r["layer"], r["user_name"])))
+                    for r in rows if r["layer"] in bsm.WRITES]
+            held = devices.replace_rows(held, "build_staging_masts.py", mine)
+            for path, text in devices.texts(held, files).items():
+                path.write_text(text, encoding="utf-8")
+            with unittest.mock.patch.object(bsm, "DEVICE_MAP", files.staging), \
+                    unittest.mock.patch.object(sdm, "DEVICE_MAP", files.staging), \
+                    unittest.mock.patch.object(bsm, "device_files", lambda: files):
                 want, gen, _virtual = bsm.build()
             return {p.name: t for p, t in want.items()}, gen
 

@@ -26,7 +26,9 @@ Outputs:
   band, so a crossover whose halves sit on two bands (127, 131) lists the half on the control point's level. The
   bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
-- device_map_main_upper.csv: the one mapping from each main and upper JMRI device to its planned physical part. Per
+- devices.csv (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
+  device_map_main_upper.csv, which devices.csv generates, then holds the same rows. It is the one mapping from each
+  main and upper JMRI device to its planned physical part. Per
   row: the user name under ADR-005; jmri_name, the virtual device tables.xml and the CATS desks use now; system_name,
   the planned physical device (LCOS, a DRAFT: the main and upper plant is not reviewed yet, owner 2026-11-17). Later
   a physical device is swapped in by this mapping alone, so no JMRI name ever comes from a draft address or from
@@ -110,7 +112,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned pl
 from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
     LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
     TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_list, track_names, tracks)
-from hartlib import level_devices, railroad  # noqa: E402  the virtual names; the facts it reads and checks
+from hartlib import devices, level_devices, railroad  # noqa: E402  the virtual names; the facts it reads and checks; the master
 
 SOURCES = railroad.Sources.under()
 CPS = SOURCES.level_control_points
@@ -129,6 +131,11 @@ PINS = OVERRIDES.parent / "detector_pins_main_upper.csv"         # detectors the
 # (helix_tracks.csv), has `block` and no switches.
 LIST_COLUMNS = TRACK_KEY_COLUMNS + ["notes"]
 PIN_COLUMNS = TRACK_KEY_COLUMNS + ["half", "block", "node", "block_input", "notes"]
+
+
+def device_files() -> devices.Files:
+    """The master and its generated files as main() writes them: OUT, as it is when it runs (a test may patch it)."""
+    return devices.Files.here().but(main_upper=OUT)
 
 
 def sources() -> railroad.Sources:
@@ -847,7 +854,12 @@ def main(argv=None) -> int:
     except MapError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
-    want = {OVERRIDES: overrides_text(overrides, cp_keys), OUT: csv_text(rows)}
+    try:
+        want = {OVERRIDES: overrides_text(overrides, cp_keys),
+                **devices.outputs_after("build_device_map.py", rows, device_files())}
+    except devices.DevicesError as exc:
+        print(f"build_device_map.py: {exc}", file=sys.stderr)
+        return 2
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale:

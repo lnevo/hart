@@ -524,7 +524,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.files = {p: p.read_bytes() for p in (bsm.MASTS, bsm.SIGNALS, bsm.DEVICE_MAP)}
+        cls.files = {p: p.read_bytes() for p in (bsm.MASTS, bsm.SIGNALS, bsm.DEVICE_MAP, bsm.device_files().master)}
         cls.want, cls.gen, cls.virtual = bsm.build()
 
     def test_check_reports_the_committed_files_current_and_writes_nothing(self):
@@ -535,8 +535,9 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         for path, data in self.files.items():
             self.assertEqual(path.read_bytes(), data, path.name)
 
-    def test_build_gives_the_three_files(self):
-        self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, bsm.DEVICE_MAP})
+    def test_build_gives_the_masts_signals_master_and_the_files_it_generates(self):
+        f = bsm.device_files()
+        self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, f.master, f.staging, f.main_upper, f.name_map})
 
     def test_masts_are_in_number_then_name_order_each_named_once(self):
         for masts in (self.gen, self.virtual):

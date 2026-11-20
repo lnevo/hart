@@ -7,7 +7,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
-MAP = SCRIPTS.parent / "data" / "public_name_map.csv"
+# a frozen copy of the map with its alias rows (2026-11-19): the live file has none since devices.csv generates it
+MAP = Path(__file__).resolve().parent / "fixtures" / "public_name_map_with_aliases.csv"
 
 
 def load_module(name: str, path: Path):
