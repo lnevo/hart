@@ -72,7 +72,7 @@ def split(cell: str) -> list[str]:
 def read_lines(sheet: str, path: Path = LINES) -> list[dict]:
     """The main lines of one sheet. The whole file is checked first: its columns, a known sheet on every row, a line
     name used once per sheet, from and to given, count yes or blank and only on staging (the main and upper mileposts
-    follow main_route); the sheet asked for must have a line."""
+    follow main_route), loop and double only on main_upper (staging_text reads neither); the sheet asked for must have a line."""
     if sheet not in SHEETS:
         raise RouteError(f"unknown sheet {sheet!r}: the sheets are {', '.join(SHEETS)}")
     with open(path, newline="", encoding="utf-8") as fh:
@@ -82,6 +82,9 @@ def read_lines(sheet: str, path: Path = LINES) -> list[dict]:
         rows = list(reader)
     seen = set()
     for n, r in enumerate(rows, 2):
+        if None in r.values() or None in r:
+            raise RouteError(f"{path.name} line {n}: expected {len(COLUMNS)} cells ({', '.join(COLUMNS)})")
+        r["sheet"] = r["sheet"].strip()
         if r["sheet"] not in SHEETS:
             raise RouteError(f"{path.name} line {n}: sheet {r['sheet']!r} is not one of {', '.join(SHEETS)}")
         if not r["line"].strip() or (r["sheet"], r["line"]) in seen:
@@ -94,6 +97,9 @@ def read_lines(sheet: str, path: Path = LINES) -> list[dict]:
         if r["count"].strip() and r["sheet"] != "staging":
             raise RouteError(f"{path.name} line {n} ({r['line']}): count is only read on the staging sheet; the "
                              f"{r['sheet']} mileposts follow main_route")
+        if r["sheet"] == "staging" and (r["loop"].strip() or r["double"].strip()):
+            raise RouteError(f"{path.name} line {n} ({r['line']}): loop and double are only read on the main_upper "
+                             "sheet; a staging line names its junctions in via")
     mine = [r for r in rows if r["sheet"] == sheet]
     if not mine:
         raise RouteError(f"{path.name} has no main line on sheet {sheet}")

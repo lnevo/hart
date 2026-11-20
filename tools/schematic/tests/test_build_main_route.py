@@ -131,6 +131,22 @@ class FileShape(unittest.TestCase):
                 M.read_lines("staging", lines_file(tmp, ["main_upper", "A", "x", "", "y", "", "", "yes", ""],
                                                    ["staging", "B", "1", "", "5", "", "", "", ""]))
 
+    def test_loop_and_double_are_read_on_main_upper_only(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(M.RouteError, "loop and double are only read on the main_upper sheet"):
+                M.read_lines("staging", lines_file(tmp, ["staging", "A", "1", "", "5", "", "33-35", "", ""]))
+
+    def test_a_short_row_names_its_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(M.RouteError, "line 2: expected 9 cells"):
+                M.read_lines("main_upper", lines_file(tmp, ["main_upper", "A", "x", "", "y", "", "", ""]))
+
+    def test_a_padded_sheet_is_read(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = lines_file(tmp, ["staging ", "A", "1", "", "5", "", "", "", ""])
+            self.assertEqual(M.read_lines("staging", path)[0]["sheet"], "staging")
+
+
 
 class Ties(unittest.TestCase):
     """The shortest-way rule on a four-switch diamond, where two ways are exactly as long."""
