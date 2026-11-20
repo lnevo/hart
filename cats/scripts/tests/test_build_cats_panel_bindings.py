@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
 
 import build_cats_panel as B  # noqa: E402
+import cats_panel_facts  # noqa: E402  template_by_type looks appearance_templates up here
 from layout_facts import Leg, Switch  # noqa: E402
 
 
@@ -589,11 +590,11 @@ class LevelMasts(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Mast 108R: tables.xml has IF.shsm:basic:one-low.IH1."):
             B.level_mast_bindings(bands, f, 0)
         # signal_head_plan.csv's templates win; the stock basic types fall back by head count (one single, two double)
-        with mock.patch.object(B, "appearance_templates", return_value={"one-low": "double"}):
+        with mock.patch.object(cats_panel_facts, "appearance_templates", return_value={"one-low": "double"}):
             self.assertEqual(B.template_by_type(f), {"one-low": "double", "one-searchlight": "single",
                                                      "two-searchlight": "double", "two-low": "double"})
         clash = ValueError("signal_head_plan.csv gives one-low masts two templates, single and double")
-        with mock.patch.object(B, "appearance_templates", side_effect=clash):
+        with mock.patch.object(cats_panel_facts, "appearance_templates", side_effect=clash):
             with self.assertRaisesRegex(SystemExit, "gives one-low masts two templates"):
                 B.template_by_type(f)
 
