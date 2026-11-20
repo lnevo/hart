@@ -16,8 +16,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
 # The schematic plugin's cache, the folder the builds use (publish_draft.CACHE, private to this user), for every job
-# here: the Layout Editor tests call the build directly and would otherwise solve the whole sheet about five times
-# (about 7 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
+# here: the Layout Editor job calls the build directly and would otherwise solve the whole sheet in its one process
+# (about 3 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
 # the folder between runs (.github/workflows/check.yml).
 # A folder that cannot be made leaves the cache off, as before.
 if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then
