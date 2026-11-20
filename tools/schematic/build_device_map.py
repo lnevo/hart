@@ -211,10 +211,46 @@ def dx_corners(bands, le_mod, page) -> dict:
     return out
 
 
-def split_edges(path: Path | None = None) -> dict:
-    """{plan edge: track name} of the tracks split_tracks_main_upper.csv parts into two blocks at their turnback."""
-    with open(path or SPLIT, newline="", encoding="utf-8") as fh:
-        return {r["edge"]: r["track"] for r in csv.DictReader(fh)}
+def split_tracks(path: Path | None = None) -> set[str]:
+    """The track names split_tracks_main_upper.csv parts into two blocks at their turnback: names the rule gives from
+    the tracks' end switches (track_names), so they survive a new AnyRail export. Stops on a file not in its shape or a
+    name given twice."""
+    path = path or SPLIT
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)
+    except OSError as exc:
+        raise MapError(f"cannot read {path.name}: {exc}") from None
+    if reader.fieldnames != ["track", "notes"]:
+        raise MapError(f"{path.name}: columns {reader.fieldnames}, not ['track', 'notes']")
+    names = [r["track"].strip() for r in rows]
+    if not all(n.startswith("Track ") for n in names) or len(set(names)) != len(names):
+        raise MapError(f"{path.name}: every row names one track (Track ...), once")
+    return set(names)
+
+
+def split_edges(path: Path | None = None, found: list | None = None) -> dict:
+    """{plan edge: track name} of the split tracks (split_tracks): each name resolved to the one plan edge its track
+    is drawn on, in `found` (tracks with names; default: the solved schematic's), at build time. Stops on a name no
+    track has, or a track drawn on more than one plan edge (a split needs one track folded at one turnback)."""
+    names = split_tracks(path)
+    if found is None:
+        bands, joined, runs, _corners = solve()
+        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+        found = tracks(bands, runs, joined, helix_tags(bands, overrides))
+        track_names(found, helix_blocks(overrides))
+    by_name = {t["name"]: t for t in found}
+    out, bad = {}, []
+    for name in sorted(names):
+        t = by_name.get(name)
+        if t is None or len(t["trial"]) != 1:
+            bad.append(f"{name}: {'no such track' if t is None else 'drawn on ' + ', '.join(t['trial'])}")
+            continue
+        out[t["trial"][0].removeprefix("Track ")] = name
+    if bad:
+        raise MapError(f"{SPLIT.name}: " + "; ".join(bad))
+    return out
 
 
 def read_pins(path: Path | None = None) -> dict:
@@ -247,16 +283,6 @@ def read_pins(path: Path | None = None) -> dict:
     if bad:
         raise MapError(f"{path.name}: " + "; ".join(bad))
     return out
-
-
-def check_split(found: list, split: dict) -> None:
-    """Stop when a row of split_tracks_main_upper.csv names a plan edge that is not its track's: the edge ids change
-    whenever the plan is read again, and a stale one would leave the track whole without a word."""
-    trial = {t["name"]: set(t["trial"]) for t in found}
-    bad = [f"{edge} ({name})" for edge, name in split.items() if f"Track {edge}" not in trial.get(name, set())]
-    if bad:
-        raise MapError(f"{SPLIT.name}: {', '.join(bad)}: the edge is not that track's; give the plan edge the track "
-                       "is drawn on (its trial_name in the device map)")
 
 
 def loop_halves(band, runs, split: dict | None = None) -> dict:
@@ -510,8 +536,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     if dxs - set(corners):
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
-    split = split_edges()                           # read once per build
-    check_split(found, split)
+    split = split_edges(found=found)                # resolved once per build, from the tracks' names
     split_names = set(split.values())
     ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names,
                joined=joined)

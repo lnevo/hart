@@ -45,14 +45,17 @@ Readers: build_layout_le.py (load), build_signals.py (load_signal_masts, staging
 (staging_chains), hartlib.railroad's staging masts and check_layout_facts.py (staging_masts.csv),
 test_le_mast_parity.py (mast_facts).
 
-Trial names (placeholders()): the drawing's own keys for staging, as placeholder_names gives main and upper theirs.
+Trial names (placeholders()): the links from the rows to the drawing, by switch numbers and legs, so they survive a
+new AnyRail export, whose edge and node ids change every time (owner, 2026-11-20). Each is resolved to the drawing's
+ids when the files are read, and one that matches nothing, or more than one thing, stops.
 - turnout: "Switch <n>" (both halves of a single crossover: one turnout).
-- OS block: "OS Switch <n>" of a plain switch; "OS <n> at <node>" of a crossover half (staging's crossovers 7, 23
-  and 35 have an OS block per half: OS Switch 7 and 7b, 23a and 23b, 35a and 35b; the half's key is not written as
-  a block name, so check_name_copies.py does not take it for one).
-- track block: "Track <strand>" for a track of one block, "Track <strand> <k>/<n>" for the k-th of its n blocks from
-  the strand's first end (S-1 is "Track e23 1/3" West, "2/3" the body, "3/3" East). Strand and node ids are the
-  plan's (as main and upper's "Track <edge>"); --check stops when the plan renames one.
+- OS block: "OS Switch <n>" of a plain switch; "OS <n> A-<end>" of a crossover half, by where the run from its leg A
+  goes (staging's crossovers 7, 23 and 35 have an OS block per half: OS Switch 7 and 7b, 23a and 23b, 35a and 35b;
+  the half's key is not written as a block name, so check_name_copies.py does not take it for one).
+- track block: "Track <end>-<end>" for the run between two ends, each a switch number and the leg the run leaves
+  it by ("17C"), "end" for a bumper or "helix" (end_key), the lower switch first; " #<i>" for the i-th of a run's
+  pieces (a run folded at a turnback) from that first end; " <k>/<n>" for the k-th of the piece's n blocks from that
+  end (S-1 is "Track 17C-29C 1/3" West, "2/3" the body, "3/3" East).
 A block that several tracks or a switch share lists every placeholder, comma separated.
 
 The panel's own icons and labels are not device facts and are not here: the status cluster, captions and backdrop
@@ -98,7 +101,7 @@ CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "notes"]
 SHORT_TRACKS = pd.DATA / "short_tracks_staging.csv"
 SHORT_COLUMNS = ["switch_a", "switch_b", "block", "notes"]
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
-TRACK_RE = re.compile(r"Track (\S+?)(?: (\d+)/(\d+))?")
+TRACK_RE = re.compile(r"Track (\S+?(?: #\d+)?)(?: (\d+)/(\d+))?")       # a track by its piece (piece_refs), k-th of n blocks
 
 
 class StagingMapError(RuntimeError):
@@ -118,10 +121,47 @@ def crossover_halves(band) -> dict:
     return out
 
 
-def placeholders(band) -> tuple[dict, dict, list]:
-    """({switch node: turnout placeholder}, {switch node: OS placeholder}, [strand ids that carry blocks]) of the
-    staging band. Inner crossover strands carry none (the plugin draws them inside the crossover)."""
+def end_key(band, end) -> str:
+    """A run's end (node, port) by what survives a new export: a switch's number and leg ("17C"), "helix" for a helix
+    end, "end" for any other track end (a bumper)."""
+    d = band["nodes"][end[0]]
+    if d["kind"] == "switch":
+        return f"{lc.bare(d.get('label'))}{end[1]}"
+    return "helix" if d.get("sub") == "helix" else "end"
+
+
+def _end_order(key: str):
+    m = re.fullmatch(r"(\d+)([A-D])", key)
+    return (0, int(m.group(1)), m.group(2)) if m else (1, 0, key)
+
+
+def piece_refs(band) -> dict[str, tuple[str, bool]]:
+    """{strand id: (its piece reference, whether the strand runs against it)} of every staging strand that carries
+    blocks (crossover insides carry none): "<end>-<end>" of its run (end_key, the lower first) and " #<i>" when the
+    run has several pieces. Stops when two runs share ends, which could not be told apart."""
+    out, seen = {}, {}
+    for start, chain, stop in ln.runs(band, ln.crossover_strands(band)):
+        a, b = end_key(band, start), end_key(band, stop)
+        flip = _end_order(b) < _end_order(a)
+        run = f"{b}-{a}" if flip else f"{a}-{b}"
+        if run in seen:
+            raise StagingMapError(f"tracks {seen[run]} and {chain[0][0]} both run {run}: name them apart")
+        seen[run] = chain[0][0]
+        pieces = chain[::-1] if flip else chain
+        for i, (sid, rev) in enumerate(pieces, 1):
+            out[sid] = (run if len(pieces) == 1 else f"{run} #{i}", rev != flip)
+    return out
+
+
+def placeholders(band) -> tuple[dict, dict, dict]:
+    """({switch node: turnout placeholder}, {switch node: OS placeholder}, {strand id: (piece reference, reversed)})
+    of the staging band (piece_refs). Inner crossover strands carry none (the plugin draws them inside the
+    crossover). A crossover half is told apart by where the run from its leg A goes."""
     halves = crossover_halves(band)
+    refs = piece_refs(band)
+    leg_a = {}
+    for start, _chain, stop in ln.runs(band, ln.crossover_strands(band)):
+        leg_a[tuple(start)], leg_a[tuple(stop)] = end_key(band, stop), end_key(band, start)
     turnouts, os_ = {}, {}
     for n, d in sorted(band["nodes"].items()):
         if d["kind"] == "dx":
@@ -132,13 +172,16 @@ def placeholders(band) -> tuple[dict, dict, list]:
         if not re.fullmatch(r"\d+", label or ""):
             raise StagingMapError(f"staging switch node {n}: label {d.get('label')!r} is no switch number")
         turnouts[n] = f"Switch {label}"
-        os_[n] = f"OS {label} at {n}" if n in halves else f"OS Switch {label}"
-    inner = ln.crossover_strands(band)
-    return turnouts, os_, sorted(s for s in band["strands"] if s not in inner)
+        if n in halves and (n, "A") not in leg_a:
+            raise StagingMapError(f"crossover half {label} at {n}: no run leaves its leg A to tell it apart by")
+        os_[n] = f"OS {label} A-{leg_a[(n, 'A')]}" if n in halves else f"OS Switch {label}"
+    if len(set(os_.values())) != len(os_):
+        raise StagingMapError(f"two crossover halves have one key: {sorted(os_.values())}")
+    return turnouts, os_, refs
 
 
-def track_placeholder(sid: str, k: int, count: int) -> str:
-    return f"Track {sid}" if count == 1 else f"Track {sid} {k}/{count}"
+def track_placeholder(piece: str, k: int, count: int) -> str:
+    return f"Track {piece}" if count == 1 else f"Track {piece} {k}/{count}"
 
 
 def split_names(cell: str) -> list[str]:
@@ -457,17 +500,18 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
         if layer == "block" and m:
             k, count = (int(m.group(2)), int(m.group(3))) if m.group(2) else (1, 1)
             runs[m.group(1)][k] = (count, ph)
-    for sid in strands:
-        got = runs.pop(sid, {})
+    for sid, (piece, against) in sorted(strands.items()):
+        got = runs.pop(piece, {})
         if not got:
             continue                    # no block row: a short track, given its OS block below
         counts = {c for c, _ph in got.values()}
         if len(counts) != 1 or sorted(got) != list(range(1, next(iter(counts)) + 1)):
-            bad.append(f"track {sid}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n to n/n")
+            bad.append(f"track {piece}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n to n/n")
             continue
-        names["blocks"][sid] = [get(got[k][1], "block") for k in sorted(got)]
+        blocks = [get(got[k][1], "block") for k in sorted(got)]       # from the run's first end
+        names["blocks"][sid] = blocks[::-1] if against else blocks    # from the strand's first end, as drawn
     if not bad:
-        got_short, problems = short_track_blocks(band, names, strands, read_short_tracks(short_path))
+        got_short, problems = short_track_blocks(band, names, sorted(strands), read_short_tracks(short_path))
         names["blocks"].update(got_short)
         bad += problems
     for sid, got in runs.items():

@@ -114,18 +114,42 @@ class Pure(unittest.TestCase):
         self.assertEqual(sdm.mast_kind(dict(switch="", protects="")), "end bumper")
 
     def test_track_placeholder_numbers_only_split_tracks(self):
-        self.assertEqual(sdm.track_placeholder("e23", 1, 1), "Track e23")
-        self.assertEqual(sdm.track_placeholder("e23", 2, 3), "Track e23 2/3")
-        self.assertEqual(sdm.TRACK_RE.fullmatch("Track e9+e10").group(1), "e9+e10")
-        self.assertEqual(sdm.TRACK_RE.fullmatch("Track e16.0 1/2").groups(), ("e16.0", "1", "2"))
+        self.assertEqual(sdm.track_placeholder("17C-29C", 1, 1), "Track 17C-29C")
+        self.assertEqual(sdm.track_placeholder("17C-29C", 2, 3), "Track 17C-29C 2/3")
+        self.assertEqual(sdm.TRACK_RE.fullmatch("Track 1C-5A #2").groups(), ("1C-5A #2", None, None))
+        self.assertEqual(sdm.TRACK_RE.fullmatch("Track 37C-39C #2 1/2").groups(), ("37C-39C #2", "1", "2"))
 
     def test_crossover_halves_get_their_own_os_placeholder(self):
-        b = band({"a": sw("7"), "b": sw("7"), "c": sw("9")},
-                 {"x7": dict(src=("a", "C"), dst=("b", "C")), "e1": dict(src=("c", "A"), dst=("a", "A"))})
+        b = band({"a": sw("7"), "b": sw("7"), "c": sw("9"), "d": sw("11")},
+                 {"x7": dict(src=("a", "C"), dst=("b", "C")), "e1": dict(src=("c", "A"), dst=("a", "A")),
+                  "e2": dict(src=("b", "A"), dst=("d", "A"))})
         turnouts, os_, strands = sdm.placeholders(b)
-        self.assertEqual(turnouts, {"a": "Switch 7", "b": "Switch 7", "c": "Switch 9"})
-        self.assertEqual(os_, {"a": "OS 7 at a", "b": "OS 7 at b", "c": "OS Switch 9"})
-        self.assertEqual(strands, ["e1"])           # the strand inside the crossover carries no block
+        self.assertEqual(turnouts, {"a": "Switch 7", "b": "Switch 7", "c": "Switch 9", "d": "Switch 11"})
+        self.assertEqual(os_, {"a": "OS 7 A-9A", "b": "OS 7 A-11A", "c": "OS Switch 9", "d": "OS Switch 11"})
+        self.assertEqual({k: v[0] for k, v in strands.items()}, {"e1": "7A-9A", "e2": "7A-11A"})   # x7: none
+
+    def test_track_references_survive_a_new_export(self):
+        """The drawing's edge and node ids change with every export; the references are by switch and leg, so the
+        same track gets the same reference under other ids, and a run's pieces and blocks count from its lower
+        switch whichever way the export draws them."""
+        def drawn(ids, flip):
+            n1, n3, t, e1, e2, e3 = ids
+            a, b = ((n3, "A"), (t, "A")) if flip else ((t, "A"), (n3, "A"))
+            nodes = {n1: sw("1"), n3: sw("3"), t: dict(kind="turnback", label=""), "E": dict(kind="end", label="")}
+            return band(nodes, {e1: dict(src=(n1, "B"), dst=(t, "A")), e2: dict(src=a, dst=b),
+                                e3: dict(src=(n3, "B"), dst=("E", "A"))})
+        one = sdm.piece_refs(drawn(("N1", "N3", "T", "e1", "e2", "e3"), False))
+        two = sdm.piece_refs(drawn(("Q7", "Q8", "Q9", "k5", "k6", "k7"), True))
+        self.assertEqual(sorted(r for r, _a in one.values()), ["1B-3A #1", "1B-3A #2", "3B-end"])
+        self.assertEqual(sorted(r for r, _a in two.values()), ["1B-3A #1", "1B-3A #2", "3B-end"])
+        self.assertEqual(one["e2"][0], two["k6"][0])
+        self.assertNotEqual(one["e2"][1], two["k6"][1])     # drawn the other way: its blocks are read reversed
+
+    def test_two_runs_with_the_same_ends_stop(self):
+        b = band({"a": sw("1"), "b": sw("3")}, {"e1": dict(src=("a", "B"), dst=("b", "A")),
+                                                "e2": dict(src=("b", "A"), dst=("a", "B"))})
+        with self.assertRaisesRegex(sdm.StagingMapError, "both run 1B-3A"):
+            sdm.piece_refs(b)
 
     def test_a_switch_label_that_is_no_number_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "no switch number"):
@@ -218,8 +242,8 @@ class Files(unittest.TestCase):
         return self._copy(edit)[0]
 
     def test_a_missing_block_of_a_split_track_stops(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "track e22: blocks .* are not 1/n to n/n"):
-            sdm.load(self.band, device_map=self._without("Track e22 2/3"))
+        with self.assertRaisesRegex(sdm.StagingMapError, "track 17C-29C: blocks .* are not 1/n to n/n"):
+            sdm.load(self.band, device_map=self._without("Track 17C-29C 2/3"))
 
     def test_a_missing_turnout_placeholder_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
