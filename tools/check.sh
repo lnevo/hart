@@ -166,6 +166,7 @@ unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
 unit unit-schematic python3 -m unittest discover -q -s tools/schematic/tests
+unit unit-anyrail python3 -m unittest discover -q -s tools/anyrail/tests
 unit unit-portal python3 -m unittest discover -q -s www/scripts/tests
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
