@@ -6,10 +6,15 @@ edits (jmri/layouts/hart/data/schematic/):
   control_points_staging.csv  cp_id,cp_name,level,switches,area,code,notes   the control points: the limits the drawings
                               bracket and the CATS desk names (the signal rule's own interlockings are another fact:
                               interlockings_staging.csv)
-  stations_staging.csv        station,switches,tracks,notes                  the stations; `tracks` blank counts the
-                              tracks that run from the switches, `none` counts none, else track names, ";" between
-  sheets_staging.csv          sheet,stations,notes                           the station detail sheets, each the
-                              stations named in `stations` (";" between), its switches the sorted union of theirs
+  stations.csv                level,station,switches,tracks,notes            the stations of every level (one file, a
+                              level column); `tracks` blank counts the tracks that run from the switches, `none`
+                              counts none, else track names, ";" between
+  sheets.csv                  level,sheet,stations,notes                     the station detail sheets of every level,
+                              each the stations named in `stations` (";" between), its switches the sorted union of
+                              theirs
+
+Only staging (level 1) has stations so far; a row of another level stops the build until this builds that level too
+(the main and upper levels' two whole-level sheets stay in main_upper.preferences.json meanwhile).
 
 What it writes, and nothing else of those files:
 
@@ -42,8 +47,8 @@ from hartlib.railroad_facts import FactsError, read_rows  # noqa: E402
 
 LEVEL = "1"
 CPS = pd.DATA / "control_points_staging.csv"
-STATIONS = pd.DATA / "stations_staging.csv"
-SHEETS = pd.DATA / "sheets_staging.csv"
+STATIONS = pd.DATA / "stations.csv"
+SHEETS = pd.DATA / "sheets.csv"
 OVERRIDES = pd.DATA / "staging.plan_overrides.json"
 PREFERENCES = pd.DATA / "staging.preferences.json"
 LEGACY = paths.LAYOUT_DATA / "control_points.csv"
@@ -97,6 +102,17 @@ def _split(cell: str) -> tuple[str, ...]:
     return tuple(p.strip() for p in re.split(r"[;,]", cell) if p.strip())
 
 
+def _staging_row(where: str, name: str, level: str) -> None:
+    """Stop on a row of a level this builder does not build yet: the files hold every level, this writes staging's."""
+    try:
+        number = int(level)
+    except ValueError:
+        raise SetsError(f"{where} ({name}): level {level!r} is not a level number (1 staging, 2 main, 3 upper)") from None
+    if number != int(LEVEL):
+        raise SetsError(f"{where} ({name}): level {level!r}; only staging (level {LEVEL}) stations and sheets are "
+                        "built so far")
+
+
 def staging_switches(path: Path = SWITCHES) -> set[str]:
     """The switch numbers of level 1 in switches.csv."""
     return {r["switch"] for _l, r in _rows(path, ("level", "switch")) if r["level"] == LEVEL}
@@ -142,8 +158,9 @@ def read_stations(cps: list[ControlPoint], path: Path = STATIONS) -> list[Statio
     control point."""
     have = {s for cp in cps for s in cp.switches}
     out, names = [], {}
-    for line, r in _rows(path, ("station", "switches", "tracks"), optional=("notes",)):
+    for line, r in _rows(path, ("level", "station", "switches", "tracks"), optional=("notes",)):
         where = _where(path, line)
+        _staging_row(where, r["station"], r["level"])
         if not r["station"] or r["station"] in names:
             raise SetsError(f"{where}: station {r['station']!r} is empty or also on line {names.get(r['station'])}")
         names[r["station"]] = line
@@ -158,12 +175,13 @@ def read_stations(cps: list[ControlPoint], path: Path = STATIONS) -> list[Statio
     return out
 
 
-def read_sheets(stations: list[Station], path: Path = SHEETS) -> list[Sheet]:
+def read_sheets(stations: list[Station], path: Path = SHEETS, stations_path: Path = STATIONS) -> list[Sheet]:
     """The detail sheets in file order. Stops on a name given twice or a sheet naming no station or an unknown one."""
     known = {s.name for s in stations}
     out, names = [], {}
-    for line, r in _rows(path, ("sheet", "stations")):
+    for line, r in _rows(path, ("level", "sheet", "stations"), optional=("notes",)):
         where = _where(path, line)
+        _staging_row(where, r["sheet"], r["level"])
         if not r["sheet"] or r["sheet"] in names:
             raise SetsError(f"{where}: sheet {r['sheet']!r} is empty or also on line {names.get(r['sheet'])}")
         names[r["sheet"]] = line
@@ -172,7 +190,7 @@ def read_sheets(stations: list[Station], path: Path = SHEETS) -> list[Sheet]:
             raise SetsError(f"{where} ({r['sheet']}): no stations")
         bad = [s for s in st if s not in known]
         if bad:
-            raise SetsError(f"{where} ({r['sheet']}): {', '.join(bad)} is no station in {STATIONS.name}")
+            raise SetsError(f"{where} ({r['sheet']}): {', '.join(bad)} is no station in {stations_path.name}")
         out.append(Sheet(line, r["sheet"], st))
     return out
 
@@ -203,7 +221,7 @@ def overrides_text(over: dict, cps, stations) -> str:
     over["control_points"] = {c.cp_name: {"switches": list(c.switches), "code": c.code} for c in cps}
     over["station_tracks"] = {s.name: list(s.tracks) for s in stations if s.tracks is not None}
     over["_control_points"] = ("Written by tools/schematic/build_staging_sets.py from control_points_staging.csv "
-                               "(control_points) and stations_staging.csv (stations, station_tracks); edit those "
+                               "(control_points) and stations.csv (stations, station_tracks); edit those "
                                "files, not these keys.")
     return dumps(over)
 

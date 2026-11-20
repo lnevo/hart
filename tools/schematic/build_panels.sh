@@ -7,7 +7,7 @@
 #   hands                 hands.csv, from the plan graph
 #   staging-sets          staging's control points, stations and detail sheets in staging.plan_overrides.json,
 #                         staging.preferences.json and data/control_points.csv, from control_points_staging.csv,
-#                         stations_staging.csv and sheets_staging.csv
+#                         stations.csv and sheets.csv
 #   main-route            main_route in main_upper.plan_overrides.json, from main_lines.csv (main_upper rows) and the
 #                         plan graph; staging's main flags and milepost_route, from its staging rows
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,

@@ -23,7 +23,7 @@ and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_stagin
 | Area | Staging | Main and upper |
 |---|---|---|
 | Plan input and sheet | `inputs/staging.json`, `staging.plan_overrides.json`, `staging.preferences.json`, `staging.signals.json` | `inputs/main.json`, `main_upper.*` (the same four) |
-| Groupings | `control_points_staging.csv` (station groups with desk codes), `stations_staging.csv`, `sheets_staging.csv`, `interlockings_staging.csv` (the signal rule's control points) | `control_points_main_upper.csv` (the signal rule's control points, also drawn as the stations); detail sheets by hand in `main_upper.preferences.json` |
+| Groupings | `control_points_staging.csv` (station groups with desk codes), `stations.csv`, `sheets.csv` (level 1 rows only so far), `interlockings_staging.csv` (the signal rule's control points) | `control_points_main_upper.csv` (the signal rule's control points, also drawn as the stations); detail sheets by hand in `main_upper.preferences.json` |
 | Hand lists | `short_tracks_staging.csv` | `running_tracks_`, `signalled_spurs_`, `split_tracks_`, `local_switches_main_upper.csv`; short tracks by a rule (`SHORT_CM` in `build_device_map.py`) |
 | Masts | `build_staging_masts.py`: `mast_rule.masts()` plus intermediates, anchor masts, virtual masts, interlockings | `build_device_map.py`: `mast_rule.masts()` plus running, spur and split lists, double-crossover corners; `build_main_upper_masts.py` copies them to `main_upper_masts.csv` |
 | Builders | `build_staging_sets.py`, `cats_panel_staging.py`, `staging_device_map.py` | `build_device_map.py`, `cats_panel_levels.py` |
@@ -50,6 +50,13 @@ What differs is what each level adds around it.
   Main and upper's control points become its interlockings, and its stations stay empty until the owner defines
   them in PanelPro (memory: Dispatcher stations for new levels). Wait for the mast result (step 2), since the
   interlockings are its input.
+- **Stations and sheets: done** (owner, 2026-11-20). `stations.csv` and `sheets.csv` replace `stations_staging.csv`
+  and `sheets_staging.csv`, with a `level` column. A sheet is a station detail sheet (the drawings in
+  `docs/ops/stations/`). Only staging has stations; a main or upper row stops `build_staging_sets.py` until it
+  builds those levels. The main and upper levels' two whole-level sheets stay in `main_upper.preferences.json`: they
+  list every switch drawn on a band, not stations, and the builder does not read the bands.
+  When main and upper stations come, station names are unique across levels or keyed by level: decide then
+  (the `station_tracks` and `detail_sheets` keys are by name).
 - **Short tracks:** staging lists them by hand, main and upper use a rule (`SHORT_CM`). Proposed: the rule for every
   level, with the file kept only for owner exceptions (35 to 37 is one, a block decided by the owner), level column.
 - **Hand lists:** running track and signalled spurs become rules; split tracks stay owner data in
