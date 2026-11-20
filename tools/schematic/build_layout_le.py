@@ -41,7 +41,7 @@ levels, and for 121 and 125, whose halves the plan joins leg C to leg B; each ha
 other half), on internal system names, each block bound to its virtual occupancy sensor (IS:HART:C3:B:<block key>;
 level_sensors), which a LogixNG sets clear when the tables load (add_level_clear); their track names are the device
 map's block names without "Track ", left out where there is no room (names_last); one block contents icon per block at
-12 px (staging keeps 13; main_upper.preferences.json's le_band_labels).
+12 px (staging keeps 13; preferences.json[main_upper]'s le_band_labels).
 
 Parked features (owner, 2026-11-17; hartlib.parked, PARKED). After the staging guard the three-level candidate's
 Entry/Exit, Dispatcher System and USS CTC elements are left out (parked.split); their live data is the snapshot in
@@ -124,14 +124,14 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
                  "--as-live for the staging candidate (tables_cutover_staging.xml)")
 
 # The window the panel opens in at 100% zoom (the page's le_window) and the rows staging is drawn at (le_row) are
-# main_upper.preferences.json's, read through the plugin (le.window, le.row); their notes there say why.
+# preferences.json[main_upper]'s, read through the plugin (le.window, le.row); their notes there say why.
 # The cut-over candidates' grid (owner, 2026-11-16): staging's own fit to the window (the grid's scale across and down
 # when the staging band alone is fitted into the le_window at le_row, found by the plugin's fit in each staging
-# cut-over build and kept as P.staging_fit) widened by main_upper.preferences.json's le_stretch (the plugin's
+# cut-over build and kept as P.staging_fit) widened by preferences.json[main_upper]'s le_stretch (the plugin's
 # stretched and check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights,
 # le_crossover_angle, le_mast_room, le_name_room, le_title_clear,
 # le_stretch, le_window, le_row, and the label options: staging's le_labels extra_steps, extra_follow, name_columns
-# and lamp_columns, main_upper.preferences.json's page-wide le_labels and each level's le_band_labels) are layer 3
+# and lamp_columns, preferences.json[main_upper]'s page-wide le_labels and each level's le_band_labels) are layer 3
 # preferences the plugin reads (schematic/le_prefs.py, schematic/le_labels.py). Crossovers 101 and 103, one
 # three-way part in the plan, are drawn tight and split by the plugin's rule (schematic-maps 0.1.48), not a
 # preference.
@@ -185,9 +185,9 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         solved_page = schematic()[1]
     page = solved_page if page is None else page
     if "le_row" not in page:        # le.row falls back to the plugin's rows: HART's staging rows are a preference
-        raise BuildError("the page's preferences (main_upper.preferences.json) hold no le_row")
+        raise BuildError("the page's preferences (preferences.json[main_upper]) hold no le_row")
     if "le_labels" not in page:     # the plugin's defaults would draw every switch number unprefixed, staging's too
-        raise BuildError("the page's preferences (main_upper.preferences.json) hold no le_labels")
+        raise BuildError("the page's preferences (preferences.json[main_upper]) hold no le_labels")
     try:
         fit, staging_row = le_mod.window(page), le_mod.row(page)
     except core.SchematicError as exc:

@@ -401,7 +401,7 @@ class MainAndUpper(unittest.TestCase):
         """The desks' window (the Windows box's screen, owner 2026-11-18), one cell per grid unit, each helix track
         one block over both bands (owner, 2026-11-20) and the tighter rows between bands (owner, 2026-11-18) are the
         page's CATS preferences, which the plugin reads."""
-        page = json.loads((B.pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8"))
+        page = B.pd.page_prefs().read()
         keys = ("cats_window", "cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
         self.assertEqual({k: page[k] for k in keys},
                          {"cats_window": [1900, 1020], "cats_cells_per_unit": 1, "cats_helix_blocks": "one",

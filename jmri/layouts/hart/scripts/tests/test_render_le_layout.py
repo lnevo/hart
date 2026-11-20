@@ -124,6 +124,21 @@ class MastKinds(unittest.TestCase):
         self.assertTrue(kinds)
         self.assertTrue(set(kinds.values()) <= set(render_le_layout.KIND_COLOUR))
 
+    def test_the_repo_sections_read_by_sheet(self):
+        staging = render_le_layout.mast_kinds(render_le_layout.KINDS_FILE)
+        main_upper = render_le_layout.mast_kinds(render_le_layout.KINDS_FILE, "main_upper")
+        self.assertTrue(staging and main_upper)
+        self.assertNotEqual(staging, main_upper)
+        self.assertTrue(all(name.startswith("Mast ") for name in [*staging, *main_upper]))
+        with self.assertRaisesRegex(SystemExit, "no section 'upper'"):
+            render_le_layout.mast_kinds(render_le_layout.KINDS_FILE, "upper")
+
+    def test_a_sectioned_file_without_plan_overrides_beside_it_takes_mast(self):
+        path = self.write('{"_sections": true, "staging": {"signals": [{"mast": "2L", "kind": "field"}]}}')
+        self.assertEqual(render_le_layout.mast_kinds(path), {"Mast 2L": "field"})
+        with self.assertRaisesRegex(SystemExit, "no section 'main_upper'"):
+            render_le_layout.mast_kinds(path, "main_upper")
+
     def test_a_file_it_cannot_use_stops(self):
         for text in ("not json", '{"masts": []}', '{"signals": [{"mast": "2L", "kind": "phantom"}]}',
                      '{"signals": [{"kind": "field"}]}', '{"signals": ["2L"]}'):

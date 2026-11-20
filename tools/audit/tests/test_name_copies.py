@@ -124,9 +124,9 @@ class NameCopiesTest(unittest.TestCase):
 
     def test_frozen_schematic_files_are_read_and_generated_ones_not(self):
         sch = "jmri/layouts/hart/data/schematic/"
-        for rel in ("staging_le/masts.csv", "staging_le/overlay.json", "staging.plan_overrides.json"):
+        for rel in ("staging_le/masts.csv", "staging_le/overlay.json", "plan_overrides.json"):
             self.assertTrue(check.readable(sch + rel), rel)
-        for rel in ("staging.signals.json", "hands.csv", "device_map_main_upper.csv", "inputs/staging.json"):
+        for rel in ("signals.json", "hands.csv", "device_map_main_upper.csv", "inputs/staging.json"):
             self.assertFalse(check.readable(sch + rel), rel)
         hand = self.write(sch + "staging_le/masts.csv", "mast\nMast 32L\n")
         self.assertEqual([f"{hand}:2: 'Mast 32L' is not a current name"], self.stale([hand]))

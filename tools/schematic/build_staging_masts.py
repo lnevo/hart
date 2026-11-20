@@ -45,7 +45,6 @@ from __future__ import annotations
 import argparse
 import csv
 import io
-import json
 import os
 import re
 import sys
@@ -68,10 +67,10 @@ WRITES = ("mast", "head")              # the layers of the devices.csv rows this
 def device_files() -> devices.Files:
     """The master and its generated files as build() uses them: DEVICE_MAP, as it is when it runs (a test may patch it)."""
     return devices.Files.under(DEVICE_MAP.parent)
-CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
+CPS = sdm.CPS
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
 SPLIT = DATA / "block_splits.csv"            # the owner's block splits, every level (none on staging)
-LEVELS = mast_rule.band_levels(json.loads(OVERRIDES.read_text(encoding="utf-8")))     # {band title: level}: staging's
+LEVELS = mast_rule.band_levels(sdm.overrides())     # {band title: level}: staging's
 HEAD_PREFIX = "IH:HART:C1:"
 FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position

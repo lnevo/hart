@@ -11,7 +11,7 @@ from functools import cached_property
 from pathlib import Path
 from typing import Iterable
 
-from . import level_devices, level_masts, paths, tables
+from . import layer_files, level_devices, level_masts, paths, tables
 
 LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
 WRITERS = {
@@ -78,7 +78,7 @@ class Sources:
                    devices=data / "devices.csv",
                    interlockings=s / "interlockings.csv",
                    local_switches=s / "local_switches_main_upper.csv", lcos_nodes=s / "lcos_nodes_main_upper.csv",
-                   plan_overrides=s / "main_upper.plan_overrides.json", block_lengths=data / "block_lengths.csv",
+                   plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
                    staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
                    level_masts=s / level_masts.PATH.name,
                    tables=paths.TABLES_XML if tables_xml is None else tables_xml,
@@ -497,30 +497,42 @@ def read_lcos_nodes(path: Path) -> list[LcosNode]:
 
 @dataclass(frozen=True)
 class PlanOverrides:
-    """main_upper.plan_overrides.json. `data` is the whole file (build_device_map.py writes it back with its
-    control_points and stations keys); `relabel` maps a plan switch label to the owner's switch number."""
+    """The main_upper section of plan_overrides.json (hartlib.layer_files). `data` is the whole section
+    (build_device_map.py writes it back with its control_points and stations keys); `relabel` maps a plan switch label
+    to the owner's switch number."""
     path: Path
     data: dict
     edits: tuple[dict, ...]
     relabel: dict[str, str]
+
+    SHEET = "main_upper"
+
+    @property
+    def name(self) -> str:
+        """How messages name it: plan_overrides.json[main_upper]."""
+        return f"{self.path.name}[{self.SHEET}]"
 
     @property
     def helix(self) -> list:
         return list(self.data.get("helix", []))
 
 
-def read_plan_overrides(path: Path) -> PlanOverrides:
-    """Stops on a file that is not JSON, edits that are not a list of {op: ...}, or not exactly one relabel edit."""
+def read_plan_overrides(path: Path, sheet: str = PlanOverrides.SHEET) -> PlanOverrides:
+    """The `sheet` section of the plan overrides file `path` (a plan_overrides.json). Stops on a file or section
+    hartlib.layer_files refuses, edits that are not a list of {op: ...}, or not exactly one relabel edit."""
+    where = f"{path.name}[{sheet}]"
+    if path.name != layer_files.path("plan_overrides", path.parent).name:
+        raise FactsError(f"{path}: the plan overrides are plan_overrides.json, a section per sheet")
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError) as exc:
-        raise FactsError(f"{path.name}: not a readable JSON file ({exc})") from None
-    edits = data.get("edits") if isinstance(data, dict) else None
+        data = layer_files.read("plan_overrides", sheet, path.parent)
+    except layer_files.LayerFileError as exc:
+        raise FactsError(f"{where}: not a readable layer section ({exc})") from None
+    edits = data.get("edits")
     if not isinstance(edits, list) or not all(isinstance(e, dict) and isinstance(e.get("op"), str) for e in edits):
-        raise FactsError(f"{path.name}: `edits` is a list of objects with an `op`")
+        raise FactsError(f"{where}: `edits` is a list of objects with an `op`")
     relabels = [e for e in edits if e["op"] == "relabel"]
     if len(relabels) != 1 or not isinstance(relabels[0].get("map"), dict):
-        raise FactsError(f"{path.name}: {len(relabels)} relabel edits; it needs exactly one, with a `map`")
+        raise FactsError(f"{where}: {len(relabels)} relabel edits; it needs exactly one, with a `map`")
     return PlanOverrides(path, data, tuple(edits), dict(relabels[0]["map"]))
 
 

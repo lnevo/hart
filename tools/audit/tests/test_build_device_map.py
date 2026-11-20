@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import importlib.util
-import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -318,7 +317,7 @@ class Output(unittest.TestCase):
         self.assertFalse({"Track 129 Loop", "Track 135 Loop"} & names)
 
     def test_overrides_match_the_control_point_file(self):
-        over = json.loads(BD.OVERRIDES.read_text())
+        over = BD.layer_files.read("plan_overrides", "main_upper", BD.OVERRIDES.parent)
         names = [c.name for c in BD.load_cps()]
         self.assertEqual(list(over["control_points"]), names)
         self.assertEqual({k: v["switches"] for k, v in over["stations"].items()},

@@ -1,7 +1,7 @@
 """map_revision.py [--check]
 
-Writes the system schematic's revision and date (the title block in the page's preferences file) into the station
-map data and pages: www/data/crew.json, www/data/publications.json and each current www/crew/maps/<id>/index.html.
+Writes the system schematic's revision and date (the title block in the page's preferences, preferences.json's
+main_upper section) into the station map data and pages: www/data/crew.json, www/data/publications.json and each current www/crew/maps/<id>/index.html.
 The work, and the list of what it writes and leaves alone, is hartlib.map_revision
 (tools/hartlib/src/hartlib/map_revision.py), which tools/schematic/publish_draft.py shares: it applies it after it
 publishes, and its --check runs the check. --check here exits 1 and names each place that differs, without writing;
@@ -14,8 +14,8 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib.map_revision import (PUB_LINE, REPO, SCHEMATIC, apply, drift, fields,  # noqa: E402,F401
-                                  page_prefs, planned, pub_line)
+from hartlib.map_revision import (PAGE_SHEET, PUB_LINE, REPO, SCHEMATIC, apply, drift,  # noqa: E402,F401
+                                  fields, page_prefs, planned, pub_line)
 
 
 def main(argv: list[str]) -> int:

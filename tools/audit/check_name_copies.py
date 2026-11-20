@@ -55,7 +55,7 @@ SKIP_PREFIXES = (
     TABLES_REL,                                   # JMRI's file; held to the map by the baselines
     "jmri/layouts/hart/data/baselines/",          # capture_public_name_baseline.py --check
     # the generated files of the schematic data; its hand-kept files (the staging device map, the overrides) are read
-    "jmri/layouts/hart/data/schematic/staging.signals.json",          # build_signals.py --check
+    "jmri/layouts/hart/data/schematic/signals.json",                  # both sections: build_signals.py --check
     "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
     "jmri/layouts/hart/data/public_name_map.csv",                     # generated from devices.csv (hartlib.devices check)
     "jmri/layouts/hart/data/schematic/device_map_staging.csv",        # generated from devices.csv (hartlib.devices check)

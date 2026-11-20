@@ -36,7 +36,7 @@ class RealPlan(unittest.TestCase):
     def setUpClass(cls):
         import build_layout_le as bl
         try:
-            cls.overrides = json.loads(M.OVERRIDES.read_text(encoding="utf-8"))
+            cls.overrides = M.layer_files.read("plan_overrides", "main_upper", M.pd.DATA)
             cls.g, cls.node_ref = M.prepared(cls.overrides)
         except bl.BuildError as exc:
             raise unittest.SkipTest(str(exc))
@@ -208,51 +208,49 @@ class StagingLines(unittest.TestCase):
     def setUpClass(cls):
         import build_layout_le as bl
         try:
-            cls.overrides = json.loads(M.STAGING_OVERRIDES.read_text(encoding="utf-8"))
+            cls.overrides = M.layer_files.read("plan_overrides", "staging", M.pd.DATA)
             cls.g, cls.node_ref = M.prepared(cls.overrides, "staging", M.STAGING_GRAPH)
         except bl.BuildError as exc:
             raise unittest.SkipTest(str(exc))
         cls.plan = M.Plan(cls.g, cls.node_ref)
         cls.rows = M.read_lines("staging")
 
-    def flagged(self, text):
-        edit = next(e for e in json.loads(text)["edits"] if e["op"] == "name")
+    def flagged(self, section):
+        edit = next(e for e in section["edits"] if e["op"] == "name")
         return sorted(t[2] or f"{t[0]}-{t[1]}" for t in edit["tracks"] if "main" in t[3:])
 
     def test_the_file_holds_what_the_lines_give(self):
-        self.assertEqual(M.STAGING_OVERRIDES.read_text(encoding="utf-8"),
-                         M.staging_text(self.overrides, self.plan, self.rows))
+        self.assertEqual(self.overrides, M.staging_section(self.overrides, self.plan, self.rows))
 
     def test_the_eight_hand_flagged_tracks_are_the_main_ones(self):
-        self.assertEqual(self.flagged(M.staging_text(self.overrides, self.plan, self.rows)),
+        self.assertEqual(self.flagged(M.staging_section(self.overrides, self.plan, self.rows)),
                          sorted(["Main West", "West Ext", "East Lead", "Brick-Plane", "East Ext", "Main East",
                                  "35@West Ext-39", "35@East Lead-37"]))
 
     def test_the_milepost_route_is_the_counted_lines_stops(self):
-        hops = json.loads(M.staging_text(self.overrides, self.plan, self.rows))["milepost_route"]
+        hops = M.staging_section(self.overrides, self.plan, self.rows)["milepost_route"]
         self.assertEqual(hops[0], ["1", "5"])
         self.assertEqual(hops[-2:], [["35@West Ext", "39"], ["39", "McKees Rocks"]])
 
     def test_a_stale_flag_is_caught_by_the_comparison(self):
         stale = json.loads(json.dumps(self.overrides))
         next(e for e in stale["edits"] if e["op"] == "name")["tracks"][2].append("main")     # S-R
-        text = json.dumps(stale, indent=1, ensure_ascii=False) + "\n"
-        self.assertNotEqual(text, M.staging_text(stale, self.plan, self.rows))
-        self.assertEqual(M.staging_text(stale, self.plan, self.rows), M.staging_text(self.overrides, self.plan, self.rows))
+        self.assertNotEqual(stale, M.staging_section(stale, self.plan, self.rows))
+        self.assertEqual(M.staging_section(stale, self.plan, self.rows), M.staging_section(self.overrides, self.plan, self.rows))
 
     def test_a_stop_with_no_track_to_the_next_stops_with_the_line(self):
         with tempfile.TemporaryDirectory() as tmp:
             rows = [[r[c] for c in STAGING_COLUMNS] for r in self.rows]
             rows[0][2] = "33;37"          # no track from 1 to 33
             with self.assertRaisesRegex(M.RouteError, "Upper level: no track joins"):
-                M.staging_text(self.overrides, self.plan, M.read_lines("staging", staging_file(tmp, *rows)))
+                M.staging_section(self.overrides, self.plan, M.read_lines("staging", staging_file(tmp, *rows)))
 
     def test_an_unknown_switch_names_the_stop(self):
         with tempfile.TemporaryDirectory() as tmp:
             rows = [[r[c] for c in STAGING_COLUMNS] for r in self.rows]
             rows[0][2] = "99"
             with self.assertRaisesRegex(M.RouteError, "main line stop '99'"):
-                M.staging_text(self.overrides, self.plan, M.read_lines("staging", staging_file(tmp, *rows)))
+                M.staging_section(self.overrides, self.plan, M.read_lines("staging", staging_file(tmp, *rows)))
 
     def test_count_is_yes_or_blank(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -264,7 +262,7 @@ class StagingLines(unittest.TestCase):
         edit = next(e for e in over["edits"] if e["op"] == "name")
         edit["tracks"] = [t for t in edit["tracks"] if t[2] != "Brick-Plane"]
         with self.assertRaisesRegex(M.RouteError, "does not name: (1 to 5|5 to 1)"):
-            M.staging_text(over, self.plan, self.rows)
+            M.staging_section(over, self.plan, self.rows)
 
 
 

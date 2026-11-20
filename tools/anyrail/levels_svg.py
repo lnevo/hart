@@ -18,9 +18,9 @@ Coordinates are plan centimetres, y down, so the three drawings line up. What a 
   passes under itself or under the other helix track, and on staging below that. A staging climb of less than one
   turn is split at HELIX_CUT_CM, the cut the schematic parts the levels at (also each track's share in
   levels_meta.json); a climb that starts higher is drawn on the level it climbs from.
-- A turnout is labelled with the owner's switch number from the relabel map of staging.plan_overrides.json or
-  main_upper.plan_overrides.json (the plan's T number is the part's place in the file); one the maps do not name
-  carries its T number.
+- A turnout is labelled with the owner's switch number from the relabel map of the staging or main_upper section of
+  plan_overrides.json (the plan's T number is the part's place in the file); one the maps do not name carries its T
+  number.
 """
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ import anyplan  # noqa: E402
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad_facts  # noqa: E402
+from hartlib import railroad_facts  # noqa: E402
 
 LEVELS = ("staging", "main", "upper")          # lowest to highest
 
@@ -55,8 +55,7 @@ HELIX_CUT_CM = -5.0     # the height that parts staging's graph from the main an
 SNAP_CM = 0.5           # a flat part this close to a level's height is on that level
 CM_PER_IN = 2.54
 DEFAULT_PLAN = Path.home() / "Documents/Layout/Lee Nevo Design Version 5.3c.any"
-OVERRIDES = {"staging": "staging.plan_overrides.json", "main": "main_upper.plan_overrides.json",
-             "upper": "main_upper.plan_overrides.json"}
+OVERRIDES = {"staging": "staging", "main": "main_upper", "upper": "main_upper"}   # level: plan_overrides.json section
 VERSION = re.compile(r"Version (\d+(?:\.\d+)*[a-z]?)\b")
 THREEWAY_KEY = re.compile(r"TO_3W\w+-\d+")       # the relabel keys of the three-way's halves: no T number
 
@@ -274,8 +273,8 @@ def assign(parts, heights):
 
 
 def labels(level) -> dict[str, str]:
-    """{plan label: owner's switch number} for a level, from its plan overrides file."""
-    return railroad_facts.read_plan_overrides(paths.LAYOUT_DATA / "schematic" / OVERRIDES[level]).relabel
+    """{plan label: owner's switch number} for a level, from its section of plan_overrides.json."""
+    return railroad_facts.read_plan_overrides(railroad_facts.Sources.under().plan_overrides, OVERRIDES[level]).relabel
 
 
 def label_of(p, names):

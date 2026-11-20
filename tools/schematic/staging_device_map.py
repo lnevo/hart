@@ -33,14 +33,14 @@ Files (jmri/layouts/hart/data/, schematic/ for the rest):
   has its own block, or two tracks between the same switches, stops). Today the track from Switch 35 to Switch 37,
   in OS Switch 35a.
 - control_points_staging.csv (cp_id, cp_name, level, switches, area, code, notes): the master of staging's
-  control points. build_staging_sets.py writes staging.plan_overrides.json's control_points, stations and
-  station_tracks and the `detail_sheets` preference from it, stations.csv and sheets.csv (other readers take its
+  control points. build_staging_sets.py writes plan_overrides.json's staging section (control_points, stations and
+  station_tracks) and the `detail_sheets` preference from it, stations.csv and sheets.csv (other readers take its
   rows through hartlib.railroad_facts.station_group_rows).
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
   number means a turnout mast, no protected block an end bumper (buffer stop) mast, else an anchor mast. Hidden is a
   virtual mast (IF$vsm), its icon size hartlib.tables.mast_icon_size.
 - staging_signals.csv (SIGNAL_COLUMNS): each mast's signal-plan facts (its schematic run, lengths, direction, kind
-  and heads). build_signals.py writes staging.signals.json from it and staging_masts.csv (load_signal_masts,
+  and heads). build_signals.py writes signals.json's staging section from it and staging_masts.csv (load_signal_masts,
   signal_rows).
 
 Readers: build_layout_le.py (load), build_signals.py (load_signal_masts, staging_chains), build_cats_panel.py
@@ -80,20 +80,20 @@ import le_names as ln  # noqa: E402  runs and crossovers
 import build_main_upper_masts as bmm  # noqa: E402  LEGS: two masts on one block pair, by letter
 import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
-from hartlib import devices, level_devices, level_masts, paths, railroad, tables  # noqa: E402
+from hartlib import devices, layer_files, level_devices, level_masts, paths, railroad, tables  # noqa: E402
 
 LEVEL = 1
 DEVICE_MAP = paths.LAYOUT_DATA / "devices.csv"     # the master: its level 1 rows are staging's device map
 CPS = pd.DATA / "control_points_staging.csv"
 MASTS = pd.DATA / "staging_masts.csv"
 SIGNALS = pd.DATA / "staging_signals.csv"
-OVERRIDES = pd.DATA / "staging.plan_overrides.json"
-# staging_signals.csv: the signal-plan facts build_signals.py writes staging.signals.json from; lists inside a cell
+SHEET = "staging"           # staging's section of the layer files (plan_overrides.json, signals.json)
+# staging_signals.csv: the signal-plan facts build_signals.py writes signals.json's staging section from; lists inside a cell
 # are LIST separated
 SIGNAL_COLUMNS = ["mast", "signal", "toward", "run", "names", "edge_cm", "cm_from_toward", "dir", "signal_kind",
                   "heads", "schematic_edge", "schematic_toward_node"]
 LIST = ";"
-# what staging.signals.json names as its source: the file the masts were first read from (the hand-drawn panel's)
+# what signals.json's staging section names as its source: the file the masts were first read from (the hand-drawn panel's)
 SIGNALS_SOURCE = "tables.xml"
 CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "code", "notes"]
 # short_tracks_staging.csv: a short track between two switches with no block of its own, and the OS block whose gap it
@@ -106,6 +106,11 @@ TRACK_RE = re.compile(r"Track (\S+?(?: #\d+)?)(?: (\d+)/(\d+))?")       # a trac
 
 class StagingMapError(RuntimeError):
     pass
+
+
+def overrides() -> dict:
+    """Staging's section of plan_overrides.json (hartlib.layer_files; LayerFileError if it is missing)."""
+    return layer_files.read("plan_overrides", SHEET, pd.DATA)
 
 
 # ---------------------------------------------------------------- placeholders: the drawing's keys
@@ -663,7 +668,7 @@ def mast_facts(device_map: Path = DEVICE_MAP, masts_path: Path = MASTS) -> dict:
 
 
 def signal_rows(masts: list[dict]) -> list[dict]:
-    """staging.signals.json's signals from the staging masts (load_signal_masts), in the plugin's order (by number,
+    """signals.json[staging]'s signals from the staging masts (load_signal_masts), in the plugin's order (by number,
     then name)."""
     rows = [dict(mast=m["signal"], toward=m["toward"], run=list(m["run"]), names=list(m["names"]),
                  edge_cm=m["edge_cm"], cm_from_toward=m["cm_from_toward"], dir=m["dir"], kind=m["signal_kind"],

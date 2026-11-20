@@ -14,12 +14,13 @@ edits (jmri/layouts/hart/data/schematic/):
                               theirs
 
 Only staging (level 1) has stations so far; a row of another level stops the build until this builds that level too
-(the main and upper levels' two whole-level sheets stay in main_upper.preferences.json meanwhile).
+(the main and upper levels' two whole-level sheets stay in preferences.json's main_upper section meanwhile).
 
 What it writes, and nothing else of those files:
 
-  staging.plan_overrides.json   the keys control_points, stations and station_tracks
-  staging.preferences.json      the key detail_sheets
+  plan_overrides.json   staging's section: the keys control_points, stations and station_tracks
+  preferences.json      staging's section: the key detail_sheets
+(through hartlib.layer_files, which keeps the other sections and the notes as they are).
 
 The older data/control_points.csv is gone (level-unification step 8): its readers build the same rows from
   control_points_staging.csv and switch_legs.csv (hartlib.railroad_facts.station_group_rows).
@@ -39,15 +40,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA
-from hartlib import paths  # noqa: E402
+from hartlib import layer_files, paths  # noqa: E402
 from hartlib.railroad_facts import FactsError, read_rows, station_group_rows  # noqa: E402
 
 LEVEL = "1"
 CPS = pd.DATA / "control_points_staging.csv"
 STATIONS = pd.DATA / "stations.csv"
 SHEETS = pd.DATA / "sheets.csv"
-OVERRIDES = pd.DATA / "staging.plan_overrides.json"
-PREFERENCES = pd.DATA / "staging.preferences.json"
+SHEET = "staging"     # the sections of plan_overrides.json and preferences.json this writes
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
 NONE = "none"        # the `tracks` cell of a station that counts no track
@@ -195,11 +195,7 @@ def sheet_switches(sheet: Sheet, stations: list[Station]) -> list[str]:
     return sorted({sw for n in sheet.stations for sw in by_name[n].switches}, key=int)
 
 
-def dumps(data: dict) -> str:
-    return json.dumps(data, indent=1, ensure_ascii=False) + "\n"
-
-
-def overrides_text(over: dict, cps, stations) -> str:
+def overrides_section(over: dict, cps, stations) -> dict:
     over = dict(over)
     over["stations"] = {s.name: list(s.switches) for s in stations}
     over["control_points"] = {c.cp_name: {"switches": list(c.switches), "code": c.code} for c in cps}
@@ -207,17 +203,18 @@ def overrides_text(over: dict, cps, stations) -> str:
     over["_control_points"] = ("Written by tools/schematic/build_staging_sets.py from control_points_staging.csv "
                                "(control_points) and stations.csv (stations, station_tracks); edit those "
                                "files, not these keys.")
-    return dumps(over)
+    return over
 
 
-def preferences_text(prefs: dict, sheets, stations) -> str:
+def preferences_section(prefs: dict, sheets, stations) -> dict:
     prefs = dict(prefs)
     prefs["detail_sheets"] = {s.name: sheet_switches(s, stations) for s in sheets}
-    return dumps(prefs)
+    return prefs
 
 
-def wanted() -> dict[Path, str]:
-    """{file: the text it should hold}."""
+def wanted(data: Path | None = None) -> dict[Path, str]:
+    """{layer file: the whole text it should hold} (data: the layer folder, pd.DATA unless given)."""
+    data = pd.DATA if data is None else data
     cps = read_control_points()
     stations = read_stations(cps)
     sheets = read_sheets(stations)
@@ -226,10 +223,13 @@ def wanted() -> dict[Path, str]:
         station_group_rows(CPS, LEGS)
     except FactsError as exc:
         raise SetsError(str(exc)) from None
-    return {
-        OVERRIDES: overrides_text(json.loads(OVERRIDES.read_text(encoding="utf-8")), cps, stations),
-        PREFERENCES: preferences_text(json.loads(PREFERENCES.read_text(encoding="utf-8")), sheets, stations),
-    }
+    try:
+        return layer_files.texts({
+            ("plan_overrides", SHEET): overrides_section(layer_files.read("plan_overrides", SHEET, data), cps, stations),
+            ("preferences", SHEET): preferences_section(layer_files.read("preferences", SHEET, data), sheets, stations),
+        }, data)
+    except layer_files.LayerFileError as exc:
+        raise SetsError(str(exc)) from None
 
 
 def main(argv=None) -> int:

@@ -16,14 +16,15 @@ and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_stagin
 - **Masts:** no hand-drawn facts where possible; one rule for every level. Decided item by item after the
   comparison (see [Masts](#masts)).
 - **Sheets:** the drawings stay two sheets (staging; main and upper). Files that hold facts for both get a `sheet`
-  (or `level`) column, a section per sheet, not a file per sheet. Preferences stay per sheet.
+  (or `level`) column, a section per sheet, not a file per sheet. Preferences stay per sheet, as a section of one
+  preferences file (step 3).
 
 ## Where the split is (2026-11-20)
 
 | Area | Staging | Main and upper |
 |---|---|---|
-| Plan input and sheet | `inputs/staging.json`, `staging.plan_overrides.json`, `staging.preferences.json`, `staging.signals.json` | `inputs/main.json`, `main_upper.*` (the same four) |
-| Groupings | `control_points_staging.csv` (station groups with desk codes), `stations.csv`, `sheets.csv` (level 1 rows only so far), `interlockings_staging.csv` (the signal rule's control points) | `control_points_main_upper.csv` (the signal rule's control points, also drawn as the stations); detail sheets by hand in `main_upper.preferences.json` |
+| Plan input and sheet | `inputs/staging.json`; the `staging` section of `plan_overrides.json`, `preferences.json` and `signals.json` (step 3) | `inputs/main.json`; the `main_upper` sections of the same three files |
+| Groupings | `control_points_staging.csv` (station groups with desk codes), `stations.csv`, `sheets.csv` (level 1 rows only so far), `interlockings_staging.csv` (the signal rule's control points) | `control_points_main_upper.csv` (the signal rule's control points, also drawn as the stations); detail sheets by hand in `preferences.json`'s `main_upper` section |
 | Hand lists | `short_tracks_staging.csv` | `running_tracks_`, `signalled_spurs_`, `split_tracks_`, `local_switches_main_upper.csv`; short tracks by a rule (`SHORT_CM` in `build_device_map.py`) |
 | Masts | `build_staging_masts.py`: `mast_rule.masts()` plus intermediates, anchor masts, virtual masts, interlockings | `build_device_map.py`: `mast_rule.masts()` plus running, spur and split lists, double-crossover corners; `build_main_upper_masts.py` copies them to `main_upper_masts.csv` |
 | Builders | `build_staging_sets.py`, `cats_panel_staging.py`, `staging_device_map.py` | `build_device_map.py`, `cats_panel_levels.py` |
@@ -53,7 +54,7 @@ What differs is what each level adds around it.
 - **Stations and sheets: done** (owner, 2026-11-20). `stations.csv` and `sheets.csv` replace `stations_staging.csv`
   and `sheets_staging.csv`, with a `level` column. A sheet is a station detail sheet (the drawings in
   `docs/ops/stations/`). Only staging has stations; a main or upper row stops `build_staging_sets.py` until it
-  builds those levels. The main and upper levels' two whole-level sheets stay in `main_upper.preferences.json`: they
+  builds those levels. The main and upper levels' two whole-level sheets stay in `preferences.json`'s `main_upper` section: they
   list every switch drawn on a band, not stations, and the builder does not read the bands.
   When main and upper stations come, station names are unique across levels or keyed by level: decide then
   (the `station_tracks` and `detail_sheets` keys are by name).
@@ -68,12 +69,18 @@ What differs is what each level adds around it.
 approval fingerprints rule and the owner's approval of the new panel and desks, with the candidate installed in the
 Mac's `~/JMRI_UserFiles` first.
 
-### 3. One plan graph and one overrides file (after R9b)
+### 3. One file per layer kind, a section per sheet
 
-One graph from 5.3c with a level on every part (the plugin already cuts the helix at -5 cm), and one
-`plan_overrides.json` with a section per sheet: relabel, names, ends, helix. Track names: a `name` is optional on
-every level; with none the name comes from the end switches (main and upper's rule today). Preferences: one file with
-a section per sheet, or the two files kept; owner's choice, layer 3 either way.
+**Done** (2026-11-20, after R9b-2 #790). Owner decisions: one file per layer kind with a section per sheet; the two
+plan graphs `inputs/staging.json` and `inputs/main.json` are kept (no single graph). `plan_overrides.json`,
+`preferences.json` and `signals.json` in `jmri/layouts/hart/data/schematic/` each hold `"_sections": true`, a
+`_note` and the sections `staging` and `main_upper`, exactly the six old files' contents (the `level` keys of #787
+kept, so `mast_rule.band_levels` reads the same). schematic-maps 0.1.49 (model-railroad-skills #82) reads the
+sections and stops on an input with both its own `<name>.<kind>.json` and a section. Every hart reader and writer
+goes through `hartlib.layer_files` (one JSON format, a missing section is an error, an old per-sheet file beside the
+new one stops); the page's preferences are `map_revision.page_prefs()`, the `main_upper` section. Every generated
+output was unchanged. Track names: a `name` stays optional on every level (main and upper's end-switch rule today);
+that belongs to step 4.
 
 ### 4. Level-blind builders (after 1 to 3, tests first)
 
@@ -99,7 +106,7 @@ Overlaps the device master (R9), so agree it with the project-health session fir
 ### 7. Main and upper stations and sheets (waits on the owner)
 
 `stations.csv` and `sheets.csv` take level 1 rows only; the main and upper whole-level sheets stay in
-`main_upper.preferences.json`. Once the owner defines main and upper stations in PanelPro, the builder takes every
+`preferences.json`'s `main_upper` section. Once the owner defines main and upper stations in PanelPro, the builder takes every
 level and the hand-kept sheet lists go. Decide then whether station names are unique across levels.
 
 ### 8. Retire the older `control_points.csv`
@@ -117,7 +124,7 @@ Kept by the owner's choice: two drawings (staging; main and upper), preferences 
 
 ## Order
 
-Steps 1 and 2 are done (step 1's short tracks move to step 5). Step 3 next, then 4 with 5. Step 6 is agreed with the
+Steps 1, 2 and 3 are done (step 1's short tracks move to step 5). Step 4 with 5 next. Step 6 is agreed with the
 project-health session (R9). Step 7 waits on the owner's main and upper stations. Step 8 any time. Step 9 is not
 planned.
 

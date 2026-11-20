@@ -38,6 +38,12 @@ def sheet(track="M0,0", box_w=330, rev=1, col_w=104):
             f'<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV {rev}</text>\n</svg>\n')
 
 
+def page_prefs(data, section):
+    """A preferences.json in `data` whose main_upper section (the page's) is `section`, as PD.page_prefs names it."""
+    (data / "preferences.json").write_text(json.dumps({"_sections": True, "staging": {"s": 1}, "main_upper": section}))
+    return PD.layer_files.Section("preferences", PD.INPUTS[-1][1], data)
+
+
 class DrawingChange(unittest.TestCase):
     def test_title_block_is_not_a_drawing_change(self) -> None:
         self.assertEqual(PD.drawing_only(sheet(rev=1)), PD.drawing_only(sheet(rev=2, col_w=140)))
@@ -55,27 +61,40 @@ class DrawingChange(unittest.TestCase):
 
 class Fields(unittest.TestCase):
     def test_counts_from_main(self) -> None:
-        self.assertEqual(PD.next_fields(json.dumps({"revision": 1}), TODAY), ("2026-12-01", 2))
-        self.assertEqual(PD.next_fields(json.dumps({"revision": "3"}), TODAY), ("2026-12-01", 4))
-        self.assertEqual(PD.next_fields(json.dumps({}), TODAY), ("2026-12-01", 1))
+        self.assertEqual(PD.next_fields({"revision": 1}, TODAY), ("2026-12-01", 2))
+        self.assertEqual(PD.next_fields({"revision": "3"}, TODAY), ("2026-12-01", 4))
+        self.assertEqual(PD.next_fields({}, TODAY), ("2026-12-01", 1))
         self.assertEqual(PD.next_fields(None, TODAY), ("2026-12-01", 1))
 
     def test_lettered_revision_is_left_alone(self) -> None:
         for rev in ("A", "2b", True):
-            self.assertIsNone(PD.next_fields(json.dumps({"revision": rev}), TODAY))
+            self.assertIsNone(PD.next_fields({"revision": rev}, TODAY))
 
     def test_set_fields_keeps_the_rest(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "page.preferences.json"
-            p.write_text(json.dumps({"title": ["x"], "date": "2026-11-14", "revision": 1}))
+            p = page_prefs(Path(tmp), {"title": ["x"], "date": "2026-11-14", "revision": 1})
             PD.set_fields(p, "2026-12-01", 2)
-            self.assertEqual(json.loads(p.read_text()), {"title": ["x"], "date": "2026-12-01", "revision": 2})
+            self.assertEqual(json.loads(p.path.read_text()), {"_sections": True, "staging": {"s": 1},
+                             "main_upper": {"title": ["x"], "date": "2026-12-01", "revision": 2}})
+
+    def test_the_page_is_main_uppers_section(self) -> None:
+        self.assertEqual((PD.page_prefs().path, PD.page_prefs().sheet), (PD.DATA / "preferences.json", PD.INPUTS[-1][1]))
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "sheet.preferences.json").write_text("{}")
+            with mock.patch.object(PD, "DATA", Path(tmp)), self.assertRaisesRegex(ValueError, "move its keys there"):
+                PD.page_prefs()
+
+    def test_publishing_stops_when_main_has_no_preferences_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(PD, "REPO", Path(tmp)), \
+                mock.patch.object(PD, "on_main", return_value=None), \
+                self.assertRaisesRegex(SystemExit, "is not on main, so the revision cannot be counted"):
+            PD.prefs_on_main(page_prefs(Path(tmp), {"revision": 1}))
 
 
 class Preview(unittest.TestCase):
     def test_writes_only_into_the_folder(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            prefs = PD.page_prefs().read_text()
+            prefs = PD.page_prefs().path.read_text()
             target = (PD.OUT / "schematic-system-draft.svg").read_text()
             printed = []
             real_pdf, PD.pdf = PD.pdf, lambda svg, out: printed.append(out)
@@ -86,7 +105,7 @@ class Preview(unittest.TestCase):
                 PD.pdf = real_pdf
             self.assertEqual((Path(tmp) / "out/schematic-system-draft.svg").read_text(), sheet())
             self.assertEqual(printed, [Path(tmp) / "out/schematic-system-draft.pdf"])
-            self.assertEqual(PD.page_prefs().read_text(), prefs)
+            self.assertEqual(PD.page_prefs().path.read_text(), prefs)
             self.assertEqual((PD.OUT / "schematic-system-draft.svg").read_text(), target)
 
     def test_graphs_are_in_the_repo(self) -> None:
@@ -161,7 +180,7 @@ class SignalsCheck(unittest.TestCase):
 
     def test_the_committed_loop_masts_name_their_legs(self) -> None:
         import json
-        rows = json.loads((ROOT / "jmri/layouts/hart/data/schematic/main_upper.signals.json").read_text())["signals"]
+        rows = PD.layer_files.read("signals", "main_upper")["signals"]
         legs = {r["mast"]: r.get("leg") for r in rows if r["_edge"] == "e33"}
         self.assertEqual(legs, {"A83": "C", "A84": "B", "108LA": "B", "108LB": "C"})
 
@@ -217,7 +236,7 @@ class SignalsCheck(unittest.TestCase):
         self.assertEqual(self.without_plugin(), 1)
 
     def run_with(self, committed, masts=None):
-        """main(["--check"]) against `committed` as the signals file, from the staging device map's masts (or `masts`
+        """main(["--check"]) against `committed` as signals.json's staging section, from the staging device map's masts (or `masts`
         rows, in staging_device_map.load_signal_masts' shape, with the device map's tracks)."""
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
@@ -225,7 +244,7 @@ class SignalsCheck(unittest.TestCase):
             for f in real_data.iterdir():       # both levels (staging, main_upper) solve from these
                 if f.is_file():
                     (tmp / f.name).write_bytes(f.read_bytes())
-            (tmp / "staging.signals.json").write_text(committed)
+            PD.layer_files.write({("signals", "staging"): committed}, tmp)
             if masts is not None:
                 chains = real_facts()[1]
                 self.bs.staging_facts = lambda: (masts, chains)
@@ -237,24 +256,24 @@ class SignalsCheck(unittest.TestCase):
                 self.bs.pd.DATA, self.bs.staging_facts = real_data, real_facts
 
     def test_current_passes(self) -> None:
-        committed = (self.bs.pd.DATA / "staging.signals.json").read_text()
+        committed = PD.layer_files.read("signals", "staging", self.bs.pd.DATA)
         self.assertEqual(self.run_with(committed), 0)
 
     def test_stale_fails(self) -> None:
-        self.assertEqual(self.run_with('{"signals": [], "unplaced": []}\n'), 1)   # layers.load reads it too
+        self.assertEqual(self.run_with({"signals": [], "unplaced": []}), 1)   # layers.load reads it too
 
     def test_a_solve_that_cannot_read_its_own_output_stops_clearly(self) -> None:
-        # the staging band is solved, and the solve reads staging.signals.json, which build_signals writes
+        # the staging band is solved, and the solve reads signals.json, which build_signals writes
         with mock.patch.object(self.bs.sdm, "staging_band", side_effect=ValueError("Expecting value: line 1")):
             with self.assertRaises(SystemExit) as e:
                 self.bs.staging_facts()
-        self.assertIn("staging.signals.json, which this script writes", str(e.exception.code))
+        self.assertIn("signals.json, which this script writes", str(e.exception.code))
         self.assertIn("git checkout --", str(e.exception.code))
 
     def test_written_from_the_staging_masts(self) -> None:
         masts = self.bs.sdm.load_signal_masts()
         self.assertEqual(len(masts), 30)
-        got = json.loads((self.bs.pd.DATA / "staging.signals.json").read_text())
+        got = PD.layer_files.read("signals", "staging", self.bs.pd.DATA)
         self.assertEqual(got["signals"], self.bs.sdm.signal_rows(masts))
         self.assertEqual((got["source"], got["unplaced"]), (self.bs.sdm.SIGNALS_SOURCE, []))
 
@@ -273,7 +292,7 @@ class SignalsCheck(unittest.TestCase):
             bad[i][field] = value
             with self.subTest(field=field, mast=bad[i]["signal"]):
                 with self.assertRaises(SystemExit) as e:
-                    self.run_with('{"signals": []}', bad)
+                    self.run_with({"signals": []}, bad)
                 self.assertIn(why, str(e.exception.code))
 
 
@@ -339,16 +358,16 @@ class StationMapRevision(unittest.TestCase):
 
     def test_a_station_change_alone_moves_the_revision(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            target, prefs = Path(tmp) / "schematic-system-draft.svg", Path(tmp) / "page.preferences.json"
+            target = Path(tmp) / "schematic-system-draft.svg"
             target.write_text(sheet())
-            prefs.write_text(json.dumps({"date": "2026-11-14", "revision": 1}))
-            on_main = lambda p: sheet() if p == target else json.dumps({"revision": 1})
+            prefs = page_prefs(Path(tmp), {"date": "2026-11-14", "revision": 1})
+            on_main = lambda p: sheet() if p == target else json.dumps({"_sections": True, "main_upper": {"revision": 1}})
             with mock.patch.object(PD, "OUT", Path(tmp)), mock.patch.object(PD, "on_main", side_effect=on_main), \
                     mock.patch.object(PD, "draw", return_value=sheet()), \
                     mock.patch.object(PD, "pdf", lambda svg, out: out.write_bytes(b"%PDF")), \
                     contextlib.redirect_stdout(io.StringIO()):
-                PD.publish(sheet(), target, prefs, prefs.read_text(), stations=["barn.svg"])
-            self.assertEqual(json.loads(prefs.read_text())["revision"], 2)
+                PD.publish(sheet(), target, prefs, prefs.path.read_text(), stations=["barn.svg"])
+            self.assertEqual(prefs.read()["revision"], 2)
 
     def test_check_reports_bad_map_data_as_a_difference(self) -> None:
         with mock.patch.object(PD, "draw", return_value="<svg/>"), mock.patch.object(PD, "draw_stations", return_value={}), \
@@ -377,7 +396,7 @@ class CheckStamp(unittest.TestCase):
             d.mkdir(parents=True)
         (self.plugin / "schematic/sheet.py").write_text("SOLVE = 1\n")
         (self.plugin / "schematic/__pycache__").mkdir()
-        (data / "staging.preferences.json").write_text("{}\n")
+        (data / "preferences.json").write_text("{}\n")
         (data / "inputs/staging.json").write_text("{}\n")
         (out / "schematic-system-draft.svg").write_text("<svg/>")
         (out / "stations/barn.svg").write_text("<svg>barn</svg>")
@@ -414,7 +433,7 @@ class CheckStamp(unittest.TestCase):
     def test_any_input_change_draws_again(self) -> None:
         for change in (lambda: (self.plugin / "schematic/sheet.py").write_text("SOLVE = 2\n"),
                        lambda: (self.plugin / "schematic/new.py").write_text(""),
-                       lambda: (self.data / "staging.preferences.json").write_text('{"x": 1}\n'),
+                       lambda: (self.data / "preferences.json").write_text('{"x": 1}\n'),
                        lambda: (self.data / "inputs/staging.json").write_text('{"x": 1}\n'),
                        lambda: (self.out / "stations/barn.svg").write_text("<svg>barn</svg>\n"),
                        lambda: (self.out / "schematic-system-draft.svg").write_text("<svg/>\n")):
@@ -452,7 +471,7 @@ class CheckStamp(unittest.TestCase):
         self.assertIn("drawing to compare", err.getvalue())
 
     def test_checkouts_taking_turns_keep_their_digests(self) -> None:
-        layer = self.data / "staging.preferences.json"
+        layer = self.data / "preferences.json"
         for text in ("{}\n", '{"b": 1}\n', "{}\n", '{"b": 1}\n'):     # two checkouts' inputs, in turn
             layer.write_text(text)
             self.check()
@@ -482,7 +501,7 @@ class CheckStamp(unittest.TestCase):
     def test_an_edit_during_the_drawing_records_nothing(self) -> None:
         def edit_then_draw():
             self.drawn += 1
-            (self.data / "staging.preferences.json").write_text('{"edited": 1}\n')
+            (self.data / "preferences.json").write_text('{"edited": 1}\n')
             return "<svg/>"
         with mock.patch.object(PD, "draw", edit_then_draw):
             self.assertEqual(self.check(), (True, []))
@@ -588,9 +607,8 @@ class MainBase(unittest.TestCase):
 
     def test_publishing_stops_before_any_write(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            prefs = Path(tmp) / "page.preferences.json"
-            prefs.write_text(json.dumps({"date": "2026-11-14", "revision": 1}))
-            before = {p: p.read_text() for p in (prefs,)}
+            prefs = page_prefs(Path(tmp), {"date": "2026-11-14", "revision": 1})
+            before = {p: p.read_text() for p in (prefs.path,)}
             wrote = AssertionError("wrote")
             with mock.patch.object(PD.subprocess, "run", self.git((1, "", ""), [], shallow=True)), \
                     mock.patch.object(PD, "page_prefs", return_value=prefs), \
@@ -603,7 +621,7 @@ class MainBase(unittest.TestCase):
                     mock.patch.object(PD, "pdf", side_effect=wrote), \
                     self.assertRaisesRegex(SystemExit, "git fetch --unshallow origin"):
                 PD.main([])
-            self.assertEqual({p: p.read_text() for p in (prefs,)}, before)
+            self.assertEqual({p: p.read_text() for p in (prefs.path,)}, before)
 
     def test_check_never_asks_for_the_merge_base(self) -> None:
         # CI checks out one commit with no origin/main (actions/checkout's default depth), and runs --check

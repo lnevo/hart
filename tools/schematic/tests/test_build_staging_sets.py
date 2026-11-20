@@ -46,14 +46,33 @@ class RealFiles(unittest.TestCase):
             self.assertEqual(S.main(["--check"]), 0)
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        stale = tmp / "staging.plan_overrides.json"
-        over = json.loads(S.OVERRIDES.read_text(encoding="utf-8"))
+        for kind in ("plan_overrides", "preferences"):
+            shutil.copyfile(S.layer_files.path(kind, S.pd.DATA), S.layer_files.path(kind, tmp))
+        over = S.layer_files.read("plan_overrides", "staging", tmp)
         over["control_points"]["Brick"]["switches"] = ["1"]
-        stale.write_text(json.dumps(over, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+        S.layer_files.write({("plan_overrides", "staging"): over}, tmp)
         err = io.StringIO()
-        with mock.patch.object(S, "OVERRIDES", stale), contextlib.redirect_stderr(err):
+        with mock.patch.object(S.pd, "DATA", tmp), contextlib.redirect_stderr(err):
             self.assertEqual(S.main(["--check"]), 1)
-        self.assertIn("staging.plan_overrides.json is stale", err.getvalue())
+        self.assertIn("plan_overrides.json is stale", err.getvalue())
+        self.assertNotIn("preferences.json", err.getvalue())
+
+    def test_writes_only_staging_sections(self):
+        got = S.wanted()
+        self.assertEqual(sorted(p.name for p in got), ["plan_overrides.json", "preferences.json"])
+        for p, text in got.items():
+            whole = json.loads(text)
+            self.assertEqual(whole["main_upper"], json.loads(p.read_text(encoding="utf-8"))["main_upper"], p.name)
+
+    def test_a_missing_section_stops_clearly(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for kind in ("plan_overrides", "preferences"):
+            whole = S.layer_files.read_file(kind, S.pd.DATA)
+            del whole["staging"]
+            S.layer_files.path(kind, tmp).write_text(S.layer_files.dumps(whole), encoding="utf-8")
+        with self.assertRaisesRegex(S.SetsError, "no section 'staging'"):
+            S.wanted(tmp)
 
 
 class BadMasters(Tmp):
