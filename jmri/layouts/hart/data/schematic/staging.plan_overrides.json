@@ -127,23 +127,23 @@
   },
   {
    "op": "name",
-   "_note": "Switch numbers, not part numbers. Switches 23, 35 and 7 are crossover or three-way halves that share one number, so a half is named as number@track once a track leaving it has a name. The first track named at each half (Main West, West Ext, S-R, East Lead, East Ext, Scale) can only reach it by its plan part number T57, T54, T126, T95, T33 or T139, so those six stay; the relabel edit above is their link to the plan.",
+   "_note": "Switch numbers, not part numbers. Switches 23, 35 and 7 are crossover or three-way halves that share one number, so a half is named as number@track once a track leaving it has a name, and before that as number@neighbour: the half a track joins to that switch (23@1, 35@23, 23@15, 35@33, 7@33, 7@13; 7@5 would answer both halves of 7). Only the relabel edit above keys by plan part number.",
    "tracks": [
     [
      "1",
-     "T57",
+     "23@1",
      "Main West",
      "main"
     ],
     [
      "23@Main West",
-     "T54",
+     "35@23",
      "West Ext",
      "main"
     ],
     [
      "15",
-     "T126",
+     "23@15",
      "S-R"
     ],
     [
@@ -170,7 +170,7 @@
     ],
     [
      "33",
-     "T95",
+     "35@33",
      "East Lead",
      "main"
     ],
@@ -190,7 +190,7 @@
     ],
     [
      "5",
-     "T33",
+     "7@33",
      "East Ext",
      "main"
     ],
@@ -202,7 +202,7 @@
     ],
     [
      "5",
-     "T139",
+     "7@13",
      "Scale"
     ],
     [
