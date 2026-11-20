@@ -336,7 +336,7 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # device-map switch-over, owner 2026-11-17): stock discovery in a sandbox stored 180, every earlier pair kept and 9
 # gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
-EXPECTED_SML = {False: 100, True: 177}    # True: the 2026-11-19 discovery less the five pairs of the helix-foot masts 38RA and 40RA (gone 2026-11-20); discovery on the one-block helix sets it again
+EXPECTED_SML = {False: 100, True: 138}    # True: stock discovery from an empty list on the 2026-11-20 candidate (one-block helix, 5.3c lengths, hidden staging masts by rule, yard throats and their masts dropped)
 # A generated panel before stock discovery (the cut-over candidate as built, build_layout_le.py --as-live) carries the
 # Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
 # names a main or upper object (strip_build_owned): exactly the live tables' destinations between staging masts
