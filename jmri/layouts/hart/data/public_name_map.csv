@@ -94,8 +94,10 @@ block,Track EH-2,Track EH-2,Engine House,Block 13-6,,Engine House,
 block,Track EH-3,Track EH-3,Engine House,Block 13-5,,Engine House,
 block,Track East Lead,Track East Lead,East End,Block 1-7,,East End,
 block,Track East Ext,Track East Ext,Plane,Block 4-7,,Plane,
-block,Track McKees Rocks,Track McKees Rocks,Princess,,,Princess,helix track; no detector yet
-block,Track McKeesport,Track McKeesport,Princess,,,Princess,helix track; no detector yet
+block,Track Helix Outer,Track Helix Outer,Princess,,,Princess,helix track: one block from Switch 39 up to Switch 131A; detector Block 41-2 planned
+block,Track McKees Rocks,Track Helix Outer,Princess,,,Princess,historical alias; the staging piece until the helix became one block (2026-11-20)
+block,Track Helix Inner,Track Helix Inner,Princess,,,Princess,helix track: one block from Switch 37 up to Switch 131B; detector Block 41-1 planned
+block,Track McKeesport,Track Helix Inner,Princess,,,Princess,historical alias; the staging piece until the helix became one block (2026-11-20)
 block,Track Main East,Track Main East,,Block 2-3,,,
 block,Track Main West,Track Main West,,Block 2-1,,,
 block,Track K-1,Track K-1,Princess,Block 1-1,,Princess,
@@ -241,10 +243,10 @@ block,South Yard East,Track East Lead,East End,Block 1-7,,East End,historical al
 block,East Main Ext,Track East Ext,Plane,Block 4-7,,Plane,historical alias; keep
 block,OS East Main Ext,Track East Ext,Plane,Block 4-7,,Plane,historical alias
 block,Track East Main Ext,Track East Ext,Plane,Block 4-7,,Plane,historical alias; name until 2026-11-13
-block,K-1,Track McKees Rocks,Princess,Block 1-4,,Princess,historical alias; keep; same sensor as OS 115
-block,OS K-1,Track McKees Rocks,Princess,Block 1-4,,Princess,historical alias
-block,K-2,Track McKeesport,Princess,Block 1-3,,Princess,historical alias; keep; same sensor as OS 114
-block,OS K-2,Track McKeesport,Princess,Block 1-3,,Princess,historical alias
+block,K-1,Track Helix Outer,Princess,Block 1-4,,Princess,historical alias; keep; same sensor as OS 115
+block,OS K-1,Track Helix Outer,Princess,Block 1-4,,Princess,historical alias
+block,K-2,Track Helix Inner,Princess,Block 1-3,,Princess,historical alias; keep; same sensor as OS 114
+block,OS K-2,Track Helix Inner,Princess,Block 1-3,,Princess,historical alias
 block,Main East,Track Main East,,Block 2-3,,,historical alias; keep
 block,OS Main East,Track Main East,,Block 2-3,,,historical alias
 block,Main West,Track Main West,,Block 2-1,,,historical alias; keep
@@ -418,10 +420,8 @@ mast,Mast 36RA,Mast 36RA,Princess,IH:HART:C1:36RA_Top IH:HART:C1:36RA_Bottom,,Pr
 mast,Mast 36RB,Mast 36RB,Princess,IH:HART:C1:36RB_Top IH:HART:C1:36RB_Bottom,,Princess | Switch 35,
 mast,Mast 38LA,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,
 mast,Mast 38LB,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,
-mast,Mast 38RA,Mast 38RA,Princess,virtual $1004,,Princess,
 mast,Mast 40LA,Mast 40LA,Princess,IH:HART:C1:40LA_Top IH:HART:C1:40LA_Bottom,,Princess | Switch 39,
 mast,Mast 40LB,Mast 40LB,Princess,IH:HART:C1:40LB_Top IH:HART:C1:40LB_Bottom,,Princess | Switch 39,
-mast,Mast 40RA,Mast 40RA,Princess,virtual $1003,,Princess,
 mast,Mast 40RB,Mast 40RB,Princess,virtual $1026,,Princess,hidden K-1 rear (eastbound) at AG6 (was A1); throat Track K-1 West; Dispatcher Stage 1
 mast,Mast 4LA,Mast 4LA,Brick,virtual $1001,,Brick,
 mast,Mast 4LB,Mast 4LB,Brick,virtual $1002,,Brick,
@@ -484,14 +484,10 @@ mast,114LA,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,historical a
 mast,Princess East K-2,Mast 38LB,Princess,IH:HART:C1:38LB,,Princess | Switch 37,historical alias; lever 28 Left; dwarf
 mast,114LB,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,historical alias; lever 28 Left
 mast,Princess South McKeesport,Mast 38LA,Princess,IH:HART:C1:38LA,,Princess | Switch 37,historical alias; lever 28 Left
-mast,114RA,Mast 38RA,Princess,virtual $1004,,Princess | Switch 37,historical alias; hidden K-2 bumper; Dispatcher Stage 1
-mast,K-2 buffer,Mast 38RA,Princess,virtual $1004,,Princess | Switch 37,historical alias; hidden stub-end for Dispatcher Stage 1
 mast,115LA,Mast 40LB,Princess,IH:HART:C1:40LB_Top IH:HART:C1:40LB_Bottom,,Princess | Switch 39,historical alias; lever 30 Left; dwarf
 mast,Princess East K-1,Mast 40LB,Princess,IH:HART:C1:40LB_Top IH:HART:C1:40LB_Bottom,,Princess | Switch 39,historical alias; lever 30 Left; dwarf
 mast,115LB,Mast 40LA,Princess,IH:HART:C1:40LA_Top IH:HART:C1:40LA_Bottom,,Princess | Switch 39,historical alias; lever 30 Left
 mast,Princess North McKees Rocks,Mast 40LA,Princess,IH:HART:C1:40LA_Top IH:HART:C1:40LA_Bottom,,Princess | Switch 39,historical alias; lever 30 Left
-mast,115RA,Mast 40RA,Princess,virtual $1003,,Princess | Switch 39,historical alias; hidden K-1 bumper; Dispatcher Stage 1
-mast,K-1 buffer,Mast 40RA,Princess,virtual $1003,,Princess | Switch 39,historical alias; hidden stub-end for Dispatcher Stage 1
 mast,101LA,Mast 4LA,Brick,virtual $1001,,Brick | Switch 3,historical alias; hidden W-1 bumper; Dispatcher Stage 1
 mast,West Yard 1 buffer,Mast 4LA,Brick,virtual $1001,,Brick | Switch 3,historical alias; hidden stub-end for Dispatcher Stage 1
 mast,101LB,Mast 4LB,Brick,virtual $1002,,Brick | Switch 3,historical alias; hidden W-2 bumper; Dispatcher Stage 1

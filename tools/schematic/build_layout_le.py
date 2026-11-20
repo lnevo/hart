@@ -32,7 +32,9 @@ labels_by_band), staging against the left edge (the plugin's band_align) and the
 candidate holds (the plugin's le_title_clear, with the panel items' bottom under staging as band_bottoms).
 check_staging_unchanged then stops unless the staging candidate is in it unchanged: every bean, every other panel, every
 staging element, but the main and upper objects and the helix joins (the staging helix tracks run on to the main level,
-so their end bumpers become anchors and Masts 38RA and 40RA stand there, protecting Track 131-H2 and Track 131-H1). Main
+so their end bumpers become anchors, inside one block: each helix track is one block from staging up the helix,
+Track Helix Outer and Track Helix Inner, owner 2026-11-20; the build binds the staging block to the device map's
+sensor, which the guard accepts, without_level_detector). Main
 and upper take the device map's names (device_names; a crossover's two halves are one turnout, drawn as one single
 crossover on one level, or as two Layout Editor turnouts on one turnout for 127 and 131, whose halves stand on two
 levels, and for 121 and 125, whose halves the plan joins leg C to leg B; each half is closed on the leg away from its
@@ -61,8 +63,8 @@ keep their switches.csv idents; anchors, end bumpers and segments take generated
 le_signal_boundaries.csv follows. Every staging mast goes in the one slot whose facing and protected blocks and kind of
 slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
 train it governs, hidden for a virtual mast; check_device_masts stops on a mast two slots would fit or one on another
-turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), so a buffer-stop mast
-whose track runs on through the helix (Mast 38RA, 40RA) stands at the helix entrance anchor. The panel carries the
+turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), the same helix block,
+so the join is no block boundary and no mast stands there. The panel carries the
 hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): the build starts only from tables that hold
 it, and the Stage 1 repairs of the parked Dispatcher System run only on a panel that holds it. The staging
 candidate's panel must match the owner-approved fingerprint (approval.py, approved_staging.sha256; --review skips it, --approve-staging records it).
@@ -105,7 +107,7 @@ from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read 
     check_boundaries,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
+    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, numbered_blocks, STRIPPED, strip_build_owned,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
@@ -283,11 +285,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     except panel_items.ItemsError as exc:
         raise BuildError(f"panel items: {exc}") from None
     # the panel's own items by rule (panel_items.json), tied to the staging track, so they stand where the staging
-    # candidate has them on three levels too
+    # candidate has them on three levels too (by the staging band's own track: a helix block runs on up a level)
     panel_el = le_mod.to_xml(P, panel_name, attrs, options)
+    frame = {P.name(o["ident"]) for o in P.segments + P.turnouts if o["band"] == 0}
     try:
         P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,
-                                    frame_blocks=staging_blocks)
+                                    frame_idents=frame)
     except panel_items.ItemsError as exc:
         raise BuildError(f"panel items: {exc}") from None
     if P.items["bottom"] is None:

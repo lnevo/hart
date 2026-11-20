@@ -142,14 +142,15 @@ def load(path: Path) -> dict:
     return data
 
 
-def drawn_boxes(panel: ET.Element, le_mod, slots_mod, frame_blocks=None) -> tuple[tuple, dict]:
+def drawn_boxes(panel: ET.Element, le_mod, slots_mod, frame_idents=None) -> tuple[tuple, dict]:
     """(box of everything drawn, {block: box of its drawn track}) of a Layout Editor panel: visible track segments
-    (arcs as Layout Editor draws them) and turnout legs. `frame_blocks`: the "drawing" box is of these blocks' track
-    only (one level of a panel of several: the items stand where they stand when that level is drawn alone). A
-    Bezier segment stops (none is drawn on these panels)."""
+    (arcs as Layout Editor draws them) and turnout legs. `frame_idents`: the "drawing" box is of these track segments
+    and turnouts only (one level of a panel of several: the items stand where they stand when that level is drawn
+    alone; by ident, since a helix block is drawn on two levels). A Bezier segment stops (none is drawn on these
+    panels)."""
     ix = slots_mod.Index(panel)
     allp, by_block = [], {}
-    framed = (lambda b: True) if frame_blocks is None else (lambda b: b in frame_blocks)    # noqa: E731
+    framed = (lambda el: True) if frame_idents is None else (lambda el: el.get("ident") in frame_idents)  # noqa: E731
     for s in panel.findall("tracksegment"):
         if s.get("hidden") == "yes":
             continue
@@ -160,7 +161,7 @@ def drawn_boxes(panel: ET.Element, le_mod, slots_mod, frame_blocks=None) -> tupl
         pts = le_mod.arc_points(a, b, float(s.get("angle") or 0) or 90.0, s.get("flip") == "yes", 12) \
             if s.get("arc") == "yes" and s.get("circle") == "yes" else [a, b]
         block = s.get("blockname") or ""
-        if framed(block):
+        if framed(s):
             allp += pts
         by_block.setdefault(block, []).extend(pts)
     for t in panel.findall("layoutturnout"):
@@ -168,12 +169,12 @@ def drawn_boxes(panel: ET.Element, le_mod, slots_mod, frame_blocks=None) -> tupl
             if t.get(f"connect{leg.lower()}name") or leg in "ABC":
                 p = ix.leg_coords(t, leg)
                 block = (t.get(f"block{leg.lower()}name") if leg != "A" else None) or t.get("blockname") or ""
-                if framed(block):
+                if framed(t):
                     allp.append(p)
                 by_block.setdefault(block, []).append(p)
     if not allp:
         raise ItemsError(f"panel {panel.get('name')!r}: nothing drawn"
-                         + (" of the frame's blocks" if frame_blocks is not None else ""))
+                         + (" of the frame's track" if frame_idents is not None else ""))
 
     def box(pts):
         xs, ys = [p[0] for p in pts], [p[1] for p in pts]
@@ -194,12 +195,12 @@ def anchor_point(anchor: dict, whole: tuple, blocks: dict, what: str) -> tuple[f
 
 
 def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int], chrome: tuple[int, int],
-          frame_blocks=None) -> dict:
+          frame_idents=None) -> dict:
     """Put every item of `data` (load()) on `panel`, at its place, after the panel's own elements; grow the panel to
-    hold them (EDGE px beyond the furthest, the window at most `fit`). `frame_blocks`: as drawn_boxes. Stops on an
+    hold them (EDGE px beyond the furthest, the window at most `fit`). `frame_idents`: as drawn_boxes. Stops on an
     item outside the panel's top or left. Returns {count: elements put on, size: (panel w, h), bottom: the lowest
     sized item's bottom, or None}."""
-    whole, blocks = drawn_boxes(panel, le_mod, slots_mod, frame_blocks)
+    whole, blocks = drawn_boxes(panel, le_mod, slots_mod, frame_idents)
     right, bottom, n = float(panel.get("panelwidth")), float(panel.get("panelheight")), 0
     lowest = None
     for it in data["items"]:

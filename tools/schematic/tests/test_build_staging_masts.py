@@ -351,7 +351,7 @@ VIRTUAL = dict(mast="Mast 4LA", cp="Brick", switch="", facing="Track W-1", prote
 
 def device(layer, user, system, **more):
     r = dict(level="1", cp="Brick", layer=layer, user_name=user, system_name=system, jmri_name=system, node="", dcc="",
-             comment="", trial_name="", notes="")
+             comment="", trial_name="", notes="", **dict.fromkeys(bdm.railroad.DEVICE_FACTS, ""))
     r.update(more)
     return r
 
@@ -406,10 +406,11 @@ class Rows(unittest.TestCase):
                           ("head", "Head 2L Top"), ("head", "Head 67")])
         by = {r["user_name"]: r for r in got}
         self.assertEqual(by["Mast 2L"], device("mast", "Mast 2L", SHSM_2L, comment="Brick | Switch 1",
-                                               notes="facing Track Main West into OS Switch 1"))
+                                               notes="facing Track Main West into OS Switch 1", switch="1",
+                                               facing="Track Main West", protects="OS Switch 1"))
         self.assertEqual(by["Mast 67"]["comment"], "Princess")              # an anchor mast names no switch
         self.assertEqual(by["Mast 4LA"], device("mast", "Mast 4LA", "IF$vsm:basic:one-low($1001)", comment="Brick",
-                                                notes="facing Track W-1, buffer stop"))
+                                                notes="facing Track W-1, buffer stop", facing="Track W-1"))
         self.assertEqual(by["Head 2L Top"], device("head", "Head 2L Top", "IH:HART:C1:2L_Top",
                                                    comment="Brick | Switch 1", notes="internal, not wired"))
 

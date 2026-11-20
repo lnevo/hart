@@ -20,5 +20,5 @@ switch,os_block,closed_leg,thrown_leg
 33,OS Switch 33,OS Switch 31,Track Main East
 35,OS Switch 35b,Track West Ext,OS Switch 35a
 35,OS Switch 35a,OS Switch 37,OS Switch 35b
-37,OS Switch 37,Track McKeesport,Track K-2
-39,OS Switch 39,Track McKees Rocks,Track K-1
+37,OS Switch 37,Track Helix Inner,Track K-2
+39,OS Switch 39,Track Helix Outer,Track K-1

@@ -16,6 +16,7 @@ stale copy of its own output. Each file is read the first time it is asked for, 
 
     inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), public_name_map.csv,
                 schematic/control_points_main_upper.csv, local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
+                helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
                 stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
                 device map's form, kept by hand; tools/schematic/staging_device_map.py --check)
@@ -57,7 +58,18 @@ YES = {"yes": True, "no": False}
 HANDS = {"", "L", "R"}
 NAME_LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 DEVICE_COLUMNS = ("level", "cp", "layer", "user_name", "system_name", "jmri_name", "node", "dcc", "comment",
-                  "trial_name", "notes")
+                  "trial_name", "notes", "blocks", "detector", "stop", "switch", "facing", "protects")
+# The device maps' facts in columns of their own (owner, 2026-11-20), so no code reads them out of the comment or
+# notes, which stay as text for people (device_facts checks them):
+#   blocks     occupancy rows: the blocks its detector serves, LIST separated (a throat and its yard track share one)
+#   detector   occupancy rows: DETECTORS, whether the detector is in the field, planned on a node input, planned with
+#              no input yet, or not planned at all
+#   stop       block rows: "yes" for a Dispatcher System station (the "; stop" its JMRI comment carries)
+#   switch, facing, protects   mast rows: the switch whose leg it stands at (none for an intermediate or a buffer stop
+#              or anchor mast), the block it faces and the blocks it protects (LIST separated)
+DEVICE_FACTS = DEVICE_COLUMNS[11:]
+DEVICE_LIST = ";"
+DETECTORS = ("wired", "planned", "not_wired", "none")
 UNIQUE_HARDWARE = ("turnout", "fb", "occupancy", "head")   # layers whose hardware is one device's alone
 
 
@@ -87,6 +99,7 @@ class Sources:
     device_map: Path
     level_masts: Path
     tables: Path
+    helix_tracks: Path
 
     @classmethod
     def under(cls, data: Path = paths.LAYOUT_DATA, tables_xml: Path | None = None) -> "Sources":
@@ -100,7 +113,8 @@ class Sources:
                    staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
                    device_map=s / "device_map_main_upper.csv",
                    level_masts=s / level_masts.PATH.name,
-                   tables=paths.TABLES_XML if tables_xml is None else tables_xml)
+                   tables=paths.TABLES_XML if tables_xml is None else tables_xml,
+                   helix_tracks=s / "helix_tracks.csv")
 
     def but(self, **changes: Path) -> "Sources":
         """These sources with some files swapped (a builder's patched path, a test's copy)."""
@@ -407,6 +421,38 @@ def read_local_switches(path: Path) -> list[LocalSwitch]:
 
 
 @dataclass(frozen=True)
+class HelixTrack:
+    """A helix track (helix_tracks.csv): one JMRI block, `block`, from its staging switch up the helix to its main or
+    upper switch (`level_switch`, the label the drawing prints: 131A), under the plan's name `helix` (owner,
+    2026-11-20)."""
+    line: int
+    helix: str
+    block: str
+    staging_switch: str
+    level_switch: str
+    notes: str = ""
+
+
+def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
+    """{plan helix track name: HelixTrack}. Stops on an empty field, a block not named "Track ...", or a name or
+    block given twice."""
+    out: dict[str, HelixTrack] = {}
+    blocks: dict[str, int] = {}
+    for line, r in read_rows(path, ("helix", "block", "staging_switch", "level_switch"), optional=("notes",)):
+        where = _where(path, line)
+        if not all(r[k] for k in ("helix", "block", "staging_switch", "level_switch")) or \
+                not r["block"].startswith("Track "):
+            raise FactsError(f"{where}: helix, block (Track ...), staging_switch and level_switch are all needed")
+        if r["helix"] in out or r["block"] in blocks:
+            raise FactsError(f"{where}: helix {r['helix']!r} or block {r['block']!r} given twice")
+        blocks[r["block"]] = line
+        out[r["helix"]] = HelixTrack(line, r["helix"], r["block"], r["staging_switch"], r["level_switch"], r["notes"])
+    if not out:
+        raise FactsError(f"{path.name}: no helix tracks")
+    return out
+
+
+@dataclass(frozen=True)
 class LcosNode:
     """An LCOS radio address a level and area may use (lcos_nodes_main_upper.csv), in the order they are used."""
     line: int
@@ -552,7 +598,23 @@ class DeviceRow:
     comment: str = ""
     trial_name: str = ""
     notes: str = ""
+    blocks: str = ""
+    detector: str = ""
+    stop: str = ""
+    switch: str = ""
+    facing: str = ""
+    protects: str = ""
     line: int = 0
+
+    @property
+    def served(self) -> list[str]:
+        """An occupancy row's blocks, in order."""
+        return device_list(self.blocks)
+
+    @property
+    def protected(self) -> list[str]:
+        """A mast row's protected blocks, in order."""
+        return device_list(self.protects)
 
     @property
     def trial(self) -> frozenset[str]:
@@ -596,15 +658,51 @@ class DeviceMap:
         return {r.system_name: r for r in self.of("head")}
 
 
+def device_list(cell: str) -> list[str]:
+    """A DEVICE_LIST cell's items, in order."""
+    return [x.strip() for x in (cell or "").split(DEVICE_LIST) if x.strip()]
+
+
+def device_facts(r: dict) -> list[str]:
+    """Problems with a device map row's fact columns (DEVICE_FACTS): each only on its own layer; an occupancy row's
+    blocks given and its detector one of DETECTORS, with a system name (the field or planned detector) exactly when it
+    is wired or planned; stop "yes" or empty; a mast's facing block given and its switch a number or empty."""
+    bad, layer = [], r["layer"]
+    own = {"occupancy": ("blocks", "detector"), "block": ("stop",), "mast": ("switch", "facing", "protects")}
+    stray = [c for c in DEVICE_FACTS if r.get(c) and c not in own.get(layer, ())]
+    if stray:
+        bad.append(f"a {layer} row has {', '.join(stray)}")
+    if layer == "occupancy":
+        if not device_list(r.get("blocks", "")):
+            bad.append("an occupancy row names no blocks")
+        if r.get("detector") not in DETECTORS:
+            bad.append(f"detector {r.get('detector')!r} is not one of {', '.join(DETECTORS)}")
+        elif (r["detector"] in ("wired", "planned")) != bool(r["system_name"]):
+            bad.append(f"a {r['detector']} detector {'needs' if r['detector'] in ('wired', 'planned') else 'has no'} "
+                       f"system name (it has {r['system_name']!r})")
+    if layer == "block" and r.get("stop") not in ("", "yes"):
+        bad.append(f"stop {r.get('stop')!r} is not yes or empty")
+    if layer == "mast":
+        if not r.get("facing"):
+            bad.append("a mast row names no facing block")
+        if r.get("switch") and not r["switch"].isdigit():
+            bad.append(f"switch {r['switch']!r} is not a switch number")
+    return bad
+
+
 def read_device_map(path: Path) -> DeviceMap:
     """Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
-    row), an occupancy row whose jmri_name is not a virtual block sensor or whose planned detector is not M2S."""
+    row), a row whose fact columns do not hold (device_facts), an occupancy row whose jmri_name is not a virtual block
+    sensor, whose planned detector is not M2S, or whose blocks are not the one block it is named for."""
     out = DeviceMap(path=path)
     seen: dict[tuple[str, str], int] = {}
-    for line, r in read_rows(path, DEVICE_COLUMNS[:8], optional=DEVICE_COLUMNS[8:]):
+    for line, r in read_rows(path, DEVICE_COLUMNS[:8] + DEVICE_FACTS, optional=DEVICE_COLUMNS[8:11]):
         where = _where(path, line)
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
+        bad = device_facts(r)
+        if bad:
+            raise FactsError(f"{where}: {r['layer']} {r['user_name']}: " + "; ".join(bad))
         key = (r["layer"], r["user_name"])
         if key in seen:
             raise FactsError(f"{path.name} lines {seen[key]} and {line}: both are {r['layer']} {r['user_name']}")
@@ -615,9 +713,12 @@ def read_device_map(path: Path) -> DeviceMap:
             out.blocks[row.user_name] = row
         elif row.layer == "occupancy":
             if not level_devices.is_block_sensor(row.jmri_name) or \
-                    not (row.system_name == "" or row.system_name.startswith("M2S")):
+                    not (row.system_name == "" or row.system_name.startswith("M2S")) or row.detector == "wired":
                 raise FactsError(f"{where}: occupancy {row.user_name} has no virtual {level_devices.SENSOR_PREFIX} "
-                                 "jmri_name, or plans a detector that is not an M2S sensor")
+                                 "jmri_name, or plans a detector that is not an M2S sensor, or calls it wired")
+            if len(row.served) != 1 or level_devices.occupancy_user(row.served[0]) != row.user_name:
+                raise FactsError(f"{where}: occupancy {row.user_name} serves {row.served}, not the one block it is "
+                                 "named for")
             out.sensors[row.user_name] = row.jmri_name
             if row.system_name:
                 out.planned[row.user_name] = row.system_name
@@ -778,6 +879,10 @@ class Railroad:
     @cached_property
     def lcos_nodes(self) -> list[LcosNode]:
         return read_lcos_nodes(self.sources.lcos_nodes)
+
+    @cached_property
+    def helix_tracks(self) -> dict[str, HelixTrack]:
+        return read_helix_tracks(self.sources.helix_tracks)
 
     @cached_property
     def plan_overrides(self) -> PlanOverrides:
@@ -999,8 +1104,12 @@ def _device_map(rr: Railroad) -> list[str]:
             bad.append(f"{name} line {r.line}: Switch {s} has no LCC alias DCC Switch {s} on its turnout and DCC "
                        "address")
     nodes = {n.node: n for n in rr.lcos_nodes}
+    # a helix block runs from staging up to main or upper: its detector may be on either level's node (owner,
+    # 2026-11-20: both helix tracks on helix node 41)
+    helix = {b for h in rr.helix_tracks.values() for b in (h.block, level_devices.occupancy_user(h.block))}
     for r in dm.rows:
-        if r.node and (not r.node.isdigit() or int(r.node) not in nodes or nodes[int(r.node)].level != r.level):
+        if r.node and (not r.node.isdigit() or int(r.node) not in nodes or
+                       (nodes[int(r.node)].level != r.level and r.user_name not in helix)):
             bad.append(f"{name} line {r.line}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
                        f"of {rr.sources.lcos_nodes.name}")
     staging_dcc = {r.dcc: r for r in rr.name_map.live.values() if r.layer == "turnout" and r.dcc}
@@ -1023,12 +1132,14 @@ def _device_map(rr: Railroad) -> list[str]:
 @invariant("name-clash", "device_map")
 def _name_clash(rr: Railroad) -> list[str]:
     """No public_name_map.csv row, live or historical alias, uses a name the device map gives a main or upper
-    device of the same layer: a rename pass that maps the alias would rename the main or upper device."""
+    device of the same layer: a rename pass that maps the alias would rename the main or upper device. A helix block
+    (helix_tracks.csv) is one block from staging up the helix, so its live row names the device map's block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
+    helix = {h.block for h in rr.helix_tracks.values()}
     out = []
     for r in rr.name_map.rows:
         hit = dm.get((r.layer, r.current))
-        if hit is not None:
+        if hit is not None and not (r.layer == "block" and r.identity and r.current in helix):
             what = "live" if r.identity else f"an alias of {r.proposed}"
             out.append(f"{rr.name_map.path.name}: {r.layer} {r.current} is {what} there and level "
                        f"{hit.level} {r.layer} {hit.user_name} in {rr.sources.device_map.name}")

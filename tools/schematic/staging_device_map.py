@@ -19,8 +19,19 @@ Files (jmri/layouts/hart/data/schematic/):
   "DCC Switch <n>"), fb, block, occupancy, mast, head. Staging is the field, so system_name is the live device;
   jmri_name is the name tables.xml and the panels bind it by: a turnout's is the Layout Editor's turnoutname (some
   bind "M2T408", some "Switch 23"), every other row's its system name. trial_name is the link to the drawing, as for
-  main and upper (placeholders(), below). One occupancy row per detector; its notes list the blocks it serves
-  ("blocks Track S-1; Track S-1 West": a throat block and its yard track, or a stub and its switch, share one).
+  main and upper (placeholders(), below). The facts are in columns (hartlib.railroad.DEVICE_FACTS, checked by
+  device_facts; the comment and notes stay text for people): one occupancy row per detector, its `blocks` the blocks
+  it serves (a throat block and its yard track, or a stub and its switch, share one) and its `detector` wired, all
+  of staging's being in the field; a block's `stop` "yes" for a Dispatcher System station, as its tables.xml comment
+  marks it ("; stop", checked); a mast's `switch`, `facing` and `protects` as staging_masts.csv has them.
+  A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
+  up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
+  device_map_main_upper.csv, which names the same block for the piece on its level (shared_blocks).
+- short_tracks_staging.csv (SHORT_COLUMNS): a short track between two switches with no block row of its own takes
+  the OS block whose gap it sits inside (one of its two switches'), keyed by the two switch numbers, never by an
+  edge id (read_short_tracks, short_track_blocks: a track with no row, a row with no such track or with a track that
+  has its own block, or two tracks between the same switches, stops). Today the track from Switch 35 to Switch 37,
+  in OS Switch 35a.
 - control_points_staging.csv, the columns of control_points_main_upper.csv: the staging stations of
   staging.plan_overrides.json's control_points (the schematic's source), held equal by --check.
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
@@ -34,14 +45,17 @@ Readers: build_layout_le.py (load), build_signals.py (load_signal_masts, staging
 (staging_chains), hartlib.railroad's staging masts and check_layout_facts.py (staging_masts.csv),
 test_le_mast_parity.py (mast_facts).
 
-Trial names (placeholders()): the drawing's own keys for staging, as placeholder_names gives main and upper theirs.
+Trial names (placeholders()): the links from the rows to the drawing, by switch numbers and legs, so they survive a
+new AnyRail export, whose edge and node ids change every time (owner, 2026-11-20). Each is resolved to the drawing's
+ids when the files are read, and one that matches nothing, or more than one thing, stops.
 - turnout: "Switch <n>" (both halves of a single crossover: one turnout).
-- OS block: "OS Switch <n>" of a plain switch; "OS <n> at <node>" of a crossover half (staging's crossovers 7, 23
-  and 35 have an OS block per half: OS Switch 7 and 7b, 23a and 23b, 35a and 35b; the half's key is not written as
-  a block name, so check_name_copies.py does not take it for one).
-- track block: "Track <strand>" for a track of one block, "Track <strand> <k>/<n>" for the k-th of its n blocks from
-  the strand's first end (S-1 is "Track e23 1/3" West, "2/3" the body, "3/3" East). Strand and node ids are the
-  plan's (as main and upper's "Track <edge>"); --check stops when the plan renames one.
+- OS block: "OS Switch <n>" of a plain switch; "OS <n> A-<end>" of a crossover half, by where the run from its leg A
+  goes (staging's crossovers 7, 23 and 35 have an OS block per half: OS Switch 7 and 7b, 23a and 23b, 35a and 35b;
+  the half's key is not written as a block name, so check_name_copies.py does not take it for one).
+- track block: "Track <end>-<end>" for the run between two ends, each a switch number and the leg the run leaves
+  it by ("17C"), "end" for a bumper or "helix" (end_key), the lower switch first; " #<i>" for the i-th of a run's
+  pieces (a run folded at a turnback) from that first end; " <k>/<n>" for the k-th of the piece's n blocks from that
+  end (S-1 is "Track 17C-29C 1/3" West, "2/3" the body, "3/3" East).
 A block that several tracks or a switch share lists every placeholder, comma separated.
 
 The panel's own icons and labels are not device facts and are not here: the status cluster, captions and backdrop
@@ -51,6 +65,7 @@ System (jmri/layouts/hart/parked/staging_panel_lamps.json).
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import re
@@ -63,8 +78,9 @@ import build_device_map as bdm  # noqa: E402  COLUMNS
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
 import le_names as ln  # noqa: E402  runs and crossovers
 import build_main_upper_masts as bmm  # noqa: E402  LEGS: two masts on one block pair, by letter
+import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
-from hartlib import level_masts, paths, railroad, tables  # noqa: E402
+from hartlib import level_devices, level_masts, paths, railroad, tables  # noqa: E402
 
 LEVEL = 1
 DEVICE_MAP = pd.DATA / "device_map_staging.csv"
@@ -80,8 +96,12 @@ LIST = ";"
 # what staging.signals.json names as its source: the file the masts were first read from (the hand-drawn panel's)
 SIGNALS_SOURCE = "tables.xml"
 CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "notes"]
+# short_tracks_staging.csv: a short track between two switches with no block of its own, and the OS block whose gap it
+# sits inside (owner, 2026-11-20), keyed by the two switches, never by the drawing's edge ids
+SHORT_TRACKS = pd.DATA / "short_tracks_staging.csv"
+SHORT_COLUMNS = ["switch_a", "switch_b", "block", "notes"]
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
-TRACK_RE = re.compile(r"Track (\S+?)(?: (\d+)/(\d+))?")
+TRACK_RE = re.compile(r"Track (\S+?(?: #\d+)?)(?: (\d+)/(\d+))?")       # a track by its piece (piece_refs), k-th of n blocks
 
 
 class StagingMapError(RuntimeError):
@@ -101,10 +121,47 @@ def crossover_halves(band) -> dict:
     return out
 
 
-def placeholders(band) -> tuple[dict, dict, list]:
-    """({switch node: turnout placeholder}, {switch node: OS placeholder}, [strand ids that carry blocks]) of the
-    staging band. Inner crossover strands carry none (the plugin draws them inside the crossover)."""
+def end_key(band, end) -> str:
+    """A run's end (node, port) by what survives a new export: a switch's number and leg ("17C"), "helix" for a helix
+    end, "end" for any other track end (a bumper)."""
+    d = band["nodes"][end[0]]
+    if d["kind"] == "switch":
+        return f"{lc.bare(d.get('label'))}{end[1]}"
+    return "helix" if d.get("sub") == "helix" else "end"
+
+
+def _end_order(key: str):
+    m = re.fullmatch(r"(\d+)([A-D])", key)
+    return (0, int(m.group(1)), m.group(2)) if m else (1, 0, key)
+
+
+def piece_refs(band) -> dict[str, tuple[str, bool]]:
+    """{strand id: (its piece reference, whether the strand runs against it)} of every staging strand that carries
+    blocks (crossover insides carry none): "<end>-<end>" of its run (end_key, the lower first) and " #<i>" when the
+    run has several pieces. Stops when two runs share ends, which could not be told apart."""
+    out, seen = {}, {}
+    for start, chain, stop in ln.runs(band, ln.crossover_strands(band)):
+        a, b = end_key(band, start), end_key(band, stop)
+        flip = _end_order(b) < _end_order(a)
+        run = f"{b}-{a}" if flip else f"{a}-{b}"
+        if run in seen:
+            raise StagingMapError(f"tracks {seen[run]} and {chain[0][0]} both run {run}: name them apart")
+        seen[run] = chain[0][0]
+        pieces = chain[::-1] if flip else chain
+        for i, (sid, rev) in enumerate(pieces, 1):
+            out[sid] = (run if len(pieces) == 1 else f"{run} #{i}", rev != flip)
+    return out
+
+
+def placeholders(band) -> tuple[dict, dict, dict]:
+    """({switch node: turnout placeholder}, {switch node: OS placeholder}, {strand id: (piece reference, reversed)})
+    of the staging band (piece_refs). Inner crossover strands carry none (the plugin draws them inside the
+    crossover). A crossover half is told apart by where the run from its leg A goes."""
     halves = crossover_halves(band)
+    refs = piece_refs(band)
+    leg_a = {}
+    for start, _chain, stop in ln.runs(band, ln.crossover_strands(band)):
+        leg_a[tuple(start)], leg_a[tuple(stop)] = end_key(band, stop), end_key(band, start)
     turnouts, os_ = {}, {}
     for n, d in sorted(band["nodes"].items()):
         if d["kind"] == "dx":
@@ -115,13 +172,16 @@ def placeholders(band) -> tuple[dict, dict, list]:
         if not re.fullmatch(r"\d+", label or ""):
             raise StagingMapError(f"staging switch node {n}: label {d.get('label')!r} is no switch number")
         turnouts[n] = f"Switch {label}"
-        os_[n] = f"OS {label} at {n}" if n in halves else f"OS Switch {label}"
-    inner = ln.crossover_strands(band)
-    return turnouts, os_, sorted(s for s in band["strands"] if s not in inner)
+        if n in halves and (n, "A") not in leg_a:
+            raise StagingMapError(f"crossover half {label} at {n}: no run leaves its leg A to tell it apart by")
+        os_[n] = f"OS {label} A-{leg_a[(n, 'A')]}" if n in halves else f"OS Switch {label}"
+    if len(set(os_.values())) != len(os_):
+        raise StagingMapError(f"two crossover halves have one key: {sorted(os_.values())}")
+    return turnouts, os_, refs
 
 
-def track_placeholder(sid: str, k: int, count: int) -> str:
-    return f"Track {sid}" if count == 1 else f"Track {sid} {k}/{count}"
+def track_placeholder(piece: str, k: int, count: int) -> str:
+    return f"Track {piece}" if count == 1 else f"Track {piece} {k}/{count}"
 
 
 def split_names(cell: str) -> list[str]:
@@ -153,32 +213,143 @@ def mast_kind(r: dict) -> str:
 
 
 def occupancy_blocks(r: dict) -> list[str]:
-    """The blocks an occupancy row's notes say its detector serves ("blocks Track S-1; Track S-1 West")."""
-    if not r["notes"].startswith("blocks "):
-        return []
-    return [b.strip() for b in r["notes"].removeprefix("blocks ").split(";") if b.strip()]
+    """The blocks an occupancy row's detector serves, its `blocks` column ("Track S-1;Track S-1 West")."""
+    return railroad.device_list(r["blocks"])
 
 
-def undetected(r: dict) -> bool:
-    """A block row whose notes say it has no detector ("no detector yet"): JMRI holds it with no occupancy sensor."""
-    return r["layer"] == "block" and r["notes"].startswith("no detector")
+def read_short_tracks(path: Path | None = None) -> dict:
+    """{(switch, switch) in number order: (OS block, line)} of short_tracks_staging.csv. Stops on a file not in its
+    shape, a row naming one switch twice or a block that is no OS block, or a pair given twice (a short track takes
+    one block)."""
+    path = path or SHORT_TRACKS
+    out, bad = {}, []
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)                     # none is right: a staging with no short track
+    except OSError as exc:
+        raise StagingMapError(f"cannot read {paths.rel(path)}: {exc}") from None
+    if reader.fieldnames != SHORT_COLUMNS:
+        raise StagingMapError(f"{paths.rel(path)}: columns {reader.fieldnames}, not {SHORT_COLUMNS}")
+    for i, r in enumerate(rows, 2):
+        a, b = r["switch_a"].strip(), r["switch_b"].strip()
+        if not (a.isdigit() and b.isdigit()) or a == b or not r["block"].startswith("OS Switch "):
+            bad.append(f"line {i}: switches {a!r} and {b!r} are two switch numbers and {r['block']!r} an OS block")
+            continue
+        key = tuple(sorted((a, b), key=int))
+        if key in out:
+            bad.append(f"line {i}: the track from Switch {key[0]} to Switch {key[1]} is given a block twice "
+                       f"(line {out[key][1]})")
+            continue
+        out[key] = (r["block"], i)
+    if bad:
+        raise StagingMapError(f"{paths.rel(path)}: " + "; ".join(bad))
+    return out
 
 
-def undetected_blocks(device_map: Path = DEVICE_MAP) -> set[str]:
-    """The user names of the staging blocks the device map says have no detector."""
-    return {r["user_name"] for r in read_rows(device_map, bdm.COLUMNS) if undetected(r)}
+def short_track_blocks(band, names: dict, strands: list, short: dict) -> tuple[dict, list]:
+    """({strand id: [OS block]}, problems) for the staging tracks the device map gives no block (no trial name):
+    each must run from one switch to another, be the only such track between them, and have its row in `short`
+    (read_short_tracks), naming the OS block of one of its two switches, the one whose gap it sits inside. Every
+    row of `short` must be used (a stale row stops)."""
+    nodes, out, bad, used = band["nodes"], {}, [], set()
+    pairs = defaultdict(list)
+    for sid in strands:
+        s = band["strands"][sid]
+        ends = [s["src"][0], s["dst"][0]]
+        if all(nodes[n]["kind"] == "switch" for n in ends):
+            pairs[tuple(sorted((lc.bare(nodes[n].get("label")) for n in ends), key=int))].append((sid, ends))
+    for sid in strands:
+        s = band["strands"][sid]
+        ends = [s["src"][0], s["dst"][0]]
+        if sid in names["blocks"]:
+            continue
+        if not all(nodes[n]["kind"] == "switch" for n in ends):
+            bad.append(f"track {sid}: no block in the device map, and it does not run between two switches")
+            continue
+        key = tuple(sorted((lc.bare(nodes[n].get("label")) for n in ends), key=int))
+        what = f"the short track from Switch {key[0]} to Switch {key[1]} ({sid})"
+        if key not in short:
+            bad.append(f"{what} has no block: give it the OS block whose gap it sits inside in {SHORT_TRACKS.name}")
+            continue
+        if len(pairs[key]) != 1:
+            bad.append(f"{what}: {len(pairs[key])} tracks join those switches, so {SHORT_TRACKS.name} cannot tell "
+                       "which it means")
+            continue
+        block = short[key][0]
+        own = {names["os"].get(n) for n in ends}
+        if block not in own:
+            bad.append(f"{what}: {SHORT_TRACKS.name} gives it {block}, which is the OS block of neither of its "
+                       f"switches ({', '.join(sorted(b for b in own if b))})")
+            continue
+        out[sid] = [block]
+        used.add(key)
+    for key in sorted(set(short) - used, key=lambda k: (int(k[0]), int(k[1]))):
+        ids = [sid for sid, _e in pairs.get(key, [])]
+        why = "the device map gives it a block of its own" if any(i in names["blocks"] for i in ids) else \
+            "the staging drawing has no such track"
+        bad.append(f"{SHORT_TRACKS.name} line {short[key][1]}: Switch {key[0]} to Switch {key[1]}: {why}")
+    return out, bad
+
+
+def stop_token(comment: str) -> bool:
+    """Whether a JMRI block comment marks a Dispatcher System station: "stop", or ending "; stop" (the stock
+    Dispatcher System's station mark)."""
+    c = (comment or "").strip()
+    return c == "stop" or c.endswith("; stop")
+
+
+def shared_blocks(rows: list[dict], level_map: railroad.DeviceMap, helix: dict | None = None) -> dict:
+    """{block: its main or upper occupancy row} of the staging blocks device_map_main_upper.csv also names: the helix
+    blocks, one JMRI block from staging up the helix, whose detector is that map's. Stops unless they are exactly
+    helix_tracks.csv's blocks, each with one occupancy row there."""
+    helix = mr.read_helix_tracks() if helix is None else helix
+    staging = {r["user_name"] for r in rows if r["layer"] == "block"}
+    shared = staging & set(level_map.blocks)
+    want = {v["block"] for v in helix.values()}
+    if shared != want:
+        raise StagingMapError(f"staging and main or upper blocks of one name: {sorted(shared)}; only the helix blocks "
+                              f"of {mr.HELIX_TRACKS.name} ({sorted(want)}) may be both")
+    occ = level_map.by_user("occupancy")
+    out = {}
+    for b in sorted(shared):
+        o = occ.get(level_devices.occupancy_user(b))
+        if o is None:
+            raise StagingMapError(f"{b}: no occupancy row in {level_map.path.name if level_map.path else 'the main and upper device map'}")
+        out[b] = o
+    return out
+
+
+def check_helix(band, names: dict, helix: dict | None = None) -> list[str]:
+    """Each helix track of helix_tracks.csv is drawn on the staging band from its staging_switch, and its staging
+    piece is that file's block (load()'s names)."""
+    helix = mr.read_helix_tracks() if helix is None else helix
+    bad = []
+    for plan, h in sorted(helix.items()):
+        sids = [sid for sid, s in band["strands"].items() if s.get("name") == plan]
+        if len(sids) != 1:
+            bad.append(f"helix track {plan}: drawn {len(sids)} times on the staging band")
+            continue
+        s = band["strands"][sids[0]]
+        labels = [band["nodes"][e[0]].get("label") for e in (s["src"], s["dst"])
+                  if band["nodes"][e[0]]["kind"] == "switch"]
+        if labels != [h["staging_switch"]] or names["blocks"].get(sids[0]) != [h["block"]]:
+            bad.append(f"helix track {plan}: from switch {', '.join(map(str, labels)) or 'none'} in block(s) "
+                       f"{names['blocks'].get(sids[0])}, {mr.HELIX_TRACKS.name} says Switch {h['staging_switch']}, "
+                       f"{h['block']}")
+    return bad
 
 
 # ---------------------------------------------------------------- reading the files
 
 
-def check_rows(rows: list[dict]) -> None:
-    """Every block has exactly one occupancy row naming it, unless its notes say it has no detector (a helix track
-    not wired yet), when none may; no two rows of one layer share a system name, a jmri_name
+def check_rows(rows: list[dict], shared=frozenset()) -> None:
+    """Every block has exactly one occupancy row naming it, but a helix block (`shared`: shared_blocks), whose
+    detector is the main and upper device map's; no two rows of one layer share a system name, a jmri_name
     or a user name (a turnout's LCC alias "DCC Switch <n>" is a turnout of its own, MTT<dcc>, with its own names);
     every row is a whole field device."""
     bad = []
-    blocks = [r["user_name"] for r in rows if r["layer"] == "block" and not undetected(r)]
+    blocks = [r["user_name"] for r in rows if r["layer"] == "block" and r["user_name"] not in shared]
     served = [b for r in rows if r["layer"] == "occupancy" for b in occupancy_blocks(r)]
     if sorted(blocks) != sorted(served):
         bad.append(f"blocks and occupancy rows differ: {sorted(set(blocks) ^ set(served))} "
@@ -279,7 +450,7 @@ def normal_legs(band, names: dict) -> dict:
 
 
 def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path: Path = CPS,
-         turnout_idents: bool = True, with_masts: bool = True) -> dict:
+         turnout_idents: bool = True, with_masts: bool = True, short_path: Path | None = None) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on any placeholder no row names, any row the drawing does not use, a broken k/n run,
@@ -292,6 +463,10 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
         if r["layer"] not in LAYERS:
             bad.append(f"line {i}: layer {r['layer']!r}")
             continue
+        bad += [f"line {i}: {r['user_name']}: {p}" for p in railroad.device_facts(r)]
+        if r["layer"] == "occupancy" and r["detector"] != "wired":
+            bad.append(f"line {i}: {r['user_name']}: staging's detectors are in the field (wired), not "
+                       f"{r['detector']!r}")
         if r["level"] != str(LEVEL):
             bad.append(f"line {i}: level {r['level']!r}, staging is {LEVEL}")
         if r["cp"] and r["cp"] not in cp_names:
@@ -325,13 +500,20 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
         if layer == "block" and m:
             k, count = (int(m.group(2)), int(m.group(3))) if m.group(2) else (1, 1)
             runs[m.group(1)][k] = (count, ph)
-    for sid in strands:
-        got = runs.pop(sid, {})
+    for sid, (piece, against) in sorted(strands.items()):
+        got = runs.pop(piece, {})
+        if not got:
+            continue                    # no block row: a short track, given its OS block below
         counts = {c for c, _ph in got.values()}
         if len(counts) != 1 or sorted(got) != list(range(1, next(iter(counts)) + 1)):
-            bad.append(f"track {sid}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n to n/n")
+            bad.append(f"track {piece}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n to n/n")
             continue
-        names["blocks"][sid] = [get(got[k][1], "block") for k in sorted(got)]
+        blocks = [get(got[k][1], "block") for k in sorted(got)]       # from the run's first end
+        names["blocks"][sid] = blocks[::-1] if against else blocks    # from the strand's first end, as drawn
+    if not bad:
+        got_short, problems = short_track_blocks(band, names, sorted(strands), read_short_tracks(short_path))
+        names["blocks"].update(got_short)
+        bad += problems
     for sid, got in runs.items():
         bad.append(f"trial names for track {sid}, which the staging drawing does not have: "
                    f"{sorted(ph for _c, ph in got.values())}")
@@ -500,10 +682,12 @@ def check_control_points(path: Path = CPS, overrides: Path = OVERRIDES) -> list[
     return [] if got == exp else [f"{path.name} is not {overrides.name}'s control points: {got} != {exp}"]
 
 
-def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
+def check_tables(rows: list[dict], rr: railroad.Railroad, shared: dict | None = None) -> list[str]:
     """Every device-map row the same bean in tables.xml (hartlib.railroad's tables, by user name): its system name;
     a turnout's jmri_name a turnout name the tables hold and its feedback sensors the fb rows'; a block's detector an
-    occupancy row naming that block; a mast's heads its head rows."""
+    occupancy row naming that block (a helix block's, `shared`: shared_blocks, the main and upper map's virtual
+    sensor, which the Layout Editor build binds); a mast's heads its head rows."""
+    shared = shared or {}
     t = rr.tables
     heads = {tables.system_name(h): tables.user_name(h) for h in tables.signal_heads(t.root)}
     blocks = {tables.user_name(b): b for b in tables.blocks(t.root)}
@@ -524,11 +708,15 @@ def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
                 bad.append(f"block {user}: tables.xml has {tables.system_name(b) if b is not None else 'none'}, "
                            f"not {system}")
                 continue
+            if stop_token(b.findtext("comment")) != (r["stop"] == "yes"):
+                bad.append(f"block {user}: stop is {r['stop'] or 'empty'}, but its comment in tables.xml "
+                           f"{'marks' if stop_token(b.findtext('comment')) else 'does not mark'} a station")
             occ = (b.findtext("occupancysensor") or "").strip()
             row = serves.get(user)
-            if undetected(r):
-                if occ:
-                    bad.append(f"block {user}: the device map says it has no detector, but tables.xml gives it {occ!r}")
+            if user in shared:
+                if occ not in (shared[user].user_name, shared[user].jmri_name):
+                    bad.append(f"helix block {user}: its detector in tables.xml is {occ!r}, the main and upper "
+                               f"device map's {shared[user].user_name}")
             elif row is None or occ not in (row["user_name"], row["system_name"]):
                 bad.append(f"block {user}: its detector in tables.xml is {occ!r}, the device map's "
                            f"{row['user_name'] if row else 'none'}")
@@ -555,13 +743,15 @@ def check(band) -> list[str]:
     bad = []
     try:
         rows = read_rows(DEVICE_MAP, bdm.COLUMNS)
-        check_rows(rows)
-        load(band)
+        rr = railroad.Railroad()
+        shared = shared_blocks(rows, rr.device_map)
+        check_rows(rows, set(shared))
+        bad += check_helix(band, load(band))
         load_signal_masts()
         mast_facts()
         bad += check_control_points()
-        bad += check_tables(rows, railroad.Railroad())
-    except (StagingMapError, railroad.FactsError) as exc:
+        bad += check_tables(rows, rr, shared)
+    except (StagingMapError, railroad.FactsError, mr.MapError) as exc:
         bad.append(str(exc))
     return bad
 

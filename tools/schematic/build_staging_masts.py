@@ -70,6 +70,7 @@ CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
 INTERLOCKINGS = DATA / "interlockings_staging.csv"   # the signal rule's control points (owner, 2026-11-19)
 LEVELS = {"Staging": 1}
 HEAD_PREFIX = "IH:HART:C1:"
+FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position
 WIRED_HEAD = re.compile(r"IH\d+")      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
 CM_PER_MILE = 63360 * 2.54
@@ -362,13 +363,14 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
         note = (f"facing {r['facing']} into {r['protects']}" if r["protects"] else f"facing {r['facing']}, buffer stop")
         masts.append(dict(level="1", cp=r["cp"], layer="mast", user_name=r["mast"], system_name=r["system_name"],
                           jmri_name=r["system_name"], node=mast_node(r["mast"], old_mast.get(r["mast"]), on),
-                          dcc="", comment=where, trial_name="", notes=note))
+                          dcc="", comment=where, trial_name="", notes=note, **{**dict.fromkeys(FACTS, ""),
+                          "switch": r["switch"], "facing": r["facing"], "protects": r["protects"]}))
         for pair in [x for x in r["head_system_names"].split(";") if x]:
             h, user = pair.split("=", 1)
             prev = on.get(user)
             heads.append(dict(level="1", cp=r["cp"], layer="head", user_name=user, system_name=h, jmri_name=h,
                               node=prev["node"] if prev else "", dcc="", comment=where, trial_name="",
-                              notes=prev["notes"] if prev else "internal, not wired"))
+                              notes=prev["notes"] if prev else "internal, not wired", **dict.fromkeys(FACTS, "")))
     written = {(h["user_name"], h["jmri_name"]) for h in heads}
     lost = sorted(f"{u} ({h['jmri_name']})" for m in wired.values() for u, h in m.items()
                   if (u, h["jmri_name"]) not in written)

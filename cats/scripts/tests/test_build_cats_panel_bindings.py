@@ -157,8 +157,8 @@ class Switches(unittest.TestCase):
         self.assertEqual((o["window"], o["fit"]), ((1900, 1020), (62, 30)))   # (1900 - 20) // 30, (1020 - 100) // 30
         with self.assertRaisesRegex(SystemExit, "no cats_window"):
             B.desk_options(plugin_cats(), {}, [])
-        with self.assertRaisesRegex(SystemExit, "the desks need \"apart\""):
-            B.desk_options(plugin_cats(), {"cats_window": [1900, 1020]}, [])
+        with self.assertRaisesRegex(SystemExit, "the desks need \"one\""):
+            B.desk_options(plugin_cats(), {"cats_window": [1900, 1020], "cats_helix_blocks": "apart"}, [])
 
     def test_legs_disagreeing_with_switch_legs_stop(self):
         f = facts()
@@ -213,22 +213,23 @@ class Blocks(unittest.TestCase):
         self.assertEqual(out["West"]["name"], "Track West")
         self.assertEqual(out["1-2"], {"name": "OS Switch 1"})
 
-    def test_only_blocks_the_device_map_marks_are_undetected(self):
-        root = ET.fromstring('<layout-config><layoutblocks>'
-                             '<layoutblock systemName="ILB1"><userName>Track McKeesport</userName></layoutblock>'
-                             '<layoutblock systemName="ILB2"><userName>OS Switch 33</userName></layoutblock>'
-                             '<layoutblock systemName="ILB3" occupancysensor="BS K-1"><userName>Track K-1</userName>'
-                             '</layoutblock></layoutblocks></layout-config>')
-        self.assertEqual(B.undetected_blocks(root, {"Track McKeesport", "Track K-1"}), {"Track McKeesport"})
-
-    def test_a_jmri_block_with_no_detector_is_bound_by_name_alone(self):
+    def test_a_jmri_block_with_no_detector_stops(self):
+        """No staging block is bound by name alone any more (the helix tracks have their detectors, 2026-11-20): a
+        block JMRI holds with no sensor stops the build rather than draw a block that never shows occupied."""
         F = facts()
         F.occupancy.pop("Track West")
-        F.undetected = {"Track West"}
-        F.discipline["Track West"] = "YARD"
-        out = B.block_bindings(band(), F, {("track", "b0:w"): "West"})
-        self.assertEqual(out["West"], {"name": "Track West", "station": B.station_plate("Track West"),
-                                       "discipline": "YARD"})
+        with self.assertRaisesRegex(SystemExit, "block West: no JMRI block West or Track West"):
+            B.block_bindings(band(), F, {("track", "b0:w"): "West"})
+
+    def test_a_helix_track_takes_its_helix_block(self):
+        helix = {"McKeesport": "Track Helix Inner"}
+        self.assertEqual(B.track_block("McKeesport", helix), "Track Helix Inner")
+        self.assertEqual(B.track_block("K-2", helix), "Track K-2")
+        b = {"strands": {"h": {"name": "McKeesport"}, "k": {"name": "K-2"}}}
+        self.assertEqual(B.helix_block(b, ("track", "b0:h"), {"McKeesport": {"block": "Track Helix Inner"}}),
+                         "Track Helix Inner")
+        self.assertIsNone(B.helix_block(b, ("track", "b0:k"), {"McKeesport": {"block": "Track Helix Inner"}}))
+        self.assertIsNone(B.helix_block(b, ("os", "b0:N1"), {}))
 
     def test_a_block_with_no_jmri_block_that_is_no_short_track_stops(self):
         b = band()
@@ -329,7 +330,7 @@ class MainAndUpper(unittest.TestCase):
         self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
         self.assertEqual(len(dm.sensors), 122)                  # Track 227-241 is two blocks (APB B92/B93)
         self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
-        self.assertEqual(len(dm.planned), 35)
+        self.assertEqual(len(dm.planned), 36)        # 227-241 2 on Block 41-4 since 2026-11-20
         self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
         # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector (owner, 2026-11-16)
         self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(dm.planned))
@@ -396,13 +397,13 @@ class MainAndUpper(unittest.TestCase):
         self.assertEqual(B.label_clashes(log), log[:2])
 
     def test_desk_preferences(self):
-        """The desks' window (the Windows box's screen, owner 2026-11-18), one cell per grid unit, a helix block on
-        each band (owner, 2026-11-17) and the tighter rows between bands (owner, 2026-11-18) are the page's CATS
-        preferences, which the plugin reads."""
+        """The desks' window (the Windows box's screen, owner 2026-11-18), one cell per grid unit, each helix track
+        one block over both bands (owner, 2026-11-20) and the tighter rows between bands (owner, 2026-11-18) are the
+        page's CATS preferences, which the plugin reads."""
         page = json.loads((B.pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8"))
         keys = ("cats_window", "cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
         self.assertEqual({k: page[k] for k in keys},
-                         {"cats_window": [1900, 1020], "cats_cells_per_unit": 1, "cats_helix_blocks": "apart",
+                         {"cats_window": [1900, 1020], "cats_cells_per_unit": 1, "cats_helix_blocks": "one",
                           "cats_band_gap": 1, "cats_title_gap": 0})
 
     def test_every_main_and_upper_desk_block_reports_its_virtual_sensor(self):
@@ -646,21 +647,25 @@ class CommittedMainAndUpper(unittest.TestCase):
         self.assertLessEqual(B.level_masts.names(), names)
         self.assertEqual(len(B.level_masts.names()), 44)       # main_upper_masts.csv, APB intermediates too
 
-    def test_the_helix_is_joined_on_the_desk_with_a_block_on_each_level(self):
+    def test_each_helix_track_is_one_block_on_the_desk(self):
         """The plugin joins each helix track drawn on staging and on main or upper logically (SHARED), so a train runs
-        from staging to the main and upper levels on the desk; the join parts the blocks (owner, 2026-11-17):
-        staging's McKees Rocks and McKeesport, and Track 131-H1 and 131-H2 with their own planned detectors."""
+        from staging to the main and upper levels on the desk, and the join parts no blocks (owner, 2026-11-20): each
+        helix track is one desk block, bound once, to the virtual sensor of its helix block, with its planned
+        detector on helix node 41."""
         root = ET.parse(B.OUT).getroot()
         self.assertEqual(len(list(root.iter("SHARED"))), 8)        # two helix tracks and two links, both ends
-        at_join = sorted(se.find("BLOCK").get("NAME") for se in root.iter("SEC_EDGE")
-                         if se.find("SHARED") is not None and se.find("BLOCK") is not None)
-        self.assertEqual(at_join, ["Track 131-H1", "Track 131-H2", "Track McKees Rocks", "Track McKeesport"])
-        level = {e.get("name"): e for e in self.bound["blocks"].values()}
-        for name in ("Track 131-H1", "Track 131-H2"):
+        at_join = [se.find("BLOCK").get("NAME") for se in root.iter("SEC_EDGE")
+                   if se.find("SHARED") is not None and se.find("BLOCK") is not None]
+        self.assertEqual(at_join, [])                              # no block boundary at the joins
+        for name, planned in (("Track Helix Outer", "4101"), ("Track Helix Inner", "4100")):
             with self.subTest(block=name):
-                self.assertEqual(level[name]["_planned_occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))
-                self.assertEqual(level[name]["occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))
+                bound = [e for k, e in self.bound["blocks"].items() if e.get("name", k) == name]
+                self.assertEqual(len(bound), 1)
+                self.assertEqual(bound[0]["occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))
+                self.assertEqual(bound[0]["_planned_occupied"]["DECADDR"], planned)
                 self.assertNotIn(name, self.bound["_main_upper_not_on_desk"])
+        names = {e.get("name", k) for k, e in self.bound["blocks"].items()}
+        self.assertFalse(names & {"Track 131-H1", "Track 131-H2", "Track McKees Rocks", "Track McKeesport"})
 
 
 class LevelSensorsFromTheDeviceMap(unittest.TestCase):

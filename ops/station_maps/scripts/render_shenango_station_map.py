@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Shenango station map (SM-05), normal and rotated.
 
-Princess switches 35 / 37 / 39, Track McKees Rocks / Track McKeesport (mainline toward the
+Princess switches 35 / 37 / 39, Track Helix Outer / Track Helix Inner (mainline up the
 helix), and the K-1 / K-2 loop that serves Shenango Coke Works. Same sheet
 language as the Barn / South Yard maps: 8 in x 5 in (1600x1000 at 200 dpi).
 
@@ -142,8 +142,8 @@ def render(out: Path, rotated: bool) -> None:
     text(274, 530, "Main East", f_track, "lm")
     text(274, 459, "to East End", f_dest, "lm")
 
-    text(885, 388, "Track McKees Rocks", f_track, "lm")
-    text(885, 530, "Track McKeesport", f_track, "lm")
+    text(885, 388, "Track Helix Outer", f_track, "lm")
+    text(885, 530, "Track Helix Inner", f_track, "lm")
     text(X_END - 6, 430, "to Scully Yard (helix)", f_dest, "rm")
     text(X_END - 6, 487, "to Demmler Yard (helix)", f_dest, "rm")
 

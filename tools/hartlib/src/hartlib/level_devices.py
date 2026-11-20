@@ -72,10 +72,12 @@ def is_block_sensor(system_name: str) -> bool:
 # prefixes above, the build's blocks (BLOCK_PREFIX) and a mast over virtual heads (its system name holds the head's).
 # User names: the main and upper switch numbers, 101 to 245 (owner, 2026-11-14), after the device kind, as the device
 # map writes them ("Switch 107", "Track 107-109", "OS Switch 225b", "BS 107-109", "Mast <n><L|R>", "Head 108R Top"),
-# and intermediates by line code and milepost ("Mast A87", "Head B88").
+# and intermediates by line code and milepost ("Mast A87", "Head B88"), and the helix blocks' virtual occupancy sensors
+# ("BS Helix Outer"; the blocks themselves, "Track Helix Outer", are staging's beans, owner 2026-11-20).
 # Staging numbers stop at 40, and its masts 2035 and 2036 have four digits.
 BLOCK_PREFIX = "IB:C3:"
-LEVEL_USER = re.compile(r"(?:Switch|OS Switch|Track|BS|BS Switch|Mast|Head) [12]\d\d(?!\d).*|(?:Mast|Head) [AB]\d+(?: .*)?")
+LEVEL_USER = re.compile(r"(?:Switch|OS Switch|Track|BS|BS Switch|Mast|Head) [12]\d\d(?!\d).*|(?:Mast|Head) [AB]\d+(?: .*)?"
+                        r"|BS Helix .+")
 
 
 def is_level_name(name: str) -> bool:

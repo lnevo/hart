@@ -162,7 +162,7 @@ def main_upper_rows() -> list[dict]:
     bands, joined, runs, corners = bdm.solve()
     ov = json.loads(bdm.OVERRIDES.read_text(encoding="utf-8"))
     found = mr.tracks(bands, runs, joined, mr.helix_tags(bands, ov))
-    mr.track_names(found)
+    mr.track_names(found, mr.helix_blocks(ov))      # as build_device_map.py names them
     rr = railroad.Railroad(bdm.sources(), upto="inputs")
     sw = railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
     cp_of = {s: v.cp for s, v in sw.items() if v.cp}
@@ -172,7 +172,7 @@ def main_upper_rows() -> list[dict]:
     lists = [{r["track"] for r in csv.DictReader(io.StringIO(p.read_text(encoding="utf-8")))}
              for p in (bdm.RUNNING, bdm.SPURS)]
     placed = {m["name"]: m for m in mr.masts(bands, None, found, cp_of, cb, running_extra=lists[0], spurs=lists[1],
-                                             split=set(bdm.split_edges().values()), joined=joined)}
+                                             split=bdm.split_tracks(), joined=joined)}
     by_name = {t["name"]: t for t in found}
     plan = lambda sid, band: re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][sid]["edge"])   # noqa: E731
     rows = []

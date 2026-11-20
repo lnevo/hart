@@ -38,7 +38,9 @@ Virtual names (owner, 2026-11-17), from each device's stable identity:
   "Track "
   dropped, "OS Switch " shortened to "OS", spaces to "_": IS:HART:C3:B:107-109, IS:HART:C3:B:107_Loop_2,
   IS:HART:C3:B:OS225b). Its system_name is the planned detector (M2S), or empty: NOT_WIRED for a detector planned
-  but not on a node yet, NO_DETECTOR for a block that has none planned (dark until decided).
+  but not on a node yet, NO_DETECTOR for a block that has none planned (dark until decided). Those facts are columns
+  of their own (hartlib.railroad.DEVICE_FACTS): an occupancy row's `blocks` (its block) and `detector` (planned,
+  not_wired or none), a mast row's `switch`, `facing` and `protects`; the notes and comment are text for people.
 - Head "Head <mast>[ Top|Bottom]": hartlib.level_devices.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
   IF$shsm:basic:<type>(<head>)(<head>) over those heads.
 - Feedback rows have no JMRI device of their own (a turnout's feedback is DIRECT until the plant is wired), and
@@ -53,8 +55,11 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   whose turnout lists match both ways) and Signal Mast Logic discovery pairs masts across it (226RA to 224LB). Corner
   a keeps the switch's detector; b to d have none on a node until wired (NOT_WIRED). A mast at a double crossover
   protects its own leg's corner block ("home signal from Track X into OS Switch <n><corner>").
-- Track "Track <a>-<b>" from its end switches (numbers, H1 or H2 for a helix), "Track <n> Spur" to a bumper,
-  "Track <n> Loop" back to the same switch; parallel tracks between the same ends take " 1", " 2" from the top row.
+- Track "Track <a>-<b>" from its end switches, "Track <n> Spur" to a bumper, "Track <n> Loop" back to the same
+  switch; parallel tracks between the same ends take " 1", " 2" from the top row. A track up the helix is its helix
+  block (helix_tracks.csv: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
+  track below it (owner, 2026-11-20): the staging device map names its staging piece, and the Layout Editor build
+  binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives.
   A balloon loop is two blocks, "Track <n> Loop 1" from the switch's leg B and "Track <n> Loop 2" from leg C, parted
   at the turnback halfway round (owner, 2026-11-16): JMRI keys a mast by its facing and protected blocks
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
@@ -96,8 +101,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
 from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
-    LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, facing_on_route, helix_tags, masts, track_names,
-    tracks)
+    LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
+    read_helix_tracks, track_names, tracks)
 from hartlib import level_devices, railroad  # noqa: E402  the virtual names; the facts it reads and checks
 
 SOURCES = railroad.Sources.under()
@@ -109,6 +114,8 @@ OUT = SOURCES.device_map
 SPLIT = OVERRIDES.parent / "split_tracks_main_upper.csv"          # tracks parted into two blocks at their turnback
 RUNNING = OVERRIDES.parent / "running_tracks_main_upper.csv"     # passing sidings counted as running track
 SPURS = OVERRIDES.parent / "signalled_spurs_main_upper.csv"      # spurs that get an exit dwarf
+PINS = OVERRIDES.parent / "detector_pins_main_upper.csv"         # detectors the owner placed on a given node input
+PIN_COLUMNS = ["block", "node", "block_input", "notes"]
 
 
 def sources() -> railroad.Sources:
@@ -204,20 +211,78 @@ def dx_corners(bands, le_mod, page) -> dict:
     return out
 
 
-def split_edges(path: Path | None = None) -> dict:
-    """{plan edge: track name} of the tracks split_tracks_main_upper.csv parts into two blocks at their turnback."""
-    with open(path or SPLIT, newline="", encoding="utf-8") as fh:
-        return {r["edge"]: r["track"] for r in csv.DictReader(fh)}
+def split_tracks(path: Path | None = None) -> set[str]:
+    """The track names split_tracks_main_upper.csv parts into two blocks at their turnback: names the rule gives from
+    the tracks' end switches (track_names), so they survive a new AnyRail export. Stops on a file not in its shape or a
+    name given twice."""
+    path = path or SPLIT
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows = list(reader)
+    except OSError as exc:
+        raise MapError(f"cannot read {path.name}: {exc}") from None
+    if reader.fieldnames != ["track", "notes"]:
+        raise MapError(f"{path.name}: columns {reader.fieldnames}, not ['track', 'notes']")
+    names = [r["track"].strip() for r in rows]
+    if not all(n.startswith("Track ") for n in names) or len(set(names)) != len(names):
+        raise MapError(f"{path.name}: every row names one track (Track ...), once")
+    return set(names)
 
 
-def check_split(found: list, split: dict) -> None:
-    """Stop when a row of split_tracks_main_upper.csv names a plan edge that is not its track's: the edge ids change
-    whenever the plan is read again, and a stale one would leave the track whole without a word."""
-    trial = {t["name"]: set(t["trial"]) for t in found}
-    bad = [f"{edge} ({name})" for edge, name in split.items() if f"Track {edge}" not in trial.get(name, set())]
+def split_edges(path: Path | None = None, found: list | None = None) -> dict:
+    """{plan edge: track name} of the split tracks (split_tracks): each name resolved to the one plan edge its track
+    is drawn on, in `found` (tracks with names; default: the solved schematic's), at build time. Stops on a name no
+    track has, or a track drawn on more than one plan edge (a split needs one track folded at one turnback)."""
+    names = split_tracks(path)
+    if found is None:
+        bands, joined, runs, _corners = solve()
+        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+        found = tracks(bands, runs, joined, helix_tags(bands, overrides))
+        track_names(found, helix_blocks(overrides))
+    by_name = {t["name"]: t for t in found}
+    out, bad = {}, []
+    for name in sorted(names):
+        t = by_name.get(name)
+        if t is None or len(t["trial"]) != 1:
+            bad.append(f"{name}: {'no such track' if t is None else 'drawn on ' + ', '.join(t['trial'])}")
+            continue
+        out[t["trial"][0].removeprefix("Track ")] = name
     if bad:
-        raise MapError(f"{SPLIT.name}: {', '.join(bad)}: the edge is not that track's; give the plan edge the track "
-                       "is drawn on (its trial_name in the device map)")
+        raise MapError(f"{SPLIT.name}: " + "; ".join(bad))
+    return out
+
+
+def read_pins(path: Path | None = None) -> dict:
+    """{block: (node, input index from 0)} of detector_pins_main_upper.csv: detectors the owner put on a given input
+    ("Block <k>" of a node, 1 to 8), which the rule then hands to no other block (owner, 2026-11-20: the helix node
+    41). Stops on a file not in that shape, a block or an input given twice, or an input out of range."""
+    path = path or PINS
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows, header = list(reader), reader.fieldnames or []
+    except OSError as exc:
+        raise MapError(f"cannot read {path.name}: {exc}") from None
+    if list(header) != PIN_COLUMNS:
+        raise MapError(f"{path.name}: columns {list(header)}, not {PIN_COLUMNS}")
+    out, slots, bad = {}, set(), []
+    for i, r in enumerate(rows, 2):
+        try:
+            node, k = int(r["node"]), int(r["block_input"]) - 1
+        except ValueError:
+            bad.append(f"line {i}: node and block_input are numbers")
+            continue
+        if not r["block"].startswith(("Track ", "OS Switch ")) or not 0 <= k < CAP["block"]:
+            bad.append(f"line {i}: {r['block']!r} is no block name, or input {k + 1} is not 1 to {CAP['block']}")
+        elif r["block"] in out or (node, k) in slots:
+            bad.append(f"line {i}: block {r['block']} or Block {node}-{k + 1} pinned twice")
+        else:
+            out[r["block"]] = (node, k)
+            slots.add((node, k))
+    if bad:
+        raise MapError(f"{path.name}: " + "; ".join(bad))
+    return out
 
 
 def loop_halves(band, runs, split: dict | None = None) -> dict:
@@ -308,6 +373,26 @@ def intermediates(bands, found, cp_of, running, split) -> list[dict]:
     return out
 
 
+def check_helix_ends(bands, joined, found, helix) -> None:
+    """Stop unless each track up the helix ends at the switch helix_tracks.csv gives it (level_switch, the label the
+    drawing prints: 131A, 131B), so the file cannot give a helix track the other one's block."""
+    if not helix:
+        return
+    want = {v["block"]: v["level_switch"] for v in helix.values()}
+    bad = []
+    for t in found:
+        if not any(k == "helix" for k, _v in t["ends"]):
+            continue
+        labels = [end_label(bands, joined, t["band"], n) for (n, _p), (k, _v) in zip(t["legs"], t["ends"]) if k == "sw"]
+        if t["name"] not in want or labels != [want[t["name"]]]:
+            bad.append(f"{t['name']} runs from switch {', '.join(labels) or 'none'}, helix_tracks.csv says "
+                       f"{want.get(t['name'], 'nothing')}")
+    drawn = {t["name"] for t in found}
+    bad += [f"{b} is drawn on neither the main nor the upper band" for b in want if b not in drawn]
+    if bad:
+        raise MapError("helix tracks: " + "; ".join(bad))
+
+
 def loop_placeholder(placeholder: str, half: int | None) -> str:
     """The drawing's placeholder for one half of a balloon loop ("Track e33" -> "Track e33 1"), as
     build_layout_le.placeholder_names and build_cats_panel name it; any other track's is unchanged."""
@@ -329,7 +414,20 @@ class Nodes:
         for r in rows:
             self.pool[(r.level, r.area)].append(r.node)
         self.used = defaultdict(lambda: defaultdict(int))
+        self.taken = defaultdict(set)         # (node, what) -> the indices given out or pinned
+        self.pins = {}                        # block -> (node, index): detector_pins_main_upper.csv
         self.boards = {}                     # node -> pins used on each of its 5V boards
+
+    def pin(self, pins):
+        """Hold each pinned detector's input (read_pins: {block: (node, input index)}) before any other is given out,
+        so the rule never hands it to another block."""
+        known = {n for nodes in self.pool.values() for n in nodes}
+        for block, (node, k) in sorted(pins.items()):
+            if node not in known:
+                raise MapError(f"{PINS.name}: {block} is pinned to node {node}, which {NODES.name} does not list")
+            self.taken[(node, "block")].add(k)
+            self.used[node]["block"] += 1
+        self.pins = dict(pins)
 
     def room(self, node, what, n=1):
         return self.used[node][what] + n <= CAP[what]
@@ -342,9 +440,23 @@ class Nodes:
                        f"add one to {NODES.name}")
 
     def take(self, node, what):
-        k = self.used[node][what]
+        """The node's lowest free index of `what` (one a pin holds is not free), and its packed id."""
+        k = next(i for i in range(CAP[what]) if i not in self.taken[(node, what)])
+        self.taken[(node, what)].add(k)
         self.used[node][what] += 1
         return k, node * 100 + UID[what] + k
+
+    def take_pinned(self, block):
+        """(node, index, packed id) of `block`'s pinned detector, once; None when it has no pin."""
+        if block not in self.pins:
+            return None
+        node, k = self.pins.pop(block)
+        return node, k, node * 100 + UID["block"] + k
+
+    def check_pins(self):
+        """Stop when a pin names a block the map has no detector row for (a stale or misspelt pin)."""
+        if self.pins:
+            raise MapError(f"{PINS.name}: pins for blocks the device map gives no detector: {sorted(self.pins)}")
 
     # 5V boards for heads, after the node's 12V turnout boards (call once every turnout and detector is placed)
     def n12(self, node):
@@ -396,10 +508,13 @@ class Nodes:
 
 
 def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, running=frozenset(),
-          spurs=frozenset()) -> tuple[dict, list[dict]]:
+          spurs=frozenset(), helix=None, pins=None) -> tuple[dict, list[dict]]:
     """(control_points, device map rows). `local`: the switches in no control point (local_switches_main_upper.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
-    when a band has a double crossover."""
+    when a band has a double crossover. `helix`: read_helix_tracks (None: helix_tracks.csv; {}: no helix tracks);
+    `pins`: read_pins (None: detector_pins_main_upper.csv)."""
+    helix = read_helix_tracks() if helix is None else helix
+    pins = read_pins() if pins is None else pins
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
     try:
@@ -413,15 +528,15 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     if missing:
         raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
     found = tracks(bands, runs, joined, helix_tags(bands, overrides))
-    track_names(found)
+    track_names(found, helix_blocks(overrides, helix) if helix else None)
+    check_helix_ends(bands, joined, found, helix)
     corners = corners or {}
     dxs = {base(d["label"]) for title, band, _ in bands if band_level(title)
            for d in band["nodes"].values() if d["kind"] == "dx"}
     if dxs - set(corners):
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
-    split = split_edges()                           # read once per build
-    check_split(found, split)
+    split = split_edges(found=found)                # resolved once per build, from the tracks' names
     split_names = set(split.values())
     ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names,
                joined=joined)
@@ -441,16 +556,24 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     if twice:       # an intermediate named from a milepost can meet another's number (a home mast never can)
         raise MapError(f"mast names given twice: {', '.join(twice)}")
     nodes = Nodes(node_rows)
+    nodes.pin(pins)
     rows = []
 
-    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri=""):
+    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri="", **facts):
         rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system, jmri_name=jmri,
-                         node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes))
+                         node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes,
+                         **{c: facts.pop(c, "") for c in railroad.DEVICE_FACTS}))
+        if facts:
+            raise MapError(f"{layer} {user}: unknown fact columns {sorted(facts)}")
 
     def occupancy(level, cp, block, system="", node="", comment="", notes=""):
-        """The occupancy row of `block`: its virtual sensor (jmri_name) and the planned detector, if any."""
+        """The occupancy row of `block`: its virtual sensor (jmri_name), the block it serves and its detector: planned
+        on an input (`system`, M2S), planned with no input yet (NOT_WIRED) or none planned (NO_DETECTOR)."""
+        detector = "planned" if system else {NOT_WIRED: "not_wired", NO_DETECTOR: "none"}.get(notes)
+        if detector is None:
+            raise MapError(f"occupancy of {block}: no detector and no reason why ({notes!r})")
         add(level, cp, "occupancy", occupancy_user(block), system, node, comment, notes=notes,
-            jmri=block_sensor(block))
+            jmri=block_sensor(block), blocks=block, detector=detector)
 
     dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
     home, area_of = {}, {}                  # switch -> its turnout's node, its area
@@ -531,16 +654,23 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                 note += f", half of the balloon loop from leg {'BC'[half - 1]}"
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
                 ", ".join(loop_placeholder(x, half) for x in t["trial"]), note)
+            pinned = nodes.take_pinned(name)
             if not detect:
+                if pinned:
+                    raise MapError(f"{PINS.name} pins a detector for {name}, which the rule gives none "
+                                   "(off the main line or a short link)")
                 occupancy(t["level"], cp, name, notes=NO_DETECTOR)
                 continue
-            if half and half > 1:                                 # wired later: no node or input yet
+            if pinned:                                            # the owner's input (detector_pins_main_upper.csv)
+                bnode, k, packed = pinned
+            elif half and half > 1:                               # wired later: no node or input yet
                 occupancy(t["level"], cp, name, notes=NOT_WIRED)
                 continue
-            sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
-            lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
-            bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
-            k, packed = nodes.take(bnode, "block")
+            else:
+                sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
+                lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
+                bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
+                k, packed = nodes.take(bnode, "block")
             occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     groups = [(cp.level, cp.area, cp.cp_name, cp.switches[0]) for cp in cps]
@@ -570,11 +700,11 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if m.get("intermediate"):
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
                 notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
-                      f"{m['milepost']:.2f}", jmri=virtual)
+                      f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"])
         else:
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                jmri=virtual)
+                jmri=virtual, switch=m["switch"], facing=m["track"], protects=m["protects"])
         for user, sysn, k, board, pin in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
@@ -584,6 +714,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                 f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
                 jmri=level_devices.head_name(user))
     nodes.check_boards()
+    nodes.check_pins()
     check_virtual(rows)
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
     assign_ports(rows)

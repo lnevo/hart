@@ -149,8 +149,8 @@ HIDE_TRACK_LABELS = {
 }
 LABEL_LEFT = {"Track EH-1", "Track EH-2", "Track EH-3", "Track Barn"}
 LABEL_AT = {
-    "Track McKees Rocks": (59, 5),
-    "Track McKeesport": (59, 8),
+    "Track Helix Outer": (59, 5),
+    "Track Helix Inner": (59, 8),
     "Track Barn": (21, 7),
     "Track EH-1": (21, 8),
     "Track EH-2": (21, 9),

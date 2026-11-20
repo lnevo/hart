@@ -63,6 +63,7 @@ GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
 STATIONS = OUT / "stations"                                              # one SVG per station detail sheet
 LENGTHS = railroad.Sources.under().block_lengths
+HELIX = railroad.Sources.under().helix_tracks                # the helix blocks: their length is the whole run
 STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
@@ -314,25 +315,19 @@ def write_stations(sheets, folder):
         (folder / name).write_text(svg)
 
 
-def helix_tracks(overrides: dict) -> set:
-    """The staging tracks its `end` edit marks as helix tracks (McKees Rocks, McKeesport)."""
-    return {name for ed in overrides.get("edits", []) if ed.get("op") == "end"
-            for _ref, _port, name, sub, _to in ed["ends"] if sub == "helix"}
-
-
 def measured_lengths():
     """{track name: inches} for every measured Track row of block_lengths.csv (measured, timed or estimated, as its
-    flag column says), but the helix tracks: their blocks' detectors cover the whole helix run (owner, 2026-11-20),
-    while the schematic draws each level's share of it up to the cut from the plan, so the sheet and the milepost
-    count keep the plan's share. hartlib.railroad.read_block_lengths reads and checks every row, not only the Track
-    rows: it stops on an empty or repeated name or a length that is not a number."""
+    flag column says), but the helix blocks (helix_tracks.csv): each is one block over the whole helix run (owner,
+    2026-11-20), while the schematic draws each level's share of it up to the cut from the plan, so the sheet and the
+    milepost count keep the plan's share. hartlib.railroad.read_block_lengths reads and checks every row, not only
+    the Track rows: it stops on an empty or repeated name or a length that is not a number."""
     try:
         lengths = railroad.read_block_lengths(LENGTHS)
+        helix = {h.block for h in railroad.read_helix_tracks(HELIX).values()}
     except railroad.FactsError as exc:
         sys.exit(str(exc))
-    helix = helix_tracks(json.loads(STAGING.read_text()))
     return {name.removeprefix("Track "): b.inches for name, b in lengths.items()
-            if name.startswith("Track ") and b.inches is not None and name.removeprefix("Track ") not in helix}
+            if name.startswith("Track ") and b.inches is not None and name not in helix}
 
 
 def stale_lengths():

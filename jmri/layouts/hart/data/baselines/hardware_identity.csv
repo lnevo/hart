@@ -6,8 +6,8 @@ block,IB19,OS Switch 11|BS Switch 11
 block,IB20,Track EH-1|BS EH-1
 block,IB21,Track EH-2|BS EH-2
 block,IB22,Track EH-3|BS EH-3
-block,IB23,Track McKees Rocks
-block,IB24,Track McKeesport
+block,IB23,Track Helix Outer|BS Helix Outer
+block,IB24,Track Helix Inner|BS Helix Inner
 block,IB3,Track Scale|BS Scale
 block,IB6,OS Switch 7b|BS Switch 7b
 block,IB8,OS Switch 7|BS Switch 7
@@ -128,8 +128,8 @@ block,IB:C3:0069,Track 215 Spur 2|BS 215 Spur 2
 block,IB:C3:0070,Track 223-225 2|BS 223-225 2
 block,IB:C3:0071,Track 243 Spur 2|BS 243 Spur 2
 block,IB:C3:0072,Track 245 Spur 2|BS 245 Spur 2
-block,IB:C3:0073,Track 131-H1|BS 131-H1
-block,IB:C3:0074,Track 131-H2|BS 131-H2
+block,IB:C3:0073,Track 131-H1
+block,IB:C3:0074,Track 131-H2
 block,IB:C3:0075,Track 101-103|BS 101-103
 block,IB:C3:0076,Track 101-111|BS 101-111
 block,IB:C3:0077,Track 105-109|BS 105-109
@@ -361,8 +361,6 @@ signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_
 signalmast,IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),Mast 230LA
 signalmast,IF$vsm:basic:one-low($1001),Mast 4LA
 signalmast,IF$vsm:basic:one-low($1002),Mast 4LB
-signalmast,IF$vsm:basic:one-low($1003),Mast 40RA
-signalmast,IF$vsm:basic:one-low($1004),Mast 38RA
 signalmast,IF$vsm:basic:one-low($1005),Mast 12L
 signalmast,IF$vsm:basic:one-low($1006),Mast 10LA
 signalmast,IF$vsm:basic:one-low($1007),Mast 10LB
