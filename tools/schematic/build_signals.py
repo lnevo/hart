@@ -12,7 +12,10 @@ the plan overrides' edits: the edge must exist, run between the switches named i
 tracks (staging_device_map.staging_chains) and block_lengths.csv's plan lengths: edge_cm is the length of the track holding the mast's facing block, and cm_from_toward
 is 0 at a turnout leg, the whole run at an end bumper, and at an anchor the length from one end of that track to the
 boundary between the facing and protected blocks (within TOLERANCE_CM). A mast that does not fit fails the run, with
-or without --check.
+or without --check. A mast on a balloon loop (an edge with both ends at one switch, the 107 Loop) names the switch leg
+its half leaves from in "leg" (the plugin's signals field, schematic-maps 0.1.46), which the plugin needs to tell the
+two halves apart: a switch's mast the leg it stands at, an APB intermediate the leg of the half its block is
+(mast_rule.LOOP_HALF); no other mast names one.
 
 --check regenerates in memory and compares (exit 1 if a file is stale). When SCHEMATIC_PLUGIN is not set and the
 plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0, so a checkout
@@ -93,7 +96,19 @@ def plan_graph(plugin, graph_name: str, name: str) -> dict:
     return g
 
 
-def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str]:
+def leg_problems(row: dict, edge: dict) -> list[str]:
+    """Problems with a signal row's "leg" on its plan edge: a balloon loop (both ends at one switch) must name one of
+    its two legs, since the plugin draws the mast on the half that leaves from it; any other edge names none."""
+    if edge["u"] == edge["v"]:
+        if row.get("leg") not in (edge["up"], edge["vp"]):
+            return [f"{row['mast']}: edge {row['_edge']} is a loop at legs {edge['up']} and {edge['vp']} of one "
+                    f"switch, so its leg must be one of them, not {row.get('leg')!r}"]
+    elif "leg" in row:
+        return [f"{row['mast']}: edge {row['_edge']} is no loop, but its row names leg {row['leg']!r}"]
+    return []
+
+
+def check_runs(plugin,graph_name: str, name: str, rows: list[dict]) -> list[str]:
     """Problems with the masts' schematic runs against the plan graph (with the overrides' edits)."""
     if str(plugin) not in sys.path:
         sys.path.insert(0, str(plugin))
@@ -112,6 +127,7 @@ def check_runs(plugin, graph_name: str, name: str, rows: list[dict]) -> list[str
         if e is None:
             bad.append(f"{r['mast']}: schematic edge {r['_edge']} is not in the plan graph")
             continue
+        bad += leg_problems(r, e)
         if r["_toward_node"].startswith("turn:") and r["_edge"] == r["_toward_node"].removeprefix("turn:"):
             continue            # measured from the turnback of its own folded edge (a balloon loop's APB mast)
         if r["_toward_node"] not in (e["u"], e["v"]):
@@ -187,7 +203,11 @@ def main_upper_rows() -> list[dict]:
             far = [v for (n, p), (k, v) in zip(t["legs"], reversed(t["ends"])) if (n, p) == (m["node"], m["leg"])]
             rows.append(dict(mast=name, toward=r["switch"], run=[r["switch"], far[0] if far and far[0] else ""],
                              edge=plan(m["strand"], band), node=m["node"], edge_cm=t["cm"], cm_from_toward=0.0,
-                             dir="west" if m["letter"] == "L" else "east", heads=heads))
+                             dir="west" if m["letter"] == "L" else "east", heads=heads,
+                             leg=m["leg"] if t["loop"] else None))
+            if t["loop"] and loop_leg(r["facing"]) != m["leg"]:
+                sys.exit(f"{r['mast']}: stands on leg {m['leg']} of Switch {r['switch']}, but faces {r['facing']}, "
+                         f"the half that leaves from leg {loop_leg(r['facing'])}")
         else:
             # an APB pair at a turnback: each drawn from the switch its move heads for (the protected half's end),
             # as staging's 67 and 68 are, so the two stand apart. A balloon loop's halves both end at its switch, and
@@ -210,10 +230,23 @@ def main_upper_rows() -> list[dict]:
                 label, cm = "", TURNBACK_CM
             rows.append(dict(mast=name, toward=label, run=[label, other[0]], edge=plan(t["strands"][0], band),
                              node=node, edge_cm=t["cm"], cm_from_toward=round(cm, 1),
-                             dir="west" if west else "east", heads=heads))
+                             dir="west" if west else "east", heads=heads,
+                             leg=loop_leg(r["facing"]) if t["loop"] else None))
     return [dict(mast=x["mast"], toward=x["toward"], run=x["run"], names=[], edge_cm=x["edge_cm"],
                  cm_from_toward=x["cm_from_toward"], dir=x["dir"], kind="planned", heads=x["heads"],
-                 source="main_upper_masts.csv", _edge=x["edge"], _toward_node=x["node"]) for x in rows]
+                 source="main_upper_masts.csv", _edge=x["edge"], _toward_node=x["node"],
+                 **({"leg": x["leg"]} if x["leg"] else {})) for x in rows]
+
+
+def loop_leg(facing: str) -> str:
+    """The switch leg a balloon loop's half leaves from, by the half its block is ("Track 107 Loop 2": its half 2),
+    as mast_rule.LOOP_HALF numbers them: the leg a mast standing on that half names in the signals file ("leg")."""
+    import mast_rule as mr
+    m = re.fullmatch(r".* Loop ([12])", facing)
+    if not m:
+        sys.exit(f"main_upper_masts.csv: a mast on a balloon loop faces {facing!r}, not one of its halves (Loop 1, "
+                 "Loop 2)")
+    return {half: leg for leg, half in mr.LOOP_HALF.items()}[int(m.group(1))]
 
 
 def generate(plugin, graph, name) -> str:
