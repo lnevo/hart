@@ -60,10 +60,11 @@ class PersonalEmail(unittest.TestCase):
 
 class Files(unittest.TestCase):
     def check(self, name: str, data: bytes) -> list[str]:
-        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+        # Outside the checkout: problems() joins a path to ROOT, and an absolute one stays as it is.
+        with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / name
             path.write_bytes(data)
-            return cpt.problems([str(path.relative_to(ROOT))])
+            return cpt.problems([str(path)])
 
     def test_text_file_with_email_fails(self) -> None:
         self.assertEqual(len(self.check("a.sh", f"#!/bin/sh\nTO={addr('someone', 'icloud.com')}\n".encode())), 1)

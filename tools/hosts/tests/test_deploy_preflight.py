@@ -5,10 +5,11 @@ Windows is kept matching the Pi and the Pi step runs first, so an unreachable Wi
 down.txt refuses, the no-op and the Pi's read-only checks answer, and anything else (the first
 real host step) fails with 99. Nothing reaches a host. HOME and TMPDIR are temporary folders, the
 gate that rewrites tables.xml runs as a dry run (keep_repo_tables), and every test checks that the
-checkout is as it was.
+checkout is as it was where a deploy could change it (checkout_state).
 """
 from __future__ import annotations
 
+import hashlib
 import shutil
 import subprocess
 import sys
@@ -74,6 +75,28 @@ fi
 exec "@RSYNC@" "$@"
 """
 
+# Where a deploy could leave a new untracked file: the trees it reads from or writes beside, and the
+# top level (it runs with the checkout as its working folder). check.sh runs other test jobs at the
+# same time, and a temporary file one of them makes elsewhere (www/, tools/hartlib/) is not the deploy's.
+DEPLOY_TREES = ("jmri/", "cats/", "tools/hosts/", "tools/env/", "tools/mqtt-mimic/", "docs/jmri/")
+
+
+def deploy_could_write(line: str) -> bool:
+    """A `git status --porcelain` line the deploy could have caused: any tracked change, and an untracked
+    path at the top level or under DEPLOY_TREES."""
+    if not line.startswith("?? "):
+        return True
+    path = line[3:].strip('"')
+    return "/" not in path.rstrip("/") or path.startswith(DEPLOY_TREES)
+
+
+def checkout_state(status: str | None = None) -> tuple[str, list[str]]:
+    """The tables.xml hash and the status lines a deploy could have changed."""
+    if status is None:
+        status = git("status", "--porcelain", raw=True).decode()
+    return (hashlib.sha256(TABLES.read_bytes()).hexdigest(),
+            [ln for ln in status.splitlines() if deploy_could_write(ln)])
+
 
 class DeployHarness(unittest.TestCase):
     def setUp(self) -> None:
@@ -88,9 +111,8 @@ class DeployHarness(unittest.TestCase):
         (self.tmp / "restart.txt").write_text("no\n", encoding="utf-8")
         self.down()
         # No test may change the checkout: the tables bytes and git's view of it stay as they were.
-        before = (TABLES.read_bytes(), git("status", "--porcelain"))
-        self.addCleanup(lambda: self.assertEqual(
-            before, (TABLES.read_bytes(), git("status", "--porcelain")), "the deploy changed the checkout"))
+        before = checkout_state()
+        self.addCleanup(lambda: self.assertEqual(before, checkout_state(), "the deploy changed the checkout"))
 
     def down(self, *hosts: str) -> None:
         (self.tmp / "down.txt").write_text("".join(f"{h}\n" for h in hosts), encoding="utf-8")
@@ -105,6 +127,22 @@ class DeployHarness(unittest.TestCase):
     def deploy(self, *flags: str) -> subprocess.CompletedProcess:
         return subprocess.run(["bash", str(SYNC), *flags], cwd=ROOT, env=self.env,
                               capture_output=True, text=True, timeout=600)
+
+
+class CheckoutGuardTest(unittest.TestCase):
+    """The guard ignores another job's temporary file and still sees what a deploy could change."""
+
+    def test_other_jobs_temporary_files_are_ignored(self) -> None:
+        clean = checkout_state("")
+        for stray in ("?? www/data/tmpab12cd/", "?? tools/hartlib/tests/probe.py"):
+            self.assertEqual(clean, checkout_state(stray), stray)
+
+    def test_a_deploy_change_is_seen(self) -> None:
+        clean = checkout_state("")
+        for dirt in (" M jmri/layouts/hart/output/tables.xml", "M  cats/panels/HART_CTC.xml",
+                     " M www/index.html", "?? jmri/layouts/hart/output/stage/", "?? cats/deploy_stamp.txt",
+                     "?? stage/", "?? deploy_stamp.txt", '?? "tools/hosts/a b.sh"'):
+            self.assertNotEqual(clean, checkout_state(dirt), dirt)
 
 
 class PreflightTest(DeployHarness):
