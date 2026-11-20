@@ -261,6 +261,7 @@ class RecordingAdapter:
     def __init__(self):
         self.published = []
         self.subscribed = []
+        self.unsubscribed = []  # (topic, listener)
 
     # Stock MqttAdapter.publish(topic, payload) retains (its `retained` field is true), so the
     # two-argument form records True here, as the broker would see it.
@@ -269,6 +270,21 @@ class RecordingAdapter:
 
     def subscribe(self, topic, listener):
         self.subscribed.append(topic)
+
+    def unsubscribe(self, topic, listener):
+        self.unsubscribed.append((topic, listener))
+
+
+class FakeShutDownManager:
+    def __init__(self):
+        self.tasks = []
+
+    def register(self, task):
+        if task not in self.tasks:
+            self.tasks.append(task)
+
+    def deregister(self, task):
+        self.tasks = [t for t in self.tasks if t is not task]
 
 
 class FakeMemo:
@@ -280,6 +296,32 @@ class FakeMemo:
 
 
 # --- Swing / Java -------------------------------------------------------------------
+
+
+class FakeButton:
+    """javax.swing.JButton: text, enabled flag and action listeners; click() fires them."""
+
+    def __init__(self, text=""):
+        self.text, self.enabled, self.actions, self.parent = text, True, [], None
+
+    def getText(self):
+        return self.text
+
+    def setText(self, text):
+        self.text = text
+
+    def setEnabled(self, value):
+        self.enabled = value
+
+    def addActionListener(self, listener):
+        self.actions.append(listener)
+
+    def getParent(self):
+        return self.parent
+
+    def click(self):
+        for listener in list(self.actions):
+            listener(_Event(self))
 
 
 class _Event:
@@ -375,6 +417,8 @@ class Layout:
         self.adapter = RecordingAdapter()
         self.memo = FakeMemo(self.adapter) if mqtt else None
         self.editors = []
+        self.shutdown = FakeShutDownManager()
+        self.button_space = None  # Apps.buttonSpace(); a test sets one to have a main window
 
     def instance(self, cls):
         return {
@@ -382,6 +426,7 @@ class Layout:
             "SignalHeadManager": self.heads,
             "SignalMastManager": self.masts,
             "PowerManager": self.power,
+            "ShutDownManager": self.shutdown,
             "EditorManager": types.SimpleNamespace(getAll=lambda: self.editors),
         }.get(getattr(cls, "__name__", ""))
 
@@ -410,6 +455,9 @@ def _modules(layout):
     class EditorManager:
         pass
 
+    class ShutDownManager:
+        pass
+
     class AbstractShutDownTask(_Base):
         def __init__(self, *args):
             pass
@@ -428,7 +476,7 @@ def _modules(layout):
     jmri = mod("jmri", Turnout=Turnout, Sensor=Sensor, SignalHead=SignalHead, PowerManager=power_cls,
                InstanceManager=instance_manager, SignalHeadManager=SignalHeadManager,
                SignalMastManager=SignalMastManager, SignalMastLogicManager=SignalMastLogicManager,
-               implementation=implementation,
+               ShutDownManager=ShutDownManager, implementation=implementation,
                jmrix=mod("jmri.jmrix", mqtt=mqtt), jmrit=mod("jmri.jmrit", display=display),
                util=mod("jmri.util", ThreadingUtil=types.SimpleNamespace(),
                         swing=mod("jmri.util.swing", JmriJOptionPane=types.SimpleNamespace())))
@@ -437,14 +485,14 @@ def _modules(layout):
                     MouseEvent=types.SimpleNamespace(BUTTON1=1), WindowAdapter=iface("WindowAdapter"))
     beans = mod("java.beans", PropertyChangeListener=iface("PropertyChangeListener"))
     java = mod("java", lang=lang, beans=beans, awt=mod("java.awt", event=awt_event))
-    swing = mod("javax.swing", SwingUtilities=SwingUtilities, Timer=Timer, JButton=iface("JButton"),
+    swing = mod("javax.swing", SwingUtilities=SwingUtilities, Timer=Timer, JButton=FakeButton,
                 JOptionPane=types.SimpleNamespace(showMessageDialog=lambda *a: None))
     return {
         "jmri": jmri, "jmri.jmrix": jmri.jmrix, "jmri.jmrix.mqtt": mqtt, "jmri.jmrit": jmri.jmrit,
         "jmri.jmrit.display": display, "jmri.implementation": implementation, "jmri.util": jmri.util,
         "jmri.util.swing": jmri.util.swing, "java": java, "java.lang": lang, "java.beans": beans,
         "java.awt": java.awt, "java.awt.event": awt_event, "javax": mod("javax", swing=swing),
-        "javax.swing": swing, "apps": mod("apps", Apps=types.SimpleNamespace()),
+        "javax.swing": swing, "apps": mod("apps", Apps=types.SimpleNamespace(buttonSpace=lambda: layout.button_space)),
     }
 
 
