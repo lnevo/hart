@@ -44,8 +44,12 @@
 # Query or disabling ACK while this instance owns or is taking Digicon
 #   (including Enable/Disable/quit Hold) so the LCOS bridge can suspend RELEASE.
 # Quit (ShutDownTask.call + main-window close): if this instance still owns
-#   Digicon, Hold / wait / Unheld then sml_mode disabled. Work is in call()
-#   because JMRI run() is after windows close. Abort does not RELEASE.
+#   Digicon, Hold / wait / pairs off / Unheld then sml_mode disabled. Work is in
+#   call() because JMRI run() is after windows close. Abort does not RELEASE.
+# Never two owners: `disabled` goes out only once every pair is off, and `enabled`
+#   only once every pair is on (or, after a failed Enable, could not be turned
+#   off again). A failed Disable keeps this host the owner (pairs back on,
+#   enabled again); a failed quit unholds the masts and sends no disabled.
 #
 # Topic leaf is packed digits only (IH432 -> .../432). Beans stay IH*.
 # Digicon plants: SignalMasts that carry LCOS Virtual IH heads (UID 32-47) in
@@ -273,6 +277,36 @@ def _appearance_constant(name):
     return table.get(upper)
 
 
+class _BulkRun(object):
+    """One bulk SML set's run. cancel() stops the pair flips not yet made.
+
+    The result is decided once: the run's own finish, or the cancel that came first.
+    """
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._cancelled = False
+        self.result = None
+
+    def go_on(self):
+        with self._lock:
+            return not self._cancelled
+
+    def finish(self, ok):
+        with self._lock:
+            if self.result is None:
+                self.result = bool(ok) and not self._cancelled
+            return self.result
+
+    def cancel(self):
+        """Stop the run; returns its result (False if it had not finished)."""
+        with self._lock:
+            self._cancelled = True
+            if self.result is None:
+                self.result = False
+            return self.result
+
+
 class DigiconMqttSml(
     PropertyChangeListener,
     MqttEventListener,
@@ -487,7 +521,7 @@ class DigiconMqttSml(
         return False
 
     def _on_jmri_shutdown(self):
-        """Quit: Hold/wait/Unheld then sml_mode disabled. Idempotent.
+        """Quit: Hold/wait/pairs off/Unheld then sml_mode disabled. Idempotent.
 
         The window-close worker and the ShutDownTask can both call this; the lock makes
         the later caller wait for the release instead of running it a second time.
@@ -521,10 +555,13 @@ class DigiconMqttSml(
             print("mqtt_signalhead: shutdown task failed: " + _ascii(exc))
 
     def _release_on_quit(self):
-        """MQTT Unheld + disabled before dest uncheck so a layout hang cannot skip RELEASE.
+        """Hold, pairs off, then Unheld + disabled. Never `disabled` with pairs on.
 
-        An abort during the Hold means another agent is taking Digicon: no Unheld and
-        no disabled over its enabling. While it runs, any other host's claim wins.
+        If the pairs cannot all be turned off, the masts are still unheld but no
+        disabled goes out; the bridge's query / disabling release takes Digicon back
+        once this JMRI is gone. An abort during the Hold means another agent is
+        taking Digicon: no Unheld and no disabled over its enabling. While it runs,
+        any other host's claim wins.
         """
         self._releasing = True
         try:
@@ -535,43 +572,46 @@ class DigiconMqttSml(
     def _release_on_quit_steps(self):
         abort_gen = self._abort_gen
         print(
-            "mqtt_signalhead: Hold Digicon masts, wait %d ms before Unheld / disabled"
+            "mqtt_signalhead: Hold Digicon masts, wait %d ms before pairs off / Unheld"
             % HOLD_WAIT_MS
         )
-        for mast in self._masts:
-            try:
-                mast.setHeld(True)
-            except Exception:
-                pass
+        self._set_masts_held(True)
         Thread.sleep(HOLD_WAIT_MS)
-        if self._abort_gen != abort_gen:
-            print("mqtt_signalhead: shutdown aborted during Hold -- no Unheld, no disabled")
-        else:
-            print(
-                "mqtt_signalhead: shutdown publishing Unheld for %d MQTT head(s)"
-                % len(self._heads)
-            )
-        for head in self._heads:
-            if self._abort_gen != abort_gen:
-                break
-            self._publish_unheld(head)
-        if self._abort_gen == abort_gen:
-            self._publish_mode("disabled")
-        print("mqtt_signalhead: shutdown sml_mode disabled -- unchecking SML pairs")
+        print("mqtt_signalhead: shutdown -- unchecking SML pairs")
+        off = False
         try:
-            self._set_all_digicon_sml_destinations(False)
+            off = self._set_all_digicon_sml_destinations(False) is True
             self._snapshot_mast_sml_state()
+            if self._abort_gen != abort_gen:
+                print("mqtt_signalhead: shutdown aborted during Hold -- no Unheld, no disabled")
+            elif not off:
+                print(
+                    "mqtt_signalhead: shutdown FAILED to turn all SML pairs off -- no "
+                    "disabled; the bridge releases Digicon once this JMRI is gone"
+                )
+            else:
+                print(
+                    "mqtt_signalhead: shutdown publishing Unheld for %d MQTT head(s)"
+                    % len(self._heads)
+                )
+                for head in self._heads:
+                    if self._abort_gen != abort_gen:
+                        break
+                    self._publish_unheld(head)
         finally:
-            # A failed bulk set must not leave the masts Held or this host owning.
-            for mast in self._masts:
-                try:
-                    mast.setHeld(False)
-                except Exception:
-                    pass
-            self._global_enabled = False
-            self._enabling_originator = False
-            self._claim = None
-            self._sync_sml_mode_sensor()
+            # Whatever happened, a Held mast must not stay red.
+            self._set_masts_held(False)
+        aborted = self._abort_gen != abort_gen
+        if not off and not aborted:
+            return  # pairs may be on: this host still owns them
+        with self._claim_lock:
+            if self._abort_gen == abort_gen:
+                self._publish_mode("disabled")
+                print("mqtt_signalhead: shutdown sml_mode disabled")
+        self._global_enabled = False
+        self._enabling_originator = False
+        self._claim = None
+        self._sync_sml_mode_sensor()
 
     def _stored_enabled_source_names(self):
         """UserNames of Digicon sources that loaded with any dest Enabled."""
@@ -808,19 +848,16 @@ class DigiconMqttSml(
 
         Runs on the layout thread and waits. Abort holds `_suppress_sml` until
         that wait returns so dest uncheck does not publish (another agent owns SET).
+        Returns True only if every pair reached the requested state; False on a
+        timeout, a cancel, an exception or any pair that failed. A timed-out run is
+        cancelled: once the layout thread gets to it, it flips no further pair.
         """
         # SML may finish discovering after Start Up -- refresh before bulk set.
         self._attach_sml_listeners(quiet=True)
 
-        cancel_lock = threading.Lock()
-        cancelled = [False]
-
-        def _do():
-            with cancel_lock:
-                if cancelled[0]:
-                    print("mqtt_signalhead: SML bulk set cancelled (timed out earlier)")
-                    return
+        def _do(run):
             n = 0
+            ok = True
             for sml in self._smls:
                 try:
                     dests = sml.getDestinationList()
@@ -828,6 +865,7 @@ class DigiconMqttSml(
                     print(
                         "mqtt_signalhead: getDestinationList: " + _ascii(exc)
                     )
+                    ok = False
                     continue
                 if dests is None:
                     continue
@@ -841,31 +879,45 @@ class DigiconMqttSml(
                     it = dests.iterator()
                     while it.hasNext():
                         dest = it.next()
+                        if not run.go_on():
+                            print(
+                                "mqtt_signalhead: SML bulk set cancelled after %d pair(s)"
+                                % n
+                            )
+                            return run.finish(False)
                         try:
-                            already = bool(sml.isEnabled(dest))
-                            if enabled == already:
+                            if enabled == bool(sml.isEnabled(dest)):
                                 continue
                             if enabled:
                                 sml.setEnabled(dest)
                             else:
                                 sml.setDisabled(dest)
                             n += 1
+                            if enabled != bool(sml.isEnabled(dest)):
+                                ok = False
+                                print(
+                                    "mqtt_signalhead: SML pair %s did not change"
+                                    % _ascii(dest)
+                                )
                         except Exception as exc:
+                            ok = False
                             print(
                                 "mqtt_signalhead: setEnabled/Disabled(%s): %s"
                                 % (_ascii(dest), _ascii(exc))
                             )
                 except Exception as exc:
+                    ok = False
                     print("mqtt_signalhead: dest iterate: " + _ascii(exc))
             print(
-                "mqtt_signalhead: SML pairs %s (%d)"
-                % (("enabled" if enabled else "disabled"), n)
+                "mqtt_signalhead: SML pairs %s (%d)%s"
+                % (("enabled" if enabled else "disabled"), n, "" if ok else " -- not all")
             )
+            return run.finish(ok)
 
         if self._shutting_down:
-            _do()
-            return
+            return _do(_BulkRun())
 
+        queued = _BulkRun()
         ran = [False]
         try:
             from java.util.concurrent import CountDownLatch, TimeUnit
@@ -875,14 +927,14 @@ class DigiconMqttSml(
 
             def _run():
                 try:
-                    _do()
+                    _do(queued)
                 finally:
                     ran[0] = True
                     latch.countDown()
 
             if ThreadingUtil.isLayoutThread():
                 _run()
-                return
+                return queued.result is True
 
             # JMRI wants ThreadAction (not bare Runnable).
             class _R(ThreadingUtil.ThreadAction):
@@ -891,13 +943,18 @@ class DigiconMqttSml(
 
             ThreadingUtil.runOnLayout(_R())
             if not latch.await(30, TimeUnit.SECONDS):
-                with cancel_lock:
-                    cancelled[0] = True
-                print("mqtt_signalhead: SML bulk set timed out on layout thread")
+                if not queued.cancel():
+                    print("mqtt_signalhead: SML bulk set timed out on layout thread")
+                    return False
+            return queued.result is True
         except Exception as exc:
             print("mqtt_signalhead: SML bulk set fallback: " + _ascii(exc))
-            if not ran[0]:
-                _do()
+            if ran[0]:
+                return queued.result is True
+            # Cancel the copy that may still be queued, then run here instead.
+            if queued.cancel():
+                return True
+            return _do(_BulkRun())
 
     def _collect_beans(self):
         """Digicon plants = SHSM masts with LCOS Virtual IH heads (tables, not a static list).
@@ -1359,18 +1416,16 @@ class DigiconMqttSml(
                 pass
         Thread.sleep(HOLD_WAIT_MS)
         print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
-        try:
-            self._set_all_digicon_sml_destinations(False)
-            self._snapshot_mast_sml_state()
-        except Exception as exc:
-            # Still unhold, reset and say disabled: a Held mast would stay red.
-            print("mqtt_signalhead: disabling SML pairs failed: " + _ascii(exc))
+        off = self._try_set_all_digicon_sml(False)
         aborted = self._abort_gen != abort_gen
         if aborted:
             print(
                 "mqtt_signalhead: aborted during Disable -- no Unheld, no disabled "
                 "(another agent owns Digicon)"
             )
+        elif not off:
+            self._stay_owner_after_failed_disable(abort_gen)
+            return
         if release and not aborted:
             print(
                 "mqtt_signalhead: publishing Unheld for %d MQTT head(s)"
@@ -1390,6 +1445,41 @@ class DigiconMqttSml(
         self._claim = None
         if publish_mode and self._abort_gen == abort_gen:
             self._publish_mode("disabled")
+        self._sync_sml_mode_sensor()
+
+    def _try_set_all_digicon_sml(self, enabled):
+        """Bulk set, then snapshot; False (printed) if any pair may be left as it was."""
+        ok = False
+        try:
+            ok = self._set_all_digicon_sml_destinations(enabled) is True
+            self._snapshot_mast_sml_state()
+        except Exception as exc:
+            print(
+                "mqtt_signalhead: %s SML pairs failed: %s"
+                % ("enabling" if enabled else "disabling", _ascii(exc))
+            )
+            ok = False
+        return ok
+
+    def _set_masts_held(self, held):
+        for mast in self._masts:
+            try:
+                mast.setHeld(held)
+            except Exception:
+                pass
+
+    def _stay_owner_after_failed_disable(self, abort_gen):
+        """Pairs may still be on: handing off now would make two owners. Keep Digicon."""
+        print(
+            "mqtt_signalhead: Disable FAILED -- SML pairs may still be on; keeping "
+            "Digicon (enabled). Check the SML table, then try Disable again."
+        )
+        # Best effort: all pairs on again, so this host owns consistently.
+        self._try_set_all_digicon_sml(True)
+        self._set_masts_held(False)
+        with self._claim_lock:
+            if self._abort_gen == abort_gen:
+                self._publish_mode("enabled")
         self._sync_sml_mode_sensor()
 
     def _hand_off_disabled(self, release, abort_gen=None):
@@ -1446,8 +1536,7 @@ class DigiconMqttSml(
                     pass
             return
         print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
-        self._set_all_digicon_sml_destinations(True)
-        self._snapshot_mast_sml_state()
+        on = self._try_set_all_digicon_sml(True)
         if self._abort_gen != abort_gen:
             # Taken over while the pairs went on: the abort's uncheck may have run first.
             print("mqtt_signalhead: taken over during enable -- pairs off, no enabled")
@@ -1458,6 +1547,8 @@ class DigiconMqttSml(
                     mast.setHeld(False)
                 except Exception:
                     pass
+            return
+        if not on and self._back_out_failed_enable(abort_gen):
             return
         for mast in self._masts:
             try:
@@ -1475,6 +1566,39 @@ class DigiconMqttSml(
         for head in self._heads:
             if self._mast_logic_enabled(self._mast_for_head(head)):
                 self._publish_head_set(head, force=True)
+
+    def _back_out_failed_enable(self, abort_gen):
+        """The pairs did not all go on: never announce enabled with pairs off.
+
+        Turn them off again and hand off as Disable does (True). If that fails too,
+        some pairs may be on: return False, and the caller stays the owner and
+        announces enabled. One owner, possibly partial, beats two.
+        """
+        print("mqtt_signalhead: Enable FAILED -- not all SML pairs went on; no enabled")
+        off = self._try_set_all_digicon_sml(False)
+        if not off:
+            print(
+                "mqtt_signalhead: and turning them off FAILED -- keeping Digicon "
+                "(enabled). Check the SML table."
+            )
+            return False
+        print(
+            "mqtt_signalhead: SML pairs off again -- publishing Unheld for %d MQTT head(s)"
+            % len(self._heads)
+        )
+        for head in self._heads:
+            if self._abort_gen != abort_gen:
+                break
+            self._publish_unheld(head)
+        self._set_masts_held(False)
+        with self._claim_lock:
+            self._global_enabled = False
+            self._enabling_originator = False
+            self._claim = None
+            if self._abort_gen == abort_gen:
+                self._publish_mode("disabled")
+        self._sync_sml_mode_sensor()
+        return True
 
     def _mast_for_head(self, head):
         if head is None:

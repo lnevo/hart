@@ -181,7 +181,8 @@ class Coordinator(unittest.TestCase):
         c._smls = [self.logic]
         c._set_button_label = lambda: None
         self.bulk = []
-        c._set_all_digicon_sml_destinations = self.bulk.append
+        # The bulk set returns True when every pair reached the state asked for.
+        c._set_all_digicon_sml_destinations = lambda on: self.bulk.append(on) or True
         self.c = c
 
     def enroll(self):
@@ -622,7 +623,7 @@ class Coordinator(unittest.TestCase):
         self.layout.button_space = _Space()
         self.c._add_quit_window_hook()
         jf.Thread.started.clear()
-        self.c._set_all_digicon_sml_destinations = lambda on: None
+        self.c._set_all_digicon_sml_destinations = lambda on: True
         self.layout.button_space.frame.listeners[0].windowClosing(None)
         self.assertEqual(self.sent(), [])  # the 3 s Hold does not run on the Swing thread
         self.assertEqual(len(jf.Thread.started), 1)
@@ -820,6 +821,7 @@ class TwoHosts(unittest.TestCase):
         def bulk(on):
             for d in logic.enabled:
                 logic.enabled[d] = on
+            return True
 
         c._set_all_digicon_sml_destinations = bulk
         c.logic, c.mast_bean = logic, mast
@@ -1137,6 +1139,46 @@ class TwoHosts(unittest.TestCase):
         self.assertNotEqual(self.broker.retained[SML], "disabled")
 
 
+    # a bulk set that fails ---------------------------------------------------------------------
+
+    def uncheck_fails(self, c):
+        """The host's uncheck times out: its pairs stay on and the bulk set says False."""
+        on_only = c._set_all_digicon_sml_destinations
+        c._set_all_digicon_sml_destinations = lambda on: on_only(on) if on else False
+
+    def test_failed_disable_keeps_one_owner(self) -> None:
+        self.boot(self.pi)
+        self.settle()
+        self.stale(self.win, self.broker.retained[CLAIM])
+        self.boot(self.win)
+        self.settle()
+        self.uncheck_fails(self.pi)
+        self.pi._enter_disabled(release=True)
+        self.settle()
+        self.assert_one_owner(self.pi)
+        self.assertNotIn("disabled", self.broker.log)
+
+    def test_failed_quit_sends_no_disabled_and_the_bridge_hands_over_later(self) -> None:
+        self.boot(self.pi)
+        self.settle()
+        self.stale(self.win, self.broker.retained[CLAIM])
+        self.boot(self.win)
+        self.settle()
+        self.uncheck_fails(self.pi)
+        self.pi._on_jmri_shutdown()
+        self.settle()
+        self.assertFalse(self.pi.mast_bean.held)
+        self.assertNotIn("disabled", self.broker.log)
+        self.assertEqual(self.broker.retained[CLAIM].split()[:2], ["enabled", "rpi-jmri"])
+        self.assertEqual([c._host for c in self.owners()], ["rpi-jmri"])  # still, until it exits
+        self.broker.hosts.remove(self.pi)  # JMRI on the Pi has exited
+        self.broker.bridge("query", "disabling", "disabled")
+        self.settle()
+        self.assertTrue(self.win._global_enabled)
+        self.assertTrue(all(self.win.logic.enabled.values()))
+        self.assertEqual(self.broker.retained[CLAIM].split()[:2], ["enabled", "minipc-e5h6x"])
+
+
 class _Latch:
     """CountDownLatch: await_ answers as the test set it (True once counted down)."""
 
@@ -1183,6 +1225,7 @@ class Sequences(unittest.TestCase):
         def bulk(on):
             self.bulk.append((on, self.mast.held))
             self.logic.enabled["Mast 8RA"] = on
+            return True
 
         c._set_all_digicon_sml_destinations = bulk
         _Sleeps.log = []
@@ -1255,15 +1298,17 @@ class Sequences(unittest.TestCase):
         self.assertIn("shutdown task failed: layout hung", self.out.getvalue())
         self.assertEqual((self.c._busy, self.c._releasing, self.c._shutdown_released),
                          (False, False, False))
-        # Unheld and disabled go out before the pairs are touched, so a hang cannot skip them.
-        self.assertEqual(self.sent()[-1], ("track/bridge/sml_mode", "disabled", True))
-        before = list(self.sent())
-        self.c._set_all_digicon_sml_destinations = lambda on: self.bulk.append((on, self.mast.held))
+        # The pairs go off first: with them maybe on, no Unheld and no disabled go out,
+        # but the masts are not left Held (red).
+        self.assertEqual(self.sent(), [])
+        self.assertFalse(self.mast.held)
+        self.assertTrue(self.c._global_enabled)
+        self.c._set_all_digicon_sml_destinations = lambda on: self.bulk.append((on, self.mast.held)) or True
         self.c._on_jmri_shutdown()
         self.assertFalse(self.mast.held)
         self.assertTrue(self.c._shutdown_released)
-        # The head's Unheld is not sent again; only the mode word repeats.
-        self.assertEqual(self.sent()[len(before):], [("track/bridge/sml_mode", "disabled", True)])
+        self.assertEqual(self.sent(), [("track/signalhead/432", "Unheld", True),
+                                       ("track/bridge/sml_mode", "disabled", True)])
 
     def test_quit_release_goes_on_when_a_mast_cannot_hold(self) -> None:
         self.own()
@@ -1406,9 +1451,9 @@ class Sequences(unittest.TestCase):
         record = c._set_all_digicon_sml_destinations
 
         def bulk(on):
-            record(on)
             if on:
                 c._abort_gen += 1
+            return record(on)
 
         c._set_all_digicon_sml_destinations = bulk
         self.run_enable()
@@ -1570,8 +1615,9 @@ class Sequences(unittest.TestCase):
 
     # --- failures that must still unhold the masts and release ---------------------------------
 
-    def test_quit_release_unholds_and_resets_when_the_bulk_set_raises(self) -> None:
+    def test_quit_release_unholds_but_keeps_ownership_when_the_bulk_set_raises(self) -> None:
         self.own()
+        self.c._claim = (T0, False)
 
         def boom(on):
             raise RuntimeError("layout hung")
@@ -1579,10 +1625,12 @@ class Sequences(unittest.TestCase):
         self.c._set_all_digicon_sml_destinations = boom
         self.c._on_jmri_shutdown()
         self.assertFalse(self.mast.held)
-        self.assertEqual((self.c._global_enabled, self.c._claim), (False, None))
+        self.assertEqual((self.c._global_enabled, self.c._claim), (True, (T0, False)))
+        self.assertEqual(self.sent(), [])
 
-    def test_disable_unholds_and_publishes_disabled_when_the_bulk_set_raises(self) -> None:
+    def test_disable_that_raises_unholds_and_stays_the_owner(self) -> None:
         self.own()
+        self.c._claim = (T0, False)
 
         def boom(on):
             raise RuntimeError("attach failed")
@@ -1590,8 +1638,10 @@ class Sequences(unittest.TestCase):
         self.c._set_all_digicon_sml_destinations = boom
         self.run_disable(True)
         self.assertFalse(self.mast.held)
-        self.assertFalse(self.c._global_enabled)
-        self.assertIn(("track/bridge/sml_mode", "disabled", True), self.sent())
+        self.assertTrue(self.c._global_enabled)
+        self.assertEqual(self.c._claim, (T0, False))
+        self.assertNotIn(("track/bridge/sml_mode", "disabled", True), self.sent())
+        self.assertIn("Disable FAILED", self.out.getvalue())
 
     def test_disable_aborted_in_the_hold_stays_silent_even_when_the_bulk_set_raises(self) -> None:
         self.own()
@@ -1616,6 +1666,169 @@ class Sequences(unittest.TestCase):
         for action in queued:
             action.run()  # the layout thread gets to it late
         self.assertTrue(logic.enabled["Mast 8RA"])
+
+
+    # --- never two owners: a bulk set that does not fully succeed ---------------------------
+
+    def fail_bulk(self, *failing):
+        """Bulk set that leaves the pairs as they were and returns False for `failing`."""
+        c = self.c
+        ok_bulk = c._set_all_digicon_sml_destinations
+
+        def bulk(on):
+            if on in failing:
+                self.bulk.append((on, self.mast.held))
+                return False
+            return ok_bulk(on)
+
+        c._set_all_digicon_sml_destinations = bulk
+
+    def test_disable_timeout_stays_owner_and_says_enabled_again(self) -> None:
+        self.own()
+        self.c._claim = (T0, False)
+        self.fail_bulk(False)  # the uncheck timed out: pairs may still be on
+        self.run_disable(True)
+        self.assertEqual(self.bulk, [(False, True), (True, True)])  # best-effort back on
+        self.assertTrue(self.logic.enabled["Mast 8RA"])
+        self.assertFalse(self.mast.held)
+        c = self.c
+        self.assertEqual((c._global_enabled, c._claim), (True, (T0, False)))
+        self.assertEqual(self.sent(), [("track/bridge/sml_mode", "enabled", True),
+                                       ("track/bridge/sml_claim", "enabled %s %d" % (c._host, T0), True)])
+        self.assertIn("Disable FAILED", self.out.getvalue())
+        self.assertEqual((c._busy, c._releasing), (False, False))
+
+    def test_disable_timeout_aborted_in_the_hold_stays_silent(self) -> None:
+        self.own()
+        c = self.c
+        self.fail_bulk(False)
+        self.hold_probe(lambda: setattr(c, "_abort_gen", c._abort_gen + 1))
+        self.run_disable(True)
+        self.assertEqual(self.sent(), [])
+        self.assertEqual(self.bulk, [(False, True)])  # no re-enable over the other agent
+        self.assertFalse(self.mast.held)
+
+    def test_enable_timeout_backs_out_and_releases_the_claim(self) -> None:
+        self.fail_bulk(True)  # check-on timed out, uncheck works
+        self.run_enable()
+        self.assertEqual([on for on, _ in self.bulk], [True, False])
+        self.assertFalse(self.logic.enabled["Mast 8RA"])
+        self.assertFalse(self.mast.held)
+        c = self.c
+        self.assertEqual((c._global_enabled, c._enabling_originator, c._claim), (False, False, None))
+        modes = [p for t, p, r in self.sent() if t == "track/bridge/sml_mode"]
+        self.assertNotIn("enabled", modes)
+        self.assertEqual(modes[-1], "disabled")
+        self.assertIn(("track/signalhead/432", "Unheld", True), self.sent())
+        self.assertIn("Enable FAILED", self.out.getvalue())
+
+    def test_enable_timeout_that_cannot_back_out_stays_the_one_owner(self) -> None:
+        self.fail_bulk(True, False)
+        self.run_enable()
+        c = self.c
+        self.assertTrue(c._global_enabled)
+        self.assertIsNotNone(c._claim)
+        self.assertFalse(self.mast.held)
+        modes = [p for t, p, r in self.sent() if t == "track/bridge/sml_mode"]
+        self.assertEqual(modes[-1], "enabled")
+        self.assertNotIn("disabled", modes)
+        self.assertIn("turning them off FAILED", self.out.getvalue())
+
+    def test_quit_with_a_failed_uncheck_unholds_and_sends_no_disabled(self) -> None:
+        self.own()
+        self.c._claim = (T0, False)
+        self.fail_bulk(False)
+        self.c._on_jmri_shutdown()
+        self.assertEqual(self.sent(), [])  # no Unheld, no disabled: the pairs may be on
+        self.assertFalse(self.mast.held)
+        self.assertEqual(len(_Sleeps.log), 1)  # one Hold wait, no retry to slow the quit
+        self.assertTrue(self.c._shutdown_released)
+        self.assertEqual((self.c._global_enabled, self.c._claim), (True, (T0, False)))
+        self.assertIn("shutdown FAILED", self.out.getvalue())
+
+    def test_quit_turns_the_pairs_off_before_unheld_and_disabled(self) -> None:
+        self.own()
+        c = self.c
+        ok_bulk = c._set_all_digicon_sml_destinations
+        sent_at_bulk = []
+        c._set_all_digicon_sml_destinations = lambda on: sent_at_bulk.append(self.sent()) or ok_bulk(on)
+        c._on_jmri_shutdown()
+        self.assertEqual(sent_at_bulk, [[]])
+        self.assertEqual(self.sent()[-1], ("track/bridge/sml_mode", "disabled", True))
+
+    # --- bulk set result and cancel -----------------------------------------------------------
+
+    def test_bulk_set_returns_true_only_when_every_pair_changed(self) -> None:
+        logic = self.two_dests()
+        self.c._shutting_down = True
+        self.assertIs(self.real_bulk(False), True)
+
+        def refuse(dest):
+            raise RuntimeError("one pair")
+
+        logic.setEnabled = refuse
+        self.assertIs(self.real_bulk(True), False)
+        logic.setEnabled = lambda dest: None  # says yes, changes nothing
+        self.assertIs(self.real_bulk(True), False)
+        self.assertIn("did not change", self.out.getvalue())
+
+    def test_bulk_set_timeout_returns_false(self) -> None:
+        self.fake_layout_thread(on_layout=False, times_out=True, run_on_layout=lambda a: None)
+        self.two_dests()
+        self.assertIs(self.real_bulk(False), False)
+
+    def test_bulk_set_on_the_layout_thread_returns_its_result(self) -> None:
+        self.fake_layout_thread(on_layout=True)
+        self.two_dests()
+        self.assertIs(self.real_bulk(False), True)
+        self.fake_layout_thread(on_layout=False)
+        self.assertIs(self.real_bulk(True), True)
+
+    def test_cancel_stops_a_bulk_set_that_is_already_running(self) -> None:
+        # The layout thread is part-way through when the 30 s wait gives up.
+        import threading
+
+        logic = FakeLogic(self.mast, "Mast 1RA", "Mast 2RA", "Mast 3RA")
+        self.c._smls = [logic]
+        in_flight, go = threading.Event(), threading.Event()
+        set_disabled = logic.setDisabled
+
+        def slow(dest):
+            set_disabled(dest)
+            in_flight.set()
+            go.wait(5)
+
+        logic.setDisabled = slow
+        workers = []
+
+        def on_layout(action):
+            t = threading.Thread(target=action.run)
+            workers.append(t)
+            t.start()
+            in_flight.wait(5)  # the first pair is being flipped
+
+        self.fake_layout_thread(on_layout=False, times_out=True, run_on_layout=on_layout)
+        self.assertIs(self.real_bulk(False), False)
+        go.set()
+        workers[0].join(5)
+        self.assertEqual(logic.enabled, {"Mast 1RA": False, "Mast 2RA": True, "Mast 3RA": True})
+        self.assertIn("SML bulk set cancelled after 1 pair(s)", self.out.getvalue())
+
+    def test_fallback_cancels_the_queued_copy_before_running_here(self) -> None:
+        queued = []
+
+        def queue_then_fail(action):
+            queued.append(action)
+            raise RuntimeError("await interrupted")
+
+        self.fake_layout_thread(on_layout=False, run_on_layout=queue_then_fail)
+        logic = self.two_dests()
+        self.assertIs(self.real_bulk(False), True)  # ran here instead
+        self.assertEqual(logic.enabled, {"Mast 8RA": False, "Mast 9RA": False})
+        logic.enabled["Mast 8RA"] = True  # changed since, e.g. another Enable
+        queued[0].run()  # the layout thread gets to the queued copy late
+        self.assertTrue(logic.enabled["Mast 8RA"])
+        self.assertEqual(self.out.getvalue().count("SML pairs disabled"), 1)
 
 
 if __name__ == "__main__":
