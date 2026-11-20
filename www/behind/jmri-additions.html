@@ -78,6 +78,17 @@
         Whatever is dropped there runs with JMRI's full access, so it can do anything JMRI can do, including move a turnout. The watcher opens no network service of its own, so reaching it takes a login on that machine. The project's rules on commanding the field apply to anything sent through it, and the AI agents are blocked from the remote login that would reach it.
       </p>
 
+      <h2 id="logixng">The LogixNGs</h2>
+      <p>
+        Two LogixNGs in the tables file run when the tables load, under PanelPro or CATS.
+        "Hide windows on start" hides the WiThrottle window and runs <code>hide_cats_desk_windows.py</code>.
+        "Main and upper block sensors clear on start" sets the internal block sensors of the main and upper
+        levels to clear, because a signal does not clear into a block whose state is unknown, and sets their
+        internal turnouts to normal, except Switches 227 and 229, which start thrown so the main runs round
+        the peninsula loop. Those levels have no field detectors or switch machines in JMRI yet. Both are
+        built from stock actions; see <a href="tables-file.html#logixng">The LogixNGs</a> for the details.
+      </p>
+
       <h2>What goes into the profile</h2>
       <p>
         A JMRI profile is the set of user files and settings that a JMRI install loads at startup. Here is everything we deploy into one. It all lives in the project repository, and
