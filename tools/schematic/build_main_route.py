@@ -112,8 +112,10 @@ class Plan:
     def between(self, a: str, b: str) -> list[dict]:
         return [e for v, e in self.adj[a] if v == b and (a != b or e["u"] == e["v"])]
 
-    def shortest(self, a: str, b: str) -> list[tuple[str, dict, str]]:
-        """[(from, edge, to)] along the one shortest way; stops on a tie or when there is none."""
+    def shortest(self, a: str, b: str, double: frozenset | set = frozenset()) -> list[tuple[str, dict, str]]:
+        """[(from, edge, to)] along the one shortest way; stops on a tie or when there is none. A tie only between
+        parallel tracks joining one pair of switches named in `double` (both main) is no choice: either way runs
+        through the same switches, and line_hops marks both tracks."""
         if a == b:
             return []
         dist, prev, heap = {a: 0.0}, {}, [(0.0, a)]
@@ -131,10 +133,24 @@ class Plan:
         if b not in dist:
             raise RouteError(f"no track joins {self.name(a)} and {self.name(b)}")
         ways = self._ways(prev, a, b)
+        if len(ways) > 1 and self._parallel_only(ways, double):
+            return ways[0]
         if len(ways) > 1:
             raise RouteError(f"{self.name(a)} to {self.name(b)} has {len(ways)} equally short ways; name a switch "
                              "between them in `via`")
         return ways[0]
+
+    def _parallel_only(self, ways, double) -> bool:
+        """Whether the tied `ways` pass the same switches in the same order and differ only on hops between a pair
+        named in `double`."""
+        stops = {tuple([w[0][0], *(t for _f, _e, t in w)]) for w in ways}
+        if len(stops) != 1:
+            return False
+        for hops in zip(*ways):
+            if len({id(e) for _f, e, _t in hops}) > 1 and \
+                    frozenset(self.name(x) for x in (hops[0][0], hops[0][2])) not in double:
+                return False
+        return True
 
     def _ways(self, prev, a, b, limit=4):
         if b == a:
@@ -155,7 +171,7 @@ def line_hops(plan: Plan, row: dict) -> list[tuple[str, str, list[dict]]]:
     steps: list[tuple[str, dict, str]] = []
     nodes = [plan.node(s) for s in stops]
     for a, b in zip(nodes, nodes[1:]):
-        steps += plan.shortest(a, b)
+        steps += plan.shortest(a, b, double)
     loop = [plan.node(s) for s in split(row["loop"])]
     if loop:
         ring = [nodes[-1], *loop, nodes[-1]]

@@ -667,7 +667,8 @@ class Virtual(unittest.TestCase):
           "Track Scale": 401.3, "OS Switch 7": 23.4}
     CPS = {"9": "Engine House", "13": "Engine House", "7": "Barn", "5": "Plane", "15": "South Yard"}
     ANCHOR = dict(mast="Mast 8RA", cp="Barn", switch="", facing="Track Scale", protects="OS Switch 7", toward="7",
-                  run="7;5", names=["Scale"], edge_cm=424.7, cm_from_toward=23.4, edge="e29", node="N7", leg="B")
+                  run="7;5", names=["Scale"], edge_cm=424.7, cm_from_toward=23.4, edge="e29", node="N7", leg="B",
+                  dir="east")
 
     def virtual(self, gen=None):
         patch = unittest.mock.patch.object
@@ -710,6 +711,22 @@ class Virtual(unittest.TestCase):
                                  dict(mast="Mast 99L", cp="EH", switch="", facing="a", protects="")], old)
         self.assertEqual([r["system_name"] for r in rows], ["IF$vsm:basic:one-low($1021)", "IF$vsm:basic:one-low($1027)"])
         self.assertEqual(rows[1]["device_system_name"], rows[1]["system_name"])
+
+    def test_a_partner_faces_against_its_anchor_by_direction_not_by_name(self):
+        named_c = dict(self.ANCHOR, mast="Mast 8RC")                # a suffix past A and B reads no direction
+        self.assertIn("Mast 8L", {m["mast"] for m in self.virtual([named_c])})
+
+    def test_a_dropped_mast_ordinal_is_never_given_again(self):
+        old = [dict(layer="mast", user_name="Mast 10RA", system_name="IF$vsm:basic:one-low($1021)")]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "retired_virtual_masts.csv"
+            path.write_text("mast,system_name,dropped,notes\nMast 40RB,IF$vsm:basic:one-low($1026),2026-11-20,\n")
+            with unittest.mock.patch.object(bsm, "RETIRED", path):
+                rows = bsm.virtual_rows([dict(mast="Mast 99L", cp="EH", switch="", facing="a", protects="")], old)
+            self.assertEqual(rows[0]["system_name"], "IF$vsm:basic:one-low($1027)")
+            path.write_text("mast,system_name,dropped,notes\nMast 10RA,IF$vsm:basic:one-low($1030),2026-11-20,\n")
+            with unittest.mock.patch.object(bsm, "RETIRED", path), self.assertRaisesRegex(bsm.RuleError, "still has"):
+                bsm.virtual_rows([], old)
 
 
 if __name__ == "__main__":

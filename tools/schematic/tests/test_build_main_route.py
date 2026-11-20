@@ -132,6 +132,15 @@ class Ties(unittest.TestCase):
         way = self.plan(11).shortest("A", "D")
         self.assertEqual([(a, b) for a, _, b in way], [("A", "B"), ("B", "D")])
 
+    def test_equal_parallel_tracks_of_a_declared_double_are_no_choice(self):
+        nodes = {n: {"kind": "switch", "label": n} for n in "AB"}
+        g = {"nodes": nodes, "edges": [dict(id="e0", u="A", v="B", cm=52.0, names=[]),
+                                       dict(id="e1", u="A", v="B", cm=52.0, names=[])]}
+        plan = M.Plan(g, lambda graph, name: name)
+        with self.assertRaisesRegex(M.RouteError, "2 equally short ways"):
+            plan.shortest("A", "B")
+        self.assertEqual([(a, b) for a, _, b in plan.shortest("A", "B", {frozenset("AB")})], [("A", "B")])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -331,7 +331,7 @@ def check_helix(band, names: dict, helix: dict | None = None) -> list[str]:
             bad.append(f"helix track {plan}: drawn {len(sids)} times on the staging band")
             continue
         s = band["strands"][sids[0]]
-        labels = [band["nodes"][e[0]].get("label") for e in (s["src"], s["dst"])
+        labels = [lc.bare(band["nodes"][e[0]].get("label")) for e in (s["src"], s["dst"])
                   if band["nodes"][e[0]]["kind"] == "switch"]
         if labels != [h["staging_switch"]] or names["blocks"].get(sids[0]) != [h["block"]]:
             bad.append(f"helix track {plan}: from switch {', '.join(map(str, labels)) or 'none'} in block(s) "

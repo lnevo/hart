@@ -367,7 +367,7 @@ def virtual_masts(band, names: dict, gen: list[dict], cm: dict, cps: dict) -> li
         if m["switch"] or "milepost" in m or (m["protects"], m["facing"]) in pairs:
             continue
         seq, far = seqs[(m["node"], m["leg"])]
-        letter = "R" if m["mast"][-2 if m["mast"][-1] in "AB" else -1] == "L" else "L"
+        letter = "R" if m["dir"] == "west" else "L"          # the partner faces the other way
         number = int(re.search(r"\d+", m["mast"]).group())
         toward = label(far[0])
         out.append((number, letter, 10 ** 6, dict(cp=m["cp"], kind=VIRTUAL_KIND, heads=1, switch="",
@@ -388,7 +388,7 @@ def virtual_masts(band, names: dict, gen: list[dict], cm: dict, cps: dict) -> li
         if "" in used:
             raise RuleError(f"{stem} stands already; its virtual partner(s) cannot be lettered")
         ms.sort(key=lambda x: x[0])
-        letters = "ABCD"[len(used):] if used or len(ms) > 1 else [""]
+        letters = [c for c in "ABCD" if c not in used] if used or len(ms) > 1 else [""]
         if len(ms) > len(letters):
             raise RuleError(f"{stem}: {len(used) + len(ms)} masts, more than A to D")
         for (_row, fields), suffix in zip(ms, letters):
@@ -399,13 +399,39 @@ def virtual_masts(band, names: dict, gen: list[dict], cm: dict, cps: dict) -> li
     return sorted(masts, key=lambda m: (int(re.search(r"\d+", m["mast"]).group()), m["mast"]))
 
 
+RETIRED = DATA / "retired_virtual_masts.csv"
+
+
+def read_retired(path: Path = RETIRED) -> dict:
+    """{mast: system name} of the virtual masts dropped from staging (retired_virtual_masts.csv), so their ordinals
+    stay taken; checked: the columns, one row per mast, each a VirtualSignalMast system name, no ordinal twice."""
+    with open(path, newline="", encoding="utf-8") as fh:
+        rows = list(csv.DictReader(fh))
+    if rows and set(rows[0]) != {"mast", "system_name", "dropped", "notes"}:
+        raise RuleError(f"{path.name}: expected the columns mast, system_name, dropped, notes")
+    out, seen = {}, set()
+    for n, r in enumerate(rows, 2):
+        m, sysname = r["mast"].strip(), r["system_name"].strip()
+        hit = VSM.fullmatch(sysname)
+        if not m or m in out or not hit or hit.group(1) in seen:
+            raise RuleError(f"{path.name} line {n}: {m!r} {sysname!r} is empty, listed twice, not a virtual mast's "
+                            "system name, or reuses an ordinal")
+        out[m] = sysname
+        seen.add(hit.group(1))
+    return out
+
+
 def virtual_rows(vgen: list[dict], old_rows: list[dict]) -> list[dict]:
     """staging_masts.csv rows of the virtual masts: each keeps the system name its old device-map row gives it (a
     VirtualSignalMast's ordinal, $1001 ...), and a new one takes the next ordinal after every one the old rows use,
     so no system name shifts."""
     old = {r["user_name"]: r["system_name"] for r in old_rows if r["layer"] == "mast" and VSM.fullmatch(r["system_name"])}
-    used = [int(VSM.fullmatch(x).group(1)) for x in old.values()]
-    nxt = max(used, default=1000) + 1
+    retired = read_retired(RETIRED)
+    back = sorted(set(old) & set(retired))
+    if back:
+        raise RuleError(f"{RETIRED.name} lists {', '.join(back)}, which the device map still has; take the row out")
+    used = [int(VSM.fullmatch(x).group(1)) for x in [*old.values(), *retired.values()]]
+    nxt = max(used, default=1000) + 1          # a dropped mast's ordinal is never given to a new one
     rows = []
     for m in vgen:
         system = old.get(m["mast"])

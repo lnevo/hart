@@ -64,6 +64,9 @@ def build() -> str:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: protects {protects or 'nothing'} and stands at "
                              f"{'Switch ' + r.switch if r.switch else 'no switch'}: a home signal is at a switch, an "
                              "intermediate protects one block")
+        if not r.switch and not r.comment.rstrip().endswith("| intermediate"):
+            raise SystemExit(f"{DEVICE_MAP.name}: mast {name} stands at no switch, so it is an intermediate, but its "
+                             "comment does not end in '| intermediate': a home signal lost its switch?")
         dirm = re.fullmatch(r"Mast \d+([LR])[A-Z]?|Mast [AB]\d+", name)
         if r.system_name:
             sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r.system_name)

@@ -351,7 +351,8 @@ def main():
         print("rows on both routes (loop 1 value from block_lengths.csv, this run beside it):")
         for s in names:
             if s in owned:
-                old = float(csv_rows[names[s]]["measured_in"]) * MM_PER_IN
+                row = csv_rows[names[s]]
+                old = float(row["measured_in"] or row["plan_in"]) * MM_PER_IN     # a plan row has no measured length
                 print(f"  {s:34} loop1 {old:7.0f} mm   {route} {result[s][0]:7.0f} mm   {result[s][0] - old:+6.0f}")
         only = set(names) if a.overwrite else set(names) - owned
     if a.locate:

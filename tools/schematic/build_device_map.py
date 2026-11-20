@@ -273,8 +273,9 @@ def read_pins(path: Path | None = None) -> dict:
         except ValueError:
             bad.append(f"line {i}: node and block_input are numbers")
             continue
-        if not r["block"].startswith(("Track ", "OS Switch ")) or not 0 <= k < CAP["block"]:
-            bad.append(f"line {i}: {r['block']!r} is no block name, or input {k + 1} is not 1 to {CAP['block']}")
+        if not r["block"].startswith("Track ") or not 0 <= k < CAP["block"]:
+            bad.append(f"line {i}: {r['block']!r} is not a track block (only track detectors are pinned; an OS "
+                       f"block's detector comes with its switch), or input {k + 1} is not 1 to {CAP['block']}")
         elif r["block"] in out or (node, k) in slots:
             bad.append(f"line {i}: block {r['block']} or Block {node}-{k + 1} pinned twice")
         else:

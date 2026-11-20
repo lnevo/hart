@@ -95,7 +95,8 @@ def set_tables(rows) -> int:
         if full[name].get("length") != want:
             full[name].set("length", want)
             changed += 1
-    t.save()
+    if changed:
+        t.save()            # the one tables file (ADR-008) is rewritten only when a length changed
     return changed
 
 
