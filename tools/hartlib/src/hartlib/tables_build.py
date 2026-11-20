@@ -76,6 +76,9 @@ CONDITIONALNGS = ("LogixNGConditionalNGs", "jmri.jmrit.logixng.implementation.co
 DIGITAL_ACTIONS = ("LogixNGDigitalActions", "jmri.jmrit.logixng.implementation.configurexml.DefaultDigitalActionManagerXml")
 SECTIONS = (("jmriversion", None), MQTT_SENSORS, INTERNAL_SENSORS, LCC_TURNOUTS, INTERNAL_TURNOUTS, MQTT_TURNOUTS,
             MEMORIES, HEADS, MASTS, BLOCKS, LAYOUT_BLOCKS, LOGICS, TIMEBASE, LOGIXNGS, CONDITIONALNGS, DIGITAL_ACTIONS)
+# The sections whose beans come from the master and the Layout Editor build only: the template holds their settings
+# and no bean (read_template), so a block or mast never has two sources.
+MASTER_SECTIONS = (MQTT_SENSORS, LCC_TURNOUTS, INTERNAL_TURNOUTS, MQTT_TURNOUTS, HEADS, MASTS, BLOCKS, LAYOUT_BLOCKS)
 # The manager section of a sensor or turnout, by the system name's prefix (the connection's).
 SENSOR_SECTIONS = (("M2S", MQTT_SENSORS), ("IS", INTERNAL_SENSORS))
 TURNOUT_SECTIONS = (("M2T", MQTT_TURNOUTS), ("MTT", LCC_TURNOUTS), ("IT", INTERNAL_TURNOUTS))
@@ -151,6 +154,11 @@ def read_template(path: Path = TEMPLATE) -> tables.Tables:
                                "fixed (strip_envelope)")
     if tables.mast_logics(doc.root) or doc.root.find("LayoutEditor") is not None:
         raise TablesBuildError(f"{where}: holds Signal Mast Logic or a panel; those are generated")
+    owned = [f"{el.tag} {tables.system_name(el)}" for sec in tables.elements(doc.root)
+             if section_key(sec) in MASTER_SECTIONS for el in tables.elements(sec) if tables.system_name(el)]
+    if owned:
+        raise TablesBuildError(f"{where}: holds {', '.join(owned[:6])}, but turnouts, MQTT sensors, heads, masts, "
+                               "blocks and layout blocks come from devices.csv and the Layout Editor build")
     return doc
 
 
@@ -469,6 +477,22 @@ def merge_discovered(root: ET.Element, logics: list[ET.Element], props: Mapping[
             raise TablesBuildError(f"mast {mast!r} has properties already")
         unlit = el.find("unlit")
         el.insert(list(el).index(unlit) if unlit is not None else len(el), copy.deepcopy(p))
+
+
+def missing_logic(root: ET.Element) -> list[str]:
+    """The masts of `root` without the discovered logic the rule expects: a head mast (<signalmast>) that is no
+    logic's source, or a virtual mast (a buffer-stop destination) that no logic names. Stock discovery gives every
+    one of them logic (data/schematic/discovered_sml.xml, 2026-11-20), so a gap means a mast added or renamed since
+    discovery ran."""
+    sources = {logic.get("source") for logic in tables.mast_logics(root)}
+    named = sources | {d.get("destination") for logic in tables.mast_logics(root)
+                       for d in logic.findall("destinationMast")}
+    out = []
+    for m in tables.masts(root):
+        user = tables.user_name(m) or tables.system_name(m)
+        if (m.tag == "signalmast" and user not in sources) or (m.tag != "signalmast" and user not in named):
+            out.append(user)
+    return out
 
 
 # ---------------------------------------------------------------- Digicon boot rule

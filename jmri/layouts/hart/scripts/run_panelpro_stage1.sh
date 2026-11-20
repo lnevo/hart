@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 # Load HART tables in PanelPro, run stock Stage 1 (auto-Yes shared-sensor), store.
+# Parked with the Dispatcher System. tables.xml is generated since R9c (ADR-029), so the Stage 1 Store and
+# its repairs go to a gitignored scratch file, jmri/layouts/hart/output/pulled/stage1-<date>.xml, never over
+# tables.xml; R9d's split takes such a Store back into the sources. On unpark, decide how Stage 1's output
+# becomes source data before relying on this wrapper.
 # The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
 set -euo pipefail
@@ -12,8 +16,9 @@ pp_profile
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/run_dispatcher_stage1.py"
 MARKER="${HART_STAGE1_MARKER:-/tmp/hart_stage1.done}"
 LOG="${HART_STAGE1_LOG:-/tmp/hart_stage1.log}"
-REPO_OUTPUT="$ROOT/jmri/layouts/hart/output/tables.xml"
-REPO_TABLES="$REPO_OUTPUT"
+REPO_TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
+mkdir -p "$ROOT/jmri/layouts/hart/output/pulled"
+REPO_OUTPUT="$ROOT/jmri/layouts/hart/output/pulled/stage1-$(date +%Y%m%d-%H%M%S).xml"   # the Store (scratch)
 REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 
 pp_refuse_running "Quit local CATS/PanelPro before Stage 1"
@@ -84,5 +89,5 @@ if (( repair_failed )); then
   exit 1
 fi
 
-echo "Stage 1 store is $REPO_OUTPUT"
+echo "Stage 1 store is $REPO_OUTPUT (gitignored scratch; tables.xml is unchanged and generated, ADR-029)"
 echo "log: $LOG"

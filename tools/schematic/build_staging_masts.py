@@ -76,8 +76,8 @@ LEVELS = mast_rule.band_levels(json.loads(OVERRIDES.read_text(encoding="utf-8"))
 HEAD_PREFIX = "IH:HART:C1:"
 FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position
-WIRED_HEAD = re.compile(r"IH\d+")
-WIRING_TEXT = re.compile(r"Node: \d+ ")    # a wired head's comment: its node, signal and ports      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
+WIRED_HEAD = re.compile(r"IH\d+")      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
+WIRING_TEXT = devices._NODE_TEXT       # a wired head's comment is its wiring (Node: ...), as the master tells it
 
 
 class RuleError(RuntimeError):
@@ -327,7 +327,8 @@ def mast_node(mast: str, old: dict | None, heads: dict) -> str:
     return nodes[0]
 
 
-def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict], wired: dict) -> list[dict]:
+def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict], wired: dict,
+                toward: dict | None = None) -> list[dict]:
     """The staging device-map rows with their mast and head rows replaced: one mast row per mast (generated and virtual) and
     one head row per head of a visible mast, every name its JMRI name; a wired mast keeps its node (mast_node), a
     wired head its node and notes (wired_heads); other rows unchanged and in place. RuleError if a wired head would be
@@ -337,7 +338,10 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
     masts, heads = [], []
     for r in gen_masts + virtual:
         on = wired.get(r["mast"], {})
-        where = " | ".join(x for x in (r["cp"], f"Switch {r['switch']}" if r["switch"] else "") if x)
+        # a hidden buffer-stop mast stands at no switch; its comment names the switch its track leaves (`toward`:
+        # {mast: switch}, from virtual_masts), as a head mast's names the switch it stands at
+        switch = r["switch"] or (toward or {}).get(r["mast"], "")
+        where = " | ".join(x for x in (r["cp"], f"Switch {switch}" if switch else "") if x)
         note = (f"facing {r['facing']} into {r['protects']}" if r["protects"] else f"facing {r['facing']}, buffer stop")
         masts.append(dict(level="1", cp=r["cp"], layer="mast", user_name=r["mast"], system_name=r["system_name"],
                           jmri_name=r["system_name"], node=mast_node(r["mast"], old_mast.get(r["mast"]), on),
@@ -401,7 +405,8 @@ def build():
     taken = [r["system_name"] for r in gm + vr]
     if len(set(taken)) != len(taken):
         raise RuleError(f"two masts share a system name: {sorted({x for x in taken if taken.count(x) > 1})}")
-    mine = [r for r in device_rows(gm, vr, old, wired) if r["layer"] in WRITES]   # the mast and head rows only
+    mine = [r for r in device_rows(gm, vr, old, wired, {m["mast"]: m["toward"] for m in vgen})
+            if r["layer"] in WRITES]   # the mast and head rows only
     want = {MASTS: csv_text(gm + vr, level_masts.FIELDS),
             SIGNALS: csv_text(signal_rows(gen + vgen), sdm.SIGNAL_COLUMNS),
             **devices.outputs_after("build_staging_masts.py", mine, files)}

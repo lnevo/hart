@@ -5,6 +5,8 @@
     python3 tools/schematic/build_tables.py --check                  # exit 1 if tables.xml is not what it writes
     python3 tools/schematic/build_tables.py --discovered-from STORE  # take the Signal Mast Logic of a discovery
                                                                      # Store (run_sml_discover.sh), then write
+    python3 tools/schematic/build_tables.py --discovery-base         # write tables.xml with no Signal Mast Logic:
+                                                                     # what run_sml_discover.sh runs discovery on
 
 tables.xml is an output; nothing reads it as a source. It is, in this order:
 1. the template, data/tables_template.xml: what PanelPro owns (settings, memories, the clock sensor, the "Hide windows
@@ -17,12 +19,17 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
    sensors, heads, masts and the startup LogixNG from devices.csv, and the "HART Railroad" panel, which must match the
    owner-approved staging fingerprint;
 4. the discovered Signal Mast Logic and mast properties, data/schematic/discovered_sml.xml, which only
-   --discovered-from writes;
+   --discovered-from writes. The build stops when that file names a mast the tables no longer hold (a mast renamed
+   or removed since discovery) and when a mast has no discovered logic it needs (missing_logic: every head mast is a
+   source, every virtual mast a destination): run jmri/layouts/hart/scripts/run_sml_discover.sh, which first writes
+   the tables without any logic (--discovery-base) and runs stock discovery on them, so a stale file never blocks
+   its own repair;
 5. the Digicon boot rule: the logic of every mast signal_coordinator.py takes over boots disabled (it was a deploy-time
    rewrite, disable_digicon_sml_in_tables.py, until R9c), so the hosts get exactly the committed bytes.
 
-A PanelPro Store of tables.xml does not come back by hand: make tables-pull splits it into these sources. Prints
-SKIPPED (exit 0) with --check when the schematic-maps plugin is not checked out, unless SCHEMATIC_REQUIRED=1.
+A PanelPro Store of tables.xml is never copied over it: make tables-pull and tables-pull-pi keep the Store in the
+gitignored output/pulled/ and stop, until R9d splits a Store into these sources. Prints SKIPPED (exit 0) with
+--check when the schematic-maps plugin is not checked out, unless SCHEMATIC_REQUIRED=1.
 """
 from __future__ import annotations
 
@@ -41,16 +48,26 @@ from hartlib import tables_build as tb  # noqa: E402
 OUT = paths.REPO_TABLES_XML
 
 
-def generate(discovered: tuple | None = None) -> tuple[bytes, dict]:
+def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[bytes, dict]:
     """(tables bytes, counts) from the sources (module text). `discovered`: (logics, properties) to use in place of
-    the discovered file's. tb.TablesBuildError or ble.BuildError on anything that stops it."""
+    the discovered file's. `with_logic` False: the discovery base, with no Signal Mast Logic and no mast properties
+    (the discovered file is not read). tb.TablesBuildError or ble.BuildError on anything that stops it."""
     data, _P, _names, _bands = ble.build(levels="all", as_live=True)
     doc = tables.loads(data)
     root = doc.root
     if doc.prolog != tb.PROLOG or doc.epilog != tb.EPILOG:
         raise tb.TablesBuildError("the Layout Editor build changed the envelope")
-    logics, props = discovered if discovered is not None else tb.read_discovered(tb.DISCOVERED)
+    if with_logic:
+        logics, props = discovered if discovered is not None else tb.read_discovered(tb.DISCOVERED)
+    else:
+        logics, props = [], {}
     tb.merge_discovered(root, logics, props)
+    if with_logic:
+        gaps = tb.missing_logic(root)
+        if gaps:
+            raise tb.TablesBuildError(f"masts with no discovered logic they need ({', '.join(gaps[:10])}"
+                                      f"{' ...' if len(gaps) > 10 else ''}): run "
+                                      "jmri/layouts/hart/scripts/run_sml_discover.sh")
     digicon = tb.digicon_masts(root)
     flipped, already = tb.disable_digicon(root, digicon)
     tb.finish(root)
@@ -84,6 +101,9 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     g = ap.add_mutually_exclusive_group()
     g.add_argument("--check", action="store_true", help="exit 1 if tables.xml is not what this writes")
+    g.add_argument("--discovery-base", action="store_true",
+                   help="write tables.xml with no Signal Mast Logic, for run_sml_discover.sh to discover on; "
+                        "tables.xml is then stale until --discovered-from")
     g.add_argument("--discovered-from", type=Path, metavar="STORE",
                    help="a PanelPro Store after SML discovery: its logic and mast properties replace "
                         f"{paths.rel(tb.DISCOVERED)}, then tables.xml is written")
@@ -108,7 +128,7 @@ def main(argv=None) -> int:
             if args.discovered_from:
                 new_doc = tb.discovered_from_store(tables.load(args.discovered_from).root)
                 discovered = tb.read_discovered_root(new_doc, str(args.discovered_from))
-            data, counts = generate(discovered)
+            data, counts = generate(discovered, with_logic=not args.discovery_base)
         except (tb.TablesBuildError, ble.BuildError, devices.DevicesError) as exc:
             print(f"build_tables.py: {exc}", file=sys.stderr)
             return 2
@@ -118,8 +138,8 @@ def main(argv=None) -> int:
     summary = ", ".join(f"{v} {k}" for k, v in counts.items())
     if args.check:
         if not OUT.exists() or OUT.read_bytes() != data:
-            print(f"STALE: {paths.rel(OUT)} is not what tools/schematic/build_tables.py writes; run it (a PanelPro "
-                  "Store comes back through make tables-pull, never by hand)", file=sys.stderr)
+            print(f"STALE: {paths.rel(OUT)} is not what tools/schematic/build_tables.py writes; run it (never copy a "
+                  "PanelPro Store over it: make tables-pull keeps the Store for R9d's split)", file=sys.stderr)
             return 1
         print(f"ok: {paths.rel(OUT)} current ({summary})")
         return 0
@@ -127,6 +147,9 @@ def main(argv=None) -> int:
         print(f"wrote {paths.rel(tb.DISCOVERED)} from {args.discovered_from}")
     wrote = tables.loads(data, path=OUT).save(OUT)
     print(f"{'wrote' if wrote else 'unchanged'} {paths.rel(OUT)} ({summary})")
+    if args.discovery_base:
+        print(f"NOTE: {paths.rel(OUT)} is the discovery base, with no Signal Mast Logic; it stays stale until "
+              "run_sml_discover.sh finishes (build_tables.py --discovered-from)")
     return 0
 
 

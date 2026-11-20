@@ -325,9 +325,22 @@ if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
   python3 "$PANEL_AUDIT" --strict
 fi
 
-# The Digicon boot rule (their Signal Mast Logic stored disabled) is applied by the generator,
-# tools/schematic/build_tables.py (R9c, ADR-029), so the hosts get exactly the committed bytes:
-# nothing here rewrites tables.xml. The stamp still names the tables shipped and whether they
+# tables.xml is generated (ADR-029, R9c): ship it only when it is what build_tables.py writes from its sources, and
+# with the Digicon masts' Signal Mast Logic stored disabled. A redeploy of a commit before R9c has no generator.
+TABLES_BUILD="$ROOT/tools/schematic/build_tables.py"
+if [[ -n "$TABLES" && -f "$TABLES_BUILD" ]]; then
+  if ! SCHEMATIC_REQUIRED=1 python3 "$TABLES_BUILD" --check; then
+    echo "STOP: tables.xml is not what tools/schematic/build_tables.py writes from its sources; run make panels (or the script) and commit, then deploy. Nothing was sent to any host." >&2
+    exit 1
+  fi
+fi
+if [[ -n "$TABLES" ]] && ! python3 "$ROOT/jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py" --check --panel "$TABLES"; then
+  echo "STOP: a Digicon mast's Signal Mast Logic is stored enabled in tables.xml; run python3 tools/schematic/build_tables.py and commit, then deploy. Nothing was sent to any host." >&2
+  exit 1
+fi
+
+# The Digicon boot rule is applied by the generator and only checked above, so the hosts get exactly the
+# committed bytes: nothing here rewrites tables.xml. The stamp still names the tables shipped and whether they
 # differ from the committed file (an uncommitted change).
 DEPLOY_TABLES_SHA=none
 DEPLOY_TABLES_MODIFIED=no

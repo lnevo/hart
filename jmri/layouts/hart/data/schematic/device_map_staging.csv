@@ -167,9 +167,9 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,,occupancy,BS W-1,M2S403,M2S403,4,,Node: 4 Block: 4,,blocks Track W-1,Track W-1,wired,,,,,
 1,,occupancy,BS W-2,M2S402,M2S402,4,,Node: 4 Block: 3,,blocks Track W-2,Track W-2,wired,,,,,
 1,,occupancy,BS West Ext,M2S107,M2S107,1,,Node: 1 Block: 8,,blocks Track West Ext,Track West Ext,wired,,,,,
-1,Engine House,mast,Mast 10LA,IF$vsm:basic:one-low($1006),IF$vsm:basic:one-low($1006),,,Engine House,,"facing Track EH-2, buffer stop",,,,,Track EH-2,,west
-1,Engine House,mast,Mast 10LB,IF$vsm:basic:one-low($1007),IF$vsm:basic:one-low($1007),,,Engine House,,"facing Track EH-3, buffer stop",,,,,Track EH-3,,west
-1,Engine House,mast,Mast 12L,IF$vsm:basic:one-low($1005),IF$vsm:basic:one-low($1005),,,Engine House,,"facing Track EH-1, buffer stop",,,,,Track EH-1,,west
+1,Engine House,mast,Mast 10LA,IF$vsm:basic:one-low($1006),IF$vsm:basic:one-low($1006),,,Engine House | Switch 9,,"facing Track EH-2, buffer stop",,,,,Track EH-2,,west
+1,Engine House,mast,Mast 10LB,IF$vsm:basic:one-low($1007),IF$vsm:basic:one-low($1007),,,Engine House | Switch 9,,"facing Track EH-3, buffer stop",,,,,Track EH-3,,west
+1,Engine House,mast,Mast 12L,IF$vsm:basic:one-low($1005),IF$vsm:basic:one-low($1005),,,Engine House | Switch 11,,"facing Track EH-1, buffer stop",,,,,Track EH-1,,west
 1,East End,mast,Mast 24L,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),IF$shsm:basic:one-searchlight(IH:HART:C1:24L),,,East End | Switch 23,,facing Track West Ext into OS Switch 23a,,,,23,Track West Ext,OS Switch 23a,west
 1,East End,mast,Mast 24RA,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),,,East End | Switch 23,,facing Track Main West into OS Switch 23a,,,,23,Track Main West,OS Switch 23a,east
 1,East End,mast,Mast 24RB,IF$shsm:basic:one-low(IH:HART:C1:24RB),IF$shsm:basic:one-low(IH:HART:C1:24RB),,,East End | Switch 23,,facing Track S-R into OS Switch 23b,,,,23,Track S-R,OS Switch 23b,east
@@ -184,8 +184,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Princess,mast,Mast 38LB,IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),,,Princess | Switch 37,,facing Track K-2 into OS Switch 37,,,,37,Track K-2,OS Switch 37,west
 1,Princess,mast,Mast 40LA,IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),,,Princess | Switch 39,,facing Track K-1 into OS Switch 39,,,,39,Track K-1,OS Switch 39,west
 1,Princess,mast,Mast 40LB,IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),,,Princess | Switch 39,,facing Track Helix Outer into OS Switch 39,,,,39,Track Helix Outer,OS Switch 39,west
-1,Brick,mast,Mast 4LA,IF$vsm:basic:one-low($1001),IF$vsm:basic:one-low($1001),,,Brick,,"facing Track W-1, buffer stop",,,,,Track W-1,,west
-1,Brick,mast,Mast 4LB,IF$vsm:basic:one-low($1002),IF$vsm:basic:one-low($1002),,,Brick,,"facing Track W-2, buffer stop",,,,,Track W-2,,west
+1,Brick,mast,Mast 4LA,IF$vsm:basic:one-low($1001),IF$vsm:basic:one-low($1001),,,Brick | Switch 3,,"facing Track W-1, buffer stop",,,,,Track W-1,,west
+1,Brick,mast,Mast 4LB,IF$vsm:basic:one-low($1002),IF$vsm:basic:one-low($1002),,,Brick | Switch 3,,"facing Track W-2, buffer stop",,,,,Track W-2,,west
 1,Brick,mast,Mast 4RA,IF$shsm:basic:one-low(IH:HART:C1:4RA),IF$shsm:basic:one-low(IH:HART:C1:4RA),,,Brick | Switch 3,,facing Track W-1 into OS Switch 3,,,,3,Track W-1,OS Switch 3,east
 1,Brick,mast,Mast 4RB,IF$shsm:basic:one-low(IH:HART:C1:4RB),IF$shsm:basic:one-low(IH:HART:C1:4RB),,,Brick | Switch 3,,facing Track W-2 into OS Switch 3,,,,3,Track W-2,OS Switch 3,east
 1,Princess,mast,Mast 67,IF$shsm:basic:one-searchlight(IH:HART:C1:67),IF$shsm:basic:one-searchlight(IH:HART:C1:67),,,Princess,,facing Track K-2 into Track K-1,,,,,Track K-2,Track K-1,west

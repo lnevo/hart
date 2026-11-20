@@ -5,7 +5,7 @@ description: Use when a PanelPro Store on the Pi or the Mac has changed JMRI_Use
 
 # Bring a PanelPro Store into the repo
 
-`jmri/layouts/hart/output/tables.xml` is the one tables file (ADR-008). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014). A Store in PanelPro writes that host's `JMRI_UserFiles/tables.xml`, which is not a repo change until it is pulled. A Store on the Pi: `make tables-pull-pi` (`tools/ops/pull_tables_pi.sh`) copies it over the repo file and rewrites the Pi's `.tables_deployed.sha256`, then continue at step 3. A Store on the Mac: the steps below.
+`jmri/layouts/hart/output/tables.xml` is the one tables file (ADR-008). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014). Since R9c it is generated (ADR-029: `tools/schematic/build_tables.py`), so a Store is never copied over it. Until R9d splits a Store into the sources, both pulls keep the Store in the gitignored `jmri/layouts/hart/output/pulled/` and stop: `make tables-pull` (Mac) and `make tables-pull-pi` (`tools/ops/pull_tables_pi.sh`, which leaves the Pi's `.tables_deployed.sha256` alone, so the deploy keeps stopping). The owner's PanelPro edits are kept in that file; carry them into `devices.csv`, the template or the discovered Signal Mast Logic, run `make panels`, commit, and deploy.
 
 ## Before you run it
 
@@ -18,11 +18,11 @@ description: Use when a PanelPro Store on the Pi or the Mac has changed JMRI_Use
 2. The script:
    - stops if `~/JMRI_UserFiles/tables.xml` is missing;
    - exits with "already matches" if the files are identical;
-   - otherwise copies the Store over the repo file and writes `~/JMRI_UserFiles/.tables_deployed.sha256`, which clears the deploy guard.
-3. Review `git diff jmri/layouts/hart/output/tables.xml`. Check that only the changes you expect are there. Expected extra: the memory `IMHART_MIMIC` gaining an "ack <n>" value after a Pi Store (see `wiki/pipelines/mqtt-mimic.md`).
+   - otherwise saves the Store as `jmri/layouts/hart/output/pulled/mac-<date>.xml`, changes nothing else, and stops with exit 1.
+3. Compare the saved Store with `tables.xml` to find the owner's edits (a Store also writes its file history, clock time and memory values, and may reorder beans; those are not edits). Carry each edit into its source.
 4. Run `./tools/check.sh` before any commit that changes tables or signals.
 5. If tables or panels changed, run `make panelpro-test` when the owner is not operating (AGENTS.md close-out, step 4).
-6. Commit the file by name, then follow the close-out in AGENTS.md. A changed tables file needs a deploy.
+6. Run `python3 tools/schematic/build_tables.py` (or `make panels`), commit the changed sources and `tables.xml` by name, then follow the close-out in AGENTS.md. A changed tables file needs a deploy. Once the edits are deployed the host no longer counts as unpulled.
 
 ## Why deploy stops
 

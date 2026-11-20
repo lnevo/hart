@@ -102,6 +102,19 @@ class Template(unittest.TestCase):
         with self.assertRaisesRegex(tb.TablesBuildError, "Signal Mast Logic or a panel"):
             tb.read_template(self.copy(add))
 
+    def test_a_block_or_mast_in_the_template_stops(self) -> None:
+        def add_block(root):
+            el = ET.SubElement(root.find("blocks"), "block", systemName="IB99")
+            ET.SubElement(el, "systemName").text = "IB99"
+        with self.assertRaisesRegex(tb.TablesBuildError, "holds block IB99, but .* come from devices.csv"):
+            tb.read_template(self.copy(add_block))
+
+        def add_mast(root):
+            el = ET.SubElement(root.find("signalmasts"), "virtualsignalmast")
+            ET.SubElement(el, "systemName").text = "IF$vsm:basic:one-low($9)"
+        with self.assertRaisesRegex(tb.TablesBuildError, "holds virtualsignalmast"):
+            tb.read_template(self.copy(add_mast))
+
     def test_a_changed_envelope_stops(self) -> None:
         p = self.copy()
         p.write_bytes(p.read_bytes().replace(b'<?xml-stylesheet href="/xml/XSLT/panelfile-5-5-5.xsl"', b"<?xml-stylesheet"))
@@ -200,6 +213,18 @@ class MasterBeans(unittest.TestCase):
         self.assertEqual(45, len(tables.blocks(root)))
         self.assertIsNone(root.find("LayoutEditor"))
         self.assertEqual([], tables.mast_logics(root))
+
+
+class MissingLogic(unittest.TestCase):
+    def test_head_masts_need_a_source_and_virtual_masts_a_mention(self) -> None:
+        root = tables.loads(STORE).root
+        self.assertEqual([], tb.missing_logic(root))
+        box = root.find("signalmastlogics")
+        box.remove(box.find("signalmastlogic"))
+        self.assertEqual(["Mast 6LB", "Mast 4LA"], tb.missing_logic(root))
+
+    def test_the_committed_tables_miss_none(self) -> None:
+        self.assertEqual([], tb.missing_logic(tables.read(paths.REPO_TABLES_XML)))
 
 
 class Order(unittest.TestCase):

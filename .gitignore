@@ -116,6 +116,8 @@ docs/ap/operations.log
 
 # C3 trial tables copy: generated on demand by tools/schematic/build_layout_le.py (goes stale with every tables.xml change)
 jmri/layouts/hart/output/trial/
+# PanelPro Stores kept by make tables-pull / tables-pull-pi until R9d splits them into the sources (ADR-029)
+jmri/layouts/hart/output/pulled
 
 # MRE Electrical SOQ build scratch (docs/ap/electrical/build_soq.py)
 /docs/ap/electrical/build/

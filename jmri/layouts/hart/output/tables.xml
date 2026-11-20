@@ -2234,31 +2234,31 @@
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1001)</systemName>
       <userName>Mast 4LA</userName>
-      <comment>Brick</comment>
+      <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1002)</systemName>
       <userName>Mast 4LB</userName>
-      <comment>Brick</comment>
+      <comment>Brick | Switch 3</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1005)</systemName>
       <userName>Mast 12L</userName>
-      <comment>Engine House</comment>
+      <comment>Engine House | Switch 11</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1006)</systemName>
       <userName>Mast 10LA</userName>
-      <comment>Engine House</comment>
+      <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1007)</systemName>
       <userName>Mast 10LB</userName>
-      <comment>Engine House</comment>
+      <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">

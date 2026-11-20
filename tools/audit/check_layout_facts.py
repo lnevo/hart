@@ -13,7 +13,9 @@ Layout Editor (tables.xml)
   - the stored block paths: the closed leg needs Closed or no setting, the thrown
     leg Thrown, and neither may be reached with the other setting. The generated tables.xml stores none (ADR-029:
     JMRI derives them from the panel on load), so this part runs only on a tables file that stores them (--tables,
-    a PanelPro Store).
+    a PanelPro Store);
+  - a crossover's legs against the panel's track: its OS block one half, its thrown leg the other half, its closed
+    leg a block the track reaches from that half (check_crossover_legs; plain turnouts by continuing sense above).
 CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schematic since the CATS cut-over)
   - each bound plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted); the main and upper
@@ -187,6 +189,12 @@ class Tables:
                             out.add(o.get("blockname"))
                 elif kind.startswith("TURNOUT_") and name in self.layout_turnouts:
                     out.add(self._turnout_block(self.layout_turnouts[name], kind[-1]))
+                elif kind.startswith(("SLIP_", "LEVEL_XING_")):
+                    raise ValueError(f"{user}: track segment {seg.get('ident')} ends at {kind} {name}, a slip or level "
+                                     "crossing the panel check does not read; give the block a cp")
+                elif kind:
+                    raise ValueError(f"{user}: track segment {seg.get('ident')} ends at {kind} {name!r}, which is "
+                                     "not on the panel")
         return out - {user, None}
 
     def track_name(self, user: str | None) -> str | None:
@@ -235,6 +243,37 @@ class Tables:
         return None
 
 
+XOVERS = {"RH_XOVER", "LH_XOVER", "DOUBLE_XOVER"}
+XOVER_HALVES = (("A", "B"), ("C", "D"))     # a crossover's connections by half: A-B is one track, C-D the other
+# The connections a crossover's diverging route joins (JMRI ConnectivityUtil: a right-hand crossover throws A to C,
+# a left-hand one B to D). A train in a half reaches the half's closed leg at the other connection; a double
+# crossover diverges at all four, so its closed leg is only held to the half's ends.
+XOVER_DIVERGING = {"RH_XOVER": frozenset("AC"), "LH_XOVER": frozenset("BD"), "DOUBLE_XOVER": frozenset("ABCD")}
+
+
+def check_crossover_legs(sw: facts.Switch, lt: ET.Element, t: Tables, r: Report) -> None:
+    """Each leg of a crossover's switch against the panel's track (the generated tables.xml stores no paths): its OS
+    block is one half of the layout turnout, its thrown leg the other half, and its closed leg the block the track
+    reaches from that half's straight-through end (XOVER_DIVERGING)."""
+    n = f"Switch {sw.number}"
+    halves = {t._turnout_block(lt, a): (a, b) for a, b in XOVER_HALVES}
+    for leg in sw.legs:
+        conns = halves.get(leg.os_block)
+        if conns is None:
+            r.add(f"le:{n}", f"{n}: {leg.os_block} is no half of Layout Editor {sw.le_ident} "
+                             f"({', '.join(sorted(halves))})")
+            continue
+        other = [h for h in halves if h != leg.os_block]
+        if [leg.thrown] != other:
+            r.add(f"le:{n}", f"{n}: switch_legs.csv throws {leg.os_block} to {leg.thrown}, Layout Editor "
+                             f"{sw.le_ident}'s other half is {', '.join(other) or 'none'}")
+        ends = [c for c in conns if c not in XOVER_DIVERGING[lt.get("type")]] or list(conns)
+        reach = {t.track_name(t.leg_block(sw.le_ident, c, leg.os_block)) for c in ends} - {None}
+        if t.track_name(leg.closed) not in reach:
+            r.add(f"le:{n}", f"{n}: switch_legs.csv closes {leg.os_block} to {leg.closed}, the panel's track from "
+                             f"that half's closed end reaches {sorted(reach) or 'nothing'}")
+
+
 def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
     n = f"Switch {sw.number}"
     system, comment = t.turnouts.get(sw.turnout, ("", ""))
@@ -271,6 +310,8 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
             r.add(f"le:{n}", f"{n}: Layout Editor {sw.le_ident} (continuing={cont}) closes to {closed} "
                              f"and throws to {thrown}; switch_legs.csv says closed {primary.closed}, "
                              f"thrown {primary.thrown}")
+    if lt.get("type") in XOVERS:
+        check_crossover_legs(sw, lt, t, r)
     if not t.paths_stored:          # the generated tables.xml (ADR-029): no stored paths to hold to the legs
         return
     for leg in sw.legs:
@@ -712,7 +753,11 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
         if row["layer"] not in ("mast", "block") or key in levels:
             continue
         name = row["proposed"]
-        near = {levels.get(("block", t.track_name(b))) for b in t.joined_blocks(name)} - {None}
+        try:
+            near = {levels.get(("block", t.track_name(b))) for b in t.joined_blocks(name)} - {None}
+        except ValueError as exc:
+            r.add(f"level:{name}", str(exc))
+            continue
         if len(near) != 1:
             r.add(f"level:{name}", f"{name}: no control point and no switch in the name map of devices.csv or "
                                    f"switch_legs.csv, and the blocks it joins in tables.xml are on levels "

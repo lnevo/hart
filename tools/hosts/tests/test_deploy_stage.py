@@ -24,34 +24,59 @@ STAMP_KEYS = ("commit", "branch", "dirty", "dirty_paths", "tables_sha256", "tabl
               "date", "deployed_from", "target", "source", "redeploy_from")
 
 
+def python_stub(tmp: Path, digicon_dry: bool = False) -> None:
+    """A python3 in the fake bin that stands in for the deploy's tables freshness check (build_tables.py --check,
+    which regenerates the whole panel and is tools/check.sh's own job): it logs the call in tables_check.log and
+    passes, or fails as a stale file does while `tmp`/tables_stale exists; the Digicon check fails while
+    `tmp`/digicon_enabled exists. With `digicon_dry` (keep_repo_tables) a
+    writing call of the Digicon SML script runs as a dry run and is logged in gates.log. Every other python3 call
+    goes to the real one unchanged."""
+    real = shutil.which("python3")
+    dry = f"""  if [[ "$a" == */disable_digicon_sml_in_tables.py && " $* " != *" --dry-run "* && " $* " != *" --check "* ]]; then
+    echo "python3 $*" >>"{tmp}/gates.log"
+    exec "{real}" "$@" --dry-run
+  fi
+""" if digicon_dry else ""
+    tool = tmp / "bin/python3"
+    tool.write_text(f"""#!/bin/bash
+for a in "$@"; do
+{dry}  if [[ "$a" == */disable_digicon_sml_in_tables.py && -f "{tmp}/digicon_enabled" ]]; then
+    echo "ERROR: tables.xml has 1 Digicon SML destination(s) Enabled=yes" >&2
+    exit 1
+  fi
+  if [[ "$a" == */tools/schematic/build_tables.py ]]; then
+    echo "python3 $*" >>"{tmp}/tables_check.log"
+    if [[ -f "{tmp}/tables_stale" ]]; then
+      echo "STALE: jmri/layouts/hart/output/tables.xml is not what tools/schematic/build_tables.py writes" >&2
+      exit 1
+    fi
+    exit 0
+  fi
+done
+exec "{real}" "$@"
+""", encoding="utf-8")
+    tool.chmod(0o755)
+
+
 def fake_bin(tmp: Path) -> Path:
-    """ssh and scp that record any call and fail, so a stage that reached for the network fails."""
+    """ssh and scp that record any call and fail, so a stage that reached for the network fails; and the python3
+    stand-in for the tables freshness check (python_stub)."""
     bin_dir = tmp / "bin"
     bin_dir.mkdir()
     for name in ("ssh", "scp"):
         tool = bin_dir / name
         tool.write_text(f'#!/bin/sh\necho "{name} $*" >>"{tmp}/network.log"\nexit 99\n', encoding="utf-8")
         tool.chmod(0o755)
+    python_stub(tmp)
     return bin_dir
 
 
 def keep_repo_tables(tmp: Path) -> None:
     """For tests that run the deploy for real (no --dry-run): a guard that the deploy never rewrites the repo's
-    tables.xml. The deploy no longer runs the Digicon SML script (R9c: the generator applies the rule); should a step
-    call it again, a python3 stand-in in the fake bin (after stage_env) runs it as a dry run and logs it in gates.log,
-    which the tests require to stay absent. Every other python3 call goes to the real one unchanged."""
-    real = shutil.which("python3")
-    tool = tmp / "bin/python3"
-    tool.write_text(f"""#!/bin/bash
-for a in "$@"; do
-  if [[ "$a" == */disable_digicon_sml_in_tables.py && " $* " != *" --dry-run "* ]]; then
-    echo "python3 $*" >>"{tmp}/gates.log"
-    exec "{real}" "$@" --dry-run
-  fi
-done
-exec "{real}" "$@"
-""", encoding="utf-8")
-    tool.chmod(0o755)
+    tables.xml. The deploy only checks Digicon (--check, R9c: the generator applies the rule); should a step call the
+    script to write again, it runs as a dry run and is logged in gates.log, which the tests require to stay absent.
+    Call after stage_env: it replaces the fake bin's python3 (python_stub)."""
+    python_stub(tmp, digicon_dry=True)
 
 
 def stage_env(tmp: Path) -> dict[str, str]:

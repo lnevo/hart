@@ -270,6 +270,27 @@ class PreflightTest(DeployHarness):
         # No gate rewrites tables.xml any more (R9c: the generator applies the Digicon rule), so the hosts get the
         # committed bytes.
         self.assertFalse((self.tmp / "gates.log").exists(), "a deploy step ran disable_digicon_sml_in_tables.py")
+        # the freshness check ran before the first host step (a stand-in for build_tables.py --check)
+        self.assertIn("build_tables.py --check", (self.tmp / "tables_check.log").read_text())
+
+    def test_stale_tables_stop_the_deploy_before_any_host_step(self) -> None:
+        """tables.xml must be what build_tables.py writes (R9c): a stale file stops the deploy after the read-only
+        host checks and before anything is sent (the check itself is check.sh's tables job; a stand-in here)."""
+        (self.tmp / "tables_stale").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: tables.xml is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertIn("--check", (self.tmp / "tables_check.log").read_text())
+        self.assertNotIn("Deploy → Pi", done.stdout)
+        self.assertFalse(any("mktemp -d /tmp/hart-deploy" in c for c in self.calls()), self.calls())
+
+    def test_an_enabled_digicon_destination_stops_the_deploy(self) -> None:
+        (self.tmp / "digicon_enabled").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: a Digicon mast's Signal Mast Logic is stored enabled", done.stderr)
+        self.assertNotIn("Deploy → Pi", done.stdout)
+        self.assertFalse(any("mktemp -d /tmp/hart-deploy" in c for c in self.calls()), self.calls())
 
     def test_one_host_goes_on_while_the_other_is_down(self) -> None:
         self.down(PI)

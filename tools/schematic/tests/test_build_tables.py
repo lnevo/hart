@@ -112,6 +112,46 @@ class Generated(unittest.TestCase):
         self.assertIn("no Signal Mast Logic", err)
         self.assertFalse(out.exists() or disc.exists())
 
+    def discovered_copy(self, edit) -> Path:
+        """A copy of the discovered file with `edit` (on its text) applied."""
+        disc = self.tmp / "discovered_sml.xml"
+        text = tb.DISCOVERED.read_text(encoding="utf-8")
+        new = edit(text)
+        self.assertNotEqual(text, new)
+        disc.write_text(new, encoding="utf-8")
+        return disc
+
+    def test_a_renamed_mast_stops_the_build_but_not_the_discovery_base(self) -> None:
+        """A discovered file that names a mast the tables no longer hold stops the normal build loudly, and the
+        discovery base, which reads no discovered file, still builds, so run_sml_discover.sh can repair it."""
+        disc = self.discovered_copy(lambda t: t.replace('destination="Mast 24RA"', 'destination="Mast 24RX"', 1))
+        out = self.tmp / "tables.xml"
+        with mock.patch.object(bt, "OUT", out), mock.patch.object(tb, "DISCOVERED", disc):
+            code, _stdout, err = run("--check")
+            self.assertEqual(2, code)
+            self.assertIn("names masts the tables do not hold (Mast 24RX)", err)
+            code, stdout, err = run("--discovery-base")
+        self.assertEqual(0, code, err)
+        self.assertIn("discovery base", stdout)
+        root = tables.read(out)
+        self.assertEqual([], tables.mast_logics(root))
+        self.assertFalse([m for m in tables.masts(root) if m.find("properties") is not None])
+        with mock.patch.object(bt, "OUT", out):
+            self.assertEqual(1, run("--check")[0])          # the base is stale until discovery has run
+
+    def test_a_mast_with_no_discovered_logic_stops_the_build(self) -> None:
+        """Every head mast is a logic's source and every virtual mast a logic's destination (missing_logic): a mast
+        added since discovery fails the build, naming the mast and the wrapper to run."""
+        def drop_source(text: str) -> str:
+            start = text.index('<signalmastlogic source="Mast 4RA">')
+            return text[:start] + text[text.index("</signalmastlogic>", start) + len("</signalmastlogic>\n  "):]
+        disc = self.discovered_copy(drop_source)
+        with mock.patch.object(tb, "DISCOVERED", disc):
+            code, _stdout, err = run("--check")
+        self.assertEqual(2, code)
+        self.assertIn("masts with no discovered logic they need (Mast 4RA", err)
+        self.assertIn("run_sml_discover.sh", err)
+
     def test_a_missing_store_stops_naming_it(self) -> None:
         code, _out, err = run("--discovered-from", str(self.tmp / "none.xml"))
         self.assertEqual(2, code)

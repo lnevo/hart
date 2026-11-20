@@ -35,10 +35,10 @@ panelpro-test:  ## Load tables.xml in real PanelPro on this Mac
 docs-index:  ## Rebuild docs/INDEX.md
 	python3 tools/ops/build_docs_index.py
 
-tables-pull:  ## Bring a PanelPro Store from JMRI_UserFiles into the repo
+tables-pull:  ## Save a Mac PanelPro Store for R9d's split (stops; tables.xml is generated)
 	./tools/ops/pull_tables.sh
 
-tables-pull-pi:  ## Bring a PanelPro Store made on the Pi into the repo
+tables-pull-pi:  ## Save a Pi PanelPro Store for R9d's split (stops; tables.xml is generated)
 	./tools/ops/pull_tables_pi.sh
 
 ops-pull:  ## Bring Pi Operations Pro session state into the repo

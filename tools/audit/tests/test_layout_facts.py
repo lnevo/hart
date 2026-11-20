@@ -72,6 +72,27 @@ class LayoutFactsTest(unittest.TestCase):
                             and "closed leg" in m for m in out), out)
         self.assertFalse(check.Tables(check.TABLES).paths_stored)
 
+    def test_a_wrong_crossover_leg_fails_against_the_panel(self) -> None:
+        """The generated tables store no paths, so a crossover's legs are held to the panel's track."""
+        data = self.data_copy()
+        legs = data / "switch_legs.csv"
+        legs.write_text(legs.read_text().replace("7,OS Switch 7,Track Scale,OS Switch 7b",
+                                                 "7,OS Switch 7,Track Barn,OS Switch 7b"))
+        out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
+        self.assertTrue(any("closes OS Switch 7 to Track Barn, the panel's track from that half's closed end reaches ['Track Scale']" in m
+                            for m in out), out)
+        legs.write_text(legs.read_text().replace("7,OS Switch 7b,Track Main East,OS Switch 7",
+                                                 "7,OS Switch 7b,Track Main East,Track Scale"))
+        out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
+        self.assertTrue(any("throws OS Switch 7b to Track Scale" in m for m in out), out)
+
+    def test_a_slip_or_level_crossing_on_a_joined_block_is_named(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: re.sub(
+            r'(<tracksegment ident="[^"]*" blockname="Track Main West"[^>]*?type1=")[A-Z_]+(")',
+            r"\1LEVEL_XING_A\2", t, count=1))
+        with self.assertRaisesRegex(ValueError, "LEVEL_XING_A.*slip or level crossing"):
+            check.Tables(tables).joined_blocks("Track Main West")
+
     def test_joined_blocks_come_from_the_panel_when_no_paths_are_stored(self) -> None:
         t = check.Tables(check.TABLES)
         self.assertIn("OS Switch 1", t.joined_blocks("Track Main West"))
