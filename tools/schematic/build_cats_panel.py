@@ -201,7 +201,7 @@ def generate(plugin, out, bindings_out, out_abs=None):
         P = cats.panel(bands, scale=o["scale"], bindings=json.loads(text), max_cols=fit[0],
                        helix_blocks=o["helix_blocks"], band_gap=o["band_gap"], title_gap=o["title_gap"])
         check_desk_faults(cats, P, fit)
-        cats.check_fit(P, *fit)
+        cats.check_fit(P, *fit)  # backstop only: check_desk_faults already stops on a desk too big for its window
         for desk, path in (("CTC", out), ("ABS", out_abs)):
             if path is not None:
                 Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, window), header, plate, desk, fit),
