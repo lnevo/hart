@@ -144,3 +144,80 @@ class Ties(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def staging_file(tmp, *rows):
+    path = Path(tmp) / "staging_lines.csv"
+    buf = io.StringIO()
+    w = csv.writer(buf, lineterminator="\n")
+    w.writerow(M.STAGING_COLUMNS)
+    w.writerows(rows)
+    path.write_text(buf.getvalue())
+    return path
+
+
+class StagingLines(unittest.TestCase):
+    """main_lines_staging.csv writes the main flags of the `name` edit and the milepost_route; both match what was
+    kept by hand (eight main tracks, seven milepost hops over the same track)."""
+
+    @classmethod
+    def setUpClass(cls):
+        import build_layout_le as bl
+        try:
+            cls.overrides = json.loads(M.STAGING_OVERRIDES.read_text(encoding="utf-8"))
+            cls.g, cls.node_ref = M.prepared(cls.overrides, "staging", M.STAGING_GRAPH)
+        except bl.BuildError as exc:
+            raise unittest.SkipTest(str(exc))
+        cls.plan = M.Plan(cls.g, cls.node_ref)
+        cls.rows = M.read_lines(M.STAGING_LINES, M.STAGING_COLUMNS)
+
+    def flagged(self, text):
+        edit = next(e for e in json.loads(text)["edits"] if e["op"] == "name")
+        return sorted(t[2] or f"{t[0]}-{t[1]}" for t in edit["tracks"] if "main" in t[3:])
+
+    def test_the_file_holds_what_the_lines_give(self):
+        self.assertEqual(M.STAGING_OVERRIDES.read_text(encoding="utf-8"),
+                         M.staging_text(self.overrides, self.plan, self.rows))
+
+    def test_the_eight_hand_flagged_tracks_are_the_main_ones(self):
+        self.assertEqual(self.flagged(M.staging_text(self.overrides, self.plan, self.rows)),
+                         sorted(["Main West", "West Ext", "East Lead", "Brick-Plane", "East Ext", "Main East",
+                                 "35@West Ext-39", "35@East Lead-37"]))
+
+    def test_the_milepost_route_is_the_counted_lines_stops(self):
+        hops = json.loads(M.staging_text(self.overrides, self.plan, self.rows))["milepost_route"]
+        self.assertEqual(hops[0], ["1", "5"])
+        self.assertEqual(hops[-2:], [["35@West Ext", "39"], ["39", "McKees Rocks"]])
+
+    def test_a_stale_flag_is_caught_by_the_comparison(self):
+        stale = json.loads(json.dumps(self.overrides))
+        next(e for e in stale["edits"] if e["op"] == "name")["tracks"][2].append("main")     # S-R
+        text = json.dumps(stale, indent=1, ensure_ascii=False) + "\n"
+        self.assertNotEqual(text, M.staging_text(stale, self.plan, self.rows))
+        self.assertEqual(M.staging_text(stale, self.plan, self.rows), M.staging_text(self.overrides, self.plan, self.rows))
+
+    def test_a_stop_with_no_track_to_the_next_stops_with_the_line(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [[r[c] for c in M.STAGING_COLUMNS] for r in self.rows]
+            rows[0][2] = "33;37"          # no track from 1 to 33
+            with self.assertRaisesRegex(M.RouteError, "Upper level: no track joins"):
+                M.staging_text(self.overrides, self.plan, M.read_lines(staging_file(tmp, *rows), M.STAGING_COLUMNS))
+
+    def test_an_unknown_switch_names_the_stop(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            rows = [[r[c] for c in M.STAGING_COLUMNS] for r in self.rows]
+            rows[0][2] = "99"
+            with self.assertRaisesRegex(M.RouteError, "main line stop '99'"):
+                M.staging_text(self.overrides, self.plan, M.read_lines(staging_file(tmp, *rows), M.STAGING_COLUMNS))
+
+    def test_count_is_yes_or_blank(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(M.RouteError, "line 2 .*count is yes or blank"):
+                M.read_lines(staging_file(tmp, ["A", "1", "", "5", "", "", "", "maybe"]), M.STAGING_COLUMNS)
+
+    def test_a_track_the_name_edit_does_not_name_stops(self):
+        over = json.loads(json.dumps(self.overrides))
+        edit = next(e for e in over["edits"] if e["op"] == "name")
+        edit["tracks"] = [t for t in edit["tracks"] if t[2] != "Brick-Plane"]
+        with self.assertRaisesRegex(M.RouteError, "does not name: (1 to 5|5 to 1)"):
+            M.staging_text(over, self.plan, self.rows)

@@ -1,0 +1,4 @@
+line,from,via,to,loop,double,notes,count
+Upper level,1,5;7@East Ext;33;35@East Lead;37,McKeesport,,,"Brick to the East Lead and up the helix by Switch 37; the mileposts run this way from Switch 1 (MP 5.7)",yes
+Main level,35@East Lead,35@West Ext;39,McKees Rocks,,,"Through the Switch 35 crossover and up the helix by Switch 39; the mileposts go on this way",yes
+West loop,1,23@Main West;35@West Ext;39,McKees Rocks,,,"The west part of the loop: Main West and West Ext carry no mileposts",

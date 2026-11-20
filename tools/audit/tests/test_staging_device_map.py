@@ -258,17 +258,6 @@ class Files(unittest.TestCase):
         bad = sdm.check_tables(rows, railroad.Railroad())
         self.assertTrue(any("turnout Switch 1: tables.xml has 'M2T408', not M2T999" in b for b in bad), bad)
 
-    def test_control_points_follow_the_overrides(self):
-        self.assertEqual(sdm.check_control_points(), [])
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp)
-        bad = tmp / "cps.csv"
-        bad.write_text(sdm.CPS.read_text(encoding="utf-8").replace('"1,3"', '"1"'), encoding="utf-8")
-        self.assertTrue(sdm.check_control_points(bad))
-        spaced = tmp / "spaced.csv"                     # spaces and an empty entry in a switches cell are no switch
-        spaced.write_text(sdm.CPS.read_text(encoding="utf-8").replace('"1,3"', '" 1, 3,"'), encoding="utf-8")
-        self.assertEqual(sdm.check_control_points(spaced), [])
-
     def test_a_mast_on_a_switch_with_no_turnout_row_stops(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)

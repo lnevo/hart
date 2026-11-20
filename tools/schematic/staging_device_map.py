@@ -4,12 +4,12 @@
     python3 tools/schematic/staging_device_map.py --check   # exit 1 unless the four files hold their rules
 
 The source since the device-map switch-over (owner, 2026-11-17), when the frozen hand-drawn files (staging_le/) and the
-conversion from them retired. control_points_staging.csv and the non-signal rows of device_map_staging.csv are kept by
-hand; build_staging_masts.py writes staging_masts.csv, staging_signals.csv and the mast and head rows. Edit these files,
-not a panel. `make panels` (its staging-map step) and tools/check.sh
+conversion from them retired. The non-signal rows of device_map_staging.csv are kept by hand (control_points_staging.csv
+is the master of staging's control points, build_staging_sets.py); build_staging_masts.py writes staging_masts.csv,
+staging_signals.csv and the mast and head rows. Edit these files, not a panel. `make panels` (its staging-map step) and tools/check.sh
 run --check: every file in its shape (load, load_signal_masts, mast_facts, check_rows), every device the same bean in
 tables.xml (check_tables: system and user names, a turnout's feedback sensors, a block's detector, a mast's heads),
-and the control points the schematic's (staging.plan_overrides.json). It prints SKIPPED and exits 0 when the plugin
+and the control points read. It prints SKIPPED and exits 0 when the plugin
 submodule is not checked out (1 with SCHEMATIC_REQUIRED=1), as build_device_map.py does.
 
 Staging's objects are field devices: every system name, user name and binding here is the railroad's own.
@@ -32,8 +32,10 @@ Files (jmri/layouts/hart/data/schematic/):
   edge id (read_short_tracks, short_track_blocks: a track with no row, a row with no such track or with a track that
   has its own block, or two tracks between the same switches, stops). Today the track from Switch 35 to Switch 37,
   in OS Switch 35a.
-- control_points_staging.csv, the columns of control_points_main_upper.csv: the staging stations of
-  staging.plan_overrides.json's control_points (the schematic's source), held equal by --check.
+- control_points_staging.csv, the columns of control_points_main_upper.csv and a `code`: the master of staging's
+  control points. build_staging_sets.py writes staging.plan_overrides.json's control_points, stations and
+  station_tracks, the `detail_sheets` preference and the older data/control_points.csv from it, stations_staging.csv
+  and sheets_staging.csv.
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
   number means a turnout mast, no protected block an end bumper (buffer stop) mast, else an anchor mast. Hidden is a
   virtual mast (IF$vsm), its icon size hartlib.tables.mast_icon_size.
@@ -66,7 +68,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import json
 import os
 import re
 import sys
@@ -95,7 +96,7 @@ SIGNAL_COLUMNS = ["mast", "signal", "toward", "run", "names", "edge_cm", "cm_fro
 LIST = ";"
 # what staging.signals.json names as its source: the file the masts were first read from (the hand-drawn panel's)
 SIGNALS_SOURCE = "tables.xml"
-CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "notes"]
+CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "code", "notes"]
 # short_tracks_staging.csv: a short track between two switches with no block of its own, and the OS block whose gap it
 # sits inside (owner, 2026-11-20), keyed by the two switches, never by the drawing's edge ids
 SHORT_TRACKS = pd.DATA / "short_tracks_staging.csv"
@@ -666,20 +667,6 @@ def signal_rows(masts: list[dict]) -> list[dict]:
 
 # ---------------------------------------------------------------- the check (--check)
 
-def check_control_points(path: Path = CPS, overrides: Path = OVERRIDES) -> list[str]:
-    """control_points_staging.csv against staging.plan_overrides.json's control_points (the schematic's source):
-    the same stations, codes and switches, in order."""
-    want = json.loads(overrides.read_text(encoding="utf-8")).get("control_points")
-    if not isinstance(want, dict) or not want:
-        return [f"{overrides.name}: no control_points object"]
-    rows = read_rows(path, CP_COLUMNS)
-    got = [(r["cp_name"], r["cp_id"], [x.strip() for x in r["switches"].split(",") if x.strip()], r["level"])
-           for r in rows]
-    exp = [(name, f"cp_{(cp or {}).get('code', '').lower()}", list((cp or {}).get("switches") or []), str(LEVEL))
-           for name, cp in want.items()]
-    return [] if got == exp else [f"{path.name} is not {overrides.name}'s control points: {got} != {exp}"]
-
-
 def check_tables(rows: list[dict], rr: railroad.Railroad, shared: dict | None = None) -> list[str]:
     """Every device-map row the same bean in tables.xml (hartlib.railroad's tables, by user name): its system name;
     a turnout's jmri_name a turnout name the tables hold and its feedback sensors the fb rows'; a block's detector an
@@ -747,7 +734,6 @@ def check(band) -> list[str]:
         bad += check_helix(band, load(band))
         load_signal_masts()
         mast_facts()
-        bad += check_control_points()
         bad += check_tables(rows, rr, shared)
     except (StagingMapError, railroad.FactsError, mr.MapError) as exc:
         bad.append(str(exc))
