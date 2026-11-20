@@ -23,7 +23,7 @@ class Read(unittest.TestCase):
     def test_committed_file(self) -> None:
         rows = B.read()
         self.assertTrue(rows)
-        self.assertIn(B.Boundary("turnout", "TO1", "C", "Mast 14R", rows[[r.mast for r in rows].index("Mast 14R")].notes),
+        self.assertIn(B.Boundary("turnout", "TOL3", "A", "Mast 2L", rows[[r.mast for r in rows].index("Mast 2L")].notes),
                       rows)
 
     def test_values_stripped(self) -> None:

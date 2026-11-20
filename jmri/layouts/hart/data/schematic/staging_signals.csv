@@ -26,11 +26,6 @@ Mast 67,67,39,39;37,K-1;K-2,624.3,312.2,west,planned,1,e15,TOL29312
 Mast 68,68,37,37;39,K-1;K-2,624.3,312.2,east,planned,1,e15,TOR29969
 Mast 4LA,4LA,3,3;,W-1,267.2,267.2,west,virtual,1,e7,TOL33902
 Mast 4LB,4LB,3,3;,W-2,267.7,267.7,west,virtual,1,e8,TOL33902
-Mast 8LC,8LC,5,5;7,Scale,424.7,401.3,west,virtual,1,e29,TOL34057
 Mast 10LA,10LA,9,9;,EH-2,77.0,77.0,west,virtual,1,e33,TOL34513
 Mast 10LB,10LB,9,9;,EH-3,76.5,76.5,west,virtual,1,e34,TOL34513
-Mast 10RA,10RA,9,9;,EH-2,77.0,0.0,east,virtual,1,e33,TOL34513
-Mast 10RB,10RB,9,9;,EH-3,76.5,0.0,east,virtual,1,e34,TOL34513
 Mast 12L,12L,11,11;,EH-1,130.3,130.3,west,virtual,1,e35,TOL34512
-Mast 12R,12R,11,11;,EH-1,130.3,0.0,east,virtual,1,e35,TOL34512
-Mast 14R,14R,13,13;7,Barn,79.5,0.0,east,virtual,1,e31,TOL34511

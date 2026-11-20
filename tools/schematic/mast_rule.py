@@ -4,7 +4,9 @@ tracks() lists each track of a band between its ends (switch, helix or bumper), 
 <a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks), and masts() places a home signal where a
 track from outside a control point meets one of its switches, unless no route it governs reaches another signal
 (reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
-to its level by LEVELS.
+to its level by LEVELS. The rules that replaced hand lists (owner, 2026-11-20): running_tracks (passing sidings
+between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
+splits, which are a choice, not a rule. mast_plan.py runs them all as the one mast process of every level.
 """
 from __future__ import annotations
 
@@ -202,7 +204,7 @@ def key_problem(row: dict) -> str:
 
 
 def read_track_rows(path: Path, columns: list[str]) -> list[dict]:
-    """The rows of a hand list keyed by end switches (`columns` starts with TRACK_KEY_COLUMNS), each with its `line`.
+    """The rows of a hand list keyed by end switches (`columns` holds TRACK_KEY_COLUMNS), each with its `line`.
     switch_a and switch_b are switch numbers, lower first; switch_b is blank for a spur (a bumper at the other end);
     `parallel` (1, 2, from the top row, as the generated names count) is needed only where two tracks run between
     the same switches. Stops on columns not in that shape or a malformed row, naming the line."""
@@ -253,27 +255,117 @@ def resolve_track(row: dict, found: list[dict]) -> dict | None:
     return same[0]
 
 
-def resolve_track_rows(path: Path, columns: list[str], found: list[dict]) -> list[tuple[dict, dict]]:
-    """[(row, track entry)] of the hand list at `path`, each row resolved by its end switches (resolve_track) in
-    `found`. Stops on every row that names no track or an unchosen one of several, and on a track two rows name."""
-    out, bad, seen = [], [], {}
-    for row in read_track_rows(path, columns):
-        t = resolve_track(row, found)
-        if t is None:
-            bad.append(f"line {row['line']}: {row['problem']}")
-        elif id(t) in seen:
-            bad.append(f"line {row['line']}: {t['name']} is already named on line {seen[id(t)]}")
-        else:
-            seen[id(t)] = row["line"]
-            out.append((row, t))
-    if bad:
-        raise MapError(f"{path.name}: " + "; ".join(bad))
+# ---------------------------------------------------------------- rules that replace hand lists (owner, 2026-11-20)
+
+def through_leg(band, node: str, leg: str) -> str | None:
+    """The leg a train leaves a single crossover's half `node` by when it enters at `leg` and keeps to the half's
+    through route (the points, A, and the leg that does not join the other half), or None: `node` is no crossover
+    half (no leg joins a switch of the same number), or `leg` is the leg into the other half."""
+    nodes, strands = band["nodes"], band["strands"]
+    d = nodes[node]
+    legs = d["ins"] | d["outs"]
+    cross = []
+    for p, sid in legs.items():
+        s = strands[sid]
+        other = s["dst"][0] if s["src"][0] == node else s["src"][0]
+        o = nodes[other]
+        if other != node and o["kind"] == "switch" and base(o.get("label") or "") == base(d.get("label") or ""):
+            cross.append(p)
+    if len(cross) != 1 or leg == cross[0] or len(legs) != 3:
+        return None
+    rest = [p for p in legs if p not in (cross[0], leg)]
+    return rest[0] if leg == "A" or rest == ["A"] else None
+
+
+def by_leg(found) -> dict:
+    """{(band, switch node, leg): track entry} of every track end at a switch leg."""
+    out = {}
+    for t in found:
+        for (n, p) in t["legs"]:
+            out[(t["band"], n, p)] = t
     return out
 
 
-def track_list(path: Path, found: list[dict]) -> set[str]:
-    """The names of the tracks a hand list (columns TRACK_KEY_COLUMNS + notes) names, resolved at build time."""
-    return {t["name"] for _r, t in resolve_track_rows(path, TRACK_KEY_COLUMNS + ["notes"], found)}
+def running_tracks(bands, found, cp_of: dict) -> set[str]:
+    """The names of the tracks that count as running track besides the main route (owner, 2026-11-20; it replaced
+    the hand list running_tracks_main_upper.csv): a chain of non-main tracks joining two different interlockings
+    (`cp_of`, {switch: interlocking}), where the chain may run on through the through route of a crossover half in no interlocking
+    (through_leg: local crossover 121 on the long siding). A passing siding between two control points is running
+    track; a spur, a loop, a track up the helix or one ending in a yard is not. On staging it makes Scale (5-7) running
+    track."""
+    legs = by_leg(found)
+
+    def walk(t, n, p, chain):
+        """The interlocking a chain reaches leaving track `t` at its end (n, p), or None; `chain` collects it."""
+        while True:
+            d = bands[t["band"]][1]["nodes"][n]
+            if d["kind"] not in ("switch", "dx"):
+                return None
+            num = base(d["label"])
+            if num in cp_of:
+                return cp_of[num]
+            out_leg = through_leg(bands[t["band"]][1], n, p)
+            nxt = legs.get((t["band"], n, out_leg)) if out_leg else None
+            if nxt is None or nxt["main"] or nxt["loop"] or id(nxt) in chain:
+                return None
+            chain[id(nxt)] = nxt
+            a, b = nxt["legs"]
+            n, p = b if tuple(a) == (n, out_leg) else a
+            t = nxt
+
+    out = set()
+    for t in found:
+        if t["main"] or t["loop"] or any(k != "sw" for k, _v in t["ends"]):
+            continue
+        chain = {id(t): t}
+        ends = [walk(t, n, p, chain) for (n, p) in t["legs"]]
+        if ends[0] and ends[1] and ends[0] != ends[1]:
+            out |= {u["name"] for u in chain.values()}
+    return out
+
+
+def signalled_spurs(found, cp_of: dict) -> set[str]:
+    """The names of the spurs that get an exit dwarf (owner, 2026-11-20; it replaced the hand list
+    signalled_spurs_main_upper.csv): a spur (one switch, a buffer stop at the other end) off a main track at a switch in no interlocking (`cp_of`): Track
+    241 Spur."""
+    out = set()
+    for t in found:
+        sw = [v for k, v in t["ends"] if k == "sw"]
+        if len(sw) != 1 or not any(k == "bumper" for k, _v in t["ends"]) or sw[0] in cp_of:
+            continue
+        if any(u["main"] for u in found if u is not t and u["level"] == t["level"]
+               and sw[0] in [v for k, v in u["ends"] if k == "sw"]):
+            out.add(t["name"])
+    return out
+
+
+SPLIT_COLUMNS = ["level"] + TRACK_KEY_COLUMNS + ["notes"]
+
+
+def read_block_splits(path: Path, found: list[dict], levels) -> set[str]:
+    """The names of the tracks block_splits.csv parts into two blocks at their turnback, among `found` and the
+    `levels` ({band key: level}) asked for. Each row is the OWNER'S CHOICE, not a rule (owner, 2026-11-20: a rule would
+    catch every intermediate loop): `level` and the track's end switches (read_track_rows' key), resolved at build
+    time. Stops on a file not in that shape, a level that is not 1 to 3, a row naming no track or a track on another
+    level, or a track two rows name. A row of a level not asked for is checked for shape only."""
+    wanted = set(levels.values())
+    rows = read_track_rows(path, SPLIT_COLUMNS)
+    bad = [f"line {r['line']}: level {r['level']!r} is 1, 2 or 3" for r in rows if r["level"] not in ("1", "2", "3")]
+    out, seen = set(), {}
+    for r in rows:
+        if bad or int(r["level"]) not in wanted:
+            continue
+        t = resolve_track(r, [t for t in found if t["level"] == int(r["level"])])
+        if t is None:
+            bad.append(f"line {r['line']}: level {r['level']}: {r['problem']}")
+        elif t["name"] in seen:
+            bad.append(f"line {r['line']}: {t['name']} is already named on line {seen[t['name']]}")
+        else:
+            seen[t["name"]] = r["line"]
+            out.add(t["name"])
+    if bad:
+        raise MapError(f"{path.name}: " + "; ".join(bad))
+    return out
 
 
 def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_extra=frozenset(),
@@ -383,6 +475,14 @@ def reaches_signal(bands, bi: int, node: str, leg: str, posts: dict, joined: dic
     end_ref does, and is a bumper when it does not. Every route is walked through switches and turnbacks to the next
     mast or the end of track; a route ending at a bumper, or in track with no mast facing on (a dark spur or yard),
     reaches none. A route that comes back to a leg already walked, its own start among them, adds nothing."""
+    return route_ends(bands, bi, node, leg, posts, joined)[0]
+
+
+def route_ends(bands, bi: int, node: str, leg: str, posts: dict, joined: dict) -> tuple[bool, set]:
+    """(reaches a signal, {(band, buffer stop node)} reached before any mast) over every route of a train entering
+    switch `node` of band `bi` at `leg`, walked as reaches_signal says (the whole walk: a route that reaches a signal
+    stops there, the others run on). The buffer stops are where a mast in `posts` needs a destination
+    (mast_plan.virtual_masts, owner 2026-11-20)."""
     def legs(b, n):
         d = bands[b][1]["nodes"][n]
         return d["ins"] | d["outs"]
@@ -407,7 +507,7 @@ def reaches_signal(bands, bi: int, node: str, leg: str, posts: dict, joined: dic
                 return b, m, q
 
     start = (bi, node, leg)
-    todo, seen = [start], {start}
+    todo, seen, signal, bumpers = [start], {start}, False, set()
     while todo:
         b, n, p = todo.pop()
         d = bands[b][1]["nodes"][n]
@@ -421,14 +521,17 @@ def reaches_signal(bands, bi: int, node: str, leg: str, posts: dict, joined: dic
             end = bands[fb][1]["nodes"][m]
             if end["kind"] not in EXITS:                    # a track end
                 if end.get("sub") in ("helix", "open"):
-                    return True                             # runs on: another level, or off the drawing
-                continue                                    # a bumper or an unjoined connector: this route ends dark
+                    signal = True                           # runs on: another level, or off the drawing
+                elif end.get("sub") == "bumper":
+                    bumpers.add((fb, m))                    # this route ends dark at a buffer stop
+                continue                                    # an unjoined connector: this route ends dark
             if here != start and (m, q) in posts.get(fb, ()):
-                return True
+                signal = True
+                continue
             if here not in seen:
                 seen.add(here)
                 todo.append(here)
-    return False
+    return signal, bumpers
 
 
 def facing_on_route(band, node: str, leg: str, cp_of: dict, long_cm: float = LONG_CM) -> list[str]:
@@ -480,42 +583,3 @@ def facing_on_route(band, node: str, leg: str, cp_of: dict, long_cm: float = LON
                 continue                                    # running track inside: its own signals govern it
             todo.append(at_other_end(sid, n))
     return sorted(set(out), key=natural)
-
-
-def leads_to_bumpers_only(band, node: str, leg: str) -> bool:
-    """True when every route of a train leaving switch `node` of `band` by `leg` ends at a buffer stop: a stub, such
-    as staging's engine house past Switch 13's leg C. Routes are walked through switches (EXITS) and turnbacks; a
-    helix end, an open end or a connector runs on, so it is no stub. MapError on a track end of no known kind."""
-    nodes, strands = band["nodes"], band["strands"]
-
-    def legs(n):
-        return nodes[n]["ins"] | nodes[n]["outs"]
-
-    def far_end(n, x):
-        while True:
-            s = strands[legs(n)[x]]
-            m, q = s["dst"] if tuple(s["src"]) == (n, x) else s["src"]
-            if not nodes[m]["kind"].startswith("turn"):
-                return m, q
-            onward = [k for k in legs(m) if k != q]
-            if len(onward) != 1:
-                raise MapError(f"leads_to_bumpers_only: turnback {m} has {len(onward) + 1} tracks, not two")
-            n, x = m, onward[0]
-
-    todo, seen = [(node, leg)], set()
-    while todo:
-        n, x = todo.pop()
-        if (n, x) in seen or legs(n).get(x) is None:
-            continue
-        seen.add((n, x))
-        m, q = far_end(n, x)
-        d = nodes[m]
-        if d["kind"] in EXITS:
-            todo += [(m, y) for y in EXITS[d["kind"]][q]]
-        elif d["kind"] == "end" and d.get("sub") == "bumper":
-            continue
-        elif d["kind"] == "end" and d.get("sub") in ("helix", "open", "link"):
-            return False
-        else:
-            raise MapError(f"leads_to_bumpers_only: track end {m} is {d['kind']}/{d.get('sub')}, of no known kind")
-    return True

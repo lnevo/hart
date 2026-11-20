@@ -16,8 +16,8 @@ R = BD.railroad
 
 
 def cp(name, level, *switches):
-    """An in-memory control point (control_points_main_upper.csv row)."""
-    return R.LevelControlPoint(0, name.lower().replace(" ", "_"), name, level, switches, "West")
+    """An in-memory main or upper interlocking, its control point (an interlockings.csv row)."""
+    return R.Interlocking(0, level, name, switches, "West")
 
 
 def rows():
@@ -30,18 +30,19 @@ class Pure(unittest.TestCase):
         self.assertEqual([BD.base(x) for x in ("129A", "135B", "223*", "105")], ["129", "135", "223", "105"])
 
     def test_a_split_track_is_named_and_its_edge_found_at_build_time(self):
-        """split_tracks_main_upper.csv names tracks by their end switches, which survive a new export; the plan edge
+        """block_splits.csv names tracks by their level and end switches, which survive a new export; the plan edge
         each is drawn on is looked up when the map is built."""
-        found = [track("Track 227-241", "241", "227", trial=["Track e63"]),
-                 track("Track 241 Spur", "241", trial=["Track e64"]),
-                 track("Track 1-2", "1", "2", trial=["Track e1", "Track e2"])]
-        head = "switch_a,switch_b,parallel,notes\n"
+        found = [dict(t, level=3) for t in (track("Track 227-241", "241", "227", trial=["Track e63"]),
+                                            track("Track 241 Spur", "241", trial=["Track e64"]),
+                                            track("Track 1-2", "1", "2", trial=["Track e1", "Track e2"]))]
+        head = "level,switch_a,switch_b,parallel,notes\n"
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "split.csv"
-            for text, want in ((head + "227,241,,\n", {"e63": "Track 227-241"}),
-                               (head + "9,10,,\n", "no track runs Switch 9 to Switch 10"),
-                               (head + "1,2,,\n", "drawn on Track e1, Track e2"),
-                               (head + "227,241,,\n227,241,,\n", "already named on line 2"),
+            for text, want in ((head + "3,227,241,,\n", {"e63": "Track 227-241"}),
+                               (head + "3,9,10,,\n", "no track runs Switch 9 to Switch 10"),
+                               (head + "3,1,2,,\n", "drawn on Track e1, Track e2"),
+                               (head + "3,227,241,,\n3,227,241,,\n", "already named on line 2"),
+                               (head + "2,227,241,,\n", "no track runs Switch 227 to Switch 241"),
                                ("edge,track\ne63,Track 227-241\n", "columns")):
                 p.write_text(text, encoding="utf-8")
                 with self.subTest(text=text):
@@ -66,7 +67,7 @@ class Pure(unittest.TestCase):
     def test_switch_in_two_control_points_fails(self):
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "cps.csv"
-            p.write_text("cp_id,cp_name,level,switches,area,notes\na,CP 1,2,\"1,3\",West,\nb,CP 3,2,3,West,\n")
+            p.write_text("level,interlocking,switches,area,notes\n2,CP 1,\"1,3\",West,\n2,CP 3,3,West,\n")
             with self.assertRaisesRegex(BD.MapError, "switch 3 is in CP 1 and CP 3"):
                 BD.load_cps(p)
 
@@ -156,8 +157,15 @@ class Output(unittest.TestCase):
 
     def test_mast_names_follow_adr005(self):
         import re
+        from hartlib import level_masts
         for x in rows():
-            if x["layer"] == "mast" and not x["comment"].endswith(" | intermediate"):
+            if x["layer"] == "mast" and level_masts.is_level_virtual(x["jmri_name"]):
+                # a destination at a buffer stop: named from its track's switch, lettered after the visible masts
+                m = re.fullmatch(r"Mast (\d+)([LR])([A-D]?)", x["user_name"])
+                self.assertIsNotNone(m, x["user_name"])
+                self.assertEqual(int(m.group(1)) % 2, 0)
+                self.assertTrue(x["comment"].endswith(" | buffer stop"), x["user_name"])
+            elif x["layer"] == "mast" and not x["comment"].endswith(" | intermediate"):
                 m = re.fullmatch(r"Mast (\d+)([LR])([AB]?)", x["user_name"])
                 self.assertIsNotNone(m, x["user_name"])
                 self.assertEqual(int(m.group(1)) % 2, 0)
@@ -243,6 +251,8 @@ class Output(unittest.TestCase):
                     self.assertEqual(x["jmri_name"], "IT:HART:C3:" + x["user_name"].rpartition(" ")[2])
                 elif x["layer"] == "head":
                     self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"]))
+                elif x["layer"] == "mast" and level_masts.is_level_virtual(x["jmri_name"]):
+                    self.assertEqual(x["system_name"], x["jmri_name"])        # a hidden virtual mast, no heads
                 elif x["layer"] == "mast":
                     self.assertTrue(level_masts.is_level_mast(x["jmri_name"]))
                     if x["system_name"]:
@@ -274,9 +284,9 @@ class Output(unittest.TestCase):
         for name in got:
             self.assertTrue(next(x for x in rows() if x["user_name"] == name)["jmri_name"]
                             .startswith("IF$shsm:basic:one-searchlight("), name)
-        self.assertEqual([BD.signal_number(8.49, w) for w in (True, False)], [85, 84])
-        self.assertEqual([BD.signal_number(9.19, w) for w in (True, False)], [91, 92])
-        self.assertEqual([BD.signal_number(9.2, w) for w in (True, False)], [93, 92])
+        self.assertEqual([BD.mast_plan.signal_number(8.49, w, "A") for w in (True, False)], [85, 84])
+        self.assertEqual([BD.mast_plan.signal_number(9.19, w, "B") for w in (True, False)], [91, 92])
+        self.assertEqual([BD.mast_plan.signal_number(9.2, w, "B") for w in (True, False)], [93, 92])
 
     def test_virtual_names(self):
         self.assertEqual([BD.block_sensor(b) for b in ("Track 107-109", "Track 107 Loop 2", "OS Switch 225b",
@@ -310,7 +320,7 @@ class Output(unittest.TestCase):
 
     def test_overrides_match_the_control_point_file(self):
         over = json.loads(BD.OVERRIDES.read_text())
-        names = [c.cp_name for c in BD.load_cps()]
+        names = [c.name for c in BD.load_cps()]
         self.assertEqual(list(over["control_points"]), names)
         self.assertEqual({k: v["switches"] for k, v in over["stations"].items()},
                          {k: v["switches"] for k, v in over["control_points"].items()})
@@ -493,14 +503,17 @@ def track(name, a, b=None, row=0, trial=None, loop=False):
 
 
 class SwitchPairLists(unittest.TestCase):
-    """Hand lists name a track by its end switches, so a renumber does not break them (source-data row 5)."""
-    HEAD = "switch_a,switch_b,parallel,notes\n"
+    """Hand lists (block_splits.csv) name a track by its end switches, so a renumber does not break them (source-data
+    row 5). The rows below are level 2 rows; the tracks are level 2 tracks."""
+    HEAD = "level,switch_a,switch_b,parallel,notes\n"
 
     def names(self, text, found):
+        text = "".join("2," + line + "\n" for line in text.splitlines())
+        found = [dict(t, level=2) for t in found]
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "list.csv"
             p.write_text(self.HEAD + text, encoding="utf-8")
-            return BD.track_list(p, found)
+            return BD.mast_rule.read_block_splits(p, found, BD.LEVELS)
 
     def test_a_pair_names_its_track_whichever_way_the_ends_are_stored(self):
         found = [track("Track 119-121", "121", "119"), track("Track 121-123", "121", "123", row=1)]
@@ -512,7 +525,7 @@ class SwitchPairLists(unittest.TestCase):
 
     def test_two_tracks_between_one_pair_need_parallel(self):
         found = [track("Track 211-217 1", "211", "217", row=5), track("Track 211-217 2", "211", "217", row=6)]
-        with self.assertRaisesRegex(BD.MapError, r"list.csv: line 2: 2 tracks run Switch 211 to Switch 217 "
+        with self.assertRaisesRegex(BD.MapError, r"list.csv: line 2: level 2: 2 tracks run Switch 211 to Switch 217 "
                                                   r"\(Track 211-217 1, Track 211-217 2\): give parallel"):
             self.names("211,217,,\n", found)
         self.assertEqual(self.names("211,217,2,\n", found), {"Track 211-217 2"})
@@ -521,7 +534,7 @@ class SwitchPairLists(unittest.TestCase):
 
     def test_a_pair_with_no_track_names_the_tracks_at_its_switches(self):
         found = [track("Track 119-121", "119", "121")]
-        with self.assertRaisesRegex(BD.MapError, r"line 3: no track runs Switch 119 to Switch 123 \(tracks at those "
+        with self.assertRaisesRegex(BD.MapError, r"line 3: level 2: no track runs Switch 119 to Switch 123 \(tracks at those "
                                                   r"switches: Track 119-121\)"):
             self.names("119,121,,\n119,123,,\n", found)
 
@@ -548,11 +561,9 @@ class SwitchPairLists(unittest.TestCase):
         found = [track("Track 107 Loop", "107", "107", loop=True)]
         self.assertEqual(self.names("107,107,,\n", found), {"Track 107 Loop"})
 
-    def test_the_committed_lists_resolve_in_the_plan(self):
+    def test_the_committed_splits_resolve_in_the_plan(self):
         found = BD.named_tracks()
-        self.assertEqual(BD.track_list(BD.SPURS, found), {"Track 241 Spur"})
         self.assertEqual(BD.split_tracks(found=found), {"Track 227-241"})
-        self.assertIn("Track 211-217 1", BD.track_list(BD.RUNNING, found))
 
 
 if __name__ == "__main__":

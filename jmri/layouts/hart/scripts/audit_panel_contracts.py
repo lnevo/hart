@@ -19,8 +19,9 @@ from hartlib import boundaries as boundary_csv, level_devices, level_masts, park
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
 BOUNDARIES = boundary_csv.PATH
-# staging's turnout and anchor masts but the hidden yard-track ones (staging masts by rule, owner 2026-11-19)
-BOUNDARY_ROWS = 30
+# staging's visible turnout and anchor masts (staging masts by rule, owner 2026-11-19); its virtual masts stand at buffer
+# stops only since 2026-11-20, so none is a boundary row
+BOUNDARY_ROWS = 25
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -136,7 +137,7 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
 
 def dispatcher_virtuals(expected: set[str], name_map: Path = paths.PUBLIC_NAME_MAP) -> set[str]:
     """The boundary masts that are hidden virtual masts for Dispatcher Stage 1, not field
-    masts: those whose name-map hardware is `virtual $10nn` (Mast 8LC, 2R, 36L ...)."""
+    masts: those whose name-map hardware is `virtual $10nn`."""
     with name_map.open(newline="", encoding="utf-8") as f:
         virtual = {
             row["proposed"] for row in csv.DictReader(f)
@@ -155,7 +156,7 @@ def draws_levels(panel: ET.Element | None) -> bool:
     protects (main_upper_masts.csv)."""
     if panel is None:
         return False
-    protects = {r["protects"] for r in level_masts.read()}
+    protects = {r["protects"] for r in level_masts.read() if r["protects"]}   # a hidden mast protects none
     return any(t.get(a) in protects for t in panel.iter("layoutturnout")
                for a in ("blockname", "blockbname", "blockcname", "blockdname"))
 
@@ -176,6 +177,9 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: b
             normalized = (system_name + " " + name).upper()
             if "IF$VSM:CATS" in normalized or "CATS1" in normalized or "CATS2" in normalized:
                 cats_virtual.append(f"{name or '<unnamed>'} [{system_name or '<no system name>'}]")
+            if level_masts.is_level_virtual(system_name):
+                level.add(name)             # a main or upper virtual destination mast
+                continue
             if mast.tag == "virtualsignalmast" or (system_name or "").startswith(
                 "IF$vsm:"
             ):
@@ -336,7 +340,7 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # device-map switch-over, owner 2026-11-17): stock discovery in a sandbox stored 180, every earlier pair kept and 9
 # gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
-EXPECTED_SML = {False: 100, True: 138}    # True: stock discovery from an empty list on the 2026-11-20 candidate (one-block helix, 5.3c lengths, hidden staging masts by rule, yard throats and their masts dropped)
+EXPECTED_SML = {False: 100, True: 177}    # True: stock discovery from an empty list on the 2026-11-20 one-mast-process candidate (virtual masts only as destinations on every level: staging 5, main 10, upper 14; Scale running track)
 # A generated panel before stock discovery (the cut-over candidate as built, build_layout_le.py --as-live) carries the
 # Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
 # names a main or upper object (strip_build_owned): exactly the live tables' destinations between staging masts

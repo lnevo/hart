@@ -181,18 +181,32 @@ def main_upper_rows() -> list[dict]:
     rr = railroad.Railroad(bdm.sources(), upto="inputs")
     sw = railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
     cp_of = {s: v.cp for s, v in sw.items() if v.cp}
-    dxs = {bdm.base(d["label"]) for t, b, _ in bands if bdm.band_level(t) for d in b["nodes"].values()
-           if d["kind"] == "dx"}
-    cb = {s: bdm.xover_corners(s, corners[s]) for s in dxs}
-    lists = [bdm.track_list(p, found) for p in (bdm.RUNNING, bdm.SPURS)]
-    placed = {m["name"]: m for m in mr.masts(bands, None, found, cp_of, cb, running_extra=lists[0], spurs=lists[1],
-                                             split=bdm.split_tracks(found=found), joined=joined)}
+    planned, _corner_blocks, _split = bdm.plan_masts(bands, joined, runs, found, cp_of, corners)   # mast_plan.plan
+    placed = {m["name"]: m for m in planned["home"]}
+    destinations = {m["name"]: m for m in planned["virtual"]}
     by_name = {t["name"]: t for t in found}
     plan = lambda sid, band: re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][sid]["edge"])   # noqa: E731
     rows = []
     for r in lm.read():
         name = r["mast"].removeprefix("Mast ")
         heads = len(r["heads"])
+        if lm.is_level_virtual(r["system_name"]):
+            # a hidden destination mast at the buffer stop of the track its switch leg leaves by, measured from the
+            # switch (the whole track: an end bumper), as staging's virtual masts are
+            m = destinations.get(name)
+            if m is None:
+                sys.exit(f"{r['mast']}: main_upper_masts.csv names a virtual mast the rule no longer places; "
+                         "rebuild it with build_device_map.py and build_main_upper_masts.py")
+            band = bands[m["band"]][1]
+            d = band["nodes"][m["node"]]
+            t = by_name.get(r["facing"])
+            if t is None:
+                sys.exit(f"{r['mast']}: faces {r['facing']!r}, which is no whole track of the plan")
+            sid = d["ins"].get(m["leg"]) or d["outs"].get(m["leg"])
+            rows.append(dict(mast=name, toward=m["switch"], run=[m["switch"], ""], edge=plan(sid, band),
+                             node=m["node"], edge_cm=t["cm"], cm_from_toward=t["cm"], dir=r["dir"], heads=1,
+                             leg=None, kind="virtual"))
+            continue
         if r["switch"]:
             m = placed[name]
             band = bands[m["band"]][1]
@@ -230,7 +244,7 @@ def main_upper_rows() -> list[dict]:
                              dir=r["dir"], heads=heads,
                              leg=loop_leg(r["facing"]) if t["loop"] else None))
     return [dict(mast=x["mast"], toward=x["toward"], run=x["run"], names=[], edge_cm=x["edge_cm"],
-                 cm_from_toward=x["cm_from_toward"], dir=x["dir"], kind="planned", heads=x["heads"],
+                 cm_from_toward=x["cm_from_toward"], dir=x["dir"], kind=x.get("kind", "planned"), heads=x["heads"],
                  source="main_upper_masts.csv", _edge=x["edge"], _toward_node=x["node"],
                  **({"leg": x["leg"]} if x["leg"] else {})) for x in rows]
 

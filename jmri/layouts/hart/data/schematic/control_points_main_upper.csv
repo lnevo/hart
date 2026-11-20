@@ -1,9 +1,0 @@
-cp_id,cp_name,level,switches,area,notes
-cp_107,CP 107,2,"107,109,111,117,119",West,"Balloon loop switch (plan T196) with the main at the yard lead (109), the long yard track (111), the Industry 1 lead (117) and the 119 crossover to the long siding: one interlocking, Track 107-109 is 100 cm (owner, 2026-11-19)"
-cp_123,CP 123,2,"123,125",North,"East end of the long siding (123) and the 125 crossover between the main and the Industry 2 lead (renumbered 2026-11-19: was 125 and 127; 125B, the old 131, came in with its crossover)"
-cp_127,CP 127,2,"127,131",North,"Helix-top crossovers, main level by the owner's rule; their B halves are drawn on the upper band, so the schematic bracket lists only 127A and 131A (renumbered 2026-11-19: was 129 and 135). Old bench plan: CP5 (Duffs Junction)"
-cp_201,CP 201,3,"201,203,219,221",West,West end of the upper main: 219 and the 221 crossover with 201 and 203
-cp_211,CP 211,3,211,Peninsula,Crossover on the upper main around the west loop (was CP 213; upper renumbered 2026-11-19)
-cp_217,CP 217,3,217,Peninsula,Crossover on the upper main around the west loop
-cp_223,CP 223,3,223,North,Closet junction (plan T331; T300 in 5.3b)
-cp_225,CP 225,3,"225,227,229",Helix,Double crossover 225 with the peninsula loop (227) and the yard lead (229). Old bench plan: CP4 (double crossover NIX)

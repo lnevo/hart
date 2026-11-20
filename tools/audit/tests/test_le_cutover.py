@@ -139,7 +139,7 @@ class Cutover(unittest.TestCase):
         key = lambda m: (m["kind"], m["facing"], list(m["protects"]), m.get("turnout"))      # noqa: E731
         gen = {m["mast"]: key(m) for m in self.slots.Index(self.le).masts()}
         facts = {n: key(f) for n, f in B.sdm.mast_facts().items()}
-        self.assertEqual(len(facts), 35)
+        self.assertEqual(len(facts), 30)
         self.assertEqual(gen, facts)                   # kind, blocks and turnout: what discovery reads
         self.assertEqual(self.P.moved, [])             # no helix-entrance exception in staging mode
         self.assertEqual(self.P.unplaced, [])
@@ -632,7 +632,8 @@ class ThreeLevels(unittest.TestCase):
         for m in on_level:
             ident = self.P.name(m["ident"])
             f, pr = ix.blocks(m["kind"], ident, m["slot"])
-            self.assertEqual((f, pr), (rows[m["mast"]]["facing"], [rows[m["mast"]]["protects"]]), m["mast"])
+            want = [rows[m["mast"]]["protects"]] if rows[m["mast"]]["protects"] else []     # a virtual mast: a bumper
+            self.assertEqual((f, pr), (rows[m["mast"]]["facing"], want), m["mast"])
             if rows[m["mast"]]["leg"]:
                 normal = "B" if turnouts[ident]["continuing"] == "2" else "C"
                 self.assertEqual(m["slot"] == normal, rows[m["mast"]]["leg"] == "normal", m["mast"])

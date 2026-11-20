@@ -33,6 +33,14 @@ class LcosMimicNamingTest(unittest.TestCase):
         self.assertEqual(by_label["Switch 9"]["plant"], "Engine House")
         self.assertNotIn("West Yard", {t["plant"] for t in self.layout["turnouts"]})
 
+    def test_level_heads_leave_out_the_hidden_virtual_masts(self) -> None:
+        # the main and upper virtual masts (buffer-stop destinations) have no heads and no control point; the
+        # layout still loads and every head belongs to a visible mast
+        masts = {h["mast"] for h in self.layout["heads"] if h.get("level") in ("main", "upper", 2, 3)}
+        self.assertTrue(masts)
+        self.assertNotIn("Mast 102RA", masts)
+        self.assertIn("Mast 120RA", masts)
+
     def test_occupancy_uses_os_labels(self) -> None:
         labels = {b["label"] for b in self.layout["blocks"]}
         self.assertIn("OS Switch 1", labels)

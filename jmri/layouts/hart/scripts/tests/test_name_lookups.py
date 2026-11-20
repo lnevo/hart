@@ -112,15 +112,15 @@ class DispatcherVirtualsTest(unittest.TestCase):
             self.assertEqual({"Mast 1A"},
                              audit.dispatcher_virtuals({"Mast 1A", "Mast 1B", "Mast 1C"}, nm))
 
-    def test_repo_dispatcher_virtuals_are_these_seven(self):
+    def test_repo_has_no_dispatcher_virtuals_now(self):
         # Pinned on purpose: a boundary or hardware change shows up here instead of moving silently.
         audit = load("audit_panel_contracts")
         with (DATA / "le_signal_boundaries.csv").open(newline="", encoding="utf-8") as f:
             boundary = {r["mast_user_name"] for r in csv.DictReader(f)}
         # Mast 2R and 6R are visible since ADR-024, so no longer virtual.
-        # 36L and 40RB went with the hidden yard throats (owner, 2026-11-20).
-        self.assertEqual({"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB"},
-                         audit.dispatcher_virtuals(boundary))
+        # 36L and 40RB went with the hidden yard throats (owner, 2026-11-20); 8LC, 10RA, 10RB, 12R and 14R when
+        # virtual masts became destinations only (owner, 2026-11-20), so no boundary mast is virtual now.
+        self.assertEqual(set(), audit.dispatcher_virtuals(boundary))
 
 
 if __name__ == "__main__":

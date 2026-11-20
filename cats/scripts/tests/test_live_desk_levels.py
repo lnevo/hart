@@ -20,7 +20,7 @@ import digicon_trace as trace  # noqa: E402
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import level_devices, level_masts  # noqa: E402
 
-LEVEL_MASTS = level_masts.names()
+LEVEL_MASTS = level_masts.visible_names()    # the hidden virtual masts are never drawn
 BINDINGS = ROOT / "cats/panels/HART_CTC.bindings.json"
 # DECADDR of a main or upper virtual occupancy sensor (IS:HART:C3:B:<block key>): the prefix less JMRIPREFIX "IS"
 LEVEL_SENSOR = level_devices.SENSOR_PREFIX.removeprefix("IS")

@@ -1,22 +1,21 @@
-"""The masts of every level as they stand (2026-11-20), pinned before the one mast process replaces the per-level ones
-(wiki/projects/level-unification-handoff.md, Masts). Two views, each named mast by mast:
+"""The masts of every level, pinned mast by mast (wiki/projects/level-unification-handoff.md, Masts). Two views:
 
 - the committed mast files (staging_masts.csv, main_upper_masts.csv: hartlib.level_masts.FIELDS), read as plain CSV,
-  so the pins do not depend on how the device maps are laid out (R9b moves them into devices.csv);
-- the rule's own output over the committed plan, under RepoReadOnly: build_staging_masts.build() for staging, and
-  mast_rule.masts() plus build_device_map's head and intermediate steps for main and upper.
+  so the pins do not depend on how the device maps are laid out;
+- the one mast process's own output over the committed plan, under RepoReadOnly: build_staging_masts.build() for
+  staging and build_device_map.plan_masts (mast_plan.plan, the function build() calls) for main and upper.
 
 A change here is a change to where masts stand or what they show, which needs the owner's approval of the panel. The
-build that brings one rule to every level is expected to change exactly these entries, and no others:
-  staging 6LA and 8RA: one-low -> one-searchlight (Scale becomes running track by rule);
-  staging virtual masts: 8LC, 10RA, 10RB, 12R and 14R go (virtual masts only as destinations);
-  main and upper: 24 virtual bumper masts come (10 main, 14 upper).
+one mast process (owner, 2026-11-20) changed exactly these entries from the per-level processes before it, and no
+others:
+  staging 6LA and 8RA: one-low -> one-searchlight (Scale is running track by rule);
+  staging virtual masts: 8LC, 10RA, 10RB, 12R and 14R went (virtual masts only as destinations);
+  main and upper: 24 virtual bumper masts came (10 main, 14 upper).
 """
 from __future__ import annotations
 
 import contextlib
 import csv
-import io
 import os
 import re
 import sys
@@ -39,12 +38,12 @@ STAGING_VISIBLE = (
     ("2R", "one-searchlight", 1, "1", "Track Brick-Plane", "OS Switch 1", "east"),
     ("4RA", "one-low", 1, "3", "Track W-1", "OS Switch 3", "east"),
     ("4RB", "one-low", 1, "3", "Track W-2", "OS Switch 3", "east"),
-    ("6LA", "one-low", 1, "5", "Track Scale", "OS Switch 5", "west"),
+    ("6LA", "one-searchlight", 1, "5", "Track Scale", "OS Switch 5", "west"),
     ("6LB", "one-searchlight", 1, "5", "Track East Ext", "OS Switch 5", "west"),
     ("6R", "two-searchlight", 2, "5", "Track Brick-Plane", "OS Switch 5", "east"),
     ("8LA", "two-low", 2, "7", "Track Barn", "OS Switch 7", "west"),
     ("8LB", "one-searchlight", 1, "7", "Track Main East", "OS Switch 7b", "west"),
-    ("8RA", "one-low", 1, "", "Track Scale", "OS Switch 7", "east"),
+    ("8RA", "one-searchlight", 1, "", "Track Scale", "OS Switch 7", "east"),
     ("8RB", "two-searchlight", 2, "7", "Track East Ext", "OS Switch 7b", "east"),
     ("24L", "one-searchlight", 1, "23", "Track West Ext", "OS Switch 23a", "west"),
     ("24RA", "two-searchlight", 2, "23", "Track Main West", "OS Switch 23a", "east"),
@@ -65,14 +64,9 @@ STAGING_VISIBLE = (
 STAGING_VIRTUAL = (
     ("4LA", "", "Track W-1", "", "west"),
     ("4LB", "", "Track W-2", "", "west"),
-    ("8LC", "", "OS Switch 7", "Track Scale", "west"),
     ("10LA", "", "Track EH-2", "", "west"),
     ("10LB", "", "Track EH-3", "", "west"),
-    ("10RA", "9", "Track EH-2", "OS Switch 9", "east"),
-    ("10RB", "9", "Track EH-3", "OS Switch 9", "east"),
     ("12L", "", "Track EH-1", "", "west"),
-    ("12R", "11", "Track EH-1", "OS Switch 11", "east"),
-    ("14R", "13", "Track Barn", "OS Switch 13", "east"),
 )
 MAIN_UPPER_VISIBLE = (
     ("A83", "one-searchlight", 1, "", "Track 107 Loop 2", "Track 107 Loop 1", "west"),
@@ -120,7 +114,34 @@ MAIN_UPPER_VISIBLE = (
     ("230LB", "two-low", 2, "229", "Track 229-233", "OS Switch 229", "west"),
     ("242L", "one-low", 1, "241", "Track 241 Spur", "OS Switch 241", "west"),
 )
-MAIN_UPPER_VIRTUAL = ()
+MAIN_UPPER_VIRTUAL = (
+    # main (10)
+    ("102RA", "", "Track 101 Spur 1", "", "east"),
+    ("102RB", "", "Track 101 Spur 2", "", "east"),
+    ("104R", "", "Track 103 Spur", "", "east"),
+    ("114RA", "", "Track 113 Spur 1", "", "east"),
+    ("114RB", "", "Track 113 Spur 2", "", "east"),
+    ("116R", "", "Track 115 Spur", "", "east"),
+    ("120RC", "", "Track 119 Spur", "", "east"),
+    ("122R", "", "Track 121 Spur", "", "east"),
+    ("130LA", "", "Track 129 Spur 1", "", "west"),
+    ("130LB", "", "Track 129 Spur 2", "", "west"),
+    # upper (14)
+    ("206L", "", "Track 205 Spur", "", "west"),
+    ("210LA", "", "Track 209 Spur 1", "", "west"),
+    ("210LB", "", "Track 209 Spur 2", "", "west"),
+    ("214L", "", "Track 213 Spur", "", "west"),
+    ("216LA", "", "Track 215 Spur 1", "", "west"),
+    ("216LB", "", "Track 215 Spur 2", "", "west"),
+    ("232L", "", "Track 231 Spur", "", "west"),
+    ("236R", "", "Track 235 Spur", "", "east"),
+    ("240L", "", "Track 239 Spur", "", "west"),
+    ("242R", "", "Track 241 Spur", "", "east"),
+    ("244RA", "", "Track 243 Spur 1", "", "east"),
+    ("244RB", "", "Track 243 Spur 2", "", "east"),
+    ("246LA", "", "Track 245 Spur 1", "", "west"),
+    ("246LB", "", "Track 245 Spur 2", "", "west"),
+)
 INTERMEDIATES = {"67", "68", "A83", "A84", "B92", "B93"}
 # masts the rule must not place: 126L faces Track 121-125 into Switch 125, and every route it would clear ends at
 # Switch 129's spur bumpers (mast_rule.reaches_signal; owner, 2026-11-19)
@@ -173,7 +194,10 @@ class CommittedMastFiles(unittest.TestCase):
             self.assertEqual(len(names), len(set(names)), f"{path.name}: a mast name is given twice")
 
     def test_virtual_mast_counts_per_level(self):
-        self.assertEqual((len(file_masts(bsm.MASTS)[1]), len(file_masts(level_masts.PATH)[1])), (10, 0))
+        self.assertEqual(len(file_masts(bsm.MASTS)[1]), 5)
+        levels = [level_masts.virtual_level(r["system_name"]) for r in level_masts.read()
+                  if r["system_name"].startswith("IF$vsm:")]
+        self.assertEqual((levels.count(2), levels.count(3)), (10, 14))      # by each level's ordinal thousand
 
     def test_the_intermediates_stand_at_no_switch_and_show_high(self):
         for table in (STAGING_VISIBLE, MAIN_UPPER_VISIBLE):
@@ -195,37 +219,23 @@ def skip_or_fail(exc: Exception) -> None:
     raise unittest.SkipTest(str(exc))
 
 
-def main_upper_rule(no_pruning: bool = False) -> list[dict]:
-    """The main and upper masts the rule gives over the committed plan, as build_device_map.build places them before
-    any device rows: mast_rule.masts with the hand lists and the double-crossover corners, two heads by
-    facing_on_route, the kind from heads and running track, then the intermediates. `no_pruning` turns
-    reaches_signal off, to show what it leaves out. This repeats build()'s mast steps; the one mast builder of step 2
-    must expose them as one function that both build and these pins call."""
+def main_upper_rule(no_pruning: bool = False) -> dict:
+    """mast_plan.plan's main and upper masts over the committed plan, through build_device_map.plan_masts, the
+    function build() calls. `no_pruning` turns reaches_signal off, to show what it leaves out."""
     import build_layout_le as bl
     try:
         bands, joined, runs, corners = bdm.solve()
     except bl.BuildError as exc:
         skip_or_fail(exc)
     rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
-    overrides = rr.plan_overrides.data
-    found = bdm.named_tracks(bands, joined, runs, overrides)
-    running, spurs = (mast_rule.track_list(p, found) for p in (bdm.RUNNING, bdm.SPURS))
+    found = bdm.named_tracks(bands, joined, runs, rr.plan_overrides.data)
     switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
     cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
-    dxs = {bdm.base(d["label"]) for title, band, _ in bands if mast_rule.band_level(title)
-           for d in band["nodes"].values() if d["kind"] == "dx"}
-    corner_blocks = {s: bdm.xover_corners(s, corners[s]) for s in dxs}
-    split = set(bdm.split_edges(found=found).values())
     with contextlib.ExitStack() as stack:
         if no_pruning:
             stack.enter_context(unittest.mock.patch.object(mast_rule, "reaches_signal", lambda *a, **k: True))
-        ms = mast_rule.masts(bands, None, found, cp_of, corner_blocks, running_extra=running, spurs=spurs,
-                             split=split, joined=joined)
-    for m in ms:
-        if m["heads"] == 1 and mast_rule.facing_on_route(bands[m["band"]][1], m["node"], m["leg"], cp_of):
-            m["heads"] = 2
-        m["kind"] = f"{'two' if m['heads'] == 2 else 'one'}-{'searchlight' if m['running'] else 'low'}"
-    return ms + bdm.intermediates(bands, found, cp_of, set(running), split)
+        planned, _corners, _split = bdm.plan_masts(bands, joined, runs, found, cp_of, corners)
+    return planned
 
 
 class RuleOutput(RepoReadOnly, unittest.TestCase):
@@ -240,7 +250,8 @@ class RuleOutput(RepoReadOnly, unittest.TestCase):
         except bsm.sdm.lc.BuildError as exc:
             skip_or_fail(exc)
         _want, cls.gen, cls.virtual = bsm.build()
-        cls.mu = main_upper_rule()
+        cls.planned = main_upper_rule()
+        cls.mu = cls.planned["home"] + cls.planned["intermediates"]
 
     def test_staging_visible(self):
         got = [(m["mast"].removeprefix("Mast "), m["kind"], m["heads"], m["switch"], m["facing"], m["protects"],
@@ -255,18 +266,29 @@ class RuleOutput(RepoReadOnly, unittest.TestCase):
     def test_main_and_upper_visible(self):
         # a home mast's facing is its track (half), its protects the switch's OS block or, at a double crossover,
         # its corner block; an intermediate names both blocks
-        got = [(m["name"], m["kind"], m["heads"], m["switch"],
-                m["facing"] if m.get("intermediate") else m["track"],
-                m["protects"] or f"OS Switch {m['switch']}", m["dir"]) for m in self.mu]
+        got = [(m["name"], m["kind"], m["heads"], m["switch"], m["track"],
+                m["protects"] or f"OS Switch {m['switch']}", m["dir"]) for m in self.planned["home"]]
+        got += [(m["name"], "one-searchlight", 1, "", m["facing"], m["protects"], m["dir"])
+                for m in self.planned["intermediates"]]
         self.assertEqual(sorted(got), sorted(MAIN_UPPER_VISIBLE))
 
+    def test_main_and_upper_virtual(self):
+        got = [(m["name"], "", m["facing"], "", m["dir"]) for m in self.planned["virtual"]]
+        self.assertEqual(sorted(got), sorted(MAIN_UPPER_VIRTUAL))
+
+    def test_each_virtual_mast_is_a_destination_of_a_visible_mast(self):
+        visible = {m["name"] for m in self.mu}
+        for m in self.planned["virtual"]:
+            self.assertTrue(m["needed_by"] and set(m["needed_by"]) <= visible, m["name"])
+
     def test_the_rule_gives_no_name_twice(self):
-        for names in ([m["name"] for m in self.mu], [m["mast"] for m in self.gen + self.virtual]):
+        for names in ([m["name"] for m in self.mu + self.planned["virtual"]],
+                      [m["mast"] for m in self.gen + self.virtual]):
             self.assertEqual(len(names), len(set(names)), "a mast name is given twice")
 
     def test_126L_is_left_out_only_by_the_reaches_signal_pruning(self):
         self.assertNotIn("126L", {m["name"] for m in self.mu})
-        unpruned = {m["name"]: m for m in main_upper_rule(no_pruning=True)}
+        unpruned = {m["name"]: m for m in main_upper_rule(no_pruning=True)["home"]}
         self.assertIn("126L", unpruned)
         self.assertEqual(unpruned["126L"]["track"], "Track 121-125")
 

@@ -151,10 +151,14 @@ def level_masts(names: dict, rows: list[dict]) -> None:
     """Give each main and upper band in `names` its masts (main_upper_masts.csv rows) for the plugin: each in the
     band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
-    masts share one facing and protected block. Stops on a mast no band, or two, draws."""
+    masts share one facing and protected block; a virtual mast (a destination, no switch) hidden in the end bumper
+    slot of the track it faces, as staging's are. Stops on a mast no band, or two, draws."""
     bad = []
     for r in rows:
-        if not r["switch"]:     # an APB intermediate (owner, 2026-11-19): between two track blocks of one band
+        if level_masts_lib.is_level_virtual(r["system_name"]):    # a hidden destination mast at a buffer stop
+            where = [k for k, v in names.items() if k != STAGING
+                     and r["facing"] in {b for bl in v["blocks"].values() for b in bl}]
+        elif not r["switch"]:     # an APB intermediate (owner, 2026-11-19): between two track blocks of one band
             where = [k for k, v in names.items() if k != STAGING
                      and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
                      and r["protects"] in {b for bl in v["blocks"].values() for b in bl}]
@@ -170,8 +174,12 @@ def level_masts(names: dict, rows: list[dict]) -> None:
         if not known:
             bad.append(f"{r['mast']}: no icon size for {r['system_name']}")
             continue
-        entry = dict(mast=r["mast"], facing=r["facing"], protects=[r["protects"]],
-                     kind="turnout" if r["switch"] else "anchor", hidden=False, icon=list(size))
+        if level_masts_lib.is_level_virtual(r["system_name"]):
+            entry = dict(mast=r["mast"], facing=r["facing"], protects=[], kind="end bumper", hidden=True,
+                         icon=list(size))
+        else:
+            entry = dict(mast=r["mast"], facing=r["facing"], protects=[r["protects"]],
+                         kind="turnout" if r["switch"] else "anchor", hidden=False, icon=list(size))
         if r["leg"]:
             entry["leg"] = r["leg"]
         names[where[0]].setdefault("masts", []).append(entry)

@@ -59,7 +59,7 @@ class Sources:
     switches: Path
     switch_legs: Path
     name_map: Path
-    level_control_points: Path
+    interlockings: Path
     local_switches: Path
     lcos_nodes: Path
     plan_overrides: Path
@@ -77,7 +77,7 @@ class Sources:
         s = data / "schematic"
         return cls(switches=data / "switches.csv", switch_legs=data / "switch_legs.csv",
                    name_map=data / "public_name_map.csv",
-                   level_control_points=s / "control_points_main_upper.csv",
+                   interlockings=s / "interlockings.csv",
                    local_switches=s / "local_switches_main_upper.csv", lcos_nodes=s / "lcos_nodes_main_upper.csv",
                    plan_overrides=s / "main_upper.plan_overrides.json", block_lengths=data / "block_lengths.csv",
                    staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
@@ -331,39 +331,52 @@ def read_switches(switches: Path, switch_legs: Path, name_map: Path,
 
 # ---------------------------------------------------------------- inputs: main and upper control points and nodes
 
+ALL_LEVELS = (1, 2, 3)                  # staging, main, upper: interlockings.csv holds every level
+
+
 @dataclass(frozen=True)
-class LevelControlPoint:
-    """A main or upper control point (control_points_main_upper.csv): "CP <lowest switch>" (owner, 2026-11-15)."""
+class Interlocking:
+    """An interlocking, the signal rule's control point (interlockings.csv, owner 2026-11-20): a group of switches
+    whose home signals govern the routes between them. Staging's are named by place (Brick, Barn); main and upper's are
+    "CP <lowest switch>" (owner, 2026-11-15), which are also their control points on the drawings and desks. `area`
+    is the LCOS node area of a main or upper interlocking; staging leaves it blank, since staging's areas and desk
+    groups are control_points_staging.csv's."""
     line: int
-    cp_id: str
-    cp_name: str
     level: int
+    name: str
     switches: tuple[str, ...]
     area: str
     notes: str = ""
 
 
-def read_level_control_points(path: Path) -> list[LevelControlPoint]:
-    """The control points in file order. Stops on a bad level, a control point with no switches, a name or id
-    given twice, or a switch in two control points."""
-    out, seen, names = [], {}, {}
-    for line, r in read_rows(path, ("cp_id", "cp_name", "level", "switches", "area"), optional=("notes",)):
+def read_interlockings(path: Path, levels: Iterable[int] = ALL_LEVELS) -> list[Interlocking]:
+    """The interlockings of `levels` in file order (the whole file is checked whatever `levels` asks for). Stops on a
+    level that is not 1, 2 or 3, an interlocking with no switches, a name given twice on one level, a switch in two
+    interlockings of one level, a main or upper interlocking with no area or a staging one with an area."""
+    out, seen, names = [], {}, set()
+    for line, r in read_rows(path, ("level", "interlocking", "switches", "area"), optional=("notes",)):
         where = _where(path, line)
+        level = _int(r["level"], where, "level")
+        if level not in ALL_LEVELS:
+            raise FactsError(f"{where}: level is 1, 2 or 3 (staging, main, upper), not {level}")
+        name = r["interlocking"]
         sw = tuple(s.strip() for s in r["switches"].split(",") if s.strip())
         if not sw or not all(s.isdigit() for s in sw):
-            raise FactsError(f"{where} ({r['cp_name']}): switches is a list of switch numbers, not {r['switches']!r}")
-        for key in (r["cp_id"], r["cp_name"]):
-            if not key or key in names:
-                raise FactsError(f"{where}: cp_id and cp_name are given and unique, {key!r} is not")
-            names[key] = line
+            raise FactsError(f"{where} ({name}): switches is a list of switch numbers, not {r['switches']!r}")
+        if not name or (level, name) in names:
+            raise FactsError(f"{where}: an interlocking is named, once per level; {name!r} is not")
+        names.add((level, name))
         for s in sw:
-            if s in seen:
-                raise FactsError(f"{where}: switch {s} is in {seen[s]} and {r['cp_name']}")
-            seen[s] = r["cp_name"]
-        if not r["area"]:
-            raise FactsError(f"{where} ({r['cp_name']}): no area")
-        out.append(LevelControlPoint(line, r["cp_id"], r["cp_name"], _level(r["level"], where), sw, r["area"],
-                                     r["notes"]))
+            if (level, s) in seen:
+                raise FactsError(f"{where}: switch {s} is in {seen[(level, s)]} and {name}")
+            seen[(level, s)] = name
+        if level == 1 and r["area"]:
+            raise FactsError(f"{where} ({name}): a staging interlocking has no area (control_points_staging.csv "
+                             "gives staging's)")
+        if level != 1 and not r["area"]:
+            raise FactsError(f"{where} ({name}): no area (the LCOS node area of a main or upper interlocking)")
+        if level in levels:
+            out.append(Interlocking(line, level, name, sw, r["area"], r["notes"]))
     return out
 
 
@@ -835,11 +848,15 @@ class MainUpperSwitch:
     notes: str = ""
 
 
-def join_main_upper(cps: Iterable[LevelControlPoint], local: Iterable[LocalSwitch],
+def join_main_upper(cps: Iterable[Interlocking], local: Iterable[LocalSwitch],
                     local_name: str = "local_switches_main_upper.csv") -> dict[str, MainUpperSwitch]:
-    """Switch number -> MainUpperSwitch, from the control points and the local switches. Stops on a switch in
-    both."""
-    out = {s: MainUpperSwitch(s, cp.level, cp.area, cp.cp_name) for cp in cps for s in cp.switches}
+    """Switch number -> MainUpperSwitch, from the main and upper interlockings (their control points) and the local
+    switches. Stops on a staging interlocking among `cps` or a switch in both."""
+    cps = list(cps)
+    staging = [cp.name for cp in cps if cp.level not in LEVEL_NUMBERS]
+    if staging:
+        raise FactsError(f"join_main_upper: {', '.join(staging)} are not main or upper interlockings")
+    out = {s: MainUpperSwitch(s, cp.level, cp.area, cp.name) for cp in cps for s in cp.switches}
     for r in local:
         if r.switch in out:
             raise FactsError(f"switch {r.switch} is in a control point and in {local_name} (line {r.line}, "

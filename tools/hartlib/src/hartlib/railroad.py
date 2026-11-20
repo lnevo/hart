@@ -15,7 +15,7 @@ read a later one: build_device_map.py loads upto="inputs", because it writes the
 stale copy of its own output. Each file is read the first time it is asked for, once.
 
     inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), public_name_map.csv,
-                schematic/control_points_main_upper.csv, local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
+                schematic/interlockings.csv (every level's), local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
                 helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
                 stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
@@ -44,11 +44,11 @@ from . import level_devices, level_masts, paths, tables  # noqa: F401  re-export
 # from hartlib.railroad (`from hartlib.railroad import X`, `railroad.X`).
 from .railroad_facts import *  # noqa: F401,F403
 from .railroad_facts import _int, _level, _where, _yes  # noqa: F401
-from .railroad_facts import (LAYERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,
-                             LcosNode, LevelControlPoint, LocalSwitch, MainUpperSwitch, NameMap, PlanOverrides,
+from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,
+                             Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, NameMap, PlanOverrides,
                              Sources, StagingMast, Switch, TablesNames, join_main_upper, read_block_lengths,
                              read_device_map, read_hands, read_helix_tracks, read_lcos_nodes,
-                             read_level_control_points, read_local_switches, read_name_map, read_name_rows,
+                             read_interlockings, read_local_switches, read_name_map, read_name_rows,
                              read_plan_overrides, read_staging_masts, read_switches, read_tables)
 from .railroad_invariants import INVARIANTS, Invariant, Problem, invariant  # noqa: F401
 from .railroad_invariants import (_device_map, _hands, _lcos_nodes, _level_masts, _name_clash, _name_map,  # noqa: F401
@@ -87,8 +87,14 @@ class Railroad:
         return read_switches(self.sources.switches, self.sources.switch_legs, self.sources.name_map, self.name_rows)
 
     @cached_property
-    def level_control_points(self) -> list[LevelControlPoint]:
-        return read_level_control_points(self.sources.level_control_points)
+    def interlockings(self) -> list[Interlocking]:
+        """Every level's interlockings (interlockings.csv)."""
+        return read_interlockings(self.sources.interlockings)
+
+    @cached_property
+    def level_control_points(self) -> list[Interlocking]:
+        """The main and upper interlockings, which are also their control points ("CP <lowest switch>")."""
+        return [i for i in self.interlockings if i.level in LEVEL_NUMBERS]
 
     @cached_property
     def local_switches(self) -> list[LocalSwitch]:

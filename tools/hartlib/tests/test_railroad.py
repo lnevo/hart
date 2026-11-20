@@ -13,7 +13,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import paths, railroad as R  # noqa: E402
 
 REPO = R.Sources.under()
-DATA_FILES = ("switches", "switch_legs", "name_map", "level_control_points", "local_switches", "lcos_nodes",
+DATA_FILES = ("switches", "switch_legs", "name_map", "interlockings", "local_switches", "lcos_nodes",
               "plan_overrides", "block_lengths", "staging_masts", "hands", "device_map", "level_masts", "helix_tracks")
 
 
@@ -60,7 +60,8 @@ class RepoData(unittest.TestCase):
         self.assertEqual(rr.device_map.sensors["BS Switch 101"], "IS:HART:C3:B:OS101")
         self.assertEqual(rr.device_map.turnouts["107"].jmri_name, "IT:HART:C3:107")
         self.assertEqual(rr.hands["223"].hand, "R")
-        self.assertEqual(len(rr.level_masts), 44)   # the 2026-11-19 plan, APB intermediates and Mast 242L (240L before)
+        # the 2026-11-19 plan, APB intermediates and Mast 242L (240L before), and 24 virtual destination masts (2026-11-20)
+        self.assertEqual(len(rr.level_masts), 68)
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
         self.assertEqual(known, [])
@@ -267,14 +268,31 @@ class Readers(Copy):
         self.edit("switches", "2,9,TO999,no,99,no,", "1,99,TO999,maybe,99,no,")
         self.fails(lambda: R.Railroad(self.src).switches, "Switch 99.*no rows in switch_legs.csv")
 
-    def test_level_control_points(self) -> None:
-        self.edit("level_control_points", 'cp_211,CP 211,3,211,', 'cp_211,CP 211,3,"211,107",')
-        self.fails(lambda: R.read_level_control_points(self.src.level_control_points),
-                   "switch 107 is in CP 107 and CP 211")
-        self.edit("level_control_points", 'cp_211,CP 211,3,"211,107",', "cp_211,CP 211,4,211,")
-        self.fails(lambda: R.read_level_control_points(self.src.level_control_points), "level is 2 or 3")
-        self.edit("level_control_points", "cp_211,CP 211,4,211,", "cp_107,CP 211,3,211,")
-        self.fails(lambda: R.read_level_control_points(self.src.level_control_points), "unique, 'cp_107' is not")
+    def test_interlockings(self) -> None:
+        read = lambda: R.read_interlockings(self.src.interlockings)  # noqa: E731
+        rr = R.Railroad(self.src, upto="inputs")
+        self.assertEqual({i.level for i in rr.interlockings}, {1, 2, 3})
+        self.assertEqual({i.level for i in rr.level_control_points}, {2, 3})
+        self.assertEqual([i.name for i in R.read_interlockings(self.src.interlockings, (1,))],
+                         ["Brick", "Barn", "East End", "Princess"])
+        self.edit("interlockings", "3,CP 211,211,", '2,CP 211,"211,107",')
+        self.fails(read, "switch 107 is in CP 107 and CP 211")
+        self.edit("interlockings", '2,CP 211,"211,107",', "4,CP 211,211,")
+        self.fails(read, "level is 1, 2 or 3")
+        self.edit("interlockings", "4,CP 211,211,", "3,CP 201,211,")
+        self.fails(read, "named, once per level; 'CP 201' is not")
+        self.edit("interlockings", "3,CP 201,211,Peninsula", "3,CP 211,211,")
+        self.fails(read, r"\(CP 211\): no area")
+        self.edit("interlockings", "3,CP 211,211,", "3,CP 211,211,Peninsula")
+        self.edit("interlockings", "1,Barn,7,,", "1,Barn,7,Barn,")
+        self.fails(read, "a staging interlocking has no area")
+        self.edit("interlockings", "1,Barn,7,Barn,", "1,Barn,x,,")
+        self.fails(read, "switches is a list of switch numbers")
+
+    def test_join_main_upper_refuses_a_staging_interlocking(self) -> None:
+        rr = R.Railroad(self.src, upto="inputs")
+        with self.assertRaisesRegex(R.FactsError, "Brick, Barn, East End, Princess are not main or upper"):
+            R.join_main_upper(rr.interlockings, [])
 
     def test_local_switches_and_nodes(self) -> None:
         self.append("local_switches", "101,2,Peninsula,again")
@@ -342,10 +360,13 @@ class Invariants(Copy):
 
     def test_switch_numbers(self) -> None:
         self.edit("local_switches", "101,2,Peninsula,", "9,2,Peninsula,")
-        self.edit("level_control_points", "cp_211,CP 211,", "cp_211,CP 212,")
+        self.edit("interlockings", "3,CP 211,", "3,CP 212,")
+        self.edit("interlockings", '1,Brick,"1,3,5"', '1,Brick,"1,3,5,99"')
         got = self.problems("switch-numbers")
         self.assertIn("Switch 9 is a staging switch (switches.csv) and a level 2 switch", got)
         self.assertTrue(any("CP 212 is named CP 211 by its lowest switch" in p for p in got), got)
+        self.assertTrue(any("staging interlocking Brick lists Switch 99, which is no staging switch" in p for p in got),
+                        got)
 
     def test_lcos_nodes(self) -> None:
         self.edit("local_switches", "101,2,Peninsula,", "101,2,Attic,")

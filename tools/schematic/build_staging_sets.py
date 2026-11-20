@@ -5,7 +5,7 @@ edits (jmri/layouts/hart/data/schematic/):
 
   control_points_staging.csv  cp_id,cp_name,level,switches,area,code,notes   the control points: the limits the drawings
                               bracket and the CATS desk names (the signal rule's own interlockings are another fact:
-                              interlockings_staging.csv)
+                              interlockings.csv, every level)
   stations.csv                level,station,switches,tracks,notes            the stations of every level (one file, a
                               level column); `tracks` blank counts the tracks that run from the switches, `none`
                               counts none, else track names, ";" between

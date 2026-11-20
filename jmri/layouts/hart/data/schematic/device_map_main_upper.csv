@@ -159,19 +159,29 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 127,occupancy,BS Switch 127,M2S4202,IS:HART:C3:B:OS127,42,,Node: 42 Block: 3,,,OS Switch 127,planned,,,,,
 2,,occupancy,BS Switch 129,,IS:HART:C3:B:OS129,,,,,no detector planned: dark until decided,OS Switch 129,none,,,,,
 2,CP 127,occupancy,BS Switch 131,M2S4203,IS:HART:C3:B:OS131,42,,Node: 42 Block: 4,,,OS Switch 131,planned,,,,,
+2,,mast,Mast 102RA,IF$vsm:basic:one-low($2001),IF$vsm:basic:one-low($2001),,,Peninsula | buffer stop,,"virtual bumper mast facing Track 101 Spur 1 at its buffer stop: the destination of Mast 120RA, Mast 120RB",,,,,Track 101 Spur 1,,east
+2,,mast,Mast 102RB,IF$vsm:basic:one-low($2002),IF$vsm:basic:one-low($2002),,,Peninsula | buffer stop,,"virtual bumper mast facing Track 101 Spur 2 at its buffer stop: the destination of Mast 120RA, Mast 120RB",,,,,Track 101 Spur 2,,east
+2,,mast,Mast 104R,IF$vsm:basic:one-low($2003),IF$vsm:basic:one-low($2003),,,Peninsula | buffer stop,,"virtual bumper mast facing Track 103 Spur at its buffer stop: the destination of Mast 120RA, Mast 120RB",,,,,Track 103 Spur,,east
 2,CP 107,mast,Mast 108LA,IF$shsm:basic:two-searchlight(IH3332)(IH3333),IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_Bottom),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 1,,,,107,Track 107 Loop 1,,west
 2,CP 107,mast,Mast 108LB,IF$shsm:basic:two-searchlight(IH3334)(IH3335),IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom),33,,CP 107 | Switch 107,,home signal from Track 107 Loop 2,,,,107,Track 107 Loop 2,,west
 2,CP 107,mast,Mast 110L,IF$shsm:basic:two-low(IH4332)(IH4333),IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom),43,,CP 107 | Switch 109,,home signal from Track 105-109,,,,109,Track 105-109,,west
 2,CP 107,mast,Mast 112L,IF$shsm:basic:two-low(IH4334)(IH4335),IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom),43,,CP 107 | Switch 111,,home signal from Track 101-111,,,,111,Track 101-111,,west
+2,,mast,Mast 114RA,IF$vsm:basic:one-low($2004),IF$vsm:basic:one-low($2004),,,West | buffer stop,,"virtual bumper mast facing Track 113 Spur 1 at its buffer stop: the destination of Mast 120RA, Mast 120RB",,,,,Track 113 Spur 1,,east
+2,,mast,Mast 114RB,IF$vsm:basic:one-low($2005),IF$vsm:basic:one-low($2005),,,West | buffer stop,,"virtual bumper mast facing Track 113 Spur 2 at its buffer stop: the destination of Mast 120RA, Mast 120RB",,,,,Track 113 Spur 2,,east
+2,,mast,Mast 116R,IF$vsm:basic:one-low($2006),IF$vsm:basic:one-low($2006),,,West | buffer stop,,"virtual bumper mast facing Track 115 Spur at its buffer stop: the destination of Mast 120RA, Mast 120RB",,,,,Track 115 Spur,,east
 2,CP 107,mast,Mast 118L,IF$shsm:basic:two-low(IH4336)(IH4337),IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom),43,,CP 107 | Switch 117,,home signal from Track 115-117,,,,117,Track 115-117,,west
 2,CP 107,mast,Mast 120RA,IF$shsm:basic:two-searchlight(IH4338)(IH4339),IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom),43,,CP 107 | Switch 119,,home signal from Track 119-123,,,,119,Track 119-123,,east
 2,CP 107,mast,Mast 120RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom),,,CP 107 | Switch 119,,home signal from Track 119-121,,,,119,Track 119-121,,east
+2,CP 107,mast,Mast 120RC,IF$vsm:basic:one-low($2007),IF$vsm:basic:one-low($2007),,,CP 107 | buffer stop,,virtual bumper mast facing Track 119 Spur at its buffer stop: the destination of Mast 120RB,,,,,Track 119 Spur,,east
+2,,mast,Mast 122R,IF$vsm:basic:one-low($2008),IF$vsm:basic:one-low($2008),,,North | buffer stop,,"virtual bumper mast facing Track 121 Spur at its buffer stop: the destination of Mast 126RA, Mast 126RB",,,,,Track 121 Spur,,east
 2,CP 123,mast,Mast 124LA,IF$shsm:basic:two-searchlight(IH4232)(IH4233),IF$shsm:basic:two-searchlight(IH:HART:C3:124LA_Top)(IH:HART:C3:124LA_Bottom),42,,CP 123 | Switch 123,,home signal from Track 119-123,,,,123,Track 119-123,,west
 2,CP 123,mast,Mast 124LB,IF$shsm:basic:two-searchlight(IH4234)(IH4235),IF$shsm:basic:two-searchlight(IH:HART:C3:124LB_Top)(IH:HART:C3:124LB_Bottom),42,,CP 123 | Switch 123,,home signal from Track 121-123,,,,123,Track 121-123,,west
 2,CP 123,mast,Mast 126RA,IF$shsm:basic:two-searchlight(IH5232)(IH5233),IF$shsm:basic:two-searchlight(IH:HART:C3:126RA_Top)(IH:HART:C3:126RA_Bottom),52,,CP 123 | Switch 125,,home signal from Track 125-127,,,,125,Track 125-127,,east
 2,CP 123,mast,Mast 126RB,IF$shsm:basic:two-low(IH5234)(IH5235),IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom),52,,CP 123 | Switch 125,,home signal from Track 125-129,,,,125,Track 125-129,,east
 2,CP 127,mast,Mast 128LA,IF$shsm:basic:two-searchlight(IH5236)(IH5237),IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom),52,,CP 127 | Switch 127,,home signal from Track 125-127,,,,127,Track 125-127,,west
 2,CP 127,mast,Mast 128LB,IF$shsm:basic:two-searchlight(IH5238)(IH5239),IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom),52,,CP 127 | Switch 127,,home signal from Track 127-221,,,,127,Track 127-221,,west
+2,,mast,Mast 130LA,IF$vsm:basic:one-low($2009),IF$vsm:basic:one-low($2009),,,North | buffer stop,,"virtual bumper mast facing Track 129 Spur 1 at its buffer stop: the destination of Mast 124LA, Mast 124LB",,,,,Track 129 Spur 1,,west
+2,,mast,Mast 130LB,IF$vsm:basic:one-low($2010),IF$vsm:basic:one-low($2010),,,North | buffer stop,,"virtual bumper mast facing Track 129 Spur 2 at its buffer stop: the destination of Mast 124LA, Mast 124LB",,,,,Track 129 Spur 2,,west
 2,CP 127,mast,Mast 132RA,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),,,CP 127 | Switch 131,,home signal from Track Helix Outer,,,,131,Track Helix Outer,,east
 2,CP 127,mast,Mast 132RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),,,CP 127 | Switch 131,,home signal from Track Helix Inner,,,,131,Track Helix Inner,,east
 2,CP 107,mast,Mast A83,,IF$shsm:basic:one-searchlight(IH:HART:C3:A83),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.39,,,,,Track 107 Loop 2,Track 107 Loop 1,west
@@ -354,8 +364,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,block,Track 225-227,,,,,CP 225,Track e65,"17.7 cm short link: inside the OS blocks of its switches, no detector",,,,,,,
 3,CP 225,block,Track 225-229,,,,,CP 225,Track e61,"17.7 cm short link: inside the OS blocks of its switches, no detector",,,,,,,
 3,CP 225,block,Track 227-231,,,,,CP 225,Track e48,"20.6 cm short link: inside the OS blocks of its switches, no detector",,,,,,,
-3,CP 225,block,Track 227-241 1,,,,,CP 225,Track e63 1,"259.0 cm, half 1 of the split track (split_tracks_main_upper.csv)",,,,,,,
-3,CP 225,block,Track 227-241 2,,,,,CP 225,Track e63 2,"259.0 cm, half 2 of the split track (split_tracks_main_upper.csv)",,,,,,,
+3,CP 225,block,Track 227-241 1,,,,,CP 225,Track e63 1,"259.0 cm, half 1 of the split track (block_splits.csv)",,,,,,,
+3,CP 225,block,Track 227-241 2,,,,,CP 225,Track e63 2,"259.0 cm, half 2 of the split track (block_splits.csv)",,,,,,,
 3,CP 225,block,Track 229-233,,,,,CP 225,Track e37,48.2 cm no detector: off the main line,,,,,,,
 3,CP 225,block,Track 229-241,,,,,CP 225,Track e62,77.5 cm,,,,,,,
 3,,block,Track 231 Spur,,,,,,Track e49,157.0 cm no detector: off the main line,,,,,,,
@@ -451,10 +461,16 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 201,mast,Mast 202R,IF$shsm:basic:two-low(IH2332)(IH2333),IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom),23,,CP 201 | Switch 201,,home signal from Track 201-205,,,,201,Track 201-205,,east
 3,CP 201,mast,Mast 204RA,IF$shsm:basic:two-low(IH2334)(IH2335),IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom),23,,CP 201 | Switch 203,,home signal from Track 203-207,,,,203,Track 203-207,,east
 3,CP 201,mast,Mast 204RB,IF$shsm:basic:two-searchlight(IH1432)(IH1433),IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom),14,,CP 201 | Switch 203,,home signal from Track 203-211,,,,203,Track 203-211,,east
+3,,mast,Mast 206L,IF$vsm:basic:one-low($3001),IF$vsm:basic:one-low($3001),,,West | buffer stop,,"virtual bumper mast facing Track 205 Spur at its buffer stop: the destination of Mast 222LA, Mast 222R",,,,,Track 205 Spur,,west
+3,,mast,Mast 210LA,IF$vsm:basic:one-low($3002),IF$vsm:basic:one-low($3002),,,West | buffer stop,,"virtual bumper mast facing Track 209 Spur 1 at its buffer stop: the destination of Mast 222LA, Mast 222R",,,,,Track 209 Spur 1,,west
+3,,mast,Mast 210LB,IF$vsm:basic:one-low($3003),IF$vsm:basic:one-low($3003),,,West | buffer stop,,"virtual bumper mast facing Track 209 Spur 2 at its buffer stop: the destination of Mast 222LA, Mast 222R",,,,,Track 209 Spur 2,,west
 3,CP 211,mast,Mast 212LA,IF$shsm:basic:two-low(IH2432)(IH2433),IF$shsm:basic:two-low(IH:HART:C3:212LA_Top)(IH:HART:C3:212LA_Bottom),24,,CP 211 | Switch 211,,home signal from Track 207-211,,,,211,Track 207-211,,west
 3,CP 211,mast,Mast 212LB,IF$shsm:basic:one-searchlight(IH5436),IF$shsm:basic:one-searchlight(IH:HART:C3:212LB),54,,CP 211 | Switch 211,,home signal from Track 203-211,,,,211,Track 203-211,,west
 3,CP 211,mast,Mast 212RA,IF$shsm:basic:one-searchlight(IH5437),IF$shsm:basic:one-searchlight(IH:HART:C3:212RA),54,,CP 211 | Switch 211,,home signal from Track 211-217 1,,,,211,Track 211-217 1,,east
 3,CP 211,mast,Mast 212RB,IF$shsm:basic:two-searchlight(IH2434)(IH2435),IF$shsm:basic:two-searchlight(IH:HART:C3:212RB_Top)(IH:HART:C3:212RB_Bottom),24,,CP 211 | Switch 211,,home signal from Track 211-217 2,,,,211,Track 211-217 2,,east
+3,,mast,Mast 214L,IF$vsm:basic:one-low($3004),IF$vsm:basic:one-low($3004),,,Peninsula | buffer stop,,"virtual bumper mast facing Track 213 Spur at its buffer stop: the destination of Mast 222LA, Mast 222R",,,,,Track 213 Spur,,west
+3,,mast,Mast 216LA,IF$vsm:basic:one-low($3005),IF$vsm:basic:one-low($3005),,,Peninsula | buffer stop,,"virtual bumper mast facing Track 215 Spur 1 at its buffer stop: the destination of Mast 222LA, Mast 222R",,,,,Track 215 Spur 1,,west
+3,,mast,Mast 216LB,IF$vsm:basic:one-low($3006),IF$vsm:basic:one-low($3006),,,Peninsula | buffer stop,,"virtual bumper mast facing Track 215 Spur 2 at its buffer stop: the destination of Mast 222LA, Mast 222R",,,,,Track 215 Spur 2,,west
 3,CP 217,mast,Mast 218LA,IF$shsm:basic:one-searchlight(IH5438),IF$shsm:basic:one-searchlight(IH:HART:C3:218LA),54,,CP 217 | Switch 217,,home signal from Track 211-217 1,,,,217,Track 211-217 1,,west
 3,CP 217,mast,Mast 218LB,IF$shsm:basic:two-searchlight(IH5432)(IH5433),IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom),54,,CP 217 | Switch 217,,home signal from Track 211-217 2,,,,217,Track 211-217 2,,west
 3,CP 217,mast,Mast 218RA,IF$shsm:basic:two-searchlight(IH5434)(IH5435),IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom),54,,CP 217 | Switch 217,,home signal from Track 217-219,,,,217,Track 217-219,,east
@@ -472,7 +488,15 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,mast,Mast 228RB,IF$shsm:basic:two-searchlight(IH4134)(IH4135),IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom),41,,CP 225 | Switch 227,,home signal from Track 227-241 1,,,,227,Track 227-241 1,,east
 3,CP 225,mast,Mast 230LA,IF$shsm:basic:two-searchlight(IH4136)(IH4137),IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),41,,CP 225 | Switch 229,,home signal from Track 229-241,,,,229,Track 229-241,,west
 3,CP 225,mast,Mast 230LB,,IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom),,,CP 225 | Switch 229,,home signal from Track 229-233,,,,229,Track 229-233,,west
+3,,mast,Mast 232L,IF$vsm:basic:one-low($3007),IF$vsm:basic:one-low($3007),,,Helix | buffer stop,,"virtual bumper mast facing Track 231 Spur at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 231 Spur,,west
+3,,mast,Mast 236R,IF$vsm:basic:one-low($3008),IF$vsm:basic:one-low($3008),,,Helix | buffer stop,,"virtual bumper mast facing Track 235 Spur at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 235 Spur,,east
+3,,mast,Mast 240L,IF$vsm:basic:one-low($3009),IF$vsm:basic:one-low($3009),,,Helix | buffer stop,,"virtual bumper mast facing Track 239 Spur at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 239 Spur,,west
 3,,mast,Mast 242L,,IF$shsm:basic:one-low(IH:HART:C3:242L),,,Helix | Switch 241,,home signal from Track 241 Spur,,,,241,Track 241 Spur,,west
+3,,mast,Mast 242R,IF$vsm:basic:one-low($3010),IF$vsm:basic:one-low($3010),,,Helix | buffer stop,,"virtual bumper mast facing Track 241 Spur at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 241 Spur,,east
+3,,mast,Mast 244RA,IF$vsm:basic:one-low($3011),IF$vsm:basic:one-low($3011),,,Helix | buffer stop,,"virtual bumper mast facing Track 243 Spur 1 at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 243 Spur 1,,east
+3,,mast,Mast 244RB,IF$vsm:basic:one-low($3012),IF$vsm:basic:one-low($3012),,,Helix | buffer stop,,"virtual bumper mast facing Track 243 Spur 2 at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 243 Spur 2,,east
+3,,mast,Mast 246LA,IF$vsm:basic:one-low($3013),IF$vsm:basic:one-low($3013),,,Helix | buffer stop,,"virtual bumper mast facing Track 245 Spur 1 at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 245 Spur 1,,west
+3,,mast,Mast 246LB,IF$vsm:basic:one-low($3014),IF$vsm:basic:one-low($3014),,,Helix | buffer stop,,"virtual bumper mast facing Track 245 Spur 2 at its buffer stop: the destination of Mast 226RA, Mast 226RB",,,,,Track 245 Spur 2,,west
 3,CP 225,mast,Mast B92,,IF$shsm:basic:one-searchlight(IH:HART:C3:B92),,,CP 225 | intermediate,,intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.27,,,,,Track 227-241 2,Track 227-241 1,east
 3,CP 225,mast,Mast B93,,IF$shsm:basic:one-searchlight(IH:HART:C3:B93),,,CP 225 | intermediate,,intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.27,,,,,Track 227-241 1,Track 227-241 2,west
 3,CP 201,head,Head 202R Bottom,IH2333,IH:HART:C3:202R_Bottom,23,,"Node: 23 Signal: 1 | OU: 3 Ports: 4,5,6",,,,,,,,,

@@ -77,11 +77,6 @@ _UNIT_RE = (
 _MAST_NUM_RE = re.compile(r"^Mast\s+(\d+)[LR]", re.I)
 _PORT_ID_RE = re.compile(r"^C(\d+)-(OU|IN)(\d+)-(\d+)$", re.I)
 
-# Signal even → switch odd.
-MAST_SWITCH_OVERRIDE = {
-    "Mast 8LC": "Switch 7",
-}
-
 
 def _units_from(body: str) -> list[tuple[str, str, str]]:
     for unit_re in _UNIT_RE:
@@ -273,8 +268,6 @@ def sync_map_head_comments(files: devices.Files | None = None) -> int:
 
 def switch_protected_by_mast(user_name: str) -> str | None:
     """USS even signal lever protects the odd switch in the same column."""
-    if user_name in MAST_SWITCH_OVERRIDE:
-        return MAST_SWITCH_OVERRIDE[user_name]
     match = _MAST_NUM_RE.match(user_name or "")
     if not match:
         return None

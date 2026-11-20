@@ -460,7 +460,10 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     masts = {hart_tables.user_name(m): hart_tables.system_name(m) for m in hart_tables.masts(t.root)}
     for row in level_masts.read():
         mast, lamps = row["mast"], have.get(row["mast"], [])
-        if len(lamps) != 1:
+        if level_masts.is_level_virtual(row["system_name"]):
+            if lamps:                   # a hidden destination mast at a buffer stop: no lamp on the desk
+                r.add(f"mast:{mast}", f"{mast}: {desk} has a lamp for it, but it is a virtual mast")
+        elif len(lamps) != 1:
             r.add(f"mast:{mast}", f"{mast}: {desk} has {len(lamps)} lamps for it, not one")
         elif lamps[0] != desk_block_of(row["protects"], blocks):
             r.add(f"mast:{mast}", f"{mast}: {desk} has its lamp on the edge of {lamps[0]}, but it protects "

@@ -773,8 +773,11 @@ class CommittedMainAndUpper(unittest.TestCase):
         self.assertEqual({k for k, e in level.items() if e["normal"] != "B"}, {"121B", "125B"})
         self.assertEqual({e["normal"] for e in level.values()}, {"B", "C"})
         names = {e["name"] for e in self.bound["masts"].values()}
-        self.assertLessEqual(B.level_masts.names(), names)
-        self.assertEqual(len(B.level_masts.names()), 44)       # main_upper_masts.csv, APB intermediates too
+        self.assertLessEqual(B.level_masts.visible_names(), names)
+        self.assertEqual(len(B.level_masts.visible_names()), 44)    # main_upper_masts.csv, APB intermediates too
+        hidden = B.level_masts.names() - B.level_masts.visible_names()
+        self.assertEqual(len(hidden), 24)                            # buffer-stop destinations, never on a desk
+        self.assertFalse(hidden & names)
 
     def test_each_helix_track_is_one_block_on_the_desk(self):
         """The plugin joins each helix track drawn on staging and on main or upper logically (SHARED), so a train runs

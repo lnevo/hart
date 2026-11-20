@@ -212,25 +212,6 @@
    "_toward_node": "TOL34519"
   },
   {
-   "mast": "8LC",
-   "toward": "5",
-   "run": [
-    "5",
-    "7"
-   ],
-   "names": [
-    "Scale"
-   ],
-   "edge_cm": 424.7,
-   "cm_from_toward": 401.3,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e29",
-   "_toward_node": "TOL34057"
-  },
-  {
    "mast": "8RA",
    "toward": "7",
    "run": [
@@ -307,44 +288,6 @@
    "_toward_node": "TOL34513"
   },
   {
-   "mast": "10RA",
-   "toward": "9",
-   "run": [
-    "9",
-    ""
-   ],
-   "names": [
-    "EH-2"
-   ],
-   "edge_cm": 77.0,
-   "cm_from_toward": 0.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e33",
-   "_toward_node": "TOL34513"
-  },
-  {
-   "mast": "10RB",
-   "toward": "9",
-   "run": [
-    "9",
-    ""
-   ],
-   "names": [
-    "EH-3"
-   ],
-   "edge_cm": 76.5,
-   "cm_from_toward": 0.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e34",
-   "_toward_node": "TOL34513"
-  },
-  {
    "mast": "12L",
    "toward": "11",
    "run": [
@@ -362,44 +305,6 @@
    "source": "le_panel",
    "_edge": "e35",
    "_toward_node": "TOL34512"
-  },
-  {
-   "mast": "12R",
-   "toward": "11",
-   "run": [
-    "11",
-    ""
-   ],
-   "names": [
-    "EH-1"
-   ],
-   "edge_cm": 130.3,
-   "cm_from_toward": 0.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e35",
-   "_toward_node": "TOL34512"
-  },
-  {
-   "mast": "14R",
-   "toward": "13",
-   "run": [
-    "13",
-    "7"
-   ],
-   "names": [
-    "Barn"
-   ],
-   "edge_cm": 79.5,
-   "cm_from_toward": 0.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e31",
-   "_toward_node": "TOL34511"
   },
   {
    "mast": "24L",
