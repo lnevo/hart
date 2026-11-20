@@ -61,7 +61,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
     def test_global_disable_hold_publishes_then_button_unheld(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
         self.assertNotIn("SUPPRESS_SML_DURING_HANDOFF", text)
-        self.assertIn("if self._busy or self._boot_pending:", text)
+        self.assertIn("if self._is_busy() or self._boot_pending:", text)
         off = text.index("def _apply_global_disabled")
         chunk = text[off : text.index("def _hand_off_disabled")]
         self.assertIn("mast.setHeld(True)", chunk)
@@ -100,7 +100,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         task = text[text.index("class DigiconSmlQuitTask") :]
         self.assertIn("def call(self):", task)
         self.assertLess(task.index("def call(self):"), task.index("def run(self):"))
-        self.assertIn("controller._on_jmri_shutdown()", task)
+        self.assertIn("self._owner()._on_jmri_shutdown()", task)
         enable = text[
             text.index("def _enter_enabled") : text.index("def _enter_disabled")
         ]

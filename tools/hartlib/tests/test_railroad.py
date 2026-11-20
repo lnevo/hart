@@ -58,7 +58,7 @@ class RepoData(unittest.TestCase):
         self.assertEqual(rr.device_map.sensors["BS Switch 101"], "IS:HART:C3:B:OS101")
         self.assertEqual(rr.device_map.turnouts["107"].jmri_name, "IT:HART:C3:107")
         self.assertEqual(rr.hands["223"].hand, "R")
-        self.assertEqual(len(rr.level_masts), 44)   # the 2026-11-19 plan, APB intermediates and Mast 240L included
+        self.assertEqual(len(rr.level_masts), 44)   # the 2026-11-19 plan, APB intermediates and Mast 242L (240L before)
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
         self.assertEqual(known, [])
@@ -151,6 +151,74 @@ class Readers(Copy):
         self.fails(lambda: R.read_tables(bad), "tables.xml: cannot read it as a tables file")
         self.fails(lambda: R.read_tables(self.tmp / "none.xml"), "none.xml: cannot read it as a tables file")
 
+    def test_a_user_name_given_to_two_beans_of_one_type(self) -> None:
+        """Two turnouts, sensors, masts or blocks under one user name stop the read, naming the file, the type, the
+        name and both system names; the same name on beans of different types is fine."""
+        dup = self.tmp / "dup.xml"
+        for kind, tag, box, system in (("turnout", "turnout", "turnouts", "MT1"),
+                                       ("sensor", "sensor", "sensors", "MS1"),
+                                       ("mast", "virtualsignalmast", "signalmasts", "MF1"),
+                                       ("block", "block", "blocks", "IB1")):
+            with self.subTest(kind):
+                dup.write_text(
+                    f"<layout-config><{box}>"
+                    f"<{tag}><systemName>{system}</systemName><userName>Twin</userName><x/></{tag}>"
+                    f"<{tag}><systemName>{system}9</systemName><userName>Twin</userName><x/></{tag}>"
+                    f"</{box}></layout-config>", encoding="utf-8")
+                self.fails(lambda: R.read_tables(dup),
+                           f"dup.xml: two {kind}s have the user name 'Twin': {system} and {system}9$")
+        dup.write_text("<layout-config><turnouts><turnout><systemName>MT1</systemName><userName>Twin</userName>"
+                       "</turnout><turnout><systemName>MT2</systemName></turnout></turnouts>"
+                       "<sensors><sensor><systemName>MS1</systemName><userName>Twin</userName></sensor></sensors>"
+                       "</layout-config>", encoding="utf-8")
+        t = R.read_tables(dup)
+        self.assertEqual((t.turnouts, t.sensors), ({"Twin": "MT1"}, {"Twin": "MS1"}))
+        # The repo's file reads as before: every named bean, once.
+        live, root = R.read_tables(REPO.tables), R.tables.read(REPO.tables)
+        for got, beans in ((live.turnouts, R.tables.turnouts(root)), (live.sensors, R.tables.sensors(root)),
+                           (live.masts, R.tables.masts(root))):
+            self.assertEqual(got, {R.tables.user_name(b): R.tables.system_name(b) for b in beans
+                                   if R.tables.user_name(b)})
+        self.assertEqual(live.blocks, {R.tables.user_name(b) or R.tables.system_name(b)
+                                       for b in R.tables.blocks(root)})
+
+    def test_a_bare_block_sharing_a_user_name_stops_the_read(self) -> None:
+        """The block check covers every form JMRI writes: a block kept only as names, and one written both bare and
+        in full (one bean, not twins)."""
+        dup = self.tmp / "bare.xml"
+        bare = "<block><systemName>IB{n}</systemName><userName>Twin</userName></block>"
+        full = "<block><systemName>IB{n}</systemName><userName>Twin</userName><permissive>no</permissive></block>"
+        for what, body in (("two bare", bare.format(n=1) + bare.format(n=2)),
+                           ("bare then full", bare.format(n=1) + full.format(n=2)),
+                           ("two sections", bare.format(n=1) + "</blocks><blocks>" + full.format(n=2))):
+            with self.subTest(what):
+                dup.write_text(f"<layout-config><blocks>{body}</blocks></layout-config>", encoding="utf-8")
+                self.fails(lambda: R.read_tables(dup), "bare.xml: two blocks have the user name 'Twin': IB1 and IB2$")
+        dup.write_text(f"<layout-config><blocks>{bare.format(n=1)}{full.format(n=1)}</blocks></layout-config>",
+                       encoding="utf-8")
+        self.assertEqual(R.read_tables(dup).blocks, {"Twin"})
+
+    def test_empty_names_are_not_twins(self) -> None:
+        """Beans without a user name never clash, and one without a system name neither clashes with a named bean
+        nor hides two that do."""
+        f = self.tmp / "empty.xml"
+
+        def write(*beans: tuple[str, str]) -> None:
+            f.write_text("<layout-config><turnouts>" + "".join(
+                f"<turnout><systemName>{s}</systemName><userName>{u}</userName></turnout>" for s, u in beans)
+                + "</turnouts></layout-config>", encoding="utf-8")
+        write(("MT1", ""), ("MT2", " "), ("MT3", "Solo"))
+        self.assertEqual(R.read_tables(f).turnouts, {"Solo": "MT3"})
+        write(("", "Twin"), (" ", "Twin"))
+        self.assertEqual(R.read_tables(f).turnouts, {"Twin": ""})
+        for beans in ((("", "Twin"), ("MT1", "Twin")), (("MT1", "Twin"), ("", "Twin"))):
+            write(*beans)
+            self.assertEqual(R.read_tables(f).turnouts, {"Twin": "MT1"})
+        write(("MT1", "Twin"), ("", "Twin"), ("MT2", "Twin"))
+        self.fails(lambda: R.read_tables(f), "empty.xml: two turnouts have the user name 'Twin': MT1 and MT2$")
+        write(("", "Twin"), ("MT1", "Twin"), ("MT2", "Twin"))
+        self.fails(lambda: R.read_tables(f), "empty.xml: two turnouts have the user name 'Twin': MT1 and MT2$")
+
     def test_a_noted_file_needs_its_note_line(self) -> None:
         noted = self.tmp / "noted.csv"
         noted.write_text("mast,facing,protects\nMast 2L,Track Main West,OS Switch 1\n", encoding="utf-8")
@@ -177,12 +245,12 @@ class Readers(Copy):
         self.fails(lambda: R.Railroad(self.src).switches, "Switch 99.*no rows in switch_legs.csv")
 
     def test_level_control_points(self) -> None:
-        self.edit("level_control_points", 'cp_213,CP 213,3,213,', 'cp_213,CP 213,3,"213,107",')
+        self.edit("level_control_points", 'cp_211,CP 211,3,211,', 'cp_211,CP 211,3,"211,107",')
         self.fails(lambda: R.read_level_control_points(self.src.level_control_points),
-                   "switch 107 is in CP 107 and CP 213")
-        self.edit("level_control_points", 'cp_213,CP 213,3,"213,107",', "cp_213,CP 213,4,213,")
+                   "switch 107 is in CP 107 and CP 211")
+        self.edit("level_control_points", 'cp_211,CP 211,3,"211,107",', "cp_211,CP 211,4,211,")
         self.fails(lambda: R.read_level_control_points(self.src.level_control_points), "level is 2 or 3")
-        self.edit("level_control_points", "cp_213,CP 213,4,213,", "cp_107,CP 213,3,213,")
+        self.edit("level_control_points", "cp_211,CP 211,4,211,", "cp_107,CP 211,3,211,")
         self.fails(lambda: R.read_level_control_points(self.src.level_control_points), "unique, 'cp_107' is not")
 
     def test_local_switches_and_nodes(self) -> None:
@@ -234,10 +302,10 @@ class Invariants(Copy):
 
     def test_switch_numbers(self) -> None:
         self.edit("local_switches", "101,2,Peninsula,", "9,2,Peninsula,")
-        self.edit("level_control_points", "cp_213,CP 213,", "cp_213,CP 214,")
+        self.edit("level_control_points", "cp_211,CP 211,", "cp_211,CP 212,")
         got = self.problems("switch-numbers")
         self.assertIn("Switch 9 is a staging switch (switches.csv) and a level 2 switch", got)
-        self.assertTrue(any("CP 214 is named CP 213 by its lowest switch" in p for p in got), got)
+        self.assertTrue(any("CP 212 is named CP 211 by its lowest switch" in p for p in got), got)
 
     def test_lcos_nodes(self) -> None:
         self.edit("local_switches", "101,2,Peninsula,", "101,2,Attic,")

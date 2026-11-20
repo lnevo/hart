@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Draw the LCOS node grid for the website from the owner's workbook.
 
-    python3 docs/wiring/scripts/node_grid_svg.py [GRID.xlsx]
+    python3 tools/wiring/node_grid_svg.py [GRID.xlsx]
 
 Reads media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx (the owner's floor grid of the room:
 benchwork cells filled orange, nodes in service yellow, each node's radio address in its cell; local media mirror,
@@ -17,7 +17,7 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 GRID = ROOT / "media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx"
 OUT = ROOT / "www/assets/behind/lcos-node-grid.svg"
 ADDRESS = re.compile(r"^0[0-7]{1,2}\*?$")

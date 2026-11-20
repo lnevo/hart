@@ -1,39 +1,57 @@
 # Project review handoff (2026-11-19)
 
-A read-only review of architecture, performance, runtime code and documentation ran on 2026-11-19, followed by five small PRs. This page lists what was found, what was started, and what is left. Findings marked *verified* were traced in code by a second pass; the rest come from one reviewer's reading.
+A read-only review of architecture, performance, runtime code and documentation ran on 2026-11-19, followed by a round of small PRs and a code review of each. This page lists what was found, what was started, and what is left. Findings marked *verified* were traced in code by a second pass; the rest come from one reviewer's reading.
 
-## PRs opened from the review
+## State at 22:00 on 2026-11-19
 
-| PR | What | State at 18:55 on 2026-11-19 |
+Every code PR below had `/code-review medium` and a fix commit for what the review confirmed, except #712.
+
+| PR | What | State |
 |---|---|---|
-| #695 | Docs: index refresh, two broken links, Pipelines row in `wiki/home.md` | Merged (docs only) |
-| #696 | CI: concurrency group for PRs, pip cache | Open, check passed |
-| #697 | `signal_coordinator.py` and `panel_status.py` pass the MQTT retain flag explicitly; test fake defaults to retained, as stock does | Open, check passed; deploy to both hosts after merge |
-| #698 | `build_cats_panel.py`, `build_signals.py`, `build_docs_index.py` reject unknown arguments; `--help` writes nothing | Open, check passed |
-| #699 | ADR index shows amendments (15 rows) | Open, check passed; ADR-002 row reworded from "Superseded in part by 005" to follow the ADR file, owner to confirm |
-| #700 | The three Layout Editor test files run as one job in `tools/check.sh` (168 s measured cold on the Mac; 284, 327, 322 s logged in CI before) | Open, check passed |
-| #701 | `jmri_cmd_watcher.py` prints handling failures, catches Java exceptions, writes its result through a temp name; first 8 tests | Open, check passed; deploy to both hosts after merge |
-| #702 | `publish_draft.py` stops when merge-base with `origin/main` fails, before any write | Open, check passed |
-| #703 | `read_tables` refuses duplicate user names within a type (live file has none) | Open |
-| #704 | A foreign `enabling` during an unannounced Hold cancels the hand-off (`_enabling_announced`, `_enable_cancelled`) | Open; ownership logic for live signals, owner review first; deploy to both hosts after merge |
-| #705 | `make panels` runs the staging mast and staging sync checks (check-only in both modes) before the stages that read them | Open |
-| #706 | `hartlib.level_masts.read` validates its header through `read_rows` and refuses duplicate mast names (the 44 live rows read the same) | Draft: `tools/audit/tests/test_le_cutover.py` had not finished locally; mark ready once CI passes |
+| #695, #699, #707 | Docs fixes, ADR index amendments (ADR-002 row reads "Accepted, amended 2026-08-20 by 005", owner confirmed), this page | Merged |
+| #696 | CI concurrency keyed on the PR number, pip cache | Merged |
+| #697 | Explicit MQTT retain flag in `signal_coordinator.py`, `panel_status.py`, `mimic_relay.py`; needs JMRI 5.9.1 or later | Merged, **not deployed** |
+| #698 | Three scripts reject unknown arguments; `--help` writes nothing | Merged |
+| #700 | Layout Editor tests as one job in `tools/check.sh` | Merged |
+| #701 | `jmri_cmd_watcher.py` answers with an error result on failure, catches `java.lang.Throwable` and `SystemExit`, prints a failure once (owner's choice) | Merged, **not deployed** |
+| #702 | `publish_draft.py` stops on a failed merge base or a failed `git show` | Merged |
+| #709 | Deploy preflight for every named host, also for `redeploy_commit.sh` (`--check-only`); the tarball temp name works on macOS and is removed on exit | Merged |
+| #710 | Tests for `sts_car_sync.py` and `hide_cats_desk_windows.py`; they pin known faults, the scripts are unchanged | Merged |
+| #711 | Tests for `build_staging_masts.py` and `sync_staging_signals.py` | Merged |
+| #704 | SML Hold cancel | Closed unmerged (owner): fold into the boot-race design |
+| #703, #705, #706, #708 | `read_tables` duplicates (bare blocks covered), staging checks in `make panels` with a step-order test, level masts validation, wiring CSV readers with tests | Merged |
+| #712 | Width and height on 26 pages' images, `defer` on scripts | Open; owes `/code-review medium`, then merge and `deploy_hartrailroad.sh` |
 
-Every open code PR still owes `/code-review medium` before merge (AGENTS.md); #699 is docs only. #697 and #704 both edit `jmri/scripts/signal_coordinator.py` in different places; merge one, then rebase the other. A `query` on `track/bridge/sml_mode` or a `RESUBSCRIBE` on `track/bridge/cmd` already retained on the broker stays until replaced or cleared.
+Three more PRs came from the owner's decisions. All pass CI and none is merged; no agent is running:
 
-Nothing was deployed by the review session. Correction to the review: the plan "5.3b" mentions in `wiki/pipelines/schematic-panels.md` and `docs/jmri/TRACK_LENGTHS.md` are right until the 5.3c bring-in, since the schematic inputs still come from 5.3b (`wiki/STATUS.md`).
+| PR | Job | Left to do |
+|---|---|---|
+| #714 | The three legacy scripts moved to `jmri/layouts/hart/parked/`. `polish_hart_layout_editor.py` did have a caller, `run_panelpro_stage1.sh` (parked Dispatcher Stage 1 on the Mac), now pointed at the new path and only syntax-checked. Hosts never shipped the three. One path string changed in `www/guides/auto-dispatcher.html` | Owes `/code-review medium`; expect a conflict on this page, keep this version; website deploy after merge |
+| #713 | ADR-025 operating flag, ADR-026 plan 5.3c as master, ADR-027 staging built from its device map (the signal rule itself is already ADR-024), ADR-028 virtual main/upper devices | The owner reads them before merge; 027 can be dropped if not wanted |
+| #716 | `check_after_edit.py` runs the test files that name the edited script (1.1 s for `signal_coordinator.py`, was 14 to 18 s), full run as fallback | Owes `/code-review medium`, then merge |
 
-## Owner decisions
+## Next steps, in order
 
-1. **SML boot race.** Pi and Windows booting within about 3 s both take control (`jmri/scripts/signal_coordinator.py:838`); the fix needs an owner identity on a retained topic.
-2. **When to deploy the retain-flag change** to both hosts.
-3. **#704 open cases:** a foreign `enabling` after this host has announced is still taken as its own echo; a window of a few milliseconds remains between the post-Hold check and the `enabled` publish; an Enable click during a cancelled Hold can start a second enable. Accept, or fold into the lock and state-enum rework.
-4. **`archive/`** (34 MB): delete the bulk or keep it. Live code needs none of it; `aaron`, `dispatcher`, `legacy`, `mimic-qa`, `names`, `wiki` have no references at all; `layouts` and `panels` need five doc links fixed first.
-5. **Legacy scripts with no caller:** `retarget_dispatcher_traininfo_transits.py`, `apply_nx_layer.py`, `polish_hart_layout_editor.py` in `jmri/layouts/hart/scripts/`. Park or keep. The JMRI startup config was not searched; `tools/audit/tests/test_hart_tables_writers.py` names them.
-6. **ADRs** for the operating flag, plan 5.3c as master, staging from the device map and virtual main/upper devices, or declare `wiki/STATUS.md` the record.
-7. **Website cache headers:** long-lived caching for `/assets/` images changes the live server config.
-8. **`jmri_cmd_watcher.py` log repeat (#701):** a persisting handling failure now prints every 0.5 s in the JMRI log. Rate-limit or accept.
-9. **After-edit hook:** dropping the 14 s `unit-jmri` run from `.claude/hooks/check_after_edit.py` moves failures to `check.sh`.
+1. **Deploy #697 and #701 to both hosts.** The owner approved it for the evening of 2026-11-19 with the operating flag off (it read "not operating" at 21:45). Use the deploy skill: pull anything the Pi wrote, `sync_hart_package.sh --pi --win`, PanelPro started again on the Pi. Then on the Pi read the retained topics and show the owner the clear command before running it; the commands are in the #697 PR body and `wiki/STATUS.md`. `track/bridge/sml_mode` is cleared only if it holds `query`. If the deploy waits for another day, ask the owner again.
+2. **Finish the open PRs:** #712, #713, #714, #716 as the tables above say.
+3. **Docs housekeeping the owner approved, not started:** shorten the long rows of `AGENTS.md` (owner approves the wording before merge), move dated history from `wiki/STATUS.md` to `STATUS_LOG.md`, move the 43 generator scripts out of `docs/` into `tools/` (outputs stay in `docs/`; other sessions' branches that touch `docs/wiring/scripts` need a rebase).
+4. **SML boot race and the #704 cases, as one design.** The owner asked about putting the host name in the `enabling` and `enabled` payload on `track/bridge/sml_mode`. That is the owner identity the fix needs. Still to settle: who stands down on a tie (the Pi as the fixed winner was the suggestion, unanswered), and that both hosts must get the new payload in the same deploy since each compares the payload text. Design and tests in the fake first, then a live test with the owner.
+
+## Owner decisions made on 2026-11-19
+
+- `archive/`: keep all of it.
+- Website cache headers: leave as they are.
+- The leftover `/tmp/hart-pkg.XXXXXX.tgz` on the Mac was deleted.
+
+## Open questions for other work
+
+- Staging signal rule (owned by another session): `signal_number` gives 67/66 at MP 6.6 and 67/68 at MP 6.7, so two pairs a tenth apart share a westward name; the stop is on the tenth, so MP 9.8 westward returns 99 although the message says names stop at 98. Pinned in `test_open_question_...` tests (#711).
+- `sts_car_sync.py`: stock `ThreadingUtil.runOnGUI` logs and drops an exception raised off the GUI thread, so a failed batch answers `ok: true, saved: true`. Pinned as a known fault in #710, not fixed.
+- A redeploy of a commit that already has the preflight runs it twice.
+
+Done since the lists below were written, so skip them there: the deploy reachability check, tests for the two staging scripts, the `mimic_relay.py` message, the `on_main` `git show` case, the wiring CSV readers (#708), image sizes and `defer` (#712).
+
+Correction to the review: the plan "5.3b" mentions in `wiki/pipelines/schematic-panels.md` and `docs/jmri/TRACK_LENGTHS.md` are right until the 5.3c bring-in, since the schematic inputs still come from 5.3b (`wiki/STATUS.md`).
 
 ## Not started: runtime on the Pi and Windows
 

@@ -109,7 +109,7 @@ run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py
 run schematic-staging-device-map python3 tools/schematic/staging_device_map.py --check
 run schematic-staging-masts python3 tools/schematic/build_staging_masts.py --check
 run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --check
-run wiring-v86 python3 docs/wiring/scripts/add_main_upper_levels.py --check
+run wiring-v86 python3 tools/wiring/add_main_upper_levels.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 # The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables
 # file, all of them in jmri/layouts/hart/parked/tables_parked.xml (the live snapshot, with its source commit).
@@ -124,10 +124,12 @@ run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
+run docs-index python3 tools/ops/build_docs_index.py --check
 run desks python3 cats/scripts/validate_cats_panel.py
-# The longest jobs start first, so none of them waits behind the quick ones: unit-jmri, the Layout Editor job, then
-# the per-file guard and host jobs with the files in SLOW of both folders (each 10-20 s) ahead of the rest.
+# The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
+# the per-file guard and host jobs, with the files in SLOW of each folder (each 10-20 s) ahead of the rest.
 SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_redeploy_commit.py "
+SLOW+="test_main_panel_names_copies.py test_polish_hart_layout_editor.py "
 # The Layout Editor test files run as one job in one process: each builds the three-level candidate through
 # test_build_layout_le.built(), cached per process, so three jobs solved the sheet three times side by side with an
 # empty schematic cache (about 5 minutes each).
@@ -138,13 +140,24 @@ slow_first() {
   for f in "$@"; do [[ "$SLOW" == *" ${f##*/} "* ]] || echo "$f"; done
   return 0
 }
-unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
 # shellcheck disable=SC2086  # LE_TESTS is a list of module names
 unit "unit-guards layout-editor ($LE_TESTS)" env PYTHONPATH=tools/audit/tests python3 -m unittest -q $LE_TESTS
+# unit-jmri runs one job per file on a local run, the slow files first: about 25 s in one job, 16 s spread over six
+# cores. CI keeps one job: its four cores are taken by the Layout Editor job and the guard files for minutes, so a
+# split would only add some 50 interpreter starts there.
+JMRI_TESTS=jmri/layouts/hart/scripts/tests
+if [[ -n "${CI:-}" ]]; then
+  unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
+else
+  for t in $(slow_first "$JMRI_TESTS"/test*.py); do
+    f="$(basename "$t")"
+    unit "unit-jmri ${f%.py}" python3 -m unittest discover -q -s "$JMRI_TESTS" -p "$f"
+  done
+fi
 # The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
-# both run one job per file, found as discover finds them, the files in SLOW of both folders first. A file in
+# both run one job per file, found as discover finds them, the files in SLOW first. A file in
 # BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
-for d in tools/hosts/tests tools/audit/tests; do
+for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests; do
   if [[ -n "$(find "$d" -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
     echo "--- $d: tests in a subfolder; give them their own job in check.sh"
     fail=1

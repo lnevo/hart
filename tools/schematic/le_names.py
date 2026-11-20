@@ -129,7 +129,7 @@ def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
     try:
         rows = level_masts_lib.read(path)
     except ValueError as exc:
-        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+        raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
     bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
     if bad:
         raise BuildError(f"{paths.rel(path)}: names signal_coordinator.py takes for LCOS heads, which would reach "
@@ -172,7 +172,7 @@ def lcos_named(names: list[str]) -> list[str]:
 
 def level_masts(names: dict, rows: list[dict]) -> None:
     """Give each main and upper band in `names` its masts (main_upper_masts.csv rows) for the plugin: each in the
-    band whose drawing has its facing track and its protected OS block (129-221 and 135-H2 meet Switches 129 and 135
+    band whose drawing has its facing track and its protected OS block (127-221 and 131-H2 meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block. Stops on a mast no band, or two, draws."""
     bad = []
@@ -335,8 +335,9 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
 
 def shared_turnouts(names: dict) -> None:
     """Give each main and upper band's names the turnouts it shares with another band (`shared_turnouts`): a
-    crossover whose halves stand on two levels (the helix-top 129 and 135) is one device-map turnout drawn as two
-    Layout Editor turnouts, which JMRI throws together."""
+    crossover whose halves stand on two levels (the helix-top 127 and 131) is one device-map turnout drawn as two
+    Layout Editor turnouts, which JMRI throws together. A crossover whose halves stand on one level is the plugin's
+    own (schematic.core.crossover_halves pairs halves joined C to C or B to C, 121 and 125 among them)."""
     bands_of = defaultdict(set)
     for key, nm in names.items():
         if key != STAGING:

@@ -1,0 +1,128 @@
+/* Extra East: a division run played on a dispatcher's train sheet. Own classes (xw-*) to stay clear of ops.css. */
+.xw{
+  --sheet:#f5f0e1; --sheet-2:#ece4cc; --line:#cdbf9c; --ink:#1d2733; --muted:#5d5a4e;
+  --red:#a3302b; --blue:#2c4a86; --green:#2d6a4f; --flimsy:#f3ecbf; --stamp:#a3302b;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  display:flex;flex-direction:column;gap:14px;color:var(--ink);font-family:var(--font-body)}
+.xw button{font:inherit;color:inherit}
+.xw [hidden]{display:none!important}
+.xw-btn{border:1.5px solid var(--ink);background:var(--sheet);border-radius:4px;padding:9px 14px;cursor:pointer;font-weight:600;text-align:left;line-height:1.35}
+.xw-btn:hover:not(:disabled){background:var(--sheet-2)}
+.xw-btn.primary{background:var(--ink);color:var(--sheet)}
+.xw-btn.primary:hover{background:#33404f}
+.xw-btn:disabled{opacity:.45;cursor:default}
+.xw-btn small{display:block;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.02em}
+.xw-btn.primary small{color:#d9d2bd}
+.xw-paper{background:var(--sheet);border:1.5px solid var(--ink);border-radius:2px;box-shadow:2px 3px 0 rgba(29,39,51,.12)}
+
+/* status strip */
+.xw-status{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:8px 14px;font-family:var(--mono);font-size:13px}
+.xw-status b{font-size:18px;font-weight:700}
+.xw-status .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:5px}
+.xw-status .marks b{color:var(--red)}
+
+/* line map */
+.xw-map{padding:4px 6px 2px}
+.xw-map svg{display:block;width:100%;height:auto;max-width:820px;margin:0 auto}
+.xw-map text{font-family:var(--mono);fill:var(--ink)}
+
+.xw-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:860px){.xw-grid{grid-template-columns:minmax(0,1fr)}}
+
+/* the scene card */
+.xw-scene{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px;min-height:280px}
+.xw-scene .where{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);border-bottom:1.5px solid var(--ink);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.xw-scene h2{font-family:var(--font-display);font-size:clamp(24px,4vw,30px);line-height:1.15;margin:0;font-weight:700}
+.xw-scene p{margin:0;font-size:16px;line-height:1.55;max-width:66ch}
+.xw-scene .choices{display:flex;flex-direction:column;gap:8px}
+.xw-scene .result{border-top:1.5px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.xw-scene .result .verdict{font-family:var(--font-display);font-size:21px;font-weight:700}
+.xw-scene .result .ok{color:var(--green)}.xw-scene .result .no{color:var(--red)}
+.xw-scene .src{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.xw-scene .opt.right{border-color:var(--green);background:#e1efe3}
+.xw-scene .opt.wrong{border-color:var(--red);background:#f5e1dc}
+.xw-scene .choices.done .opt:not(.right):not(.wrong){opacity:.5}
+.xw-dict{font-family:var(--mono);font-size:14px;line-height:1.6;background:var(--sheet-2);border-left:3px solid var(--blue);padding:8px 12px;white-space:pre-line;color:var(--blue)}
+.xw-tele{font-family:var(--mono);font-size:14px;line-height:1.6;background:var(--flimsy);border:1px solid var(--line);padding:10px 14px;white-space:pre-line}
+.xw-tele .no{color:var(--red);font-weight:700}
+.xw-clear{font-family:var(--mono);font-size:13px;line-height:1.6;background:#fff;border:1px solid var(--line);padding:10px 14px;white-space:pre-line}
+
+/* the train sheet */
+.xw-sheet{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.xw-sheet h3{font-family:var(--font-display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0;font-weight:700;text-align:center;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
+.xw-sheet .sub{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:-6px}
+.xw-tt{overflow-x:auto}
+.xw-tt table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px}
+.xw-tt th,.xw-tt td{border:1px solid var(--line);padding:3px 4px;text-align:center;white-space:nowrap}
+.xw-tt th{font-size:10.5px;font-weight:600;background:var(--sheet-2);line-height:1.25}
+.xw-tt th small{display:block;font-weight:400;color:var(--muted)}
+.xw-tt td.stn{text-align:left;font-weight:600}
+.xw-tt td.stn small{display:block;font-weight:400;color:var(--muted);font-size:10px}
+.xw-tt tr.here td{background:#fbf6d9}
+.xw-tt tr.here td.stn::before{content:"\25B6 ";color:var(--red)}
+.xw-tt .pencil{color:var(--blue);font-style:italic}
+.xw-tt .late s{color:var(--muted)}
+.xw-tt .late b{color:var(--red);font-weight:700;display:block}
+.xw-tt .gone{color:var(--muted);text-decoration:line-through}
+.xw-si{font-size:13px;line-height:1.5;border-top:1px dashed var(--line);padding-top:8px}
+.xw-si ul{margin:4px 0;padding-left:18px}
+.xw-orders{display:flex;flex-direction:column;gap:6px}
+.xw-orders .ord{font-family:var(--mono);font-size:12.5px;background:var(--flimsy);border:1px solid var(--line);padding:6px 9px;line-height:1.45}
+.xw-orders .ord .ok{color:var(--stamp);font-weight:700;border:1.5px solid var(--stamp);padding:0 4px;margin-left:6px;font-size:11px}
+
+/* track warrant form */
+.xw-tw{font-family:var(--mono);font-size:13px;background:#fff;border:1.5px solid var(--ink);padding:10px 12px;display:flex;flex-direction:column;gap:3px}
+.xw-tw .hd{text-align:center;font-weight:700;letter-spacing:.06em;border-bottom:1px solid var(--ink);padding-bottom:4px;margin-bottom:4px}
+.xw-tw label.box{display:flex;gap:8px;align-items:flex-start;padding:3px 2px;border-bottom:1px dotted var(--line);line-height:1.9}
+.xw-tw label.box .n{min-width:22px;font-weight:700;padding-top:1px}
+.xw-tw label.box input[type=checkbox]{margin-top:7px;width:16px;height:16px;flex:none}
+.xw-tw label.box.bad{background:#f5e1dc}
+.xw-tw select{font:inherit;font-size:12.5px;border:0;border-bottom:1.5px solid var(--blue);color:var(--blue);background:transparent;padding:0 2px;max-width:10.5em}
+.xw-tw .okline{border-top:1px solid var(--ink);margin-top:4px;padding-top:6px;color:var(--muted)}
+.xw-tw .okline b{color:var(--stamp)}
+
+/* title: a pixel-art screen drawn on a canvas at 256x128 and scaled up without smoothing */
+.xw-title{margin-bottom:14px;border:1.5px solid var(--ink);border-radius:2px;background:#e9dcb4;box-shadow:2px 3px 0 rgba(29,39,51,.12);line-height:0}
+.xw-title canvas{width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
+/* start screen */
+.xw-fig{display:flex;justify-content:center;margin:6px 0;color:var(--ink)}
+.xw-start{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:700px){.xw-start{grid-template-columns:minmax(0,1fr)}}
+.xw-switch{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;cursor:pointer;flex-wrap:wrap}
+.xw-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.xw-switch i{position:relative;width:44px;height:24px;border:1.5px solid var(--ink);border-radius:12px;background:var(--sheet-2);flex:none}
+.xw-switch i::after{content:"";position:absolute;top:3px;left:3px;width:15px;height:15px;border-radius:50%;background:var(--ink);transition:left .15s}
+.xw-switch input:checked+i::after{left:23px}
+.xw-switch input:focus-visible+i{outline:2px solid var(--red);outline-offset:2px}
+.xw-switch span{color:var(--muted)}
+.xw-switch:not(.on) span:first-of-type,.xw-switch.on span:last-of-type{color:var(--ink)}
+.xw-start .card{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.xw-start h2{font-family:var(--font-display);font-size:26px;margin:0;font-weight:700}
+.xw-start p{margin:0;line-height:1.55}
+.xw-start .rules{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.xw-how{padding:12px 16px;font-size:15px;line-height:1.55}
+.xw-how ul{margin:6px 0;padding-left:20px}
+.xw-best{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.xw-go{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}.xw-go .xw-btn{flex:1 1 180px}
+.xw-daily{border-top:1.5px dashed var(--line);margin-top:10px;padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.xw-daily p{font-size:14px;margin:0}
+.xw-share{font-family:var(--mono);font-size:13px;background:#fff;border:1px solid var(--line);padding:8px 10px;user-select:all;line-height:1.5}
+
+/* end */
+.xw-end .score{display:flex;flex-wrap:wrap;gap:8px 26px;font-family:var(--mono)}
+.xw-end .score div{display:flex;flex-direction:column}
+.xw-end .score b{font-size:30px;font-family:var(--font-display)}
+.xw-end .score span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.xw-end details{border:1px solid var(--line);background:#fff;border-radius:3px;padding:7px 10px}
+.xw-end summary{cursor:pointer;font-weight:600}
+.xw-end details p{font-size:14px;margin:6px 0 0}
+.xw-stamp{display:inline-block;font-family:var(--font-display);font-weight:700;font-size:22px;letter-spacing:.08em;text-transform:uppercase;color:var(--stamp);border:3px solid var(--stamp);padding:2px 12px;transform:rotate(-3deg);align-self:flex-start}
+.xw-stamp.good{color:var(--green);border-color:var(--green)}
+.xw-log{font-family:var(--mono);font-size:12.5px;line-height:1.55;padding:8px 14px}
+.xw-log summary{cursor:pointer;font-weight:600;font-family:var(--font-body);font-size:14px}
+.xw-log ol{margin:6px 0 0;padding-left:22px;max-height:260px;overflow:auto}
+@media (prefers-reduced-motion:no-preference){.xw-scene.in{animation:xw-in .2s ease}}
+@keyframes xw-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.xw-headrow{display:flex;align-items:center;gap:12px;margin-bottom:.4rem}
+.xw-headrow img{width:40px;height:40px;flex:none}
+.xw-headrow h1{margin:0}

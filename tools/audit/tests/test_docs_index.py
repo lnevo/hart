@@ -45,10 +45,10 @@ class Arguments(unittest.TestCase):
         return status, out.getvalue(), err.getvalue()
 
     def test_unknown_argument_is_refused(self) -> None:
-        for argv in (["--chek"], ["--check"], ["docs"]):
+        for argv in (["--chek"], ["--check", "docs"], ["docs"]):
             status, out, err = self.run_main(argv)
             self.assertEqual(status, 2, argv)
-            self.assertIn(repr(argv[0]), err)
+            self.assertIn(repr(argv[-1] if argv[0] == "--check" else argv[0]), err)
             self.assertEqual(out, "")
 
     def test_help_prints_the_usage(self) -> None:
@@ -62,7 +62,7 @@ class Arguments(unittest.TestCase):
         """python -OO strips the docstring; --help still prints the usage line, not 'None'."""
         with mock.patch.object(INDEX, "__doc__", None):
             status, out, err = self.run_main(["--help"])
-        self.assertEqual((status, out, err), (0, "build_docs_index.py (takes no arguments)\n", ""))
+        self.assertEqual((status, out, err), (0, "build_docs_index.py [--check]\n", ""))
 
     def test_no_argument_writes_the_index(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -73,6 +73,54 @@ class Arguments(unittest.TestCase):
                     contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(INDEX.main([]), 0)
             self.assertIn("| 2026-11-01 | [A B.md](ctc/A%20B.md) | md |", (Path(tmp) / "docs/INDEX.md").read_text())
+
+
+class Check(unittest.TestCase):
+    """--check compares the documents the index lists with the tracked ones, never their dates."""
+
+    PATHS = ["docs/ctc/A B.md", "docs/wiring/x.csv"]
+
+    def run_check(self, index_text, paths=None):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "docs").mkdir()
+            if index_text is not None:
+                (Path(tmp) / "docs/INDEX.md").write_text(index_text)
+            out, err = io.StringIO(), io.StringIO()
+            with mock.patch.object(INDEX, "ROOT", Path(tmp)), \
+                    mock.patch.object(INDEX, "tracked", return_value=paths or self.PATHS), \
+                    mock.patch.object(INDEX, "last_changed") as last_changed, \
+                    contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                status = INDEX.main(["--check"])
+            last_changed.assert_not_called()          # CI's shallow clone has no history to date from
+            wrote = sorted(f.name for f in (Path(tmp) / "docs").iterdir())
+            self.assertEqual(wrote, ["INDEX.md"] if index_text is not None else [])     # --check writes nothing
+        return status, out.getvalue(), err.getvalue()
+
+    def test_current_index_passes_whatever_its_dates(self) -> None:
+        text = INDEX.render(self.PATHS, {"docs/ctc/A B.md": "2026-11-01", "docs/wiring/x.csv": "2026-10-01"})
+        status, out, err = self.run_check(text)
+        self.assertEqual((status, err), (0, ""))
+        self.assertIn("lists all 2 documents", out)
+
+    def test_new_document_fails(self) -> None:
+        status, _, err = self.run_check(INDEX.render(self.PATHS[:1], {}))
+        self.assertEqual(status, 1)
+        self.assertIn("out of date", err)
+        self.assertIn("missing: wiring: [x.csv](wiring/x.csv) | csv", err)
+
+    def test_removed_document_fails(self) -> None:
+        status, _, err = self.run_check(INDEX.render(self.PATHS, {}), self.PATHS[:1])
+        self.assertEqual(status, 1)
+        self.assertIn("not tracked: wiring: [x.csv](wiring/x.csv) | csv", err)
+
+    def test_moved_to_another_area_fails(self) -> None:
+        status, _, err = self.run_check(INDEX.render(["docs/ctc/A B.md", "docs/ops/x.csv"], {}))
+        self.assertEqual(status, 1)
+
+    def test_missing_index_fails(self) -> None:
+        status, _, err = self.run_check(None)
+        self.assertEqual(status, 1)
+        self.assertIn("out of date", err)
 
 
 if __name__ == "__main__":

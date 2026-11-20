@@ -27,7 +27,7 @@ ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import parked, paths, tables  # noqa: E402
 
-_spec = importlib.util.spec_from_file_location("polish_hart_layout_editor", SCRIPTS / "polish_hart_layout_editor.py")
+_spec = importlib.util.spec_from_file_location("polish_hart_layout_editor", SCRIPTS.parent / "parked" / "polish_hart_layout_editor.py")
 polish = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(polish)
 

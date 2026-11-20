@@ -69,8 +69,85 @@ class FakeLogic:
         return self.enabled[dest.getSystemName()]
 
 
+class _Space:
+    """Apps.buttonSpace(): the main-window button strip, inside a frame."""
+
+    def __init__(self):
+        self.components = []
+        self.frame = _Frame()
+
+    def getComponentCount(self):
+        return len(self.components)
+
+    def getComponent(self, i):
+        return self.components[i]
+
+    def add(self, c):
+        self.components.append(c)
+        c.parent = self
+
+    def remove(self, c):
+        self.components = [x for x in self.components if x is not c]
+
+    def revalidate(self):
+        pass
+
+    def repaint(self):
+        pass
+
+    def getTopLevelAncestor(self):
+        return self.frame
+
+
+class _Frame:
+    def __init__(self):
+        self.listeners = []
+
+    def getTitle(self):
+        return "PanelPro"
+
+    def addWindowListener(self, listener):
+        self.listeners.append(listener)
+
+    def removeWindowListener(self, listener):
+        self.listeners = [l for l in self.listeners if l is not listener]
+
+
+class _QueuedSwing:
+    """SwingUtilities whose invokeLater queues: shows what a worker thread does off the EDT."""
+
+    queue = []
+
+    @staticmethod
+    def isEventDispatchThread():
+        return False
+
+    @staticmethod
+    def invokeLater(runnable):
+        _QueuedSwing.queue.append(runnable)
+
+    @staticmethod
+    def drain():
+        while _QueuedSwing.queue:
+            _QueuedSwing.queue.pop(0).run()
+
+
 class Coordinator(unittest.TestCase):
     def setUp(self) -> None:
+        # The script keeps its controller on __main__ so a re-run can find it; keep tests apart.
+        import __main__
+
+        saved = getattr(__main__, "digicon_sml_controller", None)
+        if saved is not None:
+            del __main__.digicon_sml_controller
+
+        def restore():
+            if saved is not None:
+                __main__.digicon_sml_controller = saved
+            elif hasattr(__main__, "digicon_sml_controller"):
+                del __main__.digicon_sml_controller
+
+        self.addCleanup(restore)
         # Loaded with no MQTT connection, so the module-level start() stops early;
         # each test builds its own controller wired to the recorder.
         self.layout = jf.Layout(mqtt=False)
@@ -263,6 +340,14 @@ class Coordinator(unittest.TestCase):
         self.c.notifyMqttMessage("track/bridge/sml_mode", "query")
         self.assertEqual(self.sent(), [("track/bridge/sml_mode", "enabled", True)])
 
+    def test_enable_probe_query_is_not_retained(self) -> None:
+        # A retained "query" would replace the retained mode on the broker and replay to every
+        # later subscriber. JMRI's two-argument publish retains, so the flag must be False.
+        self.c._retained_mode = None
+        self.assertEqual(self.c._probe_and_confirm_override(), "ok")
+        self.assertEqual(self.sent(), [("track/bridge/sml_mode", "query", False)])
+        self.assertFalse(self.c._probe_active)
+
     def test_own_probe_is_not_answered(self) -> None:
         self.c._global_enabled = True
         self.c._probe_active = True
@@ -275,6 +360,7 @@ class Coordinator(unittest.TestCase):
         self.enroll()
         self.own_by_sml()
         self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+        jf.run_threads()
         self.assertEqual(self.sent(), [("track/bridge/sml_mode", "aborting", True),
                                        ("track/bridge/sml_mode", "aborted", True)])
         self.assertEqual(self.bulk, [False])
@@ -285,6 +371,255 @@ class Coordinator(unittest.TestCase):
         self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
         self.assertEqual(self.sent(), [])
         self.assertEqual(self.bulk, [])
+
+    # --- abort runs off the MQTT callback thread ---------------------------------------
+
+    def test_abort_does_not_wait_on_the_mqtt_thread(self) -> None:
+        # The bulk uncheck waits on the layout thread; on JMRI's one MQTT callback thread that
+        # wait stalls every inbound message, so the abort work goes to a worker thread.
+        self.enroll()
+        self.own_by_sml()
+        jf.Thread.started.clear()
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+        self.assertEqual(self.sent(), [])
+        self.assertEqual(self.bulk, [])
+        self.assertEqual(len(jf.Thread.started), 1)
+        self.assertFalse(self.c._global_enabled)  # stops SET at once
+        # A second enabling or a query while the abort is queued: no second abort, no ACK.
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "query")
+        self.assertEqual(len(jf.Thread.started), 1)
+        self.assertEqual(self.sent(), [])
+        jf.run_threads()
+        self.assertEqual(self.sent(), [("track/bridge/sml_mode", "aborting", True),
+                                       ("track/bridge/sml_mode", "aborted", True)])
+        self.assertEqual(self.bulk, [False])
+
+    # --- abort during a running Disable or Enable worker -------------------------------
+
+    def test_abort_during_disable_keeps_the_controller_busy(self) -> None:
+        self.enroll()
+        self.own_by_sml()
+        jf.Thread.started.clear()
+        self.c._enter_disabled(release=True)
+        disable_worker = jf.Thread.started.pop(0)
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+        jf.run_threads()  # the abort finishes while the Disable worker is still in its Hold
+        self.c._on_toggle()  # operator click: must wait for the Disable worker
+        self.assertEqual(jf.Thread.started, [])
+        self.adapter.published.clear()
+        disable_worker.runnable.run()
+        # Another agent owns Digicon now: no Unheld of its heads, no disabled over its enabling.
+        self.assertEqual(self.sent(), [])
+        self.assertFalse(self.mast.held)
+        self.c._on_toggle()
+        self.assertEqual(len(jf.Thread.started), 1)  # free again once the worker ends
+
+    def test_abort_during_enable_probe_does_not_take(self) -> None:
+        self.enroll()
+        c = self.c
+
+        def probe():
+            c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+            jf.run_threads()
+            return "ok"
+
+        c._probe_and_confirm_override = probe
+        jf.Thread.started.clear()
+        c._enter_enabled(force=False, from_boot=False)
+        jf.run_threads()
+        self.assertNotIn(("track/bridge/sml_mode", "enabled", True), self.sent())
+        self.assertNotIn(True, self.bulk)
+        self.assertFalse(c._global_enabled)
+        self.assertFalse(c._enabling_originator)
+        self.assertFalse(self.mast.held)
+
+    def test_abort_during_override_dialog_sends_no_enabling(self) -> None:
+        self.enroll()
+        c = self.c
+
+        def probe():
+            c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+            jf.run_threads()
+            return "force"  # the operator answers Yes after the other agent began taking
+
+        c._probe_and_confirm_override = probe
+        jf.Thread.started.clear()
+        c._enter_enabled(force=False, from_boot=False)
+        jf.run_threads()
+        self.assertNotIn(("track/bridge/sml_mode", "enabling", True), self.sent())
+        self.assertFalse(c._enabling_originator)
+        self.assertFalse(c._should_ack_sml_alive())
+
+    def test_abort_while_unheld_goes_out_stops_the_disable(self) -> None:
+        self.enroll()
+        self.own_by_sml()
+        c = self.c
+        record = self.adapter.publish
+
+        def publish(topic, payload, retain=True):
+            record(topic, payload, retain)
+            if payload == "Unheld":
+                c._abort_gen += 1  # another agent's enabling lands mid-burst
+
+        self.adapter.publish = publish
+        jf.Thread.started.clear()
+        c._enter_disabled(release=True)
+        jf.run_threads()
+        self.assertEqual(self.sent(), [("track/signalhead/432", "Unheld", True)])
+
+    def test_quit_release_stands_down_after_an_abort_in_its_hold(self) -> None:
+        self.enroll()
+        self.own_by_sml()
+        c = self.c
+
+        class AbortingThread(jf.Thread):
+            @staticmethod
+            def sleep(ms):
+                c._abort_gen += 1
+
+        self.sc["Thread"] = AbortingThread
+        c._on_jmri_shutdown()
+        self.assertEqual(self.sent(), [])
+        self.assertFalse(self.mast.held)
+
+    def test_abort_leaves_the_button_to_a_running_worker(self) -> None:
+        labels = []
+        self.c._set_button_label = lambda: labels.append(1)
+        self.c._busy = True  # a Disable worker is in its Hold
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+        jf.run_threads()
+        self.assertEqual(labels, [])
+
+    # --- stale retained enabled -----------------------------------------------------------
+
+    def test_bridge_release_with_a_probe_query_between(self) -> None:
+        taken = self.take_calls()
+        self.logic.enabled["Mast 8RA"] = False
+        for mode in ("enabled", "query", "disabling", "query", "disabled"):
+            self.c.notifyMqttMessage("track/bridge/sml_mode", mode)
+        self.assertEqual(taken, [(True, True)])
+
+    def take_calls(self):
+        taken = []
+        self.c._enter_enabled = lambda force, from_boot: taken.append((force, from_boot))
+        return taken
+
+    def test_bridge_release_of_a_stale_enabled_lets_an_idle_host_take(self) -> None:
+        # Power cut: both hosts boot, read the stale retained enabled and stay Disabled. The
+        # bridge finds no owner (query, then disabling, then disabled); an idle host takes.
+        taken = self.take_calls()
+        self.logic.enabled["Mast 8RA"] = False  # boot held the dests off
+        for mode in ("enabled", "query", "disabling", "disabled"):
+            self.c.notifyMqttMessage("track/bridge/sml_mode", mode)
+        self.assertEqual(taken, [(True, True)])
+        self.assertEqual(self.sent(), [])
+
+    def test_operator_disable_elsewhere_is_not_taken_over(self) -> None:
+        taken = self.take_calls()
+        self.logic.enabled["Mast 8RA"] = False
+        for mode in ("enabled", "disabled"):
+            self.c.notifyMqttMessage("track/bridge/sml_mode", mode)
+        self.assertEqual(taken, [])
+
+    def test_bridge_release_while_busy_or_booting_is_left_alone(self) -> None:
+        taken = self.take_calls()
+        self.logic.enabled["Mast 8RA"] = False
+        for attr in ("_busy", "_boot_pending", "_shutting_down", "_enabling_originator"):
+            setattr(self.c, attr, True)
+            self.c.notifyMqttMessage("track/bridge/sml_mode", "disabling")
+            self.c.notifyMqttMessage("track/bridge/sml_mode", "disabled")
+            setattr(self.c, attr, False)
+        self.assertEqual(taken, [])
+
+    # --- second run of the script -------------------------------------------------------
+
+    def load_running(self):
+        """Load the script with MQTT and a main window, as Start Up does."""
+        self.layout.memo = jf.FakeMemo(self.layout.adapter)
+        if self.layout.button_space is None:
+            self.layout.button_space = _Space()
+        self.env = jf.load_script(SCRIPT, self.layout)
+        return self.env["controller"]
+
+    def test_second_run_detaches_the_first(self) -> None:
+        first = self.load_running()
+        second = self.load_running()
+        self.assertIsNot(first, second)
+        space = self.layout.button_space
+        self.assertNotIn(first, self.mast.listeners)
+        self.assertIn(second, self.mast.listeners)
+        gone = {t for t, l in self.layout.adapter.unsubscribed if l is first}
+        self.assertEqual(gone, {"track/bridge/sml_mode", "track/signalmast/#", "track/signalhead/#"})
+        self.assertFalse([t for t, l in self.layout.adapter.unsubscribed if l is second])
+        self.assertEqual([t._controller for t in self.layout.shutdown.tasks], [second])
+        self.assertEqual(len(space.frame.listeners), 1)
+        # The one visible button drives the new instance.
+        self.assertEqual(space.components, [second._button])
+        clicks = []
+        second._on_toggle = lambda: clicks.append(1)
+        space.components[0].click()
+        self.assertEqual(clicks, [1])
+        # The old instance no longer acts on a quit.
+        self.assertTrue(first._shutdown_released)
+
+    def test_button_left_by_an_older_run_is_replaced(self) -> None:
+        # A run without the detach step left its button on the strip.
+        space = _Space()
+        stale = jf.FakeButton("SML Enabled")
+        space.add(stale)
+        self.layout.button_space = space
+        c = self.load_running()
+        self.assertEqual(space.components, [c._button])
+
+    def test_detached_controllers_button_retry_does_nothing(self) -> None:
+        space = _Space()
+        self.layout.button_space = space
+        self.c._button = jf.FakeButton("SML Disabled")
+        self.c._shutting_down = True  # what _detach_controller sets
+        jf.Thread.started.clear()
+        self.c._add_toggle_button(attempt=1)
+        jf.run_threads()
+        self.assertEqual(space.components, [])
+
+    def test_quit_task_releases_its_own_controller(self) -> None:
+        c = self.load_running()
+        task = self.layout.shutdown.tasks[0]
+        calls = []
+        c._on_jmri_shutdown = lambda: calls.append(1)
+        self.env["controller"] = None  # the script's global may name a later run's controller
+        task.call()
+        self.assertEqual(calls, [1])
+
+    # --- Swing thread ----------------------------------------------------------------------
+
+    def test_window_close_releases_off_the_swing_thread(self) -> None:
+        self.enroll()
+        self.own_by_sml()
+        self.layout.button_space = _Space()
+        self.c._add_quit_window_hook()
+        jf.Thread.started.clear()
+        self.c._set_all_digicon_sml_destinations = lambda on: None
+        self.layout.button_space.frame.listeners[0].windowClosing(None)
+        self.assertEqual(self.sent(), [])  # the 3 s Hold does not run on the Swing thread
+        self.assertEqual(len(jf.Thread.started), 1)
+        jf.run_threads()
+        self.assertEqual(self.sent()[-1], ("track/bridge/sml_mode", "disabled", True))
+        n = len(self.sent())
+        self.c._on_jmri_shutdown()  # the ShutDownTask after it: already released
+        self.assertEqual(len(self.sent()), n)
+
+    def test_button_is_changed_only_on_the_swing_thread(self) -> None:
+        self.sc["SwingUtilities"] = _QueuedSwing
+        self.addCleanup(_QueuedSwing.queue.clear)
+        for start in (lambda: self.c._enter_enabled(force=True, from_boot=True),
+                      lambda: self.c._enter_disabled(release=False)):
+            self.c._busy = False
+            self.c._button = jf.FakeButton("SML Disabled")
+            start()
+            self.assertTrue(self.c._button.enabled)  # not touched from this thread
+            _QueuedSwing.drain()
+            self.assertFalse(self.c._button.enabled)
 
     # --- boot -------------------------------------------------------------------------
 

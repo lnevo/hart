@@ -9,7 +9,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-HISTORY = Path(__file__).resolve().parent
+HISTORY = Path(__file__).resolve().parents[2] / "docs/ctc/history"
 DESKTOP = HISTORY
 OUT_MP4 = HISTORY / "CTC_Panel_Evolution.mp4"
 OUT_GIF = HISTORY / "CTC_Panel_Evolution.gif"

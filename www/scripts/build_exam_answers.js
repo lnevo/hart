@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Builds www/exam/answers.html, the answer key for the Extra East game, from the ask({...}) calls in www/exam/run.html.
+/* Builds www/exam/answers.html, the answer key for the Extra East game, from the ask({...}) calls in www/exam/run.js.
    Each call is evaluated with every unknown name stubbed, so values the game fills in at play time (station, train,
    clock time) show as [station], [train] or […]. `--check` exits 1 when answers.html is out of date. */
 "use strict";
@@ -8,7 +8,7 @@ const path = require("path");
 const vm = require("vm");
 
 const EXAM = path.join(__dirname, "..", "exam");
-const RUN = path.join(EXAM, "run.html");
+const RUN = path.join(EXAM, "run.js");
 const OUT = path.join(EXAM, "answers.html");
 
 /* Scans from the bracket at `open` to the one that closes it. Skips strings, comments and template text, and follows
@@ -42,23 +42,23 @@ function scan(src, open) {
     else if (c === "}" || c === "]" || c === ")") {
       const want = stack.pop();
       if (want === "T" && c === "}") { mode = "`"; continue; }
-      if (want !== c) throw new Error(`run.html line ${src.slice(0, j).split("\n").length}: unbalanced ${c}`);
+      if (want !== c) throw new Error(`run.js line ${src.slice(0, j).split("\n").length}: unbalanced ${c}`);
       if (!stack.length) return { end: j, code };
     }
   }
-  throw new Error(`run.html line ${src.slice(0, open).split("\n").length}: no closing bracket`);
+  throw new Error(`run.js line ${src.slice(0, open).split("\n").length}: no closing bracket`);
 }
 const closing = (src, open) => scan(src, open).end;
 
-/* The one way this script evaluates code from run.html: the text from `from` through the bracket that closes `open`. */
+/* The one way this script evaluates code from run.js: the text from `from` through the bracket that closes `open`. */
 const evalSlice = (src, from, open) => Function(`return (${src.slice(from, closing(src, open) + 1)})`)();
 
 /* The value of a declaration such as "const ST=" (an object or array literal), searched for from `after`. */
 function literal(src, decl, after = 0) {
   const at = src.indexOf(decl, after);
-  if (at < 0) throw new Error(`run.html: ${decl.trim()} not found`);
+  if (at < 0) throw new Error(`run.js: ${decl.trim()} not found`);
   const open = at + decl.length;
-  if (!"{[".includes(src[open])) throw new Error(`run.html: ${decl.trim()} is not followed by a literal`);
+  if (!"{[".includes(src[open])) throw new Error(`run.js: ${decl.trim()} is not followed by a literal`);
   return evalSlice(src, open, open);
 }
 
@@ -69,13 +69,13 @@ function stub(name) {
     apply: () => `[${name}(…)]`,
   });
 }
-/* Helpers the key runs for real, read from run.html: the figures a question may show under its text. */
+/* Helpers the key runs for real, read from run.js: the figures a question may show under its text. */
 const FIGURES = ["semSvg"];
 function figures(src) {
   const out = {};
   for (const name of FIGURES) {
     const at = src.indexOf(`function ${name}(`);
-    if (at < 0) throw new Error(`run.html: figure helper ${name} not found`);
+    if (at < 0) throw new Error(`run.js: figure helper ${name} not found`);
     out[name] = evalSlice(src, at, src.indexOf("{", at));
   }
   return out;
@@ -108,7 +108,7 @@ function poolRanges(src) {
   const out = [];
   for (const name of Object.keys(POOLS)) {
     const at = src.indexOf(`const ${name}=[`);
-    if (at < 0) throw new Error(`run.html: pool ${name} not found`);
+    if (at < 0) throw new Error(`run.js: pool ${name} not found`);
     const open = src.indexOf("[", at);
     out.push({ name, from: open, to: closing(src, open) });
   }
@@ -144,7 +144,7 @@ function readSources(src) {
    scene, so a question there gets its run's label; any other question before TW_SEL is 1949, after it modern. */
 function modernRange(src) {
   const from = src.indexOf("const TW_SEL="), to = src.indexOf("function finish(");
-  if (from < 0 || to < from) throw new Error("run.html: modern run code (const TW_SEL … function finish) not found");
+  if (from < 0 || to < from) throw new Error("run.js: modern run code (const TW_SEL … function finish) not found");
   return { from, to };
 }
 
@@ -153,7 +153,7 @@ const FUNC_RUNS = { startYARD: "Yard job", startSIG: "Signals run" };
 function funcRanges(src) {
   return Object.entries(FUNC_RUNS).map(([fn, label]) => {
     const at = src.indexOf(`function ${fn}(`);
-    if (at < 0) throw new Error(`run.html: function ${fn} not found`);
+    if (at < 0) throw new Error(`run.js: function ${fn} not found`);
     return { label, from: at, to: closing(src, src.indexOf("{", at)) };
   });
 }
@@ -177,17 +177,17 @@ function extract(src) {
     if (/[{,]\s*gen\s*:/.test(code)) { generated++; continue; } // its value is a string, which scan() leaves out of code
     // Stubs are always truthy, so a shown field chosen at play time would show one branch as the only answer.
     const chosen = SHOWN.filter(k => /\?|&&|\|\|/.test(fieldCode(code, k)));
-    if (chosen.length) throw new Error(`run.html line ${line}: ${chosen.join(", ")} chosen at play time (?, && or ||); write one ask per case, or put a situational sentence in note`);
+    if (chosen.length) throw new Error(`run.js line ${line}: ${chosen.join(", ")} chosen at play time (?, && or ||); write one ask per case, or put a situational sentence in note`);
     const lit = src.slice(open, end + 1);
     let o;
     try {
       o = Function("P", `with(P){return (${lit})}`)(scope);
     } catch (e) {
-      throw new Error(`run.html line ${line}: cannot read question (${e.message})`);
+      throw new Error(`run.js line ${line}: cannot read question (${e.message})`);
     }
-    if (o.extra && /\[\w/.test(String(o.extra))) throw new Error(`run.html line ${line}: the figure under the question uses play-time values the key cannot draw`);
-    for (const k of ["title", "body", "right", "why"]) if (!o[k]) throw new Error(`run.html line ${line}: question has no ${k}`);
-    if (!Array.isArray(o.wrong) || !o.wrong.length) throw new Error(`run.html line ${line}: question has no wrong answers`);
+    if (o.extra && /\[\w/.test(String(o.extra))) throw new Error(`run.js line ${line}: the figure under the question uses play-time values the key cannot draw`);
+    for (const k of ["title", "body", "right", "why"]) if (!o[k]) throw new Error(`run.js line ${line}: question has no ${k}`);
+    if (!Array.isArray(o.wrong) || !o.wrong.length) throw new Error(`run.js line ${line}: question has no wrong answers`);
     const pool = pools.find(p => m.index > p.from && m.index < p.to);
     qs.push({
       line, sec: o.sec, src: text(srcLabel(String(o.src || ""))), extra: o.extra ? String(o.extra) : "", title: text(o.title), body: text(o.body), right: text(o.right),
@@ -247,16 +247,16 @@ ${plates.join("\n")}
 }
 
 /* ---------- references: what the game shows on its train sheet or warrant form, for questions that need it ---------- */
-/* A question names one with ref:"<id>" in run.html; the game ignores the field. Each is drawn from run.html's own data. */
+/* A question names one with ref:"<id>" in run.js; the game ignores the field. Each is drawn from run.js's own data. */
 
 
 /* The special instructions on the 1949 train sheet: renderSheet's S.era==="tto" branch, up to its }else{. */
 function specialInstructions(src) {
   const from = src.indexOf('if(S.era==="tto"){', src.indexOf("function renderSheet("));
   const to = src.indexOf("}else{", from);
-  if (from < 0 || to < 0) throw new Error('run.html: renderSheet\'s S.era==="tto" branch not found');
+  if (from < 0 || to < 0) throw new Error('run.js: renderSheet\'s S.era==="tto" branch not found');
   const m = /<div class="xw-si"><b>Special instructions<\/b><ul>(.*?)<\/ul><\/div>/.exec(src.slice(from, to));
-  if (!m) throw new Error("run.html: special instructions not found in the 1949 branch of renderSheet");
+  if (!m) throw new Error("run.js: special instructions not found in the 1949 branch of renderSheet");
   return m[1];
 }
 
@@ -265,16 +265,16 @@ function specialInstructions(src) {
    under if/else is marked as appearing in some runs only. */
 function warrant(src, name) {
   const from = src.indexOf("function startTWC(");
-  if (from < 0) throw new Error("run.html: function startTWC not found");
+  if (from < 0) throw new Error("run.js: function startTWC not found");
   const body = src.slice(from, closing(src, src.indexOf("{", from)) + 1);
   const w = literal(body, `const ${name}=`);
-  if (!w.no || !w.boxes) throw new Error(`run.html: ${name} in startTWC has no no or boxes`);
+  if (!w.no || !w.boxes) throw new Error(`run.js: ${name} in startTWC has no no or boxes`);
   const boxes = Object.fromEntries(Object.entries(w.boxes).map(([n, v]) => [n, { vals: v, some: false }]));
   const re = new RegExp(`\\b${name}\\.boxes\\[(\\d+)\\]=`, "g");
   let m;
   while ((m = re.exec(body))) {
     const open = m.index + m[0].length;
-    if (body[open] !== "[") throw new Error(`run.html: ${name}.boxes[${m[1]}] is not set to an array`);
+    if (body[open] !== "[") throw new Error(`run.js: ${name}.boxes[${m[1]}] is not set to an array`);
     let vals;
     try { vals = evalSlice(body, open, open); } catch (e) { vals = null; } // built at play time, e.g. [fmt(t)]
     const lineStart = body.lastIndexOf("\n", m.index) + 1;
@@ -287,10 +287,10 @@ function warrant(src, name) {
 function warrantHtml(w, BOXES) {
   const words = Object.fromEntries(BOXES);
   const rows = Object.keys(w.boxes).map(Number).sort((a, b) => a - b).map(n => {
-    if (!words[n]) throw new Error(`run.html: warrant ${w.no} uses box ${n}, which BOXES does not define`);
+    if (!words[n]) throw new Error(`run.js: warrant ${w.no} uses box ${n}, which BOXES does not define`);
     const { vals, some } = w.boxes[n];
     const slots = words[n].match(/\{\w+\}/g) || [];
-    if (vals && vals.length !== slots.length) throw new Error(`run.html: warrant ${w.no} box ${n} has ${vals.length} values for ${slots.length} blanks`);
+    if (vals && vals.length !== slots.length) throw new Error(`run.js: warrant ${w.no} box ${n} has ${vals.length} values for ${slots.length} blanks`);
     let i = 0;
     const line = words[n].replace(/\{(\w+)\}/g, (_, slot) => vals ? `<b>${esc(vals[i++])}</b>` : `<b>[${SLOT[slot] || slot}]</b>`);
     return `<tr><td class="xa-box">${n}</td><td>${line}${some ? ' <small class="xa-some">some runs</small>' : ""}</td></tr>`;
@@ -306,14 +306,14 @@ function timeOrder(src) {
   const words = /text:`\$\{tr\.name\} run \$\{L\} mins late ([^`]+)`/.exec(src);
   const tt = src.slice(src.indexOf("function makeTT("));
   const train = /name:"([^"]+)",dir:"W",cls:"(?:First|Second) class"/.exec(tt);
-  if (!nums || !mins || !words || !train) throw new Error("run.html: the time order's number, minutes, wording or westward train not found");
+  if (!nums || !mins || !words || !train) throw new Error("run.js: the time order's number, minutes, wording or westward train not found");
   return { no: nums[1], train: train[1], L: mins[1].split(",")[0].trim(), rest: words[1] };
 }
 
 /* How far ahead Box 5 is set when the crew calls the dispatcher (setBox5: rounded up to 5 minutes). */
 function box5Lead(src) {
   const m = /Math\.ceil\(\(S\.clock\+(\d+)\)\/5\)\*5/.exec(src);
-  if (!m) throw new Error("run.html: setBox5's lead time not found");
+  if (!m) throw new Error("run.js: setBox5's lead time not found");
   return +m[1];
 }
 
@@ -355,9 +355,9 @@ function references(src) {
 function render(qs, SEC, REFS = {}, GEN = { n: 0, html: "" }) {
   const order = Object.keys(SEC);
   const badRef = qs.find(q => q.ref && !REFS[q.ref]);
-  if (badRef) throw new Error(`run.html line ${badRef.line}: unknown reference "${badRef.ref}" (known: ${Object.keys(REFS).join(", ")})`);
+  if (badRef) throw new Error(`run.js line ${badRef.line}: unknown reference "${badRef.ref}" (known: ${Object.keys(REFS).join(", ")})`);
   const unknown = qs.filter(q => !order.includes(q.sec));
-  if (unknown.length) throw new Error(`run.html line ${unknown[0].line}: unknown section "${unknown[0].sec}"`);
+  if (unknown.length) throw new Error(`run.js line ${unknown[0].line}: unknown section "${unknown[0].sec}"`);
   let n = 0;
   const groups = order.map(sec => {
     const list = qs.filter(q => q.sec === sec);
@@ -387,7 +387,7 @@ function render(qs, SEC, REFS = {}, GEN = { n: 0, html: "" }) {
   <meta name="description" content="Every question in the Extra East game with its answer, the wrong choices and the rule behind it.">
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="../css/achievements.css">
-  <!-- Generated by www/scripts/build_exam_answers.js from run.html. Do not edit by hand. -->
+  <!-- Generated by www/scripts/build_exam_answers.js from run.js. Do not edit by hand. -->
   <style>
 .xa-tools{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;position:sticky;top:var(--header-h,0px);background:var(--paper);padding:8px 0;z-index:2}
 .xa-tools input[type=search]{flex:1 1 240px;font:inherit;padding:8px 10px;border:1px solid #b9b4a6;border-radius:4px}
@@ -470,7 +470,7 @@ function main() {
   const src = fs.readFileSync(RUN, "utf8");
   const qs = extract(src);
   const calls = (src.match(/\bask\(\{/g) || []).length;
-  if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but run.html has ${calls} ask({ calls`);
+  if (qs.length + qs.generated !== calls) throw new Error(`read ${qs.length} questions and ${qs.generated} signal templates but run.js has ${calls} ask({ calls`);
   const GEN = qs.generated ? generatedHtml(loadSignals()) : { n: 0, html: "" };
   const html = render(qs, readSections(src), references(src), GEN);
   if (process.argv.includes("--check")) {

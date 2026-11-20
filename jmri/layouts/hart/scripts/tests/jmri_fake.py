@@ -57,6 +57,12 @@ class Bean:
     def addPropertyChangeListener(self, listener):
         self.listeners.append(listener)
 
+    def getPropertyChangeListeners(self):
+        return list(self.listeners)
+
+    def removePropertyChangeListener(self, listener):
+        self.listeners = [l for l in self.listeners if l is not listener]
+
 
 class FakeSensor(Bean):
     def __init__(self, system_name, state=Sensor.UNKNOWN):
@@ -136,12 +142,6 @@ class FakeMemory(Bean):
 
     def setUserName(self, name):
         self._user = name
-
-    def getPropertyChangeListeners(self):
-        return list(self.listeners)
-
-    def removePropertyChangeListener(self, listener):
-        self.listeners = [l for l in self.listeners if l is not listener]
 
 
 class FakeRoute(Bean):
@@ -248,6 +248,12 @@ class FakePower:
     def addPropertyChangeListener(self, listener):
         self.listeners.append(listener)
 
+    def getPropertyChangeListeners(self):
+        return list(self.listeners)
+
+    def removePropertyChangeListener(self, listener):
+        self.listeners = [l for l in self.listeners if l is not listener]
+
 
 class RecordingAdapter:
     """Stands in for JMRI's MqttAdapter: records publishes, sends nothing anywhere."""
@@ -255,12 +261,30 @@ class RecordingAdapter:
     def __init__(self):
         self.published = []
         self.subscribed = []
+        self.unsubscribed = []  # (topic, listener)
 
-    def publish(self, topic, payload, retain=False):
+    # Stock MqttAdapter.publish(topic, payload) retains (its `retained` field is true), so the
+    # two-argument form records True here, as the broker would see it.
+    def publish(self, topic, payload, retain=True):
         self.published.append((topic, payload, retain))
 
     def subscribe(self, topic, listener):
         self.subscribed.append(topic)
+
+    def unsubscribe(self, topic, listener):
+        self.unsubscribed.append((topic, listener))
+
+
+class FakeShutDownManager:
+    def __init__(self):
+        self.tasks = []
+
+    def register(self, task):
+        if task not in self.tasks:
+            self.tasks.append(task)
+
+    def deregister(self, task):
+        self.tasks = [t for t in self.tasks if t is not task]
 
 
 class FakeMemo:
@@ -272,6 +296,32 @@ class FakeMemo:
 
 
 # --- Swing / Java -------------------------------------------------------------------
+
+
+class FakeButton:
+    """javax.swing.JButton: text, enabled flag and action listeners; click() fires them."""
+
+    def __init__(self, text=""):
+        self.text, self.enabled, self.actions, self.parent = text, True, [], None
+
+    def getText(self):
+        return self.text
+
+    def setText(self, text):
+        self.text = text
+
+    def setEnabled(self, value):
+        self.enabled = value
+
+    def addActionListener(self, listener):
+        self.actions.append(listener)
+
+    def getParent(self):
+        return self.parent
+
+    def click(self):
+        for listener in list(self.actions):
+            listener(_Event(self))
 
 
 class _Event:
@@ -367,6 +417,8 @@ class Layout:
         self.adapter = RecordingAdapter()
         self.memo = FakeMemo(self.adapter) if mqtt else None
         self.editors = []
+        self.shutdown = FakeShutDownManager()
+        self.button_space = None  # Apps.buttonSpace(); a test sets one to have a main window
 
     def instance(self, cls):
         return {
@@ -374,6 +426,7 @@ class Layout:
             "SignalHeadManager": self.heads,
             "SignalMastManager": self.masts,
             "PowerManager": self.power,
+            "ShutDownManager": self.shutdown,
             "EditorManager": types.SimpleNamespace(getAll=lambda: self.editors),
         }.get(getattr(cls, "__name__", ""))
 
@@ -402,6 +455,9 @@ def _modules(layout):
     class EditorManager:
         pass
 
+    class ShutDownManager:
+        pass
+
     class AbstractShutDownTask(_Base):
         def __init__(self, *args):
             pass
@@ -420,7 +476,7 @@ def _modules(layout):
     jmri = mod("jmri", Turnout=Turnout, Sensor=Sensor, SignalHead=SignalHead, PowerManager=power_cls,
                InstanceManager=instance_manager, SignalHeadManager=SignalHeadManager,
                SignalMastManager=SignalMastManager, SignalMastLogicManager=SignalMastLogicManager,
-               implementation=implementation,
+               ShutDownManager=ShutDownManager, implementation=implementation,
                jmrix=mod("jmri.jmrix", mqtt=mqtt), jmrit=mod("jmri.jmrit", display=display),
                util=mod("jmri.util", ThreadingUtil=types.SimpleNamespace(),
                         swing=mod("jmri.util.swing", JmriJOptionPane=types.SimpleNamespace())))
@@ -429,14 +485,14 @@ def _modules(layout):
                     MouseEvent=types.SimpleNamespace(BUTTON1=1), WindowAdapter=iface("WindowAdapter"))
     beans = mod("java.beans", PropertyChangeListener=iface("PropertyChangeListener"))
     java = mod("java", lang=lang, beans=beans, awt=mod("java.awt", event=awt_event))
-    swing = mod("javax.swing", SwingUtilities=SwingUtilities, Timer=Timer, JButton=iface("JButton"),
+    swing = mod("javax.swing", SwingUtilities=SwingUtilities, Timer=Timer, JButton=FakeButton,
                 JOptionPane=types.SimpleNamespace(showMessageDialog=lambda *a: None))
     return {
         "jmri": jmri, "jmri.jmrix": jmri.jmrix, "jmri.jmrix.mqtt": mqtt, "jmri.jmrit": jmri.jmrit,
         "jmri.jmrit.display": display, "jmri.implementation": implementation, "jmri.util": jmri.util,
         "jmri.util.swing": jmri.util.swing, "java": java, "java.lang": lang, "java.beans": beans,
         "java.awt": java.awt, "java.awt.event": awt_event, "javax": mod("javax", swing=swing),
-        "javax.swing": swing, "apps": mod("apps", Apps=types.SimpleNamespace()),
+        "javax.swing": swing, "apps": mod("apps", Apps=types.SimpleNamespace(buttonSpace=lambda: layout.button_space)),
     }
 
 
@@ -456,18 +512,28 @@ def no_network():
 
 
 @contextlib.contextmanager
-def jmri_modules(layout):
-    saved = {k: sys.modules.get(k) for k in _modules(layout)}
-    sys.modules.update(_modules(layout))
+def fake_modules(modules):
+    """Put `modules` (name -> module) in sys.modules, then put back only those names.
+
+    Not `mock.patch.dict(sys.modules, ...)`: on exit that resets all of sys.modules to its
+    earlier copy, so a real module first imported while the fakes were in place is dropped,
+    and the next import makes a second copy of it beside the one other modules still hold."""
+    saved = {k: sys.modules.get(k) for k in modules}
+    sys.modules.update(modules)
     try:
-        with no_network():
-            yield
+        yield
     finally:
         for k, v in saved.items():
             if v is None:
                 sys.modules.pop(k, None)
             else:
                 sys.modules[k] = v
+
+
+@contextlib.contextmanager
+def jmri_modules(layout):
+    with fake_modules(_modules(layout)), no_network():
+        yield
 
 
 def load_script(path: Path, layout: Layout) -> dict:

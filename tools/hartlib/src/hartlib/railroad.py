@@ -683,16 +683,31 @@ class TablesNames:
 
 
 def read_tables(path: Path) -> TablesNames:
-    """The tables file's beans by user name; FactsError naming the file when it cannot be read or parsed."""
+    """The tables file's beans by user name; FactsError naming the file when it cannot be read or parsed, or when
+    two beans of one type share a user name (a name check would pass on either of them)."""
     try:
         root = tables.read(path)
     except (OSError, ET.ParseError) as exc:
         raise FactsError(f"{path}: cannot read it as a tables file ({exc})") from None
 
-    def by_user(beans):
-        return {tables.user_name(b): tables.system_name(b) for b in beans if tables.user_name(b)}
-    return TablesNames(root, by_user(tables.turnouts(root)), by_user(tables.sensors(root)),
-                       by_user(tables.masts(root)),
+    def by_user(kind, beans):
+        # A bean with no system name cannot be told apart from another, so it neither counts as a twin nor hides one.
+        out: dict[str, str] = {}
+        for b in beans:
+            user, system = tables.user_name(b), tables.system_name(b)
+            if not user:
+                continue
+            if not system:
+                out.setdefault(user, "")
+                continue
+            if out.get(user) not in (None, "", system):
+                raise FactsError(f"{path}: two {kind}s have the user name {user!r}: {out[user]} and {system}")
+            out[user] = system
+        return out
+    # Every <block> form: JMRI writes each block twice (names only, then in full), and a block may exist only bare.
+    by_user("block", tables.section(root, "blocks", "block"))
+    return TablesNames(root, by_user("turnout", tables.turnouts(root)), by_user("sensor", tables.sensors(root)),
+                       by_user("mast", tables.masts(root)),
                        {tables.user_name(b) or tables.system_name(b) for b in tables.blocks(root)})
 
 

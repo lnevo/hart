@@ -35,6 +35,11 @@ html {
   scroll-behavior: smooth;
 }
 
+/* <picture> (WebP with a JPEG fallback, added by the build) takes no box of its own: the img keeps its layout. */
+picture {
+  display: contents;
+}
+
 /* Keyboard focus: one visible ring everywhere (mouse clicks don't show it). */
 :focus-visible {
   outline: 3px solid var(--brand-2);

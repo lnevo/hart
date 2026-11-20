@@ -147,10 +147,15 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 ### `hartlib.level_masts`
 
 The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by
-`tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs), `names()`,
+`tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs; see below), `names()`,
 `head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
 physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
 and `audit_panel_contracts.py`.
+
+`read()` goes through `railroad.read_rows` and stops with `railroad.FactsError` (a `ValueError`), naming the file and
+the line, when the header lacks a `FIELDS` column, a row is shorter or longer than the header, a row has no mast
+name, a mast is named twice, or a row's heads are not system=user pairs of the virtual heads in its system name. A
+column beyond `FIELDS` is allowed and left out of the rows.
 
 ### `hartlib.boundaries`
 
@@ -169,6 +174,14 @@ tables at a commit it records, `check(root, doc)` holds a tables file and the pa
 `with_parked(features)` and `with_parked_file(features)` give the tables with a feature put back, for the checks of
 its data. `shipped_dirs()` and `shipped_jython()` list what the deploy leaves out; `python3 -m hartlib.parked
 features|dirs|jython|check|freeze` prints them, runs the check or writes the snapshot.
+
+### `hartlib.map_revision`
+
+The station maps carry the system schematic's revision and date (the title block in `page_prefs()`). `fields(prefs)`
+reads them, `planned(www, prefs)` gives the text each file it owns should have (`www/data/crew.json`,
+`www/data/publications.json`, each current `www/crew/maps/<id>/index.html`), `drift()` names the files that differ
+and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a publish and checks it in `--check`;
+`www/scripts/map_revision.py` is the command for it.
 
 ## The tables.xml traps the lookups exist for
 
