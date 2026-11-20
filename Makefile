@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help wt wt-sweep check portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
+.PHONY: help wt wt-sweep check remote portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -14,6 +14,9 @@ wt-sweep:  ## Remove agent worktrees whose PR is merged
 
 check:  ## Run every repo check
 	./tools/check.sh
+
+remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
+	./tools/hosts/win_run.sh -- $(CMD)
 
 portal-check:  ## Build the website and test its links
 	python3 www/scripts/check_portal_build.py
