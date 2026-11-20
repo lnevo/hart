@@ -299,7 +299,7 @@ if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "
   if [[ -n "$unpulled" ]]; then
     msg=""
     grep -qx ops <<<"$unpulled" && msg+="STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first."$'\n'
-    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in jmri/layouts/hart/output/pulled/ and records it as taken; carry the owner's edits into devices.csv or the template, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
+    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in the pulled/ folder beside the repo tables.xml and records it as taken; carry the owner's edits into devices.csv or the template, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
     pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
   fi
 fi
@@ -438,7 +438,7 @@ install_tables_local() {
     local dest="$1/tables.xml" stamp="$1/.tables_deployed.sha256"
     # A Store into this copy since the last deploy would be lost: stop instead.
     if profile_tables_unpulled "$src" "$1"; then
-      echo "STOP: $dest changed since the last deploy (a PanelPro Store). Run make tables-pull: it keeps the Store in jmri/layouts/hart/output/pulled/ and records it as taken; carry the edits into devices.csv or the template, then deploy. HART_OVERWRITE_PROFILE_TABLES=1 replaces it unkept." >&2
+      echo "STOP: $dest changed since the last deploy (a PanelPro Store). Run make tables-pull: it keeps the Store in the pulled/ folder beside the repo tables.xml and records it as taken; carry the edits into devices.csv or the template, then deploy. HART_OVERWRITE_PROFILE_TABLES=1 replaces it unkept." >&2
       exit 1
     fi
     cp -f "$src" "$dest"
