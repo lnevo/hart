@@ -9,6 +9,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stderr
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
@@ -133,8 +134,23 @@ class Symbols(unittest.TestCase):
 
 
 class Cli(unittest.TestCase):
-    def test_check_skips_when_the_plan_is_not_on_the_machine(self) -> None:
-        self.assertEqual(L.main(["/nonexistent/Version 9.9z.any", "--check"]), 0)
+    def test_check_skips_when_the_default_plan_is_not_on_the_machine(self) -> None:
+        with mock.patch.object(L, "DEFAULT_PLAN", Path("/nonexistent/Version 9.9z.any")):
+            self.assertEqual(L.main(["/nonexistent/Version 9.9z.any", "--check"]), 0)
+
+    def test_check_of_a_named_plan_that_is_missing_fails(self) -> None:
+        with redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(L.main(["/nonexistent/typo.any", "--check"]), 2)
+        self.assertIn("does not exist", err.getvalue())
+
+    def test_switch_labels_sort_by_their_number_then_text(self) -> None:
+        self.assertEqual(sorted(["211A", "T12", "101A/103A", "7", "211"], key=L.switch_key),
+                         ["7", "101A/103A", "211", "211A", "T12"])
+
+    def test_two_three_ways_on_one_level_stop(self) -> None:
+        names = {"TO_3Wa-1": "101A", "TO_3Wa-2": "103A", "TO_3Wb-1": "105A"}
+        with self.assertRaisesRegex(L.LevelsError, "more than one three-way"):
+            L.label_of({"index": 4, "kind": "threeway"}, names)
 
     def test_writing_without_the_plan_is_an_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp, redirect_stderr(io.StringIO()) as err:

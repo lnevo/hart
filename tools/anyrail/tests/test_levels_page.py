@@ -67,10 +67,26 @@ class TheTablesComeFromTheData(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "Track W-1 is not a timed block"):
             LP.timed_rows(blocks, notes, ["Track W-1"])
 
-    def test_the_run_table_holds_the_timed_blocks_outside_the_loop(self) -> None:
+    def test_the_run_table_holds_the_timed_blocks_outside_the_loop_in_running_order(self) -> None:
         text = text_of(PAGE.read_text())
-        for name in ("Track Scale", "Track Barn", "OS Switch 13", "OS Switch 15"):
-            self.assertIn(name, text)
+        at = [text.index(name) for name in ("Track Scale", "Track Barn", "OS Switch 13", "OS Switch 15")]
+        self.assertEqual(at, sorted(at))
+
+    def test_a_timed_block_on_neither_route_stops(self) -> None:
+        blocks, notes = LP.block_rows()
+        stray = mock.Mock(source="timed")
+        with mock.patch.object(LP, "block_rows", return_value=({**blocks, "Track Helix Inner X": stray}, notes)), \
+                self.assertRaisesRegex(SystemExit, "neither the test loop nor the Switch 5 to 15 run: Track Helix Inner X"):
+            LP.render(LEVELS)
+
+    def test_a_panel_without_the_artifact_is_refused(self) -> None:
+        with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
+            LP.main(["--panel", "x.png"])
+
+    def test_the_staging_helix_figure_is_the_helix_rows_below_the_cut(self) -> None:
+        meta = json.loads((LEVELS / "levels_meta.json").read_text())
+        below = sum(h["below_cut_cm"] for h in meta["helix"]) / 100
+        self.assertIn("%.1f m of helix below" % below, text_of(PAGE.read_text()))
 
     def test_the_loop_fit_plan_comes_from_the_notes(self) -> None:
         blocks, notes = LP.block_rows()

@@ -28,6 +28,9 @@ from hartlib import paths, railroad  # noqa: E402
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS / "speedmatch"))
 import analyze  # noqa: E402  the test loop's blocks in running order (routes.json)
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from levels_svg import switch_key  # noqa: E402
+
 HERE = Path(__file__).resolve().parent
 BLOCK_CSV = paths.LAYOUT_DATA / "block_lengths.csv"
 HELIX_CSV = paths.LAYOUT_DATA / "schematic" / "helix_tracks.csv"
@@ -141,7 +144,7 @@ def switch_note(lv):
     if lv["threeways"] > 1 or lv["crossovers"] > 1:
         raise SystemExit("the level has more than one three-way or double crossover; switch_note needs a rewrite")
     bits = [name for name, n in (("a three-way", lv["threeways"]), ("a double crossover", lv["crossovers"])) if n]
-    twice = sorted((s for s, n in collections.Counter(lv["labels"]).items() if n > 1), key=int)
+    twice = sorted((s for s, n in collections.Counter(lv["labels"]).items() if n > 1), key=switch_key)
     note = ""
     if bits:
         note += " %s counts as one part." % " and ".join(bits).capitalize() if len(bits) == 1 else \
@@ -188,7 +191,13 @@ def sections(levels, meta):
         raise SystemExit("the plan's ramps are not two helix tracks and one climb from main to upper; the helix text needs a rewrite")
     cut = meta["cut_cm"]
     loop = timed_rows(blocks, notes, loop_names())
-    run_names = [n for n, b in blocks.items() if b.source == "timed" and n not in {r[0] for r in loop}]
+    on_loop = {r[0] for r in loop}
+    run_names = [n for _sensor, n in analyze.route_loop("loop2")
+                 if n not in on_loop and blocks.get(n) and blocks[n].source == "timed"]  # in running order
+    stray = sorted(n for n, b in blocks.items() if b.source == "timed" and n not in on_loop and n not in run_names)
+    if stray:
+        raise SystemExit(f"timed blocks on neither the test loop nor the Switch 5 to 15 run: {', '.join(stray)}; "
+                         "the lengths section needs a row group for them")
     run = timed_rows(blocks, notes, run_names)
     low, mid, high = lv["staging"], lv["main"], lv["upper"]
     t = {}
@@ -205,7 +214,7 @@ def sections(levels, meta):
         + fig["staging"] +
         '<p>%d switch parts and %.1f m of flex, with %.1f m of helix below the %g cm cut drawn dotted. '
         'The plan includes the Switch 7 crossover, Switches 9, 11 and 13, and the engine terminal tracks EH-1 to EH-3.%s</p>'
-        % (low["switches"], low["flex_m"], low["ramp_m"], cut, switch_note(low)))
+        % (low["switches"], low["flex_m"], sum(h["below_cut_cm"] for h in meta["helix"]) / 100, cut, switch_note(low)))
     laps = laps_note(loop)
     loop_plan = loop_fit_plan(loop, notes)
     t["lengths"] = (
@@ -237,7 +246,7 @@ def sections(levels, meta):
         'The steepest piece of flex in any ramp is %.2f%%. The run is the plan&rsquo;s length from switch to switch, flex and straight track together; '
         'the schematic draws staging&rsquo;s share, up to the %g cm cut, and the main level&rsquo;s share above it. '
         'More on the <a href="../helix/index.html">helix page</a>.</p>'
-        % (_and(sorted({r[1] for r in helix}, key=int)), _and(sorted({r[2] for r in helix})),
+        % (_and(sorted({r[1] for r in helix}, key=switch_key)), _and(sorted({r[2] for r in helix}, key=switch_key)),
            height_text(mid["height_cm"] - low["height_cm"]), meta["max_grade_pct"], cut)
         + h + "</tbody></table></div>")
     return t
@@ -370,6 +379,8 @@ def main(argv=None):
     ap.add_argument("--panel", help="a Layout Editor picture for the artifact copy only")
     ap.add_argument("--check", action="store_true", help="write nothing; fail if the site article differs")
     a = ap.parse_args(argv)
+    if a.panel and not a.artifact:
+        ap.error("--panel goes into the artifact copy only; give --artifact too")
     site, art = render(Path(a.levels))
     if a.check:
         if not Path(a.site).is_file() or Path(a.site).read_text() != site:

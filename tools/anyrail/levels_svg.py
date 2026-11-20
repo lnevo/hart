@@ -38,6 +38,12 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths, railroad_facts  # noqa: E402
 
 LEVELS = ("staging", "main", "upper")          # lowest to highest
+
+
+def switch_key(label):
+    """Sort key for switch labels: by the leading number ("7", "101A/103A", "211A"), then the text; T labels last."""
+    m = re.match(r"\d+", label)
+    return (int(m.group()) if m else 10 ** 6, label)
 HELIX_CUT_CM = -5.0     # the height that parts staging's graph from the main and upper graph (anyplan.py --cut -5)
 SNAP_CM = 0.5           # a flat part this close to a level's height is on that level
 CM_PER_IN = 2.54
@@ -94,7 +100,9 @@ def nearest_level(z, heights, what) -> str:
 
 
 def helix_chains(parts, links):
-    """The sloped flex pieces joined end to end: a list of sets of part indices, one per helix track."""
+    """The sloped flex pieces joined end to end: a list of sets of part indices, one per helix track. A level piece
+    partway up a helix is not part of a chain and stops the build in assign() ('not at a level'): plans 5.3b and 5.3c
+    have none, and the drawing would need a rule for one."""
     sloped = {p["index"] for p in parts if len(p["ends"]) == 2
               and abs(p["ends"][0]["z"] - p["ends"][1]["z"]) > anyplan.LEVEL_CM}
     root = {i: i for i in sloped}
@@ -145,6 +153,8 @@ def labels(level) -> dict[str, str]:
 def label_of(p, names):
     t = "T%d" % p["index"]
     if p["kind"] == "threeway":
+        if sum(1 for k in names if THREEWAY_KEY.fullmatch(k)) > 2:
+            raise LevelsError("the relabel map names more than one three-way on a level; label_of cannot tell them apart")
         halves = sorted(v for k, v in names.items() if THREEWAY_KEY.fullmatch(k))
         return "/".join(halves) if halves else t
     return names.get(t, t)
@@ -222,8 +232,7 @@ def draw(parts, where, ramp, level):
                                                         and p["kind"] == "double_crossover"),
                   threeways=sum(1 for p in parts if where[p["index"]] == level and p["kind"] == "threeway"),
                   flex=flex_n, flex_m=round(flex_cm / 100, 2), ramp_m=round(ramp_cm / 100, 2), bbox=bbox,
-                  labels=sorted(switches, key=lambda s: (int(re.match(r"\d+", s).group()) if re.match(r"\d+", s)
-                                                         else 10 ** 6, s)))
+                  labels=sorted(switches, key=switch_key))
     return "\n".join(out) + "\n", counts
 
 
@@ -283,12 +292,18 @@ def main(argv=None):
     ap.add_argument("--check", action="store_true", help="write nothing; fail if the committed files differ")
     a = ap.parse_args(argv)
     if a.check and not Path(a.plan).is_file():
+        if Path(a.plan) != DEFAULT_PLAN:
+            print(f"levels_svg: {a.plan} does not exist", file=sys.stderr)
+            return 2
         print(f"levels_svg: SKIPPED, {a.plan} is not on this machine")
         return 0
     try:
         files = build(a.plan)
     except (LevelsError, anyplan.PlanError, OSError) as e:
         print(f"levels_svg: {e}", file=sys.stderr)
+        return 2
+    except ValueError as e:  # an empty level or a plan with no ramps reaches max() or min()
+        print(f"levels_svg: the plan has a level or ramp set with no parts ({e})", file=sys.stderr)
         return 2
     out = Path(a.out)
     if a.check:
