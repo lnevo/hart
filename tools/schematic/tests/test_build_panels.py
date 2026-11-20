@@ -116,6 +116,67 @@ class DryRun(unittest.TestCase):
         self.assertEqual((code, ran), (2, []), out)
 
 
+# A python3 stand-in that runs the real sync_staging_signals.py against a stale copy of staging_masts.csv (a temp
+# file: the repo's data files are only read) and answers every other script with success.
+STALE_SYNC_PYTHON = """#!/bin/sh
+case "$1" in
+  */sync_staging_signals.py) shift; exec "$REAL_PYTHON" "$STALE_RUNNER" "$@" ;;
+esac
+echo "$*" >> "$PANELS_LOG"
+exit 0
+"""
+STALE_RUNNER = """import sys
+from pathlib import Path
+sys.path.insert(0, sys.argv[1])
+import sync_staging_signals as sss
+_want = sss.want_masts
+sss.want_masts = lambda: _want(Path(sys.argv[2]))  # the default path is bound at import
+sys.exit(sss.main(sys.argv[3:]))
+"""
+
+
+class StaleStagingCsv(unittest.TestCase):
+    """build_panels.sh with the real sync_staging_signals.py --check and a staging_masts.csv missing its last mast,
+    so tables.xml holds a staging mast the file does not: the check fails, and the run says so in both modes."""
+
+    def run_script(self, *args):
+        import staging_device_map as sdm
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp = Path(tmp)
+            lines = sdm.MASTS.read_text(encoding="utf-8").splitlines(keepends=True)
+            stale = tmp / "staging_masts.csv"
+            stale.write_text("".join(lines[:-1]), encoding="utf-8")
+            (tmp / "runner.py").write_text(STALE_RUNNER, encoding="utf-8")
+            fake = tmp / "python3"
+            fake.write_text(STALE_SYNC_PYTHON, encoding="utf-8")
+            fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
+            log = tmp / "log"
+            log.touch()
+            env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
+                       REAL_PYTHON=sys.executable, STALE_RUNNER=str(tmp / "runner.py"))
+            # the stand-in passes the schematic folder and the stale file ahead of the script's own arguments
+            fake.write_text(STALE_SYNC_PYTHON.replace('"$@" ;;', f'"{HERE}" "{stale}" "$@" ;;'), encoding="utf-8")
+            r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
+            return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
+
+    def test_a_write_stops_at_the_stale_file_and_names_the_fix(self):
+        code, out, ran = self.run_script()
+        self.assertEqual(code, 1, out)
+        self.assertIn("differs from staging_masts.csv", out)
+        self.assertIn("run tools/schematic/sync_staging_signals.py", out)
+        self.assertIn("stopped: staging-sync only checks and it failed; later steps read the files it checks", out)
+        self.assertEqual(len(ran), NAMES.index("staging-sync"), ran)  # nothing after it ran
+
+    def test_a_check_names_the_stale_step_and_never_says_it_stopped(self):
+        code, out, ran = self.run_script("--check")
+        self.assertEqual(code, 1, out)
+        self.assertIn("differs from staging_masts.csv", out)
+        self.assertIn("stale or failed: staging-sync\n", out)
+        self.assertNotIn("stopped", out)
+        self.assertNotIn("later steps read what", out)
+        self.assertEqual(len(ran), len(NAMES) - 1, ran)  # every other step still ran
+
+
 class MissingPlugin(unittest.TestCase):
     """build_staging_masts.py without the plugin submodule: a message, not a traceback."""
 
