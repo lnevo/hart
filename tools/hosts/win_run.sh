@@ -8,7 +8,7 @@
 # REF defaults to the current branch; its commit must already be on origin (push first), since
 # the Windows clone (~/hart in WSL) fetches from GitHub. Each run gets its own worktree under
 # ~/wt there, with the gitignored mirrors (media, ops/car-cards, ops/hart-ops/.venv) linked and
-# the model-railroad-skills submodule checked out, so runs from several agents do not collide.
+# every submodule checked out, so runs from several agents do not collide.
 # --keep leaves that worktree for a look afterwards. Python is ~/hart/.venv (3.13, requirements.txt).
 #
 # Not for: make panelpro-test, screenshots, deploys, or anything that reads the Mac's
@@ -74,7 +74,10 @@ for rel in media ops/car-cards ops/hart-ops/.venv; do
   grep -qxF "/\$rel" "\$exclude" 2>/dev/null || echo "/\$rel" >> "\$exclude"
   [[ -e "\$main/\$rel" ]] && ln -sfn "\$main/\$rel" "\$wt/\$rel"
 done
-git -C "\$wt" submodule update --init -q --reference "\$main/external/model-railroad-skills" external/model-railroad-skills
+# Every submodule, borrowing objects from the main clone's copy so nothing comes over the network twice.
+git -C "\$wt" config -f .gitmodules --get-regexp '\.path\$' | while read -r _ sub; do
+  git -C "\$wt" submodule update --init -q --reference "\$main/\$sub" "\$sub"
+done
 cd "\$wt"
 echo "win_run.sh: $sha on \$(hostname) (WSL, \$(nproc) CPUs): $cmd" >&2
 set +e
