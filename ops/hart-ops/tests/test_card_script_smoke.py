@@ -117,7 +117,8 @@ class VisualReviewSmoke(unittest.TestCase):
                 w.writerow({"source_image": "unreviewed.png", "car_type": "Locomotive"})
             with mock.patch.object(apply_visual_review, "ROSTER_XML", roster), \
                     mock.patch.object(apply_visual_review, "METADATA_CSV", meta):
-                code = apply_visual_review.main()
+                with contextlib.redirect_stdout(io.StringIO()):
+                    code = apply_visual_review.main()
             self.assertEqual(code, 0)
             with meta.open(newline="") as f:
                 rows = list(csv.DictReader(f))
