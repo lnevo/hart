@@ -67,8 +67,8 @@ step() { run_step "later steps read what $1 writes" "$@"; }
 guard() { run_step "$1 only checks and it failed; later steps read the files it checks" "$@"; }
 
 step hands python3 tools/schematic/build_hands.py
-step main-route python3 tools/schematic/build_main_route.py
 step staging-sets python3 tools/schematic/build_staging_sets.py
+step main-route python3 tools/schematic/build_main_route.py
 guard plan-lengths python3 tools/schematic/plan_lengths.py --check
 guard staging-masts python3 tools/schematic/build_staging_masts.py --check
 guard staging-sync python3 tools/schematic/sync_staging_signals.py --check

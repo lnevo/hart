@@ -141,9 +141,16 @@ class Ties(unittest.TestCase):
             plan.shortest("A", "B")
         self.assertEqual([(a, b) for a, _, b in plan.shortest("A", "B", {frozenset("AB")})], [("A", "B")])
 
+    def test_mileposts_over_a_double_track_stop(self):
+        nodes = {n: {"kind": "switch", "label": n} for n in "AB"}
+        g = {"nodes": nodes, "edges": [dict(id="e0", u="A", v="B", cm=52.0, names=[]),
+                                       dict(id="e1", u="A", v="B", cm=52.0, names=[])]}
+        plan = M.Plan(g, lambda graph, name: name)
+        row = {"line": "Test", "from": "A", "via": "", "to": "B", "count": "yes"}
+        with self.assertRaisesRegex(M.RouteError, "Test: the mileposts would count from A to B over a double track"):
+            M.milepost_route(plan, [row])
+        self.assertEqual(M.milepost_route(plan, [dict(row, count="")]), [])
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 def staging_file(tmp, *rows):
@@ -221,3 +228,8 @@ class StagingLines(unittest.TestCase):
         edit["tracks"] = [t for t in edit["tracks"] if t[2] != "Brick-Plane"]
         with self.assertRaisesRegex(M.RouteError, "does not name: (1 to 5|5 to 1)"):
             M.staging_text(over, self.plan, self.rows)
+
+
+
+if __name__ == "__main__":
+    unittest.main()

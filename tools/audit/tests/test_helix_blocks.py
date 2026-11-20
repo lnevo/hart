@@ -87,7 +87,8 @@ class Pins(unittest.TestCase):
         for text, msg in ((self.PINS + ",,,,Track Helix Outer,41,1,\n", "pinned twice"),
                           (self.PINS + ",,,,Track Helix Outer,41,4,\n", "pinned twice"),
                           (self.PINS + ",,,,Track Helix Outer,41,9,\n", "is not 1 to 8"),
-                          (self.PINS + ",,,,Helix,41,2,\n", "is a helix block"),
+                          (self.PINS + ",,,,Helix,41,2,\n", "is no helix block"),
+                          (self.PINS + "37,39,,,Track Helix Inner,41,2,\n", "named by its block alone"),
                           (self.PINS + ",,,,Track Helix Outer,forty,2,\n", "are numbers"),
                           (self.PINS + "227,241,,,,41,2,\n", "in two halves"),            # half missing
                           (self.PINS + "241,,,1,,41,2,\n", "one block: no half"),          # half on a plain track

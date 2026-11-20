@@ -21,8 +21,6 @@ two halves apart: a switch's mast the leg it stands at, an APB intermediate the 
 plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0, so a checkout
 without submodules still runs check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
-import csv
-import io
 import difflib
 import importlib
 import json

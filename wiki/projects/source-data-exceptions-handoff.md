@@ -55,8 +55,16 @@ Done on branch `agent/claude/source-data-rows-2-3-7`, with every desk, panel and
   `staging_masts.csv`, set where the mast rule places it; no reader parses it from the name.
 - **Row 7:** a turnout's class (#6 or #8) comes from the angle of its leg ends; the Peco part table is gone.
 
-Row 6 (track-plan page) is PR #749 from another session. Rows 4 and 5 are being built next; rows 8, 9 and 10 wait
-(owner, 2026-11-20).
+Merged as #754. Then, on branch `agent/claude/source-data-rows-4-5`, also with nothing drawn changed:
+- **Row 4:** staging's control points (`control_points_staging.csv`), stations (`stations_staging.csv`), detail
+  sheets (`sheets_staging.csv`) and main lines (`main_lines_staging.csv`) each have one master file;
+  `build_staging_sets.py` and `build_main_route.py` write every other copy, the older `data/control_points.csv`
+  included (the website build and the JMRI scripts still read it), and `make panels CHECK=1` fails on drift.
+- **Row 5:** the main/upper hand lists (running, signalled spurs, split tracks, detector pins) are keyed by
+  `switch_a,switch_b` (and `parallel` or `half` where needed), so a renumber no longer strands them. The
+  `le_band_labels` names in `main_upper.preferences.json` stay track names: the plugin takes only names there.
+
+Row 6 (track-plan page) is merged from another session (#749). Rows 8, 9 and 10 wait (owner, 2026-11-20).
 
 ## What is left to remove, ranked
 

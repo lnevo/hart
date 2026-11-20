@@ -73,46 +73,50 @@ class BadMasters(Tmp):
             self.assertIn(w, str(ctx.exception))
 
     def test_a_good_file_reads(self):
-        got = self.cps('cp_a,A,1,"1,3",A,AA,\ncp_b,B,1,5,B,BB,\n')
+        got = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
         self.assertEqual([c.switches for c in got], [("1", "3"), ("5",)])
 
     def test_an_unknown_switch_names_file_and_line(self):
-        self.assertStops(lambda: self.cps('cp_a,A,1,"1,3",A,AA,\ncp_b,B,1,"5,99",B,BB,\n'),
+        self.assertStops(lambda: self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,"5,99",B,BB,\n'),
                          "control_points_staging.csv line 3", "switch 99 is no staging switch")
 
     def test_a_switch_in_two_control_points_names_file_and_line(self):
-        self.assertStops(lambda: self.cps('cp_a,A,1,"1,3",A,AA,\ncp_b,B,1,"3,5",B,BB,\n'),
+        self.assertStops(lambda: self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,"3,5",B,BB,\n'),
                          "control_points_staging.csv line 3", "switch 3 is also in A")
 
     def test_a_staging_switch_in_no_control_point_stops(self):
-        self.assertStops(lambda: self.cps('cp_a,A,1,"1,3",A,AA,\n'), "switch(es) 5 are in no control point")
+        self.assertStops(lambda: self.cps('cp_aa,A,1,"1,3",A,AA,\n'), "switch(es) 5 are in no control point")
 
     def test_a_repeated_code_names_both_lines(self):
-        self.assertStops(lambda: self.cps('cp_a,A,1,"1,3",A,AA,\ncp_b,B,1,5,B,AA,\n'),
+        self.assertStops(lambda: self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,AA,\n'),
                          "line 3", "code 'AA' is also on line 2")
 
+    def test_an_id_that_does_not_follow_the_code_stops(self):
+        self.assertStops(lambda: self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_xx,B,1,5,B,BB,\n'),
+                         "line 3", "cp_id 'cp_xx' is not cp_ and its code 'BB'")
+
     def test_another_level_stops(self):
-        self.assertStops(lambda: self.cps('cp_a,A,2,"1,3,5",A,AA,\n'), "line 2", "staging is 1")
+        self.assertStops(lambda: self.cps('cp_aa,A,2,"1,3,5",A,AA,\n'), "line 2", "staging is 1")
 
     def test_a_station_switch_in_no_control_point_stops(self):
-        cps = self.cps('cp_a,A,1,"1,3",A,AA,\ncp_b,B,1,5,B,BB,\n')
+        cps = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
         path = self.write("stations_staging.csv", "station,switches,tracks,notes\nOne,1,,\nTwo,\"3,7\",,\n")
         self.assertStops(lambda: S.read_stations(cps, path), "stations_staging.csv line 3", "switch 7 is in no control point")
 
     def test_station_tracks_blank_none_and_names(self):
-        cps = self.cps('cp_a,A,1,"1,3",A,AA,\ncp_b,B,1,5,B,BB,\n')
+        cps = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
         path = self.write("stations_staging.csv",
                           'station,switches,tracks,notes\nOne,1,,\nTwo,3,none,\nThree,5,"X-1;X-2",\n')
         self.assertEqual([s.tracks for s in S.read_stations(cps, path)], [None, (), ("X-1", "X-2")])
 
     def test_a_sheet_naming_no_station_stops(self):
-        cps = self.cps('cp_a,A,1,"1,3",A,AA,\ncp_b,B,1,5,B,BB,\n')
+        cps = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
         stations = S.read_stations(cps, self.write("stations_staging.csv", "station,switches,tracks,notes\nOne,1,,\n"))
         path = self.write("sheets_staging.csv", "sheet,stations,notes\nS,One;Nowhere,\n")
         self.assertStops(lambda: S.read_sheets(stations, path), "sheets_staging.csv line 2", "Nowhere is no station")
 
     def test_a_missing_column_stops(self):
-        path = self.write("control_points_staging.csv", "cp_id,cp_name,level,switches,area\ncp_a,A,1,1,A\n")
+        path = self.write("control_points_staging.csv", "cp_id,cp_name,level,switches,area\ncp_aa,A,1,1,A\n")
         self.assertStops(lambda: S.read_control_points(path, SWITCHES), "no column code")
 
 

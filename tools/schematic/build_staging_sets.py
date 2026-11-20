@@ -103,7 +103,8 @@ def staging_switches(path: Path = SWITCHES) -> set[str]:
 
 
 def read_control_points(path: Path = CPS, switches: set[str] | None = None) -> list[ControlPoint]:
-    """The control points in file order. Stops on a name, id or code given twice or empty, a level that is not
+    """The control points in file order. Stops on a name, id or code given twice or empty, an id that is not cp_ and
+    the code in lower case, a level that is not
     staging's, a switch that is not a staging switch or is in two control points, or a staging switch in none."""
     known = staging_switches() if switches is None else switches
     out, ids, seen = [], {}, {}
@@ -117,6 +118,9 @@ def read_control_points(path: Path = CPS, switches: set[str] | None = None) -> l
             if (col, r[col]) in ids:
                 raise SetsError(f"{where}: {col} {r[col]!r} is also on line {ids[(col, r[col])]}")
             ids[(col, r[col])] = line
+        if r["cp_id"] != "cp_" + r["code"].lower():
+            raise SetsError(f"{where} ({r['cp_name']}): cp_id {r['cp_id']!r} is not cp_ and its code {r['code']!r} "
+                            "in lower case")
         sw = _split(r["switches"])
         if not sw:
             raise SetsError(f"{where} ({r['cp_name']}): no switches")

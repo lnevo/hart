@@ -9,8 +9,8 @@ is the master of staging's control points, build_staging_sets.py); build_staging
 staging_signals.csv and the mast and head rows. Edit these files, not a panel. `make panels` (its staging-map step) and tools/check.sh
 run --check: every file in its shape (load, load_signal_masts, mast_facts, check_rows), every device the same bean in
 tables.xml (check_tables: system and user names, a turnout's feedback sensors, a block's detector, a mast's heads),
-and the control points read. It prints SKIPPED and exits 0 when the plugin
-submodule is not checked out (1 with SCHEMATIC_REQUIRED=1), as build_device_map.py does.
+and the control points read in their shape (build_staging_sets.py checks their membership). It prints SKIPPED and
+exits 0 when the plugin submodule is not checked out (1 with SCHEMATIC_REQUIRED=1), as build_device_map.py does.
 
 Staging's objects are field devices: every system name, user name and binding here is the railroad's own.
 

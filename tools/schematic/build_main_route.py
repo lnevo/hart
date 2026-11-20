@@ -202,7 +202,7 @@ def line_hops(plan: Plan, row: dict, exact: bool = False) -> list[tuple[str, str
         if not near:
             raise RouteError(f"{row['line']}: no track joins {plan.name(a)} and {plan.name(b)}; name the junctions "
                              "between them")
-        steps += [(a, e, b) for e in near[:1]]
+        steps += [(a, e, b) for e in near]       # two or more: the hops below stop unless `double` names the pair
     loop = [plan.node(s) for s in split(row["loop"])]
     if loop:
         ring = [nodes[-1], *loop, nodes[-1]]
@@ -261,13 +261,18 @@ def line_edges(plan: Plan, rows: list[dict]) -> set[str]:
 
 
 def milepost_route(plan: Plan, rows: list[dict]) -> list[list[str]]:
-    """One hop from each stop to the next of every line marked `count`; line_edges has checked that a track joins them."""
+    """One hop from each stop to the next of every line marked `count`; line_edges has checked that a track joins them.
+    A hop over a declared double track stops the build: the plugin would count along either track, not the one the
+    line means."""
     hops = []
     for row in rows:
         if row["count"].strip() != "yes":
             continue
         stops = [row["from"].strip(), *split(row["via"]), row["to"].strip()]
         for a, b in zip(stops, stops[1:]):
+            if len(plan.between(plan.node(a), plan.node(b))) > 1:
+                raise RouteError(f"{row['line']}: the mileposts would count from {a} to {b} over a double track; "
+                                 "name a junction between them, or leave count blank")
             hops.append([a, b])
     return hops
 

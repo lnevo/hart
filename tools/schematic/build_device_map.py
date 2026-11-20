@@ -295,9 +295,13 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
             bad.append(f"line {i}: input {k + 1} is not 1 to {CAP['block']}")
             continue
         if r["block"]:                                  # a helix block, named by the owner
-            if r["switch_a"] or r["switch_b"] or r["parallel"] or r["half"] or r["block"] not in helix_names:
-                bad.append(f"line {i}: {r['block']!r} is a helix block ({', '.join(sorted(helix_names))}) with no "
-                           "switches, parallel or half")
+            if r["block"] not in helix_names:
+                bad.append(f"line {i}: block {r['block']!r} is no helix block ({', '.join(sorted(helix_names))}); "
+                           "name any other track by switch_a and switch_b")
+                continue
+            if r["switch_a"] or r["switch_b"] or r["parallel"] or r["half"]:
+                bad.append(f"line {i}: helix block {r['block']!r} is named by its block alone: leave switch_a, "
+                           "switch_b, parallel and half empty")
                 continue
             name = r["block"]
         else:
