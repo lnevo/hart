@@ -24,4 +24,4 @@ From `ops/hart-ops/`:
 .venv/bin/python card_pipeline/generate_cc_waybill_labels.py
 ```
 
-Commodity / supplier / customer / via rules in `generate_waybill_cards.py` are the paper SoR; keep the CSV in sync with STS seed inputs under `sts-docker-helpers/seed/inputs/`.
+Commodity / supplier / customer / via rules in `card_pipeline/waybill_data.py` (read by `generate_waybill_cards.py`) are the paper SoR; keep the CSV in sync with STS seed inputs under `sts-docker-helpers/seed/inputs/`.
