@@ -79,7 +79,7 @@ class Levels(unittest.TestCase):
             B.spec("LS5", "x")
 
     def test_level_bands_skips_the_bound_band(self):
-        bands = [("Staging level", {}, {"a": 1}), ("Main level", {}, {"b": 2}), ("Upper level", {}, {"c": 3})]
+        bands = [("Staging level", {}, {"a": 1}), ("Main level", {}, {"b": 2}), ("Upper level, 4.25 in", {}, {"c": 3})]
         self.assertEqual([bi for bi, _b, _o in B.level_bands(bands, 0)], [1, 2])
 
     def test_virtual_and_planned_sensors(self):
