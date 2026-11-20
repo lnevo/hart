@@ -97,8 +97,6 @@ Track 127-131 2,BS 127-131 2
 Track 127-221,BS 127-221
 Track 129 Spur 1,BS 129 Spur 1
 Track 129 Spur 2,BS 129 Spur 2
-Track 131-H1,BS 131-H1
-Track 131-H2,BS 131-H2
 Track 201-203,BS 201-203
 Track 201-205,BS 201-205
 Track 201-219,BS 201-219
@@ -152,6 +150,8 @@ Track EH-3,BS EH-3
 Track East Ext,BS East Ext
 Track East Lead,BS East Lead
 Track East Lead East,BS East Lead
+Track Helix Inner,BS Helix Inner
+Track Helix Outer,BS Helix Outer
 Track K-1,BS K-1
 Track K-1 West,BS K-1
 Track K-2,BS K-2

@@ -590,8 +590,8 @@ BLOCK_COMMENTS = {
     "Track EH-1": "Top house track; occupancy Block 13-7 / M2S1306; stop",
     "Track EH-2": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
     "Track EH-3": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
-    "Track McKees Rocks": "Helix track from Switch 39; no detector yet; stop",
-    "Track McKeesport": "Helix track from Switch 37; no detector yet; stop",
+    "Track Helix Outer": "Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map); stop",
+    "Track Helix Inner": "Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map); stop",
 }
 
 BLOCK_COMMENTS = {

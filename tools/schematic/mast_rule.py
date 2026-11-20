@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from pathlib import Path
 
 from hartlib import railroad
 
@@ -80,6 +81,32 @@ def helix_tags(bands, overrides) -> dict[int, str]:
     return out
 
 
+HELIX_TRACKS = railroad.Sources.under().helix_tracks
+
+
+def read_helix_tracks(path: Path | None = None) -> dict[str, dict]:
+    """{plan helix track name: {block, staging_switch, level_switch}} from helix_tracks.csv (hartlib.railroad
+    .read_helix_tracks, which checks it): each helix track is one JMRI block from its staging switch to its main or
+    upper switch (owner, 2026-11-20). Its FactsError as a MapError."""
+    try:
+        got = railroad.read_helix_tracks(path or HELIX_TRACKS)
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from None
+    return {h.helix: {"block": h.block, "staging_switch": h.staging_switch, "level_switch": h.level_switch}
+            for h in got.values()}
+
+
+def helix_blocks(overrides, helix=None) -> dict[str, str]:
+    """{helix tag ("H1", "H2", as helix_tags gives them): block} for the main and upper levels: the overrides' helix
+    tracks in order, each named in helix_tracks.csv. Stops on a helix track the file does not name, or one it names
+    that the overrides do not have."""
+    helix = read_helix_tracks() if helix is None else helix
+    plan = list(overrides.get("helix", {}).values())
+    if sorted(plan) != sorted(helix):
+        raise MapError(f"{HELIX_TRACKS.name} names helix tracks {sorted(helix)}, the plan overrides {sorted(plan)}")
+    return {f"H{i + 1}": helix[name]["block"] for i, name in enumerate(plan)}
+
+
 def tracks(bands, runs, joined, helix_tag, levels=None) -> list[dict]:
     """One entry per track of the main and upper bands (a track cut by a connector counted once)."""
     found, seen = [], set()
@@ -115,15 +142,23 @@ def tracks(bands, runs, joined, helix_tag, levels=None) -> list[dict]:
     return found
 
 
-def track_names(found) -> None:
-    """Fill `name` in each track entry (see the module text)."""
+def track_names(found, helix=None) -> None:
+    """Fill `name` in each track entry (see the module text). `helix` ({helix tag: block}, helix_blocks) names each
+    track that reaches the helix by its helix block (main and upper: one block from staging up the helix, owner
+    2026-11-20); without it (staging's own mast rule) such a track is "Track <switch>-<tag>". A track reaching a helix
+    tag that `helix` does not name stops."""
     groups = defaultdict(list)
     for t in found:
-        (ka, va), (kb, vb) = t["ends"]
         sw = sorted([v for k, v in t["ends"] if k == "sw"], key=natural)
         hx = [v for k, v in t["ends"] if k == "helix"]
         if not sw:
             raise MapError(f"a track ({', '.join(t['trial'])}) has no switch at either end, so it has no name")
+        if hx and helix is not None:
+            if len(hx) != 1 or hx[0] not in helix:
+                raise MapError(f"track {', '.join(t['trial'])} reaches helix {', '.join(hx)}, which "
+                               f"{HELIX_TRACKS.name} names no block for")
+            groups[helix[hx[0]]].append(t)
+            continue
         if len(sw) == 2 and sw[0] == sw[1]:
             stem = f"Track {sw[0]} Loop"
         elif sw and not hx and len(sw) == 1:

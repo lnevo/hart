@@ -110,7 +110,7 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 127,block,Track 127-131 1,,,,,CP 127,Track e34,73.6 cm
 2,,block,Track 129 Spur 1,,,,,,Track e4,69.2 cm no detector: off the main line
 2,,block,Track 129 Spur 2,,,,,,Track e5,70.4 cm no detector: off the main line
-2,CP 127,block,Track 131-H1,,,,,CP 127,Track e88,655.7 cm
+2,CP 127,block,Track Helix Outer,,,,,CP 127,Track e88,655.7 cm
 2,,occupancy,BS 101 Spur 1,,IS:HART:C3:B:101_Spur_1,,,,,no detector planned: dark until decided
 2,,occupancy,BS 101 Spur 2,,IS:HART:C3:B:101_Spur_2,,,,,no detector planned: dark until decided
 2,,occupancy,BS 101-103,,IS:HART:C3:B:101-103,,,,,no detector planned: dark until decided
@@ -142,7 +142,7 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 127,occupancy,BS 127-131 1,M2S4205,IS:HART:C3:B:127-131_1,42,,Node: 42 Block: 6,,
 2,,occupancy,BS 129 Spur 1,,IS:HART:C3:B:129_Spur_1,,,,,no detector planned: dark until decided
 2,,occupancy,BS 129 Spur 2,,IS:HART:C3:B:129_Spur_2,,,,,no detector planned: dark until decided
-2,CP 127,occupancy,BS 131-H1,M2S4206,IS:HART:C3:B:131-H1,42,,Node: 42 Block: 7,,
+2,CP 127,occupancy,BS Helix Outer,M2S4101,IS:HART:C3:B:Helix_Outer,41,,Node: 41 Block: 2,,
 2,,occupancy,BS Switch 101,,IS:HART:C3:B:OS101,,,,,no detector planned: dark until decided
 2,,occupancy,BS Switch 103,,IS:HART:C3:B:OS103,,,,,no detector planned: dark until decided
 2,,occupancy,BS Switch 105,,IS:HART:C3:B:OS105,,,,,no detector planned: dark until decided
@@ -172,8 +172,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 123,mast,Mast 126RB,IF$shsm:basic:two-low(IH5234)(IH5235),IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom),52,,CP 123 | Switch 125,,home signal from Track 125-129
 2,CP 127,mast,Mast 128LA,IF$shsm:basic:two-searchlight(IH5236)(IH5237),IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom),52,,CP 127 | Switch 127,,home signal from Track 125-127
 2,CP 127,mast,Mast 128LB,IF$shsm:basic:two-searchlight(IH5238)(IH5239),IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom),52,,CP 127 | Switch 127,,home signal from Track 127-221
-2,CP 127,mast,Mast 132RA,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),,,CP 127 | Switch 131,,home signal from Track 131-H1
-2,CP 127,mast,Mast 132RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),,,CP 127 | Switch 131,,home signal from Track 131-H2
+2,CP 127,mast,Mast 132RA,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),,,CP 127 | Switch 131,,home signal from Track Helix Outer
+2,CP 127,mast,Mast 132RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),,,CP 127 | Switch 131,,home signal from Track Helix Inner
 2,CP 107,mast,Mast A83,,IF$shsm:basic:one-searchlight(IH:HART:C3:A83),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.35
 2,CP 107,mast,Mast A84,,IF$shsm:basic:one-searchlight(IH:HART:C3:A84),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.35
 2,CP 107,head,Head 108LA Bottom,IH3333,IH:HART:C3:108LA_Bottom,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
@@ -328,7 +328,6 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,,block,OS Switch 245,,,,,Helix,OS Switch 245,no detector: off the main line
 3,CP 127,block,Track 127-131 2,,,,,CP 127,Track e66,"11.7 cm short link: inside the OS blocks of its switches, no detector"
 3,CP 127,block,Track 127-221,,,,,CP 127 / CP 201,Track e73,521.3 cm
-3,CP 127,block,Track 131-H2,,,,,CP 127,Track e89,690.7 cm
 3,CP 201,block,Track 201-203,,,,,CP 201,Track e59,"11.7 cm short link: inside the OS blocks of its switches, no detector"
 3,CP 201,block,Track 201-205,,,,,CP 201,Track e60,"22.7 cm short link: inside the OS blocks of its switches, no detector"
 3,CP 201,block,Track 201-219,,,,,CP 201,Track e58,"23.1 cm short link: inside the OS blocks of its switches, no detector"
@@ -374,9 +373,9 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,,block,Track 243 Spur 2,,,,,,Track e54,56.2 cm no detector: off the main line
 3,,block,Track 245 Spur 1,,,,,,Track e52,33.2 cm no detector: off the main line
 3,,block,Track 245 Spur 2,,,,,,Track e46,54.3 cm no detector: off the main line
+3,CP 127,block,Track Helix Inner,,,,,CP 127,Track e89,690.7 cm
 3,CP 127,occupancy,BS 127-131 2,,IS:HART:C3:B:127-131_2,,,,,no detector planned: dark until decided
 3,CP 127,occupancy,BS 127-221,M2S2304,IS:HART:C3:B:127-221,23,,Node: 23 Block: 5,,
-3,CP 127,occupancy,BS 131-H2,M2S2201,IS:HART:C3:B:131-H2,22,,Node: 22 Block: 2,,
 3,CP 201,occupancy,BS 201-203,,IS:HART:C3:B:201-203,,,,,no detector planned: dark until decided
 3,CP 201,occupancy,BS 201-205,,IS:HART:C3:B:201-205,,,,,no detector planned: dark until decided
 3,CP 201,occupancy,BS 201-219,,IS:HART:C3:B:201-219,,,,,no detector planned: dark until decided
@@ -398,13 +397,13 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 201,occupancy,BS 217-221,M2S2403,IS:HART:C3:B:217-221,24,,Node: 24 Block: 4,,
 3,CP 201,occupancy,BS 219-221,,IS:HART:C3:B:219-221,,,,,no detector planned: dark until decided
 3,CP 201,occupancy,BS 221-223,M2S2306,IS:HART:C3:B:221-223,23,,Node: 23 Block: 7,,
-3,CP 223,occupancy,BS 223-225 1,M2S2202,IS:HART:C3:B:223-225_1,22,,Node: 22 Block: 3,,
-3,CP 223,occupancy,BS 223-225 2,M2S2203,IS:HART:C3:B:223-225_2,22,,Node: 22 Block: 4,,
+3,CP 223,occupancy,BS 223-225 1,M2S2201,IS:HART:C3:B:223-225_1,22,,Node: 22 Block: 2,,
+3,CP 223,occupancy,BS 223-225 2,M2S2202,IS:HART:C3:B:223-225_2,22,,Node: 22 Block: 3,,
 3,CP 225,occupancy,BS 225-227,,IS:HART:C3:B:225-227,,,,,no detector planned: dark until decided
 3,CP 225,occupancy,BS 225-229,,IS:HART:C3:B:225-229,,,,,no detector planned: dark until decided
 3,CP 225,occupancy,BS 227-231,,IS:HART:C3:B:227-231,,,,,no detector planned: dark until decided
-3,CP 225,occupancy,BS 227-241 1,M2S4100,IS:HART:C3:B:227-241_1,41,,Node: 41 Block: 1,,
-3,CP 225,occupancy,BS 227-241 2,,IS:HART:C3:B:227-241_2,,,,,"detector planned, not wired yet: no node or input (owner, 2026-11-16)"
+3,CP 225,occupancy,BS 227-241 1,M2S4102,IS:HART:C3:B:227-241_1,41,,Node: 41 Block: 3,,
+3,CP 225,occupancy,BS 227-241 2,M2S4103,IS:HART:C3:B:227-241_2,41,,Node: 41 Block: 4,,
 3,CP 225,occupancy,BS 229-233,,IS:HART:C3:B:229-233,,,,,no detector planned: dark until decided
 3,CP 225,occupancy,BS 229-241,M2S2103,IS:HART:C3:B:229-241,21,,Node: 21 Block: 4,,
 3,,occupancy,BS 231 Spur,,IS:HART:C3:B:231_Spur,,,,,no detector planned: dark until decided
@@ -422,6 +421,7 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,,occupancy,BS 243 Spur 2,,IS:HART:C3:B:243_Spur_2,,,,,no detector planned: dark until decided
 3,,occupancy,BS 245 Spur 1,,IS:HART:C3:B:245_Spur_1,,,,,no detector planned: dark until decided
 3,,occupancy,BS 245 Spur 2,,IS:HART:C3:B:245_Spur_2,,,,,no detector planned: dark until decided
+3,CP 127,occupancy,BS Helix Inner,M2S4100,IS:HART:C3:B:Helix_Inner,41,,Node: 41 Block: 1,,
 3,CP 201,occupancy,BS Switch 201,M2S2300,IS:HART:C3:B:OS201,23,,Node: 23 Block: 1,,
 3,CP 201,occupancy,BS Switch 203,M2S2301,IS:HART:C3:B:OS203,23,,Node: 23 Block: 2,,
 3,,occupancy,BS Switch 205,,IS:HART:C3:B:OS205,,,,,no detector planned: dark until decided

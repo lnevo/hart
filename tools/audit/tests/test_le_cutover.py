@@ -139,7 +139,7 @@ class Cutover(unittest.TestCase):
         key = lambda m: (m["kind"], m["facing"], list(m["protects"]), m.get("turnout"))      # noqa: E731
         gen = {m["mast"]: key(m) for m in self.slots.Index(self.le).masts()}
         facts = {n: key(f) for n, f in B.sdm.mast_facts().items()}
-        self.assertEqual(len(facts), 49)
+        self.assertEqual(len(facts), 47)
         self.assertEqual(gen, facts)                   # kind, blocks and turnout: what discovery reads
         self.assertEqual(self.P.moved, [])             # no helix-entrance exception in staging mode
         self.assertEqual(self.P.unplaced, [])
@@ -310,8 +310,8 @@ class ThreeLevels(unittest.TestCase):
         # The helix-join release (owner, 2026-11-17): staging as in its candidate but for the two
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
         self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG230 to Track 131-H1, Mast 40RA)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG231 to Track 131-H2, Mast 38RA)",
+            "end bumper EBG1 -> anchor AGE1 (hidden join TG230 to Track Helix Outer)",
+            "end bumper EBG2 -> anchor AGE2 (hidden join TG231 to Track Helix Inner)",
             "track segment TG64 connect2name EBG1 -> AGE1",
             "track segment TG65 connect2name EBG2 -> AGE2"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
@@ -336,8 +336,8 @@ class ThreeLevels(unittest.TestCase):
             "a helix track's segment": lambda r: el(r, "tracksegment", ident="TG65").set("blockname", "Track X"),
             "a helix join moved": lambda r: el(r, "positionablepoint", ident="AGE2").set("x", "1600.0"),
             "a helix join's mast": lambda r: el(r, "positionablepoint", ident="AGE1").set(
-                "westboundsignalmast", "Mast 38RA"),
-            "a helix mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38RA").set("x", "1"),
+                "westboundsignalmast", "Mast 38LA"),
+            "a Princess mast icon moved": lambda r: el(r, "signalmasticon", signalmast="Mast 38LA").set("x", "1"),
             "a staging BCI moved": lambda r: el(r, "BlockContentsIcon", blockcontents="Track K-1").set("y", "1"),
         }
         for what, edit in edits.items():
@@ -491,9 +491,9 @@ class ThreeLevels(unittest.TestCase):
         # so in the parked station clusters (staging's le_labels extra_steps and extra_follow place them again when
         # the Dispatcher System is unparked and its clusters go back to the plugin as extras)
         parked_items = B.panel_items.load(PARKED_LAMPS)
-        whole, blocks = B.panel_items.drawn_boxes(self.le, B.plugin()[1], B.slots_module(),
-                                                  frame_blocks=T.used_blocks(tables.layout_editor(
-                                                      tables.loads(self.base[0]).root, LIVE)))
+        staging_le = tables.layout_editor(tables.loads(self.base[0]).root, LIVE)
+        frame = {el.get("ident") for el in staging_le if el.tag in ("tracksegment", "layoutturnout")}
+        whole, blocks = B.panel_items.drawn_boxes(self.le, B.plugin()[1], B.slots_module(), frame_idents=frame)
         at = {}
         for it in parked_items["items"]:
             el = ET.fromstring(it["xml"])
@@ -612,7 +612,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual({tables.user_name(t) for t in added_t}, {v for k, v in self.device.items()
                                                                    if k.startswith("Switch ")})
         self.assertEqual({tables.user_name(b) for b in added_lb}, {v for k, v in self.device.items()
-                                                                    if not k.startswith("Switch ")})
+                                                                    if not k.startswith("Switch ")} - T.HELIX_BLOCKS)
         self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
         self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-241's halves, 225's four corners
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
@@ -656,14 +656,22 @@ class ThreeLevels(unittest.TestCase):
                 self.assertFalse([k for k in el.attrib if k.endswith("boundsensor")], el.get("ident"))
                 self.assertIsNone(el.find("sensorA"))
 
-    def test_helix_masts_stand_at_the_helix_joins(self) -> None:
-        # joined: Masts 38RA and 40RA stand at the helix-entrance anchors, protecting the helix run
+    def test_each_helix_track_is_one_block_through_its_join(self) -> None:
+        # one block from staging up the helix (owner, 2026-11-20): the join anchor is no block boundary, no mast stands
+        # there, and the staging block is bound to the device map's virtual sensor
         ix = B.slots_module().Index(self.le)
-        got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
-               for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}
-        self.assertEqual(got["Mast 38RA"], ("AGE2", "east", ("Track McKeesport", ["Track 131-H2"])))
-        self.assertEqual(got["Mast 40RA"], ("AGE1", "east", ("Track McKees Rocks", ["Track 131-H1"])))
-        self.assertEqual([m for _band, m, _why in self.P.moved], ["Mast 38RA", "Mast 40RA"])   # the plugin logs both
+        for anchor, block in (("AGE1", "Track Helix Outer"), ("AGE2", "Track Helix Inner")):
+            with self.subTest(anchor=anchor):
+                pp = next(p for p in self.le.findall("positionablepoint") if p.get("ident") == anchor)
+                self.assertFalse([k for k in pp.attrib if k.endswith("signalmast")])
+                segs = {s.get("blockname") for s in self.le.findall("tracksegment")
+                        if anchor in (s.get("connect1name"), s.get("connect2name"))}
+                self.assertEqual(segs, {block})
+        self.assertFalse([m for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")])
+        self.assertEqual(self.P.moved, [])
+        lbs = {tables.user_name(lb): lb.get("occupancysensor") for lb in tables.layout_blocks(self.root)}
+        self.assertEqual((lbs["Track Helix Outer"], lbs["Track Helix Inner"]), ("BS Helix Outer", "BS Helix Inner"))
+        del ix
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
@@ -774,7 +782,8 @@ class Rebuilt(unittest.TestCase):
                                '</userName></memory>')
         sensor = ET.fromstring('<sensor inverted="false"><systemName>IS:HART:KEEP</systemName><userName>Kept sensor'
                                '</userName><comment>hand-added; names Switch 107</comment></sensor>')
-        hand = f"ILB{B.LAYOUT_BLOCK_FIRST + T.LEVEL_BLOCKS}"        # the first number after the build's own
+        # the first number after the build's own (the retired helix pieces keep theirs taken)
+        hand = f"ILB{B.LAYOUT_BLOCK_FIRST + T.LEVEL_BLOCKS + len(sys.modules['le_tables'].RETIRED_BLOCKS)}"
         layout_block = ET.fromstring(f'<layoutblock systemName="{hand}" occupiedsense="2" trackcolor="gray" '
                                      f'occupiedcolor="red" extracolor="white"><systemName>{hand}</systemName>'
                                      '<userName>Track Hand Added</userName></layoutblock>')
@@ -875,7 +884,7 @@ class StripBuildOwned(unittest.TestCase):
         reference."""
         root = ET.fromstring(self.TABLES)
         counts = B.strip_build_owned(root)
-        self.assertEqual(counts, dict(zip(B.STRIPPED, (5, 2, 3, 1, 2))))
+        self.assertEqual(counts, dict(zip(B.STRIPPED, (5, 2, 3, 1, 2, 0))))
         self.assertEqual([tables.system_name(b) for b in tables.layout_blocks(root)], ["ILB1126"])
         self.assertEqual([tables.system_name(t) for t in root.iter("turnout") if t.find("systemName") is not None],
                          ["IT:KEEP"])

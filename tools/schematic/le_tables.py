@@ -26,6 +26,10 @@ from approval import canon_sorted, element_label  # noqa: E402  as the approval 
 BLOCK_NUMBERED_AS = {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
                      "Track 227-241 1": "Track 227-241"}
 APPENDED_BLOCKS = ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c", "OS Switch 225d", "Track 227-241 2")
+# Blocks gone from the levels whose numbers stay taken, so no block after them is renumbered: the main and upper
+# helix pieces, one block each with the staging track below them since 2026-11-20 (the staging block holds both:
+# Track Helix Outer, Track Helix Inner).
+RETIRED_BLOCKS = ("Track 131-H1", "Track 131-H2")
 COMMENT = "Main and upper level, internal until the import (device map name; build_layout_le.py)"
 
 
@@ -149,7 +153,8 @@ def level_names(root: ET.Element) -> set[str]:
 
 STRIPPED = ("main and upper objects", "Signal Mast Logic from a main or upper mast",
             "Signal Mast Logic destinations naming a main or upper object",
-            "Signal Mast Logic left with no destination", "block paths naming a main or upper object")
+            "Signal Mast Logic left with no destination", "block paths naming a main or upper object",
+            "staging block detectors naming a main or upper sensor")
 
 
 def strip_build_owned(root: ET.Element) -> dict[str, int]:
@@ -157,12 +162,14 @@ def strip_build_owned(root: ET.Element) -> dict[str, int]:
     can start from tables a cut-over wrote (tables.xml): every main and upper object (is_level_bean: turnouts, block
     sensors, blocks, layout blocks, heads, masts and the sensors-clear LogixNG); the Signal Mast Logic whose source is
     one of their masts; each destination of another mast's logic that names one of them, and a logic left with none;
-    and each path of another block that names one of them. "Names" is by the fields where JMRI keeps a bean reference
+    and each path of another block that names one of them, and the occupancy sensor of a staging block (or its layout
+    block) that is one of them: a helix block, whose detector the build binds (add_level_objects). "Names" is by the
+    fields where JMRI keeps a bean reference
     (hartlib.tables.names_any), and a name counts when it is one of those objects' or follows the main and upper
     naming rule (level_devices.is_level_name), so a reference to one that is no longer in the tables goes too. Stock
     discovery and a PanelPro load derive the logic and the paths again from the panel the build draws. Everything else
     stays as it is, the main panel too (the build replaces it), and so do the properties discovery sets on a staging
-    mast (intermediateSignal on 38RA and 40RA, which lead up the helix): discovery sets them again. Returns the counts
+    mast (intermediateSignal): discovery sets them again. Returns the counts
     taken out, keyed by STRIPPED; stops when any of those references is left."""
     names = level_names(root)
     owned = lambda el: tables.names_any(el, names, level_devices.is_level_name)       # noqa: E731
@@ -189,6 +196,16 @@ def strip_build_owned(root: ET.Element) -> dict[str, int]:
         for path in [p for p in block.findall("path") if owned(p)]:
             tables.remove_child(block, path)
             counts[STRIPPED[4]] += 1
+    level_sensor = lambda n: n in names or level_devices.is_level_name(n)      # noqa: E731
+    for block in tables.blocks(root):
+        occ = block.find("occupancysensor")
+        if occ is not None and level_sensor((occ.text or "").strip()):
+            tables.remove_child(block, occ)
+            counts[STRIPPED[5]] += 1
+    for lb in tables.layout_blocks(root):
+        if level_sensor((lb.get("occupancysensor") or "").strip()):
+            del lb.attrib["occupancysensor"]
+            counts[STRIPPED[5]] += 1
     left = sorted({sec.tag for sec in tables.elements(root) for el in tables.elements(sec) if is_level_bean(el)} |
                   {"signalmastlogics" for logic in tables.mast_logics(root) if owned(logic)} |
                   {"block paths" for b in tables.blocks(root) for p in b.findall("path") if owned(p)})
@@ -237,8 +254,8 @@ def level_items(P, panel_el: ET.Element) -> set:
 # What the three-level candidate may change on the staging candidate's panel (owner, 2026-11-16): its size, and
 # what the helix joins change: the staging helix tracks run on to the main level instead of ending at a buffer stop,
 # so each of their end bumpers becomes an anchor where the hidden join starts (same place, same mast slot), and the
-# track segment reaching it is reconnected to it (helix_join_changes). Masts 38RA and 40RA stay in that slot, so
-# their icons do not change.
+# track segment reaching it is reconnected to it (helix_join_changes). The anchor is no block boundary (one helix block
+# runs through it, owner 2026-11-20), so no mast stands there.
 PANEL_SIZE_ATTRS = ("panelheight", "windowheight", "panelwidth", "windowwidth")
 
 
@@ -298,12 +315,13 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     bad = []
     if [c.tag for c in old_root] != [c.tag for c in new_root]:
         raise BuildError("staging guard: the top-level sections of the two candidates differ")
+    added = level_names(new_root)
     for old, new in zip(old_root, new_root):
         if old.tag == "LayoutEditor" and old.get("name") == panel_name:
             continue
         if old.attrib != new.attrib:
             bad.append(f"<{old.tag}> attributes differ")
-        kept = [canon(c) for c in new if not is_level_bean(c)]
+        kept = [canon(without_level_detector(c, added)) for c in new if not is_level_bean(c)]
         if kept != [canon(c) for c in old]:
             bad.append(f"<{old.tag} {old.get('class') or old.get('name') or ''}> differs beyond the added main and "
                        "upper beans")
@@ -343,9 +361,25 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     return notes
 
 
+def without_level_detector(el: ET.Element, added: set) -> ET.Element:
+    """`el`, or for a block or layout block bound to a sensor in `added` (the main and upper names a build adds:
+    level_names) a copy without that binding: the helix blocks, staging blocks the three-level build binds to their
+    device-map sensor (add_level_objects), compare equal to the staging candidate's, which has none."""
+    if el.tag == "block":
+        occ = el.find("occupancysensor")
+        if occ is not None and (occ.text or "").strip() in added:
+            el = copy.deepcopy(el)
+            el.remove(el.find("occupancysensor"))
+    elif el.tag == "layoutblock" and el.get("occupancysensor") in added:
+        el = copy.deepcopy(el)
+        del el.attrib["occupancysensor"]
+    return el
+
+
 def numbered_blocks(blocks) -> list:
     """The main and upper blocks in the order their system names are numbered: by block_sort (a block in
-    BLOCK_NUMBERED_AS in the place of the name it replaces), then APPENDED_BLOCKS."""
+    BLOCK_NUMBERED_AS in the place of the name it replaces), then APPENDED_BLOCKS. Give it RETIRED_BLOCKS too to keep
+    their numbers taken."""
     blocks = set(blocks)
     tail = [b for b in APPENDED_BLOCKS if b in blocks]
     return sorted(blocks - set(tail), key=lambda b: block_sort(BLOCK_NUMBERED_AS.get(b, b))) + tail
@@ -525,7 +559,12 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     (add_level_clear). Stops on a block the device map gives no sensor."""
     new_turnouts = sorted({t for k, v in names.items() if k != STAGING for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
-    new_blocks = numbered_blocks(b for b in P.blocks if b not in staging_blocks)
+    drawn = {b for b in P.blocks if b not in staging_blocks}
+    if drawn & set(RETIRED_BLOCKS):
+        raise BuildError(f"retired blocks drawn again: {sorted(drawn & set(RETIRED_BLOCKS))}; take them out of "
+                         "RETIRED_BLOCKS")
+    order = numbered_blocks(drawn | set(RETIRED_BLOCKS))       # a retired block keeps its number, unused
+    new_blocks = [b for b in order if b not in RETIRED_BLOCKS]
     if set(new_blocks) - set(lengths):
         raise BuildError(f"blocks with no source: {sorted(set(new_blocks) - set(lengths))}")
     taken_users = {tables.user_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
@@ -533,8 +572,8 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     taken_sys = {tables.system_name(b) for b in tables.turnouts(root) + tables.blocks(root, full=False)
                  + tables.layout_blocks(root)}
     turnout_sys = {t: TURNOUT_SYS + t.split(" ", 1)[1] for t in new_turnouts}
-    block_sys = {b: f"{BLOCK_SYS}{i:04d}" for i, b in enumerate(new_blocks, 1)}
-    lb_sys = {b: f"ILB{LAYOUT_BLOCK_FIRST + i}" for i, b in enumerate(new_blocks)}
+    block_sys = {b: f"{BLOCK_SYS}{i:04d}" for i, b in enumerate(order, 1) if b in drawn}
+    lb_sys = {b: f"ILB{LAYOUT_BLOCK_FIRST + i}" for i, b in enumerate(order) if b in drawn}
     new_users = new_turnouts + new_blocks
     new_sys = list(turnout_sys.values()) + list(block_sys.values()) + list(lb_sys.values())
     clash = sorted((set(new_users) & taken_users) | (set(new_sys) & taken_sys))
@@ -559,10 +598,12 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_b
     if set(new_blocks) - set(sensors):
         raise BuildError(f"main and upper blocks with no occupancy row in the device map: "
                          f"{sorted(set(new_blocks) - set(sensors))}")
-    added = add_level_sensors(root, {b: sensors[b] for b in new_blocks})
-    if sorted(added) != sorted(sensors[b][0] for b in new_blocks):
+    # a helix block: the staging block drawn on a level too, bound to the device map's sensor (owner, 2026-11-20)
+    shared = sorted(b for b in staging_blocks & set(P.blocks) if b in sensors)
+    added = add_level_sensors(root, {b: sensors[b] for b in new_blocks + shared})
+    if sorted(added) != sorted(sensors[b][0] for b in new_blocks + shared):
         raise BuildError("main and upper blocks whose sensor was not added (no such block in the tables): "
-                         f"{sorted({sensors[b][0] for b in new_blocks} - set(added))}")
+                         f"{sorted({sensors[b][0] for b in new_blocks + shared} - set(added))}")
     # every virtual turnout starts Closed, its normal leg B, except where the main route runs through leg C
     if set(thrown) - set(new_turnouts):
         raise BuildError(f"turnouts to start Thrown that the panel does not have: {sorted(set(thrown) - set(new_turnouts))}")

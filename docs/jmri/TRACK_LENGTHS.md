@@ -41,8 +41,8 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track EH-1 | Block 13-7 | 49 | 1244.6 | plan | AnyRail 5.3c: 51.3 in from Switch 11 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
 | Track EH-2 | Block 13-6 | 28 | 711.2 | plan | AnyRail 5.3c: 30.4 in from Switch 9 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
 | Track EH-3 | Block 13-5 | 28 | 711.2 | plan | AnyRail 5.3c: 30.1 in from Switch 9 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
-| Track McKees Rocks |  | 947.2 | 24058.9 | plan | AnyRail 5.3c: the whole helix run, Switch 39 to Switch 131A; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 689.0 in up to the -5 cm cut; no detector yet |
-| Track McKeesport |  | 916.5 | 23279.1 | plan | AnyRail 5.3c: the whole helix run, Switch 37 to Switch 131B; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 644.6 in up to the -5 cm cut; no detector yet |
+| Track Helix Outer | BS Helix Outer | 947.2 | 24058.9 | plan | AnyRail 5.3c: the whole helix run, Switch 39 to Switch 131A; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 689.0 in up to the -5 cm cut; one block, detector Block 41-2 |
+| Track Helix Inner | BS Helix Inner | 916.5 | 23279.1 | plan | AnyRail 5.3c: the whole helix run, Switch 37 to Switch 131B; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 644.6 in up to the -5 cm cut; one block, detector Block 41-1 |
 
 ## Hidden throat stubs
 

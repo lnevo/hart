@@ -800,25 +800,6 @@
    "_toward_node": "TOR29969"
   },
   {
-   "mast": "38RA",
-   "toward": "37",
-   "run": [
-    "37",
-    ""
-   ],
-   "names": [
-    "McKeesport"
-   ],
-   "edge_cm": 2327.9,
-   "cm_from_toward": 2327.9,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e37",
-   "_toward_node": "TOR29969"
-  },
-  {
    "mast": "40LA",
    "toward": "39",
    "run": [
@@ -853,25 +834,6 @@
    "dir": "west",
    "kind": "planned",
    "heads": 2,
-   "source": "le_panel",
-   "_edge": "e36",
-   "_toward_node": "TOL29312"
-  },
-  {
-   "mast": "40RA",
-   "toward": "39",
-   "run": [
-    "39",
-    ""
-   ],
-   "names": [
-    "McKees Rocks"
-   ],
-   "edge_cm": 2405.9,
-   "cm_from_toward": 2405.9,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
    "source": "le_panel",
    "_edge": "e36",
    "_toward_node": "TOL29312"

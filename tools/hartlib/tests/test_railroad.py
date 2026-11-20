@@ -12,7 +12,7 @@ from hartlib import paths, railroad as R  # noqa: E402
 
 REPO = R.Sources.under()
 DATA_FILES = ("switches", "switch_legs", "name_map", "level_control_points", "local_switches", "lcos_nodes",
-              "plan_overrides", "block_lengths", "staging_masts", "hands", "device_map", "level_masts")
+              "plan_overrides", "block_lengths", "staging_masts", "hands", "device_map", "level_masts", "helix_tracks")
 
 
 class Copy(unittest.TestCase):

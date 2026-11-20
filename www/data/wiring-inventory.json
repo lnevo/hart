@@ -4077,7 +4077,6 @@
    ],
    "blockNames": [
     "OS Switch 223",
-    "Track 131-H2",
     "Track 223-225 1",
     "Track 223-225 2"
    ],
@@ -4376,7 +4375,7 @@
       {
        "channel": "2",
        "port": "C22-B1-2",
-       "block": "Track 131-H2"
+       "block": "Track 223-225 1"
       }
      ]
     },
@@ -4386,11 +4385,6 @@
       {
        "channel": "1",
        "port": "C22-B2-1",
-       "block": "Track 223-225 1"
-      },
-      {
-       "channel": "2",
-       "port": "C22-B2-2",
        "block": "Track 223-225 2"
       }
      ]
@@ -6104,7 +6098,10 @@
     "230LA"
    ],
    "blockNames": [
-    "Track 227-241 1"
+    "Track Helix Inner",
+    "Track Helix Outer",
+    "Track 227-241 1",
+    "Track 227-241 2"
    ],
    "summary": {
     "outputs12v": {
@@ -6485,7 +6482,27 @@
       {
        "channel": "1",
        "port": "C41-B1-1",
+       "block": "Track Helix Inner"
+      },
+      {
+       "channel": "2",
+       "port": "C41-B1-2",
+       "block": "Track Helix Outer"
+      }
+     ]
+    },
+    {
+     "detector": "C41-B2",
+     "channels": [
+      {
+       "channel": "1",
+       "port": "C41-B2-1",
        "block": "Track 227-241 1"
+      },
+      {
+       "channel": "2",
+       "port": "C41-B2-2",
+       "block": "Track 227-241 2"
       }
      ]
     }
@@ -6514,8 +6531,7 @@
     "OS Switch 127",
     "OS Switch 131",
     "Track 125-127",
-    "Track 127-131 1",
-    "Track 131-H1"
+    "Track 127-131 1"
    ],
    "summary": {
     "outputs12v": {
@@ -6992,16 +7008,6 @@
        "channel": "2",
        "port": "C42-B3-2",
        "block": "Track 127-131 1"
-      }
-     ]
-    },
-    {
-     "detector": "C42-B4",
-     "channels": [
-      {
-       "channel": "1",
-       "port": "C42-B4-1",
-       "block": "Track 131-H1"
       }
      ]
     }
@@ -10880,8 +10886,8 @@
    "node": "C22",
    "detector": "C22-B1",
    "channel": "2",
-   "block": "Track 131-H2",
-   "track": "Track e89",
+   "block": "Track 223-225 1",
+   "track": "Track e79",
    "area": "North - Upper",
    "note": "Block 22-2 / M2S2201"
   },
@@ -10890,20 +10896,10 @@
    "node": "C22",
    "detector": "C22-B2",
    "channel": "1",
-   "block": "Track 223-225 1",
-   "track": "Track e79",
-   "area": "North - Upper",
-   "note": "Block 22-3 / M2S2202"
-  },
-  {
-   "port": "C22-B2-2",
-   "node": "C22",
-   "detector": "C22-B2",
-   "channel": "2",
    "block": "Track 223-225 2",
    "track": "Track e78",
    "area": "North - Upper",
-   "note": "Block 22-4 / M2S2203"
+   "note": "Block 22-3 / M2S2202"
   },
   {
    "port": "C23-B1-1",
@@ -11100,10 +11096,40 @@
    "node": "C41",
    "detector": "C41-B1",
    "channel": "1",
+   "block": "Track Helix Inner",
+   "track": "Track e89",
+   "area": "Helix - Upper",
+   "note": "Block 41-1 / M2S4100"
+  },
+  {
+   "port": "C41-B1-2",
+   "node": "C41",
+   "detector": "C41-B1",
+   "channel": "2",
+   "block": "Track Helix Outer",
+   "track": "Track e88",
+   "area": "Helix - Upper",
+   "note": "Block 41-2 / M2S4101"
+  },
+  {
+   "port": "C41-B2-1",
+   "node": "C41",
+   "detector": "C41-B2",
+   "channel": "1",
    "block": "Track 227-241 1",
    "track": "Track e63 1",
    "area": "Helix - Upper",
-   "note": "Block 41-1 / M2S4100"
+   "note": "Block 41-3 / M2S4102"
+  },
+  {
+   "port": "C41-B2-2",
+   "node": "C41",
+   "detector": "C41-B2",
+   "channel": "2",
+   "block": "Track 227-241 2",
+   "track": "Track e63 2",
+   "area": "Helix - Upper",
+   "note": "Block 41-4 / M2S4103"
   },
   {
    "port": "C42-B1-1",
@@ -11164,16 +11190,6 @@
    "track": "Track e34",
    "area": "North - Main",
    "note": "Block 42-6 / M2S4205"
-  },
-  {
-   "port": "C42-B4-1",
-   "node": "C42",
-   "detector": "C42-B4",
-   "channel": "1",
-   "block": "Track 131-H1",
-   "track": "Track e88",
-   "area": "North - Main",
-   "note": "Block 42-7 / M2S4206"
   }
  ]
 }

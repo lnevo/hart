@@ -21,6 +21,9 @@ Files (jmri/layouts/hart/data/schematic/):
   bind "M2T408", some "Switch 23"), every other row's its system name. trial_name is the link to the drawing, as for
   main and upper (placeholders(), below). One occupancy row per detector; its notes list the blocks it serves
   ("blocks Track S-1; Track S-1 West": a throat block and its yard track, or a stub and its switch, share one).
+  A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
+  up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
+  device_map_main_upper.csv, which names the same block for the piece on its level (shared_blocks).
 - control_points_staging.csv, the columns of control_points_main_upper.csv: the staging stations of
   staging.plan_overrides.json's control_points (the schematic's source), held equal by --check.
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
@@ -63,8 +66,9 @@ import build_device_map as bdm  # noqa: E402  COLUMNS
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
 import le_names as ln  # noqa: E402  runs and crossovers
 import build_main_upper_masts as bmm  # noqa: E402  LEGS: two masts on one block pair, by letter
+import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
-from hartlib import level_masts, paths, railroad, tables  # noqa: E402
+from hartlib import level_devices, level_masts, paths, railroad, tables  # noqa: E402
 
 LEVEL = 1
 DEVICE_MAP = pd.DATA / "device_map_staging.csv"
@@ -159,26 +163,57 @@ def occupancy_blocks(r: dict) -> list[str]:
     return [b.strip() for b in r["notes"].removeprefix("blocks ").split(";") if b.strip()]
 
 
-def undetected(r: dict) -> bool:
-    """A block row whose notes say it has no detector ("no detector yet"): JMRI holds it with no occupancy sensor."""
-    return r["layer"] == "block" and r["notes"].startswith("no detector")
+def shared_blocks(rows: list[dict], level_map: railroad.DeviceMap, helix: dict | None = None) -> dict:
+    """{block: its main or upper occupancy row} of the staging blocks device_map_main_upper.csv also names: the helix
+    blocks, one JMRI block from staging up the helix, whose detector is that map's. Stops unless they are exactly
+    helix_tracks.csv's blocks, each with one occupancy row there."""
+    helix = mr.read_helix_tracks() if helix is None else helix
+    staging = {r["user_name"] for r in rows if r["layer"] == "block"}
+    shared = staging & set(level_map.blocks)
+    want = {v["block"] for v in helix.values()}
+    if shared != want:
+        raise StagingMapError(f"staging and main or upper blocks of one name: {sorted(shared)}; only the helix blocks "
+                              f"of {mr.HELIX_TRACKS.name} ({sorted(want)}) may be both")
+    occ = level_map.by_user("occupancy")
+    out = {}
+    for b in sorted(shared):
+        o = occ.get(level_devices.occupancy_user(b))
+        if o is None:
+            raise StagingMapError(f"{b}: no occupancy row in {level_map.path.name if level_map.path else 'the main and upper device map'}")
+        out[b] = o
+    return out
 
 
-def undetected_blocks(device_map: Path = DEVICE_MAP) -> set[str]:
-    """The user names of the staging blocks the device map says have no detector."""
-    return {r["user_name"] for r in read_rows(device_map, bdm.COLUMNS) if undetected(r)}
+def check_helix(band, names: dict, helix: dict | None = None) -> list[str]:
+    """Each helix track of helix_tracks.csv is drawn on the staging band from its staging_switch, and its staging
+    piece is that file's block (load()'s names)."""
+    helix = mr.read_helix_tracks() if helix is None else helix
+    bad = []
+    for plan, h in sorted(helix.items()):
+        sids = [sid for sid, s in band["strands"].items() if s.get("name") == plan]
+        if len(sids) != 1:
+            bad.append(f"helix track {plan}: drawn {len(sids)} times on the staging band")
+            continue
+        s = band["strands"][sids[0]]
+        labels = [band["nodes"][e[0]].get("label") for e in (s["src"], s["dst"])
+                  if band["nodes"][e[0]]["kind"] == "switch"]
+        if labels != [h["staging_switch"]] or names["blocks"].get(sids[0]) != [h["block"]]:
+            bad.append(f"helix track {plan}: from switch {', '.join(map(str, labels)) or 'none'} in block(s) "
+                       f"{names['blocks'].get(sids[0])}, {mr.HELIX_TRACKS.name} says Switch {h['staging_switch']}, "
+                       f"{h['block']}")
+    return bad
 
 
 # ---------------------------------------------------------------- reading the files
 
 
-def check_rows(rows: list[dict]) -> None:
-    """Every block has exactly one occupancy row naming it, unless its notes say it has no detector (a helix track
-    not wired yet), when none may; no two rows of one layer share a system name, a jmri_name
+def check_rows(rows: list[dict], shared=frozenset()) -> None:
+    """Every block has exactly one occupancy row naming it, but a helix block (`shared`: shared_blocks), whose
+    detector is the main and upper device map's; no two rows of one layer share a system name, a jmri_name
     or a user name (a turnout's LCC alias "DCC Switch <n>" is a turnout of its own, MTT<dcc>, with its own names);
     every row is a whole field device."""
     bad = []
-    blocks = [r["user_name"] for r in rows if r["layer"] == "block" and not undetected(r)]
+    blocks = [r["user_name"] for r in rows if r["layer"] == "block" and r["user_name"] not in shared]
     served = [b for r in rows if r["layer"] == "occupancy" for b in occupancy_blocks(r)]
     if sorted(blocks) != sorted(served):
         bad.append(f"blocks and occupancy rows differ: {sorted(set(blocks) ^ set(served))} "
@@ -500,10 +535,12 @@ def check_control_points(path: Path = CPS, overrides: Path = OVERRIDES) -> list[
     return [] if got == exp else [f"{path.name} is not {overrides.name}'s control points: {got} != {exp}"]
 
 
-def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
+def check_tables(rows: list[dict], rr: railroad.Railroad, shared: dict | None = None) -> list[str]:
     """Every device-map row the same bean in tables.xml (hartlib.railroad's tables, by user name): its system name;
     a turnout's jmri_name a turnout name the tables hold and its feedback sensors the fb rows'; a block's detector an
-    occupancy row naming that block; a mast's heads its head rows."""
+    occupancy row naming that block (a helix block's, `shared`: shared_blocks, the main and upper map's virtual
+    sensor, which the Layout Editor build binds); a mast's heads its head rows."""
+    shared = shared or {}
     t = rr.tables
     heads = {tables.system_name(h): tables.user_name(h) for h in tables.signal_heads(t.root)}
     blocks = {tables.user_name(b): b for b in tables.blocks(t.root)}
@@ -526,9 +563,10 @@ def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
                 continue
             occ = (b.findtext("occupancysensor") or "").strip()
             row = serves.get(user)
-            if undetected(r):
-                if occ:
-                    bad.append(f"block {user}: the device map says it has no detector, but tables.xml gives it {occ!r}")
+            if user in shared:
+                if occ not in (shared[user].user_name, shared[user].jmri_name):
+                    bad.append(f"helix block {user}: its detector in tables.xml is {occ!r}, the main and upper "
+                               f"device map's {shared[user].user_name}")
             elif row is None or occ not in (row["user_name"], row["system_name"]):
                 bad.append(f"block {user}: its detector in tables.xml is {occ!r}, the device map's "
                            f"{row['user_name'] if row else 'none'}")
@@ -555,13 +593,15 @@ def check(band) -> list[str]:
     bad = []
     try:
         rows = read_rows(DEVICE_MAP, bdm.COLUMNS)
-        check_rows(rows)
-        load(band)
+        rr = railroad.Railroad()
+        shared = shared_blocks(rows, rr.device_map)
+        check_rows(rows, set(shared))
+        bad += check_helix(band, load(band))
         load_signal_masts()
         mast_facts()
         bad += check_control_points()
-        bad += check_tables(rows, railroad.Railroad())
-    except (StagingMapError, railroad.FactsError) as exc:
+        bad += check_tables(rows, rr, shared)
+    except (StagingMapError, railroad.FactsError, mr.MapError) as exc:
         bad.append(str(exc))
     return bad
 

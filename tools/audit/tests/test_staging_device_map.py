@@ -105,7 +105,7 @@ class Files(unittest.TestCase):
     def test_the_committed_files_hold_their_rules(self):
         self.assertEqual(sdm.check(self.band), [])
         self.assertEqual(len(set(self.names["turnouts"].values())), 20)
-        self.assertEqual(len(self.names["masts"]), 49)
+        self.assertEqual(len(self.names["masts"]), 47)
         self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
 
     def _copy(self, edit):
@@ -174,7 +174,7 @@ class Files(unittest.TestCase):
 
     def test_the_signal_plan_reads_back(self):
         masts = sdm.load_signal_masts()
-        self.assertEqual(len(masts), 49)
+        self.assertEqual(len(masts), 47)
         import json
         got = json.loads((sdm.pd.DATA / "staging.signals.json").read_text(encoding="utf-8"))
         self.assertEqual(got["signals"], sdm.signal_rows(masts))

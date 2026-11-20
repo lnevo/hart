@@ -91,11 +91,9 @@ class Lengths(unittest.TestCase):
 
     def test_helix_tracks_keep_the_plans_share(self) -> None:
         """A helix track's block covers the whole run; the sheet keeps each level's share from the plan cut."""
-        got = self.read("Track McKees Rocks,BS Switch 39,947.2,plan,\nTrack S-1,Block 2-7,212,assigned,\n")
-        self.assertEqual(got, {"S-1": 212.0})
-        self.assertEqual(PD.helix_tracks({"edits": [{"op": "end", "ends": [["T55", "B", "McKees Rocks", "helix", "M"],
-                                                                         ["T45", "B", "W-1", "bumper", ""]]}]}),
-                         {"McKees Rocks"})
+        got = self.read("Track Helix Outer,BS Helix Outer,947.2,plan,\nTrack S-1,Block 2-7,212,assigned,\n"
+                        "Track McKees Rocks,,689.0,plan,\n")
+        self.assertEqual(got, {"S-1": 212.0, "McKees Rocks": 689.0})     # only helix_tracks.csv's blocks are left out
 
     def test_bad_rows_stop(self) -> None:
         """hartlib.railroad.read_block_lengths reads the file: a bad row stops, naming the file and line."""
@@ -265,7 +263,7 @@ class SignalsCheck(unittest.TestCase):
 
     def test_written_from_the_staging_masts(self) -> None:
         masts = self.bs.sdm.load_signal_masts()
-        self.assertEqual(len(masts), 49)
+        self.assertEqual(len(masts), 47)
         got = json.loads((self.bs.pd.DATA / "staging.signals.json").read_text())
         self.assertEqual(got["signals"], self.bs.sdm.signal_rows(masts))
         self.assertEqual((got["source"], got["unplaced"]), (self.bs.sdm.SIGNALS_SOURCE, []))

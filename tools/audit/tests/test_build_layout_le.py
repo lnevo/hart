@@ -41,17 +41,21 @@ RENDER = _load("render_le_layout", paths.LAYOUT_SCRIPTS / "render_le_layout.py")
 LIVE_PANEL = "HART Railroad"
 
 
-def _level_counts() -> tuple[int, int, int]:
-    """(blocks, masts, heads) of the main and upper levels in the committed data: the device map's block rows
-    (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) and main_upper_masts.csv."""
+def _level_counts() -> tuple[int, int, int, int]:
+    """(blocks, sensors, masts, heads) of the main and upper levels in the committed data: the blocks the build adds,
+    the device map's block rows (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) less the
+    helix blocks, which are staging's beans (helix_tracks.csv, 2026-11-20); a virtual sensor for every block row,
+    the helix blocks' too; and main_upper_masts.csv."""
     import csv
+    helix = {h["block"] for h in sys.modules["mast_rule"].read_helix_tracks().values()}
     with B.DEVICE_MAP.open(newline="", encoding="utf-8") as f:
-        blocks = sum(r["layer"] == "block" for r in csv.DictReader(f))
+        rows = [r["user_name"] for r in csv.DictReader(f) if r["layer"] == "block"]
     masts = B.read_level_masts()
-    return blocks, len(masts), sum(len(r["heads"]) for r in masts)
+    return len([r for r in rows if r not in helix]), len(rows), len(masts), sum(len(r["heads"]) for r in masts)
 
 
-LEVEL_BLOCKS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
+LEVEL_BLOCKS, LEVEL_SENSORS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
+HELIX_BLOCKS = {"Track Helix Outer", "Track Helix Inner"}       # helix_tracks.csv: staging's beans, bound by the build
 
 
 @functools.lru_cache(maxsize=None)
@@ -206,9 +210,9 @@ class Built(unittest.TestCase):
         self.assertIn("Switch 225", new_t)              # the double crossover
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
         self.assertEqual(len(new_lb), LEVEL_BLOCKS)      # the 107 Loop's two halves and 225's four corners
-        self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")})
+        self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")} - HELIX_BLOCKS)
         self.assertIn("OS Switch 131", new_lb)          # connector A joins 131A and 131B: their OS block
-        self.assertIn("Track 131-H2", new_lb)           # the placeholder Track e89
+        self.assertNotIn("Track Helix Inner", new_lb)   # the placeholder Track e89: staging's block, not a new one
         self.assertFalse({b for b in new_lb if re.search(r"\be\d+", b)})
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
@@ -241,7 +245,7 @@ class Built(unittest.TestCase):
         internal sensors are (owner, 2026-11-17)."""
         internal = next(s for s in self.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
         sensors = {tables.user_name(s): tables.system_name(s) for s in internal.findall("sensor") if is_new(s)}
-        self.assertEqual(len(sensors), LEVEL_BLOCKS)
+        self.assertEqual(len(sensors), LEVEL_SENSORS)                # the helix blocks' sensors too
         self.assertFalse([s for s in tables.sensors(self.root) if is_new(s) and s not in list(internal)])
         bd = level_devices
         for b in [b for b in tables.blocks(self.root) if is_new(b)]:
@@ -264,7 +268,7 @@ class Built(unittest.TestCase):
         for label, root in (("candidate", self.root), ("released", tables.read(paths.TABLES_XML))):
             with self.subTest(tables=label):
                 level = sorted(tables.system_name(s) for s in tables.sensors(root) if is_new(s))
-                self.assertEqual(len(level), LEVEL_BLOCKS)
+                self.assertEqual(len(level), LEVEL_SENSORS)
                 self.assertEqual(sorted(level_devices.clear_sensors(root)), level)
                 acts = {e.findtext("systemName"): e for e in root.find("LogixNGDigitalActions")}
                 for name in level_devices.clear_sensors(root):
@@ -449,8 +453,9 @@ class Built(unittest.TestCase):
         # turnouts, blocks (2 passes) and layout blocks, their sensors, the startup LogixNG (LogixNG, ConditionalNG,
         # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts; no logic or path:
         # discovery adds them
-        objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_BLOCKS + 3 + LEVEL_BLOCKS + 39 + LEVEL_HEADS + LEVEL_MASTS
-        self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects})
+        objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_SENSORS + 3 + LEVEL_SENSORS + 39 + LEVEL_HEADS + LEVEL_MASTS
+        # the helix blocks' binding (block and layout block each) goes too: they are staging's beans
+        self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects, B.STRIPPED[5]: 4})
         base = tables.loads(self.P.staging_data)
         B.parked.split(base.root, B.PARKED)
         B.retire_yard_ladder(base.root)
@@ -573,8 +578,8 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101A"], "Switch 101")
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")
-        self.assertEqual(got["Track e89"], "Track 131-H2")
-        self.assertEqual(len(got), 51 + LEVEL_BLOCKS)
+        self.assertEqual(got["Track e89"], "Track Helix Inner")      # one block with staging's McKeesport track
+        self.assertEqual(len(got), 51 + LEVEL_SENSORS)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
@@ -968,7 +973,7 @@ class LevelMasts(unittest.TestCase):
         gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
         self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
         rows = B.read_level_masts()
-        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (122, 44, 76))
+        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (120, 44, 76))
         r = next(r for r in rows if r["mast"] == "Mast 108LB")
         self.assertEqual((r["facing"], r["protects"]), ("Track 107 Loop 2", "OS Switch 107"))
         self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)")

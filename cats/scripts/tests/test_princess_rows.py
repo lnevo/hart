@@ -11,7 +11,7 @@ import desks  # noqa: E402  (cats/scripts/tests/desks.py: the live desks)
 class PrincessRows(unittest.TestCase):
     def test_live_desk_polarity(self):
         # the live (generated) desks: Switches 37 and 39 close to the mains, NORMAL, and throw to the K tracks
-        want = {"OS Switch 37": ("Track McKeesport", "Track K-2"), "OS Switch 39": ("Track McKees Rocks", "Track K-1")}
+        want = {"OS Switch 37": ("Track Helix Inner", "Track K-2"), "OS Switch 39": ("Track Helix Outer", "Track K-1")}
         for desk in desks.LIVE:
             for os_block, (closed, thrown) in want.items():
                 with self.subTest(desk=desk.name, plant=os_block):

@@ -172,7 +172,7 @@ def lcos_named(names: list[str]) -> list[str]:
 
 def level_masts(names: dict, rows: list[dict]) -> None:
     """Give each main and upper band in `names` its masts (main_upper_masts.csv rows) for the plugin: each in the
-    band whose drawing has its facing track and its protected OS block (127-221 and 131-H2 meet Switches 127 and 131
+    band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block. Stops on a mast no band, or two, draws."""
     bad = []

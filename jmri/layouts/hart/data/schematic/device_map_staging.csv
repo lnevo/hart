@@ -110,13 +110,13 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,,block,Track East Ext,IB:AUTO:0051,IB:AUTO:0051,4,,Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406,Track e0,
 1,,block,Track East Lead,IB:AUTO:0017,IB:AUTO:0017,1,,South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop,Track e26 1/2,
 1,,block,Track East Lead East,IB:AUTO:0062,IB:AUTO:0062,1,,Hidden Track East Lead throat (same detector as Track East Lead); occupancy Block 1-7 / M2S106; not a station,Track e26 2/2,
+1,,block,Track Helix Inner,IB24,IB24,41,,"Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map); stop",Track e37,
+1,,block,Track Helix Outer,IB23,IB23,41,,"Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map); stop",Track e36,
 1,,block,Track K-1,IB:AUTO:0010,IB:AUTO:0010,1,,"Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",Track e15.0 2/2,
 1,,block,Track K-1 West,IB:AUTO:0063,IB:AUTO:0063,1,,Hidden Track K-1 throat (same detector as Track K-1); occupancy Block 1-1 / M2S100; not a station,Track e15.0 1/2,
 1,,block,Track K-2,IB:AUTO:0048,IB:AUTO:0048,1,,"Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop",Track e15.1,
 1,,block,Track Main East,IB:AUTO:0001,IB:AUTO:0001,2,,Main east of East End; occupancy Block 2-3 / M2S202,Track e1,
 1,,block,Track Main West,IB:AUTO:0003,IB:AUTO:0003,2,,Main west of Brick toward East End; occupancy Block 2-1 / M2S200,Track e16,
-1,,block,Track McKees Rocks,IB23,IB23,1,,Helix track from Switch 39; no detector yet; stop,Track e36,no detector yet
-1,,block,Track McKeesport,IB24,IB24,1,,Helix track from Switch 37; no detector yet; stop,Track e37,no detector yet
 1,,block,Track S-1,IB:AUTO:0016,IB:AUTO:0016,2,,South Yard body; occupancy Block 2-7 / M2S206,Track e22 2/3,
 1,,block,Track S-1 East,IB:AUTO:0053,IB:AUTO:0053,2,,Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station,Track e22 3/3,
 1,,block,Track S-1 West,IB:AUTO:0052,IB:AUTO:0052,2,,Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station,Track e22 1/3,
@@ -207,12 +207,10 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Princess,mast,Mast 36L,IF$vsm:basic:one-low($1025),IF$vsm:basic:one-low($1025),,,Princess,,facing Track East Lead East into Track East Lead
 1,Princess,mast,Mast 36RA,IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),,,Princess | Switch 35,,facing Track West Ext into OS Switch 35b
 1,Princess,mast,Mast 36RB,IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),,,Princess | Switch 35,,facing Track East Lead East into OS Switch 35a
-1,Princess,mast,Mast 38LA,IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),,,Princess | Switch 37,,facing Track McKeesport into OS Switch 37
+1,Princess,mast,Mast 38LA,IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),,,Princess | Switch 37,,facing Track Helix Inner into OS Switch 37
 1,Princess,mast,Mast 38LB,IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),,,Princess | Switch 37,,facing Track K-2 into OS Switch 37
-1,Princess,mast,Mast 38RA,IF$vsm:basic:one-low($1004),IF$vsm:basic:one-low($1004),,,Princess,,"facing Track McKeesport, buffer stop"
 1,Princess,mast,Mast 40LA,IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),,,Princess | Switch 39,,facing Track K-1 West into OS Switch 39
-1,Princess,mast,Mast 40LB,IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),,,Princess | Switch 39,,facing Track McKees Rocks into OS Switch 39
-1,Princess,mast,Mast 40RA,IF$vsm:basic:one-low($1003),IF$vsm:basic:one-low($1003),,,Princess,,"facing Track McKees Rocks, buffer stop"
+1,Princess,mast,Mast 40LB,IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),,,Princess | Switch 39,,facing Track Helix Outer into OS Switch 39
 1,Princess,mast,Mast 40RB,IF$vsm:basic:one-low($1026),IF$vsm:basic:one-low($1026),,,Princess,,facing Track K-1 West into Track K-1
 1,Brick,mast,Mast 4LA,IF$vsm:basic:one-low($1001),IF$vsm:basic:one-low($1001),,,Brick,,"facing Track W-1, buffer stop"
 1,Brick,mast,Mast 4LB,IF$vsm:basic:one-low($1002),IF$vsm:basic:one-low($1002),,,Brick,,"facing Track W-2, buffer stop"

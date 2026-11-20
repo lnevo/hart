@@ -16,6 +16,7 @@ stale copy of its own output. Each file is read the first time it is asked for, 
 
     inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), public_name_map.csv,
                 schematic/control_points_main_upper.csv, local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
+                helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
                 stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
                 device map's form, kept by hand; tools/schematic/staging_device_map.py --check)
@@ -87,6 +88,7 @@ class Sources:
     device_map: Path
     level_masts: Path
     tables: Path
+    helix_tracks: Path
 
     @classmethod
     def under(cls, data: Path = paths.LAYOUT_DATA, tables_xml: Path | None = None) -> "Sources":
@@ -100,7 +102,8 @@ class Sources:
                    staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
                    device_map=s / "device_map_main_upper.csv",
                    level_masts=s / level_masts.PATH.name,
-                   tables=paths.TABLES_XML if tables_xml is None else tables_xml)
+                   tables=paths.TABLES_XML if tables_xml is None else tables_xml,
+                   helix_tracks=s / "helix_tracks.csv")
 
     def but(self, **changes: Path) -> "Sources":
         """These sources with some files swapped (a builder's patched path, a test's copy)."""
@@ -403,6 +406,38 @@ def read_local_switches(path: Path) -> list[LocalSwitch]:
             raise FactsError(f"{path.name} lines {seen[r['switch']]} and {line}: both are switch {r['switch']}")
         seen[r["switch"]] = line
         out.append(LocalSwitch(line, r["switch"], _level(r["level"], where), r["area"], r["notes"]))
+    return out
+
+
+@dataclass(frozen=True)
+class HelixTrack:
+    """A helix track (helix_tracks.csv): one JMRI block, `block`, from its staging switch up the helix to its main or
+    upper switch (`level_switch`, the label the drawing prints: 131A), under the plan's name `helix` (owner,
+    2026-11-20)."""
+    line: int
+    helix: str
+    block: str
+    staging_switch: str
+    level_switch: str
+    notes: str = ""
+
+
+def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
+    """{plan helix track name: HelixTrack}. Stops on an empty field, a block not named "Track ...", or a name or
+    block given twice."""
+    out: dict[str, HelixTrack] = {}
+    blocks: dict[str, int] = {}
+    for line, r in read_rows(path, ("helix", "block", "staging_switch", "level_switch"), optional=("notes",)):
+        where = _where(path, line)
+        if not all(r[k] for k in ("helix", "block", "staging_switch", "level_switch")) or \
+                not r["block"].startswith("Track "):
+            raise FactsError(f"{where}: helix, block (Track ...), staging_switch and level_switch are all needed")
+        if r["helix"] in out or r["block"] in blocks:
+            raise FactsError(f"{where}: helix {r['helix']!r} or block {r['block']!r} given twice")
+        blocks[r["block"]] = line
+        out[r["helix"]] = HelixTrack(line, r["helix"], r["block"], r["staging_switch"], r["level_switch"], r["notes"])
+    if not out:
+        raise FactsError(f"{path.name}: no helix tracks")
     return out
 
 
@@ -780,6 +815,10 @@ class Railroad:
         return read_lcos_nodes(self.sources.lcos_nodes)
 
     @cached_property
+    def helix_tracks(self) -> dict[str, HelixTrack]:
+        return read_helix_tracks(self.sources.helix_tracks)
+
+    @cached_property
     def plan_overrides(self) -> PlanOverrides:
         return read_plan_overrides(self.sources.plan_overrides)
 
@@ -999,8 +1038,12 @@ def _device_map(rr: Railroad) -> list[str]:
             bad.append(f"{name} line {r.line}: Switch {s} has no LCC alias DCC Switch {s} on its turnout and DCC "
                        "address")
     nodes = {n.node: n for n in rr.lcos_nodes}
+    # a helix block runs from staging up to main or upper: its detector may be on either level's node (owner,
+    # 2026-11-20: both helix tracks on helix node 41)
+    helix = {b for h in rr.helix_tracks.values() for b in (h.block, level_devices.occupancy_user(h.block))}
     for r in dm.rows:
-        if r.node and (not r.node.isdigit() or int(r.node) not in nodes or nodes[int(r.node)].level != r.level):
+        if r.node and (not r.node.isdigit() or int(r.node) not in nodes or
+                       (nodes[int(r.node)].level != r.level and r.user_name not in helix)):
             bad.append(f"{name} line {r.line}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
                        f"of {rr.sources.lcos_nodes.name}")
     staging_dcc = {r.dcc: r for r in rr.name_map.live.values() if r.layer == "turnout" and r.dcc}
@@ -1023,12 +1066,14 @@ def _device_map(rr: Railroad) -> list[str]:
 @invariant("name-clash", "device_map")
 def _name_clash(rr: Railroad) -> list[str]:
     """No public_name_map.csv row, live or historical alias, uses a name the device map gives a main or upper
-    device of the same layer: a rename pass that maps the alias would rename the main or upper device."""
+    device of the same layer: a rename pass that maps the alias would rename the main or upper device. A helix block
+    (helix_tracks.csv) is one block from staging up the helix, so its live row names the device map's block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
+    helix = {h.block for h in rr.helix_tracks.values()}
     out = []
     for r in rr.name_map.rows:
         hit = dm.get((r.layer, r.current))
-        if hit is not None:
+        if hit is not None and not (r.layer == "block" and r.identity and r.current in helix):
             what = "live" if r.identity else f"an alias of {r.proposed}"
             out.append(f"{rr.name_map.path.name}: {r.layer} {r.current} is {what} there and level "
                        f"{hit.level} {r.layer} {hit.user_name} in {rr.sources.device_map.name}")

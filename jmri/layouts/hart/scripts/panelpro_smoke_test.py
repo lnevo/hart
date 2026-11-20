@@ -80,8 +80,8 @@ STATIONS = (
     u"Track Barn",
     u"Track W-1",
     u"Track W-2",
-    u"Track McKees Rocks",
-    u"Track McKeesport",
+    u"Track Helix Outer",
+    u"Track Helix Inner",
 )
 
 

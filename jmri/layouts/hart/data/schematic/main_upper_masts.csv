@@ -14,8 +14,8 @@ Mast 126RA,CP 123,125,Track 125-127,OS Switch 125,,IF$shsm:basic:two-searchlight
 Mast 126RB,CP 123,125,Track 125-129,OS Switch 125,,IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom),IH:HART:C3:126RB_Top=Head 126RB Top;IH:HART:C3:126RB_Bottom=Head 126RB Bottom,IF$shsm:basic:two-low(IH5234)(IH5235)
 Mast 128LA,CP 127,127,Track 125-127,OS Switch 127,,IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom),IH:HART:C3:128LA_Top=Head 128LA Top;IH:HART:C3:128LA_Bottom=Head 128LA Bottom,IF$shsm:basic:two-searchlight(IH5236)(IH5237)
 Mast 128LB,CP 127,127,Track 127-221,OS Switch 127,,IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom),IH:HART:C3:128LB_Top=Head 128LB Top;IH:HART:C3:128LB_Bottom=Head 128LB Bottom,IF$shsm:basic:two-searchlight(IH5238)(IH5239)
-Mast 132RA,CP 127,131,Track 131-H1,OS Switch 131,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),IH:HART:C3:132RA_Top=Head 132RA Top;IH:HART:C3:132RA_Bottom=Head 132RA Bottom,
-Mast 132RB,CP 127,131,Track 131-H2,OS Switch 131,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),IH:HART:C3:132RB_Top=Head 132RB Top;IH:HART:C3:132RB_Bottom=Head 132RB Bottom,
+Mast 132RA,CP 127,131,Track Helix Outer,OS Switch 131,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),IH:HART:C3:132RA_Top=Head 132RA Top;IH:HART:C3:132RA_Bottom=Head 132RA Bottom,
+Mast 132RB,CP 127,131,Track Helix Inner,OS Switch 131,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),IH:HART:C3:132RB_Top=Head 132RB Top;IH:HART:C3:132RB_Bottom=Head 132RB Bottom,
 Mast B92,CP 225,,Track 227-241 2,Track 227-241 1,,IF$shsm:basic:one-searchlight(IH:HART:C3:B92),IH:HART:C3:B92=Head B92,
 Mast B93,CP 225,,Track 227-241 1,Track 227-241 2,,IF$shsm:basic:one-searchlight(IH:HART:C3:B93),IH:HART:C3:B93=Head B93,
 Mast 202R,CP 201,201,Track 201-205,OS Switch 201,,IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom),IH:HART:C3:202R_Top=Head 202R Top;IH:HART:C3:202R_Bottom=Head 202R Bottom,IF$shsm:basic:two-low(IH2332)(IH2333)

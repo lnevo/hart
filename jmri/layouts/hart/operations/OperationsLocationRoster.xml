@@ -239,7 +239,7 @@
         </comments>
       </track>
     </location>
-    <location id="3" name="Scully Yard" ops="1" dir="15" switchList="true" comment="ORANGE block: POHC interchange, Track McKees Rocks loop. STS Scully Yard (9)" switchListComment="">
+    <location id="3" name="Scully Yard" ops="1" dir="15" switchList="true" comment="ORANGE block: POHC interchange, McKees Rocks. STS Scully Yard (9)" switchListComment="">
       <types>
         <carType name="Boxcar" />
         <carType name="Caboose" />
@@ -278,7 +278,7 @@
           <pickupId id="5" />
         </pickupIds>
         <comments>
-          <track comment="Track McKees Rocks loop half, 122.5 in. Set out by and pulled by NVL and STG-SCULLY (train lists set in stage 2C)" />
+          <track comment="McKees Rocks loop half, 122.5 in. Set out by and pulled by NVL and STG-SCULLY (train lists set in stage 2C)" />
           <both comment="" />
           <pickup comment="" />
           <setout comment="" />
@@ -287,7 +287,7 @@
         </comments>
       </track>
     </location>
-    <location id="4" name="Demmler Yard" ops="1" dir="15" switchList="true" comment="BLUE block: CSX interchange, Track McKeesport loop. STS Demmler Yard (10)" switchListComment="">
+    <location id="4" name="Demmler Yard" ops="1" dir="15" switchList="true" comment="BLUE block: CSX interchange, McKeesport. STS Demmler Yard (10)" switchListComment="">
       <types>
         <carType name="Boxcar" />
         <carType name="Caboose" />
@@ -326,7 +326,7 @@
           <pickupId id="4" />
         </pickupIds>
         <comments>
-          <track comment="Track McKeesport loop half. Set out by and pulled by D749 and STG-DEMMLER (train lists set in stage 2C)" />
+          <track comment="McKeesport loop half. Set out by and pulled by D749 and STG-DEMMLER (train lists set in stage 2C)" />
           <both comment="" />
           <pickup comment="" />
           <setout comment="" />

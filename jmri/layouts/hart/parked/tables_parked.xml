@@ -72,7 +72,7 @@
         <sensor inverted="false">
           <systemName>ISNX:114LA</systemName>
           <userName>NX Mast 38LA</userName>
-          <comment>Princess, Track McKeesport westbound home, two-head; lever 28 Left</comment>
+          <comment>Princess, Track Helix Inner westbound home, two-head; lever 28 Left</comment>
         </sensor>
         <sensor inverted="false">
           <systemName>ISNX:114LB</systemName>
@@ -82,7 +82,7 @@
         <sensor inverted="false">
           <systemName>ISNX:115LA</systemName>
           <userName>NX Mast 40LA</userName>
-          <comment>Princess, Track McKees Rocks westbound home, two-head; lever 30 Left</comment>
+          <comment>Princess, Track Helix Outer westbound home, two-head; lever 30 Left</comment>
         </sensor>
         <sensor inverted="false">
           <systemName>ISNX:115LB</systemName>
@@ -409,13 +409,13 @@
         </sensor>
         <sensor inverted="false">
           <systemName>IS:DSMP:8</systemName>
-          <userName>MoveInProgressTrack_McKees_Rocks</userName>
-          <comment>Dispatcher System move-in-progress for Track McKees Rocks</comment>
+          <userName>MoveInProgressTrack_Helix_Outer</userName>
+          <comment>Dispatcher System move-in-progress for Track Helix Outer</comment>
         </sensor>
         <sensor inverted="false">
           <systemName>IS:DSMP:9</systemName>
-          <userName>MoveInProgressTrack_McKeesport</userName>
-          <comment>Dispatcher System move-in-progress for Track McKeesport</comment>
+          <userName>MoveInProgressTrack_Helix_Inner</userName>
+          <comment>Dispatcher System move-in-progress for Track Helix Inner</comment>
         </sensor>
         <sensor inverted="false">
           <systemName>IS:DSMP:10</systemName>
@@ -469,13 +469,13 @@
         </sensor>
         <sensor inverted="false">
           <systemName>IS:DSMT:8</systemName>
-          <userName>MoveToTrack_McKees_Rocks_stored</userName>
-          <comment>Dispatcher System MoveTo for Track McKees Rocks</comment>
+          <userName>MoveToTrack_Helix_Outer_stored</userName>
+          <comment>Dispatcher System MoveTo for Track Helix Outer</comment>
         </sensor>
         <sensor inverted="false">
           <systemName>IS:DSMT:9</systemName>
-          <userName>MoveToTrack_McKeesport_stored</userName>
-          <comment>Dispatcher System MoveTo for Track McKeesport</comment>
+          <userName>MoveToTrack_Helix_Inner_stored</userName>
+          <comment>Dispatcher System MoveTo for Track Helix Inner</comment>
         </sensor>
         <sensor inverted="false">
           <systemName>IS:DSMT:10</systemName>
@@ -4443,15 +4443,15 @@
           <blockentry sName="IB22" order="0" />
           <entrypoint fromblock="IB18" toblock="IB22" direction="8" fixed="no" fromblockdirection="Southwest" />
         </section>
-        <section systemName="IY:AUTO:0944" userName="Track McKees Rocks" creationtype="userdefined">
+        <section systemName="IY:AUTO:0944" userName="Track Helix Outer" creationtype="userdefined">
           <systemName>IY:AUTO:0944</systemName>
-          <userName>Track McKees Rocks</userName>
+          <userName>Track Helix Outer</userName>
           <blockentry sName="IB23" order="0" />
           <entrypoint fromblock="IB:AUTO:0040" toblock="IB23" direction="8" fixed="no" fromblockdirection="East" />
         </section>
-        <section systemName="IY:AUTO:0945" userName="Track McKeesport" creationtype="userdefined">
+        <section systemName="IY:AUTO:0945" userName="Track Helix Inner" creationtype="userdefined">
           <systemName>IY:AUTO:0945</systemName>
-          <userName>Track McKeesport</userName>
+          <userName>Track Helix Inner</userName>
           <blockentry sName="IB24" order="0" />
           <entrypoint fromblock="IB:AUTO:0032" toblock="IB24" direction="8" fixed="no" fromblockdirection="East" />
         </section>
@@ -4795,7 +4795,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5422" userName="From Mast 6R to Mast 38RA via OS Switch 7">
@@ -4807,7 +4807,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5423" userName="From Mast 6R to Mast 40LB via OS Switch 7">
@@ -4956,7 +4956,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5433" userName="From Mast 8LC to Mast 38RA via OS Switch 5">
@@ -4967,7 +4967,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0847" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5434" userName="From Mast 8LC to Mast 2036 via OS Switch 5">
@@ -5112,7 +5112,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5444" userName="From Mast 8RA to Mast 38RA via OS Switch 13">
@@ -5123,7 +5123,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5445" userName="From Mast 8RA to Mast 40LB via OS Switch 13">
@@ -5261,7 +5261,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5455" userName="From Mast 18L to Mast 38RA via OS Switch 7">
@@ -5273,7 +5273,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0847" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5456" userName="From Mast 18L to Mast 2036 via OS Switch 7">
@@ -5423,7 +5423,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5466" userName="From Mast 12R to Mast 38RA via OS Switch 11">
@@ -5434,7 +5434,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5467" userName="From Mast 12R to Mast 40LB via OS Switch 11">
@@ -5575,7 +5575,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5477" userName="From Mast 10RA to Mast 38RA via OS Switch 9">
@@ -5586,7 +5586,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5478" userName="From Mast 10RA to Mast 40LB via OS Switch 9">
@@ -5727,7 +5727,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5488" userName="From Mast 10RB to Mast 38RA via OS Switch 9">
@@ -5738,7 +5738,7 @@
           <transitsection sectionname="IY:AUTO:0912" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0777" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5489" userName="From Mast 10RB to Mast 40LB via OS Switch 9">
@@ -5871,7 +5871,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5500" userName="From Mast 40LA to Mast 40LB via OS Switch 39">
@@ -6002,7 +6002,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="9" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5511" userName="From Mast 38LA to Mast 40LB via OS Switch 37">
@@ -6143,7 +6143,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="9" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="10" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5522" userName="From Mast 40RB to Mast 38RA via Track K-2">
@@ -6159,7 +6159,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="9" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="10" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5523" userName="From Mast 40RB to Mast 34L via Track K-2">
@@ -6271,7 +6271,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5533" userName="From Mast 2035 to Mast 38RA via Track K-1 West">
@@ -6285,7 +6285,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5534" userName="From Mast 2035 to Mast 34L via Track K-1 West">
@@ -6389,7 +6389,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5544" userName="From Mast 36L to Mast 38RA via OS Switch 33">
@@ -6402,7 +6402,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="5" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="6" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5545" userName="From Mast 36L to Mast 40LB via OS Switch 33">
@@ -6524,7 +6524,7 @@
           <userName>From Mast 24RB to Mast 40RA via Track East Lead East</userName>
           <transitsection sectionname="IY:AUTO:0777" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5555" userName="From Mast 24RB to Mast 38RA via Track East Lead East">
@@ -6532,7 +6532,7 @@
           <userName>From Mast 24RB to Mast 38RA via Track East Lead East</userName>
           <transitsection sectionname="IY:AUTO:0777" sequence="1" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5556" userName="From Mast 24RB to Mast 40LB via Track East Lead East">
@@ -6666,7 +6666,7 @@
           <transitsection sectionname="IY:AUTO:0780" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5566" userName="From Mast 4RA to Mast 38RA via OS Switch 3">
@@ -6676,7 +6676,7 @@
           <transitsection sectionname="IY:AUTO:0780" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0847" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5567" userName="From Mast 4RA to Mast 2036 via OS Switch 3">
@@ -6815,7 +6815,7 @@
           <transitsection sectionname="IY:AUTO:0781" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5577" userName="From Mast 4RB to Mast 38RA via OS Switch 3">
@@ -6825,7 +6825,7 @@
           <transitsection sectionname="IY:AUTO:0781" sequence="2" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0847" sequence="3" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="4" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5578" userName="From Mast 4RB to Mast 2036 via OS Switch 3">
@@ -6947,7 +6947,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0842" sequence="9" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5588" userName="From Mast 36RB to Mast 38RA via Track K-1">
@@ -6962,7 +6962,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="9" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5589" userName="From Mast 36RB to Mast 40LB via Track K-1">
@@ -7075,7 +7075,7 @@
           <transitsection sectionname="IY:AUTO:0934" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0848" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0845" sequence="9" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKees_Rocks" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Outer" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5599" userName="From Mast 2036 to Mast 38RA via OS Switch 37">
@@ -7090,7 +7090,7 @@
           <transitsection sectionname="IY:AUTO:0866" sequence="7" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0862" sequence="8" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0" />
           <transitsection sectionname="IY:AUTO:0843" sequence="9" direction="4" alternate="no" safe="no" stopallocatingsensor="" fwdstoppercent="1.0" revstoppercent="1.0">
-            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_McKeesport" whatstring2="" />
+            <transitsectionaction whencode="1" whatcode="12" whendata="-1" whenstring="" whatdata1="-1" whatdata2="-1" whatstring="MoveInProgressTrack_Helix_Inner" whatstring2="" />
           </transitsection>
         </transit>
         <transit systemName="IZ:AUTO:5600" userName="From Mast 2036 to Mast 40LB via OS Switch 37">
@@ -7952,7 +7952,7 @@
           </inconsistent>
           <iconmaps />
         </sensoricon>
-        <sensoricon sensor="MoveToTrack_McKees_Rocks_stored" x="1956" y="190" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="McK Rks" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
+        <sensoricon sensor="MoveToTrack_Helix_Outer_stored" x="1956" y="190" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="McK Rks" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
             <rotation>0</rotation>
           </active>
@@ -7971,7 +7971,7 @@
           <unknownText text="McK Rks" red="0" green="0" blue="255" />
           <inconsistentText text="McK Rks" red="0" green="0" blue="0" />
         </sensoricon>
-        <sensoricon sensor="MoveInProgressTrack_McKees_Rocks" x="1946" y="190" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+        <sensoricon sensor="MoveInProgressTrack_Helix_Outer" x="1946" y="190" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
             <rotation>0</rotation>
           </active>
@@ -7986,7 +7986,7 @@
           </inconsistent>
           <iconmaps />
         </sensoricon>
-        <sensoricon sensor="MoveToTrack_McKeesport_stored" x="1956" y="238" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="McKport" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
+        <sensoricon sensor="MoveToTrack_Helix_Inner_stored" x="1956" y="238" level="12" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" text="McKport" fontFamily="Lucida Grande" fontname="LucidaGrande-Bold" size="10" style="1" red="51" green="51" blue="51" hasBackground="no" justification="centre" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <active url="program:resources/icons/markers/loco-green.gif" degrees="0" scale="1.0">
             <rotation>0</rotation>
           </active>
@@ -8005,7 +8005,7 @@
           <unknownText text="McKport" red="0" green="0" blue="255" />
           <inconsistentText text="McKport" red="0" green="0" blue="0" />
         </sensoricon>
-        <sensoricon sensor="MoveInProgressTrack_McKeesport" x="1946" y="238" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+        <sensoricon sensor="MoveInProgressTrack_Helix_Inner" x="1946" y="238" level="12" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <active url="program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif" degrees="0" scale="1.0">
             <rotation>0</rotation>
           </active>
@@ -13173,6 +13173,22 @@
           </inconsistent>
           <iconmaps />
         </sensoricon>
+        <sensoricon sensor="BS Helix Outer" x="1184" y="94" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+          <tooltip>Track Helix Outer</tooltip>
+          <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </active>
+          <inactive url="program:resources/icons/USS/sensor/red-off.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </inactive>
+          <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </unknown>
+          <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </inconsistent>
+          <iconmaps />
+        </sensoricon>
         <sensoricon sensor="BS Main West" x="680" y="94" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <tooltip>Track Main West</tooltip>
           <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
@@ -13351,6 +13367,22 @@
         </sensoricon>
         <sensoricon sensor="BS S-1" x="827" y="136" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
           <tooltip>Track S-1</tooltip>
+          <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </active>
+          <inactive url="program:resources/icons/USS/sensor/red-off.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </inactive>
+          <unknown url="program:resources/icons/USS/sensor/s-unknown.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </unknown>
+          <inconsistent url="program:resources/icons/USS/sensor/s-inconsistent.gif" degrees="0" scale="1.0">
+            <rotation>0</rotation>
+          </inconsistent>
+          <iconmaps />
+        </sensoricon>
+        <sensoricon sensor="BS Helix Inner" x="1184" y="115" level="10" forcecontroloff="true" hidden="no" positionable="true" showtooltip="true" editable="false" momentary="false" icon="yes" class="jmri.jmrit.display.configurexml.SensorIconXml">
+          <tooltip>Track Helix Inner</tooltip>
           <active url="program:resources/icons/USS/sensor/red-on.gif" degrees="0" scale="1.0">
             <rotation>0</rotation>
           </active>

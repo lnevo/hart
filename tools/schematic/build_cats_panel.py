@@ -19,8 +19,7 @@ hand:
   staging.signals.json + signal_head_plan.csv  the masts drawn on staging (field and planned) and their templates
   device_map_staging.csv  the block of a short unnamed track between two switches that has no JMRI block of its own:
                          the one block the staging device map's track between them holds
-                         (staging_device_map.staging_chains); a staging block JMRI holds with no detector (the
-                         helix tracks McKeesport and McKees Rocks, not wired yet) is bound by name alone
+                         (staging_device_map.staging_chains)
 Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
@@ -36,9 +35,10 @@ take. Every main and upper desk block is bound to its virtual occupancy sensor (
 IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (owner,
 2026-11-17: the physical plant is a draft, swapped in later by the device map alone); the planned detector, when the
 map has one, is kept in the bindings as _planned_occupied / _planned_unoccupied for the record and is not on the
-panel. The middle of 225's X, a desk-only block, has no sensor (owner, 2026-11-17). The helix tracks are joined on the desk (the plugin joins a helix track
-drawn on two bands logically), each band's piece a block of its own (cats_helix_blocks "apart", owner 2026-11-17): staging's
-McKees Rocks and McKeesport, and the main level's Track 131-H1 and the upper level's 131-H2 with their own detectors.
+panel. The middle of 225's X, a desk-only block, has no sensor (owner, 2026-11-17). Each helix track is one desk
+block over both bands it is drawn on (cats_helix_blocks "one"; owner, 2026-11-20: one JMRI block from its staging
+switch to its main or upper switch), named and bound as the main and upper device map gives it (Track Helix Outer,
+Track Helix Inner: its virtual sensor), the staging device map naming the same block for the staging piece.
 Anything else without a JMRI block, an ambiguous track, or a fact that disagrees with the drawing stops the run.
 The sheet is built once and tables.xml read once; bindings and panels come from the same plugin code.
 The IOSPEC, STATION and SECSIGNAL conventions are the hand-wired desks' (cats_turnout_io.py, digicon_lib.py,
@@ -68,6 +68,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
+import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (device_map_staging.csv)
 from hartlib import level_devices, level_masts, paths, railroad, tables  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates, station_plate  # noqa: E402
@@ -167,7 +168,7 @@ class Facts:
     turnouts: dict = field(default_factory=dict)            # JMRI turnout user name -> system name
     mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
     level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
-    undetected: set = field(default_factory=set)            # JMRI layout blocks with no occupancy sensor
+    helix: dict = field(default_factory=dict)               # plan helix track name -> its block (helix_tracks.csv)
 
 
 def staging_tracks() -> list[dict]:
@@ -190,18 +191,10 @@ def load_facts():
         return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,
-                     t.sensors, t.turnouts, t.masts, rr.level_masts, undetected_blocks(t.root))
-    except railroad.FactsError as exc:
+                     t.sensors, t.turnouts, t.masts, rr.level_masts,
+                     {plan: h["block"] for plan, h in mr.read_helix_tracks().items()})
+    except (railroad.FactsError, mr.MapError) as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
-
-
-def undetected_blocks(root, marked=None):
-    """The user names of the tables' layout blocks with no occupancy sensor that the staging device map says have no
-    detector ("no detector yet"). Any other block with no sensor stays out, so the desk build stops on it rather than
-    draw a block that never shows occupied."""
-    marked = sdm.undetected_blocks() if marked is None else marked
-    return {tables.user_name(lb) for lb in tables.layout_blocks(root)
-            if not (lb.get("occupancysensor") or "").strip() and tables.user_name(lb) in marked}
 
 
 def legs_of(d):
@@ -226,7 +219,7 @@ def os_blocks(band, F):
         if len(sw.legs) == 1:
             os_of[n] = sw.legs[0].os_block
             continue
-        touched = {"Track " + strands[legs_of(d)[p]]["name"] for p in "BC" if strands[legs_of(d)[p]]["name"]}
+        touched = {track_block(strands[legs_of(d)[p]]["name"], F.helix) for p in "BC" if strands[legs_of(d)[p]]["name"]}
         rows = [leg.os_block for leg in sw.legs if {leg.closed, leg.thrown} & touched]
         if len(rows) == 1:
             os_of[n] = rows[0]
@@ -247,16 +240,22 @@ def os_blocks(band, F):
     return os_of
 
 
-def dest(band, os_of, n, port):
-    """The block leg `port` of switch node n leads to, beyond its own OS: a named track, the next switch's OS, or
-    through a turnback to the named half beyond it."""
+def track_block(name, helix) -> str:
+    """The block of a staging track the plan names `name`: a helix track's helix block (`helix`, {plan name: block}:
+    one block up the helix, owner 2026-11-20), any other "Track <name>"."""
+    return helix.get(name) or "Track " + name
+
+
+def dest(band, os_of, n, port, helix=None):
+    """The block leg `port` of switch node n leads to, beyond its own OS: a named track (track_block, with `helix`),
+    the next switch's OS, or through a turnback to the named half beyond it."""
     nodes, strands = band["nodes"], band["strands"]
     sid, here, seen = legs_of(nodes[n])[port], n, set()
     while sid not in seen:
         seen.add(sid)
         s = strands[sid]
         if s["name"]:
-            return "Track " + s["name"]
+            return track_block(s["name"], helix or {})
         nxt = s["dst"][0] if s["src"][0] == here else s["src"][0]
         d = nodes[nxt]
         if d["kind"] == "switch":
@@ -292,7 +291,7 @@ def switch_bindings(band, F, os_of):
     for n, d in sorted(sw_nodes.items(), key=lambda kv: (int(kv[1]["label"]), os_of[kv[0]])):
         sw = switch_of(F, d)
         leg = next(l for l in sw.legs if l.os_block == os_of[n])
-        to = {p: dest(band, os_of, n, p) for p in "BC"}
+        to = {p: dest(band, os_of, n, p, F.helix) for p in "BC"}
         if sorted(to.values()) != sorted((leg.closed, leg.thrown)):
             raise SystemExit(f"{leg.os_block}: the schematic's legs lead to {to}, but switch_legs.csv says "
                              f"closed {leg.closed}, thrown {leg.thrown}")
@@ -314,18 +313,14 @@ def switch_bindings(band, F, os_of):
 
 
 def block_bindings(band, F, names):
-    """names: {block key: panel block name} of the staging band's blocks. A block is its JMRI block (by name, or
-    Track + name), bound to its detector, or by name alone when JMRI holds it with no detector; a short unnamed track
-    joining two switches, with no JMRI block of its own, joins the one block the staging device map gives it.
-    Anything else stops."""
+    """names: {block key: panel block name} of the staging band's blocks (a helix block, bound with the main and
+    upper ones, left out: dark_bindings). A block is its JMRI block (by name, or Track + name), bound to its detector;
+    a short unnamed track joining two switches, with no JMRI block of its own, joins the one block the staging device
+    map gives it. Anything else stops."""
     nodes, strands = band["nodes"], band["strands"]
     out = {}
     for key, name in sorted(names.items(), key=lambda kv: kv[1]):
         layout = next((x for x in (name, "Track " + name) if x in F.occupancy), None)
-        dark = next((x for x in (name, "Track " + name) if x in F.undetected), None)
-        if layout is None and dark is not None:
-            out[name] = {"name": dark, "station": station_plate(dark), "discipline": F.discipline.get(dark, "CTC")}
-            continue
         if layout is None:
             sid = key[1].split(":", 1)[1] if key[0] == "track" else None
             s = strands.get(sid) if sid else None
@@ -530,16 +525,21 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     for key in P.blocks:
         groups[P.find(key)].append(key)
     band_of = lambda k: int(k[1].split(":", 1)[0][1:])
-    out, log, seen, missing = {}, [], set(), {}
+    out, log, seen, missing, joined = {}, [], set(), {}, set()
+    helix = mr.read_helix_tracks()
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
         dark = [k for k in keys if band_of(k) != bound_bi and bdm.band_level(bands[band_of(k)][0])]
         if not dark:
             continue
-        if len(dark) < len(keys):
-            raise SystemExit(f"desk block {panel_name} holds track of staging and of main or upper: a helix track "
-                             "must be a block on each band (cats_helix_blocks \"apart\")")
-        if any(k[0] in ("corner", "xmid") for k in keys):
+        if len(dark) < len(keys):       # a helix track: one block from staging up the helix (owner, 2026-11-20)
+            name = device_name(bands, cats, dark, F, log)
+            staged = {helix_block(bands[bound_bi][1], k, helix) for k in keys if k not in dark}
+            if staged != {name}:
+                raise SystemExit(f"desk block {panel_name} holds track of staging ({', '.join(sorted(map(str, staged)))}"
+                                 f") and of main or upper ({name}); only a helix block of "
+                                 f"{mr.HELIX_TRACKS.name} may, and both device maps must name it")
+        elif any(k[0] in ("corner", "xmid") for k in keys):
             # a double crossover's corner or the middle of its X: the plugin named it from the corners binding
             # (level_switch_bindings), which is the device map's name
             name = panel_name
@@ -547,6 +547,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
                 raise SystemExit(f"{name}: no block row in {DEVICE_MAP.name}")
         else:
             name = device_name(bands, cats, keys, F, log)
+        joined.update(k for k in keys if k not in dark)
         e = {"name": name, "station": station_plate(name), "discipline": MAIN_UPPER_DISCIPLINE}
         # from the device map alone: build_layout_le.py, which runs after this build in make panels, adds the sensor to
         # the tables, and check_layout_facts.py checks the desk against them
@@ -574,7 +575,16 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             report[name]["detector"] = level_devices.occupancy_user(name)
             log.append(f"{name}: not a block of its own on the desk ({why}); its detector "
                        f"{report[name]['detector']} has no block to bind")
-    return out, log, report
+    return out, log, report, joined
+
+
+def helix_block(band, key, helix) -> str | None:
+    """The helix block (helix_tracks.csv) of staging desk key `key`: its strand's plan name is a helix track's; else
+    None. staging_device_map.check_helix holds the staging device map to the same block."""
+    if key[0] != "track":
+        return None
+    s = band["strands"].get(key[1].split(":", 1)[1])
+    return helix.get(s["name"], {}).get("block") if s else None
 
 
 def level_bands(bands, bound_bi):
@@ -813,9 +823,9 @@ def bindings(bands, cats, F, o, page):
     P = cats.panel(bands, scale=o["scale"], helix_blocks=o["helix_blocks"],   # names only: no column trimming
                    band_gap=o["band_gap"], title_gap=o["title_gap"],
                    bindings={"switches": named})
-    names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:")}
+    dark, log, missing, joined = dark_bindings(bands, cats, P, F, bi)
+    names = {k: v for k, v in P.names.items() if k[1].startswith(f"b{bi}:") and k not in joined}
     blocks = block_bindings(band, F, names)
-    dark, log, missing = dark_bindings(bands, cats, P, F, bi)
     print("\n".join(log))
     check_apart(blocks, dark)
     masts, level = mast_bindings(opts, F), level_mast_bindings(bands, F, bi)
@@ -924,16 +934,16 @@ def label_clashes(log):
 
 def desk_options(cats, page, bands):
     """The page's CATS preferences (cats.options), which must hold the desks' window (they fit the dispatcher's) and
-    a helix block on each band (dark_bindings parts staging from main and upper there)."""
+    each helix track one block over both bands (dark_bindings binds it as the main and upper device map gives it)."""
     try:
         o = cats.options(page, bands)
     except cats.SchematicError as e:
         sys.exit(f"error: {e}")
     if o["fit"] is None:
         sys.exit("error: the page's preferences hold no cats_window; the desks must fit the dispatcher's window")
-    if o["helix_blocks"] != "apart":
-        sys.exit(f"error: cats_helix_blocks is {o['helix_blocks']!r}; the desks need \"apart\" (a helix track a block "
-                 "on each band, as the layout parts its detection there; owner, 2026-11-17)")
+    if o["helix_blocks"] != "one":
+        sys.exit(f"error: cats_helix_blocks is {o['helix_blocks']!r}; the desks need \"one\" (a helix track one block "
+                 "over both bands, as JMRI holds it; owner, 2026-11-20)")
     return o
 
 

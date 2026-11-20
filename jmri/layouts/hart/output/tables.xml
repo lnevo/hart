@@ -607,16 +607,6 @@
       <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
     </sensor>
     <sensor inverted="false">
-      <systemName>IS:HART:C3:B:131-H1</systemName>
-      <userName>BS 131-H1</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4206 (draft)</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS:HART:C3:B:131-H2</systemName>
-      <userName>BS 131-H2</userName>
-      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S2201 (draft)</comment>
-    </sensor>
-    <sensor inverted="false">
       <systemName>IS:HART:C3:B:201-203</systemName>
       <userName>BS 201-203</userName>
       <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
@@ -1065,6 +1055,16 @@
       <systemName>ISCLOCKRUNNING</systemName>
       <userName>Clock running</userName>
       <comment>JMRI fast-clock running</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:HART:C3:B:Helix_Inner</systemName>
+      <userName>BS Helix Inner</userName>
+      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4100 (draft)</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:HART:C3:B:Helix_Outer</systemName>
+      <userName>BS Helix Outer</userName>
+      <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); planned M2S4101 (draft)</comment>
     </sensor>
   </sensors>
   <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
@@ -2526,30 +2526,6 @@
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:basic:one-low($1003)</systemName>
-      <userName>Mast 40RA</userName>
-      <comment>Princess | Switch 39</comment>
-      <properties>
-        <property>
-          <key>intermediateSignal</key>
-          <value class="java.lang.Boolean">true</value>
-        </property>
-      </properties>
-      <unlit allowed="yes" />
-    </virtualsignalmast>
-    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
-      <systemName>IF$vsm:basic:one-low($1004)</systemName>
-      <userName>Mast 38RA</userName>
-      <comment>Princess | Switch 37</comment>
-      <properties>
-        <property>
-          <key>intermediateSignal</key>
-          <value class="java.lang.Boolean">true</value>
-        </property>
-      </properties>
-      <unlit allowed="yes" />
-    </virtualsignalmast>
-    <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1005)</systemName>
       <userName>Mast 12L</userName>
       <comment>Engine House | Switch 11</comment>
@@ -2738,11 +2714,11 @@
     </block>
     <block systemName="IB23">
       <systemName>IB23</systemName>
-      <userName>Track McKees Rocks</userName>
+      <userName>Track Helix Outer</userName>
     </block>
     <block systemName="IB24">
       <systemName>IB24</systemName>
-      <userName>Track McKeesport</userName>
+      <userName>Track Helix Inner</userName>
     </block>
     <block systemName="IB:AUTO:0001">
       <systemName>IB:AUTO:0001</systemName>
@@ -3570,9 +3546,10 @@
     </block>
     <block systemName="IB23" length="24058.9" curve="0">
       <systemName>IB23</systemName>
-      <userName>Track McKees Rocks</userName>
-      <comment>Helix track from Switch 39; no detector yet; stop</comment>
+      <userName>Track Helix Outer</userName>
+      <comment>Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map); stop</comment>
       <permissive>no</permissive>
+      <occupancysensor>BS Helix Outer</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0040">
         <beansetting setting="2">
           <turnout systemName="M2T110" />
@@ -3582,9 +3559,10 @@
     </block>
     <block systemName="IB24" length="23279.1" curve="0">
       <systemName>IB24</systemName>
-      <userName>Track McKeesport</userName>
-      <comment>Helix track from Switch 37; no detector yet; stop</comment>
+      <userName>Track Helix Inner</userName>
+      <comment>Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map); stop</comment>
       <permissive>no</permissive>
+      <occupancysensor>BS Helix Inner</occupancysensor>
       <path todir="128" fromdir="64" block="IB:AUTO:0032">
         <beansetting setting="2">
           <turnout systemName="M2T109" />
@@ -5361,7 +5339,6 @@
       <userName>Track 131-H1</userName>
       <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
       <permissive>no</permissive>
-      <occupancysensor>BS 131-H1</occupancysensor>
       <path todir="144" fromdir="96" block="IB23" />
       <path todir="128" fromdir="64" block="IB:C3:0016" />
     </block>
@@ -5370,7 +5347,6 @@
       <userName>Track 131-H2</userName>
       <comment>Main and upper level, internal until the import (device map name; build_layout_le.py)</comment>
       <permissive>no</permissive>
-      <occupancysensor>BS 131-H2</occupancysensor>
       <path todir="16" fromdir="32" block="IB24" />
       <path todir="128" fromdir="64" block="IB:C3:0016">
         <beansetting setting="2">
@@ -6191,13 +6167,13 @@
       <systemName>ILB75</systemName>
       <userName>Track East Ext</userName>
     </layoutblock>
-    <layoutblock systemName="ILB76" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB76" occupancysensor="BS Helix Outer" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB76</systemName>
-      <userName>Track McKees Rocks</userName>
+      <userName>Track Helix Outer</userName>
     </layoutblock>
-    <layoutblock systemName="ILB77" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB77" occupancysensor="BS Helix Inner" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB77</systemName>
-      <userName>Track McKeesport</userName>
+      <userName>Track Helix Inner</userName>
     </layoutblock>
     <layoutblock systemName="ILB78" occupancysensor="BS S-1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB78</systemName>
@@ -6535,11 +6511,11 @@
       <systemName>ILB1072</systemName>
       <userName>Track 245 Spur 2</userName>
     </layoutblock>
-    <layoutblock systemName="ILB1073" occupancysensor="BS 131-H1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB1073" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1073</systemName>
       <userName>Track 131-H1</userName>
     </layoutblock>
-    <layoutblock systemName="ILB1074" occupancysensor="BS 131-H2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+    <layoutblock systemName="ILB1074" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1074</systemName>
       <userName>Track 131-H2</userName>
     </layoutblock>
@@ -7556,16 +7532,6 @@
     </signalmastlogic>
     <signalmastlogic source="Mast 36RA">
       <sourceSignalMast>Mast 36RA</sourceSignalMast>
-      <destinationMast destination="Mast 40RA">
-        <destinationSignalMast>Mast 40RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 40RB">
         <destinationSignalMast>Mast 40RB</destinationSignalMast>
         <comment />
@@ -7581,26 +7547,6 @@
       <sourceSignalMast>Mast 36RB</sourceSignalMast>
       <destinationMast destination="Mast 67">
         <destinationSignalMast>Mast 67</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 40RA">
-        <destinationSignalMast>Mast 40RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 38RA">
-        <destinationSignalMast>Mast 38RA</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -8216,32 +8162,6 @@
       </destinationMast>
       <destinationMast destination="Mast 224LB">
         <destinationSignalMast>Mast 224LB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 40RA">
-      <sourceSignalMast>Mast 40RA</sourceSignalMast>
-      <destinationMast destination="Mast 132RA">
-        <destinationSignalMast>Mast 132RA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-    </signalmastlogic>
-    <signalmastlogic source="Mast 38RA">
-      <sourceSignalMast>Mast 38RA</sourceSignalMast>
-      <destinationMast destination="Mast 132RB">
-        <destinationSignalMast>Mast 132RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -9498,44 +9418,6 @@
       <namedBean>
         <addressing>Direct</addressing>
         <name>IS:HART:C3:B:129_Spur_2</name>
-        <listenToMemory>no</listenToMemory>
-      </namedBean>
-      <state>
-        <addressing>Direct</addressing>
-        <enum>Inactive</enum>
-        <listenToMemory>no</listenToMemory>
-      </state>
-      <MaleSocket>
-        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
-        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
-          <errorHandling>Default</errorHandling>
-        </AbstractMaleSocket>
-      </MaleSocket>
-    </ActionSensor>
-    <ActionSensor class="jmri.jmrit.logixng.actions.configurexml.ActionSensorXml">
-      <systemName>IQDA$HART:C3:B:131-H1</systemName>
-      <namedBean>
-        <addressing>Direct</addressing>
-        <name>IS:HART:C3:B:131-H1</name>
-        <listenToMemory>no</listenToMemory>
-      </namedBean>
-      <state>
-        <addressing>Direct</addressing>
-        <enum>Inactive</enum>
-        <listenToMemory>no</listenToMemory>
-      </state>
-      <MaleSocket>
-        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
-        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
-          <errorHandling>Default</errorHandling>
-        </AbstractMaleSocket>
-      </MaleSocket>
-    </ActionSensor>
-    <ActionSensor class="jmri.jmrit.logixng.actions.configurexml.ActionSensorXml">
-      <systemName>IQDA$HART:C3:B:131-H2</systemName>
-      <namedBean>
-        <addressing>Direct</addressing>
-        <name>IS:HART:C3:B:131-H2</name>
         <listenToMemory>no</listenToMemory>
       </namedBean>
       <state>
@@ -11203,6 +11085,44 @@
         </AbstractMaleSocket>
       </MaleSocket>
     </ActionSensor>
+    <ActionSensor class="jmri.jmrit.logixng.actions.configurexml.ActionSensorXml">
+      <systemName>IQDA$HART:C3:B:Helix_Inner</systemName>
+      <namedBean>
+        <addressing>Direct</addressing>
+        <name>IS:HART:C3:B:Helix_Inner</name>
+        <listenToMemory>no</listenToMemory>
+      </namedBean>
+      <state>
+        <addressing>Direct</addressing>
+        <enum>Inactive</enum>
+        <listenToMemory>no</listenToMemory>
+      </state>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </ActionSensor>
+    <ActionSensor class="jmri.jmrit.logixng.actions.configurexml.ActionSensorXml">
+      <systemName>IQDA$HART:C3:B:Helix_Outer</systemName>
+      <namedBean>
+        <addressing>Direct</addressing>
+        <name>IS:HART:C3:B:Helix_Outer</name>
+        <listenToMemory>no</listenToMemory>
+      </namedBean>
+      <state>
+        <addressing>Direct</addressing>
+        <enum>Inactive</enum>
+        <listenToMemory>no</listenToMemory>
+      </state>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </ActionSensor>
     <DigitalMany class="jmri.jmrit.logixng.actions.configurexml.DigitalManyXml">
       <systemName>IQDA$HART:C3:BlockSensorsClear</systemName>
       <Actions>
@@ -11340,359 +11260,359 @@
         </Socket>
         <Socket>
           <socketName>A34</socketName>
-          <systemName>IQDA$HART:C3:B:131-H1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A35</socketName>
-          <systemName>IQDA$HART:C3:B:131-H2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A36</socketName>
           <systemName>IQDA$HART:C3:B:201-203</systemName>
         </Socket>
         <Socket>
-          <socketName>A37</socketName>
+          <socketName>A35</socketName>
           <systemName>IQDA$HART:C3:B:201-205</systemName>
         </Socket>
         <Socket>
-          <socketName>A38</socketName>
+          <socketName>A36</socketName>
           <systemName>IQDA$HART:C3:B:201-219</systemName>
         </Socket>
         <Socket>
-          <socketName>A39</socketName>
+          <socketName>A37</socketName>
           <systemName>IQDA$HART:C3:B:203-207</systemName>
         </Socket>
         <Socket>
-          <socketName>A40</socketName>
+          <socketName>A38</socketName>
           <systemName>IQDA$HART:C3:B:203-211</systemName>
         </Socket>
         <Socket>
-          <socketName>A41</socketName>
+          <socketName>A39</socketName>
           <systemName>IQDA$HART:C3:B:205-209</systemName>
         </Socket>
         <Socket>
-          <socketName>A42</socketName>
+          <socketName>A40</socketName>
           <systemName>IQDA$HART:C3:B:205_Spur</systemName>
         </Socket>
         <Socket>
-          <socketName>A43</socketName>
+          <socketName>A41</socketName>
           <systemName>IQDA$HART:C3:B:207-211</systemName>
         </Socket>
         <Socket>
-          <socketName>A44</socketName>
+          <socketName>A42</socketName>
           <systemName>IQDA$HART:C3:B:207-213</systemName>
         </Socket>
         <Socket>
-          <socketName>A45</socketName>
+          <socketName>A43</socketName>
           <systemName>IQDA$HART:C3:B:209_Spur_1</systemName>
         </Socket>
         <Socket>
-          <socketName>A46</socketName>
+          <socketName>A44</socketName>
           <systemName>IQDA$HART:C3:B:209_Spur_2</systemName>
         </Socket>
         <Socket>
-          <socketName>A47</socketName>
+          <socketName>A45</socketName>
           <systemName>IQDA$HART:C3:B:211-217_1</systemName>
         </Socket>
         <Socket>
-          <socketName>A48</socketName>
+          <socketName>A46</socketName>
           <systemName>IQDA$HART:C3:B:211-217_2</systemName>
         </Socket>
         <Socket>
-          <socketName>A49</socketName>
+          <socketName>A47</socketName>
           <systemName>IQDA$HART:C3:B:213-215</systemName>
         </Socket>
         <Socket>
-          <socketName>A50</socketName>
+          <socketName>A48</socketName>
           <systemName>IQDA$HART:C3:B:213_Spur</systemName>
         </Socket>
         <Socket>
-          <socketName>A51</socketName>
+          <socketName>A49</socketName>
           <systemName>IQDA$HART:C3:B:215_Spur_1</systemName>
         </Socket>
         <Socket>
-          <socketName>A52</socketName>
+          <socketName>A50</socketName>
           <systemName>IQDA$HART:C3:B:215_Spur_2</systemName>
         </Socket>
         <Socket>
-          <socketName>A53</socketName>
+          <socketName>A51</socketName>
           <systemName>IQDA$HART:C3:B:217-219</systemName>
         </Socket>
         <Socket>
-          <socketName>A54</socketName>
+          <socketName>A52</socketName>
           <systemName>IQDA$HART:C3:B:217-221</systemName>
         </Socket>
         <Socket>
-          <socketName>A55</socketName>
+          <socketName>A53</socketName>
           <systemName>IQDA$HART:C3:B:219-221</systemName>
         </Socket>
         <Socket>
-          <socketName>A56</socketName>
+          <socketName>A54</socketName>
           <systemName>IQDA$HART:C3:B:221-223</systemName>
         </Socket>
         <Socket>
-          <socketName>A57</socketName>
+          <socketName>A55</socketName>
           <systemName>IQDA$HART:C3:B:223-225_1</systemName>
         </Socket>
         <Socket>
-          <socketName>A58</socketName>
+          <socketName>A56</socketName>
           <systemName>IQDA$HART:C3:B:223-225_2</systemName>
         </Socket>
         <Socket>
-          <socketName>A59</socketName>
+          <socketName>A57</socketName>
           <systemName>IQDA$HART:C3:B:225-227</systemName>
         </Socket>
         <Socket>
-          <socketName>A60</socketName>
+          <socketName>A58</socketName>
           <systemName>IQDA$HART:C3:B:225-229</systemName>
         </Socket>
         <Socket>
-          <socketName>A61</socketName>
+          <socketName>A59</socketName>
           <systemName>IQDA$HART:C3:B:227-231</systemName>
         </Socket>
         <Socket>
-          <socketName>A62</socketName>
+          <socketName>A60</socketName>
           <systemName>IQDA$HART:C3:B:227-241_1</systemName>
         </Socket>
         <Socket>
-          <socketName>A63</socketName>
+          <socketName>A61</socketName>
           <systemName>IQDA$HART:C3:B:227-241_2</systemName>
         </Socket>
         <Socket>
-          <socketName>A64</socketName>
+          <socketName>A62</socketName>
           <systemName>IQDA$HART:C3:B:229-233</systemName>
         </Socket>
         <Socket>
-          <socketName>A65</socketName>
+          <socketName>A63</socketName>
           <systemName>IQDA$HART:C3:B:229-241</systemName>
         </Socket>
         <Socket>
-          <socketName>A66</socketName>
+          <socketName>A64</socketName>
           <systemName>IQDA$HART:C3:B:231-237</systemName>
         </Socket>
         <Socket>
-          <socketName>A67</socketName>
+          <socketName>A65</socketName>
           <systemName>IQDA$HART:C3:B:231_Spur</systemName>
         </Socket>
         <Socket>
-          <socketName>A68</socketName>
+          <socketName>A66</socketName>
           <systemName>IQDA$HART:C3:B:233-235</systemName>
         </Socket>
         <Socket>
-          <socketName>A69</socketName>
+          <socketName>A67</socketName>
           <systemName>IQDA$HART:C3:B:233-243</systemName>
         </Socket>
         <Socket>
-          <socketName>A70</socketName>
+          <socketName>A68</socketName>
           <systemName>IQDA$HART:C3:B:235-243</systemName>
         </Socket>
         <Socket>
-          <socketName>A71</socketName>
+          <socketName>A69</socketName>
           <systemName>IQDA$HART:C3:B:235_Spur</systemName>
         </Socket>
         <Socket>
-          <socketName>A72</socketName>
+          <socketName>A70</socketName>
           <systemName>IQDA$HART:C3:B:237-239</systemName>
         </Socket>
         <Socket>
-          <socketName>A73</socketName>
+          <socketName>A71</socketName>
           <systemName>IQDA$HART:C3:B:237-245</systemName>
         </Socket>
         <Socket>
-          <socketName>A74</socketName>
+          <socketName>A72</socketName>
           <systemName>IQDA$HART:C3:B:239-245</systemName>
         </Socket>
         <Socket>
-          <socketName>A75</socketName>
+          <socketName>A73</socketName>
           <systemName>IQDA$HART:C3:B:239_Spur</systemName>
         </Socket>
         <Socket>
-          <socketName>A76</socketName>
+          <socketName>A74</socketName>
           <systemName>IQDA$HART:C3:B:241_Spur</systemName>
         </Socket>
         <Socket>
-          <socketName>A77</socketName>
+          <socketName>A75</socketName>
           <systemName>IQDA$HART:C3:B:243_Spur_1</systemName>
         </Socket>
         <Socket>
-          <socketName>A78</socketName>
+          <socketName>A76</socketName>
           <systemName>IQDA$HART:C3:B:243_Spur_2</systemName>
         </Socket>
         <Socket>
-          <socketName>A79</socketName>
+          <socketName>A77</socketName>
           <systemName>IQDA$HART:C3:B:245_Spur_1</systemName>
         </Socket>
         <Socket>
-          <socketName>A80</socketName>
+          <socketName>A78</socketName>
           <systemName>IQDA$HART:C3:B:245_Spur_2</systemName>
         </Socket>
         <Socket>
-          <socketName>A81</socketName>
+          <socketName>A79</socketName>
           <systemName>IQDA$HART:C3:B:OS101</systemName>
         </Socket>
         <Socket>
-          <socketName>A82</socketName>
+          <socketName>A80</socketName>
           <systemName>IQDA$HART:C3:B:OS103</systemName>
         </Socket>
         <Socket>
-          <socketName>A83</socketName>
+          <socketName>A81</socketName>
           <systemName>IQDA$HART:C3:B:OS105</systemName>
         </Socket>
         <Socket>
-          <socketName>A84</socketName>
+          <socketName>A82</socketName>
           <systemName>IQDA$HART:C3:B:OS107</systemName>
         </Socket>
         <Socket>
-          <socketName>A85</socketName>
+          <socketName>A83</socketName>
           <systemName>IQDA$HART:C3:B:OS109</systemName>
         </Socket>
         <Socket>
-          <socketName>A86</socketName>
+          <socketName>A84</socketName>
           <systemName>IQDA$HART:C3:B:OS111</systemName>
         </Socket>
         <Socket>
-          <socketName>A87</socketName>
+          <socketName>A85</socketName>
           <systemName>IQDA$HART:C3:B:OS113</systemName>
         </Socket>
         <Socket>
-          <socketName>A88</socketName>
+          <socketName>A86</socketName>
           <systemName>IQDA$HART:C3:B:OS115</systemName>
         </Socket>
         <Socket>
-          <socketName>A89</socketName>
+          <socketName>A87</socketName>
           <systemName>IQDA$HART:C3:B:OS117</systemName>
         </Socket>
         <Socket>
-          <socketName>A90</socketName>
+          <socketName>A88</socketName>
           <systemName>IQDA$HART:C3:B:OS119</systemName>
         </Socket>
         <Socket>
-          <socketName>A91</socketName>
+          <socketName>A89</socketName>
           <systemName>IQDA$HART:C3:B:OS121</systemName>
         </Socket>
         <Socket>
-          <socketName>A92</socketName>
+          <socketName>A90</socketName>
           <systemName>IQDA$HART:C3:B:OS123</systemName>
         </Socket>
         <Socket>
-          <socketName>A93</socketName>
+          <socketName>A91</socketName>
           <systemName>IQDA$HART:C3:B:OS125</systemName>
         </Socket>
         <Socket>
-          <socketName>A94</socketName>
+          <socketName>A92</socketName>
           <systemName>IQDA$HART:C3:B:OS127</systemName>
         </Socket>
         <Socket>
-          <socketName>A95</socketName>
+          <socketName>A93</socketName>
           <systemName>IQDA$HART:C3:B:OS129</systemName>
         </Socket>
         <Socket>
-          <socketName>A96</socketName>
+          <socketName>A94</socketName>
           <systemName>IQDA$HART:C3:B:OS131</systemName>
         </Socket>
         <Socket>
-          <socketName>A97</socketName>
+          <socketName>A95</socketName>
           <systemName>IQDA$HART:C3:B:OS201</systemName>
         </Socket>
         <Socket>
-          <socketName>A98</socketName>
+          <socketName>A96</socketName>
           <systemName>IQDA$HART:C3:B:OS203</systemName>
         </Socket>
         <Socket>
-          <socketName>A99</socketName>
+          <socketName>A97</socketName>
           <systemName>IQDA$HART:C3:B:OS205</systemName>
         </Socket>
         <Socket>
-          <socketName>A100</socketName>
+          <socketName>A98</socketName>
           <systemName>IQDA$HART:C3:B:OS207</systemName>
         </Socket>
         <Socket>
-          <socketName>A101</socketName>
+          <socketName>A99</socketName>
           <systemName>IQDA$HART:C3:B:OS209</systemName>
         </Socket>
         <Socket>
-          <socketName>A102</socketName>
+          <socketName>A100</socketName>
           <systemName>IQDA$HART:C3:B:OS211</systemName>
         </Socket>
         <Socket>
-          <socketName>A103</socketName>
+          <socketName>A101</socketName>
           <systemName>IQDA$HART:C3:B:OS213</systemName>
         </Socket>
         <Socket>
-          <socketName>A104</socketName>
+          <socketName>A102</socketName>
           <systemName>IQDA$HART:C3:B:OS215</systemName>
         </Socket>
         <Socket>
-          <socketName>A105</socketName>
+          <socketName>A103</socketName>
           <systemName>IQDA$HART:C3:B:OS217</systemName>
         </Socket>
         <Socket>
-          <socketName>A106</socketName>
+          <socketName>A104</socketName>
           <systemName>IQDA$HART:C3:B:OS219</systemName>
         </Socket>
         <Socket>
-          <socketName>A107</socketName>
+          <socketName>A105</socketName>
           <systemName>IQDA$HART:C3:B:OS221</systemName>
         </Socket>
         <Socket>
-          <socketName>A108</socketName>
+          <socketName>A106</socketName>
           <systemName>IQDA$HART:C3:B:OS223</systemName>
         </Socket>
         <Socket>
-          <socketName>A109</socketName>
+          <socketName>A107</socketName>
           <systemName>IQDA$HART:C3:B:OS225a</systemName>
         </Socket>
         <Socket>
-          <socketName>A110</socketName>
+          <socketName>A108</socketName>
           <systemName>IQDA$HART:C3:B:OS225b</systemName>
         </Socket>
         <Socket>
-          <socketName>A111</socketName>
+          <socketName>A109</socketName>
           <systemName>IQDA$HART:C3:B:OS225c</systemName>
         </Socket>
         <Socket>
-          <socketName>A112</socketName>
+          <socketName>A110</socketName>
           <systemName>IQDA$HART:C3:B:OS225d</systemName>
         </Socket>
         <Socket>
-          <socketName>A113</socketName>
+          <socketName>A111</socketName>
           <systemName>IQDA$HART:C3:B:OS227</systemName>
         </Socket>
         <Socket>
-          <socketName>A114</socketName>
+          <socketName>A112</socketName>
           <systemName>IQDA$HART:C3:B:OS229</systemName>
         </Socket>
         <Socket>
-          <socketName>A115</socketName>
+          <socketName>A113</socketName>
           <systemName>IQDA$HART:C3:B:OS231</systemName>
         </Socket>
         <Socket>
-          <socketName>A116</socketName>
+          <socketName>A114</socketName>
           <systemName>IQDA$HART:C3:B:OS233</systemName>
         </Socket>
         <Socket>
-          <socketName>A117</socketName>
+          <socketName>A115</socketName>
           <systemName>IQDA$HART:C3:B:OS235</systemName>
         </Socket>
         <Socket>
-          <socketName>A118</socketName>
+          <socketName>A116</socketName>
           <systemName>IQDA$HART:C3:B:OS237</systemName>
         </Socket>
         <Socket>
-          <socketName>A119</socketName>
+          <socketName>A117</socketName>
           <systemName>IQDA$HART:C3:B:OS239</systemName>
         </Socket>
         <Socket>
-          <socketName>A120</socketName>
+          <socketName>A118</socketName>
           <systemName>IQDA$HART:C3:B:OS241</systemName>
         </Socket>
         <Socket>
-          <socketName>A121</socketName>
+          <socketName>A119</socketName>
           <systemName>IQDA$HART:C3:B:OS243</systemName>
         </Socket>
         <Socket>
-          <socketName>A122</socketName>
+          <socketName>A120</socketName>
           <systemName>IQDA$HART:C3:B:OS245</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A121</socketName>
+          <systemName>IQDA$HART:C3:B:Helix_Inner</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A122</socketName>
+          <systemName>IQDA$HART:C3:B:Helix_Outer</systemName>
         </Socket>
         <Socket>
           <socketName>A123</socketName>
@@ -12905,8 +12825,8 @@
     <BlockContentsIcon blockcontents="Track K-2" x="2067" y="286" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Main East" x="1077" y="478" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Main West" x="719" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track McKees Rocks" x="1947" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track McKeesport" x="1947" y="238" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track Helix Outer" x="1947" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track Helix Inner" x="1947" y="238" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-1" x="1123" y="286" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-1 East" x="1258" y="261" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-1 West" x="1036" y="274" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -13072,10 +12992,8 @@
     <signalmasticon signalmast="Mast 36RB" x="1669" y="238" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 38LA" x="1899" y="218" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 38LB" x="1894" y="237" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="322" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 38RA" x="2048" y="238" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 40LA" x="1879" y="132" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="218" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 40LB" x="1899" y="170" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 40RA" x="2048" y="190" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 40RB" x="1932" y="142" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 4LA" x="273" y="170" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 4LB" x="235" y="218" level="9" forcecontroloff="false" hidden="yes" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
@@ -13462,8 +13380,8 @@
     <tracksegment ident="TG61" blockname="Track EH-3" connect1name="AG37" type1="POS_POINT" connect2name="AG38" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG62" blockname="Track EH-3" connect1name="AG38" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG63" blockname="Track EH-1" connect1name="EBG6" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG64" blockname="Track McKees Rocks" connect1name="TOL29" type1="TURNOUT_B" connect2name="AGE1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG65" blockname="Track McKeesport" connect1name="TOR36" type1="TURNOUT_B" connect2name="AGE2" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG64" blockname="Track Helix Outer" connect1name="TOL29" type1="TURNOUT_B" connect2name="AGE1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG65" blockname="Track Helix Inner" connect1name="TOR36" type1="TURNOUT_B" connect2name="AGE2" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG66" blockname="OS Switch 31" connect1name="TO111" type1="TURNOUT_C" connect2name="TOL6" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG67" blockname="OS Switch 29" connect1name="TOR7" type1="TURNOUT_A" connect2name="TOL6" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG68" blockname="OS Switch 3" connect1name="TOL38" type1="TURNOUT_A" connect2name="AG39" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -13632,8 +13550,8 @@
     <tracksegment ident="TG231" blockname="Track 131-H2" connect1name="AGE2" type1="POS_POINT" connect2name="AGE21" type2="POS_POINT" dashed="no" mainline="yes" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG232" blockname="OS Switch 131" connect1name="AGE19" type1="POS_POINT" connect2name="AGE36" type2="POS_POINT" dashed="no" mainline="no" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG233" blockname="OS Switch 127" connect1name="AGE20" type1="POS_POINT" connect2name="AGE37" type2="POS_POINT" dashed="no" mainline="no" hidden="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <positionablepoint ident="AGE1" type="ANCHOR" x="2068.800048828125" y="186.0" connect1name="TG64" connect2name="TG230" eastboundsignalmast="Mast 40RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
-    <positionablepoint ident="AGE2" type="ANCHOR" x="2068.800048828125" y="234.0" connect1name="TG65" connect2name="TG231" eastboundsignalmast="Mast 38RA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AGE1" type="ANCHOR" x="2068.800048828125" y="186.0" connect1name="TG64" connect2name="TG230" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
+    <positionablepoint ident="AGE2" type="ANCHOR" x="2068.800048828125" y="234.0" connect1name="TG65" connect2name="TG231" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG3" type="END_BUMPER" x="231.0" y="234.0" connect1name="TG71" westboundsignalmast="Mast 4LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG4" type="END_BUMPER" x="268.5" y="186.0" connect1name="TG70" westboundsignalmast="Mast 4LA" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
     <positionablepoint ident="EBG5" type="END_BUMPER" x="681.0999755859375" y="330.0" connect1name="TG60" westboundsignalmast="Mast 10LB" class="jmri.jmrit.display.layoutEditor.configurexml.PositionablePointXml" />
