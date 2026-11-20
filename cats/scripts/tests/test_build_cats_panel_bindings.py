@@ -182,19 +182,13 @@ class StagingTracks(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "2 staging tracks join"):
             twice.block_between("TO1", "TO2", "t")
 
-    def test_a_track_of_several_blocks_needs_a_fixed_one_on_it(self):
-        tracks = B.StagingTracks(CHAINS)
-        with self.assertRaisesRegex(SystemExit, "holds blocks OS Switch 1, OS Switch 2a; name the one"):
-            tracks.block_between("TO1", "TO2", "t")
-        self.assertEqual(tracks.block_between("TO1", "TO2", "t", "OS Switch 2a"), "OS Switch 2a")
-        with self.assertRaisesRegex(SystemExit, "SHORT_TRACK_BLOCKS names OS Switch 9, but .* holds only "
-                                    "OS Switch 1, OS Switch 2a"):
-            tracks.block_between("TO1", "TO2", "t", "OS Switch 9")
+    def test_a_track_of_several_blocks_stops(self):
+        # one desk cell takes one block: the device map must give the track to the block its gap leaves it in
+        with self.assertRaisesRegex(SystemExit, "holds blocks OS Switch 1, OS Switch 2a; give it to the one"):
+            B.StagingTracks(CHAINS).block_between("TO1", "TO2", "t")
 
     def test_the_35_37_track_is_os_switch_35a_on_the_staging_track(self):
-        # the generated Layout Editor panel splits it evenly; the hand-drawn one gave most of it to 35a. The track is
-        # the staging device map's (staging_device_map.staging_chains)
-        self.assertEqual(B.SHORT_TRACK_BLOCKS, {"35-37": "OS Switch 35a"})
+        # the gap is at Switch 37's points (owner, 2026-11-19): the device map gives the whole track to OS Switch 35a
         try:                    # the staging tracks need the plugin's solve: skipped without it, as the --check scripts
             B.pd.plugin()
         except SystemExit as exc:
@@ -202,7 +196,7 @@ class StagingTracks(unittest.TestCase):
                 raise
             self.skipTest(f"schematic-maps plugin not available: {exc.code}")
         tracks = B.StagingTracks(B.staging_tracks())
-        self.assertEqual(tracks.block_between("TOR36", "TO113", "t", "OS Switch 35a"), "OS Switch 35a")
+        self.assertEqual(tracks.block_between("TOR36", "TO113", "t"), "OS Switch 35a")
 
 
 class Blocks(unittest.TestCase):
@@ -210,13 +204,31 @@ class Blocks(unittest.TestCase):
         b = band()
         names = {("os", "b0:N1"): "OS Switch 1", ("track", "b0:w"): "West", ("track", "b0:s12"): "1-2"}
         with self.assertRaisesRegex(SystemExit, "block 1-2: .* holds blocks OS Switch 1, OS Switch 2a"):
-            B.block_bindings(b, facts(), names)       # the staging track holds two blocks and none is named
-        with mock.patch.dict(B.SHORT_TRACK_BLOCKS, {"1-2": "OS Switch 1"}):
-            out = B.block_bindings(b, facts(), names)
+            B.block_bindings(b, facts(), names)       # the staging track holds two blocks
+        F = facts()
+        F.layout = B.StagingTracks([{"ends": [("TO1", "C"), ("TO2", "A")], "blocks": ["OS Switch 1"]}])
+        out = B.block_bindings(b, F, names)
         self.assertNotIn("name", out["OS Switch 1"])
         self.assertEqual(out["OS Switch 1"]["occupied"]["USER_NAME"], "BS OS Switch 1")
         self.assertEqual(out["West"]["name"], "Track West")
         self.assertEqual(out["1-2"], {"name": "OS Switch 1"})
+
+    def test_only_blocks_the_device_map_marks_are_undetected(self):
+        root = ET.fromstring('<layout-config><layoutblocks>'
+                             '<layoutblock systemName="ILB1"><userName>Track McKeesport</userName></layoutblock>'
+                             '<layoutblock systemName="ILB2"><userName>OS Switch 33</userName></layoutblock>'
+                             '<layoutblock systemName="ILB3" occupancysensor="BS K-1"><userName>Track K-1</userName>'
+                             '</layoutblock></layoutblocks></layout-config>')
+        self.assertEqual(B.undetected_blocks(root, {"Track McKeesport", "Track K-1"}), {"Track McKeesport"})
+
+    def test_a_jmri_block_with_no_detector_is_bound_by_name_alone(self):
+        F = facts()
+        F.occupancy.pop("Track West")
+        F.undetected = {"Track West"}
+        F.discipline["Track West"] = "YARD"
+        out = B.block_bindings(band(), F, {("track", "b0:w"): "West"})
+        self.assertEqual(out["West"], {"name": "Track West", "station": B.station_plate("Track West"),
+                                       "discipline": "YARD"})
 
     def test_a_block_with_no_jmri_block_that_is_no_short_track_stops(self):
         b = band()

@@ -200,11 +200,10 @@ run, or pass `--guard none` to run without one on purpose (the log then says `NO
 (`--route loop1`, the default, or `loop2`; it can be combined with more names). The list is
 computed from `tables.xml` for the route (`guard_for()` in `make_job.py`), so a new block sensor is
 guarded at once; the tests check it per route. A loco leaving the route for any of them ends the
-run. **Not covered yet:** the McKees
-Rocks and McKeesport stubs. Their detector sections are not on a node yet
-(`wiki/STATUS.md`, 2026-11-13) and the tables still give them only the combined
-`BS Switch 39 / BS McKees Rocks` and `BS Switch 37 / BS McKeesport` sensors, which are loop
-sensors, so they cannot be guarded until the stub sections go live and get their own sensors.
+run. **Not covered yet:** Track McKees
+Rocks and Track McKeesport, now the helix tracks. Their detector sections are not on a node yet
+(`wiki/STATUS.md`, 2026-11-13), so the tables give them no sensor (`BS Switch 39` and `BS Switch 37` are
+the OS sections only, loop sensors), and they cannot be guarded until those sections go live.
 Until then keep the turnouts at Switches 37 and 39 lined for the loop. Steps are whole numbers 1 to 126; anything else is
 refused. Every job (steps, move and preflight) holds `/tmp/speedrun.active`, so none starts
 while another is running.

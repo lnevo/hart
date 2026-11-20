@@ -6,8 +6,8 @@ block,IB19,OS Switch 11|BS Switch 11
 block,IB20,Track EH-1|BS EH-1
 block,IB21,Track EH-2|BS EH-2
 block,IB22,Track EH-3|BS EH-3
-block,IB23,Track McKees Rocks|BS Switch 39 / BS McKees Rocks
-block,IB24,Track McKeesport|BS Switch 37 / BS McKeesport
+block,IB23,Track McKees Rocks
+block,IB24,Track McKeesport
 block,IB3,Track Scale|BS Scale
 block,IB6,OS Switch 7b|BS Switch 7b
 block,IB8,OS Switch 7|BS Switch 7
@@ -25,7 +25,7 @@ block,IB:AUTO:0022,Track W-2|BS W-2
 block,IB:AUTO:0026,Track S-2|BS S-2
 block,IB:AUTO:0030,OS Switch 33|BS Switch 33
 block,IB:AUTO:0031,OS Switch 5|BS Switch 5
-block,IB:AUTO:0032,OS Switch 37|BS Switch 37 / BS McKeesport
+block,IB:AUTO:0032,OS Switch 37|BS Switch 37
 block,IB:AUTO:0033,OS Switch 1|BS Switch 1
 block,IB:AUTO:0034,OS Switch 23a|BS Switch 23a
 block,IB:AUTO:0035,OS Switch 3|BS Switch 3
@@ -33,7 +33,7 @@ block,IB:AUTO:0036,OS Switch 25|BS Switch 25
 block,IB:AUTO:0037,OS Switch 27|BS Switch 27
 block,IB:AUTO:0038,OS Switch 21|BS Switch 21
 block,IB:AUTO:0039,OS Switch 23b|BS Switch 23b
-block,IB:AUTO:0040,OS Switch 39|BS Switch 39 / BS McKees Rocks
+block,IB:AUTO:0040,OS Switch 39|BS Switch 39
 block,IB:AUTO:0041,OS Switch 15|BS Switch 15
 block,IB:AUTO:0042,OS Switch 31|BS Switch 31
 block,IB:AUTO:0043,OS Switch 29|BS Switch 29

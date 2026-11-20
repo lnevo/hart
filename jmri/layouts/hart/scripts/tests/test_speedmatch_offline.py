@@ -29,7 +29,7 @@ class DefaultGuard(unittest.TestCase):
 
     def test_no_loop_sensor_is_in_it(self):
         loop = set(analyze.ORDER)
-        loop |= {"BS Switch 23a", "BS Switch 37 / BS McKeesport", "BS Switch 39 / BS McKees Rocks"}
+        loop |= {"BS Switch 23a", "BS Switch 37", "BS Switch 39"}
         for n in make_job.DEFAULT_GUARD:
             self.assertNotIn(n, loop, n)
             self.assertNotIn(n.split(" / ")[0], loop)
@@ -336,8 +336,8 @@ class RunOrder(unittest.TestCase):
 
 
 class StopCompare(unittest.TestCase):
-    A = [("BS East Lead", 0.72), ("BS Switch 35a", 6.42), ("BS Switch 37 / BS McKeesport", 7.26), ("BS K-2", 8.22)]
-    B = [("BS East Lead", 0.74), ("BS Switch 35a", 6.42), ("BS Switch 37 / BS McKeesport", 7.26), ("BS K-2", 8.13)]
+    A = [("BS East Lead", 0.72), ("BS Switch 35a", 6.42), ("BS Switch 37", 7.26), ("BS K-2", 8.22)]
+    B = [("BS East Lead", 0.74), ("BS Switch 35a", 6.42), ("BS Switch 37", 7.26), ("BS K-2", 8.13)]
 
     def test_seconds_after_the_command_and_resting_block(self):
         r = stc.parse_stoptest(stop_log(0, self.A, "BS K-2"))

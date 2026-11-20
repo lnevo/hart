@@ -1,6 +1,6 @@
 kind,ident,slot,mast
-point,AG109,east,Mast B92
-point,AG109,west,Mast B93
+point,AG108,east,Mast B92
+point,AG108,west,Mast B93
 point,AG12,east,Mast 40RB
 point,AG15,west,Mast 26L
 point,AG20,east,Mast 26R
@@ -8,15 +8,15 @@ point,AG21,west,Mast 22L
 point,AG22,east,Mast 22R
 point,AG23,west,Mast 18L
 point,AG24,east,Mast 18R
-point,AG26,west,Mast 36L
-point,AG27,west,Mast 20L
-point,AG28,east,Mast 20R
-point,AG33,east,Mast 8RA
-point,AG33,west,Mast 8LC
-point,AG43,east,Mast 68
-point,AG43,west,Mast 67
-point,AG65,east,Mast A83
-point,AG65,west,Mast A84
+point,AG25,west,Mast 36L
+point,AG26,west,Mast 20L
+point,AG27,east,Mast 20R
+point,AG32,east,Mast 8RA
+point,AG32,west,Mast 8LC
+point,AG42,east,Mast 68
+point,AG42,west,Mast 67
+point,AG64,east,Mast A83
+point,AG64,west,Mast A84
 point,AG7,west,Mast 16L
 point,AG8,east,Mast 16R
 point,AGE1,east,Mast 40RA

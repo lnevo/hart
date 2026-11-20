@@ -34,7 +34,7 @@ EXAMPLE_SENSOR = "BS K-1"
 EXAMPLE_BLOCK, EXAMPLE_BLOCK_TURNOUT = "OS Switch 13", "Switch 13"
 EXAMPLE_SML = ("Mast 38LB", "Mast 36L")
 EXAMPLE_TURNOUT = "Switch 35"
-EXAMPLE_DETECTORS = ("BS S-1", "BS Switch 37 / BS McKeesport")
+EXAMPLE_DETECTORS = ("BS S-1", "BS East Lead")
 
 # Top-level sections in groups. Consecutive sections of one group share a row on the page.
 # A section not listed here stops the build: describe it before it reaches the page.

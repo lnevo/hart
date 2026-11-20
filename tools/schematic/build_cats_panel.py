@@ -17,9 +17,10 @@ hand:
   occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
                                   layout block table and the sensors, not a Layout Editor panel)
   staging.signals.json + signal_head_plan.csv  the masts drawn on staging (field and planned) and their templates
-  device_map_staging.csv  the block of a short unnamed track between two switches that has no JMRI block of its own
-                         (SHORT_TRACK_BLOCKS, which must be one of the blocks that staging track holds; the staging
-                         device map's tracks, staging_device_map.staging_chains)
+  device_map_staging.csv  the block of a short unnamed track between two switches that has no JMRI block of its own:
+                         the one block the staging device map's track between them holds
+                         (staging_device_map.staging_chains); a staging block JMRI holds with no detector (the
+                         helix tracks McKeesport and McKees Rocks, not wired yet) is bound by name alone
 Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
@@ -68,7 +69,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (device_map_staging.csv)
-from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
+from hartlib import level_devices, level_masts, paths, railroad, tables  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates, station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -105,12 +106,6 @@ PLATE_PX = {"FONT_SUBTITLE": (9, 15)}   # pixels per character, line height, for
 # cats_window, cats_cells_per_unit, cats_helix_blocks, cats_band_gap, cats_title_gap) the plugin reads (schematic/cats_prefs.py, cats.options),
 # which also gives the cells the desk must fit in that window.
 
-# A short unnamed track whose block is a railroad fact: the staging track (the staging device map's)
-# between the two switches holds both OS blocks, and the hand-drawn panel gave most of it to OS Switch 35a (the
-# generated Layout Editor panel splits it evenly). The named block must be one that staging track holds.
-SHORT_TRACK_BLOCKS = {"35-37": "OS Switch 35a"}
-
-
 def plugin_modules(plugin):
     """The plugin's cats and sheet modules, imported from `plugin` (the same code the command would run)."""
     sys.path.insert(0, str(plugin))
@@ -128,24 +123,20 @@ class StagingTracks:
     def __init__(self, chains):
         self.chains = chains            # [{ends: [(le_ident or "END", band port), ...], blocks: [...]}]
 
-    def block_between(self, a, b, what, fixed=None):
-        """The block of the one staging track from turnout `a` to `b`: its only block, or `fixed` when given (it must
-        be one of the track's blocks). Stops when there is no such track, several, or a track of several blocks
-        and no `fixed` (the tracks have no lengths to choose by)."""
+    def block_between(self, a, b, what):
+        """The block of the one staging track from turnout `a` to `b`: its only block. Stops when there is no such
+        track, several, or a track of several blocks (one desk cell takes one block: the staging device map must give
+        the track to one of them, where its gap is)."""
         found = [c for c in self.chains if {e[0] for e in c["ends"]} == {a, b} and "END" not in
                  {e[0] for e in c["ends"]} and a != b]
         if len(found) != 1:
             raise SystemExit(f"{what}: {'no' if not found else len(found)} staging tracks join {a} and {b} "
                              "in the staging device map; cannot tell which block it is part of")
         blocks = found[0]["blocks"]
-        if fixed is not None:
-            if fixed not in blocks:
-                raise SystemExit(f"{what}: SHORT_TRACK_BLOCKS names {fixed}, but the staging track from {a} "
-                                 f"to {b} holds only {', '.join(sorted(set(blocks)))}")
-            return fixed
         if len(set(blocks)) != 1:
             raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
-                             f"{', '.join(sorted(set(blocks)))}; name the one it is part of in SHORT_TRACK_BLOCKS")
+                             f"{', '.join(sorted(set(blocks)))}; give it to the one its gap leaves it in "
+                             "(device_map_staging.csv trial_name)")
         return blocks[0]
 
 
@@ -176,6 +167,7 @@ class Facts:
     turnouts: dict = field(default_factory=dict)            # JMRI turnout user name -> system name
     mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
     level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
+    undetected: set = field(default_factory=set)            # JMRI layout blocks with no occupancy sensor
 
 
 def staging_tracks() -> list[dict]:
@@ -198,9 +190,18 @@ def load_facts():
         return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,
-                     t.sensors, t.turnouts, t.masts, rr.level_masts)
+                     t.sensors, t.turnouts, t.masts, rr.level_masts, undetected_blocks(t.root))
     except railroad.FactsError as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
+
+
+def undetected_blocks(root, marked=None):
+    """The user names of the tables' layout blocks with no occupancy sensor that the staging device map says have no
+    detector ("no detector yet"). Any other block with no sensor stays out, so the desk build stops on it rather than
+    draw a block that never shows occupied."""
+    marked = sdm.undetected_blocks() if marked is None else marked
+    return {tables.user_name(lb) for lb in tables.layout_blocks(root)
+            if not (lb.get("occupancysensor") or "").strip() and tables.user_name(lb) in marked}
 
 
 def legs_of(d):
@@ -314,12 +315,17 @@ def switch_bindings(band, F, os_of):
 
 def block_bindings(band, F, names):
     """names: {block key: panel block name} of the staging band's blocks. A block is its JMRI block (by name, or
-    Track + name); a short unnamed track joining two switches, with no JMRI block of its own, joins the Layout
-    Editor block that holds most of it. Anything else stops."""
+    Track + name), bound to its detector, or by name alone when JMRI holds it with no detector; a short unnamed track
+    joining two switches, with no JMRI block of its own, joins the one block the staging device map gives it.
+    Anything else stops."""
     nodes, strands = band["nodes"], band["strands"]
     out = {}
     for key, name in sorted(names.items(), key=lambda kv: kv[1]):
         layout = next((x for x in (name, "Track " + name) if x in F.occupancy), None)
+        dark = next((x for x in (name, "Track " + name) if x in F.undetected), None)
+        if layout is None and dark is not None:
+            out[name] = {"name": dark, "station": station_plate(dark), "discipline": F.discipline.get(dark, "CTC")}
+            continue
         if layout is None:
             sid = key[1].split(":", 1)[1] if key[0] == "track" else None
             s = strands.get(sid) if sid else None
@@ -328,7 +334,7 @@ def block_bindings(band, F, names):
                 raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in occupancy_bindings.csv / "
                                  "tables.xml, and it is not a short unnamed track between two switches")
             a, b = (switch_of(F, d).le_ident for d in ends)
-            out[name] = {"name": F.layout.block_between(a, b, f"block {name}", SHORT_TRACK_BLOCKS.get(name))}
+            out[name] = {"name": F.layout.block_between(a, b, f"block {name}")}
             continue
         addr, sensor = F.occupancy[layout]
         out[name] = {

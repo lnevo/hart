@@ -24,8 +24,8 @@ EAST = [
 LOOP = [  # east order starting at East Ext
     ("BS East Ext", 2235.2), ("BS Switch 7b", 254.0), ("BS Main East", 4699.0),
     ("BS Switch 33", 254.0), ("BS East Lead", 4368.8), ("BS Switch 35a", 254.0),
-    ("BS Switch 37 / BS McKeesport", 254.0), ("BS K-2", 3111.5), ("BS K-1", 3111.5),
-    ("BS Switch 39 / BS McKees Rocks", 254.0), ("BS Switch 35b", 254.0),
+    ("BS Switch 37", 254.0), ("BS K-2", 3111.5), ("BS K-1", 3111.5),
+    ("BS Switch 39", 254.0), ("BS Switch 35b", 254.0),
     ("BS West Ext", 4064.0), ("BS Switch 23a", 254.0), ("BS Main West", 5588.0),
     ("BS Switch 1", 254.0), ("BS Brick-Plane", 1828.8), ("BS Switch 5", 254.0)]
 LOOP_MM = sum(l for _, l in LOOP)
@@ -37,9 +37,15 @@ DROP = [("steprun_2121_b.log", 1794132892.3, 1794132972.8)]
 EXTRA_LAPS = [("steprun_2121_b.log", 8), ("steprun_2121_c.log", 8)]  # step 8 first lap
 
 
+# The 2026-11-08 logs name the Switch 37 and 39 OS detectors by their names then; read them as today's.
+OLD_NAMES = {"BS Switch 37 / BS McKeesport": "BS Switch 37", "BS Switch 39 / BS McKees Rocks": "BS Switch 39"}
+
+
 def read(path):
     seen, ev = set(), []
     for line in open(path):
+        for old, new in OLD_NAMES.items():
+            line = line.replace(old, new)
         p = line.rstrip("\n").split(" ", 1)
         if len(p) < 2 or line in seen and p[1].startswith("SENS"):
             continue

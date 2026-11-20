@@ -159,15 +159,26 @@ def occupancy_blocks(r: dict) -> list[str]:
     return [b.strip() for b in r["notes"].removeprefix("blocks ").split(";") if b.strip()]
 
 
+def undetected(r: dict) -> bool:
+    """A block row whose notes say it has no detector ("no detector yet"): JMRI holds it with no occupancy sensor."""
+    return r["layer"] == "block" and r["notes"].startswith("no detector")
+
+
+def undetected_blocks(device_map: Path = DEVICE_MAP) -> set[str]:
+    """The user names of the staging blocks the device map says have no detector."""
+    return {r["user_name"] for r in read_rows(device_map, bdm.COLUMNS) if undetected(r)}
+
+
 # ---------------------------------------------------------------- reading the files
 
 
 def check_rows(rows: list[dict]) -> None:
-    """Every block has exactly one occupancy row naming it; no two rows of one layer share a system name, a jmri_name
+    """Every block has exactly one occupancy row naming it, unless its notes say it has no detector (a helix track
+    not wired yet), when none may; no two rows of one layer share a system name, a jmri_name
     or a user name (a turnout's LCC alias "DCC Switch <n>" is a turnout of its own, MTT<dcc>, with its own names);
     every row is a whole field device."""
     bad = []
-    blocks = [r["user_name"] for r in rows if r["layer"] == "block"]
+    blocks = [r["user_name"] for r in rows if r["layer"] == "block" and not undetected(r)]
     served = [b for r in rows if r["layer"] == "occupancy" for b in occupancy_blocks(r)]
     if sorted(blocks) != sorted(served):
         bad.append(f"blocks and occupancy rows differ: {sorted(set(blocks) ^ set(served))} "
@@ -515,7 +526,10 @@ def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
                 continue
             occ = (b.findtext("occupancysensor") or "").strip()
             row = serves.get(user)
-            if row is None or occ not in (row["user_name"], row["system_name"]):
+            if undetected(r):
+                if occ:
+                    bad.append(f"block {user}: the device map says it has no detector, but tables.xml gives it {occ!r}")
+            elif row is None or occ not in (row["user_name"], row["system_name"]):
                 bad.append(f"block {user}: its detector in tables.xml is {occ!r}, the device map's "
                            f"{row['user_name'] if row else 'none'}")
             continue

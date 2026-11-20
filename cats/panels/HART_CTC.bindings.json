@@ -1259,18 +1259,7 @@
   "McKees Rocks": {
    "discipline": "CTC",
    "name": "Track McKees Rocks",
-   "occupied": {
-    "DECADDR": "103",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Switch 39 / BS McKees Rocks",
-    "command": "close"
-   },
-   "station": "McKees",
-   "unoccupied": {
-    "DECADDR": "103",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   }
+   "station": "McKees"
   },
   "McKees Rocks 2": {
    "_planned_occupied": {
@@ -1302,18 +1291,7 @@
   "McKeesport": {
    "discipline": "CTC",
    "name": "Track McKeesport",
-   "occupied": {
-    "DECADDR": "102",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Switch 37 / BS McKeesport",
-    "command": "close"
-   },
-   "station": "McKeesport",
-   "unoccupied": {
-    "DECADDR": "102",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   }
+   "station": "McKeesport"
   },
   "McKeesport 2": {
    "_planned_occupied": {
@@ -2736,7 +2714,7 @@
    "occupied": {
     "DECADDR": "102",
     "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Switch 37 / BS McKeesport",
+    "USER_NAME": "BS Switch 37",
     "command": "close"
    },
    "station": "37",
@@ -2751,7 +2729,7 @@
    "occupied": {
     "DECADDR": "103",
     "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Switch 39 / BS McKees Rocks",
+    "USER_NAME": "BS Switch 39",
     "command": "close"
    },
    "station": "39",
