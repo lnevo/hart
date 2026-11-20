@@ -134,7 +134,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.switches` | `{number: Switch}` (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.level_control_points`, `local_switches`, `lcos_nodes`, `main_upper_switches` | `LevelControlPoint`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
-| `Railroad.block_lengths`, `staging_masts`, `hands` | `{name: BlockLength}`, `[StagingMast]`, `{label: Hand}` |
+| `Railroad.block_lengths`, `staging_masts`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `[StagingMast]`, `{label: Hand}` |
 | `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `sensors`, `planned`, `turnouts`, `heads_by_system`, `of(layer)` |
 | `Railroad.level_masts` | `hartlib.level_masts.read()` rows |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |

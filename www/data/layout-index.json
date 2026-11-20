@@ -10,7 +10,7 @@
     "width": 2512,
     "height": 1373,
     "scale": 1.0,
-    "inputs_sha256": "06a56174eba8dd9cf057705ff0018ce3b0d22e0f4331e2b0f6eab3a39dd0f5ae"
+    "inputs_sha256": "efe71a476fb1e636c7204a1e0938afee4c42d38e111764f6851dc9d81c7986ea"
   },
   "items": [
     {
@@ -952,110 +952,6 @@
     {
       "id": "sig-7",
       "kind": "signal",
-      "x": 1122.0,
-      "y": 198.0,
-      "systemName": "Mast 16L",
-      "publicName": "Mast 16L",
-      "cp": "South Yard",
-      "hardware": "virtual $1016",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-8",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 218.0,
-      "systemName": "Mast 16R",
-      "publicName": "Mast 16R",
-      "cp": "South Yard",
-      "hardware": "virtual $1017",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-9",
-      "kind": "signal",
-      "x": 1122.0,
-      "y": 246.0,
-      "systemName": "Mast 18L",
-      "publicName": "Mast 18L",
-      "cp": "South Yard",
-      "hardware": "virtual $1008",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-10",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 266.0,
-      "systemName": "Mast 18R",
-      "publicName": "Mast 18R",
-      "cp": "South Yard",
-      "hardware": "virtual $1012",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-11",
-      "kind": "signal",
-      "x": 1122.0,
-      "y": 294.0,
-      "systemName": "Mast 20L",
-      "publicName": "Mast 20L",
-      "cp": "South Yard",
-      "hardware": "virtual $1009",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-12",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 314.0,
-      "systemName": "Mast 20R",
-      "publicName": "Mast 20R",
-      "cp": "South Yard",
-      "hardware": "virtual $1013",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-13",
-      "kind": "signal",
-      "x": 1136.0,
-      "y": 342.0,
-      "systemName": "Mast 22L",
-      "publicName": "Mast 22L",
-      "cp": "South Yard",
-      "hardware": "virtual $1010",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-14",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 362.0,
-      "systemName": "Mast 22R",
-      "publicName": "Mast 22R",
-      "cp": "South Yard",
-      "hardware": "virtual $1014",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-15",
-      "kind": "signal",
       "x": 1371.0,
       "y": 150.0,
       "systemName": "Mast 24L",
@@ -1067,7 +963,7 @@
       "block": ""
     },
     {
-      "id": "sig-16",
+      "id": "sig-8",
       "kind": "signal",
       "x": 1227.0,
       "y": 170.0,
@@ -1080,7 +976,7 @@
       "block": ""
     },
     {
-      "id": "sig-17",
+      "id": "sig-9",
       "kind": "signal",
       "x": 1298.0,
       "y": 218.0,
@@ -1093,33 +989,7 @@
       "block": ""
     },
     {
-      "id": "sig-18",
-      "kind": "signal",
-      "x": 1124.0,
-      "y": 373.0,
-      "systemName": "Mast 26L",
-      "publicName": "Mast 26L",
-      "cp": "South Yard",
-      "hardware": "virtual $1011",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-19",
-      "kind": "signal",
-      "x": 1300.0,
-      "y": 385.0,
-      "systemName": "Mast 26R",
-      "publicName": "Mast 26R",
-      "cp": "South Yard",
-      "hardware": "virtual $1015",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-20",
+      "id": "sig-10",
       "kind": "signal",
       "x": 443.0,
       "y": 150.0,
@@ -1132,7 +1002,7 @@
       "block": ""
     },
     {
-      "id": "sig-21",
+      "id": "sig-11",
       "kind": "signal",
       "x": 395.0,
       "y": 181.0,
@@ -1145,7 +1015,7 @@
       "block": ""
     },
     {
-      "id": "sig-22",
+      "id": "sig-12",
       "kind": "signal",
       "x": 1422.0,
       "y": 229.0,
@@ -1158,7 +1028,7 @@
       "block": ""
     },
     {
-      "id": "sig-23",
+      "id": "sig-13",
       "kind": "signal",
       "x": 1493.0,
       "y": 198.0,
@@ -1171,7 +1041,7 @@
       "block": ""
     },
     {
-      "id": "sig-24",
+      "id": "sig-14",
       "kind": "signal",
       "x": 1445.0,
       "y": 229.0,
@@ -1184,20 +1054,7 @@
       "block": ""
     },
     {
-      "id": "sig-25",
-      "kind": "signal",
-      "x": 1677.0,
-      "y": 198.0,
-      "systemName": "Mast 36L",
-      "publicName": "Mast 36L",
-      "cp": "Princess",
-      "hardware": "virtual $1025",
-      "mqtt": "",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
-      "id": "sig-26",
+      "id": "sig-15",
       "kind": "signal",
       "x": 1725.0,
       "y": 170.0,
@@ -1210,7 +1067,7 @@
       "block": ""
     },
     {
-      "id": "sig-27",
+      "id": "sig-16",
       "kind": "signal",
       "x": 1677.0,
       "y": 218.0,
@@ -1223,7 +1080,7 @@
       "block": ""
     },
     {
-      "id": "sig-28",
+      "id": "sig-17",
       "kind": "signal",
       "x": 1907.0,
       "y": 198.0,
@@ -1236,7 +1093,7 @@
       "block": ""
     },
     {
-      "id": "sig-29",
+      "id": "sig-18",
       "kind": "signal",
       "x": 1902.0,
       "y": 217.0,
@@ -1249,20 +1106,7 @@
       "block": ""
     },
     {
-      "id": "sig-30",
-      "kind": "signal",
-      "x": 2056.0,
-      "y": 218.0,
-      "systemName": "Mast 38RA",
-      "publicName": "Mast 38RA",
-      "cp": "Princess",
-      "hardware": "virtual $1004",
-      "mqtt": "",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
-      "id": "sig-31",
+      "id": "sig-19",
       "kind": "signal",
       "x": 1887.0,
       "y": 112.0,
@@ -1275,7 +1119,7 @@
       "block": ""
     },
     {
-      "id": "sig-32",
+      "id": "sig-20",
       "kind": "signal",
       "x": 1907.0,
       "y": 150.0,
@@ -1288,33 +1132,7 @@
       "block": ""
     },
     {
-      "id": "sig-33",
-      "kind": "signal",
-      "x": 2056.0,
-      "y": 170.0,
-      "systemName": "Mast 40RA",
-      "publicName": "Mast 40RA",
-      "cp": "Princess",
-      "hardware": "virtual $1003",
-      "mqtt": "",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
-      "id": "sig-34",
-      "kind": "signal",
-      "x": 1940.0,
-      "y": 122.0,
-      "systemName": "Mast 40RB",
-      "publicName": "Mast 40RB",
-      "cp": "Princess",
-      "hardware": "virtual $1026",
-      "mqtt": "",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
-      "id": "sig-35",
+      "id": "sig-21",
       "kind": "signal",
       "x": 281.0,
       "y": 150.0,
@@ -1327,7 +1145,7 @@
       "block": ""
     },
     {
-      "id": "sig-36",
+      "id": "sig-22",
       "kind": "signal",
       "x": 243.0,
       "y": 198.0,
@@ -1340,7 +1158,7 @@
       "block": ""
     },
     {
-      "id": "sig-37",
+      "id": "sig-23",
       "kind": "signal",
       "x": 354.0,
       "y": 170.0,
@@ -1353,7 +1171,7 @@
       "block": ""
     },
     {
-      "id": "sig-38",
+      "id": "sig-24",
       "kind": "signal",
       "x": 372.0,
       "y": 181.0,
@@ -1366,7 +1184,7 @@
       "block": ""
     },
     {
-      "id": "sig-39",
+      "id": "sig-25",
       "kind": "signal",
       "x": 2302.0,
       "y": 194.0,
@@ -1379,7 +1197,7 @@
       "block": ""
     },
     {
-      "id": "sig-40",
+      "id": "sig-26",
       "kind": "signal",
       "x": 2282.0,
       "y": 146.0,
@@ -1392,7 +1210,7 @@
       "block": ""
     },
     {
-      "id": "sig-41",
+      "id": "sig-27",
       "kind": "signal",
       "x": 424.0,
       "y": 418.0,
@@ -1405,7 +1223,7 @@
       "block": ""
     },
     {
-      "id": "sig-42",
+      "id": "sig-28",
       "kind": "signal",
       "x": 443.0,
       "y": 438.0,
@@ -1418,7 +1236,7 @@
       "block": ""
     },
     {
-      "id": "sig-43",
+      "id": "sig-29",
       "kind": "signal",
       "x": 371.0,
       "y": 458.0,
@@ -1431,7 +1249,7 @@
       "block": ""
     },
     {
-      "id": "sig-44",
+      "id": "sig-30",
       "kind": "signal",
       "x": 709.0,
       "y": 390.0,
@@ -1444,7 +1262,7 @@
       "block": ""
     },
     {
-      "id": "sig-45",
+      "id": "sig-31",
       "kind": "signal",
       "x": 661.0,
       "y": 438.0,
@@ -1457,7 +1275,7 @@
       "block": ""
     },
     {
-      "id": "sig-46",
+      "id": "sig-32",
       "kind": "signal",
       "x": 588.0,
       "y": 390.0,
@@ -1470,7 +1288,7 @@
       "block": ""
     },
     {
-      "id": "sig-47",
+      "id": "sig-33",
       "kind": "signal",
       "x": 563.0,
       "y": 410.0,
@@ -1483,7 +1301,7 @@
       "block": ""
     },
     {
-      "id": "sig-48",
+      "id": "sig-34",
       "kind": "signal",
       "x": 517.0,
       "y": 458.0,
@@ -1496,7 +1314,7 @@
       "block": ""
     },
     {
-      "id": "sig-49",
+      "id": "sig-35",
       "kind": "signal",
       "x": 619.0,
       "y": 692.0,
@@ -1509,7 +1327,7 @@
       "block": ""
     },
     {
-      "id": "sig-50",
+      "id": "sig-36",
       "kind": "signal",
       "x": 628.0,
       "y": 646.0,
@@ -1522,7 +1340,7 @@
       "block": ""
     },
     {
-      "id": "sig-51",
+      "id": "sig-37",
       "kind": "signal",
       "x": 729.0,
       "y": 703.0,
@@ -1535,7 +1353,7 @@
       "block": ""
     },
     {
-      "id": "sig-52",
+      "id": "sig-38",
       "kind": "signal",
       "x": 800.0,
       "y": 703.0,
@@ -1548,7 +1366,7 @@
       "block": ""
     },
     {
-      "id": "sig-53",
+      "id": "sig-39",
       "kind": "signal",
       "x": 1100.0,
       "y": 703.0,
@@ -1561,7 +1379,7 @@
       "block": ""
     },
     {
-      "id": "sig-54",
+      "id": "sig-40",
       "kind": "signal",
       "x": 1241.0,
       "y": 672.0,
@@ -1574,7 +1392,7 @@
       "block": ""
     },
     {
-      "id": "sig-55",
+      "id": "sig-41",
       "kind": "signal",
       "x": 1289.0,
       "y": 720.0,
@@ -1587,7 +1405,7 @@
       "block": ""
     },
     {
-      "id": "sig-56",
+      "id": "sig-42",
       "kind": "signal",
       "x": 1547.0,
       "y": 692.0,
@@ -1600,7 +1418,7 @@
       "block": ""
     },
     {
-      "id": "sig-57",
+      "id": "sig-43",
       "kind": "signal",
       "x": 1577.0,
       "y": 706.0,
@@ -1613,7 +1431,7 @@
       "block": ""
     },
     {
-      "id": "sig-58",
+      "id": "sig-44",
       "kind": "signal",
       "x": 1692.0,
       "y": 672.0,
@@ -1626,7 +1444,7 @@
       "block": ""
     },
     {
-      "id": "sig-59",
+      "id": "sig-45",
       "kind": "signal",
       "x": 1788.0,
       "y": 768.0,
@@ -1639,7 +1457,7 @@
       "block": ""
     },
     {
-      "id": "sig-60",
+      "id": "sig-46",
       "kind": "signal",
       "x": 1699.0,
       "y": 692.0,
@@ -1652,7 +1470,7 @@
       "block": ""
     },
     {
-      "id": "sig-61",
+      "id": "sig-47",
       "kind": "signal",
       "x": 2050.0,
       "y": 672.0,
@@ -1665,7 +1483,7 @@
       "block": ""
     },
     {
-      "id": "sig-62",
+      "id": "sig-48",
       "kind": "signal",
       "x": 307.0,
       "y": 620.0,
@@ -1678,7 +1496,7 @@
       "block": ""
     },
     {
-      "id": "sig-63",
+      "id": "sig-49",
       "kind": "signal",
       "x": 327.0,
       "y": 668.0,
@@ -1691,7 +1509,7 @@
       "block": ""
     },
     {
-      "id": "sig-64",
+      "id": "sig-50",
       "kind": "signal",
       "x": 1425.0,
       "y": 1213.0,
@@ -1704,7 +1522,7 @@
       "block": ""
     },
     {
-      "id": "sig-65",
+      "id": "sig-51",
       "kind": "signal",
       "x": 1538.0,
       "y": 1193.0,
@@ -1717,7 +1535,7 @@
       "block": ""
     },
     {
-      "id": "sig-66",
+      "id": "sig-52",
       "kind": "signal",
       "x": 225.0,
       "y": 1173.0,
@@ -1730,7 +1548,7 @@
       "block": ""
     },
     {
-      "id": "sig-67",
+      "id": "sig-53",
       "kind": "signal",
       "x": 303.0,
       "y": 1173.0,
@@ -1743,7 +1561,7 @@
       "block": ""
     },
     {
-      "id": "sig-68",
+      "id": "sig-54",
       "kind": "signal",
       "x": 324.0,
       "y": 1193.0,
@@ -1756,7 +1574,7 @@
       "block": ""
     },
     {
-      "id": "sig-69",
+      "id": "sig-55",
       "kind": "signal",
       "x": 507.0,
       "y": 1165.0,
@@ -1769,7 +1587,7 @@
       "block": ""
     },
     {
-      "id": "sig-70",
+      "id": "sig-56",
       "kind": "signal",
       "x": 532.0,
       "y": 1213.0,
@@ -1782,7 +1600,7 @@
       "block": ""
     },
     {
-      "id": "sig-71",
+      "id": "sig-57",
       "kind": "signal",
       "x": 628.0,
       "y": 1145.0,
@@ -1795,7 +1613,7 @@
       "block": ""
     },
     {
-      "id": "sig-72",
+      "id": "sig-58",
       "kind": "signal",
       "x": 676.0,
       "y": 1193.0,
@@ -1808,7 +1626,7 @@
       "block": ""
     },
     {
-      "id": "sig-73",
+      "id": "sig-59",
       "kind": "signal",
       "x": 846.0,
       "y": 1165.0,
@@ -1821,7 +1639,7 @@
       "block": ""
     },
     {
-      "id": "sig-74",
+      "id": "sig-60",
       "kind": "signal",
       "x": 798.0,
       "y": 1213.0,
@@ -1834,7 +1652,7 @@
       "block": ""
     },
     {
-      "id": "sig-75",
+      "id": "sig-61",
       "kind": "signal",
       "x": 990.0,
       "y": 1145.0,
@@ -1847,7 +1665,7 @@
       "block": ""
     },
     {
-      "id": "sig-76",
+      "id": "sig-62",
       "kind": "signal",
       "x": 942.0,
       "y": 1193.0,
@@ -1860,7 +1678,7 @@
       "block": ""
     },
     {
-      "id": "sig-77",
+      "id": "sig-63",
       "kind": "signal",
       "x": 1034.0,
       "y": 1165.0,
@@ -1873,7 +1691,7 @@
       "block": ""
     },
     {
-      "id": "sig-78",
+      "id": "sig-64",
       "kind": "signal",
       "x": 1214.0,
       "y": 1145.0,
@@ -1886,7 +1704,7 @@
       "block": ""
     },
     {
-      "id": "sig-79",
+      "id": "sig-65",
       "kind": "signal",
       "x": 1118.0,
       "y": 1213.0,
@@ -1899,7 +1717,7 @@
       "block": ""
     },
     {
-      "id": "sig-80",
+      "id": "sig-66",
       "kind": "signal",
       "x": 1262.0,
       "y": 1193.0,
@@ -1912,7 +1730,7 @@
       "block": ""
     },
     {
-      "id": "sig-81",
+      "id": "sig-67",
       "kind": "signal",
       "x": 1481.0,
       "y": 1107.0,
@@ -1925,7 +1743,7 @@
       "block": ""
     },
     {
-      "id": "sig-82",
+      "id": "sig-68",
       "kind": "signal",
       "x": 1501.0,
       "y": 1145.0,
@@ -1938,7 +1756,7 @@
       "block": ""
     },
     {
-      "id": "sig-83",
+      "id": "sig-69",
       "kind": "signal",
       "x": 1427.0,
       "y": 1165.0,
@@ -1951,7 +1769,7 @@
       "block": ""
     },
     {
-      "id": "sig-84",
+      "id": "sig-70",
       "kind": "signal",
       "x": 1571.0,
       "y": 1117.0,
@@ -1964,7 +1782,7 @@
       "block": ""
     },
     {
-      "id": "sig-85",
+      "id": "sig-71",
       "kind": "signal",
       "x": 1571.0,
       "y": 1165.0,
@@ -1977,7 +1795,7 @@
       "block": ""
     },
     {
-      "id": "sig-86",
+      "id": "sig-72",
       "kind": "signal",
       "x": 1774.0,
       "y": 1145.0,
@@ -1990,7 +1808,7 @@
       "block": ""
     },
     {
-      "id": "sig-87",
+      "id": "sig-73",
       "kind": "signal",
       "x": 1771.0,
       "y": 1163.0,
@@ -2003,7 +1821,7 @@
       "block": ""
     },
     {
-      "id": "sig-88",
+      "id": "sig-74",
       "kind": "signal",
       "x": 1805.0,
       "y": 1059.0,
@@ -2016,7 +1834,7 @@
       "block": ""
     },
     {
-      "id": "sig-89",
+      "id": "sig-75",
       "kind": "signal",
       "x": 1825.0,
       "y": 1097.0,
@@ -2029,7 +1847,7 @@
       "block": ""
     },
     {
-      "id": "sig-90",
+      "id": "sig-76",
       "kind": "signal",
       "x": 1992.0,
       "y": 953.0,
@@ -2042,7 +1860,7 @@
       "block": ""
     },
     {
-      "id": "sig-91",
+      "id": "sig-77",
       "kind": "signal",
       "x": 2420.0,
       "y": 1069.0,
@@ -2055,7 +1873,7 @@
       "block": ""
     },
     {
-      "id": "sig-92",
+      "id": "sig-78",
       "kind": "signal",
       "x": 2444.0,
       "y": 1117.0,
@@ -4010,7 +3828,7 @@
       "x": null,
       "y": null,
       "systemName": "IB23",
-      "publicName": "Track McKees Rocks",
+      "publicName": "Track Helix Outer",
       "cp": "Princess",
       "hardware": "IB23",
       "mqtt": "",
@@ -4023,7 +3841,7 @@
       "x": null,
       "y": null,
       "systemName": "IB24",
-      "publicName": "Track McKeesport",
+      "publicName": "Track Helix Inner",
       "cp": "Princess",
       "hardware": "IB24",
       "mqtt": "",
@@ -4967,32 +4785,6 @@
       "block": ""
     },
     {
-      "id": "dev-IB:C3:0073",
-      "kind": "occupancy",
-      "x": null,
-      "y": null,
-      "systemName": "IB:C3:0073",
-      "publicName": "Track 131-H1",
-      "cp": "",
-      "hardware": "IB:C3:0073",
-      "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
-      "block": ""
-    },
-    {
-      "id": "dev-IB:C3:0074",
-      "kind": "occupancy",
-      "x": null,
-      "y": null,
-      "systemName": "IB:C3:0074",
-      "publicName": "Track 131-H2",
-      "cp": "",
-      "hardware": "IB:C3:0074",
-      "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
-      "block": ""
-    },
-    {
       "id": "dev-IB:C3:0075",
       "kind": "occupancy",
       "x": null,
@@ -5619,10 +5411,10 @@
   ],
   "counts": {
     "turnout": 85,
-    "signal": 94,
-    "occupancy": 212,
+    "signal": 80,
+    "occupancy": 210,
     "sensor": 40,
-    "mapped": 158,
-    "total": 431
+    "mapped": 144,
+    "total": 415
   }
 }

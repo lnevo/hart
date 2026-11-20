@@ -63,8 +63,8 @@ class Facts(unittest.TestCase):
         sensors = {e.findtext("userName"): e.findtext("systemName")
                    for m in root.findall("sensors") for e in m if e.tag == "sensor"}
         lb = next(lb for m in root.findall("layoutblocks") for lb in m
-                  if lb.tag == "layoutblock" and lb.get("occupancysensor") == "BS S-1")
-        lb.set("occupancysensor", sensors["BS S-1"])
+                  if lb.tag == "layoutblock" and lb.get("occupancysensor") == "BS K-1")
+        lb.set("occupancysensor", sensors["BS K-1"])
         f = tables_page.facts(raw, root)
         self.assertEqual((f["detectors"], f["sharedCount"]), (self.f["detectors"], self.f["sharedCount"]))
 
@@ -81,9 +81,9 @@ class Facts(unittest.TestCase):
         raw, root = btb.load()
         self.assertEqual(self.f["top"], len(list(root)))
 
-    def test_shared_detectors_account_for_the_extra_blocks(self):
-        self.assertGreater(self.f["layoutBlocks"], self.f["detectors"])
-        self.assertGreater(self.f["sharedCount"], 0)
+    def test_no_detector_is_shared_since_the_yard_throats_went(self):
+        self.assertEqual(self.f["sharedCount"], 0)
+        self.assertEqual(self.f["sharedExamples"], [])
 
 
 class OtherPages(unittest.TestCase):

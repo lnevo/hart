@@ -22,6 +22,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import level_devices, paths, tables  # noqa: E402
+from hartlib import railroad as T_railroad  # noqa: E402  the device map's columns
 
 TABLES = paths.TABLES_XML       # what the build starts from (this checkout's tables.xml, the cut-over's)
 
@@ -41,17 +42,21 @@ RENDER = _load("render_le_layout", paths.LAYOUT_SCRIPTS / "render_le_layout.py")
 LIVE_PANEL = "HART Railroad"
 
 
-def _level_counts() -> tuple[int, int, int]:
-    """(blocks, masts, heads) of the main and upper levels in the committed data: the device map's block rows
-    (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) and main_upper_masts.csv."""
+def _level_counts() -> tuple[int, int, int, int]:
+    """(blocks, sensors, masts, heads) of the main and upper levels in the committed data: the blocks the build adds,
+    the device map's block rows (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) less the
+    helix blocks, which are staging's beans (helix_tracks.csv, 2026-11-20); a virtual sensor for every block row,
+    the helix blocks' too; and main_upper_masts.csv."""
     import csv
+    helix = {h["block"] for h in sys.modules["mast_rule"].read_helix_tracks().values()}
     with B.DEVICE_MAP.open(newline="", encoding="utf-8") as f:
-        blocks = sum(r["layer"] == "block" for r in csv.DictReader(f))
+        rows = [r["user_name"] for r in csv.DictReader(f) if r["layer"] == "block"]
     masts = B.read_level_masts()
-    return blocks, len(masts), sum(len(r["heads"]) for r in masts)
+    return len([r for r in rows if r not in helix]), len(rows), len(masts), sum(len(r["heads"]) for r in masts)
 
 
-LEVEL_BLOCKS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
+LEVEL_BLOCKS, LEVEL_SENSORS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
+HELIX_BLOCKS = {"Track Helix Outer", "Track Helix Inner"}       # helix_tracks.csv: staging's beans, bound by the build
 
 
 @functools.lru_cache(maxsize=None)
@@ -206,9 +211,9 @@ class Built(unittest.TestCase):
         self.assertIn("Switch 225", new_t)              # the double crossover
         new_lb = {tables.user_name(b) for b in tables.layout_blocks(self.root) if is_new(b)}
         self.assertEqual(len(new_lb), LEVEL_BLOCKS)      # the 107 Loop's two halves and 225's four corners
-        self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")})
+        self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")} - HELIX_BLOCKS)
         self.assertIn("OS Switch 131", new_lb)          # connector A joins 131A and 131B: their OS block
-        self.assertIn("Track 131-H2", new_lb)           # the placeholder Track e89
+        self.assertNotIn("Track Helix Inner", new_lb)   # the placeholder Track e89: staging's block, not a new one
         self.assertFalse({b for b in new_lb if re.search(r"\be\d+", b)})
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
@@ -241,7 +246,7 @@ class Built(unittest.TestCase):
         internal sensors are (owner, 2026-11-17)."""
         internal = next(s for s in self.root.findall("sensors") if "InternalSensorManager" in s.get("class"))
         sensors = {tables.user_name(s): tables.system_name(s) for s in internal.findall("sensor") if is_new(s)}
-        self.assertEqual(len(sensors), LEVEL_BLOCKS)
+        self.assertEqual(len(sensors), LEVEL_SENSORS)                # the helix blocks' sensors too
         self.assertFalse([s for s in tables.sensors(self.root) if is_new(s) and s not in list(internal)])
         bd = level_devices
         for b in [b for b in tables.blocks(self.root) if is_new(b)]:
@@ -264,7 +269,7 @@ class Built(unittest.TestCase):
         for label, root in (("candidate", self.root), ("released", tables.read(paths.TABLES_XML))):
             with self.subTest(tables=label):
                 level = sorted(tables.system_name(s) for s in tables.sensors(root) if is_new(s))
-                self.assertEqual(len(level), LEVEL_BLOCKS)
+                self.assertEqual(len(level), LEVEL_SENSORS)
                 self.assertEqual(sorted(level_devices.clear_sensors(root)), level)
                 acts = {e.findtext("systemName"): e for e in root.find("LogixNGDigitalActions")}
                 for name in level_devices.clear_sensors(root):
@@ -449,8 +454,9 @@ class Built(unittest.TestCase):
         # turnouts, blocks (2 passes) and layout blocks, their sensors, the startup LogixNG (LogixNG, ConditionalNG,
         # DigitalMany, an ActionSensor per block, an ActionTurnout per turnout), heads and masts; no logic or path:
         # discovery adds them
-        objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_BLOCKS + 3 + LEVEL_BLOCKS + 39 + LEVEL_HEADS + LEVEL_MASTS
-        self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects})
+        objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_SENSORS + 3 + LEVEL_SENSORS + 39 + LEVEL_HEADS + LEVEL_MASTS
+        # the helix blocks' binding (block and layout block each) goes too: they are staging's beans
+        self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects, B.STRIPPED[5]: 4})
         base = tables.loads(self.P.staging_data)
         B.parked.split(base.root, B.PARKED)
         B.retire_yard_ladder(base.root)
@@ -560,12 +566,12 @@ class FactsReaders(unittest.TestCase):
 
 class DeviceNames(unittest.TestCase):
     """device_map_main_upper.csv's trial_name maps each drawn placeholder to a device-map name; anything else stops."""
-    HEAD = "level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes\n"
+    HEAD = ",".join(T_railroad.DEVICE_COLUMNS) + "\n"    # the fact columns (DEVICE_FACTS) left empty in each row
 
     def read(self, rows: str) -> dict:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "map.csv"
-            path.write_text(self.HEAD + rows, encoding="utf-8")
+            path.write_text(self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n"), encoding="utf-8")
             return B.device_names(path)
 
     def test_the_committed_map(self) -> None:
@@ -573,8 +579,8 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101A"], "Switch 101")
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")
-        self.assertEqual(got["Track e89"], "Track 131-H2")
-        self.assertEqual(len(got), 51 + LEVEL_BLOCKS)
+        self.assertEqual(got["Track e89"], "Track Helix Inner")      # one block with staging's McKeesport track
+        self.assertEqual(len(got), 51 + LEVEL_SENSORS)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
@@ -784,9 +790,8 @@ class SecondReview(unittest.TestCase):
 
 
 class Throats(unittest.TestCase):
-    """The short throat blocks of a staging track (S-1 West / S-1 East, East Lead East, K-1 West) are drawn at their
-    own ends of the track, in block order, at their real share (wiki/DISPATCHER_LAYOUT_HOOPS.md: mid-block anchors
-    vs throat blocks), not cut into equal thirds."""
+    """A staging track of several blocks is drawn in block order at their plan shares, a short block (OS Switch 7 on
+    Scale) at its own end, not cut into equal parts. The hidden yard throats are gone (owner, 2026-11-20)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -821,23 +826,22 @@ class Throats(unittest.TestCase):
         return {sid: bl for sid, bl in self.names[B.STAGING]["blocks"].items()
                 if len(bl) > 1 and all(b in lengths for b in bl)}
 
-    def test_the_throat_tracks_are_measured(self) -> None:
+    def test_the_tracks_of_several_blocks_are_measured(self) -> None:
         tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
-        # Scale holds OS Switch 7, cut at its block_lengths.csv share since the owner put Mast 8RA's boundary at
-        # Switch 7's points (2026-11-18); the Switch 1-3 link holds OS blocks only and keeps its equal halves
-        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1", "Scale"})
+        # every drawn block has its plan length (owner, 2026-11-20); a track of several blocks is cut at their plan
+        # shares: Scale with OS Switch 7 (Mast 8RA's boundary at Switch 7's points, 2026-11-18), and the Switch 1-3
+        # and 35-39 links of OS blocks only. Each yard track is one block since its throats went.
+        self.assertEqual(tracks, {"Scale", ""})
 
-    def test_staging_lengths_take_os_blocks_only_beside_measured_track(self) -> None:
+    def test_staging_lengths_are_the_plan_lengths_of_every_drawn_block(self) -> None:
         from le_names import staging_lengths
-        blocks = {"a": ["Track Scale", "OS Switch 7"], "b": ["OS Switch 3", "OS Switch 1"],
-                  "c": ["Track Barn", "OS Switch 13"], "d": ["Track East Ext", "OS Switch 99"]}
-        opts = {"track_lengths_in": {"Scale": 144.5, "East Ext": 140.8}}
-        names = {"blocks": blocks}
-        got = staging_lengths(opts, names, {"OS Switch 7": 10.0, "OS Switch 1": 22.6, "OS Switch 3": 10.0,
-                                            "OS Switch 13": 17.8})
-        self.assertEqual(got, {"Track Scale": 144.5, "OS Switch 7": 10.0})
-        # a: measured track and OS length; b: OS blocks only; c: the track has no measured length;
-        # d: the OS block has no length: each of b, c, d keeps equal blocks (nothing given)
+        names = {"blocks": {"a": ["Track Scale", "OS Switch 7"], "b": ["OS Switch 3", "OS Switch 1"]}}
+        plan = {"Track Scale": 158.0, "OS Switch 7": 9.2, "OS Switch 3": 9.2, "OS Switch 1": 9.2, "Track X": 5.0}
+        self.assertEqual(staging_lengths(names, plan), {"Track Scale": 158.0, "OS Switch 7": 9.2,
+                                                        "OS Switch 3": 9.2, "OS Switch 1": 9.2})
+        del plan["OS Switch 1"]
+        with self.assertRaisesRegex(B.BuildError, r"no plan length for drawn staging blocks \['OS Switch 1'\]"):
+            staging_lengths(names, plan)
 
     def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
         lengths = self.names[B.STAGING]["lengths"]
@@ -864,28 +868,6 @@ class Throats(unittest.TestCase):
                         least = max([self.le_mod.MIN_BLOCK] + room)
                         self.assertLessEqual(L, max(share, least) + stretch + bent[b] + 0.5)
                         self.assertLess(L, total / 2)
-
-    def test_the_south_yard_masts_stand_in_a_column_by_each_ladder(self) -> None:
-        cols = {}
-        for g in self.P.gantries:
-            names = {m["mast"] for m in g}
-            xs = {round(self.P.points[m["ident"]]["xy"][0], 1) for m in g if m["kind"] == "anchor"}
-            if not xs:                      # a gantry of turnout-leg masts only: no anchor column
-                continue
-            self.assertEqual(len(xs), 1, names)
-            x = xs.pop()
-            for n in names:
-                cols[n] = x
-        west = [cols[f"Mast {n}L"] for n in (16, 18, 20) if f"Mast {n}L" in cols]
-        east = [cols[f"Mast {n}R"] for n in (16, 18, 20) if f"Mast {n}R" in cols]
-        self.assertTrue(west and east)
-        for sid in self.measured():
-            if self.bands[0][1]["strands"][sid]["name"].startswith("S-"):
-                pts = [self.xy(self.segs[i]["ends"][0]) for i in self.P.strand_segments[(0, sid)]]
-                lo, hi = min(p[0] for p in pts), max(p[0] for p in pts)
-                self.assertLess(max(west), lo + (hi - lo) / 2)                  # the west column on the west half
-                self.assertGreater(min(east), lo + (hi - lo) / 2)               # the east column on the east half
-
 
 if __name__ == "__main__":
     unittest.main()
@@ -937,6 +919,45 @@ class LoopAndCrossover(unittest.TestCase):
         self.assertEqual(new[:len(old)], [renamed.get(b, b) for b in old])      # every old number kept
         self.assertEqual(new[len(old):], list(B.APPENDED_BLOCKS))
 
+    def test_the_numbering_is_read_from_its_csv(self) -> None:
+        self.assertEqual(B.BLOCK_NUMBERED_AS, {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
+                                               "Track 227-241 1": "Track 227-241"})
+        self.assertEqual(B.APPENDED_BLOCKS, ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c",
+                                             "OS Switch 225d", "Track 227-241 2"))
+        self.assertEqual(B.RETIRED_BLOCKS, ("Track 131-H1", "Track 131-H2"))
+
+    def test_a_bad_numbering_file_stops_with_its_line(self) -> None:
+        head = "block,numbered_as,append_order,retired,notes\n"
+        cases = {
+            "A,,,,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
+            "A,B,1,,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
+            "A,B,,yes,\n": "line 2 (A): give exactly one of numbered_as, append_order, retired",
+            "A,,,no,\n": "retired is 'no'; give yes or leave it empty",
+            "A,,x,,\n": "append_order 'x' is not a whole number",
+            "A,,2,,\n": "must count 1, 2, 3",
+            "A,,1,,\nA,,2,,\n": "line 3: block 'A' is empty or listed twice",
+            "A,B,,,\nB,,1,,\n": "B is both a block and the name another is numbered as",
+        }
+        for body, why in cases.items():
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "block_numbering.csv"
+                path.write_text(head + body)
+                with self.assertRaisesRegex(B.BuildError, re.escape(why), msg=body):
+                    B.load_numbering(path)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "block_numbering.csv"
+            path.write_text("block,numbered\nA,B\n")
+            with self.assertRaisesRegex(B.BuildError, "expected the columns"):
+                B.load_numbering(path)
+
+    def test_the_build_stops_on_a_row_for_a_block_that_is_gone(self) -> None:
+        have = ["OS Switch 107", "Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b",
+                "OS Switch 225c", "OS Switch 225d", "Track 227-241 1", *B.RETIRED_BLOCKS]   # no Track 227-241 2
+        with self.assertRaisesRegex(B.BuildError, "Track 227-241 2, which the main and upper levels no longer have"):
+            B.numbered_blocks(have, require_listed=True)
+        self.assertEqual(B.numbered_blocks(have)[-4:], ["Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c",
+                                                        "OS Switch 225d"])
+
     def test_the_loop_is_two_blocks_and_225_a_block_per_corner(self) -> None:
         _sheet, le_mod, _core = B.plugin()
         bands, page = B.schematic()
@@ -968,7 +989,7 @@ class LevelMasts(unittest.TestCase):
         gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
         self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
         rows = B.read_level_masts()
-        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (122, 44, 76))
+        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (120, 44, 76))
         r = next(r for r in rows if r["mast"] == "Mast 108LB")
         self.assertEqual((r["facing"], r["protects"]), ("Track 107 Loop 2", "OS Switch 107"))
         self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)")

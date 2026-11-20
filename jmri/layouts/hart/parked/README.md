@@ -23,7 +23,7 @@ the file's `source` attribute records it).
 | | Logix `IX:CTC:REVDEF` and conditional `IX:CTC:REVDEF:C1` | 1 + 1 |
 | | LogixNG ConditionalNG `IQC:AUTO:0002` "Hide USS CTC", its action `IQDA:AUTO:0002`, its entry in `IQ:AUTO:0001` | 1 + 1 + 1 |
 
-Signal masts and Signal Mast Logic stay active, the 26 hidden virtual masts included. `IQC:AUTO:0001` (hide
+Signal masts and Signal Mast Logic stay active, the hidden virtual masts included (10 since 2026-11-20: the yard-end and Dispatcher rear masts went with the yard throats, below, and the helix-foot masts 38RA and 40RA with the one-block helix tracks). `IQC:AUTO:0001` (hide
 WiThrottle) and `IQC:AUTO:0004` (hide HART Railroad under CATS) stay. So do `switches.csv`, `mast_cells.csv`, the
 layout facts data, the block comments that mark the Dispatcher stations, and the USS yellow sensor icons the panel's
 lamps use.
@@ -146,3 +146,46 @@ that is missing once the feature is back.
    `reconcile_dispatcher_stations.py --check --no-sync` and `parked/polish_hart_layout_editor.py --check`. Both print SKIPPED
    while the feature is parked, so they were taken out; the approved panel fingerprint
    (`tools/schematic/check_approved.py le-panel`) covers the panel meanwhile.
+6. Dispatcher System only: put the hidden yard throats back first (next section). Stage 1 needs them.
+
+## Hidden yard throats (removed 2026-11-20)
+
+The owner dropped them on 2026-11-20. They existed only for the parked Dispatcher System, so **unparking the
+Dispatcher must restore the throat blocks and their rear and yard-end masts**. They are defined in full at commit
+**5a5bff0a** (the last commit with them; `origin/main` 43b0aa32 has them too). Take each file's rows from there:
+`git show 5a5bff0a:<path>`.
+
+- **Blocks** (12, each a short block at one end of its yard track, sharing that track's detector and drawn at 15.748 in,
+  400 mm). The rows are in `jmri/layouts/hart/data/schematic/device_map_staging.csv`, each a block row plus its name in
+  the occupancy row's `blocks ...` note. The yard track's `trial_name` took the middle share, `Track <edge> 2/3`, or
+  `1/2` for East Lead and `2/2` for K-1. In `block_lengths.csv` they had source `stub`, and the tools of that commit
+  read them: `plan_lengths.py` fixed lengths, speed-profile detector sums and the electrical drawings.
+
+  | Block | System name | Trial name | Detector |
+  |-------|-------------|------------|----------|
+  | Track S-R West / East | IB:AUTO:0061 / 0060 | Track e10 1/3 / 3/3 | BS S-R |
+  | Track S-1 West / East | IB:AUTO:0052 / 0053 | Track e22 1/3 / 3/3 | BS S-1 |
+  | Track S-2 West / East | IB:AUTO:0054 / 0055 | Track e27 1/3 / 3/3 | BS S-2 |
+  | Track S-3 West / East | IB:AUTO:0056 / 0057 | Track e20 1/3 / 3/3 | BS S-3 |
+  | Track S-4 West / East | IB:AUTO:0058 / 0059 | Track e19 1/3 / 3/3 | BS S-4 |
+  | Track East Lead East | IB:AUTO:0062 | Track e26 2/2 | BS East Lead |
+  | Track K-1 West | IB:AUTO:0063 | Track e15.0 1/2 | BS K-1 |
+
+- **Masts** (virtual one-low, at the throat boundaries; in `staging_masts_virtual.csv` and
+  `staging_signals_virtual.csv` of 5a5bff0a~1, and `le_signal_boundaries.csv`, `public_name_map.csv`):
+  - yard-end masts, each facing its yard track into its throat 40 cm from the ladder switch:
+    - 16L, 16R (S-R, $1016, $1017);
+    - 18L, 18R (S-1, $1008, $1012);
+    - 20L, 20R (S-2, $1009, $1013);
+    - 22L, 22R (S-3, $1010, $1014);
+    - 26L, 26R (S-4, $1011, $1015);
+  - Dispatcher rear masts:
+    - 36L ($1025), Track East Lead East into Track East Lead;
+    - 40RB ($1026), Track K-1 West into Track K-1.
+  - Put them in by a rule in `build_staging_masts.py`, or bring back the hand-kept files and the code that read
+    them (`read_virtual` in `build_staging_masts.py` at 5a5bff0a; both were removed when nothing was left in them).
+- **tables.xml**: each throat's `<block>` (both passes) and `<layoutblock>`. Its block paths were moved onto its
+  track: the track's path to the throat became the throat's path to its OS block (with the turnout setting), and
+  the OS block's path to the throat now points at the track. Take them from `tables.xml` at 5a5bff0a.
+- Then `make panels`, `sync_staging_signals.py`, stock discovery in a sandbox and the owner's approval, as for any
+  staging change (ADR-024).

@@ -32,9 +32,9 @@ REGION = re.compile(r"<!--tf:([a-z0-9-]+)-->(.*?)<!--/tf-->", re.S)
 # Hand-picked examples. Each must still exist in the file in the form the page describes.
 EXAMPLE_SENSOR = "BS K-1"
 EXAMPLE_BLOCK, EXAMPLE_BLOCK_TURNOUT = "OS Switch 13", "Switch 13"
-EXAMPLE_SML = ("Mast 38LB", "Mast 36L")
+EXAMPLE_SML = ("Mast 40LA", "Mast 24L")
 EXAMPLE_TURNOUT = "Switch 35"
-EXAMPLE_DETECTORS = ("BS S-1", "BS East Lead")
+EXAMPLE_DETECTORS = ()   # none is shared since the yard throats went (2026-11-20)
 
 # Top-level sections in groups. Consecutive sections of one group share a row on the page.
 # A section not listed here stops the build: describe it before it reaches the page.
@@ -187,7 +187,7 @@ def facts(raw: bytes, root) -> dict:
     for d in EXAMPLE_DETECTORS:
         if d not in shared:
             raise PageError(f"tables.xml: detector {d!r} is no longer shared by several layout blocks; pick another in EXAMPLE_DETECTORS")
-        f["sharedExamples"].append((d, shared[d]))  # file order: Track S-1, then its West and East halves
+        f["sharedExamples"].append((d, shared[d]))
 
     # The example sensor, block, Signal Mast Logic and turnout.
     s = _one([e for e in _direct(root, "sensors", "sensor") if e.findtext("userName") == EXAMPLE_SENSOR],
@@ -366,7 +366,10 @@ def regions(f: dict) -> dict[str, str]:
 
     ex = [f'"{e(d)}" serves {e(and_list(u))}' for d, u in f["sharedExamples"]]
     n = f["sharedCount"]
-    shared = f"{count(n, 'detector', 'detectors').capitalize()} {'is' if n == 1 else 'are'} shared. {', and '.join(ex)}."
+    if n == 0:
+        shared = "No detector is shared."
+    else:
+        shared = f"{count(n, 'detector', 'detectors').capitalize()} {'is' if n == 1 else 'are'} shared." + (f" {', and '.join(ex)}." if ex else "")
 
     blk = f["block"]
     bx = ["<block>", f"  <userName>{blk['name']}</userName>", f"  <occupancysensor>{blk['sensor']}</occupancysensor>"]

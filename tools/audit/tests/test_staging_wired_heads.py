@@ -106,7 +106,7 @@ class Rebuild(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.want, cls.gen = bsm.build()
+        cls.want, cls.gen, _virtual = bsm.build()
 
     def build_with(self, edit):
         """build() with DEVICE_MAP (in both modules) a copy of the repo's that `edit(rows)` changed; returns
@@ -120,7 +120,7 @@ class Rebuild(unittest.TestCase):
                 w.writeheader()
                 w.writerows(rows)
             with unittest.mock.patch.object(bsm, "DEVICE_MAP", path), unittest.mock.patch.object(sdm, "DEVICE_MAP", path):
-                want, gen = bsm.build()
+                want, gen, _virtual = bsm.build()
             return {p.name: t for p, t in want.items()}, gen
 
     @staticmethod

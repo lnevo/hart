@@ -37,7 +37,7 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 - A pair at a loop's turnback takes the milepost at half the whole loop's length (both legs), wherever its symbols are drawn. East is the way the count rises.
 - Today's pairs: 67/68 (staging K-1/K-2), A83/A84 (the 107 Loop turnback, MP A 8.35) and B92/B93 (Track 227-241, 227-239 before the 2026-11-19 renumber, split at its turnback by `split_tracks_main_upper.csv`, MP B 9.23). They were A84/A85 and B91/B92 (MP A 8.49, B 9.19) until the helix length came from the AnyRail plan 5.3c (owner, 2026-11-19).
 - Stock discovery marks Masts 67, 68, A83, A84 and B92 intermediate (the `intermediateSignal` property) and not B93, and that is right for the track: JMRI sets it only when a mast's one destination is reached without crossing a turnout (`DefaultSignalMastLogicManager`, JMRI 5.16, lines 380-384), and B93's route to Mast 230LA crosses Switch 239, which has no signal, while B92 reaches Mast 228RB at Switch 227 (checked 2026-11-19). A mast on Switch 239's diverging leg would change that; setting the property by hand would not last, since discovery clears it first.
-- No signal stands in or at the top of the helix. The home signals at 127 and 131 (129 and 135 before the 2026-11-19 renumber) govern it.
+- No signal stands in the helix, at its top or at its foot. The home signals at 127 and 131 (129 and 135 before the 2026-11-19 renumber) govern it from above and those at 37 and 39 from below. Since 2026-11-20 each helix track is one block from its staging switch to Switch 131 (Track Helix Outer, Track Helix Inner; `helix_tracks.csv`), so there is no block boundary inside the helix for the rule to put a pair at. A83/A84 are the 107 Loop pair, not the helix.
 
 **Heads in JMRI**
 - Every head is internal (`IH:HART:C1:` on staging, `IH:HART:C3:` on main and upper), so nothing unwired reaches MQTT.
@@ -46,7 +46,9 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 - `disable_digicon_sml_in_tables.py` boots only masts on wired IH-digit heads with their logic disabled.
 
 **Virtual masts**
-- Staging's Dispatcher and routing masts stay hand-kept in `staging_masts_virtual.csv`.
+- Staging's hidden routing masts are placed by rule too (owner, 2026-11-20; `build_staging_masts.virtual_masts`), each a virtual one-low mast: a bumper mast at the buffer stop of each track ending at one (4LA, 4LB, 10LA, 10LB, 12L); a stub-leaving mast where a track meets a switch with a stub leg (every route out of that leg ends at a buffer stop), facing into the switch, where the visible rule places none (10RA, 10RB, 12R, 14R); and the partner of an anchor mast that has none, at the same boundary the other way (8LC, opposite 8RA). A virtual mast keeps the system name (`$1001` ...) its device-map row had; a new one takes the next ordinal.
+- The yard-end masts 16L to 26R and the Dispatcher rear masts 36L and 40RB are dropped with the hidden yard throats (see `jmri/layouts/hart/parked/README.md`). Routes into the yard tracks and stubs now end dark, as they do on main and upper.
+- Nothing is hand-kept any more: the helix-foot masts 38RA and 40RA, the last rows of `staging_masts_virtual.csv`, left on 2026-11-20 when each helix track became one block (they stood at no block boundary), so that file, `staging_signals_virtual.csv` and the code that read them are gone.
 
 **Signal Mast Logic**
 - Stock discovery runs from scratch in a sandbox: 182 destinations.

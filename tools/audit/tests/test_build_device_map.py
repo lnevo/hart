@@ -29,13 +29,25 @@ class Pure(unittest.TestCase):
     def test_base_drops_half_letter_and_star(self):
         self.assertEqual([BD.base(x) for x in ("129A", "135B", "223*", "105")], ["129", "135", "223", "105"])
 
-    def test_a_split_row_on_another_tracks_edge_stops(self):
-        found = [dict(name="Track 227-241", trial=["Track e63"]), dict(name="Track 241 Spur", trial=["Track e64"])]
-        BD.check_split(found, {"e63": "Track 227-241"})
-        with self.assertRaisesRegex(BD.MapError, r"e64 \(Track 227-241\)"):     # a plan read moved the edge ids
-            BD.check_split(found, {"e64": "Track 227-241"})
-        with self.assertRaisesRegex(BD.MapError, "Track 9-9"):
-            BD.check_split(found, {"e63": "Track 9-9"})
+    def test_a_split_track_is_named_and_its_edge_found_at_build_time(self):
+        """split_tracks_main_upper.csv names tracks by their end switches, which survive a new export; the plan edge
+        each is drawn on is looked up when the map is built."""
+        found = [dict(name="Track 227-241", trial=["Track e63"]), dict(name="Track 241 Spur", trial=["Track e64"]),
+                 dict(name="Track 1-2", trial=["Track e1", "Track e2"])]
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "split.csv"
+            for text, want in (("track,notes\nTrack 227-241,\n", {"e63": "Track 227-241"}),
+                               ("track,notes\nTrack 9-9,\n", "Track 9-9: no such track"),
+                               ("track,notes\nTrack 1-2,\n", "drawn on Track e1, Track e2"),
+                               ("track,notes\nTrack 227-241,\nTrack 227-241,\n", "once"),
+                               ("edge,track\ne63,Track 227-241\n", "columns")):
+                p.write_text(text, encoding="utf-8")
+                with self.subTest(text=text):
+                    if isinstance(want, dict):
+                        self.assertEqual(BD.split_edges(p, found=found), want)
+                    else:
+                        with self.assertRaisesRegex(BD.MapError, want):
+                            BD.split_edges(p, found=found)
 
     def test_control_point_lists_only_its_own_band_halves(self):
         cps = [cp("CP 129", 2, "129", "135"), cp("CP 223", 3, "223")]
@@ -249,10 +261,10 @@ class Output(unittest.TestCase):
         got = {x["user_name"]: (x["cp"], x["notes"]) for x in rows()
                if x["layer"] == "mast" and x["comment"].endswith(" | intermediate")}
         self.assertEqual(got, {
-            "Mast A83": ("CP 107", "intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.35"),
-            "Mast A84": ("CP 107", "intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.35"),
-            "Mast B92": ("CP 225", "intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.23"),
-            "Mast B93": ("CP 225", "intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.23")})
+            "Mast A83": ("CP 107", "intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.39"),
+            "Mast A84": ("CP 107", "intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.39"),
+            "Mast B92": ("CP 225", "intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.27"),
+            "Mast B93": ("CP 225", "intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.27")})
         for name in got:
             self.assertTrue(next(x for x in rows() if x["user_name"] == name)["jmri_name"]
                             .startswith("IF$shsm:basic:one-searchlight("), name)

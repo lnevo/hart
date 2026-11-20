@@ -33,7 +33,7 @@ class Settings(unittest.TestCase):
     def lengths_csv(self):
         d = Path(tempfile.mkdtemp())
         p = d / "bl.csv"
-        p.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        p.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
         return d, p
 
     def test_owner_settings_beat_the_liverule_defaults(self):
@@ -268,30 +268,17 @@ class SecondReview(unittest.TestCase):
         p.write_text(",".join(header) + "\n" + "\n".join(",".join(r) for r in rows) + "\n")
         return p
 
-    def test_without_basis_the_trusted_set_is_exact(self):
-        p = self.write_csv(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
-                           [["Track Main West", "x", "220", "assigned", ""],
-                            ["Track East Lead", "x", "172", "anyrail", ""]])
+    def test_the_trusted_set_is_exact(self):
+        p = self.write_csv(["user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note"],
+                           [["Track Main West", "x", "220", "", "plan", ""],
+                            ["Track East Lead", "x", "180", "172", "timed", ""]])
         default = analyze.load_lengths(p)
-        self.assertIsNone(default["BS Main West"])  # assigned only when passed
+        self.assertIsNone(default["BS Main West"])  # plan only when passed
         self.assertIsNotNone(default["BS East Lead"])
-        both = analyze.load_lengths(p, trusted=("anyrail", "assigned"))
-        self.assertIsNotNone(both["BS Main West"])
-        only = analyze.load_lengths(p, trusted=("anyrail",))
-        self.assertIsNone(only["BS Main West"])
-        self.assertIsNotNone(only["BS East Lead"])
-
-    def test_stubs_match_by_flag_and_shared_detector(self):
-        p = self.write_csv(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
-                           [["Track East Lead", "Block 1-7", "172", "anyrail", ""],
-                            ["Track East Lead East", "BS East Lead", "10", "stub", "unrelated text"],
-                            ["Track K-1 West", "BS K-1", "10", "stub", ""],
-                            ["Track Main West", "Block 2-1", "220", "anyrail", ""],
-                            ["Track Main West Stub", "BS Main West", "bad", "stub", ""]])
-        got = analyze.load_lengths(p)
-        self.assertAlmostEqual(got["BS East Lead"], 182 * 25.4)
-        self.assertAlmostEqual(got["BS Main West"], 220 * 25.4)  # a bad stub length is ignored
-        self.assertIsNone(got["BS K-1"])  # a stub does not make an untrusted track trusted
+        both = analyze.load_lengths(p, trusted=("timed", "plan"))
+        self.assertAlmostEqual(both["BS Main West"], 220 * 25.4)
+        only = analyze.load_lengths(p, trusted=("plan",))
+        self.assertIsNone(only["BS East Lead"])
 
 
 def steady_log(run_header, cfg="", n=8, dt=10.0, t0=3.0, complete=True, sensors=None):
@@ -323,13 +310,13 @@ class Round3(unittest.TestCase):
         logged = analyze.summarize_runs([run], csv_len)[0]["rows"][0]
         self.assertAlmostEqual(logged["median"], 100.0)
 
-    def test_default_trusted_set_is_anyrail_and_inferred_everywhere(self):
-        self.assertEqual(analyze.DEFAULT_TRUSTED, ("anyrail", "inferred"))
+    def test_default_trusted_set_is_timed_everywhere(self):
+        self.assertEqual(analyze.DEFAULT_TRUSTED, ("timed",))
         d = Path(tempfile.mkdtemp())
         p = d / "bl.csv"
-        p.write_text("user_name,occupancy_sensor,inches,basis,flag\nTrack Main West,x,220,assigned,assigned\n")
+        p.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,220,,plan,\n")
         self.assertIsNone(analyze.load_lengths(p)["BS Main West"])
-        self.assertIsNotNone(analyze.load_lengths(p, trusted=("assigned",))["BS Main West"])
+        self.assertIsNotNone(analyze.load_lengths(p, trusted=("plan",))["BS Main West"])
 
     # ---- correction ----
     flat = {s: 100.0 for s in range(0, 127, 6)}
@@ -534,7 +521,7 @@ class Round4(unittest.TestCase):
     def test_every_job_kind_carries_the_active_marker(self):
         d = Path(tempfile.mkdtemp())
         csvp = d / "bl.csv"
-        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        csvp.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
         make_job.main(["steps", "--loco", "L", "--direction", "forward", "--guard", "none",
                        "--lengths", str(csvp), "--out", str(d / "s.py")])
         make_job.main(["move", "--loco", "L", "--direction", "forward", "--guard", "none",
@@ -549,7 +536,7 @@ class Round4(unittest.TestCase):
     def test_guard_is_required_and_none_is_explicit(self):
         d = Path(tempfile.mkdtemp())
         csvp = d / "bl.csv"
-        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        csvp.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
         base = ["steps", "--loco", "L", "--direction", "forward", "--lengths", str(csvp), "--out", str(d / "s.py")]
         with self.assertRaises(SystemExit):
             make_job.main(base)
@@ -566,7 +553,7 @@ class Round4(unittest.TestCase):
     def test_steps_must_be_whole_numbers_1_to_126(self):
         d = Path(tempfile.mkdtemp())
         csvp = d / "bl.csv"
-        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        csvp.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
         base = ["steps", "--loco", "L", "--direction", "forward", "--lengths", str(csvp), "--guard", "none",
                 "--out", str(d / "s.py")]
         for bad in ("0", "127", "2.5", "abc", "24,,48", "24,200"):
@@ -588,9 +575,9 @@ class Round4(unittest.TestCase):
 
     def test_analyze_docstring_matches_the_code(self):
         doc = analyze.__doc__
-        self.assertIn("anyrail,inferred", doc)
-        self.assertIn("assigned", doc)
-        self.assertEqual(analyze.DEFAULT_TRUSTED, ("anyrail", "inferred"))
+        self.assertIn("[--trusted timed]", doc)
+        self.assertIn("A `plan` row", doc)
+        self.assertEqual(analyze.DEFAULT_TRUSTED, ("timed",))
 
 
 if __name__ == "__main__":

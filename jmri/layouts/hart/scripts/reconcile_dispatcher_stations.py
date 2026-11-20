@@ -55,8 +55,8 @@ STATIONS = (
     "Track Barn",
     "Track W-1",
     "Track W-2",
-    "Track McKees Rocks",
-    "Track McKeesport",
+    "Track Helix Outer",
+    "Track Helix Inner",
 )
 
 # Former stations. reconcile removes their buttons, progress sensors and
@@ -100,11 +100,9 @@ STATION_OCCUPANCY = {
     "Track Barn": "BS Barn",
     "Track W-1": "BS W-1",
     "Track W-2": "BS W-2",
-    # The helix tracks have no detector of their own yet: these are the OS Switch 39 / 37 detectors, as the old
-    # combined sensors were since 2026-11-13. The helix PR points them (and their parked lamps and USS board cells)
-    # at the helix tracks' own detectors.
-    "Track McKees Rocks": "BS Switch 39",
-    "Track McKeesport": "BS Switch 37",
+    # Each helix track is one block from its staging switch up the helix, on its own detector (owner, 2026-11-20)
+    "Track Helix Outer": "BS Helix Outer",
+    "Track Helix Inner": "BS Helix Inner",
 }
 
 # Loco marker is ~60px; size-10 bold fits about 8 characters.
@@ -119,8 +117,8 @@ STATION_DISPLAY_NAMES = {
     "Track Barn": "Barn",
     "Track W-1": "Track W-1",
     "Track W-2": "Track W-2",
-    "Track McKees Rocks": "McK Rks",
-    "Track McKeesport": "McKport",
+    "Track Helix Outer": "McK Rks",
+    "Track Helix Inner": "McKport",
 }
 
 

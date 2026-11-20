@@ -6,8 +6,8 @@ turnout,TOL38,C,Mast 4RB,C=Track W-2 diverge
 turnout,TOL42,B,Mast 6LB,B=Track East Ext continuing
 turnout,TOL42,C,Mast 6LA,C=Track Scale / east upper face; 1-head IH434
 turnout,TOL42,A,Mast 6R,A=Track Brick-Plane into Switch 5; hidden virtual; Dispatcher Stage 1
-anchor,AG32,east,Mast 8RA,Track Scale into OS Switch 7
-anchor,AG32,west,Mast 8LC,OS Switch 7 into Track Scale; hidden virtual
+anchor,AG20,east,Mast 8RA,Track Scale into OS Switch 7
+anchor,AG20,west,Mast 8LC,OS Switch 7 into Track Scale; hidden virtual
 turnout,TO1,C,Mast 14R,"Barn into Switch 13: leg C, its diverging leg and normal route (LH Peco #7 curved; owner, 2026-11-18); breaks Discover 8RA→26L"
 turnout,TO10,C,Mast 10RB,EH-3 into Switch 9; EH outbound Stage 1
 turnout,TO10,B,Mast 10RA,EH-2 into Switch 9; EH outbound Stage 1
@@ -21,13 +21,11 @@ turnout,TOL6,C,Mast 32R,C=Track 29 ladder leg; governs ladder move into Track 31
 turnout,TOL23,A,Mast 34L,A=Track East Lead east of 112
 turnout,TO113,A,Mast 36RA,A=Track West Ext west upper
 turnout,TO113,D,Mast 36RB,D=Track East Lead west lower
-anchor,AG25,west,Mast 36L,Track East Lead East into Track East Lead; hidden virtual
-turnout,TOL29,C,Mast 40LA,Track K-1 West into OS Switch 39
-turnout,TOL29,B,Mast 40LB,Track McKees Rocks into OS Switch 39
-anchor,AG12,east,Mast 40RB,Track K-1 West into Track K-1; hidden virtual
-turnout,TOR36,B,Mast 38LA,B=Track McKeesport (staging's share of helix H2; no detector yet)
+turnout,TOL29,C,Mast 40LA,Track K-1 into OS Switch 39
+turnout,TOL29,B,Mast 40LB,Track Helix Outer into OS Switch 39
+turnout,TOR36,B,Mast 38LA,B=Track Helix Inner (one block up the helix to Switch 131B)
 turnout,TOR36,C,Mast 38LB,C=Track K-2 (boundary at turnout); icon deg 270 faces west
-anchor,AG42,west,Mast 67,Track K-2 into Track K-1
-anchor,AG42,east,Mast 68,Track K-1 into Track K-2
+anchor,AG30,west,Mast 67,Track K-2 into Track K-1
+anchor,AG30,east,Mast 68,Track K-1 into Track K-2
 turnout,TO111,B,Mast 24L,Track West Ext into OS Switch 23a
 turnout,TOL23,C,Mast 34R,Track Main East into OS Switch 33

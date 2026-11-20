@@ -12,7 +12,7 @@ from hartlib import paths, railroad as R  # noqa: E402
 
 REPO = R.Sources.under()
 DATA_FILES = ("switches", "switch_legs", "name_map", "level_control_points", "local_switches", "lcos_nodes",
-              "plan_overrides", "block_lengths", "staging_masts", "hands", "device_map", "level_masts")
+              "plan_overrides", "block_lengths", "staging_masts", "hands", "device_map", "level_masts", "helix_tracks")
 
 
 class Copy(unittest.TestCase):
@@ -118,6 +118,26 @@ class Readers(Copy):
         self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), r"lcos_nodes_main_upper.csv line 2: 4 fields")
         self.fails(lambda: R.read_rows(self.tmp / "missing.csv", ["a"]), "cannot read it")
 
+    def test_the_device_maps_facts_are_columns(self) -> None:
+        """An occupancy row's blocks and detector, and a mast's switch, facing and protected block, are columns of
+        their own (DEVICE_FACTS): read and checked, never parsed out of the notes or comment."""
+        dm = R.read_device_map(self.src.device_map)
+        occ = dm.by_user("occupancy")
+        self.assertEqual((occ["BS Helix Inner"].served, occ["BS Helix Inner"].detector), (["Track Helix Inner"], "planned"))
+        self.assertEqual(occ["BS 101 Spur 1"].detector, "none")
+        mast = dm.by_user("mast")["Mast 132RA"]
+        self.assertEqual((mast.switch, mast.facing, mast.protected), ("131", "Track Helix Outer", []))
+        self.assertEqual(dm.by_user("mast")["Mast A83"].protected, ["Track 107 Loop 1"])
+        for old, new, msg in ((",Track 101 Spur 1,none,", ",Track 101 Spur 2,none,", "not the one block"),
+                              (",Track 101 Spur 1,none,", ",Track 101 Spur 1,planned,", "needs system name"),
+                              (",Track 101 Spur 1,none,", ",Track 101 Spur 1,dark,", "is not one of"),
+                              (",Track Helix Inner,planned,", ",Track Helix Inner,wired,", "calls it wired")):
+            with self.subTest(msg=msg):
+                text = self.src.device_map.read_text(encoding="utf-8")
+                self.edit("device_map", old, new)
+                self.fails(lambda: R.read_device_map(self.src.device_map), msg)
+                self.src.device_map.write_text(text, encoding="utf-8")
+
     def test_extra_columns_are_allowed_and_optional_ones_optional(self) -> None:
         """A column a reader does not use may be added, and an optional one (switches.csv `hand`, a notes column)
         may be missing from the header or from the end of a short row."""
@@ -132,8 +152,9 @@ class Readers(Copy):
         self.fails(lambda: R.Railroad(self.src).switches, "Switch 99.*no rows in switch_legs.csv")
         self.src.switches.write_text(text + "1,99,TO999,no\n", encoding="utf-8")             # short: required
         self.fails(lambda: R.Railroad(self.src).switches, "switches.csv line 22: 7 fields")
-        self.src.block_lengths.write_text("user_name,inches,extra\nTrack W-1,105,x\n", encoding="utf-8")
-        self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].inches, 105.0)
+        self.src.block_lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note,extra\n"
+                                          "Track W-1,Block 4-4,105.2,,plan,,x\n", encoding="utf-8")
+        self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].plan_in, 105.2)
 
     def test_switches_read_only_their_own_name_map_rows(self) -> None:
         """A bad row elsewhere in the name map is the facts check's to report; it does not stop switch loading
@@ -275,8 +296,25 @@ class Readers(Copy):
         self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), "objects with an `op`")
 
     def test_block_lengths_and_hands(self) -> None:
-        self.edit("block_lengths", "Track W-1,Block 4-4,105,", "Track W-1,Block 4-4,long,")
-        self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "line 2: inches 'long' is not a number")
+        got = R.read_block_lengths(self.src.block_lengths)
+        self.assertEqual((got["Track W-1"].source, got["Track W-1"].jmri_in), ("plan", got["Track W-1"].plan_in))
+        timed = got["Track Main West"]
+        self.assertEqual((timed.source, timed.jmri_in), ("timed", timed.measured_in))
+        self.assertNotEqual(timed.plan_in, timed.measured_in)
+        self.assertEqual(R.plan_cm({"Track Main West": timed})["Track Main West"], timed.plan_in * 2.54)
+        text = self.src.block_lengths.read_text(encoding="utf-8")
+        w1 = next(line for line in text.splitlines() if line.startswith("Track W-1,"))
+        for bad, why in ((w1.replace(",plan,", ",assigned,"), "source 'assigned' is not one of"),
+                         (w1.replace(",,plan,", ",99,plan,"), "a timed row gives its measured length, any other none"),
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,long,"), "plan_in 'long' is not a number"),
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,,"), "no plan_in"),
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,0,"), "plan_in 0 is not above zero")):
+            self.src.block_lengths.write_text(text.replace(w1, bad), encoding="utf-8")
+            self.fails(lambda: R.read_block_lengths(self.src.block_lengths), f"line 2: .*{why}")
+        mw = next(line for line in text.splitlines() if line.startswith("Track Main West,"))
+        self.src.block_lengths.write_text(text.replace(mw, mw.replace(",timed,", ",plan,")), encoding="utf-8")
+        self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "source plan with measured_in")
+        self.src.block_lengths.write_text(text, encoding="utf-8")
         self.edit("hands", "101A,L,", "101A,X,")
         self.fails(lambda: R.read_hands(self.src.hands), "hands.csv line 2")
 

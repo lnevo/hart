@@ -28,7 +28,7 @@ EVENTS_SHOWN = 15  # the newest events the focused run carries (the replay frame
 WRONG_WAY = "Pass went the wrong way, loco stopped"
 STALE_S = 300.0  # an unfinished run with no new line for this long is stale
 DEFAULT_ROUTE = analyze.DEFAULT_ROUTE
-LENGTH_FLAGS = ("anyrail", "plan", "inferred", "assigned", "estimate")
+LENGTH_FLAGS = ("timed", "plan")    # block_lengths.csv sources the loop distance counts
 clock = time.monotonic  # Mac wall clock for "time since a line arrived" (tests swap it)
 
 

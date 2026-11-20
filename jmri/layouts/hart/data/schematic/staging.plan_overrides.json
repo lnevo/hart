@@ -308,10 +308,10 @@
   ],
   [
    "33",
-   "T95"
+   "35@East Lead"
   ],
   [
-   "T95",
+   "35@East Lead",
    "37"
   ],
   [
@@ -319,7 +319,7 @@
    "McKeesport"
   ],
   [
-   "T95",
+   "35@East Lead",
    "39"
   ],
   [
@@ -328,40 +328,6 @@
   ]
  ],
  "_milepost_route": "The count runs the long way round the staging main: Brick-Plane, East Ext, Main East, East Lead, then the two throats into the helix (through the Switch 35 crossover to 39). Main West and West Ext, the west part of the loop, carry none.",
- "track_lengths_in": {
-  "W-1": 105.0,
-  "W-2": 93.0,
-  "Brick-Plane": 58.1,
-  "East Lead": 87.9,
-  "Main West": 217.3,
-  "West Ext": 156.1,
-  "Main East": 315.1,
-  "East Ext": 140.8,
-  "S-R": 218.0,
-  "S-1": 212.0,
-  "S-2": 178.0,
-  "S-3": 142.0,
-  "S-4": 100.0,
-  "K-1": 108.0,
-  "K-2": 113.6,
-  "Scale": 144.5,
-  "Barn": 33.7,
-  "EH-1": 49.0,
-  "EH-2": 28.0,
-  "EH-3": 28.0,
-  "S-1 West": 15.748,
-  "S-1 East": 15.748,
-  "S-2 West": 15.748,
-  "S-2 East": 15.748,
-  "S-3 West": 15.748,
-  "S-3 East": 15.748,
-  "S-4 West": 15.748,
-  "S-4 East": 15.748,
-  "S-R West": 15.748,
-  "S-R East": 15.748,
-  "East Lead East": 15.748,
-  "K-1 West": 15.748
- },
  "_stations": "West Yard is W-1 and W-2 with Switch 3 (owner, 2026-11-14). Brick is the interlocking between Switches 1 and 3: a control point, not a station.",
  "station_tracks": {
   "West Yard": [

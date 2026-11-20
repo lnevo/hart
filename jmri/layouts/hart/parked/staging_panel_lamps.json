@@ -1097,11 +1097,11 @@
    "xml": "<sensoricon sensor=\"BS W-2\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "station Track McKees Rocks: MoveToTrack_McKees_Rocks_stored",
+   "id": "station Track Helix Outer: MoveToTrack_Helix_Outer_stored",
    "anchor": {
     "to": "block",
     "at": "centre",
-    "block": "Track McKees Rocks",
+    "block": "Track Helix Outer",
     "dx": -25,
     "dy": 4
    },
@@ -1109,14 +1109,14 @@
     60,
     20
    ],
-   "xml": "<sensoricon sensor=\"MoveToTrack_McKees_Rocks_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"McK Rks\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"McK Rks\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"McK Rks\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"McK Rks\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"McK Rks\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+   "xml": "<sensoricon sensor=\"MoveToTrack_Helix_Outer_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"McK Rks\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"McK Rks\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"McK Rks\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"McK Rks\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"McK Rks\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
   },
   {
-   "id": "station Track McKees Rocks: MoveInProgressTrack_McKees_Rocks",
+   "id": "station Track Helix Outer: MoveInProgressTrack_Helix_Outer",
    "anchor": {
     "to": "block",
     "at": "centre",
-    "block": "Track McKees Rocks",
+    "block": "Track Helix Outer",
     "dx": -35,
     "dy": 4
    },
@@ -1124,14 +1124,14 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"MoveInProgressTrack_McKees_Rocks\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_Helix_Outer\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "station Track McKees Rocks: BS Switch 39",
+   "id": "station Track Helix Outer: BS Helix Outer",
    "anchor": {
     "to": "block",
     "at": "centre",
-    "block": "Track McKees Rocks",
+    "block": "Track Helix Outer",
     "dx": -35,
     "dy": 14
    },
@@ -1139,14 +1139,14 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"BS Switch 39\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"BS Helix Outer\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "station Track McKeesport: MoveToTrack_McKeesport_stored",
+   "id": "station Track Helix Inner: MoveToTrack_Helix_Inner_stored",
    "anchor": {
     "to": "block",
     "at": "centre",
-    "block": "Track McKeesport",
+    "block": "Track Helix Inner",
     "dx": -25,
     "dy": 4
    },
@@ -1154,14 +1154,14 @@
     60,
     20
    ],
-   "xml": "<sensoricon sensor=\"MoveToTrack_McKeesport_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"McKport\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"McKport\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"McKport\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"McKport\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"McKport\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
+   "xml": "<sensoricon sensor=\"MoveToTrack_Helix_Inner_stored\" level=\"12\" forcecontroloff=\"false\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\" text=\"McKport\" size=\"10\" style=\"1\" red=\"51\" green=\"51\" blue=\"51\" hasBackground=\"no\" justification=\"centre\"><active url=\"program:resources/icons/markers/loco-green.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/markers/loco-red.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/markers/loco-gray.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/markers/loco-yellow.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /><activeText text=\"McKport\" red=\"255\" green=\"0\" blue=\"0\" /><inactiveText text=\"McKport\" red=\"255\" green=\"255\" blue=\"0\" /><unknownText text=\"McKport\" red=\"0\" green=\"0\" blue=\"255\" /><inconsistentText text=\"McKport\" red=\"0\" green=\"0\" blue=\"0\" /></sensoricon>"
   },
   {
-   "id": "station Track McKeesport: MoveInProgressTrack_McKeesport",
+   "id": "station Track Helix Inner: MoveInProgressTrack_Helix_Inner",
    "anchor": {
     "to": "block",
     "at": "centre",
-    "block": "Track McKeesport",
+    "block": "Track Helix Inner",
     "dx": -35,
     "dy": 4
    },
@@ -1169,14 +1169,14 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"MoveInProgressTrack_McKeesport\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"MoveInProgressTrack_Helix_Inner\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"true\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   },
   {
-   "id": "station Track McKeesport: BS Switch 37",
+   "id": "station Track Helix Inner: BS Helix Inner",
    "anchor": {
     "to": "block",
     "at": "centre",
-    "block": "Track McKeesport",
+    "block": "Track Helix Inner",
     "dx": -35,
     "dy": 14
    },
@@ -1184,7 +1184,7 @@
     10,
     10
    ],
-   "xml": "<sensoricon sensor=\"BS Switch 37\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
+   "xml": "<sensoricon sensor=\"BS Helix Inner\" level=\"12\" forcecontroloff=\"true\" hidden=\"no\" positionable=\"true\" showtooltip=\"true\" editable=\"false\" momentary=\"false\" icon=\"yes\" class=\"jmri.jmrit.display.configurexml.SensorIconXml\"><active url=\"program:resources/icons/smallschematics/tracksegments/circuit-occupied.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></active><inactive url=\"program:resources/icons/smallschematics/tracksegments/circuit-empty.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inactive><unknown url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></unknown><inconsistent url=\"program:resources/icons/smallschematics/tracksegments/circuit-error.gif\" degrees=\"0\" scale=\"1.0\"><rotation>0</rotation></inconsistent><iconmaps /></sensoricon>"
   }
  ]
 }

@@ -731,13 +731,13 @@
   },
   "223-225": {
    "_planned_occupied": {
-    "DECADDR": "2203",
+    "DECADDR": "2202",
     "JMRIPREFIX": "M2S",
     "USER_NAME": "BS 223-225 2",
     "command": "close"
    },
    "_planned_unoccupied": {
-    "DECADDR": "2203",
+    "DECADDR": "2202",
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
@@ -758,13 +758,13 @@
   },
   "223-225 2": {
    "_planned_occupied": {
-    "DECADDR": "2202",
+    "DECADDR": "2201",
     "JMRIPREFIX": "M2S",
     "USER_NAME": "BS 223-225 1",
     "command": "close"
    },
    "_planned_unoccupied": {
-    "DECADDR": "2202",
+    "DECADDR": "2201",
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
@@ -801,13 +801,13 @@
   },
   "227-241 1": {
    "_planned_occupied": {
-    "DECADDR": "4100",
+    "DECADDR": "4102",
     "JMRIPREFIX": "M2S",
     "USER_NAME": "BS 227-241 1",
     "command": "close"
    },
    "_planned_unoccupied": {
-    "DECADDR": "4100",
+    "DECADDR": "4102",
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
@@ -827,6 +827,17 @@
    }
   },
   "227-241 2": {
+   "_planned_occupied": {
+    "DECADDR": "4103",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 227-241 2",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4103",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
    "discipline": "CTC",
    "name": "Track 227-241 2",
    "occupied": {
@@ -1257,65 +1268,55 @@
    }
   },
   "McKees Rocks": {
-   "discipline": "CTC",
-   "name": "Track McKees Rocks",
-   "station": "McKees"
-  },
-  "McKees Rocks 2": {
    "_planned_occupied": {
-    "DECADDR": "4206",
+    "DECADDR": "4101",
     "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS 131-H1",
+    "USER_NAME": "BS Helix Outer",
     "command": "close"
    },
    "_planned_unoccupied": {
-    "DECADDR": "4206",
+    "DECADDR": "4101",
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
    "discipline": "CTC",
-   "name": "Track 131-H1",
+   "name": "Track Helix Outer",
    "occupied": {
-    "DECADDR": ":HART:C3:B:131-H1",
+    "DECADDR": ":HART:C3:B:Helix_Outer",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 131-H1",
+    "USER_NAME": "BS Helix Outer",
     "command": "close"
    },
-   "station": "131-H1",
+   "station": "Helix",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:131-H1",
+    "DECADDR": ":HART:C3:B:Helix_Outer",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
   },
   "McKeesport": {
-   "discipline": "CTC",
-   "name": "Track McKeesport",
-   "station": "McKeesport"
-  },
-  "McKeesport 2": {
    "_planned_occupied": {
-    "DECADDR": "2201",
+    "DECADDR": "4100",
     "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS 131-H2",
+    "USER_NAME": "BS Helix Inner",
     "command": "close"
    },
    "_planned_unoccupied": {
-    "DECADDR": "2201",
+    "DECADDR": "4100",
     "JMRIPREFIX": "M2S",
     "command": "throw"
    },
    "discipline": "CTC",
-   "name": "Track 131-H2",
+   "name": "Track Helix Inner",
    "occupied": {
-    "DECADDR": ":HART:C3:B:131-H2",
+    "DECADDR": ":HART:C3:B:Helix_Inner",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 131-H2",
+    "USER_NAME": "BS Helix Inner",
     "command": "close"
    },
-   "station": "131-H2",
+   "station": "Helix",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:131-H2",
+    "DECADDR": ":HART:C3:B:Helix_Inner",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }

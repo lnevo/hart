@@ -1,0 +1,15 @@
+mast,system_name,dropped,notes
+Mast 16L,IF$vsm:basic:one-low($1016),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 16R,IF$vsm:basic:one-low($1017),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 18L,IF$vsm:basic:one-low($1008),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 18R,IF$vsm:basic:one-low($1012),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 20L,IF$vsm:basic:one-low($1009),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 20R,IF$vsm:basic:one-low($1013),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 22L,IF$vsm:basic:one-low($1010),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 22R,IF$vsm:basic:one-low($1014),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 26L,IF$vsm:basic:one-low($1011),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 26R,IF$vsm:basic:one-low($1015),2026-11-20,yard-end mast; restore on Dispatcher unpark (parked/README.md)
+Mast 36L,IF$vsm:basic:one-low($1025),2026-11-20,Dispatcher rear mast; restore on unpark (parked/README.md)
+Mast 38RA,IF$vsm:basic:one-low($1004),2026-11-20,helix-end mast; the helix is one block per track
+Mast 40RA,IF$vsm:basic:one-low($1003),2026-11-20,helix-end mast; the helix is one block per track
+Mast 40RB,IF$vsm:basic:one-low($1026),2026-11-20,Dispatcher rear mast; restore on unpark (parked/README.md)

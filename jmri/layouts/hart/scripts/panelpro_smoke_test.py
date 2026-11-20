@@ -14,7 +14,7 @@ import jmri
 # Matches reconcile_dispatcher_stations.STATIONS (Jython 2 cannot import it).
 # The cut-over panel (2026-11-16): 49 staging masts plus the 41 main and upper control-point masts; staging's sections
 # less the 8 head-on pairs Discover drops, plus the main and upper sections (audit_panel_contracts EXPECTED_GRAPH).
-MASTS = 93                  # staging 25 visible and 24 virtual, main and upper 44 (ADR-024)
+MASTS = 79                  # staging 25 visible and 10 virtual (by rule since 2026-11-20), main and upper 44 (ADR-024)
 SECTIONS = 197
 TRANSITS = 187
 TRAININFO = 374
@@ -80,8 +80,8 @@ STATIONS = (
     u"Track Barn",
     u"Track W-1",
     u"Track W-2",
-    u"Track McKees Rocks",
-    u"Track McKeesport",
+    u"Track Helix Outer",
+    u"Track Helix Inner",
 )
 
 

@@ -1,50 +1,36 @@
 mast,signal,toward,run,names,edge_cm,cm_from_toward,dir,signal_kind,heads,schematic_edge,schematic_toward_node
-Mast 2L,2L,1,1;23,Main West,551.9,0.0,west,planned,2,e16,TOL34067
-Mast 2R,2R,1,1;5,Brick-Plane,147.6,0.0,east,planned,1,e28,TOL34067
-Mast 4RA,4RA,3,3;,W-1,266.7,0.0,east,planned,1,e7,TOL33902
-Mast 4RB,4RB,3,3;,W-2,236.2,0.0,east,planned,1,e8,TOL33902
-Mast 6LA,6LA,5,5;7,Scale,392.4,0.0,west,planned,1,e29,TOL34057
-Mast 6LB,6LB,5,5;7,East Ext,357.6,0.0,west,field,1,e0,TOL34057
-Mast 6R,6R,5,5;1,Brick-Plane,147.6,0.0,east,planned,2,e28,TOL34057
-Mast 8LA,8LA,7,7;13,Barn,85.6,0.0,west,planned,2,e31,TOL34527
-Mast 8LB,8LB,7,7;33,Main East,800.4,0.0,west,planned,1,e1,TOL34519
-Mast 8RA,8RA,7,7;5,Scale,392.4,25.4,east,planned,1,e29,TOL34527
-Mast 8RB,8RB,7,7;5,East Ext,357.6,0.0,east,planned,2,e0,TOL34519
-Mast 24L,24L,23,23;35,West Ext,396.5,0.0,west,planned,1,e13,TOR29391
-Mast 24RA,24RA,23,23;1,Main West,551.9,0.0,east,planned,2,e16,TOR29391
-Mast 24RB,24RB,23,23;15,S-R,633.7,0.0,east,planned,1,e10,TOR29392
-Mast 32R,32R,31,31;29,,25.4,0.0,east,planned,1,e5,TOL28902
-Mast 34L,34L,33,33;35,East Lead,263.3,0.0,west,planned,2,e26,TOL29277
-Mast 34R,34R,33,33;7,Main East,800.4,0.0,east,planned,1,e1,TOL29277
-Mast 36RA,36RA,35,35;23,West Ext,396.5,0.0,east,planned,2,e13,TOL29967
-Mast 36RB,36RB,35,35;33,East Lead,263.3,0.0,east,planned,2,e26,TOL29970
+Mast 2L,2L,1,1;23,Main West,586.7,0.0,west,planned,2,e16,TOL34067
+Mast 2R,2R,1,1;5,Brick-Plane,181.9,0.0,east,planned,1,e28,TOL34067
+Mast 4RA,4RA,3,3;,W-1,267.2,0.0,east,planned,1,e7,TOL33902
+Mast 4RB,4RB,3,3;,W-2,267.7,0.0,east,planned,1,e8,TOL33902
+Mast 6LA,6LA,5,5;7,Scale,424.7,0.0,west,planned,1,e29,TOL34057
+Mast 6LB,6LB,5,5;7,East Ext,392.7,0.0,west,field,1,e0,TOL34057
+Mast 6R,6R,5,5;1,Brick-Plane,181.9,0.0,east,planned,2,e28,TOL34057
+Mast 8LA,8LA,7,7;13,Barn,79.5,0.0,west,planned,2,e31,TOL34527
+Mast 8LB,8LB,7,7;33,Main East,786.6,0.0,west,planned,1,e1,TOL34519
+Mast 8RA,8RA,7,7;5,Scale,424.7,23.4,east,planned,1,e29,TOL34527
+Mast 8RB,8RB,7,7;5,East Ext,392.7,0.0,east,planned,2,e0,TOL34519
+Mast 24L,24L,23,23;35,West Ext,429.8,0.0,west,planned,1,e13,TOR29391
+Mast 24RA,24RA,23,23;1,Main West,586.7,0.0,east,planned,2,e16,TOR29391
+Mast 24RB,24RB,23,23;15,S-R,585.7,0.0,east,planned,1,e10,TOR29392
+Mast 32R,32R,31,31;29,,23.4,0.0,east,planned,1,e5,TOL28902
+Mast 34L,34L,33,33;35,East Lead,274.1,0.0,west,planned,2,e26,TOL29277
+Mast 34R,34R,33,33;7,Main East,786.6,0.0,east,planned,1,e1,TOL29277
+Mast 36RA,36RA,35,35;23,West Ext,429.8,0.0,east,planned,2,e13,TOL29967
+Mast 36RB,36RB,35,35;33,East Lead,274.1,0.0,east,planned,2,e26,TOL29970
 Mast 38LA,38LA,37,37;,McKeesport,2327.9,0.0,west,planned,1,e37,TOR29969
-Mast 38LB,38LB,37,37;39,K-1;K-2,602.9,0.0,west,planned,1,e15,TOR29969
-Mast 40LA,40LA,39,39;37,K-1;K-2,602.9,0.0,west,planned,2,e15,TOL29312
+Mast 38LB,38LB,37,37;39,K-1;K-2,624.3,0.0,west,planned,1,e15,TOR29969
+Mast 40LA,40LA,39,39;37,K-1;K-2,624.3,0.0,west,planned,2,e15,TOL29312
 Mast 40LB,40LB,39,39;,McKees Rocks,2405.9,0.0,west,planned,2,e36,TOL29312
-Mast 67,67,39,39;37,K-1;K-2,602.9,314.3,west,planned,1,e15,TOL29312
-Mast 68,68,37,37;39,K-1;K-2,602.9,288.5,east,planned,1,e15,TOR29969
-Mast 4LA,4LA,3,3;,W-1,266.7,266.7,west,virtual,1,e7,TOL33902
-Mast 4LB,4LB,3,3;,W-2,236.2,236.2,west,virtual,1,e8,TOL33902
-Mast 8LC,8LC,5,5;7,Scale,392.4,367.0,west,virtual,1,e29,TOL34057
-Mast 10LA,10LA,9,9;,EH-2,71.1,71.1,west,virtual,1,e33,TOL34513
-Mast 10LB,10LB,9,9;,EH-3,71.1,71.1,west,virtual,1,e34,TOL34513
-Mast 10RA,10RA,9,9;,EH-2,71.1,0.0,east,virtual,1,e33,TOL34513
-Mast 10RB,10RB,9,9;,EH-3,71.1,0.0,east,virtual,1,e34,TOL34513
-Mast 12L,12L,11,11;,EH-1,124.5,124.5,west,virtual,1,e35,TOL34512
-Mast 12R,12R,11,11;,EH-1,124.5,0.0,east,virtual,1,e35,TOL34512
-Mast 14R,14R,13,13;7,Barn,85.6,0.0,east,virtual,1,e31,TOL34511
-Mast 16L,16L,15,15;23,S-R,633.7,40.0,west,virtual,1,e10,TOR28939
-Mast 16R,16R,23,23;15,S-R,633.7,40.0,east,virtual,1,e10,TOR29392
-Mast 18L,18L,17,17;29,S-1,618.5,40.0,west,virtual,1,e22,TOL28940
-Mast 18R,18R,29,29;17,S-1,618.5,40.0,east,virtual,1,e22,TOR28903
-Mast 20L,20L,19,19;27,S-2,532.1,40.0,west,virtual,1,e27,TOL28942
-Mast 20R,20R,27,27;19,S-2,532.1,40.0,east,virtual,1,e27,TOR28906
-Mast 22L,22L,21,21;25,S-3,440.7,40.0,west,virtual,1,e20,TOL28944
-Mast 22R,22R,25,25;21,S-3,440.7,40.0,east,virtual,1,e20,TOR28908
-Mast 26L,26L,21,21;25,S-4,334.0,40.0,west,virtual,1,e19,TOL28944
-Mast 26R,26R,25,25;21,S-4,334.0,40.0,east,virtual,1,e19,TOR28908
-Mast 36L,36L,33,33;35,East Lead,263.3,223.3,west,virtual,1,e26,TOL29277
-Mast 38RA,38RA,37,37;,McKeesport,2327.9,2327.9,east,virtual,1,e37,TOR29969
-Mast 40RA,40RA,39,39;,McKees Rocks,2405.9,2405.9,east,virtual,1,e36,TOL29312
-Mast 40RB,40RB,37,37;39,K-1;K-2,602.9,562.9,east,virtual,1,e15,TOR29969
+Mast 67,67,39,39;37,K-1;K-2,624.3,312.2,west,planned,1,e15,TOL29312
+Mast 68,68,37,37;39,K-1;K-2,624.3,312.2,east,planned,1,e15,TOR29969
+Mast 4LA,4LA,3,3;,W-1,267.2,267.2,west,virtual,1,e7,TOL33902
+Mast 4LB,4LB,3,3;,W-2,267.7,267.7,west,virtual,1,e8,TOL33902
+Mast 8LC,8LC,5,5;7,Scale,424.7,401.3,west,virtual,1,e29,TOL34057
+Mast 10LA,10LA,9,9;,EH-2,77.0,77.0,west,virtual,1,e33,TOL34513
+Mast 10LB,10LB,9,9;,EH-3,76.5,76.5,west,virtual,1,e34,TOL34513
+Mast 10RA,10RA,9,9;,EH-2,77.0,0.0,east,virtual,1,e33,TOL34513
+Mast 10RB,10RB,9,9;,EH-3,76.5,0.0,east,virtual,1,e34,TOL34513
+Mast 12L,12L,11,11;,EH-1,130.3,130.3,west,virtual,1,e35,TOL34512
+Mast 12R,12R,11,11;,EH-1,130.3,0.0,east,virtual,1,e35,TOL34512
+Mast 14R,14R,13,13;7,Barn,79.5,0.0,east,virtual,1,e31,TOL34511

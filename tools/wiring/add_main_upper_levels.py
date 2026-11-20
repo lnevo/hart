@@ -51,7 +51,7 @@ NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
 def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
     """The device map's rows. comment and trial_name are required here, beyond what hartlib's own reader needs: the
     ports and the Switch Elements names are read from them on every row."""
-    return [r for _line, r in read_rows(path, DEVICE_COLUMNS[:10], optional=DEVICE_COLUMNS[10:])]
+    return [r for _line, r in read_rows(path, DEVICE_COLUMNS[:10] + ("switch",), optional=DEVICE_COLUMNS[10:])]
 
 
 def read_node_rows(path: Path = NODES) -> list[dict]:
@@ -213,7 +213,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
         for head, board, pins in n.heads:
             if head.endswith(" Top"):
                 mast = head.removeprefix("Head ").removesuffix(" Top")
-                sw = by_name[f"Mast {mast}"]["comment"].split(" | Switch ")[1]
+                sw = by_name[f"Mast {mast}"]["switch"]          # its switch column (hartlib.railroad.DEVICE_FACTS)
                 entry.setdefault(sw, (mast, [f"{n.id}-OU{board}-{p}" for p in pins]))
     for n in sorted(nodes.values(), key=lambda n: n.num):
         for name, _, r in n.turnouts:

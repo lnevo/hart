@@ -12,7 +12,7 @@
   "Stage 0 proof, as built"
  ],
  "date": "2026-11-20",
- "revision": 15,
+ "revision": 16,
  "sheet": "1 of 1",
  "num_px": 6.5,
  "helix_style": "coil",
@@ -41,8 +41,8 @@
     "T169",
     "T202",
     "T196",
-    "50",
-    "51"
+    "TO_3W33789-2",
+    "TO_3W33789-1"
    ]
   }
  ],
@@ -66,7 +66,7 @@
   ],
   [
    "T169",
-   "50",
+   "TO_3W33789-2",
    6
   ],
   [
@@ -210,8 +210,8 @@
  "_cats_title_gap": "Each band's track starts on the row under its title, with no empty row between (owner, 2026-11-18): with cats_band_gap the desk is 28 rows, not 33.",
  "cats_cells_per_unit": 1,
  "_cats_cells_per_unit": "One CATS cell per schematic grid unit is what fits all three levels in cats_window.",
- "cats_helix_blocks": "apart",
- "_cats_helix_blocks": "A helix track drawn on staging and on main or upper is a desk block on each band, parted at the join (owner, 2026-11-17).",
+ "cats_helix_blocks": "one",
+ "_cats_helix_blocks": "A helix track drawn on staging and on main or upper is one desk block over both bands, as it is one JMRI block from its staging switch up the helix (owner, 2026-11-20; it was a block on each band from 2026-11-17).",
  "le_row": 48,
  "_le_row": "Staging's rows on the Layout Editor panels, in px (build_layout_le.py: staging's fit to le_window and the cut-over candidates' grid). Staging alone fills the window's width long before its height, so its rows may be as far apart as the live panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels. It is the page's (this file sets the page) though it is staging's rows.",
  "le_tight_crossovers": {

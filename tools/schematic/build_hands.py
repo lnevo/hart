@@ -49,6 +49,7 @@ def build():
     if unknown:
         raise SystemExit(f"build_hands.py does not read {unknown} edits yet: teach it before using hands.csv")
     by_label = {n["label"]: n for n in nodes.values() if n["kind"] == "switch"}
+    by_label.update({i: n for i, n in nodes.items() if n["kind"] == "switch"})      # a switch the plan numbers no part for
     dx = {n["label"] for n in nodes.values() if n["kind"] == "dx"}
     owner_hand = {}
     for e in edits:

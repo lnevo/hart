@@ -881,7 +881,14 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track McKees Rocks" STATION="McKees" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="Track Helix Outer" STATION="Helix" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Outer" JMRIPREFIX="IS" USER_NAME="BS Helix Outer">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Outer" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWLEFT" NAME="HELIX TO MAIN LEVEL" FONT_NAME="FONT_LABEL" />
@@ -900,7 +907,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track McKees Rocks" STATION="McKees" DISCIPLINE="CTC" VISIBLE="true" />
         <SHARED X="56" Y="13">RIGHT</SHARED>
       </SEC_EDGE>
     </SECTION>
@@ -1663,7 +1669,14 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track McKeesport" STATION="McKeesport" DISCIPLINE="CTC" VISIBLE="true" />
+        <BLOCK NAME="Track Helix Inner" STATION="Helix" DISCIPLINE="CTC" VISIBLE="true">
+          <OCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Inner" JMRIPREFIX="IS" USER_NAME="BS Helix Inner">close</IOSPEC>
+          </OCCUPIEDSPEC>
+          <UNOCCUPIEDSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Inner" JMRIPREFIX="IS">throw</IOSPEC>
+          </UNOCCUPIEDSPEC>
+        </BLOCK>
       </SEC_EDGE>
       <SEC_EDGE EDGE="RIGHT" />
       <SEC_NAME LOC_NAME="LOWLEFT" NAME="HELIX TO UPPER LEVEL" FONT_NAME="FONT_LABEL" />
@@ -1682,7 +1695,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track McKeesport" STATION="McKeesport" DISCIPLINE="CTC" VISIBLE="true" />
         <SHARED X="44" Y="26">RIGHT</SHARED>
       </SEC_EDGE>
     </SECTION>
@@ -4306,12 +4318,12 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track 131-H1" STATION="131-H1" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track Helix Outer" STATION="Helix" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H1" JMRIPREFIX="IS" USER_NAME="BS 131-H1">close</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Outer" JMRIPREFIX="IS" USER_NAME="BS Helix Outer">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H1" JMRIPREFIX="IS">throw</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Outer" JMRIPREFIX="IS">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -4337,14 +4349,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track 131-H1" STATION="131-H1" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H1" JMRIPREFIX="IS" USER_NAME="BS 131-H1">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H1" JMRIPREFIX="IS">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
         <SHARED X="58" Y="3">RIGHT</SHARED>
       </SEC_EDGE>
     </SECTION>
@@ -9242,12 +9246,12 @@
         <TRACK>HORIZONTAL</TRACK>
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT">
-        <BLOCK NAME="Track 131-H2" STATION="131-H2" DISCIPLINE="CTC" VISIBLE="true">
+        <BLOCK NAME="Track Helix Inner" STATION="Helix" DISCIPLINE="CTC" VISIBLE="true">
           <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H2" JMRIPREFIX="IS" USER_NAME="BS 131-H2">close</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Inner" JMRIPREFIX="IS" USER_NAME="BS Helix Inner">close</IOSPEC>
           </OCCUPIEDSPEC>
           <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H2" JMRIPREFIX="IS">throw</IOSPEC>
+            <IOSPEC DECADDR=":HART:C3:B:Helix_Inner" JMRIPREFIX="IS">throw</IOSPEC>
           </UNOCCUPIEDSPEC>
         </BLOCK>
       </SEC_EDGE>
@@ -9275,14 +9279,6 @@
       </TRACKGROUP>
       <SEC_EDGE EDGE="LEFT" />
       <SEC_EDGE EDGE="RIGHT">
-        <BLOCK NAME="Track 131-H2" STATION="131-H2" DISCIPLINE="CTC" VISIBLE="true">
-          <OCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H2" JMRIPREFIX="IS" USER_NAME="BS 131-H2">close</IOSPEC>
-          </OCCUPIEDSPEC>
-          <UNOCCUPIEDSPEC>
-            <IOSPEC DECADDR=":HART:C3:B:131-H2" JMRIPREFIX="IS">throw</IOSPEC>
-          </UNOCCUPIEDSPEC>
-        </BLOCK>
         <SHARED X="58" Y="4">RIGHT</SHARED>
       </SEC_EDGE>
     </SECTION>

@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Draw the engine terminal as a placeholder on the staging level drawing.
 
-    python3 engine_terminal.py > engine_terminal.svg
+    python3 engine_terminal.py STAGING_SVG > engine_terminal.svg
 
+STAGING_SVG is the staging level drawing (staging_plan.svg). The run, the curve Switch 13 sits on and where it sits
+are read from it and from loop2_locate.csv (staging_run.py); nothing about the run is typed here.
 Switch 13 gets its turnout here but no label: levels_page.markers() already labels it.
 
 The terminal is not in plan 5.3b. This lays it out in the plan's centimetres (y down, same
@@ -16,7 +18,7 @@ Taken from the photo: the three EH tracks lie south of the run, parallel to its 
 2.5 in centres (the track gauges in the photo); EH-3 is about 5 in from the run; Switch 9 sits
 where the straights end, Switch 11 further round the curve, and the lead closes on the run
 until it joins it at Switch 13. Taken from the drawing: the run and where Switch 13 sits on it
-(levels_page.py LOCATE). Not measured: the stub lengths and the radii, so this is a placeholder.
+(staging_run.py). Not measured: the stub lengths and the radii, so this is a placeholder.
 """
 import math
 import sys
@@ -29,6 +31,9 @@ from hartlib import paths  # noqa: E402
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 import layout_facts  # noqa: E402
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import staging_run  # noqa: E402
+
 
 def switch_hand(number):
     """L or R from switches.csv; this drawing cannot guess a hand nobody recorded."""
@@ -37,22 +42,23 @@ def switch_hand(number):
         raise SystemExit(f"switches.csv has no hand for Switch {number}; the engine terminal drawing needs it")
     return hand
 
-RUN_C = (103.0, 442.8)      # centre of the run's curve from the Switch 7 straight up to Switch 15
-RUN_R = 78.7
-RUN_Y = 521.5               # the run's straight (Switch 7 is on it)
-SW13 = (31.3, 475.3)        # Switch 13 from the loop 2 passes (levels_page.markers)
 CC = 2.5 * 2.54             # EH track centres
 GAP = 5.0 * 2.54            # run to EH-3
-Y3, Y2, Y1 = RUN_Y + GAP, RUN_Y + GAP + CC, RUN_Y + GAP + 2 * CC
 TO_LEN, TO_OFF = 23.4, 2.6  # turnout symbol, as the plan turnouts are drawn
 LEAD_STRAIGHT = 0.0         # straight out of Switch 13's diverging leg before the lead curves
 SW11_AT = 0.30              # Switch 11's points, as a share of the lead curve from Switch 13
 STUB_END = 180.0            # x of the three end bumpers: lengths not measured
 
 
-def on_run(deg):
-    a = math.radians(deg)
-    return (RUN_C[0] + RUN_R * math.cos(a), RUN_C[1] + RUN_R * math.sin(a))
+def run_facts(staging):
+    """What the terminal hangs on, read off the staging drawing: the run's straight (y), the centre and radius of
+    its curve into the yard ladder, and Switch 13 on that curve (from the timed passes)."""
+    locate = staging_run.load_locate()
+    path, pieces = staging_run.run_path(staging)
+    sw13 = staging_run.point_at(path, locate["13"]["mean"] / 10)
+    centre, radius = staging_run.curve_at(pieces, sw13)
+    run_y, _ = staging_run.straight_at(staging, pieces, staging_run.point_at(path, locate["7"]["mean"] / 10))
+    return run_y, centre, radius, tuple(sw13)
 
 
 def heading(deg):
@@ -90,16 +96,23 @@ def ease(p0, p1, n=12):
     return out
 
 
-def build():
+def build(staging):
+    run_y, run_c, run_r, sw13 = run_facts(staging)
+    y3, y2, y1 = run_y + GAP, run_y + GAP + CC, run_y + GAP + 2 * CC
+
+    def on_run(deg):
+        a = math.radians(deg)
+        return (run_c[0] + run_r * math.cos(a), run_c[1] + run_r * math.sin(a))
+
     # Switch 9's hand from switches.csv. "L" (the owner's Switch 9): tilted so its diverging leg runs parallel
     # to the EH tracks (through leg to EH-2); "R" (the first build): through leg EH-3, diverging leg EH-2.
     sw9_hand = switch_hand(9)
     trk, to, lb, rl = [], [], [], []
     frog = math.degrees(math.atan2(TO_OFF, TO_LEN))
-    step = math.degrees(TO_LEN / RUN_R)
+    step = math.degrees(TO_LEN / run_r)
 
     # Switch 13: points towards Switch 15, through leg along the run, diverging leg outside the curve
-    a13 = math.degrees(math.atan2(SW13[1] - RUN_C[1], SW13[0] - RUN_C[0]))
+    a13 = math.degrees(math.atan2(sw13[1] - run_c[1], sw13[0] - run_c[0]))
     a_toe = a13 + step / 2
     toe13, thru13 = on_run(a_toe), on_run(a_toe - step)
     h = heading(a_toe - step / 2 + frog)
@@ -112,7 +125,7 @@ def build():
     end = 90.0 + (frog if sw9_hand == "L" else 0.0)
     hd = a_toe - step / 2 + frog
     p = (div13[0] + LEAD_STRAIGHT * h[0], div13[1] + LEAD_STRAIGHT * h[1])
-    c, r = arc_to_line(p, hd, Y3, end)
+    c, r = arc_to_line(p, hd, y3, end)
     a11 = hd + (end - hd) * SW11_AT                  # Switch 11's points on the lead
     st11 = math.degrees(TO_LEN / r)
 
@@ -126,38 +139,38 @@ def build():
     to.append((toe11, in11, out11))
     lb.append((toe11[0] - 1, toe11[1] + 44, "Sw 11"))
     trk.append(arc_pts(c, r, a11 - st11, end))                           # Switch 11 to Switch 9
-    c1, r1 = arc_to_line(out11, hd1, Y1)
-    trk.append(arc_pts(c1, r1, hd1, 90.0) + [(STUB_END, Y1)])            # EH-1, the outer track
+    c1, r1 = arc_to_line(out11, hd1, y1)
+    trk.append(arc_pts(c1, r1, hd1, 90.0) + [(STUB_END, y1)])            # EH-1, the outer track
     toe9 = at(end)
     if sw9_hand == "L":
         # through leg straight on along the arrival heading, diverging leg east along EH-3
         thru9 = (toe9[0] + TO_LEN * math.cos(math.radians(frog)), toe9[1] + TO_LEN * math.sin(math.radians(frog)))
         div9 = (toe9[0] + TO_LEN, toe9[1])
         to.append((toe9, thru9, div9))
-        trk.append([div9, (STUB_END, Y3)])                               # EH-3
-        trk.append(ease(thru9, (thru9[0] + 30, Y2)) + [(STUB_END, Y2)])  # EH-2, the normal route
+        trk.append([div9, (STUB_END, y3)])                               # EH-3
+        trk.append(ease(thru9, (thru9[0] + 30, y2)) + [(STUB_END, y2)])  # EH-2, the normal route
     else:
-        thru9, div9 = (toe9[0] + TO_LEN, Y3), (toe9[0] + TO_LEN, Y3 + TO_OFF)
+        thru9, div9 = (toe9[0] + TO_LEN, y3), (toe9[0] + TO_LEN, y3 + TO_OFF)
         to.append((toe9, thru9, div9))
-        trk.append([thru9, (STUB_END, Y3)])                              # EH-3
-        trk.append(ease(div9, (div9[0] + 30, Y2)) + [(STUB_END, Y2)])    # EH-2
-    lb.append((toe9[0] - 6, Y3 - 5, "Sw 9"))
-    for y, name in ((Y3, "EH-3"), (Y2, "EH-2"), (Y1, "EH-1")):
+        trk.append([thru9, (STUB_END, y3)])                              # EH-3
+        trk.append(ease(div9, (div9[0] + 30, y2)) + [(STUB_END, y2)])    # EH-2
+    lb.append((toe9[0] - 6, y3 - 5, "Sw 9"))
+    for y, name in ((y3, "EH-3"), (y2, "EH-2"), (y1, "EH-1")):
         to.append(((STUB_END, y - 1.6), (STUB_END, y + 1.6), None))      # end bumper
         rl.append((STUB_END + 3, y + 1.8, name))
-    rl.append((toe9[0] + 34, Y1 + 9, "Engine terminal: placeholder, not in plan 5.3b"))
-    rl.append((toe9[0] + 34, Y1 + 15, "Switch 9 is left hand: its normal route goes to EH-2"
+    rl.append((toe9[0] + 34, y1 + 9, "Engine terminal: placeholder, not in plan 5.3b"))
+    rl.append((toe9[0] + 34, y1 + 15, "Switch 9 is left hand: its normal route goes to EH-2"
                if sw9_hand == "L" else "Switch 9's normal route goes to EH-2"))
     run = lambda P: sum(math.dist(P[k], P[k + 1]) for k in range(len(P) - 1)) / 2.54
     # trk order: Switch 13 to 11, Switch 11 to 9, EH-1, EH-3, EH-2
     lengths_in = {"13 to 11": run(trk[0]), "11 to 9": run(trk[1]), "EH-1": run(trk[2]), "EH-3": run(trk[3]), "EH-2": run(trk[4])}
     info = dict(lengths_in=lengths_in, lead_radius=r, eh1_radius=r1, sw13_toe=toe13, sw11_toe=toe11, sw9_toe=toe9,
-                eh=dict(y1=Y1, y2=Y2, y3=Y3), eh1_tangent_x=c1[0])
+                eh=dict(y1=y1, y2=y2, y3=y3), eh1_tangent_x=c1[0])
     return trk, to, lb, rl, info
 
 
-def svg():
-    trk, to, lb, rl, info = build()
+def svg(staging):
+    trk, to, lb, rl, info = build(staging)
     out = []
     for pts in trk:
         out.append('<polyline class="trk" points="%s"/>' % " ".join("%.1f,%.1f" % p for p in pts))
@@ -173,6 +186,8 @@ def svg():
 
 
 if __name__ == "__main__":
-    s, info = svg()
+    if len(sys.argv) != 2:
+        sys.exit(__doc__)
+    s, info = svg(Path(sys.argv[1]).read_text())
     sys.stdout.write(s)
     print(info, file=sys.stderr)

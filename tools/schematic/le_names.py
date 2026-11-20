@@ -1,5 +1,5 @@
 """Names and bindings of the Layout Editor build: the main and upper levels' device-map names and masts, staging's
-measured lengths and columns (its names are the staging device map's: staging_device_map.load), and the bands as
+plan lengths and columns (its names are the staging device map's: staging_device_map.load), and the bands as
 named for the plugin's label layer."""
 from __future__ import annotations
 
@@ -71,52 +71,29 @@ def runs(band, skip=()):
     return out
 
 
-def staging_lengths(opts: dict, names: dict, os_inches: dict | None = None) -> dict:
-    """{block: inches} for each staging block the schematic draws whose track has a measured length (layer 1
-    `track_lengths_in`, by track name: block "Track S-1 West" is track "S-1 West"), so a track with several blocks
-    is cut at their real shares: a short throat block (S-1 West, East Lead East, K-1 West) sits at its own end."""
-    measured = opts.get("track_lengths_in") or {}
-    if not isinstance(measured, dict):
-        raise BuildError("staging track_lengths_in must be an object of track name: inches")
-    used = {b for v in names["blocks"].values() for b in v}
-    out = {}
-    for track, inches in sorted(measured.items()):
-        if isinstance(inches, bool) or not isinstance(inches, (int, float)) or not inches > 0:
-            raise BuildError(f"staging track_lengths_in: {track!r} has length {inches!r}, not inches above zero")
-        if f"Track {track}" not in used:
-            raise BuildError(f"staging track_lengths_in: no drawn staging track has the block 'Track {track}' "
-                             "(renamed or misspelt?)")
-        out[f"Track {track}"] = float(inches)
-    # A track that also holds an OS block (the Scale track ends in OS Switch 7) takes each OS block's length from
-    # block_lengths.csv (owner, 2026-11-18: Mast 8RA's boundary at Switch 7's points, not half way along Scale), so
-    # the OS block is drawn its real short length and the plugin keeps it long enough for a facing mast's icon.
-    # A track with an OS block that has no length there, with no measured track block, or whose other blocks are not
-    # all measured (a link of OS blocks only, Switch 1 to 3, keeps its equal halves) is drawn with equal blocks as
-    # before; its lengths are left out rather than logged on every build.
-    os_inches = block_inches() if os_inches is None else os_inches
-    for blocks in names["blocks"].values():
-        oses = [b for b in blocks if b.startswith("OS ")]
-        tracks = [b for b in blocks if b not in oses]
-        if not oses:
-            continue
-        if tracks and all(os_inches.get(b) for b in oses) and all(b in out for b in tracks):
-            out.update({b: float(os_inches[b]) for b in oses})
-        else:
-            for b in blocks:
-                out.pop(b, None)
-    return out
+def staging_lengths(names: dict, plan_inches: dict | None = None) -> dict:
+    """{block: inches} of every staging block the schematic draws, from block_lengths.csv's plan_in (the AnyRail plan
+    5.3c, tools/schematic/plan_lengths.py; owner, 2026-11-20): the plugin cuts a track of several blocks at their
+    plan shares (the Scale track ends in OS Switch 7, which is drawn its turnout's length). BuildError on a drawn
+    block with no plan length."""
+    plan_inches = plan_lengths() if plan_inches is None else plan_inches
+    drawn = sorted({b for v in names["blocks"].values() for b in v})
+    missing = [b for b in drawn if b not in plan_inches]
+    if missing:
+        raise BuildError(f"block_lengths.csv has no plan length for drawn staging blocks {missing}")
+    return {b: float(plan_inches[b]) for b in drawn}
 
 
 @functools.lru_cache(maxsize=1)
-def block_inches() -> dict:
-    """{block: inches} of block_lengths.csv (hartlib.railroad), the blocks with a length above zero; read once.
-    BuildError on a file hartlib cannot read."""
+def plan_lengths() -> dict:
+    """{block: plan inches} of block_lengths.csv (hartlib.railroad); read once. BuildError on a file hartlib cannot
+    read."""
     from hartlib import railroad
     try:
         rows = railroad.read_block_lengths(railroad.Sources.under().block_lengths)
     except railroad.FactsError as exc:
         raise BuildError(f"block_lengths.csv: {exc}") from None
-    return {name: r.inches for name, r in rows.items() if r.inches}
+    return {name: r.plan_in for name, r in rows.items()}
 
 
 MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
@@ -172,7 +149,7 @@ def lcos_named(names: list[str]) -> list[str]:
 
 def level_masts(names: dict, rows: list[dict]) -> None:
     """Give each main and upper band in `names` its masts (main_upper_masts.csv rows) for the plugin: each in the
-    band whose drawing has its facing track and its protected OS block (127-221 and 131-H2 meet Switches 127 and 131
+    band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block. Stops on a mast no band, or two, draws."""
     bad = []

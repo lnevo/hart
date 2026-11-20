@@ -7,13 +7,12 @@ the same stop rule the runner used live (liverule.py). Warm-up laps are discarde
 compares the two locos in the consist pairing (first loco forward against the second in
 reverse, and the other way round), and reports the drift of the repeated top step.
 
-    analyze.py LOG [LOG ...] [--route loop1|loop2] [--events-out CSV] [--lengths CSV] [--trusted anyrail,inferred] [--out DIR]
+    analyze.py LOG [LOG ...] [--route loop1|loop2] [--events-out CSV] [--lengths CSV] [--trusted timed] [--out DIR]
                [--pair "CSX 2121,CSX 2738"]
 
 Lengths come from jmri/layouts/hart/data/block_lengths.csv (inches). Only trusted rows are
-used: the value in the `basis` column (or the `flag` column when there is no basis column)
-must be in --trusted, which defaults to anyrail,inferred. "assigned" counts only if you
-pass it.
+used: the row's `source` must be in --trusted, which defaults to timed (the measured
+lengths). A `plan` row (the AnyRail plan 5.3c length) counts only if you pass it.
 """
 import argparse
 import csv
@@ -27,7 +26,7 @@ sys.path.insert(0, str(HERE))
 import liverule as lr  # noqa: E402
 
 DEFAULT_LENGTHS = HERE.parents[1] / "data" / "block_lengths.csv"
-DEFAULT_TRUSTED = ("anyrail", "inferred")  # "assigned" counts only when passed explicitly
+DEFAULT_TRUSTED = ("timed",)  # "plan" counts only when passed explicitly
 MM_PER_INCH = 25.4
 
 # The test routes: the blocks in running order, by their block_lengths.csv user_name. Only the
@@ -113,35 +112,24 @@ def route_order(route):
 
 
 def load_lengths(path=DEFAULT_LENGTHS, trusted=DEFAULT_TRUSTED, loop=LOOP):
-    """dict sensor -> length in mm, None where the CSV row is missing or not trusted."""
+    """dict sensor -> length in mm, None where the CSV row is missing or its source is not trusted.
+
+    block_lengths.csv (hartlib.railroad.BLOCK_LENGTH_COLUMNS): a `timed` row's length is its measured_in, a `plan`
+    row's its plan_in. Stops on a file without those columns."""
     with open(path, newline="") as fh:
-        rows = {r["user_name"]: r for r in csv.DictReader(fh)}
+        reader = csv.DictReader(fh)
+        missing = {"user_name", "occupancy_sensor", "plan_in", "measured_in", "source"} - set(reader.fieldnames or [])
+        if missing:
+            raise ValueError(f"{path}: no column {', '.join(sorted(missing))}")
+        rows = {r["user_name"]: r for r in reader}
     out = {}
     for sensor, name in loop:
         row = rows.get(name)
-        if row is None:
+        source = (row or {}).get("source", "").strip()
+        if row is None or source not in trusted:
             out[sensor] = None
             continue
-        if "basis" in row:
-            ok = (row["basis"] or "").strip() in trusted
-        else:
-            # block_lengths.csv keeps the basis in its "flag" column (anyrail, inferred, ...);
-            # the same set applies: "assigned" (the pre-AnyRail value) only if passed
-            ok = (row.get("flag") or "").strip() in trusted
-        try:
-            mm = float(row["inches"]) * MM_PER_INCH if ok else None
-        except ValueError:
-            mm = None
-        if mm is not None:
-            # a hidden throat stub shares this track's detector, so the sensor covers both
-            for r in rows.values():
-                if (r.get("flag") or "").strip() == "stub" and \
-                        (r.get("occupancy_sensor") or "").strip() == sensor:
-                    try:
-                        mm += float(r["inches"]) * MM_PER_INCH
-                    except ValueError:
-                        pass
-        out[sensor] = mm
+        out[sensor] = float(row["measured_in" if source == "timed" else "plan_in"]) * MM_PER_INCH
     return out
 
 
@@ -597,7 +585,7 @@ def main(argv=None):
     ap.add_argument("logs", nargs="+")
     ap.add_argument("--lengths", default=str(DEFAULT_LENGTHS))
     ap.add_argument("--trusted", default=",".join(DEFAULT_TRUSTED),
-                    help="values that count as trusted in the basis column (or the flag column when there is\n                         no basis column); default anyrail,inferred, add assigned only on purpose")
+                    help="block_lengths.csv sources that count as trusted; default timed, add plan only on purpose")
     ap.add_argument("--out", default=".")
     ap.add_argument("--pair", default="CSX 2121,CSX 2738",
                     help="the consist pair: leader,follower (follower runs reversed)")

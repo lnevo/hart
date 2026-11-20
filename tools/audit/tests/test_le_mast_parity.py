@@ -23,10 +23,8 @@ These checks read the three-level cut-over candidate (--as-live, owner 2026-11-1
 also read is retired, owner 2026-11-17). The staging-only candidate (--levels staging --as-live) ends both helix
 tracks at end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
 
-Since the helix-join release (owner, 2026-11-17) HELIX_ENTRANCE lists the exceptions (owner's choice, 2026-11-15,
-option 1): on the live panel McKees Rocks and McKeesport end at buffer stops, so their bumper masts protect nothing;
-the joined panel runs both tracks on through the helix, so each mast stands on the anchor at the helix entrance,
-facing the same block as live and protecting the helix run, an anchor slot, not a bumper.
+HELIX_ENTRANCE listed the helix-foot masts 38RA and 40RA as exceptions from the helix-join release (2026-11-17)
+until each helix track became one block (owner, 2026-11-20) and they went: it is empty now.
 """
 from __future__ import annotations
 
@@ -43,10 +41,7 @@ tables, paths = T.tables, T.paths
 
 
 # mast: why its protected block and slot kind differ from the live panel's
-HELIX_ENTRANCE = {
-    "Mast 38RA": "live buffer stop of McKeesport; generated: anchor at the helix entrance, protecting the helix run",
-    "Mast 40RA": "live buffer stop of McKees Rocks; generated: anchor at the helix entrance, protecting the helix run",
-}
+HELIX_ENTRANCE: dict[str, str] = {}
 
 
 def masts_by_name(ix) -> dict:
@@ -80,7 +75,7 @@ class MastParity(unittest.TestCase):
                       if s.get("hidden") == "yes"}
 
     def test_live_panel_has_its_masts(self) -> None:
-        self.assertEqual(len(self.live), 49)                # wiki/DISPATCHER_LAYOUT_HOOPS.md: 49 masts
+        self.assertEqual(len(self.live), 35)    # 49 less the helix-foot 38RA and 40RA and the 12 yard-end and rear masts (2026-11-20)
         self.assertTrue(all(m["facing"] for m in self.live.values()))
 
     def test_every_live_mast_resolves_the_same_on_the_generated_panel(self) -> None:

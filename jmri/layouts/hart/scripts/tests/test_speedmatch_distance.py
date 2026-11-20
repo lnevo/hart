@@ -763,9 +763,9 @@ class FakeLayout(object):
 
 
 def loop_csv(path, loop):
-    rows = ["user_name,occupancy_sensor,inches,flag,old_source"]
+    rows = ["user_name,occupancy_sensor,plan_in,measured_in,source,note"]
     for sensor, name in loop:
-        rows.append("%s,%s,59.055,anyrail," % (name, sensor))  # 59.055 in is 1500 mm
+        rows.append("%s,%s,60,59.055,timed," % (name, sensor))  # 59.055 in is 1500 mm
     path.write_text("\n".join(rows) + "\n")
 
 

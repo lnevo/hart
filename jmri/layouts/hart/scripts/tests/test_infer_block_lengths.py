@@ -47,7 +47,7 @@ class Shares(unittest.TestCase):
 
 
 class Apply(unittest.TestCase):
-    def test_stub_on_the_same_detector_comes_off_the_track_row(self):
+    def test_each_detector_is_its_blocks_measured_length(self):
         import tempfile, os
         d = tempfile.mkdtemp()
         p = os.path.join(d, "bl.csv")
@@ -57,7 +57,7 @@ class Apply(unittest.TestCase):
             w.writeheader(); w.writerows(rows)
         result = {s: (1000.0, 10.0, 5) for s in m.SENSOR_ROWS}
         fields, new, mm = m.plan_rows(result, p)
-        self.assertAlmostEqual(mm["Track East Lead"], 1000.0 - 15.748 * 25.4, delta=3)
+        self.assertAlmostEqual(mm["Track East Lead"], 1000.0, delta=3)
         self.assertAlmostEqual(mm["Track K-2"], 1000.0, delta=3)
         # nothing written yet
         self.assertEqual(list(csv.DictReader(open(p, newline=""))), rows)
