@@ -15,4 +15,4 @@ for part in body ink; do
   "$OPENSCAD" -D "part=\"$part\"" -o "$OUT/sw13_$part.stl" "$HERE/toggle_test_sw13.scad"
 done
 
-python3 "$HERE/check_stl.py" "$OUT"/barn_*.stl "$OUT"/sw13_*.stl
+python3 "$HERE/../../../tools/benchwork/station_maps_3d/check_stl.py" "$OUT"/barn_*.stl "$OUT"/sw13_*.stl

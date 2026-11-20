@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Write LCOS_Layout_Inventory_v86.xlsx: v85 with the main and upper levels from the device map.
 
-    python3 docs/wiring/scripts/add_main_upper_levels.py           # write v86
-    python3 docs/wiring/scripts/add_main_upper_levels.py --check   # exit 1 if v86 differs from what v85 + the map give
+    python3 tools/wiring/add_main_upper_levels.py           # write v86
+    python3 tools/wiring/add_main_upper_levels.py --check   # exit 1 if v86 differs from what v85 + the map give
 
 Runs after refresh_wiring_docs.py (which writes v85, staging only). Reads:
   docs/wiring/LCOS_Layout_Inventory_v85.xlsx
@@ -32,7 +32,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib.railroad import DEVICE_COLUMNS, FactsError, read_rows  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[3]
+ROOT = Path(__file__).resolve().parents[2]
 WIRING = ROOT / "docs/wiring"
 SRC = WIRING / "LCOS_Layout_Inventory_v85.xlsx"
 OUT = WIRING / "LCOS_Layout_Inventory_v86.xlsx"
