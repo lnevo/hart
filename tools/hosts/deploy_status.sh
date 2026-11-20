@@ -36,6 +36,24 @@ read_stamp() {
   esac
 }
 
+# live_changes COMMIT: how many commits since COMMIT touch a path the deploy ships (tools/hosts/live_paths.txt),
+# and which paths. Ahead alone says nothing: most commits change docs or tools.
+live_changes() {
+  local out count
+  if ! out="$(python3 "$ROOT/tools/hosts/live_paths.py" changed "$1" HEAD)"; then
+    echo "  Cannot tell which commits touch live paths (see the message above)."
+    rc=1
+    return
+  fi
+  count="$(printf '%s\n' "$out" | head -1)"
+  if [[ "$count" == 0 ]]; then
+    echo "  None of them changes a live artifact: nothing to deploy."
+  else
+    echo "  Of them, $count touch live artifacts; a deploy would ship:"
+    printf '%s\n' "$out" | tail -n +2 | sed 's/^/    /'
+  fi
+}
+
 compare() {
   local commit="$1" head
   head="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
@@ -46,6 +64,7 @@ compare() {
   elif git -C "$ROOT" cat-file -e "${commit}^{commit}" 2>/dev/null; then
     echo "  This checkout is $(git -C "$ROOT" rev-list --count "$commit..HEAD") commit(s) ahead and" \
       "$(git -C "$ROOT" rev-list --count "HEAD..$commit") behind the deployed one."
+    live_changes "$commit"
   else
     echo "  The deployed commit is not in this checkout (fetch, or it was never pushed)."
   fi

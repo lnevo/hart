@@ -1,0 +1,44 @@
+# The repo paths the layout deploy ships (tools/hosts/sync_hart_package.sh stages them; the
+# panel rewrite and the host apply scripts install them). One path per line, relative to the
+# repo root: a file, or a folder that stands for everything under it. No wildcards.
+#
+# Two things read this file: tools/hosts/live_paths.py (the deploy checks every path exists
+# before it stages, and `make deploy-status` counts the commits since the deployed one that
+# touch these paths) and tools/hosts/tests/test_live_paths.py (every repo path the deploy
+# script names must be covered here, so a new shipped file cannot be left out).
+# Paths of a parked feature (hartlib.parked.shipped_dirs / shipped_jython) are listed too;
+# the reader leaves them out while the feature is parked, as the deploy does.
+
+jmri/layouts/hart/output/tables.xml
+jmri/layouts/hart/operations
+cats/panels/HART_CTC.xml
+cats/panels/HART_ABS.xml
+cats/scripts/install_jmri_web_override.sh
+cats/scripts/rewrite_button_icon_paths.py
+cats/scripts/patch_jmri_startup.py
+cats/scripts/install_ops_files.sh
+tools/hosts/pi
+tools/hosts/windows
+jmri/resources/buttons
+jmri/resources/icons/USS/sensor
+jmri/resources/roster
+jmri/resources/misc
+jmri/resources/jmri-web
+tools/mqtt-mimic/build_mimic_web.py
+tools/mqtt-mimic/lcos_mqtt_mimic.py
+jmri/scripts/signal_coordinator.py
+jmri/layouts/hart/scripts/panel_status.py
+jmri/layouts/hart/scripts/discover_sml.py
+jmri/layouts/hart/scripts/hide_cats_desk_windows.py
+jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py
+jmri/layouts/hart/scripts/jmri_cmd_watcher.py
+jmri/layouts/hart/scripts/sts_car_sync.py
+jmri/layouts/hart/scripts/mimic_relay.py
+jmri/layouts/hart/scripts/speedmatch/analyze.py
+jmri/layouts/hart/scripts/speedmatch/liverule.py
+jmri/layouts/hart/scripts/speedmatch/routes.json
+jmri/layouts/hart/scripts/speedmatch/dashboard
+jmri/layouts/hart/data/block_lengths.csv
+docs/jmri/speedmatching/profile-2026-11-08/speed_by_step.csv
+jmri/layouts/hart/dispatcher
+jmri/layouts/hart/ctc
