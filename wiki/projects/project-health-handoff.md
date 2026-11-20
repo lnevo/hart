@@ -247,6 +247,41 @@ Each build PR runs `make panels CHECK=1`, the approval fingerprints rule and `ma
 
 None of this runs while the operating flag is set.
 
+## Progress and owner decisions (2026-11-20)
+
+**Merged:** W3 #765, W5b #766, W4a #767, W4b #768, W1b #770, W4c #771, W4s wiring split #772. Auto-merge is on.
+
+**W5, file moves (owner):** `docs/ops/opspro-build/` to `archive/`; `DISPATCHER_LAYOUT_HOOPS.md` beside the parked data; `DIGICON_SCHEMATIC.md` to `docs/ctc/`; the speed-matching profiles stay where they are. Done in #766.
+
+**W4b:** `gen_ctc_track_plan.py` serves the parked USS machine plus one live check. Owner: no split while USS is parked.
+
+**W1a leftovers (owner):** the broken CK1 weigh scripts are deleted (lnevo/sts-docker-helpers#12), which closes the sts-helpers clean-up. The Main West fold is dropped: Main West stays straight and Brick-Plane is the only turnback.
+
+**W6, source-data rows 8 and 10 (owner):**
+- `role` goes in the R9 device master; readers move to it after R9b.
+- Each band entry in `main_upper.plan_overrides.json` gets a `level` field. The band names stay as drawn text, and the stale "until B2" note is fixed. No rename.
+- A crossover's two halves come from the plan's structure; A and B stay as labels only.
+- `level_leg` stays as preferences. The plugin reports its causes: two blocks in one CATS cell, or a desk that is too wide.
+- 101 and 103 are drawn tight and split by a plugin rule from the three-way part, and the HART entries go.
+- `le_shift` stays until staging is next redrawn.
+- Staging `le_labels`: `name_columns` and `name_steps` become plugin rules, HART derives its button groups, and `lamp_columns` goes if it does nothing. The fingerprints must not change.
+- `le_signal_boundaries.csv` is retired, along with `apply_le_sml_facing.py` once it is shown to change nothing, before R9c.
+- The screen sizes stay in the preferences.
+
+W6b builds wait for R9b and the level-unification mast step, since both touch `mast_rule.py` and the device maps.
+
+**R9a (owner):** recorded in [ADR-029](../decisions/ADR-029-tables-xml-is-an-output.md). In short:
+- the master is `data/devices.csv`, with `devices.columns.csv` describing its columns;
+- the old pre-ADR-005 names and the retired names are dropped, and the spares are kept;
+- `assignment`, `role` and `written_by` columns, the last checked against one list of owning scripts;
+- comments are generated from the wiring columns;
+- one JMRI-format template, with the discovered SML in its own file and a fixed envelope;
+- the staging block paths are dropped after a sandbox test;
+- a PanelPro rename on a hand-kept row updates the master;
+- a strict cut-over, with the deploy rewrite folded into the generator.
+
+R9b is in progress. Its first PR switches the master and its writers; the readers follow in R9b-2.
+
 ## Carried from the archived hand-offs (2026-11-20)
 
 These were still open when the older hand-offs went to `archive/wiki/projects/` ([`review-2026-11-19-handoff.md`](../../archive/wiki/projects/review-2026-11-19-handoff.md), [`architecture-followups-handoff.md`](../../archive/wiki/projects/architecture-followups-handoff.md)). Each is small and none is scheduled.

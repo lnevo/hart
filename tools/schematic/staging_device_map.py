@@ -34,8 +34,8 @@ Files (jmri/layouts/hart/data/schematic/):
   in OS Switch 35a.
 - control_points_staging.csv, the columns of control_points_main_upper.csv and a `code`: the master of staging's
   control points. build_staging_sets.py writes staging.plan_overrides.json's control_points, stations and
-  station_tracks, the `detail_sheets` preference and the older data/control_points.csv from it, stations_staging.csv
-  and sheets_staging.csv.
+  station_tracks, the `detail_sheets` preference and the older data/control_points.csv from it, stations.csv
+  and sheets.csv.
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
   number means a turnout mast, no protected block an end bumper (buffer stop) mast, else an anchor mast. Hidden is a
   virtual mast (IF$vsm), its icon size hartlib.tables.mast_icon_size.

@@ -100,20 +100,32 @@ class BadMasters(Tmp):
 
     def test_a_station_switch_in_no_control_point_stops(self):
         cps = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
-        path = self.write("stations_staging.csv", "station,switches,tracks,notes\nOne,1,,\nTwo,\"3,7\",,\n")
-        self.assertStops(lambda: S.read_stations(cps, path), "stations_staging.csv line 3", "switch 7 is in no control point")
+        path = self.write("stations.csv", "level,station,switches,tracks,notes\n1,One,1,,\n1,Two,\"3,7\",,\n")
+        self.assertStops(lambda: S.read_stations(cps, path), "stations.csv line 3", "switch 7 is in no control point")
 
     def test_station_tracks_blank_none_and_names(self):
         cps = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
-        path = self.write("stations_staging.csv",
-                          'station,switches,tracks,notes\nOne,1,,\nTwo,3,none,\nThree,5,"X-1;X-2",\n')
+        path = self.write("stations.csv",
+                          'level,station,switches,tracks,notes\n1,One,1,,\n1,Two,3,none,\n1,Three,5,"X-1;X-2",\n')
         self.assertEqual([s.tracks for s in S.read_stations(cps, path)], [None, (), ("X-1", "X-2")])
 
     def test_a_sheet_naming_no_station_stops(self):
         cps = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
-        stations = S.read_stations(cps, self.write("stations_staging.csv", "station,switches,tracks,notes\nOne,1,,\n"))
-        path = self.write("sheets_staging.csv", "sheet,stations,notes\nS,One;Nowhere,\n")
-        self.assertStops(lambda: S.read_sheets(stations, path), "sheets_staging.csv line 2", "Nowhere is no station")
+        stations = S.read_stations(cps, self.write("stations.csv", "level,station,switches,tracks,notes\n1,One,1,,\n"))
+        path = self.write("sheets.csv", "level,sheet,stations,notes\n1,S,One;Nowhere,\n")
+        self.assertStops(lambda: S.read_sheets(stations, path), "sheets.csv line 2", "Nowhere is no station")
+
+    def test_a_row_of_another_level_stops(self):
+        cps = self.cps('cp_aa,A,1,"1,3",A,AA,\ncp_bb,B,1,5,B,BB,\n')
+        path = self.write("stations.csv", "level,station,switches,tracks,notes\n1,One,1,,\n2,Yard,107,,\n")
+        self.assertStops(lambda: S.read_stations(cps, path), "stations.csv line 3", "level '2'; only staging")
+        stations = S.read_stations(cps, self.write("stations.csv", "level,station,switches,tracks,notes\n1,One,1,,\n"))
+        path = self.write("sheets.csv", "level,sheet,stations,notes\n3,Upper level,One,\n")
+        self.assertStops(lambda: S.read_sheets(stations, path), "sheets.csv line 2", "level '3'; only staging")
+        path = self.write("sheets.csv", "level,sheet,stations,notes\n1.0,S,One,\n")
+        self.assertStops(lambda: S.read_sheets(stations, path), "sheets.csv line 2", "level '1.0' is not a level number")
+        path = self.write("sheets.csv", "level,sheet,stations,notes\n01,S,One,\n")
+        self.assertEqual([x.name for x in S.read_sheets(stations, path)], ["S"])
 
     def test_a_missing_column_stops(self):
         path = self.write("control_points_staging.csv", "cp_id,cp_name,level,switches,area\ncp_aa,A,1,1,A\n")
