@@ -7,7 +7,7 @@ Comes from the 2026-11-20 quick review of open fixes, workflow and where facts a
 - The large scripts get tests, then a split.
 - File moves are proposed first and made after the owner approves.
 
-Row 9 (device facts kept three times) is **not** in this hand-off yet. The owner wants to discuss it first, and it is added under [Row 9](#row-9-device-facts-held) afterwards.
+Row 9 (device facts kept three times) was discussed with the owner on 2026-11-20 and is planned under [Row 9](#row-9-device-facts-tablesxml-as-an-output): `tables.xml` becomes an output built from one device master and a template.
 
 ## How to run this
 
@@ -189,9 +189,61 @@ Make the approved moves in one PR and update every reference W5 listed. Then:
 
 These are built the way the owner decides. Any change that touches panels or desks goes through `make panels CHECK=1`, the approval fingerprints rule and `make panelpro-test`. Any panel approval needs the exact file installed in the Mac's `~/JMRI_UserFiles` first. A deploy with `--pi --win` follows only when a live artifact changed.
 
-## Row 9: device facts (held)
+## Row 9: device facts, `tables.xml` as an output
 
-Waiting on the owner's discussion. The coordinator adds the agreed plan here before the final hand-off goes out. Background: row 9 in [`source-data-exceptions-handoff.md`](source-data-exceptions-handoff.md).
+Background: row 9 in [`source-data-exceptions-handoff.md`](source-data-exceptions-handoff.md). The owner decided this on 2026-11-20:
+
+- **`tables.xml` is an output.** It is the panel PanelPro and CATS load. Devices and everything else are defined in other files, and nothing reads `tables.xml` as a source.
+- **The template.** Anything JMRI owns, or that the owner saves in PanelPro and the build does not generate, lives in a hand-kept template. The build merges the template with the generated parts to write `tables.xml`. Examples: LogixNG, memories, settings changed in a PanelPro session.
+- **Pulls from the live copy are the one exception.** A Store pulled from the Pi or the Mac (`make tables-pull-pi`, `make tables-pull`) is split back into the sources: device facts into the device master, everything else into the template. Then `tables.xml` is regenerated.
+- **One device master for all three levels.** `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` are joined into one source, with a description for every column and every row. Staging, main and upper are treated the same way and share one structure. Staging is more complete; the main and upper levels hold temporary (virtual) assignments under ADR-028. That difference is a value in a column, such as an assignment status, never a different layout or a separate file.
+
+The current `AGENTS.md` rule "fix the data in `jmri/layouts/hart/output/tables.xml` instead" changes to "fix the source data or the template".
+
+Row 9 starts after W6's proposals are approved, because rows 8 and 9 touch the same readers (hartlib `names.py`, `le_tables.py`). R9a is read-only and can start in Wave 1 if a slot is free.
+
+### R9a. Inventory and design proposal (read-only)
+
+| Agent | Model | Effort | Isolation |
+|-------|-------|--------|-----------|
+| `Plan` | default (opus) | high | none |
+
+1. **Sort every element type in `tables.xml`** (turnouts, sensors, lights, memories, reporters, blocks, masts and heads, SML, LogixNG, routes, audio, ID tags and the rest) into one of:
+   - generated from the device master;
+   - generated from other build data, such as blocks from the schematic or SML from discovery;
+   - owner-saved in PanelPro, so it goes in the template;
+   - written by JMRI on every Store, which the pull drops.
+
+   Give a count for each group, and examples of anything that is hard to place.
+2. **List every reader and writer** of `public_name_map.csv`, `device_map_staging.csv` and `tables.xml`: 27 non-test scripts read the two CSVs today, plus the site build, `check.sh`, the hooks (`check_after_edit.py`) and the skills (`tables-pull`, `panelpro`).
+3. **Propose the master's schema.**
+   - Give the file name, and a dictionary of every column with a description of each.
+   - Say how alias rows for old names are kept, how the public names under ADR-005 are kept, where the DCC group lives (a column, never read from comments), and how items the build owns are marked (an explicit column, never found by comment or name).
+   - Show how a temporary main or upper assignment is marked (one column value), and how swapping in a physical device later (ADR-028) changes only that row.
+4. **Propose the template's format and the merge.** Cover the template's file (or files) and format, the merge order, and the stable sort, so that a Store and a rebuild produce the same bytes.
+5. **Propose the pull split.** Cover how a live Store is compared with the generated output, where each kind of change goes, and that the pull **fails and names the elements** it cannot sort, rather than guessing.
+6. **Propose the cut-over gate.** The first generated `tables.xml` must match the committed one, either byte for byte or as the same set of elements and attributes after a defined normalisation. Every difference is listed and explained before the switch.
+
+Output: `<scratchpad>/health/R9a-proposal.md`, with the owner's decisions phrased as multiple choice. The coordinator reviews it with the owner, then writes the ADR. The ADR follows ADR-008, ADR-014 and ADR-027 and records that `tables.xml` is an output.
+
+### R9b–R9e. Build (after the owner approves R9a)
+
+The design stays in the main session. Each step is its own PR, carries the five-point checklist, and gets `/code-review medium`.
+
+| Step | Job | Agent | Model | Effort |
+|------|-----|-------|-------|--------|
+| R9b | Build the device master from the three CSVs. Generate all three old files from it and check them byte-identical in `check.sh`, then move the readers over one group at a time | `general-purpose` | sonnet | high |
+| R9c | The template, plus a generator that writes `tables.xml` from the master, the other build data and the template. It must pass the R9a cut-over gate | `general-purpose` | default (opus) | high |
+| R9d | Change `tables-pull` (Pi and Mac) to split a Store into the master and the template, failing on anything it cannot sort. Add tests built from real pulled Stores, with private data removed | `general-purpose` | default (opus) | high |
+| R9e | Retire the old files (or keep them only as generated copies), and update AGENTS.md, the `tables-pull` and `panelpro` skills, `check_after_edit.py` (an edit to `tables.xml` itself is refused), the pipelines wiki and the site's tables page | `general-purpose` | sonnet | medium |
+
+Each build PR runs `make panels CHECK=1`, the approval fingerprints rule and `make panelpro-test`. R9c and R9d change what the hosts load, so the coordinator:
+
+1. pulls any live Store first (`make tables-pull-pi`);
+2. deploys `--pi --win` after the merge;
+3. confirms on the Mac that PanelPro and both CATS desks load the generated file.
+
+None of this runs while the operating flag is set.
 
 ## Done when
 
