@@ -59,7 +59,7 @@ LAYOUT_TREE = {
     ("data",): "The name map, switch files, block lengths, control points, the schematic's inputs and device maps, "
                "and HART's settings for the STS-to-JMRI refresh",
     ("operations",): "The {ops} Operations Pro files",
-    ("scripts",): "{scripts} scripts that build, repair and check the tables, plus the ones that run inside JMRI",
+    ("scripts",): "{scripts} scripts: most build, repair and check the tables on the Mac, and some run inside JMRI",
     ("ctc", "dispatcher"): "The USS CTC machine's icons and guide; the Dispatcher System's options and train files. "
                            "Parked since the helix-join release (November 2026)",
     ("parked",): "The Entry/Exit, Dispatcher System and USS CTC data kept out of the active tables while those "
@@ -107,20 +107,38 @@ def _git(*args: str, root: Path) -> str:
     return subprocess.run(["git", "-C", str(root), *args], check=True, capture_output=True, text=True).stdout
 
 
+def _index(root: Path) -> list[str]:
+    """Every path in git's index: what the next commit holds, so check.sh before a commit sees what CI will."""
+    return [p for p in _git("ls-files", "-z", root=root).split("\0") if p]
+
+
+def _dirs(files: list[str], under: str) -> set[str]:
+    """The folders directly under `under` ("" for the top) that hold an indexed file."""
+    depth = under.count("/")
+    return {p.split("/")[depth] for p in files if p.startswith(under) and p.count("/") > depth}
+
+
+def _and(items: list[str]) -> str:
+    if not items:
+        return ""
+    return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
+
+
 def word(n: int) -> str:
     return WORDS[n] if n < len(WORDS) else str(n)
 
 
 def facts(root: Path = ROOT) -> dict:
     """Read every fact the page shows, stopping on any folder, submodule or module the descriptions do not cover."""
-    tracked = {p for p in _git("ls-tree", "-d", "--name-only", "HEAD", root=root).split() if not p.startswith(".")}
+    files = _index(root)
+    tracked = {d for d in _dirs(files, "") if not d.startswith(".")}
     listed = {k for k, (in_git, _) in FOLDERS.items() if in_git}
     if tracked != listed:
         raise PageError("top-level folders differ from FOLDERS in repo_guide_page.py: not described %s, gone %s"
                         % (sorted(tracked - listed) or "none", sorted(listed - tracked) or "none"))
 
     gm = configparser.ConfigParser()
-    gm.read(root / ".gitmodules")
+    gm.read_string(_git("show", ":.gitmodules", root=root))
     subs = [gm[s]["path"] for s in gm.sections()]
     outside = [p for p in subs if not p.startswith("external/")]
     if outside:
@@ -130,22 +148,25 @@ def facts(root: Path = ROOT) -> dict:
         raise PageError("submodules differ from SUBMODULES in repo_guide_page.py: not described %s, gone %s"
                         % (sorted(names - set(SUBMODULES)) or "none", sorted(set(SUBMODULES) - names) or "none"))
 
-    tree = {Path(p).name for p in _git("ls-tree", "-d", "--name-only", "HEAD:jmri/layouts/hart/", root=root).split()}
+    tree = _dirs(files, "jmri/layouts/hart/")
     tree_listed = {d for key in LAYOUT_TREE for d in key}
     if tree != tree_listed:
         raise PageError("jmri/layouts/hart/ folders differ from LAYOUT_TREE in repo_guide_page.py: not described %s, "
                         "gone %s" % (sorted(tree - tree_listed) or "none", sorted(tree_listed - tree) or "none"))
-    scripts = [p for p in _git("ls-files", "jmri/layouts/hart/scripts", root=root).splitlines()
-               if p.count("/") == 4]   # files directly in scripts/, not its tests or speedmatch folders
-    ops = [p for p in _git("ls-files", "jmri/layouts/hart/operations", root=root).splitlines() if p.endswith(".xml")]
+    scripts = [p for p in files if p.startswith("jmri/layouts/hart/scripts/")
+               and p.count("/") == 4]   # files directly in scripts/, not its tests or speedmatch folders
+    ops = [p for p in files if p.startswith("jmri/layouts/hart/operations/") and p.endswith(".xml")]
 
-    mods = {p.stem for p in (root / "tools/hartlib/src/hartlib").glob("*.py") if p.stem != "__init__"}
+    lib = "tools/hartlib/src/hartlib/"
+    mods = {p[len(lib):-3] for p in files if p.startswith(lib) and p.endswith(".py") and p.count("/") == 4} - {"__init__"}
     covered = set(HARTLIB_MAIN) | set(HARTLIB_PARTS) | set(HARTLIB_OTHER)
     if mods != covered:
         raise PageError("hartlib modules differ from repo_guide_page.py: not described %s, gone %s"
                         % (sorted(mods - covered) or "none", sorted(covered - mods) or "none"))
 
-    jobs = re.findall(r"^\s*run [a-z0-9-]+ ", (root / "tools/check.sh").read_text(encoding="utf-8"), re.M)
+    # check.sh's named jobs: run, unit and later lines with a plain name. The quoted names are per-file suites made
+    # in loops and the "skipped" markers, so the page says "over" this count.
+    jobs = re.findall(r"^\s*(?:run|unit|later) [a-z][a-z0-9-]* ", _git("show", ":tools/check.sh", root=root), re.M)
     return {"subs": len(names), "scripts": len(scripts), "ops": len(ops), "jobs": len(jobs)}
 
 
@@ -153,11 +174,11 @@ def regions(f: dict) -> dict:
     """The contents of each region, by key."""
     sub_n = f["subs"]
     folder_rows = "\n".join(
-        '                <tr><td><code>%s/</code></td><td>%s</td></tr>' % (k, d.format(n=word(sub_n)))
+        '                <tr><td><code>%s/</code></td><td>%s</td></tr>' % (k, d.replace("{n}", word(sub_n)))
         for k, (_, d) in FOLDERS.items())
     tree_rows = "\n".join(
         '                <tr><td>%s</td><td>%s</td></tr>'
-        % (", ".join("<code>%s/</code>" % d for d in key), d_.format(ops=word(f["ops"]), scripts=f["scripts"]))
+        % (", ".join("<code>%s/</code>" % d for d in key), d_.replace("{ops}", word(f["ops"])).replace("{scripts}", str(f["scripts"])))
         for key, d_ in LAYOUT_TREE.items())
     sub_rows = "\n".join(
         '                <tr><td><code>%s/</code></td><td>%s</td><td>%s</td></tr>' % (k, what, how)
@@ -172,7 +193,7 @@ def regions(f: dict) -> dict:
         "submodule-count-cap": word(sub_n).capitalize(),
         "submodules": "\n" + sub_rows + "\n              ",
         "hartlib-main-count": word(len(HARTLIB_MAIN)),
-        "hartlib-other": ", ".join(other[:-1]) + " and " + other[-1],
+        "hartlib-other": _and(other),
         "check-jobs": str(f["jobs"]),
     }
 
@@ -220,6 +241,12 @@ def main(argv=None) -> int:
         return 0
     except PageError as e:
         print("repo_guide_page: %s" % html.unescape(str(e)))
+        return 1
+    except subprocess.CalledProcessError as e:
+        print("repo_guide_page: git %s failed: %s" % (" ".join(e.cmd[3:]), (e.stderr or "").strip()))
+        return 1
+    except OSError as e:
+        print("repo_guide_page: %s" % e)
         return 1
 
 

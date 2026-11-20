@@ -66,6 +66,16 @@ class RepoGuide(unittest.TestCase):
             with self.assertRaisesRegex(rg.PageError, "boundaries"):
                 rg.facts()
 
+    def test_lists_of_any_length_read(self):
+        self.assertEqual(rg._and(["a"]), "a")
+        self.assertEqual(rg._and(["a", "b", "c"]), "a, b and c")
+
+    def test_an_untracked_module_is_ignored(self):
+        stray = rg.ROOT / "tools/hartlib/src/hartlib/zz_scratch_not_in_git.py"
+        stray.write_text("", encoding="utf-8")
+        self.addCleanup(stray.unlink)
+        self.assertEqual(rg.facts(), self.facts)
+
     def test_write_fills_a_built_copy(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)

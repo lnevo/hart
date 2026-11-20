@@ -1082,7 +1082,12 @@ def _refresh_tables_page(dest_root: Path) -> None:
     if (dest_root / build_tables_browser.PAGE_REL).is_file():
         build_tables_browser.write(dest_root)
     if (dest_root / repo_guide_page.PAGE_REL).is_file():
-        repo_guide_page.write(dest_root)
+        # A repo change the guide does not describe yet must not stop a website deploy: keep the committed page and
+        # say why. tools/check.sh (repo-guide) fails on the same thing, so it is fixed before the next merge.
+        try:
+            repo_guide_page.write(dest_root)
+        except (repo_guide_page.PageError, subprocess.CalledProcessError, OSError) as e:
+            print("WARNING: repository guide not refilled, the committed copy is published: %s" % e)
 
 
 def _unsafe_dest(dest: Path) -> bool:
