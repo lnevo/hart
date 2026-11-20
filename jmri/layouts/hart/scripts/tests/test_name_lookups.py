@@ -98,7 +98,7 @@ class RouteLookupTest(unittest.TestCase):
 
 
 class DispatcherVirtualsTest(unittest.TestCase):
-    def test_virtual_boundary_masts_are_the_dispatcher_ones(self):
+    def test_virtual_masts_are_the_dispatcher_ones(self):
         audit = load("audit_panel_contracts")
         with tempfile.TemporaryDirectory() as tmp:
             nm = Path(tmp) / "devices.csv"                 # a master of four name-map masts (it has no alias rows)
@@ -109,22 +109,22 @@ class DispatcherVirtualsTest(unittest.TestCase):
                     for n, (user, hardware, notes) in enumerate((("Mast 1A", "virtual $1001", ""),
                                                                  ("Mast 1B", "IH100", ""),
                                                                  ("Mast 1C", "virtual $1002", ""),
-                                                                 ("Mast 9Z", "virtual $1009", "not a boundary")), 1)]
+                                                                 ("Mast 9Z", "virtual $1009", "not a staging mast")), 1)]
             nm.write_text(audit.devices.master_text(rows), encoding="utf-8")
             self.assertEqual({"Mast 1A", "Mast 1C"},
                              audit.dispatcher_virtuals({"Mast 1A", "Mast 1B", "Mast 1C"}, nm))
             with self.assertRaisesRegex(audit.devices.DevicesError, "cannot read it"):
                 audit.dispatcher_virtuals({"Mast 1A"}, Path(tmp) / "missing.csv")
 
-    def test_repo_has_no_dispatcher_virtuals_now(self):
-        # Pinned on purpose: a boundary or hardware change shows up here instead of moving silently.
+    def test_repo_dispatcher_virtuals_are_the_staging_buffer_stop_masts(self):
+        # Pinned on purpose: a mast or hardware change shows up here instead of moving silently. The virtual staging
+        # masts (hidden, IF$vsm:) stand at buffer stops only (owner, 2026-11-20); staging_masts.csv names them.
         audit = load("audit_panel_contracts")
-        with (DATA / "le_signal_boundaries.csv").open(newline="", encoding="utf-8") as f:
-            boundary = {r["mast_user_name"] for r in csv.DictReader(f)}
-        # Mast 2R and 6R are visible since ADR-024, so no longer virtual.
-        # 36L and 40RB went with the hidden yard throats (owner, 2026-11-20); 8LC, 10RA, 10RB, 12R and 14R when
-        # virtual masts became destinations only (owner, 2026-11-20), so no boundary mast is virtual now.
-        self.assertEqual(set(), audit.dispatcher_virtuals(boundary))
+        with (DATA / "schematic" / "staging_masts.csv").open(newline="", encoding="utf-8") as f:
+            rows = list(csv.DictReader(f))
+        virtual = {r["mast"] for r in rows if r["system_name"].startswith("IF$vsm:")}
+        self.assertTrue(virtual)
+        self.assertEqual(virtual, audit.dispatcher_virtuals({r["mast"] for r in rows}))
 
 
 if __name__ == "__main__":

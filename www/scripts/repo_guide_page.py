@@ -95,7 +95,6 @@ HARTLIB_OTHER = {
     "parked": "the parked features",
     "level_devices": "the main and upper levels' device names",
     "level_masts": "their control-point masts",
-    "boundaries": "where each staging mast stands on the panel",
     "map_revision": "the station maps' revision",
 }
 

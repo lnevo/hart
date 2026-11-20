@@ -180,14 +180,6 @@ the line, when the header lacks a `FIELDS` column, a row is shorter or longer th
 name, a mast is named twice, or a row's heads are not system=user pairs of the virtual heads in its system name. A
 column beyond `FIELDS` is allowed and left out of the rows.
 
-### `hartlib.boundaries`
-
-The one reader of `le_signal_boundaries.csv`, where each staging mast stands on the generated Layout Editor panel:
-`PATH`, `Boundary` (`kind`, `ident`, `slot`, `mast`, `notes`, and `binding_name`, the panel attribute that binds it)
-and `read(path)`. `read` strips every value, stores a slot as A to D or east/west in either case, and raises
-`ValueError` on an unknown kind, a slot its kind lacks, a mast named twice or two masts in one slot. Used by
-`le_checks.py` (the LE build), `audit_panel_contracts.py` and `apply_le_sml_facing.py`.
-
 ### `hartlib.parked`
 
 The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;
@@ -220,7 +212,7 @@ and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a
   `save` on the repo file today, but on a fresh Store it drops the stylesheet line and the
   "Written by JMRI" comment and changes the declaration's quotes. A script moved onto
   hartlib keeps them.
-- Scripts that edit tables.xml as text with regexes (`refresh_bean_comments.py`, `apply_le_sml_facing.py`) keep untouched bytes by design.
+- Scripts that edit tables.xml as text with regexes (`refresh_bean_comments.py`) keep untouched bytes by design.
   Move them only if the regex work is replaced by element edits and the output is the same.
 
 ### `hartlib.names`

@@ -5,6 +5,8 @@ from __future__ import annotations
 
 import argparse
 import csv
+import importlib
+import os
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -14,14 +16,11 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import boundaries as boundary_csv, devices, level_devices, level_masts, parked, paths, tables  # noqa: E402
+from hartlib import devices, level_devices, level_masts, parked, paths, railroad_facts, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
-BOUNDARIES = boundary_csv.PATH
-# staging's visible turnout and anchor masts (staging masts by rule, owner 2026-11-19); its virtual masts stand at buffer
-# stops only since 2026-11-20, so none is a boundary row
-BOUNDARY_ROWS = 25
+STAGING_MASTS = paths.LAYOUT_DATA / "schematic" / "staging_masts.csv"     # written by build_staging_masts.py
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -64,9 +63,6 @@ def occupancy_binding_map() -> dict[str, str]:
     return out
 
 
-Boundary = boundary_csv.Boundary     # one row of le_signal_boundaries.csv (hartlib.boundaries reads the file)
-
-
 @dataclass
 class Audit:
     label: str
@@ -82,11 +78,21 @@ class Audit:
         self.warnings.append(message)
 
 
-def load_boundaries(path: Path) -> list[Boundary]:
-    rows = boundary_csv.read(path)     # stops on a bad kind or slot, or a mast named twice
-    if len(rows) != BOUNDARY_ROWS:
-        raise ValueError(f"{path}: expected {BOUNDARY_ROWS} boundary rows, found {len(rows)}")
-    return rows
+def load_staging_masts(path: Path = STAGING_MASTS) -> list[railroad_facts.StagingMast]:
+    """The staging masts the mast rule writes (staging_masts.csv): the audit's expected set."""
+    return railroad_facts.read_staging_masts(path)     # stops on a mast named twice or with no facing block
+
+
+def slots_index(panel: ET.Element):
+    """The plugin's slot index of a Layout Editor panel (the rule the LE build places masts by)."""
+    folder = Path(os.environ.get("SCHEMATIC_PLUGIN")
+                  or REPO_ROOT / "external/model-railroad-skills/plugins/schematic-maps")
+    if not (folder / "schematic" / "slots.py").is_file():
+        sys.exit(f"schematic-maps plugin not found at {folder}: run git submodule update --init "
+                 "external/model-railroad-skills")
+    if str(folder) not in sys.path:
+        sys.path.insert(0, str(folder))
+    return importlib.import_module("schematic.slots").Index(panel)
 
 
 def select_panel(root: ET.Element, audit: Audit) -> ET.Element | None:
@@ -136,7 +142,7 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
 
 
 def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -> set[str]:
-    """The boundary masts that are hidden virtual masts for Dispatcher Stage 1, not field
+    """The expected masts that are hidden virtual masts for Dispatcher Stage 1, not field
     masts: those whose name-map hardware (devices.csv, pnm_hardware) is `virtual $10nn`."""
     virtual = {
         row["proposed"] for _line, row in devices.name_map_lines(devices_csv)
@@ -161,7 +167,7 @@ def draws_levels(panel: ET.Element | None) -> bool:
 
 
 def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: bool = False) -> None:
-    """The signal mast table: the 23 staging field masts exactly, the Dispatcher virtuals, no CATS runtime virtuals;
+    """The signal mast table: the staging field masts exactly (staging_masts.csv, those not virtual), the Dispatcher virtuals, no CATS runtime virtuals;
     and the main and upper masts on virtual heads, every one of main_upper_masts.csv when the panel draws those
     levels (`levels`), else none but its own."""
     masts = root.find("signalmasts")
@@ -214,36 +220,34 @@ def audit_masts(root: ET.Element, expected: set[str], audit: Audit, *, levels: b
     audit.facts["cats_virtual"] = tuple(sorted(cats_virtual))
 
 
-def audit_bindings(panel: ET.Element | None, boundaries: list[Boundary], audit: Audit) -> None:
-    """Each boundary mast in its slot."""
-    actual: dict[tuple[str, str, str], str] = {}
+def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.StagingMast], audit: Audit) -> None:
+    """Every staging mast (staging_masts.csv), and every main and upper mast (main_upper_masts.csv) when the panel
+    draws those levels, is bound in exactly one slot, and that slot resolves (the plugin's slot index, the rule the LE
+    build places masts by) to the mast's facing block and protected blocks. A mast bound twice, or in a slot facing
+    another block, is an error; so is a bound mast no file names."""
     if panel is None:
         audit.facts["bindings"] = ()
         return
-    by_key: dict[tuple[str, str], list[ET.Element]] = {}
-    for element in panel.iter():
-        ident = element.get("ident")
-        if ident and element.tag in {"layoutturnout", "positionablepoint"}:
-            kind = "turnout" if element.tag == "layoutturnout" else "anchor"
-            by_key.setdefault((kind, ident), []).append(element)
-    for boundary in boundaries:
-        elements = by_key.get((boundary.kind, boundary.ident), [])
-        if len(elements) != 1:
-            audit.error(
-                f"boundary {boundary.kind} {boundary.ident} expected once in selected panel, "
-                f"found {len(elements)}"
-            )
+    want = {m.mast: (m.facing, sorted(m.protects)) for m in staging}
+    if draws_levels(panel):
+        want |= {r["mast"]: (r["facing"], [r["protects"]] if r["protects"] else []) for r in level_masts.read()}
+    placed: dict[str, list[dict]] = {}
+    for m in slots_index(panel).masts():
+        placed.setdefault(m["mast"], []).append(m)
+    for name, (facing, protects) in sorted(want.items()):
+        found = placed.get(name, [])
+        if len(found) != 1:
+            audit.error(f"mast {name} expected bound once in the selected panel, found {len(found)}")
             continue
-        value = attr_or_child(elements[0], boundary.binding_name)
-        actual[(boundary.kind, boundary.ident, boundary.slot)] = value
-        if value != boundary.mast:
-            audit.error(
-                f"boundary {boundary.kind} {boundary.ident} slot {boundary.slot}: "
-                f"expected {boundary.mast!r}, found {value or '<unbound>'!r}"
-            )
-    audit.facts["bindings"] = tuple(
-        sorted((*key, value) for key, value in actual.items())
-    )
+        m = found[0]
+        if (m["facing"], sorted(m["protects"])) != (facing, protects):
+            audit.error(f"mast {name} in {m['kind']} {m['ident']} slot {m['slot']} faces {m['facing']} and protects "
+                        f"{sorted(m['protects'])}, not {facing} into {protects}")
+    unnamed = sorted(set(placed) - set(want))
+    if unnamed:
+        audit.error(f"masts bound in the selected panel that no mast file names: {unnamed}")
+    audit.facts["bindings"] = tuple(sorted((m["kind"], m["ident"], m["slot"], m["mast"])
+                                           for ms in placed.values() for m in ms))
 
 
 def audit_parked_nx(root: ET.Element, problem) -> None:
@@ -730,7 +734,7 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
 
 
 def audit_source(
-    label: str, path: Path, boundaries: list[Boundary], expected_masts: set[str], *, generated: bool = False
+    label: str, path: Path, staging: list[railroad_facts.StagingMast], *, generated: bool = False
 ) -> Audit:
     audit = Audit(label=label, path=path)
     try:
@@ -746,8 +750,8 @@ def audit_source(
     except ValueError as exc:           # two markers: the audit's error, not a traceback
         audit.error(str(exc))
         is_generated = True
-    audit_masts(root, expected_masts, audit, levels=is_generated and draws_levels(panel))
-    audit_bindings(panel, boundaries, audit)
+    audit_masts(root, {m.mast for m in staging}, audit, levels=is_generated and draws_levels(panel))
+    audit_bindings(panel, staging, audit)
     if full_config:
         audit_sml(root, audit, required=True, generated=is_generated)
         audit_nx(root, audit, required=True)
@@ -857,12 +861,6 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         "(a cut-over candidate, say)",
     )
     parser.add_argument(
-        "--boundaries",
-        type=Path,
-        default=BOUNDARIES,
-        help="the mast boundary contract (default: data/le_signal_boundaries.csv)",
-    )
-    parser.add_argument(
         "--generated",
         action="store_true",
         help="the panel is generated (build_layout_le.py --as-live): fail if it has no generated-panel "
@@ -878,14 +876,13 @@ def main(argv: list[str] | None = None) -> int:
               "recognised by its marker")
         return 2
     try:
-        boundaries = load_boundaries(args.boundaries)
-    except (OSError, KeyError, ValueError) as exc:
-        print(f"ERROR: cannot load boundary contract: {exc}")
+        staging = load_staging_masts()
+    except (OSError, KeyError, ValueError, railroad_facts.FactsError) as exc:
+        print(f"ERROR: cannot load the staging masts: {exc}")
         return 1
-    expected_masts = {item.mast for item in boundaries}
     sources = (("deployment", args.tables),) if args.tables else DEFAULT_SOURCES
     audits = [
-        audit_source(label, path, boundaries, expected_masts, generated=args.generated)
+        audit_source(label, path, staging, generated=args.generated)
         for label, path in sources
     ]
     for audit in audits:

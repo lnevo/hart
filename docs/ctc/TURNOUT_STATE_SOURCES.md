@@ -54,6 +54,6 @@ Layout Editor `continuing` is JMRI `Turnout` state, not 1/2 Closed/Thrown:
 | `4` | THROWN | Thrown = B / through |
 | `1` | UNKNOWN | both legs drawn; LE ignores table state |
 
-`apply_le_sml_facing.py` keeps 114/115/111/113/117 at **2**. Do not write `1`.
+114/115/111/113/117 stay at **2** in the generated panel (`build_layout_le.py`). Do not write `1`.
 
 OS McKees Rocks/OS McKeesport stubs are plain (no BLK↔BLK gaps).

@@ -154,12 +154,11 @@ class Cutover(unittest.TestCase):
         self.assertFalse([i for i in self.le.iter("turnouticon") if (i.get("turnout") or "").startswith("IT:HART:YL:")])
 
     def test_audit_passes_strict_on_the_candidate(self) -> None:
-        boundaries = AUDIT.load_boundaries(AUDIT.BOUNDARIES)        # the live contract
+        staging = AUDIT.load_staging_masts()        # the mast rule's file
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_cutover.xml"
             path.write_bytes(self.data)
-            audit = AUDIT.audit_source("deployment", path, boundaries, {b.mast for b in boundaries},
-                                       generated=True)
+            audit = AUDIT.audit_source("deployment", path, staging, generated=True)
             drift = AUDIT.report_drift([audit])
             with contextlib.redirect_stdout(io.StringIO()):
                 cli = AUDIT.main(["--strict", "--tables", str(path), "--generated"])
