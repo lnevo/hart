@@ -101,13 +101,22 @@ def checkout_state(status: str | None = None, root: Path = ROOT) -> tuple[str, l
     """The tables.xml hash, and each status line a deploy could have changed with a hash of
     that file's contents, so a second edit to a file that was already modified is seen too."""
     if status is None:
-        status = git("status", "--porcelain", raw=True).decode()
+        # -uall lists each untracked file, so a new file inside an untracked folder shows too.
+        status = git("status", "--porcelain", "-uall", raw=True).decode()
     lines = []
     for ln in status.splitlines():
         if not deploy_could_write(ln):
             continue
-        f = root / status_path(ln)
-        lines.append(f"{ln} {hashlib.sha256(f.read_bytes()).hexdigest()}" if f.is_file() else ln)
+        path = status_path(ln)
+        digest = ""
+        # Hash contents only where the deploy reads or writes, so an edit elsewhere (www/) during
+        # the run cannot fail the guard; a file another job removes mid-read keeps its bare line.
+        if "/" not in path or path.startswith(DEPLOY_TREES):
+            try:
+                digest = hashlib.sha256((root / path).read_bytes()).hexdigest()
+            except OSError:
+                pass
+        lines.append(f"{ln} {digest}" if digest else ln)
     return (hashlib.sha256(TABLES.read_bytes()).hexdigest(), lines)
 
 
@@ -167,6 +176,16 @@ class CheckoutGuardTest(unittest.TestCase):
             self.assertEqual(before, checkout_state(line, root=Path(tmp)))
             panel.write_text("owner's uncommitted edit\nand the deploy's\n", encoding="utf-8")
             self.assertNotEqual(before, checkout_state(line, root=Path(tmp)))
+
+    def test_an_edit_outside_the_deploy_trees_is_not_hashed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            page = Path(tmp) / "www/index.html"
+            page.parent.mkdir(parents=True)
+            page.write_text("one\n", encoding="utf-8")
+            line = " M www/index.html"
+            before = checkout_state(line, root=Path(tmp))
+            page.write_text("two\n", encoding="utf-8")
+            self.assertEqual(before, checkout_state(line, root=Path(tmp)))
 
     def test_a_quoted_or_renamed_path_is_read(self) -> None:
         self.assertEqual("tools/hosts/a b.sh", status_path('?? "tools/hosts/a b.sh"'))
