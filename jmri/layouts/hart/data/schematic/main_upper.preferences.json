@@ -11,7 +11,7 @@
   "Staging, main and upper level",
   "Stage 0 proof, as built"
  ],
- "date": "2026-11-19",
+ "date": "2026-11-20",
  "revision": 15,
  "sheet": "1 of 1",
  "num_px": 6.5,
@@ -261,10 +261,12 @@
    "block_contents_size": 12,
    "optional_block_contents": [
     "Track 227-231",
-    "Track 229-233",
+    "Track 229-233"
+   ],
+   "crowded_block_contents": [
     "OS Switch 235"
    ]
   }
  },
- "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). OS Switch 235: with the plan 5.3c lengths (2026-11-19) the upper level's columns shifted and its icon found no clean spot among 160 tried, so it may be left out (logged)."
+ "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents: OS Switch 235's icon has no clean spot since the plan 5.3c lengths shifted the upper columns; the owner wants it drawn anyway, overlaps allowed, for review (2026-11-20)."
 }

@@ -311,8 +311,8 @@
 <circle cx="1357.0" cy="554.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M1493.5,562.0 L1493.5,568.0" stroke-width="1"/>
 <path d="M1493.5,568.0 L1496.7,571.2 L1493.5,574.4 L1490.3,571.2 Z" stroke-width="1" fill="#fff"/>
-<path d="M920.3,562.0 L920.3,556.0" stroke-width="1"/>
-<path d="M920.3,549.6 L923.5,552.8 L920.3,556.0 L917.1,552.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M920.5,562.0 L920.5,556.0" stroke-width="1"/>
+<path d="M920.5,549.6 L923.7,552.8 L920.5,556.0 L917.3,552.8 Z" stroke-width="1" fill="#fff"/>
 <text x="38.5" y="508.0" font-size="12" text-anchor="start" font-weight="bold" fill="#000" stroke="none" letter-spacing="1.5">MAIN LEVEL</text>
 <text x="1535.5" y="565.5" font-size="10" text-anchor="start" font-weight="bold" fill="#000" stroke="none" >H1</text>
 <text x="1551.5" y="565.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >HELIX TO STAGING</text>
@@ -366,7 +366,7 @@
 <text x="247.5" y="613.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(23)</text>
 <text x="247.5" y="585.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(22)</text>
 <text x="262.4" y="641.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(26)</text>
-<text x="920.3" y="547.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >8</text>
+<text x="920.5" y="547.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >8</text>
 <text x="1016.8" y="631.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >121A</text>
 <text x="791.9" y="603.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119B</text>
 <text x="1180.1" y="631.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >125B</text>
@@ -529,8 +529,8 @@
 <circle cx="1408.7" cy="883.7" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M146.8,1030.0 L146.8,1036.0" stroke-width="1"/>
 <path d="M146.8,1036.0 L150.0,1039.2 L146.8,1042.4 L143.6,1039.2 Z" stroke-width="1" fill="#fff"/>
-<path d="M1147.8,974.0 L1147.8,968.0" stroke-width="1"/>
-<path d="M1147.8,961.6 L1151.0,964.8 L1147.8,968.0 L1144.6,964.8 Z" stroke-width="1" fill="#fff"/>
+<path d="M1147.9,974.0 L1147.9,968.0" stroke-width="1"/>
+<path d="M1147.9,961.6 L1151.1,964.8 L1147.9,968.0 L1144.7,964.8 Z" stroke-width="1" fill="#fff"/>
 <path d="M1177.3,1030.0 L1177.3,1036.0" stroke-width="1"/>
 <path d="M1177.3,1036.0 L1180.5,1039.2 L1177.3,1042.4 L1174.1,1039.2 Z" stroke-width="1" fill="#fff"/>
 <path d="M868.0,1030.0 L868.0,1024.0" stroke-width="1"/>
@@ -589,7 +589,7 @@
 <text x="1131.0" y="1025.0" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">MCKEESPORT</text>
 <text x="146.8" y="1049.1" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >8.5</text>
 <text x="131.8" y="1043.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >203</text>
-<text x="1147.8" y="959.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >9</text>
+<text x="1147.9" y="959.6" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >9</text>
 <text x="1358.0" y="885.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
 <text x="899.0" y="997.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">EAST →</text>
 <text x="1412.3" y="902.1" font-size="8.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.4">(5)</text>
@@ -641,7 +641,7 @@
 <text x="34" y="766" font-size="11" font-weight="normal" letter-spacing="1">STAGING, MAIN AND UPPER LEVEL</text>
 <text x="34" y="784" font-size="11" font-weight="normal" letter-spacing="1">STAGE 0 PROOF, AS BUILT</text>
 <rect x="354" y="728" width="104" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
-<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 19, 2026</text>
+<text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 20, 2026</text>
 <path d="M354,749.3 L458,749.3" stroke="#000" stroke-width="0.8"/>
 <text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 15</text>
 <path d="M354,770.7 L458,770.7" stroke="#000" stroke-width="0.8"/>

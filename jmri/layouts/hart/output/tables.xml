@@ -1490,7 +1490,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="12:23 AM">
+    <memory value="12:39 AM">
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -13881,104 +13881,104 @@
   <filehistory>
     <operation>
       <type>app</type>
-      <date>Fri Nov 20 00:23:28 EST 2026</date>
+      <date>Fri Nov 20 00:38:57 EST 2026</date>
       <filename>PanelPro (v5.16.0)</filename>
     </operation>
     <operation>
       <type>Load OK</type>
-      <date>Fri Nov 20 00:23:36 EST 2026</date>
+      <date>Fri Nov 20 00:39:03 EST 2026</date>
       <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
       <filehistory>
         <operation>
           <type>app</type>
-          <date>Thu Nov 19 23:12:00 EST 2026</date>
+          <date>Fri Nov 20 00:23:28 EST 2026</date>
           <filename>PanelPro (v5.16.0)</filename>
         </operation>
         <operation>
           <type>Load OK</type>
-          <date>Thu Nov 19 23:12:09 EST 2026</date>
+          <date>Fri Nov 20 00:23:36 EST 2026</date>
           <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
           <filehistory>
             <operation>
               <type>app</type>
-              <date>Thu Nov 19 21:54:23 EST 2026</date>
+              <date>Thu Nov 19 23:12:00 EST 2026</date>
               <filename>PanelPro (v5.16.0)</filename>
             </operation>
             <operation>
               <type>Load OK</type>
-              <date>Thu Nov 19 21:54:29 EST 2026</date>
-              <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
+              <date>Thu Nov 19 23:12:09 EST 2026</date>
+              <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
               <filehistory>
                 <operation>
                   <type>app</type>
-                  <date>Thu Nov 19 21:41:00 EST 2026</date>
+                  <date>Thu Nov 19 21:54:23 EST 2026</date>
                   <filename>PanelPro (v5.16.0)</filename>
                 </operation>
                 <operation>
                   <type>Load OK</type>
-                  <date>Thu Nov 19 21:41:08 EST 2026</date>
+                  <date>Thu Nov 19 21:54:29 EST 2026</date>
                   <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                   <filehistory>
                     <operation>
                       <type>app</type>
-                      <date>Thu Nov 19 20:21:45 EST 2026</date>
+                      <date>Thu Nov 19 21:41:00 EST 2026</date>
                       <filename>PanelPro (v5.16.0)</filename>
                     </operation>
                     <operation>
                       <type>Load OK</type>
-                      <date>Thu Nov 19 20:21:51 EST 2026</date>
+                      <date>Thu Nov 19 21:41:08 EST 2026</date>
                       <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                       <filehistory>
                         <operation>
                           <type>app</type>
-                          <date>Thu Nov 19 18:06:13 EST 2026</date>
+                          <date>Thu Nov 19 20:21:45 EST 2026</date>
                           <filename>PanelPro (v5.16.0)</filename>
                         </operation>
                         <operation>
                           <type>Load OK</type>
-                          <date>Thu Nov 19 18:06:20 EST 2026</date>
+                          <date>Thu Nov 19 20:21:51 EST 2026</date>
                           <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                         <operation>
                           <type>Store</type>
-                          <date>Thu Nov 19 18:06:33 EST 2026</date>
+                          <date>Thu Nov 19 20:22:04 EST 2026</date>
                           <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                       </filehistory>
                     </operation>
                     <operation>
                       <type>Store</type>
-                      <date>Thu Nov 19 20:22:04 EST 2026</date>
+                      <date>Thu Nov 19 21:41:22 EST 2026</date>
                       <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                     </operation>
                   </filehistory>
                 </operation>
                 <operation>
                   <type>Store</type>
-                  <date>Thu Nov 19 21:41:22 EST 2026</date>
+                  <date>Thu Nov 19 21:54:41 EST 2026</date>
                   <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                 </operation>
               </filehistory>
             </operation>
             <operation>
               <type>Store</type>
-              <date>Thu Nov 19 21:54:41 EST 2026</date>
-              <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
+              <date>Thu Nov 19 23:12:25 EST 2026</date>
+              <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
             </operation>
           </filehistory>
         </operation>
         <operation>
           <type>Store</type>
-          <date>Thu Nov 19 23:12:25 EST 2026</date>
+          <date>Fri Nov 20 00:23:49 EST 2026</date>
           <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
         </operation>
       </filehistory>
     </operation>
     <operation>
       <type>Store</type>
-      <date>Fri Nov 20 00:23:49 EST 2026</date>
+      <date>Fri Nov 20 00:39:17 EST 2026</date>
       <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
     </operation>
   </filehistory>
-  <!--Written by JMRI version 5.16+R909e15189e on Fri Nov 20 00:23:49 EST 2026-->
+  <!--Written by JMRI version 5.16+R909e15189e on Fri Nov 20 00:39:17 EST 2026-->
 </layout-config>

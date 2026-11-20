@@ -919,7 +919,7 @@ class FinalReview(unittest.TestCase):
         self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
         self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
         self.assertEqual((opts["Main"]["optional_block_contents"], opts["Upper"]["optional_block_contents"]),
-                         ([], ["Track 227-231", "Track 229-233", "OS Switch 235"]))
+                         ([], ["Track 227-231", "Track 229-233"]))
 
 class LoopAndCrossover(unittest.TestCase):
     """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""

@@ -77,6 +77,12 @@ Steps 1 to 7 are done and step 8's candidate is installed on the Mac; the owner'
 - **Kept as approved:** `turnbacks: ["Brick-Plane"]` (plugin 0.1.45) keeps staging's fold; with 5.3c lengths the cheapest drawing turned Main West back.
 - **Masts and SML:** 93 masts and the same 182 pairs from stock discovery in a sandbox; no mast renamed (the helix totals equal the old `helix_length_in` sums).
 
+### Draft 2 (owner, 2026-11-20)
+
+- McKees Rocks and McKeesport blocks are the whole helix run, 947.2 and 916.5 in (`block_lengths.csv`, IB23/IB24): their detectors cover all of it. The sheet and the milepost count keep each level's share (`publish_draft.py` no longer copies the helix tracks into `track_lengths_in`), so no mast renames. Another session makes each helix track one JMRI block on helix node 41 after #732 merges.
+- OS Switch 235's block contents icon is drawn again, overlaps allowed (`crowded_block_contents`, schematic-maps 0.1.45), for the owner's review.
+- The Main West turnback the owner asked for is not in this draft: with Main West folded, W-1 and W-2 are drawn east of Switch 3, so the mast rule renames 4RA/4RB to 4LA/4LB, which are the names of the hand-kept virtual masts at those bumpers, and the build stops. It needs the owner's call (see #732).
+
 ## Also open
 
 The Windows deploy of hart #689 has not run, because Windows (minipc-e5h6x.local, 10.0.0.28:2222)
