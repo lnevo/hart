@@ -1955,21 +1955,20 @@ class Sequences(unittest.TestCase):
         queued[0].run()  # cancelled: changes nothing
         self.assertTrue(logic.enabled["Mast 8RA"])
 
-    def test_abort_after_a_timeout_does_not_retry(self) -> None:
+    def test_abort_after_a_failed_uncheck_retries_once_even_after_a_timeout(self) -> None:
         c = self.c
         calls = []
 
         def bulk(on):
             calls.append(on)
-            c._bulk_timed_out = True
             return False
 
         c._set_all_digicon_sml_destinations = bulk
         self.own()
         c._abort_in_progress = True
         c._run_abort()
-        self.assertEqual(calls, [False])
-        self.assertIn("abort FAILED to turn all SML pairs off (timed out", self.out.getvalue())
+        self.assertEqual(calls, [False, False])
+        self.assertIn("abort retry FAILED", self.out.getvalue())
         self.assertEqual([p for t, p, r in self.sent() if t == "track/bridge/sml_mode"],
                          ["aborting", "aborted"])
 

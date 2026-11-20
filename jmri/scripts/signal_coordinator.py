@@ -353,8 +353,6 @@ class DigiconMqttSml(
         self._global_enabled = False
         self._busy = False
         self._suppress_sml = False
-        # True when the last bulk SML set gave up waiting on the layout thread.
-        self._bulk_timed_out = False
         self._boot_pending = False
         self._retained_mode = None
         self._button = None
@@ -895,7 +893,6 @@ class DigiconMqttSml(
         """
         # SML may finish discovering after Start Up -- refresh before bulk set.
         self._attach_sml_listeners(quiet=True)
-        self._bulk_timed_out = False
 
         def _do(run):
             n = 0
@@ -998,7 +995,6 @@ class DigiconMqttSml(
             queued_ok[0] = True
             if not latch.await(30, TimeUnit.SECONDS):
                 if not queued.cancel():
-                    self._bulk_timed_out = True
                     print("mqtt_signalhead: SML bulk set timed out on layout thread")
                     return False
             return queued.result is True
@@ -1597,15 +1593,10 @@ class DigiconMqttSml(
         return ", ".join(out) or "none listed"
 
     def _retry_uncheck_loudly(self, why):
-        """After a bulk uncheck that failed: print the pairs still on, and retry once
-        if the set finished with a pair failure (not after a timeout: the layout
-        thread is stuck, and a retry would only wait again)."""
-        if self._bulk_timed_out:
-            print(
-                "mqtt_signalhead: %s FAILED to turn all SML pairs off (timed out; "
-                "still on: %s)" % (why, self._pairs_still_on())
-            )
-            return False
+        """After a bulk uncheck that failed: print the pairs still on and retry once.
+        Always retry, as before: in JMRI runOnLayout blocks until the work is done, so
+        a timeout cannot be told apart reliably, and a missed retry can leave pairs on
+        while another host owns Digicon."""
         print(
             "mqtt_signalhead: %s FAILED to turn all SML pairs off (still on: %s) -- "
             "retrying once" % (why, self._pairs_still_on())
