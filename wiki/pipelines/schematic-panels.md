@@ -20,6 +20,7 @@ make desks            # only the CATS desks, then validate them
 | Step | Script | Writes |
 |------|--------|--------|
 | hands | `build_hands.py` | `hands.csv` from the plan graph |
+| main-route | `build_main_route.py` | the `main_route` key of `main_upper.plan_overrides.json`, worked out from `main_lines_main_upper.csv` (the two main lines by helix end, end switch, turnback and double tracks) and the plan graph; stops when a stretch has two equally short ways or a pair of switches has two tracks nobody declared |
 | staging-masts | `build_staging_masts.py --check` | nothing: stops when `staging_masts.csv`, `staging_signals.csv` or the mast and head rows of `device_map_staging.csv` no longer match the staging signal rule. Run `build_staging_masts.py` by hand to write them |
 | staging-sync | `sync_staging_signals.py --check` | nothing: stops when the staging heads and masts in `tables.xml` differ from `staging_masts.csv`. Run `sync_staging_signals.py` by hand with JMRI closed; `make panels` never edits `tables.xml` |
 | staging-map | `staging_device_map.py --check` | nothing: checks the staging device map files against `tables.xml` and the schematic. `control_points_staging.csv` and the rows of `device_map_staging.csv` other than masts and heads are kept by hand; `staging_masts.csv`, `staging_signals.csv` and the mast and head rows are generated (staging-masts above) |
@@ -34,7 +35,7 @@ make desks            # only the CATS desks, then validate them
 | approved-live | `check_approved.py le-panel` | nothing: stops when the live panel in `tables.xml` drifts from the approved fingerprint |
 
 Each step reads the plugin's cache (`~/.cache/hart/schematic`), so a run after a small change redoes only what that
-change reaches. `tools/check.sh` runs `--check` on the hands, staging masts, staging sync, staging map, signals, device map, main and upper masts and CATS steps, and the approved fingerprints (`check_approved.py`); `make panels
+change reaches. `tools/check.sh` runs `--check` on the hands, main route, staging masts, staging sync, staging map, signals, device map, main and upper masts and CATS steps, and the approved fingerprints (`check_approved.py`); `make panels
 CHECK=1` checks them all.
 
 ## After a run

@@ -5,6 +5,7 @@
 # The steps, in the order they run (the name is the one each step prints):
 #
 #   hands                 hands.csv, from the plan graph
+#   main-route            main_route in main_upper.plan_overrides.json, from main_lines_main_upper.csv and the plan graph
 #   staging-masts         staging_masts.csv, staging_signals.csv and the device map's mast and head rows are written by
 #                         build_staging_masts.py, run by hand: this only checks them (--check), in both modes
 #   staging-sync          tables.xml follows staging_masts.csv through sync_staging_signals.py, run by hand with JMRI
@@ -60,6 +61,7 @@ step() { run_step "later steps read what $1 writes" "$@"; }
 guard() { run_step "$1 only checks and it failed; later steps read the files it checks" "$@"; }
 
 step hands python3 tools/schematic/build_hands.py
+step main-route python3 tools/schematic/build_main_route.py
 guard staging-masts python3 tools/schematic/build_staging_masts.py --check
 guard staging-sync python3 tools/schematic/sync_staging_signals.py --check
 guard staging-map python3 tools/schematic/staging_device_map.py --check
