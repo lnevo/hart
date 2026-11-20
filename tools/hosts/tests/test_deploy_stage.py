@@ -84,6 +84,13 @@ def tree(root: Path) -> list[str]:
     return sorted(str(p.relative_to(root)) for p in root.rglob("*"))
 
 
+def live_panels() -> list[str]:
+    """The panels the deploy ships: the LIVE_PANELS array in the script."""
+    src = SYNC.read_text(encoding="utf-8")
+    block = src[src.index("LIVE_PANELS=(") + len("LIVE_PANELS=("):]
+    return block[:block.index(")")].split()
+
+
 def git(*args: str, repo: Path = ROOT, raw: bool = False):
     """git's output in `repo`, stripped text, or the bytes as they are with `raw`."""
     out = subprocess.run(["git", "-C", str(repo), *args], capture_output=True, check=True).stdout
@@ -167,6 +174,42 @@ class StageOnly(unittest.TestCase):
 
         # Only the stamp may differ (its date is taken per run).
         self.assertLessEqual(set(differing(cmp)), {"cats/deploy_stamp.txt"})
+
+    def test_pi_and_windows_differ_only_in_panels_and_stamp(self) -> None:
+        """What makes building the package once safe: the host's user files reach only the panels."""
+        pi, win = self.out / "pi", self.out / "win"
+        self.assertEqual(tree(pi), tree(win))
+        differ = [n for n in tree(pi) if (pi / n).is_file() and not filecmp.cmp(pi / n, win / n, shallow=False)]
+        panels = {f"cats/panels/{p}" for p in live_panels()}
+        self.assertTrue(panels)
+        self.assertLessEqual(set(differ), {"cats/deploy_stamp.txt"} | panels)
+        self.assertIn("cats/deploy_stamp.txt", differ)
+
+
+class StagedOnce(unittest.TestCase):
+    """--pi --win builds the shared package once (one mimic page build), then finishes each host."""
+
+    def test_one_build_for_both_hosts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp_name:
+            tmp = Path(tmp_name)
+            env = stage_env(tmp)
+            real = shutil.which("python3")
+            tool = tmp / "bin/python3"
+            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{real}" "$@"\n', encoding="utf-8")
+            tool.chmod(0o755)
+            done = run(SYNC, tmp / "stage", env, "--pi", "--win")
+            self.assertEqual(done.returncode, 0, done.stderr[-2000:])
+            calls = (tmp / "python.log").read_text(encoding="utf-8").splitlines()
+            self.assertEqual(1, sum("build_mimic_web.py" in c for c in calls), calls)
+            self.assertEqual(1, sum("publish_live.py --build-page" in c for c in calls), calls)
+            # the panels are rewritten per host, each panel once per host
+            panels = live_panels()
+            rewrites = [c for c in calls if "rewrite_button_icon_paths.py" in c]
+            self.assertEqual(2 * len(panels), len(rewrites), calls)
+            for p in panels:
+                self.assertEqual(2, sum(f"/cats/panels/{p} " in c for c in rewrites), (p, rewrites))
+            for host in ("pi", "win"):
+                self.assertEqual(read_stamp(tmp / "stage" / host / "cats/deploy_stamp.txt")["target"], host)
 
 
 class StampNamesWhatWasShipped(unittest.TestCase):

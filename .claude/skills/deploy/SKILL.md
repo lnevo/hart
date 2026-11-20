@@ -26,7 +26,8 @@ Before you run it:
 
 What it does:
 
-- With no flag it installs on the Mac only. A host flag also installs on the Mac, then sends one staged package: the Pi by rsync, Windows by tarball over ssh. Each host unpacks into a temporary folder, installs into `JMRI_UserFiles`, and removes the folder.
+- With no flag it installs on the Mac only. A host flag also installs on the Mac, then sends one staged package: the Pi by rsync, Windows by tarball over ssh. Each host unpacks into a temporary folder, installs into `JMRI_UserFiles`, and removes the folder. The package is built once per run; the Pi and Windows copies differ only in the CATS panels (rewritten for each host's user files) and the stamp.
+- The Pi's ssh, rsync and restart-check calls share one ssh connection (a master on a socket in a folder made for the run, closed and removed on every way out). Windows opens one connection per call: its OpenSSH server has not been tried with shared connections. `HART_SSH_MUX=0` turns sharing off.
 - It runs `audit_panel_contracts.py --strict` first and turns off the Digicon SML MQTT destinations in the shipped tables.
 - Operations files are overwritten on every host once the Pi check passes (`HART_OVERWRITE_OPS=1` is the default; `0` restores the per-file guards).
 - Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `tools/env/defaults.env`.
@@ -50,6 +51,7 @@ Hosts and failures:
 - A real deploy, and a redeploy of an older commit, first asks every host named on the command line for an ssh answer and stops (`STOP: cannot reach ... over ssh`) before the Pi's unpulled check, the Mac install, the `tables.xml` gates or any host step if one does not reply, so `--pi --win` with Windows down sends and installs nothing on the Pi. PanelPro quit there for the deploy is started again, and the output says so. A dry run skips this check.
 - With `--pi --win`, a Pi failure after that check (for example "Connection refused") exits before the Windows step runs.
 - If the Pi step fails, run `--win` on its own, then `--pi` once the Pi accepts ssh on port 22, so the two match again.
+- If Windows fails after the Pi step finished (it answered the check, then dropped), the run names the commit the Pi got (and says Windows may be partly installed if its apply failed): once Windows answers, give it the same commit with `make redeploy COMMIT=<sha> HOSTS=--win`. A Windows temp folder that cannot be removed after a good apply is only a warning.
 - Quit PanelPro on the Pi with `tools/hosts/pi_quit_panelpro.sh --for-deploy` first; the Pi deploy starts it again afterwards, also if it fails. A plain quit, or PanelPro the owner closed, stays closed. `HART_PI_RESTART=0` skips the restart.
 - Check afterwards with `make deploy-status HOSTS="--pi --win"` (or `tools/hosts/deploy_status.sh`), which reads the stamp back and compares its commit with this checkout, and with a sha256 of `tables.xml` on each host.
 - Do not leave the LCOS bridge (`serial_to_mqtt`) running, and do not publish `track/cmd` from a deploy.
