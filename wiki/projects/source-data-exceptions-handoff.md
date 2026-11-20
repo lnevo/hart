@@ -42,6 +42,22 @@ order.
   - the timed lengths (`block_lengths.csv` `measured_in`);
   - the physical hands of Switches 9 and 13.
 
+## Progress (2026-11-20)
+
+Done on branch `agent/claude/source-data-rows-2-3-7`, with every desk, panel and fingerprint unchanged:
+- **Row 1:** every override and preference ref outside the `relabel` edit is a switch number, or `number@track` at
+  a crossover half (about 95 refs). Six stay part numbers: the first track named at each half of Switches 7, 23 and
+  35 in the staging `name` edit, since no track has a name yet for `@track` to use (`_note` on that edit).
+  `tools/schematic/tests/test_override_refs.py` holds that.
+- **Row 2:** `mast_dir_pattern` and `signals_planned` deleted, the `move` hand branch gone from `build_hands.py`,
+  comments corrected (127 and 131 at the helix top since the 2026-11-19 renumber).
+- **Row 3:** a mast's direction is the `dir` column (east or west) of the device maps, `main_upper_masts.csv` and
+  `staging_masts.csv`, set where the mast rule places it; no reader parses it from the name.
+- **Row 7:** a turnout's class (#6 or #8) comes from the angle of its leg ends; the Peco part table is gone.
+
+Row 6 (track-plan page) is PR #749 from another session. Rows 4 and 5 are being built next; rows 8, 9 and 10 wait
+(owner, 2026-11-20).
+
 ## What is left to remove, ranked
 
 | # | Item | Where | Replace with | Effort |

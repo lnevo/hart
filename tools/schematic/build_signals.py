@@ -203,7 +203,7 @@ def main_upper_rows() -> list[dict]:
             far = [v for (n, p), (k, v) in zip(t["legs"], reversed(t["ends"])) if (n, p) == (m["node"], m["leg"])]
             rows.append(dict(mast=name, toward=r["switch"], run=[r["switch"], far[0] if far and far[0] else ""],
                              edge=plan(m["strand"], band), node=m["node"], edge_cm=t["cm"], cm_from_toward=0.0,
-                             dir="west" if m["letter"] == "L" else "east", heads=heads,
+                             dir=r["dir"], heads=heads,
                              leg=m["leg"] if t["loop"] else None))
             if t["loop"] and loop_leg(r["facing"]) != m["leg"]:
                 sys.exit(f"{r['mast']}: stands on leg {m['leg']} of Switch {r['switch']}, but faces {r['facing']}, "
@@ -220,7 +220,7 @@ def main_upper_rows() -> list[dict]:
             ends = sorted(node_of, key=bdm.natural)
             half = int(r["protects"][-1])
             label = ends[0] if t["loop"] else ends[half - 1]       # half 1 is at the lower-numbered switch
-            west = int(re.sub(r"\D", "", name)) % 2 == 1
+            west = r["dir"] == "west"
             other = [e for e in ends if e != label] or [label]
             node, cm = node_of[label], t["cm"] / 2
             if t["loop"] and west:
@@ -230,7 +230,7 @@ def main_upper_rows() -> list[dict]:
                 label, cm = "", TURNBACK_CM
             rows.append(dict(mast=name, toward=label, run=[label, other[0]], edge=plan(t["strands"][0], band),
                              node=node, edge_cm=t["cm"], cm_from_toward=round(cm, 1),
-                             dir="west" if west else "east", heads=heads,
+                             dir=r["dir"], heads=heads,
                              leg=loop_leg(r["facing"]) if t["loop"] else None))
     return [dict(mast=x["mast"], toward=x["toward"], run=x["run"], names=[], edge_cm=x["edge_cm"],
                  cm_from_toward=x["cm_from_toward"], dir=x["dir"], kind="planned", heads=x["heads"],

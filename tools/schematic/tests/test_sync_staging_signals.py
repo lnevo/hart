@@ -105,7 +105,8 @@ TABLES = (
 
 
 def mast_row(mast, system, cp="", switch="", heads=""):
-    return dict(mast=mast, cp=cp, switch=switch, facing="Track X", protects="OS Switch 1", leg="", system_name=system,
+    return dict(mast=mast, cp=cp, switch=switch, facing="Track X", protects="OS Switch 1", dir="west", leg="",
+                system_name=system,
                 head_system_names=heads, device_system_name=system)
 
 

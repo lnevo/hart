@@ -9,9 +9,10 @@ The plan is the source (owner, 2026-11-20): the schematic, the Layout Editor pan
 staging block by plan_in; JMRI's block length is the measured one where a block was timed, else plan_in
 (hartlib.railroad.BlockLength.jmri_in).
 
-- An OS block takes its turnout's product length: from the points to the frog end of the plan part at its switch
+- An OS block takes its turnout's length: from the points to the frog end of the plan part at its switch
   (one part per OS block; a crossover half is its own part), measured between the part's end points in parts.json
-  (turnout_inches). PRODUCT_INCHES only checks the reading: a Peco code 83 #6 is about 9.2 in, a #8 11.0 to 11.2 in.
+  (turnout_inches). The turnout's class (#6 or #8) comes from the angle of its two leg ends (turnout_class), not
+  from a maker's part name; TURNOUT_INCHES only checks the reading: a #6 is about 9.2 in, a #8 11.0 to 11.2 in.
 - A track block takes its drawn length: the plan's track between the turnout ends at either end of its run (or a
   buffer stop, or the switch beyond the helix), as AnyRail's export measures it (tools/anyrail/anyplan.py runs: flex
   track only, the turnouts left out). A run the schematic draws as two tracks (a balloon loop folded at its turnback,
@@ -48,10 +49,12 @@ PARTS = pd.GRAPHS / "parts.json"
 GRAPH = pd.GRAPHS / "staging.json"
 PLAN = Path(os.environ.get("ANYRAIL_PLAN") or Path.home() / "Documents/Layout/Lee Nevo Design Version 5.3c.any")
 CM = 2.54
-# The product lengths a reading must give, points to frog end, in inches: a check on turnout_inches, not a source.
-PRODUCT_INCHES = {"#6": (9.1, 9.3), "#8": (10.9, 11.3)}
-PRODUCTS = {"SL-8361": "#6", "SL-8362": "#6", "SL-E8361": "#6", "SL-E8362": "#6",
-            "SL-8377": "#8", "SL-8378": "#8", "SL-E8377": "#8", "SL-E8378": "#8"}
+# A turnout's class comes from its geometry, never from a maker's part name (any maker's track reads the same way).
+# TURNOUT_NUMBERS: the leg-end chord number of each class, cot(angle at the points between the two leg ends); it reads
+# above the printed frog number because the diverging route curves. A reading must fall in a class's range.
+# TURNOUT_INCHES: the points-to-frog-end length per class, in inches: a check on turnout_inches, not a source.
+TURNOUT_NUMBERS = {"#6": (8.65, 9.65), "#8": (10.6, 11.6)}
+TURNOUT_INCHES = {"#6": (9.1, 9.3), "#8": (10.9, 11.3)}
 LEG_OF = {"points": "A", "straight": "B", "diverging": "C"}     # anyplan.classify's ends as the graph names legs
 
 
@@ -59,23 +62,47 @@ class LengthError(RuntimeError):
     pass
 
 
-def turnout_inches(part: dict) -> float:
-    """A turnout part's length from the points to the frog end, in inches: from its points end (the end farthest from
-    the other two) to the middle of its two frog-end ends. LengthError on a part that is not a three-ended turnout, a
-    product not in PRODUCTS, or a length outside its PRODUCT_INCHES."""
+def _points_end(xy: list) -> int:
+    """Index of a three-ended part's points end: the end farthest from the other two (anyplan.classify's rule, which
+    needs end headings that parts.json does not carry)."""
+    return max(range(3), key=lambda i: sum(math.dist(xy[i], xy[j]) for j in range(3)))
+
+
+def turnout_class(part: dict) -> str:
+    """"#6" or "#8", from the part's end points alone: the angle at the points end between the two leg ends gives the
+    chord number cot(angle), matched to TURNOUT_NUMBERS. LengthError on a part that is not a three-ended turnout or
+    whose number is in no class's range (the part's name is a label in the message only). parts.json holds end
+    points but no headings, so this cannot tell a straight turnout from a curved one or a wye whose leg ends happen
+    to fall in a class's range; TURNOUT_INCHES then checks the length, and every part the plan holds today reads as
+    the straight #6 or #8 it is."""
     eps = part.get("eps") or []
     if len(eps) != 3:
         raise LengthError(f"part {part.get('name')!r} has {len(eps)} ends, not a turnout's three")
     xy = [(e["x"], e["y"]) for e in eps]
-    p = max(range(3), key=lambda i: sum(math.dist(xy[i], xy[j]) for j in range(3)))
+    p = _points_end(xy)
+    (ax, ay), (bx, by) = ((xy[i][0] - xy[p][0], xy[i][1] - xy[p][1]) for i in range(3) if i != p)
+    angle = abs(math.atan2(ax * by - ay * bx, ax * bx + ay * by))
+    if angle < 1e-9:
+        raise LengthError(f"part {part.get('name')!r} has both leg ends on one line from its points end")
+    number = 1 / math.tan(angle)
+    for cls, (lo, hi) in TURNOUT_NUMBERS.items():
+        if lo <= number <= hi:
+            return cls
+    raise LengthError(f"part {part.get('name')!r} has leg-end angle {math.degrees(angle):.2f} deg (chord number "
+                      f"{number:.2f}), in no class of TURNOUT_NUMBERS {TURNOUT_NUMBERS}")
+
+
+def turnout_inches(part: dict) -> float:
+    """A turnout part's length from the points to the frog end, in inches: from its points end to the middle of its
+    two frog-end ends. LengthError on a part turnout_class rejects, or a length outside its class's TURNOUT_INCHES."""
+    cls = turnout_class(part)
+    xy = [(e["x"], e["y"]) for e in part["eps"]]
+    p = _points_end(xy)
     a, b = (xy[i] for i in range(3) if i != p)
     inches = math.dist(xy[p], ((a[0] + b[0]) / 2, (a[1] + b[1]) / 2)) / CM
-    product = PRODUCTS.get(part["name"])
-    if product is None:
-        raise LengthError(f"part {part['name']!r} is no turnout product this knows (PRODUCTS)")
-    lo, hi = PRODUCT_INCHES[product]
+    lo, hi = TURNOUT_INCHES[cls]
     if not lo <= inches <= hi:
-        raise LengthError(f"part {part['name']} ({product}) reads {inches:.2f} in from points to frog end, "
+        raise LengthError(f"part {part.get('name')!r} ({cls}) reads {inches:.2f} in from points to frog end, "
                           f"outside {lo} to {hi}")
     return inches
 

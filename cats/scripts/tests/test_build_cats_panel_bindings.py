@@ -462,6 +462,7 @@ def level_facts(**kw):
                      "Mast 108R": "IF$shsm:basic:two-searchlight(IH:HART:C3:108R_Top)(IH:HART:C3:108R_Bottom)"}
     row = lambda mast, facing, system, heads: {"mast": mast, "switch": "107", "facing": facing,
                                                "protects": "OS Switch 107", "system_name": system,
+                                               "dir": "east" if mast.endswith("R") else "west",
                                                "heads": [(h, h) for h in heads]}
     f.level_masts = [row("Mast 108LA", "Track 107 Loop 1", f.mast_system["Mast 108LA"], ["IH:HART:C3:108LA"]),
                      row("Mast 108LB", "Track 107 Loop 2", f.mast_system["Mast 108LB"], ["IH:HART:C3:108LB"]),
@@ -557,6 +558,15 @@ class LevelMasts(unittest.TestCase):
                          ("e19", "S107", "107"))
         self.assertEqual((sig["108LA"]["dir"], sig["108R"]["dir"], sig["108R"]["heads"]), ("west", "east", 2))
 
+    def test_the_direction_is_the_rows_dir_not_the_name(self):
+        # 108LA is an L mast (westbound by ADR-005) and 108R an R mast: the row's dir wins over both
+        f = level_facts()
+        f.level_masts = [dict(r, dir={"west": "east", "east": "west"}[r["dir"]]) for r in f.level_masts]
+        bands = level_bands()
+        B.level_signals(bands, f, 0)
+        sig = {s["mast"]: s["dir"] for s in bands[1][2]["signals"]}
+        self.assertEqual(sig, {"108LA": "east", "108LB": "east", "108R": "west"})
+
     def test_a_loop_whose_edge_is_a_cut_piece_keeps_its_halves_apart(self):
         # a loop drawn from a connector's or helix's piece (e33x): its halves are not read as x/y pieces again
         bands = level_bands()
@@ -627,6 +637,7 @@ def intermediate_facts(blocks=None):
         "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2"),
         "Track 107-109": block("Track e19")}))
     row = lambda mast, facing, protects: {"mast": mast, "switch": "", "facing": facing, "protects": protects,
+                                          "dir": "west" if int(mast[6:]) % 2 else "east",
                                           "system_name": f"IF$shsm:basic:one-searchlight(IH:HART:C3:{mast[5:]})",
                                           "heads": [("h", "h")]}
     f.level_masts = [row("Mast A83", "Track 107 Loop 2", "Track 107 Loop 1"),
@@ -644,6 +655,14 @@ class IntermediateMasts(unittest.TestCase):
         sig = {s["mast"]: s for s in bands[1][2]["signals"]}
         self.assertEqual({m: (s["_edge"], s["_toward_node"], s["dir"]) for m, s in sig.items()},
                          {"A83": ("e33~2", "turn:e33", "west"), "A84": ("e33~1", "turn:e33", "east")})
+
+    def test_the_direction_is_the_rows_dir_not_the_number(self):
+        # A83 has an odd number (westbound by the name) and A84 an even one: the rows say the other way
+        f = intermediate_facts()
+        f.level_masts = [dict(r, dir={"west": "east", "east": "west"}[r["dir"]]) for r in f.level_masts]
+        bands = intermediate_bands()
+        B.level_signals(bands, f, 0)
+        self.assertEqual({s["mast"]: s["dir"] for s in bands[1][2]["signals"]}, {"A83": "east", "A84": "west"})
 
     def test_only_the_loop_they_stand_on_gets_half_edges(self):
         # the e44 loop at Switch 111 has no mast of its own: its halves keep the plan edge

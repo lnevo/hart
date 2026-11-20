@@ -22,6 +22,12 @@ class NamesTest(unittest.TestCase):
         self.assertTrue(D.is_block_sensor("IS:HART:C3:B:OS101"))
         self.assertFalse(D.is_block_sensor("IS:SML_MODE"))
 
+    def test_mast_names(self):
+        for ok in ("Mast 108R", "Mast 108LA", "Mast A83", "Mast B92"):
+            self.assertTrue(D.MAST_USER.fullmatch(ok), ok)
+        for bad in ("Mast 108X", "Mast 1O8L", "Mast C83", "Mast 108", "Head 108R"):
+            self.assertIsNone(D.MAST_USER.fullmatch(bad), bad)
+
     def test_heads_and_clear_actions(self):
         self.assertEqual(D.head_name("Head 108R Top"), "IH:HART:C3:108R_Top")
         self.assertEqual(D.clear_action("IS:HART:C3:B:OS101"), "IQDA$HART:C3:B:OS101")

@@ -19,7 +19,8 @@ stale copy of its own output. Each file is read the first time it is asked for, 
                 helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
                 stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
-                device map's form, kept by hand; tools/schematic/staging_device_map.py --check)
+                device map's form, written by build_staging_masts.py from the mast rule, ADR-024, and run by hand
+                before the pipeline, which only checks it)
     hands       schematic/hands.csv                       build_hands.py
     device_map  schematic/device_map_main_upper.csv       build_device_map.py
     masts       schematic/main_upper_masts.csv            build_main_upper_masts.py (hartlib.level_masts)

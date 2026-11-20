@@ -35,79 +35,79 @@
   {
    "op": "flip",
    "switches": [
-    "T204",
-    "T166",
-    "T178",
-    "T169",
-    "T202",
-    "T196",
-    "TO_3W33789-2",
-    "TO_3W33789-1"
+    "107",
+    "109",
+    "111",
+    "105",
+    "101B",
+    "103B",
+    "103A",
+    "101A"
    ]
   }
  ],
  "levels": {
   "assign": {
-   "T311": 10.8,
-   "T281": 10.8
+   "127B": 10.8,
+   "131B": 10.8
   }
  },
  "shorten": [
   [
-   "T289",
-   "T331"
+   "221A",
+   "223"
   ]
  ],
  "min_cells": [
   [
-   "T178",
-   "T202",
+   "111",
+   "101B",
    6
   ],
   [
-   "T169",
-   "TO_3W33789-2",
+   "105",
+   "103A",
    6
   ],
   [
-   "T169",
-   "T196",
+   "105",
+   "103B",
    6
   ],
   [
-   "T204",
-   "T204",
+   "107",
+   "107",
    7
   ],
   [
-   "T10",
-   "T12",
+   "121B",
+   "119B",
    9
   ],
   [
-   "T178",
-   "T181",
+   "111",
+   "117",
    6
   ],
   [
-   "T294",
-   "T311",
+   "221B",
+   "127B",
    5
   ],
   [
-   "T289",
-   "T331",
+   "221A",
+   "223",
    9
   ]
  ],
  "level_leg": {
-  "T225": "C",
-  "T227": "B",
+  "233": "C",
+  "237": "B",
   "115": "C",
   "235": "C",
   "239": "C"
  },
- "_level_leg": "Exceptions to the plugin's straight-level rule (R8), each drawn with its diverging leg level (owner, 2026-11-18). T210 (233) and T212 (237) as before. 115: straight-level put Track 101B-111's climb in the same CATS desk cell as the west end of Track 113's siding, and CATS would drop the points. 235 and 239 (243 before the upper renumber, 2026-11-19): straight-level widened the upper level from 38 to 43 columns, so Track 225-227 came out shorter than its switches' legs on the Layout Editor panel and the CATS desk ran past its 62 columns.",
+ "_level_leg": "Exceptions to the plugin's straight-level rule (R8), each drawn with its diverging leg level (owner, 2026-11-18). 233 and 237 as before. 115: straight-level put Track 101B-111's climb in the same CATS desk cell as the west end of Track 113's siding, and CATS would drop the points. 235 and 239 (243 before the upper renumber, 2026-11-19): straight-level widened the upper level from 38 to 43 columns, so Track 225-227 came out shorter than its switches' legs on the Layout Editor panel and the CATS desk ran past its 62 columns.",
  "facing_letters": false,
  "direction_arrows": true,
  "capacity": {

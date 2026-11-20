@@ -71,7 +71,7 @@ CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
 INTERLOCKINGS = DATA / "interlockings_staging.csv"   # the signal rule's control points (owner, 2026-11-19)
 LEVELS = {"Staging": 1}
 HEAD_PREFIX = "IH:HART:C1:"
-FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects
+FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position
 WIRED_HEAD = re.compile(r"IH\d+")      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
 CM_PER_MILE = 63360 * 2.54
@@ -237,7 +237,7 @@ def generate(band, bands, runs, joined, names, cps: dict, wired: dict) -> list[d
         far_label = nodes[far[0]].get("label") if nodes[far[0]]["kind"] == "switch" else ""
         out.append(dict(mast=f"Mast {m['name']}", cp=m["cp"], switch=m["switch"] if at_turnout else "",
                         facing=facing, protects=own, kind=m["kind"], heads=m["heads"],
-                        dir="west" if m["letter"] == "L" else "east", toward=m["switch"],
+                        dir=m["dir"], toward=m["switch"],
                         run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
                         edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
                         leg=p, strand=m["strand"], running=m["running"]))
@@ -438,7 +438,7 @@ def virtual_rows(vgen: list[dict], old_rows: list[dict]) -> list[dict]:
         if system is None:
             system, nxt = f"IF$vsm:basic:{VIRTUAL_KIND}(${nxt})", nxt + 1
         rows.append(dict(mast=m["mast"], cp=m["cp"], switch=m["switch"], facing=m["facing"], protects=m["protects"],
-                         leg="", system_name=system, head_system_names="", device_system_name=system))
+                         dir=m["dir"], leg="", system_name=system, head_system_names="", device_system_name=system))
     return rows
 
 
@@ -464,7 +464,7 @@ def mast_rows(gen: list[dict], wired: dict) -> list[dict]:
         heads = head_names(m["mast"], m["heads"], wired)
         system = f"IF$shsm:basic:{m['kind']}(" + ")(".join(h for h, _u in heads) + ")"
         rows.append(dict(mast=m["mast"], cp=m["cp"], switch=m["switch"], facing=m["facing"], protects=m["protects"],
-                         leg="", system_name=system, head_system_names=";".join(f"{h}={u}" for h, u in heads),
+                         dir=m["dir"], leg="", system_name=system, head_system_names=";".join(f"{h}={u}" for h, u in heads),
                          device_system_name=system))
     return rows
 
@@ -513,7 +513,7 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
         masts.append(dict(level="1", cp=r["cp"], layer="mast", user_name=r["mast"], system_name=r["system_name"],
                           jmri_name=r["system_name"], node=mast_node(r["mast"], old_mast.get(r["mast"]), on),
                           dcc="", comment=where, trial_name="", notes=note, **{**dict.fromkeys(FACTS, ""),
-                          "switch": r["switch"], "facing": r["facing"], "protects": r["protects"]}))
+                          "switch": r["switch"], "facing": r["facing"], "protects": r["protects"], "dir": r["dir"]}))
         for pair in [x for x in r["head_system_names"].split(";") if x]:
             h, user = pair.split("=", 1)
             prev = on.get(user)

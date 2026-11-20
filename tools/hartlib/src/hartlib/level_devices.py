@@ -28,6 +28,7 @@ HEAD_PREFIX = "IH:HART:C3:"
 # a device-map head's user name: a home signal's (Head 108LA, Head 108R Top) or an intermediate's, named from its
 # milepost with the line code, A main and B upper (Head A87; owner, 2026-11-19)
 HEAD_USER = re.compile(r"Head (\d+[LR][A-Z]?|[AB]\d+)(?: (Top|Bottom))?")
+MAST_USER = re.compile(r"Mast (\d+[LR][A-Z]?|[AB]\d+)")     # a main or upper mast's user name: its heads' key
 HEAD = re.compile(re.escape(HEAD_PREFIX) + r"(?:\d+[LR][A-Z]?|[AB]\d+)(?:_Top|_Bottom)?")    # its virtual system name
 _KEY = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
 

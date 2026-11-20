@@ -26,24 +26,44 @@ def turnout(name, points_to_frog_in, spread_in=1.0, at=(0.0, 0.0)):
 
 class TurnoutLength(unittest.TestCase):
     def test_points_to_the_middle_of_the_frog_end(self):
-        self.assertAlmostEqual(PL.turnout_inches(turnout("SL-8362", 9.2)), 9.2, places=6)
-        self.assertAlmostEqual(PL.turnout_inches(turnout("SL-E8377", 11.1, at=(50, 7))), 11.1, places=6)
+        self.assertAlmostEqual(PL.turnout_inches(turnout("Acme 6", 9.2)), 9.2, places=6)
+        self.assertAlmostEqual(PL.turnout_inches(turnout("Acme 8", 11.1, at=(50, 7))), 11.1, places=6)
 
-    def test_a_reading_outside_the_product_range_stops(self):
-        with self.assertRaisesRegex(PL.LengthError, r"SL-8361 \(#6\) reads 11.10 in .* outside 9.1 to 9.3"):
-            PL.turnout_inches(turnout("SL-8361", 11.1))
+    def test_the_class_comes_from_the_geometry_not_the_maker_name(self):
+        self.assertEqual(PL.turnout_class(turnout("Made-Up Maker 123", 9.2)), "#6")
+        self.assertEqual(PL.turnout_class(turnout("Made-Up Maker 123", 11.1)), "#8")
+        self.assertEqual(PL.turnout_class(turnout("SL-8377", 9.2)), "#6")     # a Peco #8 code on #6 geometry
 
-    def test_an_unknown_product_or_a_part_that_is_no_turnout_stops(self):
-        with self.assertRaisesRegex(PL.LengthError, "no turnout product this knows"):
-            PL.turnout_inches(turnout("SL-99", 9.2))
+    def test_a_turnout_with_the_angle_of_no_class_stops(self):
+        with self.assertRaisesRegex(PL.LengthError, r"'Odd 4' has leg-end angle .* in no class"):
+            PL.turnout_class(turnout("Odd 4", 8.3))
+        with self.assertRaisesRegex(PL.LengthError, "in no class"):
+            PL.turnout_inches(turnout("Odd 12", 14.0))
+
+    def test_a_length_outside_the_class_range_stops(self):
+        # the #6 angle (spread scaled with length) on a part 10.0 in long
+        with self.assertRaisesRegex(PL.LengthError, r"'Long 6' \(#6\) reads 10.00 in .* outside 9.1 to 9.3"):
+            PL.turnout_inches(turnout("Long 6", 10.0, spread_in=10.0 / 9.2))
+
+    def test_a_part_that_is_no_turnout_stops(self):
         with self.assertRaisesRegex(PL.LengthError, "2 ends, not a turnout's three"):
             PL.turnout_inches({"name": "SL-8300", "eps": [{"x": 0, "y": 0}, {"x": 1, "y": 0}]})
+        line = [{"x": x, "y": 0} for x in (0, 5, 10)]
+        with self.assertRaisesRegex(PL.LengthError, "on one line"):
+            PL.turnout_class({"name": "Flat", "eps": line})
 
-    def test_the_committed_parts_read_as_their_products(self):
+    def test_the_committed_turnouts_read_as_their_classes(self):
         import json
         parts = json.loads(PL.PARTS.read_text(encoding="utf-8"))
-        got = {round(PL.turnout_inches(p), 1) for p in parts if p["name"] in PL.PRODUCTS}
-        self.assertEqual(got, {9.2, 11.1})
+        got = {}
+        for p in parts:
+            try:
+                got[p["name"]] = PL.turnout_class(p)
+            except PL.LengthError:
+                pass                                    # the #4s and other ends counts: no class, no reading
+        self.assertEqual({n for n, c in got.items() if c == "#6"}, {"SL-8361", "SL-8362", "SL-E8362"})
+        self.assertEqual({n for n, c in got.items() if c == "#8"}, {"SL-8377", "SL-E8377"})
+        self.assertEqual({round(PL.turnout_inches(p), 1) for p in parts if p["name"] in got}, {9.2, 11.1})
 
     def test_a_part_label_is_its_index(self):
         self.assertEqual(PL.part_index("T139"), 139)

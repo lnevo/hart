@@ -19,7 +19,7 @@ from . import paths
 from .level_devices import HEAD, HEAD_USER, head_name  # noqa: F401  the naming rule, re-exported here
 
 PATH = paths.LAYOUT_DATA / "schematic" / "main_upper_masts.csv"
-FIELDS = ["mast", "cp", "switch", "facing", "protects", "leg", "system_name", "head_system_names",
+FIELDS = ["mast", "cp", "switch", "facing", "protects", "dir", "leg", "system_name", "head_system_names",
           "device_system_name"]
 
 
@@ -43,8 +43,8 @@ def read(path: Path = PATH) -> list[dict]:
     railroad.read_rows, so the header must hold every FIELDS column and every row must have exactly the header's
     fields: a short row stops the read as a long one does, since the file is written whole by its build and a cut
     row is a damaged file. Stops with railroad.FactsError (a ValueError), naming the file and the line, on those, on
-    a row with no mast name, on a mast name a second time, and on a row whose heads are not system=user pairs of
-    virtual heads named by their user names and matching its mast's system name."""
+    a row with no mast name or a dir that is not east or west, on a mast name a second time, and on a row whose heads
+    are not system=user pairs of virtual heads named by their user names and matching its mast's system name."""
     from . import railroad                  # railroad imports this module, so not at the top
     rows, first = [], {}
     for line, r in railroad.read_rows(path, FIELDS):
@@ -54,6 +54,9 @@ def read(path: Path = PATH) -> list[dict]:
         if r["mast"] in first:
             raise railroad.FactsError(f"{where}: mast {r['mast']} is on line {first[r['mast']]} already")
         first[r["mast"]] = line
+        if r["dir"] not in railroad.MAST_DIRS:
+            raise railroad.FactsError(f"{where}: mast {r['mast']}: dir {r['dir']!r} is not one of "
+                                      f"{', '.join(railroad.MAST_DIRS)}")
         heads = [tuple(h.split("=", 1)) for h in r["head_system_names"].split(";") if h]
         if not heads or any(len(h) != 2 or not is_level_head(h[0]) or HEAD_USER.fullmatch(h[1]) is None
                             or head_name(h[1]) != h[0] for h in heads) or \

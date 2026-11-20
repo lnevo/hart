@@ -66,8 +66,9 @@ class Refusals(unittest.TestCase):
     def test_a_relabel_key_with_no_plan_switch(self):
         self.build_with(lambda d: d["edits"][0]["map"].update({"T99999": "999"}))
 
-    def test_a_move_edit_naming_no_plan_switch(self):
-        self.build_with(lambda d: d["edits"].append({"op": "move", "switch": "223", "hand": "R"}))   # no move since 5.3c
+    def test_a_move_edit_is_not_read(self):
+        # the plan 5.3c holds every hand, so the 5.3b `move` hand override is gone and an edit like it fails loudly
+        self.build_with(lambda d: d["edits"].append({"op": "move", "switch": "T300", "hand": "R"}))
 
 
 if __name__ == "__main__":

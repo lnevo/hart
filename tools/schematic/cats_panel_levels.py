@@ -105,7 +105,7 @@ def device_name(bands, cats, keys, F, log):
     rows = sorted(n for n, r in F.device.blocks.items() if r.trial & edges)
     numbers = {bdm.base(lb) for lb in ends}
     if not rows and len(numbers) == 1 and len(ends) > 1:
-        # the track between a crossover's halves (drawn on two bands, 129 and 135): the device map counts it in the
+        # the track between a crossover's halves (drawn on two bands, 127 and 131): the device map counts it in the
         # crossover's OS block
         name = f"OS Switch {numbers.pop()}"
         if name not in F.device.blocks:
@@ -312,10 +312,9 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
 
 def intermediate_signal(bands, F, bound_bi, r, by_trial):
     """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
-    the loop or split track's half it faces meets the half it protects, heading west when its number is odd. The
+    the loop or split track's half it faces meets the half it protects, heading the way its row's dir says. The
     piece it stands on is the one that meets the protected half at a turnback, whatever the strands' order; only the
     halves joined there get edges of their own (loop_half_edge), so other loops on the band keep theirs."""
-    num = int(re.sub(r"\D", "", r["mast"]))
     drawn = False
     meets = []          # (band index, piece, turnback, the other strands ending there) where it meets the protected half
     for bi, band, _opts in level_bands(bands, bound_bi):
@@ -344,14 +343,14 @@ def intermediate_signal(bands, F, bound_bi, r, by_trial):
     t = strands[sid]
     return bi, {"mast": r["mast"].removeprefix(opts.get("mast_prefix", "")), "toward": "", "_toward_node": turn,
                 "_edge": t["edge"], "cm_from_toward": 0.0, "edge_cm": t["cm"],
-                "dir": "west" if num % 2 else "east", "kind": "field", "heads": len(r["heads"]),
+                "dir": r["dir"], "kind": "field", "heads": len(r["heads"]),
                 "source": level_masts.PATH.name}
 
 
 def level_signals(bands, F, bound_bi):
     """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn
     masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
-    that switch (its toward end), heading west for an L mast (ADR-005), its heads from its row. The two halves of a
+    that switch (its toward end), heading the way its row's dir says, its heads from its row. The two halves of a
     balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (loop_half_edge,
     which placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
@@ -364,9 +363,6 @@ def level_signals(bands, F, bound_bi):
                 bi, sg = placed
                 added[bi].append(sg)
             continue
-        m = re.fullmatch(r"Mast (\d+)([LR])([AB]?)", r["mast"])
-        if not m:
-            raise SystemExit(f"{level_masts.PATH.name}: {r['mast']} is not a mast name in the device map's grammar")
         hits = []
         for bi, band, _ in level_bands(bands, bound_bi):
             for n, d in band["nodes"].items():
@@ -396,7 +392,7 @@ def level_signals(bands, F, bound_bi):
         key = r["mast"].removeprefix(opts.get("mast_prefix", ""))
         added[bi].append({"mast": key, "toward": str(band["nodes"][n]["label"]), "_toward_node": n,
                           "_edge": s["edge"], "cm_from_toward": 0.0, "edge_cm": s["cm"],
-                          "dir": "west" if m.group(2) == "L" else "east", "kind": "field",
+                          "dir": r["dir"], "kind": "field",
                           "heads": len(r["heads"]), "source": level_masts.PATH.name})
     # the sheet's main_upper.signals.json draws these masts too; the desk places its own (balloon loop halves have
     # edges of their own here), so it drops the file's, once: the main and upper bands share one options object

@@ -56,7 +56,7 @@ def end_ref(bands, joined, bi, node_id, helix_tag, levels=None):
 
 def end_label(bands, joined, bi, node_id) -> str:
     """The switch label a track ends at, followed through a connector to the other band ("" at a bumper or
-    helix): the halves of the helix-top crossovers 129 and 135 sit on two bands, joined by connectors."""
+    helix): the halves of the helix-top crossovers 127 and 131 sit on two bands, joined by connectors."""
     d = bands[bi][1]["nodes"][node_id]
     if d["kind"] in ("switch", "dx"):
         return d.get("label") or ""
@@ -210,7 +210,8 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
                         continue
                     sid = d["ins"].get(p) or d["outs"].get(p)
                     out.append(dict(level=lv, cp=cp or "", switch=num, number=int(num) + 1,
-                                    letter="L" if TAU[p] * rail[n] == 1 else "R", protects="", heads=1,
+                                    letter="L" if TAU[p] * rail[n] == 1 else "R",
+                                    dir="west" if TAU[p] * rail[n] == 1 else "east", protects="", heads=1,
                                     row=srow.get(sid, 0), track=t["name"], band=bi, half=0, node=n, leg=p,
                                     strand=sid, running=False, kind="one-low"))
                     continue
@@ -231,6 +232,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
                 ends = sorted((v for k, v in t["ends"] if k == "sw"), key=natural)
                 split_half = (1 if num == ends[0] else 2) if t["name"] in split else 0
                 out.append(dict(level=lv, cp=cp, switch=num, number=int(num) + 1, letter="L" if eastward else "R",
+                                dir="west" if eastward else "east",
                                 protects=corner_blocks[num][p] if d["kind"] == "dx" else "",
                                 heads=heads, row=srow.get(sid, 0),
                                 track=(f"{t['name']} {LOOP_HALF[p]}" if t["loop"] else
