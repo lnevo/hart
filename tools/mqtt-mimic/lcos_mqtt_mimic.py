@@ -333,7 +333,8 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
             "userName": r.user_name, "comment": "", "plant": group(r),
             "level": LEVELS[r.level], "virtual": True,
         })
-    for r in sorted(dm.of("mast"), key=order):
+    # a hidden virtual mast (a destination at a buffer stop) has no heads and no control point: nothing to show
+    for r in sorted((m for m in dm.of("mast") if level_devices.HEAD.findall(m.jmri_name)), key=order):
         for h in level_devices.HEAD.findall(r.jmri_name):
             if h not in in_tables:
                 continue
