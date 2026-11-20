@@ -23,10 +23,10 @@ def sw(label, **legs):
     return dict(kind="switch", label=label, ins={}, outs={}, **legs)
 
 
-def row(layer, user, system, jmri, notes=""):
+def row(layer, user, system, jmri, notes="", **facts):
     """A device map row (build_device_map.COLUMNS) of staging."""
     return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
-                comment="", trial_name="", notes=notes)
+                comment="", trial_name="", notes=notes, **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
 
 
 class SwitchFacts(unittest.TestCase):
@@ -72,14 +72,46 @@ class Pure(unittest.TestCase):
 
     def test_a_block_with_no_occupancy_row_stops(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
-                row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1")]
+                row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")]
         with self.assertRaisesRegex(sdm.StagingMapError, "Track S-1 West"):
             sdm.check_rows(rows)
 
     def test_a_shared_detector_serves_both_blocks(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
-                row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1; Track S-1 West")]
+                row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1; Track S-1 West",
+                    blocks="Track S-1;Track S-1 West", detector="wired")]
         sdm.check_rows(rows)
+
+    def test_the_blocks_column_is_read_and_never_the_notes(self):
+        r = row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track X", blocks="Track S-1;Track S-1 West",
+                detector="wired")
+        self.assertEqual(sdm.occupancy_blocks(r), ["Track S-1", "Track S-1 West"])
+        self.assertEqual(sdm.occupancy_blocks(dict(r, blocks="")), [])
+
+    def test_fact_columns_are_checked(self):
+        facts = sdm.railroad.device_facts
+        self.assertEqual(facts(row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")),
+                         [])
+        for r, msg in ((row("occupancy", "BS S-1", "M2S206", "M2S206", detector="wired"), "names no blocks"),
+                       (row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="yes"),
+                        "is not one of"),
+                       (row("occupancy", "BS S-1", "", "IS:X", blocks="Track S-1", detector="planned"),
+                        "needs system name"),
+                       (row("occupancy", "BS S-1", "M2S1", "IS:X", blocks="Track S-1", detector="none"),
+                        "has no system name"),
+                       (row("block", "Track S-1", "IB1", "IB1", stop="y"), "is not yes or empty"),
+                       (row("block", "Track S-1", "IB1", "IB1", blocks="Track S-1"), "a block row has blocks"),
+                       (row("mast", "Mast 2L", "IF$x", "IF$x", switch="1"), "names no facing block"),
+                       (row("mast", "Mast 2L", "IF$x", "IF$x", switch="1A", facing="Track A"), "not a switch number"),
+                       (row("turnout", "Switch 1", "MT1", "MT1", facing="Track A"), "a turnout row has facing")):
+            with self.subTest(msg=msg):
+                self.assertTrue(any(msg in p for p in facts(r)), facts(r))
+
+    def test_a_staging_station_is_its_stop_token(self):
+        self.assertTrue(sdm.stop_token("Track K-1; occupancy Block 1-1 / M2S100; stop"))
+        self.assertTrue(sdm.stop_token("stop"))
+        self.assertFalse(sdm.stop_token("Hidden throat; not a station"))
+        self.assertFalse(sdm.stop_token(None))
 
     def test_signal_rows_in_the_plugins_order(self):
         m = dict(signal="10LA", toward="9", run=["9", ""], names=["EH-2"], edge_cm=61.0, cm_from_toward=61.0,

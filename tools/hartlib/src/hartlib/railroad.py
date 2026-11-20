@@ -58,7 +58,18 @@ YES = {"yes": True, "no": False}
 HANDS = {"", "L", "R"}
 NAME_LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 DEVICE_COLUMNS = ("level", "cp", "layer", "user_name", "system_name", "jmri_name", "node", "dcc", "comment",
-                  "trial_name", "notes")
+                  "trial_name", "notes", "blocks", "detector", "stop", "switch", "facing", "protects")
+# The device maps' facts in columns of their own (owner, 2026-11-20), so no code reads them out of the comment or
+# notes, which stay as text for people (device_facts checks them):
+#   blocks     occupancy rows: the blocks its detector serves, LIST separated (a throat and its yard track share one)
+#   detector   occupancy rows: DETECTORS, whether the detector is in the field, planned on a node input, planned with
+#              no input yet, or not planned at all
+#   stop       block rows: "yes" for a Dispatcher System station (the "; stop" its JMRI comment carries)
+#   switch, facing, protects   mast rows: the switch whose leg it stands at (none for an intermediate or a buffer stop
+#              or anchor mast), the block it faces and the blocks it protects (LIST separated)
+DEVICE_FACTS = DEVICE_COLUMNS[11:]
+DEVICE_LIST = ";"
+DETECTORS = ("wired", "planned", "not_wired", "none")
 UNIQUE_HARDWARE = ("turnout", "fb", "occupancy", "head")   # layers whose hardware is one device's alone
 
 
@@ -587,7 +598,23 @@ class DeviceRow:
     comment: str = ""
     trial_name: str = ""
     notes: str = ""
+    blocks: str = ""
+    detector: str = ""
+    stop: str = ""
+    switch: str = ""
+    facing: str = ""
+    protects: str = ""
     line: int = 0
+
+    @property
+    def served(self) -> list[str]:
+        """An occupancy row's blocks, in order."""
+        return device_list(self.blocks)
+
+    @property
+    def protected(self) -> list[str]:
+        """A mast row's protected blocks, in order."""
+        return device_list(self.protects)
 
     @property
     def trial(self) -> frozenset[str]:
@@ -631,15 +658,51 @@ class DeviceMap:
         return {r.system_name: r for r in self.of("head")}
 
 
+def device_list(cell: str) -> list[str]:
+    """A DEVICE_LIST cell's items, in order."""
+    return [x.strip() for x in (cell or "").split(DEVICE_LIST) if x.strip()]
+
+
+def device_facts(r: dict) -> list[str]:
+    """Problems with a device map row's fact columns (DEVICE_FACTS): each only on its own layer; an occupancy row's
+    blocks given and its detector one of DETECTORS, with a system name (the field or planned detector) exactly when it
+    is wired or planned; stop "yes" or empty; a mast's facing block given and its switch a number or empty."""
+    bad, layer = [], r["layer"]
+    own = {"occupancy": ("blocks", "detector"), "block": ("stop",), "mast": ("switch", "facing", "protects")}
+    stray = [c for c in DEVICE_FACTS if r.get(c) and c not in own.get(layer, ())]
+    if stray:
+        bad.append(f"a {layer} row has {', '.join(stray)}")
+    if layer == "occupancy":
+        if not device_list(r.get("blocks", "")):
+            bad.append("an occupancy row names no blocks")
+        if r.get("detector") not in DETECTORS:
+            bad.append(f"detector {r.get('detector')!r} is not one of {', '.join(DETECTORS)}")
+        elif (r["detector"] in ("wired", "planned")) != bool(r["system_name"]):
+            bad.append(f"a {r['detector']} detector {'needs' if r['detector'] in ('wired', 'planned') else 'has no'} "
+                       f"system name (it has {r['system_name']!r})")
+    if layer == "block" and r.get("stop") not in ("", "yes"):
+        bad.append(f"stop {r.get('stop')!r} is not yes or empty")
+    if layer == "mast":
+        if not r.get("facing"):
+            bad.append("a mast row names no facing block")
+        if r.get("switch") and not r["switch"].isdigit():
+            bad.append(f"switch {r['switch']!r} is not a switch number")
+    return bad
+
+
 def read_device_map(path: Path) -> DeviceMap:
     """Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
-    row), an occupancy row whose jmri_name is not a virtual block sensor or whose planned detector is not M2S."""
+    row), a row whose fact columns do not hold (device_facts), an occupancy row whose jmri_name is not a virtual block
+    sensor, whose planned detector is not M2S, or whose blocks are not the one block it is named for."""
     out = DeviceMap(path=path)
     seen: dict[tuple[str, str], int] = {}
-    for line, r in read_rows(path, DEVICE_COLUMNS[:8], optional=DEVICE_COLUMNS[8:]):
+    for line, r in read_rows(path, DEVICE_COLUMNS[:8] + DEVICE_FACTS, optional=DEVICE_COLUMNS[8:11]):
         where = _where(path, line)
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
+        bad = device_facts(r)
+        if bad:
+            raise FactsError(f"{where}: {r['layer']} {r['user_name']}: " + "; ".join(bad))
         key = (r["layer"], r["user_name"])
         if key in seen:
             raise FactsError(f"{path.name} lines {seen[key]} and {line}: both are {r['layer']} {r['user_name']}")
@@ -650,9 +713,12 @@ def read_device_map(path: Path) -> DeviceMap:
             out.blocks[row.user_name] = row
         elif row.layer == "occupancy":
             if not level_devices.is_block_sensor(row.jmri_name) or \
-                    not (row.system_name == "" or row.system_name.startswith("M2S")):
+                    not (row.system_name == "" or row.system_name.startswith("M2S")) or row.detector == "wired":
                 raise FactsError(f"{where}: occupancy {row.user_name} has no virtual {level_devices.SENSOR_PREFIX} "
-                                 "jmri_name, or plans a detector that is not an M2S sensor")
+                                 "jmri_name, or plans a detector that is not an M2S sensor, or calls it wired")
+            if len(row.served) != 1 or level_devices.occupancy_user(row.served[0]) != row.user_name:
+                raise FactsError(f"{where}: occupancy {row.user_name} serves {row.served}, not the one block it is "
+                                 "named for")
             out.sensors[row.user_name] = row.jmri_name
             if row.system_name:
                 out.planned[row.user_name] = row.system_name

@@ -22,6 +22,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import level_devices, paths, tables  # noqa: E402
+from hartlib import railroad as T_railroad  # noqa: E402  the device map's columns
 
 TABLES = paths.TABLES_XML       # what the build starts from (this checkout's tables.xml, the cut-over's)
 
@@ -565,12 +566,12 @@ class FactsReaders(unittest.TestCase):
 
 class DeviceNames(unittest.TestCase):
     """device_map_main_upper.csv's trial_name maps each drawn placeholder to a device-map name; anything else stops."""
-    HEAD = "level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes\n"
+    HEAD = ",".join(T_railroad.DEVICE_COLUMNS) + "\n"    # the fact columns (DEVICE_FACTS) left empty in each row
 
     def read(self, rows: str) -> dict:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "map.csv"
-            path.write_text(self.HEAD + rows, encoding="utf-8")
+            path.write_text(self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n"), encoding="utf-8")
             return B.device_names(path)
 
     def test_the_committed_map(self) -> None:

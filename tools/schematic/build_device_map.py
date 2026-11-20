@@ -38,7 +38,9 @@ Virtual names (owner, 2026-11-17), from each device's stable identity:
   "Track "
   dropped, "OS Switch " shortened to "OS", spaces to "_": IS:HART:C3:B:107-109, IS:HART:C3:B:107_Loop_2,
   IS:HART:C3:B:OS225b). Its system_name is the planned detector (M2S), or empty: NOT_WIRED for a detector planned
-  but not on a node yet, NO_DETECTOR for a block that has none planned (dark until decided).
+  but not on a node yet, NO_DETECTOR for a block that has none planned (dark until decided). Those facts are columns
+  of their own (hartlib.railroad.DEVICE_FACTS): an occupancy row's `blocks` (its block) and `detector` (planned,
+  not_wired or none), a mast row's `switch`, `facing` and `protects`; the notes and comment are text for people.
 - Head "Head <mast>[ Top|Bottom]": hartlib.level_devices.head_name (IH:HART:C3:108LA, IH:HART:C3:108R_Top); mast
   IF$shsm:basic:<type>(<head>)(<head>) over those heads.
 - Feedback rows have no JMRI device of their own (a turnout's feedback is DIRECT until the plant is wired), and
@@ -532,14 +534,21 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     nodes.pin(pins)
     rows = []
 
-    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri=""):
+    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri="", **facts):
         rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system, jmri_name=jmri,
-                         node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes))
+                         node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes,
+                         **{c: facts.pop(c, "") for c in railroad.DEVICE_FACTS}))
+        if facts:
+            raise MapError(f"{layer} {user}: unknown fact columns {sorted(facts)}")
 
     def occupancy(level, cp, block, system="", node="", comment="", notes=""):
-        """The occupancy row of `block`: its virtual sensor (jmri_name) and the planned detector, if any."""
+        """The occupancy row of `block`: its virtual sensor (jmri_name), the block it serves and its detector: planned
+        on an input (`system`, M2S), planned with no input yet (NOT_WIRED) or none planned (NO_DETECTOR)."""
+        detector = "planned" if system else {NOT_WIRED: "not_wired", NO_DETECTOR: "none"}.get(notes)
+        if detector is None:
+            raise MapError(f"occupancy of {block}: no detector and no reason why ({notes!r})")
         add(level, cp, "occupancy", occupancy_user(block), system, node, comment, notes=notes,
-            jmri=block_sensor(block))
+            jmri=block_sensor(block), blocks=block, detector=detector)
 
     dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
     home, area_of = {}, {}                  # switch -> its turnout's node, its area
@@ -666,11 +675,11 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if m.get("intermediate"):
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
                 notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
-                      f"{m['milepost']:.2f}", jmri=virtual)
+                      f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"])
         else:
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                jmri=virtual)
+                jmri=virtual, switch=m["switch"], facing=m["track"], protects=m["protects"])
         for user, sysn, k, board, pin in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")

@@ -118,6 +118,26 @@ class Readers(Copy):
         self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), r"lcos_nodes_main_upper.csv line 2: 4 fields")
         self.fails(lambda: R.read_rows(self.tmp / "missing.csv", ["a"]), "cannot read it")
 
+    def test_the_device_maps_facts_are_columns(self) -> None:
+        """An occupancy row's blocks and detector, and a mast's switch, facing and protected block, are columns of
+        their own (DEVICE_FACTS): read and checked, never parsed out of the notes or comment."""
+        dm = R.read_device_map(self.src.device_map)
+        occ = dm.by_user("occupancy")
+        self.assertEqual((occ["BS Helix Inner"].served, occ["BS Helix Inner"].detector), (["Track Helix Inner"], "planned"))
+        self.assertEqual(occ["BS 101 Spur 1"].detector, "none")
+        mast = dm.by_user("mast")["Mast 132RA"]
+        self.assertEqual((mast.switch, mast.facing, mast.protected), ("131", "Track Helix Outer", []))
+        self.assertEqual(dm.by_user("mast")["Mast A83"].protected, ["Track 107 Loop 1"])
+        for old, new, msg in ((",Track 101 Spur 1,none,", ",Track 101 Spur 2,none,", "not the one block"),
+                              (",Track 101 Spur 1,none,", ",Track 101 Spur 1,planned,", "needs system name"),
+                              (",Track 101 Spur 1,none,", ",Track 101 Spur 1,dark,", "is not one of"),
+                              (",Track Helix Inner,planned,", ",Track Helix Inner,wired,", "calls it wired")):
+            with self.subTest(msg=msg):
+                text = self.src.device_map.read_text(encoding="utf-8")
+                self.edit("device_map", old, new)
+                self.fails(lambda: R.read_device_map(self.src.device_map), msg)
+                self.src.device_map.write_text(text, encoding="utf-8")
+
     def test_extra_columns_are_allowed_and_optional_ones_optional(self) -> None:
         """A column a reader does not use may be added, and an optional one (switches.csv `hand`, a notes column)
         may be missing from the header or from the end of a short row."""

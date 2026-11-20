@@ -19,8 +19,11 @@ Files (jmri/layouts/hart/data/schematic/):
   "DCC Switch <n>"), fb, block, occupancy, mast, head. Staging is the field, so system_name is the live device;
   jmri_name is the name tables.xml and the panels bind it by: a turnout's is the Layout Editor's turnoutname (some
   bind "M2T408", some "Switch 23"), every other row's its system name. trial_name is the link to the drawing, as for
-  main and upper (placeholders(), below). One occupancy row per detector; its notes list the blocks it serves
-  ("blocks Track S-1; Track S-1 West": a throat block and its yard track, or a stub and its switch, share one).
+  main and upper (placeholders(), below). The facts are in columns (hartlib.railroad.DEVICE_FACTS, checked by
+  device_facts; the comment and notes stay text for people): one occupancy row per detector, its `blocks` the blocks
+  it serves (a throat block and its yard track, or a stub and its switch, share one) and its `detector` wired, all
+  of staging's being in the field; a block's `stop` "yes" for a Dispatcher System station, as its tables.xml comment
+  marks it ("; stop", checked); a mast's `switch`, `facing` and `protects` as staging_masts.csv has them.
   A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
   up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
   device_map_main_upper.csv, which names the same block for the piece on its level (shared_blocks).
@@ -157,10 +160,15 @@ def mast_kind(r: dict) -> str:
 
 
 def occupancy_blocks(r: dict) -> list[str]:
-    """The blocks an occupancy row's notes say its detector serves ("blocks Track S-1; Track S-1 West")."""
-    if not r["notes"].startswith("blocks "):
-        return []
-    return [b.strip() for b in r["notes"].removeprefix("blocks ").split(";") if b.strip()]
+    """The blocks an occupancy row's detector serves, its `blocks` column ("Track S-1;Track S-1 West")."""
+    return railroad.device_list(r["blocks"])
+
+
+def stop_token(comment: str) -> bool:
+    """Whether a JMRI block comment marks a Dispatcher System station: "stop", or ending "; stop" (the stock
+    Dispatcher System's station mark)."""
+    c = (comment or "").strip()
+    return c == "stop" or c.endswith("; stop")
 
 
 def shared_blocks(rows: list[dict], level_map: railroad.DeviceMap, helix: dict | None = None) -> dict:
@@ -327,6 +335,10 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
         if r["layer"] not in LAYERS:
             bad.append(f"line {i}: layer {r['layer']!r}")
             continue
+        bad += [f"line {i}: {r['user_name']}: {p}" for p in railroad.device_facts(r)]
+        if r["layer"] == "occupancy" and r["detector"] != "wired":
+            bad.append(f"line {i}: {r['user_name']}: staging's detectors are in the field (wired), not "
+                       f"{r['detector']!r}")
         if r["level"] != str(LEVEL):
             bad.append(f"line {i}: level {r['level']!r}, staging is {LEVEL}")
         if r["cp"] and r["cp"] not in cp_names:
@@ -561,6 +573,9 @@ def check_tables(rows: list[dict], rr: railroad.Railroad, shared: dict | None = 
                 bad.append(f"block {user}: tables.xml has {tables.system_name(b) if b is not None else 'none'}, "
                            f"not {system}")
                 continue
+            if stop_token(b.findtext("comment")) != (r["stop"] == "yes"):
+                bad.append(f"block {user}: stop is {r['stop'] or 'empty'}, but its comment in tables.xml "
+                           f"{'marks' if stop_token(b.findtext('comment')) else 'does not mark'} a station")
             occ = (b.findtext("occupancysensor") or "").strip()
             row = serves.get(user)
             if user in shared:
