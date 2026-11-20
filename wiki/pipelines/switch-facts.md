@@ -36,9 +36,9 @@ Exceptions are made only on purpose, each with its reason beside it:
 | 13 | Barn (diverging, leg C) is the normal, closed route | wired so (Peco #7 curved, left-hand) |
 | 1, 33 | the main runs through the diverging leg | closed is the straight leg, shown Normal; both start up thrown |
 | 37, 39 | continuous running in staging needs them thrown | they start up normal, toward the helix |
-| 115 | diverging leg drawn level (`level_leg`) | straight-level puts Track 101B-111's climb in the Track 113 siding's CATS desk cell; may flip whichever way the plugin needs |
-| 233, 237 | diverging leg drawn level (`level_leg`) | earlier owner choice |
-| 235, 239 | diverging leg drawn level (`level_leg`) | straight-level widens the upper level past the desk and the Layout Editor panel; may flip whichever way the plugin needs |
+| 115 | diverging leg drawn level (`level_leg`) | straight-level puts Track 101B-111's climb in the Track 113 siding's CATS desk cell; may flip whichever way the plugin needs. Without it the plugin reports a desk fault (two blocks in one cell) |
+| 233, 237 | diverging leg drawn level (`level_leg`) | earlier owner choice; removing either leaves the desks unchanged (2026-11-20) |
+| 235, 239 | diverging leg drawn level (`level_leg`) | straight-level widens the upper level past the desk and the Layout Editor panel; may flip whichever way the plugin needs. Without them the desk build stops: the desk is wider than its window |
 | 121, 125 | 121B's and 125B's straight leg is the crossover's diagonal | one crossover each on the ground (owner, 2026-11-19; were 121/123 and 127/131): the plugin pairs halves joined B to C (schematic-maps 0.1.42), so each half is closed on its through track |
 
 ## Changing a switch

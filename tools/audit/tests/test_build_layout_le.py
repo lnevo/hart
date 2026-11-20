@@ -218,9 +218,9 @@ class Built(unittest.TestCase):
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
         # a crossover's halves on one level are one single crossover; the helix-top 127 and 131 stand on two
-        # levels, so each is two Layout Editor turnouts on one turnout, 101 and 103 (one three-way switch, the
-        # preferences' le_split_crossovers) are each two plain turnouts on one turnout, and so are 121 and 125,
-        # whose halves the plan joins leg C to leg B (2026-11-19)
+        # levels, so each is two Layout Editor turnouts on one turnout, 101 and 103 (one three-way part in the
+        # plan, drawn tight and split by the plugin's rule) are each two plain turnouts on one turnout, and so are
+        # 121 and 125, whose halves the plan joins leg C to leg B (2026-11-19)
         xo = Counter(t.get("turnoutname") for t in self.le.findall("layoutturnout")
                      if t.get("type") in ("RH_XOVER", "LH_XOVER") and is_new_name(t.get("turnoutname")))
         self.assertEqual(set(xo), {f"Switch {n}" for n in (119, 211, 217, 221, 243, 245)})
