@@ -14,7 +14,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-HERE = Path(__file__).resolve().parent
+HERE = Path(__file__).resolve().parents[2] / "docs/ctc/history"
 OUT_MP4 = HERE / "LE_Panel_Evolution.mp4"
 OUT_POSTER = HERE / "le-poster.jpg"
 CANVAS = (1280, 720)    # 16:9 so the three-level panel of November is not tiny

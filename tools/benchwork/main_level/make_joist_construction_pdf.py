@@ -5,6 +5,8 @@ junctions, and the build sequence. Needs reportlab and shapely (room outlines fr
 
 Section geometry is in real inches, elevation 0 = top of the 3/4 ply subroadbed (the 0" grade level),
 staging deck top = -15. The framing plan is in room inches (x east, y south), the same as the cut plan.
+Writes to the current directory unless given a path: run it from docs/benchwork/main_level/ (or pass
+docs/benchwork/main_level/main_level_joist_construction.pdf) so the output stays in docs/.
 """
 import sys
 

@@ -25,8 +25,8 @@ def load(name: str, rel: str):
     return mod
 
 
-AM = load("add_main_upper_levels", "docs/wiring/scripts/add_main_upper_levels.py")
-RW = load("refresh_wiring_docs", "docs/wiring/scripts/refresh_wiring_docs.py")
+AM = load("add_main_upper_levels", "tools/wiring/add_main_upper_levels.py")
+RW = load("refresh_wiring_docs", "tools/wiring/refresh_wiring_docs.py")
 SP = load("sync_public_name_map", "jmri/layouts/hart/scripts/sync_public_name_map.py")
 
 

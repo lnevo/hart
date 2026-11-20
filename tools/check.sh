@@ -109,7 +109,7 @@ run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py
 run schematic-staging-device-map python3 tools/schematic/staging_device_map.py --check
 run schematic-staging-masts python3 tools/schematic/build_staging_masts.py --check
 run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --check
-run wiring-v86 python3 docs/wiring/scripts/add_main_upper_levels.py --check
+run wiring-v86 python3 tools/wiring/add_main_upper_levels.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 # The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables
 # file, all of them in jmri/layouts/hart/parked/tables_parked.xml (the live snapshot, with its source commit).

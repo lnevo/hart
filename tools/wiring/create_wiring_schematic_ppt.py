@@ -14,7 +14,7 @@ import os
 import re
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
-wiring_dir = os.path.normpath(os.path.join(script_dir, '..'))
+wiring_dir = os.path.normpath(os.path.join(script_dir, '..', '..', 'docs', 'wiring'))
 # Find latest inventory file (skip imported/ snapshots)
 import glob
 inventory_files = sorted(

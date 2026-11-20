@@ -11,7 +11,7 @@ from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[3]
 SPEC = importlib.util.spec_from_file_location("add_main_upper_levels",
-                                              ROOT / "docs/wiring/scripts/add_main_upper_levels.py")
+                                              ROOT / "tools/wiring/add_main_upper_levels.py")
 AM = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(AM)
 

@@ -25,11 +25,11 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 
 ```bash
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
-python3 docs/wiring/lcos/build_lcos_signal_manager_plan.py
-python3 docs/wiring/scripts/refresh_wiring_docs.py
+python3 tools/wiring/build_lcos_signal_manager_plan.py
+python3 tools/wiring/refresh_wiring_docs.py
 python3 tools/schematic/build_device_map.py
-python3 docs/wiring/scripts/add_main_upper_levels.py
-python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
+python3 tools/wiring/add_main_upper_levels.py
+python3 tools/wiring/create_wiring_schematic_ppt.py
 python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85 pins (--splits-inventory); tools/check.sh fails while it is stale
 ```
 
@@ -37,6 +37,6 @@ Copy the three workbooks **and** the pptx back to the Desktop pack after XML app
 
 ## Do not
 
-- Treat Desktop `ARCHIVE/` one-off Python as the live generator (git `docs/wiring/scripts/` is)
+- Treat Desktop `ARCHIVE/` one-off Python as the live generator (git `tools/wiring/` is)
 - Refresh Desktop before JMRI XML is applied if the pack must match beans
 - Put packed MQTT on helix **D5**

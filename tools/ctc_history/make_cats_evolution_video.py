@@ -16,8 +16,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-HERE = Path(__file__).resolve().parent
-SRC = Path(os.environ.get("HART_SCREENSHOTS", str(Path(__file__).resolve().parents[3] / "media" / "screenshots")))
+HERE = Path(__file__).resolve().parents[2] / "docs/ctc/history"
+SRC = Path(os.environ.get("HART_SCREENSHOTS", str(Path(__file__).resolve().parents[2] / "media" / "screenshots")))
 OUT_MP4 = HERE / "CATS_Panel_Evolution.mp4"
 OUT_POSTER = HERE / "cats-poster.jpg"
 CANVAS = (1280, 720)    # 16:9 so the three-level desk of November is readable

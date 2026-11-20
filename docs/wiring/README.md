@@ -6,7 +6,7 @@ The LCOS wiring documentation, refreshed against current public names and Digico
 
 | File | Role |
 |------|------|
-| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory: v85 plus the main and upper levels from the device map (`jmri/layouts/hart/data/schematic/device_map_main_upper.csv`), written by `scripts/add_main_upper_levels.py`. The August 2026 upper-deck plan (Switches 61 to 91 on C14, C21 to C24 and C32, three motors on C11) is replaced. Main and upper rows are planned placeholders, not wired, and are shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. |
+| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory: v85 plus the main and upper levels from the device map (`jmri/layouts/hart/data/schematic/device_map_main_upper.csv`), written by `tools/wiring/add_main_upper_levels.py`. The August 2026 upper-deck plan (Switches 61 to 91 on C14, C21 to C24 and C32, three motors on C11) is replaced. Main and upper rows are planned placeholders, not wired, and are shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. |
 | [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | Staging inventory written by `refresh_wiring_docs.py`, the input to v86: LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `docs/wiring/signals/signal_wiring.csv`. **Node ID = C{radio Address}** (helix DCC is **D5**). **Legacy Node ID** is the old sequential C1–C13 / D1 label. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v86 (2026-11-15) by `create_wiring_schematic_ppt.py`, which reads the newest inventory. |
 | [`Layout Documentation.pptx`](Layout%20Documentation.pptx) | Editable source of the track bus, power district, bus wiring and node drawings published at `www/behind/layout-docs.html`. |
@@ -263,9 +263,9 @@ Leftover East End RGB `S2-6` / `S2-7` on C2 is gone. C2-OU3 stays for **24RB** (
 ## Refresh
 
 ```bash
-python3 docs/wiring/scripts/refresh_wiring_docs.py
+python3 tools/wiring/refresh_wiring_docs.py
 # needs python-pptx:
-python3 docs/wiring/scripts/create_wiring_schematic_ppt.py
+python3 tools/wiring/create_wiring_schematic_ppt.py
 ```
 
 Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
@@ -273,7 +273,7 @@ Refresh only after the JMRI XML is applied, so the workbooks match the live bean
 The website's node grid (`www/assets/behind/lcos-node-grid.svg`, on `www/behind/bridge.html`) is drawn from the owner's grid workbook (`media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx`, local media, not in git). Rerun it after the grid changes:
 
 ```bash
-python3 docs/wiring/scripts/node_grid_svg.py
+python3 tools/wiring/node_grid_svg.py
 ```
 
 ## What v85 changed vs Desktop v84

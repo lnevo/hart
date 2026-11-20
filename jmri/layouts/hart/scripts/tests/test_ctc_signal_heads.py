@@ -22,7 +22,7 @@ USS_TABLES = parked.with_parked_file({"uss"}, TABLES)
 
 # the live CATS desks (generated from the schematic): each USS mast icon is drawn as its desk lamp is
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-REFRESH = ROOT / "docs/wiring/scripts/refresh_wiring_docs.py"
+REFRESH = ROOT / "tools/wiring/refresh_wiring_docs.py"
 
 sys.path.insert(0, str(SCRIPTS))
 import gen_ctc_track_plan as gen  # noqa: E402
