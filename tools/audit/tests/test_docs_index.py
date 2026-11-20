@@ -52,11 +52,17 @@ class Arguments(unittest.TestCase):
             self.assertEqual(out, "")
 
     def test_help_prints_the_usage(self) -> None:
-        for argv in (["--help"], ["-h"]):
+        for argv in (["--help"], ["-h"], ["--check", "--help"], ["-h", "docs"]):
             status, out, err = self.run_main(argv)
             self.assertEqual(status, 0, argv)
             self.assertIn("build_docs_index.py", out)
             self.assertEqual(err, "")
+
+    def test_help_without_a_docstring(self) -> None:
+        """python -OO strips the docstring; --help still prints the usage line, not 'None'."""
+        with mock.patch.object(INDEX, "__doc__", None):
+            status, out, err = self.run_main(["--help"])
+        self.assertEqual((status, out, err), (0, "build_docs_index.py (takes no arguments)\n", ""))
 
     def test_no_argument_writes_the_index(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

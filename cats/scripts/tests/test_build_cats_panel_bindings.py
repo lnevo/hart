@@ -744,11 +744,17 @@ class Arguments(unittest.TestCase):
             self.assertEqual(out, "")
 
     def test_help_prints_the_usage(self):
-        for argv in (["--help"], ["-h"], ["--check", "--help"]):
+        for argv in (["--help"], ["-h"], ["--check", "--help"], ["--help", "--check"], ["--chek", "-h"]):
             status, out, err = self.run_main(argv)
             self.assertEqual(status, 0, argv)
             self.assertIn("build_cats_panel.py [--check]", out)
             self.assertEqual(err, "")
+
+    def test_help_without_a_docstring(self):
+        """python -OO strips the docstring; --help still prints the usage line, not 'None'."""
+        with mock.patch.object(B, "__doc__", None):
+            status, out, err = self.run_main(["--check", "--help"])
+        self.assertEqual((status, out, err), (0, "build_cats_panel.py [--check]\n", ""))
 
 
 if __name__ == "__main__":

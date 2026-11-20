@@ -43,8 +43,8 @@ def doc_link(path: str) -> str:
 
 
 def main(argv: list[str]) -> int:
-    if {"-h", "--help"} & set(argv):
-        print(__doc__)
+    if {"-h", "--help"} & set(argv):     # help wins over any other argument: it only prints
+        print(__doc__ or "build_docs_index.py (takes no arguments)")      # python -OO strips the docstring
         return 0
     if argv:            # it has no options: a typo must not fall through to a rewrite
         print(f"build_docs_index.py: unknown argument {argv[0]!r}; it takes none (--help for more)", file=sys.stderr)
