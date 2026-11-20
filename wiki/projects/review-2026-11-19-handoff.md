@@ -73,7 +73,7 @@ All in `jmri/scripts/signal_coordinator.py` unless named; tests belong in `jmri/
 | Stale retained `enabled` after a power cut leaves both hosts Disabled; re-run the take decision when `disabled` arrives while idle | `:852-860` | S | Done, #721 |
 | `windowClosing` sleeps 3 s on the Swing thread; `_button.setEnabled` is called off it | `:302`, `:362`, `:947`, `:979` | S | Done (#721) |
 | `panel_status.py` rescans all turnouts on `KnownState`, and walks every editor per sync | `:573`, `:184` | S | Done, #719 (per-turnout update; editor walk skipped) |
-| Deploy does not check Windows is reachable before the Pi restarts; no ssh multiplexing; package staged twice | `tools/hosts/sync_hart_package.sh:520`, `:212-219` | M | read |
+| Deploy does not check Windows is reachable before the Pi restarts; no ssh multiplexing; package staged twice | `tools/hosts/sync_hart_package.sh:520`, `:212-219` | M | Done, #747 (reachability was already fixed by the preflight; Pi ssh shared, Windows not yet tried; staged once) |
 | Untested: shutdown release, Hold sequences, bulk SML set and its timeout, `sts_car_sync` worker thread, `hide_cats_desk_windows` | | M | |
 
 ## Not started: checks and CI
