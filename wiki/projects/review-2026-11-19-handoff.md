@@ -37,7 +37,7 @@ Open: the SML boot race PR (being written; it does not merge before a live test 
 
 ## Next steps, in order
 
-1. **SML boot race.** Owner decision 2026-11-19: the first timestamp wins, a tie goes by host name. Both hosts must get the new payload in the same deploy since each compares the payload text. Tests in the fake first, then a live test with the owner and both hosts; no merge before that.
+1. **SML boot race.** Owner decision 2026-11-19: the first timestamp wins, a tie goes by host name. Both hosts must get the new payload in the same deploy since each compares the payload text. Tests in the fake first, then a live test with the owner and both hosts; no merge before that. Built in PR #731 (`agent/claude/sml-boot-race`): claims ride on a coordinator-only topic `track/bridge/sml_claim`, so `sml_mode` and the LCOS bridge are unchanged; the PR has the design and the live-test list.
 2. **AnyRail 5.3c Phase 2** finishes first, because the next two items edit files it touches.
 3. **After Phase 2:** move dated history from `wiki/STATUS.md` to `STATUS_LOG.md`; split `railroad.py` and `build_cats_panel.py` (tests first).
 4. **Smaller items** in the "Not started" tables below.
