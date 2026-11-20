@@ -83,6 +83,13 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   first 5V board with room, so a group's heads may land off its home node, on another node of its area, when the
   home node is full, and draft head outputs may reshuffle from one build to the next (owner, 2026-11-19: nothing on
   the main and upper levels is wired yet).
+- Hand lists keyed by end switches (running_tracks, signalled_spurs, split_tracks, detector_pins; source-data row 5):
+  columns switch_a, switch_b (the owner's switch numbers, lower first; switch_b blank for a spur, whose other end is a
+  bumper), `parallel` (1, 2 from the top row, only where two tracks run between the same switches) and, in the pins,
+  `half` (1, 2: a balloon loop or split track, half 1 at the lower-numbered switch). Each row is resolved to the
+  generated track at build time (mast_rule.resolve_track), so a renumber moves rows with their tracks; a pair that
+  matches no track, or two tracks with no `parallel`, stops the build naming the file, line and candidates. A pin on a
+  helix block gives the owner's block name instead (no switches).
 - DCC addresses continue from staging's last (119): 120 up in switch-number order, main level first (owner,
   2026-11-15). Each turnout also gets its LCC alias "DCC Switch <n>" (MTT<dcc>, same node comment, as staging has).
 """
@@ -102,7 +109,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
 from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
     LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
-    read_helix_tracks, track_names, tracks)
+    TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_list, track_names, tracks)
 from hartlib import level_devices, railroad  # noqa: E402  the virtual names; the facts it reads and checks
 
 SOURCES = railroad.Sources.under()
@@ -115,7 +122,13 @@ SPLIT = OVERRIDES.parent / "split_tracks_main_upper.csv"          # tracks parte
 RUNNING = OVERRIDES.parent / "running_tracks_main_upper.csv"     # passing sidings counted as running track
 SPURS = OVERRIDES.parent / "signalled_spurs_main_upper.csv"      # spurs that get an exit dwarf
 PINS = OVERRIDES.parent / "detector_pins_main_upper.csv"         # detectors the owner placed on a given node input
-PIN_COLUMNS = ["block", "node", "block_input", "notes"]
+# The hand lists name a track by the switches at its ends (switch_a, switch_b: lower number first; switch_b blank for a
+# spur, whose other end is a bumper; mast_rule.track_key), so a renumbered switch moves its row with it. `parallel`
+# (1, 2 from the top row) says which of two tracks between the same switches; `half` (1, 2) which half of a balloon
+# loop or split track, half 1 at the lower-numbered switch. A pin on a helix block, which the owner named
+# (helix_tracks.csv), has `block` and no switches.
+LIST_COLUMNS = TRACK_KEY_COLUMNS + ["notes"]
+PIN_COLUMNS = TRACK_KEY_COLUMNS + ["half", "block", "node", "block_input", "notes"]
 
 
 def sources() -> railroad.Sources:
@@ -211,35 +224,32 @@ def dx_corners(bands, le_mod, page) -> dict:
     return out
 
 
-def split_tracks(path: Path | None = None) -> set[str]:
-    """The track names split_tracks_main_upper.csv parts into two blocks at their turnback: names the rule gives from
-    the tracks' end switches (track_names), so they survive a new AnyRail export. Stops on a file not in its shape or a
-    name given twice."""
-    path = path or SPLIT
-    try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows = list(reader)
-    except OSError as exc:
-        raise MapError(f"cannot read {path.name}: {exc}") from None
-    if reader.fieldnames != ["track", "notes"]:
-        raise MapError(f"{path.name}: columns {reader.fieldnames}, not ['track', 'notes']")
-    names = [r["track"].strip() for r in rows]
-    if not all(n.startswith("Track ") for n in names) or len(set(names)) != len(names):
-        raise MapError(f"{path.name}: every row names one track (Track ...), once")
-    return set(names)
+def split_tracks(path: Path | None = None, found: list | None = None) -> set[str]:
+    """The track names split_tracks_main_upper.csv parts into two blocks at their turnback: each row's end switches
+    resolved to the generated name in `found` (tracks with names; default: the solved schematic's) at build time, so
+    a renumbered switch moves its row with it. Stops on a file not in its shape, a row that names no track or an
+    unchosen one of two, or a track named twice."""
+    return track_list(path or SPLIT, named_tracks() if found is None else found)
+
+
+def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None) -> list[dict]:
+    """The track entries of the main and upper bands with their generated names (tracks, track_names); the solved
+    schematic's bands when none are given."""
+    if bands is None:
+        bands, joined, runs, _corners = solve()
+    if overrides is None:
+        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+    found = tracks(bands, runs, joined, helix_tags(bands, overrides))
+    track_names(found, helix_blocks(overrides, helix) if helix is not None else helix_blocks(overrides))
+    return found
 
 
 def split_edges(path: Path | None = None, found: list | None = None) -> dict:
     """{plan edge: track name} of the split tracks (split_tracks): each name resolved to the one plan edge its track
     is drawn on, in `found` (tracks with names; default: the solved schematic's), at build time. Stops on a name no
     track has, or a track drawn on more than one plan edge (a split needs one track folded at one turnback)."""
-    names = split_tracks(path)
-    if found is None:
-        bands, joined, runs, _corners = solve()
-        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
-        found = tracks(bands, runs, joined, helix_tags(bands, overrides))
-        track_names(found, helix_blocks(overrides))
+    found = named_tracks() if found is None else found
+    names = split_tracks(path, found)
     by_name = {t["name"]: t for t in found}
     out, bad = {}, []
     for name in sorted(names):
@@ -253,11 +263,17 @@ def split_edges(path: Path | None = None, found: list | None = None) -> dict:
     return out
 
 
-def read_pins(path: Path | None = None) -> dict:
-    """{block: (node, input index from 0)} of detector_pins_main_upper.csv: detectors the owner put on a given input
-    ("Block <k>" of a node, 1 to 8), which the rule then hands to no other block (owner, 2026-11-20: the helix node
-    41). Stops on a file not in that shape, a block or an input given twice, or an input out of range."""
+def read_pins(path: Path | None = None, found: list | None = None, split: set | None = None) -> dict:
+    """{block name: (node, input index from 0)} of detector_pins_main_upper.csv: detectors the owner put on a given
+    input ("Block <k>" of a node, 1 to 8), which the rule then hands to no other block (owner, 2026-11-20: the helix
+    node 41). A track's block is named by its end switches (switch_a, switch_b, parallel), plus `half` for a balloon
+    loop or a track in `split` (names, split_tracks): resolved in `found` (named_tracks) to the generated block name. A
+    helix block is named in `block` with no switches. Stops on a file not in that shape, a track that does not
+    resolve, a half missing from or given to a track that has none, a block or an input given twice, or an input out
+    of range."""
     path = path or PINS
+    found = named_tracks() if found is None else found
+    split = split_tracks(found=found) if split is None else split
     try:
         with open(path, newline="", encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
@@ -266,20 +282,40 @@ def read_pins(path: Path | None = None) -> dict:
         raise MapError(f"cannot read {path.name}: {exc}") from None
     if list(header) != PIN_COLUMNS:
         raise MapError(f"{path.name}: columns {list(header)}, not {PIN_COLUMNS}")
+    helix_names = {t["name"] for t in found if any(k == "helix" for k, _v in t["ends"])}
     out, slots, bad = {}, set(), []
     for i, r in enumerate(rows, 2):
+        r = {k: (v or "").strip() for k, v in r.items()}
         try:
             node, k = int(r["node"]), int(r["block_input"]) - 1
         except ValueError:
             bad.append(f"line {i}: node and block_input are numbers")
             continue
-        if not r["block"].startswith("Track ") or not 0 <= k < CAP["block"]:
-            bad.append(f"line {i}: {r['block']!r} is not a track block (only track detectors are pinned; an OS "
-                       f"block's detector comes with its switch), or input {k + 1} is not 1 to {CAP['block']}")
-        elif r["block"] in out or (node, k) in slots:
-            bad.append(f"line {i}: block {r['block']} or Block {node}-{k + 1} pinned twice")
+        if not 0 <= k < CAP["block"]:
+            bad.append(f"line {i}: input {k + 1} is not 1 to {CAP['block']}")
+            continue
+        if r["block"]:                                  # a helix block, named by the owner
+            if r["switch_a"] or r["switch_b"] or r["parallel"] or r["half"] or r["block"] not in helix_names:
+                bad.append(f"line {i}: {r['block']!r} is a helix block ({', '.join(sorted(helix_names))}) with no "
+                           "switches, parallel or half")
+                continue
+            name = r["block"]
         else:
-            out[r["block"]] = (node, k)
+            problem = key_problem(r)
+            t = None if problem else resolve_track(r, found)
+            if t is None:
+                bad.append(f"line {i}: {problem or r['problem']}")
+                continue
+            looped = t["loop"] or t["name"] in split
+            if r["half"] not in ("", "1", "2") or looped != bool(r["half"]):
+                bad.append(f"line {i}: {t['name']} is " +
+                           ("in two halves: give half 1 or 2" if looped else "one block: no half"))
+                continue
+            name = loop_placeholder(t["name"], int(r["half"]) if r["half"] else None)
+        if name in out or (node, k) in slots:
+            bad.append(f"line {i}: block {name} or Block {node}-{k + 1} pinned twice")
+        else:
+            out[name] = (node, k)
             slots.add((node, k))
     if bad:
         raise MapError(f"{path.name}: " + "; ".join(bad))
@@ -515,9 +551,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     """(control_points, device map rows). `local`: the switches in no control point (local_switches_main_upper.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
     when a band has a double crossover. `helix`: read_helix_tracks (None: helix_tracks.csv; {}: no helix tracks);
-    `pins`: read_pins (None: detector_pins_main_upper.csv)."""
+    `pins`: read_pins (None: detector_pins_main_upper.csv, resolved against the tracks found here)."""
     helix = read_helix_tracks() if helix is None else helix
-    pins = read_pins() if pins is None else pins
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
     try:
@@ -541,6 +576,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
     split = split_edges(found=found)                # resolved once per build, from the tracks' names
     split_names = set(split.values())
+    pins = read_pins(found=found, split=split_names) if pins is None else pins
     ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names,
                joined=joined)
     known = {t["name"] for t in found}
@@ -801,7 +837,8 @@ def main(argv=None) -> int:
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        lists = [{r["track"] for r in csv.DictReader(io.StringIO(p.read_text(encoding="utf-8")))} for p in (RUNNING, SPURS)]
+        found = named_tracks(bands, joined, runs, overrides)
+        lists = [track_list(p, found) for p in (RUNNING, SPURS)]
         cp_keys, rows = build(bands, joined, runs, overrides, *inputs, corners, *lists)
     except MapError as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)

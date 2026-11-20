@@ -32,14 +32,16 @@ class Pure(unittest.TestCase):
     def test_a_split_track_is_named_and_its_edge_found_at_build_time(self):
         """split_tracks_main_upper.csv names tracks by their end switches, which survive a new export; the plan edge
         each is drawn on is looked up when the map is built."""
-        found = [dict(name="Track 227-241", trial=["Track e63"]), dict(name="Track 241 Spur", trial=["Track e64"]),
-                 dict(name="Track 1-2", trial=["Track e1", "Track e2"])]
+        found = [track("Track 227-241", "241", "227", trial=["Track e63"]),
+                 track("Track 241 Spur", "241", trial=["Track e64"]),
+                 track("Track 1-2", "1", "2", trial=["Track e1", "Track e2"])]
+        head = "switch_a,switch_b,parallel,notes\n"
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "split.csv"
-            for text, want in (("track,notes\nTrack 227-241,\n", {"e63": "Track 227-241"}),
-                               ("track,notes\nTrack 9-9,\n", "Track 9-9: no such track"),
-                               ("track,notes\nTrack 1-2,\n", "drawn on Track e1, Track e2"),
-                               ("track,notes\nTrack 227-241,\nTrack 227-241,\n", "once"),
+            for text, want in ((head + "227,241,,\n", {"e63": "Track 227-241"}),
+                               (head + "9,10,,\n", "no track runs Switch 9 to Switch 10"),
+                               (head + "1,2,,\n", "drawn on Track e1, Track e2"),
+                               (head + "227,241,,\n227,241,,\n", "already named on line 2"),
                                ("edge,track\ne63,Track 227-241\n", "columns")):
                 p.write_text(text, encoding="utf-8")
                 with self.subTest(text=text):
@@ -48,6 +50,7 @@ class Pure(unittest.TestCase):
                     else:
                         with self.assertRaisesRegex(BD.MapError, want):
                             BD.split_edges(p, found=found)
+
 
     def test_control_point_lists_only_its_own_band_halves(self):
         cps = [cp("CP 129", 2, "129", "135"), cp("CP 223", 3, "223")]
@@ -481,6 +484,75 @@ class NoBoardRoomOnly(unittest.TestCase):
         self.assertTrue(heads["Head 128LB Top"]["system_name"] and heads["Head 128LB Bottom"]["system_name"])
         north = [r for r in heads.values() if r["node"] in ("42", "52")]
         self.assertEqual(len(north), 12)
+
+
+def track(name, a, b=None, row=0, trial=None, loop=False):
+    """An in-memory track entry as mast_rule.tracks gives them: between switches a and b, or a spur when b is None."""
+    return dict(name=name, ends=(("sw", a), ("sw", b) if b else ("bumper", None)), row=row,
+                trial=trial or [f"Track e{row}"], loop=loop)
+
+
+class SwitchPairLists(unittest.TestCase):
+    """Hand lists name a track by its end switches, so a renumber does not break them (source-data row 5)."""
+    HEAD = "switch_a,switch_b,parallel,notes\n"
+
+    def names(self, text, found):
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "list.csv"
+            p.write_text(self.HEAD + text, encoding="utf-8")
+            return BD.track_list(p, found)
+
+    def test_a_pair_names_its_track_whichever_way_the_ends_are_stored(self):
+        found = [track("Track 119-121", "121", "119"), track("Track 121-123", "121", "123", row=1)]
+        self.assertEqual(self.names("119,121,,\n", found), {"Track 119-121"})
+
+    def test_a_spur_has_no_second_switch(self):
+        found = [track("Track 241 Spur", "241"), track("Track 227-241", "241", "227", row=1)]
+        self.assertEqual(self.names("241,,,\n", found), {"Track 241 Spur"})
+
+    def test_two_tracks_between_one_pair_need_parallel(self):
+        found = [track("Track 211-217 1", "211", "217", row=5), track("Track 211-217 2", "211", "217", row=6)]
+        with self.assertRaisesRegex(BD.MapError, r"list.csv: line 2: 2 tracks run Switch 211 to Switch 217 "
+                                                  r"\(Track 211-217 1, Track 211-217 2\): give parallel"):
+            self.names("211,217,,\n", found)
+        self.assertEqual(self.names("211,217,2,\n", found), {"Track 211-217 2"})
+        with self.assertRaisesRegex(BD.MapError, "parallel 3 of Switch 211 to Switch 217, but 2 tracks"):
+            self.names("211,217,3,\n", found)
+
+    def test_a_pair_with_no_track_names_the_tracks_at_its_switches(self):
+        found = [track("Track 119-121", "119", "121")]
+        with self.assertRaisesRegex(BD.MapError, r"line 3: no track runs Switch 119 to Switch 123 \(tracks at those "
+                                                  r"switches: Track 119-121\)"):
+            self.names("119,121,,\n119,123,,\n", found)
+
+    def test_one_track_named_twice_and_bad_rows_stop(self):
+        found = [track("Track 119-121", "119", "121")]
+        for text, msg in (("119,121,,\n119,121,,\n", "already named on line 2"),
+                          ("121,119,,\n", "lower first"),
+                          ("x,121,,\n", "are switch numbers"),
+                          ("119,121,5,\n", "parallel '5'")):
+            with self.subTest(text=text), self.assertRaisesRegex(BD.MapError, msg):
+                self.names(text, found)
+
+    def test_a_renumber_leaves_the_row_resolving(self):
+        """The same hand row follows its track when the generated name changes with a switch renumber, which the old
+        name-keyed rows did not ("was Track 123-125")."""
+        before = [track("Track 121-123", "121", "123", row=2)]
+        after = [track("Track 125-127", "125", "127", row=2)]
+        self.assertEqual(self.names("121,123,,\n", before), {"Track 121-123"})
+        with self.assertRaisesRegex(BD.MapError, "no track runs Switch 121 to Switch 123"):
+            self.names("121,123,,\n", after)               # the row is retyped with the switches, not a name
+        self.assertEqual(self.names("125,127,,\n", after), {"Track 125-127"})
+
+    def test_a_loop_is_keyed_by_its_one_switch_twice(self):
+        found = [track("Track 107 Loop", "107", "107", loop=True)]
+        self.assertEqual(self.names("107,107,,\n", found), {"Track 107 Loop"})
+
+    def test_the_committed_lists_resolve_in_the_plan(self):
+        found = BD.named_tracks()
+        self.assertEqual(BD.track_list(BD.SPURS, found), {"Track 241 Spur"})
+        self.assertEqual(BD.split_tracks(found=found), {"Track 227-241"})
+        self.assertIn("Track 211-217 1", BD.track_list(BD.RUNNING, found))
 
 
 if __name__ == "__main__":
