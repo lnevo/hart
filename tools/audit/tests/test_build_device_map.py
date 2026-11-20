@@ -29,6 +29,14 @@ class Pure(unittest.TestCase):
     def test_base_drops_half_letter_and_star(self):
         self.assertEqual([BD.base(x) for x in ("129A", "135B", "223*", "105")], ["129", "135", "223", "105"])
 
+    def test_a_split_row_on_another_tracks_edge_stops(self):
+        found = [dict(name="Track 227-241", trial=["Track e63"]), dict(name="Track 241 Spur", trial=["Track e64"])]
+        BD.check_split(found, {"e63": "Track 227-241"})
+        with self.assertRaisesRegex(BD.MapError, r"e64 \(Track 227-241\)"):     # a plan read moved the edge ids
+            BD.check_split(found, {"e64": "Track 227-241"})
+        with self.assertRaisesRegex(BD.MapError, "Track 9-9"):
+            BD.check_split(found, {"e63": "Track 9-9"})
+
     def test_control_point_lists_only_its_own_band_halves(self):
         cps = [cp("CP 129", 2, "129", "135"), cp("CP 223", 3, "223")]
         by_level = {2: {"129A", "135A", "105"}, 3: {"129B", "135B", "223*"}}
@@ -182,7 +190,7 @@ class Output(unittest.TestCase):
         for half, leg in ((1, "B"), (2, "C")):
             block = have[("block", f"Track 107 Loop {half}")]
             self.assertEqual(block["trial_name"], f"Track e33 {half}")
-            self.assertTrue(block["notes"].startswith(f"388.5 cm, half of the balloon loop from leg {leg}"))
+            self.assertTrue(block["notes"].startswith(f"388.1 cm, half of the balloon loop from leg {leg}"))
         self.assertEqual(have[("occupancy", "BS 107 Loop 1")]["system_name"], "M2S3305")
         loop2 = have[("occupancy", "BS 107 Loop 2")]
         self.assertEqual((loop2["system_name"], loop2["node"], loop2["notes"]), ("", "", BD.NOT_WIRED))
