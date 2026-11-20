@@ -17,6 +17,7 @@ from __future__ import annotations
 import contextlib
 import csv
 import io
+import os
 import re
 import sys
 import unittest
@@ -128,15 +129,16 @@ DROPPED = {"126L"}
 SYSTEM = re.compile(r"IF\$(shsm|vsm):basic:([\w-]+)\(")
 
 
-def file_masts(path: Path) -> tuple[set, set]:
-    """(visible, virtual) pins of a committed mast file, in the shape of the tables above. Fails on a system name
+def file_masts(path: Path) -> tuple[list, list]:
+    """(visible, virtual) pins of a committed mast file, one per row (a duplicated row shows), in the shape of the
+    tables above. Fails on a system name
     that is no basic SignalHeadSignalMast or VirtualSignalMast."""
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
         if reader.fieldnames != list(level_masts.FIELDS):
             raise AssertionError(f"{path.name}: columns {reader.fieldnames}, not {list(level_masts.FIELDS)}")
         rows = list(reader)
-    visible, virtual = set(), set()
+    visible, virtual = [], []
     for r in rows:
         hit = SYSTEM.match(r["system_name"])
         if not hit:
@@ -146,9 +148,9 @@ def file_masts(path: Path) -> tuple[set, set]:
         if hit.group(1) == "vsm":
             if (hit.group(2), heads) != ("one-low", 0):
                 raise AssertionError(f"{path.name}: virtual {r['mast']} is {hit.group(2)} with {heads} heads")
-            virtual.add((name, r["switch"], r["facing"], r["protects"], r["dir"]))
+            virtual.append((name, r["switch"], r["facing"], r["protects"], r["dir"]))
         else:
-            visible.add((name, hit.group(2), heads, r["switch"], r["facing"], r["protects"], r["dir"]))
+            visible.append((name, hit.group(2), heads, r["switch"], r["facing"], r["protects"], r["dir"]))
     return visible, virtual
 
 
@@ -157,13 +159,18 @@ class CommittedMastFiles(unittest.TestCase):
 
     def test_staging(self):
         visible, virtual = file_masts(bsm.MASTS)
-        self.assertEqual(visible, set(STAGING_VISIBLE))
-        self.assertEqual(virtual, set(STAGING_VIRTUAL))
+        self.assertEqual(sorted(visible), sorted(STAGING_VISIBLE))
+        self.assertEqual(sorted(virtual), sorted(STAGING_VIRTUAL))
 
     def test_main_and_upper(self):
         visible, virtual = file_masts(level_masts.PATH)
-        self.assertEqual(visible, set(MAIN_UPPER_VISIBLE))
-        self.assertEqual(virtual, set(MAIN_UPPER_VIRTUAL))
+        self.assertEqual(sorted(visible), sorted(MAIN_UPPER_VISIBLE))
+        self.assertEqual(sorted(virtual), sorted(MAIN_UPPER_VIRTUAL))
+
+    def test_mast_names_are_unique_on_every_level(self):
+        for path in (bsm.MASTS, level_masts.PATH):
+            names = [r[0] for part in file_masts(path) for r in part]
+            self.assertEqual(len(names), len(set(names)), f"{path.name}: a mast name is given twice")
 
     def test_virtual_mast_counts_per_level(self):
         self.assertEqual((len(file_masts(bsm.MASTS)[1]), len(file_masts(level_masts.PATH)[1])), (10, 0))
@@ -181,16 +188,24 @@ class CommittedMastFiles(unittest.TestCase):
         self.assertFalse(names & DROPPED)
 
 
+def skip_or_fail(exc: Exception) -> None:
+    """Skip without the plugin, as the schematic checks do; with SCHEMATIC_REQUIRED=1 (CI) a missing plugin fails."""
+    if os.environ.get("SCHEMATIC_REQUIRED") == "1":
+        raise AssertionError(f"the rule pins need the plugin (SCHEMATIC_REQUIRED=1): {exc}")
+    raise unittest.SkipTest(str(exc))
+
+
 def main_upper_rule(no_pruning: bool = False) -> list[dict]:
     """The main and upper masts the rule gives over the committed plan, as build_device_map.build places them before
     any device rows: mast_rule.masts with the hand lists and the double-crossover corners, two heads by
     facing_on_route, the kind from heads and running track, then the intermediates. `no_pruning` turns
-    reaches_signal off, to show what it leaves out."""
+    reaches_signal off, to show what it leaves out. This repeats build()'s mast steps; the one mast builder of step 2
+    must expose them as one function that both build and these pins call."""
     import build_layout_le as bl
     try:
         bands, joined, runs, corners = bdm.solve()
     except bl.BuildError as exc:
-        raise unittest.SkipTest(str(exc))
+        skip_or_fail(exc)
     rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
     overrides = rr.plan_overrides.data
     found = bdm.named_tracks(bands, joined, runs, overrides)
@@ -223,27 +238,31 @@ class RuleOutput(RepoReadOnly, unittest.TestCase):
         try:
             bsm.sdm.lc.plugin()
         except bsm.sdm.lc.BuildError as exc:
-            raise unittest.SkipTest(str(exc))
+            skip_or_fail(exc)
         _want, cls.gen, cls.virtual = bsm.build()
         cls.mu = main_upper_rule()
 
     def test_staging_visible(self):
-        got = {(m["mast"].removeprefix("Mast "), m["kind"], m["heads"], m["switch"], m["facing"], m["protects"],
-                m["dir"]) for m in self.gen}
-        self.assertEqual(got, set(STAGING_VISIBLE))
+        got = [(m["mast"].removeprefix("Mast "), m["kind"], m["heads"], m["switch"], m["facing"], m["protects"],
+                m["dir"]) for m in self.gen]
+        self.assertEqual(sorted(got), sorted(STAGING_VISIBLE))
 
     def test_staging_virtual(self):
-        got = {(m["mast"].removeprefix("Mast "), m["switch"], m["facing"], m["protects"], m["dir"])
-               for m in self.virtual}
-        self.assertEqual(got, set(STAGING_VIRTUAL))
+        got = [(m["mast"].removeprefix("Mast "), m["switch"], m["facing"], m["protects"], m["dir"])
+               for m in self.virtual]
+        self.assertEqual(sorted(got), sorted(STAGING_VIRTUAL))
 
     def test_main_and_upper_visible(self):
         # a home mast's facing is its track (half), its protects the switch's OS block or, at a double crossover,
         # its corner block; an intermediate names both blocks
-        got = {(m["name"], m["kind"], m["heads"], m["switch"],
+        got = [(m["name"], m["kind"], m["heads"], m["switch"],
                 m["facing"] if m.get("intermediate") else m["track"],
-                m["protects"] or f"OS Switch {m['switch']}", m["dir"]) for m in self.mu}
-        self.assertEqual(got, set(MAIN_UPPER_VISIBLE))
+                m["protects"] or f"OS Switch {m['switch']}", m["dir"]) for m in self.mu]
+        self.assertEqual(sorted(got), sorted(MAIN_UPPER_VISIBLE))
+
+    def test_the_rule_gives_no_name_twice(self):
+        for names in ([m["name"] for m in self.mu], [m["mast"] for m in self.gen + self.virtual]):
+            self.assertEqual(len(names), len(set(names)), "a mast name is given twice")
 
     def test_126L_is_left_out_only_by_the_reaches_signal_pruning(self):
         self.assertNotIn("126L", {m["name"] for m in self.mu})
