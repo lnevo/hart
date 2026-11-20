@@ -185,26 +185,15 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Engine House,mast,Mast 10RB,IF$vsm:basic:one-low($1022),IF$vsm:basic:one-low($1022),,,Engine House | Switch 9,,facing Track EH-3 into OS Switch 9
 1,Engine House,mast,Mast 12L,IF$vsm:basic:one-low($1005),IF$vsm:basic:one-low($1005),,,Engine House,,"facing Track EH-1, buffer stop"
 1,Engine House,mast,Mast 12R,IF$vsm:basic:one-low($1020),IF$vsm:basic:one-low($1020),,,Engine House | Switch 11,,facing Track EH-1 into OS Switch 11
-1,Barn,mast,Mast 14R,IF$vsm:basic:one-low($1019),IF$vsm:basic:one-low($1019),,,Barn | Switch 13,,facing Track Barn into OS Switch 13
-1,South Yard,mast,Mast 16L,IF$vsm:basic:one-low($1016),IF$vsm:basic:one-low($1016),,,South Yard,,facing Track S-R into Track S-R West
-1,South Yard,mast,Mast 16R,IF$vsm:basic:one-low($1017),IF$vsm:basic:one-low($1017),,,South Yard,,facing Track S-R into Track S-R East
-1,South Yard,mast,Mast 18L,IF$vsm:basic:one-low($1008),IF$vsm:basic:one-low($1008),,,South Yard,,facing Track S-1 into Track S-1 West
-1,South Yard,mast,Mast 18R,IF$vsm:basic:one-low($1012),IF$vsm:basic:one-low($1012),,,South Yard,,facing Track S-1 into Track S-1 East
-1,South Yard,mast,Mast 20L,IF$vsm:basic:one-low($1009),IF$vsm:basic:one-low($1009),,,South Yard,,facing Track S-2 into Track S-2 West
-1,South Yard,mast,Mast 20R,IF$vsm:basic:one-low($1013),IF$vsm:basic:one-low($1013),,,South Yard,,facing Track S-2 into Track S-2 East
-1,South Yard,mast,Mast 22L,IF$vsm:basic:one-low($1010),IF$vsm:basic:one-low($1010),,,South Yard,,facing Track S-3 into Track S-3 West
-1,South Yard,mast,Mast 22R,IF$vsm:basic:one-low($1014),IF$vsm:basic:one-low($1014),,,South Yard,,facing Track S-3 into Track S-3 East
+1,Engine House,mast,Mast 14R,IF$vsm:basic:one-low($1019),IF$vsm:basic:one-low($1019),,,Engine House | Switch 13,,facing Track Barn into OS Switch 13
 1,East End,mast,Mast 24L,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),IF$shsm:basic:one-searchlight(IH:HART:C1:24L),,,East End | Switch 23,,facing Track West Ext into OS Switch 23a
 1,East End,mast,Mast 24RA,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),,,East End | Switch 23,,facing Track Main West into OS Switch 23a
 1,East End,mast,Mast 24RB,IF$shsm:basic:one-low(IH:HART:C1:24RB),IF$shsm:basic:one-low(IH:HART:C1:24RB),,,East End | Switch 23,,facing Track S-R East into OS Switch 23b
-1,South Yard,mast,Mast 26L,IF$vsm:basic:one-low($1011),IF$vsm:basic:one-low($1011),,,South Yard,,facing Track S-4 into Track S-4 West
-1,South Yard,mast,Mast 26R,IF$vsm:basic:one-low($1015),IF$vsm:basic:one-low($1015),,,South Yard,,facing Track S-4 into Track S-4 East
 1,Brick,mast,Mast 2L,IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom),,,Brick | Switch 1,,facing Track Main West into OS Switch 1
 1,Brick,mast,Mast 2R,IF$shsm:basic:one-searchlight(IH:HART:C1:2R),IF$shsm:basic:one-searchlight(IH:HART:C1:2R),,,Brick | Switch 1,,facing Track Brick-Plane into OS Switch 1
 1,East End,mast,Mast 32R,IF$shsm:basic:one-low(IH:HART:C1:32R),IF$shsm:basic:one-low(IH:HART:C1:32R),,,East End | Switch 31,,facing OS Switch 29 into OS Switch 31
 1,East End,mast,Mast 34L,IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),,,East End | Switch 33,,facing Track East Lead into OS Switch 33
 1,East End,mast,Mast 34R,IF$shsm:basic:one-searchlight(IH:HART:C1:34R),IF$shsm:basic:one-searchlight(IH:HART:C1:34R),,,East End | Switch 33,,facing Track Main East into OS Switch 33
-1,Princess,mast,Mast 36L,IF$vsm:basic:one-low($1025),IF$vsm:basic:one-low($1025),,,Princess,,facing Track East Lead East into Track East Lead
 1,Princess,mast,Mast 36RA,IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),,,Princess | Switch 35,,facing Track West Ext into OS Switch 35b
 1,Princess,mast,Mast 36RB,IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),,,Princess | Switch 35,,facing Track East Lead East into OS Switch 35a
 1,Princess,mast,Mast 38LA,IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),,,Princess | Switch 37,,facing Track McKeesport into OS Switch 37
@@ -213,7 +202,6 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Princess,mast,Mast 40LA,IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),,,Princess | Switch 39,,facing Track K-1 West into OS Switch 39
 1,Princess,mast,Mast 40LB,IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),,,Princess | Switch 39,,facing Track McKees Rocks into OS Switch 39
 1,Princess,mast,Mast 40RA,IF$vsm:basic:one-low($1003),IF$vsm:basic:one-low($1003),,,Princess,,"facing Track McKees Rocks, buffer stop"
-1,Princess,mast,Mast 40RB,IF$vsm:basic:one-low($1026),IF$vsm:basic:one-low($1026),,,Princess,,facing Track K-1 West into Track K-1
 1,Brick,mast,Mast 4LA,IF$vsm:basic:one-low($1001),IF$vsm:basic:one-low($1001),,,Brick,,"facing Track W-1, buffer stop"
 1,Brick,mast,Mast 4LB,IF$vsm:basic:one-low($1002),IF$vsm:basic:one-low($1002),,,Brick,,"facing Track W-2, buffer stop"
 1,Brick,mast,Mast 4RA,IF$shsm:basic:one-low(IH:HART:C1:4RA),IF$shsm:basic:one-low(IH:HART:C1:4RA),,,Brick | Switch 3,,facing Track W-1 into OS Switch 3

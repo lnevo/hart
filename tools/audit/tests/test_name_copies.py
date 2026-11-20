@@ -101,7 +101,7 @@ class NameCopiesTest(unittest.TestCase):
         """Step 3 of the hand-off: rename one mast and one track; every copy is found."""
         renamed = self.tmp / "renamed.csv"
         renamed.write_text(renamed_map(MAP.read_text(encoding="utf-8"),
-                                       {"Mast 16R": "Mast 16RX", "Track Scale": "Track Weigh"}),
+                                       {"Mast 12R": "Mast 12RX", "Track Scale": "Track Weigh"}),
                            encoding="utf-8")
         # PanelPro renames the block in tables.xml too (then make tables-pull).
         tables_xml = self.tmp / "tables.xml"
@@ -110,7 +110,7 @@ class NameCopiesTest(unittest.TestCase):
         tables_xml.write_text(text.replace(">Track Scale<", ">Track Weigh<"), encoding="utf-8")
         hits, _counts, _used = check.run(ROOT, name_map=renamed, tables_xml=tables_xml)
         files = {h.path for h in hits}
-        self.assertEqual({"Mast 16R", "Track Scale"}, {h.name for h in hits})
+        self.assertEqual({"Mast 12R", "Track Scale"}, {h.name for h in hits})
         # Known hand-kept copies today: the Dispatcher stations and the switch and mast facts.
         self.assertIn("jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py", files)
         self.assertIn("jmri/layouts/hart/data/switch_legs.csv", files)

@@ -21,7 +21,7 @@ Dated history and the full text of finished entries are in [`STATUS_LOG.md`](STA
 - **Occupancy lamps (owner, 2026-11-13 and 2026-11-15):** all 96 lamps are display only (`forcecontroloff="true"`, held by `occupancy_lamps_display_only.py --check`); placement rework is still to be done before Dispatcher and NX, and the lamps are parked with the Dispatcher System.
 - **Pi PanelPro and deploys (2026-11-13):** quit it with `pi_quit_panelpro.sh --for-deploy` before a Pi deploy; the deploy starts it again, also when it fails. A plain quit stays closed. `HART_PI_RESTART=0` skips the restart.
 <!-- counts:start -->
-- **Counts:** 93 masts (69 real, 24 virtual), sections and transits parked, NX pairs parked, 88 SML sources with 182 destinations, 374 traininfo files kept in the repo, USS CTC machine parked.
+- **Counts:** 81 masts (69 real, 12 virtual), sections and transits parked, NX pairs parked, 70 SML sources with 121 destinations, 374 traininfo files kept in the repo, USS CTC machine parked.
 <!-- counts:end -->
 - **Operations Pro files:** the repo is the master, in `jmri/layouts/hart/operations/` (ADR-015); the two menu settings are on in `Operations.xml`, deploy installs them everywhere, and a Pi deploy stops while a Pi session or Store is unpulled (`make ops-pull`, `make tables-pull-pi`). Side project parked: [`docs/ops/OPSPRO_FOLLOWUP.md`](../docs/ops/OPSPRO_FOLLOWUP.md).
 - **Host files:** CATS panels, launchers and logs live in `JMRI_UserFiles/cats/` on the Pi and Windows (TrainStat on the Pi); every profile's `user-files` is `JMRI_UserFiles`, where `preference:` resolves and deploy writes. Run `make tables-pull` after a PanelPro Store.

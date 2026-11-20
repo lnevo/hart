@@ -46,7 +46,9 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 - `disable_digicon_sml_in_tables.py` boots only masts on wired IH-digit heads with their logic disabled.
 
 **Virtual masts**
-- Staging's Dispatcher and routing masts stay hand-kept in `staging_masts_virtual.csv`.
+- Staging's hidden routing masts are placed by rule too (owner, 2026-11-20; `build_staging_masts.virtual_masts`), each a virtual one-low mast: a bumper mast at the buffer stop of each track ending at one (4LA, 4LB, 10LA, 10LB, 12L); a stub-leaving mast where a track meets a switch with a stub leg (every route out of that leg ends at a buffer stop), facing into the switch, where the visible rule places none (10RA, 10RB, 12R, 14R); and the partner of an anchor mast that has none, at the same boundary the other way (8LC, opposite 8RA). A virtual mast keeps the system name (`$1001` ...) its device-map row had; a new one takes the next ordinal.
+- The yard-end masts 16L to 26R and the Dispatcher rear masts 36L and 40RB are dropped with the hidden yard throats (see `jmri/layouts/hart/parked/README.md`). Routes into the yard tracks and stubs now end dark, as they do on main and upper.
+- Only the helix-end masts 38RA and 40RA are still hand-kept in `staging_masts_virtual.csv`; when they go, that file, `staging_signals_virtual.csv` and `read_virtual` go too.
 
 **Signal Mast Logic**
 - Stock discovery runs from scratch in a sandbox: 182 destinations.

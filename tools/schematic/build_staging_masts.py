@@ -35,9 +35,12 @@ digits), whose mast the rule does not place, or whose mast the rule gives a diff
 that names an IH-digits head that is not one of its own wired head rows; and if a wired head is missing from the rows
 it writes. A wired mast keeps its node, or takes its wired heads' node when its row has none.
 
-Virtual masts (IF$vsm: end bumpers, yard-track ends, the helix intermediates and Dispatcher rear masts) stay hand
-kept in staging_masts_virtual.csv and staging_signals_virtual.csv, in the same columns; this script adds them after
-the visible ones and stops on a name both give.
+Virtual masts (IF$vsm, hidden, one-low) by rule too (owner, 2026-11-20; virtual_masts): a bumper mast at each
+buffer stop, a stub-leaving mast where a track meets a switch with a stub leg (mast_rule.leads_to_bumpers_only)
+and no visible mast stands, and the partner of an anchor mast that has none. Each keeps the system name its
+device-map row had (virtual_rows). Only the helix-end masts 38RA and 40RA are still hand-kept, in
+staging_masts_virtual.csv and staging_signals_virtual.csv (same columns); this script adds them last and stops on
+a name both give.
 
 Writes (jmri/layouts/hart/data/schematic/): staging_masts.csv, staging_signals.csv, and the mast and head rows of
 device_map_staging.csv (each mast and head row's system_name and jmri_name are its JMRI name; there is no planned
@@ -298,6 +301,123 @@ def intermediates(band, names, cps, cm, chains) -> list[dict]:
     return out
 
 
+VIRTUAL_KIND = "one-low"
+VSM = re.compile(r"IF\$vsm:basic:one-low\(\$(\d+)\)")
+
+
+def letter_at(band, node: str, leg: str) -> str:
+    """The direction letter of a mast at switch `node`'s `leg` facing into the switch, as mast_rule.masts names it."""
+    return "L" if mast_rule.TAU[leg] * band["rail"][node] == 1 else "R"
+
+
+def leg_row(band, node: str, leg: str) -> int:
+    d = band["nodes"][node]
+    return band["R"]["srow"].get(d["ins"].get(leg) or d["outs"].get(leg), 0)
+
+
+def virtual_masts(band, names: dict, gen: list[dict], cm: dict, cps: dict) -> list[dict]:
+    """Staging's hidden routing masts by rule (owner, 2026-11-20; they were hand-kept in staging_masts_virtual.csv),
+    each a virtual one-low mast in the columns generate() gives, `cps` naming each switch's control point:
+    - a bumper mast at the buffer stop of each track ending at one, facing it (4LA, 4LB, 10LA, 10LB, 12L);
+    - a stub-leaving mast where a track meets a switch that has a stub leg (every route out of that leg ends at a
+      buffer stop, mast_rule.leads_to_bumpers_only), facing into the switch, unless the visible rule already places a
+      mast there (10RA, 10RB, 12R, 14R; at Switch 3 the visible 4RA and 4RB stand);
+    - the partner of an anchor mast that has none: the same block boundary the other way (8LC, opposite 8RA; the
+      intermediate pairs have theirs).
+    A mast is named as a home mast is (switch number + 1, the letter of its direction); a bumper mast takes the letter
+    a train heading for the buffer stop reads. Masts of one number and letter take A, B ... by row on the drawing,
+    after any the visible masts already use. RuleError on a name the visible masts give, or a stub track whose
+    boundary is not at the switch's leg."""
+    nodes = band["nodes"]
+    chains = run_strands(band)
+    seqs = {}
+    for start, seq, end in with_lengths(sdm.run_blocks(band, names), cm):
+        seqs[tuple(start)] = (seq, tuple(end))
+        seqs[tuple(end)] = (seq[::-1], tuple(start))
+    os_blocks = set(names["os"].values())
+    visible_at = {(m["node"], m.get("leg")) for m in gen if m.get("leg")}
+    label = lambda n: mast_rule.base(nodes[n]["label"]) if nodes[n]["kind"] == "switch" else ""  # noqa: E731
+    out = []                         # (number, letter, row, mast fields)
+    for (n, p), (seq, far) in sorted(seqs.items()):
+        if nodes[n]["kind"] != "switch" or not seq:
+            continue
+        sw, own = label(n), names["os"][n]
+        edge, track_names = plan_edge(band, chains[(n, p)])
+        total = round(sum(cm[b] for b in seq), 1)
+        base = dict(cp=cps[sw], kind=VIRTUAL_KIND, heads=1, toward=sw, run=f"{sw};{label(far[0])}",
+                    names=track_names, edge_cm=total, edge=edge, node=n, signal_kind="virtual")
+        far_node = nodes[far[0]]
+        if far_node["kind"] == "end" and far_node.get("sub") == "bumper":
+            letter = "R" if letter_at(band, n, p) == "L" else "L"
+            out.append((int(sw) + 1, letter, leg_row(band, n, p),
+                        dict(base, switch="", facing=seq[-1], protects="", cm_from_toward=total,
+                             dir="west" if letter == "L" else "east")))
+        stub = any(mast_rule.leads_to_bumpers_only(band, n, q) for q in sorted(nodes[n]["ins"] | nodes[n]["outs"]))
+        facing = next((b for b in seq if b != own), None)
+        if not stub or facing is None or facing in os_blocks or (n, p) in visible_at:
+            continue
+        if seq[0] == own:
+            raise RuleError(f"switch {sw} leg {p}: {facing} meets {own} past the leg; a stub-leaving mast stands at "
+                            "the leg")
+        letter = letter_at(band, n, p)
+        out.append((int(sw) + 1, letter, leg_row(band, n, p),
+                    dict(base, switch=sw, facing=facing, protects=own, cm_from_toward=0.0,
+                         dir="west" if letter == "L" else "east")))
+    pairs = {(m["facing"], m["protects"]) for m in gen}
+    for m in gen:
+        if m["switch"] or "milepost" in m or (m["protects"], m["facing"]) in pairs:
+            continue
+        seq, far = seqs[(m["node"], m["leg"])]
+        letter = "R" if m["mast"][-2 if m["mast"][-1] in "AB" else -1] == "L" else "L"
+        number = int(re.search(r"\d+", m["mast"]).group())
+        toward = label(far[0])
+        out.append((number, letter, 10 ** 6, dict(cp=m["cp"], kind=VIRTUAL_KIND, heads=1, switch="",
+                                                  facing=m["protects"], protects=m["facing"], toward=toward,
+                                                  run=f"{toward};{m['toward']}", names=m["names"],
+                                                  edge_cm=m["edge_cm"],
+                                                  cm_from_toward=round(m["edge_cm"] - m["cm_from_toward"], 1),
+                                                  dir="west" if letter == "L" else "east", edge=m["edge"],
+                                                  node=far[0], signal_kind="virtual")))
+    taken = {m["mast"] for m in gen}
+    groups = {}
+    for number, letter, row, fields in out:
+        groups.setdefault((number, letter), []).append((row, fields))
+    masts = []
+    for (number, letter), ms in sorted(groups.items()):
+        stem = f"Mast {number}{letter}"
+        used = sorted(t.removeprefix(stem) for t in taken if t == stem or re.fullmatch(re.escape(stem) + "[A-Z]", t))
+        if "" in used:
+            raise RuleError(f"{stem} stands already; its virtual partner(s) cannot be lettered")
+        ms.sort(key=lambda x: x[0])
+        letters = "ABCD"[len(used):] if used or len(ms) > 1 else [""]
+        if len(ms) > len(letters):
+            raise RuleError(f"{stem}: {len(used) + len(ms)} masts, more than A to D")
+        for (_row, fields), suffix in zip(ms, letters):
+            masts.append(dict(fields, mast=stem + suffix))
+    clash = sorted({m["mast"] for m in masts} & taken)
+    if clash:
+        raise RuleError(f"the virtual masts take names the visible masts have: {clash}")
+    return sorted(masts, key=lambda m: (int(re.search(r"\d+", m["mast"]).group()), m["mast"]))
+
+
+def virtual_rows(vgen: list[dict], old_rows: list[dict], hand: list[dict]) -> list[dict]:
+    """staging_masts.csv rows of the virtual masts: each keeps the system name its old device-map row gives it (a
+    VirtualSignalMast's ordinal, $1001 ...), and a new one takes the next ordinal after every one the old rows and
+    the hand-kept rows (`hand`) use, so no system name shifts."""
+    old = {r["user_name"]: r["system_name"] for r in old_rows if r["layer"] == "mast" and VSM.fullmatch(r["system_name"])}
+    used = [int(VSM.fullmatch(x).group(1)) for x in list(old.values()) + [r["system_name"] for r in hand]
+            if VSM.fullmatch(x)]
+    nxt = max(used, default=1000) + 1
+    rows = []
+    for m in vgen:
+        system = old.get(m["mast"])
+        if system is None:
+            system, nxt = f"IF$vsm:basic:{VIRTUAL_KIND}(${nxt})", nxt + 1
+        rows.append(dict(mast=m["mast"], cp=m["cp"], switch=m["switch"], facing=m["facing"], protects=m["protects"],
+                         leg="", system_name=system, head_system_names="", device_system_name=system))
+    return rows
+
+
 def interlockings(switches: set, path: Path = INTERLOCKINGS) -> dict:
     """{switch: interlocking} from interlockings_staging.csv. Stops on a switch that is not a staging switch or is in
     two interlockings."""
@@ -388,7 +508,7 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
 
 
 def build():
-    """{path: text} of every file this script writes, and the generated masts."""
+    """({path: text} of every file this script writes, the visible masts, the virtual masts by rule)."""
     with pd.cache_on():
         band, _opts, _core = sdm.staging_band()
         bands, joined, runs, _corners = bdm.solve()
@@ -405,16 +525,21 @@ def build():
     for m in gen:                    # the cp column names the control point (the drawings') of the mast's switch
         m["cp"] = cp_of[m["toward"]]
     vm, vs = read_virtual()
+    vgen = virtual_masts(band, names, gen, block_cm(), cp_of)
     gm = mast_rows(gen, wired)
-    clash = sorted({r["mast"] for r in gm} & {r["mast"] for r in vm})
+    vr = virtual_rows(vgen, old, vm)
+    clash = sorted({r["mast"] for r in gm + vr} & {r["mast"] for r in vm})
     if clash:
         raise RuleError(f"{VIRTUAL_MASTS.name} names masts the rule now places: {clash}")
     if {r["mast"] for r in vm} != {r["mast"] for r in vs}:
         raise RuleError(f"{VIRTUAL_MASTS.name} and {VIRTUAL_SIGNALS.name} name different masts")
-    want = {MASTS: csv_text(gm + vm, level_masts.FIELDS),
-            SIGNALS: csv_text(signal_rows(gen) + vs, sdm.SIGNAL_COLUMNS),
-            DEVICE_MAP: csv_text(device_rows(gm, vm, old, wired), bdm.COLUMNS)}
-    return want, gen
+    taken = [r["system_name"] for r in gm + vr + vm]
+    if len(set(taken)) != len(taken):
+        raise RuleError(f"two masts share a system name: {sorted({x for x in taken if taken.count(x) > 1})}")
+    want = {MASTS: csv_text(gm + vr + vm, level_masts.FIELDS),
+            SIGNALS: csv_text(signal_rows(gen + vgen) + vs, sdm.SIGNAL_COLUMNS),
+            DEVICE_MAP: csv_text(device_rows(gm, vr + vm, old, wired), bdm.COLUMNS)}
+    return want, gen, vgen
 
 
 def main(argv=None) -> int:
@@ -432,12 +557,12 @@ def main(argv=None) -> int:
         print(f"build_staging_masts.py: {exc}", file=sys.stderr)
         return 2
     try:
-        want, gen = build()
+        want, gen, vgen = build()
     except (RuleError, sdm.StagingMapError, sdm.lc.BuildError, mast_rule.MapError, railroad.FactsError) as exc:
         print(f"build_staging_masts.py: {exc}", file=sys.stderr)
         return 2
     if args.show:
-        for m in gen:
+        for m in gen + vgen:
             print(f"{m['mast']:10} {m['kind']:16} {m['heads']}h  {m['facing']:22} -> {m['protects']:16} "
                   f"{'switch ' + m['switch'] if m['switch'] else 'anchor':10} {m['dir']}"
                   + (f"  MP {m['milepost']}" if "milepost" in m else ""))

@@ -25,7 +25,7 @@ Every level of the "HART Railroad" panel is built from its device map (owner, 20
 **Signals**
 - The visible masts are placed by the rule in [ADR-024](ADR-024-signals-by-rule.md). That ADR records the interlockings, the mast types, the milepost origin and the line codes, and they are not repeated here. `build_staging_masts.py` writes the masts into the files above.
 - The heads are internal (`IH:HART:C1:`). The one wired head is IH432 on Mast 6LB, kept as a head row in the device map.
-- The 24 hidden Dispatcher and routing masts are hand-kept in `staging_masts_virtual.csv`.
+- The hidden routing masts are placed by rule as well (ADR-024, owner 2026-11-20); only the helix-end masts 38RA and 40RA are still hand-kept in `staging_masts_virtual.csv`.
 
 ## Consequences
 

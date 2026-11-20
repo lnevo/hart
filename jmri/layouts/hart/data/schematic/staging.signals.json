@@ -402,158 +402,6 @@
    "_toward_node": "TOL34511"
   },
   {
-   "mast": "16L",
-   "toward": "15",
-   "run": [
-    "15",
-    "23"
-   ],
-   "names": [
-    "S-R"
-   ],
-   "edge_cm": 585.7,
-   "cm_from_toward": 40.0,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e10",
-   "_toward_node": "TOR28939"
-  },
-  {
-   "mast": "16R",
-   "toward": "23",
-   "run": [
-    "23",
-    "15"
-   ],
-   "names": [
-    "S-R"
-   ],
-   "edge_cm": 585.7,
-   "cm_from_toward": 40.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e10",
-   "_toward_node": "TOR29392"
-  },
-  {
-   "mast": "18L",
-   "toward": "17",
-   "run": [
-    "17",
-    "29"
-   ],
-   "names": [
-    "S-1"
-   ],
-   "edge_cm": 538.0,
-   "cm_from_toward": 40.0,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e22",
-   "_toward_node": "TOL28940"
-  },
-  {
-   "mast": "18R",
-   "toward": "29",
-   "run": [
-    "29",
-    "17"
-   ],
-   "names": [
-    "S-1"
-   ],
-   "edge_cm": 538.0,
-   "cm_from_toward": 40.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e22",
-   "_toward_node": "TOR28903"
-  },
-  {
-   "mast": "20L",
-   "toward": "19",
-   "run": [
-    "19",
-    "27"
-   ],
-   "names": [
-    "S-2"
-   ],
-   "edge_cm": 452.6,
-   "cm_from_toward": 40.0,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e27",
-   "_toward_node": "TOL28942"
-  },
-  {
-   "mast": "20R",
-   "toward": "27",
-   "run": [
-    "27",
-    "19"
-   ],
-   "names": [
-    "S-2"
-   ],
-   "edge_cm": 452.6,
-   "cm_from_toward": 40.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e27",
-   "_toward_node": "TOR28906"
-  },
-  {
-   "mast": "22L",
-   "toward": "21",
-   "run": [
-    "21",
-    "25"
-   ],
-   "names": [
-    "S-3"
-   ],
-   "edge_cm": 367.3,
-   "cm_from_toward": 40.0,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e20",
-   "_toward_node": "TOL28944"
-  },
-  {
-   "mast": "22R",
-   "toward": "25",
-   "run": [
-    "25",
-    "21"
-   ],
-   "names": [
-    "S-3"
-   ],
-   "edge_cm": 367.3,
-   "cm_from_toward": 40.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e20",
-   "_toward_node": "TOR28908"
-  },
-  {
    "mast": "24L",
    "toward": "23",
    "run": [
@@ -611,44 +459,6 @@
    "_toward_node": "TOR29392"
   },
   {
-   "mast": "26L",
-   "toward": "21",
-   "run": [
-    "21",
-    "25"
-   ],
-   "names": [
-    "S-4"
-   ],
-   "edge_cm": 358.6,
-   "cm_from_toward": 40.0,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e19",
-   "_toward_node": "TOL28944"
-  },
-  {
-   "mast": "26R",
-   "toward": "25",
-   "run": [
-    "25",
-    "21"
-   ],
-   "names": [
-    "S-4"
-   ],
-   "edge_cm": 358.6,
-   "cm_from_toward": 40.0,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e19",
-   "_toward_node": "TOR28908"
-  },
-  {
    "mast": "32R",
    "toward": "31",
    "run": [
@@ -701,25 +511,6 @@
    "heads": 1,
    "source": "le_panel",
    "_edge": "e1",
-   "_toward_node": "TOL29277"
-  },
-  {
-   "mast": "36L",
-   "toward": "33",
-   "run": [
-    "33",
-    "35"
-   ],
-   "names": [
-    "East Lead"
-   ],
-   "edge_cm": 274.2,
-   "cm_from_toward": 234.2,
-   "dir": "west",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e26",
    "_toward_node": "TOL29277"
   },
   {
@@ -875,26 +666,6 @@
    "source": "le_panel",
    "_edge": "e36",
    "_toward_node": "TOL29312"
-  },
-  {
-   "mast": "40RB",
-   "toward": "37",
-   "run": [
-    "37",
-    "39"
-   ],
-   "names": [
-    "K-1",
-    "K-2"
-   ],
-   "edge_cm": 624.2,
-   "cm_from_toward": 584.2,
-   "dir": "east",
-   "kind": "virtual",
-   "heads": 1,
-   "source": "le_panel",
-   "_edge": "e15",
-   "_toward_node": "TOR29969"
   },
   {
    "mast": "67",

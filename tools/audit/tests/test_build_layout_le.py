@@ -864,28 +864,6 @@ class Throats(unittest.TestCase):
                         self.assertLessEqual(L, max(share, least) + stretch + bent[b] + 0.5)
                         self.assertLess(L, total / 2)
 
-    def test_the_south_yard_masts_stand_in_a_column_by_each_ladder(self) -> None:
-        cols = {}
-        for g in self.P.gantries:
-            names = {m["mast"] for m in g}
-            xs = {round(self.P.points[m["ident"]]["xy"][0], 1) for m in g if m["kind"] == "anchor"}
-            if not xs:                      # a gantry of turnout-leg masts only: no anchor column
-                continue
-            self.assertEqual(len(xs), 1, names)
-            x = xs.pop()
-            for n in names:
-                cols[n] = x
-        west = [cols[f"Mast {n}L"] for n in (16, 18, 20) if f"Mast {n}L" in cols]
-        east = [cols[f"Mast {n}R"] for n in (16, 18, 20) if f"Mast {n}R" in cols]
-        self.assertTrue(west and east)
-        for sid in self.measured():
-            if self.bands[0][1]["strands"][sid]["name"].startswith("S-"):
-                pts = [self.xy(self.segs[i]["ends"][0]) for i in self.P.strand_segments[(0, sid)]]
-                lo, hi = min(p[0] for p in pts), max(p[0] for p in pts)
-                self.assertLess(max(west), lo + (hi - lo) / 2)                  # the west column on the west half
-                self.assertGreater(min(east), lo + (hi - lo) / 2)               # the east column on the east half
-
-
 if __name__ == "__main__":
     unittest.main()
 

@@ -118,8 +118,9 @@ class DispatcherVirtualsTest(unittest.TestCase):
         with (DATA / "le_signal_boundaries.csv").open(newline="", encoding="utf-8") as f:
             boundary = {r["mast_user_name"] for r in csv.DictReader(f)}
         # Mast 2R and 6R are visible since ADR-024, so no longer virtual.
-        self.assertEqual({"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB",
-                          "Mast 36L", "Mast 40RB"}, audit.dispatcher_virtuals(boundary))
+        # 36L and 40RB went with the hidden yard throats (owner, 2026-11-20).
+        self.assertEqual({"Mast 8LC", "Mast 14R", "Mast 12R", "Mast 10RA", "Mast 10RB"},
+                         audit.dispatcher_virtuals(boundary))
 
 
 if __name__ == "__main__":

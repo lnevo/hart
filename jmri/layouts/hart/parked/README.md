@@ -23,7 +23,7 @@ the file's `source` attribute records it).
 | | Logix `IX:CTC:REVDEF` and conditional `IX:CTC:REVDEF:C1` | 1 + 1 |
 | | LogixNG ConditionalNG `IQC:AUTO:0002` "Hide USS CTC", its action `IQDA:AUTO:0002`, its entry in `IQ:AUTO:0001` | 1 + 1 + 1 |
 
-Signal masts and Signal Mast Logic stay active, the 26 hidden virtual masts included. `IQC:AUTO:0001` (hide
+Signal masts and Signal Mast Logic stay active, the hidden virtual masts included (12 since 2026-11-20: the yard-end and Dispatcher rear masts went with the yard throats, below). `IQC:AUTO:0001` (hide
 WiThrottle) and `IQC:AUTO:0004` (hide HART Railroad under CATS) stay. So do `switches.csv`, `mast_cells.csv`, the
 layout facts data, the block comments that mark the Dispatcher stations, and the USS yellow sensor icons the panel's
 lamps use.

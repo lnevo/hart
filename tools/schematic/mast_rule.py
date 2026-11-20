@@ -339,3 +339,42 @@ def facing_on_route(band, node: str, leg: str, cp_of: dict, long_cm: float = LON
                 continue                                    # running track inside: its own signals govern it
             todo.append(at_other_end(sid, n))
     return sorted(set(out), key=natural)
+
+
+def leads_to_bumpers_only(band, node: str, leg: str) -> bool:
+    """True when every route of a train leaving switch `node` of `band` by `leg` ends at a buffer stop: a stub, such
+    as staging's engine house past Switch 13's leg C. Routes are walked through switches (EXITS) and turnbacks; a
+    helix end, an open end or a connector runs on, so it is no stub. MapError on a track end of no known kind."""
+    nodes, strands = band["nodes"], band["strands"]
+
+    def legs(n):
+        return nodes[n]["ins"] | nodes[n]["outs"]
+
+    def far_end(n, x):
+        while True:
+            s = strands[legs(n)[x]]
+            m, q = s["dst"] if tuple(s["src"]) == (n, x) else s["src"]
+            if not nodes[m]["kind"].startswith("turn"):
+                return m, q
+            onward = [k for k in legs(m) if k != q]
+            if len(onward) != 1:
+                raise MapError(f"leads_to_bumpers_only: turnback {m} has {len(onward) + 1} tracks, not two")
+            n, x = m, onward[0]
+
+    todo, seen = [(node, leg)], set()
+    while todo:
+        n, x = todo.pop()
+        if (n, x) in seen or legs(n).get(x) is None:
+            continue
+        seen.add((n, x))
+        m, q = far_end(n, x)
+        d = nodes[m]
+        if d["kind"] in EXITS:
+            todo += [(m, y) for y in EXITS[d["kind"]][q]]
+        elif d["kind"] == "end" and d.get("sub") == "bumper":
+            continue
+        elif d["kind"] == "end" and d.get("sub") in ("helix", "open", "link"):
+            return False
+        else:
+            raise MapError(f"leads_to_bumpers_only: track end {m} is {d['kind']}/{d.get('sub')}, of no known kind")
+    return True
