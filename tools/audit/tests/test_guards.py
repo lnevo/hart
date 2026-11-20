@@ -12,6 +12,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -497,9 +498,127 @@ class PrivateNameAndTables(unittest.TestCase):
             step = "unit" if "unittest" in argv else "run"
             self.assertIn(f"{step} {name} " + " ".join(argv), check_sh, name)
 
+    def test_real_signal_coordinator_edit_runs_its_own_test_files(self) -> None:
+        after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_real_test")
+        tests = after.matching_tests(str(ROOT), "jmri/scripts/signal_coordinator.py")
+        self.assertIn("jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py", tests)
+        check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        for folder in after.TEST_DIRS:  # each searched folder is a unit job of check.sh, so nothing only runs here
+            self.assertIn(f"python3 -m unittest discover -q -s {folder}\n", check_sh, folder)
+
     def test_real_name_check_loads_and_passes_clean_text(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_real_name_test")
         self.assertFalse(guard.contains_private_name("a clean commit message about masts"))
+
+
+class AfterEditMatchingTests(unittest.TestCase):
+    """check_after_edit.py: an edited script runs the test files that name it; data files keep every check.
+
+    The checks themselves are not started: run() records each argv and answers with fail_code.
+    """
+
+    TESTS = "jmri/layouts/hart/scripts/tests"
+    FILES = {
+        f"{TESTS}/test_one.py": "import one\n",
+        f"{TESTS}/test_many_a.py": "from many import thing\n",
+        f"{TESTS}/test_lists.py": 'SCRIPTS = ["jmri/scripts/many.py"]\n',
+        f"{TESTS}/test_other.py": "import many_more, someone\n",
+        f"{TESTS}/helper.py": "import one, many, lonely\n",
+        "jmri/scripts/tests/test_many_b.py": 'SCRIPT = ROOT / "jmri/scripts/many.py"\n',
+        "cats/scripts/tests/test_cats.py": "import unrelated\n",
+    }
+
+    def setUp(self) -> None:
+        self.after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_matching_test")
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(os.path.realpath(tmp.name))
+        for rel, text in self.FILES.items():
+            (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
+            (self.root / rel).write_text(text, encoding="utf-8")
+        # The real hook watches one script; the made-up ones stand in for it here.
+        self.after.WATCHED = re.compile(self.after.WATCHED.pattern.replace("signal_coordinator", "(one|many|lonely)"))
+        self.after.toplevel = lambda directory: str(self.root)
+        self.ran: list[list[str]] = []
+        self.fail_code = 0
+
+        def run(argv, **kwargs):
+            self.assertEqual(kwargs["cwd"], str(self.root))
+            self.ran.append(argv)
+            return subprocess.CompletedProcess(argv, self.fail_code, "", "boom" if self.fail_code else "")
+
+        self.after.subprocess = type("FakeSubprocess", (), {
+            "run": staticmethod(run), "TimeoutExpired": subprocess.TimeoutExpired})
+
+    def hook(self, rel: str) -> tuple[int, str]:
+        saved, err = sys.stdin, io.StringIO()
+        sys.stdin = io.StringIO(json.dumps({"tool_input": {"file_path": str(self.root / rel)}}))
+        try:
+            with contextlib.redirect_stderr(err):
+                return self.after.main(), err.getvalue()
+        finally:
+            sys.stdin = saved
+
+    def unit_runs(self) -> list[list[str]]:
+        return [argv[5:] for argv in self.ran if "unittest" in argv]
+
+    def every_check(self) -> list[list[str]]:
+        return [argv for name, argv in self.after.CHECKS]
+
+    def test_script_with_one_matching_test_file_runs_only_that_file(self) -> None:
+        code, err = self.hook("jmri/scripts/one.py")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.unit_runs(), [["-s", self.TESTS, "-p", "test_one.py"]])
+        self.assertEqual([argv for argv in self.ran if "unittest" not in argv],
+                         [argv for argv in self.every_check() if "unittest" not in argv])
+        self.assertIn("test_one.py", err)
+
+    def test_script_with_several_matching_test_files_runs_each(self) -> None:
+        code, err = self.hook("jmri/scripts/many.py")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.unit_runs(), [["-s", self.TESTS, "-p", "test_lists.py"],
+                                            ["-s", self.TESTS, "-p", "test_many_a.py"],
+                                            ["-s", "jmri/scripts/tests", "-p", "test_many_b.py"]])
+        self.assertIn("3 test file(s)", err)
+
+    def test_script_with_no_matching_test_file_falls_back_to_the_whole_job_and_says_so(self) -> None:
+        code, err = self.hook("jmri/scripts/lonely.py")  # only helper.py names it, and that is not a test file
+        self.assertEqual(code, 0, err)
+        self.assertEqual(self.ran, self.every_check())
+        self.assertIn("no test file names lonely.py; ran the whole unit-jmri job", err)
+
+    def test_tables_edit_runs_every_check_as_before(self) -> None:
+        self.assertIn("unit-jmri", [name for name, argv in self.after.CHECKS])
+        for rel in ("jmri/layouts/hart/output/tables.xml", "docs/wiring/signals/signal_heads.csv"):
+            self.ran.clear()
+            self.assertEqual(self.hook(rel), (0, ""), rel)
+            self.assertEqual(self.ran, self.every_check(), rel)
+
+    def test_failing_matched_test_file_is_reported(self) -> None:
+        self.fail_code = 1
+        code, err = self.hook("jmri/scripts/one.py")
+        self.assertEqual(code, 2)
+        self.assertIn(f"--- unit {self.TESTS}/test_one.py FAILED", err)
+        self.assertIn("boom", err)
+
+    def test_unsearchable_tests_stop_the_hook_with_a_reason(self) -> None:
+        for rel in self.FILES:
+            (self.root / rel).unlink()
+        code, err = self.hook("jmri/scripts/one.py")
+        self.assertEqual(code, 2)
+        self.assertIn("Quick checks not run after editing one.py: no test files under", err)
+        self.assertEqual(self.ran, [])
+
+    def test_unreadable_test_file_stops_the_hook_with_a_reason(self) -> None:
+        (self.root / self.TESTS / "test_bad.py").write_bytes(b"\xff\xfe one")
+        code, err = self.hook("jmri/scripts/one.py")
+        self.assertEqual(code, 2)
+        self.assertIn(f"cannot read {self.TESTS}/test_bad.py", err)
+        self.assertEqual(self.ran, [])
+
+    def test_unwatched_file_runs_nothing(self) -> None:
+        self.assertEqual(self.hook("jmri/scripts/README.md"), (0, ""))
+        self.assertEqual(self.ran, [])
 
 
 if __name__ == "__main__":
