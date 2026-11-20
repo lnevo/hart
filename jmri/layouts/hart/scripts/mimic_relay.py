@@ -77,11 +77,10 @@ def _mqtt_adapter():
 
 
 def _publish(adapter, topic, payload):
-    try:
-        adapter.publish(topic, payload, True)
-    except TypeError:
-        print("mimic_relay: retained publish unavailable, sent %s without retain" % topic)
-        adapter.publish(topic, payload)
+    # Feedback is retained, as real LCOS feedback is. The three-argument publish needs
+    # JMRI 5.9.1 or later (hosts run 5.16); on an older JMRI the call raises and handle()
+    # reports it as a failed publish. There is no two-argument fallback.
+    adapter.publish(topic, payload, True)
 
 
 def handle(value, adapter=None):

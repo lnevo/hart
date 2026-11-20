@@ -113,6 +113,12 @@ class PanelStatus(unittest.TestCase):
         self.assertEqual(self.layout.adapter.published, [("track/bridge/cmd", "RESUBSCRIBE", False)])
         self.assertEqual(lcos.state, S.ACTIVE)  # bridge did not answer: restore the old state
 
+    def test_resubscribe_is_not_retained(self) -> None:
+        # A retained RESUBSCRIBE would replay to the bridge on every reconnect. JMRI's
+        # two-argument publish retains, so the flag must be passed as False.
+        self.assertTrue(self.ps["_mqtt_publish"]("track/bridge/cmd", "RESUBSCRIBE"))
+        self.assertEqual([m[2] for m in self.layout.adapter.published], [False])
+
     def test_lcos_lamp_keeps_a_fresh_bridge_state(self) -> None:
         lcos = self.layout.sensors.add(jf.FakeSensor("M2S1567", S.ACTIVE))
         jf.Timer.pending.clear()
