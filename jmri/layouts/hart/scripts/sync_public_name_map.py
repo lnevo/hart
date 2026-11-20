@@ -23,7 +23,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
 from hartlib.names import row_comment, split_dcc  # noqa: E402
-from hartlib.railroad import read_name_rows  # noqa: E402
+from hartlib.railroad import FactsError, read_name_rows  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
@@ -123,6 +123,11 @@ def parse_canvas(path: Path) -> list[dict[str, str]]:
     if not devices:
         raise SystemExit(f"{path}: empty DEVICES array")
     return devices
+
+
+def read_old_rows(path: Path = CSV_PATH) -> list[dict[str, str]]:
+    """public_name_map.csv as it stands (hartlib's reader: FactsError names the file and line it cannot read)."""
+    return [row for _line, row in read_name_rows(path)]
 
 
 def live_usernames_by_system(path: Path) -> dict[str, str]:
@@ -358,7 +363,11 @@ def main() -> int:
     else:
         print("canvas dry-run (pass --write-canvas)")
 
-    old_rows = [row for _line, row in read_name_rows(CSV_PATH)]
+    try:
+        old_rows = read_old_rows()
+    except FactsError as exc:
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 2
     live = live_usernames_by_system(TABLES)
     rows = rebuild_rows(devices, old_rows, live)
 
