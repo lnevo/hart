@@ -163,6 +163,39 @@ class SignalsCheck(unittest.TestCase):
     def test_skips_without_the_plugin(self) -> None:
         self.assertEqual(self.without_plugin(), 0)
 
+    def refused(self, argv):
+        """main(argv) for arguments that must stop before the plugin is loaded and write no signals file."""
+        with tempfile.TemporaryDirectory() as tmp:
+            out, err = io.StringIO(), io.StringIO()
+            with mock.patch.object(self.bs.pd, "DATA", Path(tmp)), mock.patch.object(self.bs, "generate") as generate, \
+                    mock.patch.object(self.bs.pd, "plugin") as plugin, \
+                    contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                status = self.bs.main(argv)
+            generate.assert_not_called()
+            plugin.assert_not_called()
+            self.assertEqual(os.listdir(tmp), [])
+        return status, out.getvalue(), err.getvalue()
+
+    def test_unknown_argument_is_refused(self) -> None:
+        for argv in (["--chek"], ["--check", "--verbose"], ["staging"]):
+            status, out, err = self.refused(argv)
+            self.assertEqual(status, 2, argv)
+            self.assertIn(repr(argv[-1]), err)
+            self.assertEqual(out, "")
+
+    def test_help_prints_the_usage(self) -> None:
+        for argv in (["--help"], ["-h"], ["--check", "--help"], ["--help", "--check"], ["--chek", "-h"]):
+            status, out, err = self.refused(argv)
+            self.assertEqual(status, 0, argv)
+            self.assertIn("build_signals.py [--check]", out)
+            self.assertEqual(err, "")
+
+    def test_help_without_a_docstring(self) -> None:
+        """python -OO strips the docstring; --help still prints the usage line, not 'None'."""
+        with mock.patch.object(self.bs, "__doc__", None):
+            status, out, err = self.refused(["--check", "--help"])
+        self.assertEqual((status, out, err), (0, "build_signals.py [--check]\n", ""))
+
     def test_skips_off_the_pin(self) -> None:
         def off_pin():
             raise SystemExit("submodule is at aaaaaaaa, pinned bbbbbbbb")

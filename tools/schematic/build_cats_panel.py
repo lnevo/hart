@@ -950,6 +950,14 @@ def generate(plugin, out, bindings_out, out_abs=None):
 
 
 def main(argv):
+    if {"-h", "--help"} & set(argv):     # help wins over --check and over a typo beside it: it only prints
+        print(__doc__ or "build_cats_panel.py [--check]")       # python -OO strips the docstring
+        return 0
+    unknown = [a for a in argv if a != "--check"]
+    if unknown:         # a typo must not fall through to a rebuild
+        print(f"build_cats_panel.py: unknown argument {unknown[0]!r}; usage: build_cats_panel.py [--check] (--help for more)",
+              file=sys.stderr)
+        return 2
     check = "--check" in argv
     if not check:
         pd.paths.exit_if_overridden(Path(__file__).name)
