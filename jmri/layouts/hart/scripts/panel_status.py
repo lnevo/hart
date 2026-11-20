@@ -316,7 +316,7 @@ def _mqtt_publish(topic, payload):
             print("panel_status: no MQTT adapter")
             return False
         # Host commands to the bridge are not retained. JMRI's two-argument publish retains,
-        # so the flag is named here.
+        # so the flag is named here. The three-argument form needs JMRI 5.9.1 or later.
         adapter.publish(topic, payload, False)
         return True
     except Exception as e:
