@@ -293,9 +293,13 @@ userName    BS K-1<!--/tf--></code></pre>
 
       <h2 id="logixng">The LogixNGs</h2>
       <p>
-        Two pieces of logic are not tables of things but little programs. A LogixNG (JMRI's newer
-        logic tool) called "<!--tf:logixng-name-->Hide windows on start<!--/tf-->" is listed in the Initialization Table, which is why it
-        runs when the tables load. It has <!--tf:logixng-count-->two ConditionalNGs<!--/tf-->, each with one stock action:
+        Two pieces of logic are little programs rather than tables of things. They are LogixNGs (JMRI's newer
+        logic tool), both listed in the Initialization Table, which is why they run when the tables load.
+        One hides windows; the other sets the main and upper block sensors and turnouts to a known
+        state, described below the table.
+      </p>
+      <p>
+        "<!--tf:logixng-name-->Hide windows on start<!--/tf-->" has <!--tf:logixng-count-->two ConditionalNGs<!--/tf-->, each with one stock action:
       </p>
       <div class="table-wrap">
         <table class="roster jm-lamps">
