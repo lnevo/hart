@@ -9,8 +9,8 @@ distances and train length checks. JMRI stores them in millimetres in the block
 `--check` fails if the two disagree (`./tools/check.sh` runs it).
 
 **Basis:** `assigned` = measured or carried over from the old layout;
-`estimate` = placeholder to refine; `plan` = drawn length in the AnyRail plan 5.3c,
-rounded down and less 2 in for safety; `cut` = remainder after OS blocks were cut
+`estimate` = placeholder to refine; `plan` = drawn length in the AnyRail plan 5.3c (a spur's
+rounded down and less 2 in for safety); `cut` = remainder after OS blocks were cut
 from it; `split` = one long block divided evenly; `stub` = hidden throat block
 sharing the detector of its track (the track's own row carries the real length);
 `inferred` = the block's timed share of the test loop, whose total length comes from
@@ -41,8 +41,8 @@ the AnyRail plan 5.3b (`infer_block_lengths.py`, method in
 | Track EH-1 | Block 13-7 | 49 | 1244.6 | plan | AnyRail 5.3c: 51.3 in from Switch 11 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
 | Track EH-2 | Block 13-6 | 28 | 711.2 | plan | AnyRail 5.3c: 30.4 in from Switch 9 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
 | Track EH-3 | Block 13-5 | 28 | 711.2 | plan | AnyRail 5.3c: 30.1 in from Switch 9 to the bumper, rounded down and less 2 in (owner, 2026-11-19) |
-| Track McKees Rocks | BS Switch 39 / BS McKees Rocks | 24 | 609.6 | estimate | Princess stub east of Switch 39 |
-| Track McKeesport | BS Switch 37 / BS McKeesport | 24 | 609.6 | estimate | stub east of Switch 37 |
+| Track McKees Rocks | BS Switch 39 / BS McKees Rocks | 689 | 17500.6 | plan | AnyRail 5.3c: staging's share of the helix, Switch 39 to the -5 cm cut that parts the levels (anyplan.py --cut -5) |
+| Track McKeesport | BS Switch 37 / BS McKeesport | 644.6 | 16372.8 | plan | AnyRail 5.3c: staging's share of the helix, Switch 37 to the -5 cm cut that parts the levels (anyplan.py --cut -5) |
 
 ## Hidden throat stubs
 

@@ -42,8 +42,8 @@ OS Switch 7,Block 13-3,10,estimate,cut from Track Main East
 OS Switch 7b,Block 13-4,9.2,inferred,"timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps"
 OS Switch 11,Block 13-2,10,estimate,switch
 OS Switch 9,Block 13-8,10,estimate,switch
-Track McKees Rocks,BS Switch 39 / BS McKees Rocks,24,estimate,Princess stub east of Switch 39
-Track McKeesport,BS Switch 37 / BS McKeesport,24,estimate,stub east of Switch 37
+Track McKees Rocks,BS Switch 39 / BS McKees Rocks,689.0,plan,"AnyRail 5.3c: staging's share of the helix, Switch 39 to the -5 cm cut that parts the levels (anyplan.py --cut -5)"
+Track McKeesport,BS Switch 37 / BS McKeesport,644.6,plan,"AnyRail 5.3c: staging's share of the helix, Switch 37 to the -5 cm cut that parts the levels (anyplan.py --cut -5)"
 Track S-1 West,BS S-1,15.748,stub,hidden throat of Track S-1; same detector; not a station
 Track S-1 East,BS S-1,15.748,stub,hidden throat of Track S-1; same detector; not a station
 Track S-2 West,BS S-2,15.748,stub,hidden throat of Track S-2; same detector; not a station
