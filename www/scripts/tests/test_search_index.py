@@ -619,7 +619,7 @@ class ReviewFixesStage3(unittest.TestCase):
         with Image.open(root / rec["thumb"]) as im:
             self.assertEqual(im.size, (build.SEARCH_THUMB_PX, build.SEARCH_THUMB_PX))
 
-    def test_search_thumb_is_reused_until_its_source_is_newer(self):
+    def test_search_thumb_is_reused_until_its_source_changes(self):
         try:
             from PIL import Image
         except ImportError:
@@ -629,20 +629,26 @@ class ReviewFixesStage3(unittest.TestCase):
         big.parent.mkdir(parents=True, exist_ok=True)
         Image.new("RGB", (640, 480), (90, 120, 150)).save(big)
         os.utime(big, (1_000_000, 1_000_000))
-        (rec,) = build._photo_records(root)
-        build._search_thumbs([rec], root)
-        small = root / rec["thumb"]
+
+        def run():
+            (rec,) = build._photo_records(root)
+            build._search_thumbs([rec], root)
+            return root / rec["thumb"]
+        small = run()
         first = small.read_bytes()
-        os.utime(small, (2_000_000, 2_000_000))
-        Image.new("RGB", (640, 480), (200, 10, 10)).save(big)  # changed, but older than the copy
-        os.utime(big, (1_500_000, 1_500_000))
-        (rec,) = build._photo_records(root)
+        self.assertEqual(run().read_bytes(), first)
+        with mock.patch.object(Image.Image, "save", side_effect=AssertionError("regenerated")):
+            run()                                               # unchanged source: nothing is rebuilt
+        # a replaced photo with an older mtime (as copy2 leaves it) and another size is still noticed
+        Image.new("RGB", (700, 500), (200, 10, 10)).save(big)
+        os.utime(big, (500_000, 500_000))
+        self.assertNotEqual(run().read_bytes(), first)
+        # a missing source keeps the copy that exists
+        second = small.read_bytes()
+        big.unlink()
+        rec = {"thumb": "assets/gallery/thumbs/layout/layout-crew-lounge.jpg"}
         build._search_thumbs([rec], root)
-        self.assertEqual(small.read_bytes(), first)
-        os.utime(big, (3_000_000, 3_000_000))                  # now newer than the copy
-        (rec,) = build._photo_records(root)
-        build._search_thumbs([rec], root)
-        self.assertNotEqual(small.read_bytes(), first)
+        self.assertEqual((root / rec["thumb"]).read_bytes(), second)
 
     def test_a_thumb_that_is_not_an_image_is_kept(self):
         root = _photos_site(gallery=[_pic()], files=["assets/gallery/thumbs/layout/layout-crew-lounge.jpg"])

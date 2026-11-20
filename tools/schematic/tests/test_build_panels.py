@@ -120,7 +120,7 @@ class DryRun(unittest.TestCase):
 # file: the repo's data files are only read) and answers every other script with success.
 STALE_SYNC_PYTHON = """#!/bin/sh
 case "$1" in
-  */sync_staging_signals.py) shift; exec "$REAL_PYTHON" "$STALE_RUNNER" "$@" ;;
+  */sync_staging_signals.py) shift; exec "$REAL_PYTHON" "$STALE_RUNNER" "$SCHEMATIC_DIR" "$STALE_CSV" "$@" ;;
 esac
 echo "$*" >> "$PANELS_LOG"
 exit 0
@@ -139,11 +139,12 @@ class StaleStagingCsv(unittest.TestCase):
     """build_panels.sh with the real sync_staging_signals.py --check and a staging_masts.csv missing its last mast,
     so tables.xml holds a staging mast the file does not: the check fails, and the run says so in both modes."""
 
-    def run_script(self, *args):
+    def run_script(self, *args, whole=False):
         import staging_device_map as sdm
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            lines = sdm.MASTS.read_text(encoding="utf-8").splitlines(keepends=True)
+            current = sdm.MASTS
+            lines = current.read_text(encoding="utf-8").splitlines(keepends=True)
             stale = tmp / "staging_masts.csv"
             stale.write_text("".join(lines[:-1]), encoding="utf-8")
             (tmp / "runner.py").write_text(STALE_RUNNER, encoding="utf-8")
@@ -153,11 +154,15 @@ class StaleStagingCsv(unittest.TestCase):
             log = tmp / "log"
             log.touch()
             env = dict(os.environ, PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
-                       REAL_PYTHON=sys.executable, STALE_RUNNER=str(tmp / "runner.py"))
-            # the stand-in passes the schematic folder and the stale file ahead of the script's own arguments
-            fake.write_text(STALE_SYNC_PYTHON.replace('"$@" ;;', f'"{HERE}" "{stale}" "$@" ;;'), encoding="utf-8")
+                       REAL_PYTHON=sys.executable, STALE_RUNNER=str(tmp / "runner.py"), SCHEMATIC_DIR=str(HERE),
+                       STALE_CSV=str(current if whole else stale))
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
+
+    def test_the_unmodified_file_passes_so_the_dropped_row_is_the_cause(self):
+        code, out, _ran = self.run_script("--check", whole=True)
+        self.assertEqual(code, 0, out)
+        self.assertIn("follow staging_masts.csv", out)
 
     def test_a_write_stops_at_the_stale_file_and_names_the_fix(self):
         code, out, ran = self.run_script()
