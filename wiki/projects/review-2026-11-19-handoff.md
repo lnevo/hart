@@ -96,7 +96,7 @@ Leave alone: Bash hook latency (69 ms), `tables.xml` parsing (14 ms for 905 KB),
 | **Done, #702** (the `git show` case). A rerun of `publish()` on a later day restamps the date; a non-zero `git show` in `on_main` is read as "file not on main" | `tools/schematic/publish_draft.py:319` | S |
 | `sync_staging_signals.py` failure path in `make panels` was not exercised with a stale CSV; the generic "later steps read what staging-masts writes" line is off for a check-only step | `tools/schematic/build_panels.sh` | S |
 | **Done, #697.** `mimic_relay.py` prints "sent %s without retain" on a branch stock JMRI never reaches, and the message is wrong on stock | `jmri/layouts/hart/scripts/mimic_relay.py:84` | S |
-| `intermediate_signal` depends on strand order and renames edges of every `loop_half` strand in the band | `build_cats_panel.py:641-666`, `:679`, `:698` | M |
+| **Done, #746** (desks byte-identical). `intermediate_signal` depends on strand order and renames edges of every `loop_half` strand in the band | `tools/schematic/cats_panel_levels.py` (`intermediate_signal`) | M |
 | Planned DCC addresses come from sort position, so a new switch shifts later ones | `tools/schematic/build_device_map.py:429` | M |
 
 The staging-signal items overlap the staging signal rule work in another session; check with that work before starting.

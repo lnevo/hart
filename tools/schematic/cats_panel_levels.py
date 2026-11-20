@@ -312,30 +312,40 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
 
 def intermediate_signal(bands, F, bound_bi, r, by_trial):
     """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
-    the loop or split track's half it faces meets the half it protects, heading west when its number is odd."""
+    the loop or split track's half it faces meets the half it protects, heading west when its number is odd. The
+    piece it stands on is the one that meets the protected half at a turnback, whatever the strands' order; only the
+    halves joined there get edges of their own (loop_half_edge), so other loops on the band keep theirs."""
     num = int(re.sub(r"\D", "", r["mast"]))
-    for bi, band, opts in level_bands(bands, bound_bi):
+    drawn = False
+    meets = []          # (band index, piece, turnback, the other strands ending there) where it meets the protected half
+    for bi, band, _opts in level_bands(bands, bound_bi):
         strands, nodes = band["strands"], band["nodes"]
-        pieces = [k for k, t in strands.items() if by_trial.get(placeholder(t)) == r["facing"]]
-        if not pieces:
-            continue
-        sid = pieces[0]
-        t = strands[sid]
-        ends = [t["src"][0], t["dst"][0]]
-        if r["protects"] in by_trial.values() and any(by_trial.get(placeholder(x)) == r["protects"] for x in strands.values()):
-            turn = next((n for n in ends if nodes[n]["kind"].startswith("turn")), None)
-            if turn is None:
-                raise SystemExit(f"{r['mast']}: {r['facing']} meets {r['protects']} at no turnback on the desk")
-            for k in [k for k, x in strands.items() if x.get("loop_half")]:
-                x = strands[k]
-                x.setdefault("plan_edge", x["edge"])
-                x["edge"] = loop_half_edge(x["plan_edge"], x["loop_half"])
-            return bi, {"mast": r["mast"].removeprefix(opts.get("mast_prefix", "")), "toward": "", "_toward_node": turn,
-                        "_edge": t["edge"], "cm_from_toward": 0.0, "edge_cm": t["cm"],
-                        "dir": "west" if num % 2 else "east", "kind": "field", "heads": len(r["heads"]),
-                        "source": level_masts.PATH.name}
-        raise SystemExit(f"{r['mast']}: {r['facing']} and {r['protects']} meet at no turnback on the desk")
-    raise SystemExit(f"{r['mast']}: no desk band draws {r['facing']}")
+        block = lambda k, strands=strands: by_trial.get(placeholder(strands[k]))
+        ends = lambda k, strands=strands: (strands[k]["src"][0], strands[k]["dst"][0])
+        pieces = [k for k in strands if block(k) == r["facing"]]
+        drawn = drawn or bool(pieces)
+        for k in pieces:
+            for n in dict.fromkeys(ends(k)):
+                # a level link's end (LINK:...) is no node of the band
+                if n in nodes and nodes[n]["kind"].startswith("turn"):
+                    others = [j for j in strands if j != k and n in ends(j)]
+                    if any(block(j) == r["protects"] for j in others):
+                        meets.append((bi, k, n, others))
+    if not drawn:
+        raise SystemExit(f"{r['mast']}: no desk band draws {r['facing']}")
+    if len(meets) != 1:
+        raise SystemExit(f"{r['mast']}: {r['facing']} meets {r['protects']} at "
+                         f"{'no' if not meets else len(meets)} turnback{'s' if len(meets) > 1 else ''} on the desk")
+    bi, sid, turn, others = meets[0]
+    strands, opts = bands[bi][1]["strands"], bands[bi][2]
+    for x in [strands[k] for k in [sid] + others if strands[k].get("loop_half")]:
+        x.setdefault("plan_edge", x["edge"])
+        x["edge"] = loop_half_edge(x["plan_edge"], x["loop_half"])
+    t = strands[sid]
+    return bi, {"mast": r["mast"].removeprefix(opts.get("mast_prefix", "")), "toward": "", "_toward_node": turn,
+                "_edge": t["edge"], "cm_from_toward": 0.0, "edge_cm": t["cm"],
+                "dir": "west" if num % 2 else "east", "kind": "field", "heads": len(r["heads"]),
+                "source": level_masts.PATH.name}
 
 
 def level_signals(bands, F, bound_bi):
