@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv",
+DATA_FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "control_points.csv", "mast_cells.csv",
               "uss_board_cells.csv", "uss_board_plants.csv")
 
 
@@ -116,7 +116,7 @@ class LayoutFactsTest(unittest.TestCase):
         cps.write_text("".join(line for line in cps.read_text().splitlines(True)
                                if not line.startswith("engine_house,")))
         out = self.failures(data=data)
-        self.assertIn("Engine House: a cp in public_name_map.csv with no row (and no level) in "
+        self.assertIn("Engine House: a cp in the name map of devices.csv with no row (and no level) in "
                       "control_points.csv", out)
 
     def test_a_main_takes_the_level_of_the_blocks_it_joins(self) -> None:

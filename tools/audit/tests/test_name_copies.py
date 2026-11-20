@@ -1,13 +1,11 @@
 """check_name_copies.py passes on the repo and catches a hand-kept copy left behind by a rename.
 
 The 16R rename (PR #441) touched 13 files. Each test below renames in a temporary copy
-of public_name_map.csv the way ADR-005 does it (the identity row takes the new name and
-an alias row keeps the old one) and expects every copy of the old name to fail.
+of devices.csv the way ADR-005 does it (the row takes the new name; the master keeps no alias row, so the
+old name is simply no longer anything's) and expects every copy of the old name to fail.
 """
 from __future__ import annotations
 
-import csv
-import io
 import shutil
 import sys
 import tempfile
@@ -18,38 +16,25 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_name_copies as check  # noqa: E402
 
-MAP = ROOT / check.NAME_MAP_REL
+sys.path.insert(0, str(ROOT / "tools/hartlib/tests"))
+from master_edit import drop  # noqa: E402
+from hartlib import devices  # noqa: E402
+
+MAP = ROOT / check.DEVICES_REL
 TABLES = ROOT / check.TABLES_REL
 
 
-def renamed_map(text: str, renames: dict[str, str]) -> str:
-    """public_name_map.csv text after renaming each old name to its new one (ADR-005)."""
-    rows = list(csv.reader(io.StringIO(text)))
-    head, body = rows[0], rows[1:]
-    cur, prop = head.index("current"), head.index("proposed")
-    out, aliases = [head], []
-    for row in body:
-        if row[prop] in renames:
-            old = row[prop]
-            row = list(row)
-            if row[cur] == old:
-                alias = list(row)
-                alias[prop] = renames[old]
-                alias[-1] = "historical alias; test rename"
-                aliases.append(alias)
-                row[cur] = renames[old]
-            row[prop] = renames[old]
-        out.append(row)
-    buf = io.StringIO()
-    csv.writer(buf, lineterminator="\n").writerows(out + aliases)
-    return buf.getvalue()
+def renamed_map(path: Path, renames: dict[str, str]) -> str:
+    """The text of the master at `path` after renaming each old user name to its new one (ADR-005)."""
+    rows = [dict(r, user_name=renames.get(r["user_name"], r["user_name"])) for r in devices.load(path)]
+    return devices.master_text(rows)
 
 
 class NameCopiesTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.map = self.tmp / check.NAME_MAP_REL
+        self.map = self.tmp / check.DEVICES_REL
         self.map.parent.mkdir(parents=True)
         self.map.write_text(MAP.read_text(encoding="utf-8"), encoding="utf-8")
         self.tables = self.tmp / check.TABLES_REL
@@ -65,7 +50,7 @@ class NameCopiesTest(unittest.TestCase):
     def rename(self, **renames: tuple[str, str]) -> None:
         """Rename in the map copy (ADR-005) and, for a block, in the tables.xml copy (PanelPro)."""
         pairs = dict(renames.values())
-        self.map.write_text(renamed_map(self.map.read_text(encoding="utf-8"), pairs), encoding="utf-8")
+        self.map.write_text(renamed_map(self.map, pairs), encoding="utf-8")
         text = self.tables.read_text(encoding="utf-8")
         for old, new in pairs.items():
             text = text.replace(f"<userName>{old}</userName>", f"<userName>{new}</userName>")
@@ -88,11 +73,9 @@ class NameCopiesTest(unittest.TestCase):
     def test_renamed_mast_and_track_fail_where_copied(self):
         f = self.write("tools/x.py", 'M = "Mast 32R"\n# runs on Track Scale\n')
         self.rename(mast=("Mast 32R", "Mast 32RX"), track=("Track Scale", "Track Weigh"))
-        self.assertEqual(
-            ["tools/x.py:1: 'Mast 32R' is not a current name",
-             "tools/x.py:2: 'Track Scale' is not a current name"],
-            self.stale([f]),
-        )
+        # the master keeps no alias row, so a renamed track's old name is no longer anything's and is not matched
+        # (the module text); a mast is matched by its shape, renamed or never there
+        self.assertEqual(["tools/x.py:1: 'Mast 32R' is not a current name"], self.stale([f]))
         # The new names are current.
         g = self.write("tools/y.py", 'M = "Mast 32RX"\nT = "Track Weigh"\n')
         self.assertEqual([], self.stale([g]))
@@ -100,20 +83,18 @@ class NameCopiesTest(unittest.TestCase):
     def test_rename_in_a_copy_of_the_repo_names_the_hand_kept_copies(self):
         """Step 3 of the hand-off: rename one mast and one track; every copy is found."""
         renamed = self.tmp / "renamed.csv"
-        renamed.write_text(renamed_map(MAP.read_text(encoding="utf-8"),
-                                       {"Mast 24RB": "Mast 24RBX", "Track Scale": "Track Weigh"}),
+        renamed.write_text(renamed_map(MAP, {"Mast 24RB": "Mast 24RBX", "Track Scale": "Track Weigh"}),
                            encoding="utf-8")
         # PanelPro renames the block in tables.xml too (then make tables-pull).
         tables_xml = self.tmp / "tables.xml"
         text = TABLES.read_text(encoding="utf-8")
         self.assertIn(">Track Scale<", text)
         tables_xml.write_text(text.replace(">Track Scale<", ">Track Weigh<"), encoding="utf-8")
-        hits, _counts, _used = check.run(ROOT, name_map=renamed, tables_xml=tables_xml)
+        hits, _counts, _used = check.run(ROOT, devices_csv=renamed, tables_xml=tables_xml)
         files = {h.path for h in hits}
-        self.assertEqual({"Mast 24RB", "Track Scale"}, {h.name for h in hits})
-        # Known hand-kept copies today: the Dispatcher stations and the switch and mast facts.
-        self.assertIn("jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py", files)
-        self.assertIn("jmri/layouts/hart/data/switch_legs.csv", files)
+        self.assertEqual({"Mast 24RB"}, {h.name for h in hits})
+        # Known hand-kept copies of a mast name today: the staging mast and signal facts. (A renamed track's old name
+        # is no longer matched, the master having no alias rows.)
         self.assertIn("jmri/layouts/hart/data/schematic/staging_masts.csv", files)
         # Generated files under their own --check and the map itself are not read.
         self.assertFalse(any(f.startswith(check.SKIP_PREFIXES) for f in files), files)
@@ -121,11 +102,7 @@ class NameCopiesTest(unittest.TestCase):
     def test_a_block_with_no_identity_row_is_current_through_tables_xml(self):
         """A block with no identity row in the map (as the hidden yard throats had until 2026-11-17) is current while
         tables.xml holds it."""
-        text = self.map.read_text(encoding="utf-8")
-        row = "block,Track Barn,Track Barn,"
-        self.assertIn(row, text)
-        self.map.write_text("".join(l for l in text.splitlines(keepends=True) if not l.startswith(row)),
-                            encoding="utf-8")
+        drop(self.map, ("1", "block", "Track Barn"))
         f = self.write("tools/x.py", 'T = "Track Barn"\n')
         self.assertNotIn("Track Barn", check.load_names(self.map)[0], "its identity row is removed for this test")
         self.assertEqual([], self.stale([f]))
@@ -153,6 +130,10 @@ class NameCopiesTest(unittest.TestCase):
             self.assertFalse(check.readable(sch + rel), rel)
         hand = self.write(sch + "staging_le/masts.csv", "mast\nMast 32L\n")
         self.assertEqual([f"{hand}:2: 'Mast 32L' is not a current name"], self.stale([hand]))
+
+    def test_a_master_that_cannot_be_read_stops_the_check(self):
+        with self.assertRaisesRegex(devices.DevicesError, "cannot read it"):
+            check.run(self.tmp, [], devices_csv=self.tmp / "missing.csv")
 
     def test_a_folder_that_is_not_a_checkout_stops_instead_of_walking_it(self):
         with self.assertRaises(SystemExit) as cm:

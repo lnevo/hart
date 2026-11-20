@@ -58,7 +58,7 @@ class Sources:
     """The files the facts are read from. Railroad() uses this checkout's; tests point `under` a copy."""
     switches: Path
     switch_legs: Path
-    name_map: Path
+    devices: Path
     interlockings: Path
     local_switches: Path
     lcos_nodes: Path
@@ -66,7 +66,6 @@ class Sources:
     block_lengths: Path
     staging_masts: Path
     hands: Path
-    device_map: Path
     level_masts: Path
     tables: Path
     helix_tracks: Path
@@ -76,12 +75,11 @@ class Sources:
         """The files at their places under a data folder laid out as jmri/layouts/hart/data/ is."""
         s = data / "schematic"
         return cls(switches=data / "switches.csv", switch_legs=data / "switch_legs.csv",
-                   name_map=data / "public_name_map.csv",
+                   devices=data / "devices.csv",
                    interlockings=s / "interlockings.csv",
                    local_switches=s / "local_switches_main_upper.csv", lcos_nodes=s / "lcos_nodes_main_upper.csv",
                    plan_overrides=s / "main_upper.plan_overrides.json", block_lengths=data / "block_lengths.csv",
                    staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
-                   device_map=s / "device_map_main_upper.csv",
                    level_masts=s / level_masts.PATH.name,
                    tables=paths.TABLES_XML if tables_xml is None else tables_xml,
                    helix_tracks=s / "helix_tracks.csv")
@@ -150,7 +148,8 @@ def natural(name: str) -> list:
 
 @dataclass(frozen=True)
 class NameRow:
-    """A public_name_map.csv row. `current` == `proposed` is the live name; any other row is a historical alias."""
+    """A name-map row of devices.csv (its pnm_ columns). `current` == `proposed` is the live name; any other row is a
+    historical alias (the master has none now)."""
     line: int
     layer: str
     current: str
@@ -189,13 +188,16 @@ NAME_OPTIONAL = ("cp", "hardware", "dcc", "comment", "notes")
 
 
 def read_name_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
-    """public_name_map.csv's rows as read, unchecked beyond its columns (read_name_map checks them)."""
-    return read_rows(path, NAME_COLUMNS, optional=NAME_OPTIONAL)
+    """The name-map rows of devices.csv (devices.name_map_lines), values stripped, unchecked beyond the master's own
+    checks (read_name_map checks them)."""
+    from . import devices
+    return [(n, {c: r[c].strip() for c in NAME_COLUMNS + NAME_OPTIONAL}) for n, r in devices.name_map_lines(path)]
 
 
 def read_name_map(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> NameMap:
-    """public_name_map.csv (or its `rows`, read_name_rows), every row checked. Stops on an unknown layer, an empty
-    name, a DCC address that is not a number, or two rows for one (layer, current) name or one live (layer, name)."""
+    """The name map of devices.csv at `path` (or its `rows`, read_name_rows), every row checked. Stops on an unknown
+    layer, an empty name, a DCC address that is not a number, or two rows for one (layer, current) name or one live
+    (layer, name)."""
     rows_in, rows, seen = read_name_rows(path) if rows is None else rows, [], {}
     for line, r in rows_in:
         where = _where(path, line)
@@ -225,7 +227,7 @@ class Leg:
 @dataclass(frozen=True)
 class Switch:
     """A staging switch (switches.csv) with its legs (switch_legs.csv) and, from its live turnout row in
-    public_name_map.csv, its hardware, DCC address and control point."""
+    the name map of devices.csv, its hardware, DCC address and control point."""
     number: int
     level: str
     le_ident: str
@@ -262,7 +264,7 @@ def _yes(value: str, where: str) -> bool:
 
 def switch_turnouts(name_map: Path, rows: list[tuple[int, dict[str, str]]] | None = None,
                     numbers: Iterable[int] = ()) -> dict[int, dict[str, str]]:
-    """Switch number -> the live turnout row ("Switch <n>", current == proposed) of public_name_map.csv, for the
+    """Switch number -> the live turnout row ("Switch <n>", current == proposed) of the name map, for the
     switches `numbers`. Only those rows are looked at: a bad row elsewhere in the map is the railroad-facts check's
     to report (read_name_map), not a reason to stop loading switches. Stops on a switch with two live rows."""
     want = {f"Switch {n}": n for n in numbers}
@@ -605,11 +607,12 @@ def read_hands(path: Path) -> dict[str, Hand]:
 
 @dataclass(frozen=True)
 class DeviceRow:
-    """A device_map_main_upper.csv row: a main or upper JMRI device (jmri_name, virtual) and its planned physical
-    part (system_name, a draft)."""
+    """A main or upper row of devices.csv: a JMRI device (jmri_name, virtual) and its planned physical part
+    (system_name, a draft). `role` is what the device is (devices.ROLES); readers test it, not the name."""
     level: int
     layer: str
     user_name: str
+    role: str = ""
     cp: str = ""
     system_name: str = ""
     jmri_name: str = ""
@@ -644,8 +647,12 @@ class DeviceRow:
 
     @classmethod
     def from_dict(cls, row: dict, line: int = 0) -> "DeviceRow":
-        """A row as build_device_map.py makes it (str or int level)."""
-        return cls(line=line, **{k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"})
+        """A row as build_device_map.py makes it (str or int level); its role is the one devices.role_of gives."""
+        from . import devices
+        fields = {k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"}
+        fields.setdefault("role", devices.role_of(fields["layer"], fields["user_name"], fields.get("system_name", ""),
+                                                  fields.get("jmri_name", "")))
+        return cls(line=line, **fields)
 
 
 DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are the name map's
@@ -670,8 +677,7 @@ class DeviceMap:
     @property
     def turnouts(self) -> dict[str, DeviceRow]:
         """Switch number -> its turnout row ("Switch <n>", not the LCC alias "DCC Switch <n>")."""
-        return {r.user_name.removeprefix("Switch "): r for r in self.of("turnout")
-                if r.user_name.startswith("Switch ")}
+        return {r.user_name.removeprefix("Switch "): r for r in self.of("turnout") if r.role == "turnout"}
 
     @property
     def heads_by_system(self) -> dict[str, DeviceRow]:
@@ -715,12 +721,13 @@ def device_facts(r: dict) -> list[str]:
 
 
 def read_device_map(path: Path) -> DeviceMap:
-    """Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
+    """The main and upper rows of devices.csv at `path` (devices.device_map_lines). Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
     row), a row whose fact columns do not hold (device_facts), an occupancy row whose jmri_name is not a virtual block
     sensor, whose planned detector is not M2S, or whose blocks are not the one block it is named for."""
     out = DeviceMap(path=path)
     seen: dict[tuple[str, str], int] = {}
-    for line, r in read_rows(path, DEVICE_COLUMNS[:8] + DEVICE_FACTS, optional=DEVICE_COLUMNS[8:11]):
+    from . import devices
+    for line, r in ((n, {c: v.strip() for c, v in row.items()}) for n, row in devices.device_map_lines(("2", "3"), path)):
         where = _where(path, line)
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
@@ -789,7 +796,7 @@ def check_virtual_names(rows: Iterable[DeviceRow]) -> list[str]:
                 bad.append(f"turnout {r.user_name}: jmri_name {r.jmri_name!r}, not "
                            f"{level_devices.TURNOUT_PREFIX}<switch number>")
     for layer in ("occupancy", "head", "mast", "turnout"):
-        names = [r.jmri_name for r in rows if r.layer == layer and not r.user_name.startswith("DCC ")]
+        names = [r.jmri_name for r in rows if r.layer == layer and r.role != "lcc_alias"]
         if len(set(names)) != len(names) or not all(names):
             bad.append(f"{layer} rows: a virtual name is empty or given twice")
     return bad

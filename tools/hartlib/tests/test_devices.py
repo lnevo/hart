@@ -387,6 +387,46 @@ class TheNits(unittest.TestCase):
         self.assertNotIn("regenerate", D.stale_message(f.master, f, "tools/schematic/x.py"))
 
 
+class TheReaders(unittest.TestCase):
+    """The one way a reader gets the old files' rows: from the master (device_map_lines, name_map_lines)."""
+
+    def test_the_lines_give_what_the_generated_files_hold(self):
+        rows = list(D.load())
+        for levels, path in ((("1",), REAL.staging), (("2", "3"), REAL.main_upper)):
+            with self.subTest(levels=levels), path.open(newline="", encoding="utf-8") as fh:
+                want = list(csv.DictReader(fh))
+            got = [{c: r[c] for c in D.DEVICE_COLUMNS} for _n, r in D.device_map_lines(levels)]
+            self.assertEqual(got, want)
+        with REAL.name_map.open(newline="", encoding="utf-8") as fh:
+            old = list(csv.DictReader(fh))
+        self.assertEqual([r for _n, r in D.name_map_lines()], old)
+        self.assertTrue(all(0 < n <= len(rows) + 1 for n, _r in D.name_map_lines()))
+
+    def test_a_line_is_the_masters_own(self):
+        rows = list(D.load())
+        for n, r in D.device_map_lines(("2", "3")):
+            self.assertEqual((rows[n - 2]["level"], rows[n - 2]["user_name"]), (r["level"], r["user_name"]))
+            self.assertEqual(rows[n - 2]["role"], r["role"])
+
+    def test_no_panel_status_row_is_in_a_device_map(self):
+        roles = {r["role"] for _n, r in D.device_map_lines(("1", "2", "3"))}
+        self.assertFalse(roles & set(D.OUT_OF_MAPS))
+        self.assertIn("lcc_alias", roles)
+
+    def test_a_master_that_cannot_be_read_stops_with_its_path(self):
+        with tempfile.TemporaryDirectory() as d:
+            missing = Path(d) / "devices.csv"
+            for call in (lambda: D.device_map_lines(("1",), missing), lambda: D.name_map_lines(missing)):
+                with self.assertRaisesRegex(D.DevicesError, "cannot read it"):
+                    call()
+            missing.write_text("level,layer\n1,mast\n", encoding="utf-8")
+            with self.assertRaisesRegex(D.DevicesError, "the header is not the master's columns"):
+                D.name_map_lines(missing)
+
+    def test_the_path_or_the_files_name_the_same_master(self):
+        self.assertEqual(D.device_map_lines(("1",), REAL.master), D.device_map_lines(("1",), REAL))
+
+
 class ThePnmComments(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -396,10 +436,34 @@ class ThePnmComments(unittest.TestCase):
         for name in ("master", "dictionary", "staging", "main_upper", "name_map"):
             shutil.copyfile(getattr(REAL, name), getattr(self.files, name))
 
-    def test_a_row_a_script_writes_is_refused_naming_the_writer(self):
+    def test_a_row_a_builder_writes_takes_the_comment_and_keeps_its_owner(self):
+        """pnm_comment is no builder's output, so a builder's row may change it, and written_by stays."""
         head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"] and r["written_by"])
-        with self.assertRaisesRegex(D.DevicesError, f"held by {head['written_by']}"):
-            D.set_pnm_comments("head", {head["user_name"]: "a new comment"}, self.files)
+        update = D.set_pnm_comments("head", {head["user_name"]: "a new comment"}, self.files)
+        self.assertEqual(update.changed, 1)
+        changed = {(r["level"], r["layer"], r["user_name"]): r for r in csv.DictReader(io.StringIO(update.texts[self.files.master]))}
+        row = changed[(head["level"], head["layer"], head["user_name"])]
+        self.assertEqual((row["pnm_comment"], row["written_by"]), ("a new comment", head["written_by"]))
+        self.assertEqual({k: v for k, v in row.items() if k != "pnm_comment"},
+                         {k: v for k, v in head.items() if k != "pnm_comment"})
+        self.assertIn("a new comment", update.texts[self.files.name_map])
+
+    def test_the_comment_survives_the_builders_next_run(self):
+        """The builder's rewrite carries the pnm_ columns of the row it replaces (outputs_after_rows)."""
+        head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"] and r["written_by"])
+        update = D.set_pnm_comments("head", {head["user_name"]: "a new comment"}, self.files)
+        D.write_all(self.files, update.texts)
+        mine = [dict(r) for r in D.load(self.files) if r["written_by"] == head["written_by"]]
+        for r in mine:                                   # what the builder gives: its columns, none of the pnm_ ones
+            r.update({c: "" for c in r if c.startswith("pnm_")})
+        out = D.outputs_after_rows(head["written_by"], mine, self.files)
+        row = next(r for r in csv.DictReader(io.StringIO(out[self.files.master]))
+                   if r["user_name"] == head["user_name"] and r["layer"] == "head")
+        self.assertEqual(row["pnm_comment"], "a new comment")
+
+    def test_a_comment_for_a_name_that_is_no_row_changes_nothing(self):
+        update = D.set_pnm_comments("head", {"Head Nowhere": "x"}, self.files)
+        self.assertEqual((update.changed, update.texts), (0, {}))
 
     def test_no_change_gives_no_texts(self):
         head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"])

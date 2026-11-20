@@ -11,7 +11,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import layout_facts as facts  # noqa: E402
 
-FILES = ("switches.csv", "switch_legs.csv", "public_name_map.csv", "control_points.csv", "mast_cells.csv")
+FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "control_points.csv", "mast_cells.csv")
 
 
 class LoaderTest(unittest.TestCase):

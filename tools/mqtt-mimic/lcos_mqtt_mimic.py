@@ -35,12 +35,12 @@ from urllib.parse import urlparse
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_devices, paths, railroad, tables  # noqa: E402
+from hartlib import devices, level_devices, paths, railroad, tables  # noqa: E402
 from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
-NAME_MAP = paths.PUBLIC_NAME_MAP
+DEVICES = paths.DEVICES
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")
@@ -372,34 +372,33 @@ def infer_plant(name: str, cp: str = "") -> str:
 
 
 def load_cps() -> dict[str, dict[str, str]]:
-    """Identity rows from public_name_map.csv: name/hardware → cp."""
+    """Identity rows of the name map of devices.csv (hartlib.devices.name_map_lines): name/hardware → cp."""
     turnout: dict[str, str] = {}
     occupancy: dict[str, str] = {}
     block: dict[str, str] = {}
     mast: dict[str, str] = {}
-    if not NAME_MAP.is_file():
+    if not DEVICES.is_file():
         return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
-    with NAME_MAP.open(newline="", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            layer = (row.get("layer") or "").strip()
-            current = (row.get("current") or "").strip()
-            proposed = (row.get("proposed") or "").strip()
-            if current != proposed or not proposed:
-                continue
-            if proposed.endswith(" alias"):
-                continue
-            plant = infer_plant(proposed, (row.get("cp") or "").strip())
-            hardware = (row.get("hardware") or "").strip()
-            if layer == "turnout":
-                turnout[proposed] = plant
-            elif layer == "occupancy":
-                occupancy[proposed] = plant
-                for token in hardware.split():
-                    occupancy[token] = plant
-            elif layer == "block":
-                block[proposed] = plant
-            elif layer == "mast":
-                mast[proposed] = plant
+    for _line, row in devices.name_map_lines(DEVICES):
+        layer = (row.get("layer") or "").strip()
+        current = (row.get("current") or "").strip()
+        proposed = (row.get("proposed") or "").strip()
+        if current != proposed or not proposed:
+            continue
+        if proposed.endswith(" alias"):
+            continue
+        plant = infer_plant(proposed, (row.get("cp") or "").strip())
+        hardware = (row.get("hardware") or "").strip()
+        if layer == "turnout":
+            turnout[proposed] = plant
+        elif layer == "occupancy":
+            occupancy[proposed] = plant
+            for token in hardware.split():
+                occupancy[token] = plant
+        elif layer == "block":
+            block[proposed] = plant
+        elif layer == "mast":
+            mast[proposed] = plant
     return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
 
 

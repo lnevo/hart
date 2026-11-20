@@ -468,8 +468,8 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         self.assertFalse((bsm.DATA / "staging_signals_virtual.csv").exists())
 
     def test_the_device_map_keeps_other_rows_then_masts_then_heads_by_name(self):
-        old = sdm.read_rows(bsm.DEVICE_MAP, bdm.COLUMNS)
-        new = rows_of(self.want[bsm.DEVICE_MAP])
+        old = bsm.devices.device_map_rows(bsm.devices.load(bsm.DEVICE_MAP), ("1",))     # the master's staging rows
+        new = rows_of(self.want[bsm.device_files().staging])                           # the file the master generates
         other = [r for r in old if r["layer"] not in ("mast", "head")]
         self.assertEqual(new[:len(other)], other)
         masts = [r["user_name"] for r in new if r["layer"] == "mast"]

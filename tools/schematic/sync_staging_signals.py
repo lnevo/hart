@@ -41,7 +41,7 @@ def want_masts(path: Path = sdm.MASTS) -> list[dict]:
 
 def head_comments(device_map: Path = sdm.DEVICE_MAP) -> dict:
     return {r["system_name"]: " | ".join(x for x in (r["comment"], r["notes"]) if x)
-            for r in sdm.read_rows(device_map, sdm.bdm.COLUMNS) if r["layer"] == "head"}
+            for r in sdm.read_device_rows(device_map) if r["layer"] == "head"}
 
 
 def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:

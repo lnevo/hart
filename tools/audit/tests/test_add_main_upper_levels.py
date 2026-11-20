@@ -1,7 +1,6 @@
 """add_main_upper_levels.py: v86 is v85 with the old upper-deck plan replaced by the device map's nodes."""
 from __future__ import annotations
 
-import csv
 import importlib.util
 import re
 import unittest
@@ -23,7 +22,7 @@ def sheets(path):
 
 
 V85, V86 = sheets(AM.SRC), sheets(AM.OUT)
-MAP = list(csv.DictReader(open(AM.DEVICE_MAP, newline="", encoding="utf-8")))
+MAP = AM.read_device_rows()     # the main and upper rows of devices.csv
 
 
 class Inventory(unittest.TestCase):

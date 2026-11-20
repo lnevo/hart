@@ -58,7 +58,7 @@ class PathsTest(unittest.TestCase):
                 "ROOT": REPO, "DEFAULT_PANEL": TABLES, "SYNC_PANEL": TABLES},
             "refresh_bean_comments": {
                 "ROOT": REPO, "TABLES": TABLES,
-                "PUBLIC_NAME_MAP": REPO / "jmri/layouts/hart/data/public_name_map.csv"},
+                "DEVICES": REPO / "jmri/layouts/hart/data/devices.csv"},
             "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
         }.items():
             mod = load(name)

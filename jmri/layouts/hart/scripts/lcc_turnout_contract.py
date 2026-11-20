@@ -9,7 +9,6 @@ The DCC group grammar is hartlib.names (one place for it).
 
 from __future__ import annotations
 
-import csv
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -17,6 +16,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import devices  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
 SWITCH_USER_RE = re.compile(r"^Switch \d+$")
@@ -44,22 +44,21 @@ def expected_lcc_user(mqtt_user: str) -> str | None:
 
 
 def identity_lcc_rows(csv_path: Path) -> dict[str, tuple[str, str]]:
-    """MTT* → (userName, comment) from identity rows (current == proposed)."""
+    """MTT* → (userName, comment) from the name-map rows of the device master `csv_path` (devices.csv), which has no
+    alias rows."""
     out: dict[str, tuple[str, str]] = {}
     if not csv_path.is_file():
         return out
-    with csv_path.open(newline="", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            if (row.get("layer") or "").strip() != "turnout":
-                continue
-            current = (row.get("current") or "").strip()
-            proposed = (row.get("proposed") or "").strip()
-            if not current or current != proposed:
-                continue
-            comment = (row.get("comment") or "").strip()
-            for token in (row.get("hardware") or "").split():
-                if token.startswith("MTT"):
-                    out[token] = (proposed, comment)
+    for _line, row in devices.name_map_lines(csv_path):
+        if row["layer"].strip() != "turnout":
+            continue
+        current, proposed = row["current"].strip(), row["proposed"].strip()
+        if not current or current != proposed:
+            continue
+        comment = row["comment"].strip()
+        for token in row["hardware"].split():
+            if token.startswith("MTT"):
+                out[token] = (proposed, comment)
     return out
 
 

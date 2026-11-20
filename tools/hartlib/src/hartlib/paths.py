@@ -43,7 +43,7 @@ LAYOUT_OUTPUT = LAYOUT_DIR / "output"
 LAYOUT_SCRIPTS = LAYOUT_DIR / "scripts"
 
 REPO_TABLES_XML = LAYOUT_OUTPUT / "tables.xml"
-PUBLIC_NAME_MAP = LAYOUT_DATA / "public_name_map.csv"
+DEVICES = LAYOUT_DATA / "devices.csv"        # the device master (hartlib.devices): every device, all levels
 SIGNAL_WIRING = REPO_ROOT / "docs" / "wiring" / "signals" / "signal_wiring.csv"
 SIGNAL_HEAD_PLAN = SIGNAL_WIRING.parent / "signal_head_plan.csv"
 CATS_DIR = REPO_ROOT / "cats"

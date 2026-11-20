@@ -13,7 +13,7 @@ HART = JMRI_ROOT / "layouts" / "hart"
 # HART_TABLES names another tables file for the checks (tools/check.sh, hartlib.paths); this
 # script stays free of hartlib.
 PANEL = Path(os.environ["HART_TABLES"]) if os.environ.get("HART_TABLES") else HART / "output" / "tables.xml"
-NAME_MAP = HART / "data" / "public_name_map.csv"
+DEVICES = HART / "data" / "devices.csv"
 SWITCH_LEGS = HART / "data" / "switch_legs.csv"
 SWITCHES = HART / "data" / "switches.csv"
 
@@ -95,11 +95,13 @@ def main() -> int:
         errors.append("duplicate block userNames: " + ", ".join(dups[:8]))
 
     # Expected OS public names present on layout turnouts
-    with NAME_MAP.open(newline="", encoding="utf-8-sig") as f:
+    # the staging OS blocks of the device master (its name-map rows, those with a pnm_order); a main or upper
+    # "BS Switch" corner has the role of an OS corner too, so the name prefix stays here
+    with DEVICES.open(newline="", encoding="utf-8-sig") as f:
         expected_os = {
-            row["proposed"]
+            row["user_name"]
             for row in csv.DictReader(f)
-            if row.get("layer") == "block" and row["proposed"].startswith("OS ")
+            if row.get("layer") == "block" and row.get("pnm_order") and row["user_name"].startswith("OS ")
         }
     found = {t.get("blockname") for t in root.iter("layoutturnout")}
     missing = sorted(expected_os - found)

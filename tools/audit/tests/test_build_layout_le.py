@@ -47,10 +47,9 @@ def _level_counts() -> tuple[int, int, int, int]:
     the device map's block rows (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) less the
     helix blocks, which are staging's beans (helix_tracks.csv, 2026-11-20); a virtual sensor for every block row,
     the helix blocks' too; and main_upper_masts.csv."""
-    import csv
+    from hartlib import devices
     helix = {h["block"] for h in sys.modules["mast_rule"].read_helix_tracks().values()}
-    with B.DEVICE_MAP.open(newline="", encoding="utf-8") as f:
-        rows = [r["user_name"] for r in csv.DictReader(f) if r["layer"] == "block"]
+    rows = [r["user_name"] for _n, r in devices.device_map_lines(("2", "3"), B.DEVICE_MAP) if r["layer"] == "block"]
     masts = B.read_level_masts()
     return len([r for r in rows if r not in helix]), len(rows), len(masts), sum(len(r["heads"]) for r in masts)
 
@@ -201,7 +200,7 @@ class Built(unittest.TestCase):
             b for v in self.names[B.STAGING]["blocks"].values() for b in v}
         self.assertLessEqual(staging, live_lb)
 
-    # ---- main and upper: the device map's names (device_map_main_upper.csv)
+    # ---- main and upper: the device map's names (the main and upper rows of devices.csv)
     def test_main_and_upper_device_map_names(self) -> None:
         device = B.device_names()
         new_t = [tables.user_name(t) for t in tables.turnouts(self.root) if is_new(t)]
@@ -546,13 +545,13 @@ class FactsReaders(unittest.TestCase):
 
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            bad = Path(tmp) / "device_map_main_upper.csv"
+            bad = Path(tmp) / "devices.csv"
             text = B.DEVICE_MAP.read_text(encoding="utf-8")
-            block = next(line for line in text.splitlines() if ",block," in line)
+            block = next(line for line in text.splitlines() if line.startswith("2,") and ",block," in line)
             bad.write_text(text + block + "\n", encoding="utf-8")                      # a block row twice
             for read in (B.level_sensors, B.device_names):
                 with self.subTest(read=read.__name__), \
-                        self.assertRaisesRegex(B.BuildError, r"^the device map: device_map_main_upper.csv lines"):
+                        self.assertRaisesRegex(B.BuildError, r"^the device map: devices.csv: .*the same level, layer"):
                     read(bad)
 
     def test_level_sensors_read_every_block(self) -> None:
@@ -565,13 +564,21 @@ class FactsReaders(unittest.TestCase):
 
 
 class DeviceNames(unittest.TestCase):
-    """device_map_main_upper.csv's trial_name maps each drawn placeholder to a device-map name; anything else stops."""
+    """The main and upper rows' trial_name of devices.csv maps each drawn placeholder to a device-map name; anything
+    else stops."""
     HEAD = ",".join(T_railroad.DEVICE_COLUMNS) + "\n"    # the fact columns (DEVICE_FACTS) left empty in each row
 
     def read(self, rows: str) -> dict:
+        """device_names of a master made of these device-map rows (old form, the fact columns left out)."""
+        import csv
+        import io
+        from hartlib import devices
+        text = self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n")
+        old = list(csv.DictReader(io.StringIO(text)))
+        mine = [devices.master_row(r, "build_device_map.py") for r in old]
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "map.csv"
-            path.write_text(self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n"), encoding="utf-8")
+            path = Path(tmp) / "devices.csv"
+            path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
             return B.device_names(path)
 
     def test_the_committed_map(self) -> None:

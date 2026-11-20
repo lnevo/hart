@@ -4,7 +4,7 @@
     python3 tools/schematic/staging_device_map.py --check   # exit 1 unless the four files hold their rules
 
 The source since the device-map switch-over (owner, 2026-11-17), when the frozen hand-drawn files (staging_le/) and the
-conversion from them retired. The non-signal rows of device_map_staging.csv are kept by hand (control_points_staging.csv
+conversion from them retired. The non-signal rows of level 1 of devices.csv are kept by hand (control_points_staging.csv
 is the master of staging's control points, build_staging_sets.py); build_staging_masts.py writes staging_masts.csv,
 staging_signals.csv and the mast and head rows. Edit these files, not a panel. `make panels` (its staging-map step) and tools/check.sh
 run --check: every file in its shape (load, load_signal_masts, mast_facts, check_rows), every device the same bean in
@@ -14,8 +14,8 @@ exits 0 when the plugin submodule is not checked out (1 with SCHEMATIC_REQUIRED=
 
 Staging's objects are field devices: every system name, user name and binding here is the railroad's own.
 
-Files (jmri/layouts/hart/data/schematic/):
-- device_map_staging.csv, build_device_map.COLUMNS. Layers as main and upper: turnout (and its LCC alias
+Files (jmri/layouts/hart/data/, schematic/ for the rest):
+- the level 1 rows of devices.csv (hartlib.devices.device_map_lines). Layers as main and upper: turnout (and its LCC alias
   "DCC Switch <n>"), fb, block, occupancy, mast, head. Staging is the field, so system_name is the live device;
   jmri_name is the name tables.xml and the panels bind it by: a turnout's is the Layout Editor's turnoutname (some
   bind "M2T408", some "Switch 23"), every other row's its system name. trial_name is the link to the drawing, as for
@@ -26,7 +26,7 @@ Files (jmri/layouts/hart/data/schematic/):
   marks it ("; stop", checked); a mast's `switch`, `facing` and `protects` as staging_masts.csv has them.
   A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
   up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
-  device_map_main_upper.csv, which names the same block for the piece on its level (shared_blocks).
+  levels 2 and 3 of devices.csv, which name the same block for the piece on its level (shared_blocks).
 - short_tracks_staging.csv (SHORT_COLUMNS): a short track between two switches with no block row of its own takes
   the OS block whose gap it sits inside (one of its two switches'), keyed by the two switch numbers, never by an
   edge id (read_short_tracks, short_track_blocks: a track with no row, a row with no such track or with a track that
@@ -75,16 +75,15 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-import build_device_map as bdm  # noqa: E402  COLUMNS
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
 import le_names as ln  # noqa: E402  runs and crossovers
 import build_main_upper_masts as bmm  # noqa: E402  LEGS: two masts on one block pair, by letter
 import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
-from hartlib import level_devices, level_masts, paths, railroad, tables  # noqa: E402
+from hartlib import devices, level_devices, level_masts, paths, railroad, tables  # noqa: E402
 
 LEVEL = 1
-DEVICE_MAP = pd.DATA / "device_map_staging.csv"
+DEVICE_MAP = paths.LAYOUT_DATA / "devices.csv"     # the master: its level 1 rows are staging's device map
 CPS = pd.DATA / "control_points_staging.csv"
 MASTS = pd.DATA / "staging_masts.csv"
 SIGNALS = pd.DATA / "staging_signals.csv"
@@ -301,7 +300,7 @@ def stop_token(comment: str) -> bool:
 
 
 def shared_blocks(rows: list[dict], level_map: railroad.DeviceMap, helix: dict | None = None) -> dict:
-    """{block: its main or upper occupancy row} of the staging blocks device_map_main_upper.csv also names: the helix
+    """{block: its main or upper occupancy row} of the staging blocks the main and upper rows also name: the helix
     blocks, one JMRI block from staging up the helix, whose detector is that map's. Stops unless they are exactly
     helix_tracks.csv's blocks, each with one occupancy row there."""
     helix = mr.read_helix_tracks() if helix is None else helix
@@ -363,6 +362,18 @@ def check_rows(rows: list[dict], shared=frozenset()) -> None:
                 bad.append(f"{layer} rows: a {col} is empty or given twice")
     if bad:
         raise StagingMapError("staging device map: " + "; ".join(bad))
+
+
+def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
+    """Staging's device-map rows: the level 1 rows of the master at `path` (hartlib.devices.device_map_lines), each a
+    dict of the device-map columns and `role`. StagingMapError when the master cannot be read or has none."""
+    try:
+        rows = [r for _, r in devices.device_map_lines((str(LEVEL),), path)]
+    except railroad.FactsError as exc:
+        raise StagingMapError(str(exc)) from None
+    if not rows:
+        raise StagingMapError(f"{paths.rel(path)}: no staging rows")
+    return rows
 
 
 def read_rows(path: Path, columns) -> list[dict]:
@@ -454,7 +465,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on any placeholder no row names, any row the drawing does not use, a broken k/n run,
     or a mast row that is not well formed."""
-    rows = read_rows(device_map, bdm.COLUMNS)
+    rows = read_device_rows(device_map)
     cp_names = {r["cp_name"] for r in read_rows(cps_path, CP_COLUMNS)}
     turnout_ph, os_ph, strands = placeholders(band)
     by_ph, bad = {}, []
@@ -638,7 +649,7 @@ def mast_facts(device_map: Path = DEVICE_MAP, masts_path: Path = MASTS) -> dict:
     (mast_kind), blocks, hidden (a virtual mast) and, for a turnout mast, the turnout name the panels bind its switch
     by (the device map's jmri_name)."""
     turnout_of = {r["trial_name"].removeprefix("Switch "): r["jmri_name"]
-                  for r in read_rows(device_map, bdm.COLUMNS) if r["layer"] == "turnout" and r["trial_name"]}
+                  for r in read_device_rows(device_map) if r["layer"] == "turnout" and r["trial_name"]}
     out = {}
     for r in read_rows(masts_path, level_masts.FIELDS):
         kind = mast_kind(r)
@@ -709,7 +720,7 @@ def check_tables(rows: list[dict], rr: railroad.Railroad, shared: dict | None = 
         if by_layer[layer].get(user) != system:
             bad.append(f"{layer} {user}: tables.xml has {by_layer[layer].get(user)!r}, not {system}")
             continue
-        if layer == "turnout" and not user.startswith("DCC "):
+        if r["role"] == "turnout":
             el = turnout_els.get(r["jmri_name"])
             if el is None or tables.system_name(el) != system:
                 bad.append(f"turnout {user}: jmri_name {r['jmri_name']} is not that turnout in tables.xml")
@@ -727,7 +738,7 @@ def check(band) -> list[str]:
     """Every rule of the four files (the module text), as problems; [] when they hold."""
     bad = []
     try:
-        rows = read_rows(DEVICE_MAP, bdm.COLUMNS)
+        rows = read_device_rows()
         rr = railroad.Railroad()
         shared = shared_blocks(rows, rr.device_map)
         check_rows(rows, set(shared))

@@ -2,8 +2,8 @@
 
 jmri/layouts/hart/data/devices.csv holds one row per railroad device (ADR-029). Staging, main and upper are one
 structure; a level differs only in column values. devices.columns.csv describes every column (column, description),
-and a test holds the two files to each other both ways. Until their readers move over (R9b-2), three files are
-generated from the master and must match it byte for byte:
+and a test holds the two files to each other both ways. Every reader gets its rows from the master (device_map_lines
+and name_map_lines below, R9b-2); three older files stay generated from it until R9e and must match it byte for byte:
 
     schematic/device_map_staging.csv      the rows of level 1
     schematic/device_map_main_upper.csv   the rows of levels 2 and 3
@@ -120,10 +120,17 @@ def _read(path: Path, mtime_ns: int, size: int) -> tuple[Mapping[str, str], ...]
     return tuple(rows)
 
 
-def load(files: Files | None = None) -> tuple[Mapping[str, str], ...]:
+def _master_path(source: "Files | Path | str | None") -> Path:
+    if source is None:
+        return Files.here().master
+    return source.master if isinstance(source, Files) else Path(source)
+
+
+def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], ...]:
     """The master's rows (read-only mappings), checked (check_rows). Read once per file state: the parse is cached on
-    the file's mtime and size, so every reader of one run shares it. DevicesError on any problem."""
-    path = (files or Files.here()).master
+    the file's mtime and size, so every reader of one run shares it. `files` is the Files of a copy, or the master's
+    own path. DevicesError on any problem."""
+    path = _master_path(files)
     try:
         st = path.stat()
     except OSError as exc:
@@ -131,6 +138,23 @@ def load(files: Files | None = None) -> tuple[Mapping[str, str], ...]:
     rows = _read(path, st.st_mtime_ns, st.st_size)
     check_rows(rows, path.name)
     return rows
+
+
+def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = None
+                     ) -> list[tuple[int, dict[str, str]]]:
+    """(line of the master, device-map row) of each row of `levels` outside OUT_OF_MAPS, in master order: the rows the
+    old device map of those levels held, in its form plus `role`. The one way a reader gets them."""
+    return [(n, {**device_map_row(r), "role": r["role"]}) for n, r in enumerate(load(source), 2)
+            if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
+
+
+def name_map_lines(source: "Files | Path | str | None" = None) -> list[tuple[int, dict[str, str]]]:
+    """(line of the master, name-map row) of each row that has a pnm_order, in that order: what public_name_map.csv
+    holds (name_map_text). Rows are the old file's: layer, current, proposed (both the user name), cp, hardware, dcc,
+    comment, notes."""
+    kept = sorted(((n, r) for n, r in enumerate(load(source), 2) if r["pnm_order"]),
+                  key=lambda t: int(t[1]["pnm_order"]))
+    return [(n, _name_row(r)) for n, r in kept]
 
 
 def read_dictionary(path: Path) -> dict[str, str]:
@@ -416,10 +440,13 @@ def device_map_text(rows: Iterable[Mapping[str, str]], levels: tuple[str, ...]) 
 
 def name_map_text(rows: Iterable[Mapping[str, str]]) -> str:
     """The text of public_name_map.csv: one identity row per master row that has a pnm_order, in that order."""
-    kept = sorted((r for r in rows if r["pnm_order"]), key=lambda r: int(r["pnm_order"]))
-    return _text(PNM_COLUMNS, ({"layer": r["layer"], "current": r["user_name"], "proposed": r["user_name"],
-                                "cp": r["pnm_cp"], "hardware": r["pnm_hardware"], "dcc": r["pnm_dcc"],
-                                "comment": r["pnm_comment"], "notes": r["pnm_notes"]} for r in kept))
+    return _text(PNM_COLUMNS, (_name_row(r) for r in sorted((r for r in rows if r["pnm_order"]),
+                                                            key=lambda r: int(r["pnm_order"]))))
+
+
+def _name_row(r: Mapping[str, str]) -> dict[str, str]:
+    return {"layer": r["layer"], "current": r["user_name"], "proposed": r["user_name"], "cp": r["pnm_cp"],
+            "hardware": r["pnm_hardware"], "dcc": r["pnm_dcc"], "comment": r["pnm_comment"], "notes": r["pnm_notes"]}
 
 
 def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Path, str]:
@@ -473,16 +500,15 @@ class PnmUpdate:
 
 def set_pnm_comments(layer: str, comments: Mapping[str, str], files: Files | None = None) -> PnmUpdate:
     """The master and generated files' texts once the `pnm_comment` of each `layer` row in the name map whose user
-    name is in `comments` is the one given, and how many rows changed. Only hand-kept rows may change: a row a script
-    writes raises DevicesError naming that writer, since it would rewrite the column on its next run."""
+    name is in `comments` is the one given, and how many rows changed. A row a builder holds may change too: pnm_
+    columns are no builder's output (a builder's rewrite carries them over from the row it replaces: outputs_after_rows),
+    so the change survives its next run, and the row keeps its written_by. Nothing else of the row is touched."""
     f = files or Files.here()
     rows, changed = [dict(r) for r in load(f)], 0
     for r in rows:
         want = comments.get(r["user_name"])
         if r["layer"] != layer or not r["pnm_order"] or not want or r["pnm_comment"] == want:
             continue
-        if r["written_by"]:
-            raise DevicesError(f"{layer} {r['user_name']!r}: pnm_comment is held by {r['written_by']}; change it there")
         r["pnm_comment"] = want
         changed += 1
     check_rows(rows, "devices.csv after the comment update")

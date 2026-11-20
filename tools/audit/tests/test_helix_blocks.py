@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
 import build_device_map as bdm  # noqa: E402
+from hartlib import devices  # noqa: E402
 import le_tables as T  # noqa: E402
 import mast_rule as mr  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
@@ -110,7 +111,7 @@ class Pins(unittest.TestCase):
             bdm.Nodes([]).pin({"Track A": (41, 0)})
 
     def test_the_committed_map_holds_the_pins(self):
-        occ = {r["user_name"]: r for r in sdm.read_rows(bdm.OUT, bdm.COLUMNS) if r["layer"] == "occupancy"}
+        occ = {r["user_name"]: r for _n, r in devices.device_map_lines(("2", "3"), bdm.OUT) if r["layer"] == "occupancy"}
         for user, packed in (("BS Helix Inner", "M2S4100"), ("BS Helix Outer", "M2S4101"),
                              ("BS 227-241 1", "M2S4102"), ("BS 227-241 2", "M2S4103")):
             with self.subTest(user=user):

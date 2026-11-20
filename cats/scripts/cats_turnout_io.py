@@ -3,7 +3,7 @@
 Plant cells come from jmri/layouts/hart/data/uss_board_plants.csv (layout_facts.load_uss_plants);
 the Layout Editor turnout, its
 hardware, the closed and thrown legs and the invert polarity are switch facts in
-jmri/layouts/hart/data/ (switches.csv, switch_legs.csv, public_name_map.csv).
+jmri/layouts/hart/data/ (switches.csv, switch_legs.csv, devices.csv).
 This module only binds JMRI M2T addresses.
 """
 from __future__ import annotations
@@ -45,7 +45,7 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
 def load_turnouts(root: ET.Element | None = None, switches: dict | None = None) -> dict[str, tuple[str, str]]:
     """layout_ident → (DECADDR, USER_NAME) for M2T, one per switch in switches.csv.
 
-    The address is the switch's M2T hardware (public_name_map.csv); the user name is
+    The address is the switch's M2T hardware (the name map of devices.csv); the user name is
     its public name, Switch N. A switch whose hardware is not an M2T turnout in
     tables.xml is skipped with a message. `switches`: the switches when the caller
     loaded them already (hartlib.railroad), else layout_facts.load_switches().

@@ -1,11 +1,11 @@
 """build_main_upper_masts.py [--check]
 
 Write jmri/layouts/hart/data/schematic/main_upper_masts.csv: the main and upper levels' control-point masts, one row
-per mast, from device_map_main_upper.csv (its mast and head rows, owner plan 2026-11-16). A home signal faces the
+per mast, from the main and upper mast and head rows of devices.csv (owner plan 2026-11-16). A home signal faces the
 track in its `facing` column and protects the OS block of the switch in its `switch` column, or at a double crossover
 the corner block its `protects` column names, so it stands at the boundary between the two; an APB intermediate has
 no switch and protects the block its `protects` column names (hartlib.railroad.DEVICE_FACTS: the comment and notes are
-text for people, never read). Its `dir` (east or west) comes from the device map, never from the name. `leg` tells apart two
+text for people, never read). Its `dir` (east or west) comes from the master, never from the name. `leg` tells apart two
 masts with one facing and protected block, the A mast on the switch's normal leg and the B mast on its diverging leg;
 none needs it since the 107 Loop became two blocks (owner, 2026-11-16).
 
@@ -21,9 +21,8 @@ stop) has no switch and protects nothing; its system names are the device map's.
 --check regenerates in memory and exits 1 if the file differs.
 
 devices.csv: this script holds no rows of it today. Its output derives from the main and upper mast and head rows,
-which build_device_map.py writes (written_by build_device_map.py), and it reads them through the generated
-device_map_main_upper.csv until the readers move to the master. Its name is in hartlib.devices.WRITERS for when the
-builders merge.
+which build_device_map.py writes (written_by build_device_map.py), and it reads them from the master. Its name is
+in hartlib.devices.WRITERS for when the builders merge.
 """
 import csv
 import io
@@ -35,7 +34,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA and hartlib paths
 from hartlib import level_devices, level_masts, railroad  # noqa: E402  the head naming rule; the file; the map
 
-DEVICE_MAP = railroad.Sources.under().device_map
+DEVICE_MAP = railroad.Sources.under().devices     # devices.csv: the main and upper mast and head rows
 OUT = level_masts.PATH
 LEGS = {"A": "normal", "B": "diverging"}       # of two masts sharing a block pair, by letter (owner, 2026-11-16)
 
@@ -58,7 +57,7 @@ def build() -> str:
     block, whose system name is not a SignalHeadSignalMast of the device map's heads, or a LEGS mast the map does not
     have."""
     # main_upper_masts.csv is the masts layer: it reads the device map before it (railroad.LAYERS), never itself
-    rr = railroad.Railroad(railroad.Sources.under().but(device_map=DEVICE_MAP), upto="device_map")
+    rr = railroad.Railroad(railroad.Sources.under().but(devices=DEVICE_MAP), upto="device_map")
     try:
         dm = rr.device_map
     except railroad.FactsError as exc:

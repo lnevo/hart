@@ -14,7 +14,7 @@ facts come in layers, in the order the pipeline makes them. A Railroad built `up
 read a later one: build_device_map.py loads upto="inputs", because it writes the device map, and so never reads a
 stale copy of its own output. Each file is read the first time it is asked for, once.
 
-    inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), public_name_map.csv,
+    inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), the name map of devices.csv,
                 schematic/interlockings.csv (every level's), local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
                 helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
@@ -22,7 +22,7 @@ stale copy of its own output. Each file is read the first time it is asked for, 
                 device map's form, written by build_staging_masts.py from the mast rule, ADR-024, and run by hand
                 before the pipeline, which only checks it)
     hands       schematic/hands.csv                       build_hands.py
-    device_map  schematic/device_map_main_upper.csv       build_device_map.py
+    device_map  the main and upper rows of devices.csv      build_device_map.py
     masts       schematic/main_upper_masts.csv            build_main_upper_masts.py (hartlib.level_masts)
     tables      jmri/layouts/hart/output/tables.xml       build_layout_le.py --as-live, and PanelPro's Store
 
@@ -75,16 +75,16 @@ class Railroad:
     # inputs
     @cached_property
     def name_rows(self) -> list[tuple[int, dict[str, str]]]:
-        """public_name_map.csv as read, once: name_map checks every row, switches look only at theirs."""
-        return read_name_rows(self.sources.name_map)
+        """The name-map rows of devices.csv as read, once: name_map checks every row, switches look only at theirs."""
+        return read_name_rows(self.sources.devices)
 
     @cached_property
     def name_map(self) -> NameMap:
-        return read_name_map(self.sources.name_map, self.name_rows)
+        return read_name_map(self.sources.devices, self.name_rows)
 
     @cached_property
     def switches(self) -> dict[int, Switch]:
-        return read_switches(self.sources.switches, self.sources.switch_legs, self.sources.name_map, self.name_rows)
+        return read_switches(self.sources.switches, self.sources.switch_legs, self.sources.devices, self.name_rows)
 
     @cached_property
     def interlockings(self) -> list[Interlocking]:
@@ -133,8 +133,8 @@ class Railroad:
 
     @cached_property
     def device_map(self) -> DeviceMap:
-        self._need("device_map", self.sources.device_map.name)
-        return read_device_map(self.sources.device_map)
+        self._need("device_map", self.sources.devices.name)
+        return read_device_map(self.sources.devices)
 
     @cached_property
     def level_masts(self) -> list[dict]:

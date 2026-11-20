@@ -66,7 +66,7 @@ def _switch_numbers(rr: Railroad) -> list[str]:
 @invariant("lcos-nodes", "inputs")
 def _lcos_nodes(rr: Railroad) -> list[str]:
     """Every level and area a main or upper switch is in has an LCOS node to put it on, and no main or upper node
-    number is a staging node (the node of a staging turnout's or sensor's packed address, public_name_map.csv)."""
+    number is a staging node (the node of a staging turnout's or sensor's packed address, the name map of devices.csv)."""
     pool = {(n.level, n.area) for n in rr.lcos_nodes}
     bad = [f"no node in {rr.sources.lcos_nodes.name} for level {lv} {area} (switches "
            f"{', '.join(sorted((s for s, sw in rr.main_upper_switches.items() if (sw.level, sw.area) == (lv, area)), key=natural))})"
@@ -85,7 +85,7 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
 
 @invariant("name-map", "inputs")
 def _name_map(rr: Railroad) -> list[str]:
-    """public_name_map.csv resolves: every historical alias names a live row of its layer; every staging switch has
+    """The name map of devices.csv resolves: every historical alias names a live row of its layer; every staging switch has
     a live turnout row with hardware and a DCC address; no two live turnouts share a DCC address; and no two live
     turnouts, feedback sensors, occupancy sensors or heads share hardware."""
     nm = rr.name_map
@@ -114,7 +114,7 @@ def _name_map(rr: Railroad) -> list[str]:
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
     """Every block a staging switch leg (switch_legs.csv), a staging mast (staging_masts.csv) or a measured
-    length (block_lengths.csv) names is a live block of public_name_map.csv, and every staging mast a live mast."""
+    length (block_lengths.csv) names is a live block of the name map of devices.csv, and every staging mast a live mast."""
     blocks, masts = rr.name_map.names("block"), rr.name_map.names("mast")
     bad = []
     for sw in rr.switches.values():
@@ -163,11 +163,10 @@ def _device_map(rr: Railroad) -> list[str]:
     """The device map's turnouts are exactly the main and upper switches, each with its LCC alias "DCC Switch <n>",
     on its own level and control point; its virtual names follow hartlib.level_devices (check_virtual_names); its
     nodes are the level's LCOS nodes; its DCC addresses and planned hardware are no staging device's."""
-    dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.device_map.name
+    dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.devices.name
     bad = list(check_virtual_names(dm.rows))
     turnouts = dm.turnouts
-    aliases = {r.user_name.removeprefix("DCC Switch "): r for r in dm.of("turnout")
-               if r.user_name.startswith("DCC Switch ")}
+    aliases = {r.user_name.removeprefix("DCC Switch "): r for r in dm.of("turnout") if r.role == "lcc_alias"}
     for s in sorted(set(mu) | set(turnouts), key=natural):
         r, sw = turnouts.get(s), mu.get(s)
         if r is None:
@@ -197,7 +196,7 @@ def _device_map(rr: Railroad) -> list[str]:
     staging_hw = {r.hardware: r for r in rr.name_map.live.values() if r.layer in UNIQUE_HARDWARE and r.hardware}
     seen_hw: dict[str, DeviceRow] = {}
     for r in dm.rows:
-        if r.layer == "turnout" and not r.user_name.startswith("DCC ") and r.dcc in staging_dcc:
+        if r.role == "turnout" and r.dcc in staging_dcc:
             bad.append(f"{name} line {r.line}: {r.user_name} has DCC {r.dcc}, staging's {staging_dcc[r.dcc].proposed}")
         if r.layer in UNIQUE_HARDWARE and r.system_name:
             if r.system_name in staging_hw:
@@ -212,7 +211,7 @@ def _device_map(rr: Railroad) -> list[str]:
 
 @invariant("name-clash", "device_map")
 def _name_clash(rr: Railroad) -> list[str]:
-    """No public_name_map.csv row, live or historical alias, uses a name the device map gives a main or upper
+    """No name-map row of devices.csv, live or historical alias, uses a name the device map gives a main or upper
     device of the same layer: a rename pass that maps the alias would rename the main or upper device. A helix block
     (helix_tracks.csv) is one block from staging up the helix, so its live row names the device map's block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
@@ -223,7 +222,7 @@ def _name_clash(rr: Railroad) -> list[str]:
         if hit is not None and not (r.layer == "block" and r.identity and r.current in helix):
             what = "live" if r.identity else f"an alias of {r.proposed}"
             out.append(f"{rr.name_map.path.name}: {r.layer} {r.current} is {what} there and level "
-                       f"{hit.level} {r.layer} {hit.user_name} in {rr.sources.device_map.name}")
+                       f"{hit.level} {r.layer} {hit.user_name} in {rr.sources.devices.name}")
     return out
 
 

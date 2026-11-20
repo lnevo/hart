@@ -14,7 +14,7 @@ from hartlib import railroad  # noqa: E402  the railroad's facts, each file read
 from hartlib import level_devices  # noqa: E402  the main and upper naming rule
 
 
-DEVICE_MAP = railroad.Sources.under().device_map    # main and upper names (trial_name: the drawing's placeholder)
+DEVICE_MAP = railroad.Sources.under().devices    # devices.csv: main and upper names (trial_name: the drawing's placeholder)
 STAGING = "Staging"                  # band key (first word of the band title) bound to the live objects
 
 TURNOUT_SYS = level_devices.TURNOUT_PREFIX     # internal turnouts: nothing reaches the field
@@ -63,7 +63,7 @@ def bare(label: str) -> str:
 @functools.lru_cache(maxsize=None)
 def staging_switches() -> dict[int, railroad.Switch]:
     """The staging switches, read once per run (hartlib.railroad: switches.csv with switch_legs.csv and each switch's
-    live turnout row of public_name_map.csv). BuildError names the file and row that cannot be read."""
+    live turnout row of the name map of devices.csv). BuildError names the file and row that cannot be read."""
     try:
         return railroad.Railroad(upto="inputs").switches
     except railroad.FactsError as exc:
@@ -76,7 +76,7 @@ def switch_idents() -> dict[str, str]:
 
 
 def main_upper_device_map(path: Path = DEVICE_MAP) -> railroad.DeviceMap:
-    """The main and upper device map (hartlib.railroad.read_device_map, every row checked); BuildError names the
+    """The main and upper rows of devices.csv (hartlib.railroad.read_device_map, every row checked); BuildError names the
     file and row that cannot be read."""
     try:
         return railroad.read_device_map(path)

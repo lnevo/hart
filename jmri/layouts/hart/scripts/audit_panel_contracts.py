@@ -14,7 +14,7 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import boundaries as boundary_csv, level_devices, level_masts, parked, paths, tables  # noqa: E402
+from hartlib import boundaries as boundary_csv, devices, level_devices, level_masts, parked, paths, tables  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
@@ -135,15 +135,14 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
-def dispatcher_virtuals(expected: set[str], name_map: Path = paths.PUBLIC_NAME_MAP) -> set[str]:
+def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -> set[str]:
     """The boundary masts that are hidden virtual masts for Dispatcher Stage 1, not field
-    masts: those whose name-map hardware is `virtual $10nn`."""
-    with name_map.open(newline="", encoding="utf-8") as f:
-        virtual = {
-            row["proposed"] for row in csv.DictReader(f)
-            if row["layer"] == "mast" and row["current"] == row["proposed"]
-            and row["hardware"].startswith("virtual")
-        }
+    masts: those whose name-map hardware (devices.csv, pnm_hardware) is `virtual $10nn`."""
+    virtual = {
+        row["proposed"] for _line, row in devices.name_map_lines(devices_csv)
+        if row["layer"] == "mast" and row["current"] == row["proposed"]
+        and row["hardware"].startswith("virtual")
+    }
     return expected & virtual
 
 
@@ -516,7 +515,7 @@ def audit_lcc_mqtt_turnout_aliases(
 ) -> None:
     """Every MQTT DCC turnout has MTT{dcc} named and wired from the device map."""
     problem = audit.error if required else audit.warn
-    csv_path = paths.PUBLIC_NAME_MAP
+    csv_path = paths.DEVICES
     issues = contract_violations(root, csv_path)
     if issues:
         problem(

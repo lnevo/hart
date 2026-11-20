@@ -8,7 +8,7 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1]
 HART_ROOT = SCRIPTS.parent
 TABLES = HART_ROOT / "output" / "tables.xml"
-CSV_PATH = HART_ROOT / "data" / "public_name_map.csv"
+CSV_PATH = HART_ROOT / "data" / "devices.csv"
 
 
 def load_module(name: str, path: Path):

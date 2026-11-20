@@ -10,12 +10,12 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 - `docs/wiring/signals/signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`
 - `docs/wiring/lcos/lcos_signal_logic.csv` → `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` (Main/Diverged + OR)
 - `docs/wiring/imported/` snapshots
-- `public_name_map.csv` (proposed strings)
+- `devices.csv` (the name map: proposed strings)
 
 ## Outputs
 
 - `docs/wiring/LCOS_Layout_Inventory_v85.xlsx` (staging)
-- `docs/wiring/LCOS_Layout_Inventory_v86.xlsx` (v85 plus the main and upper levels from `device_map_main_upper.csv`)
+- `docs/wiring/LCOS_Layout_Inventory_v86.xlsx` (v85 plus the main and upper levels from `devices.csv`)
 - `docs/wiring/signals_asbuilt_abs_v2.xlsx`
 - `docs/wiring/signals_split_v8.xlsx` (frozen RGB plan + notes)
 - `docs/wiring/Wiring_Schematic.pptx`

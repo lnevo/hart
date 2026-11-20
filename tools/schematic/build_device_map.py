@@ -127,7 +127,7 @@ CPS = SOURCES.interlockings
 NODES = SOURCES.lcos_nodes
 LOCAL = SOURCES.local_switches
 OVERRIDES = SOURCES.plan_overrides
-OUT = SOURCES.device_map
+OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
 SPLIT = OVERRIDES.parent / "block_splits.csv"     # the owner's choice of tracks parted into two blocks (all levels)
 PINS = OVERRIDES.parent / "detector_pins_main_upper.csv"         # detectors the owner placed on a given node input
 # The hand lists name a track by the switches at its ends (switch_a, switch_b: lower number first; switch_b blank for a
@@ -140,13 +140,13 @@ PIN_COLUMNS = TRACK_KEY_COLUMNS + ["half", "block", "node", "block_input", "note
 
 def device_files() -> devices.Files:
     """The master and its generated files as main() writes them: OUT, as it is when it runs (a test may patch it)."""
-    return devices.Files.under(OUT.parent.parent)
+    return devices.Files.under(OUT.parent)
 
 
 def sources() -> railroad.Sources:
     """The files main() reads and writes: the module's paths as they are when it runs (a test may patch them)."""
     return railroad.Sources.under().but(interlockings=CPS, lcos_nodes=NODES, local_switches=LOCAL,
-                                        plan_overrides=OVERRIDES, device_map=OUT)
+                                        plan_overrides=OVERRIDES, devices=OUT)
 
 SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
