@@ -117,38 +117,36 @@ class TheTimedPassesAgreeWithTheBlockLengths(unittest.TestCase):
                 rows = list(csv.DictReader(f))
             for r in rows:
                 if r["user_name"] == "Track Barn":
-                    r["inches"] = "40"
+                    r["measured_in"] = "40"
             path = Path(tmp) / "block_lengths.csv"
             with open(path, "w", newline="") as f:
                 w = csv.DictWriter(f, fieldnames=list(rows[0]))
                 w.writeheader()
                 w.writerows(rows)
-            with self.assertRaisesRegex(SR.RunError, r"Track Barn is 40.0 in, the timed passes give 33.7 in"):
+            with self.assertRaisesRegex(SR.RunError, r"Track Barn is 40.0 in, the timed passes give 34.1 in"):
                 SR.check_block_lengths(SR.load_locate(), path)
 
 
 class ThePageTablesComeFromTheData(unittest.TestCase):
     def test_the_loop_runs_from_switch_5_and_adds_up(self) -> None:
-        rows, stubs = LP.loop_rows()
+        rows = LP.loop_rows()
         self.assertEqual(len(rows), 17)
         self.assertEqual(rows[0][0], "OS Switch 5")
-        self.assertEqual([r[0] for r in rows if r[0].endswith("*")], ["Track East Lead *", "Track K-1 *"])
-        self.assertEqual(sorted(stubs), [15.748, 15.748])
+        self.assertFalse([r[0] for r in rows if r[0].endswith("*")])   # no hidden stubs since 2026-11-20
         self.assertAlmostEqual(sum(r[1] for r in rows), 1232.0)
-        self.assertAlmostEqual(sum(r[2] for r in rows) + sum(stubs), 1382.3, places=1)
+        self.assertAlmostEqual(sum(r[2] for r in rows), 1382.2, places=1)
         self.assertEqual(LP.laps_note(rows), "33 timed laps (16 for East Ext)")
 
     def test_the_table_shows_the_totals(self) -> None:
-        rows, stubs = LP.loop_rows()
-        html = LP.block_table(rows, stubs)
-        self.assertIn("with the hidden stubs, 31.5 in", html)
+        html = LP.block_table(LP.loop_rows())
+        self.assertNotIn("hidden stubs", html)
         self.assertIn("<b>1232</b>", html)
         self.assertIn("<b>1382</b>", html)
         self.assertIn("<b>+150</b>", html)
 
     def test_a_loop_block_with_no_timed_spread_stops(self) -> None:
         rows = LP.block_rows()
-        rows["Track K-2"] = dict(rows["Track K-2"], old_source="assigned")
+        rows["Track K-2"] = dict(rows["Track K-2"], source="plan")
         with mock.patch.object(LP, "block_rows", return_value=rows):
             with self.assertRaisesRegex(SystemExit, "Track K-2 has no timed spread"):
                 LP.loop_rows()
@@ -161,10 +159,6 @@ class ThePageTablesComeFromTheData(unittest.TestCase):
             with mock.patch.object(LP, "BEFORE_CSV", path):
                 with self.assertRaisesRegex(SystemExit, "OS Switch 39"):
                     LP.loop_rows()
-
-    def test_stubs_of_different_lengths_stop(self) -> None:
-        with self.assertRaisesRegex(SystemExit, "not all one length"):
-            LP.hidden_stub_in([15.7, 16.0])
 
     def test_the_plan_version_must_look_like_one(self) -> None:
         with self.assertRaisesRegex(SystemExit, "not 'x'"):

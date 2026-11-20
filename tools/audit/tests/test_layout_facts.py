@@ -110,17 +110,6 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertIn("Switch 5: switches.csv level 1, control_points.csv puts Plane on level 2", out)
         self.assertIn("OS Switch 5: is in Plane (level 2), its switches in switch_legs.csv say level 1", out)
 
-    def test_a_throat_block_is_held_to_its_tracks_switch(self) -> None:
-        # Track K-1 West shares Track K-1's occupancy sensor; Track K-1 is a leg of Switch 39.
-        data = self.data_copy()
-        names = data / "public_name_map.csv"
-        names.write_text(names.read_text().replace("block,Track K-1 West,Track K-1 West,Princess,",
-                                                   "block,Track K-1 West,Track K-1 West,Brick,"))
-        switches = data / "switches.csv"
-        switches.write_text(switches.read_text().replace("1,39,TOL29,", "2,39,TOL29,"))
-        out = self.failures(data=data)
-        self.assertIn("Track K-1 West: is in Brick (level 1), its switches in switch_legs.csv say level 2", out)
-
     def test_a_cp_with_no_control_point_row_fails(self) -> None:
         data = self.data_copy()
         cps = data / "control_points.csv"
@@ -354,11 +343,6 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertFalse(check.same_place(None, "Track 107-109"))
         self.assertEqual(check.desk_block_of("OS Switch 225c", {"OS Switch 225"}), "OS Switch 225")
         self.assertEqual(check.desk_block_of("OS Switch 107", {"OS Switch 107"}), "OS Switch 107")
-
-    def test_throat_blocks_count_as_their_track(self) -> None:
-        t = check.Tables(check.TABLES)
-        self.assertEqual(t.track_name("Track S-R West"), "Track S-R")
-        self.assertEqual(t.track_name("Track Main West"), "Track Main West")
 
 
 if __name__ == "__main__":

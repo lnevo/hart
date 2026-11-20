@@ -24,6 +24,7 @@ sys.path.insert(0, str(HERE))
 STEPS = [
     ("hands", "build_hands.py", False),
     ("main-route", "build_main_route.py", False),
+    ("plan-lengths", "plan_lengths.py --check", True),
     ("staging-masts", "build_staging_masts.py --check", True),
     ("staging-sync", "sync_staging_signals.py --check", True),
     ("staging-map", "staging_device_map.py --check", True),

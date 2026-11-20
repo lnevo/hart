@@ -44,7 +44,7 @@ Exceptions are made only on purpose, each with its reason beside it:
 ## Changing a switch
 
 1. Edit its rows in `switch_legs.csv` (closed and thrown legs) and `switches.csv` (hand, lever, inversion). A switch the AnyRail plan lacks or holds wrongly goes in `staging.plan_overrides.json` (`hand`, legs `b` and `c`; `branch_leg: "B"` when the added branch is the straight leg).
-2. `device_map_staging.csv` (`trial_name`), `short_tracks_staging.csv` and `split_tracks_main_upper.csv` name tracks by their switches and legs, so a new export needs no rebinding (2026-11-20). When edge ids move (`n1`...), only the hand-kept virtual masts' `schematic_edge` and `schematic_toward_node` in `staging_signals_virtual.csv` still need it.
+2. `device_map_staging.csv` (`trial_name`), `short_tracks_staging.csv` and `split_tracks_main_upper.csv` name tracks by their switches and legs, so a new export needs no rebinding (2026-11-20). The virtual masts are placed by rule (ADR-024), so nothing needs rebinding when edge ids move (`n1`...).
 3. Run `make panels`. A mast boundary that moves stops the build with the rows to rewrite in `le_signal_boundaries.csv`.
 4. Install the candidate in `~/JMRI_UserFiles`, relaunch PanelPro and get the owner's approval; then record it (`check_approved.py --approve`, `build_layout_le.py --approve-staging`) and take Signal Mast Logic from stock discovery in a sandbox (`tools/hosts/sandbox/README.md`).
 5. Run `./tools/check.sh`. Each failure names the switch or track and the two sources that disagree.

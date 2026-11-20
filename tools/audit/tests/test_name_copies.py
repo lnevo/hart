@@ -101,7 +101,7 @@ class NameCopiesTest(unittest.TestCase):
         """Step 3 of the hand-off: rename one mast and one track; every copy is found."""
         renamed = self.tmp / "renamed.csv"
         renamed.write_text(renamed_map(MAP.read_text(encoding="utf-8"),
-                                       {"Mast 16R": "Mast 16RX", "Track Scale": "Track Weigh"}),
+                                       {"Mast 12R": "Mast 12RX", "Track Scale": "Track Weigh"}),
                            encoding="utf-8")
         # PanelPro renames the block in tables.xml too (then make tables-pull).
         tables_xml = self.tmp / "tables.xml"
@@ -110,7 +110,7 @@ class NameCopiesTest(unittest.TestCase):
         tables_xml.write_text(text.replace(">Track Scale<", ">Track Weigh<"), encoding="utf-8")
         hits, _counts, _used = check.run(ROOT, name_map=renamed, tables_xml=tables_xml)
         files = {h.path for h in hits}
-        self.assertEqual({"Mast 16R", "Track Scale"}, {h.name for h in hits})
+        self.assertEqual({"Mast 12R", "Track Scale"}, {h.name for h in hits})
         # Known hand-kept copies today: the Dispatcher stations and the switch and mast facts.
         self.assertIn("jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py", files)
         self.assertIn("jmri/layouts/hart/data/switch_legs.csv", files)
@@ -118,20 +118,20 @@ class NameCopiesTest(unittest.TestCase):
         # Generated files under their own --check and the map itself are not read.
         self.assertFalse(any(f.startswith(check.SKIP_PREFIXES) for f in files), files)
 
-    def test_throat_blocks_are_current_through_tables_xml(self):
-        """A block with only alias rows in the map (Track S-R West before it got its identity row, 2026-11-17)
-        is current while tables.xml holds it, and stale when tables.xml does not."""
+    def test_a_block_with_no_identity_row_is_current_through_tables_xml(self):
+        """A block with no identity row in the map (as the hidden yard throats had until 2026-11-17) is current while
+        tables.xml holds it, and stale when tables.xml does not."""
         text = self.map.read_text(encoding="utf-8")
-        row = "block,Track S-R West,Track S-R West,"
+        row = "block,Track Barn,Track Barn,"
         self.assertIn(row, text)
         self.map.write_text("".join(l for l in text.splitlines(keepends=True) if not l.startswith(row)),
                             encoding="utf-8")
-        f = self.write("tools/x.py", 'T = "Track S-R West"\n')
-        self.assertNotIn("Track S-R West", check.load_names(self.map)[0], "its identity row is removed for this test")
+        f = self.write("tools/x.py", 'T = "Track Barn"\n')
+        self.assertNotIn("Track Barn", check.load_names(self.map)[0], "its identity row is removed for this test")
         self.assertEqual([], self.stale([f]))
         # Without a block of that name in tables.xml, the alias row's proposed name is stale.
         empty = self.write("empty_tables.xml", "<layout-config><blocks/></layout-config>\n")
-        self.assertEqual(["tools/x.py:1: 'Track S-R West' is not a current name"],
+        self.assertEqual(["tools/x.py:1: 'Track Barn' is not a current name"],
                          [str(h) for h in check.run(self.tmp, [f], allow={}, tables_xml=self.tmp / empty)[0]])
 
     def test_unknown_mast_or_os_fails_outside_tests(self):

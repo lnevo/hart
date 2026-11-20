@@ -790,9 +790,8 @@ class SecondReview(unittest.TestCase):
 
 
 class Throats(unittest.TestCase):
-    """The short throat blocks of a staging track (S-1 West / S-1 East, East Lead East, K-1 West) are drawn at their
-    own ends of the track, in block order, at their real share (wiki/DISPATCHER_LAYOUT_HOOPS.md: mid-block anchors
-    vs throat blocks), not cut into equal thirds."""
+    """A staging track of several blocks is drawn in block order at their plan shares, a short block (OS Switch 7 on
+    Scale) at its own end, not cut into equal parts. The hidden yard throats are gone (owner, 2026-11-20)."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -827,23 +826,22 @@ class Throats(unittest.TestCase):
         return {sid: bl for sid, bl in self.names[B.STAGING]["blocks"].items()
                 if len(bl) > 1 and all(b in lengths for b in bl)}
 
-    def test_the_throat_tracks_are_measured(self) -> None:
+    def test_the_tracks_of_several_blocks_are_measured(self) -> None:
         tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
-        # Scale holds OS Switch 7, cut at its block_lengths.csv share since the owner put Mast 8RA's boundary at
-        # Switch 7's points (2026-11-18); the Switch 1-3 link holds OS blocks only and keeps its equal halves
-        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1", "Scale"})
+        # every drawn block has its plan length (owner, 2026-11-20); a track of several blocks is cut at their plan
+        # shares: Scale with OS Switch 7 (Mast 8RA's boundary at Switch 7's points, 2026-11-18), and the Switch 1-3
+        # and 35-39 links of OS blocks only. Each yard track is one block since its throats went.
+        self.assertEqual(tracks, {"Scale", ""})
 
-    def test_staging_lengths_take_os_blocks_only_beside_measured_track(self) -> None:
+    def test_staging_lengths_are_the_plan_lengths_of_every_drawn_block(self) -> None:
         from le_names import staging_lengths
-        blocks = {"a": ["Track Scale", "OS Switch 7"], "b": ["OS Switch 3", "OS Switch 1"],
-                  "c": ["Track Barn", "OS Switch 13"], "d": ["Track East Ext", "OS Switch 99"]}
-        opts = {"track_lengths_in": {"Scale": 144.5, "East Ext": 140.8}}
-        names = {"blocks": blocks}
-        got = staging_lengths(opts, names, {"OS Switch 7": 10.0, "OS Switch 1": 22.6, "OS Switch 3": 10.0,
-                                            "OS Switch 13": 17.8})
-        self.assertEqual(got, {"Track Scale": 144.5, "OS Switch 7": 10.0})
-        # a: measured track and OS length; b: OS blocks only; c: the track has no measured length;
-        # d: the OS block has no length: each of b, c, d keeps equal blocks (nothing given)
+        names = {"blocks": {"a": ["Track Scale", "OS Switch 7"], "b": ["OS Switch 3", "OS Switch 1"]}}
+        plan = {"Track Scale": 158.0, "OS Switch 7": 9.2, "OS Switch 3": 9.2, "OS Switch 1": 9.2, "Track X": 5.0}
+        self.assertEqual(staging_lengths(names, plan), {"Track Scale": 158.0, "OS Switch 7": 9.2,
+                                                        "OS Switch 3": 9.2, "OS Switch 1": 9.2})
+        del plan["OS Switch 1"]
+        with self.assertRaisesRegex(B.BuildError, r"no plan length for drawn staging blocks \['OS Switch 1'\]"):
+            staging_lengths(names, plan)
 
     def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
         lengths = self.names[B.STAGING]["lengths"]
@@ -870,28 +868,6 @@ class Throats(unittest.TestCase):
                         least = max([self.le_mod.MIN_BLOCK] + room)
                         self.assertLessEqual(L, max(share, least) + stretch + bent[b] + 0.5)
                         self.assertLess(L, total / 2)
-
-    def test_the_south_yard_masts_stand_in_a_column_by_each_ladder(self) -> None:
-        cols = {}
-        for g in self.P.gantries:
-            names = {m["mast"] for m in g}
-            xs = {round(self.P.points[m["ident"]]["xy"][0], 1) for m in g if m["kind"] == "anchor"}
-            if not xs:                      # a gantry of turnout-leg masts only: no anchor column
-                continue
-            self.assertEqual(len(xs), 1, names)
-            x = xs.pop()
-            for n in names:
-                cols[n] = x
-        west = [cols[f"Mast {n}L"] for n in (16, 18, 20) if f"Mast {n}L" in cols]
-        east = [cols[f"Mast {n}R"] for n in (16, 18, 20) if f"Mast {n}R" in cols]
-        self.assertTrue(west and east)
-        for sid in self.measured():
-            if self.bands[0][1]["strands"][sid]["name"].startswith("S-"):
-                pts = [self.xy(self.segs[i]["ends"][0]) for i in self.P.strand_segments[(0, sid)]]
-                lo, hi = min(p[0] for p in pts), max(p[0] for p in pts)
-                self.assertLess(max(west), lo + (hi - lo) / 2)                  # the west column on the west half
-                self.assertGreater(min(east), lo + (hi - lo) / 2)               # the east column on the east half
-
 
 if __name__ == "__main__":
     unittest.main()

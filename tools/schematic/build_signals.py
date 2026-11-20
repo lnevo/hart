@@ -9,8 +9,7 @@ when it has masts.
 Each mast's schematic run (schematic_edge, schematic_toward_node) is checked against the plan graph in inputs/ with
 the plan overrides' edits: the edge must exist, run between the switches named in `run`, carry the track names in
 `names`, and end at the node it heads for, whose switch is `toward`. Its lengths are checked against the staging
-tracks (staging_device_map.staging_chains) and block_lengths.csv, as the signal reader measured them (a block with no length
-counts as zero there too): edge_cm is the length of the track holding the mast's facing block, and cm_from_toward
+tracks (staging_device_map.staging_chains) and block_lengths.csv's plan lengths: edge_cm is the length of the track holding the mast's facing block, and cm_from_toward
 is 0 at a turnout leg, the whole run at an end bumper, and at an anchor the length from one end of that track to the
 boundary between the facing and protected blocks (within TOLERANCE_CM). A mast that does not fit fails the run, with
 or without --check.
@@ -42,22 +41,24 @@ TURNBACK_CM = 1.0           # a mast measured from a turnback stands just off it
 
 
 def block_cm(path=BLOCK_LENGTHS) -> dict:
-    """{block: cm} from block_lengths.csv (inches, hartlib.railroad.read_block_lengths); a blank length is zero, as
-    the signal reader reads it."""
+    """{block: cm} of the plan lengths in block_lengths.csv (hartlib.railroad.plan_cm): the masts stand on the drawn
+    geometry, so a timed length never moves one (owner, 2026-11-20)."""
     try:
-        lengths = railroad.read_block_lengths(path)
+        return railroad.plan_cm(railroad.read_block_lengths(path))
     except railroad.FactsError as exc:
         sys.exit(str(exc))
-    return {name: (b.inches or 0.0) * 2.54 for name, b in lengths.items()}
 
 
 def check_lengths(masts: list[dict], chains: list[dict], cm: dict) -> list[str]:
     """Problems with each mast's edge_cm and cm_from_toward against the frozen tracks' block lengths."""
-    bad = []
     near = lambda a, b: abs(a - b) <= TOLERANCE_CM      # noqa: E731
+    missing = sorted({b for c in chains for b in c["blocks"]} - set(cm))
+    bad = [f"block_lengths.csv has no plan length for {missing}"] if missing else []
+    if bad:
+        return bad
     for m in masts:
         tracks = [c for c in chains if m["facing"] in c["blocks"]]
-        totals = [sum(cm.get(b, 0.0) for b in c["blocks"]) for c in tracks]
+        totals = [sum(cm[b] for b in c["blocks"]) for c in tracks]
         if not any(near(t, m["edge_cm"]) for t in totals):
             bad.append(f"{m['signal']}: edge_cm {m['edge_cm']} is not the length of a track holding "
                        f"{m['facing']} ({', '.join(f'{t:.1f}' for t in totals) or 'no such track'})")
@@ -69,10 +70,10 @@ def check_lengths(masts: list[dict], chains: list[dict], cm: dict) -> list[str]:
         else:
             want = []
             for c in tracks:
-                bl, total = c["blocks"], sum(cm.get(b, 0.0) for b in c["blocks"])
+                bl, total = c["blocks"], sum(cm[b] for b in c["blocks"])
                 for i in range(len(bl) - 1):
                     if {bl[i], bl[i + 1]} == {m["facing"], *m["protects"]}:
-                        d = sum(cm.get(b, 0.0) for b in bl[:i + 1])
+                        d = sum(cm[b] for b in bl[:i + 1])
                         want += [d, total - d]
         if not any(near(w, m["cm_from_toward"]) for w in want):
             bad.append(f"{m['signal']}: cm_from_toward {m['cm_from_toward']} is not where its {m['kind']} stands "

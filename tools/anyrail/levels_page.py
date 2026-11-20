@@ -46,7 +46,10 @@ def block_rows():
 
 
 def block_inches():
-    return {n: float(r["inches"]) for n, r in block_rows().items()}
+    """{block: inches} of the lengths JMRI holds (block_lengths.csv: the measured length of a timed block)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hartlib/src"))
+    from hartlib import railroad
+    return {name: b.jmri_in for name, b in railroad.read_block_lengths(BLOCK_CSV).items()}
 
 
 def before_inches(group):
@@ -81,9 +84,9 @@ def markers(staging):
 
 
 def loop_rows():
-    """The loop's blocks in running order with what the page shows: [(label, before, now, spread, laps)], and the
-    hidden stubs' lengths [in]. Now and the spread are block_lengths.csv's (the spread is in its source note); before
-    is block_lengths_before.csv. A block of the loop with no before, no spread, or a row nobody listed
+    """The loop's blocks in running order with what the page shows: [(label, before, now, spread, laps)]. Now is the
+    block's measured length and the spread is in its note (block_lengths.csv, source timed); before is
+    block_lengths_before.csv. A block of the loop with no before, no timed length or spread, or a row nobody listed
     stops the page."""
     rows = block_rows()
     before = before_inches("loop1")
@@ -93,16 +96,14 @@ def loop_rows():
     names = [name for _, name in loop]
     if sorted(before) != sorted(names):
         raise SystemExit("%s and the loop's blocks differ: %s" % (BEFORE_CSV.name, ", ".join(sorted(set(before) ^ set(names)))))
-    out, stubs = [], []
-    for sensor, name in loop:
+    out = []
+    for _sensor, name in loop:
         row = rows[name]
-        m = SPREAD.search(row["old_source"])
-        if row["flag"] != "inferred" or not m:
-            raise SystemExit("block_lengths.csv: %s has no timed spread in its source note (%r)" % (name, row["old_source"]))
-        hidden = [float(r["inches"]) for r in rows.values() if r["flag"] == "stub" and r["occupancy_sensor"] == sensor]
-        out.append((name + (" *" if hidden else ""), before[name], float(row["inches"]), float(m.group(1)), int(m.group(2))))
-        stubs += hidden
-    return out, stubs
+        m = SPREAD.search(row["note"])
+        if row["source"] != "timed" or not m:
+            raise SystemExit("block_lengths.csv: %s has no timed spread in its note (%r)" % (name, row["note"]))
+        out.append((name, before[name], float(row["measured_in"]), float(m.group(1)), int(m.group(2))))
+    return out
 
 
 def laps_note(rows):
@@ -113,21 +114,15 @@ def laps_note(rows):
     return "%d timed laps%s" % (common, " (%s)" % ", ".join(odd) if odd else "")
 
 
-def hidden_stub_in(stubs):
-    if len(set(stubs)) != 1:
-        raise SystemExit("the loop's hidden stubs are not all one length: %s" % sorted(stubs))
-    return stubs[0]
-
-
-def block_table(rows, stubs):
+def block_table(rows):
     h = '<table><thead><tr><th>Block</th><th class="n">Before</th><th class="n">Now</th><th class="n">Change</th><th class="n">&plusmn;</th></tr></thead><tbody>'
     for n, a, b, s, _ in rows:
         h += '<tr><td>%s</td><td class="n">%g</td><td class="n">%.1f</td><td class="n">%+.1f</td><td class="n">%.1f</td></tr>' % (n, a, b, b - a, s)
-    before, now = sum(r[1] for r in rows), sum(r[2] for r in rows) + sum(stubs)
+    before, now = sum(r[1] for r in rows), sum(r[2] for r in rows)
     if abs(now * MM_PER_IN - PLAN_LOOP_MM) > 3 * MM_PER_IN:
         raise SystemExit("the loop's blocks add up to %.0f mm, the plan's loop is %.0f mm" % (now * MM_PER_IN, PLAN_LOOP_MM))
-    return h + ('<tr><td><b>Loop total</b> (with the hidden stubs, %.1f in)</td><td class="n"><b>%.0f</b></td><td class="n"><b>%.0f</b></td>'
-                '<td class="n"><b>%+.0f</b></td><td></td></tr></tbody></table>') % (sum(stubs), before, now, now - before)
+    return h + ('<tr><td><b>Loop total</b></td><td class="n"><b>%.0f</b></td><td class="n"><b>%.0f</b></td>'
+                '<td class="n"><b>%+.0f</b></td><td></td></tr></tbody></table>') % (before, now, now - before)
 
 
 def figure(vb, body, label, extra=""):
@@ -143,7 +138,7 @@ def sections(svg_dir, staging):
     main = (Path(svg_dir) / "main.svg").read_text()
     upper = (Path(svg_dir) / "upper.svg").read_text()
     mk, p7, p13, locate, rise = markers(staging)
-    loop, stubs = loop_rows()
+    loop = loop_rows()
     loop_in = PLAN_LOOP_MM / MM_PER_IN
     mb, ub = meta["main"]["bbox"], meta["upper"]["bbox"]
     pad = 12
@@ -205,9 +200,8 @@ def sections(svg_dir, staging):
                  '<tr><td>Speeds recorded 2026-11-08</td><td class="n">about 12%% low</td></tr></tbody></table></div>'
                  % (format(round(PLAN_LOOP_MM), ","), loop_in, format(round(before_in * MM_PER_IN), ","), before_in))
     t["blocks"] = ('<h3>Loop block lengths</h3><p class="muted">Inches, in the order a loco runs the loop from Switch 5. Each block is its timed share of the track between the plan turnouts either side of it '
-                   '(Switches 5, 33, 35a, 35b, 23a and 1 sit at their plan positions). &plusmn; is the spread over %s. '
-                   '* The detector also covers a %.1f in hidden stub with its own row (East Lead East, K-1 West).</p><div class="tw">%s</div>'
-                   % (laps_note(loop), hidden_stub_in(stubs), block_table(loop, stubs)))
+                   '(Switches 5, 33, 35a, 35b, 23a and 1 sit at their plan positions). &plusmn; is the spread over %s.</p><div class="tw">%s</div>'
+                   % (laps_note(loop), block_table(loop)))
     t["main"] = (
         '<div class="key"><span class="k-trk">track</span><span class="k-ramp">helix and ramps up to the upper level and down to staging</span></div>'
         + f_main +

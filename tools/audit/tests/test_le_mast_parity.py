@@ -75,7 +75,7 @@ class MastParity(unittest.TestCase):
                       if s.get("hidden") == "yes"}
 
     def test_live_panel_has_its_masts(self) -> None:
-        self.assertEqual(len(self.live), 47)                # 49 less the helix-foot 38RA and 40RA (2026-11-20)
+        self.assertEqual(len(self.live), 35)    # 49 less the helix-foot 38RA and 40RA and the 12 yard-end and rear masts (2026-11-20)
         self.assertTrue(all(m["facing"] for m in self.live.values()))
 
     def test_every_live_mast_resolves_the_same_on_the_generated_panel(self) -> None:

@@ -8,9 +8,9 @@
   "image": {
     "path": "assets/layout/HART_le_schematic.png",
     "width": 2512,
-    "height": 1373,
+    "height": 1382,
     "scale": 1.0,
-    "inputs_sha256": "3d15ed6f27c6a0c8b9f294dfb92a5304a31242ae41adf546a2ad51b5f69037fa"
+    "inputs_sha256": "af1aafb605c4fe6f5c77dbf1e5fc35a8e18c823bc3c5053519e4707e63eadc8c"
   },
   "items": [
     {
@@ -537,7 +537,7 @@
       "id": "to-TOG41",
       "kind": "turnout",
       "x": 2009.9,
-      "y": 1041.0,
+      "y": 1050.0,
       "systemName": "Switch 243",
       "publicName": "Switch 243",
       "cp": "Brick",
@@ -550,7 +550,7 @@
       "id": "to-TOG42",
       "kind": "turnout",
       "x": 2111.4,
-      "y": 1185.0,
+      "y": 1194.0,
       "systemName": "Switch 245",
       "publicName": "Switch 245",
       "cp": "Plane",
@@ -563,7 +563,7 @@
       "id": "to-TOG43",
       "kind": "turnout",
       "x": 1186.4,
-      "y": 1185.0,
+      "y": 1194.0,
       "systemName": "Switch 221",
       "publicName": "Switch 221",
       "cp": "Brick",
@@ -576,7 +576,7 @@
       "id": "to-TOG44",
       "kind": "turnout",
       "x": 600.4,
-      "y": 1185.0,
+      "y": 1194.0,
       "systemName": "Switch 211",
       "publicName": "Switch 211",
       "cp": "Brick",
@@ -589,7 +589,7 @@
       "id": "to-TOG45",
       "kind": "turnout",
       "x": 914.4,
-      "y": 1185.0,
+      "y": 1194.0,
       "systemName": "Switch 217",
       "publicName": "Switch 217",
       "cp": "Brick",
@@ -602,7 +602,7 @@
       "id": "to-TOG46",
       "kind": "turnout",
       "x": 227.2,
-      "y": 1209.0,
+      "y": 1218.0,
       "systemName": "Switch 201",
       "publicName": "Switch 201",
       "cp": "Brick",
@@ -615,7 +615,7 @@
       "id": "to-TOG47",
       "kind": "turnout",
       "x": 1090.5,
-      "y": 1161.0,
+      "y": 1170.0,
       "systemName": "Switch 219",
       "publicName": "Switch 219",
       "cp": "Brick",
@@ -628,7 +628,7 @@
       "id": "to-TOG48",
       "kind": "turnout",
       "x": 1482.8,
-      "y": 1209.0,
+      "y": 1218.0,
       "systemName": "Switch 127",
       "publicName": "Switch 127",
       "cp": "Brick",
@@ -641,7 +641,7 @@
       "id": "to-TOG49",
       "kind": "turnout",
       "x": 658.9,
-      "y": 1113.0,
+      "y": 1122.0,
       "systemName": "Switch 213",
       "publicName": "Switch 213",
       "cp": "Brick",
@@ -654,7 +654,7 @@
       "id": "to-TOG50",
       "kind": "turnout",
       "x": 501.9,
-      "y": 1065.0,
+      "y": 1074.0,
       "systemName": "Switch 209",
       "publicName": "Switch 209",
       "cp": "Engine House",
@@ -667,7 +667,7 @@
       "id": "to-TOG51",
       "kind": "turnout",
       "x": 305.7,
-      "y": 1209.0,
+      "y": 1218.0,
       "systemName": "Switch 203",
       "publicName": "Switch 203",
       "cp": "Brick",
@@ -680,7 +680,7 @@
       "id": "to-TOG52",
       "kind": "turnout",
       "x": 345.0,
-      "y": 1113.0,
+      "y": 1122.0,
       "systemName": "Switch 205",
       "publicName": "Switch 205",
       "cp": "Plane",
@@ -693,7 +693,7 @@
       "id": "to-TOG53",
       "kind": "turnout",
       "x": 815.8,
-      "y": 1113.0,
+      "y": 1122.0,
       "systemName": "Switch 215",
       "publicName": "Switch 215",
       "cp": "Brick",
@@ -706,7 +706,7 @@
       "id": "to-TOG54",
       "kind": "turnout",
       "x": 1807.1,
-      "y": 1113.0,
+      "y": 1122.0,
       "systemName": "Switch 229",
       "publicName": "Switch 229",
       "cp": "East End",
@@ -719,7 +719,7 @@
       "id": "to-TOG55",
       "kind": "turnout",
       "x": 423.4,
-      "y": 1161.0,
+      "y": 1170.0,
       "systemName": "Switch 207",
       "publicName": "Switch 207",
       "cp": "Barn",
@@ -732,7 +732,7 @@
       "id": "to-TOG56",
       "kind": "turnout",
       "x": 1896.0,
-      "y": 1209.0,
+      "y": 1218.0,
       "systemName": "Switch 237",
       "publicName": "Switch 237",
       "cp": "Brick",
@@ -745,7 +745,7 @@
       "id": "to-TOG57",
       "kind": "turnout",
       "x": 1935.2,
-      "y": 1209.0,
+      "y": 1218.0,
       "systemName": "Switch 239",
       "publicName": "Switch 239",
       "cp": "Brick",
@@ -758,7 +758,7 @@
       "id": "to-TOG58",
       "kind": "turnout",
       "x": 1522.1,
-      "y": 1209.0,
+      "y": 1218.0,
       "systemName": "Switch 131",
       "publicName": "Switch 131",
       "cp": "Brick",
@@ -771,7 +771,7 @@
       "id": "to-TOG59",
       "kind": "turnout",
       "x": 1974.4,
-      "y": 969.0,
+      "y": 978.0,
       "systemName": "Switch 241",
       "publicName": "Switch 241",
       "cp": "Brick",
@@ -784,7 +784,7 @@
       "id": "to-TOG60",
       "kind": "turnout",
       "x": 1757.5,
-      "y": 1161.0,
+      "y": 1170.0,
       "systemName": "Switch 227",
       "publicName": "Switch 227",
       "cp": "Barn",
@@ -797,7 +797,7 @@
       "id": "to-TOG61",
       "kind": "turnout",
       "x": 1807.1,
-      "y": 1161.0,
+      "y": 1170.0,
       "systemName": "Switch 231",
       "publicName": "Switch 231",
       "cp": "Brick",
@@ -810,7 +810,7 @@
       "id": "to-TOG62",
       "kind": "turnout",
       "x": 1896.0,
-      "y": 1113.0,
+      "y": 1122.0,
       "systemName": "Switch 235",
       "publicName": "Switch 235",
       "cp": "Brick",
@@ -823,7 +823,7 @@
       "id": "to-TOG63",
       "kind": "turnout",
       "x": 1856.7,
-      "y": 1113.0,
+      "y": 1122.0,
       "systemName": "Switch 233",
       "publicName": "Switch 233",
       "cp": "Brick",
@@ -836,7 +836,7 @@
       "id": "to-TOG64",
       "kind": "turnout",
       "x": 1482.8,
-      "y": 1161.0,
+      "y": 1170.0,
       "systemName": "Switch 223",
       "publicName": "Switch 223",
       "cp": "Brick",
@@ -849,7 +849,7 @@
       "id": "to-TOG65",
       "kind": "turnout",
       "x": 1678.9,
-      "y": 1137.0,
+      "y": 1146.0,
       "systemName": "Switch 225",
       "publicName": "Switch 225",
       "cp": "Plane",
@@ -952,110 +952,6 @@
     {
       "id": "sig-7",
       "kind": "signal",
-      "x": 1122.0,
-      "y": 198.0,
-      "systemName": "Mast 16L",
-      "publicName": "Mast 16L",
-      "cp": "South Yard",
-      "hardware": "virtual $1016",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-8",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 218.0,
-      "systemName": "Mast 16R",
-      "publicName": "Mast 16R",
-      "cp": "South Yard",
-      "hardware": "virtual $1017",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-9",
-      "kind": "signal",
-      "x": 1122.0,
-      "y": 246.0,
-      "systemName": "Mast 18L",
-      "publicName": "Mast 18L",
-      "cp": "South Yard",
-      "hardware": "virtual $1008",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-10",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 266.0,
-      "systemName": "Mast 18R",
-      "publicName": "Mast 18R",
-      "cp": "South Yard",
-      "hardware": "virtual $1012",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-11",
-      "kind": "signal",
-      "x": 1122.0,
-      "y": 294.0,
-      "systemName": "Mast 20L",
-      "publicName": "Mast 20L",
-      "cp": "South Yard",
-      "hardware": "virtual $1009",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-12",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 314.0,
-      "systemName": "Mast 20R",
-      "publicName": "Mast 20R",
-      "cp": "South Yard",
-      "hardware": "virtual $1013",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-13",
-      "kind": "signal",
-      "x": 1136.0,
-      "y": 342.0,
-      "systemName": "Mast 22L",
-      "publicName": "Mast 22L",
-      "cp": "South Yard",
-      "hardware": "virtual $1010",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-14",
-      "kind": "signal",
-      "x": 1250.0,
-      "y": 362.0,
-      "systemName": "Mast 22R",
-      "publicName": "Mast 22R",
-      "cp": "South Yard",
-      "hardware": "virtual $1014",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-15",
-      "kind": "signal",
       "x": 1371.0,
       "y": 150.0,
       "systemName": "Mast 24L",
@@ -1067,7 +963,7 @@
       "block": ""
     },
     {
-      "id": "sig-16",
+      "id": "sig-8",
       "kind": "signal",
       "x": 1227.0,
       "y": 170.0,
@@ -1080,7 +976,7 @@
       "block": ""
     },
     {
-      "id": "sig-17",
+      "id": "sig-9",
       "kind": "signal",
       "x": 1298.0,
       "y": 218.0,
@@ -1093,33 +989,7 @@
       "block": ""
     },
     {
-      "id": "sig-18",
-      "kind": "signal",
-      "x": 1124.0,
-      "y": 373.0,
-      "systemName": "Mast 26L",
-      "publicName": "Mast 26L",
-      "cp": "South Yard",
-      "hardware": "virtual $1011",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-19",
-      "kind": "signal",
-      "x": 1300.0,
-      "y": 385.0,
-      "systemName": "Mast 26R",
-      "publicName": "Mast 26R",
-      "cp": "South Yard",
-      "hardware": "virtual $1015",
-      "mqtt": "",
-      "comment": "South Yard",
-      "block": ""
-    },
-    {
-      "id": "sig-20",
+      "id": "sig-10",
       "kind": "signal",
       "x": 443.0,
       "y": 150.0,
@@ -1132,7 +1002,7 @@
       "block": ""
     },
     {
-      "id": "sig-21",
+      "id": "sig-11",
       "kind": "signal",
       "x": 395.0,
       "y": 181.0,
@@ -1145,7 +1015,7 @@
       "block": ""
     },
     {
-      "id": "sig-22",
+      "id": "sig-12",
       "kind": "signal",
       "x": 1422.0,
       "y": 229.0,
@@ -1158,7 +1028,7 @@
       "block": ""
     },
     {
-      "id": "sig-23",
+      "id": "sig-13",
       "kind": "signal",
       "x": 1493.0,
       "y": 198.0,
@@ -1171,7 +1041,7 @@
       "block": ""
     },
     {
-      "id": "sig-24",
+      "id": "sig-14",
       "kind": "signal",
       "x": 1445.0,
       "y": 229.0,
@@ -1184,20 +1054,7 @@
       "block": ""
     },
     {
-      "id": "sig-25",
-      "kind": "signal",
-      "x": 1677.0,
-      "y": 198.0,
-      "systemName": "Mast 36L",
-      "publicName": "Mast 36L",
-      "cp": "Princess",
-      "hardware": "virtual $1025",
-      "mqtt": "",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
-      "id": "sig-26",
+      "id": "sig-15",
       "kind": "signal",
       "x": 1725.0,
       "y": 170.0,
@@ -1210,7 +1067,7 @@
       "block": ""
     },
     {
-      "id": "sig-27",
+      "id": "sig-16",
       "kind": "signal",
       "x": 1677.0,
       "y": 218.0,
@@ -1223,7 +1080,7 @@
       "block": ""
     },
     {
-      "id": "sig-28",
+      "id": "sig-17",
       "kind": "signal",
       "x": 1907.0,
       "y": 198.0,
@@ -1236,7 +1093,7 @@
       "block": ""
     },
     {
-      "id": "sig-29",
+      "id": "sig-18",
       "kind": "signal",
       "x": 1902.0,
       "y": 217.0,
@@ -1249,7 +1106,7 @@
       "block": ""
     },
     {
-      "id": "sig-30",
+      "id": "sig-19",
       "kind": "signal",
       "x": 1887.0,
       "y": 112.0,
@@ -1262,7 +1119,7 @@
       "block": ""
     },
     {
-      "id": "sig-31",
+      "id": "sig-20",
       "kind": "signal",
       "x": 1907.0,
       "y": 150.0,
@@ -1275,20 +1132,7 @@
       "block": ""
     },
     {
-      "id": "sig-32",
-      "kind": "signal",
-      "x": 1940.0,
-      "y": 122.0,
-      "systemName": "Mast 40RB",
-      "publicName": "Mast 40RB",
-      "cp": "Princess",
-      "hardware": "virtual $1026",
-      "mqtt": "",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
-      "id": "sig-33",
+      "id": "sig-21",
       "kind": "signal",
       "x": 281.0,
       "y": 150.0,
@@ -1301,7 +1145,7 @@
       "block": ""
     },
     {
-      "id": "sig-34",
+      "id": "sig-22",
       "kind": "signal",
       "x": 243.0,
       "y": 198.0,
@@ -1314,7 +1158,7 @@
       "block": ""
     },
     {
-      "id": "sig-35",
+      "id": "sig-23",
       "kind": "signal",
       "x": 354.0,
       "y": 170.0,
@@ -1327,7 +1171,7 @@
       "block": ""
     },
     {
-      "id": "sig-36",
+      "id": "sig-24",
       "kind": "signal",
       "x": 372.0,
       "y": 181.0,
@@ -1340,7 +1184,7 @@
       "block": ""
     },
     {
-      "id": "sig-37",
+      "id": "sig-25",
       "kind": "signal",
       "x": 2302.0,
       "y": 194.0,
@@ -1353,7 +1197,7 @@
       "block": ""
     },
     {
-      "id": "sig-38",
+      "id": "sig-26",
       "kind": "signal",
       "x": 2282.0,
       "y": 146.0,
@@ -1366,7 +1210,7 @@
       "block": ""
     },
     {
-      "id": "sig-39",
+      "id": "sig-27",
       "kind": "signal",
       "x": 424.0,
       "y": 418.0,
@@ -1379,7 +1223,7 @@
       "block": ""
     },
     {
-      "id": "sig-40",
+      "id": "sig-28",
       "kind": "signal",
       "x": 443.0,
       "y": 438.0,
@@ -1392,7 +1236,7 @@
       "block": ""
     },
     {
-      "id": "sig-41",
+      "id": "sig-29",
       "kind": "signal",
       "x": 371.0,
       "y": 458.0,
@@ -1405,7 +1249,7 @@
       "block": ""
     },
     {
-      "id": "sig-42",
+      "id": "sig-30",
       "kind": "signal",
       "x": 709.0,
       "y": 390.0,
@@ -1418,7 +1262,7 @@
       "block": ""
     },
     {
-      "id": "sig-43",
+      "id": "sig-31",
       "kind": "signal",
       "x": 661.0,
       "y": 438.0,
@@ -1431,7 +1275,7 @@
       "block": ""
     },
     {
-      "id": "sig-44",
+      "id": "sig-32",
       "kind": "signal",
       "x": 588.0,
       "y": 390.0,
@@ -1444,7 +1288,7 @@
       "block": ""
     },
     {
-      "id": "sig-45",
+      "id": "sig-33",
       "kind": "signal",
       "x": 563.0,
       "y": 410.0,
@@ -1457,7 +1301,7 @@
       "block": ""
     },
     {
-      "id": "sig-46",
+      "id": "sig-34",
       "kind": "signal",
       "x": 517.0,
       "y": 458.0,
@@ -1470,7 +1314,7 @@
       "block": ""
     },
     {
-      "id": "sig-47",
+      "id": "sig-35",
       "kind": "signal",
       "x": 619.0,
       "y": 692.0,
@@ -1483,7 +1327,7 @@
       "block": ""
     },
     {
-      "id": "sig-48",
+      "id": "sig-36",
       "kind": "signal",
       "x": 628.0,
       "y": 646.0,
@@ -1496,7 +1340,7 @@
       "block": ""
     },
     {
-      "id": "sig-49",
+      "id": "sig-37",
       "kind": "signal",
       "x": 729.0,
       "y": 703.0,
@@ -1509,7 +1353,7 @@
       "block": ""
     },
     {
-      "id": "sig-50",
+      "id": "sig-38",
       "kind": "signal",
       "x": 800.0,
       "y": 703.0,
@@ -1522,7 +1366,7 @@
       "block": ""
     },
     {
-      "id": "sig-51",
+      "id": "sig-39",
       "kind": "signal",
       "x": 1100.0,
       "y": 703.0,
@@ -1535,7 +1379,7 @@
       "block": ""
     },
     {
-      "id": "sig-52",
+      "id": "sig-40",
       "kind": "signal",
       "x": 1241.0,
       "y": 672.0,
@@ -1548,7 +1392,7 @@
       "block": ""
     },
     {
-      "id": "sig-53",
+      "id": "sig-41",
       "kind": "signal",
       "x": 1289.0,
       "y": 720.0,
@@ -1561,7 +1405,7 @@
       "block": ""
     },
     {
-      "id": "sig-54",
+      "id": "sig-42",
       "kind": "signal",
       "x": 1547.0,
       "y": 692.0,
@@ -1574,7 +1418,7 @@
       "block": ""
     },
     {
-      "id": "sig-55",
+      "id": "sig-43",
       "kind": "signal",
       "x": 1577.0,
       "y": 706.0,
@@ -1587,7 +1431,7 @@
       "block": ""
     },
     {
-      "id": "sig-56",
+      "id": "sig-44",
       "kind": "signal",
       "x": 1692.0,
       "y": 672.0,
@@ -1600,7 +1444,7 @@
       "block": ""
     },
     {
-      "id": "sig-57",
+      "id": "sig-45",
       "kind": "signal",
       "x": 1788.0,
       "y": 768.0,
@@ -1613,7 +1457,7 @@
       "block": ""
     },
     {
-      "id": "sig-58",
+      "id": "sig-46",
       "kind": "signal",
       "x": 1699.0,
       "y": 692.0,
@@ -1626,7 +1470,7 @@
       "block": ""
     },
     {
-      "id": "sig-59",
+      "id": "sig-47",
       "kind": "signal",
       "x": 2050.0,
       "y": 672.0,
@@ -1639,7 +1483,7 @@
       "block": ""
     },
     {
-      "id": "sig-60",
+      "id": "sig-48",
       "kind": "signal",
       "x": 307.0,
       "y": 620.0,
@@ -1652,7 +1496,7 @@
       "block": ""
     },
     {
-      "id": "sig-61",
+      "id": "sig-49",
       "kind": "signal",
       "x": 327.0,
       "y": 668.0,
@@ -1665,10 +1509,10 @@
       "block": ""
     },
     {
-      "id": "sig-62",
+      "id": "sig-50",
       "kind": "signal",
       "x": 1425.0,
-      "y": 1213.0,
+      "y": 1222.0,
       "systemName": "Mast 128LB",
       "publicName": "Mast 128LB",
       "cp": "",
@@ -1678,10 +1522,10 @@
       "block": ""
     },
     {
-      "id": "sig-63",
+      "id": "sig-51",
       "kind": "signal",
       "x": 1538.0,
-      "y": 1193.0,
+      "y": 1202.0,
       "systemName": "Mast 132RB",
       "publicName": "Mast 132RB",
       "cp": "",
@@ -1691,10 +1535,10 @@
       "block": ""
     },
     {
-      "id": "sig-64",
+      "id": "sig-52",
       "kind": "signal",
       "x": 225.0,
-      "y": 1173.0,
+      "y": 1182.0,
       "systemName": "Mast 202R",
       "publicName": "Mast 202R",
       "cp": "",
@@ -1704,10 +1548,10 @@
       "block": ""
     },
     {
-      "id": "sig-65",
+      "id": "sig-53",
       "kind": "signal",
       "x": 303.0,
-      "y": 1173.0,
+      "y": 1182.0,
       "systemName": "Mast 204RA",
       "publicName": "Mast 204RA",
       "cp": "",
@@ -1717,10 +1561,10 @@
       "block": ""
     },
     {
-      "id": "sig-66",
+      "id": "sig-54",
       "kind": "signal",
       "x": 324.0,
-      "y": 1193.0,
+      "y": 1202.0,
       "systemName": "Mast 204RB",
       "publicName": "Mast 204RB",
       "cp": "",
@@ -1730,10 +1574,10 @@
       "block": ""
     },
     {
-      "id": "sig-67",
+      "id": "sig-55",
       "kind": "signal",
       "x": 507.0,
-      "y": 1165.0,
+      "y": 1174.0,
       "systemName": "Mast 212LA",
       "publicName": "Mast 212LA",
       "cp": "",
@@ -1743,10 +1587,10 @@
       "block": ""
     },
     {
-      "id": "sig-68",
+      "id": "sig-56",
       "kind": "signal",
       "x": 532.0,
-      "y": 1213.0,
+      "y": 1222.0,
       "systemName": "Mast 212LB",
       "publicName": "Mast 212LB",
       "cp": "",
@@ -1756,10 +1600,10 @@
       "block": ""
     },
     {
-      "id": "sig-69",
+      "id": "sig-57",
       "kind": "signal",
       "x": 628.0,
-      "y": 1145.0,
+      "y": 1154.0,
       "systemName": "Mast 212RA",
       "publicName": "Mast 212RA",
       "cp": "",
@@ -1769,10 +1613,10 @@
       "block": ""
     },
     {
-      "id": "sig-70",
+      "id": "sig-58",
       "kind": "signal",
       "x": 676.0,
-      "y": 1193.0,
+      "y": 1202.0,
       "systemName": "Mast 212RB",
       "publicName": "Mast 212RB",
       "cp": "",
@@ -1782,10 +1626,10 @@
       "block": ""
     },
     {
-      "id": "sig-71",
+      "id": "sig-59",
       "kind": "signal",
       "x": 846.0,
-      "y": 1165.0,
+      "y": 1174.0,
       "systemName": "Mast 218LA",
       "publicName": "Mast 218LA",
       "cp": "",
@@ -1795,10 +1639,10 @@
       "block": ""
     },
     {
-      "id": "sig-72",
+      "id": "sig-60",
       "kind": "signal",
       "x": 798.0,
-      "y": 1213.0,
+      "y": 1222.0,
       "systemName": "Mast 218LB",
       "publicName": "Mast 218LB",
       "cp": "",
@@ -1808,10 +1652,10 @@
       "block": ""
     },
     {
-      "id": "sig-73",
+      "id": "sig-61",
       "kind": "signal",
       "x": 990.0,
-      "y": 1145.0,
+      "y": 1154.0,
       "systemName": "Mast 218RA",
       "publicName": "Mast 218RA",
       "cp": "",
@@ -1821,10 +1665,10 @@
       "block": ""
     },
     {
-      "id": "sig-74",
+      "id": "sig-62",
       "kind": "signal",
       "x": 942.0,
-      "y": 1193.0,
+      "y": 1202.0,
       "systemName": "Mast 218RB",
       "publicName": "Mast 218RB",
       "cp": "",
@@ -1834,10 +1678,10 @@
       "block": ""
     },
     {
-      "id": "sig-75",
+      "id": "sig-63",
       "kind": "signal",
       "x": 1034.0,
-      "y": 1165.0,
+      "y": 1174.0,
       "systemName": "Mast 220R",
       "publicName": "Mast 220R",
       "cp": "",
@@ -1847,10 +1691,10 @@
       "block": ""
     },
     {
-      "id": "sig-76",
+      "id": "sig-64",
       "kind": "signal",
       "x": 1214.0,
-      "y": 1145.0,
+      "y": 1154.0,
       "systemName": "Mast 222LA",
       "publicName": "Mast 222LA",
       "cp": "",
@@ -1860,10 +1704,10 @@
       "block": ""
     },
     {
-      "id": "sig-77",
+      "id": "sig-65",
       "kind": "signal",
       "x": 1118.0,
-      "y": 1213.0,
+      "y": 1222.0,
       "systemName": "Mast 222LB",
       "publicName": "Mast 222LB",
       "cp": "",
@@ -1873,10 +1717,10 @@
       "block": ""
     },
     {
-      "id": "sig-78",
+      "id": "sig-66",
       "kind": "signal",
       "x": 1262.0,
-      "y": 1193.0,
+      "y": 1202.0,
       "systemName": "Mast 222R",
       "publicName": "Mast 222R",
       "cp": "",
@@ -1886,10 +1730,10 @@
       "block": ""
     },
     {
-      "id": "sig-79",
+      "id": "sig-67",
       "kind": "signal",
       "x": 1481.0,
-      "y": 1107.0,
+      "y": 1116.0,
       "systemName": "Mast 224LA",
       "publicName": "Mast 224LA",
       "cp": "",
@@ -1899,10 +1743,10 @@
       "block": ""
     },
     {
-      "id": "sig-80",
+      "id": "sig-68",
       "kind": "signal",
       "x": 1501.0,
-      "y": 1145.0,
+      "y": 1154.0,
       "systemName": "Mast 224LB",
       "publicName": "Mast 224LB",
       "cp": "",
@@ -1912,10 +1756,10 @@
       "block": ""
     },
     {
-      "id": "sig-81",
+      "id": "sig-69",
       "kind": "signal",
       "x": 1427.0,
-      "y": 1165.0,
+      "y": 1174.0,
       "systemName": "Mast 224R",
       "publicName": "Mast 224R",
       "cp": "",
@@ -1925,10 +1769,10 @@
       "block": ""
     },
     {
-      "id": "sig-82",
+      "id": "sig-70",
       "kind": "signal",
       "x": 1571.0,
-      "y": 1117.0,
+      "y": 1126.0,
       "systemName": "Mast 226RA",
       "publicName": "Mast 226RA",
       "cp": "",
@@ -1938,10 +1782,10 @@
       "block": ""
     },
     {
-      "id": "sig-83",
+      "id": "sig-71",
       "kind": "signal",
       "x": 1571.0,
-      "y": 1165.0,
+      "y": 1174.0,
       "systemName": "Mast 226RB",
       "publicName": "Mast 226RB",
       "cp": "",
@@ -1951,10 +1795,10 @@
       "block": ""
     },
     {
-      "id": "sig-84",
+      "id": "sig-72",
       "kind": "signal",
       "x": 1774.0,
-      "y": 1145.0,
+      "y": 1154.0,
       "systemName": "Mast 228RA",
       "publicName": "Mast 228RA",
       "cp": "",
@@ -1964,10 +1808,10 @@
       "block": ""
     },
     {
-      "id": "sig-85",
+      "id": "sig-73",
       "kind": "signal",
       "x": 1771.0,
-      "y": 1163.0,
+      "y": 1172.0,
       "systemName": "Mast 228RB",
       "publicName": "Mast 228RB",
       "cp": "",
@@ -1977,10 +1821,10 @@
       "block": ""
     },
     {
-      "id": "sig-86",
+      "id": "sig-74",
       "kind": "signal",
       "x": 1805.0,
-      "y": 1059.0,
+      "y": 1068.0,
       "systemName": "Mast 230LA",
       "publicName": "Mast 230LA",
       "cp": "",
@@ -1990,10 +1834,10 @@
       "block": ""
     },
     {
-      "id": "sig-87",
+      "id": "sig-75",
       "kind": "signal",
       "x": 1825.0,
-      "y": 1097.0,
+      "y": 1106.0,
       "systemName": "Mast 230LB",
       "publicName": "Mast 230LB",
       "cp": "",
@@ -2003,10 +1847,10 @@
       "block": ""
     },
     {
-      "id": "sig-88",
+      "id": "sig-76",
       "kind": "signal",
       "x": 1992.0,
-      "y": 953.0,
+      "y": 962.0,
       "systemName": "Mast 242L",
       "publicName": "Mast 242L",
       "cp": "",
@@ -2016,10 +1860,10 @@
       "block": ""
     },
     {
-      "id": "sig-89",
+      "id": "sig-77",
       "kind": "signal",
       "x": 2420.0,
-      "y": 1069.0,
+      "y": 1078.0,
       "systemName": "Mast B92",
       "publicName": "Mast B92",
       "cp": "",
@@ -2029,10 +1873,10 @@
       "block": ""
     },
     {
-      "id": "sig-90",
+      "id": "sig-78",
       "kind": "signal",
       "x": 2444.0,
-      "y": 1117.0,
+      "y": 1126.0,
       "systemName": "Mast B93",
       "publicName": "Mast B93",
       "cp": "",
@@ -4941,32 +4785,6 @@
       "block": ""
     },
     {
-      "id": "dev-IB:C3:0073",
-      "kind": "occupancy",
-      "x": null,
-      "y": null,
-      "systemName": "IB:C3:0073",
-      "publicName": "Track 131-H1",
-      "cp": "",
-      "hardware": "IB:C3:0073",
-      "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
-      "block": ""
-    },
-    {
-      "id": "dev-IB:C3:0074",
-      "kind": "occupancy",
-      "x": null,
-      "y": null,
-      "systemName": "IB:C3:0074",
-      "publicName": "Track 131-H2",
-      "cp": "",
-      "hardware": "IB:C3:0074",
-      "mqtt": "",
-      "comment": "Main and upper level, internal until the import (device map name; build_layout_le.py)",
-      "block": ""
-    },
-    {
       "id": "dev-IB:C3:0075",
       "kind": "occupancy",
       "x": null,
@@ -5593,10 +5411,10 @@
   ],
   "counts": {
     "turnout": 85,
-    "signal": 92,
-    "occupancy": 212,
+    "signal": 80,
+    "occupancy": 210,
     "sensor": 40,
-    "mapped": 156,
-    "total": 429
+    "mapped": 144,
+    "total": 415
   }
 }

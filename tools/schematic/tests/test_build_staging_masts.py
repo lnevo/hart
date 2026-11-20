@@ -277,7 +277,7 @@ class Intermediates(unittest.TestCase):
     CPS = {"37": "Princess", "39": "Princess"}
     CHAINS = {("N39", "B"): ["k1", "k2"], ("N37", "A"): ["k1", "k2"], ("N9", "B"): ["k1", "k2"]}
     SEQ = ["OS Switch 39", "Track K-1", "Track K-2", "OS Switch 37"]
-    CM = {"OS Switch 39": 20.0, "Track K-1": 300.0, "Track K-2": 250.0, "OS Switch 37": 30.0}
+    CM = {"OS Switch 39": 20.0, "Track K-1": 300.0, "Track K-2": 250.0, "OS Switch 37": 30.0, "OS Switch 9": 20.0}
 
     def band(self, start_mp=6.5, end_mp=None, on_count=("N39", "N37")):
         length = 600.0 / CM_PER_SCALE_MILE
@@ -319,7 +319,8 @@ class Intermediates(unittest.TestCase):
         self.assertEqual(mast_rule.LONG_CM, 150.0)
         self.assertEqual(self.pairs(cm=dict(self.CM, **{"Track K-2": 150.0})), [])       # exactly LONG_CM is short
         self.assertEqual(len(self.pairs(cm=dict(self.CM, **{"Track K-2": 150.1}))), 2)
-        self.assertEqual(self.pairs(cm={"Track K-1": 300.0}), [])                        # no length counts as none
+        with self.assertRaisesRegex(bsm.RuleError, r"no plan length for \['OS Switch 37', 'OS Switch 39', 'Track K-2'\]"):
+            self.pairs(cm={"Track K-1": 300.0})                                          # no length stops
 
     def test_only_between_two_control_point_switches(self):
         self.assertEqual(self.pairs(cps={"39": "Princess"}), [])                         # 37 in no control point
@@ -435,7 +436,7 @@ class Cli(unittest.TestCase):
         self.missing = self.dir / "device_map_staging.csv"
         want = {self.current: "mast\nMast 2L\n", self.stale: "mast\nnew\n", self.missing: "level\n1\n"}
         gen = [dict(GEN[0]), dict(GEN[1], milepost=6.714)]
-        patch = unittest.mock.patch.object(bsm, "build", lambda: (want, gen))
+        patch = unittest.mock.patch.object(bsm, "build", lambda: (want, gen, []))
         patch.start()
         self.addCleanup(patch.stop)
 
@@ -523,7 +524,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.files = {p: p.read_bytes() for p in (bsm.MASTS, bsm.SIGNALS, bsm.DEVICE_MAP)}
-        cls.want, cls.gen = bsm.build()
+        cls.want, cls.gen, cls.virtual = bsm.build()
 
     def test_check_reports_the_committed_files_current_and_writes_nothing(self):
         out, err = io.StringIO(), io.StringIO()
@@ -537,9 +538,18 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, bsm.DEVICE_MAP})
 
     def test_masts_are_in_number_then_name_order_each_named_once(self):
-        names = [m["mast"] for m in self.gen]
+        for masts in (self.gen, self.virtual):
+            names = [m["mast"] for m in masts]
+            self.assertEqual(names, sorted(names, key=lambda n: (int("".join(c for c in n[5:] if c.isdigit())), n)))
+        names = [m["mast"] for m in self.gen + self.virtual]
         self.assertEqual(len(set(names)), len(names))
-        self.assertEqual(names, sorted(names, key=lambda n: (int("".join(c for c in n[5:] if c.isdigit())), n)))
+
+    def test_virtual_masts_are_hidden_one_low_and_in_a_control_point(self):
+        stations = {s.strip(): r["cp_name"] for r in sdm.read_rows(bsm.CPS, sdm.CP_COLUMNS)
+                    for s in r["switches"].split(",")}
+        for m in self.virtual:
+            self.assertEqual((m["kind"], m["heads"], m["signal_kind"]), ("one-low", 1, "virtual"), m["mast"])
+            self.assertIn(m["cp"], set(stations.values()), m["mast"])
 
     def test_home_masts_stand_only_at_switches_of_an_interlocking(self):
         # the signal rule's control points are interlockings_staging.csv, not the stations the drawings group by
@@ -570,15 +580,17 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
             self.assertLess(number, 100)
 
     def test_the_files_list_the_rule_masts_first_then_the_virtual_ones(self):
-        rule = [m["mast"] for m in self.gen]
-        virtual_masts, virtual_signals = bsm.read_virtual()
-        virtual = [r["mast"] for r in virtual_masts]
-        self.assertEqual([r["mast"] for r in rows_of(self.want[bsm.MASTS])], rule + virtual)
-        self.assertEqual([r["mast"] for r in rows_of(self.want[bsm.SIGNALS])],
-                         rule + [r["mast"] for r in virtual_signals])
-        self.assertFalse(set(rule) & set(virtual))
+        rule = [m["mast"] for m in self.gen] + [m["mast"] for m in self.virtual]
+        self.assertEqual([r["mast"] for r in rows_of(self.want[bsm.MASTS])], rule)
+        self.assertEqual([r["mast"] for r in rows_of(self.want[bsm.SIGNALS])], rule)
+        virtual = {m["mast"] for m in self.virtual}
         for r in rows_of(self.want[bsm.MASTS]):
             self.assertEqual(r["system_name"].startswith("IF$vsm:"), r["mast"] in virtual, r["mast"])
+
+    def test_no_hand_kept_virtual_files_are_left(self):
+        """The helix-foot masts were the last hand-kept ones (2026-11-20): the files that held them are gone."""
+        self.assertFalse((bsm.DATA / "staging_masts_virtual.csv").exists())
+        self.assertFalse((bsm.DATA / "staging_signals_virtual.csv").exists())
 
     def test_the_device_map_keeps_other_rows_then_masts_then_heads_by_name(self):
         old = sdm.read_rows(bsm.DEVICE_MAP, bdm.COLUMNS)
@@ -591,6 +603,113 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         self.assertEqual(masts, sorted(masts))
         self.assertEqual(heads, sorted(heads))
         self.assertEqual(sorted(masts), sorted(r["mast"] for r in rows_of(self.want[bsm.MASTS])))
+
+
+def node(label, legs, kind="switch", **more):
+    """A band node whose legs map to strand ids (all as outs)."""
+    return dict(kind=kind, label=label, ins={}, outs=dict(legs), **more)
+
+
+def link(src, dst, edge, name="", cm=100.0):
+    return dict(src=list(src), dst=list(dst), edge=edge, name=name, cm=cm)
+
+
+class Stubs(unittest.TestCase):
+    """mast_rule.leads_to_bumpers_only on a small band: Switch 1's leg B runs to Switch 3, whose legs end at buffer
+    stops; leg A runs on to the helix; leg C turns back to Switch 3's points."""
+
+    BAND = {"nodes": {"N1": node("1", {"A": "h", "B": "x", "C": "t1"}), "N3": node("3", {"A": "x", "B": "w1", "C": "w2"}),
+                      "H": node("", {"E": "h"}, kind="end", sub="helix"), "E1": node("", {"E": "w1"}, kind="end", sub="bumper"),
+                      "E2": node("", {"E": "w2"}, kind="end", sub="bumper"), "T": node("", {0: "t1", 1: "t2"}, kind="turnL"),
+                      "Q": node("", {"E": "t2"}, kind="end", sub="weird")},
+            "strands": {"h": link(("N1", "A"), ("H", "E"), "e0"), "x": link(("N1", "B"), ("N3", "A"), "e1"),
+                        "w1": link(("N3", "B"), ("E1", "E"), "e2"), "w2": link(("N3", "C"), ("E2", "E"), "e3"),
+                        "t1": link(("N1", "C"), ("T", 0), "e4"), "t2": link(("T", 1), ("Q", "E"), "e4")}}
+
+    def test_a_leg_whose_every_route_ends_at_a_buffer_stop_is_a_stub(self):
+        self.assertTrue(mast_rule.leads_to_bumpers_only(self.BAND, "N1", "B"))
+        self.assertTrue(mast_rule.leads_to_bumpers_only(self.BAND, "N3", "B"))
+
+    def test_a_route_that_runs_on_is_no_stub(self):
+        self.assertFalse(mast_rule.leads_to_bumpers_only(self.BAND, "N1", "A"))          # the helix
+        self.assertFalse(mast_rule.leads_to_bumpers_only(self.BAND, "N3", "A"))          # back through Switch 1
+
+    def test_an_end_of_no_known_kind_stops(self):
+        with self.assertRaisesRegex(mast_rule.MapError, "track end Q is end/weird"):
+            mast_rule.leads_to_bumpers_only(self.BAND, "N1", "C")
+
+
+class Virtual(unittest.TestCase):
+    """virtual_masts(): staging's hidden routing masts by rule, on a band of Switch 9 (EH-2 on leg B, EH-3 on leg C,
+    leg A to Switch 13), Switch 13 (Barn on leg C from Switch 7, leg A on to Switch 15) and Switch 7, with an anchor
+    mast 8RA on Scale (from Switch 5) and no partner."""
+
+    def band(self):
+        n = {"N9": node("9", {"A": "s13", "B": "eh2", "C": "eh3"}, ), "N13": node("13", {"A": "s15", "B": "s13", "C": "barn"}),
+             "N7": node("7", {"A": "barn", "B": "scale"}), "N5": node("5", {"A": "h5", "C": "scale"}),
+             "N15": node("15", {"A": "s15", "B": "h15"}), "H5": node("", {"E": "h5"}, kind="end", sub="helix"),
+             "H15": node("", {"E": "h15"}, kind="end", sub="helix"), "B2": node("", {"E": "eh2"}, kind="end", sub="bumper"),
+             "B3": node("", {"E": "eh3"}, kind="end", sub="bumper")}
+        st = {"s13": link(("N9", "A"), ("N13", "B"), "e30"), "eh2": link(("N9", "B"), ("B2", "E"), "e33", "EH-2"),
+              "eh3": link(("N9", "C"), ("B3", "E"), "e34", "EH-3"), "barn": link(("N7", "A"), ("N13", "C"), "e31", "Barn"),
+              "s15": link(("N13", "A"), ("N15", "A"), "e9"), "scale": link(("N5", "C"), ("N7", "B"), "e29", "Scale"),
+              "h5": link(("N5", "A"), ("H5", "E"), "e40"), "h15": link(("N15", "B"), ("H15", "E"), "e41")}
+        rows = {"s13": 1, "eh2": 3, "eh3": 4, "barn": 6, "s15": 2, "scale": 5, "h5": 7, "h15": 8}
+        return {"nodes": n, "strands": st, "rail": {k: -1 for k in n}, "R": {"srow": rows}}
+
+    NAMES = {"os": {"N9": "OS Switch 9", "N13": "OS Switch 13", "N7": "OS Switch 7", "N5": "OS Switch 5",
+                    "N15": "OS Switch 15"}}
+    RUNS = [(("N9", "A"), ["OS Switch 9"], ("N13", "B")), (("N9", "B"), ["Track EH-2"], ("B2", "E")),
+            (("N9", "C"), ["Track EH-3"], ("B3", "E")), (("N7", "A"), ["Track Barn"], ("N13", "C")),
+            (("N13", "A"), ["OS Switch 15"], ("N15", "A")),
+            (("N5", "C"), ["Track Scale", "OS Switch 7"], ("N7", "B"))]
+    CM = {"OS Switch 9": 23.4, "Track EH-2": 77.0, "Track EH-3": 76.5, "Track Barn": 79.5, "OS Switch 15": 23.4,
+          "Track Scale": 401.3, "OS Switch 7": 23.4}
+    CPS = {"9": "Engine House", "13": "Engine House", "7": "Barn", "5": "Plane", "15": "South Yard"}
+    ANCHOR = dict(mast="Mast 8RA", cp="Barn", switch="", facing="Track Scale", protects="OS Switch 7", toward="7",
+                  run="7;5", names=["Scale"], edge_cm=424.7, cm_from_toward=23.4, edge="e29", node="N7", leg="B")
+
+    def virtual(self, gen=None):
+        patch = unittest.mock.patch.object
+        chains = {(s[0], s[1]): [k] for k, v in self.band()["strands"].items() for s in (tuple(v["src"]), tuple(v["dst"]))}
+        with patch(sdm, "run_blocks", lambda band, names: list(self.RUNS)), \
+                patch(bsm, "run_strands", lambda band: chains):
+            return bsm.virtual_masts(self.band(), self.NAMES, [self.ANCHOR] if gen is None else gen, self.CM, self.CPS)
+
+    def test_bumper_stub_leaving_and_anchor_partner_masts(self):
+        got = {m["mast"]: (m["switch"], m["facing"], m["protects"], m["toward"], m["run"], m["cm_from_toward"], m["cp"])
+               for m in self.virtual()}
+        self.assertEqual(got, {
+            "Mast 8L": ("", "OS Switch 7", "Track Scale", "5", "5;7", 401.3, "Barn"),        # 8LC beside 8LA, 8LB
+            "Mast 10LA": ("", "Track EH-2", "", "9", "9;", 77.0, "Engine House"),
+            "Mast 10LB": ("", "Track EH-3", "", "9", "9;", 76.5, "Engine House"),
+            "Mast 10RA": ("9", "Track EH-2", "OS Switch 9", "9", "9;", 0.0, "Engine House"),
+            "Mast 10RB": ("9", "Track EH-3", "OS Switch 9", "9", "9;", 0.0, "Engine House"),
+            "Mast 14R": ("13", "Track Barn", "OS Switch 13", "13", "13;7", 0.0, "Engine House")})
+        self.assertEqual({m["signal_kind"] for m in self.virtual()}, {"virtual"})
+
+    def test_a_partner_takes_the_next_letter_after_the_visible_masts(self):
+        gen = [self.ANCHOR, dict(self.ANCHOR, mast="Mast 8LA", switch="7", facing="Track Barn", protects="OS Switch 7",
+                                 leg="A", cm_from_toward=0.0)]
+        self.assertIn("Mast 8LB", {m["mast"] for m in self.virtual(gen)})
+
+    def test_a_mast_the_visible_rule_places_gets_no_virtual_one(self):
+        gen = [self.ANCHOR, dict(self.ANCHOR, mast="Mast 14R", switch="13", node="N13", leg="C", facing="Track Barn",
+                                 protects="OS Switch 13")]
+        self.assertNotIn("Mast 14RA", {m["mast"] for m in self.virtual(gen)})
+
+    def test_an_anchor_with_a_partner_gets_none(self):
+        gen = [self.ANCHOR, dict(self.ANCHOR, mast="Mast 8LA", facing="OS Switch 7", protects="Track Scale", leg="A")]
+        self.assertNotIn("Mast 8LB", {m["mast"] for m in self.virtual(gen)})
+
+    def test_system_names_carry_over_and_a_new_mast_takes_the_next_ordinal(self):
+        old = [dict(layer="mast", user_name="Mast 10RA", system_name="IF$vsm:basic:one-low($1021)"),
+               dict(layer="mast", user_name="Mast 12L", system_name="IF$vsm:basic:one-low($1026)"),
+               dict(layer="mast", user_name="Mast 2L", system_name="IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)")]
+        rows = bsm.virtual_rows([dict(mast="Mast 10RA", cp="EH", switch="9", facing="a", protects="b"),
+                                 dict(mast="Mast 99L", cp="EH", switch="", facing="a", protects="")], old)
+        self.assertEqual([r["system_name"] for r in rows], ["IF$vsm:basic:one-low($1021)", "IF$vsm:basic:one-low($1027)"])
+        self.assertEqual(rows[1]["device_system_name"], rows[1]["system_name"])
 
 
 if __name__ == "__main__":

@@ -141,43 +141,23 @@ class Lengths(unittest.TestCase):
         p.write_text(",".join(header) + "\n" + "\n".join(",".join(r) for r in rows) + "\n")
         return p
 
-    def test_basis_column_decides_when_present(self):
-        p = self.write(["user_name", "occupancy_sensor", "inches", "basis", "flag"],
-                       [["Track Main West", "x", "220", "anyrail", "assigned"],
-                        ["Track East Lead", "x", "172", "inferred", "estimate"],
-                        ["Track K-1", "x", "122.5", "", "split"],
-                        ["Track K-2", "x", "122.5", "estimate", "assigned"]])
+    def test_source_decides_and_timed_rows_give_the_measured_length(self):
+        p = self.write(["user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note"],
+                       [["Track Main West", "x", "231", "220", "timed", ""],
+                        ["Track East Lead", "x", "172", "", "plan", ""],
+                        ["Track K-2", "x", "122.9", "113.6", "timed", "laps"]])
         got = analyze.load_lengths(p)
         self.assertAlmostEqual(got["BS Main West"], 220 * 25.4)
-        self.assertAlmostEqual(got["BS East Lead"], 172 * 25.4)
-        self.assertIsNone(got["BS K-1"])
-        self.assertIsNone(got["BS K-2"])
-        only = analyze.load_lengths(p, trusted=("anyrail",))
-        self.assertIsNone(only["BS East Lead"])
+        self.assertIsNone(got["BS East Lead"])          # a plan length counts only when passed
+        self.assertAlmostEqual(got["BS K-2"], 113.6 * 25.4)
+        self.assertIsNone(got["BS K-1"])                # no row at all
+        both = analyze.load_lengths(p, trusted=("timed", "plan"))
+        self.assertAlmostEqual(both["BS East Lead"], 172 * 25.4)
 
-    def test_without_basis_assigned_counts_only_when_passed(self):
-        p = self.write(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
-                       [["Track Main West", "x", "220", "assigned", ""],
-                        ["Track Main East", "x", "185", "cut", ""],
-                        ["OS Switch 1", "x", "10", "estimate", ""]])
-        self.assertIsNone(analyze.load_lengths(p)["BS Main West"])
-        got = analyze.load_lengths(p, trusted=("anyrail", "inferred", "assigned"))
-        self.assertIsNotNone(got["BS Main West"])
-        self.assertIsNone(got["BS Main East"])
-        self.assertIsNone(got["BS Switch 1"])
-        self.assertIsNone(got["BS K-2"])  # no row at all
-
-    def test_flag_column_carries_the_basis_and_stubs_are_added(self):
-        p = self.write(["user_name", "occupancy_sensor", "inches", "flag", "old_source"],
-                       [["Track East Lead", "x", "92", "inferred", "timed share"],
-                        ["Track East Lead East", "BS East Lead", "15.748", "stub",
-                         "hidden throat of Track East Lead; same detector"],
-                        ["Track K-2", "x", "114.5", "anyrail", ""],
-                        ["Track K-1", "x", "122.5", "split", ""]])
-        got = analyze.load_lengths(p)
-        self.assertAlmostEqual(got["BS East Lead"], 92 * 25.4 + 400.0, places=1)
-        self.assertAlmostEqual(got["BS K-2"], 114.5 * 25.4)
-        self.assertIsNone(got["BS K-1"])
+    def test_a_file_without_the_columns_stops(self):
+        p = self.write(["user_name", "occupancy_sensor", "inches", "flag"], [["Track K-2", "x", "114.5", "inferred"]])
+        with self.assertRaisesRegex(ValueError, "no column measured_in, plan_in, source"):
+            analyze.load_lengths(p)
 
     def test_the_repo_csv_loads(self):
         got = analyze.load_lengths()
@@ -519,8 +499,8 @@ class JythonFiles(unittest.TestCase):
         d = Path(tempfile.mkdtemp())
         out = d / "job.py"
         lengths = d / "bl.csv"
-        lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\n"
-                           "Track Main West,x,220,anyrail,\n")
+        lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\n"
+                           "Track Main West,x,231,220,timed,\n")
         make_job.main(["steps", "--loco", "CSX 2738", "--direction", "reverse", "--out", str(out),
                        "--lengths", str(lengths), "--guard", "BS W-1"])
         text = out.read_text()
@@ -538,7 +518,7 @@ class JythonFiles(unittest.TestCase):
     def test_forward_job_sets_the_throttle_direction(self):
         d = Path(tempfile.mkdtemp())
         lengths = d / "bl.csv"
-        lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
         make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
                        "--lengths", str(lengths), "--guard", "none"])
         self.assertIn("P_FWD = True", (d / "j.py").read_text())
@@ -546,7 +526,7 @@ class JythonFiles(unittest.TestCase):
     def test_a_job_with_no_trusted_lengths_is_refused(self):
         d = Path(tempfile.mkdtemp())
         lengths = d / "bl.csv"
-        lengths.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,estimate,\n")
+        lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,220,,plan,\n")
         with self.assertRaises(SystemExit):
             make_job.main(["steps", "--loco", "CSX 2121", "--direction", "forward", "--out", str(d / "j.py"),
                            "--lengths", str(lengths), "--guard", "none"])

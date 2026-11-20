@@ -16,7 +16,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, railroad  # noqa: E402
 
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 import infer_block_lengths as infer  # noqa: E402  the plan's turnout centres along the run (PLAN_LOOP2_TURNOUT_MM)
@@ -76,8 +76,7 @@ def check_block_lengths(locate, csv_path=BLOCK_CSV):
     """Scale, Barn, OS Switch 13 and OS Switch 15 in block_lengths.csv must follow from the timed centres: blocks
     tile the run, so Scale is Switch 5 to Switch 7 less half of OS Switch 5 and OS Switch 7, OS Switch 13 and 15
     split the gap between their centres, and Barn is what is left between Switch 7 and 13. Raises RunError."""
-    with open(csv_path, newline="") as f:
-        inches = {r["user_name"]: float(r["inches"]) for r in csv.DictReader(f)}
+    inches = {name: b.jmri_in for name, b in railroad.read_block_lengths(csv_path).items()}   # all four are timed
     l7, l13 = locate["7"]["mean"], locate["13"]["mean"]
     gap = PIN_15 - l13
     half = lambda name: inches[name] * MM_PER_IN / 2

@@ -20,7 +20,7 @@ REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
 BOUNDARIES = boundary_csv.PATH
 # staging's turnout and anchor masts but the hidden yard-track ones (staging masts by rule, owner 2026-11-19)
-BOUNDARY_ROWS = 32
+BOUNDARY_ROWS = 30
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"

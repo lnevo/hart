@@ -9,13 +9,12 @@ external/model-railroad-skills at its pinned commit (`git submodule update --ini
 in a new worktree), or SCHEMATIC_PLUGIN=<plugin folder> for a trial of other plugin code.
 
 --check draws and compares with the published SVG and the station sheets without writing anything (exit 1 if
-any differ). It also
-fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for car counts) no longer match
-jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
+any differ). Car counts and mileposts use the plan's lengths on every level (the layer files hold no measured
+lengths since 2026-11-20: block_lengths.csv is the one record).
 A pass records a digest of what the comparison read (check_digest: the plugin's code, every file in the layer
 folder and its graphs, the published SVG and station sheets, this script, the Python) in publish_draft.check in the
 plugin's cache folder, which keeps the last STAMP_KEEP so worktrees that take turns do not push each other out; a
-later --check with a digest in it skips the drawing (24 s measured), and any change to one of them draws again. The station map pages and the staging lengths are checked every time. SCHEMATIC_CACHE= (empty)
+later --check with a digest in it skips the drawing (24 s measured), and any change to one of them draws again. The station map pages are checked every time. SCHEMATIC_CACHE= (empty)
 turns the stamp off with the cache.
 --preview DIR draws the SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
 title block's date and revision are left alone.
@@ -54,7 +53,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import map_revision, paths, railroad  # noqa: E402
+from hartlib import map_revision, paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
 CACHE = Path.home() / ".cache/hart/schematic"
@@ -62,9 +61,6 @@ DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
 STATIONS = OUT / "stations"                                              # one SVG per station detail sheet
-LENGTHS = railroad.Sources.under().block_lengths
-HELIX = railroad.Sources.under().helix_tracks                # the helix blocks: their length is the whole run
-STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
@@ -315,33 +311,6 @@ def write_stations(sheets, folder):
         (folder / name).write_text(svg)
 
 
-def measured_lengths():
-    """{track name: inches} for every measured Track row of block_lengths.csv (measured, timed or estimated, as its
-    flag column says), but the helix blocks (helix_tracks.csv): each is one block over the whole helix run (owner,
-    2026-11-20), while the schematic draws each level's share of it up to the cut from the plan, so the sheet and the
-    milepost count keep the plan's share. hartlib.railroad.read_block_lengths reads and checks every row, not only
-    the Track rows: it stops on an empty or repeated name or a length that is not a number."""
-    try:
-        lengths = railroad.read_block_lengths(LENGTHS)
-        helix = {h.block for h in railroad.read_helix_tracks(HELIX).values()}
-    except railroad.FactsError as exc:
-        sys.exit(str(exc))
-    return {name.removeprefix("Track "): b.inches for name, b in lengths.items()
-            if name.startswith("Track ") and b.inches is not None and name not in helix}
-
-
-def stale_lengths():
-    """Track names whose copy in the staging layer file differs from block_lengths.csv ([] when current)."""
-    have, want = json.loads(STAGING.read_text()).get("track_lengths_in") or {}, measured_lengths()
-    return sorted(k for k in set(have) | set(want) if have.get(k) != want.get(k))
-
-
-def copy_lengths():
-    over = json.loads(STAGING.read_text())
-    over["track_lengths_in"] = measured_lengths()
-    STAGING.write_text(json.dumps(over, indent=1, ensure_ascii=False) + "\n")
-
-
 def drawing_only(svg):
     """The sheet up to the title block (which the plugin draws last), to tell a real drawing change."""
     box = TITLE_BOX.search(svg)
@@ -388,18 +357,9 @@ def main(argv):
         folder = Path(argv[i + 1]).expanduser().resolve()
         if folder.is_relative_to(REPO):
             sys.exit(f"--preview writes outside the repo; {folder} is inside it")
-        stale = stale_lengths()
-        if stale:
-            print(f"note: {STAGING.name} track_lengths_in differs from {LENGTHS.name} for {', '.join(stale)}; "
-                  "this preview counts cars from the old lengths, and publishing copies the new ones")
         write_stations(draw_stations(), folder / "stations")
         return preview(draw(), folder)
     check = "--check" in argv
-    stale = stale_lengths()
-    if stale and check:
-        print(f"{STAGING.name}: track_lengths_in differs from {LENGTHS.name} for {', '.join(stale)}; "
-              "run publish_draft.py to copy them")
-        return 1
     if check:
         same, differ = compare_drawing()
         print("published draft is current" if same else "published draft differs from the drawing")
@@ -417,11 +377,8 @@ def main(argv):
     except ValueError as e:
         sys.exit(f"station map pages: {e}; nothing written")
     main_base()                                               # stops here, before any write, if git cannot find it
-    kept = {p: p.read_text() for p in (prefs, STAGING)}      # put back if anything below fails
+    kept = {p: p.read_text() for p in (prefs,)}             # put back if anything below fails
     try:
-        if stale:
-            copy_lengths()
-            print(f"copied the lengths of {', '.join(stale)} into {STAGING.name}")
         publish(draw(), target, prefs, kept[prefs], stations_changed(draw_stations()))
         write_stations(draw_stations(), STATIONS)
         print(f"wrote the station sheets in {STATIONS.relative_to(REPO)}")

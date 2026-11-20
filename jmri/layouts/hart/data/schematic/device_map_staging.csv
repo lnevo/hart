@@ -108,30 +108,18 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,,block,Track EH-2,IB21,IB21,13,,Middle house track; occupancy Block 13-6 / M2S1305; stop,Track 9B-end,,,,yes,,,
 1,,block,Track EH-3,IB22,IB22,13,,Bottom house track; occupancy Block 13-5 / M2S1304; stop,Track 9C-end,,,,yes,,,
 1,,block,Track East Ext,IB:AUTO:0051,IB:AUTO:0051,4,,Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406,Track 5B-7A,,,,,,,
-1,,block,Track East Lead,IB:AUTO:0017,IB:AUTO:0017,1,,South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop,Track 33A-35A 1/2,,,,yes,,,
-1,,block,Track East Lead East,IB:AUTO:0062,IB:AUTO:0062,1,,Hidden Track East Lead throat (same detector as Track East Lead); occupancy Block 1-7 / M2S106; not a station,Track 33A-35A 2/2,,,,,,,
+1,,block,Track East Lead,IB:AUTO:0017,IB:AUTO:0017,1,,South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop,Track 33A-35A,,,,yes,,,
 1,,block,Track Helix Inner,IB24,IB24,41,,"Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map); stop",Track 37B-helix,,,,yes,,,
 1,,block,Track Helix Outer,IB23,IB23,41,,"Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map); stop",Track 39B-helix,,,,yes,,,
-1,,block,Track K-1,IB:AUTO:0010,IB:AUTO:0010,1,,"Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",Track 37C-39C #2 1/2,,,,yes,,,
-1,,block,Track K-1 West,IB:AUTO:0063,IB:AUTO:0063,1,,Hidden Track K-1 throat (same detector as Track K-1); occupancy Block 1-1 / M2S100; not a station,Track 37C-39C #2 2/2,,,,,,,
+1,,block,Track K-1,IB:AUTO:0010,IB:AUTO:0010,1,,"Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",Track 37C-39C #2,,,,yes,,,
 1,,block,Track K-2,IB:AUTO:0048,IB:AUTO:0048,1,,"Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop",Track 37C-39C #1,,,,yes,,,
 1,,block,Track Main East,IB:AUTO:0001,IB:AUTO:0001,2,,Main east of East End; occupancy Block 2-3 / M2S202,Track 7B-33C,,,,,,,
 1,,block,Track Main West,IB:AUTO:0003,IB:AUTO:0003,2,,Main west of Brick toward East End; occupancy Block 2-1 / M2S200,Track 1A-23A,,,,,,,
-1,,block,Track S-1,IB:AUTO:0016,IB:AUTO:0016,2,,South Yard body; occupancy Block 2-7 / M2S206,Track 17C-29C 2/3,,,,,,,
-1,,block,Track S-1 East,IB:AUTO:0053,IB:AUTO:0053,2,,Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station,Track 17C-29C 3/3,,,,,,,
-1,,block,Track S-1 West,IB:AUTO:0052,IB:AUTO:0052,2,,Hidden Track S-1 throat (same detector as Track S-1); occupancy Block 2-7; not a station,Track 17C-29C 1/3,,,,,,,
-1,,block,Track S-2,IB:AUTO:0026,IB:AUTO:0026,2,,South Yard body; occupancy Block 2-6 / M2S205,Track 19C-27C 2/3,,,,,,,
-1,,block,Track S-2 East,IB:AUTO:0055,IB:AUTO:0055,2,,Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station,Track 19C-27C 3/3,,,,,,,
-1,,block,Track S-2 West,IB:AUTO:0054,IB:AUTO:0054,2,,Hidden Track S-2 throat (same detector as Track S-2); occupancy Block 2-6; not a station,Track 19C-27C 1/3,,,,,,,
-1,,block,Track S-3,IB:AUTO:0008,IB:AUTO:0008,2,,South Yard body; occupancy Block 2-5 / M2S204,Track 21C-25C 2/3,,,,,,,
-1,,block,Track S-3 East,IB:AUTO:0057,IB:AUTO:0057,2,,Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station,Track 21C-25C 3/3,,,,,,,
-1,,block,Track S-3 West,IB:AUTO:0056,IB:AUTO:0056,2,,Hidden Track S-3 throat (same detector as Track S-3); occupancy Block 2-5; not a station,Track 21C-25C 1/3,,,,,,,
-1,,block,Track S-4,IB:AUTO:0007,IB:AUTO:0007,2,,South Yard body; occupancy Block 2-4 / M2S203,Track 21B-25B 2/3,,,,,,,
-1,,block,Track S-4 East,IB:AUTO:0059,IB:AUTO:0059,2,,Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station,Track 21B-25B 3/3,,,,,,,
-1,,block,Track S-4 West,IB:AUTO:0058,IB:AUTO:0058,2,,Hidden Track S-4 throat (same detector as Track S-4); occupancy Block 2-4; not a station,Track 21B-25B 1/3,,,,,,,
-1,,block,Track S-R,IB:AUTO:0012,IB:AUTO:0012,2,,Run-through east of Switch 15; occupancy Block 2-8 / M2S207,Track 15B-23B 2/3,,,,,,,
-1,,block,Track S-R East,IB:AUTO:0060,IB:AUTO:0060,2,,Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station,Track 15B-23B 3/3,,,,,,,
-1,,block,Track S-R West,IB:AUTO:0061,IB:AUTO:0061,2,,Hidden Track S-R throat (same detector as Track S-R); occupancy Block 2-8; not a station,Track 15B-23B 1/3,,,,,,,
+1,,block,Track S-1,IB:AUTO:0016,IB:AUTO:0016,2,,South Yard body; occupancy Block 2-7 / M2S206,Track 17C-29C,,,,,,,
+1,,block,Track S-2,IB:AUTO:0026,IB:AUTO:0026,2,,South Yard body; occupancy Block 2-6 / M2S205,Track 19C-27C,,,,,,,
+1,,block,Track S-3,IB:AUTO:0008,IB:AUTO:0008,2,,South Yard body; occupancy Block 2-5 / M2S204,Track 21C-25C,,,,,,,
+1,,block,Track S-4,IB:AUTO:0007,IB:AUTO:0007,2,,South Yard body; occupancy Block 2-4 / M2S203,Track 21B-25B,,,,,,,
+1,,block,Track S-R,IB:AUTO:0012,IB:AUTO:0012,2,,Run-through east of Switch 15; occupancy Block 2-8 / M2S207,Track 15B-23B,,,,,,,
 1,,block,Track Scale,IB3,IB3,4,,Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop,Track 5C-7B 1/2,,,,yes,,,
 1,,block,Track W-1,IB:AUTO:0020,IB:AUTO:0020,4,,Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop,Track 3B-end,,,,yes,,,
 1,,block,Track W-2,IB:AUTO:0022,IB:AUTO:0022,4,,Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop,Track 3C-end,,,,yes,,,
@@ -142,16 +130,16 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,,occupancy,BS EH-2,M2S1305,M2S1305,13,,Node: 13 Block: 6,,blocks Track EH-2,Track EH-2,wired,,,,
 1,,occupancy,BS EH-3,M2S1304,M2S1304,13,,Node: 13 Block: 5,,blocks Track EH-3,Track EH-3,wired,,,,
 1,,occupancy,BS East Ext,M2S406,M2S406,4,,Node: 4 Block: 7,,blocks Track East Ext,Track East Ext,wired,,,,
-1,,occupancy,BS East Lead,M2S106,M2S106,1,,Node: 1 Block: 7,,blocks Track East Lead; Track East Lead East,Track East Lead;Track East Lead East,wired,,,,
-1,,occupancy,BS K-1,M2S100,M2S100,1,,Node: 1 Block: 1,,blocks Track K-1; Track K-1 West,Track K-1;Track K-1 West,wired,,,,
+1,,occupancy,BS East Lead,M2S106,M2S106,1,,Node: 1 Block: 7,,blocks Track East Lead,Track East Lead,wired,,,,
+1,,occupancy,BS K-1,M2S100,M2S100,1,,Node: 1 Block: 1,,blocks Track K-1,Track K-1,wired,,,,
 1,,occupancy,BS K-2,M2S101,M2S101,1,,Node: 1 Block: 2,,blocks Track K-2,Track K-2,wired,,,,
 1,,occupancy,BS Main East,M2S202,M2S202,2,,Node: 2 Block: 3,,blocks Track Main East,Track Main East,wired,,,,
 1,,occupancy,BS Main West,M2S200,M2S200,2,,Node: 2 Block: 1,,blocks Track Main West,Track Main West,wired,,,,
-1,,occupancy,BS S-1,M2S206,M2S206,2,,Node: 2 Block: 7,,blocks Track S-1; Track S-1 East; Track S-1 West,Track S-1;Track S-1 East;Track S-1 West,wired,,,,
-1,,occupancy,BS S-2,M2S205,M2S205,2,,Node: 2 Block: 6,,blocks Track S-2; Track S-2 East; Track S-2 West,Track S-2;Track S-2 East;Track S-2 West,wired,,,,
-1,,occupancy,BS S-3,M2S204,M2S204,2,,Node: 2 Block: 5,,blocks Track S-3; Track S-3 East; Track S-3 West,Track S-3;Track S-3 East;Track S-3 West,wired,,,,
-1,,occupancy,BS S-4,M2S203,M2S203,2,,Node: 2 Block: 4,,blocks Track S-4; Track S-4 East; Track S-4 West,Track S-4;Track S-4 East;Track S-4 West,wired,,,,
-1,,occupancy,BS S-R,M2S207,M2S207,2,,Node: 2 Block: 8,,blocks Track S-R; Track S-R East; Track S-R West,Track S-R;Track S-R East;Track S-R West,wired,,,,
+1,,occupancy,BS S-1,M2S206,M2S206,2,,Node: 2 Block: 7,,blocks Track S-1,Track S-1,wired,,,,
+1,,occupancy,BS S-2,M2S205,M2S205,2,,Node: 2 Block: 6,,blocks Track S-2,Track S-2,wired,,,,
+1,,occupancy,BS S-3,M2S204,M2S204,2,,Node: 2 Block: 5,,blocks Track S-3,Track S-3,wired,,,,
+1,,occupancy,BS S-4,M2S203,M2S203,2,,Node: 2 Block: 4,,blocks Track S-4,Track S-4,wired,,,,
+1,,occupancy,BS S-R,M2S207,M2S207,2,,Node: 2 Block: 8,,blocks Track S-R,Track S-R,wired,,,,
 1,,occupancy,BS Scale,M2S407,M2S407,4,,Node: 4 Block: 8,,blocks Track Scale,Track Scale,wired,,,,
 1,Brick,occupancy,BS Switch 1,M2S401,M2S401,4,,Node: 4 Block: 2,,blocks OS Switch 1,OS Switch 1,wired,,,,
 1,Brick,occupancy,BS Switch 3,M2S400,M2S400,4,,Node: 4 Block: 1,,blocks OS Switch 3,OS Switch 3,wired,,,,
@@ -185,33 +173,21 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Engine House,mast,Mast 10RB,IF$vsm:basic:one-low($1022),IF$vsm:basic:one-low($1022),,,Engine House | Switch 9,,facing Track EH-3 into OS Switch 9,,,,9,Track EH-3,OS Switch 9
 1,Engine House,mast,Mast 12L,IF$vsm:basic:one-low($1005),IF$vsm:basic:one-low($1005),,,Engine House,,"facing Track EH-1, buffer stop",,,,,Track EH-1,
 1,Engine House,mast,Mast 12R,IF$vsm:basic:one-low($1020),IF$vsm:basic:one-low($1020),,,Engine House | Switch 11,,facing Track EH-1 into OS Switch 11,,,,11,Track EH-1,OS Switch 11
-1,Barn,mast,Mast 14R,IF$vsm:basic:one-low($1019),IF$vsm:basic:one-low($1019),,,Barn | Switch 13,,facing Track Barn into OS Switch 13,,,,13,Track Barn,OS Switch 13
-1,South Yard,mast,Mast 16L,IF$vsm:basic:one-low($1016),IF$vsm:basic:one-low($1016),,,South Yard,,facing Track S-R into Track S-R West,,,,,Track S-R,Track S-R West
-1,South Yard,mast,Mast 16R,IF$vsm:basic:one-low($1017),IF$vsm:basic:one-low($1017),,,South Yard,,facing Track S-R into Track S-R East,,,,,Track S-R,Track S-R East
-1,South Yard,mast,Mast 18L,IF$vsm:basic:one-low($1008),IF$vsm:basic:one-low($1008),,,South Yard,,facing Track S-1 into Track S-1 West,,,,,Track S-1,Track S-1 West
-1,South Yard,mast,Mast 18R,IF$vsm:basic:one-low($1012),IF$vsm:basic:one-low($1012),,,South Yard,,facing Track S-1 into Track S-1 East,,,,,Track S-1,Track S-1 East
-1,South Yard,mast,Mast 20L,IF$vsm:basic:one-low($1009),IF$vsm:basic:one-low($1009),,,South Yard,,facing Track S-2 into Track S-2 West,,,,,Track S-2,Track S-2 West
-1,South Yard,mast,Mast 20R,IF$vsm:basic:one-low($1013),IF$vsm:basic:one-low($1013),,,South Yard,,facing Track S-2 into Track S-2 East,,,,,Track S-2,Track S-2 East
-1,South Yard,mast,Mast 22L,IF$vsm:basic:one-low($1010),IF$vsm:basic:one-low($1010),,,South Yard,,facing Track S-3 into Track S-3 West,,,,,Track S-3,Track S-3 West
-1,South Yard,mast,Mast 22R,IF$vsm:basic:one-low($1014),IF$vsm:basic:one-low($1014),,,South Yard,,facing Track S-3 into Track S-3 East,,,,,Track S-3,Track S-3 East
+1,Engine House,mast,Mast 14R,IF$vsm:basic:one-low($1019),IF$vsm:basic:one-low($1019),,,Engine House | Switch 13,,facing Track Barn into OS Switch 13,,,,13,Track Barn,OS Switch 13
 1,East End,mast,Mast 24L,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),IF$shsm:basic:one-searchlight(IH:HART:C1:24L),,,East End | Switch 23,,facing Track West Ext into OS Switch 23a,,,,23,Track West Ext,OS Switch 23a
 1,East End,mast,Mast 24RA,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),,,East End | Switch 23,,facing Track Main West into OS Switch 23a,,,,23,Track Main West,OS Switch 23a
-1,East End,mast,Mast 24RB,IF$shsm:basic:one-low(IH:HART:C1:24RB),IF$shsm:basic:one-low(IH:HART:C1:24RB),,,East End | Switch 23,,facing Track S-R East into OS Switch 23b,,,,23,Track S-R East,OS Switch 23b
-1,South Yard,mast,Mast 26L,IF$vsm:basic:one-low($1011),IF$vsm:basic:one-low($1011),,,South Yard,,facing Track S-4 into Track S-4 West,,,,,Track S-4,Track S-4 West
-1,South Yard,mast,Mast 26R,IF$vsm:basic:one-low($1015),IF$vsm:basic:one-low($1015),,,South Yard,,facing Track S-4 into Track S-4 East,,,,,Track S-4,Track S-4 East
+1,East End,mast,Mast 24RB,IF$shsm:basic:one-low(IH:HART:C1:24RB),IF$shsm:basic:one-low(IH:HART:C1:24RB),,,East End | Switch 23,,facing Track S-R into OS Switch 23b,,,,23,Track S-R,OS Switch 23b
 1,Brick,mast,Mast 2L,IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom),,,Brick | Switch 1,,facing Track Main West into OS Switch 1,,,,1,Track Main West,OS Switch 1
 1,Brick,mast,Mast 2R,IF$shsm:basic:one-searchlight(IH:HART:C1:2R),IF$shsm:basic:one-searchlight(IH:HART:C1:2R),,,Brick | Switch 1,,facing Track Brick-Plane into OS Switch 1,,,,1,Track Brick-Plane,OS Switch 1
 1,East End,mast,Mast 32R,IF$shsm:basic:one-low(IH:HART:C1:32R),IF$shsm:basic:one-low(IH:HART:C1:32R),,,East End | Switch 31,,facing OS Switch 29 into OS Switch 31,,,,31,OS Switch 29,OS Switch 31
 1,East End,mast,Mast 34L,IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),,,East End | Switch 33,,facing Track East Lead into OS Switch 33,,,,33,Track East Lead,OS Switch 33
 1,East End,mast,Mast 34R,IF$shsm:basic:one-searchlight(IH:HART:C1:34R),IF$shsm:basic:one-searchlight(IH:HART:C1:34R),,,East End | Switch 33,,facing Track Main East into OS Switch 33,,,,33,Track Main East,OS Switch 33
-1,Princess,mast,Mast 36L,IF$vsm:basic:one-low($1025),IF$vsm:basic:one-low($1025),,,Princess,,facing Track East Lead East into Track East Lead,,,,,Track East Lead East,Track East Lead
 1,Princess,mast,Mast 36RA,IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),,,Princess | Switch 35,,facing Track West Ext into OS Switch 35b,,,,35,Track West Ext,OS Switch 35b
-1,Princess,mast,Mast 36RB,IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),,,Princess | Switch 35,,facing Track East Lead East into OS Switch 35a,,,,35,Track East Lead East,OS Switch 35a
+1,Princess,mast,Mast 36RB,IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom),,,Princess | Switch 35,,facing Track East Lead into OS Switch 35a,,,,35,Track East Lead,OS Switch 35a
 1,Princess,mast,Mast 38LA,IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),IF$shsm:basic:one-searchlight(IH:HART:C1:38LA),,,Princess | Switch 37,,facing Track Helix Inner into OS Switch 37,,,,37,Track Helix Inner,OS Switch 37
 1,Princess,mast,Mast 38LB,IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),IF$shsm:basic:one-searchlight(IH:HART:C1:38LB),,,Princess | Switch 37,,facing Track K-2 into OS Switch 37,,,,37,Track K-2,OS Switch 37
-1,Princess,mast,Mast 40LA,IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),,,Princess | Switch 39,,facing Track K-1 West into OS Switch 39,,,,39,Track K-1 West,OS Switch 39
+1,Princess,mast,Mast 40LA,IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom),,,Princess | Switch 39,,facing Track K-1 into OS Switch 39,,,,39,Track K-1,OS Switch 39
 1,Princess,mast,Mast 40LB,IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom),,,Princess | Switch 39,,facing Track Helix Outer into OS Switch 39,,,,39,Track Helix Outer,OS Switch 39
-1,Princess,mast,Mast 40RB,IF$vsm:basic:one-low($1026),IF$vsm:basic:one-low($1026),,,Princess,,facing Track K-1 West into Track K-1,,,,,Track K-1 West,Track K-1
 1,Brick,mast,Mast 4LA,IF$vsm:basic:one-low($1001),IF$vsm:basic:one-low($1001),,,Brick,,"facing Track W-1, buffer stop",,,,,Track W-1,
 1,Brick,mast,Mast 4LB,IF$vsm:basic:one-low($1002),IF$vsm:basic:one-low($1002),,,Brick,,"facing Track W-2, buffer stop",,,,,Track W-2,
 1,Brick,mast,Mast 4RA,IF$shsm:basic:one-low(IH:HART:C1:4RA),IF$shsm:basic:one-low(IH:HART:C1:4RA),,,Brick | Switch 3,,facing Track W-1 into OS Switch 3,,,,3,Track W-1,OS Switch 3

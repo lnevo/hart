@@ -261,10 +261,10 @@ class Output(unittest.TestCase):
         got = {x["user_name"]: (x["cp"], x["notes"]) for x in rows()
                if x["layer"] == "mast" and x["comment"].endswith(" | intermediate")}
         self.assertEqual(got, {
-            "Mast A83": ("CP 107", "intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.35"),
-            "Mast A84": ("CP 107", "intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.35"),
-            "Mast B92": ("CP 225", "intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.23"),
-            "Mast B93": ("CP 225", "intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.23")})
+            "Mast A83": ("CP 107", "intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.39"),
+            "Mast A84": ("CP 107", "intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.39"),
+            "Mast B92": ("CP 225", "intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.27"),
+            "Mast B93": ("CP 225", "intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.27")})
         for name in got:
             self.assertTrue(next(x for x in rows() if x["user_name"] == name)["jmri_name"]
                             .startswith("IF$shsm:basic:one-searchlight("), name)

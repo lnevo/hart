@@ -72,37 +72,6 @@ class Fields(unittest.TestCase):
             self.assertEqual(json.loads(p.read_text()), {"title": ["x"], "date": "2026-12-01", "revision": 2})
 
 
-class Lengths(unittest.TestCase):
-    def read(self, rows):
-        with tempfile.TemporaryDirectory() as tmp:
-            csv_path = Path(tmp) / "block_lengths.csv"
-            csv_path.write_text("user_name,occupancy_sensor,inches,flag,old_source\n" + rows)
-            old = PD.LENGTHS
-            try:
-                PD.LENGTHS = csv_path
-                return PD.measured_lengths()
-            finally:
-                PD.LENGTHS = old
-
-    def test_track_rows_only(self) -> None:
-        self.assertEqual(self.read("Track S-1,Block 2-7,212,assigned,\nOS Switch 3,Block 4-1,10,estimate,switch\n"
-                                   "Track EH-1,Block 13-7, 24 ,estimate,\nTrack X,Block 9-9,,estimate,\n"),
-                         {"S-1": 212.0, "EH-1": 24.0})
-
-    def test_helix_tracks_keep_the_plans_share(self) -> None:
-        """A helix track's block covers the whole run; the sheet keeps each level's share from the plan cut."""
-        got = self.read("Track Helix Outer,BS Helix Outer,947.2,plan,\nTrack S-1,Block 2-7,212,assigned,\n"
-                        "Track McKees Rocks,,689.0,plan,\n")
-        self.assertEqual(got, {"S-1": 212.0, "McKees Rocks": 689.0})     # only helix_tracks.csv's blocks are left out
-
-    def test_bad_rows_stop(self) -> None:
-        """hartlib.railroad.read_block_lengths reads the file: a bad row stops, naming the file and line."""
-        with self.assertRaisesRegex(SystemExit, r"^block_lengths.csv line 2: inches '~24' is not a number"):
-            self.read("Track S-1,Block 2-7,~24,assigned,\n")
-        with self.assertRaisesRegex(SystemExit, r"^block_lengths.csv line 3: user_name 'Track S-1' .* twice"):
-            self.read("Track S-1,Block 2-7,212,assigned,\nTrack S-1,Block 2-8,200,assigned,\n")
-
-
 class Preview(unittest.TestCase):
     def test_writes_only_into_the_folder(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -263,7 +232,7 @@ class SignalsCheck(unittest.TestCase):
 
     def test_written_from_the_staging_masts(self) -> None:
         masts = self.bs.sdm.load_signal_masts()
-        self.assertEqual(len(masts), 47)
+        self.assertEqual(len(masts), 35)
         got = json.loads((self.bs.pd.DATA / "staging.signals.json").read_text())
         self.assertEqual(got["signals"], self.bs.sdm.signal_rows(masts))
         self.assertEqual((got["source"], got["unplaced"]), (self.bs.sdm.SIGNALS_SOURCE, []))
@@ -271,7 +240,7 @@ class SignalsCheck(unittest.TestCase):
     def test_a_run_not_in_the_plan_fails(self) -> None:
         masts = self.bs.sdm.load_signal_masts()
         first = next(i for i, m in enumerate(masts) if m["signal"] == "2L")       # a turnout mast, switch 1 to 23
-        anchor = next(i for i, m in enumerate(masts) if m["signal"] == "16L")     # an anchor 40 cm in
+        anchor = next(i for i, m in enumerate(masts) if m["signal"] == "8LC")     # an anchor 401.3 cm in
         self.assertEqual((masts[first]["kind"], masts[anchor]["kind"]), ("turnout", "anchor"))
         for i, field, value, why in ((first, "schematic_edge", "e9999", "not in the plan graph"),
                                      (first, "names", ["Nowhere"], "carries"), (first, "run", ["1", "99"], "runs"),
@@ -363,7 +332,6 @@ class StationMapRevision(unittest.TestCase):
     def test_check_reports_bad_map_data_as_a_difference(self) -> None:
         with mock.patch.object(PD, "draw", return_value="<svg/>"), mock.patch.object(PD, "draw_stations", return_value={}), \
                 mock.patch.object(PD, "stations_differ", return_value=[]), \
-                mock.patch.object(PD, "stale_lengths", return_value=[]), \
                 mock.patch.object(PD.map_revision, "drift", side_effect=ValueError("no entry for x")), \
                 contextlib.redirect_stdout(io.StringIO()) as out:
             self.assertEqual(PD.main(["--check"]), 1)
@@ -371,7 +339,6 @@ class StationMapRevision(unittest.TestCase):
 
     def test_bad_map_data_stops_publishing_before_any_write(self) -> None:
         with mock.patch.object(PD, "draw", side_effect=AssertionError("drew")), \
-                mock.patch.object(PD, "stale_lengths", return_value=[]), \
                 mock.patch.object(PD.map_revision, "planned", side_effect=ValueError("no entry for x")), \
                 self.assertRaisesRegex(SystemExit, "nothing written"):
             PD.main([])
@@ -508,8 +475,7 @@ class CheckStamp(unittest.TestCase):
 
     def test_check_reports_a_hit_as_current(self) -> None:
         self.check()
-        with mock.patch.object(PD, "stale_lengths", return_value=[]), \
-                mock.patch.object(PD.map_revision, "drift", return_value=[]), \
+        with mock.patch.object(PD.map_revision, "drift", return_value=[]), \
                 contextlib.redirect_stdout(io.StringIO()) as out:
             self.assertEqual(PD.main(["--check"]), 0)
         self.assertEqual(self.drawn, 1)
@@ -601,17 +567,14 @@ class MainBase(unittest.TestCase):
 
     def test_publishing_stops_before_any_write(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            prefs, staging = Path(tmp) / "page.preferences.json", Path(tmp) / "staging.plan_overrides.json"
+            prefs = Path(tmp) / "page.preferences.json"
             prefs.write_text(json.dumps({"date": "2026-11-14", "revision": 1}))
-            staging.write_text(json.dumps({"track_lengths_in": {"S-1": 1}}))
-            before = {p: p.read_text() for p in (prefs, staging)}
+            before = {p: p.read_text() for p in (prefs,)}
             wrote = AssertionError("wrote")
             with mock.patch.object(PD.subprocess, "run", self.git((1, "", ""), [], shallow=True)), \
-                    mock.patch.object(PD, "page_prefs", return_value=prefs), mock.patch.object(PD, "STAGING", staging), \
-                    mock.patch.object(PD, "stale_lengths", return_value=["S-1"]), \
+                    mock.patch.object(PD, "page_prefs", return_value=prefs), \
                     mock.patch.object(PD.map_revision, "planned"), \
                     mock.patch.object(PD.map_revision, "apply", side_effect=wrote), \
-                    mock.patch.object(PD, "copy_lengths", side_effect=wrote), \
                     mock.patch.object(PD, "draw", side_effect=AssertionError("drew")), \
                     mock.patch.object(PD, "draw_stations", side_effect=AssertionError("drew")), \
                     mock.patch.object(PD, "write_stations", side_effect=wrote), \
@@ -619,7 +582,7 @@ class MainBase(unittest.TestCase):
                     mock.patch.object(PD, "pdf", side_effect=wrote), \
                     self.assertRaisesRegex(SystemExit, "git fetch --unshallow origin"):
                 PD.main([])
-            self.assertEqual({p: p.read_text() for p in (prefs, staging)}, before)
+            self.assertEqual({p: p.read_text() for p in (prefs,)}, before)
 
     def test_check_never_asks_for_the_merge_base(self) -> None:
         # CI checks out one commit with no origin/main (actions/checkout's default depth), and runs --check
@@ -628,7 +591,6 @@ class MainBase(unittest.TestCase):
                 mock.patch.object(PD, "draw", return_value="<svg/>"), \
                 mock.patch.object(PD, "draw_stations", return_value={}), \
                 mock.patch.object(PD, "stations_differ", return_value=[]), \
-                mock.patch.object(PD, "stale_lengths", return_value=[]), \
                 mock.patch.object(PD.map_revision, "drift", return_value=[]), \
                 contextlib.redirect_stdout(io.StringIO()):
             self.assertIn(PD.main(["--check"]), (0, 1))
@@ -641,10 +603,8 @@ class MainBase(unittest.TestCase):
                 mock.patch.object(PD, "on_main", side_effect=AssertionError("read main")), \
                 mock.patch.object(PD, "draw", return_value="<svg/>"), \
                 mock.patch.object(PD, "draw_stations", return_value={"a.svg": "<svg>a</svg>"}), \
-                mock.patch.object(PD, "stale_lengths", return_value=[]), \
                 mock.patch.object(PD, "pdf"), \
                 mock.patch.object(PD, "set_fields", side_effect=AssertionError("wrote")), \
-                mock.patch.object(PD, "copy_lengths", side_effect=AssertionError("wrote")), \
                 contextlib.redirect_stdout(io.StringIO()):
             folder = Path(tmp).resolve() / "out"
             self.assertEqual(PD.main(["--preview", str(folder)]), 0)

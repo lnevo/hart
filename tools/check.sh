@@ -108,6 +108,7 @@ run schematic-approved python3 tools/schematic/check_approved.py
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py --check
 run schematic-staging-device-map python3 tools/schematic/staging_device_map.py --check
+run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
 run schematic-staging-masts python3 tools/schematic/build_staging_masts.py --check
 run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --check
 run wiring-v86 python3 tools/wiring/add_main_upper_levels.py --check
