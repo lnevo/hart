@@ -1425,7 +1425,7 @@
     "svg": "crew/maps/schematic/system-schematic.svg",
     "pdf": "crew/maps/schematic/system-schematic.pdf",
     "alt": "System schematic of the whole layout: staging, main level and upper level, with switch numbers, track names and masts.",
-    "revision": "14",
+    "revision": "15",
     "effective": "19 November 2026"
   }
 }

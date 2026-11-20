@@ -12,7 +12,7 @@
   "Stage 0 proof, as built"
  ],
  "date": "2026-11-19",
- "revision": 14,
+ "revision": 15,
  "sheet": "1 of 1",
  "num_px": 6.5,
  "helix_style": "coil",
@@ -35,12 +35,12 @@
   {
    "op": "flip",
    "switches": [
+    "T204",
+    "T166",
+    "T178",
+    "T169",
+    "T202",
     "T196",
-    "T155",
-    "T160",
-    "T162",
-    "T194",
-    "T183",
     "50",
     "51"
    ]
@@ -48,61 +48,61 @@
  ],
  "levels": {
   "assign": {
-   "T285": 10.8,
-   "T251": 10.8
+   "T311": 10.8,
+   "T281": 10.8
   }
  },
  "shorten": [
   [
-   "T237",
-   "T300"
+   "T289",
+   "T331"
   ]
  ],
  "min_cells": [
   [
-   "T160",
-   "T194",
+   "T178",
+   "T202",
    6
   ],
   [
-   "T162",
+   "T169",
    "50",
    6
   ],
   [
-   "T162",
-   "T183",
+   "T169",
+   "T196",
    6
   ],
   [
-   "T196",
-   "T196",
+   "T204",
+   "T204",
    7
   ],
   [
-   "T1",
-   "12",
+   "T10",
+   "T12",
    9
   ],
   [
-   "T160",
-   "T165",
+   "T178",
+   "T181",
    6
   ],
   [
-   "T262",
-   "T285",
+   "T294",
+   "T311",
    5
   ],
   [
-   "T237",
-   "T300",
+   "T289",
+   "T331",
    9
   ]
  ],
  "level_leg": {
-  "T210": "C",
-  "T212": "B",
+  "T225": "C",
+  "T227": "B",
   "115": "C",
   "235": "C",
   "239": "C"
@@ -156,7 +156,7 @@
    "219",
    "221A",
    "221B",
-   "223*",
+   "223",
    "225",
    "227",
    "229",
@@ -261,9 +261,10 @@
    "block_contents_size": 12,
    "optional_block_contents": [
     "Track 227-231",
-    "Track 229-233"
+    "Track 229-233",
+    "OS Switch 235"
    ]
   }
  },
- "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16)."
+ "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). OS Switch 235: with the plan 5.3c lengths (2026-11-19) the upper level's columns shifted and its icon found no clean spot among 160 tried, so it may be left out (logged)."
 }

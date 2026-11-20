@@ -17,6 +17,7 @@ Plan 5.3c draws these as track and joins staging to the main level through the h
 **Taken from 5.3c by hand**
 - The engine house track lengths, EH-1 49 in and EH-2 and EH-3 28 in each: the drawn length rounded down, less 2 in ([`docs/jmri/TRACK_LENGTHS.md`](../../docs/jmri/TRACK_LENGTHS.md)).
 - The helix lengths in `helix_length_in`, which moved the milepost-named intermediate masts to A83/A84 and B92/B93 (PR #689, ADR-024).
+- Phase 2 (2026-11-19) took the rest: the inputs, the helix (each level's share up to the -5 cm cut, `anyplan.py --cut -5 --stubs`, replacing `helix_length_in` with the same totals, so the masts kept their names) and the drop of the overrides 5.3c draws as track.
 
 **The schematic**
 - The schematic inputs in `jmri/layouts/hart/data/schematic/inputs/` come from 5.3c, read by `tools/anyrail/anyplan.py`, and the overrides 5.3c draws as track are dropped. The bring-in steps are in [`projects/anyrail-5-3c-handoff.md`](../projects/anyrail-5-3c-handoff.md).
@@ -34,5 +35,5 @@ Plan 5.3c draws these as track and joins staging to the main level through the h
 
 ## Open
 
-- The bring-in has no date. Its last blocker, the plugin scale fix (model-railroad-skills #74), merged on 2026-11-19.
+- The bring-in is built (Phase 2, 2026-11-19) and waits for the owner's approval of the panel and desks.
 - The inferred block lengths and the website's track plan page have no plan to move to 5.3c.

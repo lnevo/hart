@@ -56,25 +56,25 @@ Test of the separation: with layer 3 switched off, layers 1 and 2 alone draw all
 
 ### Layer 1: plan overrides (fed over the AnyRail plan)
 
-Source of track: AnyRail's JMRI export of plan 5.3b, read by the plugin's `plan` command into the track graphs in `jmri/layouts/hart/data/schematic/inputs/` (since 2026-11-14; recipe in `docs/ops/schematic-system-draft.md`). The `.any` file and its XML export stay in `~/Documents/Layout/`, outside the repo. Heights come from the `.any` file, matched to the export by position (the 5.3b export is a 2664 x 3840 px panel at about 12.0 px per inch of plan, within 0.4% of the plugin's default; the plugin fits the scale by least squares against the parts list).
+Source of track: AnyRail's JMRI export of plan 5.3c (5.3b until Phase 2, 2026-11-19), read by the plugin's `plan` command into the track graphs in `jmri/layouts/hart/data/schematic/inputs/` (recipe in `docs/ops/schematic-system-draft.md`), with the parts list from `tools/anyrail/anyplan.py` and the helix from the plan: each level's graph takes its share of a helix track up to the -5 cm cut (`anyplan.py --cut -5 --stubs`). T names are 5.3c part numbers (re-keyed from 5.3b by position). The `.any` file and its XML export stay in `~/Documents/Layout/`, outside the repo. Heights come from the `.any` file, matched to the export by position (the 5.3b export is a 2664 x 3840 px panel at about 12.0 px per inch of plan, within 0.4% of the plugin's default; the plugin fits the scale by least squares against the parts list).
 
 | Override | Staging | Main and upper |
 |----------|---------|----------------|
-| Switch numbers for plan parts | T46=3, T116=1, T106=5, T52=15, T133=17, T73=19, T123=21, T68=25, T95=27, T94=29, T59=31, T77=33, T58+T118=23, T55+T98=35, T56=39, T129=37 | Owner's numbers (2026-11-14, both levels renumbered by the rule 2026-11-19), a `relabel` edit in `main_upper.plan_overrides.json`: main level 101 to 131, upper level 201 to 245, odd only, left to right as drawn on the approved sheet, the main line first at the same position, then top to bottom. A crossover is one number with A and B (A the left half), numbered where its A half stands: the three-way's halves pair with T183 and T194 as 101 and 103, T15/T1 and T184/T14 are one crossover each on the ground (121, 125), the helix-top crossovers T199/T285 and T175/T251 are main level (127, 131), the double crossover is one part (225). Upper renumber (2026-11-19): 207 and 209 swapped, the 213 crossover became 211 and 211 became 213, 231 and 233 swapped, 239 became 241, the 241 crossover 243, and 243 became 239. The plan joins 121's and 125's halves leg C to leg B (AnyRail's leg B of T1 and T14 is the diagonal), and the plugin (schematic-maps 0.1.42, `crossover_halves`) pairs lettered halves joined B to C as one single crossover: each half is closed on its through leg (121B and 125B on their leg C) on the Layout Editor panel and the CATS desks, and the log asks for their machines to be wired reversed. The T-names stay as aliases, so the other layer files still use them |
-| Not built | Crossover T41/T43 between Main West and S-R | — |
-| Built but not in the plan | Switch 7 crossover (Scale / East Ext), Switch 13, Switches 11 and 9 with EH-1 to EH-3 | Closet junction: T300 moved onto the 4.25 in track |
-| Moved | — | T300: out of the height-0 main, into the run between the double crossover and T237, about 292 cm from the crossover, right-hand (owner confirmed right-hand; the distance is the plan's old run length) |
-| Heights | — | Peninsula top 1 in → 4.25 in |
+| Switch numbers for plan parts | T45=3, T124=1, T114=5, T49=15, T71=17, T96=19, T73=21, T65=25, T109=27, T84=29, T40=31, T106=33, T57+T126=23, T54+T95=35, T55=39, T78=37 | Owner's numbers (2026-11-14, both levels renumbered by the rule 2026-11-19), a `relabel` edit in `main_upper.plan_overrides.json`: main level 101 to 131, upper level 201 to 245, odd only, left to right as drawn on the approved sheet, the main line first at the same position, then top to bottom. A crossover is one number with A and B (A the left half), numbered where its A half stands: the three-way's halves pair with T196 and T202 as 101 and 103, T5/T10 and T194/T20 are one crossover each on the ground (121, 125), the helix-top crossovers T215/T311 and T210/T281 are main level (127, 131), the double crossover is one part (225). Upper renumber (2026-11-19): 207 and 209 swapped, the 213 crossover became 211 and 211 became 213, 231 and 233 swapped, 239 became 241, the 241 crossover 243, and 243 became 239. The plan joins 121's and 125's halves leg C to leg B (AnyRail's leg B of T10 and T20 is the diagonal), and the plugin (schematic-maps 0.1.42, `crossover_halves`) pairs lettered halves joined B to C as one single crossover: each half is closed on its through leg (121B and 125B on their leg C) on the Layout Editor panel and the CATS desks, and the log asks for their machines to be wired reversed. The T-names stay as aliases, so the other layer files still use them |
+| Not built | None since 5.3c (it has no crossover T41/T43) | — |
+| Built but not in the plan | None since 5.3c: it draws the Switch 7 crossover (T33, T139), Switch 13 (T135), Switches 11 (T137) and 9 (T136) with EH-1 to EH-3, all left-hand; they are relabelled and named like the rest | — |
+| Moved | — | None since 5.3c: it draws 223 (T331) on the 4.25 in track where it is built |
+| Heights | — | None since 5.3c: the peninsula is at 10.8 cm (4.25 in) in the plan |
 | Track names | Main West, West Ext, East Ext, Main East, East Lead, Brick-Plane, Scale, Barn, S-R, S-1 to S-4, K-1, K-2, W-1, W-2, EH-1 to EH-3 | None yet |
-| Track ends | W-1, W-2 bumpers | — |
-| Helix tracks | From Switch 39: McKees Rocks (H1). From Switch 37: McKeesport (H2) | From T175: McKees Rocks (H1). From T251: McKeesport (H2). Owner confirmed |
-| Main route | Main West, West Ext, Brick-Plane, East Ext, Main East, East Lead, the two throats from 35 to 37 and 39, both helix tracks | H2, T251, T285, the rise to T262, diverge to T275, round the west loop by T273, T256, T233 to T274 and T237, T300, both tracks to the double crossover, round the peninsula loop by T241 and T253. H1, T175, T199, T184, diverge at T187 on the long track to T153, T165, T160, T155, round the loop at T196. The T237–T262 crossover is not main |
+| Track ends | W-1, W-2 and EH-1 to EH-3 bumpers | — |
+| Helix tracks | From Switch 39: McKees Rocks (H1). From Switch 37: McKeesport (H2) | From T210: McKees Rocks (H1). From T281: McKeesport (H2). Owner confirmed |
+| Main route | Main West, West Ext, Brick-Plane, East Ext, Main East, East Lead, the two throats from 35 to 37 and 39, both helix tracks | H2, T281, T311, the rise to T294, diverge to T316, round the west loop by T310, T283, T261 to T307 and T289, T331, both tracks to the double crossover, round the peninsula loop by T268 and T270. H1, T210, T215, T194, diverge at T200 on the long track to T165, T181, T178, T166, round the loop at T204. The T289–T294 crossover is not main |
 | Stations | Brick (1, 3), Plane (5), Barn (7), South Yard (15–21), East End (23–33), Princess (35–39), as `control_points.csv` | None yet |
 | West end | W-1 | — |
 
-Also a reader rule, not an override: two track ends on the same spot in the export are one track and are joined (two pairs in 5.3b, one of them the main level's loop at T196).
+Also a reader rule, not an override: two track ends on the same spot in the export are one track and are joined (two pairs in 5.3b, one of them the main level's loop at T204).
 
-Hands and legs of the added staging switches are taken from the Layout Editor panel in `tables.xml`, which is the source for them (owner, 2026-11-13):
+Hands and legs of the staging switches 5.3b lacked were taken from the Layout Editor panel in `tables.xml` (owner, 2026-11-13); plan 5.3c draws them the same way:
 
 | Switch | Hand | Straight leg | Diverging leg |
 |--------|------|--------------|---------------|
@@ -98,6 +98,7 @@ Already rules in the spike:
 
 ### Layer 3: the owner's preferences for this sheet
 
+- Turnbacks: staging's Brick-Plane is drawn as the turnback (`turnbacks` in `staging.preferences.json`, plugin 0.1.45), as approved; with the 5.3c lengths the cheapest drawing would turn Main West back instead.
 - Order from the top: staging, main, upper (owner, 2026-11-14, REV 3). Helix at the east end of every band (a 180-degree turn of the two upper bands was tried and undone; east and west on the looped mains are to be settled later by following the main line, perhaps on the CATS diagram; ADR-022 stands meanwhile).
 - All bands the same width; main band 95% and nudged left; upper band nudged so H2 sits under H1.
 - Helix marks: three-turn coil with H1 or H2 and "Helix to …". Connectors between main and upper: circled A and B.

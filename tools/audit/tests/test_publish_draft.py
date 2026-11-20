@@ -298,11 +298,12 @@ class Inputs(unittest.TestCase):
                 self.assertLess(max(abs(e[k]) for k in "xyz"), 5000)
                 self.assertTrue(abs(e["x"]) > 1e-6 or abs(e["y"]) > 1e-6, "endpoint at the origin: corrupt read")
 
-    def test_only_the_misread_turnout_is_short(self) -> None:
-        """Part 0's third end point is unreadable in the .any file; any other turnout short of three is new."""
+    def test_no_turnout_is_short(self) -> None:
+        """tools/anyrail/anyplan.py reads every turnout's three end points (the old reader lost part 0's in 5.3b): a
+        turnout part with fewer is a misread."""
         parts = json.loads((PD.GRAPHS / "parts.json").read_text())
         turnouts = {p["name"] for p in parts if len(p["eps"]) >= 3}
-        self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [0])
+        self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [])
 
 class StationSheets(unittest.TestCase):
     """docs/ops/stations follows the drawn station sheets exactly: changed, missing and dropped sheets all differ."""

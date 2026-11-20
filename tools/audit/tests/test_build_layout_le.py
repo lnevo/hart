@@ -208,7 +208,7 @@ class Built(unittest.TestCase):
         self.assertEqual(len(new_lb), LEVEL_BLOCKS)      # the 107 Loop's two halves and 225's four corners
         self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")})
         self.assertIn("OS Switch 131", new_lb)          # connector A joins 131A and 131B: their OS block
-        self.assertIn("Track 131-H2", new_lb)           # the placeholder Track e68+e81
+        self.assertIn("Track 131-H2", new_lb)           # the placeholder Track e89
         self.assertFalse({b for b in new_lb if re.search(r"\be\d+", b)})
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
@@ -572,8 +572,8 @@ class DeviceNames(unittest.TestCase):
         got = B.device_names()
         self.assertEqual(got["Switch 101A"], "Switch 101")
         self.assertEqual(got["Switch 101B"], "Switch 101")
-        self.assertEqual(got["Switch 223"], "Switch 223")          # "Switch 223*" in the file
-        self.assertEqual(got["Track e68+e81"], "Track 131-H2")
+        self.assertEqual(got["Switch 223"], "Switch 223")
+        self.assertEqual(got["Track e89"], "Track 131-H2")
         self.assertEqual(len(got), 51 + LEVEL_BLOCKS)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
@@ -670,10 +670,10 @@ class ReviewFixes(unittest.TestCase):
         _sheet, le_mod, _core = B.plugin()
         _names, lengths = B.placeholder_names(bands, le_mod)
         cm = {k: s["cm"] for _, b, _ in bands for k, s in b["strands"].items()}
-        self.assertGreater(cm["e36x"], 0)
-        # e36 (19.7 cm) is cut at connector A into a piece on each level: both count (the plugin rounds each piece)
-        self.assertAlmostEqual(lengths["OS Switch 131"], (cm["e36x"] + cm["e36y"]) * 10)
-        self.assertAlmostEqual(lengths["OS Switch 127"], (cm["e37x"] + cm["e37y"]) * 10)
+        self.assertGreater(cm["e35x"], 0)
+        # e35 (19.7 cm) is cut at connector A into a piece on each level: both count (the plugin rounds each piece)
+        self.assertAlmostEqual(lengths["OS Switch 131"], (cm["e35x"] + cm["e35y"]) * 10)
+        self.assertAlmostEqual(lengths["OS Switch 127"], (cm["e36x"] + cm["e36y"]) * 10)
         self.assertGreater(lengths["OS Switch 131"], 190)
         # the balloon loop's turnback tracks each carry the whole edge: each half block takes half of it once
         half = next(s["cm"] for _, b, _ in bands for k, s in b["strands"].items() if k == "e33.0") * 10 / 2
@@ -910,7 +910,7 @@ class FinalReview(unittest.TestCase):
         self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
         self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
         self.assertEqual((opts["Main"]["optional_block_contents"], opts["Upper"]["optional_block_contents"]),
-                         ([], ["Track 227-231", "Track 229-233"]))
+                         ([], ["Track 227-231", "Track 229-233", "OS Switch 235"]))
 
 class LoopAndCrossover(unittest.TestCase):
     """The 107 Loop as two blocks and double crossover 225 as four, on appended numbers (owner, 2026-11-16)."""
@@ -934,7 +934,7 @@ class LoopAndCrossover(unittest.TestCase):
         names, lengths = B.level_names(bands, le_mod, page=page)
         loop = sorted(b for bl in names["Main"]["blocks"].values() for b in bl if "107 Loop" in b)
         self.assertEqual(loop, ["Track 107 Loop 1", "Track 107 Loop 2"])      # one strand each
-        self.assertEqual((lengths["Track 107 Loop 1"], lengths["Track 107 Loop 2"]), (3885.0, 3885.0))
+        self.assertEqual((lengths["Track 107 Loop 1"], lengths["Track 107 Loop 2"]), (3880.5, 3880.5))
         (n, corners), = names["Upper"]["xover_blocks"].items()
         band = next(b for t, b, _ in bands if t.startswith("Upper"))
         to_corner = le_mod.double_corners(band, n)

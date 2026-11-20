@@ -18,7 +18,7 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e9+e10",
+   "_edge": "e16",
    "_toward_node": "TOL34067"
   },
   {
@@ -37,7 +37,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e31",
+   "_edge": "e28",
    "_toward_node": "TOL34067"
   },
   {
@@ -56,7 +56,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e4",
+   "_edge": "e7",
    "_toward_node": "TOL33902"
   },
   {
@@ -75,7 +75,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e5",
+   "_edge": "e8",
    "_toward_node": "TOL33902"
   },
   {
@@ -94,7 +94,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e4",
+   "_edge": "e7",
    "_toward_node": "TOL33902"
   },
   {
@@ -113,7 +113,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e5",
+   "_edge": "e8",
    "_toward_node": "TOL33902"
   },
   {
@@ -132,7 +132,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e6a",
+   "_edge": "e29",
    "_toward_node": "TOL34057"
   },
   {
@@ -151,7 +151,7 @@
    "kind": "field",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e30a",
+   "_edge": "e0",
    "_toward_node": "TOL34057"
   },
   {
@@ -170,7 +170,7 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e31",
+   "_edge": "e28",
    "_toward_node": "TOL34057"
   },
   {
@@ -189,8 +189,8 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e6ba",
-   "_toward_node": "NEW:7a"
+   "_edge": "e31",
+   "_toward_node": "TOL34527"
   },
   {
    "mast": "8LB",
@@ -208,8 +208,8 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e30b",
-   "_toward_node": "NEW:7b"
+   "_edge": "e1",
+   "_toward_node": "TOL34519"
   },
   {
    "mast": "8LC",
@@ -227,7 +227,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e6a",
+   "_edge": "e29",
    "_toward_node": "TOL34057"
   },
   {
@@ -246,8 +246,8 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e6a",
-   "_toward_node": "NEW:7a"
+   "_edge": "e29",
+   "_toward_node": "TOL34527"
   },
   {
    "mast": "8RB",
@@ -265,8 +265,8 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e30a",
-   "_toward_node": "NEW:7b"
+   "_edge": "e0",
+   "_toward_node": "TOL34519"
   },
   {
    "mast": "10LA",
@@ -284,8 +284,8 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "n4",
-   "_toward_node": "NEW:9"
+   "_edge": "e33",
+   "_toward_node": "TOL34513"
   },
   {
    "mast": "10LB",
@@ -303,8 +303,8 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "n5",
-   "_toward_node": "NEW:9"
+   "_edge": "e34",
+   "_toward_node": "TOL34513"
   },
   {
    "mast": "10RA",
@@ -322,8 +322,8 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "n4",
-   "_toward_node": "NEW:9"
+   "_edge": "e33",
+   "_toward_node": "TOL34513"
   },
   {
    "mast": "10RB",
@@ -341,8 +341,8 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "n5",
-   "_toward_node": "NEW:9"
+   "_edge": "e34",
+   "_toward_node": "TOL34513"
   },
   {
    "mast": "12L",
@@ -360,8 +360,8 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "n2",
-   "_toward_node": "NEW:11"
+   "_edge": "e35",
+   "_toward_node": "TOL34512"
   },
   {
    "mast": "12R",
@@ -379,8 +379,8 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "n2",
-   "_toward_node": "NEW:11"
+   "_edge": "e35",
+   "_toward_node": "TOL34512"
   },
   {
    "mast": "14R",
@@ -398,8 +398,8 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e6ba",
-   "_toward_node": "NEW:13"
+   "_edge": "e31",
+   "_toward_node": "TOL34511"
   },
   {
    "mast": "16L",
@@ -417,7 +417,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e7+e17",
+   "_edge": "e10",
    "_toward_node": "TOR28939"
   },
   {
@@ -436,7 +436,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e7+e17",
+   "_edge": "e10",
    "_toward_node": "TOR29392"
   },
   {
@@ -455,7 +455,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e23",
+   "_edge": "e22",
    "_toward_node": "TOL28940"
   },
   {
@@ -474,7 +474,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e23",
+   "_edge": "e22",
    "_toward_node": "TOR28903"
   },
   {
@@ -493,7 +493,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e29",
+   "_edge": "e27",
    "_toward_node": "TOL28942"
   },
   {
@@ -512,7 +512,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e29",
+   "_edge": "e27",
    "_toward_node": "TOR28906"
   },
   {
@@ -531,7 +531,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e21",
+   "_edge": "e20",
    "_toward_node": "TOL28944"
   },
   {
@@ -550,7 +550,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e21",
+   "_edge": "e20",
    "_toward_node": "TOR28908"
   },
   {
@@ -588,7 +588,7 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e9+e10",
+   "_edge": "e16",
    "_toward_node": "TOR29391"
   },
   {
@@ -607,7 +607,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e7+e17",
+   "_edge": "e10",
    "_toward_node": "TOR29392"
   },
   {
@@ -626,7 +626,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e20",
+   "_edge": "e19",
    "_toward_node": "TOL28944"
   },
   {
@@ -645,7 +645,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e20",
+   "_edge": "e19",
    "_toward_node": "TOR28908"
   },
   {
@@ -662,7 +662,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e2",
+   "_edge": "e5",
    "_toward_node": "TOL28902"
   },
   {
@@ -681,7 +681,7 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e28",
+   "_edge": "e26",
    "_toward_node": "TOL29277"
   },
   {
@@ -700,7 +700,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e30b",
+   "_edge": "e1",
    "_toward_node": "TOL29277"
   },
   {
@@ -719,7 +719,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e28",
+   "_edge": "e26",
    "_toward_node": "TOL29277"
   },
   {
@@ -757,7 +757,7 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e28",
+   "_edge": "e26",
    "_toward_node": "TOL29970"
   },
   {
@@ -770,13 +770,13 @@
    "names": [
     "McKeesport"
    ],
-   "edge_cm": 61.0,
+   "edge_cm": 1637.3,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e26",
+   "_edge": "e37",
    "_toward_node": "TOR29969"
   },
   {
@@ -796,7 +796,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e16",
+   "_edge": "e15",
    "_toward_node": "TOR29969"
   },
   {
@@ -809,13 +809,13 @@
    "names": [
     "McKeesport"
    ],
-   "edge_cm": 61.0,
-   "cm_from_toward": 61.0,
+   "edge_cm": 1637.3,
+   "cm_from_toward": 1637.3,
    "dir": "east",
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e26",
+   "_edge": "e37",
    "_toward_node": "TOR29969"
   },
   {
@@ -835,7 +835,7 @@
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e16",
+   "_edge": "e15",
    "_toward_node": "TOL29312"
   },
   {
@@ -848,13 +848,13 @@
    "names": [
     "McKees Rocks"
    ],
-   "edge_cm": 61.0,
+   "edge_cm": 1750.1,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
    "heads": 2,
    "source": "le_panel",
-   "_edge": "e15",
+   "_edge": "e36",
    "_toward_node": "TOL29312"
   },
   {
@@ -867,13 +867,13 @@
    "names": [
     "McKees Rocks"
    ],
-   "edge_cm": 61.0,
-   "cm_from_toward": 61.0,
+   "edge_cm": 1750.1,
+   "cm_from_toward": 1750.1,
    "dir": "east",
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e15",
+   "_edge": "e36",
    "_toward_node": "TOL29312"
   },
   {
@@ -893,7 +893,7 @@
    "kind": "virtual",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e16",
+   "_edge": "e15",
    "_toward_node": "TOR29969"
   },
   {
@@ -913,7 +913,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e16",
+   "_edge": "e15",
    "_toward_node": "TOL29312"
   },
   {
@@ -933,7 +933,7 @@
    "kind": "planned",
    "heads": 1,
    "source": "le_panel",
-   "_edge": "e16",
+   "_edge": "e15",
    "_toward_node": "TOR29969"
   }
  ],

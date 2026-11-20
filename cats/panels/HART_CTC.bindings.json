@@ -5,26 +5,26 @@
   },
   "Track 107-109": {
    "detector": "BS 107-109",
-   "why": "inside its switches' OS blocks on the desk (99.9 cm, too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (99.8 cm, too short at one cell per grid unit for a block)"
   },
   "Track 109-111": {
-   "why": "a short link (24.2 cm) inside its switches' OS blocks"
+   "why": "a short link (24.1 cm) inside its switches' OS blocks"
   },
   "Track 115-117": {
-   "why": "a short link (24.2 cm) inside its switches' OS blocks"
+   "why": "a short link (24.1 cm) inside its switches' OS blocks"
   },
   "Track 117-119": {
    "why": "a short link (11.1 cm) inside its switches' OS blocks"
   },
   "Track 121-123": {
-   "why": "a short link (25.2 cm) inside its switches' OS blocks"
+   "why": "a short link (25.1 cm) inside its switches' OS blocks"
   },
   "Track 123-125": {
    "why": "a short link (10.5 cm) inside its switches' OS blocks"
   },
   "Track 125-127": {
    "detector": "BS 125-127",
-   "why": "inside its switches' OS blocks on the desk (86.9 cm, too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (86.8 cm, too short at one cell per grid unit for a block)"
   },
   "Track 125-129": {
    "why": "a short link (10.5 cm) inside its switches' OS blocks"
@@ -42,13 +42,13 @@
    "why": "a short link (11.7 cm) inside its switches' OS blocks"
   },
   "Track 225-227": {
-   "why": "a short link (17.8 cm) inside its switches' OS blocks"
+   "why": "a short link (17.7 cm) inside its switches' OS blocks"
   },
   "Track 227-231": {
    "why": "a short link (20.6 cm) inside its switches' OS blocks"
   },
   "Track 229-233": {
-   "why": "inside its switches' OS blocks on the desk (48.3 cm, too short at one cell per grid unit for a block)"
+   "why": "inside its switches' OS blocks on the desk (48.2 cm, too short at one cell per grid unit for a block)"
   },
   "Track 233-235": {
    "why": "inside its switches' OS blocks on the desk (75.9 cm, too short at one cell per grid unit for a block)"
@@ -675,7 +675,7 @@
     "command": "throw"
    }
   },
-  "221A-223*": {
+  "221A-223": {
    "_planned_occupied": {
     "DECADDR": "2306",
     "JMRIPREFIX": "M2S",
@@ -729,34 +729,7 @@
     "command": "throw"
    }
   },
-  "223*-225": {
-   "_planned_occupied": {
-    "DECADDR": "2202",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS 223-225 1",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "2202",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "Track 223-225 1",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:223-225_1",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 223-225 1",
-    "command": "close"
-   },
-   "station": "223-225",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:223-225_1",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "223*-225 2": {
+  "223-225": {
    "_planned_occupied": {
     "DECADDR": "2203",
     "JMRIPREFIX": "M2S",
@@ -779,6 +752,33 @@
    "station": "223-225",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:223-225_2",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "223-225 2": {
+   "_planned_occupied": {
+    "DECADDR": "2202",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS 223-225 1",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "2202",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "name": "Track 223-225 1",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:223-225_1",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS 223-225 1",
+    "command": "close"
+   },
+   "station": "223-225",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:223-225_1",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -2160,7 +2160,7 @@
     "command": "throw"
    }
   },
-  "OS 223*": {
+  "OS 223": {
    "_planned_occupied": {
     "DECADDR": "2200",
     "JMRIPREFIX": "M2S",
@@ -4859,7 +4859,7 @@
     }
    }
   },
-  "223*": {
+  "223": {
    "normal": "B",
    "routes": {
     "B": {
@@ -4998,7 +4998,7 @@
     }
    }
   },
-  "23/T118": {
+  "23/T126": {
    "block": "OS Switch 23b",
    "label": "23B",
    "normal": "B",
@@ -5033,7 +5033,7 @@
     }
    }
   },
-  "23/T58": {
+  "23/T57": {
    "block": "OS Switch 23a",
    "label": "23A",
    "normal": "B",
@@ -5602,7 +5602,7 @@
     }
    }
   },
-  "35/T55": {
+  "35/T54": {
    "block": "OS Switch 35b",
    "label": "35B",
    "normal": "B",
@@ -5637,7 +5637,7 @@
     }
    }
   },
-  "35/T98": {
+  "35/T95": {
    "block": "OS Switch 35a",
    "label": "35A",
    "normal": "B",
@@ -5774,7 +5774,7 @@
     }
    }
   },
-  "7/7a": {
+  "7/T139": {
    "block": "OS Switch 7",
    "label": "7A",
    "normal": "B",
@@ -5809,7 +5809,7 @@
     }
    }
   },
-  "7/7b": {
+  "7/T33": {
    "block": "OS Switch 7b",
    "label": "7B",
    "normal": "B",
