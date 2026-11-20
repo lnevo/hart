@@ -107,7 +107,7 @@ The staging-signal items overlap the staging signal rule work in another session
 - **Struck, not needed** (see above). Collapse the seven private CSV readers onto `hartlib.railroad.read_rows`: `tools/schematic/le_common.py:87`, `jmri/layouts/hart/scripts/sync_public_name_map.py:127`, `docs/wiring/scripts/refresh_wiring_docs.py:46`, `docs/wiring/scripts/add_main_upper_levels.py:48`, `ops/hart-ops/card_pipeline/intake_stages.py:72`, `ops/hart-ops/card_pipeline/cars.py:82`. S–M.
 - **Struck, not needed** (see above). Route `tools/audit/check_wiring_crosswalk.py:132` and `check_layout_facts.py:126` through `hartlib.tables`. M.
 - Smoke tests for `generate_card_template.py`, `rebuild_local_station_maps.py`, `generate_waybill_cards.py`, `apply_visual_review.py`. L.
-- Split `railroad.py` (CSV facts 112-720, class 724-818, invariants 821-1137) and `build_cats_panel.py` (facts 113-203, staging 205-362, levels 364-757, dress 811-895). L, tests first.
+- **Done, #741 and #742.** Split `railroad.py` (CSV facts 112-720, class 724-818, invariants 821-1137) and `build_cats_panel.py` (facts 113-203, staging 205-362, levels 364-757, dress 811-895). L, tests first.
 - `tools/schematic/publish_draft.py:60` imports upward from `www/scripts`.
 
 ## Not started: documentation
