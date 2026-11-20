@@ -90,6 +90,12 @@ class Fields(unittest.TestCase):
                 self.assertRaisesRegex(SystemExit, "is not on main, so the revision cannot be counted"):
             PD.prefs_on_main(page_prefs(Path(tmp), {"revision": 1}))
 
+    def test_publishing_stops_with_one_line_when_main_has_no_page_section(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(PD, "REPO", Path(tmp)), \
+                mock.patch.object(PD, "on_main", return_value='{"_sections": true, "staging": {}}'), \
+                self.assertRaisesRegex(SystemExit, "no section 'main_upper'.*nothing written"):
+            PD.prefs_on_main(page_prefs(Path(tmp), {"revision": 1}))
+
 
 class Preview(unittest.TestCase):
     def test_writes_only_into_the_folder(self) -> None:

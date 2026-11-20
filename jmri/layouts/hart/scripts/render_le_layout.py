@@ -556,12 +556,12 @@ def positive(text):
     return v
 
 
-def mast_kinds(path, sheet=KINDS_SHEET):
+def mast_kinds(path, sheet=None):
     """{mast user name: kind} from a schematic signals file's `signals` list (mast, kind): hart's signals.json, a
-    section per sheet (hartlib.layer_files), read at `sheet`'s section, or a plain signals file (the plugin's signals
+    section per sheet (hartlib.layer_files), read at `sheet`'s section (staging when None), or a plain signals file (the plugin's signals
     command's output). Names take the layer-1 `mast_prefix` of `sheet`'s section of the plan_overrides.json beside a
     sectioned file, or of the NAME.plan_overrides.json beside a plain NAME.signals.json, or "Mast " when it sets none. Stops on a file it cannot use, a sheet it
-    has no section for, or a mast listed twice."""
+    has no section for, a `sheet` given for a plain file, or a mast listed twice."""
     # hartlib only for --kinds: the drawing itself runs from a copy of this file (build_layout_index.py's tests)
     src = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
            if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -575,12 +575,16 @@ def mast_kinds(path, sheet=KINDS_SHEET):
         data = json.loads(text)
         sectioned = isinstance(data, dict) and data.get(layer_files.SECTIONS) is True
         if sectioned:
+            sheet = sheet or KINDS_SHEET
             data = layer_files.section_of(layer_files.parse(text, "signals", str(path)), sheet, str(path))
         rows = data["signals"]
         if not isinstance(rows, list):
             raise TypeError("signals is not a list")
     except (OSError, ValueError, KeyError, TypeError) as e:          # a LayerFileError is a ValueError
         raise SystemExit(f"--kinds {path}: cannot read a signals list ({e})")
+    if not sectioned and sheet is not None:
+        raise SystemExit(f"--kinds-sheet {sheet}: {path.name} has no sections; the sheet applies only to a "
+                         "sectioned signals.json")
     over = (layer_files.path("plan_overrides", path.parent) if sectioned
             else path.with_name(path.name.replace(".signals.json", ".plan_overrides.json")))
     if over.exists() and over != path:
@@ -616,8 +620,9 @@ def main():
     ap.add_argument("--kinds", type=Path, nargs="?", const=KINDS_FILE, metavar="SIGNALS_JSON",
                     help="colour mast icons by kind (field, virtual, planned) from a schematic signals file "
                          "(default: signals.json, its --kinds-sheet section)")
-    ap.add_argument("--kinds-sheet", default=KINDS_SHEET, metavar="SHEET",
-                    help="the section of a sectioned signals file to read (default: staging)")
+    ap.add_argument("--kinds-sheet", metavar="SHEET",
+                    help=f"the section of a sectioned signals file to read (default: {KINDS_SHEET}); "
+                         "refused for a plain signals file")
     args = ap.parse_args()
 
     root = ET.parse(args.src).getroot()

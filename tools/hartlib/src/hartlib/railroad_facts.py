@@ -497,20 +497,21 @@ def read_lcos_nodes(path: Path) -> list[LcosNode]:
 
 @dataclass(frozen=True)
 class PlanOverrides:
-    """The main_upper section of plan_overrides.json (hartlib.layer_files). `data` is the whole section
+    """A sheet's section of plan_overrides.json (main_upper unless read_plan_overrides is given another) (hartlib.layer_files). `data` is the whole section
     (build_device_map.py writes it back with its control_points and stations keys); `relabel` maps a plan switch label
     to the owner's switch number."""
     path: Path
     data: dict
     edits: tuple[dict, ...]
     relabel: dict[str, str]
+    sheet: str = "main_upper"
 
     SHEET = "main_upper"
 
     @property
     def name(self) -> str:
-        """How messages name it: plan_overrides.json[main_upper]."""
-        return f"{self.path.name}[{self.SHEET}]"
+        """How messages name it: plan_overrides.json[<the sheet read>]."""
+        return f"{self.path.name}[{self.sheet}]"
 
     @property
     def helix(self) -> list:
@@ -533,7 +534,7 @@ def read_plan_overrides(path: Path, sheet: str = PlanOverrides.SHEET) -> PlanOve
     relabels = [e for e in edits if e["op"] == "relabel"]
     if len(relabels) != 1 or not isinstance(relabels[0].get("map"), dict):
         raise FactsError(f"{where}: {len(relabels)} relabel edits; it needs exactly one, with a `map`")
-    return PlanOverrides(path, data, tuple(edits), dict(relabels[0]["map"]))
+    return PlanOverrides(path, data, tuple(edits), dict(relabels[0]["map"]), sheet)
 
 
 # ---------------------------------------------------------------- inputs: block lengths and staging masts

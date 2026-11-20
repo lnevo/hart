@@ -342,6 +342,13 @@ class Readers(Copy):
         self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides.with_name("main_upper.plan_overrides.json")),
                    "the plan overrides are plan_overrides.json")
 
+    def test_plan_overrides_are_named_by_the_sheet_read(self) -> None:
+        relabel = {"edits": [{"op": "relabel", "map": {}}]}
+        self.src.plan_overrides.write_text(
+            json.dumps({"_sections": True, "staging": relabel, "main_upper": relabel}), encoding="utf-8")
+        self.assertEqual(R.read_plan_overrides(self.src.plan_overrides).name, "plan_overrides.json[main_upper]")
+        self.assertEqual(R.read_plan_overrides(self.src.plan_overrides, "staging").name, "plan_overrides.json[staging]")
+
     def test_block_lengths_and_hands(self) -> None:
         got = R.read_block_lengths(self.src.block_lengths)
         self.assertEqual((got["Track W-1"].source, got["Track W-1"].jmri_in), ("plan", got["Track W-1"].plan_in))
