@@ -122,6 +122,10 @@ class BadMasters(Tmp):
         stations = S.read_stations(cps, self.write("stations.csv", "level,station,switches,tracks,notes\n1,One,1,,\n"))
         path = self.write("sheets.csv", "level,sheet,stations,notes\n3,Upper level,One,\n")
         self.assertStops(lambda: S.read_sheets(stations, path), "sheets.csv line 2", "level '3'; only staging")
+        path = self.write("sheets.csv", "level,sheet,stations,notes\n1.0,S,One,\n")
+        self.assertStops(lambda: S.read_sheets(stations, path), "sheets.csv line 2", "level '1.0' is not a level number")
+        path = self.write("sheets.csv", "level,sheet,stations,notes\n01,S,One,\n")
+        self.assertEqual([x.name for x in S.read_sheets(stations, path)], ["S"])
 
     def test_a_missing_column_stops(self):
         path = self.write("control_points_staging.csv", "cp_id,cp_name,level,switches,area\ncp_aa,A,1,1,A\n")

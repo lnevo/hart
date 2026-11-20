@@ -104,7 +104,11 @@ def _split(cell: str) -> tuple[str, ...]:
 
 def _staging_row(where: str, name: str, level: str) -> None:
     """Stop on a row of a level this builder does not build yet: the files hold every level, this writes staging's."""
-    if level != LEVEL:
+    try:
+        number = int(level)
+    except ValueError:
+        raise SetsError(f"{where} ({name}): level {level!r} is not a level number (1 staging, 2 main, 3 upper)") from None
+    if number != int(LEVEL):
         raise SetsError(f"{where} ({name}): level {level!r}; only staging (level {LEVEL}) stations and sheets are "
                         "built so far")
 
@@ -171,7 +175,7 @@ def read_stations(cps: list[ControlPoint], path: Path = STATIONS) -> list[Statio
     return out
 
 
-def read_sheets(stations: list[Station], path: Path = SHEETS) -> list[Sheet]:
+def read_sheets(stations: list[Station], path: Path = SHEETS, stations_path: Path = STATIONS) -> list[Sheet]:
     """The detail sheets in file order. Stops on a name given twice or a sheet naming no station or an unknown one."""
     known = {s.name for s in stations}
     out, names = [], {}
@@ -186,7 +190,7 @@ def read_sheets(stations: list[Station], path: Path = SHEETS) -> list[Sheet]:
             raise SetsError(f"{where} ({r['sheet']}): no stations")
         bad = [s for s in st if s not in known]
         if bad:
-            raise SetsError(f"{where} ({r['sheet']}): {', '.join(bad)} is no station in {STATIONS.name}")
+            raise SetsError(f"{where} ({r['sheet']}): {', '.join(bad)} is no station in {stations_path.name}")
         out.append(Sheet(line, r["sheet"], st))
     return out
 

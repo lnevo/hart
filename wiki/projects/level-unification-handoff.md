@@ -55,6 +55,8 @@ What differs is what each level adds around it.
   `docs/ops/stations/`). Only staging has stations; a main or upper row stops `build_staging_sets.py` until it
   builds those levels. The main and upper levels' two whole-level sheets stay in `main_upper.preferences.json`: they
   list every switch drawn on a band, not stations, and the builder does not read the bands.
+  When main and upper stations come, station names are unique across levels or keyed by level: decide then
+  (the `station_tracks` and `detail_sheets` keys are by name).
 - **Short tracks:** staging lists them by hand, main and upper use a rule (`SHORT_CM`). Proposed: the rule for every
   level, with the file kept only for owner exceptions (35 to 37 is one, a block decided by the owner), level column.
 - **Hand lists:** running track and signalled spurs become rules; split tracks stay owner data in
