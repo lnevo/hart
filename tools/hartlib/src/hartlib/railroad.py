@@ -691,19 +691,24 @@ def read_tables(path: Path) -> TablesNames:
         raise FactsError(f"{path}: cannot read it as a tables file ({exc})") from None
 
     def by_user(kind, beans):
+        # A bean with no system name cannot be told apart from another, so it neither counts as a twin nor hides one.
         out: dict[str, str] = {}
         for b in beans:
             user, system = tables.user_name(b), tables.system_name(b)
             if not user:
                 continue
-            if out.setdefault(user, system) != system:
+            if not system:
+                out.setdefault(user, "")
+                continue
+            if out.get(user) not in (None, "", system):
                 raise FactsError(f"{path}: two {kind}s have the user name {user!r}: {out[user]} and {system}")
+            out[user] = system
         return out
-    blocks = tables.blocks(root)
-    by_user("block", blocks)
+    # Every <block> form: JMRI writes each block twice (names only, then in full), and a block may exist only bare.
+    by_user("block", tables.section(root, "blocks", "block"))
     return TablesNames(root, by_user("turnout", tables.turnouts(root)), by_user("sensor", tables.sensors(root)),
                        by_user("mast", tables.masts(root)),
-                       {tables.user_name(b) or tables.system_name(b) for b in blocks})
+                       {tables.user_name(b) or tables.system_name(b) for b in tables.blocks(root)})
 
 
 # ---------------------------------------------------------------- the railroad

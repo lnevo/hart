@@ -182,6 +182,43 @@ class Readers(Copy):
         self.assertEqual(live.blocks, {R.tables.user_name(b) or R.tables.system_name(b)
                                        for b in R.tables.blocks(root)})
 
+    def test_a_bare_block_sharing_a_user_name_stops_the_read(self) -> None:
+        """The block check covers every form JMRI writes: a block kept only as names, and one written both bare and
+        in full (one bean, not twins)."""
+        dup = self.tmp / "bare.xml"
+        bare = "<block><systemName>IB{n}</systemName><userName>Twin</userName></block>"
+        full = "<block><systemName>IB{n}</systemName><userName>Twin</userName><permissive>no</permissive></block>"
+        for what, body in (("two bare", bare.format(n=1) + bare.format(n=2)),
+                           ("bare then full", bare.format(n=1) + full.format(n=2)),
+                           ("two sections", bare.format(n=1) + "</blocks><blocks>" + full.format(n=2))):
+            with self.subTest(what):
+                dup.write_text(f"<layout-config><blocks>{body}</blocks></layout-config>", encoding="utf-8")
+                self.fails(lambda: R.read_tables(dup), "bare.xml: two blocks have the user name 'Twin': IB1 and IB2$")
+        dup.write_text(f"<layout-config><blocks>{bare.format(n=1)}{full.format(n=1)}</blocks></layout-config>",
+                       encoding="utf-8")
+        self.assertEqual(R.read_tables(dup).blocks, {"Twin"})
+
+    def test_empty_names_are_not_twins(self) -> None:
+        """Beans without a user name never clash, and one without a system name neither clashes with a named bean
+        nor hides two that do."""
+        f = self.tmp / "empty.xml"
+
+        def write(*beans: tuple[str, str]) -> None:
+            f.write_text("<layout-config><turnouts>" + "".join(
+                f"<turnout><systemName>{s}</systemName><userName>{u}</userName></turnout>" for s, u in beans)
+                + "</turnouts></layout-config>", encoding="utf-8")
+        write(("MT1", ""), ("MT2", " "), ("MT3", "Solo"))
+        self.assertEqual(R.read_tables(f).turnouts, {"Solo": "MT3"})
+        write(("", "Twin"), (" ", "Twin"))
+        self.assertEqual(R.read_tables(f).turnouts, {"Twin": ""})
+        for beans in ((("", "Twin"), ("MT1", "Twin")), (("MT1", "Twin"), ("", "Twin"))):
+            write(*beans)
+            self.assertEqual(R.read_tables(f).turnouts, {"Twin": "MT1"})
+        write(("MT1", "Twin"), ("", "Twin"), ("MT2", "Twin"))
+        self.fails(lambda: R.read_tables(f), "empty.xml: two turnouts have the user name 'Twin': MT1 and MT2$")
+        write(("", "Twin"), ("MT1", "Twin"), ("MT2", "Twin"))
+        self.fails(lambda: R.read_tables(f), "empty.xml: two turnouts have the user name 'Twin': MT1 and MT2$")
+
     def test_a_noted_file_needs_its_note_line(self) -> None:
         noted = self.tmp / "noted.csv"
         noted.write_text("mast,facing,protects\nMast 2L,Track Main West,OS Switch 1\n", encoding="utf-8")
