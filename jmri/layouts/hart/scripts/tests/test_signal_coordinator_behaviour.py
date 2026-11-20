@@ -353,7 +353,8 @@ class Coordinator(unittest.TestCase):
         self.c._global_enabled = True
         self.c._claim = (T0, False)
         self.c.notifyMqttMessage("track/bridge/sml_mode", "query")
-        self.assertEqual(self.sent(), [("track/bridge/sml_mode", "enabled rpi-jmri %d" % T0, True)])
+        self.assertEqual(self.sent(), [("track/bridge/sml_mode", "enabled", True),
+                                       ("track/bridge/sml_claim", "enabled rpi-jmri %d" % T0, True)])
 
     def test_enable_probe_query_is_not_retained(self) -> None:
         # A retained "query" would replace the retained mode on the broker and replay to every
@@ -374,7 +375,7 @@ class Coordinator(unittest.TestCase):
     def test_another_agents_enabling_aborts_without_unheld(self) -> None:
         self.enroll()
         self.own_by_sml()
-        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling minipc-e5h6x %d force" % T0)
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
         jf.run_threads()
         self.assertEqual(self.sent(), [("track/bridge/sml_mode", "aborting", True),
                                        ("track/bridge/sml_mode", "aborted", True)])
@@ -385,8 +386,10 @@ class Coordinator(unittest.TestCase):
         self.c._host = "rpi-jmri"
         self.c._stamp_claim()
         jf.Thread.started.clear()
-        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling rpi-jmri %d" % self.c._claim[0])
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+        self.c.notifyMqttMessage("track/bridge/sml_claim", "enabling rpi-jmri %d" % self.c._claim[0])
         self.assertEqual(jf.Thread.started, [])  # no abort worker
+        self.assertEqual(self.bulk, [])
         self.assertTrue(self.c._enabling_originator)
         self.assertEqual(self.sent(), [])
 
@@ -568,7 +571,8 @@ class Coordinator(unittest.TestCase):
         self.assertNotIn(first, self.mast.listeners)
         self.assertIn(second, self.mast.listeners)
         gone = {t for t, l in self.layout.adapter.unsubscribed if l is first}
-        self.assertEqual(gone, {"track/bridge/sml_mode", "track/signalmast/#", "track/signalhead/#"})
+        self.assertEqual(gone, {"track/bridge/sml_mode", "track/bridge/sml_claim",
+                                "track/signalmast/#", "track/signalhead/#"})
         self.assertFalse([t for t, l in self.layout.adapter.unsubscribed if l is second])
         self.assertEqual([t._controller for t in self.layout.shutdown.tasks], [second])
         self.assertEqual(len(space.frame.listeners), 1)
@@ -686,7 +690,7 @@ class Coordinator(unittest.TestCase):
         self.assertTrue(second._global_enabled)
         self.assertEqual(second._claim, (T0, False))
         self.assertEqual(second._host, first._host)
-        sent = [p for t, p, r in self.layout.adapter.published if t == SML]
+        sent = [p for t, p, r in self.layout.adapter.published if t in (SML, CLAIM)]
         self.assertEqual(sent, [])
         self.assertFalse(self.mast.held)
 
@@ -699,21 +703,23 @@ class Coordinator(unittest.TestCase):
 # --- two hosts racing for Digicon (owner decision 2026-11-19) -------------------------
 
 SML = "track/bridge/sml_mode"
+CLAIM = "track/bridge/sml_claim"
 T0 = 1_763_590_000_000  # epoch ms; the hosts compare stamps only with each other
 
 
 class _Broker:
-    """One broker for the sml_mode topic: every host gets every message, in one order.
+    """One broker for sml_mode and sml_claim: every host gets every message, in one order.
 
     A publish is queued; `deliver()` hands each message to every host (the publisher too,
-    as a broker echoes to a subscribed client) and keeps the last retained one. A
+    as a broker echoes to a subscribed client) and keeps the last retained one per topic.
+    One order across both topics is what mosquitto does for one client's publishes. A
     sleeping thread lets time pass and delivers what is queued, unless `hold` is set:
     claims made while held are "at once". Nothing here touches a network.
     """
 
     def __init__(self):
         self.queue, self.log, self.hosts = [], [], []
-        self.retained = None
+        self.retained = {}
         self.hold = False
         self.now = T0  # real time; each host adds its own clock skew
         self._delivering = False
@@ -724,15 +730,15 @@ class _Broker:
         class _Adapter(jf.RecordingAdapter):
             def publish(self, topic, payload, retain=True):
                 super().publish(topic, payload, retain)
-                if topic == SML:
-                    broker.queue.append((payload, retain))
+                if topic in (SML, CLAIM):
+                    broker.queue.append((topic, payload, retain))
 
         return _Adapter()
 
     def bridge(self, *payloads):
         """The LCOS bridge publishes each payload; each is delivered before the next."""
         for p in payloads:
-            self.queue.append((p, p != "query"))
+            self.queue.append((SML, p, p != "query"))
             self.deliver()
 
     def deliver(self):
@@ -741,12 +747,12 @@ class _Broker:
         self._delivering = True
         try:
             while self.queue:
-                payload, retain = self.queue.pop(0)
+                topic, payload, retain = self.queue.pop(0)
                 self.log.append(payload)
                 if retain:
-                    self.retained = payload
+                    self.retained[topic] = payload
                 for host in list(self.hosts):
-                    host.notifyMqttMessage(SML, payload)
+                    host.notifyMqttMessage(topic, payload)
         finally:
             self._delivering = False
 
@@ -853,14 +859,20 @@ class TwoHosts(unittest.TestCase):
         self.assertIsNone(other._claim)
         self.assertFalse(other.mast_bean.held)
         self.assertFalse(who.mast_bean.held)
-        self.assertEqual(self.broker.retained.split()[:2], ["enabled", who._host])
+        self.assertEqual(self.broker.retained[SML], "enabled")
+        self.assertEqual(self.broker.retained[CLAIM].split()[:2], ["enabled", who._host])
+
+    def stale(self, c, claim):
+        """What a host reads at subscribe: the bare retained word, then the claim."""
+        c.notifyMqttMessage(SML, claim.split()[0])
+        c.notifyMqttMessage(CLAIM, claim)
 
     def claims_at_once(self, *hosts):
         """Boot the hosts so each claims before it hears the other."""
         self.broker.hold = True
         self.boot(*hosts)
         self.run_named("_Boot")
-        self.assertEqual(sum(1 for p, _ in self.broker.queue if p.startswith("enabling")), len(hosts))
+        self.assertEqual(sum(1 for t, p, _ in self.broker.queue if t == CLAIM), len(hosts))
         self.settle()
 
     # payload -------------------------------------------------------------------------------
@@ -870,18 +882,23 @@ class TwoHosts(unittest.TestCase):
         self.settle()
         stamp = T0 + 1000  # after the boot read wait
         self.assertIn("enabling rpi-jmri %d" % stamp, self.broker.log)
-        self.assertEqual(self.broker.retained, "enabled rpi-jmri %d" % stamp)
+        self.assertEqual(self.broker.retained[CLAIM], "enabled rpi-jmri %d" % stamp)
+        self.assertEqual(self.broker.retained[SML], "enabled")
 
-    def test_the_first_word_is_the_bridge_token(self) -> None:
-        # The bridge reads the mode from the payload; with this change it must take the
-        # first word (see the PR body). Every payload sent starts with a bridge token.
+    def test_sml_mode_payloads_stay_the_bridge_words(self) -> None:
+        # The LCOS bridge compares the whole sml_mode payload; it never sees sml_claim.
         self.claims_at_once(self.pi, self.win)
-        for p in self.broker.log:
-            self.assertIn(p.split()[0], ("enabling", "enabled", "aborting", "aborted",
-                                         "disabling", "disabled", "query"))
+        for c in (self.pi, self.win):
+            for t, p, r in c.mqtt.published:
+                if t == SML:
+                    self.assertIn(p, ("enabling", "enabled", "aborting", "aborted",
+                                      "disabling", "disabled", "query"))
+        # The bare word goes out before the claim, so an idle host stands back first.
+        pi = [(t, p.split()[0]) for t, p, r in self.pi.mqtt.published]
+        self.assertEqual(pi[:2], [(SML, "enabling"), (CLAIM, "enabling")])
 
     def test_parse_old_and_new_payloads(self) -> None:
-        parse = self.sc["_parse_sml_mode"]
+        parse = self.sc["_parse_claim"]
         self.assertEqual(parse("enabled"), ("enabled", None, None, False))
         self.assertEqual(parse(" Enabled "), ("enabled", None, None, False))
         self.assertEqual(parse("enabling rpi-jmri 5 force"), ("enabling", "rpi-jmri", 5, True))
@@ -971,7 +988,7 @@ class TwoHosts(unittest.TestCase):
     def test_late_host_sees_enabled_and_stays_disabled(self) -> None:
         self.boot(self.pi)
         self.settle()
-        self.win.notifyMqttMessage(SML, self.broker.retained)  # the retained value at subscribe
+        self.stale(self.win, self.broker.retained[CLAIM])  # the retained values at subscribe
         self.boot(self.win)
         self.settle()
         self.assert_one_owner(self.pi)
@@ -997,7 +1014,7 @@ class TwoHosts(unittest.TestCase):
     def test_bridge_release_with_both_hosts_idle_gives_one_owner(self) -> None:
         # Power cut: both boot on the stale retained enabled; nobody answers the bridge.
         for c in (self.pi, self.win):
-            c.notifyMqttMessage(SML, "enabled rpi-jmri %d" % (T0 - 60000))
+            self.stale(c, "enabled rpi-jmri %d" % (T0 - 60000))
         self.boot(self.win)
         self.settle()
         self.assertEqual(self.owners(), [])
@@ -1009,7 +1026,7 @@ class TwoHosts(unittest.TestCase):
         self.broker.hold = True
         self.boot(self.pi, self.win)
         self.run_named("_Boot")
-        self.broker.queue.append(("query", False))
+        self.broker.queue.append((SML, "query", False))
         self.settle()
         self.assert_one_owner(self.win)
 
@@ -1036,13 +1053,13 @@ class TwoHosts(unittest.TestCase):
 
     def test_own_stale_enabled_lets_this_host_take_at_boot(self) -> None:
         # The Pi died while owning; its own retained enabled is not another host's.
-        self.pi.notifyMqttMessage(SML, "enabled rpi-jmri %d" % (T0 - 60000))
+        self.stale(self.pi, "enabled rpi-jmri %d" % (T0 - 60000))
         self.boot(self.pi)
         self.settle()
         self.assert_one_owner(self.pi)
 
     def test_other_hosts_stale_enabled_keeps_boot_disabled(self) -> None:
-        self.pi.notifyMqttMessage(SML, "enabled minipc-e5h6x %d" % (T0 - 60000))
+        self.stale(self.pi, "enabled minipc-e5h6x %d" % (T0 - 60000))
         self.boot(self.pi)
         self.settle()
         self.assertEqual(self.owners(), [])
@@ -1053,7 +1070,7 @@ class TwoHosts(unittest.TestCase):
         c = self.pi
         c.logic.enabled["Mast 8RA"] = True
         c._stamp_claim(force=True)  # start() stamps before subscribe
-        c.notifyMqttMessage(SML, "enabling minipc-e5h6x %d" % (T0 - 1000))  # stale, not forced
+        self.stale(c, "enabling minipc-e5h6x %d" % (T0 - 1000))  # stale, not forced
         self.assertIsNotNone(c._claim)
         c._announce_enabling("stored dests", force=True)
         c._schedule_enabled_after_enabling()
@@ -1069,6 +1086,40 @@ class TwoHosts(unittest.TestCase):
         self.settle()
         self.assert_one_owner(self.win)
 
+    def test_forced_owner_is_ranked_the_same_on_both_hosts(self) -> None:
+        # Review: the owner ranked itself as forced while its enabled dropped " force", so
+        # the other host saw a larger key and both kept taking.
+        self.boot(self.pi)
+        self.settle()
+        self.win._probe_and_confirm_override = lambda: "force"
+        self.win._enter_enabled(force=False, from_boot=False)
+        self.settle()
+        self.assert_one_owner(self.win)
+        self.assertTrue(self.broker.retained[CLAIM].endswith(" force"))
+        self.pi._skew_ms = -5000  # a normal take with an earlier stamp, probe missed
+        self.pi._probe_and_confirm_override = lambda: "ok"
+        n = len(self.broker.log)
+        self.pi._enter_enabled(force=False, from_boot=False)
+        self.settle()
+        self.assert_one_owner(self.win)
+        self.assertLess(len(self.broker.log) - n, 10)  # no endless re-announce
+
+    def test_no_enabled_without_a_claim(self) -> None:
+        self.pi._publish_mode("enabled")
+        self.assertEqual(self.pi.mqtt.published, [])
+
+    def test_quit_release_failure_clears_releasing(self) -> None:
+        self.boot(self.pi)
+        self.settle()
+
+        def boom(on):
+            raise RuntimeError("layout")
+
+        self.pi._set_all_digicon_sml_destinations = boom
+        with self.assertRaises(RuntimeError):
+            self.pi._release_on_quit()
+        self.assertFalse(self.pi._releasing)
+
     def test_owner_disabling_yields_to_a_later_claim(self) -> None:
         self.boot(self.pi)
         self.settle()
@@ -1082,7 +1133,7 @@ class TwoHosts(unittest.TestCase):
         disable.runnable.run()  # the Pi's Disable hears the claim during its Hold
         self.settle()
         self.assertEqual([c._host for c in self.owners()], ["minipc-e5h6x"])
-        self.assertNotEqual(self.broker.retained, "disabled")
+        self.assertNotEqual(self.broker.retained[SML], "disabled")
 
 
 if __name__ == "__main__":

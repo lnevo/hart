@@ -139,7 +139,8 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn('result == "force"', enable)
         on_mode = text[text.index("def _on_sml_mode") :]
         self.assertIn("own enabling", on_mode)
-        self.assertIn("_resolve_claim_race(mode, host, stamp, force)", on_mode)
+        claim = text[text.index("def _on_sml_claim") : text.index("def _on_sml_mode")]
+        self.assertIn("_resolve_claim_race(mode, host, stamp, force)", claim)
         self.assertIn('_publish_mode("enabling")', text[text.index("def _announce_enabling") :])
 
     def test_no_static_head_names_list(self) -> None:

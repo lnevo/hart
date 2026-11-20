@@ -20,18 +20,20 @@
 #   Later, the bridge's release (disabling then disabled) while this instance is
 #   idle runs the take again, so a stale retained enabled cannot leave every host
 #   Disabled. A bare disabled (operator Disable elsewhere) is left alone.
-# Claims (owner decision 2026-11-19): every take publishes
-#   "enabling <host> <epoch-ms>" (" force" added for Force override and stored
-#   dests) and ownership is "enabled <host> <same ms>". When two hosts claim at
+# Claims (owner decision 2026-11-19): sml_mode payloads stay the bare words the
+#   LCOS bridge reads. Each enabling / enabled is followed by a retained claim on
+#   track/bridge/sml_claim, which only the coordinators read: "enabling <host>
+#   <epoch-ms>" (" force" added for Force override and stored dests), and
+#   "enabled <host> <same ms>". The bare word goes first, so another host hears
+#   "someone is taking" before it can compare claims. When two hosts claim at
 #   once, the smaller key wins: force first, then the earlier stamp, then the
 #   host name. Stamps are only compared with each other, never with this
 #   host's clock, so a skewed clock changes who wins but never lets both own.
 #   The loser of a pending claim cancels its Hold quietly; an owner yields to a
-#   smaller key (abort) and answers a larger one with its enabled again. Bare
-#   words (from before this change) are read for the mode only: at boot they
-#   still mean "someone owns", in a race they are stale and ignored. A retained
-#   claim with this host's own name was left by its own earlier run.
-#   The LCOS bridge must read the first word of the payload as the mode.
+#   smaller key (abort) and answers a larger one with its enabled again. While
+#   claiming, a bare enabling / enabled on sml_mode is left to the claim topic.
+#   At boot, a retained enabled whose last claim names this host was left by
+#   this host's own earlier run.
 # Abort runs on a worker thread (it waits on the layout thread; the MQTT callback
 #   thread must not). A Disable/Enable worker that an abort overtakes publishes no
 #   Unheld, no disabled and no enabled.
@@ -63,6 +65,8 @@ from jmri.jmrix.mqtt import MqttEventListener
 TOPIC_PREFIX = "track/signalhead/"
 MAST_TOPIC_PREFIX = "track/signalmast/"
 SML_MODE_TOPIC = "track/bridge/sml_mode"
+# Coordinators only (the bridge never subscribes): who claims, and when.
+SML_CLAIM_TOPIC = "track/bridge/sml_claim"
 SML_MODE_SENSOR = "IS:SML_MODE"
 HOLD_WAIT_MS = 3000
 BOOT_MODE_WAIT_MS = 1000
@@ -169,12 +173,11 @@ def _local_host_name():
     return _host_token(name)
 
 
-def _parse_sml_mode(message):
-    """sml_mode payload -> (mode, host, stamp, force).
+def _parse_claim(message):
+    """sml_claim payload -> (mode, host, stamp, force).
 
-    "enabling <host> <ms> [force]" and "enabled <host> <ms>" carry a claim. A bare word
-    (the bridge's own payloads, or a retain from before claims had names) gives
-    host and stamp None.
+    "enabling <host> <ms> [force]" or "enabled <host> <ms>". Anything shorter or without
+    a number gives host and stamp None.
     """
     words = _ascii(message).split()
     if not words:
@@ -317,6 +320,12 @@ class DigiconMqttSml(
         self._close_listener = None
         # Claim identity: this host's name and, while it claims or owns, (stamp ms, force).
         self._host = _local_host_name()
+        if self._host in ("unknown", "localhost"):
+            # Two hosts with one name cannot tell their claims apart.
+            print(
+                "mqtt_signalhead: WARNING host name is %r; give each JMRI host its own "
+                "name or both may own Digicon" % self._host
+            )
         self._now_ms = lambda: int(time.time() * 1000)
         self._claim = None
         self._retained_host = None
@@ -515,10 +524,16 @@ class DigiconMqttSml(
         """MQTT Unheld + disabled before dest uncheck so a layout hang cannot skip RELEASE.
 
         An abort during the Hold means another agent is taking Digicon: no Unheld and
-        no disabled over its enabling.
+        no disabled over its enabling. While it runs, any other host's claim wins.
         """
-        abort_gen = self._abort_gen
         self._releasing = True
+        try:
+            self._release_on_quit_steps()
+        finally:
+            self._releasing = False
+
+    def _release_on_quit_steps(self):
+        abort_gen = self._abort_gen
         print(
             "mqtt_signalhead: Hold Digicon masts, wait %d ms before Unheld / disabled"
             % HOLD_WAIT_MS
@@ -553,7 +568,6 @@ class DigiconMqttSml(
         self._global_enabled = False
         self._enabling_originator = False
         self._claim = None
-        self._releasing = False
         self._sync_sml_mode_sensor()
 
     def _stored_enabled_source_names(self):
@@ -672,10 +686,11 @@ class DigiconMqttSml(
         with self._claim_lock:
             if self._claim is None or not self._enabling_originator:
                 self._stamp_claim(force=force)
+            stamp, forced = self._claim
             self._publish_mode("enabling")
         print(
             "mqtt_signalhead: sml_mode enabling (%s; claim %s %d%s)"
-            % (reason, self._host, self._claim[0], " force" if self._claim[1] else "")
+            % (reason, self._host, stamp, " force" if forced else "")
         )
 
     def _my_claim_key(self):
@@ -699,24 +714,19 @@ class DigiconMqttSml(
         else:
             # A pending Hold reads the bump and leaves the pairs off, with no enabled.
             self._abort_gen += 1
+            self._sync_sml_mode_sensor()
 
     def _resolve_claim_race(self, mode, host, stamp, force):
         """A claim (enabling) or ownership (enabled) from elsewhere while this host
         claims or owns. The smaller key wins on both hosts, as each compares the
         same two keys."""
-        if stamp is None:
-            print(
-                "mqtt_signalhead: bare %s while claiming -- left from before claims "
-                "had names, ignored" % mode
-            )
-            return
         if host == self._host:
             print(
                 "mqtt_signalhead: %s from this host's earlier run (%d) -- ignored"
                 % (mode, stamp)
             )
             return
-        theirs = _claim_key(stamp, host, force and mode == "enabling")
+        theirs = _claim_key(stamp, host, force)
         if self._releasing or theirs < self._my_claim_key():
             self._lose_claim(
                 "%s %s %d%s is first" % (mode, host, stamp, " force" if force else "")
@@ -937,6 +947,7 @@ class DigiconMqttSml(
     def _subscribe_mqtt(self):
         try:
             self.mqtt.subscribe(SML_MODE_TOPIC, self)
+            self.mqtt.subscribe(SML_CLAIM_TOPIC, self)
             # signalmast first (roster + paint). signalhead is SET/Unheld; do not enroll.
             self.mqtt.subscribe(MAST_TOPIC_PREFIX + "#", self)
             self.mqtt.subscribe(TOPIC_PREFIX + "#", self)
@@ -1088,20 +1099,27 @@ class DigiconMqttSml(
             )
 
     def _publish_mode(self, mode):
-        """Retained sml_mode. enabling / enabled carry this host's claim."""
-        payload = mode
-        host = None
-        if mode in ("enabling", "enabled"):
-            if self._claim is None:
-                self._claim = (self._now_ms(), False)
-            stamp, force = self._claim
-            payload = "%s %s %d" % (mode, self._host, stamp)
-            if mode == "enabling" and force:
-                payload += " force"
-            host = self._host
+        """Retained sml_mode word; enabling / enabled then this host's claim.
+
+        The word goes first: a host that hears it while idle stands back before the
+        claim reaches it, and one already claiming compares the claim.
+        """
+        claim = self._claim
+        if mode in ("enabling", "enabled") and claim is None:
+            # Lost or aborted on another thread just now: nothing to announce.
+            print("mqtt_signalhead: no claim -- %s not sent" % mode)
+            return
         self._retained_mode = mode
-        self._retained_host = host
-        self._publish(SML_MODE_TOPIC, payload, retain=True)
+        self._publish(SML_MODE_TOPIC, mode, retain=True)
+        if mode not in ("enabling", "enabled"):
+            return
+        stamp, force = claim
+        payload = "%s %s %d" % (mode, self._host, stamp)
+        if force:
+            # On enabled too: both hosts must rank an owner with the same key.
+            payload += " force"
+        self._retained_host = self._host
+        self._publish(SML_CLAIM_TOPIC, payload, retain=True)
 
     def _schedule_boot_check(self):
         """After subscribe, read sml_mode (broker retain arrives as a message).
@@ -1431,8 +1449,11 @@ class DigiconMqttSml(
             except Exception:
                 pass
         # Ownership announce for the bridge and the other host (not a boot retain republish).
-        self._publish_mode("enabled")
-        self._enabling_originator = False
+        # Under the lock, so an abort that lands now cannot be followed by our enabled.
+        with self._claim_lock:
+            if self._abort_gen == abort_gen and self._claim is not None:
+                self._publish_mode("enabled")
+            self._enabling_originator = False
         self._sync_sml_mode_sensor()
         # Push current appearances once Digicon owns SET again.
         for head in self._heads:
@@ -1659,6 +1680,9 @@ class DigiconMqttSml(
         topic = _ascii(topic)
         message = _ascii(message).strip()
         # JMRI may deliver full topic or channel-relative leaf.
+        if topic == SML_CLAIM_TOPIC or topic.endswith("bridge/sml_claim"):
+            self._on_sml_claim(message)
+            return
         if (
             topic == SML_MODE_TOPIC
             or topic.endswith("/bridge/sml_mode")
@@ -1693,19 +1717,33 @@ class DigiconMqttSml(
         self._enroll_packed(leaf)
         self._apply_mast_payload_to_head(leaf, message)
 
-    def _on_sml_mode(self, message):
-        mode, host, stamp, force = _parse_sml_mode(message)
+    def _on_sml_claim(self, message):
+        """A claim from track/bridge/sml_claim (this host's own echo included)."""
+        mode, host, stamp, force = _parse_claim(message)
+        if mode not in ("enabling", "enabled") or stamp is None:
+            print("mqtt_signalhead: sml_claim %r not understood -- ignored" % message)
+            return
         with self._claim_lock:
-            self._on_sml_mode_locked(mode, host, stamp, force)
+            # The last claim on the broker; read at boot with the retained mode.
+            self._retained_host = host
+            if self._is_own_claim(host, stamp):
+                return
+            if self._claim is not None:
+                self._resolve_claim_race(mode, host, stamp, force)
 
-    def _on_sml_mode_locked(self, mode, host, stamp, force):
-        own = self._is_own_claim(host, stamp)
+    def _on_sml_mode(self, message):
+        words = message.split()
+        mode = words[0].lower() if words else ""
+        with self._claim_lock:
+            self._on_sml_mode_locked(mode)
+
+    def _on_sml_mode_locked(self, mode):
         bridge_release = mode == "disabled" and self._bridge_release_pending
         if mode == "disabling":
             self._bridge_release_pending = True
         elif mode in ("enabled", "enabling", "aborting", "aborted", "disabled"):
             self._bridge_release_pending = False
-        if mode == "enabled" and self._probe_active and not own:
+        if mode == "enabled" and self._probe_active:
             self._probe_saw_enabled = True
         if mode in (
             "enabled",
@@ -1719,15 +1757,13 @@ class DigiconMqttSml(
             # Do not let our probe query wipe a known enabled retain for the fast path.
             if not (self._probe_active and mode == "query"):
                 self._retained_mode = mode
-                self._retained_host = host
-        if own:
-            if mode == "enabling":
+        if mode in ("enabling", "enabled") and self._claim is not None:
+            # Claiming or owning: this host's own echo, or a rival whose claim follows
+            # on sml_claim and is compared there.
+            if mode == "enabling" and self._enabling_originator:
                 print(
                     "mqtt_signalhead: own enabling -- leave SML, wait to announce enabled"
                 )
-            return
-        if mode in ("enabling", "enabled") and self._claim is not None:
-            self._resolve_claim_race(mode, host, stamp, force)
             return
         if mode == "enabling":
             print("mqtt_signalhead: saw enabling -- abort SML")
@@ -1887,7 +1923,12 @@ def _detach_controller(old):
             pass
     mqtt = getattr(old, "mqtt", None)
     if mqtt is not None:
-        for topic in (SML_MODE_TOPIC, MAST_TOPIC_PREFIX + "#", TOPIC_PREFIX + "#"):
+        for topic in (
+            SML_MODE_TOPIC,
+            SML_CLAIM_TOPIC,
+            MAST_TOPIC_PREFIX + "#",
+            TOPIC_PREFIX + "#",
+        ):
             try:
                 mqtt.unsubscribe(topic, old)
             except Exception as exc:
