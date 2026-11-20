@@ -256,7 +256,9 @@ class RecordingAdapter:
         self.published = []
         self.subscribed = []
 
-    def publish(self, topic, payload, retain=False):
+    # Stock MqttAdapter.publish(topic, payload) retains (its `retained` field is true), so the
+    # two-argument form records True here, as the broker would see it.
+    def publish(self, topic, payload, retain=True):
         self.published.append((topic, payload, retain))
 
     def subscribe(self, topic, listener):

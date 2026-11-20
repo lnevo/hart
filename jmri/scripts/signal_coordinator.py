@@ -801,14 +801,11 @@ class DigiconMqttSml(
         if self.mqtt is None:
             return
         try:
-            # JMRI MqttAdapter.publish(topic, data); retain via overload if present.
-            if retain:
-                try:
-                    self.mqtt.publish(topic, payload, True)
-                    return
-                except TypeError:
-                    pass
-            self.mqtt.publish(topic, payload)
+            # Always name the retain flag: JMRI's two-argument MqttAdapter.publish(topic, data)
+            # retains (its `retained` field defaults to true), so it cannot send a plain message.
+            # The three-argument form needs JMRI 5.9.1 or later (hosts run 5.16); on an older
+            # JMRI this raises and is printed below, with no two-argument fallback.
+            self.mqtt.publish(topic, payload, bool(retain))
         except Exception as exc:
             print(
                 "mqtt_signalhead: publish failed %s %s: %s"
