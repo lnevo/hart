@@ -14,8 +14,8 @@ fails if staging's measured track lengths (layer 1 `track_lengths_in`, used for 
 jmri/layouts/hart/data/block_lengths.csv; publishing copies them over first.
 A pass records a digest of what the comparison read (check_digest: the plugin's code, every file in the layer
 folder and its graphs, the published SVG and station sheets, this script, the Python) in publish_draft.check in the
-plugin's cache folder; a later --check with the same digest skips the drawing (about 18 s), and any change to one of
-them draws again. The station map pages and the staging lengths are checked every time. SCHEMATIC_CACHE= (empty)
+plugin's cache folder, which keeps the last STAMP_KEEP so worktrees that take turns do not push each other out; a
+later --check with a digest in it skips the drawing (24 s measured), and any change to one of them draws again. The station map pages and the staging lengths are checked every time. SCHEMATIC_CACHE= (empty)
 turns the stamp off with the cache.
 --preview DIR draws the SVG and its PDF into DIR for the owner to look at; docs/ops, the layer files and the
 title block's date and revision are left alone.
@@ -171,11 +171,12 @@ def solved_sheet(sheet):
         return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
 
 
-STAMP_VERSION = b"publish_draft check 1"
+STAMP_VERSION = b"publish_draft check 2"
+STAMP_KEEP = 8                 # digests kept, newest first: one per worktree that runs --check in turn
 
 
 def stamp_file():
-    """Where --check keeps the digest of the inputs of its last pass (check_digest): publish_draft.check in the
+    """Where --check keeps the digests of the inputs of its last passes (check_digest): publish_draft.check in the
     plugin's cache folder (cache_env), whose pruning removes only its own entries. None with the cache off."""
     where = cache_env()["SCHEMATIC_CACHE"].strip()
     return Path(where).expanduser() / "publish_draft.check" if where else None
@@ -192,10 +193,12 @@ def _tree(h, root, label):
 def check_digest(plugin_dir):
     """A hex digest of everything the --check drawing comparison reads: the plugin's code (the folder bin/schematic
     runs from), every file in DATA (the layer files and the graphs in GRAPHS below it), the published SVG and the
-    station sheets it is compared with, this script, and the Python the plugin runs under. The station map pages
-    and the staging lengths are not in it: --check reads those each time."""
+    station sheets it is compared with, this script, and the Python the plugin runs under (bin/schematic runs the
+    python3 on PATH, the real file it names, with the caller's PYTHONPATH). The station map pages and the staging
+    lengths are not in it: --check reads those each time. Raises OSError when a file cannot be read."""
     h = hashlib.sha256(STAMP_VERSION + b"\0" + sys.version.encode() + b"\0")
-    h.update(str(shutil.which("python3")).encode() + b"\0")             # bin/schematic runs python3 from PATH
+    python = shutil.which("python3")
+    h.update(f"{python and os.path.realpath(python)}\0{os.environ.get('PYTHONPATH')}\0".encode())
     h.update(Path(__file__).read_bytes() + b"\0")
     _tree(h, Path(plugin_dir), "plugin")
     _tree(h, DATA, "data")
@@ -206,30 +209,33 @@ def check_digest(plugin_dir):
     return h.hexdigest()
 
 
-def stamp_matches(stamp, digest):
-    """True when the stamp holds this digest. A stamp that cannot be read counts as a miss (said on stderr)."""
+def read_stamp(stamp):
+    """The digests in the stamp, newest first ([] when there is none). One that cannot be read counts as empty
+    (said on stderr)."""
     if stamp is None:
-        return False
+        return []
     try:
-        return stamp.read_text().strip() == digest
+        return stamp.read_text().split()
     except FileNotFoundError:
-        return False
+        return []
     except OSError as e:
         print(f"cannot read {stamp} ({e}); drawing to compare", file=sys.stderr)
-        return False
+        return []
 
 
 def write_stamp(stamp, digest):
-    """Record a passing check's digest, through a temp file so a parallel reader never sees half of it. A write
-    that fails is said on stderr: the stamp only saves time."""
+    """Record a passing check's digest ahead of the STAMP_KEEP - 1 newest others, through a temp file so a parallel
+    reader never sees half of it. Two writers at once may lose one digest, which costs only a drawing. A write that
+    fails is said on stderr: the stamp only saves time."""
     if stamp is None:
         return
+    kept = [digest] + [d for d in read_stamp(stamp) if d != digest][:STAMP_KEEP - 1]
     tmp = None
     try:
         stamp.parent.mkdir(parents=True, exist_ok=True)
         fd, tmp = tempfile.mkstemp(dir=stamp.parent, suffix=".tmp")
         with os.fdopen(fd, "w") as f:
-            f.write(digest + "\n")
+            f.write("\n".join(kept) + "\n")
         os.replace(tmp, stamp)
         tmp = None
     except OSError as e:
@@ -239,20 +245,30 @@ def write_stamp(stamp, digest):
             os.unlink(tmp)
 
 
+def _digest_or_none(where):
+    """check_digest, or None (said on stderr) when a file went away or could not be read while it was taken."""
+    try:
+        return check_digest(where)
+    except OSError as e:
+        print(f"cannot take the --check digest ({e}); drawing to compare", file=sys.stderr)
+        return None
+
+
 def compare_drawing():
     """(sheet current, [station sheets that differ]) for --check. When the stamp holds the digest of these inputs
-    (check_digest), the last --check found them current and nothing is drawn; otherwise both are drawn and compared,
-    and a pass records the digest, taken before and after the drawing so an edit made meanwhile records nothing."""
+    (check_digest), an earlier --check found them current and nothing is drawn; otherwise both are drawn and
+    compared, and a pass records the digest, taken before and after the drawing so an edit made meanwhile records
+    nothing."""
     target, stamp = OUT / "schematic-system-draft.svg", stamp_file()
     where = plugin() if stamp else None
-    before = check_digest(where) if stamp else None
-    if stamp_matches(stamp, before):
-        print("drawing inputs unchanged since the last passing --check: not drawn again")
+    before = _digest_or_none(where) if stamp else None
+    if before and before in read_stamp(stamp):
+        print("drawing inputs unchanged since a passing --check: not drawn again")
         return True, []
     sheet = draw()
     same = target.exists() and target.read_text() == sheet
     differ = stations_differ(draw_stations())
-    if stamp and same and not differ and check_digest(where) == before:
+    if before and same and not differ and _digest_or_none(where) == before:
         write_stamp(stamp, before)
     return same, differ
 

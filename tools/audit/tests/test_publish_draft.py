@@ -456,6 +456,34 @@ class CheckStamp(unittest.TestCase):
         self.assertEqual(self.drawn, 4)
         self.assertIn("drawing to compare", err.getvalue())
 
+    def test_checkouts_taking_turns_keep_their_digests(self) -> None:
+        layer = self.data / "staging.preferences.json"
+        for text in ("{}\n", '{"b": 1}\n', "{}\n", '{"b": 1}\n'):     # two checkouts' inputs, in turn
+            layer.write_text(text)
+            self.check()
+        self.assertEqual(self.drawn, 2)
+        for n in range(PD.STAMP_KEEP + 2):
+            layer.write_text(f'{{"n": {n}}}\n')
+            self.check()
+        self.assertEqual(len(PD.read_stamp(self.stamp)), PD.STAMP_KEEP)
+
+    def test_a_file_that_cannot_be_read_draws_and_records_nothing(self) -> None:
+        with mock.patch.object(PD, "check_digest", side_effect=FileNotFoundError("gone")), \
+                contextlib.redirect_stderr(io.StringIO()) as err:
+            self.assertEqual(self.check(), (True, []))
+        self.assertEqual(self.drawn, 1)
+        self.assertFalse(self.stamp.exists())
+        self.assertIn("drawing to compare", err.getvalue())
+
+    def test_another_python_on_path_draws_again(self) -> None:
+        self.check()
+        with mock.patch.object(PD.shutil, "which", return_value="/no/such/python3"):
+            self.check()
+        self.assertEqual(self.drawn, 2)
+        with mock.patch.dict(os.environ, {"PYTHONPATH": "/elsewhere"}):
+            self.check()
+        self.assertEqual(self.drawn, 3)
+
     def test_an_edit_during_the_drawing_records_nothing(self) -> None:
         def edit_then_draw():
             self.drawn += 1
