@@ -30,5 +30,6 @@
 | [026](ADR-026-anyrail-5-3c-master-plan.md) | AnyRail plan 5.3c is the master plan | Accepted |
 | [027](ADR-027-staging-from-its-device-map.md) | Staging is built from its device map | Accepted |
 | [028](ADR-028-main-upper-virtual-devices.md) | Main and upper levels run on virtual devices named by identity | Accepted |
+| [029](ADR-029-tables-xml-is-an-output.md) | `tables.xml` is an output of one device master and a template | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.
