@@ -345,7 +345,7 @@ GEN = [dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West", pr
             kind="one-searchlight", heads=1, dir="west", toward="39", run="39;37", names=["K-1", "K-2"], edge_cm=602.94,
             cm_from_toward=314.25, edge="e16", node="N39", signal_kind="field")]
 SHSM_2L = "IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom)"
-VIRTUAL = dict(mast="Mast 4LA", cp="Brick", switch="", facing="Track W-1", protects="", leg="",
+VIRTUAL = dict(mast="Mast 4LA", cp="Brick", switch="", facing="Track W-1", protects="", dir="east", leg="",
                system_name="IF$vsm:basic:one-low($1001)", head_system_names="",
                device_system_name="IF$vsm:basic:one-low($1001)")
 
@@ -363,11 +363,11 @@ class Rows(unittest.TestCase):
     def test_mast_rows(self):
         wired = {"Mast 67": {"Head 67": device("head", "Head 67", "IH467")}}
         self.assertEqual(bsm.mast_rows(GEN, wired), [
-            dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West", protects="OS Switch 1", leg="",
-                 system_name=SHSM_2L, device_system_name=SHSM_2L,
+            dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West", protects="OS Switch 1", dir="west",
+                 leg="", system_name=SHSM_2L, device_system_name=SHSM_2L,
                  head_system_names="IH:HART:C1:2L_Top=Head 2L Top;IH:HART:C1:2L_Bottom=Head 2L Bottom"),
-            dict(mast="Mast 67", cp="Princess", switch="", facing="Track K-2", protects="Track K-1", leg="",
-                 system_name="IF$shsm:basic:one-searchlight(IH467)", head_system_names="IH467=Head 67",
+            dict(mast="Mast 67", cp="Princess", switch="", facing="Track K-2", protects="Track K-1", dir="west",
+                 leg="", system_name="IF$shsm:basic:one-searchlight(IH467)", head_system_names="IH467=Head 67",
                  device_system_name="IF$shsm:basic:one-searchlight(IH467)")])
         self.assertEqual(list(bsm.mast_rows(GEN, {})[0]), level_masts.FIELDS)
 
@@ -392,10 +392,10 @@ class Rows(unittest.TestCase):
                device("block", "Track W-1", "IB7", notes="kept too"),
                device("head", "Head 99L", "IH:HART:C1:99L", notes="an old head")]
         masts = [dict(mast="Mast 67", cp="Princess", switch="", facing="Track K-2", protects="Track K-1",
-                      system_name="IF$shsm:basic:one-searchlight(IH:HART:C1:67)",
+                      dir="west", system_name="IF$shsm:basic:one-searchlight(IH:HART:C1:67)",
                       head_system_names="IH:HART:C1:67=Head 67"),
                  dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West", protects="OS Switch 1",
-                      system_name=SHSM_2L,
+                      dir="west", system_name=SHSM_2L,
                       head_system_names="IH:HART:C1:2L_Top=Head 2L Top;IH:HART:C1:2L_Bottom=Head 2L Bottom")]
         got = bsm.device_rows(masts, [VIRTUAL], old, {})
         self.assertEqual([list(r) for r in got], [bdm.COLUMNS] * len(got))
@@ -408,15 +408,16 @@ class Rows(unittest.TestCase):
         by = {r["user_name"]: r for r in got}
         self.assertEqual(by["Mast 2L"], device("mast", "Mast 2L", SHSM_2L, comment="Brick | Switch 1",
                                                notes="facing Track Main West into OS Switch 1", switch="1",
-                                               facing="Track Main West", protects="OS Switch 1"))
+                                               facing="Track Main West", protects="OS Switch 1", dir="west"))
         self.assertEqual(by["Mast 67"]["comment"], "Princess")              # an anchor mast names no switch
         self.assertEqual(by["Mast 4LA"], device("mast", "Mast 4LA", "IF$vsm:basic:one-low($1001)", comment="Brick",
-                                                notes="facing Track W-1, buffer stop", facing="Track W-1"))
+                                                notes="facing Track W-1, buffer stop", facing="Track W-1",
+                                                dir="east"))
         self.assertEqual(by["Head 2L Top"], device("head", "Head 2L Top", "IH:HART:C1:2L_Top",
                                                    comment="Brick | Switch 1", notes="internal, not wired"))
 
     def test_device_rows_sort_by_plain_string_order(self):
-        masts = [dict(mast=f"Mast {n}", cp="", switch="", facing="x", protects="", system_name="IF$vsm:basic:one-low($1)",
+        masts = [dict(mast=f"Mast {n}", cp="", switch="", facing="x", protects="", dir="east", system_name="IF$vsm:basic:one-low($1)",
                       head_system_names="") for n in ("8LA", "24L", "2L", "36RA", "4RA")]
         got = bsm.device_rows(masts, [], [], {})
         self.assertEqual([r["user_name"] for r in got], ["Mast 24L", "Mast 2L", "Mast 36RA", "Mast 4RA", "Mast 8LA"])
@@ -707,8 +708,8 @@ class Virtual(unittest.TestCase):
         old = [dict(layer="mast", user_name="Mast 10RA", system_name="IF$vsm:basic:one-low($1021)"),
                dict(layer="mast", user_name="Mast 12L", system_name="IF$vsm:basic:one-low($1026)"),
                dict(layer="mast", user_name="Mast 2L", system_name="IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)")]
-        rows = bsm.virtual_rows([dict(mast="Mast 10RA", cp="EH", switch="9", facing="a", protects="b"),
-                                 dict(mast="Mast 99L", cp="EH", switch="", facing="a", protects="")], old)
+        rows = bsm.virtual_rows([dict(mast="Mast 10RA", cp="EH", switch="9", facing="a", protects="b", dir="east"),
+                                 dict(mast="Mast 99L", cp="EH", switch="", facing="a", protects="", dir="west")], old)
         self.assertEqual([r["system_name"] for r in rows], ["IF$vsm:basic:one-low($1021)", "IF$vsm:basic:one-low($1027)"])
         self.assertEqual(rows[1]["device_system_name"], rows[1]["system_name"])
 
@@ -722,7 +723,7 @@ class Virtual(unittest.TestCase):
             path = Path(tmp) / "retired_virtual_masts.csv"
             path.write_text("mast,system_name,dropped,notes\nMast 40RB,IF$vsm:basic:one-low($1026),2026-11-20,\n")
             with unittest.mock.patch.object(bsm, "RETIRED", path):
-                rows = bsm.virtual_rows([dict(mast="Mast 99L", cp="EH", switch="", facing="a", protects="")], old)
+                rows = bsm.virtual_rows([dict(mast="Mast 99L", cp="EH", switch="", facing="a", protects="", dir="west")], old)
             self.assertEqual(rows[0]["system_name"], "IF$vsm:basic:one-low($1027)")
             path.write_text("mast,system_name,dropped,notes\nMast 10RA,IF$vsm:basic:one-low($1030),2026-11-20,\n")
             with unittest.mock.patch.object(bsm, "RETIRED", path), self.assertRaisesRegex(bsm.RuleError, "still has"):

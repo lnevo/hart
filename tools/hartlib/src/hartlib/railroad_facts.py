@@ -25,7 +25,7 @@ YES = {"yes": True, "no": False}
 HANDS = {"", "L", "R"}
 NAME_LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 DEVICE_COLUMNS = ("level", "cp", "layer", "user_name", "system_name", "jmri_name", "node", "dcc", "comment",
-                  "trial_name", "notes", "blocks", "detector", "stop", "switch", "facing", "protects")
+                  "trial_name", "notes", "blocks", "detector", "stop", "switch", "facing", "protects", "dir")
 # The device maps' facts in columns of their own (owner, 2026-11-20), so no code reads them out of the comment or
 # notes, which stay as text for people (device_facts checks them):
 #   blocks     occupancy rows: the blocks its detector serves, LIST separated (a throat and its yard track share one)
@@ -34,8 +34,11 @@ DEVICE_COLUMNS = ("level", "cp", "layer", "user_name", "system_name", "jmri_name
 #   stop       block rows: "yes" for a Dispatcher System station (the "; stop" its JMRI comment carries)
 #   switch, facing, protects   mast rows: the switch whose leg it stands at (none for an intermediate or a buffer stop
 #              or anchor mast), the block it faces and the blocks it protects (LIST separated)
+#   dir        mast rows: the way the mast looks, "east" or "west", set where the direction is known (mast_rule for a
+#              home mast, build_device_map.intermediates for an APB one); the name's L/R or odd/even only labels it
 DEVICE_FACTS = DEVICE_COLUMNS[11:]
 DEVICE_LIST = ";"
+MAST_DIRS = ("east", "west")
 DETECTORS = ("wired", "planned", "not_wired", "none")
 UNIQUE_HARDWARE = ("turnout", "fb", "occupancy", "head")   # layers whose hardware is one device's alone
 
@@ -608,6 +611,7 @@ class DeviceRow:
     switch: str = ""
     facing: str = ""
     protects: str = ""
+    dir: str = ""
     line: int = 0
 
     @property
@@ -670,9 +674,9 @@ def device_list(cell: str) -> list[str]:
 def device_facts(r: dict) -> list[str]:
     """Problems with a device map row's fact columns (DEVICE_FACTS): each only on its own layer; an occupancy row's
     blocks given and its detector one of DETECTORS, with a system name (the field or planned detector) exactly when it
-    is wired or planned; stop "yes" or empty; a mast's facing block given and its switch a number or empty."""
+    is wired or planned; stop "yes" or empty; a mast's facing block given and its switch a number or empty, its dir east or west."""
     bad, layer = [], r["layer"]
-    own = {"occupancy": ("blocks", "detector"), "block": ("stop",), "mast": ("switch", "facing", "protects")}
+    own = {"occupancy": ("blocks", "detector"), "block": ("stop",), "mast": ("switch", "facing", "protects", "dir")}
     stray = [c for c in DEVICE_FACTS if r.get(c) and c not in own.get(layer, ())]
     if stray:
         bad.append(f"a {layer} row has {', '.join(stray)}")
@@ -691,6 +695,8 @@ def device_facts(r: dict) -> list[str]:
             bad.append("a mast row names no facing block")
         if r.get("switch") and not r["switch"].isdigit():
             bad.append(f"switch {r['switch']!r} is not a switch number")
+        if r.get("dir") not in MAST_DIRS:
+            bad.append(f"dir {r.get('dir')!r} is not one of {', '.join(MAST_DIRS)}")
     return bad
 
 

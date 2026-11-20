@@ -517,6 +517,12 @@ class SmallHelpers(Copy):
         self.assertEqual(R.device_facts({**base, "layer": "turnout"}), [])
         self.assertIn("a turnout row has stop", R.device_facts({**base, "layer": "turnout", "stop": "yes"}))
         self.assertIn("a mast row names no facing block", R.device_facts({**base, "layer": "mast"}))
+        mast = {**base, "layer": "mast", "facing": "Track 1", "dir": "east"}
+        self.assertEqual(R.device_facts(mast), [])
+        self.assertEqual(R.device_facts({**mast, "dir": "west"}), [])
+        for bad in ("", "up", "West"):          # a mast's dir is east or west, never read from its name
+            self.assertIn(f"dir {bad!r} is not one of east, west", R.device_facts({**mast, "dir": bad}))
+        self.assertIn("a turnout row has dir", R.device_facts({**base, "layer": "turnout", "dir": "east"}))
         self.assertIn("an occupancy row names no blocks",
                       R.device_facts({**base, "layer": "occupancy", "detector": "none"}))
 

@@ -29,7 +29,7 @@ class HeadNameTest(unittest.TestCase):
 
     def test_read_checks_each_head_against_its_user_name(self):
         head = "IF$shsm:basic:one-low({h})"
-        row = "Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,,{m},{h}=Head 108LA,IF$shsm:basic:one-low(IH3332)\n"
+        row = "Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,west,,{m},{h}=Head 108LA,IF$shsm:basic:one-low(IH3332)\n"
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "m.csv"
             for h, ok in (("IH:HART:C3:108LA", True), ("IH:HART:C3:108LB", False), ("IH3332", False)):
@@ -45,7 +45,7 @@ class HeadNameTest(unittest.TestCase):
         """A missing column, a row longer than the header and a mast named twice stop with the file and the line; a
         column the file adds beyond FIELDS is left out."""
         from hartlib.railroad import FactsError
-        mast = "Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,,IF$shsm:basic:one-low(IH:HART:C3:108LA)," \
+        mast = "Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,west,,IF$shsm:basic:one-low(IH:HART:C3:108LA)," \
                "IH:HART:C3:108LA=Head 108LA,\n"
         other = mast.replace("108LA", "108LB")
         header = ",".join(L.FIELDS) + "\n"
@@ -64,11 +64,15 @@ class HeadNameTest(unittest.TestCase):
             stops(",".join(no_leg) + "\n" + mast.replace(",,IF$", ",IF$"),
                   f"m.csv: no column leg (the header is {','.join(no_leg)})")
             stops(header + mast + other.replace(",\n", ",,stray\n"),
-                  f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 10")
+                  f"m.csv line 3: 10 fields ({','.join(L.FIELDS)}), not 11")
             stops(header + mast + other + mast, "m.csv line 4: mast Mast 108LA is on line 2 already")
             # a short row is a damaged file: it stops like a long one, however many fields it lost
-            stops(header + mast + other.replace(",\n", "\n"), f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 8")
-            stops(header + mast + "Mast 108LB,CP 107\n", f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 2")
+            stops(header + mast + other.replace(",\n", "\n"), f"m.csv line 3: 10 fields ({','.join(L.FIELDS)}), not 9")
+            stops(header + mast + "Mast 108LB,CP 107\n", f"m.csv line 3: 10 fields ({','.join(L.FIELDS)}), not 2")
+            # a dir that is missing or not east or west stops, whatever the name says
+            for bad in ("", "up", "West"):
+                stops(header + mast.replace(",west,", f",{bad},"),
+                      f"m.csv line 2: mast Mast 108LA: dir {bad!r} is not one of east, west")
             # a row with no mast name, empty or blank
             for blank in ("", "  "):
                 stops(header + mast + other.replace("Mast 108LB", blank), "m.csv line 3: no mast name")
@@ -83,6 +87,16 @@ class HeadNameTest(unittest.TestCase):
                   "m.csv line 3: mast Mast 108LA is on line 2 already")
             with self.assertRaisesRegex(FactsError, "none.csv: cannot read it"):
                 L.read(Path(tmp) / "none.csv")
+
+    def test_read_carries_the_dir_column_even_when_the_name_says_otherwise(self):
+        """A mast named like an L mast (westbound by ADR-005) that the file gives east is east: the reader never
+        reads the name for it."""
+        mast = "Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,east,,IF$shsm:basic:one-low(IH:HART:C3:108LA)," \
+               "IH:HART:C3:108LA=Head 108LA,\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.csv"
+            path.write_text(",".join(L.FIELDS) + "\n" + mast, encoding="utf-8")
+            self.assertEqual(L.read(path)[0]["dir"], "east")
 
     def test_the_committed_file(self):
         """One row per main or upper mast in the released tables (44 since the 2026-11-19 plan), by system name."""

@@ -370,7 +370,8 @@ def intermediates(bands, found, cp_of, running, split) -> list[dict]:
                     half.reverse()
             for west, facing, protects in ((True, half[1], half[0]), (False, half[0], half[1])):
                 out.append(dict(level=lv, cp=cp, name=f"{code}{signal_number(mp, west)}", facing=facing,
-                                protects=protects, heads=1, kind="one-searchlight", switch="", intermediate=True,
+                                protects=protects, dir="west" if west else "east", heads=1, kind="one-searchlight",
+                                switch="", intermediate=True,
                                 band=bi, milepost=round(mp, 3)))
     return out
 
@@ -702,11 +703,11 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if m.get("intermediate"):
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
                 notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
-                      f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"])
+                      f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"], dir=m["dir"])
         else:
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                jmri=virtual, switch=m["switch"], facing=m["track"], protects=m["protects"])
+                jmri=virtual, switch=m["switch"], facing=m["track"], protects=m["protects"], dir=m["dir"])
         for user, sysn, k, board, pin in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")

@@ -5,7 +5,7 @@ per mast, from device_map_main_upper.csv (its mast and head rows, owner plan 202
 track in its `facing` column and protects the OS block of the switch in its `switch` column, or at a double crossover
 the corner block its `protects` column names, so it stands at the boundary between the two; an APB intermediate has
 no switch and protects the block its `protects` column names (hartlib.railroad.DEVICE_FACTS: the comment and notes are
-text for people, never read). L masts are westward, R masts eastward (ADR-022). `leg` tells apart two
+text for people, never read). Its `dir` (east or west) comes from the device map, never from the name. `leg` tells apart two
 masts with one facing and protected block, the A mast on the switch's normal leg and the B mast on its diverging leg;
 none needs it since the 107 Loop became two blocks (owner, 2026-11-16).
 
@@ -67,7 +67,6 @@ def build() -> str:
         if not r.switch and not r.comment.rstrip().endswith("| intermediate"):
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name} stands at no switch, so it is an intermediate, but its "
                              "comment does not end in '| intermediate': a home signal lost its switch?")
-        dirm = re.fullmatch(r"Mast \d+([LR])[A-Z]?|Mast [AB]\d+", name)
         if r.system_name:
             sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r.system_name)
             mast_heads = re.findall(r"\((IH\d+)\)", sysm.group(3)) if sysm else []
@@ -76,8 +75,8 @@ def build() -> str:
             sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH:[^()]+\))+)", r.jmri_name)
             mast_heads = re.findall(r"\((IH:[^()]+)\)", sysm.group(3)) if sysm else []
             by = {h.jmri_name: h for h in dm.of("head") if not h.system_name}
-        if not (sysm and dirm):
-            raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: system name or name not as expected")
+        if not sysm:
+            raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: system name not as expected")
         missing = [h for h in mast_heads if h not in by]
         if missing:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: heads {missing} have no head row")
@@ -87,7 +86,7 @@ def build() -> str:
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: jmri_name {r.jmri_name!r} is not {sys_name}")
         out_rows.append(dict(
             mast=name, cp=r.cp, switch=r.switch, facing=r.facing,
-            protects=protects[0] if protects else f"OS Switch {r.switch}", leg="", system_name=sys_name,
+            protects=protects[0] if protects else f"OS Switch {r.switch}", dir=r.dir, leg="", system_name=sys_name,
             head_system_names=";".join(f"{virtual(by[h], name)}={by[h].user_name}" for h in mast_heads),
             device_system_name=r.system_name, _level=r.level))
     pairs = {}
