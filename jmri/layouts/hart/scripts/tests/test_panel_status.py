@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import sys
+import types
 import unittest
 from pathlib import Path
 
@@ -237,6 +238,131 @@ class PanelStatus(unittest.TestCase):
             handler.mouseClicked(Event(1, 55, 105, mod))   # nor a modified or popup click
         self.assertEqual(calls, ["power"])
 
+
+    # --- a second run of the script (JMRI Scripting > Run Script again) -------------
+
+    def panel(self):
+        """One editor holding the four status lamps, as the HART panel does."""
+        display = sys.modules["jmri.jmrit.display"]
+
+        class Target:
+            def __init__(self):
+                self.mouse = []
+
+            def addMouseListener(self, listener): self.mouse.append(listener)
+            def removeMouseListener(self, listener): self.mouse = [m for m in self.mouse if m is not listener]
+            def getMouseListeners(self): return list(self.mouse)
+
+        def icon(kind, bean, x, y):
+            class Icon(kind):
+                def getSensor(self): return bean
+                def getSignalHead(self): return bean
+                def setControlling(self, value): pass
+                def getX(self): return x
+                def getY(self): return y
+                def getWidth(self): return 20
+                def getHeight(self): return 20
+                def getDisplayLevel(self): return 10
+            return Icon()
+
+        head = self.ps["_ensure_turnout_fb_head"]()
+        sensors = self.layout.sensors
+        target = Target()
+        contents = [
+            icon(display.SensorIcon, sensors.provideSensor("M2S1567"), 0, 0),
+            icon(display.SensorIcon, sensors.provideSensor("IS:SML_MODE"), 40, 0),
+            icon(display.SensorIcon, sensors.provideSensor("IS:TRACK_POWER"), 80, 0),
+            icon(display.SignalHeadIcon, head, 120, 0),
+        ]
+        editor = types.SimpleNamespace(getContents=lambda: contents, getTargetPanel=lambda: target,
+                                       getPaintScale=lambda: 1.0, getTitle=lambda: "Other")
+        self.layout.editors.append(editor)
+        return target
+
+    def click(self, handler, x, y):
+        event = types.SimpleNamespace(getButton=lambda: 1, isPopupTrigger=lambda: False, isMetaDown=lambda: False,
+                                      isAltDown=lambda: False, isShiftDown=lambda: False,
+                                      isControlDown=lambda: False, getX=lambda: x, getY=lambda: y)
+        handler.mouseClicked(event)
+
+    def ours(self, listeners):
+        return [l for l in listeners if getattr(l, "hart_panel_status", False)]
+
+    def test_a_second_run_replaces_the_first_runs_listeners(self) -> None:
+        target = self.panel()
+        self.boot()
+        self.assertEqual(len(target.mouse), 1)
+        jf.load_script(SCRIPT, self.layout)                  # the script run again in the same JMRI
+        self.boot()
+        for sn in PLANTS:
+            self.assertEqual(len(self.ours(self.layout.turnouts.getTurnout(sn).listeners)), 1, sn)
+        self.assertEqual(len(self.ours(self.layout.power.listeners)), 1)
+        self.assertEqual(len(target.mouse), 1)
+
+    def test_one_click_toggles_once_after_a_second_run(self) -> None:
+        target = self.panel()
+        self.boot()
+        jf.load_script(SCRIPT, self.layout)
+        self.boot()
+        for handler in target.mouse:
+            self.click(handler, 85, 5)                       # the Track Power lamp
+        jf.fire_timers()
+        self.assertEqual(self.layout.power.power, jf.PowerManager.ON)
+
+    def test_detaching_leaves_other_listeners_alone(self) -> None:
+        target = self.panel()
+        other = object()
+        to = self.layout.turnouts.getTurnout("M2T308")
+        to.addPropertyChangeListener(other)
+        target.addMouseListener(other)
+        self.boot()
+        jf.load_script(SCRIPT, self.layout)
+        self.boot()
+        self.assertIn(other, to.listeners)
+        self.assertIn(other, target.mouse)
+
+    # --- a turnout change updates only that turnout ---------------------------------
+
+    def turnout_event(self, sn, name):
+        to = self.layout.turnouts.getTurnout(sn)
+        for listener in self.ours(to.listeners):
+            listener.propertyChange(jf._ValueEvent(name, None, None, to))
+        jf.fire_timers()
+
+    def count_scans(self):
+        scans = []
+        real = self.layout.turnouts.getNamedBeanSet
+
+        def counted():
+            scans.append(1)
+            return real()
+
+        self.layout.turnouts.getNamedBeanSet = counted
+        return scans
+
+    def test_a_turnout_event_does_not_rescan_every_turnout(self) -> None:
+        self.boot()
+        self.assertEqual(self.head().appearance, jf.SignalHead.GREEN)
+        scans = self.count_scans()
+        self.turnout_event("M2T308", "KnownState")
+        self.assertEqual(self.head().appearance, jf.SignalHead.GREEN)
+        self.layout.turnouts.getTurnout("M2T309").mode = T.DIRECT
+        self.turnout_event("M2T309", "FeedbackMode")
+        self.assertEqual(self.head().appearance, jf.SignalHead.YELLOW)
+        self.assertEqual(scans, [])
+
+    def test_a_turnout_event_still_follows_mode_and_sensor_changes(self) -> None:
+        self.boot()
+        for sn in PLANTS[1:]:
+            self.layout.turnouts.getTurnout(sn).mode = T.DIRECT
+            self.turnout_event(sn, "FeedbackMode")
+        self.assertEqual(self.head().appearance, jf.SignalHead.YELLOW)   # M2T308 still TWOSENSOR
+        self.layout.turnouts.getTurnout("M2T308").first = None          # it loses a feedback sensor
+        self.turnout_event("M2T308", "Sensor1")
+        self.assertEqual(self.head().appearance, jf.SignalHead.RED)      # the rest are all DIRECT
+        self.layout.turnouts.getTurnout("M2T308").first = jf.FakeSensor("M2T308:R")
+        self.turnout_event("M2T308", "Sensor1")
+        self.assertEqual(self.head().appearance, jf.SignalHead.YELLOW)
 
 if __name__ == "__main__":
     unittest.main()

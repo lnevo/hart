@@ -57,6 +57,12 @@ class Bean:
     def addPropertyChangeListener(self, listener):
         self.listeners.append(listener)
 
+    def getPropertyChangeListeners(self):
+        return list(self.listeners)
+
+    def removePropertyChangeListener(self, listener):
+        self.listeners = [l for l in self.listeners if l is not listener]
+
 
 class FakeSensor(Bean):
     def __init__(self, system_name, state=Sensor.UNKNOWN):
@@ -136,12 +142,6 @@ class FakeMemory(Bean):
 
     def setUserName(self, name):
         self._user = name
-
-    def getPropertyChangeListeners(self):
-        return list(self.listeners)
-
-    def removePropertyChangeListener(self, listener):
-        self.listeners = [l for l in self.listeners if l is not listener]
 
 
 class FakeRoute(Bean):
@@ -247,6 +247,12 @@ class FakePower:
 
     def addPropertyChangeListener(self, listener):
         self.listeners.append(listener)
+
+    def getPropertyChangeListeners(self):
+        return list(self.listeners)
+
+    def removePropertyChangeListener(self, listener):
+        self.listeners = [l for l in self.listeners if l is not listener]
 
 
 class RecordingAdapter:
