@@ -1,0 +1,21 @@
+Wrote <tmp>/out/waybills.docx
+Wrote <tmp>/out/waybills.csv
+  12 loaded designs → 16 loaded cards · 6 inbound empties · 6 outbound empties · 30 interchange · 5 page fillers · 63 total · 7 pages
+  source: spots.csv
+  outbound empties (industry): Calgon Carbon (3), Ferrel Gas (1), Test Works (2)
+    Calgon Carbon spot 1-2: IN Coal (Hopper) 3× · suppliers: Consol Energy (Pittsburgh, PA), R&P Coal (Brady Twp, PA), Hillman Coal (Canton Twp, PA) (POHC)
+    Calgon Carbon spot 3: IN EMPTY (Covered Hopper) 3× · via routing: Univar (Salem, MA) (NS), Houghton Chemical (Allston, MA) (CSX), Calgon Corp (Columbus, OH) (CSX) | OUT Activated Carbon (Covered Hopper) 3× · customers: Univar (Salem, MA) (NS), Houghton Chemical (Allston, MA) (CSX), Calgon Corp (Columbus, OH) (CSX)
+    Calgon Carbon spot 4: IN Process Chemicals (Tank Car) 3× · suppliers: Dow Chemical (Midland, MI) (CSX), Houghton Chemical (Allston, MA) (POHC), General Chemical (Parsippany, NJ) (POHC)
+    Ferrel Gas spot 1: IN LPG (Tank Car) 3× · suppliers: Ferrellgas Co (Taneytown, MD) (POHC), Ferrellgas pipeline terminal
+    Test Works spot 7: IN Widget Unload (Boxcar) 3× · suppliers: Various suppliers
+    Test Works spot 8: IN EMPTY (Boxcar, Flatcar) 3× · via routing: Various customers (CSX) | OUT Plastic Resins (Boxcar, Flatcar) 1 each + 1 extra · customers: Various customers (CSX)
+    Test Works spot 9: IN General Freight (Gondola) 3× · suppliers: Various local shippers | OUT General Freight (Gondola) 3× · customers: Various local receivers (CSX)
+  interchange: 14 Via CSX · 16 Via POHC (4 pages)
+  loaded routing balance — IN: CSX 14 · POHC 11 | OUT: CSX 12 · POHC 9
+    (spot only — IN: CSX 6 · POHC 4 | OUT: CSX 5 · POHC 1)
+
+  Industry summary:
+    Calgon Carbon: 15 cards · inbound_empty, loaded, outbound_empty · flows IN, OUT · vias CSX, POHC
+    Ferrel Gas: 3 cards · loaded, outbound_empty · flows IN, OUT · vias CSX, POHC
+    INTERCHANGE: 30 cards · interchange · flows — · vias CSX, POHC
+    Test Works: 10 cards · inbound_empty, loaded, outbound_empty · flows IN, OUT · vias CSX

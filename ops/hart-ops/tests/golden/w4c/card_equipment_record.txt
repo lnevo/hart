@@ -1,0 +1,22 @@
+-- text --
+LOGO
+BOXCAR
+EQUIPMENT IMAGE<br>{MERGEFIELD ImagePath}«ImagePath»
+☰
+ROAD NAME:
+Test Road
+☰
+ROAD NUMBER:
+1234
+☰
+DESCRIPTION:
+50' plug door boxcar, red
+Form HART-CC-001    Rev A
+-- layout --
+tables=5
+rows=10
+pictures=0
+frames=1
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110']
+xml_sha256=c459fc343d78ddc4cc6cf210982d8e5907c94b9406d8aab0e699463dd34c6814

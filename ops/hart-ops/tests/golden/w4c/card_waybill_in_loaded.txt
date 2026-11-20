@@ -1,0 +1,23 @@
+-- text --
+TEST INDUSTRY A
+Coal
+From: Test Mine (Town, PA)
+Via CSX Interchange
+☰
+SPOT(S):
+1-2
+☰
+CAR TYPE:
+Hopper
+☰
+LOAD:
+Coal
+Form HART-WB-001    Rev A
+-- layout --
+tables=5
+rows=14
+pictures=0
+frames=1
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110']
+xml_sha256=560e153aa56c548d445d23bf964f7f975149cd9e79a4f7292a64d5a930214a75

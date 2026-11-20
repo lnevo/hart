@@ -1,0 +1,23 @@
+-- text --
+TEST INDUSTRY A
+Plastic Resins
+To: Test Plant (Town, OH)
+Via POHC Interchange
+☰
+SPOT(S):
+5
+☰
+CAR TYPE:
+Covered Hopper
+☰
+LOAD:
+Plastic Resins
+Form HART-WB-001    Rev A
+-- layout --
+tables=5
+rows=14
+pictures=0
+frames=1
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110']
+xml_sha256=0305b297383584c759adec89aa567e6ff14d20ed018fa182436353083587db4e

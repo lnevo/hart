@@ -1,0 +1,26 @@
+-- text --
+LOGO
+WORK
+WORK ORDERS
+Pick up 2 hoppers
+Set out 1 tank
+______________________________________________
+______________________________________________
+______________________________________________
+______________________________________________
+______________________________________________
+☰
+ROAD NAME:
+☰
+ROAD NUMBER:
+☰
+DESCRIPTION:
+Form HART-CC-001    Rev A
+-- layout --
+tables=5
+rows=10
+pictures=0
+frames=1
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110']
+xml_sha256=39ba7c3bbcc62cc4000dc12d790eb466ccc9c4324df483b5166786e44363c313

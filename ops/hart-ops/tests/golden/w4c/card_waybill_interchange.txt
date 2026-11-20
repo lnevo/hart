@@ -1,0 +1,24 @@
+-- text --
+INTERCHANGE
+Lumber
+From: Test Mill (Town, ME)
+To: Test Yard (City, NJ)
+Via CSX Interchange
+☰
+SPOT(S):
+—
+☰
+CAR TYPE:
+Flatcar
+☰
+LOAD:
+Lumber
+Form HART-WB-001    Rev A
+-- layout --
+tables=5
+rows=15
+pictures=0
+frames=1
+shd_fills=[]
+row_heights=['860', '2004', '1450', '110']
+xml_sha256=d0f5bc2b551e5261c5a745e2cc6d86d2d02bf30f652113af395ce49d339b7de8
