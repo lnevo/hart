@@ -482,7 +482,7 @@ def route_ends(bands, bi: int, node: str, leg: str, posts: dict, joined: dict) -
     """(reaches a signal, {(band, buffer stop node)} reached before any mast) over every route of a train entering
     switch `node` of band `bi` at `leg`, walked as reaches_signal says (the whole walk: a route that reaches a signal
     stops there, the others run on). The buffer stops are where a mast in `posts` needs a destination
-    (plan_virtual_masts, owner 2026-11-20)."""
+    (mast_plan.virtual_masts, owner 2026-11-20)."""
     def legs(b, n):
         d = bands[b][1]["nodes"][n]
         return d["ins"] | d["outs"]

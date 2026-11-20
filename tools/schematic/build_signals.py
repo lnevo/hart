@@ -193,7 +193,10 @@ def main_upper_rows() -> list[dict]:
         if lm.is_level_virtual(r["system_name"]):
             # a hidden destination mast at the buffer stop of the track its switch leg leaves by, measured from the
             # switch (the whole track: an end bumper), as staging's virtual masts are
-            m = destinations[name]
+            m = destinations.get(name)
+            if m is None:
+                sys.exit(f"{r['mast']}: main_upper_masts.csv names a virtual mast the rule no longer places; "
+                         "rebuild it with build_device_map.py and build_main_upper_masts.py")
             band = bands[m["band"]][1]
             d = band["nodes"][m["node"]]
             t = by_name.get(r["facing"])

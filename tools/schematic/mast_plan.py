@@ -76,14 +76,13 @@ def node_mileposts(band) -> dict:
 
 def signal_number(mp: float, west: bool, code: str = "") -> int:
     """An intermediate signal's number from its milepost in tenths: odd westbound, even eastbound (prototype). With no
-    line code (staging) it stops at 99 and up: a three-digit name would read as a main or upper home mast
+    line code (staging) a number over 98 stops the build: 99 and up, and a three-digit name would read as a main or upper home mast
     (hartlib.level_devices.LEVEL_USER)."""
     n = int(mp * 10 + 1e-9)
-    if not code and n >= 99:
-        raise mr.MapError(f"MP {mp:.2f} gives intermediate number {n} or more; names with no line code stop at 98")
-    if west:
-        return n if n % 2 else n + 1
-    return n if n % 2 == 0 else n + 1
+    number = (n if n % 2 else n + 1) if west else (n if n % 2 == 0 else n + 1)
+    if not code and number > 98:
+        raise mr.MapError(f"MP {mp:.2f} gives intermediate number {number}; names with no line code stop at 98")
+    return number
 
 
 def letter_at(band, node: str, leg: str) -> str:
@@ -257,7 +256,8 @@ def virtual_system_names(masts: list[str], level: int, old: dict, retired: dict 
     <name>": system name}, the device master's) gives it, and a new one takes the next ordinal in its level's thousand
     (hartlib.level_masts.VIRTUAL_BASE) after every one `old` and `retired` (read_retired) use there, so no system name
     shifts and a dropped mast's ordinal is never given again. A mast being dropped may still be in `old` (the rebuild
-    takes it out), with the system name `retired` gives it. MapError on a mast placed again that `retired` lists (take
+    takes it out), with the system name `retired` gives it. MapError on a mast in `old` the rule no longer places
+    and `retired` does not list, on a mast placed again that `retired` lists (take
     its row out, and its old ordinal back, to restore it), a dropped mast whose retired name is not its old one, an
     old name outside the level's thousand, or a thousand used up."""
     retired = read_retired() if retired is None else retired
@@ -268,6 +268,10 @@ def virtual_system_names(masts: list[str], level: int, old: dict, retired: dict 
     moved = sorted(m for m in set(old) & set(retired) if old[m] != retired[m])
     if moved:
         raise mr.MapError(f"{RETIRED.name} gives {', '.join(moved)} another system name than the device master")
+    gone = sorted((m for m in old if m.removeprefix("Mast ") not in masts and m not in retired), key=mr.natural)
+    if gone:
+        raise mr.MapError(f"the rule no longer places {', '.join(gone)}: add each to {RETIRED.name} with its system "
+                          "name, so its ordinal is never given to another mast")
     low = level_masts.VIRTUAL_BASE[level]
     wrong = sorted(m for m, x in old.items() if level_masts.virtual_level(x) != level)
     if wrong:

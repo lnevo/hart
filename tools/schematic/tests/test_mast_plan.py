@@ -60,7 +60,10 @@ class Numbers(unittest.TestCase):
         self.assertEqual((mp.signal_number(m, True), mp.signal_number(m, False)), (9, 8))
 
     def test_with_no_line_code_names_stop_under_100(self):
-        self.assertEqual([mp.signal_number(9.8, w) for w in (True, False)], [99, 98])
+        self.assertEqual(mp.signal_number(9.8, False), 98)
+        with self.assertRaisesRegex(mr.MapError, "gives intermediate number 99; names with no line code stop at 98"):
+            mp.signal_number(9.8, True)
+        self.assertEqual(mp.signal_number(9.8, True, "A"), 99)
         for m in (9.9, 10.0, 12.34):
             for west in (True, False):
                 with self.assertRaisesRegex(mr.MapError, "names with no line code stop at 98"):
@@ -353,7 +356,8 @@ class SystemNames(unittest.TestCase):
 
     def test_old_names_stay_and_new_ones_take_the_next_ordinal_of_the_level(self):
         old = {"Mast 4LA": "IF$vsm:basic:one-low($1001)", "Mast 12L": "IF$vsm:basic:one-low($1026)"}
-        got = mp.virtual_system_names(["4LA", "99L"], 1, old, {"Mast 40RB": "IF$vsm:basic:one-low($1030)"})
+        retired = {"Mast 40RB": "IF$vsm:basic:one-low($1030)", "Mast 12L": "IF$vsm:basic:one-low($1026)"}
+        got = mp.virtual_system_names(["4LA", "99L"], 1, old, retired)
         self.assertEqual(got, {"4LA": "IF$vsm:basic:one-low($1001)", "99L": "IF$vsm:basic:one-low($1031)"})
 
     def test_each_level_starts_in_its_own_thousand(self):
@@ -374,7 +378,11 @@ class SystemNames(unittest.TestCase):
         with self.assertRaisesRegex(mr.MapError, r"Mast 102RA of level 2 have ordinals outside 2001 to 2999"):
             mp.virtual_system_names(["102RA"], 2, {"Mast 102RA": "IF$vsm:basic:one-low($1040)"}, {})
         with self.assertRaisesRegex(mr.MapError, "level 3 has no virtual mast ordinal left"):
-            mp.virtual_system_names(["X"], 3, {"Mast Y": "IF$vsm:basic:one-low($3999)"}, {})
+            mp.virtual_system_names(["X"], 3, {"Mast Y": "IF$vsm:basic:one-low($3999)"},
+                                    {"Mast Y": "IF$vsm:basic:one-low($3999)"})
+        with self.assertRaisesRegex(mr.MapError, "no longer places Mast 104R: add each to retired_virtual_masts.csv"):
+            mp.virtual_system_names(["102RA"], 2, {"Mast 102RA": "IF$vsm:basic:one-low($2001)",
+                                                   "Mast 104R": "IF$vsm:basic:one-low($2003)"}, {})
 
     def test_read_retired(self):
         with tempfile.TemporaryDirectory() as d:

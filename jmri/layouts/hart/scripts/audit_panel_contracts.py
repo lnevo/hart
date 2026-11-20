@@ -156,7 +156,7 @@ def draws_levels(panel: ET.Element | None) -> bool:
     protects (main_upper_masts.csv)."""
     if panel is None:
         return False
-    protects = {r["protects"] for r in level_masts.read()}
+    protects = {r["protects"] for r in level_masts.read() if r["protects"]}   # a hidden mast protects none
     return any(t.get(a) in protects for t in panel.iter("layoutturnout")
                for a in ("blockname", "blockbname", "blockcname", "blockdname"))
 

@@ -674,8 +674,8 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
     heads_el, masts_el = root.find("signalheads"), root.find("signalmasts")
     if heads_el is None or masts_el is None:
         raise BuildError("the live tables have no signalheads or signalmasts section")
-    taken = {tables.system_name(e) for e in heads_el.findall("signalhead") + masts_el.findall("signalmast")} | \
-        {tables.user_name(e) for e in heads_el.findall("signalhead") + masts_el.findall("signalmast")}
+    present = heads_el.findall("signalhead") + masts_el.findall("signalmast") + masts_el.findall("virtualsignalmast")
+    taken = {tables.system_name(e) for e in present} | {tables.user_name(e) for e in present}
     heads, masts = [], []
     for r in rows:
         if level_masts_lib.is_level_virtual(r["system_name"]):    # a hidden destination mast at a buffer stop

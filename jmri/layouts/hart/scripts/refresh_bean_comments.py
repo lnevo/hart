@@ -77,8 +77,6 @@ _UNIT_RE = (
 _MAST_NUM_RE = re.compile(r"^Mast\s+(\d+)[LR]", re.I)
 _PORT_ID_RE = re.compile(r"^C(\d+)-(OU|IN)(\d+)-(\d+)$", re.I)
 
-# Signal even → switch odd.
-
 
 def _units_from(body: str) -> list[tuple[str, str, str]]:
     for unit_re in _UNIT_RE:
