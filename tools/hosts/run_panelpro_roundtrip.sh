@@ -9,8 +9,8 @@
 #
 #   tools/hosts/run_panelpro_roundtrip.sh            # exit 0 when it passes, 1 when it fails or cannot run
 #
-# The Store is kept in the gitignored jmri/layouts/hart/output/pulled/roundtrip-<date>.xml and the block path
-# counts beside it (.paths.tsv), for a look and for R9d's pull, which reuses this tool. It refuses while
+# The Store is kept as roundtrip-<date>.xml in the pulled folder (~/JMRI_UserFiles-pulled, or HART_PULLED_DIR:
+# outside every checkout, profile_tables_guard.sh hart_pulled_dir) and the block path counts beside it (.paths.tsv), for a look and for R9d's pull, which reuses this tool. It refuses while
 # PanelPro, DecoderPro or CATS is open. The run lifecycle (profile backup and restore, Start Up items that run
 # code off, stopping PanelPro on a timeout or a signal) is tools/hosts/panelpro_session.sh; PanelPro still
 # connects to MQTT, so run it with the layout idle. HART_ROUNDTRIP_WAIT (seconds, default 180) bounds the
@@ -23,12 +23,11 @@ refuse_hart_tables "run the PanelPro round trip"
 pp_profile
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/panelpro_roundtrip.py"
 TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
-PULLED="$ROOT/jmri/layouts/hart/output/pulled"
 LOG="${HART_ROUNDTRIP_LOG:-/tmp/hart_panelpro_roundtrip.log}"
 
 pp_refuse_running "Quit PanelPro, DecoderPro and CATS first: the round trip needs this profile alone."
 
-mkdir -p "$PULLED"
+PULLED="$(hart_pulled_dir)" || exit 1
 STORE="$PULLED/roundtrip-$(date +%Y%m%d-%H%M%S).xml"
 COUNTS="$STORE.paths.tsv"
 MARKER="$(mktemp "${TMPDIR:-/tmp}/hart_roundtrip_marker.XXXXXX")"
@@ -62,11 +61,11 @@ if [[ ! -s "$STORE" || ! -s "$COUNTS" ]]; then
   echo "The round trip reported ok but left no Store or block path counts ($STORE). Log: $LOG" >&2
   exit 1
 fi
-echo "Store kept as ${STORE#"$ROOT"/}"
+echo "Store kept as $STORE"
 PYTHONPATH="$ROOT/tools/hartlib/src" python3 -m hartlib.tables_build roundtrip \
   --store "$STORE" --paths "$COUNTS" --generated "$TABLES"
 # The Store holds the block paths JMRI derived, so the stored-path leg check of check_layout_facts.py, which the
 # generated file (no stored paths) cannot run, runs here.
 echo "Switch legs against the Store's derived block paths:"
 python3 "$ROOT/tools/audit/check_layout_facts.py" --tables "$STORE" \
-  || { echo "FAIL: check_layout_facts.py --tables ${STORE#"$ROOT"/}" >&2; exit 1; }
+  || { echo "FAIL: check_layout_facts.py --tables $STORE" >&2; exit 1; }

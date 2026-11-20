@@ -1,6 +1,6 @@
 """tools/hosts/run_panelpro_roundtrip.sh against a fake StartJMRI (the Sandbox of test_panelpro_wrappers.py): it
-refuses while JMRI or CATS runs, hands the Jython script a Store path in the gitignored pulled/ folder (never the
-repo's tables.xml), and fails clearly when PanelPro leaves no Store. The comparison itself is hartlib's
+refuses while JMRI or CATS runs, hands the Jython script a Store path in the pulled folder, ~/JMRI_UserFiles-pulled,
+outside every checkout (never the repo's tables.xml), and fails clearly when PanelPro leaves no Store. The comparison itself is hartlib's
 (tools/hartlib/tests/test_tables_build.py, RoundTrip)."""
 from __future__ import annotations
 
@@ -42,7 +42,7 @@ class RoundTripWrapper(WrapperCase):
         self.assertIn("left no Store or block path counts", done.stderr)
         env = dict(line.split("=", 1) for line in (self.box.state / "env").read_text().splitlines() if "=" in line)
         store = Path(env["HART_ROUNDTRIP_STORE"])
-        self.assertEqual(self.box.root / "jmri/layouts/hart/output/pulled", store.parent)
+        self.assertEqual(self.box.home / "JMRI_UserFiles-pulled", store.parent)
         self.assertTrue(store.name.startswith("roundtrip-"), store)
         self.assertEqual(f"{store}.paths.tsv", env["HART_ROUNDTRIP_PATHS"])
         self.assert_restored()

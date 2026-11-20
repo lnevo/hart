@@ -5,11 +5,14 @@
 #   tables  tables.xml differs from what was last deployed or pulled, a PanelPro Store (make tables-pull-pi)
 # What was last deployed is tables_sha256 in cats/deploy_stamp.txt (every deploy since 2026-11-12,
 # rollbacks too); a later make tables-pull-pi writes .tables_deployed.sha256. The newer of the two counts.
-# No reference at all counts as nothing changed.
+# With no tables reference at all, GENERATED_SHA (the generated tables.xml's hash, which the deploy and the pulls
+# pass) is the reference: a file that differs from it counts as changed (ADR-029: it may hold an owner's Store).
+# Without GENERATED_SHA, no reference counts as nothing changed (and so for the Operations files always).
 # Prints one word per changed set, nothing when both are clean.
-# Usage: unpulled_changes.sh USERFILES
+# Usage: unpulled_changes.sh USERFILES [GENERATED_SHA]
 set -euo pipefail
-uf="${1:?usage: unpulled_changes.sh USERFILES}"
+uf="${1:?usage: unpulled_changes.sh USERFILES [GENERATED_SHA]}"
+generated="${2:-}"
 ops="$uf/operations"
 FILES=(Operations.xml OperationsCarRoster.xml OperationsEngineRoster.xml
        OperationsLocationRoster.xml OperationsRouteRoster.xml OperationsTrainRoster.xml)
@@ -27,6 +30,7 @@ if [[ -f "$pulled" && ( ! -f "$stamp" || "$pulled" -nt "$stamp" ) ]]; then
 elif [[ -f "$stamp" ]]; then
   want="$(sed -n 's/^tables_sha256=//p' "$stamp")"
 fi
+[[ -n "$want" && "$want" != none ]] || want="$generated"
 if [[ -n "$want" && "$want" != none && -f "$uf/tables.xml" ]]; then
   [[ "$(sha <"$uf/tables.xml")" == "$want" ]] || echo tables
 fi

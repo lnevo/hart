@@ -52,6 +52,7 @@ PP_BACKED_UP=0
 PP_TMP_FILES=()
 PP_GUARD_DIR=""
 PP_GUARD_SNAP=""
+PP_FAIL_NOTE=""
 
 pp_profile() {
   JMRI_HOME="${JMRI_HOME:-/Applications/JMRI}"
@@ -250,6 +251,8 @@ pp_cleanup() {
   trap '' INT TERM HUP
   trap - EXIT
   set +e
+  # a wrapper's note for a failed run (run_sml_discover.sh: tables.xml left as the discovery base)
+  [[ "$rc" != 0 && -n "${PP_FAIL_NOTE:-}" ]] && echo "$PP_FAIL_NOTE" >&2
   if ! pp_stop_jmri; then
     # A PanelPro of this run still holds the profile: leave the backup for the owner.
     echo "PROFILE NOT RESTORED: quit that PanelPro, then run: python3 $PP_PROFILE_PY restore --profile $PROFILE_XML" >&2

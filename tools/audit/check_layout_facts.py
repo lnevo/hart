@@ -270,7 +270,7 @@ def check_crossover_legs(sw: facts.Switch, lt: ET.Element, t: Tables, r: Report)
                              f"({', '.join(sorted(halves))})")
             continue
         other = [h for h in halves if h != leg.os_block]
-        if [leg.thrown] != other:
+        if [t.track_name(leg.thrown)] != [t.track_name(h) for h in other]:
             r.add(f"le:{n}", f"{n}: switch_legs.csv throws {leg.os_block} to {leg.thrown}, Layout Editor "
                              f"{sw.le_ident}'s other half is {', '.join(other) or 'none'}")
         ends = [c for c in conns if c not in XOVER_DIVERGING[lt.get("type")]] or list(conns)

@@ -28,7 +28,7 @@ def python_stub(tmp: Path, digicon_dry: bool = False) -> None:
     """A python3 in the fake bin that stands in for the deploy's tables freshness check (build_tables.py --check,
     which regenerates the whole panel and is tools/check.sh's own job): it logs the call in tables_check.log and
     passes, or fails as a stale file does while `tmp`/tables_stale exists (as a missing plugin does, exit 3, while
-    `tmp`/tables_no_plugin exists); the Digicon check fails while
+    `tmp`/tables_no_plugin exists, and a source error, exit 2, while `tmp`/tables_source_error exists); the Digicon check fails while
     `tmp`/digicon_enabled exists. With `digicon_dry` (keep_repo_tables) a
     writing call of the Digicon SML script runs as a dry run and is logged in gates.log. Every other python3 call
     goes to the real one unchanged."""
@@ -54,6 +54,10 @@ for a in "$@"; do
     if [[ -f "{tmp}/tables_no_plugin" ]]; then
       echo "build_tables.py: the schematic-maps plugin: not checked out" >&2
       exit 3
+    fi
+    if [[ -f "{tmp}/tables_source_error" ]]; then
+      echo "build_tables.py: discovered_sml.xml names masts the tables do not hold" >&2
+      exit 2
     fi
     exit 0
   fi

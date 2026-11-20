@@ -293,13 +293,15 @@ pi_stop() {
   exit 1
 }
 if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
-  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES'" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
+  # the generated tables.xml is the reference when the Pi has none (no stamp, no pull): a file unlike it may be a Store
+  generated_sha="$(shasum -a 256 "$ROOT/jmri/layouts/hart/output/tables.xml" 2>/dev/null | cut -d' ' -f1)"
+  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha'" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
     pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
   fi
   if [[ -n "$unpulled" ]]; then
     msg=""
     grep -qx ops <<<"$unpulled" && msg+="STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first."$'\n'
-    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in the pulled/ folder beside the repo tables.xml and records it as taken; carry the owner's edits into devices.csv or the template, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
+    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in ~/JMRI_UserFiles-pulled and records it as taken; carry the owner's edits into devices.csv or the template, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
     pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
   fi
 fi
@@ -328,11 +330,19 @@ fi
 # tables.xml is generated (ADR-029, R9c): ship it only when it is what build_tables.py writes from its sources, and
 # with the Digicon masts' Signal Mast Logic stored disabled. A redeploy of a commit before R9c has no generator.
 TABLES_BUILD="$ROOT/tools/schematic/build_tables.py"
-if [[ -n "$TABLES" && -f "$TABLES_BUILD" ]]; then
+if [[ -n "$TABLES" && -f "$TABLES_BUILD" && -n "${HART_REDEPLOY_FROM:-}" ]]; then
+  # A redeploy runs this script from an old commit's worktree with the checkout's plugin (redeploy_commit.sh), so
+  # a regeneration would draw with another plugin than the commit's and read STALE falsely: the commit's tables.xml
+  # was checked when it was committed. The Digicon check below still runs.
+  echo "Redeploy of an older commit: not regenerating tables.xml to check it (it was checked when committed); the Digicon check still runs."
+elif [[ -n "$TABLES" && -f "$TABLES_BUILD" ]]; then
   tables_rc=0
   SCHEMATIC_REQUIRED=1 python3 "$TABLES_BUILD" --check || tables_rc=$?
   if (( tables_rc == 3 )); then
     echo "STOP: the tables check needs the schematic-maps plugin at its pin: run git submodule update --init external/model-railroad-skills, or set SCHEMATIC_PLUGIN. Nothing was sent to any host." >&2
+    exit 1
+  elif (( tables_rc == 2 )); then
+    echo "STOP: tools/schematic/build_tables.py cannot make tables.xml from its sources: fix the source error above, or rerun discovery (jmri/layouts/hart/scripts/run_sml_discover.sh) when it names the Signal Mast Logic. Nothing was sent to any host." >&2
     exit 1
   elif (( tables_rc != 0 )); then
     echo "STOP: tables.xml is not what tools/schematic/build_tables.py writes from its sources; run make panels (or the script) and commit, then deploy. Nothing was sent to any host." >&2
@@ -438,7 +448,7 @@ install_tables_local() {
     local dest="$1/tables.xml" stamp="$1/.tables_deployed.sha256"
     # A Store into this copy since the last deploy would be lost: stop instead.
     if profile_tables_unpulled "$src" "$1"; then
-      echo "STOP: $dest changed since the last deploy (a PanelPro Store). Run make tables-pull: it keeps the Store in the pulled/ folder beside the repo tables.xml and records it as taken; carry the edits into devices.csv or the template, then deploy. HART_OVERWRITE_PROFILE_TABLES=1 replaces it unkept." >&2
+      echo "STOP: $dest changed since the last deploy (a PanelPro Store). Run make tables-pull: it keeps the Store in ~/JMRI_UserFiles-pulled and records it as taken; carry the edits into devices.csv or the template, then deploy. HART_OVERWRITE_PROFILE_TABLES=1 replaces it unkept." >&2
       exit 1
     fi
     cp -f "$src" "$dest"

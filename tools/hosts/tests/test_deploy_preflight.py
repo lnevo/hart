@@ -263,7 +263,9 @@ class PreflightTest(DeployHarness):
         calls = self.calls()
         self.assertTrue(calls[0].endswith(f"{PI} true"), calls)
         self.assertTrue(calls[1].endswith(f"{WIN} exit 0"), calls)
-        self.assertTrue(calls[2].endswith(f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles'"), calls)
+        # the unpulled check, with the generated tables.xml's hash as the reference for a Pi that has none
+        generated = hashlib.sha256(TABLES.read_bytes()).hexdigest()
+        self.assertTrue(calls[2].endswith(f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}'"), calls)
         # The first real host step, which the stand-in fails.
         self.assertIn("mktemp -d /tmp/hart-deploy.XXXXXX", calls[3])
         self.assertEqual(99, done.returncode, done.stderr[-2000:])
@@ -292,6 +294,29 @@ class PreflightTest(DeployHarness):
                       done.stderr)
         self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
         self.assertNotIn("Deploy → Pi", done.stdout)
+
+    def test_a_source_error_gets_its_own_stop(self) -> None:
+        (self.tmp / "tables_source_error").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("cannot make tables.xml from its sources: fix the source error above, or rerun discovery",
+                      done.stderr)
+        self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
+
+    def test_a_redeploy_skips_the_regeneration_but_checks_digicon(self) -> None:
+        """A redeploy (HART_REDEPLOY_FROM) would redraw with another plugin than the commit's: no regeneration, a
+        line that says so, and the Digicon check still stops an enabled destination."""
+        (self.tmp / "tables_stale").touch()
+        self.env["HART_REDEPLOY_FROM"] = "0" * 40
+        done = self.deploy("--pi", "--win")
+        self.assertIn("Redeploy of an older commit: not regenerating tables.xml", done.stdout)
+        self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertFalse((self.tmp / "tables_check.log").exists(), "the regeneration ran on a redeploy")
+        self.assertIn("Deploy → Pi", done.stdout)
+        (self.tmp / "digicon_enabled").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: a Digicon mast's Signal Mast Logic is stored enabled", done.stderr)
 
     def test_an_enabled_digicon_destination_stops_the_deploy(self) -> None:
         (self.tmp / "digicon_enabled").touch()

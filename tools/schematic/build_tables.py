@@ -27,9 +27,9 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
 5. the Digicon boot rule: the logic of every mast signal_coordinator.py takes over boots disabled (it was a deploy-time
    rewrite, disable_digicon_sml_in_tables.py, until R9c), so the hosts get exactly the committed bytes.
 
-A PanelPro Store of tables.xml is never copied over it: make tables-pull and tables-pull-pi keep the Store in the
-gitignored output/pulled/ and record it as taken; its edits go into these sources by hand until R9d's pull splits a
-Store. Exit codes: 0 written or current, 1 stale (--check), 2 a source cannot make the tables, 3 the schematic-maps
+A PanelPro Store of tables.xml is never copied over it: make tables-pull and tables-pull-pi keep the Store in
+~/JMRI_UserFiles-pulled (outside every checkout) and record it as taken; its edits go into these sources by hand
+until R9d's pull splits a Store. Exit codes: 0 written or current, 1 stale (--check), 2 a source cannot make the tables, 3 the schematic-maps
 plugin is missing or not at its pin (EXIT_NO_PLUGIN; --check prints SKIPPED and exits 0 instead unless
 SCHEMATIC_REQUIRED=1, which the deploy sets).
 """

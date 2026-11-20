@@ -269,17 +269,26 @@ class StartupScriptsOff(WrapperCase):
         self.assertIn(f"HART_SML_DISCOVER_FILE={stored}\n", launched)
         self.assertNotIn("output/tables.xml", stored)
         self.assertIn("DONE", done.stdout)
+        self.assertNotIn("discovery base", done.stderr)          # a run that finished leaves no note
         self.assert_restored()
 
     def test_a_failed_take_keeps_the_discovery_store(self) -> None:
         env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_TABLES_FAIL="1")
         done = self.box.run("run_sml_discover.sh", env)
         self.assertEqual(1, done.returncode, done.stderr)
-        kept = sorted((self.box.root / "jmri/layouts/hart/output/pulled").glob("discovery-*.xml"))
+        kept = sorted((self.box.home / "JMRI_UserFiles-pulled").glob("discovery-*.xml"))
         self.assertEqual(1, len(kept), done.stderr)
-        self.assertIn(f"kept as jmri/layouts/hart/output/pulled/{kept[0].name}", done.stderr)
-        self.assertIn("--discovered-from jmri/layouts/hart/output/pulled/", done.stderr)
+        self.assertIn(f"kept as {kept[0]}", done.stderr)
+        self.assertIn(f"--discovered-from {kept[0]}", done.stderr)
+        self.assertIn("tables.xml is now the discovery base", done.stderr)
         self.assertNotIn("DONE", done.stdout)
+        self.assert_restored()
+
+    def test_a_run_that_fails_after_the_base_says_how_to_restore(self) -> None:
+        done = self.box.run("run_sml_discover.sh", self.box.env())     # PanelPro quits with no marker
+        self.assertEqual(1, done.returncode, done.stderr)
+        self.assertIn("tables.xml is now the discovery base", done.stderr)
+        self.assertIn("python3 tools/schematic/build_tables.py", done.stderr)
         self.assert_restored()
 
     def test_nx_defaults_paint_only(self) -> None:
