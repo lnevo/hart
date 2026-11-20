@@ -434,7 +434,71 @@ class Coordinator(unittest.TestCase):
         self.assertFalse(c._enabling_originator)
         self.assertFalse(self.mast.held)
 
+    def test_abort_during_override_dialog_sends_no_enabling(self) -> None:
+        self.enroll()
+        c = self.c
+
+        def probe():
+            c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+            jf.run_threads()
+            return "force"  # the operator answers Yes after the other agent began taking
+
+        c._probe_and_confirm_override = probe
+        jf.Thread.started.clear()
+        c._enter_enabled(force=False, from_boot=False)
+        jf.run_threads()
+        self.assertNotIn(("track/bridge/sml_mode", "enabling", True), self.sent())
+        self.assertFalse(c._enabling_originator)
+        self.assertFalse(c._should_ack_sml_alive())
+
+    def test_abort_while_unheld_goes_out_stops_the_disable(self) -> None:
+        self.enroll()
+        self.own_by_sml()
+        c = self.c
+        record = self.adapter.publish
+
+        def publish(topic, payload, retain=True):
+            record(topic, payload, retain)
+            if payload == "Unheld":
+                c._abort_gen += 1  # another agent's enabling lands mid-burst
+
+        self.adapter.publish = publish
+        jf.Thread.started.clear()
+        c._enter_disabled(release=True)
+        jf.run_threads()
+        self.assertEqual(self.sent(), [("track/signalhead/432", "Unheld", True)])
+
+    def test_quit_release_stands_down_after_an_abort_in_its_hold(self) -> None:
+        self.enroll()
+        self.own_by_sml()
+        c = self.c
+
+        class AbortingThread(jf.Thread):
+            @staticmethod
+            def sleep(ms):
+                c._abort_gen += 1
+
+        self.sc["Thread"] = AbortingThread
+        c._on_jmri_shutdown()
+        self.assertEqual(self.sent(), [])
+        self.assertFalse(self.mast.held)
+
+    def test_abort_leaves_the_button_to_a_running_worker(self) -> None:
+        labels = []
+        self.c._set_button_label = lambda: labels.append(1)
+        self.c._busy = True  # a Disable worker is in its Hold
+        self.c.notifyMqttMessage("track/bridge/sml_mode", "enabling")
+        jf.run_threads()
+        self.assertEqual(labels, [])
+
     # --- stale retained enabled -----------------------------------------------------------
+
+    def test_bridge_release_with_a_probe_query_between(self) -> None:
+        taken = self.take_calls()
+        self.logic.enabled["Mast 8RA"] = False
+        for mode in ("enabled", "query", "disabling", "query", "disabled"):
+            self.c.notifyMqttMessage("track/bridge/sml_mode", mode)
+        self.assertEqual(taken, [(True, True)])
 
     def take_calls(self):
         taken = []
@@ -507,6 +571,16 @@ class Coordinator(unittest.TestCase):
         self.layout.button_space = space
         c = self.load_running()
         self.assertEqual(space.components, [c._button])
+
+    def test_detached_controllers_button_retry_does_nothing(self) -> None:
+        space = _Space()
+        self.layout.button_space = space
+        self.c._button = jf.FakeButton("SML Disabled")
+        self.c._shutting_down = True  # what _detach_controller sets
+        jf.Thread.started.clear()
+        self.c._add_toggle_button(attempt=1)
+        jf.run_threads()
+        self.assertEqual(space.components, [])
 
     def test_quit_task_releases_its_own_controller(self) -> None:
         c = self.load_running()

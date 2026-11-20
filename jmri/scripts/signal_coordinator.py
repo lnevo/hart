@@ -231,9 +231,9 @@ class DigiconMqttSml(
         self._last_mqtt_appearance = {}
         # Bumped by every abort; a Disable/Enable worker that sees it change stands down.
         self._abort_gen = 0
-        # Last sml_mode heard on the broker: tells a bridge release (disabling then
-        # disabled) from an operator Disable (disabled alone).
-        self._last_heard_mode = None
+        # The bridge announced disabling and no owner has spoken since: a disabled now
+        # is its release, not an operator Disable (which publishes disabled alone).
+        self._bridge_release_pending = False
         self._shutdown_task = None
         self._close_frame = None
         self._close_listener = None
@@ -387,7 +387,12 @@ class DigiconMqttSml(
             print("mqtt_signalhead: shutdown task failed: " + _ascii(exc))
 
     def _release_on_quit(self):
-        """MQTT Unheld + disabled before dest uncheck so a layout hang cannot skip RELEASE."""
+        """MQTT Unheld + disabled before dest uncheck so a layout hang cannot skip RELEASE.
+
+        An abort during the Hold means another agent is taking Digicon: no Unheld and
+        no disabled over its enabling.
+        """
+        abort_gen = self._abort_gen
         print(
             "mqtt_signalhead: Hold Digicon masts, wait %d ms before Unheld / disabled"
             % HOLD_WAIT_MS
@@ -398,13 +403,19 @@ class DigiconMqttSml(
             except Exception:
                 pass
         Thread.sleep(HOLD_WAIT_MS)
-        print(
-            "mqtt_signalhead: shutdown publishing Unheld for %d MQTT head(s)"
-            % len(self._heads)
-        )
+        if self._abort_gen != abort_gen:
+            print("mqtt_signalhead: shutdown aborted during Hold -- no Unheld, no disabled")
+        else:
+            print(
+                "mqtt_signalhead: shutdown publishing Unheld for %d MQTT head(s)"
+                % len(self._heads)
+            )
         for head in self._heads:
+            if self._abort_gen != abort_gen:
+                break
             self._publish_unheld(head)
-        self._publish_mode("disabled")
+        if self._abort_gen == abort_gen:
+            self._publish_mode("disabled")
         print("mqtt_signalhead: shutdown sml_mode disabled -- unchecking SML pairs")
         self._set_all_digicon_sml_destinations(False)
         self._snapshot_mast_sml_state()
@@ -516,7 +527,9 @@ class DigiconMqttSml(
         finally:
             self._suppress_sml = False
             self._abort_in_progress = False
-            self._set_button_label()
+            # A Disable/Enable worker still running resets the button when it ends.
+            if not self._busy:
+                self._set_button_label()
 
     def _announce_enabling(self, reason):
         """Publish enabling; this instance does not abort. Other agents must."""
@@ -811,6 +824,9 @@ class DigiconMqttSml(
 
         class _Attach(Runnable):
             def run(_self):
+                # Detached by a re-run (or quitting): leave the strip to the new one.
+                if self._shutting_down:
+                    return
                 if _try_attach():
                     self._set_button_label()
                     return
@@ -833,7 +849,8 @@ class DigiconMqttSml(
             class _Retry(Runnable):
                 def run(_self):
                     Thread.sleep(delay_ms)
-                    SwingUtilities.invokeLater(_Attach())
+                    if not self._shutting_down:
+                        SwingUtilities.invokeLater(_Attach())
 
             Thread(_Retry(), "mqtt-sml-button").start()
 
@@ -1018,6 +1035,12 @@ class DigiconMqttSml(
                         if result == "cancel":
                             print("mqtt_signalhead: enable aborted (no override)")
                             return
+                        if controller._abort_gen != abort_gen:
+                            print(
+                                "mqtt_signalhead: enable skipped (aborted during "
+                                "probe; another agent is taking Digicon)"
+                            )
+                            return
                         if result == "force":
                             controller._announce_enabling("force override")
                             Thread.sleep(SML_ABORT_RESUME_MS)
@@ -1084,6 +1107,8 @@ class DigiconMqttSml(
                 % len(self._heads)
             )
             for head in self._heads:
+                if self._abort_gen != abort_gen:
+                    break
                 self._publish_unheld(head)
         for mast in self._masts:
             try:
@@ -1091,7 +1116,7 @@ class DigiconMqttSml(
             except Exception:
                 pass
         self._global_enabled = False
-        if publish_mode and not aborted:
+        if publish_mode and self._abort_gen == abort_gen:
             self._publish_mode("disabled")
         self._sync_sml_mode_sensor()
 
@@ -1109,6 +1134,7 @@ class DigiconMqttSml(
             abort_gen = self._abort_gen
         if self._abort_gen != abort_gen:
             print("mqtt_signalhead: enable skipped (aborted; another agent is taking Digicon)")
+            self._enabling_originator = False
             return
         # ACK query/disabling during Hold (not yet _global_enabled).
         self._enabling_originator = True
@@ -1409,8 +1435,11 @@ class DigiconMqttSml(
 
     def _on_sml_mode(self, message):
         mode = message.strip().lower()
-        heard_before = self._last_heard_mode
-        self._last_heard_mode = mode
+        bridge_release = mode == "disabled" and self._bridge_release_pending
+        if mode == "disabling":
+            self._bridge_release_pending = True
+        elif mode in ("enabled", "enabling", "aborting", "aborted", "disabled"):
+            self._bridge_release_pending = False
         if mode == "enabled" and self._probe_active:
             self._probe_saw_enabled = True
         if mode in (
@@ -1445,11 +1474,7 @@ class DigiconMqttSml(
         # disabled): e.g. a stale retain after a power cut made this host stay Disabled
         # at boot. Take the boot decision again. An operator Disable on another host
         # publishes disabled alone, and stays as the operator set it.
-        if (
-            mode == "disabled"
-            and heard_before == "disabling"
-            and self._idle_for_take()
-        ):
+        if bridge_release and self._idle_for_take():
             print("mqtt_signalhead: bridge released sml_mode -- take Digicon (enable)")
             self._enter_enabled(force=True, from_boot=True)
 
