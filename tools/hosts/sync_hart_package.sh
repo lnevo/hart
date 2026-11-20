@@ -316,10 +316,11 @@ fi
 
 PANEL_AUDIT="$ROOT/jmri/layouts/hart/scripts/audit_panel_contracts.py"
 if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
-  # The audit places masts by the schematic-maps plugin's slot rule (the submodule). A fresh worktree (a redeploy of an
-  # older commit, a clean copy of HEAD) has none checked out; the audit fails without it, so check it out first.
+  # The audit places masts by the schematic-maps plugin's slot rule (the submodule, or SCHEMATIC_PLUGIN, which
+  # redeploy_commit.sh sets). Stop here with the fix rather than fail inside the audit.
   if [[ -z "${SCHEMATIC_PLUGIN:-}" && ! -f "$ROOT/external/model-railroad-skills/plugins/schematic-maps/schematic/slots.py" ]]; then
-    git -C "$ROOT" submodule update --init external/model-railroad-skills >&2
+    echo "the panel audit needs the schematic-maps plugin: run git submodule update --init external/model-railroad-skills, or set SCHEMATIC_PLUGIN" >&2
+    exit 1
   fi
   python3 "$PANEL_AUDIT" --strict
 fi

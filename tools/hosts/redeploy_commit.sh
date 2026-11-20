@@ -151,6 +151,14 @@ done
 while IFS= read -r line; do
   [[ -n "$line" ]] && CHILD_ENV+=("$line")
 done <<<"$hosts"
+# The deploy audit places masts by the schematic-maps plugin. The temporary worktree has no submodule checked out and a
+# rollback must run offline, so hand the old commit's deploy this checkout's plugin (the slot rule it audits by).
+PLUGIN="${SCHEMATIC_PLUGIN:-$ROOT/external/model-railroad-skills/plugins/schematic-maps}"
+if [[ ! -f "$PLUGIN/schematic/slots.py" ]]; then
+  echo "REFUSED: the schematic-maps plugin is not at $PLUGIN; run git submodule update --init external/model-railroad-skills" >&2
+  exit 1
+fi
+CHILD_ENV+=("SCHEMATIC_PLUGIN=$PLUGIN")
 
 # This checkout's checks, run before the old commit's deploy (older commits lack them): stop if a
 # host named does not answer over ssh, or if the owner changed Operations Pro files or stored
@@ -165,12 +173,6 @@ fi
 
 echo "Redeploy $SHORT: temporary worktree $WT (detached)"
 git -C "$ROOT" worktree add -q --detach "$WT" "$SHA"
-# The deploy audit places masts by the schematic-maps plugin (a submodule). A new worktree has none checked out, so
-# check out the commit's own pin from this repo's module store; stop if that fails rather than audit without it.
-if git -C "$WT" config -f .gitmodules --get submodule.external/model-railroad-skills.path >/dev/null 2>&1; then
-  git -C "$WT" submodule update --init -q external/model-railroad-skills \
-    || { echo "Redeploy $SHORT: cannot check out external/model-railroad-skills in $WT" >&2; exit 1; }
-fi
 
 rc=0
 env -i "${CHILD_ENV[@]}" bash "$WT/$SYNC_REL" ${PASS[@]+"${PASS[@]}"} || rc=$?
