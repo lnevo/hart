@@ -70,6 +70,8 @@ from refresh_wiring_inventory import (  # noqa: E402,F401
     summarize_node_labels,
     tag_upper_turnouts_cp,
 )
+# Re-exported for readers only. The moved functions read refresh_wiring_rules' own copies, so a
+# test that wants to change one of these tables must patch it on refresh_wiring_rules, not here.
 from refresh_wiring_rules import (  # noqa: E402,F401
     _DWARF_ASPECTS,
     BLOCK_IN_NOTES,
