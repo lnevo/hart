@@ -1,5 +1,6 @@
 """search-index.json: record shape, which pages are skipped, the leak guard, and the build check's link test."""
 import json
+import os
 import sys
 import tempfile
 import unittest
