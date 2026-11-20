@@ -2,7 +2,7 @@
 
 The published Word and PowerPoint files for crews and the dispatcher; this folder is their source of record (ADR-010). They are generated: run the rebuild scripts below from the repo root (each command changes into `ops/hart-ops/` and uses that folder's `.venv`), and they write the files here. Pipeline notes: [`wiki/pipelines/ops-publications.md`](../../wiki/pipelines/ops-publications.md).
 
-Also kept here: the STS to JMRI notes ([`STS_TO_JMRI.md`](STS_TO_JMRI.md)), the Operations Pro build record (`OPSPRO_*.md`, `opspro-build/`), the car-card prompt the site links to, and the STRR speed-match SOP the site publishes.
+Also kept here: the STS to JMRI notes ([`STS_TO_JMRI.md`](STS_TO_JMRI.md)), the Operations Pro build record (`OPSPRO_*.md`; its generated CSVs are in `archive/docs/ops/opspro-build/`), the car-card prompt the site links to, and the STRR speed-match SOP the site publishes.
 
 ## Scale Operating Instructions
 

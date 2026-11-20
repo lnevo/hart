@@ -6,7 +6,7 @@ These are the items left from the 2026-11-14 re-review (senior architect, site r
 
 **Owner (2026-11-14):** do it now, so the repo is clean before the main and upper levels add their names.
 
-**Problem.** Renaming one mast (16R, PR #441) touched 13 files. Most were generated (baselines, `staging.signals.json`, `www/data/*.json`) and are caught by their `--check`. The rest are names typed by hand into code and docs, for example `apply_yard_throat_blocks.py` and `wiki/DISPATCHER_LAYOUT_HOOPS.md`. With two more levels coming, each hand-typed copy is a rename that can be missed.
+**Problem.** Renaming one mast (16R, PR #441) touched 13 files. Most were generated (baselines, `staging.signals.json`, `www/data/*.json`) and are caught by their `--check`. The rest are names typed by hand into code and docs, for example `apply_yard_throat_blocks.py` and `jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md`. With two more levels coming, each hand-typed copy is a rename that can be missed.
 
 **Goal.**
 - A track, block or mast name is typed in one data file: `public_name_map.csv`, `switch_legs.csv`, `mast_cells.csv` or `control_points.csv` (ADR-021).

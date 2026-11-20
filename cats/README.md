@@ -39,7 +39,7 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
   ```bash
   python3 tools/schematic/build_cats_panel.py   # writes HART_CTC.xml and HART_ABS.xml (all three levels)
   ```
-  - Plant map: [`wiki/DIGICON_SCHEMATIC.md`](../wiki/DIGICON_SCHEMATIC.md)
+  - Plant map: [`docs/ctc/DIGICON_SCHEMATIC.md`](../docs/ctc/DIGICON_SCHEMATIC.md)
 - Validate: `python3 cats/scripts/validate_cats_panel.py`
 
 ## Install + run (macOS)

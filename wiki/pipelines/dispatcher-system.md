@@ -10,7 +10,7 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
 
 ## Inputs
 
-- Hidden virtual masts + throat blocks ([`DISPATCHER_LAYOUT_HOOPS.md`](../DISPATCHER_LAYOUT_HOOPS.md))
+- Hidden virtual masts + throat blocks ([`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md))
 - Block comments with `stop` on station bodies (throats: “not a station”, never “not a stop”)
 - Roster speed profiles (synthetic today — pipeline 11)
 
@@ -30,7 +30,7 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
 3. If Dispatcher asks to rebuild because traininfo names are stale, try
    `python3 jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py`
    first.
-4. After Stage 1, `run_panelpro_stage1.sh` runs the repairs itself (see `wiki/DISPATCHER_LAYOUT_HOOPS.md`).
+4. After Stage 1, `run_panelpro_stage1.sh` runs the repairs itself (see `jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md`).
 5. Stage 1 Store writes BlockContentsIcons at level 0. The launcher runs
    `jmri/layouts/hart/parked/polish_hart_layout_editor.py --reference <tables before Stage 1>` so labels
    go back to their reference spots (above the rail).
