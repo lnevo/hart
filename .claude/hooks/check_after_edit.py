@@ -83,10 +83,12 @@ def checks_for(root, path):
     name = os.path.basename(path)
     if not tests:
         return CHECKS, f"no test file names {name}; ran the whole {UNIT_JMRI} job instead"
-    narrowed = [check for check in CHECKS if check[0] != UNIT_JMRI]
+    # The edited script's own tests go first so the time budget never skips them.
+    narrowed = []
     for test in tests:
         folder, file = os.path.split(test)
         narrowed.append((f"unit {test}", ["python3", "-m", "unittest", "discover", "-q", "-s", folder, "-p", file]))
+    narrowed += [check for check in CHECKS if check[0] != UNIT_JMRI]
     return narrowed, f"ran the {len(tests)} test file(s) that name {name}, not the whole {UNIT_JMRI} job: " + ", ".join(tests)
 
 
