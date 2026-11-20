@@ -48,7 +48,7 @@ class Arguments(unittest.TestCase):
         for argv in (["--chek"], ["--check", "docs"], ["docs"]):
             status, out, err = self.run_main(argv)
             self.assertEqual(status, 2, argv)
-            self.assertIn(repr(argv[0]), err)
+            self.assertIn(repr(argv[-1] if argv[0] == "--check" else argv[0]), err)
             self.assertEqual(out, "")
 
     def test_help_prints_the_usage(self) -> None:

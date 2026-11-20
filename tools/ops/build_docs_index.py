@@ -100,7 +100,8 @@ def main(argv: list[str]) -> int:
     if argv == ["--check"]:
         return check()
     if argv:            # a typo must not fall through to a rewrite
-        print(f"build_docs_index.py: unknown argument {argv[0]!r}; the only option is --check (--help for more)", file=sys.stderr)
+        bad = argv[1] if argv[0] == "--check" else argv[0]
+        print(f"build_docs_index.py: unknown argument {bad!r}; the only option is --check, alone (--help for more)", file=sys.stderr)
         return 2
     paths = tracked()
     text = render(paths, last_changed())
