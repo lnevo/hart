@@ -12,7 +12,7 @@ scripts, then regenerate.
 | `rebuild_yardmaster_sequence.py` | YM-01 Yardmaster Sequence |
 | `rebuild_crew_instructions.py` | CI-D749 / CI-NVL / CI-CK1 (one sheet per job) |
 | `rebuild_station_map.py` | SM-01 Station Map (subdivision schematic) |
-| `rebuild_local_station_maps.py` | SM-02…05 West Yard / South Yard / East End / Shenango |
+| `rebuild_local_station_maps.py` | SM-02…05 West Yard / South Yard / East End / Shenango (drawers in `local_station_maps/`, one module per station) |
 | `rebuild_operator_primer.py` | HB-01 New Operator Primer |
 | `update_tt23_station_map.py` | Swap SM-01 schematic into TT-23 trifold left panel |
 | `hart_pub_helpers.py` | Shared masthead / table helpers; diagram + narrow TT-23 page |
