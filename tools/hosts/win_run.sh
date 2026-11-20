@@ -69,7 +69,7 @@ git -C "\$main" worktree add -q --detach "\$wt" $sha
 cleanup() { [[ $keep -eq 1 ]] && echo "win_run.sh: kept \$wt" >&2 || git -C "\$main" worktree remove --force "\$wt"; }
 trap cleanup EXIT
 # The links must not show as untracked (a dirty tree changes what some tests stage), as in tools/agent/worktrees.py.
-exclude="\$(git -C "\$main" rev-parse --git-common-dir)/info/exclude"
+exclude="\$(git -C "\$main" rev-parse --path-format=absolute --git-common-dir)/info/exclude"
 for rel in media ops/car-cards ops/hart-ops/.venv; do
   grep -qxF "/\$rel" "\$exclude" 2>/dev/null || echo "/\$rel" >> "\$exclude"
   [[ -e "\$main/\$rel" ]] && ln -sfn "\$main/\$rel" "\$wt/\$rel"
