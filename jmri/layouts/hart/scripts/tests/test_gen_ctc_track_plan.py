@@ -1,9 +1,12 @@
 """gen_ctc_track_plan (the USS CTC board generator): golden outputs and unit tests on its pieces and error paths.
 
 Who uses it: the USS CTC machine is parked (hartlib.parked), so nothing live runs it as a build step. The one live
-caller is tools/audit/check_layout_facts.py (in tools/check.sh), which imports it for build_geometry() and CREAM;
-refresh_bean_comments.py only lists the file as a path it edits. These tests cover those two, and the rest of the
-generator, so it keeps working until the machine is unparked.
+caller is tools/audit/check_layout_facts.py (in tools/check.sh), which imports it for build_geometry() and CREAM.
+The other callers are tests: test_uss_switch_levers.py (rebuild of the committed files, byte-identical),
+test_ctc_signal_heads.py, test_uss_board_cells.py, test_occupancy_lamps_display_only.py, and
+cats/scripts/tests/test_generated_desk_from_scratch.py (runs it with --xml-only and expects the files unchanged).
+refresh_bean_comments.py only lists the file as a path it edits. These tests cover the importer's parts and the rest
+of the generator, so it keeps working until the machine is unparked.
 
 The input is a small fixture, not the live board: the module's data tables (PLANTS, SIGNALS, the lever columns) are
 patched for each test, and the writes go into temp dirs, so a change to switches.csv, mast_cells.csv or the frozen
@@ -107,7 +110,7 @@ def current_golden() -> dict:
 class Golden(unittest.TestCase):
     def test_board_block_and_icons_match_the_golden_snapshot(self):
         got = current_golden()
-        if os.environ.get("UPDATE_GOLDEN"):
+        if os.environ.get("UPDATE_GOLDEN") == "1":
             GOLDEN.parent.mkdir(exist_ok=True)
             GOLDEN.write_text(json.dumps(got, indent=1, sort_keys=True) + "\n", encoding="utf-8")
             self.skipTest(f"UPDATE_GOLDEN set: wrote {GOLDEN}")
@@ -577,14 +580,20 @@ class Main(unittest.TestCase):
         self.tables = self.dir / "tables.xml"
         self.gui.write_text(self.GUI_TEXT, encoding="utf-8")
         self.tables.write_text(self.TABLES_TEXT, encoding="utf-8")
+        repo_before = gen.OUTPUT_TABLES.read_bytes()
+        self.addCleanup(lambda: self.assertEqual(gen.OUTPUT_TABLES.read_bytes(), repo_before,
+                                                 "a test changed the repo's tables.xml"))
 
     def run_main(self, *argv, running=False, cells=None, **patches):
         with contextlib.ExitStack() as stack:
             stack.enter_context(fixture_board())
             stack.enter_context(mock.patch.object(sys, "argv", ["gen_ctc_track_plan.py", *argv]))
             stack.enter_context(mock.patch.object(gen.hl_tables, "jmri_running", return_value=running))
-            stack.enter_context(mock.patch.object(gen.facts, "load_uss_cells", return_value=cells or FIXTURE_CELLS))
+            stack.enter_context(mock.patch.object(gen.facts, "load_uss_cells", return_value=FIXTURE_CELLS if cells is None else cells))
             stack.enter_context(mock.patch.object(gen, "ensure_columns", side_effect=lambda t: t))
+            # whatever PARKED says, a run without --tables must land on the temp copy, never the repo's tables.xml
+            patches.setdefault("OUTPUT_TABLES", self.tables)
+            patches.setdefault("parked_target", lambda p: False)
             for name, value in patches.items():
                 stack.enter_context(mock.patch.object(gen, name, value))
             out = stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
