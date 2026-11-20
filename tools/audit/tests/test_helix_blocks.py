@@ -74,7 +74,7 @@ class Pins(unittest.TestCase):
         for text, msg in ((self.PINS + "Track Helix Outer,41,1,\n", "pinned twice"),
                           (self.PINS + "Track Helix Inner,41,2,\n", "pinned twice"),
                           (self.PINS + "Track X,41,9,\n", "is not 1 to 8"),
-                          (self.PINS + "Helix,41,2,\n", "no block name"),
+                          (self.PINS + "Helix,41,2,\n", "not a track block"),
                           (self.PINS + "Track X,forty,2,\n", "are numbers")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 bdm.read_pins(write(text))
