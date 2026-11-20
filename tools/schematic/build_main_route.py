@@ -1,20 +1,23 @@
 """build_main_route.py [--check]
 
-Write the `main_route` key of main_upper.plan_overrides.json from main_lines_main_upper.csv and the plan graph, and
-staging's main track and mileposts from main_lines_staging.csv (see the end of this text).
+Write the `main_route` key of main_upper.plan_overrides.json from the main_upper rows of main_lines.csv and the plan
+graph, and staging's main track and mileposts from its staging rows (see the end of this text).
 
 The schematic marks as main track what lies on `main_route`, hop by hop. Written by hand, each hop named two plan part
 numbers (T281, T311 ...), which change whenever the plan is exported again. Here the owner gives the two main lines
 by what the railroad calls things, and this works the hops out:
 
-    line,from,via,to,loop,double,notes
+    sheet,line,from,via,to,loop,double,count,notes
 
+  sheet   the schematic sheet the line is on: staging or main_upper (one file for every level, a section per sheet);
+  line    its name, once per sheet;
   from    the helix end the line starts at (its name, McKees Rocks), or a switch number;
   via     switch numbers the line must pass, in order, where the shortest way would leave it (";" between them);
   to      the switch the line ends at;
   loop    the switches of the turnback the line ends in, in order, ";" between them: the line runs from `to` round them
           and back to `to` (a balloon on one switch repeats `to`);
   double  switch pairs joined by two tracks that are both main ("223-225");
+  count   yes on the lines the mileposts run along (staging only, see below), else blank;
   notes   free text.
 
 Each stretch between two stops is the shortest way along the plan (centimetres plus one per track, as the plugin
@@ -26,7 +29,7 @@ line runs; switches are named by their number, so the hops do not depend on the 
 
 --check regenerates in memory and exits 1 if a file differs.
 
-Staging (main_lines_staging.csv: the same columns and a last one, `count`). Staging's drawings take no main_route (it
+Staging (the rows whose sheet is staging). Staging's drawings take no main_route (it
 would turn on the direction letters of a route), so its lines write two other things in staging.plan_overrides.json.
 Each track on a line gets "main" in the `name` edit and every other track in it loses it; a track on a line that the
 edit does not name must be a helix end or the short link between the halves of a crossover, which the plugin marks
@@ -49,13 +52,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and the pinned plugin
 
 OVERRIDES = pd.DATA / "main_upper.plan_overrides.json"
-LINES = pd.DATA / "main_lines_main_upper.csv"
+LINES = pd.DATA / "main_lines.csv"
 GRAPH = pd.GRAPHS / "main.json"
-COLUMNS = ["line", "from", "via", "to", "loop", "double", "notes"]
+COLUMNS = ["sheet", "line", "from", "via", "to", "loop", "double", "count", "notes"]
+SHEETS = ("staging", "main_upper")
 STAGING_OVERRIDES = pd.DATA / "staging.plan_overrides.json"
-STAGING_LINES = pd.DATA / "main_lines_staging.csv"
 STAGING_GRAPH = pd.GRAPHS / "staging.json"
-STAGING_COLUMNS = COLUMNS + ["count"]
 TIE = 1e-6          # centimetres: two ways this close are a tie
 
 
@@ -67,24 +69,35 @@ def split(cell: str) -> list[str]:
     return [p.strip() for p in cell.split(";") if p.strip()]
 
 
-def read_lines(path: Path = LINES, columns: list[str] = COLUMNS) -> list[dict]:
+def read_lines(sheet: str, path: Path = LINES) -> list[dict]:
+    """The main lines of one sheet. The whole file is checked first: its columns, a known sheet on every row, a line
+    name used once per sheet, from and to given, count yes or blank and only on staging (the main and upper mileposts
+    follow main_route); the sheet asked for must have a line."""
+    if sheet not in SHEETS:
+        raise RouteError(f"unknown sheet {sheet!r}: the sheets are {', '.join(SHEETS)}")
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
-        if reader.fieldnames != columns:
-            raise RouteError(f"{path.name}: expected the columns {', '.join(columns)}, got {reader.fieldnames}")
+        if reader.fieldnames != COLUMNS:
+            raise RouteError(f"{path.name}: expected the columns {', '.join(COLUMNS)}, got {reader.fieldnames}")
         rows = list(reader)
-    if not rows:
-        raise RouteError(f"{path.name} has no main line")
     seen = set()
     for n, r in enumerate(rows, 2):
-        if not r["line"].strip() or r["line"] in seen:
-            raise RouteError(f"{path.name} line {n}: line name {r['line']!r} is empty or repeated")
-        seen.add(r["line"])
+        if r["sheet"] not in SHEETS:
+            raise RouteError(f"{path.name} line {n}: sheet {r['sheet']!r} is not one of {', '.join(SHEETS)}")
+        if not r["line"].strip() or (r["sheet"], r["line"]) in seen:
+            raise RouteError(f"{path.name} line {n}: line name {r['line']!r} is empty or repeated on sheet {r['sheet']}")
+        seen.add((r["sheet"], r["line"]))
         if not r["from"].strip() or not r["to"].strip():
             raise RouteError(f"{path.name} line {n} ({r['line']}): from and to are both needed")
-        if "count" in r and r["count"].strip() not in ("", "yes"):
+        if r["count"].strip() not in ("", "yes"):
             raise RouteError(f"{path.name} line {n} ({r['line']}): count is yes or blank, not {r['count']!r}")
-    return rows
+        if r["count"].strip() and r["sheet"] != "staging":
+            raise RouteError(f"{path.name} line {n} ({r['line']}): count is only read on the staging sheet; the "
+                             f"{r['sheet']} mileposts follow main_route")
+    mine = [r for r in rows if r["sheet"] == sheet]
+    if not mine:
+        raise RouteError(f"{path.name} has no main line on sheet {sheet}")
+    return mine
 
 
 HALF = re.compile(r"(\d+)([AB])")
@@ -305,8 +318,8 @@ def staging_text(overrides: dict, plan: Plan, rows: list[dict]) -> str:
                          + ", ".join(f"{plan.name(e['u'])} to {plan.name(e['v'])}" for e in lost))
     over["milepost_route"] = milepost_route(plan, rows)
     over["_main_lines"] = ("The main flags of the `name` edit and milepost_route are written by "
-                           "tools/schematic/build_main_route.py from main_lines_staging.csv; edit that file, not "
-                           "these.")
+                           "tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that "
+                           "file, not these.")
     return json.dumps(over, indent=1, ensure_ascii=False) + "\n"
 
 
@@ -319,11 +332,11 @@ def main(argv=None) -> int:
     try:
         overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
         g, by_label = prepared(overrides)
-        hops = route(Plan(g, by_label), read_lines())
+        hops = route(Plan(g, by_label), read_lines("main_upper"))
         outputs.append((OVERRIDES, overrides_text(overrides, hops), f"main_route ({len(hops)} hops)"))
         st = json.loads(STAGING_OVERRIDES.read_text(encoding="utf-8"))
         sg, sby = prepared(st, "staging", STAGING_GRAPH)
-        text = staging_text(st, Plan(sg, sby), read_lines(STAGING_LINES, STAGING_COLUMNS))
+        text = staging_text(st, Plan(sg, sby), read_lines("staging"))
         outputs.append((STAGING_OVERRIDES, text, "main flags and milepost_route"))
     except bl.BuildError as exc:      # the plugin is not checked out
         if not args.check:
