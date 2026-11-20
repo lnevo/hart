@@ -1,14 +1,15 @@
 """refresh_wiring_docs: golden outputs and unit tests on its parsing and error paths.
 
 The script writes into docs/wiring/ through its module-level WIRING; the tests point WIRING at a temp dir, so the
-committed workbooks are never touched. Two kinds of golden check:
+committed workbooks are never touched. Everything the script reads that changes with the railroad is pinned to the
+frozen copies under golden/inputs/ (the name map, the occupancy bindings, three signal CSVs from before the
+2026-11-19 wiring cut, and a heads-only tables stand-in), so data PRs and tables pulls cannot fail these tests. The
+only live inputs left are docs/wiring/imported/*.xlsx, the frozen import snapshots. Two golden checks:
 
-- signals_split_v8.xlsx is compared cell by cell with the committed file (the script reproduces it exactly).
+- signals_split_v8.xlsx is compared cell by cell with the committed file (it depends on the imported workbook only).
 - LCOS_Layout_Inventory_v85.xlsx and signals_asbuilt_abs_v2.xlsx are compared with golden/refresh_wiring_docs.json,
-  a row-hash snapshot of what the script writes today. The committed copies of those two lag the script (the
-  signal CSVs and tables.xml moved on after they were written), so they cannot be the reference yet. Refresh the
-  snapshot after an intended change to the script or its inputs with
-  `UPDATE_GOLDEN=1 python3 -m unittest discover -s tools/audit/tests -p test_refresh_wiring_docs.py`.
+  a row-hash snapshot of what the script writes from the pinned inputs. It changes only when the script, the
+  pinned inputs or docs/wiring/imported change; refresh it after an intended change with the command in REFRESH.
 """
 import contextlib
 import hashlib
@@ -24,11 +25,20 @@ from unittest import mock
 from openpyxl import Workbook, load_workbook
 
 ROOT = next(p for p in Path(__file__).resolve().parents if (p / "tools/hartlib/src").is_dir())
-sys.path[:0] = [str(ROOT / "tools/wiring")]
-import refresh_wiring_docs as rw  # noqa: E402
+sys.path[:0] = [str(ROOT / "tools/wiring"), str(ROOT / "tools/hartlib/src")]
+from hartlib import paths  # noqa: E402
 from hartlib.railroad import FactsError  # noqa: E402
 
-GOLDEN = Path(__file__).resolve().parent / "golden/refresh_wiring_docs.json"
+GOLDEN_DIR = Path(__file__).resolve().parent / "golden"
+GOLDEN = GOLDEN_DIR / "refresh_wiring_docs.json"
+PINNED = GOLDEN_DIR / "inputs"
+# The script builds NAME_REPLACEMENTS and its name map when it is imported, so the pinned map is in place first.
+with mock.patch.object(paths, "PUBLIC_NAME_MAP", PINNED / "public_name_map.csv"):
+    import refresh_wiring_docs as rw  # noqa: E402
+if rw.PUBLIC_MAP != PINNED / "public_name_map.csv":
+    raise ImportError("refresh_wiring_docs was imported before this test pinned its name map; run this file on its own")
+REFRESH = ("UPDATE_GOLDEN=1 python3 -m unittest discover -s tools/audit/tests -p test_refresh_wiring_docs.py "
+           "(the snapshot depends on the script, golden/inputs/*, and docs/wiring/imported/*.xlsx)")
 SNAPSHOT_BOOKS = ("LCOS_Layout_Inventory_v85.xlsx", "signals_asbuilt_abs_v2.xlsx")
 NAME_MAP_HEADER = "layer,current,proposed,cp,hardware,dcc,comment,notes\n"
 
@@ -43,10 +53,30 @@ def digest(path: Path) -> dict:
             for ws in wb.worksheets}
 
 
+def tree_hashes(*dirs: Path) -> dict[str, str]:
+    """{path: sha256} for every file under dirs, to prove a run leaves its inputs alone."""
+    return {str(p): hashlib.sha256(p.read_bytes()).hexdigest() for d in dirs for p in sorted(d.rglob("*")) if p.is_file()}
+
+
+@contextlib.contextmanager
+def pinned(dest: Path, **extra):
+    """The script writing into dest and reading only the pinned inputs (plus docs/wiring/imported)."""
+    with contextlib.ExitStack() as stack:
+        stack.enter_context(mock.patch.object(rw, "WIRING", dest))
+        stack.enter_context(mock.patch.object(rw, "CATS", PINNED))
+        stack.enter_context(mock.patch.object(rw, "SIGNALS", PINNED / "signals"))
+        # live_heads() and occupancy_by_hw() bind their path defaults when defined, so patching CATS or TABLES_XML is not enough.
+        stack.enter_context(mock.patch.object(rw.live_heads, "__defaults__", (PINNED / "tables_heads.xml",)))
+        stack.enter_context(mock.patch.object(rw.occupancy_by_hw, "__defaults__", (PINNED / "occupancy_bindings.csv",)))
+        for name, value in extra.items():
+            stack.enter_context(mock.patch.object(rw, name, value))
+        yield
+
+
 def run_script(dest: Path) -> str:
-    """main() with WIRING pointed at dest; returns what it printed."""
+    """main() with the inputs pinned and WIRING at dest; returns what it printed."""
     out = io.StringIO()
-    with mock.patch.object(rw, "WIRING", dest), contextlib.redirect_stdout(out):
+    with pinned(dest), contextlib.redirect_stdout(out):
         rw.main()
     return out.getvalue()
 
@@ -56,7 +86,9 @@ class Golden(unittest.TestCase):
     def setUpClass(cls):
         cls.tmp = tempfile.TemporaryDirectory()
         cls.dest = Path(cls.tmp.name)
+        cls.inputs_before = tree_hashes(rw.IMPORTED, PINNED)
         cls.stdout = run_script(cls.dest)
+        cls.inputs_after = tree_hashes(rw.IMPORTED, PINNED)
 
     @classmethod
     def tearDownClass(cls):
@@ -85,7 +117,7 @@ class Golden(unittest.TestCase):
         if os.environ.get("UPDATE_GOLDEN"):
             GOLDEN.parent.mkdir(exist_ok=True)
             GOLDEN.write_text(json.dumps(got, indent=0, sort_keys=True) + "\n", encoding="utf-8")
-            self.skipTest(f"UPDATE_GOLDEN set: wrote {GOLDEN}")
+            self.skipTest(f"UPDATE_GOLDEN set: wrote {GOLDEN}; rerun without it to check")
         want = json.loads(GOLDEN.read_text(encoding="utf-8"))
         for name in SNAPSHOT_BOOKS:
             self.assertEqual(sorted(got[name]), sorted(want[name]), f"{name}: sheet names")
@@ -95,18 +127,17 @@ class Golden(unittest.TestCase):
                 self.assertEqual(len(g["rows"]), len(w["rows"]), f"{name} sheet {sheet}: row count")
                 bad = [i + 1 for i, (a, b) in enumerate(zip(g["rows"], w["rows"])) if a != b]
                 self.assertFalse(bad, f"{name} sheet {sheet}: rows differ from the golden snapshot: {bad[:20]} "
-                                      f"(UPDATE_GOLDEN=1 refreshes it after an intended change)")
+                                      f"; after an intended change run {REFRESH}")
 
     def test_committed_workbooks_have_the_same_sheets(self):
         for name in (*SNAPSHOT_BOOKS, "signals_split_v8.xlsx"):
             self.assertEqual(load_workbook(self.dest / name).sheetnames,
                              load_workbook(ROOT / "docs/wiring" / name).sheetnames, name)
 
-    def test_imported_sources_are_not_modified(self):
-        before = {p: p.stat().st_mtime_ns for p in rw.IMPORTED.glob("*.xlsx")}
-        with tempfile.TemporaryDirectory() as t:
-            run_script(Path(t))
-        self.assertEqual(before, {p: p.stat().st_mtime_ns for p in rw.IMPORTED.glob("*.xlsx")})
+    def test_inputs_are_not_modified(self):
+        self.assertTrue(self.inputs_before, "no input files found to compare")
+        self.assertEqual(self.inputs_after, self.inputs_before,
+                         "a run changed, added or removed a file under docs/wiring/imported or golden/inputs")
 
     def test_summary_lines(self):
         for needle in ("Mangled SW1xx restorations", "Legacy SW/SCX tokens", "BlockSensors renames",
@@ -200,7 +231,8 @@ class Parsing(unittest.TestCase):
         self.assertEqual(ws["A1"].value, "IH132")
 
     def test_rewrite_legacy_node_ids_whole_tokens(self):
-        legacy = next(k for k, v in rw.LEGACY_NODE_IDS.items() if v != k)
+        legacy = next((k for k, v in rw.LEGACY_NODE_IDS.items() if v != k), None)
+        self.assertIsNotNone(legacy, "LEGACY_NODE_IDS maps no id to a different one; the test needs one that does")
         self.assertEqual(rw.rewrite_legacy_node_ids(f"node {legacy}, x"), f"node {rw.LEGACY_NODE_IDS[legacy]}, x")
         self.assertEqual(rw.rewrite_legacy_node_ids(f"A{legacy}"), f"A{legacy}")
         self.assertIsNone(rw.rewrite_legacy_node_ids(None))
@@ -248,12 +280,7 @@ class Parsing(unittest.TestCase):
 
 class ErrorPaths(unittest.TestCase):
     def run_main(self, **patches):
-        with contextlib.ExitStack() as stack:
-            tmp = stack.enter_context(tempfile.TemporaryDirectory())
-            stack.enter_context(mock.patch.object(rw, "WIRING", Path(tmp)))
-            stack.enter_context(contextlib.redirect_stdout(io.StringIO()))
-            for name, value in patches.items():
-                stack.enter_context(mock.patch.object(rw, name, value))
+        with tempfile.TemporaryDirectory() as tmp, pinned(Path(tmp), **patches), contextlib.redirect_stdout(io.StringIO()):
             rw.main()
 
     def test_facts_error_exits_with_script_name_and_message(self):
@@ -266,7 +293,7 @@ class ErrorPaths(unittest.TestCase):
             self.run_main(IMPORTED=Path(t))
 
     def test_calibration_pin_clash_stops_naming_the_port(self):
-        used = rw.load_csv(rw.SIGNALS / "signal_wiring.csv")[0]["port_id"]
+        used = rw.load_csv(PINNED / "signals/signal_wiring.csv")[0]["port_id"]
         with self.assertRaises(SystemExit) as cm:
             self.run_main(first_5v_cal_ports=mock.Mock(return_value={"Block 1-1": used}))
         self.assertIn("Digicon heads on block-sensor calibration pins", str(cm.exception.code))
