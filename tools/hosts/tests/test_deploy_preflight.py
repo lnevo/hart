@@ -3,8 +3,8 @@
 Windows is kept matching the Pi and the Pi step runs first, so an unreachable Windows must stop
 `--pi --win` before the Pi step. ssh and scp are stand-ins that log each call: a host listed in
 down.txt refuses, the no-op and the Pi's read-only checks answer, and anything else (the first
-real host step) fails with 99. Nothing reaches a host. HOME and TMPDIR are temporary folders, the
-gate that rewrites tables.xml runs as a dry run (keep_repo_tables), and every test checks that the
+real host step) fails with 99. Nothing reaches a host. HOME and TMPDIR are temporary folders, a
+step that would rewrite tables.xml runs as a dry run and is logged (keep_repo_tables), and every test checks that the
 checkout is as it was where a deploy could change it (checkout_state).
 """
 from __future__ import annotations
@@ -263,12 +263,68 @@ class PreflightTest(DeployHarness):
         calls = self.calls()
         self.assertTrue(calls[0].endswith(f"{PI} true"), calls)
         self.assertTrue(calls[1].endswith(f"{WIN} exit 0"), calls)
-        self.assertTrue(calls[2].endswith(f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles'"), calls)
+        # the unpulled check, with the generated tables.xml's hash as the reference for a Pi that has none
+        generated = hashlib.sha256(TABLES.read_bytes()).hexdigest()
+        self.assertTrue(calls[2].endswith(f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}'"), calls)
         # The first real host step, which the stand-in fails.
         self.assertIn("mktemp -d /tmp/hart-deploy.XXXXXX", calls[3])
         self.assertEqual(99, done.returncode, done.stderr[-2000:])
-        # The gate that rewrites tables.xml was reached, and ran as a dry run.
-        self.assertEqual(1, len((self.tmp / "gates.log").read_text().splitlines()))
+        # No gate rewrites tables.xml any more (R9c: the generator applies the Digicon rule), so the hosts get the
+        # committed bytes.
+        self.assertFalse((self.tmp / "gates.log").exists(), "a deploy step ran disable_digicon_sml_in_tables.py")
+        # the freshness check ran before the first host step (a stand-in for build_tables.py --check)
+        self.assertIn("build_tables.py --check", (self.tmp / "tables_check.log").read_text())
+
+    def test_stale_tables_stop_the_deploy_before_any_host_step(self) -> None:
+        """tables.xml must be what build_tables.py writes (R9c): a stale file stops the deploy after the read-only
+        host checks and before anything is sent (the check itself is check.sh's tables job; a stand-in here)."""
+        (self.tmp / "tables_stale").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: tables.xml is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertIn("--check", (self.tmp / "tables_check.log").read_text())
+        self.assertNotIn("Deploy → Pi", done.stdout)
+        self.assertFalse(any("mktemp -d /tmp/hart-deploy" in c for c in self.calls()), self.calls())
+
+    def test_a_missing_plugin_gets_its_own_stop(self) -> None:
+        (self.tmp / "tables_no_plugin").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: the tables check needs the schematic-maps plugin at its pin: run git submodule update",
+                      done.stderr)
+        self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertNotIn("Deploy → Pi", done.stdout)
+
+    def test_a_source_error_gets_its_own_stop(self) -> None:
+        (self.tmp / "tables_source_error").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("cannot make tables.xml from its sources: fix the source error above, or rerun discovery",
+                      done.stderr)
+        self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
+
+    def test_a_redeploy_skips_the_regeneration_but_checks_digicon(self) -> None:
+        """A redeploy (HART_REDEPLOY_FROM) would redraw with another plugin than the commit's: no regeneration, a
+        line that says so, and the Digicon check still stops an enabled destination."""
+        (self.tmp / "tables_stale").touch()
+        self.env["HART_REDEPLOY_FROM"] = "0" * 40
+        done = self.deploy("--pi", "--win")
+        self.assertIn("Redeploy of an older commit: not regenerating tables.xml", done.stdout)
+        self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertFalse((self.tmp / "tables_check.log").exists(), "the regeneration ran on a redeploy")
+        self.assertIn("Deploy → Pi", done.stdout)
+        (self.tmp / "digicon_enabled").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: a Digicon mast's Signal Mast Logic is stored enabled", done.stderr)
+
+    def test_an_enabled_digicon_destination_stops_the_deploy(self) -> None:
+        (self.tmp / "digicon_enabled").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: a Digicon mast's Signal Mast Logic is stored enabled", done.stderr)
+        self.assertNotIn("Deploy → Pi", done.stdout)
+        self.assertFalse(any("mktemp -d /tmp/hart-deploy" in c for c in self.calls()), self.calls())
 
     def test_one_host_goes_on_while_the_other_is_down(self) -> None:
         self.down(PI)

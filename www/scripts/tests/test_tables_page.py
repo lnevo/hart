@@ -149,7 +149,7 @@ class Drift(Copy):
         self.assertEqual(self.region("version"), "5.18")
 
     def test_unknown_section_stops_the_build(self):
-        self.edit("  <filehistory", "  <newthing />\n  <filehistory")
+        self.edit("</layout-config>", "  <newthing />\n</layout-config>")
         with self.assertRaisesRegex(SystemExit, "newthing"):
             btb.outputs(self.www, self.src)
 

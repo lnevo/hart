@@ -306,9 +306,8 @@ class DeviceMapBuild(unittest.TestCase):
             blb.plugin()
         except blb.BuildError as exc:
             raise unittest.SkipTest(f"plugin not available: {exc}")
-        base = blb.paths.TABLES_XML          # the build starts from this checkout's tables.xml
-        with contextlib.redirect_stdout(io.StringIO()):
-            cls.data, cls.P, cls.names, _bands = blb.build(base, levels="staging", as_live=True, approved=None)
+        with contextlib.redirect_stdout(io.StringIO()):     # on the generator's base (ADR-029)
+            cls.data, cls.P, cls.names, _bands = blb.build(levels="staging", as_live=True, approved=None)
         from hartlib import tables
         cls.tables = tables
         cls.panel = tables.layout_editor(tables.loads(cls.data).root, blb.TEMPLATE_PANEL)
@@ -323,20 +322,6 @@ class DeviceMapBuild(unittest.TestCase):
         self.assertEqual(sensors, {"Bridge HBLOOP", "SML Mode", "Track Power"})
         self.assertEqual([el.get("signalhead") for el in self.panel.findall("signalheadicon")], ["IH9990"])
         self.assertTrue(self.tables.generated_panel(self.panel))
-
-    def test_the_boundary_contract_follows_the_drawn_panel(self):
-        self.B.check_boundaries(self.panel)                     # the committed file: every mast where it says
-        text = self.B.BOUNDARIES.read_text(encoding="utf-8")
-        tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, tmp)
-        self.assertIn("anchor,AG20,east,Mast 8RA", text)          # the committed row the first case moves
-        for old, new, why in (("anchor,AG20,east,Mast 8RA", "anchor,AG34,east,Mast 8RA", "Mast 8RA: recorded anchor AG34 east"),
-                              ("turnout,TOL6,C,Mast 32R", "turnout,TOL6,B,Mast 32R", "Mast 32R: recorded turnout TOL6 B")):
-            with self.subTest(row=old):
-                path = tmp / "b.csv"
-                path.write_text(text.replace(old, new), encoding="utf-8")
-                with self.assertRaisesRegex(self.B.BuildError, why):
-                    self.B.check_boundaries(self.panel, path)
 
     def test_a_staging_mast_on_an_unknown_switch_is_a_build_error(self):
         import le_checks

@@ -20,6 +20,7 @@ FUTURE = re.compile(r"^\s*from\s+__future__\s+import\s+[^#\n]*\bprint_function\b
 LAUNCHED = [
     "jmri/layouts/hart/scripts/run_dispatcher_stage1.py",
     "jmri/layouts/hart/scripts/discover_sml.py",
+    "jmri/layouts/hart/scripts/panelpro_roundtrip.py",
     "jmri/layouts/hart/scripts/discover_nx.py",
     "jmri/layouts/hart/scripts/dump_sml_criteria.py",
     "jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py",

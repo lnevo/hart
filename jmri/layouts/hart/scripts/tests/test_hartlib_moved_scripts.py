@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import importlib.util
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
@@ -48,7 +47,6 @@ def run(script: str, *args: str, home: Path) -> subprocess.CompletedProcess:
 class DefaultPathsTest(unittest.TestCase):
     def test_default_tables_are_this_checkouts_file(self):
         for name, attr in (
-            ("apply_le_sml_facing", "DEFAULT_PANEL"),
             ("capture_public_name_baseline", "DEFAULT_TABLES"),
         ):
             with self.subTest(name):
@@ -58,30 +56,8 @@ class DefaultPathsTest(unittest.TestCase):
 
     def test_other_inputs_are_in_this_checkout(self):
         audit = load("audit_panel_contracts")
-        self.assertEqual(paths.LAYOUT_DATA / "le_signal_boundaries.csv", audit.BOUNDARIES)
+        self.assertEqual(paths.LAYOUT_DATA / "schematic" / "staging_masts.csv", audit.STAGING_MASTS)
         self.assertEqual(paths.LAYOUT_DIR / "dispatcher" / "traininfo", audit.TRAININFO)
-        self.assertEqual(paths.JMRI_USER_FILES / "tables.xml", load("apply_le_sml_facing").PREF_TABLES)
-
-
-class WritersOnACopyTest(unittest.TestCase):
-    def setUp(self):
-        self._tmp = tempfile.TemporaryDirectory()
-        self.addCleanup(self._tmp.cleanup)
-        self.home = Path(self._tmp.name)
-
-    def copy(self, name: str) -> Path:
-        """A writable copy of this checkout's tables.xml."""
-        path = self.home / name
-        shutil.copy(TABLES, path)
-        path.chmod(0o644)
-        return path
-
-    def test_sml_facing_dry_run_writes_nothing(self):
-        panel = self.copy("facing.xml")
-        before = panel.read_bytes()
-        result = run("apply_le_sml_facing.py", "--dry-run", "--panel", str(panel), home=self.home)
-        self.assertEqual(0, result.returncode, result.stderr)
-        self.assertEqual(before, panel.read_bytes())
 
 
 class AuditTest(unittest.TestCase):

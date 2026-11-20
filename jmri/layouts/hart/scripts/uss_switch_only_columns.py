@@ -9,7 +9,8 @@ fields store the sensor display name (the user name). The CTC editor combo
 boxes only list display names; a system name such as IS32:CB does not match
 and the box falls back to the first sensor.
 
-Safe to re-run.
+Safe to re-run. Parked with the USS CTC machine. tables.xml is generated since R9c (ADR-029), so --apply refuses to
+write it (hartlib.tables_build.refuse_generated); on unpark these columns go into the sources instead.
 """
 from __future__ import annotations
 
@@ -225,6 +226,8 @@ def main() -> int:
         updated = ensure_columns(path.read_text(encoding="utf-8"))
         print("%s: columns ready" % path.relative_to(ROOT))
         if write:
+            from hartlib import tables_build
+            tables_build.refuse_generated(path, Path(__file__).name)
             path.write_text(updated, encoding="utf-8")
     if not write:
         print("dry-run (pass --apply)")

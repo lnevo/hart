@@ -442,21 +442,6 @@
   <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
     <defaultInitialState>unknown</defaultInitialState>
     <sensor inverted="false">
-      <systemName>IS:SML_MODE</systemName>
-      <userName>SML Mode</userName>
-      <comment>Signals lamp; ACTIVE=SML on</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>IS:TRACK_POWER</systemName>
-      <userName>Track Power</userName>
-      <comment>Track Power lamp; ACTIVE=on</comment>
-    </sensor>
-    <sensor inverted="false">
-      <systemName>ISCLOCKRUNNING</systemName>
-      <userName>Clock running</userName>
-      <comment>JMRI fast-clock running</comment>
-    </sensor>
-    <sensor inverted="false">
       <systemName>IS:HART:C3:B:101-103</systemName>
       <userName>BS 101-103</userName>
       <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
@@ -1066,6 +1051,21 @@
       <userName>BS Switch 245</userName>
       <comment>Main and upper level occupancy, virtual (device map; build_layout_le.py); no detector planned: dark until decided</comment>
     </sensor>
+    <sensor inverted="false">
+      <systemName>IS:SML_MODE</systemName>
+      <userName>SML Mode</userName>
+      <comment>Signals lamp; ACTIVE=SML on</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>IS:TRACK_POWER</systemName>
+      <userName>Track Power</userName>
+      <comment>Track Power lamp; ACTIVE=on</comment>
+    </sensor>
+    <sensor inverted="false">
+      <systemName>ISCLOCKRUNNING</systemName>
+      <userName>Clock running</userName>
+      <comment>JMRI fast-clock running</comment>
+    </sensor>
   </sensors>
   <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
     <operations automate="false">
@@ -1490,7 +1490,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="1:39 AM">
+    <memory>
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -1500,7 +1500,7 @@
       <userName>Mimic relay</userName>
       <comment>Mimic page requests; mimic_relay.py publishes them as LCOS feedback</comment>
     </memory>
-    <memory value="1.0">
+    <memory>
       <systemName>IMRATEFACTOR</systemName>
       <userName>Clock rate</userName>
       <comment>JMRI fast-clock rate</comment>
@@ -1688,14 +1688,9 @@
       <comment>Princess | internal, not wired</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:A83</systemName>
-      <userName>Head A83</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:A84</systemName>
-      <userName>Head A84</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <systemName>IH:HART:C3:108LA_Bottom</systemName>
+      <userName>Head 108LA Bottom</userName>
+      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3333</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:108LA_Top</systemName>
@@ -1703,9 +1698,9 @@
       <comment>CP 107 | Switch 107 | virtual (device map); planned IH3332</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:108LA_Bottom</systemName>
-      <userName>Head 108LA Bottom</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3333</comment>
+      <systemName>IH:HART:C3:108LB_Bottom</systemName>
+      <userName>Head 108LB Bottom</userName>
+      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3335</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:108LB_Top</systemName>
@@ -1713,9 +1708,9 @@
       <comment>CP 107 | Switch 107 | virtual (device map); planned IH3334</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:108LB_Bottom</systemName>
-      <userName>Head 108LB Bottom</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IH3335</comment>
+      <systemName>IH:HART:C3:110L_Bottom</systemName>
+      <userName>Head 110L Bottom</userName>
+      <comment>CP 107 | Switch 109 | virtual (device map); planned IH4333</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:110L_Top</systemName>
@@ -1723,9 +1718,9 @@
       <comment>CP 107 | Switch 109 | virtual (device map); planned IH4332</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:110L_Bottom</systemName>
-      <userName>Head 110L Bottom</userName>
-      <comment>CP 107 | Switch 109 | virtual (device map); planned IH4333</comment>
+      <systemName>IH:HART:C3:112L_Bottom</systemName>
+      <userName>Head 112L Bottom</userName>
+      <comment>CP 107 | Switch 111 | virtual (device map); planned IH4335</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:112L_Top</systemName>
@@ -1733,9 +1728,9 @@
       <comment>CP 107 | Switch 111 | virtual (device map); planned IH4334</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:112L_Bottom</systemName>
-      <userName>Head 112L Bottom</userName>
-      <comment>CP 107 | Switch 111 | virtual (device map); planned IH4335</comment>
+      <systemName>IH:HART:C3:118L_Bottom</systemName>
+      <userName>Head 118L Bottom</userName>
+      <comment>CP 107 | Switch 117 | virtual (device map); planned IH4337</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:118L_Top</systemName>
@@ -1743,9 +1738,9 @@
       <comment>CP 107 | Switch 117 | virtual (device map); planned IH4336</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:118L_Bottom</systemName>
-      <userName>Head 118L Bottom</userName>
-      <comment>CP 107 | Switch 117 | virtual (device map); planned IH4337</comment>
+      <systemName>IH:HART:C3:120RA_Bottom</systemName>
+      <userName>Head 120RA Bottom</userName>
+      <comment>CP 107 | Switch 119 | virtual (device map); planned IH4339</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:120RA_Top</systemName>
@@ -1753,9 +1748,9 @@
       <comment>CP 107 | Switch 119 | virtual (device map); planned IH4338</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:120RA_Bottom</systemName>
-      <userName>Head 120RA Bottom</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); planned IH4339</comment>
+      <systemName>IH:HART:C3:120RB_Bottom</systemName>
+      <userName>Head 120RB Bottom</userName>
+      <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:120RB_Top</systemName>
@@ -1763,9 +1758,9 @@
       <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:120RB_Bottom</systemName>
-      <userName>Head 120RB Bottom</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
+      <systemName>IH:HART:C3:124LA_Bottom</systemName>
+      <userName>Head 124LA Bottom</userName>
+      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4233</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:124LA_Top</systemName>
@@ -1773,9 +1768,9 @@
       <comment>CP 123 | Switch 123 | virtual (device map); planned IH4232</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:124LA_Bottom</systemName>
-      <userName>Head 124LA Bottom</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4233</comment>
+      <systemName>IH:HART:C3:124LB_Bottom</systemName>
+      <userName>Head 124LB Bottom</userName>
+      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4235</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:124LB_Top</systemName>
@@ -1783,9 +1778,9 @@
       <comment>CP 123 | Switch 123 | virtual (device map); planned IH4234</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:124LB_Bottom</systemName>
-      <userName>Head 124LB Bottom</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IH4235</comment>
+      <systemName>IH:HART:C3:126RA_Bottom</systemName>
+      <userName>Head 126RA Bottom</userName>
+      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5233</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:126RA_Top</systemName>
@@ -1793,9 +1788,9 @@
       <comment>CP 123 | Switch 125 | virtual (device map); planned IH5232</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:126RA_Bottom</systemName>
-      <userName>Head 126RA Bottom</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5233</comment>
+      <systemName>IH:HART:C3:126RB_Bottom</systemName>
+      <userName>Head 126RB Bottom</userName>
+      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5235</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:126RB_Top</systemName>
@@ -1803,9 +1798,9 @@
       <comment>CP 123 | Switch 125 | virtual (device map); planned IH5234</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:126RB_Bottom</systemName>
-      <userName>Head 126RB Bottom</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IH5235</comment>
+      <systemName>IH:HART:C3:128LA_Bottom</systemName>
+      <userName>Head 128LA Bottom</userName>
+      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5237</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:128LA_Top</systemName>
@@ -1813,9 +1808,9 @@
       <comment>CP 127 | Switch 127 | virtual (device map); planned IH5236</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:128LA_Bottom</systemName>
-      <userName>Head 128LA Bottom</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5237</comment>
+      <systemName>IH:HART:C3:128LB_Bottom</systemName>
+      <userName>Head 128LB Bottom</userName>
+      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5239</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:128LB_Top</systemName>
@@ -1823,23 +1818,13 @@
       <comment>CP 127 | Switch 127 | virtual (device map); planned IH5238</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:128LB_Bottom</systemName>
-      <userName>Head 128LB Bottom</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IH5239</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:132RA_Top</systemName>
-      <userName>Head 132RA Top</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:132RA_Bottom</systemName>
       <userName>Head 132RA Bottom</userName>
       <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:132RB_Top</systemName>
-      <userName>Head 132RB Top</userName>
+      <systemName>IH:HART:C3:132RA_Top</systemName>
+      <userName>Head 132RA Top</userName>
       <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
@@ -1848,19 +1833,9 @@
       <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:B92</systemName>
-      <userName>Head B92</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:B93</systemName>
-      <userName>Head B93</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:202R_Top</systemName>
-      <userName>Head 202R Top</userName>
-      <comment>CP 201 | Switch 201 | virtual (device map); planned IH2332</comment>
+      <systemName>IH:HART:C3:132RB_Top</systemName>
+      <userName>Head 132RB Top</userName>
+      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:202R_Bottom</systemName>
@@ -1868,9 +1843,9 @@
       <comment>CP 201 | Switch 201 | virtual (device map); planned IH2333</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:204RA_Top</systemName>
-      <userName>Head 204RA Top</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IH2334</comment>
+      <systemName>IH:HART:C3:202R_Top</systemName>
+      <userName>Head 202R Top</userName>
+      <comment>CP 201 | Switch 201 | virtual (device map); planned IH2332</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:204RA_Bottom</systemName>
@@ -1878,9 +1853,9 @@
       <comment>CP 201 | Switch 203 | virtual (device map); planned IH2335</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:204RB_Top</systemName>
-      <userName>Head 204RB Top</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IH1432</comment>
+      <systemName>IH:HART:C3:204RA_Top</systemName>
+      <userName>Head 204RA Top</userName>
+      <comment>CP 201 | Switch 203 | virtual (device map); planned IH2334</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:204RB_Bottom</systemName>
@@ -1888,14 +1863,19 @@
       <comment>CP 201 | Switch 203 | virtual (device map); planned IH1433</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:212LA_Top</systemName>
-      <userName>Head 212LA Top</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2432</comment>
+      <systemName>IH:HART:C3:204RB_Top</systemName>
+      <userName>Head 204RB Top</userName>
+      <comment>CP 201 | Switch 203 | virtual (device map); planned IH1432</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212LA_Bottom</systemName>
       <userName>Head 212LA Bottom</userName>
       <comment>CP 211 | Switch 211 | virtual (device map); planned IH2433</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:212LA_Top</systemName>
+      <userName>Head 212LA Top</userName>
+      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2432</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212LB</systemName>
@@ -1908,14 +1888,14 @@
       <comment>CP 211 | Switch 211 | virtual (device map); planned IH5437</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:212RB_Top</systemName>
-      <userName>Head 212RB Top</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2434</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:212RB_Bottom</systemName>
       <userName>Head 212RB Bottom</userName>
       <comment>CP 211 | Switch 211 | virtual (device map); planned IH2435</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:212RB_Top</systemName>
+      <userName>Head 212RB Top</userName>
+      <comment>CP 211 | Switch 211 | virtual (device map); planned IH2434</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218LA</systemName>
@@ -1923,19 +1903,14 @@
       <comment>CP 217 | Switch 217 | virtual (device map); planned IH5438</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:218LB_Top</systemName>
-      <userName>Head 218LB Top</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5432</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218LB_Bottom</systemName>
       <userName>Head 218LB Bottom</userName>
       <comment>CP 217 | Switch 217 | virtual (device map); planned IH5433</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:218RA_Top</systemName>
-      <userName>Head 218RA Top</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5434</comment>
+      <systemName>IH:HART:C3:218LB_Top</systemName>
+      <userName>Head 218LB Top</userName>
+      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5432</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218RA_Bottom</systemName>
@@ -1943,14 +1918,14 @@
       <comment>CP 217 | Switch 217 | virtual (device map); planned IH5435</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:218RA_Top</systemName>
+      <userName>Head 218RA Top</userName>
+      <comment>CP 217 | Switch 217 | virtual (device map); planned IH5434</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:218RB</systemName>
       <userName>Head 218RB</userName>
       <comment>CP 217 | Switch 217 | virtual (device map); planned IH5439</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:220R_Top</systemName>
-      <userName>Head 220R Top</userName>
-      <comment>CP 201 | Switch 219 | virtual (device map); planned IH1434</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:220R_Bottom</systemName>
@@ -1958,9 +1933,9 @@
       <comment>CP 201 | Switch 219 | virtual (device map); planned IH1435</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:222LA_Top</systemName>
-      <userName>Head 222LA Top</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1436</comment>
+      <systemName>IH:HART:C3:220R_Top</systemName>
+      <userName>Head 220R Top</userName>
+      <comment>CP 201 | Switch 219 | virtual (device map); planned IH1434</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222LA_Bottom</systemName>
@@ -1968,19 +1943,24 @@
       <comment>CP 201 | Switch 221 | virtual (device map); planned IH1437</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:222LA_Top</systemName>
+      <userName>Head 222LA Top</userName>
+      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1436</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222LB</systemName>
       <userName>Head 222LB</userName>
       <comment>CP 201 | Switch 221 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:222R_Top</systemName>
-      <userName>Head 222R Top</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1438</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:222R_Bottom</systemName>
       <userName>Head 222R Bottom</userName>
       <comment>CP 201 | Switch 221 | virtual (device map); planned IH1439</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:222R_Top</systemName>
+      <userName>Head 222R Top</userName>
+      <comment>CP 201 | Switch 221 | virtual (device map); planned IH1438</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:224LA</systemName>
@@ -1993,19 +1973,14 @@
       <comment>CP 223 | Switch 223 | virtual (device map); planned IH2235</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:224R_Top</systemName>
-      <userName>Head 224R Top</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IH2232</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:224R_Bottom</systemName>
       <userName>Head 224R Bottom</userName>
       <comment>CP 223 | Switch 223 | virtual (device map); planned IH2233</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:226RA_Top</systemName>
-      <userName>Head 226RA Top</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2132</comment>
+      <systemName>IH:HART:C3:224R_Top</systemName>
+      <userName>Head 224R Top</userName>
+      <comment>CP 223 | Switch 223 | virtual (device map); planned IH2232</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:226RA_Bottom</systemName>
@@ -2013,9 +1988,9 @@
       <comment>CP 225 | Switch 225 | virtual (device map); planned IH2133</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:226RB_Top</systemName>
-      <userName>Head 226RB Top</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2134</comment>
+      <systemName>IH:HART:C3:226RA_Top</systemName>
+      <userName>Head 226RA Top</userName>
+      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2132</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:226RB_Bottom</systemName>
@@ -2023,9 +1998,9 @@
       <comment>CP 225 | Switch 225 | virtual (device map); planned IH2135</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:228RA_Top</systemName>
-      <userName>Head 228RA Top</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4132</comment>
+      <systemName>IH:HART:C3:226RB_Top</systemName>
+      <userName>Head 226RB Top</userName>
+      <comment>CP 225 | Switch 225 | virtual (device map); planned IH2134</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:228RA_Bottom</systemName>
@@ -2033,9 +2008,9 @@
       <comment>CP 225 | Switch 227 | virtual (device map); planned IH4133</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:228RB_Top</systemName>
-      <userName>Head 228RB Top</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4134</comment>
+      <systemName>IH:HART:C3:228RA_Top</systemName>
+      <userName>Head 228RA Top</userName>
+      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4132</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:228RB_Bottom</systemName>
@@ -2043,9 +2018,9 @@
       <comment>CP 225 | Switch 227 | virtual (device map); planned IH4135</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:230LA_Top</systemName>
-      <userName>Head 230LA Top</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); planned IH4136</comment>
+      <systemName>IH:HART:C3:228RB_Top</systemName>
+      <userName>Head 228RB Top</userName>
+      <comment>CP 225 | Switch 227 | virtual (device map); planned IH4134</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:230LA_Bottom</systemName>
@@ -2053,9 +2028,9 @@
       <comment>CP 225 | Switch 229 | virtual (device map); planned IH4137</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:230LB_Top</systemName>
-      <userName>Head 230LB Top</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
+      <systemName>IH:HART:C3:230LA_Top</systemName>
+      <userName>Head 230LA Top</userName>
+      <comment>CP 225 | Switch 229 | virtual (device map); planned IH4136</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:230LB_Bottom</systemName>
@@ -2063,9 +2038,34 @@
       <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:230LB_Top</systemName>
+      <userName>Head 230LB Top</userName>
+      <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:242L</systemName>
       <userName>Head 242L</userName>
       <comment>Switch 241 | virtual (device map); not on a node yet</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:A83</systemName>
+      <userName>Head A83</userName>
+      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:A84</systemName>
+      <userName>Head A84</userName>
+      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:B92</systemName>
+      <userName>Head B92</userName>
+      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+    </signalhead>
+    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
+      <systemName>IH:HART:C3:B93</systemName>
+      <userName>Head B93</userName>
+      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
     </signalhead>
   </signalheads>
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">
@@ -2094,6 +2094,12 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-low(IH:HART:C3:242L)</systemName>
+      <userName>Mast 242L</userName>
+      <comment>Switch 241 | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH432)</systemName>
       <userName>Mast 6LB</userName>
       <comment>Plane | Switch 5</comment>
@@ -2106,9 +2112,21 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:6LA)</systemName>
+      <userName>Mast 6LA</userName>
+      <comment>Plane | Switch 5</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8LB)</systemName>
       <userName>Mast 8LB</userName>
       <comment>Barn | Switch 7</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8RA)</systemName>
+      <userName>Mast 8RA</userName>
+      <comment>Barn</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2160,9 +2178,129 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212LB)</systemName>
+      <userName>Mast 212LB</userName>
+      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5436)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212RA)</systemName>
+      <userName>Mast 212RA</userName>
+      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5437)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218LA)</systemName>
+      <userName>Mast 218LA</userName>
+      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5438)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218RB)</systemName>
+      <userName>Mast 218RB</userName>
+      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5439)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:222LB)</systemName>
+      <userName>Mast 222LB</userName>
+      <comment>CP 201 | Switch 221 | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LA)</systemName>
+      <userName>Mast 224LA</userName>
+      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2234)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LB)</systemName>
+      <userName>Mast 224LB</userName>
+      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2235)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A83)</systemName>
+      <userName>Mast A83</userName>
+      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A84)</systemName>
+      <userName>Mast A84</userName>
+      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B92)</systemName>
+      <userName>Mast B92</userName>
+      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B93)</systemName>
+      <userName>Mast B93</userName>
+      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom)</systemName>
       <userName>Mast 8LA</userName>
       <comment>Barn | Switch 7</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom)</systemName>
+      <userName>Mast 110L</userName>
+      <comment>CP 107 | Switch 109 | virtual (device map); planned IF$shsm:basic:two-low(IH4332)(IH4333)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom)</systemName>
+      <userName>Mast 112L</userName>
+      <comment>CP 107 | Switch 111 | virtual (device map); planned IF$shsm:basic:two-low(IH4334)(IH4335)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom)</systemName>
+      <userName>Mast 118L</userName>
+      <comment>CP 107 | Switch 117 | virtual (device map); planned IF$shsm:basic:two-low(IH4336)(IH4337)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom)</systemName>
+      <userName>Mast 126RB</userName>
+      <comment>CP 123 | Switch 125 | virtual (device map); planned IF$shsm:basic:two-low(IH5234)(IH5235)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom)</systemName>
+      <userName>Mast 202R</userName>
+      <comment>CP 201 | Switch 201 | virtual (device map); planned IF$shsm:basic:two-low(IH2332)(IH2333)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom)</systemName>
+      <userName>Mast 204RA</userName>
+      <comment>CP 201 | Switch 203 | virtual (device map); planned IF$shsm:basic:two-low(IH2334)(IH2335)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:212LA_Top)(IH:HART:C3:212LA_Bottom)</systemName>
+      <userName>Mast 212LA</userName>
+      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:two-low(IH2432)(IH2433)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:228RA_Top)(IH:HART:C3:228RA_Bottom)</systemName>
+      <userName>Mast 228RA</userName>
+      <comment>CP 225 | Switch 227 | virtual (device map); planned IF$shsm:basic:two-low(IH4132)(IH4133)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom)</systemName>
+      <userName>Mast 230LB</userName>
+      <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2219,6 +2357,144 @@
       <comment>Princess | Switch 39</comment>
       <unlit allowed="no" />
     </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_Bottom)</systemName>
+      <userName>Mast 108LA</userName>
+      <comment>CP 107 | Switch 107 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3332)(IH3333)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)</systemName>
+      <userName>Mast 108LB</userName>
+      <comment>CP 107 | Switch 107 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3334)(IH3335)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom)</systemName>
+      <userName>Mast 120RA</userName>
+      <comment>CP 107 | Switch 119 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4338)(IH4339)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom)</systemName>
+      <userName>Mast 120RB</userName>
+      <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LA_Top)(IH:HART:C3:124LA_Bottom)</systemName>
+      <userName>Mast 124LA</userName>
+      <comment>CP 123 | Switch 123 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4232)(IH4233)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LB_Top)(IH:HART:C3:124LB_Bottom)</systemName>
+      <userName>Mast 124LB</userName>
+      <comment>CP 123 | Switch 123 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4234)(IH4235)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:126RA_Top)(IH:HART:C3:126RA_Bottom)</systemName>
+      <userName>Mast 126RA</userName>
+      <comment>CP 123 | Switch 125 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5232)(IH5233)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom)</systemName>
+      <userName>Mast 128LA</userName>
+      <comment>CP 127 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5236)(IH5237)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom)</systemName>
+      <userName>Mast 128LB</userName>
+      <comment>CP 127 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5238)(IH5239)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom)</systemName>
+      <userName>Mast 132RA</userName>
+      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom)</systemName>
+      <userName>Mast 132RB</userName>
+      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom)</systemName>
+      <userName>Mast 204RB</userName>
+      <comment>CP 201 | Switch 203 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1432)(IH1433)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:212RB_Top)(IH:HART:C3:212RB_Bottom)</systemName>
+      <userName>Mast 212RB</userName>
+      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2434)(IH2435)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom)</systemName>
+      <userName>Mast 218LB</userName>
+      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5432)(IH5433)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom)</systemName>
+      <userName>Mast 218RA</userName>
+      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5434)(IH5435)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom)</systemName>
+      <userName>Mast 220R</userName>
+      <comment>CP 201 | Switch 219 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1434)(IH1435)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom)</systemName>
+      <userName>Mast 222LA</userName>
+      <comment>CP 201 | Switch 221 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1436)(IH1437)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom)</systemName>
+      <userName>Mast 222R</userName>
+      <comment>CP 201 | Switch 221 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1438)(IH1439)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:224R_Top)(IH:HART:C3:224R_Bottom)</systemName>
+      <userName>Mast 224R</userName>
+      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2232)(IH2233)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RA_Top)(IH:HART:C3:226RA_Bottom)</systemName>
+      <userName>Mast 226RA</userName>
+      <comment>CP 225 | Switch 225 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2132)(IH2133)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RB_Top)(IH:HART:C3:226RB_Bottom)</systemName>
+      <userName>Mast 226RB</userName>
+      <comment>CP 225 | Switch 225 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2134)(IH2135)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom)</systemName>
+      <userName>Mast 228RB</userName>
+      <comment>CP 225 | Switch 227 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4134)(IH4135)</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom)</systemName>
+      <userName>Mast 230LA</userName>
+      <comment>CP 225 | Switch 229 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4136)(IH4137)</comment>
+      <unlit allowed="no" />
+    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1001)</systemName>
       <userName>Mast 4LA</userName>
@@ -2249,30 +2525,6 @@
       <comment>Engine House | Switch 9</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:6LA)</systemName>
-      <userName>Mast 6LA</userName>
-      <comment>Plane | Switch 5</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8RA)</systemName>
-      <userName>Mast 8RA</userName>
-      <comment>Barn</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A83)</systemName>
-      <userName>Mast A83</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A84)</systemName>
-      <userName>Mast A84</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2001)</systemName>
       <userName>Mast 102RA</userName>
@@ -2291,30 +2543,6 @@
       <comment>buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_Bottom)</systemName>
-      <userName>Mast 108LA</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3332)(IH3333)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)</systemName>
-      <userName>Mast 108LB</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3334)(IH3335)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom)</systemName>
-      <userName>Mast 110L</userName>
-      <comment>CP 107 | Switch 109 | virtual (device map); planned IF$shsm:basic:two-low(IH4332)(IH4333)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom)</systemName>
-      <userName>Mast 112L</userName>
-      <comment>CP 107 | Switch 111 | virtual (device map); planned IF$shsm:basic:two-low(IH4334)(IH4335)</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2004)</systemName>
       <userName>Mast 114RA</userName>
@@ -2333,24 +2561,6 @@
       <comment>buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom)</systemName>
-      <userName>Mast 118L</userName>
-      <comment>CP 107 | Switch 117 | virtual (device map); planned IF$shsm:basic:two-low(IH4336)(IH4337)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom)</systemName>
-      <userName>Mast 120RA</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4338)(IH4339)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom)</systemName>
-      <userName>Mast 120RB</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2007)</systemName>
       <userName>Mast 120RC</userName>
@@ -2363,42 +2573,6 @@
       <comment>buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LA_Top)(IH:HART:C3:124LA_Bottom)</systemName>
-      <userName>Mast 124LA</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4232)(IH4233)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LB_Top)(IH:HART:C3:124LB_Bottom)</systemName>
-      <userName>Mast 124LB</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4234)(IH4235)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:126RA_Top)(IH:HART:C3:126RA_Bottom)</systemName>
-      <userName>Mast 126RA</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5232)(IH5233)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom)</systemName>
-      <userName>Mast 126RB</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IF$shsm:basic:two-low(IH5234)(IH5235)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom)</systemName>
-      <userName>Mast 128LA</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5236)(IH5237)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom)</systemName>
-      <userName>Mast 128LB</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5238)(IH5239)</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2009)</systemName>
       <userName>Mast 130LA</userName>
@@ -2411,48 +2585,6 @@
       <comment>buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom)</systemName>
-      <userName>Mast 132RA</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom)</systemName>
-      <userName>Mast 132RB</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B92)</systemName>
-      <userName>Mast B92</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B93)</systemName>
-      <userName>Mast B93</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom)</systemName>
-      <userName>Mast 202R</userName>
-      <comment>CP 201 | Switch 201 | virtual (device map); planned IF$shsm:basic:two-low(IH2332)(IH2333)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom)</systemName>
-      <userName>Mast 204RA</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IF$shsm:basic:two-low(IH2334)(IH2335)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom)</systemName>
-      <userName>Mast 204RB</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1432)(IH1433)</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3001)</systemName>
       <userName>Mast 206L</userName>
@@ -2471,30 +2603,6 @@
       <comment>buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:212LA_Top)(IH:HART:C3:212LA_Bottom)</systemName>
-      <userName>Mast 212LA</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:two-low(IH2432)(IH2433)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212LB)</systemName>
-      <userName>Mast 212LB</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5436)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212RA)</systemName>
-      <userName>Mast 212RA</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5437)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:212RB_Top)(IH:HART:C3:212RB_Bottom)</systemName>
-      <userName>Mast 212RB</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2434)(IH2435)</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3004)</systemName>
       <userName>Mast 214L</userName>
@@ -2513,108 +2621,6 @@
       <comment>buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218LA)</systemName>
-      <userName>Mast 218LA</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5438)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom)</systemName>
-      <userName>Mast 218LB</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5432)(IH5433)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom)</systemName>
-      <userName>Mast 218RA</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5434)(IH5435)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218RB)</systemName>
-      <userName>Mast 218RB</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5439)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom)</systemName>
-      <userName>Mast 220R</userName>
-      <comment>CP 201 | Switch 219 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1434)(IH1435)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom)</systemName>
-      <userName>Mast 222LA</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1436)(IH1437)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:222LB)</systemName>
-      <userName>Mast 222LB</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom)</systemName>
-      <userName>Mast 222R</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1438)(IH1439)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LA)</systemName>
-      <userName>Mast 224LA</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2234)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LB)</systemName>
-      <userName>Mast 224LB</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2235)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:224R_Top)(IH:HART:C3:224R_Bottom)</systemName>
-      <userName>Mast 224R</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2232)(IH2233)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RA_Top)(IH:HART:C3:226RA_Bottom)</systemName>
-      <userName>Mast 226RA</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2132)(IH2133)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RB_Top)(IH:HART:C3:226RB_Bottom)</systemName>
-      <userName>Mast 226RB</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2134)(IH2135)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:228RA_Top)(IH:HART:C3:228RA_Bottom)</systemName>
-      <userName>Mast 228RA</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IF$shsm:basic:two-low(IH4132)(IH4133)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom)</systemName>
-      <userName>Mast 228RB</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4134)(IH4135)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom)</systemName>
-      <userName>Mast 230LA</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4136)(IH4137)</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom)</systemName>
-      <userName>Mast 230LB</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3007)</systemName>
       <userName>Mast 232L</userName>
@@ -2633,12 +2639,6 @@
       <comment>buffer stop</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH:HART:C3:242L)</systemName>
-      <userName>Mast 242L</userName>
-      <comment>Switch 241 | virtual (device map); not on a node yet</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3010)</systemName>
       <userName>Mast 242R</userName>
@@ -3338,17 +3338,6 @@
       <comment>Hand-throw west of South Yard Switch 15; occupancy Block 3-1 / M2S300</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 13</occupancysensor>
-      <path todir="160" fromdir="80" block="IB15">
-        <beansetting setting="2">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB19">
-        <beansetting setting="4">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0041" />
     </block>
     <block systemName="IB3" length="3680.5" curve="0">
       <systemName>IB3</systemName>
@@ -3356,12 +3345,6 @@
       <comment>Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Scale</occupancysensor>
-      <path todir="64" fromdir="128" block="IB8" />
-      <path todir="160" fromdir="80" block="IB:AUTO:0031">
-        <beansetting setting="4">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB6" length="233.7" curve="0">
       <systemName>IB6</systemName>
@@ -3369,17 +3352,6 @@
       <comment>Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7b</occupancysensor>
-      <path todir="64" fromdir="128" block="IB8">
-        <beansetting setting="4">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0001">
-        <beansetting setting="2">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0051" />
     </block>
     <block systemName="IB8" length="233.7" curve="0">
       <systemName>IB8</systemName>
@@ -3387,13 +3359,6 @@
       <comment>Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7</occupancysensor>
-      <path todir="128" fromdir="64" block="IB3" />
-      <path todir="128" fromdir="64" block="IB6">
-        <beansetting setting="4">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB15" />
     </block>
     <block systemName="IB15" length="866.1" curve="0">
       <systemName>IB15</systemName>
@@ -3401,12 +3366,6 @@
       <comment>Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Barn</occupancysensor>
-      <path todir="80" fromdir="160" block="IB1">
-        <beansetting setting="2">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB8" />
     </block>
     <block systemName="IB18" length="233.7" curve="0">
       <systemName>IB18</systemName>
@@ -3414,21 +3373,6 @@
       <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 9</occupancysensor>
-      <path todir="80" fromdir="160" block="IB19">
-        <beansetting setting="4">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB21">
-        <beansetting setting="2">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB22">
-        <beansetting setting="4">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB19" length="281.9" curve="0">
       <systemName>IB19</systemName>
@@ -3436,21 +3380,6 @@
       <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 11</occupancysensor>
-      <path todir="64" fromdir="128" block="IB1">
-        <beansetting setting="4">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB18">
-        <beansetting setting="4">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB20">
-        <beansetting setting="2">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB20" length="1303.0" curve="0">
       <systemName>IB20</systemName>
@@ -3458,11 +3387,6 @@
       <comment>Top house track; occupancy Block 13-7 / M2S1306; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB19">
-        <beansetting setting="2">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB21" length="769.6" curve="0">
       <systemName>IB21</systemName>
@@ -3470,11 +3394,6 @@
       <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-2</occupancysensor>
-      <path todir="64" fromdir="128" block="IB18">
-        <beansetting setting="2">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB22" length="764.5" curve="0">
       <systemName>IB22</systemName>
@@ -3482,11 +3401,6 @@
       <comment>Bottom house track; occupancy Block 13-5 / M2S1304; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-3</occupancysensor>
-      <path todir="80" fromdir="160" block="IB18">
-        <beansetting setting="4">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB23" length="24058.9" curve="0">
       <systemName>IB23</systemName>
@@ -3494,11 +3408,6 @@
       <comment>Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map); stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Helix Outer</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0040">
-        <beansetting setting="2">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB24" length="23279.1" curve="0">
       <systemName>IB24</systemName>
@@ -3506,11 +3415,6 @@
       <comment>Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map); stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Helix Inner</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0032">
-        <beansetting setting="2">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0001" length="8003.5" curve="0">
       <systemName>IB:AUTO:0001</systemName>
@@ -3518,16 +3422,6 @@
       <comment>Main east of East End; occupancy Block 2-3 / M2S202</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main East</occupancysensor>
-      <path todir="128" fromdir="64" block="IB6">
-        <beansetting setting="2">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="80" fromdir="160" block="IB:AUTO:0030">
-        <beansetting setting="4">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0003" length="5519.4" curve="0">
       <systemName>IB:AUTO:0003</systemName>
@@ -3535,8 +3429,6 @@
       <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main West</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0033" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0034" />
     </block>
     <block systemName="IB:AUTO:0005" length="1475.7" curve="0">
       <systemName>IB:AUTO:0005</systemName>
@@ -3544,12 +3436,6 @@
       <comment>Track Main West between Brick and Plane; occupancy Block 4-6 / M2S405</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Brick-Plane</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0031" />
-      <path todir="80" fromdir="160" block="IB:AUTO:0033">
-        <beansetting setting="4">
-          <turnout systemName="M2T408" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0007" length="3586.5" curve="0">
       <systemName>IB:AUTO:0007</systemName>
@@ -3557,16 +3443,6 @@
       <comment>South Yard body; occupancy Block 2-4 / M2S203</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-4</occupancysensor>
-      <path todir="144" fromdir="96" block="IB:AUTO:0038">
-        <beansetting setting="2">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-    <path todir="80" fromdir="160" block="IB:AUTO:0036">
-        <beansetting setting="2">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0008" length="3672.8" curve="0">
       <systemName>IB:AUTO:0008</systemName>
@@ -3574,16 +3450,6 @@
       <comment>South Yard body; occupancy Block 2-5 / M2S204</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-3</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0038">
-        <beansetting setting="4">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-    <path todir="64" fromdir="128" block="IB:AUTO:0036">
-        <beansetting setting="4">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0010" length="3142.0" curve="0">
       <systemName>IB:AUTO:0010</systemName>
@@ -3591,12 +3457,6 @@
       <comment>Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-1</occupancysensor>
-      <path todir="32" fromdir="16" block="IB:AUTO:0048" />
-      <path todir="160" fromdir="80" block="IB:AUTO:0040">
-        <beansetting setting="4">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0012" length="5857.2" curve="0">
       <systemName>IB:AUTO:0012</systemName>
@@ -3604,16 +3464,6 @@
       <comment>Run-through east of Switch 15; occupancy Block 2-8 / M2S207</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-R</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0039">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-    <path todir="128" fromdir="64" block="IB:AUTO:0041">
-        <beansetting setting="2">
-          <turnout systemName="M2T308" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0016" length="5377.2" curve="0">
       <systemName>IB:AUTO:0016</systemName>
@@ -3621,16 +3471,6 @@
       <comment>South Yard body; occupancy Block 2-7 / M2S206</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-1</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0044">
-        <beansetting setting="4">
-          <turnout systemName="M2T309" />
-        </beansetting>
-      </path>
-    <path todir="64" fromdir="128" block="IB:AUTO:0043">
-        <beansetting setting="4">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0017" length="2631.4" curve="0">
       <systemName>IB:AUTO:0017</systemName>
@@ -3638,8 +3478,6 @@
       <comment>South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Lead</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0030" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0046" />
     </block>
     <block systemName="IB:AUTO:0020" length="2672.1" curve="0">
       <systemName>IB:AUTO:0020</systemName>
@@ -3647,11 +3485,6 @@
       <comment>Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS W-1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0035">
-        <beansetting setting="2">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0022" length="2677.2" curve="0">
       <systemName>IB:AUTO:0022</systemName>
@@ -3659,11 +3492,6 @@
       <comment>Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS W-2</occupancysensor>
-      <path todir="80" fromdir="160" block="IB:AUTO:0035">
-        <beansetting setting="4">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0026" length="4526.3" curve="0">
       <systemName>IB:AUTO:0026</systemName>
@@ -3671,16 +3499,6 @@
       <comment>South Yard body; occupancy Block 2-6 / M2S205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-2</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0045">
-        <beansetting setting="4">
-          <turnout systemName="M2T310" />
-        </beansetting>
-      </path>
-    <path todir="64" fromdir="128" block="IB:AUTO:0037">
-        <beansetting setting="4">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0030" length="315.0" curve="0">
       <systemName>IB:AUTO:0030</systemName>
@@ -3688,17 +3506,6 @@
       <comment>East End, Switch 33; occupancy Block 12-8 / M2S1207</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 33</occupancysensor>
-      <path todir="160" fromdir="80" block="IB:AUTO:0001">
-        <beansetting setting="4">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0017" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0042">
-        <beansetting setting="2">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0031" length="624.8" curve="0">
       <systemName>IB:AUTO:0031</systemName>
@@ -3706,17 +3513,6 @@
       <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 5</occupancysensor>
-      <path todir="80" fromdir="160" block="IB3">
-        <beansetting setting="4">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0005" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0051">
-        <beansetting setting="2">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0032" length="419.1" curve="0">
       <systemName>IB:AUTO:0032</systemName>
@@ -3724,17 +3520,6 @@
       <comment>Princess, Switch 37; occupancy Block 1-3 / M2S102</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37</occupancysensor>
-      <path todir="64" fromdir="128" block="IB24">
-        <beansetting setting="2">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0046" />
-      <path todir="96" fromdir="144" block="IB:AUTO:0048">
-        <beansetting setting="4">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0033" length="574.0" curve="0">
       <systemName>IB:AUTO:0033</systemName>
@@ -3742,13 +3527,6 @@
       <comment>Brick CP, Switch 1; occupancy Block 4-2 / M2S401</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0003" />
-      <path todir="160" fromdir="80" block="IB:AUTO:0005">
-        <beansetting setting="4">
-          <turnout systemName="M2T408" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0035" />
     </block>
     <block systemName="IB:AUTO:0034" length="596.9" curve="0">
       <systemName>IB:AUTO:0034</systemName>
@@ -3756,17 +3534,6 @@
       <comment>East End crossover Switch 23 north/west leg; occupancy Block 12-4 / M2S1203</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23a</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0003" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0039">
-        <beansetting setting="4">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0050">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0035" length="233.7" curve="0">
       <systemName>IB:AUTO:0035</systemName>
@@ -3774,17 +3541,6 @@
       <comment>Brick CP, Switch 3; occupancy Block 4-1 / M2S400</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 3</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0020">
-        <beansetting setting="2">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB:AUTO:0022">
-        <beansetting setting="4">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0033" />
     </block>
     <block systemName="IB:AUTO:0036" length="233.7" curve="0">
       <systemName>IB:AUTO:0036</systemName>
@@ -3792,21 +3548,6 @@
       <comment>East End, Switch 25; occupancy Block 12-1 / M2S1200</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 25</occupancysensor>
-      <path todir="80" fromdir="160" block="IB:AUTO:0037">
-        <beansetting setting="2">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0008">
-        <beansetting setting="4">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB:AUTO:0007">
-        <beansetting setting="2">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0037" length="233.7" curve="0">
       <systemName>IB:AUTO:0037</systemName>
@@ -3814,21 +3555,6 @@
       <comment>East End, Switch 27; occupancy Block 12-3 / M2S1202</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 27</occupancysensor>
-      <path todir="160" fromdir="80" block="IB:AUTO:0036">
-        <beansetting setting="2">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
-      <path todir="80" fromdir="160" block="IB:AUTO:0043">
-        <beansetting setting="2">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0026">
-        <beansetting setting="4">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0038" length="233.7" curve="0">
       <systemName>IB:AUTO:0038</systemName>
@@ -3836,17 +3562,6 @@
       <comment>South Yard, Switch 21; occupancy Block 3-7 / M2S306</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 21</occupancysensor>
-      <path todir="144" fromdir="96" block="IB:AUTO:0045" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0008">
-        <beansetting setting="4">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-      <path todir="96" fromdir="144" block="IB:AUTO:0007">
-        <beansetting setting="2">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0039" length="233.7" curve="0">
       <systemName>IB:AUTO:0039</systemName>
@@ -3854,17 +3569,6 @@
       <comment>East End crossover Switch 23 south/east leg; occupancy Block 12-6 / M2S1205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23b</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0034">
-        <beansetting setting="4">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0042" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0012">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0040" length="243.8" curve="0">
       <systemName>IB:AUTO:0040</systemName>
@@ -3872,17 +3576,6 @@
       <comment>Princess, Switch 39; occupancy Block 1-4 / M2S103</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39</occupancysensor>
-      <path todir="64" fromdir="128" block="IB23">
-        <beansetting setting="2">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0047" />
-      <path todir="80" fromdir="160" block="IB:AUTO:0010">
-        <beansetting setting="4">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0041" length="452.1" curve="0">
       <systemName>IB:AUTO:0041</systemName>
@@ -3890,17 +3583,6 @@
       <comment>South Yard, Switch 15; occupancy Block 3-2 / M2S301</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
-      <path todir="128" fromdir="64" block="IB1" />
-      <path todir="96" fromdir="144" block="IB:AUTO:0044">
-        <beansetting setting="4">
-          <turnout systemName="M2T308" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0012">
-        <beansetting setting="2">
-          <turnout systemName="M2T308" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0042" length="233.7" curve="0">
       <systemName>IB:AUTO:0042</systemName>
@@ -3908,21 +3590,6 @@
       <comment>East End, Switch 31; occupancy Block 12-7 / M2S1206</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0030">
-        <beansetting setting="2">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0039">
-        <beansetting setting="2">
-          <turnout systemName="M2T1211" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB:AUTO:0043">
-        <beansetting setting="4">
-          <turnout systemName="M2T1211" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0043" length="233.7" curve="0">
       <systemName>IB:AUTO:0043</systemName>
@@ -3930,21 +3597,6 @@
       <comment>East End, Switch 29; occupancy Block 12-5 / M2S1204</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 29</occupancysensor>
-      <path todir="160" fromdir="80" block="IB:AUTO:0037">
-        <beansetting setting="2">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
-      <path todir="80" fromdir="160" block="IB:AUTO:0042">
-        <beansetting setting="4">
-          <turnout systemName="M2T1211" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0016">
-        <beansetting setting="4">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0044" length="233.7" curve="0">
       <systemName>IB:AUTO:0044</systemName>
@@ -3952,17 +3604,6 @@
       <comment>South Yard, Switch 17; occupancy Block 3-3 / M2S302</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 17</occupancysensor>
-      <path todir="144" fromdir="96" block="IB:AUTO:0041" />
-      <path todir="96" fromdir="144" block="IB:AUTO:0045">
-        <beansetting setting="2">
-          <turnout systemName="M2T309" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0016">
-        <beansetting setting="4">
-          <turnout systemName="M2T309" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0045" length="233.7" curve="0">
       <systemName>IB:AUTO:0045</systemName>
@@ -3970,17 +3611,6 @@
       <comment>South Yard, Switch 19; occupancy Block 3-5 / M2S304</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
-      <path todir="96" fromdir="144" block="IB:AUTO:0038">
-        <beansetting setting="2">
-          <turnout systemName="M2T310" />
-        </beansetting>
-      </path>
-      <path todir="144" fromdir="96" block="IB:AUTO:0044" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0026">
-        <beansetting setting="4">
-          <turnout systemName="M2T310" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0046" length="381.0" curve="0">
       <systemName>IB:AUTO:0046</systemName>
@@ -3988,17 +3618,6 @@
       <comment>Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points); occupancy Block 1-6 / M2S105</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0032">
-        <beansetting setting="2">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0047">
-        <beansetting setting="4">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0017" />
     </block>
     <block systemName="IB:AUTO:0047" length="520.7" curve="0">
       <systemName>IB:AUTO:0047</systemName>
@@ -4006,17 +3625,6 @@
       <comment>Princess crossover Switch 35 north/main leg; occupancy Block 1-5 / M2S104</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35b</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0040" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0046">
-        <beansetting setting="4">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0050">
-        <beansetting setting="2">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0048" length="2885.4" curve="0">
       <systemName>IB:AUTO:0048</systemName>
@@ -4024,12 +3632,6 @@
       <comment>Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-2</occupancysensor>
-      <path todir="16" fromdir="32" block="IB:AUTO:0010" />
-      <path todir="144" fromdir="96" block="IB:AUTO:0032">
-        <beansetting setting="4">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0050" length="3964.9" curve="0">
       <systemName>IB:AUTO:0050</systemName>
@@ -4037,16 +3639,6 @@
       <comment>Track Main West stub west of Switch 23; occupancy Block 1-8 / M2S107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS West Ext</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0034">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0047">
-        <beansetting setting="2">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0051" length="3576.3" curve="0">
       <systemName>IB:AUTO:0051</systemName>
@@ -4054,12 +3646,6 @@
       <comment>Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Ext</occupancysensor>
-      <path todir="64" fromdir="128" block="IB6" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0031">
-        <beansetting setting="2">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:C3:0001" length="194.0" curve="0">
       <systemName>IB:C3:0001</systemName>
@@ -7544,25 +7130,25 @@
       </destinationMast>
     </signalmastlogic>
   </signalmastlogics>
-  <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" time="Mon Feb 16 14:52:35 EST 2026" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
+  <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
   <LogixNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultLogixNGManagerXml">
     <Thread>
       <id>0</id>
       <name>LogixNG thread</name>
     </Thread>
     <LogixNG enabled="yes" inline="no">
+      <systemName>IQ$HART:C3:BlockSensorsClear</systemName>
+      <userName>Main and upper block sensors clear on start</userName>
+      <ConditionalNGs>
+        <systemName>IQC$HART:C3:BlockSensorsClear</systemName>
+      </ConditionalNGs>
+    </LogixNG>
+    <LogixNG enabled="yes" inline="no">
       <systemName>IQ:AUTO:0001</systemName>
       <userName>Hide windows on start</userName>
       <ConditionalNGs>
         <systemName>IQC:AUTO:0001</systemName>
         <systemName>IQC:AUTO:0004</systemName>
-      </ConditionalNGs>
-    </LogixNG>
-    <LogixNG enabled="yes" inline="no">
-      <systemName>IQ$HART:C3:BlockSensorsClear</systemName>
-      <userName>Main and upper block sensors clear on start</userName>
-      <ConditionalNGs>
-        <systemName>IQC$HART:C3:BlockSensorsClear</systemName>
       </ConditionalNGs>
     </LogixNG>
     <InitializationTable>
@@ -7577,6 +7163,15 @@
     </Clipboard>
   </LogixNGs>
   <LogixNGConditionalNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultConditionalNGManagerXml">
+    <ConditionalNG enabled="yes">
+      <systemName>IQC$HART:C3:BlockSensorsClear</systemName>
+      <userName>Main and upper block sensors clear on start</userName>
+      <thread>0</thread>
+      <Socket>
+        <socketName>A</socketName>
+        <systemName>IQDA$HART:C3:BlockSensorsClear</systemName>
+      </Socket>
+    </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0001</systemName>
       <userName>Hide WiThrottle</userName>
@@ -7595,725 +7190,8 @@
         <systemName>IQDA:AUTO:0004</systemName>
       </Socket>
     </ConditionalNG>
-    <ConditionalNG enabled="yes">
-      <systemName>IQC$HART:C3:BlockSensorsClear</systemName>
-      <userName>Main and upper block sensors clear on start</userName>
-      <thread>0</thread>
-      <Socket>
-        <socketName>A</socketName>
-        <systemName>IQDA$HART:C3:BlockSensorsClear</systemName>
-      </Socket>
-    </ConditionalNG>
   </LogixNGConditionalNGs>
   <LogixNGDigitalActions class="jmri.jmrit.logixng.implementation.configurexml.DefaultDigitalActionManagerXml">
-    <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
-      <systemName>IQDA:AUTO:0001</systemName>
-      <jmriJFrameTitle>WiThrottle</jmriJFrameTitle>
-      <addressing>Direct</addressing>
-      <reference />
-      <localVariable />
-      <formula />
-      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
-      <hideOrShow>
-        <addressing>Direct</addressing>
-        <enum>Hide</enum>
-        <listenToMemory>no</listenToMemory>
-      </hideOrShow>
-      <maximizeMinimizeNormalize>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </maximizeMinimizeNormalize>
-      <bringToFrontOrBack>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </bringToFrontOrBack>
-      <MaleSocket>
-        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
-        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
-          <errorHandling>Default</errorHandling>
-        </AbstractMaleSocket>
-      </MaleSocket>
-    </DisplayActionWindowManagement>
-    <ActionScript class="jmri.jmrit.logixng.actions.configurexml.ActionScriptXml">
-      <systemName>IQDA:AUTO:0004</systemName>
-      <userName>Hide HART Railroad under CATS</userName>
-      <operationAddressing>Direct</operationAddressing>
-      <operationType>RunScript</operationType>
-      <operationReference />
-      <operationLocalVariable />
-      <operationFormula />
-      <scriptAddressing>Direct</scriptAddressing>
-      <script>preference:jython/hide_cats_desk_windows.py</script>
-      <scriptReference />
-      <scriptLocalVariable />
-      <scriptFormula />
-      <scriptLanguage>
-        <language>python</language>
-      </scriptLanguage>
-      <MaleSocket>
-        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
-        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
-          <errorHandling>Default</errorHandling>
-        </AbstractMaleSocket>
-      </MaleSocket>
-    </ActionScript>
-    <DigitalMany class="jmri.jmrit.logixng.actions.configurexml.DigitalManyXml">
-      <systemName>IQDA$HART:C3:BlockSensorsClear</systemName>
-      <Actions>
-        <Socket>
-          <socketName>A1</socketName>
-          <systemName>IQDA$HART:C3:B:101-103</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A2</socketName>
-          <systemName>IQDA$HART:C3:B:101-111</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A3</socketName>
-          <systemName>IQDA$HART:C3:B:101_Spur_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A4</socketName>
-          <systemName>IQDA$HART:C3:B:101_Spur_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A5</socketName>
-          <systemName>IQDA$HART:C3:B:103-105_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A6</socketName>
-          <systemName>IQDA$HART:C3:B:103-105_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A7</socketName>
-          <systemName>IQDA$HART:C3:B:103_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A8</socketName>
-          <systemName>IQDA$HART:C3:B:105-109</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A9</socketName>
-          <systemName>IQDA$HART:C3:B:107-109</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A10</socketName>
-          <systemName>IQDA$HART:C3:B:107_Loop_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A11</socketName>
-          <systemName>IQDA$HART:C3:B:107_Loop_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A12</socketName>
-          <systemName>IQDA$HART:C3:B:109-111</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A13</socketName>
-          <systemName>IQDA$HART:C3:B:111-117</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A14</socketName>
-          <systemName>IQDA$HART:C3:B:113-115</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A15</socketName>
-          <systemName>IQDA$HART:C3:B:113_Spur_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A16</socketName>
-          <systemName>IQDA$HART:C3:B:113_Spur_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A17</socketName>
-          <systemName>IQDA$HART:C3:B:115-117</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A18</socketName>
-          <systemName>IQDA$HART:C3:B:115_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A19</socketName>
-          <systemName>IQDA$HART:C3:B:117-119</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A20</socketName>
-          <systemName>IQDA$HART:C3:B:119-121</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A21</socketName>
-          <systemName>IQDA$HART:C3:B:119-123</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A22</socketName>
-          <systemName>IQDA$HART:C3:B:119_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A23</socketName>
-          <systemName>IQDA$HART:C3:B:121-123</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A24</socketName>
-          <systemName>IQDA$HART:C3:B:121-125</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A25</socketName>
-          <systemName>IQDA$HART:C3:B:121_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A26</socketName>
-          <systemName>IQDA$HART:C3:B:123-125</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A27</socketName>
-          <systemName>IQDA$HART:C3:B:125-127</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A28</socketName>
-          <systemName>IQDA$HART:C3:B:125-129</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A29</socketName>
-          <systemName>IQDA$HART:C3:B:127-131_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A30</socketName>
-          <systemName>IQDA$HART:C3:B:127-131_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A31</socketName>
-          <systemName>IQDA$HART:C3:B:127-221</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A32</socketName>
-          <systemName>IQDA$HART:C3:B:129_Spur_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A33</socketName>
-          <systemName>IQDA$HART:C3:B:129_Spur_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A34</socketName>
-          <systemName>IQDA$HART:C3:B:201-203</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A35</socketName>
-          <systemName>IQDA$HART:C3:B:201-205</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A36</socketName>
-          <systemName>IQDA$HART:C3:B:201-219</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A37</socketName>
-          <systemName>IQDA$HART:C3:B:203-207</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A38</socketName>
-          <systemName>IQDA$HART:C3:B:203-211</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A39</socketName>
-          <systemName>IQDA$HART:C3:B:205-209</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A40</socketName>
-          <systemName>IQDA$HART:C3:B:205_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A41</socketName>
-          <systemName>IQDA$HART:C3:B:207-211</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A42</socketName>
-          <systemName>IQDA$HART:C3:B:207-213</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A43</socketName>
-          <systemName>IQDA$HART:C3:B:209_Spur_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A44</socketName>
-          <systemName>IQDA$HART:C3:B:209_Spur_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A45</socketName>
-          <systemName>IQDA$HART:C3:B:211-217_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A46</socketName>
-          <systemName>IQDA$HART:C3:B:211-217_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A47</socketName>
-          <systemName>IQDA$HART:C3:B:213-215</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A48</socketName>
-          <systemName>IQDA$HART:C3:B:213_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A49</socketName>
-          <systemName>IQDA$HART:C3:B:215_Spur_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A50</socketName>
-          <systemName>IQDA$HART:C3:B:215_Spur_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A51</socketName>
-          <systemName>IQDA$HART:C3:B:217-219</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A52</socketName>
-          <systemName>IQDA$HART:C3:B:217-221</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A53</socketName>
-          <systemName>IQDA$HART:C3:B:219-221</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A54</socketName>
-          <systemName>IQDA$HART:C3:B:221-223</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A55</socketName>
-          <systemName>IQDA$HART:C3:B:223-225_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A56</socketName>
-          <systemName>IQDA$HART:C3:B:223-225_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A57</socketName>
-          <systemName>IQDA$HART:C3:B:225-227</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A58</socketName>
-          <systemName>IQDA$HART:C3:B:225-229</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A59</socketName>
-          <systemName>IQDA$HART:C3:B:227-231</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A60</socketName>
-          <systemName>IQDA$HART:C3:B:227-241_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A61</socketName>
-          <systemName>IQDA$HART:C3:B:227-241_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A62</socketName>
-          <systemName>IQDA$HART:C3:B:229-233</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A63</socketName>
-          <systemName>IQDA$HART:C3:B:229-241</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A64</socketName>
-          <systemName>IQDA$HART:C3:B:231-237</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A65</socketName>
-          <systemName>IQDA$HART:C3:B:231_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A66</socketName>
-          <systemName>IQDA$HART:C3:B:233-235</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A67</socketName>
-          <systemName>IQDA$HART:C3:B:233-243</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A68</socketName>
-          <systemName>IQDA$HART:C3:B:235-243</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A69</socketName>
-          <systemName>IQDA$HART:C3:B:235_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A70</socketName>
-          <systemName>IQDA$HART:C3:B:237-239</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A71</socketName>
-          <systemName>IQDA$HART:C3:B:237-245</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A72</socketName>
-          <systemName>IQDA$HART:C3:B:239-245</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A73</socketName>
-          <systemName>IQDA$HART:C3:B:239_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A74</socketName>
-          <systemName>IQDA$HART:C3:B:241_Spur</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A75</socketName>
-          <systemName>IQDA$HART:C3:B:243_Spur_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A76</socketName>
-          <systemName>IQDA$HART:C3:B:243_Spur_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A77</socketName>
-          <systemName>IQDA$HART:C3:B:245_Spur_1</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A78</socketName>
-          <systemName>IQDA$HART:C3:B:245_Spur_2</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A79</socketName>
-          <systemName>IQDA$HART:C3:B:Helix_Inner</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A80</socketName>
-          <systemName>IQDA$HART:C3:B:Helix_Outer</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A81</socketName>
-          <systemName>IQDA$HART:C3:B:OS101</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A82</socketName>
-          <systemName>IQDA$HART:C3:B:OS103</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A83</socketName>
-          <systemName>IQDA$HART:C3:B:OS105</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A84</socketName>
-          <systemName>IQDA$HART:C3:B:OS107</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A85</socketName>
-          <systemName>IQDA$HART:C3:B:OS109</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A86</socketName>
-          <systemName>IQDA$HART:C3:B:OS111</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A87</socketName>
-          <systemName>IQDA$HART:C3:B:OS113</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A88</socketName>
-          <systemName>IQDA$HART:C3:B:OS115</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A89</socketName>
-          <systemName>IQDA$HART:C3:B:OS117</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A90</socketName>
-          <systemName>IQDA$HART:C3:B:OS119</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A91</socketName>
-          <systemName>IQDA$HART:C3:B:OS121</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A92</socketName>
-          <systemName>IQDA$HART:C3:B:OS123</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A93</socketName>
-          <systemName>IQDA$HART:C3:B:OS125</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A94</socketName>
-          <systemName>IQDA$HART:C3:B:OS127</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A95</socketName>
-          <systemName>IQDA$HART:C3:B:OS129</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A96</socketName>
-          <systemName>IQDA$HART:C3:B:OS131</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A97</socketName>
-          <systemName>IQDA$HART:C3:B:OS201</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A98</socketName>
-          <systemName>IQDA$HART:C3:B:OS203</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A99</socketName>
-          <systemName>IQDA$HART:C3:B:OS205</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A100</socketName>
-          <systemName>IQDA$HART:C3:B:OS207</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A101</socketName>
-          <systemName>IQDA$HART:C3:B:OS209</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A102</socketName>
-          <systemName>IQDA$HART:C3:B:OS211</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A103</socketName>
-          <systemName>IQDA$HART:C3:B:OS213</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A104</socketName>
-          <systemName>IQDA$HART:C3:B:OS215</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A105</socketName>
-          <systemName>IQDA$HART:C3:B:OS217</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A106</socketName>
-          <systemName>IQDA$HART:C3:B:OS219</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A107</socketName>
-          <systemName>IQDA$HART:C3:B:OS221</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A108</socketName>
-          <systemName>IQDA$HART:C3:B:OS223</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A109</socketName>
-          <systemName>IQDA$HART:C3:B:OS225a</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A110</socketName>
-          <systemName>IQDA$HART:C3:B:OS225b</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A111</socketName>
-          <systemName>IQDA$HART:C3:B:OS225c</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A112</socketName>
-          <systemName>IQDA$HART:C3:B:OS225d</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A113</socketName>
-          <systemName>IQDA$HART:C3:B:OS227</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A114</socketName>
-          <systemName>IQDA$HART:C3:B:OS229</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A115</socketName>
-          <systemName>IQDA$HART:C3:B:OS231</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A116</socketName>
-          <systemName>IQDA$HART:C3:B:OS233</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A117</socketName>
-          <systemName>IQDA$HART:C3:B:OS235</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A118</socketName>
-          <systemName>IQDA$HART:C3:B:OS237</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A119</socketName>
-          <systemName>IQDA$HART:C3:B:OS239</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A120</socketName>
-          <systemName>IQDA$HART:C3:B:OS241</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A121</socketName>
-          <systemName>IQDA$HART:C3:B:OS243</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A122</socketName>
-          <systemName>IQDA$HART:C3:B:OS245</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A123</socketName>
-          <systemName>IQDA$HART:C3:T:101</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A124</socketName>
-          <systemName>IQDA$HART:C3:T:103</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A125</socketName>
-          <systemName>IQDA$HART:C3:T:105</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A126</socketName>
-          <systemName>IQDA$HART:C3:T:107</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A127</socketName>
-          <systemName>IQDA$HART:C3:T:109</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A128</socketName>
-          <systemName>IQDA$HART:C3:T:111</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A129</socketName>
-          <systemName>IQDA$HART:C3:T:113</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A130</socketName>
-          <systemName>IQDA$HART:C3:T:115</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A131</socketName>
-          <systemName>IQDA$HART:C3:T:117</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A132</socketName>
-          <systemName>IQDA$HART:C3:T:119</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A133</socketName>
-          <systemName>IQDA$HART:C3:T:121</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A134</socketName>
-          <systemName>IQDA$HART:C3:T:123</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A135</socketName>
-          <systemName>IQDA$HART:C3:T:125</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A136</socketName>
-          <systemName>IQDA$HART:C3:T:127</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A137</socketName>
-          <systemName>IQDA$HART:C3:T:129</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A138</socketName>
-          <systemName>IQDA$HART:C3:T:131</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A139</socketName>
-          <systemName>IQDA$HART:C3:T:201</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A140</socketName>
-          <systemName>IQDA$HART:C3:T:203</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A141</socketName>
-          <systemName>IQDA$HART:C3:T:205</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A142</socketName>
-          <systemName>IQDA$HART:C3:T:207</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A143</socketName>
-          <systemName>IQDA$HART:C3:T:209</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A144</socketName>
-          <systemName>IQDA$HART:C3:T:211</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A145</socketName>
-          <systemName>IQDA$HART:C3:T:213</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A146</socketName>
-          <systemName>IQDA$HART:C3:T:215</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A147</socketName>
-          <systemName>IQDA$HART:C3:T:217</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A148</socketName>
-          <systemName>IQDA$HART:C3:T:219</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A149</socketName>
-          <systemName>IQDA$HART:C3:T:221</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A150</socketName>
-          <systemName>IQDA$HART:C3:T:223</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A151</socketName>
-          <systemName>IQDA$HART:C3:T:225</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A152</socketName>
-          <systemName>IQDA$HART:C3:T:227</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A153</socketName>
-          <systemName>IQDA$HART:C3:T:229</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A154</socketName>
-          <systemName>IQDA$HART:C3:T:231</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A155</socketName>
-          <systemName>IQDA$HART:C3:T:233</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A156</socketName>
-          <systemName>IQDA$HART:C3:T:235</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A157</socketName>
-          <systemName>IQDA$HART:C3:T:237</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A158</socketName>
-          <systemName>IQDA$HART:C3:T:239</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A159</socketName>
-          <systemName>IQDA$HART:C3:T:241</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A160</socketName>
-          <systemName>IQDA$HART:C3:T:243</systemName>
-        </Socket>
-        <Socket>
-          <socketName>A161</socketName>
-          <systemName>IQDA$HART:C3:T:245</systemName>
-        </Socket>
-      </Actions>
-      <MaleSocket>
-        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
-        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
-          <errorHandling>Default</errorHandling>
-        </AbstractMaleSocket>
-      </MaleSocket>
-    </DigitalMany>
     <ActionSensor class="jmri.jmrit.logixng.actions.configurexml.ActionSensorXml">
       <systemName>IQDA$HART:C3:B:101-103</systemName>
       <namedBean>
@@ -10632,6 +9510,661 @@
         </AbstractMaleSocket>
       </MaleSocket>
     </ActionSensor>
+    <DigitalMany class="jmri.jmrit.logixng.actions.configurexml.DigitalManyXml">
+      <systemName>IQDA$HART:C3:BlockSensorsClear</systemName>
+      <Actions>
+        <Socket>
+          <socketName>A1</socketName>
+          <systemName>IQDA$HART:C3:B:101-103</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A2</socketName>
+          <systemName>IQDA$HART:C3:B:101-111</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A3</socketName>
+          <systemName>IQDA$HART:C3:B:101_Spur_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A4</socketName>
+          <systemName>IQDA$HART:C3:B:101_Spur_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A5</socketName>
+          <systemName>IQDA$HART:C3:B:103-105_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A6</socketName>
+          <systemName>IQDA$HART:C3:B:103-105_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A7</socketName>
+          <systemName>IQDA$HART:C3:B:103_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A8</socketName>
+          <systemName>IQDA$HART:C3:B:105-109</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A9</socketName>
+          <systemName>IQDA$HART:C3:B:107-109</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A10</socketName>
+          <systemName>IQDA$HART:C3:B:107_Loop_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A11</socketName>
+          <systemName>IQDA$HART:C3:B:107_Loop_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A12</socketName>
+          <systemName>IQDA$HART:C3:B:109-111</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A13</socketName>
+          <systemName>IQDA$HART:C3:B:111-117</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A14</socketName>
+          <systemName>IQDA$HART:C3:B:113-115</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A15</socketName>
+          <systemName>IQDA$HART:C3:B:113_Spur_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A16</socketName>
+          <systemName>IQDA$HART:C3:B:113_Spur_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A17</socketName>
+          <systemName>IQDA$HART:C3:B:115-117</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A18</socketName>
+          <systemName>IQDA$HART:C3:B:115_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A19</socketName>
+          <systemName>IQDA$HART:C3:B:117-119</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A20</socketName>
+          <systemName>IQDA$HART:C3:B:119-121</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A21</socketName>
+          <systemName>IQDA$HART:C3:B:119-123</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A22</socketName>
+          <systemName>IQDA$HART:C3:B:119_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A23</socketName>
+          <systemName>IQDA$HART:C3:B:121-123</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A24</socketName>
+          <systemName>IQDA$HART:C3:B:121-125</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A25</socketName>
+          <systemName>IQDA$HART:C3:B:121_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A26</socketName>
+          <systemName>IQDA$HART:C3:B:123-125</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A27</socketName>
+          <systemName>IQDA$HART:C3:B:125-127</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A28</socketName>
+          <systemName>IQDA$HART:C3:B:125-129</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A29</socketName>
+          <systemName>IQDA$HART:C3:B:127-131_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A30</socketName>
+          <systemName>IQDA$HART:C3:B:127-131_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A31</socketName>
+          <systemName>IQDA$HART:C3:B:127-221</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A32</socketName>
+          <systemName>IQDA$HART:C3:B:129_Spur_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A33</socketName>
+          <systemName>IQDA$HART:C3:B:129_Spur_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A34</socketName>
+          <systemName>IQDA$HART:C3:B:201-203</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A35</socketName>
+          <systemName>IQDA$HART:C3:B:201-205</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A36</socketName>
+          <systemName>IQDA$HART:C3:B:201-219</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A37</socketName>
+          <systemName>IQDA$HART:C3:B:203-207</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A38</socketName>
+          <systemName>IQDA$HART:C3:B:203-211</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A39</socketName>
+          <systemName>IQDA$HART:C3:B:205-209</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A40</socketName>
+          <systemName>IQDA$HART:C3:B:205_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A41</socketName>
+          <systemName>IQDA$HART:C3:B:207-211</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A42</socketName>
+          <systemName>IQDA$HART:C3:B:207-213</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A43</socketName>
+          <systemName>IQDA$HART:C3:B:209_Spur_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A44</socketName>
+          <systemName>IQDA$HART:C3:B:209_Spur_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A45</socketName>
+          <systemName>IQDA$HART:C3:B:211-217_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A46</socketName>
+          <systemName>IQDA$HART:C3:B:211-217_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A47</socketName>
+          <systemName>IQDA$HART:C3:B:213-215</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A48</socketName>
+          <systemName>IQDA$HART:C3:B:213_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A49</socketName>
+          <systemName>IQDA$HART:C3:B:215_Spur_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A50</socketName>
+          <systemName>IQDA$HART:C3:B:215_Spur_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A51</socketName>
+          <systemName>IQDA$HART:C3:B:217-219</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A52</socketName>
+          <systemName>IQDA$HART:C3:B:217-221</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A53</socketName>
+          <systemName>IQDA$HART:C3:B:219-221</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A54</socketName>
+          <systemName>IQDA$HART:C3:B:221-223</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A55</socketName>
+          <systemName>IQDA$HART:C3:B:223-225_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A56</socketName>
+          <systemName>IQDA$HART:C3:B:223-225_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A57</socketName>
+          <systemName>IQDA$HART:C3:B:225-227</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A58</socketName>
+          <systemName>IQDA$HART:C3:B:225-229</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A59</socketName>
+          <systemName>IQDA$HART:C3:B:227-231</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A60</socketName>
+          <systemName>IQDA$HART:C3:B:227-241_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A61</socketName>
+          <systemName>IQDA$HART:C3:B:227-241_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A62</socketName>
+          <systemName>IQDA$HART:C3:B:229-233</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A63</socketName>
+          <systemName>IQDA$HART:C3:B:229-241</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A64</socketName>
+          <systemName>IQDA$HART:C3:B:231-237</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A65</socketName>
+          <systemName>IQDA$HART:C3:B:231_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A66</socketName>
+          <systemName>IQDA$HART:C3:B:233-235</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A67</socketName>
+          <systemName>IQDA$HART:C3:B:233-243</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A68</socketName>
+          <systemName>IQDA$HART:C3:B:235-243</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A69</socketName>
+          <systemName>IQDA$HART:C3:B:235_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A70</socketName>
+          <systemName>IQDA$HART:C3:B:237-239</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A71</socketName>
+          <systemName>IQDA$HART:C3:B:237-245</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A72</socketName>
+          <systemName>IQDA$HART:C3:B:239-245</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A73</socketName>
+          <systemName>IQDA$HART:C3:B:239_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A74</socketName>
+          <systemName>IQDA$HART:C3:B:241_Spur</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A75</socketName>
+          <systemName>IQDA$HART:C3:B:243_Spur_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A76</socketName>
+          <systemName>IQDA$HART:C3:B:243_Spur_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A77</socketName>
+          <systemName>IQDA$HART:C3:B:245_Spur_1</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A78</socketName>
+          <systemName>IQDA$HART:C3:B:245_Spur_2</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A79</socketName>
+          <systemName>IQDA$HART:C3:B:Helix_Inner</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A80</socketName>
+          <systemName>IQDA$HART:C3:B:Helix_Outer</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A81</socketName>
+          <systemName>IQDA$HART:C3:B:OS101</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A82</socketName>
+          <systemName>IQDA$HART:C3:B:OS103</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A83</socketName>
+          <systemName>IQDA$HART:C3:B:OS105</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A84</socketName>
+          <systemName>IQDA$HART:C3:B:OS107</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A85</socketName>
+          <systemName>IQDA$HART:C3:B:OS109</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A86</socketName>
+          <systemName>IQDA$HART:C3:B:OS111</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A87</socketName>
+          <systemName>IQDA$HART:C3:B:OS113</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A88</socketName>
+          <systemName>IQDA$HART:C3:B:OS115</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A89</socketName>
+          <systemName>IQDA$HART:C3:B:OS117</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A90</socketName>
+          <systemName>IQDA$HART:C3:B:OS119</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A91</socketName>
+          <systemName>IQDA$HART:C3:B:OS121</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A92</socketName>
+          <systemName>IQDA$HART:C3:B:OS123</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A93</socketName>
+          <systemName>IQDA$HART:C3:B:OS125</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A94</socketName>
+          <systemName>IQDA$HART:C3:B:OS127</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A95</socketName>
+          <systemName>IQDA$HART:C3:B:OS129</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A96</socketName>
+          <systemName>IQDA$HART:C3:B:OS131</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A97</socketName>
+          <systemName>IQDA$HART:C3:B:OS201</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A98</socketName>
+          <systemName>IQDA$HART:C3:B:OS203</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A99</socketName>
+          <systemName>IQDA$HART:C3:B:OS205</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A100</socketName>
+          <systemName>IQDA$HART:C3:B:OS207</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A101</socketName>
+          <systemName>IQDA$HART:C3:B:OS209</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A102</socketName>
+          <systemName>IQDA$HART:C3:B:OS211</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A103</socketName>
+          <systemName>IQDA$HART:C3:B:OS213</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A104</socketName>
+          <systemName>IQDA$HART:C3:B:OS215</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A105</socketName>
+          <systemName>IQDA$HART:C3:B:OS217</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A106</socketName>
+          <systemName>IQDA$HART:C3:B:OS219</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A107</socketName>
+          <systemName>IQDA$HART:C3:B:OS221</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A108</socketName>
+          <systemName>IQDA$HART:C3:B:OS223</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A109</socketName>
+          <systemName>IQDA$HART:C3:B:OS225a</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A110</socketName>
+          <systemName>IQDA$HART:C3:B:OS225b</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A111</socketName>
+          <systemName>IQDA$HART:C3:B:OS225c</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A112</socketName>
+          <systemName>IQDA$HART:C3:B:OS225d</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A113</socketName>
+          <systemName>IQDA$HART:C3:B:OS227</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A114</socketName>
+          <systemName>IQDA$HART:C3:B:OS229</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A115</socketName>
+          <systemName>IQDA$HART:C3:B:OS231</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A116</socketName>
+          <systemName>IQDA$HART:C3:B:OS233</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A117</socketName>
+          <systemName>IQDA$HART:C3:B:OS235</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A118</socketName>
+          <systemName>IQDA$HART:C3:B:OS237</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A119</socketName>
+          <systemName>IQDA$HART:C3:B:OS239</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A120</socketName>
+          <systemName>IQDA$HART:C3:B:OS241</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A121</socketName>
+          <systemName>IQDA$HART:C3:B:OS243</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A122</socketName>
+          <systemName>IQDA$HART:C3:B:OS245</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A123</socketName>
+          <systemName>IQDA$HART:C3:T:101</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A124</socketName>
+          <systemName>IQDA$HART:C3:T:103</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A125</socketName>
+          <systemName>IQDA$HART:C3:T:105</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A126</socketName>
+          <systemName>IQDA$HART:C3:T:107</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A127</socketName>
+          <systemName>IQDA$HART:C3:T:109</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A128</socketName>
+          <systemName>IQDA$HART:C3:T:111</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A129</socketName>
+          <systemName>IQDA$HART:C3:T:113</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A130</socketName>
+          <systemName>IQDA$HART:C3:T:115</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A131</socketName>
+          <systemName>IQDA$HART:C3:T:117</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A132</socketName>
+          <systemName>IQDA$HART:C3:T:119</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A133</socketName>
+          <systemName>IQDA$HART:C3:T:121</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A134</socketName>
+          <systemName>IQDA$HART:C3:T:123</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A135</socketName>
+          <systemName>IQDA$HART:C3:T:125</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A136</socketName>
+          <systemName>IQDA$HART:C3:T:127</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A137</socketName>
+          <systemName>IQDA$HART:C3:T:129</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A138</socketName>
+          <systemName>IQDA$HART:C3:T:131</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A139</socketName>
+          <systemName>IQDA$HART:C3:T:201</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A140</socketName>
+          <systemName>IQDA$HART:C3:T:203</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A141</socketName>
+          <systemName>IQDA$HART:C3:T:205</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A142</socketName>
+          <systemName>IQDA$HART:C3:T:207</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A143</socketName>
+          <systemName>IQDA$HART:C3:T:209</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A144</socketName>
+          <systemName>IQDA$HART:C3:T:211</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A145</socketName>
+          <systemName>IQDA$HART:C3:T:213</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A146</socketName>
+          <systemName>IQDA$HART:C3:T:215</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A147</socketName>
+          <systemName>IQDA$HART:C3:T:217</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A148</socketName>
+          <systemName>IQDA$HART:C3:T:219</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A149</socketName>
+          <systemName>IQDA$HART:C3:T:221</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A150</socketName>
+          <systemName>IQDA$HART:C3:T:223</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A151</socketName>
+          <systemName>IQDA$HART:C3:T:225</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A152</socketName>
+          <systemName>IQDA$HART:C3:T:227</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A153</socketName>
+          <systemName>IQDA$HART:C3:T:229</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A154</socketName>
+          <systemName>IQDA$HART:C3:T:231</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A155</socketName>
+          <systemName>IQDA$HART:C3:T:233</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A156</socketName>
+          <systemName>IQDA$HART:C3:T:235</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A157</socketName>
+          <systemName>IQDA$HART:C3:T:237</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A158</socketName>
+          <systemName>IQDA$HART:C3:T:239</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A159</socketName>
+          <systemName>IQDA$HART:C3:T:241</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A160</socketName>
+          <systemName>IQDA$HART:C3:T:243</systemName>
+        </Socket>
+        <Socket>
+          <socketName>A161</socketName>
+          <systemName>IQDA$HART:C3:T:245</systemName>
+        </Socket>
+      </Actions>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </DigitalMany>
     <ActionTurnout class="jmri.jmrit.logixng.actions.configurexml.ActionTurnoutXml">
       <systemName>IQDA$HART:C3:T:101</systemName>
       <namedBean>
@@ -11373,6 +10906,59 @@
         </AbstractMaleSocket>
       </MaleSocket>
     </ActionTurnout>
+    <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
+      <systemName>IQDA:AUTO:0001</systemName>
+      <jmriJFrameTitle>WiThrottle</jmriJFrameTitle>
+      <addressing>Direct</addressing>
+      <reference />
+      <localVariable />
+      <formula />
+      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
+      <hideOrShow>
+        <addressing>Direct</addressing>
+        <enum>Hide</enum>
+        <listenToMemory>no</listenToMemory>
+      </hideOrShow>
+      <maximizeMinimizeNormalize>
+        <addressing>Direct</addressing>
+        <enum>DoNothing</enum>
+        <listenToMemory>no</listenToMemory>
+      </maximizeMinimizeNormalize>
+      <bringToFrontOrBack>
+        <addressing>Direct</addressing>
+        <enum>DoNothing</enum>
+        <listenToMemory>no</listenToMemory>
+      </bringToFrontOrBack>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </DisplayActionWindowManagement>
+    <ActionScript class="jmri.jmrit.logixng.actions.configurexml.ActionScriptXml">
+      <systemName>IQDA:AUTO:0004</systemName>
+      <userName>Hide HART Railroad under CATS</userName>
+      <operationAddressing>Direct</operationAddressing>
+      <operationType>RunScript</operationType>
+      <operationReference />
+      <operationLocalVariable />
+      <operationFormula />
+      <scriptAddressing>Direct</scriptAddressing>
+      <script>preference:jython/hide_cats_desk_windows.py</script>
+      <scriptReference />
+      <scriptLocalVariable />
+      <scriptFormula />
+      <scriptLanguage>
+        <language>python</language>
+      </scriptLanguage>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </ActionScript>
   </LogixNGDigitalActions>
   <LayoutEditor class="jmri.jmrit.display.layoutEditor.configurexml.LayoutEditorXml" sliders="no" scrollable="both" editable="no" positionable="yes" controlling="yes" animating="yes" showhelpbar="no" drawgrid="no" snaponadd="yes" snaponmove="no" antialiasing="yes" turnoutcircles="yes" tooltipsnotedit="yes" tooltipsinedit="yes" mainlinetrackwidth="4" xscale="1.0" yscale="1.0" sidetrackwidth="2" defaulttrackcolor="gray" defaultoccupiedtrackcolor="red" defaultalternativetrackcolor="white" defaulttextcolor="black" turnoutcirclecolor="green" turnoutcirclethrowncolor="red" turnoutcirclesize="3" turnoutdrawunselectedleg="yes" turnoutbx="30.0" turnoutcx="30.0" turnoutwid="15.0" xoverlong="45.0" xoverhwid="15.0" xovershort="15.0" autoblkgenerate="yes" redBackground="186" greenBackground="210" blueBackground="235" gridSize="10" gridSize2nd="10" openDispatcher="no" useDirectTurnoutControl="no" name="HART Railroad" x="0" y="0" panelwidth="2509" panelheight="1424" windowwidth="1900" windowheight="1140">
     <layoutTrackDrawingOptions name="HART Railroad" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutTrackDrawingOptionsXml">
@@ -12555,107 +12141,4 @@
       </icon>
     </positionablelabel>
   </LayoutEditor>
-  <filehistory>
-    <operation>
-      <type>app</type>
-      <date>Fri Nov 20 01:39:15 EST 2026</date>
-      <filename>PanelPro (v5.16.0)</filename>
-    </operation>
-    <operation>
-      <type>Load OK</type>
-      <date>Fri Nov 20 01:39:24 EST 2026</date>
-      <filename>/private/tmp/claude-501/-Users-lnevo-hart/cfeceb4d-b296-445e-90bb-cc28159674f7/scratchpad/disc/jmri/layouts/hart/output/tables.xml</filename>
-      <filehistory>
-        <operation>
-          <type>app</type>
-          <date>Fri Nov 20 00:38:57 EST 2026</date>
-          <filename>PanelPro (v5.16.0)</filename>
-        </operation>
-        <operation>
-          <type>Load OK</type>
-          <date>Fri Nov 20 00:39:03 EST 2026</date>
-          <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-          <filehistory>
-            <operation>
-              <type>app</type>
-              <date>Fri Nov 20 00:23:28 EST 2026</date>
-              <filename>PanelPro (v5.16.0)</filename>
-            </operation>
-            <operation>
-              <type>Load OK</type>
-              <date>Fri Nov 20 00:23:36 EST 2026</date>
-              <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-              <filehistory>
-                <operation>
-                  <type>app</type>
-                  <date>Thu Nov 19 23:12:00 EST 2026</date>
-                  <filename>PanelPro (v5.16.0)</filename>
-                </operation>
-                <operation>
-                  <type>Load OK</type>
-                  <date>Thu Nov 19 23:12:09 EST 2026</date>
-                  <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-                  <filehistory>
-                    <operation>
-                      <type>app</type>
-                      <date>Thu Nov 19 21:54:23 EST 2026</date>
-                      <filename>PanelPro (v5.16.0)</filename>
-                    </operation>
-                    <operation>
-                      <type>Load OK</type>
-                      <date>Thu Nov 19 21:54:29 EST 2026</date>
-                      <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                      <filehistory>
-                        <operation>
-                          <type>app</type>
-                          <date>Thu Nov 19 21:41:00 EST 2026</date>
-                          <filename>PanelPro (v5.16.0)</filename>
-                        </operation>
-                        <operation>
-                          <type>Load OK</type>
-                          <date>Thu Nov 19 21:41:08 EST 2026</date>
-                          <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                        </operation>
-                        <operation>
-                          <type>Store</type>
-                          <date>Thu Nov 19 21:41:22 EST 2026</date>
-                          <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                        </operation>
-                      </filehistory>
-                    </operation>
-                    <operation>
-                      <type>Store</type>
-                      <date>Thu Nov 19 21:54:41 EST 2026</date>
-                      <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                    </operation>
-                  </filehistory>
-                </operation>
-                <operation>
-                  <type>Store</type>
-                  <date>Thu Nov 19 23:12:25 EST 2026</date>
-                  <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-                </operation>
-              </filehistory>
-            </operation>
-            <operation>
-              <type>Store</type>
-              <date>Fri Nov 20 00:23:49 EST 2026</date>
-              <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-            </operation>
-          </filehistory>
-        </operation>
-        <operation>
-          <type>Store</type>
-          <date>Fri Nov 20 00:39:17 EST 2026</date>
-          <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-        </operation>
-      </filehistory>
-    </operation>
-    <operation>
-      <type>Store</type>
-      <date>Fri Nov 20 01:39:37 EST 2026</date>
-      <filename>/private/tmp/claude-501/-Users-lnevo-hart/cfeceb4d-b296-445e-90bb-cc28159674f7/scratchpad/disc/jmri/layouts/hart/output/tables.xml</filename>
-    </operation>
-  </filehistory>
-  <!--Written by JMRI version 5.16+R909e15189e on Fri Nov 20 01:39:37 EST 2026-->
 </layout-config>

@@ -10,14 +10,13 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 
 ## Inputs
 
-- LE mast bindings + [`jmri/layouts/hart/data/le_signal_boundaries.csv`](../../jmri/layouts/hart/data/le_signal_boundaries.csv)
+- LE mast bindings: the generated panel, which `build_layout_le.py` places from `staging_masts.csv` and `main_upper_masts.csv` (the plugin's slot rule); `audit_panel_contracts.py` holds the stored panel to them
 - Frozen NX ids: [`jmri/layouts/hart/scripts/nx_contract.py`](../../jmri/layouts/hart/scripts/nx_contract.py)
-- Facing: `python3 jmri/layouts/hart/scripts/apply_le_sml_facing.py`
 - Stub `END_BUMPER` mast slots: [`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md)
 
 ## Outputs
 
-- SML dests in `jmri/layouts/hart/output/tables.xml`
+- SML dests in `jmri/layouts/hart/data/schematic/discovered_sml.xml` (only the wrapper writes it, through `tools/schematic/build_tables.py --discovered-from`), and from there in the generated `jmri/layouts/hart/output/tables.xml` (ADR-029)
 - `ISNX:*` pairs (systemNames frozen)
 
 ## Run
@@ -25,7 +24,8 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 ```bash
 # PanelPro, not CATS. Modal dialogs — do not hide them.
 ./jmri/layouts/hart/scripts/run_sml_discover.sh
-# wrapper also: python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py
+# the wrapper Stores to a temporary file, then: python3 tools/schematic/build_tables.py --discovered-from <Store>
+# (the generator stores the Digicon destinations disabled)
 ./jmri/layouts/hart/scripts/run_nx_discover.sh   # if NX needs a refresh
 ```
 

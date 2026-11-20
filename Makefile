@@ -1,7 +1,7 @@
 # The commands agents and people use most. Each target runs the real script, so
 # these stay short. `make` lists them.
 .DEFAULT_GOAL := help
-.PHONY: help wt wt-sweep check portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
+.PHONY: help wt wt-sweep check remote portal-check panels desks panelpro-test docs-index publications waybills submodules tables-pull tables-pull-pi ops-pull sts-pull shot deploy-layout deploy-all deploy-status redeploy deploy-site
 
 help:  ## List the commands
 	@grep -hE '^[a-z-]+:.*##' $(MAKEFILE_LIST) | sed -E 's/:.*## /\t/' | expand -t 16
@@ -14,6 +14,10 @@ wt-sweep:  ## Remove agent worktrees whose PR is merged
 
 check:  ## Run every repo check
 	./tools/check.sh
+
+remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
+	@test -n "$(CMD)" || { echo 'make remote: set CMD="..."' >&2; exit 2; }
+	./tools/hosts/win_run.sh -- bash -c '$(subst ','"'"',$(CMD))'
 
 portal-check:  ## Build the website and test its links
 	python3 www/scripts/check_portal_build.py
@@ -31,10 +35,10 @@ panelpro-test:  ## Load tables.xml in real PanelPro on this Mac
 docs-index:  ## Rebuild docs/INDEX.md
 	python3 tools/ops/build_docs_index.py
 
-tables-pull:  ## Bring a PanelPro Store from JMRI_UserFiles into the repo
+tables-pull:  ## Keep a Mac PanelPro Store in ~/JMRI_UserFiles-pulled and record it as taken (tables.xml is generated)
 	./tools/ops/pull_tables.sh
 
-tables-pull-pi:  ## Bring a PanelPro Store made on the Pi into the repo
+tables-pull-pi:  ## Keep a Pi PanelPro Store in ~/JMRI_UserFiles-pulled and record it as taken (tables.xml is generated)
 	./tools/ops/pull_tables_pi.sh
 
 ops-pull:  ## Bring Pi Operations Pro session state into the repo

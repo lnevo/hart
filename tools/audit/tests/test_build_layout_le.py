@@ -1,5 +1,5 @@
-"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on this checkout's
-tables.xml less what an earlier build added (strip_build_owned). The all-levels viewing trial these tests once read
+"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on the generator's
+base (hartlib.tables_build.base: the template and the staging beans of devices.csv; ADR-029). The all-levels viewing trial these tests once read
 (tables_layout.xml) is retired (owner, 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py
 and test_le_mast_parity.py share."""
 from __future__ import annotations
@@ -24,7 +24,7 @@ sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import level_devices, paths, tables  # noqa: E402
 from hartlib import railroad as T_railroad  # noqa: E402  the device map's columns
 
-TABLES = paths.TABLES_XML       # what the build starts from (this checkout's tables.xml, the cut-over's)
+TABLES = paths.TABLES_XML       # the generated tables.xml (build_tables.py), which the build no longer reads
 
 
 def _load(name: str, path: Path):
@@ -60,13 +60,11 @@ HELIX_BLOCKS = {"Track Helix Outer", "Track Helix Inner"}       # helix_tracks.c
 
 @functools.lru_cache(maxsize=None)
 def _stripped_bytes() -> bytes:
-    doc = tables.load(TABLES)
-    B.strip_build_owned(doc.root)
-    return doc.tobytes()
+    return B.base_tables()
 
 
 def stripped() -> ET.Element:
-    """A fresh copy of the tables the build draws on: tables.xml without what an earlier build added."""
+    """A fresh copy of the tables the build draws on: the generator's base (B.base_tables)."""
     return tables.loads(_stripped_bytes()).root
 
 
@@ -124,7 +122,7 @@ def built():
     """(candidate bytes, Panel, names, bands) of the three-level cut-over candidate (--levels all --as-live; the
     approval fingerprint is its own test, test_le_cutover.py): built once for every test module that needs it."""
     with mock.patch.object(B.sdm, "load", wraps=B.sdm.load) as load, contextlib.redirect_stdout(io.StringIO()):
-        out = B.build(TABLES, levels="all", as_live=True, approved=None)
+        out = B.build(levels="all", as_live=True, approved=None)
     STAGING_MAP_LOADS.append(load.call_count)
     return out
 
@@ -149,7 +147,7 @@ class PagePreferences(unittest.TestCase):
                            ({"le_window": [1900]}, "le_window must be"), ({"le_row": 0}, "le_row must be")):
             bad = {k: v for k, v in dict(page, **prefs).items() if v is not None}
             with self.subTest(prefs=prefs), self.assertRaisesRegex(B.BuildError, why):
-                B.build(TABLES, as_live=True, approved=None, page=bad)
+                B.build(as_live=True, approved=None, page=bad)
 
 
 class Built(unittest.TestCase):
@@ -309,7 +307,7 @@ class Built(unittest.TestCase):
         with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
                 self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
             with contextlib.redirect_stdout(io.StringIO()):
-                B.build(TABLES, as_live=True, approved=None)
+                B.build(as_live=True, approved=None)
 
     def test_add_level_sensors_is_by_name_not_order(self) -> None:
         """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing
@@ -481,13 +479,12 @@ class Built(unittest.TestCase):
         self.assertNotIn("Layout (generated)", names)        # the retired viewing trials' panel
 
     def test_audit_passes_on_the_cut_over_candidate(self) -> None:
-        # le_signal_boundaries.csv names the generated panel's anchors (AG...), so the audit reads the candidate,
-        # whose "HART Railroad" panel is the generated one
-        boundaries = AUDIT.load_boundaries(AUDIT.BOUNDARIES)
+        # the audit reads the candidate, whose "HART Railroad" panel is the generated one
+        staging = AUDIT.load_staging_masts()
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_cutover.xml"
             path.write_bytes(self.data)
-            audit = AUDIT.audit_source("candidate", path, boundaries, {b.mast for b in boundaries}, generated=True)
+            audit = AUDIT.audit_source("candidate", path, staging, generated=True)
         self.assertEqual(audit.errors, [])
         self.assertEqual(audit.facts["panel"], LIVE_PANEL)
 
@@ -713,15 +710,12 @@ class ReviewFixes(unittest.TestCase):
             B.runs(ring)
 
     def test_tables_with_no_names_only_block_pass_stop(self) -> None:
-        doc = tables.load(TABLES)
+        doc = tables.loads(_stripped_bytes())
         blocks_el = doc.root.find("blocks")
         for b in tables.blocks(doc.root, full=False):
             blocks_el.remove(b)
-        with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "tables.xml"
-            path.write_bytes(doc.tobytes())
-            with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
-                B.build(path, bands=Built.bands, as_live=True, approved=None)
+        with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
+            B.build(bands=Built.bands, as_live=True, approved=None, base_data=doc.tobytes())
 
 
 def anchor_panel(*anchors) -> str:
@@ -1096,5 +1090,5 @@ class LevelMasts(unittest.TestCase):
             le.append(copy.deepcopy(tables.generated_marker_label()))
             le.append(copy.deepcopy(tables.generated_marker_label()))
             path.write_bytes(ET.tostring(root))
-            audit = AUDIT.audit_source("t", path, AUDIT.load_boundaries(AUDIT.BOUNDARIES), set())
+            audit = AUDIT.audit_source("t", path, AUDIT.load_staging_masts())
         self.assertTrue(any("generated-panel markers" in e for e in audit.errors), audit.errors)

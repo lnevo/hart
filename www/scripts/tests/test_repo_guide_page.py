@@ -58,9 +58,9 @@ class RepoGuide(unittest.TestCase):
 
     def test_undescribed_hartlib_module_stops(self):
         other = dict(rg.HARTLIB_OTHER)
-        del other["boundaries"]
+        del other["parked"]
         with mock.patch.object(rg, "HARTLIB_OTHER", other):
-            with self.assertRaisesRegex(rg.PageError, "boundaries"):
+            with self.assertRaisesRegex(rg.PageError, "parked"):
                 rg.facts()
 
     def test_lists_of_any_length_read(self):

@@ -91,11 +91,11 @@ HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad"
 HARTLIB_OTHER = {
     "names": "the name map's columns",
     "devices": "the device master (devices.csv) and the files generated from it",
+    "tables_build": "the template and the other parts the generated tables.xml is built from",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",
     "level_devices": "the main and upper levels' device names",
     "level_masts": "their control-point masts",
-    "boundaries": "where each staging mast stands on the panel",
     "map_revision": "the station maps' revision",
     "layer_files": "the schematic's layer files, a section per sheet",
 }

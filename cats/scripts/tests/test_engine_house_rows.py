@@ -5,7 +5,6 @@ CATS keeps its drawing; NORMAL is each plant's closed BOTTOM leg, as on the Prin
 """
 import sys
 import unittest
-import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -24,19 +23,14 @@ OS_BLOCK = {(24, 8): "OS Switch 9", (26, 8): "OS Switch 11"}
 
 
 
-def _jmri_paths():
-    """{(OS block user name, turnout, setting): destination user name} from tables.xml."""
-    root = ET.parse(ROOT / "jmri/layouts/hart/output/tables.xml").getroot()
-    blocks = [b for b in root.iter("block") if b.find("path") is not None or b.find("userName") is not None]
-    names = {b.get("systemName"): (b.findtext("userName") or "").strip() for b in blocks}
+def _legs():
+    """{(OS block user name, turnout, setting): destination user name} from the switch facts (switch_legs.csv), which
+    JMRI's block paths follow: the generated tables.xml stores none (ADR-029), JMRI derives them from the panel."""
     out = {}
-    for b in blocks:
-        for path in b.findall("path"):
-            for bs in path.findall("beansetting"):
-                t = bs.find("turnout")
-                if t is not None:
-                    dest = path.get("block")
-                    out[(names.get(b.get("systemName")), t.get("systemName"), bs.get("setting"))] = names.get(dest, dest)
+    for sw in facts.load_switches().values():
+        for leg in sw.legs:
+            out[(leg.os_block, f"Switch {sw.number}", "2")] = leg.closed
+            out[(leg.os_block, f"Switch {sw.number}", "4")] = leg.thrown
     return out
 
 
@@ -47,7 +41,7 @@ class EngineHouse(unittest.TestCase):
         self.assertFalse(switches[11].cats_inverted)
 
     def test_expectations_match_jmri(self):
-        paths = _jmri_paths()
+        paths = _legs()
         for xy, legs in PLANTS.items():
             for cmd, dest, _cell in legs.values():
                 setting = "2" if cmd == "close" else "4"

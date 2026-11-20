@@ -83,7 +83,7 @@ Rows 1 to 7 are done (#749, #754, #757 and the label-refs branch, above); the ta
 | 10 | Drawing workarounds in preferences | `level_leg` (now with plugin desk faults for its causes), `le_shift`, `le_labels` groupings. Done: `le_tight_crossovers`/`le_split_crossovers` (101/103) replaced by the schematic-maps 0.1.48 three-way rule (#785) | Plugin rules (for example: choose the level leg when the straight-level rule would collide) | 1–2 days |
 
 Also open, smaller:
-- whether `le_signal_boundaries.csv` is still needed now that staging masts come from the rule;
+- (done 2026-11-20: `le_signal_boundaries.csv` retired; the deploy audit reads `staging_masts.csv` instead);
 - the owner's screen sizes (`le_window`, `cats_window`) sitting in preferences;
 - the band names and the 5 cm cut kept in `plan_overrides.json` (main_upper section) `levels` "until B2";
 

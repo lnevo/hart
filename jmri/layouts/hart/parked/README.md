@@ -172,7 +172,7 @@ Dispatcher must restore the throat blocks and their rear and yard-end masts**. T
   | Track K-1 West | IB:AUTO:0063 | Track e15.0 1/2 | BS K-1 |
 
 - **Masts** (virtual one-low, at the throat boundaries; in `staging_masts_virtual.csv` and
-  `staging_signals_virtual.csv` of 5a5bff0a~1, and `le_signal_boundaries.csv`, `public_name_map.csv`):
+  `staging_signals_virtual.csv` of 5a5bff0a~1, `le_signal_boundaries.csv` (retired in e4b0c379; read it at e4b0c379~1) and `public_name_map.csv`):
   - yard-end masts, each facing its yard track into its throat 40 cm from the ladder switch:
     - 16L, 16R (S-R, $1016, $1017);
     - 18L, 18R (S-1, $1008, $1012);

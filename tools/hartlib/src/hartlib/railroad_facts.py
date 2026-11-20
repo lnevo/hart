@@ -605,16 +605,18 @@ class StagingMast:
     mast: str
     facing: str
     protects: tuple[str, ...]
+    system_name: str = ""     # "IF$vsm:..." for a hidden virtual mast
 
 
 def read_staging_masts(path: Path) -> list[StagingMast]:
     out, seen = [], {}
-    for line, r in read_rows(path, ("mast", "facing", "protects")):
+    for line, r in read_rows(path, ("mast", "facing", "protects"), optional=("system_name",)):
         if not r["mast"] or r["mast"] in seen or not r["facing"]:
             raise FactsError(f"{_where(path, line)}: mast {r['mast']!r} is empty or given twice, or has no facing "
                              "block")
         seen[r["mast"]] = line
-        out.append(StagingMast(line, r["mast"], r["facing"], tuple(b for b in r["protects"].split(";") if b)))
+        out.append(StagingMast(line, r["mast"], r["facing"], tuple(b for b in r["protects"].split(";") if b),
+                               r["system_name"]))
     return out
 
 

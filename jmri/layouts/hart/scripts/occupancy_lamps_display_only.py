@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 """Make every occupancy lamp on every panel in tables.xml display only.
 
-    python3 jmri/layouts/hart/scripts/occupancy_lamps_display_only.py           # write tables.xml
     python3 jmri/layouts/hart/scripts/occupancy_lamps_display_only.py --check   # exit 1 if a lamp can be clicked
+    python3 jmri/layouts/hart/scripts/occupancy_lamps_display_only.py --tables OTHER.xml   # fix another file
+
+tables.xml is generated since R9c (ADR-029): the panel build writes its lamps display only, so this script checks
+it and refuses to write it (hartlib.tables_build.refuse_generated); it still fixes another tables file and the parked
+staging lamps.
 
 A lamp is a sensoricon whose sensor is a block sensor ("BS ...") or that is drawn with the circuit-* lamp images
 (Stage 1's occupancy and move-in-progress lamps). The panel polish script applies the same rule on every polish,
@@ -22,7 +26,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables_build  # noqa: E402
 
 # Occupancy lamps are edited as text, so the rest of each file stays byte for byte. The staging panel's lamps parked
 # with the Dispatcher System (jmri/layouts/hart/parked/staging_panel_lamps.json, panel_items.json form) hold the same
@@ -87,6 +91,8 @@ def main(argv=None) -> int:
                 print(f"{path.name}: all {total} occupancy lamps are display only")
             continue
         if changed:
+            if path == args.tables:
+                tables_build.refuse_generated(path, Path(__file__).name)
             path.write_text(new, encoding="utf-8")
         print(f"{path.name}: {changed} of {total} occupancy lamps made display only")
     return 1 if bad else 0

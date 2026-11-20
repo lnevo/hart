@@ -189,8 +189,9 @@ class NoHardCodedHosts(unittest.TestCase):
 
     def test_scripts_source_load_env(self) -> None:
         for path in self.MAC_SIDE:
-            if path.name in ("pack_roster_stage.sh", "profile_tables_guard.sh", "panelpro_session.sh", "operating.sh"):
-                continue  # local packing, sourced Mac-only helpers and the Mac's operating flag: no host
+            if path.name in ("pack_roster_stage.sh", "profile_tables_guard.sh", "panelpro_session.sh", "operating.sh",
+                             "run_panelpro_roundtrip.sh"):
+                continue  # local packing, Mac-only helpers and the Mac PanelPro round trip: no host
             self.assertIn("load_env.sh", path.read_text(encoding="utf-8"), path.name)
 
     def test_no_host_literals(self) -> None:

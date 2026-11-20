@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
-# One-shot PanelPro SML Discover → store tables.xml, then quit.
+# One-shot PanelPro SML Discover on this checkout's tables.xml, Store to a temporary file, then quit.
+# The Store's Signal Mast Logic and mast properties go to jmri/layouts/hart/data/schematic/discovered_sml.xml
+# (the one writer of that file) and tools/schematic/build_tables.py writes tables.xml from it (ADR-029:
+# tables.xml is an output; the Store itself is never kept). Discovery runs from an empty list: the
+# wrapper first writes tables.xml without any Signal Mast Logic (build_tables.py --discovery-base), so a
+# discovered file that names a renamed or removed mast never blocks its own repair. If the run stops before
+# the end, tables.xml stays that base (build_tables.py --check says so): run the wrapper again.
 # Refuses if CATS/PanelPro is already running (MQTT client-id).
 # The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.
@@ -9,35 +15,25 @@ source "$ROOT/tools/hosts/profile_tables_guard.sh"
 source "$ROOT/tools/hosts/panelpro_session.sh"
 refuse_hart_tables "run PanelPro on tables.xml"
 pp_profile
-TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
 SCRIPT="$ROOT/jmri/layouts/hart/scripts/discover_sml.py"
 MARKER="${HART_SML_DISCOVER_MARKER:-/tmp/hart_sml_discover.done}"
 LOG="${HART_SML_DISCOVER_LOG:-/tmp/hart_sml_discover_panelpro.log}"
 
 pp_refuse_running "Quit CATS/PanelPro first — SML Discover needs this profile alone."
 
-python3 - <<PY
-from pathlib import Path
-p = Path("$TABLES")
-t = p.read_text(encoding="utf-8")
-old = '<layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml">'
-new = '<layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml" blockrouting="yes">'
-if 'blockrouting="yes"' not in t.split("<layoutblocks", 1)[-1][:200]:
-    if old not in t:
-        raise SystemExit("layoutblocks tag not found in $TABLES")
-    p.write_text(t.replace(old, new, 1), encoding="utf-8")
-    print("enabled blockrouting=yes in tables.xml")
-else:
-    print("blockrouting already yes")
-PY
-
 pp_begin "$SCRIPT"
+# The base discovery runs on: the generated tables with no logic and no mast properties. From here on a failed
+# run leaves tables.xml as that base, and the exit says so (panelpro_session.sh PP_FAIL_NOTE).
+PP_FAIL_NOTE="tables.xml is now the discovery base (no Signal Mast Logic). Restore it: python3 tools/schematic/build_tables.py (or run this wrapper again)"
+python3 "$ROOT/tools/schematic/build_tables.py" --discovery-base
 rm -f "$MARKER"
+STORED="$(mktemp "${TMPDIR:-/tmp}/hart_sml_discover.XXXXXX")"
+PP_TMP_FILES+=("$STORED")
 
 export HART_SML_DISCOVER_STORE=1
 export HART_SML_DISCOVER_EXIT=1
 export HART_SML_DISCOVER_MARKER="$MARKER"
-export HART_SML_DISCOVER_FILE="$TABLES"
+export HART_SML_DISCOVER_FILE="$STORED"
 export HART_SML_DISCOVER_WAIT="${HART_SML_DISCOVER_WAIT:-180}"
 
 echo "Launching PanelPro for SML Discover (MQTT to the Pi broker)..."
@@ -67,7 +63,16 @@ fi
 # EXIT=1 should have quit Java; otherwise stop the PanelPro this run started (never another).
 pp_wait_exit "${HART_PANELPRO_EXIT_WAIT:-60}" || { echo "PanelPro did not quit after SML Discover; stopping it" >&2; pp_stop_jmri; }
 
-# Discover stores Digicon dests Enabled; Digicon boot needs them Disabled until
-# signal_coordinator.py takes control.
-python3 "$ROOT/jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py"
+# The discovered logic into its own file, then tables.xml from its sources. Discover stores Digicon
+# destinations Enabled; the generator stores them disabled until signal_coordinator.py takes control.
+if ! python3 "$ROOT/tools/schematic/build_tables.py" --discovered-from "$STORED"; then
+  # keep the discovery's Store, outside every checkout: the temporary file goes when this run ends
+  pulled="$(hart_pulled_dir)" || exit 1
+  kept="$pulled/discovery-$(date +%Y%m%d-%H%M%S).xml"
+  cp "$STORED" "$kept"
+  echo "The discovery's Store is kept as $kept." >&2
+  echo "Fix what build_tables.py names above, then: python3 tools/schematic/build_tables.py --discovered-from $kept" >&2
+  exit 1
+fi
+PP_FAIL_NOTE=""
 echo "DONE"

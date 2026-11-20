@@ -20,7 +20,7 @@ WRITERS = (
     (P + "polish_hart_layout_editor.py", []),
     (S + "reconcile_dispatcher_stations.py", ["--no-sync"]),
     (S + "disable_digicon_sml_in_tables.py", []), (S + "refresh_bean_comments.py", []),
-    (P + "apply_nx_layer.py", []), (S + "apply_le_sml_facing.py", []),
+    (P + "apply_nx_layer.py", []),
     (S + "cleanup_uss_ctc_leftovers.py", ["--apply"]),
     (S + "uss_switch_only_columns.py", ["--apply"]), (P + "retarget_dispatcher_traininfo_transits.py", []),
     (S + "build_hart_signal_heads.py", []), (S + "export_track_lengths.py", []),
@@ -29,6 +29,7 @@ WRITERS = (
     ("tools/ops/status_counts.py", []), ("tools/schematic/build_cats_panel.py", []),
     ("tools/schematic/build_signals.py", []),
     ("tools/schematic/build_layout_le.py", ["--levels", "staging", "--as-live"]),
+    ("tools/schematic/build_tables.py", []),
 )
 
 

@@ -53,6 +53,9 @@ SKIP_PREFIXES = (
     "reference/", "external/",                    # vendor and submodule source
     DEVICES_REL,                                  # the source of the names
     TABLES_REL,                                   # JMRI's file; held to the map by the baselines
+    # stock discovery's output, written only by run_sml_discover.sh; build_tables.py stops on a mast it names that
+    # the tables do not hold (hartlib.tables_build.merge_discovered)
+    "jmri/layouts/hart/data/schematic/discovered_sml.xml",
     "jmri/layouts/hart/data/baselines/",          # capture_public_name_baseline.py --check
     # the generated files of the schematic data; its hand-kept files (the staging device map, the overrides) are read
     "jmri/layouts/hart/data/schematic/signals.json",                  # both sections generated from the mast files:

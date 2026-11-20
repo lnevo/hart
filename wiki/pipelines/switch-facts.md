@@ -45,7 +45,7 @@ Exceptions are made only on purpose, each with its reason beside it:
 
 1. Edit its rows in `switch_legs.csv` (closed and thrown legs) and `switches.csv` (hand, lever, inversion). A switch the AnyRail plan lacks or holds wrongly goes in `plan_overrides.json`'s `staging` section (`hand`, legs `b` and `c`; `branch_leg: "B"` when the added branch is the straight leg).
 2. `device_map_staging.csv` (`trial_name`), `short_tracks_staging.csv` and `block_splits.csv` name tracks by their switches and legs, so a new export needs no rebinding (2026-11-20). The virtual masts are placed by rule (ADR-024), so nothing needs rebinding when edge ids move (`n1`...).
-3. Run `make panels`. A mast boundary that moves stops the build with the rows to rewrite in `le_signal_boundaries.csv`.
+3. Run `make panels`. A mast the rule can no longer place in one slot stops the build (`check_device_masts`); the deploy audit holds the stored panel to `staging_masts.csv` (`audit_panel_contracts.py`).
 4. Install the candidate in `~/JMRI_UserFiles`, relaunch PanelPro and get the owner's approval; then record it (`check_approved.py --approve`, `build_layout_le.py --approve-staging`) and take Signal Mast Logic from stock discovery in a sandbox (`tools/hosts/sandbox/README.md`).
 5. Run `./tools/check.sh`. Each failure names the switch or track and the two sources that disagree.
 
@@ -58,7 +58,7 @@ Exceptions are made only on purpose, each with its reason beside it:
 
 1. **PanelPro:** rename it, Store, then `make tables-pull`. JMRI owns `tables.xml`; nothing renames there by script.
 2. **Name map:** apply the rename to `public_name_map.csv` (ADR-005, `wiki/pipelines/public-names.md`). The identity row takes the new name; a historical alias row keeps the old one. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
-3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switch_legs.csv` (legs), `block_lengths.csv` (`user_name`), `le_signal_boundaries.csv`, `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
+3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switch_legs.csv` (legs), `block_lengths.csv` (`user_name`), `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
 4. **CATS:** the desks are generated, so nothing is renamed in them. After the data files above are changed, run `make desks` (writes and validates `HART_CTC.xml` and `HART_ABS.xml`) and `gen_ctc_track_plan.py` (USS plant cells: `uss_board_plants.csv`).
 5. **Dispatcher:** traininfo files carry block names; regenerate them in PanelPro (Dispatcher System) if a station block was renamed.
 6. **Derived files:** run `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `build_layout_index.py` and `build_cats_layout_index.py`.
