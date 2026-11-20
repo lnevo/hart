@@ -124,7 +124,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
     def test_boot_abort_unchecks_without_hold_or_unheld(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")
         start = text[text.index("def start") : text.index("def _stored_enabled")]
-        self.assertIn('_announce_enabling("stored dests")', start)
+        self.assertIn('_announce_enabling("stored dests", force=True)', start)
         self.assertIn("_schedule_enabled_after_enabling", start)
         self.assertNotIn("_abort_sml_immediate()", start)
         off = text.index("def _abort_sml_immediate")
@@ -135,11 +135,11 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("_publish_unheld", chunk)
         self.assertNotIn("HOLD_WAIT", chunk)
         enable = text[text.index("def _enter_enabled") : text.index("def _enter_disabled")]
-        self.assertIn('_announce_enabling("force override")', enable)
+        self.assertIn('_announce_enabling("force override", force=True)', enable)
         self.assertIn('result == "force"', enable)
         on_mode = text[text.index("def _on_sml_mode") :]
         self.assertIn("own enabling", on_mode)
-        self.assertIn("if self._enabling_originator:", on_mode)
+        self.assertIn("_resolve_claim_race(mode, host, stamp, force)", on_mode)
         self.assertIn('_publish_mode("enabling")', text[text.index("def _announce_enabling") :])
 
     def test_no_static_head_names_list(self) -> None:
