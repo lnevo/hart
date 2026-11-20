@@ -80,37 +80,37 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,,block,OS Switch 129,,,,,North,OS Switch 129,no detector: off the main line
 2,CP 127,block,OS Switch 131,,,42,,CP 127,OS Switch 131,
 2,,block,Track 101 Spur 1,,,,,,Track e25,63.1 cm no detector: off the main line
-2,,block,Track 101 Spur 2,,,,,,Track e32,99.0 cm no detector: off the main line
+2,,block,Track 101 Spur 2,,,,,,Track e32,98.9 cm no detector: off the main line
 2,,block,Track 101-103,,,,,,Track e28,"3.4 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 107,block,Track 101-111,,,,,CP 107,Track e24,398.1 cm no detector: off the main line
-2,,block,Track 103 Spur,,,,,,Track e31,111.1 cm no detector: off the main line
-2,,block,Track 103-105 1,,,,,,Track e22,318.6 cm no detector: off the main line
-2,,block,Track 103-105 2,,,,,,Track e21,361.3 cm no detector: off the main line
+2,CP 107,block,Track 101-111,,,,,CP 107,Track e24,397.6 cm no detector: off the main line
+2,,block,Track 103 Spur,,,,,,Track e31,111.0 cm no detector: off the main line
+2,,block,Track 103-105 1,,,,,,Track e22,318.2 cm no detector: off the main line
+2,,block,Track 103-105 2,,,,,,Track e21,360.9 cm no detector: off the main line
 2,CP 107,block,Track 105-109,,,,,CP 107,Track e20,"21.5 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 107,block,Track 107 Loop 1,,,,,CP 107,Track e33 1,"388.5 cm, half of the balloon loop from leg B"
-2,CP 107,block,Track 107 Loop 2,,,,,CP 107,Track e33 2,"388.5 cm, half of the balloon loop from leg C"
-2,CP 107,block,Track 107-109,,,,,CP 107,Track e19,99.9 cm
-2,CP 107,block,Track 109-111,,,,,CP 107,Track e18,"24.2 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 107,block,Track 107 Loop 1,,,,,CP 107,Track e33 1,"388.1 cm, half of the balloon loop from leg B"
+2,CP 107,block,Track 107 Loop 2,,,,,CP 107,Track e33 2,"388.1 cm, half of the balloon loop from leg C"
+2,CP 107,block,Track 107-109,,,,,CP 107,Track e19,99.8 cm
+2,CP 107,block,Track 109-111,,,,,CP 107,Track e18,"24.1 cm short link: inside the OS blocks of its switches, no detector"
 2,CP 107,block,Track 111-117,,,,,CP 107,Track e23,"11.1 cm short link: inside the OS blocks of its switches, no detector"
-2,,block,Track 113 Spur 1,,,,,,Track e12,55.0 cm no detector: off the main line
-2,,block,Track 113 Spur 2,,,,,,Track e13,108.2 cm no detector: off the main line
+2,,block,Track 113 Spur 1,,,,,,Track e12,54.9 cm no detector: off the main line
+2,,block,Track 113 Spur 2,,,,,,Track e13,108.1 cm no detector: off the main line
 2,,block,Track 113-115,,,,,,Track e11,44.2 cm no detector: off the main line
-2,,block,Track 115 Spur,,,,,,Track e15,76.5 cm no detector: off the main line
-2,CP 107,block,Track 115-117,,,,,CP 107,Track e14,"24.2 cm short link: inside the OS blocks of its switches, no detector"
+2,,block,Track 115 Spur,,,,,,Track e15,76.4 cm no detector: off the main line
+2,CP 107,block,Track 115-117,,,,,CP 107,Track e14,"24.1 cm short link: inside the OS blocks of its switches, no detector"
 2,CP 107,block,Track 117-119,,,,,CP 107,Track e16,"11.1 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 107,block,Track 119 Spur,,,,,CP 107,Track e8,89.0 cm no detector: off the main line
-2,CP 107,block,Track 119-121,,,,,CP 107,Track e7,158.6 cm no detector: off the main line
-2,CP 107,block,Track 119-123,,,,,CP 107 / CP 123,Track e17,230.0 cm
-2,,block,Track 121 Spur,,,,,,Track e0,122.3 cm no detector: off the main line
-2,CP 123,block,Track 121-123,,,,,CP 123,Track e6,"25.2 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 123,block,Track 121-125,,,,,CP 123,Track e1,87.5 cm no detector: off the main line
+2,CP 107,block,Track 119 Spur,,,,,CP 107,Track e8,88.9 cm no detector: off the main line
+2,CP 107,block,Track 119-121,,,,,CP 107,Track e7,158.4 cm no detector: off the main line
+2,CP 107,block,Track 119-123,,,,,CP 107 / CP 123,Track e17,229.7 cm
+2,,block,Track 121 Spur,,,,,,Track e0,122.1 cm no detector: off the main line
+2,CP 123,block,Track 121-123,,,,,CP 123,Track e6,"25.1 cm short link: inside the OS blocks of its switches, no detector"
+2,CP 123,block,Track 121-125,,,,,CP 123,Track e1,87.4 cm no detector: off the main line
 2,CP 123,block,Track 123-125,,,,,CP 123,Track e29,"10.5 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 123,block,Track 125-127,,,,,CP 123 / CP 127,Track e30,86.9 cm
+2,CP 123,block,Track 125-127,,,,,CP 123 / CP 127,Track e30,86.8 cm
 2,CP 123,block,Track 125-129,,,,,CP 123,Track e3,"10.5 cm short link: inside the OS blocks of its switches, no detector"
-2,CP 127,block,Track 127-131 1,,,,,CP 127,Track e35,73.6 cm
-2,,block,Track 129 Spur 1,,,,,,Track e4,69.3 cm no detector: off the main line
-2,,block,Track 129 Spur 2,,,,,,Track e5,70.5 cm no detector: off the main line
-2,CP 127,block,Track 131-H1,,,,,CP 127,Track e34,849.6 cm
+2,CP 127,block,Track 127-131 1,,,,,CP 127,Track e34,73.6 cm
+2,,block,Track 129 Spur 1,,,,,,Track e4,69.2 cm no detector: off the main line
+2,,block,Track 129 Spur 2,,,,,,Track e5,70.4 cm no detector: off the main line
+2,CP 127,block,Track 131-H1,,,,,CP 127,Track e88,655.7 cm
 2,,occupancy,BS 101 Spur 1,,IS:HART:C3:B:101_Spur_1,,,,,no detector planned: dark until decided
 2,,occupancy,BS 101 Spur 2,,IS:HART:C3:B:101_Spur_2,,,,,no detector planned: dark until decided
 2,,occupancy,BS 101-103,,IS:HART:C3:B:101-103,,,,,no detector planned: dark until decided
@@ -242,7 +242,7 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 217,turnout,Switch 217,M2T2409,IT:HART:C3:217,24,144,"Node: 24 Turnout: 1 | OU: 1 Ports: 3,4","Switch 217A, Switch 217B",
 3,CP 201,turnout,Switch 219,M2T2310,IT:HART:C3:219,23,145,"Node: 23 Turnout: 2 | OU: 1 Ports: 5,6",Switch 219,
 3,CP 201,turnout,Switch 221,M2T2311,IT:HART:C3:221,23,146,"Node: 23 Turnout: 3 | OU: 1 Ports: 7,8","Switch 221A, Switch 221B",
-3,CP 223,turnout,Switch 223,M2T2208,IT:HART:C3:223,22,147,"Node: 22 Turnout: 0 | OU: 1 Ports: 1,2",Switch 223*,
+3,CP 223,turnout,Switch 223,M2T2208,IT:HART:C3:223,22,147,"Node: 22 Turnout: 0 | OU: 1 Ports: 1,2",Switch 223,
 3,CP 225,turnout,Switch 225,M2T2108,IT:HART:C3:225,21,148,"Node: 21 Turnout: 0 | OU: 1 Ports: 1,2",Switch 225,
 3,CP 225,turnout,Switch 227,M2T2109,IT:HART:C3:227,21,149,"Node: 21 Turnout: 1 | OU: 1 Ports: 3,4",Switch 227,
 3,CP 225,turnout,Switch 229,M2T2110,IT:HART:C3:229,21,150,"Node: 21 Turnout: 2 | OU: 1 Ports: 5,6",Switch 229,
@@ -326,54 +326,54 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,,block,OS Switch 241,,,,,Helix,OS Switch 241,no detector: off the main line
 3,,block,OS Switch 243,,,,,Helix,OS Switch 243,no detector: off the main line
 3,,block,OS Switch 245,,,,,Helix,OS Switch 245,no detector: off the main line
-3,CP 127,block,Track 127-131 2,,,,,CP 127,Track e67,"11.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 127,block,Track 127-221,,,,,CP 127 / CP 201,Track e75,521.9 cm
-3,CP 127,block,Track 131-H2,,,,,CP 127,Track e68+e81,427.1 cm
-3,CP 201,block,Track 201-203,,,,,CP 201,Track e60,"11.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 201-205,,,,,CP 201,Track e61,"22.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 201-219,,,,,CP 201,Track e59,"23.1 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 203-207,,,,,CP 201,Track e56,145.0 cm no detector: off the main line
-3,CP 201,block,Track 203-211,,,,,CP 201 / CP 211,Track e69,283.2 cm
-3,,block,Track 205 Spur,,,,,,Track e89,88.9 cm no detector: off the main line
-3,,block,Track 205-209,,,,,,Track e85,"10.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 211,block,Track 207-211,,,,,CP 211,Track e57,86.2 cm no detector: off the main line
-3,,block,Track 207-213,,,,,,Track e58,73.3 cm no detector: off the main line
-3,,block,Track 209 Spur 1,,,,,,Track e87,170.4 cm no detector: off the main line
-3,,block,Track 209 Spur 2,,,,,,Track e86,180.4 cm no detector: off the main line
-3,CP 211,block,Track 211-217 1,,,,,CP 211 / CP 217,Track e73,278.4 cm no detector: off the main line
-3,CP 211,block,Track 211-217 2,,,,,CP 211 / CP 217,Track e79,234.4 cm
-3,,block,Track 213 Spur,,,,,,Track e88,139.0 cm no detector: off the main line
-3,,block,Track 213-215,,,,,,Track e82,"14.2 cm short link: inside the OS blocks of its switches, no detector"
-3,,block,Track 215 Spur 1,,,,,,Track e84,97.9 cm no detector: off the main line
-3,,block,Track 215 Spur 2,,,,,,Track e83,91.5 cm no detector: off the main line
-3,CP 201,block,Track 217-219,,,,,CP 201 / CP 217,Track e77,163.2 cm no detector: off the main line
-3,CP 201,block,Track 217-221,,,,,CP 201 / CP 217,Track e76,238.2 cm
-3,CP 201,block,Track 219-221,,,,,CP 201,Track e70,"11.7 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 201,block,Track 221-223,,,,,CP 201 / CP 223,Track e71b,659.6 cm
-3,CP 223,block,Track 223-225 1,,,,,CP 223 / CP 225,Track e71a,292 cm
-3,CP 223,block,Track 223-225 2,,,,,CP 223 / CP 225,Track e80,292.1 cm
-3,CP 225,block,Track 225-227,,,,,CP 225,Track e66,"17.8 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 225,block,Track 225-229,,,,,CP 225,Track e62,"17.8 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 225,block,Track 227-231,,,,,CP 225,Track e49,"20.6 cm short link: inside the OS blocks of its switches, no detector"
-3,CP 225,block,Track 227-241 1,,,,,CP 225,Track e64 1,"259.3 cm, half 1 of the split track (split_tracks_main_upper.csv)"
-3,CP 225,block,Track 227-241 2,,,,,CP 225,Track e64 2,"259.3 cm, half 2 of the split track (split_tracks_main_upper.csv)"
-3,CP 225,block,Track 229-233,,,,,CP 225,Track e38,48.3 cm no detector: off the main line
-3,CP 225,block,Track 229-241,,,,,CP 225,Track e63,77.6 cm
-3,,block,Track 231 Spur,,,,,,Track e50,157.2 cm no detector: off the main line
-3,,block,Track 231-237,,,,,,Track e43,39.6 cm no detector: off the main line
-3,,block,Track 233-235,,,,,,Track e40,75.9 cm no detector: off the main line
-3,,block,Track 233-243,,,,,,Track e39,117.6 cm no detector: off the main line
-3,,block,Track 235 Spur,,,,,,Track e52,88.0 cm no detector: off the main line
-3,,block,Track 235-243,,,,,,Track e51,"10.5 cm short link: inside the OS blocks of its switches, no detector"
-3,,block,Track 237-239,,,,,,Track e44,"15.2 cm short link: inside the OS blocks of its switches, no detector"
-3,,block,Track 237-245,,,,,,Track e45,92.1 cm no detector: off the main line
-3,,block,Track 239 Spur,,,,,,Track e54,111.3 cm no detector: off the main line
-3,,block,Track 239-245,,,,,,Track e46,45.9 cm no detector: off the main line
-3,,block,Track 241 Spur,,,,,,Track e65,97.1 cm no detector: off the main line
-3,,block,Track 243 Spur 1,,,,,,Track e41,35.4 cm no detector: off the main line
-3,,block,Track 243 Spur 2,,,,,,Track e55,56.3 cm no detector: off the main line
-3,,block,Track 245 Spur 1,,,,,,Track e53,33.2 cm no detector: off the main line
-3,,block,Track 245 Spur 2,,,,,,Track e47,54.4 cm no detector: off the main line
+3,CP 127,block,Track 127-131 2,,,,,CP 127,Track e66,"11.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 127,block,Track 127-221,,,,,CP 127 / CP 201,Track e73,521.3 cm
+3,CP 127,block,Track 131-H2,,,,,CP 127,Track e89,690.7 cm
+3,CP 201,block,Track 201-203,,,,,CP 201,Track e59,"11.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 201-205,,,,,CP 201,Track e60,"22.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 201-219,,,,,CP 201,Track e58,"23.1 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 203-207,,,,,CP 201,Track e55,144.8 cm no detector: off the main line
+3,CP 201,block,Track 203-211,,,,,CP 201 / CP 211,Track e67,282.8 cm
+3,,block,Track 205 Spur,,,,,,Track e87,88.8 cm no detector: off the main line
+3,,block,Track 205-209,,,,,,Track e83,"10.6 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 211,block,Track 207-211,,,,,CP 211,Track e56,86.1 cm no detector: off the main line
+3,,block,Track 207-213,,,,,,Track e57,73.2 cm no detector: off the main line
+3,,block,Track 209 Spur 1,,,,,,Track e85,170.2 cm no detector: off the main line
+3,,block,Track 209 Spur 2,,,,,,Track e84,180.2 cm no detector: off the main line
+3,CP 211,block,Track 211-217 1,,,,,CP 211 / CP 217,Track e71,278.0 cm no detector: off the main line
+3,CP 211,block,Track 211-217 2,,,,,CP 211 / CP 217,Track e77,234.1 cm
+3,,block,Track 213 Spur,,,,,,Track e86,138.8 cm no detector: off the main line
+3,,block,Track 213-215,,,,,,Track e80,"14.2 cm short link: inside the OS blocks of its switches, no detector"
+3,,block,Track 215 Spur 1,,,,,,Track e82,97.8 cm no detector: off the main line
+3,,block,Track 215 Spur 2,,,,,,Track e81,91.4 cm no detector: off the main line
+3,CP 201,block,Track 217-219,,,,,CP 201 / CP 217,Track e75,163.0 cm no detector: off the main line
+3,CP 201,block,Track 217-221,,,,,CP 201 / CP 217,Track e74,237.9 cm
+3,CP 201,block,Track 219-221,,,,,CP 201,Track e68,"11.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 201,block,Track 221-223,,,,,CP 201 / CP 223,Track e69,638.7 cm
+3,CP 223,block,Track 223-225 1,,,,,CP 223 / CP 225,Track e79,300.1 cm
+3,CP 223,block,Track 223-225 2,,,,,CP 223 / CP 225,Track e78,302.0 cm
+3,CP 225,block,Track 225-227,,,,,CP 225,Track e65,"17.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 225,block,Track 225-229,,,,,CP 225,Track e61,"17.7 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 225,block,Track 227-231,,,,,CP 225,Track e48,"20.6 cm short link: inside the OS blocks of its switches, no detector"
+3,CP 225,block,Track 227-241 1,,,,,CP 225,Track e63 1,"259.0 cm, half 1 of the split track (split_tracks_main_upper.csv)"
+3,CP 225,block,Track 227-241 2,,,,,CP 225,Track e63 2,"259.0 cm, half 2 of the split track (split_tracks_main_upper.csv)"
+3,CP 225,block,Track 229-233,,,,,CP 225,Track e37,48.2 cm no detector: off the main line
+3,CP 225,block,Track 229-241,,,,,CP 225,Track e62,77.5 cm
+3,,block,Track 231 Spur,,,,,,Track e49,157.0 cm no detector: off the main line
+3,,block,Track 231-237,,,,,,Track e42,39.5 cm no detector: off the main line
+3,,block,Track 233-235,,,,,,Track e39,75.9 cm no detector: off the main line
+3,,block,Track 233-243,,,,,,Track e38,117.5 cm no detector: off the main line
+3,,block,Track 235 Spur,,,,,,Track e51,87.9 cm no detector: off the main line
+3,,block,Track 235-243,,,,,,Track e50,"10.5 cm short link: inside the OS blocks of its switches, no detector"
+3,,block,Track 237-239,,,,,,Track e43,"15.2 cm short link: inside the OS blocks of its switches, no detector"
+3,,block,Track 237-245,,,,,,Track e44,91.9 cm no detector: off the main line
+3,,block,Track 239 Spur,,,,,,Track e53,111.2 cm no detector: off the main line
+3,,block,Track 239-245,,,,,,Track e45,45.8 cm no detector: off the main line
+3,,block,Track 241 Spur,,,,,,Track e64,96.9 cm no detector: off the main line
+3,,block,Track 243 Spur 1,,,,,,Track e40,35.4 cm no detector: off the main line
+3,,block,Track 243 Spur 2,,,,,,Track e54,56.2 cm no detector: off the main line
+3,,block,Track 245 Spur 1,,,,,,Track e52,33.2 cm no detector: off the main line
+3,,block,Track 245 Spur 2,,,,,,Track e46,54.3 cm no detector: off the main line
 3,CP 127,occupancy,BS 127-131 2,,IS:HART:C3:B:127-131_2,,,,,no detector planned: dark until decided
 3,CP 127,occupancy,BS 127-221,M2S2304,IS:HART:C3:B:127-221,23,,Node: 23 Block: 5,,
 3,CP 127,occupancy,BS 131-H2,M2S2201,IS:HART:C3:B:131-H2,22,,Node: 22 Block: 2,,

@@ -89,6 +89,14 @@ class Lengths(unittest.TestCase):
                                    "Track EH-1,Block 13-7, 24 ,estimate,\nTrack X,Block 9-9,,estimate,\n"),
                          {"S-1": 212.0, "EH-1": 24.0})
 
+    def test_helix_tracks_keep_the_plans_share(self) -> None:
+        """A helix track's block covers the whole run; the sheet keeps each level's share from the plan cut."""
+        got = self.read("Track McKees Rocks,BS Switch 39,947.2,plan,\nTrack S-1,Block 2-7,212,assigned,\n")
+        self.assertEqual(got, {"S-1": 212.0})
+        self.assertEqual(PD.helix_tracks({"edits": [{"op": "end", "ends": [["T55", "B", "McKees Rocks", "helix", "M"],
+                                                                         ["T45", "B", "W-1", "bumper", ""]]}]}),
+                         {"McKees Rocks"})
+
     def test_bad_rows_stop(self) -> None:
         """hartlib.railroad.read_block_lengths reads the file: a bad row stops, naming the file and line."""
         with self.assertRaisesRegex(SystemExit, r"^block_lengths.csv line 2: inches '~24' is not a number"):
@@ -298,11 +306,12 @@ class Inputs(unittest.TestCase):
                 self.assertLess(max(abs(e[k]) for k in "xyz"), 5000)
                 self.assertTrue(abs(e["x"]) > 1e-6 or abs(e["y"]) > 1e-6, "endpoint at the origin: corrupt read")
 
-    def test_only_the_misread_turnout_is_short(self) -> None:
-        """Part 0's third end point is unreadable in the .any file; any other turnout short of three is new."""
+    def test_no_turnout_is_short(self) -> None:
+        """tools/anyrail/anyplan.py reads every turnout's three end points (the old reader lost part 0's in 5.3b): a
+        turnout part with fewer is a misread."""
         parts = json.loads((PD.GRAPHS / "parts.json").read_text())
         turnouts = {p["name"] for p in parts if len(p["eps"]) >= 3}
-        self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [0])
+        self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [])
 
 class StationSheets(unittest.TestCase):
     """docs/ops/stations follows the drawn station sheets exactly: changed, missing and dropped sheets all differ."""

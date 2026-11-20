@@ -3,7 +3,7 @@
   "file": "LCOS_Layout_Inventory_v86.xlsx",
   "version": "v86",
   "modified": "2026-11-20",
-  "built": "2026-11-19"
+  "built": "2026-11-20"
  },
  "nodes": [
   {
@@ -9888,7 +9888,7 @@
    "turnout": "Switch 223",
    "node": "C22",
    "area": "CP 223 (North - Upper)",
-   "elements": "Switch 223*",
+   "elements": "Switch 223",
    "motorN": "C22-OU1-1",
    "motorR": "C22-OU1-2",
    "fbN": "C22-IN1-1",
@@ -10861,7 +10861,7 @@
    "detector": "C21-B2",
    "channel": "2",
    "block": "Track 229-241",
-   "track": "Track e63",
+   "track": "Track e62",
    "area": "Helix - Upper",
    "note": "Block 21-4 / M2S2103"
   },
@@ -10881,7 +10881,7 @@
    "detector": "C22-B1",
    "channel": "2",
    "block": "Track 131-H2",
-   "track": "Track e68+e81",
+   "track": "Track e89",
    "area": "North - Upper",
    "note": "Block 22-2 / M2S2201"
   },
@@ -10891,7 +10891,7 @@
    "detector": "C22-B2",
    "channel": "1",
    "block": "Track 223-225 1",
-   "track": "Track e71a",
+   "track": "Track e79",
    "area": "North - Upper",
    "note": "Block 22-3 / M2S2202"
   },
@@ -10901,7 +10901,7 @@
    "detector": "C22-B2",
    "channel": "2",
    "block": "Track 223-225 2",
-   "track": "Track e80",
+   "track": "Track e78",
    "area": "North - Upper",
    "note": "Block 22-4 / M2S2203"
   },
@@ -10951,7 +10951,7 @@
    "detector": "C23-B3",
    "channel": "1",
    "block": "Track 127-221",
-   "track": "Track e75",
+   "track": "Track e73",
    "area": "West - Upper",
    "note": "Block 23-5 / M2S2304"
   },
@@ -10961,7 +10961,7 @@
    "detector": "C23-B3",
    "channel": "2",
    "block": "Track 203-211",
-   "track": "Track e69",
+   "track": "Track e67",
    "area": "West - Upper",
    "note": "Block 23-6 / M2S2305"
   },
@@ -10971,7 +10971,7 @@
    "detector": "C23-B4",
    "channel": "1",
    "block": "Track 221-223",
-   "track": "Track e71b",
+   "track": "Track e69",
    "area": "West - Upper",
    "note": "Block 23-7 / M2S2306"
   },
@@ -11001,7 +11001,7 @@
    "detector": "C24-B2",
    "channel": "1",
    "block": "Track 211-217 2",
-   "track": "Track e79",
+   "track": "Track e77",
    "area": "Peninsula - Upper",
    "note": "Block 24-3 / M2S2402"
   },
@@ -11011,7 +11011,7 @@
    "detector": "C24-B2",
    "channel": "2",
    "block": "Track 217-221",
-   "track": "Track e76",
+   "track": "Track e74",
    "area": "Peninsula - Upper",
    "note": "Block 24-4 / M2S2403"
   },
@@ -11101,7 +11101,7 @@
    "detector": "C41-B1",
    "channel": "1",
    "block": "Track 227-241 1",
-   "track": "Track e64 1",
+   "track": "Track e63 1",
    "area": "Helix - Upper",
    "note": "Block 41-1 / M2S4100"
   },
@@ -11161,7 +11161,7 @@
    "detector": "C42-B3",
    "channel": "2",
    "block": "Track 127-131 1",
-   "track": "Track e35",
+   "track": "Track e34",
    "area": "North - Main",
    "note": "Block 42-6 / M2S4205"
   },
@@ -11171,7 +11171,7 @@
    "detector": "C42-B4",
    "channel": "1",
    "block": "Track 131-H1",
-   "track": "Track e34",
+   "track": "Track e88",
    "area": "North - Main",
    "note": "Block 42-7 / M2S4206"
   }

@@ -1,8 +1,33 @@
 {
  "nodes": {
+  "TOL34519": {
+   "kind": "switch",
+   "label": "T33",
+   "xy": [
+    704.62,
+    2433.65
+   ],
+   "district": "Staging Level",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     0.9999999342673052,
+     0.00036258155703014196
+    ],
+    "B": [
+     -0.9999999342673052,
+     -0.00036258155703014196
+    ],
+    "C": [
+     -0.9769969780331146,
+     0.21325314748946061
+    ]
+   },
+   "z": -38.1
+  },
   "TOL28902": {
    "kind": "switch",
-   "label": "T59",
+   "label": "T40",
    "xy": [
     1965.68,
     631.85
@@ -27,7 +52,7 @@
   },
   "TOL33902": {
    "kind": "switch",
-   "label": "T46",
+   "label": "T45",
    "xy": [
     84.24,
     2370.63
@@ -52,7 +77,7 @@
   },
   "TOR28939": {
    "kind": "switch",
-   "label": "T52",
+   "label": "T49",
    "xy": [
     114.59,
     2036.69
@@ -75,34 +100,9 @@
    },
    "z": -38.1
   },
-  "TOL29415": {
-   "kind": "switch",
-   "label": "T43",
-   "xy": [
-    84.44,
-    1709.88
-   ],
-   "district": "Staging Level",
-   "hand": -1,
-   "dirs": {
-    "A": [
-     0.0,
-     -1.0
-    ],
-    "B": [
-     0.0,
-     1.0
-    ],
-    "C": [
-     0.2135912404774442,
-     0.9769231197956708
-    ]
-   },
-   "z": -38.1
-  },
   "TOL29967": {
    "kind": "switch",
-   "label": "T55",
+   "label": "T54",
    "xy": [
     1983.43,
     1551.98
@@ -127,7 +127,7 @@
   },
   "TOL29312": {
    "kind": "switch",
-   "label": "T56",
+   "label": "T55",
    "xy": [
     1873.24,
     1552.1
@@ -150,34 +150,9 @@
    },
    "z": -38.1
   },
-  "TOL29416": {
-   "kind": "switch",
-   "label": "T41",
-   "xy": [
-    114.59,
-    1856.25
-   ],
-   "district": "Staging Level",
-   "hand": -1,
-   "dirs": {
-    "A": [
-     0.0,
-     1.0
-    ],
-    "B": [
-     0.0,
-     -1.0
-    ],
-    "C": [
-     -0.2135912404774442,
-     -0.9769231197956708
-    ]
-   },
-   "z": -38.1
-  },
   "TOR29391": {
    "kind": "switch",
-   "label": "T58",
+   "label": "T57",
    "xy": [
     1638.86,
     601.71
@@ -202,7 +177,7 @@
   },
   "TOR28908": {
    "kind": "switch",
-   "label": "T68",
+   "label": "T65",
    "xy": [
     1430.98,
     724.2
@@ -227,7 +202,7 @@
   },
   "TOL28940": {
    "kind": "switch",
-   "label": "T133",
+   "label": "T71",
    "xy": [
     147.38,
     1857.93
@@ -252,7 +227,7 @@
   },
   "TOL28944": {
    "kind": "switch",
-   "label": "T123",
+   "label": "T73",
    "xy": [
     206.94,
     1502.0
@@ -277,7 +252,7 @@
   },
   "TOR29969": {
    "kind": "switch",
-   "label": "T129",
+   "label": "T78",
    "xy": [
     1923.6,
     1522.6
@@ -302,7 +277,7 @@
   },
   "TOR28903": {
    "kind": "switch",
-   "label": "T94",
+   "label": "T84",
    "xy": [
     1786.91,
     664.64
@@ -327,7 +302,7 @@
   },
   "TOL29970": {
    "kind": "switch",
-   "label": "T98",
+   "label": "T95",
    "xy": [
     2124.48,
     1522.6
@@ -352,7 +327,7 @@
   },
   "TOL28942": {
    "kind": "switch",
-   "label": "T73",
+   "label": "T96",
    "xy": [
     177.16,
     1679.96
@@ -377,7 +352,7 @@
   },
   "TOL29277": {
    "kind": "switch",
-   "label": "T77",
+   "label": "T106",
    "xy": [
     2138.73,
     632.35
@@ -402,7 +377,7 @@
   },
   "TOR28906": {
    "kind": "switch",
-   "label": "T95",
+   "label": "T109",
    "xy": [
     1608.95,
     694.42
@@ -427,7 +402,7 @@
   },
   "TOL34057": {
    "kind": "switch",
-   "label": "T106",
+   "label": "T114",
    "xy": [
     392.92,
     3053.22
@@ -452,7 +427,7 @@
   },
   "TOL34067": {
    "kind": "switch",
-   "label": "T116",
+   "label": "T124",
    "xy": [
     84.32,
     2140.25
@@ -477,7 +452,7 @@
   },
   "TOR29392": {
    "kind": "switch",
-   "label": "T118",
+   "label": "T126",
    "xy": [
     1785.24,
     631.85
@@ -500,7 +475,107 @@
    },
    "z": -38.1
   },
-  "END:EB390": {
+  "TOL34511": {
+   "kind": "switch",
+   "label": "T135",
+   "xy": [
+    146.46,
+    2246.31
+   ],
+   "district": "Staging Level",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.30923455374686315,
+     -0.9509857994570573
+    ],
+    "B": [
+     0.30923455374686315,
+     0.9509857994570573
+    ],
+    "C": [
+     0.47509264873120244,
+     0.8799357789756991
+    ]
+   },
+   "z": -38.1
+  },
+  "TOL34513": {
+   "kind": "switch",
+   "label": "T136",
+   "xy": [
+    517.39,
+    2546.44
+   ],
+   "district": "Staging Level",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.9861675372232932,
+     -0.16575158680068416
+    ],
+    "B": [
+     0.9861675372232932,
+     0.16575158680068416
+    ],
+    "C": [
+     0.9988211663700581,
+     -0.0485415040059194
+    ]
+   },
+   "z": -38.1
+  },
+  "TOL34512": {
+   "kind": "switch",
+   "label": "T137",
+   "xy": [
+    290.02,
+    2464.27
+   ],
+   "district": "Staging Level",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -0.7408848275806821,
+     -0.6716320959131891
+    ],
+    "B": [
+     0.7408848275806821,
+     0.6716320959131891
+    ],
+    "C": [
+     0.8496775792805619,
+     0.5273025803729053
+    ]
+   },
+   "z": -38.1
+  },
+  "TOL34527": {
+   "kind": "switch",
+   "label": "T139",
+   "xy": [
+    555.44,
+    2463.86
+   ],
+   "district": "Staging Level",
+   "hand": -1,
+   "dirs": {
+    "A": [
+     -1.0,
+     0.0
+    ],
+    "B": [
+     1.0,
+     0.0
+    ],
+    "C": [
+     0.9769069517148596,
+     -0.2136651765992315
+    ]
+   },
+   "z": -38.1
+  },
+  "END:EB418": {
    "kind": "end",
    "sub": "bumper",
    "label": "",
@@ -509,7 +584,7 @@
     3688.7
    ]
   },
-  "END:EB387": {
+  "END:EB415": {
    "kind": "end",
    "sub": "bumper",
    "label": "",
@@ -518,33 +593,62 @@
     3689.63
    ]
   },
-  "END:EB386": {
+  "END:EB421": {
    "kind": "end",
    "sub": "bumper",
    "label": "",
    "xy": [
-    1431.78,
-    1407.79
+    934.91,
+    2575.02
    ]
   },
-  "END:EB385": {
+  "END:EB419": {
    "kind": "end",
    "sub": "bumper",
    "label": "",
    "xy": [
-    1403.29,
-    1418.62
+    935.09,
+    2543.98
    ]
+  },
+  "END:EB420": {
+   "kind": "end",
+   "sub": "bumper",
+   "label": "",
+   "xy": [
+    935.15,
+    2607.03
+   ]
+  },
+  "CUT:T55": {
+   "kind": "end",
+   "label": "",
+   "xy": [
+    1813.24,
+    1552.1
+   ],
+   "district": "Staging Level",
+   "cut": -5.0
+  },
+  "CUT:T78": {
+   "kind": "end",
+   "label": "",
+   "xy": [
+    1863.6,
+    1522.6
+   ],
+   "district": "Staging Level",
+   "cut": -5.0
   }
  },
  "edges": [
   {
-   "u": "TOL28902",
+   "u": "TOL34519",
    "up": "A",
-   "v": "TOL29277",
+   "v": "TOL34057",
    "vp": "B",
    "names": [],
-   "cm": 25.0,
+   "cm": 378.5,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -552,12 +656,12 @@
    "id": "e0"
   },
   {
-   "u": "TOL28902",
+   "u": "TOL34519",
    "up": "B",
-   "v": "TOR29392",
-   "vp": "A",
+   "v": "TOL29277",
+   "vp": "C",
    "names": [],
-   "cm": 26.5,
+   "cm": 773.6,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -565,12 +669,12 @@
    "id": "e1"
   },
   {
-   "u": "TOL28902",
+   "u": "TOL34519",
    "up": "C",
-   "v": "TOR28903",
-   "vp": "A",
+   "v": "TOL34527",
+   "vp": "C",
    "names": [],
-   "cm": 26.7,
+   "cm": 20.2,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -578,12 +682,12 @@
    "id": "e2"
   },
   {
-   "u": "TOL33902",
+   "u": "TOL28902",
    "up": "A",
-   "v": "TOL34067",
+   "v": "TOL29277",
    "vp": "B",
    "names": [],
-   "cm": 37.1,
+   "cm": 24.9,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -591,12 +695,12 @@
    "id": "e3"
   },
   {
-   "u": "TOL33902",
+   "u": "TOL28902",
    "up": "B",
-   "v": "END:EB390",
-   "vp": "E",
+   "v": "TOR29392",
+   "vp": "A",
    "names": [],
-   "cm": 273.2,
+   "cm": 26.4,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -604,12 +708,12 @@
    "id": "e4"
   },
   {
-   "u": "TOL33902",
+   "u": "TOL28902",
    "up": "C",
-   "v": "END:EB387",
-   "vp": "E",
+   "v": "TOR28903",
+   "vp": "A",
    "names": [],
-   "cm": 273.8,
+   "cm": 26.6,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -617,12 +721,12 @@
    "id": "e5"
   },
   {
-   "u": "TOR28939",
+   "u": "TOL33902",
    "up": "A",
-   "v": "TOL34057",
-   "vp": "C",
+   "v": "TOL34067",
+   "vp": "B",
    "names": [],
-   "cm": 529.0,
+   "cm": 36.9,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -630,12 +734,12 @@
    "id": "e6"
   },
   {
-   "u": "TOR28939",
+   "u": "TOL33902",
    "up": "B",
-   "v": "TOL29416",
-   "vp": "A",
+   "v": "END:EB418",
+   "vp": "E",
    "names": [],
-   "cm": 26.5,
+   "cm": 272.1,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -643,12 +747,12 @@
    "id": "e7"
   },
   {
-   "u": "TOR28939",
+   "u": "TOL33902",
    "up": "C",
-   "v": "TOL28940",
-   "vp": "A",
+   "v": "END:EB415",
+   "vp": "E",
    "names": [],
-   "cm": 26.7,
+   "cm": 272.7,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -656,12 +760,12 @@
    "id": "e8"
   },
   {
-   "u": "TOL29415",
+   "u": "TOR28939",
    "up": "A",
-   "v": "TOR29391",
+   "v": "TOL34511",
    "vp": "A",
    "names": [],
-   "cm": 491.0,
+   "cm": 32.2,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -669,12 +773,12 @@
    "id": "e9"
   },
   {
-   "u": "TOL29415",
+   "u": "TOR28939",
    "up": "B",
-   "v": "TOL34067",
-   "vp": "A",
+   "v": "TOR29392",
+   "vp": "B",
    "names": [],
-   "cm": 79.4,
+   "cm": 579.9,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -682,12 +786,12 @@
    "id": "e10"
   },
   {
-   "u": "TOL29415",
+   "u": "TOR28939",
    "up": "C",
-   "v": "TOL29416",
-   "vp": "C",
+   "v": "TOL28940",
+   "vp": "A",
    "names": [],
-   "cm": 19.7,
+   "cm": 26.6,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -713,7 +817,7 @@
    "v": "TOR29391",
    "vp": "B",
    "names": [],
-   "cm": 416.7,
+   "cm": 415.1,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -726,7 +830,7 @@
    "v": "TOL29970",
    "vp": "C",
    "names": [],
-   "cm": 18.6,
+   "cm": 18.5,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -735,11 +839,11 @@
   },
   {
    "u": "TOL29312",
-   "up": "B",
-   "v": "END:EB386",
-   "vp": "E",
+   "up": "C",
+   "v": "TOR29969",
+   "vp": "C",
    "names": [],
-   "cm": 937.8,
+   "cm": 605.0,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -747,12 +851,12 @@
    "id": "e15"
   },
   {
-   "u": "TOL29312",
-   "up": "C",
-   "v": "TOR29969",
-   "vp": "C",
+   "u": "TOR29391",
+   "up": "A",
+   "v": "TOL34067",
+   "vp": "A",
    "names": [],
-   "cm": 607.4,
+   "cm": 579.8,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -760,12 +864,12 @@
    "id": "e16"
   },
   {
-   "u": "TOL29416",
-   "up": "B",
+   "u": "TOR29391",
+   "up": "C",
    "v": "TOR29392",
-   "vp": "B",
+   "vp": "C",
    "names": [],
-   "cm": 544.0,
+   "cm": 19.6,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -773,12 +877,12 @@
    "id": "e17"
   },
   {
-   "u": "TOR29391",
-   "up": "C",
-   "v": "TOR29392",
-   "vp": "C",
+   "u": "TOR28908",
+   "up": "A",
+   "v": "TOR28906",
+   "vp": "B",
    "names": [],
-   "cm": 19.7,
+   "cm": 26.4,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -787,11 +891,11 @@
   },
   {
    "u": "TOR28908",
-   "up": "A",
-   "v": "TOR28906",
+   "up": "B",
+   "v": "TOL28944",
    "vp": "B",
    "names": [],
-   "cm": 26.5,
+   "cm": 357.6,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -800,11 +904,11 @@
   },
   {
    "u": "TOR28908",
-   "up": "B",
+   "up": "C",
    "v": "TOL28944",
-   "vp": "B",
+   "vp": "C",
    "names": [],
-   "cm": 359.0,
+   "cm": 365.4,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -812,12 +916,12 @@
    "id": "e20"
   },
   {
-   "u": "TOR28908",
-   "up": "C",
-   "v": "TOL28944",
-   "vp": "C",
+   "u": "TOL28940",
+   "up": "B",
+   "v": "TOL28942",
+   "vp": "A",
    "names": [],
-   "cm": 366.8,
+   "cm": 26.4,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -826,11 +930,11 @@
   },
   {
    "u": "TOL28940",
-   "up": "B",
-   "v": "TOL28942",
-   "vp": "A",
+   "up": "C",
+   "v": "TOR28903",
+   "vp": "C",
    "names": [],
-   "cm": 26.5,
+   "cm": 533.3,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -838,12 +942,12 @@
    "id": "e22"
   },
   {
-   "u": "TOL28940",
-   "up": "C",
-   "v": "TOR28903",
-   "vp": "C",
+   "u": "TOL28944",
+   "up": "A",
+   "v": "TOL28942",
+   "vp": "B",
    "names": [],
-   "cm": 535.5,
+   "cm": 26.4,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -851,12 +955,12 @@
    "id": "e23"
   },
   {
-   "u": "TOL28944",
+   "u": "TOR29969",
    "up": "A",
-   "v": "TOL28942",
+   "v": "TOL29970",
    "vp": "B",
    "names": [],
-   "cm": 26.5,
+   "cm": 30.7,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -864,12 +968,12 @@
    "id": "e24"
   },
   {
-   "u": "TOR29969",
-   "up": "A",
-   "v": "TOL29970",
-   "vp": "B",
+   "u": "TOR28903",
+   "up": "B",
+   "v": "TOR28906",
+   "vp": "A",
    "names": [],
-   "cm": 30.8,
+   "cm": 26.4,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -877,12 +981,12 @@
    "id": "e25"
   },
   {
-   "u": "TOR29969",
-   "up": "B",
-   "v": "END:EB385",
-   "vp": "E",
+   "u": "TOL29970",
+   "up": "A",
+   "v": "TOL29277",
+   "vp": "A",
    "names": [],
-   "cm": 886.4,
+   "cm": 262.0,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -890,12 +994,12 @@
    "id": "e26"
   },
   {
-   "u": "TOR28903",
-   "up": "B",
+   "u": "TOL28942",
+   "up": "C",
    "v": "TOR28906",
-   "vp": "A",
+   "vp": "C",
    "names": [],
-   "cm": 26.5,
+   "cm": 449.3,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -903,12 +1007,12 @@
    "id": "e27"
   },
   {
-   "u": "TOL29970",
+   "u": "TOL34057",
    "up": "A",
-   "v": "TOL29277",
-   "vp": "A",
+   "v": "TOL34067",
+   "vp": "C",
    "names": [],
-   "cm": 263.1,
+   "cm": 194.7,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -916,12 +1020,12 @@
    "id": "e28"
   },
   {
-   "u": "TOL28942",
+   "u": "TOL34057",
    "up": "C",
-   "v": "TOR28906",
-   "vp": "C",
+   "v": "TOL34527",
+   "vp": "B",
    "names": [],
-   "cm": 451.1,
+   "cm": 389.8,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -929,12 +1033,12 @@
    "id": "e29"
   },
   {
-   "u": "TOL29277",
-   "up": "C",
-   "v": "TOL34057",
-   "vp": "B",
+   "u": "TOL34511",
+   "up": "B",
+   "v": "TOL34512",
+   "vp": "A",
    "names": [],
-   "cm": 1168.4,
+   "cm": 42.0,
    "link": false,
    "main": false,
    "district": "Staging Level",
@@ -942,17 +1046,95 @@
    "id": "e30"
   },
   {
-   "u": "TOL34057",
-   "up": "A",
-   "v": "TOL34067",
-   "vp": "C",
+   "u": "TOL34511",
+   "up": "C",
+   "v": "TOL34527",
+   "vp": "A",
    "names": [],
-   "cm": 195.5,
+   "cm": 92.1,
    "link": false,
    "main": false,
    "district": "Staging Level",
    "hidden": false,
    "id": "e31"
+  },
+  {
+   "u": "TOL34513",
+   "up": "A",
+   "v": "TOL34512",
+   "vp": "C",
+   "names": [],
+   "cm": 38.7,
+   "link": false,
+   "main": false,
+   "district": "Staging Level",
+   "hidden": false,
+   "id": "e32"
+  },
+  {
+   "u": "TOL34513",
+   "up": "B",
+   "v": "END:EB421",
+   "vp": "E",
+   "names": [],
+   "cm": 82.5,
+   "link": false,
+   "main": false,
+   "district": "Staging Level",
+   "hidden": false,
+   "id": "e33"
+  },
+  {
+   "u": "TOL34513",
+   "up": "C",
+   "v": "END:EB419",
+   "vp": "E",
+   "names": [],
+   "cm": 82.1,
+   "link": false,
+   "main": false,
+   "district": "Staging Level",
+   "hidden": false,
+   "id": "e34"
+  },
+  {
+   "u": "TOL34512",
+   "up": "B",
+   "v": "END:EB420",
+   "vp": "E",
+   "names": [],
+   "cm": 136.9,
+   "link": false,
+   "main": false,
+   "district": "Staging Level",
+   "hidden": false,
+   "id": "e35"
+  },
+  {
+   "u": "TOL29312",
+   "up": "B",
+   "v": "CUT:T55",
+   "vp": "E",
+   "names": [],
+   "cm": 1750.2,
+   "link": false,
+   "main": false,
+   "district": "Staging Level",
+   "hidden": false,
+   "id": "e36"
+  },
+  {
+   "u": "TOR29969",
+   "up": "B",
+   "v": "CUT:T78",
+   "vp": "E",
+   "names": [],
+   "cm": 1637.2,
+   "link": false,
+   "main": false,
+   "district": "Staging Level",
+   "hidden": false,
+   "id": "e37"
   }
  ]
 }

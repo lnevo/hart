@@ -8,43 +8,47 @@
  ],
  "min_cells": [
   [
-   "T106",
-   "7a",
+   "T114",
+   "T139",
    5
   ],
   [
-   "T106",
-   "7b",
+   "T114",
+   "T33",
    5
   ],
   [
-   "7a",
+   "T139",
    "13",
    4
   ],
   [
-   "T116",
-   "T106",
+   "T124",
+   "T114",
    9
   ],
   [
-   "T123",
-   "T68",
+   "T73",
+   "T65",
    4,
    "S-3",
    "S-4"
   ],
   [
-   "T77",
-   "T98",
+   "T106",
+   "T95",
    7
   ]
  ],
  "_min_cells_east_lead": "Owner, 2026-11-13: East Lead (33-35) longer so its name and Mast 34L fit; South Yard tracks shorter (6 to 4 cells) to give the length back. Owner, 2026-11-14: Switch 13 to 15 drawn short (one cell, as T274 to T237 on the upper level); the cells go to East Lead (7 cells), which lengthens West Ext beside it.",
+ "turnbacks": [
+  "Brick-Plane"
+ ],
+ "_turnbacks": "Brick-Plane turns back on the sheet, as the owner approved it (2026-11-17). With the plan 5.3c the cheapest drawing turned Main West back instead (2026-11-19), so it is pinned.",
  "shorten": [
   [
    "13",
-   "T52"
+   "T49"
   ]
  ],
  "facing_letters": false,

@@ -210,6 +210,16 @@ def split_edges(path: Path | None = None) -> dict:
         return {r["edge"]: r["track"] for r in csv.DictReader(fh)}
 
 
+def check_split(found: list, split: dict) -> None:
+    """Stop when a row of split_tracks_main_upper.csv names a plan edge that is not its track's: the edge ids change
+    whenever the plan is read again, and a stale one would leave the track whole without a word."""
+    trial = {t["name"]: set(t["trial"]) for t in found}
+    bad = [f"{edge} ({name})" for edge, name in split.items() if f"Track {edge}" not in trial.get(name, set())]
+    if bad:
+        raise MapError(f"{SPLIT.name}: {', '.join(bad)}: the edge is not that track's; give the plan edge the track "
+                       "is drawn on (its trial_name in the device map)")
+
+
 def loop_halves(band, runs, split: dict | None = None) -> dict:
     """{strand id: 1 or 2} for each balloon loop of `band` (a run that leaves a switch and comes back to it), by the
     leg its strand leaves the switch from (LOOP_HALF), and for each track `split` names (split_edges: a run between
@@ -217,10 +227,11 @@ def loop_halves(band, runs, split: dict | None = None) -> dict:
     loop not drawn as two tracks joined by one turnback, or one not on legs B and C, since the halves would then be
     ambiguous."""
     split = split_edges() if split is None else split
-    out = {}
+    out, parted = {}, set()
     for start, chain, end in runs(band):
         edges = {re.sub(r"\.\d+$", "", band["strands"][sid]["edge"]) for sid, _ in chain}
         if start[0] != end[0] and len(edges) == 1 and next(iter(edges)) in split:
+            parted |= edges
             if len(chain) != 2:
                 raise MapError(f"{split[next(iter(edges))]} is drawn as {len(chain)} track(s); a split track needs "
                                "two joined by one turnback")
@@ -236,6 +247,11 @@ def loop_halves(band, runs, split: dict | None = None) -> dict:
                            "joined by one turnback, on legs B and C")
         for (sid, _), (_, port) in zip((chain[0], chain[-1]), (start, end)):
             out[sid] = LOOP_HALF[port]
+    drawn = {re.sub(r"\.\d+$", "", st["edge"]) for st in band["strands"].values()}
+    stale = sorted(e for e in set(split) & drawn - parted)
+    if stale:           # the edge is on this band but not a track between two switches: its id moved
+        raise MapError(f"{SPLIT.name}: {', '.join(f'{e} ({split[e]})' for e in stale)} is not a track folded at "
+                       "its turnback on this band; give the plan edge the track is drawn on")
     return out
 
 
@@ -404,7 +420,9 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     if dxs - set(corners):
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
-    split_names = set(split_edges().values())       # read once per build
+    split = split_edges()                           # read once per build
+    check_split(found, split)
+    split_names = set(split.values())
     ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names,
                joined=joined)
     known = {t["name"] for t in found}

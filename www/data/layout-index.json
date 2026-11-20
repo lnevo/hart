@@ -10,7 +10,7 @@
     "width": 2512,
     "height": 1373,
     "scale": 1.0,
-    "inputs_sha256": "fd0feb1e7afe778286f171018a3bbb56fdf7ad2bc043d2ff3d6e5d36437dfdcc"
+    "inputs_sha256": "208641e06c86d72c9b3dba7e3c7e4d369d92a54e3630fcc119e18207b3a38a50"
   },
   "items": [
     {
@@ -51,45 +51,6 @@
       "mqtt": "1308",
       "comment": "Node: 13 Turnout: 0 | DCC: 117 | OU: 2 Ports: 1,2",
       "block": "OS Switch 7"
-    },
-    {
-      "id": "to-TO11",
-      "kind": "turnout",
-      "x": 914.1,
-      "y": 214.0,
-      "systemName": "Switch 11",
-      "publicName": "Switch 11",
-      "cp": "Engine House",
-      "hardware": "M2T1309",
-      "mqtt": "1309",
-      "comment": "Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4",
-      "block": "OS Switch 11"
-    },
-    {
-      "id": "to-TO1",
-      "kind": "turnout",
-      "x": 951.6,
-      "y": 214.0,
-      "systemName": "Switch 13",
-      "publicName": "Switch 13",
-      "cp": "Engine House",
-      "hardware": "M2T411",
-      "mqtt": "411",
-      "comment": "Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",
-      "block": "OS Switch 13"
-    },
-    {
-      "id": "to-TO10",
-      "kind": "turnout",
-      "x": 839.1,
-      "y": 262.0,
-      "systemName": "Switch 9",
-      "publicName": "Switch 9",
-      "cp": "Engine House",
-      "hardware": "M2T1310",
-      "mqtt": "1310",
-      "comment": "Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6",
-      "block": "OS Switch 9"
     },
     {
       "id": "to-TOL6",
@@ -207,6 +168,45 @@
       "mqtt": "408",
       "comment": "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
       "block": "OS Switch 1"
+    },
+    {
+      "id": "to-TO1",
+      "kind": "turnout",
+      "x": 951.6,
+      "y": 214.0,
+      "systemName": "Switch 13",
+      "publicName": "Switch 13",
+      "cp": "Engine House",
+      "hardware": "M2T411",
+      "mqtt": "411",
+      "comment": "Node: 4 Turnout: 3 | DCC: 116 | OU: 1 Ports: 7,8",
+      "block": "OS Switch 13"
+    },
+    {
+      "id": "to-TO11",
+      "kind": "turnout",
+      "x": 914.1,
+      "y": 214.0,
+      "systemName": "Switch 11",
+      "publicName": "Switch 11",
+      "cp": "Engine House",
+      "hardware": "M2T1309",
+      "mqtt": "1309",
+      "comment": "Node: 13 Turnout: 1 | DCC: 118 | OU: 2 Ports: 3,4",
+      "block": "OS Switch 11"
+    },
+    {
+      "id": "to-TO10",
+      "kind": "turnout",
+      "x": 839.1,
+      "y": 262.0,
+      "systemName": "Switch 9",
+      "publicName": "Switch 9",
+      "cp": "Engine House",
+      "hardware": "M2T1310",
+      "mqtt": "1310",
+      "comment": "Node: 13 Turnout: 2 | DCC: 119 | OU: 2 Ports: 5,6",
+      "block": "OS Switch 9"
     },
     {
       "id": "to-TOR7",
@@ -1992,8 +1992,8 @@
     {
       "id": "sig-87",
       "kind": "signal",
-      "x": 1772.0,
-      "y": 1165.0,
+      "x": 1771.0,
+      "y": 1163.0,
       "systemName": "Mast 228RB",
       "publicName": "Mast 228RB",
       "cp": "",

@@ -1,6 +1,6 @@
 {
  "_layer": 1,
- "_note": "Facts about the railroad that the AnyRail plan 5.3b does not hold or holds wrongly. Every output uses them. Hands and legs of added switches come from the Layout Editor panel in tables.xml (Switch 9: hand L, straight EH-2, diverging EH-3; Switch 11: hand L, straight EH-1, diverging to Switch 9; Switch 13: hand L, its diverging leg to the Barn is the normal route, branch_leg B).",
+ "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Every output uses them. Since 5.3c (owner, 2026-11-19) the plan draws the Switch 7 crossover, Switches 13, 11 and 9 with EH-1 to EH-3, and no crossover T41/T43, all left-hand as built; the helix comes from the plan, cut at -5 cm (tools/anyrail/anyplan.py --cut -5 --stubs).",
  "left_end": "W-1",
  "stations": {
   "Brick": [
@@ -100,184 +100,124 @@
   {
    "op": "relabel",
    "map": {
-    "T46": "3",
-    "T116": "1",
-    "T106": "5",
-    "T52": "15",
-    "T133": "17",
-    "T73": "19",
-    "T123": "21",
-    "T68": "25",
-    "T95": "27",
-    "T94": "29",
-    "T59": "31",
-    "T77": "33",
-    "T58": "23",
-    "T118": "23",
-    "T55": "35",
-    "T98": "35",
-    "T56": "39",
-    "T129": "37"
+    "T45": "3",
+    "T124": "1",
+    "T114": "5",
+    "T49": "15",
+    "T71": "17",
+    "T96": "19",
+    "T73": "21",
+    "T65": "25",
+    "T109": "27",
+    "T84": "29",
+    "T40": "31",
+    "T106": "33",
+    "T57": "23",
+    "T126": "23",
+    "T54": "35",
+    "T95": "35",
+    "T55": "39",
+    "T78": "37",
+    "T33": "7",
+    "T139": "7",
+    "T135": "13",
+    "T137": "11",
+    "T136": "9"
    }
-  },
-  {
-   "op": "remove",
-   "switches": [
-    "T41",
-    "T43"
-   ]
-  },
-  {
-   "op": "crossover",
-   "label": "7",
-   "hand": "L",
-   "sides": [
-    {
-     "on": [
-      "T106",
-      "T52"
-     ],
-     "port": "C",
-     "cm_from_first": 396.9,
-     "points_toward": "T52",
-     "names": [
-      "Scale",
-      null
-     ]
-    },
-    {
-     "on": [
-      "T106",
-      "T77"
-     ],
-     "port": "B",
-     "cm_from_first": 387.0,
-     "points_toward": "T106",
-     "names": [
-      "East Ext",
-      "Main East"
-     ]
-    }
-   ],
-   "source": "owner"
-  },
-  {
-   "op": "switch",
-   "label": "13",
-   "hand": "L",
-   "branch_leg": "B",
-   "on": [
-    "7a",
-    "T52"
-   ],
-   "cm_from_first": 120.8,
-   "points_toward": "T52",
-   "names": [
-    "Barn",
-    null
-   ],
-   "c": {
-    "switch": "11",
-    "hand": "L",
-    "b": {
-     "end": "EH-1"
-    },
-    "c": {
-     "switch": "9",
-     "hand": "L",
-     "b": {
-      "end": "EH-2"
-     },
-     "c": {
-      "end": "EH-3"
-     }
-    }
-   },
-   "source": "owner"
   },
   {
    "op": "name",
    "tracks": [
     [
-     "T116",
-     "T58",
+     "T124",
+     "T57",
      "Main West",
      "main"
     ],
     [
-     "T58",
-     "T55",
+     "T57",
+     "T54",
      "West Ext",
      "main"
     ],
     [
-     "T52",
-     "T118",
+     "T49",
+     "T126",
      "S-R"
     ],
     [
-     "T133",
-     "T94",
+     "T71",
+     "T84",
      "S-1"
     ],
     [
-     "T73",
-     "T95",
+     "T96",
+     "T109",
      "S-2"
     ],
     [
-     "T123",
-     "T68",
+     "T73",
+     "T65",
      "S-4",
      "B"
     ],
     [
-     "T123",
-     "T68",
+     "T73",
+     "T65",
      "S-3",
      "C"
     ],
     [
-     "T77",
-     "T98",
+     "T106",
+     "T95",
      "East Lead",
      "main"
     ],
     [
-     "T116",
-     "T106",
+     "T124",
+     "T114",
      "Brick-Plane",
      "main"
     ],
     [
-     "T56",
-     "T129",
+     "T55",
+     "T78",
      [
       "K-1",
       "K-2"
      ]
     ],
     [
-     "T106",
-     "7b",
+     "T114",
+     "T33",
      "East Ext",
      "main"
     ],
     [
-     "7b",
-     "T77",
+     "T33",
+     "T106",
      "Main East",
      "main"
     ],
     [
+     "T114",
+     "T139",
+     "Scale"
+    ],
+    [
+     "T139",
+     "T135",
+     "Barn"
+    ],
+    [
+     "T54",
      "T55",
-     "T56",
      "",
      "main"
     ],
     [
-     "T98",
-     "T129",
+     "T95",
+     "T78",
      "",
      "main"
     ]
@@ -287,28 +227,49 @@
    "op": "end",
    "ends": [
     [
-     "T46",
+     "T45",
      "B",
      "W-1",
      "bumper",
      ""
     ],
     [
-     "T46",
+     "T45",
      "C",
      "W-2",
      "bumper",
      ""
     ],
     [
-     "T56",
+     "T137",
+     "B",
+     "EH-1",
+     "bumper",
+     ""
+    ],
+    [
+     "T136",
+     "B",
+     "EH-2",
+     "bumper",
+     ""
+    ],
+    [
+     "T136",
+     "C",
+     "EH-3",
+     "bumper",
+     ""
+    ],
+    [
+     "T55",
      "B",
      "McKees Rocks",
      "helix",
      "Main level"
     ],
     [
-     "T129",
+     "T78",
      "B",
      "McKeesport",
      "helix",
@@ -336,11 +297,6 @@
  },
  "_milepost_origin": "Switch 1 is MP 5.7 (owner, 2026-11-19): the P&OV met the P&LE at Neville interlocking, about PLE 5.7 (www/library/chartiers-valley-railroads.html). The count runs east in scale miles and carries on through the helix to the main and upper levels.",
  "scale_ratio": 87.1,
- "helix_length_in": {
-  "McKees Rocks": 588.7,
-  "McKeesport": 724.35
- },
- "_helix_length_in": "From the AnyRail plan 5.3c (owner, 2026-11-19): Switch 39 to 135A is 947.19 in and Switch 37 to 135B is 916.50 in. Each value is that run less what the count already takes from the stubs either side (24 in staging, from track_lengths_in; 334.49 and 168.15 in on the main level, from the 5.3b graph). Recompute when the graphs come from 5.3c.",
  "milepost_route": [
   [
    "1",
@@ -352,10 +308,10 @@
   ],
   [
    "33",
-   "T98"
+   "T95"
   ],
   [
-   "T98",
+   "T95",
    "37"
   ],
   [
@@ -363,7 +319,7 @@
    "McKeesport"
   ],
   [
-   "T98",
+   "T95",
    "39"
   ],
   [
@@ -393,8 +349,6 @@
   "EH-1": 49.0,
   "EH-2": 28.0,
   "EH-3": 28.0,
-  "McKees Rocks": 24.0,
-  "McKeesport": 24.0,
   "S-1 West": 15.748,
   "S-1 East": 15.748,
   "S-2 West": 15.748,
