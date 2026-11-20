@@ -65,14 +65,19 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   switches get a planned detector; yard and industry tracks and the OS blocks of switches in no control point
   get none (their virtual sensor stays, NO_DETECTOR).
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
-  or yard tracks that end at a bumper. "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number
-  and direction has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
+  or yard tracks that end at a bumper, and none where no route the mast would govern reaches another signal (every
+  route ends at a bumper or in dark track: mast_rule.reaches_signal, owner 2026-11-19, which leaves out 125B's mast
+  into Switch 129's spurs). "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number and direction
+  has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
   control point before the next signal (mast_rule.facing_on_route), else one; high (searchlight) facing from running
   track, a dwarf (low) from a yard, lead or siding (owner, 2026-11-19). East is the schematic's (ADR-022 amendment: away from the helix on these levels).
 - LCOS packed IDs are node * 100 + UID (external/lcos-bridge): blocks UID 0-7 (BS, "Node: n Block: k+1"), turnouts
   8-15 (M2T, "Node: n Turnout: k"), signals 32-47 (IH, "Node: n Signal: k"), inputs from 67 (M2S, feedback N then R
   per turnout, "Node: n Sensor: k"). A control point's turnouts stay on one node; switches in no control point
-  follow, area by area.
+  follow, area by area. Heads come last: every two-head mast of every group before any one-head mast, each on the
+  first 5V board with room, so a group's heads may land off its home node, on another node of its area, when the
+  home node is full, and draft head outputs may reshuffle from one build to the next (owner, 2026-11-19: nothing on
+  the main and upper levels is wired yet).
 - DCC addresses continue from staging's last (119): 120 up in switch-number order, main level first (owner,
   2026-11-15). Each turnout also gets its LCC alias "DCC Switch <n>" (MTT<dcc>, same node comment, as staging has).
 """
@@ -333,10 +338,12 @@ class Nodes:
         return 7 if i == 0 and self.used[node]["block"] else 8     # pin 8 of the first 5V board: calibration
 
     def _fit(self, node, pins):
-        """(board index among the node's 5V boards, first pin) where `pins` consecutive pins fit, or None."""
+        """(board index among the node's 5V boards, first pin) where `pins` consecutive pins fit, or None: the first
+        board with room (any of them, not only the last), else a new board while the node has OU room."""
         boards = self.boards.setdefault(node, [])
-        if boards and boards[-1] + pins <= self._cap(node, len(boards) - 1):
-            return len(boards) - 1, boards[-1] + 1
+        for i, used in enumerate(boards):
+            if used + pins <= self._cap(node, i):
+                return i, used + 1
         if self.n12(node) + len(boards) + 1 <= MAX_OU and pins <= self._cap(node, len(boards)):
             return len(boards), 1
         return None
@@ -398,7 +405,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
     split_names = set(split_edges().values())       # read once per build
-    ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names)
+    ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names,
+               joined=joined)
     known = {t["name"] for t in found}
     if (set(running) | set(spurs)) - known:
         raise MapError(f"{RUNNING.name} or {SPURS.name} names a track the plan does not have: "
@@ -520,38 +528,43 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     groups = [(cp.level, cp.area, cp.cp_name, cp.switches[0]) for cp in cps]
     groups += [(loc[s].level, loc[s].area, "", s)
                for s in sorted({m["switch"] for m in ms if not m["cp"] and m["switch"]}, key=natural)]
-    for lv, area, name, first in groups:          # heads last, once every node's boards are known
-        mine = [m for m in ms if m["cp"] == name and (name or m["switch"] == first)]
-        for m in sorted(mine, key=lambda m: natural(m["name"])):
-            parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
-            kind = m["kind"]
-            try:
-                hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
-                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
-                         for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
-                sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
-            except NoBoardRoom:
-                # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
-                # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
-                hnode, sysname = "", ""
-                heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None, None) for part in parts]
-            virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
-            if m.get("intermediate"):
-                add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
-                    notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
-                          f"{m['milepost']:.2f}", jmri=virtual)
-            else:
-                add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
-                    notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                    jmri=virtual)
-            for user, sysn, k, board, pin in heads:
-                if not sysn:                    # no node yet: the mast's comment says where it stands
-                    where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
-                    add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
-                    continue
-                add(lv, name, "head", user, sysn, hnode,
-                    f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
-                    jmri=level_devices.head_name(user))
+    # heads last, once every node's boards are known: each group's masts in name order, but every two-head mast of
+    # every group before any one-head mast (a stable sort), since a two-head mast takes six of a board's eight pins and
+    # a one-head mast placed first would take a board of its own that a two-head mast of the area needs (owner,
+    # 2026-11-19: as many heads placed as the boards hold; the rest wait as HEAD_NOT_WIRED)
+    placing = [(lv, area, name, first, m) for lv, area, name, first in groups
+               for m in sorted((m for m in ms if m["cp"] == name and (name or m["switch"] == first)),
+                               key=lambda m: natural(m["name"]))]
+    for lv, area, name, first, m in sorted(placing, key=lambda g: -g[4]["heads"]):
+        parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
+        kind = m["kind"]
+        try:
+            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
+            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
+                     for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
+            sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
+        except NoBoardRoom:
+            # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
+            # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
+            hnode, sysname = "", ""
+            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None, None) for part in parts]
+        virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
+        if m.get("intermediate"):
+            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
+                notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
+                      f"{m['milepost']:.2f}", jmri=virtual)
+        else:
+            add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
+                notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
+                jmri=virtual)
+        for user, sysn, k, board, pin in heads:
+            if not sysn:                    # no node yet: the mast's comment says where it stands
+                where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
+                add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
+                continue
+            add(lv, name, "head", user, sysn, hnode,
+                f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
+                jmri=level_devices.head_name(user))
     nodes.check_boards()
     check_virtual(rows)
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}

@@ -32,10 +32,11 @@ labels_by_band), staging against the left edge (the plugin's band_align) and the
 candidate holds (the plugin's le_title_clear, with the panel items' bottom under staging as band_bottoms).
 check_staging_unchanged then stops unless the staging candidate is in it unchanged: every bean, every other panel, every
 staging element, but the main and upper objects and the helix joins (the staging helix tracks run on to the main level,
-so their end bumpers become anchors and Masts 38RA and 40RA stand there, protecting Track 135-H2 and Track 135-H1). Main
+so their end bumpers become anchors and Masts 38RA and 40RA stand there, protecting Track 131-H2 and Track 131-H1). Main
 and upper take the device map's names (device_names; a crossover's two halves are one turnout, drawn as one single
-crossover on one level, or as two Layout Editor turnouts on one turnout for 129 and 135, whose halves stand on two
-levels), on internal system names, each block bound to its virtual occupancy sensor (IS:HART:C3:B:<block key>;
+crossover on one level, or as two Layout Editor turnouts on one turnout for 127 and 131, whose halves stand on two
+levels, and for 121 and 125, whose halves the plan joins leg C to leg B; each half is closed on the leg away from its
+other half), on internal system names, each block bound to its virtual occupancy sensor (IS:HART:C3:B:<block key>;
 level_sensors), which a LogixNG sets clear when the tables load (add_level_clear); their track names are the device
 map's block names without "Track ", left out where there is no room (names_last); one block contents icon per block at
 12 px (staging keeps 13; main_upper.preferences.json's le_band_labels).

@@ -315,7 +315,7 @@ class MainAndUpper(unittest.TestCase):
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
         self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
-        self.assertEqual(len(dm.sensors), 126)                  # Track 227-239 is two blocks (APB B92/B93)
+        self.assertEqual(len(dm.sensors), 122)                  # Track 227-241 is two blocks (APB B92/B93)
         self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
         self.assertEqual(len(dm.planned), 35)
         self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
@@ -496,7 +496,37 @@ class LevelSwitches(unittest.TestCase):
     def test_a_crossover_half_whose_thrown_leg_goes_elsewhere_stops(self):
         bands = level_bands()
         bands[1][1]["strands"]["e9"]["dst"] = ("S109", "C")
-        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half whose leg C"):
+        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half the plugin pairs with no other half"):
+            B.level_switch_bindings(bands, level_facts(), 0)
+
+    def test_a_half_with_an_added_branch_is_still_a_half(self):
+        # "119A*": a half with a branch added (the * mark) is checked as a half all the same
+        bands = level_bands()
+        bands[1][1]["nodes"]["X1"]["label"] = "119A*"
+        bands[1][1]["strands"]["e9"]["dst"] = ("S109", "C")
+        with self.assertRaisesRegex(SystemExit, r"switch 119A\*: a crossover half the plugin pairs with no other half"):
+            B.level_switch_bindings(bands, level_facts(), 0)
+
+    def test_a_half_joined_by_its_leg_b_is_closed_on_leg_c(self):
+        # the plan joins 121 and 125's halves leg C to leg B (AnyRail's leg B of T1 and T14 is the diagonal): the
+        # half joined by leg B is thrown on B, so one turnout puts both halves on their through tracks closed
+        bands = level_bands()
+        band = bands[1][1]
+        band["nodes"]["X2"] = node("119B", "T4", {"A": "e7", "B": "e9"}, {"C": "e8"})
+        band["strands"]["e9"] = dict(strand(("X1", "C"), ("X2", "B")), edge="e9", cm=10.7)
+        out = B.level_switch_bindings(bands, level_facts(), 0)
+        self.assertEqual((out["119A"]["normal"], out["119B"]["normal"]), ("B", "C"))
+        self.assertEqual(out["119B"]["routes"]["C"]["ROUTECOMMAND"]["command"], "close")
+        self.assertEqual(out["119B"]["routes"]["B"]["ROUTECOMMAND"]["command"], "throw")
+
+    def test_halves_joined_by_two_tracks_stop_with_the_plugins_reason(self):
+        # a run-around between two lettered halves: the plugin pairs them as no crossover, so the build says why
+        bands = level_bands()
+        band = bands[1][1]
+        band["nodes"]["X2"] = node("119B", "T4", {"A": "e7", "B": "e10"}, {"C": "e9"})
+        band["strands"]["e10"] = dict(strand(("X1", "B"), ("X2", "B")), edge="e10", cm=10.0)
+        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half the plugin pairs with no other half"
+                                                ".*joined by 2 tracks"):
             B.level_switch_bindings(bands, level_facts(), 0)
 
 
@@ -596,8 +626,10 @@ class CommittedMainAndUpper(unittest.TestCase):
         numbers = {B.bdm.base(k) for k in level}
         internal = {u.removeprefix("Switch ") for s, u in self.turnouts.items() if s.startswith(B.LEVEL_TURNOUT)}
         self.assertEqual(numbers, internal)                         # double crossover 225 too
-        self.assertEqual(len(numbers), 41)
-        self.assertEqual({e["normal"] for e in level.values()}, {"B"})
+        self.assertEqual(len(numbers), 39)                         # 121 and 125: one crossover each (2026-11-19)
+        # closed on leg B, but for the crossover halves the plan joins by their leg B: closed on leg C
+        self.assertEqual({k for k, e in level.items() if e["normal"] != "B"}, {"121B", "125B"})
+        self.assertEqual({e["normal"] for e in level.values()}, {"B", "C"})
         names = {e["name"] for e in self.bound["masts"].values()}
         self.assertLessEqual(B.level_masts.names(), names)
         self.assertEqual(len(B.level_masts.names()), 44)       # main_upper_masts.csv, APB intermediates too
@@ -605,14 +637,14 @@ class CommittedMainAndUpper(unittest.TestCase):
     def test_the_helix_is_joined_on_the_desk_with_a_block_on_each_level(self):
         """The plugin joins each helix track drawn on staging and on main or upper logically (SHARED), so a train runs
         from staging to the main and upper levels on the desk; the join parts the blocks (owner, 2026-11-17):
-        staging's McKees Rocks and McKeesport, and Track 135-H1 and 135-H2 with their own planned detectors."""
+        staging's McKees Rocks and McKeesport, and Track 131-H1 and 131-H2 with their own planned detectors."""
         root = ET.parse(B.OUT).getroot()
         self.assertEqual(len(list(root.iter("SHARED"))), 8)        # two helix tracks and two links, both ends
         at_join = sorted(se.find("BLOCK").get("NAME") for se in root.iter("SEC_EDGE")
                          if se.find("SHARED") is not None and se.find("BLOCK") is not None)
-        self.assertEqual(at_join, ["Track 135-H1", "Track 135-H2", "Track McKees Rocks", "Track McKeesport"])
+        self.assertEqual(at_join, ["Track 131-H1", "Track 131-H2", "Track McKees Rocks", "Track McKeesport"])
         level = {e.get("name"): e for e in self.bound["blocks"].values()}
-        for name in ("Track 135-H1", "Track 135-H2"):
+        for name in ("Track 131-H1", "Track 131-H2"):
             with self.subTest(block=name):
                 self.assertEqual(level[name]["_planned_occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))
                 self.assertEqual(level[name]["occupied"]["USER_NAME"], "BS " + name.removeprefix("Track "))

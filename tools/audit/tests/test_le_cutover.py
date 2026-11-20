@@ -310,8 +310,8 @@ class ThreeLevels(unittest.TestCase):
         # The helix-join release (owner, 2026-11-17): staging as in its candidate but for the two
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
         self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG231 to Track 135-H2, Mast 38RA)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG232 to Track 135-H1, Mast 40RA)",
+            "end bumper EBG1 -> anchor AGE1 (hidden join TG231 to Track 131-H2, Mast 38RA)",
+            "end bumper EBG2 -> anchor AGE2 (hidden join TG232 to Track 131-H1, Mast 40RA)",
             "track segment TG6 connect2name EBG2 -> AGE2",
             "track segment TG33 connect2name EBG1 -> AGE1"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
@@ -459,9 +459,10 @@ class ThreeLevels(unittest.TestCase):
         import math
         angles = [a for _t, _b, o in B.schematic()[0] for a in (o.get("le_crossover_angle") or {}).values()]
         self.assertEqual(set(angles), {45})
-        # every crossover at its level's angle, or as near as its track allows (the plugin logs those)
-        limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
-                   and "crossover" in line}
+        # every crossover at its level's angle, or as near as its track allows (the plugin logs those: no room, or
+        # its crossover rounded to whole pixels past its room, 243 since schematic-maps 0.1.42)
+        limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "crossover" in line
+                   and ("no room for" in line or "rounded to whole pixels" in line)}
         for t in self.le.findall("layoutturnout"):
             if "XOVER" not in t.get("type"):
                 continue
@@ -547,11 +548,17 @@ class ThreeLevels(unittest.TestCase):
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
         self.assertFalse(limited & {"225"})
-        # 241 is 1.3 px short of room since the straight-level rules (2026-11-18): drawn at 45.8 degrees, owner accepted
-        steep = [float(m.group(1)) for line in self.P.log
-                 if (m := re.search(r"switch 241: crossover drawn [\d.]+ px across, ([\d.]+) degrees", line))]
-        self.assertTrue(steep, "no crossover log line for switch 241")
-        self.assertTrue(all(a <= 46.0 for a in steep), steep)
+        # 243 (241 before the upper renumber, 2026-11-19) has been short of room since the straight-level rules
+        # (2026-11-18): drawn at 45.8 degrees then, owner accepted; since schematic-maps 0.1.42 the plugin slides it to
+        # the band's angle and logs only its whole-pixel rounding, so it stands at no more than 46 degrees
+        self.assertTrue([line for line in self.P.log if "switch 243: rounded to whole pixels" in line],
+                        "no rounding log line for switch 243")
+        x243 = next(t for t in self.le.findall("layoutturnout")
+                    if t.get("turnoutname") == "Switch 243" and "XOVER" in t.get("type"))
+        p243 = {L: (float(x243.get("x" + L.lower())), float(x243.get("y" + L.lower()))) for L in "ABCD"}
+        dx = (p243["D"][0] + p243["C"][0] - p243["A"][0] - p243["B"][0]) / 2
+        dy = (p243["D"][1] + p243["C"][1] - p243["A"][1] - p243["B"][1]) / 2
+        self.assertLessEqual(math.degrees(math.atan2(abs(dy), abs(dx))), 46.0)
         # SW-101 once, below its lower turnout
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]
         self.assertEqual(len(labels), 1)
@@ -600,14 +607,14 @@ class ThreeLevels(unittest.TestCase):
         added_t = [t for t in tables.turnouts(self.root) if B.is_level_bean(t)]
         added_lb = [b for b in tables.layout_blocks(self.root) if B.is_level_bean(b)]
         added_b = {tables.user_name(b) for b in tables.blocks(self.root) if B.is_level_bean(b)}
-        self.assertEqual(len(added_t), 41)
+        self.assertEqual(len(added_t), 39)
         self.assertTrue(all(tables.system_name(t).startswith("IT:HART:C3:") for t in added_t))
         self.assertEqual({tables.user_name(t) for t in added_t}, {v for k, v in self.device.items()
                                                                    if k.startswith("Switch ")})
         self.assertEqual({tables.user_name(b) for b in added_lb}, {v for k, v in self.device.items()
                                                                     if not k.startswith("Switch ")})
         self.assertEqual(added_b, {tables.user_name(b) for b in added_lb})
-        self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-239's halves, 225's four corners
+        self.assertEqual(len(added_lb), T.LEVEL_BLOCKS)   # the 107 Loop's and 227-241's halves, 225's four corners
         self.assertTrue(all(tables.system_name(b).startswith("IB:C3:") for b in tables.blocks(self.root)
                             if B.is_level_bean(b)))
 
@@ -654,8 +661,8 @@ class ThreeLevels(unittest.TestCase):
         ix = B.slots_module().Index(self.le)
         got = {m["mast"]: (self.P.name(m["ident"]), m["slot"], ix.blocks(m["kind"], self.P.name(m["ident"]), m["slot"]))
                for m in self.P.masts if m["mast"] in ("Mast 38RA", "Mast 40RA")}
-        self.assertEqual(got["Mast 38RA"], ("AGE1", "east", ("Track McKeesport", ["Track 135-H2"])))
-        self.assertEqual(got["Mast 40RA"], ("AGE2", "east", ("Track McKees Rocks", ["Track 135-H1"])))
+        self.assertEqual(got["Mast 38RA"], ("AGE1", "east", ("Track McKeesport", ["Track 131-H2"])))
+        self.assertEqual(got["Mast 40RA"], ("AGE2", "east", ("Track McKees Rocks", ["Track 131-H1"])))
         self.assertEqual([m for _band, m, _why in self.P.moved], ["Mast 38RA", "Mast 40RA"])   # the plugin logs both
 
     def test_one_block_contents_icon_per_block_on_every_level(self) -> None:
@@ -687,8 +694,12 @@ class ThreeLevels(unittest.TestCase):
     def test_switch_numbers_and_track_names(self) -> None:
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text")]
         numbers = {el.get("text"): el.get("size") for el in labels if el.get("text").startswith("SW-")}
-        # a single crossover reads by its number; the helix-top 129 and 135 keep a half on each level
-        self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-129A", "SW-129B", "SW-135A", "SW-135B"}, set(numbers))
+        # a single crossover reads by its number; the helix-top 127 and 131 keep a half on each level
+        self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-127A", "SW-127B", "SW-131A", "SW-131B"}, set(numbers))
+        # 121 and 125 (halves joined B to C, drawn as two turnouts on one name) carry their number once, with no
+        # half's letter (schematic-maps 0.1.43)
+        for n in ("121", "125"):
+            self.assertEqual([t for t in numbers if re.fullmatch(rf"SW-{n}[AB]?", t)], [f"SW-{n}"], n)
         self.assertNotIn("SW-101A", numbers)
         self.assertEqual(set(numbers.values()), {"13"})
         names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}
