@@ -8,6 +8,7 @@ reaches a broker. The source-text checks stay in cats/scripts/tests/test_signal_
 from __future__ import annotations
 
 import contextlib
+import io
 import sys
 import types
 import unittest
@@ -1134,6 +1135,417 @@ class TwoHosts(unittest.TestCase):
         self.settle()
         self.assertEqual([c._host for c in self.owners()], ["minipc-e5h6x"])
         self.assertNotEqual(self.broker.retained[SML], "disabled")
+
+
+class _Latch:
+    """CountDownLatch: await_ answers as the test set it (True once counted down)."""
+
+    times_out = False
+    made = []
+
+    def __init__(self, n):
+        self.n = n
+        self.waited = None
+        _Latch.made.append(self)
+
+    def countDown(self):
+        self.n -= 1
+
+    def await_(self, amount, unit):
+        self.waited = (amount, unit)
+        return self.n <= 0 and not _Latch.times_out
+
+
+class _Sleeps(jf.Thread):
+    """Thread whose sleep() records what the layout looks like at that moment."""
+
+    log = []
+    probe = staticmethod(lambda: None)
+
+    @staticmethod
+    def sleep(ms):
+        _Sleeps.log.append((ms, _Sleeps.probe()))
+
+
+class Sequences(unittest.TestCase):
+    """Hold, wait, then act: the Enable, Disable and quit releases, and the bulk SML set."""
+
+    enroll = Coordinator.enroll
+    sent = Coordinator.sent
+
+    def setUp(self) -> None:
+        Coordinator.setUp(self)
+        c = self.c
+        del c._set_all_digicon_sml_destinations  # the real bulk set, not the recorder
+        self.real_bulk = c._set_all_digicon_sml_destinations
+        self.bulk = []
+
+        def bulk(on):
+            self.bulk.append((on, self.mast.held))
+            self.logic.enabled["Mast 8RA"] = on
+
+        c._set_all_digicon_sml_destinations = bulk
+        _Sleeps.log = []
+        _Sleeps.probe = staticmethod(lambda: (self.mast.held, list(self.sent()), list(self.bulk)))
+        _Latch.made = []
+        _Latch.times_out = False
+        self.sc["Thread"] = _Sleeps
+        self.out = io.StringIO()
+        stack = contextlib.ExitStack()
+        stack.enter_context(contextlib.redirect_stdout(self.out))
+        self.addCleanup(stack.close)
+
+    def own(self):
+        self.enroll()
+        self.c._global_enabled = True
+        self.c._snapshot_mast_sml_state()
+        self.logic.enabled["Mast 8RA"] = True
+
+    def hold_probe(self, fn):
+        _Sleeps.probe = staticmethod(fn)
+
+    # --- quit ----------------------------------------------------------------------------
+
+    def test_quit_holds_waits_then_unhelds_and_disables(self) -> None:
+        self.own()
+        self.c._on_jmri_shutdown()
+        self.assertEqual(_Sleeps.log, [(self.sc["HOLD_WAIT_MS"], (True, [], []))])
+        self.assertEqual(self.sent(), [("track/signalhead/432", "Unheld", True),
+                                       ("track/bridge/sml_mode", "disabled", True)])
+        self.assertEqual(self.bulk, [(False, True)])  # pairs off while still held
+        self.assertFalse(self.mast.held)
+        c = self.c
+        self.assertEqual((c._global_enabled, c._enabling_originator, c._claim), (False, False, None))
+        self.assertEqual((c._busy, c._releasing, c._shutting_down, c._shutdown_released),
+                         (False, False, True, True))
+
+    def test_hold_wait_is_three_seconds(self) -> None:
+        self.assertEqual(self.sc["HOLD_WAIT_MS"], 3000)
+
+    def test_quit_skips_when_digicon_is_not_enabled(self) -> None:
+        self.enroll()
+        self.logic.enabled["Mast 8RA"] = False
+        self.c._on_jmri_shutdown()
+        self.assertEqual((self.sent(), _Sleeps.log, self.bulk), ([], [], []))
+        self.assertTrue(self.c._shutdown_released)
+        self.assertIn("shutdown skip (SML not enabled)", self.out.getvalue())
+
+    def test_quit_skips_while_another_agent_is_taking_digicon(self) -> None:
+        self.own()
+        self.c._abort_in_progress = True
+        self.c._on_jmri_shutdown()
+        self.assertEqual((self.sent(), _Sleeps.log, self.bulk), ([], [], []))
+        self.assertTrue(self.c._shutdown_released)
+
+    def test_quit_runs_once_for_the_window_and_the_shutdown_task(self) -> None:
+        self.own()
+        self.c._on_jmri_shutdown()
+        n = len(self.sent())
+        self.c._on_jmri_shutdown()
+        self.assertEqual((len(self.sent()), len(_Sleeps.log)), (n, 1))
+
+    def test_a_failed_quit_release_is_printed_not_raised_and_can_be_retried(self) -> None:
+        self.own()
+
+        def boom(on):
+            raise RuntimeError("layout hung")
+
+        self.c._set_all_digicon_sml_destinations = boom
+        self.c._on_jmri_shutdown()
+        self.assertIn("shutdown task failed: layout hung", self.out.getvalue())
+        self.assertEqual((self.c._busy, self.c._releasing, self.c._shutdown_released),
+                         (False, False, False))
+        # Unheld and disabled go out before the pairs are touched, so a hang cannot skip them.
+        self.assertEqual(self.sent()[-1], ("track/bridge/sml_mode", "disabled", True))
+
+    def test_quit_release_goes_on_when_a_mast_cannot_hold(self) -> None:
+        self.own()
+
+        def broken(value):
+            raise RuntimeError("no hold")
+
+        self.mast.setHeld = broken
+        self.c._on_jmri_shutdown()
+        self.assertEqual(self.sent()[-1], ("track/bridge/sml_mode", "disabled", True))
+
+    def test_shutdown_task_call_and_run_both_ask_the_controller(self) -> None:
+        c = self.c
+        task = self.sc["DigiconSmlQuitTask"]("Digicon SML quit")
+        task._controller = c
+        calls = []
+        c._on_jmri_shutdown = lambda: calls.append(1)
+        self.assertTrue(task.call())
+        task.run()
+        self.assertEqual(calls, [1, 1])
+
+        def boom():
+            raise RuntimeError("gone")
+
+        c._on_jmri_shutdown = boom
+        self.assertTrue(task.call())  # a failing release never stops JMRI quitting
+        task.run()
+        self.assertIn("ShutDownTask call failed: gone", self.out.getvalue())
+        self.assertIn("ShutDownTask run failed: gone", self.out.getvalue())
+
+    def test_shutdown_task_without_its_own_controller_uses_the_global(self) -> None:
+        calls = []
+        self.sc["controller"] = types.SimpleNamespace(_on_jmri_shutdown=lambda: calls.append(1))
+        task = self.sc["DigiconSmlQuitTask"]("Digicon SML quit")
+        task.call()
+        self.assertEqual(calls, [1])
+
+    def test_registering_the_task_and_the_window_hook(self) -> None:
+        self.layout.button_space = _Space()
+        self.c._register_shutdown_task()
+        self.assertEqual(self.layout.shutdown.tasks, [self.c._shutdown_task])
+        self.assertIs(self.c._shutdown_task._controller, self.c)
+        self.assertEqual(len(self.layout.button_space.frame.listeners), 1)
+        self.assertIs(self.c._close_frame, self.layout.button_space.frame)
+
+    def test_no_main_window_means_no_close_hook(self) -> None:
+        self.layout.button_space = None
+        self.c._add_quit_window_hook()
+        self.assertIsNone(self.c._close_frame)
+        self.assertIn("no main frame", self.out.getvalue())
+
+    # --- Disable --------------------------------------------------------------------------
+
+    def run_disable(self, release):
+        self.c._enter_disabled(release=release)
+        self.assertTrue(self.c._busy)  # the worker is queued, not run
+        jf.run_threads()
+
+    def test_disable_holds_waits_pairs_off_unhelds_then_publishes_disabled(self) -> None:
+        self.own()
+        self.run_disable(True)
+        self.assertEqual(_Sleeps.log, [(3000, (True, [], []))])
+        self.assertEqual(self.bulk, [(False, True)])
+        self.assertEqual(self.sent(), [("track/signalhead/432", "Unheld", True),
+                                       ("track/bridge/sml_mode", "disabled", True)])
+        self.assertFalse(self.mast.held)
+        self.assertFalse(self.c._global_enabled)
+        self.assertEqual((self.c._busy, self.c._releasing), (False, False))
+
+    def test_disable_without_release_sends_no_unheld(self) -> None:
+        self.own()
+        self.run_disable(False)
+        self.assertEqual(self.sent(), [("track/bridge/sml_mode", "disabled", True)])
+
+    def test_disable_aborted_in_the_hold_sends_nothing(self) -> None:
+        self.own()
+        c = self.c
+        self.hold_probe(lambda: setattr(c, "_abort_gen", c._abort_gen + 1))
+        self.run_disable(True)
+        self.assertEqual(self.sent(), [])
+        self.assertFalse(self.mast.held)
+        self.assertIn("aborted during Disable", self.out.getvalue())
+
+    def test_disable_is_ignored_while_a_worker_runs(self) -> None:
+        self.own()
+        self.c._busy = True
+        self.c._enter_disabled(release=True)
+        self.assertEqual(jf.Thread.started, [])
+
+    # --- Enable ---------------------------------------------------------------------------
+
+    def run_enable(self):
+        self.enroll()
+        self.c._enter_enabled(force=True, from_boot=True)
+        jf.run_threads()
+
+    def test_enable_holds_waits_pairs_on_then_publishes_enabled(self) -> None:
+        self.run_enable()
+        self.assertEqual(_Sleeps.log[0][0], 3000)
+        self.assertTrue(_Sleeps.log[0][1][0])  # held during the wait
+        self.assertEqual(self.bulk, [(True, True)])  # pairs go on while still held
+        self.assertFalse(self.mast.held)
+        self.assertTrue(self.c._global_enabled)
+        self.assertIn(("track/bridge/sml_mode", "enabled", True), self.sent())
+        self.assertEqual((self.c._busy, self.c._enabling_originator), (False, False))
+
+    def test_enable_loses_to_a_claim_dropped_in_the_hold(self) -> None:
+        c = self.c
+        self.hold_probe(lambda: setattr(c, "_claim", None))
+        self.run_enable()
+        self.assertEqual(self.bulk, [])
+        self.assertFalse(c._global_enabled)
+        self.assertFalse(self.mast.held)
+        self.assertNotIn(("track/bridge/sml_mode", "enabled", True), self.sent())
+
+    def test_enable_aborted_in_the_hold_leaves_the_pairs(self) -> None:
+        c = self.c
+        self.hold_probe(lambda: setattr(c, "_abort_gen", c._abort_gen + 1))
+        self.run_enable()
+        self.assertEqual(self.bulk, [])
+        self.assertFalse(c._global_enabled)
+        self.assertFalse(c._enabling_originator)
+        self.assertFalse(self.mast.held)
+
+    def test_enable_taken_over_while_the_pairs_go_on_puts_them_off(self) -> None:
+        c = self.c
+        record = c._set_all_digicon_sml_destinations
+
+        def bulk(on):
+            record(on)
+            if on:
+                c._abort_gen += 1
+
+        c._set_all_digicon_sml_destinations = bulk
+        self.run_enable()
+        self.assertEqual([on for on, _ in self.bulk], [True, False])
+        self.assertFalse(self.mast.held)
+        self.assertNotIn(("track/bridge/sml_mode", "enabled", True), self.sent())
+
+    def test_enable_does_nothing_while_busy_or_shutting_down(self) -> None:
+        self.enroll()
+        for attr in ("_busy", "_shutting_down"):
+            setattr(self.c, attr, True)
+            self.c._enter_enabled(force=True, from_boot=True)
+            setattr(self.c, attr, False)
+        self.assertEqual((jf.Thread.started, self.sent(), _Sleeps.log), ([], [], []))
+
+    def test_enable_resume_without_its_claim_takes_nothing(self) -> None:
+        self.enroll()
+        self.c._enter_enabled(force=True, from_boot=True, resume=True)
+        self.assertEqual(jf.Thread.started, [])
+        self.assertIn("enabling lost to another host", self.out.getvalue())
+
+    def test_enable_after_a_shutdown_began_is_skipped_in_the_worker(self) -> None:
+        self.enroll()
+        self.c._enter_enabled(force=True, from_boot=True)
+        self.c._shutting_down = True
+        jf.run_threads()
+        self.assertEqual((_Sleeps.log, self.bulk), ([], []))
+
+    # --- bulk SML set ----------------------------------------------------------------------
+
+    def fake_layout_thread(self, on_layout, times_out=False, run_on_layout=None):
+        """jmri.util.ThreadingUtil and java.util.concurrent as the script imports them."""
+        ran = []
+
+        class ThreadAction:
+            pass
+
+        def default_run(action):
+            ran.append(1)
+            action.run()
+
+        _Latch.times_out = times_out
+        concurrent = types.ModuleType("java.util.concurrent")
+        concurrent.CountDownLatch = _Latch
+        concurrent.TimeUnit = types.SimpleNamespace(SECONDS="s")
+        util = types.ModuleType("java.util")
+        util.concurrent = concurrent
+        stack = contextlib.ExitStack()
+        self.addCleanup(stack.close)
+        stack.enter_context(jf.fake_modules({"java.util": util, "java.util.concurrent": concurrent}))
+        jutil = sys.modules["jmri.util"]
+        saved = jutil.ThreadingUtil
+        jutil.ThreadingUtil = types.SimpleNamespace(
+            ThreadAction=ThreadAction,
+            isLayoutThread=lambda: on_layout,
+            runOnLayout=run_on_layout or default_run,
+        )
+        self.addCleanup(setattr, jutil, "ThreadingUtil", saved)
+        return ran
+
+    def two_dests(self):
+        logic = FakeLogic(self.mast, "Mast 8RA", "Mast 9RA")
+        logic.enabled["Mast 9RA"] = False
+        self.c._smls = [logic]
+        return logic
+
+    def test_bulk_set_flips_only_the_pairs_that_differ(self) -> None:
+        logic = self.two_dests()
+        self.c._shutting_down = True  # runs on this thread, no layout hop
+        self.real_bulk(False)
+        self.assertEqual(logic.enabled, {"Mast 8RA": False, "Mast 9RA": False})
+        self.assertIn("SML pairs disabled (1)", self.out.getvalue())
+        self.real_bulk(True)
+        self.assertEqual(logic.enabled, {"Mast 8RA": True, "Mast 9RA": True})
+        self.assertIn("SML pairs enabled (2)", self.out.getvalue())
+        self.real_bulk(True)
+        self.assertIn("SML pairs enabled (0)", self.out.getvalue())
+
+    def test_bulk_set_skips_a_source_or_pair_that_fails(self) -> None:
+        good = self.two_dests()
+
+        class Broken:
+            def getDestinationList(self):
+                raise RuntimeError("no list")
+
+        class NoDests:
+            def getDestinationList(self):
+                return None
+
+        class Empty:
+            def getDestinationList(self):
+                return _List([])
+
+        bad_pair = FakeLogic(self.mast, "Mast 1RA", "Mast 2RA")
+
+        def refuse(dest):
+            raise RuntimeError("one pair")
+
+        bad_pair.setDisabled = refuse
+        self.c._smls = [Broken(), NoDests(), Empty(), bad_pair, good]
+        self.c._shutting_down = True
+        self.real_bulk(False)
+        self.assertEqual(good.enabled, {"Mast 8RA": False, "Mast 9RA": False})
+        self.assertIn("getDestinationList: no list", self.out.getvalue())
+        self.assertIn("one pair", self.out.getvalue())
+
+    def test_bulk_set_without_the_java_classes_runs_on_the_calling_thread(self) -> None:
+        logic = self.two_dests()
+        self.real_bulk(False)
+        self.assertEqual(logic.enabled, {"Mast 8RA": False, "Mast 9RA": False})
+        self.assertIn("SML bulk set fallback", self.out.getvalue())
+
+    def test_bulk_set_on_the_layout_thread_runs_inline(self) -> None:
+        ran = self.fake_layout_thread(on_layout=True)
+        logic = self.two_dests()
+        self.real_bulk(False)
+        self.assertEqual((ran, logic.enabled["Mast 8RA"]), ([], False))
+
+    def test_bulk_set_hops_to_the_layout_thread_and_waits_30_seconds(self) -> None:
+        ran = self.fake_layout_thread(on_layout=False)
+        logic = self.two_dests()
+        self.real_bulk(False)
+        self.assertEqual((ran, logic.enabled["Mast 8RA"]), ([1], False))
+        self.assertEqual(_Latch.made[0].waited, (30, "s"))
+        self.assertNotIn("timed out", self.out.getvalue())
+
+    def test_bulk_set_reports_a_timeout_and_does_not_run_it_twice(self) -> None:
+        queued = []
+        self.fake_layout_thread(on_layout=False, times_out=True,
+                                run_on_layout=queued.append)  # the layout thread is stuck
+        logic = self.two_dests()
+        self.real_bulk(False)
+        self.assertIn("SML bulk set timed out on layout thread", self.out.getvalue())
+        self.assertEqual(logic.enabled["Mast 8RA"], True)  # nothing ran on this thread
+        self.assertEqual(len(queued), 1)
+
+    def test_bulk_set_falls_back_when_the_hop_fails_before_running(self) -> None:
+        def refuse(action):
+            raise RuntimeError("no layout thread")
+
+        self.fake_layout_thread(on_layout=False, run_on_layout=refuse)
+        logic = self.two_dests()
+        self.real_bulk(False)
+        self.assertEqual(logic.enabled["Mast 8RA"], False)
+        self.assertIn("SML bulk set fallback: no layout thread", self.out.getvalue())
+
+    def test_bulk_set_does_not_repeat_work_that_already_ran(self) -> None:
+        def run_then_fail(action):
+            action.run()
+            raise RuntimeError("late")
+
+        self.fake_layout_thread(on_layout=False, run_on_layout=run_then_fail)
+        logic = self.two_dests()
+        self.real_bulk(False)
+        self.assertEqual(self.out.getvalue().count("SML pairs disabled"), 1)
+        self.assertIn("SML bulk set fallback: late", self.out.getvalue())
+        self.assertEqual(logic.enabled["Mast 8RA"], False)
 
 
 if __name__ == "__main__":
