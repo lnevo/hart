@@ -665,6 +665,15 @@ class Pieces(unittest.TestCase):
 
 
 class ReviewFixes(unittest.TestCase):
+    def test_a_split_row_on_a_moved_edge_stops_the_loop_halves(self) -> None:
+        bands = built()[3]
+        bdm = sys.modules.get("build_device_map") or _load("build_device_map", ROOT / "tools/schematic/build_device_map.py")
+        upper = next(b for t, b, _ in bands if t.startswith("Upper"))
+        halves = bdm.loop_halves(upper, B.runs, {"e63": "Track 227-241"})
+        self.assertEqual(sorted(halves.values()), [1, 2])
+        with self.assertRaisesRegex(bdm.MapError, "Track 227-241"):    # e64 is 241's spur since 5.3c
+            bdm.loop_halves(upper, B.runs, {"e64": "Track 227-241"})
+
     def test_split_connector_track_counts_both_pieces(self) -> None:
         bands = built()[3]
         _sheet, le_mod, _core = B.plugin()

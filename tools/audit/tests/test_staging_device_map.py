@@ -106,7 +106,7 @@ class Files(unittest.TestCase):
         self.assertEqual(sdm.check(self.band), [])
         self.assertEqual(len(set(self.names["turnouts"].values())), 20)
         self.assertEqual(len(self.names["masts"]), 49)
-        self.assertEqual(self.names["idents"]["turnouts"]["NEW:13"], "TO1")         # switches.csv le_ident
+        self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
 
     def _copy(self, edit):
         tmp = Path(tempfile.mkdtemp())
@@ -125,8 +125,8 @@ class Files(unittest.TestCase):
         return self._copy(edit)[0]
 
     def test_a_missing_block_of_a_split_track_stops(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "track e23: blocks .* are not 1/n to n/n"):
-            sdm.load(self.band, device_map=self._without("Track e23 2/3"))
+        with self.assertRaisesRegex(sdm.StagingMapError, "track e22: blocks .* are not 1/n to n/n"):
+            sdm.load(self.band, device_map=self._without("Track e22 2/3"))
 
     def test_a_missing_turnout_placeholder_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):
@@ -222,8 +222,8 @@ class DeviceMapBuild(unittest.TestCase):
         text = self.B.BOUNDARIES.read_text(encoding="utf-8")
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        self.assertIn("anchor,AG34,east,Mast 8RA", text)          # the committed row the first case moves
-        for old, new, why in (("anchor,AG34,east,Mast 8RA", "anchor,AG35,east,Mast 8RA", "Mast 8RA: recorded anchor AG35 east"),
+        self.assertIn("anchor,AG33,east,Mast 8RA", text)          # the committed row the first case moves
+        for old, new, why in (("anchor,AG33,east,Mast 8RA", "anchor,AG35,east,Mast 8RA", "Mast 8RA: recorded anchor AG35 east"),
                               ("turnout,TO1,C,Mast 14R", "turnout,TO1,B,Mast 14R", "Mast 14R: recorded turnout TO1 B")):
             with self.subTest(row=old):
                 path = tmp / "b.csv"

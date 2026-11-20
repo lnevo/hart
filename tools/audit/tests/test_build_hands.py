@@ -67,7 +67,7 @@ class Refusals(unittest.TestCase):
         self.build_with(lambda d: d["edits"][0]["map"].update({"T99999": "999"}))
 
     def test_a_move_edit_naming_no_plan_switch(self):
-        self.build_with(lambda d: [e.update(switch="223") for e in d["edits"] if e["op"] == "move"])
+        self.build_with(lambda d: d["edits"].append({"op": "move", "switch": "223", "hand": "R"}))   # no move since 5.3c
 
 
 if __name__ == "__main__":

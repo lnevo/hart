@@ -357,7 +357,9 @@ def add_cut_stubs(graph, cuts, cut_z):
             end, eid = f"CUT:{t}", f"e{len(edges)}"
             if end in N or any(e["id"] == eid for e in edges):
                 raise PlanError(f"{t} already has a cut stub, or the graph's edge ids are not e0 to e{len(edges) - 1}")
-            way = N[n].get("dirs", {}).get(missing[0], (0.0, 0.0))      # set the end a little way out along that leg
+            way = N[n].get("dirs", {}).get(missing[0])                  # set the end a little way out along that leg
+            if not way:
+                raise PlanError(f"{t} has no direction for its leg {missing[0]}, so its cut stub has nowhere to go")
             xy = [round(N[n]["xy"][i] + STUB_PX * way[i], 2) for i in (0, 1)]
             N[end] = dict(kind="end", label="", xy=xy, district=N[n].get("district", ""), cut=cut_z)
             edges.append(dict(u=n, up=missing[0], v=end, vp="E", names=[], cm=round(cm, 1), link=False, main=False,
@@ -365,6 +367,19 @@ def add_cut_stubs(graph, cuts, cut_z):
             used[n].add(missing[0])
             done.append(t)
     return done
+
+
+def stub_graphs(parts, cut_z, graphs) -> list[str]:
+    """add_cut_stubs on every graph, in memory; stops unless each side of every run through the cut got its stub in
+    exactly one graph (a side at a junction no graph labels, such as a three-way half, would lose its helix share)."""
+    links, _ = joins(parts)
+    cuts = level_cuts(parts, links, cut_z)
+    given = [t for g in graphs for t in add_cut_stubs(g, cuts, cut_z)]
+    sides = [f"T{c[side][0]}" for c in cuts for side in ("low", "high")]
+    if sorted(given) != sorted(sides):
+        raise PlanError(f"the runs through {cut_z} cm end at {', '.join(sides) or 'no switch'}, but the graphs gave "
+                        f"stubs at {', '.join(given) or 'none'}: each side must be one graph's switch")
+    return given
 
 
 def parts_list(parts) -> list[dict]:
@@ -429,21 +444,19 @@ def main(argv=None):
     if a.parts:
         Path(a.parts).write_text(json.dumps(parts_list(parts), separators=(",", ":")))
         print(f"wrote {a.parts}: {len(parts)} parts")
+    if (a.cut is None) != (not a.stubs):
+        print("anyplan: --cut and --stubs go together", file=sys.stderr)
+        return 2
     if a.stubs:
-        if a.cut is None:
-            print("anyplan: --stubs needs --cut", file=sys.stderr)
-            return 2
-        links, _ = joins(parts)
-        cuts = level_cuts(parts, links, a.cut)
         try:
-            for g in a.stubs:
-                graph = json.loads(Path(g).read_text())
-                done = add_cut_stubs(graph, cuts, a.cut)
-                Path(g).write_text(json.dumps(graph, indent=1))
-                print(f"wrote {g}: stubs up to {a.cut} cm at {', '.join(done) or 'no switch'}")
-        except PlanError as e:
+            graphs = {g: json.loads(Path(g).read_text()) for g in a.stubs}     # all checked before any is written
+            stub_graphs(parts, a.cut, list(graphs.values()))
+        except (PlanError, OSError, ValueError) as e:     # ValueError: a graph that is not JSON
             print(f"anyplan: {e}", file=sys.stderr)
             return 2
+        for g, graph in graphs.items():
+            Path(g).write_text(json.dumps(graph, indent=1))
+            print(f"wrote {g}: stubs up to {a.cut} cm")
     if a.report or not (a.parts or a.stubs):
         print("\n".join(report(parts)))
 

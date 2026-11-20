@@ -221,6 +221,18 @@ class Cuts(unittest.TestCase):
         with self.assertRaisesRegex(A.PlanError, "lacks none"):               # read twice: no leg left to give
             A.add_cut_stubs(g, [cut], -5.0)
 
+    def test_a_side_no_graph_holds_stops(self):
+        parts = self.rise()
+
+        def level(label, port):
+            return dict(nodes={"S": dict(kind="switch", label=label, xy=[0.0, 0.0], dirs={port: [1.0, 0.0]}),
+                               "E": dict(kind="end", label="", xy=[-50.0, 0.0])},
+                        edges=[dict(id="e0", u="S", up=p, v="E", vp="E", cm=10.0) for p in "ABC" if p != port])
+        low = level("T0", "A")
+        self.assertEqual(A.stub_graphs(parts, -5.0, [low, level("T3", "A")]), ["T0", "T3"])
+        with self.assertRaisesRegex(A.PlanError, "gave stubs at T0"):      # turnout 3's level is not given
+            A.stub_graphs(parts, -5.0, [level("T0", "A")])
+
 
 @unittest.skipUnless(PLAN_C.exists(), "the owner's plan 5.3c is not on this machine")
 class Plan53cGraphs(unittest.TestCase):

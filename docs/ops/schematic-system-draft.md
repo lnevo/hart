@@ -21,7 +21,7 @@ Regenerate after a new AnyRail export, from the worktree root with the plugin su
     python3 tools/anyrail/anyplan.py "$A" --parts $I/parts.json
     $P plan "$X" $I/staging.json --section +Staging --parts $I/parts.json --z-range -100 -5
     $P plan "$X" $I/main.json --section Staging --parts $I/parts.json --z-range -5 100
-    python3 -c 'import json,sys; [open(f,"w").write(json.dumps({k: v for k, v in json.load(open(f)).items() if k != "notes"}, indent=1)) for f in sys.argv[1:]]' $I/staging.json $I/main.json
+    python3 -c 'import json,sys; ds={f: json.load(open(f)) for f in sys.argv[1:]}; [open(f,"w").write(json.dumps({k: v for k, v in d.items() if k != "notes"}, indent=1)) for f, d in ds.items()]' $I/staging.json $I/main.json
     python3 tools/anyrail/anyplan.py "$A" --cut -5 --stubs $I/staging.json $I/main.json
 
 The plugin drops the notes list it adds (what it joined and matched). The section filters leave out each helix run, which joins a staging switch to a main-level one; the last command gives each graph its share of every run that climbs through -5 cm, as a track to an end marked `cut` (lengths from the `.any` file, each flex piece's share by its grade), so the helix count needs no `helix_length_in` (schematic-maps 0.1.45). A rerun refuses a graph that already has its stubs. The T labels are part numbers in `parts.json` order, so a new plan renumbers them: re-key the layer files by position (see [`wiki/projects/anyrail-5-3c-handoff.md`](../../wiki/projects/anyrail-5-3c-handoff.md)). The three-way's halves (51, 50) are the only junctions no part names.
