@@ -215,7 +215,7 @@ Row 9 starts after W6's proposals are approved, because rows 8 and 9 touch the s
    - written by JMRI on every Store, which the pull drops.
 
    Give a count for each group, and examples of anything that is hard to place.
-2. **List every reader and writer** of `public_name_map.csv`, `device_map_staging.csv` and `tables.xml`: 27 non-test scripts read the two CSVs today, plus the site build, `check.sh`, the hooks (`check_after_edit.py`) and the skills (`tables-pull`, `panelpro`).
+2. **List every reader and writer** of `public_name_map.csv`, `device_map_staging.csv`, `device_map_main_upper.csv` and `tables.xml` (27 non-test scripts read the first two today), plus the site build, `check.sh`, the hooks (`check_after_edit.py`) and the skills (`tables-pull`, `panelpro`).
 3. **Propose the master's schema.**
    - Give the file name, and a dictionary of every column with a description of each.
    - Say how alias rows for old names are kept, how the public names under ADR-005 are kept, where the DCC group lives (a column, never read from comments), and how items the build owns are marked (an explicit column, never found by comment or name).
