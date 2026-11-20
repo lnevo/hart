@@ -89,6 +89,14 @@ class Lengths(unittest.TestCase):
                                    "Track EH-1,Block 13-7, 24 ,estimate,\nTrack X,Block 9-9,,estimate,\n"),
                          {"S-1": 212.0, "EH-1": 24.0})
 
+    def test_helix_tracks_keep_the_plans_share(self) -> None:
+        """A helix track's block covers the whole run; the sheet keeps each level's share from the plan cut."""
+        got = self.read("Track McKees Rocks,BS Switch 39,947.2,plan,\nTrack S-1,Block 2-7,212,assigned,\n")
+        self.assertEqual(got, {"S-1": 212.0})
+        self.assertEqual(PD.helix_tracks({"edits": [{"op": "end", "ends": [["T55", "B", "McKees Rocks", "helix", "M"],
+                                                                         ["T45", "B", "W-1", "bumper", ""]]}]}),
+                         {"McKees Rocks"})
+
     def test_bad_rows_stop(self) -> None:
         """hartlib.railroad.read_block_lengths reads the file: a bad row stops, naming the file and line."""
         with self.assertRaisesRegex(SystemExit, r"^block_lengths.csv line 2: inches '~24' is not a number"):
