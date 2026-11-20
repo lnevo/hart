@@ -48,11 +48,11 @@ Entry/Exit, Dispatcher System and USS CTC elements are left out (parked.split); 
 jmri/layouts/hart/parked/tables_parked.xml. The released tables are that candidate with its Signal Mast Logic from
 stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
 
-The tables it builds on (owner, 2026-11-18): this checkout's tables.xml (or --tables), whose "HART Railroad" panel
-must be the generated one (hartlib.tables.require_generated_panel). Before drawing, strip_build_owned takes out what
-an earlier build added to them and what stock JMRI derived from that (the main and upper objects, their Signal Mast
-Logic and the block paths to their blocks); everything else carries through to the candidates as it is, so a bean,
-LogixNG or other panel added to the live tables since the last cut-over is in the next one too.
+The tables it builds on (ADR-029, R9c): the generator's base (hartlib.tables_build.base), the template
+(data/tables_template.xml) with the staging beans of devices.csv, never the live tables.xml, which is an output
+(tools/schematic/build_tables.py writes it from this build, the discovered Signal Mast Logic and the template). The
+base holds no panel and no Signal Mast Logic; the build adds the main and upper objects and the panel after the
+template's sections.
 
 Staging alone. `--levels staging` draws the staging band alone: its helix tracks end at end bumpers, its rows le_row px
 apart (the page preference), and no main or upper object is added to the tables. It writes
@@ -87,7 +87,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import panel_items  # noqa: E402  the panel's fixed items and attributes (panel_items.json)
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import staging_device_map as sdm  # noqa: E402  the staging device map
-from hartlib import parked, paths, tables  # noqa: E402
+from hartlib import parked, paths, tables, tables_build  # noqa: E402
 # The build's parts and the staging candidate's approval fingerprint (approval.py): their names are re-exported
 # below, so callers and tests read them here. Patch a name in the module that calls it (le_names.placeholder_names).
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
@@ -107,7 +107,7 @@ from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read 
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
-    RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, canon, is_level_bean, level_items,
+    RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, place, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, numbered_blocks, STRIPPED, strip_build_owned,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
     add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals,
@@ -140,33 +140,31 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
 PARKED = parked.PARKED
 
 
-def base_tables(live_path: Path) -> tuple[bytes, dict]:
-    """(bytes, counts) of the tables a build draws on: `live_path`, which must hold the generated panel
-    (hartlib.tables.require_generated_panel), less what an earlier build added (strip_build_owned, whose counts these
-    are)."""
-    doc = tables.load(live_path)
+BASE_NAME = "the generated base (data/tables_template.xml and devices.csv)"
+
+
+def base_tables() -> bytes:
+    """The tables a build draws on: hartlib.tables_build.base, the template with the staging beans of devices.csv.
+    BuildError on anything that stops it, naming the file."""
     try:
-        tables.require_generated_panel(doc.root, paths.rel(live_path))
-    except ValueError as exc:
-        raise BuildError(f"{exc}: the build starts from tables that hold the generated panel") from None
-    counts = strip_build_owned(doc.root)
-    return doc.tobytes(), counts
+        return tables_build.base().tobytes()
+    except (tables_build.TablesBuildError, tables_build.devices.DevicesError) as exc:
+        raise BuildError(f"tables base: {exc}") from None
 
 
-def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", as_live: bool = False,
-          approved: Path | None = APPROVED, page: dict | None = None, stripped_base: tuple | None = None):
+def build(bands=None, levels: str = "all", as_live: bool = False,
+          approved: Path | None = APPROVED, page: dict | None = None, base_data: bytes | None = None):
     """(tables bytes, the plugin's Panel, {band key: names}, bands). `levels` "all" draws every band, main and upper
     under the device map's names (level_names) and their objects added to the tables; "staging" draws staging alone,
-    its helix ends as end bumpers, and adds no table object. `as_live` writes a cut-over candidate: the generated
-    "HART Railroad" panel of the tables (`live_path`, which must hold one) replaced by the new one, under
-    panel_items.json's name and attributes, the tables first stripped of what an earlier build added
-    (strip_build_owned; module text); with "all", drawn at the staging candidate's grid and checked to hold it
+    its helix ends as end bumpers, and adds no table object. `as_live` writes a cut-over candidate: the base
+    (base_tables; module text) with the panel added, under panel_items.json's name and attributes; with "all",
+    drawn at the staging candidate's grid and checked to hold it
     unchanged (check_staging_unchanged; module text). `as_live` must be given: without it
     (the viewing trials, retired, owner 2026-11-17) the build stops. Staging's facts come from the staging device map
     (staging_device_map.load); nothing is read from a panel in the tables. `approved`: the fingerprint the staging
     candidate's panel must match (check_approved; None skips it, for --approve-staging and --review).
-    `stripped_base`: base_tables(live_path) already read (the three-level build passes it to the staging candidate
-    it draws first, so the tables are read and stripped once)."""
+    `base_data`: base_tables() already built (the three-level build passes it to the staging candidate it draws
+    first, so the base is built once)."""
     if levels not in LEVELS:
         raise BuildError(f"levels must be one of {', '.join(LEVELS)}, not {levels!r}")
     if not as_live:
@@ -197,13 +195,12 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         bands = le_mod.drawn_bands(bands, page)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
-    # The build reads no panel (a candidate rebuilds from itself byte for byte): it replaces the generated one and
-    # adds the main and upper objects again, so what an earlier build added comes out first
-    if stripped_base is None:
-        stripped_base = base_tables(live_path)
+    # The build reads no panel and no live tables: it draws on the generator's base (module text)
+    if base_data is None:
+        base_data = base_tables()
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
     if levels == "all":
-        base = build(live_path, bands, "staging", True, approved=approved, page=page, stripped_base=stripped_base)
+        base = build(bands, "staging", True, approved=approved, page=page, base_data=base_data)
     keys = [band_key(t) for t, _, _ in bands]
     if STAGING not in keys:
         raise BuildError(f"no {STAGING} band in the schematic (bands: {', '.join(keys)})")
@@ -212,10 +209,10 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
         keys = [STAGING]
     if band_key(bands[0][0]) != STAGING:
         raise BuildError(f"the first band is {bands[0][0]!r}, not {STAGING}")
-    doc = tables.loads(stripped_base[0], path=Path(live_path))
+    doc = tables.loads(base_data)
     root = doc.root
-    old = tables.require_generated_panel(root, paths.rel(live_path))      # base_tables checked it: never raises
-    stripped = dict(stripped_base[1])
+    if root.find("LayoutEditor") is not None:
+        raise BuildError(f"{BASE_NAME} holds a Layout Editor panel; the build adds the one panel")
     panel_name = TEMPLATE_PANEL
 
     names, lengths = level_names(bands, le_mod, page=page) if levels == "all" else ({}, {})
@@ -266,7 +263,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     check_device_masts(P, names[STAGING]["masts"], le_mod)      # each mast in one slot, on its switch's turnout
     check_level_slots(P, level_rows, le_mod)
 
-    # staging: every name must already be live
+    # staging: every name must already be in the base (devices.csv)
     staging_turnouts = set(names[STAGING]["turnouts"].values())
     staging_blocks = set(names[STAGING]["os"].values()) | {b for v in names[STAGING]["blocks"].values() for b in v}
     live_turnouts = tables.by_any_name(tables.turnouts(root))
@@ -274,7 +271,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     missing = sorted(t for t in staging_turnouts if t not in live_turnouts) + \
         sorted(b for b in staging_blocks if b not in live_lb)
     if missing:
-        raise BuildError(f"staging names not in the live tables: {missing}")
+        raise BuildError(f"staging names not in {BASE_NAME}: {missing}")
     if levels == "staging" and set(P.blocks) - staging_blocks:
         raise BuildError(f"the staging panel draws blocks that are not live: {sorted(set(P.blocks) - staging_blocks)}")
     if levels == "all":
@@ -310,8 +307,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
             check_approved(panel_el, approved)
         except ApprovalError as exc:
             raise BuildError(str(exc)) from None
-    replace(root, old, panel_el, 1)
-    P.stripped = stripped
+    place(root, [panel_el], 1)          # after the template's last section
     if base is not None:
         P.staging_same = check_staging_unchanged(base, doc.tobytes(), P, panel_name)
         P.staging_data = base[0]
@@ -378,8 +374,6 @@ def run(argv, cached) -> int:
                          "staging staging alone (tables_cutover_staging.xml)")
     ap.add_argument("--out", type=Path, help="where to write (default: the candidate for these levels: "
                     "tables_cutover.xml or tables_cutover_staging.xml)")
-    ap.add_argument("--tables", type=Path, help="the tables file to build on, holding the generated panel (default: "
-                    "this checkout's tables.xml); what an earlier build added is taken out first")
     ap.add_argument("--review", action="store_true",
                     help="with --as-live: write the candidate for the owner to review although its staging panel is "
                          f"not the approved one ({paths.rel(APPROVED)} is not checked; the run says so)")
@@ -395,10 +389,10 @@ def run(argv, cached) -> int:
     cached.enter_context(pd.cache_on())     # after the HART_TABLES refusal: a refused run touches nothing
     if args.approve_staging:
         if args.check or args.as_live or args.out or args.levels is not None or args.review:
-            print("ERROR: --approve-staging takes only --tables")
+            print("ERROR: --approve-staging takes no other option")
             return 1
         try:
-            data = build(args.tables or paths.TABLES_XML, levels="staging", as_live=True, approved=None)[0]
+            data = build(levels="staging", as_live=True, approved=None)[0]
             write_approved(tables.layout_editor(tables.loads(data).root, TEMPLATE_PANEL))
         except (BuildError, ApprovalError) as exc:
             print(f"ERROR: {exc}")
@@ -418,7 +412,7 @@ def run(argv, cached) -> int:
               "never over them")
         return 1
     try:
-        where = {"live_path": args.tables or paths.TABLES_XML}
+        where = {}
         if args.review:
             where["approved"] = None
         data, P, _names, _bands = build(levels=levels, as_live=args.as_live, **where)
@@ -427,7 +421,7 @@ def run(argv, cached) -> int:
         return 1
     _, le_mod, _ = plugin()
     summary = f"panel {TEMPLATE_PANEL!r}: {le_mod.summary(P)}"
-    base = paths.rel(where["live_path"])
+    base = BASE_NAME
     # the three-level candidate writes the staging candidate it holds beside it (tables_cutover_staging.xml)
     files = [(out, data)]
     if getattr(P, "staging_data", None) is not None:
@@ -447,8 +441,7 @@ def run(argv, cached) -> int:
     for f, d in files:
         tables.loads(d, path=f).save(f)
     print(f"wrote {paths.rel(out)}: {summary}")
-    print(f"  built on {base}, without what an earlier build added: " +
-          ", ".join(f"{P.stripped[k]} {k}" for k in STRIPPED))
+    print(f"  built on {base}")
     if args.review:
         print(f"  REVIEW: the staging panel was not checked against the approved one ({paths.rel(APPROVED)}); it is "
               "UNAPPROVED until the owner approves it in PanelPro and --approve-staging records it")

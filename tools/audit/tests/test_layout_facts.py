@@ -23,6 +23,16 @@ DATA_FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "schematic/contr
               "uss_board_cells.csv", "uss_board_plants.csv")
 
 
+def with_os9_paths(text: str, closed: str = "2", thrown: str = "4") -> str:
+    """The tables text with OS Switch 9's two block paths stored, as a PanelPro Store writes them (the generated
+    tables.xml stores none, ADR-029): Track EH-2 (IB21) with Switch 9 at `closed`, Track EH-3 (IB22) at `thrown`."""
+    paths = "".join(f'      <path todir="64" fromdir="128" block="{b}">\n        <beansetting setting="{st}">\n'
+                    f'          <turnout systemName="Switch 9" />\n        </beansetting>\n      </path>\n'
+                    for b, st in (("IB21", closed), ("IB22", thrown)))
+    os9 = re.search(r"<occupancysensor>BS Switch 9</occupancysensor>\n", text)
+    return text[:os9.end()] + paths + text[os9.end():]
+
+
 class LayoutFactsTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
@@ -51,17 +61,49 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertTrue(any(m.startswith("Switch 9: Layout Editor TO10 (continuing=4) closes to Track EH-3")
                             and "switch_legs.csv says closed Track EH-2" in m for m in out), out)
 
-    def test_flipped_block_path(self) -> None:
-        def flip(text: str) -> str:
-            os9 = re.search(r"<occupancysensor>BS Switch 9</occupancysensor>.*?</block>", text, re.S)
-            body = os9.group(0).replace(
-                '<beansetting setting="2">\n          <turnout systemName="Switch 9" />',
-                '<beansetting setting="4">\n          <turnout systemName="Switch 9" />')
-            return text[:os9.start()] + body + text[os9.end():]
-
-        out = self.failures(tables=self.copy(check.TABLES, flip))
+    def test_stored_block_paths_are_held_to_the_legs(self) -> None:
+        """A tables file that stores block paths (a PanelPro Store) has them checked against switch_legs.csv; the
+        generated tables.xml stores none, so the check has nothing to hold there."""
+        right = self.failures(tables=self.copy(check.TABLES, with_os9_paths))
+        self.assertFalse([m for m in right if m.startswith("Switch 9:")], right)
+        self.assertIn("Switch 7: OS Switch 7 has no block paths in tables.xml", right)   # the others store none
+        out = self.failures(tables=self.copy(check.TABLES, lambda t: with_os9_paths(t, closed="4", thrown="2")))
         self.assertTrue(any(m.startswith("Switch 9: OS Switch 9 block paths reach Track EH-2")
                             and "closed leg" in m for m in out), out)
+        self.assertFalse(check.Tables(check.TABLES).paths_stored)
+
+    def test_a_wrong_crossover_leg_fails_against_the_panel(self) -> None:
+        """The generated tables store no paths, so a crossover's legs are held to the panel's track."""
+        data = self.data_copy()
+        legs = data / "switch_legs.csv"
+        legs.write_text(legs.read_text().replace("7,OS Switch 7,Track Scale,OS Switch 7b",
+                                                 "7,OS Switch 7,Track Barn,OS Switch 7b"))
+        out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
+        self.assertTrue(any("closes OS Switch 7 to Track Barn, the panel's track from that half's closed end reaches ['Track Scale']" in m
+                            for m in out), out)
+        legs.write_text(legs.read_text().replace("7,OS Switch 7b,Track Main East,OS Switch 7",
+                                                 "7,OS Switch 7b,Track Main East,Track Scale"))
+        out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
+        self.assertTrue(any("throws OS Switch 7b to Track Scale" in m for m in out), out)
+
+    def test_a_crossover_whose_halves_share_a_block_is_named(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: t.replace('blockcname="OS Switch 7b" blockdname="OS Switch 7b"',
+                                                             'blockcname="OS Switch 7" blockdname="OS Switch 7"', 1))
+        out = [m for m in self.failures(tables=tables) if m.startswith("Switch 7:")]
+        self.assertTrue(any("halves are blocks ['OS Switch 7', 'OS Switch 7']" in m for m in out), out)
+
+    def test_a_slip_or_level_crossing_on_a_joined_block_is_named(self) -> None:
+        tables = self.copy(check.TABLES, lambda t: re.sub(
+            r'(<tracksegment ident="[^"]*" blockname="Track Main West"[^>]*?type1=")[A-Z_]+(")',
+            r"\1LEVEL_XING_A\2", t, count=1))
+        with self.assertRaisesRegex(ValueError, "LEVEL_XING_A.*slip or level crossing"):
+            check.Tables(tables).joined_blocks("Track Main West")
+
+    def test_joined_blocks_come_from_the_panel_when_no_paths_are_stored(self) -> None:
+        t = check.Tables(check.TABLES)
+        self.assertIn("OS Switch 1", t.joined_blocks("Track Main West"))
+        stored = check.Tables(self.copy(check.TABLES, with_os9_paths))
+        self.assertEqual({"Track EH-2", "Track EH-3"}, stored.joined_blocks("OS Switch 9"))
 
     def test_flipped_cats_normal(self) -> None:
         # on the live (generated) desk: Switch 9's plant cell, found by its OS block, with NORMAL on the other leg
@@ -93,7 +135,7 @@ class LayoutFactsTest(unittest.TestCase):
             "9,OS Switch 9,Track EH-2,Track EH-3", "9,OS Switch 9,Track EH-3,Track EH-2"))
         out = [m for m in self.failures(data=data) if m.startswith("Switch 9:")]
         self.assertTrue(any("Layout Editor TO10" in m for m in out), out)
-        self.assertTrue(any("block paths" in m for m in out), out)
+        self.assertFalse(any("block paths" in m for m in out), out)      # the generated tables store none
         self.assertTrue(any("HART_CTC.xml" in m and "(close) leads to Track EH-2" in m for m in out), out)
         self.assertTrue(any("HART_ABS.xml" in m for m in out), out)
 
@@ -127,7 +169,7 @@ class LayoutFactsTest(unittest.TestCase):
         switches = data / "switches.csv"
         switches.write_text(switches.read_text().replace("1,1,TOL3,", "2,1,TOL3,"))
         out = self.failures(data=data)
-        self.assertTrue(any(m.startswith("Track Main West: no control point") and "join levels ['1', '2']" in m
+        self.assertTrue(any(m.startswith("Track Main West: no control point") and "are on levels ['1', '2']" in m
                             for m in out), out)
 
     def test_a_mast_renamed_on_one_desk_fails(self) -> None:

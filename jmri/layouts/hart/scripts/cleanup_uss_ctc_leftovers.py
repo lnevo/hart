@@ -3,6 +3,9 @@
 
 IS*: systemNames stay frozen. userNames were still CTC 100/101/… after convert.
 OpenLCB leftover sensors go away. MTT OpenLCB turnout aliases stay.
+
+Parked with the USS CTC machine. tables.xml is generated since R9c (ADR-029), so --apply refuses to write it
+(hartlib.tables_build.refuse_generated); on unpark the USS internals go into the sources instead.
 """
 
 from __future__ import annotations
@@ -13,7 +16,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, tables_build  # noqa: E402
 
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 from refresh_bean_comments import refresh_comments  # noqa: E402
@@ -80,6 +83,7 @@ def main() -> int:
         if leftover:
             print(f"  still present: {leftover}")
         if write:
+            tables_build.refuse_generated(path, Path(__file__).name)
             path.write_text(updated, encoding="utf-8")
     if not write:
         print("dry-run (pass --apply)")

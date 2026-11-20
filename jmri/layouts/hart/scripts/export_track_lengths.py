@@ -3,7 +3,7 @@
 against the block lengths in output/tables.xml.
 
     export_track_lengths.py            # write the document
-    export_track_lengths.py --tables   # set the staging block lengths in tables.xml (JMRI closed)
+    export_track_lengths.py --tables   # refused since R9c: tables.xml takes its lengths from block_lengths.csv
     export_track_lengths.py --check    # exit 1 on drift between the two, or a stale document
 
 The CSV is the record: each block's AnyRail plan 5.3c length (plan_in) and, for a
@@ -15,7 +15,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad, tables  # noqa: E402
+from hartlib import paths, railroad, tables, tables_build  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 CSV = paths.LAYOUT_DATA / "block_lengths.csv"
@@ -82,6 +82,7 @@ JMRI's length is the measured one where there is one, else the plan length.
 def set_tables(rows) -> int:
     """Set each CSV block's length in tables.xml to its JMRI length (mm); returns how many changed. Stops on a block
     tables.xml does not hold, or while JMRI runs (a Store would undo it)."""
+    tables_build.refuse_generated(TABLES, Path(__file__).name)
     if tables.jmri_running():
         sys.exit("JMRI is running: quit PanelPro and CATS first (a Store would undo this)")
     t = tables.load(TABLES)
@@ -120,7 +121,8 @@ def main():
     for name, b in rows.items():
         v = tl.get(name)
         if v is None or abs(v - b.jmri_in * MM) > 1.0:
-            bad.append(f"{name}: csv {b.jmri_in * MM:.1f} mm ({b.source}), tables {v}; run with --tables")
+            bad.append(f"{name}: csv {b.jmri_in * MM:.1f} mm ({b.source}), tables {v}; run "
+                       "python3 tools/schematic/build_tables.py")
     bad += [f"{k}: in tables.xml ({v} mm) but not in CSV" for k, v in tl.items() if k not in rows]
     if not DOC.exists() or DOC.read_text(encoding="utf-8") != text:
         bad.append("docs/jmri/TRACK_LENGTHS.md is stale; run the script without --check")

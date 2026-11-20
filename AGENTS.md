@@ -15,7 +15,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Rebuild the panels drawn from the schematic | `make panels` (hands, signals, device map, schematic, CATS, LE trials and cut-over, in order); `make panels CHECK=1` only checks; `make desks` rebuilds and validates only the CATS desks. Pipeline: `wiki/pipelines/schematic-panels.md` |
 | Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
 | Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
-| Bring a PanelPro Store into the repo | `make tables-pull-pi` for a Store on the Pi, `make tables-pull` for one on the Mac |
+| Take a PanelPro Store off a host | `make tables-pull-pi` for a Store on the Pi, `make tables-pull` for one on the Mac: it keeps the Store in `~/JMRI_UserFiles-pulled/` (outside every checkout) and records it as taken; `tables.xml` is generated (ADR-029), so carry the owner's edits into `devices.csv` or the template before the next deploy, which replaces the host's file (R9d will split Stores automatically) |
 | Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
 | Operating flag (the layout is in use) | `tools/hosts/operating.sh on [reason]` when the owner says they are operating, `off --owner` when they are done, `status` to read it; while set, the hook blocks what reaches the Pi and Windows, and Mac-only work stays open ([`operating-flag` skill](.claude/skills/operating-flag/SKILL.md)) |
 | Quit / start PanelPro on the Mac | Once a Store is pulled, quit and relaunch it yourself (never answer a Store dialog), and install the exact `tables.xml` before asking for a panel approval ([`panelpro` skill](.claude/skills/panelpro/SKILL.md)) |
@@ -86,7 +86,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
 
-- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so it stops until `make ops-pull` or `make tables-pull-pi` is run and committed. `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
+- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so it stops until `make ops-pull` is run and committed, or `make tables-pull-pi` has kept the Store and its edits are in `devices.csv` or the template. `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.

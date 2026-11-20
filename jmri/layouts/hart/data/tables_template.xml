@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="/xml/XSLT/panelfile-5-5-5.xsl" type="text/xsl"?>
+<layout-config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://jmri.org/xml/schema/layout-5-5-5.xsd">
+  <jmriversion>
+    <major>5</major>
+    <minor>16</minor>
+    <test>0</test>
+    <modifier />
+  </jmriversion>
+  <sensors class="jmri.jmrix.mqtt.configurexml.MqttSensorManagerXml" />
+  <sensors class="jmri.jmrix.internal.configurexml.InternalSensorManagerXml">
+    <defaultInitialState>unknown</defaultInitialState>
+    <sensor inverted="false">
+      <systemName>ISCLOCKRUNNING</systemName>
+      <userName>Clock running</userName>
+      <comment>JMRI fast-clock running</comment>
+    </sensor>
+  </sensors>
+  <turnouts class="jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml">
+    <operations automate="false">
+      <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
+      <operation name="Raw" class="jmri.configurexml.turnoutoperations.RawTurnoutOperationXml" interval="300" maxtries="1" />
+      <operation name="Sensor" class="jmri.configurexml.turnoutoperations.SensorTurnoutOperationXml" interval="300" maxtries="3" />
+    </operations>
+    <defaultclosedspeed>Normal</defaultclosedspeed>
+    <defaultthrownspeed>Restricted</defaultthrownspeed>
+  </turnouts>
+  <turnouts class="jmri.jmrix.internal.configurexml.InternalTurnoutManagerXml">
+    <operations automate="false">
+      <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
+      <operation name="Raw" class="jmri.configurexml.turnoutoperations.RawTurnoutOperationXml" interval="300" maxtries="1" />
+      <operation name="Sensor" class="jmri.configurexml.turnoutoperations.SensorTurnoutOperationXml" interval="300" maxtries="3" />
+    </operations>
+    <defaultclosedspeed>Normal</defaultclosedspeed>
+    <defaultthrownspeed>Restricted</defaultthrownspeed>
+  </turnouts>
+  <turnouts class="jmri.jmrix.mqtt.configurexml.MqttTurnoutManagerXml">
+    <operations automate="false">
+      <operation name="NoFeedback" class="jmri.configurexml.turnoutoperations.NoFeedbackTurnoutOperationXml" interval="300" maxtries="2" />
+      <operation name="Raw" class="jmri.configurexml.turnoutoperations.RawTurnoutOperationXml" interval="300" maxtries="1" />
+      <operation name="Sensor" class="jmri.configurexml.turnoutoperations.SensorTurnoutOperationXml" interval="300" maxtries="3" />
+    </operations>
+    <defaultclosedspeed>Normal</defaultclosedspeed>
+    <defaultthrownspeed>Restricted</defaultthrownspeed>
+  </turnouts>
+  <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
+    <memory>
+      <systemName>IMCURRENTTIME</systemName>
+      <userName>Current time</userName>
+      <comment>JMRI fast-clock time</comment>
+    </memory>
+    <memory>
+      <systemName>IMHART_MIMIC</systemName>
+      <userName>Mimic relay</userName>
+      <comment>Mimic page requests; mimic_relay.py publishes them as LCOS feedback</comment>
+    </memory>
+    <memory>
+      <systemName>IMRATEFACTOR</systemName>
+      <userName>Clock rate</userName>
+      <comment>JMRI fast-clock rate</comment>
+    </memory>
+  </memories>
+  <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml" />
+  <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml" />
+  <blocks class="jmri.configurexml.BlockManagerXml">
+    <defaultspeed>Normal</defaultspeed>
+  </blocks>
+  <layoutblocks class="jmri.jmrit.display.layoutEditor.configurexml.LayoutBlockManagerXml" blockrouting="yes" />
+  <signalmastlogics class="jmri.managers.configurexml.DefaultSignalMastLogicManagerXml">
+    <logicDelay>500</logicDelay>
+  </signalmastlogics>
+  <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
+  <LogixNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultLogixNGManagerXml">
+    <Thread>
+      <id>0</id>
+      <name>LogixNG thread</name>
+    </Thread>
+    <LogixNG enabled="yes" inline="no">
+      <systemName>IQ:AUTO:0001</systemName>
+      <userName>Hide windows on start</userName>
+      <ConditionalNGs>
+        <systemName>IQC:AUTO:0001</systemName>
+        <systemName>IQC:AUTO:0004</systemName>
+      </ConditionalNGs>
+    </LogixNG>
+    <InitializationTable>
+      <LogixNG>IQ:AUTO:0001</LogixNG>
+    </InitializationTable>
+    <Clipboard>
+      <Many class="jmri.jmrit.logixng.implementation.configurexml.ClipboardManyXml">
+        <Socket>
+          <socketName>X1</socketName>
+        </Socket>
+      </Many>
+    </Clipboard>
+  </LogixNGs>
+  <LogixNGConditionalNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultConditionalNGManagerXml">
+    <ConditionalNG enabled="yes">
+      <systemName>IQC:AUTO:0001</systemName>
+      <userName>Hide WiThrottle</userName>
+      <thread>0</thread>
+      <Socket>
+        <socketName>A</socketName>
+        <systemName>IQDA:AUTO:0001</systemName>
+      </Socket>
+    </ConditionalNG>
+    <ConditionalNG enabled="yes">
+      <systemName>IQC:AUTO:0004</systemName>
+      <userName>Hide HART Railroad under CATS</userName>
+      <thread>0</thread>
+      <Socket>
+        <socketName>A</socketName>
+        <systemName>IQDA:AUTO:0004</systemName>
+      </Socket>
+    </ConditionalNG>
+  </LogixNGConditionalNGs>
+  <LogixNGDigitalActions class="jmri.jmrit.logixng.implementation.configurexml.DefaultDigitalActionManagerXml">
+    <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
+      <systemName>IQDA:AUTO:0001</systemName>
+      <jmriJFrameTitle>WiThrottle</jmriJFrameTitle>
+      <addressing>Direct</addressing>
+      <reference />
+      <localVariable />
+      <formula />
+      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
+      <hideOrShow>
+        <addressing>Direct</addressing>
+        <enum>Hide</enum>
+        <listenToMemory>no</listenToMemory>
+      </hideOrShow>
+      <maximizeMinimizeNormalize>
+        <addressing>Direct</addressing>
+        <enum>DoNothing</enum>
+        <listenToMemory>no</listenToMemory>
+      </maximizeMinimizeNormalize>
+      <bringToFrontOrBack>
+        <addressing>Direct</addressing>
+        <enum>DoNothing</enum>
+        <listenToMemory>no</listenToMemory>
+      </bringToFrontOrBack>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </DisplayActionWindowManagement>
+    <ActionScript class="jmri.jmrit.logixng.actions.configurexml.ActionScriptXml">
+      <systemName>IQDA:AUTO:0004</systemName>
+      <userName>Hide HART Railroad under CATS</userName>
+      <operationAddressing>Direct</operationAddressing>
+      <operationType>RunScript</operationType>
+      <operationReference />
+      <operationLocalVariable />
+      <operationFormula />
+      <scriptAddressing>Direct</scriptAddressing>
+      <script>preference:jython/hide_cats_desk_windows.py</script>
+      <scriptReference />
+      <scriptLocalVariable />
+      <scriptFormula />
+      <scriptLanguage>
+        <language>python</language>
+      </scriptLanguage>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </ActionScript>
+  </LogixNGDigitalActions>
+</layout-config>

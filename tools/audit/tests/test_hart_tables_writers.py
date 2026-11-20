@@ -29,6 +29,7 @@ WRITERS = (
     ("tools/ops/status_counts.py", []), ("tools/schematic/build_cats_panel.py", []),
     ("tools/schematic/build_signals.py", []),
     ("tools/schematic/build_layout_le.py", ["--levels", "staging", "--as-live"]),
+    ("tools/schematic/build_tables.py", []),
 )
 
 

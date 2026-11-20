@@ -111,6 +111,12 @@ class Sandbox:
         traininfo = self.root / "jmri/layouts/hart/dispatcher/traininfo"
         traininfo.mkdir(parents=True)
         (traininfo / "train1.xml").write_text("<traininfo/>", encoding="utf-8")
+        # build_tables.py stands in for the generator (run_sml_discover.sh): it logs its arguments
+        stub = self.root / "tools/schematic/build_tables.py"
+        stub.parent.mkdir(parents=True)
+        stub.write_text("import os, sys\nopen(sys.argv[0] + '.log', 'a').write(' '.join(sys.argv[1:]) + '\\n')\n"
+                        "sys.exit(2 if os.environ.get('FAKE_TABLES_FAIL') and sys.argv[1] == '--discovered-from' "
+                        "else 0)\n", encoding="utf-8")
         self.home = tmp / "home"
         self.profile = self.make_profile(self.home / "Library/Preferences/JMRI", "My_JMRI_Railroad", LIVE_ID,
                                          r"home\:JMRI_UserFiles/")
@@ -247,6 +253,42 @@ class StartupScriptsOff(WrapperCase):
         self.assertEqual(1, done.returncode)
         self.assertIn("Quit CATS/PanelPro first", done.stderr)
         self.assertFalse((self.box.state / "launch_arg").exists())
+        self.assert_restored()
+
+    def test_sml_discovery_runs_on_the_base_then_takes_the_store(self) -> None:
+        """run_sml_discover.sh writes the discovery base (no logic), lets PanelPro Store to a temporary file, then
+        hands that Store to build_tables.py --discovered-from; the repo's tables.xml is never the Store target."""
+        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER")
+        done = self.box.run("run_sml_discover.sh", env)
+        self.assertEqual(0, done.returncode, done.stderr)
+        calls = (self.box.root / "tools/schematic/build_tables.py.log").read_text().splitlines()
+        self.assertEqual("--discovery-base", calls[0])
+        self.assertTrue(calls[1].startswith("--discovered-from "), calls)
+        stored = calls[1].split(" ", 1)[1]
+        launched = (self.box.state / "env").read_text()
+        self.assertIn(f"HART_SML_DISCOVER_FILE={stored}\n", launched)
+        self.assertNotIn("output/tables.xml", stored)
+        self.assertIn("DONE", done.stdout)
+        self.assertNotIn("discovery base", done.stderr)          # a run that finished leaves no note
+        self.assert_restored()
+
+    def test_a_failed_take_keeps_the_discovery_store(self) -> None:
+        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_TABLES_FAIL="1")
+        done = self.box.run("run_sml_discover.sh", env)
+        self.assertEqual(1, done.returncode, done.stderr)
+        kept = sorted((self.box.home / "JMRI_UserFiles-pulled").glob("discovery-*.xml"))
+        self.assertEqual(1, len(kept), done.stderr)
+        self.assertIn(f"kept as {kept[0]}", done.stderr)
+        self.assertIn(f"--discovered-from {kept[0]}", done.stderr)
+        self.assertIn("tables.xml is now the discovery base", done.stderr)
+        self.assertNotIn("DONE", done.stdout)
+        self.assert_restored()
+
+    def test_a_run_that_fails_after_the_base_says_how_to_restore(self) -> None:
+        done = self.box.run("run_sml_discover.sh", self.box.env())     # PanelPro quits with no marker
+        self.assertEqual(1, done.returncode, done.stderr)
+        self.assertIn("tables.xml is now the discovery base", done.stderr)
+        self.assertIn("python3 tools/schematic/build_tables.py", done.stderr)
         self.assert_restored()
 
     def test_nx_defaults_paint_only(self) -> None:

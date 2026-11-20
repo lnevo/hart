@@ -1,175 +1,79 @@
 #!/usr/bin/env python3
-"""Store Digicon SignalMastLogic destination pairs as disabled in tables.
+"""Check that the Digicon masts' Signal Mast Logic is stored disabled in a tables file.
 
-Digicon field masts (docs/wiring/signals/signal_wiring.csv) boot with SML Enabled=no so
-JMRI does not run ABS until signal_coordinator.py takes Digicon control.
-Non-Digicon SML sources (yard / approach without LCOS IH heads) are left alone.
+Digicon field masts (docs/wiring/signals/signal_wiring.csv, on wired LCOS heads) boot with SML Enabled=no so JMRI
+does not run ABS until signal_coordinator.py takes Digicon control. Non-Digicon sources are left alone.
 
-Edits jmri/layouts/hart/output/tables.xml.
-Re-run after jmri/layouts/hart/scripts/run_sml_discover.sh (Discover writes enabled=yes).
-Deploy (`sync_hart_package.sh`) calls this with `--panel` on the shipped tables.
+Since R9c (ADR-029) the generator applies the rule: tools/schematic/build_tables.py writes tables.xml with these
+destinations disabled (hartlib.tables_build.disable_digicon), and the deploy ships the committed bytes. This script
+checks a tables file (--check, tools/check.sh), reports (--dry-run), or, with --panel, applies the rule to another
+tables file in place (the parked Stage 1 repair, run_panelpro_stage1.sh). It never rewrites the generated tables.xml:
+run tools/schematic/build_tables.py instead.
 
 Usage:
-  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py
-  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --dry-run
-  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check --panel path/to/tables.xml
+  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check
+  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --dry-run --panel path/to/tables.xml
+  python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --panel path/to/other_tables.xml
 """
 
 from __future__ import annotations
 
 import argparse
-import csv
-import re
+import os
 import sys
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
+from hartlib import tables_build as tb  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 WIRING = paths.SIGNAL_WIRING
 NEW_TABLES = paths.TABLES_XML
 
-_LOGIC_RE = re.compile(
-    r'<signalmastlogic source="([^"]+)">.*?</signalmastlogic>',
-    re.DOTALL,
-)
-_DEST_ENABLED_RE = re.compile(
-    r'<destinationMast destination="([^"]+)">.*?<enabled>(yes|no)</enabled>',
-    re.DOTALL,
-)
 
-
-_LCOS_HEAD = re.compile(r"\(IH\d+\)")
-
-
-def digicon_mast_names(path: Path = WIRING, tables_text: str | None = None) -> set[str]:
-    """The wiring plan's masts, and with `tables_text` only those whose heads there are wired LCOS heads (IH and
-    digits, the heads signal_coordinator.py enrols): a mast the plan still names but the tables now put on internal
-    heads (staging's rule-built masts, 2026-11-19) is never taken over by the coordinator, so its logic must not
-    boot disabled."""
-    names: set[str] = set()
-    with path.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            m = (row.get("mast_user_name") or "").strip()
-            if m:
-                names.add(m)
-    if tables_text is None:
-        return names
-    root = tables.loads(tables_text.encode("utf-8")).root
-    wired = {tables.user_name(m) for m in tables.masts(root) if _LCOS_HEAD.search(tables.system_name(m) or "")}
-    return names & wired
-
-
-def disable_digicon_destinations(text: str, digicon: set[str]) -> tuple[str, int, int]:
-    """Return (new_text, flipped_yes_to_no, already_no)."""
-    flipped = 0
-    already = 0
-
-    def repl(m: re.Match[str]) -> str:
-        nonlocal flipped, already
-        src = m.group(1)
-        block = m.group(0)
-        if src not in digicon:
-            return block
-
-        def en_repl(em: re.Match[str]) -> str:
-            nonlocal flipped, already
-            if em.group(1) == "yes":
-                flipped += 1
-                return "<enabled>no</enabled>"
-            already += 1
-            return em.group(0)
-
-        return re.sub(r"<enabled>(yes|no)</enabled>", en_repl, block)
-
-    out = _LOGIC_RE.sub(repl, text)
-    return out, flipped, already
-
-
-def enabled_digicon_pairs(text: str, digicon: set[str]) -> list[tuple[str, str]]:
-    """Digicon source -> dest pairs still stored Enabled=yes."""
-    pairs: list[tuple[str, str]] = []
-    for m in _LOGIC_RE.finditer(text):
-        src = m.group(1)
-        if src not in digicon:
-            continue
-        for dm in _DEST_ENABLED_RE.finditer(m.group(0)):
-            if dm.group(2) == "yes":
-                pairs.append((src, dm.group(1)))
-    return pairs
-
-
-def main() -> None:
-    ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument(
-        "--panel",
-        type=Path,
-        default=NEW_TABLES,
-        help="tables XML to patch (default: jmri/layouts/hart/output/tables.xml)",
-    )
-    ap.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Report counts only; do not write",
-    )
-    ap.add_argument(
-        "--check",
-        action="store_true",
-        help="Fail if any Digicon (MQTT) SML dest is still Enabled=yes; do not write",
-    )
-    args = ap.parse_args()
+def main(argv=None) -> int:
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--panel", type=Path, default=NEW_TABLES,
+                    help="tables XML to check or patch (default: jmri/layouts/hart/output/tables.xml)")
+    g = ap.add_mutually_exclusive_group()
+    g.add_argument("--dry-run", action="store_true", help="report counts only; do not write")
+    g.add_argument("--check", action="store_true",
+                   help="fail if any Digicon (MQTT) SML destination is still Enabled=yes; do not write")
+    args = ap.parse_args(argv)
     if not (args.check or args.dry_run):
         paths.exit_if_overridden(Path(__file__).name)
-
-    if not args.panel.is_file():
-        print("missing tables file: %s" % args.panel, file=sys.stderr)
-        raise SystemExit(1)
-
-    text = args.panel.read_text(encoding="utf-8")
-    digicon = digicon_mast_names(tables_text=text)
-    if args.check:
-        pairs = enabled_digicon_pairs(text, digicon)
-        rel = args.panel
-        try:
-            rel = args.panel.relative_to(ROOT)
-        except ValueError:
-            pass
-        if pairs:
-            print(
-                "ERROR: %s has %d Digicon SML dest(s) Enabled=yes "
-                "(MQTT masts must boot Disabled):"
-                % (rel, len(pairs)),
-                file=sys.stderr,
-            )
-            for src, dest in pairs[:24]:
-                print("  %s -> %s" % (src, dest), file=sys.stderr)
-            if len(pairs) > 24:
-                print("  ... (%d more)" % (len(pairs) - 24), file=sys.stderr)
-            print(
-                "Fix: python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py",
-                file=sys.stderr,
-            )
-            raise SystemExit(1)
-        print(
-            "ok: %s Digicon SML dests Enabled=no (masts=%d)"
-            % (rel, len(digicon))
-        )
-        return
-    out, flipped, already = disable_digicon_destinations(text, digicon)
-    print(
-        "digicon masts=%d  flipped yes->no=%d  already no=%d"
-        % (len(digicon), flipped, already)
-    )
+        if os.path.realpath(args.panel) == os.path.realpath(paths.REPO_TABLES_XML):
+            print("tables.xml is generated (R9c): tools/schematic/build_tables.py applies the Digicon rule; "
+                  "this script only patches another tables file", file=sys.stderr)
+            return 2
+    try:
+        doc = tables.load(args.panel)
+        digicon = tb.digicon_masts(doc.root, WIRING)
+        rel = paths.rel(args.panel)
+        if args.check:
+            pairs = tb.enabled_digicon(doc.root, digicon)
+            if pairs:
+                print(f"ERROR: {rel} has {len(pairs)} Digicon SML destination(s) Enabled=yes (MQTT masts must boot "
+                      "disabled): " + ", ".join(f"{s} -> {d}" for s, d in pairs[:24])
+                      + "; run tools/schematic/build_tables.py", file=sys.stderr)
+                return 1
+            print(f"ok: {rel} Digicon SML destinations Enabled=no (masts={len(digicon)})")
+            return 0
+        flipped, already = tb.disable_digicon(doc.root, digicon)
+    except OSError as exc:
+        print(f"missing tables file: {args.panel} ({exc.strerror})", file=sys.stderr)
+        return 1
+    except tb.TablesBuildError as exc:
+        print(f"disable_digicon_sml_in_tables.py: {exc}", file=sys.stderr)
+        return 2
+    print(f"digicon masts={len(digicon)}  flipped yes->no={flipped}  already no={already}")
     if args.dry_run:
-        return
-    if flipped == 0 and out == text:
-        print("no changes")
-    else:
-        args.panel.write_text(out, encoding="utf-8")
-        print("wrote %s" % args.panel.relative_to(ROOT))
+        return 0
+    print(f"wrote {rel}" if doc.save() else "no changes")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

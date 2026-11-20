@@ -91,6 +91,7 @@ HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad"
 HARTLIB_OTHER = {
     "names": "the name map's columns",
     "devices": "the device master (devices.csv) and the files generated from it",
+    "tables_build": "the template and the other parts the generated tables.xml is built from",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",
     "level_devices": "the main and upper levels' device names",

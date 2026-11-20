@@ -16,7 +16,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 
 ## Outputs
 
-- SML dests in `jmri/layouts/hart/output/tables.xml`
+- SML dests in `jmri/layouts/hart/data/schematic/discovered_sml.xml` (only the wrapper writes it, through `tools/schematic/build_tables.py --discovered-from`), and from there in the generated `jmri/layouts/hart/output/tables.xml` (ADR-029)
 - `ISNX:*` pairs (systemNames frozen)
 
 ## Run
@@ -24,7 +24,8 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 ```bash
 # PanelPro, not CATS. Modal dialogs — do not hide them.
 ./jmri/layouts/hart/scripts/run_sml_discover.sh
-# wrapper also: python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py
+# the wrapper Stores to a temporary file, then: python3 tools/schematic/build_tables.py --discovered-from <Store>
+# (the generator stores the Digicon destinations disabled)
 ./jmri/layouts/hart/scripts/run_nx_discover.sh   # if NX needs a refresh
 ```
 

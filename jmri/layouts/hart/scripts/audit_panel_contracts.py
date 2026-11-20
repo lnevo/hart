@@ -445,7 +445,12 @@ def audit_sml(root: ET.Element, audit: Audit, *, required: bool, generated: bool
     before = generated and len(carried_destinations(found)) == len(found)       # nothing on main or upper yet
     carried = carried_destinations(sml_destinations(live if live is not None else tables.read(paths.TABLES_XML))) \
         if before else []
-    if before and sorted(destinations) == sorted(carried) and (auto, manual, unknown) == (len(carried), 0, 0):
+    if generated and not found:
+        # a cut-over candidate since R9c (ADR-029): the generator's base and the panel, no logic; the released
+        # tables.xml takes the discovered logic (tools/schematic/build_tables.py, data/schematic/discovered_sml.xml)
+        audit.warn(f"the generated panel's tables hold no Signal Mast Logic: tools/schematic/build_tables.py adds "
+                   f"the discovered logic (expect {want})")
+    elif before and sorted(destinations) == sorted(carried) and (auto, manual, unknown) == (len(carried), 0, 0):
         audit.warn(f"stored SML destinations are the {len(carried)} between staging masts the build carried from "
                    f"{paths.rel(paths.TABLES_XML)}: run Stage 1 or stock discovery on this generated panel "
                    f"(expect {want})")
