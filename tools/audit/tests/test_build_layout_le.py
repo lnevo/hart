@@ -975,7 +975,8 @@ class LevelMasts(unittest.TestCase):
             for old, new in (("IH:HART:C3:108LA", "IH3332"),            # a field (LCOS) name
                              ("IH:HART:C3:108LA", "IH:HART:C3:108LB")):  # a virtual name not from its user name
                 path.write_text(text.replace(old, new), encoding="utf-8")
-                with self.subTest(head=new), self.assertRaisesRegex(B.BuildError, "Mast 108LA: heads .* virtual heads"):
+                with self.subTest(head=new), self.assertRaisesRegex(
+                        B.BuildError, r"^m\.csv line \d+: mast Mast 108LA: heads .* virtual heads$"):   # the file once
                     B.read_level_masts(path)
         # and the coordinator's own test, which read_level_masts runs as well: no virtual name is an LCOS head
         self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA",

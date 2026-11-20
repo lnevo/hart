@@ -41,6 +41,49 @@ class HeadNameTest(unittest.TestCase):
                         with self.assertRaises(ValueError):
                             L.read(path)
 
+    def test_read_checks_the_header_and_each_mast_once(self):
+        """A missing column, a row longer than the header and a mast named twice stop with the file and the line; a
+        column the file adds beyond FIELDS is left out."""
+        from hartlib.railroad import FactsError
+        mast = "Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,,IF$shsm:basic:one-low(IH:HART:C3:108LA)," \
+               "IH:HART:C3:108LA=Head 108LA,\n"
+        other = mast.replace("108LA", "108LB")
+        header = ",".join(L.FIELDS) + "\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.csv"
+
+            def stops(text: str, message: str) -> None:
+                path.write_text(text, encoding="utf-8")
+                with self.assertRaises(FactsError) as stop:
+                    L.read(path)
+                self.assertEqual(str(stop.exception), message)
+
+            path.write_text(header + mast + other, encoding="utf-8")
+            self.assertEqual([r["mast"] for r in L.read(path)], ["Mast 108LA", "Mast 108LB"])
+            no_leg = [c for c in L.FIELDS if c != "leg"]
+            stops(",".join(no_leg) + "\n" + mast.replace(",,IF$", ",IF$"),
+                  f"m.csv: no column leg (the header is {','.join(no_leg)})")
+            stops(header + mast + other.replace(",\n", ",,stray\n"),
+                  f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 10")
+            stops(header + mast + other + mast, "m.csv line 4: mast Mast 108LA is on line 2 already")
+            # a short row is a damaged file: it stops like a long one, however many fields it lost
+            stops(header + mast + other.replace(",\n", "\n"), f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 8")
+            stops(header + mast + "Mast 108LB,CP 107\n", f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 2")
+            # a row with no mast name, empty or blank
+            for blank in ("", "  "):
+                stops(header + mast + other.replace("Mast 108LB", blank), "m.csv line 3: no mast name")
+            stops(header + mast + other.replace("=Head 108LB", "=Head 108LA"),
+                  "m.csv line 3: mast Mast 108LB: heads 'IH:HART:C3:108LB=Head 108LA' are not system=user pairs of "
+                  "its system name's virtual heads")
+            # a column beyond FIELDS is allowed and left out of the rows; the checks still run
+            more = header.replace("\n", ",remark\n")
+            path.write_text(more + mast.replace(",\n", ",,spare\n"), encoding="utf-8")
+            self.assertEqual(set(L.read(path)[0]), set(L.FIELDS) | {"heads"})
+            stops(more + mast.replace(",\n", ",,spare\n") + mast.replace(",\n", ",,x\n"),
+                  "m.csv line 3: mast Mast 108LA is on line 2 already")
+            with self.assertRaisesRegex(FactsError, "none.csv: cannot read it"):
+                L.read(Path(tmp) / "none.csv")
+
     def test_the_committed_file(self):
         """One row per main or upper mast in the released tables (44 since the 2026-11-19 plan), by system name."""
         from hartlib import tables

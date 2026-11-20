@@ -147,10 +147,15 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 ### `hartlib.level_masts`
 
 The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by
-`tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs), `names()`,
+`tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs; see below), `names()`,
 `head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
 physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
 and `audit_panel_contracts.py`.
+
+`read()` goes through `railroad.read_rows` and stops with `railroad.FactsError` (a `ValueError`), naming the file and
+the line, when the header lacks a `FIELDS` column, a row is shorter or longer than the header, a row has no mast
+name, a mast is named twice, or a row's heads are not system=user pairs of the virtual heads in its system name. A
+column beyond `FIELDS` is allowed and left out of the rows.
 
 ### `hartlib.boundaries`
 
