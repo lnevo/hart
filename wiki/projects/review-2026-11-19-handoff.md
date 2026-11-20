@@ -74,7 +74,7 @@ All in `jmri/scripts/signal_coordinator.py` unless named; tests belong in `jmri/
 | `windowClosing` sleeps 3 s on the Swing thread; `_button.setEnabled` is called off it | `:302`, `:362`, `:947`, `:979` | S | Done (#721) |
 | `panel_status.py` rescans all turnouts on `KnownState`, and walks every editor per sync | `:573`, `:184` | S | Done, #719 (per-turnout update; editor walk skipped) |
 | Deploy does not check Windows is reachable before the Pi restarts; no ssh multiplexing; package staged twice | `tools/hosts/sync_hart_package.sh:520`, `:212-219` | M | Done, #747 (reachability was already fixed by the preflight; Pi ssh shared, Windows not yet tried; staged once) |
-| Untested: shutdown release, Hold sequences, bulk SML set and its timeout, `sts_car_sync` worker thread, `hide_cats_desk_windows` | | M | |
+| Untested: shutdown release, Hold sequences, bulk SML set and its timeout, `sts_car_sync` worker thread, `hide_cats_desk_windows` | | M | Done, #744 (tests, plus fixes so a failed bulk set never hands off with pairs on; the last two already had their own test files) |
 
 ## Not started: checks and CI
 
@@ -84,7 +84,7 @@ All in `jmri/scripts/signal_coordinator.py` unless named; tests belong in `jmri/
 | **Done, #724.** Skip the `publish_draft.py --check` redraw when inputs are unchanged (the hash must cover the plugin, graphs and data) | `tools/schematic/publish_draft.py:133-155`; 18.6 s measured | 18 of 25 s of `make panels CHECK=1` |
 | **Done, #724.** Split `unit-jmri` by file for local runs | `tools/check.sh:141` | about 8 s locally |
 | **Done, #716.** Narrow the after-edit hook (owner decision 9) | `.claude/hooks/check_after_edit.py:30-32` | about 14 s per watched edit |
-| Cache search thumbnails | `www/scripts/prepare_github_pages.py:535-557` | 0.7 s |
+| **Done, #745.** Cache search thumbnails | `www/scripts/prepare_github_pages.py:535-557` | 0.7 s |
 
 Leave alone: Bash hook latency (69 ms), `tables.xml` parsing (14 ms for 905 KB), the website build (5.5 s), the serial checks (9 s).
 
@@ -94,10 +94,10 @@ Leave alone: Bash hook latency (69 ms), `tables.xml` parsing (14 ms for 905 KB),
 |---|---|---|
 | **Done, #711.** `sync_staging_signals.py` edits `tables.xml` and had no tests; nor had `build_staging_masts.py` | `tools/schematic/sync_staging_signals.py:45-127` | M |
 | **Done, #702** (the `git show` case). A rerun of `publish()` on a later day restamps the date; a non-zero `git show` in `on_main` is read as "file not on main" | `tools/schematic/publish_draft.py:319` | S |
-| `sync_staging_signals.py` failure path in `make panels` was not exercised with a stale CSV; the generic "later steps read what staging-masts writes" line is off for a check-only step | `tools/schematic/build_panels.sh` | S |
+| **Done, #745** (test added; the check-only message was already right). `sync_staging_signals.py` failure path in `make panels` was not exercised with a stale CSV; the generic "later steps read what staging-masts writes" line is off for a check-only step | `tools/schematic/build_panels.sh` | S |
 | **Done, #697.** `mimic_relay.py` prints "sent %s without retain" on a branch stock JMRI never reaches, and the message is wrong on stock | `jmri/layouts/hart/scripts/mimic_relay.py:84` | S |
 | **Done, #746** (desks byte-identical). `intermediate_signal` depends on strand order and renames edges of every `loop_half` strand in the band | `tools/schematic/cats_panel_levels.py` (`intermediate_signal`) | M |
-| Planned DCC addresses come from sort position, so a new switch shifts later ones | `tools/schematic/build_device_map.py:429` | M |
+| **Owner: not now (2026-11-20).** Planned DCC addresses come from sort position, so a new switch shifts later ones | `tools/schematic/build_device_map.py:429` | M |
 
 The staging-signal items overlap the staging signal rule work in another session; check with that work before starting.
 
@@ -106,14 +106,14 @@ The staging-signal items overlap the staging signal rule work in another session
 - **Done, #720** (33 moved, 10 stay in `docs/`). Move generator scripts out of `docs/` (43 Python files; `docs/wiring/scripts/refresh_wiring_docs.py` is 1,798 lines) into `tools/`, outputs stay in `docs/`. M.
 - **Struck, not needed** (see above). Collapse the seven private CSV readers onto `hartlib.railroad.read_rows`: `tools/schematic/le_common.py:87`, `jmri/layouts/hart/scripts/sync_public_name_map.py:127`, `docs/wiring/scripts/refresh_wiring_docs.py:46`, `docs/wiring/scripts/add_main_upper_levels.py:48`, `ops/hart-ops/card_pipeline/intake_stages.py:72`, `ops/hart-ops/card_pipeline/cars.py:82`. S–M.
 - **Struck, not needed** (see above). Route `tools/audit/check_wiring_crosswalk.py:132` and `check_layout_facts.py:126` through `hartlib.tables`. M.
-- Smoke tests for `generate_card_template.py`, `rebuild_local_station_maps.py`, `generate_waybill_cards.py`, `apply_visual_review.py`. L.
+- **Done, #734.** Smoke tests for `generate_card_template.py`, `rebuild_local_station_maps.py`, `generate_waybill_cards.py`, `apply_visual_review.py`. L.
 - **Done, #741 and #742.** Split `railroad.py` (CSV facts 112-720, class 724-818, invariants 821-1137) and `build_cats_panel.py` (facts 113-203, staging 205-362, levels 364-757, dress 811-895). L, tests first.
-- `tools/schematic/publish_draft.py:60` imports upward from `www/scripts`.
+- **Done before 2026-11-20** (it uses `hartlib.map_revision`). `tools/schematic/publish_draft.py:60` imports upward from `www/scripts`.
 
 ## Not started: documentation
 
 - **Done, #727.** Shorten the operating-flag, PanelPro, redeploy and STS rows of `AGENTS.md` (12.6 KB, loaded every session) to one line plus a link.
-- Move dated history from `wiki/STATUS.md` (18 KB) to `STATUS_LOG.md`.
+- **Done, #733.** Move dated history from `wiki/STATUS.md` (18 KB) to `STATUS_LOG.md`.
 - **Done, #725.** A check that fails when `docs/INDEX.md` is out of date (after #698, which gives the tool argument handling).
 
 ## Not started: website
@@ -121,4 +121,4 @@ The staging-signal items overlap the staging signal rule work in another session
 - **Done, #712 and #723.** Width and height on the 44 `<img>` tags without them; WebP companions for large JPEGs; a 1200 px hero in place of the 1844 px, 364 KB one.
 - **Done, #712.** `defer` on `nav.js` and the other page scripts where load order allows.
 - **Done, #723.** Exam pages are 160–250 KB of inline HTML; move shared CSS and JS to files and load question data from JSON.
-- Check `<video>` tags for `preload` and `poster`.
+- **Done** (all four have `preload` or `poster`, 2026-11-20). Check `<video>` tags for `preload` and `poster`.
