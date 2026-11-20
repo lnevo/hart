@@ -16,7 +16,7 @@ check:  ## Run every repo check
 	./tools/check.sh
 
 remote:  ## Run a command on the Windows box's WSL (pushed branch): make remote CMD="./tools/check.sh"
-	./tools/hosts/win_run.sh -- $(CMD)
+	./tools/hosts/win_run.sh -- bash -c '$(subst ','"'"',$(CMD))'
 
 portal-check:  ## Build the website and test its links
 	python3 www/scripts/check_portal_build.py
