@@ -20,8 +20,24 @@ class _Stop(BaseException):
     """Ends the watcher's endless loop from the fake sleep; `except Exception` lets it through."""
 
 
-class JavaException(BaseException):
-    """Stands for java.lang.Exception: in Jython it is not a Python Exception."""
+class JavaThrowable(BaseException):
+    """Stands for java.lang.Throwable: in Jython it is not a Python Exception."""
+
+
+class JavaException(JavaThrowable):
+    """Stands for java.lang.Exception."""
+
+
+class JavaError(JavaThrowable):
+    """Stands for java.lang.Error, which java.lang.Exception does not cover."""
+
+
+class Unprintable(Exception):
+    def __str__(self):
+        raise RuntimeError("no message")
+
+
+FAILED = "jmri_cmd_watcher: command handling failed: "
 
 
 class CmdWatcher(unittest.TestCase):
@@ -36,7 +52,8 @@ class CmdWatcher(unittest.TestCase):
             (self.env["CMD"], self.env["OUT"], self.env["LAST"], self.env["READY"]),
             ("/tmp/jmri_cmd.py", "/tmp/jmri_cmd.out", "/tmp/jmri_cmd.last", "/tmp/jmri_watcher.ready"),
         )
-        self.env["java"].lang.Exception = JavaException
+        lang = self.env["java"].lang
+        lang.Throwable, lang.Exception, lang.Error = JavaThrowable, JavaException, JavaError
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         self.dir = Path(tmp.name)
@@ -140,6 +157,136 @@ class CmdWatcher(unittest.TestCase):
             printed = self.run_loop(lambda: None)
         self.assertEqual(printed, "jmri_cmd_watcher: command handling failed: cannot move the command\n")
         self.assertEqual(self.out.read_text(), "ok\nfirst")
+
+    def failing_rename(self, to, errors):
+        """os.rename that raises the next of `errors` (None = works) for each move onto `to`."""
+        real_rename = os.rename
+        errors = list(errors)
+
+        def rename(src, dst):
+            if dst == to and errors:
+                error = errors.pop(0)
+                if error is not None:
+                    raise error
+            return real_rename(src, dst)
+
+        return mock.patch.object(os, "rename", rename)
+
+    def test_java_error_in_a_command_reports_error_and_watcher_runs_the_next(self):
+        self.drop("raise java.lang.Error('java error')\n")
+        seen = []
+
+        def next_command():
+            seen.append(self.out.read_text())
+            self.drop("RESULT = 'second'\n")
+
+        printed = self.run_loop(next_command)
+        self.assertTrue(seen[0].startswith("error\n"), seen[0])
+        self.assertIn("java error", seen[0])
+        self.assertEqual(self.out.read_text(), "ok\nsecond")
+        self.assertEqual(printed, "")
+
+    def test_java_error_while_handling_is_printed_and_watcher_runs_the_next(self):
+        self.drop("RESULT = 'first'\n")
+        with self.failing_rename(self.env["LAST"], [JavaError("java ran out of something")]):
+            printed = self.run_loop(lambda: None)
+        self.assertEqual(printed, FAILED + "java ran out of something\n")
+        self.assertEqual(self.out.read_text(), "ok\nfirst")
+
+    def test_sys_exit_in_a_command_reports_error_and_watcher_runs_the_next(self):
+        for source in ("import sys\nsys.exit(3)\n", "raise SystemExit('stop now')\n"):
+            with self.subTest(source=source):
+                self.drop(source)
+                seen = []
+
+                def next_command():
+                    seen.append(self.out.read_text())
+                    self.drop("RESULT = 'second'\n")
+
+                printed = self.run_loop(next_command)
+                self.assertTrue(seen[0].startswith("error\n"), seen[0])
+                self.assertIn("SystemExit", seen[0])
+                self.assertEqual(self.out.read_text(), "ok\nsecond")
+                self.assertEqual(printed, "")
+
+    def test_sys_exit_while_handling_is_printed_and_watcher_runs_the_next(self):
+        self.drop("RESULT = 'first'\n")
+        with self.failing_rename(self.env["LAST"], [SystemExit("handler exit")]):
+            printed = self.run_loop(lambda: None)
+        self.assertEqual(printed, FAILED + "handler exit\n")
+        self.assertEqual(self.out.read_text(), "ok\nfirst")
+
+    def test_persisting_failure_is_printed_once_until_it_changes_or_clears(self):
+        self.drop("RESULT = 'first'\n")
+        same = lambda: OSError("cannot move the command")  # noqa: E731
+        errors = [same(), same(), same(), OSError("another reason"), OSError("another reason"), None, same()]
+        results = []
+
+        def look():
+            results.append(self.out.read_text() if self.out.exists() else None)
+
+        def second_command():
+            look()
+            self.drop("RESULT = 'second'\n")
+
+        # Passes 1-5 fail on the same command, pass 6 runs it, pass 7 fails on the second one.
+        with self.failing_rename(self.env["LAST"], errors):
+            printed = self.run_loop(look, look, look, look, look, second_command, look)
+        self.assertEqual(printed.splitlines(), [
+            FAILED + "cannot move the command",
+            FAILED + "another reason",
+            FAILED + "cannot move the command",
+        ])
+        # The caller finds an error result while the failure stands; it is not removed and
+        # rewritten on every pass, and it says the command is still waiting.
+        first = "error\n" + FAILED + "cannot move the command\nThe command is still waiting and is tried again.\n"
+        other = first.replace("cannot move the command", "another reason")
+        self.assertEqual(results, [first, first, first, other, other, "ok\nfirst", first])
+        self.assertEqual(self.out.read_text(), "ok\nsecond")
+
+    def test_result_write_failure_leaves_an_error_result_and_watcher_runs_the_next(self):
+        self.drop("RESULT = 'first'\n")
+        seen = []
+
+        def next_command():
+            seen.append(self.out.read_text())
+            self.drop("RESULT = 'second'\n")
+
+        with self.failing_rename(str(self.out), [OSError("disk trouble")]):
+            printed = self.run_loop(next_command)
+        self.assertEqual(printed, FAILED + "disk trouble\n")
+        self.assertEqual(seen, ["error\n" + FAILED + "disk trouble\n"
+                                "The command file is gone (it ran, or was removed) and is not run again.\n"])
+        self.assertEqual(self.out.read_text(), "ok\nsecond")
+
+    def test_result_that_cannot_be_written_at_all_is_printed_and_watcher_runs_the_next(self):
+        self.drop("RESULT = 'first'\n")
+        seen = []
+
+        def next_command():
+            seen.append(self.out.exists())
+            self.drop("RESULT = 'second'\n")
+
+        with self.failing_rename(str(self.out), [OSError("disk trouble"), JavaError("still no disk")]):
+            printed = self.run_loop(next_command)
+        self.assertEqual(printed, FAILED + "disk trouble\n"
+                         "jmri_cmd_watcher: no result could be written: still no disk\n")
+        self.assertEqual(seen, [False])
+        self.assertEqual(self.out.read_text(), "ok\nsecond")
+
+    def test_failure_whose_message_cannot_be_formatted_does_not_end_the_watcher(self):
+        self.drop("RESULT = 'first'\n")
+        with self.failing_rename(self.env["LAST"], [Unprintable()]):
+            printed = self.run_loop(lambda: None)
+        self.assertEqual(printed, FAILED + "Unprintable (its message could not be printed)\n")
+        self.assertEqual(self.out.read_text(), "ok\nfirst")
+
+    def test_command_error_whose_traceback_cannot_be_formatted_still_reports_error(self):
+        self.drop("raise ValueError('boom')\n")
+        self.env["traceback"] = types.SimpleNamespace(format_exc=mock.Mock(side_effect=Unprintable()))
+        printed = self.run_loop()
+        self.assertEqual(self.out.read_text(), "error\nboom")
+        self.assertEqual(printed, "")
 
     def test_result_is_written_under_a_temp_name_then_renamed(self):
         for source, expected in (("RESULT = 'x' * 5000\n", "ok\n" + "x" * 5000), ("1/0\n", None)):
