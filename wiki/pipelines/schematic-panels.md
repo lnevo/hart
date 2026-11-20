@@ -22,7 +22,7 @@ make desks            # only the CATS desks, then validate them
 | hands | `build_hands.py` | `hands.csv` from the plan graph |
 | staging-masts | `build_staging_masts.py --check` | nothing: stops when `staging_masts.csv`, `staging_signals.csv` or the mast and head rows of `device_map_staging.csv` no longer match the staging signal rule. Run `build_staging_masts.py` by hand to write them |
 | staging-sync | `sync_staging_signals.py --check` | nothing: stops when the staging heads and masts in `tables.xml` differ from `staging_masts.csv`. Run `sync_staging_signals.py` by hand with JMRI closed; `make panels` never edits `tables.xml` |
-| staging-map | `staging_device_map.py --check` | nothing: checks the hand-kept staging device map (`device_map_staging.csv`, `control_points_staging.csv`, `staging_masts.csv`, `staging_signals.csv`) against `tables.xml` and the schematic |
+| staging-map | `staging_device_map.py --check` | nothing: checks the staging device map files against `tables.xml` and the schematic. `control_points_staging.csv` and the rows of `device_map_staging.csv` other than masts and heads are kept by hand; `staging_masts.csv`, `staging_signals.csv` and the mast and head rows are generated (staging-masts above) |
 | signals | `build_signals.py` | `<name>.signals.json` from the plan graph and the staging masts (`staging_signals.csv`, `staging_masts.csv`) |
 | device-map | `build_device_map.py` | `device_map_main_upper.csv` and the layer overrides the schematic reads |
 | main-upper-masts | `build_main_upper_masts.py` | `main_upper_masts.csv` for the Layout Editor builds |

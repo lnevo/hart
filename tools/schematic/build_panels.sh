@@ -2,30 +2,35 @@
 # Rebuild every output drawn from the schematic, in the order they depend on each other, or check them all with
 # --check (exit 1 if any is stale). `make panels` and `make panels CHECK=1` run this.
 #
-#   staging device map               device_map_staging.csv and its files are kept by hand: checked against tables.xml
-#                                    and the schematic (staging_device_map.py --check), in both modes
-#   staging masts                    staging_masts.csv, staging_signals.csv and the device map's mast and head rows are
-#                                    written by build_staging_masts.py, and tables.xml follows them through
-#                                    sync_staging_signals.py; both are run by hand (the second edits tables.xml), so
-#                                    this only checks them (--check), in both modes, before anything reads the files
-#   hands.csv, <name>.signals.json   from the plan graph and the staging masts; the schematic reads the signals
-#   device map                       from the solved sheet; writes main_upper.plan_overrides.json, a layer file the
-#                                    schematic reads, so it runs before publishing
-#   main_upper_masts.csv             from the device map; the Layout Editor builds place these masts
-#   schematic draft and stations     publish_draft.py
-#   CATS desks                       build_cats_panel.py
-#   Layout Editor cut-over           build_layout_le.py --as-live: the three-level candidate and the staging
-#                                    candidate it holds (the viewing trials are retired, owner 2026-11-17: the
-#                                    candidates show every level)
-#   approved-*                       check_approved.py, straight after what it guards: the desks after they are written,
-#                                    the cut-over candidate after it is written (it is what replaces the live panel; the
-#                                    build never writes tables.xml), and the live panel. A write that drifts from the
-#                                    owner-approved fingerprints stops there, before anything else reads it.
+# The steps, in the order they run (the name is the one each step prints):
+#
+#   hands                 hands.csv, from the plan graph
+#   staging-masts         staging_masts.csv, staging_signals.csv and the device map's mast and head rows are written by
+#                         build_staging_masts.py, run by hand: this only checks them (--check), in both modes
+#   staging-sync          tables.xml follows staging_masts.csv through sync_staging_signals.py, run by hand with JMRI
+#                         closed (it edits tables.xml): this only checks it (--check), in both modes
+#   staging-map           device_map_staging.csv (its mast and head rows aside) and control_points_staging.csv are
+#                         kept by hand: the four staging files are checked against tables.xml and the schematic
+#                         (staging_device_map.py --check), in both modes
+#   signals               <name>.signals.json, from the plan graph and the staging masts; the schematic reads it
+#   device-map            from the solved sheet; writes main_upper.plan_overrides.json, a layer file the schematic
+#                         reads, so it runs before publishing
+#   main-upper-masts      main_upper_masts.csv, from the device map; the Layout Editor builds place these masts
+#   schematic             the schematic draft and stations (publish_draft.py)
+#   cats                  the CATS desks (build_cats_panel.py)
+#   approved-desks        check_approved.py on the desks, straight after they are written
+#   le-cutover            build_layout_le.py --as-live: the three-level candidate and the staging candidate it holds
+#                         (the viewing trials are retired, owner 2026-11-17: the candidates show every level)
+#   approved-candidate    check_approved.py on the cut-over candidate, straight after it is written (it is what
+#                         replaces the live panel; the build never writes tables.xml)
+#   approved-live         check_approved.py on the live panel
+#
+# The approved-* steps stop a write that drifts from the owner-approved fingerprints, before anything else reads it.
 #
 # Each step reads the plugin's cache (~/.cache/hart/schematic): the solve is shared, and Layout Editor panels whose
 # inputs and plugin code are unchanged are read back, so a run after a small change redoes only what that change
-# reaches. A write stops at the first failure, since what follows reads its output; --check runs every step and
-# names each stale one.
+# reaches. A write stops at the first failure, since what follows reads that step's output (step) or the files it
+# checks (guard); --check runs every step and names each stale one.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
@@ -37,32 +42,36 @@ case "${1:-}" in
 esac
 
 failed=()
-step() {
-  local name=$1 start=$SECONDS
-  shift
+run_step() {
+  local stop=$1 name=$2 start=$SECONDS
+  shift 2
   echo "== $name"
   if "$@" ${check[@]+"${check[@]}"}; then
     echo "   $name: ok, $((SECONDS - start)) s"
   else
     echo "   $name: FAILED, $((SECONDS - start)) s"
     failed+=("$name")
-    [ ${#check[@]} -eq 0 ] && { echo "stopped: later steps read what $name writes"; exit 1; }
+    [ ${#check[@]} -eq 0 ] && { echo "stopped: $stop"; exit 1; }
   fi
 }
+# A step that writes its outputs (or checks them, with --check).
+step() { run_step "later steps read what $1 writes" "$@"; }
+# A step that only checks, in both modes: it writes nothing, and its message names what to run by hand.
+guard() { run_step "$1 only checks and it failed; later steps read the files it checks" "$@"; }
 
 step hands python3 tools/schematic/build_hands.py
-step staging-masts python3 tools/schematic/build_staging_masts.py --check
-step staging-sync python3 tools/schematic/sync_staging_signals.py --check
-step staging-map python3 tools/schematic/staging_device_map.py --check
+guard staging-masts python3 tools/schematic/build_staging_masts.py --check
+guard staging-sync python3 tools/schematic/sync_staging_signals.py --check
+guard staging-map python3 tools/schematic/staging_device_map.py --check
 step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
 step main-upper-masts python3 tools/schematic/build_main_upper_masts.py
 step schematic python3 tools/schematic/publish_draft.py
 step cats python3 tools/schematic/build_cats_panel.py
-step approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs
+guard approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
-step approved-candidate python3 tools/schematic/check_approved.py le-candidate
-step approved-live python3 tools/schematic/check_approved.py le-panel
+guard approved-candidate python3 tools/schematic/check_approved.py le-candidate
+guard approved-live python3 tools/schematic/check_approved.py le-panel
 
 if [ ${#failed[@]} -gt 0 ]; then
   echo "stale or failed: ${failed[*]}"
