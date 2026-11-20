@@ -19,7 +19,6 @@ DigiconSignals sheet are unchanged.
 from __future__ import annotations
 
 import argparse
-import csv
 import re
 import sys
 import tempfile
@@ -28,6 +27,10 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib.railroad import DEVICE_COLUMNS, read_rows  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 WIRING = ROOT / "docs/wiring"
@@ -43,11 +46,6 @@ LEVEL_NAME = {"2": "Main", "3": "Upper"}
 SHADE = PatternFill("solid", fgColor="DDEBF7")    # light blue: every main and upper level row (owner, 2026-11-15)
 PORT = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)$")
 NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
-
-
-def read_csv(path: Path) -> list[dict]:
-    with open(path, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
 
 
 def natural(s: str):
@@ -242,8 +240,8 @@ def block_name(occ: dict, by_name: dict) -> str:
 
 
 def build(dest: Path) -> None:
-    rows = read_csv(DEVICE_MAP)
-    nodes = gather(rows, read_csv(NODES))
+    rows = [r for _line, r in read_rows(DEVICE_MAP, DEVICE_COLUMNS[:8], optional=DEVICE_COLUMNS[8:])]
+    nodes = gather(rows, [r for _line, r in read_rows(NODES, ("level", "area", "node"), optional=("source",))])
     wb = load_workbook(SRC)
     apply(wb, nodes, rows)
     wb.save(dest)

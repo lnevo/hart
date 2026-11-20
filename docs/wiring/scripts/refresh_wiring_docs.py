@@ -32,6 +32,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
+from hartlib.railroad import read_name_rows, read_rows  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 WIRING = ROOT / "docs/wiring"
@@ -44,14 +45,17 @@ BLOCK_IN_NOTES = re.compile(r"Block\s+(\d+-\d+)")
 
 
 def load_csv(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="") as f:
+    """A signal CSV's rows with every column the file has. The callers need the file's own header: the head plan's
+    goes into the DigiconSignals sheet as it stands, and a wiring row without an `lcos_recipe` column gets the
+    default recipe. hartlib's read_rows keeps only the columns it is given, so it is used for the other CSVs."""
+    with path.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
 def load_proposed() -> dict[str, str]:
     """Live public string → proposed (device-map grammar)."""
     out: dict[str, str] = {}
-    for row in load_csv(PUBLIC_MAP):
+    for _line, row in read_name_rows(PUBLIC_MAP):
         current = (row.get("current") or "").strip()
         proposed = (row.get("proposed") or "").strip()
         if current and proposed and current != proposed:
@@ -84,7 +88,8 @@ def apply_proposed_to_wiring(rows: list[dict[str, str]]) -> None:
 def occupancy_by_hw() -> dict[str, str]:
     """MQTT occupancy userName (Block n-n) → public block name."""
     groups: dict[str, list[str]] = defaultdict(list)
-    for row in load_csv(CATS / "occupancy_bindings.csv"):
+    for _line, row in read_rows(CATS / "occupancy_bindings.csv", ("block_user_name", "occupancy_sensor_user_name"),
+                                optional=("cats_discipline",)):
         hw = (row.get("occupancy_sensor_user_name") or "").strip()
         name = (row.get("block_user_name") or "").strip()
         if hw and name and name not in groups[hw]:

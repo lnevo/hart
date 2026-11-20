@@ -23,6 +23,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths, tables  # noqa: E402
 from hartlib.names import row_comment, split_dcc  # noqa: E402
+from hartlib.railroad import read_name_rows  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
@@ -122,14 +123,6 @@ def parse_canvas(path: Path) -> list[dict[str, str]]:
     if not devices:
         raise SystemExit(f"{path}: empty DEVICES array")
     return devices
-
-
-def load_csv(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as handle:
-        rows = []
-        for row in csv.DictReader(handle):
-            rows.append({key: (value or "").strip() for key, value in row.items() if key})
-        return rows
 
 
 def live_usernames_by_system(path: Path) -> dict[str, str]:
@@ -365,7 +358,7 @@ def main() -> int:
     else:
         print("canvas dry-run (pass --write-canvas)")
 
-    old_rows = load_csv(CSV_PATH)
+    old_rows = [row for _line, row in read_name_rows(CSV_PATH)]
     live = live_usernames_by_system(TABLES)
     rows = rebuild_rows(devices, old_rows, live)
 
