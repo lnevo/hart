@@ -135,15 +135,15 @@ def _staging_blocks(rr: Railroad) -> list[str]:
 
 @invariant("plan-overrides", "inputs")
 def _plan_overrides(rr: Railroad) -> list[str]:
-    """main_upper.plan_overrides.json renames plan switches to main and upper switches only, every main and upper
-    switch is named by it, and each `move` edit names a plan switch the relabel renames."""
+    """plan_overrides.json's main_upper section renames plan switches to main and upper switches only, every main and
+    upper switch is named by it, and each `move` edit names a plan switch the relabel renames."""
     po, mu = rr.plan_overrides, rr.main_upper_switches
     targets = {switch_number(v): k for k, v in po.relabel.items()}
-    bad = [f"{po.path.name}: relabel {old!r} -> {new!r}: {switch_number(new)} is no main or upper switch"
+    bad = [f"{po.name}: relabel {old!r} -> {new!r}: {switch_number(new)} is no main or upper switch"
            for old, new in po.relabel.items() if switch_number(new) not in mu]
-    bad += [f"Switch {s} ({mu[s].cp or 'local'}): no plan switch is relabelled to it in {po.path.name}"
+    bad += [f"Switch {s} ({mu[s].cp or 'local'}): no plan switch is relabelled to it in {po.name}"
             for s in sorted(set(mu) - set(targets), key=natural)]
-    bad += [f"{po.path.name}: move edit names {e.get('switch')!r}, which the relabel does not rename"
+    bad += [f"{po.name}: move edit names {e.get('switch')!r}, which the relabel does not rename"
             for e in po.edits if e["op"] == "move" and e.get("switch") not in po.relabel]
     return bad
 

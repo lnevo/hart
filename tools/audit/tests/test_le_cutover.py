@@ -30,7 +30,7 @@ B, AUDIT = T.B, T.AUDIT
 
 
 def page_prefs() -> dict:
-    """The page's preferences (main_upper.preferences.json, the last input's), as the build reads them."""
+    """The page's preferences (preferences.json's main_upper section, the last input's), as the build reads them."""
     return B.schematic()[1]
 
 
@@ -68,7 +68,7 @@ def item_elements(data: dict) -> list[ET.Element]:
 
 
 
-# South Yard's tracks, whose names stand on one centre x (staging.preferences.json le_labels name_columns)
+# South Yard's tracks, whose names stand on one centre x (preferences.json[staging] le_labels name_columns)
 SOUTH_YARD = ("S-R", "S-1", "S-2", "S-3", "S-4")
 
 class Cutover(unittest.TestCase):

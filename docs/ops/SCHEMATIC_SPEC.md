@@ -22,7 +22,7 @@ Every step writes a file the next one reads. Layers 1 and 3 are data files; laye
 
 ## Layer 1: plan overrides
 
-Facts about the railroad. They override the plan, and every output uses them (schematic, CATS, station pages, Layout Editor). One file per plan group: `staging.plan_overrides.json`, `main.plan_overrides.json`.
+Facts about the railroad. They override the plan, and every output uses them (schematic, CATS, station pages, Layout Editor). One file, `plan_overrides.json`, with a section per plan group (`staging`, `main_upper`) and `"_sections": true` (schematic-maps 0.1.49; hart reads and writes it through `hartlib.layer_files`).
 
 ```json
 {
@@ -58,7 +58,7 @@ Facts about the railroad. They override the plan, and every output uses them (sc
 
 **Levels.** `heights` corrects heights the plan holds wrongly. `bands` names which heights make which level; it is a fact about the railroad, so it sits here and not in the code.
 
-**Signals** are layer 1, generated from the Layout Editor panel, never typed by hand: `staging.signals.json`, one entry per mast.
+**Signals** are layer 1, generated from the Layout Editor panel, never typed by hand: `signals.json`, a section per sheet, one entry per mast.
 
 ```json
 {"mast": "24RA", "at": {"switch": "23", "leg": "A"}, "dir": "east", "kind": "field", "heads": 2, "source": "le_panel"}
@@ -97,7 +97,7 @@ Rule gaps carried from the spike, in order of need: no page folding; no capacity
 
 ## Layer 3: preferences
 
-The owner's look for one sheet, applied last. With this file absent the sheet must still be correct. One file per sheet: `system.preferences.json`.
+The owner's look for one sheet, applied last. With this file absent the sheet must still be correct. One file, `preferences.json`, with a section per sheet; the last input's (`main_upper`) sets the page and its title block.
 
 | Key | Meaning |
 |-----|---------|

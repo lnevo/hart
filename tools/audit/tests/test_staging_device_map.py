@@ -282,8 +282,7 @@ class Files(unittest.TestCase):
     def test_the_signal_plan_reads_back(self):
         masts = sdm.load_signal_masts()
         self.assertEqual(len(masts), 30)
-        import json
-        got = json.loads((sdm.pd.DATA / "staging.signals.json").read_text(encoding="utf-8"))
+        got = sdm.layer_files.read("signals", "staging", sdm.pd.DATA)
         self.assertEqual(got["signals"], sdm.signal_rows(masts))
         self.assertEqual(got["source"], sdm.SIGNALS_SOURCE)
 

@@ -5,17 +5,18 @@
 # The steps, in the order they run (the name is the one each step prints):
 #
 #   hands                 hands.csv, from the plan graph
-#   staging-sets          staging's control points, stations and detail sheets in staging.plan_overrides.json and
-#                         staging.preferences.json, from control_points_staging.csv, stations.csv and sheets.csv
-#   main-route            main_route in main_upper.plan_overrides.json, from main_lines.csv (main_upper rows) and the
-#                         plan graph; staging's main flags and milepost_route, from its staging rows
+#   staging-sets          staging's control points, stations and detail sheets in the staging sections of
+#                         plan_overrides.json and preferences.json, from control_points_staging.csv, stations.csv and
+#                         sheets.csv (the layer files hold a section per sheet: hartlib.layer_files)
+#   main-route            main_route in plan_overrides.json's main_upper section, from main_lines.csv (main_upper
+#                         rows) and the plan graph; staging's main flags and milepost_route, from its staging rows
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
 #                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
 #   staging-masts         staging_masts.csv, staging_signals.csv and the devices.csv rows of the staging masts and
 #                         heads (device_map_staging.csv is a generated copy of devices.csv) are written by build_staging_masts.py,
 #                         run by hand: this only checks them (--check), in both modes
-#   signals               <name>.signals.json, from the plan graph and the staging masts; the schematic reads it
-#   device-map            from the solved sheet; writes main_upper.plan_overrides.json, a layer file the schematic
+#   signals               signals.json (a section per sheet), from the plan graph and the masts; the schematic reads it
+#   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
 #                         reads, so it runs before publishing
 #   main-upper-masts      main_upper_masts.csv, from the device map; the Layout Editor builds place these masts
 #   schematic             the schematic draft and stations (publish_draft.py)

@@ -62,7 +62,7 @@ Merged as #754. Then, on branch `agent/claude/source-data-rows-4-5`, also with n
   went on 2026-11-20, its readers now build its rows from the master), and `make panels CHECK=1` fails on drift.
 - **Row 5:** the main/upper hand lists (running, signalled spurs, split tracks, detector pins) are keyed by
   `switch_a,switch_b` (and `parallel` or `half` where needed), so a renumber no longer strands them. The
-  `le_band_labels` names in `main_upper.preferences.json` stay track and block names (owner, 2026-11-20): a main or
+  `le_band_labels` names in `preferences.json` (main_upper section) stay track and block names (owner, 2026-11-20): a main or
   upper name is built from its end switches, so a renumber changes a switch pair just as it changes the name, and a
   stale name already stops the build (`hidden_names`) or leaves an icon unplaced, which fails the label check.
 
@@ -85,7 +85,7 @@ Rows 1 to 7 are done (#749, #754, #757 and the label-refs branch, above); the ta
 Also open, smaller:
 - (done 2026-11-20: `le_signal_boundaries.csv` retired; the deploy audit reads `staging_masts.csv` instead);
 - the owner's screen sizes (`le_window`, `cats_window`) sitting in preferences;
-- the band names and the 5 cm cut kept in `main_upper.plan_overrides.json` `levels` "until B2";
+- the band names and the 5 cm cut kept in `plan_overrides.json` (main_upper section) `levels` "until B2";
 
 ## Not checked by the audit
 

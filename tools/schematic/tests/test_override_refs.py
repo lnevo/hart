@@ -10,10 +10,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import publish_draft as pd  # noqa: E402
+from hartlib import layer_files  # noqa: E402
 
-STAGING = json.loads((pd.DATA / "staging.plan_overrides.json").read_text(encoding="utf-8"))
-MAIN_UPPER = json.loads((pd.DATA / "main_upper.plan_overrides.json").read_text(encoding="utf-8"))
-PREFS = (pd.DATA / "main_upper.preferences.json").read_text(encoding="utf-8")
+STAGING = layer_files.read("plan_overrides", "staging", pd.DATA)
+MAIN_UPPER = layer_files.read("plan_overrides", "main_upper", pd.DATA)
+PREFS = layer_files.dumps(layer_files.read("preferences", "main_upper", pd.DATA))
 PART = re.compile(r"T\d+")
 PART_REF = re.compile(r"T\d+|TO_\w+-\d")      # a plan part number or a three-way's part id
 # The name edit's first track at each half of the shared numbers 23, 35 and 7 reaches its half as number@neighbour (no
@@ -65,8 +66,8 @@ class Refs(unittest.TestCase):
         found = {s for doc in (outside_relabel(STAGING), outside_relabel(MAIN_UPPER)) for s in strings(doc)
                  if PART_REF.fullmatch(s)}
         self.assertEqual(found, set())
-        for name in ("staging.preferences", "main_upper.preferences"):
-            prefs = json.loads((pd.DATA / f"{name}.json").read_text(encoding="utf-8"))
+        for name in ("staging", "main_upper"):
+            prefs = layer_files.read("preferences", name, pd.DATA)
             self.assertEqual([s for s in strings(prefs) if PART_REF.fullmatch(s)], [], name)
 
     def test_the_neighbour_refs_stand_in_the_name_edit(self):

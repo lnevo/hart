@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hartlib import paths, railroad as R  # noqa: E402
+from hartlib import layer_files, paths, railroad as R  # noqa: E402
 from master_edit import add, change, drop  # noqa: E402  the master is changed through hartlib.devices
 
 REPO = R.Sources.under()
@@ -327,14 +327,20 @@ class Readers(Copy):
                    r"switch 107 is in a control point and in local_switches_main_upper.csv \(line \d+, CP 107\)")
 
     def test_plan_overrides(self) -> None:
-        data = json.loads(self.src.plan_overrides.read_text(encoding="utf-8"))
+        section = lambda data: self.src.plan_overrides.write_text(
+            json.dumps({"_sections": True, "staging": {}, "main_upper": data}), encoding="utf-8")
+        data = layer_files.read("plan_overrides", "main_upper", self.src.plan_overrides.parent)
         data["edits"].append({"op": "relabel", "map": {}})
-        self.src.plan_overrides.write_text(json.dumps(data), encoding="utf-8")
-        self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), "2 relabel edits")
+        section(data)
+        self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), r"plan_overrides.json\[main_upper\]: 2 relabel edits")
         self.src.plan_overrides.write_text("{", encoding="utf-8")
-        self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), "not a readable JSON file")
-        self.src.plan_overrides.write_text('{"edits": [{"map": {}}]}', encoding="utf-8")
+        self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), "not a readable layer section .*not JSON")
+        section({"edits": [{"map": {}}]})
         self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), "objects with an `op`")
+        self.src.plan_overrides.write_text('{"_sections": true, "staging": {}}', encoding="utf-8")
+        self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), "no section 'main_upper'")
+        self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides.with_name("main_upper.plan_overrides.json")),
+                   "the plan overrides are plan_overrides.json")
 
     def test_block_lengths_and_hands(self) -> None:
         got = R.read_block_lengths(self.src.block_lengths)
@@ -432,16 +438,16 @@ class Invariants(Copy):
                       self.problems("staging-blocks"))
 
     def test_plan_overrides(self) -> None:
-        data = json.loads(self.src.plan_overrides.read_text(encoding="utf-8"))
+        data = layer_files.read("plan_overrides", "main_upper", self.src.plan_overrides.parent)
         relabel = next(e for e in data["edits"] if e["op"] == "relabel")["map"]
         old = next(k for k, v in relabel.items() if v == "107")
         relabel[old] = "999"
         data["edits"].append({"op": "move", "switch": "T0"})
-        self.src.plan_overrides.write_text(json.dumps(data), encoding="utf-8")
+        layer_files.write({("plan_overrides", "main_upper"): data}, self.src.plan_overrides.parent)
         got = self.problems("plan-overrides")
-        self.assertIn(f"main_upper.plan_overrides.json: relabel {old!r} -> '999': 999 is no main or upper switch", got)
-        self.assertIn("Switch 107 (CP 107): no plan switch is relabelled to it in main_upper.plan_overrides.json", got)
-        self.assertIn("main_upper.plan_overrides.json: move edit names 'T0', which the relabel does not rename", got)
+        self.assertIn(f"plan_overrides.json[main_upper]: relabel {old!r} -> '999': 999 is no main or upper switch", got)
+        self.assertIn("Switch 107 (CP 107): no plan switch is relabelled to it in plan_overrides.json[main_upper]", got)
+        self.assertIn("plan_overrides.json[main_upper]: move edit names 'T0', which the relabel does not rename", got)
 
     def test_hands(self) -> None:
         self.append("hands", "9,L,test")

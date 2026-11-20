@@ -53,7 +53,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import map_revision, paths  # noqa: E402
+from hartlib import layer_files, map_revision, paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
 CACHE = Path.home() / ".cache/hart/schematic"
@@ -69,10 +69,14 @@ from screenshot import find_chrome  # noqa: E402
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
 
 
+if map_revision.PAGE_SHEET != INPUTS[-1][1]:
+    sys.exit(f"hartlib.map_revision.PAGE_SHEET is {map_revision.PAGE_SHEET!r} but the last input, which sets the page, is "
+             f"{INPUTS[-1][1]!r}: make them agree")
+
+
 def page_prefs():
-    """The preferences file that sets the page: sheet.preferences.json if present, else the last input's."""
-    sheet = DATA / "sheet.preferences.json"
-    return sheet if sheet.exists() else DATA / f"{INPUTS[-1][1]}.preferences.json"
+    """The preferences section that sets the page: the last input's in preferences.json (hartlib.map_revision)."""
+    return map_revision.page_prefs(DATA)
 
 
 def _git(*args):
@@ -319,17 +323,29 @@ def drawing_only(svg):
 
 def next_fields(main_prefs, today):
     """(date, revision) for a changed drawing: today and main's revision plus one; None if that revision
-    is not a whole number (a lettered revision is the owner's to set)."""
-    rev = json.loads(main_prefs).get("revision", 0) if main_prefs else 0
+    is not a whole number (a lettered revision is the owner's to set). `main_prefs`: the page's preferences section
+    on main, or None for none."""
+    rev = main_prefs.get("revision", 0) if main_prefs else 0
     if isinstance(rev, bool) or not str(rev).strip().isdigit():
         return None
     return today.isoformat(), int(rev) + 1
 
 
-def set_fields(path, date, rev):
-    prefs = json.loads(path.read_text())
-    prefs["date"], prefs["revision"] = date, rev
-    path.write_text(json.dumps(prefs, indent=1, ensure_ascii=False) + "\n")
+def prefs_on_main(prefs):
+    """The page's preferences section where this branch left main. Stops if main has no such file: counted from
+    nothing, the revision would restart at 1."""
+    text = on_main(prefs.path)
+    if text is None:
+        sys.exit(f"{prefs.path.relative_to(REPO)} is not on main, so the revision cannot be counted from main; "
+                 "nothing written. Publish from a branch made from a main that has it")
+    return prefs.of(text, f"{prefs.path.name} on main")
+
+
+def set_fields(prefs, date, rev):
+    """Set the title block's date and revision in the page's preferences section (a hartlib.layer_files.Section)."""
+    section = prefs.read()
+    section["date"], section["revision"] = date, rev
+    prefs.write(section)
 
 
 def pdf(svg_path, pdf_path):
@@ -371,15 +387,15 @@ def main(argv):
         print(f"station map pages differ from the title block: {', '.join(pages)}" if pages
               else "station map pages carry the title block's revision and date")
         return 0 if same and not differ and not pages else 1
-    prefs = page_prefs()
     try:
+        prefs = page_prefs()
         map_revision.planned(REPO / "www", prefs)             # the station map data holds together before any write
     except ValueError as e:
         sys.exit(f"station map pages: {e}; nothing written")
     main_base()                                               # stops here, before any write, if git cannot find it
-    kept = {p: p.read_text() for p in (prefs,)}             # put back if anything below fails
+    kept = {p: p.read_text() for p in (prefs.path,)}        # put back if anything below fails
     try:
-        publish(draw(), target, prefs, kept[prefs], stations_changed(draw_stations()))
+        publish(draw(), target, prefs, kept[prefs.path], stations_changed(draw_stations()))
         write_stations(draw_stations(), STATIONS)
         print(f"wrote the station sheets in {STATIONS.relative_to(REPO)}")
         for page in map_revision.apply(prefs=prefs):
@@ -419,8 +435,8 @@ def publish(sheet, target, prefs, original, stations=()):
     sheet does."""
     base = on_main(target) or (target.read_text() if target.exists() else None)
     if base and (drawing_only(base) != drawing_only(sheet) or stations):
-        fields = next_fields(on_main(prefs), datetime.date.today())
-        now = json.loads(original)
+        fields = next_fields(prefs_on_main(prefs), datetime.date.today())
+        now = prefs.of(original)
         if fields is None:
             print(f"drawing changed; revision {now.get('revision')!r} is not a number, so date and revision are left as set")
         elif (now.get("date"), now.get("revision")) != fields:

@@ -22,11 +22,11 @@ Inputs (jmri/layouts/hart/data/schematic/):
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
 
 Outputs:
-- main_upper.plan_overrides.json, keys `control_points` and `stations`: the detail sheets (the "Main level" and
-  "Upper level" sheets of main_upper.preferences.json) draw each control point's interlocking limits and name,
-  and the overall sheet a bar per control point (no car count). A control point may list only switches on one
-  band, so a crossover whose halves sit on two bands (127, 131) lists the half on the control point's level. The
-  bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
+- plan_overrides.json's main_upper section (hartlib.layer_files), keys `control_points` and `stations`: the detail
+  sheets (the "Main level" and "Upper level" sheets of preferences.json's main_upper section) draw each control
+  point's interlocking limits and name, and the overall sheet a bar per control point (no car count). A control
+  point may list only switches on one band, so a crossover whose halves sit on two bands (127, 131) lists the half
+  on the control point's level. The bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
 - devices.csv (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
   device_map_main_upper.csv is a generated copy of them (nothing reads it; R9e retires it). The rows are the one mapping from each
@@ -106,7 +106,6 @@ from __future__ import annotations
 import argparse
 import csv
 import io
-import json
 import os
 import re
 import sys
@@ -120,15 +119,16 @@ from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported
     TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_names, tracks)
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits
-from hartlib import devices, level_devices, level_masts, railroad  # noqa: E402  names, facts, the master
+from hartlib import devices, layer_files, level_devices, level_masts, railroad  # noqa: E402  names, facts, the master
 
 SOURCES = railroad.Sources.under()
 CPS = SOURCES.interlockings
 NODES = SOURCES.lcos_nodes
 LOCAL = SOURCES.local_switches
-OVERRIDES = SOURCES.plan_overrides
+OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json; this writes its main_upper section
+SHEET = railroad.PlanOverrides.SHEET
 OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
-LEVELS = band_levels(json.loads(OVERRIDES.read_text(encoding="utf-8")))     # {band title: level} of main and upper
+LEVELS = band_levels(layer_files.read("plan_overrides", SHEET, OVERRIDES.parent))     # {band title: level} of main and upper
 SPLIT = OVERRIDES.parent / "block_splits.csv"     # the owner's choice of tracks parted into two blocks (all levels)
 PINS = OVERRIDES.parent / "detector_pins_main_upper.csv"         # detectors the owner placed on a given node input
 # The hand lists name a track by the switches at its ends (switch_a, switch_b: lower number first; switch_b blank for a
@@ -205,7 +205,7 @@ def labels_by_level(bands) -> dict[int, set[str]]:
 
 
 def overrides_keys(cps, by_level) -> dict:
-    """control_points for main_upper.plan_overrides.json: each control point lists the labels of its
+    """control_points for plan_overrides.json's main_upper section: each control point lists the labels of its
     switches on its own level's band (both halves of a crossover there, one half when the other is on the
     other band), as the band prints them: a moved switch keeps its star ("223*"), which station bars match on."""
     cp_out = {}
@@ -257,7 +257,7 @@ def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None)
     if bands is None:
         bands, joined, runs, _corners = solve()
     if overrides is None:
-        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+        overrides = layer_files.read("plan_overrides", SHEET, OVERRIDES.parent)
     found = tracks(bands, runs, joined, helix_tags(bands, overrides), band_levels(overrides))
     track_names(found, helix_blocks(overrides, helix) if helix is not None else helix_blocks(overrides))
     return found
@@ -824,13 +824,14 @@ def csv_text(rows, columns=COLUMNS) -> str:
 
 
 def overrides_text(overrides, cp_keys) -> str:
+    """plan_overrides.json's whole text with its main_upper section given these control points and stations."""
     over = dict(overrides)
     over["control_points"] = cp_keys
     over["stations"] = {name: {"switches": cp["switches"], "tracks": []} for name, cp in cp_keys.items()}
     over["_control_points"] = ("Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by "
                                "tools/schematic/build_device_map.py from interlockings.csv; edit that "
                                "file, not this key.")
-    return json.dumps(over, indent=1, ensure_ascii=False) + "\n"
+    return layer_files.texts({("plan_overrides", SHEET): over}, OVERRIDES.parent)[OVERRIDES]
 
 
 def solve():
@@ -868,7 +869,7 @@ def main(argv=None) -> int:
     try:
         want = {OVERRIDES: overrides_text(overrides, cp_keys),
                 **devices.outputs_after("build_device_map.py", rows, device_files())}
-    except devices.DevicesError as exc:
+    except (devices.DevicesError, layer_files.LayerFileError) as exc:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]

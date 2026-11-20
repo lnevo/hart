@@ -97,6 +97,7 @@ HARTLIB_OTHER = {
     "level_devices": "the main and upper levels' device names",
     "level_masts": "their control-point masts",
     "map_revision": "the station maps' revision",
+    "layer_files": "the schematic's layer files, a section per sheet",
 }
 
 

@@ -17,8 +17,8 @@ stale copy of its own output. Each file is read the first time it is asked for, 
     inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), the name map of devices.csv,
                 schematic/interlockings.csv (every level's), local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
                 helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
-                main_upper.plan_overrides.json (its edits; build_device_map.py rewrites only its control_points and
-                stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
+                plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
+                control_points and stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
                 device map's form, written by build_staging_masts.py from the mast rule, ADR-024, and run by hand
                 before the pipeline, which only checks it)
     hands       schematic/hands.csv                       build_hands.py

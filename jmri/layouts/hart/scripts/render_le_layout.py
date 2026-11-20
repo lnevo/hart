@@ -46,7 +46,8 @@ SIGNAL = (255, 105, 125)    # signal mast icon / facing marker
 # with --kinds: a field mast (hardware on the layout) red, a virtual one (JMRI only, for Dispatcher) blue, a planned
 # one (placeholder, no hardware yet) violet (amber would read as a turnout's control point); a mast the signals file
 # does not list grey
-KINDS_FILE = Path(__file__).resolve().parents[1] / "data/schematic/staging.signals.json"
+KINDS_FILE = Path(__file__).resolve().parents[1] / "data/schematic/signals.json"   # --kinds-sheet picks its section
+KINDS_SHEET = "staging"
 KIND_COLOUR = {"field": SIGNAL, "virtual": (110, 170, 255), "planned": (190, 130, 255)}
 UNLISTED = (150, 150, 150)
 STATION = (110, 220, 180)   # Dispatcher station control pair
@@ -555,25 +556,40 @@ def positive(text):
     return v
 
 
-def mast_kinds(path):
-    """{mast user name: kind} from a schematic signals file (its `signals` list: mast, kind). Names take the
-    layer-1 `mast_prefix` from the plan overrides beside it (NAME.signals.json -> NAME.plan_overrides.json), or
-    "Mast " when there is none. Stops on a file it cannot use, or a mast listed twice."""
+def mast_kinds(path, sheet=KINDS_SHEET):
+    """{mast user name: kind} from a schematic signals file's `signals` list (mast, kind): hart's signals.json, a
+    section per sheet (hartlib.layer_files), read at `sheet`'s section, or a plain signals file (the plugin's signals
+    command's output). Names take the layer-1 `mast_prefix` of `sheet`'s section of the plan_overrides.json beside a
+    sectioned file, or of the NAME.plan_overrides.json beside a plain NAME.signals.json, or "Mast " when it sets none. Stops on a file it cannot use, a sheet it
+    has no section for, or a mast listed twice."""
+    # hartlib only for --kinds: the drawing itself runs from a copy of this file (build_layout_index.py's tests)
+    src = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+           if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+    if src[0] not in sys.path:
+        sys.path.insert(0, src[0])
+    from hartlib import layer_files      # the schematic's signals and plan overrides, a section per sheet
     path = Path(path)
+    prefix = "Mast "
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        text = path.read_text(encoding="utf-8")
+        data = json.loads(text)
+        sectioned = isinstance(data, dict) and data.get(layer_files.SECTIONS) is True
+        if sectioned:
+            data = layer_files.section_of(layer_files.parse(text, "signals", str(path)), sheet, str(path))
         rows = data["signals"]
         if not isinstance(rows, list):
             raise TypeError("signals is not a list")
-    except (OSError, ValueError, KeyError, TypeError) as e:
+    except (OSError, ValueError, KeyError, TypeError) as e:          # a LayerFileError is a ValueError
         raise SystemExit(f"--kinds {path}: cannot read a signals list ({e})")
-    prefix = "Mast "
-    overrides = path.with_name(path.name.replace(".signals.json", ".plan_overrides.json"))
-    if overrides != path and overrides.exists():
+    over = (layer_files.path("plan_overrides", path.parent) if sectioned
+            else path.with_name(path.name.replace(".signals.json", ".plan_overrides.json")))
+    if over.exists() and over != path:
         try:
-            prefix = json.loads(overrides.read_text(encoding="utf-8")).get("mast_prefix", prefix)
-        except (OSError, ValueError) as e:
-            raise SystemExit(f"--kinds: cannot read {overrides} for the mast prefix ({e})")
+            layer = (layer_files.read("plan_overrides", sheet, path.parent) if sectioned
+                     else json.loads(over.read_text(encoding="utf-8")))
+            prefix = layer.get("mast_prefix", prefix)
+        except (OSError, ValueError, AttributeError) as e:
+            raise SystemExit(f"--kinds: cannot read {over} for the mast prefix ({e})")
     out = {}
     for r in rows:
         if not isinstance(r, dict) or not r.get("mast") or r.get("kind") not in KIND_COLOUR:
@@ -599,13 +615,15 @@ def main():
     ap.add_argument("--scale", type=positive, help="image pixels per panel pixel (1 draws the panel at 100%% zoom)")
     ap.add_argument("--kinds", type=Path, nargs="?", const=KINDS_FILE, metavar="SIGNALS_JSON",
                     help="colour mast icons by kind (field, virtual, planned) from a schematic signals file "
-                         "(default: the staging signals file)")
+                         "(default: signals.json, its --kinds-sheet section)")
+    ap.add_argument("--kinds-sheet", default=KINDS_SHEET, metavar="SHEET",
+                    help="the section of a sectioned signals file to read (default: staging)")
     args = ap.parse_args()
 
     root = ET.parse(args.src).getroot()
     pp, legs, turnouts, segs, signals, stations = load_geometry(args.src, args.panel, args.curves, root)
     if args.kinds:
-        kinds = mast_kinds(args.kinds)
+        kinds = mast_kinds(args.kinds, args.kinds_sheet)
         unlisted = sorted(s["name"] for s in signals if s["name"] not in kinds)
         if unlisted:
             print(f"--kinds: not in {args.kinds.name}, drawn grey: {', '.join(unlisted)}")

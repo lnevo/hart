@@ -117,7 +117,7 @@ The items are:
 - **Row 10:** the drawing workarounds in the preferences files: `level_leg`, `le_tight_crossovers`/`le_split_crossovers`, `le_shift`, `le_labels`. Say for each one whether it can become a plugin rule.
 - **`le_signal_boundaries.csv`:** is it still needed now that staging masts come from the rule?
 - **Screen sizes:** the owner's screen sizes (`le_window`, `cats_window`) in the committed preferences. Should they move to a host-local setting?
-- **Band names and the 5 cm cut:** these sit in `main_upper.plan_overrides.json` `levels` "until B2". What is B2, and can they go now?
+- **Band names and the 5 cm cut:** these sit in `plan_overrides.json` (main_upper section) `levels` "until B2". What is B2, and can they go now?
 
 Output: `<scratchpad>/health/W6-proposals.md`, with decisions phrased so they can be asked as multiple choice. The coordinator reviews the proposals with the owner. Build only after the owner answers: the design stays in the main session, and the mechanical parts go to Sonnet worktree agents as W6b.
 
@@ -261,7 +261,7 @@ None of this runs while the operating flag is set.
 
 **W6, source-data rows 8 and 10 (owner):**
 - `role` goes in the R9 device master; readers move to it after R9b.
-- Each band entry in `main_upper.plan_overrides.json` gets a `level` field. The band names stay as drawn text, and the stale "until B2" note is fixed. No rename.
+- Each band entry in `plan_overrides.json` (main_upper section) gets a `level` field. The band names stay as drawn text, and the stale "until B2" note is fixed. No rename.
 - A crossover's two halves come from the plan's structure; A and B stay as labels only.
 - `level_leg` stays as preferences. The plugin reports its causes: two blocks in one CATS cell, or a desk that is too wide.
 - 101 and 103 are drawn tight and split by a plugin rule from the three-way part, and the HART entries go. **Done in #785** (schematic-maps 0.1.48), along with the plugin's desk faults for the `level_leg` causes.

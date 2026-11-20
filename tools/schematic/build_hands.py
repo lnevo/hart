@@ -2,9 +2,9 @@
 
 Write jmri/layouts/hart/data/schematic/hands.csv: the hand (R or L, the diverging side seen from the points) of every
 main and upper level switch, read from the AnyRail plan graph (inputs/main.json, node `hand` +1 = R, -1 = L) and
-renamed to the owner's switch numbers by the relabel edit in main_upper.plan_overrides.json. Switch 225 is the
-double crossover: it has no hand, so it is left out of the file. These are plan hands (owner decision 2026-11-14), not
-the schematic's drawn hands: 101A/B, 103A/B, 105, 107, 109 and 111 are flipped on the sheet. Provisional until the
+renamed to the owner's switch numbers by the relabel edit in plan_overrides.json's main_upper section. Switch 225
+is the double crossover: it has no hand, so it is left out of the file. These are plan hands (owner decision
+2026-11-14), not the schematic's drawn hands: 101A/B, 103A/B, 105, 107, 109 and 111 are flipped on the sheet. Provisional until the
 Layout Editor import.
 
 --check regenerates in memory and exits 1 if the file differs.

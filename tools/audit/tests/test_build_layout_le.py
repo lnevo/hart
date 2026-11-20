@@ -132,7 +132,7 @@ STAGING_MAP_LOADS: list = []     # sdm.load calls in the one cached build above
 
 @functools.lru_cache(maxsize=None)
 def le_window() -> tuple:
-    """(width, height): the window the panels open in, the page's le_window (main_upper.preferences.json), read by
+    """(width, height): the window the panels open in, the page's le_window (preferences.json[main_upper]), read by
     the plugin as the build reads it."""
     return B.plugin()[1].window(B.schematic()[1])
 
@@ -878,7 +878,7 @@ class FinalReview(unittest.TestCase):
     """The 2026-11-16 code review's findings on the cut-over build."""
 
     def test_staging_le_labels_from_its_preferences(self) -> None:
-        own = B.schematic()[0][0][2]["le_labels"]       # staging.preferences.json: buttons that step, yard columns
+        own = B.schematic()[0][0][2]["le_labels"]       # preferences.json[staging]: buttons that step, yard columns
         self.assertEqual(own["extra_steps"], [["Track EH-1", "Track EH-2", "Track EH-3"]])
         self.assertEqual(own["extra_follow"], [["Track W-1", "Track W-2"]])
         south = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
@@ -886,7 +886,7 @@ class FinalReview(unittest.TestCase):
         self.assertEqual(own["lamp_columns"], south)
 
     def test_level_le_labels_from_main_upper_preferences(self) -> None:
-        # main_upper.preferences.json sets the page and both levels: its flat le_labels reach every band (staging
+        # preferences.json[main_upper] sets the page and both levels: its flat le_labels reach every band (staging
         # through the page), and each level's own keys are band-keyed (le_band_labels), as the plugin combines them
         bands, page = B.schematic()
         _sheet, le_mod, _core = B.plugin()

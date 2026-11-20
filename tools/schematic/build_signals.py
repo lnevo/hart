@@ -1,6 +1,7 @@
 """build_signals.py [--check]
 
-Generate the schematic's layer 1 masts, jmri/layouts/hart/data/schematic/<name>.signals.json, from the staging
+Generate the schematic's layer 1 masts, a section per sheet of jmri/layouts/hart/data/schematic/signals.json
+(hartlib.layer_files), from the staging
 masts in the staging device map's form: staging_signals.csv (each mast's plan facts) and staging_masts.csv (its
 blocks and slot kind), read by staging_device_map.load_signal_masts; kept by hand since the device-map switch-over
 (2026-11-17), first read from the hand-drawn panel by the schematic-maps plugin's signal reader. Main and upper are dark territory (no masts) until the owner's signal plan; add a level to LEVELS
@@ -17,7 +18,7 @@ its half leaves from in "leg" (the plugin's signals field, schematic-maps 0.1.46
 two halves apart: a switch's mast the leg it stands at, an APB intermediate the leg of the half its block is
 (mast_rule.LOOP_HALF); no other mast names one.
 
---check regenerates in memory and compares (exit 1 if a file is stale). When SCHEMATIC_PLUGIN is not set and the
+--check regenerates in memory and compares (exit 1 if a section is stale). When SCHEMATIC_PLUGIN is not set and the
 plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0, so a checkout
 without submodules still runs check.sh; with SCHEMATIC_REQUIRED=1 (set in CI) that skip is a failure instead.
 """
@@ -32,9 +33,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pinned plugin
 import staging_device_map as sdm  # noqa: E402  the staging masts' plan facts, tracks and signal rows
-from hartlib import railroad  # noqa: E402  block_lengths.csv, read and checked once
+from hartlib import layer_files, railroad  # noqa: E402  the signals file; block_lengths.csv, read and checked once
 
-LEVELS = [("staging.json", "staging"), ("main.json", "main_upper")]   # plan graph in inputs/, layer file stem
+LEVELS = [("staging.json", "staging"), ("main.json", "main_upper")]   # plan graph in inputs/, section of signals.json
 SCHEMA = "schematic.signals/1"
 BLOCK_LENGTHS = railroad.Sources.under().block_lengths
 TOLERANCE_CM = 0.2          # the reader rounds each length to 0.1 cm
@@ -146,14 +147,14 @@ def check_runs(plugin,graph_name: str, name: str, rows: list[dict]) -> list[str]
 def staging_facts() -> tuple[list[dict], list[dict]]:
     """(the staging masts, the staging tracks with their blocks) from the staging device map's files
     (staging_device_map.load_signal_masts and staging_chains). The masts come from the files alone; the tracks need
-    the staging band, so the schematic is solved, and the solve reads staging.signals.json (a layer file), the file
-    this script writes. Its masts do not change the band's tracks, so a stale file is harmless; one that does not
+    the staging band, so the schematic is solved, and the solve reads signals.json (a layer file), the file this
+    script writes. Its masts do not change the band's tracks, so a stale file is harmless; one that does not
     load stops here, naming the file to restore (git checkout) before running this again."""
     try:
         masts = sdm.load_signal_masts()
     except sdm.StagingMapError as exc:
         sys.exit(f"ERROR: staging device map: {exc}")
-    signals = pd.DATA / "staging.signals.json"
+    signals = layer_files.path("signals", pd.DATA)
     try:
         with pd.cache_on():
             band, _opts, _core = sdm.staging_band()
@@ -175,7 +176,7 @@ def main_upper_rows() -> list[dict]:
     import mast_rule as mr
     from hartlib import level_masts as lm
     bands, joined, runs, corners = bdm.solve()
-    ov = json.loads(bdm.OVERRIDES.read_text(encoding="utf-8"))
+    ov = layer_files.read("plan_overrides", bdm.SHEET, bdm.OVERRIDES.parent)
     found = mr.tracks(bands, runs, joined, mr.helix_tags(bands, ov), mr.band_levels(ov))
     mr.track_names(found, mr.helix_blocks(ov))      # as build_device_map.py names them
     rr = railroad.Railroad(bdm.sources(), upto="inputs")
@@ -260,8 +261,8 @@ def loop_leg(facing: str) -> str:
     return {half: leg for leg, half in mr.LOOP_HALF.items()}[int(m.group(1))]
 
 
-def generate(plugin, graph, name) -> str:
-    """The signals file's text for one level: staging from staging_signals.csv and staging_masts.csv, main and upper
+def generate(plugin, graph, name) -> dict:
+    """The signals section of one level: staging from staging_signals.csv and staging_masts.csv, main and upper
     from main_upper_masts.csv (main_upper_rows); stops on a mast whose run is not in the plan."""
     if name == "main_upper":
         rows = main_upper_rows()
@@ -279,13 +280,13 @@ def generate(plugin, graph, name) -> str:
         bad = check_runs(plugin, graph, name, rows)
         if bad:
             sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
-        return json.dumps(dict(schema=SCHEMA, source="main_upper_masts.csv", signals=rows, unplaced=[]), indent=1)
+        return dict(schema=SCHEMA, source="main_upper_masts.csv", signals=rows, unplaced=[])
     masts, chains = staging_facts()
     rows = sdm.signal_rows(masts)
     bad = check_runs(plugin, graph, name, rows) + check_lengths(masts, chains, block_cm())
     if bad:
         sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
-    return json.dumps(dict(schema=SCHEMA, source=sdm.SIGNALS_SOURCE, signals=rows, unplaced=[]), indent=1)
+    return dict(schema=SCHEMA, source=sdm.SIGNALS_SOURCE, signals=rows, unplaced=[])
 
 
 def main(argv):
@@ -307,22 +308,32 @@ def main(argv):
             raise
         print(f"SKIPPED schematic signals check: {e.code}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
+    try:
+        updates = {("signals", name): generate(plugin, graph, name) for graph, name in LEVELS}
+        want = layer_files.texts(updates, pd.DATA)
+        old = {name: layer_files.read("signals", name, pd.DATA) for _graph, name in LEVELS}
+    except layer_files.LayerFileError as exc:
+        sys.exit(f"build_signals.py: {exc}")
+    target = layer_files.path("signals", pd.DATA)
     stale = 0
-    for graph, name in LEVELS:
-        target = pd.DATA / f"{name}.signals.json"
-        new, old = generate(plugin, graph, name), (target.read_text() if target.exists() else "")
-        if new == old:
-            print(f"{target.name} is current")
+    for (_kind, name), new in updates.items():
+        where = f"{target.name}[{name}]"
+        if new == old[name]:
+            print(f"{where} is current")
         elif check:
             stale = 1
-            print(f"{target.name} is stale; run python3 tools/schematic/build_signals.py")
-            sys.stdout.writelines(difflib.unified_diff(old.splitlines(True), new.splitlines(True),
-                                                       target.name, "fresh", n=1))
+            print(f"{where} is stale; run python3 tools/schematic/build_signals.py")
+            lines = lambda section: layer_files.dumps(section).splitlines(True)      # noqa: E731
+            sys.stdout.writelines(difflib.unified_diff(lines(old[name]), lines(new), where, "fresh", n=1))
+    if target.read_text(encoding="utf-8") != want[target]:
+        if check:
+            if not stale:
+                print(f"{target.name}'s formatting is stale; run python3 tools/schematic/build_signals.py")
+            stale = 1
         else:
-            target.write_text(new)
+            target.write_text(want[target], encoding="utf-8")
             print(f"wrote {target.relative_to(pd.REPO)}")
     return stale
-
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv[1:]))

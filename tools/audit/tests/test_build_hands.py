@@ -48,17 +48,18 @@ class Refusals(unittest.TestCase):
     def build_with(self, change):
         import json
         import tempfile
-        d = json.loads(BH.OVERRIDES.read_text())
-        change(d)
-        with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as f:
-            json.dump(d, f)
-        saved, BH.OVERRIDES = BH.OVERRIDES, Path(f.name)
-        try:
-            with self.assertRaises(SystemExit):
-                BH.build()
-        finally:
-            BH.OVERRIDES = saved
-            Path(f.name).unlink()
+        from hartlib import layer_files
+        whole = layer_files.read_file("plan_overrides", BH.OVERRIDES.parent)
+        change(whole["main_upper"])
+        with tempfile.TemporaryDirectory() as tmp:
+            copy = layer_files.path("plan_overrides", Path(tmp))
+            copy.write_text(json.dumps(whole))
+            saved, BH.OVERRIDES = BH.OVERRIDES, copy
+            try:
+                with self.assertRaises(SystemExit):
+                    BH.build()
+            finally:
+                BH.OVERRIDES = saved
 
     def test_an_edit_it_does_not_read(self):
         self.build_with(lambda d: d["edits"].append({"op": "remove", "switches": ["T1"]}))

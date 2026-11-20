@@ -1,8 +1,8 @@
 """The station maps carry the system schematic's revision and date.
 
 The station maps are drawn from the system schematic, so the site gives them the schematic's revision and date.
-The title block's `revision` and `date` in the page's preferences file (page_prefs: sheet.preferences.json if
-present, else main_upper.preferences.json, the last input's) are the only source. planned() works out, and apply()
+The title block's `revision` and `date` in the page's preferences (page_prefs: the main_upper section of
+preferences.json, the last input's; hartlib.layer_files) are the only source. planned() works out, and apply()
 writes, these files:
 
 - www/data/crew.json: `schematic.revision` and `schematic.effective` (crew.js shows them on the maps index and on
@@ -23,25 +23,29 @@ import json
 import re
 from pathlib import Path
 
-from . import paths
+from . import layer_files, paths
 
 REPO = paths.REPO_ROOT
 WWW = REPO / "www"
 SCHEMATIC = paths.LAYOUT_DATA / "schematic"
 PUB_LINE = re.compile(r'(<p class="sheet-pub" id="page-pub">)([^<]*)(</p>)')
+PAGE_SHEET = "main_upper"          # the last input (publish_draft.INPUTS): its preferences set the page
 
 
-def page_prefs() -> Path:
-    """The preferences file that sets the schematic's page: sheet.preferences.json if present, else
-    main_upper.preferences.json (the last input's)."""
-    sheet = SCHEMATIC / "sheet.preferences.json"
-    return sheet if sheet.exists() else SCHEMATIC / "main_upper.preferences.json"
+def page_prefs(data: Path = SCHEMATIC) -> layer_files.Section:
+    """The preferences section that sets the schematic's page: main_upper's in preferences.json. The plugin would merge
+    a sheet.preferences.json over every input's, so one there stops this (hart keeps the title block in one place)."""
+    sheet = Path(data) / "sheet.preferences.json"
+    if sheet.exists():
+        raise ValueError(f"{sheet.name}: hart keeps the page's preferences in preferences.json's {PAGE_SHEET} section; "
+                         "move its keys there and delete it")
+    return layer_files.Section("preferences", PAGE_SHEET, Path(data))
 
 
-def fields(prefs: Path | None = None) -> tuple[str, str]:
+def fields(prefs: layer_files.Section | None = None) -> tuple[str, str]:
     """(revision, effective) from the title block: ("10", "16 November 2026")."""
     prefs = prefs or page_prefs()
-    p = json.loads(prefs.read_text())
+    p = prefs.read()
     rev, date = p.get("revision"), p.get("date")
     if rev is None or isinstance(rev, bool) or not str(rev).strip():
         raise ValueError(f"{prefs.name}: no revision in the title block")
@@ -64,7 +68,7 @@ def _dump(data) -> str:
     return json.dumps(data, indent=2, ensure_ascii=False) + "\n"
 
 
-def planned(www: Path, prefs: Path | None = None) -> dict[Path, str]:
+def planned(www: Path, prefs: layer_files.Section | None = None) -> dict[Path, str]:
     """{file: text it should have} for every file this owns, from the files as they are now."""
     rev, effective = fields(prefs)
     crew_path, pubs_path = www / "data/crew.json", www / "data/publications.json"
@@ -92,12 +96,12 @@ def planned(www: Path, prefs: Path | None = None) -> dict[Path, str]:
     return out
 
 
-def drift(www: Path = WWW, prefs: Path | None = None) -> list[Path]:
+def drift(www: Path = WWW, prefs: layer_files.Section | None = None) -> list[Path]:
     """Files whose revision or date differs from the title block ([] when they all match)."""
     return [p for p, text in planned(www, prefs).items() if p.read_text(encoding="utf-8") != text]
 
 
-def apply(www: Path = WWW, prefs: Path | None = None) -> list[Path]:
+def apply(www: Path = WWW, prefs: layer_files.Section | None = None) -> list[Path]:
     """Write the title block's revision and date into every file that differs; returns those files."""
     plan = planned(www, prefs)
     changed = [p for p, text in plan.items() if p.read_text(encoding="utf-8") != text]

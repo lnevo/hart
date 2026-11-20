@@ -16,7 +16,7 @@ hand:
   devices.csv + tables.xml          each switch's M2T turnout (cats_turnout_io.load_turnouts)
   occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
                                   layout block table and the sensors, not a Layout Editor panel)
-  staging.signals.json + signal_head_plan.csv  the masts drawn on staging (field and planned) and their templates
+  signals.json[staging] + signal_head_plan.csv the masts drawn on staging (field and planned) and their templates
   devices.csv (level 1)   the block of a short unnamed track between two switches that has no JMRI block of its own:
                          the one block the staging device map's track between them holds
                          (staging_device_map.staging_chains)
@@ -85,11 +85,11 @@ from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_
 OUT = pd.REPO / "cats/panels/HART_CTC.xml"
 OUT_ABS = OUT.with_name("HART_ABS.xml")
 BINDINGS = OUT.with_name("HART_CTC.bindings.json")
-BOUND_LEVEL = 1                                      # the level bound to JMRI: staging's band (its `level` in staging.plan_overrides.json)
-BOUND_TITLES = bdm.mast_rule.band_levels(json.loads(sdm.OVERRIDES.read_text(encoding="utf-8")))     # {band title: level}
+BOUND_LEVEL = 1        # the level bound to JMRI: staging's band (its `level` in plan_overrides.json's staging section)
+BOUND_TITLES = bdm.mast_rule.band_levels(sdm.overrides())     # {band title: level}
 # The release candidate tables (build_layout_le.py --as-live): every name the desk binds must be in it
 TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
-# The desks' window, cells per grid unit, helix blocks and row gaps are page preferences (main_upper.preferences.json:
+# The desks' window, cells per grid unit, helix blocks and row gaps are page preferences (preferences.json[main_upper]:
 # cats_window, cats_cells_per_unit, cats_helix_blocks, cats_band_gap, cats_title_gap) the plugin reads (schematic/cats_prefs.py, cats.options),
 # which also gives the cells the desk must fit in that window.
 
@@ -178,7 +178,7 @@ def desk_options(cats, page, bands):
 
 def check_desk_faults(cats, P, fit):
     """Print the plugin's desk faults for panel P (cats.faults: two blocks landing in one cell, a desk wider than its
-    `fit` window), the count first, and stop when there is one. They are what main_upper.preferences.json's
+    `fit` window), the count first, and stop when there is one. They are what preferences.json[main_upper]'s
     level_leg pins on 115, 235 and 239 keep away (its _level_leg note)."""
     found = cats.faults(P, fit)
     print(f"CATS desk faults: {len(found)}" + "".join(f"\n  {x}" for x in found))

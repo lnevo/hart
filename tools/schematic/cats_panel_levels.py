@@ -396,7 +396,7 @@ def level_signals(bands, F, bound_bi):
                           "_edge": s["edge"], "cm_from_toward": 0.0, "edge_cm": s["cm"],
                           "dir": r["dir"], "kind": "field",
                           "heads": len(r["heads"]), "source": level_masts.PATH.name})
-    # the sheet's main_upper.signals.json draws these masts too; the desk places its own (balloon loop halves have
+    # the sheet's signals.json[main_upper] draws these masts too; the desk places its own (balloon loop halves have
     # edges of their own here), so it drops the file's, once: the main and upper bands share one options object
     for bi in added:
         opts = bands[bi][2]

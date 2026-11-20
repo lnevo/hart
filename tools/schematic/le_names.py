@@ -338,7 +338,7 @@ def named_bands(bands, names: dict):
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
     other main and upper track is unnamed, but a helix track keeps its plan name (McKees Rocks, McKeesport): the
     plugin joins the helix ends of two levels by that name (le.partners), so it is the label there too. Staging is
-    left as it is. The label options (main_upper.preferences.json's le_labels and le_band_labels, a name left off
+    left as it is. The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off
     the panel among them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
     for title, band, opts in bands:

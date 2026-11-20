@@ -1,7 +1,7 @@
 """build_main_route.py [--check]
 
-Write the `main_route` key of main_upper.plan_overrides.json from the main_upper rows of main_lines.csv and the plan
-graph, and staging's main track and mileposts from its staging rows (see the end of this text).
+Write the `main_route` key of plan_overrides.json's main_upper section from the main_upper rows of main_lines.csv
+and the plan graph, and staging's main track and mileposts from its staging rows (see the end of this text).
 
 The schematic marks as main track what lies on `main_route`, hop by hop. Written by hand, each hop named two plan part
 numbers (T281, T311 ...), which change whenever the plan is exported again. Here the owner gives the two main lines
@@ -30,7 +30,8 @@ line runs; switches are named by their number, so the hops do not depend on the 
 --check regenerates in memory and exits 1 if a file differs.
 
 Staging (the rows whose sheet is staging). Staging's drawings take no main_route (it
-would turn on the direction letters of a route), so its lines write two other things in staging.plan_overrides.json.
+would turn on the direction letters of a route), so its lines write two other things in plan_overrides.json's staging
+section.
 Each track on a line gets "main" in the `name` edit and every other track in it loses it; a track on a line that the
 edit does not name must be a helix end or the short link between the halves of a crossover, which the plugin marks
 itself. A line with `count` yes is the way the mileposts run: milepost_route is its stops, one hop from each to the
@@ -50,13 +51,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and the pinned plugin
+from hartlib import layer_files  # noqa: E402  (publish_draft put tools/hartlib/src on the path)
 
-OVERRIDES = pd.DATA / "main_upper.plan_overrides.json"
 LINES = pd.DATA / "main_lines.csv"
 GRAPH = pd.GRAPHS / "main.json"
 COLUMNS = ["sheet", "line", "from", "via", "to", "loop", "double", "count", "notes"]
 SHEETS = ("staging", "main_upper")
-STAGING_OVERRIDES = pd.DATA / "staging.plan_overrides.json"
 STAGING_GRAPH = pd.GRAPHS / "staging.json"
 TIE = 1e-6          # centimetres: two ways this close are a tie
 
@@ -268,10 +268,10 @@ def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     return g, edits.node_ref
 
 
-def overrides_text(overrides: dict, hops: list) -> str:
+def overrides_section(overrides: dict, hops: list) -> dict:
     over = dict(overrides)
     over["main_route"] = hops
-    return json.dumps(over, indent=1, ensure_ascii=False) + "\n"
+    return over
 
 
 def line_edges(plan: Plan, rows: list[dict]) -> set[str]:
@@ -296,8 +296,8 @@ def milepost_route(plan: Plan, rows: list[dict]) -> list[list[str]]:
     return hops
 
 
-def staging_text(overrides: dict, plan: Plan, rows: list[dict]) -> str:
-    """staging.plan_overrides.json with its `name` edit's main flags and its milepost_route from the lines."""
+def staging_section(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
+    """plan_overrides.json's staging section with its `name` edit's main flags and its milepost_route from the lines."""
     from schematic import edits
     g = plan.g
     N = g["nodes"]
@@ -310,7 +310,7 @@ def staging_text(overrides: dict, plan: Plan, rows: list[dict]) -> str:
     over = json.loads(json.dumps(overrides))
     named = [ed for ed in over["edits"] if ed.get("op") == "name"]
     if len(named) != 1:
-        raise RouteError(f"{STAGING_OVERRIDES.name}: expected one `name` edit, found {len(named)}")
+        raise RouteError(f"plan_overrides.json[staging]: expected one `name` edit, found {len(named)}")
     seen, tracks = set(), []
     for a, b, name, *rest in named[0]["tracks"]:
         port = rest[0] if rest and rest[0] in ("A", "B", "C", "D") else None
@@ -326,7 +326,7 @@ def staging_text(overrides: dict, plan: Plan, rows: list[dict]) -> str:
     over["_main_lines"] = ("The main flags of the `name` edit and milepost_route are written by "
                            "tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that "
                            "file, not these.")
-    return json.dumps(over, indent=1, ensure_ascii=False) + "\n"
+    return over
 
 
 def main(argv=None) -> int:
@@ -334,38 +334,41 @@ def main(argv=None) -> int:
     ap.add_argument("--check", action="store_true", help="exit 1 if a main route or main line file is stale")
     args = ap.parse_args(argv)
     import build_layout_le as bl
-    outputs = []
     try:
-        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
+        overrides = layer_files.read("plan_overrides", "main_upper", pd.DATA)
         g, by_label = prepared(overrides)
         hops = route(Plan(g, by_label), read_lines("main_upper"))
-        outputs.append((OVERRIDES, overrides_text(overrides, hops), f"main_route ({len(hops)} hops)"))
-        st = json.loads(STAGING_OVERRIDES.read_text(encoding="utf-8"))
+        st = layer_files.read("plan_overrides", "staging", pd.DATA)
         sg, sby = prepared(st, "staging", STAGING_GRAPH)
-        text = staging_text(st, Plan(sg, sby), read_lines("staging"))
-        outputs.append((STAGING_OVERRIDES, text, "main flags and milepost_route"))
+        updates = {("plan_overrides", "main_upper"): overrides_section(overrides, hops),
+                   ("plan_overrides", "staging"): staging_section(st, Plan(sg, sby), read_lines("staging"))}
+        want = layer_files.texts(updates, pd.DATA)
     except bl.BuildError as exc:      # the plugin is not checked out
         if not args.check:
             raise
         print(f"SKIPPED main route check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
-    except RouteError as exc:
+    except (RouteError, layer_files.LayerFileError) as exc:
         print(f"build_main_route.py: {exc}", file=sys.stderr)
         return 2
-    stale = [(p, t, what) for p, t, what in outputs if p.read_text(encoding="utf-8") != t]
+    # which section differs, to say what is stale: main_upper's main_route, staging's main flags and milepost_route
+    what = {"main_upper": f"main_route ({len(hops)} hops)", "staging": "main flags and milepost_route"}
+    stale = [what[sheet] for (_k, sheet), sec in updates.items()
+             if layer_files.read("plan_overrides", sheet, pd.DATA) != sec]
+    stale_files = [p for p, text in want.items() if p.read_text(encoding="utf-8") != text]
     if args.check:
-        for p, _t, what in stale:
-            print(f"{p.name} {what} is stale: run python3 tools/schematic/build_main_route.py", file=sys.stderr)
-        if not stale:
+        for p in stale_files:
+            print(f"{p.name} {', '.join(stale) or 'formatting'} is stale: run python3 tools/schematic/build_main_route.py",
+                  file=sys.stderr)
+        if not stale_files:
             print("main route and staging main lines are current")
-        return 1 if stale else 0
-    for p, t, what in stale:
-        p.write_text(t, encoding="utf-8")
-        print(f"wrote {what} to {p.name}")
-    if not stale:
+        return 1 if stale_files else 0
+    for p in stale_files:
+        p.write_text(want[p], encoding="utf-8")
+        print(f"wrote {', '.join(stale) or 'its formatting'} to {p.name}")
+    if not stale_files:
         print("main route and staging main lines are current")
     return 0
-
 
 if __name__ == "__main__":
     sys.exit(main())

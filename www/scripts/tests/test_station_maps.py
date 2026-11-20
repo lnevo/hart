@@ -16,11 +16,19 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "www/scripts"))
 import map_revision  # noqa: E402
 
-PREFS = ROOT / "jmri/layouts/hart/data/schematic/main_upper.preferences.json"
+from hartlib import layer_files  # noqa: E402  (map_revision put tools/hartlib/src on the path)
+
+PREFS = map_revision.page_prefs()           # the main_upper section of preferences.json
 PUBLISHED = json.loads((ROOT / "www/scripts/published-files.json").read_text())
 CREW = json.loads((ROOT / "www/data/crew.json").read_text())
 MAPS = ROOT / "www/crew/maps"
 FOLDER = "crew/maps/generated-sheets/"
+
+
+def page_prefs(data, section):
+    """A preferences.json in `data` whose main_upper section, the page's, is `section`."""
+    (data / "preferences.json").write_text(json.dumps({"_sections": True, "staging": {}, "main_upper": section}))
+    return layer_files.Section("preferences", map_revision.PAGE_SHEET, data)
 
 
 class StationMapsTest(unittest.TestCase):
@@ -57,7 +65,7 @@ class StationMapsTest(unittest.TestCase):
 
 class MapRevisionTest(unittest.TestCase):
     def test_current_maps_carry_the_schematic_revision(self):
-        prefs = json.loads(PREFS.read_text())
+        prefs = PREFS.read()
         day = datetime.date.fromisoformat(prefs["date"])
         rev, effective = str(prefs["revision"]), f"{day.day} {day.strftime('%B')} {day.year}"
         self.assertEqual(CREW["schematic"]["revision"], rev)
@@ -80,15 +88,20 @@ class MapRevisionTest(unittest.TestCase):
 
     def test_fields_from_the_title_block(self):
         with tempfile.TemporaryDirectory() as tmp:
-            prefs = Path(tmp) / "p.json"
-            prefs.write_text(json.dumps({"revision": 12, "date": "2026-12-01"}))
+            prefs = page_prefs(Path(tmp), {"revision": 12, "date": "2026-12-01"})
             self.assertEqual(map_revision.fields(prefs), ("12", "1 December 2026"))
-            prefs.write_text(json.dumps({"revision": 12, "date": "1 Dec"}))
-            with self.assertRaisesRegex(ValueError, "not YYYY-MM-DD"):
+            page_prefs(Path(tmp), {"revision": 12, "date": "1 Dec"})
+            with self.assertRaisesRegex(ValueError, r"preferences.json\[main_upper\]: date '1 Dec' is not YYYY-MM-DD"):
                 map_revision.fields(prefs)
-            prefs.write_text(json.dumps({"date": "2026-12-01"}))
+            page_prefs(Path(tmp), {"date": "2026-12-01"})
             with self.assertRaisesRegex(ValueError, "no revision"):
                 map_revision.fields(prefs)
+            (Path(tmp) / "preferences.json").write_text(json.dumps({"_sections": True, "staging": {}}))
+            with self.assertRaisesRegex(ValueError, "no section 'main_upper'"):
+                map_revision.fields(prefs)
+            (Path(tmp) / "sheet.preferences.json").write_text("{}")
+            with self.assertRaisesRegex(ValueError, "move its keys there"):
+                map_revision.page_prefs(Path(tmp))
 
 
 class MapRevisionCopy(unittest.TestCase):
@@ -103,8 +116,7 @@ class MapRevisionCopy(unittest.TestCase):
         for rel in rels:
             (self.www / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy(ROOT / "www" / rel, self.www / rel)
-        self.prefs = tmp / "prefs.json"
-        self.prefs.write_text(json.dumps({"revision": 99, "date": "2026-12-01"}))   # a revision no sheet has yet
+        self.prefs = page_prefs(tmp, {"revision": 99, "date": "2026-12-01"})   # a revision no sheet has yet
 
     def test_new_revision_is_drift_until_applied(self):
         archive = (self.www / "crew/maps/archive/west-yard/index.html").read_text()
