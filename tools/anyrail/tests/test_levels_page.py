@@ -84,6 +84,13 @@ class TheTablesComeFromTheData(unittest.TestCase):
         notes["Track Barn"] = "timed passes (CSX 2738, Switch 5 to Switch 15, steps 32 and 64)"
         with self.assertRaisesRegex(SystemExit, "expected one"):
             LP.run_passes(rows, notes)
+        notes["Track Barn"] = "timed passes (P&CV 2121, Switch 5 to 15, steps 32 and 64)"
+        with self.assertRaisesRegex(SystemExit, "Track Barn's note names passes as"):
+            LP.run_passes(rows, notes)
+        self.assertEqual(LP.run_passes([("x",)], {"x": "(P&CV 2121, Switch 5 to Switch 15, steps 48 and 24)"}),
+                         ("P&CV 2121", "48", "24"))
+        with self.assertRaisesRegex(SystemExit, "both at step 24"):
+            LP.run_passes([("x",)], {"x": "(CSX 2121, Switch 5 to Switch 15, steps 24 and 24)"})
 
     def test_a_timed_block_on_neither_route_stops(self) -> None:
         blocks, notes = LP.block_rows()

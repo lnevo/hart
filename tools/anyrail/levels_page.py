@@ -37,7 +37,8 @@ HELIX_CSV = paths.LAYOUT_DATA / "schematic" / "helix_tracks.csv"
 SITE_HTML = paths.REPO_ROOT / "www/build/track-plan.html"
 CM_PER_IN = 2.54
 FITTED = re.compile(r"AnyRail (\d+(?:\.\d+)*[a-z]?) loop")
-PASSES = re.compile(r"\(([A-Z]+ \d+), Switch 5 to Switch 15, steps (\d+) and (\d+)\)")
+PASSES = re.compile(r"\(([^,()]+?), Switch 5 to Switch 15, steps (\d+) and (\d+)\)")
+PASSES_ANY = re.compile(r"\([^()]*\bsteps\b[^()]*\)")   # a note that names passes in any wording
 SPREAD = re.compile(r"\+-(\d+(?:\.\d+)?) in over (\d+) laps")
 LOOP_START = "OS Switch 5"          # the page runs the test loop from here
 LEVEL_NAMES = {"staging": "Staging", "main": "Main", "upper": "Upper"}
@@ -100,13 +101,24 @@ def loop_fit_plan(rows, notes):
 
 
 def run_passes(rows, notes):
-    """(loco, slow step, fast step) of the timed passes over the Switch 5 to Switch 15 run, from the run blocks' notes
-    in block_lengths.csv ("timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48)")."""
-    found = {m.groups() for r in rows for m in [PASSES.search(notes[r[0]])] if m}
+    """(loco, first step, second step) of the timed passes over the Switch 5 to Switch 15 run, as the run blocks' notes
+    in block_lengths.csv give them ("timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48)").
+    A note that names passes in other words, or two equal steps, stops the build."""
+    found = set()
+    for r in rows:
+        for text in PASSES_ANY.findall(notes[r[0]]):
+            m = PASSES.fullmatch(text)
+            if not m:
+                raise SystemExit(f"{r[0]}'s note names passes as {text!r}; write it as "
+                                 "'(LOCO, Switch 5 to Switch 15, steps N and M)'")
+            found.add(m.groups())
     if len(found) != 1:
         raise SystemExit(f"the run blocks' notes name {sorted(found) or 'no'} timed passes (loco and two steps); "
                          "expected one")
-    return found.pop()
+    loco, first, second = found.pop()
+    if first == second:
+        raise SystemExit(f"the run's two timed passes are both at step {first}; the page says they ran at different speeds")
+    return loco, first, second
 
 
 def laps_note(rows):
