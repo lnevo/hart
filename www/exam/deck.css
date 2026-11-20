@@ -5,7 +5,7 @@
   --red-wash:#f6e3e1; --green-wash:#e2f1e7; --yellow-wash:#f5ecd6;
   --f-head:var(--font-display); --f-body:var(--font-body);
   --f-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
-  --xw-sheet:#f5f0e1; /* the Extra East train-sheet tan, same as run.html's --sheet */
+  --xw-sheet:#f5f0e1; /* the Extra East train-sheet tan, same as run.css's --sheet */
   display:flex;flex-direction:column;gap:18px;font-family:var(--f-body);color:var(--ink)}
 .ce button{font:inherit;color:inherit}
 .ce nav.tabs{display:flex;gap:4px;border-bottom:2px solid var(--ink);flex-wrap:wrap}

@@ -999,7 +999,8 @@ def _card_thumbs(dest_root: Path) -> None:
 
 _WEBP_MIN_BYTES = 200_000   # JPEGs over this get a WebP companion
 _IMG_TAG = re.compile(r"<img\b[^>]*>")
-_IMG_SRC = re.compile(r"""\bsrc=(["'])([^"']+?\.jpe?g)\1""", re.I)
+_IMG_SRC = re.compile(r"""(?<![\w-])src=(["'])([^"']+?\.jpe?g)\1""", re.I)
+_IMG_SKIP = re.compile(r"""(?<![\w-])(?:srcset|sizes|data-src)=""", re.I)
 
 
 def _webp_companions(dest_root: Path) -> int:
@@ -1007,8 +1008,9 @@ def _webp_companions(dest_root: Path) -> int:
     and wrap the tag in <picture> with the JPEG as the fallback. Images a script builds, tags already inside a
     <picture> and photos where WebP is not at least 15% smaller are left alone. Returns the bytes saved."""
     try:
-        from PIL import Image
+        from PIL import Image, ImageOps
     except ImportError:
+        print("WARNING: Pillow is not installed, so no WebP companions were made", file=sys.stderr)
         return 0
     made: dict[Path, int] = {}      # JPEG -> bytes saved (0 when WebP did not pay)
     saved = 0
@@ -1020,7 +1022,7 @@ def _webp_companions(dest_root: Path) -> int:
         def wrap(m: re.Match, page: Path = page, text: str = text) -> str:
             tag = m.group(0)
             src = _IMG_SRC.search(tag)
-            if not src or "<picture" in text[max(0, m.start() - 200):m.start()].rsplit("</picture>", 1)[-1]:
+            if not src or _IMG_SKIP.search(tag) or "<picture" in text[max(0, m.start() - 200):m.start()].rsplit("</picture>", 1)[-1]:
                 return tag
             ref = src.group(2)
             if re.match(r"[a-z][a-z0-9+.-]*:|//|[?#]", ref, re.I) or "'" in ref or "+" in ref:
@@ -1031,8 +1033,13 @@ def _webp_companions(dest_root: Path) -> int:
                 return tag
             webp = jpg.with_suffix(".webp")
             if jpg not in made:
+                if webp.exists():   # a WebP already in the tree is the author's: never overwrite or delete it
+                    made[jpg] = 0
+                    return tag
                 with Image.open(jpg) as im:
-                    im.convert("RGB").save(webp, "WEBP", quality=78, method=6)
+                    icc = im.info.get("icc_profile")
+                    out = ImageOps.exif_transpose(im).convert("RGB")
+                    out.save(webp, "WEBP", quality=78, method=6, **({"icc_profile": icc} if icc else {}))
                 gain = jpg.stat().st_size - webp.stat().st_size
                 if gain < jpg.stat().st_size * 0.15:
                     webp.unlink()

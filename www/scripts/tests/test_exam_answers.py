@@ -44,7 +44,7 @@ class ExamAnswers(unittest.TestCase):
             for field in (q["title"], q["body"], q["right"], *(w["t"] for w in q["wrong"])):
                 self.assertNotRegex(field, r"\[\w+\.[\w.\[\]]*\]|NaN|\[object", f"run.js line {q['line']}")
 
-    # A minimal run.html: the pools, the modern-run markers, the source names and a figure helper.
+    # A minimal run.js: the pools, the modern-run markers, the source names and a figure helper.
     FRAME = (
         'const SRC={SC:"1949 Standard Code",GC:"GCOR"};function semSvg(a){return "<svg>"+a+"</svg>"}'
         "const ROAD_TTO=[];const STN_TTO=[];const ROAD_TWC=[];{BODY}const TW_SEL={};{MODERN}function startSIG(){}function startYARD(){{YARD}}function finish(){}"
