@@ -1,9 +1,26 @@
-"""build_cats_panel.py's main and upper levels: block names from the device map, switch and mast bindings, and the
-masts drawn on the level bands. Moved out of build_cats_panel.py unchanged."""
+"""build_cats_panel.py's desk bindings for every level: each switch's turnout and routes, each block's name, station,
+discipline and occupancy sensor, each mast's JMRI name and template, and the main and upper masts placed on their
+bands.
+
+One builder for all three levels. A band's level says where its facts come from, never how a binding is made:
+
+  level      band                         switches and OS blocks              blocks                    masts
+  bound (1)  bound_bi (staging)           switches.csv, switch_legs.csv,      occupancy_bindings.csv,   signals.json
+                                          M2T turnouts (Facts.turnout_io)     M2S detectors             [staging]
+  2 and 3    level_band (bdm.band_level)  internal turnouts (LEVEL_TURNOUT),  devices.csv block rows,   main_upper_
+                                          the drawing's crossover halves      virtual sensors           masts.csv
+
+Every binding is made by the same helpers whatever its level: turnout_routes (a switch's NORMAL leg and its close
+and throw IOSPECs), occupancy_spec (a block's OCCUPIEDSPEC / UNOCCUPIEDSPEC), block_entry (a block's name, station
+plate and discipline) and mast_template (a mast's CATS template). The two sources stay apart until the device
+master holds staging's switch legs and detectors as it holds main and upper's (level unification steps 5 and 6);
+reading them is the only level difference left here. Merged from cats_panel_staging.py and cats_panel_levels.py
+(level unification step 4) with the desks byte-identical.
+"""
 import copy
 import re
 import sys
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -16,10 +33,14 @@ sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 from le_common import BuildError, plugin as schematic_plugin  # noqa: E402  the plugin's core: crossover halves
 
 from cats_panel_facts import DEVICE_MAP, load_device_map, mast_type, template_by_type  # noqa: E402
-from cats_panel_staging import legs_of  # noqa: E402
 
 # Main and upper: CTC on the CTC desk, CATS holds their signals and releases them (owner, 2026-11-17); ABS on the twin
 MAIN_UPPER_DISCIPLINE = "CTC"
+# The discipline of a staging block occupancy_bindings.csv gives none
+STAGING_DISCIPLINE = "CTC"
+# The staging turnouts and detectors: LCOS over MQTT (M2T, M2S)
+STAGING_TURNOUT_PREFIX = "M2T"
+STAGING_SENSOR_PREFIX = "M2S"
 # Main and upper turnouts are internal until the device-map import (owner, 2026-11-16): IT:HART:C3:<switch number>,
 # user name Switch <n>. On the desk each is commanded and reported by that internal turnout, closed on the drawn
 # leg B: the Layout Editor builder gives these levels no normal leg, so the plugin draws leg B as the route the
@@ -27,7 +48,217 @@ MAIN_UPPER_DISCIPLINE = "CTC"
 # NORMAL is leg B.
 LEVEL_TURNOUT_PREFIX = "IT"
 LEVEL_TURNOUT = LEVEL_TURNOUT_PREFIX + ":HART:C3:"
+LEVEL_SENSOR_PREFIX = "IS"          # a main or upper block's virtual occupancy sensor (IS:HART:C3:B:...)
 
+
+# --- every level: the shapes of the bindings -------------------------------------------------------------------
+
+def legs_of(d):
+    """{leg: strand} of a drawn node, its in and out legs together."""
+    return d["ins"] | d["outs"]
+
+
+def level_band(bands, bi, bound_bi) -> bool:
+    """True for band `bi` when it is a main or upper band (bdm.band_level by its title), not the bound one."""
+    return bi != bound_bi and bool(bdm.band_level(bands[bi][0]))
+
+
+def level_bands(bands, bound_bi):
+    """[(band index, band, options)] of the main and upper bands."""
+    return [(bi, band, opts) for bi, (_title, band, opts) in enumerate(bands) if level_band(bands, bi, bound_bi)]
+
+
+def turnout_routes(prefix, addr, user, closed, thrown) -> dict:
+    """The routes of a switch whose leg `closed` the turnout's closed state sets and leg `thrown` its thrown state:
+    each leg's SELECTEDREPORT and ROUTECOMMAND, the turnout `prefix` + `addr` (user name `user`)."""
+    if {closed, thrown} != {"B", "C"}:
+        raise SystemExit(f"{user}: closed leg {closed!r} and thrown leg {thrown!r} must be legs B and C, one each")
+    io = lambda cmd: {"DECADDR": addr, "JMRIPREFIX": prefix, "USER_NAME": user, "command": cmd}
+    return {closed: {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
+            thrown: {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}}
+
+
+def occupancy_spec(prefix, addr, user) -> dict:
+    """The OCCUPIEDSPEC / UNOCCUPIEDSPEC of a block bound to sensor `prefix` + `addr` (user name `user`): occupied
+    when it closes, unoccupied when it throws."""
+    return {"occupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "USER_NAME": user, "command": "close"},
+            "unoccupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "command": "throw"}}
+
+
+def block_entry(panel_name, name, discipline) -> dict:
+    """A desk block's binding before its sensor: the JMRI block `name` it takes (left out when it is the panel name
+    `panel_name`), its station plate and its CATS discipline."""
+    e = {"name": name, "station": station_plate(name), "discipline": discipline}
+    if name == panel_name:
+        del e["name"]
+    return e
+
+
+def mast_template(name, F, by_type):
+    """The CATS template of mast `name`: its own row in signal_head_plan.csv (a wired mast), else the one masts of
+    its appearance type take (`by_type`, template_by_type), by its system name in tables.xml; None when neither."""
+    return F.templates.get(name) or by_type.get(mast_type(F.mast_system.get(name)))
+
+
+# --- the bound level (staging): switches.csv, switch_legs.csv, occupancy_bindings.csv -------------------------------
+
+def switch_of(F, d):
+    try:
+        return F.switches[int(d["label"])]
+    except (KeyError, ValueError):
+        raise SystemExit(f"switch {d.get('label')!r} on the staging band is not in switches.csv") from None
+
+
+def os_blocks(band, F):
+    """{switch node: its OS block}: the switch's only one, else the switch_legs.csv row whose named tracks its legs
+    touch, else the one row left. Two nodes never get one row."""
+    nodes, strands = band["nodes"], band["strands"]
+    sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
+    os_of = {}
+    for n, d in sw_nodes.items():
+        sw = switch_of(F, d)
+        if len(sw.legs) == 1:
+            os_of[n] = sw.legs[0].os_block
+            continue
+        touched = {track_block(strands[legs_of(d)[p]]["name"], F.helix) for p in "BC" if strands[legs_of(d)[p]]["name"]}
+        rows = [leg.os_block for leg in sw.legs if {leg.closed, leg.thrown} & touched]
+        if len(rows) == 1:
+            os_of[n] = rows[0]
+    for n, d in sw_nodes.items():                    # the rest by elimination
+        if n not in os_of:
+            sw = switch_of(F, d)
+            mates = [m for m in sw_nodes if sw_nodes[m]["label"] == d["label"]]
+            left = [leg.os_block for leg in sw.legs if leg.os_block not in {os_of.get(m) for m in mates}]
+            if len(left) != 1:
+                raise SystemExit(f"switch {d['label']}: cannot tell which of {[l.os_block for l in sw.legs]} "
+                                 f"node {n} is from switch_legs.csv")
+            os_of[n] = left[0]
+    seen = {}
+    for n, os_name in sorted(os_of.items()):
+        if os_name in seen:
+            raise SystemExit(f"switch nodes {seen[os_name]} and {n} would both be {os_name}")
+        seen[os_name] = n
+    return os_of
+
+
+def track_block(name, helix) -> str:
+    """The block of a staging track the plan names `name`: a helix track's helix block (`helix`, {plan name: block}:
+    one block up the helix, owner 2026-11-20), any other "Track <name>"."""
+    return helix.get(name) or "Track " + name
+
+
+def dest(band, os_of, n, port, helix=None):
+    """The block leg `port` of switch node n leads to, beyond its own OS: a named track (track_block, with `helix`),
+    the next switch's OS, or through a turnback to the named half beyond it."""
+    nodes, strands = band["nodes"], band["strands"]
+    sid, here, seen = legs_of(nodes[n])[port], n, set()
+    while sid not in seen:
+        seen.add(sid)
+        s = strands[sid]
+        if s["name"]:
+            return track_block(s["name"], helix or {})
+        nxt = s["dst"][0] if s["src"][0] == here else s["src"][0]
+        d = nodes[nxt]
+        if d["kind"] == "switch":
+            return os_of[nxt]
+        if not d["kind"].startswith("turn"):
+            break
+        onward = [k for k in legs_of(d).values() if k != sid]      # the other half of a fold
+        if len(onward) != 1:
+            break
+        sid, here = onward[0], nxt
+    raise SystemExit(f"switch {nodes[n]['label']} leg {port}: the track from it reaches no named track or switch")
+
+
+def half_label(sw, leg):
+    """The panel label of one half of a switch with several OS blocks (a crossover): its number and the letter of
+    its OS block in switch_legs.csv, upper case (OS Switch 23a -> 23A). The row without a letter is A when every
+    other row has one (OS Switch 7 and 7b -> 7A, 7B)."""
+    letter = lambda name: m.group(1) if (m := re.fullmatch(rf"OS Switch {sw.number}([a-z])", name)) else None
+    own = letter(leg.os_block)
+    if own is None:
+        others = [letter(l.os_block) for l in sw.legs if l is not leg]
+        if None in others or "a" in others:
+            raise SystemExit(f"Switch {sw.number}: cannot tell which half {leg.os_block} is from switch_legs.csv")
+        own = "a"
+    return f"{sw.number}{own.upper()}"
+
+
+def switch_bindings(band, F, os_of):
+    """{switch key: binding} for the staging switches: each node's OS block (os_of), its M2T turnout, closed on the
+    leg that leads to its switch_legs.csv closed block, NORMAL the thrown leg when CATS normal is JMRI thrown
+    (cats_inverted); a switch drawn as halves is keyed label/alias and labelled by half (half_label)."""
+    nodes = band["nodes"]
+    sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
+    labels = Counter(d["label"] for d in sw_nodes.values())
+    out = {}
+    for n, d in sorted(sw_nodes.items(), key=lambda kv: (int(kv[1]["label"]), os_of[kv[0]])):
+        sw = switch_of(F, d)
+        leg = next(l for l in sw.legs if l.os_block == os_of[n])
+        to = {p: dest(band, os_of, n, p, F.helix) for p in "BC"}
+        if sorted(to.values()) != sorted((leg.closed, leg.thrown)):
+            raise SystemExit(f"{leg.os_block}: the schematic's legs lead to {to}, but switch_legs.csv says "
+                             f"closed {leg.closed}, thrown {leg.thrown}")
+        closed = next(p for p in "BC" if to[p] == leg.closed)
+        thrown = "C" if closed == "B" else "B"
+        if sw.le_ident not in F.turnout_io:
+            raise SystemExit(f"Switch {sw.number}: no {STAGING_TURNOUT_PREFIX} turnout for {sw.le_ident}")
+        addr, uname = F.turnout_io[sw.le_ident]
+        key = d["label"] if labels[d["label"]] == 1 else f"{d['label']}/{d['alias']}"
+        out[key] = {
+            "block": leg.os_block,
+            **({"label": half_label(sw, leg)} if labels[d["label"]] > 1 else {}),     # drawn as halves
+            "normal": thrown if sw.cats_inverted else closed,
+            "routes": turnout_routes(STAGING_TURNOUT_PREFIX, addr, uname, closed, thrown),
+        }
+    return out
+
+
+def block_bindings(band, F, names):
+    """names: {block key: panel block name} of the staging band's blocks (a helix block, bound with the main and
+    upper ones, left out: dark_bindings). A block is its JMRI block (by name, or Track + name), bound to its detector;
+    a short unnamed track joining two switches, with no JMRI block of its own, joins the one block the staging device
+    map gives it. Anything else stops."""
+    nodes, strands = band["nodes"], band["strands"]
+    out = {}
+    for key, name in sorted(names.items(), key=lambda kv: kv[1]):
+        layout = next((x for x in (name, "Track " + name) if x in F.occupancy), None)
+        if layout is None:
+            sid = key[1].split(":", 1)[1] if key[0] == "track" else None
+            s = strands.get(sid) if sid else None
+            ends = [nodes[e[0]] for e in (s["src"], s["dst"])] if s else []
+            if not s or s["name"] or not all(d["kind"] == "switch" for d in ends):
+                raise SystemExit(f"block {name}: no JMRI block {name} or Track {name} in occupancy_bindings.csv / "
+                                 "tables.xml, and it is not a short unnamed track between two switches")
+            a, b = (switch_of(F, d).le_ident for d in ends)
+            out[name] = {"name": F.layout.block_between(a, b, f"block {name}")}
+            continue
+        addr, sensor = F.occupancy[layout]
+        out[name] = dict(block_entry(name, layout, F.discipline.get(layout, STAGING_DISCIPLINE)),
+                         **occupancy_spec(STAGING_SENSOR_PREFIX, addr, sensor))
+    return out
+
+
+def mast_bindings(opts, F):
+    """Every drawn mast (field and planned) by its JMRI user name and template: its own row in signal_head_plan.csv
+    (a wired mast), else the template staging's masts of its appearance type take (mast_template), as main and
+    upper masts get theirs. A name drawn twice stops."""
+    out = {}
+    by_type = template_by_type(F)
+    for sg in opts.get("signals") or ():
+        if sg["kind"] == "virtual":
+            continue
+        if sg["mast"] in out:
+            raise SystemExit(f"mast {sg['mast']} is listed twice in the staging signals")
+        name = opts.get("mast_prefix", "") + sg["mast"]
+        template = mast_template(name, F, by_type)
+        if name not in F.masts or template is None:
+            raise SystemExit(f"{name}: not a JMRI mast, or no template for its type in signal_head_plan.csv")
+        out[sg["mast"]] = {"name": name, "template": template}
+    return out
+
+
+# --- main and upper (levels 2 and 3): devices.csv, internal turnouts, main_upper_masts.csv --------------------------
 
 def xover_corners(name, F) -> list:
     """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
@@ -118,14 +349,12 @@ def device_name(bands, cats, keys, F, log):
 
 
 def spec(system, user):
-    """The IOSPECs a block bound to sensor `system` (user name `user`) takes, as staging's: JMRIPREFIX the system
-    prefix (M2S, or IS for an internal sensor), DECADDR the rest of the system name."""
-    prefix = "M2S" if system.startswith("M2S") else "IS"
+    """The IOSPECs a block bound to sensor `system` (user name `user`) takes, as staging's (occupancy_spec):
+    JMRIPREFIX the system prefix (M2S, or IS for an internal sensor), DECADDR the rest of the system name."""
+    prefix = STAGING_SENSOR_PREFIX if system.startswith(STAGING_SENSOR_PREFIX) else LEVEL_SENSOR_PREFIX
     if not system.startswith(prefix):
-        raise SystemExit(f"{user}: sensor {system} is neither M2S nor internal")
-    addr = system[len(prefix):]
-    return {"occupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "USER_NAME": user, "command": "close"},
-            "unoccupied": {"DECADDR": addr, "JMRIPREFIX": prefix, "command": "throw"}}
+        raise SystemExit(f"{user}: sensor {system} is neither {STAGING_SENSOR_PREFIX} nor internal")
+    return occupancy_spec(prefix, system[len(prefix):], user)
 
 
 def virtual_sensor(name, F):
@@ -149,9 +378,7 @@ def inside_os(bands, P, bound_bi, name, row):
     connector), and the plugin gave every cell of it to their OS blocks (its track key is no block, or one joined to
     an OS block). Anything else stops, naming the block."""
     found, cm = [], {}
-    for bi, (title, band, _) in enumerate(bands):
-        if bi == bound_bi or not bdm.band_level(title):
-            continue
+    for bi, band, _opts in level_bands(bands, bound_bi):
         for sid, s in band["strands"].items():
             if placeholder(s) not in row.trial:
                 continue
@@ -178,10 +405,10 @@ def inside_os(bands, P, bound_bi, name, row):
 
 
 def dark_bindings(bands, cats, P, F, bound_bi):
-    """(bindings, log, report) for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the station
-    plate, the virtual occupancy sensor bound (the device map's jmri_name) and the planned
-    detector kept as _planned_*; the report names each device map block with no block of its own on the desk, why,
-    and its sensor."""
+    """(bindings, log, report, joined) for the main and upper blocks: device map names, MAIN_UPPER_DISCIPLINE, the
+    station plate, the virtual occupancy sensor bound (the device map's jmri_name) and the planned detector kept as
+    _planned_*; the report names each device map block with no block of its own on the desk, why, and its sensor;
+    `joined` the staging keys of helix blocks, bound here."""
     groups = defaultdict(list)
     for key in P.blocks:
         groups[P.find(key)].append(key)
@@ -190,7 +417,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     helix = mr.read_helix_tracks()
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
-        dark = [k for k in keys if band_of(k) != bound_bi and bdm.band_level(bands[band_of(k)][0])]
+        dark = [k for k in keys if level_band(bands, band_of(k), bound_bi)]
         if not dark:
             continue
         if len(dark) < len(keys):       # a helix track: one block from staging up the helix (owner, 2026-11-20)
@@ -209,7 +436,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         else:
             name = device_name(bands, cats, keys, F, log)
         joined.update(k for k in keys if k not in dark)
-        e = {"name": name, "station": station_plate(name), "discipline": MAIN_UPPER_DISCIPLINE}
+        e = block_entry(panel_name, name, MAIN_UPPER_DISCIPLINE)
         # from the device map alone: build_layout_le.py, which runs after this build in make panels, adds the sensor to
         # the tables, and check_layout_facts.py checks the desk against them
         bound = virtual_sensor(name, F)
@@ -220,8 +447,6 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         planned = planned_sensor(name, F)
         if planned:
             e.update({"_planned_" + k: v for k, v in planned.items()})
-        if name == panel_name:
-            del e["name"]
         if name in seen:
             log.append(f"blocks named {name} on the desk are one block")
         seen.add(name)
@@ -240,18 +465,12 @@ def dark_bindings(bands, cats, P, F, bound_bi):
 
 
 def helix_block(band, key, helix) -> str | None:
-    """The helix block (helix_tracks.csv) of staging desk key `key`: its strand's plan name is a helix track's; else
-    None. staging_device_map.check_helix holds the staging device map to the same block."""
+    """The helix block (helix_tracks.csv rows, `helix`) of staging desk key `key`: its strand's plan name is a helix
+    track's; else None. staging_device_map.check_helix holds the staging device map to the same block."""
     if key[0] != "track":
         return None
     s = band["strands"].get(key[1].split(":", 1)[1])
     return helix.get(s["name"], {}).get("block") if s else None
-
-
-def level_bands(bands, bound_bi):
-    """[(band index, band, options)] of the main and upper bands."""
-    return [(bi, band, opts) for bi, (title, band, opts) in enumerate(bands)
-            if bi != bound_bi and bdm.band_level(title)]
 
 
 def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
@@ -298,11 +517,8 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
                                      + (f" ({'; '.join(why)})" if why else ""))
             closed = "C" if thrown == "B" else "B"
             addr = LEVEL_TURNOUT[len(LEVEL_TURNOUT_PREFIX):] + num
-            io = lambda cmd, u=user, a=addr: {"DECADDR": a, "JMRIPREFIX": LEVEL_TURNOUT_PREFIX, "USER_NAME": u,
-                                              "command": cmd}
             out[label] = {"normal": closed,
-                          "routes": {closed: {"SELECTEDREPORT": io("close"), "ROUTECOMMAND": io("close")},
-                                     thrown: {"SELECTEDREPORT": io("throw"), "ROUTECOMMAND": io("throw")}}}
+                          "routes": turnout_routes(LEVEL_TURNOUT_PREFIX, addr, user, closed, thrown)}
             if d["kind"] == "dx" and dx_corners is not None:
                 if num not in dx_corners:
                     raise SystemExit(f"double crossover {label}: no corners found for it")
@@ -360,10 +576,8 @@ def level_signals(bands, F, bound_bi):
         if level_masts.is_level_virtual(r["system_name"]):
             continue                                # a hidden destination mast: no desk signal, as on staging
         if not r["switch"]:                         # an APB intermediate (owner, 2026-11-19)
-            placed = intermediate_signal(bands, F, bound_bi, r, by_trial)
-            if placed is not None:
-                bi, sg = placed
-                added[bi].append(sg)
+            bi, sg = intermediate_signal(bands, F, bound_bi, r, by_trial)
+            added[bi].append(sg)
             continue
         hits = []
         for bi, band, _ in level_bands(bands, bound_bi):
@@ -411,10 +625,10 @@ def level_signals(bands, F, bound_bi):
 
 def level_mast_bindings(bands, F, bound_bi):
     """{mast: {name, template}} for the main and upper masts level_signals drew: each a mast in tables.xml whose
-    system name is its main_upper_masts.csv row's, with the template staging's masts of its appearance type take.
-    A row not drawn stops, but a virtual one (hidden, no desk signal)."""
+    system name is its main_upper_masts.csv row's, with the template staging's masts of its appearance type take
+    (mast_template). A row not drawn stops, but a virtual one (hidden, no desk signal)."""
     rows = {r["mast"]: r for r in F.level_masts}
-    templates = template_by_type(F)
+    by_type = template_by_type(F)
     out = {}
     for _bi, _band, opts in level_bands(bands, bound_bi):
         for sg in opts.get("signals") or ():
@@ -425,7 +639,7 @@ def level_mast_bindings(bands, F, bound_bi):
             if F.mast_system.get(name) != r["system_name"]:
                 raise SystemExit(f"{name}: tables.xml has {F.mast_system.get(name) or 'no such mast'}, "
                                  f"{level_masts.PATH.name} says {r['system_name']}")
-            template = templates.get(mast_type(r["system_name"]))
+            template = mast_template(name, F, by_type)
             if template is None:
                 raise SystemExit(f"{name}: no staging mast of type {mast_type(r['system_name'])} gives a CATS "
                                  "template (signal_head_plan.csv)")

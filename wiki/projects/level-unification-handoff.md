@@ -27,7 +27,7 @@ and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_stagin
 | Groupings | `control_points_staging.csv` (station groups with desk codes), `stations.csv`, `sheets.csv` (level 1 rows only so far), `interlockings_staging.csv` (the signal rule's control points) | `control_points_main_upper.csv` (the signal rule's control points, also drawn as the stations); detail sheets by hand in `preferences.json`'s `main_upper` section |
 | Hand lists | `short_tracks_staging.csv` | `running_tracks_`, `signalled_spurs_`, `split_tracks_`, `local_switches_main_upper.csv`; short tracks by a rule (`SHORT_CM` in `build_device_map.py`) |
 | Masts | `build_staging_masts.py`: `mast_rule.masts()` plus intermediates, anchor masts, virtual masts, interlockings | `build_device_map.py`: `mast_rule.masts()` plus running, spur and split lists, double-crossover corners; `build_main_upper_masts.py` copies them to `main_upper_masts.csv` |
-| Builders | `build_staging_sets.py`, `cats_panel_staging.py`, `staging_device_map.py` | `build_device_map.py`, `cats_panel_levels.py` |
+| Builders | `build_staging_sets.py`, `staging_device_map.py` | `build_device_map.py` (the CATS desk bindings are one builder for every level since step 4: `cats_panel.py`) |
 | Approval | `approved_staging.sha256` | its own fingerprints |
 
 About 20 scripts in `tools/schematic` and hartlib branch on the level; the most are in `build_layout_le.py`,
@@ -84,7 +84,7 @@ that belongs to step 4.
 
 ### 4. Level-blind builders (after 1 to 3, tests first)
 
-`cats_panel_staging.py` and `cats_panel_levels.py` become one; `build_staging_sets.py` builds every level;
+`cats_panel_staging.py` and `cats_panel_levels.py` become one (done: `cats_panel.py`, every binding made by one set of helpers, its level's facts read from switches.csv and switch_legs.csv for staging and devices.csv for main and upper until steps 5 and 6 put staging's legs and detectors in the device master; pinned by `tools/schematic/tests/test_cats_panel.py`, desks byte-identical); `build_staging_sets.py` builds every level;
 `staging_device_map.py` becomes a check of the device master for every level; `build_layout_le.py`, `le_tables.py`
 and `railroad_invariants.py` lose their level branches; approval fingerprints are kept per panel and desk. Tests come
 first (AGENTS.md "Working on existing scripts").
