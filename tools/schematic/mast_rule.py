@@ -4,8 +4,8 @@ tracks() lists each track of a band between its ends (switch, helix or bumper), 
 <a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks), and masts() places a home signal where a
 track from outside a control point meets one of its switches, unless no route it governs reaches another signal
 (reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
-to its level by LEVELS. The rules that replaced hand lists (owner, 2026-11-20): running_tracks (passing sidings
-between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
+to its level by the `level` of its entry in a plan-overrides file (band_levels). The rules that replaced hand lists
+(owner, 2026-11-20): running_tracks (passing sidings between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
 splits, which are a choice, not a rule. mast_plan.py runs them all as the one mast process of every level.
 """
 from __future__ import annotations
@@ -19,7 +19,6 @@ from hartlib import railroad
 base = railroad.switch_number
 natural = railroad.natural
 
-LEVELS = {"Main": 2, "Upper": 3}      # band key (first word of the band title) -> level
 TAU = {"A": -1, "B": 1, "C": 1, "D": -1}      # the plugin's leg sides (schematic.core.TAU)
 LOOP_HALF = {"B": 1, "C": 2}          # a balloon loop's half by the switch leg it leaves from (owner, 2026-11-16)
 LONG_CM = 150.0                       # a track inside a control point longer than this can hold a train (owner, 2026-11-19)
@@ -29,12 +28,35 @@ class MapError(RuntimeError):
     pass
 
 
-def band_level(title: str, levels: dict | None = None) -> int | None:
-    """The level of a band by the first word of its title, in `levels` (default LEVELS: main and upper)."""
-    return (LEVELS if levels is None else levels).get((title or "").split()[0]) if title else None
+def band_levels(overrides: dict) -> dict[str, int]:
+    """{band title: level} of one plan-overrides file: each `levels.bands` entry's name with its `level` (main and
+    upper: 2 and 3), or, for a one-band input, `level_title` with the file's own `level` (staging: 1). The titles stay
+    the drawn text; the level is the owner's number, not the title's first word. MapError for a band with no level, a
+    level that is not 1, 2 or 3, a title two bands share, or a file that names no band."""
+    entries = [(b.get("name"), b.get("level"), f"levels.bands entry {b.get('name')!r}")
+               for b in overrides.get("levels", {}).get("bands", ())]
+    if not entries and overrides.get("level_title"):
+        entries = [(overrides["level_title"], overrides.get("level"), "level_title")]
+    if not entries:
+        raise MapError("the plan overrides name no band (levels.bands, or level_title)")
+    out = {}
+    for name, level, what in entries:
+        if not name:
+            raise MapError(f"{what}: no name")
+        if level not in (1, 2, 3) or isinstance(level, bool):
+            raise MapError(f"{what} has level {level!r}, which is not 1, 2 or 3")
+        if name in out:
+            raise MapError(f"two bands are titled {name!r}")
+        out[name] = level
+    return out
 
 
-def end_ref(bands, joined, bi, node_id, helix_tag, levels=None):
+def band_level(title: str, levels: dict) -> int | None:
+    """The level of a band by its title, in `levels` (band_levels); None for a band `levels` does not hold."""
+    return levels.get(title) if title else None
+
+
+def end_ref(bands, joined, bi, node_id, helix_tag, levels):
     """What a track ends at: ("sw", number), ("helix", "H1"), ("bumper", None). A connector to the other band
     is followed to the switch beyond it."""
     band = bands[bi][1]
@@ -74,12 +96,12 @@ def end_label(bands, joined, bi, node_id) -> str:
 def helix_tags(bands, overrides) -> dict[int, str]:
     """{level: "H1"|"H2"}: the helix tracks in the overrides' order, each on the band holding its switch."""
     relabel = next(e["map"] for e in overrides["edits"] if e["op"] == "relabel")
-    out = {}
+    levels, out = band_levels(overrides), {}
     for i, sw in enumerate(overrides.get("helix", {})):
         label = relabel.get(sw, sw)
         for title, band, _ in bands:
             if any(d.get("label", "").rstrip("*") == label for d in band["nodes"].values()):
-                out[band_level(title)] = f"H{i + 1}"
+                out[band_level(title, levels)] = f"H{i + 1}"
     return out
 
 
@@ -109,7 +131,7 @@ def helix_blocks(overrides, helix=None) -> dict[str, str]:
     return {f"H{i + 1}": helix[name]["block"] for i, name in enumerate(plan)}
 
 
-def tracks(bands, runs, joined, helix_tag, levels=None) -> list[dict]:
+def tracks(bands, runs, joined, helix_tag, levels) -> list[dict]:
     """One entry per track of the main and upper bands (a track cut by a connector counted once)."""
     found, seen = [], set()
     for bi, (title, band, _) in enumerate(bands):
@@ -120,11 +142,10 @@ def tracks(bands, runs, joined, helix_tag, levels=None) -> list[dict]:
         for start, chain, end in runs(band):
             a = end_ref(bands, joined, bi, start[0], helix_tag, levels)
             b = end_ref(bands, joined, bi, end[0], helix_tag, levels)
-            la, lb = end_label(bands, joined, bi, start[0]), end_label(bands, joined, bi, end[0])
-            halves = la[-1:] in ("A", "B") and lb[-1:] in ("A", "B")
-            # between a crossover's halves, its OS block: halves lettered A/B (main, upper), or two nodes with one
-            # number (staging's single crossovers 7, 23 and 35); a balloon loop starts and ends on the same node
-            if a[0] == b[0] == "sw" and a[1] == b[1] and ((la != lb and halves) or start[0] != end[0]):
+            # between a crossover's halves, its OS block: two nodes of one switch number (the A and B halves of a
+            # crossover, or staging's single crossovers 7, 23 and 35), however the plan labels them; a balloon loop
+            # starts and ends on the same node
+            if a[0] == b[0] == "sw" and a[1] == b[1] and start[0] != end[0]:
                 continue
             edges = {}
             for sid, _ in chain:
@@ -368,8 +389,8 @@ def read_block_splits(path: Path, found: list[dict], levels) -> set[str]:
     return out
 
 
-def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_extra=frozenset(),
-          spurs=frozenset(), split=frozenset(), *, joined) -> list[dict]:
+def masts(bands, cps, found, cp_of, corner_blocks=None, running_extra=frozenset(),
+          spurs=frozenset(), split=frozenset(), *, joined, levels) -> list[dict]:
     """Home masts where a track from outside a control point meets one of its switches, or where a track inside one
     is long enough to hold a train (over LONG_CM: running track inside an interlocking, staging's K-1/K-2), or where a
     track ending at a bumper that can hold a train leaves one (staging's W-1 and W-2). `running_extra`: track names
@@ -380,7 +401,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
     interlocking), one-low (a dwarf) on a trailing leg off it (owner,
     2026-11-19: the stock basic system shows Diverging aspects only on two heads). A mast none of whose routes
     reaches another signal is left out (reaches_signal; `joined`, the plugin's partners, says which connector ends
-    run on to another band)."""
+    run on to another band). `levels`: {band title: level} (band_levels)."""
     by_leg = {}
     for t in found:
         for (n, p), far in zip(t["legs"], reversed(t["ends"])):
@@ -411,7 +432,7 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
                                     row=srow.get(sid, 0), track=t["name"], band=bi, half=0, node=n, leg=p,
                                     strand=sid, running=False, kind="one-low"))
                     continue
-                loop = kind == "sw" and far == num and t["name"].endswith(" Loop")   # comes back to this switch
+                loop = kind == "sw" and far == num and t["loop"]   # comes back to this switch
                 inside = kind == "sw" and cp_of.get(far) == cp and not loop
                 # a track ending at a bumper gets a mast only when it can hold a train (a staging track trains leave
                 # from, W-1 and W-2; owner, 2026-11-19), and then a dwarf, unless it is main route

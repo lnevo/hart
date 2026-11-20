@@ -176,7 +176,7 @@ def main_upper_rows() -> list[dict]:
     from hartlib import level_masts as lm
     bands, joined, runs, corners = bdm.solve()
     ov = json.loads(bdm.OVERRIDES.read_text(encoding="utf-8"))
-    found = mr.tracks(bands, runs, joined, mr.helix_tags(bands, ov))
+    found = mr.tracks(bands, runs, joined, mr.helix_tags(bands, ov), mr.band_levels(ov))
     mr.track_names(found, mr.helix_blocks(ov))      # as build_device_map.py names them
     rr = railroad.Railroad(bdm.sources(), upto="inputs")
     sw = railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)

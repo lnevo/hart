@@ -116,7 +116,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned plugin
 from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
-    LEVELS, LOOP_HALF, TAU, MapError, band_level, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
+    LOOP_HALF, TAU, MapError, band_levels, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
     TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_names, tracks)
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits
@@ -128,6 +128,7 @@ NODES = SOURCES.lcos_nodes
 LOCAL = SOURCES.local_switches
 OVERRIDES = SOURCES.plan_overrides
 OUT = SOURCES.device_map
+LEVELS = band_levels(json.loads(OVERRIDES.read_text(encoding="utf-8")))     # {band title: level} of main and upper
 SPLIT = OVERRIDES.parent / "block_splits.csv"     # the owner's choice of tracks parted into two blocks (all levels)
 PINS = OVERRIDES.parent / "detector_pins_main_upper.csv"         # detectors the owner placed on a given node input
 # The hand lists name a track by the switches at its ends (switch_a, switch_b: lower number first; switch_b blank for a
@@ -175,6 +176,11 @@ def block_sensor(block: str) -> str:
         return level_devices.block_sensor(block)
     except ValueError as exc:
         raise MapError(str(exc)) from None
+
+
+def band_level(title: str) -> int | None:
+    """The level (2 or 3) of a main or upper band by its title, from the plan overrides' `level`s; None for staging."""
+    return mast_rule.band_level(title, LEVELS)
 
 
 def load_cps(path: Path = CPS) -> list[railroad.Interlocking]:
@@ -251,7 +257,7 @@ def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None)
         bands, joined, runs, _corners = solve()
     if overrides is None:
         overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
-    found = tracks(bands, runs, joined, helix_tags(bands, overrides))
+    found = tracks(bands, runs, joined, helix_tags(bands, overrides), band_levels(overrides))
     track_names(found, helix_blocks(overrides, helix) if helix is not None else helix_blocks(overrides))
     return found
 
@@ -590,7 +596,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
     if missing:
         raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
-    found = tracks(bands, runs, joined, helix_tags(bands, overrides))
+    found = tracks(bands, runs, joined, helix_tags(bands, overrides), band_levels(overrides))
     track_names(found, helix_blocks(overrides, helix) if helix else None)
     check_helix_ends(bands, joined, found, helix)
     planned, corner_blocks, split_names = plan_masts(bands, joined, runs, found, cp_of, corners)
