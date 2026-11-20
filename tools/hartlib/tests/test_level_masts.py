@@ -66,6 +66,12 @@ class HeadNameTest(unittest.TestCase):
             stops(header + mast + other.replace(",\n", ",,stray\n"),
                   f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 10")
             stops(header + mast + other + mast, "m.csv line 4: mast Mast 108LA is on line 2 already")
+            # a short row is a damaged file: it stops like a long one, however many fields it lost
+            stops(header + mast + other.replace(",\n", "\n"), f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 8")
+            stops(header + mast + "Mast 108LB,CP 107\n", f"m.csv line 3: 9 fields ({','.join(L.FIELDS)}), not 2")
+            # a row with no mast name, empty or blank
+            for blank in ("", "  "):
+                stops(header + mast + other.replace("Mast 108LB", blank), "m.csv line 3: no mast name")
             stops(header + mast + other.replace("=Head 108LB", "=Head 108LA"),
                   "m.csv line 3: mast Mast 108LB: heads 'IH:HART:C3:108LB=Head 108LA' are not system=user pairs of "
                   "its system name's virtual heads")
