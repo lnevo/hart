@@ -330,37 +330,100 @@ class ReachesSignal(unittest.TestCase):
 
     band = staticmethod(FacingOnRoute.band)      # X - (A) 1 (B) - (A) 3, 1's C and 3's B and C to bumpers
 
-    def test_a_mast_into_dark_spurs_is_dropped(self):
+    @staticmethod
+    def reaches(b, node, leg, posts, joined=None, bands=None):
         import mast_rule as mr
-        # entering 1 at A: on to 3 and its two spurs, or 1's own spur; no mast faces on anywhere
-        self.assertFalse(mr.reaches_signal(self.band(), "S1", "A", {("S1", "A")}))
+        return mr.reaches_signal(bands or [("Main level", b, {})], 0, node, leg, {0: set(posts)}, joined or {})
 
-    def test_a_mast_with_a_signal_beyond_it_stays(self):
-        import mast_rule as mr
+    def test_a_mast_into_dark_spurs_is_not_kept(self):
+        # entering 1 at A: on to 3 and its two spurs, or 1's own spur; no mast faces on anywhere
+        self.assertFalse(self.reaches(self.band(), "S1", "A", {("S1", "A")}))
+
+    def test_a_mast_with_a_signal_beyond_it_is_kept(self):
         b = self.band()
         # a mast on 3's B leg faces a train coming back from it, not one going out: still dark that way
-        self.assertFalse(mr.reaches_signal(b, "S1", "A", {("S1", "A"), ("S3", "B")}))
+        self.assertFalse(self.reaches(b, "S1", "A", {("S1", "A"), ("S3", "B")}))
         # a train from bumper Y entering 3 at B trails to 1 at B, where a mast stands: a signal beyond
-        self.assertTrue(mr.reaches_signal(b, "S3", "B", {("S3", "B"), ("S1", "B")}))
+        self.assertTrue(self.reaches(b, "S3", "B", {("S3", "B"), ("S1", "B")}))
 
-    def test_a_route_that_runs_on_to_another_level_reaches_its_signals(self):
-        import mast_rule as mr
+    def test_ends_that_run_on_reach_a_signal_and_bumpers_do_not(self):
         b = self.band()
-        b["nodes"]["Z"].update(kind="end", sub="helix")
-        self.assertTrue(mr.reaches_signal(b, "S1", "A", {("S1", "A")}))
-        b["nodes"]["Z"].update(sub="bumper")
-        self.assertFalse(mr.reaches_signal(b, "S1", "A", {("S1", "A")}))
+        for sub, want in (("helix", True), ("open", True), ("bumper", False), ("link", False)):
+            with self.subTest(end=sub):
+                b["nodes"]["Z"].update(kind="end", sub=sub)
+                self.assertEqual(self.reaches(b, "S1", "A", {("S1", "A")}), want)
+
+    def test_a_joined_connector_is_followed_to_the_other_band(self):
+        # Z on band 0 is a connector joined to band 1's connector L, whose track runs to band 1's switch 5 at A
+        b = self.band()
+        b["nodes"]["Z"].update(kind="end", sub="link")
+        other = dict(nodes={"L": dict(kind="end", sub="link", ins={}, outs={"E": "f0"}),
+                            "S5": dict(kind="switch", label="5", ins={"A": "f0"}, outs={})},
+                     strands={"f0": dict(src=("L", "E"), dst=("S5", "A"), cm=50.0)})
+        bands = [("Main level", b, {}), ("Upper level", other, {})]
+        import mast_rule as mr
+        joined = {(0, "Z"): (1, "L"), (1, "L"): (0, "Z")}
+        self.assertTrue(mr.reaches_signal(bands, 0, "S1", "A", {0: {("S1", "A")}, 1: {("S5", "A")}}, joined))
+        self.assertFalse(mr.reaches_signal(bands, 0, "S1", "A", {0: {("S1", "A")}, 1: set()}, joined))
 
     def test_a_turnback_is_followed(self):
-        import mast_rule as mr
         b = self.band()
         # 1's C leg runs to a turnback and on round to 3's C leg, entered there with a mast facing on
-        b["nodes"]["T"] = dict(kind="turnL", ins={}, outs={})
+        b["nodes"]["T"] = dict(kind="turnL", ins={0: "e2"}, outs={1: "e4"})
         b["strands"]["e2"] = dict(src=("S1", "C"), dst=("T", 0), cm=100.0)
         b["strands"]["e4"] = dict(src=("T", 1), dst=("S3", "C"), cm=100.0)
         b["nodes"]["S1"]["outs"]["C"], b["nodes"]["S3"]["outs"]["C"] = "e2", "e4"
-        b["nodes"]["T"]["ins"], b["nodes"]["T"]["outs"] = {0: "e2"}, {1: "e4"}
-        self.assertTrue(mr.reaches_signal(b, "S1", "A", {("S1", "A"), ("S3", "C")}))
+        self.assertTrue(self.reaches(b, "S1", "A", {("S1", "A"), ("S3", "C")}))
+
+
+class MastsLeaveOutDarkMasts(unittest.TestCase):
+    """mast_rule.masts leaves out every home mast no route of which reaches another signal, again and again until
+    none is left out, and never counts a mast as its own signal beyond (code review, 2026-11-19)."""
+
+    @staticmethod
+    def build(tracks, ends=None):
+        """A main band from `tracks` [(id, (node, port), (node, port), cm)], every switch in CP 1 but 3 (CP 3) and 7
+        (local); `ends` {node: sub} for the track ends (bumper by default)."""
+        nodes = {}
+        for sid, (a, pa), (b, pb), _cm in tracks:
+            for n in (a, b):
+                if n not in nodes:
+                    if n.startswith("S"):
+                        nodes[n] = dict(kind="switch", label=n[1:], ins={}, outs={})
+                    else:
+                        nodes[n] = dict(kind="end", sub=(ends or {}).get(n, "bumper"), ins={}, outs={})
+            nodes[a]["outs"][pa] = sid
+            nodes[b]["ins"][pb] = sid
+        strands = {sid: dict(src=a, dst=b, cm=cm, main=False) for sid, a, b, cm in tracks}
+        band = dict(nodes=nodes, strands=strands, rail={n: 1 for n in nodes if n.startswith("S")}, R=dict(srow={}))
+        found = []
+        for sid, (a, pa), (b, pb), cm in tracks:
+            ref = lambda n: ("sw", n[1:]) if n.startswith("S") else ("bumper", None)       # noqa: E731
+            found.append(dict(level=2, ends=(ref(a), ref(b)), legs=[(a, pa), (b, pb)], band=0, cm=cm, loop=False,
+                              main=False, row=0, strands=[sid], trial=[f"Track {sid}"], name=f"Track {sid}"))
+        return [("Main level", band, {})], found
+
+    def masts(self, tracks, cp_of, ends=None):
+        import mast_rule as mr
+        bands, found = self.build(tracks, ends)
+        return sorted((m["node"], m["leg"]) for m in mr.masts(bands, None, found, cp_of, joined={}))
+
+    def test_two_masts_in_a_row_into_dark_track_both_go(self):
+        # X (200 cm) - 1 - (200 cm) - 3, 1's C and 3's B and C short spurs to bumpers: 1's mast at A sees 3's mast
+        # at A beyond it, but 3's routes end at bumpers, so 3's goes, and then 1's has nothing beyond it either
+        tracks = [("e0", ("X", "E"), ("S1", "A"), 200.0), ("e1", ("S1", "B"), ("S3", "A"), 200.0),
+                  ("e2", ("S1", "C"), ("W", "E"), 20.0), ("e3", ("S3", "B"), ("Y", "E"), 20.0),
+                  ("e4", ("S3", "C"), ("Z", "E"), 20.0)]
+        self.assertEqual(self.masts(tracks, {"1": "CP 1", "3": "CP 3"}), [])
+        # with X a helix end, 1's mast at B (a train from 3 heading for X) runs on to another level and stays
+        self.assertEqual(self.masts(tracks, {"1": "CP 1", "3": "CP 3"}, {"X": "helix"}), [("S1", "B")])
+
+    def test_a_route_back_to_its_own_mast_is_no_signal_beyond(self):
+        # 1 (CP 1) and local 7 joined twice, 1's A to 7's B and 1's B to 7's A: a reversing loop through 7 that
+        # brings a train back to the mast it started at; 1's C and 7's C are dark spurs, so both of 1's masts go
+        tracks = [("e0", ("S1", "A"), ("S7", "B"), 200.0), ("e1", ("S1", "B"), ("S7", "A"), 200.0),
+                  ("e2", ("S1", "C"), ("Z", "E"), 20.0), ("e3", ("S7", "C"), ("W", "E"), 20.0)]
+        self.assertEqual(self.masts(tracks, {"1": "CP 1"}), [])
 
 
 class NoBoardRoomOnly(unittest.TestCase):

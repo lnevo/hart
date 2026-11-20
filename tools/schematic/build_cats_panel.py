@@ -74,7 +74,7 @@ from hartlib.cats import appearance_templates, mast_templates, station_plate  # 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
-from le_common import plugin as schematic_plugin  # noqa: E402  the plugin's core: its single crossover halves
+from le_common import BuildError, plugin as schematic_plugin  # noqa: E402  the plugin's core: crossover halves
 
 # The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
 # launchers and shortcuts use. Nothing else writes them.
@@ -589,12 +589,15 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     `dx_corners` ({switch number: {leg: Layout Editor corner}}, build_device_map.dx_corners) gives a double crossover
     a desk block per corner, named as the Layout Editor's (OS Switch <n>a to d, by the corner each leg reaches), and
     the middle of its X OS Switch <n>."""
+    try:
+        core = schematic_plugin()[2]
+    except BuildError as exc:                   # the plugin not found, or not at its pinned commit
+        raise SystemExit(str(exc)) from None
     out = {}
     for _bi, band, _ in level_bands(bands, bound_bi):
         nodes = band["nodes"]
         why = []
-        half_legs = {n: got[0] for n, got in
-                     schematic_plugin()[2].crossover_halves(nodes, band["strands"], why).items()}
+        half_legs = {n: got[0] for n, got in core.crossover_halves(nodes, band["strands"], why).items()}
         for n, d in sorted(nodes.items()):
             label = str(d.get("label") or "")
             if d["kind"] not in ("switch", "dx"):
@@ -607,7 +610,9 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
             if label in out:
                 raise SystemExit(f"switch {label} is drawn twice on main and upper")
             thrown = half_legs.get(n, "C")      # a crossover half: its link leg toward the other half; else leg C
-            if re.search(r"\d[AB]$", label) and n not in half_legs:        # a half whose other half is on another band
+            # a lettered half (125B, or 125B* with an added branch) the plugin did not pair: its other half is on
+            # another band
+            if re.search(r"\d[AB]$", label.rstrip("*")) and n not in half_legs:
                 s = band["strands"].get(legs_of(d).get("C"))
                 far = (s["dst"][0] if s["src"][0] == n else s["src"][0]) if s else ""
                 if not far.startswith("LINK:"):

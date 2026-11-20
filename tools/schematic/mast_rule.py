@@ -138,7 +138,7 @@ def track_names(found) -> None:
 
 
 def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_extra=frozenset(),
-          spurs=frozenset(), split=frozenset()) -> list[dict]:
+          spurs=frozenset(), split=frozenset(), *, joined) -> list[dict]:
     """Home masts where a track from outside a control point meets one of its switches, or where a track inside one
     is long enough to hold a train (over LONG_CM: running track inside an interlocking, staging's K-1/K-2), or where a
     track ending at a bumper that can hold a train leaves one (staging's W-1 and W-2). `running_extra`: track names
@@ -147,7 +147,9 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
     gives its switch `node` and `leg`, and `kind`, its JMRI basic appearance: two-searchlight facing the points (two
     heads), one-searchlight on a trailing leg of running track (the main route, or a long track inside an
     interlocking), one-low (a dwarf) on a trailing leg off it (owner,
-    2026-11-19: the stock basic system shows Diverging aspects only on two heads)."""
+    2026-11-19: the stock basic system shows Diverging aspects only on two heads). A mast none of whose routes
+    reaches another signal is left out (reaches_signal; `joined`, the plugin's partners, says which connector ends
+    run on to another band)."""
     by_leg = {}
     for t in found:
         for (n, p), far in zip(t["legs"], reversed(t["ends"])):
@@ -202,11 +204,16 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
                                 kind=("two-searchlight" if heads == 2 else
                                       "one-searchlight" if running else "one-low")))
     # a home mast governs something only when a route it would clear reaches another signal (owner, 2026-11-19: no
-    # hand-made exceptions); one whose every route ends at a bumper or in dark track is left out
-    posts = defaultdict(set)
-    for m in out:
-        posts[m["band"]].add((m["node"], m["leg"]))
-    out = [m for m in out if reaches_signal(bands[m["band"]][1], m["node"], m["leg"], posts[m["band"]])]
+    # hand-made exceptions); one whose every route ends at a bumper or in dark track is left out, and again until none
+    # is: a mast kept only by a mast the rule leaves out reaches no signal either
+    while True:
+        posts = defaultdict(set)
+        for m in out:
+            posts[m["band"]].add((m["node"], m["leg"]))
+        kept = [m for m in out if reaches_signal(bands, m["band"], m["node"], m["leg"], posts, joined)]
+        if len(kept) == len(out):
+            break
+        out = kept
     groups = defaultdict(list)
     for m in out:
         groups[(m["number"], m["letter"])].append(m)
@@ -226,48 +233,60 @@ EXITS = {"switch": {"A": ("B", "C"), "B": ("A",), "C": ("A",)},
          "dx": {"A": ("B", "C"), "B": ("A", "D"), "C": ("D", "A"), "D": ("C", "B")}}
 
 
-def reaches_signal(band, node: str, leg: str, posts: set) -> bool:
-    """True when some route of a train entering switch `node` at `leg` reaches another signal: a switch leg in
-    `posts` ({(node, leg)} of the band's masts) that it enters by, or the end of the band where a helix track or a
-    connector runs on to another level (its signals are that level's). Every route is walked through switches and
-    turnbacks to the next mast or the end of track; a route ending at a bumper, or in track with no mast facing on (a
-    dark spur or yard), reaches none. A route that comes back to a leg already walked adds nothing."""
-    nodes, strands = band["nodes"], band["strands"]
+def reaches_signal(bands, bi: int, node: str, leg: str, posts: dict, joined: dict) -> bool:
+    """True when some route of a train entering switch `node` of band `bi` at `leg` reaches another signal: a switch
+    leg in `posts` ({band index: {(node, leg)}} of the masts) that it enters by, other than the one it starts at, or
+    an end where the track runs on: a helix end (its signals are the other level's) or an open end (track running on
+    off the drawing), so the rule never leaves out a mast whose route runs on beyond what is drawn. A connector end is
+    followed to the other band when `joined` (the plugin's partners, {(band, node): (band, node)}) joins it, as
+    end_ref does, and is a bumper when it does not. Every route is walked through switches and turnbacks to the next
+    mast or the end of track; a route ending at a bumper, or in track with no mast facing on (a dark spur or yard),
+    reaches none. A route that comes back to a leg already walked, its own start among them, adds nothing."""
+    def legs(b, n):
+        d = bands[b][1]["nodes"][n]
+        return d["ins"] | d["outs"]
 
-    def legs(n):
-        return nodes[n]["ins"] | nodes[n]["outs"]
-
-    def far_end(n, x):
-        """(node, port) a train reaches leaving node `n` by its port `x`, on through any turnback."""
+    def far_end(b, n, x):
+        """(band, node, port) a train reaches leaving node `n` of band `b` by its port `x`, on through any turnback
+        and joined connector."""
         while True:
-            s = strands[legs(n)[x]]
+            nodes, strands = bands[b][1]["nodes"], bands[b][1]["strands"]
+            s = strands[legs(b, n)[x]]
             m, q = s["dst"] if tuple(s["src"]) == (n, x) else s["src"]
-            if not nodes[m]["kind"].startswith("turn"):
-                return m, q
-            onward = [k for k in legs(m) if k != q]
-            if len(onward) != 1:
-                raise MapError(f"reaches_signal: turnback {m} has {len(onward) + 1} tracks, not two")
-            n, x = m, onward[0]
+            kind, sub = nodes[m]["kind"], nodes[m].get("sub")
+            if kind.startswith("turn"):
+                onward = [k for k in legs(b, m) if k != q]
+                if len(onward) != 1:
+                    raise MapError(f"reaches_signal: turnback {m} has {len(onward) + 1} tracks, not two")
+                n, x = m, onward[0]
+            elif kind == "end" and sub == "link" and (b, m) in joined:
+                b, n = joined[(b, m)]
+                x = next(iter(legs(b, n)))
+            else:
+                return b, m, q
 
-    todo, seen = [(node, leg)], {(node, leg)}
+    start = (bi, node, leg)
+    todo, seen = [start], {start}
     while todo:
-        n, p = todo.pop()
-        d = nodes[n]
+        b, n, p = todo.pop()
+        d = bands[b][1]["nodes"][n]
         if d["kind"] not in EXITS:
             raise MapError(f"reaches_signal: a route enters {d['kind']} node {n}, which is no switch")
         for x in EXITS[d["kind"]][p]:
-            if legs(n).get(x) is None:
+            if legs(b, n).get(x) is None:
                 continue
-            m, q = far_end(n, x)
-            if nodes[m]["kind"] not in EXITS:               # a track end
-                if nodes[m].get("sub") in ("helix", "link"):
-                    return True                             # runs on to another level, which is signalled
-                continue                                    # a bumper: this route ends dark
-            if (m, q) in posts:
+            here = far_end(b, n, x)
+            fb, m, q = here
+            end = bands[fb][1]["nodes"][m]
+            if end["kind"] not in EXITS:                    # a track end
+                if end.get("sub") in ("helix", "open"):
+                    return True                             # runs on: another level, or off the drawing
+                continue                                    # a bumper or an unjoined connector: this route ends dark
+            if here != start and (m, q) in posts.get(fb, ()):
                 return True
-            if (m, q) not in seen:
-                seen.add((m, q))
-                todo.append((m, q))
+            if here not in seen:
+                seen.add(here)
+                todo.append(here)
     return False
 
 

@@ -499,6 +499,14 @@ class LevelSwitches(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half the plugin pairs with no other half"):
             B.level_switch_bindings(bands, level_facts(), 0)
 
+    def test_a_half_with_an_added_branch_is_still_a_half(self):
+        # "119A*": a half with a branch added (the * mark) is checked as a half all the same
+        bands = level_bands()
+        bands[1][1]["nodes"]["X1"]["label"] = "119A*"
+        bands[1][1]["strands"]["e9"]["dst"] = ("S109", "C")
+        with self.assertRaisesRegex(SystemExit, r"switch 119A\*: a crossover half the plugin pairs with no other half"):
+            B.level_switch_bindings(bands, level_facts(), 0)
+
     def test_a_half_joined_by_its_leg_b_is_closed_on_leg_c(self):
         # the plan joins 121 and 125's halves leg C to leg B (AnyRail's leg B of T1 and T14 is the diagonal): the
         # half joined by leg B is thrown on B, so one turnout puts both halves on their through tracks closed

@@ -74,7 +74,10 @@ Naming rules (ADR-005 grammar, LCOS conventions):
 - LCOS packed IDs are node * 100 + UID (external/lcos-bridge): blocks UID 0-7 (BS, "Node: n Block: k+1"), turnouts
   8-15 (M2T, "Node: n Turnout: k"), signals 32-47 (IH, "Node: n Signal: k"), inputs from 67 (M2S, feedback N then R
   per turnout, "Node: n Sensor: k"). A control point's turnouts stay on one node; switches in no control point
-  follow, area by area.
+  follow, area by area. Heads come last: every two-head mast of every group before any one-head mast, each on the
+  first 5V board with room, so a group's heads may land off its home node, on another node of its area, when the
+  home node is full, and draft head outputs may reshuffle from one build to the next (owner, 2026-11-19: nothing on
+  the main and upper levels is wired yet).
 - DCC addresses continue from staging's last (119): 120 up in switch-number order, main level first (owner,
   2026-11-15). Each turnout also gets its LCC alias "DCC Switch <n>" (MTT<dcc>, same node comment, as staging has).
 """
@@ -402,7 +405,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
     corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
     split_names = set(split_edges().values())       # read once per build
-    ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names)
+    ms = masts(bands, cps, found, cp_of, corner_blocks, running_extra=running, spurs=spurs, split=split_names,
+               joined=joined)
     known = {t["name"] for t in found}
     if (set(running) | set(spurs)) - known:
         raise MapError(f"{RUNNING.name} or {SPURS.name} names a track the plan does not have: "

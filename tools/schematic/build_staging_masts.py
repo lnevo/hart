@@ -188,7 +188,7 @@ def generate(band, bands, runs, joined, names, cps: dict, wired: dict) -> list[d
     edge_cm, cm_from_toward, edge, node}], in name order."""
     found = mast_rule.tracks(bands, runs, joined, {1: "H"}, levels=LEVELS)
     mast_rule.track_names(found)
-    home = mast_rule.masts(bands, None, found, cps, {}, levels=LEVELS)
+    home = mast_rule.masts(bands, None, found, cps, {}, levels=LEVELS, joined=joined)
     cm = block_cm()
     seqs = {}                      # (node, leg) -> the blocks from that switch leg along its run
     for start, seq, end in sdm.run_blocks(band, names):
