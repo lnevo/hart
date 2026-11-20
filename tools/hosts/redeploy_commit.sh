@@ -22,6 +22,8 @@
 #   - With --pi or --all, Operations Pro files or a tables.xml Store changed on the Pi since the
 #     last deploy or pull stop it (make ops-pull, make tables-pull-pi). HART_DISCARD_PI_CHANGES=1
 #     replaces them.
+#   - With --pi, --win or --all, every host named must answer over ssh before anything is built or
+#     sent, as for a deploy (older commits' own deploys lack that check).
 #
 # --mac installs on the Mac only. --dry-run and --stage-only DIR are passed through;
 # --stage-only needs no network. The commit a host has now: make deploy-status. The stamp
@@ -55,7 +57,7 @@ while [[ $# -gt 0 ]]; do
     --stage-only=*)
       STAGE_ONLY="${1#*=}"
       [[ -n "$STAGE_ONLY" ]] || { echo "--stage-only needs a folder" >&2; exit 2; } ;;
-    -h|--help) sed -n '2,29p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -h|--help) sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     -*) echo "Unknown option: $1" >&2; usage >&2; exit 2 ;;
     *)
       [[ -z "$COMMIT" ]] || { echo "One commit only (got $COMMIT and $1)" >&2; exit 2; }
@@ -150,14 +152,15 @@ while IFS= read -r line; do
   [[ -n "$line" ]] && CHILD_ENV+=("$line")
 done <<<"$hosts"
 
-# This checkout's Pi check, run before the old commit's deploy (older commits lack it): stop if the
-# owner changed Operations Pro files or stored tables.xml on the Pi since the last deploy or pull.
-to_pi=0
+# This checkout's checks, run before the old commit's deploy (older commits lack them): stop if a
+# host named does not answer over ssh, or if the owner changed Operations Pro files or stored
+# tables.xml on the Pi since the last deploy or pull.
+CHECK_HOSTS=()
 for a in ${PASS[@]+"${PASS[@]}"}; do  # bash 3.2: an empty array is unbound under set -u
-  if [[ "$a" == --pi || "$a" == --all ]]; then to_pi=1; fi
+  if [[ "$a" == --pi || "$a" == --win || "$a" == --all ]]; then CHECK_HOSTS+=("$a"); fi
 done
-if [[ "$REAL" -eq 1 && "$to_pi" -eq 1 ]]; then
-  bash "$ROOT/$SYNC_REL" --check-pi-only || exit 1
+if [[ "$REAL" -eq 1 && ${#CHECK_HOSTS[@]} -gt 0 ]]; then
+  bash "$ROOT/$SYNC_REL" --check-only "${CHECK_HOSTS[@]}" || exit 1
 fi
 
 echo "Redeploy $SHORT: temporary worktree $WT (detached)"

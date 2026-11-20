@@ -17,7 +17,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from test_deploy_stage import stage_env  # noqa: E402
+from test_deploy_stage import keep_repo_tables, stage_env  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 CHECK = ROOT / "tools/hosts/pi/unpulled_changes.sh"
@@ -96,12 +96,15 @@ class DeployStopsTest(Fixture):
         super().setUp()
         self.env = stage_env(self.tmp)
         self.env.update(HOME=str(self.tmp / "home"), HART_PI_USERFILES=str(self.uf))
-        # ssh HOST "bash -s -- 'DIR'" runs here; any other ssh or scp is logged and fails.
+        keep_repo_tables(self.tmp)  # test_discard_skips_the_check runs on past the tables.xml gates
+        # ssh HOST "bash -s -- 'DIR'" runs here and the reachability no-op answers; any other ssh
+        # or scp is logged and fails.
         bin_dir = self.tmp / "bin"
         (bin_dir / "ssh").write_text(
             "#!/bin/bash\n"
             f'echo "ssh $*" >>"{self.tmp}/network.log"\n'
             'cmd="${@: -1}"\n'
+            '[[ "$cmd" == true ]] && exit 0\n'
             "if [[ \"$cmd\" == \"bash -s -- '\"*\"'\" ]]; then d=\"${cmd#bash -s -- \\'}\"; exec bash -s -- \"${d%\\'}\"; fi\n"
             "exit 99\n", encoding="utf-8")
 
@@ -119,10 +122,12 @@ class DeployStopsTest(Fixture):
         done = self.deploy()
         self.assertEqual(1, done.returncode, done.stderr)
         self.assertIn("make ops-pull", done.stderr)
-        # Only the check, then the PanelPro restart check (a PanelPro quit for this deploy comes back).
-        self.assertEqual(2, len(self.calls()), self.calls())
-        self.assertTrue(self.calls()[0].endswith(f"bash -s -- '{self.uf}'"), self.calls())
-        self.assertTrue(self.calls()[1].endswith(" bash -s"), self.calls())
+        # Only the reachability no-op, the check, then the PanelPro restart check (a PanelPro quit
+        # for this deploy comes back).
+        self.assertEqual(3, len(self.calls()), self.calls())
+        self.assertTrue(self.calls()[0].endswith(" true"), self.calls())
+        self.assertTrue(self.calls()[1].endswith(f"bash -s -- '{self.uf}'"), self.calls())
+        self.assertTrue(self.calls()[2].endswith(" bash -s"), self.calls())
 
     def test_store_stops_the_deploy(self) -> None:
         self.store()

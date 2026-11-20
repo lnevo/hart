@@ -35,6 +35,24 @@ def fake_bin(tmp: Path) -> Path:
     return bin_dir
 
 
+def keep_repo_tables(tmp: Path) -> None:
+    """For tests that run the deploy for real (no --dry-run): the SML gate would rewrite the repo's
+    tables.xml, so a python3 stand-in in the fake bin (after stage_env) runs that one script as a
+    dry run and logs it in gates.log. Every other python3 call goes to the real one unchanged."""
+    real = shutil.which("python3")
+    tool = tmp / "bin/python3"
+    tool.write_text(f"""#!/bin/bash
+for a in "$@"; do
+  if [[ "$a" == */disable_digicon_sml_in_tables.py && " $* " != *" --dry-run "* ]]; then
+    echo "python3 $*" >>"{tmp}/gates.log"
+    exec "{real}" "$@" --dry-run
+  fi
+done
+exec "{real}" "$@"
+""", encoding="utf-8")
+    tool.chmod(0o755)
+
+
 def stage_env(tmp: Path) -> dict[str, str]:
     env = dict(os.environ)
     for name in list(env):
