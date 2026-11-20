@@ -51,6 +51,20 @@ class MimicRelay(unittest.TestCase):
             ],
         )
 
+    def test_no_retain_overload_fails_without_a_two_argument_publish(self):
+        # JMRI before 5.9.1 has no publish(topic, payload, retain). The relay must not fall
+        # back to the two-argument form; it reports the failure and still acks the request.
+        calls = []
+
+        class OldAdapter:
+            def publish(self, topic, payload):
+                calls.append((topic, payload))
+
+        with running(self.layout):
+            sent = self.env["handle"]("1\ntrack/sensor/470 ACTIVE", OldAdapter())
+        self.assertEqual(sent, 0)
+        self.assertEqual(calls, [])
+
     def test_never_publishes_commands_or_other_topics(self):
         self.request(
             1,

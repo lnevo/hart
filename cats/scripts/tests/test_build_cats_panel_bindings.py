@@ -6,6 +6,8 @@ turnback to the named half Loop.
 """
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import shutil
@@ -740,6 +742,43 @@ class Header(unittest.TestCase):
             B.dress(cats, self.doc((15, "X")), header, plate, "CTC", fit())
         with self.assertRaisesRegex(SystemExit, "runs into the label"):
             B.dress(cats, self.doc((2, "A VERY LONG TITLE THAT RUNS FAR TO THE RIGHT")), header, plate, "CTC", fit())
+
+
+class Arguments(unittest.TestCase):
+    """Only --check is an option: --help and a typo stop before the plugin is loaded, and write no desk."""
+
+    def run_main(self, argv):
+        with tempfile.TemporaryDirectory() as tmp:
+            outs = {n: Path(tmp) / n for n in ("OUT", "OUT_ABS", "BINDINGS")}
+            out, err = io.StringIO(), io.StringIO()
+            with mock.patch.multiple(B, **outs), mock.patch.object(B, "generate") as generate, \
+                    mock.patch.object(B.pd, "plugin") as plugin, \
+                    contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+                status = B.main(argv)
+            generate.assert_not_called()
+            plugin.assert_not_called()
+            self.assertEqual(os.listdir(tmp), [])
+        return status, out.getvalue(), err.getvalue()
+
+    def test_unknown_argument_is_refused(self):
+        for argv in (["--chek"], ["--check", "--verbose"], ["staging"]):
+            status, out, err = self.run_main(argv)
+            self.assertEqual(status, 2, argv)
+            self.assertIn(repr(argv[-1]), err)
+            self.assertEqual(out, "")
+
+    def test_help_prints_the_usage(self):
+        for argv in (["--help"], ["-h"], ["--check", "--help"], ["--help", "--check"], ["--chek", "-h"]):
+            status, out, err = self.run_main(argv)
+            self.assertEqual(status, 0, argv)
+            self.assertIn("build_cats_panel.py [--check]", out)
+            self.assertEqual(err, "")
+
+    def test_help_without_a_docstring(self):
+        """python -OO strips the docstring; --help still prints the usage line, not 'None'."""
+        with mock.patch.object(B, "__doc__", None):
+            status, out, err = self.run_main(["--check", "--help"])
+        self.assertEqual((status, out, err), (0, "build_cats_panel.py [--check]\n", ""))
 
 
 if __name__ == "__main__":

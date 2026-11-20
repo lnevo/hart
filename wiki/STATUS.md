@@ -69,6 +69,7 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## In progress
 
+- **Retained bridge messages (PR #697, owner step at deploy):** JMRI's two-argument MQTT publish retains, so a `RESUBSCRIBE` on `track/bridge/cmd` and possibly a `query` on `track/bridge/sml_mode` are retained on the Pi broker; the code fix does not remove them. After the deploy and the PanelPro restart on both hosts, the owner reads them on the Pi with `mosquitto_sub -h 127.0.0.1 -v -t track/bridge/cmd -t track/bridge/sml_mode --retained-only -W 3` and clears `track/bridge/cmd` with `mosquitto_pub -h 127.0.0.1 -t track/bridge/cmd -r -n`. `track/bridge/sml_mode` is cleared the same way only if it shows `query`; `enabled` or `disabled` there is the real retained mode and stays. Agents do not run the clear. The scripts need JMRI 5.9.1 or later for the three-argument publish (hosts run 5.16).
 - 3D station maps: multi-colour fascia plates that hold Touch Toggles ([`docs/benchwork/station_maps_3d/`](../docs/benchwork/station_maps_3d/README.md)). Barn is the first and only map modelled so far. Its plate outline and thickness are placeholders until the frame is measured, and the toggle pocket depth is a guess.
 
 ## Future goals

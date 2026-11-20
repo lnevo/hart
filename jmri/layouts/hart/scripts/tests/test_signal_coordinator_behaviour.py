@@ -263,6 +263,14 @@ class Coordinator(unittest.TestCase):
         self.c.notifyMqttMessage("track/bridge/sml_mode", "query")
         self.assertEqual(self.sent(), [("track/bridge/sml_mode", "enabled", True)])
 
+    def test_enable_probe_query_is_not_retained(self) -> None:
+        # A retained "query" would replace the retained mode on the broker and replay to every
+        # later subscriber. JMRI's two-argument publish retains, so the flag must be False.
+        self.c._retained_mode = None
+        self.assertEqual(self.c._probe_and_confirm_override(), "ok")
+        self.assertEqual(self.sent(), [("track/bridge/sml_mode", "query", False)])
+        self.assertFalse(self.c._probe_active)
+
     def test_own_probe_is_not_answered(self) -> None:
         self.c._global_enabled = True
         self.c._probe_active = True

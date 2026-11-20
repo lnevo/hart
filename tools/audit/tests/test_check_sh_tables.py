@@ -1,6 +1,7 @@
 """tools/check.sh with HART_TABLES: table checks read the named file, unit tests never see it."""
 from __future__ import annotations
 
+import ast
 import os
 import re
 import subprocess
@@ -13,6 +14,20 @@ ROOT = Path(__file__).resolve().parents[3]
 CHECK = ROOT / "tools/check.sh"
 
 
+def imported_modules(source: str) -> set[str]:
+    """Top-level names of the modules a source file imports, in any form (import a, import a as b, import a.b,
+    from a import b, from a.b import c, from . import a) and at any depth (inside a function or a try as well)."""
+    found = set()
+    for node in ast.walk(ast.parse(source)):
+        if isinstance(node, ast.Import):
+            found |= {alias.name.split(".")[0] for alias in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            found.add(node.module.split(".")[0])
+        elif isinstance(node, ast.ImportFrom):          # from . import a
+            found |= {alias.name for alias in node.names}
+    return found
+
+
 class CheckShTables(unittest.TestCase):
     def test_every_unittest_step_runs_without_hart_tables(self) -> None:
         text = CHECK.read_text(encoding="utf-8")
@@ -21,6 +36,36 @@ class CheckShTables(unittest.TestCase):
         for line in steps:
             self.assertTrue(line.startswith("unit "), line)
         self.assertIn('env -u HART_TABLES "$@"', text)
+
+    def test_the_layout_editor_files_run_as_one_job(self) -> None:
+        """One process, so test_build_layout_le.built() (cached per process) builds the candidate once: every test
+        file that imports that module, directly or through another test file, is in LE_TESTS, and the per-file loop
+        leaves those files out."""
+        text = CHECK.read_text(encoding="utf-8")
+        line = next(x for x in text.splitlines() if x.startswith("LE_TESTS="))
+        names = line.split('"')[1].split()
+        imports = {p.stem: imported_modules(p.read_text(encoding="utf-8"))
+                   for p in (ROOT / "tools/audit/tests").glob("test*.py")}
+        users = {"test_build_layout_le"}
+        while True:
+            more = {stem for stem, mods in imports.items() if mods & users} - users
+            if not more:
+                break
+            users |= more
+        self.assertEqual(sorted(users), sorted(names))
+        self.assertIn('env PYTHONPATH=tools/audit/tests python3 -m unittest -q $LE_TESTS', text)
+        self.assertIn('" $LE_TESTS " == *" ${f%.py} "* ]] && continue', text)
+
+    def test_every_import_form_is_seen(self) -> None:
+        for source in ("import test_build_layout_le", "import test_build_layout_le as T  # noqa",
+                       "import os, test_build_layout_le", "from . import test_build_layout_le",
+                       "from test_build_layout_le import built", "from test_build_layout_le import built as b, B",
+                       "def f():\n    from test_build_layout_le import built\n",
+                       "try:\n    import test_build_layout_le\nexcept ImportError:\n    pass\n"):
+            self.assertIn("test_build_layout_le", imported_modules(source), source)
+        for source in ("import test_build_layout_lex", "# import test_build_layout_le",
+                       "x = 'import test_build_layout_le'"):
+            self.assertNotIn("test_build_layout_le", imported_modules(source), source)
 
     def cache_block(self, home: Path, **env: str) -> subprocess.CompletedProcess:
         """Run check.sh's SCHEMATIC_CACHE block with HOME=home, then print the variable as the jobs see it."""
