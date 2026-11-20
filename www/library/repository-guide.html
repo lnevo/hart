@@ -247,7 +247,7 @@
           <p>The main checkout on the Mac stays on <code>main</code>, for pulls and deploys only. Each task gets its own working copy, a git worktree, made by <code>make wt TOPIC=&lt;topic&gt;</code>. It sits in <code>.claude/worktrees/&lt;topic&gt;/</code> on its own branch, with links to the photo folders the website build needs. Several tasks can run at once without one switching the branch under another.</p>
           <ol class="step-list">
             <li><b>Edit</b> in the worktree.</li>
-            <li><b>Check</b> with <code>./tools/check.sh</code>: over <!--rg:check-jobs-->51<!--/rg--> checks and test suites, from the tables and signal logic to the car tools and the website links.</li>
+            <li><b>Check</b> with <code>./tools/check.sh</code>: about fifty checks and test suites, from the tables and signal logic to the car tools and the website links.</li>
             <li><b>Load it for real</b> with <code>make panelpro-test</code> when the tables or panels changed. It opens the tables in PanelPro on the Mac and reports any error.</li>
             <li><b>Open a pull request.</b> GitHub runs the same checks on a clean copy. <code>main</code> accepts a change only through a pull request whose checks pass.</li>
             <li><b>Merge and deploy.</b> The worktree is removed automatically once the merge is half an hour old.</li>

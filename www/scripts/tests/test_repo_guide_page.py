@@ -22,16 +22,14 @@ class RepoGuide(unittest.TestCase):
 
     def test_counts_come_from_the_checkout(self):
         self.assertEqual(self.facts["subs"], len(rg.SUBMODULES))
-        self.assertGreater(self.facts["jobs"], 0)
         self.assertGreater(self.facts["scripts"], 0)
         vals = rg.regions(self.facts)
-        self.assertEqual(vals["check-jobs"], str(self.facts["jobs"]))
         self.assertIn("<code>external/</code>", vals["folders"])
         self.assertIn("<code>media/</code>", vals["folders"])
 
     def test_a_hand_typed_value_is_replaced(self):
-        stale = self.page.replace("<!--rg:check-jobs-->%s<!--/rg-->" % self.facts["jobs"],
-                                  "<!--rg:check-jobs-->30<!--/rg-->")
+        key = "<!--rg:folder-count-->%s<!--/rg-->" % rg.word(len(rg.FOLDERS))
+        stale = self.page.replace(key, "<!--rg:folder-count-->nine<!--/rg-->")
         self.assertNotEqual(stale, self.page)
         self.assertEqual(rg.fill(stale, self.facts), self.page)
 
@@ -40,9 +38,8 @@ class RepoGuide(unittest.TestCase):
             rg.fill(self.page + "<!--rg:nope-->x<!--/rg-->", self.facts)
 
     def test_missing_region_stops(self):
-        cut = self.page.replace("<!--rg:check-jobs-->", "").replace(
-            "%s<!--/rg--> checks" % self.facts["jobs"], "%s checks" % self.facts["jobs"])
-        with self.assertRaisesRegex(rg.PageError, "missing .*check-jobs"):
+        cut = self.page.replace("<!--rg:ops-count-->", "", 1)
+        with self.assertRaisesRegex(rg.PageError, "missing .*ops-count"):
             rg.fill(cut, self.facts)
 
     def test_undescribed_folder_stops(self):

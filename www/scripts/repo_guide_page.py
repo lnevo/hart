@@ -6,7 +6,7 @@ repository's shape with a region:
     <!--rg:folder-count-->ten<!--/rg-->
 
 fill() replaces each region's contents with the value read from the checkout
-(git's tracked folders, .gitmodules, the hartlib package, check.sh's jobs), so
+(git's tracked folders, .gitmodules, the hartlib package), so
 the page cannot drift from the repository. The descriptions are kept here, one
 per folder, submodule and module; a folder, submodule or module with no
 description, or a description for one that is gone, stops the build. The prose
@@ -164,10 +164,7 @@ def facts(root: Path = ROOT) -> dict:
         raise PageError("hartlib modules differ from repo_guide_page.py: not described %s, gone %s"
                         % (sorted(mods - covered) or "none", sorted(covered - mods) or "none"))
 
-    # check.sh's named jobs: run, unit and later lines with a plain name. The quoted names are per-file suites made
-    # in loops and the "skipped" markers, so the page says "over" this count.
-    jobs = re.findall(r"^\s*(?:run|unit|later) [a-z][a-z0-9-]* ", _git("show", ":tools/check.sh", root=root), re.M)
-    return {"subs": len(names), "scripts": len(scripts), "ops": len(ops), "jobs": len(jobs)}
+    return {"subs": len(names), "scripts": len(scripts), "ops": len(ops)}
 
 
 def regions(f: dict) -> dict:
@@ -194,7 +191,6 @@ def regions(f: dict) -> dict:
         "submodules": "\n" + sub_rows + "\n              ",
         "hartlib-main-count": word(len(HARTLIB_MAIN)),
         "hartlib-other": _and(other),
-        "check-jobs": str(f["jobs"]),
     }
 
 
