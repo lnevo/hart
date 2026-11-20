@@ -82,26 +82,26 @@ class NameCopiesTest(unittest.TestCase):
         self.assertGreater(len(counts), 50, "the scan read almost nothing; is the file list right?")
 
     def test_current_names_pass(self):
-        f = self.write("tools/x.py", 'M = "Mast 14R"\nT = ("Track Scale", "Track S-R", "OS Switch 23a")\n')
+        f = self.write("tools/x.py", 'M = "Mast 32R"\nT = ("Track Scale", "Track S-R", "OS Switch 23a")\n')
         self.assertEqual([], self.stale([f]))
 
     def test_renamed_mast_and_track_fail_where_copied(self):
-        f = self.write("tools/x.py", 'M = "Mast 14R"\n# runs on Track Scale\n')
-        self.rename(mast=("Mast 14R", "Mast 14RX"), track=("Track Scale", "Track Weigh"))
+        f = self.write("tools/x.py", 'M = "Mast 32R"\n# runs on Track Scale\n')
+        self.rename(mast=("Mast 32R", "Mast 32RX"), track=("Track Scale", "Track Weigh"))
         self.assertEqual(
-            ["tools/x.py:1: 'Mast 14R' is not a current name",
+            ["tools/x.py:1: 'Mast 32R' is not a current name",
              "tools/x.py:2: 'Track Scale' is not a current name"],
             self.stale([f]),
         )
         # The new names are current.
-        g = self.write("tools/y.py", 'M = "Mast 14RX"\nT = "Track Weigh"\n')
+        g = self.write("tools/y.py", 'M = "Mast 32RX"\nT = "Track Weigh"\n')
         self.assertEqual([], self.stale([g]))
 
     def test_rename_in_a_copy_of_the_repo_names_the_hand_kept_copies(self):
         """Step 3 of the hand-off: rename one mast and one track; every copy is found."""
         renamed = self.tmp / "renamed.csv"
         renamed.write_text(renamed_map(MAP.read_text(encoding="utf-8"),
-                                       {"Mast 12R": "Mast 12RX", "Track Scale": "Track Weigh"}),
+                                       {"Mast 24RB": "Mast 24RBX", "Track Scale": "Track Weigh"}),
                            encoding="utf-8")
         # PanelPro renames the block in tables.xml too (then make tables-pull).
         tables_xml = self.tmp / "tables.xml"
@@ -110,7 +110,7 @@ class NameCopiesTest(unittest.TestCase):
         tables_xml.write_text(text.replace(">Track Scale<", ">Track Weigh<"), encoding="utf-8")
         hits, _counts, _used = check.run(ROOT, name_map=renamed, tables_xml=tables_xml)
         files = {h.path for h in hits}
-        self.assertEqual({"Mast 12R", "Track Scale"}, {h.name for h in hits})
+        self.assertEqual({"Mast 24RB", "Track Scale"}, {h.name for h in hits})
         # Known hand-kept copies today: the Dispatcher stations and the switch and mast facts.
         self.assertIn("jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py", files)
         self.assertIn("jmri/layouts/hart/data/switch_legs.csv", files)

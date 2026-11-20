@@ -167,6 +167,8 @@ def is_level_bean(el: ET.Element) -> bool:
         return level_masts_lib.is_level_head(sysname)
     if el.tag == "signalmast":
         return level_masts_lib.is_level_mast(sysname)
+    if el.tag == "virtualsignalmast":
+        return level_masts_lib.is_level_virtual(sysname)
     if el.tag == "turnout":
         return sysname.startswith(TURNOUT_SYS)
     if el.tag == "sensor":
@@ -660,13 +662,15 @@ def signal_note(planned: str | None) -> str:
     return f"{SIGNAL_NOTE} {planned}" if planned else UNPLANNED_NOTE
 HEAD_CLASS = "jmri.implementation.configurexml.VirtualSignalHeadXml"
 MAST_CLASS = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
+VIRTUAL_MAST_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
 
 
 def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
     """Main and upper: each mast of main_upper_masts.csv as a SignalHeadSignalMast over VirtualSignalHeads, under
     the device map's user names on its virtual system names (jmri_name, from the head's user name; read_level_masts
     checks them), so nothing reaches MQTT or the field; each comment gives its CP, switch and the planned physical
-    device (the device map's system_name, a draft). Stops on a name already in the tables."""
+    device (the device map's system_name, a draft). A virtual mast (a destination at a buffer stop, no heads) is a
+    VirtualSignalMast, unlit allowed, as staging's are. Stops on a name already in the tables."""
     heads_el, masts_el = root.find("signalheads"), root.find("signalmasts")
     if heads_el is None or masts_el is None:
         raise BuildError("the live tables have no signalheads or signalmasts section")
@@ -674,6 +678,14 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
         {tables.user_name(e) for e in heads_el.findall("signalhead") + masts_el.findall("signalmast")}
     heads, masts = [], []
     for r in rows:
+        if level_masts_lib.is_level_virtual(r["system_name"]):    # a hidden destination mast at a buffer stop
+            el = ET.Element("virtualsignalmast", {"class": VIRTUAL_MAST_CLASS})
+            ET.SubElement(el, "systemName").text = r["system_name"]
+            ET.SubElement(el, "userName").text = r["mast"]
+            ET.SubElement(el, "comment").text = " | ".join(x for x in (r["cp"], "buffer stop") if x)
+            ET.SubElement(el, "unlit", {"allowed": "yes"})
+            masts.append(el)
+            continue
         where = " | ".join(x for x in (r["cp"], f"Switch {r['switch']}" if r["switch"] else "intermediate") if x)
         device = dict(zip([h for h, _u in r["heads"]], level_masts_lib.mast_heads(r["device_system_name"])))
         for h, user in r["heads"]:

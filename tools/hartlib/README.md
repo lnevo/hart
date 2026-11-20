@@ -121,7 +121,7 @@ rr.check()                                # [Problem(invariant, message)]
 ```
 
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
-`switches.csv`, `switch_legs.csv`, `public_name_map.csv`, `control_points_main_upper.csv`,
+`switches.csv`, `switch_legs.csv`, `public_name_map.csv`, `interlockings.csv` (every level),
 `local_switches_main_upper.csv`, `lcos_nodes_main_upper.csv`, `main_upper.plan_overrides.json`, `block_lengths.csv`,
 `schematic/staging_masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
@@ -132,7 +132,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 |------|------|
 | `Railroad.name_map` | `NameMap`: `rows` (`NameRow`), `live` ((layer, name) -> row), `aliases`, `names(layer)` |
 | `Railroad.switches` | `{number: Switch}` (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
-| `Railroad.level_control_points`, `local_switches`, `lcos_nodes`, `main_upper_switches` | `LevelControlPoint`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
+| `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
 | `Railroad.block_lengths`, `staging_masts`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `[StagingMast]`, `{label: Hand}` |
 | `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `sensors`, `planned`, `turnouts`, `heads_by_system`, `of(layer)` |

@@ -169,11 +169,7 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,,occupancy,BS West Ext,M2S107,M2S107,1,,Node: 1 Block: 8,,blocks Track West Ext,Track West Ext,wired,,,,,
 1,Engine House,mast,Mast 10LA,IF$vsm:basic:one-low($1006),IF$vsm:basic:one-low($1006),,,Engine House,,"facing Track EH-2, buffer stop",,,,,Track EH-2,,west
 1,Engine House,mast,Mast 10LB,IF$vsm:basic:one-low($1007),IF$vsm:basic:one-low($1007),,,Engine House,,"facing Track EH-3, buffer stop",,,,,Track EH-3,,west
-1,Engine House,mast,Mast 10RA,IF$vsm:basic:one-low($1021),IF$vsm:basic:one-low($1021),,,Engine House | Switch 9,,facing Track EH-2 into OS Switch 9,,,,9,Track EH-2,OS Switch 9,east
-1,Engine House,mast,Mast 10RB,IF$vsm:basic:one-low($1022),IF$vsm:basic:one-low($1022),,,Engine House | Switch 9,,facing Track EH-3 into OS Switch 9,,,,9,Track EH-3,OS Switch 9,east
 1,Engine House,mast,Mast 12L,IF$vsm:basic:one-low($1005),IF$vsm:basic:one-low($1005),,,Engine House,,"facing Track EH-1, buffer stop",,,,,Track EH-1,,west
-1,Engine House,mast,Mast 12R,IF$vsm:basic:one-low($1020),IF$vsm:basic:one-low($1020),,,Engine House | Switch 11,,facing Track EH-1 into OS Switch 11,,,,11,Track EH-1,OS Switch 11,east
-1,Engine House,mast,Mast 14R,IF$vsm:basic:one-low($1019),IF$vsm:basic:one-low($1019),,,Engine House | Switch 13,,facing Track Barn into OS Switch 13,,,,13,Track Barn,OS Switch 13,east
 1,East End,mast,Mast 24L,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),IF$shsm:basic:one-searchlight(IH:HART:C1:24L),,,East End | Switch 23,,facing Track West Ext into OS Switch 23a,,,,23,Track West Ext,OS Switch 23a,west
 1,East End,mast,Mast 24RA,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),,,East End | Switch 23,,facing Track Main West into OS Switch 23a,,,,23,Track Main West,OS Switch 23a,east
 1,East End,mast,Mast 24RB,IF$shsm:basic:one-low(IH:HART:C1:24RB),IF$shsm:basic:one-low(IH:HART:C1:24RB),,,East End | Switch 23,,facing Track S-R into OS Switch 23b,,,,23,Track S-R,OS Switch 23b,east
@@ -194,13 +190,12 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Brick,mast,Mast 4RB,IF$shsm:basic:one-low(IH:HART:C1:4RB),IF$shsm:basic:one-low(IH:HART:C1:4RB),,,Brick | Switch 3,,facing Track W-2 into OS Switch 3,,,,3,Track W-2,OS Switch 3,east
 1,Princess,mast,Mast 67,IF$shsm:basic:one-searchlight(IH:HART:C1:67),IF$shsm:basic:one-searchlight(IH:HART:C1:67),,,Princess,,facing Track K-2 into Track K-1,,,,,Track K-2,Track K-1,west
 1,Princess,mast,Mast 68,IF$shsm:basic:one-searchlight(IH:HART:C1:68),IF$shsm:basic:one-searchlight(IH:HART:C1:68),,,Princess,,facing Track K-1 into Track K-2,,,,,Track K-1,Track K-2,east
-1,Plane,mast,Mast 6LA,IF$shsm:basic:one-low(IH:HART:C1:6LA),IF$shsm:basic:one-low(IH:HART:C1:6LA),,,Plane | Switch 5,,facing Track Scale into OS Switch 5,,,,5,Track Scale,OS Switch 5,west
+1,Plane,mast,Mast 6LA,IF$shsm:basic:one-searchlight(IH:HART:C1:6LA),IF$shsm:basic:one-searchlight(IH:HART:C1:6LA),,,Plane | Switch 5,,facing Track Scale into OS Switch 5,,,,5,Track Scale,OS Switch 5,west
 1,Plane,mast,Mast 6LB,IF$shsm:basic:one-searchlight(IH432),IF$shsm:basic:one-searchlight(IH432),4,,Plane | Switch 5,,facing Track East Ext into OS Switch 5,,,,5,Track East Ext,OS Switch 5,west
 1,Plane,mast,Mast 6R,IF$shsm:basic:two-searchlight(IH:HART:C1:6R_Top)(IH:HART:C1:6R_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:6R_Top)(IH:HART:C1:6R_Bottom),,,Plane | Switch 5,,facing Track Brick-Plane into OS Switch 5,,,,5,Track Brick-Plane,OS Switch 5,east
 1,Barn,mast,Mast 8LA,IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom),IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom),,,Barn | Switch 7,,facing Track Barn into OS Switch 7,,,,7,Track Barn,OS Switch 7,west
 1,Barn,mast,Mast 8LB,IF$shsm:basic:one-searchlight(IH:HART:C1:8LB),IF$shsm:basic:one-searchlight(IH:HART:C1:8LB),,,Barn | Switch 7,,facing Track Main East into OS Switch 7b,,,,7,Track Main East,OS Switch 7b,west
-1,Barn,mast,Mast 8LC,IF$vsm:basic:one-low($1018),IF$vsm:basic:one-low($1018),,,Barn,,facing OS Switch 7 into Track Scale,,,,,OS Switch 7,Track Scale,west
-1,Barn,mast,Mast 8RA,IF$shsm:basic:one-low(IH:HART:C1:8RA),IF$shsm:basic:one-low(IH:HART:C1:8RA),,,Barn,,facing Track Scale into OS Switch 7,,,,,Track Scale,OS Switch 7,east
+1,Barn,mast,Mast 8RA,IF$shsm:basic:one-searchlight(IH:HART:C1:8RA),IF$shsm:basic:one-searchlight(IH:HART:C1:8RA),,,Barn,,facing Track Scale into OS Switch 7,,,,,Track Scale,OS Switch 7,east
 1,Barn,mast,Mast 8RB,IF$shsm:basic:two-searchlight(IH:HART:C1:8RB_Top)(IH:HART:C1:8RB_Bottom),IF$shsm:basic:two-searchlight(IH:HART:C1:8RB_Top)(IH:HART:C1:8RB_Bottom),,,Barn | Switch 7,,facing Track East Ext into OS Switch 7b,,,,7,Track East Ext,OS Switch 7b,east
 1,East End,head,Head 24L,IH:HART:C1:24L,IH:HART:C1:24L,,,East End | Switch 23,,"internal, not wired",,,,,,,
 1,East End,head,Head 24RA Bottom,IH:HART:C1:24RA_Bottom,IH:HART:C1:24RA_Bottom,,,East End | Switch 23,,"internal, not wired",,,,,,,

@@ -240,8 +240,9 @@ class PublicNameMapContractTest(unittest.TestCase):
         for tag in ("signalmast", "virtualsignalmast"):
             for mast in root.iter(tag):
                 user_name = child(mast, "userName")
-                if level_masts.is_level_mast(child(mast, "systemName")):
-                    continue
+                system_name = child(mast, "systemName")
+                if level_masts.is_level_mast(system_name) or level_masts.is_level_virtual(system_name):
+                    continue        # main and upper masts, visible or hidden, are named by their level's rule
                 if user_name and ("mast", user_name) not in by_name:
                     missing.append(f"mast {user_name!r}")
 

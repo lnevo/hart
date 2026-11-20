@@ -222,7 +222,7 @@ class Files(unittest.TestCase):
     def test_the_committed_files_hold_their_rules(self):
         self.assertEqual(sdm.check(self.band), [])
         self.assertEqual(len(set(self.names["turnouts"].values())), 20)
-        self.assertEqual(len(self.names["masts"]), 35)
+        self.assertEqual(len(self.names["masts"]), 30)
         self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
 
     def _copy(self, edit):
@@ -280,7 +280,7 @@ class Files(unittest.TestCase):
 
     def test_the_signal_plan_reads_back(self):
         masts = sdm.load_signal_masts()
-        self.assertEqual(len(masts), 35)
+        self.assertEqual(len(masts), 30)
         import json
         got = json.loads((sdm.pd.DATA / "staging.signals.json").read_text(encoding="utf-8"))
         self.assertEqual(got["signals"], sdm.signal_rows(masts))
@@ -331,7 +331,7 @@ class DeviceMapBuild(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         self.assertIn("anchor,AG20,east,Mast 8RA", text)          # the committed row the first case moves
         for old, new, why in (("anchor,AG20,east,Mast 8RA", "anchor,AG34,east,Mast 8RA", "Mast 8RA: recorded anchor AG34 east"),
-                              ("turnout,TO1,C,Mast 14R", "turnout,TO1,B,Mast 14R", "Mast 14R: recorded turnout TO1 B")):
+                              ("turnout,TOL6,C,Mast 32R", "turnout,TOL6,B,Mast 32R", "Mast 32R: recorded turnout TOL6 B")):
             with self.subTest(row=old):
                 path = tmp / "b.csv"
                 path.write_text(text.replace(old, new), encoding="utf-8")

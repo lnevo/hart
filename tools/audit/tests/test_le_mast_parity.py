@@ -75,7 +75,9 @@ class MastParity(unittest.TestCase):
                       if s.get("hidden") == "yes"}
 
     def test_live_panel_has_its_masts(self) -> None:
-        self.assertEqual(len(self.live), 35)    # 49 less the helix-foot 38RA and 40RA and the 12 yard-end and rear masts (2026-11-20)
+        # 49 less the helix-foot 38RA and 40RA and the 12 yard-end and rear masts, then less 8LC, 10RA, 10RB, 12R and 14R
+        # (virtual masts only as destinations; both 2026-11-20)
+        self.assertEqual(len(self.live), 30)
         self.assertTrue(all(m["facing"] for m in self.live.values()))
 
     def test_every_live_mast_resolves_the_same_on_the_generated_panel(self) -> None:
@@ -122,6 +124,9 @@ class MastParity(unittest.TestCase):
         self.assertEqual(set(icons), set(self.gen))
         # hidden for a virtual mast (staging_device_map.mast_facts), as every icon of it was on the hand-drawn panel
         live_hidden = {n: "yes" if m["hidden"] else "no" for n, m in self.frozen.items()}
+        # and for a main or upper virtual mast, a destination at a buffer stop (mast_plan, owner 2026-11-20)
+        from hartlib import level_masts
+        live_hidden |= {r["mast"]: "yes" for r in level_masts.read() if level_masts.is_level_virtual(r["system_name"])}
         size = {m["mast"]: m["box"][2:] for m in self.P.masts}
         for name, m in sorted(self.gen.items()):
             with self.subTest(mast=name):

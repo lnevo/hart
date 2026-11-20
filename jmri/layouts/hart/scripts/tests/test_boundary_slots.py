@@ -1,5 +1,6 @@
-"""le_signal_boundaries.csv: every script that binds or checks masts by slot reads each row's own slot. Switch 13's
-facts hold the Barn on its diverging leg C since 2026-11-18, so Mast 14R's row records C."""
+"""le_signal_boundaries.csv: every script that binds or checks masts by slot reads each row's own slot. Mast 32R
+stands on Switch 31's leg C (the Track 29 ladder leg), so its row records C. (Mast 14R, on Switch 13's leg C, was the
+example until virtual masts became destinations only, owner 2026-11-20.)"""
 from __future__ import annotations
 
 import csv
@@ -27,17 +28,17 @@ def load(name: str):
 
 
 class BoundarySlots(unittest.TestCase):
-    def test_apply_le_sml_facing_binds_14r_on_leg_c(self) -> None:
+    def test_apply_le_sml_facing_binds_32r_on_leg_c(self) -> None:
         mod = load("apply_le_sml_facing")
         turnouts, _ = mod.load_assignments(CSV)
-        self.assertEqual(turnouts["TO1"].get("C"), "Mast 14R")
-        self.assertNotIn("B", turnouts["TO1"])
+        self.assertEqual(turnouts["TOL6"].get("C"), "Mast 32R")
+        self.assertNotIn("B", turnouts["TOL6"])
 
     def test_audit_panel_contracts_checks_the_rows_slot(self) -> None:
         audit_mod = load("audit_panel_contracts")
-        b = audit_mod.Boundary("turnout", "TO1", "C", "Mast 14R")
-        on_c = ET.fromstring('<LayoutEditor><layoutturnout ident="TO1" signalCMast="Mast 14R"/></LayoutEditor>')
-        on_b = ET.fromstring('<LayoutEditor><layoutturnout ident="TO1" signalBMast="Mast 14R"/></LayoutEditor>')
+        b = audit_mod.Boundary("turnout", "TOL6", "C", "Mast 32R")
+        on_c = ET.fromstring('<LayoutEditor><layoutturnout ident="TOL6" signalCMast="Mast 32R"/></LayoutEditor>')
+        on_b = ET.fromstring('<LayoutEditor><layoutturnout ident="TOL6" signalBMast="Mast 32R"/></LayoutEditor>')
         for panel, ok in ((on_c, True), (on_b, False)):
             audit = audit_mod.Audit("t", Path("t"))
             audit_mod.audit_bindings(panel, [b], audit)

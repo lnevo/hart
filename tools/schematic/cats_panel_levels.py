@@ -357,6 +357,8 @@ def level_signals(bands, F, bound_bi):
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
     added = defaultdict(list)
     for r in F.level_masts:
+        if level_masts.is_level_virtual(r["system_name"]):
+            continue                                # a hidden destination mast: no desk signal, as on staging
         if not r["switch"]:                         # an APB intermediate (owner, 2026-11-19)
             placed = intermediate_signal(bands, F, bound_bi, r, by_trial)
             if placed is not None:
@@ -410,7 +412,7 @@ def level_signals(bands, F, bound_bi):
 def level_mast_bindings(bands, F, bound_bi):
     """{mast: {name, template}} for the main and upper masts level_signals drew: each a mast in tables.xml whose
     system name is its main_upper_masts.csv row's, with the template staging's masts of its appearance type take.
-    A row not drawn stops."""
+    A row not drawn stops, but a virtual one (hidden, no desk signal)."""
     rows = {r["mast"]: r for r in F.level_masts}
     templates = template_by_type(F)
     out = {}
@@ -428,7 +430,8 @@ def level_mast_bindings(bands, F, bound_bi):
                 raise SystemExit(f"{name}: no staging mast of type {mast_type(r['system_name'])} gives a CATS "
                                  "template (signal_head_plan.csv)")
             out[sg["mast"]] = {"name": name, "template": template}
-    missing = sorted(set(rows) - {e["name"] for e in out.values()})
+    missing = sorted(set(rows) - {e["name"] for e in out.values()}
+                     - {m for m, r in rows.items() if level_masts.is_level_virtual(r["system_name"])})
     if missing:
         raise SystemExit(f"main and upper masts not on the desk: {', '.join(missing)}")
     return out

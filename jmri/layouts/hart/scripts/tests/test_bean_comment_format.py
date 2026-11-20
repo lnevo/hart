@@ -56,7 +56,7 @@ class BeanCommentFormatTest(unittest.TestCase):
         mast = self.m.mast_protect_comment
         self.assertEqual(mast("Mast 2L", "Brick"), "Brick | Switch 1")
         self.assertEqual(mast("Mast 8LA", "Barn"), "Barn | Switch 7")
-        self.assertEqual(mast("Mast 8LC", "Barn"), "Barn | Switch 7")
+        self.assertEqual(mast("Mast 8RA", "Barn"), "Barn | Switch 7")
         self.assertEqual(mast("Mast 2035", "Princess"), "Princess")
         self.assertEqual(mast("Mast 2L", "Brick | Switch 1"), "Brick | Switch 1")
 

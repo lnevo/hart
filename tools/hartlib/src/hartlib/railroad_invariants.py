@@ -5,7 +5,7 @@ import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
-from . import level_devices, tables
+from . import level_devices, level_masts, tables
 from .railroad_facts import (DeviceRow, NameRow, UNIQUE_HARDWARE, check_virtual_names, natural,
                              switch_number)
 
@@ -43,18 +43,22 @@ def invariant(name: str, layer: str):
 
 @invariant("switch-numbers", "inputs")
 def _switch_numbers(rr: Railroad) -> list[str]:
-    """Switch plate numbers are unique railroad-wide: no main or upper switch (control_points_main_upper.csv,
-    local_switches_main_upper.csv) reuses a staging number (switches.csv); each control point is named "CP <its
-    lowest switch>"."""
+    """Switch plate numbers are unique railroad-wide: no main or upper switch (interlockings.csv,
+    local_switches_main_upper.csv) reuses a staging number (switches.csv); every staging interlocking's switches are
+    staging switches; each main and upper interlocking (control point) is named "CP <its lowest switch>"."""
     bad = []
     staging = {str(n) for n in rr.switches}
     for s, sw in sorted(rr.main_upper_switches.items(), key=lambda kv: natural(kv[0])):
         if s in staging:
             bad.append(f"Switch {s} is a staging switch (switches.csv) and a level {sw.level} switch")
+    for i in rr.interlockings:
+        if i.level == 1:
+            bad += [f"{rr.sources.interlockings.name} line {i.line}: staging interlocking {i.name} lists Switch {s}, "
+                    "which is no staging switch (switches.csv)" for s in i.switches if s not in staging]
     for cp in rr.level_control_points:
         want = f"CP {min(cp.switches, key=int)}"
-        if cp.cp_name != want:
-            bad.append(f"{rr.sources.level_control_points.name} line {cp.line}: {cp.cp_name} is named {want} by "
+        if cp.name != want:
+            bad.append(f"{rr.sources.interlockings.name} line {cp.line}: {cp.name} is named {want} by "
                        "its lowest switch")
     return bad
 
@@ -228,10 +232,11 @@ def _level_masts(rr: Railroad) -> list[str]:
     """Each main_upper_masts.csv mast is a device map mast of the same control point, on its virtual and planned
     names; its switch is in that control point (an APB intermediate has no switch; a spur's exit dwarf at a local
     switch has no control point, ADR-024); its facing and protected blocks are device map blocks; and every device
-    map mast has a row."""
+    map mast has a row. A virtual mast (a destination at a buffer stop, level_masts.is_level_virtual) stands at no
+    switch, protects nothing, and its control point is its track's switch's, if any."""
     dm, name = rr.device_map, rr.sources.level_masts.name
     masts = dm.by_user("mast")
-    cps = {cp.cp_name: cp for cp in rr.level_control_points}
+    cps = {cp.name: cp for cp in rr.level_control_points}
     bad, seen = [], set()
     for r in rr.level_masts:
         seen.add(r["mast"])
@@ -242,6 +247,15 @@ def _level_masts(rr: Railroad) -> list[str]:
         if (r["cp"], r["system_name"], r["device_system_name"]) != (m.cp, m.jmri_name, m.system_name):
             bad.append(f"{name}: {r['mast']} is {r['cp']} {r['system_name']} on {r['device_system_name']}; the "
                        f"device map says {m.cp} {m.jmri_name} on {m.system_name}")
+        if level_masts.is_level_virtual(r["system_name"]):
+            if r["switch"] or r["protects"]:
+                bad.append(f"{name}: virtual {r['mast']} stands at a switch or protects a block; it stands at a "
+                           "buffer stop")
+            if r["cp"] and r["cp"] not in cps:
+                bad.append(f"{name}: virtual {r['mast']} names control point {r['cp']!r}, which is none")
+            if r["facing"] not in dm.blocks:
+                bad.append(f"{name}: virtual {r['mast']} faces {r['facing']}, which is no device map block")
+            continue
         if not r["switch"]:
             if r["cp"] not in cps:          # an APB intermediate: between two track blocks, in its track's CP
                 bad.append(f"{name}: {r['mast']} (an intermediate) names control point {r['cp']!r}, which is none")

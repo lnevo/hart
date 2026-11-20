@@ -115,14 +115,14 @@
 
       <h2 id="two-brains">Who drives the mast lamps</h2>
       <p>
-        The device maps plan <!--ja:planned-masts-->79<!--/ja--> signal masts: <!--ja:planned-mu-->44<!--/ja--> on the main and upper levels and <!--ja:planned-staging-->35<!--/ja--> in staging.
-        <!--ja:planned-lit-->69<!--/ja--> of them get lamps; the other <!--ja:planned-hidden-->ten<!--/ja--> are hidden staging masts that only JMRI sees. The lamps are driven by small field
+        The device maps plan <!--ja:planned-masts-->98<!--/ja--> signal masts: <!--ja:planned-mu-->68<!--/ja--> on the main and upper levels and <!--ja:planned-staging-->30<!--/ja--> in staging.
+        <!--ja:planned-lit-->69<!--/ja--> of them get lamps; the other <!--ja:planned-hidden-->29<!--/ja--> are hidden staging masts that only JMRI sees. The lamps are driven by small field
         electronics (the nodes described on <a href="bridge.html">LCOS and the Arduino bridge</a>, and
         listed in the <a href="../roster/index.html">device viewer</a>). Those electronics have signal logic of their own, and JMRI has Signal Mast Logic (SML). If both drove one lamp, they could disagree. And if a JMRI session crashed while it drove the lamps, they could freeze on whatever colour they last showed.
       </p>
       <p>
         So one switch decides whether JMRI's logic or the field logic is in charge. It ticks or unticks the stock Enabled checkbox that each source-to-destination pair in SML already has. Today <!--ja:wired-masts-->one<!--/ja--> <!--ja:wired-masts-noun-->mast<!--/ja--> in the tables is wired to field heads, with <!--ja:wired-dests-->one<!--/ja--> destination, all moved
-        together. The other <!--ja:other-sources-->73<!--/ja--> sources, with <!--ja:other-dests-->137<!--/ja--> destinations, have no field heads yet. They stay enabled. The set of field masts is not hard-coded: the script finds it in the tables,
+        together. The other <!--ja:other-sources-->68<!--/ja--> sources, with <!--ja:other-dests-->176<!--/ja--> destinations, have no field heads yet. They stay enabled. The set of field masts is not hard-coded: the script finds it in the tables,
         as the masts whose heads are LCOS heads, so each mast joins as its node is wired.
       </p>
       <p>

@@ -99,14 +99,42 @@ class HeadNameTest(unittest.TestCase):
             self.assertEqual(L.read(path)[0]["dir"], "east")
 
     def test_the_committed_file(self):
-        """One row per main or upper mast in the released tables (44 since the 2026-11-19 plan), by system name."""
+        """One row per visible main or upper mast in the released tables (44 since the 2026-11-19 plan), by system
+        name, and the virtual masts (24 since 2026-11-20; the railroad's tables invariant holds them to the released
+        tables once the cut-over candidate is installed)."""
         from hartlib import tables
         rows = L.read()
-        self.assertTrue(all(L.is_level_mast(r["system_name"]) for r in rows))
+        visible = [r for r in rows if not L.is_level_virtual(r["system_name"])]
+        self.assertTrue(all(L.is_level_mast(r["system_name"]) for r in visible))
         released = {tables.system_name(m) for m in tables.read().iter("signalmast")}
-        self.assertEqual(sorted(r["system_name"] for r in rows),
+        self.assertEqual(sorted(r["system_name"] for r in visible),
                          sorted(m for m in released if L.is_level_mast(m)))
-        self.assertGreater(len(rows), 40)
+        self.assertGreater(len(visible), 40)
+        self.assertEqual(len(rows) - len(visible), 24)
+
+    def test_virtual_ordinals_are_by_level(self):
+        self.assertEqual([L.virtual_level(f"IF$vsm:basic:one-low(${n})") for n in (1001, 2001, 2999, 3001, 4001, 1000)],
+                         [1, 2, 2, 3, None, None])
+        self.assertEqual(L.virtual_ordinal("IF$vsm:basic:one-low($2001)"), 2001)
+        self.assertIsNone(L.virtual_ordinal("IF$shsm:basic:one-low(IH:HART:C3:2L)"))
+        self.assertEqual([L.is_level_virtual(f"IF$vsm:basic:one-low(${n})") for n in (1001, 2001, 3001)],
+                         [False, True, True])
+
+    def test_read_takes_a_virtual_mast_with_no_heads(self):
+        from hartlib.railroad import FactsError
+        ok = "Mast 102RA,,,Track 101 Spur 1,,east,,IF$vsm:basic:one-low($2001),,IF$vsm:basic:one-low($2001)\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "m.csv"
+            path.write_text(",".join(L.FIELDS) + "\n" + ok, encoding="utf-8")
+            self.assertEqual(L.read(path)[0]["heads"], [])
+            for bad in (ok.replace("$2001", "$1001"),                                     # staging's thousand
+                        ok.replace(",,east", ",OS Switch 101,east"),                       # protects a block
+                        ok.replace(",,,Track", ",,101,Track"),                             # at a switch
+                        ok.replace("($2001),,", "($2001),IH:HART:C3:102RA=Head 102RA,"),   # with heads
+                        ok.replace("($2001)\n", "($2002)\n")):                            # another device name
+                path.write_text(",".join(L.FIELDS) + "\n" + bad, encoding="utf-8")
+                with self.subTest(row=bad), self.assertRaisesRegex(FactsError, "virtual mast Mast 102RA"):
+                    L.read(path)
 
 
 if __name__ == "__main__":

@@ -13,3 +13,8 @@ Mast 36L,IF$vsm:basic:one-low($1025),2026-11-20,Dispatcher rear mast; restore on
 Mast 38RA,IF$vsm:basic:one-low($1004),2026-11-20,helix-end mast; the helix is one block per track
 Mast 40RA,IF$vsm:basic:one-low($1003),2026-11-20,helix-end mast; the helix is one block per track
 Mast 40RB,IF$vsm:basic:one-low($1026),2026-11-20,Dispatcher rear mast; restore on unpark (parked/README.md)
+Mast 8LC,IF$vsm:basic:one-low($1018),2026-11-20,"anchor partner opposite 8RA; virtual masts only as destinations (owner, 2026-11-20): westbound routes over Scale run to 6LA"
+Mast 10RA,IF$vsm:basic:one-low($1021),2026-11-20,"stub-leaving mast; virtual masts only as destinations (owner, 2026-11-20): no Signal Mast Logic starts from the engine house tracks"
+Mast 10RB,IF$vsm:basic:one-low($1022),2026-11-20,"stub-leaving mast; virtual masts only as destinations (owner, 2026-11-20)"
+Mast 12R,IF$vsm:basic:one-low($1020),2026-11-20,"stub-leaving mast; virtual masts only as destinations (owner, 2026-11-20)"
+Mast 14R,IF$vsm:basic:one-low($1019),2026-11-20,"stub-leaving mast; virtual masts only as destinations (owner, 2026-11-20)"

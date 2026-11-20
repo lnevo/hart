@@ -15,6 +15,9 @@ draft physical head; device_system_name keeps the planned physical mast (the dev
 signal_coordinator.py enrols and publishes a head only when its name is IH and digits (_is_lcos_ih_sys), so none of
 these reaches MQTT or the field (build_layout_le.py checks it with the coordinator's own test).
 
+A virtual mast (hidden, IF$vsm, no heads; mast_plan: a destination where a visible mast's route reaches a buffer
+stop) has no switch and protects nothing; its system names are the device map's.
+
 --check regenerates in memory and exits 1 if the file differs.
 
 devices.csv: this script holds no rows of it today. Its output derives from the main and upper mast and head rows,
@@ -65,6 +68,15 @@ def build() -> str:
     for r in dm.of("mast"):
         name = r.user_name
         protects = r.protected
+        if r.jmri_name.startswith("IF$vsm:"):    # a hidden destination mast at a buffer stop (mast_plan)
+            if not level_masts.is_level_virtual(r.jmri_name) or r.system_name != r.jmri_name or r.switch or protects:
+                raise SystemExit(f"{DEVICE_MAP.name}: virtual mast {name}: {r.jmri_name!r} is a main or upper "
+                                 "VirtualSignalMast (its system_name the same) at a buffer stop: no switch, nothing "
+                                 "protected")
+            out_rows.append(dict(mast=name, cp=r.cp, switch="", facing=r.facing, protects="", dir=r.dir, leg="",
+                                 system_name=r.jmri_name, head_system_names="", device_system_name=r.system_name,
+                                 _level=r.level))
+            continue
         if len(protects) > 1 or not (r.switch or protects):     # an APB intermediate: no switch, between two blocks
             raise SystemExit(f"{DEVICE_MAP.name}: mast {name}: protects {protects or 'nothing'} and stands at "
                              f"{'Switch ' + r.switch if r.switch else 'no switch'}: a home signal is at a switch, an "

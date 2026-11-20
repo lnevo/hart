@@ -32,7 +32,7 @@ Files (jmri/layouts/hart/data/schematic/):
   edge id (read_short_tracks, short_track_blocks: a track with no row, a row with no such track or with a track that
   has its own block, or two tracks between the same switches, stops). Today the track from Switch 35 to Switch 37,
   in OS Switch 35a.
-- control_points_staging.csv, the columns of control_points_main_upper.csv and a `code`: the master of staging's
+- control_points_staging.csv (cp_id, cp_name, level, switches, area, code, notes): the master of staging's
   control points. build_staging_sets.py writes staging.plan_overrides.json's control_points, stations and
   station_tracks, the `detail_sheets` preference and the older data/control_points.csv from it, stations.csv
   and sheets.csv.

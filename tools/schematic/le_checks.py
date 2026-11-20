@@ -25,8 +25,8 @@ def mast_band(m: dict) -> int:
 
 def check_level_slots(P, rows: list[dict], le_mod) -> None:
     """Stop when a main or upper mast (main_upper_masts.csv) is missing from the new panel, or stands in a slot
-    that JMRI does not resolve to its facing track and protected OS block, or (with `leg`) on the other leg of its
-    turnout than its continuing route makes it."""
+    that JMRI does not resolve to its facing track and protected OS block (a virtual mast at a buffer stop protects
+    none), or (with `leg`) on the other leg of its turnout than its continuing route makes it."""
     if not rows:
         return
     ix = slots_module().Index(le_mod.to_xml(P, "check"))
@@ -40,7 +40,7 @@ def check_level_slots(P, rows: list[dict], le_mod) -> None:
             continue
         ident = P.name(m["ident"])
         f, pr = ix.blocks(m["kind"], ident, m["slot"])
-        if (f, list(pr)) != (r["facing"], [r["protects"]]):
+        if (f, list(pr)) != (r["facing"], [r["protects"]] if r["protects"] else []):     # a virtual mast: a bumper
             bad.append(f"{r['mast']} at {ident} {m['slot']} faces {f} and protects {pr}, not {r['facing']} into "
                        f"{r['protects']}")
         if r["leg"]:

@@ -12,32 +12,39 @@ A review on 2026-11-18 compared staging's hand masts with the rule. Most of them
 
 ## Decision
 
-One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` and is used by `build_device_map.py` for the main and upper levels and `build_staging_masts.py` for staging.
+One mast process places every mast on every level (owner, 2026-11-20). The rules live in `tools/schematic/mast_rule.py`; `tools/schematic/mast_plan.py` (`plan`) runs them as one process, which `build_device_map.py` calls for the main and upper levels and `build_staging_masts.py` for staging. Only the block layer each reads is still its level's own.
 
 **Where masts go**
 - A home mast stands where a track from outside an interlocking meets one of its switches.
 - A track inside an interlocking that can hold a train (longer than 150 cm, `LONG_CM`) gets masts at both ends. Staging's K-1/K-2 is one; nothing on the main or upper levels is.
 - A track ending at a bumper gets a dwarf only when it can hold a train (staging's W-1 and W-2).
-- A spur listed in `signalled_spurs_main_upper.csv` gets an exit dwarf even when its switch is in no control point (241 Spur; 239 Spur before the 2026-11-19 renumber).
+- A spur off a main track at a switch in no interlocking gets an exit dwarf (`signalled_spurs`, a rule since 2026-11-20; it was the hand list `signalled_spurs_main_upper.csv`): 241 Spur today.
 - No home mast where no route it would govern reaches another signal: every route from its switch leg, walked through switches and turnbacks, ends at a bumper or in track with no mast facing on (owner, 2026-11-19, `reaches_signal`). The rule leaves out only Mast 126L today (125B into Switch 129's dark spurs); no staging mast.
 
 **Heads and type**
 - Two heads when any route the mast governs meets facing points inside its interlocking before the next signal (`facing_on_route`); otherwise one.
-- High (searchlight) facing from running track: the main route, a long track inside an interlocking, or a passing siding listed in `running_tracks_main_upper.csv`. A dwarf (low) from a yard, lead or industry track.
+- High (searchlight) facing from running track: the main route, a long track inside an interlocking, or a non-main track joining two different interlockings, through a local crossover's through route (`running_tracks`, a rule since 2026-11-20; it was the hand list `running_tracks_main_upper.csv`): 119-121, 121-123, 211-217 1 and 217-219, and on staging Scale, so 6LA and 8RA turned from dwarf to searchlight. A dwarf (low) from a yard, lead or industry track.
 - In stock JMRI `basic`, `one-low` and `one-searchlight` show the same aspects. Only the two-head appearances (`two-searchlight`, `two-low`) add Diverging Clear and Diverging Approach.
 
 **Interlockings**
-- Main and upper: the control points in `control_points_main_upper.csv`. CP 107 now holds 107, 109, 111, 117 and 119, because the track between 107 and 109 is shorter than a train. CP 123 and CP 127 (CP 125 and CP 129 before the 2026-11-19 renumber) stay separate.
-- Staging: `interlockings_staging.csv` lists them: Brick (1, 3, 5), Barn (7), East End (23, 31, 33) and Princess (35, 37, 39). Staging's `control_points` stay the stations, because the station sheets' brackets and the panel gantries are drawn from them.
+- One file for every level since 2026-11-20: `interlockings.csv` (level, interlocking, switches, area, notes; `area` is the LCOS node area of a main or upper interlocking, blank on staging).
+- Main and upper: their control points (the level 2 and 3 rows). CP 107 now holds 107, 109, 111, 117 and 119, because the track between 107 and 109 is shorter than a train. CP 123 and CP 127 (CP 125 and CP 129 before the 2026-11-19 renumber) stay separate.
+- Staging: the level 1 rows: Brick (1, 3, 5), Barn (7), East End (23, 31, 33) and Princess (35, 37, 39). Staging's `control_points` stay the stations, because the station sheets' brackets and the panel gantries are drawn from them.
 
 **Intermediate (APB) signals**
-- A pair at the block boundary of running track where both blocks can hold a train.
+- A pair at the block boundary of running track where both blocks can hold a train, with at least one end of the track in an interlocking (one rule for every level since 2026-11-20). West is toward the lower milepost; on a balloon loop the eastbound mast faces Loop 1.
 - Each is named from its milepost in tenths, odd westbound and even eastbound. Main and upper names carry a line code: A for the main level, B for the upper, after Furnace A and B.
 - Mileposts start at MP 5.7 at staging Switch 1, where the P&OV met the P&LE at Neville interlocking. They count through the helix (its length per helix track from the AnyRail plan 5.3c: since Phase 2 each level's graph holds its share up to the -5 cm cut, so no `helix_length_in`; 690 in, an estimate, until 2026-11-19) and on along each level's main route, as the sheets print them. Duplicate numbers on the two levels are deliberate.
 - A pair at a loop's turnback takes the milepost at half the whole loop's length (both legs), wherever its symbols are drawn. East is the way the count rises.
-- Today's pairs: 67/68 (staging K-1/K-2), A83/A84 (the 107 Loop turnback, MP A 8.35) and B92/B93 (Track 227-241, 227-239 before the 2026-11-19 renumber, split at its turnback by `split_tracks_main_upper.csv`, MP B 9.23). They were A84/A85 and B91/B92 (MP A 8.49, B 9.19) until the helix length came from the AnyRail plan 5.3c (owner, 2026-11-19).
+- Today's pairs: 67/68 (staging K-1/K-2), A83/A84 (the 107 Loop turnback, MP A 8.35) and B92/B93 (Track 227-241, 227-239 before the 2026-11-19 renumber, split at its turnback by `block_splits.csv`, the owner's choice and not a rule, MP B 9.23). They were A84/A85 and B91/B92 (MP A 8.49, B 9.19) until the helix length came from the AnyRail plan 5.3c (owner, 2026-11-19).
 - Stock discovery marks Masts 67, 68, A83, A84 and B92 intermediate (the `intermediateSignal` property) and not B93, and that is right for the track: JMRI sets it only when a mast's one destination is reached without crossing a turnout (`DefaultSignalMastLogicManager`, JMRI 5.16, lines 380-384), and B93's route to Mast 230LA crosses Switch 239, which has no signal, while B92 reaches Mast 228RB at Switch 227 (checked 2026-11-19). A mast on Switch 239's diverging leg would change that; setting the property by hand would not last, since discovery clears it first.
 - No signal stands in the helix, at its top or at its foot. The home signals at 127 and 131 (129 and 135 before the 2026-11-19 renumber) govern it from above and those at 37 and 39 from below. Since 2026-11-20 each helix track is one block from its staging switch to Switch 131 (Track Helix Outer, Track Helix Inner; `helix_tracks.csv`), so there is no block boundary inside the helix for the rule to put a pair at. A83/A84 are the 107 Loop pair, not the helix.
+
+**Virtual masts (owner, 2026-11-20)**
+- Only as destinations: once the visible masts are placed and pruned (`reaches_signal` counts visible masts only, so 126L stays out), every route of each kept home mast is walked; a route that reaches a buffer stop before any visible mast gets a hidden bumper mast there, facing it (`mast_plan.virtual_masts`). Nothing else gets one: no stub-leaving masts, no anchor partners.
+- 29 in all: staging 4LA, 4LB, 10LA, 10LB and 12L; main 10; upper 14. Named as a home mast from the switch the track to the buffer stop leaves, lettered after the visible masts (120RC beside 120RA and 120RB).
+- Staging lost 8LC, 10RA, 10RB, 12R and 14R (their ordinals are kept in `retired_virtual_masts.csv`), so no Signal Mast Logic starts from the engine house tracks and westbound routes over Scale run to 6LA (accepted).
+- System names `IF$vsm:basic:one-low($n)`, fixed once given, from each level's thousand: staging $1001 up, main $2001 up, upper $3001 up (`hartlib.level_masts.VIRTUAL_BASE`).
 
 **Heads in JMRI**
 - Every head is internal (`IH:HART:C1:` on staging, `IH:HART:C3:` on main and upper), so nothing unwired reaches MQTT.

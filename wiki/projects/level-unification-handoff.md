@@ -135,3 +135,8 @@ layer, so the block layer is not yet one process), the wired heads and `retired_
    `build_device_map.py`). Then stock discovery in a sandbox, `make panels CHECK=1`, before/after crops for the
    changed masts (6LA, 8RA, the five staging virtual masts dropped, the 24 added on main and upper), the candidate installed in the Mac's `~/JMRI_UserFiles`,
    owner approval, `make panelpro-test`, deploy `--pi --win`.
+   Build done on `agent/claude/l2-one-mast-process` (2026-11-20, pins in `tests/test_masts_every_level.py`,
+   rules in `tests/test_mast_plan.py`): `mast_plan.plan` is the one mast process; `build_staging_masts.py` and
+   `build_device_map.py` (plan_masts) call it over their own block layer and write their own rows, so the
+   devices.csv WRITERS are unchanged. Left: `sync_staging_signals.py` with JMRI closed (tables.xml), stock discovery
+   in a sandbox, the staging and candidate approvals.

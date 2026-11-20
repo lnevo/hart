@@ -131,11 +131,7 @@ occupancy,unused Block 2-2,unused Block 2-2,,M2S201,,Node: 2 Block: 2,
 occupancy,unused Block 3-8,unused Block 3-8,,M2S307,,Node: 3 Block: 8,
 mast,Mast 10LA,Mast 10LA,Engine House,virtual $1006,,Engine House,
 mast,Mast 10LB,Mast 10LB,Engine House,virtual $1007,,Engine House,
-mast,Mast 10RA,Mast 10RA,Engine House,virtual $1021,,Engine House | Switch 9,hidden EH-2 exit; Dispatcher Stage 1
-mast,Mast 10RB,Mast 10RB,Engine House,virtual $1022,,Engine House | Switch 9,hidden EH-3 exit; Dispatcher Stage 1
 mast,Mast 12L,Mast 12L,Engine House,virtual $1005,,Engine House,
-mast,Mast 12R,Mast 12R,Engine House,virtual $1020,,Engine House | Switch 11,hidden EH-1 exit; Dispatcher Stage 1
-mast,Mast 14R,Mast 14R,Barn,virtual $1019,,Barn | Switch 13,hidden Barn into Switch 13; Dispatcher Stage 1
 mast,Mast 24L,Mast 24L,East End,IH:HART:C1:24L,,East End | Switch 23,
 mast,Mast 24RA,Mast 24RA,East End,IH:HART:C1:24RA_Top IH:HART:C1:24RA_Bottom,,East End | Switch 23,
 mast,Mast 24RB,Mast 24RB,East End,IH:HART:C1:24RB,,East End | Switch 23,
@@ -161,7 +157,6 @@ mast,Mast 6LB,Mast 6LB,Plane,IH432,,Plane | Switch 5,
 mast,Mast 6R,Mast 6R,Plane,IH:HART:C1:6R_Top IH:HART:C1:6R_Bottom,,Plane | Switch 5,
 mast,Mast 8LA,Mast 8LA,Barn,IH:HART:C1:8LA_Top IH:HART:C1:8LA_Bottom,,Barn | Switch 7,
 mast,Mast 8LB,Mast 8LB,Barn,IH:HART:C1:8LB,,Barn | Switch 7,
-mast,Mast 8LC,Mast 8LC,Barn,virtual $1018,,Barn,hidden Scale east westbound; Dispatcher Stage 1
 mast,Mast 8RA,Mast 8RA,Barn,IH:HART:C1:8RA,,Barn,
 mast,Mast 8RB,Mast 8RB,Barn,IH:HART:C1:8RB_Top IH:HART:C1:8RB_Bottom,,Barn | Switch 7,
 head,Head 24L,Head 24L,East End,IH:HART:C1:24L,,,"internal, not wired (owner, 2026-11-19)"
