@@ -124,9 +124,26 @@ Kept by the owner's choice: two drawings (staging; main and upper), preferences 
 
 ## Order
 
-Steps 1, 2 and 3 are done (step 1's short tracks move to step 5). Step 4 with 5 next. Step 6 is agreed with the
-project-health session (R9). Step 7 waits on the owner's main and upper stations. Step 8 any time. Step 9 is not
-planned.
+Steps 1, 2, 3 and 8 are done (step 1's short tracks move to step 5). Step 4 with 5 next. Step 6 comes after the
+project-health session's R9c (the generated tables.xml), keyed to devices.csv. Step 7 waits on the owner's main and
+upper stations. Step 9 is not planned.
+
+### Next session (owner, 2026-11-20)
+
+A fresh session takes steps 4 and 5. Before starting:
+
+- Wait for the project-health session's boundaries PR (it retires `le_signal_boundaries.csv`, `hartlib.boundaries`
+  and `apply_le_sml_facing.py`, and edits `build_layout_le.py` and `le_checks.py`) to merge; steps 4 and 5 change the
+  same files. Ask that session (it goes by hart-dc) for its state and tell it when 4 and 5 open a PR, since R9c
+  builds `tables.xml` and needs byte-identical outputs.
+- R9b-2 (#790) moved every device and name reader to `hartlib.devices`: `replace_rows` and the other writers fail when
+  a row with a `pnm_order` would disappear unless `drops=` names it, which a renamed or removed block in step 5 needs.
+- Owner's Mac has a CPU limit (2026-11-20): at most about two heavy local jobs at once; `./tools/check.sh` once before
+  the commit, single test files while iterating.
+- Step 5 may move blocks on the panel: that needs stock SML discovery in a sandbox, a before/after crop and the
+  owner's approval per the approval fingerprints rule, then `--pi --win` and the website deploy. A small shift is
+  fine if it stays inside the Pi's PanelPro frame (about 160 px spare on the right, 13 px at the bottom).
+- Tests first for the scripts merged in step 4 (AGENTS.md, "Working on existing scripts").
 
 ## Masts
 
