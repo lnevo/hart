@@ -1,6 +1,7 @@
 """build_main_route.py [--check]
 
-Write the `main_route` key of main_upper.plan_overrides.json from main_lines_main_upper.csv and the plan graph.
+Write the `main_route` key of main_upper.plan_overrides.json from main_lines_main_upper.csv and the plan graph, and
+staging's main track and mileposts from main_lines_staging.csv (see the end of this text).
 
 The schematic marks as main track what lies on `main_route`, hop by hop. Written by hand, each hop named two plan part
 numbers (T281, T311 ...), which change whenever the plan is exported again. Here the owner gives the two main lines
@@ -23,7 +24,14 @@ length. A pair of switches the line crosses that has two tracks must be in `doub
 tracks is made silently. Every hop is written [a, b, "direct"], marking every track between the two, in the order the
 line runs; switches are named by their number, so the hops do not depend on the plan's part numbers.
 
---check regenerates in memory and exits 1 if the file differs.
+--check regenerates in memory and exits 1 if a file differs.
+
+Staging (main_lines_staging.csv: the same columns and a last one, `count`). Staging's drawings take no main_route (it
+would turn on the direction letters of a route), so its lines write two other things in staging.plan_overrides.json.
+Each track on a line gets "main" in the `name` edit and every other track in it loses it; a track on a line that the
+edit does not name must be a helix end or the short link between the halves of a crossover, which the plugin marks
+itself. A line with `count` yes is the way the mileposts run: milepost_route is its stops, one hop from each to the
+next (the origin, Switch 1 at MP 5.7, stays in milepost_origin).
 """
 from __future__ import annotations
 
@@ -44,6 +52,10 @@ OVERRIDES = pd.DATA / "main_upper.plan_overrides.json"
 LINES = pd.DATA / "main_lines_main_upper.csv"
 GRAPH = pd.GRAPHS / "main.json"
 COLUMNS = ["line", "from", "via", "to", "loop", "double", "notes"]
+STAGING_OVERRIDES = pd.DATA / "staging.plan_overrides.json"
+STAGING_LINES = pd.DATA / "main_lines_staging.csv"
+STAGING_GRAPH = pd.GRAPHS / "staging.json"
+STAGING_COLUMNS = COLUMNS + ["count"]
 TIE = 1e-6          # centimetres: two ways this close are a tie
 
 
@@ -55,11 +67,11 @@ def split(cell: str) -> list[str]:
     return [p.strip() for p in cell.split(";") if p.strip()]
 
 
-def read_lines(path: Path = LINES) -> list[dict]:
+def read_lines(path: Path = LINES, columns: list[str] = COLUMNS) -> list[dict]:
     with open(path, newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
-        if reader.fieldnames != COLUMNS:
-            raise RouteError(f"{path.name}: expected the columns {', '.join(COLUMNS)}, got {reader.fieldnames}")
+        if reader.fieldnames != columns:
+            raise RouteError(f"{path.name}: expected the columns {', '.join(columns)}, got {reader.fieldnames}")
         rows = list(reader)
     if not rows:
         raise RouteError(f"{path.name} has no main line")
@@ -70,6 +82,8 @@ def read_lines(path: Path = LINES) -> list[dict]:
         seen.add(r["line"])
         if not r["from"].strip() or not r["to"].strip():
             raise RouteError(f"{path.name} line {n} ({r['line']}): from and to are both needed")
+        if "count" in r and r["count"].strip() not in ("", "yes"):
+            raise RouteError(f"{path.name} line {n} ({r['line']}): count is yes or blank, not {r['count']!r}")
     return rows
 
 
@@ -100,14 +114,22 @@ class Plan:
             raise RouteError(f"main line stop {ref!r}: {exc}") from None
 
     def name(self, n: str) -> str:
-        """What the hop calls this node: its switch number or helix name, which must find only it again."""
+        """What the hop calls this node: its switch number or helix name, or for the half of a crossover (two junctions
+        of one number) "number@track", by a track named at it; it must find only this node again."""
         d = self.g["nodes"][n]
         label = d.get("label")
         if d["kind"] == "end":      # a helix end is called by its track's name
             label = next((e["names"][0] for e in self.g["edges"] if n in (e["u"], e["v"]) and e["names"]), None)
-        if not label or self.node(label) != n:
-            raise RouteError(f"junction {n} has no unique name to write the route with (label {label!r})")
-        return label
+        tries = [label] if label else []
+        if d["kind"] != "end" and label:
+            tries += [f"{label}@{t}" for e in self.g["edges"] if n in (e["u"], e["v"]) for t in e["names"] if t]
+        for ref in tries:
+            try:
+                if self.node(ref) == n:
+                    return ref
+            except RouteError:
+                continue
+        raise RouteError(f"junction {n} has no unique name to write the route with (label {label!r})")
 
     def between(self, a: str, b: str) -> list[dict]:
         return [e for v, e in self.adj[a] if v == b and (a != b or e["u"] == e["v"])]
@@ -164,14 +186,23 @@ class Plan:
         return out
 
 
-def line_hops(plan: Plan, row: dict) -> list[tuple[str, str, list[dict]]]:
-    """[(from node, to node, [edges marked between them])] for one main line, in running order."""
+def line_hops(plan: Plan, row: dict, exact: bool = False) -> list[tuple[str, str, list[dict]]]:
+    """[(from node, to node, [edges marked between them])] for one main line, in running order. `exact`: the line
+    names every junction it passes, each next to the one before (staging's loop has shorter ways round than the main
+    track), so no way is worked out and a stop with no track to the next stops the build."""
     stops = [row["from"].strip(), *split(row["via"]), row["to"].strip()]
     double = {frozenset(p.split("-")) for p in split(row["double"])}
     steps: list[tuple[str, dict, str]] = []
     nodes = [plan.node(s) for s in stops]
     for a, b in zip(nodes, nodes[1:]):
-        steps += plan.shortest(a, b, double)
+        if not exact:
+            steps += plan.shortest(a, b, double)
+            continue
+        near = plan.between(a, b)
+        if not near:
+            raise RouteError(f"{row['line']}: no track joins {plan.name(a)} and {plan.name(b)}; name the junctions "
+                             "between them")
+        steps += [(a, e, b) for e in near]       # two or more: the hops below stop unless `double` names the pair
     loop = [plan.node(s) for s in split(row["loop"])]
     if loop:
         ring = [nodes[-1], *loop, nodes[-1]]
@@ -207,14 +238,14 @@ def route(plan: Plan, rows: list[dict]) -> list[list[str]]:
     return hops
 
 
-def prepared(overrides: dict):
+def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     """(the plugin's graph with the overrides applied and no main_route, node_ref: how a route names a junction)."""
     import build_layout_le as bl
     sheet, _le, _core = bl.plugin()
     from schematic import edits   # the plugin's package: bl.plugin() has put it on the path
-    opts = dict(sheet.options("main_upper", pd.DATA))
+    opts = dict(sheet.options(layer, pd.DATA))
     opts.pop("main_route", None)
-    g = sheet.prepare(json.loads(GRAPH.read_text()), opts, set())
+    g = sheet.prepare(json.loads(graph.read_text()), opts, set())
     return g, edits.node_ref
 
 
@@ -224,15 +255,76 @@ def overrides_text(overrides: dict, hops: list) -> str:
     return json.dumps(over, indent=1, ensure_ascii=False) + "\n"
 
 
+def line_edges(plan: Plan, rows: list[dict]) -> set[str]:
+    """The ids of every track on any of staging's lines (each names its junctions: line_hops exact)."""
+    return {e["id"] for row in rows for _a, _b, edges in line_hops(plan, row, exact=True) for e in edges}
+
+
+def milepost_route(plan: Plan, rows: list[dict]) -> list[list[str]]:
+    """One hop from each stop to the next of every line marked `count`; line_edges has checked that a track joins them.
+    A hop over a declared double track stops the build: the plugin would count along either track, not the one the
+    line means."""
+    hops = []
+    for row in rows:
+        if row["count"].strip() != "yes":
+            continue
+        stops = [row["from"].strip(), *split(row["via"]), row["to"].strip()]
+        for a, b in zip(stops, stops[1:]):
+            if len(plan.between(plan.node(a), plan.node(b))) > 1:
+                raise RouteError(f"{row['line']}: the mileposts would count from {a} to {b} over a double track; "
+                                 "name a junction between them, or leave count blank")
+            hops.append([a, b])
+    return hops
+
+
+def staging_text(overrides: dict, plan: Plan, rows: list[dict]) -> str:
+    """staging.plan_overrides.json with its `name` edit's main flags and its milepost_route from the lines."""
+    from schematic import edits
+    g = plan.g
+    N = g["nodes"]
+
+    def owned_by_plugin(e):         # a crossover's link between its halves, or a helix end: marked main by the plugin
+        la, lb = (N[n].get("label") for n in (e["u"], e["v"]))
+        return (la and la == lb) or any(N[n]["kind"] == "end" and N[n].get("sub") == "helix" for n in (e["u"], e["v"]))
+
+    main_ids = line_edges(plan, rows)
+    over = json.loads(json.dumps(overrides))
+    named = [ed for ed in over["edits"] if ed.get("op") == "name"]
+    if len(named) != 1:
+        raise RouteError(f"{STAGING_OVERRIDES.name}: expected one `name` edit, found {len(named)}")
+    seen, tracks = set(), []
+    for a, b, name, *rest in named[0]["tracks"]:
+        port = rest[0] if rest and rest[0] in ("A", "B", "C", "D") else None
+        e = edits.edge_between(g, a, b, port)[0]
+        seen.add(e["id"])
+        tracks.append([a, b, name, *[r for r in rest if r != "main"], *(["main"] if e["id"] in main_ids else [])])
+    named[0]["tracks"] = tracks
+    lost = [e for e in g["edges"] if e["id"] in main_ids - seen and not owned_by_plugin(e)]
+    if lost:
+        raise RouteError("a main line runs over track the `name` edit does not name: "
+                         + ", ".join(f"{plan.name(e['u'])} to {plan.name(e['v'])}" for e in lost))
+    over["milepost_route"] = milepost_route(plan, rows)
+    over["_main_lines"] = ("The main flags of the `name` edit and milepost_route are written by "
+                           "tools/schematic/build_main_route.py from main_lines_staging.csv; edit that file, not "
+                           "these.")
+    return json.dumps(over, indent=1, ensure_ascii=False) + "\n"
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--check", action="store_true", help="exit 1 if main_route is stale")
+    ap.add_argument("--check", action="store_true", help="exit 1 if a main route or main line file is stale")
     args = ap.parse_args(argv)
-    overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
     import build_layout_le as bl
+    outputs = []
     try:
+        overrides = json.loads(OVERRIDES.read_text(encoding="utf-8"))
         g, by_label = prepared(overrides)
         hops = route(Plan(g, by_label), read_lines())
+        outputs.append((OVERRIDES, overrides_text(overrides, hops), f"main_route ({len(hops)} hops)"))
+        st = json.loads(STAGING_OVERRIDES.read_text(encoding="utf-8"))
+        sg, sby = prepared(st, "staging", STAGING_GRAPH)
+        text = staging_text(st, Plan(sg, sby), read_lines(STAGING_LINES, STAGING_COLUMNS))
+        outputs.append((STAGING_OVERRIDES, text, "main flags and milepost_route"))
     except bl.BuildError as exc:      # the plugin is not checked out
         if not args.check:
             raise
@@ -241,15 +333,18 @@ def main(argv=None) -> int:
     except RouteError as exc:
         print(f"build_main_route.py: {exc}", file=sys.stderr)
         return 2
-    text = overrides_text(overrides, hops)
-    if OVERRIDES.read_text(encoding="utf-8") == text:
-        print(f"main_route is current ({len(hops)} hops)")
-        return 0
+    stale = [(p, t, what) for p, t, what in outputs if p.read_text(encoding="utf-8") != t]
     if args.check:
-        print(f"{OVERRIDES.name} main_route is stale: run python3 tools/schematic/build_main_route.py", file=sys.stderr)
-        return 1
-    OVERRIDES.write_text(text, encoding="utf-8")
-    print(f"wrote main_route ({len(hops)} hops) to {OVERRIDES.name}")
+        for p, _t, what in stale:
+            print(f"{p.name} {what} is stale: run python3 tools/schematic/build_main_route.py", file=sys.stderr)
+        if not stale:
+            print("main route and staging main lines are current")
+        return 1 if stale else 0
+    for p, t, what in stale:
+        p.write_text(t, encoding="utf-8")
+        print(f"wrote {what} to {p.name}")
+    if not stale:
+        print("main route and staging main lines are current")
     return 0
 
 

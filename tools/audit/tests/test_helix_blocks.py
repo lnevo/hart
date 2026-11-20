@@ -63,21 +63,40 @@ class HelixFile(unittest.TestCase):
         self.assertEqual(staging[0]["name"], "Track 37-H")
 
 
+def track(name, a, b=None, row=0, trial=None, loop=False, helix=False):
+    """An in-memory track entry, as mast_rule.tracks gives them: ends by switch, a bumper (b None) or the helix."""
+    far = ("helix", "H1") if helix else ("sw", b) if b else ("bumper", None)
+    return dict(name=name, ends=(("sw", a), far), row=row, trial=trial or [f"Track {name}"], loop=loop, main=True)
+
+
 class Pins(unittest.TestCase):
-    PINS = "block,node,block_input,notes\nTrack Helix Inner,41,1,\nTrack 227-241 2,41,4,\n"
+    HEAD = "switch_a,switch_b,parallel,half,block,node,block_input,notes\n"
+    PINS = HEAD + ",,,,Track Helix Inner,41,1,\n227,241,,2,,41,4,\n"
+    FOUND = [track("Track 227-241", "241", "227"), track("Track Helix Inner", "131", helix=True),
+             track("Track Helix Outer", "131", helix=True, row=1), track("Track 241 Spur", "241")]
+    SPLIT = {"Track 227-241"}
+
+    def read(self, text):
+        return bdm.read_pins(write(text), self.FOUND, self.SPLIT)
 
     def test_read(self):
-        self.assertEqual(bdm.read_pins(write(self.PINS)), {"Track Helix Inner": (41, 0), "Track 227-241 2": (41, 3)})
+        self.assertEqual(self.read(self.PINS), {"Track Helix Inner": (41, 0), "Track 227-241 2": (41, 3)})
         self.assertEqual(bdm.read_pins()["Track Helix Outer"], (41, 1))        # the committed file
 
     def test_bad_pins_stop(self):
-        for text, msg in ((self.PINS + "Track Helix Outer,41,1,\n", "pinned twice"),
-                          (self.PINS + "Track Helix Inner,41,2,\n", "pinned twice"),
-                          (self.PINS + "Track X,41,9,\n", "is not 1 to 8"),
-                          (self.PINS + "Helix,41,2,\n", "not a track block"),
-                          (self.PINS + "Track X,forty,2,\n", "are numbers")):
+        for text, msg in ((self.PINS + ",,,,Track Helix Outer,41,1,\n", "pinned twice"),
+                          (self.PINS + ",,,,Track Helix Outer,41,4,\n", "pinned twice"),
+                          (self.PINS + ",,,,Track Helix Outer,41,9,\n", "is not 1 to 8"),
+                          (self.PINS + ",,,,Helix,41,2,\n", "is no helix block"),
+                          (self.PINS + "37,39,,,Track Helix Inner,41,2,\n", "named by its block alone"),
+                          (self.PINS + ",,,,Track Helix Outer,forty,2,\n", "are numbers"),
+                          (self.PINS + "227,241,,,,41,2,\n", "in two halves"),            # half missing
+                          (self.PINS + "241,,,1,,41,2,\n", "one block: no half"),          # half on a plain track
+                          (self.PINS + "241,227,,1,,41,2,\n", "lower first"),
+                          (self.PINS + "9,10,,,,41,2,\n", "no track runs Switch 9 to Switch 10"),
+                          ("block,node,block_input,notes\nTrack Helix Inner,41,1,\n", "columns")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
-                bdm.read_pins(write(text))
+                self.read(text)
 
     def test_the_rule_never_hands_out_a_pinned_input(self):
         nodes = bdm.Nodes([railroad.LcosNode(2, 3, "Helix", 41)])

@@ -1,2 +1,2 @@
-track,notes
-Track 227-241,"the peninsula loop: two blocks parted at its turnback for an APB pair (owner, 2026-11-19); half 1 from Switch 227. Named by its end switches, which survive a new export (the plan edge it is drawn on is found at build time)"
+switch_a,switch_b,parallel,notes
+227,241,,"the peninsula loop: two blocks parted at its turnback for an APB pair (owner, 2026-11-19); half 1 is at Switch 227, the lower number. Keyed by its end switches, which survive a new export (the plan edge it is drawn on is found at build time)"

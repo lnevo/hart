@@ -295,6 +295,10 @@
   ],
   [
    "5",
+   "7@East Ext"
+  ],
+  [
+   "7@East Ext",
    "33"
   ],
   [
@@ -311,6 +315,10 @@
   ],
   [
    "35@East Lead",
+   "35@West Ext"
+  ],
+  [
+   "35@West Ext",
    "39"
   ],
   [
@@ -321,10 +329,12 @@
  "_milepost_route": "The count runs the long way round the staging main: Brick-Plane, East Ext, Main East, East Lead, then the two throats into the helix (through the Switch 35 crossover to 39). Main West and West Ext, the west part of the loop, carry none.",
  "_stations": "West Yard is W-1 and W-2 with Switch 3 (owner, 2026-11-14). Brick is the interlocking between Switches 1 and 3: a control point, not a station.",
  "station_tracks": {
+  "Brick": [],
   "West Yard": [
    "W-1",
    "W-2"
-  ],
-  "Brick": []
- }
+  ]
+ },
+ "_main_lines": "The main flags of the `name` edit and milepost_route are written by tools/schematic/build_main_route.py from main_lines_staging.csv; edit that file, not these.",
+ "_control_points": "Written by tools/schematic/build_staging_sets.py from control_points_staging.csv (control_points) and stations_staging.csv (stations, station_tracks); edit those files, not these keys."
 }

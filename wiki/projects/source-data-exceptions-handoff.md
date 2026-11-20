@@ -55,8 +55,16 @@ Done on branch `agent/claude/source-data-rows-2-3-7`, with every desk, panel and
   `staging_masts.csv`, set where the mast rule places it; no reader parses it from the name.
 - **Row 7:** a turnout's class (#6 or #8) comes from the angle of its leg ends; the Peco part table is gone.
 
-Row 6 (track-plan page) is PR #749 from another session. Rows 4 and 5 are being built next; rows 8, 9 and 10 wait
-(owner, 2026-11-20).
+Merged as #754. Then, on branch `agent/claude/source-data-rows-4-5`, also with nothing drawn changed:
+- **Row 4:** staging's control points (`control_points_staging.csv`), stations (`stations_staging.csv`), detail
+  sheets (`sheets_staging.csv`) and main lines (`main_lines_staging.csv`) each have one master file;
+  `build_staging_sets.py` and `build_main_route.py` write every other copy, the older `data/control_points.csv`
+  included (the website build and the JMRI scripts still read it), and `make panels CHECK=1` fails on drift.
+- **Row 5:** the main/upper hand lists (running, signalled spurs, split tracks, detector pins) are keyed by
+  `switch_a,switch_b` (and `parallel` or `half` where needed), so a renumber no longer strands them. The
+  `le_band_labels` names in `main_upper.preferences.json` stay track names: the plugin takes only names there.
+
+Row 6 (track-plan page) is merged from another session (#749). Rows 8, 9 and 10 wait (owner, 2026-11-20).
 
 ## What is left to remove, ranked
 
@@ -65,7 +73,7 @@ Row 6 (track-plan page) is PR #749 from another session. Rows 4 and 5 are being 
 | 1 | Plan part numbers (T-numbers) as keys: about 101 across four files, re-matched by position on every export | `staging` and `main_upper` `.plan_overrides.json` (`name`, `end`, `helix`) and `.preferences.json` (`min_cells`, `shorten`, `edits` flip, `levels.assign`, `level_leg`) | Switch number and leg keys (the `1B-3A` form `staging_device_map` already uses). The relabel map stays plan-keyed: it is the link from plan to owner numbers. The plugin's `edits` must accept label keys | 1–2 days |
 | 2 | Dead or stale entries | `mast_dir_pattern` and `signals_planned` in both override files (only the plugin's `signals` command reads them); the T300 `move` hand branch in `build_hands.py`; comments that still name helix Switches 129/135; the hartlib `railroad.py` docstring calling `staging_masts.csv` hand-kept | Delete or correct | under an hour |
 | 3 | Mast direction read from the name: "L is west", and the odd/even number for intermediates | `build_cats_panel.py`, `build_main_upper_masts.py`, `build_signals.py` | A `dir` column in the mast data, read where needed | half a day |
-| 4 | Station and control-point membership kept in up to four places; the staging main line marked by hand (a `main` flag on 8 tracks, a 7-hop `milepost_route`) | `staging.plan_overrides.json`, `control_points_staging.csv`, `interlockings_staging.csv`, `detail_sheets`, the old `control_points.csv` | One source with the rest generated; a staging main-lines file through `build_main_route.py` | 1 day |
+| 4 | Station and control-point membership kept in up to four places; the staging main line marked by hand (a `main` flag on 8 tracks, a 7-hop `milepost_route`) | `staging.plan_overrides.json`, `control_points_staging.csv`, `interlockings_staging.csv`, `detail_sheets`, the old `control_points.csv` | One source with the rest generated; a staging main-lines file through `build_main_route.py` | 1 day. **Done:** masters `control_points_staging.csv`, `stations_staging.csv`, `sheets_staging.csv`, `main_lines_staging.csv`; `build_staging_sets.py` and `build_main_route.py` write the rest (`interlockings_staging.csv` is the signal rule's own grouping and stays) |
 | 5 | Hand lists keyed by generated track names, which break when names are renumbered | `running_tracks_main_upper.csv`, `signalled_spurs_main_upper.csv`, `split_tracks_main_upper.csv`, the `block` columns of the detector pins and helix files, `le_band_labels` | Key by end-switch pair | half a day to a day |
 | 6 | **Track-plan page, regenerated from 5.3c (owner), done 2026-11-20.** Was: `staging_plan.svg` with no generator, and a page text and `levels_svg.py` built around the 5.3b corrections | `tools/anyrail/`, `www/build/track-plan.html` | Done: `levels_svg.py` draws all three levels from the `.any` through `anyplan.py` (`--check` in `tools/check.sh`); `staging_plan.svg`, `staging_run.py` and `engine_terminal.py` are gone; the page's numbers are computed from the drawings and the data | done |
 | 7 | Peco product table in `plan_lengths.py`, against the "any maker" rule | `tools/schematic/plan_lengths.py` (`PRODUCTS`) | Turnout length from the part's geometry; keep the table only as a sanity range | a couple of hours |
