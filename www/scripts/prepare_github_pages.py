@@ -547,9 +547,10 @@ def _search_thumbs(records: list[dict], dest_root: Path) -> None:
         name = re.sub(r"[^a-z0-9]+", "-", Path(src).with_suffix("").as_posix().lower()).strip("-") + ".jpg"
         dest = out_dir / name
         try:
-            if not dest.is_file():
+            source = dest_root / src
+            if not dest.is_file() or dest.stat().st_mtime < source.stat().st_mtime:  # reuse a copy newer than its source
                 out_dir.mkdir(parents=True, exist_ok=True)
-                with Image.open(dest_root / src) as im:
+                with Image.open(source) as im:
                     small = ImageOps.fit(im.convert("RGB"), (SEARCH_THUMB_PX, SEARCH_THUMB_PX))
                     small.save(dest, "JPEG", quality=78, optimize=True)
             rec["thumb"] = dest.relative_to(dest_root).as_posix()
