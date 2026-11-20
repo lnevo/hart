@@ -34,6 +34,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_tables_browser  # noqa: E402
 import repo_guide_page  # noqa: E402
+import jmri_additions_page  # noqa: E402
 import provenance  # noqa: E402
 import share_cards  # noqa: E402
 from photo_tabs import tab_subs  # noqa: E402
@@ -1088,6 +1089,11 @@ def _refresh_tables_page(dest_root: Path) -> None:
             repo_guide_page.write(dest_root)
         except (repo_guide_page.PageError, subprocess.CalledProcessError, OSError) as e:
             print("WARNING: repository guide not refilled, the committed copy is published: %s" % e)
+    if (dest_root / jmri_additions_page.PAGE_REL).is_file():
+        try:
+            jmri_additions_page.write(dest_root)
+        except (jmri_additions_page.PageError, OSError, ValueError) as e:
+            print("WARNING: JMRI additions page not refilled, the committed copy is published: %s" % e)
 
 
 def _unsafe_dest(dest: Path) -> bool:

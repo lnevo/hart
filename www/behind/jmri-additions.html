@@ -29,15 +29,16 @@
   <main>
     <div class="page-head">
       <h1>What We Added to JMRI</h1>
-      <p class="section-note">Parked since the helix-join release (November 2026): Entry/Exit, the Dispatcher System and the USS CTC machine are not in the active panel, and their data is kept in <code>jmri/layouts/hart/parked/</code>. Signal masts, Signal Mast Logic and the CATS desks stay live. JMRI and CATS run here as stock installs. This page covers what we added on top: six scripts, the files deployed into the JMRI profile, and how the signal hand-over and the status lamps work.</p>
+      <p class="section-note">Parked since the helix-join release (November 2026): Entry/Exit, the Dispatcher System and the USS CTC machine are not in the active panel, and their data is kept in <code>jmri/layouts/hart/parked/</code>. Signal masts, Signal Mast Logic and the CATS desks stay live. JMRI and CATS run here as stock installs. This page covers what we added on top: <!--ja:script-count-->six<!--/ja--> scripts, the files deployed into the JMRI profile, and how the signal hand-over and the status lamps work.</p>
     </div>
 
     <article class="explainer prose">
       <h2>The JMRI features we use</h2>
       <p>
-        Basic signal masts, Signal Mast Logic (SML) with its Discover tool, Entry/Exit, the Layout
-        Editor, the Dispatcher System, the CTC tool, the web server, the MQTT connection, Routes,
-        LogixNG and the green and red lamp icons. CATS, the open-source CTC desk, runs alongside.
+        Basic signal masts, Signal Mast Logic (SML) with its Discover tool, the Layout Editor, the
+        web server, the MQTT connection, LogixNG and the green and red lamp icons. CATS, the
+        open-source CTC desk, runs alongside. Entry/Exit, the Dispatcher System and the CTC tool
+        are parked (see the note above).
       </p>
       <p>
         The story of how the software came together is told in
@@ -46,24 +47,24 @@
 
       <h2 id="scripts">The scripts</h2>
       <p>
-        Six Jython scripts run inside JMRI. The first four handle the signals, the panel, the CATS desk windows and the remote-run hook; the last two connect the traffic simulator and the LCOS mimic page. The first two are explained further down: the signal coordinator under <a href="#two-brains">Who drives the mast lamps</a>, and the panel helper under <a href="#four-lamps">Four lamps</a>.
+        <!--ja:script-count-cap-->Six<!--/ja--> Jython scripts run inside JMRI. The first four handle the signals, the panel, the CATS desk windows and the remote-run hook; the last two connect the traffic simulator and the LCOS mimic page. The first two are explained further down: the signal coordinator under <a href="#two-brains">Who drives the mast lamps</a>, and the panel helper under <a href="#four-lamps">Four lamps</a>.
       </p>
       <div class="table-wrap">
         <table class="roster jm-lamps">
           <thead><tr><th>Script</th><th>How it starts</th><th>What it does</th></tr></thead>
           <tbody>
-            <tr><td><code>signal_coordinator.py</code></td><td>Start Up</td><td>Decides whether JMRI or the field electronics drive the mast lamps, hands control over between them, and recovers if a JMRI session crashes. It owns the "SML Enabled" button. See <a href="#two-brains">Who drives the mast lamps</a>.</td></tr>
-            <tr><td><code>panel_status.py</code></td><td>Start Up</td><td>Makes the four status lamps clickable and keeps them up to date. It never throws a switch. (It also lit the yard-ladder triangle lamps until they were retired on 17 November 2026.) See <a href="#four-lamps">Four lamps</a>.</td></tr>
-            <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="tables-file.html#logixng">The LogixNGs</a>)</td><td>Under CATS, hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
-            <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on the main layout host only</td><td>The remote-run hook, described under this table.</td></tr>
-            <tr><td><code>sts_car_sync.py</code></td><td>Start Up, on the main layout host and the development Mac</td><td>Copies car positions, loads and final destinations from the traffic simulator (STS) into Operations Pro. The stock JSON server can move a car but cannot set its load or destination, so STS writes a batch into a Memory and this script applies it. It never touches turnouts, signals or MQTT.</td></tr>
-            <tr><td><code>mimic_relay.py</code></td><td>Start Up, on the main layout host only</td><td>Publishes fake LCOS feedback for the mimic page, a test tool served by JMRI's web server. The page writes a request into the Memory <code>IMHART_MIMIC</code> and the script publishes it, retained, through JMRI's own MQTT connection. It only sends occupancy and switch position reports, never a switch command, so it cannot move a motor.</td></tr>
+            <tr><td><code>signal_coordinator.py</code></td><td>Start Up, on <!--ja:hosts-signal-coordinator-->every host (the Pi, Windows and the Mac)<!--/ja--></td><td>Decides whether JMRI or the field electronics drive the mast lamps, hands control over between them, and recovers if a JMRI session crashes. It owns the "SML Enabled" button. See <a href="#two-brains">Who drives the mast lamps</a>.</td></tr>
+            <tr><td><code>panel_status.py</code></td><td>Start Up, on <!--ja:hosts-panel-status-->every host (the Pi, Windows and the Mac)<!--/ja--></td><td>Makes the four status lamps clickable and keeps them up to date. It never throws a switch. (It also lit the yard-ladder triangle lamps until they were retired on 17 November 2026.) See <a href="#four-lamps">Four lamps</a>.</td></tr>
+            <tr><td><code>hide_cats_desk_windows.py</code></td><td>When the tables load (see <a href="tables-file.html#logixng">The LogixNGs</a>), on <!--ja:hosts-hide-cats-desk-windows-->every host (the Pi, Windows and the Mac)<!--/ja--></td><td>Under CATS, hides the HART Railroad panel and adds Help and Quit buttons to the button strip at the bottom of the CTC Panel. In plain PanelPro it does nothing.</td></tr>
+            <tr><td><code>jmri_cmd_watcher.py</code></td><td>Start Up, on <!--ja:hosts-jmri-cmd-watcher-->every host (the Pi, Windows and the Mac)<!--/ja--></td><td>The remote-run hook, described under this table.</td></tr>
+            <tr><td><code>sts_car_sync.py</code></td><td>Start Up, on <!--ja:hosts-sts-car-sync-->the Pi and the Mac<!--/ja--></td><td>Copies car positions, loads and final destinations from the traffic simulator (STS) into Operations Pro. The stock JSON server can move a car but cannot set its load or destination, so STS writes a batch into a Memory and this script applies it. It never touches turnouts, signals or MQTT.</td></tr>
+            <tr><td><code>mimic_relay.py</code></td><td>Start Up, on <!--ja:hosts-mimic-relay-->the Pi only<!--/ja--></td><td>Publishes fake LCOS feedback for the mimic page, a test tool served by JMRI's web server. The page writes a request into the Memory <code>IMHART_MIMIC</code> and the script publishes it, retained, through JMRI's own MQTT connection. It only sends occupancy and switch position reports, never a switch command, so it cannot move a motor.</td></tr>
           </tbody>
         </table>
       </div>
       <p>
-        Deploying copies all six into the <code>jython</code> folder of the JMRI user files and points the profile's Start Up entries
-        at them, adding the entries for the last two, and JMRI finds them through its own <code>preference:jython/</code> path. Many other
+        Deploying copies each host's scripts into the <code>jython</code> folder of the JMRI user files and points the profile's Start Up entries
+        at them, adding the entries for the last two where they are installed, and JMRI finds them through its own <code>preference:jython/</code> path. Many other
         scripts exist, but they run offline to build the tables, not inside JMRI.
       </p>
       <p>
@@ -87,8 +88,8 @@
         <table class="roster jm-lamps jm-wrap">
           <thead><tr><th>In the profile</th><th>What it is</th></tr></thead>
           <tbody>
-            <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, Routes, LogixNG and the panel, including the status lamps. PanelPro loads it at startup. The main and upper levels have no reviewed field wiring yet, so they run on internal turnouts, block sensors and signal heads, each named after its switch, block or mast (block 101-103's sensor is <code>IS:HART:C3:B:101-103</code>). The block sensors are set clear when the tables load. A file in the repository, the device map, links each one to its planned field device, so a real device goes in by changing the map. <a href="tables-file.html">More on the tables file</a>.</td></tr>
-            <tr><td><code>jython/</code></td><td>The six scripts above.</td></tr>
+            <tr><td><code>tables.xml</code></td><td>The one tables file: blocks, turnouts, sensors, masts, Signal Mast Logic, LogixNG and the panel, including the status lamps. PanelPro loads it at startup. The main and upper levels have no reviewed field wiring yet, so they run on internal turnouts, block sensors and signal heads, each named after its switch, block or mast (block 101-103's sensor is <code>IS:HART:C3:B:101-103</code>). The block sensors are set clear when the tables load. A file in the repository, the device map, links each one to its planned field device, so a real device goes in by changing the map. <a href="tables-file.html">More on the tables file</a>.</td></tr>
+            <tr><td><code>jython/</code></td><td>The scripts above that the host runs.</td></tr>
             <tr><td>Start Up entries</td><td>Kept in the profile, so JMRI loads the tables and runs the scripts at launch. Deploy repoints the script entries and adds the two for the traffic simulator and the mimic.</td></tr>
             <tr><td><code>resources/buttons/</code></td><td>Button images: the 16-pixel triangle lamps of the retired yard-ladder buttons, and lamps used by the parked lever machine.</td></tr>
             <tr><td><code>resources/icons/USS/sensor/</code></td><td>Lamp icons used on the panels: our yellow pair. The amber icon is JMRI's own.</td></tr>
@@ -103,14 +104,15 @@
 
       <h2 id="two-brains">Who drives the mast lamps</h2>
       <p>
-        The railroad has 23 signal masts out on the layout. Their lamps are driven by small field
+        The device maps plan <!--ja:planned-masts-->79<!--/ja--> signal masts: <!--ja:planned-mu-->44<!--/ja--> on the main and upper levels and <!--ja:planned-staging-->35<!--/ja--> in staging.
+        <!--ja:planned-lit-->69<!--/ja--> of them get lamps; the other <!--ja:planned-hidden-->ten<!--/ja--> are hidden staging masts that only JMRI sees. The lamps are driven by small field
         electronics (the nodes described on <a href="bridge.html">LCOS and the Arduino bridge</a>, and
         listed in the <a href="../roster/index.html">device viewer</a>). Those electronics have signal logic of their own, and JMRI has Signal Mast Logic (SML). If both drove one lamp, they could disagree. And if a JMRI session crashed while it drove the lamps, they could freeze on whatever colour they last showed.
       </p>
       <p>
-        So one switch decides whether JMRI's logic or the field logic is in charge. It ticks or unticks the stock Enabled checkbox that each source-to-destination pair in SML already has. On the 23 field masts that is 44 destinations, all moved
-        together. The other 15 sources, with 54 destinations, have no field heads at all. They stay enabled. The set of field masts is not hard-coded: the script finds it from
-        the signals the field electronics report.
+        So one switch decides whether JMRI's logic or the field logic is in charge. It ticks or unticks the stock Enabled checkbox that each source-to-destination pair in SML already has. Today <!--ja:wired-masts-->one<!--/ja--> <!--ja:wired-masts-noun-->mast<!--/ja--> in the tables is wired to field heads, with <!--ja:wired-dests-->one<!--/ja--> destination, all moved
+        together. The other <!--ja:other-sources-->73<!--/ja--> sources, with <!--ja:other-dests-->137<!--/ja--> destinations, have no field heads yet. They stay enabled. The set of field masts is not hard-coded: the script finds it in the tables,
+        as the masts whose heads are LCOS heads, so each mast joins as its node is wired.
       </p>
       <p>
         The join between the two worlds is JMRI's virtual signal heads. SML sets the mast and its heads,
@@ -121,8 +123,8 @@
       </p>
       <ul>
         <li><strong>Signals ON.</strong> JMRI's logic decides every aspect and the script sends each
-          virtual head's colour out to the field. The <a href="../guides/cats-ctc.html">CATS</a> and
-          <a href="../guides/uss-ctc.html">USS</a> desks only hold or release masts.</li>
+          virtual head's colour out to the field. The <a href="../guides/cats-ctc.html">CATS</a> desks only hold or
+          release masts.</li>
         <li><strong>Signals OFF.</strong> The field logic decides. The script lets go of the heads and
           copies the field's status back onto the heads and masts, so the panels show what the lamps are
           really doing.</li>
@@ -131,7 +133,7 @@
       <figure>
         <svg class="jm-svg" viewBox="0 0 480 372" role="img" aria-labelledby="own-t own-d">
           <title id="own-t">Who drives the lamps in each mode</title>
-          <desc id="own-d">Three rows, each with JMRI on the left, the field masts' lamps in the middle and the field electronics on the right. With signals on, a solid arrow runs from JMRI to the lamps and the field electronics are idle. With signals off, a solid arrow runs from the field electronics to the lamps and a dashed arrow carries status back to JMRI. With one pair unchecked, the same as off, for one mast. In each row the CATS and USS desks reach the lamps only with a dashed Hold arrow.</desc>
+          <desc id="own-d">Three rows, each with JMRI on the left, the field masts' lamps in the middle and the field electronics on the right. With signals on, a solid arrow runs from JMRI to the lamps and the field electronics are idle. With signals off, a solid arrow runs from the field electronics to the lamps and a dashed arrow carries status back to JMRI. With one pair unchecked, the same as off, for one mast. In each row the CATS desks reach the lamps only with a dashed Hold arrow.</desc>
           <defs>
             <marker id="own-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head" d="M0 0 L10 5 L0 10 z"/></marker>
             <marker id="own-s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="head-soft" d="M0 0 L10 5 L0 10 z"/></marker>
@@ -147,7 +149,7 @@
           <text x="410" y="60" text-anchor="middle">Field logic</text><text class="t-s" x="410" y="77" text-anchor="middle">idle</text>
           <path class="line" d="M130 64 H178" marker-end="url(#own-a)"/>
           <rect class="pill" x="200" y="98" width="80" height="22" rx="11"/>
-          <text x="240" y="114" text-anchor="middle" style="font-size:12px">CATS / USS</text>
+          <text x="240" y="114" text-anchor="middle" style="font-size:12px">CATS desks</text>
           <path class="soft" d="M240 98 V88" marker-end="url(#own-s)"/>
           <text class="t-s" x="292" y="114">Hold only</text>
 
@@ -163,7 +165,7 @@
           <path class="soft" d="M240 214 V224 H70 V216" marker-end="url(#own-s)"/>
           <text class="t-s" x="155" y="240" text-anchor="middle">status mirrored</text>
           <rect class="pill" x="200" y="236" width="80" height="22" rx="11"/>
-          <text x="240" y="252" text-anchor="middle" style="font-size:12px">CATS / USS</text>
+          <text x="240" y="252" text-anchor="middle" style="font-size:12px">CATS desks</text>
           <path class="soft" d="M240 236 V226" marker-end="url(#own-s)"/>
           <text class="t-s" x="292" y="252">Hold only</text>
 
@@ -184,7 +186,7 @@
       </p>
       <p><strong>Switching JMRI on:</strong></p>
       <ol>
-        <li>Hold all 23 masts.</li>
+        <li>Hold the field masts.</li>
         <li>Wait about three seconds.</li>
         <li>Tick the pairs.</li>
         <li>Release the holds.</li>
@@ -289,7 +291,7 @@
           <thead><tr><th scope="col">Lamp</th><th scope="col">Green</th><th scope="col">Red</th><th scope="col">Amber</th><th scope="col">Click</th></tr></thead>
           <tbody>
             <tr><td>LCOS</td><td>Bridge link established</td><td>Not established</td><td>Click pending, or no report from the bridge yet (shown as "?")</td><td>Asks the bridge to sign up with the nodes again. If nothing arrives, the old colour returns after 2 seconds.</td></tr>
-            <tr><td>Turnouts</td><td>All two-sensor switches use feedback</td><td>All in direct mode</td><td>Mixed, or a click pending</td><td>Flips all 40 between feedback and direct. From mixed, goes to feedback.</td></tr>
+            <tr><td>Turnouts</td><td>All two-sensor switches use feedback</td><td>All in direct mode</td><td>Mixed, or a click pending</td><td>Flips all <!--ja:plant-turnouts-->40<!--/ja--> between feedback and direct. From mixed, goes to feedback.</td></tr>
             <tr><td>Signals</td><td>Signals on</td><td>Off, or this session does not own them</td><td>Hand-off under way</td><td>Same as the button. A watcher clears a stuck amber within about 20 seconds.</td></tr>
             <tr><td>Track Power</td><td>On</td><td>Off</td><td>Pending</td><td>Toggles the stock power manager; a listener keeps the lamp true.</td></tr>
           </tbody>
