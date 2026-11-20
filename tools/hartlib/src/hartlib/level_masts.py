@@ -108,3 +108,8 @@ def read(path: Path = PATH) -> list[dict]:
 
 def names(path: Path = PATH) -> set[str]:
     return {r["mast"] for r in read(path)}
+
+
+def visible_names(path: Path = PATH) -> set[str]:
+    """The masts a panel or desk draws: every row but the hidden virtual ones (is_level_virtual)."""
+    return {r["mast"] for r in read(path) if not is_level_virtual(r["system_name"])}
