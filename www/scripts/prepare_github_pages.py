@@ -532,6 +532,16 @@ def _mark_articles(records: list[dict], dest_root: Path) -> None:
 SEARCH_THUMB_PX = 80  # shown at 40 px; 2x for sharp screens
 
 
+def _search_thumb_stamp(dest: Path) -> bytes | None:
+    """The source stamp saved in a search copy's JPEG comment, or None when there is no readable copy."""
+    from PIL import Image
+    try:
+        with Image.open(dest) as im:
+            return im.info.get("comment")
+    except OSError:
+        return None
+
+
 def _search_thumbs(records: list[dict], dest_root: Path) -> None:
     """Point each record's thumb at a small square copy (assets/search/), so a results list does not pull
     640 px grid thumbnails. Without Pillow, or if a copy cannot be made, the record keeps the grid thumb."""
@@ -547,11 +557,20 @@ def _search_thumbs(records: list[dict], dest_root: Path) -> None:
         name = re.sub(r"[^a-z0-9]+", "-", Path(src).with_suffix("").as_posix().lower()).strip("-") + ".jpg"
         dest = out_dir / name
         try:
-            if not dest.is_file():
+            source = dest_root / src
+            try:
+                st = source.stat()
+                stamp = f"{st.st_size}:{st.st_mtime_ns}".encode()  # kept in the copy, so a replaced photo is noticed
+            except OSError:
+                stamp = None
+            if stamp is None:
+                if not dest.is_file():
+                    continue                                      # no source and no copy: keep the grid thumb
+            elif _search_thumb_stamp(dest) != stamp:
                 out_dir.mkdir(parents=True, exist_ok=True)
-                with Image.open(dest_root / src) as im:
+                with Image.open(source) as im:
                     small = ImageOps.fit(im.convert("RGB"), (SEARCH_THUMB_PX, SEARCH_THUMB_PX))
-                    small.save(dest, "JPEG", quality=78, optimize=True)
+                    small.save(dest, "JPEG", quality=78, optimize=True, comment=stamp)
             rec["thumb"] = dest.relative_to(dest_root).as_posix()
         except OSError:
             continue
