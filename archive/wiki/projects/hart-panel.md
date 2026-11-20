@@ -10,7 +10,7 @@
 
 - linear6 was the live hand-tuned panel (MQTT switches 100–119, CP labels Brick/Plane/East End/Princess).
 - hart forked that geometry; it did **not** re-run AnyRail → Excel → blocked panel.
-- Live SoR: [`../STATUS.md`](../STATUS.md) · Digicon: [`../../docs/ctc/HART_DIGICON_SYSTEM.md`](../../docs/ctc/HART_DIGICON_SYSTEM.md)
+- Live SoR: [`../STATUS.md`](../../../wiki/STATUS.md) · Digicon: [`../../docs/ctc/HART_DIGICON_SYSTEM.md`](../../../docs/ctc/HART_DIGICON_SYSTEM.md)
 
 ## Problem (original)
 
@@ -26,7 +26,7 @@ Best geometry and live wiring lived in an ad-hoc folder without a named layout p
 ## Outcomes (phases 0–2) — done
 
 1. Registered layout `hart` with standard tree + README.
-2. Panel derived from linear6 connectivity/positions; public names follow CP/OS + [ADR-005](../decisions/ADR-005-public-equipment-names.md).
+2. Panel derived from linear6 connectivity/positions; public names follow CP/OS + [ADR-005](../../../wiki/decisions/ADR-005-public-equipment-names.md).
 3. Public git repo with branch conventions for parallel agents.
 4. Wiki SoR + ADRs for identity, naming, and JMRI config isolation.
 
@@ -56,6 +56,6 @@ See ADRs 001–005.
 
 ## Related
 
-- ADRs: [`../decisions/`](../decisions/)
+- ADRs: [`../decisions/`](../../../wiki/decisions/)
 - Bootstrap (one-time, archived): `archive/jmri-scripts/bootstrap_hart_from_linear6.py`
 - Panel: `jmri/layouts/hart/`

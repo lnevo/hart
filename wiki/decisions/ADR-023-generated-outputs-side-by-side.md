@@ -6,7 +6,7 @@
 
 ## Context
 
-The schematic-maps plugin's logical view will feed more than the system schematic ([`projects/schematic-maps.md`](../projects/schematic-maps.md)):
+The schematic-maps plugin's logical view will feed more than the system schematic ([`pipelines/schematic-panels.md`](../pipelines/schematic-panels.md)):
 - a CATS panel for the main and upper levels (C1);
 - generated station pages (C2a and later);
 - a regenerated Layout Editor panel, which waits until the schematic is finished.

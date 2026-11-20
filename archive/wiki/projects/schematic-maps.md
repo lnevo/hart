@@ -2,7 +2,7 @@
 
 - **Owner:** lnevo
 - **Status:** Stage 0 done (2026-11-13). The spike in `tools/schematic/spike/` (draft PR #423) draws staging, the main level and the upper level on one sheet from the AnyRail export plus as-built edits and owner hints, with no crossings or overlaps; the owner approved the look. Next: the phases under "After the proof" below.
-- **Input layers:** plan overrides, generation rules and the owner's preferences are in [`../pipelines/schematic-panels.md`](../pipelines/schematic-panels.md); [`schematic-maps-handoff.md`](schematic-maps-handoff.md) is the dated history of the build.
+- **Input layers:** plan overrides, generation rules and the owner's preferences are in [`../pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md); [`schematic-maps-handoff.md`](schematic-maps-handoff.md) is the dated history of the build.
 - **Goal:** turn an AnyRail plan into a logical (not physical) view of the railroad and draw professional maps from it. First output: the one-page system schematic. The same logical view later feeds station map pages, deck track maps, the CATS panel and the Layout Editor import for the main levels.
 
 The generic tool and its skill go in the public `model-railroad-skills` plugin. HART's names, numbers and finished maps stay in this repo.
@@ -111,7 +111,7 @@ Part numbers (T…) are the plan's, as drawn in the spike's overlay picture.
 - **Rise.** The 2.1% grade from T285 (height 0, north side) to T262 (4.25 in, west wall), 521 cm, is as planned. It is now the only track between the height-0 main and the 4.25 in level.
 - **Main levels.** Not final; plan 5.3b is a draft. As-built changes go in an overrides file applied on top of the export.
 
-- **Timetable direction** follows the route, not the room ([ADR-022](../decisions/ADR-022-timetable-direction-follows-route.md)): eastward from staging stays eastward on every level, so every band has east on the right.
+- **Timetable direction** follows the route, not the room ([ADR-022](../../../wiki/decisions/ADR-022-timetable-direction-follows-route.md)): eastward from staging stays eastward on every level, so every band has east on the right.
 
 For the schematic this gives three bands: staging, the height-0 main, and the 4.25 in level (branch line, peninsula, double crossover), joined by the helix (two tracks) and the rise.
 

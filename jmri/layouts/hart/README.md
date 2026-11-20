@@ -2,7 +2,7 @@
 
 **Status:** Next-gen HART panel (phases 0–2) — naming + cleanup from linear6.
 
-**SoR:** [`wiki/projects/hart-panel.md`](../../../wiki/projects/hart-panel.md) · ADRs 001–003
+**SoR:** [`archive/wiki/projects/hart-panel.md`](../../../archive/wiki/projects/hart-panel.md) · ADRs 001–003
 
 ## Principles
 

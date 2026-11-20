@@ -36,7 +36,7 @@ The coordinator is the main session that picks up this file.
 
 ## W0. Coordinator setup (main session)
 
-1. Turn on auto-merge with `gh repo edit lnevo/hart --enable-auto-merge`. The owner approved this on 2026-11-20. Confirm it with `gh repo view lnevo/hart --json autoMergeAllowed`.
+1. Turn on auto-merge with `gh repo edit lnevo/hart --enable-auto-merge`. The owner approved this on 2026-11-20. Confirm it with `gh api repos/lnevo/hart --jq .allow_auto_merge`.
 2. Create `<scratchpad>/health/` and the status table.
 3. Launch Wave 1.
 
@@ -244,6 +244,16 @@ Each build PR runs `make panels CHECK=1`, the approval fingerprints rule and `ma
 3. confirms on the Mac that PanelPro and both CATS desks load the generated file.
 
 None of this runs while the operating flag is set.
+
+## Carried from the archived hand-offs (2026-11-20)
+
+These were still open when the older hand-offs went to `archive/wiki/projects/` ([`review-2026-11-19-handoff.md`](../../archive/wiki/projects/review-2026-11-19-handoff.md), [`architecture-followups-handoff.md`](../../archive/wiki/projects/architecture-followups-handoff.md)). Each is small and none is scheduled.
+
+- **Hand-typed names, phases 2 and 3 (owner, 2026-11-14):** the desk, Layout Editor and wiring generators still hold some track, block and mast names typed by hand. They wait for the import of the main and upper levels. Phase 0 (`tools/audit/check_name_copies.py` in `check.sh`) and phase 1 are done.
+- **`signal_number` at MP 6.6 and 6.7:** it gives 67/66 at MP 6.6 and 67/68 at MP 6.7, so two pairs a tenth apart share a westward name, and MP 9.8 westward returns 99 although the message says names stop at 98. Pinned by the `test_open_question_...` tests in `tools/schematic/tests/test_build_staging_masts.py`. The staging signal rule decides it.
+- **`sts_car_sync.py` line 239:** stock `ThreadingUtil.runOnGUI` logs and drops an exception raised off the GUI thread, so a failed batch answers `ok: true, saved: true`. Pinned as a known fault in `jmri/layouts/hart/scripts/tests/test_sts_car_sync_worker.py`; not fixed.
+- **Redeploy runs the preflight twice** when the commit already has it (`tools/hosts/sync_hart_package.sh`, `redeploy_commit.sh`).
+- **Main West turnback:** the owner's call, kept in `wiki/STATUS.md` under Owed.
 
 ## Done when
 

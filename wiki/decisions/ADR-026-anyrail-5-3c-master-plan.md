@@ -20,7 +20,7 @@ Plan 5.3c draws these as track and joins staging to the main level through the h
 - Phase 2 (2026-11-19) took the rest: the inputs, the helix (each level's share up to the -5 cm cut, `anyplan.py --cut -5 --stubs`, replacing `helix_length_in` with the same totals, so the masts kept their names) and the drop of the overrides 5.3c draws as track.
 
 **The schematic**
-- The schematic inputs in `jmri/layouts/hart/data/schematic/inputs/` come from 5.3c, read by `tools/anyrail/anyplan.py`, and the overrides 5.3c draws as track are dropped. The bring-in steps are in [`projects/anyrail-5-3c-handoff.md`](../projects/anyrail-5-3c-handoff.md).
+- The schematic inputs in `jmri/layouts/hart/data/schematic/inputs/` come from 5.3c, read by `tools/anyrail/anyplan.py`, and the overrides 5.3c draws as track are dropped. The bring-in steps are in [`archive/wiki/projects/anyrail-5-3c-handoff.md`](../../archive/wiki/projects/anyrail-5-3c-handoff.md).
 - `anyplan.py` reads a plan from the `.any` file itself, for any maker's track, and finds records by their shape instead of per-file tags or part names (PR #692).
 
 **Block lengths (owner, 2026-11-20)**

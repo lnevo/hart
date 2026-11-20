@@ -1,7 +1,7 @@
 # STS helpers cleanup
 
 - **Owner:** lnevo
-- **Hand-off:** [`sts-handoff-2026-11-18.md`](sts-handoff-2026-11-18.md) (Pi deploy of the HART-names change, then this plan).
+- **Hand-off:** [`archive/wiki/projects/sts-handoff-2026-11-18.md`](../../archive/wiki/projects/sts-handoff-2026-11-18.md) (Pi deploy of the HART-names change, then this plan).
 - **Status:** 2026-11-18. Done: the HART-names change is on the Pi after the owner's UAT check (sts-docker b44f2d5 with #19, sts-plugins a2884b4 with #6; #20 on top only changes a browser test). Step 1 merged as sts-helpers #9, step 2 as sts-plugins #7 and sts-helpers #10. Step 4 dropped by the owner: sts-helpers is not moved into sts-docker, nothing new is installed there, and `rewind_session.sh` and `sync_operational_steps.sh` stay as they are (the step 1 guard on `rewind_session.sh` stays; `sync_operational_steps.sh` is unguarded). Follow-ups the same day: sts-docker #21 (stale CLI references, the dead `weigh_failed` check and `warm_start_pending_pickup_ids` removed) and sts-helpers #11 (the sandbox guard also requires the API URL to be the checked container; scripts print the URL of the stack they ran on). Both passed the owner's UAT check and went on the Pi the same day: `pi_sts_update.sh --status` shows sts-docker 7040132 and sts-plugins c06f944, live `/health` is `live`, session 5. Nothing from this plan is left to deploy.
 - **Repos:** `external/sts-helpers` (lnevo/sts-docker-helpers, `main`), `external/sts-plugins` (lnevo/sts-plugins, `main`), `external/sts-docker` (lnevo/sts-docker, working line `active`). Each step is a PR in the submodule repo, then one hart PR moves the submodule pointers.
 
