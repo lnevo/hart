@@ -4,14 +4,14 @@
     python3 tools/audit/check_name_copies.py          # the checkout's tracked files
     python3 tools/audit/check_name_copies.py --list   # also print every file that holds a name
 
-A name is current when its row in jmri/layouts/hart/data/public_name_map.csv has
-current = proposed (the identity row), or, for a block, when tables.xml holds a block
+A name is current when its name-map row in jmri/layouts/hart/data/devices.csv (the rows with a
+pnm_order) is an identity row, or, for a block, when tables.xml holds a block
 with that user name (a block JMRI holds that the map has no identity row for yet;
 the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename adds a row with the old name as
 `current` and the new one as `proposed` (ADR-005), so after a rename the old name
 is no longer current, and every hand-kept copy of it fails here with its file and line.
 A `proposed` name that neither an identity row nor tables.xml holds is not current.
-Since 2026-11-20 public_name_map.csv is generated from devices.csv and holds no alias rows (ADR-029), so a track
+Since 2026-11-20 the name map is a view of devices.csv and holds no alias rows (ADR-029), so a track
 name that is no longer anything's is not matched at all: only a Mast, an OS Switch or a name the map or tables.xml
 still holds is checked. The rename checklist therefore greps for the old name itself.
 
@@ -23,7 +23,7 @@ What counts as a name:
     not current fails.
 
 Data files that key on a name (mast_cells.csv, switch_legs.csv, block_lengths.csv ...)
-are read: a rename has to change them too. Left out: the name map and tables.xml (the
+are read: a rename has to change them too. Left out: devices.csv and tables.xml (the
 sources), files a generator writes and a `--check` holds (SKIP_PREFIXES), tests, and the
 dated records in ALLOW, each with its reason (a key ending in "/" covers every file under that folder).
 Markdown is prose (the wiki and docs may keep a name; a record is not a copy) and is
@@ -32,7 +32,6 @@ not read. The rename checklist is in wiki/pipelines/switch-facts.md.
 from __future__ import annotations
 
 import argparse
-import csv
 import re
 import subprocess
 import sys
@@ -41,9 +40,9 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables  # noqa: E402
+from hartlib import devices, paths, tables  # noqa: E402
 
-NAME_MAP_REL = "jmri/layouts/hart/data/public_name_map.csv"
+DEVICES_REL = "jmri/layouts/hart/data/devices.csv"
 TABLES_REL = "jmri/layouts/hart/output/tables.xml"
 LAYERS = ("block", "mast")
 
@@ -52,14 +51,15 @@ LAYERS = ("block", "mast")
 SKIP_PREFIXES = (
     "archive/",                                   # retired material
     "reference/", "external/",                    # vendor and submodule source
-    NAME_MAP_REL,                                 # the source of the names, old ones included
+    DEVICES_REL,                                  # the source of the names
     TABLES_REL,                                   # JMRI's file; held to the map by the baselines
     "jmri/layouts/hart/data/baselines/",          # capture_public_name_baseline.py --check
     # the generated files of the schematic data; its hand-kept files (the staging device map, the overrides) are read
     "jmri/layouts/hart/data/schematic/staging.signals.json",          # build_signals.py --check
     "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
-    "jmri/layouts/hart/data/devices.csv",                             # the device master: it holds the names
-    "jmri/layouts/hart/data/schematic/device_map_main_upper.csv",     # build_device_map.py --check
+    "jmri/layouts/hart/data/public_name_map.csv",                     # generated from devices.csv (hartlib.devices check)
+    "jmri/layouts/hart/data/schematic/device_map_staging.csv",        # generated from devices.csv (hartlib.devices check)
+    "jmri/layouts/hart/data/schematic/device_map_main_upper.csv",     # generated from devices.csv (hartlib.devices check)
     "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
     "www/data/",                                  # build_tables_browser / build_layout_index --check
@@ -125,18 +125,18 @@ class Hit:
         return f"{self.path}:{self.line}: {self.name!r} is not a current name"
 
 
-def load_names(name_map: Path) -> tuple[set[str], set[str]]:
-    """(identity-row names, every name the map holds: the same set now that it has no alias rows) for blocks and masts."""
+def load_names(devices_csv: Path) -> tuple[set[str], set[str]]:
+    """(identity-row names, every name the map holds: the same set now that it has no alias rows) for blocks and masts,
+    from the name-map rows of devices.csv (hartlib.devices.name_map_lines). DevicesError when it cannot be read."""
     current: set[str] = set()
     known: set[str] = set()
-    with name_map.open(encoding="utf-8", newline="") as f:
-        for row in csv.DictReader(f):
-            if row["layer"] not in LAYERS:
-                continue
-            cur, new = row["current"].strip(), row["proposed"].strip()
-            known.update(n for n in (cur, new) if n)
-            if cur and cur == new:
-                current.add(cur)
+    for _line, row in devices.name_map_lines(devices_csv):
+        if row["layer"] not in LAYERS:
+            continue
+        cur, new = row["current"].strip(), row["proposed"].strip()
+        known.update(n for n in (cur, new) if n)
+        if cur and cur == new:
+            current.add(cur)
     return current, known
 
 
@@ -192,14 +192,14 @@ def readable(rel: str) -> bool:
             and not any(part in f"/{rel}" for part in SKIP_PARTS))
 
 
-def run(root: Path, files: list[str] | None = None, allow=None, name_map: Path | None = None,
+def run(root: Path, files: list[str] | None = None, allow=None, devices_csv: Path | None = None,
         tables_xml: Path | None = None):
     """(stale hits not in ALLOW, name copies per file read, the (file, name) ALLOW pairs used).
 
-    name_map and tables_xml default to the ones under root; a test passes edited copies.
+    devices_csv and tables_xml default to the ones under root; a test passes edited copies.
     """
     allow = ALLOW if allow is None else allow
-    current, known = load_names(name_map or root / NAME_MAP_REL)
+    current, known = load_names(devices_csv or root / DEVICES_REL)
     blocks = table_blocks(tables_xml or root / TABLES_REL)
     current |= blocks
     known |= blocks
@@ -248,7 +248,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--root", type=Path, default=paths.REPO_ROOT, help="checkout to read (default: this one)")
     ap.add_argument("--list", action="store_true", help="also print each file holding a name, with its count")
     args = ap.parse_args(argv)
-    hits, counts, used = run(args.root)
+    try:
+        hits, counts, used = run(args.root)
+    except devices.DevicesError as exc:
+        print(f"check_name_copies.py: {exc}", file=sys.stderr)
+        return 2
     if args.list:
         for rel, n in sorted(counts.items()):
             print(f"{n:5d} {rel}")

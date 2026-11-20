@@ -3,7 +3,7 @@
 The main and upper physical plant is not reviewed yet, so every main and upper turnout, block sensor, signal head and
 mast in tables.xml and on the CATS desks is an internal device whose system name comes from its own user name, never
 from the device map's draft physical address or from drawing order: adding a block or a switch elsewhere changes no
-other device's name. The device map (device_map_main_upper.csv, column jmri_name) maps each to its planned physical
+other device's name. The device master (devices.csv, column jmri_name) maps each to its planned physical
 device, so a physical device is later swapped in by that mapping alone.
 
 - Turnout "Switch <n>": TURNOUT_PREFIX + n (IT:HART:C3:107).

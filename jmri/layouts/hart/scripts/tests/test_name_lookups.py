@@ -101,16 +101,20 @@ class DispatcherVirtualsTest(unittest.TestCase):
     def test_virtual_boundary_masts_are_the_dispatcher_ones(self):
         audit = load("audit_panel_contracts")
         with tempfile.TemporaryDirectory() as tmp:
-            nm = Path(tmp) / "map.csv"
-            with nm.open("w", newline="", encoding="utf-8") as f:
-                w = csv.writer(f)
-                w.writerow(["layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes"])
-                w.writerow(["mast", "Mast 1A", "Mast 1A", "", "virtual $1001", "", "", ""])
-                w.writerow(["mast", "Mast 1B", "Mast 1B", "", "IH100", "", "", ""])
-                w.writerow(["mast", "Old 1C", "Mast 1C", "", "virtual $1002", "", "", "alias"])
-                w.writerow(["mast", "Mast 9Z", "Mast 9Z", "", "virtual $1009", "", "", "not a boundary"])
-            self.assertEqual({"Mast 1A"},
+            nm = Path(tmp) / "devices.csv"                 # a master of four name-map masts (it has no alias rows)
+            blank = dict.fromkeys(audit.devices.COLUMNS, "")
+            rows = [dict(blank, level="1", layer="mast", role="home", assignment="none",
+                         written_by="build_staging_masts.py", description="A mast of the test.",
+                         user_name=user, pnm_order=str(n), pnm_hardware=hardware, pnm_notes=notes)
+                    for n, (user, hardware, notes) in enumerate((("Mast 1A", "virtual $1001", ""),
+                                                                 ("Mast 1B", "IH100", ""),
+                                                                 ("Mast 1C", "virtual $1002", ""),
+                                                                 ("Mast 9Z", "virtual $1009", "not a boundary")), 1)]
+            nm.write_text(audit.devices.master_text(rows), encoding="utf-8")
+            self.assertEqual({"Mast 1A", "Mast 1C"},
                              audit.dispatcher_virtuals({"Mast 1A", "Mast 1B", "Mast 1C"}, nm))
+            with self.assertRaisesRegex(audit.devices.DevicesError, "cannot read it"):
+                audit.dispatcher_virtuals({"Mast 1A"}, Path(tmp) / "missing.csv")
 
     def test_repo_has_no_dispatcher_virtuals_now(self):
         # Pinned on purpose: a boundary or hardware change shows up here instead of moving silently.

@@ -19,14 +19,14 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import names, paths, railroad_facts, tables  # noqa: E402
+from hartlib import devices as device_master, names, paths, railroad_facts, tables  # noqa: E402
 from hartlib.names import row_comment  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = paths.REPO_ROOT
 
 PANEL = paths.TABLES_XML
-NAMES = paths.PUBLIC_NAME_MAP
+NAMES = paths.DEVICES
 CPS = paths.LAYOUT_DATA / "schematic" / "control_points_staging.csv"   # with switch_legs.csv: station_group_rows
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
@@ -48,31 +48,30 @@ def load_render_mod():
 
 def load_names(path: Path):
     by_hw, by_name = {}, {}
-    with path.open(encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            hist = "historical" in (row.get("notes") or "").lower()
-            hw = (row.get("hardware") or "").strip()
-            current = (row.get("current") or "").strip()
-            proposed = (row.get("proposed") or "").strip()
-            rec = {
-                "current": current,
-                "proposed": proposed,
-                "cp": row.get("cp") or "",
-                "hardware": hw,
-                "comment": row_comment(row),
-                "historical": hist,
-            }
+    for _line, row in device_master.name_map_lines(path):
+        hist = "historical" in (row.get("notes") or "").lower()
+        hw = (row.get("hardware") or "").strip()
+        current = (row.get("current") or "").strip()
+        proposed = (row.get("proposed") or "").strip()
+        rec = {
+            "current": current,
+            "proposed": proposed,
+            "cp": row.get("cp") or "",
+            "hardware": hw,
+            "comment": row_comment(row),
+            "historical": hist,
+        }
 
-            def prefer(store, key):
-                if not key:
-                    return
-                prev = store.get(key)
-                if prev is None or (prev.get("historical") and not hist):
-                    store[key] = rec
+        def prefer(store, key):
+            if not key:
+                return
+            prev = store.get(key)
+            if prev is None or (prev.get("historical") and not hist):
+                store[key] = rec
 
-            prefer(by_hw, hw)
-            prefer(by_name, current)
-            prefer(by_name, proposed)
+        prefer(by_hw, hw)
+        prefer(by_name, current)
+        prefer(by_name, proposed)
     return by_hw, by_name
 
 

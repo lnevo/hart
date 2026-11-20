@@ -55,7 +55,7 @@ worktree never reads the main checkout's tables.xml.
 | `LAYOUT_DIR`, `LAYOUT_DATA`, `LAYOUT_OUTPUT`, `LAYOUT_SCRIPTS` | `jmri/layouts/hart/` and its `data/`, `output/`, `scripts/` |
 | `TABLES_XML` | `jmri/layouts/hart/output/tables.xml` (ADR-008), or the file `HART_TABLES` names |
 | `REPO_TABLES_XML` | always `jmri/layouts/hart/output/tables.xml` |
-| `PUBLIC_NAME_MAP` | `jmri/layouts/hart/data/public_name_map.csv` |
+| `DEVICES` | `jmri/layouts/hart/data/devices.csv`, the device master (`hartlib.devices`) |
 | `SIGNAL_WIRING` | `docs/wiring/signals/signal_wiring.csv` |
 | `CATS_DIR` | `cats/` |
 | `JMRI_USER_FILES` | `~/JMRI_UserFiles` (ADR-014) |
@@ -121,7 +121,7 @@ rr.check()                                # [Problem(invariant, message)]
 ```
 
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
-`switches.csv`, `switch_legs.csv`, `public_name_map.csv`, `interlockings.csv` (every level),
+`switches.csv`, `switch_legs.csv`, the name map of `devices.csv`, `interlockings.csv` (every level),
 `local_switches_main_upper.csv`, `lcos_nodes_main_upper.csv`, `main_upper.plan_overrides.json`, `block_lengths.csv`,
 `schematic/staging_masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
@@ -148,9 +148,11 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 
 `jmri/layouts/hart/data/devices.csv` is the one device master for all three levels (ADR-029); `devices.columns.csv`
 describes every column and a test holds the two to each other both ways. Staging, main and upper are one structure,
-a level differs in column values only. Until the readers move over, `device_map_staging.csv`,
-`device_map_main_upper.csv` and `public_name_map.csv` are generated from it and `tools/check.sh` fails on any
-difference. The name map has no alias rows (they and the retired identity rows were dropped 2026-11-20).
+a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `device_map_lines`
+(the old device-map rows of some levels, plus `role`) and `name_map_lines` (the name-map rows, from the `pnm_`
+columns); nothing else reads `device_map_staging.csv`, `device_map_main_upper.csv` or `public_name_map.csv`. They stay
+generated from the master until R9e, and `tools/check.sh` fails on any difference. The name map has no alias rows
+(they and the retired identity rows were dropped 2026-11-20). Readers test `role`, never a name prefix.
 
 - `assignment` is `field`, `virtual`, `none` or `spare`; `role` says what the device is; `written_by` is empty for a
   hand-kept row, else a script in `devices.WRITERS` (the one list). A writer replaces only its own rows
@@ -161,7 +163,9 @@ difference. The name map has no alias rows (they and the retired identity rows w
 - Writers call `outputs_after(writer, old_form_rows)` (or `outputs_after_rows` with master rows) and write the texts it
   gives: the master and the three generated files. Nothing is written until every check has passed.
 - `python3 -m hartlib.devices check` and `regenerate`. Errors are `DevicesError` (a `FactsError`).
-- The `pnm_*` columns hold what `public_name_map.csv` carried and go with that file.
+- The `pnm_*` columns hold what `public_name_map.csv` carried and go with that file. They are no builder's output:
+  a builder's rewrite carries them over from the row it replaces, so `set_pnm_comments` (the wiring comment of a
+  head, from `refresh_bean_comments.py`) may change `pnm_comment` of a row a builder holds, and `written_by` stays.
 
 ### `hartlib.level_masts`
 
@@ -221,7 +225,7 @@ and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a
 
 ### `hartlib.names`
 
-`public_name_map.csv` keeps a turnout's DCC address in its own `dcc` column; JMRI's
+The name map of `devices.csv` keeps a turnout's DCC address in its own `dcc` column; JMRI's
 comment carries it as the second group (`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2`).
 `row_comment(row)` gives the JMRI comment for a map row, `jmri_comment(comment, dcc)` builds
 one, and `split_dcc(comment)` takes the group out of a JMRI or Device-map comment. Read the

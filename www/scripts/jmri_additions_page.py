@@ -7,7 +7,7 @@ railroad's data with a region:
 
 fill() replaces each region's contents with the value read from the checkout:
 
-- the masts the device maps plan (device_map_main_upper.csv, device_map_staging.csv), split into those with
+- the masts the device master plans (devices.csv, all levels), split into those with
   lamps and the hidden staging masts (virtual, IF$vsm);
 - the masts signal_coordinator.py hands over (those whose heads are LCOS heads, IH plus node and signal number, the
   same rule as its _collect_beans) and their Signal Mast Logic destinations in tables.xml, against the rest;
@@ -25,7 +25,6 @@ prepare_github_pages.py fills the built copy on every site build.
 """
 from __future__ import annotations
 
-import csv
 import xml.etree.ElementTree as ET
 import re
 import sys
@@ -33,12 +32,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
-from hartlib import tables as T  # noqa: E402
+from hartlib import devices, tables as T  # noqa: E402
 
 PAGE_REL = "behind/jmri-additions.html"
 REGION = re.compile(r"<!--ja:([a-z0-9-]+)-->(.*?)<!--/ja-->", re.S)
-SCHEMATIC = "jmri/layouts/hart/data/schematic"
-DEVICE_MAPS = {"main and upper": SCHEMATIC + "/device_map_main_upper.csv", "staging": SCHEMATIC + "/device_map_staging.csv"}
+DEVICES = "jmri/layouts/hart/data/devices.csv"
+DEVICE_LEVELS = {"main and upper": ("2", "3"), "staging": ("1",)}      # the master's levels of each group of masts
 COORDINATOR = "jmri/scripts/signal_coordinator.py"
 TABLES = "jmri/layouts/hart/output/tables.xml"
 HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
@@ -115,11 +114,10 @@ def facts(root: Path = ROOT) -> dict:
 
 def _facts(root: Path) -> dict:
     planned = {}
-    for label, rel in DEVICE_MAPS.items():
-        with (root / rel).open(newline="", encoding="utf-8") as fh:
-            planned[label] = [r for r in csv.DictReader(fh) if r["layer"] == "mast"]
+    for label, levels in DEVICE_LEVELS.items():
+        planned[label] = [r for _line, r in devices.device_map_lines(levels, root / DEVICES) if r["layer"] == "mast"]
     masts = [m for rows in planned.values() for m in rows]
-    hidden = [m for m in masts if m["system_name"].startswith("IF$vsm")]
+    hidden = [m for m in masts if m["role"] == "hidden"]
 
     lo, hi = _lcos_range(root)
     tab = T.read(root / TABLES)

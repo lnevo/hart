@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Write LCOS_Layout_Inventory_v86.xlsx: v85 with the main and upper levels from the device map.
+"""Write LCOS_Layout_Inventory_v86.xlsx: v85 with the main and upper levels from the device master.
 
     python3 tools/wiring/add_main_upper_levels.py           # write v86
     python3 tools/wiring/add_main_upper_levels.py --check   # exit 1 if v86 differs from what v85 + the map give
 
 Runs after refresh_wiring_docs.py (which writes v85, staging only). Reads:
   docs/wiring/LCOS_Layout_Inventory_v85.xlsx
-  jmri/layouts/hart/data/schematic/device_map_main_upper.csv   (tools/schematic/build_device_map.py)
+  jmri/layouts/hart/data/devices.csv   (levels 2 and 3; tools/schematic/build_device_map.py writes them)
   jmri/layouts/hart/data/schematic/lcos_nodes_main_upper.csv  (each node's level and area)
 
 v85 still carries the August 2026 upper-deck plan, drawn for an older track plan: nodes C14, C21, C22, C23, C24
@@ -30,14 +30,15 @@ from openpyxl.styles import PatternFill
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib.railroad import DEVICE_COLUMNS, FactsError, read_rows  # noqa: E402
+from hartlib import devices  # noqa: E402
+from hartlib.railroad import FactsError, read_rows  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 WIRING = ROOT / "docs/wiring"
 SRC = WIRING / "LCOS_Layout_Inventory_v85.xlsx"
 OUT = WIRING / "LCOS_Layout_Inventory_v86.xlsx"
 DATA = ROOT / "jmri/layouts/hart/data/schematic"
-DEVICE_MAP = DATA / "device_map_main_upper.csv"
+DEVICE_MAP = DATA.parent / "devices.csv"
 NODES = DATA / "lcos_nodes_main_upper.csv"
 
 OLD_UPPER = {"C14", "C21", "C22", "C23", "C24", "C32"}       # the August 2026 upper-deck nodes
@@ -49,9 +50,9 @@ NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
 
 
 def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
-    """The device map's rows. comment and trial_name are required here, beyond what hartlib's own reader needs: the
-    ports and the Switch Elements names are read from them on every row."""
-    return [r for _line, r in read_rows(path, DEVICE_COLUMNS[:10] + ("switch",), optional=DEVICE_COLUMNS[10:])]
+    """The main and upper rows of the master (hartlib.devices.device_map_lines), values stripped. The ports and the
+    Switch Elements names are read from comment and trial_name on every row."""
+    return [{c: v.strip() for c, v in r.items()} for _line, r in devices.device_map_lines(("2", "3"), path)]
 
 
 def read_node_rows(path: Path = NODES) -> list[dict]:

@@ -22,7 +22,7 @@ Heads are internal, from the mast's name (IH:HART:C1:<n><L|R>[A|B][_Top|_Bottom]
 and upper the same way under C3), so nothing unwired reaches MQTT: signal_coordinator.py publishes only IH and
 digits.
 
-A wired head is read from device_map_staging.csv itself, as main and upper swap a physical device in through the
+A wired head is read from the level 1 rows of devices.csv itself, as main and upper swap a physical device in through the
 device map's jmri_name (build_device_map.py): a head row whose jmri_name is not the internal name of its user name is
 wired (today one: Head 6LB on IH432, Switch 5, owner 2026-11-18), and the rebuild keeps it, with its node and notes.
 The build stops on a head row whose system_name and jmri_name differ, a wired head that is not an LCOS head (IH and
@@ -37,8 +37,8 @@ retired_virtual_masts.csv.
 
 Writes (jmri/layouts/hart/data/schematic/): staging_masts.csv, staging_signals.csv, and the staging mast and head
 rows of ../devices.csv (written_by build_staging_masts.py; hartlib.devices holds it to those rows), then the three
-files devices.csv generates, device_map_staging.csv among them (each mast and head row's system_name and jmri_name
-are its JMRI name; there is no planned physical head for the internal ones).
+files devices.csv generates, device_map_staging.csv among them (read by no builder; each mast and head row's
+system_name and jmri_name are its JMRI name; there is no planned physical head for the internal ones).
 """
 from __future__ import annotations
 
@@ -67,7 +67,7 @@ WRITES = ("mast", "head")              # the layers of the devices.csv rows this
 
 def device_files() -> devices.Files:
     """The master and its generated files as build() uses them: DEVICE_MAP, as it is when it runs (a test may patch it)."""
-    return devices.Files.under(DEVICE_MAP.parent.parent)
+    return devices.Files.under(DEVICE_MAP.parent)
 CPS, OVERRIDES = sdm.CPS, sdm.OVERRIDES
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
 SPLIT = DATA / "block_splits.csv"            # the owner's block splits, every level (none on staging)
@@ -326,7 +326,7 @@ def mast_node(mast: str, old: dict | None, heads: dict) -> str:
 
 
 def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict], wired: dict) -> list[dict]:
-    """device_map_staging.csv with its mast and head rows replaced: one mast row per mast (generated and virtual) and
+    """The staging device-map rows with their mast and head rows replaced: one mast row per mast (generated and virtual) and
     one head row per head of a visible mast, every name its JMRI name; a wired mast keeps its node (mast_node), a
     wired head its node and notes (wired_heads); other rows unchanged and in place. RuleError if a wired head would be
     dropped."""

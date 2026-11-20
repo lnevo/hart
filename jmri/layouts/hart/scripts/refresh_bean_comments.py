@@ -22,6 +22,7 @@ from hartlib.names import jmri_comment, row_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
+from lcc_turnout_contract import identity_lcc_rows  # noqa: E402  the one reader of the MTT rows of the name map
 
 SIGNAL_WIRING = paths.SIGNAL_WIRING
 SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
@@ -56,7 +57,7 @@ def section_direction_comment(system_name: str, names: dict[str, str] | None = N
     name = (names if names is not None else section_names()).get(section)
     where = f"{name} ({section})" if name else section
     return f"SML section {direction} direction: {where}"
-PUBLIC_NAME_MAP = paths.PUBLIC_NAME_MAP
+DEVICES = paths.DEVICES
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
 # Mid:   "Node: 4 | OU-1: Port: 1,2 | DCC: 100"
@@ -255,8 +256,8 @@ def load_wiring_head_comments(
 
 def sync_map_head_comments(files: devices.Files | None = None) -> int:
     """Write the wiring comments onto the head rows' pnm_comment column of devices.csv, then regenerate the files it
-    generates. Returns the rows changed. DevicesError, naming the writer, when a row to change is held by a script
-    (only hand-kept rows are this script's)."""
+    generates. Returns the rows changed. The head rows belong to build_staging_masts.py and stay its (written_by is
+    not touched): pnm_comment is no builder's output, and a rebuild carries it over (devices.set_pnm_comments)."""
     files = files or devices.Files.here()
     comments = load_wiring_head_comments()
     if not comments:
@@ -449,22 +450,8 @@ SPECIAL_SENSOR_USERNAMES = {
 
 
 def load_mtt_usernames() -> dict[str, str]:
-    """Identity-row userNames for MTT* (device map: DCC Switch N)."""
-    out: dict[str, str] = {}
-    if not PUBLIC_NAME_MAP.is_file():
-        return out
-    with PUBLIC_NAME_MAP.open(newline="", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            if (row.get("layer") or "").strip() != "turnout":
-                continue
-            current = (row.get("current") or "").strip()
-            proposed = (row.get("proposed") or "").strip()
-            if not current or current != proposed:
-                continue
-            for token in (row.get("hardware") or "").split():
-                if token.startswith("MTT"):
-                    out[token] = proposed
-    return out
+    """Identity-row userNames for MTT* (device master: DCC Switch N), from lcc_turnout_contract.identity_lcc_rows."""
+    return {token: user for token, (user, _comment) in identity_lcc_rows(DEVICES).items()}
 
 
 MTT_USERNAMES = load_mtt_usernames()
@@ -758,8 +745,8 @@ def ctc_comment(system_name: str) -> str | None:
 
 
 def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], str]]:
-    """Identity-row comments from public_name_map.csv (HART Device map)."""
-    path = paths.PUBLIC_NAME_MAP
+    """Identity-row comments from the name map of devices.csv (hartlib.devices.name_map_lines)."""
+    path = DEVICES
     by_sys: dict[str, str] = {}
     by_user: dict[tuple[str, str], str] = {}
     if not path.is_file():
@@ -773,22 +760,21 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
         "mast": "signalmast",
         "block": "block",
     }
-    with path.open(newline="", encoding="utf-8") as handle:
-        for row in csv.DictReader(handle):
-            current = (row.get("current") or "").strip()
-            proposed = (row.get("proposed") or "").strip()
-            layer = (row.get("layer") or "").strip()
-            comment = public_comment(layer, proposed, row_comment(row))
-            if not comment or current != proposed:
-                continue
-            for token in (row.get("hardware") or "").split():
-                if token.startswith(("M2T", "M2S", "IH", "MTT")):
-                    by_sys[token] = comment
-            xml_kind = layer_kind.get(layer)
-            if xml_kind:
-                by_user[(xml_kind, proposed)] = comment
-                if xml_kind == "signalmast":
-                    by_user[("virtualsignalmast", proposed)] = comment
+    for _line, row in devices.name_map_lines(path):
+        current = (row.get("current") or "").strip()
+        proposed = (row.get("proposed") or "").strip()
+        layer = (row.get("layer") or "").strip()
+        comment = public_comment(layer, proposed, row_comment(row))
+        if not comment or current != proposed:
+            continue
+        for token in (row.get("hardware") or "").split():
+            if token.startswith(("M2T", "M2S", "IH", "MTT")):
+                by_sys[token] = comment
+        xml_kind = layer_kind.get(layer)
+        if xml_kind:
+            by_user[(xml_kind, proposed)] = comment
+            if xml_kind == "signalmast":
+                by_user[("virtualsignalmast", proposed)] = comment
     return by_sys, by_user
 
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 import unittest
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -9,7 +10,10 @@ from pathlib import Path
 
 
 HART_ROOT = Path(__file__).resolve().parents[2]
-CSV_PATH = HART_ROOT / "data" / "public_name_map.csv"
+sys.path[:0] = [str(HART_ROOT.parents[2] / "tools" / "hartlib" / "src")]
+from hartlib import devices  # noqa: E402
+
+CSV_PATH = HART_ROOT / "data" / "devices.csv"      # the name map is the rows of the master that have a pnm_order
 TABLES_PATH = HART_ROOT / "output" / "tables.xml"
 BASELINE_PATH = HART_ROOT / "data" / "baselines" / "hardware_identity.csv"
 
@@ -45,22 +49,13 @@ HARDWARE_TOKEN_RE = re.compile(
 
 
 def load_csv_rows() -> list[dict[str, str]]:
-    with CSV_PATH.open(newline="", encoding="utf-8") as handle:
-        reader = csv.DictReader(handle)
-        if reader.fieldnames is None:
-            raise AssertionError(f"{CSV_PATH}: missing header row")
-        missing = [column for column in REQUIRED_COLUMNS if column not in reader.fieldnames]
+    """The name-map rows of the master (hartlib.devices.name_map_lines), values stripped."""
+    rows = [{key: value.strip() for key, value in row.items()} for _line, row in devices.name_map_lines(CSV_PATH)]
+    if rows:
+        missing = [column for column in REQUIRED_COLUMNS + (COMMENT_COLUMN,) if column not in rows[0]]
         if missing:
-            raise AssertionError(f"{CSV_PATH}: missing columns {missing}")
-        rows: list[dict[str, str]] = []
-        for row in reader:
-            normalized = {
-                key: (value or "").strip()
-                for key, value in row.items()
-                if key is not None
-            }
-            rows.append(normalized)
-        return rows
+            raise AssertionError(f"{CSV_PATH}: the name map misses columns {missing}")
+    return rows
 
 
 def hardware_tokens(hardware: str) -> list[str]:
@@ -102,19 +97,9 @@ class PublicNameMapContractTest(unittest.TestCase):
 
     def test_csv_well_formed_required_columns(self) -> None:
         self.assertTrue(CSV_PATH.is_file(), f"missing {CSV_PATH}")
-        with CSV_PATH.open(newline="", encoding="utf-8") as handle:
-            reader = csv.DictReader(handle)
-            self.assertIsNotNone(reader.fieldnames)
-            assert reader.fieldnames is not None
-            self.assertEqual(
-                list(reader.fieldnames[: len(REQUIRED_COLUMNS)]),
-                list(REQUIRED_COLUMNS),
-                "required columns must appear first in header order",
-            )
-            for column in REQUIRED_COLUMNS:
-                self.assertIn(column, reader.fieldnames)
-            self.assertIn(COMMENT_COLUMN, reader.fieldnames)
-        self.assertGreater(len(self.rows), 0, "CSV must contain data rows")
+        for column in REQUIRED_COLUMNS + (COMMENT_COLUMN,):
+            self.assertIn(column, self.rows[0])
+        self.assertGreater(len(self.rows), 0, "the master must hold name-map rows")
 
     def test_live_mqtt_turnouts_are_identity_rows(self) -> None:
         """Post-convert: live Switch N is current == proposed, not Switch 100."""

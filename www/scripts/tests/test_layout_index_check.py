@@ -21,6 +21,21 @@ import build_cats_layout_index as cats_index  # noqa: E402
 import build_layout_index as le_index  # noqa: E402
 
 
+class NamesFromTheMasterTest(unittest.TestCase):
+    """load_names reads the name-map rows of devices.csv, one place (hartlib.devices)."""
+
+    def test_the_committed_master_names_a_switch_by_hardware_and_name(self) -> None:
+        by_hw, by_name = le_index.load_names(le_index.NAMES)
+        self.assertEqual(by_hw["M2T408"]["proposed"], "Switch 1")
+        self.assertEqual(by_name["Switch 1"]["cp"], "Brick")
+        self.assertEqual(by_name["Switch 1"]["comment"], by_hw["M2T408"]["comment"])
+        self.assertIn("DCC: 100", by_hw["M2T408"]["comment"])
+
+    def test_a_master_that_cannot_be_read_stops(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(Exception, "cannot read it"):
+            le_index.load_names(Path(tmp) / "missing.csv")
+
+
 class LayoutIndexCheckTest(unittest.TestCase):
     def check(self, mod, out: Path | None = None) -> tuple[int, str]:
         err = io.StringIO()

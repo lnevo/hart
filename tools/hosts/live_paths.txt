@@ -33,9 +33,8 @@ tools/mqtt-mimic/lcos_mqtt_mimic.py
 tools/hartlib/src
 cats/data/occupancy_bindings.csv
 docs/wiring/signals/signal_head_plan.csv
-jmri/layouts/hart/data/public_name_map.csv
+jmri/layouts/hart/data/devices.csv
 jmri/layouts/hart/data/schematic/interlockings.csv
-jmri/layouts/hart/data/schematic/device_map_main_upper.csv
 jmri/layouts/hart/data/schematic/local_switches_main_upper.csv
 jmri/scripts/signal_coordinator.py
 jmri/layouts/hart/scripts/panel_status.py

@@ -24,9 +24,10 @@ def sw(label, **legs):
 
 
 def row(layer, user, system, jmri, notes="", **facts):
-    """A device map row (build_device_map.COLUMNS) of staging."""
+    """A device map row (build_device_map.COLUMNS, and its role) of staging."""
     return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
-                comment="", trial_name="", notes=notes, **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
+                comment="", trial_name="", notes=notes, role=sdm.devices.role_of(layer, user, system, jmri),
+                **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
 
 
 class SwitchFacts(unittest.TestCase):
@@ -228,12 +229,11 @@ class Files(unittest.TestCase):
     def _copy(self, edit):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        with sdm.DEVICE_MAP.open(newline="") as f:
-            rows = list(csv.DictReader(f))
+        rows = [dict(r) for r in sdm.devices.load(sdm.DEVICE_MAP)]        # the master's rows, whole
         edit(rows)
-        out = tmp / "device_map_staging.csv"
-        out.write_text(sdm.bdm.csv_text(rows), encoding="utf-8")
-        return out, rows
+        out = tmp / "devices.csv"
+        out.write_text(sdm.devices.master_text(rows), encoding="utf-8")
+        return out, sdm.read_device_rows(out)
 
     def _without(self, ph):
         def edit(rows):
@@ -253,7 +253,8 @@ class Files(unittest.TestCase):
         from hartlib import railroad
 
         def edit(rows):
-            next(r for r in rows if r["user_name"] == "Switch 1")["system_name"] = "M2T999"
+            hit = next(r for r in rows if r["user_name"] == "Switch 1")
+            hit["system_name"] = hit["jmri_name"] = "M2T999"       # a field device: the two are one
         _out, rows = self._copy(edit)
         bad = sdm.check_tables(rows, railroad.Railroad())
         self.assertTrue(any("turnout Switch 1: tables.xml has 'M2T408', not M2T999" in b for b in bad), bad)

@@ -1,5 +1,4 @@
 """hartlib.names: the map's dcc column goes back into the JMRI comment where it was."""
-import csv
 import re
 import sys
 import unittest
@@ -8,7 +7,7 @@ from pathlib import Path
 HERE = Path(__file__).resolve()
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 
-from hartlib import names, paths, tables  # noqa: E402
+from hartlib import devices, names, paths, tables  # noqa: E402
 
 
 class CommentTest(unittest.TestCase):
@@ -32,16 +31,14 @@ class CommentTest(unittest.TestCase):
                 names.split_dcc(odd)
 
     def test_every_map_row_round_trips_exactly(self):
-        with paths.PUBLIC_NAME_MAP.open(newline="", encoding="utf-8") as fh:
-            for row in csv.DictReader(fh):
-                jmri = names.row_comment(row)
-                with self.subTest(row=row["current"]):
-                    self.assertEqual(names.split_dcc(jmri), (row["comment"], row["dcc"]))
-                    self.assertEqual(names.jmri_comment(*names.split_dcc(jmri)), jmri)
+        for _line, row in devices.name_map_lines():
+            jmri = names.row_comment(row)
+            with self.subTest(row=row["current"]):
+                self.assertEqual(names.split_dcc(jmri), (row["comment"], row["dcc"]))
+                self.assertEqual(names.jmri_comment(*names.split_dcc(jmri)), jmri)
 
     def test_map_comments_carry_no_dcc(self):
-        with paths.PUBLIC_NAME_MAP.open(newline="", encoding="utf-8") as fh:
-            rows = list(csv.DictReader(fh))
+        rows = [row for _line, row in devices.name_map_lines()]
         self.assertIn("dcc", rows[0])
         for row in rows:
             with self.subTest(row=row["current"]):
@@ -49,9 +46,8 @@ class CommentTest(unittest.TestCase):
                 self.assertRegex(row["dcc"], r"^(\d+)?$")
 
     def test_every_mqtt_turnout_comment_in_tables_xml_comes_from_the_map(self):
-        with paths.PUBLIC_NAME_MAP.open(newline="", encoding="utf-8") as fh:
-            want = {row["hardware"]: names.row_comment(row) for row in csv.DictReader(fh)
-                    if row["layer"] == "turnout" and row["current"] == row["proposed"] and row["dcc"]}
+        want = {row["hardware"]: names.row_comment(row) for _line, row in devices.name_map_lines()
+                if row["layer"] == "turnout" and row["current"] == row["proposed"] and row["dcc"]}
         root = tables.read(paths.TABLES_XML)
         have = {tables.system_name(t): tables.text(t, "comment") for t in tables.turnouts(root)
                 if re.search(r"DCC:\s*\d", tables.text(t, "comment"))}

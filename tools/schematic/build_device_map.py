@@ -29,7 +29,7 @@ Outputs:
   bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
 - devices.csv (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
-  device_map_main_upper.csv, which devices.csv generates, then holds the same rows. It is the one mapping from each
+  device_map_main_upper.csv is a generated copy of them (nothing reads it; R9e retires it). The rows are the one mapping from each
   main and upper JMRI device to its planned physical part. Per
   row: the user name under ADR-005; jmri_name, the virtual device tables.xml and the CATS desks use now; system_name,
   the planned physical device (LCOS, a DRAFT: the main and upper plant is not reviewed yet, owner 2026-11-17). Later
@@ -127,7 +127,7 @@ CPS = SOURCES.interlockings
 NODES = SOURCES.lcos_nodes
 LOCAL = SOURCES.local_switches
 OVERRIDES = SOURCES.plan_overrides
-OUT = SOURCES.device_map
+OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
 LEVELS = band_levels(json.loads(OVERRIDES.read_text(encoding="utf-8")))     # {band title: level} of main and upper
 SPLIT = OVERRIDES.parent / "block_splits.csv"     # the owner's choice of tracks parted into two blocks (all levels)
 PINS = OVERRIDES.parent / "detector_pins_main_upper.csv"         # detectors the owner placed on a given node input
@@ -141,13 +141,13 @@ PIN_COLUMNS = TRACK_KEY_COLUMNS + ["half", "block", "node", "block_input", "note
 
 def device_files() -> devices.Files:
     """The master and its generated files as main() writes them: OUT, as it is when it runs (a test may patch it)."""
-    return devices.Files.under(OUT.parent.parent)
+    return devices.Files.under(OUT.parent)
 
 
 def sources() -> railroad.Sources:
     """The files main() reads and writes: the module's paths as they are when it runs (a test may patch them)."""
     return railroad.Sources.under().but(interlockings=CPS, lcos_nodes=NODES, local_switches=LOCAL,
-                                        plan_overrides=OVERRIDES, device_map=OUT)
+                                        plan_overrides=OVERRIDES, devices=OUT)
 
 SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}

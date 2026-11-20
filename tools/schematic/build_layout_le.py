@@ -13,9 +13,9 @@ tables_layout_staging.xml of staging alone), are retired (owner, 2026-11-17): th
 without --as-live stops and says so.
 
 One input path (owner, 2026-11-17, the device-map switch-over). Every level is drawn from its device map: staging
-from device_map_staging.csv, control_points_staging.csv and staging_masts.csv (staging_device_map.load: each switch's
+from the level 1 rows of devices.csv, control_points_staging.csv and staging_masts.csv (staging_device_map.load: each switch's
 turnout and OS block, each track's blocks in order by the drawing's keys, each switch's normal leg from
-switch_legs.csv, its turnout ident from switches.csv), main and upper from device_map_main_upper.csv and
+switch_legs.csv, its turnout ident from switches.csv), main and upper from the rest of devices.csv and
 main_upper_masts.csv (level_names, level_masts). The panel's own icons and labels, and its attributes, are
 panel_items.json (panel_items.py): the status cluster panel_status.py drives, the frame captions, the helix
 destination labels and the backdrop, each tied to the staging track. The occupancy lamps and station clusters are

@@ -1,4 +1,4 @@
-"""public_name_map.csv: the DCC address column and the JMRI comment a row stands for.
+"""The name map of devices.csv: the DCC address column and the JMRI comment a row stands for.
 
 The map keeps a turnout's DCC address in its own ``dcc`` column and the rest of the
 wiring text in ``comment``. JMRI's turnout comment carries the address as the group
@@ -56,5 +56,5 @@ def split_dcc(comment: str) -> tuple[str, str]:
 
 
 def row_comment(row: dict) -> str:
-    """The JMRI comment for a public_name_map.csv row (a csv.DictReader dict)."""
+    """The JMRI comment for a name-map row (a dict with dcc and comment)."""
     return jmri_comment(row.get("comment") or "", row.get("dcc") or "")

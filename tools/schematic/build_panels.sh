@@ -12,11 +12,11 @@
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
 #                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
 #   staging-masts         staging_masts.csv, staging_signals.csv and the devices.csv rows of the staging masts and
-#                         heads (device_map_staging.csv is generated from them) are written by build_staging_masts.py,
+#                         heads (device_map_staging.csv is a generated copy of devices.csv) are written by build_staging_masts.py,
 #                         run by hand: this only checks them (--check), in both modes
 #   staging-sync          tables.xml follows staging_masts.csv through sync_staging_signals.py, run by hand with JMRI
 #                         closed (it edits tables.xml): this only checks it (--check), in both modes
-#   staging-map           device_map_staging.csv (its mast and head rows aside) is kept by hand: the staging files
+#   staging-map           the level 1 rows of devices.csv (its mast and head rows aside) are kept by hand: the staging files
 #                         are checked against tables.xml and the schematic (staging_device_map.py --check), in both
 #                         modes
 #   signals               <name>.signals.json, from the plan graph and the staging masts; the schematic reads it

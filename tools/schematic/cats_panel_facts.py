@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
 import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
-import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (device_map_staging.csv)
+import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of devices.csv)
 from hartlib import paths, railroad  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates  # noqa: E402
 
@@ -16,7 +16,7 @@ sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
 
-DEVICE_MAP = railroad.Sources.under().device_map
+DEVICE_MAP = railroad.Sources.under().devices      # devices.csv
 
 
 class StagingTracks:
@@ -39,11 +39,11 @@ class StagingTracks:
         if len(set(blocks)) != 1:
             raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
                              f"{', '.join(sorted(set(blocks)))}; give it to the one its gap leaves it in "
-                             "(short_tracks_staging.csv, or its own block row in device_map_staging.csv)")
+                             "(short_tracks_staging.csv, or its own block row in devices.csv)")
         return blocks[0]
 
 
-# The main and upper device map: block rows (each with its level and the schematic tracks it holds, `trial`) and
+# The main and upper rows of devices.csv: block rows (each with its level and the schematic tracks it holds, `trial`) and
 # occupancy sensors by name (virtual, and the planned detector when there is one); hartlib.railroad reads and checks it.
 DeviceMap = railroad.DeviceMap
 

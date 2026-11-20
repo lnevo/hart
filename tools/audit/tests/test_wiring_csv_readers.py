@@ -15,6 +15,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 
+from hartlib import devices  # noqa: E402
 from hartlib.railroad import DEVICE_COLUMNS, FactsError  # noqa: E402
 
 
@@ -62,9 +63,12 @@ class CommittedFiles(Case):
     """Each moved reader against the committed CSV."""
 
     def test_the_device_map(self) -> None:
+        """The main and upper rows of the master are what the generated main and upper device map holds."""
         rows = AM.read_device_rows()
         self.assertTrue(rows)
-        self.assertEqual(rows, [{c: r[c] for c in DEVICE_COLUMNS} for r in plain(AM.DEVICE_MAP)])
+        self.assertEqual([{c: r[c] for c in DEVICE_COLUMNS} for r in rows],
+                         [{c: r[c] for c in DEVICE_COLUMNS} for r in plain(devices.Files.here().main_upper)])
+        self.assertEqual({r["level"] for r in rows}, {"2", "3"})
 
     def test_the_nodes(self) -> None:
         rows = AM.read_node_rows()
@@ -83,14 +87,13 @@ class CommittedFiles(Case):
 class BadHeader(Case):
     """A header without a column the script reads stops the read, naming the file and the column."""
 
-    def test_the_device_map_needs_every_column_the_script_reads(self) -> None:
-        for column in ("level", "layer", "user_name", "system_name", "node", "comment", "trial_name"):
-            with self.subTest(column):
-                self.stops(AM.read_device_rows, AM.DEVICE_MAP, column)
-        # notes is not read: the file may leave it out, and it reads as ""
-        rows = AM.read_device_rows(self.without(AM.DEVICE_MAP, "notes"))
-        self.assertEqual({r["notes"] for r in rows}, {""})
-        self.assertEqual(len(rows), len(plain(AM.DEVICE_MAP)))
+    def test_the_master_needs_every_column_the_loader_holds(self) -> None:
+        """hartlib.devices is the one reader of the master and holds its whole header: a column gone stops the read."""
+        for column in ("level", "layer", "user_name", "system_name", "node", "wiring", "trial_name", "notes"):
+            with self.subTest(column), self.assertRaisesRegex(FactsError, "the header is not the master's columns"):
+                AM.read_device_rows(self.without(AM.DEVICE_MAP, column))
+        with self.assertRaisesRegex(FactsError, "cannot read it"):
+            AM.read_device_rows(self.tmp / "missing.csv")
 
     def test_the_nodes(self) -> None:
         for column in ("level", "area", "node"):

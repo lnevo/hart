@@ -264,7 +264,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
         if r.layer not in ("turnout", "block"):
             continue
         user = r.user_name
-        if r.layer == "turnout" and user.startswith("DCC "):
+        if r.role == "lcc_alias":
             continue                    # the LCC alias of a turnout: not a panel object
         form = r"Switch \d+" if r.layer == "turnout" else r"(Track \S.*|OS Switch \d+[a-d]?)"
         if not re.fullmatch(form, user):

@@ -18,7 +18,7 @@ Writes:
 This file holds the paths, the steps that use it or read a file,
 and main(). The rename tables are in refresh_wiring_rules.py, the cell rewrites in refresh_wiring_cells.py, and the
 sheet steps in refresh_wiring_inventory.py (LCOS v85) and refresh_wiring_signals.py (as-built v2, split v8). Tests
-patch paths and steps on this module, so the steps that read a path or the name map stay here.
+patch paths and steps on this module, so the steps that read a path stay here.
 """
 from __future__ import annotations
 

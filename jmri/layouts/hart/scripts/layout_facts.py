@@ -21,14 +21,14 @@
                      check_layout_facts.py)
 
 Hardware, DCC address (its own ``dcc`` column) and control point come from the
-canonical turnout row of public_name_map.csv (current == proposed); control_points_staging.csv lists which
+canonical turnout row of the name map of devices.csv (current == proposed); control_points_staging.csv lists which
 switches each control point holds and its level. Nothing here is copied from
 those files.
 
 Level is held once per switch (switches.csv) and once per control point
 (control_points_staging.csv). A mast, head, block or occupancy sensor has no level of
 its own: it takes the level of its control point (the ``cp`` column of
-public_name_map.csv), and an OS block or a switch leg takes its switch's.
+the name map of devices.csv), and an OS block or a switch leg takes its switch's.
 name_map_levels() resolves them. No grouping above the control point exists
 yet, so there is no district column; when the new levels need one, it goes beside ``level`` on the control-point
 files (control_points_staging.csv, interlockings.csv).
@@ -79,15 +79,17 @@ def _rows(path: Path) -> list[dict[str, str]]:
 
 
 def identity_rows(data: Path = DATA) -> list[dict[str, str]]:
-    """public_name_map.csv rows whose current name is the live one (current == proposed)."""
-    return [row for row in _rows(data / "public_name_map.csv") if row["current"] == row["proposed"]]
+    """The name-map rows of devices.csv whose current name is the live one (current == proposed): hartlib.railroad's
+    read_name_rows, so the master is read by one loader."""
+    return [row for _line, row in railroad.read_name_rows(railroad.Sources.under(data).devices)
+            if row["current"] == row["proposed"]]
 
 
 def load_switches(data: Path = DATA) -> dict[int, Switch]:
     """Switch number -> Switch, in switches.csv order (hartlib.railroad.read_switches). Line numbers in errors
     count the header as 1."""
     s = railroad.Sources.under(data)
-    return railroad.read_switches(s.switches, s.switch_legs, s.name_map)
+    return railroad.read_switches(s.switches, s.switch_legs, s.devices)
 
 
 EDGES = {"LEFT", "RIGHT", "TOP", "BOTTOM"}
@@ -227,7 +229,7 @@ def switch_block_levels(switches: dict[int, Switch]) -> dict[str, set[str]]:
 def name_map_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
                     rows: list[dict[str, str]] | None = None,
                     track_name: Callable[[str], str] | None = None) -> dict[tuple[str, str], str]:
-    """(layer, public name) -> level for the identity rows of public_name_map.csv.
+    """(layer, public name) -> level for the identity rows of the name map of devices.csv.
 
     A turnout or feedback sensor of Switch N (``Switch N``, ``DCC Switch N``,
     ``FB Switch N R``) takes switches.csv; an OS block or a block a switch leg

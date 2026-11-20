@@ -35,12 +35,12 @@ INTERNAL = row("head", "Head 2L Top", "IH:HART:C1:2L_Top", notes="internal, not 
 
 
 class CommittedMap(unittest.TestCase):
-    """The committed device_map_staging.csv wires Head 6LB to IH432 on its mast row and its head row (owner,
+    """The committed devices.csv wires Head 6LB to IH432 on its mast row and its head row (owner,
     2026-11-18). check_wiring_crosswalk.py would also fail if it went missing, but only through tables.xml against
     the regenerated staging_masts.csv."""
 
     def test_6lb_is_wired_to_ih432(self):
-        rows = sdm.read_rows(bsm.DEVICE_MAP, bdm.COLUMNS)
+        rows = sdm.read_device_rows(bsm.DEVICE_MAP)
         mast = [r for r in rows if r["layer"] == "mast" and r["user_name"] == "Mast 6LB"]
         head = [r for r in rows if r["layer"] == "head" and r["user_name"] == "Head 6LB"]
         self.assertEqual([(r["system_name"], r["jmri_name"]) for r in mast],
@@ -122,11 +122,14 @@ class Rebuild(unittest.TestCase):
             prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
             mine = [devices.master_row(r, "build_staging_masts.py", prior.get((r["level"], r["layer"], r["user_name"])))
                     for r in rows if r["layer"] in bsm.WRITES]
-            held = devices.replace_rows(held, "build_staging_masts.py", mine)
+            # the edit may rename a row (that is the test); the name map is meant to lose its old name here
+            gone = {(r["level"], r["layer"], r["user_name"]) for r in held if r["written_by"] == "build_staging_masts.py"} \
+                - {(r["level"], r["layer"], r["user_name"]) for r in mine}
+            held = devices.replace_rows(held, "build_staging_masts.py", mine, drops=gone)
             for path, text in devices.texts(held, files).items():
                 path.write_text(text, encoding="utf-8")
-            with unittest.mock.patch.object(bsm, "DEVICE_MAP", files.staging), \
-                    unittest.mock.patch.object(sdm, "DEVICE_MAP", files.staging), \
+            with unittest.mock.patch.object(bsm, "DEVICE_MAP", files.master), \
+                    unittest.mock.patch.object(sdm, "DEVICE_MAP", files.master), \
                     unittest.mock.patch.object(bsm, "device_files", lambda: files):
                 want, gen, _virtual = bsm.build()
             return {p.name: t for p, t in want.items()}, gen
@@ -142,7 +145,7 @@ class Rebuild(unittest.TestCase):
         return edit
 
     def test_the_wired_head_is_kept(self):
-        rows = rows_of(self.want[bsm.DEVICE_MAP])
+        rows = rows_of(self.want[devices.Files.here().staging])      # the generated staging file: what the master gives
         head = [r for r in rows if r["layer"] == "head" and r["user_name"] == "Head 6LB"]
         self.assertEqual([(r["system_name"], r["jmri_name"], r["node"]) for r in head], [("IH432", "IH432", "4")])
         mast = next(r for r in rows if r["user_name"] == "Mast 6LB")
@@ -151,7 +154,7 @@ class Rebuild(unittest.TestCase):
 
     def test_a_newly_wired_head_is_kept(self):
         out, _gen = self.build_with(self.wire("Head 2R", "IH999", "9"))
-        rows = rows_of(out[bsm.DEVICE_MAP.name])
+        rows = rows_of(out[devices.Files.here().staging.name])
         head = next(r for r in rows if r["user_name"] == "Head 2R")
         self.assertEqual((head["jmri_name"], head["node"], head["notes"]), ("IH999", "9", "wired (test)"))
         mast = next(r for r in rows if r["user_name"] == "Mast 2R")

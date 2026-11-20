@@ -1,7 +1,6 @@
 """build_device_map.py: placeholder control points and LCOS device names for the main and upper levels."""
 from __future__ import annotations
 
-import csv
 import importlib.util
 import json
 import tempfile
@@ -21,8 +20,8 @@ def cp(name, level, *switches):
 
 
 def rows():
-    with BD.OUT.open(newline="") as f:
-        return list(csv.DictReader(f))
+    """The main and upper rows the builder wrote into the master (hartlib.devices.device_map_lines)."""
+    return [r for _n, r in BD.devices.device_map_lines(("2", "3"), BD.OUT)]
 
 
 class Pure(unittest.TestCase):
@@ -487,8 +486,7 @@ class NoBoardRoomOnly(unittest.TestCase):
     def test_the_committed_map_places_two_head_masts_before_one_head_ones(self):
         # North holds 12 heads (node 42: two 5V boards, node 52: four) for 16 (eight two-head masts since the rule
         # left out 126L): every board takes a two-head mast, so 128LB has outputs and 132RA and 132RB wait
-        with open(BD.OUT, newline="", encoding="utf-8") as fh:
-            heads = {r["user_name"]: r for r in csv.DictReader(fh) if r["layer"] == "head"}
+        heads = {r["user_name"]: r for r in rows() if r["layer"] == "head"}
         self.assertNotIn("Head 126L", heads)                    # no route past it reaches a signal (reaches_signal)
         self.assertEqual(heads["Head 132RA Top"]["notes"], BD.HEAD_NOT_WIRED)
         self.assertTrue(heads["Head 128LB Top"]["system_name"] and heads["Head 128LB Bottom"]["system_name"])

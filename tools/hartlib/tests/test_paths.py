@@ -18,7 +18,7 @@ class CheckoutTest(unittest.TestCase):
     def test_root_is_the_checkout_holding_hartlib(self):
         self.assertEqual(paths.REPO_ROOT, CHECKOUT)
         self.assertTrue(paths.TABLES_XML.is_file())
-        self.assertTrue(paths.PUBLIC_NAME_MAP.is_file())
+        self.assertTrue(paths.DEVICES.is_file())
         self.assertTrue(paths.SIGNAL_WIRING.is_file())
         self.assertTrue(paths.SIGNAL_HEAD_PLAN.is_file())
         self.assertEqual(paths.TABLES_XML, CHECKOUT / "jmri/layouts/hart/output/tables.xml")
