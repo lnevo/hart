@@ -132,8 +132,9 @@ class Readers(Copy):
         self.fails(lambda: R.Railroad(self.src).switches, "Switch 99.*no rows in switch_legs.csv")
         self.src.switches.write_text(text + "1,99,TO999,no\n", encoding="utf-8")             # short: required
         self.fails(lambda: R.Railroad(self.src).switches, "switches.csv line 22: 7 fields")
-        self.src.block_lengths.write_text("user_name,inches,extra\nTrack W-1,105,x\n", encoding="utf-8")
-        self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].inches, 105.0)
+        self.src.block_lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note,extra\n"
+                                          "Track W-1,Block 4-4,105.2,,plan,,x\n", encoding="utf-8")
+        self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].plan_in, 105.2)
 
     def test_switches_read_only_their_own_name_map_rows(self) -> None:
         """A bad row elsewhere in the name map is the facts check's to report; it does not stop switch loading
@@ -275,8 +276,25 @@ class Readers(Copy):
         self.fails(lambda: R.read_plan_overrides(self.src.plan_overrides), "objects with an `op`")
 
     def test_block_lengths_and_hands(self) -> None:
-        self.edit("block_lengths", "Track W-1,Block 4-4,105,", "Track W-1,Block 4-4,long,")
-        self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "line 2: inches 'long' is not a number")
+        got = R.read_block_lengths(self.src.block_lengths)
+        self.assertEqual((got["Track W-1"].source, got["Track W-1"].jmri_in), ("plan", got["Track W-1"].plan_in))
+        timed = got["Track Main West"]
+        self.assertEqual((timed.source, timed.jmri_in), ("timed", timed.measured_in))
+        self.assertNotEqual(timed.plan_in, timed.measured_in)
+        self.assertEqual(R.plan_cm({"Track Main West": timed})["Track Main West"], timed.plan_in * 2.54)
+        text = self.src.block_lengths.read_text(encoding="utf-8")
+        w1 = next(line for line in text.splitlines() if line.startswith("Track W-1,"))
+        for bad, why in ((w1.replace(",plan,", ",assigned,"), "source 'assigned' is not one of"),
+                         (w1.replace(",,plan,", ",99,plan,"), "a timed row gives its measured length, any other none"),
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,long,"), "plan_in 'long' is not a number"),
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,,"), "no plan_in"),
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,0,"), "plan_in 0 is not above zero")):
+            self.src.block_lengths.write_text(text.replace(w1, bad), encoding="utf-8")
+            self.fails(lambda: R.read_block_lengths(self.src.block_lengths), f"line 2: .*{why}")
+        mw = next(line for line in text.splitlines() if line.startswith("Track Main West,"))
+        self.src.block_lengths.write_text(text.replace(mw, mw.replace(",timed,", ",plan,")), encoding="utf-8")
+        self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "source plan with measured_in")
+        self.src.block_lengths.write_text(text, encoding="utf-8")
         self.edit("hands", "101A,L,", "101A,X,")
         self.fails(lambda: R.read_hands(self.src.hands), "hands.csv line 2")
 

@@ -274,7 +274,7 @@ class Jobkit(unittest.TestCase):
     def test_each_job_has_the_kit_once_and_the_runners_keep_no_copy(self):
         d = Path(tempfile.mkdtemp())
         csvp = d / "bl.csv"
-        csvp.write_text("user_name,occupancy_sensor,inches,flag,old_source\nTrack Main West,x,220,anyrail,\n")
+        csvp.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note\nTrack Main West,x,231,220,timed,\n")
         make_job.main(["steps", "--loco", "L", "--direction", "forward", "--guard", "none",
                        "--lengths", str(csvp), "--out", str(d / "a.py")])
         make_job.main(["move", "--loco", "L", "--direction", "forward", "--guard", "none",

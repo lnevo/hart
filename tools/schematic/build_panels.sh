@@ -5,6 +5,8 @@
 # The steps, in the order they run (the name is the one each step prints):
 #
 #   hands                 hands.csv, from the plan graph
+#   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
+#                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
 #   staging-masts         staging_masts.csv, staging_signals.csv and the device map's mast and head rows are written by
 #                         build_staging_masts.py, run by hand: this only checks them (--check), in both modes
 #   staging-sync          tables.xml follows staging_masts.csv through sync_staging_signals.py, run by hand with JMRI
@@ -60,6 +62,7 @@ step() { run_step "later steps read what $1 writes" "$@"; }
 guard() { run_step "$1 only checks and it failed; later steps read the files it checks" "$@"; }
 
 step hands python3 tools/schematic/build_hands.py
+guard plan-lengths python3 tools/schematic/plan_lengths.py --check
 guard staging-masts python3 tools/schematic/build_staging_masts.py --check
 guard staging-sync python3 tools/schematic/sync_staging_signals.py --check
 guard staging-map python3 tools/schematic/staging_device_map.py --check

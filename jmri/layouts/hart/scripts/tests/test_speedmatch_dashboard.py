@@ -153,7 +153,7 @@ class LengthBasisTests(unittest.TestCase):
         import csv
         path = Path(__file__).resolve().parents[1].parent / "data" / "block_lengths.csv"
         with path.open(newline="") as fh:
-            bases = {r["flag"] for r in csv.DictReader(fh)}
+            bases = {r["source"] for r in csv.DictReader(fh)}
         self.assertEqual(bases - {"stub"} - set(st.LENGTH_FLAGS), set())
 
 

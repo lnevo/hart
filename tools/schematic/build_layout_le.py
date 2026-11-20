@@ -234,7 +234,7 @@ def build(live_path: Path = paths.TABLES_XML, bands=None, levels: str = "all", a
     if levels == "all":                 # after staging's names: a helix intermediate protects a staging track
         level_masts(names, level_rows)
         names[STAGING]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
-    names[STAGING]["lengths"] = staging_lengths(bands[0][2], names[STAGING])
+    names[STAGING]["lengths"] = staging_lengths(names[STAGING])
     try:
         if base is not None:        # staging's own grid, so staging is drawn as in its candidate; no fitting
             scale = base[1].scale

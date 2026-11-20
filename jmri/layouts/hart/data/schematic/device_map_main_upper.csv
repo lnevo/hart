@@ -174,8 +174,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 127,mast,Mast 128LB,IF$shsm:basic:two-searchlight(IH5238)(IH5239),IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom),52,,CP 127 | Switch 127,,home signal from Track 127-221
 2,CP 127,mast,Mast 132RA,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom),,,CP 127 | Switch 131,,home signal from Track 131-H1
 2,CP 127,mast,Mast 132RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom),,,CP 127 | Switch 131,,home signal from Track 131-H2
-2,CP 107,mast,Mast A83,,IF$shsm:basic:one-searchlight(IH:HART:C3:A83),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.35
-2,CP 107,mast,Mast A84,,IF$shsm:basic:one-searchlight(IH:HART:C3:A84),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.35
+2,CP 107,mast,Mast A83,,IF$shsm:basic:one-searchlight(IH:HART:C3:A83),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 2 into Track 107 Loop 1 at MP A 8.39
+2,CP 107,mast,Mast A84,,IF$shsm:basic:one-searchlight(IH:HART:C3:A84),,,CP 107 | intermediate,,intermediate signal from Track 107 Loop 1 into Track 107 Loop 2 at MP A 8.39
 2,CP 107,head,Head 108LA Bottom,IH3333,IH:HART:C3:108LA_Bottom,33,,"Node: 33 Signal: 1 | OU: 3 Ports: 4,5,6",,
 2,CP 107,head,Head 108LA Top,IH3332,IH:HART:C3:108LA_Top,33,,"Node: 33 Signal: 0 | OU: 3 Ports: 1,2,3",,
 2,CP 107,head,Head 108LB Bottom,IH3335,IH:HART:C3:108LB_Bottom,33,,"Node: 33 Signal: 3 | OU: 4 Ports: 4,5,6",,
@@ -473,8 +473,8 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 3,CP 225,mast,Mast 230LA,IF$shsm:basic:two-searchlight(IH4136)(IH4137),IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom),41,,CP 225 | Switch 229,,home signal from Track 229-241
 3,CP 225,mast,Mast 230LB,,IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom),,,CP 225 | Switch 229,,home signal from Track 229-233
 3,,mast,Mast 242L,,IF$shsm:basic:one-low(IH:HART:C3:242L),,,Helix | Switch 241,,home signal from Track 241 Spur
-3,CP 225,mast,Mast B92,,IF$shsm:basic:one-searchlight(IH:HART:C3:B92),,,CP 225 | intermediate,,intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.23
-3,CP 225,mast,Mast B93,,IF$shsm:basic:one-searchlight(IH:HART:C3:B93),,,CP 225 | intermediate,,intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.23
+3,CP 225,mast,Mast B92,,IF$shsm:basic:one-searchlight(IH:HART:C3:B92),,,CP 225 | intermediate,,intermediate signal from Track 227-241 2 into Track 227-241 1 at MP B 9.27
+3,CP 225,mast,Mast B93,,IF$shsm:basic:one-searchlight(IH:HART:C3:B93),,,CP 225 | intermediate,,intermediate signal from Track 227-241 1 into Track 227-241 2 at MP B 9.27
 3,CP 201,head,Head 202R Bottom,IH2333,IH:HART:C3:202R_Bottom,23,,"Node: 23 Signal: 1 | OU: 3 Ports: 4,5,6",,
 3,CP 201,head,Head 202R Top,IH2332,IH:HART:C3:202R_Top,23,,"Node: 23 Signal: 0 | OU: 3 Ports: 1,2,3",,
 3,CP 201,head,Head 204RA Bottom,IH2335,IH:HART:C3:204RA_Bottom,23,,"Node: 23 Signal: 3 | OU: 4 Ports: 4,5,6",,

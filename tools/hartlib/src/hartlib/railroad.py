@@ -463,27 +463,65 @@ def read_plan_overrides(path: Path) -> PlanOverrides:
 
 # ---------------------------------------------------------------- inputs: block lengths and staging masts
 
+# block_lengths.csv: each staging block's 5.3c plan length (plan_in, written by tools/schematic/plan_lengths.py) and,
+# for a timed block, its measured length (measured_in). `source` says which one JMRI's block length is: `timed`
+# (measured_in) or `plan` (plan_in). The drawings and the signal rules use plan_in alone; the measured lengths serve
+# speed profiling and JMRI's block lengths only (owner, 2026-11-20). `stub`: a hidden yard throat block, which has no
+# plan length of its own; plan_in holds its fixed length.
+BLOCK_LENGTH_COLUMNS = ("user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note")
+LENGTH_SOURCES = ("timed", "plan", "stub")
+
+
 @dataclass(frozen=True)
 class BlockLength:
     line: int
     user_name: str
     occupancy_sensor: str
-    inches: float | None        # None: not measured
-    flag: str = ""
+    plan_in: float              # the AnyRail plan 5.3c length
+    measured_in: float | None   # the timed length; None unless source is "timed"
+    source: str                 # LENGTH_SOURCES: which length JMRI's block holds
+
+    @property
+    def jmri_in(self) -> float:
+        """The block length JMRI holds: the measured length of a timed block, else the plan length."""
+        return self.measured_in if self.source == "timed" else self.plan_in
 
 
 def read_block_lengths(path: Path) -> dict[str, BlockLength]:
+    """{user name: BlockLength} from block_lengths.csv (BLOCK_LENGTH_COLUMNS). Stops on a name empty or given twice, a
+    plan length that is not a number above zero, a source not in LENGTH_SOURCES, or a measured length given on a row
+    whose source is not "timed" (or missing on one that is)."""
     out: dict[str, BlockLength] = {}
-    for line, r in read_rows(path, ("user_name", "inches"), optional=("occupancy_sensor", "flag")):
+    for line, r in read_rows(path, BLOCK_LENGTH_COLUMNS):
         where = _where(path, line)
         if not r["user_name"] or r["user_name"] in out:
             raise FactsError(f"{where}: user_name {r['user_name']!r} is empty or given twice")
-        try:
-            inches = float(r["inches"]) if r["inches"] else None
-        except ValueError:
-            raise FactsError(f"{where}: inches {r['inches']!r} is not a number") from None
-        out[r["user_name"]] = BlockLength(line, r["user_name"], r["occupancy_sensor"], inches, r["flag"])
+        if r["source"] not in LENGTH_SOURCES:
+            raise FactsError(f"{where}: source {r['source']!r} is not one of {', '.join(LENGTH_SOURCES)}")
+        lengths = {}
+        for col in ("plan_in", "measured_in"):
+            if not r[col]:
+                lengths[col] = None
+                continue
+            try:
+                lengths[col] = float(r[col])
+            except ValueError:
+                raise FactsError(f"{where}: {col} {r[col]!r} is not a number") from None
+            if not lengths[col] > 0:
+                raise FactsError(f"{where}: {col} {r[col]} is not above zero")
+        if lengths["plan_in"] is None:
+            raise FactsError(f"{where}: no plan_in (run tools/schematic/plan_lengths.py)")
+        if (r["source"] == "timed") != (lengths["measured_in"] is not None):
+            raise FactsError(f"{where}: source {r['source']} with measured_in {r['measured_in']!r}: a timed row "
+                             "gives its measured length, any other none")
+        out[r["user_name"]] = BlockLength(line, r["user_name"], r["occupancy_sensor"], lengths["plan_in"],
+                                          lengths["measured_in"], r["source"])
     return out
+
+
+def plan_cm(lengths: dict[str, BlockLength]) -> dict[str, float]:
+    """{block: plan length in cm}: the lengths the drawings and the signal rules measure by."""
+    return {name: b.plan_in * 2.54 for name, b in lengths.items()}
 
 
 @dataclass(frozen=True)

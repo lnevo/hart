@@ -12,7 +12,7 @@
    "names": [
     "Main West"
    ],
-   "edge_cm": 551.9,
+   "edge_cm": 586.7,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -31,7 +31,7 @@
    "names": [
     "Brick-Plane"
    ],
-   "edge_cm": 147.6,
+   "edge_cm": 181.9,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -50,8 +50,8 @@
    "names": [
     "W-1"
    ],
-   "edge_cm": 266.7,
-   "cm_from_toward": 266.7,
+   "edge_cm": 267.2,
+   "cm_from_toward": 267.2,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -69,8 +69,8 @@
    "names": [
     "W-2"
    ],
-   "edge_cm": 236.2,
-   "cm_from_toward": 236.2,
+   "edge_cm": 267.7,
+   "cm_from_toward": 267.7,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -88,7 +88,7 @@
    "names": [
     "W-1"
    ],
-   "edge_cm": 266.7,
+   "edge_cm": 267.2,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -107,7 +107,7 @@
    "names": [
     "W-2"
    ],
-   "edge_cm": 236.2,
+   "edge_cm": 267.7,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -126,7 +126,7 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 392.4,
+   "edge_cm": 424.7,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -145,7 +145,7 @@
    "names": [
     "East Ext"
    ],
-   "edge_cm": 357.6,
+   "edge_cm": 392.7,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "field",
@@ -164,7 +164,7 @@
    "names": [
     "Brick-Plane"
    ],
-   "edge_cm": 147.6,
+   "edge_cm": 181.9,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -183,7 +183,7 @@
    "names": [
     "Barn"
    ],
-   "edge_cm": 85.6,
+   "edge_cm": 79.5,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -202,7 +202,7 @@
    "names": [
     "Main East"
    ],
-   "edge_cm": 800.4,
+   "edge_cm": 786.6,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -221,8 +221,8 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 392.4,
-   "cm_from_toward": 367.0,
+   "edge_cm": 424.7,
+   "cm_from_toward": 401.3,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -240,8 +240,8 @@
    "names": [
     "Scale"
    ],
-   "edge_cm": 392.4,
-   "cm_from_toward": 25.4,
+   "edge_cm": 424.7,
+   "cm_from_toward": 23.4,
    "dir": "east",
    "kind": "planned",
    "heads": 1,
@@ -259,7 +259,7 @@
    "names": [
     "East Ext"
    ],
-   "edge_cm": 357.6,
+   "edge_cm": 392.7,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -278,8 +278,8 @@
    "names": [
     "EH-2"
    ],
-   "edge_cm": 71.1,
-   "cm_from_toward": 71.1,
+   "edge_cm": 77.0,
+   "cm_from_toward": 77.0,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -297,8 +297,8 @@
    "names": [
     "EH-3"
    ],
-   "edge_cm": 71.1,
-   "cm_from_toward": 71.1,
+   "edge_cm": 76.5,
+   "cm_from_toward": 76.5,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -316,7 +316,7 @@
    "names": [
     "EH-2"
    ],
-   "edge_cm": 71.1,
+   "edge_cm": 77.0,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -335,7 +335,7 @@
    "names": [
     "EH-3"
    ],
-   "edge_cm": 71.1,
+   "edge_cm": 76.5,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -354,8 +354,8 @@
    "names": [
     "EH-1"
    ],
-   "edge_cm": 124.5,
-   "cm_from_toward": 124.5,
+   "edge_cm": 130.3,
+   "cm_from_toward": 130.3,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -373,7 +373,7 @@
    "names": [
     "EH-1"
    ],
-   "edge_cm": 124.5,
+   "edge_cm": 130.3,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -392,7 +392,7 @@
    "names": [
     "Barn"
    ],
-   "edge_cm": 85.6,
+   "edge_cm": 79.5,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "virtual",
@@ -411,7 +411,7 @@
    "names": [
     "S-R"
    ],
-   "edge_cm": 633.7,
+   "edge_cm": 585.7,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -430,7 +430,7 @@
    "names": [
     "S-R"
    ],
-   "edge_cm": 633.7,
+   "edge_cm": 585.7,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -449,7 +449,7 @@
    "names": [
     "S-1"
    ],
-   "edge_cm": 618.5,
+   "edge_cm": 538.0,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -468,7 +468,7 @@
    "names": [
     "S-1"
    ],
-   "edge_cm": 618.5,
+   "edge_cm": 538.0,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -487,7 +487,7 @@
    "names": [
     "S-2"
    ],
-   "edge_cm": 532.1,
+   "edge_cm": 452.6,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -506,7 +506,7 @@
    "names": [
     "S-2"
    ],
-   "edge_cm": 532.1,
+   "edge_cm": 452.6,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -525,7 +525,7 @@
    "names": [
     "S-3"
    ],
-   "edge_cm": 440.7,
+   "edge_cm": 367.3,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -544,7 +544,7 @@
    "names": [
     "S-3"
    ],
-   "edge_cm": 440.7,
+   "edge_cm": 367.3,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -563,7 +563,7 @@
    "names": [
     "West Ext"
    ],
-   "edge_cm": 396.5,
+   "edge_cm": 429.8,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -582,7 +582,7 @@
    "names": [
     "Main West"
    ],
-   "edge_cm": 551.9,
+   "edge_cm": 586.7,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -601,7 +601,7 @@
    "names": [
     "S-R"
    ],
-   "edge_cm": 633.7,
+   "edge_cm": 585.7,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -620,7 +620,7 @@
    "names": [
     "S-4"
    ],
-   "edge_cm": 334.0,
+   "edge_cm": 358.6,
    "cm_from_toward": 40.0,
    "dir": "west",
    "kind": "virtual",
@@ -639,7 +639,7 @@
    "names": [
     "S-4"
    ],
-   "edge_cm": 334.0,
+   "edge_cm": 358.6,
    "cm_from_toward": 40.0,
    "dir": "east",
    "kind": "virtual",
@@ -656,7 +656,7 @@
     "29"
    ],
    "names": [],
-   "edge_cm": 25.4,
+   "edge_cm": 23.4,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -675,7 +675,7 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 263.3,
+   "edge_cm": 274.2,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -694,7 +694,7 @@
    "names": [
     "Main East"
    ],
-   "edge_cm": 800.4,
+   "edge_cm": 786.6,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -713,8 +713,8 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 263.3,
-   "cm_from_toward": 223.3,
+   "edge_cm": 274.2,
+   "cm_from_toward": 234.2,
    "dir": "west",
    "kind": "virtual",
    "heads": 1,
@@ -732,7 +732,7 @@
    "names": [
     "West Ext"
    ],
-   "edge_cm": 396.5,
+   "edge_cm": 429.8,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -751,7 +751,7 @@
    "names": [
     "East Lead"
    ],
-   "edge_cm": 263.3,
+   "edge_cm": 274.2,
    "cm_from_toward": 0.0,
    "dir": "east",
    "kind": "planned",
@@ -790,7 +790,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 602.9,
+   "edge_cm": 624.2,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -829,7 +829,7 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 602.9,
+   "edge_cm": 624.2,
    "cm_from_toward": 0.0,
    "dir": "west",
    "kind": "planned",
@@ -887,8 +887,8 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 602.9,
-   "cm_from_toward": 562.9,
+   "edge_cm": 624.2,
+   "cm_from_toward": 584.2,
    "dir": "east",
    "kind": "virtual",
    "heads": 1,
@@ -907,8 +907,8 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 602.9,
-   "cm_from_toward": 314.3,
+   "edge_cm": 624.2,
+   "cm_from_toward": 312.0,
    "dir": "west",
    "kind": "planned",
    "heads": 1,
@@ -927,8 +927,8 @@
     "K-1",
     "K-2"
    ],
-   "edge_cm": 602.9,
-   "cm_from_toward": 288.5,
+   "edge_cm": 624.2,
+   "cm_from_toward": 312.2,
    "dir": "east",
    "kind": "planned",
    "heads": 1,

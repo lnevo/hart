@@ -823,21 +823,20 @@ class Throats(unittest.TestCase):
 
     def test_the_throat_tracks_are_measured(self) -> None:
         tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
-        # Scale holds OS Switch 7, cut at its block_lengths.csv share since the owner put Mast 8RA's boundary at
-        # Switch 7's points (2026-11-18); the Switch 1-3 link holds OS blocks only and keeps its equal halves
-        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1", "Scale"})
+        # every drawn block has its plan length (owner, 2026-11-20); a track of several blocks is cut at their plan
+        # shares: the yard throats, Scale with OS Switch 7 (Mast 8RA's boundary at Switch 7's points, 2026-11-18),
+        # and the Switch 1-3 and 35-39 links of OS blocks only
+        self.assertEqual(tracks, {"S-R", "S-1", "S-2", "S-3", "S-4", "East Lead", "K-1", "Scale", ""})
 
-    def test_staging_lengths_take_os_blocks_only_beside_measured_track(self) -> None:
+    def test_staging_lengths_are_the_plan_lengths_of_every_drawn_block(self) -> None:
         from le_names import staging_lengths
-        blocks = {"a": ["Track Scale", "OS Switch 7"], "b": ["OS Switch 3", "OS Switch 1"],
-                  "c": ["Track Barn", "OS Switch 13"], "d": ["Track East Ext", "OS Switch 99"]}
-        opts = {"track_lengths_in": {"Scale": 144.5, "East Ext": 140.8}}
-        names = {"blocks": blocks}
-        got = staging_lengths(opts, names, {"OS Switch 7": 10.0, "OS Switch 1": 22.6, "OS Switch 3": 10.0,
-                                            "OS Switch 13": 17.8})
-        self.assertEqual(got, {"Track Scale": 144.5, "OS Switch 7": 10.0})
-        # a: measured track and OS length; b: OS blocks only; c: the track has no measured length;
-        # d: the OS block has no length: each of b, c, d keeps equal blocks (nothing given)
+        names = {"blocks": {"a": ["Track Scale", "OS Switch 7"], "b": ["OS Switch 3", "OS Switch 1"]}}
+        plan = {"Track Scale": 158.0, "OS Switch 7": 9.2, "OS Switch 3": 9.2, "OS Switch 1": 9.2, "Track X": 5.0}
+        self.assertEqual(staging_lengths(names, plan), {"Track Scale": 158.0, "OS Switch 7": 9.2,
+                                                        "OS Switch 3": 9.2, "OS Switch 1": 9.2})
+        del plan["OS Switch 1"]
+        with self.assertRaisesRegex(B.BuildError, r"no plan length for drawn staging blocks \['OS Switch 1'\]"):
+            staging_lengths(names, plan)
 
     def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
         lengths = self.names[B.STAGING]["lengths"]

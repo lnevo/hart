@@ -17,7 +17,8 @@ Only steps from MIN_STEP up are used (steady speed, no momentum effects). East
 Ext is the lap reference block and is missing from some laps; for those laps the
 other blocks' shares are scaled by (1 - the median East Ext share).
 
-Where a detector also covers a hidden throat stub (a separate row in
+The result is the block's measured length (block_lengths.csv measured_in, source
+`timed`). Where a detector also covers a hidden throat stub (a separate row in
 block_lengths.csv sharing the sensor), the stub's length is taken off the track row.
 
 Usage:
@@ -244,7 +245,7 @@ def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Sw
 def stubs_of(rows, sensor):
     """Hidden throat stub rows that share this sensor's detector."""
     return [r["user_name"] for r in rows
-            if r["flag"] == "stub" and r["occupancy_sensor"] == "BS " + sensor]
+            if r["source"] == "stub" and r["occupancy_sensor"] == "BS " + sensor]
 
 
 def plan_rows(result, csv_path=CSV, route=DEFAULT_ROUTE, only=None):
@@ -257,16 +258,16 @@ def plan_rows(result, csv_path=CSV, route=DEFAULT_ROUTE, only=None):
     for sensor, name in sensor_rows.items():
         stubs = stubs_of(rows, sensor)
         mm, spread, n = result[sensor]
-        stub_mm = sum(float(by_name[s]["inches"]) * MM_PER_IN for s in stubs)
+        stub_mm = sum(float(by_name[s]["plan_in"]) * MM_PER_IN for s in stubs)
         r = by_name[name]
-        r["inches"] = f"{(mm - stub_mm) / MM_PER_IN:.1f}"
-        r["flag"] = "inferred"
+        r["measured_in"] = f"{(mm - stub_mm) / MM_PER_IN:.1f}"
+        r["source"] = "timed"
         note = (f"timed share of the AnyRail 5.3b {route} loop, pinned to the plan turnouts either side; "
                 f"+-{spread / MM_PER_IN:.1f} in over {n} laps")
         if stubs:
             note += "; detector length minus " + ", ".join(stubs)
-        r["old_source"] = note
-    return fields, rows, {n: float(by_name[n]["inches"]) * MM_PER_IN for n in sensor_rows.values()}
+        r["note"] = note
+    return fields, rows, {n: float(by_name[n]["measured_in"]) * MM_PER_IN for n in sensor_rows.values()}
 
 
 def write_csv(fields, rows, csv_path=CSV):
@@ -361,7 +362,7 @@ def main():
         print("rows on both routes (loop 1 value from block_lengths.csv, this run beside it):")
         for s in names:
             if s in owned:
-                old = float(csv_rows[names[s]]["inches"]) * MM_PER_IN
+                old = float(csv_rows[names[s]]["measured_in"]) * MM_PER_IN
                 print(f"  {s:34} loop1 {old:7.0f} mm   {route} {result[s][0]:7.0f} mm   {result[s][0] - old:+6.0f}")
         only = set(names) if a.overwrite else set(names) - owned
     if a.locate:

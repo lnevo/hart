@@ -3461,7 +3461,7 @@
       </path>
       <path todir="128" fromdir="64" block="IB:AUTO:0051" />
     </block>
-    <block systemName="IB8" length="254.0" curve="0">
+    <block systemName="IB8" length="233.7" curve="0">
       <systemName>IB8</systemName>
       <userName>OS Switch 7</userName>
       <comment>Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
@@ -3488,7 +3488,7 @@
       </path>
       <path todir="128" fromdir="64" block="IB8" />
     </block>
-    <block systemName="IB18" length="254.0" curve="0">
+    <block systemName="IB18" length="233.7" curve="0">
       <systemName>IB18</systemName>
       <userName>OS Switch 9</userName>
       <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
@@ -3510,7 +3510,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB19" length="254.0" curve="0">
+    <block systemName="IB19" length="281.9" curve="0">
       <systemName>IB19</systemName>
       <userName>OS Switch 11</userName>
       <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
@@ -3532,7 +3532,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB20" length="1244.6" curve="0">
+    <block systemName="IB20" length="1303.0" curve="0">
       <systemName>IB20</systemName>
       <userName>Track EH-1</userName>
       <comment>Top house track; occupancy Block 13-7 / M2S1306; stop</comment>
@@ -3544,7 +3544,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB21" length="711.2" curve="0">
+    <block systemName="IB21" length="769.6" curve="0">
       <systemName>IB21</systemName>
       <userName>Track EH-2</userName>
       <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
@@ -3556,7 +3556,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB22" length="711.2" curve="0">
+    <block systemName="IB22" length="764.5" curve="0">
       <systemName>IB22</systemName>
       <userName>Track EH-3</userName>
       <comment>Bottom house track; occupancy Block 13-5 / M2S1304; stop</comment>
@@ -3631,7 +3631,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0007" length="2540.0" curve="0">
+    <block systemName="IB:AUTO:0007" length="2786.4" curve="0">
       <systemName>IB:AUTO:0007</systemName>
       <userName>Track S-4</userName>
       <comment>South Yard body; occupancy Block 2-4 / M2S203</comment>
@@ -3640,7 +3640,7 @@
       <path todir="144" fromdir="96" block="IB:AUTO:0058" />
       <path todir="80" fromdir="160" block="IB:AUTO:0059" />
     </block>
-    <block systemName="IB:AUTO:0008" length="3606.8" curve="0">
+    <block systemName="IB:AUTO:0008" length="2872.7" curve="0">
       <systemName>IB:AUTO:0008</systemName>
       <userName>Track S-3</userName>
       <comment>South Yard body; occupancy Block 2-5 / M2S204</comment>
@@ -3658,7 +3658,7 @@
       <path todir="32" fromdir="16" block="IB:AUTO:0048" />
       <path todir="128" fromdir="64" block="IB:AUTO:0063" />
     </block>
-    <block systemName="IB:AUTO:0012" length="5537.2" curve="0">
+    <block systemName="IB:AUTO:0012" length="5057.1" curve="0">
       <systemName>IB:AUTO:0012</systemName>
       <userName>Track S-R</userName>
       <comment>Run-through east of Switch 15; occupancy Block 2-8 / M2S207</comment>
@@ -3667,7 +3667,7 @@
       <path todir="64" fromdir="128" block="IB:AUTO:0060" />
       <path todir="128" fromdir="64" block="IB:AUTO:0061" />
     </block>
-    <block systemName="IB:AUTO:0016" length="5384.8" curve="0">
+    <block systemName="IB:AUTO:0016" length="4579.6" curve="0">
       <systemName>IB:AUTO:0016</systemName>
       <userName>Track S-1</userName>
       <comment>South Yard body; occupancy Block 2-7 / M2S206</comment>
@@ -3685,7 +3685,7 @@
       <path todir="128" fromdir="64" block="IB:AUTO:0030" />
       <path todir="64" fromdir="128" block="IB:AUTO:0062" />
     </block>
-    <block systemName="IB:AUTO:0020" length="2667.0" curve="0">
+    <block systemName="IB:AUTO:0020" length="2672.1" curve="0">
       <systemName>IB:AUTO:0020</systemName>
       <userName>Track W-1</userName>
       <comment>Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop</comment>
@@ -3697,7 +3697,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0022" length="2362.2" curve="0">
+    <block systemName="IB:AUTO:0022" length="2677.2" curve="0">
       <systemName>IB:AUTO:0022</systemName>
       <userName>Track W-2</userName>
       <comment>Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop</comment>
@@ -3709,7 +3709,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0026" length="4521.2" curve="0">
+    <block systemName="IB:AUTO:0026" length="3726.2" curve="0">
       <systemName>IB:AUTO:0026</systemName>
       <userName>Track S-2</userName>
       <comment>South Yard body; occupancy Block 2-6 / M2S205</comment>
@@ -3804,7 +3804,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0035" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0035" length="233.7" curve="0">
       <systemName>IB:AUTO:0035</systemName>
       <userName>OS Switch 3</userName>
       <comment>Brick CP, Switch 3; occupancy Block 4-1 / M2S400</comment>
@@ -3822,7 +3822,7 @@
       </path>
       <path todir="64" fromdir="128" block="IB:AUTO:0033" />
     </block>
-    <block systemName="IB:AUTO:0036" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0036" length="233.7" curve="0">
       <systemName>IB:AUTO:0036</systemName>
       <userName>OS Switch 25</userName>
       <comment>East End, Switch 25; occupancy Block 12-1 / M2S1200</comment>
@@ -3844,7 +3844,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0037" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0037" length="233.7" curve="0">
       <systemName>IB:AUTO:0037</systemName>
       <userName>OS Switch 27</userName>
       <comment>East End, Switch 27; occupancy Block 12-3 / M2S1202</comment>
@@ -3866,7 +3866,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0038" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0038" length="233.7" curve="0">
       <systemName>IB:AUTO:0038</systemName>
       <userName>OS Switch 21</userName>
       <comment>South Yard, Switch 21; occupancy Block 3-7 / M2S306</comment>
@@ -3884,7 +3884,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0039" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0039" length="233.7" curve="0">
       <systemName>IB:AUTO:0039</systemName>
       <userName>OS Switch 23b</userName>
       <comment>East End crossover Switch 23 south/east leg; occupancy Block 12-6 / M2S1205</comment>
@@ -3938,7 +3938,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0042" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0042" length="233.7" curve="0">
       <systemName>IB:AUTO:0042</systemName>
       <userName>OS Switch 31</userName>
       <comment>East End, Switch 31; occupancy Block 12-7 / M2S1206</comment>
@@ -3960,7 +3960,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0043" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0043" length="233.7" curve="0">
       <systemName>IB:AUTO:0043</systemName>
       <userName>OS Switch 29</userName>
       <comment>East End, Switch 29; occupancy Block 12-5 / M2S1204</comment>
@@ -3982,7 +3982,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0044" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0044" length="233.7" curve="0">
       <systemName>IB:AUTO:0044</systemName>
       <userName>OS Switch 17</userName>
       <comment>South Yard, Switch 17; occupancy Block 3-3 / M2S302</comment>
@@ -4000,7 +4000,7 @@
         </beansetting>
       </path>
     </block>
-    <block systemName="IB:AUTO:0045" length="254.0" curve="0">
+    <block systemName="IB:AUTO:0045" length="233.7" curve="0">
       <systemName>IB:AUTO:0045</systemName>
       <userName>OS Switch 19</userName>
       <comment>South Yard, Switch 19; occupancy Block 3-5 / M2S304</comment>

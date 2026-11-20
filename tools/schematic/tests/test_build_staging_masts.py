@@ -277,7 +277,7 @@ class Intermediates(unittest.TestCase):
     CPS = {"37": "Princess", "39": "Princess"}
     CHAINS = {("N39", "B"): ["k1", "k2"], ("N37", "A"): ["k1", "k2"], ("N9", "B"): ["k1", "k2"]}
     SEQ = ["OS Switch 39", "Track K-1", "Track K-2", "OS Switch 37"]
-    CM = {"OS Switch 39": 20.0, "Track K-1": 300.0, "Track K-2": 250.0, "OS Switch 37": 30.0}
+    CM = {"OS Switch 39": 20.0, "Track K-1": 300.0, "Track K-2": 250.0, "OS Switch 37": 30.0, "OS Switch 9": 20.0}
 
     def band(self, start_mp=6.5, end_mp=None, on_count=("N39", "N37")):
         length = 600.0 / CM_PER_SCALE_MILE
@@ -319,7 +319,8 @@ class Intermediates(unittest.TestCase):
         self.assertEqual(mast_rule.LONG_CM, 150.0)
         self.assertEqual(self.pairs(cm=dict(self.CM, **{"Track K-2": 150.0})), [])       # exactly LONG_CM is short
         self.assertEqual(len(self.pairs(cm=dict(self.CM, **{"Track K-2": 150.1}))), 2)
-        self.assertEqual(self.pairs(cm={"Track K-1": 300.0}), [])                        # no length counts as none
+        with self.assertRaisesRegex(bsm.RuleError, r"no plan length for \['OS Switch 37', 'OS Switch 39', 'Track K-2'\]"):
+            self.pairs(cm={"Track K-1": 300.0})                                          # no length stops
 
     def test_only_between_two_control_point_switches(self):
         self.assertEqual(self.pairs(cps={"39": "Princess"}), [])                         # 37 in no control point

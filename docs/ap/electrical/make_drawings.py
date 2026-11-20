@@ -316,13 +316,14 @@ def detected_sections() -> list[dict]:
         m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
         if not m:
             continue
-        inches = float(r["inches"])
-        for stub in re.findall(r"detector length minus (Track [^;\"]+?)(?:;|$)", r["old_source"]):
+        timed = r["source"] == "timed"          # JMRI's length: the measured one, else the plan's
+        inches = float(r["measured_in"] if timed else r["plan_in"])
+        for stub in re.findall(r"detector length minus (Track [^;\"]+?)(?:;|$)", r["note"]):
             if stub.strip() not in by_name:
                 raise SystemExit(f"{BLOCKS}: {r['user_name']} names a missing stub {stub!r}")
-            inches += float(by_name[stub.strip()]["inches"])
+            inches += float(by_name[stub.strip()]["plan_in"])
         out.append({"name": r["user_name"].replace("Track ", ""), "node": int(m.group(1)), "ch": int(m.group(2)),
-                    "inches": inches, "estimate": r["flag"] == "estimate"})
+                    "inches": inches, "estimate": not timed})
     out.sort(key=lambda s: (s["node"], s["ch"]))
     return out
 

@@ -52,18 +52,17 @@ class Routes(unittest.TestCase):
             analyze.route_loop("loop9")
 
     def test_sr_stubs_share_the_detector_and_are_counted(self):
-        stubs = [r for r in CSV_ROWS.values() if r["flag"] == "stub" and r["occupancy_sensor"] == "BS S-R"]
+        stubs = [r for r in CSV_ROWS.values() if r["source"] == "stub" and r["occupancy_sensor"] == "BS S-R"]
         self.assertEqual(sorted(r["user_name"] for r in stubs), ["Track S-R East", "Track S-R West"])
-        got = analyze.load_lengths(DATA / "block_lengths.csv", ("assigned", "estimate"),
-                                   analyze.route_loop("loop2"))
-        want = (float(CSV_ROWS["Track S-R"]["inches"]) + 2 * 15.748) * 25.4
+        got = analyze.load_lengths(DATA / "block_lengths.csv", ("plan",), analyze.route_loop("loop2"))
+        want = (float(CSV_ROWS["Track S-R"]["plan_in"]) + 2 * 15.748) * 25.4
         self.assertAlmostEqual(got["BS S-R"], want, places=3)
 
     def test_trusted_default_leaves_untrusted_rows_none(self):
         got = analyze.load_lengths(analyze.DEFAULT_LENGTHS, analyze.DEFAULT_TRUSTED, analyze.route_loop("loop2"))
         self.assertEqual(set(got), set(analyze.route_order("loop2")))
-        # S-R and the OS 7, 23b, 31 rows are estimates or assigned: no length. Scale, Barn and
-        # OS 13 and 15 were set from the timed passes of 2026-11-13 (inferred).
+        # S-R and the OS 7, 23b, 31 rows hold plan lengths: none by default. Scale, Barn and
+        # OS 13 and 15 were measured by the timed passes of 2026-11-13 (timed).
         for s in ("BS S-R", "BS Switch 7", "BS Switch 23b", "BS Switch 31"):
             self.assertIsNone(got[s], s)
         for s in ("BS Scale", "BS Barn", "BS Switch 13", "BS Switch 15"):

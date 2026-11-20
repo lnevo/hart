@@ -140,8 +140,18 @@ def head_names(mast: str, heads: int, wired: dict) -> list[tuple[str, str]]:
 
 
 def block_cm() -> dict:
-    """{block: cm} from block_lengths.csv; a blank length counts as zero, as build_signals.py reads it."""
-    return {name: (b.inches or 0.0) * INCH for name, b in railroad.read_block_lengths(railroad.Sources.under().block_lengths).items()}
+    """{block: cm} of the plan lengths in block_lengths.csv (hartlib.railroad.plan_cm), as build_signals.py reads
+    them."""
+    return railroad.plan_cm(railroad.read_block_lengths(railroad.Sources.under().block_lengths))
+
+
+def with_lengths(runs: list, cm: dict) -> list:
+    """`runs` (staging_device_map.run_blocks) when `cm` gives every block on them a length; RuleError naming the
+    blocks it does not (a block with no plan length has no place to put a mast)."""
+    missing = sorted({b for _start, seq, _end in runs for b in seq} - set(cm))
+    if missing:
+        raise RuleError(f"block_lengths.csv has no plan length for {missing}")
+    return runs
 
 
 def node_mileposts(band) -> dict:
@@ -194,7 +204,7 @@ def generate(band, bands, runs, joined, names, cps: dict, wired: dict) -> list[d
     home = mast_rule.masts(bands, None, found, cps, {}, levels=LEVELS, joined=joined)
     cm = block_cm()
     seqs = {}                      # (node, leg) -> the blocks from that switch leg along its run
-    for start, seq, end in sdm.run_blocks(band, names):
+    for start, seq, end in with_lengths(sdm.run_blocks(band, names), cm):
         seqs[tuple(start)] = (seq, tuple(end))
         seqs[tuple(end)] = (seq[::-1], tuple(start))
     strands, nodes = band["strands"], band["nodes"]
@@ -212,13 +222,13 @@ def generate(band, bands, runs, joined, names, cps: dict, wired: dict) -> list[d
         if facing is None:
             raise RuleError(f"switch {m['switch']} leg {p}: no block to face")
         edge, names_ = plan_edge(band, chains[(n, p)])
-        track_cm = sum(cm.get(b, 0.0) for b in seq)
+        track_cm = sum(cm[b] for b in seq)
         back = 0.0
         if not at_turnout:
             # the boundary from this switch by block lengths, or from the track's far end when the timed blocks (which
             # count the switches' own length) put it past the track the plan draws: build_signals.check_lengths takes
             # either end, and the plugin draws the mast at that distance from its toward end (draw.mast_piece)
-            back = sum(cm.get(b, 0.0) for b in seq[:seq.index(facing)])
+            back = sum(cm[b] for b in seq[:seq.index(facing)])
             drawn = sum(strands[s]["cm"] for s in chains[(n, p)])
             if back > drawn:
                 back = track_cm - back
@@ -250,7 +260,7 @@ def intermediates(band, names, cps, cm, chains) -> list[dict]:
     nodes, strands = band["nodes"], band["strands"]
     mp_at = node_mileposts(band)
     out = []
-    for start, seq, end in sdm.run_blocks(band, names):
+    for start, seq, end in with_lengths(sdm.run_blocks(band, names), cm):
         ends = [nodes[e[0]] for e in (start, end)]
         if any(d["kind"] != "switch" for d in ends):
             continue
@@ -260,10 +270,10 @@ def intermediates(band, names, cps, cm, chains) -> list[dict]:
         body = [b for b in seq if b not in (names["os"][start[0]], names["os"][end[0]])]
         for i in range(len(body) - 1):
             a, b = body[i], body[i + 1]
-            if cm.get(a, 0.0) <= mast_rule.LONG_CM or cm.get(b, 0.0) <= mast_rule.LONG_CM:
+            if cm[a] <= mast_rule.LONG_CM or cm[b] <= mast_rule.LONG_CM:
                 continue
-            from_start = sum(cm.get(x, 0.0) for x in seq[:seq.index(b)])
-            total = sum(cm.get(x, 0.0) for x in seq)
+            from_start = sum(cm[x] for x in seq[:seq.index(b)])
+            total = sum(cm[x] for x in seq)
             # the milepost at the boundary: from the end the count reaches lower, adding the distance; both ends
             # must be on the count, or the way it runs along this track is unknown
             if start[0] not in mp_at or end[0] not in mp_at:

@@ -11,7 +11,6 @@ staging level's track drawing (staging_plan.svg here). The Switch 7 and 13 marke
 here from the loop 2 timed passes (infer_block_lengths.py --route loop2 --locate).
 """
 import base64
-import csv
 import json
 import math
 import re
@@ -36,7 +35,10 @@ OLD_7B = (168.5, 515.1)   # Switch 7b from loop 1 (PR #399 pass), kept as a ring
 
 
 def block_inches():
-    return {r["user_name"]: float(r["inches"]) for r in csv.DictReader(open(BLOCK_CSV, newline=""))}
+    """{block: inches} of the lengths JMRI holds (block_lengths.csv: the measured length of a timed block)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "hartlib/src"))
+    from hartlib import railroad
+    return {name: b.jmri_in for name, b in railroad.read_block_lengths(BLOCK_CSV).items()}
 
 
 def derive(os5=24.6, os7=10.0):
