@@ -189,3 +189,5 @@ Dispatcher must restore the throat blocks and their rear and yard-end masts**. T
   the OS block's path to the throat now points at the track. Take them from `tables.xml` at 5a5bff0a.
 - Then `make panels`, `sync_staging_signals.py`, stock discovery in a sandbox and the owner's approval, as for any
   staging change (ADR-024).
+
+Exception to ADR-010 (owner, 2026-11-20): the notes for a parked feature live with its parked data, so `DISPATCHER_LAYOUT_HOOPS.md` is here and not in `docs/`.

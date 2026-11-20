@@ -43,11 +43,11 @@ fi
 # JMRI writes the marker just before it exits. The repairs below save tables.xml,
 # so wait for PanelPro to be gone and unable to Store over them.
 if ! pp_wait_exit "${HART_STAGE1_EXIT_WAIT:-180}"; then
-  echo "PanelPro is still running ${HART_STAGE1_EXIT_WAIT:-180}s after the Stage 1 marker; stopping it and not running the repairs. Run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
+  echo "PanelPro is still running ${HART_STAGE1_EXIT_WAIT:-180}s after the Stage 1 marker; stopping it and not running the repairs. Run the repairs listed in jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
   exit 1
 fi
 if pp_jmri_running; then
-  echo "Another CATS/PanelPro is running; not running the repairs. Quit it, then run the repairs listed in wiki/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
+  echo "Another CATS/PanelPro is running; not running the repairs. Quit it, then run the repairs listed in jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md by hand. log: $LOG" >&2
   exit 1
 fi
 
@@ -59,7 +59,7 @@ if [[ "$status" != "ok" ]]; then
   exit 1
 fi
 
-# The manual steps after every Stage 1 (wiki/DISPATCHER_LAYOUT_HOOPS.md).
+# The manual steps after every Stage 1 (jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md).
 # Each runs even if an earlier one failed; the wrapper fails at the end.
 SCRIPTS="$ROOT/jmri/layouts/hart/scripts"
 repair_failed=0

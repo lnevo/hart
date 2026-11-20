@@ -95,7 +95,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 - Spell out what HART stands for in any file, commit or page. The repo and website are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.
 
-**Parked** since the helix-join release (November 2026): JMRI Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine, kept in `jmri/layouts/hart/parked/`. On unpark these rules return: never run CATS CTC and the USS machine (or Dispatcher System from inside CATS) at the same time, and never patch the Dispatcher System package (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`); fix `tables.xml` so stock Discover and Stage 1 succeed. Landmines: [`wiki/DISPATCHER_LAYOUT_HOOPS.md`](wiki/DISPATCHER_LAYOUT_HOOPS.md).
+**Parked** since the helix-join release (November 2026): JMRI Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine, kept in `jmri/layouts/hart/parked/`. On unpark these rules return: never run CATS CTC and the USS machine (or Dispatcher System from inside CATS) at the same time, and never patch the Dispatcher System package (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`); fix `tables.xml` so stock Discover and Stage 1 succeed. Landmines: [`jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md`](jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md).
 
 New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Hart has no `export_options.json`.
 

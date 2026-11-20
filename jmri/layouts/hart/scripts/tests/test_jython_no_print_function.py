@@ -4,7 +4,7 @@ JMRI shares one Jython engine across scripts and keeps the __future__ compiler f
 so one `from __future__ import print_function` in a Start Up script makes every later
 Python-2 script fail to compile: stock Dispatcher System's Startup.py, and the Stage 1
 launcher's own script (seen 2026-11-10: "no viable alternative at input"). See
-wiki/DISPATCHER_LAYOUT_HOOPS.md.
+jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md.
 """
 from __future__ import annotations
 

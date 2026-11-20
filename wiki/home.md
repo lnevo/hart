@@ -19,6 +19,6 @@ Chat is a scratchpad. Decisions that count live here.
 **CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style; source [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/))  
 **Digicon system overview (desks + LCOS signals):** [`../docs/ctc/HART_DIGICON_SYSTEM.md`](../docs/ctc/HART_DIGICON_SYSTEM.md)  
 **Parked (helix-join release, November 2026):** the USS CTC machine, the Dispatcher System and Entry/Exit (NX) are not in the active panel; data kept in `jmri/layouts/hart/parked/`. The CATS desks stay live.  
-**Dispatcher desks:** [CATS](../docs/ctc/DISPATCHER_GUIDE_CTC.md) · parked: [USS](../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md), [auto](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md) · [LE / Dispatcher hoops](DISPATCHER_LAYOUT_HOOPS.md) · [Digicon schematic](DIGICON_SCHEMATIC.md)   · [Track lengths](../docs/jmri/TRACK_LENGTHS.md)
+**Dispatcher desks:** [CATS](../docs/ctc/DISPATCHER_GUIDE_CTC.md) · parked: [USS](../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md), [auto](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md) · [LE / Dispatcher hoops](../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md) · [Digicon schematic](../docs/ctc/DIGICON_SCHEMATIC.md)   · [Track lengths](../docs/jmri/TRACK_LENGTHS.md)
 **Wiring / LCOS inventory:** [`../docs/wiring/README.md`](../docs/wiring/README.md)  
 **Live status:** [`STATUS.md`](STATUS.md)

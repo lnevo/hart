@@ -88,4 +88,4 @@ python3 tools/schematic/build_cats_panel.py   # the live desks (generated)
 python3 cats/scripts/dump_cats_grid.py cats/panels/HART_CTC.xml   # inspect any panel
 ```
 
-Cell map: [`DIGICON_SCHEMATIC.md`](../../wiki/DIGICON_SCHEMATIC.md).
+Cell map: [`DIGICON_SCHEMATIC.md`](DIGICON_SCHEMATIC.md).
