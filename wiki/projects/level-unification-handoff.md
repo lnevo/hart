@@ -13,8 +13,8 @@ and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_stagin
 
 ## Owner decisions (2026-11-20)
 
-- **Masts:** no hand-drawn facts where possible. Check what changes if every level's masts come from one rule
-  (see [Masts](#masts)), then decide.
+- **Masts:** no hand-drawn facts where possible; one rule for every level. Decided item by item after the
+  comparison (see [Masts](#masts)).
 - **Sheets:** the drawings stay two sheets (staging; main and upper). Files that hold facts for both get a `sheet`
   (or `level`) column, a section per sheet, not a file per sheet. Preferences stay per sheet.
 
@@ -44,14 +44,16 @@ What differs is what each level adds around it.
   refused elsewhere. `build_main_route.py --check` unchanged apart from the note it writes.
 - **Groupings: needs the owner first.** The two levels use "control point" for different things. Staging has three:
   station groups (`control_points_staging.csv`, with desk codes), stations, and interlockings (the signal rule's
-  control points). Main and upper have one file that is all three. Proposed model, one file each with a `level`
-  column: `interlockings.csv` (signal rule), `stations.csv`, `sheets.csv`, and the station groups as desk areas.
+  control points). Main and upper have one file that is all three. Model, one file each with a `level` column:
+  `interlockings.csv` (signal rule; owner, 2026-11-20), `stations.csv`, `sheets.csv`, and the station groups as desk
+  areas.
   Main and upper's control points become its interlockings, and its stations stay empty until the owner defines
   them in PanelPro (memory: Dispatcher stations for new levels). Wait for the mast result (step 2), since the
   interlockings are its input.
 - **Short tracks:** staging lists them by hand, main and upper use a rule (`SHORT_CM`). Proposed: the rule for every
   level, with the file kept only for owner exceptions (35 to 37 is one, a block decided by the owner), level column.
-- **Hand lists** (running, signalled spurs, split): wait for step 2; some may become rules.
+- **Hand lists:** running track and signalled spurs become rules; split tracks stay owner data in
+  `block_splits.csv` (step 2, [Masts](#masts)).
 
 ### 2. Masts: one rule for every level
 
@@ -80,4 +82,49 @@ for R9b (the device master), which changes the same readers (hartlib `names.py`,
 
 ## Masts
 
-Pending: a read-only run of staging's whole process over the main and upper bands, compared with the committed masts.
+### What the comparison found (2026-11-20, read-only, nothing committed)
+
+Staging's whole process (`build_staging_masts.py`: home masts, intermediates, anchor and virtual masts, interlockings
+as control points) was run over the main and upper bands and compared with the 44 committed masts in
+`main_upper_masts.csv`:
+
+- 33 the same, 9 changed, 2 gone, 102 hidden virtual masts added.
+- Changed: six searchlights would become dwarfs (120RB, 124LB, 212RA, 218LA, 218RA, 220R) because the passing sidings
+  in `running_tracks_main_upper.csv` no longer count as running track; 242L (the exit dwarf from Track 241 Spur)
+  would become hidden; A83 and A84 swap direction (staging has no balloon-loop direction rule).
+- Gone: B92 and B93, the upper intermediates on 227-241, because staging's intermediate rule needs both ends in an
+  interlocking and Switch 241 is in none.
+- With the running and spur lists fed in, 40 of 44 match and only the intermediates differ.
+- The reverse: staging's station groups as the rule's control points break staging (23 home masts become 34 and the
+  build stops), so staging keeps a separate interlockings list. Main and upper's `control_points_main_upper.csv`
+  already holds only interlockings.
+- `reaches_signal` pruning is in `mast_rule.masts()`, so both levels already use it.
+
+Three hand lists reproduce exactly as rules, checked against the drawing:
+- running track: a non-main track joining two interlockings, through a crossover's through route (the 4 rows);
+- signalled spur: a spur off a main track at a switch in no interlocking (Track 241 Spur);
+- split track: a main track folded at one turnback with both halves over `LONG_CM` (107 Loop, 227-241).
+
+### Owner decisions (2026-11-20)
+
+| Item | Decision |
+|---|---|
+| Interlockings | One `interlockings.csv` with a `level` column, from `interlockings_staging.csv` and `control_points_main_upper.csv`. Staging's station groups stay separate (desk areas) |
+| Running track | The rule on every level; on staging it makes Scale running track, so 6LA and 8RA turn from dwarf to searchlight (a panel approval) |
+| Spur exit dwarf | The rule on every level; 242L stays visible; `signalled_spurs_main_upper.csv` goes |
+| Split tracks | **Not a rule.** A rule would catch every intermediate loop. They stay the owner's choice, kept as data in `block_splits.csv` (all levels, `level` column, marked as owner choices), replacing `split_tracks_main_upper.csv` |
+| Intermediates | One merged rule: one interlocking end is enough, the line code kept (A main, B upper, staging as today), main and upper's loop direction used; B92 and B93 stay, staging unchanged |
+| Virtual masts | Only where a visible mast needs one: where a visible mast's route ends at a buffer stop or a stub, so discovery has a destination. Count main and upper (and recheck staging's 10) and show the owner before building |
+
+Hand facts left under the one process: `interlockings.csv`, `block_splits.csv`, the local-switch areas,
+`helix_tracks.csv`, staging's block rows and `block_lengths.csv` (main and upper still generate their own block
+layer, so the block layer is not yet one process), the wired heads and `retired_virtual_masts.csv`.
+
+### Next
+
+1. Count the virtual masts the "needed" rule gives on every level; owner review.
+2. Build, one PR, tests first: `interlockings.csv` and `block_splits.csv`; the running-track, spur and intermediate
+   rules in `mast_rule`; one mast builder for every level (`build_staging_masts.py` and the mast part of
+   `build_device_map.py`). Then stock discovery in a sandbox, `make panels CHECK=1`, before/after crops for the
+   changed masts (6LA, 8RA and any virtual mast change), the candidate installed in the Mac's `~/JMRI_UserFiles`,
+   owner approval, `make panelpro-test`, deploy `--pi --win`.
