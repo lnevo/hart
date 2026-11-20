@@ -1,8 +1,8 @@
-# Hand-off, 2026-11-19: bring the AnyRail plan 5.3c in (Phase 2)
+# Hand-off, 2026-11-19 (finished 2026-11-20, archived): bring the AnyRail plan 5.3c in (Phase 2)
 
 For a fresh agent session. Read `AGENTS.md`, then this page, then
-[`pipelines/schematic-panels.md`](../pipelines/schematic-panels.md) and
-[ADR-024](../decisions/ADR-024-signals-by-rule.md).
+[`pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md) and
+[ADR-024](../../../wiki/decisions/ADR-024-signals-by-rule.md).
 
 ## Why
 
@@ -26,10 +26,9 @@ in them are third-party copyright.
 - **Already taken from 5.3c** (hart #689): the engine house lengths EH-1 49, EH-2 28 and
   EH-3 28 in (drawn length rounded down, less 2 in; flag `plan` in `block_lengths.csv`), and the
   helix lengths in `staging.plan_overrides.json` `helix_length_in`.
-- **Plugin scale fix:** model-railroad-skills PR #74 (branch `agent/claude/plan-scale`,
-  schematic-maps 0.1.44) has unmerged commits. Its lengths use the export's fitted scale instead of
-  a fixed 12 px/in, a change of 0.1–0.4%. It sits on hart-e5's crossover changes (0.1.42 and
-  0.1.43) and waits to be merged with this phase.
+- **Plugin scale fix:** model-railroad-skills PR #74 (branch `agent/claude/plan-scale`) was merged on
+  2026-11-20. Its lengths use the export's fitted scale instead of a fixed 12 px/in, a change of
+  0.1–0.4%.
 - **Mast B93** lacks the intermediateSignal flag. That is correct stock behaviour: its route
   crosses Switch 239 (ADR-024).
 
@@ -85,6 +84,4 @@ Steps 1 to 7 are done and step 8's candidate is installed on the Mac; the owner'
 
 ## Also open
 
-The Windows deploy of hart #689 has not run, because Windows (minipc-e5h6x.local, 10.0.0.28:2222)
-was unreachable. The Pi has that commit. The deploy in step 9 catches Windows up; if Windows comes
-back sooner, run `--win` alone from the main checkout.
+Closed on 2026-11-20. The Pi and Windows are both at 886d9983, which contains hart #689 (242b3cbb). The one item left is the Main West turnback: the owner's call, kept in `wiki/STATUS.md` under Owed.

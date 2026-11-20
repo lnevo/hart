@@ -6,7 +6,7 @@
 
 ## Context
 
-The staging level already uses west and east: W-1 and W-2 are the west end, Princess and the helix the east end. The helix carries trains up to the main levels, where they run the opposite way along the same walls. No direction had been set for the main levels, and the schematic maps ([`projects/schematic-maps.md`](../projects/schematic-maps.md)) need one.
+The staging level already uses west and east: W-1 and W-2 are the west end, Princess and the helix the east end. The helix carries trains up to the main levels, where they run the opposite way along the same walls. No direction had been set for the main levels, and the schematic maps ([`pipelines/schematic-panels.md`](../pipelines/schematic-panels.md)) need one.
 
 ## Decision
 

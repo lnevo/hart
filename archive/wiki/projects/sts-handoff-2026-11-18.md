@@ -1,7 +1,7 @@
 # Hand-off, 2026-11-18: STS on the Pi, then the STS helpers cleanup
 
 For a fresh agent session. Two jobs, in this order. Read `AGENTS.md`, then this page, then
-[`sts-helpers-cleanup.md`](sts-helpers-cleanup.md) (findings and the step plan). Load the `sts-live`
+[`sts-helpers-cleanup.md`](../../../wiki/projects/sts-helpers-cleanup.md) (findings and the step plan). Load the `sts-live`
 skill before touching the Pi STS, and `sts:sts-api` before any API call.
 
 ## State when this was written
@@ -51,7 +51,7 @@ sts-plugins PR, the same UAT check, and the owner's yes.
 
 ## Job 2: the STS helpers cleanup
 
-Follow the step plan in [`sts-helpers-cleanup.md`](sts-helpers-cleanup.md): step 1 (stack guard,
+Follow the step plan in [`sts-helpers-cleanup.md`](../../../wiki/projects/sts-helpers-cleanup.md): step 1 (stack guard,
 main session, Opus, medium effort) and step 2 (dead code and `--ck1-test`, one agent, Sonnet, low
 effort) in parallel, then step 4 (design in the main session, then an agent for the move).
 

@@ -1,7 +1,7 @@
 # Speed matching
 
 - **Owner:** lnevo
-- **Status:** Re-run done on the layout 2026-11-13: both locos profiled both ways, 2738 matched to 2121 within 4% from step 24 up (CV66, CV69, CV70 on 2738), momentum matched, roster profiles written. Left: programming-track read-back, loop 2 lengths into the tables. Record: [`profile-2026-11-13/`](../../docs/jmri/speedmatching/profile-2026-11-13/README.md).
+- **Status:** Re-run done on the layout 2026-11-13: both locos profiled both ways, 2738 matched to 2121 within 4% from step 24 up (CV66, CV69, CV70 on 2738), momentum matched, roster profiles written. Left: programming-track read-back, and the loop 2 lengths still plan only (Track S-R, OS Switch 31, OS Switch 23b, OS Switch 7). Record: [`profile-2026-11-13/`](../../docs/jmri/speedmatching/profile-2026-11-13/README.md).
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
 
 HART auto-dispatcher needs **measured** roster speed profiles for station stops. Apart from 2121 and 2738, every live DecoderPro loco still has the same synthetic 10-step / 400 mm/s profile. This thread is a working club procedure for a detected track circle plus JMRI POM scripts.
@@ -29,8 +29,7 @@ Left, in order:
 1. **Read back** both decoders on the programming track, update the roster (Pi first, then
    `tools/hosts/sync_roster_from_pi.sh --all`), then `pom_guard.py archive-ledger "CSX 2738"` on
    the Pi. Until then the roster holds 2738's old CV66, CV69 and CV70.
-2. **Loop 2 lengths:** apply the Switch 13 and Switch 7 placement and the Scale (about 3645 mm),
-   Barn (about 770 mm) and S-R lengths to `block_lengths.csv`, PanelPro closed. A proper survey needs
+2. **Loop 2 lengths:** Scale (144.9 in) and Barn (34.1 in) are timed in `block_lengths.csv` (flag `timed`). Track S-R, OS Switch 31, OS Switch 23b and OS Switch 7 are still plan lengths; time them with PanelPro closed. A proper survey needs
    a higher `--max` so each step gets 3 or more laps; the 2026-11-13 survey got one.
 3. **Pair stop test:** the coupled run was spoiled (Switch 33 closed under it); repeat it from East
    Lead at steps 32 and 96 when convenient.
@@ -45,7 +44,7 @@ on); with CV4 = 24 a loco stopped from top speed rolls about 8 to 9 m; the pair 
 
 Method: a runner inside the Pi's JMRI (the `jmri_cmd_watcher` channel) steps one loco through
 the throttle steps around the full loop and times laps from the East Ext block sensor
-(loop 31,292.8 mm from the block table; not yet checked against Anyrail). 2121 and 2738 reach
+(the loop is 35,108.2 mm on AnyRail plan 5.3b, `PLAN_LOOP_MM` in `jmri/layouts/hart/scripts/infer_block_lengths.py`). 2121 and 2738 reach
 the same top speed (about 420 to 430 mm/s) but 2738 is 47 to 70% of 2121's speed from step 12
 to 64, because 2738's speed table was switched off (CV25 = 0, CV29 bit 4 clear) and it has no
 momentum (CV3/CV4 = 0/0). The owner chose to match 2738 to 2121, momentum included. Draft:
@@ -70,8 +69,7 @@ when it is restarted. Switch 9 was rewired (normal EH-2, thrown EH-3) and the La
 follow it (PRs #369, #370). Over the CS-105 LCC throttle, F0 reads back False after it is set,
 so check lights by eye. Detection is current-based, so a standing loco can read free.
 
-Open: consist testing; step 126 drift check; opposite-direction check; Anyrail
-loop length; a clean timing pass through Scale (the earlier 45 s was a hand block); the reverse profile of 2738 (2121's reverse matches its forward); the STRR scripts below are still unused.
+Open: consist testing; step 126 drift check; opposite-direction check; a clean timing pass through Scale (the earlier 45 s was a hand block); the reverse profile of 2738 (2121's reverse matches its forward); the STRR scripts below are still unused.
 
 ## Source
 
@@ -117,9 +115,3 @@ Sound workaround: Measure script shows live speed values and standard deviations
 Attachments: SOP, Speed MATCHING script, Speed MEASURING script. Load Matching first, then Measuring.
 
 Offer: SoCal visitors welcome on weekends. “If you are not having fun, you are doing something wrong!”
-
-## Next (when we do this)
-
-- [ ] Decide: adapt this circle-table method vs stock JMRI Roster ▸ Speed Profiling on a known-length HART block
-- [ ] Replace each loco’s synthesized profile with a measured one
-- [ ] If adapting the STRR scripts: HO scale, our detection sensors, straight/block length or loop geometry — do not run the N-scale constants as-is

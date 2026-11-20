@@ -1,6 +1,6 @@
 # Schematic maps: history of the build
 
-This page is a dated record, condensed on 2026-11-18. It holds no live steps. The live pipeline, its three input layers (plan overrides, generation rules, preferences) and the decisions that still hold are in [`../pipelines/schematic-panels.md`](../pipelines/schematic-panels.md) (`make panels`). The plan and as-built notes are in [`schematic-maps.md`](schematic-maps.md).
+This page is a dated record, condensed on 2026-11-18. It holds no live steps. The live pipeline, its three input layers (plan overrides, generation rules, preferences) and the decisions that still hold are in [`../pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md) (`make panels`). The plan and as-built notes are in [`schematic-maps.md`](schematic-maps.md).
 
 Many files named below were retired along the way: the viewing trial tables, the carried overlay, the physical main and upper builder, the first generated CATS panels and the hand-drawn pixel tables used by the old polish, reconcile and NX scripts. The cut-over steps listed under 2026-11-15 and 2026-11-16 were for parked or obsolete tools (Stage 1, NX Discover, polish, reconcile) and are not to be followed.
 
@@ -23,7 +23,7 @@ Many files named below were retired along the way: the viewing trial tables, the
 - The Layout Editor panel fit the window and gained masts placed in the slot JMRI resolves to the same facing and protected blocks as the live panel (plugin 0.1.16 and 0.1.17); 38RA and 40RA stand at the helix-entrance anchors. The CATS desk was drawn one cell per grid step in a 1900 x 1150 window, with mast rules learned from the CATS source (plugin 0.1.15); the owner reviewed it in real CATS and approved it.
 - The cut-over was planned in five phases: candidate, checks, scripts working on the candidate, sandbox rehearsal, cut-over. The hand-drawn pixel tables in the polish, reconcile and NX scripts were kept for a rehearsal and are being removed. A generated-panel marker label let those scripts take positions from the panel itself, and `HART_TABLES=<file>` let `tools/check.sh` run against any tables file.
 - The owner approved the track but not the labels, which had been carried from the hand-drawn panel and overlapped. Decision: the builder generates every label, readout and switch number itself with a hard no-overlap check sized to what JMRI draws, one block contents icon per block, and the hand-panel labels are dropped (plugin label layer, then station buttons as "extras"). Main and upper go into the Layout Editor after the staging cut-over.
-- Placeholder control points ("CP <lowest switch>") and the device map for main and upper (see [`../STATUS.md`](../STATUS.md)); the upper-deck plan with switches 61 to 91 is obsolete.
+- Placeholder control points ("CP <lowest switch>") and the device map for main and upper (see [`../STATUS.md`](../../../wiki/STATUS.md)); the upper-deck plan with switches 61 to 91 is obsolete.
 
 ## 2026-11-16: three-level candidate, cut-over and CATS cut-over
 

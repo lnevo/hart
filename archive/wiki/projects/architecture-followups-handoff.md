@@ -56,7 +56,7 @@ The PR proposes these phases:
 - an endpoint record, `X\0`, then two u32 ids, four doubles (x, y, z, angle) and a length-prefixed system name;
 - length-prefixed Bézier point lists.
 
-It now produces the `parts.json` the schematic reads from the repo. Options, none of which needs a real plan file:
+The prototype is still used by `infer_block_lengths.py`; `tools/anyrail/anyplan.py` (with synthetic-fixture tests in `tools/anyrail/tests/test_anyplan.py`) now writes `parts.json`, so this item is done. Options, none of which needs a real plan file:
 - **Synthetic byte fixtures.** A test helper writes small byte strings in exactly the record shapes the reader looks for: one turnout with three endpoints, a flex track with a Bézier list, a record with a non-finite or out-of-range coordinate, and a record whose system name differs from its part's, which is the misread found in plan 5.3b. Tests check the decoded names, endpoints, the grouping of endpoints into parts (the offset limits), the filters, and the Bézier length against a straight line and a quarter circle of known length. These prove the reader matches its own idea of the format, not that AnyRail writes it that way.
 - **Checks on the committed outputs.** `parts.json` already has invariants in `tools/audit/tests/test_publish_draft.py`: only names and x, y, z; no point at the origin; only part 0 is a short turnout. Both graphs regenerate the same from it.
 - **A local-only test against the owner's plan.** If `~/Documents/Layout/Lee Nevo Design Version 5.3b.any` is present, run the reader and compare with the committed `parts.json` after the same strip. It is skipped everywhere else, CI included. This is the only test that proves the format against a real file.
