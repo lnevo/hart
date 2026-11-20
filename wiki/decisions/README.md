@@ -26,5 +26,9 @@
 | [022](ADR-022-timetable-direction-follows-route.md) | Timetable direction follows the route | Accepted, amended 2026-11-14 |
 | [023](ADR-023-generated-outputs-side-by-side.md) | Generated panels and pages sit beside the ones they replace | Accepted |
 | [024](ADR-024-signals-by-rule.md) | Signal masts are placed by rule on every level | Accepted |
+| [025](ADR-025-operating-flag.md) | An operating flag guards the Pi and Windows while the layout is in use | Accepted |
+| [026](ADR-026-anyrail-5-3c-master-plan.md) | AnyRail plan 5.3c is the master plan | Accepted |
+| [027](ADR-027-staging-from-its-device-map.md) | Staging is built from its device map | Accepted |
+| [028](ADR-028-main-upper-virtual-devices.md) | Main and upper levels run on virtual devices named by identity | Accepted |
 
 Older consolidation decisions are in git history, and ADR-007 records what became of them.
