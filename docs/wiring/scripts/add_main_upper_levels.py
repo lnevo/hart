@@ -19,7 +19,6 @@ DigiconSignals sheet are unchanged.
 from __future__ import annotations
 
 import argparse
-import csv
 import re
 import sys
 import tempfile
@@ -28,6 +27,10 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib.railroad import DEVICE_COLUMNS, FactsError, read_rows  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[3]
 WIRING = ROOT / "docs/wiring"
@@ -45,9 +48,14 @@ PORT = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)$")
 NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
 
 
-def read_csv(path: Path) -> list[dict]:
-    with open(path, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
+    """The device map's rows. comment and trial_name are required here, beyond what hartlib's own reader needs: the
+    ports and the Switch Elements names are read from them on every row."""
+    return [r for _line, r in read_rows(path, DEVICE_COLUMNS[:10], optional=DEVICE_COLUMNS[10:])]
+
+
+def read_node_rows(path: Path = NODES) -> list[dict]:
+    return [r for _line, r in read_rows(path, ("level", "area", "node"), optional=("source",))]
 
 
 def natural(s: str):
@@ -242,8 +250,8 @@ def block_name(occ: dict, by_name: dict) -> str:
 
 
 def build(dest: Path) -> None:
-    rows = read_csv(DEVICE_MAP)
-    nodes = gather(rows, read_csv(NODES))
+    rows = read_device_rows()
+    nodes = gather(rows, read_node_rows())
     wb = load_workbook(SRC)
     apply(wb, nodes, rows)
     wb.save(dest)
@@ -261,14 +269,18 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--check", action="store_true", help="exit 1 if v86 differs from what v85 and the map give")
     args = ap.parse_args(argv)
-    if not args.check:
-        build(OUT)
-        print(f"wrote {OUT.relative_to(ROOT)}")
-        return 0
-    with tempfile.TemporaryDirectory() as tmp:
-        fresh = Path(tmp) / OUT.name
-        build(fresh)
-        same = OUT.exists() and values(OUT) == values(fresh)
+    try:
+        if not args.check:
+            build(OUT)
+            print(f"wrote {OUT.relative_to(ROOT)}")
+            return 0
+        with tempfile.TemporaryDirectory() as tmp:
+            fresh = Path(tmp) / OUT.name
+            build(fresh)
+            same = OUT.exists() and values(OUT) == values(fresh)
+    except FactsError as exc:
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 2
     print(f"{OUT.name} is current" if same else f"{OUT.name} is stale: run {Path(__file__).name}")
     return 0 if same else 1
 
