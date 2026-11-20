@@ -23,6 +23,7 @@ sys.path.insert(0, str(HERE))
 # (step, script and arguments, True when it only checks in both modes), in the order the outputs depend on each other.
 STEPS = [
     ("hands", "build_hands.py", False),
+    ("main-route", "build_main_route.py", False),
     ("staging-masts", "build_staging_masts.py --check", True),
     ("staging-sync", "sync_staging_signals.py --check", True),
     ("staging-map", "staging_device_map.py --check", True),

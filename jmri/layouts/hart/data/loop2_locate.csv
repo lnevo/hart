@@ -1,0 +1,4 @@
+section,mean_mm,step24_mm,step48_mm,before_sw15_mm,note
+"Switch 7",4249,4260,4239,1660,"CSX 2121 passes of 2026-11-13 (steps 24 and 48), Switch 5 to Switch 15: mm from Switch 5 points along the run; the mean of the two, and its distance before the Switch 15 pin"
+"Switch 13",5457,5444,5470,452,"same two passes"
+"Switch 7b",3900,,,,"loop 1 estimate kept for comparison: mm from Switch 5 points along the run; set from where the page drew it, not re-measured"

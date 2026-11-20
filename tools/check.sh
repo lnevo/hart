@@ -103,6 +103,7 @@ run status-counts python3 tools/ops/status_counts.py --check
 run schematic-signals python3 tools/schematic/build_signals.py --check
 run schematic-cats python3 tools/schematic/build_cats_panel.py --check
 run schematic-hands python3 tools/schematic/build_hands.py --check
+run schematic-main-route python3 tools/schematic/build_main_route.py --check
 run schematic-approved python3 tools/schematic/check_approved.py
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py --check

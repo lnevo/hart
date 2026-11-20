@@ -105,7 +105,7 @@ from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read 
     check_boundaries,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, COMMENT, bean, r1, block_sort,
+    BLOCK_NUMBERED_AS, APPENDED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, numbered_blocks, STRIPPED, strip_build_owned,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,

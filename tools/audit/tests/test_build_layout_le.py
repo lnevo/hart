@@ -937,6 +937,42 @@ class LoopAndCrossover(unittest.TestCase):
         self.assertEqual(new[:len(old)], [renamed.get(b, b) for b in old])      # every old number kept
         self.assertEqual(new[len(old):], list(B.APPENDED_BLOCKS))
 
+    def test_the_numbering_is_read_from_its_csv(self) -> None:
+        self.assertEqual(B.BLOCK_NUMBERED_AS, {"Track 107 Loop 1": "Track 107 Loop", "OS Switch 225a": "OS Switch 225",
+                                               "Track 227-241 1": "Track 227-241"})
+        self.assertEqual(B.APPENDED_BLOCKS, ("Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c",
+                                             "OS Switch 225d", "Track 227-241 2"))
+
+    def test_a_bad_numbering_file_stops_with_its_line(self) -> None:
+        head = "block,numbered_as,append_order,notes\n"
+        cases = {
+            "A,,,\n": "line 2 (A): give numbered_as or append_order",
+            "A,B,1,\n": "line 2 (A): give numbered_as or append_order",
+            "A,,x,\n": "append_order 'x' is not a whole number",
+            "A,,2,\n": "must count 1, 2, 3",
+            "A,,1,\nA,,2,\n": "line 3: block 'A' is empty or listed twice",
+            "A,B,,\nB,,1,\n": "B is both a block and the name another is numbered as",
+        }
+        for body, why in cases.items():
+            with tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp) / "block_numbering.csv"
+                path.write_text(head + body)
+                with self.assertRaisesRegex(B.BuildError, re.escape(why), msg=body):
+                    B.load_numbering(path)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "block_numbering.csv"
+            path.write_text("block,numbered\nA,B\n")
+            with self.assertRaisesRegex(B.BuildError, "expected the columns"):
+                B.load_numbering(path)
+
+    def test_the_build_stops_on_a_row_for_a_block_that_is_gone(self) -> None:
+        have = ["OS Switch 107", "Track 107 Loop 1", "Track 107 Loop 2", "OS Switch 225a", "OS Switch 225b",
+                "OS Switch 225c", "OS Switch 225d", "Track 227-241 1"]          # no Track 227-241 2
+        with self.assertRaisesRegex(B.BuildError, "Track 227-241 2, which the main and upper levels no longer have"):
+            B.numbered_blocks(have, require_listed=True)
+        self.assertEqual(B.numbered_blocks(have)[-4:], ["Track 107 Loop 2", "OS Switch 225b", "OS Switch 225c",
+                                                        "OS Switch 225d"])
+
     def test_the_loop_is_two_blocks_and_225_a_block_per_corner(self) -> None:
         _sheet, le_mod, _core = B.plugin()
         bands, page = B.schematic()
