@@ -353,6 +353,8 @@ class DigiconMqttSml(
         self._global_enabled = False
         self._busy = False
         self._suppress_sml = False
+        # True when the last bulk SML set gave up waiting on the layout thread.
+        self._bulk_timed_out = False
         self._boot_pending = False
         self._retained_mode = None
         self._button = None
@@ -612,10 +614,25 @@ class DigiconMqttSml(
             if self._abort_gen != abort_gen:
                 break
             self._publish_unheld(head)
+        sent = False
         with self._claim_lock:
             if self._abort_gen == abort_gen:
                 self._publish_mode("disabled")
-        print("mqtt_signalhead: shutdown sml_mode disabled -- unchecking SML pairs")
+                sent = True
+                # Not the owner from here on: no head SET may follow disabled.
+                self._global_enabled = False
+                self._enabling_originator = False
+                self._claim = None
+        if sent:
+            # The release is out: a later failure must not make a second caller
+            # send disabled again.
+            self._shutdown_released = True
+            self._sync_sml_mode_sensor()
+            print("mqtt_signalhead: shutdown sml_mode disabled -- unchecking SML pairs")
+        else:
+            print("mqtt_signalhead: shutdown -- unchecking SML pairs (no disabled sent)")
+        suppress = self._suppress_sml
+        self._suppress_sml = True  # the uncheck itself publishes nothing
         try:
             if self._set_all_digicon_sml_destinations(False) is not True:
                 print(
@@ -627,6 +644,7 @@ class DigiconMqttSml(
             except Exception as exc:
                 print("mqtt_signalhead: shutdown snapshot failed: " + _ascii(exc))
         finally:
+            self._suppress_sml = suppress
             # A failed bulk set must not leave the masts Held or this host owning.
             self._set_masts_held(False)
             self._global_enabled = False
@@ -877,6 +895,7 @@ class DigiconMqttSml(
         """
         # SML may finish discovering after Start Up -- refresh before bulk set.
         self._attach_sml_listeners(quiet=True)
+        self._bulk_timed_out = False
 
         def _do(run):
             n = 0
@@ -899,9 +918,12 @@ class DigiconMqttSml(
                 if empty:
                     continue
                 try:
+                    # A copy: a pair added or removed meanwhile cannot upset the loop.
+                    copy = []
                     it = dests.iterator()
                     while it.hasNext():
-                        dest = it.next()
+                        copy.append(it.next())
+                    for dest in copy:
                         # Checked before each flip. A cancel that lands during a flip
                         # lets that one flip finish: at most one pair changes after it.
                         if not run.go_on():
@@ -917,9 +939,9 @@ class DigiconMqttSml(
                                 sml.setEnabled(dest)
                             else:
                                 sml.setDisabled(dest)
-                            n += 1
                             if enabled != bool(sml.isEnabled(dest)):
                                 raise RuntimeError("pair did not change")
+                            n += 1
                         except Exception as exc:
                             if not _dest_listed(sml, dest):
                                 # Removed from the logic meanwhile: nothing to set.
@@ -948,6 +970,7 @@ class DigiconMqttSml(
         queued = _BulkRun()
         ran = [False]
         wait = [None]  # (latch, TimeUnit) once the latch exists
+        queued_ok = [False]  # runOnLayout returned: the work is queued
         try:
             from java.util.concurrent import CountDownLatch, TimeUnit
             from jmri.util import ThreadingUtil
@@ -972,14 +995,16 @@ class DigiconMqttSml(
                     _run()
 
             ThreadingUtil.runOnLayout(_R())
+            queued_ok[0] = True
             if not latch.await(30, TimeUnit.SECONDS):
                 if not queued.cancel():
+                    self._bulk_timed_out = True
                     print("mqtt_signalhead: SML bulk set timed out on layout thread")
                     return False
             return queued.result is True
         except Exception as exc:
             print("mqtt_signalhead: SML bulk set fallback: " + _ascii(exc))
-            if wait[0] is not None and not ran[0]:
+            if queued_ok[0] and not ran[0]:
                 # A queued copy may be running now: give it a moment to finish.
                 try:
                     wait[0][0].await(1, wait[0][1].SECONDS)
@@ -1509,10 +1534,7 @@ class DigiconMqttSml(
 
         After an abort another agent owns Digicon: no re-enable and no enabled.
         """
-        print(
-            "mqtt_signalhead: Disable FAILED -- SML pairs may still be on; keeping "
-            "Digicon (enabled). Check the SML table, then try Disable again."
-        )
+        print("mqtt_signalhead: Disable FAILED -- SML pairs may still be on")
         if self._abort_gen != abort_gen:
             print("mqtt_signalhead: taken over during the failed Disable -- no enabled")
             self._set_masts_held(False)
@@ -1528,6 +1550,10 @@ class DigiconMqttSml(
             self._set_masts_held(False)
             self._sync_sml_mode_sensor()
             return
+        print(
+            "mqtt_signalhead: keeping Digicon (enabled) after the failed Disable. "
+            "Check the SML table, then try Disable again."
+        )
         self._set_masts_held(False)
         if not on:
             self._unheld_heads_of_dark_masts(abort_gen)
@@ -1571,7 +1597,15 @@ class DigiconMqttSml(
         return ", ".join(out) or "none listed"
 
     def _retry_uncheck_loudly(self, why):
-        """After a bulk uncheck that failed: print the pairs still on, retry once."""
+        """After a bulk uncheck that failed: print the pairs still on, and retry once
+        if the set finished with a pair failure (not after a timeout: the layout
+        thread is stuck, and a retry would only wait again)."""
+        if self._bulk_timed_out:
+            print(
+                "mqtt_signalhead: %s FAILED to turn all SML pairs off (timed out; "
+                "still on: %s)" % (why, self._pairs_still_on())
+            )
+            return False
         print(
             "mqtt_signalhead: %s FAILED to turn all SML pairs off (still on: %s) -- "
             "retrying once" % (why, self._pairs_still_on())
