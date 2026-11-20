@@ -56,8 +56,8 @@ OUT_OF_MAPS = ("spare", "panel_status")        # roles the two device maps leave
 SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 
 COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
-           "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "switch", "facing",
-           "protects", "dir", "written_by", "description",
+           "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
+           "switch", "facing", "protects", "dir", "written_by", "description",
            "pnm_order", "pnm_cp", "pnm_hardware", "pnm_dcc", "pnm_comment", "pnm_notes")
 PNM_COLUMNS = ("layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes")
 # the columns a device map shares with the master, and the three that are built (comment) or dropped (the rest)
@@ -249,6 +249,8 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
             bad.append(f"{at}: a spare detector has its M2S name as system_name and jmri_name")
         if (r["role"] == "panel_status") != (r["written_by"] == "panel_items.json"):
             bad.append(f"{at}: role panel_status and written_by panel_items.json go together")
+        if r["layout_block"] and (r["layer"] != "block" or not r["layout_block"].startswith("ILB")):
+            bad.append(f"{at}: layout_block {r['layout_block']!r} is for a block row, an ILB name")
         if r["wiring"] and r["jmri_comment"]:
             bad.append(f"{at}: wiring and jmri_comment are both set; a row has one comment")
         pnms = [r[c] for c in COLUMNS if c.startswith("pnm_")]

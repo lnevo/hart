@@ -36,9 +36,10 @@ def fake_bin(tmp: Path) -> Path:
 
 
 def keep_repo_tables(tmp: Path) -> None:
-    """For tests that run the deploy for real (no --dry-run): the SML gate would rewrite the repo's
-    tables.xml, so a python3 stand-in in the fake bin (after stage_env) runs that one script as a
-    dry run and logs it in gates.log. Every other python3 call goes to the real one unchanged."""
+    """For tests that run the deploy for real (no --dry-run): a guard that the deploy never rewrites the repo's
+    tables.xml. The deploy no longer runs the Digicon SML script (R9c: the generator applies the rule); should a step
+    call it again, a python3 stand-in in the fake bin (after stage_env) runs it as a dry run and logs it in gates.log,
+    which the tests require to stay absent. Every other python3 call goes to the real one unchanged."""
     real = shutil.which("python3")
     tool = tmp / "bin/python3"
     tool.write_text(f"""#!/bin/bash

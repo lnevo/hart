@@ -11,7 +11,9 @@ Layout Editor (tables.xml)
   - the turnout's hardware and DCC address, and the layout turnout's name and OS block;
   - which leg the continuing sense closes to (plain turnouts);
   - the stored block paths: the closed leg needs Closed or no setting, the thrown
-    leg Thrown, and neither may be reached with the other setting.
+    leg Thrown, and neither may be reached with the other setting. The generated tables.xml stores none (ADR-029:
+    JMRI derives them from the panel on load), so this part runs only on a tables file that stores them (--tables,
+    a PanelPro Store).
 CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schematic since the CATS cut-over)
   - each bound plant's turnout, the leg each command (close/throw) leads to, and which
     leg is NORMAL (the closed one, unless the switch is CATS-inverted); the main and upper
@@ -31,7 +33,7 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
 Levels (control_points_staging.csv, switches.csv, the name map of devices.csv)
   - each control point's switches are on its level, and every cp in the name map has a row;
   - every mast and block has one level: its switch's, its control point's, or, for a
-    main between control points, the one level of the blocks its tables.xml paths join.
+    main between control points, the one level of the blocks it joins (its stored paths, else the panel's track).
 USS CTC (CTC code buttons in tables.xml, ctc/GUIObjects.xml and the copy in tables.xml)
   - the code button's turnout, OS sensors, lever and signal levers;
   - the lever, the points dot and its polarity in the switch's column;
@@ -159,10 +161,33 @@ class Tables:
         self.layout_turnouts = {lt.get("ident"): lt for lt in self.root.iter("layoutturnout")}
         self.segments = {s.get("ident"): s for s in self.root.iter("tracksegment")}
         self.points = {p.get("ident"): p for p in self.root.iter("positionablepoint")}
+        self.paths_stored = bool(self.paths)
         self.sensor_system = {
             (s.findtext("userName") or "").strip(): (s.findtext("systemName") or "").strip()
             for s in self.root.iter("sensor")
         }
+
+    def joined_blocks(self, user: str) -> set[str]:
+        """The block user names `user` joins: through its stored paths, or, in tables that store none (the generated
+        tables.xml, ADR-029), through the panel's track: a segment of `user` ending at an anchor or a turnout whose
+        other side is another block."""
+        if self.paths_stored:
+            return {self.block_user.get(dest, dest) for dest, _settings in self.paths.get(user, [])} - {None}
+        out: set[str] = set()
+        for seg in self.segments.values():
+            if seg.get("blockname") != user:
+                continue
+            for i in ("1", "2"):
+                name, kind = seg.get(f"connect{i}name"), seg.get(f"type{i}") or ""
+                if kind == "POS_POINT" and name in self.points:
+                    pp = self.points[name]
+                    for other in (pp.get("connect1name"), pp.get("connect2name")):
+                        o = self.segments.get(other or "")
+                        if o is not None and o.get("blockname"):
+                            out.add(o.get("blockname"))
+                elif kind.startswith("TURNOUT_") and name in self.layout_turnouts:
+                    out.add(self._turnout_block(self.layout_turnouts[name], kind[-1]))
+        return out - {user, None}
 
     def track_name(self, user: str | None) -> str | None:
         """Track S-R West -> Track S-R when both report on the same occupancy sensor."""
@@ -246,6 +271,8 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
             r.add(f"le:{n}", f"{n}: Layout Editor {sw.le_ident} (continuing={cont}) closes to {closed} "
                              f"and throws to {thrown}; switch_legs.csv says closed {primary.closed}, "
                              f"thrown {primary.thrown}")
+    if not t.paths_stored:          # the generated tables.xml (ADR-029): no stored paths to hold to the legs
+        return
     for leg in sw.legs:
         leg_paths = t.paths.get(leg.os_block)
         if not leg_paths:
@@ -685,12 +712,11 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
         if row["layer"] not in ("mast", "block") or key in levels:
             continue
         name = row["proposed"]
-        near = {levels.get(("block", t.track_name(t.block_user.get(dest, dest))))
-                for dest, _settings in t.paths.get(name, [])} - {None}
+        near = {levels.get(("block", t.track_name(b))) for b in t.joined_blocks(name)} - {None}
         if len(near) != 1:
             r.add(f"level:{name}", f"{name}: no control point and no switch in the name map of devices.csv or "
-                                   f"switch_legs.csv, and its tables.xml paths join levels {sorted(near) or 'none'}; "
-                                   f"give it a cp")
+                                   f"switch_legs.csv, and the blocks it joins in tables.xml are on levels "
+                                   f"{sorted(near) or 'none'}; give it a cp")
 
 
 def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
@@ -742,6 +768,9 @@ def main(argv: list[str] | None = None) -> int:
     for line in failures:
         print(f"FAIL {line}", file=sys.stderr)
     n = len(facts.load_switches(args.data))
+    if not Tables(args.tables).paths_stored:
+        print(f"note: {paths.rel(args.tables)} stores no block paths (ADR-029: JMRI derives them from the panel); the "
+              "stored-path leg check runs on a tables file that stores them (--tables, a PanelPro Store)")
     print(f"layout facts: {n} switches, {len(failures)} failure(s), {len(r.known(KNOWN))} known")
     return 1 if failures else 0
 

@@ -223,7 +223,7 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 1,Princess,head,Head 67,IH:HART:C1:67,IH:HART:C1:67,,,Princess,,"internal, not wired",,,,,,,
 1,Princess,head,Head 68,IH:HART:C1:68,IH:HART:C1:68,,,Princess,,"internal, not wired",,,,,,,
 1,Plane,head,Head 6LA,IH:HART:C1:6LA,IH:HART:C1:6LA,,,Plane | Switch 5,,"internal, not wired",,,,,,,
-1,Plane,head,Head 6LB,IH432,IH432,4,,Plane | Switch 5,,"wired (owner, 2026-11-18)",,,,,,,
+1,Plane,head,Head 6LB,IH432,IH432,4,,"Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",,"wired (owner, 2026-11-18)",,,,,,,
 1,Plane,head,Head 6R Bottom,IH:HART:C1:6R_Bottom,IH:HART:C1:6R_Bottom,,,Plane | Switch 5,,"internal, not wired",,,,,,,
 1,Plane,head,Head 6R Top,IH:HART:C1:6R_Top,IH:HART:C1:6R_Top,,,Plane | Switch 5,,"internal, not wired",,,,,,,
 1,Barn,head,Head 8LA Bottom,IH:HART:C1:8LA_Bottom,IH:HART:C1:8LA_Bottom,,,Barn | Switch 7,,"internal, not wired",,,,,,,

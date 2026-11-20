@@ -16,6 +16,7 @@ notes,"Text for people from the old device map: what the row is for, or why a de
 blocks,"Occupancy rows: the blocks the detector serves, separated by a semicolon."
 detector,"Occupancy rows: wired, planned, not_wired or none, whether the detector is in the field, planned on a node input, planned with no input yet, or not planned."
 stop,"Block rows: yes when the block is a Dispatcher System station (the stop its JMRI comment carries)."
+layout_block,"Block rows of staging: the system name (ILB...) of the block's JMRI layout block, which JMRI numbered when the block was drawn. Empty on the main and upper levels, whose layout blocks the Layout Editor build numbers."
 switch,"Mast rows: the switch whose leg the mast stands at. Empty for an intermediate, anchor or buffer-stop mast."
 facing,"Mast rows: the block the mast faces."
 protects,"Mast rows: the blocks the mast protects, separated by a semicolon."

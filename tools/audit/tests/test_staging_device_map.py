@@ -307,9 +307,8 @@ class DeviceMapBuild(unittest.TestCase):
             blb.plugin()
         except blb.BuildError as exc:
             raise unittest.SkipTest(f"plugin not available: {exc}")
-        base = blb.paths.TABLES_XML          # the build starts from this checkout's tables.xml
-        with contextlib.redirect_stdout(io.StringIO()):
-            cls.data, cls.P, cls.names, _bands = blb.build(base, levels="staging", as_live=True, approved=None)
+        with contextlib.redirect_stdout(io.StringIO()):     # on the generator's base (ADR-029)
+            cls.data, cls.P, cls.names, _bands = blb.build(levels="staging", as_live=True, approved=None)
         from hartlib import tables
         cls.tables = tables
         cls.panel = tables.layout_editor(tables.loads(cls.data).root, blb.TEMPLATE_PANEL)

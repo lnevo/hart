@@ -325,18 +325,10 @@ if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
   python3 "$PANEL_AUDIT" --strict
 fi
 
-SML_GATE="$ROOT/jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py"
-if [[ -n "$TABLES" && -f "$SML_GATE" ]]; then
-  if [[ "$DRY_RUN" -eq 1 ]]; then
-    python3 "$SML_GATE" --dry-run --panel "$TABLES"
-  else
-    # Flip Digicon MQTT dests to Enabled=no in the file we ship.
-    python3 "$SML_GATE" --panel "$TABLES"
-  fi
-fi
-
-# The gates above may rewrite tables.xml, so the stamp also names the tables actually
-# shipped and whether they differ from the committed file.
+# The Digicon boot rule (their Signal Mast Logic stored disabled) is applied by the generator,
+# tools/schematic/build_tables.py (R9c, ADR-029), so the hosts get exactly the committed bytes:
+# nothing here rewrites tables.xml. The stamp still names the tables shipped and whether they
+# differ from the committed file (an uncommitted change).
 DEPLOY_TABLES_SHA=none
 DEPLOY_TABLES_MODIFIED=no
 if [[ -n "$TABLES" ]]; then
@@ -344,7 +336,7 @@ if [[ -n "$TABLES" ]]; then
   committed_sha="$(git -C "$ROOT" show "HEAD:jmri/layouts/hart/output/tables.xml" 2>/dev/null | shasum -a 256 | cut -d' ' -f1)"
   if [[ "$DEPLOY_TABLES_SHA" != "$committed_sha" ]]; then
     DEPLOY_TABLES_MODIFIED=yes
-    echo "WARNING: the tables.xml being shipped differs from commit ${DEPLOY_COMMIT:0:12} (uncommitted, or rewritten by the gates above). Commit it after the deploy; the stamp says tables_modified_by_deploy=yes." >&2
+    echo "WARNING: the tables.xml being shipped differs from commit ${DEPLOY_COMMIT:0:12} (uncommitted). Commit it after the deploy; the stamp says tables_modified_by_deploy=yes." >&2
   fi
 fi
 

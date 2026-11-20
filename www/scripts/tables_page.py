@@ -25,13 +25,17 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_devices, parked  # noqa: E402
+from hartlib import level_devices, parked, paths  # noqa: E402
+import csv  # noqa: E402
 
 REGION = re.compile(r"<!--tf:([a-z0-9-]+)-->(.*?)<!--/tf-->", re.S)
 
 # Hand-picked examples. Each must still exist in the file in the form the page describes.
 EXAMPLE_SENSOR = "BS K-1"
 EXAMPLE_BLOCK, EXAMPLE_BLOCK_TURNOUT = "OS Switch 13", "Switch 13"
+# The switch facts (ADR-021): the example block's closed and thrown legs, which JMRI's paths follow. The generated
+# tables.xml stores no block paths (ADR-029: JMRI works them out from the panel when it loads the file).
+SWITCH_LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
 EXAMPLE_SML = ("Mast 40LA", "Mast 24L")
 EXAMPLE_TURNOUT = "Switch 35"
 EXAMPLE_DETECTORS = ()   # none is shared since the yard throats went (2026-11-20)
@@ -181,6 +185,9 @@ def facts(raw: bytes, root) -> dict:
     users.pop("", None)
     f["layoutBlocks"], f["detectors"] = len(lbs), len(users)
     f["paths"] = sum(len(b.findall("path")) for b in blocks)
+    if f["paths"]:
+        raise PageError(f"tables.xml stores {f['paths']} block paths; the generated file stores none (ADR-029), and "
+                        "the page says so")
     shared = {d: u for d, u in users.items() if len(u) > 1}
     f["sharedCount"] = len(shared)
     f["sharedExamples"] = []
@@ -197,16 +204,14 @@ def facts(raw: bytes, root) -> dict:
         raise PageError(f"tables.xml: sensor {EXAMPLE_SENSOR!r} has no comment, and the page quotes it")
 
     b = _one([e for e in blocks if e.findtext("userName") == EXAMPLE_BLOCK], f"block named {EXAMPLE_BLOCK!r}")
-    legs = {}
-    for p in b.findall("path"):
-        for bs in p.findall("beansetting"):
-            t = bs.find("turnout")
-            if t is not None and t.get("systemName") == EXAMPLE_BLOCK_TURNOUT:
-                legs.setdefault(SETTINGS.get(bs.get("setting"), bs.get("setting")), []).append(names.get(p.get("block"), p.get("block")))
-    if sorted(legs) != ["Closed", "Thrown"] or any(len(v) != 1 for v in legs.values()):
-        raise PageError(f"tables.xml: block {EXAMPLE_BLOCK!r} no longer has one closed and one thrown path through {EXAMPLE_BLOCK_TURNOUT!r}: {legs}")
+    with SWITCH_LEGS.open(newline="", encoding="utf-8") as fh:
+        legs = [r for r in csv.DictReader(fh) if r["os_block"] == EXAMPLE_BLOCK
+                and f"Switch {r['switch']}" == EXAMPLE_BLOCK_TURNOUT]
+    if len(legs) != 1 or not (legs[0]["closed_leg"] and legs[0]["thrown_leg"]):
+        raise PageError(f"switch_legs.csv: block {EXAMPLE_BLOCK!r} no longer has one row with a closed and a thrown "
+                        f"leg for {EXAMPLE_BLOCK_TURNOUT!r}: {legs}")
     f["block"] = {"name": EXAMPLE_BLOCK, "sensor": b.findtext("occupancysensor") or "", "turnout": EXAMPLE_BLOCK_TURNOUT,
-                  "closed": legs["Closed"][0], "thrown": legs["Thrown"][0], "more": len(b.findall("path")) > 2}
+                  "closed": legs[0]["closed_leg"], "thrown": legs[0]["thrown_leg"]}
     if not f["block"]["sensor"]:
         raise PageError(f"tables.xml: block {EXAMPLE_BLOCK!r} has no occupancy sensor")
 
@@ -372,11 +377,8 @@ def regions(f: dict) -> dict[str, str]:
         shared = f"{count(n, 'detector', 'detectors').capitalize()} {'is' if n == 1 else 'are'} shared." + (f" {', and '.join(ex)}." if ex else "")
 
     blk = f["block"]
-    bx = ["<block>", f"  <userName>{blk['name']}</userName>", f"  <occupancysensor>{blk['sensor']}</occupancysensor>"]
-    for leg in ("Closed", "Thrown"):
-        bx += [f'  <path block="{blk[leg.lower()]}">', f'    <beansetting setting="{leg}">',
-               f"      <turnout>{blk['turnout']}</turnout>", "    </beansetting>", "  </path>"]
-    bx += (["  ..."] if blk["more"] else []) + ["</block>"]
+    bx = ["<block>", f"  <userName>{blk['name']}</userName>", f"  <occupancysensor>{blk['sensor']}</occupancysensor>",
+          "</block>"]
 
     s = f["sml"]
     sx = [f'<signalmastlogic source="{s["src"]}">', f'  <destinationMast destination="{s["dst"]}">']
@@ -416,7 +418,6 @@ def regions(f: dict) -> dict[str, str]:
         "block-xml": _xml(bx),
         "block-sentence": (f"from {e(blk['name'])} you can go to {e(blk['closed'])} when {e(blk['turnout'])} is closed, "
                            f"and to {e(blk['thrown'])} when it is thrown"),
-        "paths": f"{f['paths']:,}",
         "sml-xml": _xml(sx),
         "sml-section": e(s["associatedSection"]),
         "parked": parked_note(f["parked"]),

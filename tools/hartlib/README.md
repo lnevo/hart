@@ -166,6 +166,27 @@ generated from the master until R9e, and `tools/check.sh` fails on any differenc
 - The `pnm_*` columns hold what `public_name_map.csv` carried and go with that file. They are no builder's output:
   a builder's rewrite carries them over from the row it replaces, so `set_pnm_comments` (the wiring comment of a
   head, from `refresh_bean_comments.py`) may change `pnm_comment` of a row a builder holds, and `written_by` stays.
+- `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the
+  main and upper layout blocks are numbered by the Layout Editor build. A wired head's comment is its `wiring`.
+
+### `hartlib.tables_build`
+
+`tables.xml` is an output (ADR-029, R9c): `tools/schematic/build_tables.py` writes it, and `--check` (in
+`tools/check.sh` and `make panels`) fails on any difference. This module holds its parts that come from no drawing:
+
+- `read_template()`: `jmri/layouts/hart/data/tables_template.xml`, what PanelPro owns (settings, memories, the clock
+  sensor, the "Hide windows on start" LogixNG), in JMRI's format, every section of `SECTIONS` once and in order, with
+  the fixed envelope (`PROLOG`, `EPILOG`) and none of what a Store writes each time (`ENVELOPE_DROPS`).
+- `base()`: the template with the staging beans of `devices.csv` (`master_beans`), comments from the wiring columns
+  (`bean_comment`), each section in JMRI's system-name order (`jmri_order`). `build_layout_le.py` draws on it.
+- `read_discovered()` / `discovered_from_store()` / `write_discovered()` / `merge_discovered()`:
+  `data/schematic/discovered_sml.xml`, the Signal Mast Logic and mast properties stock discovery wrote. Only
+  `build_tables.py --discovered-from STORE` (run by `run_sml_discover.sh`) writes it.
+- `digicon_masts()` / `disable_digicon()`: the Digicon masts' logic boots disabled; the generator applies it, so the
+  deploy ships the committed bytes.
+- `strip_envelope()`: takes a Store's file history, "Written by" comment, clock time and memory values out.
+
+Errors are `TablesBuildError`, naming the file, section or row.
 
 ### `hartlib.level_masts`
 

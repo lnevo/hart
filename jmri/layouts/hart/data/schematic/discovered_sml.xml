@@ -1,0 +1,1996 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<discovered-sml>
+  <mastproperties mast="Mast 67">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
+  <mastproperties mast="Mast 68">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
+  <signalmastlogic source="Mast 4RA">
+    <sourceSignalMast>Mast 4RA</sourceSignalMast>
+    <destinationMast destination="Mast 24RA">
+      <destinationSignalMast>Mast 24RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 4RB">
+    <sourceSignalMast>Mast 4RB</sourceSignalMast>
+    <destinationMast destination="Mast 24RA">
+      <destinationSignalMast>Mast 24RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 24RB">
+    <sourceSignalMast>Mast 24RB</sourceSignalMast>
+    <destinationMast destination="Mast 36RB">
+      <destinationSignalMast>Mast 36RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 32R">
+    <sourceSignalMast>Mast 32R</sourceSignalMast>
+    <destinationMast destination="Mast 36RB">
+      <destinationSignalMast>Mast 36RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 242L">
+    <sourceSignalMast>Mast 242L</sourceSignalMast>
+    <destinationMast destination="Mast 230LA">
+      <destinationSignalMast>Mast 230LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 6LB">
+    <sourceSignalMast>Mast 6LB</sourceSignalMast>
+    <destinationMast destination="Mast 2R">
+      <destinationSignalMast>Mast 2R</destinationSignalMast>
+      <comment />
+      <enabled>no</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 2R">
+    <sourceSignalMast>Mast 2R</sourceSignalMast>
+    <destinationMast destination="Mast 24RA">
+      <destinationSignalMast>Mast 24RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 6LA">
+    <sourceSignalMast>Mast 6LA</sourceSignalMast>
+    <destinationMast destination="Mast 2R">
+      <destinationSignalMast>Mast 2R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 8LB">
+    <sourceSignalMast>Mast 8LB</sourceSignalMast>
+    <destinationMast destination="Mast 6LB">
+      <destinationSignalMast>Mast 6LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 8RA">
+    <sourceSignalMast>Mast 8RA</sourceSignalMast>
+    <destinationMast destination="Mast 24RB">
+      <destinationSignalMast>Mast 24RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 32R">
+      <destinationSignalMast>Mast 32R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 24L">
+    <sourceSignalMast>Mast 24L</sourceSignalMast>
+    <destinationMast destination="Mast 2L">
+      <destinationSignalMast>Mast 2L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 34R">
+    <sourceSignalMast>Mast 34R</sourceSignalMast>
+    <destinationMast destination="Mast 36RB">
+      <destinationSignalMast>Mast 36RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 38LA">
+    <sourceSignalMast>Mast 38LA</sourceSignalMast>
+    <destinationMast destination="Mast 34L">
+      <destinationSignalMast>Mast 34L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 38LB">
+    <sourceSignalMast>Mast 38LB</sourceSignalMast>
+    <destinationMast destination="Mast 34L">
+      <destinationSignalMast>Mast 34L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 67">
+    <sourceSignalMast>Mast 67</sourceSignalMast>
+    <destinationMast destination="Mast 40LA">
+      <destinationSignalMast>Mast 40LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 68">
+    <sourceSignalMast>Mast 68</sourceSignalMast>
+    <destinationMast destination="Mast 38LB">
+      <destinationSignalMast>Mast 38LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 212LB">
+    <sourceSignalMast>Mast 212LB</sourceSignalMast>
+    <destinationMast destination="Mast 218LA">
+      <destinationSignalMast>Mast 218LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218LB">
+      <destinationSignalMast>Mast 218LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 212RA">
+    <sourceSignalMast>Mast 212RA</sourceSignalMast>
+    <destinationMast destination="Mast 204RA">
+      <destinationSignalMast>Mast 204RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 204RB">
+      <destinationSignalMast>Mast 204RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 218LA">
+    <sourceSignalMast>Mast 218LA</sourceSignalMast>
+    <destinationMast destination="Mast 222LB">
+      <destinationSignalMast>Mast 222LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 220R">
+      <destinationSignalMast>Mast 220R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 218RB">
+    <sourceSignalMast>Mast 218RB</sourceSignalMast>
+    <destinationMast destination="Mast 212RA">
+      <destinationSignalMast>Mast 212RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 212RB">
+      <destinationSignalMast>Mast 212RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 222LB">
+    <sourceSignalMast>Mast 222LB</sourceSignalMast>
+    <destinationMast destination="Mast 128LB">
+      <destinationSignalMast>Mast 128LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224R">
+      <destinationSignalMast>Mast 224R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 224LA">
+    <sourceSignalMast>Mast 224LA</sourceSignalMast>
+    <destinationMast destination="Mast 222LA">
+      <destinationSignalMast>Mast 222LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 224LB">
+    <sourceSignalMast>Mast 224LB</sourceSignalMast>
+    <destinationMast destination="Mast 222LA">
+      <destinationSignalMast>Mast 222LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast A83">
+    <sourceSignalMast>Mast A83</sourceSignalMast>
+    <destinationMast destination="Mast 108LA">
+      <destinationSignalMast>Mast 108LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast A84">
+    <sourceSignalMast>Mast A84</sourceSignalMast>
+    <destinationMast destination="Mast 108LB">
+      <destinationSignalMast>Mast 108LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast B92">
+    <sourceSignalMast>Mast B92</sourceSignalMast>
+    <destinationMast destination="Mast 228RB">
+      <destinationSignalMast>Mast 228RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast B93">
+    <sourceSignalMast>Mast B93</sourceSignalMast>
+    <destinationMast destination="Mast 230LA">
+      <destinationSignalMast>Mast 230LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 8LA">
+    <sourceSignalMast>Mast 8LA</sourceSignalMast>
+    <destinationMast destination="Mast 6LB">
+      <destinationSignalMast>Mast 6LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 6LA">
+      <destinationSignalMast>Mast 6LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 110L">
+    <sourceSignalMast>Mast 110L</sourceSignalMast>
+    <destinationMast destination="Mast 124LA">
+      <destinationSignalMast>Mast 124LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 124LB">
+      <destinationSignalMast>Mast 124LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 112L">
+    <sourceSignalMast>Mast 112L</sourceSignalMast>
+    <destinationMast destination="Mast 124LA">
+      <destinationSignalMast>Mast 124LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 124LB">
+      <destinationSignalMast>Mast 124LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 118L">
+    <sourceSignalMast>Mast 118L</sourceSignalMast>
+    <destinationMast destination="Mast 124LA">
+      <destinationSignalMast>Mast 124LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 124LB">
+      <destinationSignalMast>Mast 124LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 126RB">
+    <sourceSignalMast>Mast 126RB</sourceSignalMast>
+    <destinationMast destination="Mast 120RA">
+      <destinationSignalMast>Mast 120RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 120RB">
+      <destinationSignalMast>Mast 120RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 122R">
+      <destinationSignalMast>Mast 122R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 202R">
+    <sourceSignalMast>Mast 202R</sourceSignalMast>
+    <destinationMast destination="Mast 128LB">
+      <destinationSignalMast>Mast 128LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224R">
+      <destinationSignalMast>Mast 224R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 204RA">
+    <sourceSignalMast>Mast 204RA</sourceSignalMast>
+    <destinationMast destination="Mast 128LB">
+      <destinationSignalMast>Mast 128LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224R">
+      <destinationSignalMast>Mast 224R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 212LA">
+    <sourceSignalMast>Mast 212LA</sourceSignalMast>
+    <destinationMast destination="Mast 218LA">
+      <destinationSignalMast>Mast 218LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218LB">
+      <destinationSignalMast>Mast 218LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 228RA">
+    <sourceSignalMast>Mast 228RA</sourceSignalMast>
+    <destinationMast destination="Mast 224LA">
+      <destinationSignalMast>Mast 224LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224LB">
+      <destinationSignalMast>Mast 224LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 230LB">
+    <sourceSignalMast>Mast 230LB</sourceSignalMast>
+    <destinationMast destination="Mast 224LA">
+      <destinationSignalMast>Mast 224LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224LB">
+      <destinationSignalMast>Mast 224LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 2L">
+    <sourceSignalMast>Mast 2L</sourceSignalMast>
+    <destinationMast destination="Mast 6R">
+      <destinationSignalMast>Mast 6R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 4LA">
+      <destinationSignalMast>Mast 4LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 4LB">
+      <destinationSignalMast>Mast 4LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 6R">
+    <sourceSignalMast>Mast 6R</sourceSignalMast>
+    <destinationMast destination="Mast 8RA">
+      <destinationSignalMast>Mast 8RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 8RB">
+      <destinationSignalMast>Mast 8RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 8RB">
+    <sourceSignalMast>Mast 8RB</sourceSignalMast>
+    <destinationMast destination="Mast 24RB">
+      <destinationSignalMast>Mast 24RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 32R">
+      <destinationSignalMast>Mast 32R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 34R">
+      <destinationSignalMast>Mast 34R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 24RA">
+    <sourceSignalMast>Mast 24RA</sourceSignalMast>
+    <destinationMast destination="Mast 36RA">
+      <destinationSignalMast>Mast 36RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 36RB">
+      <destinationSignalMast>Mast 36RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 34L">
+    <sourceSignalMast>Mast 34L</sourceSignalMast>
+    <destinationMast destination="Mast 8LB">
+      <destinationSignalMast>Mast 8LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 8LA">
+      <destinationSignalMast>Mast 8LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 2L">
+      <destinationSignalMast>Mast 2L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 12L">
+      <destinationSignalMast>Mast 12L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 10LA">
+      <destinationSignalMast>Mast 10LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 10LB">
+      <destinationSignalMast>Mast 10LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 36RA">
+    <sourceSignalMast>Mast 36RA</sourceSignalMast>
+    <destinationMast destination="Mast 68">
+      <destinationSignalMast>Mast 68</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 132RA">
+      <destinationSignalMast>Mast 132RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 36RB">
+    <sourceSignalMast>Mast 36RB</sourceSignalMast>
+    <destinationMast destination="Mast 67">
+      <destinationSignalMast>Mast 67</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 68">
+      <destinationSignalMast>Mast 68</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 132RA">
+      <destinationSignalMast>Mast 132RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 132RB">
+      <destinationSignalMast>Mast 132RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 40LA">
+    <sourceSignalMast>Mast 40LA</sourceSignalMast>
+    <destinationMast destination="Mast 24L">
+      <destinationSignalMast>Mast 24L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 34L">
+      <destinationSignalMast>Mast 34L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 40LB">
+    <sourceSignalMast>Mast 40LB</sourceSignalMast>
+    <destinationMast destination="Mast 24L">
+      <destinationSignalMast>Mast 24L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 34L">
+      <destinationSignalMast>Mast 34L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 108LA">
+    <sourceSignalMast>Mast 108LA</sourceSignalMast>
+    <destinationMast destination="Mast 124LA">
+      <destinationSignalMast>Mast 124LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 124LB">
+      <destinationSignalMast>Mast 124LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 108LB">
+    <sourceSignalMast>Mast 108LB</sourceSignalMast>
+    <destinationMast destination="Mast 124LA">
+      <destinationSignalMast>Mast 124LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 124LB">
+      <destinationSignalMast>Mast 124LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 120RA">
+    <sourceSignalMast>Mast 120RA</sourceSignalMast>
+    <destinationMast destination="Mast A83">
+      <destinationSignalMast>Mast A83</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast A84">
+      <destinationSignalMast>Mast A84</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 102RA">
+      <destinationSignalMast>Mast 102RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 102RB">
+      <destinationSignalMast>Mast 102RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 104R">
+      <destinationSignalMast>Mast 104R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 114RA">
+      <destinationSignalMast>Mast 114RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 114RB">
+      <destinationSignalMast>Mast 114RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 116R">
+      <destinationSignalMast>Mast 116R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 120RC">
+      <destinationSignalMast>Mast 120RC</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 120RB">
+    <sourceSignalMast>Mast 120RB</sourceSignalMast>
+    <destinationMast destination="Mast A83">
+      <destinationSignalMast>Mast A83</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast A84">
+      <destinationSignalMast>Mast A84</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 102RA">
+      <destinationSignalMast>Mast 102RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 102RB">
+      <destinationSignalMast>Mast 102RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 104R">
+      <destinationSignalMast>Mast 104R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 114RA">
+      <destinationSignalMast>Mast 114RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 114RB">
+      <destinationSignalMast>Mast 114RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 116R">
+      <destinationSignalMast>Mast 116R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 120RC">
+      <destinationSignalMast>Mast 120RC</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 124LA">
+    <sourceSignalMast>Mast 124LA</sourceSignalMast>
+    <destinationMast destination="Mast 128LA">
+      <destinationSignalMast>Mast 128LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 130LA">
+      <destinationSignalMast>Mast 130LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 130LB">
+      <destinationSignalMast>Mast 130LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 124LB">
+    <sourceSignalMast>Mast 124LB</sourceSignalMast>
+    <destinationMast destination="Mast 128LA">
+      <destinationSignalMast>Mast 128LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 130LA">
+      <destinationSignalMast>Mast 130LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 130LB">
+      <destinationSignalMast>Mast 130LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 126RA">
+    <sourceSignalMast>Mast 126RA</sourceSignalMast>
+    <destinationMast destination="Mast 120RA">
+      <destinationSignalMast>Mast 120RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 120RB">
+      <destinationSignalMast>Mast 120RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 122R">
+      <destinationSignalMast>Mast 122R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 128LA">
+    <sourceSignalMast>Mast 128LA</sourceSignalMast>
+    <destinationMast destination="Mast 38LA">
+      <destinationSignalMast>Mast 38LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 40LB">
+      <destinationSignalMast>Mast 40LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 128LB">
+    <sourceSignalMast>Mast 128LB</sourceSignalMast>
+    <destinationMast destination="Mast 38LA">
+      <destinationSignalMast>Mast 38LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 40LB">
+      <destinationSignalMast>Mast 40LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 132RA">
+    <sourceSignalMast>Mast 132RA</sourceSignalMast>
+    <destinationMast destination="Mast 126RA">
+      <destinationSignalMast>Mast 126RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 222R">
+      <destinationSignalMast>Mast 222R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 132RB">
+    <sourceSignalMast>Mast 132RB</sourceSignalMast>
+    <destinationMast destination="Mast 126RA">
+      <destinationSignalMast>Mast 126RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 222R">
+      <destinationSignalMast>Mast 222R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 204RB">
+    <sourceSignalMast>Mast 204RB</sourceSignalMast>
+    <destinationMast destination="Mast 128LB">
+      <destinationSignalMast>Mast 128LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224R">
+      <destinationSignalMast>Mast 224R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 212RB">
+    <sourceSignalMast>Mast 212RB</sourceSignalMast>
+    <destinationMast destination="Mast 204RA">
+      <destinationSignalMast>Mast 204RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 204RB">
+      <destinationSignalMast>Mast 204RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 218LB">
+    <sourceSignalMast>Mast 218LB</sourceSignalMast>
+    <destinationMast destination="Mast 222LB">
+      <destinationSignalMast>Mast 222LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 220R">
+      <destinationSignalMast>Mast 220R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 218RA">
+    <sourceSignalMast>Mast 218RA</sourceSignalMast>
+    <destinationMast destination="Mast 212RA">
+      <destinationSignalMast>Mast 212RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 212RB">
+      <destinationSignalMast>Mast 212RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 220R">
+    <sourceSignalMast>Mast 220R</sourceSignalMast>
+    <destinationMast destination="Mast 128LB">
+      <destinationSignalMast>Mast 128LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224R">
+      <destinationSignalMast>Mast 224R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 222LA">
+    <sourceSignalMast>Mast 222LA</sourceSignalMast>
+    <destinationMast destination="Mast 212LB">
+      <destinationSignalMast>Mast 212LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218RB">
+      <destinationSignalMast>Mast 218RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 212LA">
+      <destinationSignalMast>Mast 212LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 204RB">
+      <destinationSignalMast>Mast 204RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218RA">
+      <destinationSignalMast>Mast 218RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 206L">
+      <destinationSignalMast>Mast 206L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 210LA">
+      <destinationSignalMast>Mast 210LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 210LB">
+      <destinationSignalMast>Mast 210LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 214L">
+      <destinationSignalMast>Mast 214L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 216LA">
+      <destinationSignalMast>Mast 216LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 216LB">
+      <destinationSignalMast>Mast 216LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 222R">
+    <sourceSignalMast>Mast 222R</sourceSignalMast>
+    <destinationMast destination="Mast 212LB">
+      <destinationSignalMast>Mast 212LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218RB">
+      <destinationSignalMast>Mast 218RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 212LA">
+      <destinationSignalMast>Mast 212LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 204RB">
+      <destinationSignalMast>Mast 204RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 218RA">
+      <destinationSignalMast>Mast 218RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 206L">
+      <destinationSignalMast>Mast 206L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 210LA">
+      <destinationSignalMast>Mast 210LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 210LB">
+      <destinationSignalMast>Mast 210LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 214L">
+      <destinationSignalMast>Mast 214L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 216LA">
+      <destinationSignalMast>Mast 216LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 216LB">
+      <destinationSignalMast>Mast 216LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 224R">
+    <sourceSignalMast>Mast 224R</sourceSignalMast>
+    <destinationMast destination="Mast 226RA">
+      <destinationSignalMast>Mast 226RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 226RB">
+      <destinationSignalMast>Mast 226RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 226RA">
+    <sourceSignalMast>Mast 226RA</sourceSignalMast>
+    <destinationMast destination="Mast B92">
+      <destinationSignalMast>Mast B92</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast B93">
+      <destinationSignalMast>Mast B93</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 232L">
+      <destinationSignalMast>Mast 232L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 236R">
+      <destinationSignalMast>Mast 236R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 240L">
+      <destinationSignalMast>Mast 240L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 242R">
+      <destinationSignalMast>Mast 242R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 244RA">
+      <destinationSignalMast>Mast 244RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 244RB">
+      <destinationSignalMast>Mast 244RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 246LA">
+      <destinationSignalMast>Mast 246LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 246LB">
+      <destinationSignalMast>Mast 246LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 226RB">
+    <sourceSignalMast>Mast 226RB</sourceSignalMast>
+    <destinationMast destination="Mast B92">
+      <destinationSignalMast>Mast B92</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast B93">
+      <destinationSignalMast>Mast B93</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 232L">
+      <destinationSignalMast>Mast 232L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 236R">
+      <destinationSignalMast>Mast 236R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 240L">
+      <destinationSignalMast>Mast 240L</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 242R">
+      <destinationSignalMast>Mast 242R</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 244RA">
+      <destinationSignalMast>Mast 244RA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 244RB">
+      <destinationSignalMast>Mast 244RB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 246LA">
+      <destinationSignalMast>Mast 246LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 246LB">
+      <destinationSignalMast>Mast 246LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 228RB">
+    <sourceSignalMast>Mast 228RB</sourceSignalMast>
+    <destinationMast destination="Mast 224LA">
+      <destinationSignalMast>Mast 224LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224LB">
+      <destinationSignalMast>Mast 224LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+  <signalmastlogic source="Mast 230LA">
+    <sourceSignalMast>Mast 230LA</sourceSignalMast>
+    <destinationMast destination="Mast 224LA">
+      <destinationSignalMast>Mast 224LA</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+    <destinationMast destination="Mast 224LB">
+      <destinationSignalMast>Mast 224LB</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
+  </signalmastlogic>
+</discovered-sml>

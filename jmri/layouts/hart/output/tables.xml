@@ -1490,7 +1490,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="1:39 AM">
+    <memory>
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -1500,7 +1500,7 @@
       <userName>Mimic relay</userName>
       <comment>Mimic page requests; mimic_relay.py publishes them as LCOS feedback</comment>
     </memory>
-    <memory value="1.0">
+    <memory>
       <systemName>IMRATEFACTOR</systemName>
       <userName>Clock rate</userName>
       <comment>JMRI fast-clock rate</comment>
@@ -2106,9 +2106,21 @@
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:6LA)</systemName>
+      <userName>Mast 6LA</userName>
+      <comment>Plane | Switch 5</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8LB)</systemName>
       <userName>Mast 8LB</userName>
       <comment>Barn | Switch 7</comment>
+      <unlit allowed="no" />
+    </signalmast>
+    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
+      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8RA)</systemName>
+      <userName>Mast 8RA</userName>
+      <comment>Barn</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -2222,45 +2234,33 @@
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1001)</systemName>
       <userName>Mast 4LA</userName>
-      <comment>Brick | Switch 3</comment>
+      <comment>Brick</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1002)</systemName>
       <userName>Mast 4LB</userName>
-      <comment>Brick | Switch 3</comment>
+      <comment>Brick</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1005)</systemName>
       <userName>Mast 12L</userName>
-      <comment>Engine House | Switch 11</comment>
+      <comment>Engine House</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1006)</systemName>
       <userName>Mast 10LA</userName>
-      <comment>Engine House | Switch 9</comment>
+      <comment>Engine House</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1007)</systemName>
       <userName>Mast 10LB</userName>
-      <comment>Engine House | Switch 9</comment>
+      <comment>Engine House</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:6LA)</systemName>
-      <userName>Mast 6LA</userName>
-      <comment>Plane | Switch 5</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8RA)</systemName>
-      <userName>Mast 8RA</userName>
-      <comment>Barn</comment>
-      <unlit allowed="no" />
-    </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A83)</systemName>
       <userName>Mast A83</userName>
@@ -3338,17 +3338,6 @@
       <comment>Hand-throw west of South Yard Switch 15; occupancy Block 3-1 / M2S300</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 13</occupancysensor>
-      <path todir="160" fromdir="80" block="IB15">
-        <beansetting setting="2">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB19">
-        <beansetting setting="4">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0041" />
     </block>
     <block systemName="IB3" length="3680.5" curve="0">
       <systemName>IB3</systemName>
@@ -3356,12 +3345,6 @@
       <comment>Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Scale</occupancysensor>
-      <path todir="64" fromdir="128" block="IB8" />
-      <path todir="160" fromdir="80" block="IB:AUTO:0031">
-        <beansetting setting="4">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB6" length="233.7" curve="0">
       <systemName>IB6</systemName>
@@ -3369,17 +3352,6 @@
       <comment>Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7b</occupancysensor>
-      <path todir="64" fromdir="128" block="IB8">
-        <beansetting setting="4">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0001">
-        <beansetting setting="2">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0051" />
     </block>
     <block systemName="IB8" length="233.7" curve="0">
       <systemName>IB8</systemName>
@@ -3387,13 +3359,6 @@
       <comment>Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7</occupancysensor>
-      <path todir="128" fromdir="64" block="IB3" />
-      <path todir="128" fromdir="64" block="IB6">
-        <beansetting setting="4">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB15" />
     </block>
     <block systemName="IB15" length="866.1" curve="0">
       <systemName>IB15</systemName>
@@ -3401,12 +3366,6 @@
       <comment>Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Barn</occupancysensor>
-      <path todir="80" fromdir="160" block="IB1">
-        <beansetting setting="2">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB8" />
     </block>
     <block systemName="IB18" length="233.7" curve="0">
       <systemName>IB18</systemName>
@@ -3414,21 +3373,6 @@
       <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 9</occupancysensor>
-      <path todir="80" fromdir="160" block="IB19">
-        <beansetting setting="4">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB21">
-        <beansetting setting="2">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB22">
-        <beansetting setting="4">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB19" length="281.9" curve="0">
       <systemName>IB19</systemName>
@@ -3436,21 +3380,6 @@
       <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 11</occupancysensor>
-      <path todir="64" fromdir="128" block="IB1">
-        <beansetting setting="4">
-          <turnout systemName="Switch 13" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB18">
-        <beansetting setting="4">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB20">
-        <beansetting setting="2">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB20" length="1303.0" curve="0">
       <systemName>IB20</systemName>
@@ -3458,11 +3387,6 @@
       <comment>Top house track; occupancy Block 13-7 / M2S1306; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB19">
-        <beansetting setting="2">
-          <turnout systemName="Switch 11" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB21" length="769.6" curve="0">
       <systemName>IB21</systemName>
@@ -3470,11 +3394,6 @@
       <comment>Middle house track; occupancy Block 13-6 / M2S1305; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-2</occupancysensor>
-      <path todir="64" fromdir="128" block="IB18">
-        <beansetting setting="2">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB22" length="764.5" curve="0">
       <systemName>IB22</systemName>
@@ -3482,11 +3401,6 @@
       <comment>Bottom house track; occupancy Block 13-5 / M2S1304; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-3</occupancysensor>
-      <path todir="80" fromdir="160" block="IB18">
-        <beansetting setting="4">
-          <turnout systemName="Switch 9" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB23" length="24058.9" curve="0">
       <systemName>IB23</systemName>
@@ -3494,11 +3408,6 @@
       <comment>Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map); stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Helix Outer</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0040">
-        <beansetting setting="2">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB24" length="23279.1" curve="0">
       <systemName>IB24</systemName>
@@ -3506,11 +3415,6 @@
       <comment>Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map); stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Helix Inner</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0032">
-        <beansetting setting="2">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0001" length="8003.5" curve="0">
       <systemName>IB:AUTO:0001</systemName>
@@ -3518,16 +3422,6 @@
       <comment>Main east of East End; occupancy Block 2-3 / M2S202</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main East</occupancysensor>
-      <path todir="128" fromdir="64" block="IB6">
-        <beansetting setting="2">
-          <turnout systemName="Switch 7" />
-        </beansetting>
-      </path>
-      <path todir="80" fromdir="160" block="IB:AUTO:0030">
-        <beansetting setting="4">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0003" length="5519.4" curve="0">
       <systemName>IB:AUTO:0003</systemName>
@@ -3535,8 +3429,6 @@
       <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main West</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0033" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0034" />
     </block>
     <block systemName="IB:AUTO:0005" length="1475.7" curve="0">
       <systemName>IB:AUTO:0005</systemName>
@@ -3544,12 +3436,6 @@
       <comment>Track Main West between Brick and Plane; occupancy Block 4-6 / M2S405</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Brick-Plane</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0031" />
-      <path todir="80" fromdir="160" block="IB:AUTO:0033">
-        <beansetting setting="4">
-          <turnout systemName="M2T408" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0007" length="3586.5" curve="0">
       <systemName>IB:AUTO:0007</systemName>
@@ -3557,16 +3443,6 @@
       <comment>South Yard body; occupancy Block 2-4 / M2S203</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-4</occupancysensor>
-      <path todir="144" fromdir="96" block="IB:AUTO:0038">
-        <beansetting setting="2">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-    <path todir="80" fromdir="160" block="IB:AUTO:0036">
-        <beansetting setting="2">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0008" length="3672.8" curve="0">
       <systemName>IB:AUTO:0008</systemName>
@@ -3574,16 +3450,6 @@
       <comment>South Yard body; occupancy Block 2-5 / M2S204</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-3</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0038">
-        <beansetting setting="4">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-    <path todir="64" fromdir="128" block="IB:AUTO:0036">
-        <beansetting setting="4">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0010" length="3142.0" curve="0">
       <systemName>IB:AUTO:0010</systemName>
@@ -3591,12 +3457,6 @@
       <comment>Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-1</occupancysensor>
-      <path todir="32" fromdir="16" block="IB:AUTO:0048" />
-      <path todir="160" fromdir="80" block="IB:AUTO:0040">
-        <beansetting setting="4">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0012" length="5857.2" curve="0">
       <systemName>IB:AUTO:0012</systemName>
@@ -3604,16 +3464,6 @@
       <comment>Run-through east of Switch 15; occupancy Block 2-8 / M2S207</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-R</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0039">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-    <path todir="128" fromdir="64" block="IB:AUTO:0041">
-        <beansetting setting="2">
-          <turnout systemName="M2T308" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0016" length="5377.2" curve="0">
       <systemName>IB:AUTO:0016</systemName>
@@ -3621,16 +3471,6 @@
       <comment>South Yard body; occupancy Block 2-7 / M2S206</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-1</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0044">
-        <beansetting setting="4">
-          <turnout systemName="M2T309" />
-        </beansetting>
-      </path>
-    <path todir="64" fromdir="128" block="IB:AUTO:0043">
-        <beansetting setting="4">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0017" length="2631.4" curve="0">
       <systemName>IB:AUTO:0017</systemName>
@@ -3638,8 +3478,6 @@
       <comment>South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Lead</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0030" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0046" />
     </block>
     <block systemName="IB:AUTO:0020" length="2672.1" curve="0">
       <systemName>IB:AUTO:0020</systemName>
@@ -3647,11 +3485,6 @@
       <comment>Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS W-1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0035">
-        <beansetting setting="2">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0022" length="2677.2" curve="0">
       <systemName>IB:AUTO:0022</systemName>
@@ -3659,11 +3492,6 @@
       <comment>Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS W-2</occupancysensor>
-      <path todir="80" fromdir="160" block="IB:AUTO:0035">
-        <beansetting setting="4">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0026" length="4526.3" curve="0">
       <systemName>IB:AUTO:0026</systemName>
@@ -3671,16 +3499,6 @@
       <comment>South Yard body; occupancy Block 2-6 / M2S205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-2</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0045">
-        <beansetting setting="4">
-          <turnout systemName="M2T310" />
-        </beansetting>
-      </path>
-    <path todir="64" fromdir="128" block="IB:AUTO:0037">
-        <beansetting setting="4">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0030" length="315.0" curve="0">
       <systemName>IB:AUTO:0030</systemName>
@@ -3688,17 +3506,6 @@
       <comment>East End, Switch 33; occupancy Block 12-8 / M2S1207</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 33</occupancysensor>
-      <path todir="160" fromdir="80" block="IB:AUTO:0001">
-        <beansetting setting="4">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0017" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0042">
-        <beansetting setting="2">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0031" length="624.8" curve="0">
       <systemName>IB:AUTO:0031</systemName>
@@ -3706,17 +3513,6 @@
       <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 5</occupancysensor>
-      <path todir="80" fromdir="160" block="IB3">
-        <beansetting setting="4">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0005" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0051">
-        <beansetting setting="2">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0032" length="419.1" curve="0">
       <systemName>IB:AUTO:0032</systemName>
@@ -3724,17 +3520,6 @@
       <comment>Princess, Switch 37; occupancy Block 1-3 / M2S102</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37</occupancysensor>
-      <path todir="64" fromdir="128" block="IB24">
-        <beansetting setting="2">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0046" />
-      <path todir="96" fromdir="144" block="IB:AUTO:0048">
-        <beansetting setting="4">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0033" length="574.0" curve="0">
       <systemName>IB:AUTO:0033</systemName>
@@ -3742,13 +3527,6 @@
       <comment>Brick CP, Switch 1; occupancy Block 4-2 / M2S401</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0003" />
-      <path todir="160" fromdir="80" block="IB:AUTO:0005">
-        <beansetting setting="4">
-          <turnout systemName="M2T408" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0035" />
     </block>
     <block systemName="IB:AUTO:0034" length="596.9" curve="0">
       <systemName>IB:AUTO:0034</systemName>
@@ -3756,17 +3534,6 @@
       <comment>East End crossover Switch 23 north/west leg; occupancy Block 12-4 / M2S1203</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23a</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0003" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0039">
-        <beansetting setting="4">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0050">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0035" length="233.7" curve="0">
       <systemName>IB:AUTO:0035</systemName>
@@ -3774,17 +3541,6 @@
       <comment>Brick CP, Switch 3; occupancy Block 4-1 / M2S400</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 3</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0020">
-        <beansetting setting="2">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB:AUTO:0022">
-        <beansetting setting="4">
-          <turnout systemName="M2T409" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0033" />
     </block>
     <block systemName="IB:AUTO:0036" length="233.7" curve="0">
       <systemName>IB:AUTO:0036</systemName>
@@ -3792,21 +3548,6 @@
       <comment>East End, Switch 25; occupancy Block 12-1 / M2S1200</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 25</occupancysensor>
-      <path todir="80" fromdir="160" block="IB:AUTO:0037">
-        <beansetting setting="2">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0008">
-        <beansetting setting="4">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB:AUTO:0007">
-        <beansetting setting="2">
-          <turnout systemName="M2T1208" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0037" length="233.7" curve="0">
       <systemName>IB:AUTO:0037</systemName>
@@ -3814,21 +3555,6 @@
       <comment>East End, Switch 27; occupancy Block 12-3 / M2S1202</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 27</occupancysensor>
-      <path todir="160" fromdir="80" block="IB:AUTO:0036">
-        <beansetting setting="2">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
-      <path todir="80" fromdir="160" block="IB:AUTO:0043">
-        <beansetting setting="2">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0026">
-        <beansetting setting="4">
-          <turnout systemName="M2T1209" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0038" length="233.7" curve="0">
       <systemName>IB:AUTO:0038</systemName>
@@ -3836,17 +3562,6 @@
       <comment>South Yard, Switch 21; occupancy Block 3-7 / M2S306</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 21</occupancysensor>
-      <path todir="144" fromdir="96" block="IB:AUTO:0045" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0008">
-        <beansetting setting="4">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
-      <path todir="96" fromdir="144" block="IB:AUTO:0007">
-        <beansetting setting="2">
-          <turnout systemName="M2T311" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0039" length="233.7" curve="0">
       <systemName>IB:AUTO:0039</systemName>
@@ -3854,17 +3569,6 @@
       <comment>East End crossover Switch 23 south/east leg; occupancy Block 12-6 / M2S1205</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23b</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0034">
-        <beansetting setting="4">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0042" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0012">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0040" length="243.8" curve="0">
       <systemName>IB:AUTO:0040</systemName>
@@ -3872,17 +3576,6 @@
       <comment>Princess, Switch 39; occupancy Block 1-4 / M2S103</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39</occupancysensor>
-      <path todir="64" fromdir="128" block="IB23">
-        <beansetting setting="2">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0047" />
-      <path todir="80" fromdir="160" block="IB:AUTO:0010">
-        <beansetting setting="4">
-          <turnout systemName="M2T110" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0041" length="452.1" curve="0">
       <systemName>IB:AUTO:0041</systemName>
@@ -3890,17 +3583,6 @@
       <comment>South Yard, Switch 15; occupancy Block 3-2 / M2S301</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
-      <path todir="128" fromdir="64" block="IB1" />
-      <path todir="96" fromdir="144" block="IB:AUTO:0044">
-        <beansetting setting="4">
-          <turnout systemName="M2T308" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0012">
-        <beansetting setting="2">
-          <turnout systemName="M2T308" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0042" length="233.7" curve="0">
       <systemName>IB:AUTO:0042</systemName>
@@ -3908,21 +3590,6 @@
       <comment>East End, Switch 31; occupancy Block 12-7 / M2S1206</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0030">
-        <beansetting setting="2">
-          <turnout systemName="M2T1213" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0039">
-        <beansetting setting="2">
-          <turnout systemName="M2T1211" />
-        </beansetting>
-      </path>
-      <path todir="160" fromdir="80" block="IB:AUTO:0043">
-        <beansetting setting="4">
-          <turnout systemName="M2T1211" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0043" length="233.7" curve="0">
       <systemName>IB:AUTO:0043</systemName>
@@ -3930,21 +3597,6 @@
       <comment>East End, Switch 29; occupancy Block 12-5 / M2S1204</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 29</occupancysensor>
-      <path todir="160" fromdir="80" block="IB:AUTO:0037">
-        <beansetting setting="2">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
-      <path todir="80" fromdir="160" block="IB:AUTO:0042">
-        <beansetting setting="4">
-          <turnout systemName="M2T1211" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0016">
-        <beansetting setting="4">
-          <turnout systemName="M2T1210" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0044" length="233.7" curve="0">
       <systemName>IB:AUTO:0044</systemName>
@@ -3952,17 +3604,6 @@
       <comment>South Yard, Switch 17; occupancy Block 3-3 / M2S302</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 17</occupancysensor>
-      <path todir="144" fromdir="96" block="IB:AUTO:0041" />
-      <path todir="96" fromdir="144" block="IB:AUTO:0045">
-        <beansetting setting="2">
-          <turnout systemName="M2T309" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0016">
-        <beansetting setting="4">
-          <turnout systemName="M2T309" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0045" length="233.7" curve="0">
       <systemName>IB:AUTO:0045</systemName>
@@ -3970,17 +3611,6 @@
       <comment>South Yard, Switch 19; occupancy Block 3-5 / M2S304</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
-      <path todir="96" fromdir="144" block="IB:AUTO:0038">
-        <beansetting setting="2">
-          <turnout systemName="M2T310" />
-        </beansetting>
-      </path>
-      <path todir="144" fromdir="96" block="IB:AUTO:0044" />
-      <path todir="64" fromdir="128" block="IB:AUTO:0026">
-        <beansetting setting="4">
-          <turnout systemName="M2T310" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0046" length="381.0" curve="0">
       <systemName>IB:AUTO:0046</systemName>
@@ -3988,17 +3618,6 @@
       <comment>Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points); occupancy Block 1-6 / M2S105</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0032">
-        <beansetting setting="2">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0047">
-        <beansetting setting="4">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0017" />
     </block>
     <block systemName="IB:AUTO:0047" length="520.7" curve="0">
       <systemName>IB:AUTO:0047</systemName>
@@ -4006,17 +3625,6 @@
       <comment>Princess crossover Switch 35 north/main leg; occupancy Block 1-5 / M2S104</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35b</occupancysensor>
-      <path todir="64" fromdir="128" block="IB:AUTO:0040" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0046">
-        <beansetting setting="4">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
-      <path todir="128" fromdir="64" block="IB:AUTO:0050">
-        <beansetting setting="2">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0048" length="2885.4" curve="0">
       <systemName>IB:AUTO:0048</systemName>
@@ -4024,12 +3632,6 @@
       <comment>Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-2</occupancysensor>
-      <path todir="16" fromdir="32" block="IB:AUTO:0010" />
-      <path todir="144" fromdir="96" block="IB:AUTO:0032">
-        <beansetting setting="4">
-          <turnout systemName="M2T109" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0050" length="3964.9" curve="0">
       <systemName>IB:AUTO:0050</systemName>
@@ -4037,16 +3639,6 @@
       <comment>Track Main West stub west of Switch 23; occupancy Block 1-8 / M2S107</comment>
       <permissive>no</permissive>
       <occupancysensor>BS West Ext</occupancysensor>
-      <path todir="128" fromdir="64" block="IB:AUTO:0034">
-        <beansetting setting="2">
-          <turnout systemName="Switch 23" />
-        </beansetting>
-      </path>
-      <path todir="64" fromdir="128" block="IB:AUTO:0047">
-        <beansetting setting="2">
-          <turnout systemName="Switch 35" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:AUTO:0051" length="3576.3" curve="0">
       <systemName>IB:AUTO:0051</systemName>
@@ -4054,12 +3646,6 @@
       <comment>Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Ext</occupancysensor>
-      <path todir="64" fromdir="128" block="IB6" />
-      <path todir="128" fromdir="64" block="IB:AUTO:0031">
-        <beansetting setting="2">
-          <turnout systemName="M2T410" />
-        </beansetting>
-      </path>
     </block>
     <block systemName="IB:C3:0001" length="194.0" curve="0">
       <systemName>IB:C3:0001</systemName>
@@ -7544,7 +7130,7 @@
       </destinationMast>
     </signalmastlogic>
   </signalmastlogics>
-  <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" time="Mon Feb 16 14:52:35 EST 2026" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
+  <timebase class="jmri.jmrit.simpleclock.configurexml.SimpleTimebaseXml" rate="1.0" startrate="1.0" run="yes" master="yes" sync="no" correct="no" display="no" startstopped="no" startrunning="yes" startsettime="no" startclockoption="0" showbutton="no" startsetrate="yes" />
   <LogixNGs class="jmri.jmrit.logixng.implementation.configurexml.DefaultLogixNGManagerXml">
     <Thread>
       <id>0</id>
@@ -12555,107 +12141,4 @@
       </icon>
     </positionablelabel>
   </LayoutEditor>
-  <filehistory>
-    <operation>
-      <type>app</type>
-      <date>Fri Nov 20 01:39:15 EST 2026</date>
-      <filename>PanelPro (v5.16.0)</filename>
-    </operation>
-    <operation>
-      <type>Load OK</type>
-      <date>Fri Nov 20 01:39:24 EST 2026</date>
-      <filename>/private/tmp/claude-501/-Users-lnevo-hart/cfeceb4d-b296-445e-90bb-cc28159674f7/scratchpad/disc/jmri/layouts/hart/output/tables.xml</filename>
-      <filehistory>
-        <operation>
-          <type>app</type>
-          <date>Fri Nov 20 00:38:57 EST 2026</date>
-          <filename>PanelPro (v5.16.0)</filename>
-        </operation>
-        <operation>
-          <type>Load OK</type>
-          <date>Fri Nov 20 00:39:03 EST 2026</date>
-          <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-          <filehistory>
-            <operation>
-              <type>app</type>
-              <date>Fri Nov 20 00:23:28 EST 2026</date>
-              <filename>PanelPro (v5.16.0)</filename>
-            </operation>
-            <operation>
-              <type>Load OK</type>
-              <date>Fri Nov 20 00:23:36 EST 2026</date>
-              <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-              <filehistory>
-                <operation>
-                  <type>app</type>
-                  <date>Thu Nov 19 23:12:00 EST 2026</date>
-                  <filename>PanelPro (v5.16.0)</filename>
-                </operation>
-                <operation>
-                  <type>Load OK</type>
-                  <date>Thu Nov 19 23:12:09 EST 2026</date>
-                  <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-                  <filehistory>
-                    <operation>
-                      <type>app</type>
-                      <date>Thu Nov 19 21:54:23 EST 2026</date>
-                      <filename>PanelPro (v5.16.0)</filename>
-                    </operation>
-                    <operation>
-                      <type>Load OK</type>
-                      <date>Thu Nov 19 21:54:29 EST 2026</date>
-                      <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                      <filehistory>
-                        <operation>
-                          <type>app</type>
-                          <date>Thu Nov 19 21:41:00 EST 2026</date>
-                          <filename>PanelPro (v5.16.0)</filename>
-                        </operation>
-                        <operation>
-                          <type>Load OK</type>
-                          <date>Thu Nov 19 21:41:08 EST 2026</date>
-                          <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                        </operation>
-                        <operation>
-                          <type>Store</type>
-                          <date>Thu Nov 19 21:41:22 EST 2026</date>
-                          <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                        </operation>
-                      </filehistory>
-                    </operation>
-                    <operation>
-                      <type>Store</type>
-                      <date>Thu Nov 19 21:54:41 EST 2026</date>
-                      <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
-                    </operation>
-                  </filehistory>
-                </operation>
-                <operation>
-                  <type>Store</type>
-                  <date>Thu Nov 19 23:12:25 EST 2026</date>
-                  <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-                </operation>
-              </filehistory>
-            </operation>
-            <operation>
-              <type>Store</type>
-              <date>Fri Nov 20 00:23:49 EST 2026</date>
-              <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-            </operation>
-          </filehistory>
-        </operation>
-        <operation>
-          <type>Store</type>
-          <date>Fri Nov 20 00:39:17 EST 2026</date>
-          <filename>/private/tmp/claude-501/-Users-lnevo-hart/4a46c764-8241-451b-82b5-fce6619af8a4/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
-        </operation>
-      </filehistory>
-    </operation>
-    <operation>
-      <type>Store</type>
-      <date>Fri Nov 20 01:39:37 EST 2026</date>
-      <filename>/private/tmp/claude-501/-Users-lnevo-hart/cfeceb4d-b296-445e-90bb-cc28159674f7/scratchpad/disc/jmri/layouts/hart/output/tables.xml</filename>
-    </operation>
-  </filehistory>
-  <!--Written by JMRI version 5.16+R909e15189e on Fri Nov 20 01:39:37 EST 2026-->
 </layout-config>

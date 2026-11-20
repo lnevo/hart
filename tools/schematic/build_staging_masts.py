@@ -24,7 +24,8 @@ digits.
 
 A wired head is read from the level 1 rows of devices.csv itself, as main and upper swap a physical device in through the
 device map's jmri_name (build_device_map.py): a head row whose jmri_name is not the internal name of its user name is
-wired (today one: Head 6LB on IH432, Switch 5, owner 2026-11-18), and the rebuild keeps it, with its node and notes.
+wired (today one: Head 6LB on IH432, Switch 5, owner 2026-11-18), and the rebuild keeps it, with its node, notes and
+comment when that is its wiring (Node: ...; its JMRI comment, hartlib.tables_build), else its control point.
 The build stops on a head row whose system_name and jmri_name differ, a wired head that is not an LCOS head (IH and
 digits), whose mast the rule does not place, or whose mast the rule gives a different set of heads; on a mast row
 that names an IH-digits head that is not one of its own wired head rows; and if a wired head is missing from the rows
@@ -75,7 +76,8 @@ LEVELS = mast_rule.band_levels(json.loads(OVERRIDES.read_text(encoding="utf-8"))
 HEAD_PREFIX = "IH:HART:C1:"
 FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position
-WIRED_HEAD = re.compile(r"IH\d+")      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
+WIRED_HEAD = re.compile(r"IH\d+")
+WIRING_TEXT = re.compile(r"Node: \d+ ")    # a wired head's comment: its node, signal and ports      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
 
 
 class RuleError(RuntimeError):
@@ -344,8 +346,10 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
         for pair in [x for x in r["head_system_names"].split(";") if x]:
             h, user = pair.split("=", 1)
             prev = on.get(user)
+            wired_text = prev["comment"] if prev and WIRING_TEXT.match(prev["comment"]) else ""
             heads.append(dict(level="1", cp=r["cp"], layer="head", user_name=user, system_name=h, jmri_name=h,
-                              node=prev["node"] if prev else "", dcc="", comment=where, trial_name="",
+                              node=prev["node"] if prev else "", dcc="", comment=wired_text or where,
+                              trial_name="",
                               notes=prev["notes"] if prev else "internal, not wired", **dict.fromkeys(FACTS, "")))
     written = {(h["user_name"], h["jmri_name"]) for h in heads}
     lost = sorted(f"{u} ({h['jmri_name']})" for m in wired.values() for u, h in m.items()

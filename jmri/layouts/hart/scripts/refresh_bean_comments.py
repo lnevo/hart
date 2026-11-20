@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Rename public labels and write meaningful JMRI comments.
 
+Since R9c (ADR-029) the command only writes the signal heads' wiring comments onto devices.csv; tables.xml is
+generated (tools/schematic/build_tables.py) and its comments come from devices.csv. The comment rules below stay for
+the parked USS CTC scripts (cleanup_uss_ctc_leftovers.py, uss_switch_only_columns.py) and audit_panel_contracts.py.
+
 - Track Main West Brick–Plane → Track Brick-Plane
 - Track n (CP) → Track n, CP goes in the comment
 - Blocks, occupancy/FB sensors, CTC internals, and plant turnouts get comments
@@ -610,29 +614,6 @@ OCC_SENSOR = {
     "Block 13-8": "Occupancy OS Switch 9; MQTT M2S1307",
 }
 
-SKIP_DIRS = (
-    "data/baselines",
-    "ctc/history",
-    "wiki/STATUS.md",
-    "linear5/",
-    "linear6/",
-    "linear4/",
-    "tables/checkpoints",
-    "cats/panels/checkpoints",
-    "authoritative/",
-    "anyrail/",
-    "reference/",
-    "public_name_map.csv",
-    "tables/tables.xml",
-    "hart_blocked.xml",
-)
-
-
-def should_skip(path: Path) -> bool:
-    rel = str(path)
-    return any(part in rel for part in SKIP_DIRS)
-
-
 def child_text(body: str, tag: str) -> str:
     match = re.search(rf"<{tag}>(.*?)</{tag}>", body, re.S)
     return match.group(1).strip() if match else ""
@@ -923,61 +904,18 @@ def refresh_comments(text: str) -> tuple[str, int]:
     return BEAN_RE.sub(repl, text), changed
 
 
-TARGETS = [
-    paths.TABLES_XML,
-    ROOT / "jmri/layouts/hart/ctc/GUIObjects.xml",
-    # the CATS desks are generated since the CATS cut-over (tools/schematic/build_cats_panel.py writes them, and its
-    # --check holds them): no other script edits them
-    ROOT / "cats/data",
-    ROOT / "cats/scripts/validate_cats_panel.py",
-    ROOT / "docs/ctc/DISPATCHER_GUIDE_CTC.md",
-    ROOT / "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
-    ROOT / "jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py",
-    ROOT / "jmri/layouts/hart/scripts/audit_panel_contracts.py",
-    ROOT / "jmri/layouts/hart/scripts/panelpro_smoke_test.py",
-    ROOT / "jmri/scripts/check_hart_phase02.py",
-    ROOT / "jmri/layouts/hart/data/block_lengths.csv",
-    ROOT / "jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md",
-    ROOT / "jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md",
-    ROOT / "jmri/layouts/hart/dispatcher/traininfo",
-    ROOT / "jmri/layouts/hart/README.md",
-]
-
-
 def main() -> int:
+    """Write the wiring comments of the signal heads onto devices.csv (sync_map_head_comments). tables.xml is an
+    output since R9c (ADR-029): its comments come from devices.csv through tools/schematic/build_tables.py, so this
+    script no longer edits it; refresh_comments stays for the parked USS CTC scripts that import it."""
     paths.exit_if_overridden(Path(__file__).name)
     try:
         n_map = sync_map_head_comments()
     except devices.DevicesError as exc:
         print(f"refresh_bean_comments.py: {exc}", file=sys.stderr)
         return 2
-    if n_map:
-        print(f"devices.csv: {n_map} head comments (pnm_comment) from signal_wiring.csv")
-        global DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER
-        DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
-    files = 0
-    for raw in TARGETS:
-        targets = list(raw.rglob("*")) if raw.is_dir() else [raw]
-        for path in targets:
-            if not path.is_file() or should_skip(path):
-                continue
-            try:
-                text = path.read_text(encoding="utf-8")
-            except UnicodeDecodeError:
-                continue
-            updated, counts = text, {}
-            if path.name.endswith(".xml"):
-                if path.name.endswith(".xml") and path.name in {
-                    "tables.xml",
-                }:
-                    updated, n_comments = refresh_comments(updated)
-                else:
-                    n_comments = 0
-                if updated != text:
-                    path.write_text(updated, encoding="utf-8")
-                    files += 1
-                    print(f"{paths.rel(path)}: names={sum(counts.values())} comments={n_comments}")
-    print(f"updated {files} files")
+    print(f"devices.csv: {n_map} head comments (pnm_comment) from signal_wiring.csv" if n_map
+          else "devices.csv: head comments current")
     return 0
 
 

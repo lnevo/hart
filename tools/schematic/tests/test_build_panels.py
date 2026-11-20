@@ -27,8 +27,6 @@ STEPS = [
     ("main-route", "build_main_route.py", False),
     ("plan-lengths", "plan_lengths.py --check", True),
     ("staging-masts", "build_staging_masts.py --check", True),
-    ("staging-sync", "sync_staging_signals.py --check", True),
-    ("staging-map", "staging_device_map.py --check", True),
     ("signals", "build_signals.py", False),
     ("device-map", "build_device_map.py", False),
     ("main-upper-masts", "build_main_upper_masts.py", False),
@@ -37,6 +35,9 @@ STEPS = [
     ("approved-desks", "check_approved.py cats-ctc cats-abs", True),
     ("le-cutover", "build_layout_le.py --as-live", False),
     ("approved-candidate", "check_approved.py le-candidate", True),
+    ("tables", "build_tables.py", False),
+    ("staging-sync", "sync_staging_signals.py --check", True),
+    ("staging-map", "staging_device_map.py --check", True),
     ("approved-live", "check_approved.py le-panel", True),
 ]
 NAMES = [name for name, _cmd, _only in STEPS]
@@ -66,9 +67,11 @@ class StepList(unittest.TestCase):
         self.assertEqual(rows, [(name, cmd) for name, cmd, _only in STEPS])
 
     def test_the_staging_checks_come_before_what_reads_their_files(self):
-        for early in ("staging-masts", "staging-sync"):
-            for late in ("staging-map", "signals", "cats", "le-cutover"):
-                self.assertLess(NAMES.index(early), NAMES.index(late), (early, late))
+        for late in ("signals", "cats", "le-cutover"):
+            self.assertLess(NAMES.index("staging-masts"), NAMES.index(late), late)
+        # the checks that read tables.xml run after the step that writes it (ADR-029), the live fingerprint last
+        for check in ("staging-sync", "staging-map", "approved-live"):
+            self.assertLess(NAMES.index("tables"), NAMES.index(check), check)
 
 
 class DryRun(unittest.TestCase):
