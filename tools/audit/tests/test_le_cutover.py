@@ -696,10 +696,10 @@ class ThreeLevels(unittest.TestCase):
         numbers = {el.get("text"): el.get("size") for el in labels if el.get("text").startswith("SW-")}
         # a single crossover reads by its number; the helix-top 127 and 131 keep a half on each level
         self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-127A", "SW-127B", "SW-131A", "SW-131B"}, set(numbers))
-        # 121 and 125 (halves joined B to C, drawn as two turnouts on one name) carry one number each; schematic-maps
-        # 0.1.42 writes it with the half's letter (SW-121B, SW-125A), a plugin follow-up
+        # 121 and 125 (halves joined B to C, drawn as two turnouts on one name) carry their number once, with no
+        # half's letter (schematic-maps 0.1.43)
         for n in ("121", "125"):
-            self.assertEqual(len([t for t in numbers if re.fullmatch(rf"SW-{n}[AB]?", t)]), 1, n)
+            self.assertEqual([t for t in numbers if re.fullmatch(rf"SW-{n}[AB]?", t)], [f"SW-{n}"], n)
         self.assertNotIn("SW-101A", numbers)
         self.assertEqual(set(numbers.values()), {"13"})
         names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}
