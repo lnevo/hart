@@ -55,12 +55,40 @@ _plant_count = 0
 _plant_modes = {}
 
 # Every listener this script attaches carries this attribute, so a second run of the script can find the first
-# run's listeners and remove them (otherwise one click toggles twice). Same approach as mimic_relay.py.
+# run's listeners and remove them (otherwise one click toggles twice). Same approach as mimic_relay.py. Each arm
+# step drops the earlier run's listeners just before it attaches its own, so the old ones keep working until then.
 _MARK = "hart_panel_status"
+# The same classes before they carried _MARK (a re-run straight after the deploy that added it).
+_UNMARKED_CLASSES = ("_TurnoutListener", "_PowerListener", "_PanelLampClick")
 
 
 def _ours(listener):
-    return bool(getattr(listener, _MARK, False))
+    if getattr(listener, _MARK, False):
+        return True
+    try:
+        return listener.__class__.__name__ in _UNMARKED_CLASSES
+    except Exception:
+        return False
+
+
+# A re-run's id, kept on __main__ (shared by every script run in this JMRI). The arm and click retry timers of an
+# earlier run see a newer id there and stop, so two runs never arm against each other.
+try:
+    import __main__ as _main
+
+    _RUN_ID = getattr(_main, "hart_panel_status_run", 0) + 1
+    _main.hart_panel_status_run = _RUN_ID
+except Exception:
+    _main = None
+    _RUN_ID = 0
+
+
+def _superseded(run_id):
+    """True when a later run of this script has started."""
+    try:
+        return _main is not None and getattr(_main, "hart_panel_status_run", run_id) != run_id
+    except Exception:
+        return False
 
 
 def _drop_ours(listeners, remove, keep=None):
@@ -861,13 +889,20 @@ def _raise_block_labels():
 
 
 def _arm_listeners():
-    """Attach plant listeners once (the Turnouts lamp). Independent of panel icons."""
+    """Attach plant listeners once (the Turnouts lamp). Independent of panel icons.
+
+    Every M2T/MTT turnout gets one, not only those with both feedback sensors, so a plant that gains its second
+    sensor later joins the lamp on its own event (_note_plant decides which are included)."""
     global _armed, _listener, _plant_count
     if _armed:
         return True
     _listener = _TurnoutListener()
-    plants = _included_plant_turnouts()
-    _plant_count = len(plants)
+    _plant_count = len(_included_plant_turnouts())
+    try:
+        plants = [to for to in turnouts.getNamedBeanSet() if _is_plant(to)]
+    except Exception as e:
+        print("panel_status: scan turnouts failed: %s" % e)
+        plants = []
     for to in plants:
         try:
             _drop_ours(to.getPropertyChangeListeners(), to.removePropertyChangeListener)
@@ -885,9 +920,12 @@ class _ArmAttempt(ActionListener):
     def __init__(self, attempt, last=-1):
         self.attempt = attempt
         self.last = last
+        self.run = _RUN_ID
 
     def actionPerformed(self, event):
         event.getSource().stop()
+        if _superseded(self.run):
+            return
         n = len(_included_plant_turnouts())
         if n == 0 or n != self.last:
             if self.attempt + 1 >= _ARM_MAX_ATTEMPTS:
@@ -915,9 +953,12 @@ class _ArmAttempt(ActionListener):
 class _RetryClicks(ActionListener):
     def __init__(self, attempt):
         self.attempt = attempt
+        self.run = _RUN_ID
 
     def actionPerformed(self, event):
         event.getSource().stop()
+        if _superseded(self.run):
+            return
         try:
             if _arm_status_lamp_clicks():
                 return
@@ -931,38 +972,6 @@ class _RetryClicks(ActionListener):
             print("panel_status: status lamp icons not found on panel")
 
 
-def _detach_previous_run():
-    """A second run of this script: take the first run's listeners off now, before this run arms its own."""
-    n = 0
-    try:
-        for to in turnouts.getNamedBeanSet():
-            if _is_plant(to):
-                n += _drop_ours(to.getPropertyChangeListeners(), to.removePropertyChangeListener)
-    except Exception as e:
-        print("panel_status: detach turnout listeners failed: %s" % e)
-    pm = _power_manager()
-    if pm is not None:
-        try:
-            n += _drop_ours(pm.getPropertyChangeListeners(), pm.removePropertyChangeListener)
-        except Exception as e:
-            print("panel_status: detach power listener failed: %s" % e)
-    try:
-        from jmri.jmrit.display import EditorManager
-
-        em = jmri.InstanceManager.getDefault(EditorManager)
-        for ed in list(em.getAll()) if em is not None else []:
-            try:
-                target = ed.getTargetPanel()
-                n += _drop_ours(target.getMouseListeners(), target.removeMouseListener)
-            except Exception:
-                continue
-    except Exception as e:
-        print("panel_status: detach click listeners failed: %s" % e)
-    if n:
-        print("panel_status: removed %d listener(s) left by an earlier run" % n)
-
-
-_detach_previous_run()
 print("panel_status: loaded; arming in %dms" % _ARM_FIRST_MS)
 _t0 = Timer(_ARM_FIRST_MS, _ArmAttempt(0))
 _t0.setRepeats(False)

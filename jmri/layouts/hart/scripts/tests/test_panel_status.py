@@ -321,6 +321,28 @@ class PanelStatus(unittest.TestCase):
         self.assertIn(other, to.listeners)
         self.assertIn(other, target.mouse)
 
+    def test_a_run_started_again_before_it_armed_arms_only_once(self) -> None:
+        target = self.panel()
+        first_timers = list(jf.Timer.pending)               # the first run has not armed yet
+        second = jf.load_script(SCRIPT, self.layout)
+        jf.Timer.pending[:0] = first_timers                  # its timers still fire, before the second run's
+        self.boot()
+        self.assertFalse(self.ps["_armed"])                  # the first run stood down
+        self.assertTrue(second["_armed"])
+        for sn in PLANTS:
+            self.assertEqual(len(self.ours(self.layout.turnouts.getTurnout(sn).listeners)), 1, sn)
+        self.assertEqual(len(target.mouse), 1)
+
+    def test_a_listener_from_before_the_mark_is_replaced_too(self) -> None:
+        # the first re-run after this change was deployed: the old run's listeners carry no mark yet
+        class _PowerListener:
+            def propertyChange(self, event): pass
+
+        self.layout.power.addPropertyChangeListener(_PowerListener())
+        self.boot()
+        self.assertEqual(len(self.layout.power.listeners), 1)
+        self.assertTrue(getattr(self.layout.power.listeners[0], "hart_panel_status", False))
+
     # --- a turnout change updates only that turnout ---------------------------------
 
     def turnout_event(self, sn, name):
@@ -363,6 +385,14 @@ class PanelStatus(unittest.TestCase):
         self.layout.turnouts.getTurnout("M2T308").first = jf.FakeSensor("M2T308:R")
         self.turnout_event("M2T308", "Sensor1")
         self.assertEqual(self.head().appearance, jf.SignalHead.YELLOW)
+
+    def test_a_plant_that_gains_its_second_sensor_joins_the_lamp(self) -> None:
+        late = self.layout.turnouts.add(jf.FakeTurnout("M2T1207", jf.FakeSensor("M2T1207:R"), mode=T.DIRECT))
+        self.boot()
+        self.assertEqual(self.head().appearance, jf.SignalHead.GREEN)   # one sensor: not counted yet
+        late.second = jf.FakeSensor("M2T1207:N")
+        self.turnout_event("M2T1207", "Sensor2")
+        self.assertEqual(self.head().appearance, jf.SignalHead.YELLOW)  # now mixed
 
 if __name__ == "__main__":
     unittest.main()
