@@ -440,7 +440,9 @@ class Cli(unittest.TestCase):
 
     def run_main(self, *args):
         out, err = io.StringIO(), io.StringIO()
-        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+        # main() looks for the plugin first, which prints where it was found; these tests are about what follows
+        with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err), \
+                unittest.mock.patch.object(bsm.sdm.lc, "plugin", lambda: None):
             code = bsm.main(list(args))
         return code, out.getvalue(), err.getvalue()
 

@@ -2,7 +2,7 @@
 
 A read-only review of architecture, performance, runtime code and documentation ran on 2026-11-19, followed by a round of small PRs and a code review of each. This page lists what was found, what was started, and what is left. Findings marked *verified* were traced in code by a second pass; the rest come from one reviewer's reading.
 
-## State at 21:50 on 2026-11-19
+## State at 22:00 on 2026-11-19
 
 Every code PR below had `/code-review medium` and a fix commit for what the review confirmed, except #712.
 
@@ -19,21 +19,21 @@ Every code PR below had `/code-review medium` and a fix commit for what the revi
 | #710 | Tests for `sts_car_sync.py` and `hide_cats_desk_windows.py`; they pin known faults, the scripts are unchanged | Merged |
 | #711 | Tests for `build_staging_masts.py` and `sync_staging_signals.py` | Merged |
 | #704 | SML Hold cancel | Closed unmerged (owner): fold into the boot-race design |
-| #703, #705, #706, #708 | `read_tables` duplicates, staging checks in `make panels`, level masts validation, wiring CSV readers | Open; a fix agent was running at 21:50. Merge each once its fix commit is pushed and the check passes (owner approved) |
+| #703, #705, #706, #708 | `read_tables` duplicates (bare blocks covered), staging checks in `make panels` with a step-order test, level masts validation, wiring CSV readers with tests | Merged |
 | #712 | Width and height on 26 pages' images, `defer` on scripts | Open; owes `/code-review medium`, then merge and `deploy_hartrailroad.sh` |
 
-Three more agents were running at 21:50, each to open its own PR and leave it unmerged:
+Three more PRs came from the owner's decisions. All pass CI and none is merged; no agent is running:
 
-| Branch | Job | Owner's decision |
+| PR | Job | Left to do |
 |---|---|---|
-| `agent/claude/park-legacy-scripts` | Move `retarget_dispatcher_traininfo_transits.py`, `apply_nx_layer.py`, `polish_hart_layout_editor.py` to `jmri/layouts/hart/parked/` | Approved; review, then merge |
-| `agent/claude/adrs-standing-decisions` | Four short ADRs: operating flag, plan 5.3c as master, staging signals, virtual main/upper devices | Approved; the owner reads them before merge |
-| `agent/claude/after-edit-hook-matching-test` | `check_after_edit.py` runs only the test files that match the edited script, full run as fallback | Approved; review, then merge |
+| #714 | The three legacy scripts moved to `jmri/layouts/hart/parked/`. `polish_hart_layout_editor.py` did have a caller, `run_panelpro_stage1.sh` (parked Dispatcher Stage 1 on the Mac), now pointed at the new path and only syntax-checked. Hosts never shipped the three. One path string changed in `www/guides/auto-dispatcher.html` | Owes `/code-review medium`; expect a conflict on this page, keep this version; website deploy after merge |
+| #713 | ADR-025 operating flag, ADR-026 plan 5.3c as master, ADR-027 staging built from its device map (the signal rule itself is already ADR-024), ADR-028 virtual main/upper devices | The owner reads them before merge; 027 can be dropped if not wanted |
+| #716 | `check_after_edit.py` runs the test files that name the edited script (1.1 s for `signal_coordinator.py`, was 14 to 18 s), full run as fallback | Owes `/code-review medium`, then merge |
 
 ## Next steps, in order
 
 1. **Deploy #697 and #701 to both hosts.** The owner approved it for the evening of 2026-11-19 with the operating flag off (it read "not operating" at 21:45). Use the deploy skill: pull anything the Pi wrote, `sync_hart_package.sh --pi --win`, PanelPro started again on the Pi. Then on the Pi read the retained topics and show the owner the clear command before running it; the commands are in the #697 PR body and `wiki/STATUS.md`. `track/bridge/sml_mode` is cleared only if it holds `query`. If the deploy waits for another day, ask the owner again.
-2. **Finish the open PRs** in the two tables above.
+2. **Finish the open PRs:** #712, #713, #714, #716 as the tables above say.
 3. **Docs housekeeping the owner approved, not started:** shorten the long rows of `AGENTS.md` (owner approves the wording before merge), move dated history from `wiki/STATUS.md` to `STATUS_LOG.md`, move the 43 generator scripts out of `docs/` into `tools/` (outputs stay in `docs/`; other sessions' branches that touch `docs/wiring/scripts` need a rebase).
 4. **SML boot race and the #704 cases, as one design.** The owner asked about putting the host name in the `enabling` and `enabled` payload on `track/bridge/sml_mode`. That is the owner identity the fix needs. Still to settle: who stands down on a tie (the Pi as the fixed winner was the suggestion, unanswered), and that both hosts must get the new payload in the same deploy since each compares the payload text. Design and tests in the fake first, then a live test with the owner.
 
