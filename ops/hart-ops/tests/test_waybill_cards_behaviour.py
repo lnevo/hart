@@ -68,6 +68,14 @@ def spot_csv(tmp: Path, text: str = SPOT_CSV_TEXT) -> Path:
     return path
 
 
+class SeededCase(unittest.TestCase):
+    def seed(self, value):
+        """Seed the global random module and put its state back after the test."""
+        state = random.getstate()
+        self.addCleanup(random.setstate, state)
+        random.seed(value)
+
+
 class Parsing(unittest.TestCase):
     def test_norm_strips_and_tolerates_none(self):
         self.assertEqual(gwc._norm("  a b "), "a b")
@@ -213,7 +221,7 @@ class Specs(unittest.TestCase):
         self.assertEqual(card["LoadSummary"], "kept")
 
 
-class Routing(unittest.TestCase):
+class Routing(SeededCase):
     def party(self, **kw):
         return {"name": "N", "via": "", "entry": "", "commodity": "", **kw}
 
@@ -254,7 +262,7 @@ class Routing(unittest.TestCase):
         self.assertEqual(gwc._spread_parties([], 2), [blank, blank])
         self.assertEqual(gwc._spread_parties([{"name": "A"}], 0), [])
         self.assertEqual(gwc._spread_parties([{"name": "A"}], -3), [])
-        random.seed(1)
+        self.seed(1)
         spread = gwc._spread_parties([{"name": "A"}, {"name": "B"}], 3)
         self.assertEqual(len(spread), 3)
         self.assertEqual({p["name"] for p in spread}, {"A", "B"})
@@ -270,7 +278,7 @@ class Routing(unittest.TestCase):
         self.assertEqual(gwc._pad_designs([{"a": 1}])[1]["a"], 1)
 
 
-class DeckBuilding(unittest.TestCase):
+class DeckBuilding(SeededCase):
     def groups(self):
         with tempfile.TemporaryDirectory() as tmp:
             with mock.patch.object(gwc, "SPOT_CSV", spot_csv(Path(tmp))):
@@ -332,7 +340,7 @@ class DeckBuilding(unittest.TestCase):
         self.assertFalse(gwc._is_layout_party("Test Mill (Town, ME)"))
 
     def test_fill_deck_to_page_pads_to_a_full_sheet(self):
-        random.seed(7)
+        self.seed(7)
         base = [
             {"Industry": "Calgon Carbon", "Commodity": "Coal", "Flow": "IN", "Usage": "Coal Unload",
              "Spots": "1", "CarType": "Hopper"},
@@ -370,14 +378,14 @@ class DeckBuilding(unittest.TestCase):
         self.assertEqual(rows[1]["card_kind"], "outbound_empty")
 
 
-class MainRun(unittest.TestCase):
+class MainRun(SeededCase):
     def run_main(self, tmp: Path, csv_text: str = SPOT_CSV_TEXT):
         sheet = fake_sheet(tmp / "sheet.docx")
         out_dir = tmp / "out"
         out_dir.mkdir()
         out = out_dir / "waybills.docx"
         csv_out = out_dir / "waybills.csv"
-        random.seed(20260101)
+        self.seed(20260101)
         buf = io.StringIO()
         with mock.patch.object(gct, "STICKER_SHEET", sheet), \
                 mock.patch.object(gct, "require_sticker_sheet", lambda: sheet), \
@@ -430,9 +438,14 @@ class MainRun(unittest.TestCase):
     def test_main_fails_loudly_on_a_missing_csv(self):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
-            with mock.patch.object(gwc, "SPOT_CSV", tmp / "gone.csv"):
+            with mock.patch.object(gwc, "SPOT_CSV", tmp / "gone.csv"), \
+                    mock.patch.object(gwc, "BASE", tmp), \
+                    mock.patch.object(gwc, "OUTPUT_DIR", tmp), \
+                    mock.patch.object(gwc, "OUTPUT", tmp / "w.docx"), \
+                    mock.patch.object(gwc, "WAYBILL_CSV", tmp / "w.csv"):
                 with self.assertRaises(FileNotFoundError):
                     gwc.main()
+            self.assertEqual(sorted(p.name for p in tmp.iterdir()), [])
 
 
 if __name__ == "__main__":

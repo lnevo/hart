@@ -56,12 +56,26 @@ class Recorder:
     def __init__(self):
         self.calls = []
 
+    PRIMITIVES = frozenset(
+        {"ellipse", "line", "polygon", "rectangle", "rounded_rectangle", "text"}
+    )
+
     def textlength(self, text, font=None):
         return len(text) * font.size / 2
 
+    def textbbox(self, xy, text, font=None, anchor=None, **kw):
+        return (xy[0], xy[1], xy[0] + self.textlength(text, font), xy[1] + font.size)
+
+    def multiline_textbbox(self, xy, text, font=None, **kw):
+        lines = text.split("\n")
+        width = max(self.textlength(line, font) for line in lines)
+        return (xy[0], xy[1], xy[0] + width, xy[1] + font.size * len(lines))
+
     def __getattr__(self, name):
-        if name.startswith("_"):
-            raise AttributeError(name)
+        if name not in self.PRIMITIVES:
+            raise AttributeError(
+                f"Recorder does not know ImageDraw.{name}; add it to PRIMITIVES if a drawer now uses it"
+            )
 
         def record(*args, **kwargs):
             self.calls.append(f"{name} {fmt(args)} {fmt(kwargs)}")
@@ -116,11 +130,11 @@ class GoldenDrawings(unittest.TestCase):
 
     def test_shenango_rotated_differs_and_keeps_its_labels_upright(self):
         _, plain = draw_with_recorder(rlsm.draw_shenango, meta_for("shenango"))
-        _, rotated = draw_with_recorder(rlsm.draw_shenango, meta_for("shenango", rotate180=True))
+        img, rotated = draw_with_recorder(rlsm.draw_shenango, meta_for("shenango", rotate180=True))
         self.assertNotEqual(plain, rotated)
         texts = lambda calls: sum(1 for c in calls if c.startswith("text"))  # noqa: E731
         self.assertEqual(texts(plain), texts(rotated))
-        text = "size=" + str(Image.new("RGB", (1600, 1000)).size) + "\n" + "\n".join(rotated) + "\n"
+        text = f"size={img.size}\ncalls={len(rotated)}\n" + "\n".join(rotated) + "\n"
         check_golden(self, "maps_shenango_rotated.txt", text, depends_on=DEPENDS, test_id=TEST_ID)
 
     def test_chrome_minimal_and_full(self):
