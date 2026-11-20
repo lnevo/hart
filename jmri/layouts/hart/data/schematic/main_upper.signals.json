@@ -190,23 +190,6 @@
    "_toward_node": "TOL32046"
   },
   {
-   "mast": "126L",
-   "toward": "125B",
-   "run": [
-    "125B",
-    "121A"
-   ],
-   "names": [],
-   "edge_cm": 87.5,
-   "cm_from_toward": 0.0,
-   "dir": "west",
-   "kind": "planned",
-   "heads": 1,
-   "source": "main_upper_masts.csv",
-   "_edge": "e1",
-   "_toward_node": "TOL30400"
-  },
-  {
    "mast": "126RA",
    "toward": "125A",
    "run": [

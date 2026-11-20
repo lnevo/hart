@@ -1490,7 +1490,7 @@
     </turnout>
   </turnouts>
   <memories class="jmri.managers.configurexml.DefaultMemoryManagerXml">
-    <memory value="9:41 PM">
+    <memory value="9:54 PM">
       <systemName>IMCURRENTTIME</systemName>
       <userName>Current time</userName>
       <comment>JMRI fast-clock time</comment>
@@ -1776,11 +1776,6 @@
       <systemName>IH:HART:C3:124LB_Top</systemName>
       <userName>Head 124LB Top</userName>
       <comment>CP 123 | Switch 123 | virtual (device map); planned IH4234</comment>
-    </signalhead>
-    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
-      <systemName>IH:HART:C3:126L</systemName>
-      <userName>Head 126L</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned ?</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH:HART:C3:126RA_Bottom</systemName>
@@ -2108,12 +2103,6 @@
       <systemName>IF$shsm:basic:one-low(IH:HART:C1:32R)</systemName>
       <userName>Mast 32R</userName>
       <comment>East End | Switch 31</comment>
-      <unlit allowed="no" />
-    </signalmast>
-    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
-      <systemName>IF$shsm:basic:one-low(IH:HART:C3:126L)</systemName>
-      <userName>Mast 126L</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned </comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -12952,7 +12941,7 @@
     <BlockContentsIcon blockcontents="OS Switch 119" x="1235" y="711" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 121" x="1458" y="779" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 123" x="1565" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 125" x="1764" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 125" x="1732" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 127" x="1775" y="679" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 129" x="1790" y="832" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 131" x="2026" y="672" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" fontFamily="Dialog" fontname="Dialog" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -13112,7 +13101,6 @@
     <signalmasticon signalmast="Mast 120RB" x="1281" y="740" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 124LA" x="1539" y="712" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 124LB" x="1569" y="726" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="38" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
-    <signalmasticon signalmast="Mast 126L" x="1731" y="808" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 126RA" x="1684" y="692" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 126RB" x="1780" y="788" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="270" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
     <signalmasticon signalmast="Mast 128LA" x="1691" y="712" level="9" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="false" degrees="90" clickmode="0" litmode="false" scale="1.0" imageset="default" class="jmri.jmrit.display.configurexml.SignalMastIconXml" />
@@ -13322,7 +13310,6 @@
     <layoutturnout ident="TOG26" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="921.5" ycen="756.0" xa="933.5" ya="756.0" xb="909.5" yb="756.0" xc="914.2000122070312" yc="765.5" xd="933.5" yd="756.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 113" blockname="OS Switch 113" connectaname="TG83" connectbname="TG84" connectcname="TG87" />
     <layoutturnout ident="TOG27" type="RH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1763.699951171875" ycen="804.0" xa="1775.699951171875" ya="804.0" xb="1751.699951171875" yb="804.0" xc="1755.199951171875" yc="795.5" xd="1775.699951171875" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutRHTurnoutXml" turnoutname="Switch 125" blockname="OS Switch 125" connectaname="TG113" connectbname="TG81" connectcname="TG82">
       <signalAMast>Mast 126RB</signalAMast>
-      <signalBMast>Mast 126L</signalBMast>
     </layoutturnout>
     <layoutturnout ident="TOG28" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1521.699951171875" ycen="804.0" xa="1509.699951171875" ya="804.0" xb="1533.699951171875" yb="804.0" xc="1529.0999755859375" yc="794.5" xd="1509.699951171875" yd="804.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 121" blockname="OS Switch 121" connectaname="TG80" connectbname="TG81" connectcname="TG96" />
     <layoutturnout ident="TOG29" type="LH_TURNOUT" hidden="no" disabled="no" disableWhenOccupied="yes" continuing="2" xcen="1596.699951171875" ycen="708.0" xa="1608.699951171875" ya="708.0" xb="1584.699951171875" yb="708.0" xc="1589.300048828125" yc="717.5" xd="1608.699951171875" yd="708.0" ver="1" class="jmri.jmrit.display.layoutEditor.configurexml.LayoutLHTurnoutXml" turnoutname="Switch 123" blockname="OS Switch 123" connectaname="TG112" connectbname="TG93" connectcname="TG133">
@@ -13893,104 +13880,104 @@
   <filehistory>
     <operation>
       <type>app</type>
-      <date>Thu Nov 19 21:41:00 EST 2026</date>
+      <date>Thu Nov 19 21:54:23 EST 2026</date>
       <filename>PanelPro (v5.16.0)</filename>
     </operation>
     <operation>
       <type>Load OK</type>
-      <date>Thu Nov 19 21:41:08 EST 2026</date>
+      <date>Thu Nov 19 21:54:29 EST 2026</date>
       <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
       <filehistory>
         <operation>
           <type>app</type>
-          <date>Thu Nov 19 20:21:45 EST 2026</date>
+          <date>Thu Nov 19 21:41:00 EST 2026</date>
           <filename>PanelPro (v5.16.0)</filename>
         </operation>
         <operation>
           <type>Load OK</type>
-          <date>Thu Nov 19 20:21:51 EST 2026</date>
+          <date>Thu Nov 19 21:41:08 EST 2026</date>
           <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
           <filehistory>
             <operation>
               <type>app</type>
-              <date>Thu Nov 19 18:06:13 EST 2026</date>
+              <date>Thu Nov 19 20:21:45 EST 2026</date>
               <filename>PanelPro (v5.16.0)</filename>
             </operation>
             <operation>
               <type>Load OK</type>
-              <date>Thu Nov 19 18:06:20 EST 2026</date>
+              <date>Thu Nov 19 20:21:51 EST 2026</date>
               <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
               <filehistory>
                 <operation>
                   <type>app</type>
-                  <date>Thu Nov 19 17:24:15 EST 2026</date>
+                  <date>Thu Nov 19 18:06:13 EST 2026</date>
                   <filename>PanelPro (v5.16.0)</filename>
                 </operation>
                 <operation>
                   <type>Load OK</type>
-                  <date>Thu Nov 19 17:24:24 EST 2026</date>
+                  <date>Thu Nov 19 18:06:20 EST 2026</date>
                   <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                   <filehistory>
                     <operation>
                       <type>app</type>
-                      <date>Thu Nov 19 16:35:17 EST 2026</date>
+                      <date>Thu Nov 19 17:24:15 EST 2026</date>
                       <filename>PanelPro (v5.16.0)</filename>
                     </operation>
                     <operation>
                       <type>Load OK</type>
-                      <date>Thu Nov 19 16:35:24 EST 2026</date>
-                      <filename>/private/tmp/claude-501/-Users-lnevo-hart/65011b2f-eb9a-48c0-9ae3-4d1a9a90bcfc/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
+                      <date>Thu Nov 19 17:24:24 EST 2026</date>
+                      <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                       <filehistory>
                         <operation>
                           <type>app</type>
-                          <date>Thu Nov 19 12:55:33 EST 2026</date>
+                          <date>Thu Nov 19 16:35:17 EST 2026</date>
                           <filename>PanelPro (v5.16.0)</filename>
                         </operation>
                         <operation>
                           <type>Load OK</type>
-                          <date>Thu Nov 19 12:55:40 EST 2026</date>
-                          <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
+                          <date>Thu Nov 19 16:35:24 EST 2026</date>
+                          <filename>/private/tmp/claude-501/-Users-lnevo-hart/65011b2f-eb9a-48c0-9ae3-4d1a9a90bcfc/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                         <operation>
                           <type>Store</type>
-                          <date>Thu Nov 19 12:55:53 EST 2026</date>
-                          <filename>/private/tmp/claude-501/-Users-lnevo-hart/1808cdf2-f69e-4658-b279-6120b664e771/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
+                          <date>Thu Nov 19 16:35:36 EST 2026</date>
+                          <filename>/private/tmp/claude-501/-Users-lnevo-hart/65011b2f-eb9a-48c0-9ae3-4d1a9a90bcfc/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
                         </operation>
                       </filehistory>
                     </operation>
                     <operation>
                       <type>Store</type>
-                      <date>Thu Nov 19 16:35:36 EST 2026</date>
-                      <filename>/private/tmp/claude-501/-Users-lnevo-hart/65011b2f-eb9a-48c0-9ae3-4d1a9a90bcfc/scratchpad/sandbox/disc/jmri/layouts/hart/output/tables.xml</filename>
+                      <date>Thu Nov 19 17:24:50 EST 2026</date>
+                      <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                     </operation>
                   </filehistory>
                 </operation>
                 <operation>
                   <type>Store</type>
-                  <date>Thu Nov 19 17:24:50 EST 2026</date>
+                  <date>Thu Nov 19 18:06:33 EST 2026</date>
                   <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
                 </operation>
               </filehistory>
             </operation>
             <operation>
               <type>Store</type>
-              <date>Thu Nov 19 18:06:33 EST 2026</date>
+              <date>Thu Nov 19 20:22:04 EST 2026</date>
               <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
             </operation>
           </filehistory>
         </operation>
         <operation>
           <type>Store</type>
-          <date>Thu Nov 19 20:22:04 EST 2026</date>
+          <date>Thu Nov 19 21:41:22 EST 2026</date>
           <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
         </operation>
       </filehistory>
     </operation>
     <operation>
       <type>Store</type>
-      <date>Thu Nov 19 21:41:22 EST 2026</date>
+      <date>Thu Nov 19 21:54:41 EST 2026</date>
       <filename>/Users/lnevo/hart/.claude/worktrees/agent-a0148cac03776533b/jmri/layouts/hart/output/tables.xml</filename>
     </operation>
   </filehistory>
-  <!--Written by JMRI version 5.16+R909e15189e on Thu Nov 19 21:41:22 EST 2026-->
+  <!--Written by JMRI version 5.16+R909e15189e on Thu Nov 19 21:54:41 EST 2026-->
 </layout-config>

@@ -2,8 +2,9 @@
 
 tracks() lists each track of a band between its ends (switch, helix or bumper), track_names() names them ("Track
 <a>-<b>", "Track <n> Spur", "Track <n> Loop", " 1"/" 2" for parallel tracks), and masts() places a home signal where a
-track from outside a control point meets one of its switches (build_device_map.py's module text has the naming and
-head rules). band_level() maps a band title to its level by LEVELS.
+track from outside a control point meets one of its switches, unless no route it governs reaches another signal
+(reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
+to its level by LEVELS.
 """
 from __future__ import annotations
 
@@ -200,6 +201,12 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
                                 half=LOOP_HALF[p] if t["loop"] else 0, node=n, leg=p, strand=sid, running=running,
                                 kind=("two-searchlight" if heads == 2 else
                                       "one-searchlight" if running else "one-low")))
+    # a home mast governs something only when a route it would clear reaches another signal (owner, 2026-11-19: no
+    # hand-made exceptions); one whose every route ends at a bumper or in dark track is left out
+    posts = defaultdict(set)
+    for m in out:
+        posts[m["band"]].add((m["node"], m["leg"]))
+    out = [m for m in out if reaches_signal(bands[m["band"]][1], m["node"], m["leg"], posts[m["band"]])]
     groups = defaultdict(list)
     for m in out:
         groups[(m["number"], m["letter"])].append(m)
@@ -211,6 +218,57 @@ def masts(bands, cps, found, cp_of, corner_blocks=None, levels=None, running_ext
         for i, m in enumerate(ms):
             m["name"] = f"{num}{letter}" + ("AB"[i] if len(ms) == 2 else "")
     return out
+
+
+# where a train leaves a switch by, entering it at a leg: a plain switch's points (A) choose B or C and B or C trail to
+# A; a double crossover joins A to B and C, D to C and B (its through tracks A-B and D-C, both diagonals)
+EXITS = {"switch": {"A": ("B", "C"), "B": ("A",), "C": ("A",)},
+         "dx": {"A": ("B", "C"), "B": ("A", "D"), "C": ("D", "A"), "D": ("C", "B")}}
+
+
+def reaches_signal(band, node: str, leg: str, posts: set) -> bool:
+    """True when some route of a train entering switch `node` at `leg` reaches another signal: a switch leg in
+    `posts` ({(node, leg)} of the band's masts) that it enters by, or the end of the band where a helix track or a
+    connector runs on to another level (its signals are that level's). Every route is walked through switches and
+    turnbacks to the next mast or the end of track; a route ending at a bumper, or in track with no mast facing on (a
+    dark spur or yard), reaches none. A route that comes back to a leg already walked adds nothing."""
+    nodes, strands = band["nodes"], band["strands"]
+
+    def legs(n):
+        return nodes[n]["ins"] | nodes[n]["outs"]
+
+    def far_end(n, x):
+        """(node, port) a train reaches leaving node `n` by its port `x`, on through any turnback."""
+        while True:
+            s = strands[legs(n)[x]]
+            m, q = s["dst"] if tuple(s["src"]) == (n, x) else s["src"]
+            if not nodes[m]["kind"].startswith("turn"):
+                return m, q
+            onward = [k for k in legs(m) if k != q]
+            if len(onward) != 1:
+                raise MapError(f"reaches_signal: turnback {m} has {len(onward) + 1} tracks, not two")
+            n, x = m, onward[0]
+
+    todo, seen = [(node, leg)], {(node, leg)}
+    while todo:
+        n, p = todo.pop()
+        d = nodes[n]
+        if d["kind"] not in EXITS:
+            raise MapError(f"reaches_signal: a route enters {d['kind']} node {n}, which is no switch")
+        for x in EXITS[d["kind"]][p]:
+            if legs(n).get(x) is None:
+                continue
+            m, q = far_end(n, x)
+            if nodes[m]["kind"] not in EXITS:               # a track end
+                if nodes[m].get("sub") in ("helix", "link"):
+                    return True                             # runs on to another level, which is signalled
+                continue                                    # a bumper: this route ends dark
+            if (m, q) in posts:
+                return True
+            if (m, q) not in seen:
+                seen.add((m, q))
+                todo.append((m, q))
+    return False
 
 
 def facing_on_route(band, node: str, leg: str, cp_of: dict, long_cm: float = LONG_CM) -> list[str]:

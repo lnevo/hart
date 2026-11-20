@@ -232,7 +232,6 @@ signalhead,IH:HART:C3:124LA_Bottom,Head 124LA Bottom
 signalhead,IH:HART:C3:124LA_Top,Head 124LA Top
 signalhead,IH:HART:C3:124LB_Bottom,Head 124LB Bottom
 signalhead,IH:HART:C3:124LB_Top,Head 124LB Top
-signalhead,IH:HART:C3:126L,Head 126L
 signalhead,IH:HART:C3:126RA_Bottom,Head 126RA Bottom
 signalhead,IH:HART:C3:126RA_Top,Head 126RA Top
 signalhead,IH:HART:C3:126RB_Bottom,Head 126RB Bottom
@@ -297,7 +296,6 @@ signalmast,IF$shsm:basic:one-low(IH:HART:C1:4RA),Mast 4RA
 signalmast,IF$shsm:basic:one-low(IH:HART:C1:4RB),Mast 4RB
 signalmast,IF$shsm:basic:one-low(IH:HART:C1:6LA),Mast 6LA
 signalmast,IF$shsm:basic:one-low(IH:HART:C1:8RA),Mast 8RA
-signalmast,IF$shsm:basic:one-low(IH:HART:C3:126L),Mast 126L
 signalmast,IF$shsm:basic:one-low(IH:HART:C3:242L),Mast 242L
 signalmast,IF$shsm:basic:one-searchlight(IH432),Mast 6LB
 signalmast,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),Mast 24L

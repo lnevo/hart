@@ -168,7 +168,6 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 107,mast,Mast 120RB,,IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom),,,CP 107 | Switch 119,,home signal from Track 119-121
 2,CP 123,mast,Mast 124LA,IF$shsm:basic:two-searchlight(IH4232)(IH4233),IF$shsm:basic:two-searchlight(IH:HART:C3:124LA_Top)(IH:HART:C3:124LA_Bottom),42,,CP 123 | Switch 123,,home signal from Track 119-123
 2,CP 123,mast,Mast 124LB,IF$shsm:basic:two-searchlight(IH4234)(IH4235),IF$shsm:basic:two-searchlight(IH:HART:C3:124LB_Top)(IH:HART:C3:124LB_Bottom),42,,CP 123 | Switch 123,,home signal from Track 121-123
-2,CP 123,mast,Mast 126L,,IF$shsm:basic:one-low(IH:HART:C3:126L),,,CP 123 | Switch 125,,home signal from Track 121-125
 2,CP 123,mast,Mast 126RA,IF$shsm:basic:two-searchlight(IH5232)(IH5233),IF$shsm:basic:two-searchlight(IH:HART:C3:126RA_Top)(IH:HART:C3:126RA_Bottom),52,,CP 123 | Switch 125,,home signal from Track 125-127
 2,CP 123,mast,Mast 126RB,IF$shsm:basic:two-low(IH5234)(IH5235),IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom),52,,CP 123 | Switch 125,,home signal from Track 125-129
 2,CP 127,mast,Mast 128LA,IF$shsm:basic:two-searchlight(IH5236)(IH5237),IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom),52,,CP 127 | Switch 127,,home signal from Track 125-127
@@ -195,7 +194,6 @@ level,cp,layer,user_name,system_name,jmri_name,node,dcc,comment,trial_name,notes
 2,CP 123,head,Head 124LA Top,IH4232,IH:HART:C3:124LA_Top,42,,"Node: 42 Signal: 0 | OU: 3 Ports: 1,2,3",,
 2,CP 123,head,Head 124LB Bottom,IH4235,IH:HART:C3:124LB_Bottom,42,,"Node: 42 Signal: 3 | OU: 4 Ports: 4,5,6",,
 2,CP 123,head,Head 124LB Top,IH4234,IH:HART:C3:124LB_Top,42,,"Node: 42 Signal: 2 | OU: 4 Ports: 1,2,3",,
-2,CP 123,head,Head 126L,,IH:HART:C3:126L,,,CP 123 | Switch 125,,"head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
 2,CP 123,head,Head 126RA Bottom,IH5233,IH:HART:C3:126RA_Bottom,52,,"Node: 52 Signal: 1 | OU: 1 Ports: 4,5,6",,
 2,CP 123,head,Head 126RA Top,IH5232,IH:HART:C3:126RA_Top,52,,"Node: 52 Signal: 0 | OU: 1 Ports: 1,2,3",,
 2,CP 123,head,Head 126RB Bottom,IH5235,IH:HART:C3:126RB_Bottom,52,,"Node: 52 Signal: 3 | OU: 2 Ports: 4,5,6",,

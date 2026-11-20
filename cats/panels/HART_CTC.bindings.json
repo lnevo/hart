@@ -3158,10 +3158,6 @@
    "name": "Mast 124LB",
    "template": "double"
   },
-  "126L": {
-   "name": "Mast 126L",
-   "template": "single"
-  },
   "126RA": {
    "name": "Mast 126RA",
    "template": "double"

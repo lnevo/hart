@@ -324,6 +324,45 @@ class FacingOnRoute(unittest.TestCase):
         self.assertEqual(mr.facing_on_route(b, "S3", "B", {"3": "CP 3"}), ["3"])
 
 
+class ReachesSignal(unittest.TestCase):
+    """mast_rule.reaches_signal: a home mast is placed only when a route it governs reaches another signal (owner,
+    2026-11-19), as Mast 126L into Switch 129's dark spurs is not."""
+
+    band = staticmethod(FacingOnRoute.band)      # X - (A) 1 (B) - (A) 3, 1's C and 3's B and C to bumpers
+
+    def test_a_mast_into_dark_spurs_is_dropped(self):
+        import mast_rule as mr
+        # entering 1 at A: on to 3 and its two spurs, or 1's own spur; no mast faces on anywhere
+        self.assertFalse(mr.reaches_signal(self.band(), "S1", "A", {("S1", "A")}))
+
+    def test_a_mast_with_a_signal_beyond_it_stays(self):
+        import mast_rule as mr
+        b = self.band()
+        # a mast on 3's B leg faces a train coming back from it, not one going out: still dark that way
+        self.assertFalse(mr.reaches_signal(b, "S1", "A", {("S1", "A"), ("S3", "B")}))
+        # a train from bumper Y entering 3 at B trails to 1 at B, where a mast stands: a signal beyond
+        self.assertTrue(mr.reaches_signal(b, "S3", "B", {("S3", "B"), ("S1", "B")}))
+
+    def test_a_route_that_runs_on_to_another_level_reaches_its_signals(self):
+        import mast_rule as mr
+        b = self.band()
+        b["nodes"]["Z"].update(kind="end", sub="helix")
+        self.assertTrue(mr.reaches_signal(b, "S1", "A", {("S1", "A")}))
+        b["nodes"]["Z"].update(sub="bumper")
+        self.assertFalse(mr.reaches_signal(b, "S1", "A", {("S1", "A")}))
+
+    def test_a_turnback_is_followed(self):
+        import mast_rule as mr
+        b = self.band()
+        # 1's C leg runs to a turnback and on round to 3's C leg, entered there with a mast facing on
+        b["nodes"]["T"] = dict(kind="turnL", ins={}, outs={})
+        b["strands"]["e2"] = dict(src=("S1", "C"), dst=("T", 0), cm=100.0)
+        b["strands"]["e4"] = dict(src=("T", 1), dst=("S3", "C"), cm=100.0)
+        b["nodes"]["S1"]["outs"]["C"], b["nodes"]["S3"]["outs"]["C"] = "e2", "e4"
+        b["nodes"]["T"]["ins"], b["nodes"]["T"]["outs"] = {0: "e2"}, {1: "e4"}
+        self.assertTrue(mr.reaches_signal(b, "S1", "A", {("S1", "A"), ("S3", "C")}))
+
+
 class NoBoardRoomOnly(unittest.TestCase):
     """Only the draft plant's lack of board room leaves a mast's heads unplaced; any other plant error stops."""
 
@@ -347,11 +386,12 @@ class NoBoardRoomOnly(unittest.TestCase):
             nodes.pick_mast(2, "North", 1)
 
     def test_the_committed_map_places_two_head_masts_before_one_head_ones(self):
-        # North holds 12 heads (node 42: two 5V boards, node 52: four) for 17: every board takes a two-head mast,
-        # so the one-head 126L waits and two-head 128LB has outputs
+        # North holds 12 heads (node 42: two 5V boards, node 52: four) for 16 (eight two-head masts since the rule
+        # left out 126L): every board takes a two-head mast, so 128LB has outputs and 132RA and 132RB wait
         with open(BD.OUT, newline="", encoding="utf-8") as fh:
             heads = {r["user_name"]: r for r in csv.DictReader(fh) if r["layer"] == "head"}
-        self.assertEqual(heads["Head 126L"]["notes"], BD.HEAD_NOT_WIRED)
+        self.assertNotIn("Head 126L", heads)                    # no route past it reaches a signal (reaches_signal)
+        self.assertEqual(heads["Head 132RA Top"]["notes"], BD.HEAD_NOT_WIRED)
         self.assertTrue(heads["Head 128LB Top"]["system_name"] and heads["Head 128LB Bottom"]["system_name"])
         north = [r for r in heads.values() if r["node"] in ("42", "52")]
         self.assertEqual(len(north), 12)

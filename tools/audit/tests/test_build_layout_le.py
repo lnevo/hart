@@ -959,7 +959,7 @@ class LevelMasts(unittest.TestCase):
         gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
         self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
         rows = B.read_level_masts()
-        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (122, 45, 77))
+        self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (122, 44, 76))
         r = next(r for r in rows if r["mast"] == "Mast 108LB")
         self.assertEqual((r["facing"], r["protects"]), ("Track 107 Loop 2", "OS Switch 107"))
         self.assertEqual(r["system_name"], "IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)")

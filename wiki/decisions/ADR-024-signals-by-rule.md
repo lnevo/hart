@@ -18,7 +18,8 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 - A home mast stands where a track from outside an interlocking meets one of its switches.
 - A track inside an interlocking that can hold a train (longer than 150 cm, `LONG_CM`) gets masts at both ends. Staging's K-1/K-2 is one; nothing on the main or upper levels is.
 - A track ending at a bumper gets a dwarf only when it can hold a train (staging's W-1 and W-2).
-- A spur listed in `signalled_spurs_main_upper.csv` gets an exit dwarf even when its switch is in no control point (239 Spur).
+- A spur listed in `signalled_spurs_main_upper.csv` gets an exit dwarf even when its switch is in no control point (241 Spur; 239 Spur before the 2026-11-19 renumber).
+- No home mast where no route it would govern reaches another signal: every route from its switch leg, walked through switches and turnbacks, ends at a bumper or in track with no mast facing on (owner, 2026-11-19, `reaches_signal`). The rule leaves out only Mast 126L today (125B into Switch 129's dark spurs); no staging mast.
 
 **Heads and type**
 - Two heads when any route the mast governs meets facing points inside its interlocking before the next signal (`facing_on_route`); otherwise one.
@@ -26,7 +27,7 @@ One rule places every visible mast. It lives in `tools/schematic/mast_rule.py` a
 - In stock JMRI `basic`, `one-low` and `one-searchlight` show the same aspects. Only the two-head appearances (`two-searchlight`, `two-low`) add Diverging Clear and Diverging Approach.
 
 **Interlockings**
-- Main and upper: the control points in `control_points_main_upper.csv`. CP 107 now holds 107, 109, 111, 117 and 119, because the track between 107 and 109 is shorter than a train. CP 125 and CP 129 stay separate.
+- Main and upper: the control points in `control_points_main_upper.csv`. CP 107 now holds 107, 109, 111, 117 and 119, because the track between 107 and 109 is shorter than a train. CP 123 and CP 127 (CP 125 and CP 129 before the 2026-11-19 renumber) stay separate.
 - Staging: `interlockings_staging.csv` lists them: Brick (1, 3, 5), Barn (7), East End (23, 31, 33) and Princess (35, 37, 39). Staging's `control_points` stay the stations, because the station sheets' brackets and the panel gantries are drawn from them.
 
 **Intermediate (APB) signals**

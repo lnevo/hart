@@ -65,8 +65,10 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   switches get a planned detector; yard and industry tracks and the OS blocks of switches in no control point
   get none (their virtual sensor stays, NO_DETECTOR).
 - Home signals: one mast where each track from outside a control point meets one of its switches; none on spurs
-  or yard tracks that end at a bumper. "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number
-  and direction has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
+  or yard tracks that end at a bumper, and none where no route the mast would govern reaches another signal (every
+  route ends at a bumper or in dark track: mast_rule.reaches_signal, owner 2026-11-19, which leaves out 125B's mast
+  into Switch 129's spurs). "Mast <n+1><L|R>", L for a westbound train (ADR-005), A/B when one number and direction
+  has two. Two heads (Top and Bottom) when a route the mast governs meets facing points inside its
   control point before the next signal (mast_rule.facing_on_route), else one; high (searchlight) facing from running
   track, a dwarf (low) from a yard, lead or siding (owner, 2026-11-19). East is the schematic's (ADR-022 amendment: away from the helix on these levels).
 - LCOS packed IDs are node * 100 + UID (external/lcos-bridge): blocks UID 0-7 (BS, "Node: n Block: k+1"), turnouts
