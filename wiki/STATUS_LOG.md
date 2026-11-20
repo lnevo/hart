@@ -1,5 +1,17 @@
 # Status log
 
+Updated: 2026-11-20 — Finished or done-and-recorded entries moved verbatim out of STATUS.md (its 2026-11-18 header line, panel touch-ups, switch renumbering, extension track names, Mast 16R, staging DCC alias rows, Mast 6LB, Switch 9, speed matching result):
+
+Updated 2026-11-18: stale entries cleared, to-do list brought up to date, and long entries cut to one or two lines. The full earlier wording of each shortened entry is in the 2026-11-18 "Full text" entry of [`STATUS_LOG.md`](STATUS_LOG.md), with the rest of the dated history.
+- **Panel touch-ups (owner, 2026-11-18):** compass rose back on the Layout Editor panel; Mast 8RA's boundary just before Switch 7's points; Switches 127 and 131 drawn as one crossover (now crossover 125); EH-1 to EH-3 names step with their track ends.
+- **Main and upper level switch numbers (owner, 2026-11-14; both levels renumbered by the rule 2026-11-19):** 101 to 131 on the main level and 201 to 245 on the upper, odd only, left to right as drawn; recorded as a `relabel` in `main_upper.plan_overrides.json`. Old 121+123 are crossover 121, 125 is 123, 127+131 are crossover 125, 129 is 127, 133 is 129, 135 is 131. Upper: 207 and 209 swapped, crossover 213 is 211 and 211 is 213, 231 and 233 swapped, 239 is 241, crossover 241 is 243, 243 is 239. The internal names (`IT:HART:C3:<n>`, blocks, masts) follow the new numbers. Station, track and level names are still the owner's to give.
+- **Extension tracks (owner, 2026-11-13):** now **Track East Ext** and **Track West Ext** (BS East Ext, BS West Ext); old names stay as alias rows in `public_name_map.csv`.
+- **Mast 16R (owner, 2026-11-13):** the hidden S-R east Dispatcher mast, renamed from Mast 32L; `Mast 32L` stays an alias row in `public_name_map.csv`.
+- **Staging DCC alias rows (owner, 2026-11-17):** alias rows for the staging switches' old numbers that are now main level turnout names are **DCC 101** to **DCC 119** (odd), so a rename pass cannot rename main level turnouts; `python3 -m hartlib.railroad check` holds it.
+- **Mast 6LB (owner, 2026-11-19):** one high head (`one-searchlight`) on IH432, by the rule; IH433 is dropped.
+- **Switch 9 (2026-11-12):** normal leads to EH-2, thrown to EH-3 after the owner corrected its wiring; the Layout Editor and CATS desks follow (`cats/scripts/tests/test_engine_house_rows.py`).
+- **Speed matching (done on the layout, 2026-11-13):** CSX 2738 now matches CSX 2121 within 4% from step 24 up in both consist pairings; both roster entries carry the measured speed profile. Open items are under Owed. Record: [`profile-2026-11-13/`](../docs/jmri/speedmatching/profile-2026-11-13/README.md); [`projects/speedmatching.md`](projects/speedmatching.md); article [`ai/speed-runs.html`](https://www.hartrailroad.com/ai/speed-runs.html).
+
 Updated: 2026-11-18 — Full text of STATUS.md entries shortened to one or two lines (moved verbatim; STATUS.md keeps the current state and a link):
 
 Previous STATUS.md header: Updated 2026-11-18: stale entries cleared and the to-do list brought up to date (owed, in progress, future goals). Before that, 2026-11-17: staging now built from its device map, the overlay retired (owner approved the device-map panel in PanelPro); before that, the helix-join release (helix joined, NX, Dispatcher System and USS CTC parked, schematic DRAFT mark off). Dated history is in [`STATUS_LOG.md`](STATUS_LOG.md).
