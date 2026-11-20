@@ -85,7 +85,8 @@ class LoaderTest(unittest.TestCase):
         import engine_terminal
 
         self.assertEqual(engine_terminal.switch_hand(9), "L")
-        self.assertIn("Switch 9 is left hand: its normal route goes to EH-2", engine_terminal.svg()[0])
+        staging = (facts.paths.REPO_ROOT / "tools/anyrail/staging_plan.svg").read_text()
+        self.assertIn("Switch 9 is left hand: its normal route goes to EH-2", engine_terminal.svg(staging)[0])
 
     def test_a_mast_or_a_cell_listed_twice_names_both_rows(self) -> None:
         self.append("mast_cells.csv", "Mast 2L,1,1,LEFT,W,h2,,,,")
