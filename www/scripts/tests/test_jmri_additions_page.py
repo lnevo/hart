@@ -26,7 +26,7 @@ class JmriAdditions(unittest.TestCase):
         self.assertLessEqual(f["wired"], f["lit"])
 
     def test_lcos_head_rule_matches_the_coordinator(self):
-        lo, hi = ja._lcos_range()
+        lo, hi = ja._lcos_range(ja.ROOT)
         self.assertTrue(ja.is_lcos_head("432", lo, hi))       # node 4, signal 32: Mast 6LB's head
         self.assertFalse(ja.is_lcos_head("431", lo, hi))      # signal 31 is below the LCOS range
         self.assertFalse(ja.is_lcos_head("932", lo, hi))      # node 9 is not an octal number
@@ -41,6 +41,21 @@ class JmriAdditions(unittest.TestCase):
                          "the Pi and the Mac")
         with self.assertRaisesRegex(ja.PageError, "no host installs it"):
             ja._hosts_cell("x.py", {"Pi": set(), "Windows": set(), "Mac": set()})
+
+    def test_windows_reads_without_the(self):
+        self.assertEqual(ja._hosts_cell("x.py", {"Pi": {"x.py"}, "Windows": {"x.py"}, "Mac": set()}),
+                         "the Pi and Windows")
+
+    def test_a_list_must_close_on_its_own_line(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for rel, _ in ja.HOST_LISTS.values():
+            (tmp / rel).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ja.ROOT / rel, tmp / rel)
+        pi = tmp / ja.HOST_LISTS["Pi"][0]
+        text = pi.read_text(encoding="utf-8")
+        pi.write_text(text.replace("JYTHON=(", "JYTHON=(  # (see the README)", 1), encoding="utf-8")
+        self.assertEqual(ja.host_lists(tmp), self.facts["hosts"])   # a comment's bracket does not end the list
 
     def test_unknown_and_missing_regions_stop(self):
         with self.assertRaisesRegex(ja.PageError, "unknown region ja:nope"):

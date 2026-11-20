@@ -26,6 +26,7 @@ prepare_github_pages.py fills the built copy on every site build.
 from __future__ import annotations
 
 import csv
+import xml.etree.ElementTree as ET
 import re
 import sys
 from pathlib import Path
@@ -36,19 +37,23 @@ from hartlib import tables as T  # noqa: E402
 
 PAGE_REL = "behind/jmri-additions.html"
 REGION = re.compile(r"<!--ja:([a-z0-9-]+)-->(.*?)<!--/ja-->", re.S)
-SCHEMATIC = ROOT / "jmri/layouts/hart/data/schematic"
-DEVICE_MAPS = {"main and upper": SCHEMATIC / "device_map_main_upper.csv", "staging": SCHEMATIC / "device_map_staging.csv"}
-COORDINATOR = ROOT / "jmri/scripts/signal_coordinator.py"
+SCHEMATIC = "jmri/layouts/hart/data/schematic"
+DEVICE_MAPS = {"main and upper": SCHEMATIC + "/device_map_main_upper.csv", "staging": SCHEMATIC + "/device_map_staging.csv"}
+COORDINATOR = "jmri/scripts/signal_coordinator.py"
+TABLES = "jmri/layouts/hart/output/tables.xml"
 HEAD_IN_MAST = re.compile(r"\(IH(\d+)\)")   # signal_coordinator._HEAD_IN_MAST, without the brackets
 WORDS = "zero one two three four five six seven eight nine ten eleven twelve".split()
 
 # Where each host's Jython list lives: (file, the line that opens the list). Each list runs to its closing bracket.
+# The list closes with ")" on a line of its own.
 HOST_LISTS = {
-    "Pi": (ROOT / "tools/hosts/pi/apply_hart_package_local.sh", "JYTHON=("),
-    "Windows": (ROOT / "tools/hosts/windows/apply_hart_package_local.ps1", "$jythonSrc = @("),
-    "Mac": (ROOT / "tools/hosts/sync_hart_package.sh", "JYTHON_STARTUP_SCRIPTS=("),
+    "Pi": ("tools/hosts/pi/apply_hart_package_local.sh", "JYTHON=("),
+    "Windows": ("tools/hosts/windows/apply_hart_package_local.ps1", "$jythonSrc = @("),
+    "Mac": ("tools/hosts/sync_hart_package.sh", "JYTHON_STARTUP_SCRIPTS=("),
 }
 HOST_ORDER = ("Pi", "Windows", "Mac")
+HOST_NAMES = {"Pi": "the Pi", "Windows": "Windows", "Mac": "the Mac"}
+LIST_END = re.compile(r"^\s*\)\s*$", re.M)
 SCRIPTS = ("signal_coordinator.py", "panel_status.py", "hide_cats_desk_windows.py", "jmri_cmd_watcher.py",
            "sts_car_sync.py", "mimic_relay.py")
 
@@ -67,9 +72,9 @@ def _and(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
 
 
-def _lcos_range() -> tuple[int, int]:
+def _lcos_range(root: Path) -> tuple[int, int]:
     """The LCOS signal numbers signal_coordinator.py accepts, read from it so the two cannot differ."""
-    src = COORDINATOR.read_text(encoding="utf-8")
+    src = (root / COORDINATOR).read_text(encoding="utf-8")
     got = {k: int(v) for k, v in re.findall(r"^_LCOS_SIGNAL_UID_(MIN|MAX)\s*=\s*(\d+)", src, re.M)}
     if set(got) != {"MIN", "MAX"}:
         raise PageError("signal_coordinator.py no longer sets _LCOS_SIGNAL_UID_MIN and _MAX; update this script")
@@ -82,16 +87,16 @@ def is_lcos_head(packed: str, lo: int, hi: int) -> bool:
     return lo <= n % 100 <= hi and set(str(n // 100)) <= set("01234567")
 
 
-def host_lists() -> dict[str, set[str]]:
+def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
+    """The Jython scripts each host's deploy copies into its profile's jython folder."""
     out = {}
-    for host, (path, opener) in HOST_LISTS.items():
-        text = path.read_text(encoding="utf-8")
+    for host, (rel, opener) in HOST_LISTS.items():
+        text = (root / rel).read_text(encoding="utf-8")
         start = text.find(opener)
-        if start < 0:
-            raise PageError("%s: no %r list of Jython scripts" % (path.relative_to(ROOT), opener))
-        body = text[start + len(opener):text.index(")\n", start)] if host != "Windows" else \
-            text[start + len(opener):text.index("\n)", start)]
-        out[host] = set(re.findall(r"([a-z_]+\.py)", body))
+        end = LIST_END.search(text, start + len(opener)) if start >= 0 else None
+        if end is None:
+            raise PageError("%s: no %r list of Jython scripts closed by a line holding only ')'" % (rel, opener))
+        out[host] = set(re.findall(r"([a-z_]+\.py)", text[start + len(opener):end.start()]))
     unknown = set().union(*out.values()) - set(SCRIPTS)
     if unknown:
         raise PageError("hosts install Jython scripts the page does not list: %s" % sorted(unknown))
@@ -99,15 +104,25 @@ def host_lists() -> dict[str, set[str]]:
 
 
 def facts(root: Path = ROOT) -> dict:
+    """Every number the page shows; a missing column or an unreadable file stops with a PageError."""
+    try:
+        return _facts(root)
+    except KeyError as e:
+        raise PageError("a column the page needs is missing: %s" % e) from e
+    except ET.ParseError as e:
+        raise PageError("%s does not parse: %s" % (TABLES, e)) from e
+
+
+def _facts(root: Path) -> dict:
     planned = {}
-    for label, path in DEVICE_MAPS.items():
-        with path.open(newline="", encoding="utf-8") as fh:
+    for label, rel in DEVICE_MAPS.items():
+        with (root / rel).open(newline="", encoding="utf-8") as fh:
             planned[label] = [r for r in csv.DictReader(fh) if r["layer"] == "mast"]
     masts = [m for rows in planned.values() for m in rows]
     hidden = [m for m in masts if m["system_name"].startswith("IF$vsm")]
 
-    lo, hi = _lcos_range()
-    tab = T.read(root / "jmri/layouts/hart/output/tables.xml")
+    lo, hi = _lcos_range(root)
+    tab = T.read(root / TABLES)
     field, field_masts = set(), 0
     for el in tab.iter():
         if isinstance(el.tag, str) and el.tag.endswith("signalmast") and el.find("systemName") is not None:
@@ -123,8 +138,8 @@ def facts(root: Path = ROOT) -> dict:
     wired_src = [s for s in sources if (s.findtext("sourceSignalMast") or "") in field]
     dests = lambda group: sum(len(s.findall("destinationMast")) for s in group)  # noqa: E731
 
-    plant = [t for t in tab.iter("turnout") if T.system_name(t).startswith(("M2T", "MTT"))
-             and t.get("sensor1") and t.get("sensor2")]
+    plant = {T.system_name(t) for t in tab.findall("./turnouts/turnout")   # the turnout table, as JMRI's manager
+             if T.system_name(t).startswith(("M2T", "MTT")) and t.get("sensor1") and t.get("sensor2")}
     return {
         "planned": len(masts),
         "planned-mu": len(planned["main and upper"]),
@@ -136,7 +151,7 @@ def facts(root: Path = ROOT) -> dict:
         "other": len(sources) - len(wired_src),
         "other-dests": dests(sources) - dests(wired_src),
         "plant": len(plant),
-        "hosts": host_lists(),
+        "hosts": host_lists(root),
     }
 
 
@@ -145,8 +160,8 @@ def _hosts_cell(script: str, hosts: dict) -> str:
     if not on:
         raise PageError("%s is on the page but no host installs it" % script)
     if len(on) == len(HOST_ORDER):
-        return "every host (the Pi, Windows and the Mac)"
-    return _and(["the " + h for h in on]) + (" only" if len(on) == 1 else "")
+        return "every host (" + _and([HOST_NAMES[h] for h in HOST_ORDER]) + ")"
+    return _and([HOST_NAMES[h] for h in on]) + (" only" if len(on) == 1 else "")
 
 
 def regions(f: dict) -> dict:
