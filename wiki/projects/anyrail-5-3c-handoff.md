@@ -33,11 +33,16 @@ in them are third-party copyright.
 - **Mast B93** lacks the intermediateSignal flag. That is correct stock behaviour: its route
   crosses Switch 239 (ADR-024).
 
-## Blocked on
+## Unblocked
 
-hart #693 (hart-e5's crossover renumber, "E") must merge first, after the owner approves it. It
-renames switches that this phase re-keys. If the plugin's main moves again, merge it into #74
-and take the next version number (both `plugin.json` files and the README "Since 0.1.4x" note).
+hart #693 (the crossover renumber) merged on 2026-11-19 (e7b6198b) after the owner approved the
+panel and desks. Re-key from its numbers: main level 121A/B (T15/T1), 123 (T187), 125A/B
+(T184/T14), 127A/B, 129, 131A/B; upper level 207/209 swapped, 211A/B, 213, 231/233 swapped, 239,
+241, 243A/B (the relabel map in `main_upper.plan_overrides.json`). The plugin submodule is at
+0.1.43 (f471d9af); #74 (0.1.44) is rebased on it. Mast 126L is gone by the reaches-a-signal rule
+(`mast_rule.reaches_signal`, ADR-024): 93 masts, 182 SML pairs. If the plugin's main moves again,
+merge it into #74 and take the next version number (both `plugin.json` files and the README
+"Since 0.1.4x" note).
 
 ## Steps
 
