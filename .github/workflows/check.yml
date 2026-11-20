@@ -51,15 +51,18 @@ jobs:
         run: |
           set -euo pipefail
           repo="$GITHUB_REPOSITORY"
+          # A failed lookup is a warning on the run, not a failure: it only costs the solve the artifact would save.
+          skip() { echo "::warning::schematic cache from the pull request not used: $1; solving from the restored cache"; exit 0; }
           pr="$(gh api "repos/$repo/commits/$GITHUB_SHA/pulls" --jq "[.[] | select(.merge_commit_sha == \"$GITHUB_SHA\"
-            and .head.repo.full_name == \"$repo\")][0] | if . then \"\(.number) \(.head.sha)\" else empty end")"
+            and .head.repo.full_name == \"$repo\")][0] | if . then \"\(.number) \(.head.sha)\" else empty end")" ||
+            skip "the pull request lookup for $GITHUB_SHA failed"
           if [ -z "$pr" ]; then
             echo "no pull request from $repo was merged as $GITHUB_SHA: only the cache restored above"
             exit 0
           fi
           read -r number head <<<"$pr"
           run="$(gh run list -R "$repo" --workflow check.yml --event pull_request --commit "$head" --status success \
-            -L 1 --json databaseId --jq '.[0].databaseId // empty')"
+            -L 1 --json databaseId --jq '.[0].databaseId // empty')" || skip "the run lookup for pull request #$number failed"
           if [ -z "$run" ]; then
             echo "pull request #$number: no passing check run for its last commit $head: only the cache restored above"
             exit 0
@@ -85,4 +88,5 @@ jobs:
           path: ~/.cache/hart/schematic/*.pickle
           include-hidden-files: true
           retention-days: 7
+          overwrite: true       # a re-run of the job uploads it again
           if-no-files-found: warn
