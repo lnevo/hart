@@ -577,7 +577,7 @@
     "to": "block",
     "at": "centre",
     "block": "OS Switch 37",
-    "dx": 10,
+    "dx": -5,
     "dy": -10
    },
    "size": [

@@ -10,7 +10,7 @@
     "width": 2512,
     "height": 1373,
     "scale": 1.0,
-    "inputs_sha256": "208641e06c86d72c9b3dba7e3c7e4d369d92a54e3630fcc119e18207b3a38a50"
+    "inputs_sha256": "06a56174eba8dd9cf057705ff0018ce3b0d22e0f4331e2b0f6eab3a39dd0f5ae"
   },
   "items": [
     {
@@ -2125,7 +2125,7 @@
       "x": null,
       "y": null,
       "systemName": "M2S102",
-      "publicName": "BS Switch 37 / BS McKeesport",
+      "publicName": "BS Switch 37",
       "cp": "Princess",
       "hardware": "M2S102",
       "mqtt": "102",
@@ -2146,25 +2146,12 @@
       "block": ""
     },
     {
-      "id": "dev-IB24",
-      "kind": "occupancy",
-      "x": null,
-      "y": null,
-      "systemName": "IB24",
-      "publicName": "Track McKeesport",
-      "cp": "Princess",
-      "hardware": "Block 1-3",
-      "mqtt": "102",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
       "id": "dev-M2S103",
       "kind": "occupancy",
       "x": null,
       "y": null,
       "systemName": "M2S103",
-      "publicName": "BS Switch 39 / BS McKees Rocks",
+      "publicName": "BS Switch 39",
       "cp": "Princess",
       "hardware": "M2S103",
       "mqtt": "103",
@@ -2178,19 +2165,6 @@
       "y": null,
       "systemName": "IB:AUTO:0040",
       "publicName": "OS Switch 39",
-      "cp": "Princess",
-      "hardware": "Block 1-4",
-      "mqtt": "103",
-      "comment": "Princess",
-      "block": ""
-    },
-    {
-      "id": "dev-IB23",
-      "kind": "occupancy",
-      "x": null,
-      "y": null,
-      "systemName": "IB23",
-      "publicName": "Track McKees Rocks",
       "cp": "Princess",
       "hardware": "Block 1-4",
       "mqtt": "103",
@@ -4028,6 +4002,32 @@
       "hardware": "M2S1372",
       "mqtt": "1372",
       "comment": "Node: 13 Sensor: 5 | IN: 1 Ports: 6",
+      "block": ""
+    },
+    {
+      "id": "dev-IB23",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB23",
+      "publicName": "Track McKees Rocks",
+      "cp": "Princess",
+      "hardware": "IB23",
+      "mqtt": "",
+      "comment": "Princess",
+      "block": ""
+    },
+    {
+      "id": "dev-IB24",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB24",
+      "publicName": "Track McKeesport",
+      "cp": "Princess",
+      "hardware": "IB24",
+      "mqtt": "",
+      "comment": "Princess",
       "block": ""
     },
     {
