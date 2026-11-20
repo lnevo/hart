@@ -14,8 +14,8 @@ Coordinates are plan centimetres, y down, so the three drawings line up. What a 
 - A level is a height. The turnouts of the plan sit at three heights (staging, main, upper); a flat flex piece goes to
   the level it lies at.
 - A flex piece whose ends differ in height is a ramp (the helix and the climb to the upper level), drawn dotted. A
-  helix track that starts on staging is drawn on the level it reaches for its whole top turn (TURN_DEG) and on
-  staging below that; a climb that starts higher is drawn on the level it climbs from. HELIX_CUT_CM, the cut the
+  helix track that starts on staging is drawn on the level it reaches for its top layer, down to where it would
+  first pass under itself (OVERLAP_CM), and on staging below that; a climb that starts higher is drawn on the level it climbs from. HELIX_CUT_CM, the cut the
   schematic parts the levels at, is used only for each track's share in levels_meta.json.
 - A turnout is labelled with the owner's switch number from the relabel map of staging.plan_overrides.json or
   main_upper.plan_overrides.json (the plan's T number is the part's place in the file); one the maps do not name
@@ -45,7 +45,8 @@ def switch_key(label):
     """Sort key for switch labels: by the leading number ("7", "101A/103A", "211A"), then the text; T labels last."""
     m = re.match(r"\d+", label)
     return (int(m.group()) if m else 10 ** 6, label)
-TURN_DEG = 360.0        # the main drawing shows each helix track's top turn, this much of it
+OVERLAP_CM = 1.5        # a helix track lies this close in plan to where it ran one turn higher
+SELF_GAP_CM = 100.0     # ... and that far back along the track, so a piece's own next points never count
 HELIX_CUT_CM = -5.0     # the height that parts staging's graph from the main and upper graph (anyplan.py --cut -5)
 SNAP_CM = 0.5           # a flat part this close to a level's height is on that level
 CM_PER_IN = 2.54
@@ -123,9 +124,9 @@ def helix_chains(parts, links):
     return sorted(groups.values(), key=min)
 
 
-def top_turn_of(parts, links, chain) -> set[int]:
-    """The pieces of a helix track's top turn: walking down from its highest piece, every piece that starts within
-    TURN_DEG of the top. The level the track reaches draws them, so its drawing shows one whole turn of the helix."""
+def helix_walk(parts, links, chain):
+    """A helix track's pieces from its highest end down: [(piece, points)], each piece's points (x, y, z) in walking
+    order."""
     nxt = collections.defaultdict(set)
     for a, _ea, b, _eb in links:
         if a in chain and b in chain:
@@ -135,41 +136,107 @@ def top_turn_of(parts, links, chain) -> set[int]:
     if len(ends) != 2:
         raise LevelsError(f"a helix track's pieces do not form one run (ends {sorted(ends)})")
     here = max(ends, key=lambda i: max(e["z"] for e in parts[i]["ends"]))
-    seen, out, swept = set(), set(), 0.0
-    while here is not None and swept < TURN_DEG:
-        out.add(here)
+    top_end = max(parts[here]["ends"], key=lambda e: e["z"])
+    last, seen, out = (top_end["x"], top_end["y"]), set(), []
+    while here is not None:
+        if not parts[here]["curve"]:
+            raise LevelsError(f"T{here} has no curve in the plan")
+        pts = bezier(parts[here]["curve"])
+        if math.dist(pts[-1], last) < math.dist(pts[0], last):
+            pts = pts[::-1]
+        e0, e1 = sorted(parts[here]["ends"], key=lambda e: math.dist((e["x"], e["y"]), pts[0]))
+        n = max(len(pts) - 1, 1)        # the height runs evenly along the piece from the end the walk enters at
+        out.append((here, [(q[0], q[1], e0["z"] + (e1["z"] - e0["z"]) * k / n) for k, q in enumerate(pts)]))
         seen.add(here)
-        a0, a1 = parts[here]["ends"][0]["a"], parts[here]["ends"][1]["a"]
-        swept += abs(anyplan._wrap(math.degrees(a1 - a0) - 180))
+        last = pts[-1]
         here = next(iter(nxt[here] - seen), None)
-    if swept < TURN_DEG:
-        raise LevelsError(f"a helix track turns {swept:.0f} degrees in all, less than one turn")
+    return out
+
+
+def _crosses(p1, p2, q1, q2):
+    """True when segment p1-p2 crosses segment q1-q2 (touching at an end does not count)."""
+    def side(a, b, c):
+        return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
+    d1, d2, d3, d4 = side(q1, q2, p1), side(q1, q2, p2), side(p1, p2, q1), side(p1, p2, q2)
+    return d1 * d2 < 0 and d3 * d4 < 0
+
+
+def top_layer(walk, others=()):
+    """The top layer of one helix track, as the level it reaches draws it: its walk down to the first point where it
+    would pass under track already drawn, its own higher track (within OVERLAP_CM in plan and more than SELF_GAP_CM
+    back along it, or crossing it) or a higher segment of another helix track in `others` (crossing it). Returns
+    (whole, cut): the pieces drawn whole, and (piece, upper points, lower points) for the piece the layer ends in,
+    split there, as (x, y) points.
+    """
+    walked, segs, whole, s = [], [], set(), 0.0     # walked: [(x, y, distance along the track)]
+    for piece, pts in walk:
+        for k, q in enumerate(pts):
+            if walked:
+                prev = walked[-1]
+                s += math.dist(q[:2], prev[:2])
+                seg = (prev[:2], q[:2])
+                old = [w for w in walked if s - w[2] > SELF_GAP_CM]
+                if (any(math.dist(q[:2], w[:2]) < OVERLAP_CM for w in old)
+                        or any(_crosses(*seg, o[0], o[1]) for o in segs if s - o[2] > SELF_GAP_CM)
+                        or any(_crosses(*seg, o[0][:2], o[1][:2]) for o in others if min(o[0][2], o[1][2]) > q[2])):
+                    flat = [p[:2] for p in pts]
+                    return whole, (piece, flat[:k], flat[k - 1:] if k else flat)
+                segs.append((prev[:2], q[:2], s))
+            walked.append((q[0], q[1], s))
+        whole.add(piece)
+    raise LevelsError("a helix track never passes under itself; it has less than one turn")
+
+
+def top_layers(parts, links, chains):
+    """{chain index: (whole, cut)} for the helix tracks from staging: each cut at its own lower turn first, then at
+    the other tracks' top layers, so no drawn helix track runs under another."""
+    walks = {n: helix_walk(parts, links, c) for n, c in enumerate(chains)}
+
+    def segments(walk, whole, cut):
+        """The (x, y, z) segments of a track's first-pass top layer: its whole pieces and the cut piece's upper part."""
+        pts = [q for piece, ps in walk if piece in whole for q in ps]
+        pts += next(ps for piece, ps in walk if piece == cut[0])[:len(cut[1])]
+        return [(a, b) for a, b in zip(pts, pts[1:])]
+    first = {n: top_layer(w) for n, w in walks.items()}
+    out = {}
+    for n, w in walks.items():
+        others = [seg for m in walks if m != n for seg in segments(walks[m], *first[m])]
+        out[n] = top_layer(w, others)
     return out
 
 
 def assign(parts, heights):
     """{part index: level} for every flat part and every helix piece (the dotted ones are `ramp` below)."""
     links, _ = anyplan.joins(parts)
-    where, ramp = {}, set()
+    where, ramp, partial = {}, set(), {}
     for p in parts:
         zs = [e["z"] for e in p["ends"]]
         if max(zs) - min(zs) <= anyplan.LEVEL_CM:
             where[p["index"]] = nearest_level(zs[0], heights, f"T{p['index']}")
-    for chain in helix_chains(parts, links):
+    chains = helix_chains(parts, links)
+    span = []
+    for chain in chains:
         top = nearest_level(max(e["z"] for i in chain for e in parts[i]["ends"]), heights, "the top of a helix track")
         bottom = nearest_level(min(e["z"] for i in chain for e in parts[i]["ends"]), heights, "the foot of a helix track")
         if LEVELS.index(top) <= LEVELS.index(bottom):
             raise LevelsError(f"a helix track runs from {bottom} to {top}; it must climb")
-        top_turn = top_turn_of(parts, links, chain) if bottom == LEVELS[0] else set()
+        span.append((top, bottom))
+    from_staging = [n for n, (_t, b) in enumerate(span) if b == LEVELS[0]]
+    layers = top_layers(parts, links, [chains[n] for n in from_staging])
+    layer_of = {n: layers[k] for k, n in enumerate(from_staging)}
+    for n, chain in enumerate(chains):
+        top, bottom = span[n]
+        whole, cut = layer_of.get(n, (set(), None))
+        if cut:
+            partial[cut[0]] = {top: cut[1], bottom: cut[2]}
         for i in chain:
-            mid = sum(e["z"] for e in parts[i]["ends"]) / 2
-            # a track that starts on staging is drawn there up to the cut and on the level it reaches above it; any
-            # other climb is drawn on the level it climbs from
-            where[i] = bottom if bottom != LEVELS[0] else (top if i in top_turn else bottom)
+            # a helix track from staging is drawn on the level it reaches for its top layer and on staging below it
+            # (the piece the layer ends in is split, see `partial`); any other climb is drawn on the level it climbs from
+            where[i] = top if i in whole else bottom
             ramp.add(i)
     if len(where) != len(parts):
         raise LevelsError("parts left without a level: %s" % sorted(set(range(len(parts))) - set(where)))
-    return where, ramp, links
+    return where, ramp, links, partial
 
 
 def labels(level) -> dict[str, str]:
@@ -227,8 +294,10 @@ def turnout_lines(p):
     raise LevelsError(f"T{p['index']} is a {k}, which this drawing has no symbol for")
 
 
-def draw(parts, where, ramp, level):
-    """(svg text, bbox, counts) of one level."""
+def draw(parts, where, ramp, level, partial=None):
+    """(svg text, bbox, counts) of one level. partial: {piece: {level: points}} for a helix piece split between two
+    levels, drawn on each from its own points."""
+    partial = partial or {}
     names = labels(level)
     out, xs, ys = [], [], []
     flex_cm, flex_n, ramp_cm, switches = 0.0, 0, 0.0, []
@@ -236,8 +305,14 @@ def draw(parts, where, ramp, level):
     def take(pts):
         xs.extend(q[0] for q in pts)
         ys.extend(q[1] for q in pts)
+    for i, by_level in partial.items():
+        pts = by_level.get(level)
+        if pts and len(pts) > 1:
+            take(pts)
+            out.append('<polyline class="ramp" points="%s"/>' % poly(pts))
+            ramp_cm += sum(math.dist(a, b) for a, b in zip(pts, pts[1:]))
     for p in parts:
-        if where[p["index"]] != level:
+        if where[p["index"]] != level or p["index"] in partial:
             continue
         if len(p["ends"]) == 2:
             if not p["curve"]:
@@ -300,10 +375,10 @@ def build(plan_path) -> dict[str, str]:
     """{file name: text} of every output."""
     parts = anyplan.read(plan_path)
     heights = level_heights(parts)
-    where, ramp, links = assign(parts, heights)
+    where, ramp, links, partial = assign(parts, heights)
     files, meta = {}, dict(plan=plan_version(plan_path), parts=len(parts), cut_cm=HELIX_CUT_CM, levels={})
     for level in LEVELS:
-        svg, counts = draw(parts, where, ramp, level)
+        svg, counts = draw(parts, where, ramp, level, partial)
         files[level + ".svg"] = svg
         meta["levels"][level] = dict(height_cm=heights[level], **counts)
     meta["helix"] = helix_tracks(parts, links, heights)

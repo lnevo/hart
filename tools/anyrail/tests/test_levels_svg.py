@@ -36,6 +36,18 @@ def flex(index, x, z0, z1=None, turn=0):
     return part(index, [(x, 0, z0, 0), (x + 100, 0, z1, 180 + turn)], [(x, 0), (x + 30, 0), (x + 70, 0), (x + 100, 0)])
 
 
+def arc(index, a0, a1, z0, z1, r=50.0):
+    """A helix piece on a circle of radius r about the origin, from a0 to a1 degrees, climbing from z0 to z1, with its
+    curve as one cubic Bezier."""
+    t0, t1 = math.radians(a0), math.radians(a1)
+    k = 4 / 3 * math.tan((t1 - t0) / 4) * r
+    p0 = (r * math.cos(t0), r * math.sin(t0))
+    p3 = (r * math.cos(t1), r * math.sin(t1))
+    p1 = (p0[0] - k * math.sin(t0), p0[1] + k * math.cos(t0))
+    p2 = (p3[0] + k * math.sin(t1), p3[1] - k * math.cos(t1))
+    return part(index, [(*p0, z0, a0 - 90), (*p3, z1, a1 + 90)], [p0, p1, p2, p3])
+
+
 def left_turnout(index, z):
     return part(index, [(0, 0, z, 180), (100, 0, z, 0), (100, 10, z, 10)])
 
@@ -62,31 +74,46 @@ class Levels(unittest.TestCase):
             L.nearest_level(5.0, HEIGHTS, "T9")
         self.assertEqual(L.nearest_level(10.7, HEIGHTS, "T9"), "upper")
 
-    def plan(self, turn=170):
-        """A helix track of four pieces from staging to main, each turning `turn` degrees, a climb from main to upper
-        (piece 4), and a flat piece on each level (5 to 7)."""
-        return [flex(0, 0, -38.1, -30.0, turn), flex(1, 100, -30.0, -20.0, turn), flex(2, 200, -20.0, -10.0, turn),
-                flex(3, 300, -10.0, 0.0, turn), flex(4, 1000, 0.0, 10.79),
-                flex(5, 2000, -38.1), flex(6, 3000, 0.0), flex(7, 4000, 10.79)]
+    def plan(self, step=100):
+        """A helix track of five pieces on one circle from staging to main, each turning `step` degrees, a climb from
+        main to upper (piece 5), and a flat piece on each level (6 to 8)."""
+        zs = [-38.1 + 38.1 * k / 5 for k in range(6)]
+        return [arc(k, step * k, step * (k + 1), zs[k], zs[k + 1]) for k in range(5)] + [
+            flex(5, 1000, 0.0, 10.79), flex(6, 2000, -38.1), flex(7, 3000, 0.0), flex(8, 4000, 10.79)]
 
-    def test_a_helix_is_drawn_on_the_level_it_reaches_for_its_whole_top_turn_and_on_staging_below(self) -> None:
-        where, ramp, _ = L.assign(self.plan(), HEIGHTS)
-        # from the top: 170, 340, then 510 degrees, so the top three pieces make the top turn
-        self.assertEqual([where[i] for i in (0, 1, 2, 3)], ["staging", "main", "main", "main"])
-        self.assertEqual(ramp, {0, 1, 2, 3, 4})
+    def test_a_helix_is_drawn_on_the_level_it_reaches_down_to_where_it_would_pass_under_itself(self) -> None:
+        where, ramp, _, partial = L.assign(self.plan(), HEIGHTS)
+        # walking down from 500 degrees, the track is over its own top at 140 degrees, inside piece 1
+        self.assertEqual([where[i] for i in (2, 3, 4)], ["main"] * 3)
+        self.assertEqual(where[0], "staging")
+        self.assertEqual(set(partial), {1})
+        upper, lower = partial[1]["main"], partial[1]["staging"]
+        self.assertEqual(upper[-1], lower[0])                          # split at one point, drawn on both levels
+        angle = math.degrees(math.atan2(upper[-1][1], upper[-1][0]))
+        self.assertAlmostEqual(angle, 140, delta=8)
+        self.assertEqual(ramp, set(range(6)))
 
     def test_a_helix_of_less_than_one_turn_stops(self) -> None:
         with self.assertRaisesRegex(L.LevelsError, "less than one turn"):
-            L.assign(self.plan(turn=60), HEIGHTS)
+            L.assign(self.plan(step=60), HEIGHTS)
+
+    def test_a_track_crossing_under_a_higher_one_is_cut_there_and_not_under_a_lower_one(self) -> None:
+        walk = [(0, [(0.0, 0.0, 0.0), (10.0, 0.0, -1.0), (20.0, 0.0, -2.0)])]
+        higher = [((5.0, -5.0, 5.0), (5.0, 5.0, 5.0))]
+        lower = [((5.0, -5.0, -9.0), (5.0, 5.0, -9.0))]
+        whole, cut = L.top_layer(walk, higher)
+        self.assertEqual((whole, cut[0], cut[1]), (set(), 0, [(0.0, 0.0)]))
+        with self.assertRaisesRegex(L.LevelsError, "less than one turn"):
+            L.top_layer(walk, lower)
 
     def test_a_climb_that_starts_above_staging_is_drawn_on_the_level_it_climbs_from(self) -> None:
-        where, _, _ = L.assign(self.plan(), HEIGHTS)
-        self.assertEqual(where[4], "main")
+        where, _, _, _ = L.assign(self.plan(), HEIGHTS)
+        self.assertEqual(where[5], "main")
 
     def test_every_part_gets_a_level_and_flat_ones_their_own(self) -> None:
-        where, _, _ = L.assign(self.plan(), HEIGHTS)
-        self.assertEqual(sorted(where), list(range(8)))
-        self.assertEqual([where[i] for i in (5, 6, 7)], ["staging", "main", "upper"])
+        where, _, _, _ = L.assign(self.plan(), HEIGHTS)
+        self.assertEqual(sorted(where), list(range(9)))
+        self.assertEqual([where[i] for i in (6, 7, 8)], ["staging", "main", "upper"])
 
     def test_a_ramp_that_does_not_climb_to_a_higher_level_stops(self) -> None:
         with self.assertRaisesRegex(L.LevelsError, "not at a level"):
@@ -96,7 +123,7 @@ class Levels(unittest.TestCase):
         parts = self.plan()
         links, _ = A.joins(parts)
         got = L.ramps(parts, links, HEIGHTS)
-        self.assertEqual([(r["foot"], r["top"], r["flex_m"]) for r in got], [("staging", "main", 4.0), ("main", "upper", 1.0)])
+        self.assertEqual([(r["foot"], r["top"], r["flex_m"]) for r in got], [("staging", "main", 5.0), ("main", "upper", 1.0)])
 
 
 class Symbols(unittest.TestCase):
@@ -197,7 +224,16 @@ class Plan53c(unittest.TestCase):
         sloped = sum(1 for p in self.parts if len(p["ends"]) == 2
                      and abs(p["ends"][0]["z"] - p["ends"][1]["z"]) > A.LEVEL_CM)
         self.assertEqual(flat + sloped, sum(1 for p in self.parts if len(p["ends"]) == 2))
-        self.assertEqual(sum(self.files[k + ".svg"].count('class="ramp"') for k in L.LEVELS), sloped)
+        # each helix track's top layer ends inside one piece, drawn in two parts (upper level and staging)
+        self.assertEqual(sum(self.files[k + ".svg"].count('class="ramp"') for k in L.LEVELS), sloped + 2)
+
+    def test_no_drawn_helix_track_runs_under_another_on_the_main_level(self) -> None:
+        import re
+        lines = [[tuple(map(float, q.split(","))) for q in m.split()]
+                 for m in re.findall(r'class="ramp" points="([^"]+)"', self.files["main.svg"])]
+        segs = [(n, a, b) for n, pts in enumerate(lines) for a, b in zip(pts, pts[1:])]
+        crossings = [(n, m) for n, a, b in segs for m, c, d in segs if n < m and L._crosses(a, b, c, d)]
+        self.assertEqual(crossings, [])
 
     def test_the_helix_runs_are_the_plans(self) -> None:
         self.assertEqual(sorted((t["foot"], t["top"], round(t["cm"] / 2.54, 1)) for t in self.meta["helix"]),

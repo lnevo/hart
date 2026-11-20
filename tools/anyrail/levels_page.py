@@ -210,9 +210,9 @@ def sections(levels, meta):
         + summary_table(meta)
         + '<p class="muted">Switch parts are the plan&rsquo;s turnouts. Flex track is the total length of the flex pieces on the level, ramps included.</p>')
     t["staging"] = (
-        '<div class="key"><span class="k-trk">track</span><span class="k-ramp">helix, below its top turn</span></div>'
+        '<div class="key"><span class="k-trk">track</span><span class="k-ramp">helix, below its top layer</span></div>'
         + fig["staging"] +
-        '<p>%d switch parts and %.1f m of flex, with %.1f m of helix below its top turn drawn dotted. '
+        '<p>%d switch parts and %.1f m of flex, with %.1f m of helix below its top layer drawn dotted. '
         'The plan includes the Switch 7 crossover, Switches 9, 11 and 13, and the engine terminal tracks EH-1 to EH-3.%s</p>'
         % (low["switches"], low["flex_m"], low["ramp_m"], switch_note(low)))
     laps = laps_note(loop)
@@ -228,7 +228,7 @@ def sections(levels, meta):
         + length_table(loop, "Loop total")
         + '<h3>Switch 5 to Switch 15 run</h3>' + length_table(run))
     t["main"] = (
-        '<div class="key"><span class="k-trk">track</span><span class="k-ramp">the helix&rsquo;s top turn, and the climb to the upper level</span></div>'
+        '<div class="key"><span class="k-trk">track</span><span class="k-ramp">the helix&rsquo;s top layer, and the climb to the upper level</span></div>'
         + fig["main"] +
         '<p>%d switch parts and %.1f m of flex, with %.1f m of ramp drawn dotted.%s</p>'
         % (mid["switches"], mid["flex_m"], mid["ramp_m"], switch_note(mid)))
