@@ -73,7 +73,7 @@
         reads that file back, and the railroad is there again.
       </p>
       <p>
-        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->0.8 MB<!--/tf--> and <!--tf:lines-->11,924<!--/tf--> lines long, and it has
+        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->0.8 MB<!--/tf--> and <!--tf:lines-->12,167<!--/tf--> lines long, and it has
         <!--tf:top-->18<!--/tf--> top-level sections. It is in the ordinary JMRI format, stored by PanelPro
         <!--tf:version-->5.16<!--/tf-->, the main JMRI program. It holds no connection settings: how JMRI reaches the layout lives in the profile, a
         separate set of preferences. Everything else is in here, including the <!--tf:panel-count-->one panel<!--/tf--> you see on
@@ -97,19 +97,19 @@ userName    BS K-1<!--/tf--></code></pre>
       </p>
       <p>
         Mind the order. The panels are what you see first on screen, but in the file they come last:
-        about <!--tf:objects-->64%<!--/tf--> of the file is objects, then about <!--tf:panels-->36%<!--/tf--> is panels.
+        about <!--tf:objects-->64%<!--/tf--> of the file is objects, then about <!--tf:panels-->35%<!--/tf--> is panels.
         A short record of loads and stores closes the file. The largest single section is
-        <!--tf:largest-->HART Railroad<!--/tf-->, at about <!--tf:largest-share-->36%<!--/tf--> of the file.
+        <!--tf:largest-->HART Railroad<!--/tf-->, at about <!--tf:largest-share-->35%<!--/tf--> of the file.
       </p>
       <figure>
         <svg class="jm-svg" viewBox="0 0 360 58" role="img" aria-labelledby="tf-o-t tf-o-d">
           <title id="tf-o-t">The file from top to bottom</title>
-          <desc id="tf-o-d">A bar for the whole file. About <!--tf:objects-->64%<!--/tf--> is objects, then about <!--tf:panels-->36%<!--/tf--> panels, then a thin sliver of file history.</desc>
-          <!--tf:bar--><rect class="own" x="8" y="14" width="219" height="34" rx="3"/>
-          <rect class="acc" x="227" y="14" width="123" height="34" rx="3"/>
+          <desc id="tf-o-d">A bar for the whole file. About <!--tf:objects-->64%<!--/tf--> is objects, then about <!--tf:panels-->35%<!--/tf--> panels, then a thin sliver of file history.</desc>
+          <!--tf:bar--><rect class="own" x="8" y="14" width="221" height="34" rx="3"/>
+          <rect class="acc" x="229" y="14" width="121" height="34" rx="3"/>
           <rect class="own" x="350" y="14" width="2" height="34" rx="3" style="fill:var(--muted);stroke:var(--muted)"/>
-          <text class="t-b t-w" x="117" y="36" text-anchor="middle">Objects</text>
-          <text class="t-b t-d" x="288" y="36" text-anchor="middle">Panels</text><!--/tf-->
+          <text class="t-b t-w" x="118" y="36" text-anchor="middle">Objects</text>
+          <text class="t-b t-d" x="289" y="36" text-anchor="middle">Panels</text><!--/tf-->
         </svg>
         <figcaption class="section-note">The file from top to bottom, left to right, drawn to scale.</figcaption>
       </figure>
@@ -129,16 +129,16 @@ userName    BS K-1<!--/tf--></code></pre>
             <tr><td>Layout blocks</td><td>The Layout Editor's view of each block.</td><td class="num">5%</td></tr>
             <tr><td>Sections</td><td>Dispatcher track pieces, mostly made from pairs of masts. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Transits</td><td>Whole moves that the Dispatcher builds from sections. Parked.</td><td class="num">parked</td></tr>
-            <tr><td>Signal Mast Logic</td><td>The rules that set a mast from the track ahead.</td><td class="num">8%</td></tr>
+            <tr><td>Signal Mast Logic</td><td>The rules that set a mast from the track ahead.</td><td class="num">9%</td></tr>
             <tr><td>Logix</td><td>Older-style logic items. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Conditionals</td><td>The conditions and actions inside those Logix. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Fast clock</td><td>The settings of JMRI's fast clock.</td><td class="num">under 1%</td></tr>
-            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.</td><td class="num">22%</td></tr>
+            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.</td><td class="num">21%</td></tr>
             <tr><td>CTC data</td><td>The USS CTC machine's code buttons and settings. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Entry/Exit</td><td>Pairs that line a route from a click on the panel. Parked.</td><td class="num">parked</td></tr>
             <tr><td colspan="3"><strong>Panels</strong></td></tr>
             <tr><td>USS CTC</td><td>The lever machine, a Panel Editor screen. Parked.</td><td class="num">parked</td></tr>
-            <tr><td>HART Railroad</td><td>The track diagram, a Layout Editor panel.</td><td class="num">36%</td></tr>
+            <tr><td>HART Railroad</td><td>The track diagram, a Layout Editor panel.</td><td class="num">35%</td></tr>
             <tr><td>Dispatcher System</td><td>A Layout Editor panel drawn by the Dispatcher System package. Parked.</td><td class="num">parked</td></tr>
             <tr><td colspan="3"><strong>At the end</strong></td></tr>
             <tr><td>File history</td><td>A short record of loads and stores.</td><td class="num">1%</td></tr><!--/tf-->

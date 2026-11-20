@@ -60,16 +60,16 @@
 <path d="M354.0,170 L354.0,176 L710.0,176 L710.0,170" stroke-width="1.4"/>
 <path d="M970.0,170 L970.0,176 L1074.0,176 L1074.0,170" stroke-width="1.4"/>
 <path d="M1026.0,200 L1026.0,206 L1242.0,206 L1242.0,200" stroke-width="1.4"/>
-<path d="M159.6,46.8 L159.6,54.8 M159.6,50.8 L155.6,50.8" stroke-width="0.9"/>
-<circle cx="152.0" cy="50.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M159.6,18.8 L159.6,26.8 M159.6,22.8 L155.6,22.8" stroke-width="0.9"/>
+<circle cx="152.0" cy="22.8" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M159.6,61.2 L159.6,69.2 M159.6,65.2 L163.6,65.2" stroke-width="0.9"/>
 <circle cx="167.2" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <path d="M344.4,61.2 L344.4,69.2 M344.4,65.2 L348.4,65.2" stroke-width="0.9"/>
 <circle cx="352.0" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <circle cx="359.2" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<path d="M316.4,61.2 L316.4,69.2 M316.4,65.2 L320.4,65.2" stroke-width="0.9"/>
-<circle cx="324.0" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
-<circle cx="331.2" cy="65.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<path d="M316.4,33.2 L316.4,41.2 M316.4,37.2 L320.4,37.2" stroke-width="0.9"/>
+<circle cx="324.0" cy="37.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
+<circle cx="331.2" cy="37.2" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/>
 <g transform="translate(377.8,81.1) rotate(-45.0)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/><circle cx="14.8" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
 <g transform="translate(382.5,104.5) rotate(-45.0)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/><circle cx="14.8" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
 <g transform="translate(634.5,76.5) rotate(-45.0)"><path d="M0,-4.0 L0,4.0 M0,0 L4.0,0" stroke-width="0.9"/><circle cx="7.6" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/><circle cx="14.8" cy="0" r="3.6" stroke-width="0.9" fill="#fff" stroke-dasharray="1.6 1.2"/></g>
@@ -119,8 +119,7 @@
 <text x="1239.0" y="71.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >131A</text>
 <text x="353.6" y="79.2" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >108LA</text>
 <text x="943.9" y="67.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >124LA</text>
-<text x="162.1" y="53.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >A83</text>
-<text x="313.9" y="67.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >108LB</text>
+<text x="313.9" y="39.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >108LB</text>
 <text x="722.1" y="82.0" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >120RB</text>
 <text x="988.0" y="72.4" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >124LB</text>
 <text x="1007.2" y="53.1" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >126RA</text>
@@ -130,14 +129,15 @@
 <text x="659.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >119A</text>
 <text x="694.1" y="53.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >120RA</text>
 <text x="1166.7" y="53.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="162.1" y="25.1" font-size="6.5" text-anchor="start" font-weight="normal" fill="#000" stroke="none" >A83</text>
 <text x="157.1" y="67.5" font-size="6.5" text-anchor="end" font-weight="normal" fill="#000" stroke="none" >A84</text>
 <text x="644.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >117</text>
 <text x="1167.0" y="18.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
 <text x="1101.0" y="49.0" font-size="6" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >TO UPPER LEVEL</text>
 <text x="1001.0" y="85.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >125A</text>
 <text x="980.0" y="51.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >123</text>
-<text x="630.0" y="87.5" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >118L</text>
 <text x="303.3" y="25.0" font-size="7.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="0.4">← EAST</text>
+<text x="630.0" y="87.5" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >118L</text>
 <text x="378.0" y="115.5" font-size="6.5" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" >112L</text>
 <text x="1085.0" y="141.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >129</text>
 <text x="1064.0" y="127.0" font-size="6.5" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" >125B</text>
