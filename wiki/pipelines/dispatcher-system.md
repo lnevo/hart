@@ -28,16 +28,16 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
 1. **PanelPro only** (not CATS). Load hart tables.
 2. Prefer the Mac generator: `jmri/layouts/hart/scripts/run_panelpro_stage1.sh` (auto-Yes shared-sensor). Do not click Stage 1 on the Pi.
 3. If Dispatcher asks to rebuild because traininfo names are stale, try
-   `python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py`
+   `python3 jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py`
    first.
 4. After Stage 1, `run_panelpro_stage1.sh` runs the repairs itself (see `wiki/DISPATCHER_LAYOUT_HOOPS.md`).
 5. Stage 1 Store writes BlockContentsIcons at level 0. The launcher runs
-   `polish_hart_layout_editor.py --reference <tables before Stage 1>` so labels
+   `jmri/layouts/hart/parked/polish_hart_layout_editor.py --reference <tables before Stage 1>` so labels
    go back to their reference spots (above the rail).
 6. Post-scripts:
 
 ```bash
-python3 jmri/layouts/hart/scripts/retarget_dispatcher_traininfo_transits.py
+python3 jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py
 python3 jmri/layouts/hart/scripts/fix_traininfo_detection.py
 python3 jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py
 ```

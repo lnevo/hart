@@ -78,7 +78,7 @@ repair python3 "$SCRIPTS/reconcile_dispatcher_stations.py" --panel "$REPO_OUTPUT
 repair python3 "$SCRIPTS/refresh_bean_comments.py"
 # Stage 1 Store writes BlockContentsIcons at level 0 (behind the track), moves
 # train-name labels and puts its occupancy lamps back on the turnouts.
-repair python3 "$SCRIPTS/polish_hart_layout_editor.py" --panel "$REPO_OUTPUT" --reference "$BEFORE_TABLES"
+repair python3 "$ROOT/jmri/layouts/hart/parked/polish_hart_layout_editor.py" --panel "$REPO_OUTPUT" --reference "$BEFORE_TABLES"
 if (( repair_failed )); then
   echo "Stage 1 stored, but a repair failed (see above); fix it before committing." >&2
   exit 1
