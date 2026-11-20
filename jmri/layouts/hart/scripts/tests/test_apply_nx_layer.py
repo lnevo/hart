@@ -6,6 +6,7 @@ import unittest
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
+PARKED = SCRIPTS.parent / "parked"  # apply_nx_layer.py lives with the parked features
 sys.path.insert(0, str(SCRIPTS.parents[3] / "tools/hartlib/src"))
 from hartlib import tables  # noqa: E402
 
@@ -13,7 +14,7 @@ MARKER = f'<positionablelabel text="{tables.GENERATED_PANEL_MARKER}" hidden="yes
 
 
 def _load(name: str):
-    path = SCRIPTS / f"{name}.py"
+    path = (PARKED if name == "apply_nx_layer" else SCRIPTS) / f"{name}.py"
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
     assert spec.loader is not None

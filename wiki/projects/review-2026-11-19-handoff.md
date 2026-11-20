@@ -29,7 +29,7 @@ Nothing was deployed by the review session. Correction to the review: the plan "
 2. **When to deploy the retain-flag change** to both hosts.
 3. **#704 open cases:** a foreign `enabling` after this host has announced is still taken as its own echo; a window of a few milliseconds remains between the post-Hold check and the `enabled` publish; an Enable click during a cancelled Hold can start a second enable. Accept, or fold into the lock and state-enum rework.
 4. **`archive/`** (34 MB): delete the bulk or keep it. Live code needs none of it; `aaron`, `dispatcher`, `legacy`, `mimic-qa`, `names`, `wiki` have no references at all; `layouts` and `panels` need five doc links fixed first.
-5. **Legacy scripts with no caller:** `retarget_dispatcher_traininfo_transits.py`, `apply_nx_layer.py`, `polish_hart_layout_editor.py` in `jmri/layouts/hart/scripts/`. Park or keep. The JMRI startup config was not searched; `tools/audit/tests/test_hart_tables_writers.py` names them.
+5. **Done (owner, 2026-11-19: parked, now in `jmri/layouts/hart/parked/`).** Legacy scripts with no caller: `retarget_dispatcher_traininfo_transits.py`, `apply_nx_layer.py`, `polish_hart_layout_editor.py` in `jmri/layouts/hart/scripts/`. Park or keep. The JMRI startup config was not searched; `tools/audit/tests/test_hart_tables_writers.py` names them.
 6. **ADRs** for the operating flag, plan 5.3c as master, staging from the device map and virtual main/upper devices, or declare `wiki/STATUS.md` the record.
 7. **Website cache headers:** long-lived caching for `/assets/` images changes the live server config.
 8. **`jmri_cmd_watcher.py` log repeat (#701):** a persisting handling failure now prints every 0.5 s in the JMRI log. Rate-limit or accept.

@@ -37,7 +37,7 @@ def lamp_pattern(escaped: bool = False) -> re.Pattern:
 
 def is_lamp(tag: str, body: str, escaped: bool = False) -> bool:
     """A lamp that shows state: a block sensor ("BS ...") or one drawn with the circuit-* lamp images (Stage 1's
-    occupancy and move-in-progress lamps). The same rule as polish_hart_layout_editor._is_display_lamp."""
+    occupancy and move-in-progress lamps). The same rule as parked/polish_hart_layout_editor._is_display_lamp."""
     q = '\\"' if escaped else '"'
     return f"sensor={q}BS " in tag or "circuit-" in (body or "")
 

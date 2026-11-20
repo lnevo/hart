@@ -22,8 +22,14 @@ from hartlib import paths  # noqa: E402
 TABLES = paths.TABLES_XML
 
 
+def script_path(name):
+    """The script's file: in scripts/, or in parked/ for the ones moved there."""
+    here = SCRIPTS / f"{name}.py"
+    return here if here.is_file() else SCRIPTS.parent / "parked" / f"{name}.py"
+
+
 def load(name: str):
-    spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
+    spec = importlib.util.spec_from_file_location(name, script_path(name))
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     sys.modules[name] = module

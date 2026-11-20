@@ -12,8 +12,14 @@ ROOT = next(p for p in HERE.parents if (p / "tools/hartlib/src").is_dir())
 sys.path.insert(0, str(SCRIPTS))
 
 
+def script_path(name):
+    """The script's file: in scripts/, or in parked/ for the ones moved there."""
+    here = SCRIPTS / f"{name}.py"
+    return here if here.is_file() else SCRIPTS.parent / "parked" / f"{name}.py"
+
+
 def load(name):
-    spec = importlib.util.spec_from_file_location(name, SCRIPTS / f"{name}.py")
+    spec = importlib.util.spec_from_file_location(name, script_path(name))
     mod = importlib.util.module_from_spec(spec)
     sys.modules[name] = mod                      # dataclasses look their module up while the class is built
     spec.loader.exec_module(mod)

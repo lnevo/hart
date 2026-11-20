@@ -48,12 +48,13 @@ already installed on a host stay until removed by hand.
 ## Scripts that serve the parked features
 
 They stay so the features can be unparked; nothing active runs them for the parked feature. Paths are under
-`jmri/layouts/hart/scripts/` unless named.
+`jmri/layouts/hart/scripts/` unless named. Three are in this folder (owner, 2026-11-19), shown as `parked/…`: no host
+runs them and the deploy never shipped them. Their tests stay in `jmri/layouts/hart/scripts/tests/`.
 
 | Feature | Only for the parked feature |
 |---------|-----------------------------|
-| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py`, `polish_hart_layout_editor.py` (puts the lamps and block contents labels back after Stage 1) |
-| NX | `apply_nx_layer.py`, `discover_nx.py`, `run_nx_discover.sh`, `jmri/scripts/generate_nx_pairs.py` |
+| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `parked/retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py`, `parked/polish_hart_layout_editor.py` (run by `run_panelpro_stage1.sh`; puts the lamps and block contents labels back after Stage 1) |
+| NX | `parked/apply_nx_layer.py` (imports `nx_contract.py` from the scripts folder), `discover_nx.py`, `run_nx_discover.sh`, `jmri/scripts/generate_nx_pairs.py` |
 | USS CTC | `build_ctc_full_15col.py` (unsafe to re-run, ADR-005) |
 
 Still used by active tools, so they must keep working while parked:
