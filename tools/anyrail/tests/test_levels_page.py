@@ -72,6 +72,19 @@ class TheTablesComeFromTheData(unittest.TestCase):
         at = [text.index(name) for name in ("Track Scale", "Track Barn", "OS Switch 13", "OS Switch 15")]
         self.assertEqual(at, sorted(at))
 
+    def test_the_run_passes_come_from_the_block_notes(self) -> None:
+        notes = {"Track Scale": "timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): ...",
+                 "Track Barn": "timed passes of 2026-11-13: ..."}
+        rows = [("Track Scale",), ("Track Barn",)]
+        self.assertEqual(LP.run_passes(rows, notes), ("CSX 2121", "24", "48"))
+        self.assertIn("CSX 2121 timed the Switch 5 to Switch 15 run on two passes at different speeds (steps 24 and 48)",
+                      text_of(PAGE.read_text()))
+        with self.assertRaisesRegex(SystemExit, "name no timed passes"):
+            LP.run_passes(rows[1:], notes)
+        notes["Track Barn"] = "timed passes (CSX 2738, Switch 5 to Switch 15, steps 32 and 64)"
+        with self.assertRaisesRegex(SystemExit, "expected one"):
+            LP.run_passes(rows, notes)
+
     def test_a_timed_block_on_neither_route_stops(self) -> None:
         blocks, notes = LP.block_rows()
         stray = mock.Mock(source="timed")
