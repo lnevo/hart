@@ -459,9 +459,10 @@ class ThreeLevels(unittest.TestCase):
         import math
         angles = [a for _t, _b, o in B.schematic()[0] for a in (o.get("le_crossover_angle") or {}).values()]
         self.assertEqual(set(angles), {45})
-        # every crossover at its level's angle, or as near as its track allows (the plugin logs those)
-        limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
-                   and "crossover" in line}
+        # every crossover at its level's angle, or as near as its track allows (the plugin logs those: no room, or
+        # its crossover rounded to whole pixels past its room, 243 since schematic-maps 0.1.42)
+        limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "crossover" in line
+                   and ("no room for" in line or "rounded to whole pixels" in line)}
         for t in self.le.findall("layoutturnout"):
             if "XOVER" not in t.get("type"):
                 continue
@@ -547,12 +548,17 @@ class ThreeLevels(unittest.TestCase):
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
         self.assertFalse(limited & {"225"})
-        # 243 (241 before the upper renumber, 2026-11-19) is 1.3 px short of room since the straight-level rules
-        # (2026-11-18): drawn at 45.8 degrees, owner accepted
-        steep = [float(m.group(1)) for line in self.P.log
-                 if (m := re.search(r"switch 243: crossover drawn [\d.]+ px across, ([\d.]+) degrees", line))]
-        self.assertTrue(steep, "no crossover log line for switch 243")
-        self.assertTrue(all(a <= 46.0 for a in steep), steep)
+        # 243 (241 before the upper renumber, 2026-11-19) has been short of room since the straight-level rules
+        # (2026-11-18): drawn at 45.8 degrees then, owner accepted; since schematic-maps 0.1.42 the plugin slides it to
+        # the band's angle and logs only its whole-pixel rounding, so it stands at no more than 46 degrees
+        self.assertTrue([line for line in self.P.log if "switch 243: rounded to whole pixels" in line],
+                        "no rounding log line for switch 243")
+        x243 = next(t for t in self.le.findall("layoutturnout")
+                    if t.get("turnoutname") == "Switch 243" and "XOVER" in t.get("type"))
+        p243 = {L: (float(x243.get("x" + L.lower())), float(x243.get("y" + L.lower()))) for L in "ABCD"}
+        dx = (p243["D"][0] + p243["C"][0] - p243["A"][0] - p243["B"][0]) / 2
+        dy = (p243["D"][1] + p243["C"][1] - p243["A"][1] - p243["B"][1]) / 2
+        self.assertLessEqual(math.degrees(math.atan2(abs(dy), abs(dx))), 46.0)
         # SW-101 once, below its lower turnout
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text") == "SW-101"]
         self.assertEqual(len(labels), 1)
@@ -688,10 +694,12 @@ class ThreeLevels(unittest.TestCase):
     def test_switch_numbers_and_track_names(self) -> None:
         labels = [el for el in self.le.iter("positionablelabel") if el.get("text")]
         numbers = {el.get("text"): el.get("size") for el in labels if el.get("text").startswith("SW-")}
-        # a single crossover reads by its number; the helix-top 127 and 131 keep a half on each level, and 121 and
-        # 125, drawn as two turnouts, a half each
-        self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-127A", "SW-127B", "SW-131A", "SW-131B", "SW-121A",
-                              "SW-121B", "SW-125A", "SW-125B"}, set(numbers))
+        # a single crossover reads by its number; the helix-top 127 and 131 keep a half on each level
+        self.assertLessEqual({"SW-101", "SW-225", "SW-245", "SW-127A", "SW-127B", "SW-131A", "SW-131B"}, set(numbers))
+        # 121 and 125 (halves joined B to C, drawn as two turnouts on one name) carry one number each; schematic-maps
+        # 0.1.42 writes it with the half's letter (SW-121B, SW-125A), a plugin follow-up
+        for n in ("121", "125"):
+            self.assertEqual(len([t for t in numbers if re.fullmatch(rf"SW-{n}[AB]?", t)]), 1, n)
         self.assertNotIn("SW-101A", numbers)
         self.assertEqual(set(numbers.values()), {"13"})
         names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}

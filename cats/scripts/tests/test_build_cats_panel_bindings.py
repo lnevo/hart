@@ -494,7 +494,7 @@ class LevelSwitches(unittest.TestCase):
     def test_a_crossover_half_whose_thrown_leg_goes_elsewhere_stops(self):
         bands = level_bands()
         bands[1][1]["strands"]["e9"]["dst"] = ("S109", "C")
-        with self.assertRaisesRegex(SystemExit, "switch 119A: 0 of its legs B and C lead to its other half"):
+        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half the plugin pairs with no other half"):
             B.level_switch_bindings(bands, level_facts(), 0)
 
     def test_a_half_joined_by_its_leg_b_is_closed_on_leg_c(self):
@@ -509,12 +509,14 @@ class LevelSwitches(unittest.TestCase):
         self.assertEqual(out["119B"]["routes"]["C"]["ROUTECOMMAND"]["command"], "close")
         self.assertEqual(out["119B"]["routes"]["B"]["ROUTECOMMAND"]["command"], "throw")
 
-    def test_a_half_with_both_legs_toward_its_other_half_stops(self):
+    def test_halves_joined_by_two_tracks_stop_with_the_plugins_reason(self):
+        # a run-around between two lettered halves: the plugin pairs them as no crossover, so the build says why
         bands = level_bands()
         band = bands[1][1]
         band["nodes"]["X2"] = node("119B", "T4", {"A": "e7", "B": "e10"}, {"C": "e9"})
         band["strands"]["e10"] = dict(strand(("X1", "B"), ("X2", "B")), edge="e10", cm=10.0)
-        with self.assertRaisesRegex(SystemExit, "switch 119B: 2 of its legs B and C lead to its other half"):
+        with self.assertRaisesRegex(SystemExit, "switch 119A: a crossover half the plugin pairs with no other half"
+                                                ".*joined by 2 tracks"):
             B.level_switch_bindings(bands, level_facts(), 0)
 
 

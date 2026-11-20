@@ -628,12 +628,10 @@ class DeviceNames(unittest.TestCase):
         bands = B.schematic()[0]
         names, _lengths = B.level_names(bands, le_mod)
         B.shared_turnouts(names)
-        # the helix-top crossovers on two levels, and on main 121 and 125, whose halves the plan joins C to B
-        self.assertEqual(names["Main"]["shared_turnouts"], ["Switch 121", "Switch 125", "Switch 127", "Switch 131"])
+        # the helix-top crossovers stand on two levels; 121 and 125 (joined B to C) are the plugin's own crossovers
+        self.assertEqual(names["Main"]["shared_turnouts"], ["Switch 127", "Switch 131"])
         self.assertEqual(names["Upper"]["shared_turnouts"], ["Switch 127", "Switch 131"])
-        normal = {bands[1][1]["nodes"][n]["label"]: leg for n, leg in names["Main"]["normal"].items()}
-        self.assertEqual(normal, {"121B": "C", "125B": "C"})            # closed on leg C
-        self.assertNotIn("normal", names["Upper"])
+        self.assertNotIn("normal", names["Main"])                       # the plugin closes each half on its through leg
         drawn = B.named_bands(bands, names)
         self.assertIs(drawn[0][1], bands[0][1])                 # staging as it is
         main = drawn[1][1]
@@ -641,7 +639,7 @@ class DeviceNames(unittest.TestCase):
         self.assertIn("101", labels)
         self.assertNotIn("101A", labels)
         self.assertIn("127A", labels)                           # its B half is on the upper level
-        self.assertLessEqual({"121A", "121B", "125A", "125B"}, labels)  # joined C to B: two turnouts, not one
+        self.assertLessEqual({"121A", "121B", "125A", "125B"}, labels)  # joined C to B: the plugin pairs them by letter
         for (_t, _b, o), (_t2, _b2, given) in zip(drawn, bands):
             self.assertIs(o, given)                             # the preferences reach the plugin as they are
         named = [s["name"] for s in main["strands"].values() if s["name"]]

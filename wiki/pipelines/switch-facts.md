@@ -37,9 +37,9 @@ Exceptions are made only on purpose, each with its reason beside it:
 | 1, 33 | the main runs through the diverging leg | closed is the straight leg, shown Normal; both start up thrown |
 | 37, 39 | continuous running in staging needs them thrown | they start up normal, toward the helix |
 | 115 | diverging leg drawn level (`level_leg`) | straight-level puts Track 101B-111's climb in the Track 113 siding's CATS desk cell; may flip whichever way the plugin needs |
-| 231, 237 | diverging leg drawn level (`level_leg`) | earlier owner choice |
-| 235, 243 | diverging leg drawn level (`level_leg`) | straight-level widens the upper level past the desk and the Layout Editor panel; may flip whichever way the plugin needs |
-| 127/131 | 131's straight leg is a crossover diagonal | one crossover on the ground (`le_crossover_pairs`) |
+| 233, 237 | diverging leg drawn level (`level_leg`) | earlier owner choice |
+| 235, 239 | diverging leg drawn level (`level_leg`) | straight-level widens the upper level past the desk and the Layout Editor panel; may flip whichever way the plugin needs |
+| 121, 125 | 121B's and 125B's straight leg is the crossover's diagonal | one crossover each on the ground (owner, 2026-11-19; were 121/123 and 127/131): the plugin pairs halves joined B to C (schematic-maps 0.1.42), so each half is closed on its through track |
 
 ## Changing a switch
 

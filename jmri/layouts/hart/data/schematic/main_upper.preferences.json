@@ -230,15 +230,6 @@
   ]
  },
  "_le_split_crossovers": "Switches 101 and 103 drawn as two plain turnouts each: see _le_tight_crossovers.",
- "le_crossover_pairs": {
-  "Main": [
-   [
-    "125A",
-    "125B"
-   ]
-  ]
- },
- "_le_crossover_pairs": "Crossover halves the plugin draws as two plain turnouts, because the plan joins them leg B to leg C, not C to C (owner, 2026-11-19: one crossover on the ground, one switch number). 125A and 125B (plan T184 and T14): their diagonal crosses at the level's le_crossover_angle like every crossover; 125B and everything east of it slide along the rows to give it. 121A and 121B (plan T15 and T1) are one crossover too, but 121B stays as drawn, its normal route in one line with 123's diverging leg (owner, 2026-11-18), so they are not listed.",
  "le_mast_room": {
   "Main": true,
   "Upper": true

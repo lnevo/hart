@@ -15,7 +15,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 from hartlib import paths, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    band_key, bare, BuildError, crossover_half_legs, DEVICE_MAP, main_upper_device_map, STAGING,
+    band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING,
 )
 
 
@@ -224,12 +224,6 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
         except bdm.MapError as exc:
             raise BuildError(f"{title}: {exc}") from None
         names = dict(turnouts={}, os={}, blocks={}, xover_blocks={})
-        # a crossover half the plan joins by its leg B (121B, 125B) is closed on its leg C, so the one turnout puts
-        # both halves on their through tracks closed and on the diagonal thrown; not joined C to C, the plugin draws
-        # the two halves as two turnouts on the one name (shared_turnouts)
-        normal = {n: "C" for n, leg in crossover_half_legs(band).items() if leg == "B"}
-        if normal:
-            names["normal"] = normal
         for n, d in sorted(nodes.items()):
             if d["kind"] == "dx":
                 names["turnouts"][n] = f"Switch {bare(d['label'])}"
@@ -241,8 +235,6 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
             elif d["kind"] == "switch":
                 names["turnouts"][n] = f"Switch {bare(d['label'])}"
                 names["os"][n] = "OS Switch " + re.sub(r"[AB]$", "", bare(d["label"]))
-        if normal:      # each such half's placeholder; level_names gives it the crossover's one turnout name
-            names["shared_turnouts"] = sorted(names["turnouts"][n] for n in normal)
         for start, chain, end in runs(band):
             labels = []
             for n, _ in (start, end):
@@ -330,10 +322,6 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
                         os={n: to(b) for n, b in nm["os"].items()},
                         xover_blocks={n: {leg: to(b) for leg, b in v.items()} for n, v in nm["xover_blocks"].items()},
                         blocks={sid: [to(b) for b in v] for sid, v in nm["blocks"].items()})
-        if nm.get("normal"):
-            out[key]["normal"] = dict(nm["normal"])
-        if nm.get("shared_turnouts"):
-            out[key]["shared_turnouts"] = sorted(to(t) for t in nm["shared_turnouts"])
     out_len = defaultdict(float)
     for ph, mm in lengths.items():
         out_len[to(ph)] += mm
@@ -348,8 +336,8 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
 def shared_turnouts(names: dict) -> None:
     """Give each main and upper band's names the turnouts it shares with another band (`shared_turnouts`): a
     crossover whose halves stand on two levels (the helix-top 127 and 131) is one device-map turnout drawn as two
-    Layout Editor turnouts, which JMRI throws together. Kept with them: the band's own shared turnouts that
-    placeholder_names gave (a crossover whose halves the plan joins B to C, 121 and 125, drawn as two turnouts)."""
+    Layout Editor turnouts, which JMRI throws together. A crossover whose halves stand on one level is the plugin's
+    own (schematic.core.crossover_halves pairs halves joined C to C or B to C, 121 and 125 among them)."""
     bands_of = defaultdict(set)
     for key, nm in names.items():
         if key != STAGING:
@@ -357,8 +345,7 @@ def shared_turnouts(names: dict) -> None:
                 bands_of[t].add(key)
     for key, nm in names.items():
         if key != STAGING:
-            across = {t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1}
-            nm["shared_turnouts"] = sorted(across | set(nm.get("shared_turnouts") or ()))
+            nm["shared_turnouts"] = sorted(t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1)
 
 
 def named_bands(bands, names: dict):

@@ -74,7 +74,7 @@ from hartlib.cats import appearance_templates, mast_templates, station_plate  # 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
-from le_common import BuildError, crossover_half_legs  # noqa: E402  a crossover half's legs, shared with the LE build
+from le_common import plugin as schematic_plugin  # noqa: E402  the plugin's core: its single crossover halves
 
 # The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
 # launchers and shortcuts use. Nothing else writes them.
@@ -581,9 +581,10 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     """({switch label: binding}, {label: why not bound}) for the main and upper switches: each switch or crossover
     half drawn commands and reports its internal turnout (LEVEL_TURNOUT + number, user name Switch <n>, which
     tables.xml must hold), closed on leg B (NORMAL) and thrown on leg C. A crossover's halves, on one band or two,
-    each take the one turnout, and each half is closed on the leg away from its other half (or from the link between
-    the levels) and thrown on the leg toward it (le_common.crossover_half_legs, which stops when neither leg or both
-    lead there): leg C for most halves, leg B for 121B and 125B, which the plan joins by their leg B. A double
+    each take the one turnout, and each half is closed on the leg away from its other half and thrown on the leg
+    toward it: on one band, the link leg the plugin pairs it by (schematic.core.crossover_halves: leg C for most
+    halves, leg B for 121B and 125B, which the plan joins by their leg B); on two bands, leg C, which must lead to
+    the link between the levels. A lettered half that is neither stops the build, with the plugin's reason. A double
     crossover's one turnout moves all four of its points (the plugin: B along the through tracks, C into the X).
     `dx_corners` ({switch number: {leg: Layout Editor corner}}, build_device_map.dx_corners) gives a double crossover
     a desk block per corner, named as the Layout Editor's (OS Switch <n>a to d, by the corner each leg reaches), and
@@ -591,10 +592,9 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
     out = {}
     for _bi, band, _ in level_bands(bands, bound_bi):
         nodes = band["nodes"]
-        try:
-            half_legs = crossover_half_legs(band)       # each crossover half's leg toward its other half: thrown
-        except BuildError as exc:
-            raise SystemExit(str(exc)) from None
+        why = []
+        half_legs = {n: got[0] for n, got in
+                     schematic_plugin()[2].crossover_halves(nodes, band["strands"], why).items()}
         for n, d in sorted(nodes.items()):
             label = str(d.get("label") or "")
             if d["kind"] not in ("switch", "dx"):
@@ -606,7 +606,14 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
                                  f"it has {F.turnouts.get(user) or 'none'}")
             if label in out:
                 raise SystemExit(f"switch {label} is drawn twice on main and upper")
-            thrown = half_legs.get(n, "C")      # a crossover half: its leg toward the other half; else leg C
+            thrown = half_legs.get(n, "C")      # a crossover half: its link leg toward the other half; else leg C
+            if re.search(r"\d[AB]$", label) and n not in half_legs:        # a half whose other half is on another band
+                s = band["strands"].get(legs_of(d).get("C"))
+                far = (s["dst"][0] if s["src"][0] == n else s["src"][0]) if s else ""
+                if not far.startswith("LINK:"):
+                    raise SystemExit(f"switch {label}: a crossover half the plugin pairs with no other half, and its "
+                                     "leg C does not lead to the link between the levels"
+                                     + (f" ({'; '.join(why)})" if why else ""))
             closed = "C" if thrown == "B" else "B"
             addr = LEVEL_TURNOUT[len(LEVEL_TURNOUT_PREFIX):] + num
             io = lambda cmd, u=user, a=addr: {"DECADDR": a, "JMRIPREFIX": LEVEL_TURNOUT_PREFIX, "USER_NAME": u,
