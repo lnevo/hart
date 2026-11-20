@@ -8,10 +8,12 @@ on:
     branches: [main]
 permissions:
   contents: read
-# A new push to a pull request cancels that branch's older run. A push to main has no head_ref, so each of its runs
-# gets a group of its own and is never cancelled (it saves the schematic cache).
+# A new push to a pull request cancels that pull request's older run: the group is the PR number, which two PRs
+# never share (a branch name could repeat across forks). A push to main has no PR number, so each of its runs gets
+# a group of its own and is never cancelled (it saves the schematic cache). A cancelled run saves no cache, pip or
+# schematic: both save in a post step that runs only when the job succeeded.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   check:
