@@ -20,10 +20,9 @@ What it writes, and nothing else of those files:
 
   staging.plan_overrides.json   the keys control_points, stations and station_tracks
   staging.preferences.json      the key detail_sheets
-  data/control_points.csv       the control points in the older shape the website build, check_layout_facts.py and the
-                                scripts that run in JMRI read: cp_id is the name in lower case with underscores, a
-                                crossover's switch is listed by its halves (7 is 7,7b; 23 is 23a,23b), taken from the
-                                OS blocks in switch_legs.csv
+
+The older data/control_points.csv is gone (level-unification step 8): its readers build the same rows from
+  control_points_staging.csv and switch_legs.csv (hartlib.railroad_facts.station_group_rows).
 
 Every switch is a staging switch (level 1 of switches.csv) in one control point at most and, in the end, in one; a
 station's switches are in some control point; a sheet's stations are stations. A row that breaks a rule stops the
@@ -32,8 +31,6 @@ build with the file and line. --check regenerates in memory and exits 1 if a fil
 from __future__ import annotations
 
 import argparse
-import csv
-import io
 import json
 import re
 import sys
@@ -43,7 +40,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA
 from hartlib import paths  # noqa: E402
-from hartlib.railroad_facts import FactsError, read_rows  # noqa: E402
+from hartlib.railroad_facts import FactsError, read_rows, station_group_rows  # noqa: E402
 
 LEVEL = "1"
 CPS = pd.DATA / "control_points_staging.csv"
@@ -51,10 +48,8 @@ STATIONS = pd.DATA / "stations.csv"
 SHEETS = pd.DATA / "sheets.csv"
 OVERRIDES = pd.DATA / "staging.plan_overrides.json"
 PREFERENCES = pd.DATA / "staging.preferences.json"
-LEGACY = paths.LAYOUT_DATA / "control_points.csv"
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
-LEGACY_COLUMNS = ["cp_id", "cp_name", "level", "switches", "notes", "code"]
 NONE = "none"        # the `tracks` cell of a station that counts no track
 
 
@@ -195,17 +190,6 @@ def read_sheets(stations: list[Station], path: Path = SHEETS, stations_path: Pat
     return out
 
 
-def os_halves(path: Path = LEGS) -> dict[str, list[str]]:
-    """{switch: its OS blocks' names without "OS Switch ", sorted}: 7 is 7 and 7b, 23 is 23a and 23b."""
-    out: dict[str, list[str]] = {}
-    for line, r in _rows(path, ("switch", "os_block")):
-        m = re.fullmatch(r"OS Switch (\d+[a-z]?)", r["os_block"])
-        if not m:
-            raise SetsError(f"{_where(path, line)}: {r['os_block']!r} is not an OS Switch block")
-        out.setdefault(r["switch"], []).append(m.group(1))
-    return {k: sorted(v) for k, v in out.items()}
-
-
 def sheet_switches(sheet: Sheet, stations: list[Station]) -> list[str]:
     by_name = {s.name: s for s in stations}
     return sorted({sw for n in sheet.stations for sw in by_name[n].switches}, key=int)
@@ -232,32 +216,18 @@ def preferences_text(prefs: dict, sheets, stations) -> str:
     return dumps(prefs)
 
 
-def legacy_text(cps: list[ControlPoint], halves: dict[str, list[str]]) -> str:
-    rows = []
-    for c in cps:
-        sw = []
-        for s in c.switches:
-            if s not in halves:
-                raise SetsError(f"{CPS.name} line {c.line}: switch {s} has no OS block in {LEGS.name}")
-            sw += halves[s]
-        rows.append(dict(cp_id=re.sub(r"\W+", "_", c.cp_name.lower()), cp_name=c.cp_name, level=LEVEL,
-                         switches=",".join(sw), notes=c.notes, code=c.code))
-    buf = io.StringIO()
-    w = csv.DictWriter(buf, fieldnames=LEGACY_COLUMNS, lineterminator="\n")
-    w.writeheader()
-    w.writerows(rows)
-    return buf.getvalue()
-
-
 def wanted() -> dict[Path, str]:
     """{file: the text it should hold}."""
     cps = read_control_points()
     stations = read_stations(cps)
     sheets = read_sheets(stations)
+    try:                    # every switch's OS block, as the readers of station_group_rows need (step 8)
+        station_group_rows(CPS, LEGS)
+    except FactsError as exc:
+        raise SetsError(str(exc)) from None
     return {
         OVERRIDES: overrides_text(json.loads(OVERRIDES.read_text(encoding="utf-8")), cps, stations),
         PREFERENCES: preferences_text(json.loads(PREFERENCES.read_text(encoding="utf-8")), sheets, stations),
-        LEGACY: legacy_text(cps, os_halves()),
     }
 
 

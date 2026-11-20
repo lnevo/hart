@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import names, paths, tables  # noqa: E402
+from hartlib import names, paths, railroad_facts, tables  # noqa: E402
 from hartlib.names import row_comment  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
@@ -27,7 +27,7 @@ ROOT = paths.REPO_ROOT
 
 PANEL = paths.TABLES_XML
 NAMES = paths.PUBLIC_NAME_MAP
-CPS = paths.LAYOUT_DATA / "control_points.csv"
+CPS = paths.LAYOUT_DATA / "schematic" / "control_points_staging.csv"   # with switch_legs.csv: station_group_rows
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
 RENDER = paths.LAYOUT_SCRIPTS / "render_le_layout.py"
@@ -139,17 +139,13 @@ def load_devices(path: Path = PANEL):
     return dict(sorted(out.items(), key=key))
 
 
-def load_cps(path: Path):
+def load_cps(path: Path, legs: Path = paths.LAYOUT_DATA / "switch_legs.csv"):
+    """(OS block number, control point) pairs, e.g. ("23a", "East End"), from staging's control points."""
     pairs = []
-    if not path.is_file():
-        return pairs
-    with path.open(encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            cp = (row.get("cp_name") or row.get("cp") or "").strip()
-            for part in str(row.get("switches") or "").replace(";", ",").split(","):
-                part = part.strip()
-                if part:
-                    pairs.append((part, cp))
+    for row in railroad_facts.station_group_rows(path, legs):
+        for part in row["switches"].split(","):
+            if part:
+                pairs.append((part, row["cp_name"]))
     return pairs
 
 
