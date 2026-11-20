@@ -60,7 +60,8 @@ class Levels(unittest.TestCase):
 
     def test_placeholder_numbers_a_loop_half(self):
         self.assertEqual(B.placeholder({"edge": "e34y"}), "Track e34")
-        self.assertNotEqual(B.placeholder({"edge": "e33", "loop_half": 1}), "Track e33")
+        self.assertEqual(B.placeholder({"edge": "e33", "loop_half": 1}), "Track e33 1")
+        self.assertEqual(B.placeholder({"edge": "e33~0", "plan_edge": "e33", "loop_half": 0}), "Track e33 0")
 
     def test_xover_corners_only_those_the_device_map_has(self):
         rows = {f"OS Switch 225{c}": block(f"OS Switch 225{c}") for c in "abc"}
@@ -112,7 +113,8 @@ class Dress(unittest.TestCase):
 
     def test_order_places_every_header_tag(self):
         self.assertEqual(len(set(B.ORDER)), len(B.ORDER))
-        self.assertEqual(B.ABS_PLATE, {"CTC DIGICON": "ABS DIGICON", "DS-CTC": "DS-ABS"})
+        els, _plate = B.frozen_header()
+        self.assertTrue({el.tag for el in els} <= set(B.ORDER))
 
     def test_label_clashes_picks_the_two_kinds(self):
         log = ["no room for label X", "label A crosses B", "label C fine", "other"]

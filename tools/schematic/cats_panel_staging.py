@@ -1,10 +1,13 @@
 """build_cats_panel.py's staging section: each staging switch's OS block, its bindings and the staging blocks' and
 masts'. Moved out of build_cats_panel.py unchanged."""
 import re
+import sys
 from collections import Counter
+from pathlib import Path
 
-from hartlib.cats import station_plate
-from cats_panel_facts import mast_type, template_by_type
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from hartlib.cats import station_plate  # noqa: E402
+from cats_panel_facts import mast_type, template_by_type  # noqa: E402
 
 
 def legs_of(d):

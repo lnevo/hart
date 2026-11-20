@@ -52,31 +52,21 @@ other plugin code).
 is not set and the plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and
 exits 0 (a failure with SCHEMATIC_REQUIRED=1).
 """
-import copy
 import difflib
 import importlib
 import json
 import os
-import re
 import sys
 import tempfile
-import xml.etree.ElementTree as ET
-from collections import Counter, defaultdict
-from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
-import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (device_map_staging.csv)
-from hartlib import level_devices, level_masts, paths, railroad, tables  # noqa: E402
-from hartlib.cats import appearance_templates, mast_templates, station_plate  # noqa: E402
+from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
-import cats_turnout_io as tio  # noqa: E402
-import digicon_lib as le  # noqa: E402
-from le_common import BuildError, plugin as schematic_plugin  # noqa: E402  the plugin's core: crossover halves
 
 from cats_panel_facts import (DEVICE_MAP, DeviceMap, Facts, StagingTracks, load_device_map, load_facts,  # noqa: E402,F401
                               mast_type, staging_tracks, template_by_type)
