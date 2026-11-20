@@ -558,17 +558,20 @@ class DigiconMqttSml(
         if self._abort_gen == abort_gen:
             self._publish_mode("disabled")
         print("mqtt_signalhead: shutdown sml_mode disabled -- unchecking SML pairs")
-        self._set_all_digicon_sml_destinations(False)
-        self._snapshot_mast_sml_state()
-        for mast in self._masts:
-            try:
-                mast.setHeld(False)
-            except Exception:
-                pass
-        self._global_enabled = False
-        self._enabling_originator = False
-        self._claim = None
-        self._sync_sml_mode_sensor()
+        try:
+            self._set_all_digicon_sml_destinations(False)
+            self._snapshot_mast_sml_state()
+        finally:
+            # A failed bulk set must not leave the masts Held or this host owning.
+            for mast in self._masts:
+                try:
+                    mast.setHeld(False)
+                except Exception:
+                    pass
+            self._global_enabled = False
+            self._enabling_originator = False
+            self._claim = None
+            self._sync_sml_mode_sensor()
 
     def _stored_enabled_source_names(self):
         """UserNames of Digicon sources that loaded with any dest Enabled."""
@@ -809,7 +812,14 @@ class DigiconMqttSml(
         # SML may finish discovering after Start Up -- refresh before bulk set.
         self._attach_sml_listeners(quiet=True)
 
+        cancel_lock = threading.Lock()
+        cancelled = [False]
+
         def _do():
+            with cancel_lock:
+                if cancelled[0]:
+                    print("mqtt_signalhead: SML bulk set cancelled (timed out earlier)")
+                    return
             n = 0
             for sml in self._smls:
                 try:
@@ -881,6 +891,8 @@ class DigiconMqttSml(
 
             ThreadingUtil.runOnLayout(_R())
             if not latch.await(30, TimeUnit.SECONDS):
+                with cancel_lock:
+                    cancelled[0] = True
                 print("mqtt_signalhead: SML bulk set timed out on layout thread")
         except Exception as exc:
             print("mqtt_signalhead: SML bulk set fallback: " + _ascii(exc))
@@ -1347,8 +1359,12 @@ class DigiconMqttSml(
                 pass
         Thread.sleep(HOLD_WAIT_MS)
         print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
-        self._set_all_digicon_sml_destinations(False)
-        self._snapshot_mast_sml_state()
+        try:
+            self._set_all_digicon_sml_destinations(False)
+            self._snapshot_mast_sml_state()
+        except Exception as exc:
+            # Still unhold, reset and say disabled: a Held mast would stay red.
+            print("mqtt_signalhead: disabling SML pairs failed: " + _ascii(exc))
         aborted = self._abort_gen != abort_gen
         if aborted:
             print(

@@ -1568,11 +1568,9 @@ class Sequences(unittest.TestCase):
         self.assertEqual(logic.enabled["Mast 8RA"], False)
 
 
-    # --- known script bugs (owner decides; the script is not changed here) --------------------
+    # --- failures that must still unhold the masts and release ---------------------------------
 
-    @unittest.expectedFailure
-    def test_bug_quit_release_leaves_masts_held_when_the_bulk_set_raises(self) -> None:
-        # _release_on_quit_steps: setHeld(False) is not in a finally.
+    def test_quit_release_unholds_and_resets_when_the_bulk_set_raises(self) -> None:
         self.own()
 
         def boom(on):
@@ -1581,27 +1579,35 @@ class Sequences(unittest.TestCase):
         self.c._set_all_digicon_sml_destinations = boom
         self.c._on_jmri_shutdown()
         self.assertFalse(self.mast.held)
+        self.assertEqual((self.c._global_enabled, self.c._claim), (False, None))
 
-    @unittest.expectedFailure
-    def test_bug_disable_leaves_masts_held_and_no_disabled_when_the_bulk_set_raises(self) -> None:
-        # _apply_global_disabled: the bulk set is not guarded, so the worker dies mid-way.
+    def test_disable_unholds_and_publishes_disabled_when_the_bulk_set_raises(self) -> None:
         self.own()
 
         def boom(on):
             raise RuntimeError("attach failed")
 
         self.c._set_all_digicon_sml_destinations = boom
-        try:
-            self.run_disable(True)
-        except RuntimeError:
-            pass
+        self.run_disable(True)
         self.assertFalse(self.mast.held)
+        self.assertFalse(self.c._global_enabled)
         self.assertIn(("track/bridge/sml_mode", "disabled", True), self.sent())
 
-    @unittest.expectedFailure
-    def test_bug_timed_out_bulk_set_still_runs_later_on_the_layout_thread(self) -> None:
-        # After the 30 s wait gives up, the queued _do stays queued and can re-check pairs
-        # after another host took Digicon.
+    def test_disable_aborted_in_the_hold_stays_silent_even_when_the_bulk_set_raises(self) -> None:
+        self.own()
+        c = self.c
+
+        def boom(on):
+            raise RuntimeError("attach failed")
+
+        c._set_all_digicon_sml_destinations = boom
+        self.hold_probe(lambda: setattr(c, "_abort_gen", c._abort_gen + 1))
+        self.run_disable(True)
+        self.assertEqual(self.sent(), [])
+        self.assertFalse(self.mast.held)
+
+    def test_timed_out_bulk_set_does_nothing_when_the_layout_thread_gets_to_it(self) -> None:
+        # After the 30 s wait gives up, the queued work must not re-check pairs later.
         queued = []
         self.fake_layout_thread(on_layout=False, times_out=True, run_on_layout=queued.append)
         logic = self.two_dests()
