@@ -177,6 +177,27 @@ class SignalsCheck(unittest.TestCase):
             finally:
                 self.bs.pd.REPO = real
 
+    def test_a_loop_mast_names_the_leg_of_its_half(self) -> None:
+        """The 107 Loop's halves: Loop 1 leaves from leg B, Loop 2 from leg C (mast_rule.LOOP_HALF); a loop edge's
+        rows must name one of its legs, other rows none."""
+        self.assertEqual((self.bs.loop_leg("Track 107 Loop 1"), self.bs.loop_leg("Track 107 Loop 2")), ("B", "C"))
+        with self.assertRaisesRegex(SystemExit, "not one of its halves"):
+            self.bs.loop_leg("Track 107 Loop")
+        loop = dict(u="S", up="B", v="S", vp="C")
+        row = dict(mast="108LB", _edge="e33")
+        self.assertEqual(self.bs.leg_problems(dict(row, leg="C"), loop), [])
+        for bad in ({}, {"leg": "A"}):
+            self.assertRegex(self.bs.leg_problems(dict(row, **bad), loop)[0], "is a loop at legs B and C")
+        plain = dict(u="S", up="B", v="T", vp="A")
+        self.assertEqual(self.bs.leg_problems(row, plain), [])
+        self.assertRegex(self.bs.leg_problems(dict(row, leg="B"), plain)[0], "is no loop")
+
+    def test_the_committed_loop_masts_name_their_legs(self) -> None:
+        import json
+        rows = json.loads((ROOT / "jmri/layouts/hart/data/schematic/main_upper.signals.json").read_text())["signals"]
+        legs = {r["mast"]: r.get("leg") for r in rows if r["_edge"] == "e33"}
+        self.assertEqual(legs, {"A83": "C", "A84": "B", "108LA": "B", "108LB": "C"})
+
     def test_skips_without_the_plugin(self) -> None:
         self.assertEqual(self.without_plugin(), 0)
 

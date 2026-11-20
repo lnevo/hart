@@ -17,7 +17,8 @@
    "heads": 1,
    "source": "main_upper_masts.csv",
    "_edge": "e33",
-   "_toward_node": "turn:e33"
+   "_toward_node": "turn:e33",
+   "leg": "C"
   },
   {
    "mast": "A84",
@@ -34,7 +35,8 @@
    "heads": 1,
    "source": "main_upper_masts.csv",
    "_edge": "e33",
-   "_toward_node": "TOL29248"
+   "_toward_node": "TOL29248",
+   "leg": "B"
   },
   {
    "mast": "108LA",
@@ -51,7 +53,8 @@
    "heads": 2,
    "source": "main_upper_masts.csv",
    "_edge": "e33",
-   "_toward_node": "TOL29248"
+   "_toward_node": "TOL29248",
+   "leg": "B"
   },
   {
    "mast": "108LB",
@@ -68,7 +71,8 @@
    "heads": 2,
    "source": "main_upper_masts.csv",
    "_edge": "e33",
-   "_toward_node": "TOL29248"
+   "_toward_node": "TOL29248",
+   "leg": "C"
   },
   {
    "mast": "110L",
