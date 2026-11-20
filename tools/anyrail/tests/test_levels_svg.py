@@ -29,10 +29,11 @@ def part(index, ends, curve=None):
     return p
 
 
-def flex(index, x, z0, z1=None):
-    """A straight flex piece 100 cm long from x, climbing from z0 to z1."""
+def flex(index, x, z0, z1=None, turn=0):
+    """A flex piece 100 cm long from x, climbing from z0 to z1 and turning `turn` degrees (its end headings say so;
+    the curve is drawn straight)."""
     z1 = z0 if z1 is None else z1
-    return part(index, [(x, 0, z0, 0), (x + 100, 0, z1, 180)], [(x, 0), (x + 30, 0), (x + 70, 0), (x + 100, 0)])
+    return part(index, [(x, 0, z0, 0), (x + 100, 0, z1, 180 + turn)], [(x, 0), (x + 30, 0), (x + 70, 0), (x + 100, 0)])
 
 
 def left_turnout(index, z):
@@ -61,26 +62,31 @@ class Levels(unittest.TestCase):
             L.nearest_level(5.0, HEIGHTS, "T9")
         self.assertEqual(L.nearest_level(10.7, HEIGHTS, "T9"), "upper")
 
-    def plan(self):
-        """A helix track of three pieces from staging to main (heights -38.1 to -20, -20 to -6, -6 to 0), a climb
-        from main to upper, and a flat piece on each level."""
-        return [flex(0, 0, -38.1, -20.0), flex(1, 100, -20.0, -6.0), flex(2, 200, -6.0, 0.0), flex(3, 1000, 0.0, 10.79),
-                flex(4, 2000, -38.1), flex(5, 3000, 0.0), flex(6, 4000, 10.79)]
+    def plan(self, turn=170):
+        """A helix track of four pieces from staging to main, each turning `turn` degrees, a climb from main to upper
+        (piece 4), and a flat piece on each level (5 to 7)."""
+        return [flex(0, 0, -38.1, -30.0, turn), flex(1, 100, -30.0, -20.0, turn), flex(2, 200, -20.0, -10.0, turn),
+                flex(3, 300, -10.0, 0.0, turn), flex(4, 1000, 0.0, 10.79),
+                flex(5, 2000, -38.1), flex(6, 3000, 0.0), flex(7, 4000, 10.79)]
 
-    def test_a_helix_is_drawn_on_staging_below_the_cut_and_on_the_level_it_reaches_above_it(self) -> None:
+    def test_a_helix_is_drawn_on_the_level_it_reaches_for_its_whole_top_turn_and_on_staging_below(self) -> None:
         where, ramp, _ = L.assign(self.plan(), HEIGHTS)
-        # the pieces' mid heights are -29.05, -13 and -3 against the cut at -5
-        self.assertEqual([where[i] for i in (0, 1, 2)], ["staging", "staging", "main"])
-        self.assertEqual(ramp, {0, 1, 2, 3})
+        # from the top: 170, 340, then 510 degrees, so the top three pieces make the top turn
+        self.assertEqual([where[i] for i in (0, 1, 2, 3)], ["staging", "main", "main", "main"])
+        self.assertEqual(ramp, {0, 1, 2, 3, 4})
+
+    def test_a_helix_of_less_than_one_turn_stops(self) -> None:
+        with self.assertRaisesRegex(L.LevelsError, "less than one turn"):
+            L.assign(self.plan(turn=60), HEIGHTS)
 
     def test_a_climb_that_starts_above_staging_is_drawn_on_the_level_it_climbs_from(self) -> None:
         where, _, _ = L.assign(self.plan(), HEIGHTS)
-        self.assertEqual(where[3], "main")
+        self.assertEqual(where[4], "main")
 
     def test_every_part_gets_a_level_and_flat_ones_their_own(self) -> None:
         where, _, _ = L.assign(self.plan(), HEIGHTS)
-        self.assertEqual(sorted(where), list(range(7)))
-        self.assertEqual([where[i] for i in (4, 5, 6)], ["staging", "main", "upper"])
+        self.assertEqual(sorted(where), list(range(8)))
+        self.assertEqual([where[i] for i in (5, 6, 7)], ["staging", "main", "upper"])
 
     def test_a_ramp_that_does_not_climb_to_a_higher_level_stops(self) -> None:
         with self.assertRaisesRegex(L.LevelsError, "not at a level"):
@@ -90,7 +96,7 @@ class Levels(unittest.TestCase):
         parts = self.plan()
         links, _ = A.joins(parts)
         got = L.ramps(parts, links, HEIGHTS)
-        self.assertEqual([(r["foot"], r["top"], r["flex_m"]) for r in got], [("staging", "main", 3.0), ("main", "upper", 1.0)])
+        self.assertEqual([(r["foot"], r["top"], r["flex_m"]) for r in got], [("staging", "main", 4.0), ("main", "upper", 1.0)])
 
 
 class Symbols(unittest.TestCase):
@@ -107,6 +113,14 @@ class Symbols(unittest.TestCase):
         self.assertEqual(len(lines), 4)
         rails = [l for l in lines if l[1] == l[3]]
         self.assertEqual(sorted((l[1], l[0], l[2]) for l in rails), [(0, 0, 50), (5, 0, 50)])
+
+    def test_a_double_crossover_pairs_its_rails_by_position_not_by_the_end_headings(self) -> None:
+        # plan 5.3c's T322: its end headings point across the track, and its far ends come in the other order
+        dx = part(0, [(461.4, 325.0, 10.79, 270), (413.7, 320.0, 10.79, 90), (413.7, 325.1, 10.79, 90),
+                      (461.4, 319.9, 10.79, 270)])
+        self.assertEqual(dx["kind"], "double_crossover")
+        rails = [l for l in L.turnout_lines(dx) if abs(l[1] - l[3]) < 0.5]
+        self.assertEqual(sorted(round(l[1]) for l in rails), [320, 325])
 
     def test_a_crossing_has_no_symbol_and_stops(self) -> None:
         cross = part(0, [(0, 0, 0, 180), (50, 0, 0, 0), (25, -25, 0, 90), (25, 25, 0, 270)])

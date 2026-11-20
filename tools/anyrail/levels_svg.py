@@ -14,8 +14,9 @@ Coordinates are plan centimetres, y down, so the three drawings line up. What a 
 - A level is a height. The turnouts of the plan sit at three heights (staging, main, upper); a flat flex piece goes to
   the level it lies at.
 - A flex piece whose ends differ in height is a ramp (the helix and the climb to the upper level), drawn dotted. A
-  track that starts on staging is drawn there below HELIX_CUT_CM, the cut the schematic parts the levels at, and on
-  the level it reaches above it; a climb that starts higher is drawn on the level it climbs from.
+  helix track that starts on staging is drawn on the level it reaches for its whole top turn (TURN_DEG) and on
+  staging below that; a climb that starts higher is drawn on the level it climbs from. HELIX_CUT_CM, the cut the
+  schematic parts the levels at, is used only for each track's share in levels_meta.json.
 - A turnout is labelled with the owner's switch number from the relabel map of staging.plan_overrides.json or
   main_upper.plan_overrides.json (the plan's T number is the part's place in the file); one the maps do not name
   carries its T number.
@@ -44,6 +45,7 @@ def switch_key(label):
     """Sort key for switch labels: by the leading number ("7", "101A/103A", "211A"), then the text; T labels last."""
     m = re.match(r"\d+", label)
     return (int(m.group()) if m else 10 ** 6, label)
+TURN_DEG = 360.0        # the main drawing shows each helix track's top turn, this much of it
 HELIX_CUT_CM = -5.0     # the height that parts staging's graph from the main and upper graph (anyplan.py --cut -5)
 SNAP_CM = 0.5           # a flat part this close to a level's height is on that level
 CM_PER_IN = 2.54
@@ -121,6 +123,30 @@ def helix_chains(parts, links):
     return sorted(groups.values(), key=min)
 
 
+def top_turn_of(parts, links, chain) -> set[int]:
+    """The pieces of a helix track's top turn: walking down from its highest piece, every piece that starts within
+    TURN_DEG of the top. The level the track reaches draws them, so its drawing shows one whole turn of the helix."""
+    nxt = collections.defaultdict(set)
+    for a, _ea, b, _eb in links:
+        if a in chain and b in chain:
+            nxt[a].add(b)
+            nxt[b].add(a)
+    ends = [i for i in chain if len(nxt[i]) < 2]
+    if len(ends) != 2:
+        raise LevelsError(f"a helix track's pieces do not form one run (ends {sorted(ends)})")
+    here = max(ends, key=lambda i: max(e["z"] for e in parts[i]["ends"]))
+    seen, out, swept = set(), set(), 0.0
+    while here is not None and swept < TURN_DEG:
+        out.add(here)
+        seen.add(here)
+        a0, a1 = parts[here]["ends"][0]["a"], parts[here]["ends"][1]["a"]
+        swept += abs(anyplan._wrap(math.degrees(a1 - a0) - 180))
+        here = next(iter(nxt[here] - seen), None)
+    if swept < TURN_DEG:
+        raise LevelsError(f"a helix track turns {swept:.0f} degrees in all, less than one turn")
+    return out
+
+
 def assign(parts, heights):
     """{part index: level} for every flat part and every helix piece (the dotted ones are `ramp` below)."""
     links, _ = anyplan.joins(parts)
@@ -134,11 +160,12 @@ def assign(parts, heights):
         bottom = nearest_level(min(e["z"] for i in chain for e in parts[i]["ends"]), heights, "the foot of a helix track")
         if LEVELS.index(top) <= LEVELS.index(bottom):
             raise LevelsError(f"a helix track runs from {bottom} to {top}; it must climb")
+        top_turn = top_turn_of(parts, links, chain) if bottom == LEVELS[0] else set()
         for i in chain:
             mid = sum(e["z"] for e in parts[i]["ends"]) / 2
             # a track that starts on staging is drawn there up to the cut and on the level it reaches above it; any
             # other climb is drawn on the level it climbs from
-            where[i] = bottom if bottom != LEVELS[0] else (bottom if mid < HELIX_CUT_CM else top)
+            where[i] = bottom if bottom != LEVELS[0] else (top if i in top_turn else bottom)
             ramp.add(i)
     if len(where) != len(parts):
         raise LevelsError("parts left without a level: %s" % sorted(set(range(len(parts))) - set(where)))
@@ -181,8 +208,16 @@ def turnout_lines(p):
         s1 = [0, side[0]]
         s2 = [i for i in range(4) if i not in s1]
         out = []
+        # the track runs from one side's middle to the other's; the end headings are not along it in every file
+        c1 = [sum(e[i][k] for i in s1) / 2 for k in (0, 1)]
+        c2 = [sum(e[i][k] for i in s2) / 2 for k in (0, 1)]
+        run = math.dist(c1, c2)
+        if run < 1e-6:
+            raise LevelsError(f"T{p['index']}: the double crossover's two sides sit at the same place")
+        ux, uy = (c2[0] - c1[0]) / run, (c2[1] - c1[1]) / run
+        if abs(abs((e[s1[0]][0] - e[s1[1]][0]) * -uy + (e[s1[0]][1] - e[s1[1]][1]) * ux)) < 1e-6:
+            raise LevelsError(f"T{p['index']}: the double crossover's two rails lie on one line")
         for i in s1:        # a rail runs straight across to the end on the other side that lies closest abeam
-            ux, uy = math.cos(h[i]), math.sin(h[i])
             j = min(s2, key=lambda m: abs((e[m][0] - e[i][0]) * -uy + (e[m][1] - e[i][1]) * ux))
             out.append(e[i] + e[j])
             other = [m for m in s2 if m != j][0]

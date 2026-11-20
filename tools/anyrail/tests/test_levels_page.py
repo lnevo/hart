@@ -83,10 +83,9 @@ class TheTablesComeFromTheData(unittest.TestCase):
         with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
             LP.main(["--panel", "x.png"])
 
-    def test_the_staging_helix_figure_is_the_helix_rows_below_the_cut(self) -> None:
+    def test_the_staging_helix_figure_is_what_staging_draws(self) -> None:
         meta = json.loads((LEVELS / "levels_meta.json").read_text())
-        below = sum(h["below_cut_cm"] for h in meta["helix"]) / 100
-        self.assertIn("%.1f m of helix below" % below, text_of(PAGE.read_text()))
+        self.assertIn("%.1f m of helix below its top turn" % meta["levels"]["staging"]["ramp_m"], text_of(PAGE.read_text()))
 
     def test_the_loop_fit_plan_comes_from_the_notes(self) -> None:
         blocks, notes = LP.block_rows()
