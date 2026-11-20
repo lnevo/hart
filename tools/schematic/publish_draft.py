@@ -22,7 +22,7 @@ Main is where this branch left origin/main (`git merge-base HEAD origin/main`). 
 (no origin/main, a shallow clone), publishing stops before it writes anything and names the git command that
 brings it in; it also stops if git fails to read a file there. --check and --preview never need it.
 The station map pages are drawn from this sheet, so publishing then copies the title block's revision and date to
-them with www/scripts/map_revision.py, and --check fails while any of them differs.
+them with hartlib.map_revision (also the command www/scripts/map_revision.py), and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
 The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
@@ -48,7 +48,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad  # noqa: E402
+from hartlib import map_revision, paths, railroad  # noqa: E402
 
 REPO = paths.REPO_ROOT
 CACHE = Path.home() / ".cache/hart/schematic"
@@ -61,8 +61,6 @@ STAGING = DATA / "staging.plan_overrides.json"
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
-sys.path.insert(0, str(REPO / "www/scripts"))
-import map_revision  # noqa: E402
 
 # the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
