@@ -674,7 +674,10 @@ def main() -> int:
 
     host = pick_mqtt_host(args.mqtt_host)
     # This server talks only MQTT, so it cannot set the main and upper levels' virtual JMRI devices.
-    layout = load_layout(levels=False)
+    try:
+        layout = load_layout(levels=False)
+    except devices.DevicesError as exc:      # a bad row anywhere in the master stops the load, naming file, line and row
+        raise SystemExit(f"lcos_mqtt_mimic.py: devices.csv cannot be used: {exc}") from None
     bus = Bus(host)
     bus.start()
     html = HTML.read_bytes()

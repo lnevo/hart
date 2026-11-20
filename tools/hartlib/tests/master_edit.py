@@ -32,6 +32,7 @@ def find(rows: list[dict], key: tuple[str, str, str]) -> dict:
 def _write(path: Path, rows: list[dict]) -> None:
     rows.sort(key=devices._rank)      # the master's own order, which check_rows holds it to
     path.write_text(devices.master_text(rows), encoding="utf-8")
+    devices._read.cache_clear()       # (the cache is keyed on the bytes, so this is belt and braces)
 
 
 def change(path: Path, key: tuple[str, str, str], **columns: str) -> None:

@@ -342,11 +342,24 @@ class TheGeneratedFiles(unittest.TestCase):
 
     def test_a_writer_that_drops_a_row_changes_the_master_and_the_maps_but_no_other_writers_rows(self):
         mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"], ("1",))
-        out = D.outputs_after("build_staging_masts.py", mine[1:], self.files)
+        gone = (mine[0]["level"], mine[0]["layer"], mine[0]["user_name"])
+        out = D.outputs_after("build_staging_masts.py", mine[1:], self.files, drops=[gone])
         before = {(r["level"], r["layer"], r["user_name"]) for r in D.load(self.files)}
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
         self.assertEqual(out[self.files.main_upper], self.files.main_upper.read_text(encoding="utf-8"))
+
+    def test_a_writer_that_would_lose_a_name_map_row_without_saying_so_is_refused(self):
+        """A rename gives a new key: the old row (and its pnm_ columns) would go with no word, so the write stops."""
+        held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
+        mine = D.device_map_rows(held, ("1",))
+        first = next(r for r in mine if any(h["user_name"] == r["user_name"] and h["layer"] == r["layer"]
+                                            and h["pnm_order"] for h in held))
+        renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
+        with self.assertRaisesRegex(D.DevicesError, rf"would drop 1 row\(s\).*{first['user_name']!r}.*pnm_order"):
+            D.outputs_after("build_staging_masts.py", renamed, self.files)
+        key = ("1", first["layer"], first["user_name"])
+        D.outputs_after("build_staging_masts.py", renamed, self.files, drops=[key])
 
     def test_a_writer_that_gives_a_row_a_hand_kept_row_has_is_refused(self):
         hand = next(r for r in D.load(self.files) if not r["written_by"] and r["layer"] == "turnout")
@@ -478,6 +491,44 @@ class ThePnmComments(unittest.TestCase):
         self.assertEqual(update.changed, 1)
         self.assertIn("Node: 99", update.texts[self.files.name_map])
         self.assertNotIn("Node: 99", update.texts[self.files.staging])
+
+
+class TheLoaderIsStrictAndCurrent(unittest.TestCase):
+    """The master is one validated file: a bad row anywhere stops the load and says where; a changed file is read again."""
+
+    def setUp(self):
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp)
+        self.path = self.tmp / "devices.csv"
+        shutil.copyfile(REAL.master, self.path)
+
+    def test_a_bad_row_names_the_file_the_line_and_the_row(self):
+        rows = [dict(r) for r in D.load(self.path)]
+        rows[4]["description"] = ""
+        self.path.write_text(D.master_text(rows), encoding="utf-8")
+        with self.assertRaises(D.DevicesError) as cm:
+            D.load(self.path)
+        self.assertIn(f"devices.csv: line 6 ({rows[4]['level']} {rows[4]['layer']} {rows[4]['user_name']!r}): "
+                      "description is empty", str(cm.exception))
+
+    def test_a_same_size_write_in_the_same_tick_is_read_again(self):
+        import os
+        before = os.stat(self.path)
+        rows = [dict(r) for r in D.load(self.path)]
+        old = rows[0]["description"]
+        rows[0]["description"] = old[:-1] + ("!" if old[-1] != "!" else "?")        # one character, the same length
+        self.path.write_text(D.master_text(rows), encoding="utf-8")
+        os.utime(self.path, ns=(before.st_atime_ns, before.st_mtime_ns))        # the same mtime too
+        after = os.stat(self.path)
+        self.assertEqual((after.st_size, after.st_mtime_ns), (before.st_size, before.st_mtime_ns))
+        self.assertEqual(D.load(self.path)[0]["description"], rows[0]["description"])
+
+    def test_a_line_break_in_a_field_is_refused_naming_the_row(self):
+        rows = [dict(r) for r in D.load(self.path)]
+        rows[2]["notes"] = "two\nlines"
+        self.path.write_text(D.master_text(rows), encoding="utf-8")
+        with self.assertRaisesRegex(D.DevicesError, rf"line \d+ \(.*{rows[2]['user_name']!r}\): notes hold a line break"):
+            D.load(self.path)
 
 
 class TheMasterFile(unittest.TestCase):

@@ -96,5 +96,17 @@ class LcosMimicNameMapTest(unittest.TestCase):
                 self.m.load_cps()
 
 
+    def test_a_bad_master_ends_main_with_one_line_naming_devices_csv(self) -> None:
+        import sys
+        from unittest import mock
+        err = self.m.devices.DevicesError("devices.csv: line 7 (2 mast 'Mast 1L'): description is empty")
+        with mock.patch.object(self.m, "load_layout", side_effect=err), \
+                mock.patch.object(self.m, "pick_mqtt_host", return_value="127.0.0.1"), \
+                mock.patch.object(sys, "argv", ["lcos_mqtt_mimic.py"]), \
+                self.assertRaises(SystemExit) as stop:
+            self.m.main()
+        self.assertEqual(stop.exception.code, f"lcos_mqtt_mimic.py: devices.csv cannot be used: {err}")
+
+
 if __name__ == "__main__":
     unittest.main()

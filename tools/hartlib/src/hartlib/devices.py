@@ -101,22 +101,22 @@ class Files:
 # ---------------------------------------------------------------- reading
 
 @lru_cache(maxsize=8)
-def _read(path: Path, mtime_ns: int, size: int) -> tuple[Mapping[str, str], ...]:
+def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
+    """The rows of a master's bytes. Cached on the bytes themselves, so a write of the same size in the same clock
+    tick can never return stale rows."""
     try:
-        fh = path.open(newline="", encoding="utf-8")
-    except OSError as exc:
-        raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
-    with fh:
-        reader = csv.reader(fh)
-        header = next(reader, None)
-        if header is None or tuple(header) != COLUMNS:
-            raise DevicesError(f"{path.name}: the header is not the master's columns "
-                               f"({', '.join(COLUMNS)}); got {header}")
-        rows = []
-        for line, fields in enumerate(reader, 2):
-            if len(fields) != len(COLUMNS):
-                raise DevicesError(f"{path.name} line {line}: {len(fields)} fields, expected {len(COLUMNS)}")
-            rows.append(MappingProxyType(dict(zip(COLUMNS, fields))))
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise DevicesError(f"{name}: not UTF-8 text ({exc.reason} at byte {exc.start})") from None
+    reader = csv.reader(io.StringIO(text, newline=""))
+    header = next(reader, None)
+    if header is None or tuple(header) != COLUMNS:
+        raise DevicesError(f"{name}: the header is not the master's columns ({', '.join(COLUMNS)}); got {header}")
+    rows = []
+    for line, fields in enumerate(reader, 2):
+        if len(fields) != len(COLUMNS):
+            raise DevicesError(f"{name} line {line}: {len(fields)} fields, expected {len(COLUMNS)}")
+        rows.append(MappingProxyType(dict(zip(COLUMNS, fields))))
     return tuple(rows)
 
 
@@ -128,14 +128,15 @@ def _master_path(source: "Files | Path | str | None") -> Path:
 
 def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], ...]:
     """The master's rows (read-only mappings), checked (check_rows). Read once per file state: the parse is cached on
-    the file's mtime and size, so every reader of one run shares it. `files` is the Files of a copy, or the master's
-    own path. DevicesError on any problem."""
+    the file's bytes, so every reader of one run shares it and a changed file is always read again. `files` is the
+    Files of a copy, or the master's own path. A bad row ANYWHERE stops the load (check_rows names its line and row),
+    since the master is one validated file; there is no way round it. DevicesError on any problem."""
     path = _master_path(files)
     try:
-        st = path.stat()
+        data = path.read_bytes()
     except OSError as exc:
         raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
-    rows = _read(path, st.st_mtime_ns, st.st_size)
+    rows = _read(path.name, data)
     check_rows(rows, path.name)
     return rows
 
@@ -204,6 +205,9 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
         if r["layer"] not in LAYERS:
             bad.append(f"{at}: layer is one of {', '.join(LAYERS)}")
             continue
+        broken = [c for c in COLUMNS if "\n" in r[c] or "\r" in r[c]]
+        if broken:
+            bad.append(f"{at}: {', '.join(broken)} hold a line break (a record would no longer be one file line)")
         unknown = False
         for col, allowed in (("role", ROLES), ("assignment", ASSIGNMENTS), ("written_by", ("",) + WRITERS)):
             if r[col] not in allowed:
@@ -392,11 +396,13 @@ def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | N
 
 # ---------------------------------------------------------------- writing
 
-def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[Mapping[str, str]]
-                 ) -> list[dict[str, str]]:
+def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[Mapping[str, str]],
+                 drops: Iterable[tuple[str, str, str]] = ()) -> list[dict[str, str]]:
     """`rows` with the rows `writer` holds replaced by `new` (master rows with written_by == writer), sorted into the
     master's order (stable). DevicesError when the writer is not in WRITERS, a new row names another writer or
-    would take a key (level, layer, user_name) a row held by someone else has, or the result breaks check_rows."""
+    would take a key (level, layer, user_name) a row held by someone else has, a row of the writer that has a place
+    in the name map (pnm_order) would go with no new row of its key (a rename would lose its pnm_ columns silently:
+    name it in `drops` when the name map is meant to lose it), or the result breaks check_rows."""
     if writer not in WRITERS:
         raise DevicesError(f"writer {writer!r} is not one of {', '.join(WRITERS)}")
     rows, new = [dict(r) for r in rows], [dict(r) for r in new]
@@ -410,6 +416,14 @@ def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[M
     if clash:
         raise DevicesError(f"{writer} would rewrite row(s) it does not hold: "
                            + ", ".join(f"{k[2]!r} ({k[1]}, level {k[0]}; held by {others[k] or 'hand'})" for k in clash[:5]))
+    kept = {(r["level"], r["layer"], r["user_name"]) for r in new} | set(drops)
+    lost = [r for r in rows if r["written_by"] == writer and r["pnm_order"]
+            and (r["level"], r["layer"], r["user_name"]) not in kept]
+    if lost:
+        raise DevicesError(f"{writer} would drop {len(lost)} row(s) that have a place in the name map (pnm_order), "
+                           "first " + ", ".join(f"{r['user_name']!r} ({r['layer']}, level {r['level']}, pnm_order "
+                                                f"{r['pnm_order']})" for r in lost[:5])
+                           + "; a renamed row loses its pnm_ columns: pass it in drops if the name map is to lose it")
     out = [r for r in rows if r["written_by"] != writer] + new
     out.sort(key=_rank)
     check_rows(out, "devices.csv after the write")
@@ -456,8 +470,8 @@ def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Pat
             f.main_upper: device_map_text(rows, ("2", "3")), f.name_map: name_map_text(rows)}
 
 
-def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None
-                       ) -> dict[Path, str]:
+def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
+                       drops: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
     """{path: text} of the master and the three generated files once `writer` has written `new`, master rows with
     written_by set to it, in place of the rows it holds. Each row keeps the pnm_ columns of the row it replaces.
     The caller writes the texts (or compares them for --check); nothing is written here. DevicesError when the
@@ -472,18 +486,18 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
         if old is not None and old["written_by"] == writer:
             row.update({c: old[c] for c in COLUMNS if c.startswith("pnm_")})
         rows.append(row)
-    return texts(replace_rows(held, writer, rows), f)
+    return texts(replace_rows(held, writer, rows, drops), f)
 
 
-def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None
-                  ) -> dict[Path, str]:
+def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
+                  drops: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
     """outputs_after_rows for `old_rows`, old-form device-map rows (master_row gives each its master form). What a
     reader of the generated file sees for these rows is what the writer gave; DevicesError when it is not."""
     f = files or Files.here()
     old_rows = list(old_rows)
     prior = {(r["level"], r["layer"], r["user_name"]): r for r in load(f)}
     new = [master_row(o, writer, prior.get((str(o["level"]), o["layer"], o["user_name"]))) for o in old_rows]
-    out = outputs_after_rows(writer, new, f)
+    out = outputs_after_rows(writer, new, f, drops)
     want = {(str(o["level"]), o["layer"], o["user_name"]): {c: str(o[c]) for c in DEVICE_COLUMNS} for o in old_rows}
     held = {(r["level"], r["layer"], r["user_name"]): device_map_row(r)
             for r in csv.DictReader(io.StringIO(out[f.master])) if r["written_by"] == writer}

@@ -122,7 +122,10 @@ class Rebuild(unittest.TestCase):
             prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
             mine = [devices.master_row(r, "build_staging_masts.py", prior.get((r["level"], r["layer"], r["user_name"])))
                     for r in rows if r["layer"] in bsm.WRITES]
-            held = devices.replace_rows(held, "build_staging_masts.py", mine)
+            # the edit may rename a row (that is the test); the name map is meant to lose its old name here
+            gone = {(r["level"], r["layer"], r["user_name"]) for r in held if r["written_by"] == "build_staging_masts.py"} \
+                - {(r["level"], r["layer"], r["user_name"]) for r in mine}
+            held = devices.replace_rows(held, "build_staging_masts.py", mine, drops=gone)
             for path, text in devices.texts(held, files).items():
                 path.write_text(text, encoding="utf-8")
             with unittest.mock.patch.object(bsm, "DEVICE_MAP", files.master), \

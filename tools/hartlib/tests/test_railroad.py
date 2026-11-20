@@ -542,6 +542,13 @@ class VirtualNames(unittest.TestCase):
         """A row as build_device_map makes it: from_dict gives it its role (devices.role_of)."""
         return R.DeviceRow.from_dict(dict(level="2", layer=layer, user_name=user, jmri_name=jmri))
 
+    def test_a_row_built_by_hand_is_never_roleless(self) -> None:
+        self.assertEqual(R.DeviceRow(level=2, layer="turnout", user_name="DCC Switch 1").role, "lcc_alias")
+        self.assertEqual(R.DeviceRow(level=2, layer="head", user_name="Head 2L").role, "head")
+        self.assertEqual(R.DeviceRow(level=2, layer="mast", user_name="Mast 1L", jmri_name="IF$vsm:basic:x").role,
+                         "hidden")
+        self.assertEqual(R.DeviceRow(level=2, layer="turnout", user_name="Switch 1", role="turnout").role, "turnout")
+
     def test_from_dict_gives_the_role_a_reader_tests(self) -> None:
         self.assertEqual(self.row("turnout", "DCC Switch 1", "IT:HART:C3:1").role, "lcc_alias")
         self.assertEqual(self.row("turnout", "Switch 1", "IT:HART:C3:1").role, "turnout")

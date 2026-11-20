@@ -265,8 +265,10 @@ def _yes(value: str, where: str) -> bool:
 def switch_turnouts(name_map: Path, rows: list[tuple[int, dict[str, str]]] | None = None,
                     numbers: Iterable[int] = ()) -> dict[int, dict[str, str]]:
     """Switch number -> the live turnout row ("Switch <n>", current == proposed) of the name map, for the
-    switches `numbers`. Only those rows are looked at: a bad row elsewhere in the map is the railroad-facts check's
-    to report (read_name_map), not a reason to stop loading switches. Stops on a switch with two live rows."""
+    switches `numbers`. Only those rows are looked at for the answer; a name-map fault of another row (an unknown
+    layer, a bad DCC address: read_name_map) is the railroad-facts check's to report. A bad row ANYWHERE in the master
+    stops the load first (hartlib.devices.load checks the whole file, naming its line and row). Stops on a switch with
+    two live rows."""
     want = {f"Switch {n}": n for n in numbers}
     out: dict[int, dict[str, str]] = {}
     lines: dict[int, int] = {}
@@ -660,6 +662,12 @@ class DeviceRow:
     dir: str = ""
     line: int = 0
 
+    def __post_init__(self) -> None:
+        if not self.role:           # a row built by hand is never roleless: the role its layer and names give
+            from . import devices
+            object.__setattr__(self, "role", devices.role_of(self.layer, self.user_name, self.system_name,
+                                                             self.jmri_name))
+
     @property
     def served(self) -> list[str]:
         """An occupancy row's blocks, in order."""
@@ -677,12 +685,8 @@ class DeviceRow:
 
     @classmethod
     def from_dict(cls, row: dict, line: int = 0) -> "DeviceRow":
-        """A row as build_device_map.py makes it (str or int level); its role is the one devices.role_of gives."""
-        from . import devices
-        fields = {k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"}
-        fields.setdefault("role", devices.role_of(fields["layer"], fields["user_name"], fields.get("system_name", ""),
-                                                  fields.get("jmri_name", "")))
-        return cls(line=line, **fields)
+        """A row as build_device_map.py makes it (str or int level); __post_init__ gives it the role devices.role_of says."""
+        return cls(line=line, **{k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"})
 
 
 DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are the name map's
