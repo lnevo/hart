@@ -39,21 +39,20 @@ class WordsTest(unittest.TestCase):
 
 
 class FilmTimingTest(unittest.TestCase):
-    def test_always_thirty_seconds_with_the_last_held(self):
-        for n in (2, 38, 70, 200):
-            d = evolution.film_durations(n)
-            self.assertEqual(len(d), n)
-            self.assertAlmostEqual(sum(d), 30, places=2)
-            self.assertAlmostEqual(d[-1], 2, places=2)
+    def test_site_film_uses_the_shared_pace(self):
+        self.assertEqual(evolution.film_pace.STEP_S, 0.4)
+        self.assertEqual(evolution.film_pace.FINAL_HOLD_S, 2.0)
 
-    def test_too_many_versions_stops_with_a_message(self):
-        with self.assertRaises(SystemExit) as e:
-            evolution.film_durations(800)
-        self.assertIn("lengthen FILM_S", str(e.exception))
+    def test_length_grows_with_the_versions(self):
+        for n in (2, 38, 70, 200):
+            d = evolution.film_pace.durations(n)
+            self.assertEqual(len(d), n)
+            self.assertAlmostEqual(sum(d), 0.4 * (n - 1) + 2.0, places=3)
+            self.assertEqual(d[-1], 2.0)
 
     def test_one_version_is_an_error(self):
         with self.assertRaises(ValueError):
-            evolution.film_durations(1)
+            evolution.film_pace.durations(1)
 
 
 class PageTest(unittest.TestCase):

@@ -14,7 +14,7 @@ the SVG with Chrome, or sips without it); needs Pillow, which the repo's root .v
 Default folder: ~/Documents/Layout/schematic-evolution (outside the repo; frames are large).
 
 --site also makes the copy the website shows, after the frames are up to date: schematic-evolution.mp4 (H.264,
-yuv420p, faststart, 30 seconds long however many versions there are, the last frame held 2 s) and schematic-poster.jpg (the last frame) in
+yuv420p, faststart, 0.4 s a version and the last frame held 2 s, the pace of all four site films: hartlib.film_pace) and schematic-poster.jpg (the last frame) in
 www/assets/behind/panel-evolution/, and it sets the version count and dates in the caption and aria-label of
 www/behind/panel-evolution.html (the spans marked data-film, and the count in words). It needs ffmpeg and stops
 with a message without it.
@@ -34,6 +34,9 @@ import tempfile
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import film_pace  # noqa: E402
 REPO = Path(subprocess.run(["git", "rev-parse", "--show-toplevel"], cwd=HERE, capture_output=True,
                            text=True, check=True).stdout.strip())
 SPIKE = "tools/schematic/spike"
@@ -45,7 +48,6 @@ PRIORITY = ["signals_sample.svg", "system_sample.svg", "main_asbuilt_sample.svg"
 WIDTH = 1400
 STEP_MS, HOLD_MS = 1600, 5000  # the GIF: each version's time on screen, and the last version's
 FPS = 25
-FILM_S, FILM_HOLD_S = 30.0, 2.0  # the site film always runs FILM_S seconds, however many versions there are
 SITE = REPO / "www/assets/behind/panel-evolution"
 PAGE = REPO / "www/behind/panel-evolution.html"
 MP4, POSTER = "schematic-evolution.mp4", "schematic-poster.jpg"
@@ -117,16 +119,6 @@ ONES = "zero one two three four five six seven eight nine ten eleven twelve thir
        "seventeen eighteen nineteen".split()
 TENS = "_ _ twenty thirty forty fifty sixty seventy eighty ninety".split()
 MONTHS = "January February March April May June July August September October November December".split()
-
-
-def film_durations(n):
-    """Seconds on screen for each of n versions: the last held FILM_HOLD_S, the rest sharing the remainder."""
-    if n < 2:
-        raise ValueError(f"{n} version: the film needs at least two")
-    step = round((FILM_S - FILM_HOLD_S) / (n - 1), 4)
-    if step < 1 / FPS:
-        sys.exit(f"{n} versions in {FILM_S:.0f} s is under one frame ({FPS} fps) each: lengthen FILM_S in evolution.py")
-    return [step] * (n - 1) + [round(FILM_S - step * (n - 1), 4)]
 
 
 def words(n):
@@ -222,7 +214,7 @@ def site(frames, todo, out=SITE, page=PAGE):
         sys.exit(f"{out} not found")
     with tempfile.TemporaryDirectory() as tmp:
         lines = []
-        secs = film_durations(len(frames))
+        secs = film_pace.durations(len(frames))
         for i, f in enumerate(frames):
             f.save(Path(tmp) / f"{i:03d}.png")
             lines += [f"file '{i:03d}.png'", f"duration {secs[i] - (0.04 if i == len(frames) - 1 else 0)}"]
@@ -231,7 +223,7 @@ def site(frames, todo, out=SITE, page=PAGE):
         # fps=25 makes a steady-rate film: a variable-rate one reports a shorter length and browsers cut its hold
         (Path(tmp) / "list.txt").write_text("\n".join(lines) + "\n")
         film = Path(tmp) / MP4
-        run = subprocess.run([ffmpeg, "-v", "error", "-y", "-f", "concat", "-i", "list.txt", "-vf", f"fps={FPS}", "-t", str(FILM_S),
+        run = subprocess.run([ffmpeg, "-v", "error", "-y", "-f", "concat", "-i", "list.txt", "-vf", f"fps={FPS}", "-t", str(film_pace.film_length(len(frames))),
                               "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-pix_fmt", "yuv420p",
                               "-movflags", "+faststart", MP4], cwd=tmp, capture_output=True, text=True)
         if run.returncode or not film.exists():
