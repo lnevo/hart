@@ -57,6 +57,7 @@ if [[ -f "@TMP@/win_ok" ]]; then
   case "$cmd" in
     *"New-Item -ItemType Directory"*) echo 'C:\Temp\hart-deploy-fake'; exit 0 ;;
     *"tar -xzf _pkg.tgz"*) exit 0 ;;
+    *hart-probe-*) [[ ! -f "@TMP@/win_no_tar" ]] || { echo "tar: not found" >&2; exit 1; }; exit 0 ;;
     *apply_hart_package_local.ps1*) exit "$(cat "@TMP@/win_apply_rc")" ;;
   esac
 fi

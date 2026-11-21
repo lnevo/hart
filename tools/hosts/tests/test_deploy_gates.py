@@ -72,6 +72,8 @@ OPERATING = ROOT / "tools/hosts/operating.sh"
 # Read-only ssh calls a gate step may make: the no-ops, the unpulled check, the restart check.
 READ_ONLY_COMMANDS = ("true", "exit 0", "bash -s")
 UNPULLED_PREFIX = "bash -s -- '"
+# The Windows probe (gate.sh): makes and removes a temp folder and looks for tar; it names itself with this.
+WIN_PROBE = "hart-probe-"
 
 
 def is_read_only(call: str) -> bool:
@@ -82,7 +84,7 @@ def is_read_only(call: str) -> bool:
     for host in (PI, f"nobody@{WIN}"):
         if f" {host} " in call:
             command = call.split(f" {host} ", 1)[1]
-            return command in READ_ONLY_COMMANDS or command.startswith(UNPULLED_PREFIX)
+            return command in READ_ONLY_COMMANDS or command.startswith(UNPULLED_PREFIX) or WIN_PROBE in command
     raise AssertionError(f"an ssh call to no known host: {call}")
 
 
@@ -384,9 +386,10 @@ class WhatShipsWhere(GateHarness):
         self.assertEqual([], self.ship_log())
 
 
-class ShippingStartsBeforeSomeGates(GateHarness):
-    """Gates that run after the Mac install has begun (see the map): pinned as they are today, so a split that
-    moves them does it on purpose."""
+class EveryCheckRunsBeforeAnythingShips(GateHarness):
+    """The four gates that used to run after shipping had started (the Mac Store check, staging, Windows' scp, tar
+    and temp folder, the operating flag) now run in the gate step: a failure leaves the Mac, the Pi and Windows as
+    they were."""
 
     def mac_store(self) -> Path:
         uf = self.tmp / "home/JMRI_UserFiles"
@@ -395,14 +398,19 @@ class ShippingStartsBeforeSomeGates(GateHarness):
         (uf / ".tables_deployed.sha256").write_text("0" * 64 + "\n", encoding="utf-8")
         return uf
 
-    def test_a_mac_store_stops_after_the_mac_install_began_but_before_any_host(self) -> None:
+    def mac_files(self) -> list[str]:
+        home = self.tmp / "home"
+        return sorted(str(p.relative_to(home)) for p in home.rglob("*")) if home.exists() else []
+
+    def test_a_mac_store_stops_before_the_mac_install_begins(self) -> None:
         uf = self.mac_store()
         done = self.deploy("--pi", "--win")
         self.assertIn(f"STOP: {uf}/tables.xml changed since the last deploy (a PanelPro Store)", done.stderr)
         self.assert_nothing_shipped(done)
         self.assertEqual("<!-- a Store the owner saved -->\n", (uf / "tables.xml").read_text())
-        self.assertFalse(self.mac_installed(), "the Mac stamp is written last")
-        # the hosts were asked first: both no-ops and the Pi's unpulled check ran before the Mac gate
+        self.assertEqual(["JMRI_UserFiles", "JMRI_UserFiles/.tables_deployed.sha256", "JMRI_UserFiles/tables.xml"],
+                         self.mac_files(), "the Mac install began before the Store check")
+        # the hosts are still asked first: both no-ops and the Pi's unpulled check ran before the Mac gate
         self.assertTrue(any(" bash -s -- '" in c for c in self.calls()), self.calls())
 
     def test_the_mac_store_gate_stops_a_mac_only_run_too(self) -> None:
@@ -410,23 +418,51 @@ class ShippingStartsBeforeSomeGates(GateHarness):
         done = self.deploy()
         self.assertEqual(1, done.returncode)
         self.assertIn("a PanelPro Store", done.stderr)
+        self.assertEqual(3, len(self.mac_files()))
 
-    def test_a_staging_failure_comes_after_the_mac_install_and_before_any_host_step(self) -> None:
+    def test_a_staging_failure_stops_before_the_mac_install(self) -> None:
         (self.tmp / "fail_stage").touch()
         done = self.deploy("--pi", "--win")
-        self.assertNotEqual(0, done.returncode)
         self.assertIn("stand-in: staging failed", done.stderr)
-        self.assertTrue(self.mac_installed(), "staging ran before the Mac install: the map is out of date")
-        self.assertEqual([], self.shipped(), self.calls())
-        self.assertNotIn("Deploy →", done.stdout)
-        self.assertEqual([], sorted(p.name for p in self.scratch.iterdir()), "staging left behind")
+        self.assert_nothing_shipped(done)
+        self.assertEqual([], self.mac_files(), "the Mac install ran before the package was known to build")
 
-    def test_a_windows_failure_comes_after_the_pi_is_done(self) -> None:
-        (self.tmp / "pi_ok").touch()          # the Pi takes the package; Windows gives no drop folder
+    def test_a_windows_failure_stops_before_the_pi_is_touched(self) -> None:
+        (self.tmp / "pi_ok").touch()          # the Pi would take the package; Windows gives no answer to the probe
         done = self.deploy("--pi", "--win")
-        self.assertNotEqual(0, done.returncode)
-        self.assertIn("Pi deploy done.", done.stdout)
-        self.assertIn("The Pi has this deploy", done.stderr)
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: Windows", done.stderr)
+        self.assert_nothing_shipped(done)
+        self.assertNotIn("Pi deploy done.", done.stdout)
+        self.assertNotIn("The Pi has this deploy", done.stderr)
+        self.assertEqual([], self.mac_files())
+
+    def test_windows_without_tar_stops_before_anything_ships(self) -> None:
+        self.hosts_ok()
+        (self.tmp / "win_no_tar").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: Windows", done.stderr)
+        self.assertIn("tar", done.stderr)
+        self.assert_nothing_shipped(done)
+        self.assertEqual([], self.mac_files())
+
+    def test_the_windows_probe_is_not_asked_of_a_pi_only_deploy(self) -> None:
+        self.hosts_ok()
+        done = self.deploy("--pi")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertFalse(any(WIN in c for c in self.calls()), self.calls())
+
+    def test_a_passing_run_probes_windows_once_then_ships_in_order(self) -> None:
+        self.hosts_ok()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        calls = self.calls()
+        probes = [i for i, c in enumerate(calls) if WIN_PROBE in c]
+        self.assertEqual(1, len(probes), calls)
+        first_pi_ship = next(i for i, c in enumerate(calls) if c.startswith("rsync "))
+        self.assertLess(probes[0], first_pi_ship, "the Windows probe came after the Pi was shipped")
+        self.assertLess(done.stdout.index("deploy stamp ->"), done.stdout.index("Deploy → Pi"))
 
 
 class ParkedFeaturesAreNotInstalled(GateHarness):
@@ -492,6 +528,24 @@ class OperatingFlagRefusal(unittest.TestCase):
                 self.assertEqual(2, done.returncode, done.stdout + done.stderr)
                 self.assertIn("the operating flag is set", done.stderr)
                 self.assertIn("a deploy to the Pi or Windows", done.stderr)
+
+    def test_the_split_deploy_scripts_are_refused_while_the_flag_is_set(self) -> None:
+        """tools/hosts/deploy/: the ship steps for a host and the gate with a host flag name a host, whatever runs
+        them. The Mac step, staging and a gate for the Mac stay open."""
+        self.operating("on", "ops session")
+        for command in ("./tools/hosts/deploy/ship_pi.sh /tmp/stage/pi", "bash tools/hosts/deploy/ship_win.sh /tmp/stage/win",
+                        "tools/hosts/deploy/ship_pi.sh --dry-run /tmp/stage/pi",
+                        "./tools/hosts/deploy/gate.sh --pi --win", "bash tools/hosts/deploy/gate.sh --win --dry-run",
+                        "cd tools/hosts/deploy && ./ship_win.sh /tmp/stage/win"):
+            with self.subTest(command=command):
+                done = self.hook(command)
+                self.assertEqual(2, done.returncode, done.stdout + done.stderr)
+                self.assertIn("the operating flag is set", done.stderr)
+        for command in ("./tools/hosts/deploy/ship_mac.sh", "./tools/hosts/deploy/stage.sh --pi --win /tmp/stage",
+                        "./tools/hosts/deploy/gate.sh", "./tools/hosts/deploy/gate.sh --mac --dry-run"):
+            with self.subTest(command=command):
+                done = self.hook(command)
+                self.assertEqual(0, done.returncode, done.stdout + done.stderr)
 
     def test_the_mac_only_deploy_stays_open_while_the_flag_is_set(self) -> None:
         self.operating("on", "ops session")
