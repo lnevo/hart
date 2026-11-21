@@ -185,7 +185,7 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
     name). Run on every load and after every write."""
     bad, keys, jmri, field_systems = [], {}, {}, {}
     ranks, pnm = [], {}
-    parts, part_names, whole = [], set(), set()      # (row, part_of) of each part; the parts' and blocks' names
+    parts, part_names, whole = [], set(), set()      # (row, level, part_of) of each part; (level, name) of parts, blocks
     for n, r in enumerate(rows, 2):
         at = f"line {n} ({r['level']} {r['layer']} {r['user_name']!r})"
         if r["level"] not in LEVELS:
@@ -255,20 +255,21 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
         if r["part_of"]:
             if r["layer"] != "block":
                 bad.append(f"{at}: part_of is for a block row (a piece of track inside another block)")
-            made = [c for c in ("system_name", "jmri_name", "layout_block", "stop", "node") if r[c]]
+            made = [c for c in ("system_name", "jmri_name", "layout_block", "stop", "node", "detector", "wiring",
+                                "dcc") if r[c]]
             if made or a != "none":
                 bad.append(f"{at}: a part makes no JMRI block of its own, so assignment none and no "
                            + ", ".join(made or ["JMRI name"]))
-            parts.append((at, r["part_of"]))
-            part_names.add(r["user_name"])
+            parts.append((at, r["level"], r["part_of"]))
+            part_names.add((r["level"], r["user_name"]))
         elif r["layer"] == "block":
-            whole.add(r["user_name"])
+            whole.add((r["level"], r["user_name"]))
         if not unknown:
             ranks.append((_rank(r), n))
-    for at, target in parts:
-        if target in part_names:
+    for at, level, target in parts:            # the block a part names is on the part's own level
+        if (level, target) in part_names:
             bad.append(f"{at}: part_of {target!r} is itself a part (a part names a whole block: no chain or cycle)")
-        elif target not in whole:
+        elif (level, target) not in whole:
             bad.append(f"{at}: part_of {target!r} is no block row")
     for (a, na), (b, nb) in zip(ranks, ranks[1:]):
         if b < a:

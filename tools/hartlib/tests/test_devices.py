@@ -246,9 +246,17 @@ class TheParts(unittest.TestCase):
 
     def test_a_part_makes_no_jmri_device(self):
         for col, value in (("assignment", "field"), ("system_name", "IB9"), ("jmri_name", "IB9"),
-                           ("layout_block", "ILB9"), ("stop", "yes"), ("node", "4")):
+                           ("layout_block", "ILB9"), ("stop", "yes"), ("node", "4"), ("detector", "wired"),
+                           ("wiring", "Node: 4 Block: 2"), ("dcc", "100")):
             with self.subTest(col):
                 self.assertIn("a part makes no JMRI block", problems([block(), part(**{col: value})]))
+
+    def test_the_block_it_names_is_on_the_parts_own_level(self):
+        other = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
+        self.assertIn("part_of 'OS Switch 9' is no block row", problems([part(), other]))
+        # a level 2 part that has a level 1 block's name is no part of a chain on level 1
+        other11 = other | {"user_name": "OS Switch 11"}
+        D.check_rows([block(), part(), other11, part(level="2", user_name="OS Switch 9", part_of="OS Switch 11")])
 
     def test_the_block_it_names_must_exist(self):
         self.assertIn("part_of 'OS Switch 11' is no block row", problems([block(), part(part_of="OS Switch 11")]))
