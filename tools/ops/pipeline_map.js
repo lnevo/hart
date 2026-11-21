@@ -551,25 +551,14 @@ function app() {
     document.getElementById("showall").hidden = !all;
     document.getElementById("clearf").hidden = !filtersChanged();
     strip2.hidden = !(view.focus || filtersChanged());  // the second row only while there is a file view or a changed filter
-    updateStart();
   }
   const strip2 = document.getElementById("strip2");
   document.getElementById("clearf").onclick = clearFilters;
   document.getElementById("showall").onclick = () => {
     view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
     view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
-    startShut = false;  // the start buttons come back over the map
     syncControls(); render(false); writeHash();
   };
-
-  /* ---- start buttons over the map: shown until a file is picked or a box selected; they do not block panning */
-  const startCard = document.getElementById("startcard");
-  let startShut = false;
-  function updateStart() {  // shown until a file or a box is first picked, and again after Whole map
-    if (view.focus || selected) startShut = true;
-    startCard.hidden = startShut || !DATA.presets.length;
-  }
-  startCard.querySelector(".x").onclick = () => { startShut = true; updateStart(); };
 
   /* ---- overview in the corner: the whole drawing as plain boxes, with a box round what the main view shows */
   const nav = document.getElementById("nav");
@@ -590,7 +579,6 @@ function app() {
     return Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
   }
   function updateNav() {
-    updateStart();
     if (!navRect) return;
     const open = info.style.display === "block", narrow = innerWidth <= 900;
     // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
@@ -667,7 +655,7 @@ function app() {
     updateNav();
     if (!user) return;
     const was = trimmed();
-    selected = null; updateStart();
+    selected = null;
     if (was) render(false);  // "highlighted only" drew just that chain: bring the rest back
     writeHash();
   }
@@ -879,7 +867,6 @@ function app() {
   const presetBtns = DATA.presets.map((pr, i) =>
     `<button data-preset="${i}" title="${esc(byId[pr.focus].label)}, ${pr.up} back and ${pr.down} on">${esc(pr.label)}</button>`).join("");
   document.getElementById("presets").innerHTML = presetBtns;
-  document.getElementById("startbtns").innerHTML = presetBtns;
   document.getElementById("startmenu").hidden = !DATA.presets.length;
   function usePreset(e) {
     const b = e.target.closest("button[data-preset]");
@@ -892,7 +879,6 @@ function app() {
     syncControls(); render(false); writeHash();
   }
   document.getElementById("presets").addEventListener("click", usePreset);
-  document.getElementById("startbtns").addEventListener("click", usePreset);
 
   /* ---- menus: opening one closes the others (a menu inside an open one stays); a click elsewhere closes them all.
      On a phone the menus and buttons after Find move into the Menu panel. */
@@ -914,6 +900,66 @@ function app() {
   }
   phone.addEventListener("change", () => { menus.forEach(m => (m.open = false)); placeMenus(); });
   placeMenus();
+
+  /* ---- tour: a few steps over the main controls for a first visit; Skip or Done ends it for good on this browser,
+     and the ? button runs it again. A visit that opens a shared link (any address after #) is not interrupted. */
+  const tour = document.getElementById("tour"), TOUR_KEY = "pipelineMapTourDone";
+  const TOUR = [
+    { at: ["#file", "#browse"], title: "Pick a file",
+      text: "Type a file's name, or find it by folder under Browse. The map then draws its chain: everything it is built from on the left, everything built from it on the right." },
+    { at: ["#startmenu"], title: "Or start from a common chain",
+      text: "Start opens the chains people ask about most: tables.xml, the CTC desk, the device master, wiring, Operations Pro, car cards and the website build." },
+    { at: [], title: "Click a box",
+      text: "A click lights up what feeds the box (amber) and what it feeds (blue), and opens its details on the right. Double-click a box to draw its chain on its own." },
+    { at: ["#viewmenu"], title: "Calm the drawing",
+      text: "View holds compact (names only, on to start with), folders (one box per folder on the whole map) and highlighted only (just the chain of the box you clicked)." },
+    { at: ["#lanes"], title: "Filter",
+      text: "Filters picks the lanes and kinds of box, and whether parked and retired work shows. Clear filters, under the toolbar, puts them back." },
+    { at: ["#btns"], title: "Move around and share",
+      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Share copies a link that opens this exact view. The ? button runs this tour again." },
+  ];
+  let tourAt = -1, tourOn = [];
+  const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden
+  function tourShow(i) {
+    tourOn.forEach(el => el.classList.remove("tour-on"));
+    tourAt = i;
+    const step = TOUR[i];
+    // a control folded into the phone menu is pointed at through the Menu button
+    tourOn = step.at.map(sel => document.querySelector(sel)).map(el => (shown(el) ? el : document.querySelector("#more"))).filter(shown);
+    tourOn = [...new Set(tourOn)];
+    tourOn.forEach(el => el.classList.add("tour-on"));
+    tour.querySelector(".tt").textContent = step.title;
+    tour.querySelector(".tx").textContent = step.text;
+    tour.querySelector(".tn").textContent = `${i + 1} of ${TOUR.length}`;
+    tour.querySelector(".back").hidden = i === 0;
+    tour.querySelector(".next").textContent = i === TOUR.length - 1 ? "Done" : "Next";
+    tour.hidden = false;
+    const w = tour.offsetWidth, h = tour.offsetHeight;
+    if (tourOn.length) {
+      const rs = tourOn.map(el => el.getBoundingClientRect());
+      const left = Math.min(...rs.map(r => r.left)), bottom = Math.max(...rs.map(r => r.bottom));
+      tour.style.left = Math.max(10, Math.min(left, innerWidth - w - 10)) + "px";
+      tour.style.top = Math.min(bottom + 12, innerHeight - h - 10) + "px";
+    } else {  // the map itself: the middle of the screen
+      tour.style.left = (innerWidth - w) / 2 + "px";
+      tour.style.top = (innerHeight - h) / 2 + "px";
+    }
+    tour.querySelector(".next").focus({ preventScroll: true });  // a scroll would slide the toolbar under the site header
+  }
+  function tourEnd() {
+    tourOn.forEach(el => el.classList.remove("tour-on"));
+    tourOn = []; tourAt = -1; tour.hidden = true;
+    try { localStorage.setItem(TOUR_KEY, "1"); } catch (e) { /* storage off: the tour may show again next visit */ }
+  }
+  tour.querySelector(".next").onclick = () => (tourAt === TOUR.length - 1 ? tourEnd() : tourShow(tourAt + 1));
+  tour.querySelector(".back").onclick = () => tourShow(Math.max(0, tourAt - 1));
+  tour.querySelector(".skip").onclick = tourEnd;
+  document.getElementById("tourbtn").onclick = () => { menus.forEach(m => (m.open = false)); tourShow(0); };
+  addEventListener("resize", () => { if (tourAt >= 0) tourShow(tourAt); });
+  document.addEventListener("keydown", e => { if (tourAt >= 0 && e.key === "Escape") { e.stopImmediatePropagation(); tourEnd(); } }, true);
+  let tourDone = false;
+  try { tourDone = localStorage.getItem(TOUR_KEY) === "1"; } catch (e) { tourDone = false; }
+  if (!tourDone && !location.hash) setTimeout(() => tourShow(0), 400);
 
   /* ---- share: the address with the view as it is now, zoom and position included, copied to the clipboard */
   document.getElementById("share").onclick = () => {

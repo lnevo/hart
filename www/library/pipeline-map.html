@@ -47,17 +47,18 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #lanelist>label.inl{display:inline-block;margin-right:10px}
 #presets{display:flex;flex-direction:column;gap:4px;align-items:stretch}
 #more{display:none;position:static}
-#startcard{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;pointer-events:none}
-#startcard[hidden]{display:none}
-#startcard .card{pointer-events:auto;position:relative;padding:14px 18px 16px;max-width:min(560px,calc(100vw - 40px));text-align:center;opacity:.96}
-#startcard .t{font-size:15px;font-weight:700;margin-bottom:8px}
-#startcard .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-#startcard button[data-preset]{font-size:14px;padding:7px 14px;cursor:pointer}
-#startcard .x{position:absolute;top:2px;right:6px;border:0;background:none;font-size:18px;cursor:pointer;color:#555}
 .node.folder .box{stroke-dasharray:7 4;stroke-width:2}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
+#tour{position:fixed;z-index:20;width:min(330px,calc(100vw - 20px));padding:12px 14px;box-sizing:border-box}
+#tour[hidden]{display:none}
+#tour .tt{font-weight:700;font-size:14px;margin-bottom:4px}
+#tour .tx{line-height:1.45}
+#tour .tb{display:flex;gap:6px;align-items:center;margin-top:10px}
+#tour .tn{color:#666;font-size:12px;margin-right:auto}
+#tour .skip{border:0;background:none;color:#555;text-decoration:underline;cursor:pointer;padding:0 4px}
+.tour-on{outline:3px solid #dc2626;outline-offset:3px;border-radius:4px}
 #nav{position:absolute;right:10px;bottom:10px;z-index:6;padding:4px;cursor:crosshair;touch-action:none;user-select:none}
 #nav[hidden]{display:none}
 #nav svg{display:block;width:auto;height:auto}
@@ -104,8 +105,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
  #morebody .pop{position:static;max-height:none;box-shadow:none;border:0;padding:4px 6px;white-space:normal;max-width:none}
  #morebody #btns{flex-wrap:wrap;white-space:normal}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
- #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}
- #startcard{align-items:flex-start;padding-top:140px}}
+ #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
 
 /* site look: the page is a column of site header and map; the panels float over the map in site tokens */
 html,body{height:100%;overflow:hidden}
@@ -117,9 +117,6 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #bar button{cursor:pointer}
 #bar button:hover,.menu>summary:hover{border-color:var(--brand-2)}
 #strip2{border-top-color:var(--rule);color:var(--ink-soft)}
-#startcard .t{font:700 1.2rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
-#startcard button[data-preset]{font:inherit;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:4px}
-#startcard button:hover{border-color:var(--brand-2)}
 #back,#lanelist a,#info a,#tree a{color:var(--brand-2)}
 #view{color:var(--ink-soft)}
 #info h2{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
@@ -156,7 +153,8 @@ svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
 </div></details>
 <span id="btns"><button id="showall" hidden title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button>
-<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button></span>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
+<button id="tourbtn" title="A short tour of the controls">?</button></span>
 <details id="more" class="menu"><summary>Menu ▾</summary><div id="morebody" class="panel"></div></details>
 </div>
 <div id="strip2" hidden><span id="view"></span>
@@ -167,9 +165,8 @@ svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
  <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
 <button id="clearf" hidden title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</button></div>
 </div>
-<div id="startcard" hidden><div class="card panel"><button class="x" title="Hide these buttons">×</button>
-<div class="t">Start with a chain</div><div class="btns" id="startbtns"></div>
-<div style="color:#666;margin-top:8px;font-size:12px">or pick a file in the File box, or click a box</div></div></div>
+<div id="tour" class="panel" hidden role="dialog" aria-label="Tour of the controls"><div class="tt"></div><div class="tx"></div>
+<div class="tb"><span class="tn"></span><button class="skip">Skip tutorial</button><button class="back">Back</button><button class="next">Next</button></div></div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)<div><span class="sw" style="background:#dbeafe;border-color:#1e40af"></span>Structured data</div><div><span class="sw" style="background:#fef3c7;border-color:#92400e"></span>Unstructured source</div><div><span class="sw" style="background:#dcfce7;border-color:#166534"></span>Generator / script</div><div><span class="sw" style="background:#f3e8ff;border-color:#6b21a8"></span>Generated output</div><div><span class="sw" style="background:#e5e7eb;border-color:#374151"></span>External tool / repo</div><div><span class="sw" style="background:#fee2e2;border-color:#991b1b"></span>Host / runtime</div><div><span class="sw" style="background:#fce7f3;border-color:#9d174d"></span>Hand work</div>
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
@@ -180,7 +177,7 @@ to an earlier step.</div>
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
 out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. A second row under the toolbar
 names the file and holds the step counters: left is what feeds it, right is what it feeds (0 hides that side, all runs to the end).
-<b>Start ▾</b> opens the chains people ask about most; the same buttons sit over the map until you pick a file or a box.
+<b>Start ▾</b> opens the chains people ask about most. A first visit gets a short tour of the controls; <b>?</b> runs it again.
 <b>Find</b> highlights the boxes that hold a piece of text.</div>
 <div><b>View ▾</b> holds <b>compact</b> (on to start with: boxes as names only; untick it for each box's path and description),
 <b>folders</b> (the whole map as one dashed box per folder; double-click a folder, or use Open in its panel, to see its files),
@@ -747,25 +744,14 @@ function app() {
     document.getElementById("showall").hidden = !all;
     document.getElementById("clearf").hidden = !filtersChanged();
     strip2.hidden = !(view.focus || filtersChanged());  // the second row only while there is a file view or a changed filter
-    updateStart();
   }
   const strip2 = document.getElementById("strip2");
   document.getElementById("clearf").onclick = clearFilters;
   document.getElementById("showall").onclick = () => {
     view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
     view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
-    startShut = false;  // the start buttons come back over the map
     syncControls(); render(false); writeHash();
   };
-
-  /* ---- start buttons over the map: shown until a file is picked or a box selected; they do not block panning */
-  const startCard = document.getElementById("startcard");
-  let startShut = false;
-  function updateStart() {  // shown until a file or a box is first picked, and again after Whole map
-    if (view.focus || selected) startShut = true;
-    startCard.hidden = startShut || !DATA.presets.length;
-  }
-  startCard.querySelector(".x").onclick = () => { startShut = true; updateStart(); };
 
   /* ---- overview in the corner: the whole drawing as plain boxes, with a box round what the main view shows */
   const nav = document.getElementById("nav");
@@ -786,7 +772,6 @@ function app() {
     return Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
   }
   function updateNav() {
-    updateStart();
     if (!navRect) return;
     const open = info.style.display === "block", narrow = innerWidth <= 900;
     // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
@@ -863,7 +848,7 @@ function app() {
     updateNav();
     if (!user) return;
     const was = trimmed();
-    selected = null; updateStart();
+    selected = null;
     if (was) render(false);  // "highlighted only" drew just that chain: bring the rest back
     writeHash();
   }
@@ -1075,7 +1060,6 @@ function app() {
   const presetBtns = DATA.presets.map((pr, i) =>
     `<button data-preset="${i}" title="${esc(byId[pr.focus].label)}, ${pr.up} back and ${pr.down} on">${esc(pr.label)}</button>`).join("");
   document.getElementById("presets").innerHTML = presetBtns;
-  document.getElementById("startbtns").innerHTML = presetBtns;
   document.getElementById("startmenu").hidden = !DATA.presets.length;
   function usePreset(e) {
     const b = e.target.closest("button[data-preset]");
@@ -1088,7 +1072,6 @@ function app() {
     syncControls(); render(false); writeHash();
   }
   document.getElementById("presets").addEventListener("click", usePreset);
-  document.getElementById("startbtns").addEventListener("click", usePreset);
 
   /* ---- menus: opening one closes the others (a menu inside an open one stays); a click elsewhere closes them all.
      On a phone the menus and buttons after Find move into the Menu panel. */
@@ -1110,6 +1093,66 @@ function app() {
   }
   phone.addEventListener("change", () => { menus.forEach(m => (m.open = false)); placeMenus(); });
   placeMenus();
+
+  /* ---- tour: a few steps over the main controls for a first visit; Skip or Done ends it for good on this browser,
+     and the ? button runs it again. A visit that opens a shared link (any address after #) is not interrupted. */
+  const tour = document.getElementById("tour"), TOUR_KEY = "pipelineMapTourDone";
+  const TOUR = [
+    { at: ["#file", "#browse"], title: "Pick a file",
+      text: "Type a file's name, or find it by folder under Browse. The map then draws its chain: everything it is built from on the left, everything built from it on the right." },
+    { at: ["#startmenu"], title: "Or start from a common chain",
+      text: "Start opens the chains people ask about most: tables.xml, the CTC desk, the device master, wiring, Operations Pro, car cards and the website build." },
+    { at: [], title: "Click a box",
+      text: "A click lights up what feeds the box (amber) and what it feeds (blue), and opens its details on the right. Double-click a box to draw its chain on its own." },
+    { at: ["#viewmenu"], title: "Calm the drawing",
+      text: "View holds compact (names only, on to start with), folders (one box per folder on the whole map) and highlighted only (just the chain of the box you clicked)." },
+    { at: ["#lanes"], title: "Filter",
+      text: "Filters picks the lanes and kinds of box, and whether parked and retired work shows. Clear filters, under the toolbar, puts them back." },
+    { at: ["#btns"], title: "Move around and share",
+      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Share copies a link that opens this exact view. The ? button runs this tour again." },
+  ];
+  let tourAt = -1, tourOn = [];
+  const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden
+  function tourShow(i) {
+    tourOn.forEach(el => el.classList.remove("tour-on"));
+    tourAt = i;
+    const step = TOUR[i];
+    // a control folded into the phone menu is pointed at through the Menu button
+    tourOn = step.at.map(sel => document.querySelector(sel)).map(el => (shown(el) ? el : document.querySelector("#more"))).filter(shown);
+    tourOn = [...new Set(tourOn)];
+    tourOn.forEach(el => el.classList.add("tour-on"));
+    tour.querySelector(".tt").textContent = step.title;
+    tour.querySelector(".tx").textContent = step.text;
+    tour.querySelector(".tn").textContent = `${i + 1} of ${TOUR.length}`;
+    tour.querySelector(".back").hidden = i === 0;
+    tour.querySelector(".next").textContent = i === TOUR.length - 1 ? "Done" : "Next";
+    tour.hidden = false;
+    const w = tour.offsetWidth, h = tour.offsetHeight;
+    if (tourOn.length) {
+      const rs = tourOn.map(el => el.getBoundingClientRect());
+      const left = Math.min(...rs.map(r => r.left)), bottom = Math.max(...rs.map(r => r.bottom));
+      tour.style.left = Math.max(10, Math.min(left, innerWidth - w - 10)) + "px";
+      tour.style.top = Math.min(bottom + 12, innerHeight - h - 10) + "px";
+    } else {  // the map itself: the middle of the screen
+      tour.style.left = (innerWidth - w) / 2 + "px";
+      tour.style.top = (innerHeight - h) / 2 + "px";
+    }
+    tour.querySelector(".next").focus({ preventScroll: true });  // a scroll would slide the toolbar under the site header
+  }
+  function tourEnd() {
+    tourOn.forEach(el => el.classList.remove("tour-on"));
+    tourOn = []; tourAt = -1; tour.hidden = true;
+    try { localStorage.setItem(TOUR_KEY, "1"); } catch (e) { /* storage off: the tour may show again next visit */ }
+  }
+  tour.querySelector(".next").onclick = () => (tourAt === TOUR.length - 1 ? tourEnd() : tourShow(tourAt + 1));
+  tour.querySelector(".back").onclick = () => tourShow(Math.max(0, tourAt - 1));
+  tour.querySelector(".skip").onclick = tourEnd;
+  document.getElementById("tourbtn").onclick = () => { menus.forEach(m => (m.open = false)); tourShow(0); };
+  addEventListener("resize", () => { if (tourAt >= 0) tourShow(tourAt); });
+  document.addEventListener("keydown", e => { if (tourAt >= 0 && e.key === "Escape") { e.stopImmediatePropagation(); tourEnd(); } }, true);
+  let tourDone = false;
+  try { tourDone = localStorage.getItem(TOUR_KEY) === "1"; } catch (e) { tourDone = false; }
+  if (!tourDone && !location.hash) setTimeout(() => tourShow(0), 400);
 
   /* ---- share: the address with the view as it is now, zoom and position included, copied to the clipboard */
   document.getElementById("share").onclick = () => {

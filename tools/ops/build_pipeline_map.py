@@ -197,17 +197,18 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #lanelist>label.inl{display:inline-block;margin-right:10px}
 #presets{display:flex;flex-direction:column;gap:4px;align-items:stretch}
 #more{display:none;position:static}
-#startcard{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;pointer-events:none}
-#startcard[hidden]{display:none}
-#startcard .card{pointer-events:auto;position:relative;padding:14px 18px 16px;max-width:min(560px,calc(100vw - 40px));text-align:center;opacity:.96}
-#startcard .t{font-size:15px;font-weight:700;margin-bottom:8px}
-#startcard .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-#startcard button[data-preset]{font-size:14px;padding:7px 14px;cursor:pointer}
-#startcard .x{position:absolute;top:2px;right:6px;border:0;background:none;font-size:18px;cursor:pointer;color:#555}
 .node.folder .box{stroke-dasharray:7 4;stroke-width:2}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
+#tour{position:fixed;z-index:20;width:min(330px,calc(100vw - 20px));padding:12px 14px;box-sizing:border-box}
+#tour[hidden]{display:none}
+#tour .tt{font-weight:700;font-size:14px;margin-bottom:4px}
+#tour .tx{line-height:1.45}
+#tour .tb{display:flex;gap:6px;align-items:center;margin-top:10px}
+#tour .tn{color:#666;font-size:12px;margin-right:auto}
+#tour .skip{border:0;background:none;color:#555;text-decoration:underline;cursor:pointer;padding:0 4px}
+.tour-on{outline:3px solid #dc2626;outline-offset:3px;border-radius:4px}
 #nav{position:absolute;right:10px;bottom:10px;z-index:6;padding:4px;cursor:crosshair;touch-action:none;user-select:none}
 #nav[hidden]{display:none}
 #nav svg{display:block;width:auto;height:auto}
@@ -254,8 +255,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
  #morebody .pop{position:static;max-height:none;box-shadow:none;border:0;padding:4px 6px;white-space:normal;max-width:none}
  #morebody #btns{flex-wrap:wrap;white-space:normal}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
- #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}
- #startcard{align-items:flex-start;padding-top:140px}}
+ #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
 __SITECSS__</style></head><body>__SITEHEADER__
 <div id="stage">
 <div id="wrap"></div>
@@ -281,7 +281,8 @@ __SITECSS__</style></head><body>__SITEHEADER__
 </div></details>
 <span id="btns"><button id="showall" hidden title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button>
-<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button></span>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
+<button id="tourbtn" title="A short tour of the controls">?</button></span>
 <details id="more" class="menu"><summary>Menu ▾</summary><div id="morebody" class="panel"></div></details>
 </div>
 <div id="strip2" hidden><span id="view"></span>
@@ -292,9 +293,8 @@ __SITECSS__</style></head><body>__SITEHEADER__
  <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
 <button id="clearf" hidden title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</button></div>
 </div>
-<div id="startcard" hidden><div class="card panel"><button class="x" title="Hide these buttons">×</button>
-<div class="t">Start with a chain</div><div class="btns" id="startbtns"></div>
-<div style="color:#666;margin-top:8px;font-size:12px">or pick a file in the File box, or click a box</div></div></div>
+<div id="tour" class="panel" hidden role="dialog" aria-label="Tour of the controls"><div class="tt"></div><div class="tx"></div>
+<div class="tb"><span class="tn"></span><button class="skip">Skip tutorial</button><button class="back">Back</button><button class="next">Next</button></div></div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
@@ -305,7 +305,7 @@ to an earlier step.</div>
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
 out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. A second row under the toolbar
 names the file and holds the step counters: left is what feeds it, right is what it feeds (0 hides that side, all runs to the end).
-<b>Start ▾</b> opens the chains people ask about most; the same buttons sit over the map until you pick a file or a box.
+<b>Start ▾</b> opens the chains people ask about most. A first visit gets a short tour of the controls; <b>?</b> runs it again.
 <b>Find</b> highlights the boxes that hold a piece of text.</div>
 <div><b>View ▾</b> holds <b>compact</b> (on to start with: boxes as names only; untick it for each box's path and description),
 <b>folders</b> (the whole map as one dashed box per folder; double-click a folder, or use Open in its panel, to see its files),
@@ -340,9 +340,6 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #bar button{cursor:pointer}
 #bar button:hover,.menu>summary:hover{border-color:var(--brand-2)}
 #strip2{border-top-color:var(--rule);color:var(--ink-soft)}
-#startcard .t{font:700 1.2rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
-#startcard button[data-preset]{font:inherit;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:4px}
-#startcard button:hover{border-color:var(--brand-2)}
 #back,#lanelist a,#info a,#tree a{color:var(--brand-2)}
 #view{color:var(--ink-soft)}
 #info h2{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
