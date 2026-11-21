@@ -7,7 +7,9 @@ import shutil
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import template_edit as te  # noqa: E402
@@ -83,6 +85,13 @@ class TemplateEditTests(unittest.TestCase):
             ("setting", "set", "blockrouting=perhaps"),
             ("setting", "set", "logicdelay=-1"),
             ("setting", "set", "closedspeed=Warp"),
+            ("setting", "set", "closedspeed=Global"),
+            ("setting", "set", "logicdelay=1.5"),
+            ("clock", "set", "rate=nan"),
+            ("clock", "set", "rate=inf"),
+            ("clock", "set", "startclockoption=3"),
+            ("memory", "remove", "IMHART_MIMIC"),                             # read by mimic_relay.py
+            ("memory", "add", "IMNEW", "--user-name", "Hide WiThrottle"),     # a ConditionalNG's user name
             ("setting", "set", "nothing=1"),
         ]
         for argv in cases:
@@ -95,7 +104,7 @@ class TemplateEditTests(unittest.TestCase):
     def test_remove_refuses_a_used_memory(self):
         doc = tb.read_template(self.path)
         sock = doc.root.find(".//LogixNG/ConditionalNGs")
-        sock.append(__import__("xml.etree.ElementTree", fromlist=["x"]).Element("systemName"))
+        sock.append(ET.Element("systemName"))
         sock[-1].text = "IMRATEFACTOR"
         doc.save(self.path)
         before = self.path.read_bytes()
@@ -125,9 +134,50 @@ class TemplateEditTests(unittest.TestCase):
                      "closedspeed=Normal", "thrownspeed=Restricted")
         self.assertEqual(self.path.read_bytes(), self.original)
 
+    def test_clock_rate_written_as_jmri_does(self):
+        self.run_cmd("clock", "set", "rate=2", "startrate=3", "startclockoption=4")
+        text = self.path.read_text()
+        self.assertIn('rate="2.0" startrate="3.0"', text)
+        self.assertIn('startclockoption="4"', text)
+
+    def test_logicdelay_strips_zeros_and_block_speed_accepts_number(self):
+        self.run_cmd("setting", "set", "logicdelay=0250", "closedspeed=Block", "blockspeed=40")
+        text = self.path.read_text()
+        self.assertIn("<logicDelay>250</logicDelay>", text)
+        self.assertIn("<defaultclosedspeed>Block</defaultclosedspeed>", text)
+
+    def test_missing_template_is_a_message(self):
+        self.path.unlink()
+        code, _, err = self.run_cmd("list")
+        self.assertEqual(code, 1)
+        self.assertIn("template_edit.py:", err)
+
+    def test_failed_rebuild_restores_both_files(self):
+        built = self.dir / "tables.xml"
+        built.write_bytes(b"built")
+        with mock.patch.object(te.paths, "REPO_TABLES_XML", built), mock.patch.object(te, "rebuild") as rb:
+            def fail():
+                built.write_bytes(b"half written")
+                return 1
+            rb.side_effect = fail
+            self.path.write_bytes(self.original + b"<!-- edited -->")
+            with contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(te.rebuild_or_restore(self.path, self.original), 1)
+        self.assertEqual(self.path.read_bytes(), self.original)
+        self.assertEqual(built.read_bytes(), b"built")
+
+    def test_missing_plugin_names_the_fix(self):
+        built = self.dir / "tables.xml"
+        built.write_bytes(b"built")
+        err = io.StringIO()
+        with mock.patch.object(te.paths, "REPO_TABLES_XML", built), mock.patch.object(te, "rebuild", return_value=3), \
+                contextlib.redirect_stderr(err):
+            te.rebuild_or_restore(self.path, self.original)
+        self.assertIn("--no-build", err.getvalue())
+
     def test_dry_run_writes_nothing(self):
         for argv in (("memory", "add", "IMZZ", "--user-name", "Z"), ("clock", "set", "rate=3.0"),
-                     ("memory", "remove", "IMRATEFACTOR")):
+                     ("memory", "set", "IMRATEFACTOR", "--comment", "Other")):
             with self.subTest(argv=argv):
                 code, out, _ = self.run_cmd("--dry-run", *argv)
                 self.assertEqual(code, 0)
