@@ -37,6 +37,12 @@ def plate_box(cats, cell, loc, text, font):
     return cats.frill_box(cell, loc, per * len(text) + 4, h)
 
 
+def right_edge(cats, fit) -> int:
+    """The x, in pixels, no desk label may run past: the `fit` columns and one more, as dress keeps the frozen
+    plate and station_plates the control point plates."""
+    return (fit[0] + 1) * cats.GRID_PX
+
+
 PLATE_FONT, PLATE_LOC = "FONT_CP", "LOWCENT"     # a control point plate, as the hand-built desk wrote them
 
 
@@ -45,7 +51,7 @@ def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[t
     rows, read_stations), each the station's name in capitals in the free cell nearest the plant cells of its
     switches (digicon_trace.desk_plants: the bound staging plants), ties to the cell above, then to the left. A cell
     is free when no section uses it, nor any cell the plate's label spans, and the label is clear of every other label
-    (`boxes`) by 6 px and inside the `fit` window: the desk never grows. SystemExit naming the station when one has
+    (`boxes`) by 6 px and inside the window (`fit` rows, right_edge): the desk never grows. SystemExit naming the station when one has
     no plant on the desk or no free cell. `used`: {cell: section} of the desk, `boxes`: [(cell, box)] of its labels,
     both added to."""
     import digicon_trace as trace          # cats/scripts, on build_cats_panel's path
@@ -67,7 +73,7 @@ def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[t
                            key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, c[1], c[0])):
             box = plate_box(cats, cell, PLATE_LOC, text, PLATE_FONT)
             spans = {(x, cell[1]) for x in range(box[0] // cats.GRID_PX, (box[2] - 1) // cats.GRID_PX + 1)}
-            if box[0] < 0 or box[2] > cols * cats.GRID_PX or spans & set(used):
+            if box[0] < 0 or box[2] > right_edge(cats, fit) or spans & set(used):
                 continue
             if any(b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6 for _c, b in boxes):
                 continue
@@ -131,7 +137,7 @@ def dress(cats, root, header, plate, desk, fit, stations=None):
         hit = [c for c, b in boxes if b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6]
         if hit:
             raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
-        if box[2] > (fit[0] + 1) * cats.GRID_PX:
+        if box[2] > right_edge(cats, fit):
             raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
         boxes.append((cell, box))
         where[cell] = sec

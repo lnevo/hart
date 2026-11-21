@@ -158,6 +158,24 @@ class ControlPointPlates(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "no free cell on the desk for Brick's plate 'BRICK'"):
             B.station_plates(self.cats, self.root(), [("Brick", ("1", "3"))], {}, [], (0, 0))
 
+    def test_a_plate_may_reach_as_far_right_as_the_frozen_plate_may(self):
+        """station_plates keeps a plate inside the same right edge as dress keeps the frozen plate,
+        (fit columns + 1) cells: PRINCESS at (52, 2) spans to x 1609, inside 54 cells (1620) though past 53 (1590)."""
+        root = self.root()
+        tp = root.find("TRACKPLAN")
+        for sec in [s for s in tp.findall("SECTION") if s.find("SEC_NAME") is not None
+                    and s.find("SEC_NAME").get("FONT_NAME") == "FONT_CP"]:
+            tp.remove(sec)
+        used = {(int(s.get("X")), int(s.get("Y"))): s for s in tp.findall("SECTION")}
+        boxes = [((int(s.get("X")), int(s.get("Y"))),
+                  B.plate_box(self.cats, (int(s.get("X")), int(s.get("Y"))), n.get("LOC_NAME"), n.get("NAME"),
+                              n.get("FONT_NAME")))
+                 for s in tp.findall("SECTION") for n in [s.find("SEC_NAME")] if n is not None]
+        got = B.station_plates(self.cats, root, [("Princess", ("35", "37", "39"))], dict(used), list(boxes),
+                               (53, self.fit[1]))
+        self.assertEqual(got, [("PRINCESS", (52, 2))])
+        self.assertEqual(B.right_edge(self.cats, (53, 30)), 54 * self.cats.GRID_PX)
+
     def test_a_plate_takes_the_free_cell_nearest_its_plants(self):
         root = self.root()
         used = {(int(s.get("X")), int(s.get("Y"))): s for s in root.iter("SECTION")}

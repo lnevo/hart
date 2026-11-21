@@ -76,7 +76,7 @@ from cats_panel import (LEVEL_TURNOUT, LEVEL_TURNOUT_PREFIX, MAIN_UPPER_DISCIPLI
                         loop_half_edge, mast_bindings, name_loop_halves, os_blocks, plan_edge, placeholder,
                         planned_sensor, spec, switch_bindings, switch_of, track_block, virtual_sensor, xover_corners)
 from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_header, label_clashes,  # noqa: E402,F401
-                              plate_box, station_plates)
+                              plate_box, right_edge, station_plates)
 
 # The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
 # launchers and shortcuts use. Nothing else writes them.
