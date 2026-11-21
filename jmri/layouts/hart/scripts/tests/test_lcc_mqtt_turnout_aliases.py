@@ -6,14 +6,10 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[5] / "tools/hartlib/src"))
-from hartlib.devices import MASTER_FILE  # noqa: E402
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 HART_ROOT = SCRIPTS.parent
 TABLES = HART_ROOT / "output" / "tables.xml"
-CSV_PATH = HART_ROOT / "data" / MASTER_FILE
 
 
 def load_module(name: str, path: Path):
@@ -28,6 +24,8 @@ def load_module(name: str, path: Path):
 
 
 contract = load_module("lcc_turnout_contract", SCRIPTS / "lcc_turnout_contract.py")
+devices = contract.devices
+CSV_PATH = HART_ROOT / "data" / devices.MASTER_FILE
 cleanup = load_module(
     "cleanup_uss_ctc_leftovers", SCRIPTS / "cleanup_uss_ctc_leftovers.py"
 )
@@ -65,7 +63,7 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
 
     def violations(self, xml: str, rows: list[dict]) -> list[str]:
         return contract.contract_violations(ET.fromstring(f"<layout-config>{xml}</layout-config>"),
-                                            master(rows, self.tmp / MASTER_FILE))
+                                            master(rows, self.tmp / devices.MASTER_FILE))
 
     def test_live_tables_match_device_map(self) -> None:
         root = ET.parse(TABLES).getroot()

@@ -23,8 +23,6 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 from hartlib import level_devices, paths, tables  # noqa: E402
 from hartlib import railroad as T_railroad  # noqa: E402  the device map's columns
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
-from hartlib.devices import MASTER_FILE  # noqa: E402
 
 TABLES = paths.TABLES_XML       # the generated tables.xml (build_tables.py), which the build no longer reads
 
@@ -598,7 +596,7 @@ class DeviceNames(unittest.TestCase):
         mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]]),
                                    "build_device_map.py") for r in old]
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / MASTER_FILE
+            path = Path(tmp) / devices.MASTER_FILE
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
             return (reader or B.device_names)(path)
 

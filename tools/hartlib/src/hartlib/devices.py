@@ -40,9 +40,7 @@ from . import names, paths
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 
 # The one place the master's file name and path are written (T6a step 0): every other module asks for them here, and
-# tools/audit/tests/test_devices_one_path.py fails on any tracked .py outside hartlib that names the file itself.
-# The one exception is jmri/scripts/check_hart_phase02.py, Jython inside JMRI that cannot import hartlib; a test
-# there pins its path to MASTER.
+# tools/hartlib/tests/test_devices_one_path.py fails on any tracked .py outside hartlib that names the file itself.
 MASTER_FILE = "devices.csv"
 MASTER = paths.LAYOUT_DATA / MASTER_FILE
 

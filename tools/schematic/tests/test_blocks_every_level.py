@@ -378,6 +378,7 @@ def skip_or_fail(exc: Exception) -> None:
 
 
 def committed() -> list[dict]:
+    # devices.load also validates the master on load, which the plain csv read did not; the rows are the same
     return [dict(r) for r in devices.load(DEVICES)]
 
 

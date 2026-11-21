@@ -3,9 +3,6 @@ from __future__ import annotations
 import importlib.util
 import unittest
 from pathlib import Path
-import sys
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
-from hartlib.devices import MASTER_FILE  # noqa: E402
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 
@@ -102,7 +99,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with mock.patch.object(self.m, "DEVICES", Path(tmp) / "missing.csv"):
                 self.assertEqual(self.m.load_cps(), {"turnout": {}, "occupancy": {}, "block": {}, "mast": {}})
-            bad = Path(tmp) / MASTER_FILE
+            bad = Path(tmp) / self.m.devices.MASTER_FILE
             bad.write_text("level,layer\n1,mast\n", encoding="utf-8")
             with mock.patch.object(self.m, "DEVICES", bad), \
                     self.assertRaisesRegex(self.m.devices.DevicesError, "the header is not the master's columns"):
@@ -127,7 +124,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
                    jmri_name="M2S9999", description="Added in PanelPro.")
         row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, added)], row)
         with tempfile.TemporaryDirectory() as tmp:
-            master = Path(tmp) / MASTER_FILE
+            master = Path(tmp) / self.m.devices.MASTER_FILE
             master.write_text(D.master_text(list(D.load()) + [row]), encoding="utf-8")
             doc = ET.parse(self.m.TABLES)
             root = doc.getroot()

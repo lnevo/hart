@@ -23,8 +23,6 @@ import build_device_map as bdm  # noqa: E402
 import sync_signals as sss  # noqa: E402
 from hartlib import devices, level_masts, paths, railroad, tables  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
-from hartlib.devices import MASTER_FILE  # noqa: E402
 
 HEAD_XML = "jmri.implementation.configurexml.VirtualSignalHeadXml"
 SHSM_XML = "jmri.implementation.configurexml.SignalHeadSignalMastXml"
@@ -195,7 +193,7 @@ class Inputs(unittest.TestCase):
 
     def test_head_comments_join_comment_and_notes_of_head_rows_only(self):
         with tempfile.TemporaryDirectory() as d:
-            path = write_master(Path(d) / MASTER_FILE, [
+            path = write_master(Path(d) / devices.MASTER_FILE, [
                 device_row("head", "Head 2R", "IH:HART:C1:2R", "Brick | Switch 1", "internal, not wired"),
                 device_row("head", "Head 6LB", "IH432", "", "wired"),
                 device_row("head", "Head 4RA", "IH:HART:C1:4RA", "Brick", ""),
@@ -212,14 +210,14 @@ class HeadCommentsErrors(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             with self.assertRaisesRegex(devices.DevicesError, "cannot read it"):
                 sss.head_comments(Path(d) / "missing.csv")
-            bad = Path(d) / MASTER_FILE
+            bad = Path(d) / devices.MASTER_FILE
             bad.write_text("layer,user_name\nhead,Head 2R\n", encoding="utf-8")
             with self.assertRaisesRegex(devices.DevicesError, "the header is not the master's columns"):
                 sss.head_comments(bad)
 
     def test_a_master_with_no_head_rows_gives_no_comments(self):
         with tempfile.TemporaryDirectory() as d:
-            self.assertEqual(sss.head_comments(write_master(Path(d) / MASTER_FILE, [])), {})
+            self.assertEqual(sss.head_comments(write_master(Path(d) / devices.MASTER_FILE, [])), {})
 
 
 class Sync(unittest.TestCase):
@@ -377,7 +375,7 @@ class Cli(unittest.TestCase):
         self.tables = d / "tables.xml"
         self.tables.write_bytes(TABLES.encode("utf-8"))
         masts = write_csv(d / "masts.csv", level_masts.FIELDS, ROWS)
-        device_map = write_master(d / MASTER_FILE,
+        device_map = write_master(d / devices.MASTER_FILE,
                                   [device_row("head", "Head 10L Top", "IH:HART:C1:10L_Top", "Barn", "from the device map")])
         for name, path in (("want_masts", masts), ("head_comments", device_map)):
             patch = unittest.mock.patch.object(sss, name, functools.partial(getattr(sss, name), path))
@@ -406,7 +404,7 @@ class Cli(unittest.TestCase):
         self.assertEqual(self.tables.read_bytes(), before)
         self.assertEqual(self.tables.stat().st_mtime_ns, stat.st_mtime_ns)
         self.assertEqual(sorted(p.name for p in self.tables.parent.iterdir()),
-                         [MASTER_FILE, "masts.csv", "tables.xml"])
+                         [devices.MASTER_FILE, "masts.csv", "tables.xml"])
 
     def test_sync_writes_then_check_reports_current_and_a_second_sync_is_the_same_file(self):
         code, out, err = self.run_main()

@@ -49,6 +49,9 @@ MINI = """<?xml version="1.0" encoding="UTF-8"?>
 
 
 class PathsTest(unittest.TestCase):
+    def test_the_master_is_this_checkouts(self):
+        self.assertTrue(devices.MASTER.is_relative_to(REPO))
+
     def test_every_moved_script_points_at_this_checkout(self):
         for name, attrs in {
             "cleanup_uss_ctc_leftovers": {"ROOT": REPO, "TABLES": [TABLES]},
@@ -60,7 +63,7 @@ class PathsTest(unittest.TestCase):
                 "ROOT": REPO, "DEFAULT_PANEL": TABLES, "SYNC_PANEL": TABLES},
             "refresh_bean_comments": {
                 "ROOT": REPO, "TABLES": TABLES,
-                "DEVICES": devices.MASTER},
+                "DEVICES": REPO / "jmri/layouts/hart/data" / devices.MASTER_FILE},
             "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
         }.items():
             mod = load(name)

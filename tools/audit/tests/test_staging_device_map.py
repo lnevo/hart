@@ -14,8 +14,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
 import check_device_master as cdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
-from hartlib.devices import MASTER_FILE  # noqa: E402
+from hartlib import devices  # noqa: E402
 
 
 def band(nodes, strands):
@@ -224,7 +223,7 @@ class Files(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         rows = [dict(r) for r in sdm.devices.load(sdm.DEVICE_MAP)]        # the master's rows, whole
         edit(rows)
-        out = tmp / MASTER_FILE
+        out = tmp / devices.MASTER_FILE
         out.write_text(sdm.devices.master_text(rows), encoding="utf-8")
         return out, sdm.read_device_rows(out)
 

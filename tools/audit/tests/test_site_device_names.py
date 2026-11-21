@@ -16,8 +16,7 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
-sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
-from hartlib.devices import MASTER_FILE  # noqa: E402
+from hartlib import devices  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 INDEX = ROOT / "www/data/layout-index.json"
@@ -46,7 +45,7 @@ class BlockKindFromTheMaster(unittest.TestCase):
                    jmri_name="IB999", description="Added in PanelPro.")
         row["jmri_bean"] = tables_build.bean_json([(tables_build.BLOCKS, el)], row)
         with tempfile.TemporaryDirectory() as d:
-            files = devices.Files(Path(d) / MASTER_FILE, devices.Files.here().dictionary)
+            files = devices.Files(Path(d) / devices.MASTER_FILE, devices.Files.here().dictionary)
             devices.write_master(list(devices.load()) + [row], files)
             doc = ET.parse(paths.TABLES_XML)
             section = next(s for s in doc.getroot().iter("blocks"))
