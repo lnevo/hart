@@ -68,7 +68,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         over = bdm.layer_files.read("plan_overrides", bdm.STAGING_SHEET, bdm.OVERRIDES.parent)
         cls.levels = bdm.band_levels(over)
         cls.found = bdm.named_tracks(cls.bands, cls.joined, cls.runs, over)
-        cls.split = BL.split_edges(cls.found, cls.levels, bdm.BLOCK_OVERRIDES)
+        cls.split = BL.split_edges(cls.found, cls.levels, bdm.block_overrides())
         cls.committed = BL.overrides_path().read_text(encoding="utf-8")
 
     def layer(self, text: str | None = None) -> BL.Layer:
@@ -92,19 +92,17 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
         switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.SWITCHES.name)
         cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
-        split, corners = bdm.split_edges(found=found), bdm.corner_blocks_of(self.bands, self.corners)
-        _home, posts = bdm.home_and_posts(self.bands, self.joined, found, bdm.LEVELS, cp_of, corners,
-                                          set(split.values()))
-        self.last_posts, self.mu_found = posts, found
-        args = (self.bands, self.runs, found, split, corners, posts if self.posts is None else self.posts)
-        if text is None:
-            return bdm.main_upper_layer(*args)
-        p = temp_file("block_overrides.csv", text)
-        try:
-            with unittest.mock.patch.object(BL, "overrides_path", return_value=p):
-                return bdm.main_upper_layer(*args)
+        p = bdm.block_overrides() if text is None else temp_file("block_overrides.csv", text)
+        try:                    # one file for every kind of its rows: the splits and the track pieces alike
+            split, corners = bdm.split_edges(p, found=found), bdm.corner_blocks_of(self.bands, self.corners)
+            _home, posts = bdm.home_and_posts(self.bands, self.joined, found, bdm.LEVELS, cp_of, corners,
+                                              set(split.values()))
+            self.last_posts, self.mu_found = posts, found
+            return bdm.main_upper_layer(self.bands, self.runs, found, split, corners,
+                                        posts if self.posts is None else self.posts, overrides=p)
         finally:
-            remove(p)
+            if text is not None:
+                remove(p)
 
     def without(self, needle: str) -> str:
         return "".join(line for line in self.committed.splitlines(True) if needle not in line)
@@ -244,6 +242,24 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
     def test_a_split_track_with_rows_stops(self):
         self.stops(self.committed + "1,track,37,39,,,OS Switch 37,,,\n", "split in halves and given to OS blocks")
 
+    def test_a_split_comes_from_the_same_file_as_the_other_rows_on_staging(self):
+        """staging_layer reads every kind of block_overrides.csv from the one file it is given: without the Princess
+        split, K-1 and K-2 are one track carrying two plan names, which stops."""
+        p = temp_file("block_overrides.csv", self.without("1,split,37,39,"))
+        try:
+            with self.assertRaisesRegex(bdm.MapError, r"Track 37-39 carries plan names \['K-1', 'K-2'\]"):
+                bdm.staging_layer(self.bands, self.joined, self.runs, p)
+            lay, _bi, _found = bdm.staging_layer(self.bands, self.joined, self.runs, BL.overrides_path())
+            self.assertIn("Track K-1", lay.tracks)
+        finally:
+            remove(p)
+
+    def test_a_split_comes_from_the_same_file_as_the_other_rows_on_main_and_upper(self):
+        self.assertIn("Track 227-241 1", self.main_upper().tracks)
+        lay = self.main_upper(self.without("3,split,227,241,"))
+        self.assertIn("Track 227-241", lay.tracks)
+        self.assertNotIn("Track 227-241 1", lay.tracks)
+
     def test_a_main_or_upper_row_applies_on_its_level(self):
         lay = self.main_upper(self.committed + "2,track,113,115,,,OS Switch 115,,,\n")
         self.assertEqual(lay.parts["Track 113-115"]["part_of"], "OS Switch 115")
@@ -284,7 +300,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def halves_layer(self, names: dict) -> BL.Layer:
         bands, found = self.renamed(names)
-        return BL.layer(bands, self.runs, found, self.levels, BL.split_edges(found, self.levels, bdm.BLOCK_OVERRIDES),
+        return BL.layer(bands, self.runs, found, self.levels, BL.split_edges(found, self.levels, bdm.block_overrides()),
                         BL.read_exceptions(found, bands, self.levels))
 
     def test_halves_with_one_plan_name_are_numbered_not_merged(self):

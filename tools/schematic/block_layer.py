@@ -185,9 +185,10 @@ def crossover_pairs(band) -> dict:
     return out
 
 
-def overrides_path() -> Path:
-    """block_overrides.csv in the schematic data folder as it is now (publish_draft.DATA)."""
-    return pd.DATA / OVERRIDES_NAME
+def overrides_path(data: Path | None = None) -> Path:
+    """block_overrides.csv in the schematic data folder `data` (default publish_draft.DATA as it is now): the one place
+    its path is made, for every kind of its rows (build_device_map.block_overrides passes its OVERRIDES folder)."""
+    return Path(pd.DATA if data is None else data) / OVERRIDES_NAME
 
 
 def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = None) -> Exceptions:

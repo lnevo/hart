@@ -162,7 +162,6 @@ OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json; this wri
 SHEET = railroad.PlanOverrides.SHEET
 OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
 LEVELS = band_levels(layer_files.read("plan_overrides", SHEET, OVERRIDES.parent))     # {band title: level} of main and upper
-BLOCK_OVERRIDES = OVERRIDES.parent / mast_rule.OVERRIDES_NAME     # the owner's block facts, all levels: splits and more
 STAGING_LEVEL = 1                                 # staging: its nodes are as built (lcos_nodes.csv)
 WIRING = wiring.PATH                              # wiring.csv: the physical wiring source (hartlib.wiring)
 PINS = WIRING
@@ -276,11 +275,22 @@ def dx_corners(bands, le_mod, page) -> dict:
     return out
 
 
+def block_overrides() -> Path:
+    """block_overrides.csv beside plan_overrides.json, as OVERRIDES is when called (a test may patch it): the one path
+    every reader here takes for every kind of its rows (splits, track pieces, crossover halves)."""
+    return block_layer.overrides_path(OVERRIDES.parent)
+
+
+def helix_tracks() -> dict:
+    """read_helix_tracks of OVERRIDES as it is when called (a test may patch it)."""
+    return read_helix_tracks(OVERRIDES)
+
+
 def split_tracks(path: Path | None = None, found: list | None = None) -> set[str]:
     """The main and upper track names block_overrides.csv splits into two blocks at their turnback (the owner's choice,
     not a rule: mast_rule.read_block_splits): each row's end switches resolved to the generated name in `found` (tracks
     with names; default: the solved schematic's) at build time, so a renumbered switch moves its row with it."""
-    return mast_rule.read_block_splits(path or BLOCK_OVERRIDES, named_tracks() if found is None else found, LEVELS)
+    return mast_rule.read_block_splits(path or block_overrides(), named_tracks() if found is None else found, LEVELS)
 
 
 def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None) -> list[dict]:
@@ -292,7 +302,7 @@ def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None)
     if overrides is None:
         overrides = layer_files.read("plan_overrides", SHEET, OVERRIDES.parent)
     found = block_layer.tracks(bands, runs, joined, band_levels(overrides), OVERRIDES.parent)
-    block_layer.name_tracks(found, bands, read_helix_tracks() if helix is None else helix)
+    block_layer.name_tracks(found, bands, helix_tracks() if helix is None else helix)
     return found
 
 
@@ -303,7 +313,7 @@ def split_edges(path: Path | None = None, found: list | None = None) -> dict:
     needs one track folded at one turnback)."""
     found = named_tracks() if found is None else found
     # a block_overrides.csv with no main or upper split gives no drawing key: no splits
-    return block_layer.split_edges(found, LEVELS, path or BLOCK_OVERRIDES, OVERRIDES.parent).get(SHEET, {})
+    return block_layer.split_edges(found, LEVELS, path or block_overrides(), OVERRIDES.parent).get(SHEET, {})
 
 
 OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block, named by its switch
@@ -432,18 +442,21 @@ def helix_pins(path: Path | None = None) -> dict:
 def loop_halves(band, runs, split: dict | None = None) -> dict:
     """{strand id: 1 or 2} of each balloon loop and split track of a main or upper `band` (block_layer.loop_halves);
     `split`: split_edges (default: block_overrides.csv's)."""
-    return block_layer.loop_halves(band, runs, split_edges() if split is None else split, BLOCK_OVERRIDES.name)
+    return block_layer.loop_halves(band, runs, split_edges() if split is None else split, block_overrides().name)
 
 
-def main_upper_layer(bands, runs, found, split_map: dict, corner_blocks: dict, posts: dict) -> block_layer.Layer:
+def main_upper_layer(bands, runs, found, split_map: dict, corner_blocks: dict, posts: dict,
+                     overrides: Path | None = None) -> block_layer.Layer:
     """block_layer.layer of the main and upper levels, as mast_plan.plan reads it (`bands`, `cm`) and build() writes
     its rows: `split_map` (split_edges), block_overrides.csv, `corner_blocks` (a double crossover's corner blocks,
     {switch: {leg: block}}) and `posts` (where the home masts stand, home_and_posts). One block per track, a balloon
     loop or split track in two halves (half 1 at the lower-numbered switch; each half's length is half the track's), a
     crossover's inside its switch's OS block, a link (under block_layer.LINK_CM between two switches) a part of an OS
-    block; an OS block counts 0 cm (the boundary is at the switch's leg)."""
+    block; an OS block counts 0 cm (the boundary is at the switch's leg). `overrides`: block_overrides.csv's path
+    (default block_overrides()), the file `split_map` was read from too."""
     return block_layer.layer(bands, runs, found, LEVELS, {SHEET: split_map},
-                             block_layer.read_exceptions(found, bands, LEVELS), corners=corner_blocks, posts=posts,
+                             block_layer.read_exceptions(found, bands, LEVELS, overrides or block_overrides()),
+                             corners=corner_blocks, posts=posts,
                              data=OVERRIDES.parent)
 
 
@@ -722,7 +735,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     {mast: system name} of the virtual masts that have one already (None: master_virtual_names); `frozen`:
     frozen_wires (None: wiring.csv's); `places`: read_places (None: stations.csv's and interlockings.csv's), the cp of
     every line block (line_cp)."""
-    helix = read_helix_tracks() if helix is None else helix
+    helix = helix_tracks() if helix is None else helix
     places = read_places() if places is None else places
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
@@ -1068,8 +1081,9 @@ def part_drops(parts: list[dict]) -> set:
 
 def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[block_layer.Layer, int, list[dict]]:
     """(block_layer.layer of the staging band, its band index, its tracks): the one block process over staging's
-    drawing and block_overrides.csv (`exceptions`, default the committed file, for its track and crossover_half
-    rows)."""
+    drawing and block_overrides.csv (`exceptions`, default block_overrides()), every kind of its rows from that one
+    file."""
+    exceptions = exceptions or block_overrides()
     overrides = layer_files.read("plan_overrides", STAGING_SHEET, OVERRIDES.parent)
     levels = band_levels(overrides)
     found = named_tracks(bands, joined, runs, overrides)
@@ -1078,8 +1092,8 @@ def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
     _home, posts = home_and_posts(bands, joined, found, levels, cp_of, None,
-                                  mast_rule.read_block_splits(BLOCK_OVERRIDES, found, levels))
-    split = block_layer.split_edges(found, levels, BLOCK_OVERRIDES, OVERRIDES.parent)
+                                  mast_rule.read_block_splits(exceptions, found, levels))
+    split = block_layer.split_edges(found, levels, exceptions, OVERRIDES.parent)
     lay = block_layer.layer(bands, runs, found, levels, split,
                             block_layer.read_exceptions(found, bands, levels, exceptions), posts=posts,
                             data=OVERRIDES.parent)
@@ -1321,8 +1335,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     now a part: its row is carried, or made (new_spare); a spare row no pin is on any more is dropped."""
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
-    helix_tracks = read_helix_tracks()
-    helix = {h["block"] for h in helix_tracks.values()}
+    helix_rows = helix_tracks()
+    helix = {h["block"] for h in helix_rows.values()}
     master = devices.load(files or device_files())
     prior = {(r["layer"], r["user_name"]): r for r in master
              if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
@@ -1410,7 +1424,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     for r in out:               # a line block's cp is the rule's and the owner's additions (line_cp), not carried
         if r is not None and r["role"] in devices.LINE_ROLES:
             track = lay.parts[r["user_name"]]["track"] if r["role"] == "part" else lay.tracks[r["user_name"]][0]
-            r["cp"] = line_cp(r["user_name"], FIELD_LEVEL, track, places, helix_ends(helix_tracks))
+            r["cp"] = line_cp(r["user_name"], FIELD_LEVEL, track, places, helix_ends(helix_rows))
     cp_of_block = {r["user_name"]: r["cp"] for r in out if r is not None}
     occupancy = []
     for b in sorted(blocks - helix, key=natural):

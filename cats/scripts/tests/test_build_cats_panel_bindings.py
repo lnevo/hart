@@ -226,13 +226,13 @@ class Blocks(unittest.TestCase):
             B.block_bindings(band(), F, {("track", "b0:w"): "West"})
 
     def test_a_helix_track_takes_its_helix_block(self):
-        helix = {"McKeesport": "Track Helix Inner"}
-        self.assertEqual(B.track_block("McKeesport", helix), "Track Helix Inner")
+        helix = {"Helix Inner": "Track Helix Inner"}
+        self.assertEqual(B.track_block("Helix Inner", helix), "Track Helix Inner")
         self.assertEqual(B.track_block("K-2", helix), "Track K-2")
-        b = {"strands": {"h": {"name": "McKeesport"}, "k": {"name": "K-2"}}}
-        self.assertEqual(B.helix_block(b, ("track", "b0:h"), {"McKeesport": {"block": "Track Helix Inner"}}),
+        b = {"strands": {"h": {"name": "Helix Inner"}, "k": {"name": "K-2"}}}
+        self.assertEqual(B.helix_block(b, ("track", "b0:h"), {"Helix Inner": {"block": "Track Helix Inner"}}),
                          "Track Helix Inner")
-        self.assertIsNone(B.helix_block(b, ("track", "b0:k"), {"McKeesport": {"block": "Track Helix Inner"}}))
+        self.assertIsNone(B.helix_block(b, ("track", "b0:k"), {"Helix Inner": {"block": "Track Helix Inner"}}))
         self.assertIsNone(B.helix_block(b, ("os", "b0:N1"), {}))
 
     def test_a_block_with_no_jmri_block_that_is_no_short_track_stops(self):
@@ -829,6 +829,8 @@ class CommittedMainAndUpper(unittest.TestCase):
                 self.assertNotIn(name, self.bound["_main_upper_not_on_desk"])
         names = {e.get("name", k) for k, e in self.bound["blocks"].items()}
         self.assertFalse(names & {"Track 131-H1", "Track 131-H2", "Track McKees Rocks", "Track McKeesport"})
+        helix = {e.get("name", k) for k, e in self.bound["blocks"].items() if e.get("station") == "Helix"}
+        self.assertEqual(helix, {"Track Helix Outer", "Track Helix Inner"})     # "Track <plan name>", the ordinary rule
 
 
 class LevelSensorsFromTheDeviceMap(unittest.TestCase):

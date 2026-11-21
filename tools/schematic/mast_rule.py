@@ -239,14 +239,13 @@ def key_problem(row: dict) -> str:
 
 
 OVERRIDES_NAME = "block_overrides.csv"     # in the schematic data folder, beside plan_overrides.json
-BLOCK_OVERRIDES = railroad.Sources.under().plan_overrides.parent / OVERRIDES_NAME
 OVERRIDE_COLUMNS = ["level", "kind"] + TRACK_KEY_COLUMNS + ["end", "block", "cm", "inside", "notes"]
 OVERRIDE_KINDS = ("split", "track", "crossover_half")
 
 
 def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) -> list[dict]:
     """The rows of `kinds` of block_overrides.csv (OVERRIDE_COLUMNS), the owner's hand facts about blocks, each with
-    its `line` and its `cm` a number (None when blank). Every row of every kind is checked for its shape, whichever
+    its `line` and its `cm` a number (None when blank); a short row's missing trailing fields are empty. Every row of every kind is checked for its shape, whichever
     kinds are asked for, so a bad row stops every reader of the file; resolving a row against the drawing is the
     reader's (read_block_splits, block_layer.read_exceptions). A row of any level (1 staging, 2 main, 3 upper), keyed
     by switch numbers so a new export moves it with its track:
@@ -275,10 +274,10 @@ def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) ->
         raise MapError(f"{path.name}: columns {reader.fieldnames}, not {OVERRIDE_COLUMNS}")
     out, bad = [], []
     for i, r in enumerate(rows, 2):
-        if None in r or any(v is None for v in r.values()):
-            bad.append(f"line {i}: not the {len(OVERRIDE_COLUMNS)} fields the header has")
+        if None in r:                       # a short row's missing trailing fields are empty, as csv reads them
+            bad.append(f"line {i}: more fields than the header's {len(OVERRIDE_COLUMNS)}")
             continue
-        r = {k: v.strip() for k, v in r.items()}
+        r = {k: (v or "").strip() for k, v in r.items()}
         r["line"] = i
         problem = override_problem(r)
         if problem:

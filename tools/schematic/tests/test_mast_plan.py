@@ -234,17 +234,23 @@ class BlockOverrides(unittest.TestCase):
                          ("1,track,9,,,,OS Switch 9,,,\n", "a track between two switches"),
                          ("1,crossover_half,7,13,,,OS Switch 7,,yes,\n", "with no parallel, end, cm or inside"),
                          ("1,crossover_half,7,13,,,Track 7,,,\n", "is no OS block"),
-                         ("1,track,9,11\n", "not the 10 fields the header has"),
-                         ("1,track,9,11,,,OS Switch 9,,,a,extra\n", "not the 10 fields the header has")):
+                         ("1,track,9,11\n", "block '' is no OS block"),        # short: its trailing fields empty
+                         ("1,track,9,11,,,OS Switch 9,,,a,extra\n", "more fields than the header's 10")):
             with self.subTest(row=row), self.assertRaisesRegex(mr.MapError, f"block_overrides.csv: line 2.*{msg}"):
                 self.read(HEAD + row)
+
+    def test_a_short_row_reads_its_trailing_fields_as_empty(self):
+        rows = self.read(HEAD + "1,crossover_half,7,13,,,OS Switch 7\n" + split(3, 227, 241).replace(",,,,,\n", "\n"))
+        self.assertEqual([(r["kind"], r["block"], r["notes"], r["cm"]) for r in rows],
+                         [("crossover_half", "OS Switch 7", "", None), ("split", "", "", None)])
 
     def test_an_unknown_kind_asked_for_stops(self):
         with self.assertRaisesRegex(mr.MapError, "no kind helix"):
             self.read(HEAD, ("helix",))
 
     def test_the_committed_file_reads(self):
-        rows = mr.read_block_overrides(mr.BLOCK_OVERRIDES)
+        import build_device_map as bdm
+        rows = mr.read_block_overrides(bdm.block_overrides())
         self.assertEqual({r["kind"] for r in rows}, set(mr.OVERRIDE_KINDS))
         splits = [r for r in rows if r["kind"] == "split"]
         self.assertTrue(splits and all(r["notes"].startswith("OWNER'S CHOICE, not a rule") for r in splits))
@@ -519,7 +525,7 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
         cls.staging = mr.tracks(bands, runs, joined, {1: "H"}, levels={"Staging level": 1})
         mr.track_names(cls.staging)
         cls.staging_cp = {s: i.name for i in rr.interlockings if i.level == 1 for s in i.switches}
-        cls.splits = bdm.BLOCK_OVERRIDES
+        cls.splits = bdm.block_overrides()
 
     def test_running_track_on_main_and_upper_is_the_old_hand_list(self):
         self.assertEqual(mr.running_tracks(self.bands, self.found, self.cp_of),

@@ -734,11 +734,11 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
         if e.get("op") != "end":
             continue
         for end in e.get("ends", []):
-            if not isinstance(end, list) or len(end) != 5:
-                raise FactsError(f"{path.name}[staging]: end edit {end!r} is not [switch, leg, name, kind, to]")
-            ref, _leg, name, sub, _to = end
-            if sub != "helix":
-                continue
+            if not (isinstance(end, list) and len(end) > 3 and end[3] == "helix"):
+                continue                    # not a helix end: the plugin checks the other kinds
+            if len(end) != 5:
+                raise FactsError(f"{path.name}[staging]: helix end edit {end!r} is not [switch, leg, name, helix, to]")
+            ref, _leg, name, _sub, _to = end
             if not name or name in feet:
                 raise FactsError(f"{path.name}[staging]: helix end at Switch {ref} is named {name!r}: give each "
                                  "helix track one name, once")

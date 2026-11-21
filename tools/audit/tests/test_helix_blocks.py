@@ -5,6 +5,7 @@ from __future__ import annotations
 import sys
 import tempfile
 import unittest
+import unittest.mock
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -71,6 +72,35 @@ class HelixTracks(unittest.TestCase):
                            "track_labels"),):
             with self.subTest(msg=msg), self.assertRaisesRegex(mr.MapError, msg):
                 mr.read_helix_tracks(copied(edit))
+
+    def staging_ends(self, change) -> Path:
+        """A copy of the plan overrides whose staging `end` edit's ends are changed by `change` (a function of the
+        list of ends), written back as JSON."""
+        import json
+        path = copied()
+        whole = json.loads(path.read_text(encoding="utf-8"))
+        edit = next(e for e in whole["staging"]["edits"] if e["op"] == "end")
+        change(edit["ends"])
+        path.write_text(json.dumps(whole, indent=1), encoding="utf-8")
+        return path
+
+    def test_only_a_helix_end_edit_must_have_five_fields(self):
+        bumper = lambda ends: ends.__setitem__(0, ends[0][:4])            # W-1's bumper end, a field short
+        self.assertEqual(list(mr.read_helix_tracks(self.staging_ends(bumper))), ["Helix Outer", "Helix Inner"])
+        def short(ends):
+            i = next(i for i, x in enumerate(ends) if x[3] == "helix")
+            ends[i] = ends[i][:4]
+        with self.assertRaisesRegex(mr.MapError, "helix end edit .* is not \\[switch, leg, name, helix, to\\]"):
+            mr.read_helix_tracks(self.staging_ends(short))
+
+    def test_the_device_map_reads_the_helix_tracks_of_its_overrides_when_called(self):
+        """build_device_map.helix_tracks reads OVERRIDES as it is then, so a patched one is honoured."""
+        path = copied([('"131B": "Helix Inner"', '"131B": "Helix Lower"', "plan_overrides.json"),
+                       ('"Helix Inner",\n      "helix"', '"Helix Lower",\n      "helix"', "plan_overrides.json")])
+        with unittest.mock.patch.object(bdm, "OVERRIDES", path):
+            self.assertEqual(list(bdm.helix_tracks()), ["Helix Outer", "Helix Lower"])
+            self.assertEqual(bdm.block_overrides(), path.parent / "block_overrides.csv")
+        self.assertEqual(list(bdm.helix_tracks()), ["Helix Outer", "Helix Inner"])
 
     def test_tags_follow_the_overrides_order(self):
         helix = mr.read_helix_tracks()
