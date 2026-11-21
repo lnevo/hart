@@ -19,6 +19,7 @@ scripts refuse to run while ``HART_TABLES`` is set.
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 
 
@@ -49,6 +50,60 @@ CATS_DIR = REPO_ROOT / "cats"
 
 # Where PanelPro loads preference:tables.xml on every host (ADR-014).
 JMRI_USER_FILES = Path.home() / "JMRI_UserFiles"
+
+
+def _git(root: Path, *args: str) -> str | None:
+    """One line of git output from ``root``, or None when git fails or answers with anything but one line."""
+    try:
+        done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    lines = done.stdout.splitlines()
+    return lines[0].strip() if done.returncode == 0 and len(lines) == 1 and lines[0].strip() else None
+
+
+def main_checkout(root: Path | None = None) -> Path:
+    """The main checkout of the repo ``root`` (default: this one) belongs to: the parent of git's common dir, so a
+    worktree answers with the checkout it was made from. ``root`` itself where git cannot say (a copied tree, or an
+    answer that is not one path). A relative common dir (git before 2.31 has no --path-format, so none is asked for)
+    is read against ``root``, where git ran. The shell twin is hart_main_checkout in tools/hosts/profile_tables_guard.sh."""
+    root = Path(root or REPO_ROOT)
+    common = _git(root, "rev-parse", "--git-common-dir")
+    if common is None:
+        return root
+    path = Path(common)
+    path = (path if path.is_absolute() else root / path).resolve()
+    return path.parent if path.is_dir() else root
+
+
+def cache_dir(name: str, root: Path | None = None) -> Path:
+    """The shared cache folder ``name``: ``HART_CACHE_DIR``/name (spaces trimmed, ~ expanded), else
+    <main checkout>/.cache/hart/name (gitignored), so every worktree shares one warm cache. The shell twin is hart_cache_dir."""
+    base = os.environ.get("HART_CACHE_DIR", "").strip()
+    return (Path(base).expanduser() if base else main_checkout(root) / ".cache" / "hart") / name
+
+
+def pulled_stores_dir(root: Path | None = None) -> Path:
+    """Where PanelPro Stores taken off a host are kept: ``HART_PULLED_DIR``, else <main checkout>/media/pulled-stores.
+    Raises ValueError for a folder in a linked worktree or another repo, or in the main checkout but not git-ignored
+    (a sweep would delete an unsplit Store, or it could reach a commit); a folder outside every checkout is fine.
+    Nothing is made. The shell twin is hart_pulled_dir."""
+    main = main_checkout(root)
+    value = os.environ.get("HART_PULLED_DIR", "").strip()
+    folder = Path(value).expanduser() if value else main / "media" / "pulled-stores"
+    probe = folder
+    while not probe.is_dir():
+        probe = probe.parent
+    top = _git(probe, "rev-parse", "--show-toplevel")
+    if top is not None:
+        if Path(top).resolve() != main.resolve():
+            raise ValueError(f"{folder} is inside the git checkout {top}; pulled Stores live in the main checkout's "
+                             "gitignored media/ (HART_PULLED_DIR), never in a worktree a sweep removes")
+        if subprocess.run(["git", "-C", str(probe), "check-ignore", "-q", str(folder)],
+                          capture_output=True).returncode != 0:
+            raise ValueError(f"{folder} is inside the main checkout and not git-ignored; pulled Stores live in its "
+                             "gitignored media/ (HART_PULLED_DIR)")
+    return folder
 
 
 def _tables_xml() -> Path:

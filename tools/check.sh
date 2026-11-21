@@ -15,16 +15,18 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
-# The schematic plugin's cache, the folder the builds use (publish_draft.CACHE, private to this user), for every job
+# The schematic plugin's cache, the folder the builds use (publish_draft.CACHE: <main checkout>/.cache/hart/schematic, private to this user), for every job
 # here: the Layout Editor job calls the build directly and would otherwise solve the whole sheet in its one process
 # (about 3 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
 # the folder between runs (.github/workflows/check.yml).
 # A folder that cannot be made leaves the cache off, as before.
 if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then
-  if mkdir -p "$HOME/.cache/hart/schematic" 2>/dev/null && chmod 700 "$HOME/.cache/hart/schematic"; then
-    export SCHEMATIC_CACHE="$HOME/.cache/hart/schematic"
+  source "$ROOT/tools/hosts/profile_tables_guard.sh"
+  cache="$(hart_cache_dir "$ROOT" schematic)"
+  if mkdir -p "$cache" 2>/dev/null && chmod 700 "$cache"; then
+    export SCHEMATIC_CACHE="$cache"
   else
-    echo "schematic cache off: cannot make $HOME/.cache/hart/schematic"
+    echo "schematic cache off: cannot make $cache"
   fi
 fi
 # A worktree not made by make wt (a subagent's isolation worktree, an older one) may lack the submodules the checks
@@ -166,7 +168,7 @@ run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-masts python3 tools/schematic/build_masts.py --check
 # tables.xml is an output (ADR-029): it must be what build_tables.py writes from the template, devices.csv, the
 # Layout Editor build and the discovered Signal Mast Logic; a Store is never copied over it (make tables-pull keeps
-# it in ~/JMRI_UserFiles-pulled and tools/schematic/split_store.py splits it into the template and devices.csv)
+# it in media/pulled-stores in the main checkout and tools/schematic/split_store.py splits it into the template and devices.csv)
 run tables python3 tools/schematic/build_tables.py --check
 run schematic-device-master python3 tools/schematic/check_device_master.py --check
 run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check

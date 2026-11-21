@@ -29,7 +29,7 @@ The station map pages are drawn from this sheet, so publishing then copies the t
 them with hartlib.map_revision (also the command www/scripts/map_revision.py), and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
-The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
+The plugin's solved-sheet cache (SCHEMATIC_CACHE, default <main checkout>/.cache/hart/schematic, shared by every worktree; HART_CACHE_DIR moves the base; a folder only this user can open)
 is on for the plugin commands this runs and for solved_sheet(), the one way build_layout_le.py, build_cats_panel.py
 and build_device_map.py get the solved bands, so they and publishing solve the same inputs once between them. The
 key covers the source of the plugin code the solve runs, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial
@@ -56,7 +56,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import layer_files, map_revision, paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
-CACHE = Path.home() / ".cache/hart/schematic"
+CACHE = paths.cache_dir("schematic")      # <main checkout>/.cache/hart/schematic, shared by every worktree
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"

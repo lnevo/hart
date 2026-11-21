@@ -35,17 +35,10 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "schematic"))
 import panel_stamps as ps  # noqa: E402
 
-def main_checkout(root: Path = ROOT) -> Path:
-    """The main checkout this worktree belongs to: the parent of git's common dir (the checkout itself when it is the
-    main one). To fold into hartlib.paths.main_checkout() when that merges."""
-    done = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=root,
-                          capture_output=True, text=True, timeout=30)
-    if done.returncode != 0 or not done.stdout.strip():
-        return root
-    return Path(done.stdout.strip()).parent
+sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
+from hartlib.paths import cache_dir, main_checkout  # noqa: E402
 
-
-STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or main_checkout() / ".cache" / "hart" / "check-stamps")
+STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or cache_dir("check-stamps", ROOT))
 PRUNE = {".git", ".cache", "__pycache__", "node_modules", ".venv", "venv", ".pages-dist", ".mypy_cache", ".pytest_cache"}
 PRUNE_PATHS = {".claude/worktrees", "external/model-railroad-skills"}     # the plugin is stamped by its commit
 LITTER = (".DS_Store", ".pyc")
@@ -289,6 +282,9 @@ def read_audit(folder: Path) -> dict[str, tuple[set[str], set[str]]]:
 def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
     pats = declared(name)
     assert pats is not None
+    # the shared build cache (<main checkout>/.cache/, hartlib.paths.cache_dir) is keyed on real inputs: no input itself
+    files = {f for f in files if not f.startswith(".cache/")}
+    dirs = {d for d in dirs if d != ".cache" and not d.startswith(".cache/")}
     bad = [f for f in sorted(files) if not any(ps._glob_match(f, p) for p in pats)]
     parts = name.split(" ", 2)
     listed = LISTED_ONLY.get(f"{parts[0]} {parts[1].split('.')[0]}", ()) if len(parts) > 1 else ()
