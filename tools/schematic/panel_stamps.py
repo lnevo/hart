@@ -128,7 +128,7 @@ def covered(rel: str, step: str) -> bool:
 def dir_covered(rel: str, step: str) -> bool:
     """Is folder `rel` (listed or globbed by `step`) one a declaration reaches: a declared pattern's fixed folder is it,
     inside it, or above it."""
-    if rel.startswith("external/model-railroad-skills") or rel in (".", "") or "__pycache__" in rel.split("/"):
+    if rel.startswith("external/model-railroad-skills") or rel == ".cache" or rel.startswith(".cache/") or rel in (".", "") or "__pycache__" in rel.split("/"):
         return True
     s = STEPS[step]
     for pat in (*s.inputs, *s.outputs, *CODE):
