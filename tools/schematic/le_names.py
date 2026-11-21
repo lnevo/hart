@@ -15,7 +15,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 from hartlib import devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING,
+    band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
 )
 
 
@@ -148,8 +148,9 @@ def lcos_named(names: list[str]) -> list[str]:
     return sorted(out)
 
 
-def level_masts(names: dict, rows: list[dict]) -> None:
-    """Give each main and upper band in `names` its masts (main_upper_masts.csv rows) for the plugin: each in the
+def level_masts(names: dict, rows: list[dict], skip: set) -> None:
+    """Give each main and upper band in `names` (every key but `skip`: the bands of a level the base holds,
+    le_common.base_keys) its masts (main_upper_masts.csv rows) for the plugin: each in the
     band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block; a virtual mast (a destination, no switch) hidden in the end bumper
@@ -157,14 +158,14 @@ def level_masts(names: dict, rows: list[dict]) -> None:
     bad = []
     for r in rows:
         if level_masts_lib.is_level_virtual(r["system_name"]):    # a hidden destination mast at a buffer stop
-            where = [k for k, v in names.items() if k != STAGING
+            where = [k for k, v in names.items() if k not in skip
                      and r["facing"] in {b for bl in v["blocks"].values() for b in bl}]
         elif not r["switch"]:     # an APB intermediate (owner, 2026-11-19): between two track blocks of one band
-            where = [k for k, v in names.items() if k != STAGING
+            where = [k for k, v in names.items() if k not in skip
                      and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
                      and r["protects"] in {b for bl in v["blocks"].values() for b in bl}]
         else:
-            where = [k for k, v in names.items() if k != STAGING
+            where = [k for k, v in names.items() if k not in skip
                      and r["facing"] in {b for bl in v["blocks"].values() for b in bl}
                      and r["protects"] in set(v["os"].values()) | {b for x in v.get("xover_blocks", {}).values()
                                                                   for b in x.values()}]
@@ -187,25 +188,29 @@ def level_masts(names: dict, rows: list[dict]) -> None:
     if bad:
         raise BuildError("main and upper masts not placed: " + "; ".join(bad))
     for k, v in names.items():
-        if k != STAGING and v.get("masts"):
+        if k not in skip and v.get("masts"):
             v["masts"].sort(key=lambda m: m["mast"])
 
 
 # ---------------------------------------------------------------- main and upper placeholders
 
 def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
-    """({band key: names}, {block: length mm}) for every band but staging. A balloon loop is two blocks (the device
-    map's loop_halves) and a double crossover four, one per corner (`xover_blocks`, named by the corner each leg
-    reaches as the plugin draws it: the device map's xover_corners; `page`: the sheet's options, for rotate_bands).
-    A track's placeholder is its switch-and-leg key (staging_device_map.band_refs); BuildError on a connector the
-    plugin's partners do not pair, which has no switch and leg beyond it to key a track by."""
+    """({band key: names}, {block: length mm}) for every band of a level the build adds (not BASE_LEVELS: the
+    staging band, whose names are the staging device map's, by its level). `bands` are the solved sheet's, titles
+    unchanged (build_layout_le passes the plugin's drawn_bands, which keep them): each band's level is found by its
+    title in plan_overrides.json (le_common.band_levels), so a band the plan does not title stops with BuildError.
+    A balloon loop is two blocks (the device map's loop_halves) and a double crossover four, one per corner
+    (`xover_blocks`, named by the corner each leg reaches as the plugin draws it: the device map's xover_corners;
+    `page`: the sheet's options, for rotate_bands). A track's placeholder is its switch-and-leg key
+    (staging_device_map.band_refs); BuildError on a connector the plugin's partners do not pair, which has no switch
+    and leg beyond it to key a track by."""
     joined = le_mod.partners(bands)
     import build_device_map as bdm
     out, lengths, counted = {}, defaultdict(float), set()
-    for bi, (title, band, _) in enumerate(bands):
-        key = band_key(title)
-        if key == STAGING:
+    for bi, ((title, band, _), level) in enumerate(zip(bands, band_levels(bands))):
+        if level in BASE_LEVELS:
             continue
+        key = band_key(title)
         nodes, strands = band["nodes"], band["strands"]
         try:
             loop_half = bdm.loop_halves(band, runs)      # a balloon loop is two blocks, parted at its turnback
@@ -345,18 +350,19 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
     return out, {b: plan[b] * MM_PER_INCH for b in drawn}
 
 
-def shared_turnouts(names: dict) -> None:
-    """Give each main and upper band's names the turnouts it shares with another band (`shared_turnouts`): a
+def shared_turnouts(names: dict, skip: set) -> None:
+    """Give each main and upper band's names (every key of `names` but `skip`: the bands of a level the base holds,
+    le_common.base_keys) the turnouts it shares with another band (`shared_turnouts`): a
     crossover whose halves stand on two levels (the helix-top 127 and 131) is one device-map turnout drawn as two
     Layout Editor turnouts, which JMRI throws together. A crossover whose halves stand on one level is the plugin's
     own (schematic.core.crossover_halves pairs halves joined C to C or B to C, 121 and 125 among them)."""
     bands_of = defaultdict(set)
     for key, nm in names.items():
-        if key != STAGING:
+        if key not in skip:
             for t in nm["turnouts"].values():
                 bands_of[t].add(key)
     for key, nm in names.items():
-        if key != STAGING:
+        if key not in skip:
             nm["shared_turnouts"] = sorted(t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1)
 
 
@@ -364,15 +370,17 @@ def named_bands(bands, names: dict):
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
     other main and upper track is unnamed, but a helix track keeps its plan name (McKees Rocks, McKeesport): the
-    plugin joins the helix ends of two levels by that name (le.partners), so it is the label there too. Staging is
-    left as it is. The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off
-    the panel among them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
+    plugin joins the helix ends of two levels by that name (le.partners), so it is the label there too. A band of a
+    level the base holds (BASE_LEVELS: staging, by its level) is left as it is. `bands` are the solved sheet's,
+    titles unchanged, as for placeholder_names: a band plan_overrides.json does not title stops with BuildError.
+    The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off the panel among
+    them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
-    for title, band, opts in bands:
-        key = band_key(title)
-        if key == STAGING:
+    for (title, band, opts), level in zip(bands, band_levels(bands)):
+        if level in BASE_LEVELS:
             out.append((title, band, opts))
             continue
+        key = band_key(title)
         band = copy.deepcopy(band)
         nodes = band["nodes"]
         # a crossover's two halves on this band ("101A", "101B" joined C to C), one device-map turnout: labelled by
