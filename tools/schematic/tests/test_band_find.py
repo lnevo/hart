@@ -142,6 +142,10 @@ class FindBand(unittest.TestCase):
             with self.assertRaisesRegex(BuildError, r"no band is at level 1"):
                 le_common.base_band(BANDS[:2])
 
+    def test_a_module_the_plugin_lacks_is_a_build_error(self):
+        with self.assertRaisesRegex(BuildError, r"has no schematic\.no_such_module: update it"):
+            le_common.plugin_module("no_such_module")
+
     def test_band_key_is_the_plugins(self):
         draw = le_common.plugin_module("draw")
         for title in ("Cellar deck", "Top deck, 4 in", "", "One"):

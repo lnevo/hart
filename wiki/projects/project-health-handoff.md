@@ -306,7 +306,7 @@ R9c is deployed to the Pi and Windows (7f2d3e26, `tables.xml` hash equal to the 
 - `split_at` runs this checkout's hartlib over the deployed commit's files.
 - An earlier-Store check failure can leave files written, and two messages are wrong.
 
-The owner was offered a strict, simple split instead: split only when this checkout's `tables.xml` equals the host's base, otherwise refuse with the worktree command, with no carry-forward or second-Store mode. Until the redesign below is built, R9c's behaviour stands: a pull keeps the Store in `~/JMRI_UserFiles-pulled/`, records it as taken, and the edits go into `devices.csv` or the template by hand.
+The owner was offered a strict, simple split instead: split only when this checkout's `tables.xml` equals the host's base, otherwise refuse with the worktree command, with no carry-forward or second-Store mode. Until the redesign below is built, R9c's behaviour stands: a pull keeps the Store in `media/pulled-stores/` in the main checkout, records it as taken, and the edits go into `devices.csv` or the template by hand.
 
 **R9d redesign (owner review, 2026-11-20).** It replaces both the parked branch and the strict split. A Store mostly holds non-device settings that must be kept, so the default is to keep, not to refuse:
 1. **Keep the Store.** Everything outside the generated sections (settings, memories, the clock sensor, LogixNG the owner made, manager options) is taken from the normalised Store and becomes the new `tables_template.xml`, with no review.

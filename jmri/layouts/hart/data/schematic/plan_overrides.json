@@ -3,7 +3,7 @@
  "_note": "Layer 1 for both sheets, one section per input name (publish_draft.INPUTS): facts about the railroad that the plan graph does not hold. Read with hartlib.layer_files; the schematic-maps plugin reads a section as it read the old <sheet>.plan_overrides.json.",
  "staging": {
   "_layer": 1,
-  "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Every output uses them. Since 5.3c (owner, 2026-11-19) the plan draws the Switch 7 crossover, Switches 13, 11 and 9 with EH-1 to EH-3, and no crossover T41/T43, all left-hand as built; the helix comes from the plan, cut at -5 cm (tools/anyrail/anyplan.py --cut -5 --stubs).",
+  "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Every output uses them. Since 5.3c (owner, 2026-11-19) the plan draws the Switch 7 crossover, Switches 13, 11 and 9 with EH-1 to EH-3, and no crossover T41/T43, all left-hand as built; the helix comes from the plan, cut at -5 cm (the schematic-maps plugin's schematic anyplan --cut -5 --stubs).",
   "left_end": "W-1",
   "edits": [
    {

@@ -47,9 +47,10 @@ class StoreTest(unittest.TestCase):
         main = cs.main_checkout()
         common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=REPO,
                                 capture_output=True, text=True, check=True).stdout.strip()
-        self.assertEqual(main, Path(common).parent)
+        self.assertEqual(main.resolve(), Path(common).parent.resolve())
         with unittest.mock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop("CHECK_STAMPS_DIR", None)
+            os.environ.pop("HART_CACHE_DIR", None)
             import importlib
             fresh = importlib.reload(cs)
             self.addCleanup(importlib.reload, cs)

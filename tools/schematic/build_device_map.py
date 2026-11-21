@@ -745,8 +745,26 @@ def master_virtual_names(files: devices.Files | None = None) -> dict:
 
 def frozen_wires(path: Path | None = None) -> list:
     """wiring.csv's turnout, fb and head rows of main and upper: the devices of a control point wired and frozen
-    (freeze_wiring.py), which the rule gives the same values again (Nodes.freeze)."""
-    return [w for w in wiring_rows(path) if w.level != int(FIELD_LEVEL) and w.kind in ("turnout", "fb", "head")]
+    (freeze_wiring.py), which the rule gives the same values again (Nodes.freeze). One helper tells what wiring.csv
+    holds: hartlib.wiring.held."""
+    return wiring.held(wires=wiring_rows(path)).devices
+
+
+def check_frozen_cps(rows: list[dict], cps: frozenset, held_devices: set, held_blocks: set) -> None:
+    """A control point wiring.csv holds (frozen) is read from it and proposed for no more: stop on a device the rule
+    gave one of its rows (a turnout, feedback or head on a node, or a detector input) that wiring.csv does not
+    hold. A switch added to a frozen control point is wired and frozen again (make wiring-freeze)."""
+    bad = []
+    for r in rows:
+        if r["cp"].split(devices.LIST)[0] not in cps or not r["node"] or r["role"] == "lcc_alias":
+            continue
+        if r["layer"] in ("turnout", "fb", "head") and (r["layer"], r["user_name"]) not in held_devices:
+            bad.append(f"{r['layer']} {r['user_name']}")
+        elif r["layer"] == "occupancy" and r["system_name"] and r["blocks"] not in held_blocks:
+            bad.append(f"occupancy of {r['blocks']}")
+    if bad:
+        raise MapError(f"{PINS.name}: control point(s) {', '.join(sorted(cps))} are frozen, but the rule proposes "
+                       f"{', '.join(sorted(bad))} for them: wire and freeze again (make wiring-freeze CP=...)")
 
 
 def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None, places=None,
@@ -803,7 +821,10 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                                                   if level_masts.virtual_level(v) == lv})
     nodes = Nodes(node_rows)
     nodes.pin(pins)
-    nodes.freeze(frozen_wires() if frozen is None else frozen)
+    held_wires = frozen_wires() if frozen is None else frozen
+    nodes.freeze(held_wires)
+    frozen_cps = frozenset(cp for w in held_wires if (cp := wiring.frozen_cp(w)))
+    held_devices, held_blocks = {(w.kind, w.device) for w in held_wires}, set(pins)
     rows = []
 
     def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri="", *, role,
@@ -1024,6 +1045,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     nodes.check_boards()
     nodes.check_pins()
     nodes.check_frozen()
+    check_frozen_cps(rows, frozen_cps, held_devices, held_blocks)
     check_virtual(rows)
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
     assign_ports(rows)

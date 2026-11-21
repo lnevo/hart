@@ -688,6 +688,7 @@ def _vendor_fleet_images(path: Path, dest_root: Path, max_px: int = 1600, subdir
 
 
 # Resized photos are kept in a cache folder between builds: re-encoding the ~530 photos took ~27 s of every build.
+# It is <main checkout>/.cache/hart/web-jpeg (HART_CACHE_DIR moves the base), shared by every worktree.
 # HART_WEB_JPEG_CACHE=<folder> moves it, HART_WEB_JPEG_CACHE= (empty) turns it off. The key holds the source of
 # _render_jpeg, so a change to how photos are drawn never reuses copies drawn the old way.
 JPEG_CACHE_ENV = "HART_WEB_JPEG_CACHE"
@@ -704,7 +705,13 @@ def _jpeg_cache() -> Path | None:
 def _jpeg_cache_at(value: str | None) -> Path | None:
     if value is not None and not value.strip():
         return None
-    path = Path(value).expanduser() if value else Path.home() / ".cache/hart/web-jpeg"
+    if value:
+        path = Path(value).expanduser()
+    else:                         # the shared default, resolved only now (hartlib needs git)
+        sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                        if (p / "tools/hartlib/src").is_dir()][:1]
+        from hartlib import paths as hart_paths
+        path = hart_paths.cache_dir("web-jpeg")
     try:
         path.mkdir(mode=0o700, parents=True, exist_ok=True)
         path.chmod(0o700)            # resized copies of mirror-only originals: private to this user
