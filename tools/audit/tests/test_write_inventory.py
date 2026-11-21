@@ -124,6 +124,30 @@ class Inventory(unittest.TestCase):
         WI.add_local(nodes, p)
         self.assertEqual(nodes[3].ou[2][7], ("C3 relay 2", "Relay", "5V", "planned, not connected"))
 
+    def test_a_mast_role_is_matched_against_every_row_of_its_switch(self):
+        """A crossover has a row per OS block: a facing on the first half's closed leg is a normal exit, not an entry
+        because only the last row was read (owner, 2026-11-21). One row behaves as it always did."""
+        from types import SimpleNamespace as Row
+        one = [Row(closed_leg="A", thrown_leg="B")]
+        self.assertEqual([WI.mast_role(one, f) for f in ("A", "B", "C")], ["Normal Exit", "Reverse Exit", "Entry"])
+        two = [Row(closed_leg="A", thrown_leg="X"), Row(closed_leg="C", thrown_leg="A")]
+        self.assertEqual([WI.mast_role(two, f) for f in ("A", "C", "X", "Z")],
+                         ["Normal Exit", "Normal Exit", "Reverse Exit", "Entry"])
+        with self.assertRaisesRegex(WI.FactsError, "no switches.csv rows"):
+            WI.mast_role([], "A")
+
+    def test_staging_legs_hold_a_row_per_os_block(self):
+        legs = WI.staging_legs()
+        self.assertIs(type(legs), dict)
+        self.assertEqual([len(legs[s]) for s in ("5", "23")], [1, 2])
+
+    def test_two_wired_masts_in_one_role_stop(self):
+        place = {"23": {}}
+        WI.take_role(place, "23", "Normal Exit", "24L", ["a", "b", "c"])
+        with self.assertRaisesRegex(WI.FactsError, "Switch 23: masts 24L and 24RB are both wired.*Normal Exit"):
+            WI.take_role(place, "23", "Normal Exit", "24RB", ["d", "e", "f"])
+        WI.take_role(place, "23", "Entry", "24RA", ["g", "h", "i"])        # another role is free
+
     def test_a_wired_staging_mast_is_on_its_switchs_row(self):
         """Mast 6LB stands on Switch 5's closed leg (Track East Ext): its normal exit signal."""
         row = dict(zip(WI.TURNOUT_COLUMNS, next(r for r in V86["TurnoutSummary"] if r[0] == "Switch 5")))
