@@ -13,7 +13,7 @@ Mast 8RB,Barn,7,Track East Ext,OS Switch 7b,east,,IF$shsm:basic:two-searchlight(
 Mast 24L,East End,23,Track West Ext,OS Switch 23a,west,,IF$shsm:basic:one-searchlight(IH:HART:C1:24L),IH:HART:C1:24L=Head 24L,IF$shsm:basic:one-searchlight(IH:HART:C1:24L)
 Mast 24RA,East End,23,Track Main West,OS Switch 23a,east,,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom),IH:HART:C1:24RA_Top=Head 24RA Top;IH:HART:C1:24RA_Bottom=Head 24RA Bottom,IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom)
 Mast 24RB,East End,23,Track S-R,OS Switch 23b,east,,IF$shsm:basic:one-low(IH:HART:C1:24RB),IH:HART:C1:24RB=Head 24RB,IF$shsm:basic:one-low(IH:HART:C1:24RB)
-Mast 32R,East End,31,OS Switch 29,OS Switch 31,east,,IF$shsm:basic:one-low(IH:HART:C1:32R),IH:HART:C1:32R=Head 32R,IF$shsm:basic:one-low(IH:HART:C1:32R)
+Mast 32R,East End,31,Track 29-31,OS Switch 31,east,,IF$shsm:basic:one-low(IH:HART:C1:32R),IH:HART:C1:32R=Head 32R,IF$shsm:basic:one-low(IH:HART:C1:32R)
 Mast 34L,East End,33,Track East Lead,OS Switch 33,west,,IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom),IH:HART:C1:34L_Top=Head 34L Top;IH:HART:C1:34L_Bottom=Head 34L Bottom,IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom)
 Mast 34R,East End,33,Track Main East,OS Switch 33,east,,IF$shsm:basic:one-searchlight(IH:HART:C1:34R),IH:HART:C1:34R=Head 34R,IF$shsm:basic:one-searchlight(IH:HART:C1:34R)
 Mast 36RA,Princess,35,Track West Ext,OS Switch 35b,east,,IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom),IH:HART:C1:36RA_Top=Head 36RA Top;IH:HART:C1:36RA_Bottom=Head 36RA Bottom,IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom)

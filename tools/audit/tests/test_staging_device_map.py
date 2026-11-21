@@ -124,6 +124,17 @@ class Pure(unittest.TestCase):
         with self.assertRaisesRegex(sdm.StagingMapError, "'OS Switch 9' is no track trial key"):
             sdm.piece_of("OS Switch 9")
 
+    def test_the_os_layer_gives_each_part_to_its_block(self):
+        """A part is a JMRI block of its own (load's blocks); the masts read it inside its OS block (os_layer), as
+        main and upper's mast process reads block_layer.Layer.bands."""
+        names = {"os": {"a": "OS Switch 1"}, "blocks": {"e1": ["Track 1-3 at 1", "Track 1-3 at 3"], "e2": ["Track W-1"]},
+                 "parts": {"Track 1-3 at 1": "OS Switch 1", "Track 1-3 at 3": "OS Switch 3"}}
+        got = sdm.os_layer(names)
+        self.assertEqual(got["blocks"], {"e1": ["OS Switch 1", "OS Switch 3"], "e2": ["Track W-1"]})
+        self.assertEqual(names["blocks"]["e1"], ["Track 1-3 at 1", "Track 1-3 at 3"])      # a copy
+        with self.assertRaisesRegex(sdm.StagingMapError, "part of another part"):
+            sdm.os_layer(dict(names, parts={"Track 1-3 at 1": "Track 1-3 at 3", "Track 1-3 at 3": "OS Switch 3"}))
+
     def test_two_runs_with_the_same_ends_stop(self):
         b = band({"a": sw("1"), "b": sw("3")}, {"e1": dict(src=("a", "B"), dst=("b", "A")),
                                                 "e2": dict(src=("b", "A"), dst=("a", "B"))})

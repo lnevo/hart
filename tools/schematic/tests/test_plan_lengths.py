@@ -89,11 +89,13 @@ class TrackLengths(unittest.TestCase):
                                {"OS Switch 7", "OS Switch 3", "OS Switch 1"})
         self.assertEqual(got, {"Track K-1": 122.9, "Track K-2": 122.9, "Track BP": 71.6, "Track Scale": 158.0})
 
-    def test_two_track_blocks_on_one_track_or_a_missing_run_stop(self):
-        b = band({"e22": ("e22", "S-1")})
-        names = {"blocks": {"e22": ["Track A", "Track B"]}}
-        with self.assertRaisesRegex(PL.LengthError, r"blocks \['Track A', 'Track B'\] share it"):
-            PL.track_lengths(b, names, {"e22": 210.0}, set())
+    def test_track_blocks_on_one_track_share_it_evenly_and_a_missing_run_stops(self):
+        """The k-th of a strand's n track blocks takes 1/n of its run, as on main and upper (plan_lengths.track_inches)
+        and in the block layer (a track with a part at each end: Track 1-3 at 1 and at 3)."""
+        b = band({"e22": ("e22", "")})
+        names = {"blocks": {"e22": ["Track 1-3 at 1", "Track 1-3 at 3"]}}
+        self.assertEqual(PL.track_lengths(b, names, {"e22": 21.0}, set()),
+                         {"Track 1-3 at 1": 10.5, "Track 1-3 at 3": 10.5})
         with self.assertRaisesRegex(PL.LengthError, "track e22: no run in the plan file"):
             PL.track_lengths(b, {"blocks": {"e22": ["Track A"]}}, {}, set())
 

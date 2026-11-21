@@ -404,7 +404,8 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
     devices.csv keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
     use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed. A
-    part's pieces (part_lines) are its part_of block's."""
+    part (part_lines) is a JMRI block of its own on every level (owner, 2026-11-20): its pieces are its own block, and
+    `parts` gives {part: the block it is part of} (os_layer reads the blocks as the masts do)."""
     import check_device_master as cdm       # the rules of every level's rows (it imports this module)
     try:
         lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
@@ -420,11 +421,13 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     cp_names = cps.get(str(LEVEL), set())
     turnout_ph, os_ph, strands = placeholders(band)
     by_ph = {ph: (r["layer"], r["user_name"], r["jmri_name"]) for r in rows for ph in split_names(r["trial_name"])}
-    for n, r in part_lines(device_map):          # a part's pieces are the block it is part of
+    parts = {}
+    for n, r in part_lines(device_map):          # a part's pieces are its own JMRI block
+        parts[r["user_name"]] = r["part_of"]
         for ph in split_names(r["trial_name"]):
             if ph in by_ph:
                 bad.append(f"line {n}: part {r['user_name']}'s trial_name {ph} is another row's as well")
-            by_ph[ph] = ("block", r["part_of"], "")
+            by_ph[ph] = ("block", r["user_name"], "")
     used = set()
 
     def get(ph, layer):
@@ -436,7 +439,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
         return got[2] if layer == "turnout" else got[1]
 
     names = dict(turnouts={n: get(ph, "turnout") for n, ph in turnout_ph.items()},
-                 os={n: get(ph, "block") for n, ph in os_ph.items()}, blocks={})
+                 os={n: get(ph, "block") for n, ph in os_ph.items()}, blocks={}, parts=parts)
     runs = defaultdict(dict)
     for ph, (layer, _u, _j) in by_ph.items():
         m = TRACK_RE.fullmatch(ph)
@@ -463,7 +466,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
         bad.append(f"trial names the staging drawing does not have: {unused}")
     if bad:
         raise StagingMapError(f"{paths.rel(device_map)}: " + "; ".join(bad))
-    names["normal"] = normal_legs(band, names)
+    names["normal"] = normal_legs(band, os_layer(names))    # switch_legs.csv names a leg by its first OS block
     if turnout_idents:
         ident_of = switch_facts(lc.switch_idents)
         idents = {}
@@ -478,6 +481,18 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     if bad:
         raise StagingMapError("; ".join(bad))
     return names
+
+
+def os_layer(names: dict) -> dict:
+    """A copy of load()'s names with each part's pieces given to the block it is part of (`parts`), as the one mast
+    process reads a level's block layer on every level (main and upper: block_layer.Layer.bands): a mast's place
+    and the blocks it protects follow the OS blocks, a part being inside its OS block (mast_plan, build_staging_masts).
+    StagingMapError on a part whose block is itself a part."""
+    parts = names.get("parts", {})
+    bad = sorted(p for p, of in parts.items() if of in parts)
+    if bad:
+        raise StagingMapError(f"parts {bad} are part of another part")
+    return dict(names, blocks={sid: [parts.get(b, b) for b in v] for sid, v in names["blocks"].items()})
 
 
 def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]:

@@ -206,8 +206,9 @@ def edge_runs(graph: dict, runs: dict) -> dict:
 def track_lengths(band, names: dict, runs: dict, os_blocks: set) -> dict:
     """{track block: inches} from `runs` ({plan edge id: inches}, edge_runs): each strand of the band takes its
     edge's run, split evenly over the strands the schematic draws it as (a balloon loop folded at its turnback). On a
-    strand, OS blocks take nothing (the run leaves the turnouts out) and the one track block takes the rest; a block
-    on several strands adds them up. LengthError on a strand with two track blocks."""
+    strand, OS blocks take nothing (the run leaves the turnouts out) and its n track blocks (a track with a part at
+    each end: Track 1-3 at 1 and at 3) take 1/n of it each, as track_inches reads a k/n key; a block on several
+    strands adds them up. LengthError on an edge with no run in the plan."""
     strands = band["strands"]
     by_edge = defaultdict(list)
     for sid, s in strands.items():
@@ -221,11 +222,8 @@ def track_lengths(band, names: dict, runs: dict, os_blocks: set) -> dict:
         share = runs[edge] / len(sids)
         for sid in sids:
             tracks = [b for b in names["blocks"][sid] if b not in os_blocks]
-            if len(tracks) > 1:
-                bad.append(f"track {sid}: blocks {tracks} share it and only one may take its length")
-                continue
-            if tracks:
-                out[tracks[0]] += share
+            for b in tracks:
+                out[b] += share / len(tracks)
     if bad:
         raise LengthError("; ".join(bad))
     return dict(out)
@@ -435,12 +433,13 @@ def main_upper_lengths(plan: Path) -> dict:
     return out
 
 
-def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
+def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS, parts: dict | None = None) -> str:
     """block_lengths.csv's text with plan_in set from `lengths` (staging's blocks, rounded to 0.1 in) and from
     `main_upper` ({block: (level, inches, sensor block)}, main_upper_lengths). A main or upper block with a row keeps
     it (its occupancy sensor, measured length, source and note; only plan_in is set, as on staging); a new one gets a
     row (source plan, occupancy_sensor its sensor block's occupancy row, no measured length). Main and upper's rows
-    come after staging's in level and name order. LengthError when a drawn staging block has no row, or a row is a
+    come after staging's in level and name order. A staging part (`parts`: {part: its block}) with no row gets one on
+    its block's detector. LengthError when another drawn staging block has no row, or a row is a
     block of no level."""
     from hartlib import level_devices
     with path.open(newline="", encoding="utf-8") as fh:
@@ -450,9 +449,17 @@ def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
     staging = [r for r in rows if r["user_name"] in lengths]
     rest = [r for r in rows if r["user_name"] not in lengths]
     have = {r["user_name"] for r in staging}
-    if have != set(lengths):
-        raise LengthError(f"{paths.rel(path)} and the staging drawing hold different blocks: only drawn "
-                          f"{sorted(set(lengths) - have)}")
+    parts = parts or {}
+    new = sorted(set(lengths) - have, key=railroad.natural)
+    lost = [b for b in new if b not in parts]
+    if lost:
+        raise LengthError(f"{paths.rel(path)} and the staging drawing hold different blocks: only drawn {lost}")
+    sensor_of = {r["user_name"]: r["occupancy_sensor"] for r in staging}
+    for b in new:            # a staging part (a JMRI block of its own since 2026-11-20): on its block's detector
+        if parts[b] not in sensor_of:
+            raise LengthError(f"{b} is part of {parts[b]}, which has no row in {paths.rel(path)}")
+        staging.append(dict(user_name=b, occupancy_sensor=sensor_of[parts[b]], measured_in="", source="plan",
+                            note=f"staging, the plan's length; a part of {parts[b]}, on its detector"))
     for r in staging:
         r["plan_in"] = f"{lengths[r['user_name']]:.1f}"
     stray = sorted(r["user_name"] for r in rest if r["user_name"] not in main_upper)
@@ -507,7 +514,7 @@ def main(argv=None) -> int:
             for b in bad:
                 print(f"{LENGTHS.name}: {b}", file=sys.stderr)
             return 1 if bad else 0
-        text = csv_with(lengths, main_upper)
+        text = csv_with(lengths, main_upper, parts={r["user_name"]: r["part_of"] for _n, r in sdm.part_lines()})
     except (LengthError, sdm.StagingMapError, sdm.lc.BuildError, anyplan.PlanError, railroad.FactsError) as exc:
         print(f"plan_lengths.py: {exc}", file=sys.stderr)
         return 2

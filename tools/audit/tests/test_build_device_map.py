@@ -100,6 +100,21 @@ class Pure(unittest.TestCase):
         with self.assertRaisesRegex(BD.MapError, "Track Helix Outer: no level_switch"):
             BD.helix_stops({"McKees Rocks": dict(block="Track Helix Outer", staging_switch="39", level_switch="")})
 
+    def test_a_staging_part_keeps_its_bean_names_and_a_new_one_takes_the_next_free(self):
+        """A part of a level whose beans the generator writes (staging) is a JMRI block of its own (owner,
+        2026-11-20): its block and layout block names stay as its row has them, and a new part takes the next number
+        free for both (IB:AUTO:<n>, ILB<n>), in name order, so no name shifts."""
+        taken = {"IB:AUTO:0051", "ILB51", "ILB53", "IB:AUTO:0054"}
+        got = BD.part_bean_names(["Track 9-11", "Track 1-3 at 1", "Track 11-13"],
+                                 {"Track 11-13": ("IB:AUTO:0060", "ILB60")}, taken)
+        self.assertEqual(got, {"Track 1-3 at 1": ("IB:AUTO:0052", "ILB52"), "Track 9-11": ("IB:AUTO:0055", "ILB55"),
+                               "Track 11-13": ("IB:AUTO:0060", "ILB60")})
+        with self.assertRaisesRegex(BD.MapError, "Track 9-11: its row has jmri_name IB:AUTO:0051, which another "
+                                                 "bean has"):
+            BD.part_bean_names(["Track 9-11"], {"Track 9-11": ("IB:AUTO:0051", "ILB70")}, taken)
+        with self.assertRaisesRegex(BD.MapError, "Track 9-11: its row has a jmri_name or a layout_block, not both"):
+            BD.part_bean_names(["Track 9-11"], {"Track 9-11": ("IB:AUTO:0070", "")}, taken)
+
     def test_nodes_pack_lcos_ids_and_overflow_in_area_order(self):
         nodes = BD.Nodes([R.LcosNode(0, 2, "West", 33), R.LcosNode(0, 2, "West", 43)])
         n = nodes.pick(2, "West", "turnout", 8)

@@ -811,6 +811,57 @@ def part_row(level: str, name: str, part: dict, trial: str) -> dict:
     return row
 
 
+PART_BLOCK_FIRST = 52        # a new staging part's number: the first above staging's last JMRI block (IB:AUTO:0051)
+
+
+def part_bean_names(parts: list[str], prior: dict, taken: set) -> dict[str, tuple[str, str]]:
+    """{part: (jmri_name, layout_block)} of the parts of a level whose beans the generator writes (staging,
+    tables_build.GENERATED_LEVELS), each a JMRI block of its own on its block's occupancy sensor (owner, 2026-11-20):
+    the names its row has (`prior`: {part: (jmri_name, layout_block)}), else, in name order, the next number n from
+    PART_BLOCK_FIRST up with neither IB:AUTO:<nnnn> nor ILB<n> in `taken` (every other bean's names), so a name never
+    shifts. MapError on a row with one of the two names only, or a name another bean has."""
+    out, bad, used = {}, [], set(taken)
+    for p in sorted(parts, key=natural):
+        if p not in prior:
+            continue
+        jn, lb = prior[p]
+        if bool(jn) != bool(lb):
+            bad.append(f"{p}: its row has a jmri_name or a layout_block, not both")
+        elif jn:
+            clash = [x for x in (jn, lb) if x in used]
+            if clash:
+                bad.append(f"{p}: its row has {'jmri_name' if clash[0] == jn else 'layout_block'} {clash[0]}, which "
+                           "another bean has")
+            out[p] = (jn, lb)
+            used |= {jn, lb}
+    if bad:
+        raise MapError("; ".join(bad))
+    n = PART_BLOCK_FIRST
+    for p in sorted(parts, key=natural):
+        if p in out:
+            continue
+        while f"IB:AUTO:{n:04d}" in used or f"ILB{n}" in used:
+            n += 1
+        out[p] = (f"IB:AUTO:{n:04d}", f"ILB{n}")
+        used |= set(out[p])
+    return out
+
+
+BEAN_NAME = re.compile(r"\bIB:AUTO:\d{4}\b|\bILB\d+\b")
+
+
+def taken_bean_names(master: list[dict]) -> set:
+    """Every name a bean has but staging's parts': the master's other rows (system_name, jmri_name, layout_block),
+    and the template's and the parked snapshot's block and layout block names (hartlib.tables_build.TEMPLATE,
+    hartlib.parked.PARKED_XML), so a new part's numbers are free everywhere."""
+    from hartlib import parked, tables_build
+    out = {r[c] for r in master if not (r["level"] == FIELD_LEVEL and r["role"] == "part")
+           for c in ("system_name", "jmri_name", "layout_block") if r[c]}
+    for path in (tables_build.TEMPLATE, parked.PARKED_XML):
+        out |= set(BEAN_NAME.findall(path.read_text(encoding="utf-8")))
+    return out
+
+
 def part_drops(parts: list[dict]) -> set:
     """The keys a part leaves out of the master on purpose (hartlib.devices replace_rows' drops): its occupancy row, as
     a part has no JMRI block and no sensor of its own (its block row is the part row, the same key)."""
@@ -920,10 +971,19 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
     helix = {h["block"] for h in read_helix_tracks().values()}
-    prior = {(r["layer"], r["user_name"]): r for r in devices.load(files or device_files())
+    master = devices.load(files or device_files())
+    prior = {(r["layer"], r["user_name"]): r for r in master
              if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
     blocks = set(lay.bands[bi]["os"].values()) | set(lay.tracks)
     out, bad, drops, freed = [], [], set(), []
+    # staging's beans are the generator's (tables_build.GENERATED_LEVELS), so its parts carry their block names here,
+    # where main and upper's take theirs from the Layout Editor build (le_tables numbering)
+    mine = {r["user_name"]: (r["jmri_name"], r["layout_block"]) for r in master
+            if r["level"] == FIELD_LEVEL and r["role"] == "part"}
+    try:
+        beans = part_bean_names(list(lay.parts), mine, taken_bean_names(master))
+    except MapError as exc:
+        raise MapError(f"staging parts: {exc}") from None
 
     def carried(layer: str, name: str, **owned) -> dict | None:
         old = prior.pop((layer, name), None)
@@ -949,9 +1009,22 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                         freed.append(freed_spare(occ, name, part["part_of"]))
                     except MapError as exc:
                         bad.append(str(exc))
-            out.append(part_row(FIELD_LEVEL, name, part, trials[name]))
+            row = part_row(FIELD_LEVEL, name, part, trials[name])
+            row.update(assignment="virtual", jmri_name=beans[name][0], layout_block=beans[name][1])
+            row["description"] = devices.describe(row)
+            out.append(row)
         else:
             out.append(carried("block", name, trial_name=trials.get(name, "")))
+    comment_of = {r["user_name"]: r["jmri_comment"] for r in out if r is not None and r["role"] != "part"}
+    for r in out:               # a part's JMRI comment: where it is, and its block's detector (its occupancy sensor)
+        if r is not None and r["role"] == "part":
+            m = re.search(r"occupancy .*$", comment_of.get(r["part_of"], ""))
+            if not m:
+                bad.append(f"staging part {r['user_name']}: its block {r['part_of']} has no occupancy in its comment")
+                continue
+            t = lay.parts[r["user_name"]]["track"]
+            ends = " to ".join(f"Switch {s}" for s in sorted({v for k, v in t["ends"] if k == "sw"}, key=natural))
+            r["jmri_comment"] = f"Part of {r['part_of']}, the track from {ends}; {m.group(0)}"
     occupancy = [carried("occupancy", occupancy_user(b), blocks=b) for b in sorted(blocks - helix, key=natural)]
     spares = [dict(r, written_by="build_device_map.py") for k, r in sorted(prior.items()) if r["role"] == "spare"]
     for r in spares:
