@@ -116,7 +116,7 @@ The items are:
 - **Row 8:** kind and level read from the name prefixes (`Track `, `OS Switch `, `BS `, `Mast `), the crossover half read from A or B, a balloon loop read from a name ending " Loop", and the level read from a band title.
 - **Row 10:** the drawing workarounds in the preferences files: `level_leg`, `le_tight_crossovers`/`le_split_crossovers`, `le_shift`, `le_labels`. Say for each one whether it can become a plugin rule.
 - **`le_signal_boundaries.csv`:** is it still needed now that staging masts come from the rule?
-- **Screen sizes:** the owner's screen sizes (`le_window`, `cats_window`) in the committed preferences. Should they move to a host-local setting?
+- **Screen sizes:** decided 2026-11-21: one committed `host_screen` setting (the Pi's and the Windows box's shared 1920 x 1080 monitor, less a 48 px taskbar) that `le_window` and `cats_window` are derived from (`tools/schematic/host_screen.py`).
 - **Band names and the 5 cm cut:** these sit in `plan_overrides.json` (main_upper section) `levels` "until B2". What is B2, and can they go now?
 
 Output: `<scratchpad>/health/W6-proposals.md`, with decisions phrased so they can be asked as multiple choice. The coordinator reviews the proposals with the owner. Build only after the owner answers: the design stays in the main session, and the mechanical parts go to Sonnet worktree agents as W6b.

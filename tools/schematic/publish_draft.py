@@ -64,6 +64,8 @@ STATIONS = OUT / "stations"                                              # one S
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import host_screen  # noqa: E402
 
 # the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
@@ -167,9 +169,16 @@ def cache_on():
 
 def solved_sheet(sheet):
     """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
-    through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
+    through the cache. Every builder gets its bands here, so they share one cache key with publishing. Its page
+    options gain le_window and cats_window, both from the page's host_screen (host_screen.apply): the one place the
+    Layout Editor panel's and the CATS desks' windows are derived."""
     with cache_on():
-        return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+        built = sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+    try:
+        host_screen.apply(built.opts, page_prefs().read())
+    except (host_screen.HostScreenError, layer_files.LayerFileError) as exc:
+        raise SystemExit(f"error: {exc}") from None
+    return built
 
 
 STAMP_VERSION = b"publish_draft check 2"
