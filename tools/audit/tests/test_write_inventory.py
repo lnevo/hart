@@ -145,6 +145,12 @@ class Inventory(unittest.TestCase):
         self.assertEqual((nodes[5][0], nodes[5][1], nodes[5][4]), ("D5", "D1", "DCC"))
         self.assertEqual((nodes[1][1], nodes[11][4]), ("C1", "Client"))
 
+    def test_a_head_across_two_boards_is_on_both(self):
+        row = dict(next(x for x in MAP if x["layer"] == "head" and x["node"] == "4"),
+                   comment="Node: 4 Signal: 0 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
+        n = WI.gather([row], WI.read_node_rows())[4]
+        self.assertEqual((sorted(n.ou[2]), sorted(n.ou[3])), ([7], [7, 8]))
+
     def test_a_row_with_a_node_and_no_port_stops(self):
         row = dict(next(x for x in MAP if x["layer"] == "fb" and x["node"]), comment="")
         with self.assertRaisesRegex(WI.FactsError, "is on node .* but its wiring '' gives no port"):

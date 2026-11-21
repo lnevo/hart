@@ -550,8 +550,9 @@ class Nodes:
                                "not list for main or upper")
             self.taken[(w.node, what[w.kind])].add(w.index)
             self.used[w.node][what[w.kind]] += 1
-            if w.kind == "head":
-                self.boards[w.node][int(w.board[2:])].update(w.ports)
+            if w.kind == "head":                     # its pins, on one board or two
+                for board, port in w.pins:
+                    self.boards[w.node][int(board[2:])].add(port)
             elif w.kind == "turnout":
                 self.turnout_boards[w.node].add(int(w.board[2:]))
                 self.frozen_turnouts[w.node].add(w.index)
@@ -930,17 +931,17 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                     raise MapError(f"Mast {m['name']}: wiring.csv freezes {sum(map(bool, frozen))} of its "
                                    f"{len(users)} head(s), or puts them on two nodes; freeze the mast whole")
                 hnode = frozen[0].node
-                heads = [(u, w.address, w.index, int(w.board[2:]), w.ports) for u, w in zip(users, frozen)]
+                heads = [(u, w.address, w.index, w.port_text) for u, w in zip(users, frozen)]
             else:
                 hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
-                heads = [(u, f"IH{packed}", k, board, (pin, pin + 1, pin + 2))
+                heads = [(u, f"IH{packed}", k, f"OU: {board} Ports: {pin},{pin + 1},{pin + 2}")
                          for u, (k, packed, board, pin) in zip(users, nodes.place_mast(hnode, m["heads"]))]
             sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
         except NoBoardRoom:
             # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
             # the owner reworks once the masts are approved (2026-11-19); their virtual names do not change
             hnode, sysname = "", ""
-            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None, None) for part in parts]
+            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), "", None, None) for part in parts]
         virtual = f"IF$shsm:basic:{kind}(" + ")(".join(level_devices.head_name(h[0]) for h in heads) + ")"
         if m.get("intermediate"):
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
@@ -950,13 +951,13 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
                 jmri=virtual, switch=m["switch"], facing=m["facing"], protects=m["protects"], dir=m["dir"])
-        for user, sysn, k, board, ports in heads:
+        for user, sysn, k, ports in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
                 add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
                 continue
             add(lv, name, "head", user, sysn, hnode,
-                f"Node: {hnode} Signal: {k} | OU: {board} Ports: {','.join(map(str, ports))}",
+                f"Node: {hnode} Signal: {k} | {ports}",
                 jmri=level_devices.head_name(user))
     for m in planned["virtual"]:            # a destination for the visible masts' routes: hidden, no heads, no node
         sw = switches[m["switch"]]

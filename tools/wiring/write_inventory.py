@@ -53,6 +53,7 @@ LEVEL_NAME = {"1": "Staging", "2": "Main", "3": "Upper"}
 DESIGN = ("2", "3")                               # main and upper: the rule's draft, shaded
 SHADE = PatternFill("solid", fgColor="DDEBF7")    # light blue: every main and upper level row (owner, 2026-11-15)
 PORT = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)$")
+GROUPS = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)")      # every board's pins of a wiring text (a head may span two)
 NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
 LEGACY = re.compile(r"\bwas ([CDM]\d+)\b")        # a staging node's old ID, as lcos_nodes.csv's source notes it
 NODE_ID = re.compile(r"^inventory v86: ([CDM]\d+)\b")    # a staging node's ID in the inventory (M1 main, D5 DCC)
@@ -169,13 +170,13 @@ def gather(rows, node_rows, lamps: dict | None = None) -> dict[int, Node]:
         elif r["layer"] == "head":
             if not m:
                 continue                              # a mast's node with no head wiring of its own
-            board, pins = int(m.group(2)), [int(p) for p in m.group(3).split(",")]
+            spread = [(int(b), int(p)) for _k, b, ps in GROUPS.findall(r["comment"]) for p in ps.split(",")]
             kind = "Signal LED" if n.design else "Searchlight Signal Head"     # staging's are Digicon searchlights
-            for pin, lamp in zip(pins, "RYG"):
+            for (board, pin), lamp in zip(spread, "RYG"):   # a head's pins may span two boards
                 name = (lamps or {}).get(f"{n.id}-OU{board}-{pin}") if not n.design else None
                 n.ou[board][pin] = (name or f"{r['user_name']} {lamp}", kind, "5V",
                                     f"{r['system_name']}; STOP/APPROACH/CLEAR; lamp {lamp}")
-            n.heads.append((r["user_name"], board, pins))
+            n.heads.append((r["user_name"], spread))
         elif r["layer"] == "mast":
             n.masts.append(r["user_name"].removeprefix("Mast "))
         elif r["layer"] == "occupancy":
@@ -297,7 +298,7 @@ def nodes_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
             "Button Devices": ", ".join(b for b, _ in n.buttons) or None,
             "Turnout Feedback Devices": ", ".join(f.removeprefix("FB ") + " FB" for f, _ in n.feedback) or None,
             "Num 5V": 8 * len(five), "5V Used": used5, "5V Free": 8 * len(five) - used5,
-            "Num Signal LEDs": sum(len(p) for _, _, p in n.heads), "Signal LED Devices": len(n.heads),
+            "Num Signal LEDs": sum(len(p) for _, p in n.heads), "Signal LED Devices": len(n.heads),
             "Signal Names": ", ".join(sorted(n.masts, key=natural)) or None, "DNCTA": None,
             "BS Devices": ", ".join(bdev) or None, "Num Blocks": len(n.blocks),
             "Block Section Names": ", ".join(b for _, r in sorted(n.blocks, key=lambda b: b[0])
@@ -329,8 +330,8 @@ def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
     legs = {r["switch"]: r for r in load_csv(SWITCH_LEGS)}
     place = defaultdict(dict)        # switch -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
     for n in nodes.values():
-        for head, board, pins in n.heads:
-            ports = [f"{n.id}-OU{board}-{p}" for p in pins]
+        for head, spread in n.heads:
+            ports = [f"{n.id}-OU{board}-{p}" for board, p in spread]
             key = re.sub(r" (Top|Bottom)$", "", head.removeprefix("Head "))
             mast = by_name.get(f"Mast {key}", {})
             sw = mast.get("switch", "")

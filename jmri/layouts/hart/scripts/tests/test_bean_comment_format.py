@@ -109,12 +109,13 @@ class BeanCommentFormatTest(unittest.TestCase):
         self.assertEqual(comments, {"Head 6LB": "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3"})
 
     def test_wiring_head_comments_from_wiring_csv(self) -> None:
-        """A head's comment is its node, LCOS signal and ports as wiring.csv gives them (one board per head)."""
+        """A head's comment is its node, LCOS signal and ports as wiring.csv gives them, grouped by board when its
+        pins span two."""
         import tempfile
         rows = [
             "level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,notes",
             '1,head,Head 24RA Top,,,,,2,0,OU1,"1,2,3",wired,', '1,head,Head 24RA Bottom,,,,,2,6,OU1,"4,5,6",wired,',
-            '1,head,Head 32R,,,,,12,2,OU2,"6,7,8",wired,',
+            '1,head,Head 32R,,,,,12,2,OU2,"7,OU3-8,OU3-7",wired,',
         ]
         plan = "mast_user_name,heads,packed_ids\nMast 24RA,2,232 238\nMast 32R,1,1234\n"
         with tempfile.TemporaryDirectory() as d:
@@ -124,7 +125,7 @@ class BeanCommentFormatTest(unittest.TestCase):
             comments = self.m.load_wiring_head_comments(wiring, head_plan)
         self.assertEqual(comments["Head 24RA Top"], "Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3")
         self.assertEqual(comments["Head 24RA Bottom"], "Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6")
-        self.assertEqual(comments["Head 32R"], "Node: 12 Signal: 2 | OU: 2 Ports: 6,7,8")
+        self.assertEqual(comments["Head 32R"], "Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
 
     def test_head_comment_from_wiring(self) -> None:
         self.assertEqual(

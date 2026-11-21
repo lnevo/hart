@@ -204,61 +204,11 @@ Occupied blocks still force **STOP**. Packed MQTT IDs are unchanged; this is wir
 
 Two-head **B** is the unused-head marker (red on a lined main). Do not OR Approach on a home or dwarf — that paints yellow when the turnout is against the signal.
 
-Block-sensor calibration pin (first 5V OU, channel 8):
+Calibration relays (the relay on each node with detectors that resets the DCC power so the detectors calibrate): staging's are the `calibration` rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv); main and upper's are pin 8 of each detector node's first 5V board, by the device map's rule.
 
-| Node | Port |
-|------|------|
-| C1 | C1-OU2-8 |
-| C2 | C2-OU1-8 |
-| C3 | C3-OU2-8 |
-| C4 | C4-OU2-8 |
-| C11 | C11-OU2-8 |
-| C12 | C12-OU2-8 |
-| C13 | C13-OU1-8 |
-| C14 | C14-OU2-8 |
-| C21 | C21-OU2-8 |
-| C22 | C22-OU2-8 |
-| C23 | C23-OU2-8 |
-| C24 | C24-OU2-8 |
+### Main and upper nodes
 
-Relays that used to sit on those pins (C3, C14, C21–C24) need a different 5V channel.
-
-### Other cabinets (no Digicon 3-pin heads)
-
-These OUs stay motors / planned RGB heads (`Head 64R` …) / relays. Do not overlay Digicon searchlights here. **D5** is helix DCC (no DNOU8).
-
-Upper-deck CTC numbers start at **Switch 61** / **62L** (odd switch, even signal, same as the lower deck). Plant order is CP4 helix, CP5 north, CP6 peninsula/west:
-
-| Old | Switch | Heads |
-|-----|--------|-------|
-| NIX | 61 | 62L |
-| SW127 | 63 | 64L, 64R |
-| SW138 | 65 | 66RA, 66RB |
-| SW129 | 67 | 68L, 68R |
-| DJE | 69 | 70L, 70RA, 70RB |
-| DJW | 71 | 72L |
-| SW124 | 73 | 74L, 74RA, 74RB |
-| CBX | 75 | 76L, 76R |
-| SW143 | 77 | 78L, 78R, 78RA, 78RB |
-| SW144 | 79 | (shared 76L / 78RA) |
-| SW145 | 81 | 82L |
-| SW146 | 83 | 84RA, 84RB |
-| SW147 | 85 | 86L |
-| SW148 | 87 | 88L, 88R, 88RA |
-| SW149 | 89 | 90L |
-| SW150 | 91 | 92L |
-
-Leftover East End RGB `S2-6` / `S2-7` on C2 is gone. C2-OU3 stays for **24RB** (only two leftover pins on OU1/OU2, so that dwarf cannot move).
-
-| Node | Radio | Plant | Boards |
-|------|------:|-------|--------|
-| C3 | 3 | West lower | OU1 12V Switch 15–21 motors; OU2 5V spare + **OU2-8 BS cal** (OU3 removed) |
-| C14 | 14 | West upper | OU1 12V Switch 79–85; OU2/OU3 5V CP6 heads (76L…86L) + relay |
-| C21 | 21 | Helix upper / CP4 | OU1 12V Switch 61 (NIX); OU2/OU3 5V CP4 heads 62L / 64 / 66 + relay |
-| C22 | 22 | North upper / CP5 | OU1 12V Switch 69 / 71; OU2/OU3 5V CP5 heads 70 / 72 / 74 + relay |
-| C23 | 23 | West upper / CP6 | OU1 12V Switch 75 / 77; OU2/OU3 5V CP6 heads + relay |
-| C24 | 24 | Peninsula upper / CP6 | OU1 12V Switch 87–91 + 82L G/R; OU2/OU3 5V CP6 heads + relay |
-| C32 | 32 | North upper / CP5 | OU1 12V Switch 73; OU2 5V 70RB / 74RB |
+The nodes, boards and pins of the main and upper levels are the device map's draft (`tools/schematic/build_device_map.py`, the shaded rows of v86), from the node list in `jmri/layouts/hart/data/schematic/lcos_nodes.csv`. A control point's wiring becomes static once it is wired and frozen (`make wiring-freeze CP="CP 123"`). The August 2026 upper-deck plan (Switches 61 to 91 on C14, C21 to C24 and C32) is gone; it is in v85, frozen history.
 
 ## Refresh
 

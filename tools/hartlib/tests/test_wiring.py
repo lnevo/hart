@@ -120,5 +120,33 @@ class Digicon(unittest.TestCase):
             W.digicon_rows(self.read('1,head,Signal 6LB,,,,,4,0,OU2,"1,2,3",wired,\n'))
 
 
+
+class Spans(unittest.TestCase):
+    """A head is on one node, but its three pins may span two OU boards (owner, 2026-11-21)."""
+
+    def read(self, text):
+        d = Path(tempfile.mkdtemp())
+        p = d / "wiring.csv"
+        p.write_text(HEAD + text, encoding="utf-8")
+        return p
+
+    def test_a_head_across_two_boards(self):
+        p = self.read('1,head,Head 32R,,,,,12,2,OU2,"7,OU3-8,OU3-7",wired,\n')
+        [w] = W.read(p)
+        self.assertEqual(w.pins, [("OU2", 7), ("OU3", 8), ("OU3", 7)])
+        self.assertEqual(w.wiring_text, "Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
+        self.assertEqual([r["port_id"] for r in W.digicon_rows(p)], ["C12-OU2-7", "C12-OU3-8", "C12-OU3-7"])
+
+    def test_what_a_span_may_not_do_stops(self):
+        for text, msg in (('1,turnout,Switch 1,,,,,4,0,OU1,"1,OU2-2",wired,', "only a head's pins may span"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"OU3-1,2,3",wired,', "first pin OU3-1 is not on board OU2"),
+                          ('1,head,Head 1L,,,,,4,0,OU1,"1,OU2-1,OU3-1",wired,', "at most two boards"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"1,OU2-1,2",wired,', "a pin is given twice"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"6,7,8",wired,\n1,head,Head 2L,,,,,4,1,OU1,"8,OU2-8,OU2-7",wired,',
+                           r"node 4 OU2 port\(s\) \[8, 7\] are line 2's")):
+            with self.subTest(msg=msg), self.assertRaisesRegex(FactsError, msg):
+                W.read(self.read(text + "\n"))
+
+
 if __name__ == "__main__":
     unittest.main()

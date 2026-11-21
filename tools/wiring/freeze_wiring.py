@@ -39,7 +39,8 @@ from hartlib.railroad_facts import FactsError  # noqa: E402
 import build_device_map as bdm  # noqa: E402
 import build_layout_le as bl  # noqa: E402
 
-PORTS = re.compile(r"^Node: (\d+) (Turnout|Sensor|Signal): (\d+) \| (OU|IN): (\d+) Ports: ([\d,]+)$")
+PORTS = re.compile(r"^Node: (\d+) (Turnout|Sensor|Signal): (\d+)((?: \| (?:OU|IN): \d+ Ports: [\d,]+)+)$")
+GROUP = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)")   # one board's pins in a wiring text
 BLOCK = re.compile(r"^Node: (\d+) Block: (\d+)$")
 KIND = {"Turnout": "turnout", "Sensor": "fb", "Signal": "head"}
 
@@ -98,8 +99,12 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
             if not m:
                 bad.append(f"{r['layer']} {r['user_name']}: its wiring {r['comment']!r} gives no port")
                 continue
+            groups = GROUP.findall(m.group(4))           # a head's pins may span two boards
+            first = f"{groups[0][0]}{groups[0][1]}"
+            ports = [p if f"{kind}{board}" == first else f"{kind}{board}-{p}"
+                     for kind, board, pins in groups for p in pins.split(",")]
             out.append(base | dict(kind=KIND[m.group(2)], device=r["user_name"], node=m.group(1),
-                                   index=m.group(3), board=f"{m.group(4)}{m.group(5)}", ports=m.group(6)))
+                                   index=m.group(3), board=first, ports=",".join(ports)))
         elif r["layer"] == "occupancy" and r["node"]:
             m = BLOCK.match(r["comment"])
             block = r["blocks"]
