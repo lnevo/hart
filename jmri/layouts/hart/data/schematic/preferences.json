@@ -198,12 +198,10 @@
     "Track 27-29",
     "Track 29-31",
     "Track 31-33",
-    "Track 35-37",
-    "Track 35-39 at 35",
-    "Track 35-39 at 39"
+    "Track 35-37"
    ]
   },
-  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns), and its occupancy lamps share one x, each on its track (lamp_columns; owner, 2026-11-16; the lamps are parked with the Dispatcher System). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line). A part's block contents icon is optional on every level (optional_block_contents: staging's 16 parts here, main's and upper's in le_band_labels; owner, 2026-11-20): a short block that is tight on the panel needs no label, and one with no clean spot is left out (logged).",
+  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns), and its occupancy lamps share one x, each on its track (lamp_columns; owner, 2026-11-16; the lamps are parked with the Dispatcher System). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line). A part's block contents icon is optional on every level (optional_block_contents: staging's parts here, main's and upper's in le_band_labels; owner, 2026-11-20): a short block that is tight on the panel needs no label, and one with no clean spot is left out (logged).",
   "le_band_align": {
    "1": "left"
   },

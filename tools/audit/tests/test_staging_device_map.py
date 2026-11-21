@@ -243,7 +243,7 @@ class Files(unittest.TestCase):
         both = next(s for s, (p, _r) in sdm.piece_refs(self.band).items() if p == "1B-3A")
         self.assertEqual(self.names["blocks"][both], ["Track 1-3 at 3", "Track 1-3 at 1"])
         parts = sdm.staging_parts()
-        self.assertEqual(len(parts), 16)
+        self.assertEqual(len(parts), 14)          # the halves of 35-39 stay inside their OS blocks (inside yes)
         layer = sdm.os_layer(self.names, parts)
         self.assertEqual((layer["blocks"][sid], layer["blocks"][both]),
                          (["OS Switch 35a"], ["OS Switch 3", "OS Switch 1"]))

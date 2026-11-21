@@ -64,6 +64,8 @@ OS Switch 5,BS Switch 5
 OS Switch 7,BS Switch 7
 OS Switch 7b,BS Switch 7b
 OS Switch 9,BS Switch 9
+Track 1-3 at 1,BS Switch 1
+Track 1-3 at 3,BS Switch 3
 Track 101 Spur 1,BS 101 Spur 1
 Track 101 Spur 2,BS 101 Spur 2
 Track 101-103,BS Switch 101
@@ -76,6 +78,7 @@ Track 107 Loop 1,BS 107 Loop 1
 Track 107 Loop 2,BS 107 Loop 2
 Track 107-109,BS 107-109
 Track 109-111,BS Switch 109
+Track 11-13,BS Switch 11
 Track 111-117,BS Switch 111
 Track 113 Spur 1,BS 113 Spur 1
 Track 113 Spur 2,BS 113 Spur 2
@@ -97,6 +100,10 @@ Track 127-131 2,BS Switch 127
 Track 127-221,BS 127-221
 Track 129 Spur 1,BS 129 Spur 1
 Track 129 Spur 2,BS 129 Spur 2
+Track 13-15,BS Switch 15
+Track 15-17,BS Switch 15
+Track 17-19,BS Switch 17
+Track 19-21,BS Switch 19
 Track 201-203,BS Switch 201
 Track 201-205,BS Switch 205
 Track 201-219,BS Switch 201
@@ -127,6 +134,7 @@ Track 227-241 1,BS 227-241 1
 Track 227-241 2,BS 227-241 2
 Track 229-233,BS Switch 233
 Track 229-241,BS 229-241
+Track 23-31,BS Switch 31
 Track 231 Spur,BS 231 Spur
 Track 231-237,BS Switch 231
 Track 233-235,BS 233-235
@@ -142,6 +150,12 @@ Track 243 Spur 1,BS 243 Spur 1
 Track 243 Spur 2,BS 243 Spur 2
 Track 245 Spur 1,BS 245 Spur 1
 Track 245 Spur 2,BS 245 Spur 2
+Track 25-27,BS Switch 25
+Track 27-29,BS Switch 27
+Track 29-31,BS Switch 29
+Track 31-33,BS Switch 31
+Track 35-37,BS Switch 35a
+Track 9-11,BS Switch 9
 Track Barn,BS Barn
 Track Brick-Plane,BS Brick-Plane
 Track EH-1,BS EH-1

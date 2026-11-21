@@ -24,14 +24,17 @@ block. The rule, on every level: a track between two switches under 50 cm (`LINK
 switch's OS block (at a double crossover, the corner block of its leg), but where a home mast stands at a switch's
 points facing it, part of the OS block at its other end, so the block boundary is at the mast (`block_layer
 .masted_block`; a mast at both ends stops the build). On every level a part is a JMRI block, layout block and
-track on the panel whose occupancy sensor is its OS block's (owner, 2026-11-20: main and upper's 25, staging's 16).
+track on the panel whose occupancy sensor is its OS block's (owner, 2026-11-20: main and upper's 25, staging's 14).
 Main and upper's are numbered by the Layout Editor build; staging's carry their names in their rows
 (`build_device_map.part_bean_names`: IB:AUTO:<n> and ILB<n>, the next free number, never shifted), since the
 generator writes staging's beans. The masts read a part inside its OS block (`staging_device_map.os_layer`, as
 `block_layer.Layer.bands` on main and upper) and face the JMRI block next to them (Mast 32R faces Track 29-31).
-A part's block contents icon is optional (`optional_block_contents` in `preferences.json`, every level). A part 0 in
-long in the plan (staging's 35-39 halves) keeps 0.0 in `block_lengths.csv` and in JMRI; the drawing cuts its
-track into equal blocks (`le_names.staging_lengths`). `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
+A part's block contents icon is optional on every level: `optional_block_contents` in `preferences.json` lists
+every level's parts (the plugin takes the list from the preferences only; `test_blocks_every_level` holds it to
+`devices.csv`). A piece that `block_exceptions.csv` marks `inside` stays inside its OS block with no JMRI or
+layout block of its own (owner, 2026-11-20: the two halves of 35-39, in OS 35b and OS 39, so Mast 36RB's route
+to Mast 68 is shorter than the wrong way round the Princess balloon, which JMRI's discovery otherwise follows
+until its ttlSize and drops the pair). `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
 where the wiring says otherwise (13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39) and
 the crossover halves with detectors of their own. `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,

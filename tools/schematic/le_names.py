@@ -75,20 +75,13 @@ def staging_lengths(names: dict, plan_inches: dict | None = None) -> dict:
     """{block: inches} of every staging block the schematic draws, from block_lengths.csv's plan_in (the AnyRail plan
     5.3c, tools/schematic/plan_lengths.py; owner, 2026-11-20): the plugin cuts a track of several blocks at their
     plan shares (the Scale track ends in OS Switch 7, which is drawn its turnout's length). BuildError on a drawn
-    block with no plan length. A block 0 in long in the plan (a part between two turnouts that touch: Track 35-39 at
-    35 and at 39) gets no length, so the plugin cuts its track into equal blocks; BuildError when such a block
-    shares a track with one that has a length (no share to cut it at)."""
+    block with no plan length."""
     plan_inches = plan_lengths() if plan_inches is None else plan_inches
     drawn = sorted({b for v in names["blocks"].values() for b in v})
     missing = [b for b in drawn if b not in plan_inches]
     if missing:
         raise BuildError(f"block_lengths.csv has no plan length for drawn staging blocks {missing}")
-    zero = {b for b in drawn if not plan_inches[b] > 0}
-    mixed = sorted({b for v in names["blocks"].values() if zero & set(v) and set(v) - zero for b in v})
-    if mixed:
-        raise BuildError(f"staging blocks {mixed} share a track, and some are 0 in long in the plan: no share to "
-                         "cut the track at")
-    return {b: float(plan_inches[b]) for b in drawn if b not in zero}
+    return {b: float(plan_inches[b]) for b in drawn}
 
 
 @functools.lru_cache(maxsize=1)

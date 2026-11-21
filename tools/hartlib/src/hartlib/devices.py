@@ -47,8 +47,8 @@ ROLES = ("turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "l
 # within a (level, layer) after the hand-kept ones.
 WRITERS = ("build_staging_masts.py", "build_device_map.py", "build_main_upper_masts.py", "panel_items.json")
 # roles the two device maps leave out: a spare detector, a panel status bean, and a part (a block row with part_of: a
-# piece of track inside another block: a JMRI block on its block's occupancy sensor, built by its level's builder, with no
-# occupancy row or detector of its own)
+# piece of track inside another block: a JMRI block on its block's occupancy sensor, built by its level's builder, with
+# no occupancy row or detector of its own)
 OUT_OF_MAPS = ("spare", "panel_status", "part")
 SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 

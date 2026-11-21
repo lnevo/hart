@@ -901,6 +901,16 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
+    <destinationMast destination="Mast 68">
+      <destinationSignalMast>Mast 68</destinationSignalMast>
+      <comment />
+      <enabled>yes</enabled>
+      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
+      <useLayoutEditor>yes</useLayoutEditor>
+      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
+      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
+      <lockTurnouts>no</lockTurnouts>
+    </destinationMast>
     <destinationMast destination="Mast 132RA">
       <destinationSignalMast>Mast 132RA</destinationSignalMast>
       <comment />

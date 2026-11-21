@@ -610,6 +610,9 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     check_helix_ends(bands, joined, found, helix)
     stops = helix_stops(helix)              # check_helix_ends: each helix track ends at its level_switch
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
+    if lay.inside:          # the main and upper drawing gives each strand one block: a piece there is a part
+        raise MapError(f"block_exceptions.csv keeps {', '.join(sorted(lay.inside))} inside an OS block on main or "
+                       "upper, whose drawing gives each strand one block; leave inside empty (a part)")
     trials = level_trials(bands, joined, lay)
 
     def trial_of(name: str) -> str:

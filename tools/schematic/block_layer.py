@@ -35,7 +35,9 @@ rows with their tracks, a row of any level (1 staging, 2 main, 3 upper):
   where two tracks run between them, mast_rule.resolve_track); `end` empty for the whole track or one of its end
   switches for the piece at that end; `block` the OS block it is part of, which must be the OS block at that end (at
   either end for a whole track); `cm` the piece's length, given only for a piece at one end whose track keeps the
-  rest (and then needed, under the track's length).
+  rest (and then needed, under the track's length); `inside` yes keeps the piece inside its OS block with no JMRI or
+  layout block of its own (Layer.inside; owner, 2026-11-20: the halves of 35-39, for Mast 36RB's route to Mast 68),
+  empty for the rule, a part that is a JMRI block of its own.
 - kind crossover_half: switch_a the crossover's number, switch_b the switch its half's leg A track runs to, `block`
   the half's own OS block. Both halves of a crossover have a row, or neither.
 Stops (BlockError, naming the file, line and level) on a row in no such shape, a track or half it does not find, a row
@@ -56,7 +58,7 @@ from hartlib import railroad
 
 LINK_CM = 50.0
 EXCEPTIONS_NAME = "block_exceptions.csv"       # in pd.DATA, looked up when read (a test may point pd.DATA elsewhere)
-EXCEPTION_COLUMNS = ["level", "kind", "switch_a", "switch_b", "parallel", "end", "block", "cm", "notes"]
+EXCEPTION_COLUMNS = ["level", "kind", "switch_a", "switch_b", "parallel", "end", "block", "cm", "inside", "notes"]
 KINDS = ("track", "crossover_half")
 natural, base = railroad.natural, railroad.switch_number
 
@@ -127,9 +129,11 @@ def name_tracks(found: list[dict], bands, helix: dict) -> None:
 @dataclass
 class Exceptions:
     """block_exceptions.csv resolved against the drawing: track rows by track entry id, {end: (block, line, cm or
-    None)} ("" the whole track), and crossover halves by (band, node): (block, line)."""
+    None)} ("" the whole track), crossover halves by (band, node): (block, line), and the lines of the track rows
+    marked `inside` (the piece stays inside its OS block, with no JMRI block of its own)."""
     tracks: dict = field(default_factory=dict)
     halves: dict = field(default_factory=dict)
+    inside: set = field(default_factory=set)
 
 
 def crossover_pairs(band) -> dict:
@@ -181,11 +185,14 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
         if cm is not None and not cm > 0:
             bad.append(f"{at}: cm {r['cm']!r} is a length in cm, more than 0")
             continue
+        if r["inside"] not in ("", "yes"):
+            bad.append(f"{at}: inside is yes or empty, not {r['inside']!r}")
+            continue
         if r["kind"] == "crossover_half":
             if not (mr.SWITCH_NUMBER.fullmatch(r["switch_a"]) and mr.SWITCH_NUMBER.fullmatch(r["switch_b"])) or \
-                    r["parallel"] or r["end"] or r["cm"]:
+                    r["parallel"] or r["end"] or r["cm"] or r["inside"]:
                 bad.append(f"{at}: a crossover half is switch_a (the crossover) and switch_b (where its leg A track "
-                           "runs), with no parallel, end or cm")
+                           "runs), with no parallel, end, cm or inside")
                 continue
             if level not in wanted:
                 continue
@@ -223,6 +230,8 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
             bad.append(f"{at}: {t['name']} is given a block on line {next(iter(got.values()))[1]} already")
             continue
         got[r["end"]] = (r["block"], i, cm)
+        if r["inside"]:
+            out.inside.add(i)
     if bad:
         raise BlockError(f"{where}: " + "; ".join(bad))
     return out
@@ -293,12 +302,14 @@ class Layer:
     {strand: [block, ...] from the strand's first end]}}, as mast_plan.plan reads it (a part counts as the block it is
     part of); `rows`: {band index: {strand: [row name, ...]}}, the same with a part's own name; `cm`: {block: cm} (an
     OS block 0: its boundary is at the switch's leg); `parts`: {part name: {part_of, level, track, why}}; `tracks`:
-    {block: (track entry, half)} of the tracks' own blocks."""
+    {block: (track entry, half)} of the tracks' own blocks; `inside`: {piece name: its OS block} of the pieces
+    block_exceptions.csv keeps inside their OS block (`inside` yes: no part, no JMRI block of their own)."""
     bands: dict = field(default_factory=dict)
     rows: dict = field(default_factory=dict)
     cm: dict = field(default_factory=dict)
     parts: dict = field(default_factory=dict)
     tracks: dict = field(default_factory=dict)
+    inside: dict = field(default_factory=dict)
 
 
 def is_link(t: dict) -> bool:
@@ -434,7 +445,9 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 if st["src"][0] != at_end[min(at_end, key=natural)]:                # from the strand's first end
                     pieces = pieces[::-1]
                 for row, block, line, cm in pieces:
-                    if line:
+                    if line in exceptions.inside:               # inside its OS block: no part, no JMRI block
+                        out.inside[row] = block
+                    elif line:
                         out.parts[row] = dict(part_of=block, level=level, track=t, cm=cm,
                                               why=f"{exceptions_file} line {line}")
                     else:                                       # the rest of the track, its own block
@@ -442,7 +455,8 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 if all(line for _r, _b, line, _c in pieces):    # no piece left to the track's own block
                     out.tracks.pop(name, None)
                     out.cm.pop(name, None)
-                blocks[sid], rows[sid] = [b for _r, b, _l, _c in pieces], [r for r, _b, _l, _c in pieces]
+                blocks[sid] = [b for _r, b, _l, _c in pieces]
+                rows[sid] = [b if line in exceptions.inside else r for r, b, line, _c in pieces]
                 used.add(id(t))
                 continue
             if is_link(t):
