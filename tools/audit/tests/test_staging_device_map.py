@@ -187,8 +187,8 @@ class Files(unittest.TestCase):
         return self._copy(edit)[0]
 
     def test_a_missing_block_of_a_split_track_stops(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "track 5C-7B: blocks .* are not 1/n to n/n"):
-            sdm.load(self.band, device_map=self._without("Track 5C-7B 1/2"))
+        with self.assertRaisesRegex(sdm.StagingMapError, "track 1B-3A: blocks .* are not 1/n to n/n"):
+            sdm.load(self.band, device_map=self._without("Track 1B-3A 1/2"))
 
     def test_a_part_gives_its_pieces_to_the_block_it_names(self):
         """A part row (part_of) carries its pieces' trial names; load() gives them to its block (owner, 2026-11-20)."""

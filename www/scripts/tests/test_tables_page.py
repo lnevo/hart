@@ -81,8 +81,15 @@ class Facts(unittest.TestCase):
         raw, root = btb.load()
         self.assertEqual(self.f["top"], len(list(root)))
 
-    def test_no_detector_is_shared_since_the_yard_throats_went(self):
-        self.assertEqual(self.f["sharedCount"], 0)
+    def test_only_an_os_block_and_its_parts_share_a_detector(self):
+        # the yard throats went; since step 5 part 2 (owner, 2026-11-20) a main or upper link is a block of its own on
+        # the occupancy sensor of the OS block it is part of (devices.csv part_of), so each such OS block's sensor is
+        # shared, and no other
+        import csv
+        devices_csv = btb.SRC.parents[1] / "data/devices.csv"
+        with open(devices_csv, newline="", encoding="utf-8") as fh:
+            parts = [r for r in csv.DictReader(fh) if r["level"] in ("2", "3") and r["role"] == "part"]
+        self.assertEqual(self.f["sharedCount"], len({r["part_of"] for r in parts}))
         self.assertEqual(self.f["sharedExamples"], [])
 
 

@@ -596,11 +596,9 @@ def level_signals(bands, F, bound_bi):
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
     # a part (a link inside an OS block) is a block of its own, its sensor its OS block's: a mast may face it
-    parts = {t: name for t, (name, _of) in part_blocks().items()}
-    clash = sorted(set(by_trial) & set(parts))
-    if clash:
-        raise SystemExit(f"{DEVICE_MAP.name}: trial names {clash} are a part's and a block row's")
-    by_trial.update(parts)
+    # (a trial name on a part and a block row both stops le_names.device_names; the facts' own blocks come first)
+    for t, (name, _of) in part_blocks().items():
+        by_trial.setdefault(t, name)
     added = defaultdict(list)
     for r in F.level_masts:
         if level_masts.is_level_virtual(r["system_name"]):

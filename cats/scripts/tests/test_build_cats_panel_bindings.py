@@ -329,7 +329,7 @@ class MainAndUpper(unittest.TestCase):
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
         self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
-        self.assertEqual(len(dm.sensors), 122)                  # Track 227-241 is two blocks (APB B92/B93)
+        self.assertEqual(len(dm.sensors), 97)     # Track 227-241 two blocks (APB B92/B93); the 25 links are parts
         self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
         self.assertEqual(len(dm.planned), 36)        # 227-241 2 on Block 41-4 since 2026-11-20
         self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
@@ -416,7 +416,7 @@ class MainAndUpper(unittest.TestCase):
         sensors = B.railroad.read_tables(B.paths.TABLES_XML).sensors
         level = {e.get("name", k): e for k, e in got["blocks"].items()
                  if e.get("name", k) in dm.blocks or e.get("name", k) == "OS Switch 225"}
-        self.assertGreater(len(level), 100)
+        self.assertGreater(len(level), 90)     # the links are parts since step 5 part 2: not device map blocks
         for name, e in sorted(level.items()):
             with self.subTest(block=name):
                 if name == "OS Switch 225":
