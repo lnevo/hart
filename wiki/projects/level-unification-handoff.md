@@ -165,10 +165,16 @@ and 14 staging OS rows' trial names, which lost the link pieces the part rows no
 - The rule: a track between two switches under `LINK_CM` (50 cm) is part of the lower-numbered switch's OS block (the
   half at that end, for a crossover whose halves have their own). 50, not `SHORT_CM` (30): staging's wiring folds
   9-11 (38.7 cm) and 11-13 (42 cm) by the rule, and its next track between switches is Barn at 92 cm.
-- `block_exceptions.csv` (level, kind, switch_a, switch_b, parallel, end, block, notes) replaces
+- `block_exceptions.csv` (level, kind, switch_a, switch_b, parallel, end, block, cm, notes) replaces
   `short_tracks_staging.csv`: kind `track` rows give a track (or the piece at one end switch) to an OS block, kind
-  `crossover_half` rows name the own-detector halves (7 and 7b, 23a and 23b, 35a and 35b). A row that matches
-  nothing, or applies twice, or gives a block that is not the OS block at its end, stops the build.
+  `crossover_half` rows name the own-detector halves (7 and 7b, 23a and 23b, 35a and 35b). `cm` is the length of a
+  piece at one end whose track keeps the rest (Scale's 23 cm in OS 7; the rest of Scale is its block's length).
+  Level 1 rows only until part 2 (a main or upper row would reach the mast plan and not the device rows). A row that
+  matches nothing, or applies twice, or gives a block that is not the OS block at its end, stops the build.
+- A staging block that a new row makes a part loses its JMRI block: its part row has no name-map columns, its
+  detector becomes a spare row named by its node input ("unused Block 1-7"), and both old keys are dropped from the
+  name map on purpose (`build_device_map.freed_spare`, `drops`). That is a tables.xml change, so it needs the
+  panel approvals like any block change.
 - `block_splits.csv` has a level 1 row (37, 39) for K-1 and K-2; a half takes its strand's plan name.
 - Track names: the plan's strand name ("Track Scale"), a helix track's block from `helix_tracks.csv` by its plan
   name on every level (no `helix` key needed in staging's overrides), else the end-switch rule.
@@ -190,10 +196,10 @@ and 14 staging OS rows' trial names, which lost the link pieces the part rows no
 **Part 2 (next, a panel change: stock discovery in a sandbox, approvals, `--pi --win`):**
 - OS 7 ends at the switch: drop the "Track Scale at 7" row from `block_exceptions.csv`; Scale is one block, 8RA a
   turnout mast (mast_plan over the new layer; the staging masts and signals rebuild).
-- Main and upper links folded: set `block_layer.FOLD_LINKS` true for levels 2 and 3 and remove the setting. That
-  makes part rows of their 21 dark link blocks under 30 cm, and with `LINK_CM` at 50 also 231-237 (39.5 cm),
-  113-115 (44.2), 239-245 (45.8) and 229-233 (48.2): the owner decides whether those four fold (a lower `LINK_CM`
-  plus staging rows for 9-11 and 11-13, or 50 everywhere). `build_device_map.build` then writes main and upper part
+- Main and upper links folded: set `block_layer.FOLD_LINKS` true for levels 2 and 3 and remove the setting, and
+  let `read_exceptions` take level 2 and 3 rows. `LINK_CM` stays 50 on every level (owner, 2026-11-20), so all 25
+  main and upper short pieces join: the 21 dark link blocks under 30 cm and 231-237 (39.5 cm), 113-115 (44.2),
+  239-245 (45.8) and 229-233 (48.2); none has a detector planned. `build_device_map.build` then writes main and upper part
   rows with `part_row` and leaves the folded links out of its track loop, the LCOS detector allocation and the
   occupancy rows; `SHORT_CM` and its "short link" notes go; a link ending at a connector (the 127/131 halves) needs
   the far switch's OS block (`block_layer.layer` stops on it today).
