@@ -86,7 +86,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
 
-- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so it stops until `make ops-pull` is run and committed, or `make tables-pull-pi` has kept the Store and its edits are in `devices.csv` or the template. `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
+- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so the gate saves them itself (quits PanelPro, runs the same code as `make tables-pull-pi` and `make ops-pull`; from the main checkout Operations go into a new `ops-pull-<date>` worktree) and stops. Never ship until the Operations files are committed and the Store's split is merged (`HART_NO_AUTOPULL=1` only stops). `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.

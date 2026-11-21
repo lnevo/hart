@@ -297,8 +297,10 @@ pi_stop() {
 }
 
 # check_pi_unpulled: what the owner changed on the Pi since the last deploy or pull would be replaced: Operations
-# Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Stop before a byte is sent.
-# HART_DISCARD_PI_CHANGES=1 replaces them anyway (the owner's call).
+# Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Nothing is sent. Unless
+# HART_NO_AUTOPULL=1 the gate first saves what it found (autopull_pi_changes), then stops anyway: the person
+# reviews the pulled files, and a deploy never ships over a Store that is not split in.
+# HART_DISCARD_PI_CHANGES=1 skips the check and replaces them (the owner's call).
 check_pi_unpulled() {
   [[ "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]] || return 0
   local generated_sha split_shas unpulled msg
@@ -309,11 +311,81 @@ check_pi_unpulled() {
     pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
   fi
   if [[ -n "$unpulled" ]]; then
+    if [[ "${HART_NO_AUTOPULL:-0}" != "1" ]]; then
+      autopull_pi_changes "$unpulled"   # always stops
+    fi
     msg=""
     grep -qx ops <<<"$unpulled" && msg+="STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first."$'\n'
     grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in ~/JMRI_UserFiles-pulled; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
     pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
   fi
+}
+
+# autopull_pi_changes UNPULLED: save what check_pi_unpulled found, then stop (T9a). The same scripts a person runs:
+# tools/ops/pull_tables_pi.sh keeps a Store in the pulled folder with its base; tools/ops/pull_ops.sh writes the
+# Operations files into the checkout it runs from, so from the main checkout (which stays clean for deploys) it runs
+# in a fresh worktree (make wt TOPIC=ops-pull-<date>), the ops-pull skill's way. A pull needs JMRI closed:
+# PanelPro is quit first with pi_quit_panelpro.sh --for-deploy, and pi_stop's restart brings it back. The operating
+# flag's hook has already refused anything that reaches the Pi while it is set. A pull failure stops saying so and
+# what was and was not kept. Test hooks (the scripts are stubbed in tests): HART_AUTOPULL_QUIT, HART_AUTOPULL_TABLES,
+# HART_AUTOPULL_OPS (script), HART_AUTOPULL_NEWWT (prints the new worktree's path), HART_AUTOPULL_FROM_MAIN (1/0).
+autopull_pi_changes() {
+  local unpulled="$1" out saved target topic from_main kept="" failed="" rc
+  echo "The Pi has changes that a deploy would replace; saving them first (HART_NO_AUTOPULL=1 only stops)."
+  if ! bash "${HART_AUTOPULL_QUIT:-$ROOT/tools/hosts/pi_quit_panelpro.sh}" --for-deploy; then
+    pi_stop "STOP: could not quit PanelPro on the Pi for the pull, so the pull failed and nothing was kept. Quit it (tools/hosts/pi_quit_panelpro.sh --for-deploy), then deploy again."
+  fi
+  if grep -qx tables <<<"$unpulled"; then
+    if out="$(bash "${HART_AUTOPULL_TABLES:-$ROOT/tools/ops/pull_tables_pi.sh}" 2>&1)"; then
+      echo "$out"
+      saved="$(sed -n "s/^Pulled: the Pi.s Store is kept as \(.*\) (outside every checkout).*/\1/p" <<<"$out" | head -1)"
+      if [[ -n "$saved" ]]; then
+        kept+="kept the Pi's Store as $saved; split it (python3 tools/schematic/split_store.py $saved), merge, then deploy"$'\n'
+      else
+        failed+="the Store pull kept nothing (see above); nothing was kept for the Store"$'\n'
+      fi
+    else
+      echo "$out" >&2
+      failed+="the pull of the Pi's Store failed; nothing was kept for it"$'\n'
+    fi
+  fi
+  if grep -qx ops <<<"$unpulled"; then
+    from_main="${HART_AUTOPULL_FROM_MAIN:-}"
+    if [[ -z "$from_main" ]]; then
+      if [[ "$(git -C "$ROOT" rev-parse --git-dir 2>/dev/null)" == "$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null)" ]]; then from_main=1; else from_main=0; fi
+    fi
+    target="$ROOT"
+    rc=0
+    if [[ "$from_main" == "1" ]]; then
+      topic="ops-pull-$(date +%Y%m%d-%H%M)"
+      if [[ -n "${HART_AUTOPULL_NEWWT:-}" ]]; then
+        target="$(bash "$HART_AUTOPULL_NEWWT" "$topic")" || rc=1
+      else
+        target="$(python3 "$ROOT/tools/agent/worktrees.py" new "$topic")" || rc=1
+      fi
+      if [[ "$rc" -ne 0 || ! -d "$target" ]]; then
+        rc=1
+        failed+="could not make the worktree $topic for the Operations pull; nothing was kept for the Operations files"$'\n'
+      fi
+    fi
+    if [[ "$rc" -eq 0 ]]; then
+      if out="$(cd "$target" && bash "${HART_AUTOPULL_OPS:-$target/tools/ops/pull_ops.sh}" 2>&1)"; then
+        echo "$out"
+        kept+="brought the Pi's Operations session into $target/jmri/layouts/hart/operations; review and commit it"
+        [[ "$from_main" != "1" ]] || kept+=" (a new worktree: this deploy ran from the main checkout)"
+        kept+=", then deploy"$'\n'
+      else
+        echo "$out" >&2
+        failed+="the pull of the Pi's Operations files failed (see above); nothing was kept for them"
+        [[ "$target" != "$ROOT" ]] || failed+=" (check git status in jmri/layouts/hart/operations)"
+        failed+=$'\n'
+      fi
+    fi
+  fi
+  if [[ -n "$failed" ]]; then
+    pi_stop "${kept}STOP: the pull failed. ${failed}Nothing was shipped. HART_DISCARD_PI_CHANGES=1 replaces the Pi's files anyway."
+  fi
+  pi_stop "${kept}STOP: the Pi's changes are saved, not shipped. HART_DISCARD_PI_CHANGES=1 replaces them anyway."
 }
 
 # check_windows_can_take_package: Windows can take the package. The tarball is made here, so tar, scp and a temp file

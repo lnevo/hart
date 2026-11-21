@@ -121,6 +121,35 @@ class GateHarness(DeployHarness):
         (bins / "ssh").write_text(ssh, encoding="utf-8")
         for name in ("rsync", "tar", "scp", "ssh"):
             (bins / name).chmod(0o755)
+        self.autopull_stubs()
+
+    def autopull_stubs(self) -> None:
+        """The gate's own pulls (common.sh autopull_pi_changes) run stand-ins that log to autopull.log and fail
+        while fail_<name> exists: quit, tables (prints the pull's own "Pulled" line), ops (logs its folder) and the
+        worktree maker (prints a folder made here)."""
+        d = self.tmp / "autopull"
+        d.mkdir()
+        log = self.tmp / "autopull.log"
+        t = self.tmp
+        (d / "quit.sh").write_text(f'echo "quit $*" >>"{log}"\n[[ ! -f "{t}/fail_quit" ]] || exit 4\n', encoding="utf-8")
+        (d / "tables.sh").write_text(
+            f'echo "tables" >>"{log}"\n[[ ! -f "{t}/fail_tables" ]] || {{ echo "ssh dropped" >&2; exit 1; }}\n'
+            'echo "Pulled: the Pi\'s Store is kept as /pulled/pi-20261121.xml (outside every checkout), '
+            'its base (abc) in /pulled/pi-20261121.xml.base."\n', encoding="utf-8")
+        (d / "ops.sh").write_text(
+            f'echo "ops in $(pwd)" >>"{log}"\n[[ ! -f "{t}/fail_ops" ]] || {{ echo "scp dropped" >&2; exit 1; }}\n'
+            'echo "Operations files -> $(pwd)/jmri/layouts/hart/operations. Commit any changes."\n', encoding="utf-8")
+        (d / "newwt.sh").write_text(
+            f'echo "newwt $1" >>"{log}"\n[[ ! -f "{t}/fail_newwt" ]] || exit 1\n'
+            f'mkdir -p "{t}/wt/$1" && echo "{t}/wt/$1"\n', encoding="utf-8")
+        self.env.update(HART_AUTOPULL_QUIT=str(d / "quit.sh"), HART_AUTOPULL_TABLES=str(d / "tables.sh"),
+                        HART_AUTOPULL_OPS=str(d / "ops.sh"), HART_AUTOPULL_NEWWT=str(d / "newwt.sh"),
+                        HART_AUTOPULL_FROM_MAIN="0")
+        del self.env["HART_NO_AUTOPULL"]
+
+    def autopull_log(self) -> list[str]:
+        log = self.tmp / "autopull.log"
+        return log.read_text().splitlines() if log.exists() else []
 
     def hosts_ok(self) -> None:
         """Both hosts take the package and their apply steps succeed (the folder cleanup on Windows fails, as in
@@ -209,7 +238,7 @@ class EveryGateStopsBeforeAnythingShips(GateHarness):
         (self.tmp / "tables_stale").touch()
         self.unpulled("tables")
         done = self.deploy("--pi", "--win")
-        self.assertIn("make tables-pull-pi", done.stderr)
+        self.assertIn("kept the Pi's Store as", done.stderr)
         self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
         self.assertFalse((self.tmp / "tables_check.log").exists())
         self.assert_nothing_shipped(done)
@@ -222,7 +251,11 @@ class EveryGateStopsBeforeAnythingShips(GateHarness):
 
 class PiChangedSinceLastDeploy(GateHarness):
     """The Pi's Operations Pro files or tables.xml changed since the last deploy or pull: stop before anything
-    is sent, and name the way out."""
+    is sent, and name the way out. HART_NO_AUTOPULL=1 here: the plain stop (the gate's own pull is below)."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.env["HART_NO_AUTOPULL"] = "1"
 
     def test_operations_files_changed(self) -> None:
         self.unpulled("ops")
@@ -280,6 +313,112 @@ class PiChangedSinceLastDeploy(GateHarness):
         done = self.deploy("--pi")
         self.assertIn("STOP: could not check the Pi for unpulled changes", done.stderr)
         self.assert_nothing_shipped(done)
+
+
+class PiChangesAreSavedByTheGate(GateHarness):
+    """T9a: a changed Pi Store or Operations session is pulled by the gate (the same scripts a person runs), and the
+    deploy still stops with nothing shipped."""
+
+    def test_the_store_is_kept_then_the_deploy_stops(self) -> None:
+        self.unpulled("tables")
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(["quit --for-deploy", "tables"], self.autopull_log())
+        self.assertIn("kept the Pi's Store as /pulled/pi-20261121.xml; split it "
+                      "(python3 tools/schematic/split_store.py /pulled/pi-20261121.xml), merge, then deploy", done.stderr)
+        self.assertNotIn("brought the Pi's Operations", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_operations_are_pulled_into_this_checkout_from_a_worktree(self) -> None:
+        self.unpulled("ops")
+        done = self.deploy("--pi")
+        self.assertEqual(["quit --for-deploy", f"ops in {ROOT}"], self.autopull_log())
+        self.assertIn(f"brought the Pi's Operations session into {ROOT}/jmri/layouts/hart/operations; "
+                      "review and commit it, then deploy", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_from_the_main_checkout_operations_go_to_a_new_worktree(self) -> None:
+        self.env["HART_AUTOPULL_FROM_MAIN"] = "1"
+        self.unpulled("ops")
+        done = self.deploy("--pi")
+        log = self.autopull_log()
+        self.assertRegex(log[1], r"^newwt ops-pull-\d{8}-\d{4}$")
+        wt = self.tmp / "wt" / log[1].split()[1]
+        self.assertEqual(f"ops in {wt}", log[2])
+        self.assertIn(f"into {wt}/jmri/layouts/hart/operations", done.stderr)
+        self.assertIn("this deploy ran from the main checkout", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_both_are_saved_and_both_named(self) -> None:
+        self.unpulled("ops", "tables")
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(["quit --for-deploy", "tables", f"ops in {ROOT}"], self.autopull_log())
+        self.assertIn("kept the Pi's Store as", done.stderr)
+        self.assertIn("brought the Pi's Operations session into", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_no_autopull_is_the_plain_stop(self) -> None:
+        self.env["HART_NO_AUTOPULL"] = "1"
+        self.unpulled("ops", "tables")
+        done = self.deploy("--pi")
+        self.assertEqual([], self.autopull_log())
+        self.assertIn("make ops-pull", done.stderr)
+        self.assertIn("make tables-pull-pi", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_discarding_pulls_nothing(self) -> None:
+        self.unpulled("ops", "tables")
+        self.hosts_ok()
+        self.env["HART_DISCARD_PI_CHANGES"] = "1"
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertEqual([], self.autopull_log())
+
+    def test_a_failed_store_pull_says_nothing_was_kept(self) -> None:
+        (self.tmp / "fail_tables").touch()
+        self.unpulled("tables")
+        done = self.deploy("--pi")
+        self.assertIn("STOP: the pull failed. the pull of the Pi's Store failed; nothing was kept for it", done.stderr)
+        self.assertNotIn("kept the Pi's Store as", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_a_failed_operations_pull_says_nothing_was_kept(self) -> None:
+        (self.tmp / "fail_ops").touch()
+        self.unpulled("ops")
+        done = self.deploy("--pi")
+        self.assertIn("the pull of the Pi's Operations files failed (see above); nothing was kept for them", done.stderr)
+        self.assertNotIn("brought the Pi's Operations", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_a_failed_worktree_stops_without_pulling(self) -> None:
+        self.env["HART_AUTOPULL_FROM_MAIN"] = "1"
+        (self.tmp / "fail_newwt").touch()
+        self.unpulled("ops")
+        done = self.deploy("--pi")
+        self.assertIn("could not make the worktree", done.stderr)
+        self.assertFalse(any(c.startswith("ops in") for c in self.autopull_log()))
+        self.assert_nothing_shipped(done)
+
+    def test_a_failed_quit_pulls_nothing(self) -> None:
+        (self.tmp / "fail_quit").touch()
+        self.unpulled("ops", "tables")
+        done = self.deploy("--pi")
+        self.assertEqual(["quit --for-deploy"], self.autopull_log())
+        self.assertIn("the pull failed and nothing was kept", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_one_failing_pull_still_reports_the_other_as_kept(self) -> None:
+        (self.tmp / "fail_ops").touch()
+        self.unpulled("ops", "tables")
+        done = self.deploy("--pi")
+        self.assertIn("kept the Pi's Store as", done.stderr)
+        self.assertIn("nothing was kept for them", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_panelpro_comes_back_after_the_stop(self) -> None:
+        self.unpulled("ops")
+        (self.tmp / "restart.txt").write_text("yes\n", encoding="utf-8")
+        done = self.deploy("--pi")
+        self.assertIn("Starting PanelPro on the Pi again (it was quit for this deploy)", done.stdout)
 
 
 class WhatShipsWhere(GateHarness):
@@ -475,7 +614,7 @@ class StepsRunAlone(GateHarness):
         self.unpulled("ops")
         done = self.step("ship_pi.sh", self.staged("pi"))
         self.assertEqual(1, done.returncode, done.stderr[-1500:])
-        self.assertIn("make ops-pull", done.stderr)
+        self.assertIn("brought the Pi's Operations session into", done.stderr)
         self.assertEqual([], self.shipped(), self.calls())
 
     def test_ship_pi_alone_asks_the_pi_to_answer_first(self) -> None:
