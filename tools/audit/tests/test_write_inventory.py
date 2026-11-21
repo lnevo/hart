@@ -124,6 +124,26 @@ class Inventory(unittest.TestCase):
         WI.add_local(nodes, p)
         self.assertEqual(nodes[3].ou[2][7], ("C3 relay 2", "Relay", "5V", "planned, not connected"))
 
+    def test_a_non_crossover_switchs_mast_role_is_its_one_rows_legs(self):
+        """Switch 5 (one row): the closed leg is the normal exit, the thrown leg the reverse exit, any other the entry."""
+        rows = WI.staging_legs()["5"]
+        self.assertEqual(len(rows), 1)
+        r = rows[0]
+        self.assertEqual(WI.mast_role(rows, r.closed_leg), "Normal Exit")
+        self.assertEqual(WI.mast_role(rows, r.thrown_leg), "Reverse Exit")
+        self.assertEqual(WI.mast_role(rows, "Track Nowhere"), "Entry")
+
+    def test_a_crossover_mast_is_matched_against_both_halves(self):
+        """Switches 7, 23 and 35 have a row per OS block: a mast facing the first half's closed leg (Track West Ext
+        on 23a) is a normal exit, not an entry because only the last row was read (owner, 2026-11-21)."""
+        legs = WI.staging_legs()
+        self.assertEqual([len(legs[s]) for s in ("7", "23", "35")], [2, 2, 2])
+        self.assertEqual(WI.mast_role(legs["23"], "Track West Ext"), "Normal Exit")      # 23a's closed leg
+        self.assertEqual(WI.mast_role(legs["23"], "Track S-R"), "Normal Exit")           # 23b's
+        self.assertEqual(WI.mast_role(legs["23"], "OS Switch 23b"), "Reverse Exit")      # 23a's thrown leg
+        self.assertEqual(WI.mast_role(legs["23"], "Track Main West"), "Entry")
+        self.assertEqual(WI.mast_role(legs["35"], "OS Switch 37"), "Normal Exit")        # 35a's closed leg
+
     def test_a_wired_staging_mast_is_on_its_switchs_row(self):
         """Mast 6LB stands on Switch 5's closed leg (Track East Ext): its normal exit signal."""
         row = dict(zip(WI.TURNOUT_COLUMNS, next(r for r in V86["TurnoutSummary"] if r[0] == "Switch 5")))
