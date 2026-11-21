@@ -73,5 +73,6 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 ## Future goals
 
 - Main and upper levels into service: the devices are virtual until the owner reviews the physical plant, then each is swapped in through the device map; occupancy detection next (35 detectors, main line only); Dispatcher stations for the new levels once the upper level is in, named by the owner in PanelPro. NX, the Dispatcher System and the USS CTC are parked and not on this list.
+- Station maps for the main and upper levels, like the staging and yard ones on the crew pages (`www/crew/maps/`), once those levels' stations are named.
 - Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
