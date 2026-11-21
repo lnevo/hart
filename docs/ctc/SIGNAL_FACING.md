@@ -107,7 +107,7 @@ Princess east exits are **2-head** (main vs OS McKees Rocks/OS McKeesport). Ball
 - Plant dests (CATS MQTT compare): OS Barn D (lower west) dests OS 33 when 117 is closed (east into OS Main East), not back across Track East Ext. 117b dests Plane East Ext when 117 is closed (westbound). OS East Lead dests 117b only when 112 is thrown (diverge to OS Main East). OS 33 dests 113a when 112 is thrown. OS 31 dests 113a only when 110 is thrown **and** 112 is closed (ladder into OS East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West OS Main West dests 113b; 111 thrown → both Stop.
 - Ports + topics: the head rows of `jmri/layouts/hart/data/wiring.csv` (the inventory v86 takes them: `python3 tools/wiring/write_inventory.py`)
 - Mast index: `jmri/layouts/hart/output/signal_head_plan.csv`
-- Wiring CSVs from the head plan: `python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only` (its one mode; a head is wired in `jmri/layouts/hart/data/wiring.csv`, and `tables.xml` is generated, ADR-029)
+- Head plan (`signal_head_plan.csv`): `make panels` rebuilds it (its head-plan step), and `make panels CHECK=1` checks it (a head is wired in `jmri/layouts/hart/data/wiring.csv`, and `tables.xml` is generated, ADR-029)
 - Signal heads: `jmri/scripts/signal_coordinator.py` listens to SHSM / SML
   and **publishes** Virtual-head appearances JMRI → MQTT (`track/signalhead/IH###`)
   so LCOS sees SML / Digicon state. JMRI’s MQTT connection is the transport;

@@ -22,7 +22,7 @@ For a batch of new photos (cars and locomotives) use the staged flow in [intake-
 
 Run `bin/cars publish`. It:
 
-1. Rebuilds the rosters from the repository and copies them to the STS seed inputs.
+1. Rebuilds the rosters from the repository and copies them to the STS seed inputs. `bin/cars seed-copy` refreshes the STS seed copies alone; publish does it as step 1 of its run.
 2. Adds new cars to `hart_seed`, and to the running STS database if it is up. The car joins at South Yard, Empty, with the pools of another car of the same code.
 3. Writes new cars and out-of-service flags to the Operations Pro roster in `jmri/layouts/hart/operations/` (ADR-015).
 
