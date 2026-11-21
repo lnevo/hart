@@ -349,7 +349,11 @@ def audit(path: Path | None = None) -> list[str]:
                             "(make wiring-freeze CP=...)")
         if cp and w.status != "wired":
             problems.append(f"line {w.line}: {w.kind} {who} is of {cp}, which is frozen, but is {w.status}")
-    if canonical(list(csv.DictReader(io.StringIO(text, newline="")))) != text:
+    try:
+        same = canonical(list(csv.DictReader(io.StringIO(text, newline="")))) == text
+    except (ValueError, csv.Error):                 # a row with fields past the columns
+        same = False
+    if not same:
         problems.append("the text is not the form freeze_wiring.py writes (columns, LF lines, staging then main "
                         "then upper)")
     return problems

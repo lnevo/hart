@@ -199,6 +199,12 @@ class OneWay(unittest.TestCase):
         p.write_text(p.read_text().replace("\n", "\r\n"), encoding="utf-8", newline="")
         self.assertRegex("; ".join(W.audit(p)), "not the form freeze_wiring.py writes")
 
+    def test_a_row_with_a_stray_field_stops_cleanly(self):
+        p = self.file([self.row("1", "turnout", "Switch 1", "4", "0", "wired")])
+        p.write_text(p.read_text().replace("wired,", "wired,,extra,"), encoding="utf-8")
+        with self.assertRaisesRegex(FactsError, "more fields than columns"):    # the check prints it as a FAIL
+            W.audit(p)
+
     def test_the_committed_file_passes(self):
         self.assertEqual(W.audit(), [])
 
