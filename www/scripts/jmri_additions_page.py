@@ -13,7 +13,7 @@ fill() replaces each region's contents with the value read from the checkout:
   same rule as its _collect_beans) and their Signal Mast Logic destinations in tables.xml, against the rest;
 - the plant switches panel_status.py flips (M2T/MTT turnouts with both feedback sensors, its
   _included_plant_turnouts);
-- which hosts install each Jython script (sync_hart_package.sh for the Mac, the Pi and Windows apply scripts).
+- which hosts install each Jython script (tools/hosts/deploy/common.sh for the Mac, the Pi and Windows apply scripts).
 
 A region the code does not know, or a known one missing from the page, stops the build. The prose around the
 regions is written by hand and checked by the repo audits (www/README.md, "Pages that describe the repo").
@@ -48,7 +48,7 @@ WORDS = "zero one two three four five six seven eight nine ten eleven twelve".sp
 HOST_LISTS = {
     "Pi": ("tools/hosts/pi/apply_hart_package_local.sh", "JYTHON=("),
     "Windows": ("tools/hosts/windows/apply_hart_package_local.ps1", "$jythonSrc = @("),
-    "Mac": ("tools/hosts/sync_hart_package.sh", "JYTHON_STARTUP_SCRIPTS=("),
+    "Mac": ("tools/hosts/deploy/common.sh", "JYTHON_STARTUP_SCRIPTS=("),
 }
 HOST_ORDER = ("Pi", "Windows", "Mac")
 HOST_NAMES = {"Pi": "the Pi", "Windows": "Windows", "Mac": "the Mac"}

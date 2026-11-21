@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
-SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
+SYNC = ROOT / "tools/hosts/deploy"   # the deploy steps: the lists of scripts are in common.sh, stage.sh and ship_mac.sh
 FUTURE = re.compile(r"^\s*from\s+__future__\s+import\s+[^#\n]*\bprint_function\b", re.M)
 
 # Run inside PanelPro by the automation launchers rather than installed by the deploy.
@@ -29,7 +29,7 @@ LAUNCHED = [
 
 def deployed_scripts() -> list[str]:
     """Every .py the layout deploy installs into preference:jython."""
-    text = SYNC.read_text(encoding="utf-8")
+    text = "\n".join(p.read_text(encoding="utf-8") for p in sorted(SYNC.glob("*.sh")))
     found = re.findall(r"((?:jmri|cats)/[\w/.-]+\.py)", text)
     return sorted({path for path in found if (ROOT / path).is_file()})
 
