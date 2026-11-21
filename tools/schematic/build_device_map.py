@@ -44,8 +44,11 @@ block_exceptions.csv). Staging's plant is the field, so its block and occupancy 
 and layout-block names, node, wiring, comment, notes, detector, stop, the station group in cp and the name-map columns)
 over from the row of the same name; this script owns which blocks there are and what each holds (role, trial_name in
 staging's switch-and-leg keys, part_of, blocks, description). A staging block change made in PanelPro is carried by
-hand into this script's data (block_exceptions.csv, block_splits.csv, helix_tracks.csv), not into devices.csv; a field
-fact of a staging block (a new system name or detector) is still edited in its devices.csv row, which this script keeps.
+hand into this script's data (block_exceptions.csv, block_splits.csv, helix_tracks.csv), not into devices.csv. A
+staging detector's wiring (node and input, so its sensor, wiring and the name map's cells) is its level 1 row of
+detector_pins.csv, as main and upper's pinned detectors are (step 6, owner 2026-11-20: one file); any other field
+fact of a staging block (a new block system name, its comment) is still edited in its devices.csv row, which this
+script keeps.
 A new staging block needs a row with its field facts first (hand-kept, no written_by: this script adopts it).
 
 Virtual names (owner, 2026-11-17), from each device's stable identity:
@@ -130,6 +133,7 @@ import os
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -297,7 +301,7 @@ def split_edges(path: Path | None = None, found: list | None = None) -> dict:
 def read_pins(path: Path | None = None, found: list | None = None, split: set | None = None) -> dict:
     """{block name: (node, input index from 0)} of detector_pins.csv: detectors the owner put on a given
     input ("Block <k>" of a node, 1 to 8), which the rule then hands to no other block (owner, 2026-11-20: the helix
-    node 41). `level` is the track's level (2 or 3; staging's detectors are its own devices.csv rows, as wired), and
+    node 41). `level` is the track's level (2 or 3; staging's rows, level 1, are read_staging_pins'), and
     the track is looked for on that level only. A track's block is named by its end switches (switch_a, switch_b, parallel), plus `half` for a balloon
     loop or a track in `split` (names, split_tracks): resolved in `found` (named_tracks) to the generated block name. A
     helix block is named in `block` with no switches. Stops on a file not in that shape, a track that does not
@@ -323,13 +327,15 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
     out, slots, bad = {}, set(), []
     for i, r in enumerate(rows, 2):
         r = {k: (v or "").strip() for k, v in r.items()}
+        if r["level"] == FIELD_LEVEL:
+            continue                                    # staging's, as wired: read_staging_pins
         try:
             node, k = int(r["node"]), int(r["block_input"]) - 1
         except ValueError:
             bad.append(f"line {i}: node and block_input are numbers")
             continue
         if r["level"] not in ("2", "3"):
-            bad.append(f"line {i}: level {r['level']!r} is not 2 or 3 (staging's detectors are its devices.csv rows)")
+            bad.append(f"line {i}: level {r['level']!r} is not 1, 2 or 3")
             continue
         level = int(r["level"])
         if not 0 <= k < CAP["block"]:
@@ -368,6 +374,88 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
     if bad:
         raise MapError(f"{path.name}: " + "; ".join(bad))
     return out
+
+
+@dataclass(frozen=True)
+class StagingPin:
+    """A staging detector as wired (a level 1 row of detector_pins.csv): its block (empty for a spare input, one
+    with a sensor in JMRI but no block), node and input index from 0."""
+    line: int
+    block: str
+    node: int
+    k: int
+
+    @property
+    def sensor(self) -> str:
+        return f"M2S{self.node * 100 + UID['block'] + self.k}"
+
+    @property
+    def wiring(self) -> str:
+        return f"Node: {self.node} Block: {self.k + 1}"
+
+    @property
+    def input(self) -> str:
+        return f"Block {self.node}-{self.k + 1}"
+
+
+def read_staging_pins(path: Path | None = None, nodes: set | None = None) -> list[StagingPin]:
+    """Staging's detectors as wired: the level 1 rows of detector_pins.csv, each a block by its name (staging's names
+    are the field's) or a spare input (no block), its node and input (1 to 8). `nodes`: staging's nodes
+    (lcos_nodes.csv level 1; default the committed file's). Stops on a file not in that shape, a switch column filled,
+    a node that is not staging's, an input out of range, or a block or input given twice."""
+    path = path or PINS
+    if nodes is None:
+        nodes = {n.node for n in railroad.read_lcos_nodes(NODES) if n.level == int(FIELD_LEVEL)}
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows, header = list(reader), reader.fieldnames or []
+    except OSError as exc:
+        raise MapError(f"cannot read {path.name}: {exc}") from None
+    if list(header) != PIN_COLUMNS:
+        raise MapError(f"{path.name}: columns {list(header)}, not {PIN_COLUMNS}")
+    out, blocks, slots, bad = [], {}, {}, []
+    for i, r in enumerate(rows, 2):
+        r = {k: (v or "").strip() for k, v in r.items()}
+        if r["level"] != FIELD_LEVEL:
+            continue
+        if r["switch_a"] or r["switch_b"] or r["parallel"] or r["half"]:
+            bad.append(f"line {i}: a staging detector is named by its block alone: leave switch_a, switch_b, "
+                       "parallel and half empty")
+            continue
+        try:
+            node, k = int(r["node"]), int(r["block_input"]) - 1
+        except ValueError:
+            bad.append(f"line {i}: node and block_input are numbers")
+            continue
+        if node not in nodes:
+            bad.append(f"line {i}: node {node} is no staging node of {NODES.name} ({', '.join(map(str, sorted(nodes)))})")
+            continue
+        if not 0 <= k < CAP["block"]:
+            bad.append(f"line {i}: input {k + 1} is not 1 to {CAP['block']}")
+            continue
+        if (node, k) in slots:
+            bad.append(f"line {i}: Block {node}-{k + 1} is line {slots[node, k]}'s as well")
+            continue
+        if r["block"] and r["block"] in blocks:
+            bad.append(f"line {i}: {r['block']} is line {blocks[r['block']]}'s as well")
+            continue
+        slots[node, k] = i
+        if r["block"]:
+            blocks[r["block"]] = i
+        out.append(StagingPin(i, r["block"], node, k))
+    if bad:
+        raise MapError(f"{path.name}: " + "; ".join(bad))
+    return out
+
+
+def helix_pins(path: Path | None = None) -> dict:
+    """{helix block: (node, input index from 0)} of detector_pins.csv's main and upper rows that name a block (the
+    helix tracks): a helix block's staging row names the detector its main or upper row has."""
+    path = path or PINS
+    with open(path, newline="", encoding="utf-8") as fh:
+        return {r["block"]: (int(r["node"]), int(r["block_input"]) - 1) for r in csv.DictReader(fh)
+                if r["level"] != FIELD_LEVEL and r["block"]}
 
 
 def loop_halves(band, runs, split: dict | None = None) -> dict:
@@ -928,19 +1016,49 @@ def freed_spare(occ: dict, block: str, part_of: str) -> dict:
     return row
 
 
+OCC_IN_COMMENT = re.compile(r"occupancy Block \d+-\d+ / M2S\d+")
+
+
+def wire_occupancy(row: dict, pin: StagingPin) -> dict:
+    """`row` (a staging occupancy row) with its wiring cells from its pin: node, sensor, wiring and, when it is in
+    the name map, the name map's hardware and comment."""
+    row = dict(row, node=str(pin.node), system_name=pin.sensor, jmri_name=pin.sensor, wiring=pin.wiring)
+    if row["pnm_order"]:
+        row.update(pnm_hardware=pin.sensor, pnm_comment=pin.wiring)
+    return row
+
+
+def wire_block(row: dict, node: int, k: int) -> dict:
+    """`row` (a staging block row) with its detector's node, the name map's input and the "occupancy Block <n>-<k> /
+    M2S<id>" part of its comment from the pin. MapError when the comment has no such part to keep in step."""
+    pin = StagingPin(0, row["user_name"], node, k)
+    if not OCC_IN_COMMENT.search(row["jmri_comment"]):
+        raise MapError(f"staging block {row['user_name']}: its jmri_comment {row['jmri_comment']!r} has no "
+                       f"\"occupancy {pin.input} / {pin.sensor}\" to keep in step with {PINS.name}")
+    row = dict(row, node=str(node), jmri_comment=OCC_IN_COMMENT.sub(f"occupancy {pin.input} / {pin.sensor}",
+                                                                    row["jmri_comment"]))
+    if row["pnm_order"] and row["role"] != "helix":
+        row["pnm_hardware"] = pin.input
+    return row
+
+
 def staging_rows(bands, joined, runs, files: devices.Files | None = None,
-                 exceptions: Path | None = None) -> tuple[list[dict], set, set]:
+                 exceptions: Path | None = None, pins: Path | None = None) -> tuple[list[dict], set, set]:
     """(staging's block and occupancy rows of the master, the keys they take over, the keys they drop): the one block
     process's blocks
     and parts of the staging band (staging_layer), each block row and its occupancy row carrying its field facts
     (system and layout-block names, node, wiring, comment, notes, detector, stop, control point and name-map columns)
     over from the row of its name in devices.csv; this script owns the rest (role, trial_name, part_of, blocks,
-    written_by, description). The spare detectors' rows are carried as they are. A helix block's occupancy row is the
+    written_by, description). The wiring is detector_pins.csv's (level 1, read_staging_pins; a helix block's, its main
+    or upper row): an occupancy row's node, sensor and wiring, a block row's node, its name map's input and the
+    occupancy part of its comment, and the spare inputs (no block), each row "unused Block <n>-<k>"; `pins` (default
+    the committed file). A helix block's occupancy row is the
     level of its helix switch's (main or upper), not staging's: the block is one across levels. A block that becomes a
     part (block_exceptions.csv gives it to an OS block) loses its JMRI block: its part row has no name-map columns, its
     detector becomes a spare row named by its node input (freed_spare), and both old keys are dropped from the name
     map on purpose (the keys returned, for hartlib.devices' drops). MapError on a block with no row to carry its field
-    facts from, or a staging block or occupancy row the drawing has no block for."""
+    facts from, a staging block or occupancy row the drawing has no block for, a detector block with no pin, a pin
+    whose block staging does not have, or a spare row with no spare pin."""
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
     helix = {h["block"] for h in read_helix_tracks().values()}
@@ -948,6 +1066,12 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
              if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
     blocks = set(lay.bands[bi]["os"].values()) | set(lay.tracks)
     out, bad, drops, freed = [], [], set(), []
+    staging_pins = read_staging_pins(pins)
+    pin_of = {p.block: p for p in staging_pins if p.block}
+    on_helix = helix_pins(pins)
+    for p in staging_pins:
+        if p.block and p.block not in blocks and p.block not in lay.parts:
+            bad.append(f"{PINS.name} line {p.line}: staging has no block {p.block}")
 
     def carried(layer: str, name: str, **owned) -> dict | None:
         old = prior.pop((layer, name), None)
@@ -969,17 +1093,43 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                 occ = prior.pop(("occupancy", occupancy_user(name)), None)
                 if occ is not None:
                     drops.add((FIELD_LEVEL, "occupancy", occ["user_name"]))
+                    if name in pin_of:
+                        occ = wire_occupancy(occ, pin_of[name])
                     try:
                         freed.append(freed_spare(occ, name, part["part_of"]))
                     except MapError as exc:
                         bad.append(str(exc))
             out.append(part_row(FIELD_LEVEL, name, part, trials[name]))
         else:
-            out.append(carried("block", name, trial_name=trials.get(name, "")))
-    occupancy = [carried("occupancy", occupancy_user(b), blocks=b) for b in sorted(blocks - helix, key=natural)]
-    spares = [dict(r, written_by="build_device_map.py") for k, r in sorted(prior.items()) if r["role"] == "spare"]
-    for r in spares:
-        prior.pop((r["layer"], r["user_name"]))
+            row = carried("block", name, trial_name=trials.get(name, ""))
+            at = (pin_of[name].node, pin_of[name].k) if name in pin_of else on_helix.get(name)
+            if row is not None and at is not None:
+                try:
+                    row = wire_block(row, *at)
+                except MapError as exc:
+                    bad.append(str(exc))
+            out.append(row)
+    occupancy = []
+    for b in sorted(blocks - helix, key=natural):
+        row = carried("occupancy", occupancy_user(b), blocks=b)
+        if row is None:
+            continue
+        if b not in pin_of:
+            bad.append(f"staging block {b}: its detector {row['user_name']} has no level 1 row in {PINS.name}")
+            continue
+        occupancy.append(wire_occupancy(row, pin_of[b]))
+    spares = []
+    for p in (p for p in staging_pins if not p.block):
+        name = f"unused {p.input}"
+        old = prior.pop(("occupancy", name), None)
+        if old is None or old["role"] != "spare":
+            bad.append(f"{PINS.name} line {p.line}: spare input {p.input} has no spare row {name!r} in {OUT.name} "
+                       "to carry (add it, or give the pin its block)")
+            continue
+        spares.append(wire_occupancy(dict(old, written_by="build_device_map.py"), p))
+    for key in [k for k, r in prior.items() if r["role"] == "spare"]:
+        bad.append(f"spare {key[1]} of {OUT.name} has no spare pin (no block) in {PINS.name}")
+        prior.pop(key)
     taken = {r["user_name"] for r in spares}
     for r in freed:
         if r["user_name"] in taken:

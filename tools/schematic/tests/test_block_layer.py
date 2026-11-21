@@ -324,8 +324,9 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
             raise unittest.SkipTest(str(exc))
         cls.runs = staticmethod(runs)
 
-    def rows(self, edit=None, extra_exception=""):
-        """staging_rows over a copy of the master (`edit`ed) and of block_exceptions.csv (plus `extra_exception`)."""
+    def rows(self, edit=None, extra_exception="", pins=None):
+        """staging_rows over a copy of the master (`edit`ed), of block_exceptions.csv (plus `extra_exception`) and of
+        detector_pins.csv (`pins`: a function of its text)."""
         rows = [dict(r) for r in devices.load()]
         if edit:
             rows = edit(rows)
@@ -333,8 +334,68 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.addCleanup(remove, p)
         ex = temp_file("block_exceptions.csv", BL.exceptions_path().read_text(encoding="utf-8") + extra_exception)
         self.addCleanup(remove, ex)
+        text = bdm.PINS.read_text(encoding="utf-8")
+        pf = temp_file("detector_pins.csv", pins(text) if pins else text)
+        self.addCleanup(remove, pf)
         self.files = devices.Files.under(p.parent)
-        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex)
+        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf)
+
+    @staticmethod
+    def by(got):
+        return {(r["layer"], r["user_name"]): r for r in got}
+
+    def test_the_wiring_comes_from_the_pins(self):
+        """Track Barn and Track EH-1 swap inputs in detector_pins.csv: both detectors' node, sensor, wiring and name
+        map cells, and both blocks' input and comment, follow; nothing else changes."""
+        def swap(text):
+            return (text.replace("1,,,,,Track Barn,13,1,", "1,,,,,Track Barn,13,7,")
+                        .replace("1,,,,,Track EH-1,13,7,", "1,,,,,Track EH-1,13,1,"))
+        got = self.by(self.rows(pins=swap)[0])
+        want = self.by(self.rows()[0])
+        occ, blk = got[("occupancy", "BS Barn")], got[("block", "Track Barn")]
+        self.assertEqual((occ["system_name"], occ["jmri_name"], occ["wiring"], occ["pnm_hardware"], occ["pnm_comment"]),
+                         ("M2S1306", "M2S1306", "Node: 13 Block: 7", "M2S1306", "Node: 13 Block: 7"))
+        self.assertEqual((blk["node"], blk["pnm_hardware"]), ("13", "Block 13-7"))
+        self.assertEqual(blk["jmri_comment"], "Lead Switch 7 to Switch 13; occupancy Block 13-7 / M2S1306; stop")
+        self.assertEqual(got[("occupancy", "BS EH-1")]["system_name"], "M2S1300")
+        changed = {k for k in want if got[k] != want[k]}
+        self.assertEqual(changed, {("occupancy", "BS Barn"), ("block", "Track Barn"),
+                                   ("occupancy", "BS EH-1"), ("block", "Track EH-1")})
+
+    def test_a_hand_edit_of_the_wiring_in_the_master_is_overwritten(self):
+        stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498", wiring="Node: 4 Block: 99",
+                                 pnm_hardware="M2S498", pnm_comment="Node: 4 Block: 99"),
+                 "unused Block 2-2": dict(node="4", system_name="M2S497", jmri_name="M2S497",
+                                          wiring="Node: 4 Block: 98"),
+                 "Track Barn": dict(node="4", pnm_hardware="Block 4-99",
+                                    jmri_comment="Lead Switch 7 to Switch 13; occupancy Block 4-99 / M2S498; stop")}
+
+        def edit(rows):
+            for r in rows:
+                if r["level"] == "1" and r["user_name"] in stale:
+                    r.update(stale[r["user_name"]])
+            return rows
+        self.assertEqual(self.rows(edit)[0], self.rows()[0])
+
+    def test_pins_that_do_not_fit_stop(self):
+        for pins, msg in (
+                (lambda t: t.replace("1,,,,,Track Barn,13,1,as wired\n", ""),
+                 "staging block Track Barn: its detector BS Barn has no level 1 row"),
+                (lambda t: t + "1,,,,,Track Nowhere,5,1,\n", "staging has no block Track Nowhere"),
+                (lambda t: t + "1,,,,,,5,1,\n", "spare input Block 5-1 has no spare row 'unused Block 5-1'"),
+                (lambda t: t.replace("1,,,,,,2,2,", "1,,,,,Track Barn 2,2,2,"),
+                 "spare unused Block 2-2 of devices.csv has no spare pin")):
+            with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
+                self.rows(pins=pins)
+
+    def test_a_block_comment_with_no_occupancy_part_stops(self):
+        def edit(rows):
+            for r in rows:
+                if r["level"] == "1" and r["user_name"] == "Track Barn":
+                    r["jmri_comment"] = "Lead Switch 7 to Switch 13; stop"
+            return rows
+        with self.assertRaisesRegex(bdm.MapError, "Track Barn: its jmri_comment .* has no \"occupancy Block 13-1"):
+            self.rows(edit)
 
     def test_the_committed_rows_come_back_as_they_are(self):
         got, adopts, drops = self.rows()
@@ -377,6 +438,36 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         with self.assertRaisesRegex(bdm.MapError, "the drawing has no block for: block Track Nowhere"):
             self.rows(add)
 
+
+
+class StagingPins(unittest.TestCase):
+    """read_staging_pins: staging's detectors as wired, the level 1 rows of detector_pins.csv."""
+    HEAD = ",".join(bdm.PIN_COLUMNS) + "\n"
+
+    def read(self, text):
+        p = temp_file("detector_pins.csv", self.HEAD + text)
+        self.addCleanup(remove, p)
+        return bdm.read_staging_pins(p, {1, 2, 13})
+
+    def test_read(self):
+        got = self.read("1,,,,,Track Barn,13,1,\n1,,,,,,2,2,spare\n3,,,,,Track Helix Inner,41,1,\n")
+        self.assertEqual([(p.block, p.sensor, p.wiring, p.input) for p in got],
+                         [("Track Barn", "M2S1300", "Node: 13 Block: 1", "Block 13-1"),
+                          ("", "M2S201", "Node: 2 Block: 2", "Block 2-2")])
+        self.assertEqual(len(bdm.read_staging_pins()), 45)                       # the committed file: 43 and 2 spares
+
+    def test_bad_rows_stop(self):
+        for text, msg in (("1,7,13,,,Track Barn,13,1,\n", "named by its block alone"),
+                          ("1,,,,,Track Barn,41,1,\n", "node 41 is no staging node"),
+                          ("1,,,,,Track Barn,13,9,\n", "input 9 is not 1 to 8"),
+                          ("1,,,,,Track Barn,13,x,\n", "are numbers"),
+                          ("1,,,,,Track Barn,13,1,\n1,,,,,Track EH-1,13,1,\n", "Block 13-1 is line 2's as well"),
+                          ("1,,,,,Track Barn,13,1,\n1,,,,,Track Barn,13,2,\n", "Track Barn is line 2's as well")):
+            with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
+                self.read(text)
+
+    def test_the_main_and_upper_reader_leaves_staging_rows_alone(self):
+        self.assertNotIn("Track Barn", bdm.read_pins())
 
 if __name__ == "__main__":
     unittest.main()

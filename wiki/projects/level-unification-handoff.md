@@ -262,10 +262,17 @@ invariant holds every staging LCOS turnout and sensor node to a level 1 row and 
 node. `schematic/detector_pins.csv` has a `level` column (2 or 3), and a pin's track is looked for on its level.
 devices.csv, tables.xml and v86 are unchanged.
 
-Left, the owner's end state (everything in one file): staging's detector inputs and turnout ports are still its
-hand-kept devices.csv rows (`node` and system names), as wired. Moving them into `detector_pins.csv` means the
-staging writer generates those cells from it rather than holding the fact twice; that is the next step, keyed to
-`devices.csv` (R9).
+Staging's detectors: done (owner, 2026-11-20, branch `agent/claude/staging-wiring-file`). `detector_pins.csv` has
+staging's 43 detectors and 2 spare inputs as level 1 rows, each named by its block (staging's names are the field's)
+or by no block for a spare. `build_device_map.staging_rows` writes from them the occupancy rows' node, sensor
+(M2S<node><input>), wiring and name-map cells, the block rows' node, name-map input ("Block 13-1") and the
+"occupancy Block <n>-<k> / M2S<id>" part of their comment, and the "unused Block <n>-<k>" spares; a helix block's
+staging row takes its main or upper pin. A hand edit of those cells in devices.csv is overwritten. devices.csv,
+tables.xml and v86 unchanged.
+
+Left: staging's 20 turnouts and their feedback (40 turnout and 40 fb rows) are still hand-kept devices.csv rows
+(node, address, ports). They are held once, not twice, and main and upper's turnout ports are given out by the rule,
+not pinned, so there is no turnout file to join; a "turnout pins" file is the owner's call.
 
 ### 7. Main and upper stations and sheets (waits on the owner)
 
