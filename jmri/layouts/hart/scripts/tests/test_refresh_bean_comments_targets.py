@@ -55,7 +55,7 @@ class StaleHeadCommentsTest(unittest.TestCase):
         head = next(r for r in rows if r["level"] == "1" and r["user_name"] == "Head 6LB")
         want = head["wiring"]
         head["wiring"] = "Node: 4 Signal: 9"
-        devices.write_master(rows, self.files)
+        devices.write_one_file(rows, self.files)
         self.assertEqual(refresh_bean_comments.stale_head_comments(self.files),
                          [f"Head 6LB: wiring.csv gives {want!r}, devices.csv has 'Node: 4 Signal: 9'"])
 

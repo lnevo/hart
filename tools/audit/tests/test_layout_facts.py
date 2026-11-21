@@ -177,7 +177,10 @@ class LayoutFactsTest(unittest.TestCase):
         data.mkdir()
         for name in DATA_FILES:
             (data / name).parent.mkdir(exist_ok=True)
-            shutil.copy(check.facts.DATA / name, data / name)
+            if name == devices.MASTER_FILE:      # the master as one file (no field file beside it), edited as text
+                devices.one_file_copy(data / name)
+            else:
+                shutil.copy(check.facts.DATA / name, data / name)
         legs = data / "switches.csv"
         legs.write_text(legs.read_text().replace(
             "1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,Track EH-3,Track EH-2,"))
@@ -192,7 +195,10 @@ class LayoutFactsTest(unittest.TestCase):
         data.mkdir(exist_ok=True)
         for name in DATA_FILES:
             (data / name).parent.mkdir(exist_ok=True)
-            shutil.copy(check.facts.DATA / name, data / name)
+            if name == devices.MASTER_FILE:      # the master as one file (no field file beside it), edited as text
+                devices.one_file_copy(data / name)
+            else:
+                shutil.copy(check.facts.DATA / name, data / name)
         return data
 
     def test_a_control_point_on_another_level_than_its_switches_fails(self) -> None:

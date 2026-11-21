@@ -36,7 +36,7 @@ class NameCopiesTest(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp)
         self.map = self.tmp / check.DEVICES_REL
         self.map.parent.mkdir(parents=True)
-        self.map.write_text(MAP.read_text(encoding="utf-8"), encoding="utf-8")
+        devices.one_file_copy(self.map)          # the master as one file (no field file beside it)
         self.tables = self.tmp / check.TABLES_REL
         self.tables.parent.mkdir(parents=True)
         self.tables.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")

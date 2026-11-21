@@ -557,10 +557,10 @@ class FactsReaders(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             rows = list(devices.load(B.DEVICE_MAP))
             block = next(r for r in rows if r["level"] == "2" and r["layer"] == "block")
-            bad = devices.write_master(rows + [block], devices.master_path(Path(tmp)))     # a block row twice
+            bad = devices.write_one_file(rows + [block], devices.master_path(Path(tmp)))     # a block row twice
             for read in (B.level_sensors, B.device_names):
                 with self.subTest(read=read.__name__), \
-                        self.assertRaisesRegex(B.BuildError, r"^the device map: devices.csv: .*the same level, layer"):
+                        self.assertRaisesRegex(B.BuildError, r"^the device map: devices_generated.csv: .*the same level, layer"):
                     read(bad)
 
     def test_level_sensors_read_every_block(self) -> None:

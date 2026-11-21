@@ -18,12 +18,13 @@ The master's values.
   system_name, if any, is the planned device), none (no JMRI name from this row), spare (a detector with no block).
 - role: what the device is (ROLES). Readers test it, never a name prefix.
 - written_by: the script that writes the row, one of WRITERS (the one place a later merge of builders changes);
-  empty is hand-kept. A writer replaces only the rows that carry its name (replace_rows), and stops on a key
-  another writer or the owner holds.
+  every row with a level has one, and only a Store's level-less device (the field file's) has none. A writer
+  replaces only the rows that carry its name (outputs_after_rows), stops on a key another writer or a Store's device
+  holds, and cannot drop a key the field file names (merge: rename or remove the field row).
 
-Row order is level, layer (LAYERS), then who holds the row (hand-kept first, then WRITERS order), then the order the
-holder gave, so a rebuild changes only its own rows and `check` can hold the file to it. Block and mast numbers
-that le_tables.block_sort and block_numbering.csv set are not touched here.
+Row order is level, layer (LAYERS), then the writer (WRITERS order; a Store's level-less rows after every level),
+then the order the writer gave, so a rebuild changes only its own rows and `check` can hold each file to it. Block
+and mast numbers that le_tables.block_sort and block_numbering.csv set are not touched here.
 
     python3 -m hartlib.devices check         # the master and its dictionary are valid
 
@@ -51,6 +52,7 @@ from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 GENERATED_FILE = "devices_generated.csv"     # every row the builders make (WRITERS), written by them alone
 FIELD_FILE = "devices_field.csv"             # the owner's cells, keyed by KEY, and the Store's level-less devices
 MASTER_FILE = GENERATED_FILE
+ONE_FILE = "devices.csv"                     # the one-file master before the split (2026-11-21), for its history
 MASTER = paths.LAYOUT_DATA / MASTER_FILE
 FIELD = paths.LAYOUT_DATA / FIELD_FILE
 
@@ -88,8 +90,7 @@ FIELD_COLUMNS = ("role", "assignment", "cp", "system_name", "jmri_name", "node",
 # generated one, which must be the field text with the mark filled in (merge checks it).
 OCCUPANCY_MARK = "{occupancy}"
 OCCUPANCY_TEXT = r"occupancy Block \d+-\d+ / M2S\d+"
-# staging: its plant is the field, so a rewrite of its field devices' rows carries their field facts over from the
-# rows they replace, and a writer may not drop one without saying so (carries_field_facts, replace_rows' drops)
+# staging: its plant is the field, so its devices are the owner's (each a field row in devices_field.csv)
 FIELD_LEVEL = "1"
 LIST = DEVICE_LIST              # the separator of a list column (blocks, protects, a line block's cp)
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
@@ -579,14 +580,6 @@ def cp_list(row: Mapping[str, str]) -> list[str]:
     return [p for p in row["cp"].split(LIST) if p]
 
 
-def carries_field_facts(row: Mapping[str, str]) -> bool:
-    """A staging row of a physical device (assignment field or spare) that a rewrite carries its field facts over from
-    (system name, node, wiring, notes, cp): a writer may not drop it without naming it (replace_rows). A row the rule
-    makes (a virtual mast or head, a part) or a panel status bean (panel_items.json) carries none, so it may go."""
-    return (row["level"] == FIELD_LEVEL and row["assignment"] in ("field", "spare")
-            and row["role"] != "panel_status")
-
-
 def is_unplaced(row: Mapping[str, str]) -> bool:
     """A device not on the layout yet: added in PanelPro, kept as its Store beans in jmri_bean, with no level until the
     owner gives its details (owner, 2026-11-20)."""
@@ -828,43 +821,37 @@ def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | N
 
 # ---------------------------------------------------------------- writing
 
-def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[Mapping[str, str]],
-                 drops: Iterable[tuple[str, str, str]] = (),
-                 adopts: Iterable[tuple[str, str, str]] = ()) -> list[dict[str, str]]:
+def replace_rows(rows: Iterable[Mapping[str, str]], writer: str,
+                 new: Iterable[Mapping[str, str]]) -> list[dict[str, str]]:
     """`rows` with the rows `writer` holds replaced by `new` (master rows with written_by == writer), sorted into the
     master's order (stable). DevicesError when the writer is not in WRITERS, a new row names another writer or
-    would take a key (level, layer, user_name) a row held by someone else has, a row of the writer that carries
-    field facts (carries_field_facts) would go with no new row of its key (a rename would lose them silently: name it
-    in `drops` when the row is meant to go), or the result breaks check_rows. `adopts` names the
-    keys of hand-kept rows the writer takes over (a hand-kept row of that key is replaced by its new row, as its own
-    would be): how a level's rows move from the owner's hand to a builder, which carries their hand facts over."""
+    would take a key (level, layer, user_name) a row held by someone else has (another writer's, or a Store's
+    level-less device), or the result breaks check_rows. A row the field file names may not go: merge refuses the
+    pair (rename or remove the field row), so the owner's cells are never dropped silently."""
+    rows, new = [dict(r) for r in rows], [dict(r) for r in new]
+    _writes_only_its_own(writer, new, [r for r in rows if r["written_by"] != writer])
+    out = [r for r in rows if r["written_by"] != writer] + new
+    out.sort(key=_rank)
+    check_rows(out, f"the master after {writer}'s write")
+    return out
+
+
+def _writes_only_its_own(writer: str, new: list[Mapping[str, str]], others: Iterable[Mapping[str, str]]) -> None:
+    """DevicesError when `writer` is not in WRITERS, a row of `new` names another writer, or takes the key of a row of
+    `others` (another writer's, or a Store's level-less device)."""
     if writer not in WRITERS:
         raise DevicesError(f"writer {writer!r} is not one of {', '.join(WRITERS)}")
-    rows, new = [dict(r) for r in rows], [dict(r) for r in new]
     foreign = [r for r in new if r["written_by"] != writer]
     if foreign:
         raise DevicesError(f"{writer} would write {len(foreign)} row(s) held by someone else, first "
                            f"{foreign[0]['level']} {foreign[0]['layer']} {foreign[0]['user_name']!r} "
                            f"(written_by {foreign[0]['written_by']!r})")
-    adopts = set(adopts)
-    mine = lambda r: r["written_by"] == writer or (not r["written_by"] and  # noqa: E731
-                                                   (r["level"], r["layer"], r["user_name"]) in adopts)
-    others = {(r["level"], r["layer"], r["user_name"]): r["written_by"] for r in rows if not mine(r)}
-    clash = [k for k in ((r["level"], r["layer"], r["user_name"]) for r in new) if k in others]
+    held = {key_of(r): r["written_by"] for r in others}
+    clash = [k for k in (key_of(r) for r in new) if k in held]
     if clash:
         raise DevicesError(f"{writer} would rewrite row(s) it does not hold: "
-                           + ", ".join(f"{k[2]!r} ({k[1]}, level {k[0]}; held by {others[k] or 'hand'})" for k in clash[:5]))
-    kept = {(r["level"], r["layer"], r["user_name"]) for r in new} | set(drops)
-    lost = [r for r in rows if mine(r) and carries_field_facts(r)
-            and (r["level"], r["layer"], r["user_name"]) not in kept]
-    if lost:
-        raise DevicesError(f"{writer} would drop {len(lost)} staging field device row(s), first "
-                           + ", ".join(f"{r['user_name']!r} ({r['layer']}, level {r['level']})" for r in lost[:5])
-                           + "; a renamed row loses the field facts it carries over: pass it in drops if it is to go")
-    out = [r for r in rows if not mine(r)] + new
-    out.sort(key=_rank)
-    check_rows(out, "devices.csv after the write")
-    return out
+                           + ", ".join(f"{k[2]!r} ({k[1]}, level {k[0]}; held by {held[k] or FIELD_FILE})"
+                                       for k in clash[:5]))
 
 
 def _text(columns: Iterable[str], rows: Iterable[Mapping[str, str]]) -> str:
@@ -879,9 +866,13 @@ def master_text(rows: Iterable[Mapping[str, str]]) -> str:
     return _text(COLUMNS, rows)
 
 
-def write_master(rows: Iterable[Mapping[str, str]], files: "Files | Path | str | None" = None) -> Path:
-    """Write `rows` as a one-file master (a copy with no field file); the path written."""
-    path = Files.of(files).master
+def write_one_file(rows: Iterable[Mapping[str, str]], files: "Files | Path | str | None" = None) -> Path:
+    """Write `rows` as a one-file master: a test's or a check's copy with no field file beside it, which holds every
+    cell; the path written. The repo's pair is written by write_generated and write_field alone."""
+    f = Files.of(files)
+    if f.field is not None:
+        raise DevicesError(f"{f.master.name} has a field file beside it; write the pair (write_generated, write_field)")
+    path = f.master
     path.write_text(master_text(rows), encoding="utf-8")
     return path
 
@@ -921,9 +912,7 @@ def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Pat
     return {f.master: master_text(unmerge(rows, field_rows(f)) if f.field is not None else rows)}
 
 
-def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
-                       drops: Iterable[tuple[str, str, str]] = (),
-                       adopts: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
+def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None) -> dict[Path, str]:
     """{path: text} of the generated file once `writer` has written `new`, its rows as readers will see them (merged
     form, written_by set to it), in place of the rows it holds (replace_rows on the merged view). The writer's rows
     go in with the field file's cells left empty (unmerge); every other writer's generated row is kept as written.
@@ -931,31 +920,33 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
     writer would touch a row it does not hold, override a field cell, or the result does not merge back to what the
     writer gave."""
     f = files or Files.here()
-    full = replace_rows(load(f), writer, new, drops, adopts)
-    if f.field is None:
-        return texts(full, f)
+    if f.field is None:                     # a one-file copy: it holds every cell
+        return texts(replace_rows(load(f), writer, new), f)
+    # The old merged view is not read: after an owner's edit (a field row removed or renamed) it may not merge any
+    # more, and this write is what makes the pair whole again.
+    new = [dict(r) for r in new]
     field = field_rows(f)
     keep = [dict(g) for g in generated_rows(f) if g["written_by"] != writer]
-    out = keep + unmerge([r for r in full if r["written_by"] == writer], field, writer)
+    _writes_only_its_own(writer, new, keep + [r for r in field if not r["level"]])
+    out = keep + unmerge(new, field, writer)
     out.sort(key=_rank)
     back = merge(out, field, (f.master.name, f.field.name))
-    if [dict(r) for r in back] != full:
+    mine = {key_of(r): dict(r) for r in back if r["written_by"] == writer}
+    if mine != {key_of(r): r for r in new}:
         raise DevicesError(f"{writer}: the rows written do not merge back to what it gave")
     return {f.master: master_text(out)}
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
-                  drops: Iterable[tuple[str, str, str]] = (), master_rows: Iterable[Mapping[str, str]] = (),
-                  adopts: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
+                  master_rows: Iterable[Mapping[str, str]] = ()) -> dict[Path, str]:
     """outputs_after_rows for `old_rows`, old-form device-map rows each with the role its writer gives it (master_row
     gives each its master form), and
-    `master_rows`, rows already in the master's form (a builder that carries a level's hand facts over, or rows the
-    device maps leave out). What a reader of the master sees for these rows is what the writer gave; DevicesError
+    `master_rows`, rows already in the master's form (a builder's staging rows, built on the owner's field rows, or
+    rows the device maps leave out). What a reader of the master sees for these rows is what the writer gave; DevicesError
     when it is not."""
     f = files or Files.here()
     old_rows = list(old_rows)
-    prior = {(r["level"], r["layer"], r["user_name"]): r for r in load(f)}
     master_rows = [dict(r) for r in master_rows]
-    new = [master_row(o, writer, prior.get((str(o["level"]), o["layer"], o["user_name"]))) for o in old_rows]
-    out = outputs_after_rows(writer, new + master_rows, f, drops, adopts)
+    new = [master_row(o, writer) for o in old_rows]
+    out = outputs_after_rows(writer, new + master_rows, f)
     want = {(str(o["level"]), o["layer"], o["user_name"]): {c: str(o[c]) for c in DEVICE_COLUMNS} for o in old_rows}
     whole = {(r["level"], r["layer"], r["user_name"]): r for r in master_rows}
     back = {key_of(r): dict(r) for r in parse(out[f.master], f.master.name, f) if r["written_by"] == writer}

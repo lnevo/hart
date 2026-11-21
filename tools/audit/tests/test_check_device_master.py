@@ -71,7 +71,7 @@ class RowRules(Master):
         helix block joins two); each is a station of stations.csv or a control point of interlockings.csv."""
         got = cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="Barn;Nowhere")}), self.cps,
                                places=self.places)
-        self.assertEqual(got, [f"devices.csv line {self.line('1', 'Track Barn')} (level 1 block Track Barn): cp "
+        self.assertEqual(got, [f"devices_generated.csv line {self.line('1', 'Track Barn')} (level 1 block Track Barn): cp "
                                "names Nowhere, no station of stations.csv or control point of interlockings.csv"])
         self.assertEqual(cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="West Yard;CP 127")}),
                                           self.cps, places=self.places), [])
@@ -288,7 +288,7 @@ class Command(unittest.TestCase):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             self.assertEqual(cdm.main(["--check"]), 0)
-        self.assertIn("ok: devices.csv, stations.csv, masts.csv hold their rules", out.getvalue())
+        self.assertIn("ok: devices_generated.csv, stations.csv, masts.csv hold their rules", out.getvalue())
 
     def test_without_the_drawing_the_rest_still_runs(self):
         self.assertEqual(cdm.check(None), [])

@@ -129,9 +129,8 @@ def main(argv=None) -> int:
     if args.source is None:
         ap.error("name the one-file master to split, or --check")
     old = args.source.read_bytes()
-    rows = devices.load(devices.Files(args.source, args.data / "devices.columns.csv", None))
-    files = devices.Files(devices.master_path(args.data), args.data / "devices.columns.csv",
-                          devices.field_path(args.data))
+    files = devices.Files.under(args.data)
+    rows = devices.load(files.but(master=args.source, field=None))
     for p, t in texts(rows, files).items():
         p.write_text(t, encoding="utf-8")
         print(f"wrote {p.name}")

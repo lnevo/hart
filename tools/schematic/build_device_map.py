@@ -45,13 +45,14 @@ block_overrides.csv). Staging's plant is the field, so its block and occupancy r
 and layout-block names, node, wiring, comment, notes, detector, stop and the station group in cp) over from the row
 of the same name; this script owns which blocks there are and what each holds (role, trial_name in
 staging's switch-and-leg keys, part_of, blocks, description). A staging block change made in PanelPro is carried by
-hand into this script's data (block_overrides.csv, plan_overrides.json), not into devices.csv. A
+hand into this script's data (block_overrides.csv, plan_overrides.json). A
 staging detector's wiring (node and input, so its sensor and wiring) is its level 1 row of
 wiring.csv (hartlib.wiring, the physical wiring source; owner 2026-11-20), as are its turnouts' and feedback's
 (staging_wired_rows) and main and upper's pinned detectors; any other field
-fact of a staging block (a new block system name, its comment) is still edited in its devices.csv row, which this
-script keeps.
-A new staging block needs a row with its field facts first (hand-kept, no written_by: this script adopts it).
+fact of a staging device (a new block system name, its comment, a DCC address) is the owner's, in its row of
+devices_field.csv (ADR-029 amendment, 2026-11-21), which this script reads and never writes: it writes
+devices_generated.csv, and never reads its own last rows back but for the numbers it gave (devices.allocated_names).
+A new staging block needs its field row first.
 
 Virtual names (owner, 2026-11-17), from each device's stable identity:
 - Turnout "Switch <n>" (and its LCC alias "DCC Switch <n>"): IT:HART:C3:<n>.
@@ -140,7 +141,7 @@ import os
 import re
 import sys
 from collections import defaultdict
-from typing import NamedTuple
+from typing import Mapping, NamedTuple
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -735,9 +736,10 @@ def plan_masts(bands, joined, runs, found, cp_of: dict, corners: dict | None
 
 
 def master_virtual_names(files: devices.Files | None = None) -> dict:
-    """{mast: system name} of the main and upper virtual masts the device master holds now (each keeps its ordinal)."""
-    return {r["user_name"]: r["jmri_name"] for r in devices.load(files or device_files())
-            if r["level"] in ("2", "3") and r["layer"] == "mast" and level_masts.virtual_ordinal(r["jmri_name"])}
+    """{mast: system name} of the main and upper virtual masts as this script last wrote them (each keeps its
+    ordinal): name memory, its one read-back of its own output (devices.allocated_names)."""
+    return {u: r["jmri_name"] for u, r in devices.allocated_names(("2", "3"), "mast", files=files or device_files()).items()
+            if level_masts.virtual_ordinal(r["jmri_name"])}
 
 
 def frozen_wires(path: Path | None = None) -> list:
@@ -1102,12 +1104,6 @@ def taken_bean_names(master: list[dict]) -> set:
     return out
 
 
-def part_drops(parts: list[dict]) -> set:
-    """The keys a part leaves out of the master on purpose (hartlib.devices replace_rows' drops): its occupancy row, as
-    a part has no JMRI block and no sensor of its own (its block row is the part row, the same key)."""
-    return {(r["level"], "occupancy", occupancy_user(r["user_name"])) for r in parts}
-
-
 def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[block_layer.Layer, int, list[dict]]:
     """(block_layer.layer of the staging band, its band index, its tracks): the one block process over staging's
     drawing and block_overrides.csv (`exceptions`, default block_overrides()), every kind of its rows from that one
@@ -1180,7 +1176,6 @@ def level_trials(bands, joined, lay: block_layer.Layer) -> dict[str, str]:
     return {row: ", ".join(phs) for row, phs in piece_trials(lay.rows, refs, inside).items()}
 
 
-SPARE_RE = re.compile(r"^Node: (\d+) Block: (\d+)$")
 STATIONS = pd.DATA / "stations.csv"
 
 
@@ -1243,23 +1238,21 @@ def line_cp(block: str, level, track: dict, places: Places, helix_ends: dict | N
     return railroad.DEVICE_LIST.join(sorted(got, key=lambda p: (abs(places.level[p] - int(level)), places.order[p])))
 
 
-def freed_spare(occ: dict, block: str, part_of: str) -> dict:
-    """The spare row of the field detector `occ` (an occupancy row) whose block became part of `part_of`: named by its
-    node input ("unused Block 1-7"), as the other spares are, with its sensor, node and wiring kept. MapError when its
-    wiring names no node input."""
-    m = SPARE_RE.match(occ["wiring"])
-    if not m or occ["assignment"] != "field":
-        raise MapError(f"{occ['user_name']}: {block} is now part of {part_of}, but its detector's wiring "
-                       f"{occ['wiring']!r} names no node input to keep it as a spare by; reassign the detector")
-    row = dict(occ, user_name=f"unused Block {m.group(1)}-{m.group(2)}", role="spare", assignment="spare", cp="",
-               blocks="", detector="", jmri_comment="", trial_name="",
-               notes=f"freed when {block} became part of {part_of} ({mast_rule.OVERRIDES_NAME})",
-               written_by="build_device_map.py")
-    row["description"] = devices.describe(row)
-    return row
+WIRED_LAYERS = {"turnout": "turnout", "fb": "fb"}      # master layer -> wiring.csv kind of staging's wired rows
 
 
-WIRED_LAYERS = {"turnout": "turnout", "fb": "fb"}      # devices.csv layer -> wiring.csv kind of staging's wired rows
+def field_row(f: Mapping[str, str]) -> dict:
+    """A full master row of a staging device from its field row (devices_field.csv): its key and the owner's cells,
+    every other cell empty for this script to fill."""
+    return {c: f[c] for c in devices.COLUMNS}
+
+
+def staging_field(files: devices.Files | None = None, layers=FIELD_LAYERS) -> dict:
+    """{(layer, user name): full row} of the field file's staging rows of `layers` (field_row): the devices the owner
+    says staging has, this script's input for them. Read from devices_field.csv alone, never from this script's last
+    output."""
+    return {(k[1], k[2]): field_row(f) for k, f in devices.field_index(files or device_files()).items()
+            if k[0] == FIELD_LEVEL and k[1] in layers}
 
 
 def alias_note(turnout: str, address: str) -> str:
@@ -1271,20 +1264,21 @@ def alias_note(turnout: str, address: str) -> str:
 
 
 def staging_wired_rows(files: devices.Files | None = None, path: Path | None = None,
-                       nodes: set | None = None) -> tuple[list[dict], set]:
-    """(staging's turnout, LCC alias and feedback rows of the master, the keys this takes over): each row as it is,
-    but its wiring cells from wiring.csv (`path`, default the committed file): node, the wiring text, the address
-    (system name, and the JMRI name where it was the address). An LCC alias ("DCC Switch <n>") takes its turnout's
-    node and wiring and keeps its MTT<dcc> name; its note names the turnout and its address (alias_note). The
-    description is written again from the row (devices.describe), as it names the node.
-    `nodes`: staging's (default staging_nodes()). MapError on a row with no wiring row, a wiring row with no device
-    row or on a node that is not staging's."""
+                       nodes: set | None = None) -> list[dict]:
+    """Staging's turnout, LCC alias and feedback rows of the master: each the owner's field row (devices_field.csv:
+    its role, assignment, cp, dcc and the rest of the owner's cells) with its wiring cells from wiring.csv (`path`,
+    default the committed file): node, the wiring text, the address (system name, and the JMRI name unless the field
+    row gives another: a turnout the panels bind by its user name). An LCC alias ("DCC Switch <n>") takes its
+    turnout's node and wiring and keeps its MTT<dcc> names (the field row's); its note names the turnout and its
+    address (alias_note). The description is written from the row (devices.describe), as it names the node.
+    `nodes`: staging's (default staging_nodes()). MapError on a field row with no wiring row, a wiring row with no
+    field row or on a node that is not staging's."""
     nodes = staging_nodes() if nodes is None else nodes
     by = {(w.kind, w.device): w for w in wiring_rows(path) if w.level == int(FIELD_LEVEL) and w.kind in ("turnout", "fb")}
     bad = [f"{WIRING.name} line {w.line}: {w.kind} {w.device} is on node {w.node}, no staging node of {NODES.name} "
            f"({', '.join(map(str, sorted(nodes)))})" for w in by.values() if w.node not in nodes]
-    rows = [r for r in devices.load(files or device_files())
-            if r["level"] == FIELD_LEVEL and r["layer"] in WIRED_LAYERS]
+    field = device_files() if files is None else files
+    rows = staging_field(field, tuple(WIRED_LAYERS)).values()
     out, seen = [], set()
     turnout_address = {w.device: w.address for (kind, _d), w in by.items() if kind == "turnout"}
     for r in rows:
@@ -1298,21 +1292,18 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
         seen.add((w.kind, w.device))
         row = dict(r, node=str(w.node), wiring=w.wiring_text, written_by="build_device_map.py")
         if not alias:
-            if r["jmri_name"] == r["system_name"]:
-                row["jmri_name"] = w.address
             row["system_name"] = w.address
+            row["jmri_name"] = r["jmri_name"] or w.address
         else:
             row["notes"] = alias_note(name, turnout_address.get(name, ""))
         row["description"] = devices.describe(row)
         out.append(row)
     for kind, device in sorted(set(by) - seen):
-        bad.append(f"{WIRING.name} line {by[kind, device].line}: staging {kind} {device} has no row in {OUT.name}")
+        bad.append(f"{WIRING.name} line {by[kind, device].line}: staging {kind} {device} has no row in "
+                   f"{devices.FIELD_FILE}")
     if bad:
         raise MapError("; ".join(bad))
-    return out, {(FIELD_LEVEL, r["layer"], r["user_name"]) for r in out}
-
-
-OCC_IN_COMMENT = re.compile(r"occupancy Block \d+-\d+ / M2S\d+")
+    return out
 
 
 def wire_occupancy(row: dict, pin: StagingPin) -> dict:
@@ -1321,62 +1312,71 @@ def wire_occupancy(row: dict, pin: StagingPin) -> dict:
 
 
 def new_spare(pin: StagingPin) -> dict:
-    """The row of a spare input with no row yet (a pin moved onto it, or a block's detector moved off it): named by
-    its input, as freed_spare's are."""
+    """The row of a spare input (a wiring.csv detector with no block, or one whose block is now a part): named by its
+    input. wiring.csv makes it; it has no field row."""
     row = {c: "" for c in devices.COLUMNS}
     row.update(level=FIELD_LEVEL, layer="occupancy", role="spare", user_name=f"unused {pin.input}",
-               assignment="spare", notes=f"a spare input in {PINS.name}", written_by="build_device_map.py")
+               assignment="spare", written_by="build_device_map.py")
     row = wire_occupancy(row, pin)
     row["description"] = devices.describe(row)
     return row
 
 
 def wire_block(row: dict, node: int, k: int) -> dict:
-    """`row` (a staging block row) with its detector's node and the "occupancy Block <n>-<k> / M2S<id>" part of its
-    comment from the pin. MapError when the comment has no such part to keep in step."""
+    """`row` (a staging block row) with its detector's node, and its comment: the field file's words with the
+    detector's "occupancy Block <n>-<k> / M2S<id>" put where devices.OCCUPANCY_MARK stands. MapError when the field
+    comment has no mark to fill."""
     pin = StagingPin(0, row["user_name"], node, k)
-    if not OCC_IN_COMMENT.search(row["jmri_comment"]):
-        raise MapError(f"staging block {row['user_name']}: its jmri_comment {row['jmri_comment']!r} has no "
-                       f"\"occupancy {pin.input} / {pin.sensor}\" to keep in step with {PINS.name}")
-    return dict(row, node=str(node), jmri_comment=OCC_IN_COMMENT.sub(f"occupancy {pin.input} / {pin.sensor}",
-                                                                     row["jmri_comment"]))
+    if devices.OCCUPANCY_MARK not in row["jmri_comment"]:
+        raise MapError(f"{devices.FIELD_FILE}: staging block {row['user_name']}: its jmri_comment "
+                       f"{row['jmri_comment']!r} has no {devices.OCCUPANCY_MARK} for its detector's "
+                       f"\"occupancy {pin.input} / {pin.sensor}\" ({PINS.name})")
+    return dict(row, node=str(node), jmri_comment=devices.fill_occupancy(row["jmri_comment"],
+                                                                         f"occupancy {pin.input} / {pin.sensor}"))
+
+
+def staging_part_names(files: devices.Files | None = None) -> tuple[dict, set]:
+    """({part: (jmri_name, layout_block)} of staging's parts as this script last numbered them, every other bean's
+    names): the name memory part_bean_names keeps its numbers by (devices.allocated_names, the one read-back of this
+    script's own output), and every name taken (taken_bean_names) so a new number is free."""
+    f = files or device_files()
+    mine = {u: (r["jmri_name"], r["layout_block"])
+            for u, r in devices.allocated_names((FIELD_LEVEL,), "block", ("part",), f).items()}
+    # both files as written, not their merge: a field row the owner just removed leaves a generated row that no
+    # longer merges, and this build is what writes it again
+    return mine, taken_bean_names(list(devices.generated_rows(f)) + list(devices.field_rows(f)))
 
 
 def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                  exceptions: Path | None = None, pins: Path | None = None,
-                 places: Places | None = None) -> tuple[list[dict], set, set]:
-    """(staging's block and occupancy rows of the master, the keys they take over, the keys they drop): the one block
-    process's blocks
-    and parts of the staging band (staging_layer), each block row and its occupancy row carrying its field facts
-    (system and layout-block names, node, wiring, comment, notes, detector and stop, and an OS block's control
-    point) over from the row of its name in devices.csv; a line block's cp, and its sensor's, is line_cp's (the places
-    it joins, `places`: read_places by default), never carried; this script owns the rest (role, trial_name, part_of, blocks,
-    written_by, description). The wiring is wiring.csv's (level 1 detectors, read_staging_pins; a helix block's, its main
-    or upper row): an occupancy row's node, sensor and wiring, a block row's node and the
-    occupancy part of its comment, and the spare inputs (no block), each row "unused Block <n>-<k>"; `pins` (default
-    the committed file). A helix block's occupancy row is the
-    level of its helix switch's (main or upper), not staging's: the block is one across levels. A block that becomes a
-    part (block_overrides.csv gives it to an OS block) loses its JMRI block: it gets a part row, whose cp is line_cp's
-    of the part's own track and whose comment names its block's detector, its detector becomes a spare row named by its node input (freed_spare), and both old keys are
-    dropped on purpose (the keys returned, for hartlib.devices' drops). MapError on a block with no row to carry its field
-    facts from, a staging block or occupancy row the drawing has no block for, a detector block with no pin, or a pin
-    whose block staging does not have or is a helix block. A spare input is a pin with no block or one whose block is
-    now a part: its row is carried, or made (new_spare); a spare row no pin is on any more is dropped."""
+                 places: Places | None = None, part_names: tuple[dict, set] | None = None) -> list[dict]:
+    """Staging's block and occupancy rows of the master: the one block process's blocks and parts of the staging
+    band (staging_layer), each block row and its occupancy row built on the owner's field row of its name
+    (devices_field.csv, staging_field: the system and layout-block names, comment, notes, detector, stop, dcc and an
+    OS block's control point); a line block's cp, and its sensor's, is line_cp's (the places it joins, `places`:
+    read_places by default), never the owner's; this script owns the rest (role but on a field row, trial_name,
+    part_of, blocks, written_by, description). The wiring is wiring.csv's (level 1 detectors, read_staging_pins; a
+    helix block's, its main or upper row): an occupancy row's node, sensor and wiring, a block row's node and the
+    occupancy text in its comment (wire_block), and the spare inputs (no block, or a block that is now a part), each
+    row "unused Block <n>-<k>" (new_spare); `pins` (default the committed file). A helix block's occupancy row is the
+    level of its helix switch's (main or upper), not staging's: the block is one across levels. A part's beans keep
+    the numbers this script gave them (`part_names`, default staging_part_names). MapError on a drawn block with no
+    field row, a field row the drawing has no block for, a block that is now a part while its field rows stand (the
+    owner's cells would be lost: remove them), a detector block with no pin, or a pin whose block staging does not
+    have or is a helix block."""
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
     helix_rows = helix_tracks()
     helix = {h["block"] for h in helix_rows.values()}
-    master = devices.load(files or device_files())
-    prior = {(r["layer"], r["user_name"]): r for r in master
-             if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
+    f = files or device_files()
+    prior = staging_field(f)
     blocks = set(lay.bands[bi]["os"].values()) | set(lay.tracks)
-    out, bad, drops, freed = [], [], set(), []
+    out, bad = [], []
     # staging's beans are the generator's (tables_build.GENERATED_LEVELS), so its parts carry their block names here,
     # where main and upper's take theirs from the Layout Editor build (le_tables numbering)
-    mine = {r["user_name"]: (r["jmri_name"], r["layout_block"]) for r in master
-            if r["level"] == FIELD_LEVEL and r["role"] == "part"}
+    mine, taken = staging_part_names(f) if part_names is None else part_names
     try:
-        beans = part_bean_names(list(lay.parts), mine, taken_bean_names(master))
+        beans = part_bean_names(list(lay.parts), mine, taken)
     except MapError as exc:
         raise MapError(f"staging parts: {exc}") from None
     staging_pins = read_staging_pins(pins)
@@ -1389,31 +1389,27 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         elif p.block and p.block not in blocks and p.block not in lay.parts:
             bad.append(f"{PINS.name} line {p.line}: staging has no block {p.block}")
 
-    def carried(layer: str, name: str, **owned) -> dict | None:
+    def owned(layer: str, name: str, **made) -> dict | None:
         old = prior.pop((layer, name), None)
-        if old is None or old["role"] == "part":
-            bad.append(f"staging {layer} {name}: no row in {OUT.name} to carry its field facts from (add it with its "
-                       "system name, node and wiring; this script then keeps it)")
+        if old is None:
+            bad.append(f"staging {layer} {name}: no row in {devices.FIELD_FILE} (add its field row with its system "
+                       "name, layout block and comment; this script builds the rest)")
             return None
-        row = dict(old, written_by="build_device_map.py", part_of="", **owned)     # its role is the row's own
+        row = dict(old, written_by="build_device_map.py", **made)     # its role is the owner's
         row["description"] = devices.describe(row)
         return row
 
     for name in sorted(blocks | set(lay.parts), key=natural):
         if name in lay.parts:
             part = lay.parts[name]
-            old = prior.pop(("block", name), None)      # a part's row is this script's alone
-            if old is not None and old["role"] != "part":           # a block that became a part
-                drops.add((FIELD_LEVEL, "block", name))
-                occ = prior.pop(("occupancy", occupancy_user(name)), None)
-                if occ is not None:
-                    drops.add((FIELD_LEVEL, "occupancy", occ["user_name"]))
-                    if name in pin_of:
-                        occ = wire_occupancy(occ, pin_of[name])
-                    try:
-                        freed.append(freed_spare(occ, name, part["part_of"]))
-                    except MapError as exc:
-                        bad.append(str(exc))
+            was = [k for k in (("block", name), ("occupancy", occupancy_user(name))) if k in prior]
+            if was:                 # a block that became a part: its own cells would be lost, so the owner decides
+                bad.append(f"staging block {name} is now part of {part['part_of']} ({mast_rule.OVERRIDES_NAME}), but "
+                           f"{devices.FIELD_FILE} still has its "
+                           + " and ".join(f"{layer} row {n}" for layer, n in was)
+                           + ": remove them (its detector's input becomes a spare)")
+                for k in was:
+                    prior.pop(k)
             row = part_row(FIELD_LEVEL, name, part, trials[name])
             row.update(assignment="virtual", jmri_name=beans[name][0], layout_block=beans[name][1])
             # its cp is line_cp's of its own track and its comment names its block's detector, both set below (the
@@ -1421,13 +1417,16 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
             row["description"] = devices.describe(row)
             out.append(row)
         else:
-            row = carried("block", name, trial_name=trials.get(name, ""))
+            row = owned("block", name, trial_name=trials.get(name, ""))
             at = (pin_of[name].node, pin_of[name].k) if name in pin_of else on_helix.get(name)
             if row is not None and at is not None:
                 try:
                     row = wire_block(row, *at)
                 except MapError as exc:
                     bad.append(str(exc))
+            elif row is not None and devices.OCCUPANCY_MARK in row["jmri_comment"]:
+                bad.append(f"{devices.FIELD_FILE}: staging block {name}: its jmri_comment marks "
+                           f"{devices.OCCUPANCY_MARK}, but no {PINS.name} pin wires it")
             out.append(row)
     comment_of = {r["user_name"]: r["jmri_comment"] for r in out if r is not None and r["role"] != "part"}
     block_rows = {r["user_name"]: r for r in out if r is not None and r["role"] != "part"}
@@ -1449,14 +1448,14 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     staging_names = blocks | set(lay.parts)
     bad += [f"{STATIONS.name}: {', '.join(places.tracks[t])} lists {t.removeprefix('Track ')} in its tracks, which "
             "is no staging block" for t in sorted(places.tracks) if t not in staging_names]
-    for r in out:               # a line block's cp is the rule's and the owner's additions (line_cp), not carried
+    for r in out:               # a line block's cp is the rule's and the owner's additions (line_cp), not the field's
         if r is not None and r["role"] in devices.LINE_ROLES:
             track = lay.parts[r["user_name"]]["track"] if r["role"] == "part" else lay.tracks[r["user_name"]][0]
             r["cp"] = line_cp(r["user_name"], FIELD_LEVEL, track, places, helix_ends(helix_rows))
     cp_of_block = {r["user_name"]: r["cp"] for r in out if r is not None}
     occupancy = []
     for b in sorted(blocks - helix, key=natural):
-        row = carried("occupancy", occupancy_user(b), blocks=b, cp=cp_of_block.get(b, ""))
+        row = owned("occupancy", occupancy_user(b), blocks=b, cp=cp_of_block.get(b, ""))
         if row is None:
             continue
         if b not in pin_of:
@@ -1464,32 +1463,19 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
             continue
         occupancy.append(wire_occupancy(row, pin_of[b]))
     # spare inputs: a pin with no block, and a pin whose block is now a part (its rails are still on that input)
-    spares, freed_by = [], {r["user_name"]: r for r in freed}
-    for p in (p for p in staging_pins if not p.block or p.block in lay.parts):
-        name = f"unused {p.input}"
-        old = prior.pop(("occupancy", name), None)
-        if old is not None and old["role"] != "spare":
-            bad.append(f"{PINS.name} line {p.line}: {name} is a {old['role']} row in {OUT.name}, not a spare")
-            continue
-        row = (dict(old, written_by="build_device_map.py") if old is not None
-               else freed_by.pop(name, None) or new_spare(p))
-        spares.append(wire_occupancy(row, p))
-    for r in freed_by.values():
-        bad.append(f"{r['user_name']}: its block is now a part but no pin in {PINS.name} is on that input")
-    for key in [k for k, r in prior.items() if r["role"] == "spare"]:
-        drops.add((FIELD_LEVEL, key[0], key[1]))       # no longer a spare input (a block's pin took it): it goes
-        prior.pop(key)
-    for key in [k for k, r in prior.items() if r["role"] == "part"]:
-        prior.pop(key)          # a part no longer drawn (its row is this script's alone, no field facts): it goes
+    spares = [new_spare(p) for p in staging_pins if not p.block or p.block in lay.parts]
+    taken_spare = [f"unused {p.input}" for p in staging_pins if ("occupancy", f"unused {p.input}") in prior]
+    bad += [f"{devices.FIELD_FILE}: occupancy {n} is a spare input of {PINS.name}, which makes its row: remove the "
+            "field row" for n in taken_spare]
+    for n in taken_spare:
+        prior.pop(("occupancy", n))
     if prior:
-        bad.append(f"staging rows of {OUT.name} the drawing has no block for: "
+        bad.append(f"staging rows of {devices.FIELD_FILE} the drawing has no block for: "
                    + ", ".join(f"{layer} {name}" for layer, name in sorted(prior)))
     if bad:
         raise MapError("; ".join(bad))
     out += sorted(occupancy + spares, key=lambda r: natural(r["user_name"]))
-    return out, {(FIELD_LEVEL, r["layer"], r["user_name"]) for r in out}, drops
-
-
+    return out
 def staging_map_error() -> type:
     import staging_device_map as sdm        # it imports this module
     return sdm.StagingMapError
@@ -1577,12 +1563,11 @@ def main(argv=None) -> int:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     try:
-        staging, adopts, drops = staging_rows(bands, joined, runs)
-        wired, wired_adopts = staging_wired_rows()
+        staging = staging_rows(bands, joined, runs)
+        wired = staging_wired_rows()
         want = {OVERRIDES: overrides_text(overrides, cp_keys),
                 **devices.outputs_after("build_device_map.py", rows, device_files(),
-                                        master_rows=staging + wired + parts, adopts=adopts | wired_adopts,
-                                        drops=drops | part_drops(parts))}
+                                        master_rows=staging + wired + parts)}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
         # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)

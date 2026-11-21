@@ -63,7 +63,7 @@ class TheSplitCommit(unittest.TestCase):
         if found.returncode or not commits:
             raise unittest.SkipTest("the split commit is not in this clone's history")
         c = commits[-1]
-        old = git("show", f"{c}^:{DATA}/devices.csv")
+        old = git("show", f"{c}^:{DATA}/{devices.ONE_FILE}")
         if old.returncode:
             raise unittest.SkipTest("the commit before the split is not in this clone")
         with tempfile.TemporaryDirectory() as d:

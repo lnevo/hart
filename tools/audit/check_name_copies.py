@@ -39,6 +39,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import devices, paths, tables  # noqa: E402
 
 DEVICES_REL = devices.MASTER.relative_to(paths.REPO_ROOT).as_posix()
+FIELD_REL = devices.FIELD.relative_to(paths.REPO_ROOT).as_posix()
 TABLES_REL = "jmri/layouts/hart/output/tables.xml"
 LAYERS = ("block", "mast")
 
@@ -47,7 +48,7 @@ LAYERS = ("block", "mast")
 SKIP_PREFIXES = (
     "archive/",                                   # retired material
     "reference/", "external/",                    # vendor and submodule source
-    DEVICES_REL,                                  # the source of the names
+    DEVICES_REL, FIELD_REL,                       # the source of the names (the master's two files)
     TABLES_REL,                                   # JMRI's file; held to the map by the baselines
     # stock discovery's output, written only by run_sml_discover.sh; build_tables.py stops on a mast it names that
     # the tables do not hold (hartlib.tables_build.merge_discovered)

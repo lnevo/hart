@@ -152,7 +152,7 @@ class Pure(unittest.TestCase):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")]
         self.assertEqual(cdm.check_rows(numbered(rows), set()),
-                         ["devices.csv line 3: block Track S-1 West has 0 occupancy rows naming it (none), not one"])
+                         ["devices_generated.csv line 3: block Track S-1 West has 0 occupancy rows naming it (none), not one"])
 
     def test_a_shared_detector_serves_both_blocks(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),

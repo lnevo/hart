@@ -364,9 +364,10 @@ class TheWritersRules(unittest.TestCase):
             D.replace_rows([], "build_device_map.py", [mast()])
 
     def test_a_writer_will_not_take_the_key_of_a_row_someone_else_holds(self):
-        held = [turnout()]                                    # hand-kept
-        clash = turnout() | {"written_by": "build_device_map.py"}
-        with self.assertRaisesRegex(D.DevicesError, r"would rewrite row\(s\) it does not hold: 'Switch 1'.*held by hand"):
+        held = [unplaced()]                                   # a Store's device: the field file's
+        clash = unplaced() | {"written_by": "build_device_map.py"}
+        with self.assertRaisesRegex(D.DevicesError, r"would rewrite row\(s\) it does not hold: 'Test 999'.*held by "
+                                                    r"devices_field.csv"):
             D.replace_rows(held, "build_device_map.py", [clash])
         other = mast() | {"written_by": "build_device_map.py", "level": "2"}
         with self.assertRaisesRegex(D.DevicesError, "held by build_device_map.py"):
@@ -494,7 +495,7 @@ class TheWriters(unittest.TestCase):
     def test_a_writer_that_drops_a_row_changes_only_its_own_rows_of_the_master(self):
         mine = old_form([r for r in D.load(self.files) if r["written_by"] == "build_masts.py"])
         gone = (mine[0]["level"], mine[0]["layer"], mine[0]["user_name"])
-        out = D.outputs_after("build_masts.py", mine[1:], self.files, drops=[gone])
+        out = D.outputs_after("build_masts.py", mine[1:], self.files)
         before = {(r["level"], r["layer"], r["user_name"]) for r in D.load(self.files)}
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
@@ -504,18 +505,16 @@ class TheWriters(unittest.TestCase):
         kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_masts.py"]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
-    def test_a_writer_that_would_lose_a_staging_field_row_without_saying_so_is_refused(self):
-        """A rename gives a new key: the old row of a wired staging device (and the field facts a rewrite carries
-        over from it) would go with no word, so the write stops."""
-        held = [r for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
-        mine = old_form(held)
+    def test_a_writer_that_would_drop_a_row_the_field_file_names_is_refused(self):
+        """A rename gives a new key: the owner's cells of the old one (Mast 6LB's node, in devices_field.csv) would
+        go with no word, so the write stops and says to rename or remove the field row."""
+        pair = D.pair_copy(self.tmp / "pair")
+        mine = old_form([r for r in D.load(pair) if r["written_by"] == "build_masts.py"])
         first = next(r for r in mine if r["user_name"] == "Mast 6LB")            # the wired mast
         renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
-        with self.assertRaisesRegex(D.DevicesError,
-                                    rf"would drop 1 staging field device row\(s\), first {first['user_name']!r}"):
-            D.outputs_after("build_masts.py", renamed, self.files)
-        key = ("1", first["layer"], first["user_name"])
-        D.outputs_after("build_masts.py", renamed, self.files, drops=[key])
+        with self.assertRaisesRegex(D.DevicesError, r"Mast 6LB \(level 1, mast\) has no row in "
+                                                    r"devices_generated.csv .*rename the field row"):
+            D.outputs_after("build_masts.py", renamed, pair)
 
     def test_a_rule_mast_and_a_panel_status_bean_may_go_without_saying_so(self):
         """Rows the rule makes (a virtual staging mast) or panel_items.json writes carry no field facts, so their
@@ -528,17 +527,14 @@ class TheWriters(unittest.TestCase):
         out = D.outputs_after_rows("panel_items.json", [r for r in status if r["user_name"] != "SML Mode"], self.files)
         self.assertNotIn(",SML Mode,", out[self.files.master])
 
-    def test_the_guarded_rows_are_stagings_field_devices(self):
-        """The guard covers the staging rows of wired devices: the old name map's rows (all of level 1 but the three
-        status sensors) less the rule's virtual masts, heads and parts and the status lamp IH9990."""
-        rows = D.load(self.files)
-        guarded = [r for r in rows if D.carries_field_facts(r)]
-        self.assertEqual(len(guarded), 172)
-        self.assertEqual({r["level"] for r in guarded}, {"1"})
-        self.assertEqual({r["assignment"] for r in guarded}, {"field", "spare"})
-        rest = [r for r in rows if r["level"] == "1" and r["layer"] != "sensor" and not D.carries_field_facts(r)]
-        self.assertEqual(len(guarded) + len(rest), 250)
-        self.assertTrue(all(r["assignment"] == "virtual" or r["role"] == "panel_status" for r in rest))
+    def test_the_guarded_rows_are_the_field_files(self):
+        """The rows a writer may not drop are the ones devices_field.csv names: staging's field devices (less its
+        spares, which wiring.csv makes) and the wired mast and head."""
+        keys = D.field_index()
+        self.assertEqual(len(keys), 170)
+        self.assertEqual({k[0] for k in keys}, {"1"})
+        rows = {D.key_of(r): r for r in D.load()}
+        self.assertEqual({rows[k]["assignment"] for k in keys}, {"field"})
 
     def test_a_writer_may_drop_a_main_or_upper_row_without_saying_so(self):
         """Only staging's rows carry field facts over a rewrite (FIELD_LEVEL); a main or upper row is the rule's
