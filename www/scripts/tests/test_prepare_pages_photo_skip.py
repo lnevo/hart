@@ -124,10 +124,54 @@ class PhotoSkip(base.FullBuild):
         self.assertIn("photo stages: reused", self.build())
         self.assertEqual(sorted(self.snapshot()), sorted(first))
 
+    def test_a_changed_site_local_image_misses(self):
+        local = base._png(self.portal / "assets/media/local.png")
+        self.track("assets/media/local.png", "x")
+        base._png(local)
+        path = self.portal / "data/gallery.json"
+        data = json.loads(path.read_text(encoding="utf-8"))
+        data["items"].append({"id": "loc", "album": "night", "src": "assets/media/local.png"})
+        path.write_text(json.dumps(data), encoding="utf-8")
+        self.build()
+        self.assertIn("photo stages: reused", self.build())
+        base._png(local, colour=(1, 2, 3), size=(310, 200))
+        self.assertIn("photo stages: full run (inputs changed)", self.build())
+
+    def test_a_changed_share_card_file_misses_the_late_part(self):
+        cards = Path(self._tmp.name) / "share-cards.json"
+        cards.write_text("{}", encoding="utf-8")
+        with mock.patch.object(build.share_cards, "CARDS", cards):
+            self.build()
+            self.assertIn("photo stages: reused", self.build())
+            cards.write_text('{"x": 1}', encoding="utf-8")
+            out = self.build()
+        self.assertIn("photo stages: reused", out)
+        self.assertIn("photo stages, card thumbs and WebP: full run (inputs changed)", out)
+
+    def test_reuse_leaves_the_resize_cache_unpruned_and_a_full_run_prunes(self):
+        with mock.patch.object(build, "_prune_jpeg_cache") as prune:
+            self.build()
+            self.assertEqual(prune.call_count, 1)
+            self.build()
+            self.assertEqual(prune.call_count, 1)
+            self.build("--full")
+            self.assertEqual(prune.call_count, 2)
+
+    def test_without_pillow_the_build_runs_as_before_and_saves_nothing(self):
+        build._photo_code_key.cache_clear()
+        build._render_key.cache_clear()
+        self.addCleanup(build._photo_code_key.cache_clear)
+        self.addCleanup(build._render_key.cache_clear)
+        with mock.patch.dict(sys.modules, {"PIL": None, "PIL.Image": None, "PIL.ImageOps": None}):
+            out = self.build()
+        self.assertIn("photo stages: full run (Pillow is missing)", out)
+        self.assertFalse(self.store().exists())
+
     def test_full_ignores_the_stamp_and_saves_a_new_one(self):
         self.build()
-        with mock.patch.object(build, "_render_jpeg", wraps=build._render_jpeg):
+        with mock.patch.object(build, "_web_jpeg", wraps=build._web_jpeg) as spy:
             out = self.build("--full")
+        self.assertGreater(spy.call_count, 0)
         self.assertIn("photo stages: full run (--full)", out)
         self.assertIn("reused", self.build())
 

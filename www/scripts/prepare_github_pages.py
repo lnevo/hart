@@ -1184,41 +1184,48 @@ def _photo_code_key() -> str:
     h = hashlib.sha256(PHOTO_CODE_VERSION.encode())
     for f in funcs:
         h.update(inspect.getsource(f).encode())
-    h.update(_render_key())
+    try:
+        h.update(_render_key())
+    except ImportError:      # no Pillow: _photo_load says so and every stage runs as it always did
+        h.update(b"no-pillow")
     h.update(Path(share_cards.__file__).read_bytes())
     return h.hexdigest()
 
 
-def _mirror_paths(node: object):
-    """Every string under node that points into the mirrors (src, logo, pdf)."""
-    if isinstance(node, str):
-        if node.startswith(MIRROR_PREFIXES):
-            yield node
-    elif isinstance(node, dict):
-        for value in node.values():
-            yield from _mirror_paths(value)
+def _named_sources(node: object):
+    """Every source file a data file names: src, thumb and pdf (mirror or site-local, not a URL) and logo ("../")."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if isinstance(value, str) and value:
+                if key == "logo" and value.startswith("../"):
+                    yield value
+                elif key in ("src", "thumb", "pdf") and not value.startswith(("http://", "https://")):
+                    yield value
+            else:
+                yield from _named_sources(value)
     elif isinstance(node, list):
         for value in node:
-            yield from _mirror_paths(value)
+            yield from _named_sources(value)
 
 
 def _early_stamp(dest: Path) -> str:
     """Hash of what the logo and photo stages read: the data files as copied into dest, the manifest, the code, and
-    the size and mtime of every original those files name (missing ones too)."""
+    the path, size, mtime, inode and ctime of every file those data files name (missing ones too)."""
     h = hashlib.sha256(_photo_code_key().encode())
     files = [dest / rel for rel in _PHOTO_JSON] + sorted((dest / "data").glob("*-lineage.json"))
-    mirrors: set[str] = set()
+    named: set[str] = set()
     for f in files:
         h.update(f.name.encode())
         if f.is_file():
             raw = f.read_bytes()
             h.update(raw)
-            mirrors.update(_mirror_paths(json.loads(raw)))
+            named.update(_named_sources(json.loads(raw)))
     h.update(json.dumps(_manifest(), sort_keys=True).encode())
-    for rel in sorted(mirrors):
+    for rel in sorted(named):
         try:
-            st = _source(rel).stat()
-            h.update(f"|{rel}:{st.st_size}:{st.st_mtime_ns}".encode())
+            src = _source(rel)
+            st = src.stat()
+            h.update(f"|{rel}:{src}:{st.st_size}:{st.st_mtime_ns}:{st.st_ino}:{st.st_ctime_ns}".encode())
         except OSError:
             h.update(f"|{rel}:missing".encode())
     return h.hexdigest()
@@ -1277,6 +1284,10 @@ def _photo_save(part: str, stamp: str, dest: Path, before: dict, extra: dict | N
     store = _photo_store(part)
     if store is None:
         return
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        return
     after = _tree_state(dest)
     changed = sorted(rel for rel, st in after.items() if before.get(rel) != st)
     tmp = store.with_name(f"{store.name}.{os.getpid()}.tmp")
@@ -1297,28 +1308,31 @@ def _photo_save(part: str, stamp: str, dest: Path, before: dict, extra: dict | N
         shutil.rmtree(tmp, ignore_errors=True)
 
 
-def _photo_early(dest: Path, full: bool) -> tuple[str, set[str]]:
-    """Logos and photos (stages 4 and 5), reused when the stamp matches. Returns the stamp and the files it wrote."""
+def _photo_early(dest: Path, full: bool) -> tuple[str, set[str], bool]:
+    """Logos and photos (stages 4 and 5), reused when the stamp matches. Returns the stamp, the files it wrote and
+    whether the saved run was reused."""
     stamp = _early_stamp(dest)
     got = _photo_load("early", stamp, full)
     if isinstance(got, tuple):
         store, meta = got
         _photo_restore(store, meta, dest)
         print(f"photo stages: reused the saved run ({len(meta['files'])} files), no original read")
-        return stamp, set(meta["files"])
+        return stamp, set(meta["files"]), True
     print(f"photo stages: full run ({got})")
     before = _tree_state(dest)
     _vendor_logos(dest)
     _vendor_photos(dest)
     _photo_save("early", stamp, dest, before)
     after = _tree_state(dest)
-    return stamp, {rel for rel, st in after.items() if before.get(rel) != st}
+    return stamp, {rel for rel, st in after.items() if before.get(rel) != st}, False
 
 
 def _late_stamp(dest: Path, early_stamp: str, early_files: set[str]) -> str:
     """Card thumbs and WebP read the finished pages and the JPEGs: hash every file but the photos the early stamp covers."""
     h = hashlib.sha256(_photo_code_key().encode())
     h.update(f"|{early_stamp}|{SITE_URL}|".encode())
+    if share_cards.CARDS.is_file():
+        h.update(share_cards.CARDS.read_bytes())   # the cards and links _card_thumbs reads
     for p in sorted(dest.rglob("*")):
         if not p.is_file():
             continue
@@ -1339,6 +1353,7 @@ def _photo_late(dest: Path, early_stamp: str, early_files: set[str], full: bool)
         _photo_restore(store, meta, dest)
         print(f"WebP companions: {meta['saved'] // 1024} KB smaller than the JPEGs they stand beside")
         return
+    print(f"photo stages, card thumbs and WebP: full run ({got})")
     before = _tree_state(dest)
     _card_thumbs(dest)
     saved = _webp_companions(dest)
@@ -1377,7 +1392,7 @@ def main() -> int:
     _copy_published(dest)
     _refresh_tables_page(dest)
     _scrub_site_json(dest)
-    early_stamp, early_files = _photo_early(dest, args.full)
+    early_stamp, early_files, reused = _photo_early(dest, args.full)
     _strip_external_data(dest)
 
     # 404.html is a tracked page (site-root links); the web server must point error_page 404 at it
@@ -1390,7 +1405,8 @@ def main() -> int:
     if not _leak_stage(dest):
         return 1
     _search_stage(dest)
-    _prune_jpeg_cache()
+    if not reused:      # a reused run touches no cache entry, so pruning by last use would empty the cache
+        _prune_jpeg_cache()
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 
