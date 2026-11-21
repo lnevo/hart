@@ -1,0 +1,47 @@
+# Not pending
+
+Items the owner has said never to list as pending, to re-raise or to report, with the rule for each and where the item is recorded instead.
+
+The `whats-left` skill reads this page and drops everything it excludes. Add a row when the owner gives a new "never list this" rule; chat memory is not shared between sessions, this page is.
+
+## Parked features
+
+| Item | Rule | Recorded instead | Owner date |
+|------|------|------------------|------------|
+| Entry/Exit (NX), the stock Dispatcher System, the USS CTC machine | Never list as a to-do. Unparking is the owner's call. | `jmri/layouts/hart/parked/`, [`docs/parked/UNPARK.md`](../docs/parked/UNPARK.md) | 2026-11-17 |
+| Warnings that come only from a parked element (launcher warnings on parked tables, refreshing `tables_parked.xml`, swapped USS icons, stale Digicon-era names in parked docs) | Do not fix or report as a finding; add to the unpark doc. | [`docs/parked/UNPARK.md`](../docs/parked/UNPARK.md) | 2026-11-21 |
+| Occupancy lamps and station clusters on the Layout Editor panel | Part of the parked Dispatcher. Never list lamp placement as a loose end; do not fix, test-pin or rework it. A lamp-offset check is skipped with that reason, not loosened. | `jmri/layouts/hart/parked/` | 2026-11-21 |
+| Five USS CTC redraw leftovers: masts 4RA, 4RB and 2L facing differently from the CATS desk; signal icons over the OS jewel edge at switches 7, 23a and 33; six pairs of touching jewels; the Windows apply skipping the Start Up retarget with a warning when no Python is found; the permission-mode notice | Accepted as they are. Never list as pending; revisit only if the owner raises one. | `FACING_EXCEPTIONS` in `test_ctc_signal_heads.py`; [`docs/parked/UNPARK.md`](../docs/parked/UNPARK.md) | 2026-11-11 |
+| The old Dispatcher "facing direction inverted" story | It was a wrong setting, not a stock bug or a mast issue. Keep it off the site and guides. | History only in [`STATUS_LOG.md`](STATUS_LOG.md) | 2026-11-12 |
+
+## Owner decisions not to re-raise
+
+| Item | Rule | Recorded instead | Owner date |
+|------|------|------------------|------------|
+| New cars and locomotives to photograph or take in (intake) | Never list as outstanding or backlog; the owner starts intake when ready. | Runbook in [`pipelines/intake-stages.md`](pipelines/intake-stages.md) | 2026-11-09 |
+| Periodic LCOS subscription replay proposal (event 125) | Dropped. Never list or revive from old docs; check `STATUS_LOG.md` before moving old open items into live pages. | [`STATUS_LOG.md`](STATUS_LOG.md) | 2026-10-31 |
+| Camera car identification (OCR plus image comparison) | Written up, never a to-do. Pick up only when the owner raises it. | [`docs/ops/CAMERA_CAR_ID.md`](../docs/ops/CAMERA_CAR_ID.md) | 2026-11-16 |
+| CATS label edge cases from the schematic-maps plugin (title fallback row, `trim_columns`, `--band` page prefs, two window validators, `--window` alone) | Nice-to-have. Never list; take up only if the owner asks or a desk hits one. | None; not tracked | 2026-11-18 |
+| `signal_coordinator.py` blocking `runOnLayout` (the 30 s bulk-set timeout cannot fire live) | Accepted. Never list; revisit only if a hang is actually seen. | None; not tracked | 2026-11-20 |
+| Scale track and OS 7 detector gap (23 cm of Scale on OS 7's detector) | Matters only for speed profiling. Never list as a follow-up or mismatch; never suggest moving the rail gap. | Level unification step 5 in [`projects/level-unification-handoff.md`](projects/level-unification-handoff.md) | 2026-11-20 |
+| Diamond P&OC herald on the Railroads 2000-2008 lineage card | Kept by the owner's choice. Do not flag it as an error or propose a wordmark. | None; not tracked | 2026-11-12 |
+| Link card for the speed-runs article on the AI hub page | Rejected. Do not propose hub cards for single articles or list this as a website item. | The article is linked from the Locomotives topic only (`www/ai/speed-runs.html`) | 2026-11-18 |
+| MRE Electrical SOQ | Submitted and frozen. Never rebuild, refill or "tidy" its inputs; unfreeze only for evaluator feedback, and update `SUBMITTED.md` in the same PR. | [`docs/ap/electrical/SUBMITTED.md`](../docs/ap/electrical/SUBMITTED.md) | 2026-11-15 |
+| LCOS mimic publishing fake feedback on the Pi's live broker | Accepted. Never list as a risk or loose end; do not propose a separate broker for the owner's environments. | None; not tracked | 2026-11-12 |
+| Site wording about JMRI and CATS | Say they are stock installs as plain fact. Never "almost stock", and no sections that defend the approach. | None; a writing rule | 2026-11-12 |
+| Stock JMRI and CATS operating risks (MQTT startup race, CATS load risk) | Leave out of any "what is pending" answer. They are standing notes, not open work. | Operating notes in [`STATUS.md`](STATUS.md) | 2026-11-01 |
+
+## Future goals
+
+| Item | Rule | Recorded instead | Owner date |
+|------|------|------------------|------------|
+| Operations Pro build follow-up (R1-R8, plugin fixes P1-P19) | Side project. List only under future goals; do not raise R2 or the follow-up list in what's-next answers. | [`docs/ops/OPSPRO_FOLLOWUP.md`](../docs/ops/OPSPRO_FOLLOWUP.md); "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
+| LCOS bridge move to the Pi | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
+| Pi OS upgrade | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
+| Speed matching follow-ups (decoder read-back, loop 2 lap survey) | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md); [`projects/speedmatching.md`](projects/speedmatching.md) | 2026-11-21 |
+
+## Watch-only items
+
+| Item | Rule | Recorded instead | Owner date |
+|------|------|------------------|------------|
+| Pi LCC serial write timeouts right after PanelPro shutdown | Ignore. Report LCC serial trouble only if it shows while JMRI runs, or if a shutdown hangs and needs a kill. | None; not tracked | 2026-11-12 |
