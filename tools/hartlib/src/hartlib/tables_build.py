@@ -169,7 +169,7 @@ def read_template(path: Path = TEMPLATE) -> tables.Tables:
     # (hartlib.store_split); it stays where the Store had it. Never a second copy of a known one, a panel or the
     # file history.
     extra = [k for k in got if k not in SECTIONS]
-    bad = sorted({t for t, _ in extra if t in {s for s, _ in SECTIONS} | {"LayoutEditor", "filehistory"}})
+    bad = sorted({t for t, _ in extra if t in {s for s, _ in SECTIONS} | {"filehistory"} or t.lower().endswith("editor")})
     if bad or len(set(extra)) != len(extra):
         raise TablesBuildError(f"{where}: holds {', '.join(bad) or 'a section'} twice or out of place")
     held = envelope_items(doc.root)

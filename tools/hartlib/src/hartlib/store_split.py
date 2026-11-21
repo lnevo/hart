@@ -245,8 +245,10 @@ def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) ->
     if kind in ("panel", "logic"):
         return "the build" if kind == "logic" else "the schematic (the Layout Editor build)"
     if kind == "section":
-        if key[1] in NEVER_TEMPLATE:
-            return "the build"
+        if key[1] in NEVER_TEMPLATE or key[1].lower().endswith("editor"):
+            return "the schematic (a panel is never in the template)"
+        if key[1] in {t for t, _ in tb.SECTIONS}:
+            return "devices.csv and the build (a section of a known kind with another connection)"
         for feature, tags in parked.WHOLE.items():
             if key[1] in tags:
                 return f"the parked {parked.FEATURES[feature]}"
@@ -388,6 +390,8 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
     order = functools.cmp_to_key(lambda a, b: (repr(a) > repr(b)) - (repr(a) < repr(b)))
     for key in sorted(set(B) | set(G) | set(S), key=order):
         b, g, s = B.get(key), G.get(key), S.get(key)
+        if key[0] == "attrs" and s is None:
+            continue                    # JMRI writes no section once it holds nothing; its children say what went
         cb, cg, cs = canon(b), canon(g), canon(s)
         if cs == cb or cs == cg:
             continue                    # the owner changed nothing, or the repo has it already

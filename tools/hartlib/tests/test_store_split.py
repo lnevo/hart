@@ -131,6 +131,19 @@ class TemplateItems(unittest.TestCase):
         self.assertEqual([i.key[1] for i in p.of(ss.DROPPED)], ["entryexitpairs"])
         self.assertIn("parked", p.of(ss.DROPPED)[0].note)
 
+    def test_a_panel_or_a_second_connection_section_is_dropped(self) -> None:
+        extra = '<ControlPanelEditor name="cpe" />' \
+                '<sensors class="jmri.jmrix.openlcb.configurexml.OlcbSensorManagerXml" />'
+        p = plan(doc(), doc(), doc(extra=extra))
+        self.assertEqual([], p.of(ss.KEPT))
+        self.assertEqual(2, len(p.of(ss.DROPPED)))
+
+    def test_a_section_the_store_left_out_keeps_its_class(self) -> None:
+        store = doc()
+        store.remove(store.find("timebase"))
+        p = plan(doc(), doc(), store)
+        self.assertEqual([], p.items)
+
     def test_a_memory_on_a_claimed_name_is_dropped(self) -> None:
         p = plan(doc(), doc(), doc(memories=bean("memory", "IMIS:ISMEM:versionNo")))
         self.assertEqual({ss.DROPPED: ["memory IMIS:ISMEM:versionNo"]}, kinds(p))
