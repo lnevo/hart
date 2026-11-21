@@ -14,44 +14,122 @@ an OS block its turnout's product length from the points to the frog end. The
 schematic, the Layout Editor panel and the signal rules use it alone.
 **Measured in** is the timed length (`source` `timed`: the block's timed share of
 the test loop, or timed passes; `infer_block_lengths.py`, method in
-`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`), kept for speed profiling and JMRI.
-JMRI's length is the measured one where there is one, else the plan length.
+`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`), kept for speed profiling.
+JMRI's length is the plan length; a measured length is for speed profiling.
 
 ## Tracks and spurs
 
-| Block | Occupancy sensor | Plan in | Measured in | JMRI length from | JMRI mm | Note |
+| Block | Occupancy sensor | Plan in | Measured in | Source | JMRI mm | Note |
 |---|---|---|---|---|---|---|
 | Track W-1 | Block 4-4 | 105.2 |  | plan | 2672.1 |  |
 | Track W-2 | Block 4-3 | 105.4 |  | plan | 2677.2 |  |
-| Track Brick-Plane | Block 4-6 | 71.6 | 58.1 | timed | 1475.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
-| Track East Lead | Block 1-7 | 107.9 | 103.6 | timed | 2631.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.4 in over 33 laps; the whole detector |
-| Track Main West | Block 2-1 | 231 | 217.3 | timed | 5519.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
-| Track West Ext | Block 1-8 | 169.2 | 156.1 | timed | 3964.9 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
-| Track Main East | Block 2-3 | 309.7 | 315.1 | timed | 8003.5 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
-| Track East Ext | Block 4-7 | 154.6 | 140.8 | timed | 3576.3 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 16 laps |
+| Track Brick-Plane | Block 4-6 | 71.6 | 58.1 | timed | 1818.6 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
+| Track East Lead | Block 1-7 | 107.9 | 103.6 | timed | 2740.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.4 in over 33 laps; the whole detector |
+| Track Main West | Block 2-1 | 231 | 217.3 | timed | 5867.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
+| Track West Ext | Block 1-8 | 169.2 | 156.1 | timed | 4297.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
+| Track Main East | Block 2-3 | 309.7 | 315.1 | timed | 7866.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
+| Track East Ext | Block 4-7 | 154.6 | 140.8 | timed | 3926.8 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 16 laps |
 | Track S-R | Block 2-8 | 230.6 |  | plan | 5857.2 |  |
 | Track S-1 | Block 2-7 | 211.7 |  | plan | 5377.2 |  |
 | Track S-2 | Block 2-6 | 178.2 |  | plan | 4526.3 |  |
 | Track S-3 | Block 2-5 | 144.6 |  | plan | 3672.8 |  |
 | Track S-4 | Block 2-4 | 141.2 |  | plan | 3586.5 |  |
-| Track K-1 | Block 1-1 | 122.9 | 123.7 | timed | 3142.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; the whole detector |
-| Track K-2 | Block 1-2 | 122.9 | 113.6 | timed | 2885.4 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
-| Track Scale | Block 4-8 | 158 | 144.9 | timed | 3680.5 | timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): Switch 7 centre at 4249 mm from Switch 5, less half of OS Switch 5 and OS Switch 7 |
-| Track Barn | Block 13-1 | 31.3 | 34.1 | timed | 866.1 | timed passes of 2026-11-13: Switch 7 at 4249 mm and Switch 13 at 5457 mm, less half of OS Switch 7 and OS Switch 13 |
+| Track K-1 | Block 1-1 | 122.9 | 123.7 | timed | 3121.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps; the whole detector |
+| Track K-2 | Block 1-2 | 122.9 | 113.6 | timed | 3121.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
+| Track Scale | Block 4-8 | 158 | 144.9 | timed | 4013.2 | timed passes of 2026-11-13 (CSX 2121, Switch 5 to Switch 15, steps 24 and 48): Switch 7 centre at 4249 mm from Switch 5, less half of OS Switch 5 and OS Switch 7 |
+| Track Barn | Block 13-1 | 31.3 | 34.1 | timed | 795.0 | timed passes of 2026-11-13: Switch 7 at 4249 mm and Switch 13 at 5457 mm, less half of OS Switch 7 and OS Switch 13 |
 | Track EH-1 | Block 13-7 | 51.3 |  | plan | 1303.0 |  |
 | Track EH-2 | Block 13-6 | 30.3 |  | plan | 769.6 |  |
 | Track EH-3 | Block 13-5 | 30.1 |  | plan | 764.5 |  |
 | Track Helix Outer | BS Helix Outer | 947.2 |  | plan | 24058.9 | AnyRail 5.3c: the whole helix run, Switch 39 to Switch 131A; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 689.0 in up to the -5 cm cut; one block, detector Block 41-2 |
 | Track Helix Inner | BS Helix Inner | 916.5 |  | plan | 23279.1 | AnyRail 5.3c: the whole helix run, Switch 37 to Switch 131B; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 644.6 in up to the -5 cm cut; one block, detector Block 41-1 |
+| Track 101 Spur 1 | BS 101 Spur 1 | 23.5 |  | plan | 596.9 | main level, the plan's length |
+| Track 101 Spur 2 | BS 101 Spur 2 | 36.7 |  | plan | 932.2 | main level, the plan's length |
+| Track 101-103 | BS Switch 101 | 0 |  | plan | 0.0 | main level, the plan's length |
+| Track 101-111 | BS 101-111 | 152.3 |  | plan | 3868.4 | main level, the plan's length |
+| Track 103 Spur | BS 103 Spur | 41.4 |  | plan | 1051.6 | main level, the plan's length |
+| Track 103-105 1 | BS 103-105 1 | 121 |  | plan | 3073.4 | main level, the plan's length |
+| Track 103-105 2 | BS 103-105 2 | 134.8 |  | plan | 3423.9 | main level, the plan's length |
+| Track 105-109 | BS Switch 105 | 4.3 |  | plan | 109.2 | main level, the plan's length |
+| Track 107 Loop 1 | BS 107 Loop 1 | 154.5 |  | plan | 3924.3 | main level, the plan's length |
+| Track 107 Loop 2 | BS 107 Loop 2 | 154.5 |  | plan | 3924.3 | main level, the plan's length |
+| Track 107-109 | BS 107-109 | 35 |  | plan | 889.0 | main level, the plan's length |
+| Track 109-111 | BS Switch 109 | 5.4 |  | plan | 137.2 | main level, the plan's length |
+| Track 111-117 | BS Switch 111 | 0 |  | plan | 0.0 | main level, the plan's length |
+| Track 113 Spur 1 | BS 113 Spur 1 | 19.6 |  | plan | 497.8 | main level, the plan's length |
+| Track 113 Spur 2 | BS 113 Spur 2 | 40.4 |  | plan | 1026.2 | main level, the plan's length |
+| Track 113-115 | BS Switch 113 | 13.2 |  | plan | 335.3 | main level, the plan's length |
+| Track 115 Spur | BS 115 Spur | 28.1 |  | plan | 713.7 | main level, the plan's length |
+| Track 115-117 | BS Switch 115 | 5.1 |  | plan | 129.5 | main level, the plan's length |
+| Track 117-119 | BS Switch 117 | 0 |  | plan | 0.0 | main level, the plan's length |
+| Track 119 Spur | BS 119 Spur | 33 |  | plan | 838.2 | main level, the plan's length |
+| Track 119-121 | BS 119-121 | 62.3 |  | plan | 1582.4 | main level, the plan's length |
+| Track 119-123 | BS 119-123 | 90.9 |  | plan | 2308.9 | main level, the plan's length |
+| Track 121 Spur | BS 121 Spur | 49.8 |  | plan | 1264.9 | main level, the plan's length |
+| Track 121-123 | BS Switch 121 | 5.7 |  | plan | 144.8 | main level, the plan's length |
+| Track 121-125 | BS 121-125 | 30.3 |  | plan | 769.6 | main level, the plan's length |
+| Track 123-125 | BS Switch 123 | 0 |  | plan | 0.0 | main level, the plan's length |
+| Track 125-127 | BS 125-127 | 29.8 |  | plan | 756.9 | main level, the plan's length |
+| Track 125-129 | BS Switch 129 | 0 |  | plan | 0.0 | main level, the plan's length |
+| Track 127-131 1 | BS 127-131 1 | 24.4 |  | plan | 619.8 | main level, the plan's length |
+| Track 127-131 2 | BS Switch 127 | 0 |  | plan | 0.0 | main level, the plan's length |
+| Track 129 Spur 1 | BS 129 Spur 1 | 25.2 |  | plan | 640.1 | main level, the plan's length |
+| Track 129 Spur 2 | BS 129 Spur 2 | 25.6 |  | plan | 650.2 | main level, the plan's length |
+| Track 127-221 | BS 127-221 | 205.4 |  | plan | 5217.2 | upper level, the plan's length |
+| Track 201-203 | BS Switch 201 | 0 |  | plan | 0.0 | upper level, the plan's length |
+| Track 201-205 | BS Switch 205 | 4.5 |  | plan | 114.3 | upper level, the plan's length |
+| Track 201-219 | BS Switch 201 | 4.5 |  | plan | 114.3 | upper level, the plan's length |
+| Track 203-207 | BS 203-207 | 53 |  | plan | 1346.2 | upper level, the plan's length |
+| Track 203-211 | BS 203-211 | 108.1 |  | plan | 2745.7 | upper level, the plan's length |
+| Track 205 Spur | BS 205 Spur | 32.9 |  | plan | 835.7 | upper level, the plan's length |
+| Track 205-209 | BS Switch 205 | 0 |  | plan | 0.0 | upper level, the plan's length |
+| Track 207-211 | BS 207-211 | 29.9 |  | plan | 759.5 | upper level, the plan's length |
+| Track 207-213 | BS 207-213 | 24.3 |  | plan | 617.2 | upper level, the plan's length |
+| Track 209 Spur 1 | BS 209 Spur 1 | 65.6 |  | plan | 1666.2 | upper level, the plan's length |
+| Track 209 Spur 2 | BS 209 Spur 2 | 69.1 |  | plan | 1755.1 | upper level, the plan's length |
+| Track 211-217 1 | BS 211-217 1 | 113.9 |  | plan | 2893.1 | upper level, the plan's length |
+| Track 211-217 2 | BS 211-217 2 | 97.4 |  | plan | 2474.0 | upper level, the plan's length |
+| Track 213 Spur | BS 213 Spur | 52 |  | plan | 1320.8 | upper level, the plan's length |
+| Track 213-215 | BS Switch 213 | 0 |  | plan | 0.0 | upper level, the plan's length |
+| Track 215 Spur 1 | BS 215 Spur 1 | 35.8 |  | plan | 909.3 | upper level, the plan's length |
+| Track 215 Spur 2 | BS 215 Spur 2 | 33.2 |  | plan | 843.3 | upper level, the plan's length |
+| Track 217-219 | BS 217-219 | 59.9 |  | plan | 1521.5 | upper level, the plan's length |
+| Track 217-221 | BS 217-221 | 89.1 |  | plan | 2263.1 | upper level, the plan's length |
+| Track 219-221 | BS Switch 219 | 0 |  | plan | 0.0 | upper level, the plan's length |
+| Track 221-223 | BS 221-223 | 252 |  | plan | 6400.8 | upper level, the plan's length |
+| Track 223-225 1 | BS 223-225 1 | 121 |  | plan | 3073.4 | upper level, the plan's length |
+| Track 223-225 2 | BS 223-225 2 | 112 |  | plan | 2844.8 | upper level, the plan's length |
+| Track 225-227 | BS Switch 225c | 0 |  | plan | 0.0 | upper level, the plan's length |
+| Track 225-229 | BS Switch 225b | 0 |  | plan | 0.0 | upper level, the plan's length |
+| Track 227-231 | BS Switch 231 | 3.7 |  | plan | 94.0 | upper level, the plan's length |
+| Track 227-241 1 | BS 227-241 1 | 105.4 |  | plan | 2677.2 | upper level, the plan's length |
+| Track 227-241 2 | BS 227-241 2 | 105.4 |  | plan | 2677.2 | upper level, the plan's length |
+| Track 229-233 | BS Switch 233 | 14.6 |  | plan | 370.8 | upper level, the plan's length |
+| Track 229-241 | BS 229-241 | 25.9 |  | plan | 657.9 | upper level, the plan's length |
+| Track 231 Spur | BS 231 Spur | 59.8 |  | plan | 1518.9 | upper level, the plan's length |
+| Track 231-237 | BS Switch 231 | 11.4 |  | plan | 289.6 | upper level, the plan's length |
+| Track 233-235 | BS 233-235 | 25.7 |  | plan | 652.8 | upper level, the plan's length |
+| Track 233-243 | BS 233-243 | 42.2 |  | plan | 1071.9 | upper level, the plan's length |
+| Track 235 Spur | BS 235 Spur | 32.5 |  | plan | 825.5 | upper level, the plan's length |
+| Track 235-243 | BS Switch 235 | 0 |  | plan | 0.0 | upper level, the plan's length |
+| Track 237-239 | BS Switch 237 | 1.8 |  | plan | 45.7 | upper level, the plan's length |
+| Track 237-245 | BS 237-245 | 32 |  | plan | 812.8 | upper level, the plan's length |
+| Track 239 Spur | BS 239 Spur | 41.8 |  | plan | 1061.7 | upper level, the plan's length |
+| Track 239-245 | BS Switch 239 | 13.9 |  | plan | 353.1 | upper level, the plan's length |
+| Track 241 Spur | BS 241 Spur | 35.9 |  | plan | 911.9 | upper level, the plan's length |
+| Track 243 Spur 1 | BS 243 Spur 1 | 11.9 |  | plan | 302.3 | upper level, the plan's length |
+| Track 243 Spur 2 | BS 243 Spur 2 | 20.1 |  | plan | 510.5 | upper level, the plan's length |
+| Track 245 Spur 1 | BS 245 Spur 1 | 11 |  | plan | 279.4 | upper level, the plan's length |
+| Track 245 Spur 2 | BS 245 Spur 2 | 19.3 |  | plan | 490.2 | upper level, the plan's length |
 
 ## Switch (OS) blocks
 
-| Block | Occupancy sensor | Plan in | Measured in | JMRI length from | JMRI mm | Note |
+| Block | Occupancy sensor | Plan in | Measured in | Source | JMRI mm | Note |
 |---|---|---|---|---|---|---|
-| OS Switch 1 | Block 4-2 | 9.2 | 22.6 | timed | 574.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
+| OS Switch 1 | Block 4-2 | 9.2 | 22.6 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
 | OS Switch 3 | Block 4-1 | 9.2 |  | plan | 233.7 |  |
-| OS Switch 5 | Block 4-5 | 11.1 | 24.6 | timed | 624.8 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
-| OS Switch 15 | Block 3-2 | 9.2 | 17.8 | timed | 452.1 | timed passes of 2026-11-13: half of it and half of OS Switch 13 span the 452 mm from Switch 13 to Switch 15; split evenly |
+| OS Switch 5 | Block 4-5 | 11.1 | 24.6 | timed | 281.9 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
+| OS Switch 15 | Block 3-2 | 9.2 | 17.8 | timed | 233.7 | timed passes of 2026-11-13: half of it and half of OS Switch 13 span the 452 mm from Switch 13 to Switch 15; split evenly |
 | OS Switch 17 | Block 3-3 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 19 | Block 3-5 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 21 | Block 3-7 | 9.2 |  | plan | 233.7 |  |
@@ -59,15 +137,57 @@ JMRI's length is the measured one where there is one, else the plan length.
 | OS Switch 27 | Block 12-3 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 29 | Block 12-5 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 31 | Block 12-7 | 9.2 |  | plan | 233.7 |  |
-| OS Switch 23a | Block 12-4 | 9.2 | 23.5 | timed | 596.9 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.9 in over 33 laps |
+| OS Switch 23a | Block 12-4 | 9.2 | 23.5 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.9 in over 33 laps |
 | OS Switch 23b | Block 12-6 | 9.2 |  | plan | 233.7 |  |
-| OS Switch 33 | Block 12-8 | 9.2 | 12.4 | timed | 315.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
-| OS Switch 35a | Block 1-6 | 9.2 | 15 | timed | 381.0 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
-| OS Switch 35b | Block 1-5 | 9.2 | 20.5 | timed | 520.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
-| OS Switch 37 | Block 1-3 | 9.2 | 16.5 | timed | 419.1 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.4 in over 33 laps |
-| OS Switch 39 | Block 1-4 | 9.2 | 9.6 | timed | 243.8 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
-| OS Switch 13 | Block 3-1 | 11.1 | 17.8 | timed | 452.1 | timed passes of 2026-11-13: half of it and half of OS Switch 15 span the 452 mm from Switch 13 (5457 mm) to Switch 15 (5909 mm); split evenly |
+| OS Switch 33 | Block 12-8 | 9.2 | 12.4 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
+| OS Switch 35a | Block 1-6 | 9.2 | 15 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.8 in over 33 laps |
+| OS Switch 35b | Block 1-5 | 9.2 | 20.5 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-1.1 in over 33 laps |
+| OS Switch 37 | Block 1-3 | 9.2 | 16.5 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.4 in over 33 laps |
+| OS Switch 39 | Block 1-4 | 9.2 | 9.6 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.6 in over 33 laps |
+| OS Switch 13 | Block 3-1 | 11.1 | 17.8 | timed | 281.9 | timed passes of 2026-11-13: half of it and half of OS Switch 15 span the 452 mm from Switch 13 (5457 mm) to Switch 15 (5909 mm); split evenly |
 | OS Switch 7 | Block 13-3 | 9.2 |  | plan | 233.7 |  |
 | OS Switch 7b | Block 13-4 | 9.2 | 9.2 | timed | 233.7 | timed share of the AnyRail 5.3b loop, pinned to the plan turnouts either side; +-0.5 in over 33 laps |
 | OS Switch 11 | Block 13-2 | 11.1 |  | plan | 281.9 |  |
 | OS Switch 9 | Block 13-8 | 9.2 |  | plan | 233.7 |  |
+| OS Switch 101 | BS Switch 101 | 16 |  | plan | 406.4 | main level, the plan's length |
+| OS Switch 103 | BS Switch 103 | 16 |  | plan | 406.4 | main level, the plan's length |
+| OS Switch 105 | BS Switch 105 | 8.3 |  | plan | 210.8 | main level, the plan's length |
+| OS Switch 107 | BS Switch 107 | 9.2 |  | plan | 233.7 | main level, the plan's length |
+| OS Switch 109 | BS Switch 109 | 8.3 |  | plan | 210.8 | main level, the plan's length |
+| OS Switch 111 | BS Switch 111 | 8.3 |  | plan | 210.8 | main level, the plan's length |
+| OS Switch 113 | BS Switch 113 | 8.3 |  | plan | 210.8 | main level, the plan's length |
+| OS Switch 115 | BS Switch 115 | 8.3 |  | plan | 210.8 | main level, the plan's length |
+| OS Switch 117 | BS Switch 117 | 9.2 |  | plan | 233.7 | main level, the plan's length |
+| OS Switch 119 | BS Switch 119 | 16.6 |  | plan | 421.6 | main level, the plan's length |
+| OS Switch 121 | BS Switch 121 | 16.6 |  | plan | 421.6 | main level, the plan's length |
+| OS Switch 123 | BS Switch 123 | 8.3 |  | plan | 210.8 | main level, the plan's length |
+| OS Switch 125 | BS Switch 125 | 16.6 |  | plan | 421.6 | main level, the plan's length |
+| OS Switch 127 | BS Switch 127 | 18.4 |  | plan | 467.4 | main level, the plan's length |
+| OS Switch 129 | BS Switch 129 | 8.3 |  | plan | 210.8 | main level, the plan's length |
+| OS Switch 131 | BS Switch 131 | 18.4 |  | plan | 467.4 | main level, the plan's length |
+| OS Switch 201 | BS Switch 201 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 203 | BS Switch 203 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 205 | BS Switch 205 | 8.3 |  | plan | 210.8 | upper level, the plan's length |
+| OS Switch 207 | BS Switch 207 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 209 | BS Switch 209 | 8.3 |  | plan | 210.8 | upper level, the plan's length |
+| OS Switch 211 | BS Switch 211 | 18.4 |  | plan | 467.4 | upper level, the plan's length |
+| OS Switch 213 | BS Switch 213 | 11.1 |  | plan | 281.9 | upper level, the plan's length |
+| OS Switch 215 | BS Switch 215 | 11.1 |  | plan | 281.9 | upper level, the plan's length |
+| OS Switch 217 | BS Switch 217 | 18.4 |  | plan | 467.4 | upper level, the plan's length |
+| OS Switch 219 | BS Switch 219 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 221 | BS Switch 221 | 18.4 |  | plan | 467.4 | upper level, the plan's length |
+| OS Switch 223 | BS Switch 223 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 225a | BS Switch 225a | 4.7 |  | plan | 119.4 | upper level, the plan's length |
+| OS Switch 225b | BS Switch 225b | 4.7 |  | plan | 119.4 | upper level, the plan's length |
+| OS Switch 225c | BS Switch 225c | 4.7 |  | plan | 119.4 | upper level, the plan's length |
+| OS Switch 225d | BS Switch 225d | 4.7 |  | plan | 119.4 | upper level, the plan's length |
+| OS Switch 227 | BS Switch 227 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 229 | BS Switch 229 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 231 | BS Switch 231 | 8.3 |  | plan | 210.8 | upper level, the plan's length |
+| OS Switch 233 | BS Switch 233 | 8.3 |  | plan | 210.8 | upper level, the plan's length |
+| OS Switch 235 | BS Switch 235 | 8.3 |  | plan | 210.8 | upper level, the plan's length |
+| OS Switch 237 | BS Switch 237 | 8.3 |  | plan | 210.8 | upper level, the plan's length |
+| OS Switch 239 | BS Switch 239 | 8.3 |  | plan | 210.8 | upper level, the plan's length |
+| OS Switch 241 | BS Switch 241 | 9.2 |  | plan | 233.7 | upper level, the plan's length |
+| OS Switch 243 | BS Switch 243 | 16.6 |  | plan | 421.6 | upper level, the plan's length |
+| OS Switch 245 | BS Switch 245 | 16.6 |  | plan | 421.6 | upper level, the plan's length |

@@ -217,6 +217,12 @@ Part 2 progress (branch `agent/claude/step5-part2`):
   blocks in block_lengths.csv (`plan_lengths.main_upper_lengths`, a #5 turnout class added); intermediates checked:
   none moves (A83/A84 MP 8.395 to 8.397, B92/B93 9.269 to 9.274 with plan lengths; the mast places keep the
   drawing's lengths). Next: `make panels`, sandbox discovery, before/after.
+- 2026-11-20 (owner): main and upper's links stay JMRI blocks with their OS block's occupancy sensor
+  (`le_tables.level_sensors`, `tables_build`, `hartlib.devices` part invariants). Candidate built with `--review`,
+  stock discovery in a sandbox: all 177 SML pairs as before, no block added or removed, only Mast 8RA moves (a
+  turnout mast at Switch 7); 140 block lengths change (plan lengths). Staging's 14 folded pieces are not yet JMRI
+  blocks (the owner decides). Waiting on: the owner's approval of the staging, candidate, panel and desk
+  fingerprints, then `make panelpro-test` and `--pi --win`.
 
 ### 6. One wiring file per kind (with the device master's owners)
 
