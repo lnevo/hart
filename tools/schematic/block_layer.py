@@ -52,7 +52,7 @@ from hartlib import railroad
 
 LINK_CM = 50.0
 FOLD_LINKS = {1: True, 2: False, 3: False}       # step 5 part 1: main and upper keep their links (part 2: all True)
-EXCEPTIONS = pd.DATA / "block_exceptions.csv"
+EXCEPTIONS_NAME = "block_exceptions.csv"       # in pd.DATA, looked up when read (a test may point pd.DATA elsewhere)
 EXCEPTION_COLUMNS = ["level", "kind", "switch_a", "switch_b", "parallel", "end", "block", "notes"]
 KINDS = ("track", "crossover_half")
 natural, base = railroad.natural, railroad.switch_number
@@ -142,10 +142,15 @@ def crossover_pairs(band) -> dict:
     return out
 
 
+def exceptions_path() -> Path:
+    """block_exceptions.csv in the schematic data folder as it is now (publish_draft.DATA)."""
+    return pd.DATA / EXCEPTIONS_NAME
+
+
 def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = None) -> Exceptions:
     """block_exceptions.csv for the `levels` ({band title: level}) drawn, resolved in `found` (named tracks). A row of
     a level not drawn is checked for shape only. See the module text for the rows and the stops."""
-    path = path or EXCEPTIONS
+    path = path or exceptions_path()
     where = path.name
     try:
         with open(path, newline="", encoding="utf-8") as fh:
@@ -291,7 +296,7 @@ def is_link(t: dict) -> bool:
 
 
 def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions: Exceptions,
-          exceptions_file: str = EXCEPTIONS.name) -> Layer:
+          exceptions_file: str = EXCEPTIONS_NAME) -> Layer:
     """The block layer of every band whose level `levels` ({band title: level}) holds, from `found` (name_tracks),
     `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits) and `exceptions`
     (read_exceptions). BlockError on a track the layer cannot place or a layer that breaks its invariants (check)."""

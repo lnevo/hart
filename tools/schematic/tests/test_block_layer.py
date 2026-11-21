@@ -51,7 +51,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         cls.levels = bdm.band_levels(over)
         cls.found = bdm.named_tracks(cls.bands, cls.joined, cls.runs, over)
         cls.split = BL.split_edges(cls.found, cls.levels, bdm.SPLIT)
-        cls.committed = BL.EXCEPTIONS.read_text(encoding="utf-8")
+        cls.committed = BL.exceptions_path().read_text(encoding="utf-8")
 
     def layer(self, text: str | None = None) -> BL.Layer:
         """The staging layer with block_exceptions.csv's text `text` (default: the committed file)."""
