@@ -136,6 +136,19 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(out["down"], ["b", "host", "x"])  # c feeds b but is not on x's chain; d is past the host
         self.assertEqual(out["lit"], ["ax", "xb", "bhost"])  # a -> b bypasses x, so it stays dim and is left out
 
+    def test_overview_hides_only_when_everything_is_in_view(self) -> None:
+        """showsAll: the corner overview hides at Fit, and shows once part of the drawing is off screen or under the
+        toolbar (the top tenth of the screen here)."""
+        cases = {"fit": ({"x": -200, "y": -150, "width": 1400, "height": 1300}, True),
+                 "zoomed": ({"x": 0, "y": 0, "width": 500, "height": 400}, False),
+                 "under toolbar": ({"x": -200, "y": -50, "width": 1400, "height": 1100}, False)}
+        script = ("const m = require(process.argv[1]); const c = JSON.parse(process.argv[2]); const o = {};"
+                  "for (const k in c) o[k] = m.showsAll(c[k][0], 1100, 1000, 100, 0.1);"
+                  "process.stdout.write(JSON.stringify(o));")
+        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(cases)], capture_output=True,
+                                        text=True, check=True).stdout)
+        self.assertEqual(out, {k: want for k, (_, want) in cases.items()})
+
     def test_empty_subset(self) -> None:
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])
 

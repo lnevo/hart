@@ -248,8 +248,15 @@ function chainOf(edges, id, stops) {
   return { up, down, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
 }
 
+/* Whether the view v (a viewBox) shows the whole drawing (x from -left, width W, height H), given that the top
+   topFrac of the screen is under the toolbar; the corner overview hides while it does. */
+function showsAll(v, W, H, left, topFrac) {
+  const top = v.y + topFrac * v.height;
+  return v.x <= -left + 1 && top <= 1 && v.x + v.width >= W - left - 1 && v.y + v.height >= H - 1;
+}
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, chainOf };
+  module.exports = { layout, wrap, nodeHeight, inversions, chainOf, showsAll };
 } else {
   app();
 }
@@ -428,9 +435,11 @@ function app() {
   }
   function updateNav() {
     if (!navRect) return;
-    // hidden while the whole drawing is in view, as at Fit
-    nav.hidden = vb.x <= -LEFT + 1 && vb.y <= 1 && vb.x + vb.width >= W - LEFT - 1 && vb.y + vb.height >= H - 1;
-    nav.style.right = info.style.display === "block" && innerWidth > 900 ? "380px" : "";
+    const r = wrapEl.getBoundingClientRect(), open = info.style.display === "block", narrow = innerWidth <= 900;
+    const topFrac = Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
+    // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
+    nav.hidden = showsAll(vb, W, H, LEFT, topFrac) || (open && narrow);
+    nav.style.right = open && !narrow ? `${innerWidth - info.getBoundingClientRect().left + 10}px` : "";
     navRect.setAttribute("x", vb.x); navRect.setAttribute("y", vb.y);
     navRect.setAttribute("width", vb.width); navRect.setAttribute("height", vb.height);
   }

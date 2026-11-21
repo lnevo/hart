@@ -30,7 +30,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #legend div{margin:2px 0}
 #nav{position:fixed;right:10px;bottom:10px;z-index:6;padding:4px;cursor:crosshair;touch-action:none;user-select:none}
 #nav[hidden]{display:none}
-#nav svg{display:block}
+#nav svg{display:block;width:auto;height:auto}
 #nav .vr{fill:rgba(220,38,38,.08);stroke:#dc2626;stroke-width:2;vector-effect:non-scaling-stroke}
 #nav.focus rect.n{opacity:.2}
 #nav.focus rect.n.on{opacity:1}
@@ -65,7 +65,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 .hidden{display:none}
 @media (max-width:900px){#bar{right:10px;max-width:none} #bar input[type=search],#bar #file{width:120px}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
- #nav svg{max-width:150px;height:auto}}
+ #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
 </style></head><body>
 <div id="wrap"></div>
 <div id="bar" class="panel"><a id="back" href="repository-guide.html">← Inside the repository</a><h1>HART pipeline map</h1>
@@ -352,8 +352,15 @@ function chainOf(edges, id, stops) {
   return { up, down, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
 }
 
+/* Whether the view v (a viewBox) shows the whole drawing (x from -left, width W, height H), given that the top
+   topFrac of the screen is under the toolbar; the corner overview hides while it does. */
+function showsAll(v, W, H, left, topFrac) {
+  const top = v.y + topFrac * v.height;
+  return v.x <= -left + 1 && top <= 1 && v.x + v.width >= W - left - 1 && v.y + v.height >= H - 1;
+}
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, chainOf };
+  module.exports = { layout, wrap, nodeHeight, inversions, chainOf, showsAll };
 } else {
   app();
 }
@@ -532,9 +539,11 @@ function app() {
   }
   function updateNav() {
     if (!navRect) return;
-    // hidden while the whole drawing is in view, as at Fit
-    nav.hidden = vb.x <= -LEFT + 1 && vb.y <= 1 && vb.x + vb.width >= W - LEFT - 1 && vb.y + vb.height >= H - 1;
-    nav.style.right = info.style.display === "block" && innerWidth > 900 ? "380px" : "";
+    const r = wrapEl.getBoundingClientRect(), open = info.style.display === "block", narrow = innerWidth <= 900;
+    const topFrac = Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
+    // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
+    nav.hidden = showsAll(vb, W, H, LEFT, topFrac) || (open && narrow);
+    nav.style.right = open && !narrow ? `${innerWidth - info.getBoundingClientRect().left + 10}px` : "";
     navRect.setAttribute("x", vb.x); navRect.setAttribute("y", vb.y);
     navRect.setAttribute("width", vb.width); navRect.setAttribute("height", vb.height);
   }

@@ -167,7 +167,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #legend div{margin:2px 0}
 #nav{position:fixed;right:10px;bottom:10px;z-index:6;padding:4px;cursor:crosshair;touch-action:none;user-select:none}
 #nav[hidden]{display:none}
-#nav svg{display:block}
+#nav svg{display:block;width:auto;height:auto}
 #nav .vr{fill:rgba(220,38,38,.08);stroke:#dc2626;stroke-width:2;vector-effect:non-scaling-stroke}
 #nav.focus rect.n{opacity:.2}
 #nav.focus rect.n.on{opacity:1}
@@ -202,7 +202,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 .hidden{display:none}
 @media (max-width:900px){#bar{right:10px;max-width:none} #bar input[type=search],#bar #file{width:120px}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
- #nav svg{max-width:150px;height:auto}}
+ #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
 </style></head><body>
 <div id="wrap"></div>
 <div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
