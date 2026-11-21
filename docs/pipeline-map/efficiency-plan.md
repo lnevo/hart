@@ -1,5 +1,7 @@
 # Pipeline efficiency plan (2026-11-21)
 
+Plan to cut panel rebuilds and full workflow runs, based on logged step timings, reviewed by the owner on 2026-11-21.
+
 This plan works through what the pipeline map shows. The goal is fewer panel rebuilds and fewer full workflow runs. The owner reviewed every topic on 2026-11-21. The plan runs alongside the ADR-030 work and waits for it where the two touch the same files.
 
 ## What the timings show

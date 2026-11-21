@@ -1,5 +1,7 @@
 # HART Railroad — Neville Island Helix: Build Status
 
+The single living status file for the helix build: as-built facts, decisions that override the handoff and the PDF plan, every fixture and script, and open items.
+
 **Last updated 2026-10-15.** This is the single living status document. **Update it in place; don't start new addenda.** It replaces the six dated addenda (2026-09-30 through 2026-10-13), which are archived unchanged in `archive/docs/benchwork/helix/history/` if the history is ever needed.
 
 Other `superseded/` mentions below mean `archive/docs/benchwork/helix/history/superseded/`; the obsolete STLs are in `archive/docs/benchwork/helix/history/superseded/obsolete_stl/`.
