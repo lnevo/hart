@@ -8,6 +8,7 @@ is reached. HEAD is usually this branch's unmerged commit, hence --allow-unmerge
 from __future__ import annotations
 
 import filecmp
+import os
 import shutil
 import subprocess
 import sys
@@ -77,12 +78,16 @@ class RedeployHead(unittest.TestCase):
         cls.done = run(redeploy_env, "HEAD", "--allow-unmerged", "--stage-only", str(cls.tmp / "redeploy"))
         # The normal stage of HEAD: this checkout if it is clean, else a clean copy of HEAD.
         src = ROOT
+        normal_env = env
         if git("status", "--porcelain").stdout.strip():
             src = cls.tmp / "head"
             git("worktree", "add", "-q", "--detach", str(src), "HEAD")
+            # The copy has no submodule checked out: hand it this checkout's plugin, as redeploy_commit.sh does.
+            plugin = ROOT / "external/model-railroad-skills/plugins/schematic-maps"
+            normal_env = dict(env, SCHEMATIC_PLUGIN=os.environ.get("SCHEMATIC_PLUGIN", str(plugin)))
         try:
             cls.normal = subprocess.run(["bash", str(src / SYNC_REL), "--stage-only", str(cls.tmp / "normal")],
-                                        cwd=src, env=env, capture_output=True, text=True, timeout=600)
+                                        cwd=src, env=normal_env, capture_output=True, text=True, timeout=600)
         finally:
             if src != ROOT:
                 git("worktree", "remove", "--force", str(src), check=False)
