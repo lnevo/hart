@@ -608,6 +608,23 @@ class LevelMasts(unittest.TestCase):
             with self.assertRaisesRegex(SystemExit, "gives one-low masts two templates"):
                 B.template_by_type(f)
 
+    def test_a_level_mast_with_its_own_plan_row_takes_that_template(self):
+        """One rule for every level (cats_panel.mast_template): a main or upper mast's own signal_head_plan.csv row
+        wins over the template of its appearance type; with neither, the build stops naming the mast and its band."""
+        bands, f = level_bands(), level_facts()
+        B.level_signals(bands, f, 0)
+        f.templates = dict(f.templates, **{"Mast 108R": "triple"})
+        got = B.level_mast_bindings(bands, f, 0)
+        self.assertEqual(got["108R"], {"name": "Mast 108R", "template": "triple"})
+        self.assertEqual(got["108LA"]["template"], "single")                # no row of its own: by its type
+        # a type no template covers, and no row of its own
+        odd = "IF$shsm:basic:three-odd(IH:HART:C3:108R_Top)"
+        f.templates, f.mast_system["Mast 108R"] = {}, odd
+        next(r for r in f.level_masts if r["mast"] == "Mast 108R")["system_name"] = odd
+        with self.assertRaisesRegex(SystemExit, "Mast 108R on Main level: no row of its own and no template for "
+                                                "its type three-odd in signal_head_plan.csv"):
+            B.level_mast_bindings(bands, f, 0)
+
     def test_a_row_not_drawn_stops(self):
         bands, f = level_bands(), level_facts()
         B.level_signals(bands, f, 0)

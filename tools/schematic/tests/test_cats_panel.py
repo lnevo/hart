@@ -4,11 +4,14 @@ staging switches, OS blocks, destinations, half labels, blocks and masts, and th
 helix blocks and masts. These pin the builders' behaviour so they can be merged into one without a desk changing.
 They go through build_cats_panel (the names it exports), so they hold for any module layout behind it.
 
-Skipped when the schematic plugin is not checked out at its pinned commit (as the other desk tests are).
+The expected values come from the committed bindings and the source files, not from today's counts, so a correct
+rebuild after a layout edit still passes. Skipped when the schematic plugin is not checked out; a plugin at another
+commit than the pinned one fails.
 """
 import contextlib
 import io
 import json
+import os
 import sys
 import unittest
 from pathlib import Path
@@ -17,16 +20,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_cats_panel as B  # noqa: E402
 
 BUILT = {}
+PLUGIN = B.pd.REPO / "external/model-railroad-skills/plugins/schematic-maps"     # where publish_draft.plugin looks
 
 
 def built():
     """The committed railroad's bands, facts and bindings, built once for every test here, as generate() builds them."""
     if BUILT:
         return BUILT
+    if not os.environ.get("SCHEMATIC_PLUGIN") and not (PLUGIN / "bin/schematic").exists():
+        raise unittest.SkipTest(f"no schematic plugin at {PLUGIN.relative_to(B.pd.REPO)}")
     try:
-        cats, sheet = B.plugin_modules(B.pd.plugin())
-    except SystemExit as e:
-        raise unittest.SkipTest(f"no plugin: {e.code}") from None
+        plugin = B.pd.plugin()
+    except SystemExit as e:             # there, but not at its pinned commit: a failure, with the plugin's message
+        raise AssertionError(f"schematic plugin: {e.code}") from None
+    cats, sheet = B.plugin_modules(plugin)
     F = B.load_facts()
     s = B.pd.solved_sheet(sheet)
     bands = B.name_loop_halves(s.bands, F.device)
@@ -51,10 +58,18 @@ class Whole(unittest.TestCase):
         self.assertEqual(json.dumps(k["got"], indent=1, sort_keys=True) + "\n",
                          B.BINDINGS.read_text(encoding="utf-8"))
 
-    def test_the_counts(self):
-        c = built()["committed"]
-        self.assertEqual((len(c["switches"]), len(c["blocks"]), len(c["masts"])), (74, 163, 69))
-        self.assertEqual(sum(staging_turnout(e) for e in c["switches"].values()), 23)
+    def test_the_counts_follow_the_sources(self):
+        """One staging switch binding per switch_legs.csv row, the main and upper ones the internal turnouts of
+        tables.xml, one mast per drawn staging mast and visible main_upper_masts.csv row."""
+        k = built()
+        c, F = k["committed"], k["F"]
+        self.assertEqual(sum(staging_turnout(e) for e in c["switches"].values()),
+                         sum(len(sw.legs) for sw in F.switches.values()))
+        level = {B.bdm.base(key) for key, e in c["switches"].items() if not staging_turnout(e)}
+        self.assertEqual(level, {u.removeprefix("Switch ") for u, sn in F.turnouts.items()
+                                 if sn.startswith(B.LEVEL_TURNOUT)})
+        staging_masts = [sg for sg in k["bands"][k["bi"]][2].get("signals") or () if sg["kind"] != "virtual"]
+        self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names()))
 
 
 class StagingSwitches(unittest.TestCase):
@@ -67,10 +82,9 @@ class StagingSwitches(unittest.TestCase):
     def test_os_blocks_one_per_switch_node(self):
         nodes = {n for n, d in self.band["nodes"].items() if d["kind"] == "switch"}
         self.assertEqual(set(self.os_of), nodes)
-        self.assertEqual(len(nodes), 23)
-        self.assertEqual(len(set(self.os_of.values())), 23)          # never two nodes on one OS block
+        self.assertEqual(len(set(self.os_of.values())), len(nodes))  # never two nodes on one OS block
         legs = {leg.os_block for sw in self.F.switches.values() for leg in sw.legs}
-        self.assertLessEqual(set(self.os_of.values()), legs)
+        self.assertEqual(set(self.os_of.values()), legs)              # every switch_legs.csv row drawn once
 
     def test_switch_bindings_are_the_committed_staging_ones(self):
         got = B.switch_bindings(self.band, self.F, self.os_of)
@@ -78,15 +92,21 @@ class StagingSwitches(unittest.TestCase):
         self.assertEqual(got, want)
 
     def test_half_labels(self):
+        """A switch with several switch_legs.csv rows is drawn as halves, labelled its number and A, B, ... one per
+        row; a switch with one row has no label."""
         got = B.switch_bindings(self.band, self.F, self.os_of)
-        self.assertEqual({k: e["label"] for k, e in got.items() if "label" in e},
-                         {"7/T139": "7A", "7/T33": "7B", "23/T57": "23A", "23/T126": "23B",
-                          "35/T95": "35A", "35/T54": "35B"})
-        for k, e in got.items():
+        by_number = {}
+        for key, e in got.items():
+            number = int(key.split("/")[0])
+            sw = self.F.switches[number]
+            self.assertEqual("label" in e, len(sw.legs) > 1, key)
             if "label" in e:
-                sw = self.F.switches[int(k.split("/")[0])]
+                by_number.setdefault(number, set()).add(e["label"])
                 leg = next(l for l in sw.legs if l.os_block == e["block"])
                 self.assertEqual(B.half_label(sw, leg), e["label"])
+        self.assertTrue(by_number)
+        for number, labels in by_number.items():
+            self.assertEqual(labels, {f"{number}{c}" for c in "ABCD"[:len(self.F.switches[number].legs)]})
 
     def test_destinations_are_the_closed_and_thrown_legs(self):
         """Each staging switch's legs B and C lead to its switch_legs.csv closed and thrown blocks, the closed one
@@ -106,28 +126,32 @@ class StagingSwitches(unittest.TestCase):
                 self.assertEqual(to[closed], leg.closed)
             dests |= set(to.values())
         # the helix tracks lead up the helix as one block each (owner, 2026-11-20)
-        self.assertLessEqual({"Track Helix Outer", "Track Helix Inner"}, dests)
-        self.assertFalse({"Track McKees Rocks", "Track McKeesport"} & dests)
+        self.assertLessEqual(set(self.F.helix.values()), dests)
+        self.assertFalse({"Track " + plan for plan in self.F.helix} & dests)
 
 
 class Helix(unittest.TestCase):
     def test_the_helix_blocks(self):
+        """Each helix track of helix_tracks.csv is its block on staging: by track_block, and by helix_block on the
+        staging band's strands of that plan name; any other track is Track <name>."""
         k = built()
-        self.assertEqual(k["F"].helix, {"McKees Rocks": "Track Helix Outer", "McKeesport": "Track Helix Inner"})
-        self.assertEqual(B.track_block("McKeesport", k["F"].helix), "Track Helix Inner")
+        helix = B.bdm.mast_rule.read_helix_tracks()          # helix_tracks.csv rows, as dark_bindings reads them
+        self.assertTrue(helix)
+        self.assertEqual(k["F"].helix, {plan: h["block"] for plan, h in helix.items()})
+        for plan, h in helix.items():
+            self.assertEqual(B.track_block(plan, k["F"].helix), h["block"])
         self.assertEqual(B.track_block("K-2", k["F"].helix), "Track K-2")
         band = k["bands"][k["bi"]][1]
-        helix = B.bdm.mast_rule.read_helix_tracks()          # helix_tracks.csv rows, as dark_bindings reads them
         found = {}
         for sid, s in band["strands"].items():
             got = B.helix_block(band, ("track", f"b{k['bi']}:{sid}"), helix)
             if got:
                 found.setdefault(got, set()).add(s["name"])
-        self.assertEqual(found, {"Track Helix Outer": {"McKees Rocks"}, "Track Helix Inner": {"McKeesport"}})
+        self.assertEqual(found, {h["block"]: {plan} for plan, h in helix.items()})
 
     def test_each_helix_block_is_bound_once_from_the_device_map(self):
         blocks = built()["committed"]["blocks"]
-        for name in ("Track Helix Outer", "Track Helix Inner"):
+        for name in built()["F"].helix.values():
             with self.subTest(block=name):
                 bound = [e for key, e in blocks.items() if e.get("name", key) == name]
                 self.assertEqual(len(bound), 1)
@@ -182,7 +206,6 @@ class Masts(unittest.TestCase):
         level = B.level_mast_bindings(k["bands"], k["F"], k["bi"])
         self.assertFalse(set(staging) & set(level))
         self.assertEqual(dict(staging, **level), k["committed"]["masts"])
-        self.assertEqual(len(level), 44)                          # main_upper_masts.csv's visible masts
         self.assertEqual({e["name"] for e in level.values()}, B.level_masts.visible_names())
 
     def test_intermediates_stand_on_their_own_loop_half(self):

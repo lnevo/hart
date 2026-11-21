@@ -95,8 +95,9 @@ def block_entry(panel_name, name, discipline) -> dict:
 
 
 def mast_template(name, F, by_type):
-    """The CATS template of mast `name`: its own row in signal_head_plan.csv (a wired mast), else the one masts of
-    its appearance type take (`by_type`, template_by_type), by its system name in tables.xml; None when neither."""
+    """The CATS template of mast `name` on any level: its own row in signal_head_plan.csv (a wired mast) wins, else
+    the one masts of its appearance type take (`by_type`, template_by_type), by its system name in tables.xml; None
+    when neither. One rule for every level: a main or upper mast given a row of its own takes that row's template."""
     return F.templates.get(name) or by_type.get(mast_type(F.mast_system.get(name)))
 
 
@@ -530,7 +531,8 @@ def intermediate_signal(bands, F, bound_bi, r, by_trial):
     """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
     the loop or split track's half it faces meets the half it protects, heading the way its row's dir says. The
     piece it stands on is the one that meets the protected half at a turnback, whatever the strands' order; only the
-    halves joined there get edges of their own (loop_half_edge), so other loops on the band keep theirs."""
+    halves joined there get edges of their own (loop_half_edge), so other loops on the band keep theirs. Never
+    returns None: a mast it cannot place stops the build."""
     drawn = False
     meets = []          # (band index, piece, turnback, the other strands ending there) where it meets the protected half
     for bi, band, _opts in level_bands(bands, bound_bi):
@@ -625,12 +627,13 @@ def level_signals(bands, F, bound_bi):
 
 def level_mast_bindings(bands, F, bound_bi):
     """{mast: {name, template}} for the main and upper masts level_signals drew: each a mast in tables.xml whose
-    system name is its main_upper_masts.csv row's, with the template staging's masts of its appearance type take
-    (mast_template). A row not drawn stops, but a virtual one (hidden, no desk signal)."""
+    system name is its main_upper_masts.csv row's, with its template by mast_template: its own signal_head_plan.csv
+    row when it has one, else the template masts of its appearance type take. A row not drawn stops, but a virtual
+    one (hidden, no desk signal)."""
     rows = {r["mast"]: r for r in F.level_masts}
     by_type = template_by_type(F)
     out = {}
-    for _bi, _band, opts in level_bands(bands, bound_bi):
+    for bi, _band, opts in level_bands(bands, bound_bi):
         for sg in opts.get("signals") or ():
             name = opts.get("mast_prefix", "") + sg["mast"]
             r = rows.get(name)
@@ -641,8 +644,8 @@ def level_mast_bindings(bands, F, bound_bi):
                                  f"{level_masts.PATH.name} says {r['system_name']}")
             template = mast_template(name, F, by_type)
             if template is None:
-                raise SystemExit(f"{name}: no staging mast of type {mast_type(r['system_name'])} gives a CATS "
-                                 "template (signal_head_plan.csv)")
+                raise SystemExit(f"{name} on {bands[bi][0]}: no row of its own and no template for its type "
+                                 f"{mast_type(r['system_name'])} in signal_head_plan.csv")
             out[sg["mast"]] = {"name": name, "template": template}
     missing = sorted(set(rows) - {e["name"] for e in out.values()}
                      - {m for m, r in rows.items() if level_masts.is_level_virtual(r["system_name"])})
