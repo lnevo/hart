@@ -12,7 +12,7 @@ Inputs (jmri/layouts/hart/data/schematic/):
   data, one row per control point: level (2 main, 3 upper), switch numbers, area (the LCOS node area). Only
   interlockings that affect the main route are control points, as in the bench plans
   (docs/wiring/bench/control_point_4 to 6): switches on the main route, grouped where they stand close together.
-- block_splits.csv: the owner's choice of tracks parted into two blocks at their turnback (not a rule).
+- block_overrides.csv kind split: the owner's choice of tracks parted into two blocks at their turnback (not a rule).
 - local_switches_main_upper.csv: every other switch (yards and industry spurs), with its area. These get a
   turnout and feedback but no control point, no signals and no detection.
 - lcos_nodes.csv: every level's LCOS radio addresses. Staging's are the nodes in service (inventory v86), which this
@@ -39,13 +39,13 @@ Outputs:
   drawing order. Placeholder user names change when the owner names the levels.
 
 Blocks: one block process for every level (block_layer.py, level unification step 5 part 1, owner 2026-11-20): OS
-blocks, track blocks, halves (block_splits.csv, every level: 227-241 and staging's K-1 and K-2), helix blocks named
-through helix_tracks.csv, and parts (devices.csv part_of: a piece of track inside another block, by the rule or
-block_exceptions.csv). Staging's plant is the field, so its block and occupancy rows carry their field facts (system
-and layout-block names, node, wiring, comment, notes, detector, stop, the station group in cp and the name-map columns)
-over from the row of the same name; this script owns which blocks there are and what each holds (role, trial_name in
+blocks, track blocks, halves (block_overrides.csv kind split, every level: 227-241 and staging's K-1 and K-2), helix
+blocks named through helix_tracks.csv, and parts (devices.csv part_of: a piece of track inside another block, by the
+rule or block_overrides.csv). Staging's plant is the field, so its block and occupancy rows carry their field facts
+(system and layout-block names, node, wiring, comment, notes, detector, stop, the station group in cp and the
+name-map columns) over from the row of the same name; this script owns which blocks there are and what each holds (role, trial_name in
 staging's switch-and-leg keys, part_of, blocks, description). A staging block change made in PanelPro is carried by
-hand into this script's data (block_exceptions.csv, block_splits.csv, helix_tracks.csv), not into devices.csv. A
+hand into this script's data (block_overrides.csv, helix_tracks.csv), not into devices.csv. A
 staging detector's wiring (node and input, so its sensor, wiring and the name map's cells) is its level 1 row of
 wiring.csv (hartlib.wiring, the physical wiring source; owner 2026-11-20), as are its turnouts' and feedback's
 (staging_wired_rows) and main and upper's pinned detectors; any other field
@@ -120,7 +120,7 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   build (Nodes.freeze), and the rule hands them to nothing else; its detectors are pins (read_pins: an OS block by its
   name, a helix block by its name, a track by its end switches). The JMRI names stay virtual: freezing fixes the
   wiring only.
-- Hand lists keyed by end switches (block_splits, with a level column, and wiring.csv's main and upper detectors; source-data row 5; running
+- Hand lists keyed by end switches (block_overrides.csv, with a level column, and wiring.csv's main and upper detectors; source-data row 5; running
   track and exit dwarfs are rules since 2026-11-20, mast_rule.running_tracks and signalled_spurs): columns switch_a,
   switch_b (the owner's switch numbers, lower first; switch_b blank for a spur, whose other end is a
   bumper), `parallel` (1, 2 from the top row, only where two tracks run between the same switches) and, in the pins,
@@ -150,7 +150,7 @@ from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported
     TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_names, tracks)
 import block_layer  # noqa: E402  the one block process for every level
 import mast_plan  # noqa: E402  the one mast process for every level
-import mast_rule  # noqa: E402  read_block_splits
+import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
 import le_common  # noqa: E402  band_key: the plugin's key for a band, which rotate_bands lists
 from hartlib import devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402  names, facts, the master
 
@@ -162,7 +162,7 @@ OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json; this wri
 SHEET = railroad.PlanOverrides.SHEET
 OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
 LEVELS = band_levels(layer_files.read("plan_overrides", SHEET, OVERRIDES.parent))     # {band title: level} of main and upper
-SPLIT = OVERRIDES.parent / "block_splits.csv"     # the owner's choice of tracks parted into two blocks (all levels)
+BLOCK_OVERRIDES = OVERRIDES.parent / mast_rule.OVERRIDES_NAME     # the owner's block facts, all levels: splits and more
 STAGING_LEVEL = 1                                 # staging: its nodes are as built (lcos_nodes.csv)
 WIRING = wiring.PATH                              # wiring.csv: the physical wiring source (hartlib.wiring)
 PINS = WIRING
@@ -277,10 +277,10 @@ def dx_corners(bands, le_mod, page) -> dict:
 
 
 def split_tracks(path: Path | None = None, found: list | None = None) -> set[str]:
-    """The main and upper track names block_splits.csv parts into two blocks at their turnback (the owner's choice,
+    """The main and upper track names block_overrides.csv splits into two blocks at their turnback (the owner's choice,
     not a rule: mast_rule.read_block_splits): each row's end switches resolved to the generated name in `found` (tracks
     with names; default: the solved schematic's) at build time, so a renumbered switch moves its row with it."""
-    return mast_rule.read_block_splits(path or SPLIT, named_tracks() if found is None else found, LEVELS)
+    return mast_rule.read_block_splits(path or BLOCK_OVERRIDES, named_tracks() if found is None else found, LEVELS)
 
 
 def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None) -> list[dict]:
@@ -297,13 +297,13 @@ def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None)
 
 
 def split_edges(path: Path | None = None, found: list | None = None) -> dict:
-    """{plan edge: track name} of the main and upper split tracks (block_layer.split_edges over block_splits.csv):
+    """{plan edge: track name} of the main and upper split tracks (block_layer.split_edges over block_overrides.csv):
     each name resolved to the one plan edge its track is drawn on, in `found` (tracks with names; default: the solved
     schematic's), at build time. Stops on a name no track has, or a track drawn on more than one plan edge (a split
     needs one track folded at one turnback)."""
     found = named_tracks() if found is None else found
-    # a block_splits.csv with no main or upper row gives no drawing key: no splits
-    return block_layer.split_edges(found, LEVELS, path or SPLIT, OVERRIDES.parent).get(SHEET, {})
+    # a block_overrides.csv with no main or upper split gives no drawing key: no splits
+    return block_layer.split_edges(found, LEVELS, path or BLOCK_OVERRIDES, OVERRIDES.parent).get(SHEET, {})
 
 
 OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block, named by its switch
@@ -431,13 +431,13 @@ def helix_pins(path: Path | None = None) -> dict:
 
 def loop_halves(band, runs, split: dict | None = None) -> dict:
     """{strand id: 1 or 2} of each balloon loop and split track of a main or upper `band` (block_layer.loop_halves);
-    `split`: split_edges (default: block_splits.csv's)."""
-    return block_layer.loop_halves(band, runs, split_edges() if split is None else split, SPLIT.name)
+    `split`: split_edges (default: block_overrides.csv's)."""
+    return block_layer.loop_halves(band, runs, split_edges() if split is None else split, BLOCK_OVERRIDES.name)
 
 
 def main_upper_layer(bands, runs, found, split_map: dict, corner_blocks: dict, posts: dict) -> block_layer.Layer:
     """block_layer.layer of the main and upper levels, as mast_plan.plan reads it (`bands`, `cm`) and build() writes
-    its rows: `split_map` (split_edges), block_exceptions.csv, `corner_blocks` (a double crossover's corner blocks,
+    its rows: `split_map` (split_edges), block_overrides.csv, `corner_blocks` (a double crossover's corner blocks,
     {switch: {leg: block}}) and `posts` (where the home masts stand, home_and_posts). One block per track, a balloon
     loop or split track in two halves (half 1 at the lower-numbered switch; each half's length is half the track's), a
     crossover's inside its switch's OS block, a link (under block_layer.LINK_CM between two switches) a part of an OS
@@ -739,8 +739,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     stops = helix_stops(helix)              # check_helix_ends: each helix track ends at its level_switch
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
     if lay.inside:          # the main and upper drawing gives each strand one block: a piece there is a part
-        raise MapError(f"block_exceptions.csv keeps {', '.join(sorted(lay.inside))} inside an OS block on main or "
-                       "upper, whose drawing gives each strand one block; leave inside empty (a part)")
+        raise MapError(f"{mast_rule.OVERRIDES_NAME} keeps {', '.join(sorted(lay.inside))} inside an OS block on "
+                       "main or upper, whose drawing gives each strand one block; leave inside empty (a part)")
     trials = level_trials(bands, joined, lay)
 
     def trial_of(name: str) -> str:
@@ -892,7 +892,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             cm = round(t["cm"] / 2, 1) if half else t["cm"]
             note = f"{cm} cm" + ("" if t["main"] else " no detector: off the main line")
             if half and split:
-                note += f", half {half} of the split track (block_splits.csv)"
+                note += f", half {half} of the split track ({mast_rule.OVERRIDES_NAME})"
             elif half:
                 note += f", half of the balloon loop from leg {'BC'[half - 1]}"
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
@@ -1064,7 +1064,8 @@ def part_drops(parts: list[dict]) -> set:
 
 def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[block_layer.Layer, int, list[dict]]:
     """(block_layer.layer of the staging band, its band index, its tracks): the one block process over staging's
-    drawing, block_splits.csv and block_exceptions.csv (`exceptions`, default the committed file)."""
+    drawing and block_overrides.csv (`exceptions`, default the committed file, for its track and crossover_half
+    rows)."""
     overrides = layer_files.read("plan_overrides", STAGING_SHEET, OVERRIDES.parent)
     levels = band_levels(overrides)
     found = named_tracks(bands, joined, runs, overrides)
@@ -1073,8 +1074,9 @@ def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
     _home, posts = home_and_posts(bands, joined, found, levels, cp_of, None,
-                                  mast_rule.read_block_splits(SPLIT, found, levels))
-    lay = block_layer.layer(bands, runs, found, levels, block_layer.split_edges(found, levels, SPLIT, OVERRIDES.parent),
+                                  mast_rule.read_block_splits(BLOCK_OVERRIDES, found, levels))
+    split = block_layer.split_edges(found, levels, BLOCK_OVERRIDES, OVERRIDES.parent)
+    lay = block_layer.layer(bands, runs, found, levels, split,
                             block_layer.read_exceptions(found, bands, levels, exceptions), posts=posts,
                             data=OVERRIDES.parent)
     if len(lay.bands) != 1:
@@ -1144,7 +1146,7 @@ def freed_spare(occ: dict, block: str, part_of: str) -> dict:
                        f"{occ['wiring']!r} names no node input to keep it as a spare by; reassign the detector")
     row = dict(occ, user_name=f"unused Block {m.group(1)}-{m.group(2)}", role="spare", assignment="spare", cp="",
                blocks="", detector="", jmri_comment="", trial_name="",
-               notes=f"freed when {block} became part of {part_of} (block_exceptions.csv)",
+               notes=f"freed when {block} became part of {part_of} ({mast_rule.OVERRIDES_NAME})",
                written_by="build_device_map.py", **{c: "" for c in devices.COLUMNS if c.startswith("pnm_")})
     row["description"] = devices.describe(row)
     return row
@@ -1252,7 +1254,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     occupancy part of its comment, and the spare inputs (no block), each row "unused Block <n>-<k>"; `pins` (default
     the committed file). A helix block's occupancy row is the
     level of its helix switch's (main or upper), not staging's: the block is one across levels. A block that becomes a
-    part (block_exceptions.csv gives it to an OS block) loses its JMRI block: its part row has no name-map columns, its
+    part (block_overrides.csv gives it to an OS block) loses its JMRI block: its part row has no name-map columns, its
     detector becomes a spare row named by its node input (freed_spare), and both old keys are dropped from the name
     map on purpose (the keys returned, for hartlib.devices' drops). MapError on a block with no row to carry its field
     facts from, a staging block or occupancy row the drawing has no block for, a detector block with no pin, or a pin

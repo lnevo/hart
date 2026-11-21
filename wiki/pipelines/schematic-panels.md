@@ -16,7 +16,7 @@ format in one place and stops on a missing section or an old `<sheet>.<kind>.jso
 **One block process (level unification step 5 parts 1 and 2, owner 2026-11-20):** `tools/schematic/block_layer.py` makes
 the block layer of every level from the drawing: an OS block per switch (a single crossover's halves each their own
 when they have their own detectors, staging 7, 23 and 35), a block per track named by the plan's name, else by its end
-switches, halves from `block_splits.csv` (every level, a `level` column: 227-241, staging's K-1 and K-2), helix blocks
+switches, halves from `block_overrides.csv` kind `split` (every level, the owner's choice: 227-241, staging's K-1 and K-2), helix blocks
 through `helix_tracks.csv`, and parts. A part is a piece of track inside another block: a `devices.csv` row with
 `part_of` naming that block, role `part`, no occupancy row or detector of its own (the device maps skip it:
 `hartlib.devices.OUT_OF_MAPS`). That is the standard way to put a short piece in an OS
@@ -31,12 +31,16 @@ generator writes staging's beans. The masts read a part inside its OS block (`st
 `block_layer.Layer.bands` on main and upper) and face the JMRI block next to them (Mast 32R faces Track 29-31).
 A part's block contents icon is optional on every level: `optional_block_contents` in `preferences.json` lists
 every level's parts (the plugin takes the list from the preferences only; `test_blocks_every_level` holds it to
-`devices.csv`). A piece that `block_exceptions.csv` marks `inside` stays inside its OS block with no JMRI or
+`devices.csv`). A piece that `block_overrides.csv` marks `inside` stays inside its OS block with no JMRI or
 layout block of its own (owner, 2026-11-20: the two halves of 35-39, in OS 35b and OS 39, so Mast 36RB's route
 to Mast 68 is shorter than the wrong way round the Princess balloon, which JMRI's discovery otherwise follows
-until its ttlSize and drops the pair). `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
-where the wiring says otherwise (13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39) and
-the crossover halves with detectors of their own. `build_device_map.py` writes staging's block and occupancy rows
+until its ttlSize and drops the pair). `data/schematic/block_overrides.csv` (a `level` column, rows of any level, a
+`kind` per row) is the one file of the owner's hand facts about blocks: kind `split` (a track parted into two blocks
+at its turnback, the owner's choice, not a rule), kind `track` (the wiring facts where the wiring says otherwise:
+13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39; `inside` yes on a track row keeps
+the piece inside its OS block) and kind `crossover_half` (the crossover halves with detectors of their own).
+`mast_rule.read_block_overrides` reads it and checks every row's shape for its kind, naming the file and line; it
+replaced `block_exceptions.csv` and `block_splits.csv` (2026-11-21). `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
 stop, station group and name-map columns, carried over from its row), so a staging block change made in PanelPro is
 carried by hand into those three data files, not into `devices.csv`. Main and upper write their part rows the same

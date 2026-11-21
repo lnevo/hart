@@ -1,5 +1,8 @@
 # Level unification: hand-off (2026-11-20)
 
+Since 2026-11-21 `block_exceptions.csv` and `block_splits.csv`, named below as they were, are one file,
+`data/schematic/block_overrides.csv`, with a `kind` column (`split`, `track`, `crossover_half`).
+
 ## Why
 
 The owner (2026-11-20): too many places keep staging and the main and upper levels in separate files, scripts and

@@ -29,7 +29,7 @@ Files (jmri/layouts/hart/data/, schematic/ for the rest):
   levels 2 and 3 of devices.csv, which name the same block for the piece on its level (check_device_master.check_rows).
 - parts (devices.csv part_of, role part; owner, 2026-11-20): a short piece of track between two switches has a block
   row of its own that names the block it is part of (the lower-numbered switch's OS block by rule, or the one
-  block_exceptions.csv gives it), and its trial_name. A part is a JMRI block of its own on that block's occupancy
+  block_overrides.csv gives it), and its trial_name. A part is a JMRI block of its own on that block's occupancy
   sensor (owner, 2026-11-20): load() draws its pieces as the part, and os_layer reads them inside its block, as the
   masts do. The device maps leave parts out (hartlib.devices.OUT_OF_MAPS), so load() reads them from the master.
 - stations.csv (level, station, switches, tracks, desk_code, notes): the stations, and through their desk codes

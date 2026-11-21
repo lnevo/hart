@@ -39,7 +39,8 @@ class StagingTracks:
         if len(set(blocks)) != 1:
             raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
                              f"{', '.join(sorted(set(blocks)))}; give it to the one its gap leaves it in "
-                             "(a part row naming that block in devices.csv: block_exceptions.csv, or the rule in block_layer.py)")
+                             "(a part row naming that block in devices.csv: block_overrides.csv, or the rule in "
+                             "block_layer.py)")
         return blocks[0]
 
 

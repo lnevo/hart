@@ -28,19 +28,19 @@ class Pure(unittest.TestCase):
         self.assertEqual([BD.base(x) for x in ("129A", "135B", "223*", "105")], ["129", "135", "223", "105"])
 
     def test_a_split_track_is_named_and_its_edge_found_at_build_time(self):
-        """block_splits.csv names tracks by their level and end switches, which survive a new export; the plan edge
+        """block_overrides.csv splits tracks by level and end switches, which survive a new export; the plan edge
         each is drawn on is looked up when the map is built."""
         found = [dict(t, level=3) for t in (track("Track 227-241", "241", "227", trial=["Track e63"]),
                                             track("Track 241 Spur", "241", trial=["Track e64"]),
                                             track("Track 1-2", "1", "2", trial=["Track e1", "Track e2"]))]
-        head = "level,switch_a,switch_b,parallel,notes\n"
+        head = ",".join(BD.mast_rule.OVERRIDE_COLUMNS) + "\n"
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "split.csv"
-            for text, want in ((head + "3,227,241,,\n", {"e63": "Track 227-241"}),
-                               (head + "3,9,10,,\n", "no track runs Switch 9 to Switch 10"),
-                               (head + "3,1,2,,\n", "drawn on Track e1, Track e2"),
-                               (head + "3,227,241,,\n3,227,241,,\n", "already named on line 2"),
-                               (head + "2,227,241,,\n", "no track runs Switch 227 to Switch 241"),
+            for text, want in ((head + "3,split,227,241,,,,,,\n", {"e63": "Track 227-241"}),
+                               (head + "3,split,9,10,,,,,,\n", "no track runs Switch 9 to Switch 10"),
+                               (head + "3,split,1,2,,,,,,\n", "drawn on Track e1, Track e2"),
+                               (head + "3,split,227,241,,,,,,\n3,split,227,241,,,,,,\n", "already split on line 2"),
+                               (head + "2,split,227,241,,,,,,\n", "no track runs Switch 227 to Switch 241"),
                                ("edge,track\ne63,Track 227-241\n", "columns")):
                 p.write_text(text, encoding="utf-8")
                 with self.subTest(text=text):
@@ -537,12 +537,15 @@ def track(name, a, b=None, row=0, trial=None, loop=False):
 
 
 class SwitchPairLists(unittest.TestCase):
-    """Hand lists (block_splits.csv) name a track by its end switches, so a renumber does not break them (source-data
-    row 5). The rows below are level 2 rows; the tracks are level 2 tracks."""
-    HEAD = "level,switch_a,switch_b,parallel,notes\n"
+    """Hand lists (block_overrides.csv) name a track by its end switches, so a renumber does not break them (source
+    data row 5). The rows below are level 2 rows; the tracks are level 2 tracks."""
+    HEAD = ",".join(BD.mast_rule.OVERRIDE_COLUMNS) + "\n"
 
     def names(self, text, found):
-        text = "".join("2," + line + "\n" for line in text.splitlines())
+        """read_block_splits over block_overrides.csv split rows of level 2, one per line of `text` (switch_a,
+        switch_b, parallel, notes)."""
+        text = "".join("2,split," + line.rsplit(",", 1)[0] + ",,,,," + line.rsplit(",", 1)[1] + "\n"
+                       for line in text.splitlines())
         found = [dict(t, level=2) for t in found]
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "list.csv"
@@ -574,7 +577,7 @@ class SwitchPairLists(unittest.TestCase):
 
     def test_one_track_named_twice_and_bad_rows_stop(self):
         found = [track("Track 119-121", "119", "121")]
-        for text, msg in (("119,121,,\n119,121,,\n", "already named on line 2"),
+        for text, msg in (("119,121,,\n119,121,,\n", "already split on line 2"),
                           ("121,119,,\n", "lower first"),
                           ("x,121,,\n", "are switch numbers"),
                           ("119,121,5,\n", "parallel '5'")):

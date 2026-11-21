@@ -1,5 +1,5 @@
 """block_layer.py, the one block process of every level, and build_device_map.staging_rows, which writes staging's
-block and occupancy rows from it: the rule, block_exceptions.csv's rows and stops, and the invariants (level
+block and occupancy rows from it: the rule, block_overrides.csv's rows and stops, and the invariants (level
 unification step 5 part 1, owner 2026-11-20). Runs over the committed drawing (needs the plugin; skipped without it,
 failing with SCHEMATIC_REQUIRED=1); every write goes to a temporary folder."""
 from __future__ import annotations
@@ -19,7 +19,7 @@ import build_device_map as bdm  # noqa: E402
 devices = bdm.devices
 from repo_read_only import RepoReadOnly  # noqa: E402
 
-HEAD = ",".join(BL.EXCEPTION_COLUMNS) + "\n"
+HEAD = ",".join(BL.mr.OVERRIDE_COLUMNS) + "\n"
 # a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2)
 SCALE_AT_7 = "1,track,5,7,1,7,OS Switch 7,23,,a test row\n"
 # the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
@@ -67,15 +67,15 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         over = bdm.layer_files.read("plan_overrides", bdm.STAGING_SHEET, bdm.OVERRIDES.parent)
         cls.levels = bdm.band_levels(over)
         cls.found = bdm.named_tracks(cls.bands, cls.joined, cls.runs, over)
-        cls.split = BL.split_edges(cls.found, cls.levels, bdm.SPLIT)
-        cls.committed = BL.exceptions_path().read_text(encoding="utf-8")
+        cls.split = BL.split_edges(cls.found, cls.levels, bdm.BLOCK_OVERRIDES)
+        cls.committed = BL.overrides_path().read_text(encoding="utf-8")
 
     def layer(self, text: str | None = None) -> BL.Layer:
-        """The staging layer with block_exceptions.csv's text `text` (default: the committed file)."""
+        """The staging layer with block_overrides.csv's text `text` (default: the committed file)."""
         if text is None:
             return BL.layer(self.bands, self.runs, self.found, self.levels, self.split,
                             BL.read_exceptions(self.found, self.bands, self.levels))
-        p = temp_file("block_exceptions.csv", text)
+        p = temp_file("block_overrides.csv", text)
         try:
             ex = BL.read_exceptions(self.found, self.bands, self.levels, p)
         finally:
@@ -85,7 +85,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
     posts = None            # the home masts' places for main_upper (None: the rule's)
 
     def main_upper(self, text: str | None = None) -> BL.Layer:
-        """The main and upper layer (build_device_map.main_upper_layer) with block_exceptions.csv's text `text`
+        """The main and upper layer (build_device_map.main_upper_layer) with block_overrides.csv's text `text`
         (default: the committed file)."""
         found = bdm.named_tracks(self.bands, self.joined, self.runs)
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
@@ -98,9 +98,9 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         args = (self.bands, self.runs, found, split, corners, posts if self.posts is None else self.posts)
         if text is None:
             return bdm.main_upper_layer(*args)
-        p = temp_file("block_exceptions.csv", text)
+        p = temp_file("block_overrides.csv", text)
         try:
-            with unittest.mock.patch.object(BL, "exceptions_path", return_value=p):
+            with unittest.mock.patch.object(BL, "overrides_path", return_value=p):
                 return bdm.main_upper_layer(*args)
         finally:
             remove(p)
@@ -119,7 +119,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertEqual(parts["Track 9-11"]["part_of"], "OS Switch 9")
         self.assertIn("the rule", parts["Track 9-11"]["why"])
         self.assertEqual(parts["Track 13-15"]["part_of"], "OS Switch 15")
-        self.assertIn("block_exceptions.csv line", parts["Track 13-15"]["why"])
+        self.assertIn("block_overrides.csv line", parts["Track 13-15"]["why"])
 
     def test_without_its_row_the_rule_gives_the_lower_numbered_switch(self):
         self.assertEqual(self.layer(self.without("1,track,13,15,")).parts["Track 13-15"]["part_of"], "OS Switch 13")
@@ -132,7 +132,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertNotIn("Track 1-3", lay.tracks)
 
     def test_a_piece_marked_inside_stays_in_its_os_block_with_no_block_of_its_own(self):
-        """block_exceptions.csv's `inside` (owner, 2026-11-20): the two halves of 35-39 stay inside OS Switch 35b and
+        """block_overrides.csv's `inside` (owner, 2026-11-20): the two halves of 35-39 stay inside OS Switch 35b and
         OS Switch 39, with no JMRI or layout block, so Mast 36RB's route to Mast 68 is 3 blocks, not 5; every other
         part follows the rule (a JMRI block of its own)."""
         lay = self.layer()
@@ -215,40 +215,40 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def test_columns_kinds_and_shapes(self):
         self.stops("level,switch_a\n", "columns")
-        self.stops(HEAD + "1,spur,9,11,,,OS Switch 9,\n", "kind one of track, crossover_half")
-        self.stops(HEAD + "4,track,9,11,,,OS Switch 9,\n", "level is 1, 2 or 3")
-        self.stops(HEAD + "1,track,9,11,,,Track Barn,\n", "is no OS block")
-        self.stops(HEAD + "1,track,11,9,,,OS Switch 9,\n", "lower first")
-        self.stops(HEAD + "1,track,9,11,,13,OS Switch 9,\n", "its end empty or one of them")
-        self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,\n", "with no parallel, end, cm or inside")
+        self.stops(HEAD + "1,spur,9,11,,,OS Switch 9,,,\n", "kind one of split, track, crossover_half")
+        self.stops(HEAD + "4,track,9,11,,,OS Switch 9,,,\n", "level is 1, 2 or 3")
+        self.stops(HEAD + "1,track,9,11,,,Track Barn,,,\n", "is no OS block")
+        self.stops(HEAD + "1,track,11,9,,,OS Switch 9,,,\n", "lower first")
+        self.stops(HEAD + "1,track,9,11,,13,OS Switch 9,,,\n", "its end empty or one of them")
+        self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,,,\n", "with no parallel, end, cm or inside")
 
     def test_a_row_that_matches_no_track_or_half_stops(self):
-        self.stops(self.committed + "1,track,2,4,,,OS Switch 2,\n", "no track runs Switch 2 to Switch 4")
-        self.stops(self.committed + "1,crossover_half,7,9,,,OS Switch 7c,\n",
+        self.stops(self.committed + "1,track,2,4,,,OS Switch 2,,,\n", "no track runs Switch 2 to Switch 4")
+        self.stops(self.committed + "1,crossover_half,7,9,,,OS Switch 7c,,,\n",
                    "no crossover half of Switch 7 has its leg A track running to Switch 9")
 
     def test_a_row_given_twice_stops(self):
-        self.stops(self.committed + "1,track,13,15,,,OS Switch 15,\n", "Track 13-15 is given a block on line")
-        self.stops(self.committed + "1,crossover_half,7,13,,,OS Switch 7,\n", "given its block on line")
+        self.stops(self.committed + "1,track,13,15,,,OS Switch 15,,,\n", "Track 13-15 is given a block on line")
+        self.stops(self.committed + "1,crossover_half,7,13,,,OS Switch 7,,,\n", "given its block on line")
 
     def test_a_block_that_is_not_the_os_block_at_its_end_stops(self):
-        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 17,\n",
+        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 17,,,\n",
                    "Track 13-15 is given OS Switch 17, the OS block of neither")
-        self.stops(self.without("1,track,1,3,,1,") + "1,track,1,3,,1,OS Switch 3,\n",
+        self.stops(self.without("1,track,1,3,,1,") + "1,track,1,3,,1,OS Switch 3,,,\n",
                    "the piece of Track 1-3 at Switch 1 is given OS Switch 3, not that switch's OS block OS Switch 1")
 
     def test_one_crossover_half_alone_stops(self):
         self.stops(self.without("1,crossover_half,7,5,"), "crossover 7: give both halves")
 
     def test_a_split_track_with_rows_stops(self):
-        self.stops(self.committed + "1,track,37,39,,,OS Switch 37,\n", "split in halves and given to OS blocks")
+        self.stops(self.committed + "1,track,37,39,,,OS Switch 37,,,\n", "split in halves and given to OS blocks")
 
     def test_a_main_or_upper_row_applies_on_its_level(self):
-        lay = self.main_upper(self.committed + "2,track,113,115,,,OS Switch 115,,\n")
+        lay = self.main_upper(self.committed + "2,track,113,115,,,OS Switch 115,,,\n")
         self.assertEqual(lay.parts["Track 113-115"]["part_of"], "OS Switch 115")
-        self.assertIn("block_exceptions.csv line", lay.parts["Track 113-115"]["why"])
+        self.assertIn("block_overrides.csv line", lay.parts["Track 113-115"]["why"])
         with self.assertRaisesRegex(BL.BlockError, r"\(level 3\): no track runs Switch 113 to Switch 115"):
-            self.main_upper(self.committed + "3,track,113,115,,,OS Switch 115,,\n")
+            self.main_upper(self.committed + "3,track,113,115,,,OS Switch 115,,,\n")
 
     # ---------------------------------------------------------------- lengths
 
@@ -267,7 +267,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.stops(self.committed + SCALE_AT_7.replace(",23,", ",,"), "Track Scale at 7: give its cm")
         self.stops(self.committed + SCALE_AT_7.replace(",23,", ",500,"), "is not under the track's")
         self.stops(self.committed + SCALE_AT_7.replace(",23,", ",x,"), "cm 'x' is a length")
-        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 15,10,\n", "only a piece at one end")
+        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 15,10,,\n", "only a piece at one end")
 
     # ---------------------------------------------------------------- halves
 
@@ -283,7 +283,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
 
     def halves_layer(self, names: dict) -> BL.Layer:
         bands, found = self.renamed(names)
-        return BL.layer(bands, self.runs, found, self.levels, BL.split_edges(found, self.levels, bdm.SPLIT),
+        return BL.layer(bands, self.runs, found, self.levels, BL.split_edges(found, self.levels, bdm.BLOCK_OVERRIDES),
                         BL.read_exceptions(found, bands, self.levels))
 
     def test_halves_with_one_plan_name_are_numbered_not_merged(self):
@@ -382,14 +382,14 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         cls.runs = staticmethod(runs)
 
     def rows(self, edit=None, extra_exception="", pins=None):
-        """staging_rows over a copy of the master (`edit`ed), of block_exceptions.csv (plus `extra_exception`) and of
+        """staging_rows over a copy of the master (`edit`ed), of block_overrides.csv (plus `extra_exception`) and of
         wiring.csv (`pins`: a function of its text)."""
         rows = [dict(r) for r in devices.load()]
         if edit:
             rows = edit(rows)
         p = temp_file("devices.csv", devices.master_text(rows))
         self.addCleanup(remove, p)
-        ex = temp_file("block_exceptions.csv", BL.exceptions_path().read_text(encoding="utf-8") + extra_exception)
+        ex = temp_file("block_overrides.csv", BL.overrides_path().read_text(encoding="utf-8") + extra_exception)
         self.addCleanup(remove, ex)
         text = bdm.WIRING.read_text(encoding="utf-8")
         pf = temp_file("wiring.csv", pins(text) if pins else text)
@@ -477,14 +477,14 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
     def test_a_block_made_a_part_builds_again_from_its_own_output(self):
         """The first build after a block becomes a part writes its spare; the next build over that output, with the
         pin left as it is, gives the same rows back (the part's pin is the spare's)."""
-        extra = "1,track,33,35,,,OS Switch 33,,\n"
+        extra = "1,track,33,35,,,OS Switch 33,,,\n"
         got, adopts, drops = self.rows(extra_exception=extra)
         wired, wired_adopts = bdm.staging_wired_rows(self.files)
         out = devices.outputs_after("build_device_map.py", [], self.files, drops=drops, master_rows=got + wired,
                                     adopts=adopts | wired_adopts)
         master = temp_file("devices.csv", out[self.files.master])
         self.addCleanup(remove, master)
-        ex = temp_file("block_exceptions.csv", BL.exceptions_path().read_text(encoding="utf-8") + extra)
+        ex = temp_file("block_overrides.csv", BL.overrides_path().read_text(encoding="utf-8") + extra)
         self.addCleanup(remove, ex)
         again, _a, drops2 = bdm.staging_rows(self.bands, self.joined, self.runs, devices.Files.under(master.parent),
                                              exceptions=ex)
@@ -511,7 +511,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         """East Lead given to OS Switch 33: its block row becomes a part, its detector a spare row named by its node
         input, and both old keys are dropped from the name map on purpose; the part, a JMRI block of its own, takes a
         new place in the name map with its OS block's control point and detector."""
-        got, adopts, drops = self.rows(extra_exception="1,track,33,35,,,OS Switch 33,,\n")
+        got, adopts, drops = self.rows(extra_exception="1,track,33,35,,,OS Switch 33,,,\n")
         by = {(r["layer"], r["user_name"]): r for r in got}
         part = by[("block", "Track East Lead")]
         self.assertEqual((part["role"], part["part_of"], part["assignment"]), ("part", "OS Switch 33", "virtual"))

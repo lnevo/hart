@@ -816,13 +816,13 @@
    "path": "jmri/layouts/hart/data/schematic/approved_staging.sha256"
   },
   {
-   "id": "jmri/layouts/hart/data/schematic/block_exceptions.csv",
-   "label": "block_exceptions.csv",
+   "id": "jmri/layouts/hart/data/schematic/block_overrides.csv",
+   "label": "block_overrides.csv",
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Hand exceptions to the block rule (parts of blocks, piece lengths).",
-   "path": "jmri/layouts/hart/data/schematic/block_exceptions.csv"
+   "desc": "The owner's hand facts about blocks, by kind: split (tracks parted into two blocks at their turnback, the owner's choice), track (pieces of track inside an OS block, their lengths) and crossover_half.",
+   "path": "jmri/layouts/hart/data/schematic/block_overrides.csv"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/block_numbering.csv",
@@ -832,15 +832,6 @@
    "domain": "layout",
    "desc": "Block numbering classes and ranges used by devices.py and plan_lengths.",
    "path": "jmri/layouts/hart/data/schematic/block_numbering.csv"
-  },
-  {
-   "id": "jmri/layouts/hart/data/schematic/block_splits.csv",
-   "label": "block_splits.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Owner's choice of tracks parted into two blocks at their turnback.",
-   "path": "jmri/layouts/hart/data/schematic/block_splits.csv"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/discovered_sml.xml",
@@ -3731,7 +3722,7 @@
   },
   {
    "from": "human:owner-csv-edits",
-   "to": "jmri/layouts/hart/data/schematic/block_splits.csv",
+   "to": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "label": "edits"
   },
   {
@@ -4035,12 +4026,12 @@
    "label": "checks"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/block_exceptions.csv",
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/block_exceptions.csv",
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/plan_lengths.py",
    "label": "reads"
   },
@@ -4050,12 +4041,7 @@
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/block_splits.csv",
-   "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/block_splits.csv",
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_staging_masts.py",
    "label": "reads"
   },

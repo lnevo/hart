@@ -69,7 +69,7 @@ def device_files() -> devices.Files:
     return devices.Files.under(DEVICE_MAP.parent)
 STATIONS = sdm.STATIONS
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
-SPLIT = DATA / "block_splits.csv"            # the owner's block splits, every level (none on staging)
+BLOCK_OVERRIDES = DATA / mast_rule.OVERRIDES_NAME     # the owner's block splits (kind split) and more, every level
 LEVELS = mast_rule.band_levels(sdm.overrides())     # {band title: level}: staging's
 HEAD_PREFIX = "IH:HART:C1:"
 FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
@@ -412,7 +412,7 @@ def plan(band, bands, joined, runs, names: dict, locks: dict, cm: dict) -> dict:
     if len(bi) != 1 or set(bands[bi[0]][1]["strands"]) != set(band["strands"]):
         raise RuleError(f"the solved sheet has {len(bi)} staging band(s), or its staging band is not the device map's")
     return mast_plan.plan(bands, joined, found, levels=LEVELS, cp_of=locks, layer={bi[0]: names}, cm=cm,
-                          split=mast_rule.read_block_splits(SPLIT, found, LEVELS))
+                          split=mast_rule.read_block_splits(BLOCK_OVERRIDES, found, LEVELS))
 
 
 def build():

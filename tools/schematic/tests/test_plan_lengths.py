@@ -91,7 +91,7 @@ class TrackLengths(unittest.TestCase):
 
     def test_track_blocks_on_one_track_share_it_evenly_and_a_missing_run_stops(self):
         """Parts at both ends of a track (Track 1-3 at 1 and at 3) share its run evenly, as track_inches reads a k/n
-        key; a part at one end with its own cm (block_exceptions.csv) takes that cm and the track's own block the rest
+        key; a part at one end with its own cm (block_overrides.csv) takes that cm and the track's own block the rest
         (the Scale-in-OS-7 shape); any other mix of track blocks on one strand stops."""
         b = band({"e22": ("e22", "")})
         names = {"blocks": {"e22": ["Track 1-3 at 1", "Track 1-3 at 3"]}}
