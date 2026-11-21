@@ -18,7 +18,7 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 | Take a PanelPro Store off a host | `make tables-pull-pi` for a Store on the Pi, `make tables-pull` for one on the Mac: it keeps the Store in `~/JMRI_UserFiles-pulled/` (outside every checkout) with its base. Then, in a task worktree, `python3 tools/schematic/split_store.py <store>` reports it: the owner's settings go into the template, device changes and clashes need the owner's merge or drop (ask in chat, in batches), the repo wins on what the build makes. `--apply` writes and checks it and stops before commit; deploys to that host stay stopped until the split is merged (`store_splits.csv`) ([`tables-pull` skill](.claude/skills/tables-pull/SKILL.md)) |
 | Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
 | Operating flag (the layout is in use) | `tools/hosts/operating.sh on [reason]` when the owner says they are operating, `off --owner` when they are done, `status` to read it; while set, the hook blocks what reaches the Pi and Windows, and Mac-only work stays open ([`operating-flag` skill](.claude/skills/operating-flag/SKILL.md)) |
-| Quit / start PanelPro on the Mac | Once a Store is pulled, quit and relaunch it yourself (never answer a Store dialog), and install the exact `tables.xml` before asking for a panel approval ([`panelpro` skill](.claude/skills/panelpro/SKILL.md)) |
+| Quit / start PanelPro on the Mac | Once a Store is pulled, quit and relaunch it yourself (never answer a Store dialog), and install the exact `tables.xml` before asking for a panel approval ([`panelpro` skill](.claude/skills/panelpro/SKILL.md); the rest of what comes before an approval: [`panel-approval` skill](.claude/skills/panel-approval/SKILL.md)) |
 | Quit / start PanelPro on the Pi (around a deploy) | `tools/hosts/pi_quit_panelpro.sh --for-deploy` before a Pi deploy; the deploy starts it again ([`panelpro` skill](.claude/skills/panelpro/SKILL.md)) |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
 | Deploy to layout hosts | `./tools/hosts/sync_hart_package.sh --pi --win`: Windows matches the Pi, so they deploy together. One host alone only to test there or while the other is down; say so in the report and bring the other up to date next. `make deploy-status` shows the commit each host last got |
@@ -72,9 +72,10 @@ The owner may not name an agent, so match the task yourself:
 | Running STS operating steps (UAT, or live with the owner's yes) | `sts:sts-operator` |
 | Why an Operations Pro build left or sent cars oddly | `operations-pro:ops-diagnoser` |
 | Checking a car-cards review batch | `car-cards:photo-reader` |
+| Checking any text (docs, wiki, site, slides, commit or PR text) against the writing rules | `voice-reviewer` |
 
 - **Call the agent without being asked** when one fits a single bounded job that would mean reading across many files. State which one you used.
-- **Suggest it in one line and wait** for broad work: several agents at once, a rebuild split into stages, or a job the owner may want to steer.
+- **Suggest it in one line and wait** for broad work: several agents at once, a rebuild split into stages, or a job the owner may want to steer. A hand-off the owner has started runs as parallel agents ([`handoff` skill](.claude/skills/handoff/SKILL.md)).
 - **Stay in the main session** for a handful of tool calls, and for deploys or live hardware.
 - Launch any agent that edits files with `isolation: "worktree"`; read-only agents need none.
 - Parallel agents share the Mac's 8 cores: point their heavy checks at the Windows box (`make remote`, after pushing) so a fan-out does not overload the Mac.
@@ -83,6 +84,14 @@ The owner may not name an agent, so match the task yourself:
 The `car-cards` and `operations-pro` plugins are off by default (owner, 2026-11-18). When a task is theirs, turn one on for this checkout only: `claude plugin enable car-cards@model-railroad-skills --scope local` (or `operations-pro@…`), which writes the uncommitted local settings file, not the committed one, then reload plugins or start a new session; say so in the report, and `claude plugin disable … --scope local` when the task is done.
 
 Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
+
+## Status reporting
+
+Every session and agent, so the owner can follow the work:
+
+- At the start, say the plan and a rough ETA. At each milestone, one line: step, done/total, ETA.
+- Report a blocker, a failed check or a change of plan when it happens, not at the end. The final report says plainly what was skipped, failed or left, and what was not checked.
+- The main session cannot see inside a background agent until it finishes, so a subagent also appends each status line to the progress file its brief names (for example `<scratchpad>/progress/<topic>.log`, format `HH:MM step done/total ETA note`). The main session keeps a running table of all agents and shows those lines when asked and at each state change.
 
 ## Do not
 
