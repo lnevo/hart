@@ -7653,7 +7653,19 @@
  ],
  "turnouts": [
   {
-   "turnout": "Switch 35",
+   "turnout": "Switch 35 (OS Switch 35b)",
+   "node": "C1",
+   "area": "Princess (Helix - Staging)",
+   "elements": "Switch 35",
+   "motorN": "C1-OU1-1",
+   "motorR": "C1-OU1-2",
+   "button": "C1-IN2-1",
+   "fbN": "C1-IN1-1",
+   "fbR": "C1-IN1-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 35 (OS Switch 35a)",
    "node": "C1",
    "area": "Princess (Helix - Staging)",
    "elements": "Switch 35",
@@ -7787,7 +7799,19 @@
    "signals": {}
   },
   {
-   "turnout": "Switch 23",
+   "turnout": "Switch 23 (OS Switch 23a)",
+   "node": "C12",
+   "area": "East End (North - Staging)",
+   "elements": "Switch 23",
+   "motorN": "C12-OU4-1",
+   "motorR": "C12-OU4-2",
+   "button": "C12-IN2-5",
+   "fbN": "C12-IN3-1",
+   "fbR": "C12-IN3-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 23 (OS Switch 23b)",
    "node": "C12",
    "area": "East End (North - Staging)",
    "elements": "Switch 23",
@@ -7859,7 +7883,19 @@
    "signals": {}
   },
   {
-   "turnout": "Switch 7",
+   "turnout": "Switch 7 (OS Switch 7)",
+   "node": "C13",
+   "area": "Barn (West - Staging)",
+   "elements": "Switch 7",
+   "motorN": "C13-OU2-1",
+   "motorR": "C13-OU2-2",
+   "button": "C13-IN2-1 (planned)",
+   "fbN": "C13-IN1-1",
+   "fbR": "C13-IN1-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 7 (OS Switch 7b)",
    "node": "C13",
    "area": "Barn (West - Staging)",
    "elements": "Switch 7",

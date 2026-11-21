@@ -468,7 +468,8 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
         name = r.get("Turnout", "")
         if not name:
             continue
-        motor = {pos: device_ports.get(f"{name} {pos}", []) for pos in ("N", "R")}
+        jmri = name.split(" (OS ")[0]       # a crossover half row is "Switch 7 (OS Switch 7b)"; its devices are the turnout's
+        motor = {pos: device_ports.get(f"{jmri} {pos}", []) for pos in ("N", "R")}
         if not motor["N"] and not motor["R"]:
             warn(f"TurnoutSummary: {name} has no motor pins on the DNOU8 sheet")
         t = {
@@ -509,7 +510,7 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
             if not pid:
                 continue
             dev = next((x["device"] for b in nodes.get(pid.split("-")[0], {}).get("inputs", []) for x in b["pins"] if x["port"] == pid), None)
-            if dev != f"{name} {want}":
+            if dev != f"{jmri} {want}":
                 warn(f"TurnoutSummary: {name} {f} → {pid}, but DNIN8 has {dev or 'nothing'} there")
         turnouts.append(t)
 
