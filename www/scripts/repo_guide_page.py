@@ -92,6 +92,7 @@ HARTLIB_OTHER = {
     "names": "the name map's columns",
     "devices": "the device master (devices.csv), its dictionary and its checks",
     "tables_build": "the template and the other parts the generated tables.xml is built from",
+    "store_split": "the split of a pulled PanelPro Store back into the template and devices.csv",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",
     "level_devices": "the main and upper levels' device names",

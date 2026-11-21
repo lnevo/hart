@@ -32,8 +32,8 @@ Device facts are kept three times: `public_name_map.csv`, `device_map_staging.cs
 - The deploy-time rewrite of `tables.xml` (`disable_digicon_sml_in_tables.py`) moves into the generator, so the hosts get exactly the committed bytes.
 
 **Pulls**
-- `make tables-pull` and `make tables-pull-pi` compare the Store with the generated file and send each change to its source. A rename made in PanelPro on a hand-kept row updates `devices.csv`. A change to a script-owned row fails the pull and names the script to change.
-- Anything the pull cannot place fails the pull, naming each element. Nothing is guessed.
+- `make tables-pull` and `make tables-pull-pi` keep the Store with its base, and `tools/schematic/split_store.py` compares the Store, the base and the generated file item by item.
+- Amended by the owner, 2026-11-20 (R9d): the default is to keep the Store. What the template holds, and anything new the owner made that the build does not claim, goes into the template. The repo wins on what the build makes (the `devices.csv` beans, the panel, the logic, the Digicon rule), and each dropped edit is listed. A rename or comment on a hand-kept `devices.csv` row, and any item both the repo and the Store changed, is reviewed: the owner merges or drops each one. A Store counts as taken only once its split is merged (`data/store_splits.csv`).
 
 **Cut-over gate**
 - The first generated `tables.xml` matches the committed one byte for byte after a defined normalisation. A sandbox PanelPro load and Store returns the same bytes. Every remaining difference is listed and explained before the switch.

@@ -194,6 +194,18 @@ columns). The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-2
 
 Errors are `TablesBuildError`, naming the file, section or row.
 
+### `hartlib.store_split`
+
+The split of a pulled PanelPro Store back into the sources (R9d; `tools/schematic/split_store.py` runs it). It
+compares the base (what the host had before the session), the repo's generated `tables.xml` and the Store, all
+normalised, item by item (`index`: a bean, a setting, a section's attributes, a Signal Mast Logic, an extra section,
+a panel). `plan()` sorts each item the owner changed: KEPT (a template item the repo did not change: the template
+takes it), CLASH (the repo changed it too, or there is no base: reviewed), DEVICE (a rename or comment on a hand-kept
+`devices.csv` row: reviewed, `Edit`s to write) and DROPPED (the build's: the repo wins, with what to change instead).
+`new_template()` writes the chosen template items, `edited_rows()` the merged cells, and `verify()` checks a
+rebuild gives exactly what the plan promised. `read_template()` accepts an extra section a split kept (a Route
+table, say), never a second copy of a known one. Errors are `SplitError`.
+
 ### `hartlib.level_masts`
 
 The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by

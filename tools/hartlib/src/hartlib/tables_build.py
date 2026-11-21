@@ -161,9 +161,17 @@ def read_template(path: Path = TEMPLATE) -> tables.Tables:
     missing = [f"<{t} class={c}>" if c else f"<{t}>" for t, c in SECTIONS if (t, c) not in got]
     if missing:
         raise TablesBuildError(f"{where}: no {', '.join(missing)} section")
-    if got != list(SECTIONS):
+    known = [k for k in got if k in SECTIONS]
+    if known != list(SECTIONS):
         raise TablesBuildError(f"{where}: the sections are not exactly {', '.join(t for t, _ in SECTIONS)} in that "
                                f"order (got {', '.join(t for t, _ in got)})")
+    # A section outside SECTIONS is one the owner made in PanelPro (a Route table, say) that a Store split kept
+    # (hartlib.store_split); it stays where the Store had it. Never a second copy of a known one, a panel or the
+    # file history.
+    extra = [k for k in got if k not in SECTIONS]
+    bad = sorted({t for t, _ in extra if t in {s for s, _ in SECTIONS} | {"filehistory"} or t.lower().endswith("editor")})
+    if bad or len(set(extra)) != len(extra):
+        raise TablesBuildError(f"{where}: holds {', '.join(bad) or 'a section'} twice or out of place")
     held = envelope_items(doc.root)
     if held:
         raise TablesBuildError(f"{where}: holds what a Store writes each time ({', '.join(held)}); the envelope is "

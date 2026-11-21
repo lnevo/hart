@@ -2,7 +2,7 @@
 # Load HART tables in PanelPro, run stock Stage 1 (auto-Yes shared-sensor), store.
 # Parked with the Dispatcher System. tables.xml is generated since R9c (ADR-029), so the Stage 1 Store and
 # its repairs go to stage1-<date>.xml in the pulled folder (hart_pulled_dir, outside every checkout), never over
-# tables.xml; R9d's split takes such a Store back into the sources. On unpark, decide how Stage 1's output
+# tables.xml; split_store.py (R9d) takes such a Store back into the sources. On unpark, decide how Stage 1's output
 # becomes source data before relying on this wrapper.
 # The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
 # PanelPro on timeout or a signal) is tools/hosts/panelpro_session.sh.

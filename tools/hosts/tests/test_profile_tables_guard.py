@@ -48,6 +48,30 @@ class Unpulled(unittest.TestCase):
     def test_no_file_is_nothing_to_lose(self) -> None:
         self.assertFalse(self.unpulled())
 
+    def test_a_store_split_into_the_checkout_is_taken(self) -> None:
+        """R9d: a Store whose hash store_splits.csv (of the checkout the guard is in) names is in the sources, so
+        installing the generated file over it loses nothing."""
+        root = self.tmp / "checkout"
+        guard = root / "tools/hosts/profile_tables_guard.sh"
+        guard.parent.mkdir(parents=True)
+        shutil.copy2(GUARD, guard)
+        (self.uf / "tables.xml").write_text("<stored/>")
+        (self.uf / ".tables_deployed.sha256").write_text(hashlib.sha256(b"<deployed/>").hexdigest() + "\n")
+
+        def unpulled() -> bool:
+            return subprocess.run(["bash", "-c", f'source "{guard}"; profile_tables_unpulled "{self.src}" "{self.uf}"'],
+                                  capture_output=True, text=True, timeout=30).returncode == 0
+
+        self.assertTrue(unpulled())
+        splits = root / "jmri/layouts/hart/data/store_splits.csv"
+        splits.parent.mkdir(parents=True)
+        splits.write_text("store_sha256,host,store_file,base,plan,split_date\n"
+                          f"{hashlib.sha256(b'<stored/>').hexdigest()},mac,mac-1.xml,none,abc,2026-11-20\n")
+        self.assertFalse(unpulled())
+        listed = subprocess.run(["bash", "-c", f'source "{guard}"; hart_split_shas "{root}"'], capture_output=True,
+                                text=True, timeout=30)
+        self.assertEqual([hashlib.sha256(b"<stored/>").hexdigest()], listed.stdout.split())
+
 
 class PulledDir(unittest.TestCase):
     def test_the_default_is_beside_the_user_files_and_made_on_demand(self) -> None:
