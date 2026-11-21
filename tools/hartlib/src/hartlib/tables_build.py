@@ -769,9 +769,10 @@ def digicon_masts(root: ET.Element, wiring: Path = paths.WIRING) -> set[str]:
     standing on wired LCOS heads (IH and digits) in `root`. A mast wiring.csv names that is on internal heads is never
     taken over."""
     from . import wiring as wiring_source     # here, not at the top: wiring imports railroad_facts
+    from .railroad_facts import FactsError
     try:
         planned = {r["mast_user_name"] for r in wiring_source.digicon_rows(wiring)}
-    except railroad.FactsError as exc:
+    except FactsError as exc:
         raise TablesBuildError(str(exc)) from None
     wired = {tables.user_name(m) for m in tables.masts(root) if _LCOS_HEAD.search(tables.system_name(m))}
     return planned & wired

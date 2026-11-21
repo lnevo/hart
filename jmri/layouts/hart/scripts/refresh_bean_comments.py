@@ -13,6 +13,7 @@ the parked USS CTC scripts (cleanup_uss_ctc_leftovers.py, uss_switch_only_column
 from __future__ import annotations
 
 import csv
+import functools
 import re
 import sys
 from collections import OrderedDict
@@ -22,6 +23,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import paths  # noqa: E402
 from hartlib import devices  # noqa: E402
+from hartlib.railroad_facts import FactsError  # noqa: E402
 from hartlib.names import jmri_comment, row_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -760,7 +762,11 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
 
 
 DEVICE_MAP_COMMENTS_BY_SYS, DEVICE_MAP_COMMENTS_BY_USER = load_device_map_comments()
-WIRING_HEAD_COMMENTS = load_wiring_head_comments()
+@functools.lru_cache(maxsize=None)
+def wiring_head_comments() -> dict[str, str]:
+    """load_wiring_head_comments of the committed files, read the first time a head comment is asked for (not at
+    import: the parked USS CTC scripts import this module, and a fault in wiring.csv is main()'s to report)."""
+    return load_wiring_head_comments()
 
 
 def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> str | None:
@@ -771,7 +777,7 @@ def comment_for(kind: str, system_name: str, user_name: str, existing: str) -> s
     if kind == "block" and user_name in BLOCK_COMMENTS:
         return BLOCK_COMMENTS[user_name]
     if kind == "signalhead":
-        wired = WIRING_HEAD_COMMENTS.get(user_name)
+        wired = wiring_head_comments().get(user_name)
         if wired:
             return wired
     mapped = DEVICE_MAP_COMMENTS_BY_SYS.get(system_name) or DEVICE_MAP_COMMENTS_BY_USER.get(
@@ -911,7 +917,7 @@ def main() -> int:
     paths.exit_if_overridden(Path(__file__).name)
     try:
         n_map = sync_map_head_comments()
-    except devices.DevicesError as exc:
+    except (devices.DevicesError, FactsError) as exc:
         print(f"refresh_bean_comments.py: {exc}", file=sys.stderr)
         return 2
     print(f"devices.csv: {n_map} head comments (pnm_comment) from wiring.csv" if n_map

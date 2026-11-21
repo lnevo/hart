@@ -133,7 +133,7 @@ class Inventory(unittest.TestCase):
 
     def test_the_lamps_are_named_as_the_digicon_sheet_names_them(self):
         names = {r[0]: r[4] for r in V86["DNOU8"][1:]}
-        self.assertEqual([names[f"C4-OU2-{p}"] for p in (1, 2, 3)], ["Head 6LB T R", "Head 6LB T Y", "Head 6LB T G"])
+        self.assertEqual([names[f"C4-OU2-{p}"] for p in (1, 2, 3)], ["Head 6LB R", "Head 6LB Y", "Head 6LB G"])
 
     def test_the_power_districts_are_left_blank(self):
         """Not mapped yet (owner, 2026-11-21): the old inventory's districts were old names, not real."""

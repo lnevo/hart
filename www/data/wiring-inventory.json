@@ -995,28 +995,28 @@
       {
        "pin": 1,
        "port": "C4-OU2-1",
-       "device": "Head 6LB T R",
+       "device": "Head 6LB R",
        "kind": "lamp",
        "color": "R",
-       "head": "6LB T",
+       "head": "6LB",
        "place": "West - Staging"
       },
       {
        "pin": 2,
        "port": "C4-OU2-2",
-       "device": "Head 6LB T Y",
+       "device": "Head 6LB Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "6LB T",
+       "head": "6LB",
        "place": "West - Staging"
       },
       {
        "pin": 3,
        "port": "C4-OU2-3",
-       "device": "Head 6LB T G",
+       "device": "Head 6LB G",
        "kind": "lamp",
        "color": "G",
-       "head": "6LB T",
+       "head": "6LB",
        "place": "West - Staging"
       },
       {
@@ -6941,9 +6941,9 @@
  ],
  "signals": [
   {
-   "head": "6LB T",
+   "head": "6LB",
    "mast": "6LB",
-   "disc": "T",
+   "disc": "S",
    "node": "C4",
    "place": "West - Staging",
    "packed": "IH432",

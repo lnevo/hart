@@ -128,7 +128,7 @@ def spare_rows(path: Path | None = None) -> list[dict]:
 
 
 def lamp_names(wired: list[dict]) -> dict[str, str]:
-    """{port id: lamp name} of the Digicon heads as wired (hartlib.wiring.digicon_rows: "Head 6LB T R"), so DNOU8 and the
+    """{port id: lamp name} of the Digicon heads as wired (hartlib.wiring.digicon_rows: "Head 6LB R", "Head 24RA T R"), so DNOU8 and the
     DigiconSignals sheet name a staging lamp the same."""
     return {r["port_id"]: r["user_name"] for r in wired if r.get("port_id") and r.get("user_name")}
 
@@ -400,10 +400,8 @@ def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
 def build(dest: Path) -> None:
     rows = read_device_rows()
     by_name = {r["user_name"]: r for r in rows}
-    node_rows = read_node_rows()
-    place = {f"C{r['node']}": f"{r['area']} - {LEVEL_NAME[r['level']]}" for r in node_rows}
-    wired = [dict(r, board_location=place.get(r["parent_node_id"], "")) for r in wiring.digicon_rows()]
-    nodes = gather(rows + spare_rows(), node_rows, lamp_names(wired))
+    wired = wiring.digicon_rows()
+    nodes = gather(rows + spare_rows(), read_node_rows(), lamp_names(wired))
     add_local(nodes)
     calibration(nodes)
     wb = Workbook()

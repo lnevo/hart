@@ -100,8 +100,17 @@ class Digicon(unittest.TestCase):
                           ("C2-OU1-3", "IH232", "Head 24RA T G", "T", "track/signalhead/232"),
                           ("C2-OU1-4", "IH238", "Head 24RA B R", "B", "track/signalhead/238")])
         self.assertEqual({r["mast_user_name"] for r in rows}, {"Mast 24RA", "Mast 6LB"})
-        self.assertEqual([r["uid"] for r in rows if r["mast_user_name"] == "Mast 6LB"], ["32"] * 3)
+        single = [r for r in rows if r["mast_user_name"] == "Mast 6LB"]
+        self.assertEqual([(r["uid"], r["head_role"], r["user_name"]) for r in single],
+                         [("32", "S", "Head 6LB R"), ("32", "S", "Head 6LB Y"), ("32", "S", "Head 6LB G")])
+        self.assertEqual({r["board_location"] for r in rows}, {"North - Staging", "West - Staging"})
         self.assertEqual(W.calibration_ports(p), {"C4-OU2-8"})
+
+    def test_a_planned_head_is_no_digicon_head(self):
+        """Only wired heads are Digicon heads, as the old signal_wiring.csv held: a planned head's ports are
+        reserved, nothing is on them yet."""
+        p = self.read('1,head,Head 24RA Top,,,,,2,0,OU1,"1,2,3",planned,\n1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,\n')
+        self.assertEqual({r["mast_user_name"] for r in W.digicon_rows(p)}, {"Mast 6LB"})
 
     def test_the_committed_heads_are_6lb(self):
         self.assertEqual({r["system_name"] for r in W.digicon_rows()}, {"IH432"})
