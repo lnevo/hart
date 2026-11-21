@@ -34,6 +34,7 @@ import shutil
 import subprocess
 import sys
 import urllib.request
+from urllib.parse import urlsplit
 import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
@@ -1034,14 +1035,30 @@ def operating_reason() -> str | None:
         )
     except (OSError, subprocess.SubprocessError) as err:
         raise LiveStsError(f"cannot read the operating flag ({err}); not touching the live STS") from None
-    return (out.stdout.strip() or "set") if out.returncode == 0 else None
+    if out.returncode == 1:
+        return None
+    if out.returncode != 0:
+        raise LiveStsError(f"cannot read the operating flag (exit {out.returncode}); not touching the STS")
+    line = out.stdout.strip()
+    return line.split("reason=", 1)[1] if "reason=" in line else (line or "set")
+
+
+def target_is_local(url: str) -> bool:
+    """The Mac's own STS (UAT or sandbox) is Mac-only work and stays open while operating."""
+    return (urlsplit(url).hostname or "") in ("localhost", "127.0.0.1", "::1")
+
+
+def target_url() -> str:
+    return os.environ.get("STS_API_URL", "").strip() or "http://localhost:8980/sts/api/v1"
 
 
 @contextlib.contextmanager
 def capped_timeout(seconds: int):
     """sts_api waits up to an hour per request (for long tasks); a read here must not."""
     real = urllib.request.urlopen
-    urllib.request.urlopen = lambda req, timeout=None, **kw: real(req, timeout=seconds, **kw)
+    urllib.request.urlopen = lambda url, data=None, timeout=None, *a, **kw: real(
+        url, data, seconds, *a, **kw
+    )
     try:
         yield
     finally:
@@ -1063,7 +1080,7 @@ def fetch_live_cars() -> tuple[str, str, list[dict]]:
     url = sts_api.base_url()
     try:
         with capped_timeout(LIVE_STS_TIMEOUT):
-            health = sts_api.get("/health") or {}
+            health = sts_api.get("/health")
             cars = sts_api.get_all("/cars")
     except sts_api.ApiError as err:
         if err.code == "unreachable":
@@ -1071,6 +1088,8 @@ def fetch_live_cars() -> tuple[str, str, list[dict]]:
         raise LiveStsError(f"STS at {url} refused the read: {err}") from None
     except (OSError, ValueError, TypeError) as err:  # timeouts and bad bodies
         raise LiveStsError(f"cannot read STS at {url}: {type(err).__name__}: {err}") from None
+    if not isinstance(health, dict):
+        raise LiveStsError(f"STS at {url} gave an unexpected /health answer: {health!r}")
     return url, str(health.get("stack", "unknown")), cars
 
 
@@ -1091,22 +1110,28 @@ def live_sts_diffs(rows: list[dict], live: list[dict], passenger_types) -> list[
 
 def print_live_sts(rows: list[dict], show_all: bool, fetch=fetch_live_cars, operating=operating_reason) -> int:
     """The opt-in live STS section. Returns 0, or 2 when it could not run (nothing else is read instead)."""
-    print("\nLive STS fields (GET /cars, read only):")
+    print("\nSTS API fields (GET /cars, read only):")
     try:
-        reason = operating()
-        if reason:
-            raise LiveStsError(f"the operating flag is set ({reason}); the live STS is not read")
+        if not target_is_local(target_url()):
+            reason = operating()
+            if reason:
+                raise LiveStsError(f"the operating flag is set ({reason}); {target_url()} is not read")
         gen, why = seed_helpers()
         if gen is None:
             raise LiveStsError(f"cannot check: {why}")
         url, stack, live = fetch()
     except LiveStsError as err:
-        print(f"  Cannot check the live STS: {err}")
+        print(f"  Cannot check the STS API: {err}")
         return 2
     print(f"  Target: {stack} ({url}), {len(live)} cars")
+    marks = [c.get("reporting_marks") for c in live]
+    seen = {m for m in marks if m}
+    dups = sorted({m for m in seen if marks.count(m) > 1})
+    if dups:
+        print(f"  Duplicate reporting marks in the STS: {' '.join(dups)}")
     print_diffs(live_sts_diffs(rows, live, gen.PASSENGER_TYPES), show_all)
     repo_marks = {f"{a['roadName']}{a['roadNumber']}" for a in expected_cars(rows, frozenset()).values()}
-    extra = sorted({c["reporting_marks"] for c in live} - repo_marks)
+    extra = sorted(seen - repo_marks)
     print(f"  In the live STS, not in the repository: {' '.join(extra) or 'none'}")
     return 0
 
@@ -1149,6 +1174,9 @@ def cmd_compare(args: argparse.Namespace) -> int:
     photo_ids = {row_id(r) for r in rows if r.get("source_image")} - locos
     print(f"  Photographed cars not in STS: {' '.join(sorted(photo_ids - marks)) or 'none'}")
     show_all = getattr(args, "all", False)
+    if getattr(args, "sts_url", None) and not getattr(args, "live_sts", False):
+        print("--sts-url only applies together with --live-sts", file=sys.stderr)
+        return 2
     print_field_sections(rows, Path(args.ops_live), show_all)
     if getattr(args, "live_sts", False):
         if getattr(args, "sts_url", None):

@@ -24,7 +24,7 @@ class LiveStsTests(unittest.TestCase):
         self.requests = []
 
     def fake_urlopen(self, body=None, error=None):
-        def opener(req, timeout=None, **kw):
+        def opener(req, data=None, timeout=None, **kw):
             self.requests.append((req.get_method(), req.full_url, timeout))
             if error:
                 raise error
@@ -81,6 +81,74 @@ class LiveStsTests(unittest.TestCase):
         self.assertEqual(rc, 2)
         self.assertIn("operating flag is set (speed matching)", out)
         self.assertEqual(self.requests, [])
+
+    def test_missing_or_null_mark_does_not_crash_and_duplicates_are_reported(self):
+        live = [{"reporting_marks": "NW2", "remarks": "Flatcar 52ft"}, {"remarks": "x"},
+                {"reporting_marks": None}, {"reporting_marks": "NW2", "remarks": "Flatcar 52ft"}]
+        rc, out = self.run_section(live)
+        self.assertEqual(rc, 0)
+        self.assertIn("Duplicate reporting marks in the STS: NW2", out)
+        self.assertIn("not in the repository: none", out)
+
+    def test_bad_health_answer_is_a_clear_error(self):
+        rc, out = self.run_section_health(["not", "a", "dict"])
+        self.assertEqual(rc, 2)
+        self.assertIn("unexpected /health answer", out)
+
+    def run_section_health(self, health):
+        real = self.fake_urlopen([])
+        out = io.StringIO()
+        env = {"STS_API_URL": "http://sts.example.invalid/sts/api/v1", "STS_API_TOKEN": "x"}
+        import json as _json
+
+        def opener(req, data=None, timeout=None, **kw):
+            class Resp:
+                def __enter__(self):
+                    return self
+
+                def __exit__(self, *exc):
+                    return False
+
+                def read(self):
+                    return _json.dumps({"data": health, "meta": {}}).encode()
+            return Resp()
+
+        with unittest.mock.patch.dict("os.environ", env), unittest.mock.patch("urllib.request.urlopen", opener), \
+                contextlib.redirect_stdout(out):
+            rc = cars.print_live_sts([ROW], False, operating=lambda: None)
+        return rc, out.getvalue()
+
+    def test_local_target_is_read_while_operating(self):
+        out = io.StringIO()
+        env = {"STS_API_URL": "http://localhost:8980/sts/api/v1", "STS_API_TOKEN": "x"}
+        with unittest.mock.patch.dict("os.environ", env), self.fake_urlopen([]), \
+                contextlib.redirect_stdout(out):
+            rc = cars.print_live_sts([ROW], False, operating=lambda: "busy")
+        self.assertEqual(rc, 0)
+        self.assertTrue(self.requests)
+
+
+class OperatingReasonTests(unittest.TestCase):
+    def run_status(self, code, stdout=""):
+        done = unittest.mock.Mock(returncode=code, stdout=stdout)
+        with unittest.mock.patch("subprocess.run", return_value=done):
+            return cars.operating_reason()
+
+    def test_clear_set_and_unreadable(self):
+        self.assertIsNone(self.run_status(1, "not operating"))
+        self.assertEqual(self.run_status(0, "operating: by=o since=t reason=speed run"), "speed run")
+        with self.assertRaises(cars.LiveStsError):
+            self.run_status(2, "usage")
+
+    def test_exit_2_refuses_the_section(self):
+        out = io.StringIO()
+        done = unittest.mock.Mock(returncode=2, stdout="")
+        env = {"STS_API_URL": "http://sts.example.invalid/sts/api/v1"}
+        with unittest.mock.patch.dict("os.environ", env), unittest.mock.patch("subprocess.run", return_value=done), \
+                contextlib.redirect_stdout(out):
+            rc = cars.print_live_sts([ROW], False)
+        self.assertEqual(rc, 2)
+        self.assertIn("cannot read the operating flag", out.getvalue())
 
 
 if __name__ == "__main__":
