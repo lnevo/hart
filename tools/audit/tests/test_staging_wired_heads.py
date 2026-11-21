@@ -53,6 +53,36 @@ class CommittedMap(unittest.TestCase):
         self.assertEqual([(r["system_name"], r["jmri_name"]) for r in head], [("IH432", "IH432")])
 
 
+def wiring_file(text: str) -> Path:
+    d = Path(tempfile.mkdtemp())
+    p = d / "wiring.csv"
+    p.write_text(text, encoding="utf-8")
+    return p
+
+
+class WiringHeads(unittest.TestCase):
+    """wiring_heads: a wired head's address, node and wiring text are wiring.csv's; a wired head row it does not
+    list stops."""
+    HEAD = ",".join(bsm.wiring.COLUMNS) + "\n"
+
+    def test_the_committed_head(self):
+        got = bsm.wiring_heads([MAST, WIRED, INTERNAL])
+        h = got["Mast 6LB"]["Head 6LB"]
+        self.assertEqual((h["jmri_name"], h["node"], h["comment"], h["notes"]),
+                         ("IH432", "4", "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3", "wired (owner, 2026-11-18)"))
+
+    def test_a_moved_head_follows_wiring_csv(self):
+        p = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,1,OU2,"4,5,6",wired,\n')
+        h = bsm.wiring_heads([MAST, WIRED], p)["Mast 6LB"]["Head 6LB"]
+        self.assertEqual((h["system_name"], h["comment"]), ("IH433", "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6"))
+
+    def test_a_wired_head_wiring_csv_does_not_list_stops(self):
+        with self.assertRaisesRegex(bsm.RuleError, "Head 6LB is wired .* but has no head row in wiring.csv"):
+            bsm.wiring_heads([MAST, WIRED], wiring_file(self.HEAD))
+        with self.assertRaisesRegex(bsm.RuleError, "is not a staging head name"):
+            bsm.wiring_heads([], wiring_file(self.HEAD + '1,head,Signal 6,,,,,4,0,OU2,"1,2,3",wired,\n'))
+
+
 class WiredHeads(unittest.TestCase):
     """wired_heads: a head row whose jmri_name is not its internal name is wired; anything else odd stops."""
 
@@ -115,14 +145,15 @@ class Rebuild(unittest.TestCase):
     def setUpClass(cls):
         cls.want, cls.gen, _virtual = bsm.build()
 
-    def build_with(self, edit):
+    def build_with(self, edit=None, wiring_edit=None):
         """build() on a copy of the repo's devices.csv whose staging device-map rows `edit(rows)` changed (the mast and
-        head rows it gives are the ones bsm holds); returns ({path name: text}, generated masts)."""
+        head rows it gives are the ones bsm holds) and of wiring.csv (`wiring_edit(text)`); returns ({path name:
+        text}, generated masts)."""
         with tempfile.TemporaryDirectory() as d:
             real = devices.Files.here()
             files = real.but(master=Path(d) / "devices.csv")
             held = list(devices.load(real))
-            rows = edit(devices.device_map_rows(held, ("1",)))
+            rows = (edit or (lambda x: x))(devices.device_map_rows(held, ("1",)))
             prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
             mine = [devices.master_row(r, "build_staging_masts.py", prior.get((r["level"], r["layer"], r["user_name"])))
                     for r in rows if r["layer"] in bsm.WRITES]
@@ -132,21 +163,20 @@ class Rebuild(unittest.TestCase):
             held = devices.replace_rows(held, "build_staging_masts.py", mine, drops=gone)
             for path, text in devices.texts(held, files).items():
                 path.write_text(text, encoding="utf-8")
+            text = bsm.wiring.PATH.read_text(encoding="utf-8")
+            wf = Path(d) / "wiring.csv"
+            wf.write_text(wiring_edit(text) if wiring_edit else text, encoding="utf-8")
             with unittest.mock.patch.object(bsm, "DEVICE_MAP", files.master), \
                     unittest.mock.patch.object(sdm, "DEVICE_MAP", files.master), \
+                    unittest.mock.patch.object(bsm.wiring, "PATH", wf), \
                     unittest.mock.patch.object(bsm, "device_files", lambda: files):
                 want, gen, _virtual = bsm.build()
             return {p.name: t for p, t in want.items()}, gen
 
     @staticmethod
-    def wire(user, ih, node):
-        """An edit that wires head `user` to `ih` on `node`."""
-        def edit(rows):
-            for r in rows:
-                if r["layer"] == "head" and r["user_name"] == user:
-                    r.update(system_name=ih, jmri_name=ih, node=node, notes="wired (test)")
-            return rows
-        return edit
+    def wire(user, node, index, notes="wired (test)"):
+        """A wiring.csv edit that wires head `user` on `node` as LCOS Signal `index` (IH<node><32 + index>)."""
+        return lambda text: text + f'1,head,{user},,,,,{node},{index},OU4,"6,7,8",wired,{notes}\n'
 
     def test_the_wired_head_is_kept(self):
         rows = staging_rows(self.want[devices.Files.here().master])      # the master the build gives, its staging rows
@@ -157,29 +187,27 @@ class Rebuild(unittest.TestCase):
         self.assertEqual(next(m for m in self.gen if m["mast"] == "Mast 6LB")["signal_kind"], "field")
 
     def test_a_newly_wired_head_is_kept(self):
-        out, _gen = self.build_with(self.wire("Head 2R", "IH999", "9"))
+        out, _gen = self.build_with(wiring_edit=self.wire("Head 2R", 9, 0))
         rows = staging_rows(out[devices.Files.here().master.name])
         head = next(r for r in rows if r["user_name"] == "Head 2R")
-        self.assertEqual((head["jmri_name"], head["node"], head["notes"]), ("IH999", "9", "wired (test)"))
+        self.assertEqual((head["jmri_name"], head["node"], head["notes"]), ("IH932", "9", "wired (test)"))
         mast = next(r for r in rows if r["user_name"] == "Mast 2R")
-        self.assertIn("(IH999)", mast["system_name"])
+        self.assertIn("(IH932)", mast["system_name"])
         self.assertEqual(mast["node"], "9")              # its old row had no node: the head row's
-        self.assertIn("IH999=Head 2R", out[bsm.MASTS.name])
+        self.assertIn("IH932=Head 2R", out[bsm.MASTS.name])
 
     def test_a_wired_intermediate_is_a_field_signal(self):
         inter = next(m for m in self.gen if "milepost" in m)
         user = "Head " + inter["mast"].removeprefix("Mast ")
-        out, gen = self.build_with(self.wire(user, "IH998", "9"))
+        out, gen = self.build_with(wiring_edit=self.wire(user, 9, 1))
         self.assertEqual(next(m for m in gen if m["mast"] == inter["mast"])["signal_kind"], "field")
         sig = next(r for r in rows_of(out[bsm.SIGNALS.name]) if r["mast"] == inter["mast"])
         self.assertEqual(sig["signal_kind"], "field")
-        self.assertIn("IH998=" + user, out[bsm.MASTS.name])
+        self.assertIn("IH933=" + user, out[bsm.MASTS.name])
 
     def test_a_wired_head_with_no_mast_stops(self):
-        def extra(rows):
-            return rows + [row("head", "Head 98L", "IH998", node="9")]
         with self.assertRaisesRegex(bsm.RuleError, r"masts the rule does not place: Mast 98L \(Head 98L\)"):
-            self.build_with(extra)
+            self.build_with(wiring_edit=self.wire("Head 98L", 9, 2))
 
     def test_a_wired_head_whose_mast_has_other_heads_stops(self):
         def split(rows):
@@ -188,7 +216,7 @@ class Rebuild(unittest.TestCase):
                     r["user_name"] = "Head 6LB Top"
             return rows
         with self.assertRaisesRegex(bsm.RuleError, "Mast 6LB: the rule gives 1 head"):
-            self.build_with(split)
+            self.build_with(split, lambda text: text.replace("1,head,Head 6LB,", "1,head,Head 6LB Top,"))
 
 
 if __name__ == "__main__":

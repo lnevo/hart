@@ -411,6 +411,18 @@ class TheRowForms(unittest.TestCase):
             D.describe(blank(user_name="X", role="panel_status"))
 
 
+def hand_keep(files, layer="turnout", user="Switch 1"):
+    """Make one row of the copied master hand-kept again (no written_by; since 2026-11-20 every committed row has a
+    writer), moved ahead of the writers' rows of its level as a hand-kept row stands, and return it."""
+    rows = [dict(r) for r in D.load(files)]
+    i = next(i for i, r in enumerate(rows) if r["layer"] == layer and r["user_name"] == user)
+    row = dict(rows.pop(i), written_by="")
+    at = next(i for i, r in enumerate(rows) if r["level"] == row["level"])
+    rows.insert(at, row)
+    files.master.write_text(D.master_text(rows), encoding="utf-8")
+    return row
+
+
 class TheWriters(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
@@ -477,7 +489,7 @@ class TheWriters(unittest.TestCase):
         D.outputs_after("build_staging_masts.py", renamed, self.files, drops=[key])
 
     def test_a_writer_that_gives_a_row_a_hand_kept_row_has_is_refused(self):
-        hand = next(r for r in D.load(self.files) if not r["written_by"] and r["layer"] == "turnout")
+        hand = hand_keep(self.files)
         stray = D.device_map_row(hand)
         with self.assertRaisesRegex(D.DevicesError, "would rewrite row"):
             D.outputs_after("build_staging_masts.py", [stray], self.files)
@@ -598,8 +610,7 @@ class ThePnmComments(unittest.TestCase):
         self.assertEqual((update.changed, update.texts), (0, {}))
 
     def test_a_hand_kept_row_changes_too(self):
-        rows = [dict(r) for r in D.load(self.files)]
-        hand = next(r for r in rows if r["layer"] == "turnout" and r["pnm_order"] and not r["written_by"])
+        hand = hand_keep(self.files)
         update = D.set_pnm_comments("turnout", {hand["user_name"]: "Node: 99"}, self.files)
         self.assertEqual(update.changed, 1)
         changed = {(r["layer"], r["user_name"]): r for r in csv.DictReader(io.StringIO(update.texts[self.files.master]))}

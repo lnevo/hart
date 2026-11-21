@@ -108,6 +108,14 @@ Lookups (all take the root element unless noted):
 | `section(root, container, tag)`, `elements(el)` | generic: all sections; children without comments |
 | `remove_child(parent, child)` | take a child out, keeping the indentation of what follows (the build's strip and `hartlib.parked`) |
 
+### `hartlib.wiring`
+
+`jmri/layouts/hart/data/wiring.csv`, the physical wiring source (owner, 2026-11-20): one row per device on an LCOS
+node. `wiring.read()` gives checked `Wire` rows; `w.address` is the JMRI system name (M2T408, M2S470, IH432, M2S1300)
+and `w.wiring_text` the wiring text devices.csv and the JMRI comments carry ("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2").
+Staging's rows are as wired in JMRI; main and upper's are the detectors the owner placed (planned), the rest of those
+levels being given out by `build_device_map.py`'s rule.
+
 ### `hartlib.railroad`
 
 The railroad's facts in one place: each fact file read once into typed objects, and the rules between the files
