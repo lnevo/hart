@@ -663,12 +663,17 @@ function app() {
     const off = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
     if (off.length) parts.push(`${off.join(" and ")} hidden`);
     showDepth();
-    const all = view.focus || sub.trim || view.lanes.size !== allLanes.length;
-    el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${sub.nodes.length} of ${DATA.nodes.length} boxes`
+    const all = view.focus || sub.trim || view.kindsOff.size || view.group || view.lanes.size !== allLanes.length;
+    const boxes = sub.nodes.reduce((n, b) => n + (groups.members[b.id] ? groups.members[b.id].length : 1), 0);  // a folder counts its boxes
+    el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${boxes} of ${DATA.nodes.length} boxes`
       : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`) +
-      (all ? ' <button id="showall" title="Back to the whole map; parked and retired boxes follow their ticks">Whole map</button>' : "");
+      (all ? ' <button id="showall" title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>' : "");
     const btn = document.getElementById("showall");
-    if (btn) btn.onclick = () => { view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes); fileIn.value = ""; syncControls(); render(false); writeHash(); };
+    if (btn) btn.onclick = () => {
+      view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
+      view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
+      syncControls(); render(false); writeHash();
+    };
   }
 
   /* ---- overview in the corner: the whole drawing as plain boxes, with a box round what the main view shows */
@@ -710,7 +715,7 @@ function app() {
   /* ---- pan and zoom */
   function setVB(x, y, w, h) { vb.x = x; vb.y = y; vb.width = w; vb.height = h; updateNav(); }
   function fit() {  // whole drawing in view, below the toolbar
-    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom + 10;
+    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10;
     const s = Math.max(W / r.width, H / Math.max(r.height - top, 100));
     setVB(-LEFT - (r.width * s - W) / 2, -top * s - (r.height * s - top * s - H) / 2, r.width * s, r.height * s);
   }
@@ -774,7 +779,7 @@ function app() {
   }
   // a box the user can pick in place: with "highlighted only" it may be off the drawn chain but inside the filters
   const pickable = id => (view.trim ? baseIds : visible).has(id);
-  const link = id => `<a data-go="${esc(id)}">${esc(byId[id].label)}</a>${visible.has(id) || groups.groupOf[id] ? "" : ' <span class="off">(not shown)</span>'}`;
+  const link = id => `<a data-go="${esc(id)}">${esc(byId[id].label)}</a>${visible.has(id) || visible.has(groups.groupOf[id]) ? "" : ' <span class="off">(not shown)</span>'}`;
   function select(id, quiet) {
     clearFocus(false);
     selected = id;
@@ -885,7 +890,7 @@ function app() {
     else pick(id, "zoom");
   });
   document.addEventListener("keydown", e => {
-    if (e.target === q || e.target === fileIn || e.target.tagName === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;  // typing in any field, the site header's search too
     if (e.key === "Escape") clearFocus(true);
     if (e.key === "f" || e.key === "F") fit();
   });
@@ -943,7 +948,7 @@ function app() {
     if (!b) return;
     const pr = DATA.presets[Number(b.dataset.preset)], steps = v => (v === "all" ? Infinity : v);
     view.focus = selected = pr.focus; view.up = steps(pr.up); view.down = steps(pr.down);
-    view.lanes = new Set(allLanes);
+    view.lanes = new Set(allLanes); view.kindsOff.clear(); view.trim = false;  // the preset's step counts as written
     fileIn.value = byId[pr.focus].path || byId[pr.focus].label;
     syncControls(); render(false); writeHash();
   });
@@ -958,7 +963,10 @@ function app() {
 
   /* ---- lanes, kinds and status filters */
   const kindsBox = document.getElementById("kindlist");
-  kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => k !== "folder").map(([k, [label, fill, ink]]) =>
+  /* Host and hand-work boxes are where a chain stops (endsChain), so they are not offered: bridging over them would
+     run every chain on through the deploys. */
+  const hideable = k => Object.hasOwn(DATA.kinds, k) && !["folder", "host", "human"].includes(k);
+  kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
     `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>`).join("<br>");
   kindsBox.addEventListener("change", e => {
     const k = e.target.dataset.kind;
@@ -1018,7 +1026,7 @@ function app() {
   function readHash() {
     const h = new URLSearchParams(location.hash.slice(1));
     const focus = h.get("focus");
-    view.focus = focus && byId[focus] ? focus : null;
+    view.focus = focus && Object.hasOwn(byId, focus) ? focus : null;
     const steps = v => (v !== null && /^\d+$/.test(v) ? Number(v) : Infinity);
     view.up = steps(h.get("up")); view.down = steps(h.get("down"));
     if (h.get("up") === null && h.get("down") === null) {  // older links: dir=both|up|down and depth=N
@@ -1032,13 +1040,13 @@ function app() {
     else if (h.get("show") === null && (h.get("dir") !== null || h.get("depth") !== null)) view.parked = view.retired = true;  // older file links showed every status
     else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     view.trim = h.get("trim") === "1";
-    view.kindsOff = new Set((h.get("hidekind") || "").split(",").filter(k => k in DATA.kinds && k !== "folder"));
+    view.kindsOff = new Set((h.get("hidekind") || "").split(",").filter(hideable));
     view.compact = h.get("compact") === "1";
     view.group = h.get("folders") === "1";
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");
-    selected = node && (byId[node] || node.startsWith("folder:")) ? node : null;
-    if (selected && byId[selected] && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
+    selected = node && (Object.hasOwn(byId, node) || node.startsWith("folder:")) ? node : null;
+    if (selected && Object.hasOwn(byId, selected) && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
     fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
     syncControls();
   }
@@ -1050,13 +1058,15 @@ function app() {
     setVB(at[0], at[1], at[2], at[2] * r.height / r.width);
     return true;
   }
-  function arrive() {
+  function arrive(first) {  // first load: a file view opens at Fit; a later address change pans to the selected box
     readHash();
     render(false);
-    if (!restoreView() && selected && visible.has(selected) && !view.focus && !view.trim) centreOn(selected, true);
+    if (restoreView() || !selected || !visible.has(selected) || view.trim) return;
+    if (!view.focus) centreOn(selected, true);
+    else if (!first) centreOn(selected, false);
   }
-  arrive();
-  window.addEventListener("hashchange", arrive);
+  arrive(true);
+  window.addEventListener("hashchange", () => arrive(false));
 }
 
 </script><script src="../js/nav.js"></script><script>HARTOps.mountChrome("behind-pipeline-map").catch(function (e) { console.error(e); });</script></body></html>

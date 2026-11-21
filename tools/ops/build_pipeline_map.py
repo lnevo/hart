@@ -126,11 +126,19 @@ def load(path: Path) -> dict:
             problems.append(f"edge {e['from']} points at itself")
     for nid in sorted(ids - linked):
         problems.append(f"node {nid!r} has no links; link it or remove it")
-    for i, pr in enumerate(data.get("presets", [])):  # the page's start-here buttons
+    presets = data.get("presets", [])  # the page's start-here buttons
+    if not isinstance(presets, list):
+        problems.append("presets must be a list")
+        presets = []
+    for i, pr in enumerate(presets):
+        if not isinstance(pr, dict):
+            problems.append(f"preset {i + 1} must be an object: {pr!r}")
+            continue
         if not pr.get("label") or pr.get("focus") not in ids:
             problems.append(f"preset {i + 1} needs a label and a focus that is a node: {pr}")
         for side in ("up", "down"):
-            if not (pr.get(side) == "all" or isinstance(pr.get(side), int) and pr[side] >= 0):
+            v = pr.get(side)
+            if not (v == "all" or isinstance(v, int) and not isinstance(v, bool) and v >= 0):
                 problems.append(f"preset {pr.get('label')!r}: {side} must be a step count or \"all\"")
     if problems:
         raise GraphError("\n".join(problems))

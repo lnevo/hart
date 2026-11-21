@@ -78,6 +78,9 @@ class GraphChecksTest(unittest.TestCase):
             p.write_text(json.dumps({**g, "presets": [{"label": "Z", "focus": "z", "up": -1, "down": 1}]}))
             with self.assertRaisesRegex(MAP.GraphError, "preset 1 needs a label and a focus(.|\n)*up must be"):
                 MAP.load(p)
+            p.write_text(json.dumps({**g, "presets": ["x", {"label": "X", "focus": "x", "up": True, "down": 0}]}))
+            with self.assertRaisesRegex(MAP.GraphError, "preset 1 must be an object(.|\n)*'X': up must be"):
+                MAP.load(p)
 
     def test_repeated_node_and_edge(self) -> None:
         with self.assertRaisesRegex(MAP.GraphError, "listed twice"):
