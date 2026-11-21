@@ -13,8 +13,9 @@ from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
-import anyplan as A  # noqa: E402
 import levels_svg as L  # noqa: E402
+
+A = L.anyplan()     # the schematic-maps plugin's plan reader (schematic.anyplan)
 
 PLAN = L.DEFAULT_PLAN
 LEVELS_DIR = HERE.parent / "levels"
@@ -22,7 +23,7 @@ HEIGHTS = {"staging": -38.1, "main": 0.0, "upper": 10.79}
 
 
 def part(index, ends, curve=None):
-    """A part from (x, y, z, heading degrees) ends, classified as anyplan does."""
+    """A part from (x, y, z, heading degrees) ends, classified as the plan reader does."""
     e = [dict(x=x, y=y, z=z, a=math.radians(d)) for x, y, z, d in ends]
     p = dict(index=index, name="t%d" % index, ends=e, curve=curve, cm=100.0 if len(e) == 2 else None)
     p.update(A.classify(e))
@@ -212,6 +213,13 @@ class Cli(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, redirect_stderr(io.StringIO()) as err:
             self.assertEqual(L.main(["/nonexistent/Version 9.9z.any", tmp]), 2)
         self.assertIn("No such file", err.getvalue())
+
+    def test_a_missing_plugin_is_an_error_that_names_it(self) -> None:
+        missing = L.le_common.BuildError("schematic-maps plugin not found: run git submodule update --init ...")
+        with tempfile.TemporaryDirectory() as tmp, redirect_stderr(io.StringIO()) as err, \
+                mock.patch.object(L.le_common, "plugin_module", side_effect=missing):
+            self.assertEqual(L.main(["/nonexistent/Version 9.9z.any", tmp]), 2)
+        self.assertIn("the schematic-maps plugin: schematic-maps plugin not found", err.getvalue())
 
 
 @unittest.skipUnless(PLAN.exists(), "the owner's plan 5.3c is not on this machine")

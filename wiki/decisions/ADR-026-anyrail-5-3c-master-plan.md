@@ -20,8 +20,8 @@ Plan 5.3c draws these as track and joins staging to the main level through the h
 - Phase 2 (2026-11-19) took the rest: the inputs, the helix (each level's share up to the -5 cm cut, `anyplan.py --cut -5 --stubs`, replacing `helix_length_in` with the same totals, so the masts kept their names) and the drop of the overrides 5.3c draws as track.
 
 **The schematic**
-- The schematic inputs in `jmri/layouts/hart/data/schematic/inputs/` come from 5.3c, read by `tools/anyrail/anyplan.py`, and the overrides 5.3c draws as track are dropped. The bring-in steps are in [`archive/wiki/projects/anyrail-5-3c-handoff.md`](../../archive/wiki/projects/anyrail-5-3c-handoff.md).
-- `anyplan.py` reads a plan from the `.any` file itself, for any maker's track, and finds records by their shape instead of per-file tags or part names (PR #692).
+- The schematic inputs in `jmri/layouts/hart/data/schematic/inputs/` come from 5.3c, read by the schematic-maps plugin's `schematic anyplan` (hart's own `tools/anyrail/anyplan.py` until 2026-11-21), and the overrides 5.3c draws as track are dropped. The bring-in steps are in [`archive/wiki/projects/anyrail-5-3c-handoff.md`](../../archive/wiki/projects/anyrail-5-3c-handoff.md).
+- `anyplan.py` reads a plan from the `.any` file itself, for any maker's track, and finds records by their shape instead of per-file tags or part names (PR #692). The same reader ships in the schematic-maps plugin since 0.1.51 (model-railroad-skills#84), and hart uses it there (2026-11-21).
 
 **Block lengths (owner, 2026-11-20)**
 - Every staging block has its 5.3c length in `block_lengths.csv` (`plan_in`), written by `tools/schematic/plan_lengths.py` from the plan file and `parts.json`: a track block the plan's run between the turnout ends (as AnyRail's export measures it), an OS block its turnout's product length from the points to the frog end, read from the part's end points (a Peco code 83 #6 about 9.2 in, a #8 11.1 in). No hand-kept lengths are left: the old layout's yard and spur lengths, the 10 in OS placeholders and the engine house rule above are gone.

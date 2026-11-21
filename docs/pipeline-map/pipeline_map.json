@@ -720,7 +720,7 @@
    "kind": "external",
    "status": "live",
    "domain": "layout",
-   "desc": "Submodule plugin that solves and draws the schematic and builds CATS desks (cats module) and LE panels; cache in ~/.cache/hart/schematic.",
+   "desc": "Submodule plugin that reads the AnyRail .any plan (schematic anyplan: parts list, helix cut stubs), solves and draws the schematic and builds CATS desks (cats module) and LE panels; cache in ~/.cache/hart/schematic.",
    "path": "external/model-railroad-skills/plugins/schematic-maps",
    "local": true
   },
@@ -757,7 +757,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "AnyRail JMRI export snapshot; geometry source for the original bootstrap, kept for reference and anyplan test checks.",
+   "desc": "AnyRail JMRI export snapshot; geometry source for the original bootstrap, kept for reference.",
    "path": "jmri/layouts/hart/anyrail/hart.xml"
   },
   {
@@ -1204,15 +1204,6 @@
    "path": "jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py"
   },
   {
-   "id": "tools/anyrail/anyplan.py",
-   "label": "anyplan.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Reverse-engineered reader of the binary .any archive; also writes the parts list JSON for the schematic-maps plugin.",
-   "path": "tools/anyrail/anyplan.py"
-  },
-  {
    "id": "tools/anyrail/levels",
    "label": "anyrail/levels (svg, meta)",
    "kind": "output",
@@ -1245,7 +1236,7 @@
    "kind": "generator",
    "status": "retired",
    "domain": "layout",
-   "desc": "Early graph and route parsing prototypes (parse1/2, hartgraph, loop_route); superseded by anyplan.py.",
+   "desc": "Early graph and route parsing prototypes (parse1/2, hartgraph, loop_route); superseded by the schematic-maps plugin's anyplan reader.",
    "path": "tools/anyrail/prototype"
   },
   {
@@ -3611,7 +3602,7 @@
   },
   {
    "from": "ext:anyrail-plan",
-   "to": "tools/anyrail/anyplan.py",
+   "to": "external/model-railroad-skills/plugins/schematic-maps",
    "label": "reads"
   },
   {
@@ -4075,11 +4066,6 @@
   {
    "from": "human:www-authoring",
    "to": "www/scripts/share-cards.json"
-  },
-  {
-   "from": "jmri/layouts/hart/anyrail/hart.xml",
-   "to": "tools/anyrail/anyplan.py",
-   "label": "cross-check"
   },
   {
    "from": "jmri/layouts/hart/ctc",
@@ -5187,24 +5173,24 @@
    "label": "redraw PNGs"
   },
   {
-   "from": "tools/anyrail/anyplan.py",
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
    "to": "jmri/layouts/hart/data/schematic/inputs/main.json",
-   "label": "writes graph"
+   "label": "anyplan --cut stubs"
   },
   {
-   "from": "tools/anyrail/anyplan.py",
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
    "to": "jmri/layouts/hart/data/schematic/inputs/parts.json",
-   "label": "--parts"
+   "label": "anyplan --parts"
   },
   {
-   "from": "tools/anyrail/anyplan.py",
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
    "to": "jmri/layouts/hart/data/schematic/inputs/staging.json",
-   "label": "writes graph"
+   "label": "anyplan --cut stubs"
   },
   {
-   "from": "tools/anyrail/anyplan.py",
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
    "to": "tools/anyrail/levels_svg.py",
-   "label": "reader"
+   "label": "plan reader (anyplan)"
   },
   {
    "from": "tools/anyrail/levels",
@@ -6683,6 +6669,16 @@
    "from": "jmri/layouts/hart/scripts/speedmatch",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "live publisher and page for the Pi"
+  },
+  {
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "plan reader (anyplan)"
+  },
+  {
+   "from": "ext:anyrail-plan",
+   "to": "jmri/layouts/hart/anyrail/hart.xml",
+   "label": "JMRI export (snapshot)"
   }
  ]
 }

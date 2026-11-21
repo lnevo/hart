@@ -14,7 +14,7 @@ only (level unification step 5 part 2).
   (turnout_inches). The turnout's class (#6 or #8) comes from the angle of its two leg ends (turnout_class), not
   from a maker's part name; TURNOUT_INCHES only checks the reading: a #6 is about 9.2 in, a #8 11.0 to 11.2 in.
 - A track block takes its drawn length: the plan's track between the turnout ends at either end of its run (or a
-  buffer stop, or the switch beyond the helix), as AnyRail's export measures it (tools/anyrail/anyplan.py runs: flex
+  buffer stop, or the switch beyond the helix), as AnyRail's export measures it (the plugin's anyplan runs: flex
   track only, the turnouts left out). A run the schematic draws as two tracks (a balloon loop folded at its turnback,
   K-1 and K-2) gives each half; a block drawn on both (Brick-Plane) takes the whole.
 - A track that holds an OS block too (Scale ends in OS Switch 7) keeps its whole run: the OS block is the turnout,
@@ -58,8 +58,11 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pi
 import staging_device_map as sdm  # noqa: E402  the staging band and its blocks
 from hartlib import paths, railroad  # noqa: E402
 
-sys.path.insert(0, str(pd.REPO / "tools/anyrail"))
-import anyplan  # noqa: E402  the plan reader
+
+def anyplan():
+    """The plan reader: the schematic-maps plugin's schematic.anyplan (le_common.plugin_module, the pinned plugin)."""
+    return sdm.lc.plugin_module("anyplan")
+
 
 LENGTHS = railroad.Sources.under().block_lengths
 PARTS = pd.GRAPHS / "parts.json"
@@ -153,14 +156,14 @@ def os_lengths(band, names: dict, graph: dict, parts: list) -> dict:
 def plan_runs(plan: Path) -> dict:
     """{(part, leg): (inches, far end)} of every switch leg's run in the plan file (anyplan.runs): far end
     (part, leg), or None at a buffer stop or a free end. Legs are the graph's (LEG_OF)."""
-    parts = anyplan.read(plan)
-    links, _free = anyplan.joins(parts)
+    parts = anyplan().read(plan)
+    links, _free = anyplan().joins(parts)
     legs = {}
     for p in parts:
         if p["kind"] == "turnout":
             legs[p["index"]] = {p[k]: v for k, v in LEG_OF.items()}
     out = {}
-    for a, ka, b, kb, cm in anyplan.runs(parts, links):
+    for a, ka, b, kb, cm in anyplan().runs(parts, links):
         if a not in legs:
             continue                    # a three-way or crossing: staging has none
         far = (b, legs[b][kb]) if b is not None and b in legs else (None if b is None else (b, kb))
@@ -318,8 +321,8 @@ def threeway_bumper_inches(plan_parts: list) -> float | None:
         return None
     if len(three) != 1:
         raise LengthError(f"{PLAN.name} has {len(three)} three-ways; main_edge_inches reads one")
-    links, _free = anyplan.joins(plan_parts)
-    got = [cm for a, _ka, b, _kb, cm in anyplan.runs(plan_parts, links) if a == three[0] and b is None]
+    links, _free = anyplan().joins(plan_parts)
+    got = [cm for a, _ka, b, _kb, cm in anyplan().runs(plan_parts, links) if a == three[0] and b is None]
     if len(got) != 1:
         raise LengthError(f"the three-way (part {three[0]}) has {len(got)} runs to a buffer stop, not one")
     return got[0] / CM
@@ -422,7 +425,7 @@ def main_upper_lengths(plan: Path) -> dict:
     from hartlib import devices
     graph = json.loads(MAIN_GRAPH.read_text(encoding="utf-8"))
     parts = json.loads(PARTS.read_text(encoding="utf-8"))
-    plan_parts = anyplan.read(plan)
+    plan_parts = anyplan().read(plan)
     runs = plan_runs(plan)
     edge_in = main_edge_inches(graph, runs, threeway_bumper_inches(plan_parts))
     helix = {h["block"] for h in bdm.read_helix_tracks().values()}
@@ -512,7 +515,7 @@ def main(argv=None) -> int:
     g.add_argument("--show", action="store_true", help="print the lengths and write nothing")
     args = ap.parse_args(argv)
     try:
-        sdm.lc.plugin()
+        reader = anyplan()
     except sdm.lc.BuildError as exc:
         if args.check:
             print(f"SKIPPED plan lengths check: {exc}")
@@ -541,7 +544,7 @@ def main(argv=None) -> int:
                 print(f"{LENGTHS.name}: {b}", file=sys.stderr)
             return 1 if bad else 0
         text = csv_with(lengths, main_upper, parts={r["user_name"]: r["part_of"] for _n, r in sdm.part_lines()})
-    except (LengthError, sdm.StagingMapError, sdm.lc.BuildError, anyplan.PlanError, railroad.FactsError) as exc:
+    except (LengthError, sdm.StagingMapError, sdm.lc.BuildError, reader.PlanError, railroad.FactsError) as exc:
         print(f"plan_lengths.py: {exc}", file=sys.stderr)
         return 2
     stale = LENGTHS.read_text(encoding="utf-8") != text
