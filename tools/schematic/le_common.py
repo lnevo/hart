@@ -17,7 +17,6 @@ from hartlib import tables_build  # noqa: E402  GENERATED_LEVELS: the levels who
 
 
 DEVICE_MAP = railroad.Sources.under().devices    # devices.csv: main and upper names (trial_name: the drawing's placeholder)
-STAGING = "Staging"                  # band key (first word of the band title) bound to the live objects
 # The levels whose turnouts, blocks, sensors and masts the generator's base holds (hartlib.tables_build's
 # GENERATED_LEVELS: devices.csv's level 1 rows): a band of one of them binds the base's beans and adds none, and its
 # candidate is the one the owner approves alone (the staging candidate). Every other level's beans the build adds,
@@ -59,57 +58,175 @@ def slots_module():
     return importlib.import_module("schematic.slots")
 
 
+def plugin_module(name: str):
+    """The plugin's module schematic.<name> (the plugin found and checked once: plugin())."""
+    plugin()
+    return importlib.import_module(f"schematic.{name}")
+
+
 def band_key(title: str) -> str:
-    return (title or "").split()[0] if title else ""
+    """The plugin's key for a band (its draw.band_key), which its options and the names given to it are keyed by.
+    A key names a band to the plugin; HART finds a band by its place (find_band), never by its title or key."""
+    return plugin_module("draw").band_key(title)
 
 
-def plan_levels(data: Path | None = None) -> dict[str, int]:
-    """{band title: level} of every band of the schematic, from each section of plan_overrides.json in `data`
-    (default publish_draft.DATA, read when called; mast_rule.band_levels: the owner's level numbers, not the titles).
-    Read once per folder and file state (its modification time and size), so a patched folder or an edited file is
-    read again. BuildError names the file and section."""
+def _where(level: int, height) -> str:
+    return f"level {level}" + (f", height {height:g}" if height is not None else "")
+
+
+def plan_places(data: Path | None = None) -> dict[str, tuple[str, int, float | None]]:
+    """{band title: (section, level, height)} of every band of the schematic, from each section of plan_overrides.json
+    in `data` (default publish_draft.DATA, read when called; mast_rule.band_places: the owner's level numbers and
+    heights, not the titles). Read once per folder and file state (its modification time and size), so a patched
+    folder or an edited file is read again. BuildError names the file and section, for a band two sections title or
+    two bands at one level and height."""
     folder = Path(pd.DATA if data is None else data)
     try:
         st = layer_files.path("plan_overrides", folder).stat()
     except OSError as exc:
         raise BuildError(f"plan_overrides.json in {folder}: cannot be read ({exc.strerror or exc})") from None
-    return dict(_plan_levels(folder.resolve(), st.st_mtime_ns, st.st_size))
+    return dict(_plan_places(folder.resolve(), st.st_mtime_ns, st.st_size))
 
 
 @functools.lru_cache(maxsize=8)
-def _plan_levels(folder: Path, _mtime_ns: int, _size: int) -> dict[str, int]:
-    """plan_levels for one folder and file state (the last two arguments only key the cache)."""
+def _plan_places(folder: Path, _mtime_ns: int, _size: int) -> dict[str, tuple[str, int, float | None]]:
+    """plan_places for one folder and file state (the last two arguments only key the cache)."""
     try:
         whole = layer_files.read_file("plan_overrides", folder)
     except layer_files.LayerFileError as exc:
         raise BuildError(str(exc)) from None
-    out = {}
+    out, at = {}, {}
     for sheet in (k for k in whole if not k.startswith("_")):
         try:
-            levels = mast_rule.band_levels(whole[sheet])
+            places = mast_rule.band_places(whole[sheet])
         except mast_rule.MapError as exc:
             raise BuildError(f"plan_overrides.json section {sheet}: {exc}") from None
-        clash = sorted(set(levels) & set(out))
+        clash = sorted(set(places) & set(out))
         if clash:
             raise BuildError(f"plan_overrides.json: band {', '.join(clash)} is titled in two sections")
-        out.update(levels)
+        for title, place in places.items():
+            if place in at:
+                other = at[place]
+                raise BuildError(f"plan_overrides.json: bands {other!r} (section {out[other][0]}) and {title!r} "
+                                 f"(section {sheet}) are both at level {place[0]}, "
+                                 + (f"height {place[1]:g}" if place[1] is not None else "no height"))
+            at[place] = title
+            out[title] = (sheet, *place)
     return out
 
 
-def band_levels(bands) -> list[int]:
-    """The level of each of `bands` (the solved sheet's (title, band, options)), in order (plan_levels). BuildError
-    names a band the plan overrides give no level."""
-    levels = plan_levels()
-    missing = [t for t, _b, _o in bands if t not in levels]
+def plan_levels(data: Path | None = None) -> dict[str, int]:
+    """{band title: level} of every band of the schematic (plan_places without the section and height)."""
+    return {t: lv for t, (_s, lv, _h) in plan_places(data).items()}
+
+
+def band_places(bands) -> list[tuple[int, float | None]]:
+    """The (level, height) of each of `bands` (the solved sheet's (title, band, options)), in order (plan_places).
+    BuildError names a band the plan overrides give no level, and a band drawn twice."""
+    places = plan_places()
+    missing = [t for t, _b, _o in bands if t not in places]
     if missing:
         raise BuildError(f"plan_overrides.json gives no level to band {', '.join(map(repr, missing))} (it has "
-                         f"{', '.join(map(repr, levels))})")
-    return [levels[t] for t, _b, _o in bands]
+                         f"{', '.join(map(repr, places))})")
+    seen = {}
+    for i, (t, _b, _o) in enumerate(bands):
+        if t in seen:
+            raise BuildError(f"bands {seen[t]} and {i} are both {t!r}: a band is drawn once")
+        seen[t] = i
+    return [places[t][1:] for t, _b, _o in bands]
+
+
+def band_levels(bands) -> list[int]:
+    """The level of each of `bands`, in order (band_places)."""
+    return [lv for lv, _h in band_places(bands)]
+
+
+def _at(bands, level: int, height=None) -> list[int]:
+    """The indexes of the bands of `bands` at `level` (and `height`, when given)."""
+    return [i for i, (lv, h) in enumerate(band_places(bands)) if lv == level and (height is None or h == height)]
+
+
+def find_band(bands, level: int, height=None) -> int:
+    """The index of the one band of `bands` at `level` (and `height`: its plan-overrides `below`, when given): the one
+    way the Layout Editor build finds a band (owner, 2026-11-20: by its level and height, never by its title).
+    BuildError when no band is there (naming every band's place), or several are and no height tells them apart."""
+    found = _at(bands, level, height)
+    places = band_places(bands)
+    if not found:
+        raise BuildError(f"no band is at {_where(level, height)} (bands: "
+                         + ", ".join(f"{t!r} at {_where(*p)}" for (t, _b, _o), p in zip(bands, places)) + ")")
+    if len(found) > 1:
+        raise BuildError(f"{len(found)} bands are at level {level} ("
+                         + ", ".join(f"{bands[i][0]!r} at height {places[i][1]:g}" for i in found)
+                         + "): give the height")
+    return found[0]
 
 
 def base_bands(bands) -> list[int]:
     """The indexes of the bands of a level the base holds (BASE_LEVELS): the staging candidate's bands."""
     return [i for i, lv in enumerate(band_levels(bands)) if lv in BASE_LEVELS]
+
+
+def base_band(bands) -> int:
+    """The index of the one band of a level the base holds (find_band at each of BASE_LEVELS): the staging
+    candidate's band. BuildError when there is none, or more than one."""
+    found = sorted(i for lv in BASE_LEVELS for i in _at(bands, lv))
+    if len(found) != 1:
+        if not found:
+            find_band(bands, min(BASE_LEVELS))       # stops, naming every band's place
+        raise BuildError(f"the base levels {sorted(BASE_LEVELS)} have {len(found)} bands ("
+                         + ", ".join(repr(bands[i][0]) for i in found) + "); the build draws one")
+    return found[0]
+
+
+def base_keys(bands) -> set[str]:
+    """The plugin's keys (band_key) of the bands of a level the base holds (base_bands): the names le_names leaves
+    to the staging device map."""
+    return {band_key(bands[i][0]) for i in base_bands(bands)}
+
+
+ALIGN_SIDES = ("left", "centre", "right")
+
+
+def le_band_align(bands, data: Path | None = None) -> dict[str, str]:
+    """The plugin's page band_align ({band key: side}) for `bands` on the Layout Editor panel, from each sheet's
+    section of preferences.json: its `le_band_align`, {level: "left", "centre" or "right"} for the bands of that
+    section (plan_places), each found by its level (find_band). A level whose band is not drawn now has no entry.
+    BuildError naming the section, for an entry that is not that shape, or a level no band of the section is at."""
+    folder = Path(pd.DATA if data is None else data)
+    try:
+        prefs = layer_files.read_file("preferences", folder)
+    except layer_files.LayerFileError as exc:
+        raise BuildError(str(exc)) from None
+    places = plan_places(folder)
+    drawn = {t for t, _b, _o in bands}
+    out = {}
+    for sheet in (k for k in prefs if not k.startswith("_")):
+        given = prefs[sheet].get("le_band_align")
+        if given is None:
+            continue
+        where = f"preferences.json section {sheet}: le_band_align"
+        if not isinstance(given, dict):
+            raise BuildError(f"{where} must be an object of level: side ({', '.join(ALIGN_SIDES)}), not {given!r}")
+        own = {t: p for t, p in places.items() if p[0] == sheet}
+        for key, side in given.items():
+            if not (isinstance(key, str) and key.isdigit()):
+                raise BuildError(f"{where} names level {key!r}, which is not a level number")
+            level = int(key)
+            if side not in ALIGN_SIDES:
+                raise BuildError(f"{where} level {level}: {side!r} is not {', '.join(ALIGN_SIDES[:-1])} or "
+                                 f"{ALIGN_SIDES[-1]}")
+            if not any(lv == level for _s, lv, _h in own.values()):
+                raise BuildError(f"{where} names level {level}, which no band of the section is at (its bands: "
+                                 + ", ".join(f"{t!r} at {_where(lv, h)}" for t, (_s, lv, h) in own.items()) + ")")
+            if not any(own[t][1] == level for t in drawn if t in own):
+                continue                    # that band is not drawn in this build
+            try:
+                bi = find_band(bands, level)
+            except BuildError as exc:
+                raise BuildError(f"{where} level {level}: {exc}") from None
+            out[band_key(bands[bi][0])] = side
+    return out
 
 
 def bare(label: str) -> str:

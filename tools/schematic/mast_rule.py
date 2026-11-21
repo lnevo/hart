@@ -28,27 +28,40 @@ class MapError(RuntimeError):
     pass
 
 
-def band_levels(overrides: dict) -> dict[str, int]:
-    """{band title: level} of one plan-overrides file: each `levels.bands` entry's name with its `level` (main and
-    upper: 2 and 3), or, for a one-band input, `level_title` with the file's own `level` (staging: 1). The titles stay
-    the drawn text; the level is the owner's number, not the title's first word. MapError for a band with no level, a
-    level that is not 1, 2 or 3, a title two bands share, or a file that names no band."""
-    entries = [(b.get("name"), b.get("level"), f"levels.bands entry {b.get('name')!r}")
+def band_places(overrides: dict) -> dict[str, tuple[int, float | None]]:
+    """{band title: (level, height)} of one plan-overrides file: each `levels.bands` entry's name with its `level`
+    (main and upper: 2 and 3) and its height, `below` (the cm its track lies under: 5 and 99), or, for a one-band
+    input, `level_title` with the file's own `level` (staging: 1) and no height. A band is found by its place, never
+    by its title (owner, 2026-11-20); the titles stay the drawn text. MapError for a band with no level, a level that
+    is not 1, 2 or 3, a height that is not a number above 0, a title two bands share, two bands at one level and
+    height, or a file that names no band."""
+    entries = [(b.get("name"), b.get("level"), b.get("below"), f"levels.bands entry {b.get('name')!r}")
                for b in overrides.get("levels", {}).get("bands", ())]
     if not entries and overrides.get("level_title"):
-        entries = [(overrides["level_title"], overrides.get("level"), "level_title")]
+        entries = [(overrides["level_title"], overrides.get("level"), None, "level_title")]
     if not entries:
         raise MapError("the plan overrides name no band (levels.bands, or level_title)")
-    out = {}
-    for name, level, what in entries:
+    out, at = {}, {}
+    for name, level, height, what in entries:
         if not name:
             raise MapError(f"{what}: no name")
         if type(level) is not int or level not in (1, 2, 3):
             raise MapError(f"{what} has level {level!r}, which is not 1, 2 or 3")
+        if height is not None and (type(height) not in (int, float) or not height > 0):
+            raise MapError(f"{what}: band {name!r} has height (below) {height!r}, which is not a number above 0")
         if name in out:
             raise MapError(f"two bands are titled {name!r}")
-        out[name] = level
+        if (level, height) in at:
+            raise MapError(f"bands {at[(level, height)]!r} and {name!r} are both at level {level}, "
+                           f"{'height ' + format(height, 'g') if height is not None else 'no height'}")
+        at[(level, height)] = name
+        out[name] = (level, height)
     return out
+
+
+def band_levels(overrides: dict) -> dict[str, int]:
+    """{band title: level} of one plan-overrides file (band_places, every check of it, without the height)."""
+    return {name: level for name, (level, _height) in band_places(overrides).items()}
 
 
 def band_level(title: str, levels: dict) -> int | None:
