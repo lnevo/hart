@@ -581,14 +581,18 @@ class DeviceNames(unittest.TestCase):
     else stops."""
     HEAD = ",".join(T_railroad.DEVICE_COLUMNS) + "\n"    # the fact columns (DEVICE_FACTS) left empty in each row
 
-    def read(self, rows: str) -> dict:
-        """device_names of a master made of these device-map rows (old form, the fact columns left out)."""
+    LAYER_ROLES = {"turnout": "turnout", "fb": "fb", "block": "track"}
+
+    def read(self, rows: str, roles: dict | None = None) -> dict:
+        """device_names of a master made of these device-map rows (old form, the fact columns left out), each with the
+        role its writer gives it: `roles` ({user name: role}), else its layer's in LAYER_ROLES."""
         import csv
         import io
         from hartlib import devices
         text = self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n")
         old = list(csv.DictReader(io.StringIO(text)))
-        mine = [devices.master_row(r, "build_device_map.py") for r in old]
+        mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]]),
+                                   "build_device_map.py") for r in old]
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "devices.csv"
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
@@ -607,7 +611,7 @@ class DeviceNames(unittest.TestCase):
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
                         '2,,turnout,Switch 101,M2T1,,34,120,,"Switch 101A, Switch 101B",\n'
                         '2,,fb,FB Switch 101 N,M2S1,,34,,,,\n'
-                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n')
+                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n', roles={"DCC Switch 101": "lcc_alias"})
         self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track 1A-2B": "Track 1-2"})
         for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
                           ('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,Track 3-4,,,,,,Track 1A-2B,\n',

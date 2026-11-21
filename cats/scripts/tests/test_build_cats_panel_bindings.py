@@ -267,11 +267,21 @@ class StubCats:
 
 def block(*trial):
     """A main level block row of the device map holding the schematic tracks `trial`."""
-    return B.railroad.DeviceRow(level=2, layer="block", user_name="", trial_name=", ".join(trial))
+    return B.railroad.DeviceRow(level=2, layer="block", user_name="", role="track", trial_name=", ".join(trial))
+
+
+def occupancy(user, jmri, block, role, planned=""):
+    """A main level occupancy row: the block it serves (its blocks column), its virtual sensor and planned detector."""
+    return B.railroad.DeviceRow(level=2, layer="occupancy", user_name=user, role=role, jmri_name=jmri,
+                                system_name=planned, blocks=block)
 
 
 def device():
+    rows = [occupancy("BS Switch 101", "IS:HART:C3:B:OS101", "OS Switch 101", "os", "M2S3300"),
+            occupancy("BS Switch 103", "IS:HART:C3:B:OS103", "OS Switch 103", "os"),
+            occupancy("BS 101-111", "IS:HART:C3:B:101-111", "Track 101-111", "track", "M2S3306")]
     return B.DeviceMap(
+        rows=rows,
         blocks={"OS Switch 101": block("OS Switch 101"),
                 "OS Switch 103": block("OS Switch 103"),
                 "Track 101-111": block("Track 101BC-end"),

@@ -948,11 +948,12 @@ def read_hands(path: Path) -> dict[str, Hand]:
 @dataclass(frozen=True)
 class DeviceRow:
     """A main or upper row of devices.csv: a JMRI device (jmri_name, virtual) and its planned physical part
-    (system_name, a draft). `role` is what the device is (devices.ROLES); readers test it, not the name."""
+    (system_name, a draft). `role` is what the device is (devices.ROLES), given by the row or its writer; readers test
+    it, not the name."""
     level: int
     layer: str
     user_name: str
-    role: str = ""
+    role: str
     cp: str = ""
     system_name: str = ""
     jmri_name: str = ""
@@ -971,10 +972,11 @@ class DeviceRow:
     line: int = 0
 
     def __post_init__(self) -> None:
-        if not self.role:           # a row built by hand is never roleless: the role its layer and names give
-            from . import devices
-            object.__setattr__(self, "role", devices.role_of(self.layer, self.user_name, self.system_name,
-                                                             self.jmri_name))
+        from . import devices
+        if self.role not in devices.ROLES:      # no role is read off a name (hand-off row 8)
+            at = f"line {self.line}: " if self.line else ""
+            raise FactsError(f"{at}{self.layer} {self.user_name!r} has role {self.role!r}, not one of "
+                             f"{', '.join(devices.ROLES)}")
 
     @property
     def served(self) -> list[str]:
@@ -993,7 +995,8 @@ class DeviceRow:
 
     @classmethod
     def from_dict(cls, row: dict, line: int = 0) -> "DeviceRow":
-        """A row as build_device_map.py makes it (str or int level); __post_init__ gives it the role devices.role_of says."""
+        """A row as build_device_map.py makes it (str or int level); its role is the row's own (a row with none stops)."""
+        row = {"role": "", **row}           # a row with no role stops in __post_init__, naming it
         return cls(line=line, **{k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"})
 
 
@@ -1015,6 +1018,13 @@ class DeviceMap:
 
     def by_user(self, layer: str) -> dict[str, DeviceRow]:
         return {r.user_name: r for r in self.of(layer)}
+
+    @property
+    def occupancy(self) -> dict[str, DeviceRow]:
+        """Block user name -> the occupancy row that serves it, by the row's own blocks column (read_device_map holds
+        each occupancy row to the one block it is named for), so a reader finds a block's sensor row without
+        building its name."""
+        return {r.served[0]: r for r in self.of("occupancy") if r.served}
 
     @property
     def turnouts(self) -> dict[str, DeviceRow]:

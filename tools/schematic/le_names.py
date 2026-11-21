@@ -373,12 +373,24 @@ def named_bands(bands, names: dict):
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
     other main and upper track is unnamed, but a helix track keeps its plan name (Helix Outer, Helix Inner): the
     plugin joins the helix ends of two levels by that name (le.partners) and draws its track_labels label (McKees
-    Rocks for Helix Outer) in its place. A band of a
+    Rocks for Helix Outer) in its place. A track block is a line block by its devices.csv role (devices.LINE_ROLES, a
+    part among them; an OS block or crossover corner is not), read through hartlib.devices: a block with no row
+    stops with BuildError. A band of a
     level the base holds (BASE_LEVELS: staging, by its level) is left as it is. `bands` are the solved sheet's,
     titles unchanged, as for placeholder_names: a band plan_overrides.json does not title stops with BuildError.
     The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off the panel among
     them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
+    role = None                     # the master's block roles, read once a band names a block
+
+    def line_block(block: str) -> bool:
+        nonlocal role
+        try:
+            role = role or devices.index(DEVICE_MAP).role
+            return role("block", block) in devices.LINE_ROLES
+        except railroad.FactsError as exc:          # a DevicesError: no row, no role, or two roles
+            raise BuildError(f"the device map: {exc}") from None
+
     for (title, band, opts), level in zip(bands, band_levels(bands)):
         if level in BASE_LEVELS:
             out.append((title, band, opts))
@@ -401,7 +413,7 @@ def named_bands(bands, names: dict):
         for sid, blocks in names[key]["blocks"].items():
             if len(blocks) != 1:
                 raise BuildError(f"{title}: track {sid} has blocks {blocks}, not one")
-            if blocks[0].startswith("Track "):
+            if line_block(blocks[0]):
                 by_block[blocks[0]].append(sid)
         helix = {sid for sid, s in band["strands"].items()
                  if any(nodes[e[0]].get("sub") == "helix" for e in (s["src"], s["dst"]))}

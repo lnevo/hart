@@ -20,24 +20,30 @@ from hartlib import devices, level_masts, railroad  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 
-def row(layer, user, jmri, system="", level=2, **kw):
-    """A master row (the columns file_rows reads), its role as hartlib.devices gives it."""
+def row(layer, user, jmri, system="", level=2, role=None, **kw):
+    """A master row (the columns file_rows reads) with the role its writer gives it (a head's is head)."""
     r = dict(level=str(level), layer=layer, user_name=user, jmri_name=jmri, system_name=system, cp="", switch="",
-             facing="", protects="", dir="")
+             facing="", protects="", dir="", role="head" if role is None and layer == "head" else role)
+    if r["role"] is None:
+        raise ValueError(f"row {layer} {user}: give it its role")
     r.update(kw)
-    r.setdefault("role", devices.role_of(layer, user, system, jmri))
     r.setdefault("assignment", devices.assignment_of(jmri))
     return r
 
 
-def home(user, switch, facing, kind="one-searchlight", level=2, protects="", physical=True):
+def block(user, role, level=1):
+    """A block row a mast may protect, with its role."""
+    return row("block", user, "", level=level, role=role)
+
+
+def home(user, switch, facing, kind="one-searchlight", level=2, protects="", physical=True, role="home"):
     key = user.removeprefix("Mast ")
     head = level_masts.head_name(f"Head {key}", level) if level_masts.HEAD_USER.fullmatch(f"Head {key}") \
         else f"IH:HART:C3:{key}"
     lcos = "IH" + "".join(str(ord(c)) for c in key)        # a planned physical head, one per mast name
     return [row("mast", user, f"IF$shsm:basic:{kind}({head})", f"IF$shsm:basic:{kind}({lcos})"
                 if physical else "", level=level, cp="CP 1", switch=switch, facing=facing, protects=protects,
-                dir="west"),
+                dir="west", role=role),
             row("head", f"Head {key}", head, lcos if physical else "", level=level)]
 
 
@@ -95,7 +101,7 @@ class Rows(unittest.TestCase):
 
     def test_a_row_on_no_level_is_left_out(self):
         """A device a PanelPro Store added and nobody placed has no level (hartlib.devices is_unplaced): no map's."""
-        unplaced = row("mast", "Mast 999L", "IF$shsm:basic:one-low(IH:X)", level="")
+        unplaced = row("mast", "Mast 999L", "IF$shsm:basic:one-low(IH:X)", level="", role="")   # a Store's: no role
         got = run(home("Mast 110L", "109", "T") + [unplaced, row("head", "Head 999L", "IH:X", level="")])
         self.assertEqual([r["mast"] for r in got], ["Mast 110L"])
 
@@ -109,19 +115,21 @@ class Rows(unittest.TestCase):
         self.assertEqual(r["protects"], "OS Switch 225a")
 
     def test_an_anchor_mast_protects_its_os_block_at_no_switch(self):
-        (r,) = run(home("Mast 8RA", "", "Track Scale", level=1, protects="OS Switch 7", physical=False))
+        (r,) = run(home("Mast 8RA", "", "Track Scale", level=1, protects="OS Switch 7", physical=False)
+                   + [block("OS Switch 7", "os")])
         self.assertEqual((r["switch"], r["protects"]), ("", "OS Switch 7"))
         self.assertEqual(bmm.ANCHOR_LEVELS, (bmm.PLANNED_LEVEL,))
 
     def test_a_virtual_mast(self):
         (r,) = run([row("mast", "Mast 102RA", "IF$vsm:basic:one-low($2001)", "IF$vsm:basic:one-low($2001)",
-                        facing="Track 101 Spur 1", dir="east")])
+                        facing="Track 101 Spur 1", dir="east", role="hidden")])
         self.assertEqual(r, dict(mast="Mast 102RA", cp="", switch="", facing="Track 101 Spur 1", protects="",
                                  dir="east", leg="", system_name="IF$vsm:basic:one-low($2001)", head_system_names="",
                                  device_system_name="IF$vsm:basic:one-low($2001)"))
 
     def test_an_intermediate(self):
-        rows = home("Mast A83", "", "Track 107 Loop 2", protects="Track 107 Loop 1", physical=False)
+        rows = home("Mast A83", "", "Track 107 Loop 2", protects="Track 107 Loop 1", physical=False,
+                    role="intermediate")
         (r,) = run(rows)
         self.assertEqual((r["switch"], r["protects"]), ("", "Track 107 Loop 1"))
 
@@ -144,12 +152,21 @@ class Stops(unittest.TestCase):
     def test_a_virtual_mast_at_a_switch_or_with_another_levels_ordinal(self):
         for jmri, switch in (("IF$vsm:basic:one-low($2001)", "101"), ("IF$vsm:basic:one-low($1001)", "")):
             with self.subTest(jmri=jmri):
-                self.stops([row("mast", "Mast 102RA", jmri, jmri, facing="T", switch=switch, dir="east")],
+                self.stops([row("mast", "Mast 102RA", jmri, jmri, facing="T", switch=switch, dir="east",
+                                role="hidden")],
                            "level 2 mast Mast 102RA: .* VirtualSignalMast of its level's thousand")
 
     def test_a_home_mast_at_no_switch_that_protects_no_os_block(self):
-        self.stops(home("Mast 8RA", "", "T", level=1, protects="Track Scale", physical=False),
-                   "so an anchor mast, but protects Track Scale, no OS block")
+        """An OS block by its row's role, not its name: a block named like one but a track block stops too, and so
+        does a protected block the level has no row for."""
+        for name, role in (("Track Scale", "track"), ("OS Switch 7", "track"), ("OS Switch 7", "part")):
+            with self.subTest(name=name, role=role):
+                self.stops(home("Mast 8RA", "", "T", level=1, protects=name, physical=False) + [block(name, role)],
+                           f"so an anchor mast, but protects {name}, no OS block")
+        self.stops(home("Mast 8RA", "", "T", level=1, protects="OS Switch 7", physical=False),
+                   "is an anchor mast protecting OS Switch 7, which is no level 1 block row")
+        self.stops(home("Mast 8RA", "", "T", level=1, protects="OS Switch 7", physical=False)
+                   + [block("OS Switch 7", "os", level=2)], "which is no level 1 block row")
 
     def test_a_main_or_upper_home_mast_at_no_switch_is_no_anchor_mast(self):
         """The old main and upper guard (2026-11-16): their OS blocks end at the switch, so a home mast at no switch
@@ -158,7 +175,8 @@ class Stops(unittest.TestCase):
             with self.subTest(level=level):
                 self.stops(home("Mast 110L", "", "T", level=level, protects="OS Switch 109"),
                            f"level {level}'s OS blocks end at their switches, so it is no anchor mast")
-        (r,) = run(home("Mast A83", "", "Track 107 Loop 2", protects="Track 107 Loop 1", physical=False))
+        (r,) = run(home("Mast A83", "", "Track 107 Loop 2", protects="Track 107 Loop 1", physical=False,
+                        role="intermediate"))
         self.assertEqual(r["mast"], "Mast A83")
 
     def test_a_mast_protecting_two_blocks_or_none_at_no_switch(self):
@@ -168,7 +186,7 @@ class Stops(unittest.TestCase):
     def test_a_system_name_not_over_heads(self):
         rows = home("Mast 110L", "109", "T")
         rows[0] = row("mast", "Mast 110L", "IF$shsm:basic:one-searchlight", "IF$shsm:basic:one-searchlight",
-                      switch="109", facing="T", dir="west")
+                      switch="109", facing="T", dir="west", role="home")
         self.stops(rows, "is not a SignalHeadSignalMast over its heads")
 
     def test_a_head_with_no_row_or_another_name(self):
@@ -182,14 +200,14 @@ class Stops(unittest.TestCase):
     def test_a_physical_mast_that_is_not_the_jmri_masts(self):
         rows = home("Mast 110L", "109", "T")
         rows[0] = row("mast", "Mast 110L", "IF$shsm:basic:one-low(IH:HART:C3:110L)", rows[0]["system_name"],
-                      switch="109", facing="T", dir="west")
+                      switch="109", facing="T", dir="west", role="home")
         self.stops(rows, "is not the planned physical mast of")
 
     def test_a_name_out_of_the_grammar(self):
         self.stops(home("Mast 1x0", "109", "T"), "the name is not Mast <number>")
         # a virtual mast too, before anything reads its number (the sort would fail on it)
         self.stops([row("mast", "Mast X", "IF$vsm:basic:one-low($2001)", "IF$vsm:basic:one-low($2001)",
-                        facing="T", dir="east")], "level 2 mast Mast X: the name is not Mast <number>")
+                        facing="T", dir="east", role="hidden")], "level 2 mast Mast X: the name is not Mast <number>")
 
     def test_two_masts_on_one_pair_that_are_not_a_and_b(self):
         self.stops(home("Mast 120RA", "119", "X") + home("Mast 120RC", "119", "X"), "only an A and a B")

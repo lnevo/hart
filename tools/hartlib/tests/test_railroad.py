@@ -710,25 +710,29 @@ class Known(unittest.TestCase):
 
 
 class VirtualNames(unittest.TestCase):
-    def row(self, layer, user, jmri):
-        """A row as build_device_map makes it: from_dict gives it its role (devices.role_of)."""
-        return R.DeviceRow.from_dict(dict(level="2", layer=layer, user_name=user, jmri_name=jmri))
+    ROLES = {"block": "track", "occupancy": "track", "head": "head"}
 
-    def test_a_row_built_by_hand_is_never_roleless(self) -> None:
-        self.assertEqual(R.DeviceRow(level=2, layer="turnout", user_name="DCC Switch 1").role, "lcc_alias")
-        self.assertEqual(R.DeviceRow(level=2, layer="head", user_name="Head 2L").role, "head")
-        self.assertEqual(R.DeviceRow(level=2, layer="mast", user_name="Mast 1L", jmri_name="IF$vsm:basic:x").role,
-                         "hidden")
-        self.assertEqual(R.DeviceRow(level=2, layer="turnout", user_name="Switch 1", role="turnout").role, "turnout")
+    def row(self, layer, user, jmri, role=None):
+        """A row as build_device_map makes it, with the role its writer gives it."""
+        role = role or self.ROLES.get(layer) or ("lcc_alias" if user.startswith("DCC ") else "turnout")
+        return R.DeviceRow.from_dict(dict(level="2", layer=layer, user_name=user, jmri_name=jmri, role=role))
 
-    def test_from_dict_gives_the_role_a_reader_tests(self) -> None:
-        self.assertEqual(self.row("turnout", "DCC Switch 1", "IT:HART:C3:1").role, "lcc_alias")
-        self.assertEqual(self.row("turnout", "Switch 1", "IT:HART:C3:1").role, "turnout")
-        self.assertEqual(self.row("block", "OS Switch 7", "").role, "os")
-        given = R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="Switch 1", role="turnout"))
-        self.assertEqual(given.role, "turnout")
-        with self.assertRaisesRegex(R.FactsError, "a device map has no sensor rows"):
-            self.row("sensor", "Lamp", "")
+    def test_a_row_has_the_role_it_is_given_and_never_one_from_its_name(self) -> None:
+        self.assertEqual(R.DeviceRow(level=2, layer="block", user_name="OS Switch 7", role="track").role, "track")
+        given = R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="DCC Switch 1", role="lcc_alias"))
+        self.assertEqual(given.role, "lcc_alias")
+        with self.assertRaisesRegex(R.FactsError, "line 7: turnout 'DCC Switch 1' has role ''"):
+            R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="DCC Switch 1"), line=7)
+        with self.assertRaisesRegex(R.FactsError, "has role 'siding', not one of"):
+            R.DeviceRow(level=2, layer="block", user_name="Track 1-3", role="siding")
+        with self.assertRaises(TypeError):          # role is a field with no default
+            R.DeviceRow(level=2, layer="head", user_name="Head 2L")
+
+    def test_a_blocks_occupancy_row_is_found_by_its_blocks_column(self) -> None:
+        occ = self.row("occupancy", "BS Odd Name", "IS:HART:C3:B:1-3")
+        dm = R.DeviceMap(rows=[self.row("block", "Track 1-3", ""), replace(occ, blocks="Track 1-3")])
+        self.assertEqual(dm.occupancy["Track 1-3"].user_name, "BS Odd Name")
+        self.assertEqual(R.DeviceMap(rows=[occ]).occupancy, {})            # an occupancy row serving no block
 
     def test_the_level_devices_naming_rule(self) -> None:
         ok = [self.row("block", "Track 1-3", ""), self.row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3"),
