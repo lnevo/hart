@@ -138,9 +138,11 @@ def wiring_heads(rows: list[dict], path: Path | None = None) -> dict:
     by_user = {u: h for m in old.values() for u, h in m.items()}
     try:
         heads = [w for w in wiring.read(path) if w.level == 1 and w.kind == "head"]
-    except railroad.FactsError as exc:
+        nodes = bdm.staging_nodes()
+    except (railroad.FactsError, bdm.MapError) as exc:
         raise RuleError(str(exc)) from None
-    out, bad = {}, []
+    out, bad = {}, [f"{wiring.PATH.name} line {w.line}: {w.device} is on node {w.node}, no staging node "
+                    f"({', '.join(map(str, sorted(nodes)))})" for w in heads if w.node not in nodes]
     for w in heads:
         m = HEAD_USER.fullmatch(w.device)
         if not m:
@@ -151,12 +153,13 @@ def wiring_heads(rows: list[dict], path: Path | None = None) -> dict:
             else None                                       # a head wired from wiring.csv alone: its notes are there
         row = dict(prev or new or {}, system_name=w.address, jmri_name=w.address, node=str(w.node),
                    comment=w.wiring_text)
-        if prev is None:
-            row["notes"] = w.notes or "wired"
+        if prev is None:                                 # wiring.csv's note, else the row's own, unless it says
+            kept = (new or {}).get("notes", "")         # the head is not wired
+            row["notes"] = w.notes or (kept if kept and kept != "internal, not wired" else "wired")
         out.setdefault("Mast " + m.group(1), {})[w.device] = row
     for user, h in sorted(by_user.items()):
-        bad.append(f"head {user} is wired ({h['jmri_name']}) in {DEVICE_MAP.name} but has no head row in "
-                   f"{wiring.PATH.name}")
+        bad.append(f"head {user} is wired in devices.csv (its jmri_name is {h['jmri_name']}) but has no head row "
+                   f"in {wiring.PATH.name}: add its wiring there, or give the row its internal name back")
     if bad:
         raise RuleError("; ".join(bad))
     return out

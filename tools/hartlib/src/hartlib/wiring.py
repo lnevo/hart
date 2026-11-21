@@ -124,7 +124,10 @@ def read(path: Path | None = None) -> list[Wire]:
             if r["board"] or ports:
                 bad.append(f"{at}: a detector has no board or ports (its input is its index)")
                 continue
-            if keyed and (r["device"] or r["level"] == "1"):
+            if keyed and r["level"] == "1":
+                bad.append(f"{at}: a staging detector is named by its block alone (device), not by switches")
+                continue
+            if keyed and r["device"]:
                 bad.append(f"{at}: a detector is named by its block or, on main and upper, by its switches, not both")
                 continue
         else:

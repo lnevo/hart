@@ -382,12 +382,19 @@ class StagingPin(NamedTuple):
         return f"Block {self.node}-{self.k + 1}"
 
 
+def staging_nodes() -> set:
+    """Staging's LCOS nodes: the level 1 rows of lcos_nodes.csv (as built)."""
+    try:
+        return {n.node for n in railroad.read_lcos_nodes(NODES) if n.level == int(FIELD_LEVEL)}
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from None
+
+
 def read_staging_pins(path: Path | None = None, nodes: set | None = None) -> list[StagingPin]:
     """Staging's detectors as wired: the level 1 detector rows of wiring.csv, each a block by its name (staging's
     names are the field's) or a spare input (no block), its node and input. `nodes`: staging's nodes (lcos_nodes.csv
     level 1; default the committed file's). Stops on a node that is not staging's (wiring.read stops on the rest)."""
-    if nodes is None:
-        nodes = {n.node for n in railroad.read_lcos_nodes(NODES) if n.level == int(FIELD_LEVEL)}
+    nodes = staging_nodes() if nodes is None else nodes
     path = path or WIRING
     out, bad = [], []
     for w in wiring_rows(path):
@@ -971,16 +978,26 @@ def freed_spare(occ: dict, block: str, part_of: str) -> dict:
 WIRED_LAYERS = {"turnout": "turnout", "fb": "fb"}      # devices.csv layer -> wiring.csv kind of staging's wired rows
 
 
-def staging_wired_rows(files: devices.Files | None = None, path: Path | None = None) -> tuple[list[dict], set]:
+ALIAS_NOTE = re.compile(r"LCC alias of (Switch \d+) \(M2T\d+\)")
+
+
+def staging_wired_rows(files: devices.Files | None = None, path: Path | None = None,
+                       nodes: set | None = None) -> tuple[list[dict], set]:
     """(staging's turnout, LCC alias and feedback rows of the master, the keys this takes over): each row as it is,
     but its wiring cells from wiring.csv (`path`, default the committed file): node, the wiring text, the address
     (system name, and the JMRI name where it was the address) and the name map's hardware and comment. An LCC alias
-    ("DCC Switch <n>") takes its turnout's node and wiring and keeps its MTT<dcc> name. MapError on a row with no
-    wiring row, a wiring row with no device row, or an alias with no turnout."""
+    ("DCC Switch <n>") takes its turnout's node and wiring and keeps its MTT<dcc> name; its name-map note names the
+    turnout's address. The description is written again from the row (devices.describe), as it names the node.
+    `nodes`: staging's (default staging_nodes()). MapError on a row with no wiring row, a wiring row with no device
+    row or on a node that is not staging's."""
+    nodes = staging_nodes() if nodes is None else nodes
     by = {(w.kind, w.device): w for w in wiring_rows(path) if w.level == int(FIELD_LEVEL) and w.kind in ("turnout", "fb")}
+    bad = [f"{WIRING.name} line {w.line}: {w.kind} {w.device} is on node {w.node}, no staging node of {NODES.name} "
+           f"({', '.join(map(str, sorted(nodes)))})" for w in by.values() if w.node not in nodes]
     rows = [r for r in devices.load(files or device_files())
             if r["level"] == FIELD_LEVEL and r["layer"] in WIRED_LAYERS]
-    out, bad, seen = [], [], set()
+    out, seen = [], set()
+    turnout_address = {w.device: w.address for (kind, _d), w in by.items() if kind == "turnout"}
     for r in rows:
         alias = r["role"] == "lcc_alias"
         name = r["user_name"].removeprefix("DCC ") if alias else r["user_name"]
@@ -999,6 +1016,10 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
                 row["pnm_hardware"] = w.address
         if r["pnm_order"]:
             row["pnm_comment"] = w.wiring_text
+        m = ALIAS_NOTE.fullmatch(r["pnm_notes"]) if alias else None
+        if m and m.group(1) in turnout_address:
+            row["pnm_notes"] = f"LCC alias of {m.group(1)} ({turnout_address[m.group(1)]})"
+        row["description"] = devices.describe(row)
         out.append(row)
     for kind, device in sorted(set(by) - seen):
         bad.append(f"{WIRING.name} line {by[kind, device].line}: staging {kind} {device} has no row in {OUT.name}")

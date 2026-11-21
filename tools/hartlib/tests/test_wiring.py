@@ -57,6 +57,7 @@ class Read(unittest.TestCase):
                            ("1,turnout,Switch 2,101,,,,4,1,OU1,\"3,4\",wired,", "named by device alone"),
                            ("1,detector,Track X,,,,,4,1,OU1,1,wired,", "no board or ports"),
                            ("3,detector,Track X,227,241,,1,41,5,,,planned,", "not both"),
+                           ("1,detector,,13,15,,,3,1,,,wired,", "a staging detector is named by its block alone"),
                            ("1,turnout,Switch 1,,,,,4,1,OU1,\"3,4\",wired,", "turnout Switch 1 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,0,OU1,\"3,4\",wired,", "node 4 Turnout 0 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,1,OU1,\"2,3\",wired,", r"OU1 port\(s\) \[2\] are line 2's"),

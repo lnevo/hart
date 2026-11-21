@@ -440,6 +440,10 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         i = found[0]
         r = rows[i]
         who = f"devices.csv row {r['layer']} {r['user_name']!r}"
+        if r["written_by"] == "build_device_map.py" and r["level"] == "1" and r["layer"] in ("turnout", "fb"):
+            out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in devices.csv and in "
+                                 "wiring.csv's row, which is keyed by the name"))
+            continue
         if r["written_by"]:
             out.append((p, None, f"{r['written_by']} writes {who}: change its inputs and rebuild"))
             continue

@@ -76,9 +76,18 @@ class WiringHeads(unittest.TestCase):
         h = bsm.wiring_heads([MAST, WIRED], p)["Mast 6LB"]["Head 6LB"]
         self.assertEqual((h["system_name"], h["comment"]), ("IH433", "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6"))
 
+    def test_a_newly_wired_head_keeps_the_rows_own_note(self):
+        own = row("head", "Head 6LB", "IH:HART:C1:6LB", notes="one high head (owner)")
+        p = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,\n')
+        self.assertEqual(bsm.wiring_heads([own], p)["Mast 6LB"]["Head 6LB"]["notes"], "one high head (owner)")
+        internal = row("head", "Head 6LB", "IH:HART:C1:6LB", notes="internal, not wired")
+        self.assertEqual(bsm.wiring_heads([internal], p)["Mast 6LB"]["Head 6LB"]["notes"], "wired")
+
     def test_a_wired_head_wiring_csv_does_not_list_stops(self):
         with self.assertRaisesRegex(bsm.RuleError, "Head 6LB is wired .* but has no head row in wiring.csv"):
             bsm.wiring_heads([MAST, WIRED], wiring_file(self.HEAD))
+        with self.assertRaisesRegex(bsm.RuleError, "Head 6LB is on node 41, no staging node"):
+            bsm.wiring_heads([MAST, WIRED], wiring_file(self.HEAD + '1,head,Head 6LB,,,,,41,0,OU2,"1,2,3",wired,\n'))
         with self.assertRaisesRegex(bsm.RuleError, "is not a staging head name"):
             bsm.wiring_heads([], wiring_file(self.HEAD + '1,head,Signal 6,,,,,4,0,OU2,"1,2,3",wired,\n'))
 
@@ -187,27 +196,27 @@ class Rebuild(unittest.TestCase):
         self.assertEqual(next(m for m in self.gen if m["mast"] == "Mast 6LB")["signal_kind"], "field")
 
     def test_a_newly_wired_head_is_kept(self):
-        out, _gen = self.build_with(wiring_edit=self.wire("Head 2R", 9, 0))
+        out, _gen = self.build_with(wiring_edit=self.wire("Head 2R", 13, 0))
         rows = staging_rows(out[devices.Files.here().master.name])
         head = next(r for r in rows if r["user_name"] == "Head 2R")
-        self.assertEqual((head["jmri_name"], head["node"], head["notes"]), ("IH932", "9", "wired (test)"))
+        self.assertEqual((head["jmri_name"], head["node"], head["notes"]), ("IH1332", "13", "wired (test)"))
         mast = next(r for r in rows if r["user_name"] == "Mast 2R")
-        self.assertIn("(IH932)", mast["system_name"])
-        self.assertEqual(mast["node"], "9")              # its old row had no node: the head row's
-        self.assertIn("IH932=Head 2R", out[bsm.MASTS.name])
+        self.assertIn("(IH1332)", mast["system_name"])
+        self.assertEqual(mast["node"], "13")              # its old row had no node: the head row's
+        self.assertIn("IH1332=Head 2R", out[bsm.MASTS.name])
 
     def test_a_wired_intermediate_is_a_field_signal(self):
         inter = next(m for m in self.gen if "milepost" in m)
         user = "Head " + inter["mast"].removeprefix("Mast ")
-        out, gen = self.build_with(wiring_edit=self.wire(user, 9, 1))
+        out, gen = self.build_with(wiring_edit=self.wire(user, 13, 1))
         self.assertEqual(next(m for m in gen if m["mast"] == inter["mast"])["signal_kind"], "field")
         sig = next(r for r in rows_of(out[bsm.SIGNALS.name]) if r["mast"] == inter["mast"])
         self.assertEqual(sig["signal_kind"], "field")
-        self.assertIn("IH933=" + user, out[bsm.MASTS.name])
+        self.assertIn("IH1333=" + user, out[bsm.MASTS.name])
 
     def test_a_wired_head_with_no_mast_stops(self):
         with self.assertRaisesRegex(bsm.RuleError, r"masts the rule does not place: Mast 98L \(Head 98L\)"):
-            self.build_with(wiring_edit=self.wire("Head 98L", 9, 2))
+            self.build_with(wiring_edit=self.wire("Head 98L", 13, 2))
 
     def test_a_wired_head_whose_mast_has_other_heads_stops(self):
         def split(rows):

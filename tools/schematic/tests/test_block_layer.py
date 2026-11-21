@@ -503,12 +503,21 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
                          ("MTT100", "Node: 4 Turnout: 1 | OU: 1 Ports: 3,4"))
         self.assertEqual(by["Switch 3"]["system_name"], "M2T408")
         self.assertEqual(by["Switch 23"]["jmri_name"], "Switch 23")
+        self.assertEqual(by["DCC Switch 1"]["pnm_notes"], "LCC alias of Switch 1 (M2T409)")
+
+    def test_the_description_names_the_new_node(self):
+        got = {r["user_name"]: r for r in self.rows(lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,OU1,"7,8"',
+                                                                        '1,turnout,Switch 13,,,,,13,5,OU3,"1,2"'))[0]}
+        self.assertEqual(got["Switch 13"]["system_name"], "M2T1313")
+        self.assertIn("LCOS node 13", got["Switch 13"]["description"])
 
     def test_rows_that_do_not_match_stop(self):
         for edit, msg in ((lambda t: t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,\n', ""),
                            "staging turnout Switch 1: no turnout row for Switch 1"),
                           (lambda t: t + '1,turnout,Switch 999,,,,,5,0,OU1,"1,2",wired,\n',
-                           "staging turnout Switch 999 has no row in devices.csv")):
+                           "staging turnout Switch 999 has no row in devices.csv"),
+                          (lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,', '1,turnout,Switch 13,,,,,41,3,'),
+                           "turnout Switch 13 is on node 41, no staging node")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 self.rows(edit)
 
@@ -530,7 +539,7 @@ class StagingPins(unittest.TestCase):
         self.assertEqual(len(bdm.read_staging_pins()), 45)                       # the committed file: 43 and 2 spares
 
     def test_bad_rows_stop(self):
-        for text, msg in (("1,detector,Track Barn,7,13,,,13,1,,,wired,\n", "by its switches, not both"),
+        for text, msg in (("1,detector,Track Barn,7,13,,,13,1,,,wired,\n", "named by its block alone"),
                           ("1,detector,Track Barn,,,,,41,1,,,wired,\n", "node 41 is no staging node"),
                           ("1,detector,Track Barn,,,,,13,9,,,wired,\n", "a detector's index is 1 to 8, not 9"),
                           ("1,detector,Track Barn,,,,,13,x,,,wired,\n", "node, index and ports are numbers"),
