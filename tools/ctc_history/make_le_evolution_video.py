@@ -9,10 +9,15 @@ canvas on the panel's light-blue background, with a caption under it.
 from __future__ import annotations
 
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import film_pace  # noqa: E402
 
 HERE = Path(__file__).resolve().parents[2] / "docs/ctc/history"
 OUT_MP4 = HERE / "LE_Panel_Evolution.mp4"
@@ -21,8 +26,6 @@ CANVAS = (1280, 720)    # 16:9 so the three-level panel of November is not tiny
 BG = (186, 205, 230)  # the panel's own light blue, so letterboxing is invisible
 CAPTION_H = 48
 CAPTION_BG = (32, 32, 36)
-FRAME_MS = 2600
-FINAL_HOLD_MS = 4500
 
 FRAMES: list[tuple[str, str]] = [
     ("le_panel_20260520_092004.png", "20 May: first panel, one long schematic with switch numbers 100 to 115"),
@@ -69,13 +72,13 @@ def main() -> None:
             frame.save(p)
             if i == len(FRAMES) - 1:
                 frame.save(OUT_POSTER, quality=88)
-            dur = (FINAL_HOLD_MS if i == len(FRAMES) - 1 else FRAME_MS) / 1000
+            dur = film_pace.durations(len(FRAMES))[i]
             lines += [f"file '{p}'", f"duration {dur:.3f}"]
         lines.append(f"file '{work / f'f{len(FRAMES) - 1:02d}.png'}'")
         lst = work / "concat.txt"
         lst.write_text("\n".join(lines) + "\n")
         subprocess.run(
-            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-vf", "fps=30,format=yuv420p",
+            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-vf", "fps=30,format=yuv420p", "-t", str(film_pace.film_length(len(FRAMES))),
              "-c:v", "libx264", "-crf", "26", "-movflags", "+faststart", str(OUT_MP4)],
             check=True, capture_output=True, text=True,
         )
