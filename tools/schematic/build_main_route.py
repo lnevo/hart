@@ -1,6 +1,6 @@
 """build_main_route.py [--check]
 
-Write the `main_route` key of plan_overrides.json's main_upper section from the main_upper rows of main_lines.csv
+Write the `main_route` key of plan_generated.json's main_upper section from the main_upper rows of main_lines.csv
 and the plan graph, and staging's main track and mileposts from its staging rows (see the end of this text).
 
 The schematic marks as main track what lies on `main_route`, hop by hop. Written by hand, each hop named two plan part
@@ -30,8 +30,8 @@ line runs; switches are named by their number, so the hops do not depend on the 
 --check regenerates in memory and exits 1 if a file differs.
 
 Staging (the rows whose sheet is staging). Staging's drawings take no main_route (it
-would turn on the direction letters of a route), so its lines write two other things in plan_overrides.json's staging
-section.
+would turn on the direction letters of a route), so its lines write two other things in plan_generated.json's staging
+section (name_main, the tracks of the `name` edit that are main).
 Each track on a line gets "main" in the `name` edit and every other track in it loses it; a track on a line that the
 edit does not name must be a helix end or the short link between the halves of a crossover, which the plugin marks
 itself. A line with `count` yes is the way the mileposts run: milepost_route is its stops, one hop from each to the
@@ -268,10 +268,9 @@ def prepared(overrides: dict, layer: str = "main_upper", graph: Path = GRAPH):
     return g, edits.node_ref
 
 
-def overrides_section(overrides: dict, hops: list) -> dict:
-    over = dict(overrides)
-    over["main_route"] = hops
-    return over
+def generated_main_upper(hops: list) -> dict:
+    """The keys of plan_generated.json's main_upper section this writes."""
+    return {"main_route": hops}
 
 
 def line_edges(plan: Plan, rows: list[dict]) -> set[str]:
@@ -296,8 +295,9 @@ def milepost_route(plan: Plan, rows: list[dict]) -> list[list[str]]:
     return hops
 
 
-def staging_section(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
-    """plan_overrides.json's staging section with its `name` edit's main flags and its milepost_route from the lines."""
+def staging_keys(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
+    """The keys of plan_generated.json's staging section this writes, from the hand section `overrides` (plan_overrides.json):
+    name_main (the indexes of the `name` edit's tracks on a main line) and milepost_route, from the lines."""
     from schematic import edits
     g = plan.g
     N = g["nodes"]
@@ -307,26 +307,24 @@ def staging_section(overrides: dict, plan: Plan, rows: list[dict]) -> dict:
         return (la and la == lb) or any(N[n]["kind"] == "end" and N[n].get("sub") == "helix" for n in (e["u"], e["v"]))
 
     main_ids = line_edges(plan, rows)
-    over = json.loads(json.dumps(overrides))
-    named = [ed for ed in over["edits"] if ed.get("op") == "name"]
+    named = [ed for ed in overrides["edits"] if ed.get("op") == "name"]
     if len(named) != 1:
         raise RouteError(f"plan_overrides.json[staging]: expected one `name` edit, found {len(named)}")
-    seen, tracks = set(), []
-    for a, b, name, *rest in named[0]["tracks"]:
+    seen, flagged = set(), []
+    for i, (a, b, name, *rest) in enumerate(named[0]["tracks"]):
         port = rest[0] if rest and rest[0] in ("A", "B", "C", "D") else None
         e = edits.edge_between(g, a, b, port)[0]
         seen.add(e["id"])
-        tracks.append([a, b, name, *[r for r in rest if r != "main"], *(["main"] if e["id"] in main_ids else [])])
-    named[0]["tracks"] = tracks
+        if e["id"] in main_ids:
+            flagged.append(i)
     lost = [e for e in g["edges"] if e["id"] in main_ids - seen and not owned_by_plugin(e)]
     if lost:
         raise RouteError("a main line runs over track the `name` edit does not name: "
                          + ", ".join(f"{plan.name(e['u'])} to {plan.name(e['v'])}" for e in lost))
-    over["milepost_route"] = milepost_route(plan, rows)
-    over["_main_lines"] = ("The main flags of the `name` edit and milepost_route are written by "
-                           "tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that "
-                           "file, not these.")
-    return over
+    return {layer_files.NAME_MAIN: flagged, "milepost_route": milepost_route(plan, rows),
+            "_main_lines": ("name_main (the tracks of the `name` edit that are main, by position) and milepost_route "
+                            "are written by tools/schematic/build_main_route.py from the staging rows of "
+                            "main_lines.csv; edit that file, not these.")}
 
 
 def main(argv=None) -> int:
@@ -340,9 +338,9 @@ def main(argv=None) -> int:
         hops = route(Plan(g, by_label), read_lines("main_upper"))
         st = layer_files.read("plan_overrides", "staging", pd.DATA)
         sg, sby = prepared(st, "staging", STAGING_GRAPH)
-        updates = {("plan_overrides", "main_upper"): overrides_section(overrides, hops),
-                   ("plan_overrides", "staging"): staging_section(st, Plan(sg, sby), read_lines("staging"))}
-        want = layer_files.texts(updates, pd.DATA)
+        updates = {"main_upper": generated_main_upper(hops),
+                   "staging": staging_keys(st, Plan(sg, sby), read_lines("staging"))}
+        want = layer_files.generated_texts(updates, pd.DATA)
     except bl.BuildError as exc:      # the plugin is not checked out
         if not args.check:
             raise
@@ -353,8 +351,8 @@ def main(argv=None) -> int:
         return 2
     # which section differs, to say what is stale: main_upper's main_route, staging's main flags and milepost_route
     what = {"main_upper": f"main_route ({len(hops)} hops)", "staging": "main flags and milepost_route"}
-    stale = [what[sheet] for (_k, sheet), sec in updates.items()
-             if layer_files.read("plan_overrides", sheet, pd.DATA) != sec]
+    stale = [what[sheet] for sheet, keys in updates.items()
+             if any(layer_files.read(layer_files.GENERATED, sheet, pd.DATA).get(k) != v for k, v in keys.items())]
     stale_files = [p for p, text in want.items() if p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale_files:

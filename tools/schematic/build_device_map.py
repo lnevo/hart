@@ -24,7 +24,7 @@ Inputs (jmri/layouts/hart/data/schematic/):
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
 
 Outputs:
-- plan_overrides.json's main_upper section (hartlib.layer_files), keys `control_points` and `stations`: the detail
+- plan_generated.json's main_upper section (hartlib.layer_files), keys `control_points` and `stations`: the detail
   sheets (the "Main level" and "Upper level" sheets of preferences.json's main_upper section) draw each control
   point's interlocking limits and name, and the overall sheet a bar per control point (no car count). A control
   point may list only switches on one band, so a crossover whose halves sit on two bands (127, 131) lists the half
@@ -159,7 +159,8 @@ SOURCES = railroad.Sources.under()
 CPS = SOURCES.interlockings
 NODES = SOURCES.lcos_nodes
 SWITCHES = SOURCES.switches                     # switches.csv: its main and upper rows give the local switches' areas
-OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json; this writes its main_upper section
+OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json, the owner's hand edits (read only)
+GENERATED = layer_files.path(layer_files.GENERATED, OVERRIDES.parent)   # plan_generated.json: this writes its main_upper keys
 SHEET = railroad.PlanOverrides.SHEET
 OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
 LEVELS = band_levels(layer_files.read("plan_overrides", SHEET, OVERRIDES.parent))     # {band title: level} of main and upper
@@ -1541,15 +1542,16 @@ def csv_text(rows, columns=COLUMNS) -> str:
     return buf.getvalue()
 
 
-def overrides_text(overrides, cp_keys) -> str:
-    """plan_overrides.json's whole text with its main_upper section given these control points and stations."""
-    over = dict(overrides)
+def generated_text(cp_keys) -> str:
+    """plan_generated.json's whole text with its main_upper section given these control points and stations (the
+    hand file is not read or written; nothing here comes from the section's own earlier keys)."""
+    over = {}
     over["control_points"] = cp_keys
     over["stations"] = {name: {"switches": cp["switches"], "tracks": []} for name, cp in cp_keys.items()}
     over["_control_points"] = ("Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by "
                                "tools/schematic/build_device_map.py from interlockings.csv; edit that "
                                "file, not this key.")
-    return layer_files.texts({("plan_overrides", SHEET): over}, OVERRIDES.parent)[OVERRIDES]
+    return layer_files.generated_texts({SHEET: over}, OVERRIDES.parent)[GENERATED]
 
 
 def solve():
@@ -1587,7 +1589,7 @@ def main(argv=None) -> int:
     try:
         staging = staging_rows(bands, joined, runs)
         wired = staging_wired_rows()
-        want = {OVERRIDES: overrides_text(overrides, cp_keys),
+        want = {GENERATED: generated_text(cp_keys),
                 **devices.outputs_after("build_device_map.py", rows, device_files(),
                                         master_rows=staging + wired + parts)}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
