@@ -22,10 +22,10 @@ Heads are internal, from the mast's name (IH:HART:C1:<n><L|R>[A|B][_Top|_Bottom]
 and upper the same way under C3), so nothing unwired reaches MQTT: signal_coordinator.py publishes only IH and
 digits.
 
-A wired head is read from the level 1 rows of devices.csv itself, as main and upper swap a physical device in through the
-device map's jmri_name (build_device_map.py): a head row whose jmri_name is not the internal name of its user name is
-wired (today one: Head 6LB on IH432, Switch 5, owner 2026-11-18), and the rebuild keeps it, with its node, notes and
-comment when that is its wiring (Node: ...; its JMRI comment, hartlib.tables_build), else its control point.
+A wired head is a level 1 head row of wiring.csv (hartlib.wiring, the physical wiring source; today one: Head 6LB on
+IH432, Switch 5, owner 2026-11-18): the rebuild writes its address, node and wiring text (its JMRI comment,
+hartlib.tables_build) from there and keeps its notes. A head row of devices.csv whose jmri_name is not the internal
+name of its user name is wired too (wired_heads), and must be in wiring.csv.
 The build stops on a head row whose system_name and jmri_name differ, a wired head that is not an LCOS head (IH and
 digits), whose mast the rule does not place, or whose mast the rule gives a different set of heads; on a mast row
 that names an IH-digits head that is not one of its own wired head rows; and if a wired head is missing from the rows
@@ -57,7 +57,7 @@ import mast_rule  # noqa: E402
 import publish_draft as pd  # noqa: E402
 import le_names as ln  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
-from hartlib import devices, level_masts, railroad  # noqa: E402
+from hartlib import devices, level_masts, railroad, wiring  # noqa: E402
 
 DATA = pd.DATA
 MASTS, SIGNALS, DEVICE_MAP = sdm.MASTS, sdm.SIGNALS, sdm.DEVICE_MAP
@@ -126,6 +126,42 @@ def wired_heads(rows: list[dict]) -> dict:
             bad.append(f"mast {r['user_name']} names wired head(s) {stray} that are not its own head rows")
     if bad:
         raise RuleError(f"{DEVICE_MAP.name}: " + "; ".join(bad))
+    return out
+
+
+def wiring_heads(rows: list[dict], path: Path | None = None) -> dict:
+    """wired_heads, with each wired head's address, node and wiring text from wiring.csv (`path`, default the
+    committed file; its level 1 head rows), the physical wiring source; the old head row keeps its notes. A head in
+    wiring.csv with no row yet is wired from there. RuleError on a wired head row that wiring.csv does not list, or a
+    wiring.csv head that is not a staging head name."""
+    old = wired_heads(rows)
+    by_user = {u: h for m in old.values() for u, h in m.items()}
+    try:
+        heads = [w for w in wiring.read(path) if w.level == 1 and w.kind == "head"]
+        nodes = bdm.staging_nodes()
+    except (railroad.FactsError, bdm.MapError) as exc:
+        raise RuleError(str(exc)) from None
+    out, bad = {}, [f"{wiring.PATH.name} line {w.line}: {w.device} is on node {w.node}, no staging node "
+                    f"({', '.join(map(str, sorted(nodes)))})" for w in heads if w.node not in nodes]
+    for w in heads:
+        m = HEAD_USER.fullmatch(w.device)
+        if not m:
+            bad.append(f"{wiring.PATH.name} line {w.line}: {w.device!r} is not a staging head name (Head <mast>)")
+            continue
+        prev = by_user.pop(w.device, None)              # a head row wired already keeps its notes
+        new = next((r for r in rows if r["layer"] == "head" and r["user_name"] == w.device), None) if prev is None \
+            else None                                       # a head wired from wiring.csv alone: its notes are there
+        row = dict(prev or new or {}, system_name=w.address, jmri_name=w.address, node=str(w.node),
+                   comment=w.wiring_text)
+        if prev is None:                                 # wiring.csv's note, else the row's own, unless it says
+            kept = (new or {}).get("notes", "")         # the head is not wired
+            row["notes"] = w.notes or (kept if kept and kept != "internal, not wired" else "wired")
+        out.setdefault("Mast " + m.group(1), {})[w.device] = row
+    for user, h in sorted(by_user.items()):
+        bad.append(f"head {user} is wired in devices.csv (its jmri_name is {h['jmri_name']}) but has no head row "
+                   f"in {wiring.PATH.name}: add its wiring there, or give the row its internal name back")
+    if bad:
+        raise RuleError("; ".join(bad))
     return out
 
 
@@ -387,7 +423,7 @@ def build():
     if problems:
         raise RuleError("; ".join(problems))
     old = devices.device_map_rows(devices.load(files), ("1",))    # the master's staging rows, as the old file reads
-    wired = wired_heads(old)
+    wired = wiring_heads(old)
     cm = block_cm()
     planned = plan(band, bands, joined, runs, names, locks, cm)
     gen = generate(band, names, planned, cm, wired)

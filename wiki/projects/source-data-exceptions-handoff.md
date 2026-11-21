@@ -27,7 +27,7 @@ order; rows 1 to 7 are done.
 - **Wiring and addresses:**
   - the device maps;
   - `lcos_nodes.csv` (every level's nodes);
-  - `detector_pins.csv` (with a level column);
+  - `wiring.csv` (the physical wiring: every wired device, and the detectors the owner placed on main and upper);
   - `switches.csv` and `switch_legs.csv`;
   - `public_name_map.csv`.
 - **The owner's choices:**

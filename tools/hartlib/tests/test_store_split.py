@@ -322,6 +322,17 @@ class DeviceItems(unittest.TestCase):
         self.assertEqual({("user_name", "Switch 1A"), ("jmri_name", "Switch 1A")},
                          {(e.column, e.new) for e in d.edits})
 
+    def test_a_rename_of_a_wired_staging_turnout_says_where_to_rename_it(self) -> None:
+        """Staging's turnout rows are build_device_map.py's since wiring.csv (2026-11-20); a rename is the owner's,
+        by hand in both files, not a rebuild's."""
+        rows = [dict(r, written_by="build_device_map.py") if r["layer"] == "turnout" else r for r in ROWS]
+        turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
+                    + bean("turnout", "M2T408", "Switch 1A", "bound by its user name"))
+        p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
+        self.assertEqual([], p.of(ss.DEVICE))
+        [g] = p.of(ss.DROPPED)
+        self.assertIn("rename it by hand in devices.csv and in wiring.csv's row", g.note)
+
     def test_a_rename_on_both_passes_is_one_question(self) -> None:
         """A block's names-only pass and full pass (and its layout block) carry one rename: one DEVICE item."""
         both = (bean("block", "IB:AUTO:0033", "OS Switch 1A", systemName="IB:AUTO:0033")
