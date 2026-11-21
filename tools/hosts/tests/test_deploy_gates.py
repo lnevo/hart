@@ -66,14 +66,24 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_deploy_preflight import FAKE_RSYNC, PI, ROOT, SYNC, WIN, DeployHarness  # noqa: E402
 
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 HOOK = ROOT / ".claude/hooks/main_guard.py"
 OPERATING = ROOT / "tools/hosts/operating.sh"
 # Read-only ssh calls a gate step may make: the no-ops, the unpulled check, the restart check.
-READ_ONLY_SUFFIXES = (" true", " exit 0", " bash -s")
+READ_ONLY_COMMANDS = ("true", "exit 0", "bash -s")
+UNPULLED_PREFIX = "bash -s -- '"
 
 
 def is_read_only(call: str) -> bool:
-    return call.endswith(READ_ONLY_SUFFIXES) or " bash -s -- '" in call
+    """Whether a logged ssh call ran exactly one of the read-only remote commands. The log line is
+    "ssh <options> <host> <command>": the command is what follows the host name."""
+    if not call.startswith("ssh "):
+        return False
+    for host in (PI, f"nobody@{WIN}"):
+        if f" {host} " in call:
+            command = call.split(f" {host} ", 1)[1]
+            return command in READ_ONLY_COMMANDS or command.startswith(UNPULLED_PREFIX)
+    raise AssertionError(f"an ssh call to no known host: {call}")
 
 
 def wrapper(tmp: Path, real: Path) -> None:
@@ -105,7 +115,9 @@ class GateHarness(DeployHarness):
         wrapper(self.tmp, self.tmp / "bin/python3")
         self.env["PATH"] = f"{self.tmp / 'bin2'}{os.pathsep}{self.env['PATH']}"
         rsync, tar = shutil.which("rsync"), shutil.which("tar")
-        assert rsync and tar, "rsync and tar are needed for the staging"
+        for name, path in (("rsync", rsync), ("tar", tar)):
+            if not path:
+                raise RuntimeError(f"{name} is not on PATH: the deploy staging tests need it")
         bins = self.tmp / "bin"
         (bins / "rsync").write_text(FAKE_RSYNC.replace("@TMP@", str(self.tmp)).replace("@RSYNC@", rsync),
                                     encoding="utf-8")
@@ -115,7 +127,8 @@ class GateHarness(DeployHarness):
         # the unpulled check prints what unpulled.txt holds (ops, tables)
         ssh = (bins / "ssh").read_text(encoding="utf-8")
         old = '''"bash -s -- '"*) cat >/dev/null; exit 0 ;;'''
-        assert old in ssh, "the preflight ssh stand-in changed: update this one"
+        if old not in ssh:
+            raise RuntimeError("the preflight ssh stand-in (test_deploy_preflight.FAKE_SSH) changed: update this test")
         ssh = ssh.replace(old, f'''"bash -s -- '"*) cat >/dev/null; [[ ! -f "{self.tmp}/unpulled_fail" ]] || exit 5; '''
                                f'''cat "{self.tmp}/unpulled.txt" 2>/dev/null; exit 0 ;;''')
         (bins / "ssh").write_text(ssh, encoding="utf-8")
@@ -357,6 +370,7 @@ class WhatShipsWhere(GateHarness):
         self.assertEqual(0, done.returncode, done.stderr[-2000:])
         self.assertFalse(self.mac_installed())
         # the only network call is rsync -n (statistics, no copy); no apply, no scp
+        self.assertEqual(1, len(self.pi_pushes()), self.calls())
         self.assertTrue(all(" -n " in c for c in self.pi_pushes()), self.pi_pushes())
         self.assertEqual([], self.scps())
         self.assertEqual([], self.pi_applies() + self.win_applies())
@@ -420,7 +434,6 @@ class ParkedFeaturesAreNotInstalled(GateHarness):
     test_deploy_stage and again here, so the split keeps one list for the gate and the ship steps."""
 
     def parked(self) -> set[str]:
-        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
         from hartlib import parked
         return set(parked.PARKED)
 
@@ -465,8 +478,9 @@ class OperatingFlagRefusal(unittest.TestCase):
                               capture_output=True, text=True, timeout=60)
 
     def test_the_script_has_no_flag_check_of_its_own(self) -> None:
-        self.assertNotIn("hart_operating", SYNC.read_text(encoding="utf-8").lower(),
-                         "the script reads the operating flag now: update the map and this test")
+        text = SYNC.read_text(encoding="utf-8").lower()
+        for needle in ("hart_operating", "operating.sh", ".hart_operating"):
+            self.assertNotIn(needle, text, "the script reads the operating flag now: update the map and this test")
 
     def test_deploys_to_a_host_are_refused_while_the_flag_is_set(self) -> None:
         self.operating("on", "ops session")

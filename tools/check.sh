@@ -144,7 +144,7 @@ run docs-index python3 tools/ops/build_docs_index.py --check
 run desks python3 cats/scripts/validate_cats_panel.py
 # The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
 # the per-file guard and host jobs, with the files in SLOW of each folder (each 10-20 s) ahead of the rest.
-SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_redeploy_commit.py "
+SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_deploy_gates.py test_redeploy_commit.py "
 SLOW+="test_main_panel_names_copies.py test_polish_hart_layout_editor.py "
 # The Layout Editor test files run as one job in one process: each builds the three-level candidate through
 # test_build_layout_le.built(), cached per process, so three jobs solved the sheet three times side by side with an
