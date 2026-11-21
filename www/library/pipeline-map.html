@@ -820,8 +820,9 @@ function app() {
     return { top: a.top / a.r.height, right: a.right / a.r.width, bottom: a.bottom / a.r.height };
   }
   /* ---- step headers along the top and lane names down the left, pinned to the screen while the map moves under them */
-  const rulers = document.getElementById("rulers"), steps = document.getElementById("steps"), laneTags = document.getElementById("lanetags");
+  const legend = document.getElementById("legend"), rulers = document.getElementById("rulers"), steps = document.getElementById("steps"), laneTags = document.getElementById("lanetags");
   const STRIP_H = 24;
+  legend.addEventListener("toggle", () => drawRulers());  // open, it is taller: the tags beside it move up
   let colKinds = [];  // per column: what its boxes are, for the header's tooltip
   let rawFirst = false;  // whether nothing in the whole graph builds any box of column 0 (a filtered view may hide what does)
   const showRulers = () => !!(lay && lay.nodes.length);  // the strip shows only over a drawing with boxes
@@ -852,9 +853,12 @@ function app() {
     }
     steps.innerHTML = out.join("");
     const left = Math.max(8, sx(-LEFT) + 8), floor = top + STRIP_H + 6, tags = [];
+    const lg = legend.getBoundingClientRect();  // the legend sits bottom left: a tag beside it moves up clear of it
+    const under = lg.width && left < lg.right - r.left ? lg.top - r.top - 4 : Infinity;
     for (const b of lay.bands) {
-      const y0 = sy(b.y), y1 = sy(b.y + b.h), y = Math.max(y0 + 6, floor);
-      if (y + 18 > Math.min(y1, a.bottom)) continue;  // the lane is out of view, or too thin on screen for its name
+      const y0 = sy(b.y), y1 = sy(b.y + b.h), limit = Math.min(y1, a.bottom, under);
+      const y = Math.min(Math.max(y0 + 6, floor), limit - 18);
+      if (y < Math.max(y0, floor)) continue;  // the lane is out of view, behind the legend, or too thin on screen for its name
       tags.push(`<span style="top:${y.toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
     }
     laneTags.innerHTML = tags.join("");
