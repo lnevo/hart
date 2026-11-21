@@ -22,7 +22,7 @@ For a batch of new photos (cars and locomotives) use the staged flow in [intake-
 
 Run `bin/cars publish`. It:
 
-1. Rebuilds the rosters from the repository and copies them to the STS seed inputs.
+1. Rebuilds the rosters from the repository and copies them to the STS seed inputs. `bin/cars seed-copy` refreshes the STS seed copies alone; publish does it as step 1 of its run.
 2. Adds new cars to `hart_seed`, and to the running STS database if it is up. The car joins at South Yard, Empty, with the pools of another car of the same code.
 3. Writes new cars and out-of-service flags to the Operations Pro roster in `jmri/layouts/hart/operations/` (ADR-015).
 
@@ -47,6 +47,8 @@ Change it in the repository, not in STS or JMRI. The next publish overwrites a c
 ## Compare
 
 `bin/cars compare` lists differences between the repository, the Operations Pro roster and the STS seed, including out-of-service flags. It reports only.
+
+`bin/cars sync` sends the repository's identity fields (road, number, length, colour, type, class, notes, as `compare` maps them) for cars both sides hold. It is a dry run by default; `--apply` writes the Operations Pro roster in the repo (refused when the Pi's Operations files differ) and the STS seed copies, which it replaces wholesale as `seed-copy` does (the dry run lists any cars added or removed and out-of-service changes beyond the fields). With `--live-sts --sts-url URL` it also patches the live STS `remarks` (`PATCH /cars/{id}`, one car at a time, each read back) after a backup, and refuses while the operating flag is set. Position, load and destination are never sent (ADR-016).
 
 `bin/cars fix-ops` brings the Operations Pro roster up to the repository: wrong ids listed in `ROSTER_TYPO_IDS` are corrected in place, keeping location and moves, and missing cars are added. It leaves STS and the queue alone. Commit and deploy the result as in the steps above.
 

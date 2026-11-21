@@ -40,7 +40,7 @@ Each desk carries a publication title row (Y=1):
 Rebuild both desks (`make desks` also validates them):
 
 ```bash
-python3 tools/schematic/build_cats_panel.py
+make desks
 ```
 
 ---
@@ -205,13 +205,14 @@ Digicon SML MQTT controller — toggle **SML Enabled / SML Disabled**, SET publi
 
 Mast 2L is the same packed-head path (`IH438`/`IH439` on C3-OU3). JMRI no longer publishes `track/signalmast/432`.
 
-Refresh the wiring CSVs from the head plan (publisher roster is dynamic):
+Rebuild the head plan (publisher roster is dynamic): `make panels` runs it as its head-plan step, writing `jmri/layouts/hart/output/signal_head_plan.csv`; `make panels CHECK=1` checks it:
 
 ```bash
-python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
+make panels
+make panels CHECK=1
 ```
 
-Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
+Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `make panels` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
 
 LE `signalmasticon`s use the stock Basic `default` image set (no custom imagelinks). Digicon binds by userName either way.
 
@@ -283,4 +284,4 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 2. Never publish turnout “fix” commands at launch.
 3. Digicon Refresh Screen = safe (JMRI → Digicon). Refresh Layout pushes Digicon → JMRI — avoid for boot paint fixes.
 4. All Digicon lamps are packed `IH*` SHSM — two-head homes on **Basic** (`two-searchlight`), dwarfs on **`one-low`**. No aspects are disabled. Mast 2L is `IH438`/`IH439`.
-5. After a schematic or switch-fact change, run `build_cats_panel.py`. It rebuilds both desks, so `HOLD_ONLY` and mast bindings stay in sync.
+5. After a schematic or switch-fact change, run `make panels` (its cats step), or `make desks` for the desks alone. Both rebuild both desks, so `HOLD_ONLY` and mast bindings stay in sync.

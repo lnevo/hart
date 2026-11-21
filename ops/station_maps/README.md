@@ -23,5 +23,5 @@ Block / turnout names: `cats/data/occupancy_bindings.csv`, `jmri/layouts/hart/da
 **Sheet panels:** West Yard sheets are archived at `cats/panels/sheets/archive/west_yard/`. Live Digicon: `cats/panels/HART_CTC.xml` and `HART_ABS.xml`, generated from the schematic.
 
 ```bash
-python3 tools/schematic/build_cats_panel.py
+make desks
 ```

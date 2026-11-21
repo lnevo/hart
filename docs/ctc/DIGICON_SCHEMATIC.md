@@ -68,7 +68,7 @@ Designer captions stay as saved. Wire lifts `FONT_LABEL` on operating rows (`Yâ‰
 ```bash
 ./cats/scripts/launch_cats.sh
 # or the CATS CTC / CATS ABS desktop icons
-python3 tools/schematic/build_cats_panel.py   # rebuild the generated desks
+make desks   # rebuild the generated desks
 ```
 
 Mac icons **CATS CTC** / **CATS ABS** open the desks.
