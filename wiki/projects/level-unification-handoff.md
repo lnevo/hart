@@ -4,6 +4,11 @@ Since 2026-11-21 `block_exceptions.csv` and `block_splits.csv`, named below as t
 `data/schematic/block_overrides.csv`, with a `kind` column (`split`, `track`, `crossover_half`), and
 `helix_tracks.csv` is gone: the helix tracks' plan names (Helix Outer, Helix Inner) in `plan_overrides.json` name their
 blocks by the ordinary rule, and `preferences.json` `track_labels` gives the labels shown (McKees Rocks, McKeesport).
+Since 2026-11-21 `staging_masts.csv`, `staging_signals.csv` and `main_upper_masts.csv`, named below as they were, are
+one file, `data/schematic/masts.csv`, with a `level` column; `build_staging_masts.py` and `build_main_upper_masts.py`
+are `build_masts.py`, and `sync_staging_signals.py` is `sync_signals.py`, a check of every level. Left as a level
+split: staging's mast and head rows are planned by `build_masts.py` over its device map's block layer, main and upper's
+by `build_device_map.py` with their LCOS head plan, until the block layer is one process.
 
 ## Why
 

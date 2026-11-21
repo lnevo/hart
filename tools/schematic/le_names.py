@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import devices, paths, railroad, tables  # noqa: E402
-from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
+from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
     band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
 )
@@ -97,15 +97,17 @@ def plan_lengths() -> dict:
 
 
 MM_PER_INCH = 25.4
-MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
+MASTS = level_masts_lib.PATH      # masts.csv, every level's (build_masts.py)
+# the levels the build adds (main and upper), whose masts it draws on internal heads: every level the base holds none of
+ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in BASE_LEVELS)
 
 
-def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
-    """main_upper_masts.csv's rows (hartlib.level_masts.read: each with `heads` as [(internal system name, user
-    name)], every head internal), checked again against signal_coordinator.py's own test: no mast or head on a name
-    it would enrol or publish (lcos_named)."""
+def read_level_masts(path: Path = MASTS) -> list[dict]:
+    """masts.csv's rows of the levels the build adds (ADDED_LEVELS; hartlib.level_masts.read: each with `heads` as
+    [(internal system name, user name)]), checked again against signal_coordinator.py's own test: no mast or head on
+    a name it would enrol or publish (lcos_named)."""
     try:
-        rows = level_masts_lib.read(path)
+        rows = level_masts_lib.read(path, levels=ADDED_LEVELS)
     except ValueError as exc:
         raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
     bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
@@ -150,7 +152,7 @@ def lcos_named(names: list[str]) -> list[str]:
 
 def level_masts(names: dict, rows: list[dict], skip: set) -> None:
     """Give each main and upper band in `names` (every key but `skip`: the bands of a level the base holds,
-    le_common.base_keys) its masts (main_upper_masts.csv rows) for the plugin: each in the
+    le_common.base_keys) its masts (masts.csv rows) for the plugin: each in the
     band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block; a virtual mast (a destination, no switch) hidden in the end bumper

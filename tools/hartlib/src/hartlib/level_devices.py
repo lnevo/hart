@@ -14,7 +14,7 @@ device, so a physical device is later swapped in by that mapping alone.
   and its reader clear_sensors; the same LogixNG sets every virtual turnout to its startup position, Closed except
   where the main route runs through the diverging leg (owner, 2026-11-19), read by turnout_states.
 
-Used by tools/schematic/build_device_map.py, build_main_upper_masts.py, build_layout_le.py, build_cats_panel.py,
+Used by tools/schematic/build_device_map.py, build_masts.py, build_layout_le.py, build_cats_panel.py,
 hartlib.level_masts, tools/audit/check_layout_facts.py and www/scripts/tables_page.py.
 """
 from __future__ import annotations

@@ -52,7 +52,7 @@ ROLES = ("turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "l
          "home", "intermediate", "hidden", "head", "spare", "panel_status", "part")
 # The scripts that write rows (the one list: a merge of builders changes only this). Order is the order of rows
 # within a (level, layer) after the hand-kept ones.
-WRITERS = ("build_staging_masts.py", "build_device_map.py", "build_main_upper_masts.py", "panel_items.json")
+WRITERS = ("build_masts.py", "build_device_map.py", "panel_items.json")
 # roles the two device maps leave out: a spare detector, a panel status bean, and a part (a block row with part_of: a
 # piece of track inside another block: a JMRI block on its block's occupancy sensor, built by its level's builder, with
 # no occupancy row or detector of its own)
@@ -117,6 +117,14 @@ def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
             raise DevicesError(f"{name} line {line}: {len(fields)} fields, expected {len(COLUMNS)}")
         rows.append(MappingProxyType(dict(zip(COLUMNS, fields))))
     return tuple(rows)
+
+
+def parse(text: str, name: str = "devices.csv") -> tuple[Mapping[str, str], ...]:
+    """The rows of a master's text (one outputs_after gives, before it is written), checked as load checks the file.
+    DevicesError naming `name` on any problem."""
+    rows = _read(name, text.encode("utf-8"))
+    check_rows(rows, name)
+    return rows
 
 
 def _master_path(source: "Files | Path | str | None") -> Path:

@@ -582,7 +582,7 @@
  },
  "main_upper": {
   "schema": "schematic.signals/1",
-  "source": "main_upper_masts.csv",
+  "source": "masts.csv",
   "signals": [
    {
     "mast": "A83",
@@ -597,7 +597,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e33",
     "_toward_node": "turn:e33",
     "leg": "C"
@@ -615,7 +615,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e33",
     "_toward_node": "TOL29248",
     "leg": "B"
@@ -633,7 +633,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e25",
     "_toward_node": "TO_3W33789-1"
    },
@@ -650,7 +650,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e32",
     "_toward_node": "TOL33790"
    },
@@ -667,7 +667,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e31",
     "_toward_node": "TOR34053"
    },
@@ -684,7 +684,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e33",
     "_toward_node": "TOL29248",
     "leg": "B"
@@ -702,7 +702,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e33",
     "_toward_node": "TOL29248",
     "leg": "C"
@@ -720,7 +720,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e20",
     "_toward_node": "TOR29162"
    },
@@ -737,7 +737,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e24",
     "_toward_node": "TOR29169"
    },
@@ -754,7 +754,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e12",
     "_toward_node": "TOL30310"
    },
@@ -771,7 +771,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e13",
     "_toward_node": "TOL30310"
    },
@@ -788,7 +788,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e15",
     "_toward_node": "TOR30311"
    },
@@ -805,7 +805,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e14",
     "_toward_node": "TOL30287"
    },
@@ -822,7 +822,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e17",
     "_toward_node": "TOR33646"
    },
@@ -839,7 +839,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e7",
     "_toward_node": "TOR33649"
    },
@@ -856,7 +856,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e8",
     "_toward_node": "TOR33649"
    },
@@ -873,7 +873,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e0",
     "_toward_node": "TOL30431"
    },
@@ -890,7 +890,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e17",
     "_toward_node": "TOL32046"
    },
@@ -907,7 +907,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e6",
     "_toward_node": "TOL32046"
    },
@@ -924,7 +924,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e30",
     "_toward_node": "TOR32045"
    },
@@ -941,7 +941,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e3",
     "_toward_node": "TOL30400"
    },
@@ -958,7 +958,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e30",
     "_toward_node": "TOL29346"
    },
@@ -975,7 +975,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e73",
     "_toward_node": "TOL29345"
    },
@@ -992,7 +992,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e4",
     "_toward_node": "TOR30399"
    },
@@ -1009,7 +1009,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e5",
     "_toward_node": "TOR30399"
    },
@@ -1026,7 +1026,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e88",
     "_toward_node": "TOR29141"
    },
@@ -1043,7 +1043,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e89",
     "_toward_node": "TOR29140"
    },
@@ -1060,7 +1060,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e63",
     "_toward_node": "TOR31151"
    },
@@ -1077,7 +1077,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e63",
     "_toward_node": "TOR30947"
    },
@@ -1094,7 +1094,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e60",
     "_toward_node": "TOL28717"
    },
@@ -1111,7 +1111,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e55",
     "_toward_node": "TOL29367"
    },
@@ -1128,7 +1128,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e67",
     "_toward_node": "TOL29367"
    },
@@ -1145,7 +1145,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e87",
     "_toward_node": "TOL30474"
    },
@@ -1162,7 +1162,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e85",
     "_toward_node": "TOL29364"
    },
@@ -1179,7 +1179,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e84",
     "_toward_node": "TOL29364"
    },
@@ -1196,7 +1196,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e56",
     "_toward_node": "TOR34046"
    },
@@ -1213,7 +1213,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e67",
     "_toward_node": "TOR34047"
    },
@@ -1230,7 +1230,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e71",
     "_toward_node": "TOR34046"
    },
@@ -1247,7 +1247,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e77",
     "_toward_node": "TOR34047"
    },
@@ -1264,7 +1264,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e86",
     "_toward_node": "TOL29356"
    },
@@ -1281,7 +1281,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e82",
     "_toward_node": "TOL30483"
    },
@@ -1298,7 +1298,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e81",
     "_toward_node": "TOL30483"
    },
@@ -1315,7 +1315,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e71",
     "_toward_node": "TOL34042"
    },
@@ -1332,7 +1332,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e77",
     "_toward_node": "TOL34043"
    },
@@ -1349,7 +1349,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e75",
     "_toward_node": "TOL34042"
    },
@@ -1366,7 +1366,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e74",
     "_toward_node": "TOL34043"
    },
@@ -1383,7 +1383,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e75",
     "_toward_node": "TOL28839"
    },
@@ -1400,7 +1400,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e69",
     "_toward_node": "TOR28724"
    },
@@ -1417,7 +1417,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e74",
     "_toward_node": "TOR28723"
    },
@@ -1434,7 +1434,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e73",
     "_toward_node": "TOR28723"
    },
@@ -1451,7 +1451,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e79",
     "_toward_node": "TOR34458"
    },
@@ -1468,7 +1468,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e78",
     "_toward_node": "TOR34458"
    },
@@ -1485,7 +1485,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e69",
     "_toward_node": "TOR34458"
    },
@@ -1502,7 +1502,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e79",
     "_toward_node": "TO_CO30681"
    },
@@ -1519,7 +1519,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e78",
     "_toward_node": "TO_CO30681"
    },
@@ -1536,7 +1536,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e48",
     "_toward_node": "TOR31151"
    },
@@ -1553,7 +1553,7 @@
     "dir": "east",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e63",
     "_toward_node": "TOR31151"
    },
@@ -1570,7 +1570,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e62",
     "_toward_node": "TOL30902"
    },
@@ -1587,7 +1587,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 2,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e37",
     "_toward_node": "TOL30902"
    },
@@ -1604,7 +1604,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e49",
     "_toward_node": "TOR31401"
    },
@@ -1621,7 +1621,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e51",
     "_toward_node": "TOR31406"
    },
@@ -1638,7 +1638,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e53",
     "_toward_node": "TOL33601"
    },
@@ -1655,7 +1655,7 @@
     "dir": "west",
     "kind": "planned",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e64",
     "_toward_node": "TOR30947"
    },
@@ -1672,7 +1672,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e64",
     "_toward_node": "TOR30947"
    },
@@ -1689,7 +1689,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e40",
     "_toward_node": "TOL31925"
    },
@@ -1706,7 +1706,7 @@
     "dir": "east",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e54",
     "_toward_node": "TOL31924"
    },
@@ -1723,7 +1723,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e52",
     "_toward_node": "TOL31514"
    },
@@ -1740,7 +1740,7 @@
     "dir": "west",
     "kind": "virtual",
     "heads": 1,
-    "source": "main_upper_masts.csv",
+    "source": "masts.csv",
     "_edge": "e46",
     "_toward_node": "TOL31515"
    }

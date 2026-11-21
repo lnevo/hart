@@ -107,7 +107,7 @@ class DispatcherVirtualsTest(unittest.TestCase):
             def mast(user, role, n, level="1"):
                 system = f"IF$vsm:basic:one-low(${n})" if role == "hidden" else f"IF$shsm:basic:one-low(IH{n})"
                 return dict(blank, level=level, layer="mast", role=role, assignment="virtual", system_name=system,
-                            jmri_name=system, written_by="build_staging_masts.py", description="A mast of the test.",
+                            jmri_name=system, written_by="build_masts.py", description="A mast of the test.",
                             user_name=user)
             rows = [mast("Mast 1A", "hidden", 1001), mast("Mast 1B", "home", 100), mast("Mast 1C", "hidden", 1002),
                     mast("Mast 9Z", "hidden", 2001, level="2")]          # a main level mast is no staging one
@@ -119,10 +119,10 @@ class DispatcherVirtualsTest(unittest.TestCase):
 
     def test_repo_dispatcher_virtuals_are_the_staging_buffer_stop_masts(self):
         # Pinned on purpose: a mast or hardware change shows up here instead of moving silently. The virtual staging
-        # masts (hidden, IF$vsm:) stand at buffer stops only (owner, 2026-11-20); staging_masts.csv names them.
+        # masts (hidden, IF$vsm:) stand at buffer stops only (owner, 2026-11-20); masts.csv's staging rows name them.
         audit = load("audit_panel_contracts")
-        with (DATA / "schematic" / "staging_masts.csv").open(newline="", encoding="utf-8") as f:
-            rows = list(csv.DictReader(f))
+        with (DATA / "schematic" / "masts.csv").open(newline="", encoding="utf-8") as f:
+            rows = [r for r in csv.DictReader(f) if r["level"] == "1"]
         virtual = {r["mast"] for r in rows if r["system_name"].startswith("IF$vsm:")}
         self.assertTrue(virtual)
         self.assertEqual(virtual, audit.dispatcher_virtuals({r["mast"] for r in rows}))

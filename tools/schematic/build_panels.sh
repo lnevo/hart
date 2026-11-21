@@ -12,20 +12,22 @@
 #                         rows) and the plan graph; staging's main flags and milepost_route, from its staging rows
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
 #                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
-#   staging-masts         staging_masts.csv, staging_signals.csv and the devices.csv rows of the staging masts and
-#                         heads are written by build_staging_masts.py,
-#                         run by hand: this only checks them (--check), in both modes
-#   signals               signals.json (a section per sheet), from the plan graph and the masts; the schematic reads it
 #   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
 #                         reads, so it runs before publishing
-#   main-upper-masts      main_upper_masts.csv, from the device map; the Layout Editor builds place these masts
+#   masts                 masts.csv, every level's masts (build_masts.py): staging's by the mast rule over its device
+#                         map, with their devices.csv rows, and main and upper's from the device map's rows; after
+#                         device-map, whose rows it reads
+#   signals               signals.json (a section per sheet), from the plan graph and masts.csv; the schematic reads it.
+#                         After masts, so one run draws the masts it writes. Nothing before it reads signals.json:
+#                         device-map and masts give the same outputs with every signal dropped from it (the solve's
+#                         signals layer places mast icons only), so there is no cycle
 #   schematic             the schematic draft and stations (publish_draft.py)
 #   le-cutover            build_layout_le.py --as-live: the three-level candidate and the staging candidate it holds
 #                         (the viewing trials are retired, owner 2026-11-17: the candidates show every level)
 #   approved-candidate    check_approved.py on the cut-over candidate, straight after it is written
 #   tables                tables.xml (build_tables.py): the template, the staging beans of devices.csv, the Layout
 #                         Editor build, the discovered Signal Mast Logic (ADR-029: tables.xml is an output)
-#   staging-sync          the staging heads and masts in tables.xml follow staging_masts.csv (sync_staging_signals.py
+#   signals-sync          every level's heads and masts in tables.xml follow masts.csv (sync_signals.py
 #                         --check), in both modes; after tables, which generates them from devices.csv
 #   device-master         devices.csv is checked against tables.xml and the schematic (check_device_master.py
 #                         --check), in both modes; after tables, which it checks
@@ -72,15 +74,14 @@ step hands python3 tools/schematic/build_hands.py
 step staging-sets python3 tools/schematic/build_staging_sets.py
 step main-route python3 tools/schematic/build_main_route.py
 guard plan-lengths python3 tools/schematic/plan_lengths.py --check
-guard staging-masts python3 tools/schematic/build_staging_masts.py --check
-step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
-step main-upper-masts python3 tools/schematic/build_main_upper_masts.py
+step masts python3 tools/schematic/build_masts.py
+step signals python3 tools/schematic/build_signals.py
 step schematic python3 tools/schematic/publish_draft.py
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 guard approved-candidate python3 tools/schematic/check_approved.py le-candidate
 step tables python3 tools/schematic/build_tables.py
-guard staging-sync python3 tools/schematic/sync_staging_signals.py --check
+guard signals-sync python3 tools/schematic/sync_signals.py --check
 guard device-master python3 tools/schematic/check_device_master.py --check
 step cats python3 tools/schematic/build_cats_panel.py
 guard approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs

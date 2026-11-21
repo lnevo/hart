@@ -285,7 +285,7 @@ class Output(unittest.TestCase):
                 if x["layer"] == "turnout":
                     self.assertEqual(x["jmri_name"], "IT:HART:C3:" + x["user_name"].rpartition(" ")[2])
                 elif x["layer"] == "head":
-                    self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"]))
+                    self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"], int(x["level"])))
                 elif x["layer"] == "mast" and level_masts.is_level_virtual(x["jmri_name"]):
                     self.assertEqual(x["system_name"], x["jmri_name"])        # a hidden virtual mast, no heads
                 elif x["layer"] == "mast":

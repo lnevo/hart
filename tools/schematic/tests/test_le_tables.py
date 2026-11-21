@@ -343,12 +343,12 @@ class MastChecks(unittest.TestCase):
             self.check(bound, want, {"Mast 2L": "M2"})
         with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) fits 2 slots \(TO1 A, TO2 A\)"):
             self.check(bound, want, {"Mast 2L": "M1"}, dict(self.TURNOUTS, TO2=("M1", "2")))
-        with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) is a turnout mast on the panel, but neither "
-                                                r"staging_masts.csv nor main_upper_masts.csv lists it"):
+        with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) is a turnout mast on the panel, but "
+                                                r"masts.csv does not list it"):
             self.check(bound, want, {})
         with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) is a turnout mast on the panel, but "
-                                                r"staging_masts.csv gives it no switch \(a end bumper mast there\)"):
-            self.check(bound, want, {}, listed={"Mast 2L": ("staging_masts.csv", None, "end bumper")})
+                                                r"masts.csv gives it no switch \(a end bumper mast there\)"):
+            self.check(bound, want, {}, listed={"Mast 2L": ("masts.csv", None, "end bumper")})
 
     def test_a_mast_bound_twice_not_asked_for_or_missing_stops(self):
         with self.assertRaisesRegex(BuildError, "Mast 2L is bound in two slots"):
@@ -402,7 +402,8 @@ class MastChecks(unittest.TestCase):
 
 
 class MastTurnouts(unittest.TestCase):
-    """mast_turnouts: each turnout mast's switch turnout from its own mast file."""
+    """mast_turnouts: each turnout mast's switch turnout, a base level's from the device map, an added level's by
+    its switch number."""
 
     def row(self, mast, switch, system="IF$xx"):
         return dict(mast=mast, switch=switch, system_name=system)
@@ -412,14 +413,14 @@ class MastTurnouts(unittest.TestCase):
         rows = [self.row("Mast 110L", "109"), self.row("Mast A87", ""),
                 self.row("Mast 102RA", "", "IF$vsm:basic:one-low($2001)")]
         self.assertEqual(le_checks.mast_turnouts(rows, facts), {
-            "Mast 2L": ("staging_masts.csv", "M2T408", "turnout"),
-            "Mast 4LA": ("staging_masts.csv", None, "end bumper"),
-            "Mast 110L": ("main_upper_masts.csv", "Switch 109", "turnout"),
-            "Mast A87": ("main_upper_masts.csv", None, "anchor"),
-            "Mast 102RA": ("main_upper_masts.csv", None, "end bumper")})
+            "Mast 2L": ("masts.csv", "M2T408", "turnout"),
+            "Mast 4LA": ("masts.csv", None, "end bumper"),
+            "Mast 110L": ("masts.csv", "Switch 109", "turnout"),
+            "Mast A87": ("masts.csv", None, "anchor"),
+            "Mast 102RA": ("masts.csv", None, "end bumper")})
 
     def test_a_mast_in_both_files_stops(self):
-        with self.assertRaisesRegex(BuildError, "both list Mast 2L"):
+        with self.assertRaisesRegex(BuildError, "both give Mast 2L"):
             le_checks.mast_turnouts([self.row("Mast 2L", "1")], {"Mast 2L": dict(kind="turnout", turnout="M")})
 
     def test_a_staging_map_error_names_it(self):

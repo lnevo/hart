@@ -109,15 +109,14 @@ run schematic-main-route python3 tools/schematic/build_main_route.py --check
 run schematic-staging-sets python3 tools/schematic/build_staging_sets.py --check
 run schematic-approved python3 tools/schematic/check_approved.py
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
-run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py --check
+run schematic-masts python3 tools/schematic/build_masts.py --check
 # tables.xml is an output (ADR-029): it must be what build_tables.py writes from the template, devices.csv, the
 # Layout Editor build and the discovered Signal Mast Logic; a Store is never copied over it (make tables-pull keeps
 # it in ~/JMRI_UserFiles-pulled and tools/schematic/split_store.py splits it into the template and devices.csv)
 run tables python3 tools/schematic/build_tables.py --check
 run schematic-device-master python3 tools/schematic/check_device_master.py --check
 run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
-run schematic-staging-masts python3 tools/schematic/build_staging_masts.py --check
-run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --check
+run schematic-signals-sync python3 tools/schematic/sync_signals.py --check
 # The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article
 # against its drawings and the block lengths.
 run levels-svg python3 tools/anyrail/levels_svg.py --check
