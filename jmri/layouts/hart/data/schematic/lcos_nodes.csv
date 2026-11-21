@@ -1,4 +1,13 @@
 level,area,node,source
+1,Helix,0,inventory v86: M1 Helix (main radio node)
+1,Helix,1,inventory v86: C1 Helix - Lower (Princess)
+1,North,2,inventory v86: C2 North - Lower (East End west 24); was C3
+1,West,3,inventory v86: C3 West - Lower (Switch 15-21 motors); was C4
+1,West,4,inventory v86: C4 West - Lower (Brick / Plane); was C6
+1,Helix,5,inventory v86: D5 Helix DCC (radio 5; no Digicon DNOU8)
+1,Helix,11,inventory v86: C11 Helix (Princess east 40 + balloon); was C7
+1,North,12,inventory v86: C12 North - Lower (East End 34 + Switch 25-33); was C2
+1,West,13,inventory v86: C13 West - Lower (Barn); was C5
 2,North,42,node grid lcos-node-grid-2025-10-06c.xlsx (top band)
 2,North,52,node grid lcos-node-grid-2025-10-06c.xlsx (top band)
 2,West,33,node grid lcos-node-grid-2025-10-06c.xlsx (left band)

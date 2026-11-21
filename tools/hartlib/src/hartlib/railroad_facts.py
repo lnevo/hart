@@ -77,7 +77,7 @@ class Sources:
         return cls(switches=data / "switches.csv", switch_legs=data / "switch_legs.csv",
                    devices=data / "devices.csv",
                    interlockings=s / "interlockings.csv",
-                   local_switches=s / "local_switches_main_upper.csv", lcos_nodes=s / "lcos_nodes_main_upper.csv",
+                   local_switches=s / "local_switches_main_upper.csv", lcos_nodes=s / "lcos_nodes.csv",
                    plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
                    staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
                    level_masts=s / level_masts.PATH.name,
@@ -471,7 +471,8 @@ def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
 
 @dataclass(frozen=True)
 class LcosNode:
-    """An LCOS radio address a level and area may use (lcos_nodes_main_upper.csv), in the order they are used."""
+    """An LCOS radio address of a level and area (lcos_nodes.csv, every level): staging's are the nodes in service, as
+    built (inventory v86); main and upper's the ones build_device_map.py may hand out, in the order it uses them."""
     line: int
     level: int
     area: str
@@ -489,7 +490,10 @@ def read_lcos_nodes(path: Path) -> list[LcosNode]:
         seen[node] = line
         if not r["area"]:
             raise FactsError(f"{where}: no area")
-        out.append(LcosNode(line, _level(r["level"], where), r["area"], node, r["source"]))
+        level = _int(r["level"], where, "level")
+        if level not in (1, *LEVEL_NUMBERS):
+            raise FactsError(f"{where}: level is 1, 2 or 3 (staging, main, upper), not {level}")
+        out.append(LcosNode(line, level, r["area"], node, r["source"]))
     return out
 
 

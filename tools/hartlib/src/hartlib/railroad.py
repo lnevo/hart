@@ -15,7 +15,7 @@ read a later one: build_device_map.py loads upto="inputs", because it writes the
 stale copy of its own output. Each file is read the first time it is asked for, once.
 
     inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), the name map of devices.csv,
-                schematic/interlockings.csv (every level's), local_switches_main_upper.csv, lcos_nodes_main_upper.csv,
+                schematic/interlockings.csv (every level's), local_switches_main_upper.csv, lcos_nodes.csv (every level),
                 helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
                 control_points and stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
