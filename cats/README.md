@@ -29,7 +29,6 @@ The layout deploy and the Pi and Windows host scripts live in [`tools/hosts/`](.
 | File | Use in Designer |
 |------|-----------------|
 | [`data/occupancy_bindings.csv`](data/occupancy_bindings.csv) | Block → occupancy sensor userName |
-| [`docs/wiring/signals/signal_mast_plan.csv`](../docs/wiring/signals/signal_mast_plan.csv) | Planned mast slots |
 
 ## Decisions (Accepted)
 

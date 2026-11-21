@@ -1,15 +1,14 @@
-"""build_hart_signal_heads.py must reproduce the committed wiring CSVs.
+"""build_hart_signal_heads.py must reproduce the committed signal_head_plan.csv.
 
-`--wiring-only` (wiki/pipelines/wiring-docs.md) rewrites, from wiring.csv's wired heads,
-signal_head_plan.csv and signal_mast_plan.csv, and the CATS desk build
+The script (wiki/pipelines/wiring-docs.md) rewrites signal_head_plan.csv from wiring.csv's wired heads, and the
+CATS desk build
 (hartlib.cats.mast_templates) reads PHYSIGNAL from signal_head_plan.csv. A builder list that drifts from
-those files silently undoes field changes on the next run.
+that file silently undoes field changes on the next run.
 """
 from __future__ import annotations
 
 import csv
 import importlib.util
-import shutil
 import tempfile
 import unittest
 from contextlib import redirect_stdout
@@ -20,7 +19,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
 SIGNALS = ROOT / "docs/wiring/signals"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-FILES = ("signal_head_plan.csv", "signal_mast_plan.csv")
+FILES = ("signal_head_plan.csv",)
 
 
 def load_module():
@@ -39,10 +38,9 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
         cls.m = load_module()
         cls.rows = cls.m.build_rows()
 
-    def test_wiring_only_output_matches_committed_csvs(self) -> None:
+    def test_the_head_plan_matches_the_committed_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             out = Path(tmp)
-            shutil.copy(SIGNALS / "signal_mast_plan.csv", out / "signal_mast_plan.csv")
             saved = self.m.DATA
             self.m.DATA = out
             try:
