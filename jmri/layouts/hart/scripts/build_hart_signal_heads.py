@@ -20,25 +20,24 @@ needs 9 pins. New 5V **OU4** on C1 / C4 / C13 (C12 and C11 use existing 5V OUs).
   radio 3  C3  Motors 103–106 only — no Digicon heads.
   radio 5  D5  DCC only — no signal ports
 
-`--wiring-only` writes the head and mast plan CSVs only (no publisher), from wiring.csv's wired heads. It never writes tables.xml, which is generated (ADR-029).
+It writes the head and mast plan CSVs from wiring.csv's wired heads (`--wiring-only`, the old flag, is still
+accepted). It never writes tables.xml, which is generated (ADR-029); the full mode that refused to do so is gone.
 """
 
 from __future__ import annotations
 
 import csv
-import re
 import sys
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables_build, wiring  # noqa: E402
+from hartlib import paths, wiring  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DATA = ROOT / "docs/wiring/signals"
 
-SKIP_HEAD: set[str] = set()
 SKIP_MAST: set[str] = set()
 
 # Wired heads only (ADR-024, owner 2026-11-19): every other staging mast stands on internal heads
@@ -250,131 +249,15 @@ def write_csvs(rows: list[dict]) -> None:
     print(f"wrote {DATA / 'signal_head_plan.csv'} ({len(masts)} masts)")
 
 
-def _heads_xml(rows: list[dict]) -> str:
-    parts = [
-        '  <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">',
-    ]
-    for r in rows:
-        parts.append(
-            '    <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">'
-        )
-        parts.append(f"      <systemName>{r['system_name']}</systemName>")
-        parts.append(f"      <userName>{r['user_name']}</userName>")
-        parts.append("    </signalhead>")
-    parts.append("  </signalheads>")
-    return "\n".join(parts)
-
-
-def _masts_xml(rows: list[dict]) -> str:
-    parts = [
-        '  <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">',
-    ]
-    seen = set()
-    for r in rows:
-        m = r["mast_user_name"]
-        if m in SKIP_MAST or m in seen:
-            continue
-        seen.add(m)
-        sysname = mast_system_name(m, rows).replace("&", "&amp;")
-        parts.append(
-            '    <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">'
-        )
-        parts.append(f"      <systemName>{sysname}</systemName>")
-        parts.append(f"      <userName>{m}</userName>")
-        parts.append('      <unlit allowed="no" />')
-        parts.append("    </signalmast>")
-    parts.append("  </signalmasts>")
-    return "\n".join(parts)
-
-
-def check_live_heads(rows: list[dict], tables_text: str) -> list[str]:
-    """Planned IH beans missing from tables.xml.
-
-    IH numbers follow the wiring plan (tools/audit/check_wiring_crosswalk.py
-    enforces it), so a plan that does not match live beans means the plan or
-    tables.xml drifted and must not replace the tables block.
-    """
-    live = set(re.findall(r"<systemName>(IH\d+)</systemName>", tables_text))
-    return sorted({r["system_name"] for r in rows} - live)
-
-
-BLOCK_RE = re.compile(
-    r"  <signalheads class=\"jmri\.managers\.configurexml\.AbstractSignalHeadManagerXml\">.*?"
-    r"  </signalmasts>",
-    re.S,
-)
-
-
-def lost_beans(block: str, tables_text: str) -> list[str]:
-    """Head and mast system names in the live block that `block` would drop."""
-    m = BLOCK_RE.search(tables_text)
-    if not m:
-        return []
-    names = re.compile(r"<systemName>([^<]+)</systemName>")
-    return sorted(set(names.findall(m.group(0))) - set(names.findall(block)))
-
-
-def patch_tables(rows: list[dict]) -> None:
-    """Refuse: tables.xml is generated (ADR-029, R9c), its heads and masts from devices.csv
-    (build_staging_masts.py, tools/schematic/build_tables.py), so this script never writes it.
-    The reason found is reported so --wiring-only is used instead.
-    """
-    rows = fitted_rows(rows)
-    tables = paths.TABLES_XML
-    text = tables.read_text()
-    missing = check_live_heads(rows, text)
-    if missing:
-        raise SystemExit(
-            "refusing to rewrite tables.xml: planned heads are not live beans "
-            f"({len(missing)}: {', '.join(missing[:8])}). Run "
-            "tools/audit/check_wiring_crosswalk.py. Use --wiring-only."
-        )
-    lost = lost_beans(_heads_xml(rows) + "\n" + _masts_xml(rows), text)
-    dropped = f" ({len(lost)}: {', '.join(lost[:8])})" if lost else ""
-    raise SystemExit(
-        "refusing to rewrite tables.xml: the generated block would drop "
-        f"live beans{dropped}, such as virtual masts and IH9990. "
-        f"{tables_build.GENERATED_NOTE}. Use --wiring-only."
-    )
-
-
-def write_publisher(rows: list[dict]) -> None:
-    """Publisher Digicon roster is dynamic (LCOS IH masts + MQTT enroll); no HEAD_NAMES rewrite."""
-    path = ROOT / "jmri/scripts/signal_coordinator.py"
-    if not path.is_file():
-        raise SystemExit(f"missing {path}")
-    text = path.read_text()
-    if "DigiconMqttSml()" not in text or "_enroll_packed" not in text:
-        raise SystemExit(
-            f"{path}: expected dynamic DigiconMqttSml() + _enroll_packed roster"
-        )
-    if "HEAD_NAMES_BEGIN" in text or "\nHEAD_NAMES =" in text:
-        raise SystemExit(
-            f"{path}: remove HEAD_NAMES; Digicon plants come from LCOS IH beans + MQTT"
-        )
-    print(
-        f"publisher OK (dynamic Digicon roster; {len(rows)} wiring heads, "
-        f"no HEAD_NAMES patch): {path.relative_to(ROOT)}"
-    )
-
-
-
 def main() -> int:
-    wiring_only = "--wiring-only" in sys.argv
-    if not wiring_only:
-        paths.exit_if_overridden(Path(__file__).name)
+    """Write signal_head_plan.csv and signal_mast_plan.csv from wiring.csv's wired heads. `--wiring-only`, the old
+    name of this one mode, is still accepted."""
     try:
         rows = build_rows()
     except FactsError as exc:
         print(f"build_hart_signal_heads.py: {exc}", file=sys.stderr)
         return 2
     write_csvs(rows)
-    if wiring_only:
-        print("wiring-only: skipped inventory xlsx, tables.xml, publisher")
-    else:
-        print("the wiring inventory takes these ports: python3 tools/wiring/write_inventory.py")
-        write_publisher(rows)
-        patch_tables(rows)
     by: dict[int, list] = {}
     for r in rows:
         by.setdefault(r["mqtt_node"], []).append(r)

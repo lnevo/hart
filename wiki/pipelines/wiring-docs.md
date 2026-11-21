@@ -33,10 +33,9 @@ python3 tools/wiring/create_wiring_schematic_ppt.py
 python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85 pins (--splits-inventory); tools/check.sh fails while it is stale
 ```
 
-Copy v86 **and** the pptx back to the Desktop pack after XML apply so the bench matches live beans. Also copy `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` if you are punching Signal Manager. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).
+`docs/wiring/` is the only copy (the Desktop pack was retired, ADR-007). For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).
 
 ## Do not
 
-- Treat Desktop `ARCHIVE/` one-off Python as the live generator (git `tools/wiring/` is)
-- Refresh Desktop before JMRI XML is applied if the pack must match beans
+- Edit v86 or the wiring cells of `devices.csv` by hand: change `wiring.csv`, then rebuild
 - Put packed MQTT on helix **D5**

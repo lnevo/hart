@@ -29,7 +29,6 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 | `data/mast_cells.csv` | Per mast: its cell on the USS CTC board's grid (the USS CTC machine is parked; the data is kept for unparking) and its icon (`gen_ctc_track_plan.py`); `edge`, `sig_location`, `sig_orient` are the hand-wired CATS desks' lamp placement (`check_layout_facts.py` reads them) |
 | `data/uss_board_cells.csv`, `data/uss_board_plants.csv` | The USS CTC board's grid (each cell's track, label and block edges) and its switch plant cells, frozen from the hand-wired CATS desk on 2026-11-15, kept while the USS CTC machine is parked; read by `gen_ctc_track_plan.py` and `check_layout_facts.py` |
 | `data/switch_legs.csv` | Per OS block at the points: the block the closed and thrown legs lead to |
-| `data/sensor_purge_report.txt` | Removed unused ISIS\* |
 
 ## Maintenance scripts
 
