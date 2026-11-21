@@ -78,8 +78,15 @@ class PhotoSkip(base.FullBuild):
         self.assertIn("reused", self.build())
         skipped = self.snapshot()
         self.assertEqual(sorted(skipped), sorted(full))
-        # assets/search/*.jpg carries the grid thumb's mtime in a JPEG comment, so two full builds differ there too.
-        self.assertEqual([n for n in full if full[n] != skipped[n] and not n.startswith("assets/search/")], [])
+        # assets/search/*.jpg carries the grid thumb's mtime in a JPEG comment, and search-index.json its build
+        # time to the second, so two full builds differ there too: compare the index without "generated".
+        def index(snap):
+            data = json.loads(snap["search-index.json"])
+            data.pop("generated", None)
+            return data
+        self.assertEqual(index(skipped), index(full))
+        self.assertEqual([n for n in full if full[n] != skipped[n]
+                          and not n.startswith("assets/search/") and n != "search-index.json"], [])
 
     def test_a_changed_data_file_misses(self):
         self.build()
