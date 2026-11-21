@@ -84,7 +84,6 @@ OUT = pd.REPO / "cats/panels/HART_CTC.xml"
 OUT_ABS = OUT.with_name("HART_ABS.xml")
 BINDINGS = OUT.with_name("HART_CTC.bindings.json")
 BOUND_LEVEL = 1        # the level bound to JMRI: staging's band (its `level` in plan_overrides.json's staging section)
-BOUND_TITLES = bdm.mast_rule.band_levels(sdm.overrides())     # {band title: level}
 # The release candidate tables (build_layout_le.py --as-live): every name the desk binds must be in it
 TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
 # The desks' window, cells per grid unit, helix blocks and row gaps are page preferences (preferences.json[main_upper]:
@@ -120,11 +119,12 @@ def check_apart(staging, dark):
 
 
 def bound_index(bands):
-    """The index of the staging band, the one bound to the field (the band of level BOUND_LEVEL in BOUND_TITLES)."""
-    bi = next((i for i, (t, _, _) in enumerate(bands) if BOUND_TITLES.get(t) == BOUND_LEVEL), None)
-    if bi is None:
-        raise SystemExit(f"no band is titled as level {BOUND_LEVEL} ({', '.join(t for t, lv in BOUND_TITLES.items() if lv == BOUND_LEVEL)})")
-    return bi
+    """The index of the staging band, the one bound to the field: the band of level BOUND_LEVEL, found by its level
+    (le_common.find_band), never by its title. Stops when no band, or several, are at that level."""
+    try:
+        return sdm.lc.find_band(bands, BOUND_LEVEL)
+    except sdm.lc.BuildError as exc:
+        raise SystemExit(f"the band bound to the field: {exc}") from None
 
 
 def bindings(bands, cats, F, o, page):

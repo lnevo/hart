@@ -249,10 +249,10 @@ def staging_band():
         bands = le_mod.drawn_bands(bands, page)
     except core.SchematicError as exc:
         raise StagingMapError(f"schematic le: {exc}") from None
-    keys = [lc.band_key(t) for t, _b, _o in bands]
-    if lc.STAGING not in keys:
-        raise StagingMapError(f"no {lc.STAGING} band in the schematic (bands: {', '.join(keys)})")
-    _t, band, opts = bands[keys.index(lc.STAGING)]
+    try:
+        _t, band, opts = bands[lc.base_band(bands)]     # the band of the level the base holds, by its level
+    except lc.BuildError as exc:
+        raise StagingMapError(f"the staging band: {exc}") from None
     return band, opts, core
 
 
