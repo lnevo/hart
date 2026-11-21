@@ -1,5 +1,7 @@
 # HART Operations Pro: what is outstanding after the build
 
+The one list of what is still outstanding for Operations Pro after the 2026-11-02 build, for the railroad and for the plugin.
+
 Written 2026-11-02 after the owner's review of the build on branch `agent/claude/opspro-build` (PR #120). This is the one list for Operations Pro follow-up; the main wiki carries only a pointer here. It covers what the railroad still needs, what happened to the plugin list, the other open items, and why the audit findings that remain are not a to-do.
 
 ## 1. The railroad

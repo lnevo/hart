@@ -144,6 +144,9 @@ run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run repo-guide python3 www/scripts/repo_guide_page.py --check
 run pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html --back repository-guide.html --check
+# Every script this file, the Makefile, make panels and the deploys run, and every file in an output folder, is in the
+# map agents query (tools/ops/pipeline_query.py); the deliberate exceptions are ALLOWED in the script.
+run pipeline-map-coverage python3 tools/ops/pipeline_map_coverage.py
 run jmri-additions python3 www/scripts/jmri_additions_page.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check
 run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
@@ -192,7 +195,8 @@ run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
-run docs-index python3 tools/ops/build_docs_index.py --check
+# Every Markdown document under docs/ needs a summary line (see summarize() in the script).
+run docs-index python3 tools/ops/build_docs_index.py --check --strict
 run desks python3 cats/scripts/validate_cats_panel.py
   return "$static_rc"
 }

@@ -1,5 +1,7 @@
 # Project — CATS CTC integration
 
+Status: active
+
 - **Owner:** lnevo
 - **Status:** Active — live desks are **CATS CTC** + **CATS ABS**
 - **ADR:** [`../decisions/ADR-004-cats-ctc.md`](../decisions/ADR-004-cats-ctc.md)
