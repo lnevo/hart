@@ -141,7 +141,7 @@ class SeedCopyTests(unittest.TestCase):
         lines = cars.seed_copy_report(self.inputs, self.masters)
         self.assertEqual(lines[0], "  a.csv: same")
         self.assertEqual(lines[1], "  b.xml: differs")
-        self.assertIn("bin/cars publish", lines[-1])
+        self.assertIn("bin/cars seed-copy", lines[-1])
 
     def test_missing_copy_differs(self):
         (self.inputs / "a.csv").unlink()
@@ -153,10 +153,34 @@ class SeedCopyTests(unittest.TestCase):
         self.assertEqual(len(lines), 1)
         self.assertIn("submodule", lines[0])
 
-    def test_missing_master_stops(self):
+    def test_missing_master_is_reported_and_compare_continues(self):
         self.masters[0].unlink()
+        lines = cars.seed_copy_report(self.inputs, self.masters)
+        self.assertEqual(lines[0], "  a.csv: master is missing")
+        self.assertEqual(lines[1], "  b.xml: same")
+
+    def test_hint_names_the_narrow_command(self):
+        (self.inputs / "b.xml").write_text("old")
+        self.assertIn("bin/cars seed-copy", cars.seed_copy_report(self.inputs, self.masters)[-1])
+
+    def test_sync_copies_only_the_masters(self):
+        (self.inputs / "b.xml").write_text("old")
+        (self.inputs / "other.txt").write_text("keep")
+        cars.sync_seed_copies(self.inputs, self.masters)
+        self.assertEqual((self.inputs / "b.xml").read_text(), "master b.xml")
+        self.assertEqual((self.inputs / "other.txt").read_text(), "keep")
+
+    def test_sync_stops_clearly_without_the_submodule(self):
+        with self.assertRaises(SystemExit) as ctx:
+            cars.sync_seed_copies(self.inputs / "nope", self.masters)
+        self.assertIn("submodule", str(ctx.exception))
+
+    def test_sync_stops_on_missing_master_before_copying(self):
+        self.masters[1].unlink()
+        (self.inputs / "a.csv").write_text("old")
         with self.assertRaises(SystemExit):
-            cars.seed_copy_report(self.inputs, self.masters)
+            cars.sync_seed_copies(self.inputs, self.masters)
+        self.assertEqual((self.inputs / "a.csv").read_text(), "old")
 
 
 if __name__ == "__main__":
