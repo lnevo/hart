@@ -28,6 +28,10 @@ pp_begin "$SCRIPT"
 REVIEW=(); [[ "${HART_TABLES_REVIEW:-}" == 1 ]] && REVIEW=(--review)
 PP_FAIL_NOTE="tables.xml is now the discovery base (no Signal Mast Logic). Restore it: python3 tools/schematic/build_tables.py${REVIEW[*]:+ ${REVIEW[*]}} (or run this wrapper again)"
 python3 "$ROOT/tools/schematic/build_tables.py" --discovery-base ${REVIEW[@]+"${REVIEW[@]}"}
+# The stamp of this discovery: the sha256 of that base, so make panels' sml-current guard can tell when a later
+# change to the generated beans makes the discovered logic stale.
+BASE_SHA="$(python3 "$ROOT/tools/schematic/build_tables.py" --base-hash ${REVIEW[@]+"${REVIEW[@]}"} | tail -1)"
+[[ "$BASE_SHA" =~ ^[0-9a-f]{64}$ ]] || { echo "could not hash the discovery base: $BASE_SHA" >&2; exit 1; }
 rm -f "$MARKER"
 STORED="$(mktemp "${TMPDIR:-/tmp}/hart_sml_discover.XXXXXX")"
 PP_TMP_FILES+=("$STORED")
@@ -76,5 +80,6 @@ if ! python3 "$ROOT/tools/schematic/build_tables.py" --discovered-from "$STORED"
   echo "Fix what build_tables.py names above, then: python3 tools/schematic/build_tables.py --discovered-from $kept${REVIEW[*]:+ ${REVIEW[*]}}" >&2
   exit 1
 fi
+echo "$BASE_SHA" > "$ROOT/jmri/layouts/hart/data/schematic/discovered_sml.stamp"
 PP_FAIL_NOTE=""
 echo "DONE"

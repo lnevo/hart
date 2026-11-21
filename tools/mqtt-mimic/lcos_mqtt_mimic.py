@@ -42,7 +42,7 @@ ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
 DEVICES = paths.DEVICES
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
-HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
+HEAD_CSV = paths.SIGNAL_HEAD_PLAN
 HTML = Path(__file__).with_suffix(".html")
 # Style and render code shared with the JMRI-hosted page; served here at /<name>.
 SHARED_WEB = ROOT / "jmri" / "resources" / "jmri-web" / "mimic"

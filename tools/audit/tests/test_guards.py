@@ -588,7 +588,7 @@ class AfterEditMatchingTests(unittest.TestCase):
 
     def test_tables_edit_runs_every_check_as_before(self) -> None:
         self.assertIn("unit-jmri", [name for name, argv in self.after.CHECKS])
-        for rel in ("jmri/layouts/hart/output/tables.xml", "docs/wiring/signals/signal_heads.csv"):
+        for rel in ("jmri/layouts/hart/output/tables.xml", "jmri/layouts/hart/output/signal_head_plan.csv"):
             self.ran.clear()
             self.assertEqual(self.hook(rel), (0, ""), rel)
             self.assertEqual(self.ran, self.every_check(), rel)

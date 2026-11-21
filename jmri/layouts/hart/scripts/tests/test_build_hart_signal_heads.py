@@ -9,17 +9,20 @@ from __future__ import annotations
 
 import csv
 import importlib.util
+import sys
 import tempfile
 import unittest
+import unittest.mock
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
-SIGNALS = ROOT / "docs/wiring/signals"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-FILES = ("signal_head_plan.csv",)
+
+sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
+from hartlib import paths  # noqa: E402
 
 
 def load_module():
@@ -40,24 +43,59 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
 
     def test_the_head_plan_matches_the_committed_file(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            out = Path(tmp)
-            saved = self.m.DATA
-            self.m.DATA = out
+            out = Path(tmp) / "signal_head_plan.csv"
+            saved = self.m.HEAD_PLAN
+            self.m.HEAD_PLAN = out
             try:
                 with redirect_stdout(StringIO()):
                     self.m.write_csvs(self.rows)
             finally:
-                self.m.DATA = saved
-            for name in FILES:
-                with self.subTest(file=name):
-                    self.assertEqual(
-                        (out / name).read_bytes(),
-                        (SIGNALS / name).read_bytes(),
-                        f"{name} differs from the builder; fix wiring.csv or the CSV",
-                    )
+                self.m.HEAD_PLAN = saved
+            self.assertEqual(
+                out.read_bytes(),
+                paths.SIGNAL_HEAD_PLAN.read_bytes(),
+                "signal_head_plan.csv differs from the builder; fix wiring.csv or the CSV",
+            )
+
+    def test_check_mode_current_and_stale(self) -> None:
+        self.assertTrue(self.m.check_csvs(self.rows))
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "signal_head_plan.csv"
+            saved = self.m.HEAD_PLAN
+            self.m.HEAD_PLAN = out
+            try:
+                self.assertFalse(self.m.check_csvs(self.rows), "a missing file is stale")
+                out.write_text(paths.SIGNAL_HEAD_PLAN.read_text() + "x\n")
+                self.assertFalse(self.m.check_csvs(self.rows))
+                self.assertTrue(out.read_text().endswith("x\n"), "check writes nothing")
+            finally:
+                self.m.HEAD_PLAN = saved
+
+    def test_check_cli_reports_a_stale_file_and_exits_1(self) -> None:
+        import contextlib
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "signal_head_plan.csv"
+            out.write_text("stale\n")
+            saved = self.m.HEAD_PLAN
+            self.m.HEAD_PLAN = out
+            err = StringIO()
+            try:
+                with unittest.mock.patch.object(sys, "argv", ["x", "--check"]), contextlib.redirect_stderr(err):
+                    code = self.m.main()
+            finally:
+                self.m.HEAD_PLAN = saved
+            self.assertEqual(code, 1)
+            self.assertIn("is stale", err.getvalue())
+            self.assertEqual(out.read_text(), "stale\n", "check writes nothing")
+
+    def test_check_cli_exit_codes(self) -> None:
+        import subprocess
+        script = str(SCRIPTS / "build_hart_signal_heads.py")
+        ok = subprocess.run([sys.executable, script, "--wiring-only", "--check"], capture_output=True, text=True)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
 
     def head_plan(self) -> dict[str, dict]:
-        with (SIGNALS / "signal_head_plan.csv").open(newline="") as f:
+        with paths.SIGNAL_HEAD_PLAN.open(newline="") as f:
             return {r["mast_user_name"]: r for r in csv.DictReader(f)}
 
     def test_6lb_one_high_head_in_head_plan(self) -> None:

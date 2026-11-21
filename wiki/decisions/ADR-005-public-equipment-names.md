@@ -103,7 +103,7 @@ Cutover from `public_name_map.csv` via `apply_public_names.py` (text-safe, longe
 |------|
 | `cats/data/occupancy_bindings.csv` |
 | `archive/docs/wiring/signals/signal_mast_plan.csv` (archived 2026-11-21) |
-| `docs/wiring/signals/signal_head_plan.csv` |
+| `jmri/layouts/hart/output/signal_head_plan.csv` (moved 2026-11-21) |
 | `jmri/layouts/hart/data/wiring.csv` (was `docs/wiring/signals/signal_wiring.csv`, folded in 2026-11-21) |
 | `cats/data/jmri_devices.csv` (removed 2026-11-14) |
 | `cats/data/plants_from_hart.csv` (removed 2026-11-14) |
