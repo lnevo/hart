@@ -340,7 +340,7 @@ class SmlCurrentTest(unittest.TestCase):
         track = re.sub(r"(<tracksegment [^>]*?)ident=\"([^\"]+)\"", r'\1ident="\2x"', text, count=1)
         self.assertNotEqual(track, text)
         self.assertNotEqual(bt.discovery_digest(text.encode()), bt.discovery_digest(track.encode()))
-        turnout = text.replace("<turnout ", "<turnout x=\"1\" ", 1)
+        turnout = text.replace("<turnout ", "<turnout feedbackkind=\"1\" ", 1)
         self.assertNotEqual(bt.discovery_digest(text.encode()), bt.discovery_digest(turnout.encode()))
 
     def test_the_committed_stamp_matches_the_sources(self) -> None:
