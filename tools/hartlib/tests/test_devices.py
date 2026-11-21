@@ -244,15 +244,30 @@ class TheParts(unittest.TestCase):
     def test_only_a_block_row_is_a_part(self):
         self.assertIn("part_of is for a block row", problems([block(), part(layer="occupancy")]))
 
-    def test_a_part_has_no_detector_of_its_own(self):
+    def test_a_staging_part_makes_no_jmri_device(self):
+        for col, value in (("assignment", "field"), ("system_name", "IB9"), ("jmri_name", "IB9"),
+                           ("layout_block", "ILB9"), ("stop", "yes"), ("node", "4"), ("detector", "wired"),
+                           ("wiring", "Node: 4 Block: 2"), ("dcc", "100")):
+            with self.subTest(col):
+                self.assertIn("a staging part makes no JMRI block", problems([block(), part(**{col: value})]))
+
+    def test_a_main_or_upper_part_has_no_detector_of_its_own(self):
+        main = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
         for col, value in (("assignment", "field"), ("node", "4"), ("detector", "wired"),
                            ("wiring", "Node: 4 Block: 2"), ("dcc", "100")):
             with self.subTest(col):
-                self.assertIn("a part has no detector of its own", problems([block(), part(**{col: value})]))
+                self.assertIn("a part has no detector of its own",
+                              problems([main, part(level="2", **{col: value})]))
 
     def test_a_part_may_be_a_jmri_block_of_its_own(self):
         # main and upper's links (owner, 2026-11-20): a JMRI block and layout block whose sensor is its block's
-        D.check_rows([block(), part(system_name="IB9", jmri_name="IB9", layout_block="ILB9", assignment="virtual")])
+        main = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
+        D.check_rows([main, part(level="2", system_name="IB9", jmri_name="IB9", layout_block="ILB9",
+                                 assignment="virtual")])
+
+    def test_a_parts_description_says_whether_it_is_a_jmri_block(self):
+        self.assertIn("no JMRI block of its own", D.describe(part()))
+        self.assertIn("a JMRI block of its own on OS Switch 9's occupancy sensor", D.describe(part(level="2")))
 
     def test_the_block_it_names_is_on_the_parts_own_level(self):
         other = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")

@@ -24,9 +24,9 @@ pp_refuse_running "Quit CATS/PanelPro first — SML Discover needs this profile 
 pp_begin "$SCRIPT"
 # The base discovery runs on: the generated tables with no logic and no mast properties. From here on a failed
 # run leaves tables.xml as that base, and the exit says so (panelpro_session.sh PP_FAIL_NOTE).
-PP_FAIL_NOTE="tables.xml is now the discovery base (no Signal Mast Logic). Restore it: python3 tools/schematic/build_tables.py (or run this wrapper again)"
 # HART_TABLES_REVIEW=1: discover on a candidate the owner has not approved yet (build_tables.py --review)
 REVIEW=(); [[ "${HART_TABLES_REVIEW:-}" == 1 ]] && REVIEW=(--review)
+PP_FAIL_NOTE="tables.xml is now the discovery base (no Signal Mast Logic). Restore it: python3 tools/schematic/build_tables.py${REVIEW[*]:+ ${REVIEW[*]}} (or run this wrapper again)"
 python3 "$ROOT/tools/schematic/build_tables.py" --discovery-base ${REVIEW[@]+"${REVIEW[@]}"}
 rm -f "$MARKER"
 STORED="$(mktemp "${TMPDIR:-/tmp}/hart_sml_discover.XXXXXX")"
@@ -73,7 +73,7 @@ if ! python3 "$ROOT/tools/schematic/build_tables.py" --discovered-from "$STORED"
   kept="$pulled/discovery-$(date +%Y%m%d-%H%M%S).xml"
   cp "$STORED" "$kept"
   echo "The discovery's Store is kept as $kept." >&2
-  echo "Fix what build_tables.py names above, then: python3 tools/schematic/build_tables.py --discovered-from $kept" >&2
+  echo "Fix what build_tables.py names above, then: python3 tools/schematic/build_tables.py --discovered-from $kept${REVIEW[*]:+ ${REVIEW[*]}}" >&2
   exit 1
 fi
 PP_FAIL_NOTE=""

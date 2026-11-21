@@ -517,7 +517,7 @@ class Invariants(Copy):
         self.assertTrue(any("turnout Switch 101 is an alias of Switch 25 there" in p for p in inv.run(rr)))
 
     def test_level_masts(self) -> None:
-        self.edit("level_masts", "Mast 110L,CP 107,109,OS Switch 105,", "Mast 110L,CP 107,125,Track Nowhere,")
+        self.edit("level_masts", "Mast 110L,CP 107,109,Track 105-109,", "Mast 110L,CP 107,125,Track Nowhere,")
         got = self.problems("level-masts")
         self.assertIn("main_upper_masts.csv: Mast 110L faces Track Nowhere, which is no device map block", got)
         self.assertIn("main_upper_masts.csv: Mast 110L protects Switch 125, which is not in CP 107", got)

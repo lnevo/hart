@@ -142,7 +142,15 @@ class CsvWith(unittest.TestCase):
         self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["plan_in"], r["source"]) for r in got],
                          [("Track A", "x", "1.0", "plan"), ("OS Switch 101", "BS Switch 101", "16.0", "plan"),
                           ("Track 117-119", "BS Switch 117", "0.0", "plan"),
-                          ("Track 201-203", "BS Switch 201", "7.0", "plan")])
+                          ("Track 201-203", "BS 201-203", "7.0", "plan")])     # a row it had keeps its columns
+
+    def test_a_main_or_upper_row_keeps_its_own_columns(self):
+        p = self.write([["Track A", "x", "1.0", "", "plan", ""],
+                        ["Track 201-203", "BS Switch 201", "3.0", "4.4", "timed", "laps"]])
+        got = list(csv.DictReader(io.StringIO(PL.csv_with({"Track A": 1.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201")},
+                                                          p))))
+        self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["source"], r["note"]) for r in got],
+                         [("Track A", "1.0", "", "plan", ""), ("Track 201-203", "7.0", "4.4", "timed", "laps")])
 
     def test_the_file_and_the_drawing_must_hold_the_same_blocks(self):
         p = self.write([["Track A", "x", "1.0", "", "plan", ""]])
@@ -163,6 +171,15 @@ class MainUpper(unittest.TestCase):
                        {"id": "e2", "u": "TO_3W1-1", "up": "B", "v": "TO_3W1-2", "vp": "A", "cm": 3.4}]}
     GRAPH["nodes"]["TO_3W1-1"] = {"kind": "switch", "label": "51"}
     GRAPH["nodes"]["TO_3W1-2"] = {"kind": "switch", "label": "50"}
+
+    def test_a_track_row_measures_its_trial_edges(self):
+        bad = []
+        row = {"user_name": "Track 107 Loop 1", "level": "2", "trial_name": "Track e33 1"}
+        self.assertEqual(PL.track_inches(row, {"e33": 300.0}, bad), 150.0)
+        self.assertIsNone(PL.track_inches(dict(row, trial_name=""), {"e33": 300.0}, bad))
+        self.assertIsNone(PL.track_inches(dict(row, trial_name="Track e99"), {"e33": 300.0}, bad))
+        self.assertEqual(bad, ["Track 107 Loop 1 (level 2): no trial_name, so no plan edge to measure",
+                               "Track 107 Loop 1 (level 2): trial name 'Track e99' is no plan edge of main.json"])
 
     def test_edges_take_the_plans_run_not_the_graphs_length(self):
         got = PL.main_edge_inches(self.GRAPH, {(1, "B"): (10.0, None)}, threeway_bumper=20.0)

@@ -49,6 +49,7 @@ WRITERS = ("build_staging_masts.py", "build_device_map.py", "build_main_upper_ma
 # roles the two device maps leave out: a spare detector, a panel status bean, and a part (a block row with part_of: a
 # piece of track inside another block, which makes no JMRI block, layout block or occupancy row of its own)
 OUT_OF_MAPS = ("spare", "panel_status", "part")
+STAGING_LEVELS = ("1",)         # a part there makes no JMRI block; on main and upper it does (owner, 2026-11-20)
 SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 
 COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
@@ -262,12 +263,20 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
         if r["part_of"]:
             if r["layer"] != "block":
                 bad.append(f"{at}: part_of is for a block row (a piece of track inside another block)")
-            # a part may be a JMRI block and layout block of its own (main and upper's links, owner 2026-11-20),
-            # whose occupancy sensor is its block's: it has no detector, wiring, node or DCC address of its own
-            made = [c for c in ("node", "detector", "wiring", "dcc") if r[c]]
-            if made or a not in ("none", "virtual"):
-                bad.append(f"{at}: a part has no detector of its own (its sensor is its block's), so assignment none "
-                           "or virtual and no " + ", ".join(made or ["field facts"]))
+            # a main or upper part is a JMRI block and layout block of its own (owner, 2026-11-20) whose occupancy
+            # sensor is its block's: no detector, wiring, node or DCC address of its own. A staging part still makes no
+            # JMRI block at all (the owner decides that separately)
+            if r["level"] in STAGING_LEVELS:
+                made = [c for c in ("system_name", "jmri_name", "layout_block", "stop", "node", "detector", "wiring",
+                                    "dcc") if r[c]]
+                if made or a != "none":
+                    bad.append(f"{at}: a staging part makes no JMRI block of its own, so assignment none and no "
+                               + ", ".join(made or ["JMRI name"]))
+            else:
+                made = [c for c in ("node", "detector", "wiring", "dcc") if r[c]]
+                if made or a not in ("none", "virtual"):
+                    bad.append(f"{at}: a part has no detector of its own (its sensor is its block's), so assignment "
+                               "none or virtual and no " + ", ".join(made or ["field facts"]))
             parts.append((at, r["level"], r["part_of"]))
             part_names.add((r["level"], r["user_name"]))
         elif r["layer"] == "block":
@@ -371,7 +380,9 @@ def describe(r: Mapping[str, str]) -> str:
     if role == "spare":
         return f"Spare detector {u}: a field detector with no block assigned."
     if role == "part":
-        return f"Piece {u} of block {r['part_of']}: no JMRI block of its own."
+        if r["level"] in STAGING_LEVELS:
+            return f"Piece {u} of block {r['part_of']}: no JMRI block of its own."
+        return f"Piece {u} of block {r['part_of']}: a JMRI block of its own on {r['part_of']}'s occupancy sensor."
     raise DevicesError(f"no description rule for role {role!r} ({u})")
 
 

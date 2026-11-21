@@ -347,6 +347,25 @@ def main_upper_os(bands, graph: dict, parts: list, threeways: list[int]) -> dict
     return dict(out)
 
 
+def track_inches(r: dict, edge_in: dict, bad: list) -> float | None:
+    """A main or upper track block row's plan length, in inches: its trial names' plan edges (main_edge_inches), half
+    an edge for "Track e33 1" (half of a balloon loop or split track). None, with the problem in `bad`, for a row with
+    no trial name or one that names no plan edge."""
+    where = f"{r['user_name']} (level {r['level']})"
+    trials = [t.strip() for t in r["trial_name"].split(",") if t.strip()]
+    if not trials:
+        bad.append(f"{where}: no trial_name, so no plan edge to measure")
+        return None
+    total = 0.0
+    for trial in trials:
+        m = re.fullmatch(r"Track (e\d+)( [12])?", trial)
+        if not m or m.group(1) not in edge_in:
+            bad.append(f"{where}: trial name {trial!r} is no plan edge of {MAIN_GRAPH.name}")
+            return None
+        total += edge_in[m.group(1)] / (2 if m.group(2) else 1)
+    return total
+
+
 def main_upper_lengths(plan: Path) -> dict:
     """{block: (level, inches, the block whose occupancy sensor it has)} of every main and upper block of devices.csv,
     its parts too (a JMRI block of their own whose sensor is their OS block's; a link whose turnouts touch in the plan
@@ -374,24 +393,21 @@ def main_upper_lengths(plan: Path) -> dict:
             else:
                 out[name] = (r["level"], os_in[name], sensor)
             continue
-        total = 0.0
-        for trial in (t.strip() for t in r["trial_name"].split(",") if t.strip()):
-            m = re.fullmatch(r"Track (e\d+)( [12])?", trial)
-            if not m or m.group(1) not in edge_in:
-                bad.append(f"{name} (level {r['level']}): trial name {trial!r} is no plan edge of {MAIN_GRAPH.name}")
-                continue
-            total += edge_in[m.group(1)] / (2 if m.group(2) else 1)
-        out[name] = (r["level"], total, sensor)
+        total = track_inches(r, edge_in, bad)
+        if total is not None:
+            out[name] = (r["level"], total, sensor)
     if bad:
         raise LengthError("; ".join(bad))
     return out
 
 
 def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
-    """block_lengths.csv's text with plan_in set from `lengths` (staging's blocks, rounded to 0.1 in) and main and
-    upper's rows (`main_upper`, {block: (level, inches, sensor block)}, main_upper_lengths) written after staging's in level and
-    name order (source plan, occupancy_sensor the block's occupancy row, no measured length). LengthError when a drawn
-    staging block has no row, or a row is a block of no level."""
+    """block_lengths.csv's text with plan_in set from `lengths` (staging's blocks, rounded to 0.1 in) and from
+    `main_upper` ({block: (level, inches, sensor block)}, main_upper_lengths). A main or upper block with a row keeps
+    it (its occupancy sensor, measured length, source and note; only plan_in is set, as on staging); a new one gets a
+    row (source plan, occupancy_sensor its sensor block's occupancy row, no measured length). Main and upper's rows
+    come after staging's in level and name order. LengthError when a drawn staging block has no row, or a row is a
+    block of no level."""
     from hartlib import level_devices
     with path.open(newline="", encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
@@ -408,10 +424,13 @@ def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
     stray = sorted(r["user_name"] for r in rest if r["user_name"] not in main_upper)
     if stray:
         raise LengthError(f"{paths.rel(path)}: rows of no drawn block on any level: {stray}")
-    rest = [dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(sensor), plan_in=f"{inches:.1f}",
-                 measured_in="", source="plan", note=f"{'main' if level == '2' else 'upper'} level, the plan's length")
-            for name, (level, inches, sensor) in sorted(main_upper.items(),
-                                                        key=lambda kv: (kv[1][0], railroad.natural(kv[0])))]
+    held = {r["user_name"]: r for r in rest}
+    rest = []
+    for name, (level, inches, sensor) in sorted(main_upper.items(), key=lambda kv: (kv[1][0], railroad.natural(kv[0]))):
+        row = held.get(name) or dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(sensor),
+                                     measured_in="", source="plan",
+                                     note=f"{'main' if level == '2' else 'upper'} level, the plan's length")
+        rest.append(dict(row, plan_in=f"{inches:.1f}"))
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(railroad.BLOCK_LENGTH_COLUMNS), lineterminator="\n")
     w.writeheader()
