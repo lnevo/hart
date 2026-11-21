@@ -146,7 +146,7 @@ class GateHarness(DeployHarness):
         self.env.update(HART_AUTOPULL_RMWT=str(d / "rmwt.sh"), HART_AUTOPULL_WT_DIR=str(t / "wt"),
                         HART_AUTOPULL_QUIT=str(d / "quit.sh"), HART_AUTOPULL_TABLES=str(d / "tables.sh"),
                         HART_AUTOPULL_OPS=str(d / "ops.sh"), HART_AUTOPULL_NEWWT=str(d / "newwt.sh"),
-                        HART_AUTOPULL_FROM_MAIN="0")
+                        HART_AUTOPULL_FROM_MAIN="0", HART_AUTOPULL_DETACHED="0")
         del self.env["HART_NO_AUTOPULL"]
 
     def autopull_log(self) -> list[str]:
@@ -446,6 +446,14 @@ class PiChangesAreSavedByTheGate(GateHarness):
         self.assertEqual([], self.autopull_log())
         self.assertIn("make ops-pull", done.stderr)
         self.assertIn("make tables-pull-pi", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_a_detached_worktree_never_pulls_either(self) -> None:
+        self.env["HART_AUTOPULL_DETACHED"] = "1"
+        self.unpulled("ops")
+        done = self.deploy("--pi")
+        self.assertEqual([], self.autopull_log())
+        self.assertIn("make ops-pull", done.stderr)
         self.assert_nothing_shipped(done)
 
     def test_the_gate_asks_with_the_hash_of_the_operations_files_it_would_ship(self) -> None:

@@ -325,8 +325,10 @@ check_pi_unpulled() {
   fi
   if [[ -n "$unpulled" ]]; then
     # Never pull into a redeploy's temporary or detached worktree: it is thrown away.
-    if [[ "${HART_NO_AUTOPULL:-0}" != "1" && -z "${HART_REDEPLOY_FROM:-}" ]] \
-       && git -C "$ROOT" symbolic-ref -q HEAD >/dev/null 2>&1; then
+    # (HART_AUTOPULL_DETACHED=0/1 is the test hook for the detached-HEAD test.)
+    local detached="${HART_AUTOPULL_DETACHED:-}"
+    [[ -n "$detached" ]] || { git -C "$ROOT" symbolic-ref -q HEAD >/dev/null 2>&1 && detached=0 || detached=1; }
+    if [[ "${HART_NO_AUTOPULL:-0}" != "1" && -z "${HART_REDEPLOY_FROM:-}" && "$detached" == "0" ]]; then
       autopull_pi_changes "$unpulled"   # always stops
     fi
     msg=""
