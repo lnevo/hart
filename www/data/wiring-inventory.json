@@ -1991,7 +1991,7 @@
        "device": "Switch 7 BTN",
        "kind": "button",
        "place": "West - Staging",
-       "note": "planned, not connected; not connected yet (owner, 2026-11-21)"
+       "note": "planned, not connected; (owner, 2026-11-21)"
       },
       {
        "pin": 2,
@@ -1999,7 +1999,7 @@
        "device": "Switch 11 BTN",
        "kind": "button",
        "place": "West - Staging",
-       "note": "planned, not connected; not connected yet (owner, 2026-11-21)"
+       "note": "planned, not connected; (owner, 2026-11-21)"
       },
       {
        "pin": 3,
@@ -2007,7 +2007,7 @@
        "device": "Switch 9 BTN",
        "kind": "button",
        "place": "West - Staging",
-       "note": "planned, not connected; not connected yet (owner, 2026-11-21)"
+       "note": "planned, not connected; (owner, 2026-11-21)"
       },
       {
        "pin": 4,
@@ -7865,7 +7865,7 @@
    "elements": "Switch 7",
    "motorN": "C13-OU2-1",
    "motorR": "C13-OU2-2",
-   "button": "C13-IN2-1",
+   "button": "C13-IN2-1 (planned)",
    "fbN": "C13-IN1-1",
    "fbR": "C13-IN1-2",
    "signals": {}
@@ -7877,7 +7877,7 @@
    "elements": "Switch 9",
    "motorN": "C13-OU2-5",
    "motorR": "C13-OU2-6",
-   "button": "C13-IN2-3",
+   "button": "C13-IN2-3 (planned)",
    "fbN": "C13-IN1-5",
    "fbR": "C13-IN1-6",
    "signals": {}
@@ -7889,7 +7889,7 @@
    "elements": "Switch 11",
    "motorN": "C13-OU2-3",
    "motorR": "C13-OU2-4",
-   "button": "C13-IN2-2",
+   "button": "C13-IN2-2 (planned)",
    "fbN": "C13-IN1-3",
    "fbR": "C13-IN1-4",
    "signals": {}

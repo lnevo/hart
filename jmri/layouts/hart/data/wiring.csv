@@ -119,9 +119,9 @@ level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,
 1,fb,FB Switch 11 R,,,,,13,3,IN1,4,wired,
 1,fb,FB Switch 9 N,,,,,13,4,IN1,5,wired,
 1,fb,FB Switch 9 R,,,,,13,5,IN1,6,wired,
-1,button,Switch 7 BTN,,,,,13,,IN2,1,planned,"not connected yet (owner, 2026-11-21)"
-1,button,Switch 11 BTN,,,,,13,,IN2,2,planned,"not connected yet (owner, 2026-11-21)"
-1,button,Switch 9 BTN,,,,,13,,IN2,3,planned,"not connected yet (owner, 2026-11-21)"
+1,button,Switch 7 BTN,,,,,13,,IN2,1,planned,"(owner, 2026-11-21)"
+1,button,Switch 11 BTN,,,,,13,,IN2,2,planned,"(owner, 2026-11-21)"
+1,button,Switch 9 BTN,,,,,13,,IN2,3,planned,"(owner, 2026-11-21)"
 1,calibration,C13 calibration relay,,,,,13,,OU1,8,planned,pin 8 of the first 5V board
 1,detector,Track Barn,,,,,13,1,,,wired,
 1,detector,OS Switch 11,,,,,13,2,,,wired,
