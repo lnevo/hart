@@ -224,7 +224,8 @@ Part 2 progress (branch `agent/claude/step5-part2`):
   turnout mast at Switch 7); 140 block lengths change (plan lengths). Staging's 14 folded pieces are not yet JMRI
   blocks (the owner decides). Waiting on: the owner's approval of the staging, candidate, panel and desk
   fingerprints, then `make panelpro-test` and `--pi --win`. Approved, merged (#811) and deployed 2026-11-20.
-- Turnout class (owner, 2026-11-20): the #5 class `plan_lengths.py` added is the SL-8351/8352 at 8.3 in.
+- Turnout class (owner, 2026-11-20): the #5 class `plan_lengths.py` added is the SL-8351/8352 at 8.3 in (also in
+  the late decisions below).
 
 Step 5 follow-ups (2026-11-20):
 - **Trial names by switch and leg on every level** (owner decision, branch `agent/claude/trial-names-by-leg`).
@@ -240,6 +241,14 @@ Step 5 follow-ups (2026-11-20):
   (`MAIN_UPPER_TRIALS` and the renumber test). `mast_rule.tracks` keeps an edge-keyed `trial` list internally (the
   tie-break for parallel track numbers and `block_splits.csv`'s edge lookup); it is never written.
 - **Helix stop** (owner, 2026-11-20): see step 4's device-map part above (`helix_stops`, `KNOWN_STOP` gone).
+
+### Owner decisions, late 2026-11-20
+
+- **Desk codes** (BK, PL, BN, SY, EE, PR, EH) are layout-specific: they go back to the station map data, a desk-code column in `stations.csv`, and `control_points_staging.csv` goes. They do not line up with the interlockings (Brick's interlocking holds the BK and PL areas; South Yard and Engine House have none). Brick and West Yard share BK; Engine House has a desk area but no station row: check whether a row shows on the schematic or station sheets before adding it. Waits on the label rules PR (it edits build_cats_panel).
+- **Station maps for main and upper (step 7, stays on the to-do list):** a station map per control point from `interlockings.csv` is the minimum template for a station, not the whole definition; the owner extends it.
+- **Helix stop** on main and upper is at Switch 131A/131B: built with the trial-names PR (`helix_stops`, above).
+- **#5 turnout** class is the SL-8351/8352 at 8.3 in (confirmed).
+- **Step 6** is a bigger job: start with a read-only comparison, and discuss with the owner first.
 
 ### 6. One wiring file per kind (with the device master's owners)
 

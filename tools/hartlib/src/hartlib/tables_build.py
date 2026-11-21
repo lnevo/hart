@@ -38,6 +38,7 @@ import copy
 import csv
 import difflib
 import functools
+import json
 import os
 import re
 import struct
@@ -385,6 +386,104 @@ def _named(tag: str, attrs: dict, system: str, user: str, comment: str) -> ET.El
     return el
 
 
+# ---------------------------------------------------------------- a device not on the layout yet (jmri_bean)
+#
+# A device the owner adds in PanelPro (a test turnout, a DCC accessory) has a devices.csv row with no level, cp or role
+# until its details are known (owner, 2026-11-20), and the beans exactly as the Store wrote them in its jmri_bean
+# column, as compact JSON:
+#     {"beans": [{"section": [tag, class], "element": NODE}, ...]}
+#     NODE = {"tag": ..., "attrs": {...}, "text": ... (only when not blank), "children": [NODE, ...]}
+# A child <userName> or <comment> whose text is the row's user_name or jmri_comment is {"tag": ..., "column": ...}
+# instead, so a rename or a new comment changes one cell, not the JSON too.
+
+BEAN_COLUMNS = {"userName": "user_name", "comment": "jmri_comment"}
+
+
+def _node(el: ET.Element, row: Mapping[str, str] | None) -> dict:
+    out: dict = {"tag": el.tag, "attrs": dict(el.attrib)}
+    if el.text is not None and el.text.strip():
+        out["text"] = el.text
+    kids = []
+    for c in tables.elements(el):
+        col = BEAN_COLUMNS.get(c.tag)
+        if row is not None and col and not len(c) and not c.attrib and (c.text or "") == row[col] and row[col]:
+            kids.append({"tag": c.tag, "column": col})
+        else:
+            kids.append(_node(c, None))
+    if kids:
+        out["children"] = kids
+    return out
+
+
+def _element(node: Mapping, row: Mapping[str, str], where: str) -> ET.Element:
+    if not isinstance(node, Mapping) or not isinstance(node.get("tag"), str):
+        raise TablesBuildError(f"{where}: an element of jmri_bean has no tag")
+    if "column" in node:
+        if node["column"] not in BEAN_COLUMNS.values():
+            raise TablesBuildError(f"{where}: jmri_bean names column {node['column']!r}, not "
+                                   f"{' or '.join(BEAN_COLUMNS.values())}")
+        el = ET.Element(node["tag"])
+        el.text = row[node["column"]]
+        return el
+    attrs = node.get("attrs", {})
+    if not isinstance(attrs, Mapping) or not all(isinstance(v, str) for v in attrs.values()):
+        raise TablesBuildError(f"{where}: <{node['tag']}> attrs in jmri_bean are not text")
+    el = ET.Element(node["tag"], dict(attrs))
+    if "text" in node:
+        el.text = node["text"]
+    for c in node.get("children", []):
+        el.append(_element(c, row, where))
+    return el
+
+
+def bean_json(beans: Iterable[tuple[tuple[str, str | None], ET.Element]], row: Mapping[str, str]) -> str:
+    """The jmri_bean text of `row` for `beans` ((section key, element) as the Store holds them)."""
+    return json.dumps({"beans": [{"section": list(k), "element": _node(el, row)} for k, el in beans]},
+                      separators=(",", ":"), ensure_ascii=False)
+
+
+def row_beans(row: Mapping[str, str]) -> list[tuple[tuple[str, str | None], ET.Element]]:
+    """[(section key, element)] of a row's jmri_bean (bean_json); TablesBuildError when the text is not that shape, a
+    section is not one the master gives (MASTER_SECTIONS), or a bean names no system name."""
+    where = f"devices.csv: {row['layer']} {row['user_name']!r}"
+    try:
+        doc = json.loads(row["jmri_bean"])
+    except json.JSONDecodeError as exc:
+        raise TablesBuildError(f"{where}: jmri_bean is not JSON ({exc.msg})") from None
+    beans = doc.get("beans") if isinstance(doc, dict) else None
+    if not isinstance(beans, list) or not beans:
+        raise TablesBuildError(f"{where}: jmri_bean is not {{\"beans\": [...]}} with at least one bean")
+    out = []
+    for b in beans:
+        sec = tuple(b.get("section") or ()) if isinstance(b, dict) else ()
+        if sec not in MASTER_SECTIONS:
+            raise TablesBuildError(f"{where}: jmri_bean section {list(sec)} is not one a devices.csv row gives")
+        el = _element(b.get("element"), row, where)
+        if not tables.system_name(el):
+            raise TablesBuildError(f"{where}: a <{el.tag}> in jmri_bean has no system name")
+        out.append((sec, el))
+    return out
+
+
+def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element]]:
+    """{section: [bean, ...]} of the rows with a jmri_bean, as master_beans gives them (a block's names-only pass
+    under ("blocks-names", ...))."""
+    out: dict[tuple, list[ET.Element]] = {}
+    bad = []
+    for r in rows:
+        if not r["jmri_bean"]:
+            continue
+        try:
+            for sec, el in row_beans(r):
+                key = ("blocks-names",) + BLOCKS if sec == BLOCKS and _sort_group(el) == "block-names" else sec
+                out.setdefault(key, []).append(el)
+        except TablesBuildError as exc:
+            bad.append(str(exc).removeprefix("devices.csv: "))
+    if bad:
+        raise TablesBuildError("devices.csv: " + "; ".join(bad))
+    return out
+
+
 def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railroad.BlockLength]
                  ) -> dict[tuple, list[ET.Element]]:
     """{section: [bean, ...]} of the GENERATED_LEVELS rows of the master, a block's names-only pass first under
@@ -485,6 +584,17 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     except railroad.FactsError as exc:
         raise TablesBuildError(str(exc)) from None
     beans = master_beans(rows, lengths)
+    made = {n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el)) if n}
+    kept = kept_beans(rows)
+    twice = sorted({tables.system_name(el) for key, els in kept.items() if key[0] != "blocks-names" for el in els
+                    if tables.system_name(el) in made})
+    if twice:
+        raise TablesBuildError(f"devices.csv: a level-less device's jmri_bean names a bean a level row makes too "
+                               f"({', '.join(twice[:8])}); a bean has one source")
+    for key, els in kept.items():
+        beans.setdefault(key, []).extend(els)
+    if ("blocks-names",) + BLOCKS in beans:
+        beans.setdefault(BLOCKS, [])
     held = bean_names(doc.root)
     clash = sorted({n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el))
                     if n in held})

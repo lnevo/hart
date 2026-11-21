@@ -159,14 +159,145 @@ class BuildItems(unittest.TestCase):
                                  "sensor IS:HART:C3:B:101 (BS 101)"]), sorted(kinds(p)[ss.DROPPED]))
         self.assertNotIn(ss.KEPT, kinds(p))
 
-    def test_a_new_device_is_dropped_with_the_row_to_add(self) -> None:
+    def test_a_new_device_on_a_name_a_row_plans_names_that_row(self) -> None:
+        rows = ROWS + [blank(level="2", layer="turnout", role="lcc_alias", user_name="DCC Switch 9",
+                             assignment="virtual", system_name="MTT200", jmri_name="IT:HART:C3:9")]
         turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
                     + bean("turnout", "M2T408", "Switch 1", "bound by its user name")
-                    + bean("turnout", "MTT200", "DCC Switch 9"))
-        p = plan(doc(), doc(), doc(turnouts=turnouts))
+                    + bean("turnout", "MTT200", "Test 200"))
+        p = plan(doc(), doc(), doc(turnouts=turnouts), rows=rows)
         [g] = p.of(ss.DROPPED)
         self.assertEqual("added in the Store", g.what)
-        self.assertIn("add the devices.csv row", g.note)
+        self.assertIn("'DCC Switch 9' plans this device", g.note)
+        self.assertEqual([], p.of(ss.DEVICE))
+
+    def test_a_new_device_on_a_field_rows_user_name_says_to_rename_it(self) -> None:
+        turnouts = TURNOUTS_NOW + bean("turnout", "MTT950", "Switch 1")
+        [g] = plan(doc(), doc(), doc(turnouts=turnouts)).of(ss.DROPPED)
+        self.assertEqual("its user name 'Switch 1' is that row's user_name; give the Store's device another name in "
+                         "PanelPro", g.note)
+
+    def test_a_layout_block_alone_is_dropped_not_a_crash(self) -> None:
+        store = doc()
+        store.find("layoutblocks").append(ET.fromstring(bean("layoutblock", "ILB98", "Lonely", systemName="ILB98")))
+        [g] = plan(doc(), doc(), store).of(ss.DROPPED)
+        self.assertIn("a layout block with no block", g.note)
+
+
+TEST_TURNOUT = ('<turnout feedback="MONITORING" inverted="false" automate="Off"><systemName>MTT999</systemName>'
+                "<userName>Test 999</userName></turnout>")
+TURNOUTS_NOW = (bean("turnout", "MTT100", "DCC Switch 1", "Node: 4 Turnout: 0")
+                + bean("turnout", "M2T408", "Switch 1", "bound by its user name"))
+
+
+def unplaced(store: ET.Element, *names: str) -> dict:
+    """The level-less row of the beans named `names` in `store` (the row a merge adds)."""
+    beans = [(tb.section_key(sec), el) for sec in tables.elements(store) for el in tables.elements(sec)
+             if tables.system_name(el) in names]
+    return ss.unplaced_row(beans)
+
+
+class AddedDevices(unittest.TestCase):
+    """A device the owner adds in PanelPro becomes a level-less devices.csv row on merge, its beans kept exactly in
+    jmri_bean (owner, 2026-11-20): a test turnout or a DCC accessory is no layout element."""
+
+    def test_a_new_turnout_is_a_row_to_add_with_the_stores_bean(self) -> None:
+        store = doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT)
+        p = plan(doc(), doc(), store)
+        [d] = p.of(ss.DEVICE)
+        self.assertEqual((ss.ROW, "added in the Store"), (d.part, d.what))
+        [add] = d.edits
+        row = add.row
+        self.assertEqual(("", "", "turnout", "", "Test 999", "field", "MTT999", "MTT999"),
+                         tuple(row[c] for c in ("level", "cp", "layer", "role", "user_name", "assignment",
+                                                "system_name", "jmri_name")))
+        [(sec, el)] = tb.row_beans(row)
+        self.assertEqual(tb.LCC_TURNOUTS, sec)
+        self.assertEqual(ss.canon(store.find("turnouts").find("turnout[systemName='MTT999']")), ss.canon(el))
+        self.assertNotIn("Test 999", row["jmri_bean"])      # the user name is the column's, not a second copy
+
+    def test_the_row_goes_after_every_level_and_passes_the_checks(self) -> None:
+        p = plan(doc(), doc(), doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT))
+        rows = ss.edited_rows(ROWS, ss.device_edits(p, ss.Choices(merge=frozenset({"D1"}))))
+        self.assertEqual("Test 999", rows[-1]["user_name"])
+        D.check_rows(rows)
+
+    def test_a_dropped_new_device_writes_nothing(self) -> None:
+        p = plan(doc(), doc(), doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT))
+        self.assertEqual([], ss.device_edits(p, ss.Choices()))
+
+    def test_a_new_block_with_both_passes_and_its_layout_block_is_one_row(self) -> None:
+        old = bean("block", "IB:AUTO:0033", "OS Switch 1", "Brick CP, Switch 1", systemName="IB:AUTO:0033")
+        new = (bean("block", "IB99", "Test block", systemName="IB99")
+               + bean("block", "IB99", "Test block", "Owner's", systemName="IB99", length="100.0"))
+        store = doc(blocks=old + new)
+        store.find("layoutblocks").append(ET.fromstring(bean("layoutblock", "ILB99", "Test block",
+                                                             systemName="ILB99")))
+        p = plan(doc(blocks=old), doc(blocks=old), store)
+        [d] = p.of(ss.DEVICE)
+        self.assertEqual(2, len(d.also))
+        row = d.edits[0].row
+        self.assertEqual(("block", "Test block", "IB99", "ILB99", "Owner's"),
+                         (row["layer"], row["user_name"], row["jmri_name"], row["layout_block"], row["jmri_comment"]))
+        self.assertEqual(3, len(tb.row_beans(row)))
+        D.check_rows(ROWS + [row])
+
+
+class UnplacedRows(unittest.TestCase):
+    """A level-less row's beans are the Store's: a later Store that changes or deletes them is a DEVICE merge."""
+
+    def setUp(self) -> None:
+        self.repo = doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT)
+        self.rows = ROWS + [unplaced(self.repo, "MTT999")]
+
+    def test_a_feedback_change_rewrites_the_bean_column(self) -> None:
+        store = doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT.replace("MONITORING", "DIRECT"))
+        p = plan(self.repo, self.repo, store, rows=self.rows)
+        [d] = p.of(ss.DEVICE)
+        self.assertEqual(["jmri_bean"], [e.column for e in d.edits])
+        self.assertIn("DIRECT", d.edits[0].new)
+
+    def test_a_rename_changes_only_the_user_name(self) -> None:
+        store = doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT.replace("Test 999", "Yard light"))
+        p = plan(self.repo, self.repo, store, rows=self.rows)
+        [d] = p.of(ss.DEVICE)
+        self.assertEqual([("user_name", "Yard light")], [(e.column, e.new) for e in d.edits])
+
+    def test_a_device_deleted_in_the_store_deletes_its_row(self) -> None:
+        p = plan(self.repo, self.repo, doc(turnouts=TURNOUTS_NOW), rows=self.rows)
+        [d] = p.of(ss.DEVICE)
+        self.assertEqual((ss.RowDelete(len(ROWS), "Test 999"),), d.edits)
+        self.assertEqual(ROWS, ss.edited_rows(self.rows, d.edits))
+
+    def test_a_repo_edit_since_the_deploy_survives_an_owner_rename(self) -> None:
+        """The repo gave the row a comment after the deploy; the owner renamed it in PanelPro. The merge renames only."""
+        rows = ROWS + [dict(self.rows[-1], jmri_comment="DCC 999")]
+        repo = doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT.replace("</userName>", "</userName><comment>DCC 999</comment>"))
+        store = doc(turnouts=TURNOUTS_NOW + TEST_TURNOUT.replace("Test 999", "Yard light"))
+        [d] = plan(self.repo, repo, store, rows=rows).of(ss.DEVICE)
+        self.assertEqual([("user_name", "Yard light")], [(e.column, e.new) for e in d.edits])
+
+    def test_a_new_layout_block_for_a_level_less_block_is_a_row_rewrite(self) -> None:
+        blocks = bean("block", "IB:AUTO:0033", "OS Switch 1", "Brick CP, Switch 1", systemName="IB:AUTO:0033")
+        mine = (bean("block", "IB99", "Test block", systemName="IB99")
+                + bean("block", "IB99", "Test block", "Owner's", systemName="IB99"))
+        repo = doc(blocks=blocks + mine)
+        rows = ROWS + [unplaced(repo, "IB99")]
+        store = doc(blocks=blocks + mine)
+        store.find("layoutblocks").append(ET.fromstring(bean("layoutblock", "ILB99", "Test block",
+                                                             systemName="ILB99")))
+        [d] = plan(repo, repo, store, rows=rows).of(ss.DEVICE)
+        self.assertEqual({"layout_block", "jmri_bean"}, {e.column for e in d.edits})
+        self.assertEqual([], plan(repo, repo, store, rows=rows).of(ss.DROPPED))
+
+    def test_an_unchanged_level_less_device_plans_nothing(self) -> None:
+        p = plan(self.repo, self.repo, self.repo, rows=self.rows)
+        self.assertEqual([], p.items)
+
+    def test_the_build_gives_the_stores_bean_back(self) -> None:
+        kept = tb.kept_beans(self.rows)
+        [el] = kept[tb.LCC_TURNOUTS]
+        self.assertEqual(ss.canon(self.repo.find("turnouts").find("turnout[systemName='MTT999']")), ss.canon(el))
 
 
 class DeviceItems(unittest.TestCase):
