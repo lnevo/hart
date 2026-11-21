@@ -111,6 +111,10 @@ real facts until steps 5 and 6 or outside these files:
   `Staging`. Done 2026-11-20 (branch `agent/claude/le-bands-by-level`): it now skips the bands of a level the base
   holds, found by level (`le_common.base_keys`). `le_common.STAGING` is gone, and every band is found through
   `le_common.find_band` (level and height from the plan overrides).
+- `block_layer.drawing` (level 1 staging, else main_upper) and `build_device_map.dx_corners` (a title's first word
+  for `rotate_bands`). Done 2026-11-21: a band's drawing is the plan-overrides section that holds its level
+  (`block_layer.drawings`, from `le_common.plan_places`), and the band key is the plugin's (`le_common.band_key`).
+  The rest join a band to its plan-overrides entry by title, as `le_common` does; its place comes from the entry.
 
 Device-map part (2026-11-20, PR #798): the check moved out of `staging_device_map.py` (which keeps staging's
 loaders, the builders' import) into `check_device_master.py`, which holds every level of `devices.csv` to one set of
