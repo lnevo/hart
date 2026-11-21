@@ -798,8 +798,9 @@ FIELD_LAYERS = ("block", "occupancy")
 
 def part_row(level: str, name: str, part: dict, trial: str) -> dict:
     """The master row of a part (block_layer.Layer.parts): a piece of track inside another block, part_of naming it,
-    with no occupancy row or detector of its own (hartlib.devices: role part, assignment none). On main and upper the
-    Layout Editor build still makes it a JMRI block, its sensor its OS block's; staging's parts have no JMRI block."""
+    with no occupancy row or detector of its own (hartlib.devices: role part). It is a JMRI block of its own on every
+    level, its sensor its OS block's (owner, 2026-11-20): main and upper's the Layout Editor build makes (assignment
+    none here); staging_rows gives staging's their bean names (part_bean_names, assignment virtual)."""
     t = part["track"]
     row = {c: "" for c in devices.COLUMNS}
     row.update(level=level, layer="block", role="part", user_name=name, assignment="none", trial_name=trial,

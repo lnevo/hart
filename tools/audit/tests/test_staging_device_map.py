@@ -127,13 +127,14 @@ class Pure(unittest.TestCase):
     def test_the_os_layer_gives_each_part_to_its_block(self):
         """A part is a JMRI block of its own (load's blocks); the masts read it inside its OS block (os_layer), as
         main and upper's mast process reads block_layer.Layer.bands."""
-        names = {"os": {"a": "OS Switch 1"}, "blocks": {"e1": ["Track 1-3 at 1", "Track 1-3 at 3"], "e2": ["Track W-1"]},
-                 "parts": {"Track 1-3 at 1": "OS Switch 1", "Track 1-3 at 3": "OS Switch 3"}}
-        got = sdm.os_layer(names)
+        names = {"os": {"a": "OS Switch 1"}, "blocks": {"e1": ["Track 1-3 at 1", "Track 1-3 at 3"],
+                                                        "e2": ["Track W-1"]}}
+        parts = {"Track 1-3 at 1": "OS Switch 1", "Track 1-3 at 3": "OS Switch 3"}
+        got = sdm.os_layer(names, parts)
         self.assertEqual(got["blocks"], {"e1": ["OS Switch 1", "OS Switch 3"], "e2": ["Track W-1"]})
         self.assertEqual(names["blocks"]["e1"], ["Track 1-3 at 1", "Track 1-3 at 3"])      # a copy
         with self.assertRaisesRegex(sdm.StagingMapError, "part of another part"):
-            sdm.os_layer(dict(names, parts={"Track 1-3 at 1": "Track 1-3 at 3", "Track 1-3 at 3": "OS Switch 3"}))
+            sdm.os_layer(names, {"Track 1-3 at 1": "Track 1-3 at 3", "Track 1-3 at 3": "OS Switch 3"})
 
     def test_two_runs_with_the_same_ends_stop(self):
         b = band({"a": sw("1"), "b": sw("3")}, {"e1": dict(src=("a", "B"), dst=("b", "A")),
@@ -234,12 +235,18 @@ class Files(unittest.TestCase):
         with self.assertRaisesRegex(sdm.StagingMapError, "track 1B-3A: blocks .* are not 1/n to n/n"):
             sdm.load(self.band, device_map=self._without("Track 1B-3A 1/2"))
 
-    def test_a_part_gives_its_pieces_to_the_block_it_names(self):
-        """A part row (part_of) carries its pieces' trial names; load() gives them to its block (owner, 2026-11-20)."""
+    def test_a_part_is_a_block_of_its_own_inside_the_block_it_names(self):
+        """A part row (part_of) carries its pieces' trial names; load() draws them as the part's own JMRI block, and
+        os_layer gives them to the block it names, as the masts read them (owner, 2026-11-20)."""
         sid = next(s for s, (piece, _rev) in sdm.piece_refs(self.band).items() if piece == "35B-37A")
-        self.assertEqual(self.names["blocks"][sid], ["OS Switch 35a"])
-        self.assertEqual(self.names["blocks"][next(s for s, (p, _r) in sdm.piece_refs(self.band).items()
-                                                   if p == "1B-3A")], ["OS Switch 3", "OS Switch 1"])
+        self.assertEqual(self.names["blocks"][sid], ["Track 35-37"])
+        both = next(s for s, (p, _r) in sdm.piece_refs(self.band).items() if p == "1B-3A")
+        self.assertEqual(self.names["blocks"][both], ["Track 1-3 at 3", "Track 1-3 at 1"])
+        parts = sdm.staging_parts()
+        self.assertEqual(len(parts), 16)
+        layer = sdm.os_layer(self.names, parts)
+        self.assertEqual((layer["blocks"][sid], layer["blocks"][both]),
+                         (["OS Switch 35a"], ["OS Switch 3", "OS Switch 1"]))
 
     def test_a_piece_on_no_row_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, r"track 35B-37A \(e\d+\) is on no block row"):
@@ -282,9 +289,10 @@ class Files(unittest.TestCase):
         self.assertIn(["Track Brick-Plane"], [seq for _s, seq, _e in runs])
         chains = sdm.staging_chains(self.band, self.names)
         self.assertEqual(len(chains), len(runs))
-        # the track from Switch 35 to Switch 37 is all OS Switch 35a: its gap is at Switch 37's points
+        # the track from Switch 35 to Switch 37 is the part Track 35-37 (inside OS Switch 35a): its gap is at
+        # Switch 37's points
         self.assertTrue(any({e[0] for e in c["ends"]} == {"TOR36", "TO113"} and
-                            c["blocks"] == ["OS Switch 35a"] for c in chains))
+                            c["blocks"] == ["Track 35-37"] for c in chains))
 
     def test_the_signal_plan_reads_back(self):
         masts = sdm.load_signal_masts()

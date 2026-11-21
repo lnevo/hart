@@ -110,7 +110,7 @@
     <destinationMast destination="Mast 2R">
       <destinationSignalMast>Mast 2R</destinationSignalMast>
       <comment />
-      <enabled>no</enabled>
+      <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
       <useLayoutEditor>yes</useLayoutEditor>
       <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -893,16 +893,6 @@
     <sourceSignalMast>Mast 36RB</sourceSignalMast>
     <destinationMast destination="Mast 67">
       <destinationSignalMast>Mast 67</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
-    <destinationMast destination="Mast 68">
-      <destinationSignalMast>Mast 68</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>

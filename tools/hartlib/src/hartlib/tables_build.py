@@ -487,7 +487,7 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
 def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railroad.BlockLength]
                  ) -> dict[tuple, list[ET.Element]]:
     """{section: [bean, ...]} of the GENERATED_LEVELS rows of the master, a block's names-only pass first under
-    ("blocks-names", ...). A row with assignment none gives no bean: staging's parts (part_of) have none today. A part
+    ("blocks-names", ...). A row with assignment none gives no bean. A part (part_of; staging's 16, owner 2026-11-20)
     that is a JMRI block of its own (a jmri_name and layout block, owner 2026-11-20) takes its block's occupancy
     sensor. TablesBuildError on a row
     the module has no bean for, a turnout without both feedback rows, a block with no length, no layout block or two

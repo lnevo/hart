@@ -908,6 +908,18 @@ class Throats(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, r"no plan length for drawn staging blocks \['OS Switch 1'\]"):
             staging_lengths(names, plan)
 
+    def test_a_track_of_0_in_blocks_is_cut_into_equal_shares(self) -> None:
+        """Track 35-39's two parts are 0 in long in the plan (its turnouts touch): drawing only, they get no length,
+        so the plugin cuts the track into equal blocks (its anchor in the middle); block_lengths.csv keeps 0.0. A 0 in
+        block on a track with a block of some length has no share to cut at, so it stops."""
+        from le_names import staging_lengths
+        names = {"blocks": {"a": ["Track 35-39 at 35", "Track 35-39 at 39"], "b": ["Track S-1"]}}
+        plan = {"Track 35-39 at 35": 0.0, "Track 35-39 at 39": 0.0, "Track S-1": 100.0}
+        self.assertEqual(staging_lengths(names, plan), {"Track S-1": 100.0})
+        names["blocks"]["a"].append("Track S-1")
+        with self.assertRaisesRegex(B.BuildError, "share a track, and some are 0 in long"):
+            staging_lengths(names, plan)
+
     def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
         lengths = self.names[staging_key(self.bands)]["lengths"]
         moved = {}

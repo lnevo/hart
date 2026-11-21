@@ -149,6 +149,27 @@ STAGING_OCCUPANCY = (
     ('unused Block 3-8', 'spare', '', 'M2S307'),
 )
 
+# (name, jmri_name, layout_block, assignment) of staging's parts: each a JMRI block of its own on its block's
+# occupancy sensor (owner, 2026-11-20), named IB:AUTO:<n> and ILB<n> by the next free number (part_bean_names)
+STAGING_PART_BEANS = (
+    ('Track 1-3 at 1', 'IB:AUTO:0052', 'ILB52', 'virtual'),
+    ('Track 1-3 at 3', 'IB:AUTO:0054', 'ILB54', 'virtual'),
+    ('Track 9-11', 'IB:AUTO:0056', 'ILB56', 'virtual'),
+    ('Track 11-13', 'IB:AUTO:0057', 'ILB57', 'virtual'),
+    ('Track 13-15', 'IB:AUTO:0058', 'ILB58', 'virtual'),
+    ('Track 15-17', 'IB:AUTO:0059', 'ILB59', 'virtual'),
+    ('Track 17-19', 'IB:AUTO:0060', 'ILB60', 'virtual'),
+    ('Track 19-21', 'IB:AUTO:0061', 'ILB61', 'virtual'),
+    ('Track 23-31', 'IB:AUTO:0063', 'ILB63', 'virtual'),
+    ('Track 25-27', 'IB:AUTO:0064', 'ILB64', 'virtual'),
+    ('Track 27-29', 'IB:AUTO:0070', 'ILB70', 'virtual'),
+    ('Track 29-31', 'IB:AUTO:0071', 'ILB71', 'virtual'),
+    ('Track 31-33', 'IB:AUTO:0073', 'ILB73', 'virtual'),
+    ('Track 35-37', 'IB:AUTO:0078', 'ILB78', 'virtual'),
+    ('Track 35-39 at 35', 'IB:AUTO:0079', 'ILB79', 'virtual'),
+    ('Track 35-39 at 39', 'IB:AUTO:0080', 'ILB80', 'virtual'),
+)
+
 # (level, name, part_of, trial_name) of the main and upper parts: the 25 links, each in the lower-numbered switch's OS
 # block or, where a home mast stands at a switch's points facing it, the OS block at its other end (125-129, 201-205,
 # 227-231, 229-233); 225's in the corner block of its leg (step 5 part 2, owner 2026-11-20)
@@ -387,6 +408,9 @@ class Committed(unittest.TestCase):
         got = tuple((r["user_name"], r["part_of"], r["trial_name"]) for r in self.rows
                     if r["level"] == "1" and r["role"] == "part")
         self.assertEqual(got, STAGING_PARTS)
+        beans = tuple((r["user_name"], r["jmri_name"], r["layout_block"], r["assignment"]) for r in self.rows
+                      if r["level"] == "1" and r["role"] == "part")
+        self.assertEqual(beans, STAGING_PART_BEANS)
 
     def test_main_and_upper_parts(self):
         got = tuple((r["level"], r["user_name"], r["part_of"], r["trial_name"]) for r in self.rows

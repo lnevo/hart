@@ -2760,6 +2760,70 @@
       <systemName>IB:AUTO:0051</systemName>
       <userName>Track East Ext</userName>
     </block>
+    <block systemName="IB:AUTO:0052">
+      <systemName>IB:AUTO:0052</systemName>
+      <userName>Track 1-3 at 1</userName>
+    </block>
+    <block systemName="IB:AUTO:0054">
+      <systemName>IB:AUTO:0054</systemName>
+      <userName>Track 1-3 at 3</userName>
+    </block>
+    <block systemName="IB:AUTO:0056">
+      <systemName>IB:AUTO:0056</systemName>
+      <userName>Track 9-11</userName>
+    </block>
+    <block systemName="IB:AUTO:0057">
+      <systemName>IB:AUTO:0057</systemName>
+      <userName>Track 11-13</userName>
+    </block>
+    <block systemName="IB:AUTO:0058">
+      <systemName>IB:AUTO:0058</systemName>
+      <userName>Track 13-15</userName>
+    </block>
+    <block systemName="IB:AUTO:0059">
+      <systemName>IB:AUTO:0059</systemName>
+      <userName>Track 15-17</userName>
+    </block>
+    <block systemName="IB:AUTO:0060">
+      <systemName>IB:AUTO:0060</systemName>
+      <userName>Track 17-19</userName>
+    </block>
+    <block systemName="IB:AUTO:0061">
+      <systemName>IB:AUTO:0061</systemName>
+      <userName>Track 19-21</userName>
+    </block>
+    <block systemName="IB:AUTO:0063">
+      <systemName>IB:AUTO:0063</systemName>
+      <userName>Track 23-31</userName>
+    </block>
+    <block systemName="IB:AUTO:0064">
+      <systemName>IB:AUTO:0064</systemName>
+      <userName>Track 25-27</userName>
+    </block>
+    <block systemName="IB:AUTO:0070">
+      <systemName>IB:AUTO:0070</systemName>
+      <userName>Track 27-29</userName>
+    </block>
+    <block systemName="IB:AUTO:0071">
+      <systemName>IB:AUTO:0071</systemName>
+      <userName>Track 29-31</userName>
+    </block>
+    <block systemName="IB:AUTO:0073">
+      <systemName>IB:AUTO:0073</systemName>
+      <userName>Track 31-33</userName>
+    </block>
+    <block systemName="IB:AUTO:0078">
+      <systemName>IB:AUTO:0078</systemName>
+      <userName>Track 35-37</userName>
+    </block>
+    <block systemName="IB:AUTO:0079">
+      <systemName>IB:AUTO:0079</systemName>
+      <userName>Track 35-39 at 35</userName>
+    </block>
+    <block systemName="IB:AUTO:0080">
+      <systemName>IB:AUTO:0080</systemName>
+      <userName>Track 35-39 at 39</userName>
+    </block>
     <block systemName="IB:C3:0001">
       <systemName>IB:C3:0001</systemName>
       <userName>OS Switch 101</userName>
@@ -3554,6 +3618,118 @@
       <comment>Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Ext</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0052" length="127.0" curve="0">
+      <systemName>IB:AUTO:0052</systemName>
+      <userName>Track 1-3 at 1</userName>
+      <comment>Part of OS Switch 1, the track from Switch 1 to Switch 3; occupancy Block 4-2 / M2S401</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 1</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0054" length="127.0" curve="0">
+      <systemName>IB:AUTO:0054</systemName>
+      <userName>Track 1-3 at 3</userName>
+      <comment>Part of OS Switch 3, the track from Switch 1 to Switch 3; occupancy Block 4-1 / M2S400</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 3</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0056" length="261.6" curve="0">
+      <systemName>IB:AUTO:0056</systemName>
+      <userName>Track 9-11</userName>
+      <comment>Part of OS Switch 9, the track from Switch 9 to Switch 11; occupancy Block 13-8 / M2S1307</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 9</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0057" length="279.4" curve="0">
+      <systemName>IB:AUTO:0057</systemName>
+      <userName>Track 11-13</userName>
+      <comment>Part of OS Switch 11, the track from Switch 11 to Switch 13; occupancy Block 13-2 / M2S1301</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 11</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0058" length="193.0" curve="0">
+      <systemName>IB:AUTO:0058</systemName>
+      <userName>Track 13-15</userName>
+      <comment>Part of OS Switch 15, the track from Switch 13 to Switch 15; occupancy Block 3-2 / M2S301</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 15</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0059" length="147.3" curve="0">
+      <systemName>IB:AUTO:0059</systemName>
+      <userName>Track 15-17</userName>
+      <comment>Part of OS Switch 15, the track from Switch 15 to Switch 17; occupancy Block 3-2 / M2S301</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 15</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0060" length="147.3" curve="0">
+      <systemName>IB:AUTO:0060</systemName>
+      <userName>Track 17-19</userName>
+      <comment>Part of OS Switch 17, the track from Switch 17 to Switch 19; occupancy Block 3-3 / M2S302</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 17</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0061" length="147.3" curve="0">
+      <systemName>IB:AUTO:0061</systemName>
+      <userName>Track 19-21</userName>
+      <comment>Part of OS Switch 19, the track from Switch 19 to Switch 21; occupancy Block 3-5 / M2S304</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 19</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0063" length="147.3" curve="0">
+      <systemName>IB:AUTO:0063</systemName>
+      <userName>Track 23-31</userName>
+      <comment>Part of OS Switch 31, the track from Switch 23 to Switch 31; occupancy Block 12-7 / M2S1206</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 31</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0064" length="147.3" curve="0">
+      <systemName>IB:AUTO:0064</systemName>
+      <userName>Track 25-27</userName>
+      <comment>Part of OS Switch 25, the track from Switch 25 to Switch 27; occupancy Block 12-1 / M2S1200</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 25</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0070" length="147.3" curve="0">
+      <systemName>IB:AUTO:0070</systemName>
+      <userName>Track 27-29</userName>
+      <comment>Part of OS Switch 27, the track from Switch 27 to Switch 29; occupancy Block 12-3 / M2S1202</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 27</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0071" length="147.3" curve="0">
+      <systemName>IB:AUTO:0071</systemName>
+      <userName>Track 29-31</userName>
+      <comment>Part of OS Switch 29, the track from Switch 29 to Switch 31; occupancy Block 12-5 / M2S1204</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 29</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0073" length="132.1" curve="0">
+      <systemName>IB:AUTO:0073</systemName>
+      <userName>Track 31-33</userName>
+      <comment>Part of OS Switch 31, the track from Switch 31 to Switch 33; occupancy Block 12-7 / M2S1206</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 31</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0078" length="190.5" curve="0">
+      <systemName>IB:AUTO:0078</systemName>
+      <userName>Track 35-37</userName>
+      <comment>Part of OS Switch 35a, the track from Switch 35 to Switch 37; occupancy Block 1-6 / M2S105</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 35a</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0079" length="0.0" curve="0">
+      <systemName>IB:AUTO:0079</systemName>
+      <userName>Track 35-39 at 35</userName>
+      <comment>Part of OS Switch 35b, the track from Switch 35 to Switch 39; occupancy Block 1-5 / M2S104</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 35b</occupancysensor>
+    </block>
+    <block systemName="IB:AUTO:0080" length="0.0" curve="0">
+      <systemName>IB:AUTO:0080</systemName>
+      <userName>Track 35-39 at 39</userName>
+      <comment>Part of OS Switch 39, the track from Switch 35 to Switch 39; occupancy Block 1-4 / M2S103</comment>
+      <permissive>no</permissive>
+      <occupancysensor>BS Switch 39</occupancysensor>
     </block>
     <block systemName="IB:C3:0001" length="406.4" curve="0">
       <systemName>IB:C3:0001</systemName>
@@ -4525,17 +4701,57 @@
       <systemName>ILB50</systemName>
       <userName>Track Scale</userName>
     </layoutblock>
+    <layoutblock systemName="ILB52" occupancysensor="BS Switch 1" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB52</systemName>
+      <userName>Track 1-3 at 1</userName>
+    </layoutblock>
     <layoutblock systemName="ILB53" occupancysensor="BS Switch 7b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB53</systemName>
       <userName>OS Switch 7b</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB54" occupancysensor="BS Switch 3" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB54</systemName>
+      <userName>Track 1-3 at 3</userName>
     </layoutblock>
     <layoutblock systemName="ILB55" occupancysensor="BS Switch 7" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB55</systemName>
       <userName>OS Switch 7</userName>
     </layoutblock>
+    <layoutblock systemName="ILB56" occupancysensor="BS Switch 9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB56</systemName>
+      <userName>Track 9-11</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB57" occupancysensor="BS Switch 11" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB57</systemName>
+      <userName>Track 11-13</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB58" occupancysensor="BS Switch 15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB58</systemName>
+      <userName>Track 13-15</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB59" occupancysensor="BS Switch 15" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB59</systemName>
+      <userName>Track 15-17</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB60" occupancysensor="BS Switch 17" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB60</systemName>
+      <userName>Track 17-19</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB61" occupancysensor="BS Switch 19" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB61</systemName>
+      <userName>Track 19-21</userName>
+    </layoutblock>
     <layoutblock systemName="ILB62" occupancysensor="BS Barn" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB62</systemName>
       <userName>Track Barn</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB63" occupancysensor="BS Switch 31" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB63</systemName>
+      <userName>Track 23-31</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB64" occupancysensor="BS Switch 25" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB64</systemName>
+      <userName>Track 25-27</userName>
     </layoutblock>
     <layoutblock systemName="ILB65" occupancysensor="BS Switch 9" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB65</systemName>
@@ -4557,9 +4773,21 @@
       <systemName>ILB69</systemName>
       <userName>Track EH-3</userName>
     </layoutblock>
+    <layoutblock systemName="ILB70" occupancysensor="BS Switch 27" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB70</systemName>
+      <userName>Track 27-29</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB71" occupancysensor="BS Switch 29" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB71</systemName>
+      <userName>Track 29-31</userName>
+    </layoutblock>
     <layoutblock systemName="ILB72" occupancysensor="BS K-2" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB72</systemName>
       <userName>Track K-2</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB73" occupancysensor="BS Switch 31" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB73</systemName>
+      <userName>Track 31-33</userName>
     </layoutblock>
     <layoutblock systemName="ILB74" occupancysensor="BS West Ext" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB74</systemName>
@@ -4576,6 +4804,18 @@
     <layoutblock systemName="ILB77" occupancysensor="BS Helix Inner" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB77</systemName>
       <userName>Track Helix Inner</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB78" occupancysensor="BS Switch 35a" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB78</systemName>
+      <userName>Track 35-37</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB79" occupancysensor="BS Switch 35b" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB79</systemName>
+      <userName>Track 35-39 at 35</userName>
+    </layoutblock>
+    <layoutblock systemName="ILB80" occupancysensor="BS Switch 39" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
+      <systemName>ILB80</systemName>
+      <userName>Track 35-39 at 39</userName>
     </layoutblock>
     <layoutblock systemName="ILB1001" occupancysensor="BS Switch 101" occupiedsense="2" trackcolor="gray" occupiedcolor="red" extracolor="white">
       <systemName>ILB1001</systemName>
@@ -5913,16 +6153,6 @@
       <sourceSignalMast>Mast 36RB</sourceSignalMast>
       <destinationMast destination="Mast 67">
         <destinationSignalMast>Mast 67</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 68">
-        <destinationSignalMast>Mast 68</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
@@ -10487,9 +10717,9 @@
     <tracksegment ident="TG3" blockname="Track Main East" connect1name="AG5" type1="POS_POINT" connect2name="AG6" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG4" blockname="Track Main East" connect1name="AG6" type1="POS_POINT" connect2name="TOL23" type2="TURNOUT_C" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG5" blockname="Track S-R" connect1name="TOR14" type1="TURNOUT_B" connect2name="TO111" type2="TURNOUT_D" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG6" blockname="OS Switch 15" connect1name="TOR14" type1="TURNOUT_C" connect2name="TOL15" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG7" blockname="OS Switch 35b" connect1name="TO113" type1="TURNOUT_B" connect2name="AG7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG8" blockname="OS Switch 39" connect1name="AG7" type1="POS_POINT" connect2name="TOL29" type2="TURNOUT_A" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG6" blockname="Track 15-17" connect1name="TOR14" type1="TURNOUT_C" connect2name="TOL15" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG7" blockname="Track 35-39 at 35" connect1name="TO113" type1="TURNOUT_B" connect2name="AG7" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG8" blockname="Track 35-39 at 39" connect1name="AG7" type1="POS_POINT" connect2name="TOL29" type2="TURNOUT_A" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG9" blockname="Track West Ext" connect1name="TO111" type1="TURNOUT_B" connect2name="TO113" type2="TURNOUT_A" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG10" blockname="Track K-1" connect1name="TOL29" type1="TURNOUT_C" connect2name="AG8" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG11" blockname="Track K-1" connect1name="AG8" type1="POS_POINT" connect2name="AG9" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="51.996" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -10498,18 +10728,18 @@
     <tracksegment ident="TG14" blockname="Track K-2" connect1name="AG10" type1="POS_POINT" connect2name="AG11" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.996" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG15" blockname="Track K-2" connect1name="AG11" type1="POS_POINT" connect2name="AG2" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG16" blockname="Track Main West" connect1name="TOL3" type1="TURNOUT_A" connect2name="TO111" type2="TURNOUT_A" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG17" blockname="OS Switch 25" connect1name="TOR11" type1="TURNOUT_A" connect2name="TOR9" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG17" blockname="Track 25-27" connect1name="TOR11" type1="TURNOUT_A" connect2name="TOR9" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG18" blockname="Track S-4" connect1name="TOL19" type1="TURNOUT_B" connect2name="AG12" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG19" blockname="Track S-4" connect1name="AG12" type1="POS_POINT" connect2name="AG13" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG20" blockname="Track S-4" connect1name="AG13" type1="POS_POINT" connect2name="AG14" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG21" blockname="Track S-4" connect1name="AG14" type1="POS_POINT" connect2name="AG15" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.996" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG22" blockname="Track S-4" connect1name="AG15" type1="POS_POINT" connect2name="TOR11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG23" blockname="Track S-3" connect1name="TOL19" type1="TURNOUT_C" connect2name="TOR11" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG24" blockname="OS Switch 17" connect1name="TOL15" type1="TURNOUT_B" connect2name="TOL17" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG24" blockname="Track 17-19" connect1name="TOL15" type1="TURNOUT_B" connect2name="TOL17" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG25" blockname="Track S-1" connect1name="TOL15" type1="TURNOUT_C" connect2name="TOR7" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG26" blockname="OS Switch 19" connect1name="TOL17" type1="TURNOUT_B" connect2name="TOL19" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG27" blockname="OS Switch 35a" connect1name="TO113" type1="TURNOUT_C" connect2name="TOR36" type2="TURNOUT_A" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG28" blockname="OS Switch 27" connect1name="TOR9" type1="TURNOUT_A" connect2name="TOR7" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG26" blockname="Track 19-21" connect1name="TOL17" type1="TURNOUT_B" connect2name="TOL19" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG27" blockname="Track 35-37" connect1name="TO113" type1="TURNOUT_C" connect2name="TOR36" type2="TURNOUT_A" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG28" blockname="Track 27-29" connect1name="TOR9" type1="TURNOUT_A" connect2name="TOR7" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG29" blockname="Track East Lead" connect1name="TOL23" type1="TURNOUT_A" connect2name="TO113" type2="TURNOUT_D" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG30" blockname="Track S-2" connect1name="TOL17" type1="TURNOUT_C" connect2name="TOR9" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG31" blockname="Track Brick-Plane" connect1name="AG3" type1="POS_POINT" connect2name="TOL42" type2="TURNOUT_A" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -10519,14 +10749,14 @@
     <tracksegment ident="TG35" blockname="Track Scale" connect1name="TOL42" type1="TURNOUT_C" connect2name="AG18" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG36" blockname="Track Scale" connect1name="AG18" type1="POS_POINT" connect2name="AG19" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="51.996" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG37" blockname="Track Scale" connect1name="AG19" type1="POS_POINT" connect2name="TO117" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG38" blockname="OS Switch 31" connect1name="TOL6" type1="TURNOUT_A" connect2name="TOL23" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG39" blockname="OS Switch 11" connect1name="TO11" type1="TURNOUT_A" connect2name="TO1" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG38" blockname="Track 31-33" connect1name="TOL6" type1="TURNOUT_A" connect2name="TOL23" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG39" blockname="Track 11-13" connect1name="TO11" type1="TURNOUT_A" connect2name="TO1" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG40" blockname="Track Barn" connect1name="TO117" type1="TURNOUT_B" connect2name="AG20" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG41" blockname="Track Barn" connect1name="AG20" type1="POS_POINT" connect2name="AG21" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG42" blockname="Track Barn" connect1name="AG21" type1="POS_POINT" connect2name="TO1" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG43" blockname="OS Switch 9" connect1name="TO10" type1="TURNOUT_A" connect2name="AG22" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG44" blockname="OS Switch 9" connect1name="AG22" type1="POS_POINT" connect2name="AG23" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG45" blockname="OS Switch 9" connect1name="AG23" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG43" blockname="Track 9-11" connect1name="TO10" type1="TURNOUT_A" connect2name="AG22" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG44" blockname="Track 9-11" connect1name="AG22" type1="POS_POINT" connect2name="AG23" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG45" blockname="Track 9-11" connect1name="AG23" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG46" blockname="Track EH-2" connect1name="EBG7" type1="POS_POINT" connect2name="TO10" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG47" blockname="Track EH-3" connect1name="EBG5" type1="POS_POINT" connect2name="AG24" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG48" blockname="Track EH-3" connect1name="AG24" type1="POS_POINT" connect2name="AG25" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -10534,15 +10764,15 @@
     <tracksegment ident="TG50" blockname="Track EH-1" connect1name="EBG6" type1="POS_POINT" connect2name="TO11" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG51" blockname="Track Helix Outer" connect1name="TOL29" type1="TURNOUT_B" connect2name="AGE1" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG52" blockname="Track Helix Inner" connect1name="TOR36" type1="TURNOUT_B" connect2name="AGE2" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG53" blockname="OS Switch 31" connect1name="TO111" type1="TURNOUT_C" connect2name="TOL6" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG54" blockname="OS Switch 29" connect1name="TOR7" type1="TURNOUT_A" connect2name="TOL6" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG55" blockname="OS Switch 3" connect1name="TOL38" type1="TURNOUT_A" connect2name="AG26" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG56" blockname="OS Switch 1" connect1name="AG26" type1="POS_POINT" connect2name="TOL3" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG53" blockname="Track 23-31" connect1name="TO111" type1="TURNOUT_C" connect2name="TOL6" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG54" blockname="Track 29-31" connect1name="TOR7" type1="TURNOUT_A" connect2name="TOL6" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG55" blockname="Track 1-3 at 3" connect1name="TOL38" type1="TURNOUT_A" connect2name="AG26" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG56" blockname="Track 1-3 at 1" connect1name="AG26" type1="POS_POINT" connect2name="TOL3" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG57" blockname="Track W-1" connect1name="EBG4" type1="POS_POINT" connect2name="TOL38" type2="TURNOUT_B" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG58" blockname="Track W-2" connect1name="EBG3" type1="POS_POINT" connect2name="AG27" type2="POS_POINT" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG59" blockname="Track W-2" connect1name="AG27" type1="POS_POINT" connect2name="AG28" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="yes" circle="yes" angle="51.997" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG60" blockname="Track W-2" connect1name="AG28" type1="POS_POINT" connect2name="TOL38" type2="TURNOUT_C" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
-    <tracksegment ident="TG61" blockname="OS Switch 15" connect1name="TO1" type1="TURNOUT_A" connect2name="TOR14" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
+    <tracksegment ident="TG61" blockname="Track 13-15" connect1name="TO1" type1="TURNOUT_A" connect2name="TOR14" type2="TURNOUT_A" dashed="no" mainline="no" hidden="no" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG62" blockname="Track K-1" connect1name="AG1" type1="POS_POINT" connect2name="AG29" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="90" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG63" blockname="Track K-2" connect1name="AG29" type1="POS_POINT" connect2name="AG2" type2="POS_POINT" dashed="no" mainline="no" hidden="no" arc="yes" flip="no" circle="yes" angle="90" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
     <tracksegment ident="TG64" blockname="Track Brick-Plane" connect1name="AG4" type1="POS_POINT" connect2name="AG30" type2="POS_POINT" dashed="no" mainline="yes" hidden="no" arc="yes" flip="yes" circle="yes" angle="90" hideConLines="yes" class="jmri.jmrit.display.layoutEditor.configurexml.TrackSegmentXml" />
@@ -10948,20 +11178,20 @@
     <positionablelabel x="1748" y="166" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-35" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1208" y="166" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-23" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="595" y="406" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-7" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1407" y="207" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-31" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1407" y="189" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-31" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1039" y="285" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-17" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1076" y="333" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-19" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1114" y="381" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-21" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1479" y="239" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-33" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1857" y="196" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-39" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1881" y="196" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-39" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="301" y="189" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-3" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="409" y="484" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-5" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="389" y="159" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-1" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="919" y="207" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-13" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="837" y="237" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-11" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="771" y="285" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-9" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1325" y="285" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-29" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1287" y="333" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-27" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1334" y="262" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-29" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1297" y="308" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-27" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1250" y="381" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-25" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1001" y="237" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-15" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1832" y="244" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-37" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -10994,18 +11224,17 @@
     <positionablelabel x="1001" y="490" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SOUTH YARD" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1367" y="490" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="EAST END" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1807" y="490" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="PRINCESS" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="829" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 1" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1611" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="123-125" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1162" y="759" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-119" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="485" y="784" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-105" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="639" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-107" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="668" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-107" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1767" y="688" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-127A" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1035" y="688" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-117" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="943" y="728" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-113" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="1031" y="711" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-117" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="893" y="729" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-113" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1539" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-123" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="245" y="862" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-101" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1938" y="688" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-131A" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="709" y="663" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-109" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="738" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-109" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="809" y="681" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-111" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1072" y="766" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-115" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1481" y="759" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="SW-121" size="13" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -11017,17 +11246,17 @@
     <positionablelabel x="1812" y="868" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="CP 127" size="10" style="1" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1470" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="121 Spur" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1622" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="121-125" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="1009" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113-115" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="836" y="778" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 2" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="930" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113-115" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="798" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 1" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="782" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="113 Spur 2" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="983" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="115 Spur" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1123" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="117-119" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1386" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119-123" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="746" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="109-111" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="676" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="107-109" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="612" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="105-109" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="387" y="787" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103-105 2" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="422" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="103-105 1" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
-    <positionablelabel x="881" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="111-117" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="938" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="111-117" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="555" y="835" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101-111" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="125" y="772" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="101 Spur 1" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1780" y="757" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="125-129" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -11042,6 +11271,7 @@
     <positionablelabel x="1391" y="739" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119-121" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1141" y="782" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="119 Spur" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="2101" y="691" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="McKees Rocks" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <positionablelabel x="676" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="107-109" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1849" y="1246" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="237-239" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1526" y="1173" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="223-225 2" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="358" y="1125" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="205 Spur" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
@@ -11114,6 +11344,12 @@
     <positionablelabel x="1798" y="1150" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="233-235" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="1754" y="1150" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="229-233" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
     <positionablelabel x="796" y="1150" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="false" editable="false" text="215 Spur 2" size="10" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.PositionableLabelXml" />
+    <BlockContentsIcon blockcontents="Track 23-31" x="1373" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 25-27" x="1288" y="337" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 27-29" x="1325" y="289" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 29-31" x="1361" y="243" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 31-33" x="1428" y="209" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 35-39 at 39" x="1826" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 1" x="429" y="191" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 11" x="838" y="196" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 13" x="910" y="159" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -11122,21 +11358,27 @@
     <BlockContentsIcon blockcontents="OS Switch 19" x="988" y="340" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 21" x="1026" y="388" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 23a" x="1277" y="159" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 23b" x="1325" y="244" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 25" x="1241" y="356" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 27" x="1278" y="308" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 27" x="1392" y="348" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 29" x="1430" y="300" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 3" x="313" y="148" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 31" x="1414" y="159" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 33" x="1469" y="196" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 33" x="1469" y="189" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 35a" x="1639" y="214" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 35b" x="1809" y="159" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 37" x="1813" y="270" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 37" x="1803" y="212" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 39" x="1927" y="146" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 5" x="341" y="452" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 7" x="703" y="429" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 7b" x="567" y="484" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 9" x="763" y="244" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 1-3 at 1" x="399" y="135" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 1-3 at 3" x="329" y="126" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 15-17" x="936" y="271" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 17-19" x="973" y="319" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 19-21" x="1011" y="367" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 35-37" x="1759" y="242" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 35-39 at 35" x="1796" y="135" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Barn" x="785" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Brick-Plane" x="295" y="286" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track EH-1" x="728" y="213" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -11151,7 +11393,7 @@
     <BlockContentsIcon blockcontents="Track Main East" x="1077" y="478" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track Main West" x="767" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-1" x="1126" y="286" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track S-2" x="1130" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track S-2" x="1218" y="334" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-3" x="1126" y="357" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-4" x="1126" y="430" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track S-R" x="1118" y="238" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -11159,21 +11401,18 @@
     <BlockContentsIcon blockcontents="Track W-1" x="231" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track W-2" x="277" y="238" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track West Ext" x="1556" y="190" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 109-111" x="742" y="685" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 117-119" x="1095" y="685" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 107-109" x="671" y="685" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 113 Spur 1" x="874" y="733" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 113-115" x="965" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 115-117" x="1021" y="717" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 23b" x="1348" y="189" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 9-11" x="839" y="286" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="13" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 113-115" x="977" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 113 Spur 1" x="858" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 101" x="274" y="827" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 103" x="278" y="731" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 105" x="531" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 107" x="568" y="726" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 109" x="706" y="635" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 109" x="706" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 111" x="819" y="713" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 113" x="890" y="802" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 113" x="958" y="723" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 115" x="1056" y="792" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="OS Switch 117" x="1077" y="665" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 117" x="1077" y="683" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 119" x="1235" y="711" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 121" x="1490" y="814" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 123" x="1565" y="657" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -11191,9 +11430,11 @@
     <BlockContentsIcon blockcontents="Track 105-109" x="626" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 107 Loop 1" x="484" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 107 Loop 2" x="495" y="664" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 111-117" x="927" y="689" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 113 Spur 2" x="811" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 109-111" x="778" y="659" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 111-117" x="891" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 113 Spur 2" x="839" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 115 Spur" x="989" y="808" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 117-119" x="1095" y="659" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 119 Spur" x="1133" y="737" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 119-121" x="1380" y="760" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 119-123" x="1375" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
@@ -11206,16 +11447,18 @@
     <BlockContentsIcon blockcontents="Track 127-131 1" x="1855" y="712" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 129 Spur 1" x="1878" y="785" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 129 Spur 2" x="1858" y="856" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 107-109" x="620" y="727" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="OS Switch 107" x="620" y="744" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 201-203" x="238" y="1242" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 225-227" x="1682" y="1194" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
+    <BlockContentsIcon blockcontents="Track 237-239" x="1851" y="1264" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 233" x="1789" y="1055" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 223-225 2" x="1494" y="1194" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 227" x="1701" y="1211" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 231" x="1770" y="1165" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 127-131 2" x="1459" y="1215" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 201-203" x="238" y="1242" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 217-219" x="971" y="1194" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="Track 231 Spur" x="1802" y="1194" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
-    <BlockContentsIcon blockcontents="Track 237-239" x="1851" y="1264" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 201" x="187" y="1274" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 203" x="264" y="1274" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />
     <BlockContentsIcon blockcontents="OS Switch 205" x="271" y="1117" level="4" forcecontroloff="false" hidden="no" positionable="true" showtooltip="true" editable="true" size="12" style="0" red="0" green="0" blue="0" hasBackground="no" justification="left" selectable="no" fontFamily="Dialog" fontname="Dialog" class="jmri.jmrit.display.configurexml.BlockContentsIconXml" />

@@ -177,7 +177,7 @@ def run_strands(band) -> dict:
     return out
 
 
-def generate(band, names: dict, planned: dict, cm: dict, wired: dict) -> list[dict]:
+def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dict) -> list[dict]:
     """The visible staging masts in the columns the files take, from mast_plan.plan's home masts and intermediates on
     the staging band (`names`: the device map's block layer, `cm`: block_cm; a mast in `wired`, from wired_heads, is a
     field signal): [{mast, cp, switch, facing, protects, kind, heads, dir, toward, run, names, edge_cm,
@@ -186,7 +186,7 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict) -> list[di
     part of the OS block (a JMRI block of its own, owner 2026-11-20) is inside it, as mast_plan reads the layer
     (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track 29-31), and its
     lengths are the JMRI blocks' (block_lengths.csv), as build_signals.check_lengths reads them."""
-    part_of = names.get("parts", {})
+    part_of = parts
     seqs = {}                      # (node, leg) -> the JMRI blocks from that switch leg along its run
     for start, seq, end in with_lengths(mast_plan.run_blocks(band, names), cm):
         seqs[tuple(start)] = (seq, tuple(end))
@@ -394,8 +394,9 @@ def build():
     old = devices.device_map_rows(devices.load(files), ("1",))    # the master's staging rows, as the old file reads
     wired = wired_heads(old)
     cm = block_cm()
-    planned = plan(band, bands, joined, runs, sdm.os_layer(names), locks, cm)     # parts inside their OS blocks
-    gen = generate(band, names, planned, cm, wired)
+    parts = sdm.staging_parts(DEVICE_MAP)
+    planned = plan(band, bands, joined, runs, sdm.os_layer(names, parts), locks, cm)   # parts inside their blocks
+    gen = generate(band, names, planned, cm, wired, parts)
     unplaced = sorted(set(wired) - {m["mast"] for m in gen})
     if unplaced:
         raise RuleError(f"{DEVICE_MAP.name} wires heads on masts the rule does not place: "
