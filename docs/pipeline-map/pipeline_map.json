@@ -3391,6 +3391,15 @@
    "domain": "extras",
    "desc": "check.sh pipeline-map-coverage: fails when a script check.sh, the Makefile, make panels or a deploy runs, or a file in an output folder, is not in pipeline_map.json.",
    "path": "tools/ops/pipeline_map_coverage.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch",
+   "label": "speedmatch scripts",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Speed-match analysis (analyze.py, liverule.py), the Mac dashboard and the Pi live publisher (dashboard/publish_live.py with dashstate, dashsources); the deploy stages the publisher and its page for the Pi.",
+   "path": "jmri/layouts/hart/scripts/speedmatch"
   }
  ],
  "edges": [
@@ -6654,6 +6663,26 @@
    "from": "tools/ops/pipeline_map_coverage.py",
    "to": "tools/check.sh",
    "label": "check pipeline-map-coverage"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
+   "to": "jmri/layouts/hart/scripts/speedmatch",
+   "label": "analyze.py reads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "jmri/layouts/hart/scripts/speedmatch",
+   "label": "block lengths"
+  },
+  {
+   "from": "docs/jmri/speedmatching",
+   "to": "jmri/layouts/hart/scripts/speedmatch",
+   "label": "logs, step speeds"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "live publisher and page for the Pi"
   }
  ]
 }
