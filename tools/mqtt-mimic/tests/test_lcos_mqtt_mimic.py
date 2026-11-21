@@ -99,7 +99,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with mock.patch.object(self.m, "DEVICES", Path(tmp) / "missing.csv"):
                 self.assertEqual(self.m.load_cps(), {"turnout": {}, "occupancy": {}, "block": {}, "mast": {}})
-            bad = Path(tmp) / self.m.devices.MASTER_FILE
+            bad = Path(tmp) / self.m.devices.ONE_FILE
             bad.write_text("level,layer\n1,mast\n", encoding="utf-8")
             with mock.patch.object(self.m, "DEVICES", bad), \
                     self.assertRaisesRegex(self.m.devices.DevicesError, "the header is not the master's columns"):
@@ -124,7 +124,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
                    jmri_name="M2S9999", description="Added in PanelPro.")
         row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, added)], row)
         with tempfile.TemporaryDirectory() as tmp:
-            master = Path(tmp) / self.m.devices.MASTER_FILE
+            master = Path(tmp) / self.m.devices.ONE_FILE
             master.write_text(D.master_text(list(D.load()) + [row]), encoding="utf-8")
             doc = ET.parse(self.m.TABLES)
             root = doc.getroot()

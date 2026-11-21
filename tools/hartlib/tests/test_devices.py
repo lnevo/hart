@@ -128,29 +128,36 @@ class TheDictionary(unittest.TestCase):
             return D.read_dictionary(p)
 
     def full(self) -> str:
-        return "column,description\n" + "".join(f"{c},text\n" for c in D.COLUMNS)
+        return "column,file,description\n" + "".join(f"{c},{D.column_file(c)},text\n" for c in D.COLUMNS)
 
     def test_a_complete_dictionary_reads(self):
         self.assertEqual(set(self.read(self.full())), set(D.COLUMNS))
 
     def test_a_column_with_no_description_fails(self):
-        text = self.full().replace("cp,text\n", "cp,\n")
+        text = self.full().replace("cp,field,text\n", "cp,field,\n")
         with self.assertRaisesRegex(D.DevicesError, "cp has no description"):
             self.read(text)
 
     def test_a_master_column_missing_from_the_dictionary_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "dir is a master column with no description"):
-            self.read(self.full().replace("dir,text\n", ""))
+            self.read(self.full().replace("dir,generated,text\n", ""))
 
     def test_a_described_column_the_master_lacks_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "colour is described but is no master column"):
-            self.read(self.full() + "colour,text\n")
+            self.read(self.full() + "colour,generated,text\n")
 
     def test_a_column_described_twice_or_a_bad_header_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "cp is described twice"):
-            self.read(self.full() + "cp,again\n")
-        with self.assertRaisesRegex(D.DevicesError, "header is column,description"):
+            self.read(self.full() + "cp,field,again\n")
+        with self.assertRaisesRegex(D.DevicesError, "header is column,file,description"):
             self.read("name,text\n")
+
+    def test_a_column_in_the_wrong_file_fails(self):
+        """The file column says which file may hold a column: the key and FIELD_COLUMNS the field file, the rest the
+        generated file alone."""
+        self.assertEqual({c for c in D.COLUMNS if D.column_file(c) == "field"}, set(D.KEY) | set(D.FIELD_COLUMNS))
+        with self.assertRaisesRegex(D.DevicesError, "wiring is in file 'generated', not 'field'"):
+            self.read(self.full().replace("wiring,generated,", "wiring,field,"))
 
     def test_a_missing_file_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "cannot read it"):
@@ -174,14 +181,16 @@ class TheChecks(unittest.TestCase):
         self.assertIn("user_name is empty", problems([turnout("")]))
 
     def test_the_same_level_layer_and_name_twice_fails_but_another_level_may_share_a_name(self):
-        self.assertIn("the same level, layer and user_name as line 2", problems([turnout(), turnout()]))
+        self.assertIn("Switch 1 (level 1, turnout): the same level, layer and user_name twice",
+                      problems([turnout(), turnout()]))
         D.check_rows([turnout(), turnout() | {"level": "2", "system_name": "M2T9", "jmri_name": "M2T9"}])
 
     def test_a_virtual_turnout_and_its_lcc_alias_may_share_a_jmri_name(self):
         virtual = turnout("Switch 101", assignment="virtual", jmri_name="IT:HART:C3:101", level="2")
         alias = virtual | {"user_name": "DCC Switch 101", "role": "lcc_alias", "system_name": "MTT120"}
         D.check_rows([virtual, alias])
-        self.assertIn("jmri_name 'IT:HART:C3:101' is line 2's", problems([virtual, virtual | {"user_name": "Switch 103"}]))
+        self.assertIn("jmri_name 'IT:HART:C3:101' is Switch 101 (level 2, turnout)'s",
+                      problems([virtual, virtual | {"user_name": "Switch 103"}]))
 
     def test_field_rows_have_system_name_equal_to_jmri_name(self):
         row = turnout(jmri_name="M2T409")
@@ -357,9 +366,10 @@ class TheWritersRules(unittest.TestCase):
             D.replace_rows([], "build_device_map.py", [mast()])
 
     def test_a_writer_will_not_take_the_key_of_a_row_someone_else_holds(self):
-        held = [turnout()]                                    # hand-kept
-        clash = turnout() | {"written_by": "build_device_map.py"}
-        with self.assertRaisesRegex(D.DevicesError, r"would rewrite row\(s\) it does not hold: 'Switch 1'.*held by hand"):
+        held = [unplaced()]                                   # a Store's device: the field file's
+        clash = unplaced() | {"written_by": "build_device_map.py"}
+        with self.assertRaisesRegex(D.DevicesError, r"would rewrite row\(s\) it does not hold: 'Test 999'.*held by "
+                                                    r"devices_field.csv"):
             D.replace_rows(held, "build_device_map.py", [clash])
         other = mast() | {"written_by": "build_device_map.py", "level": "2"}
         with self.assertRaisesRegex(D.DevicesError, "held by build_device_map.py"):
@@ -448,8 +458,8 @@ class TheWriters(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.files = D.Files(self.tmp / "devices.csv", self.tmp / "devices.columns.csv")
-        for name in ("master", "dictionary"):
-            shutil.copyfile(getattr(REAL, name), getattr(self.files, name))
+        D.one_file_copy(self.files.master)              # a copy that holds every cell, edited row by row
+        shutil.copyfile(REAL.dictionary, self.files.dictionary)
 
     def test_the_master_and_its_dictionary_check_clean(self):
         self.assertEqual(D.stale(self.files), [])
@@ -487,7 +497,7 @@ class TheWriters(unittest.TestCase):
     def test_a_writer_that_drops_a_row_changes_only_its_own_rows_of_the_master(self):
         mine = old_form([r for r in D.load(self.files) if r["written_by"] == "build_masts.py"])
         gone = (mine[0]["level"], mine[0]["layer"], mine[0]["user_name"])
-        out = D.outputs_after("build_masts.py", mine[1:], self.files, drops=[gone])
+        out = D.outputs_after("build_masts.py", mine[1:], self.files)
         before = {(r["level"], r["layer"], r["user_name"]) for r in D.load(self.files)}
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
@@ -497,18 +507,16 @@ class TheWriters(unittest.TestCase):
         kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_masts.py"]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
-    def test_a_writer_that_would_lose_a_staging_field_row_without_saying_so_is_refused(self):
-        """A rename gives a new key: the old row of a wired staging device (and the field facts a rewrite carries
-        over from it) would go with no word, so the write stops."""
-        held = [r for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
-        mine = old_form(held)
+    def test_a_writer_that_would_drop_a_row_the_field_file_names_is_refused(self):
+        """A rename gives a new key: the owner's cells of the old one (Mast 6LB's node, in devices_field.csv) would
+        go with no word, so the write stops and says to rename or remove the field row."""
+        pair = D.pair_copy(self.tmp / "pair")
+        mine = old_form([r for r in D.load(pair) if r["written_by"] == "build_masts.py"])
         first = next(r for r in mine if r["user_name"] == "Mast 6LB")            # the wired mast
         renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
-        with self.assertRaisesRegex(D.DevicesError,
-                                    rf"would drop 1 staging field device row\(s\), first {first['user_name']!r}"):
-            D.outputs_after("build_masts.py", renamed, self.files)
-        key = ("1", first["layer"], first["user_name"])
-        D.outputs_after("build_masts.py", renamed, self.files, drops=[key])
+        with self.assertRaisesRegex(D.DevicesError, r"Mast 6LB \(level 1, mast\) has no row in "
+                                                    r"devices_generated.csv .*rename the field row"):
+            D.outputs_after("build_masts.py", renamed, pair)
 
     def test_a_rule_mast_and_a_panel_status_bean_may_go_without_saying_so(self):
         """Rows the rule makes (a virtual staging mast) or panel_items.json writes carry no field facts, so their
@@ -521,17 +529,14 @@ class TheWriters(unittest.TestCase):
         out = D.outputs_after_rows("panel_items.json", [r for r in status if r["user_name"] != "SML Mode"], self.files)
         self.assertNotIn(",SML Mode,", out[self.files.master])
 
-    def test_the_guarded_rows_are_stagings_field_devices(self):
-        """The guard covers the staging rows of wired devices: the old name map's rows (all of level 1 but the three
-        status sensors) less the rule's virtual masts, heads and parts and the status lamp IH9990."""
-        rows = D.load(self.files)
-        guarded = [r for r in rows if D.carries_field_facts(r)]
-        self.assertEqual(len(guarded), 172)
-        self.assertEqual({r["level"] for r in guarded}, {"1"})
-        self.assertEqual({r["assignment"] for r in guarded}, {"field", "spare"})
-        rest = [r for r in rows if r["level"] == "1" and r["layer"] != "sensor" and not D.carries_field_facts(r)]
-        self.assertEqual(len(guarded) + len(rest), 250)
-        self.assertTrue(all(r["assignment"] == "virtual" or r["role"] == "panel_status" for r in rest))
+    def test_the_guarded_rows_are_the_field_files(self):
+        """The rows a writer may not drop are the ones devices_field.csv names: staging's field devices (less its
+        spares, which wiring.csv makes) and the wired mast and head."""
+        keys = D.field_index()
+        self.assertTrue(keys)
+        self.assertEqual({k[0] for k in keys}, {"1"})
+        rows = {D.key_of(r): r for r in D.load()}
+        self.assertEqual({rows[k]["assignment"] for k in keys}, {"field"})
 
     def test_a_writer_may_drop_a_main_or_upper_row_without_saying_so(self):
         """Only staging's rows carry field facts over a rewrite (FIELD_LEVEL); a main or upper row is the rule's
@@ -575,7 +580,7 @@ class TheNits(unittest.TestCase):
     def test_a_stale_master_points_at_its_writer(self):
         f = D.Files.here()
         self.assertEqual(D.stale_message(f.master, f, "tools/schematic/x.py"),
-                         "devices.csv is stale: run python3 tools/schematic/x.py")
+                         "devices_generated.csv is stale: run python3 tools/schematic/x.py")
 
 
 class TheReaders(unittest.TestCase):
@@ -649,7 +654,7 @@ class TheKindFromTheRow(unittest.TestCase):
         self.assertNotIn("DCC Switch 101", ix.names("turnout", roles=("turnout",)))
         self.assertEqual(set(ix.names("occupancy", levels=("2",))),
                          {r["user_name"] for r in D.load() if r["layer"] == "occupancy" and r["level"] == "2"})
-        with self.assertRaisesRegex(D.DevicesError, "devices.csv: no block row 'Track Nowhere'"):
+        with self.assertRaisesRegex(D.DevicesError, "devices_generated.csv: no block row 'Track Nowhere'"):
             ix.role("block", "Track Nowhere")
 
     def test_a_device_not_on_the_layout_yet_is_left_out_of_a_role_query(self):
@@ -672,7 +677,7 @@ class TheKindFromTheRow(unittest.TestCase):
             self.assertTrue(ix.has("occupancy", "BS Store Added"))
             self.assertTrue(ix.is_unplaced("occupancy", "BS Store Added"))
             self.assertFalse(ix.is_unplaced("occupancy", "BS Switch 101"))
-            self.assertEqual(ix.where(row), f"devices.csv line {len(D.load()) + 2}")
+            self.assertEqual(ix.where(row), "devices.csv: BS Store Added (no level, occupancy)")
             self.assertEqual(ix.where(dict(row, user_name="BS Nowhere")), "devices.csv")
             with self.assertRaisesRegex(D.DevicesError, "has no role"):
                 ix.role("occupancy", "BS Store Added")
@@ -680,7 +685,7 @@ class TheKindFromTheRow(unittest.TestCase):
     def test_rows_that_disagree_on_a_role_stop_naming_their_lines(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "devices.csv"
-            rows = list(csv.reader(io.StringIO(REAL.master.read_text(encoding="utf-8"), newline="")))
+            rows = list(csv.reader(io.StringIO(D.master_text(D.load()), newline="")))
             col = rows[0].index
             helix = [i for i, r in enumerate(rows) if r[col("layer")] == "block" and r[col("user_name")] ==
                      "Track Helix Inner"]
@@ -689,7 +694,8 @@ class TheKindFromTheRow(unittest.TestCase):
             csv.writer(buf, lineterminator="\n").writerows(rows)
             path.write_text(buf.getvalue(), encoding="utf-8")
             ix = D.index(path)
-            with self.assertRaisesRegex(D.DevicesError, rf"lines {helix[0] + 1}, {helix[1] + 1}: block "
+            with self.assertRaisesRegex(D.DevicesError, r"Track Helix Inner \(level 1, block\); devices.csv: Track "
+                                                        r"Helix Inner \(level 3, block\): block "
                                                         r"'Track Helix Inner' has roles helix, track"):
                 ix.role("block", "Track Helix Inner")
 
@@ -749,8 +755,7 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.path = self.tmp / "devices.csv"
-        shutil.copyfile(REAL.master, self.path)
+        self.path = D.one_file_copy(self.tmp / "devices.csv")
 
     def test_a_bad_row_names_the_file_the_line_and_the_row(self):
         rows = [dict(r) for r in D.load(self.path)]
@@ -758,7 +763,7 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
         self.path.write_text(D.master_text(rows), encoding="utf-8")
         with self.assertRaises(D.DevicesError) as cm:
             D.load(self.path)
-        self.assertIn(f"devices.csv: line 6 ({rows[4]['level']} {rows[4]['layer']} {rows[4]['user_name']!r}): "
+        self.assertIn(f"devices.csv: {rows[4]['user_name']} (level {rows[4]['level']}, {rows[4]['layer']}): "
                       "description is empty", str(cm.exception))
 
     def test_a_same_size_write_in_the_same_tick_is_read_again(self):
@@ -777,14 +782,14 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
         rows = [dict(r) for r in D.load(self.path)]
         rows[2]["notes"] = "two\nlines"
         self.path.write_text(D.master_text(rows), encoding="utf-8")
-        with self.assertRaisesRegex(D.DevicesError, rf"line \d+ \(.*{rows[2]['user_name']!r}\): notes hold a line break"):
+        with self.assertRaisesRegex(D.DevicesError, rf"{rows[2]['user_name']} \(level 1, turnout\): notes hold a line break"):
             D.load(self.path)
 
 
 class TheMasterFile(unittest.TestCase):
     def read(self, text: str):
         with tempfile.TemporaryDirectory() as d:
-            files = D.Files.here().but(master=Path(d) / "devices.csv")
+            files = D.Files.here().but(master=Path(d) / "devices.csv", field=None)
             files.master.write_text(text, encoding="utf-8")
             return D.load(files)
 

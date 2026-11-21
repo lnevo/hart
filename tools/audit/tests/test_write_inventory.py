@@ -246,7 +246,7 @@ class Inventory(unittest.TestCase):
     def test_a_device_on_an_unlisted_node_stops(self):
         row = dict(next(x for x in MAP if x["layer"] == "turnout" and x["node"] and x["system_name"].startswith("M2T")),
                    node="77")
-        with self.assertRaisesRegex(SystemExit, "node 77 is in devices.csv but not in lcos_nodes.csv"):
+        with self.assertRaisesRegex(SystemExit, "node 77 is in devices_generated.csv but not in lcos_nodes.csv"):
             WI.gather([row], WI.read_node_rows())
 
 
