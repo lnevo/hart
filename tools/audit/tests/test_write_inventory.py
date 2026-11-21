@@ -48,7 +48,7 @@ class Inventory(unittest.TestCase):
             if x["layer"] == "turnout":
                 for pin, nr in zip(m.group(3).split(","), "NR"):
                     self.assertEqual(out[f"{node}-OU{m.group(2)}-{pin}"][4], f"{x['user_name']} {nr}")
-            elif x["layer"] == "head" and m:          # staging's lamps are named as signal_wiring.csv names them
+            elif x["layer"] == "head" and m:          # staging's lamps are named as wiring.csv's heads (digicon_rows)
                 for pin, lamp in zip(m.group(3).split(","), "RYG"):
                     got = out[f"{node}-OU{m.group(2)}-{pin}"][4]
                     self.assertTrue(got.startswith(x["user_name"]) and got.endswith(f" {lamp}"), got)

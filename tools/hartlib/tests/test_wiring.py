@@ -80,5 +80,36 @@ class Read(unittest.TestCase):
             self.read("level,kind\n1,turnout\n")
 
 
+
+class Digicon(unittest.TestCase):
+    """digicon_rows: the wired heads' pins in the old signal_wiring.csv columns; calibration_ports."""
+
+    def read(self, text):
+        d = Path(tempfile.mkdtemp())
+        p = d / "wiring.csv"
+        p.write_text(HEAD + text, encoding="utf-8")
+        return p
+
+    def test_a_two_head_mast_and_a_single_head(self):
+        p = self.read('1,head,Head 24RA Top,,,,,2,0,OU1,"1,2,3",wired,\n1,head,Head 24RA Bottom,,,,,2,6,OU1,"4,5,6",wired,\n'
+                      '1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,\n1,calibration,C4 calibration relay,,,,,4,,OU2,8,wired,\n')
+        rows = W.digicon_rows(p)
+        self.assertEqual([(r["port_id"], r["system_name"], r["user_name"], r["head_role"], r["topic"]) for r in rows[:4]],
+                         [("C2-OU1-1", "IH232", "Head 24RA T R", "T", "track/signalhead/232"),
+                          ("C2-OU1-2", "IH232", "Head 24RA T Y", "T", "track/signalhead/232"),
+                          ("C2-OU1-3", "IH232", "Head 24RA T G", "T", "track/signalhead/232"),
+                          ("C2-OU1-4", "IH238", "Head 24RA B R", "B", "track/signalhead/238")])
+        self.assertEqual({r["mast_user_name"] for r in rows}, {"Mast 24RA", "Mast 6LB"})
+        self.assertEqual([r["uid"] for r in rows if r["mast_user_name"] == "Mast 6LB"], ["32"] * 3)
+        self.assertEqual(W.calibration_ports(p), {"C4-OU2-8"})
+
+    def test_the_committed_heads_are_6lb(self):
+        self.assertEqual({r["system_name"] for r in W.digicon_rows()}, {"IH432"})
+
+    def test_a_head_that_is_not_named_as_a_head_stops(self):
+        with self.assertRaisesRegex(FactsError, "is not a head name"):
+            W.digicon_rows(self.read('1,head,Signal 6LB,,,,,4,0,OU2,"1,2,3",wired,\n'))
+
+
 if __name__ == "__main__":
     unittest.main()

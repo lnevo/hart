@@ -38,7 +38,7 @@ Feedback from operating session #4: the dispatcher's notes on DS-01 Rev D, the o
 
 A drill track is a yard lead that crews use for switching ("drilling") cars. A drill signal is a dwarf at the lead's end. It tells the yard crew whether they may pull out past the lead onto the Switch 7 crossover at Barn. It goes with the crossover rule: the yardmaster asks for the move, and the dispatcher lines it and clears the signal.
 
-The signal is already on the layout; it needs wiring. The wiring plan has one dwarf at Barn: Mast 8LB on Switch 7 reverse. It is head IH1334, LCOS Signal 2 on C13, at ports C13-OU3-7, C13-OU3-8 and C13-OU4-7 (`docs/wiring/signals/signal_wiring.csv`). If the drill signal is a different one, it needs its own entry in the plan.
+The signal is already on the layout; it needs wiring. The wiring plan has one dwarf at Barn: Mast 8LB on Switch 7 reverse. It is head IH1334, LCOS Signal 2 on C13, at ports C13-OU3-7, C13-OU3-8 and C13-OU4-7 (the old `docs/wiring/signals/signal_wiring.csv`; the wiring source is now `jmri/layouts/hart/data/wiring.csv`, which lists the heads only once they are wired). If the drill signal is a different one, it needs its own entry in the plan.
 
 ## Deferred
 

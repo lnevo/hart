@@ -6,7 +6,7 @@ JMRI Virtual heads + SignalHeadSignalMasts live in `tables.xml`; the wiring cata
 
 ## Inputs
 
-- [`docs/wiring/signals/signal_wiring.csv`](../../docs/wiring/signals/signal_wiring.csv) (3 pins per disc)
+- the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (one per disc; `hartlib.wiring.digicon_rows` gives the 3 pins)
 - [`docs/wiring/signals/signal_head_plan.csv`](../../docs/wiring/signals/signal_head_plan.csv)
 - [`docs/wiring/signals/signal_mast_plan.csv`](../../docs/wiring/signals/signal_mast_plan.csv)
 
@@ -22,7 +22,7 @@ Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 ```
 
-Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `signal_wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
+Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
 
 Facing / SML chaining: [`docs/ctc/SIGNAL_FACING.md`](../../docs/ctc/SIGNAL_FACING.md). Decision: [`ADR-006-co-1980-signals.md`](../decisions/ADR-006-co-1980-signals.md).
 

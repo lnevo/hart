@@ -56,7 +56,7 @@ worktree never reads the main checkout's tables.xml.
 | `TABLES_XML` | `jmri/layouts/hart/output/tables.xml` (ADR-008), or the file `HART_TABLES` names |
 | `REPO_TABLES_XML` | always `jmri/layouts/hart/output/tables.xml` |
 | `DEVICES` | `jmri/layouts/hart/data/devices.csv`, the device master (`hartlib.devices`) |
-| `SIGNAL_WIRING` | `docs/wiring/signals/signal_wiring.csv` |
+| `WIRING` | `jmri/layouts/hart/data/wiring.csv`, the physical wiring source (`hartlib.wiring`) |
 | `CATS_DIR` | `cats/` |
 | `JMRI_USER_FILES` | `~/JMRI_UserFiles` (ADR-014) |
 

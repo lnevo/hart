@@ -54,7 +54,8 @@ class DisableDigiconSmlTest(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.wiring = Path(self.tmp.name) / "wiring.csv"
-        self.wiring.write_text("mast_user_name\nMast 6LB\nMast 6LA\n", encoding="utf-8")
+        self.wiring.write_text("level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,notes\n1,head,Head 6LB,,,,,4,0,OU2,\"1,2,3\",wired,\n"
+                               "1,head,Head 6LA,,,,,4,1,OU2,\"4,5,6\",wired,\n", encoding="utf-8")
         self.panel = Path(self.tmp.name) / "tables.xml"
         self.panel.write_bytes(SAMPLE)
 
