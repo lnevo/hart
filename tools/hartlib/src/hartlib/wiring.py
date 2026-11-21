@@ -30,6 +30,7 @@ holds both only as written from here.
 from __future__ import annotations
 
 import csv
+import io
 import re
 from pathlib import Path
 from typing import NamedTuple
@@ -283,3 +284,72 @@ def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
 def calibration_ports(path: Path | None = None) -> set[str]:
     """The port IDs of wiring.csv's calibration relays ("C4-OU2-8"): no lamp may be put on one."""
     return {f"C{w.node}-{w.board}-{w.ports[0]}" for w in read(path) if w.kind == "calibration"}
+
+
+# --- one way: rules -> proposal (devices_generated.csv) -> freeze_wiring.py -> wiring.csv -> device map ------------
+# freeze_wiring.py is the only writer of main and upper rows with status wired. Its rows carry the note below, which
+# names the control point; that note is how a frozen control point is told from one the rule still proposes for.
+
+FREEZE_NOTE = re.compile(r"frozen from the device map's rule \((?P<cp>[^,()]+), \d{4}-\d{2}-\d{2}\)")
+FIELD = 1                                     # staging's level: kept by hand as built, never frozen
+FROZEN_KINDS = ("turnout", "fb", "head")      # the devices whose node, number and pins the build holds
+
+
+def freeze_note(cp: str, day: str) -> str:
+    """The note freeze_wiring.py puts on each row it writes."""
+    return f"frozen from the device map's rule ({cp}, {day})"
+
+
+def frozen_cp(w: Wire) -> str | None:
+    """The control point whose freeze wrote this row (from its note), or None."""
+    m = FREEZE_NOTE.search(w.notes)
+    return m.group("cp") if m else None
+
+
+class Held(NamedTuple):
+    """What wiring.csv holds of main and upper, which the build reads instead of proposing."""
+    devices: list[Wire]          # turnout, fb and head rows: node, LCOS number and pins kept (Nodes.freeze)
+    detectors: list[Wire]        # detector rows, planned (the owner's pin) or wired (frozen): inputs kept (read_pins)
+    cps: frozenset[str]          # the control points frozen: the build proposes no device for them
+
+
+def held(path: Path | None = None, wires: list[Wire] | None = None) -> Held:
+    """The main and upper rows of wiring.csv the build takes as given (`wires`: rows already read)."""
+    wires = read(path) if wires is None else wires
+    upper = [w for w in wires if w.level != FIELD]
+    return Held([w for w in upper if w.kind in FROZEN_KINDS], [w for w in upper if w.kind == "detector"],
+                frozenset(cp for w in upper if (cp := frozen_cp(w))))
+
+
+def canonical(rows: list[dict]) -> str:
+    """wiring.csv's text as freeze_wiring.py writes it: staging, main, upper in file order, LF lines."""
+    order = {"1": 0, "2": 1, "3": 2}
+    buf = io.StringIO()
+    out = csv.DictWriter(buf, COLUMNS, lineterminator="\n")
+    out.writeheader()
+    out.writerows(sorted(rows, key=lambda r: order[r["level"]]))
+    return buf.getvalue()
+
+
+def audit(path: Path | None = None) -> list[str]:
+    """What shows wiring.csv was changed other than by freeze_wiring.py: a main or upper row wired with no freeze
+    note, a frozen control point with a row not wired, or text that is not the form freeze_wiring.py writes.
+    (Staging's rows are kept by hand, as built; main and upper rows still planned are the owner's pins.)"""
+    path = path or PATH
+    text = path.read_bytes().decode("utf-8")           # as written: line ends and all
+    wires = read(path)
+    problems = []
+    for w in wires:
+        if w.level == FIELD or w.kind in LOCAL:         # staging's, and a node's own buttons and relays, are by hand
+            continue
+        who = w.device or "-".join(x for x in (w.switch_a, w.switch_b) if x)
+        cp = frozen_cp(w)
+        if w.status == "wired" and not cp:
+            problems.append(f"line {w.line}: main/upper {w.kind} {who} is wired, but no freeze wrote it "
+                            "(make wiring-freeze CP=...)")
+        if cp and w.status != "wired":
+            problems.append(f"line {w.line}: {w.kind} {who} is of {cp}, which is frozen, but is {w.status}")
+    if canonical(list(csv.DictReader(io.StringIO(text, newline="")))) != text:
+        problems.append("the text is not the form freeze_wiring.py writes (columns, LF lines, staging then main "
+                        "then upper)")
+    return problems

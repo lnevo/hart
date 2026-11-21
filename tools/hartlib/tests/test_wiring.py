@@ -151,5 +151,57 @@ class Spans(unittest.TestCase):
                 W.read(self.read(text + "\n"))
 
 
+class OneWay(unittest.TestCase):
+    """wiring.csv changes only through freeze_wiring.py: held() and audit() tell what else did."""
+    NOTE = "frozen from the device map's rule (CP 9, 2026-11-21)"
+
+    def file(self, rows):
+        p = Path(tempfile.mkdtemp()) / "wiring.csv"
+        p.write_text(W.canonical(rows), encoding="utf-8")
+        return p
+
+    def row(self, level, kind, device, node, index, status, notes="", board="OU1", ports="1,2"):
+        return dict(zip(W.COLUMNS, [level, kind, device, "", "", "", "", node, index,
+                                    "" if kind == "detector" else board, "" if kind == "detector" else ports,
+                                    status, notes]))
+
+    def test_held_names_the_frozen_control_points(self):
+        p = self.file([self.row("1", "turnout", "Switch 1", "4", "0", "wired"),
+                       self.row("2", "turnout", "Switch 9", "42", "0", "wired", self.NOTE),
+                       self.row("2", "detector", "OS Switch 9", "42", "1", "planned", "the owner's pin")])
+        got = W.held(p)
+        self.assertEqual([w.device for w in got.devices], ["Switch 9"])
+        self.assertEqual([w.device for w in got.detectors], ["OS Switch 9"])
+        self.assertEqual(got.cps, {"CP 9"})
+        self.assertEqual(W.audit(p), [])
+
+    def test_a_note_round_trips(self):
+        w = W.read(self.file([self.row("2", "turnout", "Switch 9", "42", "0", "wired",
+                                       "pin; " + W.freeze_note("CP 9", "2026-11-21"))]))[0]
+        self.assertEqual(W.frozen_cp(w), "CP 9")
+
+    def test_a_hand_wired_main_row_fails(self):
+        p = self.file([self.row("2", "turnout", "Switch 9", "42", "0", "wired", "by hand")])
+        self.assertRegex(W.audit(p)[0], "line 2: main/upper turnout Switch 9 is wired, but no freeze wrote it")
+
+    def test_a_frozen_control_point_with_a_row_not_wired_fails(self):
+        p = self.file([self.row("2", "turnout", "Switch 9", "42", "0", "wired", self.NOTE),
+                       self.row("2", "detector", "OS Switch 9", "42", "1", "planned", self.NOTE)])
+        self.assertRegex("; ".join(W.audit(p)), "OS Switch 9 is of CP 9, which is frozen, but is planned")
+
+    def test_staging_by_hand_and_planned_main_rows_pass(self):
+        p = self.file([self.row("1", "turnout", "Switch 1", "4", "0", "wired", "as built"),
+                       self.row("2", "detector", "OS Switch 9", "42", "1", "planned")])
+        self.assertEqual(W.audit(p), [])
+
+    def test_text_not_in_the_freeze_format_fails(self):
+        p = self.file([self.row("1", "turnout", "Switch 1", "4", "0", "wired")])
+        p.write_text(p.read_text().replace("\n", "\r\n"), encoding="utf-8", newline="")
+        self.assertRegex("; ".join(W.audit(p)), "not the form freeze_wiring.py writes")
+
+    def test_the_committed_file_passes(self):
+        self.assertEqual(W.audit(), [])
+
+
 if __name__ == "__main__":
     unittest.main()
