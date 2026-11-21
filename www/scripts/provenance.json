@@ -62,6 +62,7 @@
       {"section": "Build and software articles", "class": "hobby"}]},
 
     "library/pittsburgh-ohio-valley-railway.html": {"class": "prototype", "note": "History of the real Pittsburgh & Ohio Valley Railway, 1899 to 1994, with sources. Its mentions of HART's P&CV Division as a successor are the layout's story, not history."},
+    "library/pipeline-map.html": {"class": "hobby", "note": "Map of the repository's sources, scripts and generated outputs."},
     "library/voices-of-the-pov.html": {"class": "prototype", "note": "Recollections of real people who worked on or near the P&OV, each linked to its source."},
     "library/neville-island-coke-cement-chemical-history.html": {"class": "mixed", "note": "Sourced history of the Neville Island coke, cement and chemical plants; the last section describes the invented HART setting.", "parts": [
       {"section": "Sections 1 to 9 and Sources", "class": "prototype"},
