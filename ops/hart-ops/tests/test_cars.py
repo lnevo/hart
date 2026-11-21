@@ -1,4 +1,6 @@
 """Car queue and Operations Pro merge rules."""
+import contextlib
+import io
 import sys
 import tempfile
 import unittest
@@ -181,6 +183,86 @@ class SeedCopyTests(unittest.TestCase):
         with self.assertRaises(SystemExit):
             cars.sync_seed_copies(self.inputs, self.masters)
         self.assertEqual((self.inputs / "a.csv").read_text(), "old")
+
+
+class FieldDifferenceTests(unittest.TestCase):
+    """compare: field differences for cars held by the repository and a tool."""
+
+    def row(self, rid="NW2", **kw):
+        base = {"roster_id": rid, "roster_road": "NW", "road_number": rid[2:], "car_type": "Flatcar",
+                "roster_length_ft": "52", "color": "Black", "notes": "owner note"}
+        base.update(kw)
+        return base
+
+    def ops(self, tmp, cars_xml):
+        path = Path(tmp) / "ops.xml"
+        path.write_text(f"<operations-config><cars>{cars_xml}</cars></operations-config>")
+        return path
+
+    def diffs(self, rows, path):
+        return cars.field_diffs(
+            cars.expected_cars(rows, cars.OPS_SKIP_TYPES), cars.ops_car_attrs(path),
+            cars.OPS_FIELDS, cars.OPS_TYPE_REFINEMENTS,
+        )
+
+    def test_match_reports_nothing(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.ops(tmp, '<car id="NW2" roadName="NW" roadNumber="2" type="Flatcar" length="52" color="Black"/>')
+            self.assertEqual(self.diffs([self.row()], path), [])
+
+    def test_single_field_difference(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.ops(tmp, '<car id="NW2" roadName="NW" roadNumber="2" type="Flatcar" length="50" color="Black"/>')
+            self.assertEqual(self.diffs([self.row()], path), [("NW2", "length", "52", "50")])
+
+    def test_field_the_tool_does_not_carry_is_ignored(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.ops(tmp, '<car id="NW2" roadName="NW" roadNumber="2" type="Flatcar" length="52" color="Black" weight="1"/>')
+            row = self.row(notes="changed", capy_lbs="99", ld_lmt_lbs="5")
+            self.assertEqual(self.diffs([row], path), [])
+
+    def test_intended_exclusions_are_not_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.ops(
+                tmp,
+                '<car id="NW2" roadName="NW" roadNumber="2" type="Coke Hopper" length="52" color="Black"/>'
+                '<car id="NW3" roadName="NW" roadNumber="3" type="Caboose" length="30" color="Red"/>'
+                '<car id="NW4" roadName="NW" roadNumber="4" type="Coilcar" length="52" color="Black"/>'
+                '<car id="NW5" roadName="NW" roadNumber="5" type="Boxcar" length="52" color="Black"/>',
+            )
+            rows = [
+                self.row("NW2", car_type="Hopper"),
+                self.row("NW3", car_type="Caboose", roster_length_ft="40"),
+                self.row("NW4", car_type="Coil"),
+                self.row("NW6", car_type="Boxcar"),  # not in the tool: existence is reported elsewhere
+            ]
+            self.assertEqual(self.diffs(rows, path), [])
+            # a type outside the intended refinements is still a difference
+            self.assertEqual(
+                self.diffs([self.row("NW5", car_type="Flatcar")], path),
+                [("NW5", "type", "Flatcar", "Boxcar")],
+            )
+
+    def test_limit_and_all(self):
+        diffs = [(f"NW{i}", "length", "52", "50") for i in range(25)]
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            cars.print_diffs(diffs, False)
+        text = out.getvalue()
+        self.assertIn("Field differences: 25", text)
+        self.assertEqual(text.count("repo="), 20)
+        self.assertIn("+5 more (--all)", text)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            cars.print_diffs(diffs, True)
+        self.assertEqual(out.getvalue().count("repo="), 25)
+        self.assertNotIn("more (--all)", out.getvalue())
+
+    def test_line_format(self):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            cars.print_diffs([("NW2", "length", "52", "50")], False)
+        self.assertIn("NW2 length: repo='52' tool='50'", out.getvalue())
 
 
 if __name__ == "__main__":
