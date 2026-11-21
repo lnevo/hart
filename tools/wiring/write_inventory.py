@@ -10,7 +10,7 @@ The workbook is a view: nobody edits it (owner, 2026-11-20). It is written from 
                                                physical wiring source, as JMRI has it wired), main and upper's by
                                                tools/schematic/build_device_map.py's rule (a draft) but for the rows
                                                wiring.csv lists.
-  jmri/layouts/hart/data/wiring.csv            the detectors' power districts.
+  jmri/layouts/hart/data/wiring.csv            the fascia buttons and relays (no JMRI device).
   jmri/layouts/hart/data/schematic/lcos_nodes.csv   every node, its level and area.
   docs/wiring/signals/signal_wiring.csv and signal_head_plan.csv   the DigiconSignals sheet.
 
@@ -52,7 +52,10 @@ DESIGN = ("2", "3")                               # main and upper: the rule's d
 SHADE = PatternFill("solid", fgColor="DDEBF7")    # light blue: every main and upper level row (owner, 2026-11-15)
 PORT = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)$")
 NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
-LEGACY = re.compile(r"\bwas (C\d+)\b")            # a staging node's old ID, as lcos_nodes.csv's source notes it
+LEGACY = re.compile(r"\bwas ([CDM]\d+)\b")        # a staging node's old ID, as lcos_nodes.csv's source notes it
+NODE_ID = re.compile(r"^inventory v86: ([CDM]\d+)\b")    # a staging node's ID in the inventory (M1 main, D5 DCC)
+NODE_TYPE = {"C": "Client", "M": "Main", "D": "DCC"}
+SWITCH_LEGS = DATA.parent / "switch_legs.csv"        # staging's legs: a wired mast's place at its switch
 
 NODE_COLUMNS = ["Node ID", "Legacy Node ID", "Address", "Location", "Type", "DNOU8", "DNIN8", "12V Boards",
                 "5V Boards", "Num 12V", "12V Used", "12V Free", "Num Turnouts", "Turnout Output Ports",
@@ -95,23 +98,23 @@ def natural(s: str):
 
 
 class Node:
-    def __init__(self, num: int, level: str, location: str, legacy: str = ""):
-        self.num, self.id, self.level, self.location, self.legacy = num, f"C{num}", level, location, legacy
+    def __init__(self, num: int, level: str, location: str, legacy: str = "", ident: str = ""):
+        self.num, self.id, self.level, self.location = num, ident or f"C{num}", level, location
+        self.type = NODE_TYPE[self.id[0]]
+        self.legacy = legacy or (self.id if level == "1" else "")
         self.ou = defaultdict(dict)       # board -> {pin: (device, type, rail, notes)}
         self.inp = defaultdict(dict)      # board -> {pin: (device, type, notes)}
         self.turnouts, self.feedback, self.heads, self.masts, self.blocks = [], [], [], [], []
+        self.buttons = []                 # (name, port id): fascia buttons, from wiring.csv
 
     @property
     def design(self) -> bool:
         return self.level in DESIGN
 
     @property
-    def boards12(self) -> int:
-        """The 12V boards of a main or upper node by the rule (four turnouts each, first); staging's are the boards
-        its turnouts are on."""
-        if self.design:
-            return -(-len(self.turnouts) // 4)
-        return len({int(p.split("-OU")[1].split("-")[0]) for _t, ps, _r in self.turnouts for p in ps})
+    def twelve(self) -> set[int]:
+        """The OU boards that carry turnouts (12V), on every level from where the turnouts are."""
+        return {int(p.split("-OU")[1].split("-")[0]) for _t, ps, _r in self.turnouts for p in ps}
 
 
 def spare_rows(path: Path | None = None) -> list[dict]:
@@ -122,14 +125,21 @@ def spare_rows(path: Path | None = None) -> list[dict]:
             for w in wiring.read(path) if w.kind == "detector" and w.level == 1 and not w.device]
 
 
-def gather(rows, node_rows) -> dict[int, Node]:
+def lamp_names(wired: list[dict]) -> dict[str, str]:
+    """{port id: lamp name} of the Digicon heads as wired (signal_wiring.csv: "Head 6LB T R"), so DNOU8 and the
+    DigiconSignals sheet name a staging lamp the same."""
+    return {r["port_id"]: r["user_name"] for r in wired if r.get("port_id") and r.get("user_name")}
+
+
+def gather(rows, node_rows, lamps: dict | None = None) -> dict[int, Node]:
     """{node number: Node} of every node in lcos_nodes.csv, with every port the master gives (`rows`, with
     spare_rows). SystemExit on a row on a node the node file does not list."""
     nodes = {}
     for r in node_rows:
-        m = LEGACY.search(r.get("source") or "")
+        source = r.get("source") or ""
+        legacy, ident = LEGACY.search(source), NODE_ID.match(source)
         nodes[int(r["node"])] = Node(int(r["node"]), r["level"], f"{r['area']} - {LEVEL_NAME[r['level']]}",
-                                     m.group(1) if m else "")
+                                     legacy.group(1) if legacy else "", ident.group(1) if ident else "")
 
     def get(num: int) -> Node:
         if num not in nodes:
@@ -141,6 +151,9 @@ def gather(rows, node_rows) -> dict[int, Node]:
             continue
         n = get(int(r["node"]))
         m = PORT.search(r["comment"])
+        if r["layer"] in ("turnout", "fb") and not m or r["layer"] == "occupancy" and not NODE_K.match(r["comment"]):
+            raise FactsError(f"{DEVICE_MAP.name}: {r['layer']} {r['user_name']} is on node {r['node']} but its wiring "
+                             f"{r['comment']!r} gives no port")
         if r["layer"] == "turnout":
             board, pins = int(m.group(2)), [int(p) for p in m.group(3).split(",")]
             for pin, nr in zip(pins, "NR"):
@@ -157,7 +170,8 @@ def gather(rows, node_rows) -> dict[int, Node]:
             board, pins = int(m.group(2)), [int(p) for p in m.group(3).split(",")]
             kind = "Signal LED" if n.design else "Searchlight Signal Head"     # staging's are Digicon searchlights
             for pin, lamp in zip(pins, "RYG"):
-                n.ou[board][pin] = (f"{r['user_name']} {lamp}", kind, "5V",
+                name = (lamps or {}).get(f"{n.id}-OU{board}-{pin}") if not n.design else None
+                n.ou[board][pin] = (name or f"{r['user_name']} {lamp}", kind, "5V",
                                     f"{r['system_name']}; STOP/APPROACH/CLEAR; lamp {lamp}")
             n.heads.append((r["user_name"], board, pins))
         elif r["layer"] == "mast":
@@ -167,15 +181,41 @@ def gather(rows, node_rows) -> dict[int, Node]:
             n.blocks.append((k, r))
     for n in nodes.values():
         if n.design and n.blocks:                     # pin 8 of the first 5V board: detector calibration (the rule)
-            n.ou[n.boards12 + 1][8] = ("Block sensor calibration", "Block Sensor Cal", "5V",
-                                       "Block sensor calibration current (first 5V OU pin 8); not a lamp")
+            first5 = next(b for b in range(1, 6) if b not in n.twelve)
+            if 8 in n.ou[first5]:
+                raise FactsError(f"node {n.num}: OU{first5}-8 is the detector calibration pin, but "
+                                 f"{n.ou[first5][8][0]} is on it")
+            n.ou[first5][8] = ("Block sensor calibration", "Block Sensor Cal", "5V",
+                               "Block sensor calibration current (first 5V OU pin 8); not a lamp")
     return nodes
 
 
+def add_local(nodes: dict[int, Node], path: Path | None = None) -> None:
+    """The fascia buttons and relays of wiring.csv (no JMRI device) on their nodes' boards."""
+    for w in wiring.read(path):
+        if w.kind not in wiring.LOCAL:
+            continue
+        if w.node not in nodes:
+            raise FactsError(f"{wiring.PATH.name} line {w.line}: node {w.node} is not in {NODES.name}")
+        n, board, pin = nodes[w.node], int(w.board[2:]), w.ports[0]
+        taken = (n.inp if w.kind == "button" else n.ou)[board].get(pin)
+        if taken:
+            raise FactsError(f"{wiring.PATH.name} line {w.line}: {w.device} is on {n.id}-{w.board}-{pin}, which "
+                             f"{taken[0]} has")
+        if w.kind == "button":
+            n.inp[board][pin] = (w.device, "Button", w.notes or None)
+            n.buttons.append((w.device, f"{n.id}-IN{board}-{pin}"))
+        else:
+            n.ou[board][pin] = (w.device, "Relay", "5V", w.notes or None)
+
+
 def rail(n: Node, board: int) -> str:
-    """The rail of an empty pin: by the rule on main and upper; on staging the rail of what the board carries."""
+    """The rail of an empty pin: 12V on a board with turnouts; else on main and upper 5V (the rule), on staging the
+    rail of what the board carries."""
+    if board in n.twelve:
+        return "12V"
     if n.design:
-        return "12V" if board <= n.boards12 else "5V"
+        return "5V"
     used = {v[2] for v in n.ou[board].values()}
     return used.pop() if len(used) == 1 else ""
 
@@ -211,25 +251,18 @@ def append(ws, values, shade: bool) -> None:
             cell.fill = SHADE
 
 
-def districts(path: Path | None = None) -> dict[tuple[int, int], str]:
-    """{(node, block input from 1): power district} of wiring.csv's detectors."""
-    return {(w.node, w.index): w.district for w in wiring.read(path) if w.kind == "detector" and w.district}
-
-
 def nodes_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
     ws = sheet(wb, "Nodes", NODE_COLUMNS)
     for num in sorted(nodes, key=lambda k: (nodes[k].level, k)):
         n = nodes[num]
         boards = sorted(n.ou)
-        twelve = [b for b in boards if (n.design and b <= n.boards12) or
-                  (not n.design and any(v[2] == "12V" for v in n.ou[b].values()))]
+        twelve = [b for b in boards if b in n.twelve]
         five = [b for b in boards if b not in twelve]
         used5 = sum(len(n.ou[b]) for b in five)
         bdev = sorted({f"{n.id}-B{k // 2 + 1}" for k, _ in n.blocks}, key=natural)
-        any_device = n.ou or n.inp or n.blocks
         vals = {
             "Node ID": n.id, "Legacy Node ID": n.legacy or None, "Address": num, "Location": n.location,
-            "Type": "Client" if any_device else None,
+            "Type": n.type,
             "DNOU8": ", ".join(f"OU{b}" for b in boards) or None,
             "DNIN8": ", ".join(f"IN{b}" for b in sorted(n.inp)) or None,
             "12V Boards": len(twelve), "5V Boards": len(five), "Num 12V": 8 * len(twelve),
@@ -237,8 +270,10 @@ def nodes_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
             "Num Turnouts": len(n.turnouts),
             "Turnout Output Ports": ", ".join(p for _, ps, _ in n.turnouts for p in ps) or None,
             "Turnout Names": ", ".join(t for t, _, _ in n.turnouts) or None,
-            "Num IN": 8 * len(n.inp), "Input Used": len(n.feedback), "Input Free": 8 * len(n.inp) - len(n.feedback),
-            "Num Buttons": 0, "Num Sensors": len(n.feedback), "Button Devices": None,
+            "Num IN": 8 * len(n.inp), "Input Used": len(n.feedback) + len(n.buttons),
+            "Input Free": 8 * len(n.inp) - len(n.feedback) - len(n.buttons),
+            "Num Buttons": len(n.buttons), "Num Sensors": len(n.feedback),
+            "Button Devices": ", ".join(b for b, _ in n.buttons) or None,
             "Turnout Feedback Devices": ", ".join(f.removeprefix("FB ") + " FB" for f, _ in n.feedback) or None,
             "Num 5V": 8 * len(five), "5V Used": used5, "5V Free": 8 * len(five) - used5,
             "Num Signal LEDs": sum(len(p) for _, _, p in n.heads), "Signal LED Devices": len(n.heads),
@@ -268,27 +303,38 @@ def port_sheets(wb, nodes: dict[int, Node]) -> None:
 def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
     ws = sheet(wb, "TurnoutSummary", TURNOUT_COLUMNS)
     fb = {name: port for n in nodes.values() for name, port in n.feedback}
-    entry = {}                                        # switch -> its two-head mast and that mast's top head pins
+    button = {name.removesuffix(" BTN"): port for n in nodes.values() for name, port in n.buttons}
+    legs = {r["switch"]: r for r in load_csv(SWITCH_LEGS)}
+    place = defaultdict(dict)        # switch -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
     for n in nodes.values():
         for head, board, pins in n.heads:
-            if head.endswith(" Top"):
-                mast = head.removeprefix("Head ").removesuffix(" Top")
-                sw = by_name[f"Mast {mast}"]["switch"]          # its switch column (hartlib.railroad.DEVICE_FACTS)
-                entry.setdefault(sw, (mast, [f"{n.id}-OU{board}-{p}" for p in pins]))
+            ports = [f"{n.id}-OU{board}-{p}" for p in pins]
+            key = re.sub(r" (Top|Bottom)$", "", head.removeprefix("Head "))
+            mast = by_name.get(f"Mast {key}", {})
+            sw = mast.get("switch", "")
+            if not n.design and sw in legs:                # staging: the leg it stands on (switch_legs.csv)
+                leg = legs[sw]
+                role = ("Normal Exit" if mast["facing"] == leg["closed_leg"] else
+                        "Reverse Exit" if mast["facing"] == leg["thrown_leg"] else "Entry")
+                if not head.endswith(" Bottom"):
+                    place[sw].setdefault(role, (key, ports))
+            elif head.endswith(" Top"):                  # main and upper: a two-head mast's top head is the entry
+                place[sw].setdefault("Entry", (key, ports))
     for n in sorted(nodes.values(), key=lambda n: (n.level, n.num)):
         for name, _, r in n.turnouts:
             sw = name.removeprefix("Switch ")
-            mast, pins = entry.get(sw, (None, [None, None, None]))
             vals = {"Turnout": name, "Parent Node": n.id,
                     "Location/Area": f"{r['cp']} ({n.location})" if r["cp"] else n.location,
-                    "Switch Elements": r["trial_name"] or name, "Button": None,
-                    "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R"),
-                    "Entry Signal": mast, "Entry Signal R Port": pins[0], "Entry Signal Y Port": pins[1],
-                    "Entry Signal G Port": pins[2]}
+                    "Switch Elements": r["trial_name"] or name, "Button": button.get(name),
+                    "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R")}
+            for role, (mast, pins) in place.get(sw, {}).items():
+                cols = "Entry Signal" if role == "Entry" else role          # the sheet's column names
+                vals.update({f"{role} Signal": mast, f"{cols} R Port": pins[0], f"{cols} Y Port": pins[1],
+                             f"{cols} G Port": pins[2]})
             append(ws, [vals.get(c) for c in TURNOUT_COLUMNS], n.design)
 
 
-def block_sheet(wb, nodes: dict[int, Node], by_name: dict, district: dict) -> None:
+def block_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
     ws = sheet(wb, "BlockSensors", BLOCK_COLUMNS)
     for num in sorted(nodes, key=lambda k: (nodes[k].level, k)):
         n = nodes[num]
@@ -297,7 +343,7 @@ def block_sheet(wb, nodes: dict[int, Node], by_name: dict, district: dict) -> No
             blk = block_name(r, by_name)
             append(ws, [f"{dev}-{k % 2 + 1}", n.id, dev, k % 2 + 1, blk or "Unused",
                         (by_name[blk]["trial_name"] or None) if blk else None, n.location,
-                        district.get((num, k + 1)), f"Block {num}-{k + 1} / {r['system_name']}"], n.design)
+                        None, f"Block {num}-{k + 1} / {r['system_name']}"], n.design)   # districts: not mapped
 
 
 def load_csv(path: Path) -> list[dict]:
@@ -332,15 +378,16 @@ def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
 def build(dest: Path) -> None:
     rows = read_device_rows()
     by_name = {r["user_name"]: r for r in rows}
-    nodes = gather(rows + spare_rows(), read_node_rows())
-    district = districts()
+    wired = load_csv(SIGNALS / "signal_wiring.csv")
+    nodes = gather(rows + spare_rows(), read_node_rows(), lamp_names(wired))
+    add_local(nodes)
     wb = Workbook()
     wb.remove(wb.active)
     nodes_sheet(wb, nodes, by_name)
     port_sheets(wb, nodes)
     turnout_sheet(wb, nodes, by_name)
-    block_sheet(wb, nodes, by_name, district)
-    digicon_sheet(wb, load_csv(SIGNALS / "signal_wiring.csv"), load_csv(SIGNALS / "signal_head_plan.csv"))
+    block_sheet(wb, nodes, by_name)
+    digicon_sheet(wb, wired, load_csv(SIGNALS / "signal_head_plan.csv"))
     wb.save(dest)
 
 

@@ -23,8 +23,9 @@ def sheets(path):
 V86 = sheets(WI.OUT)
 MAP = WI.read_device_rows()
 NODES = {int(r["node"]): r["level"] for r in WI.read_node_rows()}
-STAGING = {f"C{n}" for n, lv in NODES.items() if lv == "1"}
-DESIGN = {f"C{n}" for n, lv in NODES.items() if lv != "1"}
+IDS = {r[2]: r[0] for r in V86["Nodes"][1:]}          # address -> the node's ID on the sheets (M1, D5, C4, ...)
+STAGING = {IDS[n] for n, lv in NODES.items() if lv == "1"}
+DESIGN = {IDS[n] for n, lv in NODES.items() if lv != "1"}
 
 
 class Inventory(unittest.TestCase):
@@ -32,7 +33,7 @@ class Inventory(unittest.TestCase):
         self.assertEqual(WI.main(["--check"]), 0)
 
     def test_every_node_is_listed(self):
-        self.assertEqual({r[0] for r in V86["Nodes"][1:]}, STAGING | DESIGN)
+        self.assertEqual({r[2] for r in V86["Nodes"][1:]}, set(NODES))
         self.assertEqual(next(r for r in V86["Nodes"] if r[0] == "C2")[1], "C3")     # its legacy ID, from the source
 
     def test_every_device_port_is_in_the_workbook(self):
@@ -47,9 +48,10 @@ class Inventory(unittest.TestCase):
             if x["layer"] == "turnout":
                 for pin, nr in zip(m.group(3).split(","), "NR"):
                     self.assertEqual(out[f"{node}-OU{m.group(2)}-{pin}"][4], f"{x['user_name']} {nr}")
-            elif x["layer"] == "head" and m:
+            elif x["layer"] == "head" and m:          # staging's lamps are named as signal_wiring.csv names them
                 for pin, lamp in zip(m.group(3).split(","), "RYG"):
-                    self.assertEqual(out[f"{node}-OU{m.group(2)}-{pin}"][4], f"{x['user_name']} {lamp}")
+                    got = out[f"{node}-OU{m.group(2)}-{pin}"][4]
+                    self.assertTrue(got.startswith(x["user_name"]) and got.endswith(f" {lamp}"), got)
             elif x["layer"] == "fb":
                 self.assertEqual(inp[f"{node}-IN{m.group(2)}-{m.group(3)}"][4],
                                  x["user_name"].removeprefix("FB ") + " FB")
@@ -58,13 +60,13 @@ class Inventory(unittest.TestCase):
                 self.assertEqual(blocks[x["system_name"]][0], f"{node}-B{k // 2 + 1}-{k % 2 + 1}")
 
     def test_staging_holds_only_what_is_wired(self):
-        """Staging's ports are its turnouts, feedback, the 6LB head and its detectors, nothing planned (owner,
-        2026-11-20): no buttons, relays, reserved pins, calibration pins or old signal LEDs."""
+        """Staging's ports are what is wired: its turnouts, feedback, buttons, the relay, the 6LB head and its
+        detectors, nothing planned (owner, 2026-11-20): no reserved or calibration pins and no old signal LEDs."""
         kinds = {r[5] for r in V86["DNOU8"][1:] if r[1] in STAGING and r[4]}
-        self.assertEqual(kinds, {"Turnout Motor", "Searchlight Signal Head"})
-        self.assertEqual({r[5] for r in V86["DNIN8"][1:] if r[1] in STAGING and r[4]}, {"Turnout Feedback"})
+        self.assertEqual(kinds, {"Turnout Motor", "Searchlight Signal Head", "Relay"})
+        self.assertEqual({r[5] for r in V86["DNIN8"][1:] if r[1] in STAGING and r[4]}, {"Turnout Feedback", "Button"})
         heads = [r for r in V86["DNOU8"][1:] if r[1] in STAGING and r[5] == "Searchlight Signal Head"]
-        self.assertEqual([r[4] for r in heads], ["Head 6LB R", "Head 6LB Y", "Head 6LB G"])
+        self.assertEqual([r[0] for r in heads], ["C4-OU2-1", "C4-OU2-2", "C4-OU2-3"])
         self.assertEqual(next(r for r in V86["DNOU8"] if r[0] == "C13-OU2-1")[4], "Switch 7 N")   # Engine House node
         spares = [r[0] for r in V86["BlockSensors"][1:] if r[4] == "Unused"]
         self.assertEqual(spares, ["C2-B1-2", "C3-B4-2"])
@@ -87,11 +89,44 @@ class Inventory(unittest.TestCase):
         detectors = {r[1] for r in V86["BlockSensors"][1:]}
         self.assertEqual(cal, detectors & DESIGN)
 
-    def test_the_districts_are_wiring_csvs(self):
-        rows = {r[0]: r[7] for r in V86["BlockSensors"][1:] if r[1] in STAGING}
-        self.assertEqual(len(rows), 45)
-        self.assertTrue(all(rows.values()))
-        self.assertEqual(rows["C1-B1-1"], WI.districts()[(1, 1)])
+    def test_the_buttons_and_relay_are_wiring_csvs(self):
+        """Fascia buttons and relays are live with no JMRI device (owner, 2026-11-20): wiring.csv puts them on the
+        sheets, a turnout's button on its TurnoutSummary row."""
+        buttons = [r for r in V86["DNIN8"][1:] if r[5] == "Button"]
+        self.assertEqual(len(buttons), 20)
+        self.assertEqual(next(r for r in buttons if r[0] == "C1-IN2-1")[4], "Switch 35 BTN")
+        relays = [r[0] for r in V86["DNOU8"][1:] if r[5] == "Relay"]
+        self.assertEqual(relays, ["C2-OU2-8"])
+        turnouts = {r[0]: r for r in V86["TurnoutSummary"][1:]}
+        self.assertEqual(turnouts["Switch 35"][4], "C1-IN2-1")
+        c1 = next(r for r in V86["Nodes"] if r[0] == "C1")
+        self.assertEqual(c1[WI.NODE_COLUMNS.index("Num Buttons")], 3)
+
+    def test_a_wired_staging_mast_is_on_its_switchs_row(self):
+        """Mast 6LB stands on Switch 5's closed leg (Track East Ext): its normal exit signal."""
+        row = dict(zip(WI.TURNOUT_COLUMNS, next(r for r in V86["TurnoutSummary"] if r[0] == "Switch 5")))
+        self.assertEqual((row["Normal Exit Signal"], row["Normal Exit R Port"], row["Normal Exit G Port"]),
+                         ("6LB", "C4-OU2-1", "C4-OU2-3"))
+        self.assertIsNone(row["Entry Signal"])
+
+    def test_the_lamps_are_named_as_the_digicon_sheet_names_them(self):
+        names = {r[0]: r[4] for r in V86["DNOU8"][1:]}
+        self.assertEqual([names[f"C4-OU2-{p}"] for p in (1, 2, 3)], ["Head 6LB T R", "Head 6LB T Y", "Head 6LB T G"])
+
+    def test_the_power_districts_are_left_blank(self):
+        """Not mapped yet (owner, 2026-11-21): the old inventory's districts were old names, not real."""
+        self.assertEqual({r[7] for r in V86["BlockSensors"][1:]}, {None})
+
+    def test_the_main_radio_and_dcc_nodes_keep_their_ids(self):
+        nodes = {r[2]: r for r in V86["Nodes"][1:]}
+        self.assertEqual((nodes[0][0], nodes[0][4]), ("M1", "Main"))
+        self.assertEqual((nodes[5][0], nodes[5][1], nodes[5][4]), ("D5", "D1", "DCC"))
+        self.assertEqual((nodes[1][1], nodes[11][4]), ("C1", "Client"))
+
+    def test_a_row_with_a_node_and_no_port_stops(self):
+        row = dict(next(x for x in MAP if x["layer"] == "fb" and x["node"]), comment="")
+        with self.assertRaisesRegex(WI.FactsError, "is on node .* but its wiring '' gives no port"):
+            WI.gather([row], WI.read_node_rows())
 
     def test_a_device_on_an_unlisted_node_stops(self):
         row = dict(next(x for x in MAP if x["layer"] == "turnout" and x["node"] and x["system_name"].startswith("M2T")),

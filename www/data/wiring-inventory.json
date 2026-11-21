@@ -3,13 +3,14 @@
   "file": "LCOS_Layout_Inventory_v86.xlsx",
   "version": "v86",
   "modified": "2026-11-21",
-  "built": "2026-11-20"
+  "built": "2026-11-21"
  },
  "nodes": [
   {
-   "id": "C0",
+   "id": "M1",
    "address": "0",
    "location": "Helix - Staging",
+   "type": "Main",
    "turnouts": [],
    "signals": [],
    "blockNames": [],
@@ -62,8 +63,8 @@
      "free": "0"
     },
     "inputs": {
-     "used": "6",
-     "free": "2"
+     "used": "9",
+     "free": "7"
     }
    },
    "outputs": [
@@ -201,6 +202,63 @@
        "place": "Helix - Staging"
       }
      ]
+    },
+    {
+     "board": "IN2",
+     "place": "Helix - Staging",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C1-IN2-1",
+       "device": "Switch 35 BTN",
+       "kind": "button",
+       "place": "Helix - Staging"
+      },
+      {
+       "pin": 2,
+       "port": "C1-IN2-2",
+       "device": "Switch 37 BTN",
+       "kind": "button",
+       "place": "Helix - Staging"
+      },
+      {
+       "pin": 3,
+       "port": "C1-IN2-3",
+       "device": "Switch 39 BTN",
+       "kind": "button",
+       "place": "Helix - Staging"
+      },
+      {
+       "pin": 4,
+       "port": "C1-IN2-4",
+       "kind": "spare",
+       "place": "Helix - Staging"
+      },
+      {
+       "pin": 5,
+       "port": "C1-IN2-5",
+       "kind": "spare",
+       "place": "Helix - Staging"
+      },
+      {
+       "pin": 6,
+       "port": "C1-IN2-6",
+       "kind": "spare",
+       "place": "Helix - Staging"
+      },
+      {
+       "pin": 7,
+       "port": "C1-IN2-7",
+       "kind": "spare",
+       "place": "Helix - Staging"
+      },
+      {
+       "pin": 8,
+       "port": "C1-IN2-8",
+       "kind": "spare",
+       "place": "Helix - Staging"
+      }
+     ]
     }
    ],
    "detectors": [
@@ -288,15 +346,72 @@
      "free": "0"
     },
     "outputs5v": {
-     "used": "0",
-     "free": "0"
+     "used": "1",
+     "free": "7"
     },
     "inputs": {
      "used": "0",
      "free": "0"
     }
    },
-   "outputs": [],
+   "outputs": [
+    {
+     "board": "OU2",
+     "rail": "5V",
+     "place": "North - Staging",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C2-OU2-1",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 2,
+       "port": "C2-OU2-2",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 3,
+       "port": "C2-OU2-3",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 4,
+       "port": "C2-OU2-4",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 5,
+       "port": "C2-OU2-5",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 6,
+       "port": "C2-OU2-6",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 7,
+       "port": "C2-OU2-7",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 8,
+       "port": "C2-OU2-8",
+       "device": "C2 RELAY 1",
+       "kind": "relay",
+       "place": "North - Staging"
+      }
+     ]
+    }
+   ],
    "inputs": [],
    "detectors": [
     {
@@ -390,8 +505,8 @@
      "free": "0"
     },
     "inputs": {
-     "used": "8",
-     "free": "0"
+     "used": "12",
+     "free": "4"
     }
    },
    "outputs": [
@@ -537,6 +652,64 @@
        "note": "M2S374"
       }
      ]
+    },
+    {
+     "board": "IN2",
+     "place": "West - Staging",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C3-IN2-1",
+       "device": "Switch 15 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 2,
+       "port": "C3-IN2-2",
+       "device": "Switch 17 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 3,
+       "port": "C3-IN2-3",
+       "device": "Switch 19 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 4,
+       "port": "C3-IN2-4",
+       "device": "Switch 21 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 5,
+       "port": "C3-IN2-5",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 6,
+       "port": "C3-IN2-6",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 7,
+       "port": "C3-IN2-7",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 8,
+       "port": "C3-IN2-8",
+       "kind": "spare",
+       "place": "West - Staging"
+      }
+     ]
     }
    ],
    "detectors": [
@@ -626,8 +799,8 @@
      "free": "5"
     },
     "inputs": {
-     "used": "8",
-     "free": "0"
+     "used": "12",
+     "free": "4"
     }
    },
    "outputs": [
@@ -710,28 +883,28 @@
       {
        "pin": 1,
        "port": "C4-OU2-1",
-       "device": "Head 6LB R",
+       "device": "Head 6LB T R",
        "kind": "lamp",
        "color": "R",
-       "head": "6LB",
+       "head": "6LB T",
        "place": "West - Staging"
       },
       {
        "pin": 2,
        "port": "C4-OU2-2",
-       "device": "Head 6LB Y",
+       "device": "Head 6LB T Y",
        "kind": "lamp",
        "color": "Y",
-       "head": "6LB",
+       "head": "6LB T",
        "place": "West - Staging"
       },
       {
        "pin": 3,
        "port": "C4-OU2-3",
-       "device": "Head 6LB G",
+       "device": "Head 6LB T G",
        "kind": "lamp",
        "color": "G",
-       "head": "6LB",
+       "head": "6LB T",
        "place": "West - Staging"
       },
       {
@@ -837,6 +1010,64 @@
        "note": "M2S477"
       }
      ]
+    },
+    {
+     "board": "IN2",
+     "place": "West - Staging",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C4-IN2-1",
+       "device": "Switch 1 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 2,
+       "port": "C4-IN2-2",
+       "device": "Switch 3 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 3,
+       "port": "C4-IN2-3",
+       "device": "Switch 5 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 4,
+       "port": "C4-IN2-4",
+       "device": "Switch 13 BTN",
+       "kind": "button",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 5,
+       "port": "C4-IN2-5",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 6,
+       "port": "C4-IN2-6",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 7,
+       "port": "C4-IN2-7",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 8,
+       "port": "C4-IN2-8",
+       "kind": "spare",
+       "place": "West - Staging"
+      }
+     ]
     }
    ],
    "detectors": [
@@ -903,34 +1134,10 @@
    ]
   },
   {
-   "id": "C5",
-   "address": "5",
-   "location": "Helix - Staging",
-   "turnouts": [],
-   "signals": [],
-   "blockNames": [],
-   "summary": {
-    "outputs12v": {
-     "used": "0",
-     "free": "0"
-    },
-    "outputs5v": {
-     "used": "0",
-     "free": "0"
-    },
-    "inputs": {
-     "used": "0",
-     "free": "0"
-    }
-   },
-   "outputs": [],
-   "inputs": [],
-   "detectors": []
-  },
-  {
    "id": "C11",
    "address": "11",
    "location": "Helix - Staging",
+   "type": "Client",
    "turnouts": [],
    "signals": [],
    "blockNames": [],
@@ -985,8 +1192,8 @@
      "free": "0"
     },
     "inputs": {
-     "used": "12",
-     "free": "4"
+     "used": "18",
+     "free": "6"
     }
    },
    "outputs": [
@@ -1197,6 +1404,66 @@
      ]
     },
     {
+     "board": "IN2",
+     "place": "North - Staging",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C12-IN2-1",
+       "device": "Switch 25 BTN",
+       "kind": "button",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 2,
+       "port": "C12-IN2-2",
+       "device": "Switch 27 BTN",
+       "kind": "button",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 3,
+       "port": "C12-IN2-3",
+       "device": "Switch 29 BTN",
+       "kind": "button",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 4,
+       "port": "C12-IN2-4",
+       "device": "Switch 31 BTN",
+       "kind": "button",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 5,
+       "port": "C12-IN2-5",
+       "device": "Switch 23 BTN",
+       "kind": "button",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 6,
+       "port": "C12-IN2-6",
+       "device": "Switch 33 BTN",
+       "kind": "button",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 7,
+       "port": "C12-IN2-7",
+       "kind": "spare",
+       "place": "North - Staging"
+      },
+      {
+       "pin": 8,
+       "port": "C12-IN2-8",
+       "kind": "spare",
+       "place": "North - Staging"
+      }
+     ]
+    },
+    {
      "board": "IN3",
      "place": "North - Staging",
      "pins": [
@@ -1348,8 +1615,8 @@
      "free": "0"
     },
     "inputs": {
-     "used": "6",
-     "free": "2"
+     "used": "9",
+     "free": "7"
     }
    },
    "outputs": [
@@ -1483,6 +1750,66 @@
       {
        "pin": 8,
        "port": "C13-IN1-8",
+       "kind": "spare",
+       "place": "West - Staging"
+      }
+     ]
+    },
+    {
+     "board": "IN2",
+     "place": "West - Staging",
+     "pins": [
+      {
+       "pin": 1,
+       "port": "C13-IN2-1",
+       "device": "Switch 7 BTN",
+       "kind": "button",
+       "place": "West - Staging",
+       "note": "its port is assumed in v85: confirm"
+      },
+      {
+       "pin": 2,
+       "port": "C13-IN2-2",
+       "device": "Switch 11 BTN",
+       "kind": "button",
+       "place": "West - Staging",
+       "note": "its port is assumed in v85: confirm"
+      },
+      {
+       "pin": 3,
+       "port": "C13-IN2-3",
+       "device": "Switch 9 BTN",
+       "kind": "button",
+       "place": "West - Staging",
+       "note": "its port is assumed in v85: confirm"
+      },
+      {
+       "pin": 4,
+       "port": "C13-IN2-4",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 5,
+       "port": "C13-IN2-5",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 6,
+       "port": "C13-IN2-6",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 7,
+       "port": "C13-IN2-7",
+       "kind": "spare",
+       "place": "West - Staging"
+      },
+      {
+       "pin": 8,
+       "port": "C13-IN2-8",
        "kind": "spare",
        "place": "West - Staging"
       }
@@ -3710,6 +4037,7 @@
    "id": "C32",
    "address": "32",
    "location": "North - Upper",
+   "type": "Client",
    "turnouts": [],
    "signals": [],
    "blockNames": [],
@@ -5686,6 +6014,7 @@
    "id": "C44",
    "address": "44",
    "location": "Peninsula - Upper",
+   "type": "Client",
    "turnouts": [],
    "signals": [],
    "blockNames": [],
@@ -6356,20 +6685,35 @@
    ],
    "inputs": [],
    "detectors": []
+  },
+  {
+   "id": "D5",
+   "address": "5",
+   "location": "Helix - Staging",
+   "type": "DCC",
+   "turnouts": [],
+   "signals": [],
+   "blockNames": [],
+   "summary": {
+    "outputs12v": {
+     "used": "0",
+     "free": "0"
+    },
+    "outputs5v": {
+     "used": "0",
+     "free": "0"
+    },
+    "inputs": {
+     "used": "0",
+     "free": "0"
+    }
+   },
+   "outputs": [],
+   "inputs": [],
+   "detectors": []
   }
  ],
  "signals": [
-  {
-   "head": "6LB",
-   "node": "C4",
-   "place": "West - Staging",
-   "type": "RGB LED",
-   "lamps": {
-    "R": "C4-OU2-1",
-    "Y": "C4-OU2-2",
-    "G": "C4-OU2-3"
-   }
-  },
   {
    "head": "6LB T",
    "mast": "6LB",
@@ -7089,6 +7433,7 @@
    "elements": "Switch 35",
    "motorN": "C1-OU1-1",
    "motorR": "C1-OU1-2",
+   "button": "C1-IN2-1",
    "fbN": "C1-IN1-1",
    "fbR": "C1-IN1-2",
    "signals": {}
@@ -7100,6 +7445,7 @@
    "elements": "Switch 37",
    "motorN": "C1-OU1-3",
    "motorR": "C1-OU1-4",
+   "button": "C1-IN2-2",
    "fbN": "C1-IN1-3",
    "fbR": "C1-IN1-4",
    "signals": {}
@@ -7111,6 +7457,7 @@
    "elements": "Switch 39",
    "motorN": "C1-OU1-5",
    "motorR": "C1-OU1-6",
+   "button": "C1-IN2-3",
    "fbN": "C1-IN1-5",
    "fbR": "C1-IN1-6",
    "signals": {}
@@ -7122,6 +7469,7 @@
    "elements": "Switch 15",
    "motorN": "C3-OU1-1",
    "motorR": "C3-OU1-2",
+   "button": "C3-IN2-1",
    "fbN": "C3-IN1-1",
    "fbR": "C3-IN1-2",
    "signals": {}
@@ -7133,6 +7481,7 @@
    "elements": "Switch 17",
    "motorN": "C3-OU1-3",
    "motorR": "C3-OU1-4",
+   "button": "C3-IN2-2",
    "fbN": "C3-IN1-3",
    "fbR": "C3-IN1-4",
    "signals": {}
@@ -7144,6 +7493,7 @@
    "elements": "Switch 19",
    "motorN": "C3-OU1-5",
    "motorR": "C3-OU1-6",
+   "button": "C3-IN2-3",
    "fbN": "C3-IN1-5",
    "fbR": "C3-IN1-6",
    "signals": {}
@@ -7155,6 +7505,7 @@
    "elements": "Switch 21",
    "motorN": "C3-OU1-7",
    "motorR": "C3-OU1-8",
+   "button": "C3-IN2-4",
    "fbN": "C3-IN1-7",
    "fbR": "C3-IN1-8",
    "signals": {}
@@ -7166,6 +7517,7 @@
    "elements": "Switch 1",
    "motorN": "C4-OU1-1",
    "motorR": "C4-OU1-2",
+   "button": "C4-IN2-1",
    "fbN": "C4-IN1-1",
    "fbR": "C4-IN1-2",
    "signals": {}
@@ -7177,6 +7529,7 @@
    "elements": "Switch 3",
    "motorN": "C4-OU1-3",
    "motorR": "C4-OU1-4",
+   "button": "C4-IN2-2",
    "fbN": "C4-IN1-3",
    "fbR": "C4-IN1-4",
    "signals": {}
@@ -7188,9 +7541,12 @@
    "elements": "Switch 5",
    "motorN": "C4-OU1-5",
    "motorR": "C4-OU1-6",
+   "button": "C4-IN2-3",
    "fbN": "C4-IN1-5",
    "fbR": "C4-IN1-6",
-   "signals": {}
+   "signals": {
+    "normal": "6LB"
+   }
   },
   {
    "turnout": "Switch 13",
@@ -7199,6 +7555,7 @@
    "elements": "Switch 13",
    "motorN": "C4-OU1-7",
    "motorR": "C4-OU1-8",
+   "button": "C4-IN2-4",
    "fbN": "C4-IN1-7",
    "fbR": "C4-IN1-8",
    "signals": {}
@@ -7210,6 +7567,7 @@
    "elements": "Switch 23",
    "motorN": "C12-OU4-1",
    "motorR": "C12-OU4-2",
+   "button": "C12-IN2-5",
    "fbN": "C12-IN3-1",
    "fbR": "C12-IN3-2",
    "signals": {}
@@ -7221,6 +7579,7 @@
    "elements": "Switch 25",
    "motorN": "C12-OU1-1",
    "motorR": "C12-OU1-2",
+   "button": "C12-IN2-1",
    "fbN": "C12-IN1-1",
    "fbR": "C12-IN1-2",
    "signals": {}
@@ -7232,6 +7591,7 @@
    "elements": "Switch 27",
    "motorN": "C12-OU1-3",
    "motorR": "C12-OU1-4",
+   "button": "C12-IN2-2",
    "fbN": "C12-IN1-3",
    "fbR": "C12-IN1-4",
    "signals": {}
@@ -7243,6 +7603,7 @@
    "elements": "Switch 29",
    "motorN": "C12-OU1-5",
    "motorR": "C12-OU1-6",
+   "button": "C12-IN2-3",
    "fbN": "C12-IN1-5",
    "fbR": "C12-IN1-6",
    "signals": {}
@@ -7254,6 +7615,7 @@
    "elements": "Switch 31",
    "motorN": "C12-OU1-7",
    "motorR": "C12-OU1-8",
+   "button": "C12-IN2-4",
    "fbN": "C12-IN1-7",
    "fbR": "C12-IN1-8",
    "signals": {}
@@ -7265,6 +7627,7 @@
    "elements": "Switch 33",
    "motorN": "C12-OU4-3",
    "motorR": "C12-OU4-4",
+   "button": "C12-IN2-6",
    "fbN": "C12-IN3-3",
    "fbR": "C12-IN3-4",
    "signals": {}
@@ -7276,6 +7639,7 @@
    "elements": "Switch 7",
    "motorN": "C13-OU2-1",
    "motorR": "C13-OU2-2",
+   "button": "C13-IN2-1",
    "fbN": "C13-IN1-1",
    "fbR": "C13-IN1-2",
    "signals": {}
@@ -7287,6 +7651,7 @@
    "elements": "Switch 9",
    "motorN": "C13-OU2-5",
    "motorR": "C13-OU2-6",
+   "button": "C13-IN2-3",
    "fbN": "C13-IN1-5",
    "fbR": "C13-IN1-6",
    "signals": {}
@@ -7298,6 +7663,7 @@
    "elements": "Switch 11",
    "motorN": "C13-OU2-3",
    "motorR": "C13-OU2-4",
+   "button": "C13-IN2-2",
    "fbN": "C13-IN1-3",
    "fbR": "C13-IN1-4",
    "signals": {}
@@ -7777,7 +8143,6 @@
    "block": "Track K-1",
    "track": "Track 37C-39C #2",
    "area": "Helix - Staging",
-   "district": "SC",
    "note": "Block 1-1 / M2S100"
   },
   {
@@ -7788,7 +8153,6 @@
    "block": "Track K-2",
    "track": "Track 37C-39C #1",
    "area": "Helix - Staging",
-   "district": "SC",
    "note": "Block 1-2 / M2S101"
   },
   {
@@ -7799,7 +8163,6 @@
    "block": "OS Switch 37",
    "track": "OS Switch 37",
    "area": "Helix - Staging",
-   "district": "SC",
    "note": "Block 1-3 / M2S102"
   },
   {
@@ -7810,7 +8173,6 @@
    "block": "OS Switch 39",
    "track": "OS Switch 39",
    "area": "Helix - Staging",
-   "district": "SC",
    "note": "Block 1-4 / M2S103"
   },
   {
@@ -7821,7 +8183,6 @@
    "block": "OS Switch 35b",
    "track": "OS 35 A-39A",
    "area": "Helix - Staging",
-   "district": "SC",
    "note": "Block 1-5 / M2S104"
   },
   {
@@ -7832,7 +8193,6 @@
    "block": "OS Switch 35a",
    "track": "OS 35 A-33A",
    "area": "Helix - Staging",
-   "district": "SC",
    "note": "Block 1-6 / M2S105"
   },
   {
@@ -7843,7 +8203,6 @@
    "block": "Track East Lead",
    "track": "Track 33A-35A",
    "area": "Helix - Staging",
-   "district": "ERZ",
    "note": "Block 1-7 / M2S106"
   },
   {
@@ -7854,7 +8213,6 @@
    "block": "Track West Ext",
    "track": "Track 23B-35B",
    "area": "Helix - Staging",
-   "district": "ERZ",
    "note": "Block 1-8 / M2S107"
   },
   {
@@ -7865,7 +8223,6 @@
    "block": "Track Main West",
    "track": "Track 1A-23A",
    "area": "North - Staging",
-   "district": "SRZ",
    "note": "Block 2-1 / M2S200"
   },
   {
@@ -7875,7 +8232,6 @@
    "channel": "2",
    "block": "Unused",
    "area": "North - Staging",
-   "district": "SRZ",
    "note": "Block 2-2 / M2S201"
   },
   {
@@ -7886,7 +8242,6 @@
    "block": "Track Main East",
    "track": "Track 7B-33C",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 2-3 / M2S202"
   },
   {
@@ -7897,7 +8252,6 @@
    "block": "Track S-4",
    "track": "Track 21B-25B",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 2-4 / M2S203"
   },
   {
@@ -7908,7 +8262,6 @@
    "block": "Track S-3",
    "track": "Track 21C-25C",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 2-5 / M2S204"
   },
   {
@@ -7919,7 +8272,6 @@
    "block": "Track S-2",
    "track": "Track 19C-27C",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 2-6 / M2S205"
   },
   {
@@ -7930,7 +8282,6 @@
    "block": "Track S-1",
    "track": "Track 17C-29C",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 2-7 / M2S206"
   },
   {
@@ -7941,7 +8292,6 @@
    "block": "Track S-R",
    "track": "Track 15B-23B",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 2-8 / M2S207"
   },
   {
@@ -7952,7 +8302,6 @@
    "block": "OS Switch 13",
    "track": "OS Switch 13",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 3-1 / M2S300"
   },
   {
@@ -7963,7 +8312,6 @@
    "block": "OS Switch 15",
    "track": "OS Switch 15",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 3-2 / M2S301"
   },
   {
@@ -7974,7 +8322,6 @@
    "block": "OS Switch 17",
    "track": "OS Switch 17",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 3-3 / M2S302"
   },
   {
@@ -7985,7 +8332,6 @@
    "block": "OS Switch 19",
    "track": "OS Switch 19",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 3-5 / M2S304"
   },
   {
@@ -7996,7 +8342,6 @@
    "block": "OS Switch 21",
    "track": "OS Switch 21",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 3-7 / M2S306"
   },
   {
@@ -8006,7 +8351,6 @@
    "channel": "2",
    "block": "Unused",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 3-8 / M2S307"
   },
   {
@@ -8017,7 +8361,6 @@
    "block": "OS Switch 3",
    "track": "OS Switch 3",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-1 / M2S400"
   },
   {
@@ -8028,7 +8371,6 @@
    "block": "OS Switch 1",
    "track": "OS Switch 1",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-2 / M2S401"
   },
   {
@@ -8039,7 +8381,6 @@
    "block": "Track W-2",
    "track": "Track 3C-end",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-3 / M2S402"
   },
   {
@@ -8050,7 +8391,6 @@
    "block": "Track W-1",
    "track": "Track 3B-end",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-4 / M2S403"
   },
   {
@@ -8061,7 +8401,6 @@
    "block": "OS Switch 5",
    "track": "OS Switch 5",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-5 / M2S404"
   },
   {
@@ -8072,7 +8411,6 @@
    "block": "Track Brick-Plane",
    "track": "Track 1C-5A #1, Track 1C-5A #2",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-6 / M2S405"
   },
   {
@@ -8083,7 +8421,6 @@
    "block": "Track East Ext",
    "track": "Track 5B-7A",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-7 / M2S406"
   },
   {
@@ -8094,7 +8431,6 @@
    "block": "Track Scale",
    "track": "Track 5C-7B",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 4-8 / M2S407"
   },
   {
@@ -8105,7 +8441,6 @@
    "block": "OS Switch 25",
    "track": "OS Switch 25",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 12-1 / M2S1200"
   },
   {
@@ -8116,7 +8451,6 @@
    "block": "OS Switch 27",
    "track": "OS Switch 27",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 12-3 / M2S1202"
   },
   {
@@ -8127,7 +8461,6 @@
    "block": "OS Switch 23a",
    "track": "OS 23 A-1A",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 12-4 / M2S1203"
   },
   {
@@ -8138,7 +8471,6 @@
    "block": "OS Switch 29",
    "track": "OS Switch 29",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 12-5 / M2S1204"
   },
   {
@@ -8149,7 +8481,6 @@
    "block": "OS Switch 23b",
    "track": "OS 23 A-31B",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 12-6 / M2S1205"
   },
   {
@@ -8160,7 +8491,6 @@
    "block": "OS Switch 31",
    "track": "OS Switch 31",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 12-7 / M2S1206"
   },
   {
@@ -8171,7 +8501,6 @@
    "block": "OS Switch 33",
    "track": "OS Switch 33",
    "area": "North - Staging",
-   "district": "SC",
    "note": "Block 12-8 / M2S1207"
   },
   {
@@ -8182,7 +8511,6 @@
    "block": "Track Barn",
    "track": "Track 7A-13C",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-1 / M2S1300"
   },
   {
@@ -8193,7 +8521,6 @@
    "block": "OS Switch 11",
    "track": "OS Switch 11",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-2 / M2S1301"
   },
   {
@@ -8204,7 +8531,6 @@
    "block": "OS Switch 7",
    "track": "OS 7 A-13C",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-3 / M2S1302"
   },
   {
@@ -8215,7 +8541,6 @@
    "block": "OS Switch 7b",
    "track": "OS 7 A-5B",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-4 / M2S1303"
   },
   {
@@ -8226,7 +8551,6 @@
    "block": "Track EH-3",
    "track": "Track 9C-end",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-5 / M2S1304"
   },
   {
@@ -8237,7 +8561,6 @@
    "block": "Track EH-2",
    "track": "Track 9B-end",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-6 / M2S1305"
   },
   {
@@ -8248,7 +8571,6 @@
    "block": "Track EH-1",
    "track": "Track 11B-end",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-7 / M2S1306"
   },
   {
@@ -8259,7 +8581,6 @@
    "block": "OS Switch 9",
    "track": "OS Switch 9",
    "area": "West - Staging",
-   "district": "SC",
    "note": "Block 13-8 / M2S1307"
   },
   {
