@@ -198,7 +198,8 @@ DIGICON_COLUMNS = ["port_id", "parent_node_id", "mqtt_node", "board_location", "
 
 
 def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
-    """The wired Digicon searchlight heads (status wired, every level), one row per lamp pin, in the columns the old
+    """The wired Digicon searchlight heads (status wired, staging's: a main or upper head frozen in wiring.csv is
+    still a virtual head in JMRI until the device map swaps the physical one in), one row per lamp pin, in the columns the old
     signal_wiring.csv had (DIGICON_COLUMNS), from wiring.csv's head rows: each head is one LCOS signal object, its
     three ports R (Stop), Y (Approach) and G (Clear) in that order. A head named "Head <mast> Top" or "Bottom" is its
     mast's top (T) or bottom (B) disc; a head with neither is the mast's one disc (S), its lamps "Head <mast> R".
@@ -209,7 +210,7 @@ def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
     place = {n.node: f"{n.area} - {level_name[n.level]}" for n in read_lcos_nodes(NODES)}
     out, bad = [], []
     for w in read(path):
-        if w.kind != "head" or w.status != "wired":
+        if w.kind != "head" or w.status != "wired" or w.level != 1:
             continue
         m = HEAD_NAME.match(w.device)
         if not m:

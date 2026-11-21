@@ -20,9 +20,10 @@ HEAD = ",".join(wiring.COLUMNS) + "\n"
 
 
 def wires(text: str) -> list:
-    p = Path(tempfile.mkdtemp()) / "wiring.csv"
-    p.write_text(HEAD + text, encoding="utf-8")
-    return wiring.read(p)
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "wiring.csv"
+        p.write_text(HEAD + text, encoding="utf-8")
+        return wiring.read(p)
 
 
 class TheNodes(unittest.TestCase):
@@ -40,12 +41,43 @@ class TheNodes(unittest.TestCase):
 
     def test_a_head_goes_round_frozen_pins(self):
         nodes = self.nodes()
-        nodes.used[42]["turnout"] = 2                                           # one 12V board: OU1
+        nodes.taken[(42, "turnout")] = {0, 1}                                   # one 12V board: OU1
         nodes.freeze(wires('2,head,Head 124LA Top,,,,,42,0,OU2,"1,2,3",wired,\n'))
         self.assertEqual(nodes.place_mast(42, 1), [(1, 4233, 2, 4)])            # OU2-4..6, not on 1..3
         self.assertEqual(nodes.place_mast(42, 1), [(2, 4234, 3, 1)])            # OU2-7, 8 too few: OU3
         nodes.used[42]["block"] = 1
         self.assertNotIn(8, nodes._free(42, 2))                                 # the calibration relay's pin
+
+    def test_a_frozen_turnout_board_is_never_a_heads(self):
+        """Switch 123 frozen on Turnout 7 (OU2): OU2 is a 12V board, so the rule's heads go on OU3."""
+        nodes = self.nodes()
+        nodes.freeze(wires('2,turnout,Switch 123,,,,,42,7,OU2,"7,8",wired,\n'))
+        self.assertEqual(nodes.n12(42), 2)
+        self.assertEqual(nodes.place_mast(42, 2)[0][2], 3)
+
+    def test_the_rules_turnouts_go_round_a_frozen_heads_board(self):
+        """A head frozen on OU2: the rule's turnouts take OU1 (Turnout 0 to 3) and not OU2 (4 to 7, LCOS's last),
+        so a fifth turnout on the node stops, naming the frozen board."""
+        nodes = self.nodes()
+        nodes.freeze(wires('2,head,Head 1L,,,,,42,0,OU2,"1,2,3",wired,\n'))
+        self.assertEqual([nodes.take(42, "turnout")[0] for _ in range(4)], [0, 1, 2, 3])
+        nodes.check_boards()                                                    # OU1 turnouts, OU2 the head
+        with self.assertRaisesRegex(bdm.MapError, r"node 42: no turnout left \(frozen heads in wiring.csv hold "
+                                                  r"boards \[2\]\)"):
+            nodes.take(42, "turnout")
+
+    def test_a_frozen_head_on_a_turnout_board_or_the_calibration_pin_stops(self):
+        nodes = self.nodes()
+        nodes.freeze(wires('2,turnout,Switch 123,,,,,42,0,OU1,"1,2",wired,\n'
+                           '2,head,Head 1L,,,,,42,0,OU1,"3,4,5",wired,\n'))
+        with self.assertRaisesRegex(bdm.MapError, "node 42: heads on OU1, a 12V board a turnout is on"):
+            nodes.check_boards()
+        nodes = self.nodes()
+        nodes.freeze(wires('2,turnout,Switch 123,,,,,42,0,OU1,"1,2",wired,\n'
+                           '2,head,Head 1L,,,,,42,0,OU2,"6,7,8",wired,\n'))
+        nodes.used[42]["block"] = 1
+        with self.assertRaisesRegex(bdm.MapError, "OU2-8, the calibration relay's pin"):
+            nodes.check_boards()
 
     def test_a_frozen_device_on_a_node_the_rule_does_not_hold_stops(self):
         with self.assertRaisesRegex(bdm.MapError, "Switch 9 is on node 13, which lcos_nodes.csv does not list"):
@@ -97,6 +129,14 @@ class TheBuild(unittest.TestCase):
                 ("Switch 123", "DCC Switch 123", "Head 124LA Top", "Head 124LA Bottom")]
         self.assertNotIn("Node: 42 Turnout: 7", " ".join(r["comment"] for r in on42))
         self.assertFalse([r for r in on42 if "OU: 4 Ports: 1," in r["comment"]], "another head on OU4-1")
+        self.assertFalse([r for r in on42 if r["layer"] == "head" and "OU: 2 " in r["comment"]],
+                         "a head on OU2, the frozen turnout's 12V board")
+
+    def test_a_frozen_heads_ports_are_its_own(self):
+        """Ports as wired, not three in a row: the comment gives them, and the rule's heads keep off them."""
+        got = self.build(wires('2,head,Head 124LA Top,,,,,42,8,OU4,"2,4,6",wired,\n'
+                               '2,head,Head 124LA Bottom,,,,,42,9,OU4,"1,3,5",wired,\n'))
+        self.assertEqual(got[("head", "Head 124LA Top")]["comment"], "Node: 42 Signal: 8 | OU: 4 Ports: 2,4,6")
 
     def test_freezing_a_mast_by_halves_stops(self):
         with self.assertRaisesRegex(bdm.MapError, "Mast 124LA: wiring.csv freezes 1 of its 2 head"):
@@ -111,6 +151,7 @@ class TheBuild(unittest.TestCase):
         p = Path(tempfile.mkdtemp()) / "wiring.csv"
         p.write_text(text, encoding="utf-8")
         frozen = bdm.frozen_wires(p)
+        self.assertEqual(wiring.digicon_rows(p), [])          # main and upper heads stay virtual: no Digicon head
         self.assertEqual(len([w for w in frozen if w.kind == "head"]), 8)
         self.assertEqual(self.build(frozen), before)
 
@@ -147,6 +188,19 @@ class TheCommand(unittest.TestCase):
         again, added, turned = fw.merge(text, rows)
         self.assertEqual((again, added, turned), (text, [], []))
 
+    def test_a_planned_row_the_map_does_not_follow_stops(self):
+        planned = HEAD + "2,detector,,9,11,,,42,5,,,planned,the owner's pin\n"
+        rows = fw.freeze_rows("CP 9", self.ROWS, self.KEYS, set(), "2026-11-21")
+        with self.assertRaisesRegex(fw.FreezeError, "wiring.csv plans node 42 input 5, the device map has node 42 "
+                                                    "input 2"):
+            fw.merge(planned, rows)
+
+    def test_stray_spaces_are_read_as_wiring_csv_reads_them(self):
+        planned = HEAD + " 2 ,detector,,9,11,,,42,2,,,planned ,\n"
+        rows = fw.freeze_rows("CP 9", self.ROWS, self.KEYS, set(), "2026-11-21")
+        _text, added, turned = fw.merge(planned, rows)
+        self.assertEqual((len(added), len(turned)), (2, 1))
+
     def test_what_cannot_be_frozen_stops(self):
         with self.assertRaisesRegex(fw.FreezeError, "no main or upper control point 'CP 8'; they are CP 9"):
             fw.freeze_rows("CP 8", self.ROWS, self.KEYS, set(), "2026-11-21")
@@ -158,9 +212,10 @@ class TheCommand(unittest.TestCase):
 
 class OsPins(unittest.TestCase):
     def test_an_os_block_is_pinned_by_its_name(self):
-        p = Path(tempfile.mkdtemp()) / "wiring.csv"
-        p.write_text(HEAD + "2,detector,OS Switch 123,,,,,42,1,,,wired,\n", encoding="utf-8")
-        self.assertEqual(bdm.read_pins(p, found=[], split=set()), {"OS Switch 123": (42, 0)})
+        with tempfile.TemporaryDirectory() as d:
+            p = Path(d) / "wiring.csv"
+            p.write_text(HEAD + "2,detector,OS Switch 123,,,,,42,1,,,wired,\n", encoding="utf-8")
+            self.assertEqual(bdm.read_pins(p, found=[], split=set()), {"OS Switch 123": (42, 0)})
 
 
 if __name__ == "__main__":

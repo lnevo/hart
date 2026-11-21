@@ -36,6 +36,8 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "tools/hartlib/src"), str(ROOT / "tools/schematic")]
 from hartlib import devices, wiring  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
+import build_device_map as bdm  # noqa: E402
+import build_layout_le as bl  # noqa: E402
 
 PORTS = re.compile(r"^Node: (\d+) (Turnout|Sensor|Signal): (\d+) \| (OU|IN): (\d+) Ports: ([\d,]+)$")
 BLOCK = re.compile(r"^Node: (\d+) Block: (\d+)$")
@@ -55,7 +57,6 @@ def track_keys(found: list[dict] | None = None) -> dict[str, dict]:
     """{block name: {switch_a, switch_b, parallel, half}} of every main and upper track block, as
     build_device_map.read_pins resolves them: the track's end switches (mast_rule.track_key, lower first), `parallel`
     when two tracks share them (1, 2 from the top row), `half` for a balloon loop's or a split track's halves."""
-    import build_device_map as bdm
     import mast_rule
     found = bdm.named_tracks() if found is None else found
     split = bdm.split_tracks(found=found)
@@ -128,18 +129,27 @@ def key_of(r) -> tuple:
 
 def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
     """(wiring.csv's text with `new` merged in, the rows added, the rows turned wired). A planned row of the same
-    device turns wired with the new values; a wired one stays as it is."""
-    rows = list(csv.DictReader(io.StringIO(text)))
+    device turns wired; a wired one stays as it is. FreezeError on a planned row whose node or input the device map
+    does not have (a stale map: rebuild it first)."""
+    rows = [{k: (v or "").strip() for k, v in r.items()} for r in csv.DictReader(io.StringIO(text))]
     at = {key_of(r): i for i, r in enumerate(rows)}
-    added, turned = [], []
+    added, turned, moved = [], [], []
     for r in new:
         i = at.get(key_of(r))
         if i is None:
             rows.append(r)
             added.append(r)
         elif rows[i]["status"] == "planned":
+            if (rows[i]["node"], rows[i]["index"]) != (r["node"], r["index"]):
+                moved.append(f"{r['device'] or r['switch_a'] + '-' + r['switch_b']}: wiring.csv plans node "
+                             f"{rows[i]['node']} input {rows[i]['index']}, the device map has node {r['node']} "
+                             f"input {r['index']}")
+                continue
             rows[i] = r | {"notes": "; ".join(x for x in (rows[i]["notes"], r["notes"]) if x)}
             turned.append(rows[i])
+    if moved:
+        raise FreezeError("planned rows the device map does not follow (rebuild it: "
+                          "python3 tools/schematic/build_device_map.py): " + "; ".join(moved))
     level = {"1": 0, "2": 1, "3": 2}
     rows.sort(key=lambda r: level[r["level"]])                 # stable: staging, then main, then upper
     buf = io.StringIO()
@@ -155,7 +165,6 @@ def main(argv=None) -> int:
     ap.add_argument("--dry-run", action="store_true", help="print the rows; write nothing")
     args = ap.parse_args(argv)
     try:
-        import build_device_map as bdm
         helix = {h["block"] for h in bdm.read_helix_tracks().values()}
         new = freeze_rows(args.cp, device_rows(), track_keys(), helix, date.today().isoformat())
         text, added, turned = merge(wiring.PATH.read_text(encoding="utf-8"), new)
@@ -163,7 +172,7 @@ def main(argv=None) -> int:
             merged = Path(tmp) / wiring.PATH.name
             merged.write_text(text, encoding="utf-8")
             wiring.read(merged)
-    except (FreezeError, FactsError, bdm.MapError) as exc:
+    except (FreezeError, FactsError, bdm.MapError, bl.BuildError) as exc:
         print(f"freeze_wiring.py: {exc}", file=sys.stderr)
         return 2
     print(f"{args.cp}: {len(added)} row(s) frozen, {len(turned)} planned row(s) now wired, "

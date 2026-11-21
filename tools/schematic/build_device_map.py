@@ -524,6 +524,8 @@ class Nodes:
         self.pins = {}                        # block -> (node, index): wiring.csv's main and upper detectors
         self.boards = defaultdict(lambda: defaultdict(set))   # node -> {OU board: the pins its heads use}
         self.frozen = {}                      # (kind, device) -> wiring.csv's Wire of a frozen main or upper device
+        self.turnout_boards = defaultdict(set)  # node -> the OU boards its frozen turnouts are on (12V)
+        self.frozen_turnouts = defaultdict(set)  # node -> its frozen turnouts' LCOS numbers
 
     def pin(self, pins):
         """Hold each pinned detector's input (read_pins: {block: (node, input index)}) before any other is given out,
@@ -550,6 +552,9 @@ class Nodes:
             self.used[w.node][what[w.kind]] += 1
             if w.kind == "head":
                 self.boards[w.node][int(w.board[2:])].update(w.ports)
+            elif w.kind == "turnout":
+                self.turnout_boards[w.node].add(int(w.board[2:]))
+                self.frozen_turnouts[w.node].add(w.index)
             self.frozen[(w.kind, w.device)] = w
 
     def take_frozen(self, kind, device):
@@ -579,8 +584,13 @@ class Nodes:
                        f"add one to {NODES.name}")
 
     def take(self, node, what):
-        """The node's lowest free index of `what` (one a pin holds is not free), and its packed id."""
-        k = next(i for i in range(CAP[what]) if i not in self.taken[(node, what)])
+        """The node's lowest free index of `what` (one a pin holds is not free), and its packed id. A turnout's index
+        is its board (index // 4 + 1, assign_ports): one on a board a frozen head is on is not free."""
+        heads = {b for b, used in self.boards[node].items() if used}
+        k = next((i for i in range(CAP[what]) if i not in self.taken[(node, what)]
+                  and not (what == "turnout" and i // 4 + 1 in heads)), None)
+        if k is None:
+            raise MapError(f"node {node}: no {what} left (frozen heads in wiring.csv hold boards {sorted(heads)})")
         self.taken[(node, what)].add(k)
         self.used[node][what] += 1
         return k, node * 100 + UID[what] + k
@@ -598,8 +608,15 @@ class Nodes:
             raise MapError(f"{PINS.name}: pins for blocks the device map gives no detector: {sorted(self.pins)}")
 
     # 5V boards for heads, after the node's 12V turnout boards (call once every turnout and detector is placed)
+    def twelve(self, node):
+        """The node's turnout boards (12V): the rule's turnouts' (index // 4 + 1, assign_ports) and the frozen
+        turnouts' own boards."""
+        rule = {k // 4 + 1 for k in self.taken[(node, "turnout")] if k not in self.frozen_turnouts[node]}
+        return rule | self.turnout_boards[node]
+
     def n12(self, node):
-        return -(-self.used[node]["turnout"] // 4)
+        """The node's last 12V board, the highest a turnout is on (0 with none): the rule's heads go after it."""
+        return max(self.twelve(node), default=0)
 
     def _free(self, node, board):
         """The pins of one 5V OU board a head may use: all eight but those taken, and pin 8 of the first 5V board on a
@@ -643,7 +660,17 @@ class Nodes:
         return out
 
     def check_boards(self):
-        """A node with detectors needs a 5V board for the calibration pin; no node may need more than MAX_OU."""
+        """A node with detectors needs a 5V board for the calibration pin; no node may need more than MAX_OU; no head
+        is on a 12V board, or on a detector node's calibration relay pin (pin 8 of its first 5V board)."""
+        for node, boards in self.boards.items():
+            n12 = self.n12(node)
+            on12 = sorted(b for b, used in boards.items() if used and b in self.twelve(node))
+            if on12:
+                raise MapError(f"node {node}: heads on OU{', OU'.join(map(str, on12))}, a 12V board a turnout is on; "
+                               "move the frozen head or turnout in wiring.csv")
+            if self.used[node]["block"] and 8 in boards.get(n12 + 1, set()):
+                raise MapError(f"node {node}: a head is on OU{n12 + 1}-8, the calibration relay's pin of a node with "
+                               "detectors; move it in wiring.csv")
         for node, used in self.used.items():
             five = max(len(self.five_volt(node)), 1 if used["block"] else 0)
             if self.n12(node) + five > MAX_OU:
@@ -715,7 +742,11 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         return trials[name]
 
     dxs = set(corner_blocks)
-    pins = read_pins(found=found, split=split_names) if pins is None else pins
+    os_pin_level = {}                       # an OS block pinned by its name: the level its row gives (checked below)
+    if pins is None:
+        pins = read_pins(found=found, split=split_names)
+        os_pin_level = {w.device: w.level for w in wiring_rows() if w.kind == "detector" and w.device
+                        and OS_BLOCK.fullmatch(w.device)}
     ms = planned["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)
                             for m in planned["intermediates"]]
     old_virtual = master_virtual_names() if virtual_names is None else virtual_names
@@ -783,6 +814,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                     occupancy(lv, name, block, notes=NOT_WIRED)
                 else:                                     # corner a keeps the switch's detector
                     pinned = nodes.take_pinned(block)
+                    if pinned and os_pin_level.get(block, lv) != lv:
+                        raise MapError(f"{PINS.name}: {block} is a level {lv} block, not level {os_pin_level[block]}")
                     if pinned:
                         bnode, k, packed = pinned
                     else:
@@ -797,6 +830,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             occupancy(lv, name, block, notes=NO_DETECTOR)
             return
         pinned = nodes.take_pinned(block)
+        if pinned and os_pin_level.get(block, lv) != lv:
+            raise MapError(f"{PINS.name}: {block} is a level {lv} block, not level {os_pin_level[block]}")
         if pinned:
             bnode, k, packed = pinned
         else:
@@ -895,10 +930,10 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                     raise MapError(f"Mast {m['name']}: wiring.csv freezes {sum(map(bool, frozen))} of its "
                                    f"{len(users)} head(s), or puts them on two nodes; freeze the mast whole")
                 hnode = frozen[0].node
-                heads = [(u, w.address, w.index, int(w.board[2:]), w.ports[0]) for u, w in zip(users, frozen)]
+                heads = [(u, w.address, w.index, int(w.board[2:]), w.ports) for u, w in zip(users, frozen)]
             else:
                 hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
-                heads = [(u, f"IH{packed}", k, board, pin)
+                heads = [(u, f"IH{packed}", k, board, (pin, pin + 1, pin + 2))
                          for u, (k, packed, board, pin) in zip(users, nodes.place_mast(hnode, m["heads"]))]
             sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
         except NoBoardRoom:
@@ -915,13 +950,13 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
                 jmri=virtual, switch=m["switch"], facing=m["facing"], protects=m["protects"], dir=m["dir"])
-        for user, sysn, k, board, pin in heads:
+        for user, sysn, k, board, ports in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
                 add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
                 continue
             add(lv, name, "head", user, sysn, hnode,
-                f"Node: {hnode} Signal: {k} | OU: {board} Ports: {pin},{pin + 1},{pin + 2}",
+                f"Node: {hnode} Signal: {k} | OU: {board} Ports: {','.join(map(str, ports))}",
                 jmri=level_devices.head_name(user))
     for m in planned["virtual"]:            # a destination for the visible masts' routes: hidden, no heads, no node
         sw = switches[m["switch"]]
