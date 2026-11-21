@@ -265,6 +265,11 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #nav .vr{fill:rgba(220,38,38,.08);stroke:#dc2626;stroke-width:2;vector-effect:non-scaling-stroke}
 #nav.focus rect.n{opacity:.2}
 #nav.focus rect.n.on{opacity:1}
+#rulers{position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+#rulers[hidden]{display:none}
+#steps{position:absolute;left:0;height:24px;overflow:hidden;background:rgba(250,250,250,.88);border-bottom:1px solid #ccc}
+#steps span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:600;color:#475569;pointer-events:auto;cursor:help}
+#lanetags span{position:absolute;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap}
 #info{position:absolute;top:10px;right:10px;bottom:10px;width:360px;z-index:5;padding:12px 14px;overflow:auto;display:none}
 #info h2{font-size:16px;margin:0 0 4px}
 #info code{font-size:12px;word-break:break-all}
@@ -309,6 +314,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 __SITECSS__</style></head><body>__SITEHEADER__
 <div id="stage">
 <div id="wrap"></div>
+<div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
 <div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
 <label><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
@@ -397,6 +403,9 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #legend summary{cursor:pointer}
 #legend b,#info b{color:var(--ink)}
 #nav .vr{fill:rgba(179,58,58,.08);stroke:var(--signal)}
+#steps{background:color-mix(in srgb,var(--paper-2) 90%,transparent);border-bottom-color:var(--rule)}
+#steps span{color:var(--ink-soft);font-family:var(--font-body)}
+#lanetags span{background:var(--card);font-family:var(--font-body)}
 svg.focus .edge.on{stroke:var(--brand-2)}
 svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
 .node .t,.node .d{font-family:var(--font-body)}

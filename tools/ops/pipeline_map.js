@@ -227,7 +227,21 @@ function layout(nodes, edges, domains) {
     return { ...edges[i], pts, back: flipped };
   });
   const bands = domains.filter(d => bandH.get(d.id)).map(d => ({ ...d, y: bandTop.get(d.id), h: bandH.get(d.id) }));
-  return { nodes: outNodes, edges: outEdges, bands, width: nRanks * (NODE_W + COL_GAP) - COL_GAP, height: totalH };
+  return { nodes: outNodes, edges: outEdges, bands, columns: nRanks, width: nRanks * (NODE_W + COL_GAP) - COL_GAP, height: totalH };
+}
+
+/* The step headers over the columns in view: column r is r links from a file nothing on the map builds (step 0). px is
+   how many screen pixels one drawing unit takes; when the columns are too narrow for every number, only every 2nd, 5th,
+   10th or 20th is named, always with step 0. Returns {every, cols: [{r, x}]}, x the column's middle in drawing units. */
+function stepTicks(columns, x0, x1, px) {
+  const step = NODE_W + COL_GAP, wide = step * px;
+  const every = [1, 2, 5, 10, 20, 50].find(k => k * wide >= 64) || 100;
+  const cols = [];
+  for (let r = 0; r < columns; r += every) {
+    const x = r * step + NODE_W / 2;
+    if (x >= x0 - step && x <= x1 + step) cols.push({ r, x });
+  }
+  return { every, cols };
 }
 
 /* What a click on id lights up in a drawing of these edges: every box that feeds it (up) and every box it feeds
@@ -338,7 +352,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -452,13 +466,10 @@ function app() {
     const p = [`<svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="${-LEFT} 0 ${W} ${H}">`,
       '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">',
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
-    const big = lay.width > 4000;
-    for (const b of lay.bands) {
-      const c = esc(b.color), size = Math.round(Math.max(18, Math.min(big ? 110 : 22, b.h * 0.15)));
+    for (const b of lay.bands) {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
+      const c = esc(b.color);
       p.push(`<rect x="${-LEFT}" y="${b.y}" width="${W}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
         `<line x1="${-LEFT}" x2="${W - LEFT}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
-      for (let x = -LEFT + 10; x < W - LEFT; x += 3000)
-        p.push(`<text class="band" x="${x}" y="${b.y + size + 4}" font-size="${size}" fill="${c}">${esc(b.label)}</text>`);
     }
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
@@ -499,6 +510,7 @@ function app() {
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
     drawNav();
+    columnKinds();
     svg.querySelectorAll(".elabel").forEach(l => {
       const path = document.getElementById(l.dataset.edge), m = path.getPointAtLength(path.getTotalLength() / 2);
       l.setAttribute("x", m.x); l.setAttribute("y", m.y - 3); l.setAttribute("text-anchor", "middle");
@@ -597,7 +609,45 @@ function app() {
     const a = freeArea();
     return { top: a.top / a.r.height, right: a.right / a.r.width, bottom: a.bottom / a.r.height };
   }
+  /* ---- step headers along the top and lane names down the left, pinned to the screen while the map moves under them */
+  const rulers = document.getElementById("rulers"), steps = document.getElementById("steps"), laneTags = document.getElementById("lanetags");
+  const STRIP_H = 24;
+  let colKinds = [];  // per column: what its boxes are, for the header's tooltip
+  function columnKinds() {
+    const step = NODE_W + COL_GAP, cols = Array.from({ length: lay.columns }, () => ({}));
+    lay.nodes.forEach(n => { const c = cols[Math.round(n.x / step)]; c[n.kind] = (c[n.kind] || 0) + 1; });
+    colKinds = cols.map(c => Object.entries(c).sort((a, b) => b[1] - a[1])
+      .map(([k, n]) => `${n} ${(DATA.kinds[k] ? DATA.kinds[k][0] : k).toLowerCase()}`).join(", "));
+  }
+  function drawRulers() {
+    if (!lay || !lay.nodes.length) { rulers.hidden = true; return; }
+    rulers.hidden = false;
+    const r = wrapEl.getBoundingClientRect(), m = svg.getScreenCTM(), a = freeArea();
+    const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
+    const top = a.top - STRIP_H - 4;  // the strip sits in the room freeArea keeps for it, just under the toolbar
+    steps.style.top = `${top}px`; steps.style.width = `${a.right}px`;
+    const x0 = (0 - m.e + r.left) / m.a, x1 = (a.right - m.e + r.left) / m.a, last = lay.columns - 1;
+    const t = stepTicks(lay.columns, x0, x1, m.a), out = [];
+    let edge = -Infinity;  // right end of the last label placed; a label that would overlap it is left out
+    for (const c of t.cols) {
+      const label = c.r === 0 ? "Step 0 · raw data" : c.r === last && t.every === 1 ? `Step ${c.r} · built last` : `Step ${c.r}`;
+      const half = label.length * 3.6 + 4;  // about 7.2 px a character at 12 px
+      const x = c.r === 0 ? Math.max(sx(c.x), half + 4) : sx(c.x);  // step 0 stays readable at the left edge; others go when cut off
+      if (x - half < Math.max(edge + 10, 0)) continue;
+      edge = x + half;
+      out.push(`<span style="left:${x.toFixed(0)}px" title="Step ${c.r}: ${esc(c.r === 0 ? "nothing on the map builds these. " : `${c.r} links from raw data. `)}${esc(colKinds[c.r] || "")}">${esc(label)}</span>`);
+    }
+    steps.innerHTML = out.join("");
+    const left = Math.max(8, sx(-LEFT) + 8), floor = top + STRIP_H + 6, tags = [];
+    for (const b of lay.bands) {
+      const y0 = sy(b.y), y1 = sy(b.y + b.h), y = Math.max(y0 + 6, floor);
+      if (y + 18 > Math.min(y1, a.bottom)) continue;  // the lane is out of view, or too thin on screen for its name
+      tags.push(`<span style="top:${y.toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
+    }
+    laneTags.innerHTML = tags.join("");
+  }
   function updateNav() {
+    drawRulers();
     if (!navRect) return;
     const open = info.style.display === "block", narrow = innerWidth <= 900;
     // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
@@ -625,7 +675,7 @@ function app() {
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
      on a phone, above it) while that is open. */
   function freeArea() {
-    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10;
+    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10 + STRIP_H + 4;  // under the step headers
     let right = r.width, bottom = r.height;
     if (info.style.display === "block") {
       const i = info.getBoundingClientRect();

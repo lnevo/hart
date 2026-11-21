@@ -162,6 +162,16 @@ class LayoutTest(unittest.TestCase):
                                         text=True, check=True).stdout)
         self.assertEqual(out, {k: want for k, (_, want) in cases.items()})
 
+    def test_step_headers_thin_out_when_zoomed_out(self) -> None:
+        """stepTicks: every column named when columns are wide on screen, every 20th at a whole-map zoom (step 0 always
+        among them), and only the columns near the part in view."""
+        wide = self.run_js("m.stepTicks(65, 0, 1200, 1)", None)
+        self.assertEqual(wide["every"], 1)
+        self.assertEqual([c["r"] for c in wide["cols"]], [0, 1, 2, 3])  # 400 units a column; up to one column past each edge
+        far = self.run_js("m.stepTicks(65, 0, 26000, 0.01)", None)
+        self.assertEqual((far["every"], [c["r"] for c in far["cols"]]), (20, [0, 20, 40, 60]))
+        self.assertEqual(far["cols"][1]["x"], 20 * 400 + 125)  # the middle of the column's boxes
+
     def run_js(self, call: str, arg) -> dict:
         script = f"const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]); process.stdout.write(JSON.stringify({call}));"
         return json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(arg)], capture_output=True,
