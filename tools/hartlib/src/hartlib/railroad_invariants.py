@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 from . import level_devices, level_masts, tables
-from .railroad_facts import (NameRow, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
-                             switch_number)
+from .railroad_facts import (LEVEL_NUMBERS, NameRow, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
+                             switch_groups, switch_number)
 
 if TYPE_CHECKING:
     from .railroad import Railroad
@@ -142,8 +142,20 @@ def switch_levels(rr: Railroad) -> dict[str, dict[int, str]]:
 def _switch_numbers(rr: Railroad) -> list[str]:
     """Switch plate numbers are unique railroad-wide: no number is a switch of two levels (switch_levels); every
     interlocking's switches are switches of its own level; each main and upper interlocking (control point) is named
-    "CP <its lowest switch>"."""
+    "CP <its lowest switch>"; switches.csv has rows for every main and upper switch, each on its switch's level, and
+    none for a number that is no main or upper switch."""
     bad = []
+    mu, name = rr.main_upper_switches, rr.sources.switches.name
+    rows = switch_groups(rr.switch_rows, LEVEL_NUMBERS)
+    for n, rs in rows.items():
+        sw = mu.get(str(n))
+        if sw is None:
+            bad.append(f"{name} line {rs[0].line}: Switch {n} is in no main or upper control point and gives no area")
+        elif sw.level != rs[0].level:
+            bad.append(f"{name} line {rs[0].line}: Switch {n} is level {rs[0].level}, its control point "
+                       f"{sw.cp} level {sw.level}")
+    bad += [f"Switch {s} ({mu[s].cp}, level {mu[s].level}): no row in {name}"
+            for s in sorted(set(mu) - {str(n) for n in rows}, key=natural)]
     levels = switch_levels(rr)
     for s, on in sorted(levels.items(), key=lambda kv: natural(kv[0])):
         if len(on) > 1:

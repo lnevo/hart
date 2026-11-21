@@ -482,6 +482,17 @@ class Invariants(Copy):
         self.assertTrue(any("level 2 interlocking CP 107 lists Switch 201, which is no level 2 switch" in p
                             for p in self.problems("switch-numbers")), self.problems("switch-numbers"))
 
+    def test_switches_csv_rows_match_the_main_and_upper_switches(self) -> None:
+        """Every main and upper switch has rows in switches.csv, on its control point's level, and no row is for a
+        number that is no main or upper switch."""
+        self.edit("switches", "2,107,107,", "3,107,107,")
+        self.edit("switches", "3,225,225,,,,,,,,,,,double crossover: no hand\n", "")
+        self.append("switches", "3,299,299,,,,,,,,,,,")
+        got = self.problems("switch-numbers")
+        self.assertTrue(any("Switch 107 is level 3, its control point CP 107 level 2" in p for p in got), got)
+        self.assertIn("Switch 225 (CP 225, level 3): no row in switches.csv", got)
+        self.assertTrue(any("Switch 299 is in no main or upper control point and gives no area" in p for p in got), got)
+
     def test_lcos_nodes(self) -> None:
         self.edit("switches", "2,101,101A,,,,L,plan,Peninsula,", "2,101,101A,,,,L,plan,Attic,")
         self.edit("lcos_nodes", "1,West,4,", "2,West,4,")           # a staging node given to the main level
