@@ -181,14 +181,16 @@ class TheChecks(unittest.TestCase):
         self.assertIn("user_name is empty", problems([turnout("")]))
 
     def test_the_same_level_layer_and_name_twice_fails_but_another_level_may_share_a_name(self):
-        self.assertIn("the same level, layer and user_name as line 2", problems([turnout(), turnout()]))
+        self.assertIn("Switch 1 (level 1, turnout): the same level, layer and user_name twice",
+                      problems([turnout(), turnout()]))
         D.check_rows([turnout(), turnout() | {"level": "2", "system_name": "M2T9", "jmri_name": "M2T9"}])
 
     def test_a_virtual_turnout_and_its_lcc_alias_may_share_a_jmri_name(self):
         virtual = turnout("Switch 101", assignment="virtual", jmri_name="IT:HART:C3:101", level="2")
         alias = virtual | {"user_name": "DCC Switch 101", "role": "lcc_alias", "system_name": "MTT120"}
         D.check_rows([virtual, alias])
-        self.assertIn("jmri_name 'IT:HART:C3:101' is line 2's", problems([virtual, virtual | {"user_name": "Switch 103"}]))
+        self.assertIn("jmri_name 'IT:HART:C3:101' is Switch 101 (level 2, turnout)'s",
+                      problems([virtual, virtual | {"user_name": "Switch 103"}]))
 
     def test_field_rows_have_system_name_equal_to_jmri_name(self):
         row = turnout(jmri_name="M2T409")
@@ -675,7 +677,7 @@ class TheKindFromTheRow(unittest.TestCase):
             self.assertTrue(ix.has("occupancy", "BS Store Added"))
             self.assertTrue(ix.is_unplaced("occupancy", "BS Store Added"))
             self.assertFalse(ix.is_unplaced("occupancy", "BS Switch 101"))
-            self.assertEqual(ix.where(row), f"devices.csv line {len(D.load()) + 2}")
+            self.assertEqual(ix.where(row), "devices.csv: BS Store Added (no level, occupancy)")
             self.assertEqual(ix.where(dict(row, user_name="BS Nowhere")), "devices.csv")
             with self.assertRaisesRegex(D.DevicesError, "has no role"):
                 ix.role("occupancy", "BS Store Added")
@@ -692,7 +694,8 @@ class TheKindFromTheRow(unittest.TestCase):
             csv.writer(buf, lineterminator="\n").writerows(rows)
             path.write_text(buf.getvalue(), encoding="utf-8")
             ix = D.index(path)
-            with self.assertRaisesRegex(D.DevicesError, rf"lines {helix[0] + 1}, {helix[1] + 1}: block "
+            with self.assertRaisesRegex(D.DevicesError, r"Track Helix Inner \(level 1, block\); devices.csv: Track "
+                                                        r"Helix Inner \(level 3, block\): block "
                                                         r"'Track Helix Inner' has roles helix, track"):
                 ix.role("block", "Track Helix Inner")
 
@@ -760,7 +763,7 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
         self.path.write_text(D.master_text(rows), encoding="utf-8")
         with self.assertRaises(D.DevicesError) as cm:
             D.load(self.path)
-        self.assertIn(f"devices.csv: line 6 ({rows[4]['level']} {rows[4]['layer']} {rows[4]['user_name']!r}): "
+        self.assertIn(f"devices.csv: {rows[4]['user_name']} (level {rows[4]['level']}, {rows[4]['layer']}): "
                       "description is empty", str(cm.exception))
 
     def test_a_same_size_write_in_the_same_tick_is_read_again(self):
@@ -779,7 +782,7 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
         rows = [dict(r) for r in D.load(self.path)]
         rows[2]["notes"] = "two\nlines"
         self.path.write_text(D.master_text(rows), encoding="utf-8")
-        with self.assertRaisesRegex(D.DevicesError, rf"line \d+ \(.*{rows[2]['user_name']!r}\): notes hold a line break"):
+        with self.assertRaisesRegex(D.DevicesError, rf"{rows[2]['user_name']} \(level 1, turnout\): notes hold a line break"):
             D.load(self.path)
 
 

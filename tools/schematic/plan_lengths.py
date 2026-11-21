@@ -440,7 +440,7 @@ def main_upper_lengths(plan: Path) -> dict:
             continue
         name = r["user_name"]
         sensor = r["part_of"] or name           # a part's occupancy sensor is its OS block's
-        if devices.is_os(r, f"devices.csv line {line}"):
+        if devices.is_os(r, devices.at(r)):
             if name not in os_in:
                 bad.append(f"{name} (level {r['level']}): no turnout part found for it")
             else:

@@ -414,7 +414,7 @@ def load(files: "Files | Path | str | None" = None) -> tuple[Mapping[str, str], 
 
 def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = None
                      ) -> list[tuple[int, dict[str, str]]]:
-    """(line of the master, device-map row) of each row of `levels` outside OUT_OF_MAPS, in master order: the rows the
+    """(place in the merged view, device-map row; a message names it by at(), never the number) of each row of `levels` outside OUT_OF_MAPS, in master order: the rows the
     old device map of those levels held, in its form plus `role`. The one way a reader gets them."""
     return [(n, {**device_map_row(r), "role": r["role"]}) for n, r in enumerate(load(source), 2)
             if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
@@ -446,11 +446,14 @@ def is_os(row: Mapping[str, str], where: str = "devices.csv") -> bool:
 
 @dataclass(frozen=True)
 class Index:
-    """The master's rows by (layer, user name), each with its line: the one lookup for a reader that holds a device's
-    name and needs its row's facts (role, level, layer). Built by index()."""
+    """The master's rows by (layer, user name), each with its place in the merged view (an id, never a file line: the
+    view is two files): the one lookup for a reader that holds a device's name and needs its row's facts (role,
+    level, layer). Messages name a row by where(): its key and the file that holds the owner's cells or the
+    builder's. Built by index()."""
     path: Path
     by_key: Mapping[tuple[str, str], tuple[tuple[int, Mapping[str, str]], ...]]
     lines: tuple[tuple[int, Mapping[str, str]], ...]
+    field_keys: frozenset = frozenset()          # the keys devices_field.csv has a row of
 
     def rows(self, layer: str, name: str) -> tuple[tuple[int, Mapping[str, str]], ...]:
         """(line, row) of every row of `layer` named `name`: one per level the device is on (a helix block is a row
@@ -464,9 +467,9 @@ class Index:
         """The role of the `layer` device `name`. DevicesError when it has no row, a row with no role, or rows on two
         levels that give it different roles (naming their lines)."""
         got = self.rows(layer, name)
-        roles = {row_role(r, f"{self.path.name} line {n}") for n, r in got}
+        roles = {row_role(r, self.where(r)) for _n, r in got}
         if len(roles) != 1:
-            raise DevicesError(f"{self.path.name} lines {', '.join(str(n) for n, _ in got)}: {layer} {name!r} has "
+            raise DevicesError(f"{'; '.join(self.where(r) for _n, r in got)}: {layer} {name!r} has "
                                f"roles {', '.join(sorted(roles))}; its rows give it one")
         return roles.pop()
 
@@ -484,12 +487,13 @@ class Index:
         return all(is_unplaced(r) for _n, r in self.rows(layer, name))
 
     def where(self, row: Mapping[str, str]) -> str:
-        """"devices.csv line N" for the master's row with `row`'s level, layer and user name, for a message; the file's
-        name alone when the master has no such row (a caller's own row, as in a test)."""
-        for n, r in self.by_key.get((row.get("layer", ""), row.get("user_name", "")), ()):
-            if r["level"] == row.get("level"):
-                return f"{self.path.name} line {n}"
-        return self.path.name
+        """"devices_field.csv: Track 12 (level 1, block)" for the master's row with `row`'s level, layer and user
+        name, for a message: the field file when it has a row of the key (the owner's cells), else the generated
+        file; the generated file's name alone when the master has no such row (a caller's own row, as in a test)."""
+        k = (row.get("level", ""), row.get("layer", ""), row.get("user_name", ""))
+        if not any(r["level"] == k[0] for _n, r in self.by_key.get((k[1], k[2]), ())):
+            return self.path.name
+        return f"{FIELD_FILE if k in self.field_keys else self.path.name}: {key_text(k)}"
 
     def names(self, layer: str, roles: Iterable[str] | None = None, levels: Iterable[str] | None = None
               ) -> list[str]:
@@ -501,7 +505,7 @@ class Index:
         for n, r in self.lines:
             if r["layer"] != layer or (levels is not None and r["level"] not in levels):
                 continue
-            if roles is not None and (is_unplaced(r) or row_role(r, f"{self.path.name} line {n}") not in roles):
+            if roles is not None and (is_unplaced(r) or row_role(r, self.where(r)) not in roles):
                 continue
             out.setdefault(r["user_name"], None)
         return list(out)
@@ -522,7 +526,8 @@ def index(files: "Files | Path | str | None" = None) -> Index:
     by_key: dict[tuple[str, str], list[tuple[int, Mapping[str, str]]]] = {}
     for n, r in lines:
         by_key.setdefault((r["layer"], r["user_name"]), []).append((n, r))
-    out = Index(path, MappingProxyType({k: tuple(v) for k, v in by_key.items()}), lines)
+    out = Index(path, MappingProxyType({k: tuple(v) for k, v in by_key.items()}), lines,
+                frozenset(key_of(r) for r in field_rows(files)))
     _INDEXES[id(rows)] = (rows, out)
     while len(_INDEXES) > 8:                    # as many file states as _read keeps
         del _INDEXES[next(iter(_INDEXES))]
@@ -534,6 +539,11 @@ def column_file(column: str) -> str:
     in devices_field.csv when the row has a field row, else the builder's), "generated" for the rest (the builders'
     alone). A Store's level-less row holds every column in the field file."""
     return "field" if column in KEY or column in FIELD_COLUMNS else "generated"
+
+
+def at(row: Mapping[str, str], files: "Files | Path | str | None" = None) -> str:
+    """Where a master row is, for a message: "devices_field.csv: Track 12 (level 1, block)" (Index.where)."""
+    return index(files).where(row)
 
 
 def read_dictionary(path: Path) -> dict[str, str]:
@@ -613,13 +623,13 @@ def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
 
 
 def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") -> None:
-    """The master's invariants; DevicesError listing every problem (a row is named by its line, level, layer and
-    name). Run on every load and after every write."""
+    """The master's invariants; DevicesError listing every problem (a row is named by its key: name, level and
+    layer, never a line, as the merged view is two files). Run on every load and after every write."""
     bad, keys, jmri, field_systems = [], {}, {}, {}
     ranks = []
     parts, part_names, whole = [], set(), set()      # parts (row, level, part_of); (level, name)s
     for n, r in enumerate(rows, 2):
-        at = f"line {n} ({r['level']} {r['layer']} {r['user_name']!r})"
+        at = key_text(key_of(r))
         if r["level"] and r["level"] not in LEVELS:
             bad.append(f"{at}: level is one of {', '.join(LEVELS)}, or empty for a device kept by its jmri_bean")
             continue
@@ -645,15 +655,15 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
                 bad.append(f"{at}: {col} is empty")
         key = (r["level"], r["layer"], r["user_name"])
         if key in keys:
-            bad.append(f"{at}: the same level, layer and user_name as line {keys[key]}")
-        keys[key] = n
+            bad.append(f"{at}: the same level, layer and user_name twice")
+        keys[key] = at
         jn = r["jmri_name"]
         if jn:
             # a virtual turnout and its LCC alias both stand on one internal turnout, so the role is part of the key
             jk = (r["layer"], r["role"] == "lcc_alias", jn)
             if jk in jmri:
-                bad.append(f"{at}: jmri_name {jn!r} is line {jmri[jk]}'s as well")
-            jmri[jk] = n
+                bad.append(f"{at}: jmri_name {jn!r} is {jmri[jk]}'s as well")
+            jmri[jk] = at
         a = r["assignment"]
         if a == "field":
             if not r["system_name"] or not jn:
@@ -663,9 +673,9 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
                 bad.append(f"{at}: field, but system_name {r['system_name']!r} is not jmri_name {jn!r}")
             if r["system_name"]:
                 if r["system_name"] in field_systems.get(r["layer"], {}):
-                    bad.append(f"{at}: field system_name {r['system_name']!r} is line "
+                    bad.append(f"{at}: field system_name {r['system_name']!r} is "
                                f"{field_systems[r['layer']][r['system_name']]}'s as well")
-                field_systems.setdefault(r["layer"], {})[r["system_name"]] = n
+                field_systems.setdefault(r["layer"], {})[r["system_name"]] = at
         elif a == "virtual" and not jn:
             bad.append(f"{at}: a virtual device needs a jmri_name")
         elif a == "none" and jn:
@@ -699,7 +709,7 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
         elif r["layer"] == "block":
             whole.add((r["level"], r["user_name"]))
         if not unknown:
-            ranks.append((_rank(r), n))
+            ranks.append((_rank(r), at))
     for at, level, target in parts:            # the block a part names is on the part's own level
         if (level, target) in part_names:
             bad.append(f"{at}: part_of {target!r} is itself a part (a part names a whole block: no chain or cycle)")
@@ -707,8 +717,8 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
             bad.append(f"{at}: part_of {target!r} is no block row")
     for (a, na), (b, nb) in zip(ranks, ranks[1:]):
         if b < a:
-            bad.append(f"line {nb}: out of order (level, layer, then hand-kept rows before each writer's, "
-                       f"in WRITERS order); it follows line {na}")
+            bad.append(f"{nb}: out of order (level, layer, then a Store's level-less rows after every level, each "
+                       f"writer's rows in WRITERS order); it follows {na}")
             break
     if bad:
         more = f"; and {len(bad) - 20} more" if len(bad) > 20 else ""

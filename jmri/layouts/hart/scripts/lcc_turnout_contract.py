@@ -31,7 +31,7 @@ def child_text(element: ET.Element, tag: str) -> str:
 @dataclass(frozen=True)
 class Plant:
     """A field turnout row of devices.csv and its LCC alias row."""
-    line: int
+    where: str             # the row as a message names it (hartlib.devices.at: its key and file)
     user: str              # Switch N
     system: str            # M2T...
     dcc: str
@@ -48,10 +48,10 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
     rows = list(enumerate(devices.load(csv_path), 2))
     aliases = {r["user_name"]: r for _n, r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
     out, refused, bad = {}, set(), []
-    for n, r in rows:
+    for _n, r in rows:
         if r["role"] != "turnout" or r["assignment"] != "field":
             continue
-        at = f"{csv_path.name} line {n} ({r['user_name']}, {r['system_name']})"
+        at = f"{devices.at(r, csv_path)} ({r['system_name']})"
         a = aliases.pop(f"DCC {r['user_name']}", None)
         problem = ("a field turnout with no dcc" if not r["dcc"] else
                    f"no LCC alias row DCC {r['user_name']}" if a is None else
@@ -61,7 +61,7 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
             bad.append(f"{at}: {problem}")
             refused.add(r["system_name"])
         else:
-            out[r["system_name"]] = Plant(n, r["user_name"], r["system_name"], r["dcc"], a["system_name"],
+            out[r["system_name"]] = Plant(at, r["user_name"], r["system_name"], r["dcc"], a["system_name"],
                                           a["user_name"], devices.comment_of(a))
     bad += [f"{csv_path.name}: alias {u} ({a['system_name']}) has no field turnout row {u.removeprefix('DCC ')}"
             for u, a in sorted(aliases.items())]
@@ -104,7 +104,7 @@ def contract_violations(root: ET.Element, csv_path: Path) -> list[str]:
                 problems.append(f"{sn} ({user or '?'}) has no field turnout row in {csv_path.name}")
             continue
         if user != plant.user:
-            problems.append(f"{sn} userName {user!r} expected {plant.user!r} ({csv_path.name} line {plant.line})")
+            problems.append(f"{sn} userName {user!r} expected {plant.user!r} ({plant.where})")
         twin = lcc.get(plant.alias)
         if twin is None:
             problems.append(f"{sn} ({plant.user}) has no LCC alias {plant.alias}")
@@ -130,6 +130,6 @@ def contract_violations(root: ET.Element, csv_path: Path) -> list[str]:
                 got = twin.get(attr) or ""
                 if got:
                     problems.append(f"{plant.alias} {attr}={got!r} but MQTT is {mqtt_fb}")
-    problems += [f"{p.alias} ({p.alias_user}): {csv_path.name} line {p.line} has no MQTT plant {sn} in tables.xml"
+    problems += [f"{p.alias} ({p.alias_user}): {p.where} has no MQTT plant {sn} in tables.xml"
                  for sn, p in sorted(plants.items()) if sn not in mqtt]
     return problems

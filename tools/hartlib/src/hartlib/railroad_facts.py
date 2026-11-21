@@ -90,6 +90,12 @@ def _where(path: Path, line: int) -> str:
     return f"{path.name} line {line}"
 
 
+def master_at(name: str, user_name: str, level, layer: str) -> str:
+    """A device master row as a message names it: its file and key, "devices_generated.csv: Switch 1 (level 1,
+    turnout)" (the master is two merged files, so a row has no line; hartlib.devices.key_text)."""
+    return f"{name}: {user_name} (level {level}, {layer})"
+
+
 def read_rows(path: Path, required: Iterable[str], *, optional: Iterable[str] = (),
               note: bool = False) -> list[tuple[int, dict[str, str]]]:
     """(line, row) for each row of a CSV: the `required` and `optional` columns only, values stripped. The header
@@ -188,7 +194,7 @@ def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | No
     keys unique)."""
     out = []
     for line, r in read_staging_rows(path) if rows is None else rows:
-        where = _where(path, line)
+        where = master_at(path.name, r["user_name"], STAGING_LEVEL, r["layer"])
         if not r["user_name"]:
             raise FactsError(f"{where}: user_name is empty")
         if r["dcc"] and not r["dcc"].isdigit():
@@ -376,14 +382,14 @@ def switch_turnouts(devices_csv: Path, rows: list[tuple[int, dict[str, str]]] | 
     first (hartlib.devices.load checks the whole file, naming its line and row). Stops on a switch with two rows."""
     want = {f"Switch {n}": n for n in numbers}
     out: dict[int, dict[str, str]] = {}
-    lines: dict[int, int] = {}
-    for line, r in read_staging_rows(devices_csv) if rows is None else rows:
+    for _line, r in read_staging_rows(devices_csv) if rows is None else rows:
         n = want.get(r["user_name"])
         if n is None or r["layer"] != "turnout":
             continue
         if n in out:
-            raise FactsError(f"{devices_csv.name} lines {lines[n]} and {line}: both are the turnout Switch {n}")
-        out[n], lines[n] = r, line
+            raise FactsError(f"{master_at(devices_csv.name, r['user_name'], STAGING_LEVEL, 'turnout')}: two rows "
+                             f"are both the turnout Switch {n}")
+        out[n] = r
     return out
 
 
@@ -975,8 +981,7 @@ class DeviceRow:
     def __post_init__(self) -> None:
         from . import devices
         if self.role not in devices.ROLES:      # no role is read off a name (hand-off row 8)
-            at = f"line {self.line}: " if self.line else ""
-            raise FactsError(f"{at}{self.layer} {self.user_name!r} has role {self.role!r}, not one of "
+            raise FactsError(f"level {self.level} {self.layer} {self.user_name!r} has role {self.role!r}, not one of "
                              f"{', '.join(devices.ROLES)}")
 
     @property
@@ -1028,9 +1033,8 @@ class DeviceMap:
         for r in self.of("occupancy"):
             for block in r.served:
                 if block in out:
-                    raise FactsError(f"{self.path.name if self.path else 'the device map'} lines {out[block].line} "
-                                     f"and {r.line}: occupancy {out[block].user_name} and {r.user_name} both serve "
-                                     f"block {block}")
+                    raise FactsError(f"{self.path.name if self.path else 'the device map'}: occupancy "
+                                     f"{out[block].user_name} and {r.user_name} both serve block {block}")
                 out[block] = r
         return out
 
@@ -1088,7 +1092,7 @@ def read_device_map(path: Path) -> DeviceMap:
     seen: dict[tuple[str, str], int] = {}
     from . import devices
     for line, r in ((n, {c: v.strip() for c, v in row.items()}) for n, row in devices.device_map_lines(("2", "3"), path)):
-        where = _where(path, line)
+        where = master_at(path.name, r["user_name"], r["level"], r["layer"])
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
         bad = device_facts(r)
@@ -1096,7 +1100,7 @@ def read_device_map(path: Path) -> DeviceMap:
             raise FactsError(f"{where}: {r['layer']} {r['user_name']}: " + "; ".join(bad))
         key = (r["layer"], r["user_name"])
         if key in seen:
-            raise FactsError(f"{path.name} lines {seen[key]} and {line}: both are {r['layer']} {r['user_name']}")
+            raise FactsError(f"{where}: two rows are both {r['layer']} {r['user_name']}")
         seen[key] = line
         row = DeviceRow(line=line, **{**r, "level": _level(r["level"], where)})
         out.rows.append(row)

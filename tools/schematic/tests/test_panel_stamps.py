@@ -41,6 +41,18 @@ class DeclarationTest(unittest.TestCase):
                 with self.subTest(step=name, output=pat):
                     self.assertTrue(ps.expand([pat]), f"{pat} matches nothing")
 
+    def test_the_device_master_is_two_files(self) -> None:
+        """The device-map and masts steps write devices_generated.csv; every step that reads the master (its
+        generated file) reads the owner's field file too, so a hand edit there makes the step stale (ADR-029
+        amendment). The names are pinned to hartlib.devices by test_devices_one_path."""
+        generated, field = f"{ps.DATA}/{ps.DEVICES_FILE}", f"{ps.DATA}/{ps.DEVICES_FIELD_FILE}"
+        self.assertEqual([n for n, s in ps.STEPS.items() if generated in s.outputs], ["device-map", "masts"])
+        self.assertFalse([n for n, s in ps.STEPS.items() if field in s.outputs])     # the owner's: no step writes it
+        for name in ps.STEPS:
+            if ps.covered(generated, name):
+                with self.subTest(step=name):
+                    self.assertTrue(ps.covered(field, name), f"{name} reads the master but not {field}")
+
     def test_glob_matching_follows_path_glob(self) -> None:
         self.assertTrue(ps._glob_match("a/b/c.py", "a/**/*.py"))
         self.assertTrue(ps._glob_match("a/c.py", "a/**/*.py"))

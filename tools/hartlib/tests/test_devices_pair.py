@@ -134,6 +134,24 @@ class TheUnmerge(unittest.TestCase):
         self.assertIn("notes 'same' is the generated value too", got[0])
 
 
+class KeyedMessages(unittest.TestCase):
+    """A message names a row by its key and the file that holds it, never a line (the view is two files)."""
+
+    def test_a_staging_device_is_named_in_the_field_file_and_a_built_one_in_the_generated_file(self):
+        rows = {D.key_of(r): r for r in D.load()}
+        self.assertEqual(D.at(rows["1", "turnout", "Switch 1"]), "devices_field.csv: Switch 1 (level 1, turnout)")
+        self.assertEqual(D.at(rows["2", "turnout", "Switch 101"]),
+                         "devices_generated.csv: Switch 101 (level 2, turnout)")
+        self.assertEqual(D.key_text(("", "turnout", "Test 999")), "Test 999 (no level, turnout)")
+
+    def test_check_rows_names_keys_not_lines(self):
+        with self.assertRaises(D.DevicesError) as cm:
+            D.check_rows([turnout(), turnout(description="")])
+        text = str(cm.exception)
+        self.assertIn("Switch 1 (level 1, turnout): description is empty", text)
+        self.assertNotIn("line ", text)
+
+
 class ThePair(unittest.TestCase):
     """load, index, field_index, outputs_after and the writers over a copy of the two files."""
 
