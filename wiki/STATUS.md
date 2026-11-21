@@ -73,6 +73,8 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
   - **Map the power districts.** None is recorded on any level (owner, 2026-11-21).
   - **Wire, freeze and swap, control point by control point** (the 35 main-line detectors with them): wire it as the device map has it, `make wiring-freeze CP="CP 123"`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now.
 
+- **Session #4 punch list (owner, 2026-11-21):** still open: CP signs, the crew board and mock signal designs (agent work); resistor wheels, mock signals at the rail gaps, the crew board mounted, the East End/Princess gap marked and the Barn lead drill signal wired (owner) ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
+
 ## In progress
 
 - 3D station maps: multi-colour fascia plates that hold Touch Toggles ([`docs/benchwork/station_maps_3d/`](../docs/benchwork/station_maps_3d/README.md)). Barn is the only map modelled; its outline, thickness and toggle pocket depth are placeholders until the frame is measured.
