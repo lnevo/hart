@@ -315,8 +315,9 @@ districts were never mapped, so the inventory's old ones are dropped (owner, 202
 from a table in `build_hart_signal_heads.py` (HEADS_3PIN, with a third list of calibration ports); both now come
 from wiring.csv's head and calibration rows. `hartlib.wiring.digicon_rows` gives the pin rows in the old columns to
 the readers (`tables_build.digicon_masts`, `check_wiring_crosswalk.py`, `build_lcos_signal_manager_plan.py`,
-`refresh_bean_comments.py`, `write_inventory.py`). `signal_head_plan.csv` and `signal_mast_plan.csv` stay
-`--wiring-only`'s outputs (they hold mast facts too), byte-identical. A head is on one node (owner, 2026-11-21: never across two nodes),
+`refresh_bean_comments.py`, `write_inventory.py`). `signal_head_plan.csv` stays the script's output
+(it holds mast facts too), byte-identical; `signal_mast_plan.csv`, the old plan's record, and `docs/wiring/lcos/mockups/`
+are archived (owner, 2026-11-21). A head is on one node (owner, 2026-11-21: never across two nodes),
 but its three pins may span two OU boards: `ports` names a pin on the other board, "7,OU3-8,OU3-7".
 
 The freeze (2026-11-21, branch `agent/claude/wiring-freeze`): `make wiring-freeze CP="CP 123"`

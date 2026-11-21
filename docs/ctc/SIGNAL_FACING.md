@@ -18,7 +18,7 @@ Panel lamps (`SECSIGNAL` / `PANELSIGNAL`) tip **into** the named BLOCK on that e
 | `LAMP3` / triple | 3 | High + medium + slow at one mast (none on HART Master today) |
 
 SoR desks: `tools/schematic/build_cats_panel.py` (the hand-wired builder, `archive/cats-scripts/wire_digicon.py`, is archived)  
-Plan: `docs/wiring/signals/signal_mast_plan.csv`
+Plan (history, archived 2026-11-21): `archive/docs/wiring/signals/signal_mast_plan.csv`
 
 ---
 
@@ -106,7 +106,7 @@ Princess east exits are **2-head** (main vs OS McKees Rocks/OS McKeesport). Ball
 - SML dests: **native** — discovered by Layout Editor (`jmri/layouts/hart/scripts/run_sml_discover.sh`, one-shot) and stored in `tables.xml` with `useLayoutEditor=yes`; JMRI re-paths them on every load. The old hand-pair injector `apply_sml_cats_pairs.py` was removed on 2026-11-14 (its pairs and the home-made prediction script were retired on 2026-11-16; signal logic is checked by running stock Discover / Stage 1 in the sandbox rehearsal and comparing the stored pairs with the previous tables, `data/baselines/sml_pairs.csv`); the startup Jython re-apply is removed from all profiles. Runtime criteria can be inspected with `jmri/layouts/hart/scripts/dump_sml_criteria.py` (one-shot, same harness env as `discover_sml.py`). CATS ABS is the visual reference only — it must not `setAspect` on JMRI masts.
 - Plant dests (CATS MQTT compare): OS Barn D (lower west) dests OS 33 when 117 is closed (east into OS Main East), not back across Track East Ext. 117b dests Plane East Ext when 117 is closed (westbound). OS East Lead dests 117b only when 112 is thrown (diverge to OS Main East). OS 33 dests 113a when 112 is thrown. OS 31 dests 113a only when 110 is thrown **and** 112 is closed (ladder into OS East Lead); 110 closed → Stop. 111 through (closed): 111a dests Brick, West OS Main West dests 113b; 111 thrown → both Stop.
 - Ports + topics: the head rows of `jmri/layouts/hart/data/wiring.csv` (the inventory v86 takes them: `python3 tools/wiring/write_inventory.py`)
-- Mast index: `docs/wiring/signals/signal_head_plan.csv` / enriched `signal_mast_plan.csv`
+- Mast index: `docs/wiring/signals/signal_head_plan.csv`
 - Wiring CSVs from the head plan: `python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only` (its one mode; a head is wired in `jmri/layouts/hart/data/wiring.csv`, and `tables.xml` is generated, ADR-029)
 - Signal heads: `jmri/scripts/signal_coordinator.py` listens to SHSM / SML
   and **publishes** Virtual-head appearances JMRI → MQTT (`track/signalhead/IH###`)

@@ -8,7 +8,6 @@ JMRI Virtual heads + SignalHeadSignalMasts live in `tables.xml`; the wiring cata
 
 - the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (one per disc; `hartlib.wiring.digicon_rows` gives the 3 pins)
 - [`docs/wiring/signals/signal_head_plan.csv`](../../docs/wiring/signals/signal_head_plan.csv)
-- [`docs/wiring/signals/signal_mast_plan.csv`](../../docs/wiring/signals/signal_mast_plan.csv)
 
 Packed MQTT leaf = radio node × 100 + UID (example: node 4, UID 0 → `432` / `IH432`).
 
