@@ -119,10 +119,10 @@ class DispatcherVirtualsTest(unittest.TestCase):
 
     def test_repo_dispatcher_virtuals_are_the_staging_buffer_stop_masts(self):
         # Pinned on purpose: a mast or hardware change shows up here instead of moving silently. The virtual staging
-        # masts (hidden, IF$vsm:) stand at buffer stops only (owner, 2026-11-20); staging_masts.csv names them.
+        # masts (hidden, IF$vsm:) stand at buffer stops only (owner, 2026-11-20); masts.csv's staging rows name them.
         audit = load("audit_panel_contracts")
-        with (DATA / "schematic" / "staging_masts.csv").open(newline="", encoding="utf-8") as f:
-            rows = list(csv.DictReader(f))
+        with (DATA / "schematic" / "masts.csv").open(newline="", encoding="utf-8") as f:
+            rows = [r for r in csv.DictReader(f) if r["level"] == "1"]
         virtual = {r["mast"] for r in rows if r["system_name"].startswith("IF$vsm:")}
         self.assertTrue(virtual)
         self.assertEqual(virtual, audit.dispatcher_virtuals({r["mast"] for r in rows}))

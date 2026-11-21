@@ -1,4 +1,4 @@
-"""Each visible staging mast (schematic/staging_masts.csv, placed by rule per ADR-024) is on the live CATS desks once,
+"""Each visible staging mast (schematic/masts.csv, placed by rule per ADR-024) is on the live CATS desks once,
 its lamp on the edge of the block it protects."""
 from __future__ import annotations
 
@@ -18,11 +18,11 @@ import desks  # noqa: E402  (cats/scripts/tests/desks.py: the live desks)
 
 class MastCellsTest(unittest.TestCase):
     def test_each_live_desk_has_each_mast_once_on_the_block_it_protects(self) -> None:
-        # staging's visible masts (virtual ones have no lamp); the main and upper masts (main_upper_masts.csv) are
+        # staging's visible masts (virtual ones have no lamp); the main and upper masts (masts.csv) are
         # check_layout_facts' check_level_desk
         want = {m["mast"] for m in facts_check.staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
         protects = facts_check.protected_blocks()
-        level = facts_check.level_masts.names()
+        level = facts_check.level_masts.names((2, 3))
         self.assertFalse(want & level)
         for desk in desks.LIVE:
             with self.subTest(desk=desk.name):

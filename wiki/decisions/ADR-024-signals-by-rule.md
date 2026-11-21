@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-11-19
 - **Deciders:** lnevo
-- **Amended by:** ADR-029. `device_map_staging.csv` is now `devices.csv`.
+- **Amended by:** ADR-029. `device_map_staging.csv` is now `devices.csv`. 2026-11-21 (owner: the level is a column): `staging_masts.csv`, `staging_signals.csv` and `main_upper_masts.csv` are one file, `data/schematic/masts.csv` with a `level` column (hartlib.level_masts); `build_staging_masts.py` and `build_main_upper_masts.py` are one builder, `build_masts.py`, and `sync_staging_signals.py` is `sync_signals.py`, a check of every level. No mast moved.
 
 ## Context
 
@@ -13,7 +13,7 @@ A review on 2026-11-18 compared staging's hand masts with the rule. Most of them
 
 ## Decision
 
-One mast process places every mast on every level (owner, 2026-11-20). The rules live in `tools/schematic/mast_rule.py`; `tools/schematic/mast_plan.py` (`plan`) runs them as one process, which `build_device_map.py` calls for the main and upper levels and `build_staging_masts.py` for staging. Only the block layer each reads is still its level's own.
+One mast process places every mast on every level (owner, 2026-11-20). The rules live in `tools/schematic/mast_rule.py`; `tools/schematic/mast_plan.py` (`plan`) runs them as one process, which `build_device_map.py` calls for the main and upper levels and `build_masts.py` for staging; `build_masts.py` writes every level's masts into `masts.csv`. Only the block layer each reads is still its level's own.
 
 **Where masts go**
 - A home mast stands where a track from outside an interlocking meets one of its switches.
@@ -50,11 +50,11 @@ One mast process places every mast on every level (owner, 2026-11-20). The rules
 **Heads in JMRI**
 - Every head is internal (`IH:HART:C1:` on staging, `IH:HART:C3:` on main and upper), so nothing unwired reaches MQTT.
 - The only exception is 6LB's IH432, now one high head; IH433 is dropped.
-- A wired staging head lives in `device_map_staging.csv`, as main and upper swap a physical device in through `jmri_name`: a head row whose `jmri_name` is an IH-digits head instead of its internal name. `build_staging_masts.py` keeps it on every rebuild and stops if the rule places no mast for it or gives that mast a different set of heads.
+- A wired staging head lives in `device_map_staging.csv`, as main and upper swap a physical device in through `jmri_name`: a head row whose `jmri_name` is an IH-digits head instead of its internal name. `build_masts.py` keeps it on every rebuild and stops if the rule places no mast for it or gives that mast a different set of heads.
 - `disable_digicon_sml_in_tables.py` boots only masts on wired IH-digit heads with their logic disabled.
 
 **Virtual masts**
-- Staging's hidden routing masts are placed by rule too (owner, 2026-11-20; `build_staging_masts.virtual_masts`), each a virtual one-low mast: a bumper mast at the buffer stop of each track ending at one (4LA, 4LB, 10LA, 10LB, 12L); a stub-leaving mast where a track meets a switch with a stub leg (every route out of that leg ends at a buffer stop), facing into the switch, where the visible rule places none (10RA, 10RB, 12R, 14R); and the partner of an anchor mast that has none, at the same boundary the other way (8LC, opposite 8RA). A virtual mast keeps the system name (`$1001` ...) its device-map row had; a new one takes the next ordinal.
+- Staging's hidden routing masts are placed by rule too (owner, 2026-11-20; `build_masts.virtual_masts`), each a virtual one-low mast: a bumper mast at the buffer stop of each track ending at one (4LA, 4LB, 10LA, 10LB, 12L); a stub-leaving mast where a track meets a switch with a stub leg (every route out of that leg ends at a buffer stop), facing into the switch, where the visible rule places none (10RA, 10RB, 12R, 14R); and the partner of an anchor mast that has none, at the same boundary the other way (8LC, opposite 8RA). A virtual mast keeps the system name (`$1001` ...) its device-map row had; a new one takes the next ordinal.
 - The yard-end masts 16L to 26R and the Dispatcher rear masts 36L and 40RB are dropped with the hidden yard throats (see `jmri/layouts/hart/parked/README.md`). Routes into the yard tracks and stubs now end dark, as they do on main and upper.
 - Nothing is hand-kept any more: the helix-foot masts 38RA and 40RA, the last rows of `staging_masts_virtual.csv`, left on 2026-11-20 when each helix track became one block (they stood at no block boundary), so that file, `staging_signals_virtual.csv` and the code that read them are gone.
 
@@ -64,6 +64,6 @@ One mast process places every mast on every level (owner, 2026-11-20). The rules
 
 ## Consequences
 
-- Change a control point, interlocking or list file, then run `make panels`. A changed mast set needs `sync_staging_signals.py` (staging), stock discovery in a sandbox, and the owner's approval of the panel and desks.
+- Change a control point, interlocking or list file, then run `make panels`. A changed mast set needs `sync_signals.py --check` to pass, stock discovery in a sandbox, and the owner's approval of the panel and desks.
 - The LCOS wiring plan (`docs/wiring/signals/`) lists only Mast 6LB's IH432 (owner, 2026-11-19); the other heads are planned when they are wired. Main and upper heads with no board room on the draft plant carry a "not on a node yet" note.
 - ADR-005's mast grammar gains milepost intermediates (`Mast 67`, `Mast A86`).

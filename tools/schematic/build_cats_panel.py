@@ -29,7 +29,7 @@ NORMAL; double crossover 225 too, its one turnout moving all four points, and a 
 Layout Editor, OS Switch 225a to d on their corners' detectors, with the middle of its X a block of its own and no
 detector: the plugin's `corners` binding, which opens a row between its tracks on the upper level; owner,
 2026-11-17), and their
-control-point masts (main_upper_masts.csv, on virtual heads) are drawn and bound as staging's are: each on the track
+control-point masts (masts.csv, on virtual heads) are drawn and bound as staging's are: each on the track
 it faces at the switch it protects (level_signals), its CATS template the one staging's masts of its appearance type
 take. Every main and upper desk block is bound to its virtual occupancy sensor (the device map's jmri_name,
 IS:HART:C3:B:<block key>, hartlib.level_devices), as OCCUPIEDSPEC / UNOCCUPIEDSPEC (owner,

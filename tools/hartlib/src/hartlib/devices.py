@@ -116,6 +116,14 @@ def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
     return tuple(rows)
 
 
+def parse(text: str, name: str = "devices.csv") -> tuple[Mapping[str, str], ...]:
+    """The rows of a master's text (one outputs_after gives, before it is written), checked as load checks the file.
+    DevicesError naming `name` on any problem."""
+    rows = _read(name, text.encode("utf-8"))
+    check_rows(rows, name)
+    return rows
+
+
 def _master_path(source: "Files | Path | str | None") -> Path:
     if source is None:
         return Files.here().master

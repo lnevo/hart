@@ -10,7 +10,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 
 ## Inputs
 
-- LE mast bindings: the generated panel, which `build_layout_le.py` places from `staging_masts.csv` and `main_upper_masts.csv` (the plugin's slot rule); `audit_panel_contracts.py` holds the stored panel to them
+- LE mast bindings: the generated panel, which `build_layout_le.py` places from `masts.csv` (the plugin's slot rule); `audit_panel_contracts.py` holds the stored panel to them
 - Frozen NX ids: [`jmri/layouts/hart/scripts/nx_contract.py`](../../jmri/layouts/hart/scripts/nx_contract.py)
 - Stub `END_BUMPER` mast slots: [`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md)
 

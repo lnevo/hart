@@ -656,7 +656,7 @@ def intermediate_bands(order=None):
 
 
 def intermediate_facts(blocks=None):
-    """Facts whose only level masts are APB intermediates A83 and A84 at the e33 loop's turnback (main_upper_masts.csv
+    """Facts whose only level masts are APB intermediates A83 and A84 at the e33 loop's turnback (masts.csv
     rows with no switch), as CP 107's are."""
     f = level_facts(device=B.DeviceMap(blocks=blocks or {
         "Track 107 Loop 1": block("Track 107B-107C #1"), "Track 107 Loop 2": block("Track 107B-107C #2"),
@@ -672,7 +672,7 @@ def intermediate_facts(blocks=None):
 
 
 class IntermediateMasts(unittest.TestCase):
-    """APB intermediates (a main_upper_masts.csv row with no switch) stand at the turnback where the half they face
+    """APB intermediates (a main or upper masts.csv row with no switch) stand at the turnback where the half they face
     meets the half they protect."""
 
     def test_they_stand_at_their_turnback_on_their_own_half(self):
@@ -804,9 +804,9 @@ class CommittedMainAndUpper(unittest.TestCase):
         self.assertEqual({k for k, e in level.items() if e["normal"] != "B"}, {"121B", "125B"})
         self.assertEqual({e["normal"] for e in level.values()}, {"B", "C"})
         names = {e["name"] for e in self.bound["masts"].values()}
-        self.assertLessEqual(B.level_masts.visible_names(), names)
-        self.assertEqual(len(B.level_masts.visible_names()), 44)    # main_upper_masts.csv, APB intermediates too
-        hidden = B.level_masts.names() - B.level_masts.visible_names()
+        self.assertLessEqual(B.level_masts.visible_names((2, 3)), names)
+        self.assertEqual(len(B.level_masts.visible_names((2, 3))), 44)    # masts.csv main and upper rows, APB intermediates too
+        hidden = B.level_masts.names((2, 3)) - B.level_masts.visible_names((2, 3))
         self.assertEqual(len(hidden), 24)                            # buffer-stop destinations, never on a desk
         self.assertFalse(hidden & names)
 

@@ -2,8 +2,8 @@
 
 Generate the schematic's layer 1 masts, a section per sheet of jmri/layouts/hart/data/schematic/signals.json
 (hartlib.layer_files), from the staging
-masts in the staging device map's form: staging_signals.csv (each mast's plan facts) and staging_masts.csv (its
-blocks and slot kind), read by staging_device_map.load_signal_masts; kept by hand since the device-map switch-over
+masts in the staging device map's form: masts.csv's staging rows (each mast's plan facts, blocks and slot kind), read
+by staging_device_map.load_signal_masts; kept by hand since the device-map switch-over
 (2026-11-17), first read from the hand-drawn panel by the schematic-maps plugin's signal reader. Main and upper are dark territory (no masts) until the owner's signal plan; add a level to LEVELS
 when it has masts.
 
@@ -33,7 +33,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, hartlib paths and the pinned plugin
 import staging_device_map as sdm  # noqa: E402  the staging masts' plan facts, tracks and signal rows
-from hartlib import layer_files, railroad  # noqa: E402  the signals file; block_lengths.csv, read and checked once
+from hartlib import layer_files, level_masts, railroad  # noqa: E402  the signals file; masts.csv; block_lengths.csv
 
 LEVELS = [("staging.json", "staging"), ("main.json", "main_upper")]   # plan graph in inputs/, section of signals.json
 SCHEMA = "schematic.signals/1"
@@ -169,7 +169,8 @@ def staging_facts() -> tuple[list[dict], list[dict]]:
 
 
 def main_upper_rows() -> list[dict]:
-    """The main and upper masts (main_upper_masts.csv, the owner's approved plan of 2026-11-19) as signal rows: each
+    """The main and upper masts (masts.csv's rows of the device map's levels, the owner's approved plan of
+    2026-11-19) as signal rows: each
     home mast at its switch's leg on the track it faces, each APB intermediate on its loop or split track at the
     turnback, measured from the switch the track starts at (half of the track's length)."""
     import build_device_map as bdm
@@ -188,7 +189,8 @@ def main_upper_rows() -> list[dict]:
     by_name = {t["name"]: t for t in found}
     plan = lambda sid, band: re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][sid]["edge"])   # noqa: E731
     rows = []
-    for r in lm.read():
+    dm_levels = {r.level for r in railroad.Railroad(bdm.sources(), upto="device_map").device_map.rows}
+    for r in lm.read(tuple(sorted(dm_levels))):
         name = r["mast"].removeprefix("Mast ")
         heads = len(r["heads"])
         if lm.is_level_virtual(r["system_name"]):
@@ -196,7 +198,7 @@ def main_upper_rows() -> list[dict]:
             # switch (the whole track: an end bumper), as staging's virtual masts are
             m = destinations.get(name)
             if m is None:
-                sys.exit(f"{r['mast']}: main_upper_masts.csv names a virtual mast the rule no longer places; "
+                sys.exit(f"{r['mast']}: {lm.PATH.name} names a virtual mast the rule no longer places; "
                          "rebuild it with build_device_map.py and build_masts.py")
             band = bands[m["band"]][1]
             d = band["nodes"][m["node"]]
@@ -246,7 +248,7 @@ def main_upper_rows() -> list[dict]:
                              leg=loop_leg(r["facing"]) if t["loop"] else None))
     return [dict(mast=x["mast"], toward=x["toward"], run=x["run"], names=[], edge_cm=x["edge_cm"],
                  cm_from_toward=x["cm_from_toward"], dir=x["dir"], kind=x.get("kind", "planned"), heads=x["heads"],
-                 source="main_upper_masts.csv", _edge=x["edge"], _toward_node=x["node"],
+                 source=level_masts.PATH.name, _edge=x["edge"], _toward_node=x["node"],
                  **({"leg": x["leg"]} if x["leg"] else {})) for x in rows]
 
 
@@ -256,14 +258,14 @@ def loop_leg(facing: str) -> str:
     import mast_rule as mr
     m = re.fullmatch(r".* Loop ([12])", facing)
     if not m:
-        sys.exit(f"main_upper_masts.csv: a mast on a balloon loop faces {facing!r}, not one of its halves (Loop 1, "
+        sys.exit(f"{level_masts.PATH.name}: a mast on a balloon loop faces {facing!r}, not one of its halves (Loop 1, "
                  "Loop 2)")
     return {half: leg for leg, half in mr.LOOP_HALF.items()}[int(m.group(1))]
 
 
 def generate(plugin, graph, name) -> dict:
-    """The signals section of one level: staging from staging_signals.csv and staging_masts.csv, main and upper
-    from main_upper_masts.csv (main_upper_rows); stops on a mast whose run is not in the plan."""
+    """The signals section of one sheet: staging from its masts.csv rows' plan facts, main and upper from theirs
+    placed by the plan graph (main_upper_rows); stops on a mast whose run is not in the plan."""
     if name == "main_upper":
         rows = main_upper_rows()
         g = plan_graph(plugin, graph, name)
@@ -280,7 +282,7 @@ def generate(plugin, graph, name) -> dict:
         bad = check_runs(plugin, graph, name, rows)
         if bad:
             sys.exit(f"{name}: {len(bad)} masts do not fit the plan graph: " + "; ".join(bad))
-        return dict(schema=SCHEMA, source="main_upper_masts.csv", signals=rows, unplaced=[])
+        return dict(schema=SCHEMA, source=level_masts.PATH.name, signals=rows, unplaced=[])
     masts, chains = staging_facts()
     rows = sdm.signal_rows(masts)
     bad = check_runs(plugin, graph, name, rows) + check_lengths(masts, chains, block_cm())

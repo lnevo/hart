@@ -38,8 +38,8 @@ Against the drawing: the end switches of the main and upper tracks (build_device
 above; the rows kept by hand are read on their level's band (staging_device_map.load: staging's
 trial names, short tracks, normal legs and masts), and the helix tracks drawn from their staging switches
 (staging_device_map.check_helix). A builder's rows are its own --check's (build_device_map.py regenerates the main
-and upper rows from the drawing). staging_masts.csv and staging_signals.csv are read in their shape
-(load_signal_masts, mast_facts). Each part runs on its own, so one that stops leaves the others running. Without
+and upper rows from the drawing). masts.csv's staging rows are read in their shape (load_signal_masts,
+mast_facts). Each part runs on its own, so one that stops leaves the others running. Without
 the plugin submodule the drawing part prints SKIPPED and the rest runs, a cp of another level unchecked (exit 1
 with SCHEMATIC_REQUIRED=1), as build_device_map.py does.
 """
@@ -358,7 +358,7 @@ def _part(bad: list[str], fn) -> None:
 
 
 def read_mast_files() -> list[str]:
-    """staging_masts.csv and staging_signals.csv read in their shape (StagingMapError on one that is not)."""
+    """masts.csv's staging rows read in their shape (StagingMapError on one that is not)."""
     sdm.load_signal_masts()
     sdm.mast_facts()
     return []
@@ -425,7 +425,7 @@ def main(argv=None) -> int:
     for b in bad:
         print(f"device master: {b}", file=sys.stderr)
     if not bad:
-        print("ok: " + ", ".join(p.name for p in (DEVICE_MAP, STATIONS, sdm.MASTS, sdm.SIGNALS)) + " hold their rules"
+        print("ok: " + ", ".join(p.name for p in (DEVICE_MAP, STATIONS, sdm.MASTS)) + " hold their rules"
               + (" (but the drawing)" if skipped else ""))
     if bad:
         return 1

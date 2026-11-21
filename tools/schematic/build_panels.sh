@@ -15,8 +15,8 @@
 #   signals               signals.json (a section per sheet), from the plan graph and the masts; the schematic reads it
 #   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
 #                         reads, so it runs before publishing
-#   masts                 every level's masts (build_masts.py): staging's by the mast rule over its device map, with
-#                         their devices.csv rows, and main and upper's from the device map's rows; after device-map,
+#   masts                 masts.csv, every level's masts (build_masts.py): staging's by the mast rule over its device
+#                         map, with their devices.csv rows, and main and upper's from the device map's rows; after device-map,
 #                         whose rows it reads. signals (before) reads the masts of the run before, as it always did
 #                         main and upper's: a change that reaches the masts needs a second run for signals.json
 #   schematic             the schematic draft and stations (publish_draft.py)
@@ -25,7 +25,7 @@
 #   approved-candidate    check_approved.py on the cut-over candidate, straight after it is written
 #   tables                tables.xml (build_tables.py): the template, the staging beans of devices.csv, the Layout
 #                         Editor build, the discovered Signal Mast Logic (ADR-029: tables.xml is an output)
-#   staging-sync          the staging heads and masts in tables.xml follow staging_masts.csv (sync_staging_signals.py
+#   signals-sync          every level's heads and masts in tables.xml follow masts.csv (sync_signals.py
 #                         --check), in both modes; after tables, which generates them from devices.csv
 #   device-master         devices.csv is checked against tables.xml and the schematic (check_device_master.py
 #                         --check), in both modes; after tables, which it checks
@@ -79,7 +79,7 @@ step schematic python3 tools/schematic/publish_draft.py
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 guard approved-candidate python3 tools/schematic/check_approved.py le-candidate
 step tables python3 tools/schematic/build_tables.py
-guard staging-sync python3 tools/schematic/sync_staging_signals.py --check
+guard signals-sync python3 tools/schematic/sync_signals.py --check
 guard device-master python3 tools/schematic/check_device_master.py --check
 step cats python3 tools/schematic/build_cats_panel.py
 guard approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs

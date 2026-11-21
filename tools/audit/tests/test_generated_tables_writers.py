@@ -18,7 +18,7 @@ from hartlib import paths, tables_build as tb  # noqa: E402
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
 S = "jmri/layouts/hart/scripts/"
 REFUSING = (
-    ("tools/schematic/sync_staging_signals.py", []),
+    ("tools/schematic/sync_signals.py", []),
     (S + "export_track_lengths.py", ["--tables"]),
 )
 

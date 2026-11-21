@@ -1,5 +1,5 @@
 """The CATS desk bindings each level's builder gives, on the committed railroad (the sheet, tables.xml, devices.csv,
-switches.csv, main_upper_masts.csv), held to cats/panels/HART_CTC.bindings.json part by part: the
+switches.csv, masts.csv), held to cats/panels/HART_CTC.bindings.json part by part: the
 staging switches, OS blocks, destinations, half labels, blocks and masts, and the main and upper switches, blocks,
 helix blocks and masts. These pin the builders' behaviour so they can be merged into one without a desk changing.
 They go through build_cats_panel (the names it exports), so they hold for any module layout behind it.
@@ -60,7 +60,7 @@ class Whole(unittest.TestCase):
 
     def test_the_counts_follow_the_sources(self):
         """One staging switch binding per staging row of switches.csv, the main and upper ones the internal turnouts of
-        tables.xml, one mast per drawn staging mast and visible main_upper_masts.csv row."""
+        tables.xml, one mast per drawn staging mast and visible main or upper masts.csv row."""
         k = built()
         c, F = k["committed"], k["F"]
         self.assertEqual(sum(staging_turnout(e) for e in c["switches"].values()),
@@ -69,7 +69,7 @@ class Whole(unittest.TestCase):
         self.assertEqual(level, {u.removeprefix("Switch ") for u, sn in F.turnouts.items()
                                  if sn.startswith(B.LEVEL_TURNOUT)})
         staging_masts = [sg for sg in k["bands"][k["bi"]][2].get("signals") or () if sg["kind"] != "virtual"]
-        self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names()))
+        self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names((2, 3))))
 
 
 class StagingSwitches(unittest.TestCase):
@@ -206,7 +206,7 @@ class Masts(unittest.TestCase):
         level = B.level_mast_bindings(k["bands"], k["F"], k["bi"])
         self.assertFalse(set(staging) & set(level))
         self.assertEqual(dict(staging, **level), k["committed"]["masts"])
-        self.assertEqual({e["name"] for e in level.values()}, B.level_masts.visible_names())
+        self.assertEqual({e["name"] for e in level.values()}, B.level_masts.visible_names((2, 3)))
 
     def test_intermediates_stand_on_their_own_loop_half(self):
         """The APB intermediates (rows with no switch) stand at a turnback, on an edge of their loop half's own."""

@@ -56,7 +56,7 @@ class DefaultPathsTest(unittest.TestCase):
 
     def test_other_inputs_are_in_this_checkout(self):
         audit = load("audit_panel_contracts")
-        self.assertEqual(paths.LAYOUT_DATA / "schematic" / "staging_masts.csv", audit.STAGING_MASTS)
+        self.assertEqual(paths.LAYOUT_DATA / "schematic" / "masts.csv", audit.MASTS)
         self.assertEqual(paths.LAYOUT_DIR / "dispatcher" / "traininfo", audit.TRAININFO)
 
 

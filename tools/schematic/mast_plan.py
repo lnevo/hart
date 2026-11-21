@@ -23,9 +23,9 @@ the level's block layer:
 
 The block layer is each level's own (not yet one process): staging's from its device map's block rows and
 block_lengths.csv (build_masts.py), main and upper's generated one block per track, loop and split halves
-(build_device_map.track_layer). Each level's builder turns these masts into its rows: build_masts.py into
-staging_masts.csv, staging_signals.csv and its device rows; build_device_map.py into the main and upper device rows,
-from which build_masts.py writes main_upper_masts.csv.
+(build_device_map.track_layer). Each level's builder turns these masts into its device rows: build_masts.py
+staging's (with their plan facts), build_device_map.py main and upper's; build_masts.py writes masts.csv, every
+level, from those rows.
 """
 from __future__ import annotations
 

@@ -16,7 +16,7 @@ from master_edit import add, change, drop  # noqa: E402  the master is changed t
 
 REPO = R.Sources.under()
 DATA_FILES = ("switches", "devices", "interlockings", "lcos_nodes",
-              "plan_overrides", "block_lengths", "staging_masts", "level_masts")
+              "plan_overrides", "block_lengths", "masts")
 
 
 class Copy(unittest.TestCase):
@@ -81,7 +81,8 @@ class RepoData(unittest.TestCase):
         self.assertEqual(rr.device_map.turnouts["107"].jmri_name, "IT:HART:C3:107")
         self.assertEqual(rr.hands["223"].hand, "R")
         # the 2026-11-19 plan, APB intermediates and Mast 242L (240L before), and 24 virtual destination masts (2026-11-20)
-        self.assertEqual(len(rr.level_masts), 68)
+        self.assertEqual(len([r for r in rr.masts if r["level"] in (2, 3)]), 68)
+        self.assertEqual(len(rr.masts), 98)                 # with staging's 30, one file
         fails, known = R.run_check(rr)
         self.assertEqual(fails, [])
         self.assertEqual(known, [])
@@ -92,7 +93,7 @@ class RepoData(unittest.TestCase):
 
     def test_the_sources_are_the_files_the_builders_name(self) -> None:
         from hartlib import level_masts
-        self.assertEqual(REPO.level_masts, level_masts.PATH)
+        self.assertEqual(REPO.masts, level_masts.PATH)
         self.assertEqual(REPO.devices, paths.DEVICES)
         self.assertEqual(REPO.tables, paths.TABLES_XML)
         for name in DATA_FILES:
@@ -106,13 +107,13 @@ class Layers(unittest.TestCase):
         rr = R.Railroad(upto="inputs")
         rr.plan_overrides                       # an input: allowed
         for attr, writer in (("hands", "build_hands.py"), ("device_map", "build_device_map.py"),
-                             ("level_masts", "build_masts.py"), ("tables", "build_layout_le.py")):
+                             ("masts", "build_masts.py"), ("tables", "build_layout_le.py")):
             with self.subTest(attr=attr), self.assertRaisesRegex(R.LayerError, writer):
                 getattr(rr, attr)
         dm = R.Railroad(upto="device_map")
         self.assertTrue(dm.device_map.rows)
         with self.assertRaises(R.LayerError):
-            dm.level_masts
+            dm.masts
 
     def test_check_runs_only_the_invariants_of_the_layers_read(self) -> None:
         ran = {p.invariant for p in R.Railroad(upto="inputs").check()}
@@ -272,9 +273,14 @@ class Readers(Copy):
         noted.write_text("mast,facing,protects\nMast 2L,Track Main West,OS Switch 1\n", encoding="utf-8")
         self.fails(lambda: R.read_rows(noted, ("mast",), note=True), "noted.csv line 1: the note line")
 
-    def test_a_staging_mast_needs_its_facing_block(self) -> None:
-        self.edit("staging_masts", "Mast 2L,Brick,1,Track Main West,", "Mast 2L,Brick,1,,")
-        self.fails(lambda: R.read_staging_masts(self.src.staging_masts), "has no facing block")
+    def test_a_mast_needs_its_facing_block(self) -> None:
+        self.edit("masts", "1,Mast 2L,Brick,1,Track Main West,", "1,Mast 2L,Brick,1,,")
+        self.fails(lambda: R.read_masts(self.src.masts), "masts.csv line 2: mast Mast 2L: a visible mast faces a block")
+
+    def test_read_masts_gives_the_rows_of_the_levels_asked_for(self) -> None:
+        staging = R.read_masts(self.src.masts, (1,))
+        self.assertEqual((len(staging), staging[0].level, staging[0].mast, staging[0].line), (30, 1, "Mast 2L", 2))
+        self.assertEqual({m.level for m in R.read_masts(self.src.masts)}, {1, 2, 3})
 
     def test_staging_devices_are_level_1_rows_of_the_device_layers(self) -> None:
         sd = R.read_staging_devices(self.src.devices)
@@ -558,6 +564,11 @@ class Invariants(Copy):
         self.assertIn("Switch 1 (switches.csv): devices.csv has no staging turnout row with a system_name and dcc",
                       self.problems("staging-devices"))
 
+    def test_a_staging_mast_on_a_block_staging_has_not(self) -> None:
+        self.edit("masts", "1,Mast 2L,Brick,1,Track Main West,", "1,Mast 2L,Brick,1,Track Nowhere,")
+        self.assertIn("masts.csv: Mast 2L: block Track Nowhere is no level 1 block row of devices.csv",
+                      self.problems("masts"))
+
     def test_staging_blocks(self) -> None:
         self.edit("switches", "1,1,,OS Switch 1,OS Switch 3,Track Brick-Plane", "1,1,,OS Switch 1,OS Switch 3,Track Nowhere")
         self.assertIn("Switch 1 (switches.csv): thrown leg Track Nowhere is no staging block row of devices.csv",
@@ -630,14 +641,13 @@ class Invariants(Copy):
                                  r"as well \(line \d+\)$")
 
     def test_level_masts(self) -> None:
-        self.edit("level_masts", "Mast 110L,CP 107,109,Track 105-109,", "Mast 110L,CP 107,125,Track Nowhere,")
-        got = self.problems("level-masts")
-        self.assertIn("main_upper_masts.csv: Mast 110L faces Track Nowhere, which is no device map block", got)
-        self.assertIn("main_upper_masts.csv: Mast 110L protects Switch 125, which is not in CP 107", got)
-        lines = self.src.level_masts.read_text(encoding="utf-8").splitlines(keepends=True)
-        self.src.level_masts.write_text("".join(l for l in lines if not l.startswith("Mast 108LA,")),
-                                        encoding="utf-8")
-        self.assertIn("main_upper_masts.csv: device map mast Mast 108LA has no row", self.problems("level-masts"))
+        self.edit("masts", "Mast 110L,CP 107,109,Track 105-109,", "Mast 110L,CP 107,125,Track Nowhere,")
+        got = self.problems("masts")
+        self.assertIn("masts.csv: Mast 110L faces Track Nowhere, which is no device map block", got)
+        self.assertIn("masts.csv: Mast 110L protects Switch 125, which is not in CP 107", got)
+        lines = self.src.masts.read_text(encoding="utf-8").splitlines(keepends=True)
+        self.src.masts.write_text("".join(l for l in lines if not l.startswith("2,Mast 108LA,")), encoding="utf-8")
+        self.assertIn("masts.csv: device map mast Mast 108LA has no row", self.problems("masts"))
 
     def test_tables(self) -> None:
         rr = R.Railroad(self.src)
@@ -648,15 +658,15 @@ class Invariants(Copy):
         got = R.INVARIANTS[-1].run(rr)
         self.assertEqual(got, ["Switch 1 (switches.csv): no turnout Switch 1 in tables.xml"])
 
-    def test_tables_masts_of_both_mast_files(self) -> None:
+    def test_tables_masts_of_every_level(self) -> None:
         rr = R.Railroad(self.src)
         t = rr.tables
         t.masts.pop("Mast 2L")
         t.masts["Mast 110L"] = "IF$x"
         got = R.INVARIANTS[-1].run(rr)
-        self.assertTrue(any(p.startswith("staging_masts.csv: Mast 2L: tables.xml has no such mast, the file says IF$")
+        self.assertTrue(any(p.startswith("masts.csv: Mast 2L: tables.xml has no such mast, the file says IF$")
                             for p in got), got)
-        self.assertTrue(any(p.startswith("main_upper_masts.csv: Mast 110L: tables.xml has IF$x, the file says IF$")
+        self.assertTrue(any(p.startswith("masts.csv: Mast 110L: tables.xml has IF$x, the file says IF$")
                             for p in got), got)
 
     def test_tables_staging_switches(self) -> None:

@@ -15,7 +15,7 @@ sys.path.insert(0, str(ROOT / "tools/schematic"))
 import build_device_map as bdm  # noqa: E402
 import build_masts as bsm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
-from hartlib import devices  # noqa: E402
+from hartlib import devices, level_masts  # noqa: E402
 
 
 def row(layer, user, system, jmri=None, node="", notes=""):
@@ -42,7 +42,7 @@ INTERNAL = row("head", "Head 2L Top", "IH:HART:C1:2L_Top", notes="internal, not 
 class CommittedMap(unittest.TestCase):
     """The committed devices.csv wires Head 6LB to IH432 on its mast row and its head row (owner,
     2026-11-18). check_wiring_crosswalk.py would also fail if it went missing, but only through tables.xml against
-    the regenerated staging_masts.csv."""
+    the regenerated masts.csv."""
 
     def test_6lb_is_wired_to_ih432(self):
         rows = sdm.read_device_rows(bsm.DEVICE_MAP)
@@ -210,8 +210,8 @@ class Rebuild(unittest.TestCase):
         user = "Head " + inter["mast"].removeprefix("Mast ")
         out, gen = self.build_with(wiring_edit=self.wire(user, 13, 1))
         self.assertEqual(next(m for m in gen if m["mast"] == inter["mast"])["signal_kind"], "field")
-        sig = next(r for r in rows_of(out[bsm.SIGNALS.name]) if r["mast"] == inter["mast"])
-        self.assertEqual(sig["signal_kind"], "field")
+        sig = next(r for r in rows_of(out[bsm.MASTS.name]) if r["mast"] == inter["mast"])
+        self.assertEqual(level_masts.signal_kind(sig), "field")       # the kind follows from the wired head
         self.assertIn("IH1333=" + user, out[bsm.MASTS.name])
 
     def test_a_wired_head_with_no_mast_stops(self):

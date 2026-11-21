@@ -1,20 +1,22 @@
 #!/usr/bin/env python3
-"""Bring the staging signal heads and masts in tables.xml in line with staging_masts.csv (build_masts.py).
+"""Bring the signal heads and masts in tables.xml in line with masts.csv (build_masts.py), every level alike.
 
-    python3 tools/schematic/sync_staging_signals.py --check                 # exit 1 if tables.xml differs
-    python3 tools/schematic/sync_staging_signals.py --tables OTHER.xml      # edit another tables file
+    python3 tools/schematic/sync_signals.py --check                 # exit 1 if tables.xml differs
+    python3 tools/schematic/sync_signals.py --tables OTHER.xml      # edit another tables file
 
-tables.xml is generated since R9c (ADR-029): tools/schematic/build_tables.py writes its staging heads and masts from
-devices.csv, so this script only checks it and refuses to write it (hartlib.tables_build.refuse_generated).
+tables.xml is generated since R9c (ADR-029): tools/schematic/build_tables.py writes its heads and masts from
+devices.csv (staging's beans) and the Layout Editor build (main and upper's), so this script only checks it and
+refuses to write it (hartlib.tables_build.refuse_generated).
 
-Staging masts are the masts whose user name is "Mast " and a number under 100 (main and upper masts are 101 and up,
-or a line code and a milepost: hartlib.level_devices.LEVEL_USER), and their heads. For each staging mast in the file:
-a SignalHeadSignalMast over VirtualSignalHeads (the heads' user names from head_system_names), or a VirtualSignalMast
-for IF$vsm; an element whose system name, user name and class already match is left as it is (its comment, aspects
-and the rest carry over). Every other staging mast and every staging head no mast of the file uses goes, with the
-Signal Mast Logic that names any mast that went or changed (the logic whose source it is, each destination naming
-it, and a logic left with none): stock discovery in a sandbox derives it again from the panel the LE build draws.
-Run with JMRI closed (a Store would undo it).
+The masts it holds are the masts whose user name is a mast name of any level (hartlib.level_masts.MAST_USER:
+"Mast 2L", "Mast 67", Mast <main or upper switch><L|R>, "Mast A83"), and their heads (level_masts.HEAD_USER). For each such mast in the
+file: a SignalHeadSignalMast over VirtualSignalHeads (the heads' user names from head_system_names), or a
+VirtualSignalMast for IF$vsm; an element whose system name, user name and class already match is left as it is (its
+comment, aspects and the rest carry over). Every other such mast and every such head no mast of the file uses goes,
+with the Signal Mast Logic that names any mast that went or changed (the logic whose source it is, each destination
+naming it, and a logic left with none): stock discovery in a sandbox derives it again from the panel the LE build
+draws. A new head's comment is its device row's (comment and notes), read through hartlib.devices. Run with JMRI
+closed (a Store would undo it).
 """
 from __future__ import annotations
 
@@ -27,24 +29,30 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft  # noqa: E402,F401  puts hartlib on the path
 import le_tables  # noqa: E402  HEAD_CLASS, MAST_CLASS, place
-import staging_device_map as sdm  # noqa: E402
-from hartlib import level_masts, paths, tables, tables_build  # noqa: E402
+from hartlib import devices, level_masts, paths, railroad, tables, tables_build  # noqa: E402
 
 VSM_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
-STAGING_MAST = re.compile(r"Mast \d{1,2}(?:[LR][A-C]?)?")
 
 
-def is_staging_mast(user: str) -> bool:
-    return bool(STAGING_MAST.fullmatch(user or ""))
+def is_mast(user: str) -> bool:
+    """A mast of the file's kind: its user name is a mast name of any level (level_masts.MAST_USER)."""
+    return bool(level_masts.MAST_USER.fullmatch(user or ""))
 
 
-def want_masts(path: Path = sdm.MASTS) -> list[dict]:
-    return sdm.read_rows(path, level_masts.FIELDS)
+def is_head(user: str) -> bool:
+    return bool(level_masts.HEAD_USER.fullmatch(user or ""))
 
 
-def head_comments(device_map: Path = sdm.DEVICE_MAP) -> dict:
-    return {r["system_name"]: " | ".join(x for x in (r["comment"], r["notes"]) if x)
-            for r in sdm.read_device_rows(device_map) if r["layer"] == "head"}
+def want_masts(path: Path = level_masts.PATH) -> list[dict]:
+    """masts.csv's rows, every level (hartlib.level_masts.read checks the file)."""
+    return level_masts.read(None, path)
+
+
+def head_comments(files: devices.Files | None = None) -> dict:
+    """{head JMRI name: its device row's comment and notes} of every level's head rows (hartlib.devices)."""
+    rows = devices.device_map_rows(devices.load(files), tuple(str(lv) for lv in level_masts.LEVELS))
+    return {r["jmri_name"]: " | ".join(x for x in (r["comment"], r["notes"]) if x)
+            for r in rows if r["layer"] == "head"}
 
 
 def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
@@ -54,12 +62,11 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
         raise SystemExit("tables.xml has no signalheads or signalmasts section")
     counts = dict.fromkeys(("masts kept", "masts added", "masts removed", "heads added", "heads removed",
                             "logics removed", "destinations removed"), 0)
-    have = {tables.user_name(m): m for m in tables.masts(root) if is_staging_mast(tables.user_name(m))}
+    have = {tables.user_name(m): m for m in tables.masts(root) if is_mast(tables.user_name(m))}
     want = {r["mast"]: r for r in rows}
     used_heads = {h for r in rows for h in level_masts.mast_heads(r["system_name"])}
     old_heads = {h for m in have.values() for h in level_masts.mast_heads(tables.system_name(m))}
-    old_heads |= {tables.system_name(h) for h in tables.signal_heads(root)
-                  if re.fullmatch(r"Head \d{1,2}[LR]?[A-C]?(?: (?:Top|Bottom))?", tables.user_name(h) or "")}
+    old_heads |= {tables.system_name(h) for h in tables.signal_heads(root) if is_head(tables.user_name(h))}
     gone = set()
     for user, el in have.items():
         r = want.get(user)
@@ -86,7 +93,7 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
             if h in head_by_sys:
                 if tables.user_name(head_by_sys[h]) != user:
                     raise SystemExit(f"head {h} is {tables.user_name(head_by_sys[h])!r} in tables.xml, "
-                                     f"{user!r} in {sdm.MASTS.name}")
+                                     f"{user!r} in {level_masts.PATH.name}")
                 continue
             el = ET.Element("signalhead", {"class": le_tables.HEAD_CLASS})
             ET.SubElement(el, "systemName").text = h
@@ -132,18 +139,24 @@ def sync(root: ET.Element, rows: list[dict], comments: dict) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--check", action="store_true", help="exit 1 if tables.xml differs from staging_masts.csv")
+    ap.add_argument("--check", action="store_true", help="exit 1 if tables.xml differs from masts.csv")
     ap.add_argument("--tables", type=Path, default=paths.TABLES_XML)
     args = ap.parse_args(argv)
     t = tables.load(args.tables)
-    counts = sync(t.root, want_masts(), head_comments())
+    try:
+        rows, comments = want_masts(), head_comments()
+    except railroad.FactsError as exc:          # level_masts and hartlib.devices (DevicesError) name the file and line
+        print(f"{Path(__file__).name}: {exc}", file=sys.stderr)
+        return 2
+    counts = sync(t.root, rows, comments)
     changed = {k: v for k, v in counts.items() if v and k != "masts kept"}
     if args.check:
         if changed:
-            print(f"{paths.rel(args.tables)} differs from {sdm.MASTS.name}: {changed}; run "
-                  "tools/schematic/sync_staging_signals.py", file=sys.stderr)
+            print(f"{paths.rel(args.tables)} differs from {level_masts.PATH.name}: {changed}; run "
+                  "tools/schematic/sync_signals.py", file=sys.stderr)
             return 1
-        print(f"ok: staging signals in {paths.rel(args.tables)} follow {sdm.MASTS.name}")
+        print(f"ok: every level's signals in {paths.rel(args.tables)} follow {level_masts.PATH.name} "
+              f"({counts['masts kept']} masts)")
         return 0
     tables_build.refuse_generated(args.tables, Path(__file__).name)
     if tables.jmri_running():

@@ -24,13 +24,13 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
     levels), and each main and upper desk block reports, occupied and unoccupied, the virtual sensor
     (IS:HART:C3:B:) its block has in tables.xml; only the desk-only middle of a double crossover's X reports none;
   - the desk's staging masts are mast_cells.csv's, each once, its lamp on the edge of the block it
-    protects (schematic/staging_masts.csv, hartlib.railroad); each is a staging mast row of devices.csv and in tables.xml, with one head
+    protects (schematic/masts.csv's staging rows, hartlib.railroad); each is a staging mast row of devices.csv and in tables.xml, with one head
     (the one named) for a d1 icon and two for h2;
   - main and upper (bound to their internal turnouts IT:HART:C3:<n>, their masts and their blocks' virtual
     sensors): each plant commands and reports one internal turnout of tables.xml, NORMAL on its close
     leg, and no plain turnout's close and throw legs are the Layout Editor's swapped; every internal
     turnout has a plant (a double crossover four points, one turnout); each mast of
-    main_upper_masts.csv has one lamp, on the edge of the block it protects (a double crossover's
+    masts.csv's main and upper rows has one lamp, on the edge of the block it protects (a double crossover's
     corner is its one desk block), and is that mast in tables.xml.
 Levels (stations.csv desk areas, switches.csv, staging's rows of devices.csv)
   - each control point's switches are on its level, and every cp of a staging row has a desk area;
@@ -62,7 +62,8 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad, tables as hart_tables  # noqa: E402
+from hartlib import devices, level_devices, level_masts, parked, paths, railroad, tables_build  # noqa: E402
+from hartlib import tables as hart_tables  # noqa: E402
 from hartlib.names import split_dcc  # noqa: E402
 
 ROOT = paths.REPO_ROOT
@@ -76,7 +77,10 @@ import digicon_trace as trace  # noqa: E402
 TABLES = paths.TABLES_XML
 GUI = HART / "ctc/GUIObjects.xml"
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-MASTS = railroad.Sources.under().staging_masts     # each staging mast's facing and protected blocks
+MASTS = railroad.Sources.under().masts     # masts.csv: each mast's level, facing and protected blocks
+# the levels whose beans the generator's base holds (staging), and the levels the Layout Editor build adds
+BASE_LEVELS = tuple(int(v) for v in tables_build.GENERATED_LEVELS)
+ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in BASE_LEVELS)
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
 DEVICE_MAP = railroad.Sources.under().devices     # devices.csv: the main and upper block names
 
@@ -500,7 +504,7 @@ def same_place(desk: str | None, le: str | None) -> bool:
 
 def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     """The main and upper part of a generated desk: its plants against the internal turnouts and the Layout Editor in
-    tables.xml, its masts against main_upper_masts.csv and tables.xml."""
+    tables.xml, its masts against masts.csv's main and upper rows and tables.xml."""
     desk = path.name
     cells = trace.track_cells(parse(path).getroot().find("TRACKPLAN"))
     try:
@@ -556,7 +560,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     have = desk_mast_blocks(path)
     blocks = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     masts = {hart_tables.user_name(m): hart_tables.system_name(m) for m in hart_tables.masts(t.root)}
-    for row in level_masts.read():
+    for row in level_masts.read(ADDED_LEVELS, MASTS):
         mast, lamps = row["mast"], have.get(row["mast"], [])
         if level_masts.is_level_virtual(row["system_name"]):
             if lamps:                   # a hidden destination mast at a buffer stop: no lamp on the desk
@@ -702,20 +706,20 @@ def desk_mast_blocks(path: Path) -> dict[str, list[str | None]]:
 
 
 def protected_blocks(path: Path = MASTS) -> dict[str, str]:
-    """Mast -> the block it protects (";" between several), from the staging masts (schematic/staging_masts.csv,
-    hartlib.railroad.read_staging_masts)."""
-    return {m.mast: ";".join(m.protects) for m in railroad.read_staging_masts(path) if m.protects}
+    """Mast -> the block it protects (";" between several), from the staging masts (schematic/masts.csv's base level
+    rows, hartlib.railroad.read_masts)."""
+    return {m.mast: ";".join(m.protects) for m in railroad.read_masts(path, BASE_LEVELS) if m.protects}
 
 
-def staging_mast_rows(path: Path = MASTS) -> list[dict[str, str]]:
-    with path.open(newline="", encoding="utf-8") as f:
-        return list(csv.DictReader(f))
+def staging_mast_rows(path: Path = MASTS) -> list[dict]:
+    """masts.csv's base level (staging) rows (hartlib.level_masts.read, which checks the file)."""
+    return level_masts.read(BASE_LEVELS, path)
 
 
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
     """mast_cells.csv against the USS board's grid, the CATS desks (each of its masts once, its lamp on the edge of
     the block it protects, and no other mast), staging's mast rows of devices.csv and the masts' heads in tables.xml."""
-    # the desks draw staging's visible masts, as the rule places them (staging_masts.csv, ADR-024); mast_cells.csv
+    # the desks draw staging's visible masts, as the rule places them (masts.csv, ADR-024); mast_cells.csv
     # is the USS board's, checked only while the board is in the tables (it is parked with it, owner 2026-11-19)
     want = {m["mast"] for m in staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
     uss_parked = "uss" in parked.parked_in(t.root)
@@ -726,7 +730,7 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
             r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv puts it at ({c.x}, {c.y}), a cell with no track on "
                                     f"the USS board's grid ({facts.USS_CELLS})")
     protects = protected_blocks()
-    level = level_masts.names()               # main and upper: check_level_desk
+    level = level_masts.names(ADDED_LEVELS, MASTS)      # main and upper: check_level_desk
     for desk in desks:
         have = desk_mast_blocks(Path(desk))
         name = Path(desk).name

@@ -116,7 +116,7 @@ run schematic-masts python3 tools/schematic/build_masts.py --check
 run tables python3 tools/schematic/build_tables.py --check
 run schematic-device-master python3 tools/schematic/check_device_master.py --check
 run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
-run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --check
+run schematic-signals-sync python3 tools/schematic/sync_signals.py --check
 # The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article
 # against its drawings and the block lengths.
 run levels-svg python3 tools/anyrail/levels_svg.py --check

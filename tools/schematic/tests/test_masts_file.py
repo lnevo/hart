@@ -1,52 +1,64 @@
-"""build_masts.py: main_upper_masts.csv from the main and upper mast and head rows of devices.csv. Pinned
-before the mast builders merge (AGENTS.md, "Working on existing scripts"): the committed file is what build() gives,
-and the rules it holds on small hand-written device maps (the virtual head names, the default protected block, the
-virtual and intermediate masts, the A and B legs, the order, and every stop)."""
+"""masts.csv, every level's masts in one file (owner, 2026-11-21): build_masts.file_rows, the one transform from the
+mast and head rows of devices.csv for every level, and hartlib.level_masts.read, its reader. First written to pin
+build_main_upper_masts.py before the builders merged (AGENTS.md, "Working on existing scripts"); its rows, order,
+legs and stops hold for every level now. Small hand-written device rows (the master's columns), and the committed
+file as a data check."""
 from __future__ import annotations
 
 import csv
 import io
 import sys
+import tempfile
 import unittest
-import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_masts as bmm  # noqa: E402
-from hartlib import level_masts, railroad  # noqa: E402
+from hartlib import devices, level_masts, railroad  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 
 def row(layer, user, jmri, system="", level=2, **kw):
-    return railroad.DeviceRow(level=level, layer=layer, user_name=user, jmri_name=jmri, system_name=system, **kw)
+    """A master row (the columns file_rows reads), its role as hartlib.devices gives it."""
+    r = dict(level=str(level), layer=layer, user_name=user, jmri_name=jmri, system_name=system, cp="", switch="",
+             facing="", protects="", dir="")
+    r.update(kw)
+    r.setdefault("role", devices.role_of(layer, user, system, jmri))
+    return r
 
 
 def home(user, switch, facing, kind="one-searchlight", level=2, protects="", physical=True):
     key = user.removeprefix("Mast ")
-    head = f"IH:HART:C3:{key}"
+    head = level_masts.head_name(f"Head {key}", level) if level_masts.HEAD_USER.fullmatch(f"Head {key}") \
+        else f"IH:HART:C3:{key}"
     lcos = "IH" + "".join(str(ord(c)) for c in key)        # a planned physical head, one per mast name
     return [row("mast", user, f"IF$shsm:basic:{kind}({head})", f"IF$shsm:basic:{kind}({lcos})"
                 if physical else "", level=level, cp="CP 1", switch=switch, facing=facing, protects=protects,
-                dir="west", comment=f"CP 1 | Switch {switch}"),
+                dir="west"),
             row("head", f"Head {key}", head, lcos if physical else "", level=level)]
 
 
-def run(rows) -> list[dict]:
-    """level_text() over a device map of `rows`, as the CSV rows it writes."""
-    dm = railroad.DeviceMap(rows=list(rows))
-    fake = unittest.mock.Mock(device_map=dm)
-    with unittest.mock.patch.object(bmm.railroad, "Railroad", return_value=fake):
-        return list(csv.DictReader(io.StringIO(bmm.level_text())))
+def run(rows, plan=None) -> list[dict]:
+    """file_rows over device rows `rows`, each row in its mast columns (the level and plan facts left out)."""
+    return [{c: r[c] for c in level_masts.MAST_FIELDS} for r in bmm.file_rows(rows, plan or {})]
 
 
 class Committed(RepoReadOnly, unittest.TestCase):
-    def test_the_committed_file_is_what_build_gives(self):
-        self.assertEqual(bmm.level_text(), level_masts.PATH.read_text(encoding="utf-8"))
+    def test_the_committed_file_is_every_level_from_the_master_with_staging_plan_facts(self):
+        text = level_masts.PATH.read_text(encoding="utf-8")
+        plan = {(r["level"], r["mast"]): {c: r[c] for c in level_masts.PLAN_FIELDS}
+                for r in level_masts.read() if level_masts.placed(r)}
+        got = bmm.csv_text(bmm.file_rows(list(devices.load()), plan), level_masts.FIELDS)
+        self.assertEqual(got, text)
+        self.assertEqual(text.splitlines()[0], ",".join(level_masts.FIELDS))
 
-    def test_columns(self):
-        self.assertEqual(bmm.level_text().splitlines()[0], ",".join(level_masts.FIELDS))
+    def test_the_levels_and_counts(self):
+        rows = level_masts.read()
+        self.assertEqual({lv: sum(r["level"] == lv for r in rows) for lv in level_masts.LEVELS}, {1: 30, 2: 27, 3: 41})
+        # staging's are placed from plan facts of its own; main and upper's by build_signals.py from the plan graph
+        self.assertEqual({r["level"] for r in rows if level_masts.placed(r)}, {1})
 
 
 class Rows(unittest.TestCase):
@@ -58,6 +70,24 @@ class Rows(unittest.TestCase):
                                  head_system_names="IH:HART:C3:110L=Head 110L",
                                  device_system_name="IF$shsm:basic:one-searchlight(IH49494876)"))
 
+    def test_a_staging_mast_is_its_own_jmri_name_and_takes_its_plan_facts(self):
+        rows = home("Mast 2L", "1", "Track Main West", level=1, protects="OS Switch 1", physical=False)
+        rows = [dict(r, system_name=r["jmri_name"]) for r in rows]          # staging: the live names in both
+        plan = {(1, "Mast 2L"): dict(toward="1", run="1;23", names="Main West", edge_cm="5.0", cm_from_toward="0.0",
+                                     schematic_edge="e1", schematic_toward_node="N1")}
+        (r,) = bmm.file_rows(rows, plan)
+        self.assertEqual((r["level"], r["system_name"], r["device_system_name"], r["head_system_names"], r["run"]),
+                         ("1", "IF$shsm:basic:one-searchlight(IH:HART:C1:2L)",
+                          "IF$shsm:basic:one-searchlight(IH:HART:C1:2L)", "IH:HART:C1:2L=Head 2L", "1;23"))
+
+    def test_a_wired_head_is_kept_on_any_level(self):
+        rows = home("Mast 6LB", "5", "Track East Ext", level=1, protects="OS Switch 5", physical=False)
+        rows = [dict(rows[0], jmri_name="IF$shsm:basic:one-searchlight(IH432)",
+                     system_name="IF$shsm:basic:one-searchlight(IH432)"),
+                dict(rows[1], jmri_name="IH432", system_name="IH432")]
+        (r,) = run(rows)
+        self.assertEqual(r["head_system_names"], "IH432=Head 6LB")
+
     def test_a_mast_with_no_physical_heads_is_read_by_its_virtual_names(self):
         (r,) = run(home("Mast 110L", "109", "Track 105-109", physical=False))
         self.assertEqual((r["system_name"], r["device_system_name"]),
@@ -67,17 +97,19 @@ class Rows(unittest.TestCase):
         (r,) = run(home("Mast 226L", "225", "Track 223-225", protects="OS Switch 225a"))
         self.assertEqual(r["protects"], "OS Switch 225a")
 
+    def test_an_anchor_mast_protects_its_os_block_at_no_switch(self):
+        (r,) = run(home("Mast 8RA", "", "Track Scale", level=1, protects="OS Switch 7", physical=False))
+        self.assertEqual((r["switch"], r["protects"]), ("", "OS Switch 7"))
+
     def test_a_virtual_mast(self):
         (r,) = run([row("mast", "Mast 102RA", "IF$vsm:basic:one-low($2001)", "IF$vsm:basic:one-low($2001)",
-                        cp="", facing="Track 101 Spur 1", dir="east")])
+                        facing="Track 101 Spur 1", dir="east")])
         self.assertEqual(r, dict(mast="Mast 102RA", cp="", switch="", facing="Track 101 Spur 1", protects="",
                                  dir="east", leg="", system_name="IF$vsm:basic:one-low($2001)", head_system_names="",
                                  device_system_name="IF$vsm:basic:one-low($2001)"))
 
     def test_an_intermediate(self):
         rows = home("Mast A83", "", "Track 107 Loop 2", protects="Track 107 Loop 1", physical=False)
-        rows[0] = row("mast", "Mast A83", rows[0].jmri_name, cp="CP 107", facing="Track 107 Loop 2",
-                      protects="Track 107 Loop 1", dir="west", comment="CP 107 | intermediate")
         (r,) = run(rows)
         self.assertEqual((r["switch"], r["protects"]), ("", "Track 107 Loop 1"))
 
@@ -87,24 +119,24 @@ class Rows(unittest.TestCase):
 
     def test_order_is_level_then_number_then_name(self):
         got = run(home("Mast 230L", "229", "T1", level=3) + home("Mast 120RB", "119", "T2")
-                  + home("Mast 110L", "109", "T3") + home("Mast 120RA", "119", "T4"))
-        self.assertEqual([r["mast"] for r in got], ["Mast 110L", "Mast 120RA", "Mast 120RB", "Mast 230L"])
+                  + home("Mast 110L", "109", "T3") + home("Mast 120RA", "119", "T4")
+                  + home("Mast 2L", "1", "T5", level=1, physical=False))
+        self.assertEqual([r["mast"] for r in got], ["Mast 2L", "Mast 110L", "Mast 120RA", "Mast 120RB", "Mast 230L"])
 
 
 class Stops(unittest.TestCase):
-    def stops(self, rows, pattern):
+    def stops(self, rows, pattern, plan=None):
         with self.assertRaisesRegex(bmm.RuleError, pattern):
-            run(rows)
+            run(rows, plan)
 
-    def test_a_virtual_mast_at_a_switch_or_with_a_staging_ordinal(self):
+    def test_a_virtual_mast_at_a_switch_or_with_another_levels_ordinal(self):
         for jmri, switch in (("IF$vsm:basic:one-low($2001)", "101"), ("IF$vsm:basic:one-low($1001)", "")):
             with self.subTest(jmri=jmri):
                 self.stops([row("mast", "Mast 102RA", jmri, jmri, facing="T", switch=switch, dir="east")],
-                           "virtual mast Mast 102RA")
+                           "level 2 mast Mast 102RA: .* VirtualSignalMast of its level's thousand")
 
-    def test_a_mast_at_no_switch_that_is_not_an_intermediate(self):
-        rows = home("Mast 110L", "", "T", protects="OS Switch 109")
-        self.stops(rows, "stands at no switch, so it is an intermediate")
+    def test_a_home_mast_at_no_switch_that_protects_no_os_block(self):
+        self.stops(home("Mast 110L", "", "T", protects="Track 105-109"), "a home signal lost its switch")
 
     def test_a_mast_protecting_two_blocks_or_none_at_no_switch(self):
         self.stops(home("Mast 110L", "109", "T", protects="A;B"), "protects .* a home signal is at a switch")
@@ -114,28 +146,94 @@ class Stops(unittest.TestCase):
         rows = home("Mast 110L", "109", "T")
         rows[0] = row("mast", "Mast 110L", "IF$shsm:basic:one-searchlight", "IF$shsm:basic:one-searchlight",
                       switch="109", facing="T", dir="west")
-        self.stops(rows, "system name not as expected")
+        self.stops(rows, "is not a SignalHeadSignalMast over its heads")
 
-    def test_a_head_with_no_row_or_another_virtual_name(self):
-        self.stops(home("Mast 110L", "109", "T")[:1], r"heads \['IH49494876'\] have no head row")
-        rows = home("Mast 110L", "109", "T")
-        rows[1] = row("head", "Head 110L", "IH:HART:C3:110LX", rows[1].system_name)
-        self.stops(rows, "has jmri_name 'IH:HART:C3:110LX', not IH:HART:C3:110L")
+    def test_a_head_with_no_row_or_another_name(self):
+        self.stops(home("Mast 110L", "109", "T")[:1], r"heads \['IH:HART:C3:110L'\] have no head row")
+        rows = [dict(r, jmri_name=r["jmri_name"].replace("C3:110L", "C3:110LX")) for r in home("Mast 110L", "109", "T")]
+        self.stops(rows, "head Head 110L is 'IH:HART:C3:110LX', neither its internal name IH:HART:C3:110L")
+        rows = home("Mast 2L", "1", "T", level=1, protects="OS Switch 1", physical=False)
+        rows = [dict(r, jmri_name=r["jmri_name"].replace("C1", "C3")) for r in rows]    # another level's prefix
+        self.stops(rows, "neither its internal name IH:HART:C1:2L")
 
-    def test_a_jmri_name_that_is_not_the_heads(self):
+    def test_a_physical_mast_that_is_not_the_jmri_masts(self):
         rows = home("Mast 110L", "109", "T")
-        rows[0] = row("mast", "Mast 110L", "IF$shsm:basic:one-low(IH:HART:C3:110L)", rows[0].system_name,
+        rows[0] = row("mast", "Mast 110L", "IF$shsm:basic:one-low(IH:HART:C3:110L)", rows[0]["system_name"],
                       switch="109", facing="T", dir="west")
-        self.stops(rows, "jmri_name .* is not IF\\$shsm:basic:one-searchlight")
+        self.stops(rows, "is not the planned physical mast of")
 
     def test_a_name_out_of_the_grammar(self):
-        self.stops(home("Mast 110", "109", "T"), "not a mast name in the device map's grammar")
+        self.stops(home("Mast 1x0", "109", "T"), "the name is not Mast <number>")
 
     def test_two_masts_on_one_pair_that_are_not_a_and_b(self):
         self.stops(home("Mast 120RA", "119", "X") + home("Mast 120RC", "119", "X"), "only an A and a B")
 
     def test_a_name_twice(self):
-        self.stops(home("Mast 110L", "109", "T1") + home("Mast 110L", "109", "T2"), "a mast is named twice")
+        self.stops(home("Mast 110L", "109", "T1") + home("Mast 110L", "109", "T2"), "mast Mast 110L is named twice")
+
+    def test_plan_facts_for_a_mast_the_master_has_not(self):
+        self.stops(home("Mast 110L", "109", "T"), "plan facts for level 1 mast Mast 9L",
+                   plan={(1, "Mast 9L"): dict.fromkeys(level_masts.PLAN_FIELDS, "x")})
+
+
+class Reader(unittest.TestCase):
+    """hartlib.level_masts.read: the whole file checked, the rows of the levels asked for."""
+
+    def write(self, text: str) -> Path:
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: [p.unlink() for p in d.iterdir()] and d.rmdir())
+        p = d / "masts.csv"
+        p.write_text(text, encoding="utf-8")
+        return p
+
+    def committed(self) -> str:
+        return level_masts.PATH.read_text(encoding="utf-8")
+
+    def fails(self, text: str, pattern: str):
+        with self.assertRaisesRegex(railroad.FactsError, pattern):
+            level_masts.read(None, self.write(text))
+
+    def test_levels_filter_and_lines(self):
+        p = self.write(self.committed())
+        rows = level_masts.read((2, 3), p)
+        self.assertEqual({r["level"] for r in rows}, {2, 3})
+        self.assertTrue(all(isinstance(r["line"], int) and r["line"] > 31 for r in rows))
+        with self.assertRaisesRegex(railroad.FactsError, r"levels \[4\] are not"):
+            level_masts.read((4,), p)
+
+    def test_the_header_must_be_the_fields(self):
+        self.fails(self.committed().replace("level,mast,", "mast,level,", 1), "masts.csv line 1: columns mast,level")
+
+    def test_a_bad_level_name_dir_or_leg(self):
+        t = self.committed()
+        self.fails(t.replace("1,Mast 2L,", "4,Mast 2L,", 1), "line 2: mast Mast 2L: level '4'")
+        self.fails(t.replace("1,Mast 2L,", "1,Signal 2L,", 1), "line 2: mast Signal 2L: the name")
+        self.fails(t.replace(",OS Switch 1,west,,", ",OS Switch 1,north,,", 1), "line 2: mast Mast 2L: dir 'north'")
+        self.fails(t.replace(",OS Switch 1,west,,", ",OS Switch 1,west,left,", 1), "line 2: mast Mast 2L: leg 'left'")
+
+    def test_a_name_twice_on_any_level(self):
+        lines = self.committed().splitlines(keepends=True)
+        self.fails("".join(lines + [lines[1]]), "line 100: mast Mast 2L is on line 2 already")
+
+    def test_some_plan_facts_but_not_all(self):
+        self.fails(self.committed().replace(",Main West,586.7,0.0,e16,TOL34067", ",Main West,,0.0,e16,TOL34067", 1),
+                   "line 2: mast Mast 2L: plan facts")
+
+    def test_heads_not_its_system_names_or_another_levels_names(self):
+        t = self.committed()
+        self.fails(t.replace("IH:HART:C1:2L_Top=Head 2L Top", "IH:HART:C1:2L_Top=Head 2R Top", 1),
+                   "line 2: mast Mast 2L: head Head 2R Top is")
+        self.fails(t.replace("=Head 2L Bottom", "", 1), "are not system=user pairs")
+
+    def test_a_virtual_mast_out_of_its_levels_thousand(self):
+        self.fails(self.committed().replace("one-low($1001)", "one-low($2999)"), "virtual mast")
+
+    def test_derived_signal_facts(self):
+        rows = {r["mast"]: r for r in level_masts.read((1,))}
+        self.assertEqual([level_masts.signal_kind(rows[m]) for m in ("Mast 2L", "Mast 6LB", "Mast 4LA")],
+                         ["planned", "field", "virtual"])
+        self.assertEqual([level_masts.head_count(rows[m]) for m in ("Mast 2L", "Mast 6LB", "Mast 4LA")], [2, 1, 1])
+        self.assertEqual(level_masts.signal_name("Mast 24RA"), "24RA")
 
 
 if __name__ == "__main__":

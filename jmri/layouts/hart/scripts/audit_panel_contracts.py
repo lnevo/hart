@@ -17,11 +17,15 @@ from typing import Iterable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, level_devices, level_masts, parked, paths, railroad_facts, tables  # noqa: E402
+from hartlib import devices, level_devices, level_masts, parked, paths, railroad_facts, tables, tables_build  # noqa: E402
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
-STAGING_MASTS = paths.LAYOUT_DATA / "schematic" / "staging_masts.csv"     # written by build_masts.py
+MASTS = level_masts.PATH      # masts.csv, every level's masts (build_masts.py)
+# the levels whose beans the generator's base holds (staging: its field masts), and the levels the Layout Editor
+# build adds (main and upper, on virtual heads)
+BASE_LEVELS = tuple(int(v) for v in tables_build.GENERATED_LEVELS)
+ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in BASE_LEVELS)
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -83,10 +87,10 @@ class SetupError(Exception):
     """The audit cannot run (a tool it needs is missing): main() reports it as one line and exits 1."""
 
 
-def load_staging_masts(path: Path | None = None) -> list[railroad_facts.StagingMast]:
-    """The staging masts the mast rule writes (staging_masts.csv): the audit's expected set."""
-    # stops on a mast named twice or with no facing block
-    return railroad_facts.read_staging_masts(STAGING_MASTS if path is None else path)
+def load_staging_masts(path: Path | None = None) -> list[railroad_facts.Mast]:
+    """The masts of the base levels (masts.csv's staging rows) the mast rule writes: the audit's expected set."""
+    # stops on a file that breaks its rules (hartlib.level_masts.read)
+    return railroad_facts.read_masts(MASTS if path is None else path, BASE_LEVELS)
 
 
 def slots_index(panel: ET.Element):
@@ -163,24 +167,24 @@ def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -
 
 
 def split_protects(value: str) -> list[str]:
-    """The protected blocks of a mast file's `protects` column (";" separated, as read_staging_masts reads it)."""
+    """The protected blocks of a mast file's `protects` column (";" separated, as read_masts reads it)."""
     return [b for b in (value or "").split(";") if b]
 
 
 def draws_levels(panel: ET.Element | None) -> bool:
     """Whether a panel draws the main and upper levels: a turnout of it holds an OS block a main or upper mast
-    protects (main_upper_masts.csv)."""
+    protects (masts.csv's main and upper rows)."""
     if panel is None:
         return False
-    protects = {b for r in level_masts.read() for b in split_protects(r["protects"])}   # a hidden mast protects none
+    protects = {b for r in level_masts.read(ADDED_LEVELS) for b in split_protects(r["protects"])}   # a hidden mast protects none
     return any(t.get(a) in protects for t in panel.iter("layoutturnout")
                for a in ("blockname", "blockbname", "blockcname", "blockdname"))
 
 
-def audit_masts(root: ET.Element, staging: list[railroad_facts.StagingMast], audit: Audit, *,
+def audit_masts(root: ET.Element, staging: list[railroad_facts.Mast], audit: Audit, *,
                 levels: bool = False, devices_csv: Path = paths.DEVICES) -> None:
-    """The signal mast table: the staging field masts exactly (staging_masts.csv, those not virtual), the Dispatcher virtuals, no CATS runtime virtuals;
-    and the main and upper masts on virtual heads, every one of main_upper_masts.csv when the panel draws those
+    """The signal mast table: the staging field masts exactly (masts.csv's staging rows, those not virtual), the Dispatcher virtuals, no CATS runtime virtuals;
+    and the main and upper masts on virtual heads, every main and upper row of masts.csv when the panel draws those
     levels (`levels`), else none but its own."""
     masts = root.find("signalmasts")
     names: set[str] = set()
@@ -209,17 +213,17 @@ def audit_masts(root: ET.Element, staging: list[railroad_facts.StagingMast], aud
             if name:
                 names.add(name)
     if level or levels:
-        want = level_masts.names()
+        want = level_masts.names(ADDED_LEVELS)
         if level != want:
             audit.error(f"main and upper masts on virtual heads differ from {level_masts.PATH.name}: missing="
                         f"{sorted(want - level) or 'none'}, extra={sorted(level - want) or 'none'}")
     audit.facts["level_masts"] = len(level)
     expected = {m.mast for m in staging}
-    virtuals = {m.mast for m in staging if m.system_name.startswith("IF$vsm:")}     # staging_masts.csv's own word
+    virtuals = {m.mast for m in staging if m.system_name.startswith("IF$vsm:")}     # masts.csv's own word
     in_devices = dispatcher_virtuals(expected, devices_csv)
     if in_devices != virtuals:
-        audit.error(f"virtual staging masts differ between staging_masts.csv and devices.csv: only in "
-                    f"staging_masts.csv={sorted(virtuals - in_devices) or 'none'}, only in "
+        audit.error(f"virtual staging masts differ between {MASTS.name} and devices.csv: only in "
+                    f"{MASTS.name}={sorted(virtuals - in_devices) or 'none'}, only in "
                     f"devices.csv={sorted(in_devices - virtuals) or 'none'}")
     field_expected = expected - virtuals
     missing = sorted(field_expected - names)
@@ -238,9 +242,9 @@ def audit_masts(root: ET.Element, staging: list[railroad_facts.StagingMast], aud
     audit.facts["cats_virtual"] = tuple(sorted(cats_virtual))
 
 
-def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.StagingMast], audit: Audit, *,
+def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.Mast], audit: Audit, *,
                    levels: bool = False) -> None:
-    """Every staging mast (staging_masts.csv), and every main and upper mast (main_upper_masts.csv) when the panel
+    """Every staging mast (masts.csv), and every main and upper mast (the file's other rows) when the panel
     draws those levels, is bound in exactly one slot, and that slot resolves (the plugin's slot index, the rule the LE
     build places masts by) to the mast's facing block and protected blocks. A mast bound twice, or in a slot facing
     another block, is an error; so is a bound mast no file names, or a turnout or anchor ident used twice (the
@@ -250,7 +254,7 @@ def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.Stagin
         return
     want = {m.mast: (m.facing, sorted(m.protects)) for m in staging}
     if levels:
-        want |= {r["mast"]: (r["facing"], split_protects(r["protects"])) for r in level_masts.read()}
+        want |= {r["mast"]: (r["facing"], split_protects(r["protects"])) for r in level_masts.read(ADDED_LEVELS)}
     idents = Counter((el.tag, el.get("ident")) for tag in ("layoutturnout", "positionablepoint")
                      for el in panel.iter(tag))
     for (tag, ident), n in sorted(idents.items(), key=str):
@@ -796,7 +800,7 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
 
 
 def audit_source(
-    label: str, path: Path, staging: list[railroad_facts.StagingMast], *, generated: bool = False
+    label: str, path: Path, staging: list[railroad_facts.Mast], *, generated: bool = False
 ) -> Audit:
     audit = Audit(label=label, path=path)
     try:

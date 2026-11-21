@@ -33,7 +33,7 @@ STEPS = [
     ("le-cutover", "build_layout_le.py --as-live", False),
     ("approved-candidate", "check_approved.py le-candidate", True),
     ("tables", "build_tables.py", False),
-    ("staging-sync", "sync_staging_signals.py --check", True),
+    ("signals-sync", "sync_signals.py --check", True),
     ("device-master", "check_device_master.py --check", True),
     ("cats", "build_cats_panel.py", False),
     ("approved-desks", "check_approved.py cats-ctc cats-abs", True),
@@ -71,7 +71,7 @@ class StepList(unittest.TestCase):
             self.assertLess(NAMES.index("masts"), NAMES.index(late), late)
         # what reads tables.xml runs after the step that writes it (ADR-029): the staging checks, the CATS desks
         # (their turnouts, sensors and masts) and the live fingerprint, so one make panels leaves them all current
-        for check in ("staging-sync", "device-master", "cats", "approved-desks", "approved-live"):
+        for check in ("signals-sync", "device-master", "cats", "approved-desks", "approved-live"):
             self.assertLess(NAMES.index("tables"), NAMES.index(check), check)
 
 
@@ -96,14 +96,14 @@ class DryRun(unittest.TestCase):
         self.assertIn("all current", out)
 
     def test_a_check_runs_every_step_with_check_and_names_each_stale_one(self):
-        code, out, ran = self.run_script("--check", fail="sync_staging_signals.py")
+        code, out, ran = self.run_script("--check", fail="sync_signals.py")
         self.assertEqual(ran, [f"tools/schematic/{cmd} --check" for _n, cmd, _o in STEPS])
         self.assertEqual(code, 1)
-        self.assertIn("stale or failed: staging-sync\n", out)
+        self.assertIn("stale or failed: signals-sync\n", out)
         self.assertNotIn("stopped", out)
 
     def test_a_write_stops_at_a_failed_check_and_does_not_say_it_writes(self):
-        for name, script in (("plan-lengths", "plan_lengths.py"), ("staging-sync", "sync_staging_signals.py")):
+        for name, script in (("plan-lengths", "plan_lengths.py"), ("signals-sync", "sync_signals.py")):
             with self.subTest(name):
                 code, out, ran = self.run_script(fail=script)
                 self.assertEqual((code, ran[-1].split()[0]), (1, f"tools/schematic/{script}"), out)
@@ -121,11 +121,11 @@ class DryRun(unittest.TestCase):
         self.assertEqual((code, ran), (2, []), out)
 
 
-# A python3 stand-in that runs the real sync_staging_signals.py against a stale copy of staging_masts.csv (a temp
+# A python3 stand-in that runs the real sync_signals.py against a stale copy of masts.csv (a temp
 # file: the repo's data files are only read) and answers every other script with success.
 STALE_SYNC_PYTHON = """#!/bin/sh
 case "$1" in
-  */sync_staging_signals.py) shift; exec "$REAL_PYTHON" "$STALE_RUNNER" "$SCHEMATIC_DIR" "$STALE_CSV" "$@" ;;
+  */sync_signals.py) shift; exec "$REAL_PYTHON" "$STALE_RUNNER" "$SCHEMATIC_DIR" "$STALE_CSV" "$@" ;;
 esac
 echo "$*" >> "$PANELS_LOG"
 exit 0
@@ -133,15 +133,15 @@ exit 0
 STALE_RUNNER = """import sys
 from pathlib import Path
 sys.path.insert(0, sys.argv[1])
-import sync_staging_signals as sss
+import sync_signals as sss
 _want = sss.want_masts
 sss.want_masts = lambda: _want(Path(sys.argv[2]))  # the default path is bound at import
 sys.exit(sss.main(sys.argv[3:]))
 """
 
 
-class StaleStagingCsv(unittest.TestCase):
-    """build_panels.sh with the real sync_staging_signals.py --check and a staging_masts.csv missing its last mast,
+class StaleMastsCsv(unittest.TestCase):
+    """build_panels.sh with the real sync_signals.py --check and a masts.csv missing its last mast,
     so tables.xml holds a staging mast the file does not: the check fails, and the run says so in both modes."""
 
     def run_script(self, *args, whole=False):
@@ -150,7 +150,7 @@ class StaleStagingCsv(unittest.TestCase):
             tmp = Path(tmp)
             current = sdm.MASTS
             lines = current.read_text(encoding="utf-8").splitlines(keepends=True)
-            stale = tmp / "staging_masts.csv"
+            stale = tmp / "masts.csv"
             stale.write_text("".join(lines[:-1]), encoding="utf-8")
             (tmp / "runner.py").write_text(STALE_RUNNER, encoding="utf-8")
             fake = tmp / "python3"
@@ -167,21 +167,21 @@ class StaleStagingCsv(unittest.TestCase):
     def test_the_unmodified_file_passes_so_the_dropped_row_is_the_cause(self):
         code, out, _ran = self.run_script("--check", whole=True)
         self.assertEqual(code, 0, out)
-        self.assertIn("follow staging_masts.csv", out)
+        self.assertIn("follow masts.csv", out)
 
     def test_a_write_stops_at_the_stale_file_and_names_the_fix(self):
         code, out, ran = self.run_script()
         self.assertEqual(code, 1, out)
-        self.assertIn("differs from staging_masts.csv", out)
-        self.assertIn("run tools/schematic/sync_staging_signals.py", out)
-        self.assertIn("stopped: staging-sync only checks and it failed; later steps read the files it checks", out)
-        self.assertEqual(len(ran), NAMES.index("staging-sync"), ran)  # nothing after it ran
+        self.assertIn("differs from masts.csv", out)
+        self.assertIn("run tools/schematic/sync_signals.py", out)
+        self.assertIn("stopped: signals-sync only checks and it failed; later steps read the files it checks", out)
+        self.assertEqual(len(ran), NAMES.index("signals-sync"), ran)  # nothing after it ran
 
     def test_a_check_names_the_stale_step_and_never_says_it_stopped(self):
         code, out, ran = self.run_script("--check")
         self.assertEqual(code, 1, out)
-        self.assertIn("differs from staging_masts.csv", out)
-        self.assertIn("stale or failed: staging-sync\n", out)
+        self.assertIn("differs from masts.csv", out)
+        self.assertIn("stale or failed: signals-sync\n", out)
         self.assertNotIn("stopped", out)
         self.assertNotIn("later steps read what", out)
         self.assertEqual(len(ran), len(NAMES) - 1, ran)  # every other step still ran
