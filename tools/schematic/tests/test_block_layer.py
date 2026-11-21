@@ -307,6 +307,47 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
                      BL.read_exceptions(self.found, self.bands, self.levels))
 
 
+class Drawings(RepoReadOnly, unittest.TestCase):
+    """A band's drawing (the plan input its edge ids belong to) is the plan-overrides section that holds its level,
+    not a level number written in the code."""
+
+    def test_each_level_is_on_the_section_that_holds_it(self):
+        self.assertEqual(BL.drawings(), {1: "staging", 2: "main_upper", 3: "main_upper"})
+
+    def test_a_level_no_section_holds_stops(self):
+        with self.assertRaisesRegex(BL.BlockError, "no band level 4"):
+            BL.drawing(4)
+
+    def test_a_level_in_two_sections_stops(self):
+        whole = bdm.layer_files.read_file("plan_overrides", bdm.OVERRIDES.parent)
+        whole["more"] = {"level_title": "Another main", "level": 2}
+        folder = Path(tempfile.mkdtemp())
+        p = folder / "plan_overrides.json"
+        p.write_text(bdm.layer_files.dumps(whole), encoding="utf-8")
+        try:
+            with self.assertRaisesRegex(BL.BlockError, "level 2 is in sections main_upper and more"):
+                BL.drawings(folder)
+        finally:
+            remove(p)
+
+    def test_an_unreadable_file_is_a_block_error(self):
+        folder = Path(tempfile.mkdtemp())
+        try:
+            with self.assertRaises(BL.BlockError):
+                BL.drawings(folder)
+        finally:
+            os.rmdir(folder)
+
+    def test_a_missing_level_names_its_band(self):
+        with self.assertRaisesRegex(BL.BlockError, "level 4 \\(band 'Attic'\\)"):
+            BL.drawing(4, title="Attic")
+
+    def test_the_drawing_follows_the_section_not_the_level_number(self):
+        with unittest.mock.patch.object(BL, "drawings", return_value={1: "a", 2: "b", 3: "b"}):
+            self.assertEqual(BL.drawing(1), "a")
+            self.assertEqual(BL.drawing(3), "b")
+
+
 class TheCommand(RepoReadOnly, unittest.TestCase):
     """A data error from staging's rows ends main() with its one-line message and exit 2, as the others do."""
 

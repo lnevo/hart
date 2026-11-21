@@ -49,12 +49,13 @@ from __future__ import annotations
 
 import csv
 import re
+from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import publish_draft as pd  # first: it puts hartlib on the path
 import mast_rule as mr
-from hartlib import railroad
+from hartlib import layer_files, railroad
 
 LINK_CM = 50.0
 EXCEPTIONS_NAME = "block_exceptions.csv"       # in pd.DATA, looked up when read (a test may point pd.DATA elsewhere)
@@ -78,22 +79,56 @@ def plan_name(band, sid: str) -> str:
 
 # ---------------------------------------------------------------- track names
 
-def sheet_of(bands, levels: dict) -> dict:
-    """{band index: its drawing}: the staging band is one drawing, the main and upper bands another (two plan inputs,
-    whose edge ids repeat), told apart by the level a band's title has in `levels` (1 staging, else main_upper)."""
-    return {bi: drawing(levels[title]) for bi, (title, _b, _o) in enumerate(bands) if title in levels}
+def sheet_of(bands, levels: dict, data: Path | None = None) -> dict:
+    """{band index: its drawing} of the bands `levels` holds: the staging band is one drawing, the main and upper
+    bands another (two plan inputs, whose edge ids repeat), told apart by the level a band's title has in `levels`
+    and the plan-overrides section that holds that level (drawings of `data`)."""
+    of = drawings(data)
+    return {bi: drawing(levels[title], of, title) for bi, (title, _b, _o) in enumerate(bands) if title in levels}
 
 
-def drawing(level: int) -> str:
-    return "staging" if level == 1 else "main_upper"
+def drawings(data: Path | None = None) -> dict[int, str]:
+    """{level: drawing}: the section of plan_overrides.json in `data` (default publish_draft.DATA) whose bands
+    (mast_rule.band_places) hold each level. A section is one plan input, whose edge ids are its own. BlockError for
+    a file or section that cannot be read, and for a level two sections hold."""
+    folder = Path(pd.DATA if data is None else data)
+    try:
+        whole = layer_files.read_file("plan_overrides", folder)
+    except layer_files.LayerFileError as exc:
+        raise BlockError(str(exc)) from None
+    out = {}
+    for sheet in (k for k in whole if not k.startswith("_")):
+        try:
+            places = mr.band_places(whole[sheet])
+        except mr.MapError as exc:
+            raise BlockError(f"plan_overrides.json section {sheet}: {exc}") from None
+        for title, (level, _height) in places.items():
+            if out.setdefault(level, sheet) != sheet:
+                raise BlockError(f"plan_overrides.json: level {level} is in sections {out[level]} and {sheet} "
+                                 f"(band {title!r}); a level's bands are one plan drawing")
+    return out
 
 
-def tracks(bands, runs, joined, levels: dict) -> list[dict]:
+def drawing(level: int, of: dict | None = None, title: str | None = None) -> str:
+    """The drawing (drawings, or `of`) a band of `level` (titled `title`, for the message) is on. BlockError for a
+    level no section holds."""
+    of = drawings() if of is None else of
+    if level not in of:
+        band = f" (band {title!r})" if title else ""
+        raise BlockError(f"plan_overrides.json gives no band level {level}{band} (it has levels {sorted(of)})")
+    return of[level]
+
+
+def tracks(bands, runs, joined, levels: dict, data: Path | None = None) -> list[dict]:
     """mast_rule.tracks of every band `levels` holds, one drawing at a time (sheet_of: a track's edges are keyed
-    within its drawing), each level's helix ends tagged "H" (name_tracks names a helix track by its plan name)."""
-    out = []
-    for name in ("staging", "main_upper"):
-        mine = {t: lv for t, lv in levels.items() if drawing(lv) == name}
+    within its drawing; drawings of `data`), each level's helix ends tagged "H" (name_tracks names a helix track by
+    its plan name)."""
+    out, of = [], drawings(data)
+    titles = defaultdict(list)
+    for t, lv in levels.items():
+        titles[lv].append(t)
+    for name in dict.fromkeys(drawing(lv, of, ", ".join(titles[lv])) for lv in sorted(titles)):
+        mine = {t: lv for t, lv in levels.items() if drawing(lv, of) == name}
         if mine:
             out += mr.tracks(bands, runs, joined, {lv: "H" for lv in mine.values()}, mine)
     return out
@@ -273,18 +308,18 @@ def loop_halves(band, runs, split: dict, split_file: str = "block_splits.csv") -
     return out
 
 
-def split_edges(found: list[dict], levels: dict, path: Path) -> dict:
+def split_edges(found: list[dict], levels: dict, path: Path, data: Path | None = None) -> dict:
     """{drawing (sheet_of): {plan edge: track name}} of the tracks block_splits.csv parts into two blocks at their
     turnback (the owner's choice, not a rule: mast_rule.read_block_splits), among the `levels` drawn: each row's end
     switches resolved to the named track in `found`, and that track to the one plan edge it is drawn on. Stops on a
     track drawn on more than one plan edge (a split needs one track folded at one turnback)."""
     names = mr.read_block_splits(path, found, levels)
-    out, bad = {}, []
+    out, bad, of = {}, [], drawings(data)
     for t in sorted((t for t in found if t["name"] in names), key=lambda t: natural(t["name"])):
         if len(t["trial"]) != 1:
             bad.append(f"{t['name']}: drawn on {', '.join(t['trial'])}")
             continue
-        out.setdefault(drawing(t["level"]), {})[t["trial"][0].removeprefix("Track ")] = t["name"]
+        out.setdefault(drawing(t["level"], of), {})[t["trial"][0].removeprefix("Track ")] = t["name"]
     if bad:
         raise BlockError(f"{path.name}: " + "; ".join(bad))
     return out
@@ -371,7 +406,8 @@ def end_blocks(t: dict, nodes: dict, os_: dict, corners: dict, level: int, bad: 
 
 
 def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions: Exceptions,
-          exceptions_file: str = EXCEPTIONS_NAME, corners: dict | None = None, posts: dict | None = None) -> Layer:
+          exceptions_file: str = EXCEPTIONS_NAME, corners: dict | None = None, posts: dict | None = None,
+          data: Path | None = None) -> Layer:
     """The block layer of every band whose level `levels` ({band title: level}) holds, from `found` (name_tracks),
     `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits), `exceptions`
     (read_exceptions) and `corners` ({switch number: {schematic leg: corner block}} of each double crossover,
@@ -379,7 +415,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
     mast_plan.home_posts: a link a mast faces from its own switch joins the OS block at its other end, masted_block).
     BlockError on a track the layer cannot place or a layer that breaks its invariants (check)."""
     corners, posts = corners or {}, posts or {}
-    sheet = sheet_of(bands, levels)
+    sheet = sheet_of(bands, levels, data)
     by_edge = {}
     for t in found:
         for sid in t["strands"]:

@@ -151,6 +151,7 @@ from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported
 import block_layer  # noqa: E402  the one block process for every level
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits
+import le_common  # noqa: E402  band_key: the plugin's key for a band, which rotate_bands lists
 from hartlib import devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402  names, facts, the master
 
 SOURCES = railroad.Sources.under()
@@ -269,8 +270,8 @@ def dx_corners(bands, le_mod, page) -> dict:
             continue
         for n, d in band["nodes"].items():
             if d["kind"] == "dx":
-                # rotate_bands lists the plugin's band keys (its draw.band_key: a title's first word), not levels
-                turned = title.split()[0] in page.get("rotate_bands", ())
+                # rotate_bands lists the plugin's band keys (le_common.band_key), not levels
+                turned = le_common.band_key(title) in page.get("rotate_bands", ())
                 out[base(d["label"])] = le_mod.double_corners(band, n, turned)
     return out
 
@@ -290,7 +291,7 @@ def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None)
         bands, joined, runs, _corners = solve()
     if overrides is None:
         overrides = layer_files.read("plan_overrides", SHEET, OVERRIDES.parent)
-    found = block_layer.tracks(bands, runs, joined, band_levels(overrides))
+    found = block_layer.tracks(bands, runs, joined, band_levels(overrides), OVERRIDES.parent)
     block_layer.name_tracks(found, bands, read_helix_tracks() if helix is None else helix)
     return found
 
@@ -301,7 +302,8 @@ def split_edges(path: Path | None = None, found: list | None = None) -> dict:
     schematic's), at build time. Stops on a name no track has, or a track drawn on more than one plan edge (a split
     needs one track folded at one turnback)."""
     found = named_tracks() if found is None else found
-    return block_layer.split_edges(found, LEVELS, path or SPLIT).get("main_upper", {})
+    # a block_splits.csv with no main or upper row gives no drawing key: no splits
+    return block_layer.split_edges(found, LEVELS, path or SPLIT, OVERRIDES.parent).get(SHEET, {})
 
 
 OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block, named by its switch
@@ -440,8 +442,9 @@ def main_upper_layer(bands, runs, found, split_map: dict, corner_blocks: dict, p
     loop or split track in two halves (half 1 at the lower-numbered switch; each half's length is half the track's), a
     crossover's inside its switch's OS block, a link (under block_layer.LINK_CM between two switches) a part of an OS
     block; an OS block counts 0 cm (the boundary is at the switch's leg)."""
-    return block_layer.layer(bands, runs, found, LEVELS, {"main_upper": split_map},
-                             block_layer.read_exceptions(found, bands, LEVELS), corners=corner_blocks, posts=posts)
+    return block_layer.layer(bands, runs, found, LEVELS, {SHEET: split_map},
+                             block_layer.read_exceptions(found, bands, LEVELS), corners=corner_blocks, posts=posts,
+                             data=OVERRIDES.parent)
 
 
 def home_and_posts(bands, joined, found, levels: dict, cp_of: dict, corner_blocks: dict | None, split: set
@@ -1071,8 +1074,9 @@ def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[
         raise MapError(str(exc)) from None
     _home, posts = home_and_posts(bands, joined, found, levels, cp_of, None,
                                   mast_rule.read_block_splits(SPLIT, found, levels))
-    lay = block_layer.layer(bands, runs, found, levels, block_layer.split_edges(found, levels, SPLIT),
-                            block_layer.read_exceptions(found, bands, levels, exceptions), posts=posts)
+    lay = block_layer.layer(bands, runs, found, levels, block_layer.split_edges(found, levels, SPLIT, OVERRIDES.parent),
+                            block_layer.read_exceptions(found, bands, levels, exceptions), posts=posts,
+                            data=OVERRIDES.parent)
     if len(lay.bands) != 1:
         raise MapError(f"staging is drawn on {len(lay.bands)} bands; its trial names need one")
     return lay, next(iter(lay.bands)), found
