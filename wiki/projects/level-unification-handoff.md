@@ -243,6 +243,18 @@ Step 5 follow-ups (2026-11-20):
   (`MAIN_UPPER_TRIALS` and the renumber test). `mast_rule.tracks` keeps an edge-keyed `trial` list internally (the
   tie-break for parallel track numbers and `block_splits.csv`'s edge lookup); it is never written.
 - **Helix stop** (owner, 2026-11-20): see step 4's device-map part above (`helix_stops`, `KNOWN_STOP` gone).
+- **Staging's 16 parts as JMRI blocks** (owner decision, branch `agent/claude/staging-parts-blocks`, stopped, not
+  approved). One rule for every level: a part is a JMRI block on its OS block's sensor (`hartlib.devices` has no
+  staging case left). Staging's part rows carry IB:AUTO:<n> and ILB<n> (`build_device_map.part_bean_names`, the next
+  free number, 52 to 80) and a comment naming their block's detector; `block_lengths.csv` has 16 new rows
+  (`plan_lengths.csv_with`, the 35-39 halves 0.0 in, which the drawing cuts into equal shares:
+  `le_names.staging_lengths`). The masts read a part inside its OS block (`staging_device_map.os_layer`) and face the
+  JMRI block next to them: only Mast 32R changes (facing Track 29-31, edge_cm 23.4 to 14.7). Every level's part
+  labels are optional (`optional_block_contents`); left without an icon: staging 11-13 and 13-15, main 115-117, upper
+  227-231 and 229-233. Panel 2509 x 1424 (unchanged), 181 blocks (165 before), 176 block contents icons (163).
+  **Stopped:** stock discovery in a sandbox gives 176 SML pairs, not 177: Mast 36RB to Mast 68 is lost (twice the
+  same; also with 4 in lengths on the 35-39 halves, so not the 0 in). 36RA to 68 and 36RB to 132RA, over the same
+  new blocks, stay. Waits on the owner (or a panel-tracer read of the JMRI routing) before the candidate goes on.
 
 ### Owner decisions, late 2026-11-20
 
