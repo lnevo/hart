@@ -4,6 +4,10 @@
 Every MQTT turnout whose comment has ``DCC: N`` has an LCC twin ``MTT{N}``:
 userName ``DCC Switch N``, comment is the MQTT comment without DCC, and the
 same feedback sensors as the MQTT bean. Do not delete MTT* as leftovers.
+
+Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS (owner,
+2026-11-20): an MTT* with no MQTT plant (a DCC accessory, a test turnout) is no
+problem. Only a devices.csv row that names itself an MQTT plant's alias needs one.
 The DCC group grammar is hartlib.names (one place for it).
 """
 
@@ -138,9 +142,6 @@ def contract_violations(root: ET.Element, csv_path: Path | None = None) -> list[
         elif csv_path is not None:
             problems.append(f"{alias} missing identity row in {csv_path.name}")
 
-    extra = sorted(set(lcc) - paired)
-    for alias in extra:
-        problems.append(f"{alias} has no MQTT plant with matching DCC")
     if csv_path is not None:
         for alias in sorted(set(identity) - paired):
             problems.append(f"{alias} identity row has no MQTT plant with matching DCC")

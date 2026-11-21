@@ -245,8 +245,8 @@ STAGING_LAYER = {
 # (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by and part_of (and,
 # on staging, trial_name, pinned row by row above), joined by commas, one row a line, in file order
 DIGESTS = {"1": (90, 'ad63b0020d35c033f89db37d6008e69f9fcbfee42168039db7e4f2499bf90533'), "2": (76, 'a6ab6b691e99672675b5f796ed5cea062da133a5bf828858a4d59a079e091846'), "3": (118, 'a35766af132630b83b97b13feb58091ae10cd3a69595c77f862bd388b3dea053')}
-SKIP = {"1": ("written_by", "trial_name", "part_of"), "2": ("written_by", "part_of"),
-        "3": ("written_by", "part_of")}
+SKIP = {"1": ("written_by", "trial_name", "part_of", "jmri_bean"), "2": ("written_by", "part_of", "jmri_bean"),
+        "3": ("written_by", "part_of", "jmri_bean")}       # jmri_bean is only ever set on a level-less row
 
 
 def skip_or_fail(exc: Exception) -> None:

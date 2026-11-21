@@ -30,3 +30,4 @@ pnm_hardware,"The hardware the name map gives the row (a device, or a block's ol
 pnm_dcc,"The DCC address the name map gives the row."
 pnm_comment,"The wiring comment the name map gives the row."
 pnm_notes,"The notes the name map gives the row."
+jmri_bean,"A device not on the layout yet (no level): the beans as the PanelPro Store wrote them, as compact JSON (hartlib.tables_build.bean_json), which the build copies into tables.xml. Empty for every row with a level."
