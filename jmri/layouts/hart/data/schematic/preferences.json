@@ -190,6 +190,8 @@
    "1": "left"
   },
   "_le_band_align": "Layout Editor only (owner, 2026-11-16; moved here from build_layout_le.py, 2026-11-20): on the three-level panel, staging (level 1) stands against the left edge, where it stands drawn alone, however wide the other levels are. Keyed by level, found by the band's level in plan_overrides.json, never by its title; build_layout_le.py gives it to the plugin as the page's band_align, which the published sheet does not read.",
+  "le_nested_station_labels": false,
+  "_le_nested_station_labels": "Layout Editor only (owner, 2026-11-20): false leaves out of the Layout Editor panel's station names each station of this section's level that is a desk area nested in a station of another (Engine House in Barn: stations.csv, hartlib.railroad.nested_own_areas); West Yard, nested in Brick's own BK area, keeps its name. build_layout_le.py filters the stations it hands the plugin's labeller (le_common.le_station_labels); the published sheets read the layer files and keep the Engine House bar. True, or not set, names every station.",
   "le_crossover_angle": {
    "Staging": 45
   },
@@ -209,7 +211,7 @@
    "Stage 0 proof, as built"
   ],
   "date": "2026-11-20",
-  "revision": 17,
+  "revision": 18,
   "sheet": "1 of 1",
   "num_px": 6.5,
   "helix_style": "coil",

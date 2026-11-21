@@ -1,17 +1,20 @@
 """build_staging_sets.py [--check]
 
-Write staging's station and control-point membership, in every place the build reads it, from the three files the owner
+Write staging's station and control-point membership, in every place the build reads it, from the two files the owner
 edits (jmri/layouts/hart/data/schematic/):
 
-  control_points_staging.csv  cp_id,cp_name,level,switches,area,code,notes   the control points: the limits the drawings
-                              bracket and the CATS desk names (the signal rule's own interlockings are another fact:
-                              interlockings.csv, every level)
-  stations.csv                level,station,switches,tracks,notes            the stations of every level (one file, a
-                              level column); `tracks` blank counts the tracks that run from the switches, `none`
-                              counts none, else track names, ";" between
-  sheets.csv                  level,sheet,stations,notes                     the station detail sheets of every level,
-                              each the stations named in `stations` (";" between), its switches the sorted union of
-                              theirs
+  stations.csv   level,station,switches,tracks,desk_code,notes   the stations of every level (one file, a level
+                 column); `tracks` blank counts the tracks that run from the switches, `none` counts none, else track
+                 names, ";" between; `desk_code` names the station's desk area (owner, 2026-11-20)
+  sheets.csv     level,sheet,stations,notes                       the station detail sheets of every level, each the
+                 stations named in `stations` (";" between), its switches the sorted union of theirs
+
+The control points (the limits the drawings bracket and the CATS desk names, plan_overrides.json's control_points)
+are the desk areas: the stations that share a desk code, named by the first of them, each holding its stations' own
+switches. A station whose switches all lie in another's is nested in it and takes them for its own desk area (Engine
+House in Barn: BN is Switch 7, EH Switches 9, 11, 13). hartlib.railroad_facts.read_desk_areas is the one reader;
+stations that partly overlap, or a switch in two nested stations, stop it. The signal rule's own interlockings are
+another fact: interlockings.csv, every level.
 
 Only staging (level 1) has stations so far; a row of another level stops the build until this builds that level too
 (the main and upper levels' two whole-level sheets stay in preferences.json's main_upper section meanwhile).
@@ -22,11 +25,12 @@ What it writes, and nothing else of those files:
   preferences.json      staging's section: the key detail_sheets
 (through hartlib.layer_files, which keeps the other sections and the notes as they are).
 
-The older data/control_points.csv is gone (level-unification step 8): its readers build the same rows from
-  control_points_staging.csv and switch_legs.csv (hartlib.railroad_facts.station_group_rows).
+The older data/control_points.csv and schematic/control_points_staging.csv are gone (level-unification step 8; owner
+2026-11-20): their readers build the same rows from stations.csv and switch_legs.csv
+(hartlib.railroad_facts.station_group_rows).
 
-Every switch is a staging switch (level 1 of switches.csv) in one control point at most and, in the end, in one; a
-station's switches are in some control point; a sheet's stations are stations. A row that breaks a rule stops the
+Every staging switch (level 1 of switches.csv) is in one desk area and every station switch is a staging switch; a
+sheet's stations are stations. A row that breaks a rule stops the
 build with the file and line. --check regenerates in memory and exits 1 if a file differs.
 """
 from __future__ import annotations
@@ -41,10 +45,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA
 from hartlib import layer_files, paths  # noqa: E402
-from hartlib.railroad_facts import FactsError, read_rows, station_group_rows  # noqa: E402
+from hartlib import railroad_facts as rf  # noqa: E402
+from hartlib.railroad_facts import DeskArea, FactsError, read_rows, station_group_rows  # noqa: E402
 
 LEVEL = "1"
-CPS = pd.DATA / "control_points_staging.csv"
 STATIONS = pd.DATA / "stations.csv"
 SHEETS = pd.DATA / "sheets.csv"
 SHEET = "staging"     # the sections of plan_overrides.json and preferences.json this writes
@@ -55,16 +59,6 @@ NONE = "none"        # the `tracks` cell of a station that counts no track
 
 class SetsError(ValueError):
     """A master file breaks a rule; the message names the file and line."""
-
-
-@dataclass(frozen=True)
-class ControlPoint:
-    line: int
-    cp_id: str
-    cp_name: str
-    switches: tuple[str, ...]
-    code: str
-    notes: str
 
 
 @dataclass(frozen=True)
@@ -113,61 +107,20 @@ def staging_switches(path: Path = SWITCHES) -> set[str]:
     return {r["switch"] for _l, r in _rows(path, ("level", "switch")) if r["level"] == LEVEL}
 
 
-def read_control_points(path: Path = CPS, switches: set[str] | None = None) -> list[ControlPoint]:
-    """The control points in file order. Stops on a name, id or code given twice or empty, an id that is not cp_ and
-    the code in lower case, a level that is not
-    staging's, a switch that is not a staging switch or is in two control points, or a staging switch in none."""
+def read_masters(path: Path = STATIONS, switches: set[str] | None = None) -> tuple[list[DeskArea], list[Station]]:
+    """(the desk areas, the stations) of stations.csv, each in file order (rf.read_desk_areas' rules, `switches` the
+    staging switches, switches.csv's level 1 unless given). Stops, too, on a row of a level this does not build yet."""
     known = staging_switches() if switches is None else switches
-    out, ids, seen = [], {}, {}
-    for line, r in _rows(path, ("cp_id", "cp_name", "level", "switches", "area", "code"), optional=("notes",)):
-        where = _where(path, line)
-        if r["level"] != LEVEL:
-            raise SetsError(f"{where} ({r['cp_name']}): level {r['level']!r}, staging is {LEVEL}")
-        for col in ("cp_id", "cp_name", "code"):
-            if not r[col]:
-                raise SetsError(f"{where}: {col} is empty")
-            if (col, r[col]) in ids:
-                raise SetsError(f"{where}: {col} {r[col]!r} is also on line {ids[(col, r[col])]}")
-            ids[(col, r[col])] = line
-        if r["cp_id"] != "cp_" + r["code"].lower():
-            raise SetsError(f"{where} ({r['cp_name']}): cp_id {r['cp_id']!r} is not cp_ and its code {r['code']!r} "
-                            "in lower case")
-        sw = _split(r["switches"])
-        if not sw:
-            raise SetsError(f"{where} ({r['cp_name']}): no switches")
-        for s in sw:
-            if s not in known:
-                raise SetsError(f"{where} ({r['cp_name']}): switch {s} is no staging switch")
-            if s in seen:
-                raise SetsError(f"{where} ({r['cp_name']}): switch {s} is also in {seen[s]}")
-            seen[s] = r["cp_name"]
-        out.append(ControlPoint(line, r["cp_id"], r["cp_name"], sw, r["code"], r["notes"]))
-    lost = sorted(known - set(seen), key=int)
-    if lost:
-        raise SetsError(f"{path.name}: staging switch(es) {', '.join(lost)} are in no control point")
-    return out
-
-
-def read_stations(cps: list[ControlPoint], path: Path = STATIONS) -> list[Station]:
-    """The stations in file order. Stops on a name given twice, a station with no switches, or a switch that is in no
-    control point."""
-    have = {s for cp in cps for s in cp.switches}
-    out, names = [], {}
-    for line, r in _rows(path, ("level", "station", "switches", "tracks"), optional=("notes",)):
-        where = _where(path, line)
-        _staging_row(where, r["station"], r["level"])
-        if not r["station"] or r["station"] in names:
-            raise SetsError(f"{where}: station {r['station']!r} is empty or also on line {names.get(r['station'])}")
-        names[r["station"]] = line
-        sw = _split(r["switches"])
-        if not sw:
-            raise SetsError(f"{where} ({r['station']}): no switches")
-        bad = [s for s in sw if s not in have]
-        if bad:
-            raise SetsError(f"{where} ({r['station']}): switch {', '.join(bad)} is in no control point")
-        tracks = None if not r["tracks"] else () if r["tracks"] == NONE else _split(r["tracks"])
-        out.append(Station(line, r["station"], sw, tracks))
-    return out
+    try:
+        rows = rf.read_stations(path)
+        for st in rows:
+            _staging_row(_where(path, st.line), st.name, str(st.level))
+        areas = rf.desk_areas(rows, path, known)
+    except FactsError as exc:
+        raise SetsError(str(exc)) from None
+    stations = [Station(st.line, st.name, st.switches,
+                        None if not st.tracks else () if st.tracks == NONE else _split(st.tracks)) for st in rows]
+    return areas, stations
 
 
 def read_sheets(stations: list[Station], path: Path = SHEETS, stations_path: Path = STATIONS) -> list[Sheet]:
@@ -198,11 +151,11 @@ def sheet_switches(sheet: Sheet, stations: list[Station]) -> list[str]:
 def overrides_section(over: dict, cps, stations) -> dict:
     over = dict(over)
     over["stations"] = {s.name: list(s.switches) for s in stations}
-    over["control_points"] = {c.cp_name: {"switches": list(c.switches), "code": c.code} for c in cps}
+    over["control_points"] = {c.name: {"switches": list(c.switches), "code": c.code} for c in cps}
     over["station_tracks"] = {s.name: list(s.tracks) for s in stations if s.tracks is not None}
-    over["_control_points"] = ("Written by tools/schematic/build_staging_sets.py from control_points_staging.csv "
-                               "(control_points) and stations.csv (stations, station_tracks); edit those "
-                               "files, not these keys.")
+    over["_control_points"] = ("Written by tools/schematic/build_staging_sets.py from stations.csv (stations, "
+                               "station_tracks, and control_points: the desk areas, by desk_code); edit that "
+                               "file, not these keys.")
     return over
 
 
@@ -215,12 +168,11 @@ def preferences_section(prefs: dict, sheets, stations) -> dict:
 def wanted(data: Path | None = None) -> dict[Path, str]:
     """{layer file: the whole text it should hold} (data: the layer folder, pd.DATA unless given)."""
     data = pd.DATA if data is None else data
-    cps = read_control_points()
-    stations = read_stations(cps)
+    cps, stations = read_masters()
     sheets = read_sheets(stations)
     try:      # stop here, at the source, if a switch has no OS block: the website build and the layout checks read
               # these rows through station_group_rows and would stop later (step 8)
-        station_group_rows(CPS, LEGS)
+        station_group_rows(STATIONS, LEGS)
     except FactsError as exc:
         raise SetsError(str(exc)) from None
     try:

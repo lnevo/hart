@@ -22,6 +22,11 @@
     "11",
     "13"
    ],
+   "Engine House": [
+    "9",
+    "11",
+    "13"
+   ],
    "South Yard": [
     "15",
     "17",
@@ -340,7 +345,7 @@
    ]
   },
   "_main_lines": "The main flags of the `name` edit and milepost_route are written by tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that file, not these.",
-  "_control_points": "Written by tools/schematic/build_staging_sets.py from control_points_staging.csv (control_points) and stations.csv (stations, station_tracks); edit those files, not these keys."
+  "_control_points": "Written by tools/schematic/build_staging_sets.py from stations.csv (stations, station_tracks, and control_points: the desk areas, by desk_code); edit that file, not these keys."
  },
  "main_upper": {
   "_layer": 1,

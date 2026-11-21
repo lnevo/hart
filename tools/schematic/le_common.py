@@ -197,6 +197,46 @@ def base_keys(bands) -> set[str]:
     return {band_key(bands[i][0]) for i in base_bands(bands)}
 
 
+def le_station_labels(bands, data: Path | None = None) -> list:
+    """`bands` with the stations the plugin's Layout Editor labeller names (each band's `stations` option) as each
+    sheet's section of preferences.json asks: its `le_nested_station_labels` false leaves out, on the bands of that
+    section (plan_places of `data`), each station of the band's level in stations.csv that is a desk area nested in a
+    station of another (hartlib.railroad.nested_own_areas: Engine House in Barn; West Yard, in Brick's own area,
+    stays); true, or not set, names every station. The drawings read the layer files, not these bands, so they keep
+    every station. The bands given are not changed. BuildError naming the section for a value that is not true or
+    false, or naming stations.csv's row for one that breaks its rules."""
+    folder = Path(pd.DATA if data is None else data)
+    try:
+        prefs = layer_files.read_file("preferences", folder)
+    except layer_files.LayerFileError as exc:
+        raise BuildError(str(exc)) from None
+    leave_out: dict[str, int] = {}          # band title -> its level, for the bands whose nested areas go unnamed
+    for sheet in (k for k in prefs if not k.startswith("_")):
+        if "le_nested_station_labels" not in prefs[sheet]:
+            continue
+        given = prefs[sheet]["le_nested_station_labels"]
+        if not isinstance(given, bool):
+            raise BuildError(f"preferences.json section {sheet}: le_nested_station_labels is true or false, not "
+                             f"{given!r}")
+        if not given:
+            leave_out.update({t: lv for t, (s, lv, _h) in plan_places(folder).items() if s == sheet})
+    if not leave_out:
+        return list(bands)
+    try:
+        rows = railroad.read_stations(folder / "stations.csv")
+    except railroad.FactsError as exc:
+        raise BuildError(str(exc)) from None
+    out = []
+    for title, band, opts in bands:
+        stations = opts.get("stations") or {}
+        if title not in leave_out or not stations:
+            out.append((title, band, opts))
+            continue
+        own = railroad.nested_own_areas([r for r in rows if r.level == leave_out[title]])
+        out.append((title, band, dict(opts, stations={n: e for n, e in stations.items() if n not in own})))
+    return out
+
+
 ALIGN_SIDES = ("left", "centre", "right")
 
 

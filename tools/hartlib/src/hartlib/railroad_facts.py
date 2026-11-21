@@ -344,7 +344,7 @@ class Interlocking:
     whose home signals govern the routes between them. Staging's are named by place (Brick, Barn); main and upper's are
     "CP <lowest switch>" (owner, 2026-11-15), which are also their control points on the drawings and desks. `area`
     is the LCOS node area of a main or upper interlocking; staging leaves it blank, since staging's areas and desk
-    groups are control_points_staging.csv's."""
+    groups are the desk areas of stations.csv (read_desk_areas)."""
     line: int
     level: int
     name: str
@@ -375,8 +375,8 @@ def read_interlockings(path: Path, levels: Iterable[int] = ALL_LEVELS) -> list[I
                 raise FactsError(f"{where}: switch {s} is in {seen[(level, s)]} and {name}")
             seen[(level, s)] = name
         if level == 1 and r["area"]:
-            raise FactsError(f"{where} ({name}): a staging interlocking has no area (control_points_staging.csv "
-                             "gives staging's)")
+            raise FactsError(f"{where} ({name}): a staging interlocking has no area (stations.csv's "
+                             "desk codes give staging's)")
         if level != 1 and not r["area"]:
             raise FactsError(f"{where} ({name}): no area (the LCOS node area of a main or upper interlocking)")
         if level in levels:
@@ -384,33 +384,201 @@ def read_interlockings(path: Path, levels: Iterable[int] = ALL_LEVELS) -> list[I
     return out
 
 
+# ---------------------------------------------------------------- inputs: stations and desk areas (stations.csv)
+
+STATION_COLUMNS = ("level", "station", "switches", "tracks", "desk_code")
+DESK_CODE = re.compile(r"[A-Z]+")
+
+
+@dataclass(frozen=True)
+class Station:
+    """A station of stations.csv (every level; one row each). `tracks` is the cell as written (build_staging_sets
+    reads it: blank counts the tracks from the switches, `none` none, else names); `desk_code` names its desk area."""
+    line: int
+    level: int
+    name: str
+    switches: tuple[str, ...]
+    tracks: str
+    desk_code: str
+    notes: str = ""
+
+
+@dataclass(frozen=True)
+class DeskArea:
+    """A desk area (owner, 2026-11-20): the stations of one level that share a desk code, named by the first of them in
+    the file. Its switches are its stations' own: a station's switches less those of the stations nested in it (a
+    station whose switches all lie in another's, as Engine House in Barn), in file order. These are the control
+    points the drawings bracket and the CATS desks name (plan_overrides.json's control_points, build_staging_sets)."""
+    line: int                       # the naming station's line
+    level: int
+    name: str
+    code: str
+    switches: tuple[str, ...]
+    stations: tuple[str, ...]
+    notes: str = ""                 # the naming station's notes
+
+
+def read_stations(path: Path) -> list[Station]:
+    """The stations in file order. Stops, naming the file, line and station, on a level that is not 1, 2 or 3, a name
+    that is empty or given twice, no switches, a switch that is not a number or is listed twice, and a desk code that
+    is missing, not capital letters, or more than one."""
+    out, names = [], {}
+    for line, r in read_rows(path, STATION_COLUMNS, optional=("notes",)):
+        where = _where(path, line)
+        name = r["station"]
+        if not name:
+            raise FactsError(f"{where}: the station has no name")
+        at = f"{where} ({name})"
+        if name in names:
+            raise FactsError(f"{where}: station {name!r} is also on line {names[name]}")
+        names[name] = line
+        level = _int(r["level"], at, "level")
+        if level not in ALL_LEVELS:
+            raise FactsError(f"{at}: level is 1, 2 or 3 (staging, main, upper), not {level}")
+        sw = tuple(s.strip() for s in re.split(r"[;,]", r["switches"]) if s.strip())
+        if not sw:
+            raise FactsError(f"{at}: no switches")
+        for s in sw:
+            if not s.isdigit():
+                raise FactsError(f"{at}: switches is a list of switch numbers, not {r['switches']!r}")
+            if sw.count(s) > 1:
+                raise FactsError(f"{at}: lists switch {s} twice")
+        code = r["desk_code"]
+        if not code:
+            raise FactsError(f"{at}: no desk code (every station is in one desk area)")
+        if re.search(r"[\s,;/]", code):
+            raise FactsError(f"{at}: two desk codes in {code!r}; a station is in one desk area")
+        if not DESK_CODE.fullmatch(code):
+            raise FactsError(f"{at}: desk code {code!r} is not capital letters")
+        out.append(Station(line, level, name, sw, r["tracks"], code, r["notes"]))
+    return out
+
+
+def nested_own_areas(stations: list[Station]) -> set[str]:
+    """The names of the stations nested in a station of another desk area (Engine House, EH, in Barn, BN): the
+    stations that make a desk area of their own inside another station. A station nested in one of its own desk area
+    (West Yard in Brick, both BK) is not one: it is part of that area. The Layout Editor build may leave these out of
+    its station names (preferences.json le_nested_station_labels)."""
+    out = set()
+    for a in stations:
+        sa = set(a.switches)
+        if any(b.level == a.level and b.desk_code != a.desk_code and sa < set(b.switches) for b in stations):
+            out.add(a.name)
+    return out
+
+
+def _innermost(stations: list[Station], path: Path) -> dict[tuple[int, str], Station]:
+    """{(level, switch): the innermost station holding it}. Two stations of a level that share a switch must nest
+    (one's switches all inside the other's), so the stations holding a switch run from the largest in to the smallest;
+    of them, one at most may be a desk area nested in another area's station (nested_own_areas)."""
+    for i, a in enumerate(stations):
+        for b in stations[i + 1:]:
+            shared = set(a.switches) & set(b.switches)
+            if a.level != b.level or not shared:
+                continue
+            pair = f"{path.name} lines {a.line} and {b.line}: {a.name} and {b.name}"
+            if set(a.switches) == set(b.switches):
+                raise FactsError(f"{pair} have the same switches; one station must hold switches the other does not")
+            if not (shared == set(a.switches) or shared == set(b.switches)):
+                first = sorted(shared, key=int)[0]
+                raise FactsError(f"{pair} share switch {first} but neither is inside the other; stations overlap "
+                                 "only when one is nested in the other")
+    own = nested_own_areas(stations)
+    holders: dict[tuple[int, str], list[Station]] = {}
+    for st in stations:
+        for s in st.switches:
+            holders.setdefault((st.level, s), []).append(st)
+    out = {}
+    for (level, s), held in holders.items():
+        areas = [st for st in held if st.name in own]
+        if len(areas) > 1:
+            x, y = areas[:2]
+            raise FactsError(f"{path.name} lines {x.line} and {y.line}: {x.name} and {y.name} are both desk areas "
+                             f"nested in another area's station, with switch {s}; a switch is in one such area only")
+        out[(level, s)] = min(held, key=lambda st: len(st.switches))
+    return out
+
+
+def desk_areas(stations: list[Station], path: Path, switches: Iterable[str] | None = None) -> list[DeskArea]:
+    """The desk areas of `stations` (read from `path`, named in errors), each named by its first station: first the
+    areas nested in no other area's station, then those that are (nested_own_areas: Engine House), each in the order
+    its code first appears.
+    `switches`, when given, are staging's switch numbers (level 1 of switches.csv): each must be in one staging desk
+    area and every staging station switch one of them. Stops on a code used on two levels, an area left with no
+    switches of its own, an area whose first station lies inside another station of the same area (it would name
+    the area), and what _innermost stops on."""
+    inner = _innermost(stations, path)
+    own = nested_own_areas(stations)
+    first: dict[str, Station] = {}
+    members: dict[str, list[Station]] = {}
+    for st in stations:
+        lead = first.setdefault(st.desk_code, st)
+        if lead.level != st.level:
+            raise FactsError(f"{_where(path, st.line)} ({st.name}): desk code {st.desk_code} is level {lead.level}'s "
+                             f"({lead.name}, line {lead.line}); a desk area is on one level")
+        members.setdefault(st.desk_code, []).append(st)
+    for code, lead in first.items():
+        outer = next((st for st in members[code] if set(lead.switches) < set(st.switches)), None)
+        if outer is not None:
+            raise FactsError(f"{_where(path, lead.line)} ({lead.name}): the first station of desk area {code} lies "
+                             f"inside {outer.name} (line {outer.line}) of the same area; list {outer.name} first, as "
+                             "the area takes its name from its first station")
+    out = []
+    for code, lead in sorted(first.items(), key=lambda kv: kv[1].name in own):
+        held = tuple(s for st in members[code] for s in st.switches if inner[(st.level, s)] is st)
+        if not held:
+            raise FactsError(f"desk area {code} ({lead.name}, {_where(path, lead.line)}) has no switches of its own: "
+                             "the stations nested in its stations hold them all")
+        out.append(DeskArea(lead.line, lead.level, lead.name, code, held, tuple(st.name for st in members[code]),
+                            lead.notes))
+    if switches is not None:
+        known = set(switches)
+        for st in stations:
+            for s in st.switches:
+                if st.level == 1 and s not in known:
+                    raise FactsError(f"{_where(path, st.line)} ({st.name}): switch {s} is no staging switch "
+                                     "(level 1 of switches.csv)")
+        held = {s for a in out if a.level == 1 for s in a.switches}
+        lost = sorted(known - held, key=lambda s: (len(s), s))
+        if lost:
+            raise FactsError(f"{path.name}: staging switch(es) {', '.join(lost)} are in no desk area")
+    return out
+
+
+def read_desk_areas(path: Path, switches: Iterable[str] | None = None) -> list[DeskArea]:
+    """desk_areas of the stations in `path` (stations.csv)."""
+    return desk_areas(read_stations(path), path, switches)
+
+
 STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code")
 
 
-def station_group_rows(cps: Path, switch_legs: Path) -> list[dict[str, str]]:
-    """Staging's control points (the station groups of control_points_staging.csv: the drawings' brackets and the
-    CATS desk names) in the shape the older data/control_points.csv had, which this replaces (level-unification step
-    8): cp_id the name in lower case with underscores, level, code and notes as given, and switches the OS block of
-    each switch (a crossover by its halves, 7 as 7,7b and 23 as 23a,23b, from switch_legs.csv), "," between. Stops
-    with FactsError, naming the file and line, on a row with no level or a switch with no OS block."""
+def station_group_rows(stations: Path, switch_legs: Path) -> list[dict[str, str]]:
+    """The desk areas of every level (staging's only so far: the drawings' brackets and the CATS desk names; each
+    row carries its level, so a caller that wants one level filters on it) in the shape the older
+    data/control_points.csv had, which this replaces (level-unification step 8): cp_id the name in lower case with
+    underscores, level, code and notes the area's, and switches the OS block of each switch (a crossover by its
+    halves, 7 as 7,7b and 23 as 23a,23b, from switch_legs.csv), "," between. Stops with FactsError, naming the file,
+    line and station, on what read_desk_areas stops on or a switch with no OS block."""
     halves: dict[str, list[str]] = {}
     for line, r in read_rows(switch_legs, ("switch", "os_block")):
         m = re.fullmatch(r"OS Switch (\d+[a-z]?)", r["os_block"])
         if not m:
             raise FactsError(f"{_where(switch_legs, line)}: {r['os_block']!r} is not an OS Switch block")
         halves.setdefault(r["switch"], []).append(m.group(1))
+    rows = read_stations(stations)
+    inner = _innermost(rows, stations)
     out = []
-    for line, r in read_rows(cps, ("cp_name", "level", "switches", "code"), optional=("notes",)):
-        where = _where(cps, line)
-        if not r["level"]:
-            raise FactsError(f"{where} ({r['cp_name']}): no level")
+    for a in desk_areas(rows, stations):
         sw = []
-        for s in (x.strip() for x in re.split(r"[;,]", r["switches"]) if x.strip()):
+        for s in a.switches:
             if s not in halves:
-                raise FactsError(f"{where} ({r['cp_name']}): switch {s} has no OS block in {switch_legs.name}")
+                st = inner[(a.level, s)]        # the station that holds it for its area, not the one it lies in
+                raise FactsError(f"{_where(stations, st.line)} ({st.name}): switch {s} has no OS block in "
+                                 f"{switch_legs.name}")
             sw += sorted(halves[s])
-        out.append(dict(cp_id=re.sub(r"\W+", "_", r["cp_name"].lower()), cp_name=r["cp_name"], level=r["level"],
-                        switches=",".join(sw), notes=r["notes"], code=r["code"]))
+        out.append(dict(cp_id=re.sub(r"\W+", "_", a.name.lower()), cp_name=a.name, level=str(a.level),
+                        switches=",".join(sw), notes=a.notes, code=a.code))
     return out
 
 
