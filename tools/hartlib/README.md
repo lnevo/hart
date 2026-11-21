@@ -124,13 +124,13 @@ checked together. `python3 -m hartlib.railroad check` (in `tools/check.sh`) runs
 
 ```python
 rr = railroad.Railroad()                  # this checkout's files; Railroad(Sources.under(data_dir), upto=...)
-rr.switches[9].legs[0].closed             # staging switches (switches.csv + switch_legs.csv + the name map)
+rr.switches[9].legs[0].closed             # staging switches (switches.csv + switch_legs.csv + devices.csv)
 rr.device_map.sensors["BS Switch 101"]    # IS:HART:C3:B:OS101
 rr.check()                                # [Problem(invariant, message)]
 ```
 
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
-`switches.csv`, `switch_legs.csv`, the name map of `devices.csv`, `interlockings.csv` (every level),
+`switches.csv`, `switch_legs.csv`, staging's rows of `devices.csv`, `interlockings.csv` (every level),
 `local_switches_main_upper.csv`, `lcos_nodes.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`,
 `schematic/staging_masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
@@ -139,7 +139,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 
 | Name | What |
 |------|------|
-| `Railroad.name_map` | `NameMap`: `rows` (`NameRow`), `live` ((layer, name) -> row), `aliases`, `names(layer)` |
+| `Railroad.staging_devices` | `StagingDevices`: staging's (level 1) rows of `devices.csv` in the device layers, `rows` (`StagingDevice`: the master's own columns), `by_name` ((layer, user name) -> row), `names(layer)` |
 | `Railroad.switches` | `{number: Switch}` (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
@@ -157,10 +157,11 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 
 `jmri/layouts/hart/data/devices.csv` is the one device master for all three levels (ADR-029); `devices.columns.csv`
 describes every column and a test holds the two to each other both ways. Staging, main and upper are one structure,
-a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `device_map_lines`
-(the old device-map rows of some levels, plus `role`) and `name_map_lines` (the name-map rows, from the `pnm_`
-columns). The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20). The name map has no alias rows
-(they and the retired identity rows were dropped 2026-11-20). Readers test `role`, never a name prefix.
+a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `load()` (the
+master rows) and `device_map_lines` (the old device-map rows of some levels, plus `role`); `comment_of(row)` is a row's
+JMRI comment. The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20), and so are the six `pnm_`
+columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`, `wiring`,
+`jmri_comment` and `notes`. Readers test `role`, never a name prefix.
 
 - `assignment` is `field`, `virtual`, `none` or `spare`; `role` says what the device is; `written_by` is empty for a
   hand-kept row, else a script in `devices.WRITERS` (the one list). A writer replaces only its own rows
@@ -171,10 +172,10 @@ columns). The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-2
 - Writers call `outputs_after(writer, old_form_rows)` (or `outputs_after_rows` with master rows) and write the texts it
   gives: the master's text. Nothing is written until every check has passed.
 - `python3 -m hartlib.devices check`. Errors are `DevicesError` (a `FactsError`).
-- The `pnm_*` columns hold what `public_name_map.csv` carried: the hardware ID, DCC address, control point and wiring
-  comment of 236 staging rows, which no other column holds. They stay. They are no builder's output:
-  a builder's rewrite carries them over from the row it replaces, so `set_pnm_comments` (the wiring comment of a
-  head, from `refresh_bean_comments.py`) may change `pnm_comment` of a row a builder holds, and `written_by` stays.
+- Staging (`FIELD_LEVEL`, level 1) is the field: its builders carry each row's field facts (system and layout-block
+  names, node, wiring, comment, notes, `cp`) over from the row it replaces, so `replace_rows` stops a writer that would
+  drop a staging row without naming it in `drops`. A staging line block and its detector carry the station they sit
+  in (`cp`); a staging part takes its block's.
 - `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the
   main and upper layout blocks are numbered by the Layout Editor build. A wired head's comment is its `wiring`.
 
@@ -265,11 +266,11 @@ and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a
 
 ### `hartlib.names`
 
-The name map of `devices.csv` keeps a turnout's DCC address in its own `dcc` column; JMRI's
-comment carries it as the second group (`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2`).
-`row_comment(row)` gives the JMRI comment for a map row, `jmri_comment(comment, dcc)` builds
-one, and `split_dcc(comment)` takes the group out of a JMRI or Device-map comment. Read the
-address from the column; never regex it out of `comment`.
+`devices.csv` keeps a turnout's DCC address in its own `dcc` column; JMRI's comment carries it
+as the second group (`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2`). `jmri_comment(wiring, dcc)`
+builds one (`devices.comment_of(row)` gives a row's), and `split_dcc(comment)` takes the group out
+of a built comment, for the old-form device-map rows and for checks that hold tables.xml to the
+master. Read the address from the column; never regex it out of a comment.
 
 ### `hartlib.cats`
 

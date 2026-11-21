@@ -71,7 +71,7 @@ class LcosMimicNamingTest(unittest.TestCase):
 
 
 class LcosMimicNameMapTest(unittest.TestCase):
-    """load_cps reads the name-map rows of devices.csv (hartlib.devices.name_map_lines)."""
+    """load_cps reads staging's rows of devices.csv (hartlib.devices.load), cp per user name."""
 
     @classmethod
     def setUpClass(cls) -> None:

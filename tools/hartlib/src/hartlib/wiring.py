@@ -109,7 +109,7 @@ class Wire(NamedTuple):
 
     @property
     def input(self) -> str:
-        """A detector's node input as the name map and the block comment give it: "Block 13-1"."""
+        """A detector's node input as the block comment gives it: "Block 13-1"."""
         return f"Block {self.node}-{self.index}"
 
 

@@ -4,21 +4,17 @@
     python3 tools/audit/check_name_copies.py          # the checkout's tracked files
     python3 tools/audit/check_name_copies.py --list   # also print every file that holds a name
 
-A name is current when its name-map row in jmri/layouts/hart/data/devices.csv (the rows with a
-pnm_order) is an identity row, or, for a block, when tables.xml holds a block
-with that user name (a block JMRI holds that the map has no identity row for yet;
-the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename adds a row with the old name as
-`current` and the new one as `proposed` (ADR-005), so after a rename the old name
-is no longer current, and every hand-kept copy of it fails here with its file and line.
-A `proposed` name that neither an identity row nor tables.xml holds is not current.
-Since 2026-11-20 the name map is the pnm_ columns of devices.csv and holds no alias rows (ADR-029), so a track
-name that is no longer anything's is not matched at all: only a Mast, an OS Switch or a name the map or tables.xml
-still holds is checked. The rename checklist therefore greps for the old name itself.
+A name is current when it is the user name of a staging block or mast row of jmri/layouts/hart/data/devices.csv,
+or, for a block, when tables.xml holds a block with that user name (a block JMRI holds that the master has no row for
+yet; the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename changes the row's user name
+(ADR-005), so after a rename the old name is no longer current, and every hand-kept copy of it fails here with its
+file and line. The master keeps no alias rows (ADR-029), so a track name that is no longer anything's is not matched
+at all: only a Mast, an OS Switch or a name the master or tables.xml still holds is checked. The rename checklist therefore greps for the old name itself.
 
 What counts as a name:
   - `Mast <digits><letters>` (Mast 16R, Mast 2035) and `OS Switch <digits><a|b>`:
     any such text that is not current fails, renamed or never existed;
-  - `Track ...`: a track name has free words, so only the names the map knows are
+  - `Track ...`: a track name has free words, so only the names the master knows are
     matched, longest first (`Track Scale East` is not `Track Scale`); one that is
     not current fails.
 
@@ -127,18 +123,11 @@ class Hit:
 
 
 def load_names(devices_csv: Path) -> tuple[set[str], set[str]]:
-    """(identity-row names, every name the map holds: the same set now that it has no alias rows) for blocks and masts,
-    from the name-map rows of devices.csv (hartlib.devices.name_map_lines). DevicesError when it cannot be read."""
-    current: set[str] = set()
-    known: set[str] = set()
-    for _line, row in devices.name_map_lines(devices_csv):
-        if row["layer"] not in LAYERS:
-            continue
-        cur, new = row["current"].strip(), row["proposed"].strip()
-        known.update(n for n in (cur, new) if n)
-        if cur and cur == new:
-            current.add(cur)
-    return current, known
+    """(current names, every name the master holds: the same set, as it keeps no alias rows) of staging's blocks and
+    masts, the user names of their rows in devices.csv. DevicesError when it cannot be read."""
+    names = {row["user_name"].strip() for row in devices.load(devices_csv)
+             if row["level"] == devices.FIELD_LEVEL and row["layer"] in LAYERS}
+    return names, set(names)
 
 
 def table_blocks(tables_xml: Path) -> set[str]:

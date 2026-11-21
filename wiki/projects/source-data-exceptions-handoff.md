@@ -25,11 +25,10 @@ order; rows 1 to 7 are done.
 ## What stays: railroad facts the plan cannot hold
 
 - **Wiring and addresses:**
-  - the device maps;
+  - `devices.csv` (the one device master, ADR-029: the device maps and `public_name_map.csv` were folded into it);
   - `lcos_nodes.csv` (every level's nodes);
   - `wiring.csv` (the physical wiring: every wired device, and the detectors the owner placed on main and upper);
-  - `switches.csv` and `switch_legs.csv`;
-  - `public_name_map.csv`.
+  - `switches.csv` and `switch_legs.csv`.
 - **The owner's choices:**
   - switch numbers (the relabel maps);
   - control points and stations;
@@ -79,7 +78,7 @@ Rows 1 to 7 are done (#749, #754, #757 and the label-refs branch, above); the ta
 | # | Item | Where | Replace with | Effort |
 |---|---|---|---|---|
 | 8 | Kind and level read from name prefixes ("Track ", "OS Switch ", "BS ", "Mast "), the crossover half from A or B, a balloon loop from a name ending " Loop", the level from a band title's first word | hartlib (`level_devices`, `railroad`), `le_names`, `staging_device_map`, `build_device_map`, `build_cats_panel`, `mast_rule` | `kind`, `level` and `role` columns on the device-map rows | several small steps. Done in #787 for the mast rule and CATS: band level (explicit `level` in the plan overrides), crossover half (no suffix test) and loop (the track's flag). The `le_common`/`le_names` title words went in #817 (bands found by level and height); the last two, `block_layer`'s level-to-drawing branch and `build_device_map`'s first-word band key, went on 2026-11-21 (the drawing is the plan-overrides section that holds the level; the key is the plugin's `band_key`). Left: the name prefixes (level unification step 9: left as they are) |
-| 9 | Device facts kept three times (addresses, DCC, node comments in `public_name_map.csv`, `device_map_staging.csv` and `tables.xml`); the DCC group parsed from `tables.xml` comments; build-owned items found by comment and name | hartlib `names.py`, `le_tables.py` | One master with the others generated; an explicit owner column | 1–2 days |
+| 9 | Device facts kept three times (addresses, DCC, node comments in `public_name_map.csv`, `device_map_staging.csv` and `tables.xml`); the DCC group parsed from `tables.xml` comments; build-owned items found by comment and name | hartlib `names.py`, `le_tables.py` | One master with the others generated; an explicit owner column | 1–2 days. The device maps and the name map were retired in R9e (ADR-029: `devices.csv` is the one master, `tables.xml` generated from it, `written_by` the owner column). The pnm-columns PR (2026-11-21) removes the last copy: the six `pnm_` columns of `devices.csv` are gone and every reader reads `cp`, `system_name`, `dcc`, `wiring`, `jmri_comment` and `notes`; staging's line blocks carry their station in `cp`; Head 6LB's note is the 2026-11-19 one; `lcc_turnout_contract.py` takes the DCC address from the `dcc` column, not a comment (`check_layout_facts.py` still reads it out of the built comment, as a witness of `tables.xml` against the master). Left: `le_tables.py`'s build-owned items found by name (with row 8) |
 | 10 | Drawing workarounds in preferences | `level_leg` (now with plugin desk faults for its causes), `le_shift`, `le_labels` groupings. Done: `le_tight_crossovers`/`le_split_crossovers` (101/103) replaced by the schematic-maps 0.1.48 three-way rule (#785) | Plugin rules (for example: choose the level leg when the straight-level rule would collide) | 1–2 days |
 
 Also open, smaller:

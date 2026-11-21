@@ -45,7 +45,7 @@ def _edge(sec: ET.Element, edge: str) -> ET.Element | None:
 def load_turnouts(root: ET.Element | None = None, switches: dict | None = None) -> dict[str, tuple[str, str]]:
     """layout_ident → (DECADDR, USER_NAME) for M2T, one per switch in switches.csv.
 
-    The address is the switch's M2T hardware (the name map of devices.csv); the user name is
+    The address is the switch's M2T hardware (its turnout row's system_name in devices.csv); the user name is
     its public name, Switch N. A switch whose hardware is not an M2T turnout in
     tables.xml is skipped with a message. `switches`: the switches when the caller
     loaded them already (hartlib.railroad), else layout_facts.load_switches().

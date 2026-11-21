@@ -50,7 +50,7 @@ class LoaderTest(unittest.TestCase):
             facts.load_switches(self.data)
 
     def test_levels_come_from_switches_and_control_points(self) -> None:
-        levels = facts.name_map_levels()
+        levels = facts.staging_levels()
         self.assertEqual(levels[("turnout", "Switch 9")], "1")       # switches.csv
         self.assertEqual(levels[("fb", "FB Switch 9 N")], "1")       # its switch
         self.assertEqual(levels[("block", "Track Main East")], "1")  # a leg of Switch 7 and 33
@@ -66,7 +66,7 @@ class LoaderTest(unittest.TestCase):
     def test_a_mast_follows_its_control_point_to_a_new_level(self) -> None:
         text = (self.data / STATIONS).read_text().replace("1,Plane,5,", "2,Plane,5,")
         (self.data / STATIONS).write_text(text)
-        levels = facts.name_map_levels(self.data)
+        levels = facts.staging_levels(self.data)
         self.assertEqual(levels[("mast", "Mast 6LA")], "2")
         self.assertEqual(levels[("turnout", "Switch 5")], "1")       # switches.csv still says 1
 

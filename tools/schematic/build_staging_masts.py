@@ -23,8 +23,8 @@ and upper the same way under C3), so nothing unwired reaches MQTT: signal_coordi
 digits.
 
 A wired head is a level 1 head row of wiring.csv (hartlib.wiring, the physical wiring source; today one: Head 6LB on
-IH432, Switch 5, owner 2026-11-18): the rebuild writes its address, node and wiring text (its JMRI comment,
-hartlib.tables_build) from there and keeps its notes. A head row of devices.csv whose jmri_name is not the internal
+IH432, Switch 5, one high head since the owner dropped IH433 on 2026-11-19): the rebuild writes its address, node and
+wiring text (its JMRI comment, hartlib.tables_build) from there and keeps its notes, which say so. A head row of devices.csv whose jmri_name is not the internal
 name of its user name is wired too (wired_heads), and must be in wiring.csv.
 The build stops on a head row whose system_name and jmri_name differ, a wired head that is not an LCOS head (IH and
 digits), whose mast the rule does not place, or whose mast the rule gives a different set of heads; on a mast row

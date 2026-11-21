@@ -206,11 +206,11 @@ class TheChecks(unittest.TestCase):
     def test_a_row_has_one_comment(self):
         self.assertIn("wiring and jmri_comment are both set", problems([turnout(jmri_comment="x")]))
 
-    def test_pnm_columns_need_a_pnm_order_that_is_a_number_of_its_own(self):
-        self.assertIn("pnm_ columns are set but pnm_order is empty", problems([turnout(pnm_cp="Brick")]))
-        self.assertIn("pnm_order 'x'", problems([turnout(pnm_order="x")]))
-        self.assertIn("pnm_order '1'", problems([turnout(pnm_order="1"), turnout("Switch 3", pnm_order="1",
-                                                                                 system_name="M2T9", jmri_name="M2T9")]))
+    def test_the_name_map_copy_is_gone(self):
+        """The six pnm_ columns (the name map's copy, R9e) are no master columns: their facts are in cp, system_name,
+        dcc, wiring, jmri_comment and notes."""
+        self.assertFalse([c for c in D.COLUMNS if c.startswith("pnm_")])
+        self.assertFalse(hasattr(D, "name_map_lines"))
 
     def test_rows_out_of_order_fail(self):
         self.assertIn("out of order", problems([mast(), turnout()]))
@@ -331,7 +331,8 @@ class TheWritersRules(unittest.TestCase):
         held = [turnout(), mast("Mast 2L"), mast("Mast 4L", system_name="IF$vsm:basic:one-low($2)",
                                                   jmri_name="IF$vsm:basic:one-low($2)")]
         new = [mast("Mast 6L", system_name="IF$vsm:basic:one-low($3)", jmri_name="IF$vsm:basic:one-low($3)")]
-        got = D.replace_rows(held, "build_staging_masts.py", new)
+        got = D.replace_rows(held, "build_staging_masts.py", new,
+                             drops=[("1", "mast", "Mast 2L"), ("1", "mast", "Mast 4L")])     # staging rows: named
         self.assertEqual([r["user_name"] for r in got], ["Switch 1", "Mast 6L"])
 
     def test_a_writer_not_in_the_one_list_is_refused(self):
@@ -444,12 +445,6 @@ class TheWriters(unittest.TestCase):
         self.assertEqual(len(got), 1)
         self.assertIn(row["user_name"], got[0])
 
-    def test_the_name_map_is_the_rows_with_a_pnm_order_in_that_order_and_has_no_alias_rows(self):
-        rows = [r for _n, r in D.name_map_lines(self.files)]
-        self.assertTrue(rows)
-        self.assertTrue(all(r["current"] == r["proposed"] for r in rows))
-        self.assertEqual(len(rows), sum(1 for r in D.load(self.files) if r["pnm_order"]))
-
     def test_the_device_maps_leave_out_spare_and_status_rows_and_split_levels(self):
         staging = D.device_map_rows(D.load(self.files), ("1",))
         both = D.device_map_rows(D.load(self.files), ("2", "3"))
@@ -477,17 +472,29 @@ class TheWriters(unittest.TestCase):
         kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_staging_masts.py"]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
-    def test_a_writer_that_would_lose_a_name_map_row_without_saying_so_is_refused(self):
-        """A rename gives a new key: the old row (and its pnm_ columns) would go with no word, so the write stops."""
+    def test_a_writer_that_would_lose_a_staging_row_without_saying_so_is_refused(self):
+        """A rename gives a new key: the old staging row (and the field facts a rewrite carries over from it) would
+        go with no word, so the write stops."""
         held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
         mine = D.device_map_rows(held, ("1",))
-        first = next(r for r in mine if any(h["user_name"] == r["user_name"] and h["layer"] == r["layer"]
-                                            and h["pnm_order"] for h in held))
+        first = mine[0]
         renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
-        with self.assertRaisesRegex(D.DevicesError, rf"would drop 1 row\(s\).*{first['user_name']!r}.*pnm_order"):
+        with self.assertRaisesRegex(D.DevicesError, rf"would drop 1 staging row\(s\), first {first['user_name']!r}"):
             D.outputs_after("build_staging_masts.py", renamed, self.files)
         key = ("1", first["layer"], first["user_name"])
         D.outputs_after("build_staging_masts.py", renamed, self.files, drops=[key])
+
+    def test_a_writer_may_drop_a_main_or_upper_row_without_saying_so(self):
+        """Only staging's rows carry field facts over a rewrite (FIELD_LEVEL); a main or upper row is the rule's
+        alone, so its writer may drop it."""
+        held = [r for r in D.load(self.files) if r["written_by"] == "build_device_map.py" and r["level"] == "2"
+                and r["role"] == "spur"]
+        gone = held[0]
+        rest = [dict(r) for r in D.load(self.files) if r["written_by"] == "build_device_map.py"
+                and (r["level"], r["layer"], r["user_name"]) != (gone["level"], gone["layer"], gone["user_name"])]
+        out = D.outputs_after_rows("build_device_map.py", rest, self.files)
+        after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
+        self.assertNotIn((gone["level"], gone["layer"], gone["user_name"]), after)
 
     def test_a_writer_that_gives_a_row_a_hand_kept_row_has_is_refused(self):
         hand = hand_keep(self.files)
@@ -502,11 +509,6 @@ class TheWriters(unittest.TestCase):
 
 
 class TheNits(unittest.TestCase):
-    def test_pnm_order_is_compared_as_a_number(self):
-        a = turnout(pnm_order="1")
-        b = turnout("Switch 3", pnm_order="01", system_name="M2T9", jmri_name="M2T9")
-        self.assertIn("pnm_order '01'", problems([a, b]))
-
     def test_field_rows_with_no_system_name_do_not_clash_with_each_other(self):
         fb = lambda user: blank(level="1", layer="fb", role="fb", user_name=user, assignment="field", description="x")
         text = problems([fb("a"), fb("b")])
@@ -528,7 +530,8 @@ class TheNits(unittest.TestCase):
 
 
 class TheReaders(unittest.TestCase):
-    """The one way a reader gets device-map and name-map rows: from the master (device_map_lines, name_map_lines)."""
+    """The one way a reader gets device-map rows and a row's comment: from the master (device_map_lines,
+    comment_of)."""
 
     def test_the_lines_give_the_old_forms(self):
         rows = list(D.load())
@@ -538,10 +541,14 @@ class TheReaders(unittest.TestCase):
                 self.assertTrue(got)
                 self.assertTrue(all(set(r) == set(D.DEVICE_COLUMNS) | {"role"} for _n, r in got))
                 self.assertEqual({r["level"] for _n, r in got}, set(levels))
-        names = D.name_map_lines()
-        self.assertTrue(names)
-        self.assertTrue(all(set(r) == set(D.PNM_COLUMNS) and r["current"] == r["proposed"] for _n, r in names))
-        self.assertTrue(all(0 < n <= len(rows) + 1 for n, _r in names))
+                self.assertTrue(all(0 < n <= len(rows) + 1 for n, _r in got))
+
+    def test_a_rows_comment_is_its_jmri_comment_else_its_wiring_with_a_field_turnouts_dcc(self):
+        self.assertEqual(D.comment_of(turnout()), "Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2")
+        alias = turnout("DCC Switch 1", role="lcc_alias", system_name="MTT100", jmri_name="MTT100")
+        self.assertEqual(D.comment_of(alias), "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2")     # an alias has no DCC group
+        self.assertEqual(D.comment_of(mast(jmri_comment="Brick | Switch 1")), "Brick | Switch 1")
+        self.assertEqual(D.comment_of(turnout(assignment="virtual")), "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2")
 
     def test_a_line_is_the_masters_own(self):
         rows = list(D.load())
@@ -557,66 +564,44 @@ class TheReaders(unittest.TestCase):
     def test_a_master_that_cannot_be_read_stops_with_its_path(self):
         with tempfile.TemporaryDirectory() as d:
             missing = Path(d) / "devices.csv"
-            for call in (lambda: D.device_map_lines(("1",), missing), lambda: D.name_map_lines(missing)):
+            for call in (lambda: D.device_map_lines(("1",), missing), lambda: D.load(missing)):
                 with self.assertRaisesRegex(D.DevicesError, "cannot read it"):
                     call()
             missing.write_text("level,layer\n1,mast\n", encoding="utf-8")
             with self.assertRaisesRegex(D.DevicesError, "the header is not the master's columns"):
-                D.name_map_lines(missing)
+                D.load(missing)
 
     def test_the_path_or_the_files_name_the_same_master(self):
         self.assertEqual(D.device_map_lines(("1",), REAL.master), D.device_map_lines(("1",), REAL))
 
 
-class ThePnmComments(unittest.TestCase):
-    def setUp(self):
-        self.tmp = Path(tempfile.mkdtemp())
-        self.addCleanup(shutil.rmtree, self.tmp)
-        self.files = D.Files.under(self.tmp)
-        for name in ("master", "dictionary"):
-            shutil.copyfile(getattr(REAL, name), getattr(self.files, name))
+class TheStagingFacts(unittest.TestCase):
+    """What the pnm_ columns held that the master's own columns lacked, now in them (R9e follow-up, 2026-11-21)."""
 
-    def test_a_row_a_builder_writes_takes_the_comment_and_keeps_its_owner(self):
-        """pnm_comment is no builder's output, so a builder's row may change it, and written_by stays."""
-        head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"] and r["written_by"])
-        update = D.set_pnm_comments("head", {head["user_name"]: "a new comment"}, self.files)
-        self.assertEqual(update.changed, 1)
-        changed = {(r["level"], r["layer"], r["user_name"]): r for r in csv.DictReader(io.StringIO(update.texts[self.files.master]))}
-        row = changed[(head["level"], head["layer"], head["user_name"])]
-        self.assertEqual((row["pnm_comment"], row["written_by"]), ("a new comment", head["written_by"]))
-        self.assertEqual({k: v for k, v in row.items() if k != "pnm_comment"},
-                         {k: v for k, v in head.items() if k != "pnm_comment"})
+    @classmethod
+    def setUpClass(cls):
+        cls.rows = {(r["level"], r["layer"], r["user_name"]): r for r in D.load()}
 
-    def test_the_comment_survives_the_builders_next_run(self):
-        """The builder's rewrite carries the pnm_ columns of the row it replaces (outputs_after_rows)."""
-        head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"] and r["written_by"])
-        update = D.set_pnm_comments("head", {head["user_name"]: "a new comment"}, self.files)
-        D.write_all(self.files, update.texts)
-        mine = [dict(r) for r in D.load(self.files) if r["written_by"] == head["written_by"]]
-        for r in mine:                                   # what the builder gives: its columns, none of the pnm_ ones
-            r.update({c: "" for c in r if c.startswith("pnm_")})
-        out = D.outputs_after_rows(head["written_by"], mine, self.files)
-        row = next(r for r in csv.DictReader(io.StringIO(out[self.files.master]))
-                   if r["user_name"] == head["user_name"] and r["layer"] == "head")
-        self.assertEqual(row["pnm_comment"], "a new comment")
+    def test_every_staging_line_block_and_its_detector_carry_their_station(self):
+        lines = [r for k, r in self.rows.items() if k[0] == "1" and r["layer"] in ("block", "occupancy")
+                 and r["role"] in ("track", "helix", "part")]
+        self.assertGreaterEqual(len(lines), 49)
+        # the two mains sit between stations, in none; the Engine House tracks' detectors were never given
+        # one (their blocks were)
+        self.assertEqual(sorted(r["user_name"] for r in lines if not r["cp"]),
+                         ["BS EH-1", "BS EH-2", "BS EH-3", "BS Main East", "BS Main West", "Track Main East",
+                          "Track Main West"])
+        self.assertEqual(self.rows[("1", "block", "Track East Ext")]["cp"], "Plane")
+        self.assertEqual(self.rows[("1", "occupancy", "BS Barn")]["cp"], "Barn")
 
-    def test_a_comment_for_a_name_that_is_no_row_changes_nothing(self):
-        update = D.set_pnm_comments("head", {"Head Nowhere": "x"}, self.files)
-        self.assertEqual((update.changed, update.texts), (0, {}))
+    def test_a_staging_part_is_in_its_blocks_station(self):
+        parts = [r for k, r in self.rows.items() if k[0] == "1" and r["role"] == "part"]
+        self.assertTrue(parts)
+        for r in parts:
+            self.assertEqual(r["cp"], self.rows[("1", "block", r["part_of"])]["cp"], r["user_name"])
 
-    def test_no_change_gives_no_texts(self):
-        head = next(r for r in D.load(self.files) if r["layer"] == "head" and r["pnm_order"])
-        update = D.set_pnm_comments("head", {head["user_name"]: head["pnm_comment"] or head["user_name"]}, self.files) \
-            if head["pnm_comment"] else D.set_pnm_comments("head", {}, self.files)
-        self.assertEqual((update.changed, update.texts), (0, {}))
-
-    def test_a_hand_kept_row_changes_too(self):
-        hand = hand_keep(self.files)
-        update = D.set_pnm_comments("turnout", {hand["user_name"]: "Node: 99"}, self.files)
-        self.assertEqual(update.changed, 1)
-        changed = {(r["layer"], r["user_name"]): r for r in csv.DictReader(io.StringIO(update.texts[self.files.master]))}
-        self.assertEqual(changed[("turnout", hand["user_name"])]["pnm_comment"], "Node: 99")
-        self.assertEqual(changed[("turnout", hand["user_name"])]["jmri_comment"], hand["jmri_comment"])
+    def test_head_6lb_says_it_is_one_high_head(self):
+        self.assertEqual(self.rows[("1", "head", "Head 6LB")]["notes"], "one high head (owner 2026-11-19); IH433 dropped")
 
 
 class TheLoaderIsStrictAndCurrent(unittest.TestCase):

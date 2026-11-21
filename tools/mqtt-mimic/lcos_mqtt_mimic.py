@@ -372,33 +372,28 @@ def infer_plant(name: str, cp: str = "") -> str:
 
 
 def load_cps() -> dict[str, dict[str, str]]:
-    """Identity rows of the name map of devices.csv (hartlib.devices.name_map_lines): name/hardware → cp."""
+    """Staging's rows of devices.csv: user name (and an occupancy sensor's system name) -> its cp, by layer."""
     turnout: dict[str, str] = {}
     occupancy: dict[str, str] = {}
     block: dict[str, str] = {}
     mast: dict[str, str] = {}
     if not DEVICES.is_file():
         return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
-    for _line, row in devices.name_map_lines(DEVICES):
-        layer = (row.get("layer") or "").strip()
-        current = (row.get("current") or "").strip()
-        proposed = (row.get("proposed") or "").strip()
-        if current != proposed or not proposed:
+    for row in devices.load(DEVICES):
+        if row["level"] != devices.FIELD_LEVEL:
             continue
-        if proposed.endswith(" alias"):
-            continue
-        plant = infer_plant(proposed, (row.get("cp") or "").strip())
-        hardware = (row.get("hardware") or "").strip()
+        layer, name = row["layer"], row["user_name"]
+        plant = infer_plant(name, row["cp"])
         if layer == "turnout":
-            turnout[proposed] = plant
+            turnout[name] = plant
         elif layer == "occupancy":
-            occupancy[proposed] = plant
-            for token in hardware.split():
-                occupancy[token] = plant
+            occupancy[name] = plant
+            if row["system_name"]:
+                occupancy[row["system_name"]] = plant
         elif layer == "block":
-            block[proposed] = plant
+            block[name] = plant
         elif layer == "mast":
-            mast[proposed] = plant
+            mast[name] = plant
     return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
 
 

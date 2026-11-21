@@ -166,7 +166,7 @@ class Rebuild(unittest.TestCase):
             prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
             mine = [devices.master_row(r, "build_staging_masts.py", prior.get((r["level"], r["layer"], r["user_name"])))
                     for r in rows if r["layer"] in bsm.WRITES]
-            # the edit may rename a row (that is the test); the name map is meant to lose its old name here
+            # the edit may rename a row (that is the test); its old staging row is meant to go here
             gone = {(r["level"], r["layer"], r["user_name"]) for r in held if r["written_by"] == "build_staging_masts.py"} \
                 - {(r["level"], r["layer"], r["user_name"]) for r in mine}
             held = devices.replace_rows(held, "build_staging_masts.py", mine, drops=gone)

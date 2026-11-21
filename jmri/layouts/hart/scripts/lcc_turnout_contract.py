@@ -1,29 +1,26 @@
 #!/usr/bin/env python3
-"""MQTT M2T* plant ↔ OpenLCB MTT{dcc} alias (device map: DCC Switch N).
+"""MQTT M2T* plant <-> OpenLCB MTT{dcc} alias (devices.csv: DCC Switch N).
 
-Every MQTT turnout whose comment has ``DCC: N`` has an LCC twin ``MTT{N}``:
-userName ``DCC Switch N``, comment is the MQTT comment without DCC, and the
-same feedback sensors as the MQTT bean. Do not delete MTT* as leftovers.
+Every field turnout row of devices.csv (an MQTT M2T* plant) has an LCC alias row ``DCC Switch N`` whose system name
+is ``MTT{dcc}``, the turnout row's own ``dcc`` column. In tables.xml the alias bean has the alias row's user name and
+comment (its wiring, with no DCC group) and the same feedback sensors as the MQTT bean. Do not delete MTT* as
+leftovers. Nothing here reads a DCC address out of a comment: the address is the row's ``dcc``.
 
-Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS (owner,
-2026-11-20): an MTT* with no MQTT plant (a DCC accessory, a test turnout) is no
-problem. Only a devices.csv row that names itself an MQTT plant's alias needs one.
-The DCC group grammar is hartlib.names (one place for it).
+Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS (owner, 2026-11-20): an MTT* with no MQTT plant
+(a DCC accessory, a test turnout) is no problem. Only a devices.csv row that names itself an MQTT plant's alias needs
+one.
 """
 
 from __future__ import annotations
 
-import re
 import sys
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import devices  # noqa: E402
-from hartlib.names import split_dcc  # noqa: E402
-
-SWITCH_USER_RE = re.compile(r"^Switch \d+$")
 
 
 def child_text(element: ET.Element, tag: str) -> str:
@@ -31,39 +28,50 @@ def child_text(element: ET.Element, tag: str) -> str:
     return value.strip() if value else ""
 
 
-def comment_dcc(comment: str) -> str:
-    """The DCC address in an MQTT turnout comment, "" if it has none (ValueError if misplaced)."""
-    return split_dcc(comment)[1]
+@dataclass(frozen=True)
+class Plant:
+    """A field turnout row of devices.csv and its LCC alias row."""
+    line: int
+    user: str              # Switch N
+    system: str            # M2T...
+    dcc: str
+    alias: str             # the alias row's system name, MTT{dcc}
+    alias_user: str        # DCC Switch N
+    alias_comment: str     # the alias row's JMRI comment (devices.comment_of): its wiring, no DCC group
 
 
-def lcc_comment_from_mqtt(comment: str) -> str:
-    """The MQTT comment without its DCC group, as the LCC twin carries it."""
-    return split_dcc(comment)[0]
-
-
-def expected_lcc_user(mqtt_user: str) -> str | None:
-    if SWITCH_USER_RE.fullmatch(mqtt_user or ""):
-        return f"DCC {mqtt_user}"
-    return None
+def field_plants(csv_path: Path) -> tuple[dict[str, Plant], list[str]]:
+    """({M2T system name: Plant} of the field turnout rows of devices.csv, problems): a field turnout with no DCC
+    address or no LCC alias row, an alias whose system name is not MTT{dcc}, or an alias with no turnout row.
+    DevicesError when the master cannot be read."""
+    rows = list(enumerate(devices.load(csv_path), 2))
+    aliases = {r["user_name"]: r for _n, r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
+    out, bad = {}, []
+    for n, r in rows:
+        if r["role"] != "turnout" or r["assignment"] != "field":
+            continue
+        at = f"{csv_path.name} line {n} ({r['user_name']}, {r['system_name']})"
+        a = aliases.pop(f"DCC {r['user_name']}", None)
+        if not r["dcc"]:
+            bad.append(f"{at}: a field turnout with no dcc")
+        elif a is None:
+            bad.append(f"{at}: no LCC alias row DCC {r['user_name']}")
+        elif a["system_name"] != f"MTT{r['dcc']}":
+            bad.append(f"{at}: its alias DCC {r['user_name']} is {a['system_name']}, not MTT{r['dcc']} (its dcc)")
+        else:
+            out[r["system_name"]] = Plant(n, r["user_name"], r["system_name"], r["dcc"], a["system_name"],
+                                          a["user_name"], devices.comment_of(a))
+    bad += [f"{csv_path.name}: alias {u} ({a['system_name']}) has no field turnout row {u.removeprefix('DCC ')}"
+            for u, a in sorted(aliases.items())]
+    return out, bad
 
 
 def identity_lcc_rows(csv_path: Path) -> dict[str, tuple[str, str]]:
-    """MTT* → (userName, comment) from the name-map rows of the device master `csv_path` (devices.csv), which has no
-    alias rows."""
-    out: dict[str, tuple[str, str]] = {}
+    """MTT* -> (user name, JMRI comment) of the field LCC alias rows of devices.csv."""
     if not csv_path.is_file():
-        return out
-    for _line, row in devices.name_map_lines(csv_path):
-        if row["layer"].strip() != "turnout":
-            continue
-        current, proposed = row["current"].strip(), row["proposed"].strip()
-        if not current or current != proposed:
-            continue
-        comment = row["comment"].strip()
-        for token in row["hardware"].split():
-            if token.startswith("MTT"):
-                out[token] = (proposed, comment)
-    return out
+        return {}
+    plants, _bad = field_plants(csv_path)
+    return {p.alias: (p.alias_user, p.alias_comment) for p in plants.values()}
 
 
 def turnout_index(root: ET.Element) -> dict[str, ET.Element]:
@@ -75,74 +83,47 @@ def turnout_index(root: ET.Element) -> dict[str, ET.Element]:
     return out
 
 
-def contract_violations(root: ET.Element, csv_path: Path | None = None) -> list[str]:
-    """Return human-readable failures; empty means the contract holds."""
+def contract_violations(root: ET.Element, csv_path: Path) -> list[str]:
+    """Human-readable failures of tables.xml `root` against the field turnouts of devices.csv `csv_path`; empty means
+    the contract holds."""
     beans = turnout_index(root)
     mqtt = {sn: el for sn, el in beans.items() if sn.startswith("M2T")}
     lcc = {sn: el for sn, el in beans.items() if sn.startswith("MTT")}
-    identity = identity_lcc_rows(csv_path) if csv_path is not None else {}
-    problems: list[str] = []
-    paired: set[str] = set()
+    plants, problems = field_plants(csv_path)
 
     for sn, el in sorted(mqtt.items()):
         user = child_text(el, "userName")
-        comment = child_text(el, "comment")
-        try:
-            dcc = comment_dcc(comment)
-        except ValueError as err:
-            problems.append(f"{sn} ({user or '?'}) {err}")
+        plant = plants.get(sn)
+        if plant is None:
+            problems.append(f"{sn} ({user or '?'}) has no field turnout row in {csv_path.name}")
             continue
-        if not dcc:
-            problems.append(f"{sn} ({user or '?'}) comment missing DCC")
-            continue
-        alias = f"MTT{dcc}"
-        paired.add(alias)
-        want_user = expected_lcc_user(user)
-        want_comment = lcc_comment_from_mqtt(comment)
-        if want_user is None:
-            problems.append(f"{sn} userName {user!r} is not Switch N")
-            continue
-        twin = lcc.get(alias)
+        if user != plant.user:
+            problems.append(f"{sn} userName {user!r} expected {plant.user!r} ({csv_path.name} line {plant.line})")
+        twin = lcc.get(plant.alias)
         if twin is None:
-            problems.append(f"{sn} ({user}) has no LCC alias {alias}")
+            problems.append(f"{sn} ({plant.user}) has no LCC alias {plant.alias}")
             continue
         got_user = child_text(twin, "userName")
         got_comment = child_text(twin, "comment")
-        if got_user != want_user:
-            problems.append(f"{alias} userName {got_user!r} expected {want_user!r}")
-        if got_comment != want_comment:
-            problems.append(
-                f"{alias} comment {got_comment!r} expected {want_comment!r}"
-            )
+        if got_user != plant.alias_user:
+            problems.append(f"{plant.alias} userName {got_user!r} expected {plant.alias_user!r}")
+        if got_comment != plant.alias_comment:
+            problems.append(f"{plant.alias} comment {got_comment!r} expected {plant.alias_comment!r}")
         mqtt_fb = el.get("feedback") or ""
         lcc_fb = twin.get("feedback") or ""
         if lcc_fb != mqtt_fb:
-            problems.append(f"{alias} feedback {lcc_fb!r} expected {mqtt_fb!r}")
+            problems.append(f"{plant.alias} feedback {lcc_fb!r} expected {mqtt_fb!r}")
         if mqtt_fb == "TWOSENSOR":
             for attr in ("sensor1", "sensor2"):
                 want = el.get(attr) or ""
                 got = twin.get(attr) or ""
                 if got != want:
-                    problems.append(f"{alias} {attr} {got!r} expected {want!r}")
+                    problems.append(f"{plant.alias} {attr} {got!r} expected {want!r}")
         else:
             for attr in ("sensor1", "sensor2"):
                 got = twin.get(attr) or ""
                 if got:
-                    problems.append(f"{alias} {attr}={got!r} but MQTT is {mqtt_fb}")
-        if alias in identity:
-            map_user, map_comment = identity[alias]
-            if got_user != map_user:
-                problems.append(
-                    f"{alias} userName {got_user!r} != device map {map_user!r}"
-                )
-            if got_comment != map_comment:
-                problems.append(
-                    f"{alias} comment {got_comment!r} != device map {map_comment!r}"
-                )
-        elif csv_path is not None:
-            problems.append(f"{alias} missing identity row in {csv_path.name}")
-
-    if csv_path is not None:
-        for alias in sorted(set(identity) - paired):
-            problems.append(f"{alias} identity row has no MQTT plant with matching DCC")
+                    problems.append(f"{plant.alias} {attr}={got!r} but MQTT is {mqtt_fb}")
+    problems += [f"{p.alias} ({p.alias_user}): {csv_path.name} line {p.line} has no MQTT plant {sn} in tables.xml"
+                 for sn, p in sorted(plants.items()) if sn not in mqtt]
     return problems
