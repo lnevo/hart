@@ -219,7 +219,7 @@ class Source(unittest.TestCase):
         self.assertIn('HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-0}"', source)
 
     def test_store_test_is_shared_with_the_deploy(self) -> None:
-        for path in (REDEPLOY, ROOT / SYNC_REL):
+        for path in (REDEPLOY, ROOT / "tools/hosts/deploy/common.sh"):   # common.sh: the steps' shared file
             text = path.read_text(encoding="utf-8")
             self.assertIn("profile_tables_guard.sh", text, path.name)
             self.assertIn("profile_tables_unpulled", text, path.name)

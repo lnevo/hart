@@ -17,7 +17,7 @@ INSTALL = ROOT / "cats/scripts/install_jmri_web_override.sh"
 MARKER = 'var HART_APPS_HOST = "";'
 PORT_MARKER = 'var HART_MIMIC_PORT = "";'
 PI_MARKER = 'var HART_PI_HOST = "";'
-SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
+SYNC = (ROOT / "tools/hosts/deploy/ship_mac.sh").read_text(encoding="utf-8")   # the Mac install step
 NODE = shutil.which("node")
 
 

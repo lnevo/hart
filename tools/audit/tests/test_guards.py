@@ -286,6 +286,8 @@ class SubagentGuard(unittest.TestCase):
             "timeout 5 git push",
             "sudo make deploy-layout",
             "./tools/hosts/sync_hart_package.sh --pi --win",
+            "./tools/hosts/deploy/ship_pi.sh /tmp/stage/pi",
+            "bash tools/hosts/deploy/ship_win.sh /tmp/stage/win",
             "run_serial_mqtt.cmd verbose",
             # third review: wrapper option values, conditions, interpreters, host scripts, follow
             "sudo -u pi git push",

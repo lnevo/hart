@@ -1,53 +1,38 @@
-"""Pins the order of gates and ship steps in tools/hosts/sync_hart_package.sh before it is split.
+"""The order of gates and ship steps of the deploy (tools/hosts/sync_hart_package.sh and the steps in tools/hosts/deploy/).
 
-WHY: the script builds, gates and ships to the Pi, Windows and the Mac in one run, so a failed gate or a
-one-host retry repeats everything. The planned split is a gate step and one ship step per host. These tests
-pin what a split could break; they change no behaviour. Line numbers are of the script at the time of writing.
+WHY: a failed gate must leave every host and the Mac as they were, and a one-host retry must not repeat the whole
+run. The deploy was one script that checked while it shipped; it is now a gate step, one staging step and one ship
+step per host. These tests pin the order and that nothing ships before every check has passed.
 
-MAP OF THE SCRIPT, in the order it runs (L = line):
+MAP, in the order it runs (entry point = tools/hosts/sync_hart_package.sh):
 
-  Before anything (no ssh)
-    G0  L17-19   refuse_hart_tables, refuse_unrestored_profile       needs: env, ~/JMRI_UserFiles state
-    G0  L34-37   read the parked features (hartlib.parked)           needs: python3, hartlib
-    --  L50-91   parse flags (--pi --win --all --dry-run --stage-only --check-only ...)
-    G0  L95      live_paths.py check (not for --check-only/--dry-run) needs: local files
-    --  L99-107  --stage-only: folder must be empty; sets DRY_RUN=1, DO_MAC_WEB=0
-    --  L111-136 stamp facts (commit, dirty warning, source)        needs: git
-    --  L252     ssh_mux_open (a folder of ssh sockets, closed by on_exit)
+  Entry point    reads the flags (--pi --win --all --dry-run --stage-only --check-only ...), --stage-only needs an
+                 empty folder and sets DRY_RUN=1, takes the stamp facts once, opens the ssh sockets (a folder of
+                 sockets, closed by its EXIT trap), then runs the steps below.
 
-  Host gates (ssh, read-only; skipped by --dry-run and --stage-only)
-    G1  L261-284 preflight_hosts: one ssh no-op to each host named   needs: ssh to the Pi and/or Windows
-    G2  L295-308 Pi unpulled check (Operations Pro files, Store)     needs: ssh to the Pi; only with --pi;
-                 pi_stop also starts PanelPro again                   HART_DISCARD_PI_CHANGES=1 skips it
-    --  L309-313 --check-only stops here
+  gate.sh        nothing is sent or installed by any of it
+    G0           refuse_hart_tables, refuse_unrestored_profile, the parked features (hartlib.parked), the live
+                 paths list (not for --check-only/--dry-run)                     needs: env, local files, python3
+    G1           preflight_hosts: one ssh no-op to each host named               needs: ssh (skipped by --dry-run, --stage-only)
+    G2           the Pi's unpulled check (Operations Pro files, Store); pi_stop starts PanelPro again; only with
+                 --pi; HART_DISCARD_PI_CHANGES=1 skips it. --check-only stops after it.
+    G3           audit_panel_contracts.py --strict                               needs: schematic-maps plugin
+    G4           build_tables.py --check (not on a redeploy); exit 3/2/other
+    G5           disable_digicon_sml_in_tables.py --check
+    G6           the Mac's own Store check ("tables.xml changed since the last deploy (a PanelPro Store)"), for a run
+                 that installs on the Mac (was inside the Mac install, after it had begun)
+    G7           a trial staging into a folder that is thrown away: the package builds (was after the Mac install)
+    G8           Windows can take the package: scp and tar and a temp file here, a temp folder and tar there through
+                 one read-only ssh probe (was after the Pi step was done)
+  stage.sh       builds DIR/pi and DIR/win once                                  needs: local files, rsync, python3
+  ship_mac.sh    the Mac install (web override, tables, ops, panels, CTC icons, jython, stamp); with any host flag,
+                 and with no flag at all (the Mac only)
+  ship_pi.sh     ssh mktemp, rsync, ssh apply, restart check
+  ship_win.sh    the Windows step: tarball, ssh mktemp, scp, ssh unpack, ssh apply, ssh cleanup
 
-  Local gates (no ssh; --stage-only and --dry-run still run them)
-    G3  L321-329 audit_panel_contracts.py --strict                   needs: schematic-maps plugin, local files
-    G4  L339-352 build_tables.py --check (not on a redeploy, L334)   needs: plugin at its pin; exit 3/2/other
-    G5  L353-356 disable_digicon_sml_in_tables.py --check            needs: tables.xml
-    --  L361-370 tables sha for the stamp (a warning, not a stop)
-
-  Ship steps
-    S0  L683-690 --stage-only: build DIR/pi and DIR/win and exit     (stage_hosts, L640-649)
-    S1  L692-704 Mac install (web override, tables, ops, panels, CTC icons, jython, stamp)   needs: ~/JMRI_UserFiles
-                 runs with any host flag, and with no flag at all (the Mac only)
-    S2  L706-711 stage_hosts into a temp folder, once for both hosts  needs: local files, rsync, python3
-    S3  L713-729 Pi: ssh mktemp, rsync, ssh apply, restart check      needs: ssh, rsync to the Pi
-    S4  L731-748 Windows: tarball, ssh mktemp, scp, ssh unpack, ssh apply, ssh cleanup   needs: ssh, scp, tar
-
-GATES THAT RUN AFTER SHIPPING HAS STARTED (the main finding):
-  A. L451-454 install_tables_local: "tables.xml changed since the last deploy (a PanelPro Store)" on the MAC
-     profile. It runs inside S1, after install_jmri_web_override.sh (L696) has already changed the Mac, and it is
-     the Mac's own Store check: a gate step that only reads hosts never makes it. A split has to move it ahead of
-     the Mac ship step or leave it there.
-  B. S2 staging (L542-649) can fail (build_mimic_web.py, publish_live.py, rsync, a missing source file) AFTER the
-     Mac install of S1 is done and before any host is touched. Nothing proves the package can be built until the
-     Mac has been changed; the package build is the one "gate" that has no step of its own.
-  C. S4 scp/tar/mktemp failures on Windows come after the Pi step is finished: the script reports the commit the
-     Pi got (L240-248) and Windows can be left behind. Only the ssh no-op (G1) is checked ahead of time.
-  D. The operating flag is not in the script at all: .claude/hooks/main_guard.py refuses a command whose program
-     is sync_hart_package.sh or redeploy_commit.sh with --pi/--win/--all, or a make deploy target (a new ship
-     script name is not covered until the hook's program list names it).
+THE OPERATING FLAG is not in the scripts: .claude/hooks/main_guard.py refuses a command whose program is
+sync_hart_package.sh or redeploy_commit.sh with --pi/--win/--all, gate.sh with --pi/--win, ship_pi.sh or ship_win.sh,
+or a make deploy target. A new step name is not covered until the hook's program list names it.
 
 Everything below runs with ssh, scp, rsync-to-a-host and tar as recorders on PATH (the hosts are example.invalid
 names) and a temporary HOME; nothing reaches a host, and nothing publishes MQTT.
@@ -428,7 +413,8 @@ class EveryCheckRunsBeforeAnythingShips(GateHarness):
         self.assertEqual([], self.mac_files(), "the Mac install ran before the package was known to build")
 
     def test_a_windows_failure_stops_before_the_pi_is_touched(self) -> None:
-        (self.tmp / "pi_ok").touch()          # the Pi would take the package; Windows gives no answer to the probe
+        (self.tmp / "pi_ok").touch()          # the Pi would take the package; Windows fails the probe
+        (self.tmp / "win_probe_fails").touch()
         done = self.deploy("--pi", "--win")
         self.assertEqual(1, done.returncode, done.stderr[-2000:])
         self.assertIn("STOP: Windows", done.stderr)
