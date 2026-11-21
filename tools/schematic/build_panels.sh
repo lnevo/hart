@@ -66,6 +66,15 @@ for arg in "$@"; do
   esac
 done
 STAMPS=(python3 tools/schematic/panel_stamps.py)
+# No stamps while HART_TABLES is set or the plugin is off its pin: nothing is skipped and nothing recorded (said once).
+why=$("${STAMPS[@]}" unstampable) && unstamped=0 || unstamped=1
+if [ "$unstamped" -eq 1 ]; then
+  [ "$full" -eq 0 ] && echo "stamps off for this run: $why"
+  full=1
+  nostamp=1
+else
+  nostamp=0
+fi
 
 failed=()
 # run_step STOP KIND NAME CMD...: KIND is "stamped" for a step (skipped while its stamp is the last successful run's,
@@ -78,10 +87,16 @@ run_step() {
     echo "   $name: current, skipped"
     return
   fi
-  if "$@" ${check[@]+"${check[@]}"}; then
+  local out; out=$(mktemp)
+  if "$@" ${check[@]+"${check[@]}"} | tee "$out"; then
     echo "   $name: ok, $((SECONDS - start)) s"
-    [ "$kind" = stamped ] && "${STAMPS[@]}" record "$name" "$@"
+    # a step that printed SKIPPED did not really run (plugin off its pin): it must not stamp
+    if [ "$kind" = stamped ] && [ "$nostamp" -eq 0 ]; then
+      if grep -q '^SKIPPED' "$out"; then echo "   $name: printed SKIPPED, no stamp"; else "${STAMPS[@]}" record "$name" "$@"; fi
+    fi
+    rm -f "$out"
   else
+    rm -f "$out"
     echo "   $name: FAILED, $((SECONDS - start)) s"
     [ "$kind" = stamped ] && "${STAMPS[@]}" forget "$name"
     failed+=("$name")

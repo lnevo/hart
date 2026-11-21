@@ -3,13 +3,13 @@
 sources give now.
 
 run_sml_discover.sh discovers on the discovery base (build_tables.py --discovery-base: every generated bean, no Signal
-Mast Logic) and writes discovered_sml.stamp beside the result: the sha256 of that base. This builds the base in memory
-(build_tables.py --base-hash does the same), hashes it and compares. A mismatch means a mast, turnout, sensor or block
-changed since the last discovery, so the file may name a pair that is gone or miss one that is new.
+Mast Logic) and writes discovered_sml.stamp beside the result: the digest of that base (build_tables.discovery_digest:
+the base without what discovery cannot see, such as comments, sensor user names and panel labels). This builds the
+base in memory (build_tables.py --base-hash does the same) and compares. A mismatch means a mast, turnout, block or
+track changed since the last discovery, so the file may name a pair that is gone or miss one that is new.
 """
 from __future__ import annotations
 
-import hashlib
 import os
 import sys
 from pathlib import Path
@@ -38,7 +38,7 @@ def verdict(stamp: Path, current: str) -> str | None:
 def base_digest() -> str:
     with pd.cache_on():
         data, _counts = bt.generate(with_logic=False)
-    return hashlib.sha256(data).hexdigest()
+    return bt.discovery_digest(data)
 
 
 def main() -> int:

@@ -3,13 +3,15 @@
 
     panel_stamps.py current NAME [CMD ...]   exit 0 when NAME's stamp equals the recorded one (the step may be skipped)
     panel_stamps.py record  NAME [CMD ...]   record NAME's stamp now (build_panels.sh does it after the step passed)
+    panel_stamps.py unstampable              prints why no stamp is recorded now and exits 1, or exits 0
     panel_stamps.py forget  NAME             drop NAME's stamp (after a failure)
 
 A stamp is the sha256 over the step's command line, every file its declaration names (STEPS: the inputs, the code that
-runs, the outputs), the schematic-maps plugin's commit (and its uncommitted changes, or SCHEMATIC_PLUGIN), the Python
-version, and, for the steps that publish, the merge base with origin/main. The outputs are in it, so an edited or
+runs, the outputs), the schematic-maps plugin's commit and uncommitted changes (of the SCHEMATIC_PLUGIN folder when set), the
+Python (version, real path, PYTHONPATH), SCHEMATIC_REQUIRED, and, for the steps that publish, the merge base with origin/main. The outputs are in it, so an edited or
 deleted output makes the step run again, and the same stamp means "this step's inputs and outputs are what its last
-successful run left". The stamps are kept per checkout in .cache/panel-stamps/ (gitignored). `make panels FULL=1`
+successful run left". Nothing is recorded, and nothing skipped, while HART_TABLES is set or the plugin is not at
+its pinned commit (unstampable), and build_panels.sh records nothing for a step that printed SKIPPED. The stamps are kept per checkout in .cache/panel-stamps/ (gitignored). `make panels FULL=1`
 ignores them. Guards never use them: they are cheap and they check.
 
 The risk is an input the declaration misses, so tests/test_panel_stamps.py runs every step under an audit hook and fails
@@ -112,6 +114,20 @@ def covered(rel: str, step: str) -> bool:
     return False
 
 
+def dir_covered(rel: str, step: str) -> bool:
+    """Is folder `rel` (listed or globbed by `step`) one a declaration reaches: a declared pattern's fixed folder is it,
+    inside it, or above it."""
+    if rel.startswith("external/model-railroad-skills") or rel in (".", "") or "__pycache__" in rel.split("/"):
+        return True
+    s = STEPS[step]
+    for pat in (*s.inputs, *s.outputs, *CODE):
+        head = pat.split("*", 1)[0]                     # the part before the first glob character
+        literal = head.rsplit("/", 1)[0] if "/" in head else ""
+        if rel == literal or rel.startswith(literal + "/") or literal.startswith(rel + "/"):
+            return True
+    return False
+
+
 def _glob_match(rel: str, pat: str) -> bool:
     import re
     out, i = "", 0
@@ -142,12 +158,40 @@ def _git(*args: str, cwd: Path) -> str:
     return r.stdout.strip() if r.returncode == 0 else f"git-failed:{r.returncode}"
 
 
+def _tree_state(folder: Path) -> str:
+    """A folder's git HEAD, its uncommitted changes (status and a hash of the diff against HEAD)."""
+    diff = subprocess.run(["git", "diff", "HEAD"], cwd=folder, capture_output=True, timeout=60)
+    return "|".join((_git("rev-parse", "HEAD", cwd=folder), _git("status", "--porcelain", cwd=folder),
+                     hashlib.sha256(diff.stdout).hexdigest()))
+
+
 def plugin_state(root: Path = ROOT) -> str:
-    """The plugin's commit and whatever is uncommitted in it, or the SCHEMATIC_PLUGIN folder a trial points at."""
+    """The plugin code the steps run: the SCHEMATIC_PLUGIN folder when a trial points at one, else this checkout's
+    submodule; in both, its commit and what is uncommitted in it."""
     trial = os.environ.get("SCHEMATIC_PLUGIN", "")
+    plugin = Path(trial) if trial else root / "external" / "model-railroad-skills"
+    if not plugin.is_dir():
+        return f"{trial}|no-plugin"
+    return f"{trial}|{_tree_state(plugin)}"
+
+
+def unstampable(root: Path = ROOT) -> str | None:
+    """Why no stamp may be recorded (or trusted) now, or None: a step that did not really run must never stamp.
+    HART_TABLES points the checks at another tables file; the plugin must be at its pinned commit (or a trial folder
+    named by SCHEMATIC_PLUGIN, which the stamp then holds by its own state)."""
+    if os.environ.get("HART_TABLES"):
+        return f"HART_TABLES is set ({os.environ['HART_TABLES']}): the steps run on another tables file"
+    if os.environ.get("SCHEMATIC_PLUGIN"):
+        plugin = Path(os.environ["SCHEMATIC_PLUGIN"])
+        return None if plugin.is_dir() else f"SCHEMATIC_PLUGIN={plugin} is not a folder"
     plugin = root / "external" / "model-railroad-skills"
-    return "|".join((trial, _git("rev-parse", "HEAD", cwd=plugin) if plugin.is_dir() else "no-plugin",
-                     _git("status", "--porcelain", cwd=plugin) if plugin.is_dir() else ""))
+    if not plugin.is_dir() or not any(plugin.iterdir()):
+        return "the schematic-maps plugin submodule is not checked out"
+    pinned = _git("rev-parse", "HEAD:external/model-railroad-skills", cwd=root)
+    have = _git("rev-parse", "HEAD", cwd=plugin)
+    if pinned != have:
+        return f"the schematic-maps plugin is at {have[:8]}, not its pinned commit {pinned[:8]}"
+    return None
 
 
 def stamp(name: str, cmd: list[str] | tuple[str, ...] = (), root: Path = ROOT) -> str:
@@ -160,7 +204,8 @@ def stamp(name: str, cmd: list[str] | tuple[str, ...] = (), root: Path = ROOT) -
 
     put("step", name)
     put("cmd", " ".join(cmd))
-    put("python", ".".join(map(str, sys.version_info[:2])))
+    put("python", f"{sys.version_info[:3]} {os.path.realpath(sys.executable)} {os.environ.get('PYTHONPATH', '')}")
+    put("schematic-required", os.environ.get("SCHEMATIC_REQUIRED", ""))
     put("plugin", plugin_state(root))
     if step.publishes:
         put("merge-base", _git("merge-base", "HEAD", "origin/main", cwd=root))
@@ -176,10 +221,12 @@ def _file(name: str, store: Path) -> Path:
 
 def is_current(name: str, cmd=(), root: Path = ROOT, store: Path = STORE) -> bool:
     f = _file(name, store)
-    return f.is_file() and f.read_text().strip() == stamp(name, cmd, root)
+    return unstampable(root) is None and f.is_file() and f.read_text().strip() == stamp(name, cmd, root)
 
 
 def record(name: str, cmd=(), root: Path = ROOT, store: Path = STORE) -> None:
+    if unstampable(root) is not None:
+        return
     store.mkdir(parents=True, exist_ok=True)
     _file(name, store).write_text(stamp(name, cmd, root) + "\n")
 
@@ -190,6 +237,11 @@ def forget(name: str, store: Path = STORE) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     argv = sys.argv[1:] if argv is None else argv
+    if argv[:1] == ["unstampable"]:
+        reason = unstampable()
+        if reason:
+            print(reason)
+        return 1 if reason else 0
     if len(argv) < 2 or argv[0] not in ("current", "record", "forget"):
         print(__doc__.split("\n\n")[0], file=sys.stderr)
         return 2

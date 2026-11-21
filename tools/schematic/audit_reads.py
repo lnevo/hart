@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Run a script as __main__ under a Python audit hook and print the repo files it opens: "R path" for a read, "W path" for a write, sorted.
+"""Run a script as __main__ under a Python audit hook and print the repo files it opens: "R path" for a read, "W path" for a write, "M path" for a read of a missing file, "D path" for a folder listed or
+globbed, sorted.
 
     audit_reads.py SCRIPT [ARG ...]
 
@@ -19,6 +20,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 READ: set[str] = set()
 WRITTEN: set[str] = set()
+MISSED: set[str] = set()      # opened for reading and not there
+LISTED: set[str] = set()      # folders listed or globbed
 
 
 def rel_of(path) -> str | None:
@@ -43,6 +46,19 @@ def hook(event: str, args: tuple) -> None:
             READ.add(rel)
         elif (ROOT / rel).is_file():
             READ.add(rel)
+        elif not (ROOT / rel).exists():
+            MISSED.add(rel)
+    elif event in ("os.listdir", "os.scandir"):
+        rel = rel_of(args[0] if args and args[0] is not None else ".")
+        if rel is not None:
+            LISTED.add(rel)
+    elif event == "glob.glob":
+        base = args[2] if len(args) > 2 and args[2] else None
+        pattern = args[0]
+        if isinstance(pattern, str):
+            folder = rel_of(os.path.dirname(pattern) if base is None else os.path.join(base, os.path.dirname(pattern)))
+            if folder is not None:
+                LISTED.add(folder)
     elif event in ("os.rename", "os.replace"):
         for p in args[:2]:
             rel = rel_of(p)
@@ -66,7 +82,8 @@ def main() -> int:
         pass
     except BaseException as exc:  # noqa: BLE001 - the reads so far still count
         print(f"audit_reads: {script.name}: {type(exc).__name__}: {exc}", file=sys.stderr)
-    lines = [f"R {p}" for p in sorted(READ)] + [f"W {p}" for p in sorted(WRITTEN)]
+    lines = ([f"R {p}" for p in sorted(READ)] + [f"W {p}" for p in sorted(WRITTEN)]
+             + [f"M {p}" for p in sorted(MISSED)] + [f"D {p}" for p in sorted(LISTED)])
     sys.__stdout__.write("\n".join(lines) + "\n")
     return 0
 

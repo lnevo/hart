@@ -12,6 +12,7 @@ import importlib.util
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from contextlib import redirect_stdout
 from io import StringIO
 from pathlib import Path
@@ -69,6 +70,23 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
                 self.assertTrue(out.read_text().endswith("x\n"), "check writes nothing")
             finally:
                 self.m.HEAD_PLAN = saved
+
+    def test_check_cli_reports_a_stale_file_and_exits_1(self) -> None:
+        import contextlib
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "signal_head_plan.csv"
+            out.write_text("stale\n")
+            saved = self.m.HEAD_PLAN
+            self.m.HEAD_PLAN = out
+            err = StringIO()
+            try:
+                with unittest.mock.patch.object(sys, "argv", ["x", "--check"]), contextlib.redirect_stderr(err):
+                    code = self.m.main()
+            finally:
+                self.m.HEAD_PLAN = saved
+            self.assertEqual(code, 1)
+            self.assertIn("is stale", err.getvalue())
+            self.assertEqual(out.read_text(), "stale\n", "check writes nothing")
 
     def test_check_cli_exit_codes(self) -> None:
         import subprocess

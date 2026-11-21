@@ -214,7 +214,7 @@ def head_plan_text(rows: list[dict]) -> tuple[str, int]:
 def write_csvs(rows: list[dict]) -> None:
     HEAD_PLAN.parent.mkdir(parents=True, exist_ok=True)
     text, count = head_plan_text(rows)
-    with HEAD_PLAN.open("w", newline="") as f:
+    with HEAD_PLAN.open("w", newline="", encoding="utf-8") as f:
         f.write(text)
     print(f"wrote {HEAD_PLAN} ({count} masts)")
 
