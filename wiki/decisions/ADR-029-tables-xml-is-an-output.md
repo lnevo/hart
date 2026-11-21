@@ -1,6 +1,6 @@
 # ADR-029 — `tables.xml` is an output of one device master and a template
 
-- **Status:** Accepted
+- **Status:** Accepted. Amended 2026-11-21: the device master is two files (see the amendment at the end).
 - **Date:** 2026-11-20
 - **Deciders:** lnevo
 - **Builds on:** ADR-008 (one tables file), ADR-014 (hosts load `preference:tables.xml`), ADR-027 (staging from its device map), ADR-028 (main and upper on virtual devices)
@@ -51,3 +51,22 @@ The `AGENTS.md` rule "fix the data in `tables.xml`" becomes "fix the source data
 ## Open
 
 - R9b to R9e are built in that order ([`projects/project-health-handoff.md`](../projects/project-health-handoff.md)). The level-unification mast builder (step 2) waits on R9b.
+
+## Amendment 2026-11-21: the device master is two files
+
+Decided by the owner on 2026-11-21, from the pipeline-efficiency review (T6a). It is not built yet. It waits for the ADR-030 masts and row 8 work.
+
+**Why:** No row of `devices.csv` is hand-kept any more, because the builders took over the last ones on 2026-11-20. The owner's facts survive only as staging cells that `build_device_map.py` and the mast builder copy forward from the file's previous contents. So each builder reads its own last output to recover the owner's cells, and a Store split writes into a file the builders also write.
+
+**Decision:**
+- `devices_generated.csv` holds every row, written only by the build scripts. `written_by` still names the owning script.
+- `devices_field.csv` holds the owner's cells. Each row is keyed by (`level`, `layer`, `user_name`) and carries only the hand-owned columns: `dcc`, `layout_block`, `jmri_comment`, `notes`, `detector`, `stop` and `cp`; `system_name` and `jmri_name` on staging blocks; and the node and notes of a wired mast or head. A device added in PanelPro and taken in by a Store split is kept here in full, with no level and its `jmri_bean`.
+- `hartlib.devices` merges the two into the one view every reader gets. A field cell wins over the generated one.
+- Builders read `devices_field.csv` as an input and write `devices_generated.csv`. They never read their own last output.
+- `split_store.py` writes only to `devices_field.csv` and the template.
+- Checks and messages name a row by its key, not a line number. The row-order rule applies to each file on its own.
+
+**What changes in this ADR:** "one structure" now means one merged view, not one file. An empty `written_by` no longer marks a hand row (there are none), and the `adopts` mechanism goes. `devices.columns.csv` describes both files.
+
+**Acceptance:** the split is a pure refactor. `tables.xml`, the CATS desks, the Layout Editor panel and the approved fingerprints come out byte-identical, so the owner approves nothing again.
+
