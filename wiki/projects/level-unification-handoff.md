@@ -295,8 +295,8 @@ from a table in `build_hart_signal_heads.py` (HEADS_3PIN, with a third list of c
 from wiring.csv's head and calibration rows. `hartlib.wiring.digicon_rows` gives the pin rows in the old columns to
 the readers (`tables_build.digicon_masts`, `check_wiring_crosswalk.py`, `build_lcos_signal_manager_plan.py`,
 `refresh_bean_comments.py`, `write_inventory.py`). `signal_head_plan.csv` and `signal_mast_plan.csv` stay
-`--wiring-only`'s outputs (they hold mast facts too), byte-identical. A head is on one board: a head whose pins spill
-onto a second board needs the format widened when one is wired.
+`--wiring-only`'s outputs (they hold mast facts too), byte-identical. A head is on one node (owner, 2026-11-21: never across two nodes),
+but its three pins may span two OU boards: `ports` names a pin on the other board, "7,OU3-8,OU3-7".
 
 The freeze (2026-11-21, branch `agent/claude/wiring-freeze`): `make wiring-freeze CP="CP 123"`
 (`tools/wiring/freeze_wiring.py`) copies a main or upper control point's turnouts, feedback, placed heads and
@@ -308,7 +308,7 @@ the physical devices is the device map's, later. Today CP 123, 211, 217 and 223 
 225 each have heads the board rule could not place, and the freeze stops on them until the owner's board plan gives
 them room. Nothing is frozen yet: nothing on main or upper is wired. Step 6 is done.
 
-### 7. Main and upper stations and sheets (waits on the owner)
+### 7. Main and upper stations and sheets (waits on the owner; part of Finalize wiring in wiki/STATUS.md)
 
 `stations.csv` and `sheets.csv` take level 1 rows only; the main and upper whole-level sheets stay in
 `preferences.json`'s `main_upper` section. Once the owner defines main and upper stations in PanelPro, the builder takes every

@@ -18,7 +18,9 @@ Columns (COLUMNS):
   first), since those block names are placeholders. A staging detector with no block is a spare input.
 - node: the LCOS radio address. index: the LCOS number in the device's wiring text, "Turnout: <i>", "Sensor: <i>",
   "Signal: <i>" from 0, "Block: <i>" from 1 (1 to 8). board (OU<n> or IN<n>) and ports: where a turnout, feedback or
-  head lands; a detector has neither (its input is the index).
+  head lands; a detector has neither (its input is the index). A head is on one node, but its three pins may span
+  two OU boards (owner, 2026-11-21): a port that is on another board than `board` names it, "OU<n>-<pin>"
+  (board OU2, ports "7,OU3-8,OU3-7"). Every other device is on one board.
 - status: wired or planned. notes: text for people. (Power districts are not mapped yet; the owner,
   2026-11-21: the inventory's were old names, not real.)
 
@@ -48,6 +50,7 @@ LCOS = {"turnout": ("M2T", 8, "Turnout", "OU", 2), "fb": ("M2S", 67, "Sensor", "
         "button": ("", 0, "", "IN", 1), "relay": ("", 0, "", "OU", 1), "calibration": ("", 0, "", "OU", 1)}
 CAP = {"turnout": 8, "fb": 16, "head": 16, "detector": 8}     # LCOS numbers per node (a detector's from 1)
 BOARD = re.compile(r"^(OU|IN)([1-4])$")
+OWN_BOARD = re.compile(r"(OU[1-4])-([1-8])")       # a head's pin on another board than its row's: "OU3-8"
 
 
 class Wire(NamedTuple):
@@ -65,6 +68,23 @@ class Wire(NamedTuple):
     ports: tuple[int, ...]
     status: str
     notes: str
+    boards: tuple[str, ...] = ()          # each port's board (a head's may span two OU boards); `board` if empty
+
+    @property
+    def pins(self) -> list[tuple[str, int]]:
+        """[(board, port)] in port order."""
+        return list(zip(self.boards or (self.board,) * len(self.ports), self.ports))
+
+    @property
+    def port_text(self) -> str:
+        """The ports grouped by board as the wiring text gives them: "OU: 2 Ports: 7 | OU: 3 Ports: 8,7"."""
+        groups: list[tuple[str, list[int]]] = []
+        for board, port in self.pins:
+            if groups and groups[-1][0] == board:
+                groups[-1][1].append(port)
+            else:
+                groups.append((board, [port]))
+        return " | ".join(f"{b[:2]}: {b[2:]} Ports: {','.join(map(str, ps))}" for b, ps in groups)
 
     @property
     def address(self) -> str:
@@ -81,11 +101,11 @@ class Wire(NamedTuple):
         a detector's "Node: 13 Block: 1"."""
         word = LCOS[self.kind][2]
         if self.kind in LOCAL:
-            return f"Node: {self.node} | {self.board[:2]}: {self.board[2:]} Ports: {','.join(map(str, self.ports))}"
+            return f"Node: {self.node} | {self.port_text}"
         text = f"Node: {self.node} {word}: {self.index}"
         if self.kind == "detector":
             return text
-        return f"{text} | {self.board[:2]}: {self.board[2:]} Ports: {','.join(map(str, self.ports))}"
+        return f"{text} | {self.port_text}"
 
     @property
     def input(self) -> str:
@@ -127,9 +147,19 @@ def read(path: Path | None = None) -> list[Wire]:
         try:
             node = int(r["node"])
             index = None if kind in LOCAL and not r["index"] else int(r["index"])
-            ports = tuple(int(p) for p in r["ports"].split(",")) if r["ports"] else ()
+            items = [p.strip() for p in r["ports"].split(",")] if r["ports"] else []
+            spans = [OWN_BOARD.fullmatch(p) for p in items]
+            odd = [p for p, m in zip(items, spans) if not m and not p.isdigit()]
+            if odd:
+                bad.append(f"{at}: port {odd[0]!r} is a pin 1 to 8, or a pin on another board as OU<1-4>-<1-8>")
+                continue
+            ports = tuple(int(m.group(2)) if m else int(p) for p, m in zip(items, spans))
+            boards = tuple(m.group(1) if m else r["board"] for m in spans)
         except ValueError:
             bad.append(f"{at}: node, index and ports are numbers")
+            continue
+        if any(spans) and kind != "head":
+            bad.append(f"{at}: only a head's pins may span two boards; a {kind} is on its board alone")
             continue
         low = 1 if kind == "detector" else 0
         if kind in LOCAL:
@@ -162,6 +192,19 @@ def read(path: Path | None = None) -> list[Wire]:
             if not m or m.group(1) != want[3]:
                 bad.append(f"{at}: a {kind} lands on an {want[3]} board ({want[3]}1 to {want[3]}4), not {r['board']!r}")
                 continue
+            if spans and spans[0]:
+                bad.append(f"{at}: the first pin {items[0]} is on the row's board {r['board']}: give it as a pin alone")
+                continue
+            if any(m and m.group(1) == r["board"] for m in spans):
+                bad.append(f"{at}: a pin on the row's own board {r['board']} is given as a pin alone, not "
+                           f"{r['board']}-<pin>")
+                continue
+            if len(set(boards)) > 2:
+                bad.append(f"{at}: a head spans at most two boards, not {', '.join(sorted(set(boards)))}")
+                continue
+            if any(boards[j] == r["board"] and boards[j - 1] != r["board"] for j in range(1, len(boards))):
+                bad.append(f"{at}: a head's pins on {r['board']} come first, then those on the other board")
+                continue
             if len(ports) != want[4] or not all(1 <= p <= 8 for p in ports):
                 bad.append(f"{at}: a {kind} takes {want[4]} port(s) of 1 to 8, not {r['ports']!r}")
                 continue
@@ -174,18 +217,22 @@ def read(path: Path | None = None) -> list[Wire]:
         if kind not in LOCAL and number in numbers:
             bad.append(f"{at}: node {node} {LCOS[kind][2]} {index} is line {numbers[number]}'s as well")
             continue
-        taken = [p for p in ports if (node, r["board"], p) in pins]
+        own = list(zip(boards, ports))
+        if len(set(own)) != len(own):
+            bad.append(f"{at}: a pin is given twice ({r['ports']})")
+            continue
+        taken = [(b, p) for b, p in own if (node, b, p) in pins]
         if taken:
-            bad.append(f"{at}: node {node} {r['board']} port(s) {taken} are line {pins[node, r['board'], taken[0]]}'s")
+            bad.append(f"{at}: node {node} " + ", ".join(f"{b}-{p} is line {pins[node, b, p]}'s" for b, p in taken))
             continue
         if name:
             names[level, kind, name] = i
         if kind not in LOCAL:
             numbers[number] = i
-        for p in ports:
-            pins[node, r["board"], p] = i
+        for b, p in own:
+            pins[node, b, p] = i
         out.append(Wire(i, level, kind, r["device"], r["switch_a"], r["switch_b"], r["parallel"], r["half"], node,
-                        index, r["board"], ports, r["status"], r["notes"]))
+                        index, r["board"], ports, r["status"], r["notes"], boards))
     if bad:
         raise FactsError(f"{path.name}: " + "; ".join(bad))
     return out
@@ -220,8 +267,8 @@ def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
         lamp_of = f"Head {m.group('key')} {role}" if role != "S" else f"Head {m.group('key')}"
         uid = LCOS["head"][1] + w.index
         packed = w.node * 100 + uid
-        for port, lamp in zip(w.ports, "RYG"):
-            out.append(dict(port_id=f"C{w.node}-{w.board}-{port}", parent_node_id=f"C{w.node}",
+        for (board, port), lamp in zip(w.pins, "RYG"):
+            out.append(dict(port_id=f"C{w.node}-{board}-{port}", parent_node_id=f"C{w.node}",
                             mqtt_node=str(w.node), board_location=place.get(w.node, ""), signal_index=str(w.index),
                             uid=str(uid), packed=str(packed), system_name=f"IH{packed}",
                             user_name=f"{lamp_of} {lamp}", mast_user_name=f"Mast {m.group('key')}",

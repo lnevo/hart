@@ -185,8 +185,12 @@ class Output(unittest.TestCase):
                 self.assertEqual(x["comment"].split(" | Switch ")[1], str(int(m.group(1)) - 1))
 
     def test_boards_follow_the_wiring_rules(self):
+        """The rule's boards: turnouts on the 12V boards, heads after them on three pins in a row, never on a detector
+        node's calibration pin. A frozen device (wiring.csv) keeps its own pins, which may span two boards: only
+        the board limit and the calibration pin hold for it."""
         import re
         have = rows()
+        frozen = {w.device for w in BD.frozen_wires()}
         by_node = {}
         for x in have:
             if x["node"] and not x["system_name"].startswith("MTT"):
@@ -197,18 +201,21 @@ class Output(unittest.TestCase):
             detectors = any(x["layer"] == "occupancy" for x in xs)
             boards = set()
             for x in xs:
-                m = re.search(r"OU: (\d+) Ports: ([\d,]+)$", x["comment"])
-                if not m:
+                groups = [(int(b), [int(p) for p in ps.split(",")])
+                          for b, ps in re.findall(r"OU: (\d+) Ports: ([\d,]+)", x["comment"])]
+                if not groups:
                     continue
-                board, pins = int(m.group(1)), [int(p) for p in m.group(2).split(",")]
-                boards.add(board)
+                boards.update(b for b, _ps in groups)
+                if detectors:
+                    self.assertNotIn((n12 + 1, 8), [(b, p) for b, ps in groups for p in ps], x["user_name"])
+                if x["user_name"] in frozen:
+                    continue
+                [(board, pins)] = groups                                       # the rule's: one board
                 if x["layer"] == "turnout":
                     self.assertLessEqual(board, n12, x["user_name"])
                 if x["layer"] == "head":
                     self.assertGreater(board, n12, x["user_name"])          # 5V boards follow the 12V ones
                     self.assertEqual(pins, list(range(pins[0], pins[0] + 3)), x["user_name"])
-                    if detectors and board == n12 + 1:
-                        self.assertNotIn(8, pins, x["user_name"])          # calibration pin
             self.assertLessEqual(max(boards, default=0), BD.MAX_OU, node)
 
     def test_a_loop_back_into_its_control_point_has_home_signals(self):

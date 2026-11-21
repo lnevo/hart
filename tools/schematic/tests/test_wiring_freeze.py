@@ -79,6 +79,11 @@ class TheNodes(unittest.TestCase):
         with self.assertRaisesRegex(bdm.MapError, "OU2-8, the calibration relay's pin"):
             nodes.check_boards()
 
+    def test_a_frozen_head_across_two_boards_holds_both(self):
+        nodes = self.nodes()
+        nodes.freeze(wires('2,head,Head 1L,,,,,42,0,OU2,"7,8,OU3-1",wired,\n'))
+        self.assertEqual((nodes.boards[42][2], nodes.boards[42][3]), ({7, 8}, {1}))
+
     def test_a_frozen_device_on_a_node_the_rule_does_not_hold_stops(self):
         with self.assertRaisesRegex(bdm.MapError, "Switch 9 is on node 13, which lcos_nodes.csv does not list"):
             self.nodes().freeze(wires('2,turnout,Switch 9,,,,,13,0,OU1,"1,2",wired,\n'))
@@ -200,6 +205,20 @@ class TheCommand(unittest.TestCase):
         rows = fw.freeze_rows("CP 9", self.ROWS, self.KEYS, set(), "2026-11-21")
         _text, added, turned = fw.merge(planned, rows)
         self.assertEqual((len(added), len(turned)), (2, 1))
+
+    def test_a_head_across_two_boards_is_frozen_as_wired(self):
+        rows = self.ROWS + [dict(level="2", cp="CP 9", layer="head", user_name="Head 10L", system_name="IH4232",
+                                 node="42", comment="Node: 42 Signal: 0 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",
+                                 blocks="")]
+        head = next(r for r in fw.freeze_rows("CP 9", rows, self.KEYS, set(), "2026-11-21") if r["kind"] == "head")
+        self.assertEqual((head["board"], head["ports"]), ("OU2", "7,OU3-8,OU3-7"))
+        [w] = wires(",".join(head[c] if "," not in head[c] else f'"{head[c]}"' for c in wiring.COLUMNS) + "\n")
+        self.assertEqual(w.wiring_text, "Node: 42 Signal: 0 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
+
+    def test_a_turnout_across_two_boards_stops(self):
+        rows = [dict(self.ROWS[0], comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1 | OU: 2 Ports: 2")]
+        with self.assertRaisesRegex(fw.FreezeError, "spans two boards; only a head's pins may"):
+            fw.freeze_rows("CP 9", rows, self.KEYS, set(), "2026-11-21")
 
     def test_what_cannot_be_frozen_stops(self):
         with self.assertRaisesRegex(fw.FreezeError, "no main or upper control point 'CP 8'; they are CP 9"):

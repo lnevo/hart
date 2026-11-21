@@ -68,10 +68,10 @@ class Read(unittest.TestCase):
                            ("1,detector,,13,15,,,3,1,,,wired,", "a staging detector is named by its block alone"),
                            ("1,button,Switch 1 BTN,,,,,4,0,IN2,1,wired,", "a button has no JMRI device, so no index"),
                            ("1,button,Switch 1 BTN,,,,,4,,OU2,1,wired,", "lands on an IN board"),
-                           ("1,relay,Relay 2,,,,,4,,OU1,2,wired,", r"OU1 port\(s\) \[2\] are line 2's"),
+                           ("1,relay,Relay 2,,,,,4,,OU1,2,wired,", "node 4 OU1-2 is line 2's"),
                            ("1,turnout,Switch 1,,,,,4,1,OU1,\"3,4\",wired,", "turnout Switch 1 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,0,OU1,\"3,4\",wired,", "node 4 Turnout 0 is line 2's"),
-                           ("1,turnout,Switch 2,,,,,4,1,OU1,\"2,3\",wired,", r"OU1 port\(s\) \[2\] are line 2's"),
+                           ("1,turnout,Switch 2,,,,,4,1,OU1,\"2,3\",wired,", "node 4 OU1-2 is line 2's"),
                            ("1,detector,Track Y,,,,,13,1,,,wired,", "node 13 Block 1 is line 5's"),
                            ("1,turnout,Switch 2,,,,,4,1,OU1,\"3,4\",wired,,extra", "more fields")):
             with self.subTest(msg=msg), self.assertRaisesRegex(FactsError, msg):
@@ -118,6 +118,37 @@ class Digicon(unittest.TestCase):
     def test_a_head_that_is_not_named_as_a_head_stops(self):
         with self.assertRaisesRegex(FactsError, "is not a head name"):
             W.digicon_rows(self.read('1,head,Signal 6LB,,,,,4,0,OU2,"1,2,3",wired,\n'))
+
+
+
+class Spans(unittest.TestCase):
+    """A head is on one node, but its three pins may span two OU boards (owner, 2026-11-21)."""
+
+    def read(self, text):
+        d = Path(tempfile.mkdtemp())
+        p = d / "wiring.csv"
+        p.write_text(HEAD + text, encoding="utf-8")
+        return p
+
+    def test_a_head_across_two_boards(self):
+        p = self.read('1,head,Head 32R,,,,,12,2,OU2,"7,OU3-8,OU3-7",wired,\n')
+        [w] = W.read(p)
+        self.assertEqual(w.pins, [("OU2", 7), ("OU3", 8), ("OU3", 7)])
+        self.assertEqual(w.wiring_text, "Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
+        self.assertEqual([r["port_id"] for r in W.digicon_rows(p)], ["C12-OU2-7", "C12-OU3-8", "C12-OU3-7"])
+
+    def test_what_a_span_may_not_do_stops(self):
+        for text, msg in (('1,turnout,Switch 1,,,,,4,0,OU1,"1,OU2-2",wired,', "only a head's pins may span"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"OU3-1,2,3",wired,', "the first pin OU3-1 is on the row's board"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"1,OU2-2,3",wired,', "given as a pin alone, not OU2-<pin>"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"7,OU3-8,6",wired,', "on OU2 come first, then those on"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"7,OU5-8,OU5-7",wired,', "port 'OU5-8' is a pin 1 to 8"),
+                          ('1,head,Head 1L,,,,,4,0,OU1,"1,OU2-1,OU3-1",wired,', "at most two boards"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"1,1,2",wired,', "a pin is given twice"),
+                          ('1,head,Head 1L,,,,,4,0,OU2,"6,7,8",wired,\n1,head,Head 2L,,,,,4,1,OU3,"8,OU2-8,OU2-7",wired,',
+                           "node 4 OU2-8 is line 2's, OU2-7 is line 2's")):
+            with self.subTest(msg=msg), self.assertRaisesRegex(FactsError, msg):
+                W.read(self.read(text + "\n"))
 
 
 if __name__ == "__main__":
