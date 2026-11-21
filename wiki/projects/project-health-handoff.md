@@ -342,7 +342,7 @@ Found while running this hand-off. Each is small. None blocks the R9 or W6b work
 - **sts-docker docs named deleted scripts:** fixed in lnevo/sts-docker#22. The `track_scale/` folder at the sts-helpers root stays: its README lists it as a config reference.
 - **Traps left by the splits (#772, #776, #777, #779):** constants re-exported on an entry module do not change the moved functions when a test patches them on the entry. Each entry has a comment naming the module to patch. The wiring entry also imports its sibling modules by bare name.
 - **First live R9d split:** the split has run on a test Store, not yet on one from a real session on the Pi. At the owner's next Pi Store: `make tables-pull-pi`, then `split_store.py` in a task worktree, with the merge-or-drop review in chat.
-- **Rollback after a split (R9d review, owner skipped 2026-11-20):** `make redeploy` of a commit from before a split stops at the old commit's unpulled check, because that commit's `store_splits.csv` does not name the host's file. The way through is `HART_DISCARD_PI_CHANGES=1` with the owner's yes. Not written in the deploy skill.
+- **Rollback after a split (R9d review, owner skipped 2026-11-20):** the #806 review found that `make redeploy` of a commit from before a split can stop in that commit's own deploy (not reproduced). The way through is `HART_DISCARD_PI_CHANGES=1` with the owner's yes. Not written in the deploy skill.
 - **`gen_ctc_track_plan.py` leftovers (parked):** bare `assert`s in `main()` and unclosed PIL images. Fix these if USS is unparked and the script is split.
 
 ## Done when
