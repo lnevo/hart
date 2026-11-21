@@ -15,8 +15,10 @@ the page can redraw any subset (some lanes, or the chain around one file) withou
 from __future__ import annotations
 
 import argparse
+import functools
 import html
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -39,6 +41,17 @@ STATUSES = ("live", "parked", "retired")
 
 class GraphError(Exception):
     pass
+
+
+@functools.cache
+def tracked_paths() -> frozenset[str]:
+    """Every git-tracked file in the repo and every folder that holds one, so the check is the same on any clone."""
+    out = subprocess.check_output(["git", "ls-files", "-z"], cwd=ROOT, text=True)
+    paths = set()
+    for f in filter(None, out.split("\0")):
+        parts = f.split("/")
+        paths.update("/".join(parts[:k]) for k in range(1, len(parts) + 1))
+    return frozenset(paths)
 
 
 def load(path: Path) -> dict:
@@ -81,8 +94,8 @@ def load(path: Path) -> dict:
             problems.append(f"node {nid!r}: path {p} is already node {paths[p.rstrip('/')]!r}")
         if p:
             paths[p.rstrip("/")] = nid
-        if p and not n.get("local") and not (ROOT / p.rstrip("/")).exists():
-            problems.append(f"node {nid!r}: path {p} does not exist (mark it \"local\": true if it is a gitignored mirror)")
+        if p and not n.get("local") and p.rstrip("/") not in tracked_paths():
+            problems.append(f"node {nid!r}: path {p} does not exist in git (mark it \"local\": true if it is a gitignored mirror, a submodule file or made on a host)")
     seen_edges = set()
     linked: set[str] = set()
     for e in data["edges"]:
