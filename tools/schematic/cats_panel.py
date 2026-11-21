@@ -312,6 +312,18 @@ def name_loop_halves(bands, device=None):
     return out
 
 
+def part_blocks() -> dict[str, str]:
+    """{trial name: the block it is part of} of the main and upper parts (devices.csv part_of: a link inside an OS
+    block, step 5 part 2, owner 2026-11-20), which the device maps leave out."""
+    out = {}
+    for line, r in bdm.devices.part_lines(("2", "3")):
+        for t in (x.strip() for x in r["trial_name"].split(",") if x.strip()):
+            if t in out:
+                raise SystemExit(f"{DEVICE_MAP.name} line {line}: trial name {t} is given to two parts")
+            out[t] = r["part_of"]
+    return out
+
+
 def device_name(bands, cats, keys, F, log):
     """The device map's name of the main or upper block made of block keys `keys`: OS Switch N for an OS block
     (a crossover's halves are one block; switches whose OS blocks the plugin merges over a track too short to part
@@ -335,6 +347,15 @@ def device_name(bands, cats, keys, F, log):
         ends |= {band["nodes"][e[0]].get("label") or "" for e in (s["src"], s["dst"])
                  if band["nodes"][e[0]]["kind"] in ("switch", "dx")}
     rows = sorted(n for n, r in F.device.blocks.items() if r.trial & edges)
+    parts = part_blocks()
+    if not rows and edges and edges <= set(parts):
+        # a link inside an OS block that the desk draws as a block of its own: it takes its OS block's name, and the
+        # bindings make the two one block (cats_bind.bind_blocks)
+        held = {parts[e] for e in edges}
+        if len(held) != 1:
+            raise SystemExit(f"desk block {sorted(keys)}: its tracks {', '.join(sorted(edges))} are parts of "
+                             f"{', '.join(sorted(held))}; a desk block lies in one")
+        return held.pop()
     numbers = {bdm.base(lb) for lb in ends}
     if not rows and len(numbers) == 1 and len(ends) > 1:
         # the track between a crossover's halves (drawn on two bands, 127 and 131): the device map counts it in the
@@ -571,6 +592,11 @@ def level_signals(bands, F, bound_bi):
     which placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
+    # a part (a link inside an OS block) is drawn as its block: a mast facing a link faces that OS block
+    clash = sorted(set(by_trial) & set(part_blocks()))
+    if clash:
+        raise SystemExit(f"{DEVICE_MAP.name}: trial names {clash} are a part's and a block row's")
+    by_trial.update(part_blocks())
     added = defaultdict(list)
     for r in F.level_masts:
         if level_masts.is_level_virtual(r["system_name"]):

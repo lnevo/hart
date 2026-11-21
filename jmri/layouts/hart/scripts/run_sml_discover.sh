@@ -25,7 +25,9 @@ pp_begin "$SCRIPT"
 # The base discovery runs on: the generated tables with no logic and no mast properties. From here on a failed
 # run leaves tables.xml as that base, and the exit says so (panelpro_session.sh PP_FAIL_NOTE).
 PP_FAIL_NOTE="tables.xml is now the discovery base (no Signal Mast Logic). Restore it: python3 tools/schematic/build_tables.py (or run this wrapper again)"
-python3 "$ROOT/tools/schematic/build_tables.py" --discovery-base
+# HART_TABLES_REVIEW=1: discover on a candidate the owner has not approved yet (build_tables.py --review)
+REVIEW=(); [[ "${HART_TABLES_REVIEW:-}" == 1 ]] && REVIEW=(--review)
+python3 "$ROOT/tools/schematic/build_tables.py" --discovery-base ${REVIEW[@]+"${REVIEW[@]}"}
 rm -f "$MARKER"
 STORED="$(mktemp "${TMPDIR:-/tmp}/hart_sml_discover.XXXXXX")"
 PP_TMP_FILES+=("$STORED")
@@ -65,7 +67,7 @@ pp_wait_exit "${HART_PANELPRO_EXIT_WAIT:-60}" || { echo "PanelPro did not quit a
 
 # The discovered logic into its own file, then tables.xml from its sources. Discover stores Digicon
 # destinations Enabled; the generator stores them disabled until signal_coordinator.py takes control.
-if ! python3 "$ROOT/tools/schematic/build_tables.py" --discovered-from "$STORED"; then
+if ! python3 "$ROOT/tools/schematic/build_tables.py" --discovered-from "$STORED" ${REVIEW[@]+"${REVIEW[@]}"}; then
   # keep the discovery's Store, outside every checkout: the temporary file goes when this run ends
   pulled="$(hart_pulled_dir)" || exit 1
   kept="$pulled/discovery-$(date +%Y%m%d-%H%M%S).xml"

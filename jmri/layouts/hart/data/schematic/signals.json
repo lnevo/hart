@@ -129,7 +129,7 @@
     "names": [
      "Scale"
     ],
-    "edge_cm": 424.7,
+    "edge_cm": 401.3,
     "cm_from_toward": 0.0,
     "dir": "west",
     "kind": "planned",
@@ -224,8 +224,8 @@
     "names": [
      "Scale"
     ],
-    "edge_cm": 424.7,
-    "cm_from_toward": 23.4,
+    "edge_cm": 401.3,
+    "cm_from_toward": 0.0,
     "dir": "east",
     "kind": "planned",
     "heads": 1,

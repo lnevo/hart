@@ -1,60 +1,15 @@
 {
  "_main_upper_not_on_desk": {
-  "Track 101-103": {
-   "why": "a short link (3.4 cm) inside its switches' OS blocks"
-  },
   "Track 107-109": {
    "detector": "BS 107-109",
    "why": "inside its switches' OS blocks on the desk (99.8 cm, too short at one cell per grid unit for a block)"
-  },
-  "Track 109-111": {
-   "why": "a short link (24.1 cm) inside its switches' OS blocks"
-  },
-  "Track 115-117": {
-   "why": "a short link (24.1 cm) inside its switches' OS blocks"
-  },
-  "Track 117-119": {
-   "why": "a short link (11.1 cm) inside its switches' OS blocks"
-  },
-  "Track 121-123": {
-   "why": "a short link (25.1 cm) inside its switches' OS blocks"
-  },
-  "Track 123-125": {
-   "why": "a short link (10.5 cm) inside its switches' OS blocks"
   },
   "Track 125-127": {
    "detector": "BS 125-127",
    "why": "inside its switches' OS blocks on the desk (86.8 cm, too short at one cell per grid unit for a block)"
   },
-  "Track 125-129": {
-   "why": "a short link (10.5 cm) inside its switches' OS blocks"
-  },
-  "Track 127-131 2": {
-   "why": "a short link (11.7 cm) inside its switches' OS blocks"
-  },
-  "Track 201-203": {
-   "why": "a short link (11.7 cm) inside its switches' OS blocks"
-  },
-  "Track 201-219": {
-   "why": "a short link (23.1 cm) inside its switches' OS blocks"
-  },
-  "Track 219-221": {
-   "why": "a short link (11.7 cm) inside its switches' OS blocks"
-  },
-  "Track 225-227": {
-   "why": "a short link (17.7 cm) inside its switches' OS blocks"
-  },
-  "Track 227-231": {
-   "why": "a short link (20.6 cm) inside its switches' OS blocks"
-  },
-  "Track 229-233": {
-   "why": "inside its switches' OS blocks on the desk (48.2 cm, too short at one cell per grid unit for a block)"
-  },
   "Track 233-235": {
    "why": "inside its switches' OS blocks on the desk (75.9 cm, too short at one cell per grid unit for a block)"
-  },
-  "Track 237-239": {
-   "why": "a short link (15.2 cm) inside its switches' OS blocks"
   }
  },
  "_note": "Written by tools/schematic/build_cats_panel.py from the railroad's facts; do not edit. Main and upper switches command their internal turnouts, their masts are bound and their blocks report their virtual occupancy sensors (IS:HART:C3:B:); a block's planned detector, a draft, is kept as _planned_occupied / _planned_unoccupied.",
@@ -109,16 +64,16 @@
   },
   "105-109": {
    "discipline": "CTC",
-   "name": "Track 105-109",
+   "name": "OS Switch 105",
    "occupied": {
-    "DECADDR": ":HART:C3:B:105-109",
+    "DECADDR": ":HART:C3:B:OS105",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 105-109",
+    "USER_NAME": "BS Switch 105",
     "command": "close"
    },
-   "station": "105-109",
+   "station": "105",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:105-109",
+    "DECADDR": ":HART:C3:B:OS105",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -167,33 +122,44 @@
    }
   },
   "111-117": {
-   "discipline": "CTC",
-   "name": "Track 111-117",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:111-117",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 111-117",
+   "_planned_occupied": {
+    "DECADDR": "3302",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 111",
     "command": "close"
    },
-   "station": "111-117",
+   "_planned_unoccupied": {
+    "DECADDR": "3302",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "name": "OS Switch 111",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:OS111",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Switch 111",
+    "command": "close"
+   },
+   "station": "111",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:111-117",
+    "DECADDR": ":HART:C3:B:OS111",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
   },
   "113-115": {
    "discipline": "CTC",
-   "name": "Track 113-115",
+   "name": "OS Switch 113",
    "occupied": {
-    "DECADDR": ":HART:C3:B:113-115",
+    "DECADDR": ":HART:C3:B:OS113",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 113-115",
+    "USER_NAME": "BS Switch 113",
     "command": "close"
    },
-   "station": "113-115",
+   "station": "113",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:113-115",
+    "DECADDR": ":HART:C3:B:OS113",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -372,16 +338,16 @@
   },
   "201-205": {
    "discipline": "CTC",
-   "name": "Track 201-205",
+   "name": "OS Switch 205",
    "occupied": {
-    "DECADDR": ":HART:C3:B:201-205",
+    "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 201-205",
+    "USER_NAME": "BS Switch 205",
     "command": "close"
    },
-   "station": "201-205",
+   "station": "205",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:201-205",
+    "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -431,16 +397,16 @@
   },
   "205-209": {
    "discipline": "CTC",
-   "name": "Track 205-209",
+   "name": "OS Switch 205",
    "occupied": {
-    "DECADDR": ":HART:C3:B:205-209",
+    "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 205-209",
+    "USER_NAME": "BS Switch 205",
     "command": "close"
    },
-   "station": "205-209",
+   "station": "205",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:205-209",
+    "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -570,16 +536,16 @@
   },
   "213-215": {
    "discipline": "CTC",
-   "name": "Track 213-215",
+   "name": "OS Switch 213",
    "occupied": {
-    "DECADDR": ":HART:C3:B:213-215",
+    "DECADDR": ":HART:C3:B:OS213",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 213-215",
+    "USER_NAME": "BS Switch 213",
     "command": "close"
    },
-   "station": "213-215",
+   "station": "213",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:213-215",
+    "DECADDR": ":HART:C3:B:OS213",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -785,16 +751,16 @@
   },
   "225-229": {
    "discipline": "CTC",
-   "name": "Track 225-229",
+   "name": "OS Switch 225b",
    "occupied": {
-    "DECADDR": ":HART:C3:B:225-229",
+    "DECADDR": ":HART:C3:B:OS225b",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 225-229",
+    "USER_NAME": "BS Switch 225b",
     "command": "close"
    },
-   "station": "225-229",
+   "station": "225b",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:225-229",
+    "DECADDR": ":HART:C3:B:OS225b",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -882,16 +848,16 @@
   },
   "231-237": {
    "discipline": "CTC",
-   "name": "Track 231-237",
+   "name": "OS Switch 231",
    "occupied": {
-    "DECADDR": ":HART:C3:B:231-237",
+    "DECADDR": ":HART:C3:B:OS231",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 231-237",
+    "USER_NAME": "BS Switch 231",
     "command": "close"
    },
-   "station": "231-237",
+   "station": "231",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:231-237",
+    "DECADDR": ":HART:C3:B:OS231",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -930,16 +896,16 @@
   },
   "235-243A": {
    "discipline": "CTC",
-   "name": "Track 235-243",
+   "name": "OS Switch 235",
    "occupied": {
-    "DECADDR": ":HART:C3:B:235-243",
+    "DECADDR": ":HART:C3:B:OS235",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 235-243",
+    "USER_NAME": "BS Switch 235",
     "command": "close"
    },
-   "station": "235-243",
+   "station": "235",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:235-243",
+    "DECADDR": ":HART:C3:B:OS235",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
@@ -978,16 +944,16 @@
   },
   "239-245A": {
    "discipline": "CTC",
-   "name": "Track 239-245",
+   "name": "OS Switch 239",
    "occupied": {
-    "DECADDR": ":HART:C3:B:239-245",
+    "DECADDR": ":HART:C3:B:OS239",
     "JMRIPREFIX": "IS",
-    "USER_NAME": "BS 239-245",
+    "USER_NAME": "BS Switch 239",
     "command": "close"
    },
-   "station": "239-245",
+   "station": "239",
    "unoccupied": {
-    "DECADDR": ":HART:C3:B:239-245",
+    "DECADDR": ":HART:C3:B:OS239",
     "JMRIPREFIX": "IS",
     "command": "throw"
    }
