@@ -151,6 +151,7 @@ from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported
 import block_layer  # noqa: E402  the one block process for every level
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits
+import le_common  # noqa: E402  band_key: the plugin's key for a band, which rotate_bands lists
 from hartlib import devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402  names, facts, the master
 
 SOURCES = railroad.Sources.under()
@@ -269,8 +270,8 @@ def dx_corners(bands, le_mod, page) -> dict:
             continue
         for n, d in band["nodes"].items():
             if d["kind"] == "dx":
-                # rotate_bands lists the plugin's band keys (its draw.band_key: a title's first word), not levels
-                turned = title.split()[0] in page.get("rotate_bands", ())
+                # rotate_bands lists the plugin's band keys (le_common.band_key), not levels
+                turned = le_common.band_key(title) in page.get("rotate_bands", ())
                 out[base(d["label"])] = le_mod.double_corners(band, n, turned)
     return out
 

@@ -54,6 +54,7 @@ from pathlib import Path
 
 import publish_draft as pd  # first: it puts hartlib on the path
 import mast_rule as mr
+import le_common  # plan_places: the plan-overrides section that holds each level's bands
 from hartlib import railroad
 
 LINK_CM = 50.0
@@ -79,21 +80,33 @@ def plan_name(band, sid: str) -> str:
 # ---------------------------------------------------------------- track names
 
 def sheet_of(bands, levels: dict) -> dict:
-    """{band index: its drawing}: the staging band is one drawing, the main and upper bands another (two plan inputs,
-    whose edge ids repeat), told apart by the level a band's title has in `levels` (1 staging, else main_upper)."""
-    return {bi: drawing(levels[title]) for bi, (title, _b, _o) in enumerate(bands) if title in levels}
+    """{band index: its drawing} of the bands `levels` holds: the staging band is one drawing, the main and upper
+    bands another (two plan inputs, whose edge ids repeat), told apart by the level a band's title has in `levels`
+    and the plan-overrides section that holds that level (drawings)."""
+    of = drawings()
+    return {bi: drawing(levels[title], of) for bi, (title, _b, _o) in enumerate(bands) if title in levels}
 
 
-def drawing(level: int) -> str:
-    return "staging" if level == 1 else "main_upper"
+def drawings() -> dict[int, str]:
+    """{level: drawing}: the plan_overrides.json section that holds each level's bands (le_common.plan_places, which
+    checks that no level is in two sections). A section is one plan input, whose edge ids are its own."""
+    return {lv: sheet for sheet, lv, _h in le_common.plan_places().values()}
+
+
+def drawing(level: int, of: dict | None = None) -> str:
+    """The drawing (drawings, or `of`) a band of `level` is on. BlockError for a level no section holds."""
+    of = drawings() if of is None else of
+    if level not in of:
+        raise BlockError(f"plan_overrides.json gives no band level {level} (it has levels {sorted(of)})")
+    return of[level]
 
 
 def tracks(bands, runs, joined, levels: dict) -> list[dict]:
     """mast_rule.tracks of every band `levels` holds, one drawing at a time (sheet_of: a track's edges are keyed
     within its drawing), each level's helix ends tagged "H" (name_tracks names a helix track by its plan name)."""
-    out = []
-    for name in ("staging", "main_upper"):
-        mine = {t: lv for t, lv in levels.items() if drawing(lv) == name}
+    out, of = [], drawings()
+    for name in dict.fromkeys(drawing(lv, of) for lv in sorted(set(levels.values()))):
+        mine = {t: lv for t, lv in levels.items() if drawing(lv, of) == name}
         if mine:
             out += mr.tracks(bands, runs, joined, {lv: "H" for lv in mine.values()}, mine)
     return out
@@ -279,12 +292,12 @@ def split_edges(found: list[dict], levels: dict, path: Path) -> dict:
     switches resolved to the named track in `found`, and that track to the one plan edge it is drawn on. Stops on a
     track drawn on more than one plan edge (a split needs one track folded at one turnback)."""
     names = mr.read_block_splits(path, found, levels)
-    out, bad = {}, []
+    out, bad, of = {}, [], drawings()
     for t in sorted((t for t in found if t["name"] in names), key=lambda t: natural(t["name"])):
         if len(t["trial"]) != 1:
             bad.append(f"{t['name']}: drawn on {', '.join(t['trial'])}")
             continue
-        out.setdefault(drawing(t["level"]), {})[t["trial"][0].removeprefix("Track ")] = t["name"]
+        out.setdefault(drawing(t["level"], of), {})[t["trial"][0].removeprefix("Track ")] = t["name"]
     if bad:
         raise BlockError(f"{path.name}: " + "; ".join(bad))
     return out
