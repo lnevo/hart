@@ -54,40 +54,51 @@ class ReadTest(unittest.TestCase):
         from hartlib.railroad import FactsError
         self.path.write_text(text, encoding="utf-8")
         with self.assertRaises(FactsError) as stop:
-            L.read(None, self.path)
+            L.read(self.path)
         self.assertEqual(str(stop.exception), message)
 
     def test_read_checks_each_head_against_its_user_name_and_level(self):
         row = "Mast 108LA,CP 107,107,Track 107 Loop 1,OS Switch 107,west,,IF$shsm:basic:one-low({h}),{h}=Head 108LA," \
               "IF$shsm:basic:one-low(IH3332)"
-        for h, level, ok in (("IH:HART:C3:108LA", 2, True), ("IH:HART:C3:108LB", 2, False),
-                             ("IH:HART:C1:108LA", 2, False), ("IH3332", 2, True)):   # a wired LCOS head is a head
-            self.path.write_text(HEADER + line(row.format(h=h), level), encoding="utf-8")
-            with self.subTest(head=h):
-                if ok:
-                    self.assertEqual(L.read(None, self.path)[0]["heads"], [(h, "Head 108LA")])
+        for h, level, refused in (("IH:HART:C3:108LA", 2, None), ("IH3332", 1, None),   # a wired head on staging
+                                  ("IH:HART:C3:108LB", 2, "neither its internal name IH:HART:C3:108LA"),
+                                  ("IH:HART:C1:108LA", 2, "neither its internal name IH:HART:C3:108LA"),
+                                  ("IH3332", 2, "is the wired LCOS head 'IH3332', but a level 2 head is internal")):
+            text = line(row.format(h=h), level)
+            if level == 1:          # staging's internal prefix, so only the wired head is tried
+                text = text.replace("CP 107", "Brick")
+            self.path.write_text(HEADER + text, encoding="utf-8")
+            with self.subTest(head=h, level=level):
+                if refused is None:
+                    self.assertEqual(L.read(self.path)[0]["heads"], [(h, "Head 108LA")])
                 else:
-                    with self.assertRaisesRegex(ValueError, "neither its internal name IH:HART:C3:108LA"):
-                        L.read(None, self.path)
+                    with self.assertRaisesRegex(ValueError, refused):
+                        L.read(self.path)
+
+    def test_levels_go_by_keyword_and_a_positional_one_is_refused(self):
+        with self.assertRaisesRegex(TypeError, "takes the path, then levels= by keyword"):
+            L.read((2, 3))
+        with self.assertRaises(TypeError):
+            L.read(self.path, (2, 3))         # levels is keyword-only
 
     def test_the_rows_of_the_levels_asked_for_with_level_and_line(self):
         staging = line("Mast 2R,Brick,1,Track Brick-Plane,OS Switch 1,east,,IF$shsm:basic:one-searchlight(IH:HART:C1:2R),"
                        "IH:HART:C1:2R=Head 2R,IF$shsm:basic:one-searchlight(IH:HART:C1:2R)", 1,
                        "1,1;5,Brick-Plane,181.9,0.0,e28,TOL34067")
         self.path.write_text(HEADER + staging + MAST, encoding="utf-8")
-        self.assertEqual([(r["mast"], r["level"], r["line"]) for r in L.read(None, self.path)],
+        self.assertEqual([(r["mast"], r["level"], r["line"]) for r in L.read(self.path)],
                          [("Mast 2R", 1, 2), ("Mast 108LA", 2, 3)])
-        self.assertEqual([r["mast"] for r in L.read((2, 3), self.path)], ["Mast 108LA"])
-        self.assertTrue(L.placed(L.read((1,), self.path)[0]))
-        self.assertFalse(L.placed(L.read((2,), self.path)[0]))
+        self.assertEqual([r["mast"] for r in L.read(self.path, levels=(2, 3))], ["Mast 108LA"])
+        self.assertTrue(L.placed(L.read(self.path, levels=(1,))[0]))
+        self.assertFalse(L.placed(L.read(self.path, levels=(2,))[0]))
         with self.assertRaisesRegex(ValueError, r"levels \[4\] are not"):
-            L.read((4,), self.path)
+            L.read(self.path, levels=(4,))
 
     def test_read_checks_the_header_and_each_mast_once(self):
         """A header that is not FIELDS, a short or long row and a mast named twice (on any level) stop with the file
         and the line."""
         self.path.write_text(HEADER + MAST + OTHER, encoding="utf-8")
-        self.assertEqual([r["mast"] for r in L.read(None, self.path)], ["Mast 108LA", "Mast 108LB"])
+        self.assertEqual([r["mast"] for r in L.read(self.path)], ["Mast 108LA", "Mast 108LB"])
         no_leg = [c for c in L.FIELDS if c != "leg"]
         self.stops(",".join(no_leg) + "\n" + MAST, f"m.csv line 1: columns {','.join(no_leg)}, not {','.join(L.FIELDS)}")
         self.stops(HEADER.replace("\n", ",remark\n") + MAST,
@@ -114,19 +125,19 @@ class ReadTest(unittest.TestCase):
                    "(names may be empty) or none")
         from hartlib.railroad import FactsError
         with self.assertRaisesRegex(FactsError, "none.csv: cannot read it"):
-            L.read(None, self.path.with_name("none.csv"))
+            L.read(self.path.with_name("none.csv"))
 
     def test_read_carries_the_dir_column_even_when_the_name_says_otherwise(self):
         """A mast named like an L mast (westbound by ADR-005) that the file gives east is east: the reader never
         reads the name for it."""
         self.path.write_text(HEADER + MAST.replace(",west,", ",east,"), encoding="utf-8")
-        self.assertEqual(L.read(None, self.path)[0]["dir"], "east")
+        self.assertEqual(L.read(self.path)[0]["dir"], "east")
 
     def test_read_takes_a_virtual_mast_with_no_heads_in_its_levels_thousand(self):
         from hartlib.railroad import FactsError
         ok = line("Mast 102RA,,,Track 101 Spur 1,,east,,IF$vsm:basic:one-low($2001),,IF$vsm:basic:one-low($2001)")
         self.path.write_text(HEADER + ok, encoding="utf-8")
-        self.assertEqual(L.read(None, self.path)[0]["heads"], [])
+        self.assertEqual(L.read(self.path)[0]["heads"], [])
         for bad in (ok.replace("$2001", "$1001"),                                     # staging's thousand
                     ok.replace(",,east", ",OS Switch 101,east"),                       # protects a block
                     ok.replace(",,,Track", ",,101,Track"),                             # at a switch
@@ -134,7 +145,7 @@ class ReadTest(unittest.TestCase):
                     ok.replace("($2001)," + NO_PLAN, "($2002)," + NO_PLAN)):          # another device name
             self.path.write_text(HEADER + bad, encoding="utf-8")
             with self.subTest(row=bad), self.assertRaisesRegex(FactsError, "mast Mast 102RA: virtual mast"):
-                L.read(None, self.path)
+                L.read(self.path)
 
 
 class CommittedTest(unittest.TestCase):
@@ -142,7 +153,7 @@ class CommittedTest(unittest.TestCase):
         """One row per visible main or upper mast in the released tables (44 since the 2026-11-19 plan), by system
         name, and the virtual masts (24 since 2026-11-20); staging's 30 in the same file."""
         from hartlib import tables
-        rows = L.read((2, 3))
+        rows = L.read(levels=(2, 3))
         visible = [r for r in rows if not L.is_level_virtual(r["system_name"])]
         self.assertTrue(all(L.is_level_mast(r["system_name"]) for r in visible))
         released = {tables.system_name(m) for m in tables.read().iter("signalmast")}
@@ -150,7 +161,7 @@ class CommittedTest(unittest.TestCase):
                          sorted(m for m in released if L.is_level_mast(m)))
         self.assertGreater(len(visible), 40)
         self.assertEqual(len(rows) - len(visible), 24)
-        self.assertEqual(len(L.read((1,))), 30)
+        self.assertEqual(len(L.read(levels=(1,))), 30)
 
     def test_virtual_ordinals_are_by_level(self):
         self.assertEqual([L.virtual_level(f"IF$vsm:basic:one-low(${n})") for n in (1001, 2001, 2999, 3001, 4001, 1000)],

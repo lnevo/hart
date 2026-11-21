@@ -200,7 +200,7 @@ class CommittedMastFiles(unittest.TestCase):
 
     def test_virtual_mast_counts_per_level(self):
         self.assertEqual(len(file_masts(level_masts.PATH, STAGING)[1]), 5)
-        levels = [level_masts.virtual_level(r["system_name"]) for r in level_masts.read((2, 3))
+        levels = [level_masts.virtual_level(r["system_name"]) for r in level_masts.read(levels=(2, 3))
                   if r["system_name"].startswith("IF$vsm:")]
         self.assertEqual((levels.count(2), levels.count(3)), (10, 14))      # by each level's ordinal thousand
 

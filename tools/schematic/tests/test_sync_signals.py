@@ -398,7 +398,7 @@ class Cli(unittest.TestCase):
         self.assertIn("'masts added': 3", err)
         self.assertIn("'logics removed': 3", err)
         self.assertNotIn("masts kept", err)
-        self.assertIn("run tools/schematic/sync_signals.py", err)
+        self.assertIn("run tools/schematic/build_masts.py, then tools/schematic/build_tables.py", err)       # tables.xml is generated: sync_signals.py only checks
         self.assertEqual(self.tables.read_bytes(), before)
         self.assertEqual(self.tables.stat().st_mtime_ns, stat.st_mtime_ns)
         self.assertEqual(sorted(p.name for p in self.tables.parent.iterdir()),

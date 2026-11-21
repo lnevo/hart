@@ -278,7 +278,7 @@ class Readers(Copy):
         self.fails(lambda: R.read_masts(self.src.masts), "masts.csv line 2: mast Mast 2L: a visible mast faces a block")
 
     def test_read_masts_gives_the_rows_of_the_levels_asked_for(self) -> None:
-        staging = R.read_masts(self.src.masts, (1,))
+        staging = R.read_masts(self.src.masts, levels=(1,))
         self.assertEqual((len(staging), staging[0].level, staging[0].mast, staging[0].line), (30, 1, "Mast 2L", 2))
         self.assertEqual({m.level for m in R.read_masts(self.src.masts)}, {1, 2, 3})
 

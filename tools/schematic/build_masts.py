@@ -82,6 +82,10 @@ STATIONS = sdm.STATIONS
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
 LEVELS = mast_rule.band_levels(sdm.overrides())     # {band title: level}: staging's
 PLANNED_LEVEL = sdm.LEVEL              # the level whose mast and head rows this script plans (staging, below)
+# the levels a home mast may stand at no switch, as an anchor mast where its switch's OS block ends past the leg: the
+# levels this script plans from a block layer of its own. Main and upper's OS blocks end at their switches
+# (build_device_map.py), so a home mast at no switch there lost its switch
+ANCHOR_LEVELS = (PLANNED_LEVEL,)
 FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
 HEAD_USER = level_masts.HEAD_USER     # a head's user name: its mast's key, position
 WIRED_HEAD = level_masts.WIRED_HEAD   # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
@@ -436,18 +440,25 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
     planned physical mast on main and upper). A mast protects the OS block of its switch unless its row names one
     (an anchor mast, an intermediate, a double crossover's corner). RuleError, naming the level and mast, on a virtual
     mast out of its level's thousand or at a switch or protecting a block; a visible mast protecting more than one
-    block, or none at no switch; a home mast at no switch that does not protect an OS block (an anchor mast does: a
-    home signal that lost its switch?); a system name that is not a SignalHeadSignalMast over its heads, or a name out
-    of the grammar (level_masts.MAST_USER); a head with no head row of its level, or neither its level's internal name
-    nor a wired LCOS head (level_masts.head_problem); a planned physical mast whose heads are not the JMRI mast's; two
+    block, or none at no switch; a home mast at no switch on a level not in ANCHOR_LEVELS, or one that does not
+    protect an OS block (an anchor mast does: a home signal that lost its switch?); a name out of the grammar
+    (level_masts.MAST_USER, virtual masts too), a system name that is not a SignalHeadSignalMast over its heads; a head
+    with no head row of its level, or neither its level's internal name nor, on a head row whose assignment is field,
+    a wired LCOS head (level_masts.head_problem); a planned physical mast whose heads are not the JMRI mast's; two
     masts on one block pair that are not an A and a B (level_masts.LEGS); a mast named twice; and a plan fact for a
-    mast the master does not have."""
+    mast the master does not have. A row on no level (a device a Store added, not yet placed: hartlib.devices
+    is_unplaced) is on no level's map, and left out."""
+    levels = {str(lv) for lv in level_masts.LEVELS}
+    master = [r for r in master if r["level"] in levels]
     heads = {(r["level"], r["jmri_name"]): r for r in master if r["layer"] == "head"}
     physical = {(r["level"], r["system_name"]): r for r in master if r["layer"] == "head" and r["system_name"]}
     out, bad = [], []
     for r in (r for r in master if r["layer"] == "mast"):
         level, name, jmri, switch = r["level"], r["user_name"], r["jmri_name"], r["switch"]
         where = f"{DEVICE_MAP.name}: level {level} mast {name}"
+        if not level_masts.MAST_USER.fullmatch(name):
+            bad.append(f"{where}: the name is not Mast <number>[L|R][letter] or Mast <A|B><milepost number>")
+            continue
         protects = railroad.device_list(r["protects"])
         row = dict(level=level, mast=name, cp=r["cp"], switch=switch, facing=r["facing"], dir=r["dir"], leg="",
                    system_name=jmri, device_system_name=r["system_name"],
@@ -463,21 +474,24 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
                        f"{'Switch ' + switch if switch else 'no switch'}: a home signal is at a switch or protects "
                        "its OS block, an intermediate protects one block")
             continue
-        if not switch and r["role"] == "home" and not protects[0].startswith("OS "):
+        if not switch and r["role"] == "home" and int(level) not in ANCHOR_LEVELS:
+            bad.append(f"{where} is a home mast at no switch, but level {level}'s OS blocks end at their switches, so "
+                       f"it is no anchor mast (anchor masts stand on levels {', '.join(map(str, ANCHOR_LEVELS))}): a "
+                       "home signal lost its switch?")
+        elif not switch and r["role"] == "home" and not protects[0].startswith("OS "):
             bad.append(f"{where} is a home mast at no switch, so an anchor mast, but protects {protects[0]}, no OS "
                        "block: a home signal lost its switch?")
         m = level_masts.SHSM.fullmatch(jmri)
         if not m:
             bad.append(f"{where}: jmri_name {jmri!r} is not a SignalHeadSignalMast over its heads")
             continue
-        if not level_masts.MAST_USER.fullmatch(name):
-            bad.append(f"{where}: the name is not Mast <number>[L|R][letter] or Mast <A|B><milepost number>")
         names = level_masts.mast_heads(jmri)
         missing = [h for h in names if (level, h) not in heads]
         if missing:
             bad.append(f"{where}: heads {missing} have no head row")
             continue
-        bad += [f"{where}: {p}" for p in (level_masts.head_problem(h, heads[(level, h)]["user_name"], int(level))
+        bad += [f"{where}: {p}" for p in (level_masts.head_problem(h, heads[(level, h)]["user_name"], int(level),
+                                                                   heads[(level, h)]["assignment"] == "field")
                                           for h in names) if p]
         if r["system_name"] and r["system_name"] != jmri:      # the planned physical mast: over the same heads
             planned = level_masts.SHSM.fullmatch(r["system_name"])

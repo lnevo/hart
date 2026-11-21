@@ -190,7 +190,7 @@ def main_upper_rows() -> list[dict]:
     plan = lambda sid, band: re.sub(r"(\.\d+|(?<=\d)[xy])$", "", band["strands"][sid]["edge"])   # noqa: E731
     rows = []
     dm_levels = {r.level for r in railroad.Railroad(bdm.sources(), upto="device_map").device_map.rows}
-    for r in lm.read(tuple(sorted(dm_levels))):
+    for r in lm.read(levels=tuple(sorted(dm_levels))):
         name = r["mast"].removeprefix("Mast ")
         heads = len(r["heads"])
         if lm.is_level_virtual(r["system_name"]):

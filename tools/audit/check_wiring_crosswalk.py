@@ -129,7 +129,7 @@ def is_internal_mast(system_name: str) -> bool:
 
 def internal_heads(path: Path = MASTS) -> dict[str, list[str]]:
     """{mast: [head system names]} of masts.csv's rows on internal heads, every level (hartlib.level_masts.read)."""
-    return {r["mast"]: [h for h, _u in r["heads"]] for r in level_masts.read(None, path)
+    return {r["mast"]: [h for h, _u in r["heads"]] for r in level_masts.read(path)
             if is_internal_mast(r["system_name"])}
 
 

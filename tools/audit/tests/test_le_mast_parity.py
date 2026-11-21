@@ -126,7 +126,7 @@ class MastParity(unittest.TestCase):
         live_hidden = {n: "yes" if m["hidden"] else "no" for n, m in self.frozen.items()}
         # and for a main or upper virtual mast, a destination at a buffer stop (mast_plan, owner 2026-11-20)
         from hartlib import level_masts
-        live_hidden |= {r["mast"]: "yes" for r in level_masts.read((2, 3)) if level_masts.is_level_virtual(r["system_name"])}
+        live_hidden |= {r["mast"]: "yes" for r in level_masts.read(levels=(2, 3)) if level_masts.is_level_virtual(r["system_name"])}
         size = {m["mast"]: m["box"][2:] for m in self.P.masts}
         for name, m in sorted(self.gen.items()):
             with self.subTest(mast=name):

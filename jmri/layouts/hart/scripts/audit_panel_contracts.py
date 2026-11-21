@@ -90,7 +90,7 @@ class SetupError(Exception):
 def load_staging_masts(path: Path | None = None) -> list[railroad_facts.Mast]:
     """The masts of the base levels (masts.csv's staging rows) the mast rule writes: the audit's expected set."""
     # stops on a file that breaks its rules (hartlib.level_masts.read)
-    return railroad_facts.read_masts(MASTS if path is None else path, BASE_LEVELS)
+    return railroad_facts.read_masts(MASTS if path is None else path, levels=BASE_LEVELS)
 
 
 def slots_index(panel: ET.Element):
@@ -176,7 +176,7 @@ def draws_levels(panel: ET.Element | None) -> bool:
     protects (masts.csv's main and upper rows)."""
     if panel is None:
         return False
-    protects = {b for r in level_masts.read(ADDED_LEVELS) for b in split_protects(r["protects"])}   # a hidden mast protects none
+    protects = {b for r in level_masts.read(levels=ADDED_LEVELS) for b in split_protects(r["protects"])}   # a hidden mast protects none
     return any(t.get(a) in protects for t in panel.iter("layoutturnout")
                for a in ("blockname", "blockbname", "blockcname", "blockdname"))
 
@@ -213,7 +213,7 @@ def audit_masts(root: ET.Element, staging: list[railroad_facts.Mast], audit: Aud
             if name:
                 names.add(name)
     if level or levels:
-        want = level_masts.names(ADDED_LEVELS)
+        want = level_masts.names(levels=ADDED_LEVELS)
         if level != want:
             audit.error(f"main and upper masts on virtual heads differ from {level_masts.PATH.name}: missing="
                         f"{sorted(want - level) or 'none'}, extra={sorted(level - want) or 'none'}")
@@ -254,7 +254,7 @@ def audit_bindings(panel: ET.Element | None, staging: list[railroad_facts.Mast],
         return
     want = {m.mast: (m.facing, sorted(m.protects)) for m in staging}
     if levels:
-        want |= {r["mast"]: (r["facing"], split_protects(r["protects"])) for r in level_masts.read(ADDED_LEVELS)}
+        want |= {r["mast"]: (r["facing"], split_protects(r["protects"])) for r in level_masts.read(levels=ADDED_LEVELS)}
     idents = Counter((el.tag, el.get("ident")) for tag in ("layoutturnout", "positionablepoint")
                      for el in panel.iter(tag))
     for (tag, ident), n in sorted(idents.items(), key=str):

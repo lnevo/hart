@@ -53,6 +53,10 @@ HEAD_PREFIXES = {1: "IH:HART:C1:", 2: HEAD_PREFIX, 3: HEAD_PREFIX}
 MAST_USER = re.compile(r"Mast (\d+[LR]?[A-Z]?|[AB]\d+)")
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?|[AB]\d+)(?: (Top|Bottom))?")
 WIRED_HEAD = re.compile(r"IH\d+")    # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
+# the levels whose masts.csv rows may name a wired (LCOS) head: staging, the field level. Main and upper's heads stay
+# internal until the wiring freeze swaps a physical one in through the device map (owner, 2026-11-17), so nothing of
+# theirs reaches MQTT; a wired head there stops the read
+WIRED_LEVELS = (1,)
 SHSM = re.compile(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH[^()]+\))+)")    # a SignalHeadSignalMast over its heads
 
 VIRTUAL = re.compile(r"IF\$vsm:basic:one-low\(\$(\d+)\)")
@@ -104,15 +108,19 @@ def head_name(user: str, level: int) -> str:
     return HEAD_PREFIXES[level] + m.group(1) + (f"_{m.group(2)}" if m.group(2) else "")
 
 
-def head_problem(system: str, user: str, level: int) -> str | None:
+def head_problem(system: str, user: str, level: int, wired_ok: bool) -> str | None:
     """What is wrong with a head of a level's mast (`system` its JMRI name, `user` its user name), None when it is its
-    internal name or a wired LCOS head (IH and digits)."""
+    internal name, or a wired LCOS head (IH and digits) where `wired_ok` (a field head: masts.csv's WIRED_LEVELS, a
+    device row's assignment field)."""
     try:
         internal = head_name(user, level)
     except ValueError as exc:
         return str(exc)
-    if system == internal or WIRED_HEAD.fullmatch(system or ""):
+    if system == internal:
         return None
+    if WIRED_HEAD.fullmatch(system or ""):
+        return None if wired_ok else (f"head {user} is the wired LCOS head {system!r}, but a level {level} head is "
+                                      f"internal ({internal}) until it is a field head, so nothing reaches MQTT")
     return f"head {user} is {system!r}, neither its internal name {internal} nor a wired IH<digits>"
 
 
@@ -138,18 +146,19 @@ def placed(row: dict) -> bool:
     return bool(row["toward"] or row["run"])
 
 
-def read(levels: tuple[int, ...] | None = None, path: Path = PATH) -> list[dict]:
+def read(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> list[dict]:
     """The rows of `levels` (every level when None), in file order, each with `level` an int, its `line` and `heads`:
     [(system name, user name)] from head_system_names. The whole file is checked whatever `levels` is. Stops with
     railroad.FactsError (a ValueError), naming the file and the line, on a header that is not FIELDS, a short or long
     row, a level not in LEVELS, no mast name or one out of MAST_USER, a mast name a second time (on any level), a dir
     that is not east or west, a leg not in LEGS, a row with some plan facts and not all (or a run that is not two
     ends, or lengths that are not numbers), and on heads that are not system=user pairs of its system name's heads,
-    each its level's internal name or a wired LCOS head. A virtual mast (IF$vsm) is in its level's thousand, has no
+    each its level's internal name or, on WIRED_LEVELS, a wired LCOS head. A virtual mast (IF$vsm) is in its level's thousand, has no
     heads, the same device_system_name, no switch and no protected block."""
     from . import railroad                  # railroad imports this module, so not at the top
-    if isinstance(levels, (str, Path)):            # read(path) from before the level column: say so, never guess
-        raise TypeError(f"level_masts.read takes the levels first, then the path: read(levels, {levels!r})")
+    if not isinstance(path, (str, Path)):           # read(levels) by position: say so, never guess
+        raise TypeError(f"level_masts.read takes the path, then levels= by keyword, not {path!r}")
+    path = Path(path)
     if levels is not None and set(levels) - set(LEVELS):
         raise railroad.FactsError(f"{path.name}: levels {sorted(set(levels) - set(LEVELS))} are not "
                                   f"{', '.join(map(str, LEVELS))}")
@@ -211,14 +220,14 @@ def row_problems(r: dict) -> str:
         return "a visible mast faces a block and protects one"
     if not heads or any(len(h) != 2 for h in heads) or [h for h, _u in heads] != mast_heads(r["system_name"]):
         return f"heads {r['head_system_names']!r} are not system=user pairs of its system name's heads"
-    bad = [p for p in (head_problem(h, u, level) for h, u in heads) if p]
+    bad = [p for p in (head_problem(h, u, level, level in WIRED_LEVELS) for h, u in heads) if p]
     return "; ".join(bad)
 
 
-def names(levels: tuple[int, ...] | None = None, path: Path = PATH) -> set[str]:
-    return {r["mast"] for r in read(levels, path)}
+def names(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> set[str]:
+    return {r["mast"] for r in read(path, levels=levels)}
 
 
-def visible_names(levels: tuple[int, ...] | None = None, path: Path = PATH) -> set[str]:
+def visible_names(path: Path = PATH, *, levels: tuple[int, ...] | None = None) -> set[str]:
     """The masts a panel or desk draws: every row of `levels` but the hidden virtual ones."""
-    return {r["mast"] for r in read(levels, path) if not r["system_name"].startswith("IF$vsm:")}
+    return {r["mast"] for r in read(path, levels=levels) if not r["system_name"].startswith("IF$vsm:")}

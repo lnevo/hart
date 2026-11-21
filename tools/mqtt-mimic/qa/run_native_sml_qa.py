@@ -121,7 +121,7 @@ def load_live_masts(path: Path = level_masts.PATH) -> set[str]:
     """The live level's visible masts (head masts, IF$shsm): masts.csv's rows of the levels whose beans the generated
     tables hold (staging, hartlib.tables_build.GENERATED_LEVELS); the hidden virtual masts are left out."""
     live = tuple(int(v) for v in tables_build.GENERATED_LEVELS)
-    return {r["mast"] for r in level_masts.read(live, path) if r["system_name"].startswith("IF$shsm:")}
+    return {r["mast"] for r in level_masts.read(path, levels=live) if r["system_name"].startswith("IF$shsm:")}
 
 
 LIVE_MASTS = load_live_masts()

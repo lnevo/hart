@@ -21,7 +21,6 @@ closed (a Store would undo it).
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -45,7 +44,7 @@ def is_head(user: str) -> bool:
 
 def want_masts(path: Path = level_masts.PATH) -> list[dict]:
     """masts.csv's rows, every level (hartlib.level_masts.read checks the file)."""
-    return level_masts.read(None, path)
+    return level_masts.read(path)
 
 
 def head_comments(files: devices.Files | None = None) -> dict:
@@ -152,8 +151,8 @@ def main(argv=None) -> int:
     changed = {k: v for k, v in counts.items() if v and k != "masts kept"}
     if args.check:
         if changed:
-            print(f"{paths.rel(args.tables)} differs from {level_masts.PATH.name}: {changed}; run "
-                  "tools/schematic/sync_signals.py", file=sys.stderr)
+            print(f"{paths.rel(args.tables)} differs from {level_masts.PATH.name}: {changed}; tables.xml is generated: "
+                  "run tools/schematic/build_masts.py, then tools/schematic/build_tables.py", file=sys.stderr)
             return 1
         print(f"ok: every level's signals in {paths.rel(args.tables)} follow {level_masts.PATH.name} "
               f"({counts['masts kept']} masts)")

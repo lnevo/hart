@@ -147,7 +147,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
 | `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `{label: Hand}` |
 | `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `sensors`, `planned`, `turnouts`, `heads_by_system`, `of(layer)` |
-| `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels)` gives `[Mast]`: line, level, name, blocks) |
+| `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
 | `read_*(path)` | each file alone; `FactsError` names the file and line |
 | `check_virtual_names(rows)`, `join_main_upper(cps, local)` | the rules `build_device_map.py` builds by |
@@ -236,8 +236,8 @@ Every level's masts, one file with a `level` column (owner, 2026-11-21: the leve
 (`schematic/masts.csv`, written by `tools/schematic/build_masts.py` from the mast and head rows of `devices.csv`),
 `FIELDS` (`level`, the mast columns and `PLAN_FIELDS`, the plan facts the drawing places a mast by: filled for the
 masts `build_masts.py` places from a block layer of its own, staging today, and empty on main and upper, whose
-`build_signals.py` places from the plan graph), `read(levels, path)` (the rows of `levels`, every level when `None`,
-each with `level`, `line` and `heads` as system=user pairs), `names(levels)`, `visible_names(levels)`,
+`build_signals.py` places from the plan graph), `read(path, levels=...)` (the rows of `levels`, by keyword, every level when `None`,
+each with `level`, `line` and `heads` as system=user pairs), `names(levels=...)`, `visible_names(levels=...)`,
 `head_name(user, level)` (a head's internal name from its user name and level: "Head 2L Top" on level 1 ->
 IH:HART:C1:2L_Top, "Head 108R Top" on level 2 -> IH:HART:C3:108R_Top, never from a draft physical head),
 `head_problem()`, `signal_name()`, `signal_kind()` and `head_count()` (what the drawings show, from the row),
@@ -247,7 +247,8 @@ IH:HART:C1:2L_Top, "Head 108R Top" on level 2 -> IH:HART:C3:108R_Top, never from
 the file and the line, when the header is not `FIELDS`, a row is shorter or longer than the header, a level is not
 1, 2 or 3, a mast name is out of the grammar or given twice (on any level), a dir or leg is not one of its values, a
 row has some plan facts and not all, or a row's heads are not system=user pairs of its system name's heads, each its
-level's internal name or a wired LCOS head; a virtual mast is in its level's thousand and stands at a buffer stop.
+level's internal name or, on `WIRED_LEVELS` (staging), a wired LCOS head (main and upper heads stay internal, so nothing
+of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at a buffer stop.
 
 ### `hartlib.parked`
 

@@ -107,7 +107,7 @@ def read_level_masts(path: Path = MASTS) -> list[dict]:
     [(internal system name, user name)]), checked again against signal_coordinator.py's own test: no mast or head on
     a name it would enrol or publish (lcos_named)."""
     try:
-        rows = level_masts_lib.read(ADDED_LEVELS, path)
+        rows = level_masts_lib.read(path, levels=ADDED_LEVELS)
     except ValueError as exc:
         raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
     bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])

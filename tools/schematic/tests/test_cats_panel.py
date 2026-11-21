@@ -69,7 +69,7 @@ class Whole(unittest.TestCase):
         self.assertEqual(level, {u.removeprefix("Switch ") for u, sn in F.turnouts.items()
                                  if sn.startswith(B.LEVEL_TURNOUT)})
         staging_masts = [sg for sg in k["bands"][k["bi"]][2].get("signals") or () if sg["kind"] != "virtual"]
-        self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names((2, 3))))
+        self.assertEqual(len(c["masts"]), len(staging_masts) + len(B.level_masts.visible_names(levels=(2, 3))))
 
 
 class StagingSwitches(unittest.TestCase):
@@ -206,7 +206,7 @@ class Masts(unittest.TestCase):
         level = B.level_mast_bindings(k["bands"], k["F"], k["bi"])
         self.assertFalse(set(staging) & set(level))
         self.assertEqual(dict(staging, **level), k["committed"]["masts"])
-        self.assertEqual({e["name"] for e in level.values()}, B.level_masts.visible_names((2, 3)))
+        self.assertEqual({e["name"] for e in level.values()}, B.level_masts.visible_names(levels=(2, 3)))
 
     def test_intermediates_stand_on_their_own_loop_half(self):
         """The APB intermediates (rows with no switch) stand at a turnback, on an edge of their loop half's own."""

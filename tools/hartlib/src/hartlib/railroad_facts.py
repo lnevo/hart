@@ -911,10 +911,10 @@ class Mast:
     system_name: str = ""     # "IF$vsm:..." for a hidden virtual mast
 
 
-def read_masts(path: Path, levels: tuple[int, ...] | None = None) -> list[Mast]:
+def read_masts(path: Path, *, levels: tuple[int, ...] | None = None) -> list[Mast]:
     """masts.csv's rows of `levels` (every level when None) as Mast (hartlib.level_masts.read checks the file)."""
     return [Mast(r["line"], r["level"], r["mast"], r["facing"], tuple(b for b in r["protects"].split(";") if b),
-                 r["system_name"]) for r in level_masts.read(levels, path)]
+                 r["system_name"]) for r in level_masts.read(path, levels=levels)]
 
 
 # ---------------------------------------------------------------- hands (build_hands.py)

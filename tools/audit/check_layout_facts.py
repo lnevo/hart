@@ -568,7 +568,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
     have = desk_mast_blocks(path)
     blocks = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     masts = {hart_tables.user_name(m): hart_tables.system_name(m) for m in hart_tables.masts(t.root)}
-    for row in level_masts.read(ADDED_LEVELS, MASTS):
+    for row in level_masts.read(MASTS, levels=ADDED_LEVELS):
         mast, lamps = row["mast"], have.get(row["mast"], [])
         if level_masts.is_level_virtual(row["system_name"]):
             if lamps:                   # a hidden destination mast at a buffer stop: no lamp on the desk
@@ -716,12 +716,12 @@ def desk_mast_blocks(path: Path) -> dict[str, list[str | None]]:
 def protected_blocks(path: Path = MASTS) -> dict[str, str]:
     """Mast -> the block it protects (";" between several), from the staging masts (schematic/masts.csv's base level
     rows, hartlib.railroad.read_masts)."""
-    return {m.mast: ";".join(m.protects) for m in railroad.read_masts(path, BASE_LEVELS) if m.protects}
+    return {m.mast: ";".join(m.protects) for m in railroad.read_masts(path, levels=BASE_LEVELS) if m.protects}
 
 
 def staging_mast_rows(path: Path = MASTS) -> list[dict]:
     """masts.csv's base level (staging) rows (hartlib.level_masts.read, which checks the file)."""
-    return level_masts.read(BASE_LEVELS, path)
+    return level_masts.read(path, levels=BASE_LEVELS)
 
 
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
@@ -738,7 +738,7 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
             r.add(f"mast:{c.mast}", f"{c.mast}: mast_cells.csv puts it at ({c.x}, {c.y}), a cell with no track on "
                                     f"the USS board's grid ({facts.USS_CELLS})")
     protects = protected_blocks()
-    level = level_masts.names(ADDED_LEVELS, MASTS)      # main and upper: check_level_desk
+    level = level_masts.names(MASTS, levels=ADDED_LEVELS)      # main and upper: check_level_desk
     for desk in desks:
         have = desk_mast_blocks(Path(desk))
         name = Path(desk).name

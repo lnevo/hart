@@ -148,7 +148,7 @@ class Railroad:
         (system, user) pairs)."""
         self._need("masts", self.sources.masts.name)
         try:
-            return level_masts.read(None, self.sources.masts)
+            return level_masts.read(self.sources.masts)
         except (OSError, ValueError) as exc:
             raise FactsError(str(exc)) from None
 

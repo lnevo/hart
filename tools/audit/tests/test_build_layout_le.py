@@ -1097,10 +1097,12 @@ class LevelMasts(unittest.TestCase):
         from hartlib import level_masts
         for bad in ("Mast 108LA", "Head 108LA Middle"):
             with self.subTest(head=bad):
-                self.assertIn("is not named Head", level_masts.head_problem("IH:HART:C3:108LA", bad, 2))
+                self.assertIn("is not named Head", level_masts.head_problem("IH:HART:C3:108LA", bad, 2, False))
         self.assertIn("neither its internal name IH:HART:C3:108LA",
-                      level_masts.head_problem("IH:HART:C3:108LB", "Head 108LA", 2))
-        self.assertIsNone(level_masts.head_problem("IH:HART:C3:108R_Top", "Head 108R Top", 2))
+                      level_masts.head_problem("IH:HART:C3:108LB", "Head 108LA", 2, False))
+        self.assertIsNone(level_masts.head_problem("IH:HART:C3:108R_Top", "Head 108R Top", 2, False))
+        self.assertIn("until it is a field head", level_masts.head_problem("IH3332", "Head 108LA", 2, False))
+        self.assertIsNone(level_masts.head_problem("IH3332", "Head 108LA", 2, True))
 
     def test_a_mast_no_band_draws_stops(self) -> None:
         rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 110L" else r for r in B.read_level_masts()]

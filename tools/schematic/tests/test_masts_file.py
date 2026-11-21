@@ -26,6 +26,7 @@ def row(layer, user, jmri, system="", level=2, **kw):
              facing="", protects="", dir="")
     r.update(kw)
     r.setdefault("role", devices.role_of(layer, user, system, jmri))
+    r.setdefault("assignment", devices.assignment_of(jmri))
     return r
 
 
@@ -84,9 +85,19 @@ class Rows(unittest.TestCase):
         rows = home("Mast 6LB", "5", "Track East Ext", level=1, protects="OS Switch 5", physical=False)
         rows = [dict(rows[0], jmri_name="IF$shsm:basic:one-searchlight(IH432)",
                      system_name="IF$shsm:basic:one-searchlight(IH432)"),
-                dict(rows[1], jmri_name="IH432", system_name="IH432")]
+                dict(rows[1], jmri_name="IH432", system_name="IH432", assignment="field")]
         (r,) = run(rows)
         self.assertEqual(r["head_system_names"], "IH432=Head 6LB")
+        for level in (1, 2):    # a wired head on a row that is not a field device: refused on every level
+            virtual = [dict(x, level=str(level), assignment="virtual") for x in rows]
+            with self.subTest(level=level), self.assertRaisesRegex(bmm.RuleError, "wired LCOS head 'IH432'"):
+                run(virtual)
+
+    def test_a_row_on_no_level_is_left_out(self):
+        """A device a PanelPro Store added and nobody placed has no level (hartlib.devices is_unplaced): no map's."""
+        unplaced = row("mast", "Mast 999L", "IF$shsm:basic:one-low(IH:X)", level="")
+        got = run(home("Mast 110L", "109", "T") + [unplaced, row("head", "Head 999L", "IH:X", level="")])
+        self.assertEqual([r["mast"] for r in got], ["Mast 110L"])
 
     def test_a_mast_with_no_physical_heads_is_read_by_its_virtual_names(self):
         (r,) = run(home("Mast 110L", "109", "Track 105-109", physical=False))
@@ -100,6 +111,7 @@ class Rows(unittest.TestCase):
     def test_an_anchor_mast_protects_its_os_block_at_no_switch(self):
         (r,) = run(home("Mast 8RA", "", "Track Scale", level=1, protects="OS Switch 7", physical=False))
         self.assertEqual((r["switch"], r["protects"]), ("", "OS Switch 7"))
+        self.assertEqual(bmm.ANCHOR_LEVELS, (bmm.PLANNED_LEVEL,))
 
     def test_a_virtual_mast(self):
         (r,) = run([row("mast", "Mast 102RA", "IF$vsm:basic:one-low($2001)", "IF$vsm:basic:one-low($2001)",
@@ -136,7 +148,18 @@ class Stops(unittest.TestCase):
                            "level 2 mast Mast 102RA: .* VirtualSignalMast of its level's thousand")
 
     def test_a_home_mast_at_no_switch_that_protects_no_os_block(self):
-        self.stops(home("Mast 110L", "", "T", protects="Track 105-109"), "a home signal lost its switch")
+        self.stops(home("Mast 8RA", "", "T", level=1, protects="Track Scale", physical=False),
+                   "so an anchor mast, but protects Track Scale, no OS block")
+
+    def test_a_main_or_upper_home_mast_at_no_switch_is_no_anchor_mast(self):
+        """The old main and upper guard (2026-11-16): their OS blocks end at the switch, so a home mast at no switch
+        there lost its switch, even one protecting an OS block; an intermediate (its role) is the only mast at none."""
+        for level in (2, 3):
+            with self.subTest(level=level):
+                self.stops(home("Mast 110L", "", "T", level=level, protects="OS Switch 109"),
+                           f"level {level}'s OS blocks end at their switches, so it is no anchor mast")
+        (r,) = run(home("Mast A83", "", "Track 107 Loop 2", protects="Track 107 Loop 1", physical=False))
+        self.assertEqual(r["mast"], "Mast A83")
 
     def test_a_mast_protecting_two_blocks_or_none_at_no_switch(self):
         self.stops(home("Mast 110L", "109", "T", protects="A;B"), "protects .* a home signal is at a switch")
@@ -164,6 +187,9 @@ class Stops(unittest.TestCase):
 
     def test_a_name_out_of_the_grammar(self):
         self.stops(home("Mast 1x0", "109", "T"), "the name is not Mast <number>")
+        # a virtual mast too, before anything reads its number (the sort would fail on it)
+        self.stops([row("mast", "Mast X", "IF$vsm:basic:one-low($2001)", "IF$vsm:basic:one-low($2001)",
+                        facing="T", dir="east")], "level 2 mast Mast X: the name is not Mast <number>")
 
     def test_two_masts_on_one_pair_that_are_not_a_and_b(self):
         self.stops(home("Mast 120RA", "119", "X") + home("Mast 120RC", "119", "X"), "only an A and a B")
@@ -191,15 +217,15 @@ class Reader(unittest.TestCase):
 
     def fails(self, text: str, pattern: str):
         with self.assertRaisesRegex(railroad.FactsError, pattern):
-            level_masts.read(None, self.write(text))
+            level_masts.read(self.write(text))
 
     def test_levels_filter_and_lines(self):
         p = self.write(self.committed())
-        rows = level_masts.read((2, 3), p)
+        rows = level_masts.read(p, levels=(2, 3))
         self.assertEqual({r["level"] for r in rows}, {2, 3})
         self.assertTrue(all(isinstance(r["line"], int) and r["line"] > 31 for r in rows))
         with self.assertRaisesRegex(railroad.FactsError, r"levels \[4\] are not"):
-            level_masts.read((4,), p)
+            level_masts.read(p, levels=(4,))
 
     def test_the_header_must_be_the_fields(self):
         self.fails(self.committed().replace("level,mast,", "mast,level,", 1), "masts.csv line 1: columns mast,level")
@@ -229,7 +255,7 @@ class Reader(unittest.TestCase):
         self.fails(self.committed().replace("one-low($1001)", "one-low($2999)"), "virtual mast")
 
     def test_derived_signal_facts(self):
-        rows = {r["mast"]: r for r in level_masts.read((1,))}
+        rows = {r["mast"]: r for r in level_masts.read(levels=(1,))}
         self.assertEqual([level_masts.signal_kind(rows[m]) for m in ("Mast 2L", "Mast 6LB", "Mast 4LA")],
                          ["planned", "field", "virtual"])
         self.assertEqual([level_masts.head_count(rows[m]) for m in ("Mast 2L", "Mast 6LB", "Mast 4LA")], [2, 1, 1])

@@ -26,9 +26,9 @@ STEPS = [
     ("staging-sets", "build_staging_sets.py", False),
     ("main-route", "build_main_route.py", False),
     ("plan-lengths", "plan_lengths.py --check", True),
-    ("signals", "build_signals.py", False),
     ("device-map", "build_device_map.py", False),
     ("masts", "build_masts.py", False),
+    ("signals", "build_signals.py", False),
     ("schematic", "publish_draft.py", False),
     ("le-cutover", "build_layout_le.py --as-live", False),
     ("approved-candidate", "check_approved.py le-candidate", True),
@@ -67,6 +67,9 @@ class StepList(unittest.TestCase):
 
     def test_the_masts_come_after_the_device_map_and_before_what_reads_them(self):
         self.assertLess(NAMES.index("device-map"), NAMES.index("masts"))     # main and upper's rows are its
+        # signals.json is drawn from masts.csv: in one run, after the masts are written (review of #859); nothing
+        # before signals reads signals.json (device-map and masts gave the same outputs with every signal dropped)
+        self.assertLess(NAMES.index("masts"), NAMES.index("signals"))
         for late in ("schematic", "cats", "le-cutover", "tables"):
             self.assertLess(NAMES.index("masts"), NAMES.index(late), late)
         # what reads tables.xml runs after the step that writes it (ADR-029): the staging checks, the CATS desks
@@ -173,7 +176,7 @@ class StaleMastsCsv(unittest.TestCase):
         code, out, ran = self.run_script()
         self.assertEqual(code, 1, out)
         self.assertIn("differs from masts.csv", out)
-        self.assertIn("run tools/schematic/sync_signals.py", out)
+        self.assertIn("run tools/schematic/build_masts.py, then tools/schematic/build_tables.py", out)
         self.assertIn("stopped: signals-sync only checks and it failed; later steps read the files it checks", out)
         self.assertEqual(len(ran), NAMES.index("signals-sync"), ran)  # nothing after it ran
 

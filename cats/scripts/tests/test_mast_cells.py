@@ -22,7 +22,7 @@ class MastCellsTest(unittest.TestCase):
         # check_layout_facts' check_level_desk
         want = {m["mast"] for m in facts_check.staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
         protects = facts_check.protected_blocks()
-        level = facts_check.level_masts.names((2, 3))
+        level = facts_check.level_masts.names(levels=(2, 3))
         self.assertFalse(want & level)
         for desk in desks.LIVE:
             with self.subTest(desk=desk.name):

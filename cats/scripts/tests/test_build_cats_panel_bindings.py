@@ -804,9 +804,9 @@ class CommittedMainAndUpper(unittest.TestCase):
         self.assertEqual({k for k, e in level.items() if e["normal"] != "B"}, {"121B", "125B"})
         self.assertEqual({e["normal"] for e in level.values()}, {"B", "C"})
         names = {e["name"] for e in self.bound["masts"].values()}
-        self.assertLessEqual(B.level_masts.visible_names((2, 3)), names)
-        self.assertEqual(len(B.level_masts.visible_names((2, 3))), 44)    # masts.csv main and upper rows, APB intermediates too
-        hidden = B.level_masts.names((2, 3)) - B.level_masts.visible_names((2, 3))
+        self.assertLessEqual(B.level_masts.visible_names(levels=(2, 3)), names)
+        self.assertEqual(len(B.level_masts.visible_names(levels=(2, 3))), 44)    # masts.csv main and upper rows, APB intermediates too
+        hidden = B.level_masts.names(levels=(2, 3)) - B.level_masts.visible_names(levels=(2, 3))
         self.assertEqual(len(hidden), 24)                            # buffer-stop destinations, never on a desk
         self.assertFalse(hidden & names)
 

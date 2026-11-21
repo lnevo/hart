@@ -516,7 +516,7 @@ def staging_masts(path: Path = MASTS) -> list[tuple[int, dict]]:
     """(line, row) of masts.csv's staging rows (hartlib.level_masts.read checks the whole file); StagingMapError on a
     file that breaks its rules or has no staging row."""
     try:
-        rows = level_masts.read((LEVEL,), path)
+        rows = level_masts.read(path, levels=(LEVEL,))
     except railroad.FactsError as exc:
         raise StagingMapError(str(exc)) from None
     if not rows:
