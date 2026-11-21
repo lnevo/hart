@@ -49,7 +49,10 @@ def plugin():
 def schematic():
     """(bands, page options) of the solved schematic (the inputs of publish_draft.py), solved once per run."""
     sheet = plugin()[0]
-    built = pd.solved_sheet(sheet)
+    try:
+        built = pd.solved_sheet(sheet)
+    except pd.host_screen.HostScreenError as exc:       # the panel's window: the page's host_screen
+        raise BuildError(str(exc)) from None
     return built.bands, built.opts
 
 

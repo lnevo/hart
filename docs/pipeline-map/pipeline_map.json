@@ -964,7 +964,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Schematic drawing preferences per level, detail_sheets (staging generated), le_window, le_stretch.",
+   "desc": "Schematic drawing preferences per level, detail_sheets (staging generated), host_screen (the LE and CATS windows), le_stretch.",
    "path": "jmri/layouts/hart/data/schematic/preferences.json"
   },
   {

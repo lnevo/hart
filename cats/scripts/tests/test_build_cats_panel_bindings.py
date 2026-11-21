@@ -157,11 +157,11 @@ class Switches(unittest.TestCase):
 
     def test_fit_comes_from_the_window(self):
         o = desk_options()
-        self.assertEqual((o["window"], o["fit"]), ((1900, 1020), (62, 30)))   # (1900 - 20) // 30, (1020 - 100) // 30
+        self.assertEqual((o["window"], o["fit"]), ((1920, 1032), (63, 31)))   # (1920 - 20) // 30, (1032 - 100) // 30
         with self.assertRaisesRegex(SystemExit, "no cats_window"):
             B.desk_options(plugin_cats(), {}, [])
         with self.assertRaisesRegex(SystemExit, "the desks need \"one\""):
-            B.desk_options(plugin_cats(), {"cats_window": [1900, 1020], "cats_helix_blocks": "apart"}, [])
+            B.desk_options(plugin_cats(), {"cats_window": [1920, 1032], "cats_helix_blocks": "apart"}, [])
 
     def test_legs_disagreeing_with_the_switch_facts_stop(self):
         f = facts()
@@ -415,14 +415,18 @@ class MainAndUpper(unittest.TestCase):
         self.assertEqual(B.label_clashes(log), log[:2])
 
     def test_desk_preferences(self):
-        """The desks' window (the Windows box's screen, owner 2026-11-18), one cell per grid unit, each helix track
-        one block over both bands (owner, 2026-11-20) and the tighter rows between bands (owner, 2026-11-18) are the
-        page's CATS preferences, which the plugin reads."""
+        """The desks' window (the layout hosts' 1920 x 1080 screen less a 48 px taskbar, owner 2026-11-21, derived
+        from host_screen as the Layout Editor panel's is), one cell per grid unit, each helix track one block over
+        both bands (owner, 2026-11-20) and the tighter rows between bands (owner, 2026-11-18) are the page's CATS
+        preferences, which the plugin reads."""
         page = B.pd.page_prefs().read()
-        keys = ("cats_window", "cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
+        keys = ("cats_cells_per_unit", "cats_helix_blocks", "cats_band_gap", "cats_title_gap")
         self.assertEqual({k: page[k] for k in keys},
-                         {"cats_window": [1900, 1020], "cats_cells_per_unit": 1, "cats_helix_blocks": "one",
-                          "cats_band_gap": 1, "cats_title_gap": 0})
+                         {"cats_cells_per_unit": 1, "cats_helix_blocks": "one", "cats_band_gap": 1, "cats_title_gap": 0})
+        self.assertEqual(page["host_screen"], {"size": [1920, 1080], "taskbar": 48})
+        self.assertNotIn("cats_window", page)                 # derived, never written: host_screen is the one source
+        s = B.pd.solved_sheet(B.plugin_modules(B.pd.plugin())[1])
+        self.assertEqual((s.opts["cats_window"], s.opts["le_window"]), ([1920, 1032], [1920, 1032]))
 
     def test_every_main_and_upper_desk_block_reports_its_virtual_sensor(self):
         """Every desk block of main and upper is bound to its block's virtual sensor, which tables.xml holds under

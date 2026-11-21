@@ -2,6 +2,8 @@
 
 Report of the dry runs of the Operations Pro build on 2026-11-02, covering each train and the ordered session.
 
+Status: done (2026-11-02). Record of the build's dry runs; the live outstanding list is [`OPSPRO_FOLLOWUP.md`](OPSPRO_FOLLOWUP.md).
+
 Deliverable 4 of [`OPSPRO_BUILD_PROMPT.md`](../../archive/docs/ops/OPSPRO_BUILD_PROMPT.md), written 2026-11-02 against the folder as shipped on branch `agent/claude/opspro-build` after the owner's review. Two kinds of test were run on copies; the shipped files were not built in.
 
 - **`ops_dry_run`**: the plugin's one-pass test. Every train is built from the same start state and then terminated. It shows gates and routing, not hand-offs, and it cannot build D749 Return (its engine is still on D749 at West Yard in that state).

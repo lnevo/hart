@@ -131,13 +131,13 @@ come back.
 | `staging` `station_side` | staging drawing redrawn; the LE build stops (the title is placed off the panel) |
 | `staging` `le_band_align` | the staging guard stops the LE build |
 
-Not tested: the owner's look settings (titles, dates, `capacity`, `detail_sheets`, the `le_window`, `cats_*` and
+Not tested: the owner's look settings (titles, dates, `capacity`, `detail_sheets`, `host_screen`, the `cats_*` and
 `le_stretch` sizes, `le_crossover_angle`, `track_labels`) and `optional_block_contents`, which
 `test_blocks_every_level` holds to the parts in `devices.csv`.
 
 Also open, smaller:
 - (done 2026-11-20: `le_signal_boundaries.csv` retired; the deploy audit reads `staging_masts.csv` instead);
-- the owner's screen sizes (`le_window`, `cats_window`) sitting in preferences;
+- (done 2026-11-21: the screen sizes are one `host_screen` setting, the layout hosts' screen; `le_window` and `cats_window` are derived from it);
 - the band names and the 5 cm cut kept in `plan_overrides.json` (main_upper section) `levels` "until B2";
 
 ## Not checked by the audit

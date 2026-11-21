@@ -141,8 +141,8 @@ STAGING_MAP_LOADS: list = []     # sdm.load calls in the one cached build above
 
 @functools.lru_cache(maxsize=None)
 def le_window() -> tuple:
-    """(width, height): the window the panels open in, the page's le_window (preferences.json[main_upper]), read by
-    the plugin as the build reads it."""
+    """(width, height): the window the panels open in, the page's le_window (derived from preferences.json[main_upper]
+    host_screen by publish_draft.solved_sheet), read by the plugin as the build reads it."""
     return B.plugin()[1].window(B.schematic()[1])
 
 
@@ -404,7 +404,7 @@ class Built(unittest.TestCase):
     # ---- size: the panel holds what it draws (the window: test_le_cutover.py, the panel scrolls)
     def test_everything_drawn_lies_on_the_panel(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        self.assertEqual(le_window(), (1900, 1140))                   # the preference: the owner's display
+        self.assertEqual(le_window(), (1920, 1032))   # host_screen: the layout hosts' 1920 x 1080 less the taskbar
         # everything drawn lies on the panel: track, turnout legs, labels (at the width JMRI draws) and icons
         xs, ys = [], []
         for p in self.le.findall("positionablepoint"):

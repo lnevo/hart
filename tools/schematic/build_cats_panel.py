@@ -88,7 +88,8 @@ BOUND_LEVEL = 1        # the level bound to JMRI: staging's band (its `level` in
 TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
 # The desks' window, cells per grid unit, helix blocks and row gaps are page preferences (preferences.json[main_upper]:
 # cats_window, cats_cells_per_unit, cats_helix_blocks, cats_band_gap, cats_title_gap) the plugin reads (schematic/cats_prefs.py, cats.options),
-# which also gives the cells the desk must fit in that window.
+# which also gives the cells the desk must fit in that window. cats_window is not set there: publish_draft.solved_sheet
+# derives it from the page's host_screen (host_screen.py), the layout hosts' screen, as the Layout Editor's le_window.
 
 
 def plugin_modules(plugin):
@@ -199,7 +200,10 @@ def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
     F = load_facts()
-    s = pd.solved_sheet(sheet)
+    try:
+        s = pd.solved_sheet(sheet)
+    except pd.host_screen.HostScreenError as exc:       # the desks' window: the page's host_screen
+        sys.exit(f"error: {exc}")
     bands = name_loop_halves(s.bands, F.device)
     o = desk_options(cats, s.opts, bands)
     window, fit = o["window"], o["fit"]

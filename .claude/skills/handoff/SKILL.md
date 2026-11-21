@@ -61,10 +61,10 @@ Set each brief's interval by the job's expected length (`AGENTS.md`, "Status rep
 
 ## Merge
 
-The main session merges, one PR at a time, once its required check passes, never with `--admin`.
+The main session merges, never with `--admin`. It queues GitHub auto-merge (`gh pr merge <n> --merge --auto`, on for the repo) once a PR's reviews are done, so the PR merges when its required `check` passes on its newest commit, with no polling. Never queue it before the reviews finish, or a fast CI merges ahead of the findings; a commit pushed afterwards makes auto-merge wait for that commit's check. `main` does not require PRs to be up to date (`strict` is off), so before queueing a PR that regenerates a shared output (`docs/INDEX.md`, the pipeline map, panels, `tables.xml`), merge `origin/main` into it and regenerate. CI on `main` after each merge catches what two PRs break together.
 
 1. Code PRs are reviewed by their own agent (brief, Review). Before merging, the main session runs `/code-review low` on the PR to catch what the fixes broke; when the agent could not run a review, it runs `/code-review medium` instead. Fix confirmed correctness bugs, check each unverified finding against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
-2. Merge PRs that others build on first. Rebase each remaining one on the new main, regenerate its generated files, and wait for CI again.
+2. Queue PRs that others build on first. When one merges, merge `origin/main` into each remaining one (no rebase: force-push is blocked), regenerate its generated files, and leave auto-merge to wait for CI again.
 3. Deploy once after the last merge if live artifacts changed (`deploy` skill).
 
 ## Finish
