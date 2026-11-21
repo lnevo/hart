@@ -185,12 +185,25 @@ def run_batch(railroad, batch, on_gui=None, save=None):
             result, todo = {"car": _text(entry.get("car")), "status": "error", "reason": str(exc),
                             "changes": [], "notes": []}, []
         results.append(result)
-        actions.extend(todo)
+        actions.extend((result["car"], action) for action in todo)
     if actions and not dry_run:
+        done = []
+
         def apply_all():
-            for action in actions:
+            for car, action in actions:
                 action()
-        (on_gui or (lambda f: f()))(apply_all)
+                done.append(car)
+        try:
+            (on_gui or (lambda f: f()))(apply_all)
+        except Exception as exc:
+            # Nothing is saved now, but the changes made before the failure stay in memory and the next save writes
+            # them, so name those cars. Sending the batch again is safe: they plan as unchanged.
+            applied = sorted(set(done))
+            return {"id": batch.get("id"), "ok": False, "saved": False, "cars": results, "applied": applied,
+                    "error": "applying failed at car %s (%s); nothing was saved. %s" % (
+                        actions[len(done)][0], exc,
+                        "Changed in memory, saved by the next batch: " + ", ".join(applied) + "." if applied
+                        else "No car was changed.")}
     summary = {}
     for result in results:
         summary[result["status"]] = summary.get(result["status"], 0) + 1
@@ -236,7 +249,18 @@ def _start():
                         InstanceManager.getDefault(CarLoads), InstanceManager.getDefault(CarTypes))
 
     def on_gui(function):
-        ThreadingUtil.runOnGUI(function)
+        # Stock runOnGUI, called off the GUI thread, logs what the function throws and returns, so catch it there
+        # and raise it here: run_batch then replies ok: false, names the cars applied, and does not save.
+        failed = []
+
+        def guarded():
+            try:
+                function()
+            except (Exception, java.lang.Exception) as exc:  # a java.lang.Error is left to JMRI's log
+                failed.append(exc)
+        ThreadingUtil.runOnGUI(guarded)
+        if failed:
+            raise RuntimeError(str(failed[0]))
 
     def work():
         while True:
