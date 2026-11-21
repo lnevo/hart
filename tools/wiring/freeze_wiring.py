@@ -92,7 +92,7 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
     out, bad = [], []
     for r in mine:
         base = {c: "" for c in wiring.COLUMNS} | dict(level=r["level"], status="wired", notes=note)
-        if r["layer"] == "turnout" and r["system_name"].startswith("MTT"):
+        if r["layer"] == "turnout" and devices.row_role(r) == "lcc_alias":
             continue                                           # an LCC alias: its turnout's row carries it
         if r["layer"] in ("turnout", "fb", "head"):
             if r["layer"] == "head" and not r["node"]:
@@ -119,7 +119,7 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
                 bad.append(f"occupancy {r['user_name']}: its wiring {r['comment']!r} gives no input")
                 continue
             row = base | dict(kind="detector", node=m.group(1), index=m.group(2))
-            if block.startswith("OS Switch ") or block in helix:
+            if devices.is_os(r) or block in helix:        # its role is its block's
                 row["device"] = block
             elif block in keys:
                 row |= keys[block]

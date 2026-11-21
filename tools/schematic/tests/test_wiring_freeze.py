@@ -163,15 +163,15 @@ class TheBuild(unittest.TestCase):
 
 class TheCommand(unittest.TestCase):
     """freeze_wiring.py's rows and merge."""
-    ROWS = [dict(level="2", cp="CP 9", layer="turnout", user_name="Switch 9", system_name="M2T4208", node="42",
+    ROWS = [dict(level="2", cp="CP 9", layer="turnout", role="turnout", user_name="Switch 9", system_name="M2T4208", node="42",
                  comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1,2", blocks=""),
-            dict(level="2", cp="CP 9", layer="turnout", user_name="DCC Switch 9", system_name="MTT150", node="42",
+            dict(level="2", cp="CP 9", layer="turnout", role="lcc_alias", user_name="DCC Switch 9", system_name="MTT150", node="42",
                  comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1,2", blocks=""),
-            dict(level="2", cp="CP 9", layer="occupancy", user_name="BS Switch 9", system_name="M2S4200", node="42",
+            dict(level="2", cp="CP 9", layer="occupancy", role="os", user_name="BS Switch 9", system_name="M2S4200", node="42",
                  comment="Node: 42 Block: 1", blocks="OS Switch 9"),
-            dict(level="2", cp="CP 9", layer="occupancy", user_name="BS 9-11", system_name="M2S4201", node="42",
+            dict(level="2", cp="CP 9", layer="occupancy", role="track", user_name="BS 9-11", system_name="M2S4201", node="42",
                  comment="Node: 42 Block: 2", blocks="Track 9-11"),
-            dict(level="2", cp="CP 9", layer="occupancy", user_name="BS 9 Spur", system_name="", node="",
+            dict(level="2", cp="CP 9", layer="occupancy", role="spur", user_name="BS 9 Spur", system_name="", node="",
                  comment="", blocks="Track 9 Spur")]
     KEYS = {"Track 9-11": dict(switch_a="9", switch_b="11", parallel="", half="")}
 
@@ -209,7 +209,7 @@ class TheCommand(unittest.TestCase):
     def test_a_line_block_is_frozen_with_its_own_levels_place(self):
         """A line block's cp lists its own level's places first (build_device_map.line_cp): a main level helix
         detector, "CP 127;Princess", is frozen with CP 127, never with the staging station."""
-        rows = [dict(level="2", cp="CP 127;Princess", layer="occupancy", user_name="BS Helix Outer",
+        rows = [dict(level="2", cp="CP 127;Princess", layer="occupancy", role="helix", user_name="BS Helix Outer",
                      system_name="M2S4101", node="41", comment="Node: 41 Block: 2", blocks="Track Helix Outer")]
         got = fw.freeze_rows("CP 127", rows, {}, {"Track Helix Outer"}, "2026-11-21")
         self.assertEqual([(r["kind"], r["node"], r["index"]) for r in got], [("detector", "41", "2")])
@@ -217,13 +217,27 @@ class TheCommand(unittest.TestCase):
             fw.freeze_rows("Princess", rows, {}, {"Track Helix Outer"}, "2026-11-21")
 
     def test_a_head_across_two_boards_is_frozen_as_wired(self):
-        rows = self.ROWS + [dict(level="2", cp="CP 9", layer="head", user_name="Head 10L", system_name="IH4232",
+        rows = self.ROWS + [dict(level="2", cp="CP 9", layer="head", role="head", user_name="Head 10L", system_name="IH4232",
                                  node="42", comment="Node: 42 Signal: 0 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",
                                  blocks="")]
         head = next(r for r in fw.freeze_rows("CP 9", rows, self.KEYS, set(), "2026-11-21") if r["kind"] == "head")
         self.assertEqual((head["board"], head["ports"]), ("OU2", "7,OU3-8,OU3-7"))
         [w] = wires(",".join(head[c] if "," not in head[c] else f'"{head[c]}"' for c in wiring.COLUMNS) + "\n")
         self.assertEqual(w.wiring_text, "Node: 42 Signal: 0 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
+
+    def test_the_kind_is_the_rows_role_not_its_name(self):
+        """An OS block's detector is frozen by its block (role os), a track's by its end switches, whatever the
+        names say; the LCC alias is skipped by its role (hand-off row 8)."""
+        rows = [dict(self.ROWS[2], role="track"), dict(self.ROWS[1], role="turnout")]
+        keys = {"OS Switch 9": dict(switch_a="9", switch_b="11", parallel="", half="")}
+        got = fw.freeze_rows("CP 9", rows, keys, set(), "2026-11-21")
+        self.assertEqual([(r["kind"], r["device"], r["switch_a"]) for r in got],
+                         [("detector", "", "9"), ("turnout", "DCC Switch 9", "")])
+
+    def test_a_row_with_no_role_stops(self):
+        rows = [{k: v for k, v in self.ROWS[2].items() if k != "role"}]
+        with self.assertRaisesRegex(fw.devices.DevicesError, "occupancy 'BS Switch 9' has no role"):
+            fw.freeze_rows("CP 9", rows, self.KEYS, set(), "2026-11-21")
 
     def test_a_turnout_across_two_boards_stops(self):
         rows = [dict(self.ROWS[0], comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1 | OU: 2 Ports: 2")]
@@ -233,7 +247,7 @@ class TheCommand(unittest.TestCase):
     def test_what_cannot_be_frozen_stops(self):
         with self.assertRaisesRegex(fw.FreezeError, "no main or upper control point 'CP 8'; they are CP 9"):
             fw.freeze_rows("CP 8", self.ROWS, self.KEYS, set(), "2026-11-21")
-        unplaced = self.ROWS + [dict(level="2", cp="CP 9", layer="head", user_name="Head 10L", system_name="",
+        unplaced = self.ROWS + [dict(level="2", cp="CP 9", layer="head", role="head", user_name="Head 10L", system_name="",
                                      node="", comment="CP 9 | Switch 9", blocks="")]
         with self.assertRaisesRegex(fw.FreezeError, "Head 10L has no node .*place it first"):
             fw.freeze_rows("CP 9", unplaced, self.KEYS, set(), "2026-11-21")

@@ -526,8 +526,8 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]
     rows = read_rows(path, level_masts.FIELDS)
     dev = {(r["layer"], r["user_name"]): r for r in device_rows}
     heads = {r["system_name"]: r["user_name"] for r in device_rows if r["layer"] == "head"}
-    switches = {r["trial_name"].removeprefix("Switch ") for r in device_rows
-                if r["layer"] == "turnout" and r["trial_name"].startswith("Switch ")}
+    switches = {r["trial_name"].removeprefix("Switch ") for r in device_rows     # a turnout, not its LCC alias
+                if r["layer"] == "turnout" and devices.row_role(r) == "turnout"}
     out, bad, seen = [], [], set()
     for i, r in enumerate(rows, 2):
         name = r["mast"]

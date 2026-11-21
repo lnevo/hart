@@ -177,10 +177,14 @@ def load_layout(levels: bool = True) -> dict:
                     if name not in occ_names[un]:
                         occ_names[un].append(name)
 
+    # a device's kind is its devices.csv row's (layer, role), never its name (hand-off row 8)
+    index = devices.index()
+    detectors = set(index.names("occupancy", roles=set(devices.ROLES) - {"spare"}))
+    switches = set(index.names("turnout", roles=("turnout",)))
     blocks = []
     for addr, rec in sensors.items():
         un = rec["userName"]
-        if not un.startswith("BS "):
+        if un not in detectors:
             continue
         names = occ_names.get(un, [])
         label = " / ".join(names) if names else un
@@ -206,7 +210,7 @@ def load_layout(levels: bool = True) -> dict:
         if not addr:
             continue
         un = _txt(el, "userName")
-        if not un.startswith("Switch "):
+        if un not in switches:
             continue
         try:
             num = int(un.split()[-1])

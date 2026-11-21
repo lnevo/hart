@@ -73,6 +73,7 @@ def load_devices(path: Path = PANEL):
     (not the hidden throat blocks). Internal lamps, lever and CTC sensors are left out.
     """
     root = tables.read(path)
+    master = device_master.index()
     out = {}
     pair = {}  # DCC mirror turnout -> its "Node: n Turnout: k" text, to sit beside its MQTT turnout
     address = re.compile(r"^(?:M2[ST]|IH)(\d+)$")  # hardware systems whose number is an MQTT address
@@ -113,7 +114,8 @@ def load_devices(path: Path = PANEL):
     for el in tables.blocks(root):
         if tables.text(el, "comment").startswith("Hidden"):
             continue
-        add(el, "os block" if tables.user_name(el).startswith("OS ") else "block")
+        # its kind is its devices.csv role, never its name (hand-off row 8)
+        add(el, "os block" if master.is_os(tables.user_name(el)) else "block")
         out[tables.system_name(el)]["mqtt"] = detectors.get(tables.text(el, "occupancysensor"), "")
 
     # Address order (node, port), a block or DCC mirror after its sensor or turnout, masts last.

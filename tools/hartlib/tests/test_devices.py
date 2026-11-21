@@ -606,6 +606,51 @@ class TheReaders(unittest.TestCase):
         self.assertEqual(D.device_map_lines(("1",), REAL.master), D.device_map_lines(("1",), REAL))
 
 
+class TheKindFromTheRow(unittest.TestCase):
+    """A reader takes a device's kind from its row's layer and role (row_role, is_os, index), never from its name
+    (hand-off row 8)."""
+
+    def test_the_role_is_the_rows(self):
+        self.assertEqual(D.row_role(turnout()), "turnout")
+        self.assertTrue(D.is_os(blank(layer="block", role="xover_corner", user_name="Track Odd")))
+        self.assertFalse(D.is_os(blank(layer="block", role="track", user_name="OS Switch 9")))
+
+    def test_a_row_with_no_role_stops_naming_where(self):
+        for row in (blank(layer="block", user_name="OS Switch 9"), {"layer": "block", "user_name": "OS Switch 9"}):
+            with self.assertRaisesRegex(D.DevicesError, r"devices.csv line 7: block 'OS Switch 9' has no role"):
+                D.is_os(row, "devices.csv line 7")
+
+    def test_the_index_finds_a_device_by_layer_and_name(self):
+        ix = D.index()
+        self.assertIs(ix, D.index())                # built once per file state
+        self.assertEqual(ix.role("block", "OS Switch 225b"), "xover_corner")
+        self.assertTrue(ix.is_os("OS Switch 101"))
+        self.assertFalse(ix.is_os("Track Helix Inner"))        # a row on staging and one on the upper level
+        self.assertEqual(len(ix.rows("block", "Track Helix Inner")), 2)
+        self.assertIn("Switch 101", ix.names("turnout", roles=("turnout",)))
+        self.assertNotIn("DCC Switch 101", ix.names("turnout", roles=("turnout",)))
+        self.assertEqual(set(ix.names("occupancy", levels=("2",))),
+                         {r["user_name"] for r in D.load() if r["layer"] == "occupancy" and r["level"] == "2"})
+        with self.assertRaisesRegex(D.DevicesError, "devices.csv: no block row 'Track Nowhere'"):
+            ix.role("block", "Track Nowhere")
+
+    def test_rows_that_disagree_on_a_role_stop_naming_their_lines(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "devices.csv"
+            rows = list(csv.reader(io.StringIO(REAL.master.read_text(encoding="utf-8"), newline="")))
+            col = rows[0].index
+            helix = [i for i, r in enumerate(rows) if r[col("layer")] == "block" and r[col("user_name")] ==
+                     "Track Helix Inner"]
+            rows[helix[1]][col("role")] = "track"
+            buf = io.StringIO()
+            csv.writer(buf, lineterminator="\n").writerows(rows)
+            path.write_text(buf.getvalue(), encoding="utf-8")
+            ix = D.index(path)
+            with self.assertRaisesRegex(D.DevicesError, rf"lines {helix[0] + 1}, {helix[1] + 1}: block "
+                                                        r"'Track Helix Inner' has roles helix, track"):
+                ix.role("block", "Track Helix Inner")
+
+
 class TheStagingFacts(unittest.TestCase):
     """What the pnm_ columns held that the master's own columns lacked, now in them (R9e follow-up, 2026-11-21)."""
 
