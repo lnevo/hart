@@ -496,7 +496,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
             idents[n] = ident
         names["idents"] = dict(turnouts=idents, boundaries=[], ends={}, segments={})
     if with_masts:              # build_staging_masts.py reads the rest to write the masts
-        names["masts"] = load_masts(masts_path, cp_names, rows)
+        names["masts"] = load_masts(masts_path, cp_names, rows, device_map)
     if bad:
         raise StagingMapError("; ".join(bad))
     return names
@@ -519,15 +519,16 @@ def os_layer(names: dict, parts: dict) -> dict:
     return dict(names, blocks={sid: [parts.get(b, b) for b in v] for sid, v in names["blocks"].items()})
 
 
-def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]:
+def load_masts(path: Path, cp_names: set, device_rows: list[dict], device_map: Path = DEVICE_MAP) -> list[dict]:
     """The plugin's staging masts from staging_masts.csv: each with its facing and protected blocks, its kind of slot
     (mast_kind), hidden for a virtual mast and its icon size (hartlib.tables.mast_icon_size). Stops on a row whose
     mast, heads or system name the device map does not hold as the same mast, or whose switch no turnout row is."""
     rows = read_rows(path, level_masts.FIELDS)
     dev = {(r["layer"], r["user_name"]): r for r in device_rows}
+    where = devices.index(device_map).where     # a row's line in the master, for a message
     heads = {r["system_name"]: r["user_name"] for r in device_rows if r["layer"] == "head"}
-    switches = {r["trial_name"].removeprefix("Switch ") for r in device_rows
-                if r["layer"] == "turnout" and r["trial_name"].startswith("Switch ")}
+    switches = {r["trial_name"].removeprefix("Switch ") for r in device_rows     # a turnout, not its LCC alias
+                if r["layer"] == "turnout" and devices.row_role(r, where(r)) == "turnout"}
     out, bad, seen = [], [], set()
     for i, r in enumerate(rows, 2):
         name = r["mast"]

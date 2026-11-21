@@ -29,6 +29,34 @@ def _load_builder():
     return mod
 
 
+class BlockKindFromTheMaster(unittest.TestCase):
+    """A block's kind on the site is its devices.csv role (hand-off row 8); a block not on the layout yet (a level-less
+    row, its beans from its jmri_bean) is a plain block, with no role asked of it."""
+
+    def test_a_level_less_block_is_a_plain_block(self) -> None:
+        import tempfile
+        import xml.etree.ElementTree as ET
+        from hartlib import devices, tables_build
+        el = ET.fromstring('<block systemName="IB999" length="0.0" curve="0"><systemName>IB999</systemName>'
+                           '<userName>OS Store Added</userName><permissive>no</permissive></block>')
+        row = {c: "" for c in devices.COLUMNS}
+        row.update(layer="block", user_name="OS Store Added", assignment="field", system_name="IB999",
+                   jmri_name="IB999", description="Added in PanelPro.")
+        row["jmri_bean"] = tables_build.bean_json([(tables_build.BLOCKS, el)], row)
+        with tempfile.TemporaryDirectory() as d:
+            files = devices.Files(Path(d) / "devices.csv", devices.Files.here().dictionary)
+            files.master.write_text(devices.master_text(list(devices.load()) + [row]), encoding="utf-8")
+            doc = ET.parse(paths.TABLES_XML)
+            section = next(s for s in doc.getroot().iter("blocks"))
+            section.append(el)
+            tables_xml = Path(d) / "tables.xml"
+            doc.write(tables_xml, encoding="utf-8", xml_declaration=True)
+            got = _load_builder().load_devices(tables_xml, files)
+        self.assertEqual(got["IB999"]["kind"], "block")
+        kinds = {d["userName"]: d["kind"] for d in got.values()}
+        self.assertEqual((kinds["OS Switch 101"], kinds["Track Helix Inner"]), ("os block", "block"))
+
+
 class SiteDeviceNamesTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:

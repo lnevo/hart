@@ -106,6 +106,50 @@ class LcosMimicNameMapTest(unittest.TestCase):
                 self.m.load_cps()
 
 
+    def test_the_kinds_come_from_devices_csv_and_an_unlisted_bean_is_named(self) -> None:
+        """A sensor or turnout's kind is its devices.csv row's (hand-off row 8). A device not on the layout yet (a
+        level-less row) is no detector and stops nothing; a tables.xml bean with no row is left out with a warning
+        naming it (a Store not split yet can hold one)."""
+        import contextlib
+        import io
+        import tempfile
+        import xml.etree.ElementTree as ET
+        from unittest import mock
+        from hartlib import tables_build as TB
+        D = self.m.devices
+        added = ET.fromstring("<sensor inverted=\"false\"><systemName>M2S9999</systemName>"
+                              "<userName>BS Store Added</userName></sensor>")
+        row = {c: "" for c in D.COLUMNS}
+        row.update(layer="occupancy", user_name="BS Store Added", assignment="field", system_name="M2S9999",
+                   jmri_name="M2S9999", description="Added in PanelPro.")
+        row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, added)], row)
+        with tempfile.TemporaryDirectory() as tmp:
+            master = Path(tmp) / "devices.csv"
+            master.write_text(D.master_text(list(D.load()) + [row]), encoding="utf-8")
+            doc = ET.parse(self.m.TABLES)
+            root = doc.getroot()
+            sensors = next(s for s in root.iter("sensors") if "Mqtt" in (s.get("class") or ""))
+            sensors.append(added)
+            sensors.append(ET.fromstring("<sensor inverted=\"false\"><systemName>M2S9998</systemName>"
+                                         "<userName>BS Ghost</userName></sensor>"))
+            turnouts = next(s for s in root.iter("turnouts") if "Mqtt" in (s.get("class") or ""))
+            turnouts.append(ET.fromstring("<turnout inverted=\"false\"><systemName>M2T9998</systemName>"
+                                          "<userName>Switch 998</userName></turnout>"))
+            tables = Path(tmp) / "tables.xml"
+            doc.write(tables, encoding="utf-8", xml_declaration=True)
+            err = io.StringIO()
+            with mock.patch.object(self.m, "DEVICES", master), mock.patch.object(self.m, "TABLES", tables), \
+                    contextlib.redirect_stderr(err):
+                got = self.m.load_layout(levels=False)
+        names = {b["userName"] for b in got["blocks"]}
+        self.assertNotIn("BS Store Added", names)
+        self.assertNotIn("BS Ghost", names)
+        self.assertIn("BS Switch 1", names)
+        self.assertNotIn("Switch 998", {t["label"] for t in got["turnouts"]})
+        self.assertIn("sensor M2S9998 (BS Ghost)", err.getvalue())
+        self.assertIn("turnout M2T9998 (Switch 998)", err.getvalue())
+        self.assertNotIn("M2S9999", err.getvalue())          # it has its row: not on the layout yet, no warning
+
     def test_a_bad_master_ends_main_with_one_line_naming_devices_csv(self) -> None:
         import sys
         from unittest import mock
