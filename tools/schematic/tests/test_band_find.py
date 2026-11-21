@@ -1,6 +1,7 @@
 """How the Layout Editor build finds a band: by its level and height, from the plan overrides (the band entries'
 `level`, and `below`, the height in cm its track lies under), never by its title (owner, 2026-11-20). Also the Layout
-Editor look rules each sheet's section of preferences.json holds and HART reads (le_band_align), and the three stops:
+Editor look rules each sheet's section of preferences.json holds and HART reads (le_band_align,
+le_nested_station_labels), and the three stops:
 a band with no level, two bands at one level and height, and a rule naming no band.
 
 The bands here carry made-up titles, so a lookup that matched a title word ("Staging", "Main") would fail them.
@@ -308,6 +309,64 @@ class ReviewFixes(unittest.TestCase):
         drawn = le_common.plugin()[1].drawn_bands(bands, page)
         self.assertEqual([t for t, _b, _o in drawn], [t for t, _b, _o in bands])
         self.assertEqual(le_common.band_levels(drawn), [1, 2, 3])
+
+
+STATIONS = {"Barn": ["7", "9", "11", "13"], "Engine House": {"switches": ["9", "11", "13"]}, "Yard": ["15", "17"],
+            "Yard West": ["17"]}
+STATIONS_CSV = ("level,station,switches,tracks,desk_code,notes\n1,Barn,\"7,9,11,13\",,BN,\n1,Engine House,\"9,11,13\",,EH,\n"
+                "1,Yard,\"15,17\",,YD,\n1,Yard West,17,,YD,\n")
+
+
+class LeNestedStationLabels(unittest.TestCase):
+    """le_common.le_station_labels: a sheet section's le_nested_station_labels false leaves the stations nested in
+    a station of another desk area (Engine House in Barn) out of the stations its bands hand the plugin's Layout
+    Editor labeller, and keeps one nested in its own area (Yard West in Yard, as West Yard in Brick); true, or not set,
+    hands every station (owner, 2026-11-20)."""
+
+    def bands(self):
+        return [("Cellar deck", {}, {"stations": dict(STATIONS), "station_tracks": {"Yard": ["Y-1"]}}),
+                ("Lower deck", {}, {"stations": dict(STATIONS)}), ("Top deck, 4 in", {}, {})]
+
+    def prefs(self, staging=None, main_upper=None):
+        return {"_sections": True, "staging": staging or {}, "main_upper": main_upper or {}}
+
+    def test_false_leaves_the_nested_stations_out_of_its_sections_bands(self):
+        bands = self.bands()
+        with Folder(overrides(), self.prefs({"le_nested_station_labels": False})) as folder:
+            (folder / "stations.csv").write_text(STATIONS_CSV, encoding="utf-8")
+            got = le_common.le_station_labels(bands)
+        self.assertEqual(list(got[0][2]["stations"]), ["Barn", "Yard", "Yard West"])
+        self.assertEqual(got[0][2]["station_tracks"], {"Yard": ["Y-1"]})        # the rest of the options as given
+        self.assertEqual(list(got[1][2]["stations"]), list(STATIONS))           # another section's band: unchanged
+        self.assertEqual(got[2], bands[2])
+        self.assertEqual(list(bands[0][2]["stations"]), list(STATIONS))         # the bands given are not changed
+
+    def test_true_or_not_set_hands_every_station(self):
+        for prefs in (self.prefs({"le_nested_station_labels": True}), self.prefs()):
+            bands = self.bands()
+            with self.subTest(prefs=prefs), Folder(overrides(), prefs):
+                self.assertEqual(le_common.le_station_labels(bands), bands)
+
+    def test_a_bad_stations_file_stops_with_its_row(self):
+        with Folder(overrides(), self.prefs({"le_nested_station_labels": False})) as folder, \
+                self.assertRaisesRegex(BuildError, r"stations.csv line 2 \(Barn\): no desk code"):
+            (folder / "stations.csv").write_text("level,station,switches,tracks,desk_code,notes\n1,Barn,7,,,\n")
+            le_common.le_station_labels(self.bands())
+
+    def test_a_value_that_is_not_true_or_false_stops(self):
+        for bad in ("no", 0, None):
+            with self.subTest(bad=bad), Folder(overrides(), self.prefs({"le_nested_station_labels": bad})), \
+                    self.assertRaisesRegex(BuildError, r"preferences.json section staging: le_nested_station_labels "
+                                                       r"is true or false, not "):
+                le_common.le_station_labels(self.bands())
+
+    def test_the_committed_preferences_leave_engine_house_off_staging(self):
+        bands, _page = le_common.schematic()
+        got = le_common.le_station_labels(bands)
+        self.assertIn("Engine House", bands[0][2]["stations"])
+        self.assertNotIn("Engine House", got[0][2]["stations"])
+        self.assertIn("Barn", got[0][2]["stations"])
+        self.assertIn("West Yard", got[0][2]["stations"])
 
 
 if __name__ == "__main__":

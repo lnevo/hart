@@ -436,16 +436,14 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         self.assertEqual(len(set(names)), len(names))
 
     def test_virtual_masts_are_hidden_one_low_and_in_a_control_point(self):
-        stations = {s.strip(): r["cp_name"] for r in sdm.read_rows(bsm.CPS, sdm.CP_COLUMNS)
-                    for s in r["switches"].split(",")}
+        stations = sdm.switch_areas(bsm.STATIONS)
         for m in self.virtual:
             self.assertEqual((m["kind"], m["heads"], m["signal_kind"]), ("one-low", 1, "virtual"), m["mast"])
             self.assertIn(m["cp"], set(stations.values()), m["mast"])
 
     def test_home_masts_stand_only_at_switches_of_an_interlocking(self):
         # the signal rule's control points are interlockings.csv (level 1), not the stations the drawings group by
-        stations = {s.strip(): r["cp_name"] for r in sdm.read_rows(bsm.CPS, sdm.CP_COLUMNS)
-                    for s in r["switches"].split(",")}
+        stations = sdm.switch_areas(bsm.STATIONS)
         locks = bsm.interlockings(set(stations))
         # every interlocking switch is a station switch; how many station switches stay outside is the data's choice
         self.assertLessEqual(set(locks), set(stations))

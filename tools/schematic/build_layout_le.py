@@ -13,7 +13,7 @@ tables_layout_staging.xml of staging alone), are retired (owner, 2026-11-17): th
 without --as-live stops and says so.
 
 One input path (owner, 2026-11-17, the device-map switch-over). Every level is drawn from its device map: staging
-from the level 1 rows of devices.csv, control_points_staging.csv and staging_masts.csv (staging_device_map.load: each switch's
+from the level 1 rows of devices.csv, stations.csv (its desk areas) and staging_masts.csv (staging_device_map.load: each switch's
 turnout and OS block, each track's blocks in order by the drawing's keys, each switch's normal leg from
 switch_legs.csv, its turnout ident from switches.csv), main and upper from the rest of devices.csv and
 main_upper_masts.csv (level_names, level_masts). The panel's own icons and labels, and its attributes, are
@@ -93,7 +93,7 @@ from hartlib import parked, paths, tables, tables_build  # noqa: E402
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
     staging_switches, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
     schematic, slots_module, band_key, bare, read_csv, BASE_LEVELS, band_levels, base_bands, base_band, base_keys,
-    find_band, le_band_align,
+    find_band, le_band_align, le_station_labels,
 )
 from approval import (  # noqa: E402,F401  re-exported: callers and tests read them here
     ApprovalError, STAGING_APPROVED as APPROVED, approved_fingerprint, check_approved, read_approved, write_approved,
@@ -197,6 +197,9 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
         bands = le_mod.drawn_bands(bands, page)
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
+    # the station names the labeller prints: each sheet's le_nested_station_labels (preferences.json[staging]: false,
+    # so Engine House, a desk area nested in Barn, is named on the drawings but not on the panel; owner, 2026-11-20)
+    bands = le_station_labels(bands)
     # The build reads no panel and no live tables: it draws on the generator's base (module text)
     if base_data is None:
         base_data = base_tables()

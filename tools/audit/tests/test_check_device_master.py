@@ -260,7 +260,7 @@ class Command(unittest.TestCase):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             self.assertEqual(cdm.main(["--check"]), 0)
-        self.assertIn("ok: devices.csv, control_points_staging.csv, staging_masts.csv, staging_signals.csv hold their "
+        self.assertIn("ok: devices.csv, stations.csv, staging_masts.csv, staging_signals.csv hold their "
                       "rules", out.getvalue())
 
     def test_without_the_drawing_the_rest_still_runs(self):

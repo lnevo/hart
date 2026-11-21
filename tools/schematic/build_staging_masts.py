@@ -67,7 +67,7 @@ WRITES = ("mast", "head")              # the layers of the devices.csv rows this
 def device_files() -> devices.Files:
     """The master (the only device file) as build() uses it: DEVICE_MAP, as it is when it runs (a test may patch it)."""
     return devices.Files.under(DEVICE_MAP.parent)
-CPS = sdm.CPS
+STATIONS = sdm.STATIONS
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)
 SPLIT = DATA / "block_splits.csv"            # the owner's block splits, every level (none on staging)
 LEVELS = mast_rule.band_levels(sdm.overrides())     # {band title: level}: staging's
@@ -421,7 +421,7 @@ def build():
         band, _opts, _core = sdm.staging_band()
         bands, joined, runs, _corners = bdm.solve()
     names = sdm.load(band, device_map=DEVICE_MAP, with_masts=False)
-    cp_of = {s.strip(): r["cp_name"] for r in sdm.read_rows(CPS, sdm.CP_COLUMNS) for s in r["switches"].split(",")}
+    cp_of = sdm.switch_areas(STATIONS)
     locks = interlockings(set(cp_of))
     files = device_files()
     problems = devices.stale(files)       # the master is read below: stop if it or the files generated from it are off

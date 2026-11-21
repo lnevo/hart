@@ -3,7 +3,7 @@
 
 The source since the device-map switch-over (owner, 2026-11-17), when the frozen hand-drawn files (staging_le/) and the
 conversion from them retired. The turnout and feedback rows of level 1 of devices.csv are kept by hand but for their wiring cells,
-which build_device_map.py writes from wiring.csv (control_points_staging.csv is the master of staging's control points, build_staging_sets.py); the block and occupancy
+which build_device_map.py writes from wiring.csv (stations.csv's desk areas are staging's control points, build_staging_sets.py); the block and occupancy
 rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
 row's field facts over, writes its detector's wiring from wiring.csv (level 1 rows; step 6) and owns which
 blocks there are and what each holds; build_staging_masts.py writes
@@ -32,10 +32,11 @@ Files (jmri/layouts/hart/data/, schematic/ for the rest):
   block_exceptions.csv gives it), and its trial_name. A part is a JMRI block of its own on that block's occupancy
   sensor (owner, 2026-11-20): load() draws its pieces as the part, and os_layer reads them inside its block, as the
   masts do. The device maps leave parts out (hartlib.devices.OUT_OF_MAPS), so load() reads them from the master.
-- control_points_staging.csv (cp_id, cp_name, level, switches, area, code, notes): the master of staging's
-  control points. build_staging_sets.py writes plan_overrides.json's staging section (control_points, stations and
-  station_tracks) and the `detail_sheets` preference from it, stations.csv and sheets.csv (other readers take its
-  rows through hartlib.railroad_facts.station_group_rows).
+- stations.csv (level, station, switches, tracks, desk_code, notes): the stations, and through their desk codes
+  staging's control points, the desk areas (hartlib.railroad_facts.read_desk_areas, the one reader; desk_areas()
+  here). build_staging_sets.py writes plan_overrides.json's staging section (control_points, stations and
+  station_tracks) and the `detail_sheets` preference from it and sheets.csv (other readers take the areas' rows
+  through hartlib.railroad_facts.station_group_rows).
 - staging_masts.csv, hartlib.level_masts.FIELDS. A mast's kind of slot follows from its row (mast_kind): a switch
   number means a turnout mast, no protected block an end bumper (buffer stop) mast, else an anchor mast. Hidden is a
   virtual mast (IF$vsm), its icon size hartlib.tables.mast_icon_size.
@@ -87,7 +88,7 @@ from hartlib import devices, layer_files, level_masts, paths, railroad, tables  
 
 LEVEL = 1
 DEVICE_MAP = paths.LAYOUT_DATA / "devices.csv"     # the master: its level 1 rows are staging's device map
-CPS = pd.DATA / "control_points_staging.csv"
+STATIONS = pd.DATA / "stations.csv"          # the stations; their desk areas are staging's control points
 INTERLOCKINGS = railroad.Sources.under().interlockings     # every level's (the control points a row's cp may name)
 MASTS = pd.DATA / "staging_masts.csv"
 SIGNALS = pd.DATA / "staging_signals.csv"
@@ -99,7 +100,6 @@ SIGNAL_COLUMNS = ["mast", "signal", "toward", "run", "names", "edge_cm", "cm_fro
 LIST = ";"
 # what signals.json's staging section names as its source: the file the masts were first read from (the hand-drawn panel's)
 SIGNALS_SOURCE = "tables.xml"
-CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "code", "notes"]
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 TRACK_RE = re.compile(r"Track (\S+?(?: #\d+)?)(?: (\d+)/(\d+))?")       # a track by its piece (piece_refs), k-th of n blocks
 
@@ -306,6 +306,20 @@ def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
     return rows
 
 
+def desk_areas(path: Path = STATIONS) -> list[railroad.DeskArea]:
+    """Every level's desk areas of stations.csv (hartlib.railroad_facts.read_desk_areas); StagingMapError, naming the
+    file, line and station, on a row that breaks its rules."""
+    try:
+        return railroad.read_desk_areas(path)
+    except railroad.FactsError as exc:
+        raise StagingMapError(str(exc)) from None
+
+
+def switch_areas(path: Path = STATIONS, level: int = LEVEL) -> dict[str, str]:
+    """{switch number: the name of the desk area it is in} for `level` (staging unless given)."""
+    return {s: a.name for a in desk_areas(path) if a.level == level for s in a.switches}
+
+
 def read_rows(path: Path, columns) -> list[dict]:
     try:
         rows = lc.read_csv(path)
@@ -398,7 +412,7 @@ def part_lines(device_map: Path = DEVICE_MAP) -> list[tuple[int, dict]]:
         raise StagingMapError(str(exc)) from None
 
 
-def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path: Path = CPS,
+def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations_path: Path = STATIONS,
          turnout_idents: bool = True, with_masts: bool = True,
          interlockings_path: Path = INTERLOCKINGS) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
@@ -411,7 +425,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     import check_device_master as cdm       # the rules of every level's rows (it imports this module)
     try:
         lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
-        cps = cdm.control_points(railroad.read_interlockings(interlockings_path), cps_path)
+        cps = cdm.control_points(railroad.read_interlockings(interlockings_path), stations_path)
     except (cdm.DeviceMasterError, railroad.FactsError) as exc:
         raise StagingMapError(str(exc)) from None
     if not lines:
