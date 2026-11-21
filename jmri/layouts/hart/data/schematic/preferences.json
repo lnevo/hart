@@ -184,9 +184,10 @@
     "Track 29-31",
     "Track 31-33",
     "Track 35-37"
-   ]
+   ],
+   "block_contents_size": 11
   },
-  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line). A part's block contents icon is optional on every level (optional_block_contents: staging's parts here, main's and upper's in le_band_labels; owner, 2026-11-20): a short block that is tight on the panel needs no label, and one with no clean spot is left out (logged). The occupancy lamps' column (lamp_columns) went with the lamps, parked and off every panel (owner, 2026-11-21).",
+  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line). A part's block contents icon is optional on every level (optional_block_contents: staging's parts here, main's and upper's in le_band_labels; owner, 2026-11-20): a short block that is tight on the panel needs no label, and one with no clean spot is left out (logged). The occupancy lamps' column (lamp_columns) went with the lamps, parked and off every panel (owner, 2026-11-21). Its block contents icons are 11 px, as main's and upper's (candidate C1, owner, 2026-11-21).",
   "le_band_align": {
    "1": "left"
   },
@@ -363,10 +364,10 @@
   "le_title_clear": 8,
   "_le_title_clear": "The cut-over candidate (owner, 2026-11-16): each level's title 8 px below the lowest thing of the level above (for staging, everything its candidate holds: the status cluster stands in the gap), so the gaps between the levels are as small as is clean.",
   "le_stretch": {
-   "factor": 1.437,
+   "factor": 1.3,
    "tolerance": 0.03
   },
-  "_le_stretch": "The cut-over candidate's grid (owner, 2026-11-16): staging's own fit to the window (host_screen: 1920 x 1032) widened by the factor, so the three-level panel has the shape of the window's panel area (1902 x 972, about 1.96 wide to 1 high) and fills it when zoomed to fit. 1.437 since the window became the layout hosts' screen (2026-11-21; it was 1.307 for a 1900 x 1140 window, about 1.74 to 1). The build stops when the panel's shape drifts more than the tolerance from it, naming the factor that would fit.",
+  "_le_stretch": "The cut-over candidate's grid (owner, 2026-11-16): staging's own fit to the window (host_screen: 1920 x 1032) widened by the factor, so the three-level panel has the shape of the window's panel area (1902 x 972, about 1.96 wide to 1 high) and fills it when zoomed to fit. 1.3 since candidate C1 (below); 1.437 from when the window became the layout hosts' screen (2026-11-21; it was 1.307 for a 1900 x 1140 window, about 1.74 to 1). The build stops when the panel's shape drifts more than the tolerance from it, naming the factor that would fit. Candidate C1 of the 1:1 sizing sweep (owner, 2026-11-21): le_row 40, le_stretch 1.3, switch numbers 12 px bold with the SW- prefix kept, block contents icons 11 px on every level, station and control point names 14 px, so the three-level panel zooms to fit the hosts' window larger than before (0.683). Before it: le_row 48, factor 1.437, SW- at 13 px, icons 12 (main, upper) and 13 (staging).",
   "le_crossover_angle": {
    "Main": 45,
    "Upper": 45
@@ -388,8 +389,8 @@
   "_cats_cells_per_unit": "One CATS cell per schematic grid unit is what fits all three levels in cats_window.",
   "cats_helix_blocks": "one",
   "_cats_helix_blocks": "A helix track drawn on staging and on main or upper is one desk block over both bands, as it is one JMRI block from its staging switch up the helix (owner, 2026-11-20; it was a block on each band from 2026-11-17).",
-  "le_row": 48,
-  "_le_row": "Staging's rows on the Layout Editor panels, in px (build_layout_le.py: staging's fit to le_window and the cut-over candidates' grid). Staging alone fills the window's width long before its height, so its rows may be as far apart as the live panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels. It is the page's (this file sets the page) though it is staging's rows.",
+  "le_row": 40,
+  "_le_row": "Staging's rows on the Layout Editor panels, in px (build_layout_le.py: staging's fit to le_window and the cut-over candidates' grid). Staging alone fills the window's width long before its height, so its rows may be as far apart as the live panel's yard tracks (about 47 px), leaving room between them for the live panel's icons and labels. It is the page's (this file sets the page) though it is staging's rows. Candidate C1 of the 1:1 sizing sweep (owner, 2026-11-21): le_row 40, le_stretch 1.3, switch numbers 12 px bold with the SW- prefix kept, block contents icons 11 px on every level, station and control point names 14 px, so the three-level panel zooms to fit the hosts' window larger than before (0.683). Before it: le_row 48, factor 1.437, SW- at 13 px, icons 12 (main, upper) and 13 (staging).",
   "le_mast_room": {
    "Main": true,
    "Upper": true
@@ -401,15 +402,15 @@
   "_le_name_room": "Levels whose drawing, in the same pass, lets a named track's straight out to its name's width, while the level stays no wider than the widest: main uses its spare width so Tracks 107-109 and 125-127 (now 123-125) get their names beside 109-111 and 127-129 (now 125-127) (owner, 2026-11-17: \"Use main's spare width\"); upper is the widest, so its short tracks keep their length, and its entry, which changed nothing, went on 2026-11-21 (row 10 of the source-data hand-off). Not staging.",
   "le_labels": {
    "switch_prefix": "SW-",
-   "switch_size": 13,
+   "switch_size": 12,
    "station_size": 14,
    "station_gap": 10
   },
-  "_le_labels": "The label layer's page-wide options on every Layout Editor panel, staging included (this file sets the page, so they reach every band; they are main's and upper's own too): switch numbers as the hand-drawn panel wrote them (\"SW-13\", 13 px bold), block contents icons on with the plugin's reserve. Station and control point names (BRICK, WEST YARD, CP 107, ...) at 14 px bold, up from the plugin's 10, each 10 px from every other station name so Plane and Brick read as two: the owner saw them at 14 and said they look better (owner, 2026-11-21); the label layer places and checks them at that size, and the drawing keeps its room for them unchanged. The all-levels trial's smaller set, 9 px numbers and no block contents, retired with it (owner, 2026-11-17). Keys for one level only go in le_band_labels.",
+  "_le_labels": "The label layer's page-wide options on every Layout Editor panel, staging included (this file sets the page, so they reach every band; they are main's and upper's own too): switch numbers with the hand-drawn panel's prefix (\"SW-13\", 12 px bold), block contents icons on with the plugin's reserve. Station and control point names (BRICK, WEST YARD, CP 107, ...) at 14 px bold, up from the plugin's 10, each 10 px from every other station name so Plane and Brick read as two: the owner saw them at 14 and said they look better (owner, 2026-11-21); the label layer places and checks them at that size, and the drawing keeps its room for them unchanged. The all-levels trial's smaller set, 9 px numbers and no block contents, retired with it (owner, 2026-11-17). Keys for one level only go in le_band_labels. Candidate C1 of the 1:1 sizing sweep (owner, 2026-11-21): le_row 40, le_stretch 1.3, switch numbers 12 px bold with the SW- prefix kept, block contents icons 11 px on every level, station and control point names 14 px, so the three-level panel zooms to fit the hosts' window larger than before (0.683). Before it: le_row 48, factor 1.437, SW- at 13 px, icons 12 (main, upper) and 13 (staging).",
   "le_band_labels": {
    "Main": {
     "names_last": true,
-    "block_contents_size": 12,
+    "block_contents_size": 11,
     "numbers_below": [
      "101"
     ],
@@ -432,7 +433,7 @@
    },
    "Upper": {
     "names_last": true,
-    "block_contents_size": 12,
+    "block_contents_size": 11,
     "optional_block_contents": [
      "Track 201-203",
      "Track 201-205",

@@ -680,7 +680,7 @@ class ThreeLevels(unittest.TestCase):
         staging = {b["block"] for b in self.base[1].bcis}
         self.assertEqual(len(staging), 57)        # 45 blocks and 14 parts (owner, 2026-11-20), less 11-13 and 13-15
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
-        self.assertEqual({size[b] for b in staging}, {"13"})
+        self.assertEqual({size[b] for b in staging}, {"11"})         # candidate C1 (owner, 2026-11-21)
         # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)
         per_level = defaultdict(set)
         for b in self.P.bcis:
@@ -703,7 +703,7 @@ class ThreeLevels(unittest.TestCase):
         for n in ("121", "125"):
             self.assertEqual([t for t in numbers if re.fullmatch(rf"SW-{n}[AB]?", t)], [f"SW-{n}"], n)
         self.assertNotIn("SW-101A", numbers)
-        self.assertEqual(set(numbers.values()), {"13"})
+        self.assertEqual(set(numbers.values()), {"12"})             # candidate C1: SW- kept, 12 px (2026-11-21)
         names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}
         tracks = {v.removeprefix("Track ") for v in self.device.values() if v.startswith("Track ")}
         self.assertTrue(names)
