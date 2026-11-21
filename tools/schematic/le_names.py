@@ -196,7 +196,9 @@ def level_masts(names: dict, rows: list[dict]) -> None:
 def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
     """({band key: names}, {block: length mm}) for every band but staging. A balloon loop is two blocks (the device
     map's loop_halves) and a double crossover four, one per corner (`xover_blocks`, named by the corner each leg
-    reaches as the plugin draws it: the device map's xover_corners; `page`: the sheet's options, for rotate_bands)."""
+    reaches as the plugin draws it: the device map's xover_corners; `page`: the sheet's options, for rotate_bands).
+    A track's placeholder is its switch-and-leg key (staging_device_map.band_refs); BuildError on a connector the
+    plugin's partners do not pair, which has no switch and leg beyond it to key a track by."""
     joined = le_mod.partners(bands)
     import build_device_map as bdm
     out, lengths, counted = {}, defaultdict(float), set()
@@ -221,6 +223,14 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
             elif d["kind"] == "switch":
                 names["turnouts"][n] = f"Switch {bare(d['label'])}"
                 names["os"][n] = "OS Switch " + re.sub(r"[AB]$", "", bare(d["label"]))
+        # a track's placeholder is its switch-and-leg key, the grammar of every level's trial names (owner,
+        # 2026-11-20: staging_device_map.band_refs and strand_placeholders; a balloon loop's halves are its pieces #1
+        # and #2). A connector that `joined` does not pair stops the build here (band_refs)
+        import staging_device_map as sdm
+        try:
+            refs = sdm.band_refs(bands, joined, bi)
+        except sdm.StagingMapError as exc:
+            raise BuildError(f"{title}: {exc}") from None
         for start, chain, end in runs(band):
             labels = []
             for n, _ in (start, end):
@@ -235,16 +245,9 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
                     labels.append(bare(nodes[n].get("label")) if nodes[n]["kind"] in ("switch", "dx") else "")
             a, b = labels
             inside_xover = (a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
-            # a track's placeholder is its switch-and-leg key, the grammar of every level's trial names (owner,
-            # 2026-11-20: staging_device_map.band_refs; a balloon loop's halves are its pieces #1 and #2)
-            import staging_device_map as sdm
-            try:
-                refs = {} if inside_xover else sdm.band_refs(bands, joined, bi)
-            except sdm.StagingMapError as exc:
-                raise BuildError(f"{title}: {exc}") from None
             for sid, _ in chain:
                 s = strands[sid]
-                block = f"OS Switch {a[:-1]}" if inside_xover else sdm.track_placeholder(refs[sid][0], 1, 1)
+                block = f"OS Switch {a[:-1]}" if inside_xover else sdm.strand_placeholders(refs[sid])[0]
                 names["blocks"][sid] = [block]
                 # a turnback's two tracks each carry their whole edge's length (count it once, or half each for a
                 # balloon loop's two blocks); a connector or helix cut leaves a piece on each band (e36x, e36y):

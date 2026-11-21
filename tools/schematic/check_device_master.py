@@ -135,7 +135,7 @@ def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.In
             if t["band"] not in refs:
                 refs[t["band"]] = sdm.band_refs(bands, joined, t["band"])
             for sid in t["strands"]:
-                ends[f"Track {refs[t['band']][sid][0]}"] = {v for k, v in t["ends"] if k == "sw"}
+                ends[refs[t["band"]][sid][0]] = {v for k, v in t["ends"] if k == "sw"}
     except sdm.StagingMapError as exc:
         raise DeviceMasterError(str(exc)) from None
     cp_of = switch_cps(interlockings, cps_path)
@@ -144,7 +144,12 @@ def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.In
         if r["layer"] != "block":
             continue
         for ph in sdm.split_names(r["trial_name"]):
-            got = ends.get(ph)
+            if not ph.startswith("Track "):
+                continue                    # an OS block's placeholder: its switch, not a track's ends
+            try:            # by its piece (staging_device_map.piece_of: a k/n key is the k-th block of its strand)
+                got = ends.get(sdm.piece_of(ph)[0])
+            except sdm.StagingMapError as exc:
+                raise DeviceMasterError(f"block {r['user_name']}: {exc}") from None
             for s in got or ():
                 out[r["user_name"]] |= cp_of.get(s, set())
     return dict(out)

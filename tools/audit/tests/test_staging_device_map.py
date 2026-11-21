@@ -112,6 +112,18 @@ class Pure(unittest.TestCase):
         with self.assertRaisesRegex(sdm.StagingMapError, "connector L is joined to no other band"):
             sdm.band_refs(bands, {}, 0)
 
+    def test_a_strands_keys_count_from_its_pieces_first_end(self):
+        """strand_placeholders: the one k/n rule the writer and every reader key a strand by; piece_of reads it back."""
+        self.assertEqual(sdm.strand_placeholders(("5C-7B", False)), ["Track 5C-7B"])
+        self.assertEqual(sdm.strand_placeholders(("5C-7B", False), 2), ["Track 5C-7B 1/2", "Track 5C-7B 2/2"])
+        self.assertEqual(sdm.strand_placeholders(("5C-7B", True), 2), ["Track 5C-7B 2/2", "Track 5C-7B 1/2"])
+        with self.assertRaisesRegex(ValueError, "at least one block"):
+            sdm.strand_placeholders(("5C-7B", False), 0)
+        self.assertEqual(sdm.piece_of("Track 37C-39C #2 1/2"), ("37C-39C #2", 1, 2))
+        self.assertEqual(sdm.piece_of("Track 107B-107C #1"), ("107B-107C #1", 1, 1))
+        with self.assertRaisesRegex(sdm.StagingMapError, "'OS Switch 9' is no track trial key"):
+            sdm.piece_of("OS Switch 9")
+
     def test_two_runs_with_the_same_ends_stop(self):
         b = band({"a": sw("1"), "b": sw("3")}, {"e1": dict(src=("a", "B"), dst=("b", "A")),
                                                 "e2": dict(src=("b", "A"), dst=("a", "B"))})

@@ -30,8 +30,10 @@ def node(label, alias, ins, outs, kind="switch"):
     return {"kind": kind, "label": label, "alias": alias, "ins": ins, "outs": outs}
 
 
-def strand(src, dst, name=""):
-    return {"src": src, "dst": dst, "name": name}
+def strand(src, dst, name="", trial=None):
+    """A drawn strand; `trial` its switch-and-leg trial key, as cats_panel.name_loop_halves keys a main or upper
+    strand (staging_device_map.band_refs)."""
+    return {"src": src, "dst": dst, "name": name, **({"trial": trial} if trial else {})}
 
 
 def band():
@@ -271,9 +273,9 @@ def device():
     return B.DeviceMap(
         blocks={"OS Switch 101": block("OS Switch 101"),
                 "OS Switch 103": block("OS Switch 103"),
-                "Track 101-111": block("Track e24"),
-                "Track 101-103": block("Track e28"),
-                "Track 135-H1": block("Track e34", "Track e35")},
+                "Track 101-111": block("Track 101BC-end"),
+                "Track 101-103": block("Track 101AC-103AA"),
+                "Track 135-H1": block("Track 101AB-end #1", "Track 101AB-end #2")},
         sensors={"BS Switch 101": "IS:HART:C3:B:OS101", "BS Switch 103": "IS:HART:C3:B:OS103",
                  "BS 101-111": "IS:HART:C3:B:101-111"},
         planned={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
@@ -282,10 +284,10 @@ def device():
 def dark_bands():
     nodes = {"A": node("101A", "", {}, {}), "B": node("101B", "", {}, {}), "C": node("103A", "", {}, {}),
              "END": node("", "", {}, {}, kind="end")}
-    strands = {"e24": dict(strand(("B", "C"), ("END", "E")), edge="e24"),
-               "e34x": dict(strand(("A", "B"), ("END", "E")), edge="e34x"),
-               "e99": dict(strand(("A", "B"), ("END", "E")), edge="e99"),
-               "e77": dict(strand(("A", "C"), ("B", "C")), edge="e77")}
+    strands = {"e24": dict(strand(("B", "C"), ("END", "E"), trial="Track 101BC-end"), edge="e24"),
+               "e34x": dict(strand(("A", "B"), ("END", "E"), trial="Track 101AB-end #1"), edge="e34x"),
+               "e99": dict(strand(("A", "B"), ("END", "E"), trial="Track 101AB-end #3"), edge="e99"),
+               "e77": dict(strand(("A", "C"), ("B", "C"), trial="Track 101AC-101BC"), edge="e77")}
     return [("Staging level", {"nodes": {}, "strands": {}}, {}),
             ("Main level", {"nodes": nodes, "strands": strands}, {})]
 
@@ -335,7 +337,7 @@ class MainAndUpper(unittest.TestCase):
         self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
         # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector (owner, 2026-11-16)
         self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(dm.planned))
-        self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track e19"})
+        self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track 107A-109B"})
 
     def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):
         class FakeP:
@@ -345,23 +347,26 @@ class MainAndUpper(unittest.TestCase):
             def find(self, k):
                 return ("os", "b1:A") if k == ("track", "b1:e24") else k
         bands = dark_bands()
-        bands[1][1]["strands"]["e28"] = dict(strand(("A", "C"), ("C", "A")), edge="e28", cm=3.4)
+        bands[1][1]["strands"]["e28"] = dict(strand(("A", "C"), ("C", "A"), trial="Track 101AC-103AA"), edge="e28",
+                                              cm=3.4)
         bands[1][1]["strands"]["e24"]["cm"] = 398.1
         row = block
-        self.assertEqual(B.inside_os(bands, FakeP({}), 0, "Track 101-103", row("Track e28")),
+        self.assertEqual(B.inside_os(bands, FakeP({}), 0, "Track 101-103", row("Track 101AC-103AA")),
                          "inside its switches' OS blocks on the desk (3.4 cm, too short at one cell per grid unit "
                          "for a block)")
         # a track key joined to an OS block counts as inside it; a long one says why it has no block
-        bands[1][1]["strands"]["e24"] = dict(strand(("B", "C"), ("C", "B")), edge="e24", cm=398.1)
+        bands[1][1]["strands"]["e24"] = dict(strand(("B", "C"), ("C", "B"), trial="Track 101BC-103AB"), edge="e24",
+                                              cm=398.1)
         self.assertIn("398.1 cm, too short at one cell per grid unit",
-                      B.inside_os(bands, FakeP({("track", "b1:e24"): None}), 0, "Track 101-111", row("Track e24")))
+                      B.inside_os(bands, FakeP({("track", "b1:e24"): None}), 0, "Track 101-111",
+                                  row("Track 101BC-103AB")))
         with self.assertRaisesRegex(SystemExit, "Track X: its schematic track e28 is a desk block"):
-            B.inside_os(bands, FakeP({("track", "b1:e28"): None}), 0, "Track X", row("Track e28"))
+            B.inside_os(bands, FakeP({("track", "b1:e28"): None}), 0, "Track X", row("Track 101AC-103AA"))
         with self.assertRaisesRegex(SystemExit, "Track Y: its schematic track e99 has no desk block and does not run "
                                     "between switches"):
-            B.inside_os(bands, FakeP({}), 0, "Track Y", row("Track e99"))      # e99 ends at a bumper
+            B.inside_os(bands, FakeP({}), 0, "Track Y", row("Track 101AB-end #3"))      # e99 ends at a bumper
         with self.assertRaisesRegex(SystemExit, "Track Z: the device map's tracks .* are not all drawn"):
-            B.inside_os(bands, FakeP({}), 0, "Track Z", row("Track e28", "Track e500"))
+            B.inside_os(bands, FakeP({}), 0, "Track Z", row("Track 101AC-103AA", "Track 500A-501A"))
 
     def test_staging_and_dark_blocks_never_take_one_name(self):
         B.check_apart({"West": {"name": "Track West"}}, {"OS 101": {"name": "OS Switch 101"}})
@@ -441,19 +446,19 @@ def level_band():
         "turn:e33": node("", "", {}, {0: "e33.0", 1: "e33.1"}, kind="turnR"),
     }
     strands = {
-        "e33.0": s(("turn:e33", 0), ("S107", "B"), "e33", loop_half=1),
-        "e33.1": s(("turn:e33", 1), ("S107", "C"), "e33", loop_half=2),
-        "e19": s(("S107", "A"), ("S109", "B"), "e19"),
-        "e9": s(("X1", "C"), ("X2", "C"), "e9"),
+        "e33.0": s(("turn:e33", 0), ("S107", "B"), "e33", loop_half=1, trial="Track 107B-107C #1"),
+        "e33.1": s(("turn:e33", 1), ("S107", "C"), "e33", loop_half=2, trial="Track 107B-107C #2"),
+        "e19": s(("S107", "A"), ("S109", "B"), "e19", trial="Track 107A-109B"),
+        "e9": s(("X1", "C"), ("X2", "C"), "e9", trial="Track 119AC-119BC"),
     }
     return {"nodes": nodes, "strands": strands}
 
 
 def level_facts(**kw):
     f = facts(device=B.DeviceMap(blocks={
-        "Track 107 Loop 1": block("Track e33 1"),
-        "Track 107 Loop 2": block("Track e33 2"),
-        "Track 107-109": block("Track e19")}))
+        "Track 107 Loop 1": block("Track 107B-107C #1"),
+        "Track 107 Loop 2": block("Track 107B-107C #2"),
+        "Track 107-109": block("Track 107A-109B")}))
     f.turnouts = {f"Switch {n}": f"IT:HART:C3:{n}" for n in (107, 109, 119, 225)}
     f.templates = {"Mast 2L": "double", "Mast 4RA": "single"}
     f.mast_system = {"Mast 2L": "IF$shsm:basic:two-searchlight(IH438)(IH439)",
@@ -554,7 +559,7 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual(sorted(sig), ["108LA", "108LB", "108R"])
         # the loop halves get their own edges, so each loop mast finds its own half (the plugin's mast_piece)
         self.assertEqual((sig["108LA"]["_edge"], sig["108LB"]["_edge"]), ("e33~1", "e33~2"))
-        self.assertEqual(B.placeholder(bands[1][1]["strands"]["e33.1"]), "Track e33 2")
+        self.assertEqual(B.placeholder(bands[1][1]["strands"]["e33.1"]), "Track 107B-107C #2")
         self.assertEqual((sig["108R"]["_edge"], sig["108R"]["_toward_node"], sig["108R"]["toward"]),
                          ("e19", "S107", "107"))
         self.assertEqual((sig["108LA"]["dir"], sig["108R"]["dir"], sig["108R"]["heads"]), ("west", "east", 2))
@@ -578,7 +583,7 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual((sig["108LA"]["_edge"], sig["108LB"]["_edge"]), ("e33x~1", "e33x~2"))
         strands = bands[1][1]["strands"]
         self.assertEqual((B.placeholder(strands["e33.0"]), B.placeholder(strands["e33.1"])),
-                         ("Track e33 1", "Track e33 2"))
+                         ("Track 107B-107C #1", "Track 107B-107C #2"))
         # the plugin's mast_piece takes the pieces whose edge is the mast's, or it plus x or y: one half each
         for mast, half in (("108LA", "e33.0"), ("108LB", "e33.1")):
             e = sig[mast]["_edge"]
@@ -640,8 +645,10 @@ def intermediate_bands(order=None):
     band = bands[1][1]
     band["nodes"]["S111"] = node("111", "T6", {"A": "e21"}, {"B": "e44.0", "C": "e44.1"})
     band["nodes"]["turn:e44"] = node("", "", {}, {0: "e44.0", 1: "e44.1"}, kind="turnR")
-    band["strands"]["e44.0"] = dict(strand(("turn:e44", 0), ("S111", "B")), edge="e44", cm=90.0, loop_half=1)
-    band["strands"]["e44.1"] = dict(strand(("turn:e44", 1), ("S111", "C")), edge="e44", cm=90.0, loop_half=2)
+    band["strands"]["e44.0"] = dict(strand(("turn:e44", 0), ("S111", "B"), trial="Track 111B-111C #1"), edge="e44",
+                                  cm=90.0, loop_half=1)
+    band["strands"]["e44.1"] = dict(strand(("turn:e44", 1), ("S111", "C"), trial="Track 111B-111C #2"), edge="e44",
+                                  cm=90.0, loop_half=2)
     if order is not None:
         band["strands"] = {k: band["strands"][k] for k in order}
     return bands
@@ -651,9 +658,9 @@ def intermediate_facts(blocks=None):
     """Facts whose only level masts are APB intermediates A83 and A84 at the e33 loop's turnback (main_upper_masts.csv
     rows with no switch), as CP 107's are."""
     f = level_facts(device=B.DeviceMap(blocks=blocks or {
-        "Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e33 2"),
-        "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2"),
-        "Track 107-109": block("Track e19")}))
+        "Track 107 Loop 1": block("Track 107B-107C #1"), "Track 107 Loop 2": block("Track 107B-107C #2"),
+        "Track 111 Loop 1": block("Track 111B-111C #1"), "Track 111 Loop 2": block("Track 111B-111C #2"),
+        "Track 107-109": block("Track 107A-109B")}))
     row = lambda mast, facing, protects: {"mast": mast, "switch": "", "facing": facing, "protects": protects,
                                           "dir": "west" if int(mast[6:]) % 2 else "east",
                                           "system_name": f"IF$shsm:basic:one-searchlight(IH:HART:C3:{mast[5:]})",
@@ -694,8 +701,9 @@ class IntermediateMasts(unittest.TestCase):
     def test_the_strand_order_does_not_matter(self):
         # the facing block also holds a track away from the turnback (e19): whichever comes first, the mast stands on
         # the piece that meets the half it protects
-        blocks = {"Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e19", "Track e33 2"),
-                  "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2")}
+        blocks = {"Track 107 Loop 1": block("Track 107B-107C #1"),
+                  "Track 107 Loop 2": block("Track 107A-109B", "Track 107B-107C #2"),
+                  "Track 111 Loop 1": block("Track 111B-111C #1"), "Track 111 Loop 2": block("Track 111B-111C #2")}
         keys = list(intermediate_bands()[1][1]["strands"])
         results = []
         for order in (keys, keys[::-1], sorted(keys, key=lambda k: k != "e19")):
@@ -718,9 +726,11 @@ class IntermediateMasts(unittest.TestCase):
     def test_a_facing_piece_at_a_level_link_is_passed_over(self):
         # a level link's end (LINK:...) is no node of the band: the piece ending there is not read as a turnback
         bands = intermediate_bands()
-        bands[1][1]["strands"]["e50"] = dict(strand(("S111", "A"), ("LINK:A1", 0)), edge="e50", cm=40.0)
-        blocks = {"Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e50", "Track e33 2"),
-                  "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2")}
+        bands[1][1]["strands"]["e50"] = dict(strand(("S111", "A"), ("LINK:A1", 0), trial="Track 111A-201A"),
+                                              edge="e50", cm=40.0)
+        blocks = {"Track 107 Loop 1": block("Track 107B-107C #1"),
+                  "Track 107 Loop 2": block("Track 111A-201A", "Track 107B-107C #2"),
+                  "Track 111 Loop 1": block("Track 111B-111C #1"), "Track 111 Loop 2": block("Track 111B-111C #2")}
         B.level_signals(bands, intermediate_facts(blocks), 0)
         sig = {s["mast"]: s for s in bands[1][2]["signals"]}
         self.assertEqual((sig["A83"]["_edge"], sig["A83"]["_toward_node"]), ("e33~2", "turn:e33"))
@@ -730,11 +740,13 @@ class IntermediateMasts(unittest.TestCase):
         # turnback: the main band's piece does not stop the build before the upper band is read
         bands = intermediate_bands()
         main = {"nodes": {"S1": node("1", "T1", {}, {}), "END:z": node("", "", {}, {}, kind="end")},
-                "strands": {"e50": dict(strand(("S1", "B"), ("END:z", "E")), edge="e50", cm=40.0)}}
+                "strands": {"e50": dict(strand(("S1", "B"), ("END:z", "E"), trial="Track 111A-201A"), edge="e50",
+                                         cm=40.0)}}
         bands = [bands[0], ("Main level", main, {"mast_prefix": "Mast "}),
                  ("Upper level, 4.25 in", bands[1][1], {"mast_prefix": "Mast "})]
-        blocks = {"Track 107 Loop 1": block("Track e33 1"), "Track 107 Loop 2": block("Track e50", "Track e33 2"),
-                  "Track 111 Loop 1": block("Track e44 1"), "Track 111 Loop 2": block("Track e44 2")}
+        blocks = {"Track 107 Loop 1": block("Track 107B-107C #1"),
+                  "Track 107 Loop 2": block("Track 111A-201A", "Track 107B-107C #2"),
+                  "Track 111 Loop 1": block("Track 111B-111C #1"), "Track 111 Loop 2": block("Track 111B-111C #2")}
         B.level_signals(bands, intermediate_facts(blocks), 0)
         self.assertNotIn("signals", bands[1][2])
         sig = {s["mast"]: s for s in bands[2][2]["signals"]}

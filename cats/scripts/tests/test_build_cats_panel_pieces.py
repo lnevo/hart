@@ -58,10 +58,23 @@ class Levels(unittest.TestCase):
         self.assertEqual(B.plan_edge({"edge": "e33~1", "plan_edge": "e33"}), "e33")
         self.assertEqual(B.plan_edge({"edge": "e5"}), "e5")
 
-    def test_placeholder_numbers_a_loop_half(self):
-        self.assertEqual(B.placeholder({"edge": "e34y"}), "Track e34")
-        self.assertEqual(B.placeholder({"edge": "e33", "loop_half": 1}), "Track e33 1")
-        self.assertEqual(B.placeholder({"edge": "e33~0", "plan_edge": "e33", "loop_half": 0}), "Track e33 0")
+    def test_placeholder_is_the_strands_trial_key(self):
+        """name_loop_halves keys each main and upper strand by switch and leg (staging_device_map.band_refs, one grammar
+        for every level); placeholder reads that key and stops on a strand that has none."""
+        self.assertEqual(B.placeholder({"edge": "e33", "loop_half": 1, "trial": "Track 107B-107C #1"}),
+                         "Track 107B-107C #1")
+        with self.assertRaisesRegex(SystemExit, "strand e34y has no trial key"):
+            B.placeholder({"edge": "e34y"})
+
+    def test_name_loop_halves_keys_every_main_and_upper_strand(self):
+        import build_layout_le as bl
+        sheet, _le_mod, _core = bl.plugin()
+        bands = B.name_loop_halves(B.pd.solved_sheet(sheet).bands)
+        main = next(b for t, b, _o in bands if B.bdm.band_level(t) == 2)
+        self.assertEqual({s["trial"] for s in main["strands"].values() if s.get("loop_half")},
+                         {"Track 107B-107C #1", "Track 107B-107C #2"})
+        self.assertFalse([s for t, b, _o in bands if B.bdm.band_level(t) for s in b["strands"].values()
+                          if "trial" not in s])
 
     def test_xover_corners_only_those_the_device_map_has(self):
         rows = {f"OS Switch 225{c}": block(f"OS Switch 225{c}") for c in "abc"}

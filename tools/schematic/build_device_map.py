@@ -854,9 +854,10 @@ def piece_trials(rows: dict, refs: dict, inside: dict) -> dict[str, list[str]]:
     """{row name: its track placeholders, in key order} of the layer rows of some bands (`rows`: {band index: {strand:
     [row, ...] from the strand's first end]}, block_layer.Layer.rows), each strand keyed by `refs` ({band index:
     staging_device_map.piece_refs or band_refs}): "Track <piece>", or "Track <piece> k/n" for the k-th of its n rows
-    from the piece's first end. A strand whose rows are all in `inside` ({band index: OS blocks}) is inside a crossover
-    and keyed by its OS block's own placeholder, not here. One grammar for every level (owner, 2026-11-20); a key
-    drawn on two bands (a track cut by a connector) is listed once. MapError on a strand with rows but no key."""
+    from the piece's first end (staging_device_map.strand_placeholders, the rule every reader keys by). A strand whose
+    rows are all in `inside` ({band index: OS blocks}) is inside a crossover and keyed by its OS block's own
+    placeholder, not here. One grammar for every level (owner, 2026-11-20); a key drawn on two bands (a track cut by a
+    connector) is listed once. MapError on a strand with rows but no key."""
     import staging_device_map as sdm        # its placeholder grammar (it imports this module)
     got = defaultdict(dict)
     for bi, band_rows in rows.items():
@@ -866,10 +867,8 @@ def piece_trials(rows: dict, refs: dict, inside: dict) -> dict[str, list[str]]:
             if sid not in refs[bi]:
                 raise MapError(f"strand {sid} of band {bi} has blocks {names} but no piece key "
                                "(staging_device_map.piece_refs)")
-            piece, against = refs[bi][sid]
-            run = names[::-1] if against else names
-            for k, row in enumerate(run, 1):
-                got[row][sdm.track_placeholder(piece, k, len(run))] = None
+            for row, key in zip(names, sdm.strand_placeholders(refs[bi][sid], len(names))):
+                got[row][key] = None
     return {row: sorted(phs, key=natural) for row, phs in got.items()}
 
 

@@ -292,7 +292,8 @@ def placeholder(strand) -> str:
 def name_loop_halves(bands, device=None):
     """A copy of `bands` as the device map holds them. Each main and upper strand carries its trial key (`trial`,
     read by placeholder): the switch-and-leg key of its piece (staging_device_map.band_refs, one grammar for every
-    level, owner 2026-11-20). Each balloon loop is two desk blocks: each half's strand is named by its device map
+    level, owner 2026-11-20; strand_placeholders, one desk block per strand; SystemExit on a connector the plugin's
+    partners do not pair). Each balloon loop is two desk blocks: each half's strand is named by its device map
     block less "Track " (the plugin parts a turnback between two differently named tracks in the middle of its run,
     and labels each half) and marked with its half (`loop_half`)."""
     import build_layout_le as bl
@@ -309,8 +310,8 @@ def name_loop_halves(bands, device=None):
             refs = sdm.band_refs(out, joined, bi)
         except sdm.StagingMapError as exc:
             raise SystemExit(f"{title}: {exc}") from None
-        for sid, (piece, _against) in refs.items():
-            band["strands"][sid]["trial"] = sdm.track_placeholder(piece, 1, 1)
+        for sid, ref in refs.items():           # one desk block per strand on main and upper
+            band["strands"][sid]["trial"] = sdm.strand_placeholders(ref)[0]
     for title, band, _ in out:
         if not bdm.band_level(title):
             continue

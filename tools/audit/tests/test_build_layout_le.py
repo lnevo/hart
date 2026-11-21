@@ -615,6 +615,17 @@ class DeviceNames(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(B.BuildError, "cannot read"):
             B.device_names(Path(tmp) / "none.csv")
 
+    def test_an_unpaired_connector_stops_the_placeholders(self) -> None:
+        """A track's placeholder is its switch-and-leg key, so a run to a connector the plugin's partners do not pair
+        (nothing beyond it to key it by) stops the build, where it once took an empty label."""
+        _sheet, le_mod, _core = B.plugin()
+        bands = B.schematic()[0]
+        unpaired = mock.Mock(wraps=le_mod)
+        unpaired.partners = lambda _bands: {}
+        unpaired.SchematicError = le_mod.SchematicError
+        with self.assertRaisesRegex(B.BuildError, "Main level: connector .* is joined to no other band"):
+            B.placeholder_names(bands, unpaired)
+
     def test_a_placeholder_with_no_name_or_a_name_with_no_placeholder_stops(self) -> None:
         _sheet, le_mod, _core = B.plugin()
         bands = B.schematic()[0]

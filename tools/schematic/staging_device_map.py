@@ -215,6 +215,27 @@ def track_placeholder(piece: str, k: int, count: int) -> str:
     return f"Track {piece}" if count == 1 else f"Track {piece} {k}/{count}"
 
 
+def strand_placeholders(ref: tuple[str, bool], count: int = 1) -> list[str]:
+    """The trial keys of a strand's `count` blocks, from the strand's first end as drawn: `ref` is its (piece, whether
+    it runs against the piece) from piece_refs or band_refs, and the k-th of n blocks is counted from the piece's
+    first end (track_placeholder). The one rule the writer (build_device_map.piece_trials) and every reader key a
+    strand by. ValueError on a count under 1."""
+    if count < 1:
+        raise ValueError(f"a strand carries at least one block, not {count}")
+    piece, against = ref
+    keys = [track_placeholder(piece, k, count) for k in range(1, count + 1)]
+    return keys[::-1] if against else keys
+
+
+def piece_of(key: str) -> tuple[str, int, int]:
+    """(piece, k, n) of a track trial key ("Track 37C-39C #2 1/2" -> ("37C-39C #2", 1, 2); one block: k = n = 1).
+    StagingMapError on a key that is no track key."""
+    m = TRACK_RE.fullmatch(key)
+    if not m:
+        raise StagingMapError(f"{key!r} is no track trial key (Track <end>-<end>[ #i][ k/n])")
+    return (m.group(1), int(m.group(2)), int(m.group(3))) if m.group(2) else (m.group(1), 1, 1)
+
+
 def split_names(cell: str) -> list[str]:
     return [t.strip() for t in (cell or "").split(",") if t.strip()]
 

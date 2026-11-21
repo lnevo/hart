@@ -78,6 +78,19 @@ class RowRules(Master):
         got = cdm.row_problems(self.edited({("3", "Track 127-221"): dict(cp="CP 107")}), self.cps, ends_cps=ends)
         self.assertProblem(r"level 3 block Track 127-221\): cp 'CP 107' is no level 3 control point", got)
 
+    def test_a_k_of_n_key_reads_its_strands_ends(self):
+        """block_end_cps reads a trial name by its piece (staging_device_map.piece_of), so the k-th of a strand's n
+        blocks has the strand's end switches, as a whole strand's key does; a key that is no track key stops."""
+        rows = [(2, dict(layer="block", user_name="Track A", trial_name="Track 127BB-221BA 1/2")),
+                (3, dict(layer="block", user_name="Track B", trial_name="Track 127BB-221BA 2/2, OS Switch 9"))]
+        tsdm.Files.setUpClass()
+        with cdm.pd.cache_on():
+            got = cdm.block_end_cps(rows, cdm.railroad.Railroad().interlockings)
+            self.assertEqual(got, {"Track A": {"CP 127", "CP 201"}, "Track B": {"CP 127", "CP 201"}})
+            with self.assertRaisesRegex(cdm.DeviceMasterError, "block Track C: 'Track e73 1' is no track trial key"):
+                cdm.block_end_cps([(2, dict(layer="block", user_name="Track C", trial_name="Track e73 1"))],
+                                  cdm.railroad.Railroad().interlockings)
+
     def test_a_field_row_names_all_three(self):
         for col in ("user_name", "system_name", "jmri_name"):
             with self.subTest(col=col):
