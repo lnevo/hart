@@ -23,8 +23,9 @@ it: `hartlib.devices.OUT_OF_MAPS`, and `tables_build` by name). That is the stan
 block. The rule, on every level: a track between two switches under 50 cm (`LINK_CM`) is part of the lower-numbered
 switch's OS block (at a double crossover, the corner block of its leg), but where a home mast stands at a switch's
 points facing it, part of the OS block at its other end, so the block boundary is at the mast (`block_layer
-.masted_block`; a mast at both ends stops the build); on the Layout Editor panel a part keeps its track name as a
-label. `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
+.masted_block`; a mast at both ends stops the build). On main and upper a part is still a JMRI block, layout block
+and track on the panel whose occupancy sensor is its OS block's (no occupancy row or detector of its own; owner,
+2026-11-20); staging's parts have no JMRI block until the owner decides. `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
 where the wiring says otherwise (13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39) and
 the crossover halves with detectors of their own. `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
