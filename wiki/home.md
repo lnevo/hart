@@ -22,3 +22,4 @@ Chat is a scratchpad. Decisions that count live here.
 **Dispatcher desks:** [CATS](../docs/ctc/DISPATCHER_GUIDE_CTC.md) · parked: [USS](../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md), [auto](../jmri/layouts/hart/dispatcher/DISPATCHER_GUIDE.md) · [LE / Dispatcher hoops](../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md) · [Digicon schematic](../docs/ctc/DIGICON_SCHEMATIC.md)   · [Track lengths](../docs/jmri/TRACK_LENGTHS.md)
 **Wiring / LCOS inventory:** [`../docs/wiring/README.md`](../docs/wiring/README.md)  
 **Live status:** [`STATUS.md`](STATUS.md)
+**Not pending (never list these):** [`not-pending.md`](not-pending.md)
