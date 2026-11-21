@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import shutil
+import subprocess
 import tempfile
 import unittest
 from pathlib import Path
@@ -62,6 +64,22 @@ class GraphChecksTest(unittest.TestCase):
             load([node("x"), node("y")], [{"from": "x", "to": "y"}, {"from": "x", "to": "y"}])
 
 
+NODE = shutil.which("node")
+
+
+def js_layout(graph: dict) -> dict:
+    """Run tools/ops/pipeline_map.js's layout under node on this graph."""
+    script = (
+        "const m = require(process.argv[1]); let s = '';"
+        "process.stdin.on('data', d => s += d).on('end', () => { const g = JSON.parse(s);"
+        "process.stdout.write(JSON.stringify(m.layout(g.nodes, g.edges, g.domains))); });"
+    )
+    out = subprocess.run([NODE, "-e", script, str(MAP.SCRIPT)], input=json.dumps(graph), capture_output=True,
+                         text=True, check=True)
+    return json.loads(out.stdout)
+
+
+@unittest.skipUnless(NODE, "node is not installed")
 class LayoutTest(unittest.TestCase):
     def graph(self) -> dict:
         nodes = [node("src", "structured"), node("gen"), node("out", "output", "b"), node("far", "output", "b")]
@@ -70,29 +88,35 @@ class LayoutTest(unittest.TestCase):
         return {"domains": DOMAINS, "nodes": nodes, "edges": edges}
 
     def test_flow_runs_left_to_right_and_cycles_are_marked(self) -> None:
-        lay = MAP.layout(self.graph())
+        lay = js_layout(self.graph())
         x = {n["id"]: n["x"] for n in lay["nodes"]}
         self.assertLess(x["src"], x["gen"])
         back = [e for e in lay["edges"] if e["back"]]
         self.assertEqual([(e["from"], e["to"]) for e in back], [("out", "gen")])
 
     def test_nodes_stay_in_their_lane_without_overlap(self) -> None:
-        lay = MAP.layout(self.graph())
-        bands = {b["id"]: b for b in lay["bands"]}
-        by_col: dict[float, list[dict]] = {}
-        for n in lay["nodes"]:
-            band = bands[n["domain"]]
-            self.assertGreaterEqual(n["y"], band["y"])
-            self.assertLessEqual(n["y"] + n["h"], band["y"] + band["h"])
-            by_col.setdefault(n["x"], []).append(n)
-        for col in by_col.values():
-            col.sort(key=lambda n: n["y"])
-            for upper, lower in zip(col, col[1:]):
-                self.assertLessEqual(upper["y"] + upper["h"], lower["y"])
+        for graph in (self.graph(), json.loads(MAP.GRAPH.read_text())):
+            lay = js_layout(graph)
+            bands = {b["id"]: b for b in lay["bands"]}
+            by_col: dict[float, list[dict]] = {}
+            for n in lay["nodes"]:
+                band = bands[n["domain"]]
+                self.assertGreaterEqual(n["y"], band["y"] - 0.01)
+                self.assertLessEqual(n["y"] + n["h"], band["y"] + band["h"] + 0.01)
+                by_col.setdefault(n["x"], []).append(n)
+            for col in by_col.values():
+                col.sort(key=lambda n: n["y"])
+                for upper, lower in zip(col, col[1:]):
+                    self.assertLessEqual(upper["y"] + upper["h"], lower["y"] + 0.01, (upper["id"], lower["id"]))
 
+    def test_empty_subset(self) -> None:
+        self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])
+
+
+class PageTest(unittest.TestCase):
     def test_page_escapes_text(self) -> None:
-        g = self.graph()
-        g["nodes"][0]["desc"] = "<script>alert(1)</script>"
+        g = {"domains": DOMAINS, "nodes": [node("x", desc="<script>alert(1)</script>"), node("y")],
+             "edges": [{"from": "x", "to": "y"}], "updated": ""}
         page = MAP.render(g)
         self.assertNotIn("<script>alert(1)", page)
 
