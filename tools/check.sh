@@ -35,6 +35,13 @@ fi
 if [[ -z "${CI:-}" && -f .git ]]; then
   python3 tools/agent/worktrees.py submodules "$ROOT" || echo "checks that need a missing submodule will skip or fail"
 fi
+# A plugin on another commit than the branch pins makes checks fail as if the code were wrong: stop before any job.
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
+pin_problem="$(hart_plugin_pin_problem "$ROOT")"
+if [[ -n "$pin_problem" ]]; then
+  echo "STOP: $pin_problem" >&2
+  exit 2
+fi
 fail=0
 # Local stamps (tools/audit/check_stamps.py): a job whose declared inputs match its last pass is skipped, and prints
 # "<job>: current, skipped". CI (CI is set), FULL=1 and an audit run never skip. CHECK_ONLY=<regex> runs only the

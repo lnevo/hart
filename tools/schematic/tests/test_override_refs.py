@@ -12,8 +12,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import publish_draft as pd  # noqa: E402
 from hartlib import layer_files  # noqa: E402
 
-STAGING = layer_files.read("plan_overrides", "staging", pd.DATA)
-MAIN_UPPER = layer_files.read("plan_overrides", "main_upper", pd.DATA)
+STAGING = layer_files.merged_section("staging", pd.DATA)
+MAIN_UPPER = layer_files.merged_section("main_upper", pd.DATA)
 PREFS = layer_files.dumps(layer_files.read("preferences", "main_upper", pd.DATA))
 PART = re.compile(r"T\d+")
 PART_REF = re.compile(r"T\d+|TO_\w+-\d")      # a plan part number or a three-way's part id

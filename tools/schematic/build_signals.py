@@ -89,7 +89,7 @@ def plan_graph(plugin, graph_name: str, name: str) -> dict:
         sys.path.insert(0, str(plugin))
     layers = importlib.import_module("schematic.layers")
     edits = importlib.import_module("schematic.edits")
-    overrides = layers.load(name, str(pd.DATA), preferences=False)
+    overrides = layers.load(name, str(layer_files.view(pd.DATA)), preferences=False)
     g = json.loads((pd.GRAPHS / graph_name).read_text(encoding="utf-8"))
     edits.apply_edits(g, overrides.get("edits", []))
     return g
@@ -113,7 +113,7 @@ def check_runs(plugin,graph_name: str, name: str, rows: list[dict]) -> list[str]
         sys.path.insert(0, str(plugin))
     layers = importlib.import_module("schematic.layers")
     edits = importlib.import_module("schematic.edits")
-    overrides = layers.load(name, str(pd.DATA), preferences=False)
+    overrides = layers.load(name, str(layer_files.view(pd.DATA)), preferences=False)
     g = json.loads((pd.GRAPHS / graph_name).read_text(encoding="utf-8"))
     edits.apply_edits(g, overrides.get("edits", []))
     nodes, edges = g["nodes"], {e["id"]: e for e in g["edges"]}

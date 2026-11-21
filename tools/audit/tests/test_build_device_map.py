@@ -369,8 +369,8 @@ class Output(unittest.TestCase):
         names = {x["user_name"] for x in rows() if x["layer"] == "block"}
         self.assertFalse({"Track 129 Loop", "Track 135 Loop"} & names)
 
-    def test_overrides_match_the_control_point_file(self):
-        over = BD.layer_files.read("plan_overrides", "main_upper", BD.OVERRIDES.parent)
+    def test_generated_keys_match_the_control_point_file(self):
+        over = BD.layer_files.read("plan_generated", "main_upper", BD.OVERRIDES.parent)
         names = [c.name for c in BD.load_cps()]
         self.assertEqual(list(over["control_points"]), names)
         self.assertEqual({k: v["switches"] for k, v in over["stations"].items()},
