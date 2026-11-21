@@ -124,8 +124,9 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
                  "add --as-live for the three-level cut-over candidate (tables_cutover.xml), or --levels staging "
                  "--as-live for the staging candidate (tables_cutover_staging.xml)")
 
-# The window the panel opens in at 100% zoom (the page's le_window) and the rows staging is drawn at (le_row) are
-# preferences.json[main_upper]'s, read through the plugin (le.window, le.row); their notes there say why.
+# The window the panel opens in at 100% zoom (the page's le_window, derived from preferences.json[main_upper]'s
+# host_screen by host_screen.py, as the CATS desks' window is) and the rows staging is drawn at (le_row, set there)
+# are read through the plugin (le.window, le.row); their notes there say why.
 # The cut-over candidates' grid (owner, 2026-11-16): staging's own fit to the window (the grid's scale across and down
 # when the staging band alone is fitted into the le_window at le_row, found by the plugin's fit in each staging
 # cut-over build and kept as P.staging_fit) widened by preferences.json[main_upper]'s le_stretch (the plugin's

@@ -227,8 +227,8 @@ class StagingShares(unittest.TestCase):
     def test_a_helix_block_has_one_occupancy_row_on_either_level(self):
         lines = self.lines()[:2]
         self.assertEqual(cdm.check_rows(lines, {"Track Helix Inner"}),
-                         ["devices.csv line 2, 3: block Track Helix Inner has 0 occupancy rows naming it (none), "
-                          "not one"])
+                         ["devices_generated.csv: Track Helix Inner (level 1, block), Track Helix Inner (level 3, "
+                          "block): block Track Helix Inner has 0 occupancy rows naming it (none), not one"])
 
 
 class LayoutEditor(unittest.TestCase):

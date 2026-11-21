@@ -6,10 +6,10 @@
   },
   "image": {
     "path": "assets/layout/HART_cats_digicon.png",
-    "width": 3780,
+    "width": 3840,
     "height": 1815,
     "scale": 1.0,
-    "inputs_sha256": "b28a0e82a7186ad9f17054a081eea1fd878958a5c8cb357ec810cff2e26ed664"
+    "inputs_sha256": "c118c79302c0530eddc73f581f5146c7cdfd2c7b57febe2de4238bc2c6b1e4a8"
   },
   "items": [
     {
@@ -171,7 +171,7 @@
     {
       "id": "cats-sig-Mast-67",
       "kind": "signal",
-      "x": 3709.2,
+      "x": 3769.2,
       "y": 220.8,
       "systemName": "Mast 67",
       "publicName": "Mast 67",
@@ -379,7 +379,7 @@
     {
       "id": "cats-sig-Mast-68",
       "kind": "signal",
-      "x": 3690.0,
+      "x": 3750.0,
       "y": 300.0,
       "systemName": "Mast 68",
       "publicName": "Mast 68",
@@ -1315,14 +1315,14 @@
     {
       "id": "cats-sig-Mast-B93",
       "kind": "signal",
-      "x": 3649.2,
+      "x": 3709.2,
       "y": 1420.8,
       "systemName": "Mast B93",
       "publicName": "Mast B93",
       "cp": "",
       "hardware": "",
       "mqtt": "",
-      "comment": "Digicon SECSIGNAL @ cell (61,23) RIGHTUP",
+      "comment": "Digicon SECSIGNAL @ cell (62,23) RIGHTUP",
       "block": ""
     },
     {
@@ -1341,14 +1341,14 @@
     {
       "id": "cats-sig-Mast-B92",
       "kind": "signal",
-      "x": 3630.0,
+      "x": 3690.0,
       "y": 1500.0,
       "systemName": "Mast B92",
       "publicName": "Mast B92",
       "cp": "",
       "hardware": "",
       "mqtt": "",
-      "comment": "Digicon SECSIGNAL @ cell (61,24) LEFTCENT",
+      "comment": "Digicon SECSIGNAL @ cell (62,24) LEFTCENT",
       "block": ""
     },
     {

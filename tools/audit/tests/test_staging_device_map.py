@@ -152,7 +152,8 @@ class Pure(unittest.TestCase):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")]
         self.assertEqual(cdm.check_rows(numbered(rows), set()),
-                         ["devices.csv line 3: block Track S-1 West has 0 occupancy rows naming it (none), not one"])
+                         ["devices_generated.csv: Track S-1 West (level 1, block): block Track S-1 West has 0 occupancy "
+                          "rows naming it (none), not one"])
 
     def test_a_shared_detector_serves_both_blocks(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
@@ -223,7 +224,7 @@ class Files(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         rows = [dict(r) for r in sdm.devices.load(sdm.DEVICE_MAP)]        # the master's rows, whole
         edit(rows)
-        out = tmp / devices.MASTER_FILE
+        out = tmp / devices.ONE_FILE
         out.write_text(sdm.devices.master_text(rows), encoding="utf-8")
         return out, sdm.read_device_rows(out)
 

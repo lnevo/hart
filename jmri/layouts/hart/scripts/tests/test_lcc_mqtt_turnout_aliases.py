@@ -63,7 +63,7 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
 
     def violations(self, xml: str, rows: list[dict]) -> list[str]:
         return contract.contract_violations(ET.fromstring(f"<layout-config>{xml}</layout-config>"),
-                                            master(rows, self.tmp / devices.MASTER_FILE))
+                                            master(rows, self.tmp / devices.ONE_FILE))
 
     def test_live_tables_match_device_map(self) -> None:
         root = ET.parse(TABLES).getroot()

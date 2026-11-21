@@ -2,6 +2,8 @@
 
 This is the sheet drawn by the `schematic-maps` plugin (model-railroad-skills) from the layer files, with no hand edits. `tools/schematic/publish_draft.py` draws it and prints the PDF; `--check` says whether the published copy is current. The DRAFT mark came off when the owner approved the helix-join release (2026-11-17); the files keep their `-draft` names so links stay. Last drawn 2026-11-14 (Switch 13 to 15 one cell, East Lead and West Ext lengthened, owner's request).
 
+Status: current. This is the source page of the published system schematic sheet; the `-draft` file names stay so links keep working.
+
 - Drawing: [schematic-system-draft.svg](schematic-system-draft.svg)
 - Print copy, Letter landscape: [schematic-system-draft.pdf](schematic-system-draft.pdf)
 - Shows staging, main and upper level as built. Track only; no custom objects or buildings.

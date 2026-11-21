@@ -86,9 +86,17 @@ class Generated(unittest.TestCase):
 
     def test_discovery_writes_its_file_then_the_tables(self) -> None:
         """--discovered-from a Store: its logic replaces the discovered file and tables.xml follows. The committed
-        tables stand in for a discovery Store (their logic is the discovered one), so both files come out the same."""
+        tables stand in for a discovery Store (their logic is the discovered one), with the Digicon destinations
+        enabled as stock Discover stores them (the build disables them again), so both files come out the same."""
         store = self.tmp / "store.xml"
-        store.write_bytes(paths.REPO_TABLES_XML.read_bytes())
+        doc = tables.load(paths.REPO_TABLES_XML)
+        masts = tb.digicon_masts(doc.root)
+        self.assertTrue(tb.disable_digicon(doc.root, masts)[1])        # the committed tables hold them disabled
+        for logic in tables.mast_logics(doc.root):
+            if logic.get("source") in masts:
+                for dest in logic.findall("destinationMast"):
+                    dest.find("enabled").text = "yes"
+        store.write_bytes(doc.tobytes())
         out, disc = self.tmp / "tables.xml", self.tmp / "discovered_sml.xml"
         with mock.patch.object(bt, "OUT", out), mock.patch.object(tb, "DISCOVERED", disc), \
                 mock.patch.object(bt.ble, "build", wraps=bt.ble.build), pd.cache_on():
@@ -197,3 +205,57 @@ class ReviewFlag(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+@unittest.skipUnless(plugin_here(), "the schematic-maps plugin is not checked out")
+class DiscoveryDigest(unittest.TestCase):
+    """discovery_digest keeps what stock SML discovery reads and drops geometry."""
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        with repo_read_only(), pd.cache_on(), contextlib.redirect_stdout(io.StringIO()):
+            cls.base, _ = bt.generate(with_logic=False)
+
+    def digest(self, mutate=None) -> str:
+        if mutate is None:
+            return bt.discovery_digest(self.base)
+        root = bt.ET.fromstring(self.base)
+        mutate(root)
+        return bt.discovery_digest(bt.ET.tostring(root, encoding="utf-8"))
+
+    def test_geometry_and_window_size_keep_the_digest(self) -> None:
+        def move(root):
+            for el in root.iter():
+                for a in ("x", "y", "xcen", "ycen", "xa", "ya", "xb", "yb", "xc", "yc", "xd", "yd"):
+                    if a in el.attrib:
+                        el.set(a, str(float(el.get(a)) + 7.5))
+            le = root.find("LayoutEditor")
+            le.set("windowwidth", "1111")
+            le.set("panelheight", "999")
+            le.set("defaulttrackcolor", "red")
+            arc = root.find(".//tracksegment[@arc]")
+            arc.set("angle", "12")
+        self.assertEqual(self.digest(), self.digest(move))
+
+    def test_a_connection_change_changes_it(self) -> None:
+        def swap(root):
+            segs = root.findall(".//tracksegment")
+            segs[0].set("connect1name", segs[1].get("connect1name"))
+        self.assertNotEqual(self.digest(), self.digest(swap))
+
+    def test_a_block_change_changes_it(self) -> None:
+        def block(root):
+            root.find(".//tracksegment").set("blockname", "NO-SUCH-BLOCK")
+        self.assertNotEqual(self.digest(), self.digest(block))
+
+    def test_a_mast_slot_change_changes_it(self) -> None:
+        def slot(root):
+            pp = root.find(".//positionablepoint[@eastboundsignalmast]")
+            pp.set("eastboundsignalmast", "Other mast")
+        self.assertNotEqual(self.digest(), self.digest(slot))
+
+    def test_a_turnout_type_change_changes_it(self) -> None:
+        def kind(root):
+            lt = root.find(".//layoutturnout")
+            lt.set("type", "99")
+        self.assertNotEqual(self.digest(), self.digest(kind))

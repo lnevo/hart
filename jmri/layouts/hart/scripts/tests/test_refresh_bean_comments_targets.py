@@ -42,9 +42,9 @@ class StaleHeadCommentsTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.files = devices.Files.under(self.tmp)
+        self.files = devices.Files.under(self.tmp).but(master=self.tmp / devices.ONE_FILE, field=None)   # one file
         real = devices.Files.here()
-        shutil.copyfile(real.master, self.files.master)
+        devices.one_file_copy(self.files.master)
         shutil.copyfile(real.dictionary, self.files.dictionary)
 
     def test_the_committed_heads_are_wiring_csvs(self) -> None:
@@ -55,7 +55,7 @@ class StaleHeadCommentsTest(unittest.TestCase):
         head = next(r for r in rows if r["level"] == "1" and r["user_name"] == "Head 6LB")
         want = head["wiring"]
         head["wiring"] = "Node: 4 Signal: 9"
-        devices.write_master(rows, self.files)
+        devices.write_one_file(rows, self.files)
         self.assertEqual(refresh_bean_comments.stale_head_comments(self.files),
                          [f"Head 6LB: wiring.csv gives {want!r}, devices.csv has 'Node: 4 Signal: 9'"])
 

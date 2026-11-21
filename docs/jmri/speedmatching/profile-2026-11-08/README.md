@@ -1,6 +1,8 @@
 # Speed profile of CSX 2121 and CSX 2738 (2026-11-08)
 
 First measured speed profiles on the layout. Done on the Pi's JMRI with the block
+
+Status: historical (2026-11-13). Superseded by the re-run in [`../profile-2026-11-13/`](../profile-2026-11-13/README.md).
 detection sensors, one loco at a time on the full loop. The measuring changed no CV or
 roster entry; afterwards 2738 was programmed to match 2121, see
 [`CV_CHANGES_DRAFT.md`](CV_CHANGES_DRAFT.md) (programmed 2026-11-08, not yet re-measured).

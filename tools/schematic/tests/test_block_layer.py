@@ -396,8 +396,8 @@ class TheCommand(RepoReadOnly, unittest.TestCase):
 
 
 class StagingRows(RepoReadOnly, unittest.TestCase):
-    """build_device_map.staging_rows over a copy of the master: the field facts ride along, the rest is the
-    builder's, and a block with no row, or a row with no block, stops."""
+    """build_device_map.staging_rows over a copy of the two files: the owner's cells come from devices_field.csv, the
+    rest is the builder's, and a block with no field row, or a field row with no block, stops."""
 
     @classmethod
     def setUpClass(cls):
@@ -409,34 +409,46 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
             raise unittest.SkipTest(str(exc))
         cls.runs = staticmethod(runs)
 
-    def rows(self, edit=None, extra_exception="", pins=None, places=None):
-        """staging_rows over a copy of the master (`edit`ed), of block_overrides.csv (plus `extra_exception`) and of
-        wiring.csv (`pins`: a function of its text)."""
-        rows = [dict(r) for r in devices.load()]
+    def pair(self, edit=None) -> devices.Files:
+        """A copy of the master's two files in a temporary folder, its field file's rows `edit`ed (the owner's hand:
+        written as text, unchecked, as a hand edit would be)."""
+        d = Path(tempfile.mkdtemp())
+        self.addCleanup(os.rmdir, d)            # runs last: cleanups run in reverse
+        files = devices.pair_copy(d)
+        for p in (files.master, files.field, files.dictionary):
+            self.addCleanup(os.remove, p)       # by full path (rmtree's relative unlinks look like repo writes)
         if edit:
-            rows = edit(rows)
-        p = temp_file(devices.MASTER_FILE, devices.master_text(rows))
-        self.addCleanup(remove, p)
+            rows = edit([dict(r) for r in devices.field_rows(files)])
+            files.field.write_text(devices.master_text(rows), encoding="utf-8")
+        return files
+
+    def rows(self, edit=None, extra_exception="", pins=None, places=None, files=None):
+        """staging_rows over a copy of the two files (the field file `edit`ed), of block_overrides.csv (plus
+        `extra_exception`) and of wiring.csv (`pins`: a function of its text)."""
+        self.files = files or self.pair(edit)
         ex = temp_file("block_overrides.csv", BL.overrides_path().read_text(encoding="utf-8") + extra_exception)
         self.addCleanup(remove, ex)
         text = bdm.WIRING.read_text(encoding="utf-8")
         pf = temp_file("wiring.csv", pins(text) if pins else text)
         self.addCleanup(remove, pf)
-        self.files = devices.Files.under(p.parent)
         return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf, places=places)
 
     @staticmethod
     def by(got):
         return {(r["layer"], r["user_name"]): r for r in got}
 
+    @staticmethod
+    def field(rows, name):
+        return next(r for r in rows if r["level"] == "1" and r["user_name"] == name)
+
     def test_the_wiring_comes_from_the_pins(self):
         """Track Barn and Track EH-1 swap inputs in wiring.csv: both detectors' node, sensor and wiring, and both
-        blocks' node and comment, follow; nothing else changes."""
+        blocks' node and comment, follow; nothing else changes, and no hand file is edited."""
         def swap(text):
             return (text.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,Track Barn,,,,,13,7,,,wired,")
                         .replace("1,detector,Track EH-1,,,,,13,7,,,wired,", "1,detector,Track EH-1,,,,,13,1,,,wired,"))
-        got = self.by(self.rows(pins=swap)[0])
-        want = self.by(self.rows()[0])
+        got = self.by(self.rows(pins=swap))
+        want = self.by(self.rows())
         occ, blk = got[("occupancy", "BS Barn")], got[("block", "Track Barn")]
         self.assertEqual((occ["system_name"], occ["jmri_name"], occ["wiring"]),
                          ("M2S1306", "M2S1306", "Node: 13 Block: 7"))
@@ -446,6 +458,8 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         changed = {k for k in want if got[k] != want[k]}
         self.assertEqual(changed, {("occupancy", "BS Barn"), ("block", "Track Barn"),
                                    ("occupancy", "BS EH-1"), ("block", "Track EH-1")})
+        self.assertEqual(self.field(devices.field_rows(self.files), "Track Barn")["jmri_comment"],
+                         "Lead Switch 7 to Switch 13; {occupancy}; stop")      # the owner's words, as they were
 
     def test_a_parts_cells_follow_its_rewired_block(self):
         """OS Switch 9 and OS Switch 11 swap inputs in wiring.csv: their parts (Track 9-11 and Track 11-13) take the
@@ -453,51 +467,48 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         def swap(text):
             return (text.replace("1,detector,OS Switch 9,,,,,13,8,", "1,detector,OS Switch 9,,,,,13,2,")
                         .replace("1,detector,OS Switch 11,,,,,13,2,", "1,detector,OS Switch 11,,,,,13,8,"))
-        got, want = self.by(self.rows(pins=swap)[0]), self.by(self.rows()[0])
+        got, want = self.by(self.rows(pins=swap)), self.by(self.rows())
         for part, block in (("Track 9-11", "OS Switch 9"), ("Track 11-13", "OS Switch 11")):
             p, b = got[("block", part)], got[("block", block)]
             self.assertNotEqual(b["jmri_comment"], want[("block", block)]["jmri_comment"])
             self.assertEqual(re.search("occupancy .*$", p["jmri_comment"]).group(0),
                              re.search("occupancy .*$", b["jmri_comment"]).group(0), part)
 
-    def test_a_line_blocks_cp_is_the_rule_not_carried(self):
+    def test_a_line_blocks_cp_is_the_rule_not_the_owners(self):
         """A line block's cp (and its sensor's, its block's) lists the stations of the switches at its ends, plus a
-        station whose tracks name it (owner, 2026-11-21): written by the rule on every build, so a hand edit in the
-        master goes."""
+        station whose tracks name it (owner, 2026-11-21): written by the rule on every build, so a cp in its field
+        row does not stand (and the write would refuse to override it: devices.unmerge)."""
         def edit(rows):
             for r in rows:
-                if r["level"] == "1" and r["user_name"] in ("Track Barn", "BS Barn", "Track 9-11"):
+                if r["level"] == "1" and r["user_name"] in ("Track Barn", "BS Barn"):
                     r["cp"] = "Plane"
             return rows
-        by = self.by(self.rows(edit)[0])
+        by = self.by(self.rows(edit))
         self.assertEqual((by[("block", "Track Barn")]["cp"], by[("occupancy", "BS Barn")]["cp"]),
                          ("Barn;Engine House", "Barn;Engine House"))
         self.assertEqual(by[("block", "Track 9-11")]["cp"], "Barn;Engine House")      # a part: its own ends
         self.assertEqual(by[("block", "Track East Ext")]["cp"], "Plane;Barn")
         self.assertEqual(by[("block", "Track W-1")]["cp"], "Brick;West Yard")
-        self.assertEqual(by[("block", "OS Switch 1")]["cp"], "Brick")                  # an OS block keeps its one
+        self.assertEqual(by[("block", "OS Switch 1")]["cp"], "Brick")                  # an OS block keeps the owner's
 
     def test_a_station_that_lists_a_track_adds_itself(self):
         places = bdm.read_places()
         more = places._replace(tracks={**places.tracks, "Track Barn": ["Princess"]})
-        self.assertEqual(self.by(self.rows(places=more)[0])[("block", "Track Barn")]["cp"],
+        self.assertEqual(self.by(self.rows(places=more))[("block", "Track Barn")]["cp"],
                          "Barn;Engine House;Princess")
         with self.assertRaisesRegex(bdm.MapError, "Princess lists Nowhere in its tracks, which is no staging block"):
             self.rows(places=places._replace(tracks={"Track Nowhere": ["Princess"]}))
 
-    def test_a_hand_edit_of_the_wiring_in_the_master_is_overwritten(self):
-        stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498", wiring="Node: 4 Block: 99"),
-                 "unused Block 2-2": dict(node="4", system_name="M2S497", jmri_name="M2S497",
-                                          wiring="Node: 4 Block: 98"),
-                 "Track Barn": dict(node="4",
-                                    jmri_comment="Lead Switch 7 to Switch 13; occupancy Block 4-99 / M2S498; stop")}
+    def test_wiring_cells_in_the_field_file_are_overwritten_by_the_pins(self):
+        stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498"),
+                 "Track Barn": dict(node="4")}
 
         def edit(rows):
             for r in rows:
                 if r["level"] == "1" and r["user_name"] in stale:
                     r.update(stale[r["user_name"]])
             return rows
-        self.assertEqual(self.rows(edit)[0], self.rows()[0])
+        self.assertEqual(self.rows(edit), self.rows())
 
     def test_pins_that_do_not_fit_stop(self):
         for pins, msg in (
@@ -513,56 +524,30 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_block_swapped_onto_a_spare_input_moves_the_spare(self):
         """Track Barn moves to the spare input 2-2 in wiring.csv alone: BS Barn follows, 13-1 becomes a new
-        spare row and the old spare row of 2-2 is dropped on purpose."""
-        got, _adopts, drops = self.rows(pins=lambda t: t.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,,,,,,13,1,,,wired,")
-                                        .replace("1,detector,,,,,,2,2,,,wired,", "1,detector,Track Barn,,,,,2,2,,,wired,"))
+        spare row and the old spare row of 2-2 goes: a spare is wiring.csv's alone, so nothing stops."""
+        got = self.rows(pins=lambda t: t.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,,,,,,13,1,,,wired,")
+                        .replace("1,detector,,,,,,2,2,,,wired,", "1,detector,Track Barn,,,,,2,2,,,wired,"))
         by = self.by(got)
         self.assertEqual(by[("occupancy", "BS Barn")]["system_name"], "M2S201")
         spare = by[("occupancy", "unused Block 13-1")]
         self.assertEqual((spare["role"], spare["system_name"], spare["wiring"], spare["cp"]),
                          ("spare", "M2S1300", "Node: 13 Block: 1", ""))
         self.assertNotIn(("occupancy", "unused Block 2-2"), by)
-        self.assertEqual(drops, {("1", "occupancy", "unused Block 2-2")})
 
-    def test_a_block_made_a_part_builds_again_from_its_own_output(self):
-        """The first build after a block becomes a part writes its spare; the next build over that output, with the
-        pin left as it is, gives the same rows back (the part's pin is the spare's)."""
+    def test_a_block_that_becomes_a_part_stops_until_its_field_rows_go(self):
+        """East Lead given to OS Switch 33: its field rows (the owner's names and comment) would be lost, so the build
+        stops and names them. Once the owner removes them, its block row is a part, its detector's input a spare, and
+        the part, a JMRI block of its own, takes its OS block's control point and detector; the next build over that
+        output gives the same rows."""
         extra = "1,track,33,35,,,OS Switch 33,,,\n"
-        got, adopts, drops = self.rows(extra_exception=extra)
-        wired, wired_adopts = bdm.staging_wired_rows(self.files)
-        out = devices.outputs_after("build_device_map.py", [], self.files, drops=drops, master_rows=got + wired,
-                                    adopts=adopts | wired_adopts)
-        master = temp_file(devices.MASTER_FILE, out[self.files.master])
-        self.addCleanup(remove, master)
-        ex = temp_file("block_overrides.csv", BL.overrides_path().read_text(encoding="utf-8") + extra)
-        self.addCleanup(remove, ex)
-        again, _a, drops2 = bdm.staging_rows(self.bands, self.joined, self.runs, devices.Files.under(master.parent),
-                                             exceptions=ex)
-        self.assertEqual(again, got)
-        self.assertEqual(drops2, set())
-
-    def test_a_block_comment_with_no_occupancy_part_stops(self):
-        def edit(rows):
-            for r in rows:
-                if r["level"] == "1" and r["user_name"] == "Track Barn":
-                    r["jmri_comment"] = "Lead Switch 7 to Switch 13; stop"
-            return rows
-        with self.assertRaisesRegex(bdm.MapError, "Track Barn: its jmri_comment .* has no \"occupancy Block 13-1"):
-            self.rows(edit)
-
-    def test_the_committed_rows_come_back_as_they_are(self):
-        got, adopts, drops = self.rows()
-        self.assertEqual(drops, set())
-        want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("block", "occupancy")]
-        self.assertEqual(got, [dict(r) for r in want])
-        self.assertEqual(adopts, {("1", r["layer"], r["user_name"]) for r in want})
-
-    def test_a_block_that_becomes_a_part_frees_its_detector_as_a_spare(self):
-        """East Lead given to OS Switch 33: its block row becomes a part, its detector a spare row named by its node
-        input, and both old keys are dropped on purpose; the part, a JMRI block of its own, takes its OS block's
-        control point and detector."""
-        got, adopts, drops = self.rows(extra_exception="1,track,33,35,,,OS Switch 33,,,\n")
-        by = {(r["layer"], r["user_name"]): r for r in got}
+        with self.assertRaisesRegex(bdm.MapError, r"staging block Track East Lead is now part of OS Switch 33 .* still "
+                                                  r"has its block row Track East Lead and occupancy row BS East Lead: "
+                                                  r"remove them"):
+            self.rows(extra_exception=extra)
+        gone = ("Track East Lead", "BS East Lead")
+        files = self.pair(lambda rows: [r for r in rows if r["user_name"] not in gone])
+        got = self.rows(extra_exception=extra, files=files)
+        by = self.by(got)
         part = by[("block", "Track East Lead")]
         self.assertEqual((part["role"], part["part_of"], part["assignment"]), ("part", "OS Switch 33", "virtual"))
         self.assertEqual(part["cp"], "East End;Princess")                  # its ends, Switches 33 and 35
@@ -572,28 +557,50 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         spare = by[("occupancy", "unused Block 1-7")]
         self.assertEqual((spare["role"], spare["assignment"], spare["system_name"], spare["blocks"]),
                          ("spare", "spare", "M2S106", ""))
-        self.assertEqual(drops, {("1", "block", "Track East Lead"), ("1", "occupancy", "BS East Lead")})
-        # the master takes it and reads it back as written
-        wired, wired_adopts = bdm.staging_wired_rows(self.files)
-        out = devices.outputs_after("build_device_map.py", [], self.files, drops=drops, master_rows=got + wired,
-                                    adopts=adopts | wired_adopts)
-        self.assertIn("unused Block 1-7", out[self.files.master])
+        # the master takes it and reads it back as written, and the next build over it gives the same rows
+        wired = bdm.staging_wired_rows(files)
+        out = devices.outputs_after("build_device_map.py", [], files, master_rows=got + wired)
+        self.assertIn("unused Block 1-7", out[files.master])
+        devices.write_all(files, out)
+        self.assertEqual(self.rows(extra_exception=extra, files=files), got)
 
-    def test_a_block_with_no_row_to_carry_its_field_facts_from_stops(self):
+    def test_a_block_comment_with_no_occupancy_mark_stops(self):
+        def edit(rows):
+            self.field(rows, "Track Barn")["jmri_comment"] = "Lead Switch 7 to Switch 13; stop"
+            return rows
+        with self.assertRaisesRegex(bdm.MapError, r"Track Barn: its jmri_comment .* has no \{occupancy\} for its "
+                                                  r"detector's \"occupancy Block 13-1"):
+            self.rows(edit)
+
+    def test_the_committed_rows_come_back_as_they_are(self):
+        got = self.rows()
+        want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("block", "occupancy")]
+        self.assertEqual(got, [dict(r) for r in want])
+
+    def test_a_block_with_no_field_row_stops(self):
         drop = lambda rows: [r for r in rows if not (r["level"] == "1" and r["user_name"] == "Track Barn")]  # noqa
-        with self.assertRaisesRegex(bdm.MapError, "staging block Track Barn: no row in devices.csv"):
+        with self.assertRaisesRegex(bdm.MapError, "staging block Track Barn: no row in devices_field.csv"):
             self.rows(drop)
 
-    def test_a_staging_row_the_drawing_has_no_block_for_stops(self):
+    def test_a_field_row_the_drawing_has_no_block_for_stops(self):
         def add(rows):
-            extra = dict(next(r for r in rows if r["level"] == "1" and r["user_name"] == "Track Barn"),
-                         user_name="Track Nowhere", system_name="IB:AUTO:9999", jmri_name="IB:AUTO:9999",
-                         layout_block="ILB999", written_by="")
+            extra = dict(self.field(rows, "Track Barn"), user_name="Track Nowhere", system_name="IB:AUTO:9999",
+                         jmri_name="IB:AUTO:9999", layout_block="ILB999")
             at = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "block")
-            return rows[:at] + [extra] + rows[at:]          # a hand-kept row: before the writers' rows
+            return rows[:at] + [extra] + rows[at:]
         with self.assertRaisesRegex(bdm.MapError, "the drawing has no block for: block Track Nowhere"):
             self.rows(add)
 
+    def test_a_spare_in_the_field_file_stops(self):
+        """A spare detector is wiring.csv's: a field row for one is refused, naming it."""
+        def add(rows):
+            occ = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "occupancy")
+            spare = dict.fromkeys(devices.COLUMNS, "")
+            spare.update(level="1", layer="occupancy", user_name="unused Block 2-2", role="spare", assignment="spare")
+            return rows[:occ] + [spare] + rows[occ:]
+        with self.assertRaisesRegex(bdm.MapError, "occupancy unused Block 2-2 is a spare input .* remove the field "
+                                                  "row"):
+            self.rows(add)
 
 
 class StagingWiredRows(RepoReadOnly, unittest.TestCase):
@@ -607,10 +614,10 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         return bdm.staging_wired_rows(path=p)
 
     def test_the_committed_rows_come_back_as_they_are(self):
-        got, adopts = self.rows()
+        got = self.rows()
         want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("turnout", "fb")]
         self.assertEqual(got, want)
-        self.assertEqual(len(adopts), 80)
+        self.assertEqual(len(got), 80)
 
     def test_the_wiring_comes_from_wiring_csv(self):
         """Switches 1 and 3 swap their LCOS numbers and ports: both turnouts and their aliases follow; the alias keeps
@@ -619,7 +626,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
             return (t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2"', "1,turnout,Switch 1,,,,,4,9,OU1,X")
                      .replace('1,turnout,Switch 3,,,,,4,1,OU1,"3,4"', '1,turnout,Switch 3,,,,,4,0,OU1,"1,2"')
                      .replace("1,turnout,Switch 1,,,,,4,9,OU1,X", '1,turnout,Switch 1,,,,,4,1,OU1,"3,4"'))
-        by = {r["user_name"]: r for r in self.rows(swap)[0]}
+        by = {r["user_name"]: r for r in self.rows(swap)}
         self.assertEqual((by["Switch 1"]["system_name"], by["Switch 1"]["jmri_name"], by["Switch 1"]["wiring"]),
                          ("M2T409", "M2T409", "Node: 4 Turnout: 1 | OU: 1 Ports: 3,4"))
         self.assertEqual((by["DCC Switch 1"]["system_name"], by["DCC Switch 1"]["wiring"]),
@@ -632,7 +639,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
 
     def test_the_description_names_the_new_node(self):
         got = {r["user_name"]: r for r in self.rows(lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,OU1,"7,8"',
-                                                                        '1,turnout,Switch 13,,,,,13,5,OU3,"1,2"'))[0]}
+                                                                        '1,turnout,Switch 13,,,,,13,5,OU3,"1,2"'))}
         self.assertEqual(got["Switch 13"]["system_name"], "M2T1313")
         self.assertIn("LCOS node 13", got["Switch 13"]["description"])
 
@@ -640,7 +647,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         for edit, msg in ((lambda t: t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,\n', ""),
                            "staging turnout Switch 1: no turnout row for Switch 1"),
                           (lambda t: t + '1,turnout,Switch 999,,,,,5,0,OU1,"1,2",wired,\n',
-                           "staging turnout Switch 999 has no row in devices.csv"),
+                           "staging turnout Switch 999 has no row in devices_field.csv"),
                           (lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,', '1,turnout,Switch 13,,,,,41,3,'),
                            "turnout Switch 13 is on node 41, no staging node")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):

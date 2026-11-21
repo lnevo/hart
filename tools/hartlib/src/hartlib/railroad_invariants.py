@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 from . import level_devices, level_masts, tables
-from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
+from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, master_at, natural,
                              switch_groups, switch_number)
 
 if TYPE_CHECKING:
@@ -15,8 +15,19 @@ if TYPE_CHECKING:
 
 # ---------------------------------------------------------------- the rows of devices.csv, every level
 
+def _key(r) -> str:
+    """A master row's key as a message names it (hartlib.devices.key_text)."""
+    return f"{r['user_name']} (level {r['level']}, {r['layer']})"
+
+
 def _at(n: int, r, where: str) -> str:
-    return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
+    """A master row as a message names it: its file and key, never a line (the master is two merged files)."""
+    return f"{where}: {_key(r)}"
+
+
+def _obj_at(path, r) -> str:
+    """A StagingDevice or DeviceRow of the master at `path` as a message names it (railroad_facts.master_at)."""
+    return master_at(path, r.user_name, getattr(r, "level", STAGING_LEVEL), r.layer)
 
 
 def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
@@ -44,14 +55,14 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv
     for n, r in lines:
         if r["layer"] == "occupancy":
             for b in device_list(r["blocks"]):
-                served[b].append(n)
+                served[b].append(_key(r))
     for b in sorted(set(block_levels) | set(served)):
         if b not in block_levels:
-            bad.append(f"{where} line(s) {', '.join(map(str, served[b]))}: occupancy of {b}, which is no block row")
+            bad.append(f"{where}: {', '.join(served[b])}: occupancy of {b}, which is no block row")
         elif len(served[b]) != 1:
-            lines_ = ", ".join(str(n) for n, _r in block_levels[b])
-            bad.append(f"{where} line {lines_}: block {b} has {len(served[b])} occupancy rows naming it "
-                       f"({', '.join(map(str, served[b])) or 'none'}), not one")
+            rows_ = ", ".join(_key(r) for _n, r in block_levels[b])
+            bad.append(f"{where}: {rows_}: block {b} has {len(served[b])} occupancy rows naming it "
+                       f"({', '.join(served[b]) or 'none'}), not one")
     for col in ("system_name", "user_name", "jmri_name", "dcc"):
         seen: dict[tuple[str, str], int] = {}
         for n, r in lines:
@@ -64,8 +75,8 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv
             kind = "hardware" if col == "system_name" and r["layer"] in UNIQUE_HARDWARE else r["layer"]
             key = (kind, v)
             if key in seen:
-                bad.append(f"{_at(n, r, where)}: {col} {v!r} is line {seen[key]}'s as well")
-            seen.setdefault(key, n)
+                bad.append(f"{_at(n, r, where)}: {col} {v!r} is {seen[key]}'s as well")
+            seen.setdefault(key, _key(r))
     turnouts = {(r["level"], r["dcc"]): r for _n, r in lines if r["role"] == "turnout" and r["dcc"]}
     aliases = defaultdict(int)
     for n, r in lines:
@@ -203,7 +214,7 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
             if address.startswith("M2"):
                 wired.add(node)
             if r.node and r.node != str(node):
-                bad.append(f"{name} line {r.line}: {r.layer} {r.user_name} is on node {r.node}, but its address "
+                bad.append(f"{_obj_at(rr.sources.devices, r)}: {r.layer} {r.user_name} is on node {r.node}, but its address "
                            f"{address} is node {node}'s")
     level_of = {n.node: n for n in rr.lcos_nodes}
     for node, what in sorted(staging_nodes.items()):
@@ -232,13 +243,13 @@ def _staging_devices(rr: Railroad) -> list[str]:
     for r in sd.rows:
         if r.layer == "turnout" and r.role == "turnout" and r.dcc:
             if r.dcc in dcc:
-                bad.append(f"{name} lines {dcc[r.dcc].line} and {r.line}: DCC {r.dcc} is "
+                bad.append(f"{name}: {dcc[r.dcc].user_name} and {r.user_name} (level 1, turnout): DCC {r.dcc} is "
                            f"{dcc[r.dcc].user_name} and {r.user_name}")
             dcc.setdefault(r.dcc, r)
         if r.layer in UNIQUE_HARDWARE and r.system_name:
             key = (r.layer, r.system_name)
             if key in system:
-                bad.append(f"{name} lines {system[key].line} and {r.line}: {r.layer}s "
+                bad.append(f"{name}: {system[key].user_name} and {r.user_name} (level 1, {r.layer}): {r.layer}s "
                            f"{system[key].user_name} and {r.user_name} are both {r.system_name}")
             system.setdefault(key, r)
     return bad
@@ -308,11 +319,11 @@ def _device_map(rr: Railroad) -> list[str]:
             bad.append(f"Switch {s} ({sw.cp or 'local'}, level {sw.level}): no turnout row in {name}")
             continue
         if sw is None:
-            bad.append(f"{name} line {r.line}: Switch {s} is in no control point and not a local switch (an area) in "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: Switch {s} is in no control point and not a local switch (an area) in "
                        f"{rr.sources.switches.name}")
             continue
         if (r.level, r.cp) != (sw.level, sw.cp):
-            bad.append(f"{name} line {r.line}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
                        f"say level {sw.level} {sw.cp or 'local'}")
     nodes = {n.node: n for n in rr.lcos_nodes if n.level != 1}     # staging's nodes are as built: none is the map's
     # a helix block runs from staging up to main or upper: its detector may be on either main or upper level's node
@@ -321,7 +332,7 @@ def _device_map(rr: Railroad) -> list[str]:
     for r in dm.rows:
         if r.node and (not r.node.isdigit() or int(r.node) not in nodes or
                        (nodes[int(r.node)].level != r.level and r.user_name not in helix)):
-            bad.append(f"{name} line {r.line}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
                        f"of {rr.sources.lcos_nodes.name}")
     return bad
 
@@ -338,8 +349,8 @@ def _name_clash(rr: Railroad) -> list[str]:
     for r in rr.staging_devices.rows:
         hit = dm.get((r.layer, r.user_name))
         if hit is not None and not (r.layer == "block" and r.user_name in helix):
-            out.append(f"{name} line {r.line}: staging {r.layer} {r.user_name} is level {hit.level} "
-                       f"{r.layer} {hit.user_name} as well (line {hit.line})")
+            out.append(f"{_obj_at(rr.sources.devices, r)}: staging {r.layer} {r.user_name} is level {hit.level} "
+                       f"{r.layer} {hit.user_name} as well")
     return out
 
 

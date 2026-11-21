@@ -2,6 +2,8 @@
 
 Feedback from operating session #4: the dispatcher's notes on DS-01 Rev D, the owner's punch list sheet, and the yardmaster notes. Consolidated 2026-11-14.
 
+Status: active. The Open sections are live (owner, 2026-11-21); the Done section is a record.
+
 ## Done
 
 | Item | Where |
