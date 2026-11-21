@@ -274,7 +274,8 @@ def stop_token(comment: str | None) -> bool:
 def check_drawing(band, lines: list[tuple[int, dict]]) -> list[str]:
     """The hand-kept rows against the drawing (the module text): only staging_device_map.load reads hand-kept rows,
     so a hand-kept row of another level is a problem, not a row left unread."""
-    other = [(n, r) for n, r in lines if not r["written_by"] and r["level"] != str(sdm.LEVEL)]
+    # a level-less row (a device added in PanelPro, kept by its jmri_bean) is on no drawing yet, so nothing reads it here
+    other = [(n, r) for n, r in lines if not r["written_by"] and r["level"] not in (str(sdm.LEVEL), "")]
     bad = [f"{_at(n, r, DEVICE_MAP.name)}: kept by hand, but only staging's hand-kept rows (level {sdm.LEVEL}) are "
            "read against the drawing; give it a writer, whose --check reads it" for n, r in other]
     bad += sdm.check_helix(band, sdm.load(band))

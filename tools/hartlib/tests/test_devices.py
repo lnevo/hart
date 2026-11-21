@@ -54,7 +54,7 @@ class TheCommittedMaster(unittest.TestCase):
 
     def test_levels_are_one_structure_and_hold_spares_and_status_beans(self):
         rows = D.load()
-        self.assertEqual({r["level"] for r in rows}, {"1", "2", "3"})
+        self.assertEqual({r["level"] for r in rows if not D.is_unplaced(r)}, {"1", "2", "3"})
         self.assertEqual({r["user_name"] for r in rows if r["role"] == "spare"}, {"unused Block 2-2", "unused Block 3-8"})
         self.assertEqual({r["user_name"] for r in rows if r["role"] == "panel_status"},
                          {"Bridge HBLOOP", "SML Mode", "Track Power", "Turnout FB status"})
@@ -98,7 +98,7 @@ class TheMasterAgainstTables(unittest.TestCase):
     def test_field_rows_for_wired_hardware_carry_a_comment(self):
         bare = [f"{r['layer']} {r['user_name']}" for r in self.rows
                 if r["assignment"] == "field" and r["system_name"].startswith(("M2T", "M2S", "IH", "MTT"))
-                and not (r["wiring"] or r["jmri_comment"])]
+                and not (r["wiring"] or r["jmri_comment"]) and not D.is_unplaced(r)]   # kept as the Store had it
         self.assertEqual(bare, [])
 
     def test_mtt_100_to_119_are_lcc_aliases_named_dcc_switch(self):

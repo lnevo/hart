@@ -67,7 +67,9 @@ class Template(unittest.TestCase):
 
     def test_the_committed_template_reads(self) -> None:
         doc = tb.read_template()
-        self.assertEqual([tb.section_key(s) for s in tables.elements(doc.root)], list(tb.SECTIONS))
+        got = [tb.section_key(s) for s in tables.elements(doc.root)]
+        # the known sections in order; a split may keep an extra one the owner made (a Route table, audio)
+        self.assertEqual([k for k in got if k in tb.SECTIONS], list(tb.SECTIONS))
         held = tb.bean_names(doc.root)
         self.assertIn("ISCLOCKRUNNING", held)
         self.assertIn("IQ:AUTO:0001", held)
