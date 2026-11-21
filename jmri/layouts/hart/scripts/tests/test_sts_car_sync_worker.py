@@ -354,30 +354,42 @@ class Worker(unittest.TestCase):
         self.request.setValue(batch("after"))
         self.run_worker()
         first, after = self.jmri.replies
-        self.assertEqual((first["id"], first["ok"]), ("a1", False))
-        self.assertIn("cannot set load", first["error"])
-        self.assertIn("nothing was saved", first["error"])
+        self.assertEqual((first["id"], first["ok"], first["saved"], first["applied"]), ("a1", False, False, []))
+        self.assertEqual(first["error"], "applying failed at car BO8476 (cannot set load); nothing was saved. "
+                                         "No car was changed.")
+        self.assertEqual([c["car"] for c in first["cars"]], ["BO8476"])
         self.assertEqual(self.car().load, "E")
         self.assertEqual(self.jmri.events, ["gui"])                 # no save
         self.assertEqual(self.jmri.gui_errors, [])                  # nothing left for JMRI to log
         self.assertEqual((after["id"], after["ok"]), ("after", True))
 
-    def test_a_java_exception_while_applying_is_answered_as_a_failure_and_not_saved(self):
-        """The cars before the failure change in memory; the reply says so and nothing is saved."""
+    def test_a_java_exception_while_applying_names_the_cars_changed_before_it(self):
+        """The cars before the failure change in memory and a later save writes them, so the reply names them.
+        Sending the same batch again plans them as unchanged."""
         def refuse(location, track, force):
             raise JavaException("setLocation failed")
         self.car("UTLX1").setLocation = refuse
-        self.request.setValue(json.dumps({"id": "j3", "cars": [
-            {"car": "BO8476", "load": "Steel"}, {"car": "UTLX1", "location": "Ferrellgas"},
-            {"car": "BO8476", "load": "E"}]}))
+        cars = [{"car": "BO8476", "load": "Steel"}, {"car": "UTLX1", "location": "Ferrellgas"}]
+        self.request.setValue(json.dumps({"id": "j3", "cars": cars}))
+        self.request.setValue(json.dumps({"id": "again", "cars": cars[:1]}))
         self.run_worker()
-        out, = self.jmri.replies
-        self.assertEqual((out["id"], out["ok"]), ("j3", False))
-        self.assertIn("setLocation failed", out["error"])
-        self.assertIn("cars before it changed in memory", out["error"])
+        out, again = self.jmri.replies
+        self.assertEqual((out["id"], out["ok"], out["saved"], out["applied"]), ("j3", False, False, ["BO8476"]))
+        self.assertEqual(out["error"], "applying failed at car UTLX1 (setLocation failed); nothing was saved. "
+                                       "Changed in memory, saved by the next batch: BO8476.")
         self.assertEqual(self.car().load, "Steel")                  # applied before the failure
         self.assertEqual(self.jmri.events, ["gui"])                 # not saved
         self.assertEqual(self.jmri.gui_errors, [])
+        self.assertEqual([c["status"] for c in again["cars"]], ["unchanged"])
+
+    def test_a_java_error_while_applying_is_left_to_jmris_log(self):
+        """A java.lang.Error is not turned into a routine reply: runOnGUI logs it, as stock JMRI does."""
+        def broken(load):
+            raise JavaError("NoClassDefFoundError")
+        self.car().setLoadName = broken
+        self.request.setValue(batch("e0", load="Steel"))
+        self.run_worker()
+        self.assertEqual([str(e) for e in self.jmri.gui_errors], ["NoClassDefFoundError"])
 
     # --- what ends the thread ---------------------------------------------------------
 
