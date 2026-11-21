@@ -74,8 +74,8 @@
       </p>
       <p>
         Ours is called <code>tables.xml</code>. It is about <!--tf:size-->0.8 MB<!--/tf--> and <!--tf:lines-->12,144<!--/tf--> lines long, and it has
-        <!--tf:top-->17<!--/tf--> top-level sections. It is in the ordinary JMRI format, stored by PanelPro
-        <!--tf:version-->5.16<!--/tf-->, the main JMRI program. It holds no connection settings: how JMRI reaches the layout lives in the profile, a
+        <!--tf:top-->17<!--/tf--> top-level sections. It is in the ordinary JMRI format. <code>build_tables.py</code> generates it from the device master (<code>devices.csv</code>) and a template, and
+        PanelPro <!--tf:version-->5.16<!--/tf-->, the main JMRI program, loads it. It holds no connection settings: how JMRI reaches the layout lives in the profile, a
         separate set of preferences. Everything else is in here, including the <!--tf:panel-count-->one panel<!--/tf--> you see on
         screen.
       </p>
@@ -264,11 +264,11 @@ userName    BS K-1<!--/tf--></code></pre>
 
       <h2>Who writes what</h2>
       <p>
-        PanelPro owns the file. Anything you do on screen, such as moving a mast on a panel, ends up there
-        when you store. A few jobs are better done by script, and each does one thing:
+        <code>build_tables.py</code> writes the file from the device master and the template. Anything you do on screen in PanelPro, such as
+        renaming a mast, comes back into those sources when the Store is pulled. A few jobs are done by script, and each does one thing:
       </p>
       <ul>
-        <li>A name map turns working names into the public equipment names that appear on this site.</li>
+        <li>The device master holds each device's public equipment name, which is what appears on this site.</li>
         <li>Another script places the masts and their heads.</li>
         <li>JMRI's own Discover tool finds the Signal Mast Logic pairs from the panel.</li>
         <li>Before the USS CTC machine was parked, a generator wrote its CTC data, including the <!--tf:ctc-columns-->20<!--/tf--> columns of code buttons.</li>
