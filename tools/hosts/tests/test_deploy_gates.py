@@ -73,6 +73,34 @@ def is_read_only(call: str) -> bool:
     raise AssertionError(f"an ssh call to no known host: {call}")
 
 
+def git_env() -> dict[str, str]:
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    env.update(GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_SYSTEM=os.devnull, GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@example.invalid",
+               GIT_COMMITTER_NAME="t", GIT_COMMITTER_EMAIL="t@example.invalid")
+    return env
+
+
+def git_in(repo: Path, *args: str) -> str:
+    done = subprocess.run(["git", "-c", "commit.gpgsign=false", "-C", str(repo), *args], env=git_env(),
+                          capture_output=True, text=True, check=True)
+    return done.stdout.strip()
+
+
+def throwaway_repo(path: Path) -> Path:
+    """A repo with one commit and refs/remotes/origin/main on it."""
+    path.mkdir(parents=True)
+    git_in(path, "init", "-q", "-b", "main")
+    git_in(path, "commit", "-q", "--allow-empty", "-m", "first")
+    git_in(path, "update-ref", "refs/remotes/origin/main", "HEAD")
+    return path
+
+
+def add_worktree(repo: Path, path: Path, branch: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    git_in(repo, "worktree", "add", "-q", "-b", branch, str(path))
+    git_in(path, "commit", "-q", "--allow-empty", "-m", "an auto-pull")
+
+
 def wrapper(tmp: Path, real: Path) -> None:
     """A python3 in front of the harness one that fails a named step while its marker file exists, and
     otherwise hands over to the harness python3 (the tables and Digicon stand-ins)."""
@@ -431,13 +459,24 @@ class PiChangesAreSavedByTheGate(GateHarness):
 
     def test_an_unmerged_ops_pull_worktree_is_reused(self) -> None:
         self.env["HART_AUTOPULL_FROM_MAIN"] = "1"
+        repo = throwaway_repo(self.tmp / "repo")
         old = self.tmp / "wt" / "ops-pull-20261120-101010"
-        old.mkdir(parents=True)
+        add_worktree(repo, old, "agent/claude/ops-pull-20261120-101010")
+        old = old.resolve()   # git lists real paths
+        self.env["HART_AUTOPULL_WT_REPO"] = str(repo)
         self.unpulled("ops")
         done = self.deploy("--pi")
         self.assertEqual(["quit --for-deploy", f"ops in {old} --no-mark"], self.autopull_log())
         self.assertIn(f"into {old}/jmri/layouts/hart/operations", done.stderr)
         self.assert_nothing_shipped(done)
+
+    def test_a_plain_folder_named_like_one_is_not_reused(self) -> None:
+        self.env["HART_AUTOPULL_FROM_MAIN"] = "1"
+        self.env["HART_AUTOPULL_WT_REPO"] = str(throwaway_repo(self.tmp / "repo"))
+        (self.tmp / "wt" / "ops-pull-20261120-101010").mkdir(parents=True)
+        self.unpulled("ops")
+        self.deploy("--pi")
+        self.assertRegex(self.autopull_log()[1], r"^newwt ops-pull-\d{8}-\d{6}$")
 
     def test_a_redeploy_never_pulls_into_its_throwaway_worktree(self) -> None:
         self.env["HART_REDEPLOY_FROM"] = "0123abc"
@@ -468,6 +507,47 @@ class PiChangesAreSavedByTheGate(GateHarness):
         (self.tmp / "restart.txt").write_text("yes\n", encoding="utf-8")
         done = self.deploy("--pi")
         self.assertIn("Starting PanelPro on the Pi again (it was quit for this deploy)", done.stdout)
+
+
+class ReusableOpsPullWorktree(unittest.TestCase):
+    """common.sh reusable_ops_pull_worktree against a real throwaway repo."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.tmp, True)
+        self.repo = throwaway_repo(self.tmp / "repo")
+        self.dir = self.tmp / "wt"
+
+    def pick(self) -> str:
+        env = dict(git_env(), PATH=os.environ["PATH"], HOME=str(self.tmp), HART_ENV_FILE=str(self.tmp / "none"))
+        done = subprocess.run(["bash", "-c", 'source "$1"; reusable_ops_pull_worktree "$2" "$3"', "x",
+                               str(ROOT / "tools/hosts/deploy/common.sh"), str(self.repo), str(self.dir)],
+                              env=env, capture_output=True, text=True, check=True)
+        return done.stdout.strip()
+
+    def test_an_unmerged_worktree_is_picked_and_a_merged_one_is_not(self) -> None:
+        wt = self.dir / "ops-pull-20261120-101010"
+        add_worktree(self.repo, wt, "agent/claude/ops-pull-20261120-101010")
+        self.assertEqual(str(wt.resolve()), str(Path(self.pick()).resolve()))
+        git_in(wt, "update-ref", "refs/remotes/origin/main", "HEAD")   # origin/main now holds its branch
+        self.assertEqual("", self.pick())
+
+    def test_the_newest_unmerged_one_wins(self) -> None:
+        a, b = self.dir / "ops-pull-20261120-101010", self.dir / "ops-pull-20261121-101010"
+        add_worktree(self.repo, a, "agent/claude/ops-pull-20261120-101010")
+        add_worktree(self.repo, b, "agent/claude/ops-pull-20261121-101010")
+        self.assertEqual(str(b.resolve()), str(Path(self.pick()).resolve()))
+
+    def test_a_plain_folder_other_names_and_other_places_are_ignored(self) -> None:
+        (self.dir / "ops-pull-20261120-101010").mkdir(parents=True)
+        add_worktree(self.repo, self.dir / "other-task", "agent/claude/other-task")
+        add_worktree(self.repo, self.tmp / "elsewhere" / "ops-pull-1", "agent/claude/ops-pull-1")
+        self.assertEqual("", self.pick())
+
+    def test_no_origin_main_means_no_reuse(self) -> None:
+        add_worktree(self.repo, self.dir / "ops-pull-20261120-101010", "agent/claude/ops-pull-20261120-101010")
+        git_in(self.repo, "update-ref", "-d", "refs/remotes/origin/main")
+        self.assertEqual("", self.pick())
 
 
 class WhatShipsWhere(GateHarness):

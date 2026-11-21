@@ -338,6 +338,29 @@ check_pi_unpulled() {
   fi
 }
 
+# reusable_ops_pull_worktree REPO WTDIR: the newest ops-pull-* worktree that REPO lists (git worktree list), directly
+# under WTDIR, whose branch is not yet merged into origin/main (an earlier auto-pull waiting for its merge). Prints its
+# path, or nothing: a plain folder of that name, a merged one, or an unreadable origin/main is not reused.
+reusable_ops_pull_worktree() {
+  local repo="$1" dir path="" branch line best="" base want
+  dir="$(cd "$2" 2>/dev/null && pwd -P)" || return 0
+  while IFS= read -r line; do
+    case "$line" in
+      "worktree "*) path="${line#worktree }"; branch="" ;;
+      "branch "*)
+        branch="${line#branch }"
+        base="$(basename "$path")"
+        want="$(cd "$(dirname "$path")" 2>/dev/null && pwd -P)" || continue
+        [[ "$want" == "$dir" && "$base" == ops-pull-* && -d "$path" ]] || continue
+        # rc 1 is "not an ancestor", i.e. not merged; any other failure (no origin/main) is not a reason to reuse
+        git -C "$repo" merge-base --is-ancestor "$branch" refs/remotes/origin/main >/dev/null 2>&1 && continue
+        [[ "$?" -eq 1 ]] || continue
+        best="$path" ;;   # the list is in creation order; the last match is the newest
+    esac
+  done < <(git -C "$repo" worktree list --porcelain 2>/dev/null)
+  [[ -z "$best" ]] || echo "$best"
+}
+
 # autopull_pi_changes UNPULLED: save what check_pi_unpulled found, then stop (T9a). The same scripts a person runs:
 # tools/ops/pull_tables_pi.sh keeps a Store in the pulled folder with its base (PanelPro may stay up for it);
 # tools/ops/pull_ops.sh --no-mark writes the Operations files into the checkout it runs from and leaves the Pi
@@ -380,7 +403,7 @@ autopull_pi_changes() {
     target="$ROOT"
     if [[ "$rc" -eq 0 && "$from_main" == "1" ]]; then
       wtdir="${HART_AUTOPULL_WT_DIR:-$ROOT/.claude/worktrees}"
-      existing="$(ls -d "$wtdir"/ops-pull-* 2>/dev/null | tail -1 || true)"
+      existing="$(reusable_ops_pull_worktree "${HART_AUTOPULL_WT_REPO:-$ROOT}" "$wtdir")"
       if [[ -n "$existing" && -d "$existing" ]]; then
         target="$existing"   # an earlier auto-pull not merged yet
       else
