@@ -256,14 +256,22 @@ function app() {
      they are shown, not walked through, because everything deploys and the Pi's saved state comes back, so walking
      through them would reach most of the map. */
   const endsChain = id => byId[id].domain === "hosts" || byId[id].kind === "host" || byId[id].kind === "human";
-  function reach(start, adj, key, depth) {
+  // whether the lane and status filters draw a box; the picked file always shows
+  const isShown = id => id === view.focus ||
+    (view.lanes.has(byId[id].domain) && (byId[id].status === "live" || !byId[id].status || view[byId[id].status]));
+  /* Boxes within depth links of start; with onlyShown the walk does not pass through a box the filters hide, so
+     nothing past a hidden box is drawn cut off from the file. */
+  function reach(start, adj, key, depth, onlyShown = false) {
     const seen = new Set([start]);
     let frontier = [start];
     for (let d = 0; d < depth && frontier.length; d++) {
       const next = [];
       frontier.forEach(v => {
         if (v !== start && endsChain(v)) return;
-        (adj[v] || []).forEach(e => { const w = e[key]; if (!seen.has(w)) { seen.add(w); next.push(w); } });
+        (adj[v] || []).forEach(e => {
+          const w = e[key];
+          if (!seen.has(w) && (!onlyShown || isShown(w))) { seen.add(w); next.push(w); }
+        });
       });
       frontier = next;
     }
@@ -273,12 +281,10 @@ function app() {
     let keep = new Set(DATA.nodes.map(n => n.id));
     if (view.focus) {
       keep = new Set([view.focus]);
-      reach(view.focus, insAll, "from", view.up).forEach(v => keep.add(v));
-      reach(view.focus, outsAll, "to", view.down).forEach(v => keep.add(v));
+      reach(view.focus, insAll, "from", view.up, true).forEach(v => keep.add(v));
+      reach(view.focus, outsAll, "to", view.down, true).forEach(v => keep.add(v));
     }
-    // the chain is walked over the whole map, then the lane and status filters pick what is drawn; the file always shows
-    const shown = n => n.id === view.focus || (view.lanes.has(n.domain) && (n.status === "live" || !n.status || view[n.status]));
-    const nodes = DATA.nodes.filter(n => keep.has(n.id) && shown(n));
+    const nodes = DATA.nodes.filter(n => keep.has(n.id) && isShown(n.id));
     const ids = new Set(nodes.map(n => n.id));
     const own = view.focus && view.up <= 1 && view.down <= 1;  // only the file's own links, not its neighbours' links
     return { nodes, edges: DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus)) };
@@ -474,7 +480,8 @@ function app() {
     if (byId[id].status in view) view[byId[id].status] = true;
     focusOn(id, !view.focus);
   }
-  /* Draw one file's chain; a new file starts with the whole chain on both sides, keepSteps keeps the current counts. */
+  /* Draw one file's chain. fresh (the default) starts both sides at the whole chain; fresh = false keeps the current
+     step counts, as moving from one file view to another does. */
   function focusOn(id, fresh = true) {
     fileIn.value = byId[id].path || byId[id].label;
     if (fresh) { view.up = Infinity; view.down = Infinity; }
@@ -523,14 +530,14 @@ function app() {
   }
   function maxSteps(adj, key) {  // the longest chain on that side, so "+" from a number can reach "all"
     let n = 0;
-    for (let d = 1; d < 400; d++) { if (reach(view.focus, adj, key, d).size === reach(view.focus, adj, key, d - 1).size) break; n = d; }
+    for (let d = 1; d < 400; d++) { if (reach(view.focus, adj, key, d, true).size === reach(view.focus, adj, key, d - 1, true).size) break; n = d; }
     return n;
   }
   function step(side, change) {
     const adj = side === "up" ? [insAll, "from"] : [outsAll, "to"], most = maxSteps(...adj);
     let n = view[side] === Infinity ? most : view[side];
     n = change === "all" ? Infinity : Math.max(0, n + change);
-    if (n >= most) n = Infinity;
+    if (most > 0 && n >= most) n = Infinity;  // a side with no links stays at the number chosen
     view[side] = n;
     render(true); writeHash();
   }
@@ -599,7 +606,7 @@ function app() {
     const h = new URLSearchParams(location.hash.slice(1));
     const focus = h.get("focus");
     view.focus = focus && byId[focus] ? focus : null;
-    const steps = v => (v === null || v === "all" || !(Number(v) >= 0) ? Infinity : Number(v));
+    const steps = v => (v !== null && /^\d+$/.test(v) ? Number(v) : Infinity);
     view.up = steps(h.get("up")); view.down = steps(h.get("down"));
     if (h.get("up") === null && h.get("down") === null) {  // older links: dir=both|up|down and depth=N
       const depth = steps(h.get("depth")), dir = h.get("dir");
@@ -609,6 +616,7 @@ function app() {
     view.lanes = new Set(lanes.length || h.get("lanes") === "none" ? lanes : allLanes);
     const show = (h.get("show") || "").split(","), hide = h.get("hide");
     if (hide !== null) { view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired"); }  // older links
+    else if (h.get("show") === null && (h.get("dir") !== null || h.get("depth") !== null)) view.parked = view.retired = true;  // older file links showed every status
     else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     const node = h.get("node");
     selected = node && byId[node] ? node : null;

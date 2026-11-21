@@ -23,6 +23,7 @@ import functools
 import html
 import importlib.util
 import json
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -171,7 +172,6 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info a{cursor:pointer;color:#1d4ed8}
 #info .off{color:#888;font-size:11px}
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
-#info .chain{background:#f1f5f9;border-radius:6px;padding:8px;margin:8px 0 12px;line-height:2}
 .band{font-weight:800;opacity:.45}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
@@ -303,15 +303,20 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("--public writes the website copy; give it --out")
     try:
         data = load(args.graph)
-        page = render(public_copy(data) if args.public else data, args.back)
-        if args.public:
-            check_public_page(page)
     except GraphError as err:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
+    page = render(public_copy(data) if args.public else data, args.back)
+    if args.public:
+        try:
+            check_public_page(page)
+        except GraphError as err:
+            print(f"{args.out}: the public page fails the website's checks (graph, template or {SCRIPT.name}):\n{err}",
+                  file=sys.stderr)
+            return 1
     if args.check:
         if not args.out.exists() or args.out.read_text() != page:
-            again = " ".join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
+            again = shlex.join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
             print(f"{args.out} is out of date: run python3 tools/ops/build_pipeline_map.py {again}".rstrip(), file=sys.stderr)
             return 1
         return 0

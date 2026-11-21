@@ -135,8 +135,8 @@ class PageTest(unittest.TestCase):
         import contextlib
         import io
         import os
-        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
-            rel = os.path.relpath(Path(tmp) / "map.html")
+        with tempfile.TemporaryDirectory() as tmp, contextlib.chdir(tmp):
+            rel = "map.html"
             out = io.StringIO()
             with contextlib.redirect_stdout(out):
                 self.assertEqual(MAP.main(["--public", "--out", rel]), 0)
