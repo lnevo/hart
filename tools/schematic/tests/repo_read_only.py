@@ -1,6 +1,7 @@
 """For the data checks that run the real builders over the repo's committed files: while repo_read_only() is on, any
 write, new folder, rename or delete under the repo fails the test instead of changing a file. Paths outside the repo
-(temporary folders, the schematic cache in the home folder) are untouched."""
+(temporary folders) are untouched, and so is the shared build cache (hartlib.paths.cache_dir, <main checkout>/.cache/hart,
+gitignored): builders keep their caches there."""
 from __future__ import annotations
 
 import builtins
@@ -13,13 +14,15 @@ from pathlib import Path
 from hartlib import paths
 
 REPO = Path(paths.REPO_ROOT).resolve()
+CACHE = paths.cache_dir("x", REPO).parent.resolve()   # the shared cache root; writes there are the builders' caches
 
 
 def in_repo(target) -> bool:
     try:
-        return Path(os.fspath(target)).resolve().is_relative_to(REPO)
+        p = Path(os.fspath(target)).resolve()
     except TypeError:                                  # a file descriptor, not a path
         return False
+    return p.is_relative_to(REPO) and not p.is_relative_to(CACHE)
 
 
 def _refuse(what: str, target):
