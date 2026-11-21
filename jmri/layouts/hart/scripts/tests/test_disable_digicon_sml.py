@@ -98,7 +98,7 @@ class DisableDigiconSmlTest(unittest.TestCase):
 
     def test_deploy_ships_the_committed_bytes(self) -> None:
         """The deploy only checks the rule (it refuses an enabled destination) and never rewrites the file."""
-        text = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
+        text = (ROOT / "tools/hosts/deploy/gate.sh").read_text(encoding="utf-8")   # the deploy's checks
         calls = [line for line in text.splitlines() if "disable_digicon_sml_in_tables.py" in line]
         self.assertTrue(calls)
         self.assertTrue(all('--check --panel "$TABLES"' in line for line in calls), calls)

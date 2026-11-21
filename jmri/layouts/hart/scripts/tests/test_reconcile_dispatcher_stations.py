@@ -1,6 +1,8 @@
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import sys
 import tempfile
 import unittest
@@ -252,7 +254,10 @@ class ReconcileDispatcherStationsTest(unittest.TestCase):
             override = reconciler.paths.exit_if_overridden
             reconciler.paths.exit_if_overridden = lambda name: None     # the test writes a temp panel, whatever HART_TABLES says
             try:
-                self.assertEqual(reconciler.main(["--panel", str(panel), "--no-sync"]), 0)
+                with contextlib.redirect_stdout(io.StringIO()) as out:     # a quiet skip (docs/parked/UNPARK.md)
+                    self.assertEqual(reconciler.main(["--panel", str(panel), "--no-sync"]), 0)
+                self.assertIn("SKIPPED: the Dispatcher System is parked", out.getvalue())
+                self.assertIn("docs/parked/UNPARK.md", out.getvalue())
                 self.assertEqual(len(parses), 1)
                 self.assertEqual(panel.read_bytes(), original)
                 panel.write_text("<layout-config>", encoding="utf-8")
