@@ -438,7 +438,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
         parts[r["user_name"]] = r["part_of"]
         for ph in split_names(r["trial_name"]):
             if ph in by_ph:
-                bad.append(f"part {r['user_name']} (level {r['level']})'s trial_name {ph} is another row's as well")
+                bad.append(f"part {r['user_name']}'s trial_name {ph} is another row's as well (level {r['level']})")
             by_ph[ph] = ("block", r["user_name"], "")
     used = set()
 
