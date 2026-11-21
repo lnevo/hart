@@ -1,5 +1,7 @@
 # Waking up a parked feature
 
+Lists what must be rebuilt to wake a parked feature (NX, Dispatcher System, USS CTC) and every warning, skip and stale name the parked features leave behind.
+
 Owner, 2026-11-21: when one of the parked features comes back, its scripts are rebuilt to read today's sources and
 to generate their panels and pages from the data and the schematic. Until then, warnings that come only from a
 parked feature are ignored in normal runs and listed here.

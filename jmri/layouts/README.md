@@ -17,7 +17,7 @@ layouts/hart/
   scripts/      hart's build, check and maintenance scripts
 ```
 
-See [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md).
+See [`wiki/home.md`](../../wiki/home.md).
 
 ## Starting a new layout
 

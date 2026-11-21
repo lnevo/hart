@@ -1,5 +1,7 @@
 # Speed matching prompts
 
+Two generic prompts for an AI coding agent, one to work out unknown block lengths from timed runs and one to start speed matching a JMRI layout.
+
 Two prompts to paste into an AI coding agent (Claude Code or similar) that can run commands
 against a JMRI layout. Both are written so anyone can use them; nothing in them is specific to
 one railroad.

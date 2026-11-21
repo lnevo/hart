@@ -46,8 +46,8 @@ class Fixture(unittest.TestCase):
         (self.uf / "cats").mkdir()
         (self.uf / "cats/deploy_stamp.txt").write_text(f"commit=abc\ntables_sha256={sha(b'<layout-config/>')}\n")
 
-    def check(self) -> list[str]:
-        done = subprocess.run(["bash", str(CHECK), str(self.uf)], capture_output=True, text=True, check=True)
+    def check(self, *args: str) -> list[str]:
+        done = subprocess.run(["bash", str(CHECK), str(self.uf), *args], capture_output=True, text=True, check=True)
         return done.stdout.split()
 
     def session(self) -> None:
@@ -66,6 +66,19 @@ class CheckTest(Fixture):
         self.assertEqual(["ops"], self.check())
         self.store()
         self.assertEqual(["ops", "tables"], self.check())
+
+    def ops_sha(self) -> str:
+        return sha(b"".join((self.uf / "operations" / n).read_bytes() for n in FILES))
+
+    def test_an_auto_pulled_session_counts_only_once_the_repo_holds_it(self) -> None:
+        """pull_ops.sh --no-mark leaves .deployed.sha256, so the session stays "ops" for every deploy until the
+        repo's Operations files (the ops:<sha> argument) equal the Pi's."""
+        self.session()
+        gen = sha(b"<layout-config/>")
+        before = f"ops:{sha(b'what main holds now')}"
+        self.assertEqual(["ops"], self.check(gen, before))
+        self.assertEqual(["ops"], self.check(gen, before), "a second deploy before the merge stops again")
+        self.assertEqual([], self.check(gen, f"ops:{self.ops_sha()}"), "after the merge the repo holds it")
 
     def test_with_no_reference_the_generated_hash_decides(self) -> None:
         """No stamp and no pull: a file unlike the generated tables.xml (its hash, which the deploy and the pulls
@@ -101,6 +114,40 @@ class CheckTest(Fixture):
         src = APPLY.read_text(encoding="utf-8")
         mv = src.index('mv -f "$HART/tables.xml" "$UF/tables.xml"')
         self.assertIn('rm -f "$UF/.tables_deployed.sha256"', src[mv:mv + 300])
+
+
+class PullOpsMarkTest(Fixture):
+    """tools/ops/pull_ops.sh --no-mark copies the files and leaves the Pi unmarked; without it the Pi is marked."""
+
+    def run_pull(self, *flags: str) -> list[str]:
+        tree = self.tmp / "tree"
+        for rel in ("tools/ops/pull_ops.sh", "tools/env/load_env.sh", "tools/env/defaults.env"):
+            dest = tree / rel
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(ROOT / rel, dest)
+        dest = tree / "jmri/layouts/hart/operations"
+        dest.mkdir(parents=True)
+        subprocess.run(["git", "init", "-q", str(tree)], check=True)
+        bin_dir = self.tmp / "pbin"
+        bin_dir.mkdir()
+        log = self.tmp / "pull.log"
+        (bin_dir / "ssh").write_text(f'#!/bin/bash\necho "ssh ${{@: -1}}" >>"{log}"\n'
+                                     '[[ "${@: -1}" != *pgrep* ]] || exit 1\nexit 0\n', encoding="utf-8")
+        (bin_dir / "scp").write_text('#!/bin/bash\nsrc="${@: -2:1}"\ncp "${src#*:}" "${@: -1}"\n', encoding="utf-8")
+        for name in ("ssh", "scp"):
+            (bin_dir / name).chmod(0o755)
+        env = dict(os.environ, PATH=f"{bin_dir}{os.pathsep}{os.environ['PATH']}", HART_ENV_FILE=str(self.tmp / "none"),
+                   HART_PI_SSH="pi.example.invalid", HART_PI_USERFILES=str(self.uf))
+        done = subprocess.run(["bash", str(tree / "tools/ops/pull_ops.sh"), *flags], env=env, capture_output=True, text=True)
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertTrue((dest / "OperationsCarRoster.xml").exists())
+        return log.read_text().splitlines()
+
+    def test_no_mark_leaves_the_pi_unmarked(self) -> None:
+        self.assertFalse(any(".deployed.sha256" in c for c in self.run_pull("--no-mark")))
+
+    def test_the_manual_pull_still_marks(self) -> None:
+        self.assertTrue(any(".deployed.sha256" in c for c in self.run_pull()))
 
 
 class DeployStopsTest(Fixture):

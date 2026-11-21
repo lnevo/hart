@@ -202,8 +202,9 @@ class Cutover(unittest.TestCase):
         self.assertNotIn("Neville Island", texts)
         bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
         self.assertEqual(set(bcis.values()), {1})              # one block contents icon per block
-        # but the optional ones with no clean spot (logged): staging's Track 11-13 and 13-15
-        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 11-13", "Track 13-15"})
+        # but the optional ones with no clean spot (logged): staging's Track 27-29 and 31-33 at the layout hosts'
+        # 1920 x 1032 window's grid (2026-11-21; Track 11-13 and 13-15 at the 1900 x 1140 one)
+        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 27-29", "Track 31-33"})
         self.assertLessEqual(T.used_blocks(self.le) - set(bcis), optional_staging())
         # the lamps and station clusters are parked: only the status cluster's sensor icons are on the panel
         self.assertEqual({i.get("sensor") for i in self.le.findall("sensoricon")}, STATUS["sensoricon"])
@@ -398,7 +399,7 @@ class ThreeLevels(unittest.TestCase):
         want = (T.le_window()[0] - 18) / (T.le_window()[1] - 60)
         self.assertLessEqual(abs(w / h / want - 1), stretch()[1])
         self.assertEqual((self.le.get("windowwidth"), self.le.get("windowheight")), tuple(map(str, T.le_window())))
-        with self.assertRaisesRegex(B.plugin()[2].SchematicError, r"set le_stretch's factor to about 1\.\d+"):
+        with self.assertRaisesRegex(B.plugin()[2].SchematicError, r"set le_stretch's factor to about \d\.\d+"):
             B.plugin()[1].check_stretch((1984, 1505), T.le_window(), page_prefs())
 
     def test_the_compass_rose_beside_the_status_cluster_and_the_plain_backdrop(self) -> None:
@@ -540,12 +541,11 @@ class ThreeLevels(unittest.TestCase):
         self.assertNotIn("101-103", {el.get("text") for el in self.le.iter("positionablelabel")})
         limited = {re.search(r"switch (\d+)", line).group(1) for line in self.P.log if "no room for" in line
                    and "crossover" in line}
-        self.assertFalse(limited & {"225"})
-        # 243 (241 before the upper renumber, 2026-11-19) has been short of room since the straight-level rules
-        # (2026-11-18): drawn at 45.8 degrees then, owner accepted; since schematic-maps 0.1.42 the plugin slides it to
-        # the band's angle and logs only its whole-pixel rounding, so it stands at no more than 46 degrees
-        self.assertTrue([line for line in self.P.log if "switch 243: rounded to whole pixels" in line],
-                        "no rounding log line for switch 243")
+        self.assertFalse(limited & {"225", "243"})
+        # 243 (241 before the upper renumber, 2026-11-19) was short of room from the straight-level rules
+        # (2026-11-18) until the 1920 x 1032 window's wider grid (2026-11-21): drawn at 45.8 degrees, owner accepted,
+        # then slid to the band's angle and rounded to whole pixels (schematic-maps 0.1.42). It has room now and stands
+        # at 45 degrees; whichever way it is drawn it stays at no more than 46
         x243 = next(t for t in self.le.findall("layoutturnout")
                     if t.get("turnoutname") == "Switch 243" and "XOVER" in t.get("type"))
         p243 = {L: (float(x243.get("x" + L.lower())), float(x243.get("y" + L.lower()))) for L in "ABCD"}

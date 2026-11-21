@@ -2,6 +2,8 @@
 
 What the removed `cats-pts-nullguard.jar` changed, compared with the stock CATS 3.2 `cats.jar` on 2026-10-31. CATS has run stock since then. Use this list to decide what to report upstream and what to compensate for.
 
+Status: historical (2026-10-31). The patch jar is gone and CATS runs stock 3.2; see [`CATS_SOURCE_PAINT.md`](CATS_SOURCE_PAINT.md) for current CATS behaviour.
+
 The `PatchCatsMqttLoad.java` source never covered the whole jar. The jar and sources are in git at `443b5f28`, under `tools/cats/patches/`.
 
 | Change | In the source? | What it did | Effect on stock | Next step |

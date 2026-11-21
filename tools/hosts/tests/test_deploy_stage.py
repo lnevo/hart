@@ -102,13 +102,15 @@ def stage_env(tmp: Path) -> dict[str, str]:
         HART_WIN_SSH_PORT="1",
         HART_PI_USERFILES="/srv/fake-pi/JMRI_UserFiles",
         HART_WIN_USERFILES="X:/fake-win/JMRI_UserFiles",
+        # the gate's own pull of a changed Pi (autopull_pi_changes) runs only in the tests that stub it
+        HART_NO_AUTOPULL="1",
     )
     return env
 
 
 def run(script: Path, out: Path, env: dict[str, str], *flags: str, cwd: Path = ROOT) -> subprocess.CompletedProcess:
     return subprocess.run(["bash", str(script), *flags, "--stage-only", str(out)],
-                          cwd=cwd, env=env, capture_output=True, text=True, timeout=300)
+                          cwd=cwd, env=env, capture_output=True, text=True, timeout=600)  # 106 s alone, near 300 s on a loaded box
 
 
 def read_stamp(path: Path) -> dict[str, str]:

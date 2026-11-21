@@ -3,6 +3,8 @@ command. A stand-in ssh on PATH records any call, so a refusal that still connec
 from __future__ import annotations
 
 import os
+import shutil
+import time
 import subprocess
 import tempfile
 import unittest
@@ -51,3 +53,57 @@ class WinRunRefuses(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+FLOCK = shutil.which("flock")
+
+
+@unittest.skipUnless(FLOCK, "flock is a Linux tool (CI and the Windows box have it)")
+class WinRunSlots(unittest.TestCase):
+    """The block that runs on Windows before the command: at most WIN_RUN_SLOTS runs at once, each with
+    nproc/slots check.sh jobs. Rendered with --print-script and run alone against a fake main clone."""
+
+    def setUp(self) -> None:
+        self.tmp = Path(tempfile.mkdtemp())
+        (self.tmp / "main/.git").mkdir(parents=True)
+        self.bin = self.tmp / "bin"
+        self.bin.mkdir()
+        (self.bin / "nproc").write_text("#!/bin/sh\necho 8\n")
+        (self.bin / "nproc").chmod(0o755)
+        env = dict(os.environ, WIN_RUN_SLOTS="2", HART_WIN_SSH="nobody@example.invalid")
+        script = subprocess.run(["bash", str(WIN_RUN), "--print-script", "--", "true"], cwd=ROOT, env=env,
+                                capture_output=True, text=True, timeout=60, check=True).stdout
+        block = script.split("# --- slots", 1)[1].split("# --- end slots", 1)[0]
+        self.block = self.tmp / "slots.sh"
+        self.block.write_text(f'set -euo pipefail\nmain="{self.tmp}/main"\n#{block}\necho "jobs=$CHECK_MAX_JOBS slot=$got"\n')
+
+    def run_block(self, timeout: float) -> subprocess.CompletedProcess:
+        env = dict(os.environ, PATH=f"{self.bin}:{os.environ['PATH']}")
+        try:
+            return subprocess.run(["bash", str(self.block)], env=env, capture_output=True, text=True, timeout=timeout)
+        except subprocess.TimeoutExpired as exc:
+            return subprocess.CompletedProcess(exc.cmd, -1, exc.stdout or "", (exc.stderr or b"").decode()
+                                               if isinstance(exc.stderr, bytes) else (exc.stderr or ""))
+
+    def hold(self, slot: int) -> subprocess.Popen:
+        p = subprocess.Popen([FLOCK, str(self.tmp / f"main/.git/win_run.slot{slot}"), "sleep", "30"])
+        self.addCleanup(p.kill)
+        return p
+
+    def test_a_free_slot_gives_half_the_cpus(self) -> None:
+        done = self.run_block(10)
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("jobs=4 slot=0", done.stdout)
+
+    def test_the_second_slot_is_used_when_the_first_is_held(self) -> None:
+        self.hold(0)
+        time.sleep(0.5)
+        done = self.run_block(10)
+        self.assertIn("slot=1", done.stdout)
+
+    def test_a_third_run_waits(self) -> None:
+        self.hold(0), self.hold(1)
+        time.sleep(0.5)
+        done = self.run_block(3)
+        self.assertEqual(-1, done.returncode)
+        self.assertIn("waiting for a free slot", done.stderr)

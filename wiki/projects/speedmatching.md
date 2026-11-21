@@ -1,5 +1,7 @@
 # Speed matching
 
+Status: parked
+
 - **Owner:** lnevo
 - **Status:** Re-run done on the layout 2026-11-13: both locos profiled both ways, 2738 matched to 2121 within 4% from step 24 up (CV66, CV69, CV70 on 2738), momentum matched, roster profiles written. Left: programming-track read-back, and the loop 2 lengths still plan only (Track S-R, OS Switch 31, OS Switch 23b, OS Switch 7). Record: [`profile-2026-11-13/`](../../docs/jmri/speedmatching/profile-2026-11-13/README.md).
 - **Saved:** 2026-08-21 from [jmriusers #254859](https://groups.io/g/jmriusers/message/254859)
