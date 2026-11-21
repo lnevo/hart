@@ -125,7 +125,7 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertEqual(given.os_of("Track X"), "OS Switch 1")
         # run() takes the parts from the master it is given: a master with no part rows leaves Switch 1's leg a part
         rows = [r for r in check.devices.load(check.DEVICE_MAP) if r["role"] != "part"]
-        master = self.tmp / devices.MASTER_FILE
+        master = self.tmp / devices.ONE_FILE
         master.write_text(check.devices.master_text(rows), encoding="utf-8")
         self.assertEqual(check.part_map(master), {})
         self.assertEqual(len(check.part_map(check.DEVICE_MAP)), 39)          # 14 staging, 11 main, 14 upper
@@ -177,8 +177,8 @@ class LayoutFactsTest(unittest.TestCase):
         data.mkdir()
         for name in DATA_FILES:
             (data / name).parent.mkdir(exist_ok=True)
-            if name == devices.MASTER_FILE:      # the master as one file (no field file beside it), edited as text
-                devices.one_file_copy(data / name)
+            if name == devices.MASTER_FILE:      # the master's two files, as the reader finds them in the folder
+                devices.pair_copy(data)
             else:
                 shutil.copy(check.facts.DATA / name, data / name)
         legs = data / "switches.csv"
@@ -195,8 +195,8 @@ class LayoutFactsTest(unittest.TestCase):
         data.mkdir(exist_ok=True)
         for name in DATA_FILES:
             (data / name).parent.mkdir(exist_ok=True)
-            if name == devices.MASTER_FILE:      # the master as one file (no field file beside it), edited as text
-                devices.one_file_copy(data / name)
+            if name == devices.MASTER_FILE:      # the master's two files, as the reader finds them in the folder
+                devices.pair_copy(data)
             else:
                 shutil.copy(check.facts.DATA / name, data / name)
         return data

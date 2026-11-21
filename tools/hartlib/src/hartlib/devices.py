@@ -135,15 +135,21 @@ class Files:
 
     @staticmethod
     def of(source: "Files | Path | str | None") -> "Files":
-        """The Files a reader's `source` names: None the repo's, a Files itself, or a master's path, with the field
-        file beside it when there is one there (a test's one-file copy has none)."""
+        """The Files a reader's `source` names: None the repo's, a Files itself, or a master's path. A path named
+        devices_generated.csv is one of a pair: DevicesError when devices_field.csv is not beside it. A path of any
+        other name is a one-file copy (a test's or a check's, one_file_copy), which holds every cell."""
         if source is None:
             return Files.here()
         if isinstance(source, Files):
             return source
         path = Path(source)
         beside = path.parent / FIELD_FILE
-        return Files(path, path.parent / "devices.columns.csv", beside if beside.is_file() else None)
+        if path.name == GENERATED_FILE:
+            if not beside.is_file():
+                raise DevicesError(f"{path}: {FIELD_FILE} is missing beside it (the master is the pair; a one-file "
+                                   f"copy has another name, such as {ONE_FILE})")
+            return Files(path, path.parent / "devices.columns.csv", beside)
+        return Files(path, path.parent / "devices.columns.csv", None)
 
     def but(self, **changes) -> "Files":
         return replace(self, **changes)
@@ -201,7 +207,9 @@ def check_field(rows: Iterable[Mapping[str, str]], name: str = FIELD_FILE) -> No
         if k in seen:
             bad.append(f"{at}: the key is twice in the file")
         seen.add(k)
-        if r["layer"] in LAYERS and (not r["level"] or r["level"] in LEVELS):
+        if r["layer"] not in LAYERS or (r["level"] and r["level"] not in LEVELS):
+            bad.append(f"{at}: level is one of {', '.join(LEVELS)} or empty, layer one of {', '.join(LAYERS)}")
+        elif not r["written_by"]:               # a writer's row is refused above, and has no place here
             ranks.append((_rank(r), k))
     for (a, ka), (b, kb) in zip(ranks, ranks[1:]):
         if b < a:
@@ -970,8 +978,9 @@ def one_file_copy(path: Path, files: "Files | Path | str | None" = None) -> Path
     """Write the merged view of the master (or of `files`) to `path` as a one-file master (no field file beside it:
     it holds every cell), for a test or a check that edits a copy row by row; the path written."""
     path = Path(path)
-    if (path.parent / FIELD_FILE).exists():
-        raise DevicesError(f"{path.parent}: a field file is there already, so {path.name} would merge with it")
+    if path.name == GENERATED_FILE:
+        raise DevicesError(f"{path}: a one-file copy takes another name ({ONE_FILE}); {GENERATED_FILE} is half a "
+                           "pair")
     path.write_text(master_text(load(files)), encoding="utf-8")
     return path
 

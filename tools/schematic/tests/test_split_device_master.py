@@ -1,6 +1,6 @@
 """split_device_master.py: the one-time split of devices.csv into devices_generated.csv and devices_field.csv
-(ADR-029 amendment, 2026-11-21). Its rule holds the committed pair (split(load()) gives both files byte for byte),
-and the commit that made the split merged back to the last devices.csv byte for byte."""
+(ADR-029 amendment, 2026-11-21). The commit that made the split merges back to the last devices.csv byte for byte,
+and the committed pair keeps the split's shape (an owner's routine edit of the field file changes neither)."""
 from __future__ import annotations
 
 import subprocess
@@ -23,16 +23,10 @@ def git(*args: str) -> subprocess.CompletedProcess:
 
 
 class TheCommittedPair(unittest.TestCase):
-    def test_the_rule_splits_the_merged_view_back_into_the_two_files(self):
-        files = devices.Files.here()
-        for path, text in sdm.texts(devices.load(files), files).items():
-            self.assertEqual(path.read_text(encoding="utf-8"), text, path.name)
-
     def test_every_staging_device_has_a_field_row_and_only_owner_cells(self):
         field = devices.field_index()
         staging = [r for r in devices.load() if r["level"] == "1" and r["role"] not in ("part", "spare")
                    and r["layer"] in ("turnout", "fb", "occupancy", "block")]
-        self.assertEqual(len(staging), 168)
         self.assertFalse([k for k in field if k[2].startswith("unused ")])     # a spare is wiring.csv's alone
         self.assertTrue(all(devices.key_of(r) in field for r in staging))
         for f in field.values():
@@ -50,10 +44,12 @@ class TheCommittedPair(unittest.TestCase):
                     self.assertEqual(g[c], "", f"{devices.key_text(devices.key_of(g))}: {c}")
         self.assertEqual(devices.redundant(devices.generated_rows(), devices.field_rows()), [])
 
-    def test_a_wired_block_keeps_the_owners_words_and_marks_its_detector(self):
-        f = devices.field_index()["1", "block", "OS Switch 1"]
-        self.assertEqual(f["jmri_comment"], "Brick CP, Switch 1; {occupancy}")
-        self.assertEqual(f["node"], "")                  # wiring.csv's pin gives it
+    def test_the_rule_marks_a_wired_blocks_detector_and_leaves_its_node_to_the_pins(self):
+        row = next(r for r in devices.load() if devices.key_of(r) == ("1", "block", "OS Switch 1"))
+        cells = sdm.field_cells(dict(row, jmri_comment="Brick CP, Switch 1; occupancy Block 4-2 / M2S401"),
+                                {"OS Switch 1"})
+        self.assertEqual(cells["jmri_comment"], "Brick CP, Switch 1; {occupancy}")
+        self.assertNotIn("node", cells)                  # wiring.csv's pin gives it
 
 
 class TheSplitCommit(unittest.TestCase):

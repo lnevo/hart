@@ -220,6 +220,17 @@ class ThePair(unittest.TestCase):
         self.assertEqual(D.load(self.files)[0]["notes"], "kept")
         self.assertEqual(len(D.load(self.files)), 2)              # the Store row went with the rewrite
 
+    def test_a_generated_path_with_no_field_file_beside_it_is_refused(self):
+        self.files.field.unlink()
+        with self.assertRaisesRegex(D.DevicesError, "devices_field.csv is missing beside it"):
+            D.load(self.files.master)
+        with self.assertRaisesRegex(D.DevicesError, "a one-file copy takes another name"):
+            D.one_file_copy(self.files.master)
+
+    def test_a_field_row_with_a_writer_is_refused_not_ranked(self):
+        with self.assertRaisesRegex(D.DevicesError, "written_by 'other.py'; a field row has no writer"):
+            D.check_field([field(), field("Switch 3", written_by="other.py")])
+
     def test_a_missing_field_file_is_an_error_once_it_is_named(self):
         self.files.field.unlink()
         with self.assertRaisesRegex(D.DevicesError, "cannot read it"):

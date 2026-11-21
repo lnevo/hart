@@ -23,8 +23,8 @@ class LoaderTest(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.data)
         for name in FILES:
             (self.data / name).parent.mkdir(exist_ok=True)
-            if name == devices.MASTER_FILE:      # the master as one file (no field file beside it), edited as text
-                devices.one_file_copy(self.data / name)
+            if name == devices.MASTER_FILE:      # the master's two files, as the reader finds them in the folder
+                devices.pair_copy(self.data)
             else:
                 shutil.copy(facts.DATA / name, self.data / name)
 

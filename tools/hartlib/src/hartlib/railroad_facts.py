@@ -90,10 +90,15 @@ def _where(path: Path, line: int) -> str:
     return f"{path.name} line {line}"
 
 
-def master_at(name: str, user_name: str, level, layer: str) -> str:
-    """A device master row as a message names it: its file and key, "devices_generated.csv: Switch 1 (level 1,
-    turnout)" (the master is two merged files, so a row has no line; hartlib.devices.key_text)."""
-    return f"{name}: {user_name} (level {level}, {layer})"
+def master_at(path: Path, user_name: str, level, layer: str) -> str:
+    """A device master row as a message names it: the file that holds it and its key, "devices_field.csv: Switch 1
+    (level 1, turnout)" for a row with the owner's cells, else the generated file (hartlib.devices.Index.where; the
+    master is two merged files, so a row has no line). A row the master at `path` does not hold (a caller's own) is
+    named with `path`'s file."""
+    from . import devices
+    row = {"level": str(level), "layer": layer, "user_name": user_name}
+    where = devices.index(path).where(row)
+    return where if ": " in where else f"{where}: {devices.key_text(devices.key_of(row))}"
 
 
 def read_rows(path: Path, required: Iterable[str], *, optional: Iterable[str] = (),
@@ -194,7 +199,7 @@ def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | No
     keys unique)."""
     out = []
     for line, r in read_staging_rows(path) if rows is None else rows:
-        where = master_at(path.name, r["user_name"], STAGING_LEVEL, r["layer"])
+        where = master_at(path, r["user_name"], STAGING_LEVEL, r["layer"])
         if not r["user_name"]:
             raise FactsError(f"{where}: user_name is empty")
         if r["dcc"] and not r["dcc"].isdigit():
@@ -387,7 +392,7 @@ def switch_turnouts(devices_csv: Path, rows: list[tuple[int, dict[str, str]]] | 
         if n is None or r["layer"] != "turnout":
             continue
         if n in out:
-            raise FactsError(f"{master_at(devices_csv.name, r['user_name'], STAGING_LEVEL, 'turnout')}: two rows "
+            raise FactsError(f"{master_at(devices_csv, r['user_name'], STAGING_LEVEL, 'turnout')}: two rows "
                              f"are both the turnout Switch {n}")
         out[n] = r
     return out
@@ -1092,7 +1097,7 @@ def read_device_map(path: Path) -> DeviceMap:
     seen: dict[tuple[str, str], int] = {}
     from . import devices
     for line, r in ((n, {c: v.strip() for c, v in row.items()}) for n, row in devices.device_map_lines(("2", "3"), path)):
-        where = master_at(path.name, r["user_name"], r["level"], r["layer"])
+        where = master_at(path, r["user_name"], r["level"], r["layer"])
         if r["layer"] not in DEVICE_LAYERS or not r["user_name"]:
             raise FactsError(f"{where}: layer is one of {', '.join(DEVICE_LAYERS)} and user_name is given")
         bad = device_facts(r)

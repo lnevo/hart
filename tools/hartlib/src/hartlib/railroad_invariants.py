@@ -25,9 +25,9 @@ def _at(n: int, r, where: str) -> str:
     return f"{where}: {_key(r)}"
 
 
-def _obj_at(name: str, r) -> str:
-    """A StagingDevice or DeviceRow as a message names it (railroad_facts.master_at)."""
-    return master_at(name, r.user_name, getattr(r, "level", STAGING_LEVEL), r.layer)
+def _obj_at(path, r) -> str:
+    """A StagingDevice or DeviceRow of the master at `path` as a message names it (railroad_facts.master_at)."""
+    return master_at(path, r.user_name, getattr(r, "level", STAGING_LEVEL), r.layer)
 
 
 def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
@@ -214,7 +214,7 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
             if address.startswith("M2"):
                 wired.add(node)
             if r.node and r.node != str(node):
-                bad.append(f"{_obj_at(name, r)}: {r.layer} {r.user_name} is on node {r.node}, but its address "
+                bad.append(f"{_obj_at(rr.sources.devices, r)}: {r.layer} {r.user_name} is on node {r.node}, but its address "
                            f"{address} is node {node}'s")
     level_of = {n.node: n for n in rr.lcos_nodes}
     for node, what in sorted(staging_nodes.items()):
@@ -319,11 +319,11 @@ def _device_map(rr: Railroad) -> list[str]:
             bad.append(f"Switch {s} ({sw.cp or 'local'}, level {sw.level}): no turnout row in {name}")
             continue
         if sw is None:
-            bad.append(f"{_obj_at(name, r)}: Switch {s} is in no control point and not a local switch (an area) in "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: Switch {s} is in no control point and not a local switch (an area) in "
                        f"{rr.sources.switches.name}")
             continue
         if (r.level, r.cp) != (sw.level, sw.cp):
-            bad.append(f"{_obj_at(name, r)}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
                        f"say level {sw.level} {sw.cp or 'local'}")
     nodes = {n.node: n for n in rr.lcos_nodes if n.level != 1}     # staging's nodes are as built: none is the map's
     # a helix block runs from staging up to main or upper: its detector may be on either main or upper level's node
@@ -332,7 +332,7 @@ def _device_map(rr: Railroad) -> list[str]:
     for r in dm.rows:
         if r.node and (not r.node.isdigit() or int(r.node) not in nodes or
                        (nodes[int(r.node)].level != r.level and r.user_name not in helix)):
-            bad.append(f"{_obj_at(name, r)}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
+            bad.append(f"{_obj_at(rr.sources.devices, r)}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
                        f"of {rr.sources.lcos_nodes.name}")
     return bad
 
@@ -349,7 +349,7 @@ def _name_clash(rr: Railroad) -> list[str]:
     for r in rr.staging_devices.rows:
         hit = dm.get((r.layer, r.user_name))
         if hit is not None and not (r.layer == "block" and r.user_name in helix):
-            out.append(f"{_obj_at(name, r)}: staging {r.layer} {r.user_name} is level {hit.level} "
+            out.append(f"{_obj_at(rr.sources.devices, r)}: staging {r.layer} {r.user_name} is level {hit.level} "
                        f"{r.layer} {hit.user_name} as well")
     return out
 

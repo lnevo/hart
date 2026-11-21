@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import sys
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
@@ -31,13 +31,19 @@ def child_text(element: ET.Element, tag: str) -> str:
 @dataclass(frozen=True)
 class Plant:
     """A field turnout row of devices.csv and its LCC alias row."""
-    where: str             # the row as a message names it (hartlib.devices.at: its key and file)
+    key: tuple             # the turnout row's key (level, layer, user_name)
     user: str              # Switch N
     system: str            # M2T...
     dcc: str
     alias: str             # the alias row's system name, MTT{dcc}
     alias_user: str        # DCC Switch N
     alias_comment: str     # the alias row's JMRI comment (devices.comment_of): its wiring, no DCC group
+    index: object = field(default=None, compare=False, repr=False)     # the master's devices.Index
+
+    @property
+    def where(self) -> str:
+        """The turnout row as a message names it (devices.Index.where: its key and the file holding it)."""
+        return self.index.where(dict(zip(("level", "layer", "user_name"), self.key)))
 
 
 def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]:
@@ -45,25 +51,25 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
     refused, problems): a refused row is a field turnout with no DCC address or no LCC alias row, or one whose alias's
     system name is not MTT{dcc}; an alias with no turnout row is a problem too. DevicesError when the master cannot be
     read."""
-    rows = list(enumerate(devices.load(csv_path), 2))
-    aliases = {r["user_name"]: r for _n, r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
+    ix = devices.index(csv_path)               # built once; a row's location text only when a message needs it
+    rows = [r for _n, r in ix.lines]
+    aliases = {r["user_name"]: r for r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
     out, refused, bad = {}, set(), []
-    for _n, r in rows:
+    for r in rows:
         if r["role"] != "turnout" or r["assignment"] != "field":
             continue
-        at = f"{devices.at(r, csv_path)} ({r['system_name']})"
         a = aliases.pop(f"DCC {r['user_name']}", None)
         problem = ("a field turnout with no dcc" if not r["dcc"] else
                    f"no LCC alias row DCC {r['user_name']}" if a is None else
                    f"its alias DCC {r['user_name']} is {a['system_name']}, not MTT{r['dcc']} (its dcc)"
                    if a["system_name"] != f"MTT{r['dcc']}" else "")
         if problem:
-            bad.append(f"{at}: {problem}")
+            bad.append(f"{ix.where(r)} ({r['system_name']}): {problem}")
             refused.add(r["system_name"])
         else:
-            out[r["system_name"]] = Plant(at, r["user_name"], r["system_name"], r["dcc"], a["system_name"],
-                                          a["user_name"], devices.comment_of(a))
-    bad += [f"{csv_path.name}: alias {u} ({a['system_name']}) has no field turnout row {u.removeprefix('DCC ')}"
+            out[r["system_name"]] = Plant(devices.key_of(r), r["user_name"], r["system_name"], r["dcc"],
+                                          a["system_name"], a["user_name"], devices.comment_of(a), ix)
+    bad += [f"{ix.where(a)}: alias {u} ({a['system_name']}) has no field turnout row {u.removeprefix('DCC ')}"
             for u, a in sorted(aliases.items())]
     return out, refused, bad
 

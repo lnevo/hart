@@ -26,6 +26,7 @@ class Copy(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.src = R.Sources.under(self.tmp / "data", tables_xml=REPO.tables)
+        self.src = self.src.but(devices=self.src.devices.with_name(_devices.ONE_FILE))     # a one-file copy
         for name in DATA_FILES:
             dst = getattr(self.src, name)
             dst.parent.mkdir(parents=True, exist_ok=True)
@@ -564,7 +565,7 @@ class Invariants(Copy):
         self.assertEqual(len(got), 2, got)          # an LCC alias carries its turnout's DCC address: no clash
         drop(self.src.devices, ("1", "turnout", "Switch 997"))
         change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="")
-        self.assertIn("Switch 1 (switches.csv): devices_generated.csv has no staging turnout row with a system_name and dcc",
+        self.assertIn("Switch 1 (switches.csv): devices.csv has no staging turnout row with a system_name and dcc",
                       self.problems("staging-devices"))
 
     def test_a_staging_mast_on_a_block_staging_has_not(self) -> None:
@@ -599,7 +600,7 @@ class Invariants(Copy):
         drop(self.src.devices, self.key("turnout", "Switch 103"))
         change(self.src.devices, self.key("turnout", "Switch 107"), level="3")
         got = self.problems("device-map")
-        self.assertIn("Switch 103 (local, level 2): no turnout row in devices_generated.csv", got)
+        self.assertIn("Switch 103 (local, level 2): no turnout row in devices.csv", got)
         self.assertTrue(any("Switch 107 is level 3 CP 107, the control points say level 2 CP 107" in p for p in got),
                         got)
 
@@ -640,7 +641,7 @@ class Invariants(Copy):
                              system_name="M2T1208", dcc="107")
         got = self.problems("name-clash", upto="device_map")
         self.assertEqual(len(got), 1, got)
-        self.assertEqual(got[0], "devices_generated.csv: Switch 107 (level 1, turnout): staging turnout Switch 107 is "
+        self.assertEqual(got[0], "devices.csv: Switch 107 (level 1, turnout): staging turnout Switch 107 is "
                                  "level 2 turnout Switch 107 as well")
 
     def test_level_masts(self) -> None:

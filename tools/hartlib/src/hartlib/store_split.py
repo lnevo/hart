@@ -66,10 +66,16 @@ VERSION = ("jmriversion", None)
 VERSION_PARTS = ("major", "minor", "test")
 # Top-level tags that never go into the template: the panels and the file history.
 NEVER_TEMPLATE = frozenset({PANEL, "filehistory", "paneleditor"})
-# The bean sections a devices.csv row can give, and the layers that give them.
+def _row_at(r: Mapping[str, str]) -> str:
+    """A master row as a review note names it: the file that holds it (a writer's row is devices_generated.csv's, the
+    owner's level-less device devices_field.csv's) and its layer and user name."""
+    return f"{devices.GENERATED_FILE if r['written_by'] else devices.FIELD_FILE} row {r['layer']} {r['user_name']!r}"
+
+
+# The bean sections a master row can give, and the layers that give them.
 BEAN_LAYERS = {"turnouts": ("turnout",), "sensors": ("fb", "occupancy", "sensor"), "signalheads": ("head",),
                "signalmasts": ("mast",), "blocks": ("block",), "layoutblocks": ("block",)}
-# Names the build makes (on top of devices.csv rows and the main and upper naming rule).
+# Names the build makes (on top of the master's rows and the main and upper naming rule).
 BUILD_PREFIXES = ("IQ$HART:", "IQC$HART:", "IQDA$HART:", "IS:HART:", "IT:HART:", "IH:HART:", "IB:HART:")
 
 
@@ -324,7 +330,7 @@ def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) ->
         if key[1] in NEVER_TEMPLATE or key[1].lower().endswith("editor"):
             return "the schematic (a panel is never in the template)"
         if key[1] in {t for t, _ in tb.SECTIONS}:
-            return "devices.csv and the build (a section of a known kind with another connection)"
+            return "the device master and the build (a section of a known kind with another connection)"
         for feature, tags in parked.WHOLE.items():
             if key[1] in tags:
                 return f"the parked {parked.FEATURES[feature]}"
@@ -332,7 +338,7 @@ def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) ->
     if kind != "bean":
         return None
     if key[1] in tb.MASTER_SECTIONS:
-        return "devices.csv (a device needs a row with its level, cp and role)"
+        return f"the device master (a device needs a row in {devices.FIELD_FILE} with its level, cp and role)"
     return claimed_name(key, el, rows)
 
 
@@ -352,7 +358,7 @@ def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
                     return f"the parked {parked.FEATURES[feature]}"
         for r in rows:
             if name in (r["user_name"], r["jmri_name"], r["system_name"]):
-                return f"devices.csv row {r['layer']} {r['user_name']!r}"
+                return _row_at(r)
     return None
 
 
@@ -433,12 +439,12 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         old, new = value(g, p), value(s, p)
         found = rows_of(rindex, key, g)
         if len(found) != 1:
-            out.append((p, None, "no devices.csv row gives this bean" if not found else
-                        f"{len(found)} devices.csv rows give this bean; change the right one by hand"))
+            out.append((p, None, "no row of the device master gives this bean" if not found else
+                        f"{len(found)} rows of the device master give this bean; change the right one by hand"))
             continue
         i = found[0]
         r = rows[i]
-        who = f"devices.csv row {r['layer']} {r['user_name']!r}"
+        who = _row_at(r)
         if r["written_by"] == "build_device_map.py" and r["level"] == "1" and r["layer"] in ("turnout", "fb"):
             out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in devices_field.csv and in "
                                  "wiring.csv's row, which is keyed by the name"))
@@ -496,7 +502,7 @@ def _name_holder(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
             for col in cols:
                 if r[col] != name:
                     continue
-                at = f"devices.csv row {r['layer']} {r['user_name']!r}"
+                at = _row_at(r)
                 if col == "system_name" and what == "system name" and r["assignment"] in ("virtual", "none"):
                     return (f"{at} plans this device (system_name {name!r}, assignment {r['assignment']}); to bring "
                             "it into JMRI, set that row's assignment to field and rebuild, or give the Store's device "
@@ -547,7 +553,7 @@ def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[
                     also=tuple((k, el) for k, _, el in got[1:]))
         if taken:
             found.append((DROPPED, key, dict(info, what="added in the Store", note=(
-                f"devices.csv row {taken[0]['layer']} {taken[0]['user_name']!r} has its name; rename one in PanelPro"))))
+                f"{_row_at(taken[0])} has its name; rename one in PanelPro"))))
             continue
         found.append((DEVICE, key, dict(info, what="added in the Store", edits=(RowAdd(tuple(row.items())),),
                                         note=f"merge adds a level-less devices_field.csv {row['layer']} row "
@@ -735,7 +741,7 @@ def _source(key: tuple) -> str:
     if kind == "logic":
         return "the discovery (jmri/layouts/hart/scripts/run_sml_discover.sh)"
     if kind == "bean" and key[1] in tb.MASTER_SECTIONS:
-        return "devices.csv"
+        return f"the device master ({devices.FIELD_FILE} for the owner's cells, else the builders' inputs)"
     return "the Layout Editor build's sources (wiki/pipelines/schematic-panels.md)"
 
 

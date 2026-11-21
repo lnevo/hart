@@ -42,7 +42,7 @@ class StaleHeadCommentsTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.files = devices.Files.under(self.tmp).but(field=None)      # a one-file copy, edited row by row
+        self.files = devices.Files.under(self.tmp).but(master=self.tmp / devices.ONE_FILE, field=None)   # one file
         real = devices.Files.here()
         devices.one_file_copy(self.files.master)
         shutil.copyfile(real.dictionary, self.files.dictionary)

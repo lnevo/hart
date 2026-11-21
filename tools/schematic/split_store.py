@@ -194,6 +194,8 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
         tb.read_template(TEMPLATE)
         if edits:
             devices.write_field(rows, DEVICE_FILES.but(field=DEVICES))
+    except devices.DevicesError as exc:
+        return undo([f"the new {DEVICES.name}: {exc}"])
     except (tb.TablesBuildError, OSError) as exc:
         return undo([f"the new template: {exc}"])
     built = subprocess.run([sys.executable, str(BUILD)], cwd=ROOT, env=build_env(), capture_output=True, text=True)

@@ -224,7 +224,7 @@ class Files(unittest.TestCase):
         self.addCleanup(shutil.rmtree, tmp)
         rows = [dict(r) for r in sdm.devices.load(sdm.DEVICE_MAP)]        # the master's rows, whole
         edit(rows)
-        out = tmp / devices.MASTER_FILE
+        out = tmp / devices.ONE_FILE
         out.write_text(sdm.devices.master_text(rows), encoding="utf-8")
         return out, sdm.read_device_rows(out)
 
