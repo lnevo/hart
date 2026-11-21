@@ -89,6 +89,25 @@ that belongs to step 4.
 and `railroad_invariants.py` lose their level branches; approval fingerprints are kept per panel and desk. Tests come
 first (AGENTS.md "Working on existing scripts").
 
+**Layout Editor part: done** (branch `agent/claude/level-step4-le`, 2026-11-20; candidates byte-identical, pinned by
+`tools/schematic/tests/test_le_tables.py` and `test_build_layout_le.BaseNames`). `build_layout_le.py`, `le_tables.py`
+and `le_checks.py` read a band's level from its plan-overrides section (`le_common.band_levels`) and which levels the
+base holds from `tables_build.GENERATED_LEVELS` (`le_common.BASE_LEVELS`), not band index 0 or the `--levels` flag:
+the staging guard (`level_items`, `check_staging_unchanged`: the staging candidate's bands), the panel frame and the
+startup positions follow that. One mast check for every level (`le_checks.check_masts`, with each mast file's switch
+turnout from `mast_turnouts`) replaces `check_device_masts` and `check_level_slots`; one bound-names check
+(`le_tables.check_bound`, after the build adds its levels' beans) replaces the three staging-only checks. Left, as
+real facts until steps 5 and 6 or outside these files:
+- staging's names come from `staging_device_map.load` (switches.csv, switch_legs.csv, `staging_masts.csv`), main and
+  upper's from devices.csv and `main_upper_masts.csv` (`le_names.level_names`, `read_level_masts`): two sources until
+  staging's legs and detectors are in the device master;
+- staging alone is drawn at its blocks' plan lengths (`staging_lengths`) and with `joins: other` when the levels are
+  drawn with it; giving main and upper the same would move their track (geometry is fixed);
+- the staging candidate is the approved base the three-level candidate is drawn on and guarded against (`--levels`
+  stays as the choice of candidate);
+- `le_names.py` (placeholder names, `level_masts`, `shared_turnouts`, `named_bands`) still skips the band keyed
+  `Staging`; it was outside this part.
+
 ### 5. One block layer (with step 4)
 
 Staging's block rows are kept by hand in its device rows, with lengths in `block_lengths.csv`; main and upper generate
