@@ -118,5 +118,46 @@ class OutOfServiceTests(unittest.TestCase):
         self.assertEqual(cars.out_of_service_ids(rows), {"NW2"})
 
 
+class SeedCopyTests(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        tmp = Path(self._tmp.name)
+        self.data = tmp / "data"
+        self.inputs = tmp / "inputs"
+        self.data.mkdir()
+        self.inputs.mkdir()
+        self.masters = (self.data / "a.csv", self.data / "b.xml")
+        for m in self.masters:
+            m.write_text("master " + m.name)
+            (self.inputs / m.name).write_text("master " + m.name)
+
+    def test_same(self):
+        lines = cars.seed_copy_report(self.inputs, self.masters)
+        self.assertEqual(lines, ["  a.csv: same", "  b.xml: same"])
+
+    def test_differs_names_the_fix(self):
+        (self.inputs / "b.xml").write_text("old")
+        lines = cars.seed_copy_report(self.inputs, self.masters)
+        self.assertEqual(lines[0], "  a.csv: same")
+        self.assertEqual(lines[1], "  b.xml: differs")
+        self.assertIn("bin/cars publish", lines[-1])
+
+    def test_missing_copy_differs(self):
+        (self.inputs / "a.csv").unlink()
+        lines = cars.seed_copy_report(self.inputs, self.masters)
+        self.assertIn("differs", lines[0])
+
+    def test_submodule_missing_is_said(self):
+        lines = cars.seed_copy_report(self.inputs / "nope", self.masters)
+        self.assertEqual(len(lines), 1)
+        self.assertIn("submodule", lines[0])
+
+    def test_missing_master_stops(self):
+        self.masters[0].unlink()
+        with self.assertRaises(SystemExit):
+            cars.seed_copy_report(self.inputs, self.masters)
+
+
 if __name__ == "__main__":
     unittest.main()
