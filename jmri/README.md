@@ -19,4 +19,4 @@ See [`layouts/README.md`](layouts/README.md). Active layout is **`hart`** (`expo
 
 ## Documentation
 
-Pipelines: [`wiki/pipelines/README.md`](../wiki/pipelines/README.md) · landmines: [`docs/AI_CONTEXT.md`](../docs/AI_CONTEXT.md)
+Pipelines: [`wiki/pipelines/README.md`](../wiki/pipelines/README.md) · agent notes: [`wiki/home.md`](../wiki/home.md)

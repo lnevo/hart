@@ -192,7 +192,10 @@ class NoHardCodedHosts(unittest.TestCase):
             if path.name in ("pack_roster_stage.sh", "profile_tables_guard.sh", "panelpro_session.sh", "operating.sh",
                              "run_panelpro_roundtrip.sh"):
                 continue  # local packing, Mac-only helpers and the Mac PanelPro round trip: no host
-            self.assertIn("load_env.sh", path.read_text(encoding="utf-8"), path.name)
+            text = path.read_text(encoding="utf-8")
+            if path.name == "sync_hart_package.sh":   # the entry point sources it through the steps' shared file
+                text += (ROOT / "tools/hosts/deploy/common.sh").read_text(encoding="utf-8")
+            self.assertIn("load_env.sh", text, path.name)
 
     def test_no_host_literals(self) -> None:
         for path in self.MAC_SIDE:

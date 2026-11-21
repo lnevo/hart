@@ -199,25 +199,35 @@ def unstampable(root: Path = ROOT) -> str | None:
     return None
 
 
-def stamp(name: str, cmd: list[str] | tuple[str, ...] = (), root: Path = ROOT) -> str:
-    """The sha256 of step `name` as described in the module docstring."""
-    step = STEPS[name]
+def digest(label: str, cmd, patterns, root: Path = ROOT, publishes: bool = False, hasher=None, extra: str = "", files=None) -> str:
+    """The sha256 over a job's label and command line, the Python, SCHEMATIC_REQUIRED, the plugin's state, `extra`, the
+    merge base with origin/main when `publishes`, and every file `patterns` name. Shared with tools/audit/check_stamps.py;
+    `hasher(path)` may stand in for reading the file (a cache keyed on its size and mtime); `files` replaces the expansion
+    of `patterns` (a caller that walks a wide tree and prunes it)."""
     h = hashlib.sha256()
 
-    def put(label: str, text: str) -> None:
-        h.update(f"{label}\0{text}\0".encode())
+    def put(tag: str, text: str) -> None:
+        h.update(f"{tag}\0{text}\0".encode())
 
-    put("step", name)
+    put("step", label)
     put("cmd", " ".join(cmd))
     put("python", f"{sys.version_info[:3]} {os.path.realpath(sys.executable)} {os.environ.get('PYTHONPATH', '')}")
     put("schematic-required", os.environ.get("SCHEMATIC_REQUIRED", ""))
     put("plugin", plugin_state(root))
-    if step.publishes:
+    if extra:
+        put("extra", extra)
+    if publishes:
         put("merge-base", _git("merge-base", "HEAD", "origin/main", cwd=root))
-    files = expand((*step.inputs, *step.outputs, *CODE), root)
-    for p in files:
-        put(p.relative_to(root).as_posix(), hashlib.sha256(p.read_bytes()).hexdigest())
+    hasher = hasher or (lambda p: hashlib.sha256(p.read_bytes()).hexdigest())
+    for p in (files if files is not None else expand(patterns, root)):
+        put(p.relative_to(root).as_posix(), hasher(p))
     return h.hexdigest()
+
+
+def stamp(name: str, cmd: list[str] | tuple[str, ...] = (), root: Path = ROOT) -> str:
+    """The sha256 of step `name` as described in the module docstring."""
+    step = STEPS[name]
+    return digest(name, cmd, (*step.inputs, *step.outputs, *CODE), root, step.publishes)
 
 
 def _file(name: str, store: Path) -> Path:

@@ -107,7 +107,9 @@ if ! git -C "$ROOT" cat-file -e "$SHA:$SYNC_REL" 2>/dev/null; then
   exit 1
 fi
 # grep reads to the end: with -q it stops at the match, git can die of SIGPIPE, and pipefail refuses a good commit.
-if ! git -C "$ROOT" show "$SHA:$SYNC_REL" | grep 'write_deploy_stamp' >/dev/null; then
+# The stamp function is in the entry point of older commits and in tools/hosts/deploy/common.sh since the deploy was split into steps.
+if ! { git -C "$ROOT" show "$SHA:$SYNC_REL"; git -C "$ROOT" show "$SHA:tools/hosts/deploy/common.sh" 2>/dev/null || true; } \
+    | grep 'write_deploy_stamp' >/dev/null; then
   echo "REFUSED: $SHORT predates the deploy stamp (cats/deploy_stamp.txt), so make deploy-status" \
     "could not tell what the hosts run. Pick a later commit." >&2
   exit 1

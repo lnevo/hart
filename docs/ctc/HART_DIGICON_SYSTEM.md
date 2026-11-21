@@ -1,5 +1,7 @@
 # HART Digicon (CATS) — System Overview
 
+End-to-end overview of the Digicon CATS panels, how they talk to JMRI and MQTT, and how LCOS signal heads are addressed.
+
 **Publication:** DS-DIGICON · Rev B · Eff 2026-11-09 (Rev A 2026-08-11)  
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
 **Scope:** Digicon CTC / ABS panels, JMRI MQTT bridge, LCOS signal heads

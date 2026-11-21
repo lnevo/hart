@@ -1,5 +1,7 @@
 # Block lengths from the AnyRail plan (Part A, first pass)
 
+First-pass block lengths for the 17 blocks of the speed-matching test loop, read from the AnyRail plan to feed Part A of the re-run plan.
+
 Written 2026-11-13 for [`RERUN_PLAN.md`](RERUN_PLAN.md) Part A. Covers the 17 blocks of the
 test loop. The yard, spurs and engine terminal keep their old values for now.
 

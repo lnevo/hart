@@ -1,5 +1,7 @@
 # Web server migration
 
+Status: active
+
 - **Owner:** lnevo
 - **Status:** 2026-11-19. Planned, not started. Waits on the owner's AWS access key (step 1).
 - **Server today:** www.easte.net, the host of www.hartrailroad.com ([`www/README.md`](../../www/README.md), server notes). It is an Amazon Lightsail instance (512 MB RAM, 20 GB disk) running Ubuntu 18.04, VestaCP 0.9.8, nginx 1.25.0 from nginx.org, PHP 7.2 and MySQL 5.7 from Ubuntu, and Exim and Dovecot for mail. Besides hartrailroad.com it hosts the owner's easte.net sites and WordPress sites for other users (WordPress 6.9.12, auto-update on).
