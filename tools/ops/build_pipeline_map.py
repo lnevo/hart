@@ -138,15 +138,16 @@ def esc(s: str) -> str:
 PAGE_TEMPLATE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>HART pipeline map</title>
+<title>HART pipeline map</title>__SITEHEAD__
 <meta name="description" content="The source files, scripts and generated outputs in the HART repository, drawn as boxes and arrows by lane. Pick a file to see what feeds it and what it feeds, from the schematic to the panels, tables.xml and the website.">
 <style>
 html,body{margin:0;height:100%;font:13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fafafa}
-#wrap{position:fixed;inset:0;overflow:hidden;cursor:grab}
+#stage{position:fixed;inset:0}
+#wrap{position:absolute;inset:0;overflow:hidden;cursor:grab}
 #wrap.drag{cursor:grabbing}
 svg{width:100%;height:100%;display:block;user-select:none}
 .panel{background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-#bar{position:fixed;top:10px;left:10px;z-index:5;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+#bar{position:absolute;top:10px;left:10px;z-index:5;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
  max-width:calc(100vw - 420px)}
 #bar input[type=search]{width:170px;padding:4px 6px}
 #bar #file{width:260px;padding:4px 6px}
@@ -164,15 +165,15 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #lanelist{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.9}
 #lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
-#legend{position:fixed;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
+#legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
-#nav{position:fixed;right:10px;bottom:10px;z-index:6;padding:4px;cursor:crosshair;touch-action:none;user-select:none}
+#nav{position:absolute;right:10px;bottom:10px;z-index:6;padding:4px;cursor:crosshair;touch-action:none;user-select:none}
 #nav[hidden]{display:none}
 #nav svg{display:block;width:auto;height:auto}
 #nav .vr{fill:rgba(220,38,38,.08);stroke:#dc2626;stroke-width:2;vector-effect:non-scaling-stroke}
 #nav.focus rect.n{opacity:.2}
 #nav.focus rect.n.on{opacity:1}
-#info{position:fixed;top:10px;right:10px;bottom:10px;width:360px;z-index:5;padding:12px 14px;overflow:auto;display:none}
+#info{position:absolute;top:10px;right:10px;bottom:10px;width:360px;z-index:5;padding:12px 14px;overflow:auto;display:none}
 #info h2{font-size:16px;margin:0 0 4px}
 #info code{font-size:12px;word-break:break-all}
 #info ul{padding-left:18px;margin:4px 0 10px}
@@ -204,7 +205,8 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 @media (max-width:900px){#bar{right:10px;max-width:none} #bar input[type=search],#bar #file{width:120px}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
  #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
-</style></head><body>
+__SITECSS__</style></head><body>__SITEHEADER__
+<div id="stage">
 <div id="wrap"></div>
 <div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
 <label>File <input list="files" id="file" placeholder="Pick a file to see its whole chain…" autocomplete="off"></label>
@@ -238,10 +240,39 @@ Parked and retired boxes are hidden until ticked. The address bar
 keeps the view, so it can be bookmarked or shared.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
+</div>
 <script>const DATA = __DATA__;</script>
 <script>
 __SCRIPT__
-</script></body></html>
+</script>__SITESCRIPT__</body></html>
+"""
+
+
+# Website copy only: the site stylesheet and header, the map filling the space under the header, panels in site tokens.
+SITE_HEAD = '\n<link rel="stylesheet" href="../css/ops.css">'
+SITE_HEADER = '\n<header class="site-header" data-ops-header></header>'
+SITE_SCRIPT = ('<script src="../js/nav.js"></script>'
+               '<script>HARTOps.mountChrome("behind-pipeline-map").catch(function (e) { console.error(e); });</script>')
+SITE_CSS = """
+/* site look: the page is a column of site header and map; the panels float over the map in site tokens */
+html,body{height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);background:var(--paper)}
+#stage{position:relative;inset:auto;flex:1;min-height:0;background:var(--paper-2)}
+.panel{background:var(--card);border:1px solid var(--rule);border-radius:6px;box-shadow:var(--shadow);color:var(--ink)}
+#bar h1{font:700 1.35rem/1 var(--font-display);letter-spacing:.04em;color:var(--brand);margin:0 8px 0 0}
+#bar input,#bar button,#bar summary{font:inherit;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:4px}
+#bar button{cursor:pointer}
+#bar button:hover,#lanes summary:hover{border-color:var(--brand-2)}
+#back,#lanelist a,#info a{color:var(--brand-2)}
+#view{color:var(--ink-soft)}
+#info h2{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
+#info .off{color:var(--muted)}
+#legend summary{cursor:pointer}
+#legend b,#info b{color:var(--ink)}
+#nav .vr{fill:rgba(179,58,58,.08);stroke:var(--signal)}
+svg.focus .edge.on{stroke:var(--brand-2)}
+svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
+.node .t,.node .d{font-family:var(--font-body)}
 """
 
 
@@ -274,7 +305,7 @@ def check_public_page(page: str) -> None:
         raise GraphError("the public page holds the private name")
 
 
-def render(data: dict, back: str = "") -> str:
+def render(data: dict, back: str = "", site: bool = False) -> str:
     legend = "".join(
         f'<div><span class="sw" style="background:{fill};border-color:{ink}"></span>{esc(label)}</div>'
         for label, fill, ink in KINDS.values()
@@ -292,7 +323,11 @@ def render(data: dict, back: str = "") -> str:
     counts = f'{len(data["nodes"])} boxes, {len(data["edges"])} links'
     back_link = f'<a id="back" href="{esc(back)}">← Inside the repository</a>' if back else ""
     return (
-        PAGE_TEMPLATE.replace("__BACK__", back_link)
+        PAGE_TEMPLATE.replace("__SITEHEAD__", SITE_HEAD if site else "")
+        .replace("__SITECSS__", SITE_CSS if site else "")
+        .replace("__SITEHEADER__", SITE_HEADER if site else "")
+        .replace("__SITESCRIPT__", SITE_SCRIPT if site else "")
+        .replace("__BACK__", back_link)
         .replace("__LEGEND__", legend)
         .replace("__DATE__", esc(data.get("updated", "")))
         .replace("__COUNTS__", counts)
@@ -316,7 +351,7 @@ def main(argv: list[str] | None = None) -> int:
     except GraphError as err:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
-    page = render(public_copy(data) if args.public else data, args.back)
+    page = render(public_copy(data) if args.public else data, args.back, args.public)
     if args.public:
         try:
             check_public_page(page)
