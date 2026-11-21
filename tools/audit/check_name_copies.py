@@ -11,7 +11,7 @@ the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename
 `current` and the new one as `proposed` (ADR-005), so after a rename the old name
 is no longer current, and every hand-kept copy of it fails here with its file and line.
 A `proposed` name that neither an identity row nor tables.xml holds is not current.
-Since 2026-11-20 the name map is a view of devices.csv and holds no alias rows (ADR-029), so a track
+Since 2026-11-20 the name map is the pnm_ columns of devices.csv and holds no alias rows (ADR-029), so a track
 name that is no longer anything's is not matched at all: only a Mast, an OS Switch or a name the map or tables.xml
 still holds is checked. The rename checklist therefore greps for the old name itself.
 
@@ -57,13 +57,10 @@ SKIP_PREFIXES = (
     # the tables do not hold (hartlib.tables_build.merge_discovered)
     "jmri/layouts/hart/data/schematic/discovered_sml.xml",
     "jmri/layouts/hart/data/baselines/",          # capture_public_name_baseline.py --check
-    # the generated files of the schematic data; its hand-kept files (the staging device map, the overrides) are read
+    # the generated files of the schematic data; its hand-kept files (the overrides) are read
     "jmri/layouts/hart/data/schematic/signals.json",                  # both sections generated from the mast files:
                                                                       # build_signals.py --check
     "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
-    "jmri/layouts/hart/data/public_name_map.csv",                     # generated from devices.csv (hartlib.devices check)
-    "jmri/layouts/hart/data/schematic/device_map_staging.csv",        # generated from devices.csv (hartlib.devices check)
-    "jmri/layouts/hart/data/schematic/device_map_main_upper.csv",     # generated from devices.csv (hartlib.devices check)
     "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
     "www/data/",                                  # build_tables_browser / build_layout_index --check

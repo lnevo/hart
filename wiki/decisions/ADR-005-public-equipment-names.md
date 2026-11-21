@@ -9,7 +9,7 @@
 
 Public names grew as geographic sentences (`West Yard West East Main Ext`) because West Yard was the first CATS plant drawn well. Switch numbers 100–119 are already the railroad. MQTT system names (`M2T408`, `IH438`) are hardware and must stay.
 
-> **Amended 2026-11-20 by ADR-029.** The mapping source of record is `jmri/layouts/hart/data/devices.csv`. A rename is made in a row's `user_name`; `public_name_map.csv` is generated from `devices.csv` and holds identity rows only. The alias history (the `current` != `proposed` rows) is dropped, and `apply_public_names.py`, `apply_public_names_tree.py` and `sync_public_name_map.py` are retired with it. The sections below record how the names were first applied.
+> **Amended 2026-11-20 by ADR-029.** The mapping source of record is `jmri/layouts/hart/data/devices.csv`. A rename is made in a row's `user_name`; `public_name_map.csv` was retired (R9e): its hardware, DCC, control point and wiring comment sit in the `pnm_` columns of `devices.csv`. The alias history (the `current` != `proposed` rows) is dropped, and `apply_public_names.py`, `apply_public_names_tree.py` and `sync_public_name_map.py` are retired with it. The sections below record how the names were first applied.
 
 ## Decision — one grammar
 

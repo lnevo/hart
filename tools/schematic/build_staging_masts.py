@@ -37,9 +37,8 @@ next ordinal of staging's thousand (mast_plan.virtual_system_names); a dropped o
 retired_virtual_masts.csv.
 
 Writes (jmri/layouts/hart/data/schematic/): staging_masts.csv, staging_signals.csv, and the staging mast and head
-rows of ../devices.csv (written_by build_staging_masts.py; hartlib.devices holds it to those rows), then the three
-files devices.csv generates, device_map_staging.csv among them (read by no builder; each mast and head row's
-system_name and jmri_name are its JMRI name; there is no planned physical head for the internal ones).
+rows of ../devices.csv (written_by build_staging_masts.py; hartlib.devices holds it to those rows). Each mast and
+head row's system_name and jmri_name are its JMRI name; there is no planned physical head for the internal ones.
 """
 from __future__ import annotations
 
@@ -66,7 +65,7 @@ WRITES = ("mast", "head")              # the layers of the devices.csv rows this
 
 
 def device_files() -> devices.Files:
-    """The master and its generated files as build() uses them: DEVICE_MAP, as it is when it runs (a test may patch it)."""
+    """The master (the only device file) as build() uses it: DEVICE_MAP, as it is when it runs (a test may patch it)."""
     return devices.Files.under(DEVICE_MAP.parent)
 CPS = sdm.CPS
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)

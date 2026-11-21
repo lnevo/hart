@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-11-17 (recorded 2026-11-19)
 - **Deciders:** lnevo
+- **Amended by:** ADR-029. `device_map_staging.csv` was retired (R9e); its rows are the level 1 rows of `devices.csv`.
 
 ## Context
 

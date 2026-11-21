@@ -29,6 +29,11 @@ def rows_of(text: str) -> list[dict]:
     return list(csv.DictReader(text.splitlines()))
 
 
+def staging_rows(master_text: str) -> list[dict]:
+    """The staging rows of a master's text, in the old device-map form."""
+    return devices.device_map_rows(rows_of(master_text), ("1",))
+
+
 WIRED = row("head", "Head 6LB", "IH432", node="4", notes="wired (owner, 2026-11-18)")
 MAST = row("mast", "Mast 6LB", "IF$shsm:basic:one-searchlight(IH432)", node="4")
 INTERNAL = row("head", "Head 2L Top", "IH:HART:C1:2L_Top", notes="internal, not wired")
@@ -115,8 +120,7 @@ class Rebuild(unittest.TestCase):
         head rows it gives are the ones bsm holds); returns ({path name: text}, generated masts)."""
         with tempfile.TemporaryDirectory() as d:
             real = devices.Files.here()
-            files = real.but(master=Path(d) / "devices.csv", staging=Path(d) / real.staging.name,
-                             main_upper=Path(d) / real.main_upper.name, name_map=Path(d) / real.name_map.name)
+            files = real.but(master=Path(d) / "devices.csv")
             held = list(devices.load(real))
             rows = edit(devices.device_map_rows(held, ("1",)))
             prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
@@ -145,7 +149,7 @@ class Rebuild(unittest.TestCase):
         return edit
 
     def test_the_wired_head_is_kept(self):
-        rows = rows_of(self.want[devices.Files.here().staging])      # the generated staging file: what the master gives
+        rows = staging_rows(self.want[devices.Files.here().master])      # the master the build gives, its staging rows
         head = [r for r in rows if r["layer"] == "head" and r["user_name"] == "Head 6LB"]
         self.assertEqual([(r["system_name"], r["jmri_name"], r["node"]) for r in head], [("IH432", "IH432", "4")])
         mast = next(r for r in rows if r["user_name"] == "Mast 6LB")
@@ -154,7 +158,7 @@ class Rebuild(unittest.TestCase):
 
     def test_a_newly_wired_head_is_kept(self):
         out, _gen = self.build_with(self.wire("Head 2R", "IH999", "9"))
-        rows = rows_of(out[devices.Files.here().staging.name])
+        rows = staging_rows(out[devices.Files.here().master.name])
         head = next(r for r in rows if r["user_name"] == "Head 2R")
         self.assertEqual((head["jmri_name"], head["node"], head["notes"]), ("IH999", "9", "wired (test)"))
         mast = next(r for r in rows if r["user_name"] == "Mast 2R")

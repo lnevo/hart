@@ -91,7 +91,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
-- Patch or wrap JMRI or CATS. Both are stock installs; fix the data in `jmri/layouts/hart/output/tables.xml` instead.
+- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices.csv`) or the template instead.
 - Leave the LCOS bridge (`serial_to_mqtt`) running detached. It is operator-owned and runs in a visible foreground console. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction and confirmation.
 - Spell out what HART stands for in any file, commit or page. The repo and website are public.
@@ -109,4 +109,4 @@ New documents go in `docs/` (ADR-010); run the index command after adding one.
 - Git / branches, and where agent instructions live: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md)
 - Submodules: each has its own rules and repo; see [`wiki/REPOS.md`](wiki/REPOS.md)
 - CATS: [`cats/README.md`](cats/README.md) · [`cats/AGENTS.md`](cats/AGENTS.md)
-- Public names: [ADR-005](wiki/decisions/ADR-005-public-equipment-names.md) · `jmri/layouts/hart/data/public_name_map.csv`
+- Public names: [ADR-005](wiki/decisions/ADR-005-public-equipment-names.md) · `jmri/layouts/hart/data/devices.csv`

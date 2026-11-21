@@ -150,8 +150,7 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 describes every column and a test holds the two to each other both ways. Staging, main and upper are one structure,
 a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `device_map_lines`
 (the old device-map rows of some levels, plus `role`) and `name_map_lines` (the name-map rows, from the `pnm_`
-columns); nothing else reads `device_map_staging.csv`, `device_map_main_upper.csv` or `public_name_map.csv`. They stay
-generated from the master until R9e, and `tools/check.sh` fails on any difference. The name map has no alias rows
+columns). The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20). The name map has no alias rows
 (they and the retired identity rows were dropped 2026-11-20). Readers test `role`, never a name prefix.
 
 - `assignment` is `field`, `virtual`, `none` or `spare`; `role` says what the device is; `written_by` is empty for a
@@ -161,9 +160,10 @@ generated from the master until R9e, and `tools/check.sh` fails on any differenc
   assignment in their sets, field rows `system_name == jmri_name`, order, one comment per row, a description on every
   row). Row order is level, layer, hand-kept rows, then each writer's.
 - Writers call `outputs_after(writer, old_form_rows)` (or `outputs_after_rows` with master rows) and write the texts it
-  gives: the master and the three generated files. Nothing is written until every check has passed.
-- `python3 -m hartlib.devices check` and `regenerate`. Errors are `DevicesError` (a `FactsError`).
-- The `pnm_*` columns hold what `public_name_map.csv` carried and go with that file. They are no builder's output:
+  gives: the master's text. Nothing is written until every check has passed.
+- `python3 -m hartlib.devices check`. Errors are `DevicesError` (a `FactsError`).
+- The `pnm_*` columns hold what `public_name_map.csv` carried: the hardware ID, DCC address, control point and wiring
+  comment of 236 staging rows, which no other column holds. They stay. They are no builder's output:
   a builder's rewrite carries them over from the row it replaces, so `set_pnm_comments` (the wiring comment of a
   head, from `refresh_bean_comments.py`) may change `pnm_comment` of a row a builder holds, and `written_by` stays.
 - `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the

@@ -13,7 +13,7 @@ All in `jmri/layouts/hart/data/`, read through `jmri/layouts/hart/scripts/layout
 | `schematic/control_points_staging.csv` | control point (station group) | its `level` and the switches it holds. Engine House (Switches 9, 11, 13) has a row though the desk has no plate for it. Readers take its rows with each crossover by its OS-block halves through `hartlib.railroad_facts.station_group_rows` (the older generated `data/control_points.csv` is gone, 2026-11-20) |
 | `mast_cells.csv` | mast on the USS CTC board | its cell (`x`, `y`) on the board's grid (`uss_board_cells.csv`, the hand-wired desk's grid frozen 2026-11-15) and how the board draws it (`uss_facing`, `uss_kind` h2 or d1, `uss_head` for d1). For the hand-wired CATS desks only: the `edge` of its lamp in that cell and a lamp placement the Designer save gets wrong (`sig_location`, `sig_orient`); the generated desks do not read this file. Row order is the USS drawing order |
 | `uss_board_cells.csv`, `uss_board_plants.csv` | cell of the USS CTC board's grid; switch plant | each cell's track, label and block edges, and each OS block's plant cell, frozen from `HART_CTC.xml` and `PLANT_CELLS` on 2026-11-15 so the board builds without a desk. Plant row order is the drawing order |
-| `public_name_map.csv` (rows where current = proposed) | device | hardware ID, `dcc` address (turnouts), control point (`cp`), wiring `comment` |
+| `devices.csv`, the `pnm_` columns | device | hardware ID, `dcc` address (turnouts), control point (`cp`), wiring `comment` |
 
 Switch numbers are the plate numbers and are unique across the whole railroad, every level included. `layout_facts.py` refuses a second row for a number, an OS block, a USS lever, a mast or a desk cell, and names both rows.
 
@@ -44,20 +44,20 @@ Exceptions are made only on purpose, each with its reason beside it:
 ## Changing a switch
 
 1. Edit its rows in `switch_legs.csv` (closed and thrown legs) and `switches.csv` (hand, lever, inversion). A switch the AnyRail plan lacks or holds wrongly goes in `plan_overrides.json`'s `staging` section (`hand`, legs `b` and `c`; `branch_leg: "B"` when the added branch is the straight leg).
-2. `device_map_staging.csv` (`trial_name`), `short_tracks_staging.csv` and `block_splits.csv` name tracks by their switches and legs, so a new export needs no rebinding (2026-11-20). The virtual masts are placed by rule (ADR-024), so nothing needs rebinding when edge ids move (`n1`...).
+2. The staging rows of `devices.csv` (`trial_name`), `short_tracks_staging.csv` and `block_splits.csv` name tracks by their switches and legs, so a new export needs no rebinding (2026-11-20). The virtual masts are placed by rule (ADR-024), so nothing needs rebinding when edge ids move (`n1`...).
 3. Run `make panels`. A mast the rule can no longer place in one slot stops the build (`le_checks.check_masts`); the deploy audit holds the stored panel to `staging_masts.csv` (`audit_panel_contracts.py`).
 4. Install the candidate in `~/JMRI_UserFiles`, relaunch PanelPro and get the owner's approval; then record it (`check_approved.py --approve`, `build_layout_le.py --approve-staging`) and take Signal Mast Logic from stock discovery in a sandbox (`tools/hosts/sandbox/README.md`).
 5. Run `./tools/check.sh`. Each failure names the switch or track and the two sources that disagree.
 
 ## Changing a mast
 
-- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), set `proposed` on its identity row in `public_name_map.csv` and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv`, then run `make desks` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
+- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), change its row's `user_name` in `devices.csv` and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv`, then run `make desks` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
 - **Move on the desk:** change its `x`, `y` or `edge` in `mast_cells.csv` (these cells fed the archived hand-wired desks and the USS board; the generated desks place masts from the schematic), then run `gen_ctc_track_plan.py`. The check fails if either desk has another lamp in that cell or the mast's heads in `tables.xml` do not fit its `uss_kind`.
 
 ## Rename checklist (a track, block or mast)
 
 1. **PanelPro:** rename it, Store, then `make tables-pull`. JMRI owns `tables.xml`; nothing renames there by script.
-2. **Name map:** apply the rename to `public_name_map.csv` (ADR-005, `wiki/pipelines/public-names.md`). The identity row takes the new name; a historical alias row keeps the old one. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
+2. **Name map:** apply the rename to the row's `user_name` in `devices.csv` (ADR-005, `wiki/pipelines/public-names.md`). The old name is no longer anything's. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
 3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switch_legs.csv` (legs), `block_lengths.csv` (`user_name`), `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
 4. **CATS:** the desks are generated, so nothing is renamed in them. After the data files above are changed, run `make desks` (writes and validates `HART_CTC.xml` and `HART_ABS.xml`) and `gen_ctc_track_plan.py` (USS plant cells: `uss_board_plants.csv`).
 5. **Dispatcher:** traininfo files carry block names; regenerate them in PanelPro (Dispatcher System) if a station block was renamed.

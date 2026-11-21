@@ -90,7 +90,7 @@ HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
 HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad"}
 HARTLIB_OTHER = {
     "names": "the name map's columns",
-    "devices": "the device master (devices.csv) and the files generated from it",
+    "devices": "the device master (devices.csv), its dictionary and its checks",
     "tables_build": "the template and the other parts the generated tables.xml is built from",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",

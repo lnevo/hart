@@ -63,12 +63,19 @@ class CommittedFiles(Case):
     """Each moved reader against the committed CSV."""
 
     def test_the_device_map(self) -> None:
-        """The main and upper rows of the master are what the generated main and upper device map holds."""
+        """The reader gives the main and upper rows of devices.csv, in the device-map form, checked against a plain read."""
         rows = AM.read_device_rows()
+        master = plain(devices.Files.here().master)
+        want = [r for r in master if r["level"] in ("2", "3") and r["role"] not in ("spare", "panel_status")]
         self.assertTrue(rows)
-        self.assertEqual([{c: r[c] for c in DEVICE_COLUMNS} for r in rows],
-                         [{c: r[c] for c in DEVICE_COLUMNS} for r in plain(devices.Files.here().main_upper)])
+        self.assertEqual({lv: sum(1 for r in rows if r["level"] == lv) for lv in ("2", "3")},
+                         {lv: sum(1 for r in want if r["level"] == lv) for lv in ("2", "3")})
         self.assertEqual({r["level"] for r in rows}, {"2", "3"})
+        self.assertEqual([r["user_name"] for r in rows], [r["user_name"] for r in want])
+        turnout = next(r for r in want if r["layer"] == "turnout" and r["role"] == "turnout")
+        got = next(r for r in rows if r["layer"] == "turnout" and r["user_name"] == turnout["user_name"])
+        self.assertEqual((got["jmri_name"], got["system_name"]), (turnout["jmri_name"], turnout["system_name"]))
+        self.assertTrue(got["jmri_name"].startswith("IT:HART:C3:"))
 
     def test_the_nodes(self) -> None:
         rows = AM.read_node_rows()

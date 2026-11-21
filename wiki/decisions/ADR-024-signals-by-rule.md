@@ -3,6 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-11-19
 - **Deciders:** lnevo
+- **Amended by:** ADR-029. `device_map_staging.csv` is now `devices.csv`.
 
 ## Context
 
