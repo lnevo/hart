@@ -48,6 +48,18 @@ class GraphChecksTest(unittest.TestCase):
         with self.assertRaisesRegex(MAP.GraphError, "path tools/ops/ is already node .x."):
             load([node("x", path="tools/ops"), node("y", path="tools/ops/")], [{"from": "x", "to": "y"}])
 
+    def test_path_outside_repo(self) -> None:
+        for bad in ("/etc/hosts", "../hart/tools"):
+            with self.assertRaisesRegex(MAP.GraphError, "outside the repo"):
+                load([node("x", path=bad), node("y")], [{"from": "x", "to": "y"}])
+
+    def test_domain_without_colour(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "g.json"
+            p.write_text(json.dumps({"domains": [{"id": "a", "label": "A"}], "nodes": [node("x")], "edges": []}))
+            with self.assertRaisesRegex(MAP.GraphError, "lacks color"):
+                MAP.load(p)
+
     def test_malformed_edge_is_reported_not_raised(self) -> None:
         with self.assertRaisesRegex(MAP.GraphError, "lacks a from or to end"):
             load([node("x"), node("y")], [{"form": "x", "to": "y"}])

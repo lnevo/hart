@@ -346,8 +346,9 @@ function app() {
     visible = new Set(sub.nodes.map(n => n.id));
     if (old) setVB(old.x, old.y, old.w, old.h); else fit();
     showStatus(sub);
-    runSearch();
-    if (selected && visible.has(selected)) select(selected, true); else { selected = null; info.style.display = "none"; }
+    runSearch(true);
+    if (selected && visible.has(selected)) select(selected, true);
+    else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
   }
 
   function showStatus(sub) {
@@ -444,7 +445,7 @@ function app() {
     const fullUp = walk(id, insAll, "from").size - 1, fullDown = walk(id, outsAll, "to").size - 1;
     const isFocus = view.focus === id;
     info.innerHTML = `<button class="close" title="Close (Esc)">×</button><h2>${esc(n.label)}</h2>
-      <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · local only (gitignored or on a host)" : ""}</div>
+      <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
       <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
       <div class="chain"><b>Show only this box's chain</b><br>
         <select id="fdir"><option value="both">what feeds it and what it feeds</option><option value="up">what feeds it</option><option value="down">what it feeds</option></select>
@@ -460,7 +461,7 @@ function app() {
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
   function goTo(id) {
-    if (!visible.has(id)) { view.focus = id; view.lanes = new Set(allLanes); syncControls(); selected = id; render(false); writeHash(); }
+    if (!visible.has(id)) { if (!view.focus) { view.dir = "both"; view.depth = 2; } view.focus = id; view.lanes = new Set(allLanes); syncControls(); selected = id; render(false); writeHash(); }
     else { select(id); centreOn(id, false); }
   }
   function focusOn(id, dir, depth) {
@@ -477,16 +478,16 @@ function app() {
   /* ---- search */
   const q = document.getElementById("q"), hits = document.getElementById("hits");
   let found = [], fi = 0;
-  function runSearch() {
+  function runSearch(keepIndex) {
     svg.querySelectorAll(".node.hit").forEach(g => g.classList.remove("hit"));
     const t = q.value.trim().toLowerCase();
     found = !t ? [] : DATA.nodes.filter(n => (n.label + " " + n.id + " " + (n.path || "") + " " + (n.desc || "")).toLowerCase().includes(t)).map(n => n.id);
     const shown = found.filter(id => visible.has(id));
     shown.forEach(id => nodeEl[id].classList.add("hit"));
     hits.textContent = !t ? "" : `${shown.length} found` + (found.length > shown.length ? ` (+${found.length - shown.length} not shown)` : "") + (found.length ? " · Enter steps" : "");
-    fi = 0;
+    if (!keepIndex) fi = 0;
   }
-  q.addEventListener("input", runSearch);
+  q.addEventListener("input", () => runSearch(false));
   q.addEventListener("keydown", e => {
     if (e.key !== "Enter" || !found.length) return;
     const id = found[fi++ % found.length];
@@ -494,7 +495,7 @@ function app() {
     else { centreOn(id, true); select(id); }
   });
   document.addEventListener("keydown", e => {
-    if (e.target === q || e.target.tagName === "SELECT") return;
+    if (e.target === q || e.target.tagName === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === "Escape") clearFocus(true);
     if (e.key === "f" || e.key === "F") fit();
   });
@@ -528,7 +529,7 @@ function app() {
   function writeHash() {
     const h = new URLSearchParams();
     if (view.focus) { h.set("focus", view.focus); h.set("dir", view.dir); h.set("depth", view.depth === Infinity ? "all" : view.depth); }
-    if (view.lanes.size !== allLanes.length) h.set("lanes", [...view.lanes].join(","));
+    if (view.lanes.size !== allLanes.length) h.set("lanes", view.lanes.size ? [...view.lanes].join(",") : "none");
     const hide = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
     if (hide.length) h.set("hide", hide.join(","));
     if (selected) h.set("node", selected);
@@ -543,7 +544,7 @@ function app() {
     const depth = Number(h.get("depth"));
     view.depth = depth > 0 ? depth : h.get("depth") === "all" || !view.focus ? Infinity : 2;
     const lanes = (h.get("lanes") || "").split(",").filter(l => allLanes.includes(l));
-    view.lanes = new Set(lanes.length ? lanes : allLanes);
+    view.lanes = new Set(lanes.length || h.get("lanes") === "none" ? lanes : allLanes);
     const hide = (h.get("hide") || "").split(",");
     view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired");
     const node = h.get("node");

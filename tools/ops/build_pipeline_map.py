@@ -43,6 +43,13 @@ class GraphError(Exception):
 
 def load(path: Path) -> dict:
     data = json.loads(path.read_text())
+    for key in ("domains", "nodes", "edges"):
+        if not isinstance(data.get(key), list):
+            raise GraphError(f"the graph needs a {key!r} list")
+    for d in data["domains"]:
+        missing = [k for k in ("id", "label", "color") if not d.get(k)]
+        if missing:
+            raise GraphError(f"domain {d} lacks {', '.join(missing)}")
     domains = [d["id"] for d in data["domains"]]
     if len(set(domains)) != len(domains):
         raise GraphError("a domain id is repeated")
@@ -56,6 +63,8 @@ def load(path: Path) -> dict:
             problems.append(f"a node has no id: {n}")
             continue
         nid = n["id"]
+        if not n.get("label"):
+            problems.append(f"node {nid!r} has no label")
         if nid in ids:
             problems.append(f"node {nid!r} is listed twice")
         ids.add(nid)
@@ -66,6 +75,8 @@ def load(path: Path) -> dict:
         if n.get("domain") not in domains:
             problems.append(f"node {nid!r}: domain {n.get('domain')!r} is not a listed domain")
         p = n.get("path", "")
+        if p and (Path(p).is_absolute() or ".." in Path(p).parts):
+            problems.append(f"node {nid!r}: path {p} is outside the repo")
         if p and p.rstrip("/") in paths:
             problems.append(f"node {nid!r}: path {p} is already node {paths[p.rstrip('/')]!r}")
         if p:
@@ -227,7 +238,8 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(page)
-    print(f"wrote {args.out.relative_to(ROOT)}: {len(data['nodes'])} nodes, {len(data['edges'])} edges")
+    shown = args.out.relative_to(ROOT) if args.out.resolve().is_relative_to(ROOT) else args.out
+    print(f"wrote {shown}: {len(data['nodes'])} nodes, {len(data['edges'])} edges")
     return 0
 
 
