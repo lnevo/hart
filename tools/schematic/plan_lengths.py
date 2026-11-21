@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Each staging block's length in the AnyRail plan 5.3c, written into block_lengths.csv's plan_in column.
+"""Each block's length in the AnyRail plan 5.3c, on every level, written into block_lengths.csv's plan_in column.
 
     python3 tools/schematic/plan_lengths.py            # write plan_in
     python3 tools/schematic/plan_lengths.py --check    # exit 1 if plan_in is stale
     python3 tools/schematic/plan_lengths.py --show     # print the lengths, write nothing
 
-The plan is the source (owner, 2026-11-20): the schematic, the Layout Editor panel and the signal rules measure every
-staging block by plan_in; JMRI's block length is the measured one where a block was timed, else plan_in
-(hartlib.railroad.BlockLength.jmri_in).
+The plan is the source (owner, 2026-11-20): the schematic, the Layout Editor panel, the signal rules and JMRI's block
+length take plan_in on every level; a measured length (measured_in, staging's timed blocks) is for speed profiling
+only (level unification step 5 part 2).
 
 - An OS block takes its turnout's length: from the points to the frog end of the plan part at its switch
   (one part per OS block; a crossover half is its own part), measured between the part's end points in parts.json
@@ -20,9 +20,23 @@ staging block by plan_in; JMRI's block length is the measured one where a block 
 - A track that holds an OS block too (Scale ends in OS Switch 7) keeps its whole run: the OS block is the turnout,
   which the run leaves out.
 
+Main and upper (main_upper_lengths), from devices.csv's level 2 and 3 block rows and main.json, the plan graph of
+those levels:
+- a track block takes its plan edges' runs in the plan file (each row's trial names, "Track e33", "Track e33 1" for
+  half of a balloon loop or split track; main_edge_inches): flex track only, the turnouts left out, as staging's. The
+  plan graph's own edge lengths (main.json's cm, which the drawing, the link rule and the mast places use) count
+  part of each turnout as well, so they are not block lengths. A helix
+  block is staging's row (one block across levels), not counted again here. A part (a link inside an OS block) adds
+  nothing, as on staging;
+- an OS block takes the turnouts its switch stands on: a turnout's product length (turnout_inches), both halves of a
+  single crossover added (121, 125, 127, 131); the three-way (Switches 101 and 103) and the double crossover (225,
+  corners a to d) share their part's span, its longest end-to-end distance (part_span_inches), evenly over their OS
+  blocks.
+
 Track lengths need the plan file itself (PLAN, private, never committed; ANYRAIL_PLAN overrides the path). Without it,
 --check checks the OS rows only and says so; a write stops. OS lengths need only parts.json (committed). Which block
-is on which track comes from the staging device map (staging_device_map.load) on the staging band.
+is on which track comes from the staging device map (staging_device_map.load) on the staging band, and from
+devices.csv on main and upper.
 """
 from __future__ import annotations
 
@@ -32,6 +46,7 @@ import io
 import json
 import math
 import os
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -47,14 +62,17 @@ import anyplan  # noqa: E402  the plan reader
 LENGTHS = railroad.Sources.under().block_lengths
 PARTS = pd.GRAPHS / "parts.json"
 GRAPH = pd.GRAPHS / "staging.json"
+MAIN_GRAPH = pd.GRAPHS / "main.json"            # main and upper's plan graph
+MAIN_UPPER = ("2", "3")
+RUN_TOLERANCE_CM = 0.1                          # main.json's runs are the plan's, rounded to 0.1 cm
 PLAN = Path(os.environ.get("ANYRAIL_PLAN") or Path.home() / "Documents/Layout/Lee Nevo Design Version 5.3c.any")
 CM = 2.54
 # A turnout's class comes from its geometry, never from a maker's part name (any maker's track reads the same way).
 # TURNOUT_NUMBERS: the leg-end chord number of each class, cot(angle at the points between the two leg ends); it reads
 # above the printed frog number because the diverging route curves. A reading must fall in a class's range.
 # TURNOUT_INCHES: the points-to-frog-end length per class, in inches: a check on turnout_inches, not a source.
-TURNOUT_NUMBERS = {"#6": (8.65, 9.65), "#8": (10.6, 11.6)}
-TURNOUT_INCHES = {"#6": (9.1, 9.3), "#8": (10.9, 11.3)}
+TURNOUT_NUMBERS = {"#5": (7.7, 8.6), "#6": (8.65, 9.65), "#8": (10.6, 11.6)}     # #5: main and upper only
+TURNOUT_INCHES = {"#5": (8.2, 8.4), "#6": (9.1, 9.3), "#8": (10.9, 11.3)}
 LEG_OF = {"points": "A", "straight": "B", "diverging": "C"}     # anyplan.classify's ends as the graph names legs
 
 
@@ -229,23 +247,194 @@ def compute(plan: Path | None) -> tuple[dict, bool]:
     return out, True
 
 
-def csv_with(lengths: dict, path: Path = LENGTHS) -> str:
-    """block_lengths.csv's text with plan_in set from `lengths` (rounded to 0.1 in). LengthError when the file's
-    blocks and the drawn staging blocks differ."""
+def part_span_inches(part: dict) -> float:
+    """A four-ended part's span (a three-way or a double crossover), in inches: its longest distance between two ends.
+    LengthError on a part with other than four ends."""
+    eps = part.get("eps") or []
+    if len(eps) != 4:
+        raise LengthError(f"part {part.get('name')!r} has {len(eps)} ends, not a three-way's or double crossover's four")
+    xy = [(e["x"], e["y"]) for e in eps]
+    return max(math.dist(a, b) for i, a in enumerate(xy) for b in xy[i + 1:]) / CM
+
+
+def main_edge_inches(graph: dict, runs: dict, threeway_bumper: float | None) -> dict:
+    """{plan edge: inches} of main.json's edges, from the plan file (`runs`, plan_runs: flex track only, the turnouts
+    left out, as staging's tracks): each edge takes the run from a plain turnout at one of its ends (a "T" label, a
+    turnout in the plan); an edge from the three-way to a buffer stop takes `threeway_bumper`, the three-way's one run
+    to a buffer stop; the three-way's own inner edge (between its two switch nodes) takes nothing, as it is inside its
+    OS blocks. LengthError on any other edge."""
+    nodes = graph["nodes"]
+    out, bad = {}, []
+    for e in graph["edges"]:
+        ends = [(e["u"], e["up"]), (e["v"], e["vp"])]
+        got = None
+        for n, port in ends:
+            label = nodes[n].get("label") or ""
+            if nodes[n]["kind"] == "switch" and label.startswith("T") and label[1:].isdigit():
+                got = runs.get((int(label[1:]), port))
+                if got is not None:
+                    break
+        if got is not None:
+            out[e["id"]] = got[0]
+            continue
+        kinds = sorted("threeway" if n.startswith("TO_3W") else nodes[n]["kind"] for n, _p in ends)
+        if kinds == ["end", "threeway"] and threeway_bumper is not None:
+            out[e["id"]] = threeway_bumper
+        elif kinds == ["threeway", "threeway"]:
+            out[e["id"]] = 0.0
+        else:
+            bad.append(f"edge {e['id']} ({e['u']} {e['up']} to {e['v']} {e['vp']}): no run in {PLAN.name}")
+    if bad:
+        raise LengthError(f"{paths.rel(MAIN_GRAPH)}: " + "; ".join(bad))
+    return out
+
+
+def threeway_bumper_inches(plan_parts: list) -> float | None:
+    """The run from the plan's one three-way to a buffer stop, in inches (anyplan.runs), or None with no three-way.
+    LengthError when the three-way has other than one run to a buffer stop, or there is more than one three-way."""
+    three = [p["index"] for p in plan_parts if p["kind"] == "threeway"]
+    if not three:
+        return None
+    if len(three) != 1:
+        raise LengthError(f"{PLAN.name} has {len(three)} three-ways; main_edge_inches reads one")
+    links, _free = anyplan.joins(plan_parts)
+    got = [cm for a, _ka, b, _kb, cm in anyplan.runs(plan_parts, links) if a == three[0] and b is None]
+    if len(got) != 1:
+        raise LengthError(f"the three-way (part {three[0]}) has {len(got)} runs to a buffer stop, not one")
+    return got[0] / CM
+
+
+def main_upper_os(bands, graph: dict, parts: list, threeways: list[int]) -> dict:
+    """{OS block: inches} of main and upper (module text), from the solved `bands` (a switch node's number, the graph
+    node it is) and the corner blocks of the double crossover (build_device_map.xover_corners). `threeways`: the plan
+    file's three-way parts (their graph nodes carry no part number)."""
+    import build_device_map as bdm
+    out, bad = defaultdict(float), []
+    three = defaultdict(list)
+    corners = None
+    for title, band, _o in bands:
+        if not bdm.band_level(title):
+            continue
+        for n, d in band["nodes"].items():
+            if d["kind"] not in ("switch", "dx"):
+                continue
+            number = bdm.base(d["label"])
+            label = graph["nodes"].get(n, {}).get("label") or ""
+            if n.startswith("TO_3W"):
+                three[re.sub(r"-\d+$", "", n)].append(f"OS Switch {number}")
+                continue
+            try:
+                part = parts[part_index(label)]
+            except (LengthError, IndexError):
+                bad.append(f"switch {d['label']} ({n}): graph label {label!r} names no part in {PARTS.name}")
+                continue
+            if d["kind"] == "dx":
+                if corners is None:
+                    _b, _j, _r, dxc = bdm.solve()
+                    corners = bdm.corner_blocks_of(bands, dxc)
+                blocks = sorted(corners[number].values())
+                for b in blocks:
+                    out[b] += part_span_inches(part) / len(blocks)
+            else:
+                out[f"OS Switch {number}"] += turnout_inches(part)
+    if len(three) != len(threeways):
+        bad.append(f"{len(three)} three-way(s) drawn on main and upper, {len(threeways)} in {PLAN.name}")
+    for (_key, blocks), index in zip(sorted(three.items()), sorted(threeways)):
+        for b in blocks:
+            out[b] += part_span_inches(parts[index]) / len(blocks)
+    if bad:
+        raise LengthError("; ".join(bad))
+    return dict(out)
+
+
+def track_inches(r: dict, edge_in: dict, bad: list) -> float | None:
+    """A main or upper track block row's plan length, in inches: its trial names' plan edges (main_edge_inches), half
+    an edge for "Track e33 1" (half of a balloon loop or split track). None, with the problem in `bad`, for a row with
+    no trial name or one that names no plan edge."""
+    where = f"{r['user_name']} (level {r['level']})"
+    trials = [t.strip() for t in r["trial_name"].split(",") if t.strip()]
+    if not trials:
+        bad.append(f"{where}: no trial_name, so no plan edge to measure")
+        return None
+    total = 0.0
+    for trial in trials:
+        m = re.fullmatch(r"Track (e\d+)( [12])?", trial)
+        if not m or m.group(1) not in edge_in:
+            bad.append(f"{where}: trial name {trial!r} is no plan edge of {MAIN_GRAPH.name}")
+            return None
+        total += edge_in[m.group(1)] / (2 if m.group(2) else 1)
+    return total
+
+
+def main_upper_lengths(plan: Path) -> dict:
+    """{block: (level, inches, the block whose occupancy sensor it has)} of every main and upper block of devices.csv,
+    its parts too (a JMRI block of their own whose sensor is their OS block's; a link whose turnouts touch in the plan
+    is 0 in long), but the helix blocks (staging's rows; module
+    text). LengthError on a row whose trial names give no plan edge, or a block left with no length."""
+    import build_device_map as bdm
+    from hartlib import devices
+    graph = json.loads(MAIN_GRAPH.read_text(encoding="utf-8"))
+    parts = json.loads(PARTS.read_text(encoding="utf-8"))
+    plan_parts = anyplan.read(plan)
+    runs = plan_runs(plan)
+    edge_in = main_edge_inches(graph, runs, threeway_bumper_inches(plan_parts))
+    helix = {h["block"] for h in bdm.read_helix_tracks().values()}
+    bands, _joined, _runs, _corners = bdm.solve()
+    os_in = main_upper_os(bands, graph, parts, [p["index"] for p in plan_parts if p["kind"] == "threeway"])
+    out, bad = {}, []
+    for r in devices.load():
+        if r["level"] not in MAIN_UPPER or r["layer"] != "block" or r["user_name"] in helix:
+            continue
+        name = r["user_name"]
+        sensor = r["part_of"] or name           # a part's occupancy sensor is its OS block's
+        if name.startswith("OS Switch "):
+            if name not in os_in:
+                bad.append(f"{name} (level {r['level']}): no turnout part found for it")
+            else:
+                out[name] = (r["level"], os_in[name], sensor)
+            continue
+        total = track_inches(r, edge_in, bad)
+        if total is not None:
+            out[name] = (r["level"], total, sensor)
+    if bad:
+        raise LengthError("; ".join(bad))
+    return out
+
+
+def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
+    """block_lengths.csv's text with plan_in set from `lengths` (staging's blocks, rounded to 0.1 in) and from
+    `main_upper` ({block: (level, inches, sensor block)}, main_upper_lengths). A main or upper block with a row keeps
+    it (its occupancy sensor, measured length, source and note; only plan_in is set, as on staging); a new one gets a
+    row (source plan, occupancy_sensor its sensor block's occupancy row, no measured length). Main and upper's rows
+    come after staging's in level and name order. LengthError when a drawn staging block has no row, or a row is a
+    block of no level."""
+    from hartlib import level_devices
     with path.open(newline="", encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
     if not rows or list(rows[0]) != list(railroad.BLOCK_LENGTH_COLUMNS):
         raise LengthError(f"{paths.rel(path)}: columns are not {', '.join(railroad.BLOCK_LENGTH_COLUMNS)}")
-    have = {r["user_name"] for r in rows}
+    staging = [r for r in rows if r["user_name"] in lengths]
+    rest = [r for r in rows if r["user_name"] not in lengths]
+    have = {r["user_name"] for r in staging}
     if have != set(lengths):
-        raise LengthError(f"{paths.rel(path)} and the staging drawing hold different blocks: only in the file "
-                          f"{sorted(have - set(lengths))}, only drawn {sorted(set(lengths) - have)}")
-    for r in rows:
+        raise LengthError(f"{paths.rel(path)} and the staging drawing hold different blocks: only drawn "
+                          f"{sorted(set(lengths) - have)}")
+    for r in staging:
         r["plan_in"] = f"{lengths[r['user_name']]:.1f}"
+    stray = sorted(r["user_name"] for r in rest if r["user_name"] not in main_upper)
+    if stray:
+        raise LengthError(f"{paths.rel(path)}: rows of no drawn block on any level: {stray}")
+    held = {r["user_name"]: r for r in rest}
+    rest = []
+    for name, (level, inches, sensor) in sorted(main_upper.items(), key=lambda kv: (kv[1][0], railroad.natural(kv[0]))):
+        row = held.get(name) or dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(sensor),
+                                     measured_in="", source="plan",
+                                     note=f"{'main' if level == '2' else 'upper'} level, the plan's length")
+        rest.append(dict(row, plan_in=f"{inches:.1f}"))
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(railroad.BLOCK_LENGTH_COLUMNS), lineterminator="\n")
     w.writeheader()
-    w.writerows(rows)
+    w.writerows(staging + rest)
     return buf.getvalue()
 
 
@@ -269,9 +458,12 @@ def main(argv=None) -> int:
         return 2
     try:
         lengths, whole = compute(plan)
+        main_upper = main_upper_lengths(plan) if whole else None
         if args.show:
             for b in sorted(lengths):
                 print(f"{b:24} {lengths[b]:7.1f} in")
+            for b, (level, inches, _sensor) in sorted((main_upper or {}).items()):
+                print(f"{b:24} {inches:7.1f} in  level {level}")
             return 0
         if not whole:
             have = railroad.read_block_lengths(LENGTHS)
@@ -281,7 +473,7 @@ def main(argv=None) -> int:
             for b in bad:
                 print(f"{LENGTHS.name}: {b}", file=sys.stderr)
             return 1 if bad else 0
-        text = csv_with(lengths)
+        text = csv_with(lengths, main_upper)
     except (LengthError, sdm.StagingMapError, sdm.lc.BuildError, anyplan.PlanError, railroad.FactsError) as exc:
         print(f"plan_lengths.py: {exc}", file=sys.stderr)
         return 2

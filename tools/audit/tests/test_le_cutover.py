@@ -302,10 +302,10 @@ class ThreeLevels(unittest.TestCase):
         # The helix-join release (owner, 2026-11-17): staging as in its candidate but for the two
         # helix joins, the only difference the guard accepts (the helix bumpers become anchors, their tracks run on)
         self.assertEqual(self.P.staging_same, [
-            "end bumper EBG1 -> anchor AGE1 (hidden join TG218 to Track Helix Outer)",
-            "end bumper EBG2 -> anchor AGE2 (hidden join TG219 to Track Helix Inner)",
-            "track segment TG52 connect2name EBG1 -> AGE1",
-            "track segment TG53 connect2name EBG2 -> AGE2"])
+            "end bumper EBG1 -> anchor AGE1 (hidden join TG217 to Track Helix Outer)",
+            "end bumper EBG2 -> anchor AGE2 (hidden join TG218 to Track Helix Inner)",
+            "track segment TG51 connect2name EBG1 -> AGE1",
+            "track segment TG52 connect2name EBG2 -> AGE2"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
         self.assertEqual(self.names[B.STAGING]["joins"], "other")               # the build joins the helix
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)

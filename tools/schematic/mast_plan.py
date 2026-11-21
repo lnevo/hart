@@ -290,20 +290,36 @@ def virtual_system_names(masts: list[str], level: int, old: dict, retired: dict 
     return out
 
 
+def home_posts(home: list[dict]) -> dict:
+    """{(band index, switch node, leg): mast name} of home masts (home_masts): where each stands, at its switch's
+    points on the leg toward the track it faces. The block layer reads it (block_layer.layer's `posts`): a short piece
+    a mast faces from its own switch joins the OS block at its other end, so the block boundary is at the mast."""
+    out = {}
+    for m in home:
+        key = (m["band"], m["node"], m["leg"])
+        if key in out:
+            raise mr.MapError(f"Masts {out[key]} and {m['name']} stand at one switch leg")
+        out[key] = m["name"]
+    return out
+
+
 def plan(bands, joined, found, *, levels: dict, cp_of: dict, layer: dict, cm: dict, corner_blocks=None,
-         split=frozenset()) -> dict:
+         split=frozenset(), home: list | None = None) -> dict:
     """Every mast of `levels` ({band key: level}) by the one process (module text): {"home": [...], "intermediates":
     [...], "virtual": [...]}. `found`: the named tracks (mast_rule.tracks, track_names); `cp_of`: {switch:
     interlocking} of those levels; `layer`: {band index: {"os": {switch node: OS block}, "blocks": {strand: [block]}}},
     the level's block layer, for every band of `levels`; `cm`: {block: cm}; `corner_blocks`: a double crossover's
     corner blocks (build_device_map.xover_corners); `split`: the owner's block splits (mast_rule.read_block_splits).
+    `home`: home_masts' masts when the caller has them already (the block layer reads where they stand: home_posts).
     MapError when a band of `levels` has no block layer or the masts' names are not all different."""
     wanted = {bi for bi, (title, _b, _o) in enumerate(bands) if mr.band_level(title, levels)}
     if wanted - set(layer):
         raise mr.MapError(f"no block layer for band(s) {[bands[bi][0] for bi in sorted(wanted - set(layer))]}")
     runs_by_band = {bi: run_blocks(bands[bi][1], layer[bi]) for bi in sorted(wanted)}
     running = mr.running_tracks(bands, found, cp_of)
-    home = home_masts(bands, joined, found, cp_of, running, levels=levels, corner_blocks=corner_blocks, split=split)
+    if home is None:
+        home = home_masts(bands, joined, found, cp_of, running, levels=levels, corner_blocks=corner_blocks,
+                          split=split)
     inter = intermediates(bands, found, runs_by_band, layer, cm, cp_of, running, levels)
     visible = [m["name"] for m in home + inter]
     virtual = virtual_masts(bands, joined, home, runs_by_band, cm, set(visible), levels)

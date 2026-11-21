@@ -181,5 +181,19 @@ class Skipped(unittest.TestCase):
             self.assertEqual(bt.EXIT_NO_PLUGIN, run()[0])         # a write needs the plugin
 
 
+class ReviewFlag(unittest.TestCase):
+    def test_review_writes_a_candidate_and_never_checks(self):
+        with contextlib.redirect_stderr(io.StringIO()) as err, self.assertRaises(SystemExit) as stop:
+            bt.main(["--check", "--review"])
+        self.assertEqual(stop.exception.code, 2)
+        self.assertIn("--review writes a candidate", err.getvalue())
+
+    def test_the_discovery_wrapper_names_review_in_its_recovery_commands(self):
+        text = (Path(__file__).resolve().parents[3] / "jmri/layouts/hart/scripts/run_sml_discover.sh").read_text()
+        notes = [line for line in text.splitlines() if "build_tables.py" in line and ("Restore" in line or "Fix" in line)]
+        self.assertEqual(len(notes), 2)
+        self.assertTrue(all("${REVIEW[*]:+ ${REVIEW[*]}}" in line for line in notes), notes)
+
+
 if __name__ == "__main__":
     unittest.main()

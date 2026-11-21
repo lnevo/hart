@@ -7,8 +7,8 @@ against the block lengths in output/tables.xml.
     export_track_lengths.py --check    # exit 1 on drift between the two, or a stale document
 
 The CSV is the record: each block's AnyRail plan 5.3c length (plan_in) and, for a
-timed block, its measured length (measured_in). JMRI's block holds the measured
-length where there is one, else the plan length (hartlib BlockLength.jmri_in), in mm.
+timed block, its measured length (measured_in, for speed profiling). JMRI's block
+holds the plan length on every level, in mm (owner, 2026-11-20).
 """
 import csv, sys
 from pathlib import Path
@@ -24,17 +24,16 @@ DOC = ROOT / "docs/jmri/TRACK_LENGTHS.md"
 MM = 25.4
 
 
-# The main and upper levels' blocks stand on internal system names (IB:C3:...) until they are imported, with
-# their plan lengths from the device map (build_layout_le.py): not measured yet, so not in the CSV, and not checked.
-PLAN_BLOCKS = "IB:C3:"
+# The main and upper levels' blocks (internal system names, IB:C3:...) are in the CSV too, with their plan lengths
+# (step 5 part 2, owner 2026-11-20), so every level's JMRI length is checked.
 
 
 def table_lengths():
-    """Block userName -> length in mm, for blocks that have both, but the main and upper plan blocks (PLAN_BLOCKS)."""
+    """Block userName -> length in mm, for blocks that have both, on every level."""
     return {
         tables.user_name(b): float(b.get("length"))
         for b in tables.blocks(tables.read(TABLES))
-        if b.get("length") and tables.user_name(b) and not tables.system_name(b).startswith(PLAN_BLOCKS)
+        if b.get("length") and tables.user_name(b)
     }
 
 
@@ -42,9 +41,9 @@ def render(rows):
     def fmt(b):
         measured = f"{b.measured_in:g}" if b.measured_in is not None else ""
         return (f"| {b.user_name} | {b.occupancy_sensor} | {b.plan_in:g} | {measured} | {b.source} | "
-                f"{b.jmri_in * MM:.1f} | {notes[b.user_name]} |")
+                f"{b.plan_in * MM:.1f} | {notes[b.user_name]} |")
     notes = {r["user_name"]: r["note"] for r in csv.DictReader(CSV.open(encoding="utf-8"))}
-    head = ("| Block | Occupancy sensor | Plan in | Measured in | JMRI length from | JMRI mm | Note |\n"
+    head = ("| Block | Occupancy sensor | Plan in | Measured in | Source | JMRI mm | Note |\n"
             "|---|---|---|---|---|---|---|")
     tracks = [b for b in rows.values() if b.user_name.startswith("Track ")]
     osb = [b for b in rows.values() if b.user_name.startswith("OS ")]
@@ -64,8 +63,8 @@ an OS block its turnout's product length from the points to the frog end. The
 schematic, the Layout Editor panel and the signal rules use it alone.
 **Measured in** is the timed length (`source` `timed`: the block's timed share of
 the test loop, or timed passes; `infer_block_lengths.py`, method in
-`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`), kept for speed profiling and JMRI.
-JMRI's length is the measured one where there is one, else the plan length.
+`docs/jmri/speedmatching/ANYRAIL_LENGTHS.md`), kept for speed profiling.
+JMRI's length is the plan length; a measured length is for speed profiling.
 
 ## Tracks and spurs
 
@@ -92,7 +91,7 @@ def set_tables(rows) -> int:
         sys.exit(f"blocks not in {paths.rel(TABLES)}: {missing}")
     changed = 0
     for name, b in rows.items():
-        want = f"{b.jmri_in * MM:.1f}"
+        want = f"{b.plan_in * MM:.1f}"
         if full[name].get("length") != want:
             full[name].set("length", want)
             changed += 1
@@ -120,8 +119,8 @@ def main():
     tl = table_lengths()
     for name, b in rows.items():
         v = tl.get(name)
-        if v is None or abs(v - b.jmri_in * MM) > 1.0:
-            bad.append(f"{name}: csv {b.jmri_in * MM:.1f} mm ({b.source}), tables {v}; run "
+        if v is None or abs(v - b.plan_in * MM) > 1.0:
+            bad.append(f"{name}: csv plan {b.plan_in * MM:.1f} mm, tables {v}; run "
                        "python3 tools/schematic/build_tables.py")
     bad += [f"{k}: in tables.xml ({v} mm) but not in CSV" for k, v in tl.items() if k not in rows]
     if not DOC.exists() or DOC.read_text(encoding="utf-8") != text:

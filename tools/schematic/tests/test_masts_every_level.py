@@ -11,6 +11,9 @@ others:
   staging 6LA and 8RA: one-low -> one-searchlight (Scale is running track by rule);
   staging virtual masts: 8LC, 10RA, 10RB, 12R and 14R went (virtual masts only as destinations);
   main and upper: 24 virtual bumper masts came (10 main, 14 upper).
+Step 5 part 2 (owner, 2026-11-20) changed only staging 8RA, from an anchor mast on Scale to a turnout mast at Switch 7
+(OS Switch 7 ends at the switch). Main and upper's links are parts of OS blocks but still JMRI blocks of their own, so
+the masts facing them keep their facing blocks.
 """
 from __future__ import annotations
 
@@ -43,7 +46,7 @@ STAGING_VISIBLE = (
     ("6R", "two-searchlight", 2, "5", "Track Brick-Plane", "OS Switch 5", "east"),
     ("8LA", "two-low", 2, "7", "Track Barn", "OS Switch 7", "west"),
     ("8LB", "one-searchlight", 1, "7", "Track Main East", "OS Switch 7b", "west"),
-    ("8RA", "one-searchlight", 1, "", "Track Scale", "OS Switch 7", "east"),
+    ("8RA", "one-searchlight", 1, "7", "Track Scale", "OS Switch 7", "east"),
     ("8RB", "two-searchlight", 2, "7", "Track East Ext", "OS Switch 7b", "east"),
     ("24L", "one-searchlight", 1, "23", "Track West Ext", "OS Switch 23a", "west"),
     ("24RA", "two-searchlight", 2, "23", "Track Main West", "OS Switch 23a", "east"),
@@ -234,7 +237,7 @@ def main_upper_rule(no_pruning: bool = False) -> dict:
     with contextlib.ExitStack() as stack:
         if no_pruning:
             stack.enter_context(unittest.mock.patch.object(mast_rule, "reaches_signal", lambda *a, **k: True))
-        planned, _corners, _split = bdm.plan_masts(bands, joined, runs, found, cp_of, corners)
+        planned, _corners, _split, _layer = bdm.plan_masts(bands, joined, runs, found, cp_of, corners)
     return planned
 
 
@@ -264,9 +267,9 @@ class RuleOutput(RepoReadOnly, unittest.TestCase):
         self.assertEqual(sorted(got), sorted(STAGING_VIRTUAL))
 
     def test_main_and_upper_visible(self):
-        # a home mast's facing is its track (half), its protects the switch's OS block or, at a double crossover,
-        # its corner block; an intermediate names both blocks
-        got = [(m["name"], m["kind"], m["heads"], m["switch"], m["track"],
+        # a home mast's facing is its track's block (half), its protects the switch's OS block or, at a double
+        # crossover, its corner block; an intermediate names both blocks
+        got = [(m["name"], m["kind"], m["heads"], m["switch"], m["facing"],
                 m["protects"] or f"OS Switch {m['switch']}", m["dir"]) for m in self.planned["home"]]
         got += [(m["name"], "one-searchlight", 1, "", m["facing"], m["protects"], m["dir"])
                 for m in self.planned["intermediates"]]

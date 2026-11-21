@@ -145,7 +145,7 @@ plan overrides section (or the strand names) for the rule to name it. Most diffe
 
 | Item | Decision |
 |---|---|
-| Short pieces between two switches | Join a neighbouring switch's OS block on every level, as staging's wiring does: the lower-numbered switch's unless the wiring says otherwise. **`part_of` in `devices.csv` is the standard way** (owner, 2026-11-20): every track has a block row, and one inside another block names it in `part_of` (role `part`: no JMRI block, layout block or occupancy row of its own; the block it names exists, is on the track's level and is no part itself). Staging's wiring facts stay data in one exceptions file with a level column, `block_exceptions.csv` (35-37 in 35a, 13-15 to 15, 23-31 to 31, the piece of Scale in OS 7, a part per end for 1-3 and 35-39). Main and upper's 21 dark link blocks go: a panel change (SML rediscovery, approval); the CATS desks already draw them so |
+| Short pieces between two switches | Join a neighbouring switch's OS block on every level, as staging's wiring does: the lower-numbered switch's unless the wiring says otherwise. **`part_of` in `devices.csv` is the standard way** (owner, 2026-11-20): every track has a block row, and one inside another block names it in `part_of` (role `part`: no occupancy row or detector of its own; the block it names exists, is on the track's level and is no part itself). Staging's wiring facts stay data in one exceptions file with a level column, `block_exceptions.csv` (35-37 in 35a, 13-15 to 15, 23-31 to 31, the piece of Scale in OS 7, a part per end for 1-3 and 35-39). **A part is still a JMRI block, layout block and track on the panel, with the occupancy sensor of the OS block it is part of; it has no occupancy row or detector of its own, and the LCOS allocation drops it** (owner, 2026-11-20, main and upper: SML keeps all 177 pairs; staging's 14 folded pieces stay without JMRI blocks until the owner decides). Tight short blocks need no label; geometry stays fixed (labels adapt, never track). **Where a home mast stands at a switch's points facing a short piece, the piece joins the OS block at its other end: the block boundary is at the mast** (owner, 2026-11-20: 202R, 126RB, 228RA, 230LB stay at their switches; 201-205 in OS 205, 125-129 in OS 129, 227-231 in OS 231, 229-233 in OS 233). The lower-numbered rule applies only where no mast decides it; a piece with a mast facing it at both ends stops the build. A rule, not exception rows |
 | Crossover OS blocks | A crossover half gets its own OS block when it has its own detector (staging 7, 23, 35); otherwise one OS block per crossover |
 | K-1/K-2 | Kept split: a level 1 row (37, 39) in `block_splits.csv`, an owner choice like 227-241. Masts 67 and 68 stay |
 | Scale and OS 7 | OS 7 ends at the switch; Track Scale is one block and 8RA becomes a turnout mast (panel approval). In the field OS 7's detector still covers about 23 cm of Scale, so a train standing there shows OS 7. Confirmed (owner, 2026-11-20): the 23 cm stays part of Track Scale; part 1 keeps the "Track Scale at 7" row (no output change), part 2 removes it |
@@ -208,6 +208,21 @@ and 14 staging OS rows' trial names, which lost the link pieces the part rows no
   (private plan, the Mac) refreshes `block_lengths.csv`; check no main or upper intermediate moves.
 - Main and upper trial names in staging's switch-and-leg keys (they still use plan edge ids, `Track e33`), if wanted,
   so one grammar serves every level.
+
+Part 2 progress (branch `agent/claude/step5-part2`):
+- 2026-11-20: links folded on every level (FOLD_LINKS gone, 25 main and upper part rows, the 225 links in their
+  corner block), the mast-edge rule (`block_layer.masted_block`), OS 7 ends at the switch (8RA a turnout mast); masts
+  and devices.csv regenerated, tests pass. Next: plan lengths, `make panels`, sandbox discovery, before/after.
+- 2026-11-20: plan lengths done: JMRI takes plan_in everywhere (`BlockLength.jmri_in` gone), main and upper's 95
+  blocks in block_lengths.csv (`plan_lengths.main_upper_lengths`, a #5 turnout class added); intermediates checked:
+  none moves (A83/A84 MP 8.395 to 8.397, B92/B93 9.269 to 9.274 with plan lengths; the mast places keep the
+  drawing's lengths). Next: `make panels`, sandbox discovery, before/after.
+- 2026-11-20 (owner): main and upper's links stay JMRI blocks with their OS block's occupancy sensor
+  (`le_tables.level_sensors`, `tables_build`, `hartlib.devices` part invariants). Candidate built with `--review`,
+  stock discovery in a sandbox: all 177 SML pairs as before, no block added or removed, only Mast 8RA moves (a
+  turnout mast at Switch 7); 140 block lengths change (plan lengths). Staging's 14 folded pieces are not yet JMRI
+  blocks (the owner decides). Waiting on: the owner's approval of the staging, candidate, panel and desk
+  fingerprints, then `make panelpro-test` and `--pi --win`.
 
 ### 6. One wiring file per kind (with the device master's owners)
 

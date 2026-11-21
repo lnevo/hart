@@ -16,6 +16,30 @@
       </property>
     </properties>
   </mastproperties>
+  <mastproperties mast="Mast A83">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
+  <mastproperties mast="Mast A84">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
+  <mastproperties mast="Mast B92">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
   <signalmastlogic source="Mast 4RA">
     <sourceSignalMast>Mast 4RA</sourceSignalMast>
     <destinationMast destination="Mast 24RA">

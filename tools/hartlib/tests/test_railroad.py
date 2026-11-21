@@ -352,9 +352,12 @@ class Readers(Copy):
 
     def test_block_lengths_and_hands(self) -> None:
         got = R.read_block_lengths(self.src.block_lengths)
-        self.assertEqual((got["Track W-1"].source, got["Track W-1"].jmri_in), ("plan", got["Track W-1"].plan_in))
+        self.assertEqual(got["Track W-1"].source, "plan")
+        self.assertIsNone(got["Track W-1"].measured_in)
         timed = got["Track Main West"]
-        self.assertEqual((timed.source, timed.jmri_in), ("timed", timed.measured_in))
+        self.assertEqual(timed.source, "timed")
+        # JMRI's block takes the plan length on every level; the measured one is for speed profiling only
+        self.assertFalse(hasattr(timed, "jmri_in"))
         self.assertNotEqual(timed.plan_in, timed.measured_in)
         self.assertEqual(R.plan_cm({"Track Main West": timed})["Track Main West"], timed.plan_in * 2.54)
         text = self.src.block_lengths.read_text(encoding="utf-8")
@@ -363,7 +366,7 @@ class Readers(Copy):
                          (w1.replace(",,plan,", ",99,plan,"), "a timed row gives its measured length, any other none"),
                          (w1.replace("Block 4-4,105.2,", "Block 4-4,long,"), "plan_in 'long' is not a number"),
                          (w1.replace("Block 4-4,105.2,", "Block 4-4,,"), "no plan_in"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,0,"), "plan_in 0 is not above zero")):
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,-1,"), "plan_in -1 is below zero")):
             self.src.block_lengths.write_text(text.replace(w1, bad), encoding="utf-8")
             self.fails(lambda: R.read_block_lengths(self.src.block_lengths), f"line 2: .*{why}")
         mw = next(line for line in text.splitlines() if line.startswith("Track Main West,"))

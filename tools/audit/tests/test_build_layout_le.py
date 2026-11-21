@@ -45,13 +45,16 @@ LIVE_PANEL = "HART Railroad"
 def _level_counts() -> tuple[int, int, int, int]:
     """(blocks, sensors, masts, heads) of the main and upper levels in the committed data: the blocks the build adds,
     the device map's block rows (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) less the
-    helix blocks, which are staging's beans (helix_tracks.csv, 2026-11-20); a virtual sensor for every block row,
-    the helix blocks' too; and main_upper_masts.csv."""
+    helix blocks, which are staging's beans (helix_tracks.csv, 2026-11-20), and the parts (links inside an OS block,
+    each a block of its own, step 5 part 2); a virtual sensor for every block row, the helix blocks' too, which the
+    parts share with their OS blocks; and main_upper_masts.csv."""
     from hartlib import devices
     helix = {h["block"] for h in sys.modules["mast_rule"].read_helix_tracks().values()}
     rows = [r["user_name"] for _n, r in devices.device_map_lines(("2", "3"), B.DEVICE_MAP) if r["layer"] == "block"]
+    parts = devices.part_lines(("2", "3"), B.DEVICE_MAP)
     masts = B.read_level_masts()
-    return len([r for r in rows if r not in helix]), len(rows), len(masts), sum(len(r["heads"]) for r in masts)
+    return (len([r for r in rows if r not in helix]) + len(parts), len(rows), len(masts),
+            sum(len(r["heads"]) for r in masts))
 
 
 LEVEL_BLOCKS, LEVEL_SENSORS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
@@ -246,15 +249,19 @@ class Built(unittest.TestCase):
         self.assertEqual(len(sensors), LEVEL_SENSORS)                # the helix blocks' sensors too
         self.assertFalse([s for s in tables.sensors(self.root) if is_new(s) and s not in list(internal)])
         bd = level_devices
+        from hartlib import devices
+        part_of = {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("2", "3"), B.DEVICE_MAP)}
+        self.assertEqual(len(part_of), 25)          # the links: blocks of their own on their OS block's sensor
         for b in [b for b in tables.blocks(self.root) if is_new(b)]:
-            name = tables.user_name(b)
-            with self.subTest(block=name):
+            name = part_of.get(tables.user_name(b), tables.user_name(b))
+            with self.subTest(block=tables.user_name(b)):
                 self.assertEqual(b.findtext("occupancysensor"), bd.occupancy_user(name))
                 self.assertEqual(sensors[bd.occupancy_user(name)], bd.block_sensor(name))
                 kids = [c.tag for c in b]
                 self.assertEqual(kids[kids.index("permissive") + 1], "occupancysensor")
         for lb in [b for b in tables.layout_blocks(self.root) if is_new(b)]:
-            self.assertEqual(lb.get("occupancysensor"), bd.occupancy_user(tables.user_name(lb)))
+            name = part_of.get(tables.user_name(lb), tables.user_name(lb))
+            self.assertEqual(lb.get("occupancysensor"), bd.occupancy_user(name))
             self.assertEqual(list(lb.attrib)[:2], ["systemName", "occupancysensor"])     # as staging's
         self.assertEqual(sensors["BS Switch 225b"], "IS:HART:C3:B:OS225b")
         self.assertEqual(sensors["BS 107 Loop 2"], "IS:HART:C3:B:107_Loop_2")
@@ -554,10 +561,14 @@ class FactsReaders(unittest.TestCase):
     def test_level_sensors_read_every_block(self) -> None:
         from hartlib import railroad
         device = railroad.read_device_map(B.DEVICE_MAP)
+        from hartlib import devices
         sensors = B.level_sensors()
-        self.assertEqual(list(sensors), list(device.blocks))
+        parts = {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("2", "3"), B.DEVICE_MAP)}
+        self.assertEqual(list(sensors), list(device.blocks) + list(parts))
         for block, (system, user, _comment) in sensors.items():
             self.assertEqual(device.sensors[user], system)
+        for part, block in parts.items():          # a part is read with its OS block's sensor (step 5 part 2)
+            self.assertEqual(sensors[part], sensors[block])
 
 
 class DeviceNames(unittest.TestCase):
@@ -584,7 +595,8 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")
         self.assertEqual(got["Track e89"], "Track Helix Inner")      # one block with staging's McKeesport track
-        self.assertEqual(len(got), 51 + LEVEL_SENSORS)
+        self.assertEqual(got["Track e14"], "Track 115-117")          # a part: a block of its own (step 5 part 2)
+        self.assertEqual(len(got), 51 + LEVEL_SENSORS + 25)          # the 25 parts' trial names
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
@@ -656,6 +668,8 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(len(named), len(set(named)))           # one track per block
         self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name
         self.assertIn("101-103", named)                         # named here; the plugin leaves it off (hidden_names)
+        # a part (a link inside an OS block, step 5 part 2) keeps its track name as a label, so no track moves
+        self.assertLessEqual({"109-111", "115-117", "125-129"}, set(named))
         bad = copy.deepcopy(names)
         n = next(k for k, d in bands[1][1]["nodes"].items() if d.get("label") == "101B")
         bad["Main"]["turnouts"][n] = "Switch 999"
@@ -863,9 +877,9 @@ class Throats(unittest.TestCase):
     def test_the_tracks_of_several_blocks_are_measured(self) -> None:
         tracks = {self.bands[0][1]["strands"][sid]["name"] for sid in self.measured()}
         # every drawn block has its plan length (owner, 2026-11-20); a track of several blocks is cut at their plan
-        # shares: Scale with OS Switch 7 (Mast 8RA's boundary at Switch 7's points, 2026-11-18), and the Switch 1-3
-        # and 35-39 links of OS blocks only. Each yard track is one block since its throats went.
-        self.assertEqual(tracks, {"Scale", ""})
+        # shares: the Switch 1-3 and 35-39 links of OS blocks only (Scale is one block since step 5 part 2,
+        # 2026-11-20). Each yard track is one block since its throats went.
+        self.assertEqual(tracks, {""})
 
     def test_staging_lengths_are_the_plan_lengths_of_every_drawn_block(self) -> None:
         from le_names import staging_lengths
@@ -998,7 +1012,9 @@ class LoopAndCrossover(unittest.TestCase):
         names, lengths = B.level_names(bands, le_mod, page=page)
         loop = sorted(b for bl in names["Main"]["blocks"].values() for b in bl if "107 Loop" in b)
         self.assertEqual(loop, ["Track 107 Loop 1", "Track 107 Loop 2"])      # one strand each
-        self.assertEqual((lengths["Track 107 Loop 1"], lengths["Track 107 Loop 2"]), (3880.5, 3880.5))
+        # each half its block_lengths.csv plan length (154.5 in, step 5 part 2: the plan, not the drawing)
+        self.assertAlmostEqual(lengths["Track 107 Loop 1"], 154.5 * 25.4)
+        self.assertAlmostEqual(lengths["Track 107 Loop 2"], 154.5 * 25.4)
         (n, corners), = names["Upper"]["xover_blocks"].items()
         band = next(b for t, b, _ in bands if t.startswith("Upper"))
         to_corner = le_mod.double_corners(band, n)

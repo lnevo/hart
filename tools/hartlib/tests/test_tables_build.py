@@ -148,7 +148,8 @@ class MasterBeans(unittest.TestCase):
         self.assertEqual("yes", masts["Mast 4LA"].find("unlit").get("allowed"))
         self.assertEqual("no", masts["Mast 2L"].find("unlit").get("allowed"))
         full = tables.blocks(root)[0]
-        self.assertEqual(("574.0", "0"), (full.get("length"), full.get("curve")))
+        # the plan length (9.2 in), not the measured one (22.6 in): JMRI takes plan_in on every level (step 5 part 2)
+        self.assertEqual(("233.7", "0"), (full.get("length"), full.get("curve")))
         self.assertEqual(["systemName", "userName", "comment", "permissive", "occupancysensor"],
                          [c.tag for c in full])
         self.assertEqual(1, len(tables.blocks(root, full=False)))

@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import paths, tables  # noqa: E402
+from hartlib import devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
     band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING,
@@ -96,6 +96,7 @@ def plan_lengths() -> dict:
     return {name: r.plan_in for name, r in rows.items()}
 
 
+MM_PER_INCH = 25.4
 MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
 
 
@@ -258,7 +259,9 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     """{placeholder: device-map user name} for the main and upper turnouts and blocks: each turnout or block row's
     `trial_name` (comma separated: a crossover's two halves are one turnout, "Switch 101A, Switch 101B" -> "Switch
     101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
-    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>"."""
+    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (devices.csv part_of: a
+    link inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor
+    is its OS block's (le_tables.level_sensors); the block it names must be a main or upper block row."""
     out, bad = {}, []
     for r in main_upper_device_map(path).rows:         # read and checked by hartlib.railroad
         if r.layer not in ("turnout", "block"):
@@ -279,6 +282,21 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
             if t in out:
                 bad.append(f"line {r.line}: trial_name {t} is given to {out[t]} and {user}")
             out[t] = user
+    blocks = set(out.values())
+    try:
+        parts = devices.part_lines(("2", "3"), path)
+    except railroad.FactsError as exc:
+        raise BuildError(f"the device map: {exc}") from None
+    for line, r in parts:
+        if r["part_of"] not in blocks:
+            bad.append(f"line {line}: part {r['user_name']} names {r['part_of']}, no main or upper block row")
+        trial = [bare(t.strip()) for t in r["trial_name"].split(",") if t.strip()]
+        if not trial:
+            bad.append(f"line {line}: part {r['user_name']} has no trial_name")
+        for t in trial:
+            if t in out:
+                bad.append(f"line {line}: trial_name {t} is given to {out[t]} and part {r['user_name']}")
+            out[t] = r["user_name"]
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
     if not out:
@@ -288,7 +306,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
 
 def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[dict, dict]:
     """placeholder_names with every placeholder replaced by its device-map name (device_names): ({band key: names},
-    {block: length mm}). Stops on a placeholder the device map does not name, or a device-map name the drawing does
+    {block: length mm}, each block its block_lengths.csv plan length). Stops on a placeholder the device map does not name, or a device-map name the drawing does
     not use."""
     device = device_names() if device is None else device
     names, lengths = placeholder_names(bands, le_mod, page)
@@ -307,15 +325,18 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
                         os={n: to(b) for n, b in nm["os"].items()},
                         xover_blocks={n: {leg: to(b) for leg, b in v.items()} for n, v in nm["xover_blocks"].items()},
                         blocks={sid: [to(b) for b in v] for sid, v in nm["blocks"].items()})
-    out_len = defaultdict(float)
-    for ph, mm in lengths.items():
-        out_len[to(ph)] += mm
+    drawn = {to(ph) for ph in lengths}
     if missing:
         raise BuildError(f"main and upper placeholders {paths.rel(DEVICE_MAP)} names nowhere: {sorted(missing)}")
     unused = sorted(set(device) - used)
     if unused:
         raise BuildError(f"{paths.rel(DEVICE_MAP)} trial names the drawing does not have: {unused}")
-    return out, dict(out_len)
+    plan = plan_lengths()           # block_lengths.csv's plan_in, every level (owner, 2026-11-20, step 5 part 2)
+    no_length = sorted(b for b in drawn if b not in plan)
+    if no_length:
+        raise BuildError(f"block_lengths.csv has no plan length for main and upper blocks {no_length}: run "
+                         "python3 tools/schematic/plan_lengths.py")
+    return out, {b: plan[b] * MM_PER_INCH for b in drawn}
 
 
 def shared_turnouts(names: dict) -> None:

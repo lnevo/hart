@@ -487,11 +487,12 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
 def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railroad.BlockLength]
                  ) -> dict[tuple, list[ET.Element]]:
     """{section: [bean, ...]} of the GENERATED_LEVELS rows of the master, a block's names-only pass first under
-    ("blocks-names", ...). A row with assignment none, or a part (part_of), gives no bean. TablesBuildError on a row
+    ("blocks-names", ...). A row with assignment none gives no bean: staging's parts (part_of) have none today. A part
+    that is a JMRI block of its own (a jmri_name and layout block, owner 2026-11-20) takes its block's occupancy
+    sensor. TablesBuildError on a row
     the module has no bean for, a turnout without both feedback rows, a block with no length, no layout block or two
     detectors, or a name given twice."""
-    # a part (part_of: a piece of track inside another block) has assignment none as well, and is skipped by name too
-    rows = [r for r in rows if r["level"] in GENERATED_LEVELS and r["assignment"] != "none" and not r["part_of"]]
+    rows = [r for r in rows if r["level"] in GENERATED_LEVELS and r["assignment"] != "none"]
     by_user = {(r["layer"], r["user_name"]): r for r in rows}
     detector: dict[str, list[str]] = {}
     for r in rows:
@@ -542,7 +543,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
                 if not r["layout_block"]:
                     bad.append(f"{at}: no layout_block")
                     continue
-                sensors = detector.get(user, [])
+                sensors = detector.get(r["part_of"] or user, [])       # a part: its block's sensor
                 if len(sensors) > 1:
                     bad.append(f"{at}: detected by {len(sensors)} occupancy rows ({', '.join(sensors)})")
                     continue
@@ -550,7 +551,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
                 _sub(names_only, "systemName", jn)
                 _sub(names_only, "userName", user)
                 add(("blocks-names",) + BLOCKS, names_only)
-                full = _named("block", {"systemName": jn, "length": f"{length.jmri_in * MM_PER_INCH:.1f}",
+                full = _named("block", {"systemName": jn, "length": f"{length.plan_in * MM_PER_INCH:.1f}",
                                         "curve": "0"}, jn, user, bean_comment(r))
                 _sub(full, "permissive", "no")
                 lb_attrs = {"systemName": r["layout_block"]}

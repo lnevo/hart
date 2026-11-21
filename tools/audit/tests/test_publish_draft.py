@@ -286,7 +286,7 @@ class SignalsCheck(unittest.TestCase):
     def test_a_run_not_in_the_plan_fails(self) -> None:
         masts = self.bs.sdm.load_signal_masts()
         first = next(i for i, m in enumerate(masts) if m["signal"] == "2L")       # a turnout mast, switch 1 to 23
-        anchor = next(i for i, m in enumerate(masts) if m["signal"] == "8RA")     # an anchor 23.4 cm in
+        anchor = next(i for i, m in enumerate(masts) if m["signal"] == "67")      # an anchor at the K-1/K-2 turnback
         self.assertEqual((masts[first]["kind"], masts[anchor]["kind"]), ("turnout", "anchor"))
         for i, field, value, why in ((first, "schematic_edge", "e9999", "not in the plan graph"),
                                      (first, "names", ["Nowhere"], "carries"), (first, "run", ["1", "99"], "runs"),
