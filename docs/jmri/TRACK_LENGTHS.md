@@ -43,6 +43,20 @@ JMRI's length is the plan length; a measured length is for speed profiling.
 | Track EH-3 | Block 13-5 | 30.1 |  | plan | 764.5 |  |
 | Track Helix Outer | BS Helix Outer | 947.2 |  | plan | 24058.9 | AnyRail 5.3c: the whole helix run, Switch 39 to Switch 131A; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 689.0 in up to the -5 cm cut; one block, detector Block 41-2 |
 | Track Helix Inner | BS Helix Inner | 916.5 |  | plan | 23279.1 | AnyRail 5.3c: the whole helix run, Switch 37 to Switch 131B; its detector covers all of it (owner, 2026-11-20). The schematic draws staging's share, 644.6 in up to the -5 cm cut; one block, detector Block 41-1 |
+| Track 1-3 at 1 | Block 4-2 | 5 |  | plan | 127.0 | staging, the plan's length; a part of OS Switch 1, on its detector |
+| Track 1-3 at 3 | Block 4-1 | 5 |  | plan | 127.0 | staging, the plan's length; a part of OS Switch 3, on its detector |
+| Track 9-11 | Block 13-8 | 10.3 |  | plan | 261.6 | staging, the plan's length; a part of OS Switch 9, on its detector |
+| Track 11-13 | Block 13-2 | 11 |  | plan | 279.4 | staging, the plan's length; a part of OS Switch 11, on its detector |
+| Track 13-15 | Block 3-2 | 7.6 |  | plan | 193.0 | staging, the plan's length; a part of OS Switch 15, on its detector |
+| Track 15-17 | Block 3-2 | 5.8 |  | plan | 147.3 | staging, the plan's length; a part of OS Switch 15, on its detector |
+| Track 17-19 | Block 3-3 | 5.8 |  | plan | 147.3 | staging, the plan's length; a part of OS Switch 17, on its detector |
+| Track 19-21 | Block 3-5 | 5.8 |  | plan | 147.3 | staging, the plan's length; a part of OS Switch 19, on its detector |
+| Track 23-31 | Block 12-7 | 5.8 |  | plan | 147.3 | staging, the plan's length; a part of OS Switch 31, on its detector |
+| Track 25-27 | Block 12-1 | 5.8 |  | plan | 147.3 | staging, the plan's length; a part of OS Switch 25, on its detector |
+| Track 27-29 | Block 12-3 | 5.8 |  | plan | 147.3 | staging, the plan's length; a part of OS Switch 27, on its detector |
+| Track 29-31 | Block 12-5 | 5.8 |  | plan | 147.3 | staging, the plan's length; a part of OS Switch 29, on its detector |
+| Track 31-33 | Block 12-7 | 5.2 |  | plan | 132.1 | staging, the plan's length; a part of OS Switch 31, on its detector |
+| Track 35-37 | Block 1-6 | 7.5 |  | plan | 190.5 | staging, the plan's length; a part of OS Switch 35a, on its detector |
 | Track 101 Spur 1 | BS 101 Spur 1 | 23.5 |  | plan | 596.9 | main level, the plan's length |
 | Track 101 Spur 2 | BS 101 Spur 2 | 36.7 |  | plan | 932.2 | main level, the plan's length |
 | Track 101-103 | BS Switch 101 | 0 |  | plan | 0.0 | main level, the plan's length |

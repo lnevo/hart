@@ -190,8 +190,9 @@ class StagingTracks(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "holds blocks OS Switch 1, OS Switch 2a; give it to the one"):
             B.StagingTracks(CHAINS).block_between("TO1", "TO2", "t")
 
-    def test_the_35_37_track_is_os_switch_35a_on_the_staging_track(self):
-        # the gap is at Switch 37's points (owner, 2026-11-19): the device map gives the whole track to OS Switch 35a
+    def test_the_35_37_track_is_its_own_part_block_on_the_staging_track(self):
+        # the gap is at Switch 37's points (owner, 2026-11-19): the whole track is Track 35-37, a part of OS Switch
+        # 35a and a JMRI block of its own (owner, 2026-11-20)
         try:                    # the staging tracks need the plugin's solve: skipped without it, as the --check scripts
             B.pd.plugin()
         except SystemExit as exc:
@@ -199,7 +200,7 @@ class StagingTracks(unittest.TestCase):
                 raise
             self.skipTest(f"schematic-maps plugin not available: {exc.code}")
         tracks = B.StagingTracks(B.staging_tracks())
-        self.assertEqual(tracks.block_between("TOR36", "TO113", "t"), "OS Switch 35a")
+        self.assertEqual(tracks.block_between("TOR36", "TO113", "t"), "Track 35-37")
 
 
 class Blocks(unittest.TestCase):

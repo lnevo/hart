@@ -164,6 +164,10 @@ class Tables:
         self.segments = {s.get("ident"): s for s in self.root.iter("tracksegment")}
         self.points = {p.get("ident"): p for p in self.root.iter("positionablepoint")}
         self.paths_stored = bool(self.paths)
+        # a part (devices.csv part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
+        # legs in switch_legs.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)
+        self.part_of: dict[str, str] = {r["user_name"]: r["part_of"]
+                                        for _n, r in devices.part_lines(("1", "2", "3"))}
         self.sensor_system = {
             (s.findtext("userName") or "").strip(): (s.findtext("systemName") or "").strip()
             for s in self.root.iter("sensor")
@@ -214,8 +218,13 @@ class Tables:
         attr = {"A": "blockname", "B": "blockbname", "C": "blockcname", "D": "blockdname"}[conn]
         return lt.get(attr) or lt.get("blockname")
 
+    def os_of(self, block: str | None) -> str | None:
+        """The block `block` is part of (part_of), or `block` itself."""
+        return self.part_of.get(block, block) if block else block
+
     def leg_block(self, ident: str, conn: str, own: str) -> str | None:
-        """Block reached from connection B or C of a layout turnout, past its own OS block."""
+        """Block reached from connection B or C of a layout turnout, past its own OS block (and the parts inside
+        it), a part read as the block it is part of (os_of)."""
         came = (ident, f"TURNOUT_{conn}")
         seg = next((s for s in self.segments.values()
                     for i in ("1", "2")
@@ -223,8 +232,8 @@ class Tables:
         for _ in range(200):
             if seg is None:
                 return None
-            if seg.get("blockname") and seg.get("blockname") != own:
-                return seg.get("blockname")
+            if seg.get("blockname") and self.os_of(seg.get("blockname")) != own:
+                return self.os_of(seg.get("blockname"))
             ends = [(seg.get("connect1name"), seg.get("type1")), (seg.get("connect2name"), seg.get("type2"))]
             name, kind = ends[1] if ends[0] == came else ends[0]
             if kind == "POS_POINT":
@@ -236,7 +245,7 @@ class Tables:
                 came = (name, "POS_POINT")
                 seg = self.segments.get(nxt) if nxt else None
             elif kind and kind.startswith("TURNOUT_") and name in self.layout_turnouts:
-                block = self._turnout_block(self.layout_turnouts[name], kind[-1])
+                block = self.os_of(self._turnout_block(self.layout_turnouts[name], kind[-1]))
                 return block if block != own else None
             else:
                 return None
@@ -440,7 +449,8 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
                 if rep is None or (rep.text or "").strip() != cmd:
                     r.add(f"cats:{n}", f"{n}: {desk} {leg.os_block} leg {edge} reports "
                                        f"{(rep.text or '').strip() if rep is not None else '-'} but commands {cmd}")
-                dest = trace.trace_leg(cells, xy, edge, own=leg.os_block)
+                inside = frozenset(p for p, of in t.part_of.items() if of == leg.os_block)
+                dest = t.os_of(trace.trace_leg(cells, xy, edge, own=leg.os_block, inside=inside))
                 want = {"close": leg.closed, "throw": leg.thrown}.get(cmd)
                 if dest != want:
                     r.add(f"cats:{n}", f"{n}: {desk} {leg.os_block} leg {edge} ({cmd}) leads to {dest}; "

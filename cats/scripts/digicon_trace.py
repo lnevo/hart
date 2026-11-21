@@ -141,12 +141,15 @@ def trace_leg(
     xy: tuple[int, int],
     leg: str,
     own: str | None = None,
+    inside: frozenset = frozenset(),
 ) -> str | None:
-    """Name of the first block other than ``own`` (default: the plant's OS) reached through ``leg``."""
+    """Name of the first block other than ``own`` (default: the plant's OS) and the blocks ``inside`` it (parts of
+    it, each a block of its own on the desk) reached through ``leg``."""
     own = own if own is not None else plant_os(cells, xy)
+    skip = {own} | set(inside)
     sec = cells[xy]
     name = block_name(sec, leg)
-    if name and name != own:
+    if name and name not in skip:
         return name
     out = leg
     for _ in range(MAX_STEPS):
@@ -161,7 +164,7 @@ def trace_leg(
             return None
         xy = nxt
         name = block_name(sec, enter)
-        if name and name != own:
+        if name and name not in skip:
             return name
         kinds = tracks(sec)
         if points_edge(kinds) == enter:
@@ -171,6 +174,6 @@ def trace_leg(
             return None
         out = next(e for e in ends[0] if e != enter)
         name = block_name(sec, out)
-        if name and name != own:
+        if name and name not in skip:
             return name
     return None

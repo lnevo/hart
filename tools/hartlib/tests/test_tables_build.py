@@ -232,7 +232,7 @@ class MasterBeans(unittest.TestCase):
 
     def test_the_committed_staging_reads_into_a_base(self) -> None:
         root = tb.base().root
-        self.assertEqual(45, len(tables.blocks(root)))
+        self.assertEqual(59, len(tables.blocks(root)))      # 45 and staging's 14 parts (owner, 2026-11-20)
         self.assertIsNone(root.find("LayoutEditor"))
         self.assertEqual([], tables.mast_logics(root))
 

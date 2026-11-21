@@ -99,6 +99,22 @@ class LayoutFactsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "LEVEL_XING_A.*slip or level crossing"):
             check.Tables(tables).joined_blocks("Track Main West")
 
+    def test_a_part_is_read_as_the_block_it_is_inside(self) -> None:
+        """A part is a JMRI block of its own inside an OS block (owner, 2026-11-20); switch_legs.csv names the OS
+        blocks, so a leg is read past the parts of its own OS block and a part as the block it is part of."""
+        t = check.Tables(check.TABLES)
+        self.assertEqual(t.os_of("Track 1-3 at 1"), "OS Switch 1")
+        self.assertEqual(t.os_of("Track Barn"), "Track Barn")
+        ident = next(i for i, lt in t.layout_turnouts.items() if lt.get("blockname") == "OS Switch 1")
+        legs = {t.leg_block(ident, c, "OS Switch 1") for c in "BC"}
+        self.assertIn("OS Switch 3", legs)
+        cells, plants = check.desk_plants(check.DESKS[0], check.Report())
+        xy = plants["OS Switch 35a"]
+        right = check.trace.trace_leg(cells, xy, "RIGHT", own="OS Switch 35a")
+        self.assertEqual(right, "Track 35-37")
+        self.assertEqual(check.trace.trace_leg(cells, xy, "RIGHT", own="OS Switch 35a",
+                                               inside=frozenset({"Track 35-37"})), "OS Switch 37")
+
     def test_joined_blocks_come_from_the_panel_when_no_paths_are_stored(self) -> None:
         t = check.Tables(check.TABLES)
         self.assertIn("OS Switch 1", t.joined_blocks("Track Main West"))

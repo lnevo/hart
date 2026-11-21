@@ -1175,6 +1175,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         row["description"] = devices.describe(row)
         return row
 
+    os_rows_by_name = {r["user_name"]: r for r in master if r["level"] == FIELD_LEVEL and r["layer"] == "block"}
+    next_pnm = [max((int(r["pnm_order"]) for r in master if r["pnm_order"]), default=0)]
     for name in sorted(blocks | set(lay.parts), key=natural):
         if name in lay.parts:
             part = lay.parts[name]
@@ -1192,6 +1194,19 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                         bad.append(str(exc))
             row = part_row(FIELD_LEVEL, name, part, trials[name])
             row.update(assignment="virtual", jmri_name=beans[name][0], layout_block=beans[name][1])
+            # a JMRI block of its own, so a row of the public name map (ADR-005): the one it has, else the next place,
+            # with its block's control point, detector and comment
+            if old is not None and old["role"] == "part" and old["pnm_order"]:
+                row.update({c: old[c] for c in devices.COLUMNS if c.startswith("pnm_")})
+            else:
+                of = os_rows_by_name.get(part["part_of"])
+                if of is None or not of["pnm_order"]:
+                    bad.append(f"staging part {name}: its block {part['part_of']} has no name-map row to take its "
+                               "control point and detector from")
+                else:
+                    next_pnm[0] += 1
+                    row.update(pnm_order=str(next_pnm[0]), pnm_cp=of["pnm_cp"], pnm_hardware=of["pnm_hardware"],
+                               pnm_comment=of["pnm_comment"], pnm_notes=f"part of {part['part_of']}")
             row["description"] = devices.describe(row)
             out.append(row)
         else:
