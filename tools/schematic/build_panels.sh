@@ -2,6 +2,8 @@
 # Rebuild every output drawn from the schematic, in the order they depend on each other, or check them all with
 # --check (exit 1 if any is stale). `make panels` and `make panels CHECK=1` run this.
 #
+# usage: build_panels.sh [--check] [--full]
+#
 # The steps, in the order they run (the name is the one each step prints):
 #
 #   hands                 the plan rows' hands in switches.csv, from the plan graph
@@ -27,6 +29,9 @@
 #   le-cutover            build_layout_le.py --as-live: the three-level candidate and the staging candidate it holds
 #                         (the viewing trials are retired, owner 2026-11-17: the candidates show every level)
 #   approved-candidate    check_approved.py on the cut-over candidate, straight after it is written
+#   sml-current           the discovered Signal Mast Logic was discovered from the beans the sources give now:
+#                         data/schematic/discovered_sml.stamp holds the sha256 of the discovery base it came from
+#                         (run_sml_discover.sh writes it); a mismatch says to rerun discovery on the Mac. Always runs
 #   tables                tables.xml (build_tables.py): the template, the staging beans of devices.csv, the Layout
 #                         Editor build, the discovered Signal Mast Logic (ADR-029: tables.xml is an output)
 #   signals-sync          every level's heads and masts in tables.xml follow masts.csv (sync_signals.py
@@ -44,33 +49,49 @@
 # inputs and plugin code are unchanged are read back, so a run after a small change redoes only what that change
 # reaches. A write stops at the first failure, since what follows reads that step's output (step) or the files it
 # checks (guard); --check runs every step and names each stale one.
+#
+# Each step also has a stamp (tools/schematic/panel_stamps.py): while its inputs, its code, the plugin's commit and its
+# outputs are what its last successful run left, it prints "<name>: current, skipped" and does not run. The stamps are
+# kept per checkout in .cache/panel-stamps/; --full (make panels FULL=1) ignores them. Guards always run.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
 check=()
-case "${1:-}" in
-  "") ;;
-  --check) check=(--check) ;;
-  *) echo "usage: $0 [--check]" >&2; exit 2 ;;
-esac
+full=0
+for arg in "$@"; do
+  case "$arg" in
+    --check) check=(--check) ;;
+    --full) full=1 ;;
+    *) echo "usage: $0 [--check] [--full]" >&2; exit 2 ;;
+  esac
+done
+STAMPS=(python3 tools/schematic/panel_stamps.py)
 
 failed=()
+# run_step STOP KIND NAME CMD...: KIND is "stamped" for a step (skipped while its stamp is the last successful run's,
+# tools/schematic/panel_stamps.py; --full ignores the stamps) and "guard" for a check that always runs.
 run_step() {
-  local stop=$1 name=$2 start=$SECONDS
-  shift 2
+  local stop=$1 kind=$2 name=$3 start=$SECONDS
+  shift 3
   echo "== $name"
+  if [ "$kind" = stamped ] && [ "$full" -eq 0 ] && "${STAMPS[@]}" current "$name" "$@" 2>/dev/null; then
+    echo "   $name: current, skipped"
+    return
+  fi
   if "$@" ${check[@]+"${check[@]}"}; then
     echo "   $name: ok, $((SECONDS - start)) s"
+    [ "$kind" = stamped ] && "${STAMPS[@]}" record "$name" "$@"
   else
     echo "   $name: FAILED, $((SECONDS - start)) s"
+    [ "$kind" = stamped ] && "${STAMPS[@]}" forget "$name"
     failed+=("$name")
     [ ${#check[@]} -eq 0 ] && { echo "stopped: $stop"; exit 1; }
   fi
 }
 # A step that writes its outputs (or checks them, with --check).
-step() { run_step "later steps read what $1 writes" "$@"; }
+step() { run_step "later steps read what $1 writes" stamped "$@"; }
 # A step that only checks, in both modes: it writes nothing, and its message names what to run by hand.
-guard() { run_step "$1 only checks and it failed; later steps read the files it checks" "$@"; }
+guard() { run_step "$1 only checks and it failed; later steps read the files it checks" guard "$@"; }
 
 step hands python3 tools/schematic/build_hands.py
 step staging-sets python3 tools/schematic/build_staging_sets.py
@@ -83,6 +104,7 @@ step head-plan python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wi
 step schematic python3 tools/schematic/publish_draft.py
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 guard approved-candidate python3 tools/schematic/check_approved.py le-candidate
+guard sml-current python3 tools/schematic/check_sml_current.py
 step tables python3 tools/schematic/build_tables.py
 guard signals-sync python3 tools/schematic/sync_signals.py --check
 guard device-master python3 tools/schematic/check_device_master.py --check

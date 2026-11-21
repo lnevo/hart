@@ -37,6 +37,7 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import os
 import sys
 from pathlib import Path
@@ -109,6 +110,9 @@ def main(argv=None) -> int:
     g.add_argument("--discovery-base", action="store_true",
                    help="write tables.xml with no Signal Mast Logic, for run_sml_discover.sh to discover on; "
                         "tables.xml is then stale until --discovered-from")
+    g.add_argument("--base-hash", action="store_true",
+                   help="print the sha256 of the discovery base (what --discovery-base writes) and write nothing: "
+                        "the stamp of data/schematic/discovered_sml.stamp")
     g.add_argument("--discovered-from", type=Path, metavar="STORE",
                    help="a PanelPro Store after SML discovery: its logic and mast properties replace "
                         f"{paths.rel(tb.DISCOVERED)}, then tables.xml is written")
@@ -118,7 +122,7 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     if args.review and args.check:
         ap.error("--review writes a candidate; --check holds tables.xml to the approved panel")
-    if not args.check:
+    if not (args.check or args.base_hash):
         message = paths.check_only_message(Path(__file__).name)
         if message:
             print(f"ERROR: {message}", file=sys.stderr)
@@ -138,7 +142,8 @@ def main(argv=None) -> int:
             if args.discovered_from:
                 new_doc = tb.discovered_from_store(tables.load(args.discovered_from).root)
                 discovered = tb.read_discovered_root(new_doc, str(args.discovered_from))
-            data, counts = generate(discovered, with_logic=not args.discovery_base, review=args.review)
+            data, counts = generate(discovered, with_logic=not (args.discovery_base or args.base_hash),
+                                    review=args.review)
         except (tb.TablesBuildError, ble.BuildError, devices.DevicesError) as exc:
             print(f"build_tables.py: {exc}", file=sys.stderr)
             return 2
@@ -146,6 +151,9 @@ def main(argv=None) -> int:
             print(f"build_tables.py: {exc.filename}: {exc.strerror}", file=sys.stderr)
             return 2
     summary = ", ".join(f"{v} {k}" for k, v in counts.items())
+    if args.base_hash:
+        print(hashlib.sha256(data).hexdigest())
+        return 0
     if args.check:
         if not OUT.exists() or OUT.read_bytes() != data:
             print(f"STALE: {paths.rel(OUT)} is not what tools/schematic/build_tables.py writes; run it (never copy a "

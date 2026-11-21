@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""Guard: the discovered Signal Mast Logic (data/schematic/discovered_sml.xml) was discovered from the tables the
+sources give now.
+
+run_sml_discover.sh discovers on the discovery base (build_tables.py --discovery-base: every generated bean, no Signal
+Mast Logic) and writes discovered_sml.stamp beside the result: the sha256 of that base. This builds the base in memory
+(build_tables.py --base-hash does the same), hashes it and compares. A mismatch means a mast, turnout, sensor or block
+changed since the last discovery, so the file may name a pair that is gone or miss one that is new.
+"""
+from __future__ import annotations
+
+import hashlib
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_layout_le as ble  # noqa: E402
+import build_tables as bt  # noqa: E402
+import publish_draft as pd  # noqa: E402
+from hartlib import paths  # noqa: E402
+from hartlib import tables_build as tb  # noqa: E402
+
+STAMP = tb.DISCOVERED.with_suffix(".stamp")
+STALE = ("SML discovery is stale: run jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac (PanelPro), "
+         "then make panels")
+
+
+def verdict(stamp: Path, current: str) -> str | None:
+    """None when `stamp` holds `current`; else the message that says what to run."""
+    if not stamp.is_file():
+        return f"{STALE} ({paths.rel(stamp)} is missing)"
+    if stamp.read_text(encoding="utf-8").strip() != current:
+        return STALE
+    return None
+
+
+def base_digest() -> str:
+    with pd.cache_on():
+        data, _counts = bt.generate(with_logic=False)
+    return hashlib.sha256(data).hexdigest()
+
+
+def main() -> int:
+    try:
+        ble.plugin()
+    except ble.BuildError as exc:
+        if os.environ.get("SCHEMATIC_REQUIRED") != "1":
+            print(f"SKIPPED sml-current: {exc}")
+            return 0
+        print(f"check_sml_current.py: the schematic-maps plugin: {exc}", file=sys.stderr)
+        return bt.EXIT_NO_PLUGIN
+    try:
+        current = base_digest()
+    except (tb.TablesBuildError, ble.BuildError) as exc:
+        print(f"check_sml_current.py: {exc}", file=sys.stderr)
+        return 2
+    message = verdict(STAMP, current)
+    if message:
+        print(message, file=sys.stderr)
+        return 1
+    print(f"ok: {paths.rel(STAMP)} matches the discovery base")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
