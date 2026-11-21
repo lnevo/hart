@@ -947,7 +947,7 @@ class FinalReview(unittest.TestCase):
         self.assertEqual(own["extra_follow"], [["Track W-1", "Track W-2"]])
         south = [["S-R", "S-1", "S-2", "S-3", "S-4"]]
         self.assertEqual(own["name_columns"], south)
-        self.assertEqual(own["lamp_columns"], south)
+        self.assertNotIn("lamp_columns", own)          # the lamps are parked and off every panel (2026-11-21)
 
     def test_level_le_labels_from_main_upper_preferences(self) -> None:
         # preferences.json[main_upper] sets the page and both levels: its flat le_labels reach every band (staging

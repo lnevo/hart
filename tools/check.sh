@@ -98,7 +98,6 @@ run track-lengths python3 jmri/layouts/hart/scripts/export_track_lengths.py --ch
 run speedmatch-routes python3 jmri/layouts/hart/scripts/speedmatch/build_routes.py --check
 run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 run baselines python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py --check
-run os-lamps-display-only python3 jmri/layouts/hart/scripts/occupancy_lamps_display_only.py --check
 run digicon-disabled python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check
 run status-counts python3 tools/ops/status_counts.py --check
 # Prints SKIPPED and passes when the schematic-maps plugin submodule is not checked out (fails in CI, SCHEMATIC_REQUIRED=1).

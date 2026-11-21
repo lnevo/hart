@@ -53,7 +53,7 @@ runs them and the deploy never shipped them. Their tests stay in `jmri/layouts/h
 
 | Feature | Only for the parked feature |
 |---------|-----------------------------|
-| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `parked/retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py`, `parked/polish_hart_layout_editor.py` (run by `run_panelpro_stage1.sh`; puts the lamps and block contents labels back after Stage 1) |
+| Dispatcher System | `run_dispatcher_stage1.py`, `run_panelpro_stage1.sh`, `run_panelpro_traininfo_repair.sh`, `repair_dispatcher_traininfo.py`, `parked/retarget_dispatcher_traininfo_transits.py`, `fix_traininfo_detection.py`, `parked/polish_hart_layout_editor.py` (run by `run_panelpro_stage1.sh`; puts the lamps and block contents labels back after Stage 1), `parked/occupancy_lamps_display_only.py` (the lamps' display-only check, test in `parked/tests/`) |
 | NX | `parked/apply_nx_layer.py` (imports `nx_contract.py` from the scripts folder), `discover_nx.py`, `run_nx_discover.sh`, `jmri/scripts/generate_nx_pairs.py` |
 | USS CTC | `build_ctc_full_15col.py` (unsafe to re-run, ADR-005) |
 
@@ -106,8 +106,11 @@ panel. The owner decided on 2026-11-17 that they belong with the Dispatcher Syst
 
 They are written in the `panel_items.json` form (`tools/schematic/panel_items.py`). Each is anchored at its block's
 drawn centre, at the offset the approved staging candidate gave it; each lamp's sensor is in its own entry (`BS S-R`
-and so on). The lamp layout preferences stay in place: the South Yard lamp column (`lamp_columns` in
-the `le_labels` of `preferences.json`'s `staging` section) and the label layer's room for lamps.
+and so on). Since 2026-11-21 (owner) the lamps are parked on every level with all their code and checks: the South
+Yard lamp column (`lamp_columns` in the `le_labels` of `preferences.json`'s `staging` section, which only kept room
+for them) is gone, the display-only check `occupancy_lamps_display_only.py` and its test are in this folder
+(`parked/tests/`), out of `tools/check.sh`, and the lamp-offset check of `test_le_cutover.py` is retired. Their
+sensors stay in tables.xml: only the panel icons are parked. Bringing them back means giving `lamp_columns` back too.
 
 Put back on a copy of the device-map candidate on 2026-11-17, all 79 landed within 1 px of where the last
 overlay-built candidate had them, so they do not have to be placed again. The 24 station icons are also in

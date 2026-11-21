@@ -517,22 +517,6 @@ class ThreeLevels(unittest.TestCase):
         self.assertNotIn("Neville Island", texts)
         self.assertEqual(self.base[1].extra_x, {})            # no caller's items: the station clusters are parked
 
-    @unittest.skip("occupancy lamps parked (owner 2026-11-21), removed in a follow-up PR")
-    def test_owner_layout_rules_of_2026_11_16_os_lamps(self) -> None:
-        # each OS lamp of a plain switch centred in its control circle, as parked
-        parked_items = B.panel_items.load(PARKED_LAMPS)
-        staging_le = tables.layout_editor(tables.loads(self.base[0]).root, LIVE)
-        frame = {el.get("ident") for el in staging_le if el.tag in ("tracksegment", "layoutturnout")}
-        whole, blocks = B.panel_items.drawn_boxes(self.le, B.plugin()[1], B.slots_module(), frame_idents=frame)
-        own = {t.get("blockname"): t for t in self.le.findall("layoutturnout") if "XOVER" not in t.get("type")}
-        lamps = [it for it in parked_items["items"] if it["id"].startswith("lamp ") and it["anchor"]["block"] in own]
-        self.assertGreaterEqual(len(lamps), 15)
-        for it in lamps:
-            t = own[it["anchor"]["block"]]
-            x, y = B.panel_items.anchor_point(it["anchor"], whole, blocks, it["id"])
-            self.assertLessEqual(math.dist((round(x) + 5, round(y) + 5), (float(t.get("xcen")), float(t.get("ycen")))),
-                                 1.5, it["id"])
-
     def test_owner_layout_rules_of_2026_11_16_second_round(self) -> None:
         import math
         xo = {t.get("turnoutname"): t for t in self.le.findall("layoutturnout") if "XOVER" in t.get("type")}

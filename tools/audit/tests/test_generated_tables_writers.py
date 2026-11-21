@@ -47,22 +47,3 @@ class GeneratedTablesRefused(unittest.TestCase):
             other = Path(tmp) / "other.xml"
             shutil.copy(paths.REPO_TABLES_XML, other)
             tb.refuse_generated(other, "x.py")                # another tables file may be written
-
-    def test_occupancy_lamps_refuse_only_a_change_to_the_generated_file(self) -> None:
-        """With nothing to change it writes nothing; pointed at another file with a clickable lamp it fixes that
-        file."""
-        script = ROOT / S / "occupancy_lamps_display_only.py"
-        done = subprocess.run([sys.executable, str(script)], cwd=ROOT, capture_output=True, text=True, timeout=60)
-        self.assertEqual(0, done.returncode, done.stderr)
-        with tempfile.TemporaryDirectory() as tmp:
-            other = Path(tmp) / "t.xml"
-            other.write_text('<layout-config><LayoutEditor><sensoricon sensor="BS X" forcecontroloff="false" />'
-                             "</LayoutEditor></layout-config>", encoding="utf-8")
-            done = subprocess.run([sys.executable, str(script), "--tables", str(other), "--overlay",
-                                   str(Path(tmp) / "none.json")], cwd=ROOT, capture_output=True, text=True,
-                                  timeout=60)
-            self.assertEqual(0, done.returncode, done.stderr)
-
-
-if __name__ == "__main__":
-    unittest.main()
