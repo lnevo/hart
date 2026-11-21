@@ -282,20 +282,35 @@ def plan_edge(strand) -> str:
 
 
 def placeholder(strand) -> str:
-    """The device map trial name of a drawn strand: "Track <plan edge>" (plan_edge), and a balloon loop's half
-    numbered (name_loop_halves)."""
-    return bdm.loop_placeholder("Track " + plan_edge(strand), strand.get("loop_half"))
+    """The device map trial name of a drawn main or upper strand: its switch-and-leg key ("Track 107B-107C #1"), which
+    name_loop_halves gives it (`trial`). SystemExit on a strand with none: a band name_loop_halves did not key."""
+    if "trial" not in strand:
+        raise SystemExit(f"strand {strand['edge']} has no trial key: the bands were not read through name_loop_halves")
+    return strand["trial"]
 
 
 def name_loop_halves(bands, device=None):
-    """A copy of `bands` whose balloon loops are two desk blocks, as the device map has them: each half's strand
-    is named by its device map block less "Track " (the plugin parts a turnback between two differently named
-    tracks in the middle of its run, and labels each half) and marked with its half (`loop_half`, read by
-    placeholder)."""
+    """A copy of `bands` as the device map holds them. Each main and upper strand carries its trial key (`trial`,
+    read by placeholder): the switch-and-leg key of its piece (staging_device_map.band_refs, one grammar for every
+    level, owner 2026-11-20). Each balloon loop is two desk blocks: each half's strand is named by its device map
+    block less "Track " (the plugin parts a turnback between two differently named tracks in the middle of its run,
+    and labels each half) and marked with its half (`loop_half`)."""
     import build_layout_le as bl
+    import staging_device_map as sdm
     device = load_device_map() if device is None else device      # the caller's Facts.device, read once
     by_trial = {t: name for name, row in device.blocks.items() for t in row.trial}
     out = copy.deepcopy(bands)
+    _sheet, le_mod, _core = bl.plugin()
+    joined = le_mod.partners(out)
+    for bi, (title, band, _) in enumerate(out):
+        if not bdm.band_level(title):
+            continue
+        try:
+            refs = sdm.band_refs(out, joined, bi)
+        except sdm.StagingMapError as exc:
+            raise SystemExit(f"{title}: {exc}") from None
+        for sid, (piece, _against) in refs.items():
+            band["strands"][sid]["trial"] = sdm.track_placeholder(piece, 1, 1)
     for title, band, _ in out:
         if not bdm.band_level(title):
             continue
@@ -415,9 +430,7 @@ def inside_os(bands, P, bound_bi, name, row):
                 raise SystemExit(f"{name}: its schematic track {s['edge']} has no desk block and does not run "
                                  "between switches, so it is not inside their OS blocks")
             cm[plan_edge(s)] = s["cm"]     # as the device map measures it
-    if not found or any(t.removeprefix("Track ") not in
-                        {plan_edge(bands[bi][1]["strands"][sid]) for bi, sid in found}
-                        for t in row.trial):
+    if not found or not row.trial <= {placeholder(bands[bi][1]["strands"][sid]) for bi, sid in found}:
         raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(row.trial))} are not all drawn on "
                          "main or upper")
     length = round(sum(cm.values()), 1)

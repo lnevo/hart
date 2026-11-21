@@ -91,6 +91,27 @@ class Pure(unittest.TestCase):
         self.assertEqual(one["e2"][0], two["k6"][0])
         self.assertNotEqual(one["e2"][1], two["k6"][1])     # drawn the other way: its blocks are read reversed
 
+    def test_main_and_upper_keys_are_the_same_grammar(self):
+        """Main and upper use the same keys (owner, 2026-11-20): a lettered crossover half's label and leg ("121AB"),
+        a double crossover's leg ("225D"), ordered by switch number, half letter and leg; a run that ends at a
+        connector takes the switch and leg beyond it on the other band (band_refs)."""
+        dx = dict(kind="dx", label="225", ins={}, outs={})
+        b = band({"a": sw("121A"), "b": sw("125B"), "c": sw("229"), "d": dx, "L": dict(kind="end", sub="link")},
+                 {"e1": dict(src=("a", "B"), dst=("b", "C")), "e2": dict(src=("c", "A"), dst=("d", "D")),
+                  "e3": dict(src=("L", "E"), dst=("a", "C"))})
+        far = band({"f": sw("127B"), "M": dict(kind="end", sub="link")}, {"e9": dict(src=("M", "E"), dst=("f", "A"))})
+        bands = [("Main level", b, {}), ("Upper level", far, {})]
+        joined = {(0, "L"): (1, "M"), (1, "M"): (0, "L")}
+        got = {k: v[0] for k, v in sdm.band_refs(bands, joined, 0).items()}
+        self.assertEqual(got, {"e1": "121AB-125BC", "e2": "225D-229A", "e3": "121AC-127BA"})
+        self.assertEqual({k: v[0] for k, v in sdm.band_refs(bands, joined, 1).items()}, {"e9": "121AC-127BA"})
+        self.assertLess(sdm._end_order("101BA"), sdm._end_order("111C"))
+        self.assertLess(sdm._end_order("121AC"), sdm._end_order("121BA"))
+        with self.assertRaisesRegex(sdm.StagingMapError, "connector L: a run ends at it"):
+            sdm.piece_refs(b)
+        with self.assertRaisesRegex(sdm.StagingMapError, "connector L is joined to no other band"):
+            sdm.band_refs(bands, {}, 0)
+
     def test_two_runs_with_the_same_ends_stop(self):
         b = band({"a": sw("1"), "b": sw("3")}, {"e1": dict(src=("a", "B"), dst=("b", "A")),
                                                 "e2": dict(src=("b", "A"), dst=("a", "B"))})

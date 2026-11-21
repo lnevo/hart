@@ -7,7 +7,8 @@
   the digests), devices.csv gained part_of (left out too), staging's 14 links (and the piece of Scale in OS Switch 7)
   became part rows, and the OS blocks' trial names lost the link pieces those rows now carry. Step 5 part 2 (owner,
   2026-11-20): the piece of Scale in OS Switch 7 went (Track Scale one block), and main and upper's 25 links became
-  part rows, their block and occupancy rows gone;
+  part rows, their block and occupancy rows gone. Main and upper's trial names became switch-and-leg keys, as
+  staging's (owner, 2026-11-20), so a new export's edge ids leave every row as it is (Readers' renumber test);
 - the block layer the readers build from those rows: staging_device_map.load's {strand: blocks} over the staging
   drawing, by the drawing's own keys (OS placeholders and track pieces, from the first end of each piece), and the
   main and upper rows build_device_map.build() writes.
@@ -20,6 +21,7 @@ from __future__ import annotations
 import csv
 import hashlib
 import os
+import re
 import sys
 import unittest
 from pathlib import Path
@@ -58,7 +60,7 @@ STAGING_BLOCKS = (
     ('OS Switch 37', 'os', 'Princess', 'OS Switch 37'),
     ('OS Switch 39', 'os', 'Princess', 'OS Switch 39'),
     ('Track Barn', 'track', '', 'Track 7A-13C'),
-    ('Track Brick-Plane', 'track', '', 'Track 1C-5A #2, Track 1C-5A #1'),
+    ('Track Brick-Plane', 'track', '', 'Track 1C-5A #1, Track 1C-5A #2'),
     ('Track EH-1', 'track', '', 'Track 11B-end'),
     ('Track EH-2', 'track', '', 'Track 9B-end'),
     ('Track EH-3', 'track', '', 'Track 9C-end'),
@@ -151,31 +153,133 @@ STAGING_OCCUPANCY = (
 # block or, where a home mast stands at a switch's points facing it, the OS block at its other end (125-129, 201-205,
 # 227-231, 229-233); 225's in the corner block of its leg (step 5 part 2, owner 2026-11-20)
 MAIN_UPPER_PARTS = (
-    ('2', 'Track 101-103', 'OS Switch 101', 'Track e28'),
-    ('2', 'Track 105-109', 'OS Switch 105', 'Track e20'),
-    ('2', 'Track 109-111', 'OS Switch 109', 'Track e18'),
-    ('2', 'Track 111-117', 'OS Switch 111', 'Track e23'),
-    ('2', 'Track 113-115', 'OS Switch 113', 'Track e11'),
-    ('2', 'Track 115-117', 'OS Switch 115', 'Track e14'),
-    ('2', 'Track 117-119', 'OS Switch 117', 'Track e16'),
-    ('2', 'Track 121-123', 'OS Switch 121', 'Track e6'),
-    ('2', 'Track 123-125', 'OS Switch 123', 'Track e29'),
-    ('2', 'Track 125-129', 'OS Switch 129', 'Track e3'),
-    ('2', 'Track 127-131 2', 'OS Switch 127', 'Track e66'),
-    ('3', 'Track 201-203', 'OS Switch 201', 'Track e59'),
-    ('3', 'Track 201-205', 'OS Switch 205', 'Track e60'),
-    ('3', 'Track 201-219', 'OS Switch 201', 'Track e58'),
-    ('3', 'Track 205-209', 'OS Switch 205', 'Track e83'),
-    ('3', 'Track 213-215', 'OS Switch 213', 'Track e80'),
-    ('3', 'Track 219-221', 'OS Switch 219', 'Track e68'),
-    ('3', 'Track 225-227', 'OS Switch 225c', 'Track e65'),
-    ('3', 'Track 225-229', 'OS Switch 225b', 'Track e61'),
-    ('3', 'Track 227-231', 'OS Switch 231', 'Track e48'),
-    ('3', 'Track 229-233', 'OS Switch 233', 'Track e37'),
-    ('3', 'Track 231-237', 'OS Switch 231', 'Track e42'),
-    ('3', 'Track 235-243', 'OS Switch 235', 'Track e50'),
-    ('3', 'Track 237-239', 'OS Switch 237', 'Track e43'),
-    ('3', 'Track 239-245', 'OS Switch 239', 'Track e45'),
+    ('2', 'Track 101-103', 'OS Switch 101', 'Track 101AB-103AA'),
+    ('2', 'Track 105-109', 'OS Switch 105', 'Track 105A-109C'),
+    ('2', 'Track 109-111', 'OS Switch 109', 'Track 109A-111B'),
+    ('2', 'Track 111-117', 'OS Switch 111', 'Track 111A-117B'),
+    ('2', 'Track 113-115', 'OS Switch 113', 'Track 113A-115C'),
+    ('2', 'Track 115-117', 'OS Switch 115', 'Track 115A-117C'),
+    ('2', 'Track 117-119', 'OS Switch 117', 'Track 117A-119AA'),
+    ('2', 'Track 121-123', 'OS Switch 121', 'Track 121BA-123C'),
+    ('2', 'Track 123-125', 'OS Switch 123', 'Track 123A-125AA'),
+    ('2', 'Track 125-129', 'OS Switch 129', 'Track 125BA-129A'),
+    ('2', 'Track 127-131 2', 'OS Switch 127', 'Track 127BA-131BA'),
+    ('3', 'Track 201-203', 'OS Switch 201', 'Track 201B-203A'),
+    ('3', 'Track 201-205', 'OS Switch 205', 'Track 201C-205A'),
+    ('3', 'Track 201-219', 'OS Switch 201', 'Track 201A-219B #1, Track 201A-219B #2'),
+    ('3', 'Track 205-209', 'OS Switch 205', 'Track 205C-209A'),
+    ('3', 'Track 213-215', 'OS Switch 213', 'Track 213B-215A'),
+    ('3', 'Track 219-221', 'OS Switch 219', 'Track 219A-221AA'),
+    ('3', 'Track 225-227', 'OS Switch 225c', 'Track 225A-227A'),
+    ('3', 'Track 225-229', 'OS Switch 225b', 'Track 225D-229A'),
+    ('3', 'Track 227-231', 'OS Switch 231', 'Track 227B-231A'),
+    ('3', 'Track 229-233', 'OS Switch 233', 'Track 229B-233A'),
+    ('3', 'Track 231-237', 'OS Switch 231', 'Track 231C-237A'),
+    ('3', 'Track 235-243', 'OS Switch 235', 'Track 235B-243AA'),
+    ('3', 'Track 237-239', 'OS Switch 237', 'Track 237B-239A'),
+    ('3', 'Track 239-245', 'OS Switch 239', 'Track 239C-245AA'),
+)
+
+# (level, name, trial_name) of the main and upper block rows but the parts: switch-and-leg keys, as staging's (owner,
+# 2026-11-20; they named AnyRail plan edges, "Track e33 1", before), the OS blocks keyed by their own name
+MAIN_UPPER_TRIALS = (
+    ('2', 'OS Switch 101', 'OS Switch 101'),
+    ('2', 'OS Switch 103', 'OS Switch 103'),
+    ('2', 'OS Switch 105', 'OS Switch 105'),
+    ('2', 'OS Switch 107', 'OS Switch 107'),
+    ('2', 'OS Switch 109', 'OS Switch 109'),
+    ('2', 'OS Switch 111', 'OS Switch 111'),
+    ('2', 'OS Switch 113', 'OS Switch 113'),
+    ('2', 'OS Switch 115', 'OS Switch 115'),
+    ('2', 'OS Switch 117', 'OS Switch 117'),
+    ('2', 'OS Switch 119', 'OS Switch 119'),
+    ('2', 'OS Switch 121', 'OS Switch 121'),
+    ('2', 'OS Switch 123', 'OS Switch 123'),
+    ('2', 'OS Switch 125', 'OS Switch 125'),
+    ('2', 'OS Switch 127', 'OS Switch 127'),
+    ('2', 'OS Switch 129', 'OS Switch 129'),
+    ('2', 'OS Switch 131', 'OS Switch 131'),
+    ('2', 'Track 101 Spur 1', 'Track 101AA-end'),
+    ('2', 'Track 101 Spur 2', 'Track 101BB-end'),
+    ('2', 'Track 101-111', 'Track 101BA-111C'),
+    ('2', 'Track 103 Spur', 'Track 103BB-end'),
+    ('2', 'Track 103-105 1', 'Track 103BA-105C'),
+    ('2', 'Track 103-105 2', 'Track 103AB-105B'),
+    ('2', 'Track 107 Loop 1', 'Track 107B-107C #1'),
+    ('2', 'Track 107 Loop 2', 'Track 107B-107C #2'),
+    ('2', 'Track 107-109', 'Track 107A-109B'),
+    ('2', 'Track 113 Spur 1', 'Track 113B-end'),
+    ('2', 'Track 113 Spur 2', 'Track 113C-end'),
+    ('2', 'Track 115 Spur', 'Track 115B-end'),
+    ('2', 'Track 119 Spur', 'Track 119BB-end'),
+    ('2', 'Track 119-121', 'Track 119BA-121BC'),
+    ('2', 'Track 119-123', 'Track 119AB-123B'),
+    ('2', 'Track 121 Spur', 'Track 121AA-end'),
+    ('2', 'Track 121-125', 'Track 121AB-125BC'),
+    ('2', 'Track 125-127', 'Track 125AB-127AA'),
+    ('2', 'Track 127-131 1', 'Track 127AB-131AB'),
+    ('2', 'Track 129 Spur 1', 'Track 129B-end'),
+    ('2', 'Track 129 Spur 2', 'Track 129C-end'),
+    ('2', 'Track Helix Outer', 'Track 131AA-helix'),
+    ('3', 'OS Switch 201', 'OS Switch 201'),
+    ('3', 'OS Switch 203', 'OS Switch 203'),
+    ('3', 'OS Switch 205', 'OS Switch 205'),
+    ('3', 'OS Switch 207', 'OS Switch 207'),
+    ('3', 'OS Switch 209', 'OS Switch 209'),
+    ('3', 'OS Switch 211', 'OS Switch 211'),
+    ('3', 'OS Switch 213', 'OS Switch 213'),
+    ('3', 'OS Switch 215', 'OS Switch 215'),
+    ('3', 'OS Switch 217', 'OS Switch 217'),
+    ('3', 'OS Switch 219', 'OS Switch 219'),
+    ('3', 'OS Switch 221', 'OS Switch 221'),
+    ('3', 'OS Switch 223', 'OS Switch 223'),
+    ('3', 'OS Switch 225a', 'OS Switch 225a'),
+    ('3', 'OS Switch 225b', 'OS Switch 225b'),
+    ('3', 'OS Switch 225c', 'OS Switch 225c'),
+    ('3', 'OS Switch 225d', 'OS Switch 225d'),
+    ('3', 'OS Switch 227', 'OS Switch 227'),
+    ('3', 'OS Switch 229', 'OS Switch 229'),
+    ('3', 'OS Switch 231', 'OS Switch 231'),
+    ('3', 'OS Switch 233', 'OS Switch 233'),
+    ('3', 'OS Switch 235', 'OS Switch 235'),
+    ('3', 'OS Switch 237', 'OS Switch 237'),
+    ('3', 'OS Switch 239', 'OS Switch 239'),
+    ('3', 'OS Switch 241', 'OS Switch 241'),
+    ('3', 'OS Switch 243', 'OS Switch 243'),
+    ('3', 'OS Switch 245', 'OS Switch 245'),
+    ('3', 'Track 127-221', 'Track 127BB-221BA'),
+    ('3', 'Track 203-207', 'Track 203C-207A'),
+    ('3', 'Track 203-211', 'Track 203B-211BB'),
+    ('3', 'Track 205 Spur', 'Track 205B-end'),
+    ('3', 'Track 207-211', 'Track 207B-211AA'),
+    ('3', 'Track 207-213', 'Track 207C-213A'),
+    ('3', 'Track 209 Spur 1', 'Track 209C-end'),
+    ('3', 'Track 209 Spur 2', 'Track 209B-end'),
+    ('3', 'Track 211-217 1', 'Track 211AB-217BB'),
+    ('3', 'Track 211-217 2', 'Track 211BA-217AA'),
+    ('3', 'Track 213 Spur', 'Track 213C-end'),
+    ('3', 'Track 215 Spur 1', 'Track 215C-end'),
+    ('3', 'Track 215 Spur 2', 'Track 215B-end'),
+    ('3', 'Track 217-219', 'Track 217BA-219C'),
+    ('3', 'Track 217-221', 'Track 217AB-221BB'),
+    ('3', 'Track 221-223', 'Track 221AB-223A'),
+    ('3', 'Track 223-225 1', 'Track 223B-225C'),
+    ('3', 'Track 223-225 2', 'Track 223C-225B'),
+    ('3', 'Track 227-241 1', 'Track 227C-241B #1'),
+    ('3', 'Track 227-241 2', 'Track 227C-241B #2'),
+    ('3', 'Track 229-241', 'Track 229C-241A'),
+    ('3', 'Track 231 Spur', 'Track 231B-end'),
+    ('3', 'Track 233-235', 'Track 233C-235A'),
+    ('3', 'Track 233-243', 'Track 233B-243BB'),
+    ('3', 'Track 235 Spur', 'Track 235C-end'),
+    ('3', 'Track 237-245', 'Track 237C-245BB'),
+    ('3', 'Track 239 Spur', 'Track 239B-end'),
+    ('3', 'Track 241 Spur', 'Track 241C-end'),
+    ('3', 'Track 243 Spur 1', 'Track 243BA-end'),
+    ('3', 'Track 243 Spur 2', 'Track 243AB-end'),
+    ('3', 'Track 245 Spur 1', 'Track 245BA-end'),
+    ('3', 'Track 245 Spur 2', 'Track 245AB-end'),
+    ('3', 'Track Helix Inner', 'Track 131BB-helix'),
 )
 
 # the staging layer: {drawing key: blocks from the key's first end}
@@ -242,11 +346,10 @@ STAGING_LAYER = {
     'Track 9C-end': ('Track EH-3',),
 }
 
-# (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by and part_of (and,
-# on staging, trial_name, pinned row by row above), joined by commas, one row a line, in file order
-DIGESTS = {"1": (90, 'ad63b0020d35c033f89db37d6008e69f9fcbfee42168039db7e4f2499bf90533'), "2": (76, '3467c6c01fe1b12c68df32fa174279109bf5e06aace0585346e5a723bba7cb26'), "3": (118, '3fe0341884d071fbfb34bd08c84ca60c6e1dd705debd0df1f2a2387d203c625b')}
-SKIP = {"1": ("written_by", "trial_name", "part_of"), "2": ("written_by", "part_of"),
-        "3": ("written_by", "part_of")}
+# (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by, part_of and
+# trial_name (pinned row by row above, on every level), joined by commas, one row a line, in file order
+DIGESTS = {"1": (90, 'ad63b0020d35c033f89db37d6008e69f9fcbfee42168039db7e4f2499bf90533'), "2": (76, 'b01092f5730c42b7520dd82fe07a3aafa5271e56b853def4e1bda0abcdefa611'), "3": (118, '3d609c5d7c184cae0d76b7cfc8aaa651f3d98fdcc4d5f7d2de04a179b3880bb8')}
+SKIP = {level: ("written_by", "trial_name", "part_of") for level in "123"}
 
 
 def skip_or_fail(exc: Exception) -> None:
@@ -288,6 +391,11 @@ class Committed(unittest.TestCase):
         got = tuple((r["level"], r["user_name"], r["part_of"], r["trial_name"]) for r in self.rows
                     if r["level"] != "1" and r["role"] == "part")
         self.assertEqual(got, MAIN_UPPER_PARTS)
+
+    def test_main_and_upper_trial_names(self):
+        got = tuple((r["level"], r["user_name"], r["trial_name"]) for r in self.rows
+                    if r["level"] != "1" and r["layer"] == "block" and r["role"] != "part")
+        self.assertEqual(got, MAIN_UPPER_TRIALS)
 
     def test_staging_occupancy_rows(self):
         got = tuple((r["user_name"], r["role"], r["blocks"], r["system_name"]) for r in self.rows
@@ -336,6 +444,44 @@ class Readers(RepoReadOnly, unittest.TestCase):
                 if r["level"] in ("2", "3") and r["layer"] in ("block", "occupancy")
                 and r["role"] != "part"]
         self.assertEqual(mine, want)
+
+    def build_rows(self, bands, joined, runs, corners):
+        """(level, user name, trial name) of every block row (parts too) the builder writes for `bands`."""
+        rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
+        _cp, rows, parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
+                                     rr.lcos_nodes, rr.local_switches, corners)
+        staging, _adopts, _drops = bdm.staging_rows(bands, joined, runs)
+        return sorted((str(r["level"]), r["user_name"], r["trial_name"]) for r in rows + parts + staging
+                      if r["layer"] == "block")
+
+    def test_a_renumbered_edge_id_leaves_the_rows_unchanged(self):
+        """Every level's trial names are switch-and-leg keys (owner, 2026-11-20), so a new AnyRail export, whose
+        edge ids (and the strand ids made of them) change every time, leaves every block row as it is."""
+        import build_layout_le as bl
+        try:
+            bands, joined, runs, corners = bdm.solve()
+        except bl.BuildError as exc:
+            skip_or_fail(exc)
+        want = self.build_rows(bands, joined, runs, corners)
+        self.assertEqual(want, sorted((r["level"], r["user_name"], r["trial_name"]) for r in committed()
+                                      if r["layer"] == "block"))
+        self.assertEqual([x for x in want if re.search(r"\be\d+", x[2])], [])     # no edge id in a trial name
+        self.assertEqual(self.build_rows(renumbered(bands), joined, runs, corners), want)
+
+
+EDGE_ID = re.compile(r"\be(\d+)")
+
+
+def renumbered(x):
+    """A deep copy of `x` (the solved bands) with every plan edge id renumbered, in strand ids, node and strand
+    references and edges alike (e0 to e999, e1 to e998, ...), as a new export does: the order of the ids changes too."""
+    if isinstance(x, str):
+        return EDGE_ID.sub(lambda m: f"e{999 - int(m.group(1))}", x)
+    if isinstance(x, dict):
+        return {renumbered(k): renumbered(v) for k, v in x.items()}
+    if isinstance(x, (list, tuple, set, frozenset)):
+        return type(x)(renumbered(v) for v in x)
+    return x
 
 
 if __name__ == "__main__":

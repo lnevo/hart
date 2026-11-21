@@ -426,8 +426,8 @@ def helix_stops(helix: dict) -> dict[str, str]:
 
 
 def loop_placeholder(placeholder: str, half: int | None) -> str:
-    """The drawing's placeholder for one half of a balloon loop ("Track e33" -> "Track e33 1"), as
-    build_layout_le.placeholder_names and build_cats_panel name it; any other track's is unchanged."""
+    """The block name of one half of a balloon loop or split track ("Track 107 Loop" -> "Track 107 Loop 1", as
+    block_layer.half_name); any other track's is unchanged."""
     return placeholder if half is None else f"{placeholder} {half}"
 
 
@@ -586,6 +586,13 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     check_helix_ends(bands, joined, found, helix)
     stops = helix_stops(helix)              # check_helix_ends: each helix track ends at its level_switch
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
+    trials = level_trials(bands, joined, lay)
+
+    def trial_of(name: str) -> str:
+        if name not in trials:
+            raise MapError(f"{name}: the block layer draws it on no strand, so it has no trial name")
+        return trials[name]
+
     dxs = set(corner_blocks)
     pins = read_pins(found=found, split=split_names) if pins is None else pins
     ms = planned["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)
@@ -683,7 +690,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if not m or m.group(1) not in switches:
             raise MapError(f"{name} (level {part['level']}) is part of {part['part_of']}, the OS block of no main or "
                            "upper switch")
-        part_rows.append(part_row(str(switches[m.group(1)].level), name, part, ", ".join(part["track"]["trial"])))
+        part_rows.append(part_row(str(switches[m.group(1)].level), name, part, trial_of(name)))
     for t in sorted(found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
         stray = [s for s in sws if s not in area_of]
@@ -706,7 +713,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             elif half:
                 note += f", half of the balloon loop from leg {'BC'[half - 1]}"
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
-                ", ".join(loop_placeholder(x, half) for x in t["trial"]), note, stop="yes" if name in stops else "")
+                trial_of(name), note, stop="yes" if name in stops else "")
             pinned = nodes.take_pinned(name)
             if not detect:
                 if pinned:
@@ -837,15 +844,46 @@ def staging_trials(band, lay: block_layer.Layer, bi: int) -> dict[str, str]:
     _turnouts, os_ph, refs = sdm.placeholders(band)
     got = defaultdict(list)
     for n, ph in os_ph.items():
-        got[lay.bands[bi]["os"][n]].append(((0, ()), ph))
-    for sid, names in lay.rows[bi].items():
-        if sid not in refs:
-            raise MapError(f"staging strand {sid} has blocks {names} but no piece key (staging_device_map.piece_refs)")
-        piece, against = refs[sid]
-        run = names[::-1] if against else names
-        for k, row in enumerate(run, 1):
-            got[row].append(((1, tuple(natural(sid))), sdm.track_placeholder(piece, k, len(run))))
-    return {row: ", ".join(ph for _k, ph in sorted(phs, key=lambda x: x[0])) for row, phs in got.items()}
+        got[lay.bands[bi]["os"][n]].append(ph)
+    for row, phs in piece_trials({bi: lay.rows[bi]}, {bi: refs}, {bi: set()}).items():
+        got[row] += phs
+    return {row: ", ".join(phs) for row, phs in got.items()}
+
+
+def piece_trials(rows: dict, refs: dict, inside: dict) -> dict[str, list[str]]:
+    """{row name: its track placeholders, in key order} of the layer rows of some bands (`rows`: {band index: {strand:
+    [row, ...] from the strand's first end]}, block_layer.Layer.rows), each strand keyed by `refs` ({band index:
+    staging_device_map.piece_refs or band_refs}): "Track <piece>", or "Track <piece> k/n" for the k-th of its n rows
+    from the piece's first end. A strand whose rows are all in `inside` ({band index: OS blocks}) is inside a crossover
+    and keyed by its OS block's own placeholder, not here. One grammar for every level (owner, 2026-11-20); a key
+    drawn on two bands (a track cut by a connector) is listed once. MapError on a strand with rows but no key."""
+    import staging_device_map as sdm        # its placeholder grammar (it imports this module)
+    got = defaultdict(dict)
+    for bi, band_rows in rows.items():
+        for sid, names in band_rows.items():
+            if set(names) <= inside[bi]:
+                continue
+            if sid not in refs[bi]:
+                raise MapError(f"strand {sid} of band {bi} has blocks {names} but no piece key "
+                               "(staging_device_map.piece_refs)")
+            piece, against = refs[bi][sid]
+            run = names[::-1] if against else names
+            for k, row in enumerate(run, 1):
+                got[row][sdm.track_placeholder(piece, k, len(run))] = None
+    return {row: sorted(phs, key=natural) for row, phs in got.items()}
+
+
+def level_trials(bands, joined, lay: block_layer.Layer) -> dict[str, str]:
+    """{row name: trial_name} of the main and upper track, half and part rows of `lay` (main_upper_layer), in the
+    switch-and-leg keys staging's rows have (piece_trials over staging_device_map.band_refs), which survive a new
+    export (owner, 2026-11-20). A strand inside a crossover is its OS block's ("OS Switch <n>", written by os_rows)."""
+    import staging_device_map as sdm        # its placeholder grammar (it imports this module)
+    try:
+        refs = {bi: sdm.band_refs(bands, joined, bi) for bi in lay.rows}
+    except sdm.StagingMapError as exc:
+        raise MapError(str(exc)) from None
+    inside = {bi: set(b["os"].values()) for bi, b in lay.bands.items()}
+    return {row: ", ".join(phs) for row, phs in piece_trials(lay.rows, refs, inside).items()}
 
 
 SPARE_RE = re.compile(r"^Node: (\d+) Block: (\d+)$")

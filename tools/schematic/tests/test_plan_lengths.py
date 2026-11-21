@@ -173,13 +173,37 @@ class MainUpper(unittest.TestCase):
     GRAPH["nodes"]["TO_3W1-2"] = {"kind": "switch", "label": "50"}
 
     def test_a_track_row_measures_its_trial_edges(self):
+        """A row's switch-and-leg keys give its share of each plan edge: a balloon loop half one of its edge's two
+        strands, a track folded at a turnback both."""
         bad = []
-        row = {"user_name": "Track 107 Loop 1", "level": "2", "trial_name": "Track e33 1"}
-        self.assertEqual(PL.track_inches(row, {"e33": 300.0}, bad), 150.0)
-        self.assertIsNone(PL.track_inches(dict(row, trial_name=""), {"e33": 300.0}, bad))
-        self.assertIsNone(PL.track_inches(dict(row, trial_name="Track e99"), {"e33": 300.0}, bad))
+        keys = {"Track 107B-107C #1": {"e33": 0.5}, "Track 201A-219B #1": {"e58": 0.5},
+                "Track 201A-219B #2": {"e58": 0.5}, "Track 101BA-111C": {"e24": 1.0}}
+        edge_in = {"e33": 300.0, "e58": 40.0, "e24": 100.0}
+        row = {"user_name": "Track 107 Loop 1", "level": "2", "trial_name": "Track 107B-107C #1"}
+        self.assertEqual(PL.track_inches(row, keys, edge_in, bad), 150.0)
+        both = dict(row, user_name="Track 201-219", trial_name="Track 201A-219B #1, Track 201A-219B #2")
+        self.assertEqual(PL.track_inches(both, keys, edge_in, bad), 40.0)
+        self.assertIsNone(PL.track_inches(dict(row, trial_name=""), keys, edge_in, bad))
+        self.assertIsNone(PL.track_inches(dict(row, trial_name="Track 9A-11C"), keys, edge_in, bad))
+        self.assertIsNone(PL.track_inches(dict(row, trial_name="Track e33 1"), keys, edge_in, bad))
+        self.assertIsNone(PL.track_inches(row, keys, {}, bad))
         self.assertEqual(bad, ["Track 107 Loop 1 (level 2): no trial_name, so no plan edge to measure",
-                               "Track 107 Loop 1 (level 2): trial name 'Track e99' is no plan edge of main.json"])
+                               "Track 107 Loop 1 (level 2): trial name 'Track 9A-11C' is drawn on no main or upper "
+                               "strand",
+                               "Track 107 Loop 1 (level 2): trial name 'Track e33 1' is drawn on no main or upper "
+                               "strand",
+                               "Track 107 Loop 1 (level 2): trial name 'Track 107B-107C #1' is drawn on plan edge "
+                               "e33, which main.json does not have"])
+
+    def test_key_edges_share_each_edge_by_strands(self):
+        strands = {"e33.0": {"edge": "e33"}, "e33.1": {"edge": "e33"}, "e35x": {"edge": "e35x"}}
+        other = {"e35y": {"edge": "e35y"}}
+        refs = {1: {"e33.0": ("107B-107C #1", False), "e33.1": ("107B-107C #2", True),
+                    "e35x": ("131AC-131BC", False)},
+                2: {"e35y": ("131AC-131BC", False)}}
+        got = PL.key_edges({1: strands, 2: other}, refs)
+        self.assertEqual(got, {"Track 107B-107C #1": {"e33": 0.5}, "Track 107B-107C #2": {"e33": 0.5},
+                               "Track 131AC-131BC": {"e35": 1.0}})
 
     def test_edges_take_the_plans_run_not_the_graphs_length(self):
         got = PL.main_edge_inches(self.GRAPH, {(1, "B"): (10.0, None)}, threeway_bumper=20.0)

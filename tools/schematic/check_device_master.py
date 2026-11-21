@@ -117,22 +117,33 @@ def switch_cps(interlockings: list[railroad.Interlocking], cps_path: Path = CPS)
     return dict(out)
 
 
-def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], found=None,
+def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], drawing=None,
                   cps_path: Path = CPS) -> dict[str, set[str]]:
     """{block: the control points of the switches at its track's ends} of every block row whose trial names are
-    tracks of the main and upper drawing (build_device_map.named_tracks, `found`; a loop or split half's name carries
-    its half after the track's). A row's level is the band its track is drawn on, so a track drawn on the upper band
-    from a main level switch (Track 127-221) has that switch's control point among them."""
+    tracks of the main and upper drawing (`drawing`: (bands, joined, runs), default build_device_map.solve's; its
+    tracks build_device_map.named_tracks, each strand keyed by staging_device_map.band_refs, the grammar of every
+    level's trial names). A row's level is the band its track is drawn on, so a track drawn on the upper band from a
+    main level switch (Track 127-221) has that switch's control point among them."""
     import build_device_map as bdm      # the drawing's tracks and their end switches (needs the plugin)
-    found = bdm.named_tracks() if found is None else found
-    ends = {x: {v for k, v in t["ends"] if k == "sw"} for t in found for x in t["trial"]}
+    bands, joined, runs = bdm.solve()[:3] if drawing is None else drawing
+    found = bdm.named_tracks(bands, joined, runs)
+    refs = {}
+    ends = {}
+    try:
+        for t in found:
+            if t["band"] not in refs:
+                refs[t["band"]] = sdm.band_refs(bands, joined, t["band"])
+            for sid in t["strands"]:
+                ends[f"Track {refs[t['band']][sid][0]}"] = {v for k, v in t["ends"] if k == "sw"}
+    except sdm.StagingMapError as exc:
+        raise DeviceMasterError(str(exc)) from None
     cp_of = switch_cps(interlockings, cps_path)
     out = defaultdict(set)
     for _n, r in lines:
         if r["layer"] != "block":
             continue
         for ph in sdm.split_names(r["trial_name"]):
-            got = ends.get(ph, ends.get(ph.rsplit(" ", 1)[0]))
+            got = ends.get(ph)
             for s in got or ():
                 out[r["user_name"]] |= cp_of.get(s, set())
     return dict(out)

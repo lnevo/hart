@@ -282,7 +282,8 @@ def split_edges(found: list[dict], levels: dict, path: Path) -> dict:
 
 
 def half_name(track: str, half: int | None) -> str:
-    """One half of a balloon loop or split track ("Track e33" -> "Track e33 1"); any other track's name unchanged."""
+    """One half of a balloon loop or split track ("Track 107 Loop" -> "Track 107 Loop 1"); any other track's name
+    unchanged."""
     return track if half is None else f"{track} {half}"
 
 

@@ -225,7 +225,7 @@ class Output(unittest.TestCase):
         self.assertNotIn(("block", "Track 107 Loop"), have)
         for half, leg in ((1, "B"), (2, "C")):
             block = have[("block", f"Track 107 Loop {half}")]
-            self.assertEqual(block["trial_name"], f"Track e33 {half}")
+            self.assertEqual(block["trial_name"], f"Track 107B-107C #{half}")      # piece 1 from leg B
             self.assertTrue(block["notes"].startswith(f"388.1 cm, half of the balloon loop from leg {leg}"))
         self.assertEqual(have[("occupancy", "BS 107 Loop 1")]["system_name"], "M2S3305")
         loop2 = have[("occupancy", "BS 107 Loop 2")]

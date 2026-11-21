@@ -235,13 +235,16 @@ def placeholder_names(bands, le_mod, page=None) -> tuple[dict, dict]:
                     labels.append(bare(nodes[n].get("label")) if nodes[n]["kind"] in ("switch", "dx") else "")
             a, b = labels
             inside_xover = (a and b and a[-1:] in "AB" and b[-1:] in "AB" and a[:-1] == b[:-1] and a[:-1].isdigit())
+            # a track's placeholder is its switch-and-leg key, the grammar of every level's trial names (owner,
+            # 2026-11-20: staging_device_map.band_refs; a balloon loop's halves are its pieces #1 and #2)
+            import staging_device_map as sdm
+            try:
+                refs = {} if inside_xover else sdm.band_refs(bands, joined, bi)
+            except sdm.StagingMapError as exc:
+                raise BuildError(f"{title}: {exc}") from None
             for sid, _ in chain:
                 s = strands[sid]
-                edge = s["edge"]
-                if any(nodes[x[0]].get("sub") == "link" for x in (s["src"], s["dst"])):
-                    edge = re.sub(r"(?<=\d)[xy]$", "", edge)
-                block = f"OS Switch {a[:-1]}" if inside_xover else \
-                    bdm.loop_placeholder(f"Track {edge}", loop_half.get(sid))
+                block = f"OS Switch {a[:-1]}" if inside_xover else sdm.track_placeholder(refs[sid][0], 1, 1)
                 names["blocks"][sid] = [block]
                 # a turnback's two tracks each carry their whole edge's length (count it once, or half each for a
                 # balloon loop's two blocks); a connector or helix cut leaves a piece on each band (e36x, e36y):
