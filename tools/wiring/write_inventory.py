@@ -338,22 +338,38 @@ def mast_role(rows: list, facing: str) -> str:
     return "Reverse Exit" if any(facing == r.thrown_leg for r in rows) else "Entry"
 
 
-def take_role(place: dict, sw: str, role: str, mast: str, ports: list) -> None:
-    """Put a wired staging mast in its switch's role slot; two in one slot would need a row per crossover half."""
-    held = place[sw].get(role)
+def mast_half(rows: list, sw: str, mast: str, protects: str) -> str | None:
+    """The OS block (half) of switch sw that a staging mast belongs to: the one it faces into (its protects column).
+    A switch with one OS block has no halves (None). A crossover mast that protects none of its halves stops."""
+    if len(rows) < 2:
+        return None
+    for r in rows:
+        if r.os_block == protects:
+            return r.os_block
+    raise FactsError(f"Mast {mast} on crossover Switch {sw} protects {protects!r}, which is none of its OS blocks "
+                     f"({', '.join(r.os_block for r in rows)}) in switches.csv")
+
+
+def take_role(place: dict, sw: str, role: str, mast: str, ports: list, half: str | None = None) -> None:
+    """Put a wired staging mast in its role slot of its switch (of its half, on a crossover); two in one slot stop."""
+    slots = place.setdefault((sw, half), {})
+    held = slots.get(role)
     if held:
-        raise FactsError(f"Switch {sw}: masts {held[0]} and {mast} are both wired as its {role} signal; "
-                         f"TurnoutSummary has one {role} slot per switch (a row per crossover half is not built)")
-    place[sw][role] = (mast, ports)
+        where = f"Switch {sw}" + (f" ({half})" if half else "")
+        raise FactsError(f"{where}: masts {held[0]} and {mast} are both wired as its {role} signal; "
+                         f"TurnoutSummary has one {role} slot per {'crossover half' if half else 'switch'}")
+    slots[role] = (mast, ports)
 
 
 def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
+    """One row per turnout, but a staging crossover (Switch 7, 23, 35: one turnout, two OS blocks) has one row per
+    half, each with its own entry and exit slots (owner, 2026-11-21); the turnout, DCC and button facts repeat."""
     ws = sheet(wb, "TurnoutSummary", TURNOUT_COLUMNS)
     fb = {name: port for n in nodes.values() for name, port in n.feedback}
     button = {name.removesuffix(" (planned)").removesuffix(" BTN"): port for n in nodes.values()
               for name, port in n.buttons}
     legs = staging_legs()
-    place = defaultdict(dict)        # switch -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
+    place: dict = {}        # (switch, half or None) -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
     for n in nodes.values():
         for head, spread in n.heads:
             ports = [f"{n.id}-OU{board}-{p}" for board, p in spread]
@@ -361,23 +377,27 @@ def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
             mast = by_name.get(f"Mast {key}", {})
             sw = mast.get("switch", "")
             if not n.design and sw in legs:                # staging: the leg it stands on (switches.csv)
-                role = mast_role(legs[sw], mast["facing"])
+                half = mast_half(legs[sw], sw, key, mast["protects"])
+                mine = [r for r in legs[sw] if half in (None, r.os_block)]
+                role = mast_role(mine, mast["facing"])
                 if not head.endswith(" Bottom"):
-                    take_role(place, sw, role, key, ports)
+                    take_role(place, sw, role, key, ports, half)
             elif head.endswith(" Top"):                  # main and upper: a two-head mast's top head is the entry
-                place[sw].setdefault("Entry", (key, ports))
+                place.setdefault((sw, None), {}).setdefault("Entry", (key, ports))
     for n in sorted(nodes.values(), key=lambda n: (n.level, n.num)):
         for name, _, r in n.turnouts:
             sw = name.removeprefix("Switch ")
-            vals = {"Turnout": name, "Parent Node": n.id,
-                    "Location/Area": f"{r['cp']} ({n.location})" if r["cp"] else n.location,
-                    "Switch Elements": r["trial_name"] or name, "Button": button.get(name),
-                    "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R")}
-            for role, (mast, pins) in place.get(sw, {}).items():
-                cols = "Entry Signal" if role == "Entry" else role          # the sheet's column names
-                vals.update({f"{role} Signal": mast, f"{cols} R Port": pins[0], f"{cols} Y Port": pins[1],
-                             f"{cols} G Port": pins[2]})
-            append(ws, [vals.get(c) for c in TURNOUT_COLUMNS], n.design)
+            halves = [x.os_block for x in legs[sw]] if not n.design and len(legs.get(sw, ())) > 1 else [None]
+            for half in halves:
+                vals = {"Turnout": f"{name} ({half})" if half else name, "Parent Node": n.id,
+                        "Location/Area": f"{r['cp']} ({n.location})" if r["cp"] else n.location,
+                        "Switch Elements": r["trial_name"] or name, "Button": button.get(name),
+                        "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R")}
+                for role, (mast, pins) in place.get((sw, half), {}).items():
+                    cols = "Entry Signal" if role == "Entry" else role          # the sheet's column names
+                    vals.update({f"{role} Signal": mast, f"{cols} R Port": pins[0], f"{cols} Y Port": pins[1],
+                                 f"{cols} G Port": pins[2]})
+                append(ws, [vals.get(c) for c in TURNOUT_COLUMNS], n.design)
 
 
 def block_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
