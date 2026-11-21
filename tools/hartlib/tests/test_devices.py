@@ -272,6 +272,41 @@ class TheParts(unittest.TestCase):
         self.assertEqual(D.describe(part()), "Piece Track 9-11 of block OS Switch 9: no JMRI block of its own.")
 
 
+BEAN = ('{"beans":[{"section":["turnouts","jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml"],'
+        '"element":{"tag":"turnout","attrs":{"feedback":"MONITORING"},"children":[{"tag":"systemName","attrs":{},'
+        '"text":"MTT999"},{"tag":"userName","column":"user_name"}]}}]}')
+
+
+def unplaced(user="Test 999", **cells) -> dict:
+    return blank(**{**dict(level="", layer="turnout", user_name=user, assignment="field", system_name="MTT999",
+                           jmri_name="MTT999", jmri_bean=BEAN, description="Added in PanelPro."), **cells})
+
+
+class TheUnplacedDevices(unittest.TestCase):
+    """A device added in PanelPro and not on the layout yet has no level, cp or role, and carries its Store beans in
+    jmri_bean (owner, 2026-11-20); it comes after every level's rows."""
+
+    def test_a_level_less_row_with_its_bean_passes(self) -> None:
+        D.check_rows([turnout(), unplaced()])
+
+    def test_no_level_needs_a_bean(self) -> None:
+        self.assertIn("or empty for a device kept by its jmri_bean", problems([unplaced(jmri_bean="")]))
+
+    def test_a_row_with_a_level_has_no_bean(self) -> None:
+        self.assertIn("jmri_bean is for a level-less device", problems([turnout(jmri_bean=BEAN)]))
+
+    def test_a_level_less_row_has_no_cp_role_or_writer_yet(self) -> None:
+        got = problems([unplaced(cp="Brick", role="turnout", written_by="build_device_map.py")])
+        self.assertIn("has no cp, role, written_by", got)
+
+    def test_its_bean_is_its_own(self) -> None:
+        self.assertIn("holds no bean named 'MTT998'", problems([unplaced(system_name="MTT998", jmri_name="MTT998")]))
+        self.assertIn("not JSON", problems([unplaced(jmri_bean="{")]))
+
+    def test_it_comes_after_every_level(self) -> None:
+        self.assertIn("out of order", problems([unplaced(), turnout()]))
+
+
 class TheWritersRules(unittest.TestCase):
     def test_a_writer_replaces_only_its_own_rows_and_the_result_is_in_order(self):
         held = [turnout(), mast("Mast 2L"), mast("Mast 4L", system_name="IF$vsm:basic:one-low($2)",
