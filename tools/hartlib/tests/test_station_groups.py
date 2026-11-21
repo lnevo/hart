@@ -45,6 +45,19 @@ class TheRepo(Files):
         self.assertEqual(areas[0].stations, ("Brick", "West Yard"))
         self.assertEqual({a.level for a in areas}, {1})
 
+    def test_the_desk_plates_are_the_hand_built_desks_five(self):
+        # owner, 2026-11-21: the control point plates the hand-built CATS desk had, now from stations.csv
+        self.assertEqual([s.name for s in rf.read_stations(STATIONS) if s.desk_plate],
+                         ["Brick", "Plane", "Barn", "East End", "Princess"])
+
+    def test_desk_plate_is_yes_or_empty(self):
+        path = self.dir() / "stations.csv"
+        path.write_text("level,station,switches,tracks,desk_code,desk_plate,notes\n1,A,1,,AA,yes,\n1,B,3,,BB,,\n")
+        self.assertEqual([s.desk_plate for s in rf.read_stations(path)], [True, False])
+        path.write_text("level,station,switches,tracks,desk_code,desk_plate,notes\n1,A,1,,AA,no,\n")
+        with self.assertRaisesRegex(rf.FactsError, "desk_plate is yes or empty, not 'no'"):
+            rf.read_stations(path)
+
     def test_the_station_group_rows(self):
         rows = {r["cp_name"]: r for r in rf.station_group_rows(STATIONS, LEGS)}
         self.assertEqual(rows["East End"]["switches"].split(",")[:2], ["25", "27"])
