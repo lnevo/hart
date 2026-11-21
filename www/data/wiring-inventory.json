@@ -1991,7 +1991,7 @@
        "device": "Switch 7 BTN",
        "kind": "button",
        "place": "West - Staging",
-       "note": "its port is assumed in v85: confirm"
+       "note": "planned, not connected; not connected yet (owner, 2026-11-21)"
       },
       {
        "pin": 2,
@@ -1999,7 +1999,7 @@
        "device": "Switch 11 BTN",
        "kind": "button",
        "place": "West - Staging",
-       "note": "its port is assumed in v85: confirm"
+       "note": "planned, not connected; not connected yet (owner, 2026-11-21)"
       },
       {
        "pin": 3,
@@ -2007,7 +2007,7 @@
        "device": "Switch 9 BTN",
        "kind": "button",
        "place": "West - Staging",
-       "note": "its port is assumed in v85: confirm"
+       "note": "planned, not connected; not connected yet (owner, 2026-11-21)"
       },
       {
        "pin": 4,

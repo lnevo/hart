@@ -104,6 +104,10 @@ class Inventory(unittest.TestCase):
         buttons = [r for r in V86["DNIN8"][1:] if r[5] == "Button"]
         self.assertEqual(len(buttons), 20)
         self.assertEqual(next(r for r in buttons if r[0] == "C1-IN2-1")[4], "Switch 35 BTN")
+        c13 = [(r[0], r[4], r[6]) for r in buttons if r[1] == "C13"]          # planned: not connected yet
+        self.assertEqual([x[:2] for x in c13], [("C13-IN2-1", "Switch 7 BTN"), ("C13-IN2-2", "Switch 11 BTN"),
+                                                ("C13-IN2-3", "Switch 9 BTN")])
+        self.assertTrue(all(x[2].startswith("planned, not connected") for x in c13))
         turnouts = {r[0]: r for r in V86["TurnoutSummary"][1:]}
         self.assertEqual(turnouts["Switch 35"][4], "C1-IN2-1")
         c1 = next(r for r in V86["Nodes"] if r[0] == "C1")

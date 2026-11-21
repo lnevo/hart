@@ -217,15 +217,16 @@ def add_local(nodes: dict[int, Node], path: Path | None = None) -> None:
         if taken:
             raise FactsError(f"{wiring.PATH.name} line {w.line}: {w.device} is on {n.id}-{w.board}-{pin}, which "
                              f"{taken[0]} has")
+        planned = "planned, not connected" if w.status == "planned" and w.kind != "calibration" else ""
         if w.kind == "button":
-            n.inp[board][pin] = (w.device, "Button", w.notes or None)
+            n.inp[board][pin] = (w.device, "Button", "; ".join(x for x in (planned, w.notes) if x) or None)
             n.buttons.append((w.device, f"{n.id}-IN{board}-{pin}"))
         elif w.kind == "calibration":
             n.ou[board][pin] = (w.device, CAL, "5V", "; ".join(x for x in (CAL_NOTE, w.notes,
                                                                           "reserved" if w.status == "planned" else "")
                                                                if x))
         else:
-            n.ou[board][pin] = (w.device, "Relay", "5V", w.notes or None)
+            n.ou[board][pin] = (w.device, "Relay", "5V", "; ".join(x for x in (planned, w.notes) if x) or None)
 
 
 def rail(n: Node, board: int) -> str:

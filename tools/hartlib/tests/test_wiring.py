@@ -46,7 +46,9 @@ class Read(unittest.TestCase):
         count = lambda lv, kind: sum(w.level == lv and w.kind == kind for w in rows)  # noqa: E731
         self.assertEqual((count(1, "turnout"), count(1, "fb"), count(1, "head"), count(1, "detector")),
                          (20, 40, 1, 45))
-        self.assertTrue(all(w.status == "wired" for w in rows if w.level == 1 and w.kind != "calibration"))
+        self.assertTrue(all(w.status == "wired" for w in rows if w.level == 1 and w.kind not in ("calibration", "button")))
+        self.assertEqual([w.device for w in rows if w.kind == "button" and w.status == "planned"],
+                         ["Switch 7 BTN", "Switch 11 BTN", "Switch 9 BTN"])           # C13-IN2-1 to 3, not connected
         self.assertEqual([w.node for w in rows if w.kind == "calibration" and w.status == "planned"], [13])  # reserved
 
     def test_bad_rows_stop(self):
