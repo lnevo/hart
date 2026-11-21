@@ -440,9 +440,12 @@ class Built(unittest.TestCase):
         drawn = {(lb.get("text"), int(lb.get("size"))) for lb in self.le.findall("positionablelabel")
                  if lb.get("text") is not None}
         self.assertLessEqual({(lb["text"], lb["size"]) for lb in self.P.labels}, drawn)
+        # station names at the page's station_size (14, owner 2026-11-21), the rest at the drawing's own sizes
+        station = B.schematic()[1]["le_labels"]["station_size"]
         unscaled = {le_mod.LABEL_SIZE, le_mod.LABEL_SIZE - 1, le_mod.LABEL_SIZE - 2, le_mod.NUMBER_SIZE,
-                    le_mod.TITLE_SIZE}
+                    le_mod.TITLE_SIZE, station}
         self.assertLessEqual(sizes, unscaled)
+        self.assertEqual({lb["size"] for lb in self.P.labels if lb["kind"] == "station"}, {station})
         self.assertIn(le_mod.TITLE_SIZE, sizes)
         self.assertNotEqual(self.P.scale, (1.0, 1.0))         # the grid is scaled (staging's fit, stretched)
 
@@ -969,12 +972,15 @@ class FinalReview(unittest.TestCase):
         # through the page), and each level's own keys are band-keyed (le_band_labels), as the plugin combines them
         bands, page = B.schematic()
         _sheet, le_mod, _core = B.plugin()
-        self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 13})
+        self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 13, "station_size": 14,
+                                             "station_gap": 10})
         # a copy of the page, as the build passes it (dict(page, band_align=...)): a band-only key in the flat
         # le_labels would stop there
         opts = dict(zip((B.band_key(t) for t, _b, _o in bands), le_mod.le_labels.options(bands, dict(page))))
         for key in ("Staging", "Main", "Upper"):
             self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 13), key)
+            # station and CP names at 14, 10 px apart (owner, 2026-11-21)
+            self.assertEqual((opts[key]["station_size"], opts[key]["station_gap"]), (14, 10), key)
         self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 13))
         for key in ("Main", "Upper"):
             self.assertEqual((opts[key]["names_last"], opts[key]["block_contents_size"]), (True, 12), key)
