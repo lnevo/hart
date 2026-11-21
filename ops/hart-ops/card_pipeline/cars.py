@@ -19,6 +19,7 @@
     cars.py publish         Rebuild rosters, feed STS, merge into Operations Pro
     cars.py seed-copy       Rebuild the roster and refresh the STS seed copies only
     cars.py compare         Report differences between the repository and each tool
+    cars.py sync            Send the repository's identity fields to the tools that differ (dry run; --apply writes)
 
 ``data/image_metadata.csv`` is the repository: one row per car, with a blank
 ``source_image`` until the car is photographed. ``data/car_queue.csv`` tracks
@@ -1185,6 +1186,187 @@ def cmd_compare(args: argparse.Namespace) -> int:
     return 0
 
 
+# sync (T10c): the repository's identity fields go to the tools that differ, for cars both hold.
+# Position, load and destination are STS's (ADR-016) and are never sent. The live STS takes only
+# `remarks` ("{type} {length}ft"): PATCH /cars/{id} is the API's one per-car update, and remarks is
+# the only identity column compare reads there. A changed road or number would be a new reporting
+# mark, which sync leaves to a person.
+SYNC_BACKUP_PREFIX = "cars_sync_"
+
+
+def update_ops_fields(path: Path, diffs: list[tuple]) -> int:
+    """Set only the differing attributes on existing cars, through the writer merge_ops uses."""
+    tree = ET.parse(path)
+    by_id = {c.get("id"): c for c in tree.getroot().findall("./cars/car")}
+    for cid, attr, want, _have in diffs:
+        by_id[cid].set(attr, want)
+    write_ops(tree, path)
+    return len(diffs)
+
+
+def sync_plan(rows: list[dict], ops_path: Path, live: list[dict] | None, gen) -> dict[str, list[tuple]]:
+    """Field differences per target. A target that cannot be read is left out of the plan."""
+    plan: dict[str, list[tuple]] = {}
+    if ops_path.is_file():
+        plan["Operations Pro"] = field_diffs(
+            expected_cars(rows, OPS_SKIP_TYPES), ops_car_attrs(ops_path), OPS_FIELDS
+        )
+    if gen is not None and SEED_INPUTS.is_dir():
+        photos = {row_id(r) for r in rows if "CarImagesFinal" in (r.get("notes") or "")}
+        sts_expected = expected_cars(
+            [r for r in rows if row_id(r) in photos], frozenset(gen.PASSENGER_TYPES)
+        )
+        roster = SEED_INPUTS / MERGED.name
+        if roster.is_file():
+            plan["STS seed roster copy"] = field_diffs(sts_expected, ops_car_attrs(roster), ROSTER_FIELDS)
+        meta = SEED_INPUTS / METADATA.name
+        if meta.is_file():
+            plan["STS seed metadata copy"] = seed_meta_diffs(rows, meta, gen)
+    if live is not None and gen is not None:
+        plan["Live STS"] = live_sts_diffs(rows, live, gen.PASSENGER_TYPES)
+    return plan
+
+
+def load_sts_api():
+    helpers_lib = str(STS_HELPERS / "lib")
+    if not (STS_HELPERS / "lib/sts_api.py").is_file():
+        raise LiveStsError(NO_SEED_DIR.format(path=STS_HELPERS / "lib"))
+    if helpers_lib not in sys.path:
+        sys.path.insert(0, helpers_lib)
+    import sts_api
+
+    return sts_api
+
+
+def take_sts_backup(api, backups: Path, local: bool, now: float | None = None) -> str:
+    """ADR-018: a backup under 12 hours old, else make one with POST /admin/backups.
+
+    A folder on this Mac says nothing about the Pi, so a non-local STS always gets a new backup.
+    """
+    import publish_gate as gate
+    import time
+
+    if local and not gate.backup_missing(backups, now):
+        return f"a backup under {gate.BACKUP_MAX_AGE_HOURS} hours old is in {backups}"
+    name = f"{SYNC_BACKUP_PREFIX}{int(time.time() if now is None else now)}"
+    try:
+        api.post("/admin/backups", {"name": name})
+    except api.ApiError as err:
+        raise LiveStsError(f"could not take an STS backup first ({err})") from None
+    return f"took STS backup {name}"
+
+
+def write_live_cars(api, live: list[dict], diffs: list[tuple]) -> list[str]:
+    """PATCH one car at a time and read it back; stops at the first problem."""
+    by_marks: dict[str, list[dict]] = {}
+    for car in live:
+        by_marks.setdefault(car.get("reporting_marks") or "", []).append(car)
+    done: list[str] = []
+    for marks, field, want, _have in diffs:
+        found = by_marks.get(marks, [])
+        if len(found) != 1:
+            raise LiveStsError(f"{marks}: {len(found)} STS cars have these reporting marks; stopped")
+        car_id = found[0]["id"]
+        try:
+            api.patch(f"/cars/{car_id}", {field: want})
+            back = api.get(f"/cars/{car_id}")
+        except api.ApiError as err:
+            raise LiveStsError(f"{marks}: {err}; stopped after {len(done)} cars") from None
+        got = back.get(field) if isinstance(back, dict) else back
+        if (got or "") != want:
+            raise LiveStsError(f"{marks}: read back {field}={got!r}, wanted {want!r}; stopped after {len(done)} cars")
+        done.append(marks)
+    return done
+
+
+def cmd_sync(args: argparse.Namespace) -> int:
+    """Dry run by default. --apply writes Operations Pro, the seed copies and, with --live-sts --sts-url, the STS."""
+    apply = getattr(args, "apply", False)
+    use_live = getattr(args, "live_sts", False)
+    url = getattr(args, "sts_url", None)
+    if url and not use_live:
+        print("--sts-url only applies together with --live-sts", file=sys.stderr)
+        return 2
+    if apply and use_live and not url:
+        print("--apply with --live-sts needs --sts-url URL (the live STS is never a default)", file=sys.stderr)
+        return 2
+    if url:
+        os.environ["STS_API_URL"] = url  # this run only
+    rows, _ = read_rows()
+    gen, why = seed_helpers()
+    if gen is None:
+        print(f"Cannot check the STS targets: {why}")
+    live = None
+    local = True
+    if use_live:
+        local = target_is_local(target_url())
+        try:
+            if not local:
+                reason = operating_reason()
+                if reason:
+                    raise LiveStsError(f"the operating flag is set ({reason}); {target_url()} is not touched")
+            _url, _stack, live = fetch_live_cars()
+        except LiveStsError as err:
+            print(f"Cannot use the live STS: {err}", file=sys.stderr)
+            return 2
+    ops_path = Path(args.ops_live)
+    plan = sync_plan(rows, ops_path, live, gen)
+    total = 0
+    for target, diffs in plan.items():
+        print(f"{target}: {len(diffs)} change(s)")
+        for cid, field, want, have in diffs:
+            print(f"    {cid} {field}: {have!r} -> {want!r}")
+        total += len(diffs)
+    if not use_live:
+        print("Live STS: not checked (add --live-sts --sts-url URL)")
+    if not total:
+        print("Nothing to do: the repository and the tools agree.")
+        return 0
+    if not apply:
+        print("Dry run: nothing was written. Add --apply to write.")
+        return 0
+
+    ops_diffs = plan.get("Operations Pro", [])
+    seed_diffs = plan.get("STS seed roster copy", []) + plan.get("STS seed metadata copy", [])
+    live_diffs = plan.get("Live STS", [])
+    sts_api = None
+    try:  # every refusal comes before the first write
+        if ops_diffs:
+            import publish_gate as gate
+
+            problems = gate.pi_out_of_step(OPS_MERGED.parent, PI_HOST, PI_OPS_DIR)
+            if problems:
+                raise LiveStsError("; ".join(problems))
+        if live_diffs:
+            sts_api = load_sts_api()
+            sys.path.insert(0, str(STS_HELPERS / "lib"))
+            from sts_paths import backups_dir
+            if not local:
+                reason = operating_reason()
+                if reason:
+                    raise LiveStsError(f"the operating flag is set ({reason}); {target_url()} is not touched")
+            print("  " + take_sts_backup(sts_api, backups_dir(), local))
+    except LiveStsError as err:
+        print(f"Sync stopped, nothing written: {err}", file=sys.stderr)
+        return 2
+    if ops_diffs:
+        update_ops_fields(ops_path, ops_diffs)
+        print(f"Updated {len(ops_diffs)} attribute(s) in {ops_path}. {DEPLOY_NOTE}")
+    if seed_diffs:
+        from build_car_roster_sor import main as build_roster
+
+        build_roster()
+        sync_seed_copies(SEED_INPUTS, SEED_COPIES)
+    if live_diffs:
+        try:
+            done = write_live_cars(sts_api, live, live_diffs)
+        except LiveStsError as err:
+            print(f"Live STS write stopped: {err}", file=sys.stderr)
+            return 2
+        print(f"Updated {len(done)} live STS car(s), each read back: {' '.join(done)}")
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -1269,6 +1451,12 @@ def main() -> int:
                    help="STS API base URL for this run, e.g. http://RPi-JMRI.local:8980/sts/api/v1 "
                         "(else STS_API_URL, else the Mac UAT)")
     p.set_defaults(run=cmd_compare)
+    p = sub.add_parser("sync", help="Send the repository's identity fields to the tools that differ")
+    p.add_argument("--ops-live", default=str(OPS_MERGED))
+    p.add_argument("--apply", action="store_true", help="Write the changes (default: show them)")
+    p.add_argument("--live-sts", action="store_true", help="Include the live STS (with --apply, also needs --sts-url)")
+    p.add_argument("--sts-url", metavar="URL", help="STS API base URL for this run")
+    p.set_defaults(run=cmd_sync)
     args = parser.parse_args()
     return args.run(args)
 
