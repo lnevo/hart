@@ -99,7 +99,9 @@ Material it reads:
 
 - Layout photos from `media/photos-layout/`.
 - The schematic and USS CTC evolution videos in
-  `www/assets/behind/panel-evolution/`.
+  `www/assets/behind/panel-evolution/`. The schematic one is made by
+  `python3 tools/schematic/evolution.py --site` (30 seconds, one frame per
+  committed version).
 - Phone-width captures of live site pages in `media/promo/shots/`. A missing
   capture is taken again from the live site.
 
