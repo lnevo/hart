@@ -26,7 +26,9 @@ accepted). It never writes tables.xml, which is generated (ADR-029); the full mo
 
 from __future__ import annotations
 
+import argparse
 import csv
+import io
 import sys
 from pathlib import Path
 
@@ -185,37 +187,64 @@ def mast_system_name(mast: str, rows: list[dict]) -> str:
     return f"IF$shsm:{SYSTEM_BY_HEADS[n]}:{APPEAR[n]}{ihs}"
 
 
+PLAN_FIELDS = [
+    "mast_user_name",
+    "mqtt_node",
+    "parent_node_id",
+    "heads",
+    "appearance",
+    "physignal",
+    "mast_system_name",
+    "head_system_names",
+    "packed_ids",
+    "port_ids",
+]
+
+
+def head_plan_text(rows: list[dict]) -> tuple[str, int]:
+    """The head plan CSV text for the given head rows, and its mast count."""
+    masts = plan_masts(fitted_rows(rows))
+    out = io.StringIO()
+    w = csv.DictWriter(out, fieldnames=PLAN_FIELDS, lineterminator="\n")
+    w.writeheader()
+    w.writerows(masts)
+    return out.getvalue(), len(masts)
+
+
 def write_csvs(rows: list[dict]) -> None:
     HEAD_PLAN.parent.mkdir(parents=True, exist_ok=True)
-    plan_fields = [
-        "mast_user_name",
-        "mqtt_node",
-        "parent_node_id",
-        "heads",
-        "appearance",
-        "physignal",
-        "mast_system_name",
-        "head_system_names",
-        "packed_ids",
-        "port_ids",
-    ]
-    masts = plan_masts(fitted_rows(rows))
+    text, count = head_plan_text(rows)
     with HEAD_PLAN.open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=plan_fields, lineterminator="\n")
-        w.writeheader()
-        w.writerows(masts)
+        f.write(text)
+    print(f"wrote {HEAD_PLAN} ({count} masts)")
 
-    print(f"wrote {HEAD_PLAN} ({len(masts)} masts)")
+
+def check_csvs(rows: list[dict]) -> bool:
+    """True when the committed head plan is what wiring.csv gives now (compared in memory, nothing written)."""
+    text, _ = head_plan_text(rows)
+    current = HEAD_PLAN.read_bytes().decode("utf-8") if HEAD_PLAN.is_file() else None
+    return current == text
 
 
 def main() -> int:
     """Write signal_head_plan.csv from wiring.csv's wired heads. `--wiring-only`, the old
-    name of this one mode, is still accepted."""
+    name of this one mode, is still accepted. `--check` writes nothing: it exits 1 when the file is stale."""
+    ap = argparse.ArgumentParser(description=main.__doc__)
+    ap.add_argument("--wiring-only", action="store_true", help="the only mode; accepted for old callers")
+    ap.add_argument("--check", action="store_true", help="exit 1 when signal_head_plan.csv is stale; write nothing")
+    args = ap.parse_args()
     try:
         rows = build_rows()
     except FactsError as exc:
         print(f"build_hart_signal_heads.py: {exc}", file=sys.stderr)
         return 2
+    if args.check:
+        if check_csvs(rows):
+            print(f"{HEAD_PLAN.name}: current")
+            return 0
+        print(f"{HEAD_PLAN} is stale: run python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py "
+              "--wiring-only (make panels does)", file=sys.stderr)
+        return 1
     write_csvs(rows)
     by: dict[int, list] = {}
     for r in rows:

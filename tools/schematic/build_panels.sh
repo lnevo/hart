@@ -21,6 +21,8 @@
 #                         After masts, so one run draws the masts it writes. Nothing before it reads signals.json:
 #                         device-map and masts give the same outputs with every signal dropped from it (the solve's
 #                         signals layer places mast icons only), so there is no cycle
+#   head-plan             signal_head_plan.csv (build_hart_signal_heads.py --wiring-only), from wiring.csv's wired heads;
+#                         the CATS desks read its templates, so it runs before cats
 #   schematic             the schematic draft and stations (publish_draft.py)
 #   le-cutover            build_layout_le.py --as-live: the three-level candidate and the staging candidate it holds
 #                         (the viewing trials are retired, owner 2026-11-17: the candidates show every level)
@@ -77,6 +79,7 @@ guard plan-lengths python3 tools/schematic/plan_lengths.py --check
 step device-map python3 tools/schematic/build_device_map.py
 step masts python3 tools/schematic/build_masts.py
 step signals python3 tools/schematic/build_signals.py
+step head-plan python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 step schematic python3 tools/schematic/publish_draft.py
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 guard approved-candidate python3 tools/schematic/check_approved.py le-candidate

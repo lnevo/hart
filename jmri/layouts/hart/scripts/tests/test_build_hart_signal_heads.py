@@ -56,6 +56,26 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
                 "signal_head_plan.csv differs from the builder; fix wiring.csv or the CSV",
             )
 
+    def test_check_mode_current_and_stale(self) -> None:
+        self.assertTrue(self.m.check_csvs(self.rows))
+        with tempfile.TemporaryDirectory() as tmp:
+            out = Path(tmp) / "signal_head_plan.csv"
+            saved = self.m.HEAD_PLAN
+            self.m.HEAD_PLAN = out
+            try:
+                self.assertFalse(self.m.check_csvs(self.rows), "a missing file is stale")
+                out.write_text(paths.SIGNAL_HEAD_PLAN.read_text() + "x\n")
+                self.assertFalse(self.m.check_csvs(self.rows))
+                self.assertTrue(out.read_text().endswith("x\n"), "check writes nothing")
+            finally:
+                self.m.HEAD_PLAN = saved
+
+    def test_check_cli_exit_codes(self) -> None:
+        import subprocess
+        script = str(SCRIPTS / "build_hart_signal_heads.py")
+        ok = subprocess.run([sys.executable, script, "--wiring-only", "--check"], capture_output=True, text=True)
+        self.assertEqual(ok.returncode, 0, ok.stderr)
+
     def head_plan(self) -> dict[str, dict]:
         with paths.SIGNAL_HEAD_PLAN.open(newline="") as f:
             return {r["mast_user_name"]: r for r in csv.DictReader(f)}
