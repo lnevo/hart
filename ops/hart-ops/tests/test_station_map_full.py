@@ -34,5 +34,11 @@ class EngineLead(unittest.TestCase):
         self.assertEqual(bottom[0] - top[0], bottom[1] - top[1])  # same slope, same hand
 
 
+class SwitchNumbers(unittest.TestCase):
+    def test_full_map_labels_switches_like_the_local_maps(self):
+        from local_station_maps import kit
+        self.assertIs(full.SWNUM, kit.SWNUM)
+
+
 if __name__ == "__main__":
     unittest.main()

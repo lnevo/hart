@@ -169,6 +169,7 @@ for a in ${PASS[@]+"${PASS[@]}"}; do  # bash 3.2: an empty array is unbound unde
 done
 if [[ "$REAL" -eq 1 && ${#CHECK_HOSTS[@]} -gt 0 ]]; then
   bash "$ROOT/$SYNC_REL" --check-only "${CHECK_HOSTS[@]}" || exit 1
+  CHILD_ENV+=(HART_HOSTS_ANSWERED=1)  # a commit with this switch skips its own ssh no-op; older ones ask again
 fi
 
 echo "Redeploy $SHORT: temporary worktree $WT (detached)"

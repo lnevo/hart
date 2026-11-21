@@ -28,6 +28,7 @@ from rebuild_local_station_maps import (  # noqa: E402
     GEORGIA,
     GEORGIA_BOLD,
     INK,
+    SWNUM,
     _color_chip,
     _dot,
     _font,
@@ -38,8 +39,6 @@ from rebuild_local_station_maps import (  # noqa: E402
 
 OUT = PUB / "assets" / "station_map_full.png"
 
-SWNUM = {100: 1, 101: 3, 102: 5, 103: 15, 104: 17, 105: 19, 106: 21, 107: 25, 108: 27,
-         109: 29, 110: 31, 111: 23, 112: 33, 113: 35, 114: 37, 115: 39}  # ADR-005
 LW = 4
 DOT_R = 15
 K = 0.24  # ladder slope, dx per dy (same as the sheets)
