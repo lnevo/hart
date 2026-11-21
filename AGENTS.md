@@ -105,7 +105,7 @@ New documents go in `docs/` (ADR-010); run the index command after adding one.
 
 ## Pointers
 
-- Pipelines / landmines: [`docs/AI_CONTEXT.md`](docs/AI_CONTEXT.md)
+- Pipelines: [`wiki/pipelines/README.md`](wiki/pipelines/README.md) · what writes or reads a file: [`docs/pipeline-map/pipeline_map.json`](docs/pipeline-map/pipeline_map.json) (see [`wiki/home.md`](wiki/home.md))
 - Git / branches, and where agent instructions live: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md)
 - Submodules: each has its own rules and repo; see [`wiki/REPOS.md`](wiki/REPOS.md)
 - CATS: [`cats/README.md`](cats/README.md) · [`cats/AGENTS.md`](cats/AGENTS.md)
