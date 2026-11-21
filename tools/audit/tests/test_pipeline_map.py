@@ -156,7 +156,7 @@ class LayoutTest(unittest.TestCase):
                  "zoomed": ({"x": 0, "y": 0, "width": 500, "height": 400}, False),
                  "under toolbar": ({"x": -200, "y": -50, "width": 1400, "height": 1100}, False)}
         script = ("const m = require(process.argv[1]); const c = JSON.parse(process.argv[2]); const o = {};"
-                  "for (const k in c) o[k] = m.showsAll(c[k][0], 1100, 1000, 100, 0.1);"
+                  "for (const k in c) o[k] = m.showsAll(c[k][0], 1100, 1000, 100, {top: 0.1, right: 1, bottom: 1});"
                   "process.stdout.write(JSON.stringify(o));")
         out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(cases)], capture_output=True,
                                         text=True, check=True).stdout)
@@ -190,6 +190,24 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(shut["edges"], [{"from": "folder:tools/x", "to": "y", "label": "2 links"}, {"from": "h", "to": "folder:tools/x"}])
         self.assertEqual(opened["members"], {})
         self.assertEqual(len(opened["edges"]), 4)
+
+    def test_fit_leaves_room_for_the_panel(self) -> None:
+        """fitView: the drawing fills the free area left of an info panel, centred there, and showsAll agrees; the
+        same view counts as not showing everything once the panel covers part of it."""
+        free = {"top": 0.1, "right": 0.6, "bottom": 1}
+        out = self.run_js("(() => { const f = m.fitView(1000, 500, 100, a.free, 1000, 800);"
+                          " return [f, m.showsAll(f, 1000, 500, 100, a.free), m.showsAll(f, 1000, 500, 100, {top: 0.1, right: 0.3, bottom: 1})]; })()",
+                          {"free": free})
+        view, fits, covered = out
+        s = view["width"] / 1000  # drawing units per px
+        left_px = (-100 - view["x"]) / s  # where the drawing's left edge lands on screen
+        right_px = left_px + 1000 / s
+        self.assertAlmostEqual(left_px, 0, places=3)  # width-limited: it spans the 600 px left of the panel
+        self.assertAlmostEqual(right_px, 600, places=3)
+        top_px, bottom_px = -view["y"] / s, (-view["y"] + 500) / s
+        self.assertAlmostEqual((top_px + bottom_px) / 2, (80 + 800) / 2, places=3)  # centred below the toolbar
+        self.assertTrue(fits)
+        self.assertFalse(covered)
 
     def test_empty_subset(self) -> None:
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])
