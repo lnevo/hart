@@ -3,7 +3,8 @@
 
     python3 tools/anyrail/levels_svg.py [PLAN.any] [OUT_DIR] [--check]
 
-Reads the plan with anyplan.py and writes staging.svg, main.svg, upper.svg and levels_meta.json into OUT_DIR
+Reads the plan with the schematic-maps plugin's plan reader (`schematic anyplan`, its schematic.anyplan module, from
+the pinned submodule) and writes staging.svg, main.svg, upper.svg and levels_meta.json into OUT_DIR
 (`tools/anyrail/levels/`, committed, so the track plan page builds without the plan). `--check` writes nothing and
 stops when the committed files differ from what the plan gives, and prints SKIPPED, passing, when the default plan
 is not on this machine (never in CI). PLAN.any is DEFAULT_PLAN unless given. The plan is the owner's, private, and never committed;
@@ -25,21 +26,36 @@ Coordinates are plan centimetres, y down, so the three drawings line up. What a 
 from __future__ import annotations
 
 import argparse
+import importlib
 import collections
 import json
 import math
+import os
 import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import anyplan  # noqa: E402
+SCHEMATIC_TOOLS = Path(__file__).resolve().parents[1] / "schematic"
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import railroad_facts  # noqa: E402
 
 LEVELS = ("staging", "main", "upper")          # lowest to highest
+
+
+def le_common():
+    """tools/schematic/le_common.py, which finds the pinned schematic-maps plugin. Imported only when the plan is read,
+    so levels_page.py (which imports this file for switch_key) never loads the Layout Editor build's modules."""
+    if str(SCHEMATIC_TOOLS) not in sys.path:
+        sys.path.insert(0, str(SCHEMATIC_TOOLS))
+    return importlib.import_module("le_common")
+
+
+def anyplan():
+    """The plugin's plan reader, schematic.anyplan (le_common.plugin_module: the pinned submodule, or SCHEMATIC_PLUGIN;
+    le_common.BuildError when it is missing, off its pin or has no such module)."""
+    return le_common().plugin_module("anyplan")
 
 
 def switch_key(label):
@@ -51,7 +67,7 @@ def switch_key(label):
 OVERLAP_CM = 1.5        # a helix track lies this close in plan to where it ran one turn higher
 SELF_GAP_CM = 100.0     # ... and that far back along the track, so a piece's own next points never count
 CLEAR_CM = 1.0          # another helix track this much higher where they cross is over this one
-HELIX_CUT_CM = -5.0     # the height that parts staging's graph from the main and upper graph (anyplan.py --cut -5)
+HELIX_CUT_CM = -5.0     # the height that parts staging's graph from the main and upper graph (anyplan --cut -5)
 SNAP_CM = 0.5           # a flat part this close to a level's height is on that level
 CM_PER_IN = 2.54
 DEFAULT_PLAN = Path.home() / "Documents/Layout/Lee Nevo Design Version 5.3c.any"
@@ -93,7 +109,7 @@ def level_heights(parts) -> dict[str, float]:
     if len(heights) != len(LEVELS) or abs(heights[1]) > SNAP_CM:
         raise LevelsError(f"the turnouts sit at {heights} cm; expected three heights with main at 0")
     for p in parts:
-        if len(p["ends"]) > 2 and max(e["z"] for e in p["ends"]) - min(e["z"] for e in p["ends"]) > anyplan.LEVEL_CM:
+        if len(p["ends"]) > 2 and max(e["z"] for e in p["ends"]) - min(e["z"] for e in p["ends"]) > anyplan().LEVEL_CM:
             raise LevelsError(f"T{p['index']} is a turnout that is not level")
     return dict(zip(LEVELS, heights))
 
@@ -110,7 +126,7 @@ def helix_chains(parts, links):
     partway up a helix is not part of a chain and stops the build in assign() ('not at a level'): plans 5.3b and 5.3c
     have none, and the drawing would need a rule for one."""
     sloped = {p["index"] for p in parts if len(p["ends"]) == 2
-              and abs(p["ends"][0]["z"] - p["ends"][1]["z"]) > anyplan.LEVEL_CM}
+              and abs(p["ends"][0]["z"] - p["ends"][1]["z"]) > anyplan().LEVEL_CM}
     root = {i: i for i in sloped}
 
     def find(x):
@@ -231,11 +247,11 @@ def top_layers(parts, links, chains):
 
 def assign(parts, heights):
     """{part index: level} for every flat part and every helix piece (the dotted ones are `ramp` below)."""
-    links, _ = anyplan.joins(parts)
+    links, _ = anyplan().joins(parts)
     where, ramp, partial = {}, set(), {}
     for p in parts:
         zs = [e["z"] for e in p["ends"]]
-        if max(zs) - min(zs) <= anyplan.LEVEL_CM:
+        if max(zs) - min(zs) <= anyplan().LEVEL_CM:
             where[p["index"]] = nearest_level(zs[0], heights, f"T{p['index']}")
     chains = helix_chains(parts, links)
     span = []
@@ -384,7 +400,7 @@ def helix_tracks(parts, links, heights):
     """Each helix track as {from, to, cm, below_cut_cm}: the owner's numbers of the switch at its foot and at its top,
     its length along the flex, and the part of it below the schematic's cut."""
     out = []
-    for c in anyplan.level_cuts(parts, links, HELIX_CUT_CM):
+    for c in anyplan().level_cuts(parts, links, HELIX_CUT_CM):
         names = {}
         for side in ("low", "high"):
             p = parts[c[side][0]]
@@ -407,7 +423,7 @@ def ramps(parts, links, heights):
 
 def build(plan_path) -> dict[str, str]:
     """{file name: text} of every output."""
-    parts = anyplan.read(plan_path)
+    parts = anyplan().read(plan_path)
     heights = level_heights(parts)
     where, ramp, links, partial = assign(parts, heights)
     files, meta = {}, dict(plan=plan_version(plan_path), parts=len(parts), cut_cm=HELIX_CUT_CM, levels={})
@@ -442,8 +458,16 @@ def main(argv=None):
         print(f"levels_svg: SKIPPED, {a.plan} is not on this machine")
         return 0
     try:
+        reader = anyplan()
+    except le_common().BuildError as e:
+        if a.check and os.environ.get("SCHEMATIC_REQUIRED") != "1":     # as the schematic checks in tools/check.sh
+            print(f"levels_svg: SKIPPED, the schematic-maps plugin: {e}")
+            return 0
+        print(f"levels_svg: the schematic-maps plugin: {e}", file=sys.stderr)
+        return 2
+    try:
         files = build(a.plan)
-    except (LevelsError, anyplan.PlanError, OSError) as e:
+    except (LevelsError, reader.PlanError, OSError) as e:
         print(f"levels_svg: {e}", file=sys.stderr)
         return 2
     except ValueError as e:  # an empty level or a plan with no ramps reaches max() or min()
