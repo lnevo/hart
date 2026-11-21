@@ -236,7 +236,19 @@ def _start():
                         InstanceManager.getDefault(CarLoads), InstanceManager.getDefault(CarTypes))
 
     def on_gui(function):
-        ThreadingUtil.runOnGUI(function)
+        # Stock runOnGUI, called off the GUI thread, logs what the function throws and returns, so catch it there
+        # and raise it here: answer() then replies ok: false with the batch id, and the batch is not saved.
+        failed = []
+
+        def guarded():
+            try:
+                function()
+            except (Exception, java.lang.Throwable) as exc:
+                failed.append(exc)
+        ThreadingUtil.runOnGUI(guarded)
+        if failed:
+            raise RuntimeError("applying on the GUI thread failed (%s); cars before it changed in memory, "
+                               "nothing was saved" % failed[0])
 
     def work():
         while True:
