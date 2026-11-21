@@ -100,6 +100,10 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
                 bad.append(f"{r['layer']} {r['user_name']}: its wiring {r['comment']!r} gives no port")
                 continue
             groups = GROUP.findall(m.group(4))           # a head's pins may span two boards
+            if len(groups) > 1 and r["layer"] != "head":
+                bad.append(f"{r['layer']} {r['user_name']}: its wiring {r['comment']!r} spans two boards; only a "
+                           "head's pins may")
+                continue
             first = f"{groups[0][0]}{groups[0][1]}"
             ports = [p if f"{kind}{board}" == first else f"{kind}{board}-{p}"
                      for kind, board, pins in groups for p in pins.split(",")]

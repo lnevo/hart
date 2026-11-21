@@ -149,6 +149,10 @@ def read(path: Path | None = None) -> list[Wire]:
             index = None if kind in LOCAL and not r["index"] else int(r["index"])
             items = [p.strip() for p in r["ports"].split(",")] if r["ports"] else []
             spans = [OWN_BOARD.fullmatch(p) for p in items]
+            odd = [p for p, m in zip(items, spans) if not m and not p.isdigit()]
+            if odd:
+                bad.append(f"{at}: port {odd[0]!r} is a pin 1 to 8, or a pin on another board as OU<1-4>-<1-8>")
+                continue
             ports = tuple(int(m.group(2)) if m else int(p) for p, m in zip(items, spans))
             boards = tuple(m.group(1) if m else r["board"] for m in spans)
         except ValueError:
@@ -188,11 +192,18 @@ def read(path: Path | None = None) -> list[Wire]:
             if not m or m.group(1) != want[3]:
                 bad.append(f"{at}: a {kind} lands on an {want[3]} board ({want[3]}1 to {want[3]}4), not {r['board']!r}")
                 continue
-            if spans and spans[0] and boards[0] != r["board"]:
-                bad.append(f"{at}: the first pin {items[0]} is not on board {r['board']}")
+            if spans and spans[0]:
+                bad.append(f"{at}: the first pin {items[0]} is on the row's board {r['board']}: give it as a pin alone")
+                continue
+            if any(m and m.group(1) == r["board"] for m in spans):
+                bad.append(f"{at}: a pin on the row's own board {r['board']} is given as a pin alone, not "
+                           f"{r['board']}-<pin>")
                 continue
             if len(set(boards)) > 2:
                 bad.append(f"{at}: a head spans at most two boards, not {', '.join(sorted(set(boards)))}")
+                continue
+            if any(boards[j] == r["board"] and boards[j - 1] != r["board"] for j in range(1, len(boards))):
+                bad.append(f"{at}: a head's pins on {r['board']} come first, then those on the other board")
                 continue
             if len(ports) != want[4] or not all(1 <= p <= 8 for p in ports):
                 bad.append(f"{at}: a {kind} takes {want[4]} port(s) of 1 to 8, not {r['ports']!r}")
@@ -212,8 +223,7 @@ def read(path: Path | None = None) -> list[Wire]:
             continue
         taken = [(b, p) for b, p in own if (node, b, p) in pins]
         if taken:
-            bad.append(f"{at}: node {node} {taken[0][0]} port(s) {[p for b, p in taken if b == taken[0][0]]} are line "
-                       f"{pins[(node,) + taken[0]]}'s")
+            bad.append(f"{at}: node {node} " + ", ".join(f"{b}-{p} is line {pins[node, b, p]}'s" for b, p in taken))
             continue
         if name:
             names[level, kind, name] = i

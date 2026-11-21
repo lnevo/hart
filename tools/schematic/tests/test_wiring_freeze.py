@@ -215,6 +215,11 @@ class TheCommand(unittest.TestCase):
         [w] = wires(",".join(head[c] if "," not in head[c] else f'"{head[c]}"' for c in wiring.COLUMNS) + "\n")
         self.assertEqual(w.wiring_text, "Node: 42 Signal: 0 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
 
+    def test_a_turnout_across_two_boards_stops(self):
+        rows = [dict(self.ROWS[0], comment="Node: 42 Turnout: 0 | OU: 1 Ports: 1 | OU: 2 Ports: 2")]
+        with self.assertRaisesRegex(fw.FreezeError, "spans two boards; only a head's pins may"):
+            fw.freeze_rows("CP 9", rows, self.KEYS, set(), "2026-11-21")
+
     def test_what_cannot_be_frozen_stops(self):
         with self.assertRaisesRegex(fw.FreezeError, "no main or upper control point 'CP 8'; they are CP 9"):
             fw.freeze_rows("CP 8", self.ROWS, self.KEYS, set(), "2026-11-21")
