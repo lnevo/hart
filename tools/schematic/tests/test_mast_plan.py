@@ -467,7 +467,8 @@ class CommittedPlan(RepoReadOnly, unittest.TestCase):
 
     def test_the_owners_block_splits(self):
         self.assertEqual(mr.read_block_splits(self.splits, self.found, self.levels), {"Track 227-241"})
-        self.assertEqual(mr.read_block_splits(self.splits, self.staging, {"Staging level": 1}), set())
+        # staging's: the Princess balloon, K-2 and K-1 (a level 1 row since step 5 part 1, owner 2026-11-20)
+        self.assertEqual(mr.read_block_splits(self.splits, self.staging, {"Staging level": 1}), {"Track 37-39"})
 
 
 if __name__ == "__main__":

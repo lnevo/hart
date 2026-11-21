@@ -1,9 +1,11 @@
 """The block layer of every level, pinned (wiki/projects/level-unification-handoff.md, step 5). Two views:
 
 - the committed block and occupancy rows of devices.csv, read as plain CSV: staging's row by row (name, role, control
-  point, trial name; occupancy: blocks and detector), and every level's other columns by a digest, so a change to any
-  cell of those rows is seen. written_by is left out of the digests: staging's rows went from hand-kept to the one
-  block builder's (step 5 part 1) with nothing else changed;
+  point, trial name; its parts: name, part_of, trial name; occupancy: blocks and detector), and every level's other
+  columns by a digest, so a change to any cell of those rows is seen. Step 5 part 1 (owner, 2026-11-20) changed only
+  this: staging's block and occupancy rows went from hand-kept to the one block builder's (written_by, left out of
+  the digests), devices.csv gained part_of (left out too), staging's 14 links (and the piece of Scale in OS Switch 7)
+  became part rows, and the OS blocks' trial names lost the link pieces those rows now carry;
 - the block layer the readers build from those rows: staging_device_map.load's {strand: blocks} over the staging
   drawing, by the drawing's own keys (OS placeholders and track pieces, from the first end of each piece), and the
   main and upper rows build_device_map.build() writes.
@@ -30,29 +32,29 @@ from repo_read_only import RepoReadOnly  # noqa: E402
 DEVICES = bdm.OUT
 
 STAGING_BLOCKS = (
-    ('OS Switch 1', 'os', 'Brick', 'OS Switch 1, Track 1B-3A 1/2'),
-    ('OS Switch 3', 'os', 'Brick', 'OS Switch 3, Track 1B-3A 2/2'),
+    ('OS Switch 1', 'os', 'Brick', 'OS Switch 1'),
+    ('OS Switch 3', 'os', 'Brick', 'OS Switch 3'),
     ('OS Switch 5', 'os', 'Plane', 'OS Switch 5'),
-    ('OS Switch 7', 'os', 'Barn', 'OS 7 A-13C, Track 5C-7B 2/2'),
+    ('OS Switch 7', 'os', 'Barn', 'OS 7 A-13C'),
     ('OS Switch 7b', 'xover_corner', 'Barn', 'OS 7 A-5B'),
-    ('OS Switch 9', 'os', 'Engine House', 'OS Switch 9, Track 9A-11C'),
-    ('OS Switch 11', 'os', 'Engine House', 'OS Switch 11, Track 11A-13B'),
+    ('OS Switch 9', 'os', 'Engine House', 'OS Switch 9'),
+    ('OS Switch 11', 'os', 'Engine House', 'OS Switch 11'),
     ('OS Switch 13', 'os', 'Engine House', 'OS Switch 13'),
-    ('OS Switch 15', 'os', 'South Yard', 'OS Switch 15, Track 13A-15A, Track 15C-17A'),
-    ('OS Switch 17', 'os', 'South Yard', 'OS Switch 17, Track 17B-19A'),
-    ('OS Switch 19', 'os', 'South Yard', 'OS Switch 19, Track 19B-21A'),
+    ('OS Switch 15', 'os', 'South Yard', 'OS Switch 15'),
+    ('OS Switch 17', 'os', 'South Yard', 'OS Switch 17'),
+    ('OS Switch 19', 'os', 'South Yard', 'OS Switch 19'),
     ('OS Switch 21', 'os', 'South Yard', 'OS Switch 21'),
     ('OS Switch 23a', 'xover_corner', 'East End', 'OS 23 A-1A'),
     ('OS Switch 23b', 'xover_corner', 'East End', 'OS 23 A-31B'),
-    ('OS Switch 25', 'os', 'East End', 'OS Switch 25, Track 25A-27B'),
-    ('OS Switch 27', 'os', 'East End', 'OS Switch 27, Track 27A-29B'),
-    ('OS Switch 29', 'os', 'East End', 'OS Switch 29, Track 29A-31C'),
-    ('OS Switch 31', 'os', 'East End', 'OS Switch 31, Track 31A-33B, Track 23A-31B'),
+    ('OS Switch 25', 'os', 'East End', 'OS Switch 25'),
+    ('OS Switch 27', 'os', 'East End', 'OS Switch 27'),
+    ('OS Switch 29', 'os', 'East End', 'OS Switch 29'),
+    ('OS Switch 31', 'os', 'East End', 'OS Switch 31'),
     ('OS Switch 33', 'os', 'East End', 'OS Switch 33'),
     ('OS Switch 35a', 'xover_corner', 'Princess', 'OS 35 A-33A'),
-    ('OS Switch 35b', 'xover_corner', 'Princess', 'OS 35 A-39A, Track 35A-39A 1/2'),
+    ('OS Switch 35b', 'xover_corner', 'Princess', 'OS 35 A-39A'),
     ('OS Switch 37', 'os', 'Princess', 'OS Switch 37'),
-    ('OS Switch 39', 'os', 'Princess', 'OS Switch 39, Track 35A-39A 2/2'),
+    ('OS Switch 39', 'os', 'Princess', 'OS Switch 39'),
     ('Track Barn', 'track', '', 'Track 7A-13C'),
     ('Track Brick-Plane', 'track', '', 'Track 1C-5A #2, Track 1C-5A #1'),
     ('Track EH-1', 'track', '', 'Track 11B-end'),
@@ -75,6 +77,26 @@ STAGING_BLOCKS = (
     ('Track W-1', 'track', '', 'Track 3B-end'),
     ('Track W-2', 'track', '', 'Track 3C-end'),
     ('Track West Ext', 'track', '', 'Track 23B-35B'),
+)
+# (name, part_of, trial_name) of staging's parts: pieces of track inside another block (owner, 2026-11-20)
+STAGING_PARTS = (
+    ('Track 1-3 at 1', 'OS Switch 1', 'Track 1B-3A 1/2'),
+    ('Track 1-3 at 3', 'OS Switch 3', 'Track 1B-3A 2/2'),
+    ('Track 9-11', 'OS Switch 9', 'Track 9A-11C'),
+    ('Track 11-13', 'OS Switch 11', 'Track 11A-13B'),
+    ('Track 13-15', 'OS Switch 15', 'Track 13A-15A'),
+    ('Track 15-17', 'OS Switch 15', 'Track 15C-17A'),
+    ('Track 17-19', 'OS Switch 17', 'Track 17B-19A'),
+    ('Track 19-21', 'OS Switch 19', 'Track 19B-21A'),
+    ('Track 23-31', 'OS Switch 31', 'Track 23A-31B'),
+    ('Track 25-27', 'OS Switch 25', 'Track 25A-27B'),
+    ('Track 27-29', 'OS Switch 27', 'Track 27A-29B'),
+    ('Track 29-31', 'OS Switch 29', 'Track 29A-31C'),
+    ('Track 31-33', 'OS Switch 31', 'Track 31A-33B'),
+    ('Track 35-37', 'OS Switch 35a', 'Track 35B-37A'),
+    ('Track 35-39 at 35', 'OS Switch 35b', 'Track 35A-39A 1/2'),
+    ('Track 35-39 at 39', 'OS Switch 39', 'Track 35A-39A 2/2'),
+    ('Track Scale at 7', 'OS Switch 7', 'Track 5C-7B 2/2'),
 )
 STAGING_OCCUPANCY = (
     ('BS Barn', 'track', 'Track Barn', 'M2S1300'),
@@ -188,10 +210,11 @@ STAGING_LAYER = {
     'Track 9C-end': ('Track EH-3',),
 }
 
-# (rows, sha256) of each level's block and occupancy rows, every column but written_by (and, on staging, trial_name,
-# pinned row by row above), joined by commas, one row a line, in file order
+# (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by and part_of (and,
+# on staging, trial_name, pinned row by row above), joined by commas, one row a line, in file order
 DIGESTS = {"1": (90, 'ad63b0020d35c033f89db37d6008e69f9fcbfee42168039db7e4f2499bf90533'), "2": (96, '51059be5337ad1ee9c2f25cc643e89df97b50e6bcf4c52116cafdf2bcd9a9590'), "3": (148, '5c0d8784a6fdc81fc29baacf8385cd7c42a21dd1e435aeab6abc99c0ec27b5b9')}
-SKIP = {"1": ("written_by", "trial_name"), "2": ("written_by",), "3": ("written_by",)}
+SKIP = {"1": ("written_by", "trial_name", "part_of"), "2": ("written_by", "part_of"),
+        "3": ("written_by", "part_of")}
 
 
 def skip_or_fail(exc: Exception) -> None:
@@ -208,7 +231,7 @@ def committed() -> list[dict]:
 
 def digest(rows: list[dict], level: str) -> tuple[int, str]:
     cols = [c for c in rows[0] if c not in SKIP[level]]
-    sel = [r for r in rows if r["level"] == level and r["layer"] in ("block", "occupancy")]
+    sel = [r for r in rows if r["level"] == level and r["layer"] in ("block", "occupancy") and r["role"] != "part"]
     return len(sel), hashlib.sha256("\n".join(",".join(r[c] for c in cols) for r in sel).encode()).hexdigest()
 
 
@@ -221,8 +244,16 @@ class Committed(unittest.TestCase):
 
     def test_staging_block_rows(self):
         got = tuple((r["user_name"], r["role"], r["cp"], r["trial_name"]) for r in self.rows
-                    if r["level"] == "1" and r["layer"] == "block")
+                    if r["level"] == "1" and r["layer"] == "block" and r["role"] != "part")
         self.assertEqual(got, STAGING_BLOCKS)
+
+    def test_staging_parts(self):
+        got = tuple((r["user_name"], r["part_of"], r["trial_name"]) for r in self.rows
+                    if r["level"] == "1" and r["role"] == "part")
+        self.assertEqual(got, STAGING_PARTS)
+
+    def test_main_and_upper_have_no_parts_until_part_2(self):
+        self.assertEqual([r["user_name"] for r in self.rows if r["level"] != "1" and r["part_of"]], [])
 
     def test_staging_occupancy_rows(self):
         got = tuple((r["user_name"], r["role"], r["blocks"], r["system_name"]) for r in self.rows
