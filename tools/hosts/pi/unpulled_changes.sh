@@ -8,11 +8,15 @@
 # With no tables reference at all, GENERATED_SHA (the generated tables.xml's hash, which the deploy and the pulls
 # pass) is the reference: a file that differs from it counts as changed (ADR-029: it may hold an owner's Store).
 # Without GENERATED_SHA, no reference counts as nothing changed (and so for the Operations files always).
+# SPLIT_SHA...: the Stores already split into the sources being deployed (store_splits.csv, R9d); a tables.xml with
+# one of those hashes counts as taken, so the deploy replaces it with the generated file that now holds its edits.
 # Prints one word per changed set, nothing when both are clean.
-# Usage: unpulled_changes.sh USERFILES [GENERATED_SHA]
+# Usage: unpulled_changes.sh USERFILES [GENERATED_SHA [SPLIT_SHA...]]
 set -euo pipefail
-uf="${1:?usage: unpulled_changes.sh USERFILES [GENERATED_SHA]}"
+uf="${1:?usage: unpulled_changes.sh USERFILES [GENERATED_SHA [SPLIT_SHA...]]}"
 generated="${2:-}"
+shift $(( $# < 2 ? $# : 2 ))
+splits=" $* "
 ops="$uf/operations"
 FILES=(Operations.xml OperationsCarRoster.xml OperationsEngineRoster.xml
        OperationsLocationRoster.xml OperationsRouteRoster.xml OperationsTrainRoster.xml)
@@ -32,5 +36,6 @@ elif [[ -f "$stamp" ]]; then
 fi
 [[ -n "$want" && "$want" != none ]] || want="$generated"
 if [[ -n "$want" && "$want" != none && -f "$uf/tables.xml" ]]; then
-  [[ "$(sha <"$uf/tables.xml")" == "$want" ]] || echo tables
+  have="$(sha <"$uf/tables.xml")"
+  [[ "$have" == "$want" || "$splits" == *" $have "* ]] || echo tables
 fi
