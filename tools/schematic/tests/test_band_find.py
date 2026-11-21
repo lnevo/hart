@@ -191,7 +191,8 @@ class LeBandAlign(unittest.TestCase):
                                  {"name": "Top deck, 4 in", "level": 3, "below": 99}])
         prefs = self.prefs(main_upper={"le_band_align": {"3": "left"}})
         with Folder(plan, prefs), self.assertRaisesRegex(
-                BuildError, r"preferences.json section main_upper: le_band_align level 3: 2 bands are at level 3"):
+                BuildError, r"preferences.json section main_upper: le_band_align level 3: the section has 2 bands at "
+                            r"that level \('Lower deck' at height 5, 'Top deck, 4 in' at height 99\)"):
             le_common.le_band_align(BANDS)
 
     def test_the_committed_preferences_align_staging_left(self):
@@ -251,6 +252,62 @@ class NamesSkipTheBaseByLevel(unittest.TestCase):
             le_names.level_masts(names, [row], {"Lower"})
         self.assertEqual([m["mast"] for m in names["Cellar"]["masts"]], ["Mast 1"])
         self.assertNotIn("masts", names["Lower"])
+
+
+class ReviewFixes(unittest.TestCase):
+    """The #817 review: a band with no height beside one with a height at one level, le_band_align finding its own
+    section's band by level and height, the data folder given, and le_names stopping on a band the plan does not
+    title."""
+
+    PLAN = staticmethod(lambda: overrides(staging={"level_title": "Cellar deck", "level": 2}))  # 2 at no height and 5
+
+    def test_a_band_with_no_height_beside_one_with_a_height_stops_with_a_build_error(self):
+        with Folder(self.PLAN()), self.assertRaisesRegex(
+                BuildError, r"2 bands are at level 2 \('Cellar deck' at no height, 'Lower deck' at height 5\): "
+                            r"give the height"):
+            le_common.find_band(BANDS, 2)
+
+    def test_no_height_is_a_height_to_find_by(self):
+        with Folder(self.PLAN()):
+            self.assertEqual(le_common.find_band(BANDS, 2, None), 0)
+            self.assertEqual(le_common.find_band(BANDS, 2, 5), 1)
+
+    def test_bound_index_stops_with_its_message(self):
+        import build_cats_panel as bcp
+        plan = overrides(staging={"level_title": "Cellar deck", "level": 1},
+                         levels=[{"name": "Lower deck", "level": 1, "below": 5},
+                                 {"name": "Top deck, 4 in", "level": 3, "below": 99}])
+        with Folder(plan), self.assertRaisesRegex(SystemExit, r"the band bound to the field: 2 bands are at level 1"):
+            bcp.bound_index(BANDS)
+
+    def test_le_band_align_finds_its_own_sections_band_by_height(self):
+        prefs = {"_sections": True, "staging": {"le_band_align": {"2": "left"}},
+                 "main_upper": {"le_band_align": {"2": "right"}}}
+        with Folder(self.PLAN(), prefs):
+            self.assertEqual(le_common.le_band_align(BANDS), {"Cellar": "left", "Lower": "right"})
+
+    def test_le_band_align_reads_the_folder_it_is_given(self):
+        prefs = {"_sections": True, "staging": {"le_band_align": {"1": "right"}}, "main_upper": {}}
+        with Folder(overrides(staging={"level_title": "Cellar deck", "level": 1}), prefs) as folder:
+            pass_folder = folder
+            with mock.patch.object(le_common.pd, "DATA", Path("/nonexistent/folder")):
+                self.assertEqual(le_common.le_band_align(BANDS, pass_folder), {"Cellar": "right"})
+                self.assertEqual(le_common.find_band(BANDS, 1, data=pass_folder), 0)
+                self.assertEqual(le_common.band_places(BANDS, pass_folder)[0], (1, None))
+
+    def test_le_names_stops_on_a_band_the_plan_does_not_title(self):
+        bands = [(t, {"nodes": {}, "strands": {}}, {}) for t, _b, _o in [*BANDS, ("Attic", None, None)]]
+        le_mod = le_common.plugin()[1]
+        with Folder(overrides()):
+            for call in (lambda: le_names.named_bands(bands, {}), lambda: le_names.placeholder_names(bands, le_mod)):
+                with self.assertRaisesRegex(BuildError, "gives no level to band 'Attic'"):
+                    call()
+
+    def test_the_build_hands_le_names_the_solved_titles(self):
+        bands, page = le_common.schematic()
+        drawn = le_common.plugin()[1].drawn_bands(bands, page)
+        self.assertEqual([t for t, _b, _o in drawn], [t for t, _b, _o in bands])
+        self.assertEqual(le_common.band_levels(drawn), [1, 2, 3])
 
 
 if __name__ == "__main__":
