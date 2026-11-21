@@ -370,7 +370,7 @@ function app() {
     const ok = n => n.id === view.focus || !n.status || n.status === "live" || view[n.status];
     const nodes = DATA.nodes.filter(ok), ids = new Set(nodes.map(n => n.id));
     const edges = DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to));
-    g1 = !view.kindsOff.size ? { nodes, edges } : contract(nodes, edges, id => id !== view.focus && view.kindsOff.has(byId[id].kind));
+    g1 = !view.kindsOff.size ? { nodes, edges } : contract(nodes, edges, id => id !== view.focus && view.kindsOff.has(byId[id].kind) && !endsChain(id));  // chain stops stay
     g1.edges = g1.edges.map(e => !e.via ? e : { ...e, label: e.via.length === 1 ? "via " + byId[e.via[0]].label : `via ${e.via.length} steps` });
     ins1 = {}; outs1 = {};
     g1.edges.forEach(e => { (outs1[e.from] ||= []).push(e); (ins1[e.to] ||= []).push(e); });
@@ -412,6 +412,7 @@ function app() {
       groups = groupByFolder(nodes, edges, view.open);
       ({ nodes, edges } = groups);
       nodes.forEach(n => { if (n.kind === "folder") gNodes[n.id] = n; });
+      nodes.forEach(n => { if (n.kind === "folder" && !n.path && n.folder.startsWith("outside the repo: ")) n.label = "outside the repo: " + domainLabel[n.folder.slice(18)]; });
     }
     if (view.compact) nodes = nodes.map(n => (n.kind === "folder" ? n : { ...n, desc: "", path: "" }));
     baseIds = new Set(nodes.map(n => n.id));  // what the filters draw before "highlighted only" trims it
@@ -564,7 +565,10 @@ function app() {
   /* ---- start buttons over the map: shown until a file is picked or a box selected; they do not block panning */
   const startCard = document.getElementById("startcard");
   let startShut = false;
-  function updateStart() { startCard.hidden = startShut || !DATA.presets.length || !!view.focus || !!selected; }
+  function updateStart() {  // shown until a file or a box is first picked, and again after Whole map
+    if (view.focus || selected) startShut = true;
+    startCard.hidden = startShut || !DATA.presets.length;
+  }
   startCard.querySelector(".x").onclick = () => { startShut = true; updateStart(); };
 
   /* ---- overview in the corner: the whole drawing as plain boxes, with a box round what the main view shows */
@@ -705,8 +709,9 @@ function app() {
       <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
       <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
       ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
-      <b>Fed by</b><ul>${(insAll[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
-      <b>Feeds</b><ul>${(outsAll[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
+      ${view.kindsOff.size ? '<div class="off">Links as drawn, with the hidden kinds bridged over.</div>' : ""}
+      <b>Fed by</b><ul>${((view.kindsOff.size ? ins1 : insAll)[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
+      <b>Feeds</b><ul>${((view.kindsOff.size ? outs1 : outsAll)[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
       <div style="color:#666">${fullUp} upstream, ${fullDown} downstream in the whole map.</div>`;
     info.style.display = "block";
     nav.classList.add("focus");
@@ -787,7 +792,7 @@ function app() {
     else pick(id, "zoom");
   });
   document.addEventListener("keydown", e => {
-    if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName) || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;  // typing in any field, the site header's search too
+    if (e.target.matches("input:not([type=checkbox]):not([type=radio]):not([type=button]),textarea,select") || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;  // typing in any field, the site header's search too
     if (e.key === "Escape") clearFocus(true);
     if (e.key === "f" || e.key === "F") fit();
   });

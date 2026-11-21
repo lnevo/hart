@@ -134,7 +134,7 @@ def load(path: Path) -> dict:
         if not isinstance(pr, dict):
             problems.append(f"preset {i + 1} must be an object: {pr!r}")
             continue
-        if not pr.get("label") or pr.get("focus") not in ids:
+        if not isinstance(pr.get("label"), str) or not pr["label"] or not isinstance(pr.get("focus"), str) or pr["focus"] not in ids:
             problems.append(f"preset {i + 1} needs a label and a focus that is a node: {pr}")
         for side in ("up", "down"):
             v = pr.get(side)
@@ -274,7 +274,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 </div></details>
 <details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
 <b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
+<b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through, except at deploy and host boxes, where chains stop</span><div id="kindlist"></div>
 <b>Also show</b>
 <label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
 <label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
@@ -313,7 +313,7 @@ names the file and holds the step counters: left is what feeds it, right is what
 kind, such as scripts, and its boxes are left out with their links joined up, so data runs straight to what it ends
 up in. When a filter is changed, <b>Clear filters</b> in the second row puts them back and keeps the file and the selected box.
 <b>Whole map</b> appears when the view is cut down and goes back to the full drawing. <b>Share</b> copies a link to the view as it is,
-with the selected box, zoom and position; the address bar also keeps the view, without the zoom. On a phone, everything after Find is under <b>Menu ▾</b>.</div>
+with the selected box, zoom and position; the address bar also keeps the view, without the zoom. On a phone, Browse and everything after Find are under <b>Menu ▾</b>.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
 </div>
