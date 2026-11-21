@@ -349,7 +349,7 @@ function app() {
 
   const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false,
                  kindsOff: new Set(), compact: true, group: false, open: new Set() };
-  let groups = { members: {}, groupOf: {} }, gNodes = {};  // folder boxes in the current drawing
+  let groups = { members: {}, groupOf: {} }, gNodes = {}, lastBox = null;  // folder boxes in the current drawing; the last file box picked
   const nodeOf = id => byId[id] || gNodes[id];
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
   let nodeEl = {}, edgeEls = [], sub = { nodes: [], edges: [] }, visible = new Set(), baseIds = new Set();
@@ -496,9 +496,39 @@ function app() {
     showStatus(sub);  // before fit, which measures the toolbar with the status line in it
     if (old) setVB(old.x, old.y, old.w, old.h); else fit();
     runSearch(true);
+    if (selected && !visible.has(selected) && visible.has(groups.groupOf[selected])) selected = groups.groupOf[selected];  // folded away: its folder
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
     updateNav();
+  }
+
+  /* Redraw after a change that moves the boxes (compact, folders, a filter) without losing the reader's place: the
+     selected box, or else the box nearest the middle of the screen, stays where it was on screen at the same zoom.
+     A view that showed everything fits again; a box now inside a folder is followed to the folder, and a folder that
+     opened to its boxes, to the first of them. */
+  function renderKeeping() {
+    if (!lay || !lay.nodes.length || showsAll(vb, W, H, LEFT, topFrac())) { render(false); return; }
+    const cx = vb.x + vb.width / 2, cy = vb.y + vb.height / 2, mid = n => [n.x + n.w / 2, n.y + n.h / 2];
+    const dist = n => { const [x, y] = mid(n); return (x - cx) ** 2 + (y - cy) ** 2; };
+    const a = lay.nodes.find(n => n.id === selected) || lay.nodes.reduce((b, n) => (dist(n) < dist(b) ? n : b));
+    const members = (groups.members[a.id] || [a.id]).slice().sort((x, y) => (y === lastBox) - (x === lastBox));  // the box last picked first
+    const [ax, ay] = mid(a), was = { members, dx: ax - vb.x, dy: ay - vb.y, w: vb.width, h: vb.height };
+    render(true);
+    const t = lay.nodes.find(n => n.id === a.id) || was.members.map(m => lay.nodes.find(n => n.id === m)).find(Boolean) ||
+      lay.nodes.find(n => n.id === groups.groupOf[a.id]);
+    if (!t) { fit(); return; }
+    if (t.id !== a.id && t.id === lastBox && !selected) { selected = t.id; select(t.id, true); }  // unfolded: pick the box again
+    const [tx, ty] = mid(t);
+    setVB(tx - was.dx, ty - was.dy, was.w, was.h);
+  }
+  // the filters as they start; Clear filters goes back to these and keeps the file and the selected box
+  const filtersChanged = () => view.lanes.size !== allLanes.length || view.kindsOff.size || view.parked || view.retired ||
+    !view.compact || view.group || view.trim || !document.getElementById("labels").checked;
+  function clearFilters() {
+    view.lanes = new Set(allLanes); view.kindsOff.clear(); view.parked = view.retired = false;
+    view.compact = true; view.group = false; view.open.clear(); view.trim = false;
+    document.getElementById("labels").checked = true;
+    syncControls(); renderKeeping(); writeHash();
   }
 
   function showStatus(sub) {
@@ -517,7 +547,10 @@ function app() {
     const boxes = sub.nodes.reduce((n, b) => n + (groups.members[b.id] ? groups.members[b.id].length : 1), 0);  // a folder counts its boxes
     el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${boxes} of ${DATA.nodes.length} boxes`
       : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`) +
-      (all ? ' <button id="showall" title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>' : "");
+      (all ? ' <button id="showall" title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>' : "") +
+      (filtersChanged() ? ' <button id="clearf" title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</button>' : "");
+    const cf = document.getElementById("clearf");
+    if (cf) cf.onclick = clearFilters;
     const btn = document.getElementById("showall");
     if (btn) btn.onclick = () => {
       view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
@@ -539,12 +572,16 @@ function app() {
     nav.innerHTML = p.join("");
     navSvg = nav.firstChild; navRect = nav.querySelector(".vr");
   }
+  // the share of the map's height under the toolbar
+  function topFrac() {
+    const r = wrapEl.getBoundingClientRect();
+    return Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
+  }
   function updateNav() {
     if (!navRect) return;
-    const r = wrapEl.getBoundingClientRect(), open = info.style.display === "block", narrow = innerWidth <= 900;
-    const topFrac = Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
+    const open = info.style.display === "block", narrow = innerWidth <= 900;
     // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
-    nav.hidden = showsAll(vb, W, H, LEFT, topFrac) || (open && narrow);
+    nav.hidden = showsAll(vb, W, H, LEFT, topFrac()) || (open && narrow);
     nav.style.right = open && !narrow ? `${innerWidth - info.getBoundingClientRect().left + 10}px` : "";
     navRect.setAttribute("x", vb.x); navRect.setAttribute("y", vb.y);
     navRect.setAttribute("width", vb.width); navRect.setAttribute("height", vb.height);
@@ -651,6 +688,7 @@ function app() {
       if (l) { l.classList.add("on"); if (near) l.classList.add("near"); }
     });
     if (gNodes[id]) { folderInfo(id); return; }
+    lastBox = id;
     const n = byId[id];
     const fullUp = walk(id, insAll, "from").size - 1, fullDown = walk(id, outsAll, "to").size - 1;
     const isFocus = view.focus === id;
@@ -683,9 +721,9 @@ function app() {
   }
   function openFolder(folder, then) {
     view.open.add(folder);
-    selected = then || null;
-    render(false); writeHash();
-    if (then && visible.has(then)) centreOn(then, false);
+    if (then) { selected = then; render(false); if (visible.has(then)) centreOn(then, false); }
+    else renderKeeping();  // the folder's boxes appear where the folder was
+    writeHash();
   }
   function goTo(id) {
     if (groups.groupOf[id]) { openFolder(folderOf(byId[id]), id); return; }  // a box inside a closed folder
@@ -855,10 +893,10 @@ function app() {
     const k = e.target.dataset.kind;
     if (!k) return;
     if (e.target.checked) view.kindsOff.delete(k); else view.kindsOff.add(k);
-    render(false); writeHash();
+    renderKeeping(); writeHash();
   });
-  document.getElementById("compact").onchange = e => { view.compact = e.target.checked; render(false); writeHash(); };
-  document.getElementById("group").onchange = e => { view.group = e.target.checked; view.open.clear(); render(false); writeHash(); };
+  document.getElementById("compact").onchange = e => { view.compact = e.target.checked; renderKeeping(); writeHash(); };
+  document.getElementById("group").onchange = e => { view.group = e.target.checked; view.open.clear(); renderKeeping(); writeHash(); };
   const lanesBox = document.getElementById("lanerows");
   lanesBox.innerHTML = DATA.domains.map(d =>
     `<label><input type="checkbox" data-lane="${esc(d.id)}" checked> <span class="sw" style="background:${esc(d.color)}"></span>${esc(d.label)}</label>` +
@@ -876,17 +914,17 @@ function app() {
     const lane = e.target.dataset.lane;
     if (!lane) return;
     if (e.target.checked) view.lanes.add(lane); else view.lanes.delete(lane);
-    render(false); writeHash();
+    renderKeeping(); writeHash();
   });
   lanesBox.addEventListener("click", e => {
     const only = e.target.dataset && e.target.dataset.only;
     if (!only) return;
     view.lanes = new Set([only]); syncControls(); render(false); writeHash();
   });
-  document.getElementById("parked").onchange = e => { view.parked = e.target.checked; render(true); writeHash(); };
-  document.getElementById("retired").onchange = e => { view.retired = e.target.checked; render(true); writeHash(); };
+  document.getElementById("parked").onchange = e => { view.parked = e.target.checked; renderKeeping(); writeHash(); };
+  document.getElementById("retired").onchange = e => { view.retired = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("trim").onchange = e => { view.trim = e.target.checked; render(selected === null); writeHash(); };
-  document.getElementById("labels").onchange = e => document.getElementById("elabels").classList.toggle("hidden", !e.target.checked);
+  document.getElementById("labels").onchange = e => { document.getElementById("elabels").classList.toggle("hidden", !e.target.checked); showStatus(sub); };
 
   /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=0
      &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width> (the zoom and position) */
