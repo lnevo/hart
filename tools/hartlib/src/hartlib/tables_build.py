@@ -19,7 +19,8 @@ tables.xml is an output. tools/schematic/build_tables.py writes it from:
                                                       (intermediateSignal) stock discovery wrote, taken from a
                                                       discovery Store by build_tables.py --discovered-from, the only
                                                       writer (run_sml_discover.sh)
-    docs/wiring/signals/signal_wiring.csv             the Digicon masts, whose logic boots disabled (disable_digicon)
+    jmri/layouts/hart/data/wiring.csv                 the Digicon masts (its wired heads), whose logic boots disabled
+                                                      (disable_digicon)
 
 The envelope is fixed: PROLOG and EPILOG around the root, jmriversion as the template has it, and none of what a
 Store writes each time (ENVELOPE_DROPS: the file history, the "Written by" comment, the clock's time, the memory
@@ -763,14 +764,15 @@ def missing_logic(root: ET.Element) -> list[str]:
 
 # ---------------------------------------------------------------- Digicon boot rule
 
-def digicon_masts(root: ET.Element, wiring: Path = paths.SIGNAL_WIRING) -> set[str]:
-    """The masts signal_coordinator.py takes over: named in the signal wiring plan and standing on wired LCOS heads
-    (IH and digits) in `root`. A mast the plan names that is on internal heads is never taken over."""
+def digicon_masts(root: ET.Element, wiring: Path = paths.WIRING) -> set[str]:
+    """The masts signal_coordinator.py takes over: with a wired head in wiring.csv (hartlib.wiring.digicon_rows) and
+    standing on wired LCOS heads (IH and digits) in `root`. A mast wiring.csv names that is on internal heads is never
+    taken over."""
+    from . import wiring as wiring_source     # here, not at the top: wiring imports railroad_facts
     try:
-        with wiring.open(newline="", encoding="utf-8") as fh:
-            planned = {(r.get("mast_user_name") or "").strip() for r in csv.DictReader(fh)} - {""}
-    except OSError as exc:
-        raise TablesBuildError(f"{paths.rel(wiring)}: cannot read it ({exc.strerror})") from None
+        planned = {r["mast_user_name"] for r in wiring_source.digicon_rows(wiring)}
+    except railroad.FactsError as exc:
+        raise TablesBuildError(str(exc)) from None
     wired = {tables.user_name(m) for m in tables.masts(root) if _LCOS_HEAD.search(tables.system_name(m))}
     return planned & wired
 
