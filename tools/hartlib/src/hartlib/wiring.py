@@ -13,7 +13,9 @@ Columns (COLUMNS):
 - node: the LCOS radio address. index: the LCOS number in the device's wiring text, "Turnout: <i>", "Sensor: <i>",
   "Signal: <i>" from 0, "Block: <i>" from 1 (1 to 8). board (OU<n> or IN<n>) and ports: where a turnout, feedback or
   head lands; a detector has neither (its input is the index).
-- status: wired or planned. notes: text for people.
+- status: wired or planned. notes: text for people. district: the power district a detector's block is fed from
+  (SC, ERZ, SRZ, HX on staging, from the inventory workbook; blank where not known). It is the last column, so a
+  row may leave it off.
 
 The JMRI address follows from node and index (address), and the wiring text from all four (wiring_text): devices.csv
 holds both only as written from here.
@@ -30,7 +32,7 @@ from .railroad_facts import FactsError
 
 PATH = paths.LAYOUT_DATA / "wiring.csv"
 COLUMNS = ["level", "kind", "device", "switch_a", "switch_b", "parallel", "half", "node", "index", "board", "ports",
-           "status", "notes"]
+           "status", "notes", "district"]
 KINDS = ("turnout", "fb", "head", "detector")
 STATUSES = ("wired", "planned")
 # kind -> (system name prefix, LCOS UID offset, the word in the wiring text, the board it lands on, ports per device)
@@ -55,6 +57,7 @@ class Wire(NamedTuple):
     ports: tuple[int, ...]
     status: str
     notes: str
+    district: str = ""
 
     @property
     def address(self) -> str:
@@ -163,8 +166,11 @@ def read(path: Path | None = None) -> list[Wire]:
         numbers[number] = i
         for p in ports:
             pins[node, r["board"], p] = i
+        if r.get("district") and kind != "detector":
+            bad.append(f"{at}: only a detector has a power district")
+            continue
         out.append(Wire(i, level, kind, r["device"], r["switch_a"], r["switch_b"], r["parallel"], r["half"], node,
-                        index, r["board"], ports, r["status"], r["notes"]))
+                        index, r["board"], ports, r["status"], r["notes"], r.get("district") or ""))
     if bad:
         raise FactsError(f"{path.name}: " + "; ".join(bad))
     return out

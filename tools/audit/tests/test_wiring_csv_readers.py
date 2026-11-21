@@ -26,8 +26,7 @@ def load(name: str, rel: str):
     return mod
 
 
-AM = load("add_main_upper_levels", "tools/wiring/add_main_upper_levels.py")
-RW = load("refresh_wiring_docs", "tools/wiring/refresh_wiring_docs.py")
+AM = load("write_inventory", "tools/wiring/write_inventory.py")
 
 
 def plain(path: Path) -> list[dict[str, str]]:
@@ -63,32 +62,24 @@ class CommittedFiles(Case):
     """Each moved reader against the committed CSV."""
 
     def test_the_device_map(self) -> None:
-        """The reader gives the main and upper rows of devices.csv, in the device-map form, checked against a plain read."""
+        """The reader gives every level's rows of devices.csv, in the device-map form, checked against a plain read."""
         rows = AM.read_device_rows()
         master = plain(devices.Files.here().master)
-        want = [r for r in master if r["level"] in ("2", "3") and r["role"] not in devices.OUT_OF_MAPS]
+        want = [r for r in master if r["level"] in ("1", "2", "3") and r["role"] not in devices.OUT_OF_MAPS]
         self.assertTrue(rows)
-        self.assertEqual({lv: sum(1 for r in rows if r["level"] == lv) for lv in ("2", "3")},
-                         {lv: sum(1 for r in want if r["level"] == lv) for lv in ("2", "3")})
-        self.assertEqual({r["level"] for r in rows}, {"2", "3"})
-        self.assertEqual([r["user_name"] for r in rows], [r["user_name"] for r in want])
+        self.assertEqual({lv: sum(1 for r in rows if r["level"] == lv) for lv in ("1", "2", "3")},
+                         {lv: sum(1 for r in want if r["level"] == lv) for lv in ("1", "2", "3")})
+        self.assertEqual(sorted(r["user_name"] for r in rows), sorted(r["user_name"] for r in want))
+        want = [r for r in want if r["level"] in ("2", "3")]
         turnout = next(r for r in want if r["layer"] == "turnout" and r["role"] == "turnout")
         got = next(r for r in rows if r["layer"] == "turnout" and r["user_name"] == turnout["user_name"])
         self.assertEqual((got["jmri_name"], got["system_name"]), (turnout["jmri_name"], turnout["system_name"]))
         self.assertTrue(got["jmri_name"].startswith("IT:HART:C3:"))
 
     def test_the_nodes(self) -> None:
-        rows = AM.read_node_rows()                  # the main and upper rows; staging's are v85's own
+        rows = AM.read_node_rows()                  # every level's nodes
         self.assertTrue(rows)
-        self.assertEqual(rows, [r for r in plain(AM.NODES) if r["level"] in AM.LEVEL_NAME])
-
-    def test_the_occupancy_bindings(self) -> None:
-        got = RW.occupancy_by_hw()
-        rows = [r for r in plain(RW.CATS / "occupancy_bindings.csv")
-                if r["occupancy_sensor_user_name"] and r["block_user_name"]]
-        self.assertTrue(got)
-        self.assertEqual(set(got), {r["occupancy_sensor_user_name"] for r in rows})
-        self.assertTrue(all(got.values()))
+        self.assertEqual(rows, plain(AM.NODES))
 
 
 class BadHeader(Case):
@@ -106,34 +97,13 @@ class BadHeader(Case):
         for column in ("level", "area", "node"):
             with self.subTest(column):
                 self.stops(AM.read_node_rows, AM.NODES, column)
-        self.assertEqual(len(AM.read_node_rows(self.without(AM.NODES, "source"))),
-                         len([r for r in plain(AM.NODES) if r["level"] in AM.LEVEL_NAME]))
-
-    def test_the_occupancy_bindings(self) -> None:
-        for column in ("block_user_name", "occupancy_sensor_user_name"):
-            with self.subTest(column):
-                self.stops(RW.occupancy_by_hw, RW.CATS / "occupancy_bindings.csv", column)
+        self.assertEqual(len(AM.read_node_rows(self.without(AM.NODES, "source"))), len(plain(AM.NODES)))
 
     def test_a_node_level_that_is_no_level_stops(self) -> None:
         bad = self.tmp / "nodes.csv"
         bad.write_text(AM.NODES.read_text(encoding="utf-8") + "4,North,62,\n", encoding="utf-8")
         with self.assertRaisesRegex(FactsError, r"nodes.csv line \d+: level is 1, 2 or 3, not '4'"):
             AM.read_node_rows(bad)
-
-    def test_the_staging_nodes_match_the_inventory(self) -> None:
-        from openpyxl import load_workbook
-        wb = load_workbook(AM.SRC)
-        AM.check_staging_nodes(wb)                                    # the committed file
-        for old, new, msg in (("1,Helix,11,", "", r"missing \[11\], extra \[\]"),
-                              ("1,West,13,", "1,West,13,\n1,West,16,", r"missing \[\], extra \[16\]")):
-            with self.subTest(msg=msg):
-                bad = self.tmp / "nodes.csv"
-                text = AM.NODES.read_text(encoding="utf-8")
-                line = next(l for l in text.splitlines() if l.startswith(old))
-                bad.write_text(text.replace(line + "\n", (new + line[len(old):] + "\n") if new else ""),
-                               encoding="utf-8")
-                with self.assertRaisesRegex(FactsError, msg):
-                    AM.check_staging_nodes(wb, bad)
 
     def test_a_row_longer_than_the_header(self) -> None:
         bad = self.tmp / "nodes.csv"
@@ -146,21 +116,15 @@ class Callers(Case):
     """A file that cannot be read ends each script with one line naming the script and the fault."""
     FAULT = FactsError("some.csv: no column current (the header is layer,proposed)")
 
-    def test_add_main_upper_levels(self) -> None:
+    def test_write_inventory(self) -> None:
         for argv in (["--check"], []):
             err = io.StringIO()
             with self.subTest(argv=argv), mock.patch.object(AM, "read_device_rows", side_effect=self.FAULT), \
                     mock.patch.object(AM, "OUT", self.tmp / "out.xlsx"), contextlib.redirect_stderr(err):
                 self.assertEqual(AM.main(argv), 2)
-            self.assertEqual(err.getvalue(), f"add_main_upper_levels.py: {self.FAULT}\n")
+            self.assertEqual(err.getvalue(), f"write_inventory.py: {self.FAULT}\n")
             self.assertFalse((self.tmp / "out.xlsx").exists())
 
-    def test_refresh_wiring_docs(self) -> None:
-        with mock.patch.object(RW, "refresh_inventory", side_effect=self.FAULT), \
-                mock.patch.object(RW, "refresh_asbuilt") as asbuilt, self.assertRaises(SystemExit) as stop:
-            RW.main()
-        self.assertEqual(stop.exception.code, f"refresh_wiring_docs.py: {self.FAULT}")
-        asbuilt.assert_not_called()
 
 
 if __name__ == "__main__":

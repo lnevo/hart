@@ -1,68 +1,92 @@
 #!/usr/bin/env python3
-"""Write LCOS_Layout_Inventory_v86.xlsx: v85 with the main and upper levels from the device master.
+"""Write LCOS_Layout_Inventory_v86.xlsx, the wiring inventory of every level, from the repo's own sources.
 
-    python3 tools/wiring/add_main_upper_levels.py           # write v86
-    python3 tools/wiring/add_main_upper_levels.py --check   # exit 1 if v86 differs from what v85 + the map give
+    python3 tools/wiring/write_inventory.py           # write v86
+    python3 tools/wiring/write_inventory.py --check   # exit 1 if v86 differs from what the sources give
 
-Runs after refresh_wiring_docs.py (which writes v85, staging only). Reads:
-  docs/wiring/LCOS_Layout_Inventory_v85.xlsx
-  jmri/layouts/hart/data/devices.csv   (levels 2 and 3; tools/schematic/build_device_map.py writes them)
-  jmri/layouts/hart/data/schematic/lcos_nodes.csv  (each main and upper node's level and area)
+The workbook is a view: nobody edits it (owner, 2026-11-20). It is written from scratch from
+  jmri/layouts/hart/data/devices.csv           every level's turnouts, feedback, heads, masts and detectors, with the
+                                               ports in their wiring text. Staging's are written from wiring.csv (the
+                                               physical wiring source, as JMRI has it wired), main and upper's by
+                                               tools/schematic/build_device_map.py's rule (a draft) but for the rows
+                                               wiring.csv lists.
+  jmri/layouts/hart/data/wiring.csv            the detectors' power districts.
+  jmri/layouts/hart/data/schematic/lcos_nodes.csv   every node, its level and area.
+  docs/wiring/signals/signal_wiring.csv and signal_head_plan.csv   the DigiconSignals sheet.
 
-v85 still carries the August 2026 upper-deck plan, drawn for an older track plan: nodes C14, C21, C22, C23, C24
-and C32 with Switches 61 to 91, and three motor outputs on C11 (Switches 63, 65, 67). Those rows go; C11 keeps
-its helix blocks, since the helix is still there. Every node of the device map is written in their place, one row per port: turnouts on 12V boards,
-heads and the detector calibration pin on 5V boards, feedback on DNIN8 boards, detectors on B devices (two
-blocks each), with the ports the device map gives, each row shaded light blue. Staging rows and the
-DigiconSignals sheet are unchanged.
+One row per port, as the inventory always had: turnouts on the OU boards their wiring names, feedback on DNIN8 boards,
+heads on OU boards, detectors on B devices (two blocks each). Staging's rows are only what is wired; main and upper's
+follow the rule's boards (12V boards for turnouts first, 5V boards after them, pin 8 of the first 5V board for the
+detector calibration current) and are shaded light blue (owner, 2026-11-15). The workbooks before it, the imported
+v84 and the v85 written from it, are history in archive/ (owner, 2026-11-20).
 """
 from __future__ import annotations
 
 import argparse
+import csv
 import re
 import sys
 import tempfile
 from collections import defaultdict
 from pathlib import Path
 
-from openpyxl import load_workbook
-from openpyxl.styles import PatternFill
+from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices  # noqa: E402
+from hartlib import devices, wiring  # noqa: E402
 from hartlib.railroad import FactsError, read_rows  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
-WIRING = ROOT / "docs/wiring"
-SRC = WIRING / "LCOS_Layout_Inventory_v85.xlsx"
-OUT = WIRING / "LCOS_Layout_Inventory_v86.xlsx"
+WIRING_DOCS = ROOT / "docs/wiring"
+OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
 DATA = ROOT / "jmri/layouts/hart/data/schematic"
 DEVICE_MAP = DATA.parent / "devices.csv"
 NODES = DATA / "lcos_nodes.csv"
+SIGNALS = WIRING_DOCS / "signals"
 
-OLD_UPPER = {"C14", "C21", "C22", "C23", "C24", "C32"}       # the August 2026 upper-deck nodes
-OLD_SWITCH = re.compile(r"^Switch (6[1-9]|[78]\d|9[01])\b")    # its Switches 61 to 91
-LEVEL_NAME = {"2": "Main", "3": "Upper"}
+LEVEL_NAME = {"1": "Staging", "2": "Main", "3": "Upper"}
+DESIGN = ("2", "3")                               # main and upper: the rule's draft, shaded
 SHADE = PatternFill("solid", fgColor="DDEBF7")    # light blue: every main and upper level row (owner, 2026-11-15)
 PORT = re.compile(r"(OU|IN): (\d+) Ports: ([\d,]+)$")
 NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
+LEGACY = re.compile(r"\bwas (C\d+)\b")            # a staging node's old ID, as lcos_nodes.csv's source notes it
+
+NODE_COLUMNS = ["Node ID", "Legacy Node ID", "Address", "Location", "Type", "DNOU8", "DNIN8", "12V Boards",
+                "5V Boards", "Num 12V", "12V Used", "12V Free", "Num Turnouts", "Turnout Output Ports",
+                "Turnout Names", "Num IN", "Input Used", "Input Free", "Num Buttons", "Num Sensors", "Button Devices",
+                "Turnout Feedback Devices", "Num 5V", "5V Used", "5V Free", "Num Signal LEDs", "Signal LED Devices",
+                "Signal Names", "DNCTA", "BS Devices", "Num Blocks", "Block Section Names"]
+OU_COLUMNS = ["Output Port ID", "Parent Node ID", "Board Location", "Output Channel (1-8)", "Connected Device",
+              "Device Type", "Voltage Rail (12V/5V)", "Notes"]
+IN_COLUMNS = ["Input Port ID", "Parent Node ID", "Board Location", "Input Channel (1-8)", "Connected Device",
+              "Device Type (Sensor/Switch/etc.)", "Notes"]
+TURNOUT_COLUMNS = ["Turnout", "Parent Node", "Location/Area", "Switch Elements", "Button", "Feedback N", "Feedback R",
+                   "Entry Signal", "Entry Signal R Port", "Entry Signal Y Port", "Entry Signal G Port",
+                   "Normal Exit Signal", "Normal Exit R Port", "Normal Exit Y Port", "Normal Exit G Port",
+                   "Reverse Exit Signal", "Reverse Exit R Port", "Reverse Exit Y Port", "Reverse Exit G Port"]
+BLOCK_COLUMNS = ["Port ID", "Node ID", "B Device ID", "B Number (1-2)", "Block Section Name",
+                 "Connected Track Segment", "Block Location", "Power District", "Notes"]
+DIGICON_COLUMNS = ["port_id", "parent_node_id", "mqtt_node", "board_location", "signal_index", "packed",
+                   "system_name", "user_name", "mast_user_name", "disc_role", "head_role", "lamp_color", "topic",
+                   "notes"]
 
 
 def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
-    """The main and upper rows of the master (hartlib.devices.device_map_lines), values stripped. The ports and the
-    Switch Elements names are read from comment and trial_name on every row."""
-    return [{c: v.strip() for c, v in r.items()} for _line, r in devices.device_map_lines(("2", "3"), path)]
+    """Every level's rows of the master in the device-map form (hartlib.devices.device_map_lines), values stripped:
+    the ports are read from each row's wiring text (its comment)."""
+    return [{c: v.strip() for c, v in r.items()} for _line, r in devices.device_map_lines(("1", "2", "3"), path)]
 
 
 def read_node_rows(path: Path = NODES) -> list[dict]:
-    """The main and upper rows of the node file (staging's nodes are v85's own rows, which this leaves as they are)."""
+    """Every row of the node file. FactsError on a level that is not 1, 2 or 3."""
     out = []
     for line, r in read_rows(path, ("level", "area", "node"), optional=("source",)):
-        if r["level"] not in ("1", *LEVEL_NAME):
+        if r["level"] not in LEVEL_NAME:
             raise FactsError(f"{path.name} line {line}: level is 1, 2 or 3, not {r['level']!r}")
-        if r["level"] in LEVEL_NAME:
-            out.append(r)
+        out.append(r)
     return out
 
 
@@ -71,22 +95,46 @@ def natural(s: str):
 
 
 class Node:
-    def __init__(self, num: int, location: str):
-        self.num, self.id, self.location = num, f"C{num}", location
+    def __init__(self, num: int, level: str, location: str, legacy: str = ""):
+        self.num, self.id, self.level, self.location, self.legacy = num, f"C{num}", level, location, legacy
         self.ou = defaultdict(dict)       # board -> {pin: (device, type, rail, notes)}
         self.inp = defaultdict(dict)      # board -> {pin: (device, type, notes)}
         self.turnouts, self.feedback, self.heads, self.masts, self.blocks = [], [], [], [], []
 
+    @property
+    def design(self) -> bool:
+        return self.level in DESIGN
+
+    @property
+    def boards12(self) -> int:
+        """The 12V boards of a main or upper node by the rule (four turnouts each, first); staging's are the boards
+        its turnouts are on."""
+        if self.design:
+            return -(-len(self.turnouts) // 4)
+        return len({int(p.split("-OU")[1].split("-")[0]) for _t, ps, _r in self.turnouts for p in ps})
+
+
+def spare_rows(path: Path | None = None) -> list[dict]:
+    """Staging's spare detector inputs (wiring.csv detectors with no block) as occupancy rows: they have a sensor in
+    JMRI but no block, and the device-map form leaves them out (hartlib.devices.OUT_OF_MAPS)."""
+    return [dict(layer="occupancy", role="spare", user_name=f"unused {w.input}", node=str(w.node),
+                 system_name=w.address, comment=w.wiring_text, dcc="", trial_name="", cp="")
+            for w in wiring.read(path) if w.kind == "detector" and w.level == 1 and not w.device]
+
 
 def gather(rows, node_rows) -> dict[int, Node]:
-    """{node number: Node} with every port the device map gives."""
-    where = {int(r["node"]): f"{r['area']} - {LEVEL_NAME[r['level']]}" for r in node_rows}
-    nodes: dict[int, Node] = {}
+    """{node number: Node} of every node in lcos_nodes.csv, with every port the master gives (`rows`, with
+    spare_rows). SystemExit on a row on a node the node file does not list."""
+    nodes = {}
+    for r in node_rows:
+        m = LEGACY.search(r.get("source") or "")
+        nodes[int(r["node"])] = Node(int(r["node"]), r["level"], f"{r['area']} - {LEVEL_NAME[r['level']]}",
+                                     m.group(1) if m else "")
 
     def get(num: int) -> Node:
-        if num not in where:
-            raise SystemExit(f"node {num} is in the device map but not in {NODES.name}")
-        return nodes.setdefault(num, Node(num, where[num]))
+        if num not in nodes:
+            raise SystemExit(f"node {num} is in {DEVICE_MAP.name} but not in {NODES.name}")
+        return nodes[num]
 
     for r in rows:
         if not r["node"] or r["system_name"].startswith("MTT"):
@@ -104,9 +152,12 @@ def gather(rows, node_rows) -> dict[int, Node]:
             n.inp[board][pin] = (r["user_name"].removeprefix("FB ") + " FB", "Turnout Feedback", r["system_name"])
             n.feedback.append((r["user_name"], f"{n.id}-IN{board}-{pin}"))
         elif r["layer"] == "head":
+            if not m:
+                continue                              # a mast's node with no head wiring of its own
             board, pins = int(m.group(2)), [int(p) for p in m.group(3).split(",")]
+            kind = "Signal LED" if n.design else "Searchlight Signal Head"     # staging's are Digicon searchlights
             for pin, lamp in zip(pins, "RYG"):
-                n.ou[board][pin] = (f"{r['user_name']} {lamp}", "Signal LED", "5V",
+                n.ou[board][pin] = (f"{r['user_name']} {lamp}", kind, "5V",
                                     f"{r['system_name']}; STOP/APPROACH/CLEAR; lamp {lamp}")
             n.heads.append((r["user_name"], board, pins))
         elif r["layer"] == "mast":
@@ -115,63 +166,74 @@ def gather(rows, node_rows) -> dict[int, Node]:
             k = int(NODE_K.match(r["comment"]).group(3)) - 1      # "Block: 1" is UID 0
             n.blocks.append((k, r))
     for n in nodes.values():
-        n12 = -(-len(n.turnouts) // 4)
-        if n.blocks:                                  # pin 8 of the first 5V board: detector calibration
-            n.ou[n12 + 1][8] = ("Block sensor calibration", "Block Sensor Cal", "5V",
-                                "Block sensor calibration current (first 5V OU pin 8); not a lamp")
+        if n.design and n.blocks:                     # pin 8 of the first 5V board: detector calibration (the rule)
+            n.ou[n.boards12 + 1][8] = ("Block sensor calibration", "Block Sensor Cal", "5V",
+                                       "Block sensor calibration current (first 5V OU pin 8); not a lamp")
     return nodes
 
 
 def rail(n: Node, board: int) -> str:
-    return "12V" if board <= -(-len(n.turnouts) // 4) else "5V"
+    """The rail of an empty pin: by the rule on main and upper; on staging the rail of what the board carries."""
+    if n.design:
+        return "12V" if board <= n.boards12 else "5V"
+    used = {v[2] for v in n.ou[board].values()}
+    return used.pop() if len(used) == 1 else ""
 
 
-def header(ws) -> list[str]:
-    return [c.value for c in ws[1]]
+def block_name(occ: dict, by_name: dict) -> str | None:
+    """The JMRI block an occupancy row detects: its `blocks` column, else by its name, a switch's sensor ("BS Switch
+    <n>") its OS block ("OS Switch <n>"), any other ("BS <a>-<b>") the track of the same name; None for a spare
+    input. SystemExit on a name with no block."""
+    if occ["role"] == "spare":
+        return None
+    if occ.get("blocks"):
+        return occ["blocks"].split(";")[0].strip()
+    rest = occ["user_name"].removeprefix("BS ")
+    name = f"OS {rest}" if rest.startswith("Switch ") else f"Track {rest}"
+    if name not in by_name:
+        raise SystemExit(f"{occ['user_name']}: no block {name} in {DEVICE_MAP.name}")
+    return name
 
 
-def append(ws, values) -> None:
-    """Add a main or upper level row, shaded so it stands apart from the staging rows."""
+def sheet(wb, title: str, columns: list[str], at: int | None = None):
+    ws = wb.create_sheet(title, at) if at is not None else wb.create_sheet(title)
+    ws.append(columns)
+    for cell in ws[1]:
+        cell.font = Font(bold=True)
+    return ws
+
+
+def append(ws, values, shade: bool) -> None:
+    """Add a row; a main or upper level row is shaded so it stands apart from the staging rows."""
     ws.append(values)
-    for cell in ws[ws.max_row][:len(values)]:      # every cell the row writes, one per header column
-        cell.fill = SHADE
+    if shade:
+        for cell in ws[ws.max_row][:len(values)]:  # every cell the row writes, one per header column
+            cell.fill = SHADE
 
 
-def drop_rows(ws, keep) -> None:
-    """Delete the data rows for which keep(row values) is false (bottom up, so indexes hold)."""
-    for i in range(ws.max_row, 1, -1):
-        vals = [c.value for c in ws[i]]
-        if any(v is not None for v in vals) and not keep(vals):
-            ws.delete_rows(i)
+def districts(path: Path | None = None) -> dict[tuple[int, int], str]:
+    """{(node, block input from 1): power district} of wiring.csv's detectors."""
+    return {(w.node, w.index): w.district for w in wiring.read(path) if w.kind == "detector" and w.district}
 
 
-def apply(wb, nodes: dict[int, Node], rows) -> None:
-    by_name = {r["user_name"]: r for r in rows}
-
-    # Nodes
-    ws = wb["Nodes"]
-    cols = header(ws)
-    col = {name: i for i, name in enumerate(cols) if name}
-    drop_rows(ws, lambda v: v[0] not in OLD_UPPER)
-    for row in ws.iter_rows(min_row=2):
-        if row[0].value == "C11":                     # its motor outputs were the old upper deck's 63/65/67
-            for name, value in (("Num Turnouts", 0), ("Turnout Output Ports", None), ("Turnout Names", None),
-                                ("12V Used", 0), ("12V Free", 8)):
-                row[col[name]].value = value
-    for num in sorted(nodes):
+def nodes_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
+    ws = sheet(wb, "Nodes", NODE_COLUMNS)
+    for num in sorted(nodes, key=lambda k: (nodes[k].level, k)):
         n = nodes[num]
-        boards12 = -(-len(n.turnouts) // 4)
         boards = sorted(n.ou)
-        five = [b for b in boards if b > boards12]
+        twelve = [b for b in boards if (n.design and b <= n.boards12) or
+                  (not n.design and any(v[2] == "12V" for v in n.ou[b].values()))]
+        five = [b for b in boards if b not in twelve]
         used5 = sum(len(n.ou[b]) for b in five)
-        heads_pins = sum(len(p) for _, _, p in n.heads)
         bdev = sorted({f"{n.id}-B{k // 2 + 1}" for k, _ in n.blocks}, key=natural)
+        any_device = n.ou or n.inp or n.blocks
         vals = {
-            "Node ID": n.id, "Legacy Node ID": None, "Address": num, "Location": n.location, "Type": "Client",
+            "Node ID": n.id, "Legacy Node ID": n.legacy or None, "Address": num, "Location": n.location,
+            "Type": "Client" if any_device else None,
             "DNOU8": ", ".join(f"OU{b}" for b in boards) or None,
             "DNIN8": ", ".join(f"IN{b}" for b in sorted(n.inp)) or None,
-            "12V Boards": boards12, "5V Boards": len(five), "Num 12V": 8 * boards12,
-            "12V Used": 2 * len(n.turnouts), "12V Free": 8 * boards12 - 2 * len(n.turnouts),
+            "12V Boards": len(twelve), "5V Boards": len(five), "Num 12V": 8 * len(twelve),
+            "12V Used": 2 * len(n.turnouts), "12V Free": 8 * len(twelve) - 2 * len(n.turnouts),
             "Num Turnouts": len(n.turnouts),
             "Turnout Output Ports": ", ".join(p for _, ps, _ in n.turnouts for p in ps) or None,
             "Turnout Names": ", ".join(t for t, _, _ in n.turnouts) or None,
@@ -179,42 +241,32 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
             "Num Buttons": 0, "Num Sensors": len(n.feedback), "Button Devices": None,
             "Turnout Feedback Devices": ", ".join(f.removeprefix("FB ") + " FB" for f, _ in n.feedback) or None,
             "Num 5V": 8 * len(five), "5V Used": used5, "5V Free": 8 * len(five) - used5,
-            "Num Signal LEDs": heads_pins, "Signal LED Devices": len(n.heads),
+            "Num Signal LEDs": sum(len(p) for _, _, p in n.heads), "Signal LED Devices": len(n.heads),
             "Signal Names": ", ".join(sorted(n.masts, key=natural)) or None, "DNCTA": None,
             "BS Devices": ", ".join(bdev) or None, "Num Blocks": len(n.blocks),
-            "Block Section Names": ", ".join(block_name(r, by_name) for _, r in sorted(n.blocks, key=lambda b: b[0]))
-            or None,
+            "Block Section Names": ", ".join(b for _, r in sorted(n.blocks, key=lambda b: b[0])
+                                             if (b := block_name(r, by_name))) or None,
         }
-        append(ws, [vals.get(name) if name else None for name in cols])
+        append(ws, [vals.get(name) for name in NODE_COLUMNS], n.design)
 
-    # DNOU8
-    ws = wb["DNOU8"]
-    drop_rows(ws, lambda v: v[1] not in OLD_UPPER)
-    for row in ws.iter_rows(min_row=2):
-        if row[1].value == "C11" and row[0].value in {f"C11-OU1-{p}" for p in range(1, 7)}:
-            row[4].value, row[5].value = None, None
-            row[7].value = "free: was a motor of the old upper-deck plan (Switch 63, 65 or 67) in v85"
-    for num in sorted(nodes):
+
+def port_sheets(wb, nodes: dict[int, Node]) -> None:
+    ou = sheet(wb, "DNOU8", OU_COLUMNS)
+    inp = sheet(wb, "DNIN8", IN_COLUMNS)
+    for num in sorted(nodes, key=lambda k: (nodes[k].level, k)):
         n = nodes[num]
         for board in sorted(n.ou):
             for pin in range(1, 9):
-                dev, kind, volts, notes = n.ou[board].get(pin, (None, None, rail(n, board), None))
-                append(ws, [f"{n.id}-OU{board}-{pin}", n.id, n.location, pin, dev, kind, volts, notes])
-
-    # DNIN8
-    ws = wb["DNIN8"]
-    drop_rows(ws, lambda v: v[1] not in OLD_UPPER)
-    for num in sorted(nodes):
-        n = nodes[num]
+                dev, kind, volts, notes = n.ou[board].get(pin, (None, None, rail(n, board) or None, None))
+                append(ou, [f"{n.id}-OU{board}-{pin}", n.id, n.location, pin, dev, kind, volts, notes], n.design)
         for board in sorted(n.inp):
             for pin in range(1, 9):
                 dev, kind, notes = n.inp[board].get(pin, (None, None, None))
-                append(ws, [f"{n.id}-IN{board}-{pin}", n.id, n.location, pin, dev, kind, notes])
+                append(inp, [f"{n.id}-IN{board}-{pin}", n.id, n.location, pin, dev, kind, notes], n.design)
 
-    # TurnoutSummary
-    ws = wb["TurnoutSummary"]
-    cols = header(ws)
-    drop_rows(ws, lambda v: not OLD_SWITCH.match(str(v[0] or "")))
+
+def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
+    ws = sheet(wb, "TurnoutSummary", TURNOUT_COLUMNS)
     fb = {name: port for n in nodes.values() for name, port in n.feedback}
     entry = {}                                        # switch -> its two-head mast and that mast's top head pins
     for n in nodes.values():
@@ -223,7 +275,7 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
                 mast = head.removeprefix("Head ").removesuffix(" Top")
                 sw = by_name[f"Mast {mast}"]["switch"]          # its switch column (hartlib.railroad.DEVICE_FACTS)
                 entry.setdefault(sw, (mast, [f"{n.id}-OU{board}-{p}" for p in pins]))
-    for n in sorted(nodes.values(), key=lambda n: n.num):
+    for n in sorted(nodes.values(), key=lambda n: (n.level, n.num)):
         for name, _, r in n.turnouts:
             sw = name.removeprefix("Switch ")
             mast, pins = entry.get(sw, (None, [None, None, None]))
@@ -233,51 +285,62 @@ def apply(wb, nodes: dict[int, Node], rows) -> None:
                     "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R"),
                     "Entry Signal": mast, "Entry Signal R Port": pins[0], "Entry Signal Y Port": pins[1],
                     "Entry Signal G Port": pins[2]}
-            append(ws, [vals.get(c) for c in cols])
+            append(ws, [vals.get(c) for c in TURNOUT_COLUMNS], n.design)
 
-    # BlockSensors
-    ws = wb["BlockSensors"]
-    drop_rows(ws, lambda v: v[1] not in OLD_UPPER)       # C11 keeps the helix blocks: the helix is still there
-    for num in sorted(nodes):
+
+def block_sheet(wb, nodes: dict[int, Node], by_name: dict, district: dict) -> None:
+    ws = sheet(wb, "BlockSensors", BLOCK_COLUMNS)
+    for num in sorted(nodes, key=lambda k: (nodes[k].level, k)):
         n = nodes[num]
         for k, r in sorted(n.blocks, key=lambda b: b[0]):
             dev = f"{n.id}-B{k // 2 + 1}"
             blk = block_name(r, by_name)
-            append(ws, [f"{dev}-{k % 2 + 1}", n.id, dev, k % 2 + 1, blk, by_name[blk]["trial_name"] or None,
-                       n.location, None, f"Block {num}-{k + 1} / {r['system_name']}"])
+            append(ws, [f"{dev}-{k % 2 + 1}", n.id, dev, k % 2 + 1, blk or "Unused",
+                        (by_name[blk]["trial_name"] or None) if blk else None, n.location,
+                        district.get((num, k + 1)), f"Block {num}-{k + 1} / {r['system_name']}"], n.design)
 
 
-def block_name(occ: dict, by_name: dict) -> str:
-    """The JMRI block an occupancy row detects: a switch's sensor ("BS Switch <n>") detects its OS block
-    ("OS Switch <n>"), any other ("BS <a>-<b>") the track of the same name ("Track <a>-<b>")."""
-    rest = occ["user_name"].removeprefix("BS ")
-    name = f"OS {rest}" if rest.startswith("Switch ") else f"Track {rest}"
-    if name not in by_name:
-        raise SystemExit(f"{occ['user_name']}: no block {name} in {DEVICE_MAP.name}")
-    return name
+def load_csv(path: Path) -> list[dict]:
+    with path.open(newline="", encoding="utf-8") as fh:
+        return list(csv.DictReader(fh))
 
 
-def check_staging_nodes(wb, path: Path = NODES) -> None:
-    """The staging rows of the node file (level 1) are v85's staging nodes, the ones this keeps: every Nodes row
-    but the August 2026 upper deck's. Stops when the two lists differ, so a staging node renumbered or retired in
-    the inventory cannot be left behind in the node file, or the other way round."""
-    ws = wb["Nodes"]
-    cols = header(ws)
-    sheet = {int(v[cols.index("Address")]) for v in ws.iter_rows(min_row=2, values_only=True)
-             if v[0] and v[0] not in OLD_UPPER}
-    listed = {int(r["node"]) for _line, r in read_rows(path, ("level", "area", "node"), optional=("source",))
-              if r["level"] == "1"}
-    if sheet != listed:
-        raise FactsError(f"{path.name}'s staging rows (level 1) are nodes {sorted(listed)}, {SRC.name}'s staging "
-                         f"nodes are {sorted(sheet)}: missing {sorted(sheet - listed)}, extra {sorted(listed - sheet)}")
+def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
+    """The Digicon searchlight heads as wired (signal_wiring.csv, three pins per disc) and the mast plan
+    (signal_head_plan.csv), first in the workbook as it always was."""
+    ws = wb.create_sheet("DigiconSignals", 0)
+    ws["A1"] = "HART Digicon searchlight heads (from docs/wiring/signals/signal_wiring.csv)"
+    ws["A1"].font = Font(bold=True, size=14)
+    ws.merge_cells("A1:L1")
+    for i, h in enumerate(DIGICON_COLUMNS, start=1):
+        ws.cell(2, i, h).font = Font(bold=True)
+    for r_i, row in enumerate(wired, start=3):
+        for c_i, key in enumerate(DIGICON_COLUMNS, start=1):
+            ws.cell(r_i, c_i, row.get(key))
+    start = 3 + len(wired) + 2
+    ws.cell(start, 1, "Masts (docs/wiring/signals/signal_head_plan.csv)").font = Font(bold=True, size=12)
+    m_headers = list(heads[0].keys()) if heads else []
+    for i, h in enumerate(m_headers, start=1):
+        ws.cell(start + 1, i, h).font = Font(bold=True)
+    for r_i, row in enumerate(heads, start=start + 2):
+        for c_i, key in enumerate(m_headers, start=1):
+            ws.cell(r_i, c_i, row.get(key))
+    for col in range(1, 13):
+        ws.column_dimensions[get_column_letter(col)].width = 22
 
 
 def build(dest: Path) -> None:
     rows = read_device_rows()
-    nodes = gather(rows, read_node_rows())
-    wb = load_workbook(SRC)
-    check_staging_nodes(wb)
-    apply(wb, nodes, rows)
+    by_name = {r["user_name"]: r for r in rows}
+    nodes = gather(rows + spare_rows(), read_node_rows())
+    district = districts()
+    wb = Workbook()
+    wb.remove(wb.active)
+    nodes_sheet(wb, nodes, by_name)
+    port_sheets(wb, nodes)
+    turnout_sheet(wb, nodes, by_name)
+    block_sheet(wb, nodes, by_name, district)
+    digicon_sheet(wb, load_csv(SIGNALS / "signal_wiring.csv"), load_csv(SIGNALS / "signal_head_plan.csv"))
     wb.save(dest)
 
 
@@ -291,7 +354,7 @@ def values(path: Path) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--check", action="store_true", help="exit 1 if v86 differs from what v85 and the map give")
+    ap.add_argument("--check", action="store_true", help="exit 1 if v86 differs from what the sources give")
     args = ap.parse_args(argv)
     try:
         if not args.check:

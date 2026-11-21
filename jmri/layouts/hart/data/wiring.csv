@@ -1,111 +1,111 @@
-level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,notes
-1,turnout,Switch 35,,,,,1,0,OU1,"1,2",wired,
-1,turnout,Switch 37,,,,,1,1,OU1,"3,4",wired,
-1,turnout,Switch 39,,,,,1,2,OU1,"5,6",wired,
-1,fb,FB Switch 35 N,,,,,1,0,IN1,1,wired,
-1,fb,FB Switch 35 R,,,,,1,1,IN1,2,wired,
-1,fb,FB Switch 37 N,,,,,1,2,IN1,3,wired,
-1,fb,FB Switch 37 R,,,,,1,3,IN1,4,wired,
-1,fb,FB Switch 39 N,,,,,1,4,IN1,5,wired,
-1,fb,FB Switch 39 R,,,,,1,5,IN1,6,wired,
-1,detector,Track K-1,,,,,1,1,,,wired,
-1,detector,Track K-2,,,,,1,2,,,wired,
-1,detector,OS Switch 37,,,,,1,3,,,wired,
-1,detector,OS Switch 39,,,,,1,4,,,wired,
-1,detector,OS Switch 35b,,,,,1,5,,,wired,
-1,detector,OS Switch 35a,,,,,1,6,,,wired,
-1,detector,Track East Lead,,,,,1,7,,,wired,
-1,detector,Track West Ext,,,,,1,8,,,wired,
-1,detector,Track Main West,,,,,2,1,,,wired,
-1,detector,,,,,,2,2,,,wired,"spare: wired, no block assigned"
-1,detector,Track Main East,,,,,2,3,,,wired,
-1,detector,Track S-4,,,,,2,4,,,wired,
-1,detector,Track S-3,,,,,2,5,,,wired,
-1,detector,Track S-2,,,,,2,6,,,wired,
-1,detector,Track S-1,,,,,2,7,,,wired,
-1,detector,Track S-R,,,,,2,8,,,wired,
-1,turnout,Switch 15,,,,,3,0,OU1,"1,2",wired,
-1,turnout,Switch 17,,,,,3,1,OU1,"3,4",wired,
-1,turnout,Switch 19,,,,,3,2,OU1,"5,6",wired,
-1,turnout,Switch 21,,,,,3,3,OU1,"7,8",wired,
-1,fb,FB Switch 15 N,,,,,3,0,IN1,1,wired,
-1,fb,FB Switch 15 R,,,,,3,1,IN1,2,wired,
-1,fb,FB Switch 17 N,,,,,3,2,IN1,3,wired,
-1,fb,FB Switch 17 R,,,,,3,3,IN1,4,wired,
-1,fb,FB Switch 19 N,,,,,3,4,IN1,5,wired,
-1,fb,FB Switch 19 R,,,,,3,5,IN1,6,wired,
-1,fb,FB Switch 21 N,,,,,3,6,IN1,7,wired,
-1,fb,FB Switch 21 R,,,,,3,7,IN1,8,wired,
-1,detector,OS Switch 13,,,,,3,1,,,wired,
-1,detector,OS Switch 15,,,,,3,2,,,wired,
-1,detector,OS Switch 17,,,,,3,3,,,wired,
-1,detector,OS Switch 19,,,,,3,5,,,wired,
-1,detector,OS Switch 21,,,,,3,7,,,wired,
-1,detector,,,,,,3,8,,,wired,"spare: wired, no block assigned"
-1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,
-1,turnout,Switch 3,,,,,4,1,OU1,"3,4",wired,
-1,turnout,Switch 5,,,,,4,2,OU1,"5,6",wired,
-1,turnout,Switch 13,,,,,4,3,OU1,"7,8",wired,
-1,fb,FB Switch 1 N,,,,,4,3,IN1,1,wired,
-1,fb,FB Switch 1 R,,,,,4,4,IN1,2,wired,
-1,fb,FB Switch 3 N,,,,,4,5,IN1,3,wired,
-1,fb,FB Switch 3 R,,,,,4,6,IN1,4,wired,
-1,fb,FB Switch 5 N,,,,,4,7,IN1,5,wired,
-1,fb,FB Switch 5 R,,,,,4,8,IN1,6,wired,
-1,fb,FB Switch 13 N,,,,,4,9,IN1,7,wired,
-1,fb,FB Switch 13 R,,,,,4,10,IN1,8,wired,
-1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,
-1,detector,OS Switch 3,,,,,4,1,,,wired,
-1,detector,OS Switch 1,,,,,4,2,,,wired,
-1,detector,Track W-2,,,,,4,3,,,wired,
-1,detector,Track W-1,,,,,4,4,,,wired,
-1,detector,OS Switch 5,,,,,4,5,,,wired,
-1,detector,Track Brick-Plane,,,,,4,6,,,wired,
-1,detector,Track East Ext,,,,,4,7,,,wired,
-1,detector,Track Scale,,,,,4,8,,,wired,
-1,turnout,Switch 25,,,,,12,0,OU1,"1,2",wired,
-1,turnout,Switch 27,,,,,12,1,OU1,"3,4",wired,
-1,turnout,Switch 29,,,,,12,2,OU1,"5,6",wired,
-1,turnout,Switch 31,,,,,12,3,OU1,"7,8",wired,
-1,turnout,Switch 23,,,,,12,4,OU4,"1,2",wired,
-1,turnout,Switch 33,,,,,12,5,OU4,"3,4",wired,
-1,fb,FB Switch 25 N,,,,,12,0,IN1,1,wired,
-1,fb,FB Switch 25 R,,,,,12,1,IN1,2,wired,
-1,fb,FB Switch 27 N,,,,,12,2,IN1,3,wired,
-1,fb,FB Switch 27 R,,,,,12,3,IN1,4,wired,
-1,fb,FB Switch 29 N,,,,,12,4,IN1,5,wired,
-1,fb,FB Switch 29 R,,,,,12,5,IN1,6,wired,
-1,fb,FB Switch 31 N,,,,,12,6,IN1,7,wired,
-1,fb,FB Switch 31 R,,,,,12,7,IN1,8,wired,
-1,fb,FB Switch 23 N,,,,,12,8,IN3,1,wired,
-1,fb,FB Switch 23 R,,,,,12,9,IN3,2,wired,
-1,fb,FB Switch 33 N,,,,,12,10,IN3,3,wired,
-1,fb,FB Switch 33 R,,,,,12,11,IN3,4,wired,
-1,detector,OS Switch 25,,,,,12,1,,,wired,
-1,detector,OS Switch 27,,,,,12,3,,,wired,
-1,detector,OS Switch 23a,,,,,12,4,,,wired,
-1,detector,OS Switch 29,,,,,12,5,,,wired,
-1,detector,OS Switch 23b,,,,,12,6,,,wired,
-1,detector,OS Switch 31,,,,,12,7,,,wired,
-1,detector,OS Switch 33,,,,,12,8,,,wired,
-1,turnout,Switch 7,,,,,13,0,OU2,"1,2",wired,
-1,turnout,Switch 11,,,,,13,1,OU2,"3,4",wired,
-1,turnout,Switch 9,,,,,13,2,OU2,"5,6",wired,
-1,fb,FB Switch 7 N,,,,,13,0,IN1,1,wired,
-1,fb,FB Switch 7 R,,,,,13,1,IN1,2,wired,
-1,fb,FB Switch 11 N,,,,,13,2,IN1,3,wired,
-1,fb,FB Switch 11 R,,,,,13,3,IN1,4,wired,
-1,fb,FB Switch 9 N,,,,,13,4,IN1,5,wired,
-1,fb,FB Switch 9 R,,,,,13,5,IN1,6,wired,
-1,detector,Track Barn,,,,,13,1,,,wired,
-1,detector,OS Switch 11,,,,,13,2,,,wired,
-1,detector,OS Switch 7,,,,,13,3,,,wired,
-1,detector,OS Switch 7b,,,,,13,4,,,wired,
-1,detector,Track EH-3,,,,,13,5,,,wired,
-1,detector,Track EH-2,,,,,13,6,,,wired,
-1,detector,Track EH-1,,,,,13,7,,,wired,
-1,detector,OS Switch 9,,,,,13,8,,,wired,
-2,detector,Track Helix Outer,,,,,41,2,,,planned,"helix node 41: Block 41-2 (owner, 2026-11-20)"
-3,detector,Track Helix Inner,,,,,41,1,,,planned,"helix node 41, one DNCT2B: Block 41-1 (owner, 2026-11-20); a helix block is named in device, with no switches"
-3,detector,,227,241,,1,41,3,,,planned,"half 1 of the peninsula loop moves from 41-1 to 41-3 (owner, 2026-11-20)"
-3,detector,,227,241,,2,41,4,,,planned,"half 2 of the peninsula loop, planned with no input until now: 41-4 (owner, 2026-11-20)"
+level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,notes,district
+1,turnout,Switch 35,,,,,1,0,OU1,"1,2",wired,,
+1,turnout,Switch 37,,,,,1,1,OU1,"3,4",wired,,
+1,turnout,Switch 39,,,,,1,2,OU1,"5,6",wired,,
+1,fb,FB Switch 35 N,,,,,1,0,IN1,1,wired,,
+1,fb,FB Switch 35 R,,,,,1,1,IN1,2,wired,,
+1,fb,FB Switch 37 N,,,,,1,2,IN1,3,wired,,
+1,fb,FB Switch 37 R,,,,,1,3,IN1,4,wired,,
+1,fb,FB Switch 39 N,,,,,1,4,IN1,5,wired,,
+1,fb,FB Switch 39 R,,,,,1,5,IN1,6,wired,,
+1,detector,Track K-1,,,,,1,1,,,wired,,SC
+1,detector,Track K-2,,,,,1,2,,,wired,,SC
+1,detector,OS Switch 37,,,,,1,3,,,wired,,SC
+1,detector,OS Switch 39,,,,,1,4,,,wired,,SC
+1,detector,OS Switch 35b,,,,,1,5,,,wired,,SC
+1,detector,OS Switch 35a,,,,,1,6,,,wired,,SC
+1,detector,Track East Lead,,,,,1,7,,,wired,,ERZ
+1,detector,Track West Ext,,,,,1,8,,,wired,,ERZ
+1,detector,Track Main West,,,,,2,1,,,wired,,SRZ
+1,detector,,,,,,2,2,,,wired,"spare: wired, no block assigned",SRZ
+1,detector,Track Main East,,,,,2,3,,,wired,,SC
+1,detector,Track S-4,,,,,2,4,,,wired,,SC
+1,detector,Track S-3,,,,,2,5,,,wired,,SC
+1,detector,Track S-2,,,,,2,6,,,wired,,SC
+1,detector,Track S-1,,,,,2,7,,,wired,,SC
+1,detector,Track S-R,,,,,2,8,,,wired,,SC
+1,turnout,Switch 15,,,,,3,0,OU1,"1,2",wired,,
+1,turnout,Switch 17,,,,,3,1,OU1,"3,4",wired,,
+1,turnout,Switch 19,,,,,3,2,OU1,"5,6",wired,,
+1,turnout,Switch 21,,,,,3,3,OU1,"7,8",wired,,
+1,fb,FB Switch 15 N,,,,,3,0,IN1,1,wired,,
+1,fb,FB Switch 15 R,,,,,3,1,IN1,2,wired,,
+1,fb,FB Switch 17 N,,,,,3,2,IN1,3,wired,,
+1,fb,FB Switch 17 R,,,,,3,3,IN1,4,wired,,
+1,fb,FB Switch 19 N,,,,,3,4,IN1,5,wired,,
+1,fb,FB Switch 19 R,,,,,3,5,IN1,6,wired,,
+1,fb,FB Switch 21 N,,,,,3,6,IN1,7,wired,,
+1,fb,FB Switch 21 R,,,,,3,7,IN1,8,wired,,
+1,detector,OS Switch 13,,,,,3,1,,,wired,,SC
+1,detector,OS Switch 15,,,,,3,2,,,wired,,SC
+1,detector,OS Switch 17,,,,,3,3,,,wired,,SC
+1,detector,OS Switch 19,,,,,3,5,,,wired,,SC
+1,detector,OS Switch 21,,,,,3,7,,,wired,,SC
+1,detector,,,,,,3,8,,,wired,"spare: wired, no block assigned",SC
+1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,,
+1,turnout,Switch 3,,,,,4,1,OU1,"3,4",wired,,
+1,turnout,Switch 5,,,,,4,2,OU1,"5,6",wired,,
+1,turnout,Switch 13,,,,,4,3,OU1,"7,8",wired,,
+1,fb,FB Switch 1 N,,,,,4,3,IN1,1,wired,,
+1,fb,FB Switch 1 R,,,,,4,4,IN1,2,wired,,
+1,fb,FB Switch 3 N,,,,,4,5,IN1,3,wired,,
+1,fb,FB Switch 3 R,,,,,4,6,IN1,4,wired,,
+1,fb,FB Switch 5 N,,,,,4,7,IN1,5,wired,,
+1,fb,FB Switch 5 R,,,,,4,8,IN1,6,wired,,
+1,fb,FB Switch 13 N,,,,,4,9,IN1,7,wired,,
+1,fb,FB Switch 13 R,,,,,4,10,IN1,8,wired,,
+1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,,
+1,detector,OS Switch 3,,,,,4,1,,,wired,,SC
+1,detector,OS Switch 1,,,,,4,2,,,wired,,SC
+1,detector,Track W-2,,,,,4,3,,,wired,,SC
+1,detector,Track W-1,,,,,4,4,,,wired,,SC
+1,detector,OS Switch 5,,,,,4,5,,,wired,,SC
+1,detector,Track Brick-Plane,,,,,4,6,,,wired,,SC
+1,detector,Track East Ext,,,,,4,7,,,wired,,SC
+1,detector,Track Scale,,,,,4,8,,,wired,,SC
+1,turnout,Switch 25,,,,,12,0,OU1,"1,2",wired,,
+1,turnout,Switch 27,,,,,12,1,OU1,"3,4",wired,,
+1,turnout,Switch 29,,,,,12,2,OU1,"5,6",wired,,
+1,turnout,Switch 31,,,,,12,3,OU1,"7,8",wired,,
+1,turnout,Switch 23,,,,,12,4,OU4,"1,2",wired,,
+1,turnout,Switch 33,,,,,12,5,OU4,"3,4",wired,,
+1,fb,FB Switch 25 N,,,,,12,0,IN1,1,wired,,
+1,fb,FB Switch 25 R,,,,,12,1,IN1,2,wired,,
+1,fb,FB Switch 27 N,,,,,12,2,IN1,3,wired,,
+1,fb,FB Switch 27 R,,,,,12,3,IN1,4,wired,,
+1,fb,FB Switch 29 N,,,,,12,4,IN1,5,wired,,
+1,fb,FB Switch 29 R,,,,,12,5,IN1,6,wired,,
+1,fb,FB Switch 31 N,,,,,12,6,IN1,7,wired,,
+1,fb,FB Switch 31 R,,,,,12,7,IN1,8,wired,,
+1,fb,FB Switch 23 N,,,,,12,8,IN3,1,wired,,
+1,fb,FB Switch 23 R,,,,,12,9,IN3,2,wired,,
+1,fb,FB Switch 33 N,,,,,12,10,IN3,3,wired,,
+1,fb,FB Switch 33 R,,,,,12,11,IN3,4,wired,,
+1,detector,OS Switch 25,,,,,12,1,,,wired,,SC
+1,detector,OS Switch 27,,,,,12,3,,,wired,,SC
+1,detector,OS Switch 23a,,,,,12,4,,,wired,,SC
+1,detector,OS Switch 29,,,,,12,5,,,wired,,SC
+1,detector,OS Switch 23b,,,,,12,6,,,wired,,SC
+1,detector,OS Switch 31,,,,,12,7,,,wired,,SC
+1,detector,OS Switch 33,,,,,12,8,,,wired,,SC
+1,turnout,Switch 7,,,,,13,0,OU2,"1,2",wired,,
+1,turnout,Switch 11,,,,,13,1,OU2,"3,4",wired,,
+1,turnout,Switch 9,,,,,13,2,OU2,"5,6",wired,,
+1,fb,FB Switch 7 N,,,,,13,0,IN1,1,wired,,
+1,fb,FB Switch 7 R,,,,,13,1,IN1,2,wired,,
+1,fb,FB Switch 11 N,,,,,13,2,IN1,3,wired,,
+1,fb,FB Switch 11 R,,,,,13,3,IN1,4,wired,,
+1,fb,FB Switch 9 N,,,,,13,4,IN1,5,wired,,
+1,fb,FB Switch 9 R,,,,,13,5,IN1,6,wired,,
+1,detector,Track Barn,,,,,13,1,,,wired,,SC
+1,detector,OS Switch 11,,,,,13,2,,,wired,,SC
+1,detector,OS Switch 7,,,,,13,3,,,wired,,SC
+1,detector,OS Switch 7b,,,,,13,4,,,wired,,SC
+1,detector,Track EH-3,,,,,13,5,,,wired,,SC
+1,detector,Track EH-2,,,,,13,6,,,wired,,SC
+1,detector,Track EH-1,,,,,13,7,,,wired,,SC
+1,detector,OS Switch 9,,,,,13,8,,,wired,,SC
+2,detector,Track Helix Outer,,,,,41,2,,,planned,"helix node 41: Block 41-2 (owner, 2026-11-20)",
+3,detector,Track Helix Inner,,,,,41,1,,,planned,"helix node 41, one DNCT2B: Block 41-1 (owner, 2026-11-20); a helix block is named in device, with no switches",
+3,detector,,227,241,,1,41,3,,,planned,"half 1 of the peninsula loop moves from 41-1 to 41-3 (owner, 2026-11-20)",
+3,detector,,227,241,,2,41,4,,,planned,"half 2 of the peninsula loop, planned with no input until now: 41-4 (owner, 2026-11-20)",

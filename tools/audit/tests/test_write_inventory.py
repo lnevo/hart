@@ -1,18 +1,17 @@
-"""add_main_upper_levels.py: v86 is v85 with the old upper-deck plan replaced by the device map's nodes."""
+"""write_inventory.py: v86 is written from scratch from devices.csv, wiring.csv and lcos_nodes.csv (owner, 2026-11-20):
+staging as JMRI has it wired, main and upper as the rule gives them, every port where its wiring text puts it."""
 from __future__ import annotations
 
 import importlib.util
-import re
 import unittest
 from pathlib import Path
 
 from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[3]
-SPEC = importlib.util.spec_from_file_location("add_main_upper_levels",
-                                              ROOT / "tools/wiring/add_main_upper_levels.py")
-AM = importlib.util.module_from_spec(SPEC)
-SPEC.loader.exec_module(AM)
+SPEC = importlib.util.spec_from_file_location("write_inventory", ROOT / "tools/wiring/write_inventory.py")
+WI = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(WI)
 
 
 def sheets(path):
@@ -21,76 +20,84 @@ def sheets(path):
             for ws in wb.worksheets}
 
 
-V85, V86 = sheets(AM.SRC), sheets(AM.OUT)
-MAP = AM.read_device_rows()     # the main and upper rows of devices.csv
+V86 = sheets(WI.OUT)
+MAP = WI.read_device_rows()
+NODES = {int(r["node"]): r["level"] for r in WI.read_node_rows()}
+STAGING = {f"C{n}" for n, lv in NODES.items() if lv == "1"}
+DESIGN = {f"C{n}" for n, lv in NODES.items() if lv != "1"}
 
 
 class Inventory(unittest.TestCase):
     def test_v86_is_current(self):
-        self.assertEqual(AM.main(["--check"]), 0)
+        self.assertEqual(WI.main(["--check"]), 0)
 
-    def test_old_upper_deck_is_gone(self):
-        self.assertFalse([r for r in V86["TurnoutSummary"] if AM.OLD_SWITCH.match(str(r[0] or ""))])
-        for sheet in ("DNOU8", "DNIN8"):
-            rows = [r for r in V86[sheet][1:] if r[1] in AM.OLD_UPPER]
-            self.assertTrue(all(r[4] is None or not re.search(r"Switch (6|7|8|9)\d\b|\b(NIL|CB|BW|PTT)\b", str(r[4]))
-                                for r in rows), sheet)
-        c11 = {r[0]: r for r in V86["DNOU8"] if r[1] == "C11"}
-        self.assertTrue(all(c11[f"C11-OU1-{p}"][4] is None for p in range(1, 7)))
-        self.assertEqual([r for r in V85["BlockSensors"] if r[1] == "C11"],      # the helix is still there
-                         [r for r in V86["BlockSensors"] if r[1] == "C11"])
+    def test_every_node_is_listed(self):
+        self.assertEqual({r[0] for r in V86["Nodes"][1:]}, STAGING | DESIGN)
+        self.assertEqual(next(r for r in V86["Nodes"] if r[0] == "C2")[1], "C3")     # its legacy ID, from the source
 
-    def test_staging_rows_unchanged(self):
-        staging = {"C1", "C2", "C3", "C4", "C12", "C13"}
-        for sheet, col in (("DNOU8", 1), ("DNIN8", 1), ("BlockSensors", 1), ("Nodes", 0)):
-            old = [r for r in V85[sheet] if r[col] in staging]
-            new = [r for r in V86[sheet] if r[col] in staging]
-            self.assertEqual(old, new, sheet)
-        self.assertEqual(V85["DigiconSignals"], V86["DigiconSignals"])
-
-    def test_every_device_map_port_is_in_the_workbook(self):
+    def test_every_device_port_is_in_the_workbook(self):
         out = {r[0]: r for r in V86["DNOU8"][1:]}
         inp = {r[0]: r for r in V86["DNIN8"][1:]}
         blocks = {r[8].split(" / ")[1]: r for r in V86["BlockSensors"][1:] if r[8] and " / M2S" in r[8]}
-        for x in MAP:
+        for x in MAP + WI.spare_rows():
             if not x["node"] or x["system_name"].startswith("MTT"):
                 continue
             node = f"C{x['node']}"
-            m = AM.PORT.search(x["comment"])
+            m = WI.PORT.search(x["comment"])
             if x["layer"] == "turnout":
                 for pin, nr in zip(m.group(3).split(","), "NR"):
                     self.assertEqual(out[f"{node}-OU{m.group(2)}-{pin}"][4], f"{x['user_name']} {nr}")
-            elif x["layer"] == "head":
+            elif x["layer"] == "head" and m:
                 for pin, lamp in zip(m.group(3).split(","), "RYG"):
                     self.assertEqual(out[f"{node}-OU{m.group(2)}-{pin}"][4], f"{x['user_name']} {lamp}")
             elif x["layer"] == "fb":
                 self.assertEqual(inp[f"{node}-IN{m.group(2)}-{m.group(3)}"][4],
                                  x["user_name"].removeprefix("FB ") + " FB")
             elif x["layer"] == "occupancy":
-                k = int(AM.NODE_K.match(x["comment"]).group(3)) - 1
-                row = blocks[x["system_name"]]
-                self.assertEqual(row[0], f"{node}-B{k // 2 + 1}-{k % 2 + 1}")
+                k = int(WI.NODE_K.match(x["comment"]).group(3)) - 1
+                self.assertEqual(blocks[x["system_name"]][0], f"{node}-B{k // 2 + 1}-{k % 2 + 1}")
+
+    def test_staging_holds_only_what_is_wired(self):
+        """Staging's ports are its turnouts, feedback, the 6LB head and its detectors, nothing planned (owner,
+        2026-11-20): no buttons, relays, reserved pins, calibration pins or old signal LEDs."""
+        kinds = {r[5] for r in V86["DNOU8"][1:] if r[1] in STAGING and r[4]}
+        self.assertEqual(kinds, {"Turnout Motor", "Searchlight Signal Head"})
+        self.assertEqual({r[5] for r in V86["DNIN8"][1:] if r[1] in STAGING and r[4]}, {"Turnout Feedback"})
+        heads = [r for r in V86["DNOU8"][1:] if r[1] in STAGING and r[5] == "Searchlight Signal Head"]
+        self.assertEqual([r[4] for r in heads], ["Head 6LB R", "Head 6LB Y", "Head 6LB G"])
+        self.assertEqual(next(r for r in V86["DNOU8"] if r[0] == "C13-OU2-1")[4], "Switch 7 N")   # Engine House node
+        spares = [r[0] for r in V86["BlockSensors"][1:] if r[4] == "Unused"]
+        self.assertEqual(spares, ["C2-B1-2", "C3-B4-2"])
 
     def test_main_and_upper_rows_are_shaded_and_staging_rows_are_not(self):
-        wb = load_workbook(AM.OUT)
-        new = {f"C{x['node']}" for x in MAP if x["node"]}
+        wb = load_workbook(WI.OUT)
         col = {"Nodes": 0, "DNOU8": 1, "DNIN8": 1, "TurnoutSummary": 1, "BlockSensors": 1}
         for sheet, c in col.items():
             ws = wb[sheet]
+            width = sum(1 for h in ws[1] if h.value is not None)
             for row in ws.iter_rows(min_row=2):
                 if row[c].value is None:
                     continue
-                width = sum(1 for h in ws[1] if h.value is not None)
                 for cell in row[:width]:                             # the whole row, not only column A
                     shaded = cell.fill.fill_type == "solid" and str(cell.fill.fgColor.rgb).endswith("DDEBF7")
-                    self.assertEqual(shaded, row[c].value in new, f"{sheet} {row[0].value} {cell.coordinate}")
+                    self.assertEqual(shaded, row[c].value in DESIGN, f"{sheet} {row[0].value} {cell.coordinate}")
 
-    def test_detector_nodes_keep_the_calibration_pin(self):
+    def test_the_calibration_pin_is_the_rules_on_main_and_upper_only(self):
+        cal = {r[1] for r in V86["DNOU8"][1:] if r[4] == "Block sensor calibration"}
         detectors = {r[1] for r in V86["BlockSensors"][1:]}
-        for n in {f"C{x['node']}" for x in MAP if x["layer"] == "occupancy" and x["node"]}:   # virtual: no node
-            self.assertIn(n, detectors)
-            self.assertTrue(any(r[1] == n and r[3] == 8 and r[4] == "Block sensor calibration"
-                                for r in V86["DNOU8"]), n)
+        self.assertEqual(cal, detectors & DESIGN)
+
+    def test_the_districts_are_wiring_csvs(self):
+        rows = {r[0]: r[7] for r in V86["BlockSensors"][1:] if r[1] in STAGING}
+        self.assertEqual(len(rows), 45)
+        self.assertTrue(all(rows.values()))
+        self.assertEqual(rows["C1-B1-1"], WI.districts()[(1, 1)])
+
+    def test_a_device_on_an_unlisted_node_stops(self):
+        row = dict(next(x for x in MAP if x["layer"] == "turnout" and x["node"] and x["system_name"].startswith("M2T")),
+                   node="77")
+        with self.assertRaisesRegex(SystemExit, "node 77 is in devices.csv but not in lcos_nodes.csv"):
+            WI.gather([row], WI.read_node_rows())
 
 
 if __name__ == "__main__":

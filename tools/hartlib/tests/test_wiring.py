@@ -35,6 +35,8 @@ class Read(unittest.TestCase):
                                ("detector", "M2S201", "Node: 2 Block: 2"),
                                ("detector", "M2S4103", "Node: 41 Block: 4")])
         self.assertEqual(self.read(GOOD)[3].input, "Block 13-1")
+        self.assertEqual(self.read(GOOD.replace("1,detector,Track Barn,,,,,13,1,,,wired,",
+                                                "1,detector,Track Barn,,,,,13,1,,,wired,,SC"))[3].district, "SC")
 
     def test_the_committed_file(self):
         rows = W.read()
@@ -42,6 +44,7 @@ class Read(unittest.TestCase):
         self.assertEqual((count(1, "turnout"), count(1, "fb"), count(1, "head"), count(1, "detector")),
                          (20, 40, 1, 45))
         self.assertTrue(all(w.status == "wired" for w in rows if w.level == 1))
+        self.assertTrue(all(w.district for w in rows if w.level == 1 and w.kind == "detector"))   # from v86
 
     def test_bad_rows_stop(self):
         for extra, msg in (("4,turnout,Switch 2,,,,,4,1,OU1,\"3,4\",wired,", "level is 1, 2 or 3"),
@@ -62,9 +65,11 @@ class Read(unittest.TestCase):
                            ("1,turnout,Switch 2,,,,,4,0,OU1,\"3,4\",wired,", "node 4 Turnout 0 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,1,OU1,\"2,3\",wired,", r"OU1 port\(s\) \[2\] are line 2's"),
                            ("1,detector,Track Y,,,,,13,1,,,wired,", "node 13 Block 1 is line 5's"),
-                           ("1,turnout,Switch 2,,,,,4,1,OU1,\"3,4\",wired,,extra", "more fields")):
+                           ("1,turnout,Switch 2,,,,,4,1,OU1,\"3,4\",wired,,,extra", "more fields")):
             with self.subTest(msg=msg), self.assertRaisesRegex(FactsError, msg):
                 self.read(GOOD + extra + "\n")
+        with self.assertRaisesRegex(FactsError, "only a detector has a power district"):
+            self.read(GOOD + '1,turnout,Switch 2,,,,,4,1,OU1,"3,4",wired,,SC\n')
         with self.assertRaisesRegex(FactsError, "columns"):
             self.read("level,kind\n1,turnout\n")
 

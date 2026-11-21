@@ -1,8 +1,7 @@
-"""USS CTC signal icons, the generator that draws them, and the as-built remap
+"""USS CTC signal icons and the generator that draws them
 must follow the masts and heads in tables.xml and the CATS desk."""
 from __future__ import annotations
 
-import ast
 import re
 import sys
 import unittest
@@ -22,7 +21,6 @@ USS_TABLES = parked.with_parked_file({"uss"}, TABLES)
 
 # the live CATS desks (generated from the schematic): each USS mast icon is drawn as its desk lamp is
 DESKS = (ROOT / "cats/panels/HART_CTC.xml", ROOT / "cats/panels/HART_ABS.xml")
-REFRESH = ROOT / "tools/wiring/refresh_wiring_docs.py"
 
 sys.path.insert(0, str(SCRIPTS))
 import gen_ctc_track_plan as gen  # noqa: E402
@@ -40,26 +38,6 @@ def mast_heads() -> dict[str, list[str]]:
 def head_icons(path: Path) -> set[tuple[str, str, str]]:
     text = path.read_text(encoding="utf-8")
     return set(re.findall(r'<signalheadicon signalhead="(IH\d+)" x="(\d+)" y="(\d+)"', text))
-
-
-def load_remap():
-    """PANEL_TO_WIRING_IH and remap_panel_ih without importing openpyxl."""
-    tree = ast.parse(REFRESH.read_text(encoding="utf-8"))
-    keep = []
-    for node in tree.body:
-        targets = []
-        if isinstance(node, ast.AnnAssign):
-            targets = [node.target]
-        elif isinstance(node, ast.Assign):
-            targets = node.targets
-        names = {t.id for t in targets if isinstance(t, ast.Name)}
-        if names & {"PANEL_TO_WIRING_IH", "_IH_TOKEN"}:
-            keep.append(node)
-        if isinstance(node, ast.FunctionDef) and node.name == "remap_panel_ih":
-            keep.append(node)
-    ns: dict = {"re": re}
-    exec(compile(ast.Module(body=keep, type_ignores=[]), str(REFRESH), "exec"), ns)
-    return ns["PANEL_TO_WIRING_IH"], ns["remap_panel_ih"]
 
 
 def signal_icons(path: Path) -> set[tuple[str, str, str, str]]:
@@ -207,80 +185,6 @@ class GeneratorTest(unittest.TestCase):
         text = USS_TABLES.read_text(encoding="utf-8")
         self.assertEqual(gen.patch_brick_sidi(text), text)
 
-
-class AsBuiltRemapTest(unittest.TestCase):
-    def test_remap_is_one_pass_onto_wired_heads(self) -> None:
-        mapping, remap = load_remap()
-        self.assertEqual(len(mapping), 17)
-        # The wiring plan now lists wired heads only (ADR-024), so the remap's targets are the old as-built plan's
-        # IH numbers, not today's wiring rows; what stays checked is that the remap is one pass.
-        # IH1232 was 24RA (now IH232); IH1237 was 34L (now IH1232). No chaining.
-        self.assertEqual(remap("IH1232=Red IH1237=Green"), "IH232=Red IH1232=Green")
-        self.assertEqual(remap("IH137 IH132 IH13"), "IH132 IH1132 IH13")
-        self.assertEqual(remap("IH1332"), "IH1332")
-        self.assertEqual(remap(None), None)
-
-
-def load_refresh():
-    """refresh_wiring_docs as a module (needs openpyxl, which CI installs)."""
-    import importlib.util
-    spec = importlib.util.spec_from_file_location("refresh_wiring_docs", REFRESH)
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
-class DeadHeadsTest(unittest.TestCase):
-    """The as-built workbook names only heads tables.xml defines."""
-
-    @classmethod
-    def setUpClass(cls) -> None:
-        cls.rw = load_refresh()
-
-    @unittest.skip("the as-built workbook records the old staging LCOS plan; it is rebuilt in the wiring rework that "
-                   "follows ADR-024 (owner, 2026-11-19: the wiring plan lists Mast 6LB only until then)")
-    def test_asbuilt_workbook_names_only_live_heads(self) -> None:
-        import zipfile
-        live = self.rw.live_heads(TABLES)
-        book = ROOT / "docs/wiring/signals_asbuilt_abs_v2.xlsx"
-        with zipfile.ZipFile(book) as z:
-            text = " ".join(z.read(n).decode("utf-8", "replace") for n in z.namelist() if n.endswith(".xml"))
-        self.assertEqual(set(re.findall(r"\bIH\d+\b", text)) - live, set())
-
-    def test_strips_dead_tokens_with_their_separator(self) -> None:
-        live = {"IH434"}
-        f = self.rw.strip_dead_head_tokens
-        self.assertEqual(f("IH434=Green IH435=Red", live), "IH434=Green")
-        self.assertEqual(f("IH434=Green, IH435=Red", live), "IH434=Green")
-        self.assertEqual(f("IH435=Flash-Red IH434=Green", live), "IH434=Green")
-        self.assertEqual(f("IH434=Yellow", live), "IH434=Yellow")
-        self.assertEqual(f(None, live), None)
-
-    def test_mqtt_rows_go_and_the_survivor_loses_its_tag(self) -> None:
-        from openpyxl import Workbook
-        ws = Workbook().active
-        ws.title = "mqtt_topics"
-        ws.append(["Kind", "Name", "MQTT_Topic", "Payload_Examples", "Digicon_Block_or_Role", "JMRI"])
-        ws.append(["signalhead", "Head 6LA Top", "track/signalhead/IH434", "", "Head 6LA", "IH434"])
-        ws.append(["signalhead", "Head 6LA Bottom", "track/signalhead/IH435", "", "Head 6LA", "IH435"])
-        ws.append(["signalhead", "Mast 8RA Top", "track/signalhead/IH1332", "", "Mast 8RA", "IH1332"])
-        ws.append(["signalhead", "Mast 8RA Bottom", "track/signalhead/IH1333", "", "Mast 8RA", "IH1333"])
-        ws.append(["signalhead", "Mast 9X Top", "track/signalhead/IH900", "", "Mast 9X", "IH900"])
-        live = {"IH434", "IH1332", "IH1333", "IH900"}
-        self.rw.drop_dead_heads(ws, live)
-        names = [r[1] for r in ws.iter_rows(min_row=2, values_only=True)]
-        # 6LA lost its bottom head; 8RA keeps both tags; 9X never had a partner here.
-        self.assertEqual(names, ["Head 6LA", "Mast 8RA Top", "Mast 8RA Bottom", "Mast 9X Top"])
-
-    def test_kept_bottom_head_is_untagged_too(self) -> None:
-        from openpyxl import Workbook
-        ws = Workbook().active
-        ws.title = "mqtt_topics"
-        ws.append(["Kind", "Name", "MQTT_Topic", "Payload_Examples", "Digicon_Block_or_Role", "JMRI"])
-        ws.append(["signalhead", "Mast 6LB Top", "", "", "Mast 6LB", "IH432"])
-        ws.append(["signalhead", "Mast 6LB Bottom", "", "", "Mast 6LB", "IH433"])
-        self.rw.drop_dead_heads(ws, {"IH433"})
-        self.assertEqual([r[1] for r in ws.iter_rows(min_row=2, values_only=True)], ["Mast 6LB"])
 
 
 if __name__ == "__main__":

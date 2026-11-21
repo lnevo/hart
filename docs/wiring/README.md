@@ -6,14 +6,14 @@ The LCOS wiring documentation, refreshed against current public names and Digico
 
 | File | Role |
 |------|------|
-| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory: v85 plus the main and upper levels from the main and upper rows of `jmri/layouts/hart/data/devices.csv`, written by `tools/wiring/add_main_upper_levels.py`. The August 2026 upper-deck plan (Switches 61 to 91 on C14, C21 to C24 and C32, three motors on C11) is replaced. Main and upper rows are planned placeholders, not wired, and are shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. |
-| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | Staging inventory written by `refresh_wiring_docs.py`, the input to v86: LCOS nodes, DNOU8/DNIN8, block sensors, turnout summary. **DigiconSignals** sheet is generated from `docs/wiring/signals/signal_wiring.csv`. **Node ID = C{radio Address}** (helix DCC is **D5**). **Legacy Node ID** is the old sequential C1–C13 / D1 label. |
+| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory of every level, a view written by `tools/wiring/write_inventory.py` (nobody edits it). Staging is what JMRI has wired, from `jmri/layouts/hart/data/wiring.csv` (the physical wiring source, owner 2026-11-20); main and upper are the draft `tools/schematic/build_device_map.py` gives them, shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. **Node ID = C{radio Address}**; **Legacy Node ID** is a staging node's old sequential label. The **DigiconSignals** sheet is `docs/wiring/signals/signal_wiring.csv`. |
+| [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | History, frozen: the staging inventory as the old refresh wrote it from the v84 import, with the old signal plan's ports. The website's signal-splits view still reads its lamp pins. Its generator is in `archive/tools-wiring/`. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v86 (2026-11-15) by `create_wiring_schematic_ppt.py`, which reads the newest inventory. |
 | [`Layout Documentation.pptx`](Layout%20Documentation.pptx) | Editable source of the track bus, power district, bus wiring and node drawings published at `www/behind/layout-docs.html`. |
 | [`terminal_blocks.md`](terminal_blocks.md) | Terminal block wiring recovered from an October 2025 draft. Not verified against the railroad. |
-| [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | Live lower-deck Digicon ABS matrix (100L, 117LA, 114LA, …). |
+| [`signals_asbuilt_abs_v2.xlsx`](signals_asbuilt_abs_v2.xlsx) | History, frozen: the lower-deck Digicon ABS matrix of the old signal plan (100L, 117LA, 114LA, …). |
 | [`signals_split_v8.xlsx`](signals_split_v8.xlsx) | Frozen Nov 2025 **planned RGB** matrix. Lower-deck switch columns use CTC names. Upper-deck plants are Switch 61+ / heads 62L…. Historical `S4-1` IDs are in Notes. |
-| [`imported/`](imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog). Sequential C1–C13 IDs. |
+| [`archive/docs/wiring-imported/`](../../archive/docs/wiring-imported/) | Unmodified Desktop snapshots (v84, asbuilt v1, split v8, v84 changelog), moved to the archive on 2026-11-20. Sequential C1–C13 IDs. |
 
 LCOS Signal Manager punch list (ports + Main/Diverged + OR): [`docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`](../../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx). Source table: [`docs/wiring/lcos/lcos_signal_logic.csv`](../../docs/wiring/lcos/lcos_signal_logic.csv).
 
@@ -263,12 +263,14 @@ Leftover East End RGB `S2-6` / `S2-7` on C2 is gone. C2-OU3 stays for **24RB** (
 ## Refresh
 
 ```bash
-python3 tools/wiring/refresh_wiring_docs.py
+python3 tools/schematic/build_device_map.py    # devices.csv's wiring cells, staging's from wiring.csv
+python3 tools/wiring/write_inventory.py        # v86 (tools/check.sh fails while it is stale)
+python3 www/scripts/build_wiring_json.py       # the website's wiring viewer
 # needs python-pptx:
 python3 tools/wiring/create_wiring_schematic_ppt.py
 ```
 
-Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
+A wiring change is a row of `jmri/layouts/hart/data/wiring.csv` (`hartlib.wiring`): a staging device moved or added, or a main or upper device once it is wired. Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
 
 The website's node grid (`www/assets/behind/lcos-node-grid.svg`, on `www/behind/bridge.html`) is drawn from the owner's grid workbook (`media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx`, local media, not in git). Rerun it after the grid changes:
 
