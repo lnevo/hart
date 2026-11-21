@@ -1109,6 +1109,65 @@ def _unsafe_dest(dest: Path) -> bool:
     return any(dest == p or dest in p.parents for p in (repo, PORTAL))
 
 
+def _scrub_site_json(dest: Path) -> None:
+    """Stage 3: mark data/site.json public, empty the engineering desk link and drop the localhost tool URLs."""
+    site_path = dest / "data" / "site.json"
+    site = json.loads(site_path.read_text(encoding="utf-8"))
+    site["engDesk"] = ""
+    site["public"] = True
+    site.pop("tools", None)  # localhost service URLs
+    site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _vendor_logos(dest: Path) -> None:
+    """Stage 4: copy the ../external/ logos named in the industry and lineage data into assets/logos/."""
+    _vendor_json_logos(dest / "data" / "industries.json", dest)
+    for lineage in sorted((dest / "data").glob("*-lineage.json")):  # Who became who charts
+        _vendor_json_logos(lineage, dest)
+
+
+def _vendor_photos(dest: Path) -> None:
+    """Stage 5: vendor, filter and thumbnail the gallery, fleet and archive photos (in this order per file)."""
+    _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
+    _filter_gallery(dest / "data" / "gallery.json", dest)
+    _gallery_thumbs(dest / "data" / "gallery.json", dest, "gallery")
+    _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
+    _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
+    _gallery_thumbs(dest / "data" / "fleet-gallery.json", dest, "fleet")
+    _vendor_archive_images(dest / "data" / "archive.json", dest)
+
+
+def _provenance_stage(dest: Path) -> bool:
+    """Stage 9: provenance tags, llms.txt, robots.txt, sitemap. False (said on stderr) when a page has no rule."""
+    unclassified = _add_provenance(dest)
+    if unclassified:
+        print("Pages missing from scripts/provenance.json (prototype, fiction, hobby or mixed):", file=sys.stderr)
+        print("\n".join("  " + p for p in unclassified), file=sys.stderr)
+        return False
+    return True
+
+
+def _webp_stage(dest: Path) -> None:
+    """Stage 11: WebP companions for large JPEGs, with the one-line saving."""
+    print(f"WebP companions: {_webp_companions(dest) // 1024} KB smaller than the JPEGs they stand beside")
+
+
+def _leak_stage(dest: Path) -> bool:
+    """Stage 12: False (said on stderr) when the finished tree names a local host or path."""
+    leaks = _check_leaks(dest)
+    if leaks:
+        print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)
+        print("\n".join("  " + h for h in leaks), file=sys.stderr)
+        return False
+    return True
+
+
+def _search_stage(dest: Path) -> None:
+    """Stage 13: the search index over the finished tree."""
+    index = build_search_index(dest)
+    print(f"Search index: {len(index['records'])} records")
+
+
 def main() -> int:
     global SITE_URL
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
@@ -1138,44 +1197,22 @@ def main() -> int:
         shutil.rmtree(dest)
     _copy_published(dest)
     _refresh_tables_page(dest)
-
-    site_path = dest / "data" / "site.json"
-    site = json.loads(site_path.read_text(encoding="utf-8"))
-    site["engDesk"] = ""
-    site["public"] = True
-    site.pop("tools", None)  # localhost service URLs
-    site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-    _vendor_json_logos(dest / "data" / "industries.json", dest)
-    for lineage in sorted((dest / "data").glob("*-lineage.json")):  # Who became who charts
-        _vendor_json_logos(lineage, dest)
-    _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
-    _filter_gallery(dest / "data" / "gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "gallery.json", dest, "gallery")
-    _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
-    _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "fleet-gallery.json", dest, "fleet")
-    _vendor_archive_images(dest / "data" / "archive.json", dest)
+    _scrub_site_json(dest)
+    _vendor_logos(dest)
+    _vendor_photos(dest)
     _strip_external_data(dest)
 
     # 404.html is a tracked page (site-root links); the web server must point error_page 404 at it
     # (nginx; .htaccess is ignored).
     _strip_local_only_pages(dest)
     _add_head_tags(dest)
-    unclassified = _add_provenance(dest)
-    if unclassified:
-        print("Pages missing from scripts/provenance.json (prototype, fiction, hobby or mixed):", file=sys.stderr)
-        print("\n".join("  " + p for p in unclassified), file=sys.stderr)
+    if not _provenance_stage(dest):
         return 1
     _card_thumbs(dest)
-    print(f"WebP companions: {_webp_companions(dest) // 1024} KB smaller than the JPEGs they stand beside")
-    leaks = _check_leaks(dest)
-    if leaks:
-        print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)
-        print("\n".join("  " + h for h in leaks), file=sys.stderr)
+    _webp_stage(dest)
+    if not _leak_stage(dest):
         return 1
-    index = build_search_index(dest)
-    print(f"Search index: {len(index['records'])} records")
+    _search_stage(dest)
     _prune_jpeg_cache()
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
