@@ -21,6 +21,7 @@ from __future__ import annotations
 import argparse
 import functools
 import html
+import importlib.util
 import json
 import subprocess
 import sys
@@ -167,8 +168,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info .off{color:#888;font-size:11px}
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
 #info .chain{background:#f1f5f9;border-radius:6px;padding:8px;margin:8px 0 12px;line-height:2}
-.band{font-size:110px;font-weight:800;opacity:.35}
-.band.small{font-size:22px;opacity:.6}
+.band{font-weight:800;opacity:.45}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
 .elabel{font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
@@ -193,14 +193,14 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 </style></head><body>
 <div id="wrap"></div>
 <div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
-<label>File <input list="files" id="file" placeholder="Pick a file to see its links…" autocomplete="off"></label>
+<label>File <input list="files" id="file" placeholder="Pick a file to see its whole chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
 <input type="search" id="q" placeholder="Highlight text…">
 <span id="hits"></span>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
 <details id="lanes"><summary>Lanes ▾</summary><div id="lanelist" class="panel"></div></details>
-<label title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
-<label title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
+<label title="Parked features (NX, Dispatcher System, USS CTC)" data-title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
+<label title="Retired tools kept for reference" data-title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
 <span id="view"></span>
 </div>
@@ -209,8 +209,9 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 to an earlier step.</div>
 <div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Click a box for what feeds it (amber) and what it feeds
 (blue).</div>
-<div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw only that file and its own links:
-what feeds it and what it feeds. The panel beside it can widen that to more steps. <b>Lanes ▾</b> picks the lanes of
+<div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
+that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
+out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The panel beside it can narrow that to the file's own links or a few steps. <b>Lanes ▾</b> picks the lanes of
 the whole map. Parked and retired boxes are hidden there until ticked; a file view always shows them. The address bar
 keeps the view, so it can be bookmarked or shared.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
@@ -236,10 +237,18 @@ def public_copy(data: dict) -> dict:
         return value
 
     out = fix(data)
-    left = [real for real in PUBLIC_NAMES if real in json.dumps(out)]
-    if left:
-        raise GraphError(f"the public copy still names {', '.join(left)}")
+    leaks = sorted({m.group() for m in site_leak_patterns().finditer(json.dumps(out))})
+    if leaks:
+        raise GraphError(f"the public copy still holds text the website's leak check rejects: {', '.join(leaks)}")
     return out
+
+
+def site_leak_patterns():
+    """The website build's own leak check (www/scripts/prepare_github_pages.py LEAK_PATTERNS), so the two agree."""
+    spec = importlib.util.spec_from_file_location("prepare_github_pages", ROOT / "www/scripts/prepare_github_pages.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.LEAK_PATTERNS
 
 
 def render(data: dict, back: str = "") -> str:
@@ -277,7 +286,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--public", action="store_true", help="write the website copy (mirror paths renamed); needs --out")
     ap.add_argument("--back", default="", help="link at the top left of the page, back to the page that links to it")
     args = ap.parse_args(argv)
-    if args.public and args.out == PAGE:
+    if args.public and args.out.resolve() == PAGE.resolve():
         ap.error("--public writes the website copy; give it --out")
     try:
         data = load(args.graph)

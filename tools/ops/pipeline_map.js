@@ -247,17 +247,24 @@ function app() {
   const wrapEl = document.getElementById("wrap"), info = document.getElementById("info");
   const allLanes = DATA.domains.map(d => d.id);
 
-  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, dir: "both", depth: 1 };
+  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, dir: "both", depth: Infinity };
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
   let nodeEl = {}, edgeEls = [], ins = {}, outs = {}, visible = new Set();
 
   /* ---- which boxes are shown */
+  /* A chain is drawn through boxes but stops at deploy, hosts and runtime apps (the "hosts" lane) and at hand work:
+     they are shown, not walked through, because everything deploys and the Pi's saved state comes back, so walking
+     through them would reach most of the map. */
+  const endsChain = id => byId[id].domain === "hosts" || byId[id].kind === "host" || byId[id].kind === "human";
   function reach(start, adj, key, depth) {
     const seen = new Set([start]);
     let frontier = [start];
     for (let d = 0; d < depth && frontier.length; d++) {
       const next = [];
-      frontier.forEach(v => (adj[v] || []).forEach(e => { const w = e[key]; if (!seen.has(w)) { seen.add(w); next.push(w); } }));
+      frontier.forEach(v => {
+        if (v !== start && endsChain(v)) return;
+        (adj[v] || []).forEach(e => { const w = e[key]; if (!seen.has(w)) { seen.add(w); next.push(w); } });
+      });
       frontier = next;
     }
     return seen;
@@ -295,11 +302,11 @@ function app() {
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
     const big = lay.width > 4000;
     for (const b of lay.bands) {
-      const c = esc(b.color);
+      const c = esc(b.color), size = Math.round(Math.max(18, Math.min(big ? 110 : 22, b.h * 0.3)));
       p.push(`<rect x="${-LEFT}" y="${b.y}" width="${W}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
         `<line x1="${-LEFT}" x2="${W - LEFT}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
       for (let x = -LEFT + 10; x < W - LEFT; x += 3000)
-        p.push(`<text class="band${big ? "" : " small"}" x="${x}" y="${b.y + (big ? 110 : 28)}" fill="${c}">${esc(b.label)}</text>`);
+        p.push(`<text class="band" x="${x}" y="${b.y + size + 4}" font-size="${size}" fill="${c}">${esc(b.label)}</text>`);
     }
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
@@ -346,8 +353,9 @@ function app() {
     ins = {}; outs = {};
     sub.edges.forEach(e => { (outs[e.from] ||= []).push(e); (ins[e.to] ||= []).push(e); });
     visible = new Set(sub.nodes.map(n => n.id));
+    syncControls();
+    showStatus(sub);  // before fit, which measures the toolbar with the status line in it
     if (old) setVB(old.x, old.y, old.w, old.h); else fit();
-    showStatus(sub);
     runSearch(true);
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
@@ -358,7 +366,7 @@ function app() {
     const parts = [];
     if (view.focus) {
       const how = { both: "what feeds it and what it feeds", up: "what feeds it", down: "what it feeds" }[view.dir];
-      const depth = view.depth === 1 ? "its own links only" : view.depth === Infinity ? "all steps" : `${view.depth} steps`;
+      const depth = view.depth === 1 ? "its own links only" : view.depth === Infinity ? "the whole chain" : `${view.depth} steps`;
       parts.push(`<b>${esc(byId[view.focus].label)}</b>: ${how}, ${depth}`);
     } else {
       const lanesOff = allLanes.filter(d => !view.lanes.has(d));
@@ -367,8 +375,9 @@ function app() {
       if (off.length) parts.push(`${off.join(" and ")} hidden`);
     }
     const all = view.focus || view.lanes.size !== allLanes.length;
-    el.innerHTML = `Showing ${parts.join(" · ")} · ${sub.nodes.length} of ${DATA.nodes.length} boxes` +
-      (all ? ' <button id="showall">Whole map</button>' : "");
+    el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${sub.nodes.length} of ${DATA.nodes.length} boxes`
+      : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`) +
+      (all ? ' <button id="showall" title="Back to the whole map; parked and retired boxes follow their ticks">Whole map</button>' : "");
     const btn = document.getElementById("showall");
     if (btn) btn.onclick = () => { view.focus = null; view.lanes = new Set(allLanes); fileIn.value = ""; syncControls(); render(false); writeHash(); };
   }
@@ -454,7 +463,7 @@ function app() {
       <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
       <div class="chain"><b>Show only this box's chain</b><br>
         <select id="fdir"><option value="both">what feeds it and what it feeds</option><option value="up">what feeds it</option><option value="down">what it feeds</option></select>
-        <select id="fdepth"><option value="1" selected>its own links only</option><option value="2">2 steps</option><option value="3">3 steps</option><option value="4">4 steps</option><option value="Infinity">all steps</option></select>
+        <select id="fdepth"><option value="Infinity" selected>the whole chain</option><option value="1">its own links only</option><option value="2">2 steps</option><option value="3">3 steps</option></select>
         <button id="fgo">${isFocus ? "Update" : "Show"}</button></div>
       <b>Fed by</b><ul>${(insAll[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
       <b>Feeds</b><ul>${(outsAll[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
@@ -466,8 +475,10 @@ function app() {
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
   function goTo(id) {
-    if (!visible.has(id)) { if (!view.focus) { view.dir = "both"; view.depth = 1; } view.focus = id; view.lanes = new Set(allLanes); syncControls(); selected = id; render(false); writeHash(); }
-    else { select(id); centreOn(id, false); }
+    if (visible.has(id)) { select(id); centreOn(id, false); return; }
+    view.lanes = new Set(allLanes);
+    syncControls();
+    focusOn(id, view.focus ? view.dir : "both", view.focus ? view.depth : Infinity);
   }
   function focusOn(id, dir, depth) {
     fileIn.value = byId[id].path || byId[id].label;
@@ -479,7 +490,7 @@ function app() {
     const g = e.target.closest(".node");
     if (g) select(g.dataset.id); else clearFocus(true);
   });
-  wrapEl.addEventListener("dblclick", e => { const g = e.target.closest(".node"); if (g) focusOn(g.dataset.id, view.focus ? view.dir : "both", view.focus ? view.depth : 1); });
+  wrapEl.addEventListener("dblclick", e => { const g = e.target.closest(".node"); if (g) focusOn(g.dataset.id, view.focus ? view.dir : "both", view.focus ? view.depth : Infinity); });
 
   /* ---- search */
   const q = document.getElementById("q"), hits = document.getElementById("hits");
@@ -506,15 +517,21 @@ function app() {
     if (e.key === "f" || e.key === "F") fit();
   });
 
-  /* ---- file filter: pick a file to see only its own links */
+  /* ---- file filter: pick a file to see its whole chain, sources to end products */
   const fileIn = document.getElementById("file");
   document.getElementById("files").innerHTML = DATA.nodes.slice().sort((a, b) => a.label.localeCompare(b.label))
     .map(n => `<option value="${esc(n.path || n.label)}">${esc(n.label)}</option>`).join("");
   const byName = {};
   DATA.nodes.forEach(n => { byName[(n.path || n.label).toLowerCase()] = n.id; byName[n.label.toLowerCase()] ??= n.id; byName[n.id.toLowerCase()] ??= n.id; });
   function pickFile() {
-    const id = byName[fileIn.value.trim().toLowerCase()];
-    if (id) focusOn(id, "both", 1);
+    const text = fileIn.value.trim();
+    if (!text) {  // an emptied box goes back to the whole map
+      if (view.focus) { view.focus = null; syncControls(); render(false); writeHash(); }
+      return;
+    }
+    const id = byName[text.toLowerCase()];
+    if (id) focusOn(id, "both", Infinity);
+    else hits.textContent = `no file named "${text}"`;
   }
   fileIn.addEventListener("change", pickFile);
   fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
@@ -528,6 +545,11 @@ function app() {
     lanesBox.querySelectorAll("input[data-lane]").forEach(c => (c.checked = view.lanes.has(c.dataset.lane)));
     document.getElementById("parked").checked = view.parked;
     document.getElementById("retired").checked = view.retired;
+    for (const box of ["parked", "retired"]) {  // a file view shows every related box, so the ticks do not apply
+      const el = document.getElementById(box);
+      el.disabled = Boolean(view.focus);
+      el.parentElement.title = view.focus ? "A file view shows every related box" : el.parentElement.dataset.title;
+    }
   }
   lanesBox.addEventListener("change", e => {
     const lane = e.target.dataset.lane;
@@ -547,7 +569,7 @@ function app() {
   /* ---- address bar: #focus=<id>&dir=both&depth=1&lanes=a,b&show=parked,retired&node=<id> */
   function writeHash() {
     const h = new URLSearchParams();
-    if (view.focus) { h.set("focus", view.focus); h.set("dir", view.dir); h.set("depth", view.depth === Infinity ? "all" : view.depth); }
+    if (view.focus) { h.set("focus", view.focus); h.set("dir", view.dir); if (view.depth !== Infinity) h.set("depth", view.depth); }
     if (view.lanes.size !== allLanes.length) h.set("lanes", view.lanes.size ? [...view.lanes].join(",") : "none");
     const show = [view.parked && "parked", view.retired && "retired"].filter(Boolean);
     if (show.length) h.set("show", show.join(","));
@@ -561,13 +583,15 @@ function app() {
     view.focus = focus && byId[focus] ? focus : null;
     view.dir = ["both", "up", "down"].includes(h.get("dir")) ? h.get("dir") : "both";
     const depth = Number(h.get("depth"));
-    view.depth = depth > 0 ? depth : h.get("depth") === "all" ? Infinity : 1;
+    view.depth = depth > 0 ? depth : Infinity;
     const lanes = (h.get("lanes") || "").split(",").filter(l => allLanes.includes(l));
     view.lanes = new Set(lanes.length || h.get("lanes") === "none" ? lanes : allLanes);
-    const show = (h.get("show") || "").split(",");
-    view.parked = show.includes("parked"); view.retired = show.includes("retired");
+    const show = (h.get("show") || "").split(","), hide = h.get("hide");
+    if (hide !== null) { view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired"); }  // older links
+    else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     const node = h.get("node");
     selected = node && byId[node] ? node : null;
+    if (selected && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
     fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
     syncControls();
   }
