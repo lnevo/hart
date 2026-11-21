@@ -245,7 +245,7 @@ def rail(n: Node, board: int) -> str:
 def block_name(occ: dict, by_name: dict) -> str | None:
     """The JMRI block an occupancy row detects: the first of its `blocks` column, never read from its name (hand-off
     row 8); None for a spare input. SystemExit when the row names no block, or one with no block row."""
-    if devices.row_role(occ, DEVICE_MAP.name) == "spare":
+    if devices.row_role(occ, devices.index(DEVICE_MAP).where(occ)) == "spare":
         return None
     name = next((b.strip() for b in occ.get("blocks", "").split(devices.LIST) if b.strip()), "")
     if not name:

@@ -202,16 +202,36 @@ class Index:
         """Whether block `block` runs through a switch's points (OS_ROLES), by its role."""
         return self.role("block", block) in OS_ROLES
 
+    def has(self, layer: str, name: str) -> bool:
+        """Whether the master holds a `layer` row named `name` (placed or not)."""
+        return (layer, name) in self.by_key
+
+    def is_unplaced(self, layer: str, name: str) -> bool:
+        """Whether every `layer` row named `name` is a device not on the layout yet (is_unplaced: no level, no role,
+        kept by its jmri_bean). DevicesError when there is no such row."""
+        return all(is_unplaced(r) for _n, r in self.rows(layer, name))
+
+    def where(self, row: Mapping[str, str]) -> str:
+        """"devices.csv line N" for the master's row with `row`'s level, layer and user name, for a message; the file's
+        name alone when the master has no such row (a caller's own row, as in a test)."""
+        for n, r in self.by_key.get((row.get("layer", ""), row.get("user_name", "")), ()):
+            if r["level"] == row.get("level"):
+                return f"{self.path.name} line {n}"
+        return self.path.name
+
     def names(self, layer: str, roles: Iterable[str] | None = None, levels: Iterable[str] | None = None
               ) -> list[str]:
-        """The user names of the `layer` rows (of `roles` and `levels` when given), in master order, each once."""
+        """The user names of the `layer` rows (of `roles` and `levels` when given), in master order, each once. With
+        `roles`, a device not on the layout yet (is_unplaced: it has no role) is left out."""
         roles = None if roles is None else frozenset(roles)
         levels = None if levels is None else frozenset(levels)
         out: dict[str, None] = {}
         for n, r in self.lines:
-            if r["layer"] == layer and (levels is None or r["level"] in levels) and \
-                    (roles is None or row_role(r, f"{self.path.name} line {n}") in roles):
-                out.setdefault(r["user_name"], None)
+            if r["layer"] != layer or (levels is not None and r["level"] not in levels):
+                continue
+            if roles is not None and (is_unplaced(r) or row_role(r, f"{self.path.name} line {n}") not in roles):
+                continue
+            out.setdefault(r["user_name"], None)
         return list(out)
 
 

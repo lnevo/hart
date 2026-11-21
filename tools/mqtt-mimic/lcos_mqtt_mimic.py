@@ -178,12 +178,17 @@ def load_layout(levels: bool = True) -> dict:
                         occ_names[un].append(name)
 
     # a device's kind is its devices.csv row's (layer, role), never its name (hand-off row 8)
-    index = devices.index()
+    index = devices.index(DEVICES)
     detectors = set(index.names("occupancy", roles=set(devices.ROLES) - {"spare"}))
     switches = set(index.names("turnout", roles=("turnout",)))
     blocks = []
     for addr, rec in sensors.items():
         un = rec["userName"]
+        if not any(index.has(layer, un) for layer in ("occupancy", "fb", "sensor")):
+            # a Store not split yet can hold it: say so, and leave it out (hartlib.devices is the one source of kinds)
+            print(f"lcos_mqtt_mimic: sensor {rec['systemName']} ({un or 'no user name'}) in {paths.rel(TABLES)} has "
+                  f"no row in {paths.rel(DEVICES)}; left out", file=sys.stderr)
+            continue
         if un not in detectors:
             continue
         names = occ_names.get(un, [])
@@ -210,6 +215,10 @@ def load_layout(levels: bool = True) -> dict:
         if not addr:
             continue
         un = _txt(el, "userName")
+        if not index.has("turnout", un):
+            print(f"lcos_mqtt_mimic: turnout {sn} ({un or 'no user name'}) in {paths.rel(TABLES)} has no row in "
+                  f"{paths.rel(DEVICES)}; left out", file=sys.stderr)
+            continue
         if un not in switches:
             continue
         try:

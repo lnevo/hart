@@ -634,6 +634,31 @@ class TheKindFromTheRow(unittest.TestCase):
         with self.assertRaisesRegex(D.DevicesError, "devices.csv: no block row 'Track Nowhere'"):
             ix.role("block", "Track Nowhere")
 
+    def test_a_device_not_on_the_layout_yet_is_left_out_of_a_role_query(self):
+        """A level-less row (added in PanelPro, no role yet) is no layout element: a role query skips it, never stops
+        on it; has, is_unplaced and where still see it."""
+        from hartlib import tables_build as TB
+        import xml.etree.ElementTree as ET
+        el = ET.fromstring("<sensor inverted=\"false\"><systemName>M2S9999</systemName>"
+                           "<userName>BS Store Added</userName></sensor>")
+        row = unplaced("BS Store Added", layer="occupancy", system_name="M2S9999", jmri_name="M2S9999")
+        row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, el)], row)
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "devices.csv"
+            path.write_text(D.master_text(list(D.load()) + [row]), encoding="utf-8")
+            ix = D.index(path)
+            detectors = ix.names("occupancy", roles=set(D.ROLES) - {"spare"})
+            self.assertNotIn("BS Store Added", detectors)
+            self.assertIn("BS Switch 101", detectors)
+            self.assertIn("BS Store Added", ix.names("occupancy"))         # no role asked: every row
+            self.assertTrue(ix.has("occupancy", "BS Store Added"))
+            self.assertTrue(ix.is_unplaced("occupancy", "BS Store Added"))
+            self.assertFalse(ix.is_unplaced("occupancy", "BS Switch 101"))
+            self.assertEqual(ix.where(row), f"devices.csv line {len(D.load()) + 2}")
+            self.assertEqual(ix.where(dict(row, user_name="BS Nowhere")), "devices.csv")
+            with self.assertRaisesRegex(D.DevicesError, "has no role"):
+                ix.role("occupancy", "BS Store Added")
+
     def test_rows_that_disagree_on_a_role_stop_naming_their_lines(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "devices.csv"

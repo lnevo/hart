@@ -125,12 +125,21 @@ def load_live_ids() -> tuple[dict[str, tuple[int, int]], dict[str, tuple[int, in
     for sensor in root.iter("sensor"):
         name = (sensor.findtext("userName") or "").strip()
         m = BLOCK_RE.search(sensor.findtext("comment") or "")
+        if m and not index.has("occupancy", name):
+            # a Store not split yet can hold it: say so, and leave it out
+            print(f"build_lcos_signal_manager_plan: sensor {sensor.findtext('systemName')} ({name or 'no user name'}) "
+                  f"has a block comment in {paths.rel(TABLES)} but no occupancy row in devices.csv; left out",
+                  file=sys.stderr)
         if name in detectors and m:
             blocks[name] = (int(m.group(1)), int(m.group(2)))
     turnouts: dict[str, tuple[int, int]] = {}
     for turnout in root.iter("turnout"):
         name = (turnout.findtext("userName") or "").strip()
         m = TURNOUT_RE.search(turnout.findtext("comment") or "")
+        if m and not index.has("turnout", name):
+            print(f"build_lcos_signal_manager_plan: turnout {turnout.findtext('systemName')} "
+                  f"({name or 'no user name'}) in {paths.rel(TABLES)} has no turnout row in devices.csv; left out",
+                  file=sys.stderr)
         if name in switches and m:
             turnouts[name] = (int(m.group(1)), int(m.group(2)))
     return blocks, turnouts

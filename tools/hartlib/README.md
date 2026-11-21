@@ -181,7 +181,10 @@ columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `sy
   or occupancy row runs through a switch's points (`OS_ROLES`: `os`, `xover_corner`). A reader that holds only a name
   uses `index()`, the master by (layer, user name), built once per file state: `rows(layer, name)` (one per level the
   device is on; a helix block has two), `role(layer, name)` (stops when the rows disagree, naming their lines),
-  `is_os(block)` and `names(layer, roles=, levels=)`. No reader falls back to a name prefix.
+  `is_os(block)`, `names(layer, roles=, levels=)` (a role query leaves out a device not on the layout yet, a
+  level-less row with no role), `has(layer, name)`, `is_unplaced(layer, name)` and `where(row)` (the row's
+  "devices.csv line N" for a message). No reader falls back to a name prefix; a tables.xml bean with no row is
+  named in a warning and left out.
   Still name-based for now: `role_of` and `block_role`, how a writer stamps the role on a row it makes (`master_row`,
   shared with the mast writers), and `level_devices.block_key` and `occupancy_user`, the owner's naming rule for the
   virtual names (2026-11-17).
