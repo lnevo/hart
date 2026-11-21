@@ -76,6 +76,7 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Future goals
 
+- Move the LCOS bridge from the Windows box to the Pi. The Pi is ready (2026-11-21): `~/lcos-bridge` on `main`, arduino-cli (ARMv7 build, since the userland is armhf) compiles the firmware, and the `lcos-bridge` systemd service is installed but stopped and off at boot. Cut-over, about a minute without feedback: stop the Windows bridge, remove its `LcosBridge` task and take `start_bridge_tabs.cmd` out of `shell:startup`; the owner moves the bridge Nano's USB from the mini PC to the Pi (same shelf; the LCOS MASTER on COM7 stays on Windows); `sudo systemctl enable lcos-bridge` and `./bridge start`, then check `/dev/lcos-nano`, `Subscription accepted` per node and live retained mast and turnout topics. Then merge the docs PR #846 with the submodule bump.
 - Station maps for the main and upper levels drawn from the schematic diagrams, once those levels' stations are named (Finalize wiring, under Owed). The same drawings would feed the 3D station map prints if the Barn trial works out.
 - Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
