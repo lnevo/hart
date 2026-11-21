@@ -107,8 +107,10 @@ real facts until steps 5 and 6 or outside these files:
   drawn with it; giving main and upper the same would move their track (geometry is fixed);
 - the staging candidate is the approved base the three-level candidate is drawn on and guarded against (`--levels`
   stays as the choice of candidate);
-- `le_names.py` (placeholder names, `level_masts`, `shared_turnouts`, `named_bands`) still skips the band keyed
-  `Staging`; it was outside this part.
+- `le_names.py` (placeholder names, `level_masts`, `shared_turnouts`, `named_bands`) skipped the band keyed
+  `Staging`. Done 2026-11-20 (branch `agent/claude/le-bands-by-level`): it now skips the bands of a level the base
+  holds, found by level (`le_common.base_keys`). `le_common.STAGING` is gone, and every band is found through
+  `le_common.find_band` (level and height from the plan overrides).
 
 Device-map part (2026-11-20, PR #798): the check moved out of `staging_device_map.py` (which keeps staging's
 loaders, the builders' import) into `check_device_master.py`, which holds every level of `devices.csv` to one set of

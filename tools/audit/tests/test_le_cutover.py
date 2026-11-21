@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import test_build_layout_le as T  # noqa: E402  loads the builder and the audit once
 
 B, AUDIT = T.B, T.AUDIT
+staging_key = T.staging_key
 
 
 def page_prefs() -> dict:
@@ -109,8 +110,8 @@ class Cutover(unittest.TestCase):
         self.assertFalse([b for b in tables.blocks(self.root) if tables.system_name(b).startswith(B.BLOCK_SYS)])
         live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
         self.assertLessEqual(T.used_blocks(self.le), live_lb)
-        staging = set(self.names[B.STAGING]["os"].values()) | {
-            b for v in self.names[B.STAGING]["blocks"].values() for b in v}
+        staging = set(self.names[staging_key(self.bands)]["os"].values()) | {
+            b for v in self.names[staging_key(self.bands)]["blocks"].values() for b in v}
         self.assertEqual(T.used_blocks(self.le), staging)          # the staging device map's blocks, all drawn
         self.assertEqual({s.get("hidden") for s in self.le.findall("tracksegment")}, {"no"})     # no helix joins
 
@@ -307,7 +308,7 @@ class ThreeLevels(unittest.TestCase):
             "track segment TG51 connect2name EBG1 -> AGE1",
             "track segment TG52 connect2name EBG2 -> AGE2"])
         self.assertTrue([j for (b, j) in self.P.join_ends if b == 0])           # the helix joins reach staging
-        self.assertEqual(self.names[B.STAGING]["joins"], "other")               # the build joins the helix
+        self.assertEqual(self.names[staging_key(self.bands)]["joins"], "other")               # the build joins the helix
         self.assertEqual(sum(1 for s in self.le.findall("tracksegment") if s.get("hidden") == "yes"), 4)
         self.assertEqual(self.P.scale, self.base[1].scale)
         self.assertEqual(self.P.staging_data, self.base[0])

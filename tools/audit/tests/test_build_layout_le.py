@@ -27,6 +27,12 @@ from hartlib import railroad as T_railroad  # noqa: E402  the device map's colum
 TABLES = paths.TABLES_XML       # the generated tables.xml (build_tables.py), which the build no longer reads
 
 
+def staging_key(bands) -> str:
+    """The plugin's key of the staging band, found by its level (build_layout_le.base_band), as build() keys its
+    names."""
+    return B.band_key(bands[B.base_band(bands)][0])
+
+
 def _load(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
@@ -173,8 +179,8 @@ class Built(unittest.TestCase):
         new_idents = {t.get("ident") for t in self.le.findall("layoutturnout")}
         self.assertEqual(len(staging), 20)
         self.assertLessEqual({sw.le_ident for sw in staging.values()}, new_idents)
-        blocks = set(self.names[B.STAGING]["os"].values()) | {
-            b for v in self.names[B.STAGING]["blocks"].values() for b in v}
+        blocks = set(self.names[staging_key(self.bands)]["os"].values()) | {
+            b for v in self.names[staging_key(self.bands)]["blocks"].values() for b in v}
         self.assertLessEqual(blocks, used_blocks(self.le))
 
     def test_closed_routes_and_crossovers_match_the_live_panel(self) -> None:
@@ -197,8 +203,8 @@ class Built(unittest.TestCase):
             if is_new(t):
                 self.assertTrue(re.fullmatch(r"Switch [12]\d\d", tables.user_name(t)), tables.user_name(t))
         live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
-        staging = set(self.names[B.STAGING]["os"].values()) | {
-            b for v in self.names[B.STAGING]["blocks"].values() for b in v}
+        staging = set(self.names[staging_key(self.bands)]["os"].values()) | {
+            b for v in self.names[staging_key(self.bands)]["blocks"].values() for b in v}
         self.assertLessEqual(staging, live_lb)
 
     # ---- main and upper: the device map's names (the main and upper rows of devices.csv)
@@ -388,8 +394,7 @@ class Built(unittest.TestCase):
                   if ET.fromstring(m["xml"]).tag == "sensoricon"}
         self.assertTrue(status)
         self.assertEqual({el.get("sensor") for el in self.le.iter("sensoricon")}, status)
-        staging = B.band_key(self.bands[0][0])
-        self.assertEqual(staging, B.STAGING)
+        self.assertEqual(B.base_band(self.bands), 0)            # staging, found by its level, is drawn first
         self.assertTrue(self.P.masts)
         # main and upper: their control-point masts (main_upper_masts.csv), every one placed
         level = {m["mast"] for m in self.P.masts if m["band"] != 0}
@@ -649,7 +654,7 @@ class DeviceNames(unittest.TestCase):
         _sheet, le_mod, _core = B.plugin()
         bands = B.schematic()[0]
         names, _lengths = B.level_names(bands, le_mod)
-        B.shared_turnouts(names)
+        B.shared_turnouts(names, B.base_keys(bands))
         # the helix-top crossovers stand on two levels; 121 and 125 (joined B to C) are the plugin's own crossovers
         self.assertEqual(names["Main"]["shared_turnouts"], ["Switch 127", "Switch 131"])
         self.assertEqual(names["Upper"]["shared_turnouts"], ["Switch 127", "Switch 131"])
@@ -745,7 +750,8 @@ class BaseNames(unittest.TestCase):
             return B.build(levels="staging", as_live=True, approved=None, base_data=doc.tobytes())
 
     def test_a_staging_turnout_block_or_mast_the_base_lacks_stops(self) -> None:
-        names = built()[2][B.STAGING]
+        _data, _P, all_names, bands = built()
+        names = all_names[staging_key(bands)]
         turnout = sorted(names["turnouts"].values())[0]
         block = sorted(names["os"].values())[0]
         mast = sorted(m["mast"] for m in names["masts"])[0]
@@ -870,8 +876,8 @@ class Throats(unittest.TestCase):
         return out
 
     def measured(self):
-        lengths = self.names[B.STAGING]["lengths"]
-        return {sid: bl for sid, bl in self.names[B.STAGING]["blocks"].items()
+        lengths = self.names[staging_key(self.bands)]["lengths"]
+        return {sid: bl for sid, bl in self.names[staging_key(self.bands)]["blocks"].items()
                 if len(bl) > 1 and all(b in lengths for b in bl)}
 
     def test_the_tracks_of_several_blocks_are_measured(self) -> None:
@@ -892,7 +898,7 @@ class Throats(unittest.TestCase):
             staging_lengths(names, plan)
 
     def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
-        lengths = self.names[B.STAGING]["lengths"]
+        lengths = self.names[staging_key(self.bands)]["lengths"]
         moved = {}
         for _mast, ident, px in self.P.anchors_moved:
             moved[ident] = max(moved.get(ident, 0.0), px)
@@ -912,7 +918,7 @@ class Throats(unittest.TestCase):
                         # its share, or the floor, or the room for the icon of a mast facing it (a high mast needs
                         # more), plus what the gantry moved its boundary and the arcs and slopes it takes in (a
                         # boundary stands on straight track)
-                        room = [8 + m["icon"][1] for m in self.names[B.STAGING]["masts"] if m["facing"] == b]
+                        room = [8 + m["icon"][1] for m in self.names[staging_key(self.bands)]["masts"] if m["facing"] == b]
                         least = max([self.le_mod.MIN_BLOCK] + room)
                         self.assertLessEqual(L, max(share, least) + stretch + bent[b] + 0.5)
                         self.assertLess(L, total / 2)
@@ -1095,7 +1101,7 @@ class LevelMasts(unittest.TestCase):
         names = {"Staging": {}, "Main": {"blocks": {"e": ["Track 105-109"]}, "os": {"n": "OS Switch 109"}},
                  "Upper": {"blocks": {}, "os": {}}}
         with self.assertRaisesRegex(B.BuildError, "Mast 110L \\(Track Nowhere into OS Switch 109\\): drawn on no band"):
-            B.level_masts(names, rows)
+            B.level_masts(names, rows, {"Staging"})
 
     def test_a_level_mast_where_jmri_resolves_it(self) -> None:
         el = ET.fromstring(anchor_panel("M"))
