@@ -163,6 +163,18 @@ class PlanGenerated(unittest.TestCase):
                          {"_sections": True, "staging": {"a": 2, "b": 3}})
         self.assertEqual(merged["staging"], {"a": 1, "edits": [], "b": 3})
 
+    def test_a_hand_main_flag_is_dropped_and_only_the_generated_ones_stand(self) -> None:
+        hand = {"_sections": True, "staging": {"edits": [{"op": "name", "tracks": [["1", "2", "x", "main"], ["2", "3", "y", "A"]]}]}}
+        merged = L.merge(hand, {"_sections": True, "staging": {L.NAME_MAIN: [1]}})
+        self.assertEqual(merged["staging"]["edits"][0]["tracks"], [["1", "2", "x"], ["2", "3", "y", "A", "main"]])
+        self.assertIn("main", hand["staging"]["edits"][0]["tracks"][0])        # the hand data is not changed
+        self.assertNotIn(L.NAME_MAIN, merged["staging"])
+
+    def test_a_generated_section_with_no_hand_section_or_edits_is_a_layer_error(self) -> None:
+        self.assertEqual(L.merge({"_sections": True}, {"_sections": True, "main_upper": {"a": 1}})["main_upper"], {"a": 1})
+        with self.assertRaisesRegex(L.LayerFileError, "needs one `name` edit"):
+            L.merge({"_sections": True}, {"_sections": True, "staging": {L.NAME_MAIN: [0]}})
+
     def test_a_flag_past_the_name_edit_stops(self) -> None:
         hand = {"_sections": True, "staging": {"edits": [{"op": "name", "tracks": [["1", "2", "x"]]}]}}
         with self.assertRaisesRegex(L.LayerFileError, "track 4 is past the 1"):

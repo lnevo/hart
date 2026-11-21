@@ -148,22 +148,22 @@ def merge(hand: dict, generated: dict) -> dict:
     those tracks of the staging `name` edit "main" (last in the entry), as the one file used to hold them."""
     out = dict(hand)
     for k, g in generated.items():
-        if k not in out:
-            out[k] = g
-            continue
         if k.startswith("_"):
+            out.setdefault(k, g)
             continue
-        sec = out[k] = dict(out[k])
+        sec = out[k] = dict(out.get(k, {}))
         for key, val in g.items():
             if key != NAME_MAIN:
                 sec.setdefault(key, val)
         if NAME_MAIN in g:
-            sec["edits"] = edits = json.loads(json.dumps(sec["edits"]))
+            sec["edits"] = edits = json.loads(json.dumps(sec.get("edits", [])))
             named = [e for e in edits if isinstance(e, dict) and e.get("op") == "name"]
             if len(named) != 1:
                 raise LayerFileError(f"{PLAN_GENERATED_FILE}[{k}]: {NAME_MAIN} needs one `name` edit in "
                                      f"{PLAN_OVERRIDES_FILE}[{k}], found {len(named)}")
             tracks = named[0]["tracks"]
+            for i, t in enumerate(tracks):       # the generated flags are the only ones: a hand "main" is dropped
+                tracks[i] = [*t[:3], *[x for x in t[3:] if x != "main"]]
             for i in g[NAME_MAIN]:
                 if i >= len(tracks):
                     raise LayerFileError(f"{PLAN_GENERATED_FILE}[{k}] {NAME_MAIN}: track {i} is past the "
@@ -230,11 +230,13 @@ def view(data: Path = SCHEMATIC) -> Path:
         link = root / entry.name
         if link.is_symlink() and Path(os.readlink(link)) == entry:
             continue
-        link.unlink(missing_ok=True)
-        link.symlink_to(entry)
+        tmp_link = root / f".{entry.name}.{os.getpid()}.link"      # swapped in whole: another process may be reading
+        tmp_link.unlink(missing_ok=True)
+        tmp_link.symlink_to(entry)
+        os.replace(tmp_link, link)
     target = root / PLAN_OVERRIDES_FILE
     if not target.exists() or target.read_text(encoding="utf-8") != text:
-        tmp = root / ".plan_overrides.tmp"
+        tmp = root / f".plan_overrides.{os.getpid()}.tmp"            # one name per process, replaced whole
         tmp.write_text(text, encoding="utf-8")
         os.replace(tmp, target)
     for stale in root.iterdir():
