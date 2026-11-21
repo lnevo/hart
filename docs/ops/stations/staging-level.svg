@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1056 816" width="1056" height="816" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
 <rect width="1056" height="816" fill="#fff"/>
 <rect x="24" y="24" width="1008" height="768" fill="none" stroke="#000" stroke-width="1.5"/>
-<g transform="translate(63.5,296.5) scale(0.6037)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+<g transform="translate(63.5,284.4) scale(0.6037)" fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
 <path d="M252.0,268.0 L392.0,268.0" stroke-width="3.2"/>
 <path d="M392.0,268.0 L896.0,268.0 L1036.0,128.0" stroke-width="3.2"/>
 <path d="M672.0,128.0 L952.0,128.0" stroke-width="1.4"/>
@@ -59,7 +59,8 @@
 <path d="M46.0,44 L46.0,38 L178.0,38 L178.0,44" stroke-width="1.4"/>
 <path d="M242.0,296 L242.0,302 L262.0,302 L262.0,296" stroke-width="1.4"/>
 <path d="M382.0,296 L382.0,302 L654.0,302 L654.0,296" stroke-width="1.4"/>
-<path d="M662.0,336 L662.0,342 L766.0,342 L766.0,336" stroke-width="1.4"/>
+<path d="M550.0,336 L550.0,342 L654.0,342 L654.0,336" stroke-width="1.4"/>
+<path d="M662.0,376 L662.0,382 L766.0,382 L766.0,376" stroke-width="1.4"/>
 <path d="M914.0,296 L914.0,302 L1046.0,302 L1046.0,296" stroke-width="1.4"/>
 <path d="M1222.0,296 L1222.0,302 L1298.0,302 L1298.0,296" stroke-width="1.4"/>
 <path d="M215.6,88.8 L215.6,96.8 M215.6,92.8 L211.6,92.8" stroke-width="0.9"/>
@@ -155,8 +156,10 @@
 <text x="252.0" y="327.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">20 CARS</text>
 <text x="518.0" y="316.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">BARN</text>
 <text x="518.0" y="327.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">22 CARS</text>
-<text x="714.0" y="356.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">SOUTH YARD</text>
-<text x="714.0" y="367.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">119 CARS</text>
+<text x="602.0" y="356.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">ENGINE HOUSE</text>
+<text x="602.0" y="367.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">18 CARS</text>
+<text x="714.0" y="396.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">SOUTH YARD</text>
+<text x="714.0" y="407.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">119 CARS</text>
 <text x="980.0" y="316.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">EAST END</text>
 <text x="1260.0" y="316.0" font-size="12" text-anchor="middle" font-weight="bold" fill="#000" stroke="none" letter-spacing="1">PRINCESS</text>
 <text x="1260.0" y="327.0" font-size="8" text-anchor="middle" font-weight="normal" fill="#000" stroke="none" letter-spacing="0.5">32 CARS</text>
@@ -250,5 +253,5 @@
 <rect x="354" y="728" width="104" height="64" fill="#fff" stroke="#000" stroke-width="1.5"/>
 <text x="362" y="742.5" font-size="9.5" letter-spacing="1">NOV 20, 2026</text>
 <path d="M354,749.3 L458,749.3" stroke="#000" stroke-width="0.8"/>
-<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 17</text>
+<text x="362" y="763.8" font-size="9.5" letter-spacing="1">REV 18</text>
 </svg>
