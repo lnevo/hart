@@ -2940,13 +2940,13 @@
    "path": "docs/wiring/lcos/lcos_signal_plan_notes.csv"
   },
   {
-   "id": "docs/wiring/signals/signal_head_plan.csv",
+   "id": "jmri/layouts/hart/output/signal_head_plan.csv",
    "label": "signal_head_plan.csv",
    "kind": "output",
    "status": "live",
    "domain": "wiring",
    "desc": "Planned signal heads and mast templates; read by hartlib.cats and the CATS desk builder.",
-   "path": "docs/wiring/signals/signal_head_plan.csv"
+   "path": "jmri/layouts/hart/output/signal_head_plan.csv"
   },
   {
    "id": "ext:LCOS_ESP32_MQTT_Client",
@@ -3380,20 +3380,20 @@
    "to": "tools/wiring/build_lcos_signal_manager_plan.py"
   },
   {
-   "from": "docs/wiring/signals/signal_head_plan.csv",
+   "from": "jmri/layouts/hart/output/signal_head_plan.csv",
    "to": "tools/hosts/sync_hart_package.sh"
   },
   {
-   "from": "docs/wiring/signals/signal_head_plan.csv",
+   "from": "jmri/layouts/hart/output/signal_head_plan.csv",
    "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py"
   },
   {
-   "from": "docs/wiring/signals/signal_head_plan.csv",
+   "from": "jmri/layouts/hart/output/signal_head_plan.csv",
    "to": "tools/schematic/build_cats_panel.py",
    "label": "reads"
   },
   {
-   "from": "docs/wiring/signals/signal_head_plan.csv",
+   "from": "jmri/layouts/hart/output/signal_head_plan.csv",
    "to": "tools/wiring/write_inventory.py"
   },
   {
@@ -4474,7 +4474,7 @@
   },
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
-   "to": "docs/wiring/signals/signal_head_plan.csv"
+   "to": "jmri/layouts/hart/output/signal_head_plan.csv"
   },
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
