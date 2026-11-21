@@ -2977,15 +2977,6 @@
    "path": "docs/wiring/signals/signal_head_plan.csv"
   },
   {
-   "id": "docs/wiring/signals/signal_mast_plan.csv",
-   "label": "signal_mast_plan.csv",
-   "kind": "output",
-   "status": "live",
-   "domain": "wiring",
-   "desc": "Digicon mast plan generated from wiring.csv heads.",
-   "path": "docs/wiring/signals/signal_mast_plan.csv"
-  },
-  {
    "id": "ext:LCOS_ESP32_MQTT_Client",
    "label": "LCOS Nano firmware repo",
    "kind": "external",
@@ -3046,7 +3037,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "wiring",
-   "desc": "With --wiring-only writes the Digicon head and mast plans from wiring.csv heads.",
+   "desc": "With --wiring-only writes the Digicon signal head plan from wiring.csv heads (the old mast plan is archived).",
    "path": "jmri/layouts/hart/scripts/build_hart_signal_heads.py"
   },
   {
@@ -4550,10 +4541,6 @@
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
    "to": "docs/wiring/signals/signal_head_plan.csv"
-  },
-  {
-   "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
-   "to": "docs/wiring/signals/signal_mast_plan.csv"
   },
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
