@@ -932,13 +932,13 @@
    "path": "jmri/layouts/hart/data/schematic/main_lines.csv"
   },
   {
-   "id": "jmri/layouts/hart/data/schematic/main_upper_masts.csv",
-   "label": "main_upper_masts.csv",
+   "id": "jmri/layouts/hart/data/schematic/masts.csv",
+   "label": "masts.csv",
    "kind": "output",
    "status": "live",
    "domain": "layout",
-   "desc": "Main/upper mast head assignments (virtual heads); crosswalk audit compares them with wiring.csv.",
-   "path": "jmri/layouts/hart/data/schematic/main_upper_masts.csv"
+   "desc": "Every level's masts, a level column (owner 2026-11-21), with staging's plan facts; written by build_masts.py in make panels.",
+   "path": "jmri/layouts/hart/data/schematic/masts.csv"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/panel_items.json",
@@ -993,24 +993,6 @@
    "domain": "layout",
    "desc": "Layer 1 masts per sheet (staging, main_upper) from plan graph and masts; the schematic solve reads it.",
    "path": "jmri/layouts/hart/data/schematic/signals.json"
-  },
-  {
-   "id": "jmri/layouts/hart/data/schematic/staging_masts.csv",
-   "label": "staging_masts.csv",
-   "kind": "output",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Staging masts and their heads; written by build_staging_masts.py (by hand), checked by make panels.",
-   "path": "jmri/layouts/hart/data/schematic/staging_masts.csv"
-  },
-  {
-   "id": "jmri/layouts/hart/data/schematic/staging_signals.csv",
-   "label": "staging_signals.csv",
-   "kind": "output",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Each staging mast's plan facts (edge, cm, direction); written by build_staging_masts.py.",
-   "path": "jmri/layouts/hart/data/schematic/staging_signals.csv"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/stations.csv",
@@ -1393,13 +1375,13 @@
    "path": "tools/schematic/build_main_route.py"
   },
   {
-   "id": "tools/schematic/build_main_upper_masts.py",
-   "label": "build_main_upper_masts.py",
+   "id": "tools/schematic/build_masts.py",
+   "label": "build_masts.py",
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 8: writes main_upper_masts.csv from main and upper mast/head rows of devices.csv.",
-   "path": "tools/schematic/build_main_upper_masts.py"
+   "desc": "make panels masts step: staging's mast/head rows of devices.csv by the mast rule, and masts.csv for every level from the master.",
+   "path": "tools/schematic/build_masts.py"
   },
   {
    "id": "tools/schematic/build_signals.py",
@@ -1409,15 +1391,6 @@
    "domain": "layout",
    "desc": "make panels step 6: writes signals.json from the plan graph and the mast CSVs.",
    "path": "tools/schematic/build_signals.py"
-  },
-  {
-   "id": "tools/schematic/build_staging_masts.py",
-   "label": "build_staging_masts.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Run by hand: writes staging_masts/signals CSVs and staging mast/head rows of devices.csv; make panels checks it.",
-   "path": "tools/schematic/build_staging_masts.py"
   },
   {
    "id": "tools/schematic/build_staging_sets.py",
@@ -1474,13 +1447,13 @@
    "path": "tools/schematic/split_store.py"
   },
   {
-   "id": "tools/schematic/sync_staging_signals.py",
-   "label": "sync_staging_signals.py",
+   "id": "tools/schematic/sync_signals.py",
+   "label": "sync_signals.py",
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Check only in make panels: staging heads and masts in tables.xml follow staging_masts.csv.",
-   "path": "tools/schematic/sync_staging_signals.py"
+   "desc": "Check only in make panels: every level's heads and masts in tables.xml follow masts.csv.",
+   "path": "tools/schematic/sync_signals.py"
   },
   {
    "id": "www",
@@ -3931,7 +3904,7 @@
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
-   "to": "tools/schematic/build_staging_masts.py",
+   "to": "tools/schematic/build_masts.py",
    "label": "reads"
   },
   {
@@ -3980,13 +3953,8 @@
   },
   {
    "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/build_main_upper_masts.py",
+   "to": "tools/schematic/build_masts.py",
    "label": "reads mast/head rows"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/build_staging_masts.py",
-   "label": "reads"
   },
   {
    "from": "jmri/layouts/hart/data/devices.csv",
@@ -4072,7 +4040,7 @@
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
-   "to": "tools/schematic/build_staging_masts.py",
+   "to": "tools/schematic/build_masts.py",
    "label": "reads"
   },
   {
@@ -4156,7 +4124,7 @@
   },
   {
    "from": "jmri/layouts/hart/data/schematic/interlockings.csv",
-   "to": "tools/schematic/build_staging_masts.py",
+   "to": "tools/schematic/build_masts.py",
    "label": "reads"
   },
   {
@@ -4179,17 +4147,17 @@
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/main_upper_masts.csv",
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
    "to": "tools/audit/check_wiring_crosswalk.py",
    "label": "check"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/main_upper_masts.csv",
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
    "to": "tools/schematic/build_layout_le.py",
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/main_upper_masts.csv",
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
    "to": "tools/schematic/build_signals.py",
    "label": "reads"
   },
@@ -4225,7 +4193,7 @@
   },
   {
    "from": "jmri/layouts/hart/data/schematic/retired_virtual_masts.csv",
-   "to": "tools/schematic/build_staging_masts.py",
+   "to": "tools/schematic/build_masts.py",
    "label": "reads"
   },
   {
@@ -4254,29 +4222,9 @@
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/staging_masts.csv",
-   "to": "tools/audit/check_wiring_crosswalk.py",
-   "label": "check"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/staging_masts.csv",
-   "to": "tools/schematic/build_layout_le.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/staging_masts.csv",
-   "to": "tools/schematic/build_signals.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/staging_masts.csv",
-   "to": "tools/schematic/sync_staging_signals.py",
+   "from": "jmri/layouts/hart/data/schematic/masts.csv",
+   "to": "tools/schematic/sync_signals.py",
    "label": "check only"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/staging_signals.csv",
-   "to": "tools/schematic/build_signals.py",
-   "label": "reads"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
@@ -4367,7 +4315,7 @@
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
-   "to": "tools/schematic/build_staging_masts.py",
+   "to": "tools/schematic/build_masts.py",
    "label": "reads heads"
   },
   {
@@ -4484,7 +4432,7 @@
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
-   "to": "tools/schematic/sync_staging_signals.py",
+   "to": "tools/schematic/sync_signals.py",
    "label": "check only"
   },
   {
@@ -5192,7 +5140,7 @@
   },
   {
    "from": "tools/hartlib/src/hartlib/devices.py",
-   "to": "tools/schematic/build_staging_masts.py",
+   "to": "tools/schematic/build_masts.py",
    "label": "imports"
   },
   {
@@ -5518,9 +5466,9 @@
    "label": "step 3 main_route"
   },
   {
-   "from": "tools/schematic/build_main_upper_masts.py",
-   "to": "jmri/layouts/hart/data/schematic/main_upper_masts.csv",
-   "label": "step 8"
+   "from": "tools/schematic/build_masts.py",
+   "to": "jmri/layouts/hart/data/schematic/masts.csv",
+   "label": "writes (every level)"
   },
   {
    "from": "tools/schematic/build_signals.py",
@@ -5528,19 +5476,9 @@
    "label": "step 6 signals"
   },
   {
-   "from": "tools/schematic/build_staging_masts.py",
+   "from": "tools/schematic/build_masts.py",
    "to": "jmri/layouts/hart/data/devices.csv",
    "label": "staging mast/head rows"
-  },
-  {
-   "from": "tools/schematic/build_staging_masts.py",
-   "to": "jmri/layouts/hart/data/schematic/staging_masts.csv",
-   "label": "writes; check in panels"
-  },
-  {
-   "from": "tools/schematic/build_staging_masts.py",
-   "to": "jmri/layouts/hart/data/schematic/staging_signals.csv",
-   "label": "writes"
   },
   {
    "from": "tools/schematic/build_staging_sets.py",
