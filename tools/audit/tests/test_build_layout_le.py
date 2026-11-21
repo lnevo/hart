@@ -571,7 +571,8 @@ class FactsReaders(unittest.TestCase):
         parts = {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("2", "3"), B.DEVICE_MAP)}
         self.assertEqual(list(sensors), list(device.blocks) + list(parts))
         for block, (system, user, _comment) in sensors.items():
-            self.assertEqual(device.sensors[user], system)
+            occ = device.occupancy[parts.get(block, block)]          # a part: its OS block's row
+            self.assertEqual((occ.user_name, occ.jmri_name), (user, system))
         for part, block in parts.items():          # a part is read with its OS block's sensor (step 5 part 2)
             self.assertEqual(sensors[part], sensors[block])
 
@@ -581,18 +582,32 @@ class DeviceNames(unittest.TestCase):
     else stops."""
     HEAD = ",".join(T_railroad.DEVICE_COLUMNS) + "\n"    # the fact columns (DEVICE_FACTS) left empty in each row
 
-    def read(self, rows: str) -> dict:
-        """device_names of a master made of these device-map rows (old form, the fact columns left out)."""
+    LAYER_ROLES = {"turnout": "turnout", "fb": "fb", "block": "track"}
+
+    def read(self, rows: str, roles: dict | None = None, reader=None) -> dict:
+        """device_names of a master made of these device-map rows (old form, the fact columns left out), each with the
+        role its writer gives it: `roles` ({user name: role}), else its layer's in LAYER_ROLES; `reader` (default
+        device_names) reads the master's path."""
         import csv
         import io
         from hartlib import devices
         text = self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n")
         old = list(csv.DictReader(io.StringIO(text)))
-        mine = [devices.master_row(r, "build_device_map.py") for r in old]
+        mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]]),
+                                   "build_device_map.py") for r in old]
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "devices.csv"
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
-            return B.device_names(path)
+            return (reader or B.device_names)(path)
+
+    def test_block_roles_are_the_given_maps_main_and_upper_blocks(self) -> None:
+        """named_bands' roles come from the map the names were made from: block_roles(path) reads that file's main
+        and upper block rows (not the committed master's), with the role each row gives."""
+        got = self.read('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,OS Switch 1,,,,,,Switch 1,\n'
+                        '1,,block,Track Barn,,,,,,,\n', roles={"OS Switch 1": "os"},
+                        reader=sys.modules["le_names"].block_roles)
+        self.assertEqual(got, {"Track 1-2": "track", "OS Switch 1": "os"})        # staging's Track Barn left out
+        self.assertNotIn("Track 101-103", got)
 
     def test_the_committed_map(self) -> None:
         got = B.device_names()
@@ -607,7 +622,7 @@ class DeviceNames(unittest.TestCase):
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
                         '2,,turnout,Switch 101,M2T1,,34,120,,"Switch 101A, Switch 101B",\n'
                         '2,,fb,FB Switch 101 N,M2S1,,34,,,,\n'
-                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n')
+                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n', roles={"DCC Switch 101": "lcc_alias"})
         self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track 1A-2B": "Track 1-2"})
         for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
                           ('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,Track 3-4,,,,,,Track 1A-2B,\n',

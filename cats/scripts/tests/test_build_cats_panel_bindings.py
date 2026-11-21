@@ -267,19 +267,26 @@ class StubCats:
 
 def block(*trial):
     """A main level block row of the device map holding the schematic tracks `trial`."""
-    return B.railroad.DeviceRow(level=2, layer="block", user_name="", trial_name=", ".join(trial))
+    return B.railroad.DeviceRow(level=2, layer="block", user_name="", role="track", trial_name=", ".join(trial))
+
+
+def occupancy(user, jmri, block, role, planned=""):
+    """A main level occupancy row: the block it serves (its blocks column), its virtual sensor and planned detector."""
+    return B.railroad.DeviceRow(level=2, layer="occupancy", user_name=user, role=role, jmri_name=jmri,
+                                system_name=planned, blocks=block)
 
 
 def device():
+    rows = [occupancy("BS Switch 101", "IS:HART:C3:B:OS101", "OS Switch 101", "os", "M2S3300"),
+            occupancy("BS Switch 103", "IS:HART:C3:B:OS103", "OS Switch 103", "os"),
+            occupancy("BS 101-111", "IS:HART:C3:B:101-111", "Track 101-111", "track", "M2S3306")]
     return B.DeviceMap(
+        rows=rows,
         blocks={"OS Switch 101": block("OS Switch 101"),
                 "OS Switch 103": block("OS Switch 103"),
                 "Track 101-111": block("Track 101BC-end"),
                 "Track 101-103": block("Track 101AC-103AA"),
-                "Track 135-H1": block("Track 101AB-end #1", "Track 101AB-end #2")},
-        sensors={"BS Switch 101": "IS:HART:C3:B:OS101", "BS Switch 103": "IS:HART:C3:B:OS103",
-                 "BS 101-111": "IS:HART:C3:B:101-111"},
-        planned={"BS Switch 101": "M2S3300", "BS 101-111": "M2S3306"})
+                "Track 135-H1": block("Track 101AB-end #1", "Track 101AB-end #2")})
 
 
 def dark_bands():
@@ -331,13 +338,16 @@ class MainAndUpper(unittest.TestCase):
 
     def test_the_device_map_reads_blocks_and_detectors(self):
         dm = B.load_device_map()
-        self.assertEqual(set(dm.sensors), {B.bdm.occupancy_user(b) for b in dm.blocks})   # one per block
-        self.assertEqual(len(dm.sensors), 97)     # Track 227-241 two blocks (APB B92/B93); the 25 links are parts
-        self.assertTrue(all(dm.sensors[B.bdm.occupancy_user(b)] == B.bdm.block_sensor(b) for b in dm.blocks))
-        self.assertEqual(len(dm.planned), 36)        # 227-241 2 on Block 41-4 since 2026-11-20
-        self.assertTrue(all(v.startswith("M2S") for v in dm.planned.values()))
+        occ = dm.occupancy
+        self.assertEqual(set(occ), set(dm.blocks))                          # one per block
+        self.assertEqual(len(occ), 97)     # Track 227-241 two blocks (APB B92/B93); the 25 links are parts
+        self.assertTrue(all(occ[b].user_name == B.bdm.occupancy_user(b) for b in dm.blocks))
+        self.assertTrue(all(occ[b].jmri_name == B.bdm.block_sensor(b) for b in dm.blocks))
+        planned = {r.user_name: r.system_name for r in occ.values() if r.system_name}
+        self.assertEqual(len(planned), 36)        # 227-241 2 on Block 41-4 since 2026-11-20
+        self.assertTrue(all(v.startswith("M2S") for v in planned.values()))
         # Loop 2 and 225's corners b to d wait for wiring: a virtual sensor and no planned detector (owner, 2026-11-16)
-        self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(dm.planned))
+        self.assertFalse({"BS 107 Loop 2", "BS Switch 225b", "BS Switch 225c", "BS Switch 225d"} & set(planned))
         self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track 107A-109B"})
 
     def test_a_block_missing_from_the_desk_is_checked_on_the_drawing(self):

@@ -129,9 +129,11 @@ NO_CHANGE = dict.fromkeys(("masts added", "masts removed", "heads added", "heads
                            "destinations removed"), 0)
 
 
-def device_row(layer, user, system, comment="", notes=""):
+def device_row(layer, user, system, comment="", notes="", role=None):
+    """A staging device-map row with the role its writer gives it: a head's is head, a mast's home unless given."""
     return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=system, node="", dcc="",
-                comment=comment, trial_name="", notes=notes, **dict.fromkeys(railroad.DEVICE_FACTS, ""))
+                comment=comment, trial_name="", notes=notes, role=role or ("head" if layer == "head" else "home"),
+                **dict.fromkeys(railroad.DEVICE_FACTS, ""))
 
 
 def write_master(path: Path, rows) -> Path:

@@ -37,7 +37,7 @@ from types import MappingProxyType
 from typing import Iterable, Mapping
 
 from . import names, paths
-from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, FactsError
+from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 
 LEVELS = ("1", "2", "3")
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head", "sensor")   # also the order within a level
@@ -451,39 +451,6 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
 
 # ---------------------------------------------------------------- roles, assignments, descriptions
 
-def block_role(name: str) -> str:
-    """The role of a block or its occupancy row from its name ("OS Switch 7", "BS Switch 225b", "Track 101 Spur 1",
-    "Track Helix Inner", "BS 107 Loop 2")."""
-    if re.fullmatch(r"(?:OS|BS) Switch \d+[a-d]", name):
-        return "xover_corner"
-    if re.fullmatch(r"(?:OS|BS) Switch \d+", name):
-        return "os"
-    if "Helix" in name:
-        return "helix"
-    if re.search(r" Spur(?: \d+)?$", name):
-        return "spur"
-    if re.search(r" Loop(?: \d+)?$", name):
-        return "loop_half"
-    return "track"
-
-
-def role_of(layer: str, user_name: str, system_name: str, jmri_name: str) -> str:
-    """The role a device-map row gets: DevicesError on a layer a device map does not hold."""
-    if layer == "turnout":
-        return "lcc_alias" if user_name.startswith("DCC Switch ") else "turnout"
-    if layer == "fb":
-        return "fb"
-    if layer in ("block", "occupancy"):
-        return block_role(user_name)
-    if layer == "head":
-        return "head"
-    if layer == "mast":
-        if (jmri_name or system_name).startswith("IF$vsm"):
-            return "hidden"
-        return "intermediate" if re.fullmatch(r"Mast [AB]?\d+", user_name) else "home"
-    raise DevicesError(f"layer {layer!r}: a device map has no {layer} rows")
-
-
 def assignment_of(jmri_name: str) -> str:
     """How a device-map row is in JMRI: none without a jmri_name, virtual for an internal name (IT/IS/IH/IB:HART:, a
     hidden mast, a mast over internal heads), else field."""
@@ -556,14 +523,22 @@ def device_map_row(r: Mapping[str, str]) -> dict[str, str]:
 
 def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | None = None,
                description: str | None = None) -> dict[str, str]:
-    """The master row of an old-form device-map row. `prior` is the row it replaces, whose description a hand-kept
-    row keeps. DevicesError when the comment cannot be split back by device_map_row."""
+    """The master row of an old-form device-map row with its `role` (the writer states what each row is: no role is
+    read off a name, hand-off row 8). `prior` is the row it replaces, whose description a hand-kept row keeps.
+    DevicesError on a layer a device map does not hold, a row with no role or one not in ROLES, or a comment that
+    cannot be split back by device_map_row."""
     if not set(DEVICE_COLUMNS) <= set(old):
         raise DevicesError(f"device-map row {old.get('user_name')!r} misses columns "
                            f"{sorted(set(DEVICE_COLUMNS) - set(old))}")
+    if old["layer"] not in NAME_LAYERS:
+        raise DevicesError(f"layer {old['layer']!r}: a device map has no {old['layer']} rows")
+    role = str(old.get("role") or "")
+    if role not in ROLES:
+        raise DevicesError(f"{old['level']} {old['layer']} {old['user_name']!r}: {writer or 'a hand-kept row'} gives "
+                           f"it role {role!r}, not one of {', '.join(ROLES)}")
     r = {c: "" for c in COLUMNS}
     r.update({c: str(old[c]) for c in _SHARED})
-    r["role"] = role_of(old["layer"], old["user_name"], old["system_name"], old["jmri_name"])
+    r["role"] = role
     r["assignment"] = assignment_of(old["jmri_name"])
     r["written_by"] = writer
     comment = old["comment"]
@@ -655,7 +630,8 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
                   drops: Iterable[tuple[str, str, str]] = (), master_rows: Iterable[Mapping[str, str]] = (),
                   adopts: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
-    """outputs_after_rows for `old_rows`, old-form device-map rows (master_row gives each its master form), and
+    """outputs_after_rows for `old_rows`, old-form device-map rows each with the role its writer gives it (master_row
+    gives each its master form), and
     `master_rows`, rows already in the master's form (a builder that carries a level's hand facts over, or rows the
     device maps leave out). What a reader of the master sees for these rows is what the writer gave; DevicesError
     when it is not."""
@@ -694,16 +670,17 @@ def write_all(files: Files, content: Mapping[Path, str]) -> list[Path]:
 
 def stale(files: Files | None = None) -> list[str]:
     """What is wrong with the master: [] when it and its dictionary check and every row the old-form readers take
-    converts to that form and back (a DevicesError otherwise, naming the row)."""
+    converts to that form and back (a DevicesError otherwise, naming the row). A device not on the layout yet
+    (is_unplaced: a Store's, with no level and no role) is on no device map, so it is left out as OUT_OF_MAPS is."""
     f = files or Files.here()
     rows = load(f)
     read_dictionary(f.dictionary)
     out = []
     for r in rows:
-        if r["role"] in OUT_OF_MAPS:
+        if r["role"] in OUT_OF_MAPS or is_unplaced(r):
             continue
         try:
-            master_row(device_map_row(r), r["written_by"], r)
+            master_row(dict(device_map_row(r), role=r["role"]), r["written_by"], r)
         except DevicesError as exc:
             out.append(str(exc))
         except (KeyError, ValueError) as exc:

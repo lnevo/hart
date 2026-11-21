@@ -129,7 +129,7 @@ checked together. `python3 -m hartlib.railroad check` (in `tools/check.sh`) runs
 ```python
 rr = railroad.Railroad()                  # this checkout's files; Railroad(Sources.under(data_dir), upto=...)
 rr.switches[9].legs[0].closed             # staging switches (the level 1 rows of switches.csv + devices.csv)
-rr.device_map.sensors["BS Switch 101"]    # IS:HART:C3:B:OS101
+rr.device_map.occupancy["OS Switch 101"].jmri_name    # IS:HART:C3:B:OS101
 rr.check()                                # [Problem(invariant, message)]
 ```
 
@@ -146,7 +146,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
 | `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `{label: Hand}` |
-| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `sensors`, `planned`, `turnouts`, `heads_by_system`, `of(layer)` |
+| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `occupancy` (block -> its occupancy row), `turnouts`, `heads_by_system`, `of(layer)` |
 | `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
 | `read_*(path)` | each file alone; `FactsError` names the file and line |
@@ -187,9 +187,13 @@ columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `sy
   level-less row with no role), `has(layer, name)`, `is_unplaced(layer, name)` and `where(row)` (the row's
   "devices.csv line N" for a message). No reader falls back to a name prefix; a tables.xml bean with no row is
   named in a warning and left out.
-  Still name-based for now: `role_of` and `block_role`, how a writer stamps the role on a row it makes (`master_row`,
-  shared with the mast writers), and `level_devices.block_key` and `occupancy_user`, the owner's naming rule for the
-  virtual names (2026-11-17).
+  A writer states the role of every row it makes (part B): `master_row` takes it from the row (`role`, one of
+  `ROLES`) and stops on a row with none, and `railroad.DeviceRow` has no role default (a row with none stops, naming
+  its line). `build_device_map` gives each row the role of what it builds (a line block's from its track's ends:
+  `line_role`), `build_masts` the role the mast rule placed each mast with (`with_roles`). A block's occupancy row is
+  found by its `blocks` column (`DeviceMap.occupancy`), not by building the sensor's name. Kept on purpose:
+  `level_devices.block_key` and `occupancy_user`, the owner's naming rule that builds a virtual sensor's name from
+  its block's name (2026-11-17), with the checks that hold the rows to it (`check_virtual_names`, `read_device_map`).
 - `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the
   main and upper layout blocks are numbered by the Layout Editor build. A wired head's comment is its `wiring`.
 

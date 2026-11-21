@@ -241,7 +241,8 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dic
     """The visible staging masts in the columns the files take, from mast_plan.plan's home masts and intermediates on
     the staging band (`names`: the device map's block layer, `cm`: block_cm; a mast in `wired`, from wired_heads, is a
     field signal): [{mast, cp, switch, facing, protects, kind, heads, dir, toward, run, names, edge_cm,
-    cm_from_toward, edge, node}], in name order. A home mast stands at its switch's leg when the block boundary is
+    cm_from_toward, edge, node, role}], in name order; role (hartlib.devices.ROLES) is home or intermediate, as the
+    plan places the mast, and goes to its devices.csv row (with_roles). A home mast stands at its switch's leg when the block boundary is
     there (a turnout mast), else on the anchor where the switch's own OS block ends (an anchor mast, no switch); a
     part of the OS block (a JMRI block of its own, owner 2026-11-20) is inside it, as mast_plan reads the layer
     (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track 29-31), and its
@@ -283,14 +284,14 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dic
                         dir=m["dir"], toward=m["switch"],
                         run=f"{m['switch']};{mast_rule.base(far_label) if far_label else ''}", names=names_,
                         edge_cm=round(track_cm, 1), cm_from_toward=round(back, 1), edge=edge, node=n,
-                        leg=p, strand=m["strand"], running=m["running"]))
+                        leg=p, strand=m["strand"], running=m["running"], role="home"))
     for x in planned["intermediates"]:
         edge, track_names = plan_edge(band, chains[tuple(x["start"])])
         out.append(dict(mast=f"Mast {x['name']}", cp=x["cp"], switch="", facing=x["facing"],
                         protects=x["protects"], kind="one-searchlight", heads=1, dir=x["dir"],
                         toward=x["toward"], run=f"{x['toward']};{x['other']}", names=track_names,
                         edge_cm=x["total"], cm_from_toward=x["dist"], edge=edge, node=x["to"][0],
-                        milepost=x["milepost"]))
+                        milepost=x["milepost"], role="intermediate"))
     for m in out:                    # home and intermediate alike: a mast with wired heads is a field signal
         m["signal_kind"] = "field" if m["mast"] in wired else "planned"
     taken = [m["mast"] for m in out]
@@ -313,7 +314,7 @@ def virtual_masts(band, planned: dict, cps: dict) -> list[dict]:
         out.append(dict(mast=f"Mast {m['name']}", cp=cps[m["switch"]], kind=VIRTUAL_KIND, heads=1,
                         toward=m["switch"], run=f"{m['switch']};", names=track_names, edge_cm=m["total"],
                         edge=edge, node=m["node"], signal_kind="virtual", switch="", facing=m["facing"],
-                        protects="", cm_from_toward=m["total"], dir=m["dir"]))
+                        protects="", cm_from_toward=m["total"], dir=m["dir"], role="hidden"))
     return out
 
 
@@ -359,6 +360,24 @@ def mast_rows(gen: list[dict], wired: dict) -> list[dict]:
                          dir=m["dir"], leg="", system_name=system, head_system_names=";".join(f"{h}={u}" for h, u in heads),
                          device_system_name=system))
     return rows
+
+
+def with_roles(rows: list[dict], placed: list[dict]) -> list[dict]:
+    """`rows` (device-map rows of masts and heads) each with its role (hartlib.devices.ROLES): a mast's is the one the
+    rule placed it with (`placed`: generate's and virtual_masts' masts, each with its role), a head's is head. No role
+    is read off a name (hand-off row 8). RuleError on a mast row the rule did not place."""
+    roles = {m["mast"]: m["role"] for m in placed}
+    out, bad = [], []
+    for r in rows:
+        if r["layer"] == "head":
+            out.append(dict(r, role="head"))
+        elif r["user_name"] in roles:
+            out.append(dict(r, role=roles[r["user_name"]]))
+        else:
+            bad.append(r["user_name"])
+    if bad:
+        raise RuleError(f"mast row(s) {sorted(bad)} the rule did not place have no role to write")
+    return out
 
 
 def plan_facts(gen: list[dict], level: int = PLANNED_LEVEL) -> dict:
@@ -452,6 +471,7 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
     master = [r for r in master if r["level"] in levels]
     heads = {(r["level"], r["jmri_name"]): r for r in master if r["layer"] == "head"}
     physical = {(r["level"], r["system_name"]): r for r in master if r["layer"] == "head" and r["system_name"]}
+    blocks = {(r["level"], r["user_name"]): r for r in master if r["layer"] == "block"}   # a protected block's role
     out, bad = [], []
     for r in (r for r in master if r["layer"] == "mast"):
         level, name, jmri, switch = r["level"], r["user_name"], r["jmri_name"], r["switch"]
@@ -478,7 +498,9 @@ def file_rows(master: list[dict], plan: dict) -> list[dict]:
             bad.append(f"{where} is a home mast at no switch, but level {level}'s OS blocks end at their switches, so "
                        f"it is no anchor mast (anchor masts stand on levels {', '.join(map(str, ANCHOR_LEVELS))}): a "
                        "home signal lost its switch?")
-        elif not switch and r["role"] == "home" and not protects[0].startswith("OS "):
+        elif not switch and r["role"] == "home" and (level, protects[0]) not in blocks:
+            bad.append(f"{where} is an anchor mast protecting {protects[0]}, which is no level {level} block row")
+        elif not switch and r["role"] == "home" and not devices.is_os(blocks[(level, protects[0])], DEVICE_MAP.name):
             bad.append(f"{where} is a home mast at no switch, so an anchor mast, but protects {protects[0]}, no OS "
                        "block: a home signal lost its switch?")
         m = level_masts.SHSM.fullmatch(jmri)
@@ -571,8 +593,8 @@ def build():
     taken = [r["system_name"] for r in gm + vr]
     if len(set(taken)) != len(taken):
         raise RuleError(f"two masts share a system name: {sorted({x for x in taken if taken.count(x) > 1})}")
-    mine = [r for r in device_rows(gm, vr, old, wired, {m["mast"]: m["toward"] for m in vgen})
-            if r["layer"] in WRITES]   # the mast and head rows only
+    mine = with_roles([r for r in device_rows(gm, vr, old, wired, {m["mast"]: m["toward"] for m in vgen})
+                       if r["layer"] in WRITES], gen + vgen)   # the mast and head rows only
     want = devices.outputs_after(WRITER, mine, files)
     master = devices.parse(want[files.master], files.master.name)     # every level's rows, as they will be written
     rows = file_rows(master, plan_facts(gen + vgen))
