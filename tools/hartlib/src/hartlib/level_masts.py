@@ -148,6 +148,8 @@ def read(levels: tuple[int, ...] | None = None, path: Path = PATH) -> list[dict]
     each its level's internal name or a wired LCOS head. A virtual mast (IF$vsm) is in its level's thousand, has no
     heads, the same device_system_name, no switch and no protected block."""
     from . import railroad                  # railroad imports this module, so not at the top
+    if isinstance(levels, (str, Path)):            # read(path) from before the level column: say so, never guess
+        raise TypeError(f"level_masts.read takes the levels first, then the path: read(levels, {levels!r})")
     if levels is not None and set(levels) - set(LEVELS):
         raise railroad.FactsError(f"{path.name}: levels {sorted(set(levels) - set(LEVELS))} are not "
                                   f"{', '.join(map(str, LEVELS))}")
