@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Make every occupancy lamp on every panel in tables.xml display only.
 
-    python3 jmri/layouts/hart/scripts/occupancy_lamps_display_only.py --check   # exit 1 if a lamp can be clicked
-    python3 jmri/layouts/hart/scripts/occupancy_lamps_display_only.py --tables OTHER.xml   # fix another file
+    python3 jmri/layouts/hart/parked/occupancy_lamps_display_only.py --check   # exit 1 if a lamp can be clicked
+    python3 jmri/layouts/hart/parked/occupancy_lamps_display_only.py --tables OTHER.xml   # fix another file
+
+Parked with the occupancy lamps (owner, 2026-11-21): the lamps belong to the parked Dispatcher System and are on
+no panel, so nothing runs this; it comes back with them (jmri/layouts/hart/parked/README.md).
 
 tables.xml is generated since R9c (ADR-029): the panel build writes its lamps display only, so this script checks
 it and refuses to write it (hartlib.tables_build.refuse_generated); it still fixes another tables file and the parked

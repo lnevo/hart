@@ -56,9 +56,9 @@ STAGING_BLOCKS = (
     ('OS Switch 31', 'os', 'East End', 'OS Switch 31'),
     ('OS Switch 33', 'os', 'East End', 'OS Switch 33'),
     ('OS Switch 35a', 'xover_corner', 'Princess', 'OS 35 A-33A'),
-    ('OS Switch 35b', 'xover_corner', 'Princess', 'OS 35 A-39A'),
+    ('OS Switch 35b', 'xover_corner', 'Princess', 'OS 35 A-39A, Track 35A-39A 1/2'),
     ('OS Switch 37', 'os', 'Princess', 'OS Switch 37'),
-    ('OS Switch 39', 'os', 'Princess', 'OS Switch 39'),
+    ('OS Switch 39', 'os', 'Princess', 'OS Switch 39, Track 35A-39A 2/2'),
     ('Track Barn', 'track', '', 'Track 7A-13C'),
     ('Track Brick-Plane', 'track', '', 'Track 1C-5A #1, Track 1C-5A #2'),
     ('Track EH-1', 'track', '', 'Track 11B-end'),
@@ -98,8 +98,6 @@ STAGING_PARTS = (
     ('Track 29-31', 'OS Switch 29', 'Track 29A-31C'),
     ('Track 31-33', 'OS Switch 31', 'Track 31A-33B'),
     ('Track 35-37', 'OS Switch 35a', 'Track 35B-37A'),
-    ('Track 35-39 at 35', 'OS Switch 35b', 'Track 35A-39A 1/2'),
-    ('Track 35-39 at 39', 'OS Switch 39', 'Track 35A-39A 2/2'),
 )
 STAGING_OCCUPANCY = (
     ('BS Barn', 'track', 'Track Barn', 'M2S1300'),
@@ -147,6 +145,25 @@ STAGING_OCCUPANCY = (
     ('BS West Ext', 'track', 'Track West Ext', 'M2S107'),
     ('unused Block 2-2', 'spare', '', 'M2S201'),
     ('unused Block 3-8', 'spare', '', 'M2S307'),
+)
+
+# (name, jmri_name, layout_block, assignment) of staging's parts: each a JMRI block of its own on its block's
+# occupancy sensor (owner, 2026-11-20), named IB:AUTO:<n> and ILB<n> by the next free number (part_bean_names)
+STAGING_PART_BEANS = (
+    ('Track 1-3 at 1', 'IB:AUTO:0052', 'ILB52', 'virtual'),
+    ('Track 1-3 at 3', 'IB:AUTO:0054', 'ILB54', 'virtual'),
+    ('Track 9-11', 'IB:AUTO:0056', 'ILB56', 'virtual'),
+    ('Track 11-13', 'IB:AUTO:0057', 'ILB57', 'virtual'),
+    ('Track 13-15', 'IB:AUTO:0058', 'ILB58', 'virtual'),
+    ('Track 15-17', 'IB:AUTO:0059', 'ILB59', 'virtual'),
+    ('Track 17-19', 'IB:AUTO:0060', 'ILB60', 'virtual'),
+    ('Track 19-21', 'IB:AUTO:0061', 'ILB61', 'virtual'),
+    ('Track 23-31', 'IB:AUTO:0063', 'ILB63', 'virtual'),
+    ('Track 25-27', 'IB:AUTO:0064', 'ILB64', 'virtual'),
+    ('Track 27-29', 'IB:AUTO:0070', 'ILB70', 'virtual'),
+    ('Track 29-31', 'IB:AUTO:0071', 'ILB71', 'virtual'),
+    ('Track 31-33', 'IB:AUTO:0073', 'ILB73', 'virtual'),
+    ('Track 35-37', 'IB:AUTO:0078', 'ILB78', 'virtual'),
 )
 
 # (level, name, part_of, trial_name) of the main and upper parts: the 25 links, each in the lower-numbered switch's OS
@@ -307,30 +324,30 @@ STAGING_LAYER = {
     'OS Switch 39': ('OS Switch 39',),
     'OS Switch 5': ('OS Switch 5',),
     'OS Switch 9': ('OS Switch 9',),
-    'Track 11A-13B': ('OS Switch 11',),
+    'Track 11A-13B': ('Track 11-13',),
     'Track 11B-end': ('Track EH-1',),
-    'Track 13A-15A': ('OS Switch 15',),
+    'Track 13A-15A': ('Track 13-15',),
     'Track 15B-23B': ('Track S-R',),
-    'Track 15C-17A': ('OS Switch 15',),
-    'Track 17B-19A': ('OS Switch 17',),
+    'Track 15C-17A': ('Track 15-17',),
+    'Track 17B-19A': ('Track 17-19',),
     'Track 17C-29C': ('Track S-1',),
-    'Track 19B-21A': ('OS Switch 19',),
+    'Track 19B-21A': ('Track 19-21',),
     'Track 19C-27C': ('Track S-2',),
     'Track 1A-23A': ('Track Main West',),
-    'Track 1B-3A': ('OS Switch 1', 'OS Switch 3'),
+    'Track 1B-3A': ('Track 1-3 at 1', 'Track 1-3 at 3'),
     'Track 1C-5A #1': ('Track Brick-Plane',),
     'Track 1C-5A #2': ('Track Brick-Plane',),
     'Track 21B-25B': ('Track S-4',),
     'Track 21C-25C': ('Track S-3',),
-    'Track 23A-31B': ('OS Switch 31',),
+    'Track 23A-31B': ('Track 23-31',),
     'Track 23B-35B': ('Track West Ext',),
-    'Track 25A-27B': ('OS Switch 25',),
-    'Track 27A-29B': ('OS Switch 27',),
-    'Track 29A-31C': ('OS Switch 29',),
-    'Track 31A-33B': ('OS Switch 31',),
+    'Track 25A-27B': ('Track 25-27',),
+    'Track 27A-29B': ('Track 27-29',),
+    'Track 29A-31C': ('Track 29-31',),
+    'Track 31A-33B': ('Track 31-33',),
     'Track 33A-35A': ('Track East Lead',),
     'Track 35A-39A': ('OS Switch 35b', 'OS Switch 39'),
-    'Track 35B-37A': ('OS Switch 35a',),
+    'Track 35B-37A': ('Track 35-37',),
     'Track 37B-helix': ('Track Helix Inner',),
     'Track 37C-39C #1': ('Track K-2',),
     'Track 37C-39C #2': ('Track K-1',),
@@ -341,7 +358,7 @@ STAGING_LAYER = {
     'Track 5C-7B': ('Track Scale',),
     'Track 7A-13C': ('Track Barn',),
     'Track 7B-33C': ('Track Main East',),
-    'Track 9A-11C': ('OS Switch 9',),
+    'Track 9A-11C': ('Track 9-11',),
     'Track 9B-end': ('Track EH-2',),
     'Track 9C-end': ('Track EH-3',),
 }
@@ -387,11 +404,26 @@ class Committed(unittest.TestCase):
         got = tuple((r["user_name"], r["part_of"], r["trial_name"]) for r in self.rows
                     if r["level"] == "1" and r["role"] == "part")
         self.assertEqual(got, STAGING_PARTS)
+        beans = tuple((r["user_name"], r["jmri_name"], r["layout_block"], r["assignment"]) for r in self.rows
+                      if r["level"] == "1" and r["role"] == "part")
+        self.assertEqual(beans, STAGING_PART_BEANS)
 
     def test_main_and_upper_parts(self):
         got = tuple((r["level"], r["user_name"], r["part_of"], r["trial_name"]) for r in self.rows
                     if r["level"] != "1" and r["role"] == "part")
         self.assertEqual(got, MAIN_UPPER_PARTS)
+
+    def test_every_parts_label_is_optional_on_every_level(self):
+        """A part's block contents icon may be left out on every level (owner, 2026-11-20): preferences.json's
+        optional_block_contents (staging's le_labels, main's and upper's le_band_labels) lists exactly the level's
+        parts. The plugin reads the list from the preferences only, so it is kept there and held to devices.csv here."""
+        import json
+        prefs = json.loads((bdm.OVERRIDES.parent / "preferences.json").read_text(encoding="utf-8"))
+        got = {"1": prefs["staging"]["le_labels"]["optional_block_contents"],
+               "2": prefs["main_upper"]["le_band_labels"]["Main"]["optional_block_contents"],
+               "3": prefs["main_upper"]["le_band_labels"]["Upper"]["optional_block_contents"]}
+        want = {lv: [r["user_name"] for r in self.rows if r["level"] == lv and r["role"] == "part"] for lv in "123"}
+        self.assertEqual(got, want)
 
     def test_main_and_upper_trial_names(self):
         got = tuple((r["level"], r["user_name"], r["trial_name"]) for r in self.rows

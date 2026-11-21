@@ -21,7 +21,7 @@ from repo_read_only import RepoReadOnly  # noqa: E402
 
 HEAD = ",".join(BL.EXCEPTION_COLUMNS) + "\n"
 # a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2)
-SCALE_AT_7 = "1,track,5,7,1,7,OS Switch 7,23,a test row\n"
+SCALE_AT_7 = "1,track,5,7,1,7,OS Switch 7,23,,a test row\n"
 # the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
 # block (owner, 2026-11-20: LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
 # home mast stands at a switch's points facing the link: then in the OS block at its other end (125-129, 201-205,
@@ -131,6 +131,22 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
                          {"Track 1-3 at 1": "OS Switch 1", "Track 1-3 at 3": "OS Switch 3"})
         self.assertNotIn("Track 1-3", lay.tracks)
 
+    def test_a_piece_marked_inside_stays_in_its_os_block_with_no_block_of_its_own(self):
+        """block_exceptions.csv's `inside` (owner, 2026-11-20): the two halves of 35-39 stay inside OS Switch 35b and
+        OS Switch 39, with no JMRI or layout block, so Mast 36RB's route to Mast 68 is 3 blocks, not 5; every other
+        part follows the rule (a JMRI block of its own)."""
+        lay = self.layer()
+        self.assertEqual(lay.inside, {"Track 35-39 at 35": "OS Switch 35b", "Track 35-39 at 39": "OS Switch 39"})
+        self.assertFalse({"Track 35-39 at 35", "Track 35-39 at 39"} & set(lay.parts))
+        self.assertEqual(len(lay.parts), 14)
+        bi = next(iter(lay.rows))
+        self.assertIn(["OS Switch 35b", "OS Switch 39"], [sorted(v) for v in lay.rows[bi].values()])
+        self.assertNotIn("Track 35-39", lay.tracks)
+
+    def test_inside_is_yes_or_empty_and_only_for_a_track_row(self):
+        self.stops(HEAD + "1,track,9,11,,,OS Switch 9,,no,\n", "inside is yes or empty")
+        self.stops(HEAD + "1,crossover_half,7,13,,,OS Switch 7,,yes,\n", "with no parallel, end, cm or inside")
+
     def test_a_piece_at_one_end_leaves_the_rest_its_own_block(self):
         lay = self.layer(self.committed + SCALE_AT_7)
         self.assertEqual(lay.parts["Track Scale at 7"]["part_of"], "OS Switch 7")
@@ -204,7 +220,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.stops(HEAD + "1,track,9,11,,,Track Barn,\n", "is no OS block")
         self.stops(HEAD + "1,track,11,9,,,OS Switch 9,\n", "lower first")
         self.stops(HEAD + "1,track,9,11,,13,OS Switch 9,\n", "its end empty or one of them")
-        self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,\n", "with no parallel, end or cm")
+        self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,\n", "with no parallel, end, cm or inside")
 
     def test_a_row_that_matches_no_track_or_half_stops(self):
         self.stops(self.committed + "1,track,2,4,,,OS Switch 2,\n", "no track runs Switch 2 to Switch 4")
@@ -362,6 +378,21 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(changed, {("occupancy", "BS Barn"), ("block", "Track Barn"),
                                    ("occupancy", "BS EH-1"), ("block", "Track EH-1")})
 
+    def test_a_parts_name_map_cells_follow_its_rewired_block(self):
+        """OS Switch 9 and OS Switch 11 swap inputs in wiring.csv: their parts (Track 9-11 and Track 11-13) take the
+        rewired block's control point, detector and comment in the name map on the same build, and keep their
+        place (pnm_order)."""
+        def swap(text):
+            return (text.replace("1,detector,OS Switch 9,,,,,13,8,", "1,detector,OS Switch 9,,,,,13,2,")
+                        .replace("1,detector,OS Switch 11,,,,,13,2,", "1,detector,OS Switch 11,,,,,13,8,"))
+        got, want = self.by(self.rows(pins=swap)[0]), self.by(self.rows()[0])
+        for part, block in (("Track 9-11", "OS Switch 9"), ("Track 11-13", "OS Switch 11")):
+            p, b = got[("block", part)], got[("block", block)]
+            self.assertNotEqual(b["pnm_hardware"], want[("block", block)]["pnm_hardware"])
+            self.assertEqual((p["pnm_cp"], p["pnm_hardware"], p["pnm_comment"]),
+                             (b["pnm_cp"], b["pnm_hardware"], b["pnm_comment"]), part)
+            self.assertEqual(p["pnm_order"], want[("block", part)]["pnm_order"])
+
     def test_a_hand_edit_of_the_wiring_in_the_master_is_overwritten(self):
         stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498", wiring="Node: 4 Block: 99",
                                  pnm_hardware="M2S498", pnm_comment="Node: 4 Block: 99"),
@@ -436,13 +467,17 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(adopts, {("1", r["layer"], r["user_name"]) for r in want})
 
     def test_a_block_that_becomes_a_part_frees_its_detector_as_a_spare(self):
-        """East Lead given to OS Switch 33: its block row becomes a part (no name-map columns), its detector a spare
-        row named by its node input, and both old keys are dropped from the name map on purpose."""
+        """East Lead given to OS Switch 33: its block row becomes a part, its detector a spare row named by its node
+        input, and both old keys are dropped from the name map on purpose; the part, a JMRI block of its own, takes a
+        new place in the name map with its OS block's control point and detector."""
         got, adopts, drops = self.rows(extra_exception="1,track,33,35,,,OS Switch 33,,\n")
         by = {(r["layer"], r["user_name"]): r for r in got}
         part = by[("block", "Track East Lead")]
-        self.assertEqual((part["role"], part["part_of"], part["pnm_order"], part["layout_block"]),
-                         ("part", "OS Switch 33", "", ""))
+        self.assertEqual((part["role"], part["part_of"], part["assignment"]), ("part", "OS Switch 33", "virtual"))
+        self.assertTrue(part["pnm_order"].isdigit())
+        self.assertEqual(part["pnm_notes"], "part of OS Switch 33")
+        # a JMRI block of its own (owner, 2026-11-20) under new names, the next free number: not the old block's
+        self.assertRegex(part["jmri_name"] + " " + part["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
         self.assertNotIn(("occupancy", "BS East Lead"), by)
         spare = by[("occupancy", "unused Block 1-7")]
         self.assertEqual((spare["role"], spare["assignment"], spare["system_name"], spare["blocks"]),

@@ -1055,7 +1055,20 @@
    }
   },
   "35-37": {
-   "name": "OS Switch 35a"
+   "discipline": "CTC",
+   "name": "Track 35-37",
+   "occupied": {
+    "DECADDR": "105",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Switch 35a",
+    "command": "close"
+   },
+   "station": "35-37",
+   "unoccupied": {
+    "DECADDR": "105",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   }
   },
   "Barn": {
    "discipline": "CTC",

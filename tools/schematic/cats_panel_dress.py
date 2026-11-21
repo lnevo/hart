@@ -1,6 +1,7 @@
 """build_cats_panel.py's dress step: the frozen header and plate put on the generated document, the ABS twin's
 words, and the desk's label clashes. Moved out of build_cats_panel.py unchanged."""
 import copy
+import re
 import xml.etree.ElementTree as ET
 
 from hartlib import paths
@@ -36,11 +37,63 @@ def plate_box(cats, cell, loc, text, font):
     return cats.frill_box(cell, loc, per * len(text) + 4, h)
 
 
-def dress(cats, root, header, plate, desk, fit):
+def right_edge(cats, fit) -> int:
+    """The x, in pixels, no desk label may run past: the `fit` columns and one more, as dress keeps the frozen
+    plate and station_plates the control point plates."""
+    return (fit[0] + 1) * cats.GRID_PX
+
+
+PLATE_FONT, PLATE_LOC = "FONT_CP", "LOWCENT"     # a control point plate, as the hand-built desk wrote them
+
+
+def station_plates(cats, root, stations, used: dict, boxes: list, fit) -> list[tuple[str, tuple[int, int]]]:
+    """[(text, cell)] of the control point plates (`stations`: [(name, switch numbers)] of stations.csv's desk_plate
+    rows, read_stations), each the station's name in capitals in the free cell nearest the plant cells of its
+    switches (digicon_trace.desk_plants: the bound staging plants), ties to the cell above, then to the left. A cell
+    is free when no section uses it, nor any cell the plate's label spans, and the label is clear of every other label
+    (`boxes`) by 6 px and inside the window (`fit` rows, right_edge): the desk never grows. SystemExit naming the station when one has
+    no plant on the desk or no free cell. `used`: {cell: section} of the desk, `boxes`: [(cell, box)] of its labels,
+    both added to."""
+    import digicon_trace as trace          # cats/scripts, on build_cats_panel's path
+    cells = trace.track_cells(root.find("TRACKPLAN"))
+    plants = trace.desk_plants(cells, bound=True)
+    cols, rows = fit
+    out = []
+    for name, switches in stations:
+        mine = [xy for os_name, xy in plants.items()
+                if re.fullmatch(r"OS Switch (\d+)[a-d]?", os_name)
+                and re.fullmatch(r"OS Switch (\d+)[a-d]?", os_name).group(1) in switches]
+        if not mine:
+            raise SystemExit(f"stations.csv: {name}'s plate: none of its switches ({', '.join(switches)}) has a "
+                             "plant on the desk")
+        cx, cy = sum(x for x, _ in mine) / len(mine), sum(y for _, y in mine) / len(mine)
+        text = name.upper()
+        found = None
+        for cell in sorted(((x, y) for x in range(cols) for y in range(rows)),
+                           key=lambda c: ((c[0] - cx) ** 2 + (c[1] - cy) ** 2, c[1], c[0])):
+            box = plate_box(cats, cell, PLATE_LOC, text, PLATE_FONT)
+            spans = {(x, cell[1]) for x in range(box[0] // cats.GRID_PX, (box[2] - 1) // cats.GRID_PX + 1)}
+            if box[0] < 0 or box[2] > right_edge(cats, fit) or spans & set(used):
+                continue
+            if any(b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6 for _c, b in boxes):
+                continue
+            found = (cell, box)
+            break
+        if found is None:
+            raise SystemExit(f"stations.csv: no free cell on the desk for {name}'s plate {text!r} (the desk keeps "
+                             f"its {cols} x {rows} cells)")
+        used[found[0]] = None
+        boxes.append(found)
+        out.append((text, found[0]))
+    return out
+
+
+def dress(cats, root, header, plate, desk, fit, stations=None):
     """The generated document `root` with the frozen header and the plate: the template's fonts the plugin does
     not write (its own keep their values), the template's other elements in place of the plugin's copies, every
     element in the live desk's order, and the plate's labels on free cells of their row, clear of each other and of
-    the labels there, within the `fit` columns. desk "ABS": every CTC block ABS and the plate's ABS words."""
+    the labels there, within the `fit` columns; then each control point plate of `stations` (station_plates).
+    desk "ABS": every CTC block ABS and the plate's ABS words."""
     fonts = {el.get("FONTKEY"): el for el in root.findall("FONTDEFINITION")}
     taken = {el.tag for el in header}           # a tag the header supplies replaces the plugin's copies
     kids = [el for el in root if el.tag != "FONTDEFINITION"]
@@ -84,9 +137,13 @@ def dress(cats, root, header, plate, desk, fit):
         hit = [c for c, b in boxes if b[1] < box[3] and box[1] < b[3] and b[0] < box[2] + 6 and box[0] < b[2] + 6]
         if hit:
             raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs into the label at {hit[0]}")
-        if box[2] > (fit[0] + 1) * cats.GRID_PX:
+        if box[2] > right_edge(cats, fit):
             raise SystemExit(f"{HEADER.name}: plate label {n.get('NAME')!r} at {cell} runs past column {fit[0]}")
         boxes.append((cell, box))
+        where[cell] = sec
+    for text, cell in station_plates(cats, root, stations or [], where, boxes, fit):
+        sec = ET.Element("SECTION", X=str(cell[0]), Y=str(cell[1]))
+        ET.SubElement(sec, "SEC_NAME", LOC_NAME=PLATE_LOC, NAME=text, FONT_NAME=PLATE_FONT)
         where[cell] = sec
     for sec in tp.findall("SECTION"):
         tp.remove(sec)

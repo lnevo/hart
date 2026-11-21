@@ -134,5 +134,55 @@ class Dress(unittest.TestCase):
         self.assertEqual(B.label_clashes(log), ["no room for label X", "label A crosses B"])
 
 
+class ControlPointPlates(unittest.TestCase):
+    """The control point plates (owner, 2026-11-21): stations.csv's desk_plate stations, each its name in capitals
+    in FONT_CP, in the free cell nearest its switches' plants, on both desks; the desk never grows."""
+
+    def setUp(self):
+        from test_build_cats_panel_bindings import fit, plugin_cats
+        self.cats, self.fit = plugin_cats(), fit()
+
+    def root(self, desk="HART_CTC.xml"):
+        import xml.etree.ElementTree as ET
+        return ET.parse(ROOT / "cats/panels" / desk).getroot()
+
+    def test_both_desks_carry_the_five_plates_in_the_window(self):
+        for desk in ("HART_CTC.xml", "HART_ABS.xml"):
+            plates = {n.get("NAME"): n for n in self.root(desk).iter("SEC_NAME") if n.get("FONT_NAME") == "FONT_CP"}
+            self.assertEqual(sorted(plates), ["BARN", "BRICK", "EAST END", "PLANE", "PRINCESS"], desk)
+            self.assertEqual({n.get("LOC_NAME") for n in plates.values()}, {"LOWCENT"})
+
+    def test_a_plate_with_no_plant_or_no_free_cell_stops(self):
+        with self.assertRaisesRegex(SystemExit, "Nowhere's plate: none of its switches .* has a plant"):
+            B.station_plates(self.cats, self.root(), [("Nowhere", ("999",))], {}, [], self.fit)
+        with self.assertRaisesRegex(SystemExit, "no free cell on the desk for Brick's plate 'BRICK'"):
+            B.station_plates(self.cats, self.root(), [("Brick", ("1", "3"))], {}, [], (0, 0))
+
+    def test_a_plate_may_reach_as_far_right_as_the_frozen_plate_may(self):
+        """station_plates keeps a plate inside the same right edge as dress keeps the frozen plate,
+        (fit columns + 1) cells: PRINCESS at (52, 2) spans to x 1609, inside 54 cells (1620) though past 53 (1590)."""
+        root = self.root()
+        tp = root.find("TRACKPLAN")
+        for sec in [s for s in tp.findall("SECTION") if s.find("SEC_NAME") is not None
+                    and s.find("SEC_NAME").get("FONT_NAME") == "FONT_CP"]:
+            tp.remove(sec)
+        used = {(int(s.get("X")), int(s.get("Y"))): s for s in tp.findall("SECTION")}
+        boxes = [((int(s.get("X")), int(s.get("Y"))),
+                  B.plate_box(self.cats, (int(s.get("X")), int(s.get("Y"))), n.get("LOC_NAME"), n.get("NAME"),
+                              n.get("FONT_NAME")))
+                 for s in tp.findall("SECTION") for n in [s.find("SEC_NAME")] if n is not None]
+        got = B.station_plates(self.cats, root, [("Princess", ("35", "37", "39"))], dict(used), list(boxes),
+                               (53, self.fit[1]))
+        self.assertEqual(got, [("PRINCESS", (52, 2))])
+        self.assertEqual(B.right_edge(self.cats, (53, 30)), 54 * self.cats.GRID_PX)
+
+    def test_a_plate_takes_the_free_cell_nearest_its_plants(self):
+        root = self.root()
+        used = {(int(s.get("X")), int(s.get("Y"))): s for s in root.iter("SECTION")}
+        got = B.station_plates(self.cats, root, [("Brick", ("1", "3"))], dict(used), [], self.fit)
+        self.assertEqual([t for t, _c in got], ["BRICK"])
+        self.assertNotIn(got[0][1], used)
+
+
 if __name__ == "__main__":
     unittest.main()

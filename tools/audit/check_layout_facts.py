@@ -134,9 +134,24 @@ def parse_tables(path: Path) -> ET.Element:
 
 # ---------------------------------------------------------------- tables.xml
 
+def part_map(master: Path) -> dict[str, str]:
+    """{part: the block it is part of} of every level's parts (devices.csv part_of) in the master at `master`: the
+    master that goes with the tables being checked."""
+    return {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("1", "2", "3"), master)}
+
+
+def desk_leg(t: "Tables", cells: dict, xy: tuple[int, int], edge: str, own: str) -> str | None:
+    """The block a desk plant's leg `edge` leads to, read as the Layout Editor's legs are (Tables.leg_block): past
+    its own OS block `own` and the parts inside it, a part read as the block it is part of."""
+    inside = frozenset(p for p, of in t.part_of.items() if of == own)
+    return t.os_of(trace.trace_leg(cells, xy, edge, own=own, inside=inside))
+
+
 class Tables:
-    def __init__(self, path: Path, root: ET.Element | None = None) -> None:
-        """The tables at `path`, or `root` when the caller holds them parsed already (the USS CTC view)."""
+    def __init__(self, path: Path, root: ET.Element | None = None, parts: dict[str, str] | None = None) -> None:
+        """The tables at `path`, or `root` when the caller holds them parsed already (the USS CTC view). `parts`:
+        {part: the block it is part of} from the master that goes with these tables (part_map); none when not
+        given, never read from the repo behind the caller's back."""
         self.path = path
         self.root = parse_tables(path) if root is None else root
         self.block_user: dict[str, str] = {}
@@ -164,6 +179,9 @@ class Tables:
         self.segments = {s.get("ident"): s for s in self.root.iter("tracksegment")}
         self.points = {p.get("ident"): p for p in self.root.iter("positionablepoint")}
         self.paths_stored = bool(self.paths)
+        # a part (devices.csv part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
+        # legs in switch_legs.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)
+        self.part_of: dict[str, str] = dict(parts or {})
         self.sensor_system = {
             (s.findtext("userName") or "").strip(): (s.findtext("systemName") or "").strip()
             for s in self.root.iter("sensor")
@@ -214,8 +232,13 @@ class Tables:
         attr = {"A": "blockname", "B": "blockbname", "C": "blockcname", "D": "blockdname"}[conn]
         return lt.get(attr) or lt.get("blockname")
 
+    def os_of(self, block: str | None) -> str | None:
+        """The block `block` is part of (part_of), or `block` itself."""
+        return self.part_of.get(block, block) if block else block
+
     def leg_block(self, ident: str, conn: str, own: str) -> str | None:
-        """Block reached from connection B or C of a layout turnout, past its own OS block."""
+        """Block reached from connection B or C of a layout turnout, past its own OS block (and the parts inside
+        it), a part read as the block it is part of (os_of)."""
         came = (ident, f"TURNOUT_{conn}")
         seg = next((s for s in self.segments.values()
                     for i in ("1", "2")
@@ -223,8 +246,8 @@ class Tables:
         for _ in range(200):
             if seg is None:
                 return None
-            if seg.get("blockname") and seg.get("blockname") != own:
-                return seg.get("blockname")
+            if seg.get("blockname") and self.os_of(seg.get("blockname")) != own:
+                return self.os_of(seg.get("blockname"))
             ends = [(seg.get("connect1name"), seg.get("type1")), (seg.get("connect2name"), seg.get("type2"))]
             name, kind = ends[1] if ends[0] == came else ends[0]
             if kind == "POS_POINT":
@@ -236,7 +259,7 @@ class Tables:
                 came = (name, "POS_POINT")
                 seg = self.segments.get(nxt) if nxt else None
             elif kind and kind.startswith("TURNOUT_") and name in self.layout_turnouts:
-                block = self._turnout_block(self.layout_turnouts[name], kind[-1])
+                block = self.os_of(self._turnout_block(self.layout_turnouts[name], kind[-1]))
                 return block if block != own else None
             else:
                 return None
@@ -440,7 +463,7 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
                 if rep is None or (rep.text or "").strip() != cmd:
                     r.add(f"cats:{n}", f"{n}: {desk} {leg.os_block} leg {edge} reports "
                                        f"{(rep.text or '').strip() if rep is not None else '-'} but commands {cmd}")
-                dest = trace.trace_leg(cells, xy, edge, own=leg.os_block)
+                dest = desk_leg(t, cells, xy, edge, leg.os_block)
                 want = {"close": leg.closed, "throw": leg.thrown}.get(cmd)
                 if dest != want:
                     r.add(f"cats:{n}", f"{n}: {desk} {leg.os_block} leg {edge} ({cmd}) leads to {dest}; "
@@ -510,7 +533,7 @@ def check_level_desk(path: Path, t: Tables, r: Report) -> None:
                                       f"of {user} it commands")
             if (ri.get("NORMAL") == "true") != (cmd == "close"):
                 r.add(f"cats:{user}", f"{desk}: plant at {xy} in {os_name}: NORMAL is not its close leg")
-            cmds[cmd] = trace.trace_leg(cells, xy, edge, own=os_name)
+            cmds[cmd] = desk_leg(t, cells, xy, edge, os_name)          # as leg_block reads the Layout Editor
         if len(users) != 1 or set(cmds) != {"close", "throw"}:
             r.add(f"cats:{os_name}", f"{desk}: plant at {xy} in {os_name} commands {sorted(map(str, users))} with "
                                      f"{sorted(cmds)}; one turnout, close and throw")
@@ -771,12 +794,14 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
 
 
 def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path = GUI,
-        occupancy: Path = OCCUPANCY) -> Report:
+        occupancy: Path = OCCUPANCY, device_map: Path = DEVICE_MAP) -> Report:
+    """`device_map`: the master that goes with `tables` (its parts, part_map)."""
     import gen_ctc_track_plan as gen
 
     r = Report()
     switches = facts.load_switches(data)
-    t = Tables(tables)
+    parts = part_map(device_map)
+    t = Tables(tables, parts=parts)
     check_data(switches, data, r)
     rows = facts.identity_rows(data)  # the name map of devices.csv, read once for the checks below
     check_levels(switches, data, rows, t, r)
@@ -793,7 +818,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     if uss_root is t.root:
         uss, uss_text = t, Path(tables).read_text(encoding="utf-8")
     else:
-        uss = Tables(tables, root=uss_root)
+        uss = Tables(tables, root=uss_root, parts=parts)
         pe = next(iter(uss_root.iter("paneleditor")), None)       # only the USS panel is read from the text
         uss_text = ET.tostring(pe, encoding="unicode") if pe is not None else ""
     check_ctc_buttons(switches, uss, occupancy_sensors(occupancy), r)
@@ -811,8 +836,10 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--desk", type=Path, action="append",
                     help="CATS desk (repeat); default the last hand-wired CTC and ABS (git)")
     ap.add_argument("--gui", type=Path, default=GUI)
+    ap.add_argument("--devices", type=Path, default=DEVICE_MAP,
+                    help="the master that goes with --tables (its parts: a part is read as the block it is in)")
     args = ap.parse_args(argv)
-    r = run(args.data, args.tables, tuple(args.desk) if args.desk else DESKS, args.gui)
+    r = run(args.data, args.tables, tuple(args.desk) if args.desk else DESKS, args.gui, device_map=args.devices)
     for line in r.known(KNOWN):
         print(f"KNOWN {line}")
     failures = r.failures(KNOWN)

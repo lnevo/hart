@@ -175,17 +175,24 @@
      "EH-3"
     ]
    ],
-   "lamp_columns": [
-    [
-     "S-R",
-     "S-1",
-     "S-2",
-     "S-3",
-     "S-4"
-    ]
+   "optional_block_contents": [
+    "Track 1-3 at 1",
+    "Track 1-3 at 3",
+    "Track 9-11",
+    "Track 11-13",
+    "Track 13-15",
+    "Track 15-17",
+    "Track 17-19",
+    "Track 19-21",
+    "Track 23-31",
+    "Track 25-27",
+    "Track 27-29",
+    "Track 29-31",
+    "Track 31-33",
+    "Track 35-37"
    ]
   },
-  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns), and its occupancy lamps share one x, each on its track (lamp_columns; owner, 2026-11-16; the lamps are parked with the Dispatcher System). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line).",
+  "_le_labels": "Layout Editor station buttons (owner, 2026-11-16): the engine house's three step along one slope, one row apart; West Yard's W-2 steps from W-1 as the engine house's buttons step, so the two follow W-2's curve up to switch 3. South Yard's track names stand on one centre x, in the middle of the yard between its ladders (name_columns). The engine house's track names step with their tracks' west ends as EH-1 and EH-2 do, each the same distance in from its track's end (name_steps; owner, 2026-11-18: EH-3 had drifted 30 px east of that line). A part's block contents icon is optional on every level (optional_block_contents: staging's parts here, main's and upper's in le_band_labels; owner, 2026-11-20): a short block that is tight on the panel needs no label, and one with no clean spot is left out (logged). The occupancy lamps' column (lamp_columns) went with the lamps, parked and off every panel (owner, 2026-11-21).",
   "le_band_align": {
    "1": "left"
   },
@@ -437,20 +444,45 @@
     ],
     "hidden_names": [
      "101-103"
+    ],
+    "optional_block_contents": [
+     "Track 101-103",
+     "Track 105-109",
+     "Track 109-111",
+     "Track 111-117",
+     "Track 113-115",
+     "Track 115-117",
+     "Track 117-119",
+     "Track 121-123",
+     "Track 123-125",
+     "Track 125-129",
+     "Track 127-131 2"
     ]
    },
    "Upper": {
     "names_last": true,
     "block_contents_size": 12,
     "optional_block_contents": [
+     "Track 201-203",
+     "Track 201-205",
+     "Track 201-219",
+     "Track 205-209",
+     "Track 213-215",
+     "Track 219-221",
+     "Track 225-227",
+     "Track 225-229",
      "Track 227-231",
-     "Track 229-233"
+     "Track 229-233",
+     "Track 231-237",
+     "Track 235-243",
+     "Track 237-239",
+     "Track 239-245"
     ],
     "crowded_block_contents": [
      "OS Switch 235"
     ]
    }
   },
-  "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents: OS Switch 235's icon has no clean spot since the plan 5.3c lengths shifted the upper columns; the owner wants it drawn anyway, overlaps allowed, for review (2026-11-20)."
+  "_le_band_labels": "Each level's own label options (owner, 2026-11-16). Main and upper at staging's grid (the three-level candidate) are denser than staging, so every block's contents icon comes first and a track name with no room is left out (logged; names_last), and the icons are 12 px, the short reserve still tried before none: at 13 px three have no clean spot at any reserve (staging keeps 13). numbers_below: SW-101 on its crossover's bottom track side, clear of 103 drawn tight above it. hidden_names: track 101-103, the short track inside the 101/103 three-way, has no name on the Layout Editor panel; it keeps it everywhere else. optional_block_contents: Track 227-231 (227-233 before the upper renumber) is 16 px between switches 227 and 231, and with Masts 228RA and 228RB beside it no clean spot is left for its icon, which may be left out (logged; 2026-11-16). crowded_block_contents: OS Switch 235's icon has no clean spot since the plan 5.3c lengths shifted the upper columns; the owner wants it drawn anyway, overlaps allowed, for review (2026-11-20). Every part's block contents icon is optional (optional_block_contents: the level's parts in devices.csv; owner, 2026-11-20)."
  }
 }

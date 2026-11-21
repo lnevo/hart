@@ -44,6 +44,20 @@ block,IB:AUTO:0047,OS Switch 35b|BS Switch 35b
 block,IB:AUTO:0048,Track K-2|BS K-2
 block,IB:AUTO:0050,Track West Ext|BS West Ext
 block,IB:AUTO:0051,Track East Ext|BS East Ext
+block,IB:AUTO:0052,Track 1-3 at 1|BS Switch 1
+block,IB:AUTO:0054,Track 1-3 at 3|BS Switch 3
+block,IB:AUTO:0056,Track 9-11|BS Switch 9
+block,IB:AUTO:0057,Track 11-13|BS Switch 11
+block,IB:AUTO:0058,Track 13-15|BS Switch 15
+block,IB:AUTO:0059,Track 15-17|BS Switch 15
+block,IB:AUTO:0060,Track 17-19|BS Switch 17
+block,IB:AUTO:0061,Track 19-21|BS Switch 19
+block,IB:AUTO:0063,Track 23-31|BS Switch 31
+block,IB:AUTO:0064,Track 25-27|BS Switch 25
+block,IB:AUTO:0070,Track 27-29|BS Switch 27
+block,IB:AUTO:0071,Track 29-31|BS Switch 29
+block,IB:AUTO:0073,Track 31-33|BS Switch 31
+block,IB:AUTO:0078,Track 35-37|BS Switch 35a
 block,IB:C3:0001,OS Switch 101|BS Switch 101
 block,IB:C3:0002,OS Switch 103|BS Switch 103
 block,IB:C3:0003,OS Switch 105|BS Switch 105

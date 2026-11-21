@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-SCRIPTS = HERE.parent
+SCRIPTS = HERE.parent.parent / "scripts"      # parked with the lamps (owner, 2026-11-21): not run by check.sh
 ROOT = next(p for p in HERE.parents if (p / "tools/hartlib/src").is_dir())
 sys.path.insert(0, str(SCRIPTS))
 

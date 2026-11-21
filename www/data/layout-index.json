@@ -10,7 +10,7 @@
     "width": 2513,
     "height": 1382,
     "scale": 1.0,
-    "inputs_sha256": "6b4cffc42d3b8edb0090b42f8d7c8e56074761efc937086b7639f032bb33c2d3"
+    "inputs_sha256": "e30f5b0de83aa34e038a48cd567a9ac58e0c08ec0489f7c80aeedd62ebacb5bf"
   },
   "items": [
     {
@@ -2289,6 +2289,19 @@
       "block": ""
     },
     {
+      "id": "dev-IB:AUTO:0078",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0078",
+      "publicName": "Track 35-37",
+      "cp": "Princess",
+      "hardware": "Block 1-6",
+      "mqtt": "105",
+      "comment": "Princess",
+      "block": ""
+    },
+    {
       "id": "dev-M2S106",
       "kind": "occupancy",
       "x": null,
@@ -2705,6 +2718,32 @@
       "block": ""
     },
     {
+      "id": "dev-IB:AUTO:0058",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0058",
+      "publicName": "Track 13-15",
+      "cp": "South Yard",
+      "hardware": "Block 3-2",
+      "mqtt": "301",
+      "comment": "South Yard",
+      "block": ""
+    },
+    {
+      "id": "dev-IB:AUTO:0059",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0059",
+      "publicName": "Track 15-17",
+      "cp": "South Yard",
+      "hardware": "Block 3-2",
+      "mqtt": "301",
+      "comment": "South Yard",
+      "block": ""
+    },
+    {
       "id": "dev-M2S302",
       "kind": "occupancy",
       "x": null,
@@ -2731,6 +2770,19 @@
       "block": ""
     },
     {
+      "id": "dev-IB:AUTO:0060",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0060",
+      "publicName": "Track 17-19",
+      "cp": "South Yard",
+      "hardware": "Block 3-3",
+      "mqtt": "302",
+      "comment": "South Yard",
+      "block": ""
+    },
+    {
       "id": "dev-M2S304",
       "kind": "occupancy",
       "x": null,
@@ -2750,6 +2802,19 @@
       "y": null,
       "systemName": "IB:AUTO:0045",
       "publicName": "OS Switch 19",
+      "cp": "South Yard",
+      "hardware": "Block 3-5",
+      "mqtt": "304",
+      "comment": "South Yard",
+      "block": ""
+    },
+    {
+      "id": "dev-IB:AUTO:0061",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0061",
+      "publicName": "Track 19-21",
       "cp": "South Yard",
       "hardware": "Block 3-5",
       "mqtt": "304",
@@ -2978,6 +3043,19 @@
       "block": ""
     },
     {
+      "id": "dev-IB:AUTO:0054",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0054",
+      "publicName": "Track 1-3 at 3",
+      "cp": "Brick",
+      "hardware": "Block 4-1",
+      "mqtt": "400",
+      "comment": "Brick",
+      "block": ""
+    },
+    {
       "id": "dev-M2S401",
       "kind": "occupancy",
       "x": null,
@@ -2997,6 +3075,19 @@
       "y": null,
       "systemName": "IB:AUTO:0033",
       "publicName": "OS Switch 1",
+      "cp": "Brick",
+      "hardware": "Block 4-2",
+      "mqtt": "401",
+      "comment": "Brick",
+      "block": ""
+    },
+    {
+      "id": "dev-IB:AUTO:0052",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0052",
+      "publicName": "Track 1-3 at 1",
       "cp": "Brick",
       "hardware": "Block 4-2",
       "mqtt": "401",
@@ -3355,6 +3446,19 @@
       "block": ""
     },
     {
+      "id": "dev-IB:AUTO:0064",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0064",
+      "publicName": "Track 25-27",
+      "cp": "East End",
+      "hardware": "Block 12-1",
+      "mqtt": "1200",
+      "comment": "East End",
+      "block": ""
+    },
+    {
       "id": "dev-M2S1202",
       "kind": "occupancy",
       "x": null,
@@ -3374,6 +3478,19 @@
       "y": null,
       "systemName": "IB:AUTO:0037",
       "publicName": "OS Switch 27",
+      "cp": "East End",
+      "hardware": "Block 12-3",
+      "mqtt": "1202",
+      "comment": "East End",
+      "block": ""
+    },
+    {
+      "id": "dev-IB:AUTO:0070",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0070",
+      "publicName": "Track 27-29",
       "cp": "East End",
       "hardware": "Block 12-3",
       "mqtt": "1202",
@@ -3433,6 +3550,19 @@
       "block": ""
     },
     {
+      "id": "dev-IB:AUTO:0071",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0071",
+      "publicName": "Track 29-31",
+      "cp": "East End",
+      "hardware": "Block 12-5",
+      "mqtt": "1204",
+      "comment": "East End",
+      "block": ""
+    },
+    {
       "id": "dev-M2S1205",
       "kind": "occupancy",
       "x": null,
@@ -3478,6 +3608,32 @@
       "y": null,
       "systemName": "IB:AUTO:0042",
       "publicName": "OS Switch 31",
+      "cp": "East End",
+      "hardware": "Block 12-7",
+      "mqtt": "1206",
+      "comment": "East End",
+      "block": ""
+    },
+    {
+      "id": "dev-IB:AUTO:0063",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0063",
+      "publicName": "Track 23-31",
+      "cp": "East End",
+      "hardware": "Block 12-7",
+      "mqtt": "1206",
+      "comment": "East End",
+      "block": ""
+    },
+    {
+      "id": "dev-IB:AUTO:0073",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0073",
+      "publicName": "Track 31-33",
       "cp": "East End",
       "hardware": "Block 12-7",
       "mqtt": "1206",
@@ -3784,6 +3940,19 @@
       "block": ""
     },
     {
+      "id": "dev-IB:AUTO:0057",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0057",
+      "publicName": "Track 11-13",
+      "cp": "Engine House",
+      "hardware": "Block 13-2",
+      "mqtt": "1301",
+      "comment": "Engine House",
+      "block": ""
+    },
+    {
       "id": "dev-IB19",
       "kind": "occupancy",
       "x": null,
@@ -3937,6 +4106,19 @@
       "hardware": "M2S1307",
       "mqtt": "1307",
       "comment": "Node: 13 Block: 8",
+      "block": ""
+    },
+    {
+      "id": "dev-IB:AUTO:0056",
+      "kind": "occupancy",
+      "x": null,
+      "y": null,
+      "systemName": "IB:AUTO:0056",
+      "publicName": "Track 9-11",
+      "cp": "Engine House",
+      "hardware": "Block 13-8",
+      "mqtt": "1307",
+      "comment": "Engine House",
       "block": ""
     },
     {
@@ -5659,9 +5841,9 @@
   "counts": {
     "turnout": 85,
     "signal": 99,
-    "occupancy": 210,
+    "occupancy": 224,
     "sensor": 40,
     "mapped": 163,
-    "total": 434
+    "total": 448
   }
 }

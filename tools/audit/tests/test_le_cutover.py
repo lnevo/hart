@@ -14,6 +14,7 @@ import copy
 import functools
 import importlib
 import io
+import json
 import re
 import sys
 import tempfile
@@ -33,6 +34,12 @@ staging_key = T.staging_key
 def page_prefs() -> dict:
     """The page's preferences (preferences.json's main_upper section, the last input's), as the build reads them."""
     return B.schematic()[1]
+
+
+def optional_staging() -> set:
+    """Staging's optional block contents icons (preferences.json's staging section, le_labels): its parts."""
+    prefs = json.loads((B.pd.DATA / "preferences.json").read_text(encoding="utf-8"))
+    return set(prefs["staging"]["le_labels"].get("optional_block_contents", []))
 
 
 def stretch() -> tuple:
@@ -195,7 +202,9 @@ class Cutover(unittest.TestCase):
         self.assertNotIn("Neville Island", texts)
         bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
         self.assertEqual(set(bcis.values()), {1})              # one block contents icon per block
-        self.assertEqual(set(bcis), T.used_blocks(self.le))
+        # but the optional ones with no clean spot (logged): staging's Track 11-13 and 13-15
+        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 11-13", "Track 13-15"})
+        self.assertLessEqual(T.used_blocks(self.le) - set(bcis), optional_staging())
         # the lamps and station clusters are parked: only the status cluster's sensor icons are on the panel
         self.assertEqual({i.get("sensor") for i in self.le.findall("sensoricon")}, STATUS["sensoricon"])
 
@@ -506,15 +515,6 @@ class ThreeLevels(unittest.TestCase):
         texts = {el.get("text") for el in self.le.iter("positionablelabel")}
         self.assertIn("HART RAILROAD", texts)
         self.assertNotIn("Neville Island", texts)
-        # each OS lamp of a plain switch centred in its control circle, as parked
-        own = {t.get("blockname"): t for t in self.le.findall("layoutturnout") if "XOVER" not in t.get("type")}
-        lamps = [it for it in parked_items["items"] if it["id"].startswith("lamp ") and it["anchor"]["block"] in own]
-        self.assertGreaterEqual(len(lamps), 15)
-        for it in lamps:
-            t = own[it["anchor"]["block"]]
-            x, y = B.panel_items.anchor_point(it["anchor"], whole, blocks, it["id"])
-            self.assertLessEqual(math.dist((round(x) + 5, round(y) + 5), (float(t.get("xcen")), float(t.get("ycen")))),
-                                 1.5, it["id"])
         self.assertEqual(self.base[1].extra_x, {})            # no caller's items: the station clusters are parked
 
     def test_owner_layout_rules_of_2026_11_16_second_round(self) -> None:
@@ -671,6 +671,7 @@ class ThreeLevels(unittest.TestCase):
         icons = Counter(el.get("blockcontents") for el in self.le.iter("BlockContentsIcon"))
         # every block but those the levels' optional_block_contents let go when no clean spot is left (logged)
         optional = {b for v in page_prefs()["le_band_labels"].values() for b in v.get("optional_block_contents", [])}
+        optional |= optional_staging()
         left_out = optional - set(icons)
         skipped = {re.search(r"block contents of (.+?): no clean spot", m).group(1) for m in self.P.bcis_skipped}
         self.assertEqual(skipped, left_out)
@@ -678,7 +679,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
-        self.assertEqual(len(staging), 45)
+        self.assertEqual(len(staging), 57)        # 45 blocks and 14 parts (owner, 2026-11-20), less 11-13 and 13-15
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
         self.assertEqual({size[b] for b in staging}, {"13"})
         # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)

@@ -73,7 +73,7 @@
         reads that file back, and the railroad is there again.
       </p>
       <p>
-        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->0.8 MB<!--/tf--> and <!--tf:lines-->11,476<!--/tf--> lines long, and it has
+        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->0.8 MB<!--/tf--> and <!--tf:lines-->11,697<!--/tf--> lines long, and it has
         <!--tf:top-->17<!--/tf--> top-level sections. It is in the ordinary JMRI format. <code>build_tables.py</code> generates it from the device master (<code>devices.csv</code>) and a template, and
         PanelPro <!--tf:version-->5.16<!--/tf-->, the main JMRI program, loads it. It holds no connection settings: how JMRI reaches the layout lives in the profile, a
         separate set of preferences. Everything else is in here, including the <!--tf:panel-count-->one panel<!--/tf--> you see on
@@ -105,10 +105,10 @@ userName    BS K-1<!--/tf--></code></pre>
         <svg class="jm-svg" viewBox="0 0 360 58" role="img" aria-labelledby="tf-o-t tf-o-d">
           <title id="tf-o-t">The file from top to bottom</title>
           <desc id="tf-o-d">A bar for the whole file. About <!--tf:objects-->63%<!--/tf--> is objects, then about <!--tf:panels-->37%<!--/tf--> panels.</desc>
-          <!--tf:bar--><rect class="own" x="8" y="14" width="217" height="34" rx="3"/>
-          <rect class="acc" x="225" y="14" width="126" height="34" rx="3"/>
+          <!--tf:bar--><rect class="own" x="8" y="14" width="218" height="34" rx="3"/>
+          <rect class="acc" x="226" y="14" width="125" height="34" rx="3"/>
           <rect class="own" x="351" y="14" width="1" height="34" rx="3" style="fill:var(--muted);stroke:var(--muted)"/>
-          <text class="t-b t-w" x="116" y="36" text-anchor="middle">Objects</text>
+          <text class="t-b t-w" x="117" y="36" text-anchor="middle">Objects</text>
           <text class="t-b t-d" x="288" y="36" text-anchor="middle">Panels</text><!--/tf-->
         </svg>
         <figcaption class="section-note">The file from top to bottom, left to right, drawn to scale.</figcaption>
@@ -125,15 +125,15 @@ userName    BS K-1<!--/tf--></code></pre>
             <tr><td>Memories</td><td>Small stored values, such as the fast-clock time and the mimic page's requests.</td><td class="num">under 1%</td></tr>
             <tr><td>Signal heads</td><td>Virtual heads that carry each lamp's colour.</td><td class="num">4%</td></tr>
             <tr><td>Signal masts</td><td>The signals, real and virtual, all stock Basic.</td><td class="num">4%</td></tr>
-            <tr><td>Blocks</td><td>Stretches of track, each with an occupancy sensor and paths to its neighbours.</td><td class="num">10%</td></tr>
-            <tr><td>Layout blocks</td><td>The Layout Editor's view of each block.</td><td class="num">5%</td></tr>
+            <tr><td>Blocks</td><td>Stretches of track, each with an occupancy sensor and paths to its neighbours.</td><td class="num">11%</td></tr>
+            <tr><td>Layout blocks</td><td>The Layout Editor's view of each block.</td><td class="num">6%</td></tr>
             <tr><td>Sections</td><td>Dispatcher track pieces, mostly made from pairs of masts. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Transits</td><td>Whole moves that the Dispatcher builds from sections. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Signal Mast Logic</td><td>The rules that set a mast from the track ahead.</td><td class="num">12%</td></tr>
             <tr><td>Logix</td><td>Older-style logic items. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Conditionals</td><td>The conditions and actions inside those Logix. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Fast clock</td><td>The settings of JMRI's fast clock.</td><td class="num">under 1%</td></tr>
-            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.</td><td class="num">19%</td></tr>
+            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.</td><td class="num">18%</td></tr>
             <tr><td>CTC data</td><td>The USS CTC machine's code buttons and settings. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Entry/Exit</td><td>Pairs that line a route from a click on the panel. Parked.</td><td class="num">parked</td></tr>
             <tr><td colspan="3"><strong>Panels</strong></td></tr>
@@ -187,7 +187,7 @@ userName    BS K-1<!--/tf--></code></pre>
           <text class="t-w" x="501" y="98" text-anchor="middle" style="font-size:13px">paths name turnouts</text>
           <path class="line" d="M174 83H223" marker-end="url(#tf-ar)"/>
           <path class="line" d="M375 83H424" marker-end="url(#tf-ar)"/>
-          <text class="t-s" x="300" y="146" text-anchor="middle"><!--tf:layout-blocks-->165<!--/tf--> layout blocks share <!--tf:detectors-->140<!--/tf--> detectors</text>
+          <text class="t-s" x="300" y="146" text-anchor="middle"><!--tf:layout-blocks-->179<!--/tf--> layout blocks share <!--tf:detectors-->140<!--/tf--> detectors</text>
 
           <rect class="band" x="10" y="180" width="580" height="210" rx="8"/>
           <text class="t-s" x="24" y="202">Signals and the Dispatcher</text>
@@ -218,8 +218,8 @@ userName    BS K-1<!--/tf--></code></pre>
         Editor's view of a block) names that sensor, and a block of the same name joins its neighbours through
         paths. The file stores no paths: JMRI works them out from the Layout Editor panel when it loads the file.
         Several blocks can share one detector; since the hidden yard throats were dropped (November 2026)
-        each yard track is one block on its own detector. <!--tf:shared-->22 detectors are shared.<!--/tf--> That leaves
-        <!--tf:layout-blocks-->165<!--/tf--> layout blocks on <!--tf:detectors-->140<!--/tf--> detectors. On the main and upper levels each block's sensor is an internal one
+        each yard track is one block on its own detector. <!--tf:shared-->34 detectors are shared.<!--/tf--> That leaves
+        <!--tf:layout-blocks-->179<!--/tf--> layout blocks on <!--tf:detectors-->140<!--/tf--> detectors. On the main and upper levels each block's sensor is an internal one
         for now, since those levels have no detectors yet.
       </p>
       <p>

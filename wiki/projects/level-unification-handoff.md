@@ -243,6 +243,27 @@ Step 5 follow-ups (2026-11-20):
   (`MAIN_UPPER_TRIALS` and the renumber test). `mast_rule.tracks` keeps an edge-keyed `trial` list internally (the
   tie-break for parallel track numbers and `block_splits.csv`'s edge lookup); it is never written.
 - **Helix stop** (owner, 2026-11-20): see step 4's device-map part above (`helix_stops`, `KNOWN_STOP` gone).
+- **Staging's parts as JMRI blocks** (owner decision 2026-11-20, branch `agent/claude/staging-parts-blocks`, a
+  candidate waiting on the owner's approval). One rule for every level: a part is a JMRI block on its OS block's
+  sensor (`hartlib.devices` has no staging case left). Staging gets 14 part blocks; its part rows carry IB:AUTO:<n> and
+  ILB<n> (`build_device_map.part_bean_names`, the next free number, never shifted: 52 to 78) and a comment naming
+  their block's detector; `block_lengths.csv` has 14 new rows (`plan_lengths.csv_with`). The two halves of 35-39 stay
+  inside OS 35b and OS 39 with no JMRI block (owner, 2026-11-20): `block_exceptions.csv`'s new `inside` column, yes on
+  their two rows (`block_layer.Layer.inside`; on main and upper an inside piece stops the build). As blocks of their
+  own they made Mast 36RB's route to Mast 68 five blocks against four the wrong way round the Princess balloon
+  (35-37, OS 37, K-2), and JMRI's discovery followed the wrong way to its ttlSize of 50 and dropped the pair. The
+  masts read a part inside its OS block (`staging_device_map.os_layer`) and face the JMRI block next to them: only
+  Mast 32R changes (facing Track 29-31, edge_cm 23.4 to 14.7). Every level's part labels are optional
+  (`optional_block_contents` in preferences.json, a hand list held to devices.csv by `test_blocks_every_level`: the
+  plugin reads it from the preferences only); left without an icon: staging 11-13 and 13-15, main 115-117, upper
+  227-231 and 229-233. Panel 2509 x 1424 (unchanged), 179 blocks (165 before), 174 block contents icons (163). Stock
+  discovery in a sandbox: all 177 SML pairs, the same as main's (tables.xml's Signal Mast Logic is byte-identical).
+  The layout facts and the desk leg trace read a part as the OS block it is inside (`check_layout_facts.Tables.os_of`,
+  `digicon_trace.trace_leg(inside=)`), and the 14 part blocks have public name-map rows. In the same PR (owner,
+  2026-11-21, one panel change): the occupancy lamps are parked with their code and checks (`parked/`, staging's
+  `lamp_columns` gone, the lamp-offset check retired; no track, switch or mast moved, only 5 labels and 4 block
+  contents icons), and the CATS control point plates come back from `stations.csv`'s `desk_plate` column (Brick,
+  Plane, Barn, East End, Princess; `cats_panel_dress.station_plates`).
 
 ### Owner decisions, late 2026-11-20
 

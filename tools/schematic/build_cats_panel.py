@@ -76,7 +76,7 @@ from cats_panel import (LEVEL_TURNOUT, LEVEL_TURNOUT_PREFIX, MAIN_UPPER_DISCIPLI
                         loop_half_edge, mast_bindings, name_loop_halves, os_blocks, plan_edge, placeholder,
                         planned_sensor, spec, switch_bindings, switch_of, track_block, virtual_sensor, xover_corners)
 from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_header, label_clashes,  # noqa: E402,F401
-                              plate_box)
+                              plate_box, right_edge, station_plates)
 
 # The live desks (CATS cut-over, owner approved the generated desks in real CATS on 2026-11-15): the names the hosts,
 # launchers and shortcuts use. Nothing else writes them.
@@ -184,6 +184,17 @@ def check_desk_faults(cats, P, fit):
         sys.exit(f"error: the desk has {len(found)} fault(s), listed above")
 
 
+def desk_plates() -> list[tuple[str, tuple[str, ...]]]:
+    """[(station, its switches)] of stations.csv's desk_plate rows (hartlib.railroad_facts.read_stations): the control
+    point plates both desks carry (owner, 2026-11-21: Brick, Plane, Barn, East End, Princess, as the hand-built desk)."""
+    from hartlib import railroad_facts
+    try:
+        rows = railroad_facts.read_stations(pd.DATA / "stations.csv")
+    except railroad_facts.FactsError as exc:
+        raise SystemExit(f"error: {exc}") from None
+    return [(st.name, st.switches) for st in rows if st.desk_plate]
+
+
 def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
@@ -203,8 +214,8 @@ def generate(plugin, out, bindings_out, out_abs=None):
         cats.check_fit(P, *fit)  # backstop only: check_desk_faults already stops on a desk too big for its window
         for desk, path in (("CTC", out), ("ABS", out_abs)):
             if path is not None:
-                Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, window), header, plate, desk, fit),
-                                      encoding="utf-8")
+                Path(path).write_text(dress(cats, cats.to_xml(P, "CTC", header, window), header, plate, desk, fit,
+                                            desk_plates()), encoding="utf-8")
     except cats.SchematicError as e:
         sys.exit(f"error: {e}")
     cols, rows = cats.shown(P)

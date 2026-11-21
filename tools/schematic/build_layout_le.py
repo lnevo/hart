@@ -131,8 +131,8 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
 # cut-over build and kept as P.staging_fit) widened by preferences.json[main_upper]'s le_stretch (the plugin's
 # stretched and check_stretch). The geometry knobs of the Layout Editor drawing (le_shift, le_longer_straights,
 # le_crossover_angle, le_mast_room, le_name_room, le_title_clear,
-# le_stretch, le_window, le_row, and the label options: staging's le_labels extra_steps, extra_follow, name_columns
-# and lamp_columns, preferences.json[main_upper]'s page-wide le_labels and each level's le_band_labels) are layer 3
+# le_stretch, le_window, le_row, and the label options: staging's le_labels extra_steps, extra_follow and name_columns,
+# preferences.json[main_upper]'s page-wide le_labels and each level's le_band_labels) are layer 3
 # preferences the plugin reads (schematic/le_prefs.py, schematic/le_labels.py). Crossovers 101 and 103, one
 # three-way part in the plan, are drawn tight and split by the plugin's rule (schematic-maps 0.1.48), not a
 # preference.

@@ -18,14 +18,23 @@ the block layer of every level from the drawing: an OS block per switch (a singl
 when they have their own detectors, staging 7, 23 and 35), a block per track named by the plan's name, else by its end
 switches, halves from `block_splits.csv` (every level, a `level` column: 227-241, staging's K-1 and K-2), helix blocks
 through `helix_tracks.csv`, and parts. A part is a piece of track inside another block: a `devices.csv` row with
-`part_of` naming that block, role `part`, no JMRI block, layout block or occupancy row of its own (every reader skips
-it: `hartlib.devices.OUT_OF_MAPS`, and `tables_build` by name). That is the standard way to put a short piece in an OS
+`part_of` naming that block, role `part`, no occupancy row or detector of its own (the device maps skip it:
+`hartlib.devices.OUT_OF_MAPS`). That is the standard way to put a short piece in an OS
 block. The rule, on every level: a track between two switches under 50 cm (`LINK_CM`) is part of the lower-numbered
 switch's OS block (at a double crossover, the corner block of its leg), but where a home mast stands at a switch's
 points facing it, part of the OS block at its other end, so the block boundary is at the mast (`block_layer
-.masted_block`; a mast at both ends stops the build). On main and upper a part is still a JMRI block, layout block
-and track on the panel whose occupancy sensor is its OS block's (no occupancy row or detector of its own; owner,
-2026-11-20); staging's parts have no JMRI block until the owner decides. `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
+.masted_block`; a mast at both ends stops the build). On every level a part is a JMRI block, layout block and
+track on the panel whose occupancy sensor is its OS block's (owner, 2026-11-20: main and upper's 25, staging's 14).
+Main and upper's are numbered by the Layout Editor build; staging's carry their names in their rows
+(`build_device_map.part_bean_names`: IB:AUTO:<n> and ILB<n>, the next free number, never shifted), since the
+generator writes staging's beans. The masts read a part inside its OS block (`staging_device_map.os_layer`, as
+`block_layer.Layer.bands` on main and upper) and face the JMRI block next to them (Mast 32R faces Track 29-31).
+A part's block contents icon is optional on every level: `optional_block_contents` in `preferences.json` lists
+every level's parts (the plugin takes the list from the preferences only; `test_blocks_every_level` holds it to
+`devices.csv`). A piece that `block_exceptions.csv` marks `inside` stays inside its OS block with no JMRI or
+layout block of its own (owner, 2026-11-20: the two halves of 35-39, in OS 35b and OS 39, so Mast 36RB's route
+to Mast 68 is shorter than the wrong way round the Princess balloon, which JMRI's discovery otherwise follows
+until its ttlSize and drops the pair). `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
 where the wiring says otherwise (13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39) and
 the crossover halves with detectors of their own. `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
@@ -63,7 +72,7 @@ make desks            # only the CATS desks, then validate them
 | tables | `build_tables.py` | `output/tables.xml`, the file PanelPro and CATS load (ADR-029: an output): the template, the staging beans of `devices.csv`, the Layout Editor build, the discovered Signal Mast Logic (`data/schematic/discovered_sml.xml`, written only by `run_sml_discover.sh`) and the Digicon boot rule, in a fixed envelope. `--check` (also in `tools/check.sh`) fails on any difference. A PanelPro Store is never copied over it: `make tables-pull` keeps it in `~/JMRI_UserFiles-pulled/`, and `split_store.py` splits it into the template and `devices.csv` (R9d: the owner's settings kept, device changes reviewed, the repo wins on what the build makes). `--discovery-base` writes it with no Signal Mast Logic, for `run_sml_discover.sh` |
 | staging-sync | `sync_staging_signals.py --check` | nothing: stops when the staging heads and masts in `tables.xml` differ from `staging_masts.csv`. It runs after `tables`, which generates them from `devices.csv` |
 | device-master | `check_device_master.py --check` | nothing: checks every level of `devices.csv` against `tables.xml` and the schematic, after `tables` writes it, with one set of rules for every level (a rule that reads a file only one level has is that file's, not a level test). The staging rows that carry no `written_by` (turnouts, feedback) are kept by hand and read against the staging band here, as are staging's block and occupancy rows, which `build_device_map.py` writes; `staging_masts.csv`, `staging_signals.csv` and the mast and head rows are generated (staging-masts above), and the main and upper rows are `build_device_map.py`'s, whose `--check` reads them against the drawing |
-| cats | `build_cats_panel.py` | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json`; it runs after `tables`, whose turnouts, sensors and masts the desks read. The bindings for every level come from one builder, `cats_panel.py` (facts in `cats_panel_facts.py`, header and plate in `cats_panel_dress.py`) |
+| cats | `build_cats_panel.py` | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json`; it runs after `tables`, whose turnouts, sensors and masts the desks read. The bindings for every level come from one builder, `cats_panel.py` (facts in `cats_panel_facts.py`, header and plate in `cats_panel_dress.py`). The control point plates (BRICK, PLANE, BARN, EAST END, PRINCESS; owner, 2026-11-21) come from `stations.csv`'s `desk_plate` column: each in the free cell nearest its switches' plants, on both desks; the desk never grows, and a plate with no free cell stops the build (`cats_panel_dress.station_plates`) |
 | approved-desks | `check_approved.py cats-ctc cats-abs` | nothing: stops the run when a desk no longer matches the fingerprint the owner approved |
 | approved-live | `check_approved.py le-panel` | nothing: stops when the live panel in `tables.xml` drifts from the approved fingerprint |
 

@@ -8397,7 +8397,7 @@
    "detector": "C1-B2",
    "channel": "2",
    "block": "OS Switch 39",
-   "track": "OS Switch 39",
+   "track": "OS Switch 39, Track 35A-39A 2/2",
    "area": "Helix - Staging",
    "note": "Block 1-4 / M2S103"
   },
@@ -8407,7 +8407,7 @@
    "detector": "C1-B3",
    "channel": "1",
    "block": "OS Switch 35b",
-   "track": "OS 35 A-39A",
+   "track": "OS 35 A-39A, Track 35A-39A 1/2",
    "area": "Helix - Staging",
    "note": "Block 1-5 / M2S104"
   },

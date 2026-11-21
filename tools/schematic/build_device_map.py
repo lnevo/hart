@@ -735,6 +735,9 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     check_helix_ends(bands, joined, found, helix)
     stops = helix_stops(helix)              # check_helix_ends: each helix track ends at its level_switch
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
+    if lay.inside:          # the main and upper drawing gives each strand one block: a piece there is a part
+        raise MapError(f"block_exceptions.csv keeps {', '.join(sorted(lay.inside))} inside an OS block on main or "
+                       "upper, whose drawing gives each strand one block; leave inside empty (a part)")
     trials = level_trials(bands, joined, lay)
 
     def trial_of(name: str) -> str:
@@ -985,8 +988,9 @@ FIELD_LAYERS = ("block", "occupancy")
 
 def part_row(level: str, name: str, part: dict, trial: str) -> dict:
     """The master row of a part (block_layer.Layer.parts): a piece of track inside another block, part_of naming it,
-    with no occupancy row or detector of its own (hartlib.devices: role part, assignment none). On main and upper the
-    Layout Editor build still makes it a JMRI block, its sensor its OS block's; staging's parts have no JMRI block."""
+    with no occupancy row or detector of its own (hartlib.devices: role part). It is a JMRI block of its own on every
+    level, its sensor its OS block's (owner, 2026-11-20): main and upper's the Layout Editor build makes (assignment
+    none here); staging_rows gives staging's their bean names (part_bean_names, assignment virtual)."""
     t = part["track"]
     row = {c: "" for c in devices.COLUMNS}
     row.update(level=level, layer="block", role="part", user_name=name, assignment="none", trial_name=trial,
@@ -996,6 +1000,57 @@ def part_row(level: str, name: str, part: dict, trial: str) -> dict:
                part_of=part["part_of"], written_by="build_device_map.py")
     row["description"] = devices.describe(row)
     return row
+
+
+PART_BLOCK_FIRST = 52        # a new staging part's number: the first above staging's last JMRI block (IB:AUTO:0051)
+
+
+def part_bean_names(parts: list[str], prior: dict, taken: set) -> dict[str, tuple[str, str]]:
+    """{part: (jmri_name, layout_block)} of the parts of a level whose beans the generator writes (staging,
+    tables_build.GENERATED_LEVELS), each a JMRI block of its own on its block's occupancy sensor (owner, 2026-11-20):
+    the names its row has (`prior`: {part: (jmri_name, layout_block)}), else, in name order, the next number n from
+    PART_BLOCK_FIRST up with neither IB:AUTO:<nnnn> nor ILB<n> in `taken` (every other bean's names), so a name never
+    shifts. MapError on a row with one of the two names only, or a name another bean has."""
+    out, bad, used = {}, [], set(taken)
+    for p in sorted(parts, key=natural):
+        if p not in prior:
+            continue
+        jn, lb = prior[p]
+        if bool(jn) != bool(lb):
+            bad.append(f"{p}: its row has a jmri_name or a layout_block, not both")
+        elif jn:
+            clash = [x for x in (jn, lb) if x in used]
+            if clash:
+                bad.append(f"{p}: its row has {'jmri_name' if clash[0] == jn else 'layout_block'} {clash[0]}, which "
+                           "another bean has")
+            out[p] = (jn, lb)
+            used |= {jn, lb}
+    if bad:
+        raise MapError("; ".join(bad))
+    n = PART_BLOCK_FIRST
+    for p in sorted(parts, key=natural):
+        if p in out:
+            continue
+        while f"IB:AUTO:{n:04d}" in used or f"ILB{n}" in used:
+            n += 1
+        out[p] = (f"IB:AUTO:{n:04d}", f"ILB{n}")
+        used |= set(out[p])
+    return out
+
+
+BEAN_NAME = re.compile(r"\bIB:AUTO:\d{4}\b|\bILB\d+\b")
+
+
+def taken_bean_names(master: list[dict]) -> set:
+    """Every name a bean has but staging's parts': the master's other rows (system_name, jmri_name, layout_block),
+    and the template's and the parked snapshot's block and layout block names (hartlib.tables_build.TEMPLATE,
+    hartlib.parked.PARKED_XML), so a new part's numbers are free everywhere."""
+    from hartlib import parked, tables_build
+    out = {r[c] for r in master if not (r["level"] == FIELD_LEVEL and r["role"] == "part")
+           for c in ("system_name", "jmri_name", "layout_block") if r[c]}
+    for path in (tables_build.TEMPLATE, parked.PARKED_XML):
+        out |= set(BEAN_NAME.findall(path.read_text(encoding="utf-8")))
+    return out
 
 
 def part_drops(parts: list[dict]) -> set:
@@ -1202,10 +1257,19 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
     helix = {h["block"] for h in read_helix_tracks().values()}
-    prior = {(r["layer"], r["user_name"]): r for r in devices.load(files or device_files())
+    master = devices.load(files or device_files())
+    prior = {(r["layer"], r["user_name"]): r for r in master
              if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
     blocks = set(lay.bands[bi]["os"].values()) | set(lay.tracks)
     out, bad, drops, freed = [], [], set(), []
+    # staging's beans are the generator's (tables_build.GENERATED_LEVELS), so its parts carry their block names here,
+    # where main and upper's take theirs from the Layout Editor build (le_tables numbering)
+    mine = {r["user_name"]: (r["jmri_name"], r["layout_block"]) for r in master
+            if r["level"] == FIELD_LEVEL and r["role"] == "part"}
+    try:
+        beans = part_bean_names(list(lay.parts), mine, taken_bean_names(master))
+    except MapError as exc:
+        raise MapError(f"staging parts: {exc}") from None
     staging_pins = read_staging_pins(pins)
     pin_of = {p.block: p for p in staging_pins if p.block}
     on_helix = helix_pins(pins)
@@ -1227,6 +1291,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         row["description"] = devices.describe(row)
         return row
 
+    next_pnm = [max((int(r["pnm_order"]) for r in master if r["pnm_order"]), default=0)]
     for name in sorted(blocks | set(lay.parts), key=natural):
         if name in lay.parts:
             part = lay.parts[name]
@@ -1242,7 +1307,18 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                         freed.append(freed_spare(occ, name, part["part_of"]))
                     except MapError as exc:
                         bad.append(str(exc))
-            out.append(part_row(FIELD_LEVEL, name, part, trials[name]))
+            row = part_row(FIELD_LEVEL, name, part, trials[name])
+            row.update(assignment="virtual", jmri_name=beans[name][0], layout_block=beans[name][1])
+            # a JMRI block of its own, so a row of the public name map (ADR-005): the place it has, else the next;
+            # its control point, detector and comment are its block's, taken below from the block's rewired row
+            if old is not None and old["role"] == "part" and old["pnm_order"]:
+                row["pnm_order"] = old["pnm_order"]
+            else:
+                next_pnm[0] += 1
+                row["pnm_order"] = str(next_pnm[0])
+            row["pnm_notes"] = f"part of {part['part_of']}"
+            row["description"] = devices.describe(row)
+            out.append(row)
         else:
             row = carried("block", name, trial_name=trials.get(name, ""))
             at = (pin_of[name].node, pin_of[name].k) if name in pin_of else on_helix.get(name)
@@ -1252,6 +1328,23 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                 except MapError as exc:
                     bad.append(str(exc))
             out.append(row)
+    comment_of = {r["user_name"]: r["jmri_comment"] for r in out if r is not None and r["role"] != "part"}
+    block_rows = {r["user_name"]: r for r in out if r is not None and r["role"] != "part"}
+    for r in out:               # a part's JMRI comment: where it is, and its block's detector (its occupancy sensor)
+        if r is not None and r["role"] == "part":
+            of = block_rows.get(r["part_of"])       # as rewired on this build (wiring.csv)
+            if of is None or not of["pnm_order"]:
+                bad.append(f"staging part {r['user_name']}: its block {r['part_of']} has no name-map row to take its "
+                           "control point and detector from")
+                continue
+            r.update(pnm_cp=of["pnm_cp"], pnm_hardware=of["pnm_hardware"], pnm_comment=of["pnm_comment"])
+            m = re.search(r"occupancy .*$", comment_of.get(r["part_of"], ""))
+            if not m:
+                bad.append(f"staging part {r['user_name']}: its block {r['part_of']} has no occupancy in its comment")
+                continue
+            t = lay.parts[r["user_name"]]["track"]
+            ends = " to ".join(f"Switch {s}" for s in sorted({v for k, v in t["ends"] if k == "sw"}, key=natural))
+            r["jmri_comment"] = f"Part of {r['part_of']}, the track from {ends}; {m.group(0)}"
     occupancy = []
     for b in sorted(blocks - helix, key=natural):
         row = carried("occupancy", occupancy_user(b), blocks=b)

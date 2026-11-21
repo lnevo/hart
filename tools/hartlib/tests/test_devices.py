@@ -244,31 +244,32 @@ class TheParts(unittest.TestCase):
     def test_only_a_block_row_is_a_part(self):
         self.assertIn("part_of is for a block row", problems([block(), part(layer="occupancy")]))
 
-    def test_a_staging_part_makes_no_jmri_device(self):
-        for col, value in (("assignment", "field"), ("system_name", "IB9"), ("jmri_name", "IB9"),
-                           ("layout_block", "ILB9"), ("stop", "yes"), ("node", "4"), ("detector", "wired"),
-                           ("wiring", "Node: 4 Block: 2"), ("dcc", "100")):
-            with self.subTest(col):
-                self.assertIn("a staging part makes no JMRI block", problems([block(), part(**{col: value})]))
+    def test_a_part_has_no_detector_of_its_own_on_every_level(self):
+        """One rule for every level (owner, 2026-11-20): a part is a JMRI block whose occupancy sensor is its block's,
+        so it has no detector, wiring, node or DCC address of its own, and no field assignment."""
+        for level in ("1", "2"):
+            home = block(level=level) if level == "1" else block(level="2", assignment="none", system_name="",
+                                                                    jmri_name="", layout_block="")
+            for col, value in (("assignment", "field"), ("node", "4"), ("detector", "wired"),
+                               ("wiring", "Node: 4 Block: 2"), ("dcc", "100")):
+                with self.subTest(level=level, col=col):
+                    self.assertIn("a part has no detector of its own",
+                                  problems([home, part(level=level, **{col: value})]))
 
-    def test_a_main_or_upper_part_has_no_detector_of_its_own(self):
-        main = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
-        for col, value in (("assignment", "field"), ("node", "4"), ("detector", "wired"),
-                           ("wiring", "Node: 4 Block: 2"), ("dcc", "100")):
-            with self.subTest(col):
-                self.assertIn("a part has no detector of its own",
-                              problems([main, part(level="2", **{col: value})]))
-
-    def test_a_part_may_be_a_jmri_block_of_its_own(self):
-        # main and upper's links (owner, 2026-11-20): a JMRI block and layout block whose sensor is its block's
+    def test_a_part_may_be_a_jmri_block_of_its_own_on_every_level(self):
+        # main and upper's links and staging's 16 pieces (owner, 2026-11-20): a JMRI block and layout block whose
+        # sensor is its block's
         main = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
         D.check_rows([main, part(level="2", system_name="IB9", jmri_name="IB9", layout_block="ILB9",
                                  assignment="virtual")])
+        D.check_rows([block(), part(jmri_name="IB:AUTO:0099", layout_block="ILB99", assignment="virtual")])
 
-    def test_a_parts_description_says_whether_it_is_a_jmri_block(self):
-        self.assertIn("no JMRI block of its own", D.describe(part()))
-        self.assertIn("a JMRI block of its own on OS Switch 9's occupancy sensor", D.describe(part(level="2")))
-
+    def test_a_parts_description_is_the_same_on_every_level(self):
+        for level in ("1", "2"):
+            self.assertEqual(D.describe(part(level=level)),
+                             "Piece Track 9-11 of block OS Switch 9: a JMRI block of its own on OS Switch 9's "
+                             "occupancy sensor.")
+        self.assertFalse(hasattr(D, "STAGING_LEVELS"))
     def test_the_block_it_names_is_on_the_parts_own_level(self):
         other = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
         self.assertIn("part_of 'OS Switch 9' is no block row", problems([part(), other]))
@@ -287,7 +288,7 @@ class TheParts(unittest.TestCase):
 
     def test_the_device_maps_leave_parts_out(self):
         self.assertIn("part", D.OUT_OF_MAPS)
-        self.assertEqual(D.describe(part()), "Piece Track 9-11 of block OS Switch 9: no JMRI block of its own.")
+        self.assertIn("a JMRI block of its own", D.describe(part()))
 
 
 BEAN = ('{"beans":[{"section":["turnouts","jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml"],'

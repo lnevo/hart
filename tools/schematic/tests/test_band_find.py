@@ -219,7 +219,7 @@ class LabelRuleNamingNoBand(unittest.TestCase):
         bands, page = le_common.schematic()
         labels = le_common.plugin_module("le_labels")
         opts = labels.options(bands, page)[le_common.base_band(bands)]
-        for rule in ("extra_steps", "extra_follow", "name_columns", "name_steps", "lamp_columns"):
+        for rule in ("extra_steps", "extra_follow", "name_columns", "name_steps"):
             self.assertEqual(opts[rule], own[rule], rule)
 
 

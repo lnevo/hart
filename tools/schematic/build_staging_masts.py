@@ -213,13 +213,17 @@ def run_strands(band) -> dict:
     return out
 
 
-def generate(band, names: dict, planned: dict, cm: dict, wired: dict) -> list[dict]:
+def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dict) -> list[dict]:
     """The visible staging masts in the columns the files take, from mast_plan.plan's home masts and intermediates on
     the staging band (`names`: the device map's block layer, `cm`: block_cm; a mast in `wired`, from wired_heads, is a
     field signal): [{mast, cp, switch, facing, protects, kind, heads, dir, toward, run, names, edge_cm,
     cm_from_toward, edge, node}], in name order. A home mast stands at its switch's leg when the block boundary is
-    there (a turnout mast), else on the anchor where the switch's own OS block ends (an anchor mast, no switch)."""
-    seqs = {}                      # (node, leg) -> the blocks from that switch leg along its run
+    there (a turnout mast), else on the anchor where the switch's own OS block ends (an anchor mast, no switch); a
+    part of the OS block (a JMRI block of its own, owner 2026-11-20) is inside it, as mast_plan reads the layer
+    (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track 29-31), and its
+    lengths are the JMRI blocks' (block_lengths.csv), as build_signals.check_lengths reads them."""
+    part_of = parts
+    seqs = {}                      # (node, leg) -> the JMRI blocks from that switch leg along its run
     for start, seq, end in with_lengths(mast_plan.run_blocks(band, names), cm):
         seqs[tuple(start)] = (seq, tuple(end))
         seqs[tuple(end)] = (seq[::-1], tuple(start))
@@ -230,8 +234,9 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict) -> list[di
         n, p = m["node"], m["leg"]
         seq, far = seqs[(n, p)]
         own = names["os"][n]
-        at_turnout = not seq or seq[0] != own
-        facing = next((b for b in seq if b != own), None)
+        inside = lambda b, own=own: part_of.get(b, b) == own        # noqa: E731  the OS block or a part of it
+        at_turnout = not seq or not inside(seq[0])
+        facing = next((b for b in seq if not inside(b)), None)
         if facing is None:
             far_node = nodes[far[0]]
             facing = names["os"].get(far[0]) if far_node["kind"] == "switch" else None
@@ -425,8 +430,9 @@ def build():
     old = devices.device_map_rows(devices.load(files), ("1",))    # the master's staging rows, as the old file reads
     wired = wiring_heads(old)
     cm = block_cm()
-    planned = plan(band, bands, joined, runs, names, locks, cm)
-    gen = generate(band, names, planned, cm, wired)
+    parts = sdm.staging_parts(DEVICE_MAP)
+    planned = plan(band, bands, joined, runs, sdm.os_layer(names, parts), locks, cm)   # parts inside their blocks
+    gen = generate(band, names, planned, cm, wired, parts)
     unplaced = sorted(set(wired) - {m["mast"] for m in gen})
     if unplaced:
         raise RuleError(f"{DEVICE_MAP.name} wires heads on masts the rule does not place: "

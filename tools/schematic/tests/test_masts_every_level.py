@@ -51,7 +51,7 @@ STAGING_VISIBLE = (
     ("24L", "one-searchlight", 1, "23", "Track West Ext", "OS Switch 23a", "west"),
     ("24RA", "two-searchlight", 2, "23", "Track Main West", "OS Switch 23a", "east"),
     ("24RB", "one-low", 1, "23", "Track S-R", "OS Switch 23b", "east"),
-    ("32R", "one-low", 1, "31", "OS Switch 29", "OS Switch 31", "east"),
+    ("32R", "one-low", 1, "31", "Track 29-31", "OS Switch 31", "east"),     # a part, its own JMRI block (2026-11-20)
     ("34L", "two-searchlight", 2, "33", "Track East Lead", "OS Switch 33", "west"),
     ("34R", "one-searchlight", 1, "33", "Track Main East", "OS Switch 33", "east"),
     ("36RA", "two-searchlight", 2, "35", "Track West Ext", "OS Switch 35b", "east"),

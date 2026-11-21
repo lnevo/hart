@@ -98,6 +98,54 @@ class LayoutFactsTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "LEVEL_XING_A.*slip or level crossing"):
             check.Tables(tables).joined_blocks("Track Main West")
 
+    def test_a_part_is_read_as_the_block_it_is_inside(self) -> None:
+        """A part is a JMRI block of its own inside an OS block (owner, 2026-11-20); switch_legs.csv names the OS
+        blocks, so a leg is read past the parts of its own OS block and a part as the block it is part of."""
+        t = check.Tables(check.TABLES, parts=check.part_map(check.DEVICE_MAP))
+        self.assertEqual(t.os_of("Track 1-3 at 1"), "OS Switch 1")
+        self.assertEqual(t.os_of("Track Barn"), "Track Barn")
+        ident = next(i for i, lt in t.layout_turnouts.items() if lt.get("blockname") == "OS Switch 1")
+        legs = {t.leg_block(ident, c, "OS Switch 1") for c in "BC"}
+        self.assertIn("OS Switch 3", legs)
+        cells, plants = check.desk_plants(check.DESKS[0], check.Report())
+        xy = plants["OS Switch 35a"]
+        right = check.trace.trace_leg(cells, xy, "RIGHT", own="OS Switch 35a")
+        self.assertEqual(right, "Track 35-37")
+        self.assertEqual(check.trace.trace_leg(cells, xy, "RIGHT", own="OS Switch 35a",
+                                               inside=frozenset({"Track 35-37"})), "OS Switch 37")
+
+    def test_the_parts_come_from_the_caller_not_the_repo(self) -> None:
+        """Tables reads a part only from the part list its caller gives (run: the master that goes with the checked
+        file), never the repo's devices.csv behind its back: with none, a part is its own name."""
+        bare = check.Tables(check.TABLES)
+        self.assertEqual(bare.part_of, {})
+        self.assertEqual(bare.os_of("Track 1-3 at 1"), "Track 1-3 at 1")
+        given = check.Tables(check.TABLES, parts={"Track X": "OS Switch 1"})
+        self.assertEqual(given.os_of("Track X"), "OS Switch 1")
+        # run() takes the parts from the master it is given: a master with no part rows leaves Switch 1's leg a part
+        rows = [r for r in check.devices.load(check.DEVICE_MAP) if r["role"] != "part"]
+        master = self.tmp / "devices.csv"
+        master.write_text(check.devices.master_text(rows), encoding="utf-8")
+        self.assertEqual(check.part_map(master), {})
+        self.assertEqual(len(check.part_map(check.DEVICE_MAP)), 39)          # 14 staging, 11 main, 14 upper
+
+    def test_a_level_desk_leg_is_read_as_the_le_reads_it(self) -> None:
+        """check_level_desk compares a main or upper plant's close and throw legs with the Layout Editor's, which
+        reads a part as its OS block (leg_block): the desk leg is read the same way (desk_leg: past its own OS
+        block's parts, a part as the block it is in), so a swapped plant is never hidden by a part's own name."""
+        t = check.Tables(check.TABLES, parts=check.part_map(check.DEVICE_MAP))
+        cells = check.trace.track_cells(check.parse(check.DESKS[0]).getroot().find("TRACKPLAN"))
+        plants = {os_name: (xy, points) for os_name, xy, points in check.trace.level_plants(cells)}
+
+        def legs(os_name):
+            xy, points = plants[os_name]
+            out = {}
+            for ri in cells[xy].findall(f"SEC_EDGE[@EDGE='{points}']/SWITCHPOINTS/ROUTEINFO"):
+                out[ri.find("ROUTECOMMAND/IOSPEC").text.strip()] = check.desk_leg(t, cells, xy, ri.get("ROUTEID"),
+                                                                                    os_name)
+            return out
+        self.assertEqual(legs("OS Switch 109")["throw"], "OS Switch 105")      # Track 105-109, part of OS 105
+        self.assertEqual(legs("OS Switch 213")["close"], "OS Switch 215")      # past its own part Track 213-215
     def test_joined_blocks_come_from_the_panel_when_no_paths_are_stored(self) -> None:
         t = check.Tables(check.TABLES)
         self.assertIn("OS Switch 1", t.joined_blocks("Track Main West"))

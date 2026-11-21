@@ -387,13 +387,15 @@ def read_interlockings(path: Path, levels: Iterable[int] = ALL_LEVELS) -> list[I
 # ---------------------------------------------------------------- inputs: stations and desk areas (stations.csv)
 
 STATION_COLUMNS = ("level", "station", "switches", "tracks", "desk_code")
+STATION_OPTIONAL = ("desk_plate", "notes")      # an absent desk_plate column puts no plate on the desks
 DESK_CODE = re.compile(r"[A-Z]+")
 
 
 @dataclass(frozen=True)
 class Station:
     """A station of stations.csv (every level; one row each). `tracks` is the cell as written (build_staging_sets
-    reads it: blank counts the tracks from the switches, `none` none, else names); `desk_code` names its desk area."""
+    reads it: blank counts the tracks from the switches, `none` none, else names); `desk_code` names its desk area;
+    `desk_plate` (yes) puts a control point plate with its name on the CATS desks (cats_panel_dress.station_plates)."""
     line: int
     level: int
     name: str
@@ -401,6 +403,7 @@ class Station:
     tracks: str
     desk_code: str
     notes: str = ""
+    desk_plate: bool = False
 
 
 @dataclass(frozen=True)
@@ -421,9 +424,9 @@ class DeskArea:
 def read_stations(path: Path) -> list[Station]:
     """The stations in file order. Stops, naming the file, line and station, on a level that is not 1, 2 or 3, a name
     that is empty or given twice, no switches, a switch that is not a number or is listed twice, and a desk code that
-    is missing, not capital letters, or more than one."""
+    is missing, not capital letters, or more than one, and a desk_plate that is not yes or empty."""
     out, names = [], {}
-    for line, r in read_rows(path, STATION_COLUMNS, optional=("notes",)):
+    for line, r in read_rows(path, STATION_COLUMNS, optional=STATION_OPTIONAL):
         where = _where(path, line)
         name = r["station"]
         if not name:
@@ -450,7 +453,9 @@ def read_stations(path: Path) -> list[Station]:
             raise FactsError(f"{at}: two desk codes in {code!r}; a station is in one desk area")
         if not DESK_CODE.fullmatch(code):
             raise FactsError(f"{at}: desk code {code!r} is not capital letters")
-        out.append(Station(line, level, name, sw, r["tracks"], code, r["notes"]))
+        if r["desk_plate"] not in ("", "yes"):
+            raise FactsError(f"{at}: desk_plate is yes or empty, not {r['desk_plate']!r}")
+        out.append(Station(line, level, name, sw, r["tracks"], code, r["notes"], r["desk_plate"] == "yes"))
     return out
 
 

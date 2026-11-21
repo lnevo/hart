@@ -3,7 +3,7 @@
 Write staging's station and control-point membership, in every place the build reads it, from the two files the owner
 edits (jmri/layouts/hart/data/schematic/):
 
-  stations.csv   level,station,switches,tracks,desk_code,notes   the stations of every level (one file, a level
+  stations.csv   level,station,switches,tracks,desk_code,desk_plate,notes   the stations of every level (one file, a level
                  column); `tracks` blank counts the tracks that run from the switches, `none` counts none, else track
                  names, ";" between; `desk_code` names the station's desk area (owner, 2026-11-20)
   sheets.csv     level,sheet,stations,notes                       the station detail sheets of every level, each the

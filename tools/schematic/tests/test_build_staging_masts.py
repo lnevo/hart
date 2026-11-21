@@ -133,14 +133,14 @@ class Generate(unittest.TestCase):
     CM = {"Track Main West": 300.0, "OS Switch 1": 20.0, "Track Scale": 100.0, "OS Switch 3": 30.0}
     CPS = {"1": "Brick", "3": "Brick", "5": "Brick"}
 
-    def generate(self, homes, wired=None, cm=None, runs=None, inter=()):
+    def generate(self, homes, wired=None, cm=None, runs=None, inter=(), parts=None):
         """generate() over the home masts `homes` and intermediates `inter`, as mast_plan.plan gives them."""
         patch = unittest.mock.patch.object
         with patch(mast_plan, "run_blocks", lambda band, names: list(self.RUNS if runs is None else runs)), \
                 patch(bsm, "run_strands", lambda band: dict(self.CHAINS)):
             return bsm.generate(self.BAND, self.NAMES, {"home": [dict(m) for m in homes],
                                                         "intermediates": [dict(m) for m in inter]},
-                                dict(self.CM if cm is None else cm), wired or {})
+                                dict(self.CM if cm is None else cm), wired or {}, dict(parts or {}))
 
     def one(self, m, **kw):
         (got,) = self.generate([m], **kw)
@@ -158,6 +158,22 @@ class Generate(unittest.TestCase):
         self.assertEqual((got["switch"], got["toward"], got["facing"], got["protects"]),
                          ("", "1", "Track Scale", "OS Switch 1"))
         self.assertEqual((got["run"], got["dir"], got["edge_cm"], got["cm_from_toward"]), ("1;3", "east", 150.0, 20.0))
+
+    def test_a_part_is_inside_its_block_and_a_mast_faces_the_jmri_block_beyond(self):
+        """A part is a JMRI block of its own (owner, 2026-11-20): a mast at the switch whose OS block holds it stands
+        past it, at the anchor; a mast at the other switch stands at its leg and faces the part (Mast 32R faces
+        Track 29-31); the lengths are the JMRI blocks'."""
+        runs = [(("N1", "B"), ["Track 1-3 at 1", "Track 3 Lead"], ("N3", "A"))]
+        cm = {"Track 1-3 at 1": 12.0, "Track 3 Lead": 8.0}
+        parts = {"Track 1-3 at 1": "OS Switch 1", "Track 3 Lead": "OS Switch 3"}
+        west = self.one(home("2R", "N1", "B"), runs=runs, cm=cm, parts={"Track 1-3 at 1": "OS Switch 1"})
+        self.assertEqual((west["switch"], west["facing"], west["protects"], west["edge_cm"], west["cm_from_toward"]),
+                         ("", "Track 3 Lead", "OS Switch 1", 20.0, 12.0))
+        east = self.one(home("4L", "N3", "A", switch="3"), runs=runs, cm=cm, parts={"Track 1-3 at 1": "OS Switch 1"})
+        self.assertEqual((east["switch"], east["facing"], east["protects"], east["cm_from_toward"]),
+                         ("3", "Track 3 Lead", "OS Switch 3", 0.0))
+        both = self.one(home("4L", "N3", "A", switch="3"), runs=runs, cm=cm, parts=parts)
+        self.assertEqual((both["switch"], both["facing"], both["cm_from_toward"]), ("", "Track 1-3 at 1", 8.0))
 
     def test_an_anchor_past_the_drawn_track_is_measured_from_the_far_end(self):
         # the OS block is longer than the track the plan draws (120 cm): the distance is from the other end
