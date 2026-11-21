@@ -69,9 +69,10 @@ class Sources:
     @classmethod
     def under(cls, data: Path = paths.LAYOUT_DATA, tables_xml: Path | None = None) -> "Sources":
         """The files at their places under a data folder laid out as jmri/layouts/hart/data/ is."""
+        from . import devices       # devices imports this module, so the import waits for the call
         s = data / "schematic"
         return cls(switches=data / "switches.csv",
-                   devices=data / "devices.csv",
+                   devices=devices.master_path(data),
                    interlockings=s / "interlockings.csv",
                    lcos_nodes=s / "lcos_nodes.csv",
                    plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",

@@ -5,15 +5,18 @@ from __future__ import annotations
 
 import csv
 import os
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 JMRI_ROOT = Path(__file__).resolve().parents[1]
 HART = JMRI_ROOT / "layouts" / "hart"
-# HART_TABLES names another tables file for the checks (tools/check.sh, hartlib.paths); this
-# script stays free of hartlib.
+sys.path.insert(0, str(JMRI_ROOT.parent / "tools/hartlib/src"))
+from hartlib import devices  # noqa: E402
+
+# HART_TABLES names another tables file for the checks (tools/check.sh, hartlib.paths).
 PANEL = Path(os.environ["HART_TABLES"]) if os.environ.get("HART_TABLES") else HART / "output" / "tables.xml"
-DEVICES = HART / "data" / "devices.csv"
+DEVICES = devices.MASTER
 SWITCHES = HART / "data" / "switches.csv"
 STAGING_COLUMNS = ("level", "switch", "os_block", "le_ident")
 
@@ -103,12 +106,11 @@ def main() -> int:
 
     # Expected OS public names present on layout turnouts
     # the staging (level 1) OS blocks of the device master: role os, or xover_corner for a crossover's
-    with DEVICES.open(newline="", encoding="utf-8-sig") as f:
-        expected_os = {
-            row["user_name"]
-            for row in csv.DictReader(f)
-            if row["level"] == "1" and row["layer"] == "block" and row["role"] in ("os", "xover_corner")
-        }
+    expected_os = {
+        row["user_name"]
+        for row in devices.load(DEVICES)
+        if row["level"] == "1" and row["layer"] == "block" and row["role"] in ("os", "xover_corner")
+    }
     found = {t.get("blockname") for t in root.iter("layoutturnout")}
     missing = sorted(expected_os - found)
     # Crossover / paired legs: occupancy exists in block table; layoutturnout

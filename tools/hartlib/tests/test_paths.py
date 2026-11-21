@@ -9,7 +9,7 @@ from unittest import mock
 HERE = Path(__file__).resolve()
 sys.path.insert(0, str(HERE.parents[1] / "src"))
 
-from hartlib import paths  # noqa: E402
+from hartlib import devices, paths  # noqa: E402
 
 CHECKOUT = HERE.parents[3]
 
@@ -18,7 +18,7 @@ class CheckoutTest(unittest.TestCase):
     def test_root_is_the_checkout_holding_hartlib(self):
         self.assertEqual(paths.REPO_ROOT, CHECKOUT)
         self.assertTrue(paths.TABLES_XML.is_file())
-        self.assertTrue(paths.DEVICES.is_file())
+        self.assertTrue(devices.MASTER.is_file())
         self.assertTrue(paths.WIRING.is_file())
         self.assertTrue(paths.SIGNAL_HEAD_PLAN.is_file())
         self.assertEqual(paths.TABLES_XML, CHECKOUT / "jmri/layouts/hart/output/tables.xml")

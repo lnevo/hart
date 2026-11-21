@@ -64,7 +64,7 @@ def section_direction_comment(system_name: str, names: dict[str, str] | None = N
     name = (names if names is not None else section_names()).get(section)
     where = f"{name} ({section})" if name else section
     return f"SML section {direction} direction: {where}"
-DEVICES = paths.DEVICES
+DEVICES = devices.MASTER
 
 # Slash: "Node 4 / OU-1 / Ports 1,2 / DCC 100"
 # Mid:   "Node: 4 | OU-1: Port: 1,2 | DCC: 100"

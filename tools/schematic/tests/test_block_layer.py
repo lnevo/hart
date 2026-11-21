@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import block_layer as BL  # noqa: E402
 import build_device_map as bdm  # noqa: E402
+from hartlib import devices  # noqa: E402
 devices = bdm.devices
 from repo_read_only import RepoReadOnly  # noqa: E402
 
@@ -414,7 +415,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         rows = [dict(r) for r in devices.load()]
         if edit:
             rows = edit(rows)
-        p = temp_file("devices.csv", devices.master_text(rows))
+        p = temp_file(devices.MASTER_FILE, devices.master_text(rows))
         self.addCleanup(remove, p)
         ex = temp_file("block_overrides.csv", BL.overrides_path().read_text(encoding="utf-8") + extra_exception)
         self.addCleanup(remove, ex)
@@ -531,7 +532,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         wired, wired_adopts = bdm.staging_wired_rows(self.files)
         out = devices.outputs_after("build_device_map.py", [], self.files, drops=drops, master_rows=got + wired,
                                     adopts=adopts | wired_adopts)
-        master = temp_file("devices.csv", out[self.files.master])
+        master = temp_file(devices.MASTER_FILE, out[self.files.master])
         self.addCleanup(remove, master)
         ex = temp_file("block_overrides.csv", BL.overrides_path().read_text(encoding="utf-8") + extra)
         self.addCleanup(remove, ex)

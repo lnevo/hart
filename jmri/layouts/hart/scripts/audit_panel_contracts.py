@@ -152,7 +152,7 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
         )
 
 
-def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -> set[str]:
+def dispatcher_virtuals(expected: set[str], devices_csv: Path = devices.MASTER) -> set[str]:
     """The expected masts that are hidden virtual masts for Dispatcher Stage 1, not field
     masts: staging's hidden masts in devices.csv (role hidden, a virtual signal mast IF$vsm:...($10nn))."""
     virtual = {
@@ -182,7 +182,7 @@ def draws_levels(panel: ET.Element | None) -> bool:
 
 
 def audit_masts(root: ET.Element, staging: list[railroad_facts.Mast], audit: Audit, *,
-                levels: bool = False, devices_csv: Path = paths.DEVICES) -> None:
+                levels: bool = False, devices_csv: Path = devices.MASTER) -> None:
     """The signal mast table: the staging field masts exactly (masts.csv's staging rows, those not virtual), the Dispatcher virtuals, no CATS runtime virtuals;
     and the main and upper masts on virtual heads, every main and upper row of masts.csv when the panel draws those
     levels (`levels`), else none but its own."""
@@ -585,7 +585,7 @@ def audit_lcc_mqtt_turnout_aliases(
 ) -> None:
     """Every MQTT DCC turnout has MTT{dcc} named and wired from the device map."""
     problem = audit.error if required else audit.warn
-    csv_path = paths.DEVICES
+    csv_path = devices.MASTER
     issues = contract_violations(root, csv_path)
     if issues:
         problem(

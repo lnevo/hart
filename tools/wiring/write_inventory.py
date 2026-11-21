@@ -45,7 +45,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WIRING_DOCS = ROOT / "docs/wiring"
 OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
 DATA = ROOT / "jmri/layouts/hart/data/schematic"
-DEVICE_MAP = DATA.parent / "devices.csv"
+DEVICE_MAP = devices.MASTER
 NODES = DATA / "lcos_nodes.csv"
 
 LEVEL_NAME = {"1": "Staging", "2": "Main", "3": "Upper"}
@@ -338,7 +338,7 @@ def mast_role(rows: list, facing: str) -> str:
     return "Reverse Exit" if any(facing == r.thrown_leg for r in rows) else "Entry"
 
 
-def mast_half(rows: list, sw: str, mast: str, protects: str, where: str = "devices.csv") -> str | None:
+def mast_half(rows: list, sw: str, mast: str, protects: str, where: str = devices.MASTER_FILE) -> str | None:
     """The OS block (half) of switch sw that a staging mast belongs to: the one it faces into (its protects column).
     A switch with one OS block has no halves (None). A crossover mast that protects none of its halves stops."""
     if len(rows) < 2:

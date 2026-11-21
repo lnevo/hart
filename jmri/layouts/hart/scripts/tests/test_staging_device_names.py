@@ -15,7 +15,7 @@ HART_ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(HART_ROOT.parents[2] / "tools" / "hartlib" / "src")]
 from hartlib import devices  # noqa: E402
 
-CSV_PATH = HART_ROOT / "data" / "devices.csv"
+CSV_PATH = HART_ROOT / "data" / devices.MASTER_FILE
 TABLES_PATH = HART_ROOT / "output" / "tables.xml"
 BASELINE_PATH = HART_ROOT / "data" / "baselines" / "hardware_identity.csv"
 

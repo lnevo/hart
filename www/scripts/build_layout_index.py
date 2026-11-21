@@ -25,7 +25,7 @@ PORTAL = Path(__file__).resolve().parents[1]
 ROOT = paths.REPO_ROOT
 
 PANEL = paths.TABLES_XML
-NAMES = paths.DEVICES
+NAMES = device_master.MASTER
 STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"   # its desk areas, with switches.csv: station_group_rows
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
