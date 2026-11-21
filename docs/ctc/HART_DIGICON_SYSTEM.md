@@ -107,7 +107,7 @@ Blank Digicon cells come from CATS source behaviour, not the tables: see [`CATS_
 
 Digicon schematic covers West Yard / Brick / Plane / OS Barn, South Yard ladder, East End and Princess, matching the Neville Island station maps and the CSX/POV-era trackplan reference.
 
-Princess (ADR-017): east of Switches 39 and 37 the mainline stubs are **Track McKees Rocks** and **Track McKeesport**, and the loop legs are **Track K-1** and **Track K-2**. The desks draw K-1 / K-2 on the outer rows running off the east edge, with the mains in the centre; the Layout Editor panel keeps the physical loop. Mast **40LA** / **38LA** are two-head on the mains and **40LB** / **38LB** are dwarfs on K-1 / K-2. None of the four has field hardware yet.
+Princess (ADR-017): east of Switches 39 and 37 the mainline stubs are **Track Helix Outer** and **Track Helix Inner**, and the loop legs are **Track K-1** and **Track K-2**. The desks draw K-1 / K-2 on the outer rows running off the east edge, with the mains in the centre; the Layout Editor panel keeps the physical loop. Mast **40LA** / **38LA** are two-head on the mains and **40LB** / **38LB** are dwarfs on K-1 / K-2. None of the four has field hardware yet.
 
 ### Discipline
 

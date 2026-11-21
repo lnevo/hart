@@ -251,7 +251,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Audit: switches.csv, name map, tables.xml and CATS desk panels agree.",
+   "desc": "Audit: switches.csv, devices.csv, tables.xml and CATS desk panels agree.",
    "path": "tools/audit/check_layout_facts.py"
   },
   {
@@ -269,7 +269,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Audit: no stale copies of renamed track names in code or data; reads devices.csv name map and keyed data files.",
+   "desc": "Audit: no stale copies of renamed track names in code or data; reads devices.csv and keyed data files.",
    "path": "tools/audit/check_name_copies.py"
   },
   {
