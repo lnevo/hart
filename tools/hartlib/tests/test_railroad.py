@@ -378,7 +378,7 @@ class Readers(Copy):
 
     def test_device_map(self) -> None:
         dm = R.read_device_map(self.src.devices)
-        self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track e19"})
+        self.assertEqual(dm.blocks["Track 107-109"].trial, {"Track 107A-109B"})
         self.assertEqual(dm.heads_by_system["IH3332"].user_name, "Head 108LA Top")
         self.assertEqual(dm.turnouts["101"].role, "turnout")
         occ = self.key("occupancy", "BS Switch 101")

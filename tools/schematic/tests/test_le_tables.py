@@ -15,7 +15,9 @@ import le_checks  # noqa: E402
 import le_common  # noqa: E402
 import le_tables  # noqa: E402
 from hartlib import level_devices, tables  # noqa: E402
-from le_common import BuildError, STAGING  # noqa: E402
+from le_common import BuildError  # noqa: E402
+
+STAGING = "Staging"     # the made-up staging band's key in these tables (the build finds its own by level)
 
 INTERNAL_SENSORS = "jmri.jmrix.internal.configurexml.InternalSensorManagerXml"
 INTERNAL_TURNOUTS = "jmri.jmrix.internal.configurexml.InternalTurnoutManagerXml"

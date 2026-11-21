@@ -78,6 +78,19 @@ class RowRules(Master):
         got = cdm.row_problems(self.edited({("3", "Track 127-221"): dict(cp="CP 107")}), self.cps, ends_cps=ends)
         self.assertProblem(r"level 3 block Track 127-221\): cp 'CP 107' is no level 3 control point", got)
 
+    def test_a_k_of_n_key_reads_its_strands_ends(self):
+        """block_end_cps reads a trial name by its piece (staging_device_map.piece_of), so the k-th of a strand's n
+        blocks has the strand's end switches, as a whole strand's key does; a key that is no track key stops."""
+        rows = [(2, dict(layer="block", user_name="Track A", trial_name="Track 127BB-221BA 1/2")),
+                (3, dict(layer="block", user_name="Track B", trial_name="Track 127BB-221BA 2/2, OS Switch 9"))]
+        tsdm.Files.setUpClass()
+        with cdm.pd.cache_on():
+            got = cdm.block_end_cps(rows, cdm.railroad.Railroad().interlockings)
+            self.assertEqual(got, {"Track A": {"CP 127", "CP 201"}, "Track B": {"CP 127", "CP 201"}})
+            with self.assertRaisesRegex(cdm.DeviceMasterError, "block Track C: 'Track e73 1' is no track trial key"):
+                cdm.block_end_cps([(2, dict(layer="block", user_name="Track C", trial_name="Track e73 1"))],
+                                  cdm.railroad.Railroad().interlockings)
+
     def test_a_field_row_names_all_three(self):
         for col in ("user_name", "system_name", "jmri_name"):
             with self.subTest(col=col):
@@ -166,8 +179,8 @@ class RowRules(Master):
 class TablesCheck(Master):
     """check_tables holds each row of every level to its bean in tables.xml, and names the row and what differs."""
 
-    def problems(self, edit=None, drop=(), known_stop=None):
-        return cdm.check_tables([r for _n, r in self.edited(edit, drop)], self.rr, known_stop)
+    def problems(self, edit=None, drop=()):
+        return cdm.check_tables([r for _n, r in self.edited(edit, drop)], self.rr)
 
     def test_the_committed_rows_hold(self):
         self.assertEqual(self.problems(), [])
@@ -192,12 +205,13 @@ class TablesCheck(Master):
         self.assertIn("block Track 101-111: stop is yes, but its comment in tables.xml does not mark a station",
                       self.problems({("2", "Track 101-111"): dict(stop="yes")}))
 
-    def test_the_rows_of_a_helix_block_agree_on_its_stop_but_the_known_ones(self):
-        got = self.problems(known_stop={})
-        self.assertIn("block Track Helix Inner: its rows disagree on stop (empty, yes)", got)
-        self.assertIn("block Track Helix Outer: its rows disagree on stop (empty, yes)", got)
-        got = self.problems({("3", "Track Helix Inner"): dict(stop="yes")})
-        self.assertEqual(got, ["KNOWN_STOP entry no longer happens; remove it: Track Helix Inner"])
+    def test_the_rows_of_a_helix_block_agree_on_its_stop(self):
+        """A helix block's rows (staging and main or upper) agree on its stop, with no list of known exceptions."""
+        self.assertFalse(hasattr(cdm, "KNOWN_STOP"))
+        got = self.problems({("3", "Track Helix Inner"): dict(stop="")})
+        self.assertEqual(got, ["block Track Helix Inner: its rows disagree on stop (empty, yes)"])
+        got = self.problems({("1", "Track Helix Outer"): dict(stop="")})
+        self.assertEqual(got, ["block Track Helix Outer: its rows disagree on stop (empty, yes)"])
 
     def test_a_block_whose_detector_is_another(self):
         got = self.problems({("1", "BS Barn"): dict(user_name="BS Elsewhere", system_name="M2S9999",

@@ -696,7 +696,7 @@ class DeviceRow:
 
     @property
     def trial(self) -> frozenset[str]:
-        """The schematic tracks a block row holds ("Track e34", "Track e35")."""
+        """The schematic tracks a block row holds, by switch and leg ("Track 127AB-131AB", "Track 107B-107C #1")."""
         return frozenset(t.strip() for t in self.trial_name.split(",") if t.strip())
 
     @classmethod

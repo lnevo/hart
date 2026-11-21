@@ -27,6 +27,12 @@ from hartlib import railroad as T_railroad  # noqa: E402  the device map's colum
 TABLES = paths.TABLES_XML       # the generated tables.xml (build_tables.py), which the build no longer reads
 
 
+def staging_key(bands) -> str:
+    """The plugin's key of the staging band, found by its level (build_layout_le.base_band), as build() keys its
+    names."""
+    return B.band_key(bands[B.base_band(bands)][0])
+
+
 def _load(name: str, path: Path):
     spec = importlib.util.spec_from_file_location(name, path)
     mod = importlib.util.module_from_spec(spec)
@@ -173,8 +179,8 @@ class Built(unittest.TestCase):
         new_idents = {t.get("ident") for t in self.le.findall("layoutturnout")}
         self.assertEqual(len(staging), 20)
         self.assertLessEqual({sw.le_ident for sw in staging.values()}, new_idents)
-        blocks = set(self.names[B.STAGING]["os"].values()) | {
-            b for v in self.names[B.STAGING]["blocks"].values() for b in v}
+        blocks = set(self.names[staging_key(self.bands)]["os"].values()) | {
+            b for v in self.names[staging_key(self.bands)]["blocks"].values() for b in v}
         self.assertLessEqual(blocks, used_blocks(self.le))
 
     def test_closed_routes_and_crossovers_match_the_live_panel(self) -> None:
@@ -197,8 +203,8 @@ class Built(unittest.TestCase):
             if is_new(t):
                 self.assertTrue(re.fullmatch(r"Switch [12]\d\d", tables.user_name(t)), tables.user_name(t))
         live_lb = {tables.user_name(b) for b in tables.layout_blocks(self.live)}
-        staging = set(self.names[B.STAGING]["os"].values()) | {
-            b for v in self.names[B.STAGING]["blocks"].values() for b in v}
+        staging = set(self.names[staging_key(self.bands)]["os"].values()) | {
+            b for v in self.names[staging_key(self.bands)]["blocks"].values() for b in v}
         self.assertLessEqual(staging, live_lb)
 
     # ---- main and upper: the device map's names (the main and upper rows of devices.csv)
@@ -213,7 +219,7 @@ class Built(unittest.TestCase):
         self.assertEqual(len(new_lb), LEVEL_BLOCKS)      # the 107 Loop's two halves and 225's four corners
         self.assertEqual(new_lb, {v for k, v in device.items() if not k.startswith("Switch ")} - HELIX_BLOCKS)
         self.assertIn("OS Switch 131", new_lb)          # connector A joins 131A and 131B: their OS block
-        self.assertNotIn("Track Helix Inner", new_lb)   # the placeholder Track e89: staging's block, not a new one
+        self.assertNotIn("Track Helix Inner", new_lb)   # the placeholder Track 131BB-helix: staging's block, not a new one
         self.assertFalse({b for b in new_lb if re.search(r"\be\d+", b)})
         dx = [t for t in self.le.findall("layoutturnout") if t.get("type") == "DOUBLE_XOVER"]
         self.assertEqual([t.get("turnoutname") for t in dx], ["Switch 225"])
@@ -388,8 +394,7 @@ class Built(unittest.TestCase):
                   if ET.fromstring(m["xml"]).tag == "sensoricon"}
         self.assertTrue(status)
         self.assertEqual({el.get("sensor") for el in self.le.iter("sensoricon")}, status)
-        staging = B.band_key(self.bands[0][0])
-        self.assertEqual(staging, B.STAGING)
+        self.assertEqual(B.base_band(self.bands), 0)            # staging, found by its level, is drawn first
         self.assertTrue(self.P.masts)
         # main and upper: their control-point masts (main_upper_masts.csv), every one placed
         level = {m["mast"] for m in self.P.masts if m["band"] != 0}
@@ -594,38 +599,49 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101A"], "Switch 101")
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")
-        self.assertEqual(got["Track e89"], "Track Helix Inner")      # one block with staging's McKeesport track
-        self.assertEqual(got["Track e14"], "Track 115-117")          # a part: a block of its own (step 5 part 2)
-        self.assertEqual(len(got), 51 + LEVEL_SENSORS + 25)          # the 25 parts' trial names
+        self.assertEqual(got["Track 131BB-helix"], "Track Helix Inner")    # one block with staging's McKeesport track
+        self.assertEqual(got["Track 115A-117C"], "Track 115-117")       # a part: a block of its own (step 5 part 2)
+        self.assertEqual(len(got), 51 + LEVEL_SENSORS + 26)          # the 25 parts: 26 trial names (201-219 has two pieces)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
                         '2,,turnout,Switch 101,M2T1,,34,120,,"Switch 101A, Switch 101B",\n'
                         '2,,fb,FB Switch 101 N,M2S1,,34,,,,\n'
-                        '2,,block,Track 1-2,,,,,,Track e1,\n')
-        self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track e1": "Track 1-2"})
+                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n')
+        self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track 1A-2B": "Track 1-2"})
         for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
-                          ('2,,block,Track 1-2,,,,,,Track e1,\n2,,block,Track 3-4,,,,,,Track e1,\n',
-                           "trial_name Track e1 is given to Track 1-2 and Track 3-4"),
+                          ('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,Track 3-4,,,,,,Track 1A-2B,\n',
+                           "trial_name Track 1A-2B is given to Track 1-2 and Track 3-4"),
                           ('2,,turnout,Turnout 5,,,,,,Switch 5,\n', "is not named"),
-                          ('2,,block,Siding,,,,,,Track e1,\n', "is not named"),
+                          ('2,,block,Siding,,,,,,Track 1A-2B,\n', "is not named"),
                           ('2,,fb,FB 1,,,,,,,\n', "no turnout or block rows")):
             with self.subTest(why=why), self.assertRaisesRegex(B.BuildError, why):
                 self.read(rows)
         with tempfile.TemporaryDirectory() as tmp, self.assertRaisesRegex(B.BuildError, "cannot read"):
             B.device_names(Path(tmp) / "none.csv")
 
+    def test_an_unpaired_connector_stops_the_placeholders(self) -> None:
+        """A track's placeholder is its switch-and-leg key, so a run to a connector the plugin's partners do not pair
+        (nothing beyond it to key it by) stops the build, where it once took an empty label."""
+        _sheet, le_mod, _core = B.plugin()
+        bands = B.schematic()[0]
+        unpaired = mock.Mock(wraps=le_mod)
+        unpaired.partners = lambda _bands: {}
+        unpaired.SchematicError = le_mod.SchematicError
+        with self.assertRaisesRegex(B.BuildError, "Main level: connector .* is joined to no other band"):
+            B.placeholder_names(bands, unpaired)
+
     def test_a_placeholder_with_no_name_or_a_name_with_no_placeholder_stops(self) -> None:
         _sheet, le_mod, _core = B.plugin()
         bands = B.schematic()[0]
         device = B.device_names()
-        with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e1'\\]"):
-            B.level_names(bands, le_mod, {k: v for k, v in device.items() if k != "Track e1"})
-        with self.assertRaisesRegex(B.BuildError, "does not have: \\['Track e999'\\]"):
-            B.level_names(bands, le_mod, dict(device, **{"Track e999": "Track 9-9"}))
+        with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track 101BA-111C'\\]"):
+            B.level_names(bands, le_mod, {k: v for k, v in device.items() if k != "Track 101BA-111C"})
+        with self.assertRaisesRegex(B.BuildError, "does not have: \\['Track 998A-999B'\\]"):
+            B.level_names(bands, le_mod, dict(device, **{"Track 998A-999B": "Track 9-9"}))
         names, lengths = B.placeholder_names(bands, le_mod)         # a length with no device-map row: named, no KeyError
-        with mock.patch.object(sys.modules["le_names"], "placeholder_names", return_value=(names, dict(lengths, **{"Track e777": 1.0}))):
-            with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track e777'\\]"):
+        with mock.patch.object(sys.modules["le_names"], "placeholder_names", return_value=(names, dict(lengths, **{"Track 777A-778B": 1.0}))):
+            with self.assertRaisesRegex(B.BuildError, "names nowhere: \\['Track 777A-778B'\\]"):
                 B.level_names(bands, le_mod, device)
 
     def test_hidden_names_keeps_the_label_off_track_101_103_on_main_only(self) -> None:
@@ -649,7 +665,7 @@ class DeviceNames(unittest.TestCase):
         _sheet, le_mod, _core = B.plugin()
         bands = B.schematic()[0]
         names, _lengths = B.level_names(bands, le_mod)
-        B.shared_turnouts(names)
+        B.shared_turnouts(names, B.base_keys(bands))
         # the helix-top crossovers stand on two levels; 121 and 125 (joined B to C) are the plugin's own crossovers
         self.assertEqual(names["Main"]["shared_turnouts"], ["Switch 127", "Switch 131"])
         self.assertEqual(names["Upper"]["shared_turnouts"], ["Switch 127", "Switch 131"])
@@ -710,8 +726,8 @@ class ReviewFixes(unittest.TestCase):
         self.assertGreater(lengths["OS Switch 131"], 190)
         # the balloon loop's turnback tracks each carry the whole edge: each half block takes half of it once
         half = next(s["cm"] for _, b, _ in bands for k, s in b["strands"].items() if k == "e33.0") * 10 / 2
-        self.assertAlmostEqual(lengths["Track e33 1"], half)
-        self.assertAlmostEqual(lengths["Track e33 2"], half)
+        self.assertAlmostEqual(lengths["Track 107B-107C #1"], half)
+        self.assertAlmostEqual(lengths["Track 107B-107C #2"], half)
 
     def test_runs_stop_on_a_broken_or_closed_turnback(self) -> None:
         lone = {"nodes": {"S": {"kind": "switch"}, "turn": {"kind": "turnL"}},
@@ -745,7 +761,8 @@ class BaseNames(unittest.TestCase):
             return B.build(levels="staging", as_live=True, approved=None, base_data=doc.tobytes())
 
     def test_a_staging_turnout_block_or_mast_the_base_lacks_stops(self) -> None:
-        names = built()[2][B.STAGING]
+        _data, _P, all_names, bands = built()
+        names = all_names[staging_key(bands)]
         turnout = sorted(names["turnouts"].values())[0]
         block = sorted(names["os"].values())[0]
         mast = sorted(m["mast"] for m in names["masts"])[0]
@@ -870,8 +887,8 @@ class Throats(unittest.TestCase):
         return out
 
     def measured(self):
-        lengths = self.names[B.STAGING]["lengths"]
-        return {sid: bl for sid, bl in self.names[B.STAGING]["blocks"].items()
+        lengths = self.names[staging_key(self.bands)]["lengths"]
+        return {sid: bl for sid, bl in self.names[staging_key(self.bands)]["blocks"].items()
                 if len(bl) > 1 and all(b in lengths for b in bl)}
 
     def test_the_tracks_of_several_blocks_are_measured(self) -> None:
@@ -892,7 +909,7 @@ class Throats(unittest.TestCase):
             staging_lengths(names, plan)
 
     def test_throats_sit_at_their_own_ends_in_block_order(self) -> None:
-        lengths = self.names[B.STAGING]["lengths"]
+        lengths = self.names[staging_key(self.bands)]["lengths"]
         moved = {}
         for _mast, ident, px in self.P.anchors_moved:
             moved[ident] = max(moved.get(ident, 0.0), px)
@@ -912,7 +929,7 @@ class Throats(unittest.TestCase):
                         # its share, or the floor, or the room for the icon of a mast facing it (a high mast needs
                         # more), plus what the gantry moved its boundary and the arcs and slopes it takes in (a
                         # boundary stands on straight track)
-                        room = [8 + m["icon"][1] for m in self.names[B.STAGING]["masts"] if m["facing"] == b]
+                        room = [8 + m["icon"][1] for m in self.names[staging_key(self.bands)]["masts"] if m["facing"] == b]
                         least = max([self.le_mod.MIN_BLOCK] + room)
                         self.assertLessEqual(L, max(share, least) + stretch + bent[b] + 0.5)
                         self.assertLess(L, total / 2)
@@ -1095,7 +1112,7 @@ class LevelMasts(unittest.TestCase):
         names = {"Staging": {}, "Main": {"blocks": {"e": ["Track 105-109"]}, "os": {"n": "OS Switch 109"}},
                  "Upper": {"blocks": {}, "os": {}}}
         with self.assertRaisesRegex(B.BuildError, "Mast 110L \\(Track Nowhere into OS Switch 109\\): drawn on no band"):
-            B.level_masts(names, rows)
+            B.level_masts(names, rows, {"Staging"})
 
     def test_a_level_mast_where_jmri_resolves_it(self) -> None:
         el = ET.fromstring(anchor_panel("M"))

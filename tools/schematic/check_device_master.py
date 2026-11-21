@@ -61,14 +61,6 @@ from hartlib import devices, level_masts, paths, railroad, railroad_invariants, 
 DEVICE_MAP = sdm.DEVICE_MAP
 CPS = sdm.CPS                                   # staging's control points (their level column)
 TRIAL_LAYERS = ("turnout", "block")             # the rows that link to the drawing
-# Blocks whose rows disagree on stop -> why it is left; an entry whose rows agree fails, so the list stays honest (as
-# hartlib.railroad.KNOWN). Main and upper have no stations until the owner defines them (level unification step 7),
-# so build_device_map.py writes no stop on a main or upper row, also not on the helix blocks that staging marks.
-KNOWN_STOP: dict[str, str] = {
-    b: "the staging row marks the helix block a Dispatcher System station, as its tables.xml comment does; the main or "
-       "upper row (build_device_map.py, which writes no stop) leaves it empty (reported 2026-11-20)"
-    for b in ("Track Helix Inner", "Track Helix Outer")
-}
 
 
 class DeviceMasterError(RuntimeError):
@@ -126,22 +118,38 @@ def switch_cps(interlockings: list[railroad.Interlocking], cps_path: Path = CPS)
     return dict(out)
 
 
-def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], found=None,
+def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], drawing=None,
                   cps_path: Path = CPS) -> dict[str, set[str]]:
     """{block: the control points of the switches at its track's ends} of every block row whose trial names are
-    tracks of the main and upper drawing (build_device_map.named_tracks, `found`; a loop or split half's name carries
-    its half after the track's). A row's level is the band its track is drawn on, so a track drawn on the upper band
-    from a main level switch (Track 127-221) has that switch's control point among them."""
+    tracks of the main and upper drawing (`drawing`: (bands, joined, runs), default build_device_map.solve's; its
+    tracks build_device_map.named_tracks, each strand keyed by staging_device_map.band_refs, the grammar of every
+    level's trial names). A row's level is the band its track is drawn on, so a track drawn on the upper band from a
+    main level switch (Track 127-221) has that switch's control point among them."""
     import build_device_map as bdm      # the drawing's tracks and their end switches (needs the plugin)
-    found = bdm.named_tracks() if found is None else found
-    ends = {x: {v for k, v in t["ends"] if k == "sw"} for t in found for x in t["trial"]}
+    bands, joined, runs = bdm.solve()[:3] if drawing is None else drawing
+    found = bdm.named_tracks(bands, joined, runs)
+    refs = {}
+    ends = {}
+    try:
+        for t in found:
+            if t["band"] not in refs:
+                refs[t["band"]] = sdm.band_refs(bands, joined, t["band"])
+            for sid in t["strands"]:
+                ends[refs[t["band"]][sid][0]] = {v for k, v in t["ends"] if k == "sw"}
+    except sdm.StagingMapError as exc:
+        raise DeviceMasterError(str(exc)) from None
     cp_of = switch_cps(interlockings, cps_path)
     out = defaultdict(set)
     for _n, r in lines:
         if r["layer"] != "block":
             continue
         for ph in sdm.split_names(r["trial_name"]):
-            got = ends.get(ph, ends.get(ph.rsplit(" ", 1)[0]))
+            if not ph.startswith("Track "):
+                continue                    # an OS block's placeholder: its switch, not a track's ends
+            try:            # by its piece (staging_device_map.piece_of: a k/n key is the k-th block of its strand)
+                got = ends.get(sdm.piece_of(ph)[0])
+            except sdm.StagingMapError as exc:
+                raise DeviceMasterError(f"block {r['user_name']}: {exc}") from None
             for s in got or ():
                 out[r["user_name"]] |= cp_of.get(s, set())
     return dict(out)
@@ -194,11 +202,10 @@ def bound_name(r: dict) -> str:
     return r["system_name"] if r["assignment"] == "field" else r["jmri_name"]
 
 
-def check_tables(rows: list[dict], rr: railroad.Railroad, known_stop: dict | None = None) -> list[str]:
+def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
     """Every row the bean tables.xml holds (the module text), as problems naming the device. The rows of one block
-    (a helix block's, one per level) agree on its stop, but those `known_stop` (default KNOWN_STOP) lists, which are
-    a station when any of them says so; an entry whose rows agree is a problem too."""
-    known_stop = KNOWN_STOP if known_stop is None else known_stop
+    (a helix block's, one per level) agree on its stop: build_device_map.py marks the main and upper helix rows a
+    stop at their level_switch (helix_stops), as staging's rows are."""
     t = rr.tables
     heads = {tables.system_name(h): tables.user_name(h) for h in tables.signal_heads(t.root)}
     blocks = {tables.user_name(b): b for b in tables.blocks(t.root)}
@@ -213,9 +220,7 @@ def check_tables(rows: list[dict], rr: railroad.Railroad, known_stop: dict | Non
         if r["layer"] == "block":
             stops[r["user_name"]].add(r["stop"])
     bad = [f"block {b}: its rows disagree on stop ({', '.join(sorted(s or 'empty' for s in v))})"
-           for b, v in sorted(stops.items()) if len(v) > 1 and b not in known_stop]
-    bad += [f"KNOWN_STOP entry no longer happens; remove it: {b}" for b in sorted(known_stop)
-            if len(stops.get(b, ())) < 2]
+           for b, v in sorted(stops.items()) if len(v) > 1]
     for r in rows:
         user, layer, bound = r["user_name"], r["layer"], bound_name(r)
         if layer == "block":

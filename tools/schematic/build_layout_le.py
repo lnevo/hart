@@ -91,8 +91,9 @@ from hartlib import parked, paths, tables, tables_build  # noqa: E402
 # The build's parts and the staging candidate's approval fingerprint (approval.py): their names are re-exported
 # below, so callers and tests read them here. Patch a name in the module that calls it (le_names.placeholder_names).
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    STAGING, staging_switches, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
-    schematic, slots_module, band_key, bare, read_csv, BASE_LEVELS, band_levels, base_bands,
+    staging_switches, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
+    schematic, slots_module, band_key, bare, read_csv, BASE_LEVELS, band_levels, base_bands, base_band, base_keys,
+    find_band, le_band_align,
 )
 from approval import (  # noqa: E402,F401  re-exported: callers and tests read them here
     ApprovalError, STAGING_APPROVED as APPROVED, approved_fingerprint, check_approved, read_approved, write_approved,
@@ -203,12 +204,14 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     if levels == "all":
         base = build(bands, "staging", True, approved=approved, page=page, base_data=base_data)
     # One band of a level the base holds (BASE_LEVELS), drawn first: the staging candidate, which the staging device
-    # map names (staging_device_map.load reads one band, keyed STAGING) and every level the build adds is drawn under
+    # map names (staging_device_map.load reads that band, found by its level) and every level the build adds is
+    # drawn under. `staging` is its key, as the plugin keys the names and options given for it
     levels_of = band_levels(bands)
-    if base_bands(bands) != [0] or band_key(bands[0][0]) != STAGING:
+    if base_bands(bands) != [0]:
         raise BuildError(f"the schematic must draw one band of level {', '.join(map(str, sorted(BASE_LEVELS)))} "
-                         f"(the beans the base holds), titled {STAGING} ..., first; its bands are "
+                         f"(the beans the base holds), first; its bands are "
                          + ", ".join(f"{t!r} (level {lv})" for (t, _b, _o), lv in zip(bands, levels_of)))
+    staging = band_key(bands[base_band(bands)][0])
     if levels == "staging":
         bands, levels_of = bands[:1], levels_of[:1]
     # whether the drawing holds a level whose beans this build adds (virtual: le_tables), or only the base's
@@ -222,32 +225,36 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # the names and masts of the levels the build adds: from devices.csv and main_upper_masts.csv
     names, lengths = level_names(bands, le_mod, page=page) if adds else ({}, {})
     level_rows = read_level_masts() if adds else []
-    shared_turnouts(names)
+    skip = base_keys(bands)             # the staging band's: its names are the staging device map's
+    shared_turnouts(names, skip)
     if base is not None:        # the staging candidate above read the staging device map from the same band: reuse it
-        names[STAGING] = copy.deepcopy(base[2][STAGING])
+        names[staging] = copy.deepcopy(base[2][staging])
     else:
         try:
-            names[STAGING] = sdm.load(bands[0][1])
+            names[staging] = sdm.load(bands[0][1])
         except sdm.StagingMapError as exc:
             raise BuildError(f"staging device map: {exc}") from None
     if adds:                            # after staging's names: a helix intermediate protects a staging track
-        level_masts(names, level_rows)
-        names[STAGING]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
-    names[STAGING]["lengths"] = staging_lengths(names[STAGING])
+        level_masts(names, level_rows, skip)
+        names[staging]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
+    names[staging]["lengths"] = staging_lengths(names[staging])
     try:
         if base is not None:        # staging's own grid, so staging is drawn as in its candidate; no fitting
             scale = base[1].scale
             if page.get("band_align"):
-                raise BuildError("the schematic's page options hold band_align; HART sets it for the panel here")
-            # staging against the left edge, where it stands drawn alone, however wide the other levels are; its
+                raise BuildError("the schematic's page options hold band_align, which the published sheet would "
+                                 "read too; set the Layout Editor panel's in a sheet's preferences section as "
+                                 "le_band_align ({level: side})")
+            # each band against the edge its sheet's le_band_align gives (preferences.json[staging]: staging against
+            # the left edge, where it stands drawn alone, however wide the other levels are); its
             # labels placed as when it is drawn alone (labels_by_band); and the gaps between the levels as small as
             # is clean (owner, 2026-11-16; the page's le_title_clear): for staging, below everything its candidate
             # holds (its status cluster stands in the gap: band_bottoms). Every crossover at its level's
             # le_crossover_angle, however each level is stretched
             S = base[1]
             P = le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],
-                             row=staging_row * scale[1], page=dict(page, band_align={STAGING: "left"}),
-                             labels_by_band=True, band_bottoms={STAGING: S.items["bottom"] - S.band_boxes[0][3]})
+                             row=staging_row * scale[1], page=dict(page, band_align=le_band_align(bands)),
+                             labels_by_band=True, band_bottoms={staging: S.items["bottom"] - S.band_boxes[0][3]})
             P.scale, P.fit, P.stretch = scale, None, S.stretch
         else:                       # the staging candidate: the cut-over grid, no fitting (it scrolls in the le_window)
             # staging's own fit to the le_window, which the cut-over grid is stretched from
@@ -265,12 +272,11 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # the beans of the levels the build adds (the base's levels' are the base's, from devices.csv), then one check
     # for every level: each name the panel binds is a bean of the tables
     base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
-    base_keys = {band_key(bands[i][0]) for i in base_ix}
     base_beans = bean_names(root)       # before the build adds any: a base level's names must be the base's own
     if adds:
-        add_level_objects(root, P, names, lengths, base_keys, startup_thrown(bands))
+        add_level_objects(root, P, names, lengths, skip, startup_thrown(bands))
         add_level_signals(root, level_rows)
-    check_bound(root, P, names, base_keys, base_ix, base_beans, BASE_NAME)
+    check_bound(root, P, names, skip, base_ix, base_beans, BASE_NAME)
 
     try:
         attrs, options = panel_items.panel_attributes(items)
