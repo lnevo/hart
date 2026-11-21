@@ -8,7 +8,7 @@ description: Use when a PanelPro Store on the Pi or the Mac has changed JMRI_Use
 `jmri/layouts/hart/output/tables.xml` is the one tables file (ADR-008). Every host loads `preference:tables.xml` from `JMRI_UserFiles` (ADR-014). Since R9c it is generated (ADR-029: `tools/schematic/build_tables.py`), so a Store is never copied over it. A Store is split back into the sources instead (R9d, the owner's design of 2026-11-20 in `wiki/projects/project-health-handoff.md`, "R9d redesign"):
 
 - the owner's settings, memories, LogixNG and other new items the build does not claim go into `data/tables_template.xml` (KEPT, no review);
-- a rename or comment on a hand-kept `devices.csv` row (DEVICE), and any template item the repo changed too (CLASH), wait for the owner's merge or drop;
+- a rename or comment on a hand-kept `devices.csv` row (DEVICE), a device added in the Store, a change to a level-less device, and any template item the repo changed too (CLASH), wait for the owner's merge or drop. An added device (a test turnout, a DCC accessory) becomes a `devices.csv` row with no level, cp or role, its beans kept exactly in `jmri_bean`, until the owner gives its details (owner, 2026-11-20). A new device on a name a row already plans (a virtual row's `system_name`) is dropped, naming that row;
 - the repo wins on what the build makes: the `devices.csv` beans' other parts, the Layout Editor panel and its LogixNG, the Signal Mast Logic, the Digicon rule (DROPPED, listed with what to change instead).
 
 A Store counts as taken only once its split is merged (`data/store_splits.csv` holds its hash), so a deploy to that host stops until then.

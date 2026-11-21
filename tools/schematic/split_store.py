@@ -215,7 +215,7 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
     except (OSError, ValueError, KeyError, csv.Error) as exc:
         return undo([f"{SPLITS.name} could not be written: {exc!r}"])
     merged = sorted(choices.merge)
-    print(f"Applied plan {p.fingerprint}: {len(changes)} template change(s), {len(edits)} devices.csv cell(s)"
+    print(f"Applied plan {p.fingerprint}: {len(changes)} template change(s), {len(edits)} devices.csv change(s)"
           + (f" (merged {', '.join(merged)})" if merged else "") + "; tables.xml rebuilt and checked.")
     written = [f for f in WRITES if (f.read_bytes() if f.exists() else None) != saved[f]]
     print("Commit these (nothing is committed yet):")

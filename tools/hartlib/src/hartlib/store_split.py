@@ -28,7 +28,9 @@ What happens to an item the owner changed (store differs from base):
     CLASH    a template item the repo changed too, or any template item when the base is not known: reviewed, merge
              takes the Store's version, drop keeps the repo's
     DEVICE   a rename or comment of a bean whose devices.csv row the owner keeps by hand: reviewed, merge writes the
-             row (user_name, and jmri_name where the tables bind it by its user name; jmri_comment), drop leaves it
+             row (user_name, and jmri_name where the tables bind it by its user name; jmri_comment), drop leaves it.
+             Also a device the Store added (merge adds a level-less row, its beans in jmri_bean, owner 2026-11-20)
+             and a change to or deletion of a level-less device (merge rewrites or deletes its row)
     DROPPED  anything else of the build's: the repo wins, and the item is listed with what to change instead
 
 <jmriversion> is the one exception: a Store from a newer JMRI is KEPT whatever the base and the repo say, so the next
