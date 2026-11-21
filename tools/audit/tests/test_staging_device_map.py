@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
+import check_device_master as cdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 
 
@@ -23,11 +24,16 @@ def sw(label, **legs):
     return dict(kind="switch", label=label, ins={}, outs={}, **legs)
 
 
-def row(layer, user, system, jmri, notes="", **facts):
-    """A device map row (build_device_map.COLUMNS, and its role) of staging."""
-    return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
+def row(layer, user, system, jmri, notes="", level="1", **facts):
+    """A device map row (build_device_map.COLUMNS, and its role) of staging, kept by hand, a field device."""
+    return dict(level=level, cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
                 comment="", trial_name="", notes=notes, role=sdm.devices.role_of(layer, user, system, jmri),
-                **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
+                assignment="field", written_by="", **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
+
+
+def numbered(rows):
+    """(line, row) as check_device_master reads the master."""
+    return list(enumerate(rows, 2))
 
 
 class SwitchFacts(unittest.TestCase):
@@ -159,14 +165,14 @@ class Pure(unittest.TestCase):
     def test_a_block_with_no_occupancy_row_stops(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")]
-        with self.assertRaisesRegex(sdm.StagingMapError, "Track S-1 West"):
-            sdm.check_rows(rows)
+        self.assertEqual(cdm.check_rows(numbered(rows), set()),
+                         ["devices.csv line 3: block Track S-1 West has 0 occupancy rows naming it (none), not one"])
 
     def test_a_shared_detector_serves_both_blocks(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1; Track S-1 West",
                     blocks="Track S-1;Track S-1 West", detector="wired")]
-        sdm.check_rows(rows)
+        self.assertEqual(cdm.check_rows(numbered(rows), set()), [])
 
     def test_the_blocks_column_is_read_and_never_the_notes(self):
         r = row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track X", blocks="Track S-1;Track S-1 West",
@@ -194,10 +200,10 @@ class Pure(unittest.TestCase):
                 self.assertTrue(any(msg in p for p in facts(r)), facts(r))
 
     def test_a_staging_station_is_its_stop_token(self):
-        self.assertTrue(sdm.stop_token("Track K-1; occupancy Block 1-1 / M2S100; stop"))
-        self.assertTrue(sdm.stop_token("stop"))
-        self.assertFalse(sdm.stop_token("Hidden throat; not a station"))
-        self.assertFalse(sdm.stop_token(None))
+        self.assertTrue(cdm.stop_token("Track K-1; occupancy Block 1-1 / M2S100; stop"))
+        self.assertTrue(cdm.stop_token("stop"))
+        self.assertFalse(cdm.stop_token("Hidden throat; not a station"))
+        self.assertFalse(cdm.stop_token(None))
 
     def test_signal_rows_in_the_plugins_order(self):
         m = dict(signal="10LA", toward="9", run=["9", ""], names=["EH-2"], edge_cm=61.0, cm_from_toward=61.0,
@@ -221,7 +227,7 @@ class Files(unittest.TestCase):
         cls.names = sdm.load(cls.band)
 
     def test_the_committed_files_hold_their_rules(self):
-        self.assertEqual(sdm.check(self.band), [])
+        self.assertEqual(cdm.check(self.band), [])
         self.assertEqual(len(set(self.names["turnouts"].values())), 20)
         self.assertEqual(len(self.names["masts"]), 30)
         self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
@@ -255,8 +261,8 @@ class Files(unittest.TestCase):
         def edit(rows):
             hit = next(r for r in rows if r["user_name"] == "Switch 1")
             hit["system_name"] = hit["jmri_name"] = "M2T999"       # a field device: the two are one
-        _out, rows = self._copy(edit)
-        bad = sdm.check_tables(rows, railroad.Railroad())
+        out, _rows = self._copy(edit)
+        bad = cdm.check_tables([r for _n, r in cdm.master_lines(out)], railroad.Railroad())
         self.assertTrue(any("turnout Switch 1: tables.xml has 'M2T408', not M2T999" in b for b in bad), bad)
 
     def test_a_mast_on_a_switch_with_no_turnout_row_stops(self):
@@ -290,7 +296,7 @@ class Files(unittest.TestCase):
         import contextlib
         err = io.StringIO()
         with contextlib.redirect_stderr(err), self.assertRaises(SystemExit):
-            sdm.main([])
+            cdm.main([])
         self.assertIn("--check is the only mode", err.getvalue())
 
 

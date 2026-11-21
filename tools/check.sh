@@ -114,7 +114,7 @@ run schematic-main-upper-masts python3 tools/schematic/build_main_upper_masts.py
 # Layout Editor build and the discovered Signal Mast Logic; a Store is never copied over it (make tables-pull keeps
 # it in ~/JMRI_UserFiles-pulled until R9d splits it into the sources)
 run tables python3 tools/schematic/build_tables.py --check
-run schematic-staging-device-map python3 tools/schematic/staging_device_map.py --check
+run schematic-device-master python3 tools/schematic/check_device_master.py --check
 run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
 run schematic-staging-masts python3 tools/schematic/build_staging_masts.py --check
 run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --check

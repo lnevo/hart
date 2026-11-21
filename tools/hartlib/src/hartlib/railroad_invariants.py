@@ -2,15 +2,98 @@
 from __future__ import annotations
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 from . import level_devices, level_masts, tables
-from .railroad_facts import (DeviceRow, NameRow, UNIQUE_HARDWARE, check_virtual_names, natural,
+from .railroad_facts import (NameRow, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
                              switch_number)
 
 if TYPE_CHECKING:
     from .railroad import Railroad
+
+# ---------------------------------------------------------------- the rows of devices.csv, every level
+
+def _at(n: int, r, where: str) -> str:
+    return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
+
+
+def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
+                        helix_file: str = "helix_tracks.csv") -> list[str]:
+    """The rules between the rows of devices.csv, one for every level, as problems naming the rows. `lines` are
+    (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the blocks of helix_tracks.csv.
+    - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
+      helix block (one JMRI block from its staging switch up the helix, owner 2026-11-20), and every helix block is;
+    - no two rows of one layer share a user name (but a helix block's rows), a system name (a turnout, sensor or head's
+      is no other such row's, of any of those layers) or a jmri_name (but a virtual LCC alias, which stands on its
+      turnout's); no two turnouts share a DCC address;
+    - every turnout has exactly one LCC alias "DCC <its user name>" on its DCC address, MTT<dcc>, bound by its own
+      system name when it is a field device and by its turnout's jmri_name when it is virtual (one internal turnout)."""
+    lines = list(lines)
+    bad = []
+    block_levels = defaultdict(list)
+    for n, r in lines:
+        if r["layer"] == "block":
+            block_levels[r["user_name"]].append((n, r))
+    shared = {b for b, rs in block_levels.items() if len({r["level"] for _n, r in rs}) > 1}
+    if shared != helix_blocks:
+        bad.append(f"{where}: blocks named on more than one level: {sorted(shared) or 'none'}; exactly the helix "
+                   f"blocks of {helix_file} ({sorted(helix_blocks)}) are")
+    served = defaultdict(list)
+    for n, r in lines:
+        if r["layer"] == "occupancy":
+            for b in device_list(r["blocks"]):
+                served[b].append(n)
+    for b in sorted(set(block_levels) | set(served)):
+        if b not in block_levels:
+            bad.append(f"{where} line(s) {', '.join(map(str, served[b]))}: occupancy of {b}, which is no block row")
+        elif len(served[b]) != 1:
+            lines_ = ", ".join(str(n) for n, _r in block_levels[b])
+            bad.append(f"{where} line {lines_}: block {b} has {len(served[b])} occupancy rows naming it "
+                       f"({', '.join(map(str, served[b])) or 'none'}), not one")
+    for col in ("system_name", "user_name", "jmri_name", "dcc"):
+        seen: dict[tuple[str, str], int] = {}
+        for n, r in lines:
+            v = r[col]
+            if not v or (col == "user_name" and r["layer"] == "block" and v in shared) or \
+                    (col == "dcc" and r["role"] != "turnout") or \
+                    (col == "jmri_name" and r["role"] == "lcc_alias" and r["assignment"] == "virtual"):
+                continue                    # an LCC alias carries its turnout's address; a virtual one its name
+            # one physical device is one row: a turnout, sensor or head's system name is no other such row's
+            kind = "hardware" if col == "system_name" and r["layer"] in UNIQUE_HARDWARE else r["layer"]
+            key = (kind, v)
+            if key in seen:
+                bad.append(f"{_at(n, r, where)}: {col} {v!r} is line {seen[key]}'s as well")
+            seen.setdefault(key, n)
+    turnouts = {(r["level"], r["dcc"]): r for _n, r in lines if r["role"] == "turnout" and r["dcc"]}
+    aliases = defaultdict(int)
+    for n, r in lines:
+        if r["role"] != "lcc_alias":
+            continue
+        aliases[(r["level"], r["dcc"])] += 1
+        t = turnouts.get((r["level"], r["dcc"]))
+        if t is None:
+            bad.append(f"{_at(n, r, where)}: no level {r['level']} turnout has its DCC address {r['dcc'] or 'none'}")
+            continue
+        field = r["assignment"] == "field"
+        want = (f"DCC {t['user_name']}", f"MTT{r['dcc']}", f"MTT{r['dcc']}" if field else t["jmri_name"])
+        if (r["user_name"], r["system_name"], r["jmri_name"]) != want:
+            bad.append(f"{_at(n, r, where)}: the LCC alias of {t['user_name']} (DCC {r['dcc']}) is user, system and "
+                       f"jmri name {', '.join(want)} ({'a field device' if field else 'on its turnout'}), not "
+                       f"{r['user_name']}, {r['system_name']}, {r['jmri_name']}")
+    for n, r in lines:
+        if r["role"] == "turnout" and aliases[(r["level"], r["dcc"])] != 1:
+            bad.append(f"{_at(n, r, where)}: {aliases[(r['level'], r['dcc'])]} LCC aliases carry its DCC address "
+                       f"{r['dcc'] or 'none'}, not one")
+    return bad
+
+
+def master_rows(rr: Railroad) -> list[tuple[int, dict]]:
+    """(line, row) of every level's rows of devices.csv that a device map holds (hartlib.devices)."""
+    from . import devices
+    return [(n, r) for n, r in enumerate(devices.load(rr.sources.devices), 2) if r["role"] not in devices.OUT_OF_MAPS]
+
 
 # ---------------------------------------------------------------- invariants
 
@@ -41,20 +124,32 @@ def invariant(name: str, layer: str):
     return wrap
 
 
+def switch_levels(rr: Railroad) -> dict[str, dict[int, str]]:
+    """{switch number: {level: the file that puts it there}} of every level's switches: staging's in switches.csv,
+    main and upper's in their interlockings and local_switches_main_upper.csv."""
+    out: dict[str, dict[int, str]] = {}
+    for n, sw in rr.switches.items():
+        out.setdefault(str(n), {})[int(sw.level)] = rr.sources.switches.name
+    for s, sw in rr.main_upper_switches.items():
+        src = rr.sources.interlockings.name if sw.cp else rr.sources.local_switches.name
+        out.setdefault(s, {})[sw.level] = src
+    return out
+
+
 @invariant("switch-numbers", "inputs")
 def _switch_numbers(rr: Railroad) -> list[str]:
-    """Switch plate numbers are unique railroad-wide: no main or upper switch (interlockings.csv,
-    local_switches_main_upper.csv) reuses a staging number (switches.csv); every staging interlocking's switches are
-    staging switches; each main and upper interlocking (control point) is named "CP <its lowest switch>"."""
+    """Switch plate numbers are unique railroad-wide: no number is a switch of two levels (switch_levels); every
+    interlocking's switches are switches of its own level; each main and upper interlocking (control point) is named
+    "CP <its lowest switch>"."""
     bad = []
-    staging = {str(n) for n in rr.switches}
-    for s, sw in sorted(rr.main_upper_switches.items(), key=lambda kv: natural(kv[0])):
-        if s in staging:
-            bad.append(f"Switch {s} is a staging switch (switches.csv) and a level {sw.level} switch")
+    levels = switch_levels(rr)
+    for s, on in sorted(levels.items(), key=lambda kv: natural(kv[0])):
+        if len(on) > 1:
+            bad.append(f"Switch {s} is a switch of levels " +
+                       " and ".join(f"{lv} ({src})" for lv, src in sorted(on.items())))
     for i in rr.interlockings:
-        if i.level == 1:
-            bad += [f"{rr.sources.interlockings.name} line {i.line}: staging interlocking {i.name} lists Switch {s}, "
-                    "which is no staging switch (switches.csv)" for s in i.switches if s not in staging]
+        bad += [f"{rr.sources.interlockings.name} line {i.line}: level {i.level} interlocking {i.name} lists Switch "
+                f"{s}, which is no level {i.level} switch" for s in i.switches if i.level not in levels.get(s, {})]
     for cp in rr.level_control_points:
         want = f"CP {min(cp.switches, key=int)}"
         if cp.name != want:
@@ -160,13 +255,15 @@ def _hands(rr: Railroad) -> list[str]:
 
 @invariant("device-map", "device_map")
 def _device_map(rr: Railroad) -> list[str]:
-    """The device map's turnouts are exactly the main and upper switches, each with its LCC alias "DCC Switch <n>",
-    on its own level and control point; its virtual names follow hartlib.level_devices (check_virtual_names); its
-    nodes are the level's LCOS nodes; its DCC addresses and planned hardware are no staging device's."""
+    """The device map's turnouts are exactly the main and upper switches, on their own level and control point; its
+    virtual names follow hartlib.level_devices (check_virtual_names); its nodes are the level's LCOS nodes; and the
+    rows of every level hold to each other (device_row_problems: one occupancy row per block, names, DCC addresses
+    and system names given once, every turnout's one LCC alias), before tables.xml is built."""
     dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.devices.name
     bad = list(check_virtual_names(dm.rows))
+    bad += device_row_problems(master_rows(rr), {h.block for h in rr.helix_tracks.values()}, name,
+                               rr.sources.helix_tracks.name)
     turnouts = dm.turnouts
-    aliases = {r.user_name.removeprefix("DCC Switch "): r for r in dm.of("turnout") if r.role == "lcc_alias"}
     for s in sorted(set(mu) | set(turnouts), key=natural):
         r, sw = turnouts.get(s), mu.get(s)
         if r is None:
@@ -179,10 +276,6 @@ def _device_map(rr: Railroad) -> list[str]:
         if (r.level, r.cp) != (sw.level, sw.cp):
             bad.append(f"{name} line {r.line}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
                        f"say level {sw.level} {sw.cp or 'local'}")
-        a = aliases.get(s)
-        if a is None or (a.jmri_name, a.dcc, a.system_name) != (r.jmri_name, r.dcc, f"MTT{r.dcc}"):
-            bad.append(f"{name} line {r.line}: Switch {s} has no LCC alias DCC Switch {s} on its turnout and DCC "
-                       "address")
     nodes = {n.node: n for n in rr.lcos_nodes}
     # a helix block runs from staging up to main or upper: its detector may be on either level's node (owner,
     # 2026-11-20: both helix tracks on helix node 41)
@@ -192,20 +285,6 @@ def _device_map(rr: Railroad) -> list[str]:
                        (nodes[int(r.node)].level != r.level and r.user_name not in helix)):
             bad.append(f"{name} line {r.line}: {r.layer} {r.user_name} is on node {r.node}, no level {r.level} node "
                        f"of {rr.sources.lcos_nodes.name}")
-    staging_dcc = {r.dcc: r for r in rr.name_map.live.values() if r.layer == "turnout" and r.dcc}
-    staging_hw = {r.hardware: r for r in rr.name_map.live.values() if r.layer in UNIQUE_HARDWARE and r.hardware}
-    seen_hw: dict[str, DeviceRow] = {}
-    for r in dm.rows:
-        if r.role == "turnout" and r.dcc in staging_dcc:
-            bad.append(f"{name} line {r.line}: {r.user_name} has DCC {r.dcc}, staging's {staging_dcc[r.dcc].proposed}")
-        if r.layer in UNIQUE_HARDWARE and r.system_name:
-            if r.system_name in staging_hw:
-                bad.append(f"{name} line {r.line}: {r.user_name} plans {r.system_name}, staging's "
-                           f"{staging_hw[r.system_name].proposed}")
-            if r.system_name in seen_hw:
-                bad.append(f"{name} lines {seen_hw[r.system_name].line} and {r.line}: "
-                           f"{seen_hw[r.system_name].user_name} and {r.user_name} both plan {r.system_name}")
-            seen_hw.setdefault(r.system_name, r)
     return bad
 
 
@@ -274,29 +353,24 @@ def _level_masts(rr: Railroad) -> list[str]:
 
 @invariant("tables", "tables")
 def _tables(rr: Railroad) -> list[str]:
-    """tables.xml holds the facts' devices: every staging switch's turnout and block of its legs, every staging
-    mast; every main and upper turnout, occupancy sensor and control-point mast on its virtual name."""
+    """tables.xml holds the fact files' devices: every staging switch's turnout and the blocks of its legs
+    (switches.csv, switch_legs.csv), and every mast of both mast files (staging_masts.csv, main_upper_masts.csv) on
+    the system name its file gives it. The rows of devices.csv, every level's, are held to their beans by
+    tools/schematic/check_device_master.py (check_tables)."""
     t, bad = rr.tables, []
     for sw in rr.switches.values():
         if sw.turnout not in t.turnouts:
             bad.append(f"Switch {sw.number} (switches.csv): no turnout {sw.turnout} in tables.xml")
         bad += [f"Switch {sw.number} (switch_legs.csv): no block {b} in tables.xml"
                 for leg in sw.legs for b in (leg.os_block, leg.closed, leg.thrown) if b not in t.blocks]
-    bad += [f"{rr.sources.staging_masts.name}: no mast {m.mast} in tables.xml"
-            for m in rr.staging_masts if m.mast not in t.masts]
-    dm = rr.device_map
-    for s, r in sorted(dm.turnouts.items(), key=lambda kv: natural(kv[0])):
-        if t.turnouts.get(r.user_name) != r.jmri_name:
-            bad.append(f"{r.user_name}: tables.xml has {t.turnouts.get(r.user_name) or 'no such turnout'}, the "
-                       f"device map says {r.jmri_name}")
-    for user, sensor in sorted(dm.sensors.items(), key=lambda kv: natural(kv[0])):
-        if t.sensors.get(user) != sensor:
-            bad.append(f"{user}: tables.xml has {t.sensors.get(user) or 'no such sensor'}, the device map says "
-                       f"{sensor}")
-    for r in rr.level_masts:
-        if t.masts.get(r["mast"]) != r["system_name"]:
-            bad.append(f"{r['mast']}: tables.xml has {t.masts.get(r['mast']) or 'no such mast'}, "
-                       f"{rr.sources.level_masts.name} says {r['system_name']}")
+    masts = [(rr.sources.staging_masts.name, m.mast, m.system_name) for m in rr.staging_masts]
+    masts += [(rr.sources.level_masts.name, r["mast"], r["system_name"]) for r in rr.level_masts]
+    for name, mast, system in masts:
+        if not system:
+            bad.append(f"{name}: {mast} has no system name")
+        elif t.masts.get(mast) != system:
+            bad.append(f"{name}: {mast}: tables.xml has {t.masts.get(mast) or 'no such mast'}, the file says "
+                       f"{system}")
     return bad
 
 
