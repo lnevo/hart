@@ -107,7 +107,7 @@ class DispatcherVirtualsTest(unittest.TestCase):
             def mast(user, role, n, level="1"):
                 system = f"IF$vsm:basic:one-low(${n})" if role == "hidden" else f"IF$shsm:basic:one-low(IH{n})"
                 return dict(blank, level=level, layer="mast", role=role, assignment="virtual", system_name=system,
-                            jmri_name=system, written_by="build_staging_masts.py", description="A mast of the test.",
+                            jmri_name=system, written_by="build_masts.py", description="A mast of the test.",
                             user_name=user)
             rows = [mast("Mast 1A", "hidden", 1001), mast("Mast 1B", "home", 100), mast("Mast 1C", "hidden", 1002),
                     mast("Mast 9Z", "hidden", 2001, level="2")]          # a main level mast is no staging one

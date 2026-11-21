@@ -12,13 +12,13 @@
 #                         rows) and the plan graph; staging's main flags and milepost_route, from its staging rows
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
 #                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
-#   staging-masts         staging_masts.csv, staging_signals.csv and the devices.csv rows of the staging masts and
-#                         heads are written by build_staging_masts.py,
-#                         run by hand: this only checks them (--check), in both modes
 #   signals               signals.json (a section per sheet), from the plan graph and the masts; the schematic reads it
 #   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
 #                         reads, so it runs before publishing
-#   main-upper-masts      main_upper_masts.csv, from the device map; the Layout Editor builds place these masts
+#   masts                 every level's masts (build_masts.py): staging's by the mast rule over its device map, with
+#                         their devices.csv rows, and main and upper's from the device map's rows; after device-map,
+#                         whose rows it reads. signals (before) reads the masts of the run before, as it always did
+#                         main and upper's: a change that reaches the masts needs a second run for signals.json
 #   schematic             the schematic draft and stations (publish_draft.py)
 #   le-cutover            build_layout_le.py --as-live: the three-level candidate and the staging candidate it holds
 #                         (the viewing trials are retired, owner 2026-11-17: the candidates show every level)
@@ -72,10 +72,9 @@ step hands python3 tools/schematic/build_hands.py
 step staging-sets python3 tools/schematic/build_staging_sets.py
 step main-route python3 tools/schematic/build_main_route.py
 guard plan-lengths python3 tools/schematic/plan_lengths.py --check
-guard staging-masts python3 tools/schematic/build_staging_masts.py --check
 step signals python3 tools/schematic/build_signals.py
 step device-map python3 tools/schematic/build_device_map.py
-step main-upper-masts python3 tools/schematic/build_main_upper_masts.py
+step masts python3 tools/schematic/build_masts.py
 step schematic python3 tools/schematic/publish_draft.py
 step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 guard approved-candidate python3 tools/schematic/check_approved.py le-candidate

@@ -6,7 +6,7 @@ conversion from them retired. The turnout and feedback rows of level 1 of device
 which build_device_map.py writes from wiring.csv (stations.csv's desk areas are staging's control points, build_staging_sets.py); the block and occupancy
 rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
 row's field facts over, writes its detector's wiring from wiring.csv (level 1 rows; step 6) and owns which
-blocks there are and what each holds; build_staging_masts.py writes
+blocks there are and what each holds; build_masts.py writes
 staging_masts.csv, staging_signals.csv and the mast and head rows. Edit these files, not a panel. This module reads
 them (load, load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
 (`make panels`, tools/check.sh) holds them, and every device row, to tables.xml and the schematic.
@@ -81,7 +81,6 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
 import le_names as ln  # noqa: E402  runs and crossovers
-import build_main_upper_masts as bmm  # noqa: E402  LEGS: two masts on one block pair, by letter
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
 from hartlib import devices, layer_files, level_masts, paths, railroad, tables  # noqa: E402
@@ -495,7 +494,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
                 bad.append(f"{ph} has no le_ident in switches.csv")
             idents[n] = ident
         names["idents"] = dict(turnouts=idents, boundaries=[], ends={}, segments={})
-    if with_masts:              # build_staging_masts.py reads the rest to write the masts
+    if with_masts:              # build_masts.py reads the rest to write the masts
         names["masts"] = load_masts(masts_path, cp_names, rows)
     if bad:
         raise StagingMapError("; ".join(bad))
@@ -512,7 +511,7 @@ def os_layer(names: dict, parts: dict) -> dict:
     """A copy of load()'s names with each part's pieces given to the block it is part of (`parts`, staging_parts),
     as the one mast process reads a level's block layer on every level (main and upper: block_layer.Layer.bands): a
     mast's place and the blocks it protects follow the OS blocks, a part being inside its OS block (mast_plan,
-    build_staging_masts). StagingMapError on a part whose block is itself a part."""
+    build_masts). StagingMapError on a part whose block is itself a part."""
     bad = sorted(p for p, of in parts.items() if of in parts)
     if bad:
         raise StagingMapError(f"parts {bad} are part of another part")
@@ -549,7 +548,7 @@ def load_masts(path: Path, cp_names: set, device_rows: list[dict]) -> list[dict]
                 any(len(p) != 2 or heads.get(p[0]) != p[1] for p in pairs):
             bad.append(f"line {i}: {name} heads {r['head_system_names']!r} are not its system name's heads as the "
                        "device map names them")
-        if r["leg"] not in ("", *bmm.LEGS.values()):
+        if r["leg"] not in ("", *level_masts.LEGS.values()):
             bad.append(f"line {i}: {name} leg {r['leg']!r}")
         size, known = tables.mast_icon_size(r["system_name"])
         if not known:

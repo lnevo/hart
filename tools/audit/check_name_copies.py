@@ -56,7 +56,7 @@ SKIP_PREFIXES = (
     # the generated files of the schematic data; its hand-kept files (the overrides) are read
     "jmri/layouts/hart/data/schematic/signals.json",                  # both sections generated from the mast files:
                                                                       # build_signals.py --check
-    "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
+    "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_masts.py --check
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
     "www/data/",                                  # build_tables_browser / build_layout_index --check
     "jmri/layouts/hart/scripts/speedmatch/routes.json",  # build_routes.py --check

@@ -106,7 +106,7 @@ class Layers(unittest.TestCase):
         rr = R.Railroad(upto="inputs")
         rr.plan_overrides                       # an input: allowed
         for attr, writer in (("hands", "build_hands.py"), ("device_map", "build_device_map.py"),
-                             ("level_masts", "build_main_upper_masts.py"), ("tables", "build_layout_le.py")):
+                             ("level_masts", "build_masts.py"), ("tables", "build_layout_le.py")):
             with self.subTest(attr=attr), self.assertRaisesRegex(R.LayerError, writer):
                 getattr(rr, attr)
         dm = R.Railroad(upto="device_map")

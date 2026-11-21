@@ -21,7 +21,7 @@ from hartlib import devices, level_devices, level_masts, parked, paths, railroad
 
 REPO_ROOT = paths.REPO_ROOT
 DEFAULT_SOURCES = (("deployment", paths.TABLES_XML),)
-STAGING_MASTS = paths.LAYOUT_DATA / "schematic" / "staging_masts.csv"     # written by build_staging_masts.py
+STAGING_MASTS = paths.LAYOUT_DATA / "schematic" / "staging_masts.csv"     # written by build_masts.py
 OCCUPANCY_BINDINGS = paths.CATS_DIR / "data" / "occupancy_bindings.csv"
 TRAININFO = paths.LAYOUT_DIR / "dispatcher" / "traininfo"
 DISPATCHER_START_SCRIPT = "program:jython/DispatcherSystem/Startup.py"
@@ -159,7 +159,7 @@ def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -
 
 
 # The main and upper levels' masts, on virtual heads named from their user names (IH:HART:C3:108R_Top)
-# (hartlib.level_masts; tools/schematic/build_main_upper_masts.py): counted apart from the staging field masts.
+# (hartlib.level_masts; tools/schematic/build_masts.py): counted apart from the staging field masts.
 
 
 def split_protects(value: str) -> list[str]:

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Staging's signal masts by rule (owner, 2026-11-18/19), written into the files the staging builds read.
+"""Every level's signal masts (owner, 2026-11-18/19/20), written into the files the builds read.
 
-    python3 tools/schematic/build_staging_masts.py           # write the files
-    python3 tools/schematic/build_staging_masts.py --check   # exit 1 if a file is stale
-    python3 tools/schematic/build_staging_masts.py --show    # print the masts, write nothing
+    python3 tools/schematic/build_masts.py           # write the files
+    python3 tools/schematic/build_masts.py --check   # exit 1 if a file is stale
+    python3 tools/schematic/build_masts.py --show    # print the staging masts, write nothing
 
 When the plugin submodule is not checked out or not at its pinned commit, --check prints SKIPPED and exits 0 (1 with
 SCHEMATIC_REQUIRED=1, set in CI), as the other schematic checks do; a write or --show names the fault and exits 2.
@@ -37,8 +37,16 @@ next ordinal of staging's thousand (mast_plan.virtual_system_names); a dropped o
 retired_virtual_masts.csv.
 
 Writes (jmri/layouts/hart/data/schematic/): staging_masts.csv, staging_signals.csv, and the staging mast and head
-rows of ../devices.csv (written_by build_staging_masts.py; hartlib.devices holds it to those rows). Each mast and
+rows of ../devices.csv (written_by build_masts.py; hartlib.devices holds it to those rows). Each mast and
 head row's system_name and jmri_name are its JMRI name; there is no planned physical head for the internal ones.
+
+Main and upper (level_text): main_upper_masts.csv, one row per mast, from the main and upper mast and head rows of
+devices.csv, which build_device_map.py writes (its mast_plan over their own block layer, with their LCOS head plan).
+A home signal faces the track in its `facing` column and protects the OS block of its switch, or at a double
+crossover the corner block its `protects` column names; an APB intermediate has no switch and protects one block.
+`leg` (level_masts.LEGS) tells apart two masts with one facing and protected block, none needs it today. Their
+system_name and head_system_names are the device map's jmri_name (hartlib.level_devices.head_name: "Head 108R Top"
+-> IH:HART:C3:108R_Top), device_system_name the planned physical mast; a virtual mast's names are the device map's.
 """
 from __future__ import annotations
 
@@ -57,10 +65,12 @@ import mast_rule  # noqa: E402
 import publish_draft as pd  # noqa: E402
 import le_names as ln  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
-from hartlib import devices, level_masts, railroad, wiring  # noqa: E402
+from hartlib import devices, level_devices, level_masts, railroad, wiring  # noqa: E402
 
 DATA = pd.DATA
 MASTS, SIGNALS, DEVICE_MAP = sdm.MASTS, sdm.SIGNALS, sdm.DEVICE_MAP
+LEVEL_MASTS = level_masts.PATH          # main_upper_masts.csv
+WRITER = Path(__file__).name           # the written_by of the devices.csv rows this script holds
 WRITES = ("mast", "head")              # the layers of the devices.csv rows this script holds (written_by below)
 
 
@@ -403,6 +413,102 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
     return keep + sorted(masts, key=lambda r: r["user_name"]) + sorted(heads, key=lambda r: r["user_name"])
 
 
+# ---------------------------------------------------------------- main and upper: their file from the device map
+
+
+def level_head(head: railroad.DeviceRow, mast: str) -> str:
+    """A device-map head row's jmri_name, checked to be hartlib.level_devices.head_name of its user name; RuleError
+    naming the head and mast otherwise."""
+    try:
+        want = level_devices.head_name(head.user_name)
+    except ValueError as exc:
+        raise RuleError(f"{DEVICE_MAP.name}: mast {mast}: {exc}") from None
+    if head.jmri_name != want:
+        raise RuleError(f"{DEVICE_MAP.name}: mast {mast}: head {head.user_name} has jmri_name "
+                        f"{head.jmri_name!r}, not {want}")
+    return want
+
+
+def level_text() -> str:
+    """main_upper_masts.csv's text, from the main and upper mast and head rows of devices.csv (build_device_map.py
+    writes them). RuleError on a mast with neither a switch nor a protected block, one protecting more than one
+    block, whose system name is not a SignalHeadSignalMast of the device map's heads, or a LEGS mast the map does not
+    have."""
+    # main_upper_masts.csv is the masts layer: it reads the device map before it (railroad.LAYERS), never itself
+    rr = railroad.Railroad(railroad.Sources.under().but(devices=DEVICE_MAP), upto="device_map")
+    dm = rr.device_map
+    heads = dm.heads_by_system
+    out_rows = []
+    for r in dm.of("mast"):
+        name = r.user_name
+        protects = r.protected
+        if r.jmri_name.startswith("IF$vsm:"):    # a hidden destination mast at a buffer stop (mast_plan)
+            if not level_masts.is_level_virtual(r.jmri_name) or r.system_name != r.jmri_name or r.switch or protects:
+                raise RuleError(f"{DEVICE_MAP.name}: virtual mast {name}: {r.jmri_name!r} is a main or upper "
+                                "VirtualSignalMast (its system_name the same) at a buffer stop: no switch, nothing "
+                                "protected")
+            out_rows.append(dict(mast=name, cp=r.cp, switch="", facing=r.facing, protects="", dir=r.dir, leg="",
+                                 system_name=r.jmri_name, head_system_names="", device_system_name=r.system_name,
+                                 _level=r.level))
+            continue
+        if len(protects) > 1 or not (r.switch or protects):     # an APB intermediate: no switch, between two blocks
+            raise RuleError(f"{DEVICE_MAP.name}: mast {name}: protects {protects or 'nothing'} and stands at "
+                            f"{'Switch ' + r.switch if r.switch else 'no switch'}: a home signal is at a switch, an "
+                            "intermediate protects one block")
+        if not r.switch and not r.comment.rstrip().endswith("| intermediate"):
+            raise RuleError(f"{DEVICE_MAP.name}: mast {name} stands at no switch, so it is an intermediate, but its "
+                            "comment does not end in '| intermediate': a home signal lost its switch?")
+        if r.system_name:
+            sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH\d+\))+)", r.system_name)
+            mast_heads = re.findall(r"\((IH\d+)\)", sysm.group(3)) if sysm else []
+            by = heads
+        else:       # heads not on the draft plant yet (device map HEAD_NOT_WIRED): read them by their virtual names
+            sysm = re.fullmatch(r"IF\$shsm:(\w+):([\w-]+)((?:\(IH:[^()]+\))+)", r.jmri_name)
+            mast_heads = re.findall(r"\((IH:[^()]+)\)", sysm.group(3)) if sysm else []
+            by = {h.jmri_name: h for h in dm.of("head") if not h.system_name}
+        if not sysm:
+            raise RuleError(f"{DEVICE_MAP.name}: mast {name}: system name not as expected")
+        if not level_devices.MAST_USER.fullmatch(name):     # the name is a label only (dir is its own column)
+            raise RuleError(f"{DEVICE_MAP.name}: mast {name!r} is not a mast name in the device map's grammar "
+                            "(Mast <number><L|R>[letter] or Mast <A|B><milepost number>)")
+        missing = [h for h in mast_heads if h not in by]
+        if missing:
+            raise RuleError(f"{DEVICE_MAP.name}: mast {name}: heads {missing} have no head row")
+        sys_name = f"IF$shsm:{sysm.group(1)}:{sysm.group(2)}" + "".join(f"({level_head(by[h], name)})"
+                                                                      for h in mast_heads)
+        if r.jmri_name != sys_name:
+            raise RuleError(f"{DEVICE_MAP.name}: mast {name}: jmri_name {r.jmri_name!r} is not {sys_name}")
+        out_rows.append(dict(
+            mast=name, cp=r.cp, switch=r.switch, facing=r.facing,
+            protects=protects[0] if protects else f"OS Switch {r.switch}", dir=r.dir, leg="", system_name=sys_name,
+            head_system_names=";".join(f"{level_head(by[h], name)}={by[h].user_name}" for h in mast_heads),
+            device_system_name=r.system_name, _level=r.level))
+    pairs = {}
+    for r in out_rows:
+        pairs.setdefault((r["facing"], r["protects"]), []).append(r)
+    for (facing, protects), group in pairs.items():
+        if len(group) == 1:
+            continue
+        letters = {r["mast"][-1]: r for r in group}
+        if len(group) != 2 or set(letters) != set(level_masts.LEGS):
+            raise RuleError(f"masts {[r['mast'] for r in group]} share {facing} into {protects}: only an A and a B "
+                            "mast can, on the switch's normal and diverging legs")
+        for letter, r in letters.items():
+            r["leg"] = level_masts.LEGS[letter]
+    if len({r["mast"] for r in out_rows}) != len(out_rows):
+        raise RuleError(f"{DEVICE_MAP.name}: a mast is named twice")
+    out = io.StringIO()
+    w = csv.DictWriter(out, level_masts.FIELDS, lineterminator="\n", extrasaction="ignore")
+    w.writeheader()
+    for row in sorted(out_rows, key=lambda r: (r["_level"], int(re.search(r"\d+", r["mast"]).group()),
+                                               r["mast"])):
+        w.writerow(row)
+    return out.getvalue()
+
+
+# ---------------------------------------------------------------- staging: the rule over its device map
+
+
 def plan(band, bands, joined, runs, names: dict, locks: dict, cm: dict) -> dict:
     """mast_plan.plan over the staging level: its tracks by mast_rule (a helix end tagged H, no helix blocks), its
     interlockings (`locks`), its device map's block layer (`names`, of `band`, the staging band of `bands`) and block
@@ -450,7 +556,8 @@ def build():
             if r["layer"] in WRITES]   # the mast and head rows only
     want = {MASTS: csv_text(gm + vr, level_masts.FIELDS),
             SIGNALS: csv_text(signal_rows(gen + vgen), sdm.SIGNAL_COLUMNS),
-            **devices.outputs_after("build_staging_masts.py", mine, files)}
+            **devices.outputs_after(WRITER, mine, files)}
+    want[LEVEL_MASTS] = level_text()      # main and upper: their rows are build_device_map.py's
     return want, gen, vgen
 
 
@@ -464,14 +571,14 @@ def main(argv=None) -> int:
         sdm.lc.plugin()
     except sdm.lc.BuildError as exc:
         if args.check:
-            print(f"SKIPPED staging masts check: {exc}")
+            print(f"SKIPPED masts check: {exc}")
             return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
-        print(f"build_staging_masts.py: {exc}", file=sys.stderr)
+        print(f"{WRITER}: {exc}", file=sys.stderr)
         return 2
     try:
         want, gen, vgen = build()
     except (RuleError, sdm.StagingMapError, sdm.lc.BuildError, mast_rule.MapError, railroad.FactsError) as exc:   # DevicesError is a FactsError
-        print(f"build_staging_masts.py: {exc}", file=sys.stderr)
+        print(f"{WRITER}: {exc}", file=sys.stderr)
         return 2
     if args.show:
         for m in gen + vgen:
@@ -482,7 +589,7 @@ def main(argv=None) -> int:
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
     if args.check:
         for p in stale:
-            print(devices.stale_message(p, device_files(), "tools/schematic/build_staging_masts.py"), file=sys.stderr)
+            print(devices.stale_message(p, device_files(), f"tools/schematic/{WRITER}"), file=sys.stderr)
         return 1 if stale else 0
     for p in stale:
         p.write_text(want[p], encoding="utf-8")

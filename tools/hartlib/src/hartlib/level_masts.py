@@ -1,5 +1,5 @@
 """The main and upper levels' control-point masts: main_upper_masts.csv (written by
-tools/schematic/build_main_upper_masts.py from the device map) and the virtual names they stand on.
+tools/schematic/build_masts.py from the device map) and the virtual names they stand on.
 
 The main and upper physical plant is not reviewed yet, so their heads and masts are virtual (owner, 2026-11-17): each
 head's system name comes from its user name, never from the device map's draft physical head, so it stays the same
@@ -10,10 +10,10 @@ field. The device map (jmri_name column) maps each to its planned physical head.
 
 A virtual mast (a hidden VirtualSignalMast, IF$vsm:basic:one-low($<n>), owner 2026-11-20) stands where a visible
 mast's route reaches a buffer stop, as the destination of that route; it has no heads. Its ordinal is fixed once given
-and comes from its level's own thousand: staging $1001 up (build_staging_masts.py), main $2001 up and upper $3001 up,
+and comes from its level's own thousand: staging $1001 up (build_masts.py), main $2001 up and upper $3001 up,
 so no level's new mast can take another's number and a main or upper one is known by its name alone
 (is_level_virtual). One place for the file, its reader
-and that rule: build_device_map.py, build_main_upper_masts.py, build_layout_le.py and
+and that rule: build_device_map.py, build_masts.py, build_layout_le.py and
 audit_panel_contracts.py use it.
 """
 from __future__ import annotations
@@ -27,6 +27,8 @@ from .level_devices import HEAD, HEAD_USER, head_name  # noqa: F401  the naming 
 PATH = paths.LAYOUT_DATA / "schematic" / "main_upper_masts.csv"
 FIELDS = ["mast", "cp", "switch", "facing", "protects", "dir", "leg", "system_name", "head_system_names",
           "device_system_name"]
+# `leg` of two masts sharing one facing and protected block pair, by their names' last letter (owner, 2026-11-16)
+LEGS = {"A": "normal", "B": "diverging"}
 
 
 VIRTUAL = re.compile(r"IF\$vsm:basic:one-low\(\$(\d+)\)")

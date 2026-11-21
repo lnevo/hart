@@ -97,7 +97,7 @@ def plan_lengths() -> dict:
 
 
 MM_PER_INCH = 25.4
-MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
+MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_masts.py, from the device map
 
 
 def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:

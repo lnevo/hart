@@ -1046,17 +1046,17 @@ class LoopAndCrossover(unittest.TestCase):
 
 
 def head(user: str, jmri: str):
-    """A device map head row (hartlib.railroad.DeviceRow), as build_main_upper_masts.virtual takes it."""
+    """A device map head row (hartlib.railroad.DeviceRow), as build_masts.level_head takes it."""
     from hartlib import railroad
     return railroad.DeviceRow(level=2, layer="head", user_name=user, jmri_name=jmri)
 
 
 class LevelMasts(unittest.TestCase):
-    """main_upper_masts.csv (build_main_upper_masts.py) and how the build takes it."""
+    """main_upper_masts.csv (build_masts.py) and how the build takes it."""
 
     def test_the_file_is_current_and_from_the_device_map(self) -> None:
-        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
-        self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
+        gen = _load("build_masts", ROOT / "tools/schematic/build_masts.py")
+        self.assertEqual(gen.level_text(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
         rows = B.read_level_masts()
         self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (120, 68, 76))
         r = next(r for r in rows if r["mast"] == "Mast 108LB")
@@ -1100,13 +1100,13 @@ class LevelMasts(unittest.TestCase):
         rows = B.read_level_masts()
         self.assertEqual(B.lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]]),
                          [])
-        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
+        gen = _load("build_masts", ROOT / "tools/schematic/build_masts.py")
         for bad in ("Head 108", "Mast 108LA", "Head 108LA Middle"):
-            with self.subTest(head=bad), self.assertRaisesRegex(SystemExit, "mast Mast 1: head"):
-                gen.virtual(head(bad, "IH:HART:C3:108LA"), "Mast 1")
-        with self.assertRaisesRegex(SystemExit, "has jmri_name 'IH93332', not IH:HART:C3:108LA"):
-            gen.virtual(head("Head 108LA", "IH93332"), "Mast 1")
-        self.assertEqual(gen.virtual(head("Head 108R Top", "IH:HART:C3:108R_Top"), "Mast 1"),
+            with self.subTest(head=bad), self.assertRaisesRegex(gen.RuleError, "mast Mast 1: head"):
+                gen.level_head(head(bad, "IH:HART:C3:108LA"), "Mast 1")
+        with self.assertRaisesRegex(gen.RuleError, "has jmri_name 'IH93332', not IH:HART:C3:108LA"):
+            gen.level_head(head("Head 108LA", "IH93332"), "Mast 1")
+        self.assertEqual(gen.level_head(head("Head 108R Top", "IH:HART:C3:108R_Top"), "Mast 1"),
                          "IH:HART:C3:108R_Top")
 
     def test_a_mast_no_band_draws_stops(self) -> None:

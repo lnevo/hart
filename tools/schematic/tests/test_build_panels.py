@@ -26,10 +26,9 @@ STEPS = [
     ("staging-sets", "build_staging_sets.py", False),
     ("main-route", "build_main_route.py", False),
     ("plan-lengths", "plan_lengths.py --check", True),
-    ("staging-masts", "build_staging_masts.py --check", True),
     ("signals", "build_signals.py", False),
     ("device-map", "build_device_map.py", False),
-    ("main-upper-masts", "build_main_upper_masts.py", False),
+    ("masts", "build_masts.py", False),
     ("schematic", "publish_draft.py", False),
     ("le-cutover", "build_layout_le.py --as-live", False),
     ("approved-candidate", "check_approved.py le-candidate", True),
@@ -66,9 +65,10 @@ class StepList(unittest.TestCase):
         rows = re.findall(r"^\| ([a-z][a-z-]+) \| `([^`]+)` \|", WIKI.read_text(encoding="utf-8"), re.M)
         self.assertEqual(rows, [(name, cmd) for name, cmd, _only in STEPS])
 
-    def test_the_staging_checks_come_before_what_reads_their_files(self):
-        for late in ("signals", "cats", "le-cutover"):
-            self.assertLess(NAMES.index("staging-masts"), NAMES.index(late), late)
+    def test_the_masts_come_after_the_device_map_and_before_what_reads_them(self):
+        self.assertLess(NAMES.index("device-map"), NAMES.index("masts"))     # main and upper's rows are its
+        for late in ("schematic", "cats", "le-cutover", "tables"):
+            self.assertLess(NAMES.index("masts"), NAMES.index(late), late)
         # what reads tables.xml runs after the step that writes it (ADR-029): the staging checks, the CATS desks
         # (their turnouts, sensors and masts) and the live fingerprint, so one make panels leaves them all current
         for check in ("staging-sync", "device-master", "cats", "approved-desks", "approved-live"):
@@ -103,7 +103,7 @@ class DryRun(unittest.TestCase):
         self.assertNotIn("stopped", out)
 
     def test_a_write_stops_at_a_failed_check_and_does_not_say_it_writes(self):
-        for name, script in (("staging-masts", "build_staging_masts.py"), ("staging-sync", "sync_staging_signals.py")):
+        for name, script in (("plan-lengths", "plan_lengths.py"), ("staging-sync", "sync_staging_signals.py")):
             with self.subTest(name):
                 code, out, ran = self.run_script(fail=script)
                 self.assertEqual((code, ran[-1].split()[0]), (1, f"tools/schematic/{script}"), out)
@@ -188,10 +188,10 @@ class StaleStagingCsv(unittest.TestCase):
 
 
 class MissingPlugin(unittest.TestCase):
-    """build_staging_masts.py without the plugin submodule: a message, not a traceback."""
+    """build_masts.py without the plugin submodule: a message, not a traceback."""
 
     def run_main(self, argv, required=""):
-        import build_staging_masts as bsm
+        import build_masts as bsm
         import publish_draft as pd
 
         def gone():
@@ -207,14 +207,14 @@ class MissingPlugin(unittest.TestCase):
     def test_check_is_skipped_and_fails_only_when_required(self):
         code, out, _err = self.run_main(["--check"])
         self.assertEqual(code, 0)
-        self.assertIn("SKIPPED staging masts check: schematic-maps plugin not found: run git submodule update", out)
+        self.assertIn("SKIPPED masts check: schematic-maps plugin not found: run git submodule update", out)
         self.assertEqual(self.run_main(["--check"], required="1")[0], 1)
 
     def test_a_write_and_show_name_the_fault(self):
         for argv in ([], ["--show"]):
             code, _out, err = self.run_main(argv)
             self.assertEqual(code, 2)
-            self.assertIn("build_staging_masts.py: schematic-maps plugin not found", err)
+            self.assertIn("build_masts.py: schematic-maps plugin not found", err)
 
 
 if __name__ == "__main__":

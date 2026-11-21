@@ -133,8 +133,8 @@ def device_row(layer, user, system, comment="", notes=""):
 
 def write_master(path: Path, rows) -> Path:
     """A devices.csv of just these staging device-map rows (hartlib.devices makes the master rows and holds them)."""
-    mine = [devices.master_row(r, "build_staging_masts.py") for r in rows]
-    path.write_text(devices.master_text(devices.replace_rows([], "build_staging_masts.py", mine)), encoding="utf-8")
+    mine = [devices.master_row(r, "build_masts.py") for r in rows]
+    path.write_text(devices.master_text(devices.replace_rows([], "build_masts.py", mine)), encoding="utf-8")
     return path
 
 

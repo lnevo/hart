@@ -17,7 +17,7 @@ LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
 WRITERS = {
     "hands": "tools/schematic/build_hands.py",
     "device_map": "tools/schematic/build_device_map.py",
-    "masts": "tools/schematic/build_main_upper_masts.py",
+    "masts": "tools/schematic/build_masts.py",
     "tables": "tools/schematic/build_layout_le.py --as-live (or a PanelPro Store)",
 }
 LEVEL_NUMBERS = (2, 3)                  # main and upper: the levels of the schematic's main_upper files

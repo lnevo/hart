@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Bring the staging signal heads and masts in tables.xml in line with staging_masts.csv (build_staging_masts.py).
+"""Bring the staging signal heads and masts in tables.xml in line with staging_masts.csv (build_masts.py).
 
     python3 tools/schematic/sync_staging_signals.py --check                 # exit 1 if tables.xml differs
     python3 tools/schematic/sync_staging_signals.py --tables OTHER.xml      # edit another tables file

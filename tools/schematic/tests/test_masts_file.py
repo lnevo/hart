@@ -1,4 +1,4 @@
-"""build_main_upper_masts.py: main_upper_masts.csv from the main and upper mast and head rows of devices.csv. Pinned
+"""build_masts.py: main_upper_masts.csv from the main and upper mast and head rows of devices.csv. Pinned
 before the mast builders merge (AGENTS.md, "Working on existing scripts"): the committed file is what build() gives,
 and the rules it holds on small hand-written device maps (the virtual head names, the default protected block, the
 virtual and intermediate masts, the A and B legs, the order, and every stop)."""
@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
-import build_main_upper_masts as bmm  # noqa: E402
+import build_masts as bmm  # noqa: E402
 from hartlib import level_masts, railroad  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
@@ -34,19 +34,19 @@ def home(user, switch, facing, kind="one-searchlight", level=2, protects="", phy
 
 
 def run(rows) -> list[dict]:
-    """build() over a device map of `rows`, as the CSV rows it writes."""
+    """level_text() over a device map of `rows`, as the CSV rows it writes."""
     dm = railroad.DeviceMap(rows=list(rows))
     fake = unittest.mock.Mock(device_map=dm)
     with unittest.mock.patch.object(bmm.railroad, "Railroad", return_value=fake):
-        return list(csv.DictReader(io.StringIO(bmm.build())))
+        return list(csv.DictReader(io.StringIO(bmm.level_text())))
 
 
 class Committed(RepoReadOnly, unittest.TestCase):
     def test_the_committed_file_is_what_build_gives(self):
-        self.assertEqual(bmm.build(), level_masts.PATH.read_text(encoding="utf-8"))
+        self.assertEqual(bmm.level_text(), level_masts.PATH.read_text(encoding="utf-8"))
 
     def test_columns(self):
-        self.assertEqual(bmm.build().splitlines()[0], ",".join(level_masts.FIELDS))
+        self.assertEqual(bmm.level_text().splitlines()[0], ",".join(level_masts.FIELDS))
 
 
 class Rows(unittest.TestCase):
@@ -93,7 +93,7 @@ class Rows(unittest.TestCase):
 
 class Stops(unittest.TestCase):
     def stops(self, rows, pattern):
-        with self.assertRaisesRegex(SystemExit, pattern):
+        with self.assertRaisesRegex(bmm.RuleError, pattern):
             run(rows)
 
     def test_a_virtual_mast_at_a_switch_or_with_a_staging_ordinal(self):

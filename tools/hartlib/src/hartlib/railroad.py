@@ -21,11 +21,11 @@ stale copy of its own output. Each file is read the first time it is asked for, 
                 helix track one block, Track <plan name>, from staging up the helix, owner 2026-11-20/21),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
                 control_points and stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
-                device map's form, written by build_staging_masts.py from the mast rule, ADR-024, and run by hand
+                device map's form, written by build_masts.py from the mast rule, ADR-024, and run by hand
                 before the pipeline, which only checks it)
     hands       the hand of switches.csv's plan rows      build_hands.py
     device_map  the main and upper rows of devices.csv      build_device_map.py
-    masts       schematic/main_upper_masts.csv            build_main_upper_masts.py (hartlib.level_masts)
+    masts       schematic/main_upper_masts.csv            build_masts.py (hartlib.level_masts)
     tables      jmri/layouts/hart/output/tables.xml       build_layout_le.py --as-live, and PanelPro's Store
 
 Every reader checks its own file's shape and stops with FactsError naming the file and line. The rules between files

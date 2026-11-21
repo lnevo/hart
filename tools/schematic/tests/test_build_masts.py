@@ -1,4 +1,4 @@
-"""build_staging_masts.py: staging's masts by rule. The rule functions on small hand-written inputs (names, numbers,
+"""build_masts.py: staging's masts by rule. The rule functions on small hand-written inputs (names, numbers,
 control points, ordering, the rows it writes), main() on temporary files, and, as data checks under a guard that fails
 any write into the repo (repo_read_only.py), the repo's committed data.
 The wired heads have their own tests (tools/audit/tests/test_staging_wired_heads.py)."""
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
-import build_staging_masts as bsm  # noqa: E402
+import build_masts as bsm  # noqa: E402
 import mast_plan  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import level_masts  # noqa: E402
@@ -343,8 +343,8 @@ class Cli(unittest.TestCase):
         code, out, err = self.run_main("--check")
         self.assertEqual((code, out), (1, ""))
         self.assertEqual(err.splitlines(),
-                         ["staging_signals.csv is stale: run python3 tools/schematic/build_staging_masts.py",
-                          "devices.csv is stale: run python3 tools/schematic/build_staging_masts.py"])
+                         ["staging_signals.csv is stale: run python3 tools/schematic/build_masts.py",
+                          "devices.csv is stale: run python3 tools/schematic/build_masts.py"])
         self.assertEqual(self.stale.read_text(encoding="utf-8"), "mast\nold\n")
         self.assertFalse(self.missing.exists())
 
@@ -380,7 +380,7 @@ class Cli(unittest.TestCase):
         with unittest.mock.patch.object(bsm, "build", stop):
             code, out, err = self.run_main("--check")
         self.assertEqual((code, out), (2, ""))
-        self.assertEqual(err.strip(), "build_staging_masts.py: the rule names a mast twice: ['Mast 2L']")
+        self.assertEqual(err.strip(), "build_masts.py: the rule names a mast twice: ['Mast 2L']")
 
 
 class WriteGuard(unittest.TestCase):
@@ -427,7 +427,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
 
     def test_build_gives_the_masts_signals_and_master(self):
         f = bsm.device_files()
-        self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, f.master})
+        self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, bsm.LEVEL_MASTS, f.master})
 
     def test_masts_are_in_number_then_name_order_each_named_once(self):
         for masts in (self.gen, self.virtual):

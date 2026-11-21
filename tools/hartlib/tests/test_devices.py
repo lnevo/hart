@@ -30,7 +30,7 @@ def turnout(user="Switch 1", **cells) -> dict:
 def mast(user="Mast 2L", **cells) -> dict:
     return blank(**{**dict(level="1", layer="mast", role="home", user_name=user, assignment="virtual",
                            system_name="IF$vsm:basic:one-low($1)", jmri_name="IF$vsm:basic:one-low($1)",
-                           written_by="build_staging_masts.py", description="Mast."), **cells})
+                           written_by="build_masts.py", description="Mast."), **cells})
 
 
 def problems(rows) -> str:
@@ -339,7 +339,7 @@ class TheWritersRules(unittest.TestCase):
         held = [turnout(), mast("Mast 2L"), mast("Mast 4L", system_name="IF$vsm:basic:one-low($2)",
                                                   jmri_name="IF$vsm:basic:one-low($2)")]
         new = [mast("Mast 6L", system_name="IF$vsm:basic:one-low($3)", jmri_name="IF$vsm:basic:one-low($3)")]
-        got = D.replace_rows(held, "build_staging_masts.py", new)     # virtual masts: the rule's, no field facts
+        got = D.replace_rows(held, "build_masts.py", new)     # virtual masts: the rule's, no field facts
         self.assertEqual([r["user_name"] for r in got], ["Switch 1", "Mast 6L"])
 
     def test_a_writer_not_in_the_one_list_is_refused(self):
@@ -357,11 +357,11 @@ class TheWritersRules(unittest.TestCase):
             D.replace_rows(held, "build_device_map.py", [clash])
         other = mast() | {"written_by": "build_device_map.py", "level": "2"}
         with self.assertRaisesRegex(D.DevicesError, "held by build_device_map.py"):
-            D.replace_rows([other], "build_staging_masts.py", [mast() | {"level": "2"}])
+            D.replace_rows([other], "build_masts.py", [mast() | {"level": "2"}])
 
     def test_a_result_that_breaks_a_check_is_refused(self):
         with self.assertRaisesRegex(D.DevicesError, "description is empty"):
-            D.replace_rows([], "build_staging_masts.py", [mast() | {"description": ""}])
+            D.replace_rows([], "build_masts.py", [mast() | {"description": ""}])
 
 
 class TheRowForms(unittest.TestCase):
@@ -378,7 +378,7 @@ class TheRowForms(unittest.TestCase):
     def test_text_that_is_not_wiring_is_a_jmri_comment(self):
         old = dict(self.OLD, layer="mast", user_name="Mast 2L", comment="Brick | Switch 1", dcc="",
                    system_name="IF$vsm:basic:one-low($1)", jmri_name="IF$vsm:basic:one-low($1)")
-        r = D.master_row(old, "build_staging_masts.py")
+        r = D.master_row(old, "build_masts.py")
         self.assertEqual((r["wiring"], r["jmri_comment"], r["role"], r["assignment"]),
                          ("", "Brick | Switch 1", "hidden", "virtual"))
         self.assertEqual(D.device_map_row(r), old)
@@ -461,43 +461,43 @@ class TheWriters(unittest.TestCase):
         self.assertFalse(names & {"unused Block 2-2", "SML Mode", "Turnout FB status"})
 
     def test_a_writer_that_gives_its_rows_back_unchanged_changes_no_file(self):
-        mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"], ("1",))
-        out = D.outputs_after("build_staging_masts.py", mine, self.files)
+        mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_masts.py"], ("1",))
+        out = D.outputs_after("build_masts.py", mine, self.files)
         for path, text in out.items():
             self.assertEqual(path.read_text(encoding="utf-8"), text, path.name)
 
     def test_a_writer_that_drops_a_row_changes_only_its_own_rows_of_the_master(self):
-        mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"], ("1",))
+        mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_masts.py"], ("1",))
         gone = (mine[0]["level"], mine[0]["layer"], mine[0]["user_name"])
-        out = D.outputs_after("build_staging_masts.py", mine[1:], self.files, drops=[gone])
+        out = D.outputs_after("build_masts.py", mine[1:], self.files, drops=[gone])
         before = {(r["level"], r["layer"], r["user_name"]) for r in D.load(self.files)}
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
         self.assertEqual(before - after, {gone})
         self.assertEqual(after - before, set())                       # no row is added
-        held = [dict(r) for r in D.load(self.files) if r["written_by"] != "build_staging_masts.py"]
-        kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_staging_masts.py"]
+        held = [dict(r) for r in D.load(self.files) if r["written_by"] != "build_masts.py"]
+        kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_masts.py"]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
     def test_a_writer_that_would_lose_a_staging_field_row_without_saying_so_is_refused(self):
         """A rename gives a new key: the old row of a wired staging device (and the field facts a rewrite carries
         over from it) would go with no word, so the write stops."""
-        held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
+        held = [r for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
         mine = D.device_map_rows(held, ("1",))
         first = next(r for r in mine if r["user_name"] == "Mast 6LB")            # the wired mast
         renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
         with self.assertRaisesRegex(D.DevicesError,
                                     rf"would drop 1 staging field device row\(s\), first {first['user_name']!r}"):
-            D.outputs_after("build_staging_masts.py", renamed, self.files)
+            D.outputs_after("build_masts.py", renamed, self.files)
         key = ("1", first["layer"], first["user_name"])
-        D.outputs_after("build_staging_masts.py", renamed, self.files, drops=[key])
+        D.outputs_after("build_masts.py", renamed, self.files, drops=[key])
 
     def test_a_rule_mast_and_a_panel_status_bean_may_go_without_saying_so(self):
         """Rows the rule makes (a virtual staging mast) or panel_items.json writes carry no field facts, so their
-        writers drop them freely (build_staging_masts.py and panel_items.py pass no drops)."""
-        held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
+        writers drop them freely (build_masts.py and panel_items.py pass no drops)."""
+        held = [r for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
         mine = [r for r in D.device_map_rows(held, ("1",)) if r["user_name"] != "Mast 4LA"]
-        out = D.outputs_after("build_staging_masts.py", mine, self.files)
+        out = D.outputs_after("build_masts.py", mine, self.files)
         self.assertNotIn(",Mast 4LA,", out[self.files.master])
         status = [dict(r) for r in D.load(self.files) if r["written_by"] == "panel_items.json"]
         out = D.outputs_after_rows("panel_items.json", [r for r in status if r["user_name"] != "SML Mode"], self.files)
@@ -531,12 +531,12 @@ class TheWriters(unittest.TestCase):
         hand = hand_keep(self.files)
         stray = D.device_map_row(hand)
         with self.assertRaisesRegex(D.DevicesError, "would rewrite row"):
-            D.outputs_after("build_staging_masts.py", [stray], self.files)
+            D.outputs_after("build_masts.py", [stray], self.files)
 
     def test_a_row_the_writer_gave_that_is_not_a_device_map_layer_is_refused(self):
         row = dict(TheRowForms.OLD, layer="sensor", user_name="SML Mode")
         with self.assertRaisesRegex(D.DevicesError, "has no sensor rows"):
-            D.outputs_after("build_staging_masts.py", [row], self.files)
+            D.outputs_after("build_masts.py", [row], self.files)
 
 
 class TheNits(unittest.TestCase):
@@ -714,8 +714,7 @@ class TheMasterFile(unittest.TestCase):
 
     def test_the_writers_are_one_tuple_of_distinct_names(self):
         self.assertEqual(len(set(D.WRITERS)), len(D.WRITERS))
-        self.assertEqual(set(D.WRITERS), {"build_staging_masts.py", "build_device_map.py", "build_main_upper_masts.py",
-                                          "panel_items.json"})
+        self.assertEqual(set(D.WRITERS), {"build_masts.py", "build_device_map.py", "panel_items.json"})
 
 
 if __name__ == "__main__":

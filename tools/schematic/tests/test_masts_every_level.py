@@ -2,7 +2,7 @@
 
 - the committed mast files (staging_masts.csv, main_upper_masts.csv: hartlib.level_masts.FIELDS), read as plain CSV,
   so the pins do not depend on how the device maps are laid out;
-- the one mast process's own output over the committed plan, under RepoReadOnly: build_staging_masts.build() for
+- the one mast process's own output over the committed plan, under RepoReadOnly: build_masts.build() for
   staging and build_device_map.plan_masts (mast_plan.plan, the function build() calls) for main and upper.
 
 A change here is a change to where masts stand or what they show, which needs the owner's approval of the panel. The
@@ -30,7 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
-import build_staging_masts as bsm  # noqa: E402
+import build_masts as bsm  # noqa: E402
 import mast_rule  # noqa: E402
 from hartlib import level_masts  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402

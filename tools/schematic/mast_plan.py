@@ -22,10 +22,10 @@ the level's block layer:
    120RC); a visible mast with the bare name stops the build.
 
 The block layer is each level's own (not yet one process): staging's from its device map's block rows and
-block_lengths.csv (build_staging_masts.py), main and upper's generated one block per track, loop and split halves
-(build_device_map.track_layer). Each level's builder turns these masts into its rows: build_staging_masts.py into
+block_lengths.csv (build_masts.py), main and upper's generated one block per track, loop and split halves
+(build_device_map.track_layer). Each level's builder turns these masts into its rows: build_masts.py into
 staging_masts.csv, staging_signals.csv and its device rows; build_device_map.py into the main and upper device rows,
-from which build_main_upper_masts.py writes main_upper_masts.csv.
+from which build_masts.py writes main_upper_masts.csv.
 """
 from __future__ import annotations
 
