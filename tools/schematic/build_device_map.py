@@ -114,6 +114,11 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   first 5V board with room, so a group's heads may land off its home node, on another node of its area, when the
   home node is full, and draft head outputs may reshuffle from one build to the next (owner, 2026-11-19: nothing on
   the main and upper levels is wired yet).
+- wiring.csv's turnout, fb and head rows of main and upper: a control point wired and frozen
+  (tools/wiring/freeze_wiring.py, owner 2026-11-20). Each frozen device keeps its node, LCOS number and pins on every
+  build (Nodes.freeze), and the rule hands them to nothing else; its detectors are pins (read_pins: an OS block by its
+  name, a helix block by its name, a track by its end switches). The JMRI names stay virtual: freezing fixes the
+  wiring only.
 - Hand lists keyed by end switches (block_splits, with a level column, and wiring.csv's main and upper detectors; source-data row 5; running
   track and exit dwarfs are rules since 2026-11-20, mast_rule.running_tracks and signalled_spurs): columns switch_a,
   switch_b (the owner's switch numbers, lower first; switch_b blank for a spur, whose other end is a
@@ -299,6 +304,9 @@ def split_edges(path: Path | None = None, found: list | None = None) -> dict:
     return block_layer.split_edges(found, LEVELS, path or SPLIT).get("main_upper", {})
 
 
+OS_BLOCK = re.compile(r"OS Switch \d+[a-d]?")        # a main or upper OS block, named by its switch
+
+
 def wiring_rows(path: Path | None = None) -> list:
     """The rows of wiring.csv (hartlib.wiring.read, `path` default the committed file), its FactsError a MapError."""
     try:
@@ -330,7 +338,9 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
         if w.kind != "detector" or w.level == int(FIELD_LEVEL):
             continue
         i, node, k = w.line, w.node, w.index - 1
-        if w.device:                                    # a helix block, named by the owner
+        if w.device and OS_BLOCK.fullmatch(w.device):     # a switch's OS block (or a double crossover's corner)
+            name = w.device                                # by its own name: a switch number is stable
+        elif w.device:                                  # a helix block, named by the owner
             if w.device not in helix_level:
                 bad.append(f"line {i}: block {w.device!r} is no helix block ({', '.join(sorted(helix_level))}); "
                            "name any other track by switch_a and switch_b")
@@ -512,7 +522,8 @@ class Nodes:
         self.used = defaultdict(lambda: defaultdict(int))
         self.taken = defaultdict(set)         # (node, what) -> the indices given out or pinned
         self.pins = {}                        # block -> (node, index): wiring.csv's main and upper detectors
-        self.boards = {}                     # node -> pins used on each of its 5V boards
+        self.boards = defaultdict(lambda: defaultdict(set))   # node -> {OU board: the pins its heads use}
+        self.frozen = {}                      # (kind, device) -> wiring.csv's Wire of a frozen main or upper device
 
     def pin(self, pins):
         """Hold each pinned detector's input (read_pins: {block: (node, input index)}) before any other is given out,
@@ -524,6 +535,32 @@ class Nodes:
             self.taken[(node, "block")].add(k)
             self.used[node]["block"] += 1
         self.pins = dict(pins)
+
+    def freeze(self, wires):
+        """Hold the node, LCOS number and pins of each frozen main or upper device (wiring.csv's turnout, fb and head
+        rows of levels 2 and 3: a control point wired and frozen, freeze_wiring.py) before any other is given out,
+        so the rule hands them to nothing else and gives the device the same values again (take_frozen)."""
+        known = {n for nodes in self.pool.values() for n in nodes}
+        what = {"turnout": "turnout", "fb": "sensor", "head": "signal"}
+        for w in wires:
+            if w.node not in known:
+                raise MapError(f"{PINS.name} line {w.line}: {w.device} is on node {w.node}, which {NODES.name} does "
+                               "not list for main or upper")
+            self.taken[(w.node, what[w.kind])].add(w.index)
+            self.used[w.node][what[w.kind]] += 1
+            if w.kind == "head":
+                self.boards[w.node][int(w.board[2:])].update(w.ports)
+            self.frozen[(w.kind, w.device)] = w
+
+    def take_frozen(self, kind, device):
+        """wiring.csv's Wire of a frozen device, once; None when it is not frozen."""
+        return self.frozen.pop((kind, device), None)
+
+    def check_frozen(self):
+        """Stop when a frozen row names a device the map does not give (a stale or misspelt row)."""
+        if self.frozen:
+            raise MapError(f"{PINS.name}: frozen rows for devices the device map does not give: "
+                           f"{sorted(f'{k} {d}' for k, d in self.frozen)}")
 
     def room(self, node, what, n=1):
         return self.used[node][what] + n <= CAP[what]
@@ -564,18 +601,27 @@ class Nodes:
     def n12(self, node):
         return -(-self.used[node]["turnout"] // 4)
 
-    def _cap(self, node, i):
-        return 7 if i == 0 and self.used[node]["block"] else 8     # pin 8 of the first 5V board: calibration
+    def _free(self, node, board):
+        """The pins of one 5V OU board a head may use: all eight but those taken, and pin 8 of the first 5V board on a
+        node with detectors (its calibration relay)."""
+        cal = board == self.n12(node) + 1 and self.used[node]["block"]
+        return [p for p in range(1, 9) if p not in self.boards[node][board] and not (cal and p == 8)]
+
+    def five_volt(self, node):
+        """The node's 5V boards with a head on them, in board order."""
+        return sorted(b for b, used in self.boards[node].items() if used and b > self.n12(node))
 
     def _fit(self, node, pins):
-        """(board index among the node's 5V boards, first pin) where `pins` consecutive pins fit, or None: the first
-        board with room (any of them, not only the last), else a new board while the node has OU room."""
-        boards = self.boards.setdefault(node, [])
-        for i, used in enumerate(boards):
-            if used + pins <= self._cap(node, i):
-                return i, used + 1
-        if self.n12(node) + len(boards) + 1 <= MAX_OU and pins <= self._cap(node, len(boards)):
-            return len(boards), 1
+        """(OU board, first pin) where `pins` consecutive pins fit, or None: the lowest run on the first 5V board with
+        room (any of them, not only the last), else the next new board while the node has OU room."""
+        last = max([self.n12(node)] + self.five_volt(node))
+        for board in range(self.n12(node) + 1, last + 2):
+            if board > MAX_OU:
+                break
+            free = set(self._free(node, board))
+            for first in range(1, 10 - pins):
+                if all(p in free for p in range(first, first + pins)):
+                    return board, first
         return None
 
     def pick_mast(self, level, area, heads, prefer=()):
@@ -588,21 +634,18 @@ class Nodes:
 
     def place_mast(self, node, heads):
         """[(signal index, packed id, OU board, first pin)] for the mast's heads, on one 5V board."""
-        i, first = self._fit(node, 3 * heads)
-        boards = self.boards[node]
-        if i == len(boards):
-            boards.append(0)
+        board, first = self._fit(node, 3 * heads)
         out = []
         for h in range(heads):
             k, packed = self.take(node, "signal")
-            out.append((k, packed, self.n12(node) + 1 + i, first + 3 * h))
-        boards[i] = first - 1 + 3 * heads
+            out.append((k, packed, board, first + 3 * h))
+        self.boards[node][board].update(range(first, first + 3 * heads))
         return out
 
     def check_boards(self):
         """A node with detectors needs a 5V board for the calibration pin; no node may need more than MAX_OU."""
         for node, used in self.used.items():
-            five = max(len(self.boards.get(node, [])), 1 if used["block"] else 0)
+            five = max(len(self.five_volt(node)), 1 if used["block"] else 0)
             if self.n12(node) + five > MAX_OU:
                 raise MapError(f"node {node} needs {self.n12(node) + five} DNOU8 boards; the limit is {MAX_OU}")
 
@@ -633,13 +676,20 @@ def master_virtual_names(files: devices.Files | None = None) -> dict:
             if r["level"] in ("2", "3") and r["layer"] == "mast" and level_masts.virtual_ordinal(r["jmri_name"])}
 
 
+def frozen_wires(path: Path | None = None) -> list:
+    """wiring.csv's turnout, fb and head rows of main and upper: the devices of a control point wired and frozen
+    (freeze_wiring.py), which the rule gives the same values again (Nodes.freeze)."""
+    return [w for w in wiring_rows(path) if w.level != int(FIELD_LEVEL) and w.kind in ("turnout", "fb", "head")]
+
+
 def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None,
-          virtual_names=None) -> tuple[dict, list[dict], list[dict]]:
+          virtual_names=None, frozen=None) -> tuple[dict, list[dict], list[dict]]:
     """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (local_switches_main_upper.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
     when a band has a double crossover. `helix`: read_helix_tracks (None: helix_tracks.csv; {}: no helix tracks);
     `pins`: read_pins (None: wiring.csv's detectors, resolved against the tracks found here); `virtual_names`:
-    {mast: system name} of the virtual masts that have one already (None: master_virtual_names)."""
+    {mast: system name} of the virtual masts that have one already (None: master_virtual_names); `frozen`:
+    frozen_wires (None: wiring.csv's)."""
     helix = read_helix_tracks() if helix is None else helix
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
@@ -676,6 +726,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                                                   if level_masts.virtual_level(v) == lv})
     nodes = Nodes(node_rows)
     nodes.pin(pins)
+    nodes.freeze(frozen_wires() if frozen is None else frozen)
     rows = []
 
     def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri="", **facts):
@@ -698,14 +749,24 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     home, area_of = {}, {}                  # switch -> its turnout's node, its area
 
     def switch_rows(lv, area, name, s, node, note=""):
-        k, packed = nodes.take(node, "turnout")
+        frozen = nodes.take_frozen("turnout", f"Switch {s}")    # wired and frozen (wiring.csv): its own values
+        if frozen:
+            node, k, packed = frozen.node, frozen.index, frozen.node * 100 + UID["turnout"] + frozen.index
+            where = frozen.wiring_text
+        else:
+            k, packed = nodes.take(node, "turnout")
+            where = f"Node: {node} Turnout: {k}"
         home[s], area_of[s] = node, (lv, area)
         halves = sorted({lb for labels in by_level.values() for lb in labels if base(lb) == s}, key=natural)
-        add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, f"Node: {node} Turnout: {k}",
+        add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, where,
             ", ".join(f"Switch {lb}" for lb in halves), note, dcc[s], jmri=VIRTUAL_TURNOUT + s)
-        add(lv, name, "turnout", f"DCC Switch {s}", f"MTT{dcc[s]}", node, f"Node: {node} Turnout: {k}",
+        add(lv, name, "turnout", f"DCC Switch {s}", f"MTT{dcc[s]}", node, where,
             notes="LCC alias of the MQTT turnout (ADR-005)", dcc=dcc[s], jmri=VIRTUAL_TURNOUT + s)
         for nr in "NR":
+            fb = nodes.take_frozen("fb", f"FB Switch {s} {nr}")
+            if fb:
+                add(lv, name, "fb", f"FB Switch {s} {nr}", fb.address, fb.node, fb.wiring_text)
+                continue
             fnode = nodes.pick(lv, area, "sensor", prefer=[node])
             kk, pp = nodes.take(fnode, "sensor")
             add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
@@ -721,8 +782,12 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                     add(lv, name, "block", block, "", "", comment, block, note)
                     occupancy(lv, name, block, notes=NOT_WIRED)
                 else:                                     # corner a keeps the switch's detector
-                    bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
-                    k, packed = nodes.take(bnode, "block")
+                    pinned = nodes.take_pinned(block)
+                    if pinned:
+                        bnode, k, packed = pinned
+                    else:
+                        bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
+                        k, packed = nodes.take(bnode, "block")
                     add(lv, name, "block", block, "", bnode, comment, block, note)
                     occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
             return
@@ -731,18 +796,23 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             add(lv, name, "block", block, "", "", comment, block, "no detector: off the main line")
             occupancy(lv, name, block, notes=NO_DETECTOR)
             return
-        bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
-        k, packed = nodes.take(bnode, "block")
+        pinned = nodes.take_pinned(block)
+        if pinned:
+            bnode, k, packed = pinned
+        else:
+            bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
+            k, packed = nodes.take(bnode, "block")
         add(lv, name, "block", block, "", bnode, comment, block)
         occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
 
     for cp in cps:                               # turnouts first: a node's 12V boards come before its 5V boards
-        node = nodes.pick(cp.level, cp.area, "turnout", len(cp.switches))
+        loose = [s for s in cp.switches if ("turnout", f"Switch {s}") not in nodes.frozen]
+        node = nodes.pick(cp.level, cp.area, "turnout", len(loose)) if loose else None
         for s in cp.switches:
             switch_rows(cp.level, cp.area, cp.name, s, node)
     for s in sorted(loc, key=natural):           # no control point: turnout and feedback, no signals or detection
         r = loc[s]
-        node = nodes.pick(r.level, r.area, "turnout")
+        node = nodes.pick(r.level, r.area, "turnout") if ("turnout", f"Switch {s}") not in nodes.frozen else None
         switch_rows(r.level, r.area, "", s, node, "no control point: " + r.notes)
     for cp in cps:
         for s in cp.switches:
@@ -817,10 +887,19 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     for lv, area, name, first, m in sorted(placing, key=lambda g: -g[4]["heads"]):
         parts = ["Top", "Bottom"] if m["heads"] == 2 else [""]
         kind = m["kind"]
+        users = [f"Head {m['name']}" + (f" {part}" if part else "") for part in parts]
+        frozen = [nodes.take_frozen("head", u) for u in users]
         try:
-            hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
-            heads = [(f"Head {m['name']}" + (f" {part}" if part else ""), f"IH{packed}", k, board, pin)
-                     for part, (k, packed, board, pin) in zip(parts, nodes.place_mast(hnode, m["heads"]))]
+            if any(frozen):                          # wired and frozen (wiring.csv): every head of the mast, one node
+                if not all(frozen) or len({w.node for w in frozen}) != 1:
+                    raise MapError(f"Mast {m['name']}: wiring.csv freezes {sum(map(bool, frozen))} of its "
+                                   f"{len(users)} head(s), or puts them on two nodes; freeze the mast whole")
+                hnode = frozen[0].node
+                heads = [(u, w.address, w.index, int(w.board[2:]), w.ports[0]) for u, w in zip(users, frozen)]
+            else:
+                hnode = nodes.pick_mast(lv, area, m["heads"], prefer=[home[first]])
+                heads = [(u, f"IH{packed}", k, board, pin)
+                         for u, (k, packed, board, pin) in zip(users, nodes.place_mast(hnode, m["heads"]))]
             sysname = f"IF$shsm:basic:{kind}(" + ")(".join(h[1] for h in heads) + ")"
         except NoBoardRoom:
             # the draft plant has no board room left in this area: the heads wait for the wiring plan, which
@@ -853,6 +932,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             jmri=system, facing=m["facing"], dir=m["dir"])
     nodes.check_boards()
     nodes.check_pins()
+    nodes.check_frozen()
     check_virtual(rows)
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
     assign_ports(rows)

@@ -270,7 +270,7 @@ python3 www/scripts/build_wiring_json.py       # the website's wiring viewer
 python3 tools/wiring/create_wiring_schematic_ppt.py
 ```
 
-A wiring change is a row of `jmri/layouts/hart/data/wiring.csv` (`hartlib.wiring`): a staging device moved or added, or a main or upper device once it is wired. Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
+A wiring change is a row of `jmri/layouts/hart/data/wiring.csv` (`hartlib.wiring`): a staging device moved or added, or a main or upper device once it is wired. When a main or upper control point is wired as the device map has it, freeze it: `make wiring-freeze CP="CP 123"` (`tools/wiring/freeze_wiring.py`) copies its turnouts, feedback, heads and detectors into `wiring.csv` as wired rows, and `build_device_map.py` keeps those values from then on. A control point with a head the board rule could not place cannot be frozen until that head has a place. Refresh only after the JMRI XML is applied, so the workbooks match the live beans. For Signal Manager punching, use `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`.
 
 The website's node grid (`www/assets/behind/lcos-node-grid.svg`, on `www/behind/bridge.html`) is drawn from the owner's grid workbook (`media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx`, local media, not in git). Rerun it after the grid changes:
 

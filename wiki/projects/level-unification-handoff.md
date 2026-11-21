@@ -298,7 +298,15 @@ the readers (`tables_build.digicon_masts`, `check_wiring_crosswalk.py`, `build_l
 `--wiring-only`'s outputs (they hold mast facts too), byte-identical. A head is on one board: a head whose pins spill
 onto a second board needs the format widened when one is wired.
 
-Next: a freeze command that copies a control point's generated wiring into wiring.csv as wired rows.
+The freeze (2026-11-21, branch `agent/claude/wiring-freeze`): `make wiring-freeze CP="CP 123"`
+(`tools/wiring/freeze_wiring.py`) copies a main or upper control point's turnouts, feedback, placed heads and
+detectors from devices.csv into wiring.csv as wired rows (a planned detector turns wired; a second freeze adds
+nothing). `build_device_map.py` reserves every frozen device's node, LCOS number and pins before handing anything out
+(`Nodes.freeze`; a head's 5V boards are sets of pins now, so a frozen head leaves a gap the rule goes round) and
+gives it the same values (`take_frozen`; OS blocks are pinned by name). Freezing changes no JMRI name: the swap to
+the physical devices is the device map's, later. Today CP 123, 211, 217 and 223 can be frozen; CP 107, 127, 201 and
+225 each have heads the board rule could not place, and the freeze stops on them until the owner's board plan gives
+them room. Nothing is frozen yet: nothing on main or upper is wired. Step 6 is done.
 
 ### 7. Main and upper stations and sheets (waits on the owner)
 

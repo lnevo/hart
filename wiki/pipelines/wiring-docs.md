@@ -28,6 +28,7 @@ python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 python3 tools/wiring/build_lcos_signal_manager_plan.py
 python3 tools/schematic/build_device_map.py
 python3 tools/wiring/write_inventory.py
+make wiring-freeze CP="CP 123"              # once a main or upper control point is wired: its wiring becomes static
 python3 tools/wiring/create_wiring_schematic_ppt.py
 python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85 pins (--splits-inventory); tools/check.sh fails while it is stale
 ```
