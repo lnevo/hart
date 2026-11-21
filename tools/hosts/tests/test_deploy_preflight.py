@@ -265,7 +265,11 @@ class PreflightTest(DeployHarness):
         self.assertTrue(calls[1].endswith(f"{WIN} exit 0"), calls)
         # the unpulled check, with the generated tables.xml's hash as the reference for a Pi that has none
         generated = hashlib.sha256(TABLES.read_bytes()).hexdigest()
-        self.assertTrue(calls[2].endswith(f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}'"), calls)
+        # and the hash of each Store a merged split took in (store_splits.csv), so the Pi's file of one is not unpulled
+        splits = ROOT / "jmri/layouts/hart/data/store_splits.csv"
+        shas = [ln.split(",", 1)[0] for ln in splits.read_text().splitlines()[1:]] if splits.is_file() else []
+        want = f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}'" + "".join(f" {h}" for h in shas)
+        self.assertTrue(calls[2].endswith(want), calls)
         # The first real host step, which the stand-in fails.
         self.assertIn("mktemp -d /tmp/hart-deploy.XXXXXX", calls[3])
         self.assertEqual(99, done.returncode, done.stderr[-2000:])

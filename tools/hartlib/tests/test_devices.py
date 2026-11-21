@@ -54,7 +54,7 @@ class TheCommittedMaster(unittest.TestCase):
 
     def test_levels_are_one_structure_and_hold_spares_and_status_beans(self):
         rows = D.load()
-        self.assertEqual({r["level"] for r in rows}, {"1", "2", "3"})
+        self.assertEqual({r["level"] for r in rows if not D.is_unplaced(r)}, {"1", "2", "3"})
         self.assertEqual({r["user_name"] for r in rows if r["role"] == "spare"}, {"unused Block 2-2", "unused Block 3-8"})
         self.assertEqual({r["user_name"] for r in rows if r["role"] == "panel_status"},
                          {"Bridge HBLOOP", "SML Mode", "Track Power", "Turnout FB status"})
@@ -98,7 +98,7 @@ class TheMasterAgainstTables(unittest.TestCase):
     def test_field_rows_for_wired_hardware_carry_a_comment(self):
         bare = [f"{r['layer']} {r['user_name']}" for r in self.rows
                 if r["assignment"] == "field" and r["system_name"].startswith(("M2T", "M2S", "IH", "MTT"))
-                and not (r["wiring"] or r["jmri_comment"])]
+                and not (r["wiring"] or r["jmri_comment"]) and not D.is_unplaced(r)]   # kept as the Store had it
         self.assertEqual(bare, [])
 
     def test_mtt_100_to_119_are_lcc_aliases_named_dcc_switch(self):
@@ -288,6 +288,41 @@ class TheParts(unittest.TestCase):
     def test_the_device_maps_leave_parts_out(self):
         self.assertIn("part", D.OUT_OF_MAPS)
         self.assertEqual(D.describe(part()), "Piece Track 9-11 of block OS Switch 9: no JMRI block of its own.")
+
+
+BEAN = ('{"beans":[{"section":["turnouts","jmri.jmrix.openlcb.configurexml.OlcbTurnoutManagerXml"],'
+        '"element":{"tag":"turnout","attrs":{"feedback":"MONITORING"},"children":[{"tag":"systemName","attrs":{},'
+        '"text":"MTT999"},{"tag":"userName","column":"user_name"}]}}]}')
+
+
+def unplaced(user="Test 999", **cells) -> dict:
+    return blank(**{**dict(level="", layer="turnout", user_name=user, assignment="field", system_name="MTT999",
+                           jmri_name="MTT999", jmri_bean=BEAN, description="Added in PanelPro."), **cells})
+
+
+class TheUnplacedDevices(unittest.TestCase):
+    """A device added in PanelPro and not on the layout yet has no level, cp or role, and carries its Store beans in
+    jmri_bean (owner, 2026-11-20); it comes after every level's rows."""
+
+    def test_a_level_less_row_with_its_bean_passes(self) -> None:
+        D.check_rows([turnout(), unplaced()])
+
+    def test_no_level_needs_a_bean(self) -> None:
+        self.assertIn("or empty for a device kept by its jmri_bean", problems([unplaced(jmri_bean="")]))
+
+    def test_a_row_with_a_level_has_no_bean(self) -> None:
+        self.assertIn("jmri_bean is for a level-less device", problems([turnout(jmri_bean=BEAN)]))
+
+    def test_a_level_less_row_has_no_cp_role_or_writer_yet(self) -> None:
+        got = problems([unplaced(cp="Brick", role="turnout", written_by="build_device_map.py")])
+        self.assertIn("has no cp, role, written_by", got)
+
+    def test_its_bean_is_its_own(self) -> None:
+        self.assertIn("holds no bean named 'MTT998'", problems([unplaced(system_name="MTT998", jmri_name="MTT998")]))
+        self.assertIn("not JSON", problems([unplaced(jmri_bean="{")]))
+
+    def test_it_comes_after_every_level(self) -> None:
+        self.assertIn("out of order", problems([unplaced(), turnout()]))
 
 
 class TheWritersRules(unittest.TestCase):

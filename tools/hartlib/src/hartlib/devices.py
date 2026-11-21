@@ -55,7 +55,7 @@ SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
            "part_of", "switch", "facing", "protects", "dir", "written_by", "description",
-           "pnm_order", "pnm_cp", "pnm_hardware", "pnm_dcc", "pnm_comment", "pnm_notes")
+           "pnm_order", "pnm_cp", "pnm_hardware", "pnm_dcc", "pnm_comment", "pnm_notes", "jmri_bean")
 PNM_COLUMNS = ("layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes")
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))
@@ -184,8 +184,42 @@ def read_dictionary(path: Path) -> dict[str, str]:
 # ---------------------------------------------------------------- the checks
 
 def _rank(row: Mapping[str, str]) -> tuple[int, int, int]:
+    """A row's place: by level (a level-less row after every level), layer, then hand-kept rows before each writer's."""
     writer = row["written_by"]
-    return (LEVELS.index(row["level"]), LAYERS.index(row["layer"]), 0 if not writer else 1 + WRITERS.index(writer))
+    level = LEVELS.index(row["level"]) if row["level"] else len(LEVELS)
+    return (level, LAYERS.index(row["layer"]), 0 if not writer else 1 + WRITERS.index(writer))
+
+
+def is_unplaced(row: Mapping[str, str]) -> bool:
+    """A device not on the layout yet: added in PanelPro, kept as its Store beans in jmri_bean, with no level until the
+    owner gives its details (owner, 2026-11-20)."""
+    return not row["level"]
+
+
+def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
+    """What a level-less row breaks: it carries its beans (jmri_bean), is a field device by its own system name, and
+    has no cp, role, writer or other level's facts."""
+    from . import tables, tables_build          # tables_build reads this module
+    bad = []
+    if not r["jmri_bean"]:
+        return ["level is one of " + ", ".join(LEVELS) + ", or empty for a device kept by its jmri_bean"]
+    if r["assignment"] != "field" or not r["jmri_name"] or r["system_name"] != r["jmri_name"]:
+        bad.append("a level-less device is assignment field with system_name equal to jmri_name")
+    set_cols = [c for c in ("cp", "role", "written_by", "wiring", "part_of", "blocks", "detector", "stop", "switch",
+                            "facing", "protects", "dir", "pnm_order") if r[c]]
+    if set_cols:
+        bad.append(f"a level-less device has no {', '.join(set_cols)} (they come with its level)")
+    try:
+        beans = tables_build.row_beans(r)
+    except tables_build.TablesBuildError as exc:
+        return bad + [str(exc).split(": ", 2)[-1]]
+    names = {tables.system_name(el) for _, el in beans}
+    own = {r["jmri_name"], r["layout_block"]} - {""}
+    if r["jmri_name"] not in names:
+        bad.append(f"jmri_bean holds no bean named {r['jmri_name']!r}")
+    if names - own:
+        bad.append(f"jmri_bean holds beans of other names ({', '.join(sorted(names - own))})")
+    return bad
 
 
 def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") -> None:
@@ -196,9 +230,13 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
     parts, part_names, whole = [], set(), set()      # parts (row, level, part_of); (level, name)s
     for n, r in enumerate(rows, 2):
         at = f"line {n} ({r['level']} {r['layer']} {r['user_name']!r})"
-        if r["level"] not in LEVELS:
-            bad.append(f"{at}: level is one of {', '.join(LEVELS)}")
+        if r["level"] and r["level"] not in LEVELS:
+            bad.append(f"{at}: level is one of {', '.join(LEVELS)}, or empty for a device kept by its jmri_bean")
             continue
+        if not r["level"]:
+            bad += [f"{at}: {b}" for b in _unplaced_problems(r)]
+        elif r["jmri_bean"]:
+            bad.append(f"{at}: jmri_bean is for a level-less device; a row with a level is made by the build")
         if r["layer"] not in LAYERS:
             bad.append(f"{at}: layer is one of {', '.join(LAYERS)}")
             continue
@@ -207,6 +245,8 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
             bad.append(f"{at}: {', '.join(broken)} hold a line break (a record would no longer be one file line)")
         unknown = False
         for col, allowed in (("role", ROLES), ("assignment", ASSIGNMENTS), ("written_by", ("",) + WRITERS)):
+            if col == "role" and not r["level"] and not r[col]:
+                continue                            # a level-less device has no role yet
             if r[col] not in allowed:
                 bad.append(f"{at}: {col} {r[col]!r} is not one of {', '.join(a or 'empty' for a in allowed)}")
                 unknown = unknown or col == "written_by"
