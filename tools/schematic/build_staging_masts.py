@@ -65,7 +65,7 @@ WRITES = ("mast", "head")              # the layers of the devices.csv rows this
 
 
 def device_files() -> devices.Files:
-    """The master and its generated files as build() uses them: DEVICE_MAP, as it is when it runs (a test may patch it)."""
+    """The master (the only device file) as build() uses it: DEVICE_MAP, as it is when it runs (a test may patch it)."""
     return devices.Files.under(DEVICE_MAP.parent)
 CPS = sdm.CPS
 INTERLOCKINGS = DATA / "interlockings.csv"   # the signal rule's control points, every level (owner, 2026-11-20)

@@ -19,7 +19,7 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 
 ```bash
 export JMRI_LAYOUT=hart
-PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices regenerate   # after an edit to devices.csv
+PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # after an edit to devices.csv
 python3 jmri/layouts/hart/scripts/refresh_bean_comments.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 ```
@@ -30,7 +30,7 @@ Writable tables: `jmri/layouts/hart/output/tables.xml`.
 
 ## Renaming
 
-A rename is an edit of the row's `user_name` in `devices.csv` (and of the bean in `tables.xml` while PanelPro owns that file), then `python3 -m hartlib.devices regenerate` and the builds that bind the name. No old-name history is kept (ADR-029); `tools/audit/check_name_copies.py` finds hand-kept copies of Mast and OS names that are no longer current.
+A rename is an edit of the row's `user_name` in `devices.csv` (and of the bean in `tables.xml` while PanelPro owns that file), then `python3 -m hartlib.devices check` and the builds that bind the name. No old-name history is kept (ADR-029); `tools/audit/check_name_copies.py` finds hand-kept copies of Mast and OS names that are no longer current.
 
 ## Do not
 

@@ -54,7 +54,7 @@ COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_na
            "switch", "facing", "protects", "dir", "written_by", "description",
            "pnm_order", "pnm_cp", "pnm_hardware", "pnm_dcc", "pnm_comment", "pnm_notes")
 PNM_COLUMNS = ("layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes")
-# the columns a device map shares with the master, and the one that is built (comment) or dropped (the rest)
+# the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))
 
 _NODE_TEXT = re.compile(r"Node: \d+")
@@ -523,11 +523,26 @@ def write_all(files: Files, content: Mapping[Path, str]) -> list[Path]:
 # ---------------------------------------------------------------- the check
 
 def stale(files: Files | None = None) -> list[str]:
-    """What is wrong with the master: [] when it and its dictionary check (a DevicesError otherwise)."""
+    """What is wrong with the master: [] when it and its dictionary check and every row the old-form readers take
+    converts to that form and back (a DevicesError otherwise, naming the row)."""
     f = files or Files.here()
-    load(f)
+    rows = load(f)
     read_dictionary(f.dictionary)
-    return []
+    out = []
+    for r in rows:
+        if r["role"] in OUT_OF_MAPS:
+            continue
+        try:
+            master_row(device_map_row(r), r["written_by"], r)
+        except DevicesError as exc:
+            out.append(str(exc))
+        except (KeyError, ValueError) as exc:
+            out.append(f"level {r['level']} {r['layer']} {r['user_name']}: cannot be read in the device-map form ({exc!r})")
+    try:
+        name_map_lines(f)
+    except (KeyError, ValueError) as exc:
+        out.append(f"the name-map rows cannot be read ({exc!r})")
+    return out
 
 
 def main(argv: list[str] | None = None) -> int:

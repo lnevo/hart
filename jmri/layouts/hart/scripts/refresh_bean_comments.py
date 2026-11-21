@@ -259,8 +259,8 @@ def load_wiring_head_comments(
 
 
 def sync_map_head_comments(files: devices.Files | None = None) -> int:
-    """Write the wiring comments onto the head rows' pnm_comment column of devices.csv, then regenerate the files it
-    generates. Returns the rows changed. The head rows belong to build_staging_masts.py and stay its (written_by is
+    """Write the wiring comments onto the head rows' pnm_comment column of devices.csv (the only file
+    written). Returns the rows changed. The head rows belong to build_staging_masts.py and stay its (written_by is
     not touched): pnm_comment is no builder's output, and a rebuild carries it over (devices.set_pnm_comments)."""
     files = files or devices.Files.here()
     comments = load_wiring_head_comments()

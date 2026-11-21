@@ -305,7 +305,7 @@ class TheRowForms(unittest.TestCase):
             D.describe(blank(user_name="X", role="panel_status"))
 
 
-class TheGeneratedFiles(unittest.TestCase):
+class TheWriters(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
@@ -315,6 +315,15 @@ class TheGeneratedFiles(unittest.TestCase):
 
     def test_the_master_and_its_dictionary_check_clean(self):
         self.assertEqual(D.stale(self.files), [])
+
+    def test_a_row_the_old_form_readers_cannot_convert_fails_the_check(self):
+        rows = [dict(r) for r in D.load(self.files)]
+        row = next(r for r in rows if r["role"] == "turnout" and r["assignment"] == "field" and r["wiring"] and r["dcc"])
+        row["wiring"] = row["wiring"] + " | DCC: 1"                  # a DCC group of its own beside the dcc column
+        self.files.master.write_text(D.master_text(rows), encoding="utf-8")
+        got = D.stale(self.files)
+        self.assertEqual(len(got), 1)
+        self.assertIn(row["user_name"], got[0])
 
     def test_the_name_map_is_the_rows_with_a_pnm_order_in_that_order_and_has_no_alias_rows(self):
         rows = [r for _n, r in D.name_map_lines(self.files)]
@@ -344,6 +353,10 @@ class TheGeneratedFiles(unittest.TestCase):
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
         self.assertEqual(before - after, {gone})
+        self.assertEqual(after - before, set())                       # no row is added
+        held = [dict(r) for r in D.load(self.files) if r["written_by"] != "build_staging_masts.py"]
+        kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_staging_masts.py"]
+        self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
     def test_a_writer_that_would_lose_a_name_map_row_without_saying_so_is_refused(self):
         """A rename gives a new key: the old row (and its pnm_ columns) would go with no word, so the write stops."""
