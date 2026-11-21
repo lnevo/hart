@@ -788,6 +788,39 @@ function app() {
     else hits.textContent = `no file named "${text}"`;
   }
   fileIn.addEventListener("change", pickFile);
+
+  /* ---- Browse: the map's files as a folder tree; a folder holding only one folder is shown joined to it
+     (jmri/layouts/hart), and boxes with no path sit under "outside the repo" by lane */
+  const treeBox = document.getElementById("tree"), browse = document.getElementById("browse");
+  const root = { dirs: new Map(), files: [] };
+  for (const n of DATA.nodes) {
+    const segs = n.path ? n.path.replace(/\/+$/, "").split("/") : ["outside the repo", domainLabel[n.domain]];
+    let at = root;
+    for (const seg of (n.path ? segs.slice(0, -1) : segs)) {
+      if (!at.dirs.has(seg)) at.dirs.set(seg, { dirs: new Map(), files: [] });
+      at = at.dirs.get(seg);
+    }
+    at.files.push({ id: n.id, name: n.path ? segs[segs.length - 1] : n.label, n });
+  }
+  const count = d => d.files.length + [...d.dirs.values()].reduce((s, c) => s + count(c), 0);
+  function treeHtml(d) {
+    const dirs = [...d.dirs].sort(([a], [b]) => a.localeCompare(b)).map(([name, sub]) => {
+      while (!sub.files.length && sub.dirs.size === 1) { const [[n2, s2]] = sub.dirs; name += "/" + n2; sub = s2; }
+      return `<details><summary>${esc(name)}/ <span class="c">${count(sub)}</span></summary>${treeHtml(sub)}</details>`;
+    });
+    const files = d.files.slice().sort((a, b) => a.name.localeCompare(b.name)).map(f => {
+      const st = f.n.status && f.n.status !== "live" ? ` <span class="c">${esc(f.n.status)}</span>` : "";
+      return `<a data-file="${esc(f.id)}" title="${esc(f.n.label)}">${esc(f.name)}${st}</a>`;
+    });
+    return dirs.join("") + files.join("");
+  }
+  treeBox.innerHTML = treeHtml(root);
+  treeBox.addEventListener("click", e => {
+    const a = e.target.closest("a[data-file]");
+    if (!a) return;
+    browse.open = false;
+    focusOn(a.dataset.file);
+  });
   fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
 
   /* ---- start-here buttons: a preset file view for the questions people ask first */

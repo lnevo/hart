@@ -17,17 +17,23 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #bar button{padding:3px 9px}
 #bar h1{font-size:14px;margin:0 6px 0 0}
 #back{color:#1d4ed8;text-decoration:none;margin-right:4px}
-#view{flex-basis:100%;color:#333}
+#view{color:#333}
 #depth{flex-basis:100%;display:flex;gap:18px;flex-wrap:wrap}
 #depth[hidden]{display:none}
 #depth .side{white-space:nowrap}
 #depth b{display:inline-block;min-width:22px;text-align:center}
 #view:empty{display:none}
-#lanes{position:relative}
-#lanes summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none}
+#lanes,#browse{position:relative}
+#lanes summary,#browse summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none}
 #lanelist{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.9}
 #lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
 #lanelist{max-height:70vh;overflow:auto}
+#tree{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.7;max-height:70vh;overflow:auto;min-width:260px}
+#tree details details,#tree details>a{margin-left:14px}
+#bar #tree summary{cursor:pointer;border:0;background:none;padding:0;list-style:revert}
+#tree a{display:block;cursor:pointer;color:#1d4ed8}
+#tree .c{color:#888;font-size:11px}
+#viewrow{flex-basis:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #lanelist>b{display:block;margin-top:6px}
 #lanelist>b:first-child{margin-top:0}
 #lanelist .note{color:#666;font-size:11px;white-space:normal}
@@ -82,10 +88,9 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 <div id="bar" class="panel"><h1>HART pipeline map</h1>
 <label>File <input list="files" id="file" placeholder="Pick a file to see its whole chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
+<details id="browse"><summary title="Pick a file from a folder tree">Browse ▾</summary><div id="tree" class="panel"></div></details>
 <input type="search" id="q" placeholder="Highlight text…">
 <span id="hits"></span>
-<button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
-<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share this view</button>
 <details id="lanes"><summary>Filters ▾</summary><div id="lanelist" class="panel">
 <b>Lanes</b><div id="lanerows"></div>
 <b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
@@ -103,7 +108,8 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
  <button data-side="up" data-step="1">+</button> <button data-side="up" data-step="all">all</button></span>
  <span class="side">it feeds → <button data-side="down" data-step="-1">−</button> <b id="downn">all</b>
  <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
-<span id="view"></span>
+<div id="viewrow"><span id="view"></span><span id="viewbtns"><button id="fit" title="Show everything (F)">Fit</button> <button id="zin" title="Zoom in">+</button> <button id="zout" title="Zoom out">−</button>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share this view</button></span></div>
 </div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)<div><span class="sw" style="background:#dbeafe;border-color:#1e40af"></span>Structured data</div><div><span class="sw" style="background:#fef3c7;border-color:#92400e"></span>Unstructured source</div><div><span class="sw" style="background:#dcfce7;border-color:#166534"></span>Generator / script</div><div><span class="sw" style="background:#f3e8ff;border-color:#6b21a8"></span>Generated output</div><div><span class="sw" style="background:#e5e7eb;border-color:#374151"></span>External tool / repo</div><div><span class="sw" style="background:#fee2e2;border-color:#991b1b"></span>Host / runtime</div><div><span class="sw" style="background:#fce7f3;border-color:#9d174d"></span>Hand work</div>
@@ -111,7 +117,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 to an earlier step.</div>
 <div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
-<div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
+<div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
 out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The step counters under the toolbar set how many links show on each side: left is what feeds it, right
 is what it feeds (0 hides that side, all runs to the end). The <b>Start with</b> buttons open the chains people ask
@@ -916,6 +922,39 @@ function app() {
     else hits.textContent = `no file named "${text}"`;
   }
   fileIn.addEventListener("change", pickFile);
+
+  /* ---- Browse: the map's files as a folder tree; a folder holding only one folder is shown joined to it
+     (jmri/layouts/hart), and boxes with no path sit under "outside the repo" by lane */
+  const treeBox = document.getElementById("tree"), browse = document.getElementById("browse");
+  const root = { dirs: new Map(), files: [] };
+  for (const n of DATA.nodes) {
+    const segs = n.path ? n.path.replace(/\/+$/, "").split("/") : ["outside the repo", domainLabel[n.domain]];
+    let at = root;
+    for (const seg of (n.path ? segs.slice(0, -1) : segs)) {
+      if (!at.dirs.has(seg)) at.dirs.set(seg, { dirs: new Map(), files: [] });
+      at = at.dirs.get(seg);
+    }
+    at.files.push({ id: n.id, name: n.path ? segs[segs.length - 1] : n.label, n });
+  }
+  const count = d => d.files.length + [...d.dirs.values()].reduce((s, c) => s + count(c), 0);
+  function treeHtml(d) {
+    const dirs = [...d.dirs].sort(([a], [b]) => a.localeCompare(b)).map(([name, sub]) => {
+      while (!sub.files.length && sub.dirs.size === 1) { const [[n2, s2]] = sub.dirs; name += "/" + n2; sub = s2; }
+      return `<details><summary>${esc(name)}/ <span class="c">${count(sub)}</span></summary>${treeHtml(sub)}</details>`;
+    });
+    const files = d.files.slice().sort((a, b) => a.name.localeCompare(b.name)).map(f => {
+      const st = f.n.status && f.n.status !== "live" ? ` <span class="c">${esc(f.n.status)}</span>` : "";
+      return `<a data-file="${esc(f.id)}" title="${esc(f.n.label)}">${esc(f.name)}${st}</a>`;
+    });
+    return dirs.join("") + files.join("");
+  }
+  treeBox.innerHTML = treeHtml(root);
+  treeBox.addEventListener("click", e => {
+    const a = e.target.closest("a[data-file]");
+    if (!a) return;
+    browse.open = false;
+    focusOn(a.dataset.file);
+  });
   fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
 
   /* ---- start-here buttons: a preset file view for the questions people ask first */

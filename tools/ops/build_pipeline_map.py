@@ -168,17 +168,23 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #bar button{padding:3px 9px}
 #bar h1{font-size:14px;margin:0 6px 0 0}
 #back{color:#1d4ed8;text-decoration:none;margin-right:4px}
-#view{flex-basis:100%;color:#333}
+#view{color:#333}
 #depth{flex-basis:100%;display:flex;gap:18px;flex-wrap:wrap}
 #depth[hidden]{display:none}
 #depth .side{white-space:nowrap}
 #depth b{display:inline-block;min-width:22px;text-align:center}
 #view:empty{display:none}
-#lanes{position:relative}
-#lanes summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none}
+#lanes,#browse{position:relative}
+#lanes summary,#browse summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none}
 #lanelist{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.9}
 #lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
 #lanelist{max-height:70vh;overflow:auto}
+#tree{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.7;max-height:70vh;overflow:auto;min-width:260px}
+#tree details details,#tree details>a{margin-left:14px}
+#bar #tree summary{cursor:pointer;border:0;background:none;padding:0;list-style:revert}
+#tree a{display:block;cursor:pointer;color:#1d4ed8}
+#tree .c{color:#888;font-size:11px}
+#viewrow{flex-basis:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #lanelist>b{display:block;margin-top:6px}
 #lanelist>b:first-child{margin-top:0}
 #lanelist .note{color:#666;font-size:11px;white-space:normal}
@@ -233,10 +239,9 @@ __SITECSS__</style></head><body>__SITEHEADER__
 <div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
 <label>File <input list="files" id="file" placeholder="Pick a file to see its whole chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
+<details id="browse"><summary title="Pick a file from a folder tree">Browse ▾</summary><div id="tree" class="panel"></div></details>
 <input type="search" id="q" placeholder="Highlight text…">
 <span id="hits"></span>
-<button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
-<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share this view</button>
 <details id="lanes"><summary>Filters ▾</summary><div id="lanelist" class="panel">
 <b>Lanes</b><div id="lanerows"></div>
 <b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
@@ -254,7 +259,8 @@ __SITECSS__</style></head><body>__SITEHEADER__
  <button data-side="up" data-step="1">+</button> <button data-side="up" data-step="all">all</button></span>
  <span class="side">it feeds → <button data-side="down" data-step="-1">−</button> <b id="downn">all</b>
  <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
-<span id="view"></span>
+<div id="viewrow"><span id="view"></span><span id="viewbtns"><button id="fit" title="Show everything (F)">Fit</button> <button id="zin" title="Zoom in">+</button> <button id="zout" title="Zoom out">−</button>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share this view</button></span></div>
 </div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
@@ -262,7 +268,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 to an earlier step.</div>
 <div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
-<div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
+<div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
 out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The step counters under the toolbar set how many links show on each side: left is what feeds it, right
 is what it feeds (0 hides that side, all runs to the end). The <b>Start with</b> buttons open the chains people ask
@@ -296,8 +302,8 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #bar h1{font:700 1.35rem/1 var(--font-display);letter-spacing:.04em;color:var(--brand);margin:0 8px 0 0}
 #bar input,#bar button,#bar summary{font:inherit;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:4px}
 #bar button{cursor:pointer}
-#bar button:hover,#lanes summary:hover{border-color:var(--brand-2)}
-#back,#lanelist a,#info a{color:var(--brand-2)}
+#bar button:hover,#lanes summary:hover,#browse summary:hover{border-color:var(--brand-2)}
+#back,#lanelist a,#info a,#tree a{color:var(--brand-2)}
 #view{color:var(--ink-soft)}
 #info h2{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
 #info .off{color:var(--muted)}
