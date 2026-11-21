@@ -326,18 +326,17 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
                         xover_blocks={n: {leg: to(b) for leg, b in v.items()} for n, v in nm["xover_blocks"].items()},
                         blocks={sid: [to(b) for b in v] for sid, v in nm["blocks"].items()})
     drawn = {to(ph) for ph in lengths}
-    plan = plan_lengths()           # block_lengths.csv's plan_in, every level (owner, 2026-11-20, step 5 part 2)
-    no_length = sorted(b for b in drawn if b not in plan)
-    if no_length:
-        raise BuildError(f"block_lengths.csv has no plan length for main and upper blocks {no_length}: run "
-                         "python3 tools/schematic/plan_lengths.py")
-    out_len = {b: plan[b] * MM_PER_INCH for b in drawn}
     if missing:
         raise BuildError(f"main and upper placeholders {paths.rel(DEVICE_MAP)} names nowhere: {sorted(missing)}")
     unused = sorted(set(device) - used)
     if unused:
         raise BuildError(f"{paths.rel(DEVICE_MAP)} trial names the drawing does not have: {unused}")
-    return out, dict(out_len)
+    plan = plan_lengths()           # block_lengths.csv's plan_in, every level (owner, 2026-11-20, step 5 part 2)
+    no_length = sorted(b for b in drawn if b not in plan)
+    if no_length:
+        raise BuildError(f"block_lengths.csv has no plan length for main and upper blocks {no_length}: run "
+                         "python3 tools/schematic/plan_lengths.py")
+    return out, {b: plan[b] * MM_PER_INCH for b in drawn}
 
 
 def shared_turnouts(names: dict) -> None:
