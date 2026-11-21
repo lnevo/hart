@@ -363,25 +363,23 @@
   "le_title_clear": 8,
   "_le_title_clear": "The cut-over candidate (owner, 2026-11-16): each level's title 8 px below the lowest thing of the level above (for staging, everything its candidate holds: the status cluster stands in the gap), so the gaps between the levels are as small as is clean.",
   "le_stretch": {
-   "factor": 1.307,
+   "factor": 1.437,
    "tolerance": 0.03
   },
-  "_le_stretch": "The cut-over candidate's grid (owner, 2026-11-16): staging's own fit to the 1900 x 1140 window widened by the factor, so the three-level panel has the shape of the window's panel area (about 1.74 wide to 1 high) and fills it when zoomed to fit. The build stops when the panel's shape drifts more than the tolerance from it, naming the factor that would fit.",
+  "_le_stretch": "The cut-over candidate's grid (owner, 2026-11-16): staging's own fit to the window (host_screen: 1920 x 1032) widened by the factor, so the three-level panel has the shape of the window's panel area (1902 x 972, about 1.96 wide to 1 high) and fills it when zoomed to fit. 1.437 since the window became the layout hosts' screen (2026-11-21; it was 1.307 for a 1900 x 1140 window, about 1.74 to 1). The build stops when the panel's shape drifts more than the tolerance from it, naming the factor that would fit.",
   "le_crossover_angle": {
    "Main": 45,
    "Upper": 45
   },
   "_le_crossover_angle": "The angle each level's crossovers (single and double) cross at on the Layout Editor cut-over candidates (owner, 2026-11-16): staging at the schematic's own diverging angle, one grid column across per row, so 45 degrees; main and upper at 45 too, double crossover included (after a round at 30). A crossover with no room for its angle is drawn as steep as it must be (the plugin logs which). The fitted viewing trials draw them as they fall.",
-  "le_window": [
-   1900,
-   1140
-  ],
-  "_le_window": "The window the Layout Editor panels open in at 100% zoom on the owner's 1900 x 1200 display (the plugin fits the panel inside it less Layout Editor's 18 x 60 px frame allowance). Width: the whole 1900, so the panel is at most 1882 (the live panel's window is 1882 wide). Height: 1200 less the macOS menu bar (37 px on a notched display, 25 else) and 23 px spare for the Dock's edge is 1140; the 60 px allowance covers the title bar (28 px) and the thin edit toolbar, leaving the panel at most 1080. build_layout_le.py fits staging's own grid into it and sizes the cut-over candidates' window by it.",
-  "cats_window": [
-   1900,
-   1020
-  ],
-  "_cats_window": "The window CATS opens the desks in on the Windows box, where the owner mainly runs CATS: its screen is 2040 x 1075, so 1020 high clears the taskbar (it was 1150, taller than that screen, and the desk's bottom rows were cut off; owner, 2026-11-18). CATS has no zoom and draws 30 px cells, so the plugin fits the desk to what shows inside it less CATS's own frame, title, menu and status lines: 62 columns by 30 rows (build_cats_panel.py, the CTC desk and its ABS twin).",
+  "host_screen": {
+   "size": [
+    1920,
+    1080
+   ],
+   "taskbar": 48
+  },
+  "_host_screen": "The layout hosts' screen (owner, 2026-11-21): the Pi and the Windows box both drive the same \"HDMI Matrix\" monitor at 1920 x 1080, 100% scale (measured on the Pi with xrandr and wlr-randr, its bottom wf-panel holding 32 px icons; on Windows the AMD Radeon output, 1920 x 1080 at 96 DPI; its 1920 x 960 adapter is the RDP session, not the monitor). Less a 48 px taskbar that leaves a 1920 x 1032 window, which both the Layout Editor panel (le_window) and the CATS desks (cats_window) open in: tools/schematic/host_screen.py derives the two from this, and each tool keeps its own frame allowance inside it (Layout Editor 18 x 60 px, CATS its frame, title, menu and status lines). The panels fit the layout hosts, not the Mac; the earlier 1900 x 1200 (Mac) and 2040 x 1075 (Windows) sizes were wrong.",
   "cats_band_gap": 1,
   "_cats_band_gap": "One empty row between a band's lowest track and the next band's title, not two, so the three levels fit the Windows box's screen (owner, 2026-11-18).",
   "cats_title_gap": 0,

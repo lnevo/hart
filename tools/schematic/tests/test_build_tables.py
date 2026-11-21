@@ -86,9 +86,17 @@ class Generated(unittest.TestCase):
 
     def test_discovery_writes_its_file_then_the_tables(self) -> None:
         """--discovered-from a Store: its logic replaces the discovered file and tables.xml follows. The committed
-        tables stand in for a discovery Store (their logic is the discovered one), so both files come out the same."""
+        tables stand in for a discovery Store (their logic is the discovered one), with the Digicon destinations
+        enabled as stock Discover stores them (the build disables them again), so both files come out the same."""
         store = self.tmp / "store.xml"
-        store.write_bytes(paths.REPO_TABLES_XML.read_bytes())
+        doc = tables.load(paths.REPO_TABLES_XML)
+        masts = tb.digicon_masts(doc.root)
+        self.assertTrue(tb.disable_digicon(doc.root, masts)[1])        # the committed tables hold them disabled
+        for logic in tables.mast_logics(doc.root):
+            if logic.get("source") in masts:
+                for dest in logic.findall("destinationMast"):
+                    dest.find("enabled").text = "yes"
+        store.write_bytes(doc.tobytes())
         out, disc = self.tmp / "tables.xml", self.tmp / "discovered_sml.xml"
         with mock.patch.object(bt, "OUT", out), mock.patch.object(tb, "DISCOVERED", disc), \
                 mock.patch.object(bt.ble, "build", wraps=bt.ble.build), pd.cache_on():
