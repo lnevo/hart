@@ -103,7 +103,7 @@ class PublishOnlyTests(unittest.TestCase):
              mock.patch.object(cars, "write_queue", side_effect=lambda q: written.append([dict(x) for x in q])), \
              mock.patch.object(cars, "read_rows", return_value=([], [])), \
              mock.patch.object(cars, "merge_ops", return_value=["A1"]), \
-             mock.patch.object(cars.shutil, "copy2"), \
+             mock.patch.object(cars, "sync_seed_copies"), \
              mock.patch.object(cars.subprocess, "run", side_effect=fake_run):
             cars.cmd_publish(args)
         self.assertEqual(sts_ids, ["A1"])
