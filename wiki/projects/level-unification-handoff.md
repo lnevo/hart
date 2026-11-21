@@ -250,13 +250,22 @@ Step 5 follow-ups (2026-11-20):
 - **Station maps for main and upper (step 7, stays on the to-do list):** a station map per control point from `interlockings.csv` is the minimum template for a station, not the whole definition; the owner extends it.
 - **Helix stop** on main and upper is at Switch 131A/131B: built with the trial-names PR (`helix_stops`, above).
 - **#5 turnout** class is the SL-8351/8352 at 8.3 in (confirmed).
-- **Step 6** is a bigger job: start with a read-only comparison, and discuss with the owner first.
+- **Step 6**: start with a read-only comparison, and discuss with the owner first. Nodes and pins done (below).
 
 ### 6. One wiring file per kind (with the device master's owners)
 
-`lcos_nodes_main_upper.csv` and `detector_pins_main_upper.csv` exist only for main and upper; staging's wiring is in
-`switches.csv`, `switch_legs.csv` and its device rows. One node file and one detector-pin file with a level column.
-Overlaps the device master (R9), so agree it with the project-health session first.
+**Nodes and pins: done (owner, 2026-11-20, branch `agent/claude/one-wiring-file`).** The LCOS remap is finished
+(staging's legacy IDs in v86's "Legacy Node ID" column; main and upper match v86's Nodes sheet), so the node file
+takes every level: `schematic/lcos_nodes.csv` lists staging's nine nodes as built (v86: 0, 1, 2, 3, 4, 5, 11, 12,
+13), which `build_device_map.py` never hands out or pins, then main and upper's to hand out. The `lcos-nodes`
+invariant holds every staging LCOS turnout and sensor node to a level 1 row and no main or upper row to a staging
+node. `schematic/detector_pins.csv` has a `level` column (2 or 3), and a pin's track is looked for on its level.
+devices.csv, tables.xml and v86 are unchanged.
+
+Left, the owner's end state (everything in one file): staging's detector inputs and turnout ports are still its
+hand-kept devices.csv rows (`node` and system names), as wired. Moving them into `detector_pins.csv` means the
+staging writer generates those cells from it rather than holding the fact twice; that is the next step, keyed to
+`devices.csv` (R9).
 
 ### 7. Main and upper stations and sheets (waits on the owner)
 

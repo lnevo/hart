@@ -64,17 +64,18 @@ class HelixFile(unittest.TestCase):
         self.assertEqual(staging[0]["name"], "Track 37-H")
 
 
-def track(name, a, b=None, row=0, trial=None, loop=False, helix=False):
+def track(name, a, b=None, row=0, trial=None, loop=False, helix=False, level=3):
     """An in-memory track entry, as mast_rule.tracks gives them: ends by switch, a bumper (b None) or the helix."""
     far = ("helix", "H1") if helix else ("sw", b) if b else ("bumper", None)
-    return dict(name=name, ends=(("sw", a), far), row=row, trial=trial or [f"Track {name}"], loop=loop, main=True)
+    return dict(name=name, ends=(("sw", a), far), row=row, trial=trial or [f"Track {name}"], loop=loop, main=True,
+                level=level)
 
 
 class Pins(unittest.TestCase):
-    HEAD = "switch_a,switch_b,parallel,half,block,node,block_input,notes\n"
-    PINS = HEAD + ",,,,Track Helix Inner,41,1,\n227,241,,2,,41,4,\n"
+    HEAD = "level,switch_a,switch_b,parallel,half,block,node,block_input,notes\n"
+    PINS = HEAD + "3,,,,,Track Helix Inner,41,1,\n3,227,241,,2,,41,4,\n"
     FOUND = [track("Track 227-241", "241", "227"), track("Track Helix Inner", "131", helix=True),
-             track("Track Helix Outer", "131", helix=True, row=1), track("Track 241 Spur", "241")]
+             track("Track Helix Outer", "131", helix=True, row=1, level=2), track("Track 241 Spur", "241")]
     SPLIT = {"Track 227-241"}
 
     def read(self, text):
@@ -85,19 +86,30 @@ class Pins(unittest.TestCase):
         self.assertEqual(bdm.read_pins()["Track Helix Outer"], (41, 1))        # the committed file
 
     def test_bad_pins_stop(self):
-        for text, msg in ((self.PINS + ",,,,Track Helix Outer,41,1,\n", "pinned twice"),
-                          (self.PINS + ",,,,Track Helix Outer,41,4,\n", "pinned twice"),
-                          (self.PINS + ",,,,Track Helix Outer,41,9,\n", "is not 1 to 8"),
-                          (self.PINS + ",,,,Helix,41,2,\n", "is no helix block"),
-                          (self.PINS + "37,39,,,Track Helix Inner,41,2,\n", "named by its block alone"),
-                          (self.PINS + ",,,,Track Helix Outer,forty,2,\n", "are numbers"),
-                          (self.PINS + "227,241,,,,41,2,\n", "in two halves"),            # half missing
-                          (self.PINS + "241,,,1,,41,2,\n", "one block: no half"),          # half on a plain track
-                          (self.PINS + "241,227,,1,,41,2,\n", "lower first"),
-                          (self.PINS + "9,10,,,,41,2,\n", "no track runs Switch 9 to Switch 10"),
-                          ("block,node,block_input,notes\nTrack Helix Inner,41,1,\n", "columns")):
+        for text, msg in ((self.PINS + "2,,,,,Track Helix Outer,41,1,\n", "pinned twice"),
+                          (self.PINS + "2,,,,,Track Helix Outer,41,4,\n", "pinned twice"),
+                          (self.PINS + "2,,,,,Track Helix Outer,41,9,\n", "is not 1 to 8"),
+                          (self.PINS + "3,,,,,Helix,41,2,\n", "is no helix block"),
+                          (self.PINS + "3,37,39,,,Track Helix Inner,41,2,\n", "named by its block alone"),
+                          (self.PINS + "2,,,,,Track Helix Outer,forty,2,\n", "are numbers"),
+                          (self.PINS + "3,227,241,,,,41,2,\n", "in two halves"),            # half missing
+                          (self.PINS + "3,241,,,1,,41,2,\n", "one block: no half"),          # half on a plain track
+                          (self.PINS + "3,241,227,,1,,41,2,\n", "lower first"),
+                          (self.PINS + "3,9,10,,,,41,2,\n", "no track runs Switch 9 to Switch 10"),
+                          # the level: a track is looked for on its row's level only, a helix block is on one
+                          (self.PINS + "2,241,,,,,41,2,\n", "no track runs Switch 241 spur"),
+                          (self.PINS + "3,,,,,Track Helix Outer,41,2,\n", "level 2 block, not level 3"),
+                          (self.PINS + "1,,,,,Track Helix Outer,41,2,\n", "staging's detectors are its devices.csv"),
+                          (self.PINS + ",,,,,Track Helix Outer,41,2,\n", "is not 2 or 3"),
+                          ("switch_a,switch_b,parallel,half,block,node,block_input,notes\n,,,,Track Helix Inner,41,1,\n",
+                           "columns")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 self.read(text)
+
+    def test_a_helix_block_on_two_levels_stops(self):
+        found = self.FOUND + [track("Track Helix Inner", "131", helix=True, row=2, level=2)]
+        with self.assertRaisesRegex(bdm.MapError, "Track Helix Inner is found on levels 3 and 2"):
+            bdm.read_pins(write(self.PINS), found, self.SPLIT)
 
     def test_the_rule_never_hands_out_a_pinned_input(self):
         nodes = bdm.Nodes([railroad.LcosNode(2, 3, "Helix", 41)])
@@ -109,6 +121,16 @@ class Pins(unittest.TestCase):
             nodes.check_pins()                                   # Track A was never placed
         with self.assertRaisesRegex(bdm.MapError, "does not list"):
             bdm.Nodes([]).pin({"Track A": (41, 0)})
+
+    def test_staging_nodes_are_never_handed_out_or_pinned(self):
+        """lcos_nodes.csv holds staging's nodes as built: the rule neither picks one nor lets a pin take it."""
+        nodes = bdm.Nodes([railroad.LcosNode(2, 1, "Helix", 11), railroad.LcosNode(3, 3, "Helix", 41)])
+        self.assertEqual(nodes.pick(3, "Helix", "block"), 41)
+        for pick in (lambda: nodes.pick(1, "Helix", "block"), lambda: nodes.pick_mast(1, "Helix", 1)):
+            with self.assertRaisesRegex(bdm.MapError, "level 1 is staging: its nodes .* are as built"):
+                pick()
+        with self.assertRaisesRegex(bdm.MapError, "does not list"):
+            nodes.pin({"Track A": (11, 0)})
 
     def test_the_committed_map_holds_the_pins(self):
         occ = {r["user_name"]: r for _n, r in devices.device_map_lines(("2", "3"), bdm.OUT) if r["layer"] == "occupancy"}

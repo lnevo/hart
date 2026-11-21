@@ -162,8 +162,9 @@ def _switch_numbers(rr: Railroad) -> list[str]:
 
 @invariant("lcos-nodes", "inputs")
 def _lcos_nodes(rr: Railroad) -> list[str]:
-    """Every level and area a main or upper switch is in has an LCOS node to put it on, and no main or upper node
-    number is a staging node (the node of a staging turnout's or sensor's packed address, the name map of devices.csv)."""
+    """Every level and area a main or upper switch is in has an LCOS node to put it on, every staging node (the node
+    of a staging turnout's or sensor's packed address, the name map of devices.csv) is a staging row of the node
+    file, and no main or upper row is a staging node."""
     pool = {(n.level, n.area) for n in rr.lcos_nodes}
     bad = [f"no node in {rr.sources.lcos_nodes.name} for level {lv} {area} (switches "
            f"{', '.join(sorted((s for s, sw in rr.main_upper_switches.items() if (sw.level, sw.area) == (lv, area)), key=natural))})"
@@ -173,10 +174,17 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
         m = re.fullmatch(r"(?:M2T|M2S|IH)(\d+)", r.hardware)
         if m and len(m.group(1)) >= 3:
             staging_nodes.setdefault(int(m.group(1)) // 100, f"{r.layer} {r.proposed} ({r.hardware})")
-    for n in rr.lcos_nodes:
-        if n.node in staging_nodes:
-            bad.append(f"{rr.sources.lcos_nodes.name} line {n.line}: node {n.node} is staging's "
-                       f"({staging_nodes[n.node]})")
+    wired = {int(m.group(1)) // 100 for r in rr.name_map.live.values()
+             if (m := re.fullmatch(r"M2[TS](\d{3,})", r.hardware))}     # LCOS turnouts and sensors; an IH number may
+    level_of = {n.node: n for n in rr.lcos_nodes}                            # be a panel lamp's (IH9990), on no node
+    for node, what in sorted(staging_nodes.items()):
+        n = level_of.get(node)
+        if n is None:
+            if node in wired:
+                bad.append(f"staging node {node} ({what}) is not in {rr.sources.lcos_nodes.name}")
+        elif n.level != 1:
+            bad.append(f"{rr.sources.lcos_nodes.name} line {n.line}: node {node} is level {n.level}, but it is "
+                       f"staging's ({what})")
     return bad
 
 
@@ -284,9 +292,9 @@ def _device_map(rr: Railroad) -> list[str]:
         if (r.level, r.cp) != (sw.level, sw.cp):
             bad.append(f"{name} line {r.line}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
                        f"say level {sw.level} {sw.cp or 'local'}")
-    nodes = {n.node: n for n in rr.lcos_nodes}
-    # a helix block runs from staging up to main or upper: its detector may be on either level's node (owner,
-    # 2026-11-20: both helix tracks on helix node 41)
+    nodes = {n.node: n for n in rr.lcos_nodes if n.level != 1}     # staging's nodes are as built: none is the map's
+    # a helix block runs from staging up to main or upper: its detector may be on either main or upper level's node
+    # (owner, 2026-11-20: both helix tracks on helix node 41)
     helix = {b for h in rr.helix_tracks.values() for b in (h.block, level_devices.occupancy_user(h.block))}
     for r in dm.rows:
         if r.node and (not r.node.isdigit() or int(r.node) not in nodes or

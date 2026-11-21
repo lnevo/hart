@@ -134,7 +134,7 @@ class Readers(Copy):
         self.edit("local_switches", "switch,level,area,notes", "switch,level,notes")
         self.fails(lambda: R.read_local_switches(self.src.local_switches), "no column area")
         self.edit("lcos_nodes", "2,North,42,", "2,North,42,x,y,")
-        self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), r"lcos_nodes_main_upper.csv line 2: 4 fields")
+        self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), r"lcos_nodes.csv line 11: 4 fields")
         self.fails(lambda: R.read_rows(self.tmp / "missing.csv", ["a"]), "cannot read it")
 
     def test_the_device_maps_facts_are_columns(self) -> None:
@@ -421,10 +421,19 @@ class Invariants(Copy):
 
     def test_lcos_nodes(self) -> None:
         self.edit("local_switches", "101,2,Peninsula,", "101,2,Attic,")
-        self.edit("lcos_nodes", "2,North,42,", "2,North,4,")
+        self.edit("lcos_nodes", "1,West,4,", "2,West,4,")           # a staging node given to the main level
+        self.edit("lcos_nodes", "1,North,12,", "1,North,62,")        # and one that staging uses, left out
         got = self.problems("lcos-nodes")
-        self.assertIn("no node in lcos_nodes_main_upper.csv for level 2 Attic (switches 101)", got)
-        self.assertTrue(any("node 4 is staging's (turnout Switch 1 (M2T408))" in p for p in got), got)
+        self.assertIn("no node in lcos_nodes.csv for level 2 Attic (switches 101)", got)
+        self.assertTrue(any("node 4 is level 2, but it is staging's (turnout Switch 1 (M2T408))" in p for p in got),
+                        got)
+        self.assertTrue(any(p.startswith("staging node 12 (") and "is not in lcos_nodes.csv" in p for p in got), got)
+
+    def test_the_committed_nodes_hold(self) -> None:
+        """lcos_nodes.csv lists every level's nodes: staging's as built, main and upper's to hand out."""
+        self.assertEqual(self.problems("lcos-nodes"), [])
+        nodes = R.Railroad(self.src, upto="inputs").lcos_nodes
+        self.assertEqual({n.node for n in nodes if n.level == 1}, {0, 1, 2, 3, 4, 5, 11, 12, 13})
 
     def test_name_map(self) -> None:
         self.add_name_row(layer="turnout", role="turnout", level="2", user_name="Switch 997",
@@ -485,6 +494,12 @@ class Invariants(Copy):
         got = self.problems("device-map")
         self.assertTrue(any("turnout Switch 101 is on node 99, no level 2 node" in p for p in got), got)
         self.assertTrue(any("head Head 108LA Top: jmri_name 'IH:HART:C3:108LX_Top'" in p for p in got), got)
+
+    def test_a_helix_block_is_never_on_a_staging_node(self) -> None:
+        """A helix block may sit on either main or upper node, never on one of staging's (as built)."""
+        change(self.src.devices, self.key("occupancy", "BS Helix Outer"), node="11")
+        got = self.problems("device-map")
+        self.assertTrue(any("occupancy BS Helix Outer is on node 11, no level 2 node" in p for p in got), got)
 
     def test_device_map_finds_clashes_and_missing_aliases_before_the_tables(self) -> None:
         """The rows of every level are held to each other at the device_map layer (railroad check --upto
