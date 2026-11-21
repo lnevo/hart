@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import filecmp
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -45,10 +46,10 @@ def own_tmpdir(env: dict[str, str], tmp: Path) -> Path:
 
 def redeploy_trees(under: Path) -> list[str]:
     """The hart-redeploy.* worktrees still registered under `under` (this test's TMPDIR)."""
-    roots = {str(under), str(under.resolve())}
+    roots = {under, under.resolve()}
     return [line for line in git("worktree", "list", "--porcelain").stdout.splitlines()
             if line.startswith("worktree ") and "hart-redeploy." in line
-            and any(line[len("worktree "):].startswith(r) for r in roots)]
+            and any(Path(line[len("worktree "):]).is_relative_to(r) for r in roots)]
 
 
 def run(env: dict[str, str], *args: str) -> subprocess.CompletedProcess:
@@ -83,8 +84,11 @@ class RedeployHead(unittest.TestCase):
             src = cls.tmp / "head"
             git("worktree", "add", "-q", "--detach", str(src), "HEAD")
             # The copy has no submodule checked out: hand it this checkout's plugin, as redeploy_commit.sh does.
-            plugin = ROOT / "external/model-railroad-skills/plugins/schematic-maps"
-            normal_env = dict(env, SCHEMATIC_PLUGIN=os.environ.get("SCHEMATIC_PLUGIN", str(plugin)))
+            plugin = Path(env.get("SCHEMATIC_PLUGIN") or ROOT / "external/model-railroad-skills/plugins/schematic-maps")
+            if not (plugin / "schematic" / "slots.py").is_file():
+                raise unittest.SkipTest("the schematic-maps plugin is not checked out: "
+                                        "git submodule update --init external/model-railroad-skills")
+            normal_env = dict(env, SCHEMATIC_PLUGIN=str(plugin))
         try:
             cls.normal = subprocess.run(["bash", str(src / SYNC_REL), "--stage-only", str(cls.tmp / "normal")],
                                         cwd=src, env=normal_env, capture_output=True, text=True, timeout=600)
@@ -94,12 +98,19 @@ class RedeployHead(unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
+        for line in redeploy_trees(cls.tmpdir):      # a run killed before its trap: unregister what it left
+            git("worktree", "remove", "--force", line[len("worktree "):], check=False)
         shutil.rmtree(cls.tmp, ignore_errors=True)
+        git("worktree", "prune", check=False)
 
     def test_runs_without_the_network(self) -> None:
         self.assertEqual(self.done.returncode, 0, self.done.stderr[-3000:])
         self.assertEqual(self.normal.returncode, 0, self.normal.stderr[-3000:])
         self.assertIn("DONE (stage only)", self.done.stdout)
+        made = re.search(r"temporary worktree (\S+)", self.done.stdout)
+        self.assertIsNotNone(made, "the redeploy did not name its temporary worktree")
+        self.assertTrue(Path(made.group(1)).resolve().is_relative_to(self.tmpdir.resolve()),
+                        "the redeploy did not make its worktree under TMPDIR, so the leak check cannot see it")
         self.assertFalse(self.network_log.exists(), "a stage-only redeploy called ssh or scp")
 
     def test_same_package_as_a_normal_stage(self) -> None:
@@ -140,6 +151,7 @@ class Refusals(unittest.TestCase):
         self.assertIn(text, done.stderr)
         self.assertFalse((self.tmp / "network.log").exists(), "a refusal reached for the network")
         self.assertEqual(redeploy_trees(self.tmpdir), [])
+        self.assertEqual(list(self.tmpdir.iterdir()), [], "a refusal made a temporary folder (so it got past the checks)")
 
     def test_unknown_commit(self) -> None:
         self.assert_refused(run(self.env, "0" * 40, "--stage-only", str(self.tmp / "s")), "is not a commit")
