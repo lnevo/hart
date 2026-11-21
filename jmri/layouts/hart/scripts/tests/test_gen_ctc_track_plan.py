@@ -33,6 +33,7 @@ import re
 import sys
 import tempfile
 import unittest
+import warnings
 from pathlib import Path
 from unittest import mock
 
@@ -41,6 +42,20 @@ sys.path.insert(0, str(SCRIPTS))
 import gen_ctc_track_plan as gen  # noqa: E402
 
 GOLDEN = Path(__file__).resolve().parent / "golden/gen_ctc_track_plan.json"
+
+# The generator leaves the icon GIFs it opens with PIL unclosed, so each test run printed a ResourceWarning per
+# icon. It serves the parked USS CTC machine: the fix waits for its wake-up (docs/parked/UNPARK.md), and only these
+# GIF warnings are hidden, for this module's tests only.
+_QUIET = warnings.catch_warnings()
+
+
+def setUpModule() -> None:
+    _QUIET.__enter__()
+    warnings.filterwarnings("ignore", r"unclosed file <_io\.BufferedReader name='[^']*\.gif'>", ResourceWarning)
+
+
+def tearDownModule() -> None:
+    _QUIET.__exit__(None, None, None)
 
 # the fixture board: three lever slots (slot 1 has no switch: a blank plate; slot 2 has no signal levers), one
 # plant (Switch 1 on OS Switch 1) and two signals

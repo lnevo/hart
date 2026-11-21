@@ -1,5 +1,7 @@
 # Hand-off, 2026-11-20: what still builds the layout besides the plan and structured data
 
+Status: active
+
 For a fresh agent session. Read `AGENTS.md`, then this page, then
 [`pipelines/schematic-panels.md`](../pipelines/schematic-panels.md).
 

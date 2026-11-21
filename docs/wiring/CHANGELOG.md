@@ -1,5 +1,7 @@
 # LCOS Layout Inventory v85 (2026-08-22)
 
+Change log of the LCOS layout inventory from v85 on, frozen history now that v86 is written from wiring.csv.
+
 (History, frozen: v86 is written from `jmri/layouts/hart/data/wiring.csv` since 2026-11-20; see the 2026-11-20 entry.) Source of truth then: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `archive/docs/wiring-imported/` (moved 2026-11-20).
 
 

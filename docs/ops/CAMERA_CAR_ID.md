@@ -1,5 +1,7 @@
 # Camera car identification (proposal)
 
+Proposal, not built, for reading car numbers with cameras and image comparison to report car IDs to JMRI without tags.
+
 Status: idea only, written 2026-11-16. Not scheduled and not on the to-do list. Nothing here is built.
 
 A few camera checkpoints read each car as it passes, by its printed number and by how it looks, and report the car ID to JMRI. No tags, stickers or markers go on the cars. The cars only need a reference photo of each side.

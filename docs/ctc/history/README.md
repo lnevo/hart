@@ -1,5 +1,7 @@
 # Panel build history (USS CTC, CATS, Layout Editor)
 
+Index of the dated screenshots kept to show how the USS CTC, CATS and Layout Editor panels grew, used for the evolution videos.
+
 Chronological screenshots captured while building the **Panel** USS machine
 (`jmri/layouts/hart/ctc/GUIObjects.xml`, 15 columns). Used for the stop-motion
 evolution video and [`HOW_WE_BUILT_CTC.md`](../HOW_WE_BUILT_CTC.md).

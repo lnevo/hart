@@ -1,5 +1,7 @@
 # Sending STS car moves to JMRI
 
+How to send STS car moves to JMRI Operations Pro so the car roster, manifests and CATS match an STS session.
+
 When you run a session on STS, JMRI Operations Pro can show the same railroad:
 every car where STS has it, with the same load and the same next stop. JMRI's
 car roster, manifests and CATS then match the session. STS is the master; JMRI
