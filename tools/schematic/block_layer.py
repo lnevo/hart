@@ -127,7 +127,6 @@ class Exceptions:
     ("" the whole track), and crossover halves by (band, node): (block, line)."""
     tracks: dict = field(default_factory=dict)
     halves: dict = field(default_factory=dict)
-    lines: dict = field(default_factory=dict)        # id(track) -> its entry, for messages
 
 
 def crossover_pairs(band) -> dict:
@@ -205,7 +204,6 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
             bad.append(f"{at}: {r['problem']}")
             continue
         got = out.tracks.setdefault(id(t), {})
-        out.lines[id(t)] = t
         if r["end"] in got or ("" in got and r["end"]) or (got and not r["end"]):
             bad.append(f"{at}: {t['name']} is given a block on line {next(iter(got.values()))[1]} already")
             continue
@@ -278,7 +276,7 @@ class Layer:
     """The block layer of the bands of some levels. `bands`: {band index: {"os": {switch node: OS block}, "blocks":
     {strand: [block, ...] from the strand's first end]}}, as mast_plan.plan reads it (a part counts as the block it is
     part of); `rows`: {band index: {strand: [row name, ...]}}, the same with a part's own name; `cm`: {block: cm} (an
-    OS block 0: its boundary is at the switch's leg); `parts`: {part name: {part_of, level, track, end, why}}; `tracks`:
+    OS block 0: its boundary is at the switch's leg); `parts`: {part name: {part_of, level, track, why}}; `tracks`:
     {block: (track entry, half)} of the tracks' own blocks."""
     bands: dict = field(default_factory=dict)
     rows: dict = field(default_factory=dict)
@@ -295,8 +293,8 @@ def is_link(t: dict) -> bool:
 def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions: Exceptions,
           exceptions_file: str = EXCEPTIONS.name) -> Layer:
     """The block layer of every band whose level `levels` ({band title: level}) holds, from `found` (name_tracks),
-    `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits) and `exceptions` (read_exceptions). BlockError on a
-    track the layer cannot place or a layer that breaks its invariants (check)."""
+    `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits) and `exceptions`
+    (read_exceptions). BlockError on a track the layer cannot place or a layer that breaks its invariants (check)."""
     sheet = sheet_of(bands, levels)
     by_edge = {}
     for t in found:
@@ -346,8 +344,9 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
             at_end = {v: node for (node, _p), (k, v) in zip(t["legs"], t["ends"]) if k == "sw"}
             if ex:
                 if h:
+                    lines = ", ".join(str(x[1]) for x in ex.values())
                     bad.append(f"level {level}: {t['name']} is split in halves and given to OS blocks in "
-                               f"{exceptions_file} (lines {', '.join(str(x[1]) for x in ex.values())}): one or the other")
+                               f"{exceptions_file} (lines {lines}): one or the other")
                     continue
                 pieces = exception_pieces(t, ex, name, os_, at_end, exceptions_file, bad)   # from switch_a's end
                 if pieces is None:

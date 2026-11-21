@@ -380,9 +380,9 @@ def _named(tag: str, attrs: dict, system: str, user: str, comment: str) -> ET.El
 def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railroad.BlockLength]
                  ) -> dict[tuple, list[ET.Element]]:
     """{section: [bean, ...]} of the GENERATED_LEVELS rows of the master, a block's names-only pass first under
-    ("blocks-names", ...). A row with assignment none, or a part (part_of), gives no bean. TablesBuildError on a row the module has no
-    bean for, a turnout without both feedback rows, a block with no length, no layout block or two detectors, or a
-    name given twice."""
+    ("blocks-names", ...). A row with assignment none, or a part (part_of), gives no bean. TablesBuildError on a row
+    the module has no bean for, a turnout without both feedback rows, a block with no length, no layout block or two
+    detectors, or a name given twice."""
     # a part (part_of: a piece of track inside another block) has assignment none as well, and is skipped by name too
     rows = [r for r in rows if r["level"] in GENERATED_LEVELS and r["assignment"] != "none" and not r["part_of"]]
     by_user = {(r["layer"], r["user_name"]): r for r in rows}

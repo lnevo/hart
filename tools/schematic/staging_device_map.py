@@ -6,8 +6,8 @@ conversion from them retired. The turnout and feedback rows of level 1 of device
 (control_points_staging.csv is the master of staging's control points, build_staging_sets.py); the block and occupancy
 rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
 row's field facts over and owns which blocks there are and what each holds; build_staging_masts.py writes
-staging_masts.csv, staging_signals.csv and the mast and head rows. Edit these files, not a panel. This module reads them (load,
-load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
+staging_masts.csv, staging_signals.csv and the mast and head rows. Edit these files, not a panel. This module reads
+them (load, load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
 (`make panels`, tools/check.sh) holds them, and every device row, to tables.xml and the schematic.
 
 Staging's objects are field devices: every system name, user name and binding here is the railroad's own.
