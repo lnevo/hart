@@ -747,7 +747,7 @@ def main(argv: list[str] | None = None) -> int:
     if "dispatcher" in parked.parked_in(tree.getroot()):
         # parked (hartlib.parked): tables without the Dispatcher System hold no station to reconcile
         print("SKIPPED: the Dispatcher System is parked (hartlib.parked.PARKED); its stations are in "
-              f"{paths.rel(parked.PARKED_XML)}")
+              f"{paths.rel(parked.PARKED_XML)}; waking it up: docs/parked/UNPARK.md")
         return 0
     try:
         reference = None
