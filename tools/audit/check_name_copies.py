@@ -18,7 +18,7 @@ What counts as a name:
     matched, longest first (`Track Scale East` is not `Track Scale`); one that is
     not current fails.
 
-Data files that key on a name (mast_cells.csv, switch_legs.csv, block_lengths.csv ...)
+Data files that key on a name (mast_cells.csv, switches.csv, block_lengths.csv ...)
 are read: a rename has to change them too. Left out: devices.csv and tables.xml (the
 sources), files a generator writes and a `--check` holds (SKIP_PREFIXES), tests, and the
 dated records in ALLOW, each with its reason (a key ending in "/" covers every file under that folder).
@@ -56,7 +56,6 @@ SKIP_PREFIXES = (
     # the generated files of the schematic data; its hand-kept files (the overrides) are read
     "jmri/layouts/hart/data/schematic/signals.json",                  # both sections generated from the mast files:
                                                                       # build_signals.py --check
-    "jmri/layouts/hart/data/schematic/hands.csv",                     # build_hands.py --check
     "jmri/layouts/hart/data/schematic/main_upper_masts.csv",          # build_main_upper_masts.py --check
     "jmri/layouts/hart/data/schematic/inputs/",                       # plan graphs read from the AnyRail export
     "www/data/",                                  # build_tables_browser / build_layout_index --check

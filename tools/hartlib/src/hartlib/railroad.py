@@ -14,14 +14,15 @@ facts come in layers, in the order the pipeline makes them. A Railroad built `up
 read a later one: build_device_map.py loads upto="inputs", because it writes the device map, and so never reads a
 stale copy of its own output. Each file is read the first time it is asked for, once.
 
-    inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), staging's rows of devices.csv,
-                schematic/interlockings.csv (every level's), local_switches_main_upper.csv, lcos_nodes.csv (every level),
+    inputs      hand-kept: switches.csv (every level's switches, one row per OS block or half, ADR-021; its main and
+                upper hands are the hands layer), staging's rows of devices.csv,
+                schematic/interlockings.csv (every level's), lcos_nodes.csv (every level),
                 helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
                 control_points and stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
                 device map's form, written by build_staging_masts.py from the mast rule, ADR-024, and run by hand
                 before the pipeline, which only checks it)
-    hands       schematic/hands.csv                       build_hands.py
+    hands       the hand of switches.csv's plan rows      build_hands.py
     device_map  the main and upper rows of devices.csv      build_device_map.py
     masts       schematic/main_upper_masts.csv            build_main_upper_masts.py (hartlib.level_masts)
     tables      jmri/layouts/hart/output/tables.xml       build_layout_le.py --as-live, and PanelPro's Store
@@ -46,7 +47,8 @@ from .railroad_facts import *  # noqa: F401,F403
 from .railroad_facts import _int, _level, _where, _yes  # noqa: F401
 from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,
                              Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, PlanOverrides, StagingDevices,
-                             Sources, StagingMast, Switch, TablesNames, join_main_upper, read_block_lengths,
+                             Sources, StagingMast, Switch, SwitchRow, TablesNames, hands, join_main_upper,
+                             local_switches, read_block_lengths, read_switch_rows, staging_switches,
                              read_device_map, read_hands, read_helix_tracks, read_lcos_nodes,
                              read_interlockings, read_local_switches, read_staging_devices, read_staging_rows,
                              read_plan_overrides, read_staging_masts, read_switches, read_tables)
@@ -84,8 +86,14 @@ class Railroad:
         return read_staging_devices(self.sources.devices, self.staging_rows)
 
     @cached_property
+    def switch_rows(self) -> list[SwitchRow]:
+        """switches.csv as read, once: the staging switches, the local switches and the hands are views of it."""
+        return read_switch_rows(self.sources.switches)
+
+    @cached_property
     def switches(self) -> dict[int, Switch]:
-        return read_switches(self.sources.switches, self.sources.switch_legs, self.sources.devices, self.staging_rows)
+        """The staging switches (level 1 of switches.csv)."""
+        return staging_switches(self.switch_rows, self.sources.switches, self.sources.devices, self.staging_rows)
 
     @cached_property
     def interlockings(self) -> list[Interlocking]:
@@ -99,7 +107,7 @@ class Railroad:
 
     @cached_property
     def local_switches(self) -> list[LocalSwitch]:
-        return read_local_switches(self.sources.local_switches)
+        return local_switches(self.switch_rows)
 
     @cached_property
     def lcos_nodes(self) -> list[LcosNode]:
@@ -124,13 +132,15 @@ class Railroad:
     @cached_property
     def main_upper_switches(self) -> dict[str, MainUpperSwitch]:
         """Switch number -> its control point or local row (join_main_upper)."""
-        return join_main_upper(self.level_control_points, self.local_switches, self.sources.local_switches.name)
+        return join_main_upper(self.level_control_points, self.local_switches, self.sources.switches.name)
 
     # later layers
     @cached_property
     def hands(self) -> dict[str, Hand]:
-        self._need("hands", self.sources.hands.name)
-        return read_hands(self.sources.hands)
+        """The main and upper hands of switches.csv. The file is an input, but build_hands.py writes these cells (its
+        plan rows), so they are read as the hands layer."""
+        self._need("hands", f"the hands of {self.sources.switches.name}")
+        return hands(self.switch_rows)
 
     @cached_property
     def device_map(self) -> DeviceMap:

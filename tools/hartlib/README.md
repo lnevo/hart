@@ -124,15 +124,15 @@ checked together. `python3 -m hartlib.railroad check` (in `tools/check.sh`) runs
 
 ```python
 rr = railroad.Railroad()                  # this checkout's files; Railroad(Sources.under(data_dir), upto=...)
-rr.switches[9].legs[0].closed             # staging switches (switches.csv + switch_legs.csv + devices.csv)
+rr.switches[9].legs[0].closed             # staging switches (the level 1 rows of switches.csv + devices.csv)
 rr.device_map.sensors["BS Switch 101"]    # IS:HART:C3:B:OS101
 rr.check()                                # [Problem(invariant, message)]
 ```
 
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
-`switches.csv`, `switch_legs.csv`, staging's rows of `devices.csv`, `interlockings.csv` (every level),
-`local_switches_main_upper.csv`, `lcos_nodes.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`,
-`schematic/staging_masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
+`switches.csv` (every level's switches, ADR-021), staging's rows of `devices.csv`, `interlockings.csv` (every level),
+`lcos_nodes.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`,
+`schematic/staging_masts.csv`), `hands` (the main and upper hands of `switches.csv`, which `build_hands.py` writes into its plan rows), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
 stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `build_main_upper_masts.py`
 `upto="device_map"`, `build_cats_panel.py` everything.
@@ -140,7 +140,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | Name | What |
 |------|------|
 | `Railroad.staging_devices` | `StagingDevices`: staging's (level 1) rows of `devices.csv` in the device layers, `rows` (`StagingDevice`: the master's own columns), `by_name` ((layer, user name) -> row), `names(layer)` |
-| `Railroad.switches` | `{number: Switch}` (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
+| `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to its level's shape); `{number: Switch}` of its staging rows (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
 | `Railroad.block_lengths`, `staging_masts`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `[StagingMast]`, `{label: Hand}` |

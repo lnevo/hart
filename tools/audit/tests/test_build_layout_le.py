@@ -184,7 +184,7 @@ class Built(unittest.TestCase):
         self.assertLessEqual(blocks, used_blocks(self.le))
 
     def test_closed_routes_and_crossovers_match_the_live_panel(self) -> None:
-        # staging's turnouts as the live generated panel in tables.xml has them (switch_legs.csv decides the closed
+        # staging's turnouts as the live generated panel in tables.xml has them (switches.csv decides the closed
         # leg when the build draws them: staging_device_map.normal_legs)
         facts, live_facts = B.turnout_facts(self.le), B.turnout_facts(self.live_le)
         live = {n: b for n, b in closed_block(live_facts).items() if not is_new_name(n)}
@@ -549,7 +549,7 @@ class FactsReaders(unittest.TestCase):
             def patched(sources=None, upto=rr.LAYERS[-1]):
                 return real((sources or rr.Sources.under()).but(switches=bad), upto=upto)
             with mock.patch.object(rr, "Railroad", patched):
-                with self.assertRaisesRegex(B.BuildError, r"^staging switches: switches.csv lines \d+ .* both use"):
+                with self.assertRaisesRegex(B.BuildError, r"^staging switches: switches.csv lines \d+ and \d+: both are"):
                     self.lc.switch_idents()
 
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:

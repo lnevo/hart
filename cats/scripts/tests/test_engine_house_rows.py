@@ -24,7 +24,7 @@ OS_BLOCK = {(24, 8): "OS Switch 9", (26, 8): "OS Switch 11"}
 
 
 def _legs():
-    """{(OS block user name, turnout, setting): destination user name} from the switch facts (switch_legs.csv), which
+    """{(OS block user name, turnout, setting): destination user name} from the switch facts (switches.csv), which
     JMRI's block paths follow: the generated tables.xml stores none (ADR-029), JMRI derives them from the panel."""
     out = {}
     for sw in facts.load_switches().values():

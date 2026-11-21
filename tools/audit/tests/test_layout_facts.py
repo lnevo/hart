@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "schematic/stations.csv", "mast_cells.csv",
+DATA_FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "mast_cells.csv",
               "uss_board_cells.csv", "uss_board_plants.csv")
 
 
@@ -58,10 +58,10 @@ class LayoutFactsTest(unittest.TestCase):
             r'(<layoutturnout ident="TO10"[^>]*?) continuing="2"', r'\1 continuing="4"', t))
         out = self.failures(tables=tables)
         self.assertTrue(any(m.startswith("Switch 9: Layout Editor TO10 (continuing=4) closes to Track EH-3")
-                            and "switch_legs.csv says closed Track EH-2" in m for m in out), out)
+                            and "switches.csv says closed Track EH-2" in m for m in out), out)
 
     def test_stored_block_paths_are_held_to_the_legs(self) -> None:
-        """A tables file that stores block paths (a PanelPro Store) has them checked against switch_legs.csv; the
+        """A tables file that stores block paths (a PanelPro Store) has them checked against switches.csv; the
         generated tables.xml stores none, so the check has nothing to hold there."""
         right = self.failures(tables=self.copy(check.TABLES, with_os9_paths))
         self.assertFalse([m for m in right if m.startswith("Switch 9:")], right)
@@ -74,14 +74,14 @@ class LayoutFactsTest(unittest.TestCase):
     def test_a_wrong_crossover_leg_fails_against_the_panel(self) -> None:
         """The generated tables store no paths, so a crossover's legs are held to the panel's track."""
         data = self.data_copy()
-        legs = data / "switch_legs.csv"
-        legs.write_text(legs.read_text().replace("7,OS Switch 7,Track Scale,OS Switch 7b",
-                                                 "7,OS Switch 7,Track Barn,OS Switch 7b"))
+        legs = data / "switches.csv"
+        legs.write_text(legs.read_text().replace("1,7,,OS Switch 7,Track Scale,OS Switch 7b,",
+                                                 "1,7,,OS Switch 7,Track Barn,OS Switch 7b,"))
         out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
         self.assertTrue(any("closes OS Switch 7 to Track Barn, the panel's track from that half's closed end reaches ['Track Scale']" in m
                             for m in out), out)
-        legs.write_text(legs.read_text().replace("7,OS Switch 7b,Track Main East,OS Switch 7",
-                                                 "7,OS Switch 7b,Track Main East,Track Scale"))
+        legs.write_text(legs.read_text().replace("1,7,,OS Switch 7b,Track Main East,OS Switch 7,",
+                                                 "1,7,,OS Switch 7b,Track Main East,Track Scale,"))
         out = [m for m in self.failures(data=data) if m.startswith("Switch 7:")]
         self.assertTrue(any("throws OS Switch 7b to Track Scale" in m for m in out), out)
 
@@ -99,7 +99,7 @@ class LayoutFactsTest(unittest.TestCase):
             check.Tables(tables).joined_blocks("Track Main West")
 
     def test_a_part_is_read_as_the_block_it_is_inside(self) -> None:
-        """A part is a JMRI block of its own inside an OS block (owner, 2026-11-20); switch_legs.csv names the OS
+        """A part is a JMRI block of its own inside an OS block (owner, 2026-11-20); switches.csv names the OS
         blocks, so a leg is read past the parts of its own OS block and a part as the block it is part of."""
         t = check.Tables(check.TABLES, parts=check.part_map(check.DEVICE_MAP))
         self.assertEqual(t.os_of("Track 1-3 at 1"), "OS Switch 1")
@@ -177,9 +177,9 @@ class LayoutFactsTest(unittest.TestCase):
         for name in DATA_FILES:
             (data / name).parent.mkdir(exist_ok=True)
             shutil.copy(check.facts.DATA / name, data / name)
-        legs = data / "switch_legs.csv"
+        legs = data / "switches.csv"
         legs.write_text(legs.read_text().replace(
-            "9,OS Switch 9,Track EH-2,Track EH-3", "9,OS Switch 9,Track EH-3,Track EH-2"))
+            "1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,Track EH-3,Track EH-2,"))
         out = [m for m in self.failures(data=data) if m.startswith("Switch 9:")]
         self.assertTrue(any("Layout Editor TO10" in m for m in out), out)
         self.assertFalse(any("block paths" in m for m in out), out)      # the generated tables store none
@@ -200,7 +200,7 @@ class LayoutFactsTest(unittest.TestCase):
         stations.write_text(stations.read_text().replace("1,Plane,5,", "2,Plane,5,"))
         out = self.failures(data=data)
         self.assertIn("Switch 5: switches.csv level 1, stations.csv puts Plane on level 2", out)
-        self.assertIn("OS Switch 5: is in Plane (level 2), its switches in switch_legs.csv say level 1", out)
+        self.assertIn("OS Switch 5: is in Plane (level 2), its switches in switches.csv say level 1", out)
 
     def test_a_cp_with_no_control_point_row_fails(self) -> None:
         data = self.data_copy()
@@ -212,10 +212,17 @@ class LayoutFactsTest(unittest.TestCase):
                       "stations.csv", out)
 
     def test_a_main_takes_the_level_of_the_blocks_it_joins(self) -> None:
-        data = self.data_copy()
-        switches = data / "switches.csv"
-        switches.write_text(switches.read_text().replace("1,1,TOL3,", "2,1,TOL3,"))
-        out = self.failures(data=data)
+        # switches.csv keeps staging switches (the ones with legs) on level 1, so the switch is moved in memory
+        import dataclasses
+        from unittest import mock
+        real = check.facts.load_switches
+
+        def moved(data=check.facts.DATA):
+            out = real(data)
+            out[1] = dataclasses.replace(out[1], level="2")
+            return out
+        with mock.patch.object(check.facts, "load_switches", moved):
+            out = self.failures()
         self.assertTrue(any(m.startswith("Track Main West: no control point") and "are on levels ['1', '2']" in m
                             for m in out), out)
 

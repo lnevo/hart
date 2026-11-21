@@ -9,7 +9,7 @@ Rules (SoR):
     runs through their diverging legs, STARTS_THROWN); the rest start up closed (owner,
     2026-11-18). Nothing here sets a state: --diagnose flags 1 or 33 when not thrown.
   - Wrong Digicon direction → fix **that one switch only** in
-    `jmri/layouts/hart/data/switch_legs.csv` / `switches.csv`, then rebuild
+    `jmri/layouts/hart/data/switches.csv`, then rebuild
     the desks. Do not command MQTT/JMRI.
   - This script must not throw field points.
 
@@ -146,7 +146,7 @@ def diagnose(by_name: dict) -> int:
         print(f"{sw_s:>4} {name:8} {mqtt:8} {jmri:12} {fb:8} {mode_s:12}  {note}")
     print()
     print("Digicon paints MQTT retain. Live SoR = FB (except Switch 13/7/11/9).")
-    print("Wrong Digicon frog → fix that one switch in data/switch_legs.csv only — do not command points.")
+    print("Wrong Digicon frog → fix that one switch in data/switches.csv only — do not command points.")
     print("mqtt≠fb → Digicon disagrees with field until broker retain matches FB.")
     return 0
 

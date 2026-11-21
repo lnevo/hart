@@ -25,8 +25,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_devices, parked, paths  # noqa: E402
-import csv  # noqa: E402
+from hartlib import level_devices, parked, paths, railroad_facts  # noqa: E402
 
 REGION = re.compile(r"<!--tf:([a-z0-9-]+)-->(.*?)<!--/tf-->", re.S)
 
@@ -35,7 +34,7 @@ EXAMPLE_SENSOR = "BS K-1"
 EXAMPLE_BLOCK, EXAMPLE_BLOCK_TURNOUT = "OS Switch 13", "Switch 13"
 # The switch facts (ADR-021): the example block's closed and thrown legs, which JMRI's paths follow. The generated
 # tables.xml stores no block paths (ADR-029: JMRI works them out from the panel when it loads the file).
-SWITCH_LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
+SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 EXAMPLE_SML = ("Mast 40LA", "Mast 24L")
 EXAMPLE_TURNOUT = "Switch 35"
 EXAMPLE_DETECTORS = ()   # none is shared since the yard throats went (2026-11-20)
@@ -204,14 +203,16 @@ def facts(raw: bytes, root) -> dict:
         raise PageError(f"tables.xml: sensor {EXAMPLE_SENSOR!r} has no comment, and the page quotes it")
 
     b = _one([e for e in blocks if e.findtext("userName") == EXAMPLE_BLOCK], f"block named {EXAMPLE_BLOCK!r}")
-    with SWITCH_LEGS.open(newline="", encoding="utf-8") as fh:
-        legs = [r for r in csv.DictReader(fh) if r["os_block"] == EXAMPLE_BLOCK
-                and f"Switch {r['switch']}" == EXAMPLE_BLOCK_TURNOUT]
-    if len(legs) != 1 or not (legs[0]["closed_leg"] and legs[0]["thrown_leg"]):
-        raise PageError(f"switch_legs.csv: block {EXAMPLE_BLOCK!r} no longer has one row with a closed and a thrown "
+    try:
+        legs = [r for r in railroad_facts.read_switch_rows(SWITCHES) if r.os_block == EXAMPLE_BLOCK
+                and f"Switch {r.switch}" == EXAMPLE_BLOCK_TURNOUT]
+    except railroad_facts.FactsError as exc:
+        raise PageError(str(exc)) from None
+    if len(legs) != 1:
+        raise PageError(f"{SWITCHES.name}: block {EXAMPLE_BLOCK!r} no longer has one row with a closed and a thrown "
                         f"leg for {EXAMPLE_BLOCK_TURNOUT!r}: {legs}")
     f["block"] = {"name": EXAMPLE_BLOCK, "sensor": b.findtext("occupancysensor") or "", "turnout": EXAMPLE_BLOCK_TURNOUT,
-                  "closed": legs[0]["closed_leg"], "thrown": legs[0]["thrown_leg"]}
+                  "closed": legs[0].closed_leg, "thrown": legs[0].thrown_leg}
     if not f["block"]["sensor"]:
         raise PageError(f"tables.xml: block {EXAMPLE_BLOCK!r} has no occupancy sensor")
 

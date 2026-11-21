@@ -35,7 +35,7 @@ cats/data/occupancy_bindings.csv
 docs/wiring/signals/signal_head_plan.csv
 jmri/layouts/hart/data/devices.csv
 jmri/layouts/hart/data/schematic/interlockings.csv
-jmri/layouts/hart/data/schematic/local_switches_main_upper.csv
+jmri/layouts/hart/data/switches.csv
 jmri/scripts/signal_coordinator.py
 jmri/layouts/hart/scripts/panel_status.py
 jmri/layouts/hart/scripts/discover_sml.py

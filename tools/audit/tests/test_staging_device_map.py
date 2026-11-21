@@ -40,9 +40,9 @@ class SwitchFacts(unittest.TestCase):
     """The staging switches come from hartlib.railroad (le_common.staging_switches); a file it cannot read stops with
     StagingMapError, as every other staging map problem does."""
 
-    def test_closed_legs_are_switch_legs_csv(self):
-        with (ROOT / "jmri/layouts/hart/data/switch_legs.csv").open(newline="", encoding="utf-8") as fh:
-            want = {r["os_block"]: r["closed_leg"] for r in csv.DictReader(fh)}
+    def test_closed_legs_are_the_staging_rows_of_switches_csv(self):
+        with (ROOT / "jmri/layouts/hart/data/switches.csv").open(newline="", encoding="utf-8") as fh:
+            want = {r["os_block"]: r["closed_leg"] for r in csv.DictReader(fh) if r["level"] == "1"}
         self.assertEqual(sdm.closed_legs(), want)
 
     def test_a_facts_error_is_a_staging_map_error(self):

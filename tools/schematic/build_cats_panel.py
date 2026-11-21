@@ -10,7 +10,7 @@ facts (tools/audit/check_layout_facts.py).
 Bands stack in the sheet's order (staging on top). Staging is bound to the live JMRI objects through the bindings
 file cats/panels/HART_CTC.bindings.json, which this script writes from the railroad's facts, never by
 hand:
-  switches.csv / switch_legs.csv  which OS block each switch's points are in (and a crossover half's label, 23A
+  switches.csv (level 1 rows)      which OS block each switch's points are in (and a crossover half's label, 23A
                                   or 23B, from its OS block's letter), which leg is closed and which thrown,
                                   and whether CATS normal is JMRI thrown (cats_inverted); Switch 9 and 13 follow them
   devices.csv + tables.xml          each switch's M2T turnout (cats_turnout_io.load_turnouts)

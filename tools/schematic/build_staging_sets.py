@@ -26,7 +26,7 @@ What it writes, and nothing else of those files:
 (through hartlib.layer_files, which keeps the other sections and the notes as they are).
 
 The older data/control_points.csv and schematic/control_points_staging.csv are gone (level-unification step 8; owner
-2026-11-20): their readers build the same rows from stations.csv and switch_legs.csv
+2026-11-20): their readers build the same rows from stations.csv and switches.csv
 (hartlib.railroad_facts.station_group_rows).
 
 Every staging switch (level 1 of switches.csv) is in one desk area and every station switch is a staging switch; a
@@ -53,7 +53,6 @@ STATIONS = pd.DATA / "stations.csv"
 SHEETS = pd.DATA / "sheets.csv"
 SHEET = "staging"     # the sections of plan_overrides.json and preferences.json this writes
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
-LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
 NONE = "none"        # the `tracks` cell of a station that counts no track
 
 
@@ -103,8 +102,11 @@ def _staging_row(where: str, name: str, level: str) -> None:
 
 
 def staging_switches(path: Path = SWITCHES) -> set[str]:
-    """The switch numbers of level 1 in switches.csv."""
-    return {r["switch"] for _l, r in _rows(path, ("level", "switch")) if r["level"] == LEVEL}
+    """The switch numbers of level 1 in switches.csv (rf.read_switch_rows, every row checked)."""
+    try:
+        return {str(r.switch) for r in rf.read_switch_rows(path) if r.level == int(LEVEL)}
+    except FactsError as exc:
+        raise SetsError(str(exc)) from None
 
 
 def read_masters(path: Path = STATIONS, switches: set[str] | None = None) -> tuple[list[DeskArea], list[Station]]:
@@ -172,7 +174,7 @@ def wanted(data: Path | None = None) -> dict[Path, str]:
     sheets = read_sheets(stations)
     try:      # stop here, at the source, if a switch has no OS block: the website build and the layout checks read
               # these rows through station_group_rows and would stop later (step 8)
-        station_group_rows(STATIONS, LEGS)
+        station_group_rows(STATIONS, SWITCHES)
     except FactsError as exc:
         raise SetsError(str(exc)) from None
     try:

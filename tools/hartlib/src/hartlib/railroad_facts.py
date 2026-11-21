@@ -57,15 +57,12 @@ class LayerError(RuntimeError):
 class Sources:
     """The files the facts are read from. Railroad() uses this checkout's; tests point `under` a copy."""
     switches: Path
-    switch_legs: Path
     devices: Path
     interlockings: Path
-    local_switches: Path
     lcos_nodes: Path
     plan_overrides: Path
     block_lengths: Path
     staging_masts: Path
-    hands: Path
     level_masts: Path
     tables: Path
     helix_tracks: Path
@@ -74,12 +71,12 @@ class Sources:
     def under(cls, data: Path = paths.LAYOUT_DATA, tables_xml: Path | None = None) -> "Sources":
         """The files at their places under a data folder laid out as jmri/layouts/hart/data/ is."""
         s = data / "schematic"
-        return cls(switches=data / "switches.csv", switch_legs=data / "switch_legs.csv",
+        return cls(switches=data / "switches.csv",
                    devices=data / "devices.csv",
                    interlockings=s / "interlockings.csv",
-                   local_switches=s / "local_switches_main_upper.csv", lcos_nodes=s / "lcos_nodes.csv",
+                   lcos_nodes=s / "lcos_nodes.csv",
                    plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
-                   staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
+                   staging_masts=s / "staging_masts.csv",
                    level_masts=s / level_masts.PATH.name,
                    tables=paths.TABLES_XML if tables_xml is None else tables_xml,
                    helix_tracks=s / "helix_tracks.csv")
@@ -204,7 +201,130 @@ def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | No
     return StagingDevices(path, tuple(out))
 
 
-# ---------------------------------------------------------------- inputs: the staging switches (ADR-021)
+# ---------------------------------------------------------------- inputs: switches.csv, every level's switches (ADR-021)
+
+SWITCH_COLUMNS = ("level", "switch", "half", "os_block", "closed_leg", "thrown_leg", "hand", "hand_source", "area",
+                  "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
+HAND_SOURCES = ("plan", "owner")        # plan: build_hands.py writes it from the plan graph; owner: hand-kept
+# Columns that hold a fact of the whole switch: given on its first row only (a crossover's later rows leave them blank)
+SWITCH_WIDE = ("area", "le_ident", "cats_inverted", "ctc_is", "ctc_signals", "notes")
+# Staging's bindings to its live Layout Editor, CATS desks and USS CTC board; main and upper leave them blank
+STAGING_ONLY = ("le_ident", "cats_inverted", "ctc_is", "ctc_signals")
+OS_BLOCK = re.compile(r"OS Switch (\d+)([a-z]?)")
+
+
+@dataclass(frozen=True)
+class SwitchRow:
+    """A row of switches.csv: one OS block of a staging switch (keyed by os_block), or one half of a main or upper
+    switch (keyed by half, the label the drawings print: 107, or a crossover half 101A). switches.columns.csv says
+    what each column holds."""
+    line: int
+    level: int
+    switch: int
+    half: str
+    os_block: str
+    closed_leg: str
+    thrown_leg: str
+    hand: str
+    hand_source: str
+    area: str
+    le_ident: str
+    cats_inverted: str
+    ctc_is: str
+    ctc_signals: str
+    notes: str
+
+    @property
+    def key(self) -> str:
+        return self.os_block if self.level == 1 else self.half
+
+
+def read_switch_rows(path: Path) -> list[SwitchRow]:
+    """switches.csv's rows in file order, each held to its level's shape. Stops with FactsError naming the file and
+    line on: a missing column, a level that is not 1, 2 or 3, a switch number on two levels or on rows that are not
+    together, a key (staging's os_block, main and upper's half) given twice, an os_block that is not an OS Switch block
+    of the row's number, one leg without the other or legs without an os_block, a staging row without its os_block
+    and legs or with a half, a main or upper row with a staging-only column (STAGING_ONLY) or a half that is not its
+    number (107) or its number and A or B (101A), a main or upper switch whose rows are not either one half {n} or
+    both {n}A and {n}B, a hand that is not L, R or blank, a hand with no hand_source (plan or owner) or an owner
+    hand_source with no hand (a plan row's blank hand is build_hands.py's to fill), and a whole-switch column
+    (SWITCH_WIDE; on staging the hand too) on a switch's later row. A main
+    or upper row's os_block and legs are optional: none is given yet; station_group_rows reads an os_block on any
+    level, and only staging's legs are read so far (staging_switches)."""
+    out: list[SwitchRow] = []
+    keys: dict[str, int] = {}
+    first_of: dict[int, tuple[int, int]] = {}          # switch -> (level, line of its first row)
+    for line, r in read_rows(path, SWITCH_COLUMNS):
+        n = _int(r["switch"], _where(path, line), "switch")
+        where = f"{_where(path, line)} (Switch {n})"
+        level = _int(r["level"], where, "level")
+        if level not in ALL_LEVELS:
+            raise FactsError(f"{where}: level is 1, 2 or 3 (staging, main, upper), not {level}")
+        later = bool(out) and out[-1].switch == n
+        if n in first_of:
+            lv, ln = first_of[n]
+            if lv != level:
+                raise FactsError(f"{path.name} lines {ln} (level {lv}) and {line} (level {level}) both use Switch {n}; "
+                                 "switch numbers are unique railroad-wide")
+            if not later:
+                raise FactsError(f"{where}: Switch {n} is also on line {ln}; a switch's rows go together")
+        first_of.setdefault(n, (level, line))
+        if r["os_block"] or level == 1:
+            m = OS_BLOCK.fullmatch(r["os_block"])
+            if not m or int(m.group(1)) != n:
+                raise FactsError(f"{where}: os_block is OS Switch {n} or a half of it (OS Switch {n}b), "
+                                 f"not {r['os_block']!r}")
+        if (bool(r["closed_leg"]) != bool(r["thrown_leg"]) or (r["closed_leg"] and not r["os_block"])
+                or (level == 1 and not r["closed_leg"])):
+            raise FactsError(f"{where}: a row gives both legs (closed_leg, thrown_leg) with its os_block, or neither; "
+                             "a staging row gives them")
+        if level == 1:
+            if r["half"]:
+                raise FactsError(f"{where}: a staging row has no half (its os_block is its key), not {r['half']!r}")
+            if r["hand_source"] == "plan":
+                raise FactsError(f"{where}: hand_source plan is for main and upper (build_hands.py); staging's hands "
+                                 "are the owner's")
+        else:
+            if r["half"] not in (str(n), f"{n}A", f"{n}B"):
+                raise FactsError(f"{where}: half is {n}, {n}A or {n}B, not {r['half']!r}")
+            given = [c for c in STAGING_ONLY if r[c]]
+            if given:
+                raise FactsError(f"{where}: {', '.join(given)} are staging columns; main and upper leave them blank")
+        if r["hand"] not in HANDS:
+            raise FactsError(f"{where}: hand is L, R or blank, got {r['hand']!r}")
+        # a plan row may wait for build_hands.py to fill its hand; an owner row gives one
+        if ((r["hand"] and not r["hand_source"]) or (r["hand_source"] and r["hand_source"] not in HAND_SOURCES)
+                or (r["hand_source"] == "owner" and not r["hand"])):
+            raise FactsError(f"{where}: a hand needs a hand_source ({' or '.join(HAND_SOURCES)}), and an owner "
+                             f"hand_source a hand; got hand {r['hand']!r}, hand_source {r['hand_source']!r}")
+        # staging's hand is a fact of the whole switch (Switch.hand); main and upper give one per half
+        wide = SWITCH_WIDE + (("hand", "hand_source") if level == 1 else ())
+        repeated = [c for c in wide if later and r[c]]
+        if repeated:
+            raise FactsError(f"{where}: {', '.join(repeated)} hold a fact of the whole switch: give them on its first "
+                             f"row (line {first_of[n][1]}) only")
+        row = SwitchRow(line, level, n, **{c: r[c] for c in SWITCH_COLUMNS[2:]})
+        if row.key in keys:
+            raise FactsError(f"{path.name} lines {keys[row.key]} and {line}: both are {row.key}")
+        keys[row.key] = line
+        out.append(row)
+    for n, rs in switch_groups(out, LEVEL_NUMBERS).items():
+        halves = sorted(r.half for r in rs)
+        if halves not in ([str(n)], [f"{n}A", f"{n}B"]):
+            raise FactsError(f"{_where(path, rs[0].line)} (Switch {n}): a main or upper switch has one row, half {n}, "
+                             f"or two, halves {n}A and {n}B; not {', '.join(halves)}")
+    return out
+
+
+def switch_groups(rows: Iterable[SwitchRow], levels: Iterable[int]) -> dict[int, list[SwitchRow]]:
+    """Switch number -> its rows (first row first) of the given levels, in file order."""
+    levels = set(levels)
+    out: dict[int, list[SwitchRow]] = {}
+    for r in rows:
+        if r.level in levels:
+            out.setdefault(r.switch, []).append(r)
+    return out
+
 
 @dataclass(frozen=True)
 class Leg:
@@ -215,8 +335,9 @@ class Leg:
 
 @dataclass(frozen=True)
 class Switch:
-    """A staging switch (switches.csv) with its legs (switch_legs.csv) and, from its turnout row in devices.csv
-    (staging's "Switch <n>"), its hardware (system_name), DCC address and control point."""
+    """A staging switch (its level 1 rows of switches.csv: the first row's whole-switch columns and hand, and every
+    row's legs) with, from its turnout row in devices.csv (staging's "Switch <n>"), its hardware (system_name), DCC
+    address and control point."""
     number: int
     level: str
     le_ident: str
@@ -270,55 +391,41 @@ def switch_turnouts(devices_csv: Path, rows: list[tuple[int, dict[str, str]]] | 
     return out
 
 
-def read_switches(switches: Path, switch_legs: Path, devices_csv: Path,
-                  staging_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
-    """Switch number -> Switch, in switches.csv order; hardware (system_name), DCC address and control point from
-    each switch's turnout row of `devices_csv` (switch_turnouts; `staging_rows` when the caller read them already). Line numbers in
-    errors count the header as 1. Stops on a number, OS block or USS lever given twice, a switch with no legs or
-    legs with no switch, or a bad hand."""
-    legs: dict[int, list[Leg]] = {}
-    os_line: dict[str, int] = {}
-    for line, row in read_rows(switch_legs, ("switch", "os_block", "closed_leg", "thrown_leg")):
-        os_name = row["os_block"]
-        if os_name in os_line:
-            raise FactsError(f"switch_legs.csv lines {os_line[os_name]} and {line}: "
-                             f"both list {os_name}; an OS block belongs to one switch")
-        os_line[os_name] = line
-        legs.setdefault(_int(row["switch"], _where(switch_legs, line), "switch"), []).append(
-            Leg(os_name, row["closed_leg"], row["thrown_leg"]))
+def staging_switches(rows: list[SwitchRow], path: Path, devices_csv: Path,
+                     staging_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
+    """Switch number -> Switch of the level 1 rows (read_switch_rows of `path`), in file order; hardware
+    (system_name), DCC address and control point from each switch's turnout row of `devices_csv` (switch_turnouts;
+    `staging_rows` when the caller read them already). Stops on a switch whose first row lacks a whole-switch column, or a USS lever given twice."""
+    groups = switch_groups(rows, (1,))
+    names = switch_turnouts(devices_csv, staging_rows, groups)
     out: dict[int, Switch] = {}
-    seen: dict[int, tuple[int, str]] = {}
     lever: dict[int, tuple[int, int]] = {}
-    columns = ("level", "switch", "le_ident", "cats_inverted", "ctc_is", "ctc_signals")
-    rows = read_rows(switches, columns, optional=("hand",))
-    names = switch_turnouts(devices_csv, staging_rows, [_int(r["switch"], _where(switches, line), "switch")
-                                                   for line, r in rows])
-    for line, row in rows:
-        n = _int(row["switch"], _where(switches, line), "switch")
-        where = f"switches.csv line {line} (Switch {n})"
-        if n in seen:
-            first, level = seen[n]
-            raise FactsError(f"switches.csv lines {first} (level {level}) and {line} (level {row['level']}) "
-                             f"both use Switch {n}; switch numbers are unique railroad-wide")
-        seen[n] = (line, row["level"])
-        if n not in legs:
-            raise FactsError(f"{where}: no rows in switch_legs.csv")
-        ctc_is = _int(row["ctc_is"], where, "ctc_is")
+    for n, rs in groups.items():
+        first = rs[0]
+        where = f"{_where(path, first.line)} (Switch {n})"
+        missing = [c for c in ("le_ident", "cats_inverted", "ctc_is", "ctc_signals") if not getattr(first, c)]
+        if missing:
+            raise FactsError(f"{where}: a staging switch's first row gives {', '.join(missing)}")
+        ctc_is = _int(first.ctc_is, where, "ctc_is")
         if ctc_is in lever:
-            first, other = lever[ctc_is]
-            raise FactsError(f"switches.csv lines {first} (Switch {other}) and {line} (Switch {n}) "
+            line, other = lever[ctc_is]
+            raise FactsError(f"{path.name} lines {line} (Switch {other}) and {first.line} (Switch {n}) "
                              f"both use USS lever IS{ctc_is}")
-        lever[ctc_is] = (line, n)
-        if row["hand"] not in HANDS:
-            raise FactsError(f"{where}: hand is L, R or blank, got {row['hand']!r}")
+        lever[ctc_is] = (first.line, n)
         nm = names.get(n, {})
-        out[n] = Switch(number=n, level=row["level"], le_ident=row["le_ident"],
-                        cats_inverted=_yes(row["cats_inverted"], where), ctc_is=ctc_is,
-                        ctc_signals=_yes(row["ctc_signals"], where), legs=tuple(legs.pop(n)), hand=row["hand"],
+        out[n] = Switch(number=n, level=str(first.level), le_ident=first.le_ident,
+                        cats_inverted=_yes(first.cats_inverted, where), ctc_is=ctc_is,
+                        ctc_signals=_yes(first.ctc_signals, where),
+                        legs=tuple(Leg(r.os_block, r.closed_leg, r.thrown_leg) for r in rs), hand=first.hand,
                         hardware=nm.get("system_name", ""), dcc=nm.get("dcc", ""), cp=nm.get("cp", ""))
-    if legs:
-        raise FactsError(f"switch_legs.csv: switches not in switches.csv: {sorted(legs)}")
     return out
+
+
+def read_switches(path: Path, devices_csv: Path,
+                  staging_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
+    """The staging switches of switches.csv (staging_switches of read_switch_rows). Line numbers in errors count the
+    header as 1."""
+    return staging_switches(read_switch_rows(path), path, devices_csv, staging_rows)
 
 
 # ---------------------------------------------------------------- inputs: main and upper control points and nodes
@@ -546,19 +653,18 @@ def read_desk_areas(path: Path, switches: Iterable[str] | None = None) -> list[D
 STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code")
 
 
-def station_group_rows(stations: Path, switch_legs: Path) -> list[dict[str, str]]:
+def station_group_rows(stations: Path, switches: Path) -> list[dict[str, str]]:
     """The desk areas of every level (staging's only so far: the drawings' brackets and the CATS desk names; each
     row carries its level, so a caller that wants one level filters on it) in the shape the older
     data/control_points.csv had, which this replaces (level-unification step 8): cp_id the name in lower case with
     underscores, level, code and notes the area's, and switches the OS block of each switch (a crossover by its
-    halves, 7 as 7,7b and 23 as 23a,23b, from switch_legs.csv), "," between. Stops with FactsError, naming the file,
-    line and station, on what read_desk_areas stops on or a switch with no OS block."""
+    halves, 7 as 7,7b and 23 as 23a,23b, from the os_block of its switches.csv rows), "," between. Stops with
+    FactsError, naming the file, line and station, on what read_desk_areas or read_switch_rows stops on or a switch
+    with no OS block."""
     halves: dict[str, list[str]] = {}
-    for line, r in read_rows(switch_legs, ("switch", "os_block")):
-        m = re.fullmatch(r"OS Switch (\d+[a-z]?)", r["os_block"])
-        if not m:
-            raise FactsError(f"{_where(switch_legs, line)}: {r['os_block']!r} is not an OS Switch block")
-        halves.setdefault(r["switch"], []).append(m.group(1))
+    for r in read_switch_rows(switches):
+        if r.os_block:
+            halves.setdefault(str(r.switch), []).append(r.os_block.removeprefix("OS Switch "))
     rows = read_stations(stations)
     inner = _innermost(rows, stations)
     out = []
@@ -568,7 +674,7 @@ def station_group_rows(stations: Path, switch_legs: Path) -> list[dict[str, str]
             if s not in halves:
                 st = inner[(a.level, s)]        # the station that holds it for its area, not the one it lies in
                 raise FactsError(f"{_where(stations, st.line)} ({st.name}): switch {s} has no OS block in "
-                                 f"{switch_legs.name}")
+                                 f"{switches.name}")
             sw += sorted(halves[s])
         out.append(dict(cp_id=re.sub(r"\W+", "_", a.name.lower()), cp_name=a.name, level=str(a.level),
                         switches=",".join(sw), notes=a.notes, code=a.code))
@@ -577,7 +683,8 @@ def station_group_rows(stations: Path, switch_legs: Path) -> list[dict[str, str]
 
 @dataclass(frozen=True)
 class LocalSwitch:
-    """A main or upper switch in no control point (local_switches_main_upper.csv): yards and spurs."""
+    """A main or upper switch in no control point (a switches.csv switch whose first row gives its area): yards and
+    spurs."""
     line: int
     switch: str
     level: int
@@ -585,17 +692,14 @@ class LocalSwitch:
     notes: str = ""
 
 
+def local_switches(rows: list[SwitchRow]) -> list[LocalSwitch]:
+    """The main and upper switches whose first row of switches.csv (read_switch_rows) gives an area, in file order."""
+    return [LocalSwitch(rs[0].line, str(n), rs[0].level, rs[0].area, rs[0].notes)
+            for n, rs in switch_groups(rows, LEVEL_NUMBERS).items() if rs[0].area]
+
+
 def read_local_switches(path: Path) -> list[LocalSwitch]:
-    out, seen = [], {}
-    for line, r in read_rows(path, ("switch", "level", "area"), optional=("notes",)):
-        where = _where(path, line)
-        if not r["switch"].isdigit() or not r["area"]:
-            raise FactsError(f"{where}: switch is a number and area is given, not {r['switch']!r}, {r['area']!r}")
-        if r["switch"] in seen:
-            raise FactsError(f"{path.name} lines {seen[r['switch']]} and {line}: both are switch {r['switch']}")
-        seen[r["switch"]] = line
-        out.append(LocalSwitch(line, r["switch"], _level(r["level"], where), r["area"], r["notes"]))
-    return out
+    return local_switches(read_switch_rows(path))
 
 
 @dataclass(frozen=True)
@@ -790,10 +894,7 @@ class Hand:
     line: int
     switch: str          # the schematic label: "107", or a crossover half "101A"
     hand: str            # L or R
-    source: str = ""
-
-
-HAND_LABEL = re.compile(r"\d+[AB]?")
+    source: str = ""     # the row's hand_source: plan (build_hands.py) or owner
 
 
 def switch_number(label: str) -> str:
@@ -801,15 +902,15 @@ def switch_number(label: str) -> str:
     return re.sub(r"[AB]$", "", (label or "").rstrip("*"))
 
 
+def hands(rows: list[SwitchRow]) -> dict[str, Hand]:
+    """{label: Hand} of the main and upper rows of switches.csv (read_switch_rows) that give a hand; `source` is the
+    row's hand_source (plan or owner)."""
+    return {r.half: Hand(r.line, r.half, r.hand, r.hand_source) for r in rows
+            if r.level in LEVEL_NUMBERS and r.hand}
+
+
 def read_hands(path: Path) -> dict[str, Hand]:
-    out: dict[str, Hand] = {}
-    for line, r in read_rows(path, ("switch", "hand"), optional=("source",)):
-        where = _where(path, line)
-        if not HAND_LABEL.fullmatch(r["switch"]) or r["switch"] in out or r["hand"] not in ("L", "R"):
-            raise FactsError(f"{where}: switch {r['switch']!r} is not a label given once (107, 101A), or hand "
-                             f"{r['hand']!r} is not L or R")
-        out[r["switch"]] = Hand(line, r["switch"], r["hand"], r["source"])
-    return out
+    return hands(read_switch_rows(path))
 
 
 # ---------------------------------------------------------------- the device map (build_device_map.py)
@@ -1058,7 +1159,7 @@ def read_tables(path: Path) -> TablesNames:
 
 @dataclass(frozen=True)
 class MainUpperSwitch:
-    """A main or upper switch: in a control point (cp) or in none (local_switches_main_upper.csv)."""
+    """A main or upper switch: in a control point (cp) or in none (a local switch of switches.csv)."""
     number: str
     level: int
     area: str
@@ -1067,7 +1168,7 @@ class MainUpperSwitch:
 
 
 def join_main_upper(cps: Iterable[Interlocking], local: Iterable[LocalSwitch],
-                    local_name: str = "local_switches_main_upper.csv") -> dict[str, MainUpperSwitch]:
+                    local_name: str = "switches.csv") -> dict[str, MainUpperSwitch]:
     """Switch number -> MainUpperSwitch, from the main and upper interlockings (their control points) and the local
     switches. Stops on a staging interlocking among `cps` or a switch in both."""
     cps = list(cps)

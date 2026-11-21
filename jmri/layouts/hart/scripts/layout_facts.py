@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Railroad facts about each switch, read from jmri/layouts/hart/data/.
 
-    switches.csv     one row per switch: level, number, Layout Editor turnout,
-                     CATS inversion, its USS CTC lever and its hand (L or R,
-                     blank where nobody has recorded it)
-    switch_legs.csv  one row per OS block at the points: the block each leg
-                     leads to when the switch is closed and when it is thrown
+    switches.csv     every level's switches, one row per OS block (staging)
+                     or half (main and upper); a staging switch's rows give
+                     the block each leg leads to when the switch is closed and
+                     when it is thrown, and its first row its level, Layout
+                     Editor turnout, CATS inversion, USS CTC lever and hand
+                     (L or R, blank where nobody has recorded it). This module
+                     reads staging's (switches.columns.csv has every column)
     mast_cells.csv   one row per mast on the USS CTC board: its cell on the
                      board's grid (x, y) and how the board draws it (uss_*),
                      read by gen_ctc_track_plan.py; and, for the hand-wired
@@ -87,7 +89,7 @@ def load_switches(data: Path = DATA) -> dict[int, Switch]:
     """Switch number -> Switch, in switches.csv order (hartlib.railroad.read_switches). Line numbers in errors
     count the header as 1."""
     s = railroad.Sources.under(data)
-    return railroad.read_switches(s.switches, s.switch_legs, s.devices)
+    return railroad.read_switches(s.switches, s.devices)
 
 
 EDGES = {"LEFT", "RIGHT", "TOP", "BOTTOM"}
@@ -194,10 +196,10 @@ def legs_by_os(switches: dict[int, Switch]) -> dict[str, tuple[Switch, Leg]]:
 
 def load_control_points(data: Path = DATA) -> list[dict[str, str]]:
     """The control points of every level that has desk areas in schematic/stations.csv (staging's only so far; each
-    row carries its ``level``), with switch_legs.csv, in the older control_points.csv shape
+    row carries its ``level``), with switches.csv, in the older control_points.csv shape
     (hartlib.railroad_facts.station_group_rows); ``switches`` is the OS-block list, e.g. "23a,23b,33"."""
     return railroad_facts.station_group_rows(data / "schematic" / "stations.csv",
-                                             data / "switch_legs.csv")
+                                             data / "switches.csv")
 
 
 def station_names(data: Path = DATA) -> set[str]:
