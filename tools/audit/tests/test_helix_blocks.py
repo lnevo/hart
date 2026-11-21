@@ -14,6 +14,7 @@ import build_device_map as bdm  # noqa: E402
 from hartlib import devices  # noqa: E402
 import le_tables as T  # noqa: E402
 import mast_rule as mr  # noqa: E402
+import check_device_master as cdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import railroad  # noqa: E402
 
@@ -128,20 +129,20 @@ class StagingShares(unittest.TestCase):
         dm.rows.append(occ)
         dm.blocks["Track Helix Inner"] = railroad.DeviceRow(level=3, layer="block", user_name="Track Helix Inner")
         helix = {"McKeesport": {"block": "Track Helix Inner"}}
-        self.assertEqual(sdm.shared_blocks(rows, dm, helix), {"Track Helix Inner": occ})
+        self.assertEqual(cdm.shared_blocks(rows, dm, helix), {"Track Helix Inner": occ})
         dm.blocks["Track K-1"] = railroad.DeviceRow(level=3, layer="block", user_name="Track K-1")
         with self.assertRaisesRegex(sdm.StagingMapError, "only the helix blocks"):
-            sdm.shared_blocks(rows, dm, helix)
+            cdm.shared_blocks(rows, dm, helix)
         del dm.blocks["Track K-1"]
         dm.rows.remove(occ)
         with self.assertRaisesRegex(sdm.StagingMapError, "no occupancy row"):
-            sdm.shared_blocks(rows, dm, helix)
+            cdm.shared_blocks(rows, dm, helix)
 
     def test_a_shared_block_needs_no_staging_occupancy_row(self):
         rows = [dict(layer="block", user_name="Track Helix Inner", system_name="IB24", jmri_name="IB24")]
-        sdm.check_rows(rows, {"Track Helix Inner"})
+        cdm.check_rows(rows, {"Track Helix Inner"})
         with self.assertRaisesRegex(sdm.StagingMapError, "blocks and occupancy rows differ"):
-            sdm.check_rows(rows)
+            cdm.check_rows(rows)
 
 
 class LayoutEditor(unittest.TestCase):

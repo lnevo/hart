@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
+import check_device_master as cdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 
 
@@ -160,13 +161,13 @@ class Pure(unittest.TestCase):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")]
         with self.assertRaisesRegex(sdm.StagingMapError, "Track S-1 West"):
-            sdm.check_rows(rows)
+            cdm.check_rows(rows)
 
     def test_a_shared_detector_serves_both_blocks(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1; Track S-1 West",
                     blocks="Track S-1;Track S-1 West", detector="wired")]
-        sdm.check_rows(rows)
+        cdm.check_rows(rows)
 
     def test_the_blocks_column_is_read_and_never_the_notes(self):
         r = row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track X", blocks="Track S-1;Track S-1 West",
@@ -194,10 +195,10 @@ class Pure(unittest.TestCase):
                 self.assertTrue(any(msg in p for p in facts(r)), facts(r))
 
     def test_a_staging_station_is_its_stop_token(self):
-        self.assertTrue(sdm.stop_token("Track K-1; occupancy Block 1-1 / M2S100; stop"))
-        self.assertTrue(sdm.stop_token("stop"))
-        self.assertFalse(sdm.stop_token("Hidden throat; not a station"))
-        self.assertFalse(sdm.stop_token(None))
+        self.assertTrue(cdm.stop_token("Track K-1; occupancy Block 1-1 / M2S100; stop"))
+        self.assertTrue(cdm.stop_token("stop"))
+        self.assertFalse(cdm.stop_token("Hidden throat; not a station"))
+        self.assertFalse(cdm.stop_token(None))
 
     def test_signal_rows_in_the_plugins_order(self):
         m = dict(signal="10LA", toward="9", run=["9", ""], names=["EH-2"], edge_cm=61.0, cm_from_toward=61.0,
@@ -221,7 +222,7 @@ class Files(unittest.TestCase):
         cls.names = sdm.load(cls.band)
 
     def test_the_committed_files_hold_their_rules(self):
-        self.assertEqual(sdm.check(self.band), [])
+        self.assertEqual(cdm.check(self.band), [])
         self.assertEqual(len(set(self.names["turnouts"].values())), 20)
         self.assertEqual(len(self.names["masts"]), 30)
         self.assertEqual(self.names["idents"]["turnouts"]["TOL34511"], "TO1")         # switches.csv le_ident
@@ -256,7 +257,7 @@ class Files(unittest.TestCase):
             hit = next(r for r in rows if r["user_name"] == "Switch 1")
             hit["system_name"] = hit["jmri_name"] = "M2T999"       # a field device: the two are one
         _out, rows = self._copy(edit)
-        bad = sdm.check_tables(rows, railroad.Railroad())
+        bad = cdm.check_tables(rows, railroad.Railroad())
         self.assertTrue(any("turnout Switch 1: tables.xml has 'M2T408', not M2T999" in b for b in bad), bad)
 
     def test_a_mast_on_a_switch_with_no_turnout_row_stops(self):
@@ -290,7 +291,7 @@ class Files(unittest.TestCase):
         import contextlib
         err = io.StringIO()
         with contextlib.redirect_stderr(err), self.assertRaises(SystemExit):
-            sdm.main([])
+            cdm.main([])
         self.assertIn("--check is the only mode", err.getvalue())
 
 
@@ -331,7 +332,7 @@ class RowRules(unittest.TestCase):
         import contextlib
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
-            self.assertEqual(sdm.main(["--check"]), 0)
+            self.assertEqual(cdm.main(["--check"]), 0)
         self.assertIn("ok: devices.csv, control_points_staging.csv, staging_masts.csv, staging_signals.csv hold their "
                       "rules", out.getvalue())
 
@@ -343,7 +344,7 @@ class TablesCheck(unittest.TestCase):
     def setUpClass(cls):
         cls.rr = sdm.railroad.Railroad()
         cls.rows = sdm.read_device_rows()
-        cls.shared = sdm.shared_blocks(cls.rows, cls.rr.device_map)
+        cls.shared = cdm.shared_blocks(cls.rows, cls.rr.device_map)
 
     def edited(self, edit=None, drop=()):
         rows = [dict(r) for r in self.rows if r["user_name"] not in drop]
@@ -355,7 +356,7 @@ class TablesCheck(unittest.TestCase):
         return rows
 
     def problems(self, edit=None, drop=(), shared=None):
-        return sdm.check_tables(self.edited(edit, drop), self.rr, self.shared if shared is None else shared)
+        return cdm.check_tables(self.edited(edit, drop), self.rr, self.shared if shared is None else shared)
 
     def assertProblem(self, pattern, got):
         self.assertTrue(any(__import__("re").search(pattern, p) for p in got), got)
@@ -402,7 +403,7 @@ class TablesCheck(unittest.TestCase):
     def test_a_name_given_twice_stops(self):
         rows = self.edited({"Switch 3": dict(user_name="Switch 1")})
         with self.assertRaisesRegex(sdm.StagingMapError, "turnout rows: a user_name is empty or given twice"):
-            sdm.check_rows(rows, set(self.shared))
+            cdm.check_rows(rows, set(self.shared))
 
 
 class DeviceMapBuild(unittest.TestCase):
