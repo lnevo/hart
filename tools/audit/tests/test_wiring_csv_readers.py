@@ -78,9 +78,9 @@ class CommittedFiles(Case):
         self.assertTrue(got["jmri_name"].startswith("IT:HART:C3:"))
 
     def test_the_nodes(self) -> None:
-        rows = AM.read_node_rows()
+        rows = AM.read_node_rows()                  # the main and upper rows; staging's are v85's own
         self.assertTrue(rows)
-        self.assertEqual(rows, plain(AM.NODES))
+        self.assertEqual(rows, [r for r in plain(AM.NODES) if r["level"] in AM.LEVEL_NAME])
 
     def test_the_occupancy_bindings(self) -> None:
         got = RW.occupancy_by_hw()
@@ -106,7 +106,8 @@ class BadHeader(Case):
         for column in ("level", "area", "node"):
             with self.subTest(column):
                 self.stops(AM.read_node_rows, AM.NODES, column)
-        self.assertEqual(len(AM.read_node_rows(self.without(AM.NODES, "source"))), len(plain(AM.NODES)))
+        self.assertEqual(len(AM.read_node_rows(self.without(AM.NODES, "source"))),
+                         len([r for r in plain(AM.NODES) if r["level"] in AM.LEVEL_NAME]))
 
     def test_the_occupancy_bindings(self) -> None:
         for column in ("block_user_name", "occupancy_sensor_user_name"):
