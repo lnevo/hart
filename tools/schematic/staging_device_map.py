@@ -2,10 +2,12 @@
 """Staging's facts in the device map's form: the source the Layout Editor build, the signals and the CATS desks read.
 
 The source since the device-map switch-over (owner, 2026-11-17), when the frozen hand-drawn files (staging_le/) and the
-conversion from them retired. The non-signal rows of level 1 of devices.csv are kept by hand (control_points_staging.csv
-is the master of staging's control points, build_staging_sets.py); build_staging_masts.py writes staging_masts.csv,
-staging_signals.csv and the mast and head rows. Edit these files, not a panel. This module reads them (load,
-load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
+conversion from them retired. The turnout and feedback rows of level 1 of devices.csv are kept by hand
+(control_points_staging.csv is the master of staging's control points, build_staging_sets.py); the block and occupancy
+rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
+row's field facts over and owns which blocks there are and what each holds; build_staging_masts.py writes
+staging_masts.csv, staging_signals.csv and the mast and head rows. Edit these files, not a panel. This module reads
+them (load, load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
 (`make panels`, tools/check.sh) holds them, and every device row, to tables.xml and the schematic.
 
 Staging's objects are field devices: every system name, user name and binding here is the railroad's own.
@@ -24,11 +26,10 @@ Files (jmri/layouts/hart/data/, schematic/ for the rest):
   A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
   up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
   levels 2 and 3 of devices.csv, which name the same block for the piece on its level (check_device_master.check_rows).
-- short_tracks_staging.csv (SHORT_COLUMNS): a short track between two switches with no block row of its own takes
-  the OS block whose gap it sits inside (one of its two switches'), keyed by the two switch numbers, never by an
-  edge id (read_short_tracks, short_track_blocks: a track with no row, a row with no such track or with a track that
-  has its own block, or two tracks between the same switches, stops). Today the track from Switch 35 to Switch 37,
-  in OS Switch 35a.
+- parts (devices.csv part_of, role part; owner, 2026-11-20): a short piece of track between two switches has a block
+  row of its own that names the block it is part of (the lower-numbered switch's OS block by rule, or the one
+  block_exceptions.csv gives it), and its trial_name; load() gives its pieces to that block. A part makes no JMRI
+  block, so the device maps leave it out (hartlib.devices.OUT_OF_MAPS) and load() reads it from the master itself.
 - control_points_staging.csv (cp_id, cp_name, level, switches, area, code, notes): the master of staging's
   control points. build_staging_sets.py writes plan_overrides.json's staging section (control_points, stations and
   station_tracks) and the `detail_sheets` preference from it, stations.csv and sheets.csv (other readers take its
@@ -55,7 +56,8 @@ ids when the files are read, and one that matches nothing, or more than one thin
   it by ("17C"), "end" for a bumper or "helix" (end_key), the lower switch first; " #<i>" for the i-th of a run's
   pieces (a run folded at a turnback) from that first end; " <k>/<n>" for the k-th of the piece's n blocks from that
   end (Scale is "Track 5C-7B 1/2", OS Switch 7 "2/2").
-A block that several tracks or a switch share lists every placeholder, comma separated.
+A block that several tracks or a switch share lists every placeholder, comma separated; a part's pieces are on
+its own row. Every piece of the drawing is on exactly one row.
 
 The panel's own icons and labels are not device facts and are not here: the status cluster, captions and backdrop
 are in panel_items.json (panel_items.py); the occupancy lamps and station clusters are parked with the Dispatcher
@@ -92,10 +94,6 @@ LIST = ";"
 # what signals.json's staging section names as its source: the file the masts were first read from (the hand-drawn panel's)
 SIGNALS_SOURCE = "tables.xml"
 CP_COLUMNS = ["cp_id", "cp_name", "level", "switches", "area", "code", "notes"]
-# short_tracks_staging.csv: a short track between two switches with no block of its own, and the OS block whose gap it
-# sits inside (owner, 2026-11-20), keyed by the two switches, never by the drawing's edge ids
-SHORT_TRACKS = pd.DATA / "short_tracks_staging.csv"
-SHORT_COLUMNS = ["switch_a", "switch_b", "block", "notes"]
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
 TRACK_RE = re.compile(r"Track (\S+?(?: #\d+)?)(?: (\d+)/(\d+))?")       # a track by its piece (piece_refs), k-th of n blocks
 
@@ -218,81 +216,6 @@ def occupancy_blocks(r: dict) -> list[str]:
     return railroad.device_list(r["blocks"])
 
 
-def read_short_tracks(path: Path | None = None) -> dict:
-    """{(switch, switch) in number order: (OS block, line)} of short_tracks_staging.csv. Stops on a file not in its
-    shape, a row naming one switch twice or a block that is no OS block, or a pair given twice (a short track takes
-    one block)."""
-    path = path or SHORT_TRACKS
-    out, bad = {}, []
-    try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows = list(reader)                     # none is right: a staging with no short track
-    except OSError as exc:
-        raise StagingMapError(f"cannot read {paths.rel(path)}: {exc}") from None
-    if reader.fieldnames != SHORT_COLUMNS:
-        raise StagingMapError(f"{paths.rel(path)}: columns {reader.fieldnames}, not {SHORT_COLUMNS}")
-    for i, r in enumerate(rows, 2):
-        a, b = r["switch_a"].strip(), r["switch_b"].strip()
-        if not (a.isdigit() and b.isdigit()) or a == b or not r["block"].startswith("OS Switch "):
-            bad.append(f"line {i}: switches {a!r} and {b!r} are two switch numbers and {r['block']!r} an OS block")
-            continue
-        key = tuple(sorted((a, b), key=int))
-        if key in out:
-            bad.append(f"line {i}: the track from Switch {key[0]} to Switch {key[1]} is given a block twice "
-                       f"(line {out[key][1]})")
-            continue
-        out[key] = (r["block"], i)
-    if bad:
-        raise StagingMapError(f"{paths.rel(path)}: " + "; ".join(bad))
-    return out
-
-
-def short_track_blocks(band, names: dict, strands: list, short: dict) -> tuple[dict, list]:
-    """({strand id: [OS block]}, problems) for the staging tracks the device map gives no block (no trial name):
-    each must run from one switch to another, be the only such track between them, and have its row in `short`
-    (read_short_tracks), naming the OS block of one of its two switches, the one whose gap it sits inside. Every
-    row of `short` must be used (a stale row stops)."""
-    nodes, out, bad, used = band["nodes"], {}, [], set()
-    pairs = defaultdict(list)
-    for sid in strands:
-        s = band["strands"][sid]
-        ends = [s["src"][0], s["dst"][0]]
-        if all(nodes[n]["kind"] == "switch" for n in ends):
-            pairs[tuple(sorted((lc.bare(nodes[n].get("label")) for n in ends), key=int))].append((sid, ends))
-    for sid in strands:
-        s = band["strands"][sid]
-        ends = [s["src"][0], s["dst"][0]]
-        if sid in names["blocks"]:
-            continue
-        if not all(nodes[n]["kind"] == "switch" for n in ends):
-            bad.append(f"track {sid}: no block in the device map, and it does not run between two switches")
-            continue
-        key = tuple(sorted((lc.bare(nodes[n].get("label")) for n in ends), key=int))
-        what = f"the short track from Switch {key[0]} to Switch {key[1]} ({sid})"
-        if key not in short:
-            bad.append(f"{what} has no block: give it the OS block whose gap it sits inside in {SHORT_TRACKS.name}")
-            continue
-        if len(pairs[key]) != 1:
-            bad.append(f"{what}: {len(pairs[key])} tracks join those switches, so {SHORT_TRACKS.name} cannot tell "
-                       "which it means")
-            continue
-        block = short[key][0]
-        own = {names["os"].get(n) for n in ends}
-        if block not in own:
-            bad.append(f"{what}: {SHORT_TRACKS.name} gives it {block}, which is the OS block of neither of its "
-                       f"switches ({', '.join(sorted(b for b in own if b))})")
-            continue
-        out[sid] = [block]
-        used.add(key)
-    for key in sorted(set(short) - used, key=lambda k: (int(k[0]), int(k[1]))):
-        ids = [sid for sid, _e in pairs.get(key, [])]
-        why = "the device map gives it a block of its own" if any(i in names["blocks"] for i in ids) else \
-            "the staging drawing has no such track"
-        bad.append(f"{SHORT_TRACKS.name} line {short[key][1]}: Switch {key[0]} to Switch {key[1]}: {why}")
-    return out, bad
-
-
 def check_helix(band, names: dict, helix: dict | None = None) -> list[str]:
     """Each helix track of helix_tracks.csv is drawn on the staging band from its staging_switch, and its staging
     piece is that file's block (load()'s names)."""
@@ -411,14 +334,25 @@ def normal_legs(band, names: dict) -> dict:
     return out
 
 
+def part_lines(device_map: Path = DEVICE_MAP) -> list[tuple[int, dict]]:
+    """(line, row) of staging's parts (role part: a piece of track inside another block, part_of naming it), which
+    the device maps leave out (hartlib.devices.OUT_OF_MAPS)."""
+    try:
+        return [(n, dict(r)) for n, r in enumerate(devices.load(device_map), 2)
+                if r["level"] == str(LEVEL) and r["role"] == "part"]
+    except railroad.FactsError as exc:
+        raise StagingMapError(str(exc)) from None
+
+
 def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path: Path = CPS,
-         turnout_idents: bool = True, with_masts: bool = True, short_path: Path | None = None,
+         turnout_idents: bool = True, with_masts: bool = True,
          interlockings_path: Path = INTERLOCKINGS) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
     devices.csv keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
-    use, a broken k/n run, or a mast row that is not well formed."""
+    use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed. A
+    part's pieces (part_lines) are its part_of block's."""
     import check_device_master as cdm       # the rules of every level's rows (it imports this module)
     try:
         lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
@@ -434,6 +368,11 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     cp_names = cps.get(str(LEVEL), set())
     turnout_ph, os_ph, strands = placeholders(band)
     by_ph = {ph: (r["layer"], r["user_name"], r["jmri_name"]) for r in rows for ph in split_names(r["trial_name"])}
+    for n, r in part_lines(device_map):          # a part's pieces are the block it is part of
+        for ph in split_names(r["trial_name"]):
+            if ph in by_ph:
+                bad.append(f"line {n}: part {r['user_name']}'s trial_name {ph} is another row's as well")
+            by_ph[ph] = ("block", r["part_of"], "")
     used = set()
 
     def get(ph, layer):
@@ -455,17 +394,15 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     for sid, (piece, against) in sorted(strands.items()):
         got = runs.pop(piece, {})
         if not got:
-            continue                    # no block row: a short track, given its OS block below
+            bad.append(f"track {piece} ({sid}) is on no block row: give it a block, or a part row naming the block "
+                       "it is part of (build_device_map.py writes them)")
+            continue
         counts = {c for c, _ph in got.values()}
         if len(counts) != 1 or sorted(got) != list(range(1, next(iter(counts)) + 1)):
             bad.append(f"track {piece}: blocks {sorted(ph for _c, ph in got.values()) or 'none'} are not 1/n to n/n")
             continue
         blocks = [get(got[k][1], "block") for k in sorted(got)]       # from the run's first end
         names["blocks"][sid] = blocks[::-1] if against else blocks    # from the strand's first end, as drawn
-    if not bad:
-        got_short, problems = short_track_blocks(band, names, sorted(strands), read_short_tracks(short_path))
-        names["blocks"].update(got_short)
-        bad += problems
     for sid, got in runs.items():
         bad.append(f"trial names for track {sid}, which the staging drawing does not have: "
                    f"{sorted(ph for _c, ph in got.values())}")

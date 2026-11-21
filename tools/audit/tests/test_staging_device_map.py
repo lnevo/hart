@@ -1,4 +1,4 @@
-"""staging_device_map.py: staging's facts in the device map's form (hand-kept), their rules, and what reads them."""
+"""staging_device_map.py: staging's facts in the device map's form, their rules, and what reads them."""
 from __future__ import annotations
 
 import csv
@@ -51,67 +51,6 @@ class SwitchFacts(unittest.TestCase):
         with unittest.mock.patch.object(sdm.lc, "staging_switches", bad), \
                 self.assertRaisesRegex(sdm.StagingMapError, "switches.csv line 3"):
             sdm.closed_legs()
-
-
-class ShortTracks(unittest.TestCase):
-    """A short track between two switches with no block of its own takes the OS block whose gap it sits inside, from
-    short_tracks_staging.csv keyed by its two switches (owner, 2026-11-20)."""
-
-    @staticmethod
-    def band(*strands):
-        nodes = {"N35": dict(kind="switch", label="35"), "N37": dict(kind="switch", label="37"),
-                 "N39": dict(kind="switch", label="39"), "E": dict(kind="end", label="")}
-        return {"nodes": nodes, "strands": {sid: {"src": (a, "B"), "dst": (b, "A")} for sid, a, b in strands}}
-
-    NAMES = {"blocks": {}, "os": {"N35": "OS Switch 35a", "N37": "OS Switch 37", "N39": "OS Switch 39"}}
-
-    def read(self, text):
-        with tempfile.TemporaryDirectory() as tmp:
-            p = Path(tmp) / "short.csv"
-            p.write_text("switch_a,switch_b,block,notes\n" + text, encoding="utf-8")
-            return sdm.read_short_tracks(p)
-
-    def test_the_committed_file(self):
-        self.assertEqual(sdm.read_short_tracks(), {("35", "37"): ("OS Switch 35a", 2)})
-
-    def test_bad_rows_stop(self):
-        for text, msg in (("37,35,OS Switch 35a,\n35,37,OS Switch 37,\n", "given a block twice"),
-                          ("35,35,OS Switch 35a,\n", "two switch numbers"),
-                          ("35,37,Track 35-37,\n", "an OS block")):
-            with self.subTest(msg=msg), self.assertRaisesRegex(sdm.StagingMapError, msg):
-                self.read(text)
-
-    def test_the_track_takes_its_row_keyed_by_its_switches(self):
-        b = self.band(("s", "N37", "N35"))
-        got, bad = sdm.short_track_blocks(b, self.NAMES, ["s"], self.read("35,37,OS Switch 35a,\n"))
-        self.assertEqual((got, bad), ({"s": ["OS Switch 35a"]}, []))
-
-    def test_no_row_another_switchs_block_or_a_stale_row_stops(self):
-        b = self.band(("s", "N35", "N37"))
-        cases = (("", "has no block: give it"),
-                 ("35,37,OS Switch 39,\n", "the OS block of neither of its switches"),
-                 ("35,37,OS Switch 35a,\n37,39,OS Switch 37,\n", "line 3: Switch 37 to Switch 39: the staging "
-                                                                  "drawing has no such track"))
-        for text, msg in cases:
-            with self.subTest(msg=msg):
-                _got, bad = sdm.short_track_blocks(b, self.NAMES, ["s"], self.read(text))
-                self.assertTrue(any(msg in p for p in bad), bad)
-
-    def test_a_row_for_a_track_with_its_own_block_stops(self):
-        b = self.band(("s", "N35", "N37"))
-        names = dict(self.NAMES, blocks={"s": ["Track X"]})
-        _got, bad = sdm.short_track_blocks(b, names, ["s"], self.read("35,37,OS Switch 35a,\n"))
-        self.assertEqual(bad, ["short_tracks_staging.csv line 2: Switch 35 to Switch 37: the device map gives it a "
-                               "block of its own"])
-
-    def test_two_tracks_between_the_same_switches_are_ambiguous(self):
-        b = self.band(("s", "N35", "N37"), ("t", "N37", "N35"))
-        _got, bad = sdm.short_track_blocks(b, self.NAMES, ["s", "t"], self.read("35,37,OS Switch 35a,\n"))
-        self.assertTrue(bad and all("2 tracks join those switches" in p for p in bad[:2]), bad)
-
-    def test_a_track_to_an_end_with_no_block_stops(self):
-        _got, bad = sdm.short_track_blocks(self.band(("s", "N35", "E")), self.NAMES, ["s"], {})
-        self.assertEqual(bad, ["track s: no block in the device map, and it does not run between two switches"])
 
 
 class Pure(unittest.TestCase):
@@ -250,6 +189,24 @@ class Files(unittest.TestCase):
     def test_a_missing_block_of_a_split_track_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "track 5C-7B: blocks .* are not 1/n to n/n"):
             sdm.load(self.band, device_map=self._without("Track 5C-7B 1/2"))
+
+    def test_a_part_gives_its_pieces_to_the_block_it_names(self):
+        """A part row (part_of) carries its pieces' trial names; load() gives them to its block (owner, 2026-11-20)."""
+        sid = next(s for s, (piece, _rev) in sdm.piece_refs(self.band).items() if piece == "35B-37A")
+        self.assertEqual(self.names["blocks"][sid], ["OS Switch 35a"])
+        self.assertEqual(self.names["blocks"][next(s for s, (p, _r) in sdm.piece_refs(self.band).items()
+                                                   if p == "1B-3A")], ["OS Switch 3", "OS Switch 1"])
+
+    def test_a_piece_on_no_row_stops(self):
+        with self.assertRaisesRegex(sdm.StagingMapError, r"track 35B-37A \(e\d+\) is on no block row"):
+            sdm.load(self.band, device_map=self._without("Track 35B-37A"))
+
+    def test_a_piece_on_two_rows_stops(self):
+        def edit(rows):
+            hit = next(r for r in rows if r["user_name"] == "OS Switch 37" and r["layer"] == "block")
+            hit["trial_name"] += ", Track 35B-37A"
+        with self.assertRaisesRegex(sdm.StagingMapError, "Track 35-37's trial_name Track 35B-37A is another row's"):
+            sdm.load(self.band, device_map=self._copy(edit)[0])
 
     def test_a_missing_turnout_placeholder_stops(self):
         with self.assertRaisesRegex(sdm.StagingMapError, "no turnout row has trial_name Switch 1"):

@@ -13,6 +13,23 @@ sheet (`staging`, `main_upper`, the input names in `publish_draft.INPUTS`). The 
 (schematic-maps 0.1.49); every hart script reads and writes them through `hartlib.layer_files`, which keeps the JSON
 format in one place and stops on a missing section or an old `<sheet>.<kind>.json` left beside the file.
 
+**One block process (level unification step 5 part 1, owner 2026-11-20):** `tools/schematic/block_layer.py` makes
+the block layer of every level from the drawing: an OS block per switch (a single crossover's halves each their own
+when they have their own detectors, staging 7, 23 and 35), a block per track named by the plan's name, else by its end
+switches, halves from `block_splits.csv` (every level, a `level` column: 227-241, staging's K-1 and K-2), helix blocks
+through `helix_tracks.csv`, and parts. A part is a piece of track inside another block: a `devices.csv` row with
+`part_of` naming that block, role `part`, no JMRI block, layout block or occupancy row of its own (every reader skips
+it: `hartlib.devices.OUT_OF_MAPS`, and `tables_build` by name). That is the standard way to put a short piece in an OS
+block. The rule: a track between two switches under 50 cm (`LINK_CM`) is part of the lower-numbered switch's OS block;
+`data/schematic/block_exceptions.csv` (a `level` column) holds only the owner's wiring facts where the wiring says
+otherwise (13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, the piece of Scale in OS 7, a part per end for 1-3 and 35-39)
+and the crossover halves with detectors of their own. `build_device_map.py` writes staging's block and occupancy rows
+from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
+stop, station group and name-map columns, carried over from its row), so a staging block change made in PanelPro is
+carried by hand into those three data files, not into `devices.csv`. Main and upper still keep their links as blocks of
+their own (`FOLD_LINKS`): part 2 folds them, a panel change. Pinned by `tests/test_blocks_every_level.py` and
+`tests/test_block_layer.py`.
+
 ## Run
 
 ```bash
@@ -31,14 +48,14 @@ make desks            # only the CATS desks, then validate them
 | plan-lengths | `plan_lengths.py --check` | nothing: stops when `block_lengths.csv`'s `plan_in` no longer matches the AnyRail plan 5.3c (the track runs need the private plan file; without it only the OS rows, from `parts.json`, are checked). Run `plan_lengths.py` by hand to write them |
 | staging-masts | `build_staging_masts.py --check` | nothing: stops when `staging_masts.csv`, `staging_signals.csv` or the staging mast and head rows of `devices.csv` (and the three files it generates) no longer match the staging signal rule. Run `build_staging_masts.py` by hand to write them |
 | signals | `build_signals.py` | `signals.json` (a section per sheet) from the plan graph, the staging masts (`staging_signals.csv`, `staging_masts.csv`) and `main_upper_masts.csv` |
-| device-map | `build_device_map.py` | the levels 2 and 3 rows of `devices.csv` and the layer overrides the schematic reads |
+| device-map | `build_device_map.py` | the levels 2 and 3 rows of `devices.csv`, staging's block and occupancy rows (the one block process, below), and the layer overrides the schematic reads |
 | main-upper-masts | `build_main_upper_masts.py` | `main_upper_masts.csv` for the Layout Editor builds |
 | schematic | `publish_draft.py` | the schematic sheets and station pages |
 | le-cutover | `build_layout_le.py --as-live` | the cut-over candidate `output/trial/tables_cutover.xml`, every level from its device map and the panel's own items from `panel_items.json`, and the staging candidate it holds, `tables_cutover_staging.xml`. Both are built on the generator's base (`hartlib.tables_build.base`: `data/tables_template.xml` and the staging beans of `devices.csv`; ADR-029), never on `tables.xml`. A band's level comes from its plan-overrides section; a level the base holds beans for (`tables_build.GENERATED_LEVELS`, staging) binds them, every other level's beans the build adds, virtual. One mast check (`le_checks.check_masts`) and one bound-names check (`le_tables.check_bound`) cover every level. The viewing trials (`tables_layout.xml`, `tables_layout_staging.xml`) are retired (owner, 2026-11-17): `build_layout_le.py` without `--as-live` stops with an error |
 | approved-candidate | `check_approved.py le-candidate` | nothing: stops when the cut-over candidate drifts from the approved fingerprint |
 | tables | `build_tables.py` | `output/tables.xml`, the file PanelPro and CATS load (ADR-029: an output): the template, the staging beans of `devices.csv`, the Layout Editor build, the discovered Signal Mast Logic (`data/schematic/discovered_sml.xml`, written only by `run_sml_discover.sh`) and the Digicon boot rule, in a fixed envelope. `--check` (also in `tools/check.sh`) fails on any difference. A PanelPro Store is never copied over it: `make tables-pull` keeps it in `~/JMRI_UserFiles-pulled/` until R9d splits it into the sources. `--discovery-base` writes it with no Signal Mast Logic, for `run_sml_discover.sh` |
 | staging-sync | `sync_staging_signals.py --check` | nothing: stops when the staging heads and masts in `tables.xml` differ from `staging_masts.csv`. It runs after `tables`, which generates them from `devices.csv` |
-| device-master | `check_device_master.py --check` | nothing: checks every level of `devices.csv` against `tables.xml` and the schematic, after `tables` writes it, with one set of rules for every level (a rule that reads a file only one level has is that file's, not a level test). The staging rows that carry no `written_by` (turnouts, feedback, blocks, detectors) are kept by hand and read against the staging band here; `staging_masts.csv`, `staging_signals.csv` and the mast and head rows are generated (staging-masts above), and the main and upper rows are `build_device_map.py`'s, whose `--check` reads them against the drawing |
+| device-master | `check_device_master.py --check` | nothing: checks every level of `devices.csv` against `tables.xml` and the schematic, after `tables` writes it, with one set of rules for every level (a rule that reads a file only one level has is that file's, not a level test). The staging rows that carry no `written_by` (turnouts, feedback) are kept by hand and read against the staging band here, as are staging's block and occupancy rows, which `build_device_map.py` writes; `staging_masts.csv`, `staging_signals.csv` and the mast and head rows are generated (staging-masts above), and the main and upper rows are `build_device_map.py`'s, whose `--check` reads them against the drawing |
 | cats | `build_cats_panel.py` | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json`; it runs after `tables`, whose turnouts, sensors and masts the desks read. The bindings for every level come from one builder, `cats_panel.py` (facts in `cats_panel_facts.py`, header and plate in `cats_panel_dress.py`) |
 | approved-desks | `check_approved.py cats-ctc cats-abs` | nothing: stops the run when a desk no longer matches the fingerprint the owner approved |
 | approved-live | `check_approved.py le-panel` | nothing: stops when the live panel in `tables.xml` drifts from the approved fingerprint |

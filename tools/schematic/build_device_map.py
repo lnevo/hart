@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Placeholder control points and device names for the main and upper levels.
+"""Placeholder control points and device names for the main and upper levels, and every level's block rows.
 
     python3 tools/schematic/build_device_map.py           # write both outputs
     python3 tools/schematic/build_device_map.py --check   # exit 1 if either output is stale
@@ -29,12 +29,24 @@ Outputs:
   on the control point's level. The bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
 - devices.csv (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
-  they are the one mapping from each
-  main and upper JMRI device to its planned physical part. Per
+  so are staging's block and occupancy rows (staging_rows, below). The main and upper rows are the one mapping from
+  each main and upper JMRI device to its planned physical part. Per
   row: the user name under ADR-005; jmri_name, the virtual device tables.xml and the CATS desks use now; system_name,
   the planned physical device (LCOS, a DRAFT: the main and upper plant is not reviewed yet, owner 2026-11-17). Later
   a physical device is swapped in by this mapping alone, so no JMRI name ever comes from a draft address or from
   drawing order. Placeholder user names change when the owner names the levels.
+
+Blocks: one block process for every level (block_layer.py, level unification step 5 part 1, owner 2026-11-20): OS
+blocks, track blocks, halves (block_splits.csv, every level: 227-241 and staging's K-1 and K-2), helix blocks named
+through helix_tracks.csv, and parts (devices.csv part_of: a piece of track inside another block, by the rule or
+block_exceptions.csv). Staging's plant is the field, so its block and occupancy rows carry their field facts (system
+and layout-block names, node, wiring, comment, notes, detector, stop, the station group in cp and the name-map columns)
+over from the row of the same name; this script owns which blocks there are and what each holds (role, trial_name in
+staging's switch-and-leg keys, part_of, blocks, description). A staging block change made in PanelPro is carried by
+hand into this script's data (block_exceptions.csv, block_splits.csv, helix_tracks.csv), not into devices.csv; a field
+fact of a staging block (a new system name or detector) is still edited in its devices.csv row, which this script keeps.
+A new staging block needs a row with its field facts first (hand-kept, no written_by: this script adopts it). Main and
+upper keep their links as blocks of their own until part 2 (block_layer.FOLD_LINKS).
 
 Virtual names (owner, 2026-11-17), from each device's stable identity:
 - Turnout "Switch <n>" (and its LCC alias "DCC Switch <n>"): IT:HART:C3:<n>.
@@ -69,7 +81,8 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
   one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is not on a node until it is
   wired (NOT_WIRED), so no node or input assignment moves.
-  A track under SHORT_CM between two switches gets a block but no detector (it would sit inside their OS blocks).
+  A track under SHORT_CM between two switches gets a block but no detector (it would sit inside their OS blocks;
+  step 5 part 2 makes such links parts of an OS block, as staging's are).
 - Detection on the main line only (owner, 2026-11-15): main-route tracks and the OS blocks of control point
   switches get a planned detector; yard and industry tracks and the OS blocks of switches in no control point
   get none (their virtual sensor stays, NO_DETECTOR).
@@ -117,6 +130,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS and the pinned pl
 from mast_rule import (  # noqa: E402,F401  the track and mast rule, re-exported for the builders
     LOOP_HALF, TAU, MapError, band_levels, end_label, end_ref, facing_on_route, helix_blocks, helix_tags, masts,
     TRACK_KEY_COLUMNS, key_problem, read_helix_tracks, resolve_track, track_names, tracks)
+import block_layer  # noqa: E402  the one block process for every level
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits
 from hartlib import devices, layer_files, level_devices, level_masts, railroad  # noqa: E402  names, facts, the master
@@ -252,34 +266,25 @@ def split_tracks(path: Path | None = None, found: list | None = None) -> set[str
 
 
 def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None) -> list[dict]:
-    """The track entries of the main and upper bands with their generated names (tracks, track_names); the solved
-    schematic's bands when none are given."""
+    """The track entries of the bands `overrides` names (default: the main and upper bands) with their names
+    (block_layer.tracks and name_tracks: the plan's name, a helix track's helix block from helix_tracks.csv, else the
+    end-switch rule); the solved schematic's bands when none are given. `helix`: read_helix_tracks (default)."""
     if bands is None:
         bands, joined, runs, _corners = solve()
     if overrides is None:
         overrides = layer_files.read("plan_overrides", SHEET, OVERRIDES.parent)
-    found = tracks(bands, runs, joined, helix_tags(bands, overrides), band_levels(overrides))
-    track_names(found, helix_blocks(overrides, helix) if helix is not None else helix_blocks(overrides))
+    found = block_layer.tracks(bands, runs, joined, band_levels(overrides))
+    block_layer.name_tracks(found, bands, read_helix_tracks() if helix is None else helix)
     return found
 
 
 def split_edges(path: Path | None = None, found: list | None = None) -> dict:
-    """{plan edge: track name} of the split tracks (split_tracks): each name resolved to the one plan edge its track
-    is drawn on, in `found` (tracks with names; default: the solved schematic's), at build time. Stops on a name no
-    track has, or a track drawn on more than one plan edge (a split needs one track folded at one turnback)."""
+    """{plan edge: track name} of the main and upper split tracks (block_layer.split_edges over block_splits.csv):
+    each name resolved to the one plan edge its track is drawn on, in `found` (tracks with names; default: the solved
+    schematic's), at build time. Stops on a name no track has, or a track drawn on more than one plan edge (a split
+    needs one track folded at one turnback)."""
     found = named_tracks() if found is None else found
-    names = split_tracks(path, found)
-    by_name = {t["name"]: t for t in found}
-    out, bad = {}, []
-    for name in sorted(names):
-        t = by_name.get(name)
-        if t is None or len(t["trial"]) != 1:
-            bad.append(f"{name}: {'no such track' if t is None else 'drawn on ' + ', '.join(t['trial'])}")
-            continue
-        out[t["trial"][0].removeprefix("Track ")] = name
-    if bad:
-        raise MapError(f"{SPLIT.name}: " + "; ".join(bad))
-    return out
+    return block_layer.split_edges(found, LEVELS, path or SPLIT).get("main_upper", {})
 
 
 def read_pins(path: Path | None = None, found: list | None = None, split: set | None = None) -> dict:
@@ -346,78 +351,25 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
 
 
 def loop_halves(band, runs, split: dict | None = None) -> dict:
-    """{strand id: 1 or 2} for each balloon loop of `band` (a run that leaves a switch and comes back to it), by the
-    leg its strand leaves the switch from (LOOP_HALF), and for each track `split` names (split_edges: a run between
-    two switches folded at one turnback, owner 2026-11-19): half 1 the strand at its lower-numbered switch. Stops on a
-    loop not drawn as two tracks joined by one turnback, or one not on legs B and C, since the halves would then be
-    ambiguous."""
-    split = split_edges() if split is None else split
-    out, parted = {}, set()
-    for start, chain, end in runs(band):
-        edges = {re.sub(r"\.\d+$", "", band["strands"][sid]["edge"]) for sid, _ in chain}
-        if start[0] != end[0] and len(edges) == 1 and next(iter(edges)) in split:
-            parted |= edges
-            if len(chain) != 2:
-                raise MapError(f"{split[next(iter(edges))]} is drawn as {len(chain)} track(s); a split track needs "
-                               "two joined by one turnback")
-            labels = [natural(base(band["nodes"][x[0]].get("label") or "")) for x in (start, end)]
-            first = 0 if labels[0] <= labels[1] else 1
-            out[chain[0][0]], out[chain[-1][0]] = (1, 2) if first == 0 else (2, 1)
-            continue
-        if start[0] != end[0] or band["nodes"][start[0]]["kind"] not in ("switch", "dx"):
-            continue
-        if len(chain) != 2 or {start[1], end[1]} != set(LOOP_HALF):
-            raise MapError(f"the balloon loop at switch {band['nodes'][start[0]].get('label')} is drawn as "
-                           f"{len(chain)} track(s) on legs {start[1]} and {end[1]}; its halves need two tracks "
-                           "joined by one turnback, on legs B and C")
-        for (sid, _), (_, port) in zip((chain[0], chain[-1]), (start, end)):
-            out[sid] = LOOP_HALF[port]
-    drawn = {re.sub(r"\.\d+$", "", st["edge"]) for st in band["strands"].values()}
-    stale = sorted(e for e in set(split) & drawn - parted)
-    if stale:           # the edge is on this band but not a track between two switches: its id moved
-        raise MapError(f"{SPLIT.name}: {', '.join(f'{e} ({split[e]})' for e in stale)} is not a track folded at "
-                       "its turnback on this band; give the plan edge the track is drawn on")
-    return out
+    """{strand id: 1 or 2} of each balloon loop and split track of a main or upper `band` (block_layer.loop_halves);
+    `split`: split_edges (default: block_splits.csv's)."""
+    return block_layer.loop_halves(band, runs, split_edges() if split is None else split, SPLIT.name)
 
 
 def track_layer(bands, runs, found, split_map: dict) -> tuple[dict, dict]:
     """The main and upper block layer as mast_plan.plan reads it: ({band index: {"os": {switch node: OS block},
-    "blocks": {strand: [block]}}}, {block: cm}). One block per track, a balloon loop or split track in two halves
-    (loop_halves, half 1 at the lower-numbered switch; each half's length is half the track's), a crossover's inside
-    its switch's OS block; an OS block counts 0 cm (the boundary is at the switch's leg). MapError on a strand of a
-    track no entry of `found` holds."""
-    edge_key = lambda e: re.sub(r"(?<=\d)[xy]$", "", e)  # noqa: E731  a track cut by a connector is one track
-    by_edge, cm = {}, {}
-    for t in found:
-        for sid in t["strands"]:
-            by_edge[edge_key(bands[t["band"]][1]["strands"][sid]["edge"])] = t
-    layer = {}
-    for bi, (title, band, _o) in enumerate(bands):
-        if not band_level(title):
-            continue
-        nodes = band["nodes"]
-        halves = loop_halves(band, runs, split_map)
-        names = {"os": {}, "blocks": {}}
-        for n, d in nodes.items():
-            if d["kind"] in ("switch", "dx"):
-                names["os"][n] = f"OS Switch {base(d['label'])}"
-                cm[names["os"][n]] = 0.0
-        for sid, st in band["strands"].items():
-            t = by_edge.get(edge_key(st["edge"]))
-            if t is None:           # inside a crossover (its halves lettered A and B): the switch's OS block
-                ends = [x for x in (st["src"][0], st["dst"][0]) if nodes[x]["kind"] in ("switch", "dx")]
-                links = [x for x in (st["src"][0], st["dst"][0]) if nodes[x].get("sub") == "link"]
-                # both halves on this band, or one here and the other beyond a connector (127, 131)
-                if not ends or len(ends) + len(links) != 2 or len({base(nodes[x]["label"]) for x in ends}) != 1:
-                    raise MapError(f"strand {sid} ({st['edge']}) on {title!r} is on no track and inside no crossover")
-                names["blocks"][sid] = [names["os"][ends[0]]]
-                continue
-            h = halves.get(sid)
-            block = loop_placeholder(t["name"], h)
-            names["blocks"][sid] = [block]
-            cm[block] = round(t["cm"] / 2, 1) if h else t["cm"]
-        layer[bi] = names
-    return layer, cm
+    "blocks": {strand: [block]}}}, {block: cm}), block_layer.layer's for the main and upper levels with
+    `split_map` (split_edges) and block_exceptions.csv. One block per track, a balloon loop or split track in two
+    halves (half 1 at the lower-numbered switch; each half's length is half the track's), a crossover's inside its
+    switch's OS block; an OS block counts 0 cm (the boundary is at the switch's leg)."""
+    lay = main_upper_layer(bands, runs, found, split_map)
+    return lay.bands, lay.cm
+
+
+def main_upper_layer(bands, runs, found, split_map: dict) -> block_layer.Layer:
+    """block_layer.layer of the main and upper levels."""
+    return block_layer.layer(bands, runs, found, LEVELS, {"main_upper": split_map},
+                             block_layer.read_exceptions(found, bands, LEVELS))
 
 
 def check_helix_ends(bands, joined, found, helix) -> None:
@@ -597,8 +549,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
     if missing:
         raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
-    found = tracks(bands, runs, joined, helix_tags(bands, overrides), band_levels(overrides))
-    track_names(found, helix_blocks(overrides, helix) if helix else None)
+    found = named_tracks(bands, joined, runs, overrides, helix)
     check_helix_ends(bands, joined, found, helix)
     planned, corner_blocks, split_names = plan_masts(bands, joined, runs, found, cp_of, corners)
     dxs = set(corner_blocks)
@@ -785,6 +736,149 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     return cp_keys, rows
 
 
+# ---------------------------------------------------------------- staging's block layer (step 5 part 1)
+
+STAGING_SHEET = "staging"           # staging's section of plan_overrides.json
+FIELD_LEVEL = "1"                   # staging: its plant is the field, so its block rows carry their field facts
+FIELD_LAYERS = ("block", "occupancy")
+
+
+def part_row(level: str, name: str, part: dict, trial: str) -> dict:
+    """The master row of a part (block_layer.Layer.parts): a piece of track inside another block, part_of naming it;
+    no JMRI block, layout block or occupancy row of its own (hartlib.devices: role part, assignment none)."""
+    t = part["track"]
+    row = {c: "" for c in devices.COLUMNS}
+    row.update(level=level, layer="block", role="part", user_name=name, assignment="none", trial_name=trial,
+               notes=f"a piece of the {t['cm']} cm track from Switch "
+                     f"{' to Switch '.join(sorted({v for k, v in t['ends'] if k == 'sw'}, key=natural))}, part of "
+                     f"{part['part_of']} ({part['why']})",
+               part_of=part["part_of"], written_by="build_device_map.py")
+    row["description"] = devices.describe(row)
+    return row
+
+
+def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[block_layer.Layer, int, list[dict]]:
+    """(block_layer.layer of the staging band, its band index, its tracks): the one block process over staging's
+    drawing, block_splits.csv and block_exceptions.csv (`exceptions`, default the committed file)."""
+    overrides = layer_files.read("plan_overrides", STAGING_SHEET, OVERRIDES.parent)
+    levels = band_levels(overrides)
+    found = named_tracks(bands, joined, runs, overrides)
+    lay = block_layer.layer(bands, runs, found, levels, block_layer.split_edges(found, levels, SPLIT),
+                            block_layer.read_exceptions(found, bands, levels, exceptions))
+    if len(lay.bands) != 1:
+        raise MapError(f"staging is drawn on {len(lay.bands)} bands; its trial names need one")
+    return lay, next(iter(lay.bands)), found
+
+
+def staging_trials(band, lay: block_layer.Layer, bi: int) -> dict[str, str]:
+    """{row name: trial_name} of staging's block rows in its drawing's keys (staging_device_map.placeholders: switch
+    numbers and legs, which survive a new export): a row's OS placeholders, then its track pieces in strand order,
+    each "Track <piece>" or, for the k-th of a piece's n rows from the piece's first end, "Track <piece> k/n"."""
+    import staging_device_map as sdm        # its placeholder grammar (it imports this module)
+    _turnouts, os_ph, refs = sdm.placeholders(band)
+    got = defaultdict(list)
+    for n, ph in os_ph.items():
+        got[lay.bands[bi]["os"][n]].append(((0, ()), ph))
+    for sid, names in lay.rows[bi].items():
+        if sid not in refs:
+            raise MapError(f"staging strand {sid} has blocks {names} but no piece key (staging_device_map.piece_refs)")
+        piece, against = refs[sid]
+        run = names[::-1] if against else names
+        for k, row in enumerate(run, 1):
+            got[row].append(((1, tuple(natural(sid))), sdm.track_placeholder(piece, k, len(run))))
+    return {row: ", ".join(ph for _k, ph in sorted(phs, key=lambda x: x[0])) for row, phs in got.items()}
+
+
+SPARE_RE = re.compile(r"^Node: (\d+) Block: (\d+)$")
+
+
+def freed_spare(occ: dict, block: str, part_of: str) -> dict:
+    """The spare row of the field detector `occ` (an occupancy row) whose block became part of `part_of`: named by its
+    node input ("unused Block 1-7"), as the other spares are, with its sensor, node and wiring kept and no name-map
+    columns. MapError when its wiring names no node input."""
+    m = SPARE_RE.match(occ["wiring"])
+    if not m or occ["assignment"] != "field":
+        raise MapError(f"{occ['user_name']}: {block} is now part of {part_of}, but its detector's wiring "
+                       f"{occ['wiring']!r} names no node input to keep it as a spare by; reassign the detector")
+    row = dict(occ, user_name=f"unused Block {m.group(1)}-{m.group(2)}", role="spare", assignment="spare", cp="",
+               blocks="", detector="", jmri_comment="", trial_name="",
+               notes=f"freed when {block} became part of {part_of} (block_exceptions.csv)",
+               written_by="build_device_map.py", **{c: "" for c in devices.COLUMNS if c.startswith("pnm_")})
+    row["description"] = devices.describe(row)
+    return row
+
+
+def staging_rows(bands, joined, runs, files: devices.Files | None = None,
+                 exceptions: Path | None = None) -> tuple[list[dict], set, set]:
+    """(staging's block and occupancy rows of the master, the keys they take over, the keys they drop): the one block
+    process's blocks
+    and parts of the staging band (staging_layer), each block row and its occupancy row carrying its field facts
+    (system and layout-block names, node, wiring, comment, notes, detector, stop, control point and name-map columns)
+    over from the row of its name in devices.csv; this script owns the rest (role, trial_name, part_of, blocks,
+    written_by, description). The spare detectors' rows are carried as they are. A helix block's occupancy row is the
+    level of its helix switch's (main or upper), not staging's: the block is one across levels. A block that becomes a
+    part (block_exceptions.csv gives it to an OS block) loses its JMRI block: its part row has no name-map columns, its
+    detector becomes a spare row named by its node input (freed_spare), and both old keys are dropped from the name
+    map on purpose (the keys returned, for hartlib.devices' drops). MapError on a block with no row to carry its field
+    facts from, or a staging block or occupancy row the drawing has no block for."""
+    lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
+    trials = staging_trials(bands[bi][1], lay, bi)
+    helix = {h["block"] for h in read_helix_tracks().values()}
+    prior = {(r["layer"], r["user_name"]): r for r in devices.load(files or device_files())
+             if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
+    blocks = set(lay.bands[bi]["os"].values()) | set(lay.tracks)
+    out, bad, drops, freed = [], [], set(), []
+
+    def carried(layer: str, name: str, **owned) -> dict | None:
+        old = prior.pop((layer, name), None)
+        if old is None or old["role"] == "part":
+            bad.append(f"staging {layer} {name}: no row in {OUT.name} to carry its field facts from (add it with its "
+                       "system name, node and wiring; this script then keeps it)")
+            return None
+        row = dict(old, written_by="build_device_map.py", part_of="", **owned)
+        row["role"] = devices.role_of(layer, row["user_name"], row["system_name"], row["jmri_name"])
+        row["description"] = devices.describe(row)
+        return row
+
+    for name in sorted(blocks | set(lay.parts), key=natural):
+        if name in lay.parts:
+            part = lay.parts[name]
+            old = prior.pop(("block", name), None)      # a part's row is this script's alone
+            if old is not None and old["role"] != "part":           # a block that became a part
+                drops.add((FIELD_LEVEL, "block", name))
+                occ = prior.pop(("occupancy", occupancy_user(name)), None)
+                if occ is not None:
+                    drops.add((FIELD_LEVEL, "occupancy", occ["user_name"]))
+                    try:
+                        freed.append(freed_spare(occ, name, part["part_of"]))
+                    except MapError as exc:
+                        bad.append(str(exc))
+            out.append(part_row(FIELD_LEVEL, name, part, trials[name]))
+        else:
+            out.append(carried("block", name, trial_name=trials.get(name, "")))
+    occupancy = [carried("occupancy", occupancy_user(b), blocks=b) for b in sorted(blocks - helix, key=natural)]
+    spares = [dict(r, written_by="build_device_map.py") for k, r in sorted(prior.items()) if r["role"] == "spare"]
+    for r in spares:
+        prior.pop((r["layer"], r["user_name"]))
+    taken = {r["user_name"] for r in spares}
+    for r in freed:
+        if r["user_name"] in taken:
+            bad.append(f"{r['user_name']}: a spare of that name is in {OUT.name} already")
+    spares += freed
+    if prior:
+        bad.append(f"staging rows of {OUT.name} the drawing has no block for: "
+                   + ", ".join(f"{layer} {name}" for layer, name in sorted(prior)))
+    if bad:
+        raise MapError("; ".join(bad))
+    out += sorted(occupancy + spares, key=lambda r: natural(r["user_name"]))
+    return out, {(FIELD_LEVEL, r["layer"], r["user_name"]) for r in out}, drops
+
+
+def staging_map_error() -> type:
+    import staging_device_map as sdm        # it imports this module
+    return sdm.StagingMapError
+
+
 def check_virtual(rows) -> None:
     """The rows' virtual names follow hartlib.level_devices (hartlib.railroad.check_virtual_names, which
     `python3 -m hartlib.railroad check` also holds the written file to); MapError naming each problem."""
@@ -867,9 +961,12 @@ def main(argv=None) -> int:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     try:
+        staging, adopts, drops = staging_rows(bands, joined, runs)
         want = {OVERRIDES: overrides_text(overrides, cp_keys),
-                **devices.outputs_after("build_device_map.py", rows, device_files())}
-    except (devices.DevicesError, layer_files.LayerFileError) as exc:
+                **devices.outputs_after("build_device_map.py", rows, device_files(), master_rows=staging,
+                                        adopts=adopts, drops=drops)}
+    except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
+        # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]
