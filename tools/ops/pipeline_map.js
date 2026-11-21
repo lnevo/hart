@@ -247,7 +247,7 @@ function app() {
   const wrapEl = document.getElementById("wrap"), info = document.getElementById("info");
   const allLanes = DATA.domains.map(d => d.id);
 
-  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, dir: "both", depth: Infinity };
+  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity };
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
   let nodeEl = {}, edgeEls = [], ins = {}, outs = {}, visible = new Set();
 
@@ -256,14 +256,22 @@ function app() {
      they are shown, not walked through, because everything deploys and the Pi's saved state comes back, so walking
      through them would reach most of the map. */
   const endsChain = id => byId[id].domain === "hosts" || byId[id].kind === "host" || byId[id].kind === "human";
-  function reach(start, adj, key, depth) {
+  // whether the lane and status filters draw a box; the picked file always shows
+  const isShown = id => id === view.focus ||
+    (view.lanes.has(byId[id].domain) && (byId[id].status === "live" || !byId[id].status || view[byId[id].status]));
+  /* Boxes within depth links of start; with onlyShown the walk does not pass through a box the filters hide, so
+     nothing past a hidden box is drawn cut off from the file. */
+  function reach(start, adj, key, depth, onlyShown = false) {
     const seen = new Set([start]);
     let frontier = [start];
     for (let d = 0; d < depth && frontier.length; d++) {
       const next = [];
       frontier.forEach(v => {
         if (v !== start && endsChain(v)) return;
-        (adj[v] || []).forEach(e => { const w = e[key]; if (!seen.has(w)) { seen.add(w); next.push(w); } });
+        (adj[v] || []).forEach(e => {
+          const w = e[key];
+          if (!seen.has(w) && (!onlyShown || isShown(w))) { seen.add(w); next.push(w); }
+        });
       });
       frontier = next;
     }
@@ -273,14 +281,12 @@ function app() {
     let keep = new Set(DATA.nodes.map(n => n.id));
     if (view.focus) {
       keep = new Set([view.focus]);
-      if (view.dir !== "down") reach(view.focus, insAll, "from", view.depth).forEach(v => keep.add(v));
-      if (view.dir !== "up") reach(view.focus, outsAll, "to", view.depth).forEach(v => keep.add(v));
+      reach(view.focus, insAll, "from", view.up, true).forEach(v => keep.add(v));
+      reach(view.focus, outsAll, "to", view.down, true).forEach(v => keep.add(v));
     }
-    // a file view shows every box related to the file, whatever its lane or status
-    const shown = n => view.focus || (view.lanes.has(n.domain) && (n.status === "live" || !n.status || view[n.status]));
-    const nodes = DATA.nodes.filter(n => keep.has(n.id) && shown(n));
+    const nodes = DATA.nodes.filter(n => keep.has(n.id) && isShown(n.id));
     const ids = new Set(nodes.map(n => n.id));
-    const own = view.focus && view.depth === 1;  // only the file's own links, not those between its neighbours
+    const own = view.focus && view.up <= 1 && view.down <= 1;  // only the file's own links, not its neighbours' links
     return { nodes, edges: DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus)) };
   }
 
@@ -302,7 +308,7 @@ function app() {
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
     const big = lay.width > 4000;
     for (const b of lay.bands) {
-      const c = esc(b.color), size = Math.round(Math.max(18, Math.min(big ? 110 : 22, b.h * 0.3)));
+      const c = esc(b.color), size = Math.round(Math.max(18, Math.min(big ? 110 : 22, b.h * 0.15)));
       p.push(`<rect x="${-LEFT}" y="${b.y}" width="${W}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
         `<line x1="${-LEFT}" x2="${W - LEFT}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
       for (let x = -LEFT + 10; x < W - LEFT; x += 3000)
@@ -365,15 +371,13 @@ function app() {
     const el = document.getElementById("view");
     const parts = [];
     if (view.focus) {
-      const how = { both: "what feeds it and what it feeds", up: "what feeds it", down: "what it feeds" }[view.dir];
-      const depth = view.depth === 1 ? "its own links only" : view.depth === Infinity ? "the whole chain" : `${view.depth} steps`;
-      parts.push(`<b>${esc(byId[view.focus].label)}</b>: ${how}, ${depth}`);
-    } else {
-      const lanesOff = allLanes.filter(d => !view.lanes.has(d));
-      if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
-      const off = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
-      if (off.length) parts.push(`${off.join(" and ")} hidden`);
+      parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
     }
+    const lanesOff = allLanes.filter(d => !view.lanes.has(d));
+    if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
+    const off = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
+    if (off.length) parts.push(`${off.join(" and ")} hidden`);
+    showDepth();
     const all = view.focus || view.lanes.size !== allLanes.length;
     el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${sub.nodes.length} of ${DATA.nodes.length} boxes`
       : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`) +
@@ -461,28 +465,27 @@ function app() {
     info.innerHTML = `<button class="close" title="Close (Esc)">×</button><h2>${esc(n.label)}</h2>
       <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
       <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
-      <div class="chain"><b>Show only this box's chain</b><br>
-        <select id="fdir"><option value="both">what feeds it and what it feeds</option><option value="up">what feeds it</option><option value="down">what it feeds</option></select>
-        <select id="fdepth"><option value="Infinity" selected>the whole chain</option><option value="1">its own links only</option><option value="2">2 steps</option><option value="3">3 steps</option></select>
-        <button id="fgo">${isFocus ? "Update" : "Show"}</button></div>
+      ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
       <b>Fed by</b><ul>${(insAll[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
       <b>Feeds</b><ul>${(outsAll[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
       <div style="color:#666">${fullUp} upstream, ${fullDown} downstream in the whole map.</div>`;
     info.style.display = "block";
-    if (isFocus) { info.querySelector("#fdir").value = view.dir; info.querySelector("#fdepth").value = String(view.depth); }
     info.querySelector(".close").onclick = () => clearFocus(true);
-    info.querySelector("#fgo").onclick = () => focusOn(id, info.querySelector("#fdir").value, Number(info.querySelector("#fdepth").value));
+    if (!isFocus) info.querySelector("#fgo").onclick = () => focusOn(id);
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
   function goTo(id) {
     if (visible.has(id)) { select(id); centreOn(id, false); return; }
     view.lanes = new Set(allLanes);
-    syncControls();
-    focusOn(id, view.focus ? view.dir : "both", view.focus ? view.depth : Infinity);
+    if (byId[id].status in view) view[byId[id].status] = true;
+    focusOn(id, !view.focus);
   }
-  function focusOn(id, dir, depth) {
+  /* Draw one file's chain. fresh (the default) starts both sides at the whole chain; fresh = false keeps the current
+     step counts, as moving from one file view to another does. */
+  function focusOn(id, fresh = true) {
     fileIn.value = byId[id].path || byId[id].label;
-    view.focus = id; view.dir = dir; view.depth = depth; selected = id;
+    if (fresh) { view.up = Infinity; view.down = Infinity; }
+    view.focus = id; selected = id;
     render(false); writeHash();
   }
   wrapEl.addEventListener("click", e => {
@@ -490,7 +493,7 @@ function app() {
     const g = e.target.closest(".node");
     if (g) select(g.dataset.id); else clearFocus(true);
   });
-  wrapEl.addEventListener("dblclick", e => { const g = e.target.closest(".node"); if (g) focusOn(g.dataset.id, view.focus ? view.dir : "both", view.focus ? view.depth : Infinity); });
+  wrapEl.addEventListener("dblclick", e => { const g = e.target.closest(".node"); if (g) focusOn(g.dataset.id, !view.focus); });
 
   /* ---- search */
   const q = document.getElementById("q"), hits = document.getElementById("hits");
@@ -517,6 +520,32 @@ function app() {
     if (e.key === "f" || e.key === "F") fit();
   });
 
+  /* ---- steps either side of a file: how far the chain runs left (what feeds it) and right (what it feeds) */
+  const depthBox = document.getElementById("depth");
+  const stepText = n => (n === Infinity ? "all" : String(n));
+  function showDepth() {
+    depthBox.hidden = !view.focus;
+    document.getElementById("upn").textContent = stepText(view.up);
+    document.getElementById("downn").textContent = stepText(view.down);
+  }
+  function maxSteps(adj, key) {  // the longest chain on that side, so "+" from a number can reach "all"
+    let n = 0;
+    for (let d = 1; d < 400; d++) { if (reach(view.focus, adj, key, d, true).size === reach(view.focus, adj, key, d - 1, true).size) break; n = d; }
+    return n;
+  }
+  function step(side, change) {
+    const adj = side === "up" ? [insAll, "from"] : [outsAll, "to"], most = maxSteps(...adj);
+    let n = view[side] === Infinity ? most : view[side];
+    n = change === "all" ? Infinity : Math.max(0, n + change);
+    if (most > 0 && n >= most) n = Infinity;  // a side with no links stays at the number chosen
+    view[side] = n;
+    render(true); writeHash();
+  }
+  depthBox.addEventListener("click", e => {
+    const b = e.target.closest("button[data-side]");
+    if (b) step(b.dataset.side, b.dataset.step === "all" ? "all" : Number(b.dataset.step));
+  });
+
   /* ---- file filter: pick a file to see its whole chain, sources to end products */
   const fileIn = document.getElementById("file");
   document.getElementById("files").innerHTML = DATA.nodes.slice().sort((a, b) => a.label.localeCompare(b.label))
@@ -530,7 +559,7 @@ function app() {
       return;
     }
     const id = byName[text.toLowerCase()];
-    if (id) focusOn(id, "both", Infinity);
+    if (id) focusOn(id);
     else hits.textContent = `no file named "${text}"`;
   }
   fileIn.addEventListener("change", pickFile);
@@ -545,11 +574,6 @@ function app() {
     lanesBox.querySelectorAll("input[data-lane]").forEach(c => (c.checked = view.lanes.has(c.dataset.lane)));
     document.getElementById("parked").checked = view.parked;
     document.getElementById("retired").checked = view.retired;
-    for (const box of ["parked", "retired"]) {  // a file view shows every related box, so the ticks do not apply
-      const el = document.getElementById(box);
-      el.disabled = Boolean(view.focus);
-      el.parentElement.title = view.focus ? "A file view shows every related box" : el.parentElement.dataset.title;
-    }
   }
   lanesBox.addEventListener("change", e => {
     const lane = e.target.dataset.lane;
@@ -566,10 +590,11 @@ function app() {
   document.getElementById("retired").onchange = e => { view.retired = e.target.checked; render(true); writeHash(); };
   document.getElementById("labels").onchange = e => document.getElementById("elabels").classList.toggle("hidden", !e.target.checked);
 
-  /* ---- address bar: #focus=<id>&dir=both&depth=1&lanes=a,b&show=parked,retired&node=<id> */
+  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&node=<id> */
   function writeHash() {
     const h = new URLSearchParams();
-    if (view.focus) { h.set("focus", view.focus); h.set("dir", view.dir); if (view.depth !== Infinity) h.set("depth", view.depth); }
+    const steps = n => (n === Infinity ? "all" : String(n));
+    if (view.focus) { h.set("focus", view.focus); h.set("up", steps(view.up)); h.set("down", steps(view.down)); }
     if (view.lanes.size !== allLanes.length) h.set("lanes", view.lanes.size ? [...view.lanes].join(",") : "none");
     const show = [view.parked && "parked", view.retired && "retired"].filter(Boolean);
     if (show.length) h.set("show", show.join(","));
@@ -581,13 +606,17 @@ function app() {
     const h = new URLSearchParams(location.hash.slice(1));
     const focus = h.get("focus");
     view.focus = focus && byId[focus] ? focus : null;
-    view.dir = ["both", "up", "down"].includes(h.get("dir")) ? h.get("dir") : "both";
-    const depth = Number(h.get("depth"));
-    view.depth = depth > 0 ? depth : Infinity;
+    const steps = v => (v !== null && /^\d+$/.test(v) ? Number(v) : Infinity);
+    view.up = steps(h.get("up")); view.down = steps(h.get("down"));
+    if (h.get("up") === null && h.get("down") === null) {  // older links: dir=both|up|down and depth=N
+      const depth = steps(h.get("depth")), dir = h.get("dir");
+      view.up = dir === "down" ? 0 : depth; view.down = dir === "up" ? 0 : depth;
+    }
     const lanes = (h.get("lanes") || "").split(",").filter(l => allLanes.includes(l));
     view.lanes = new Set(lanes.length || h.get("lanes") === "none" ? lanes : allLanes);
     const show = (h.get("show") || "").split(","), hide = h.get("hide");
     if (hide !== null) { view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired"); }  // older links
+    else if (h.get("show") === null && (h.get("dir") !== null || h.get("depth") !== null)) view.parked = view.retired = true;  // older file links showed every status
     else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     const node = h.get("node");
     selected = node && byId[node] ? node : null;

@@ -23,6 +23,7 @@ import functools
 import html
 import importlib.util
 import json
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -152,6 +153,10 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #bar h1{font-size:14px;margin:0 6px 0 0}
 #back{color:#1d4ed8;text-decoration:none;margin-right:4px}
 #view{flex-basis:100%;color:#333}
+#depth{flex-basis:100%;display:flex;gap:18px;flex-wrap:wrap}
+#depth[hidden]{display:none}
+#depth .side{white-space:nowrap}
+#depth b{display:inline-block;min-width:22px;text-align:center}
 #view:empty{display:none}
 #lanes{position:relative}
 #lanes summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none}
@@ -167,7 +172,6 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info a{cursor:pointer;color:#1d4ed8}
 #info .off{color:#888;font-size:11px}
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
-#info .chain{background:#f1f5f9;border-radius:6px;padding:8px;margin:8px 0 12px;line-height:2}
 .band{font-weight:800;opacity:.45}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
@@ -190,6 +194,8 @@ svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 .hidden{display:none}
+@media (max-width:900px){#bar{right:10px;max-width:none} #bar input[type=search],#bar #file{width:120px}
+ #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}}
 </style></head><body>
 <div id="wrap"></div>
 <div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
@@ -199,9 +205,14 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 <span id="hits"></span>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
 <details id="lanes"><summary>Lanes ▾</summary><div id="lanelist" class="panel"></div></details>
-<label title="Parked features (NX, Dispatcher System, USS CTC)" data-title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
-<label title="Retired tools kept for reference" data-title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
+<label title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
+<label title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
+<span id="depth" hidden title="How many links to show either side of the file">
+ <span class="side">← feeds it <button data-side="up" data-step="-1">−</button> <b id="upn">all</b>
+ <button data-side="up" data-step="1">+</button> <button data-side="up" data-step="all">all</button></span>
+ <span class="side">it feeds → <button data-side="down" data-step="-1">−</button> <b id="downn">all</b>
+ <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
 <span id="view"></span>
 </div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
@@ -211,8 +222,9 @@ to an earlier step.</div>
 (blue).</div>
 <div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
-out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The panel beside it can narrow that to the file's own links or a few steps. <b>Lanes ▾</b> picks the lanes of
-the whole map. Parked and retired boxes are hidden there until ticked; a file view always shows them. The address bar
+out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The step counters under the toolbar set how many links show on each side: left is what feeds it, right
+is what it feeds (0 hides that side, all runs to the end). <b>Lanes ▾</b> picks the lanes to draw, on the whole map and in a file view.
+Parked and retired boxes are hidden until ticked. The address bar
 keeps the view, so it can be bookmarked or shared.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
@@ -236,19 +248,20 @@ def public_copy(data: dict) -> dict:
             return {k: fix(v) for k, v in value.items()}
         return value
 
-    out = fix(data)
-    leaks = sorted({m.group() for m in site_leak_patterns().finditer(json.dumps(out))})
-    if leaks:
-        raise GraphError(f"the public copy still holds text the website's leak check rejects: {', '.join(leaks)}")
-    return out
+    return fix(data)
 
 
-def site_leak_patterns():
-    """The website build's own leak check (www/scripts/prepare_github_pages.py LEAK_PATTERNS), so the two agree."""
+def check_public_page(page: str) -> None:
+    """Fail on text in the finished public page that the website build would reject: its leak patterns and the
+    private name (www/scripts/prepare_github_pages.py), over the graph, the template and the inlined script."""
     spec = importlib.util.spec_from_file_location("prepare_github_pages", ROOT / "www/scripts/prepare_github_pages.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module.LEAK_PATTERNS
+    site = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(site)
+    leaks = sorted({m.group() for m in site.LEAK_PATTERNS.finditer(page)})
+    if leaks:
+        raise GraphError(f"the public page holds text the website's leak check rejects: {', '.join(leaks)}")
+    if site.contains_private_name(page):
+        raise GraphError("the public page holds the private name")
 
 
 def render(data: dict, back: str = "") -> str:
@@ -290,18 +303,26 @@ def main(argv: list[str] | None = None) -> int:
         ap.error("--public writes the website copy; give it --out")
     try:
         data = load(args.graph)
-        page = render(public_copy(data) if args.public else data, args.back)
     except GraphError as err:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
+    page = render(public_copy(data) if args.public else data, args.back)
+    if args.public:
+        try:
+            check_public_page(page)
+        except GraphError as err:
+            print(f"{args.out}: the public page fails the website's checks (graph, template or {SCRIPT.name}):\n{err}",
+                  file=sys.stderr)
+            return 1
     if args.check:
         if not args.out.exists() or args.out.read_text() != page:
-            print(f"{args.out} is out of date: run python3 tools/ops/build_pipeline_map.py", file=sys.stderr)
+            again = shlex.join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
+            print(f"{args.out} is out of date: run python3 tools/ops/build_pipeline_map.py {again}".rstrip(), file=sys.stderr)
             return 1
         return 0
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(page)
-    shown = args.out.relative_to(ROOT) if args.out.resolve().is_relative_to(ROOT) else args.out
+    shown = args.out.resolve().relative_to(ROOT) if args.out.resolve().is_relative_to(ROOT) else args.out
     print(f"wrote {shown}: {len(data['nodes'])} nodes, {len(data['edges'])} edges")
     return 0
 

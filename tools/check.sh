@@ -90,6 +90,7 @@ unit() {
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run repo-guide python3 www/scripts/repo_guide_page.py --check
+run pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html --back repository-guide.html --check
 run jmri-additions python3 www/scripts/jmri_additions_page.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check
 run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
