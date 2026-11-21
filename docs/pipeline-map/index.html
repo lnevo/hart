@@ -665,11 +665,12 @@ function app() {
     visible = new Set(sub.nodes.map(n => n.id));
     syncControls();
     showStatus(sub);  // before fit, which measures the toolbar with the status line in it
-    if (old) setVB(old.x, old.y, old.w, old.h); else fit();
+    if (old) setVB(old.x, old.y, old.w, old.h);
     runSearch(true);
     if (selected && !visible.has(selected) && visible.has(groups.groupOf[selected])) selected = groups.groupOf[selected];  // folded away: its folder
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
+    if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
     updateNav();
   }
 
@@ -779,10 +780,23 @@ function app() {
 
   /* ---- pan and zoom */
   function setVB(x, y, w, h) { vb.x = x; vb.y = y; vb.width = w; vb.height = h; updateNav(); }
-  function fit() {  // whole drawing in view, below the toolbar
+  /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
+     on a phone, above it) while that is open. */
+  function freeArea() {
     const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10;
-    const s = Math.max(W / r.width, H / Math.max(r.height - top, 100));
-    setVB(-LEFT - (r.width * s - W) / 2, -top * s - (r.height * s - top * s - H) / 2, r.width * s, r.height * s);
+    let right = r.width, bottom = r.height;
+    if (info.style.display === "block") {
+      const i = info.getBoundingClientRect();
+      if (innerWidth > 900) right = Math.max(200, i.left - r.left - 10);
+      else bottom = Math.max(top + 100, i.top - r.top - 10);
+    }
+    return { r, top, right, bottom };
+  }
+  function fit() {  // the whole drawing in the free area
+    const a = freeArea(), w = a.right, h = Math.max(a.bottom - a.top, 100);
+    const s = Math.max(W / w, H / h);
+    const ox = (w - W / s) / 2, oy = a.top + (h - H / s) / 2;  // where the drawing's top left lands, in px
+    setVB(-LEFT - ox * s, -oy * s, a.r.width * s, a.r.height * s);
   }
   function zoomAt(f, cx, cy) {
     const r = wrapEl.getBoundingClientRect();
@@ -790,11 +804,12 @@ function app() {
     const nw = Math.min(Math.max(vb.width * f, 200), Math.max(W, 2000) * 4), nh = nw * vb.height / vb.width;
     setVB(px - (px - vb.x) * nw / vb.width, py - (py - vb.y) * nh / vb.height, nw, nh);
   }
-  function centreOn(id, zoom) {
-    const n = lay.nodes.find(m => m.id === id), r = wrapEl.getBoundingClientRect();
+  function centreOn(id, zoom) {  // the box in the middle of the free area, not under the toolbar or the info panel
+    const n = lay.nodes.find(m => m.id === id), a = freeArea();
     if (!n) return;
-    const w = zoom ? 1800 : vb.width, h = w * r.height / r.width;
-    setVB(n.x + n.w / 2 - w / 2, n.y + n.h / 2 - h / 2, w, h);
+    const w = zoom ? 1800 : vb.width, h = w * a.r.height / a.r.width, s = w / a.r.width;
+    const cx = a.right / 2, cy = (a.top + a.bottom) / 2;
+    setVB(n.x + n.w / 2 - cx * s, n.y + n.h / 2 - cy * s, w, h);
   }
   wrapEl.addEventListener("wheel", e => {
     e.preventDefault();
