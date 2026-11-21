@@ -1,9 +1,11 @@
 """The physical wiring source: jmri/layouts/hart/data/wiring.csv, one row per device on an LCOS node (owner,
 2026-11-20: the repo keeps the wiring the inventory workbook holds, edited here).
 
-Staging's rows are what JMRI holds, as wired (status `wired`). Main and upper are still being designed: their devices
-are given nodes and ports by build_device_map.py's rule, except the rows here, which the rule then leaves alone
-(status `planned` for a detector the owner placed, `wired` once a control point is wired and frozen).
+Staging's rows are what JMRI holds, as wired (status `wired`), and the ports assigned to devices not connected yet
+(status `planned`: a button or relay on its port with nothing connected, a reserved calibration relay port). Main
+and upper are still being designed: their devices are given nodes and ports by build_device_map.py's rule, except
+the rows here, which the rule then leaves alone (status `planned` for a device the owner placed, `wired` once a
+control point is wired and frozen).
 
 Columns (COLUMNS):
 - level 1, 2 or 3; kind: turnout, fb (turnout feedback), head (signal head), detector (block occupancy), button (a
