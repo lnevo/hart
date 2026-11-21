@@ -61,7 +61,7 @@ class AddLevelObjects(unittest.TestCase):
         sensors = sensors_for(LEVEL_BLOCKS + ["Track Helix Outer"]) if sensors is None else sensors
         with mock.patch.multiple(le_tables, BLOCK_NUMBERED_AS={}, APPENDED_BLOCKS=(), RETIRED_BLOCKS=()), \
                 mock.patch.object(le_tables, "level_sensors", return_value=sensors):
-            le_tables.add_level_objects(root, P, names, lengths, {"Track Helix Outer", "OS Switch 1"}, thrown)
+            le_tables.add_level_objects(root, P, names, lengths, {STAGING}, thrown)
         return root
 
     def test_the_other_levels_turnouts_and_blocks_are_added_virtual(self):
@@ -103,6 +103,41 @@ class AddLevelObjects(unittest.TestCase):
         names = dict(NAMES, **{STAGING: dict(NAMES[STAGING], turnouts={"s1": "Switch 999"})})
         root = self.run_it(names=names)
         self.assertNotIn("Switch 999", {tables.user_name(t) for t in tables.turnouts(root)})
+
+    def test_the_base_bands_must_be_named(self):
+        with mock.patch.object(le_tables, "level_sensors", return_value={}), \
+                self.assertRaisesRegex(BuildError, r"the base's bands \['Lower'\] are not all among"):
+            le_tables.add_level_objects(base_root(), SimpleNamespace(blocks=set()), NAMES, {}, {"Lower"})
+
+
+class CheckBound(unittest.TestCase):
+    """check_bound, one check for every level after the build's beans are added: each name a band binds, and each
+    block the panel draws, is a bean of the tables."""
+
+    def root(self):
+        root = base_root()
+        ET.SubElement(ET.SubElement(root, "signalmasts"), "signalmast").extend(
+            [ET.Element("systemName"), ET.Element("userName")])
+        sm = root.find("signalmasts/signalmast")
+        sm[0].text, sm[1].text = "IF$1", "Mast 2L"
+        return root
+
+    def names(self, **staging):
+        return {STAGING: dict(dict(turnouts={"s1": "T1"}, os={}, blocks={"e1": ["Track Helix Outer"]},
+                                   masts=[dict(mast="Mast 2L")]), **staging)}
+
+    def test_every_name_bound(self):
+        le_tables.check_bound(self.root(), SimpleNamespace(blocks={"Track Helix Outer"}), self.names(), "the base")
+
+    def test_a_missing_turnout_block_mast_or_drawn_block_is_named_by_band(self):
+        P = SimpleNamespace(blocks={"Track Helix Outer"})
+        for staging, want in ((dict(turnouts={"s1": "T9"}), r"Staging: turnouts \['T9'\]"),
+                              (dict(os={"s1": "OS Switch 9"}), r"Staging: blocks \['OS Switch 9'\]"),
+                              (dict(masts=[dict(mast="Mast 9L")]), r"Staging: masts \['Mast 9L'\]")):
+            with self.subTest(want=want), self.assertRaisesRegex(BuildError, "no bean of the base .*" + want):
+                le_tables.check_bound(self.root(), P, self.names(**staging), "the base")
+        with self.assertRaisesRegex(BuildError, r"the panel draws blocks \['Track X'\]"):
+            le_tables.check_bound(self.root(), SimpleNamespace(blocks={"Track X"}), self.names(), "the base")
 
 
 def label_panel(P) -> ET.Element:

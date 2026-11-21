@@ -110,7 +110,7 @@ from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read 
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, place, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, numbered_blocks, STRIPPED, strip_build_owned,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
-    add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals,
+    add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals, band_blocks, check_bound,
 )
 
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
@@ -229,10 +229,6 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
             names[STAGING] = sdm.load(bands[0][1])
         except sdm.StagingMapError as exc:
             raise BuildError(f"staging device map: {exc}") from None
-    system = tables.mast_system_names(root)
-    absent = sorted(m["mast"] for m in names[STAGING]["masts"] if m["mast"] not in system)
-    if absent:
-        raise BuildError(f"staging_masts.csv names masts that are not in the signal mast table: {absent}")
     if adds:                            # after staging's names: a helix intermediate protects a staging track
         level_masts(names, level_rows)
         names[STAGING]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
@@ -265,20 +261,14 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels)
     check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
 
-    # staging: every name must already be in the base (devices.csv)
-    staging_turnouts = set(names[STAGING]["turnouts"].values())
-    staging_blocks = set(names[STAGING]["os"].values()) | {b for v in names[STAGING]["blocks"].values() for b in v}
-    live_turnouts = tables.by_any_name(tables.turnouts(root))
-    live_lb = {tables.user_name(b) for b in tables.layout_blocks(root)}
-    missing = sorted(t for t in staging_turnouts if t not in live_turnouts) + \
-        sorted(b for b in staging_blocks if b not in live_lb)
-    if missing:
-        raise BuildError(f"staging names not in {BASE_NAME}: {missing}")
-    if not adds and set(P.blocks) - staging_blocks:
-        raise BuildError(f"the staging panel draws blocks that are not live: {sorted(set(P.blocks) - staging_blocks)}")
+    # the beans of the levels the build adds (the base's levels' are the base's, from devices.csv), then one check
+    # for every level: each name the panel binds is a bean of the tables
+    base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
+    base_keys = {band_key(bands[i][0]) for i in base_ix}
     if adds:
-        add_level_objects(root, P, names, lengths, staging_blocks, startup_thrown(bands))
+        add_level_objects(root, P, names, lengths, base_keys, startup_thrown(bands))
         add_level_signals(root, level_rows)
+    check_bound(root, P, names, BASE_NAME)
 
     try:
         attrs, options = panel_items.panel_attributes(items)
@@ -287,7 +277,6 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # the panel's own items by rule (panel_items.json), tied to the staging track, so they stand where the staging
     # candidate has them on three levels too (by the staging band's own track: a helix block runs on up a level)
     panel_el = le_mod.to_xml(P, panel_name, attrs, options)
-    base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
     frame = {P.name(o["ident"]) for o in P.segments + P.turnouts if o["band"] in base_ix}
     try:
         P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,

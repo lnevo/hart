@@ -15,7 +15,7 @@ from hartlib import paths, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, main_upper_device_map, STAGING, TURNOUT_SYS,
+    BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, main_upper_device_map, TURNOUT_SYS,
 )
 from approval import canon_sorted, element_label  # noqa: E402  as the approval fingerprints read an element
 
@@ -605,13 +605,48 @@ def add_level_clear(root: ET.Element, sensors: list[str], turnouts: dict[str, st
     place(secs["LogixNGDigitalActions"], [many] + actions, 2)
 
 
-def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, staging_blocks: set,
+def band_blocks(nm: dict) -> set[str]:
+    """Every block one band's names (`nm`: the plugin's names of a band) give its track: its OS blocks, a double
+    crossover's corner blocks and each track's blocks."""
+    return set(nm["os"].values()) | {b for v in nm.get("xover_blocks", {}).values() for b in v.values()} | \
+        {b for v in nm["blocks"].values() for b in v}
+
+
+def check_bound(root: ET.Element, P, names: dict, base_name: str) -> None:
+    """One check for every level once the build's beans are in tables `root`: each turnout, block and mast a band's
+    names bind (`names`: {band key: names}), and each block the panel draws (P.blocks), is a bean of the tables, the
+    base's (`base_name`) for a level it holds, the build's for the rest. BuildError names each by band."""
+    turnouts = tables.by_any_name(tables.turnouts(root))
+    blocks = {tables.user_name(b) for b in tables.layout_blocks(root)}
+    masts = tables.mast_system_names(root)
+    bad = []
+    for key, nm in names.items():
+        lost = [f"turnouts {sorted(t for t in set(nm['turnouts'].values()) if t not in turnouts)}",
+                f"blocks {sorted(b for b in band_blocks(nm) if b not in blocks)}",
+                f"masts {sorted(m['mast'] for m in nm.get('masts', []) if m['mast'] not in masts)}"]
+        lost = [x for x in lost if not x.endswith(" []")]
+        if lost:
+            bad.append(f"{key}: {', '.join(lost)}")
+    drawn = sorted(set(P.blocks) - blocks)
+    if drawn:
+        bad.append(f"the panel draws blocks {drawn}")
+    if bad:
+        raise BuildError(f"names the panel binds that are no bean of {base_name} or of the levels the build adds: "
+                         + "; ".join(bad))
+
+
+def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys: set,
                       thrown: frozenset = frozenset()) -> None:
-    """Main and upper: their turnouts, blocks and layout blocks in the tables, under the device-map user names
+    """The levels the build adds (every band in `names` but `base_keys`, the bands of a level the base holds:
+    le_common.BASE_LEVELS): their turnouts, blocks and layout blocks in the tables, under the device-map user names
     (level_names) on internal system names (TURNOUT_SYS, BLOCK_SYS, ILB from LAYOUT_BLOCK_FIRST), so nothing reaches
     MQTT or the field, and each block's virtual occupancy sensor (add_level_sensors), set clear on load
-    (add_level_clear). Stops on a block the device map gives no sensor."""
-    new_turnouts = sorted({t for k, v in names.items() if k != STAGING for t in v["turnouts"].values()},
+    (add_level_clear); a base band's block the panel draws on another level too (a helix block) is bound to the
+    device map's sensor. Stops on a block the device map gives no sensor."""
+    if not base_keys or base_keys - set(names):
+        raise BuildError(f"the base's bands {sorted(base_keys)} are not all among the bands named {sorted(names)}")
+    staging_blocks = {b for k in base_keys for b in band_blocks(names[k])}
+    new_turnouts = sorted({t for k, v in names.items() if k not in base_keys for t in v["turnouts"].values()},
                           key=lambda s: block_sort("OS " + s))
     drawn = {b for b in P.blocks if b not in staging_blocks}
     if drawn & set(RETIRED_BLOCKS):
