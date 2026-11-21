@@ -96,6 +96,7 @@ def plan_lengths() -> dict:
     return {name: r.plan_in for name, r in rows.items()}
 
 
+MM_PER_INCH = 25.4
 MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
 
 
@@ -305,7 +306,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
 
 def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[dict, dict]:
     """placeholder_names with every placeholder replaced by its device-map name (device_names): ({band key: names},
-    {block: length mm}). Stops on a placeholder the device map does not name, or a device-map name the drawing does
+    {block: length mm}, each block its block_lengths.csv plan length). Stops on a placeholder the device map does not name, or a device-map name the drawing does
     not use."""
     device = device_names() if device is None else device
     names, lengths = placeholder_names(bands, le_mod, page)
@@ -324,9 +325,13 @@ def level_names(bands, le_mod, device: dict | None = None, page=None) -> tuple[d
                         os={n: to(b) for n, b in nm["os"].items()},
                         xover_blocks={n: {leg: to(b) for leg, b in v.items()} for n, v in nm["xover_blocks"].items()},
                         blocks={sid: [to(b) for b in v] for sid, v in nm["blocks"].items()})
-    out_len = defaultdict(float)
-    for ph, mm in lengths.items():
-        out_len[to(ph)] += mm
+    drawn = {to(ph) for ph in lengths}
+    plan = plan_lengths()           # block_lengths.csv's plan_in, every level (owner, 2026-11-20, step 5 part 2)
+    no_length = sorted(b for b in drawn if b not in plan)
+    if no_length:
+        raise BuildError(f"block_lengths.csv has no plan length for main and upper blocks {no_length}: run "
+                         "python3 tools/schematic/plan_lengths.py")
+    out_len = {b: plan[b] * MM_PER_INCH for b in drawn}
     if missing:
         raise BuildError(f"main and upper placeholders {paths.rel(DEVICE_MAP)} names nowhere: {sorted(missing)}")
     unused = sorted(set(device) - used)

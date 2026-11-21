@@ -144,8 +144,7 @@ class Repo(unittest.TestCase):
         for name, b in rows.items():
             if name.startswith("OS "):
                 self.assertIn(b.plan_in, (9.2, 11.1), name)
-        self.assertTrue(all(math.isclose(b.jmri_in, b.measured_in if b.source == "timed" else b.plan_in)
-                            for b in rows.values()))
+        self.assertFalse(hasattr(next(iter(rows.values())), "jmri_in"))    # JMRI's length is plan_in
 
 
 if __name__ == "__main__":

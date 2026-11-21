@@ -443,7 +443,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
                 _sub(names_only, "systemName", jn)
                 _sub(names_only, "userName", user)
                 add(("blocks-names",) + BLOCKS, names_only)
-                full = _named("block", {"systemName": jn, "length": f"{length.jmri_in * MM_PER_INCH:.1f}",
+                full = _named("block", {"systemName": jn, "length": f"{length.plan_in * MM_PER_INCH:.1f}",
                                         "curve": "0"}, jn, user, bean_comment(r))
                 _sub(full, "permissive", "no")
                 lb_attrs = {"systemName": r["layout_block"]}
