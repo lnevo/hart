@@ -10,6 +10,7 @@
 # Without GENERATED_SHA, no reference counts as nothing changed (and so for the Operations files always).
 # SPLIT_SHA...: the Stores already split into the sources being deployed (store_splits.csv, R9d); a tables.xml with
 # one of those hashes counts as taken, so the deploy replaces it with the generated file that now holds its edits.
+# ops:SHA (also among them): the hash of the Operations files the deploy would ship; a Pi session equal to it is taken.
 # Prints one word per changed set, nothing when both are clean.
 # Usage: unpulled_changes.sh USERFILES [GENERATED_SHA [SPLIT_SHA...]]
 set -euo pipefail
@@ -26,7 +27,9 @@ sha() { { command -v sha256sum >/dev/null && sha256sum || shasum -a 256; } | cut
 # The same hash install_ops_files.sh and pull_ops.sh write.
 if [[ -f "$ops/.deployed.sha256" ]]; then
   have="$(for f in "${FILES[@]}"; do cat "$ops/$f" 2>/dev/null || true; done | sha)"
-  [[ "$have" == "$(cat "$ops/.deployed.sha256")" ]] || echo ops
+  # ops:<sha> among the arguments is the hash of the Operations files the deploy would ship: a Pi session equal to
+  # them is held by the repo (an auto-pulled one, once merged), so it is not changed
+  [[ "$have" == "$(cat "$ops/.deployed.sha256")" || "$splits" == *" ops:$have "* ]] || echo ops
 fi
 stamp="$uf/cats/deploy_stamp.txt" pulled="$uf/.tables_deployed.sha256" want=""
 if [[ -f "$pulled" && ( ! -f "$stamp" || "$pulled" -nt "$stamp" ) ]]; then
