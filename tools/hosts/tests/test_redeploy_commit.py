@@ -33,9 +33,21 @@ def has_commit(ref: str) -> bool:
     return git("cat-file", "-e", f"{ref}^{{commit}}", check=False).returncode == 0
 
 
-def redeploy_trees() -> list[str]:
+def own_tmpdir(env: dict[str, str], tmp: Path) -> Path:
+    """Point the redeploy's temporary worktrees at this test's own folder (TMPDIR), so other sessions'
+    hart-redeploy.* worktrees in the shared worktree list are never counted as this run's."""
+    folder = tmp / "tmpdir"
+    folder.mkdir(parents=True, exist_ok=True)
+    env["TMPDIR"] = str(folder)
+    return folder
+
+
+def redeploy_trees(under: Path) -> list[str]:
+    """The hart-redeploy.* worktrees still registered under `under` (this test's TMPDIR)."""
+    roots = {str(under), str(under.resolve())}
     return [line for line in git("worktree", "list", "--porcelain").stdout.splitlines()
-            if line.startswith("worktree ") and "hart-redeploy." in line]
+            if line.startswith("worktree ") and "hart-redeploy." in line
+            and any(line[len("worktree "):].startswith(r) for r in roots)]
 
 
 def run(env: dict[str, str], *args: str) -> subprocess.CompletedProcess:
@@ -61,6 +73,7 @@ class RedeployHead(unittest.TestCase):
         cls.network_log = cls.tmp / "network.log"
         # A root exported by the caller's shell must not point the old worktree's tools here.
         redeploy_env = dict(env, HART_REPO_ROOT=str(cls.tmp / "not-the-repo"))
+        cls.tmpdir = own_tmpdir(redeploy_env, cls.tmp)
         cls.done = run(redeploy_env, "HEAD", "--allow-unmerged", "--stage-only", str(cls.tmp / "redeploy"))
         # The normal stage of HEAD: this checkout if it is clean, else a clean copy of HEAD.
         src = ROOT
@@ -105,7 +118,7 @@ class RedeployHead(unittest.TestCase):
                              {k: v for k, v in want.items() if k not in STAMP_RUN_KEYS}, host)
 
     def test_worktree_is_removed(self) -> None:
-        self.assertEqual(redeploy_trees(), [])
+        self.assertEqual(redeploy_trees(self.tmpdir), [])
         self.assertEqual(git("branch", "--list", "redeploy/*").stdout.strip(), "")
 
 
@@ -115,12 +128,13 @@ class Refusals(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.env = stage_env(self.tmp)
         self.env.update(HOME=str(self.tmp / "home"))
+        self.tmpdir = own_tmpdir(self.env, self.tmp)
 
     def assert_refused(self, done: subprocess.CompletedProcess, text: str) -> None:
         self.assertNotEqual(done.returncode, 0)
         self.assertIn(text, done.stderr)
         self.assertFalse((self.tmp / "network.log").exists(), "a refusal reached for the network")
-        self.assertEqual(redeploy_trees(), [])
+        self.assertEqual(redeploy_trees(self.tmpdir), [])
 
     def test_unknown_commit(self) -> None:
         self.assert_refused(run(self.env, "0" * 40, "--stage-only", str(self.tmp / "s")), "is not a commit")
