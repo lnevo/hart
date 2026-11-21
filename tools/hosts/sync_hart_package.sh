@@ -50,7 +50,8 @@ if [[ $# -gt 0 ]]; then
       -h|--help)
         echo "Usage: $0 [--pi] [--win] [--all] [--dry-run] [--stage-only DIR] [--check-only]"
         echo "  A real Pi deploy stops first if the Pi's Operations Pro files or tables.xml changed since the"
-        echo "  last deploy or pull (make ops-pull, make tables-pull-pi); HART_DISCARD_PI_CHANGES=1 replaces them."
+        echo "  last deploy or pull: the gate pulls them (the Store into ~/JMRI_UserFiles-pulled, Operations into a"
+        echo "  checkout) and still stops; HART_NO_AUTOPULL=1 only stops; HART_DISCARD_PI_CHANGES=1 replaces them."
         echo "  Windows SSH: ${WIN_HOST} -p ${WIN_PORT} → %TEMP% drop + JMRI_UserFiles"
         echo "  Pi SSH:      ${PI_HOST} → /tmp drop + JMRI_UserFiles"
         echo "  Transfer:    rsync (Pi) / tar+scp (Windows). Not git pull."

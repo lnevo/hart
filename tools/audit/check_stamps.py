@@ -88,6 +88,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_helix_stl_index": ("www/scripts/**/*",),
     "unit-guards test_jmri_process_patterns": ("docs/**/*", "ops/**/*", "www/scripts/**/*"),
     "unit-guards test_pipeline_map": ("docs/pipeline-map/**/*", "www/library/**/*", "www/scripts/**/*"),
+    # the map and the entry files outside CODE (www/scripts/deploy_hartrailroad.sh); its output roots are in CODE
+    "unit-guards test_pipeline_map_coverage": ("docs/pipeline-map/**/*", "www/scripts/**/*"),
     "unit-guards test_portal_inputs": ("www/scripts/**/*",),
     "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/**/*"),
     "unit-guards test_site_device_names": ("www/data/**/*", "www/scripts/**/*"),

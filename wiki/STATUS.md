@@ -42,7 +42,7 @@ One or two lines per fact, with the owner and date and a link to the detail. PR 
 - **JMRI:** production 5.16 on the Mac, Pi and Windows, the newest CATS 3.2 supports; do not go past it until the CATS downloads page does. On a JMRI upgrade, rebase the web home override ([`projects/cats-integration.md`](projects/cats-integration.md), "Upgrading JMRI").
 - **Stock distributions:** JMRI 5.16 and CATS 3.2 run unpatched on all three hosts since 2026-10-31; compensate around them. JMRI Simple Server (port 2048) starts with each profile so CATS finds its operations server.
 - **Desks:** CATS CTC `HOLD_ONLY` by default. The USS CTC alternate is parked; when it returns, never both.
-- **CATS panels (ADR-012 amendment, ADR-023):** `HART_CTC.xml` and `HART_ABS.xml` are generated for all three levels by `tools/schematic/build_cats_panel.py`; window 1900 x 1020, choices `cats_*` in `preferences.json` ([`pipelines/cats-panels.md`](pipelines/cats-panels.md)).
+- **CATS panels (ADR-012 amendment, ADR-023):** `HART_CTC.xml` and `HART_ABS.xml` are generated for all three levels by `tools/schematic/build_cats_panel.py`; window 1920 x 1032, the layout hosts' 1920 x 1080 screen less a 48 px taskbar (owner, 2026-11-21), from `host_screen` in `preferences.json`'s `main_upper` section, as the Layout Editor panel's window is; the other choices are `cats_*` there ([`pipelines/cats-panels.md`](pipelines/cats-panels.md)).
 - **CATS load risk:** a turnout report during panel load can kill the CATS event thread (`requestLockClear`). Do not move turnouts while CATS starts; restart CATS if occupancy stops; after start use Appearance, Refresh Screen, never Refresh Layout.
 - **MQTT startup race:** a `ConcurrentModificationException` with `Can't subscribe` at startup clears itself; worry only if `Succeeded to reconnect` does not follow.
 - **JMRI scripts:** `signal_coordinator.py` and `panel_status.py` run from Start Up, `jmri_cmd_watcher.py` too on the Pi. A LogixNG in `tables.xml` calls `hide_cats_desk_windows.py`.
@@ -73,6 +73,8 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
   - **Name the main and upper stations** in PanelPro (level unification step 7): then `stations.csv` and `sheets.csv` take every level, the hand-kept sheet lists in `preferences.json`'s `main_upper` section go, and the station maps follow.
   - **Map the power districts.** None is recorded on any level (owner, 2026-11-21).
   - **Wire, freeze and swap, control point by control point** (the 35 main-line detectors with them): wire it as the device map has it, `make wiring-freeze CP="CP 123"`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now.
+
+- **Session #4 punch list (owner, 2026-11-21):** still open: CP signs, the crew board and mock signal designs (agent work); resistor wheels, mock signals at the rail gaps, the crew board mounted, the East End/Princess gap marked and the Barn lead drill signal wired (owner) ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
 
 ## In progress
 

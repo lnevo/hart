@@ -110,7 +110,7 @@
     <destinationMast destination="Mast 2R">
       <destinationSignalMast>Mast 2R</destinationSignalMast>
       <comment />
-      <enabled>no</enabled>
+      <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
       <useLayoutEditor>yes</useLayoutEditor>
       <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>

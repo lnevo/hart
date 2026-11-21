@@ -35,7 +35,7 @@ For a memory or clock change, use `tools/schematic/template_edit.py` instead of 
 
 ## Why deploy stops
 
-`sync_hart_package.sh` stops with "tables.xml changed since the last deploy" when the Mac's `~/JMRI_UserFiles/tables.xml` differs from the last deployed hash and no merged split names it. On the Pi the deploy checks before sending anything (`tools/hosts/pi/unpulled_changes.sh`, given the split hashes) and stops with "the Pi's tables.xml changed since the last deploy". In both cases, run the steps above. `HART_DISCARD_PI_CHANGES=1` replaces the Pi's Store and Operations files anyway, so use it only when the owner says to. Windows is replaced without a check. `HART_OVERWRITE_PROFILE_TABLES=1` skips the guard and throws the Store away, so use it only when the owner says to.
+`sync_hart_package.sh` stops with "tables.xml changed since the last deploy" when the Mac's `~/JMRI_UserFiles/tables.xml` differs from the last deployed hash and no merged split names it. On the Pi the deploy checks before sending anything (`tools/hosts/pi/unpulled_changes.sh`, given the split hashes) and stops with "the Pi's tables.xml changed since the last deploy". In both cases, run the steps above. A Pi deploy now runs the pull itself (no PanelPro quit needed for a Store): it keeps the Store as `pull_tables_pi.sh` does, prints "kept the Pi's Store as <path>; split it ..." and stops, so step 2 is already done and you start at step 3 (`HART_NO_AUTOPULL=1` restores the plain stop). `HART_DISCARD_PI_CHANGES=1` replaces the Pi's Store and Operations files anyway, so use it only when the owner says to. Windows is replaced without a check. `HART_OVERWRITE_PROFILE_TABLES=1` skips the guard and throws the Store away, so use it only when the owner says to.
 
 ## Sources
 

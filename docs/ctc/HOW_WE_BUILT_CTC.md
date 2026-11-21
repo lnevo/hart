@@ -2,6 +2,8 @@
 
 Overview for clubs of how the Neville Island USS CTC lever machine was built in JMRI; the machine is now parked and the CATS desks are the live dispatcher desks.
 
+Status: historical (2026-11-17). The USS machine is parked; the live desks are generated CATS desks ([`HART_DIGICON_SYSTEM.md`](HART_DIGICON_SYSTEM.md), [`docs/parked/UNPARK.md`](../parked/UNPARK.md)).
+
 Short overview for clubs and operators asking how the Neville Island (HART) CTC
 machine was implemented. For day-to-day dispatching, see
 [`DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md). For the separate CATS Digicon panel,

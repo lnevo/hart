@@ -52,7 +52,7 @@ fi
 # terminal has (a plain background job ignores SIGINT), and Ctrl-C or TERM stops every group still running.
 set -m
 JOBS="$(mktemp -d)"
-MAX_JOBS="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+MAX_JOBS="${CHECK_MAX_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"   # win_run.sh sets CHECK_MAX_JOBS to its share of the box
 (( MAX_JOBS >= 2 )) || MAX_JOBS=2
 names=()
 pids=()
@@ -142,6 +142,9 @@ run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run repo-guide python3 www/scripts/repo_guide_page.py --check
 run pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html --back repository-guide.html --check
+# Every script this file, the Makefile, make panels and the deploys run, and every file in an output folder, is in the
+# map agents query (tools/ops/pipeline_query.py); the deliberate exceptions are ALLOWED in the script.
+run pipeline-map-coverage python3 tools/ops/pipeline_map_coverage.py
 run jmri-additions python3 www/scripts/jmri_additions_page.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check
 run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
