@@ -452,13 +452,15 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(adopts, {("1", r["layer"], r["user_name"]) for r in want})
 
     def test_a_block_that_becomes_a_part_frees_its_detector_as_a_spare(self):
-        """East Lead given to OS Switch 33: its block row becomes a part (no name-map columns), its detector a spare
-        row named by its node input, and both old keys are dropped from the name map on purpose."""
+        """East Lead given to OS Switch 33: its block row becomes a part, its detector a spare row named by its node
+        input, and both old keys are dropped from the name map on purpose; the part, a JMRI block of its own, takes a
+        new place in the name map with its OS block's control point and detector."""
         got, adopts, drops = self.rows(extra_exception="1,track,33,35,,,OS Switch 33,,\n")
         by = {(r["layer"], r["user_name"]): r for r in got}
         part = by[("block", "Track East Lead")]
-        self.assertEqual((part["role"], part["part_of"], part["pnm_order"], part["assignment"]),
-                         ("part", "OS Switch 33", "", "virtual"))
+        self.assertEqual((part["role"], part["part_of"], part["assignment"]), ("part", "OS Switch 33", "virtual"))
+        self.assertTrue(part["pnm_order"].isdigit())
+        self.assertEqual(part["pnm_notes"], "part of OS Switch 33")
         # a JMRI block of its own (owner, 2026-11-20) under new names, the next free number: not the old block's
         self.assertRegex(part["jmri_name"] + " " + part["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
         self.assertNotIn(("occupancy", "BS East Lead"), by)

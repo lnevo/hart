@@ -258,6 +258,12 @@ Step 5 follow-ups (2026-11-20):
   plugin reads it from the preferences only); left without an icon: staging 11-13 and 13-15, main 115-117, upper
   227-231 and 229-233. Panel 2509 x 1424 (unchanged), 179 blocks (165 before), 174 block contents icons (163). Stock
   discovery in a sandbox: all 177 SML pairs, the same as main's (tables.xml's Signal Mast Logic is byte-identical).
+  The layout facts and the desk leg trace read a part as the OS block it is inside (`check_layout_facts.Tables.os_of`,
+  `digicon_trace.trace_leg(inside=)`), and the 14 part blocks have public name-map rows. In the same PR (owner,
+  2026-11-21, one panel change): the occupancy lamps are parked with their code and checks (`parked/`, staging's
+  `lamp_columns` gone, the lamp-offset check retired; no track, switch or mast moved, only 5 labels and 4 block
+  contents icons), and the CATS control point plates come back from `stations.csv`'s `desk_plate` column (Brick,
+  Plane, Barn, East End, Princess; `cats_panel_dress.station_plates`).
 
 ### Owner decisions, late 2026-11-20
 
