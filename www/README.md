@@ -12,7 +12,7 @@ Public URL: **https://www.hartrailroad.com/** (VestaCP on www.easte.net), the on
 
 Deploys from your **local working tree** (any branch, work in progress included). Run it after every portal change; it is separate from `sync_hart_package.sh` (layout hosts).
 
-**Build rules** (`scripts/prepare_github_pages.py [DEST] [--site-url URL]`; the name predates the move off Pages):
+**Build rules** (`scripts/prepare_github_pages.py [DEST] [--site-url URL] [--full]`; the name predates the move off Pages). The photo stages (logos, photos, card thumbs, WebP) are reused from the last full run when their inputs are unchanged, stamped under `~/.cache/hart/web-jpeg/photo-group/`; any doubt prints `photo stages: full run (reason)`, and `--full` always rebuilds them:
 
 - Only **git-tracked** files are published, with their working-tree content. A new page or image stays off the site until it is `git add`ed (committing is not needed).
 - To keep a tracked file off the site, add it to `SKIP_FILES` (one file), `SKIP_DIRS` (a folder), or `SKIP_GLOBS` (a pattern) at the top of the script. `scripts/`, `review/`, `tools/`, `reference/`, `README.md`, `docs/*.md`, and invitation drafts are already skipped.
