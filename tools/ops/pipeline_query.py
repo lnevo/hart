@@ -42,6 +42,9 @@ class Graph:
             self.outs[e["from"]].append((e["to"], e.get("label", "")))
             self.ins[e["to"]].append((e["from"], e.get("label", "")))
 
+    def _known(self, key: str) -> bool:
+        return key in self.nodes or key in self.by_path or key.rstrip("/") in self.by_path
+
     def normalise(self, name: str) -> str:
         name = name.strip()
         if not name:
@@ -49,6 +52,8 @@ class Graph:
         # Lexical only: the worktree's media/ and ops/car-cards/ are symlinks out of the checkout, so never resolve them.
         if os.path.isabs(name):
             full = os.path.normpath(name)
+        elif self._known(os.path.normpath(name)):
+            full = os.path.normpath(os.path.join(self.root, name))  # a repo-relative path or id wins over the cwd
         elif os.path.exists(name):
             full = os.path.normpath(os.path.abspath(name))  # a path typed relative to the current folder
         else:
@@ -94,14 +99,19 @@ class Graph:
                     queue.append(nxt)
         out: list[tuple[int, str, str, bool]] = []
 
+        printed = {start}
+
         def go(nid: str) -> None:
             if level[nid] >= depth:
                 return
             for nxt, label in links[nid]:
-                child = parent.get(nxt) == nid
-                out.append((level[nid] + 1, nxt, label, not child))
-                if child:
+                if nxt in printed:
+                    out.append((level[nid] + 1, nxt, label, True))
+                elif parent.get(nxt) == nid:
+                    printed.add(nxt)
+                    out.append((level[nid] + 1, nxt, label, False))
                     go(nxt)
+                # else: reached by a shorter route that is printed later, at its own level
         go(start)
         return out
 

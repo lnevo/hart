@@ -136,6 +136,30 @@ class QueryTest(unittest.TestCase):
         self.assertEqual((obj["node"], obj["detail"]["id"]), ("b", "b"))
         self.assertEqual(json.loads(self.run_q("--json", "find", "table")[1])[0]["node"], "b")
 
+    def test_repeat_only_after_first_print(self):
+        nodes = [n(i, f"p/{i}") for i in "axz"]
+        edges = [{"from": f, "to": t} for f, t in (("a", "x"), ("a", "z"), ("x", "z"))]
+        g = Q.Graph({"nodes": nodes, "edges": edges})
+        rows = g.walk("a", "down", 3)
+        printed = set()
+        for _, nid, _, repeat in rows:
+            self.assertEqual(repeat, nid in printed)
+            printed.add(nid)
+        self.assertEqual([r[1] for r in rows], ["x", "z"])
+
+    def test_repo_path_beats_cwd(self):
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "out").mkdir()
+            (Path(tmp) / "out/b.xml").write_text("x")
+            old = os.getcwd()
+            os.chdir(tmp)
+            try:
+                g = Q.Graph({"nodes": NODES, "edges": EDGES}, root=ROOT)
+                self.assertEqual(g.resolve("out/b.xml"), "b")
+            finally:
+                os.chdir(old)
+
     def test_json(self):
         _, out, _ = self.run_q("--json", "down", "b", "--depth", "1")
         self.assertEqual([i["node"] for i in json.loads(out)["items"]], ["c", "d"])
