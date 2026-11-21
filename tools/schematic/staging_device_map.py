@@ -5,7 +5,8 @@ The source since the device-map switch-over (owner, 2026-11-17), when the frozen
 conversion from them retired. The turnout and feedback rows of level 1 of devices.csv are kept by hand
 (control_points_staging.csv is the master of staging's control points, build_staging_sets.py); the block and occupancy
 rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
-row's field facts over and owns which blocks there are and what each holds; build_staging_masts.py writes
+row's field facts over, writes its detector's wiring from detector_pins.csv (level 1 rows; step 6) and owns which
+blocks there are and what each holds; build_staging_masts.py writes
 staging_masts.csv, staging_signals.csv and the mast and head rows. Edit these files, not a panel. This module reads
 them (load, load_masts, load_signal_masts, mast_facts) and stops on a file not in its shape; check_device_master.py --check
 (`make panels`, tools/check.sh) holds them, and every device row, to tables.xml and the schematic.

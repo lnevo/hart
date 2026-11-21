@@ -1,4 +1,49 @@
 level,switch_a,switch_b,parallel,half,block,node,block_input,notes
+1,,,,,Track K-1,1,1,as wired
+1,,,,,Track K-2,1,2,as wired
+1,,,,,OS Switch 37,1,3,as wired
+1,,,,,OS Switch 39,1,4,as wired
+1,,,,,OS Switch 35b,1,5,as wired
+1,,,,,OS Switch 35a,1,6,as wired
+1,,,,,Track East Lead,1,7,as wired
+1,,,,,Track West Ext,1,8,as wired
+1,,,,,Track Main West,2,1,as wired
+1,,,,,,2,2,"spare: wired, no block assigned"
+1,,,,,Track Main East,2,3,as wired
+1,,,,,Track S-4,2,4,as wired
+1,,,,,Track S-3,2,5,as wired
+1,,,,,Track S-2,2,6,as wired
+1,,,,,Track S-1,2,7,as wired
+1,,,,,Track S-R,2,8,as wired
+1,,,,,OS Switch 13,3,1,as wired
+1,,,,,OS Switch 15,3,2,as wired
+1,,,,,OS Switch 17,3,3,as wired
+1,,,,,OS Switch 19,3,5,as wired
+1,,,,,OS Switch 21,3,7,as wired
+1,,,,,,3,8,"spare: wired, no block assigned"
+1,,,,,OS Switch 3,4,1,as wired
+1,,,,,OS Switch 1,4,2,as wired
+1,,,,,Track W-2,4,3,as wired
+1,,,,,Track W-1,4,4,as wired
+1,,,,,OS Switch 5,4,5,as wired
+1,,,,,Track Brick-Plane,4,6,as wired
+1,,,,,Track East Ext,4,7,as wired
+1,,,,,Track Scale,4,8,as wired
+1,,,,,OS Switch 25,12,1,as wired
+1,,,,,OS Switch 27,12,3,as wired
+1,,,,,OS Switch 23a,12,4,as wired
+1,,,,,OS Switch 29,12,5,as wired
+1,,,,,OS Switch 23b,12,6,as wired
+1,,,,,OS Switch 31,12,7,as wired
+1,,,,,OS Switch 33,12,8,as wired
+1,,,,,Track Barn,13,1,as wired
+1,,,,,OS Switch 11,13,2,as wired
+1,,,,,OS Switch 7,13,3,as wired
+1,,,,,OS Switch 7b,13,4,as wired
+1,,,,,Track EH-3,13,5,as wired
+1,,,,,Track EH-2,13,6,as wired
+1,,,,,Track EH-1,13,7,as wired
+1,,,,,OS Switch 9,13,8,as wired
 3,,,,,Track Helix Inner,41,1,"helix node 41, one DNCT2B: Block 41-1 (owner, 2026-11-20); a helix block is named in block, with no switches"
 2,,,,,Track Helix Outer,41,2,"helix node 41: Block 41-2 (owner, 2026-11-20)"
 3,227,241,,1,,41,3,"half 1 of the peninsula loop moves from 41-1 to 41-3 (owner, 2026-11-20)"
