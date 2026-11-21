@@ -208,6 +208,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 <label title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
 <label title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
+<label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> highlighted only</label>
 <span id="depth" hidden title="How many links to show either side of the file">
  <span class="side">← feeds it <button data-side="up" data-step="-1">−</button> <b id="upn">all</b>
  <button data-side="up" data-step="1">+</button> <button data-side="up" data-step="all">all</button></span>
@@ -219,7 +220,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
 <div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Click a box for what feeds it (amber) and what it feeds
-(blue).</div>
+(blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
 out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The step counters under the toolbar set how many links show on each side: left is what feeds it, right

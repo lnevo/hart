@@ -228,8 +228,28 @@ function layout(nodes, edges, domains) {
   return { nodes: outNodes, edges: outEdges, bands, width: nRanks * (NODE_W + COL_GAP) - COL_GAP, height: totalH };
 }
 
+/* What a click on id lights up in a drawing of these edges: every box that feeds it (up) and every box it feeds
+   (down), not walking on through a box where stops(box) is true, and the links inside one side (lit). */
+function chainOf(edges, id, stops) {
+  const walk = (key, other) => {
+    const seen = new Set([id]);
+    let frontier = [id];
+    while (frontier.length) {
+      const next = [];
+      for (const v of frontier) {
+        if (v !== id && stops(v)) continue;
+        for (const e of edges) if (e[other] === v && !seen.has(e[key])) { seen.add(e[key]); next.push(e[key]); }
+      }
+      frontier = next;
+    }
+    return seen;
+  };
+  const up = walk("from", "to"), down = walk("to", "from");
+  return { up, down, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
+}
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions };
+  module.exports = { layout, wrap, nodeHeight, inversions, chainOf };
 } else {
   app();
 }
@@ -247,9 +267,9 @@ function app() {
   const wrapEl = document.getElementById("wrap"), info = document.getElementById("info");
   const allLanes = DATA.domains.map(d => d.id);
 
-  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity };
+  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false };
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
-  let nodeEl = {}, edgeEls = [], ins = {}, outs = {}, visible = new Set();
+  let nodeEl = {}, edgeEls = [], sub = { nodes: [], edges: [] }, visible = new Set(), baseIds = new Set();
 
   /* ---- which boxes are shown */
   /* A chain is drawn through boxes but stops at deploy, hosts and runtime apps (the "hosts" lane) and at hand work:
@@ -287,7 +307,15 @@ function app() {
     const nodes = DATA.nodes.filter(n => keep.has(n.id) && isShown(n.id));
     const ids = new Set(nodes.map(n => n.id));
     const own = view.focus && view.up <= 1 && view.down <= 1;  // only the file's own links, not its neighbours' links
-    return { nodes, edges: DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus)) };
+    const edges = DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus));
+    baseIds = ids;  // what the filters draw before "highlighted only" trims it
+    return trimmed() && ids.has(selected) ? { ...chainOnly(nodes, edges, selected), trim: true } : { nodes, edges };
+  }
+  const trimmed = () => view.trim && selected !== null;
+  const chain = (edges, id) => chainOf(edges, id, endsChain);
+  function chainOnly(nodes, edges, id) {  // "highlighted only": drop what the selection leaves dim
+    const c = chain(edges, id);
+    return { nodes: nodes.filter(n => c.up.has(n.id) || c.down.has(n.id)), edges: edges.filter(c.lit) };
   }
 
   /* ---- drawing */
@@ -343,7 +371,7 @@ function app() {
   }
 
   function render(keepView) {
-    const sub = subset();
+    sub = subset();
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
     lay = layout(sub.nodes, sub.edges, DATA.domains);
     wrapEl.innerHTML = drawSvg(lay);
@@ -356,8 +384,6 @@ function app() {
       const path = document.getElementById(l.dataset.edge), m = path.getPointAtLength(path.getTotalLength() / 2);
       l.setAttribute("x", m.x); l.setAttribute("y", m.y - 3); l.setAttribute("text-anchor", "middle");
     });
-    ins = {}; outs = {};
-    sub.edges.forEach(e => { (outs[e.from] ||= []).push(e); (ins[e.to] ||= []).push(e); });
     visible = new Set(sub.nodes.map(n => n.id));
     syncControls();
     showStatus(sub);  // before fit, which measures the toolbar with the status line in it
@@ -370,20 +396,19 @@ function app() {
   function showStatus(sub) {
     const el = document.getElementById("view");
     const parts = [];
-    if (view.focus) {
-      parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
-    }
+    if (view.focus) parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
+    if (sub.trim) parts.push(selected === view.focus ? "highlighted only" : `only the chain of <b>${esc(byId[selected].label)}</b>`);
     const lanesOff = allLanes.filter(d => !view.lanes.has(d));
     if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
     const off = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
     if (off.length) parts.push(`${off.join(" and ")} hidden`);
     showDepth();
-    const all = view.focus || view.lanes.size !== allLanes.length;
+    const all = view.focus || sub.trim || view.lanes.size !== allLanes.length;
     el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${sub.nodes.length} of ${DATA.nodes.length} boxes`
       : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`) +
       (all ? ' <button id="showall" title="Back to the whole map; parked and retired boxes follow their ticks">Whole map</button>' : "");
     const btn = document.getElementById("showall");
-    if (btn) btn.onclick = () => { view.focus = null; view.lanes = new Set(allLanes); fileIn.value = ""; syncControls(); render(false); writeHash(); };
+    if (btn) btn.onclick = () => { view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes); fileIn.value = ""; syncControls(); render(false); writeHash(); };
   }
 
   /* ---- pan and zoom */
@@ -436,14 +461,26 @@ function app() {
     svg.classList.remove("focus");
     svg.querySelectorAll(".on,.sel,.upstream,.near").forEach(el => el.classList.remove("on", "sel", "upstream", "near"));
     info.style.display = "none";
-    if (user) { selected = null; writeHash(); }
+    if (!user) return;
+    const was = trimmed();
+    selected = null;
+    if (was) render(false);  // "highlighted only" drew just that chain: bring the rest back
+    writeHash();
   }
+  /* Select a box the user picked; with "highlighted only" the drawing is redone around its chain. */
+  function pick(id, centre) {
+    if (!view.trim) { select(id); if (centre) centreOn(id, centre === "zoom"); return; }
+    selected = id; render(false); writeHash();
+    if (centre) centreOn(id, centre === "zoom");
+  }
+  // a box the user can pick in place: with "highlighted only" it may be off the drawn chain but inside the filters
+  const pickable = id => (view.trim ? baseIds : visible).has(id);
   const link = id => `<a data-go="${esc(id)}">${esc(byId[id].label)}</a>${visible.has(id) ? "" : ' <span class="off">(not shown)</span>'}`;
   function select(id, quiet) {
     clearFocus(false);
     selected = id;
     if (!quiet) writeHash();
-    const upSet = walk(id, ins, "from"), downSet = walk(id, outs, "to");
+    const { up: upSet, down: downSet } = chain(sub.edges, id);
     svg.classList.add("focus");
     nodeEl[id].classList.add("sel");
     upSet.forEach(v => nodeEl[v].classList.add("on"));
@@ -475,7 +512,7 @@ function app() {
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
   function goTo(id) {
-    if (visible.has(id)) { select(id); centreOn(id, false); return; }
+    if (pickable(id)) { pick(id, "pan"); return; }
     view.lanes = new Set(allLanes);
     if (byId[id].status in view) view[byId[id].status] = true;
     focusOn(id, !view.focus);
@@ -491,9 +528,18 @@ function app() {
   wrapEl.addEventListener("click", e => {
     if (moved) return;
     const g = e.target.closest(".node");
-    if (g) select(g.dataset.id); else clearFocus(true);
+    clearTimeout(pending);
+    if (!g) { clearFocus(true); return; }
+    // a trimmed redraw moves the boxes, so wait out a double-click before doing it
+    if (view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(g.dataset.id), 300); }
+    else pick(g.dataset.id);
   });
-  wrapEl.addEventListener("dblclick", e => { const g = e.target.closest(".node"); if (g) focusOn(g.dataset.id, !view.focus); });
+  let pending = null;
+  wrapEl.addEventListener("dblclick", e => {
+    clearTimeout(pending);
+    const g = e.target.closest(".node");
+    if (g) focusOn(g.dataset.id, !view.focus);
+  });
 
   /* ---- search */
   const q = document.getElementById("q"), hits = document.getElementById("hits");
@@ -511,8 +557,8 @@ function app() {
   q.addEventListener("keydown", e => {
     if (e.key !== "Enter" || !found.length) return;
     const id = found[fi++ % found.length];
-    if (!visible.has(id)) goTo(id);
-    else { centreOn(id, true); select(id); }
+    if (!pickable(id)) goTo(id);
+    else pick(id, "zoom");
   });
   document.addEventListener("keydown", e => {
     if (e.target === q || e.target === fileIn || e.target.tagName === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
@@ -574,6 +620,7 @@ function app() {
     lanesBox.querySelectorAll("input[data-lane]").forEach(c => (c.checked = view.lanes.has(c.dataset.lane)));
     document.getElementById("parked").checked = view.parked;
     document.getElementById("retired").checked = view.retired;
+    document.getElementById("trim").checked = view.trim;
   }
   lanesBox.addEventListener("change", e => {
     const lane = e.target.dataset.lane;
@@ -588,9 +635,10 @@ function app() {
   });
   document.getElementById("parked").onchange = e => { view.parked = e.target.checked; render(true); writeHash(); };
   document.getElementById("retired").onchange = e => { view.retired = e.target.checked; render(true); writeHash(); };
+  document.getElementById("trim").onchange = e => { view.trim = e.target.checked; render(selected === null); writeHash(); };
   document.getElementById("labels").onchange = e => document.getElementById("elabels").classList.toggle("hidden", !e.target.checked);
 
-  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&node=<id> */
+  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&node=<id> */
   function writeHash() {
     const h = new URLSearchParams();
     const steps = n => (n === Infinity ? "all" : String(n));
@@ -598,6 +646,7 @@ function app() {
     if (view.lanes.size !== allLanes.length) h.set("lanes", view.lanes.size ? [...view.lanes].join(",") : "none");
     const show = [view.parked && "parked", view.retired && "retired"].filter(Boolean);
     if (show.length) h.set("show", show.join(","));
+    if (view.trim) h.set("trim", "1");
     if (selected) h.set("node", selected);
     const s = h.toString();
     history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
@@ -618,6 +667,7 @@ function app() {
     if (hide !== null) { view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired"); }  // older links
     else if (h.get("show") === null && (h.get("dir") !== null || h.get("depth") !== null)) view.parked = view.retired = true;  // older file links showed every status
     else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
+    view.trim = h.get("trim") === "1";
     const node = h.get("node");
     selected = node && byId[node] ? node : null;
     if (selected && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
@@ -626,6 +676,6 @@ function app() {
   }
   readHash();
   render(false);
-  if (selected && visible.has(selected) && !view.focus) centreOn(selected, true);
-  window.addEventListener("hashchange", () => { readHash(); render(false); if (selected && visible.has(selected)) centreOn(selected, !view.focus); });
+  if (selected && visible.has(selected) && !view.focus && !view.trim) centreOn(selected, true);
+  window.addEventListener("hashchange", () => { readHash(); render(false); if (selected && visible.has(selected) && !view.trim) centreOn(selected, !view.focus); });
 }
