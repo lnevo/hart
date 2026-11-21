@@ -295,7 +295,7 @@ def bare(label: str) -> str:
 
 @functools.lru_cache(maxsize=None)
 def staging_switches() -> dict[int, railroad.Switch]:
-    """The staging switches, read once per run (hartlib.railroad: switches.csv with switch_legs.csv and each switch's
+    """The staging switches, read once per run (hartlib.railroad: the level 1 rows of switches.csv and each switch's
     live turnout row of the name map of devices.csv). BuildError names the file and row that cannot be read."""
     try:
         return railroad.Railroad(upto="inputs").switches

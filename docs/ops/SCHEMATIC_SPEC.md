@@ -133,7 +133,7 @@ The made-up example railroad in the plugin has its own baseline golden and must 
 3. R5: the main is level through every switch on it. R6: yard tracks level in every ladder. Each switch where one gave way is listed, not counted as a fault.
 4. Every added or moved switch has a `source`.
 5. No label overlaps a drawn line, a symbol or another label; each fault names both items.
-6. For HART staging, the railroad graph agrees with `switch_legs.csv` (hands and legs).
+6. For HART staging, the railroad graph agrees with `switches.csv` (hands and legs).
 
 ## For the owner to decide
 

@@ -10,9 +10,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 from hartlib import paths, railroad_facts as rf  # noqa: E402
 
 STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"
-LEGS = paths.LAYOUT_DATA / "switch_legs.csv"
+SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 HEAD = "level,station,switches,tracks,desk_code,notes\n"
-LEGS_HEAD = "switch,os_block\n"
+SW_HEAD = ("level,switch,half,os_block,closed_leg,thrown_leg,hand,hand_source,area,le_ident,cats_inverted,ctc_is,"
+           "ctc_signals,notes\n")
 
 
 class Files(unittest.TestCase):
@@ -59,7 +60,7 @@ class TheRepo(Files):
             rf.read_stations(path)
 
     def test_the_station_group_rows(self):
-        rows = {r["cp_name"]: r for r in rf.station_group_rows(STATIONS, LEGS)}
+        rows = {r["cp_name"]: r for r in rf.station_group_rows(STATIONS, SWITCHES)}
         self.assertEqual(rows["East End"]["switches"].split(",")[:2], ["25", "27"])
         self.assertIn("23a", rows["East End"]["switches"].split(","))
         self.assertEqual(rows["Barn"]["switches"], "7,7b")
@@ -162,33 +163,41 @@ class NestedStations(unittest.TestCase):
 
 
 class StationGroupRows(Files):
-    def files(self, stations: str, legs: str) -> tuple[Path, Path]:
+    def files(self, stations: str, os_blocks: str) -> tuple[Path, Path]:
+        """stations.csv and a switches.csv whose rows are `os_blocks`: one "level,switch,os_block" per line, each
+        given legs."""
         d = self.dir()
         (d / "stations.csv").write_text(HEAD + stations)
-        (d / "legs.csv").write_text(LEGS_HEAD + legs)
-        return d / "stations.csv", d / "legs.csv"
+        rows = []
+        for spec in os_blocks.splitlines():
+            level, n, os_block = spec.split(",")
+            half = "" if level == "1" else n
+            rows.append(f"{level},{n},{half},{os_block},Track A,Track B,,,,,,,,\n")
+        (d / "switches.csv").write_text(SW_HEAD + "".join(rows))
+        return d / "stations.csv", d / "switches.csv"
 
     def test_a_crossover_is_listed_by_its_halves_in_order(self):
-        st, legs = self.files('1,X Y,"7,5",,XX,n\n', "7,OS Switch 7b\n7,OS Switch 7\n5,OS Switch 5\n")
-        self.assertEqual(rf.station_group_rows(st, legs),
+        st, sw = self.files('1,X Y,"7,5",,XX,n\n', "1,7,OS Switch 7b\n1,7,OS Switch 7\n1,5,OS Switch 5\n")
+        self.assertEqual(rf.station_group_rows(st, sw),
                          [dict(cp_id="x_y", cp_name="X Y", level="1", switches="7,7b,5", notes="n", code="XX")])
 
     def test_every_level_is_given(self):
-        st, legs = self.files("1,X,5,,XX,\n2,Y,105,,YY,\n", "5,OS Switch 5\n105,OS Switch 105\n")
-        self.assertEqual([(r["cp_name"], r["level"]) for r in rf.station_group_rows(st, legs)], [("X", "1"), ("Y", "2")])
+        st, sw = self.files("1,X,5,,XX,\n2,Y,105,,YY,\n", "1,5,OS Switch 5\n2,105,OS Switch 105\n")
+        self.assertEqual([(r["cp_name"], r["level"]) for r in rf.station_group_rows(st, sw)], [("X", "1"), ("Y", "2")])
 
     def test_a_switch_with_no_os_block_names_the_station_that_holds_it(self):
-        st, legs = self.files('1,Brick,"1,3",none,BK,\n1,West Yard,3,,BK,\n', "1,OS Switch 1\n")
+        st, sw = self.files('1,Brick,"1,3",none,BK,\n1,West Yard,3,,BK,\n', "1,1,OS Switch 1\n")
         with self.assertRaisesRegex(rf.FactsError, r"stations.csv line 3 \(West Yard\): switch 3 has no OS block"):
-            rf.station_group_rows(st, legs)
+            rf.station_group_rows(st, sw)
 
     def test_errors_name_the_file_and_line(self):
-        st, legs = self.files("1,X,9,,XX,\n", "5,OS Switch 5\n")
-        with self.assertRaisesRegex(rf.FactsError, r"stations.csv line 2 \(X\): switch 9 has no OS block in legs.csv"):
-            rf.station_group_rows(st, legs)
-        st, legs = self.files("1,X,5,,XX,\n", "5,Track 5\n")
-        with self.assertRaisesRegex(rf.FactsError, r"legs.csv line 2: 'Track 5' is not an OS Switch block"):
-            rf.station_group_rows(st, legs)
+        st, sw = self.files("1,X,9,,XX,\n", "1,5,OS Switch 5\n")
+        with self.assertRaisesRegex(rf.FactsError,
+                                    r"stations.csv line 2 \(X\): switch 9 has no OS block in switches.csv"):
+            rf.station_group_rows(st, sw)
+        st, sw = self.files("1,X,5,,XX,\n", "1,5,Track 5\n")
+        with self.assertRaisesRegex(rf.FactsError, r"switches.csv line 2 \(Switch 5\): os_block is OS Switch 5"):
+            rf.station_group_rows(st, sw)
 
 
 if __name__ == "__main__":

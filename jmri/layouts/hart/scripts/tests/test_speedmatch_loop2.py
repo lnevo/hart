@@ -24,7 +24,8 @@ DATA = SM.parents[1] / "data"
 TABLES = SM.parents[1] / "output" / "tables.xml"
 BS_NAMES = set(re.findall(r"<userName>(BS [^<]*)</userName>", TABLES.read_text()))
 CSV_ROWS = {r["user_name"]: r for r in csv.DictReader(open(DATA / "block_lengths.csv", newline=""))}
-LEGS = {(r["switch"], r["os_block"]): r for r in csv.DictReader(open(DATA / "switch_legs.csv", newline=""))}
+LEGS = {(r["switch"], r["os_block"]): r for r in csv.DictReader(open(DATA / "switches.csv", newline=""))
+        if r["level"] == "1"}                     # staging: one row per OS block
 
 
 class Routes(unittest.TestCase):
@@ -360,8 +361,8 @@ class LineupWalk(unittest.TestCase):
 
     def test_every_route_switch_joins_its_neighbours(self):
         import csv as _csv
-        legs_csv = Path(__file__).resolve().parents[1].parent / "data" / "switch_legs.csv"
-        legs = {r["os_block"]: r for r in _csv.DictReader(open(legs_csv, newline=""))}
+        legs_csv = Path(__file__).resolve().parents[1].parent / "data" / "switches.csv"
+        legs = {r["os_block"]: r for r in _csv.DictReader(open(legs_csv, newline="")) if r["level"] == "1"}
         for route, pairs in analyze.ROUTES.items():
             rows = [row for _, row in pairs]
             lineup = {str(k): v for k, v in dict(analyze.ROUTE_LINEUP[route]).items()}

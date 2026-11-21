@@ -4,7 +4,7 @@
 #
 # The steps, in the order they run (the name is the one each step prints):
 #
-#   hands                 hands.csv, from the plan graph
+#   hands                 the plan rows' hands in switches.csv, from the plan graph
 #   staging-sets          staging's control points, stations and detail sheets in the staging sections of
 #                         plan_overrides.json and preferences.json, from stations.csv (the desk areas by its
 #                         desk_code column) and sheets.csv (the layer files hold a section per sheet: hartlib.layer_files)
