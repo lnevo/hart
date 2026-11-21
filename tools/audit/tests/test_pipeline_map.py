@@ -126,6 +126,16 @@ class LayoutTest(unittest.TestCase):
 
 
 class PageTest(unittest.TestCase):
+    def test_public_copy_passes_the_site_leak_check(self) -> None:
+        spec = importlib.util.spec_from_file_location("prep", ROOT / "www/scripts/prepare_github_pages.py")
+        prep = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(prep)
+        page = MAP.render(MAP.public_copy(MAP.load(MAP.GRAPH)), "../library/repository-guide.html")
+        hits = [line[:120] for line in page.splitlines() if prep.LEAK_PATTERNS.search(line)]
+        self.assertEqual(hits, [])
+        self.assertIn('href="../library/repository-guide.html"', page)
+        self.assertIn("car-cards workspace", page)
+
     def test_page_escapes_text(self) -> None:
         g = {"domains": DOMAINS, "nodes": [node("x", desc="<script>alert(1)</script>"), node("y")],
              "edges": [{"from": "x", "to": "y"}], "updated": ""}

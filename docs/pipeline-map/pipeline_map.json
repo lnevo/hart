@@ -468,7 +468,7 @@
    "kind": "host",
    "status": "live",
    "domain": "hosts",
-   "desc": "MQTT broker on the Pi at 10.0.0.150:1883; holds retained track/turnout, sensor, signalhead, signalmast topics.",
+   "desc": "MQTT broker on the Pi; holds retained track/turnout, sensor, signalhead, signalmast topics.",
    "path": ""
   },
   {
@@ -486,7 +486,16 @@
    "kind": "host",
    "status": "live",
    "domain": "hosts",
-   "desc": "10.0.0.150: runs live PanelPro/JMRI with web mimic and Start Up scripts, CATS desktop launchers, Mosquitto broker, live STS.",
+   "desc": "runs live PanelPro/JMRI with web mimic and Start Up scripts, CATS desktop launchers, Mosquitto broker, live STS.",
+   "path": ""
+  },
+  {
+   "id": "host:web-server",
+   "label": "www.hartrailroad.com web server",
+   "kind": "host",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Web server for www.hartrailroad.com; deploys through an rsync-only key; Let's Encrypt; 404.html served.",
    "path": ""
   },
   {
@@ -496,15 +505,6 @@
    "status": "live",
    "domain": "hosts",
    "desc": "Runs CATS and PanelPro profile, and the foreground serial_to_mqtt bridge on COM3 to the Nano; never the broker.",
-   "path": ""
-  },
-  {
-   "id": "host:www.easte.net",
-   "label": "www.hartrailroad.com host",
-   "kind": "host",
-   "status": "live",
-   "domain": "hosts",
-   "desc": "VestaCP/nginx on www.easte.net; docroot hartrailroad.com/public_html; rsync-only key via rrsync; Let's Encrypt; 404.html served.",
    "path": ""
   },
   {
@@ -1516,7 +1516,7 @@
    "kind": "external",
    "status": "live",
    "domain": "ops",
-   "desc": "Submodule: Shipper-driven Traffic Simulator PHP/MySQL docker stack. Mac copy localhost:8980 for UAT; sandbox 8981.",
+   "desc": "Submodule: Shipper-driven Traffic Simulator PHP/MySQL docker stack. A Mac copy for UAT and a sandbox copy.",
    "path": "external/sts-docker"
   },
   {
@@ -2532,7 +2532,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "website",
-   "desc": "Site settings, nav, localhost tools list (stripped on build); read by nav.js and index.",
+   "desc": "Site settings, nav, local tools list (stripped on build); read by nav.js and index.",
    "path": "www/data/site.json"
   },
   {
@@ -2865,7 +2865,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Local preview server (127.0.0.1:8760) with archive/gallery edit APIs that write data JSON atomically and log reviews.",
+   "desc": "Local preview server with archive/gallery edit APIs that write data JSON atomically and log reviews.",
    "path": "www/scripts/serve_portal.py"
   },
   {
@@ -3093,7 +3093,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "wiring",
-   "desc": "Default host settings: broker 10.0.0.150:1883, JMRI JSON URL, Pi and Windows ssh and UserFiles paths.",
+   "desc": "Default host settings: broker address, JMRI JSON URL, Pi and Windows ssh and UserFiles paths.",
    "path": "tools/env/defaults.env"
   },
   {
@@ -3129,7 +3129,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "wiring",
-   "desc": "Mac mimic web server (127.0.0.1:8765) showing staging via MQTT; load_layout reads devices.csv, occupancy bindings and head plan. Launch agent disabled.",
+   "desc": "Mac mimic web server showing staging via MQTT; load_layout reads devices.csv, occupancy bindings and head plan. Launch agent disabled.",
    "path": "tools/mqtt-mimic/lcos_mqtt_mimic.py"
   },
   {
@@ -3655,14 +3655,14 @@
    "label": "reads Store"
   },
   {
+   "from": "host:web-server",
+   "to": "ext:browser-visitors",
+   "label": "HTTPS"
+  },
+  {
    "from": "host:windows",
    "to": "host:mosquitto",
    "label": "bridge publishes"
-  },
-  {
-   "from": "host:www.easte.net",
-   "to": "ext:browser-visitors",
-   "label": "HTTPS"
   },
   {
    "from": "human:operating-session",
@@ -6102,7 +6102,7 @@
   },
   {
    "from": "www/scripts/deploy_hartrailroad.sh",
-   "to": "host:www.easte.net",
+   "to": "host:web-server",
    "label": "rsync --delete"
   },
   {
