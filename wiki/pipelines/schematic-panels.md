@@ -92,6 +92,10 @@ Each step reads the plugin's cache (`~/.cache/hart/schematic`), so a run after a
 change reaches. `tools/check.sh` runs `--check` on the hands, main route, staging masts, staging sync, staging map, signals, device map, main and upper masts and CATS steps, and the approved fingerprints (`check_approved.py`); `make panels
 CHECK=1` checks them all.
 
+## A memory, clock or setting change
+
+For a memory or clock change, use `tools/schematic/template_edit.py` instead of a Store. It edits `data/tables_template.xml` (memories, the clock, blockrouting, Signal Mast Logic delay and the default turnout and block speeds) in the form JMRI writes, then runs `build_tables.py` and its `--check`: `template_edit.py list`, `memory add|set|remove`, `clock set rate=2.0`, `setting set blockrouting=no`. `--dry-run` shows the change and writes nothing. A memory's value is not kept in the template (a Store drops it). LogixNG parts and anything else a Store brings still go through a pull and `split_store.py`.
+
 ## After a run
 
 - `tables.xml` changed: `make panelpro-test`, then deploy (AGENTS.md close-out).
