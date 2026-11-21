@@ -133,7 +133,7 @@ import os
 import re
 import sys
 from collections import defaultdict
-from dataclasses import dataclass
+from typing import NamedTuple
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -376,8 +376,7 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
     return out
 
 
-@dataclass(frozen=True)
-class StagingPin:
+class StagingPin(NamedTuple):
     """A staging detector as wired (a level 1 row of detector_pins.csv): its block (empty for a spare input, one
     with a sensor in JMRI but no block), node and input index from 0."""
     line: int
@@ -453,9 +452,24 @@ def helix_pins(path: Path | None = None) -> dict:
     """{helix block: (node, input index from 0)} of detector_pins.csv's main and upper rows that name a block (the
     helix tracks): a helix block's staging row names the detector its main or upper row has."""
     path = path or PINS
-    with open(path, newline="", encoding="utf-8") as fh:
-        return {r["block"]: (int(r["node"]), int(r["block_input"]) - 1) for r in csv.DictReader(fh)
-                if r["level"] != FIELD_LEVEL and r["block"]}
+    try:
+        with open(path, newline="", encoding="utf-8") as fh:
+            reader = csv.DictReader(fh)
+            rows, header = list(reader), reader.fieldnames or []
+    except OSError as exc:
+        raise MapError(f"cannot read {path.name}: {exc}") from None
+    if list(header) != PIN_COLUMNS:
+        raise MapError(f"{path.name}: columns {list(header)}, not {PIN_COLUMNS}")
+    out = {}
+    for i, r in enumerate(rows, 2):
+        r = {k: (v or "").strip() for k, v in r.items()}
+        if r["level"] == FIELD_LEVEL or not r["block"]:
+            continue
+        try:
+            out[r["block"]] = (int(r["node"]), int(r["block_input"]) - 1)
+        except ValueError:
+            raise MapError(f"{path.name} line {i}: node and block_input are numbers") from None
+    return out
 
 
 def loop_halves(band, runs, split: dict | None = None) -> dict:
@@ -1028,6 +1042,17 @@ def wire_occupancy(row: dict, pin: StagingPin) -> dict:
     return row
 
 
+def new_spare(pin: StagingPin) -> dict:
+    """The row of a spare input with no row yet (a pin moved onto it, or a block's detector moved off it): named by
+    its input, with no name-map columns, as freed_spare's are."""
+    row = {c: "" for c in devices.COLUMNS}
+    row.update(level=FIELD_LEVEL, layer="occupancy", role="spare", user_name=f"unused {pin.input}",
+               assignment="spare", notes=f"a spare input in {PINS.name}", written_by="build_device_map.py")
+    row = wire_occupancy(row, pin)
+    row["description"] = devices.describe(row)
+    return row
+
+
 def wire_block(row: dict, node: int, k: int) -> dict:
     """`row` (a staging block row) with its detector's node, the name map's input and the "occupancy Block <n>-<k> /
     M2S<id>" part of its comment from the pin. MapError when the comment has no such part to keep in step."""
@@ -1057,8 +1082,9 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     part (block_exceptions.csv gives it to an OS block) loses its JMRI block: its part row has no name-map columns, its
     detector becomes a spare row named by its node input (freed_spare), and both old keys are dropped from the name
     map on purpose (the keys returned, for hartlib.devices' drops). MapError on a block with no row to carry its field
-    facts from, a staging block or occupancy row the drawing has no block for, a detector block with no pin, a pin
-    whose block staging does not have, or a spare row with no spare pin."""
+    facts from, a staging block or occupancy row the drawing has no block for, a detector block with no pin, or a pin
+    whose block staging does not have or is a helix block. A spare input is a pin with no block or one whose block is
+    now a part: its row is carried, or made (new_spare); a spare row no pin is on any more is dropped."""
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
     helix = {h["block"] for h in read_helix_tracks().values()}
@@ -1070,7 +1096,10 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     pin_of = {p.block: p for p in staging_pins if p.block}
     on_helix = helix_pins(pins)
     for p in staging_pins:
-        if p.block and p.block not in blocks and p.block not in lay.parts:
+        if p.block in helix:
+            bad.append(f"{PINS.name} line {p.line}: {p.block} is a helix block; its detector is its main or upper "
+                       "row's")
+        elif p.block and p.block not in blocks and p.block not in lay.parts:
             bad.append(f"{PINS.name} line {p.line}: staging has no block {p.block}")
 
     def carried(layer: str, name: str, **owned) -> dict | None:
@@ -1118,23 +1147,22 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
             bad.append(f"staging block {b}: its detector {row['user_name']} has no level 1 row in {PINS.name}")
             continue
         occupancy.append(wire_occupancy(row, pin_of[b]))
-    spares = []
-    for p in (p for p in staging_pins if not p.block):
+    # spare inputs: a pin with no block, and a pin whose block is now a part (its rails are still on that input)
+    spares, freed_by = [], {r["user_name"]: r for r in freed}
+    for p in (p for p in staging_pins if not p.block or p.block in lay.parts):
         name = f"unused {p.input}"
         old = prior.pop(("occupancy", name), None)
-        if old is None or old["role"] != "spare":
-            bad.append(f"{PINS.name} line {p.line}: spare input {p.input} has no spare row {name!r} in {OUT.name} "
-                       "to carry (add it, or give the pin its block)")
+        if old is not None and old["role"] != "spare":
+            bad.append(f"{PINS.name} line {p.line}: {name} is a {old['role']} row in {OUT.name}, not a spare")
             continue
-        spares.append(wire_occupancy(dict(old, written_by="build_device_map.py"), p))
+        row = (dict(old, written_by="build_device_map.py") if old is not None
+               else freed_by.pop(name, None) or new_spare(p))
+        spares.append(wire_occupancy(row, p))
+    for r in freed_by.values():
+        bad.append(f"{r['user_name']}: its block is now a part but no pin in {PINS.name} is on that input")
     for key in [k for k, r in prior.items() if r["role"] == "spare"]:
-        bad.append(f"spare {key[1]} of {OUT.name} has no spare pin (no block) in {PINS.name}")
+        drops.add((FIELD_LEVEL, key[0], key[1]))       # no longer a spare input (a block's pin took it): it goes
         prior.pop(key)
-    taken = {r["user_name"] for r in spares}
-    for r in freed:
-        if r["user_name"] in taken:
-            bad.append(f"{r['user_name']}: a spare of that name is in {OUT.name} already")
-    spares += freed
     for key in [k for k, r in prior.items() if r["role"] == "part"]:
         prior.pop(key)          # a part no longer drawn (its row is this script's alone, no field facts): it goes
     if prior:

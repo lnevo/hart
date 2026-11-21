@@ -382,11 +382,40 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
                 (lambda t: t.replace("1,,,,,Track Barn,13,1,as wired\n", ""),
                  "staging block Track Barn: its detector BS Barn has no level 1 row"),
                 (lambda t: t + "1,,,,,Track Nowhere,5,1,\n", "staging has no block Track Nowhere"),
-                (lambda t: t + "1,,,,,,5,1,\n", "spare input Block 5-1 has no spare row 'unused Block 5-1'"),
-                (lambda t: t.replace("1,,,,,,2,2,", "1,,,,,Track Barn 2,2,2,"),
-                 "spare unused Block 2-2 of devices.csv has no spare pin")):
+                (lambda t: t.replace("1,,,,,Track Barn,13,1,", "1,,,,,Track Helix Inner,13,1,"),
+                 "Track Helix Inner is a helix block"),
+                (lambda t: t.replace("2,,,,,Track Helix Outer,41,2,", "2,,,,,Track Helix Outer,41,x,"),
+                 "node and block_input are numbers")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 self.rows(pins=pins)
+
+    def test_a_block_swapped_onto_a_spare_input_moves_the_spare(self):
+        """Track Barn moves to the spare input 2-2 in detector_pins.csv alone: BS Barn follows, 13-1 becomes a new
+        spare row (no name-map columns) and the old spare row of 2-2 is dropped on purpose."""
+        got, _adopts, drops = self.rows(pins=lambda t: t.replace("1,,,,,Track Barn,13,1,", "1,,,,,,13,1,")
+                                        .replace("1,,,,,,2,2,", "1,,,,,Track Barn,2,2,"))
+        by = self.by(got)
+        self.assertEqual(by[("occupancy", "BS Barn")]["system_name"], "M2S201")
+        spare = by[("occupancy", "unused Block 13-1")]
+        self.assertEqual((spare["role"], spare["system_name"], spare["wiring"], spare["pnm_order"]),
+                         ("spare", "M2S1300", "Node: 13 Block: 1", ""))
+        self.assertNotIn(("occupancy", "unused Block 2-2"), by)
+        self.assertEqual(drops, {("1", "occupancy", "unused Block 2-2")})
+
+    def test_a_block_made_a_part_builds_again_from_its_own_output(self):
+        """The first build after a block becomes a part writes its spare; the next build over that output, with the
+        pin left as it is, gives the same rows back (the part's pin is the spare's)."""
+        extra = "1,track,33,35,,,OS Switch 33,,\n"
+        got, adopts, drops = self.rows(extra_exception=extra)
+        out = devices.outputs_after("build_device_map.py", [], self.files, drops=drops, master_rows=got, adopts=adopts)
+        master = temp_file("devices.csv", out[self.files.master])
+        self.addCleanup(remove, master)
+        ex = temp_file("block_exceptions.csv", BL.exceptions_path().read_text(encoding="utf-8") + extra)
+        self.addCleanup(remove, ex)
+        again, _a, drops2 = bdm.staging_rows(self.bands, self.joined, self.runs, devices.Files.under(master.parent),
+                                             exceptions=ex)
+        self.assertEqual(again, got)
+        self.assertEqual(drops2, set())
 
     def test_a_block_comment_with_no_occupancy_part_stops(self):
         def edit(rows):
