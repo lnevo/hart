@@ -42,6 +42,7 @@ V_GAP = 14
 BAND_PAD = 40
 DUMMY_H = 6
 WRAP = 44  # characters per description line at the description font size
+TITLE_WRAP = 30  # characters per title line (bold, larger)
 
 
 class GraphError(Exception):
@@ -55,7 +56,13 @@ def load(path: Path) -> dict:
         raise GraphError("a domain id is repeated")
     ids: set[str] = set()
     problems = []
+    if not data.get("nodes"):
+        raise GraphError("the graph has no nodes")
+    paths: dict[str, str] = {}
     for n in data["nodes"]:
+        if not n.get("id"):
+            problems.append(f"a node has no id: {n}")
+            continue
         nid = n["id"]
         if nid in ids:
             problems.append(f"node {nid!r} is listed twice")
@@ -67,10 +74,19 @@ def load(path: Path) -> dict:
         if n.get("domain") not in domains:
             problems.append(f"node {nid!r}: domain {n.get('domain')!r} is not a listed domain")
         p = n.get("path", "")
+        if p and p.rstrip("/") in paths:
+            problems.append(f"node {nid!r}: path {p} is already node {paths[p.rstrip('/')]!r}")
+        if p:
+            paths[p.rstrip("/")] = nid
         if p and not n.get("local") and not (ROOT / p.rstrip("/")).exists():
             problems.append(f"node {nid!r}: path {p} does not exist (mark it \"local\": true if it is a gitignored mirror)")
     seen_edges = set()
+    linked: set[str] = set()
     for e in data["edges"]:
+        if not e.get("from") or not e.get("to"):
+            problems.append(f"an edge lacks a from or to end: {e}")
+            continue
+        linked.update((e["from"], e["to"]))
         for end in ("from", "to"):
             if e[end] not in ids:
                 problems.append(f"edge {e['from']} -> {e['to']}: {end} end is not a node")
@@ -80,6 +96,8 @@ def load(path: Path) -> dict:
         seen_edges.add(key)
         if e["from"] == e["to"]:
             problems.append(f"edge {e['from']} points at itself")
+    for nid in sorted(ids - linked):
+        problems.append(f"node {nid!r} has no links; link it or remove it")
     if problems:
         raise GraphError("\n".join(problems))
     return data
@@ -92,8 +110,13 @@ def wrap_desc(text: str) -> list[str]:
     return textwrap.wrap(text, WRAP) if text else []
 
 
+def title_lines(n: dict) -> list[str]:
+    status = n.get("status", "live")
+    return textwrap.wrap(n["label"] + ("" if status == "live" else f"  [{status}]"), TITLE_WRAP) or [""]
+
+
 def node_height(n: dict) -> int:
-    h = 26  # title
+    h = 8 + 16 * len(title_lines(n))  # title
     if n.get("path"):
         h += 15
     h += 13 * len(wrap_desc(n.get("desc", "")))
@@ -349,12 +372,12 @@ def svg(lay: dict, domains: dict) -> str:
     parts.append('<g id="bands">')
     for b in lay["bands"]:
         parts.append(
-            f'<rect x="{-left}" y="{b["y"]}" width="{W}" height="{b["h"]}" fill="{b["color"]}" fill-opacity="0.10"/>'
-            f'<line x1="{-left}" x2="{W - left}" y1="{b["y"]}" y2="{b["y"]}" stroke="{b["color"]}" stroke-opacity="0.5"/>'
+            f'<rect x="{-left}" y="{b["y"]}" width="{W}" height="{b["h"]}" fill="{esc(b["color"])}" fill-opacity="0.10"/>'
+            f'<line x1="{-left}" x2="{W - left}" y1="{b["y"]}" y2="{b["y"]}" stroke="{esc(b["color"])}" stroke-opacity="0.5"/>'
         )
         for x in range(-left + 10, int(W - left), 3000):
             parts.append(
-                f'<text class="band" x="{x}" y="{b["y"] + 110}" fill="{b["color"]}">{esc(b["label"])}</text>'
+                f'<text class="band" x="{x}" y="{b["y"] + 110}" fill="{esc(b["color"])}">{esc(b["label"])}</text>'
             )
     parts.append("</g><g id=\"edges\">")
     for i, e in enumerate(lay["edges"]):
@@ -367,7 +390,7 @@ def svg(lay: dict, domains: dict) -> str:
     parts.append('</g><g id="elabels">')
     for i, e in enumerate(lay["edges"]):
         if e.get("label"):
-            (x0, y0), (x1, y1) = e["pts"][-2], e["pts"][-1]
+            x1, y1 = e["pts"][-1]
             parts.append(
                 f'<text class="elabel" data-edge="e{i}" x="{x1 - 8:.1f}" y="{y1 - 4:.1f}" text-anchor="end">'
                 f'{esc(e["label"])}</text>'
@@ -376,16 +399,17 @@ def svg(lay: dict, domains: dict) -> str:
     for n in lay["nodes"]:
         _, fill, ink = KINDS[n["kind"]]
         status = n.get("status", "live")
-        dcol = domains[n["domain"]]["color"]
+        dcol = esc(domains[n["domain"]]["color"])
         x, y, w, h = n["x"], n["y"], n["w"], n["h"]
         parts.append(
             f'<g class="node {n["kind"]} {status}" data-id="{esc(n["id"])}" transform="translate({x:.1f},{y:.1f})">'
             f'<rect class="box" width="{w}" height="{h}" rx="6" fill="{fill}" stroke="{ink}"/>'
             f'<rect width="6" height="{h}" rx="3" fill="{dcol}"/>'
         )
-        title = n["label"] + ("" if status == "live" else f"  [{status}]")
-        parts.append(f'<text class="t" x="14" y="18" fill="{ink}">{esc(title)}</text>')
-        ty = 18
+        ty = 2
+        for line in title_lines(n):
+            ty += 16
+            parts.append(f'<text class="t" x="14" y="{ty}" fill="{ink}">{esc(line)}</text>')
         if n.get("path"):
             ty += 15
             p = n["path"] if len(n["path"]) <= 37 else "…" + n["path"][-36:]
@@ -475,8 +499,10 @@ function zoomAt(f, cx, cy){ const r = wrap.getBoundingClientRect();
   const nw = Math.min(Math.max(vb.width * f, 200), W * 4), nh = nw * vb.height / vb.width;
   setVB(px - (px - vb.x) * nw / vb.width, py - (py - vb.y) * nh / vb.height, nw, nh); }
 wrap.addEventListener('wheel', e => { e.preventDefault();
-  if (e.ctrlKey || !e.shiftKey && Math.abs(e.deltaY) > Math.abs(e.deltaX) && e.deltaMode === 1 || e.ctrlKey) {}
-  const f = Math.exp((e.ctrlKey ? 0.012 : 0.0025) * e.deltaY); zoomAt(f, e.clientX, e.clientY); }, {passive:false});
+  const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? wrap.clientHeight : 1;
+  const dx = e.deltaX * unit, dy = e.deltaY * unit;
+  if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { const r = wrap.getBoundingClientRect(); vb.x += dx * vb.width / r.width; return; }
+  zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY); }, {passive:false});
 let drag = null, moved = false;
 wrap.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY, vx:vb.x, vy:vb.y}; moved = false; wrap.classList.add('drag'); });
 window.addEventListener('pointermove', e => { if (!drag) return; const r = wrap.getBoundingClientRect();
@@ -494,14 +520,14 @@ const edgeEls = [...svg.querySelectorAll('.edge')], labelEls = [...svg.querySele
 function walk(start, adj, key){ const seen = new Set([start]), st = [start];
   while (st.length) { const v = st.pop(); (adj[v] || []).forEach(e => { const w = e[key]; if (!seen.has(w)) { seen.add(w); st.push(w); } }); }
   return seen; }
-function clearFocus(){ if (location.hash) history.replaceState(null, '', location.pathname); svg.classList.remove('focus'); svg.querySelectorAll('.on,.sel,.upstream,.near').forEach(el => el.classList.remove('on','sel','upstream','near'));
+function clearFocus(user){ if (user && location.hash) history.replaceState(null, '', location.pathname + location.search); svg.classList.remove('focus'); svg.querySelectorAll('.on,.sel,.upstream,.near').forEach(el => el.classList.remove('on','sel','upstream','near'));
   document.getElementById('info').style.display = 'none'; }
 function centreOn(id, zoom){ const n = byId[id]; const r = wrap.getBoundingClientRect();
   const w = zoom ? 1800 : vb.width, h = w * r.height / r.width; setVB(n.x + n.w/2 - w/2, n.y + n.h/2 - h/2, w, h); }
 function esc(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 function link(id){ const n = byId[id]; return `<a data-go="${esc(id)}">${esc(n.label)}</a>`; }
 function select(id, fromUrl){
-  clearFocus(); if (!fromUrl) history.replaceState(null, '', '#node=' + encodeURIComponent(id)); const up = walk(id, ins, 'from'), down = walk(id, outs, 'to');
+  clearFocus(false); if (!fromUrl) history.replaceState(null, '', '#node=' + encodeURIComponent(id)); const up = walk(id, ins, 'from'), down = walk(id, outs, 'to');
   svg.classList.add('focus'); nodeEl[id].classList.add('sel');
   up.forEach(v => nodeEl[v].classList.add('on')); down.forEach(v => nodeEl[v].classList.add('on'));
   edgeEls.forEach((el, i) => { const f = el.dataset.from, t = el.dataset.to;
@@ -518,27 +544,28 @@ function select(id, fromUrl){
    <b>Feeds</b><ul>${(outs[id] || []).map(e => `<li>${link(e.to)}${e.label ? ' — ' + esc(e.label) : ''}</li>`).join('') || '<li>nothing (an end product)</li>'}</ul>
    <div style="color:#666">${up.size - 1} upstream, ${down.size - 1} downstream in all.</div>`;
   info.style.display = 'block';
-  info.querySelector('.close').onclick = clearFocus;
+  info.querySelector('.close').onclick = () => clearFocus(true);
   info.querySelectorAll('a[data-go]').forEach(a => a.onclick = () => { select(a.dataset.go); centreOn(a.dataset.go, false); });
 }
-svg.addEventListener('click', e => { if (moved) return; const g = e.target.closest('.node'); if (g) select(g.dataset.id); else clearFocus(); });
+svg.addEventListener('click', e => { if (moved) return; const g = e.target.closest('.node'); if (g) select(g.dataset.id); else clearFocus(true); });
 const q = document.getElementById('q'), hits = document.getElementById('hits'); let found = [], fi = 0;
 q.addEventListener('input', () => { svg.querySelectorAll('.node.hit').forEach(g => g.classList.remove('hit'));
   const t = q.value.trim().toLowerCase(); found = [];
-  if (t) found = DATA.nodes.filter(n => (n.label + ' ' + n.id + ' ' + (n.path||'') + ' ' + (n.desc||'')).toLowerCase().includes(t)).map(n => n.id);
+  if (t) found = DATA.nodes.filter(n => (n.label + ' ' + n.id + ' ' + (n.path||'') + ' ' + (n.desc||'')).toLowerCase().includes(t)).map(n => n.id).filter(id => !nodeEl[id].classList.contains('hidden'));
   found.forEach(id => nodeEl[id].classList.add('hit')); hits.textContent = t ? `${found.length} found` + (found.length ? ' (Enter to step)' : '') : ''; fi = 0; });
 q.addEventListener('keydown', e => { if (e.key === 'Enter' && found.length) { const id = found[fi++ % found.length]; centreOn(id, true); select(id); } });
-document.addEventListener('keydown', e => { if (e.target === q) return; if (e.key === 'Escape') clearFocus(); if (e.key === 'f' || e.key === 'F') fit(); });
-function toggle(status, on){ DATA.nodes.filter(n => (n.status||'live') === status).forEach(n => {
-    nodeEl[n.id].classList.toggle('hidden', !on);
-    edgeEls.forEach((el, i) => { if (el.dataset.from === n.id || el.dataset.to === n.id) { el.classList.toggle('hidden', !on);
-      const l = svg.querySelector(`.elabel[data-edge="e${i}"]`); if (l) l.classList.toggle('hidden', !on); } }); }); }
-document.getElementById('parked').onchange = e => toggle('parked', e.target.checked);
-document.getElementById('retired').onchange = e => toggle('retired', e.target.checked);
+document.addEventListener('keydown', e => { if (e.target === q) return; if (e.key === 'Escape') clearFocus(true); if (e.key === 'f' || e.key === 'F') fit(); });
+function refreshFilters(){ const show = {live: true, parked: document.getElementById('parked').checked, retired: document.getElementById('retired').checked};
+  const visible = id => show[byId[id].status || 'live'];
+  DATA.nodes.forEach(n => nodeEl[n.id].classList.toggle('hidden', !visible(n.id)));
+  edgeEls.forEach((el, i) => { const off = !visible(el.dataset.from) || !visible(el.dataset.to); el.classList.toggle('hidden', off);
+    const l = svg.querySelector(`.elabel[data-edge="e${i}"]`); if (l) l.classList.toggle('hidden', off); }); }
+document.getElementById('parked').onchange = refreshFilters;
+document.getElementById('retired').onchange = refreshFilters;
 document.getElementById('labels').onchange = e => document.getElementById('elabels').classList.toggle('hidden', !e.target.checked);
 labelEls.forEach(l => { const p = document.getElementById(l.dataset.edge); const len = p.getTotalLength();
   const m = p.getPointAtLength(len / 2); l.setAttribute('x', m.x); l.setAttribute('y', m.y - 3); l.setAttribute('text-anchor', 'middle'); });
-window.addEventListener('resize', () => { const r = wrap.getBoundingClientRect(); const cx = vb.x + vb.width / 2, cy = vb.y + vb.height / 2;
+window.addEventListener('resize', () => { const r = wrap.getBoundingClientRect(); const cy = vb.y + vb.height / 2;
   const h = vb.width * r.height / r.width; setVB(vb.x, cy - h / 2, vb.width, h); }); fit();
 function fromHash(){ const m = location.hash.match(/^#node=(.+)$/); const id = m && decodeURIComponent(m[1]);
   if (id && byId[id]) { centreOn(id, true); select(id, true); } }
@@ -555,7 +582,7 @@ def render(data: dict) -> str:
         for label, fill, ink in KINDS.values()
     )
     legend += "<div style='margin-top:6px'><b>Domains</b></div>" + "".join(
-        f'<div><span class="sw" style="background:{d["color"]};border-color:{d["color"]}"></span>{esc(d["label"])}</div>'
+        f'<div><span class="sw" style="background:{esc(d["color"])};border-color:{esc(d["color"])}"></span>{esc(d["label"])}</div>'
         for d in data["domains"]
     )
     page_data = {

@@ -38,7 +38,22 @@ class GraphChecksTest(unittest.TestCase):
     def test_missing_tracked_path_fails_unless_local(self) -> None:
         with self.assertRaisesRegex(MAP.GraphError, "does not exist"):
             load([node("x", path="no/such/file.csv")], [])
-        load([node("x", path="no/such/file.csv", local=True)], [])
+        load([node("x", path="no/such/file.csv", local=True), node("y")], [{"from": "x", "to": "y"}])
+
+    def test_isolated_node_and_shared_path(self) -> None:
+        with self.assertRaisesRegex(MAP.GraphError, "node 'z' has no links"):
+            load([node("x"), node("y"), node("z")], [{"from": "x", "to": "y"}])
+        with self.assertRaisesRegex(MAP.GraphError, "path tools/ops/ is already node .x."):
+            load([node("x", path="tools/ops"), node("y", path="tools/ops/")], [{"from": "x", "to": "y"}])
+
+    def test_malformed_edge_is_reported_not_raised(self) -> None:
+        with self.assertRaisesRegex(MAP.GraphError, "lacks a from or to end"):
+            load([node("x"), node("y")], [{"form": "x", "to": "y"}])
+
+    def test_repo_graph_loads_and_page_is_current(self) -> None:
+        """The committed map: every tracked path exists and index.html matches the graph."""
+        data = MAP.load(MAP.GRAPH)
+        self.assertEqual(MAP.PAGE.read_text(), MAP.render(data), "run python3 tools/ops/build_pipeline_map.py")
 
     def test_repeated_node_and_edge(self) -> None:
         with self.assertRaisesRegex(MAP.GraphError, "listed twice"):

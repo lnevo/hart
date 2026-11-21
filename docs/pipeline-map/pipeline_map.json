@@ -2101,15 +2101,6 @@
    "path": "ops/station_maps/scripts"
   },
   {
-   "id": "ops/station_maps/src",
-   "label": "station_maps/maps + src",
-   "kind": "unstructured",
-   "status": "live",
-   "domain": "ops",
-   "desc": "Station map source PNGs extracted from car-cards docs, trackplan clean PNG.",
-   "path": "ops/station_maps/maps"
-  },
-  {
    "id": "tools/hosts/pi_sts_pull_backups.sh",
    "label": "pi_sts_pull_backups.sh (make sts-pull)",
    "kind": "generator",
@@ -2930,15 +2921,6 @@
    "domain": "wiring",
    "desc": "Generated per-level LCOS node, board and pin inventory workbook (never hand edited); feeds the wiring deck and the site's wiring viewer.",
    "path": "docs/wiring/LCOS_Layout_Inventory_v86.xlsx"
-  },
-  {
-   "id": "docs/wiring/README.md",
-   "label": "docs/wiring docs",
-   "kind": "unstructured",
-   "status": "live",
-   "domain": "wiring",
-   "desc": "README, CHANGELOG, terminal_blocks.md: prose describing wiring pack and crosswalk rules.",
-   "path": "docs/wiring/README.md"
   },
   {
    "id": "docs/wiring/Wiring_Schematic.pptx",
@@ -4824,6 +4806,11 @@
    "to": "ops/hart-ops/card_pipeline/export_operations_roster.py"
   },
   {
+   "from": "ops/hart-ops/bin/cars",
+   "to": "ops/hart-ops/data/loco_queue.csv",
+   "label": "review, mark-printed"
+  },
+  {
    "from": "ops/hart-ops/card_pipeline",
    "to": "ops/hart-ops/card_pipeline/intake_stages.py"
   },
@@ -4966,6 +4953,11 @@
    "to": "ops/hart-ops/card_pipeline/site_gallery.py"
   },
   {
+   "from": "ops/hart-ops/data/loco_queue.csv",
+   "to": "ops/car-cards/print",
+   "label": "queued locos"
+  },
+  {
    "from": "ops/hart-ops/data/locos.csv",
    "to": "ops/car-cards/print",
    "label": "loco cards"
@@ -5066,22 +5058,22 @@
   },
   {
    "from": "ops/station_maps/maps",
+   "to": "ops/hart-ops/publications/assets",
+   "label": "map images"
+  },
+  {
+   "from": "ops/station_maps/maps",
+   "to": "ops/station_maps/scripts"
+  },
+  {
+   "from": "ops/station_maps/maps",
    "to": "www/scripts/published-files.json",
    "label": "mapped sources"
   },
   {
    "from": "ops/station_maps/scripts",
-   "to": "ops/station_maps/src",
+   "to": "ops/station_maps/maps",
    "label": "redraw PNGs"
-  },
-  {
-   "from": "ops/station_maps/src",
-   "to": "ops/hart-ops/publications/assets",
-   "label": "map images"
-  },
-  {
-   "from": "ops/station_maps/src",
-   "to": "ops/station_maps/scripts"
   },
   {
    "from": "tools/anyrail/anyplan.py",
@@ -5207,6 +5199,76 @@
    "from": "tools/env/hart.env",
    "to": "tools/hartlib/src/hartlib/hosts.py",
    "label": "override"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/audit/check_name_copies.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/schematic/build_staging_masts.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/schematic/build_tables.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/schematic/split_store.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/wiring/freeze_wiring.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "tools/wiring/write_inventory.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "www/scripts/build_layout_index.py",
+   "label": "imports"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/devices.py",
+   "to": "www/scripts/jmri_additions_page.py",
+   "label": "imports"
   },
   {
    "from": "tools/hartlib/src/hartlib/hosts.py",
