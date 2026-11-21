@@ -49,7 +49,7 @@
       "</h2><dl>" +
       row("Kind", item.kind) +
       row("System", item.systemName) +
-      row("Control point", item.cp) +
+      row("Control point", (item.cp || "").split(";").filter(Boolean).join(", ")) +
       row("Hardware", item.hardware) +
       row("MQTT", item.mqtt) +
       row("Block", item.block) +

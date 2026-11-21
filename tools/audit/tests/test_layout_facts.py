@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "mast_cells.csv",
+DATA_FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv",
               "uss_board_cells.csv", "uss_board_plants.csv")
 
 
@@ -208,13 +208,20 @@ class LayoutFactsTest(unittest.TestCase):
         stations.write_text("".join(line for line in stations.read_text().splitlines(True)
                                     if not line.startswith("1,Engine House,")))
         out = self.failures(data=data)
-        self.assertIn("Engine House: a cp in the name map of devices.csv with no desk area (and no level) in "
+        self.assertIn("Engine House: a cp of a staging row of devices.csv with no desk area (and no level) in "
                       "stations.csv", out)
 
-    def test_a_main_takes_the_level_of_the_blocks_it_joins(self) -> None:
-        # switches.csv keeps staging switches (the ones with legs) on level 1, so the switch is moved in memory
+    def test_a_block_in_no_place_takes_the_level_of_the_blocks_it_joins(self) -> None:
+        # every staging line block lists the places it joins (cp, owner 2026-11-21), so Track Main West's is emptied
+        # in a copy; switches.csv keeps staging switches (the ones with legs) on level 1, so the switch is moved in
+        # memory
         import dataclasses
         from unittest import mock
+        sys.path.insert(0, str(ROOT / "tools/hartlib/tests"))
+        from master_edit import change
+        data = self.data_copy()
+        change(data / "devices.csv", ("1", "block", "Track Main West"), cp="")
+        import gen_ctc_track_plan  # noqa: F401  it reads switches.csv once at import: before the patch moves Switch 1
         real = check.facts.load_switches
 
         def moved(data=check.facts.DATA):
@@ -222,7 +229,7 @@ class LayoutFactsTest(unittest.TestCase):
             out[1] = dataclasses.replace(out[1], level="2")
             return out
         with mock.patch.object(check.facts, "load_switches", moved):
-            out = self.failures()
+            out = self.failures(data=data)
         self.assertTrue(any(m.startswith("Track Main West: no control point") and "are on levels ['1', '2']" in m
                             for m in out), out)
 

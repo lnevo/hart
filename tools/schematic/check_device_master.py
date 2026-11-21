@@ -98,6 +98,16 @@ def control_points(interlockings: list[railroad.Interlocking], stations_path: Pa
     return dict(out)
 
 
+def known_places(interlockings: list[railroad.Interlocking], stations_path: Path = STATIONS) -> set[str]:
+    """Every station of stations.csv and control point of interlockings.csv, any level: the places a line block's
+    cp may list (build_device_map.line_cp; a helix block joins two levels)."""
+    try:
+        stations = railroad.read_stations(stations_path)
+    except railroad.FactsError as exc:
+        raise DeviceMasterError(str(exc)) from None
+    return {i.name for i in interlockings} | {s.name for s in stations}
+
+
 def _at(n: int, r: dict, where: str) -> str:
     return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
 
@@ -114,13 +124,12 @@ def switch_cps(interlockings: list[railroad.Interlocking], stations_path: Path =
     return dict(out)
 
 
-def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], drawing=None,
-                  stations_path: Path = STATIONS) -> dict[str, set[str]]:
-    """{block: the control points of the switches at its track's ends} of every block row whose trial names are
-    tracks of the main and upper drawing (`drawing`: (bands, joined, runs), default build_device_map.solve's; its
-    tracks build_device_map.named_tracks, each strand keyed by staging_device_map.band_refs, the grammar of every
-    level's trial names). A row's level is the band its track is drawn on, so a track drawn on the upper band from a
-    main level switch (Track 127-221) has that switch's control point among them."""
+def block_end_switches(lines: list[tuple[int, dict]], drawing=None) -> dict[str, set[str]]:
+    """{block: the switches at its track's ends} of every block row whose trial names are tracks of the drawing
+    (`drawing`: (bands, joined, runs), default build_device_map.solve's; its tracks build_device_map.named_tracks,
+    each strand keyed by staging_device_map.band_refs, the grammar of every level's trial names). A row's level is the
+    band its track is drawn on, so a track drawn on the upper band from a main level switch (Track 127-221) has that
+    switch among them."""
     import build_device_map as bdm      # the drawing's tracks and their end switches (needs the plugin)
     bands, joined, runs = bdm.solve()[:3] if drawing is None else drawing
     found = bdm.named_tracks(bands, joined, runs)
@@ -134,7 +143,6 @@ def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.In
                 ends[refs[t["band"]][sid][0]] = {v for k, v in t["ends"] if k == "sw"}
     except sdm.StagingMapError as exc:
         raise DeviceMasterError(str(exc)) from None
-    cp_of = switch_cps(interlockings, stations_path)
     out = defaultdict(set)
     for _n, r in lines:
         if r["layer"] != "block":
@@ -146,17 +154,58 @@ def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.In
                 got = ends.get(sdm.piece_of(ph)[0])
             except sdm.StagingMapError as exc:
                 raise DeviceMasterError(f"block {r['user_name']}: {exc}") from None
-            for s in got or ():
-                out[r["user_name"]] |= cp_of.get(s, set())
+            out[r["user_name"]] |= set(got or ())
+    # staging's blocks are named by the one block process over its band (build_device_map.staging_layer): their
+    # tracks and parts by block name
+    try:
+        lay, _bi, _found = bdm.staging_layer(bands, joined, runs)
+    except bdm.MapError as exc:
+        raise DeviceMasterError(f"staging's blocks: {exc}") from None
+    staging = {r["user_name"] for _n, r in lines if r["level"] == str(sdm.LEVEL) and r["layer"] == "block"}
+    tracks = {name: t for name, (t, _h) in lay.tracks.items()} | {name: p["track"] for name, p in lay.parts.items()}
+    for name in staging & set(tracks):
+        out[name] |= {v for k, v in tracks[name]["ends"] if k == "sw"}
+    return dict(out)
+
+
+def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], drawing=None,
+                  stations_path: Path = STATIONS, ends: dict[str, set[str]] | None = None) -> dict[str, set[str]]:
+    """{block: the control points of the switches at its track's ends} (block_end_switches, or `ends` when the caller
+    read them already; switch_cps)."""
+    ends = block_end_switches(lines, drawing) if ends is None else ends
+    cp_of = switch_cps(interlockings, stations_path)
+    return {b: {c for s in sws for c in cp_of.get(s, set())} for b, sws in ends.items()}
+
+
+def line_block_places(ends: dict[str, set[str]]) -> dict[str, set[str]]:
+    """{block: the places its cp may list}: the rule's own inputs (build_device_map.line_cp), the places of the
+    switches at its ends (`ends`: block_end_switches), of a helix block's two end switches (helix_tracks.csv), and
+    the stations whose tracks cell names it."""
+    import build_device_map as bdm      # read_places, helix_ends: the rule's inputs
+    try:
+        places = bdm.read_places()
+        helix = bdm.helix_ends(bdm.read_helix_tracks())
+    except (bdm.MapError, railroad.FactsError) as exc:
+        raise DeviceMasterError(str(exc)) from None
+    out = defaultdict(set)
+    for b in set(ends) | set(helix) | set(places.tracks):
+        for s in ends.get(b, set()) | helix.get(b, set()):
+            out[b] |= set(places.of.get(s, ()))
+        out[b] |= set(places.tracks.get(b, ()))
     return dict(out)
 
 
 def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where: str = DEVICE_MAP.name,
-                 ends_cps: dict[str, set[str]] | None = None) -> list[str]:
+                 ends_cps: dict[str, set[str]] | None = None, places: set[str] | None = None,
+                 line_places: dict[str, set[str]] | None = None) -> list[str]:
     """Each row's own rules (the module text), as problems naming its line, level, layer and user name. `ends_cps`
     (block_end_cps) lets a block or occupancy row name the control point of an end switch of its block on another
-    level; None (no drawing read) leaves such a row unchecked, {} refuses it."""
+    level; None (no drawing read) leaves such a row unchecked, {} refuses it. A line block's cp (devices.LINE_ROLES,
+    and its sensor's) is a list each of whose places is in `places` (known_places; None: every level's `cps`) and,
+    when `line_places` is given (line_block_places; None: the drawing is not read), one the rule can give it: at an
+    end switch of its block, or a station whose tracks name it."""
     bad, trial = [], {}
+    places = set().union(*cps.values()) if places is None else places
     for n, r in lines:
         at, level, layer = _at(n, r, where), r["level"], r["layer"]
         if layer not in sdm.LAYERS:
@@ -165,7 +214,19 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
         bad += [f"{at}: {p}" for p in railroad.device_facts(r)]
         if r["assignment"] == "field" and not (r["user_name"] and r["system_name"] and r["jmri_name"]):
             bad.append(f"{at}: a field device needs a user_name, a system_name and a jmri_name")
-        if r["cp"] and r["cp"] not in cps.get(level, ()):
+        if r["role"] in devices.LINE_ROLES:
+            unknown = [p for p in devices.cp_list(r) if p not in places]
+            if unknown:
+                bad.append(f"{at}: cp names {', '.join(unknown)}, no station of {STATIONS.name} or control point of "
+                           "interlockings.csv")
+            elif line_places is not None:
+                blocks = [r["user_name"]] if layer == "block" else sdm.occupancy_blocks(r)
+                allowed = set().union(*(line_places.get(b, set()) for b in blocks))
+                off = [p for p in devices.cp_list(r) if p not in allowed]
+                if off:
+                    bad.append(f"{at}: cp names {', '.join(off)}, at no end switch of {', '.join(blocks)} and named "
+                               f"by no station's tracks in {STATIONS.name}")
+        elif r["cp"] and r["cp"] not in cps.get(level, ()):
             blocks = [r["user_name"]] if layer == "block" else sdm.occupancy_blocks(r) if layer == "occupancy" else []
             if ends_cps is None and blocks:
                 pass                        # the drawing is not read: check_device_master main says SKIPPED
@@ -311,22 +372,25 @@ def check(band=None) -> list[str]:
         lines = master_lines()
         rr = railroad.Railroad()
         cps = control_points(rr.interlockings)
+        places = known_places(rr.interlockings)
     except ERRORS as exc:
         return [str(exc)]
     bad: list[str] = []
-    ends = None
+    ends = line_places = None
     if band is not None:
         try:
-            ends = block_end_cps(lines, rr.interlockings)
+            switches = block_end_switches(lines)
+            ends = block_end_cps(lines, rr.interlockings, ends=switches)
+            line_places = line_block_places(switches)
         except ERRORS as exc:
             bad.append(f"the main and upper drawing's tracks: {exc}")
-            ends = {}
+            ends, line_places = {}, None
     by_level = defaultdict(list)
     for n, r in lines:
         by_level[r["level"]].append((n, r))
     staging_bad = False
     for level, mine in sorted(by_level.items()):
-        got = row_problems(mine, cps, ends_cps=ends)
+        got = row_problems(mine, cps, ends_cps=ends, places=places, line_places=line_places)
         staging_bad = staging_bad or (level == str(sdm.LEVEL) and bool(got))
         bad += got
     _part(bad, lambda: check_rows(lines, {h.block for h in rr.helix_tracks.values()}))

@@ -20,7 +20,6 @@ from pathlib import Path
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import devices as device_master, names, paths, railroad_facts, tables  # noqa: E402
-from hartlib.names import row_comment  # noqa: E402
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = paths.REPO_ROOT
@@ -47,31 +46,22 @@ def load_render_mod():
 
 
 def load_names(path: Path):
+    """({system name: record}, {user name: record}) of staging's rows of devices.csv: its user name (current and
+    proposed, as the page keys them), cp, system name (hardware) and JMRI comment (hartlib.devices.comment_of)."""
     by_hw, by_name = {}, {}
-    for _line, row in device_master.name_map_lines(path):
-        hist = "historical" in (row.get("notes") or "").lower()
-        hw = (row.get("hardware") or "").strip()
-        current = (row.get("current") or "").strip()
-        proposed = (row.get("proposed") or "").strip()
+    for row in device_master.load(path):
+        if row["level"] != device_master.FIELD_LEVEL:
+            continue
         rec = {
-            "current": current,
-            "proposed": proposed,
-            "cp": row.get("cp") or "",
-            "hardware": hw,
-            "comment": row_comment(row),
-            "historical": hist,
+            "current": row["user_name"],
+            "proposed": row["user_name"],
+            "cp": row["cp"],
+            "hardware": row["system_name"],
+            "comment": device_master.comment_of(row),
         }
-
-        def prefer(store, key):
-            if not key:
-                return
-            prev = store.get(key)
-            if prev is None or (prev.get("historical") and not hist):
-                store[key] = rec
-
-        prefer(by_hw, hw)
-        prefer(by_name, current)
-        prefer(by_name, proposed)
+        if row["system_name"]:
+            by_hw.setdefault(row["system_name"], rec)
+        by_name.setdefault(row["user_name"], rec)
     return by_hw, by_name
 
 

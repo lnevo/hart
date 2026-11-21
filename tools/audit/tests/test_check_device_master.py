@@ -23,6 +23,7 @@ class Master(unittest.TestCase):
         cls.rr = cdm.railroad.Railroad()
         cls.lines = cdm.master_lines()
         cls.cps = cdm.control_points(cls.rr.interlockings)
+        cls.places = cdm.known_places(cls.rr.interlockings)
         cls.helix = {h.block for h in cls.rr.helix_tracks.values()}
 
     def edited(self, edit=None, drop=()):
@@ -55,14 +56,25 @@ class Master(unittest.TestCase):
 class RowRules(Master):
     def test_the_committed_rows_hold_on_every_level(self):
         self.assertEqual({r["level"] for _n, r in self.lines}, {"1", "2", "3"})
-        self.assertEqual(cdm.row_problems(self.lines, self.cps), [])
+        self.assertEqual(cdm.row_problems(self.lines, self.cps, places=self.places), [])
         self.assertEqual(cdm.check_rows(self.lines, self.helix), [])
 
     def test_a_cp_is_one_of_its_levels(self):
-        got = cdm.row_problems(self.edited({("2", "Track 101-111"): dict(cp="CP 201"),
-                                            ("1", "Track Barn"): dict(cp="CP 107")}), self.cps, ends_cps={})
-        self.assertProblem(r"\(level 2 block Track 101-111\): cp 'CP 201' is no level 2 control point", got)
-        self.assertProblem(r"\(level 1 block Track Barn\): cp 'CP 107' is no level 1 control point", got)
+        got = cdm.row_problems(self.edited({("2", "Switch 107"): dict(cp="CP 201"),
+                                            ("1", "OS Switch 9"): dict(cp="CP 107")}), self.cps, ends_cps={},
+                               places=self.places)
+        self.assertProblem(r"\(level 2 turnout Switch 107\): cp 'CP 201' is no level 2 control point", got)
+        self.assertProblem(r"\(level 1 block OS Switch 9\): cp 'CP 107' is no level 1 control point", got)
+
+    def test_a_line_blocks_cp_lists_known_places(self):
+        """A line block lists the stations or control points it joins (build_device_map.line_cp), of any level (a
+        helix block joins two); each is a station of stations.csv or a control point of interlockings.csv."""
+        got = cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="Barn;Nowhere")}), self.cps,
+                               places=self.places)
+        self.assertEqual(got, [f"devices.csv line {self.line('1', 'Track Barn')} (level 1 block Track Barn): cp "
+                               "names Nowhere, no station of stations.csv or control point of interlockings.csv"])
+        self.assertEqual(cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="West Yard;CP 127")}),
+                                          self.cps, places=self.places), [])
 
     def test_a_cp_of_another_level_is_one_of_its_blocks_end_switches(self):
         """A row's level is the band its track is drawn on: Track 127-221 is drawn on the upper band from main level
@@ -70,25 +82,41 @@ class RowRules(Master):
         ends = self.ends()
         self.assertEqual(ends["Track 127-221"], {"CP 127", "CP 201"})
         self.assertFalse(hasattr(cdm, "KNOWN_CP"))
-        self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps=ends), [])
-        got = cdm.row_problems(self.lines, self.cps, ends_cps={})
-        self.assertEqual(len(got), 4, got)       # 127-221 and Helix Inner, block and occupancy (127-131 2 is a part)
-        self.assertProblem(r"level 3 occupancy BS 127-221\): cp 'CP 127' is no level 3 control point .* and no "
-                           r"control point of an end switch of its blocks", got)
-        got = cdm.row_problems(self.edited({("3", "Track 127-221"): dict(cp="CP 107")}), self.cps, ends_cps=ends)
-        self.assertProblem(r"level 3 block Track 127-221\): cp 'CP 107' is no level 3 control point", got)
+        self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps=ends, places=self.places), [])
+        # every line block lists its places now (owner, 2026-11-21), so none leans on its end switches
+        self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps={}, places=self.places), [])
+
+    def test_a_line_blocks_places_are_the_rules_inputs(self):
+        """Each place a line block lists is at one of its end switches or a station whose tracks name it (the rule's
+        own inputs, build_device_map.line_cp): a hand edit naming another real place is caught, as a wrong level
+        was before the list."""
+        tsdm.Files.setUpClass()
+        with cdm.pd.cache_on():
+            line_places = cdm.line_block_places(cdm.block_end_switches(cdm.master_lines()))
+        self.assertEqual(line_places["Track W-1"], {"Brick", "West Yard"})
+        self.assertEqual(line_places["Track Helix Inner"], {"Princess", "CP 127"})
+        self.assertEqual(cdm.row_problems(self.lines, self.cps, places=self.places, line_places=line_places), [])
+        got = cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="CP 201"),
+                                            ("3", "BS 127-221"): dict(cp="CP 201;CP 107")}),
+                               self.cps, places=self.places, line_places=line_places)
+        self.assertProblem(r"\(level 1 block Track Barn\): cp names CP 201, at no end switch of Track Barn and named "
+                           r"by no station's tracks", got)
+        self.assertProblem(r"\(level 3 occupancy BS 127-221\): cp names CP 107, at no end switch of Track 127-221",
+                           got)
+        self.assertEqual(len(got), 2, got)
 
     def test_a_k_of_n_key_reads_its_strands_ends(self):
         """block_end_cps reads a trial name by its piece (staging_device_map.piece_of), so the k-th of a strand's n
         blocks has the strand's end switches, as a whole strand's key does; a key that is no track key stops."""
-        rows = [(2, dict(layer="block", user_name="Track A", trial_name="Track 127BB-221BA 1/2")),
-                (3, dict(layer="block", user_name="Track B", trial_name="Track 127BB-221BA 2/2, OS Switch 9"))]
+        rows = [(2, dict(level="2", layer="block", user_name="Track A", trial_name="Track 127BB-221BA 1/2")),
+                (3, dict(level="2", layer="block", user_name="Track B",
+                         trial_name="Track 127BB-221BA 2/2, OS Switch 9"))]
         tsdm.Files.setUpClass()
         with cdm.pd.cache_on():
             got = cdm.block_end_cps(rows, cdm.railroad.Railroad().interlockings)
             self.assertEqual(got, {"Track A": {"CP 127", "CP 201"}, "Track B": {"CP 127", "CP 201"}})
             with self.assertRaisesRegex(cdm.DeviceMasterError, "block Track C: 'Track e73 1' is no track trial key"):
-                cdm.block_end_cps([(2, dict(layer="block", user_name="Track C", trial_name="Track e73 1"))],
+                cdm.block_end_cps([(2, dict(level="2", layer="block", user_name="Track C", trial_name="Track e73 1"))],
                                   cdm.railroad.Railroad().interlockings)
 
     def test_a_field_row_names_all_three(self):
@@ -286,7 +314,7 @@ class CheckParts(Master):
             return cdm.check(tsdm.Files.band), loaded
 
     def test_a_bad_staging_row_skips_the_drawing_and_not_the_tables(self):
-        lines = self.edited({("1", "Track Barn"): dict(cp="Nowhere"), ("2", "Switch 107"): dict(jmri_name="IT107")})
+        lines = self.edited({("1", "OS Switch 9"): dict(cp="Nowhere"), ("2", "Switch 107"): dict(jmri_name="IT107")})
         got, loaded = self.run_check(lines, cdm.sdm.StagingMapError("load ran"))
         self.assertFalse(loaded.called)
         self.assertEqual(len([p for p in got if "cp 'Nowhere'" in p]), 1, got)
@@ -317,7 +345,8 @@ class StagingLoad(unittest.TestCase):
 
     def test_the_rules_stop_the_load(self):
         for user, cols, msg in (("BS Barn", dict(detector="planned"), "assignment field with detector 'planned'"),
-                                ("Track Barn", dict(cp="Nowhere"), "cp 'Nowhere' is no level 1 control point"),
+                                ("OS Switch 9", dict(cp="Nowhere"), "cp 'Nowhere' is no level 1 control point"),
+                                ("Track Barn", dict(cp="Nowhere"), "cp names Nowhere, no station"),
                                 ("FB Switch 1 N", dict(trial_name="Track Nowhere"), "a fb row has a trial_name"),
                                 ("Switch 3", dict(trial_name="Switch 1"), r"trial_name Switch 1 is line \d+'s as well")):
             with self.subTest(msg=msg), self.assertRaisesRegex(sdm.StagingMapError, msg):
@@ -333,7 +362,7 @@ class StagingLoad(unittest.TestCase):
         il.write_text(src.read_text(encoding="utf-8") + "1,Nowhere,15,,\n", encoding="utf-8")
 
         def edit(rows):
-            next(r for r in rows if r["level"] == "1" and r["user_name"] == "Track Barn")["cp"] = "Nowhere"
+            next(r for r in rows if r["level"] == "1" and r["user_name"] == "OS Switch 9")["cp"] = "Nowhere"
         dm = self._copy(edit)[0]
         with self.assertRaisesRegex(sdm.StagingMapError, "cp 'Nowhere' is no level 1 control point"):
             sdm.load(self.band, device_map=dm)

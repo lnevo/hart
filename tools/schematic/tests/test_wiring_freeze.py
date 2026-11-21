@@ -206,6 +206,16 @@ class TheCommand(unittest.TestCase):
         _text, added, turned = fw.merge(planned, rows)
         self.assertEqual((len(added), len(turned)), (2, 1))
 
+    def test_a_line_block_is_frozen_with_its_own_levels_place(self):
+        """A line block's cp lists its own level's places first (build_device_map.line_cp): a main level helix
+        detector, "CP 127;Princess", is frozen with CP 127, never with the staging station."""
+        rows = [dict(level="2", cp="CP 127;Princess", layer="occupancy", user_name="BS Helix Outer",
+                     system_name="M2S4101", node="41", comment="Node: 41 Block: 2", blocks="Track Helix Outer")]
+        got = fw.freeze_rows("CP 127", rows, {}, {"Track Helix Outer"}, "2026-11-21")
+        self.assertEqual([(r["kind"], r["node"], r["index"]) for r in got], [("detector", "41", "2")])
+        with self.assertRaisesRegex(fw.FreezeError, "no main or upper control point 'Princess'"):
+            fw.freeze_rows("Princess", rows, {}, {"Track Helix Outer"}, "2026-11-21")
+
     def test_a_head_across_two_boards_is_frozen_as_wired(self):
         rows = self.ROWS + [dict(level="2", cp="CP 9", layer="head", user_name="Head 10L", system_name="IH4232",
                                  node="42", comment="Node: 42 Signal: 0 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7",

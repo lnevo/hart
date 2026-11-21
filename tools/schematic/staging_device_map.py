@@ -425,12 +425,15 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
     import check_device_master as cdm       # the rules of every level's rows (it imports this module)
     try:
         lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
-        cps = cdm.control_points(railroad.read_interlockings(interlockings_path), stations_path)
+        interlockings = railroad.read_interlockings(interlockings_path)
+        cps = cdm.control_points(interlockings, stations_path)
+        places = cdm.known_places(interlockings, stations_path)
     except (cdm.DeviceMasterError, railroad.FactsError) as exc:
         raise StagingMapError(str(exc)) from None
     if not lines:
         raise StagingMapError(f"{paths.rel(device_map)}: no staging rows")
-    bad = cdm.row_problems(lines, cps, paths.rel(device_map), ends_cps={})     # staging's rows cross no level
+    # staging's rows cross no level but a helix block's, whose cp lists the places it joins
+    bad = cdm.row_problems(lines, cps, paths.rel(device_map), ends_cps={}, places=places)
     if bad:
         raise StagingMapError("; ".join(bad))
     rows = [r for _n, r in lines]

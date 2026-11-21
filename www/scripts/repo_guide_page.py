@@ -56,7 +56,7 @@ FOLDERS = {
 # Folders under jmri/layouts/hart/, in page order. Keys are joined with ", " when they share a row.
 LAYOUT_TREE = {
     ("output",): "<code>tables.xml</code>, the one tables file, with all three panels in it",
-    ("data",): "The name map, switch files, block lengths, control points, the schematic's inputs and device maps, "
+    ("data",): "The device master, switch files, block lengths, control points, the schematic's inputs, "
                "and HART's settings for the STS-to-JMRI refresh",
     ("operations",): "The {ops} Operations Pro files",
     ("scripts",): "{scripts} scripts: most build, repair and check the tables on the Mac, and some run inside JMRI",
@@ -89,7 +89,7 @@ SUBMODULES = {
 HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
 HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad"}
 HARTLIB_OTHER = {
-    "names": "the name map's columns",
+    "names": "the DCC group of a JMRI comment",
     "devices": "the device master (devices.csv), its dictionary and its checks",
     "tables_build": "the template and the other parts the generated tables.xml is built from",
     "store_split": "the split of a pulled PanelPro Store back into the template and devices.csv",

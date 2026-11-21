@@ -5,6 +5,7 @@ failing with SCHEMATIC_REQUIRED=1); every write goes to a temporary folder."""
 from __future__ import annotations
 
 import os
+import re
 import sys
 import tempfile
 import unittest
@@ -391,7 +392,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
             raise unittest.SkipTest(str(exc))
         cls.runs = staticmethod(runs)
 
-    def rows(self, edit=None, extra_exception="", pins=None):
+    def rows(self, edit=None, extra_exception="", pins=None, places=None):
         """staging_rows over a copy of the master (`edit`ed), of block_overrides.csv (plus `extra_exception`) and of
         wiring.csv (`pins`: a function of its text)."""
         rows = [dict(r) for r in devices.load()]
@@ -405,51 +406,73 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         pf = temp_file("wiring.csv", pins(text) if pins else text)
         self.addCleanup(remove, pf)
         self.files = devices.Files.under(p.parent)
-        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf)
+        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf, places=places)
 
     @staticmethod
     def by(got):
         return {(r["layer"], r["user_name"]): r for r in got}
 
     def test_the_wiring_comes_from_the_pins(self):
-        """Track Barn and Track EH-1 swap inputs in wiring.csv: both detectors' node, sensor, wiring and name
-        map cells, and both blocks' input and comment, follow; nothing else changes."""
+        """Track Barn and Track EH-1 swap inputs in wiring.csv: both detectors' node, sensor and wiring, and both
+        blocks' node and comment, follow; nothing else changes."""
         def swap(text):
             return (text.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,Track Barn,,,,,13,7,,,wired,")
                         .replace("1,detector,Track EH-1,,,,,13,7,,,wired,", "1,detector,Track EH-1,,,,,13,1,,,wired,"))
         got = self.by(self.rows(pins=swap)[0])
         want = self.by(self.rows()[0])
         occ, blk = got[("occupancy", "BS Barn")], got[("block", "Track Barn")]
-        self.assertEqual((occ["system_name"], occ["jmri_name"], occ["wiring"], occ["pnm_hardware"], occ["pnm_comment"]),
-                         ("M2S1306", "M2S1306", "Node: 13 Block: 7", "M2S1306", "Node: 13 Block: 7"))
-        self.assertEqual((blk["node"], blk["pnm_hardware"]), ("13", "Block 13-7"))
+        self.assertEqual((occ["system_name"], occ["jmri_name"], occ["wiring"]),
+                         ("M2S1306", "M2S1306", "Node: 13 Block: 7"))
+        self.assertEqual(blk["node"], "13")
         self.assertEqual(blk["jmri_comment"], "Lead Switch 7 to Switch 13; occupancy Block 13-7 / M2S1306; stop")
         self.assertEqual(got[("occupancy", "BS EH-1")]["system_name"], "M2S1300")
         changed = {k for k in want if got[k] != want[k]}
         self.assertEqual(changed, {("occupancy", "BS Barn"), ("block", "Track Barn"),
                                    ("occupancy", "BS EH-1"), ("block", "Track EH-1")})
 
-    def test_a_parts_name_map_cells_follow_its_rewired_block(self):
+    def test_a_parts_cells_follow_its_rewired_block(self):
         """OS Switch 9 and OS Switch 11 swap inputs in wiring.csv: their parts (Track 9-11 and Track 11-13) take the
-        rewired block's control point, detector and comment in the name map on the same build, and keep their
-        place (pnm_order)."""
+        rewired block's detector (the occupancy part of its comment) on the same build."""
         def swap(text):
             return (text.replace("1,detector,OS Switch 9,,,,,13,8,", "1,detector,OS Switch 9,,,,,13,2,")
                         .replace("1,detector,OS Switch 11,,,,,13,2,", "1,detector,OS Switch 11,,,,,13,8,"))
         got, want = self.by(self.rows(pins=swap)[0]), self.by(self.rows()[0])
         for part, block in (("Track 9-11", "OS Switch 9"), ("Track 11-13", "OS Switch 11")):
             p, b = got[("block", part)], got[("block", block)]
-            self.assertNotEqual(b["pnm_hardware"], want[("block", block)]["pnm_hardware"])
-            self.assertEqual((p["pnm_cp"], p["pnm_hardware"], p["pnm_comment"]),
-                             (b["pnm_cp"], b["pnm_hardware"], b["pnm_comment"]), part)
-            self.assertEqual(p["pnm_order"], want[("block", part)]["pnm_order"])
+            self.assertNotEqual(b["jmri_comment"], want[("block", block)]["jmri_comment"])
+            self.assertEqual(re.search("occupancy .*$", p["jmri_comment"]).group(0),
+                             re.search("occupancy .*$", b["jmri_comment"]).group(0), part)
+
+    def test_a_line_blocks_cp_is_the_rule_not_carried(self):
+        """A line block's cp (and its sensor's, its block's) lists the stations of the switches at its ends, plus a
+        station whose tracks name it (owner, 2026-11-21): written by the rule on every build, so a hand edit in the
+        master goes."""
+        def edit(rows):
+            for r in rows:
+                if r["level"] == "1" and r["user_name"] in ("Track Barn", "BS Barn", "Track 9-11"):
+                    r["cp"] = "Plane"
+            return rows
+        by = self.by(self.rows(edit)[0])
+        self.assertEqual((by[("block", "Track Barn")]["cp"], by[("occupancy", "BS Barn")]["cp"]),
+                         ("Barn;Engine House", "Barn;Engine House"))
+        self.assertEqual(by[("block", "Track 9-11")]["cp"], "Barn;Engine House")      # a part: its own ends
+        self.assertEqual(by[("block", "Track East Ext")]["cp"], "Plane;Barn")
+        self.assertEqual(by[("block", "Track W-1")]["cp"], "Brick;West Yard")
+        self.assertEqual(by[("block", "OS Switch 1")]["cp"], "Brick")                  # an OS block keeps its one
+
+    def test_a_station_that_lists_a_track_adds_itself(self):
+        places = bdm.read_places()
+        more = places._replace(tracks={**places.tracks, "Track Barn": ["Princess"]})
+        self.assertEqual(self.by(self.rows(places=more)[0])[("block", "Track Barn")]["cp"],
+                         "Barn;Engine House;Princess")
+        with self.assertRaisesRegex(bdm.MapError, "Princess lists Nowhere in its tracks, which is no staging block"):
+            self.rows(places=places._replace(tracks={"Track Nowhere": ["Princess"]}))
 
     def test_a_hand_edit_of_the_wiring_in_the_master_is_overwritten(self):
-        stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498", wiring="Node: 4 Block: 99",
-                                 pnm_hardware="M2S498", pnm_comment="Node: 4 Block: 99"),
+        stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498", wiring="Node: 4 Block: 99"),
                  "unused Block 2-2": dict(node="4", system_name="M2S497", jmri_name="M2S497",
                                           wiring="Node: 4 Block: 98"),
-                 "Track Barn": dict(node="4", pnm_hardware="Block 4-99",
+                 "Track Barn": dict(node="4",
                                     jmri_comment="Lead Switch 7 to Switch 13; occupancy Block 4-99 / M2S498; stop")}
 
         def edit(rows):
@@ -473,13 +496,13 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_block_swapped_onto_a_spare_input_moves_the_spare(self):
         """Track Barn moves to the spare input 2-2 in wiring.csv alone: BS Barn follows, 13-1 becomes a new
-        spare row (no name-map columns) and the old spare row of 2-2 is dropped on purpose."""
+        spare row and the old spare row of 2-2 is dropped on purpose."""
         got, _adopts, drops = self.rows(pins=lambda t: t.replace("1,detector,Track Barn,,,,,13,1,,,wired,", "1,detector,,,,,,13,1,,,wired,")
                                         .replace("1,detector,,,,,,2,2,,,wired,", "1,detector,Track Barn,,,,,2,2,,,wired,"))
         by = self.by(got)
         self.assertEqual(by[("occupancy", "BS Barn")]["system_name"], "M2S201")
         spare = by[("occupancy", "unused Block 13-1")]
-        self.assertEqual((spare["role"], spare["system_name"], spare["wiring"], spare["pnm_order"]),
+        self.assertEqual((spare["role"], spare["system_name"], spare["wiring"], spare["cp"]),
                          ("spare", "M2S1300", "Node: 13 Block: 1", ""))
         self.assertNotIn(("occupancy", "unused Block 2-2"), by)
         self.assertEqual(drops, {("1", "occupancy", "unused Block 2-2")})
@@ -519,14 +542,13 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_block_that_becomes_a_part_frees_its_detector_as_a_spare(self):
         """East Lead given to OS Switch 33: its block row becomes a part, its detector a spare row named by its node
-        input, and both old keys are dropped from the name map on purpose; the part, a JMRI block of its own, takes a
-        new place in the name map with its OS block's control point and detector."""
+        input, and both old keys are dropped on purpose; the part, a JMRI block of its own, takes its OS block's
+        control point and detector."""
         got, adopts, drops = self.rows(extra_exception="1,track,33,35,,,OS Switch 33,,,\n")
         by = {(r["layer"], r["user_name"]): r for r in got}
         part = by[("block", "Track East Lead")]
         self.assertEqual((part["role"], part["part_of"], part["assignment"]), ("part", "OS Switch 33", "virtual"))
-        self.assertTrue(part["pnm_order"].isdigit())
-        self.assertEqual(part["pnm_notes"], "part of OS Switch 33")
+        self.assertEqual(part["cp"], "East End;Princess")                  # its ends, Switches 33 and 35
         # a JMRI block of its own (owner, 2026-11-20) under new names, the next free number: not the old block's
         self.assertRegex(part["jmri_name"] + " " + part["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
         self.assertNotIn(("occupancy", "BS East Lead"), by)
@@ -549,8 +571,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         def add(rows):
             extra = dict(next(r for r in rows if r["level"] == "1" and r["user_name"] == "Track Barn"),
                          user_name="Track Nowhere", system_name="IB:AUTO:9999", jmri_name="IB:AUTO:9999",
-                         layout_block="ILB999", pnm_order="", pnm_cp="", pnm_hardware="", pnm_comment="",
-                         written_by="")
+                         layout_block="ILB999", written_by="")
             at = next(i for i, r in enumerate(rows) if r["level"] == "1" and r["layer"] == "block")
             return rows[:at] + [extra] + rows[at:]          # a hand-kept row: before the writers' rows
         with self.assertRaisesRegex(bdm.MapError, "the drawing has no block for: block Track Nowhere"):
@@ -582,14 +603,15 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
                      .replace('1,turnout,Switch 3,,,,,4,1,OU1,"3,4"', '1,turnout,Switch 3,,,,,4,0,OU1,"1,2"')
                      .replace("1,turnout,Switch 1,,,,,4,9,OU1,X", '1,turnout,Switch 1,,,,,4,1,OU1,"3,4"'))
         by = {r["user_name"]: r for r in self.rows(swap)[0]}
-        self.assertEqual((by["Switch 1"]["system_name"], by["Switch 1"]["jmri_name"], by["Switch 1"]["wiring"],
-                          by["Switch 1"]["pnm_hardware"]),
-                         ("M2T409", "M2T409", "Node: 4 Turnout: 1 | OU: 1 Ports: 3,4", "M2T409"))
+        self.assertEqual((by["Switch 1"]["system_name"], by["Switch 1"]["jmri_name"], by["Switch 1"]["wiring"]),
+                         ("M2T409", "M2T409", "Node: 4 Turnout: 1 | OU: 1 Ports: 3,4"))
         self.assertEqual((by["DCC Switch 1"]["system_name"], by["DCC Switch 1"]["wiring"]),
                          ("MTT100", "Node: 4 Turnout: 1 | OU: 1 Ports: 3,4"))
         self.assertEqual(by["Switch 3"]["system_name"], "M2T408")
         self.assertEqual(by["Switch 23"]["jmri_name"], "Switch 23")
-        self.assertEqual(by["DCC Switch 1"]["pnm_notes"], "LCC alias of Switch 1 (M2T409)")
+        self.assertEqual(by["DCC Switch 1"]["dcc"], "100")              # the alias keeps its address
+        self.assertEqual(by["DCC Switch 1"]["notes"], "LCC alias of Switch 1 (M2T409)")    # and names its turnout's
+        self.assertEqual(by["DCC Switch 3"]["notes"], "LCC alias of Switch 3 (M2T408)")
 
     def test_the_description_names_the_new_node(self):
         got = {r["user_name"]: r for r in self.rows(lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,OU1,"7,8"',

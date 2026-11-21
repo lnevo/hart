@@ -3,8 +3,8 @@
 - speedmatch/analyze.py: each route is a running order of blocks; build_routes.py writes the
   blocks' occupancy sensors from tables.xml into routes.json, which analyze.py reads.
 - infer_block_lengths.py: the lap reference is loop1's first block.
-- audit_panel_contracts.py: the Dispatcher virtual masts are the boundary masts whose
-  name-map hardware is virtual.
+- audit_panel_contracts.py: the Dispatcher virtual masts are staging's hidden masts
+  (role hidden) in devices.csv.
 """
 from __future__ import annotations
 
@@ -101,18 +101,19 @@ class DispatcherVirtualsTest(unittest.TestCase):
     def test_virtual_masts_are_the_dispatcher_ones(self):
         audit = load("audit_panel_contracts")
         with tempfile.TemporaryDirectory() as tmp:
-            nm = Path(tmp) / "devices.csv"                 # a master of four name-map masts (it has no alias rows)
+            nm = Path(tmp) / "devices.csv"                 # a master of four masts, two of them staging's hidden ones
             blank = dict.fromkeys(audit.devices.COLUMNS, "")
-            rows = [dict(blank, level="1", layer="mast", role="home", assignment="none",
-                         written_by="build_staging_masts.py", description="A mast of the test.",
-                         user_name=user, pnm_order=str(n), pnm_hardware=hardware, pnm_notes=notes)
-                    for n, (user, hardware, notes) in enumerate((("Mast 1A", "virtual $1001", ""),
-                                                                 ("Mast 1B", "IH100", ""),
-                                                                 ("Mast 1C", "virtual $1002", ""),
-                                                                 ("Mast 9Z", "virtual $1009", "not a staging mast")), 1)]
+
+            def mast(user, role, n, level="1"):
+                system = f"IF$vsm:basic:one-low(${n})" if role == "hidden" else f"IF$shsm:basic:one-low(IH{n})"
+                return dict(blank, level=level, layer="mast", role=role, assignment="virtual", system_name=system,
+                            jmri_name=system, written_by="build_staging_masts.py", description="A mast of the test.",
+                            user_name=user)
+            rows = [mast("Mast 1A", "hidden", 1001), mast("Mast 1B", "home", 100), mast("Mast 1C", "hidden", 1002),
+                    mast("Mast 9Z", "hidden", 2001, level="2")]          # a main level mast is no staging one
             nm.write_text(audit.devices.master_text(rows), encoding="utf-8")
             self.assertEqual({"Mast 1A", "Mast 1C"},
-                             audit.dispatcher_virtuals({"Mast 1A", "Mast 1B", "Mast 1C"}, nm))
+                             audit.dispatcher_virtuals({"Mast 1A", "Mast 1B", "Mast 1C", "Mast 9Z"}, nm))
             with self.assertRaisesRegex(audit.devices.DevicesError, "cannot read it"):
                 audit.dispatcher_virtuals({"Mast 1A"}, Path(tmp) / "missing.csv")
 

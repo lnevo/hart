@@ -303,7 +303,8 @@ class Rows(unittest.TestCase):
                                                 notes="facing Track W-1, buffer stop", facing="Track W-1",
                                                 dir="west"))
         self.assertEqual(by["Head 2L Top"], device("head", "Head 2L Top", "IH:HART:C1:2L_Top",
-                                                   comment="Brick | Switch 1", notes="internal, not wired"))
+                                                   comment="Brick | Switch 1",
+                                                   notes="internal, not wired (owner, 2026-11-19)"))   # with its date
 
     def test_device_rows_sort_by_plain_string_order(self):
         masts = [dict(mast=f"Mast {n}", cp="", switch="", facing="x", protects="", dir="east", system_name="IF$vsm:basic:one-low($1)",

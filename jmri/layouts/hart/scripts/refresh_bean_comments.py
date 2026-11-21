@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Rename public labels and write meaningful JMRI comments.
 
-Since R9c (ADR-029) the command only writes the signal heads' wiring comments onto devices.csv; tables.xml is
-generated (tools/schematic/build_tables.py) and its comments come from devices.csv. The comment rules below stay for
+Since R9c (ADR-029) tables.xml is generated (tools/schematic/build_tables.py) and its comments come from devices.csv;
+the command only checks that the staging heads' wiring comments in devices.csv (written by
+tools/schematic/build_staging_masts.py from wiring.csv) are wiring.csv's. The comment rules below stay for
 the parked USS CTC scripts (cleanup_uss_ctc_leftovers.py, uss_switch_only_columns.py) and audit_panel_contracts.py.
 
 - Track Main West Brick–Plane → Track Brick-Plane
@@ -24,11 +25,11 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import paths  # noqa: E402
 from hartlib import devices  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
-from hartlib.names import jmri_comment, row_comment  # noqa: E402
+from hartlib.names import jmri_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
-from lcc_turnout_contract import identity_lcc_rows  # noqa: E402  the one reader of the MTT rows of the name map
+from lcc_turnout_contract import identity_lcc_rows  # noqa: E402  the one reader of the MTT rows of devices.csv
 
 WIRING = paths.WIRING                       # wiring.csv: the wired heads (hartlib.wiring.digicon_rows)
 SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
@@ -260,17 +261,17 @@ def load_wiring_head_comments(
     return out
 
 
-def sync_map_head_comments(files: devices.Files | None = None) -> int:
-    """Write the wiring comments onto the head rows' pnm_comment column of devices.csv (the only file
-    written). Returns the rows changed. The head rows belong to build_staging_masts.py and stay its (written_by is
-    not touched): pnm_comment is no builder's output, and a rebuild carries it over (devices.set_pnm_comments)."""
-    files = files or devices.Files.here()
-    comments = load_wiring_head_comments()
-    if not comments:
-        return 0
-    update = devices.set_pnm_comments("head", comments, files)
-    devices.write_all(files, update.texts)
-    return update.changed
+def stale_head_comments(files: devices.Files | None = None, path: Path | None = None) -> list[str]:
+    """The staging head rows of devices.csv whose wiring is not the comment wiring.csv gives them
+    (load_wiring_head_comments of `path`), one line each; [] when they agree. build_staging_masts.py writes the head
+    rows' wiring from wiring.csv, so a line here means it has not been run since wiring.csv changed. DevicesError
+    when the master cannot be read."""
+    comments = load_wiring_head_comments(path)
+    heads = {r["user_name"]: r for r in devices.load(files) if r["level"] == devices.FIELD_LEVEL and r["layer"] == "head"}
+    out = [f"{name}: wiring.csv gives {want!r}, devices.csv has {heads[name]['wiring']!r}"
+           for name, want in sorted(comments.items()) if name in heads and heads[name]["wiring"] != want]
+    out += [f"{name}: in wiring.csv but no staging head row of devices.csv" for name in sorted(set(comments) - set(heads))]
+    return out
 
 
 def switch_protected_by_mast(user_name: str) -> str | None:
@@ -728,7 +729,8 @@ def ctc_comment(system_name: str) -> str | None:
 
 
 def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], str]]:
-    """Identity-row comments from the name map of devices.csv (hartlib.devices.name_map_lines)."""
+    """The JMRI comments of staging's rows of devices.csv (hartlib.devices.comment_of), by the LCOS or LCC system names
+    in their system_name and by (bean kind, user name)."""
     path = DEVICES
     by_sys: dict[str, str] = {}
     by_user: dict[tuple[str, str], str] = {}
@@ -743,21 +745,19 @@ def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], st
         "mast": "signalmast",
         "block": "block",
     }
-    for _line, row in devices.name_map_lines(path):
-        current = (row.get("current") or "").strip()
-        proposed = (row.get("proposed") or "").strip()
-        layer = (row.get("layer") or "").strip()
-        comment = public_comment(layer, proposed, row_comment(row))
-        if not comment or current != proposed:
+    for row in devices.load(path):
+        layer, user = row["layer"], row["user_name"]
+        if row["level"] != devices.FIELD_LEVEL or layer not in layer_kind:
             continue
-        for token in (row.get("hardware") or "").split():
-            if token.startswith(("M2T", "M2S", "IH", "MTT")):
-                by_sys[token] = comment
-        xml_kind = layer_kind.get(layer)
-        if xml_kind:
-            by_user[(xml_kind, proposed)] = comment
-            if xml_kind == "signalmast":
-                by_user[("virtualsignalmast", proposed)] = comment
+        comment = public_comment(layer, user, devices.comment_of(row))
+        if not comment:
+            continue
+        if layer != "mast" and row["system_name"].startswith(("M2T", "M2S", "IH", "MTT")):
+            by_sys[row["system_name"]] = comment     # a mast's system name holds its heads', whose rows give theirs
+        xml_kind = layer_kind[layer]
+        by_user[(xml_kind, user)] = comment
+        if xml_kind == "signalmast":
+            by_user[("virtualsignalmast", user)] = comment
     return by_sys, by_user
 
 
@@ -911,17 +911,22 @@ def refresh_comments(text: str) -> tuple[str, int]:
 
 
 def main() -> int:
-    """Write the wiring comments of the signal heads onto devices.csv (sync_map_head_comments). tables.xml is an
-    output since R9c (ADR-029): its comments come from devices.csv through tools/schematic/build_tables.py, so this
-    script no longer edits it; refresh_comments stays for the parked USS CTC scripts that import it."""
+    """Check the wiring comments of the staging signal heads in devices.csv against wiring.csv
+    (stale_head_comments); 1 when they differ (run tools/schematic/build_staging_masts.py). tables.xml is an output
+    since R9c (ADR-029): its comments come from devices.csv through tools/schematic/build_tables.py, so this script
+    no longer edits it; refresh_comments stays for the parked USS CTC scripts that import it."""
     paths.exit_if_overridden(Path(__file__).name)
     try:
-        n_map = sync_map_head_comments()
+        stale = stale_head_comments()
     except (devices.DevicesError, FactsError) as exc:
         print(f"refresh_bean_comments.py: {exc}", file=sys.stderr)
         return 2
-    print(f"devices.csv: {n_map} head comments (pnm_comment) from wiring.csv" if n_map
-          else "devices.csv: head comments current")
+    for line in stale:
+        print(f"refresh_bean_comments.py: {line}", file=sys.stderr)
+    if stale:
+        print("refresh_bean_comments.py: run python3 tools/schematic/build_staging_masts.py", file=sys.stderr)
+        return 1
+    print("devices.csv: head comments current")
     return 0
 
 

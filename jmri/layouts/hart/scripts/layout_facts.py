@@ -22,16 +22,16 @@
                      on 2026-11-15 (read by gen_ctc_track_plan.py and
                      check_layout_facts.py)
 
-Hardware, DCC address (its own ``dcc`` column) and control point come from the
-canonical turnout row of the name map of devices.csv (current == proposed); the desk areas of schematic/stations.csv list which
+Hardware (``system_name``), DCC address (its own ``dcc`` column) and control point come from
+staging's turnout row of devices.csv; the desk areas of schematic/stations.csv list which
 switches each control point holds and its level. Nothing here is copied from
 those files.
 
 Level is held once per switch (switches.csv) and once per control point
 (a station's, in stations.csv). A mast, head, block or occupancy sensor has no level of
 its own: it takes the level of its control point (the ``cp`` column of
-the name map of devices.csv), and an OS block or a switch leg takes its switch's.
-name_map_levels() resolves them. No grouping above the control point exists
+devices.csv), and an OS block or a switch leg takes its switch's.
+staging_levels() resolves them. No grouping above the control point exists
 yet, so there is no district column; when the new levels need one, it goes beside ``level`` on the control-point
 files (stations.csv, interlockings.csv).
 
@@ -54,7 +54,7 @@ from typing import Callable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad, railroad_facts  # noqa: E402
+from hartlib import devices, paths, railroad, railroad_facts  # noqa: E402
 from hartlib.railroad import Leg, Switch  # noqa: E402,F401  one definition, in hartlib.railroad
 
 DATA = paths.LAYOUT_DATA
@@ -80,11 +80,9 @@ def _rows(path: Path) -> list[dict[str, str]]:
         return [{k: (v or "").strip() for k, v in row.items()} for row in csv.DictReader(fh)]
 
 
-def identity_rows(data: Path = DATA) -> list[dict[str, str]]:
-    """The name-map rows of devices.csv whose current name is the live one (current == proposed): hartlib.railroad's
-    read_name_rows, so the master is read by one loader."""
-    return [row for _line, row in railroad.read_name_rows(railroad.Sources.under(data).devices)
-            if row["current"] == row["proposed"]]
+def staging_rows(data: Path = DATA) -> list[dict[str, str]]:
+    """Staging's rows of devices.csv (hartlib.railroad's read_staging_rows, so the master is read by one loader)."""
+    return [row for _line, row in railroad.read_staging_rows(railroad.Sources.under(data).devices)]
 
 
 def load_switches(data: Path = DATA) -> dict[int, Switch]:
@@ -218,6 +216,14 @@ def cp_levels(data: Path = DATA) -> dict[str, str]:
     return out
 
 
+def place_levels(data: Path = DATA) -> dict[str, str]:
+    """Place name -> level of every station of stations.csv and control point of interlockings.csv: the places a
+    line block's cp lists (build_device_map.line_cp)."""
+    out = {s.name: str(s.level) for s in railroad.read_stations(data / "schematic" / "stations.csv")}
+    out.update({i.name: str(i.level) for i in railroad.read_interlockings(railroad.Sources.under(data).interlockings)})
+    return out
+
+
 def switch_block_levels(switches: dict[int, Switch]) -> dict[str, set[str]]:
     """Block name -> levels of the switches whose OS block it is or whose legs lead to it."""
     out: dict[str, set[str]] = {}
@@ -228,28 +234,32 @@ def switch_block_levels(switches: dict[int, Switch]) -> dict[str, set[str]]:
     return out
 
 
-def name_map_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
-                    rows: list[dict[str, str]] | None = None,
-                    track_name: Callable[[str], str] | None = None) -> dict[tuple[str, str], str]:
-    """(layer, public name) -> level for the identity rows of the name map of devices.csv.
+def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
+                   rows: list[dict[str, str]] | None = None,
+                   track_name: Callable[[str], str] | None = None) -> dict[tuple[str, str], str]:
+    """(layer, user name) -> level for staging's rows of devices.csv (staging_rows).
 
     A turnout or feedback sensor of Switch N (``Switch N``, ``DCC Switch N``,
     ``FB Switch N R``) takes switches.csv; an OS block or a block a switch leg
-    leads to takes its switch's level; any other row takes its control point's.
+    leads to takes its switch's level; any other row takes its control point's. A line block's cp lists the
+    places it joins (stations of stations.csv, control points of interlockings.csv): it takes their level only
+    when every place has one and they agree (place_levels), so a helix block, whose places are on two levels, takes
+    its switch's.
     ``track_name`` maps a Layout Editor throat block to its track (Track S-R West
     -> Track S-R, through their shared occupancy sensor in tables.xml); without it
     a throat block is matched by its own name only. A row with none of these (a
-    main between control points, Track Main West) is left out: check_layout_facts.py
+    block in no place) is left out: check_layout_facts.py
     gives it the level of the blocks it joins, and reports any block whose switch
     and control point give different levels (here the switch wins).
     """
     switches = load_switches(data) if switches is None else switches
-    rows = identity_rows(data) if rows is None else rows
+    rows = staging_rows(data) if rows is None else rows
     by_cp = cp_levels(data)
+    places = place_levels(data)
     by_block = switch_block_levels(switches)
     out: dict[tuple[str, str], str] = {}
     for row in rows:
-        layer, name = row["layer"], row["proposed"]
+        layer, name = row["layer"], row["user_name"]
         level = ""
         m = _SWITCH_NAME.fullmatch(name) if layer in ("turnout", "fb") else None
         from_switch = by_block.get(track_name(name) if track_name else name, set()) if layer == "block" else set()
@@ -257,6 +267,9 @@ def name_map_levels(data: Path = DATA, switches: dict[int, Switch] | None = None
             level = switches[int(m.group(1))].level
         elif len(from_switch) == 1:
             level = next(iter(from_switch))
+        elif row["role"] in devices.LINE_ROLES:     # its places: every one with a level, all the same
+            got = [places.get(p) for p in row["cp"].split(";") if p]
+            level = got[0] if None not in got and len(set(got)) == 1 else ""
         elif row["cp"] in by_cp:
             level = by_cp[row["cp"]]
         if level:
