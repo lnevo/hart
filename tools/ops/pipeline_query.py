@@ -82,9 +82,9 @@ class Graph:
         return [n for n in self.nodes.values()
                 if any(t in str(n.get(k, "")).lower() for k in ("id", "path", "label", "desc"))]
 
-    def walk(self, start: str, direction: str, depth: int) -> list[tuple[int, str, str, bool]]:
-        """Pre-order (level, id, edge label, repeat). Each node sits at its shortest level and is expanded once;
-        a later edge to a node already shown is listed as a repeat."""
+    def walk(self, start: str, direction: str, depth: int) -> list[tuple[int, str, str, str]]:
+        """Pre-order (level, id, edge label, ref). Each node sits at its shortest level and is expanded once;
+        another edge to it is listed with ref "above" (already printed) or "below" (printed later), not expanded."""
         links = self.ins if direction == "up" else self.outs
         level = {start: 0}
         parent: dict[str, str] = {}
@@ -97,7 +97,7 @@ class Graph:
                     level[nxt] = level[nid] + 1
                     parent[nxt] = nid
                     queue.append(nxt)
-        out: list[tuple[int, str, str, bool]] = []
+        out: list[tuple[int, str, str, str]] = []
 
         printed = {start}
 
@@ -106,12 +106,13 @@ class Graph:
                 return
             for nxt, label in links[nid]:
                 if nxt in printed:
-                    out.append((level[nid] + 1, nxt, label, True))
+                    out.append((level[nid] + 1, nxt, label, "above"))
                 elif parent.get(nxt) == nid:
                     printed.add(nxt)
-                    out.append((level[nid] + 1, nxt, label, False))
+                    out.append((level[nid] + 1, nxt, label, ""))
                     go(nxt)
-                # else: reached by a shorter route that is printed later, at its own level
+                else:  # reached by a shorter route that is printed later, at its own level
+                    out.append((level[nid] + 1, nxt, label, "below"))
         go(start)
         return out
 
@@ -167,10 +168,10 @@ def cmd_walk(g: Graph, a) -> tuple[str, object]:
     nid = g.resolve(a.name)
     rows = g.walk(nid, a.cmd, a.depth)
     lines = [line(g.nodes[nid])]
-    for level, rid, label, again in rows:
-        lines.append("  " * level + line(g.nodes[rid], label) + (" (shown above)" if again else ""))
+    for level, rid, label, ref in rows:
+        lines.append("  " * level + line(g.nodes[rid], label) + (f" (shown {ref})" if ref else ""))
     obj = {"node": nid, "direction": a.cmd, "depth": a.depth,
-           "items": [{"level": lv, "node": rid, "label": lab, "repeat": ag} for lv, rid, lab, ag in rows]}
+           "items": [{"level": lv, "node": rid, "label": lab, "shown": ag} for lv, rid, lab, ag in rows]}
     return "\n".join(lines), obj
 
 

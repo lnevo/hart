@@ -136,16 +136,15 @@ class QueryTest(unittest.TestCase):
         self.assertEqual((obj["node"], obj["detail"]["id"]), ("b", "b"))
         self.assertEqual(json.loads(self.run_q("--json", "find", "table")[1])[0]["node"], "b")
 
-    def test_repeat_only_after_first_print(self):
+    def test_reference_marks_above_and_below(self):
         nodes = [n(i, f"p/{i}") for i in "axz"]
         edges = [{"from": f, "to": t} for f, t in (("a", "x"), ("a", "z"), ("x", "z"))]
         g = Q.Graph({"nodes": nodes, "edges": edges})
-        rows = g.walk("a", "down", 3)
-        printed = set()
-        for _, nid, _, repeat in rows:
-            self.assertEqual(repeat, nid in printed)
-            printed.add(nid)
-        self.assertEqual([r[1] for r in rows], ["x", "z"])
+        self.assertEqual([(r[1], r[3]) for r in g.walk("a", "down", 3)], [("x", ""), ("z", "below"), ("z", "")])
+        self.assertEqual([(r[1], r[3]) for r in g.walk("x", "up", 3)], [("a", "")])
+        edges2 = [{"from": f, "to": t} for f, t in (("a", "x"), ("x", "z"), ("a", "z"), ("z", "x"))]
+        rows = Q.Graph({"nodes": nodes, "edges": edges2}).walk("a", "down", 3)
+        self.assertIn(("x", "above"), [(r[1], r[3]) for r in rows])
 
     def test_repo_path_beats_cwd(self):
         import os
