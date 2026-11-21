@@ -14,37 +14,44 @@ HART = JMRI_ROOT / "layouts" / "hart"
 # script stays free of hartlib.
 PANEL = Path(os.environ["HART_TABLES"]) if os.environ.get("HART_TABLES") else HART / "output" / "tables.xml"
 DEVICES = HART / "data" / "devices.csv"
-SWITCH_LEGS = HART / "data" / "switch_legs.csv"
 SWITCHES = HART / "data" / "switches.csv"
+STAGING_COLUMNS = ("level", "switch", "os_block", "le_ident")
 
 
-def secondary_os_blocks(path: Path = SWITCH_LEGS) -> set[str]:
-    """A crossover's OS blocks after its first (main) row in switch_legs.csv (7b, 23b, 35a)."""
+def staging_rows(path: Path = SWITCHES) -> list[dict[str, str]]:
+    """The staging (level 1) rows of switches.csv, one per OS block, in file order. Stops on a
+    file without the columns this reads (hartlib.railroad_facts.read_switch_rows checks the rest)."""
+    with path.open(newline="", encoding="utf-8") as f:
+        reader = csv.DictReader(f)
+        missing = [c for c in STAGING_COLUMNS if c not in (reader.fieldnames or [])]
+        if missing:
+            raise SystemExit(f"{path}: no column {', '.join(missing)}")
+        return [row for row in reader if row["level"] == "1"]
+
+
+def secondary_os_blocks(path: Path = SWITCHES) -> set[str]:
+    """A crossover's OS blocks after its first (main) row in switches.csv (7b, 23b, 35a)."""
     seen: set[str] = set()
     out: set[str] = set()
-    with path.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if row["switch"] in seen:
-                out.add(row["os_block"])
-            seen.add(row["switch"])
+    for row in staging_rows(path):
+        if row["switch"] in seen:
+            out.add(row["os_block"])
+        seen.add(row["switch"])
     return out
 
 
-def crossover_row_errors(root: ET.Element, switches: Path = SWITCHES, legs: Path = SWITCH_LEGS) -> list[str]:
-    """A switch whose Layout Editor turnout is a crossover needs two switch_legs.csv rows
-    (its main and its second OS block); with one, its second OS block would go unchecked."""
+def crossover_row_errors(root: ET.Element, switches: Path = SWITCHES) -> list[str]:
+    """A switch whose Layout Editor turnout is a crossover needs two switches.csv rows
+    (its main and its second OS block); with one, its second OS block would go unchecked.
+    The turnout is the le_ident of the switch's first row."""
     xover = {t.get("ident") for t in root.iter("layoutturnout") if (t.get("type") or "").endswith("_XOVER")}
     rows: dict[str, int] = {}
-    with legs.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            rows[row["switch"]] = rows.get(row["switch"], 0) + 1
-    errors = []
-    with switches.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            if row["le_ident"] in xover and rows.get(row["switch"], 0) < 2:
-                errors.append(f"Switch {row['switch']} is a crossover ({row['le_ident']}) but "
-                              f"{legs.name} has {rows.get(row['switch'], 0)} row(s) for it, not 2")
-    return errors
+    ident: dict[str, str] = {}
+    for row in staging_rows(switches):
+        rows[row["switch"]] = rows.get(row["switch"], 0) + 1
+        ident.setdefault(row["switch"], row["le_ident"])
+    return [f"Switch {n} is a crossover ({ident[n]}) but {switches.name} has {count} row(s) for it, not 2"
+            for n, count in rows.items() if ident[n] in xover and count < 2]
 
 
 def main() -> int:

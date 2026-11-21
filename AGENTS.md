@@ -47,7 +47,7 @@ Sheets push (`.env.local`) stays human-gated. Hooks enforce some of these rules:
 
 ## Working on existing scripts
 
-CPython tools import `hartlib` (`tools/hartlib/README.md`); switch facts live in `switches.csv` and `switch_legs.csv` (ADR-021). Jython scripts inside JMRI never import it.
+CPython tools import `hartlib` (`tools/hartlib/README.md`); switch facts live in `switches.csv`, every level in one file (ADR-021). Jython scripts inside JMRI never import it.
 
 When a task changes or reuses a large script (about 500 lines or more) or one with no tests, leave it safer in the same PR. Match the effort to the task:
 

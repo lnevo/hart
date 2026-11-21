@@ -89,7 +89,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         (default: the committed file)."""
         found = bdm.named_tracks(self.bands, self.joined, self.runs)
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
-        switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
+        switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.SWITCHES.name)
         cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
         split, corners = bdm.split_edges(found=found), bdm.corner_blocks_of(self.bands, self.corners)
         _home, posts = bdm.home_and_posts(self.bands, self.joined, found, bdm.LEVELS, cp_of, corners,

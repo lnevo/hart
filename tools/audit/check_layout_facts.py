@@ -3,7 +3,7 @@
 
     python3 tools/audit/check_layout_facts.py
 
-The facts are jmri/layouts/hart/data/switches.csv and switch_legs.csv (read by
+The facts are the staging rows of jmri/layouts/hart/data/switches.csv (read by
 layout_facts.py), with hardware, DCC address and control point from
 the name map of devices.csv and the desk areas of stations.csv. For every switch this checks:
 
@@ -180,7 +180,7 @@ class Tables:
         self.points = {p.get("ident"): p for p in self.root.iter("positionablepoint")}
         self.paths_stored = bool(self.paths)
         # a part (devices.csv part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
-        # legs in switch_legs.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)
+        # legs in switches.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)
         self.part_of: dict[str, str] = dict(parts or {})
         self.sensor_system = {
             (s.findtext("userName") or "").strip(): (s.findtext("systemName") or "").strip()
@@ -294,12 +294,12 @@ def check_crossover_legs(sw: facts.Switch, lt: ET.Element, t: Tables, r: Report)
             continue
         other = [h for h in halves if h != leg.os_block]
         if [t.track_name(leg.thrown)] != [t.track_name(h) for h in other]:
-            r.add(f"le:{n}", f"{n}: switch_legs.csv throws {leg.os_block} to {leg.thrown}, Layout Editor "
+            r.add(f"le:{n}", f"{n}: switches.csv throws {leg.os_block} to {leg.thrown}, Layout Editor "
                              f"{sw.le_ident}'s other half is {', '.join(other) or 'none'}")
         ends = [c for c in conns if c not in XOVER_DIVERGING[lt.get("type")]] or list(conns)
         reach = {t.track_name(t.leg_block(sw.le_ident, c, leg.os_block)) for c in ends} - {None}
         if t.track_name(leg.closed) not in reach:
-            r.add(f"le:{n}", f"{n}: switch_legs.csv closes {leg.os_block} to {leg.closed}, the panel's track from "
+            r.add(f"le:{n}", f"{n}: switches.csv closes {leg.os_block} to {leg.closed}, the panel's track from "
                              f"that half's closed end reaches {sorted(reach) or 'nothing'}")
 
 
@@ -329,7 +329,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
     primary = sw.legs[0]
     if lt.get("blockname") != primary.os_block:
         r.add(f"le:{n}", f"{n}: Layout Editor {sw.le_ident} is in {lt.get('blockname')}, "
-                         f"switch_legs.csv says {primary.os_block}")
+                         f"switches.csv says {primary.os_block}")
     if lt.get("type") in PLAIN_TURNOUTS:
         cont = lt.get("continuing", CLOSED)
         b = t.track_name(t.leg_block(sw.le_ident, "B", primary.os_block))
@@ -337,7 +337,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         closed, thrown = (b, c) if cont == CLOSED else (c, b)
         if (closed, thrown) != (primary.closed, primary.thrown):
             r.add(f"le:{n}", f"{n}: Layout Editor {sw.le_ident} (continuing={cont}) closes to {closed} "
-                             f"and throws to {thrown}; switch_legs.csv says closed {primary.closed}, "
+                             f"and throws to {thrown}; switches.csv says closed {primary.closed}, "
                              f"thrown {primary.thrown}")
     if lt.get("type") in XOVERS:
         check_crossover_legs(sw, lt, t, r)
@@ -359,7 +359,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
             if got is None or not (got & ok) or bad in got:
                 r.add(f"le:{n}", f"{n}: {leg.os_block} block paths reach {want} with "
                                  f"{sorted(got) if got else 'no path'} for {sw.turnout}; "
-                                 f"switch_legs.csv says it is the {label} leg")
+                                 f"switches.csv says it is the {label} leg")
 
 
 # ---------------------------------------------------------------- CATS desks
@@ -425,7 +425,7 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
     by_os = facts.legs_by_os(switches)
     for os_name, xy in plants.items():
         if os_name not in by_os:
-            r.add(f"cats:{os_name}", f"{desk}: plant at {xy} is in {os_name}, which switch_legs.csv does not list")
+            r.add(f"cats:{os_name}", f"{desk}: plant at {xy} is in {os_name}, which switches.csv does not list")
     jmri_blocks = t.block_names()
     names = {b.get("NAME") for b in parse(path).getroot().iter("BLOCK") if b.get("NAME")}
     # the main and upper blocks are drawn from the device map, before the tables may hold them: a staging-only
@@ -444,7 +444,7 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
         for leg in sw.legs:
             for want in (leg.closed, leg.thrown):
                 if want not in names:
-                    r.add(f"cats:{n}", f"{n}: switch_legs.csv leg {want} is not a block on {desk}")
+                    r.add(f"cats:{n}", f"{n}: switches.csv leg {want} is not a block on {desk}")
             xy = plants.get(leg.os_block)
             if xy is None:
                 r.add(f"cats:{n}", f"{n}: {desk} has no plant in {leg.os_block}")
@@ -467,7 +467,7 @@ def check_desk(path: Path, switches: dict[int, facts.Switch], t: Tables, r: Repo
                 want = {"close": leg.closed, "throw": leg.thrown}.get(cmd)
                 if dest != want:
                     r.add(f"cats:{n}", f"{n}: {desk} {leg.os_block} leg {edge} ({cmd}) leads to {dest}; "
-                                       f"switch_legs.csv says {cmd} leads to {want}")
+                                       f"switches.csv says {cmd} leads to {want}")
                 normal = ri.get("NORMAL") == "true"
                 want_normal = (cmd == "throw") if sw.cats_inverted else (cmd == "close")
                 if normal != want_normal:
@@ -592,7 +592,7 @@ def check_ctc_buttons(switches: dict[int, facts.Switch], t: Tables, occ: dict[st
                                        get("OSSectionOccupiedExternalSensor2")) if s)
         want = tuple(occ.get(os_name, "?") for os_name in sw.os_blocks)
         if os_sensors != want:
-            r.add(f"uss:{n}", f"{n}: CTC code button OS sensors {os_sensors}; switch_legs.csv "
+            r.add(f"uss:{n}", f"{n}: CTC code button OS sensors {os_sensors}; switches.csv "
                               f"OS blocks {sw.os_blocks} report on {want}")
         lever = t.sensor_system.get(get("SWDL_InternalSensor"), "")
         if lever != f"IS{sw.ctc_is}:LEVER":
@@ -772,9 +772,9 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
     for name, cp in block_cp.items():
         from_switch = by_block.get(t.track_name(name), set())
         if len(from_switch) > 1:
-            r.add(f"level:{name}", f"{name}: its switches in switch_legs.csv are on levels {sorted(from_switch)}")
+            r.add(f"level:{name}", f"{name}: its switches in switches.csv are on levels {sorted(from_switch)}")
         elif from_switch and cp in by_cp and by_cp[cp] not in from_switch:
-            r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switch_legs.csv "
+            r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switches.csv "
                                    f"say level {next(iter(from_switch))}")
     levels = facts.name_map_levels(data, switches, rows, t.track_name)
     for row in rows:
@@ -789,7 +789,7 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
             continue
         if len(near) != 1:
             r.add(f"level:{name}", f"{name}: no control point and no switch in the name map of devices.csv or "
-                                   f"switch_legs.csv, and the blocks it joins in tables.xml are on levels "
+                                   f"switches.csv, and the blocks it joins in tables.xml are on levels "
                                    f"{sorted(near) or 'none'}; give it a cp")
 
 

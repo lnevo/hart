@@ -107,8 +107,8 @@ class Refs(unittest.TestCase):
             self.assertEqual(g["nodes"][edits.by_label(g, ref)]["label"], ref)
 
     def test_hands_are_written_for_the_three_way_halves(self):
-        with open(pd.DATA / "hands.csv", newline="") as fh:
-            labels = {r["switch"] for r in csv.DictReader(fh)}
+        with open(pd.DATA.parent / "switches.csv", newline="") as fh:
+            labels = {r["half"] for r in csv.DictReader(fh) if r["hand"] and r["level"] != "1"}
         self.assertLessEqual({"101A", "103A"}, labels)
 
     def test_both_names_resolve_in_the_plugin(self):

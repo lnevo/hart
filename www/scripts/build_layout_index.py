@@ -27,7 +27,7 @@ ROOT = paths.REPO_ROOT
 
 PANEL = paths.TABLES_XML
 NAMES = paths.DEVICES
-STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"   # its desk areas, with switch_legs.csv: station_group_rows
+STATIONS = paths.LAYOUT_DATA / "schematic" / "stations.csv"   # its desk areas, with switches.csv: station_group_rows
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
 RENDER = paths.LAYOUT_SCRIPTS / "render_le_layout.py"
@@ -138,11 +138,11 @@ def load_devices(path: Path = PANEL):
     return dict(sorted(out.items(), key=key))
 
 
-def load_cps(path: Path, legs: Path = paths.LAYOUT_DATA / "switch_legs.csv"):
+def load_cps(path: Path, switches: Path = paths.LAYOUT_DATA / "switches.csv"):
     """(OS block number, control point) pairs, e.g. ("23a", "East End"), from the desk areas of stations.csv, every
     level's (staging's only so far; a switch number is unique railroad-wide, so the levels cannot mix)."""
     pairs = []
-    for row in railroad_facts.station_group_rows(path, legs):
+    for row in railroad_facts.station_group_rows(path, switches):
         for part in row["switches"].split(","):
             if part:
                 pairs.append((part, row["cp_name"]))
