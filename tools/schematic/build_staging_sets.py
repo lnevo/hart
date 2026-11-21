@@ -150,8 +150,9 @@ def sheet_switches(sheet: Sheet, stations: list[Station]) -> list[str]:
     return sorted({sw for n in sheet.stations for sw in by_name[n].switches}, key=int)
 
 
-def overrides_section(over: dict, cps, stations) -> dict:
-    over = dict(over)
+def generated_keys(cps, stations) -> dict:
+    """The keys of plan_generated.json's staging section this writes, from the desk areas (stations.csv) alone."""
+    over = {}
     over["stations"] = {s.name: list(s.switches) for s in stations}
     over["control_points"] = {c.name: {"switches": list(c.switches), "code": c.code} for c in cps}
     over["station_tracks"] = {s.name: list(s.tracks) for s in stations if s.tracks is not None}
@@ -178,10 +179,10 @@ def wanted(data: Path | None = None) -> dict[Path, str]:
     except FactsError as exc:
         raise SetsError(str(exc)) from None
     try:
-        return layer_files.texts({
-            ("plan_overrides", SHEET): overrides_section(layer_files.read("plan_overrides", SHEET, data), cps, stations),
-            ("preferences", SHEET): preferences_section(layer_files.read("preferences", SHEET, data), sheets, stations),
-        }, data)
+        return {**layer_files.generated_texts({SHEET: generated_keys(cps, stations)}, data),
+                **layer_files.texts({
+                    ("preferences", SHEET): preferences_section(layer_files.read("preferences", SHEET, data),
+                                                                sheets, stations)}, data)}
     except layer_files.LayerFileError as exc:
         raise SetsError(str(exc)) from None
 

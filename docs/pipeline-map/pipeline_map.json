@@ -30,6 +30,11 @@
    "id": "hosts",
    "label": "Deploy, hosts and runtime",
    "color": "#dc2626"
+  },
+  {
+   "id": "agents",
+   "label": "Agent docs: instructions, skills, agents, indexes",
+   "color": "#be185d"
   }
  ],
  "presets": [
@@ -74,18 +79,15 @@
    "focus": "ext:site-dist",
    "up": 1,
    "down": 1
+  },
+  {
+   "label": "Agent docs",
+   "focus": "AGENTS.md",
+   "up": 0,
+   "down": 2
   }
  ],
  "nodes": [
-  {
-   "id": "AGENTS.md",
-   "label": "AGENTS.md and agent docs",
-   "kind": "unstructured",
-   "status": "live",
-   "domain": "extras",
-   "desc": "Agent instruction docs whose repo-path references are verified by the agent-docs check.",
-   "path": "AGENTS.md"
-  },
   {
    "id": "docs",
    "label": "docs/ tree",
@@ -100,7 +102,7 @@
    "label": "docs/INDEX.md",
    "kind": "output",
    "status": "live",
-   "domain": "extras",
+   "domain": "agents",
    "desc": "Generated index of every tracked document under docs/, newest change first.",
    "path": "docs/INDEX.md"
   },
@@ -167,16 +169,6 @@
    "domain": "extras",
    "desc": "CTC_Panel_Evolution.mp4/gif, CATS panel evolution video, poster, LE panel PNGs.",
    "path": "docs/ctc/history"
-  },
-  {
-   "id": "media/schematic-evolution",
-   "label": "media/schematic-evolution",
-   "kind": "output",
-   "status": "live",
-   "domain": "extras",
-   "desc": "Folder of schematic frames and the evolution GIF in the main checkout's gitignored media/ (a worktree links it).",
-   "path": "media/schematic-evolution",
-   "local": true
   },
   {
    "id": "media",
@@ -422,7 +414,7 @@
    "label": "wiki/STATUS.md",
    "kind": "output",
    "status": "live",
-   "domain": "extras",
+   "domain": "agents",
    "desc": "Project status page; the Counts line between markers is generated.",
    "path": "wiki/STATUS.md"
   },
@@ -677,16 +669,6 @@
    "domain": "layout",
    "desc": "Per-area station map SVGs (barn, east-end, princess, main-level) published by tools/schematic/publish_draft.py (schematic domain).",
    "path": "docs/ops/stations"
-  },
-  {
-   "id": "media/pulled-stores",
-   "label": "media/pulled-stores",
-   "kind": "unstructured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Pulled PanelPro Store files with .base, in the main checkout's gitignored media/ (HART_PULLED_DIR moves it); input to split_store.py.",
-   "path": "media/pulled-stores",
-   "local": true
   },
   {
    "id": "ext:anyrail-plan",
@@ -3314,6 +3296,15 @@
    "path": "cats/scripts/patch_jmri_startup.py"
   },
   {
+   "id": "tools/ops/agent_docs_map.py",
+   "label": "agent_docs_map.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Draws the agent-doc lane of this map from the files: a box per agent doc and the links between them, in reading order from AGENTS.md; build_pipeline_map.py runs it and its --check fails when the graph differs.",
+   "path": "tools/ops/agent_docs_map.py"
+  },
+  {
    "id": "tools/ops/build_pipeline_map.py",
    "label": "build_pipeline_map.py",
    "kind": "generator",
@@ -3404,6 +3395,26 @@
    "path": "jmri/layouts/hart/data/devices_field.csv"
   },
   {
+   "id": "media/schematic-evolution",
+   "label": "media/schematic-evolution",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Folder of schematic frames and the evolution GIF in the main checkout's gitignored media/ (a worktree links it).",
+   "path": "media/schematic-evolution",
+   "local": true
+  },
+  {
+   "id": "media/pulled-stores",
+   "label": "media/pulled-stores",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Pulled PanelPro Store files with .base, in the main checkout's gitignored media/ (HART_PULLED_DIR moves it); input to split_store.py.",
+   "path": "media/pulled-stores",
+   "local": true
+  },
+  {
    "id": "tools/hartlib/src/hartlib/film_pace.py",
    "label": "film_pace.py",
    "kind": "generator",
@@ -3473,8 +3484,277 @@
    "status": "live",
    "domain": "layout",
    "desc": "The generated half of plan_overrides: staging control points and stations, name_main and milepost_route, main_upper main_route, control_points and stations. Each of three builders replaces only its own keys (T6b).",
-   "path": "jmri/layouts/hart/data/schematic/plan_generated.json",
-   "local": true
+   "path": "jmri/layouts/hart/data/schematic/plan_generated.json"
+  },
+  {
+   "id": ".claude/agents/archive-researcher.md",
+   "label": "agent: archive-researcher",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Researches railroad and local history and curates archive material for the site: photos, web sources, plant history. Returns proposals with sources; it does not change data files.",
+   "path": ".claude/agents/archive-researcher.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/agents/panel-tracer.md",
+   "label": "agent: panel-tracer",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Read-only diagnosis of JMRI, CATS, SML and MQTT behaviour on the HART layout. Use for questions like why a mast stays red, why a CATS desk shows a block wrong, or where a device name or value comes from.",
+   "path": ".claude/agents/panel-tracer.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/agents/repo-auditor.md",
+   "label": "agent: repo-auditor",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Read-only audit of repository health: dead code, stale docs and wiki pages, structure and duplication. Use for periodic reviews, not for reviewing a diff.",
+   "path": ".claude/agents/repo-auditor.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/agents/site-builder.md",
+   "label": "agent: site-builder",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Builds and changes pages and data in the public website under www/. Use for portal pages, rebuilds and content changes. Give it one bounded job; split large rebuilds into stages.",
+   "path": ".claude/agents/site-builder.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/agents/site-reviewer.md",
+   "label": "agent: site-reviewer",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Read-only review of the public website through a lens named in the brief: UX, first-time reader, historian, designer, writer or security. Use for audits of www/ and hartrailroad.com.",
+   "path": ".claude/agents/site-reviewer.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/agents/voice-reviewer.md",
+   "label": "agent: voice-reviewer",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Read-only review of any text (docs, wiki, site pages, slides, commit and PR text, deck cards) against the writing rules. Returns findings with suggested rewrites; it does not edit.",
+   "path": ".claude/agents/voice-reviewer.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/commands/done.md",
+   "label": "/done",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Run the HART close-out (wiki, commit, push, deploy, report)",
+   "path": ".claude/commands/done.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/deploy/SKILL.md",
+   "label": "skill: deploy",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when live artifacts changed and need to reach the layout hosts (Pi, Windows) or the public website, when asked to run sync_hart_package.sh or deploy_hartrailroad.sh, or when a deploy fails with a connection error, a missing media check or a Build count drop.",
+   "path": ".claude/skills/deploy/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/handoff/SKILL.md",
+   "label": "skill: handoff",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when the owner says go on a hand-off or a plan with several independent items, when a job is split across parallel subagents, or when briefing, tracking, merging or closing out several agents' work.",
+   "path": ".claude/skills/handoff/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/operating-flag/SKILL.md",
+   "label": "skill: operating-flag",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when the owner says they are operating or done operating, when a speed-matching job is dropped on the layout or its run ends, when a hook blocks a Pi or Windows action because the operating flag is set, or when asked to run tools/hosts/operating.sh.",
+   "path": ".claude/skills/operating-flag/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/ops-pull/SKILL.md",
+   "label": "skill: ops-pull",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when a Pi Operations Pro session (moves, car or train state) must be saved into the repo, before any deploy that would replace the Pi's Operations files, or when asked to run make ops-pull.",
+   "path": ".claude/skills/ops-pull/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/panel-approval/SKILL.md",
+   "label": "skill: panel-approval",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use before asking the owner to approve a panel, CATS desk, schematic or other drawing, or a published look; when a panel, desk or drawing change is ready for the owner to look at; when an approval fingerprint (check_approved.py, approved_*.sha256, --approve-staging) changed; or before publishing a new look on the site.",
+   "path": ".claude/skills/panel-approval/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/panelpro/SKILL.md",
+   "label": "skill: panelpro",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when PanelPro must be quit or started on the Mac (after a Store is pulled, or before asking the owner to approve a panel) or on the Pi (around a deploy or make ops-pull), or when asked to run pi_quit_panelpro.sh or pi_start_panelpro.sh.",
+   "path": ".claude/skills/panelpro/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/sts-live/SKILL.md",
+   "label": "skill: sts-live",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when an STS change (sts-docker or sts-plugins code, a workflow, or data such as shipments, locations, cars or waybills) must reach the live STS on the Pi, when asked to run pi_sts_update.sh or make sts-pull, when the Mac STS (UAT) must be refreshed from the Pi, or when a job needs the live STS API.",
+   "path": ".claude/skills/sts-live/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/tables-pull/SKILL.md",
+   "label": "skill: tables-pull",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when a PanelPro Store on the Pi or the Mac has changed JMRI_UserFiles/tables.xml and it must come back into the repo, when deploy stops with \"tables.xml changed since the last deploy\" or \"the Pi's tables.xml changed\", or before committing after a PanelPro session.",
+   "path": ".claude/skills/tables-pull/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/skills/whats-left/SKILL.md",
+   "label": "skill: whats-left",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Use when asked what is left, pending, next, or for a to-do or loose-ends list, and at the end of a hand-off.",
+   "path": ".claude/skills/whats-left/SKILL.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".cursor",
+   "label": ".cursor/ (Cursor mirrors)",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Cursor's copies of the Claude rules: commands, the close-out rule and the main-branch guard.",
+   "path": ".cursor",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "AGENTS.md",
+   "label": "AGENTS.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "The agent instructions every session reads first: commands, definition of done, subagents and the do-not list.",
+   "path": "AGENTS.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "cats/AGENTS.md",
+   "label": "cats/AGENTS.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Agent instructions for this folder.",
+   "path": "cats/AGENTS.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "ops/hart-ops/AGENTS.md",
+   "label": "ops/hart-ops/AGENTS.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Agent instructions for this folder.",
+   "path": "ops/hart-ops/AGENTS.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/AGENTS_GIT.md",
+   "label": "wiki/AGENTS_GIT.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Branches, worktrees and merges for agents, and where each agent's instructions live.",
+   "path": "wiki/AGENTS_GIT.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/STATUS_LOG.md",
+   "label": "wiki/STATUS_LOG.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "History moved out of wiki/STATUS.md.",
+   "path": "wiki/STATUS_LOG.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/decisions",
+   "label": "wiki/decisions/ (ADRs)",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "The architecture decision records and their README index.",
+   "path": "wiki/decisions",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/home.md",
+   "label": "wiki/home.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Wiki entry page: where decisions, status, pipelines and projects live.",
+   "path": "wiki/home.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/not-pending.md",
+   "label": "wiki/not-pending.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Items the owner said never to list as pending; the whats-left skill drops them.",
+   "path": "wiki/not-pending.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/pipelines",
+   "label": "wiki/pipelines/",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "One page per pipeline and their README index.",
+   "path": "wiki/pipelines",
+   "gen": "agent-docs"
+  },
+  {
+   "id": "wiki/projects",
+   "label": "wiki/projects/",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Project pages and hand-offs.",
+   "path": "wiki/projects",
+   "gen": "agent-docs"
   }
  ],
  "edges": [
@@ -3482,11 +3762,6 @@
    "from": ".deploy-manifest.json",
    "to": "www/scripts/check_portal_build.py",
    "label": "--previous"
-  },
-  {
-   "from": "AGENTS.md",
-   "to": "tools/audit/check_agent_docs.py",
-   "label": "check"
   },
   {
    "from": "cats/data/occupancy_bindings.csv",
@@ -3668,11 +3943,6 @@
   {
    "from": "jmri/layouts/hart/output/signal_head_plan.csv",
    "to": "tools/wiring/write_inventory.py"
-  },
-  {
-   "from": "media/pulled-stores",
-   "to": "tools/schematic/split_store.py",
-   "label": "reads Store"
   },
   {
    "from": "ext:LCOS_ESP32_MQTT_Client",
@@ -3966,11 +4236,6 @@
   },
   {
    "from": "human:owner",
-   "to": "jmri/layouts/hart/data/wiring.csv",
-   "label": "hand edits (staging rows)"
-  },
-  {
-   "from": "human:owner",
    "to": "media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx"
   },
   {
@@ -4025,11 +4290,6 @@
    "from": "human:owner-csv-edits",
    "to": "jmri/layouts/hart/data/switches.csv",
    "label": "edits"
-  },
-  {
-   "from": "human:owner-csv-edits",
-   "to": "jmri/layouts/hart/data/wiring.csv",
-   "label": "edits (staging rows)"
   },
   {
    "from": "human:owner-panelpro",
@@ -4905,11 +5165,6 @@
   },
   {
    "from": "ops/hart-ops/bin/cars",
-   "to": "jmri/layouts/hart/operations",
-   "label": "publish: add cars, out-of-service; sync --apply: identity fields"
-  },
-  {
-   "from": "ops/hart-ops/bin/cars",
    "to": "jmri/resources/roster",
    "label": "loco photos"
   },
@@ -5531,16 +5786,6 @@
    "label": "overwrites repo copy"
   },
   {
-   "from": "tools/ops/pull_tables.sh",
-   "to": "media/pulled-stores",
-   "label": "mac-<date>.xml"
-  },
-  {
-   "from": "tools/ops/pull_tables_pi.sh",
-   "to": "media/pulled-stores",
-   "label": "pi-<date>.xml"
-  },
-  {
    "from": "tools/ops/rebuild_publications.sh",
    "to": "docs/ops",
    "label": "make publications"
@@ -5650,11 +5895,6 @@
    "from": "tools/schematic/build_tables.py",
    "to": "jmri/layouts/hart/scripts/run_sml_discover.sh",
    "label": "--discovery-base"
-  },
-  {
-   "from": "tools/schematic/evolution.py",
-   "to": "media/schematic-evolution",
-   "label": "frames + GIF"
   },
   {
    "from": "tools/schematic/plan_lengths.py",
@@ -6193,11 +6433,6 @@
   },
   {
    "from": "www/scripts/prepare_github_pages.py",
-   "to": "ext:web-jpeg-cache",
-   "label": "photo cache; saves photo-stage outputs"
-  },
-  {
-   "from": "www/scripts/prepare_github_pages.py",
    "to": "www/assets/archive",
    "label": "resize + thumbs"
   },
@@ -6547,6 +6782,16 @@
    "label": "Start Up scripts"
   },
   {
+   "from": "tools/audit/check_agent_docs.py",
+   "to": "tools/ops/agent_docs_map.py",
+   "label": "references()"
+  },
+  {
+   "from": "tools/ops/agent_docs_map.py",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "agent-doc lane"
+  },
+  {
    "from": "docs/pipeline-map/pipeline_map.json",
    "to": "tools/ops/build_pipeline_map.py"
   },
@@ -6740,6 +6985,46 @@
    "label": "JMRI export (snapshot)"
   },
   {
+   "from": "media/pulled-stores",
+   "to": "tools/schematic/split_store.py",
+   "label": "reads Store"
+  },
+  {
+   "from": "human:owner",
+   "to": "jmri/layouts/hart/data/wiring.csv",
+   "label": "hand edits (staging rows)"
+  },
+  {
+   "from": "human:owner-csv-edits",
+   "to": "jmri/layouts/hart/data/wiring.csv",
+   "label": "edits (staging rows)"
+  },
+  {
+   "from": "ops/hart-ops/bin/cars",
+   "to": "jmri/layouts/hart/operations",
+   "label": "publish: add cars, out-of-service; sync --apply: identity fields"
+  },
+  {
+   "from": "tools/ops/pull_tables.sh",
+   "to": "media/pulled-stores",
+   "label": "mac-<date>.xml"
+  },
+  {
+   "from": "tools/ops/pull_tables_pi.sh",
+   "to": "media/pulled-stores",
+   "label": "pi-<date>.xml"
+  },
+  {
+   "from": "tools/schematic/evolution.py",
+   "to": "media/schematic-evolution",
+   "label": "frames + GIF"
+  },
+  {
+   "from": "www/scripts/prepare_github_pages.py",
+   "to": "ext:web-jpeg-cache",
+   "label": "photo cache; saves photo-stage outputs"
+  },
+  {
    "from": "tools/schematic/panel_items.py",
    "to": "jmri/layouts/hart/data/devices_generated.csv",
    "label": "status beans rows"
@@ -6928,6 +7213,354 @@
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_signals.py",
    "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": ".claude/agents/archive-researcher.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/agents/panel-tracer.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/agents/repo-auditor.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/agents/site-builder.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/agents/site-reviewer.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/agents/voice-reviewer.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/commands/done.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/deploy/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/handoff/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/operating-flag/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/ops-pull/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/ops-pull/SKILL.md",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/ops-pull/SKILL.md",
+   "to": "wiki/decisions",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/panel-approval/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/panelpro/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/sts-live/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/tables-pull/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/tables-pull/SKILL.md",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/skills/whats-left/SKILL.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".cursor",
+   "to": ".claude/skills/whats-left/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".cursor",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/agents/archive-researcher.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/agents/panel-tracer.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/agents/repo-auditor.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/agents/site-builder.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/agents/site-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/agents/voice-reviewer.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/commands/done.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/deploy/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/handoff/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/operating-flag/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/panel-approval/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/panelpro/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/sts-live/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/tables-pull/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".cursor",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "cats/AGENTS.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "docs/INDEX.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "docs/pipeline-map/pipeline_map.json",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/AGENTS_GIT.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/STATUS.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/STATUS_LOG.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/decisions",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/home.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/not-pending.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": "wiki/pipelines",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "cats/AGENTS.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "ops/hart-ops/AGENTS.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/AGENTS_GIT.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/STATUS.md",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/STATUS_LOG.md",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/decisions",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/home.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/home.md",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/not-pending.md",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/pipelines",
+   "to": "ops/hart-ops/AGENTS.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/pipelines",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
   }
  ]
 }

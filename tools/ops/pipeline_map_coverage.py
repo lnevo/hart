@@ -19,6 +19,10 @@ What must be in the map:
   not in <dir> (unittest) is not a repo script. Any other path that names no file in the checkout (tracked, or new
   and not ignored) fails: it is a call to a file that is gone. Comments are not read.
 - Outputs: every tracked file under OUTPUT_ROOTS, and every repo path an entry file gives to `--out`.
+- Agent docs: every file, tracked or new and not ignored, that matches GLOBS in tools/ops/agent_docs_map.py (the
+  .claude skills, subagents and commands, and the
+  AGENTS.md files one or two folders down). The map build draws each tracked one, so ALLOWED does
+  not apply to them.
 
 A file is known when a node's path is the file or a folder above it, except a top-level folder (a `www` box stands
 for the site, not for each script in it). ALLOWED lists the deliberate exceptions, each with its reason; an entry the
@@ -279,6 +283,22 @@ def gaps(scripts: dict[str, str], outputs: dict[str, str], node_paths: dict[str,
     return problems
 
 
+def agent_doc_gaps(docs: list[str], node_paths: dict[str, str], graph_name: str,
+                   listing: list[str] | None = None) -> list[str]:
+    """Each agent doc (a file matching GLOBS in tools/ops/agent_docs_map.py: skills, subagents, commands) that is no
+    box. The build draws every tracked one, so a gap is a new file not yet added to git or a graph not rebuilt."""
+    problems = []
+    for path in sorted(set(docs)):
+        covered = path if path in node_paths else _first_above(path, node_paths, 2)
+        if not covered:
+            problems.append(f"agent doc {path} is not in the map: git add it, then run python3 "
+                            f"tools/ops/build_pipeline_map.py, which draws every file matching GLOBS in "
+                            f"tools/ops/agent_docs_map.py into {graph_name}")
+        if listing is not None:
+            listing.append(f"{'doc':6} {path:64} " + (f"node {node_paths[covered]}" if covered else "MISSING"))
+    return problems
+
+
 def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     """The problems for this checkout. Raises GraphError or CoverageError when the graph or the scan cannot be read."""
     data = BUILD.load(graph)
@@ -287,7 +307,12 @@ def check(graph: Path, listing: list[str] | None = None) -> list[str]:
     files = frozenset(_git_files() + _git_files("--others", "--exclude-standard"))
     scripts, outputs = scan(files, _submodules(), lambda f: (ROOT / f).read_text())
     shown = graph.relative_to(ROOT) if graph.is_relative_to(ROOT) else graph
-    return gaps(scripts, outputs, node_paths, ALLOWED, str(shown), listing)
+    try:
+        docs = BUILD.AGENT_DOCS.glob_files() + BUILD.AGENT_DOCS.glob_files(others=True)
+    except BUILD.AGENT_DOCS.AgentDocsMapError as err:
+        raise CoverageError(str(err)) from None
+    return (gaps(scripts, outputs, node_paths, ALLOWED, str(shown), listing)
+            + agent_doc_gaps(docs, node_paths, str(shown), listing))
 
 
 def main(argv: list[str] | None = None) -> int:

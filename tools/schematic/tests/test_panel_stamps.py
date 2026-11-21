@@ -53,6 +53,13 @@ class DeclarationTest(unittest.TestCase):
                 with self.subTest(step=name):
                     self.assertTrue(ps.covered(field, name), f"{name} reads the master but not {field}")
 
+    def test_the_shared_build_cache_is_no_input_and_no_undeclared_folder(self) -> None:
+        for name in ps.STEPS:
+            with self.subTest(step=name):
+                self.assertTrue(ps.covered(".cache/hart/plan-merged/abc/plan_overrides.json", name))
+                for folder in (".cache", ".cache/hart/plan-merged/abc"):
+                    self.assertTrue(ps.dir_covered(folder, name), folder)
+
     def test_glob_matching_follows_path_glob(self) -> None:
         self.assertTrue(ps._glob_match("a/b/c.py", "a/**/*.py"))
         self.assertTrue(ps._glob_match("a/c.py", "a/**/*.py"))
