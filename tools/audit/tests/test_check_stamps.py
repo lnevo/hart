@@ -54,7 +54,7 @@ class StoreTest(unittest.TestCase):
             fresh = importlib.reload(cs)
             self.addCleanup(importlib.reload, cs)
             self.assertEqual(fresh.STORE, main / ".cache" / "hart" / "check-stamps")
-        ignored = subprocess.run(["git", "check-ignore", "-q", ".cache/hart/check-stamps/x.sha256"], cwd=main)
+        ignored = subprocess.run(["git", "check-ignore", "-q", ".cache/hart/check-stamps/x.sha256"], cwd=REPO)
         self.assertEqual(ignored.returncode, 0, "the stamp folder is not git-ignored")
 
 
