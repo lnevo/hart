@@ -301,7 +301,7 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
 
     def group(r: railroad.DeviceRow) -> str:
         if r.cp:
-            return r.cp
+            return first_place(r.cp)
         for num in re.findall(r"\d+[a-z]?", r.user_name):
             if region.get(num):
                 return region[num]
@@ -345,10 +345,16 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
     return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
 
 
+def first_place(cp: str) -> str:
+    """The plant of a cp: the control point, or for a line block's list (the stations or control points it joins,
+    its own level's first: build_device_map.line_cp) its first, so a block is grouped once, on its own level."""
+    return cp.split(";")[0]
+
+
 def infer_plant(name: str, cp: str = "") -> str:
-    """Control point for mimic grouping. Empty map cp is filled from the public name."""
+    """Control point for mimic grouping (first_place of a list). An empty cp is filled from the public name."""
     if cp:
-        return cp
+        return first_place(cp)
     blob = (name or "").lower()
     if blob.startswith("os eh") or blob.startswith("track eh") or blob.startswith("bs eh") or "engine house" in blob:
         return "Engine House"
@@ -372,33 +378,29 @@ def infer_plant(name: str, cp: str = "") -> str:
 
 
 def load_cps() -> dict[str, dict[str, str]]:
-    """Identity rows of the name map of devices.csv (hartlib.devices.name_map_lines): name/hardware → cp."""
+    """Staging's rows of devices.csv: user name (and an occupancy sensor's system name) -> its cp, by layer. An LCC
+    alias (DCC Switch N) is grouped by its name alone (infer_plant), as the name map, which gave it no cp, had it."""
     turnout: dict[str, str] = {}
     occupancy: dict[str, str] = {}
     block: dict[str, str] = {}
     mast: dict[str, str] = {}
     if not DEVICES.is_file():
         return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
-    for _line, row in devices.name_map_lines(DEVICES):
-        layer = (row.get("layer") or "").strip()
-        current = (row.get("current") or "").strip()
-        proposed = (row.get("proposed") or "").strip()
-        if current != proposed or not proposed:
+    for row in devices.load(DEVICES):
+        if row["level"] != devices.FIELD_LEVEL:
             continue
-        if proposed.endswith(" alias"):
-            continue
-        plant = infer_plant(proposed, (row.get("cp") or "").strip())
-        hardware = (row.get("hardware") or "").strip()
+        layer, name = row["layer"], row["user_name"]
+        plant = infer_plant(name, "" if row["role"] == "lcc_alias" else row["cp"])
         if layer == "turnout":
-            turnout[proposed] = plant
+            turnout[name] = plant
         elif layer == "occupancy":
-            occupancy[proposed] = plant
-            for token in hardware.split():
-                occupancy[token] = plant
+            occupancy[name] = plant
+            if row["system_name"]:
+                occupancy[row["system_name"]] = plant
         elif layer == "block":
-            block[proposed] = plant
+            block[name] = plant
         elif layer == "mast":
-            mast[proposed] = plant
+            mast[name] = plant
     return {"turnout": turnout, "occupancy": occupancy, "block": block, "mast": mast}
 
 

@@ -150,11 +150,10 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
 
 def dispatcher_virtuals(expected: set[str], devices_csv: Path = paths.DEVICES) -> set[str]:
     """The expected masts that are hidden virtual masts for Dispatcher Stage 1, not field
-    masts: those whose name-map hardware (devices.csv, pnm_hardware) is `virtual $10nn`."""
+    masts: staging's hidden masts in devices.csv (role hidden, a virtual signal mast IF$vsm:...($10nn))."""
     virtual = {
-        row["proposed"] for _line, row in devices.name_map_lines(devices_csv)
-        if row["layer"] == "mast" and row["current"] == row["proposed"]
-        and row["hardware"].startswith("virtual")
+        row["user_name"] for row in devices.load(devices_csv)
+        if row["level"] == devices.FIELD_LEVEL and row["layer"] == "mast" and row["role"] == "hidden"
     }
     return expected & virtual
 

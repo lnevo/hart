@@ -23,8 +23,8 @@ and upper the same way under C3), so nothing unwired reaches MQTT: signal_coordi
 digits.
 
 A wired head is a level 1 head row of wiring.csv (hartlib.wiring, the physical wiring source; today one: Head 6LB on
-IH432, Switch 5, owner 2026-11-18): the rebuild writes its address, node and wiring text (its JMRI comment,
-hartlib.tables_build) from there and keeps its notes. A head row of devices.csv whose jmri_name is not the internal
+IH432, Switch 5, one high head since the owner dropped IH433 on 2026-11-19): the rebuild writes its address, node and
+wiring text (its JMRI comment, hartlib.tables_build) from there and keeps its notes, which say so. A head row of devices.csv whose jmri_name is not the internal
 name of its user name is wired too (wired_heads), and must be in wiring.csv.
 The build stops on a head row whose system_name and jmri_name differ, a wired head that is not an LCOS head (IH and
 digits), whose mast the rule does not place, or whose mast the rule gives a different set of heads; on a mast row
@@ -75,6 +75,8 @@ HEAD_PREFIX = "IH:HART:C1:"
 FACTS = railroad.DEVICE_FACTS          # the device map's fact columns; a mast row fills switch, facing, protects, dir
 HEAD_USER = re.compile(r"Head (\d+[LR]?[A-Z]?)(?: (Top|Bottom))?")   # a staging head's user name: key, position
 WIRED_HEAD = re.compile(r"IH\d+")      # an LCOS head: signal_coordinator.py publishes IH and digits to MQTT
+# the note of a head on its internal name (no field head drives it), with the owner's decision (2026-11-19)
+INTERNAL_HEAD_NOTE = "internal, not wired (owner, 2026-11-19)"
 WIRING_TEXT = devices._NODE_TEXT       # a wired head's comment is its wiring (Node: ...), as the master tells it
 
 
@@ -155,7 +157,7 @@ def wiring_heads(rows: list[dict], path: Path | None = None) -> dict:
                    comment=w.wiring_text)
         if prev is None:                                 # wiring.csv's note, else the row's own, unless it says
             kept = (new or {}).get("notes", "")         # the head is not wired
-            row["notes"] = w.notes or (kept if kept and kept != "internal, not wired" else "wired")
+            row["notes"] = w.notes or (kept if kept and not kept.startswith("internal, not wired") else "wired")
         out.setdefault("Mast " + m.group(1), {})[w.device] = row
     for user, h in sorted(by_user.items()):
         bad.append(f"head {user} is wired in devices.csv (its jmri_name is {h['jmri_name']}) but has no head row "
@@ -393,7 +395,7 @@ def device_rows(gen_masts: list[dict], virtual: list[dict], old_rows: list[dict]
             heads.append(dict(level="1", cp=r["cp"], layer="head", user_name=user, system_name=h, jmri_name=h,
                               node=prev["node"] if prev else "", dcc="", comment=wired_text or where,
                               trial_name="",
-                              notes=prev["notes"] if prev else "internal, not wired", **dict.fromkeys(FACTS, "")))
+                              notes=prev["notes"] if prev else INTERNAL_HEAD_NOTE, **dict.fromkeys(FACTS, "")))
     written = {(h["user_name"], h["jmri_name"]) for h in heads}
     lost = sorted(f"{u} ({h['jmri_name']})" for m in wired.values() for u, h in m.items()
                   if (u, h["jmri_name"]) not in written)

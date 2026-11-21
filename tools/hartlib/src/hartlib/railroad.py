@@ -15,7 +15,7 @@ read a later one: build_device_map.py loads upto="inputs", because it writes the
 stale copy of its own output. Each file is read the first time it is asked for, once.
 
     inputs      hand-kept: switches.csv (every level's switches, one row per OS block or half, ADR-021; its main and
-                upper hands are the hands layer), the name map of devices.csv,
+                upper hands are the hands layer), staging's rows of devices.csv,
                 schematic/interlockings.csv (every level's), lcos_nodes.csv (every level),
                 helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
@@ -46,14 +46,14 @@ from . import level_devices, level_masts, paths, tables  # noqa: F401  re-export
 from .railroad_facts import *  # noqa: F401,F403
 from .railroad_facts import _int, _level, _where, _yes  # noqa: F401
 from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,
-                             Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, NameMap, PlanOverrides,
+                             Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, PlanOverrides, StagingDevices,
                              Sources, StagingMast, Switch, SwitchRow, TablesNames, hands, join_main_upper,
                              local_switches, read_block_lengths, read_switch_rows, staging_switches,
                              read_device_map, read_hands, read_helix_tracks, read_lcos_nodes,
-                             read_interlockings, read_local_switches, read_name_map, read_name_rows,
+                             read_interlockings, read_local_switches, read_staging_devices, read_staging_rows,
                              read_plan_overrides, read_staging_masts, read_switches, read_tables)
 from .railroad_invariants import INVARIANTS, Invariant, Problem, invariant  # noqa: F401
-from .railroad_invariants import (_device_map, _hands, _lcos_nodes, _level_masts, _name_clash, _name_map,  # noqa: F401
+from .railroad_invariants import (_device_map, _hands, _lcos_nodes, _level_masts, _name_clash, _staging_devices,  # noqa: F401
                                   _plan_overrides, _staging_blocks, _switch_numbers, _tables)
 
 
@@ -76,13 +76,14 @@ class Railroad:
 
     # inputs
     @cached_property
-    def name_rows(self) -> list[tuple[int, dict[str, str]]]:
-        """The name-map rows of devices.csv as read, once: name_map checks every row, switches look only at theirs."""
-        return read_name_rows(self.sources.devices)
+    def staging_rows(self) -> list[tuple[int, dict[str, str]]]:
+        """Staging's rows of devices.csv as read, once: staging_devices checks every row, switches look only at
+        theirs."""
+        return read_staging_rows(self.sources.devices)
 
     @cached_property
-    def name_map(self) -> NameMap:
-        return read_name_map(self.sources.devices, self.name_rows)
+    def staging_devices(self) -> StagingDevices:
+        return read_staging_devices(self.sources.devices, self.staging_rows)
 
     @cached_property
     def switch_rows(self) -> list[SwitchRow]:
@@ -92,7 +93,7 @@ class Railroad:
     @cached_property
     def switches(self) -> dict[int, Switch]:
         """The staging switches (level 1 of switches.csv)."""
-        return staging_switches(self.switch_rows, self.sources.switches, self.sources.devices, self.name_rows)
+        return staging_switches(self.switch_rows, self.sources.switches, self.sources.devices, self.staging_rows)
 
     @cached_property
     def interlockings(self) -> list[Interlocking]:

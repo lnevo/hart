@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 from . import level_devices, level_masts, tables
-from .railroad_facts import (LEVEL_NUMBERS, NameRow, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
+from .railroad_facts import (LEVEL_NUMBERS, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
                              switch_groups, switch_number)
 
 if TYPE_CHECKING:
@@ -172,23 +172,40 @@ def _switch_numbers(rr: Railroad) -> list[str]:
     return bad
 
 
+# a packed LCOS address (node * 100 + port) in a staging system name: the whole name of a turnout, sensor or head
+# (M2T408, M2S1301, IH432), or each head inside a mast's (IF$shsm:basic:one-searchlight(IH432))
+_PACKED = re.compile(r"(?:M2T|M2S|IH)(\d{3,})")
+_MAST_HEAD = re.compile(r"\((IH\d{3,})\)")
+
+
+def _packed_addresses(r: StagingDevice) -> list[str]:
+    if r.layer == "mast":
+        return _MAST_HEAD.findall(r.system_name)
+    return [r.system_name] if _PACKED.fullmatch(r.system_name) else []
+
+
 @invariant("lcos-nodes", "inputs")
 def _lcos_nodes(rr: Railroad) -> list[str]:
-    """Every level and area a main or upper switch is in has an LCOS node to put it on, every staging node (the node
-    of a staging turnout's or sensor's packed address, the name map of devices.csv) is a staging row of the node
-    file, and no main or upper row is a staging node."""
+    """Every level and area a main or upper switch is in has an LCOS node to put it on; every staging node (the node
+    of a staging turnout's, sensor's, head's or mast head's packed address in its system_name, devices.csv) is a
+    staging row of the node file and is the row's own node column; and no main or upper row is a staging node."""
     pool = {(n.level, n.area) for n in rr.lcos_nodes}
     bad = [f"no node in {rr.sources.lcos_nodes.name} for level {lv} {area} (switches "
            f"{', '.join(sorted((s for s, sw in rr.main_upper_switches.items() if (sw.level, sw.area) == (lv, area)), key=natural))})"
            for lv, area in sorted({(sw.level, sw.area) for sw in rr.main_upper_switches.values()} - pool)]
+    name = rr.sources.devices.name
     staging_nodes: dict[int, str] = {}
-    for r in rr.name_map.live.values():
-        m = re.fullmatch(r"(?:M2T|M2S|IH)(\d+)", r.hardware)
-        if m and len(m.group(1)) >= 3:
-            staging_nodes.setdefault(int(m.group(1)) // 100, f"{r.layer} {r.proposed} ({r.hardware})")
-    wired = {int(m.group(1)) // 100 for r in rr.name_map.live.values()
-             if (m := re.fullmatch(r"M2[TS](\d{3,})", r.hardware))}     # LCOS turnouts and sensors; an IH number may
-    level_of = {n.node: n for n in rr.lcos_nodes}                            # be a panel lamp's (IH9990), on no node
+    wired: set[int] = set()            # LCOS turnouts and sensors; an IH number may be a panel lamp's (IH9990), on no node
+    for r in rr.staging_devices.rows:
+        for address in _packed_addresses(r):
+            node = int(_PACKED.fullmatch(address).group(1)) // 100
+            staging_nodes.setdefault(node, f"{r.layer} {r.user_name} ({address})")
+            if address.startswith("M2"):
+                wired.add(node)
+            if r.node and r.node != str(node):
+                bad.append(f"{name} line {r.line}: {r.layer} {r.user_name} is on node {r.node}, but its address "
+                           f"{address} is node {node}'s")
+    level_of = {n.node: n for n in rr.lcos_nodes}
     for node, what in sorted(staging_nodes.items()):
         n = level_of.get(node)
         if n is None:
@@ -200,58 +217,57 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
     return bad
 
 
-@invariant("name-map", "inputs")
-def _name_map(rr: Railroad) -> list[str]:
-    """The name map of devices.csv resolves: every historical alias names a live row of its layer; every staging switch has
-    a live turnout row with hardware and a DCC address; no two live turnouts share a DCC address; and no two live
-    turnouts, feedback sensors, occupancy sensors or heads share hardware."""
-    nm = rr.name_map
-    bad = [f"{nm.path.name}: {r.layer} {r.current!r} is an alias of {r.proposed!r}, which has no "
-           f"live row (current == proposed)" for r in nm.aliases if (r.layer, r.proposed) not in nm.live]
+@invariant("staging-devices", "inputs")
+def _staging_devices(rr: Railroad) -> list[str]:
+    """Staging's rows of devices.csv resolve: every staging switch has a turnout row with a system name and a DCC
+    address; no two staging turnouts share a DCC address; and no two staging turnouts, feedback sensors, occupancy
+    sensors or heads share a system name."""
+    sd, name = rr.staging_devices, rr.sources.devices.name
+    bad = []
     for n, sw in rr.switches.items():
         if not sw.hardware or not sw.dcc:
-            bad.append(f"Switch {n} (switches.csv): {nm.path.name} has no live turnout row with hardware and dcc")
-    dcc: dict[str, NameRow] = {}
-    hardware: dict[tuple[str, str], NameRow] = {}
-    for r in nm.live.values():
-        if r.layer == "turnout" and r.dcc:
+            bad.append(f"Switch {n} (switches.csv): {name} has no staging turnout row with a system_name and dcc")
+    dcc: dict[str, StagingDevice] = {}
+    system: dict[tuple[str, str], StagingDevice] = {}
+    for r in sd.rows:
+        if r.layer == "turnout" and r.role == "turnout" and r.dcc:
             if r.dcc in dcc:
-                bad.append(f"{nm.path.name} lines {dcc[r.dcc].line} and {r.line}: DCC {r.dcc} is "
-                           f"{dcc[r.dcc].proposed} and {r.proposed}")
+                bad.append(f"{name} lines {dcc[r.dcc].line} and {r.line}: DCC {r.dcc} is "
+                           f"{dcc[r.dcc].user_name} and {r.user_name}")
             dcc.setdefault(r.dcc, r)
-        if r.layer in UNIQUE_HARDWARE and r.hardware:
-            key = (r.layer, r.hardware)
-            if key in hardware:
-                bad.append(f"{nm.path.name} lines {hardware[key].line} and {r.line}: {r.layer}s "
-                           f"{hardware[key].proposed} and {r.proposed} are both {r.hardware}")
-            hardware.setdefault(key, r)
+        if r.layer in UNIQUE_HARDWARE and r.system_name:
+            key = (r.layer, r.system_name)
+            if key in system:
+                bad.append(f"{name} lines {system[key].line} and {r.line}: {r.layer}s "
+                           f"{system[key].user_name} and {r.user_name} are both {r.system_name}")
+            system.setdefault(key, r)
     return bad
 
 
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
     """Every block a staging switch leg (switches.csv), a staging mast (staging_masts.csv) or a measured
-    length (block_lengths.csv) names is a live block of the name map of devices.csv, and every staging mast a live mast."""
-    blocks, masts = rr.name_map.names("block"), rr.name_map.names("mast")
+    length (block_lengths.csv) names is a staging block row of devices.csv, and every staging mast a staging mast row."""
+    blocks, masts = rr.staging_devices.names("block"), rr.staging_devices.names("mast")
     bad = []
     for sw in rr.switches.values():
         for leg in sw.legs:
             for what, b in (("OS block", leg.os_block), ("closed leg", leg.closed), ("thrown leg", leg.thrown)):
                 if b not in blocks:
-                    bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no live block of the name map")
+                    bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of devices.csv")
     for m in rr.staging_masts:
         where = f"{rr.sources.staging_masts.name}: {m.mast}"
         if m.mast not in masts:
-            bad.append(f"{where}: no live mast {m.mast} in the name map")
-        bad += [f"{where}: block {b} is no live block of the name map" for b in (m.facing, *m.protects)
+            bad.append(f"{where}: no staging mast row {m.mast} in devices.csv")
+        bad += [f"{where}: block {b} is no staging block row of devices.csv" for b in (m.facing, *m.protects)
                 if b not in blocks]
-    # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's live blocks and main and upper's
+    # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
     # block rows of devices.csv, their parts among them (a main or upper part is a JMRI block of its own on its OS
     # block's sensor, owner 2026-11-20)
     from hartlib import devices
     level_blocks = {r["user_name"] for r in devices.load(rr.sources.devices)
                     if r["level"] in ("2", "3") and r["layer"] == "block"}
-    bad += [f"{rr.sources.block_lengths.name}: {name} is no live block of the name map or main and upper block row "
+    bad += [f"{rr.sources.block_lengths.name}: {name} is no staging, main or upper block row "
             "of devices.csv" for name in rr.block_lengths if name not in blocks | level_blocks]
     return bad
 
@@ -318,18 +334,18 @@ def _device_map(rr: Railroad) -> list[str]:
 
 @invariant("name-clash", "device_map")
 def _name_clash(rr: Railroad) -> list[str]:
-    """No name-map row of devices.csv, live or historical alias, uses a name the device map gives a main or upper
-    device of the same layer: a rename pass that maps the alias would rename the main or upper device. A helix block
-    (helix_tracks.csv) is one block from staging up the helix, so its live row names the device map's block too."""
+    """No staging row of devices.csv uses a name the device map gives a main or upper device of the same layer. A
+    helix block (helix_tracks.csv) is one block from staging up the helix, so its staging row names the device map's
+    block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
     helix = {h.block for h in rr.helix_tracks.values()}
+    name = rr.sources.devices.name
     out = []
-    for r in rr.name_map.rows:
-        hit = dm.get((r.layer, r.current))
-        if hit is not None and not (r.layer == "block" and r.identity and r.current in helix):
-            what = "live" if r.identity else f"an alias of {r.proposed}"
-            out.append(f"{rr.name_map.path.name}: {r.layer} {r.current} is {what} there and level "
-                       f"{hit.level} {r.layer} {hit.user_name} in {rr.sources.devices.name}")
+    for r in rr.staging_devices.rows:
+        hit = dm.get((r.layer, r.user_name))
+        if hit is not None and not (r.layer == "block" and r.user_name in helix):
+            out.append(f"{name} line {r.line}: staging {r.layer} {r.user_name} is level {hit.level} "
+                       f"{r.layer} {hit.user_name} as well (line {hit.line})")
     return out
 
 

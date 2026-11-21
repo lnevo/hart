@@ -22,7 +22,7 @@ import build_layout_index as le_index  # noqa: E402
 
 
 class NamesFromTheMasterTest(unittest.TestCase):
-    """load_names reads the name-map rows of devices.csv, one place (hartlib.devices)."""
+    """load_names reads staging's rows of devices.csv, one place (hartlib.devices)."""
 
     def test_the_committed_master_names_a_switch_by_hardware_and_name(self) -> None:
         by_hw, by_name = le_index.load_names(le_index.NAMES)

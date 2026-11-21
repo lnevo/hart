@@ -102,13 +102,12 @@ def main() -> int:
         errors.append("duplicate block userNames: " + ", ".join(dups[:8]))
 
     # Expected OS public names present on layout turnouts
-    # the staging OS blocks of the device master (its name-map rows, those with a pnm_order); a main or upper
-    # "BS Switch" corner has the role of an OS corner too, so the name prefix stays here
+    # the staging (level 1) OS blocks of the device master: role os, or xover_corner for a crossover's
     with DEVICES.open(newline="", encoding="utf-8-sig") as f:
         expected_os = {
             row["user_name"]
             for row in csv.DictReader(f)
-            if row.get("layer") == "block" and row.get("pnm_order") and row["user_name"].startswith("OS ")
+            if row["level"] == "1" and row["layer"] == "block" and row["role"] in ("os", "xover_corner")
         }
     found = {t.get("blockname") for t in root.iter("layoutturnout")}
     missing = sorted(expected_os - found)

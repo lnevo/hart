@@ -71,7 +71,7 @@ class LcosMimicNamingTest(unittest.TestCase):
 
 
 class LcosMimicNameMapTest(unittest.TestCase):
-    """load_cps reads the name-map rows of devices.csv (hartlib.devices.name_map_lines)."""
+    """load_cps reads staging's rows of devices.csv (hartlib.devices.load), cp per user name."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -82,6 +82,16 @@ class LcosMimicNameMapTest(unittest.TestCase):
         self.assertEqual(cps["turnout"]["Switch 1"], "Brick")
         self.assertIn("OS Switch 1", cps["block"])
         self.assertTrue(cps["occupancy"] and cps["mast"])
+
+    def test_an_lcc_alias_is_grouped_by_its_name_and_a_line_detector_by_its_cp(self) -> None:
+        cps = self.m.load_cps()
+        self.assertEqual(cps["turnout"]["DCC Switch 1"], self.m.infer_plant("DCC Switch 1"))     # not its cp, Brick
+        self.assertEqual(cps["turnout"]["DCC Switch 9"], "Engine House")                         # by its name
+        self.assertEqual(cps["occupancy"]["BS Barn"], "Barn")                  # the first place of its cp list
+        self.assertEqual(cps["block"]["Track East Ext"], "Plane")              # Plane;Barn
+        self.assertEqual(cps["block"]["Track Main East"], "Barn")              # Barn;East End
+        self.assertEqual(self.m.infer_plant("Track X", "CP 107;CP 123"), "CP 107")
+        self.assertEqual(self.m.first_place("CP 127;Princess"), "CP 127")      # a main helix row: its own CP
 
     def test_a_missing_master_gives_empty_layers_and_a_broken_one_stops(self) -> None:
         import tempfile

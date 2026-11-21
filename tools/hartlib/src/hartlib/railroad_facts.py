@@ -141,75 +141,62 @@ def natural(name: str) -> list:
     return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", name)]
 
 
-# ---------------------------------------------------------------- inputs: the name map
+# ---------------------------------------------------------------- inputs: staging's rows of devices.csv
 
 @dataclass(frozen=True)
-class NameRow:
-    """A name-map row of devices.csv (its pnm_ columns). `current` == `proposed` is the live name; any other row is a
-    historical alias (the master has none now)."""
+class StagingDevice:
+    """A staging (level 1) row of devices.csv in one of NAME_LAYERS, in the master's own columns."""
     line: int
     layer: str
-    current: str
-    proposed: str
+    user_name: str
+    role: str = ""
+    assignment: str = ""
+    system_name: str = ""
+    jmri_name: str = ""
+    node: str = ""
     cp: str = ""
-    hardware: str = ""
     dcc: str = ""
-    comment: str = ""
     notes: str = ""
-
-    @property
-    def identity(self) -> bool:
-        return self.current == self.proposed
 
 
 @dataclass(frozen=True)
-class NameMap:
+class StagingDevices:
     path: Path
-    rows: tuple[NameRow, ...]
+    rows: tuple[StagingDevice, ...]
 
     @cached_property
-    def live(self) -> dict[tuple[str, str], NameRow]:
-        """(layer, name) -> its identity row (current == proposed)."""
-        return {(r.layer, r.proposed): r for r in self.rows if r.identity}
-
-    @property
-    def aliases(self) -> list[NameRow]:
-        return [r for r in self.rows if not r.identity]
+    def by_name(self) -> dict[tuple[str, str], StagingDevice]:
+        """(layer, user name) -> its row."""
+        return {(r.layer, r.user_name): r for r in self.rows}
 
     def names(self, layer: str) -> set[str]:
-        return {name for lay, name in self.live if lay == layer}
+        return {name for lay, name in self.by_name if lay == layer}
 
 
-NAME_COLUMNS = ("layer", "current", "proposed")
-NAME_OPTIONAL = ("cp", "hardware", "dcc", "comment", "notes")
+STAGING_COLUMNS = ("layer", "user_name", "role", "assignment", "system_name", "jmri_name", "node", "cp", "dcc", "notes")
 
 
-def read_name_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
-    """The name-map rows of devices.csv (devices.name_map_lines), values stripped, unchecked beyond the master's own
-    checks (read_name_map checks them)."""
+def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
+    """(line, row) of staging's rows of devices.csv in NAME_LAYERS (STAGING_COLUMNS, values stripped), in master order,
+    unchecked beyond the master's own checks (read_staging_devices checks them)."""
     from . import devices
-    return [(n, {c: r[c].strip() for c in NAME_COLUMNS + NAME_OPTIONAL}) for n, r in devices.name_map_lines(path)]
+    return [(n, {c: r[c].strip() for c in STAGING_COLUMNS}) for n, r in enumerate(devices.load(path), 2)
+            if r["level"] == "1" and r["layer"] in NAME_LAYERS]
 
 
-def read_name_map(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> NameMap:
-    """The name map of devices.csv at `path` (or its `rows`, read_name_rows), every row checked. Stops on an unknown
-    layer, an empty name, a DCC address that is not a number, or two rows for one (layer, current) name or one live
-    (layer, name)."""
-    rows_in, rows, seen = read_name_rows(path) if rows is None else rows, [], {}
-    for line, r in rows_in:
+def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> StagingDevices:
+    """Staging's rows of devices.csv at `path` (or its `rows`, read_staging_rows, which keeps NAME_LAYERS only), every
+    row checked. Stops on an empty user name or a DCC address that is not a number (the master's own check holds the
+    keys unique)."""
+    out = []
+    for line, r in read_staging_rows(path) if rows is None else rows:
         where = _where(path, line)
-        if r["layer"] not in NAME_LAYERS:
-            raise FactsError(f"{where}: layer is one of {', '.join(NAME_LAYERS)}, not {r['layer']!r}")
-        if not r["current"] or not r["proposed"]:
-            raise FactsError(f"{where}: current and proposed are both needed")
+        if not r["user_name"]:
+            raise FactsError(f"{where}: user_name is empty")
         if r["dcc"] and not r["dcc"].isdigit():
             raise FactsError(f"{where}: dcc is a number or blank, not {r['dcc']!r}")
-        key = (r["layer"], r["current"])
-        if key in seen:
-            raise FactsError(f"{path.name} lines {seen[key]} and {line}: both are {r['layer']} {r['current']!r}")
-        seen[key] = line
-        rows.append(NameRow(line=line, **r))
-    return NameMap(path, tuple(rows))
+        out.append(StagingDevice(line=line, **r))
+    return StagingDevices(path, tuple(out))
 
 
 # ---------------------------------------------------------------- inputs: switches.csv, every level's switches (ADR-021)
@@ -347,8 +334,8 @@ class Leg:
 @dataclass(frozen=True)
 class Switch:
     """A staging switch (its level 1 rows of switches.csv: the first row's whole-switch columns and hand, and every
-    row's legs) with, from its live turnout row in the name map of devices.csv, its hardware, DCC address and control
-    point."""
+    row's legs) with, from its turnout row in devices.csv (staging's "Switch <n>"), its hardware (system_name), DCC
+    address and control point."""
     number: int
     level: str
     le_ident: str
@@ -383,33 +370,32 @@ def _yes(value: str, where: str) -> bool:
     return YES[value]
 
 
-def switch_turnouts(name_map: Path, rows: list[tuple[int, dict[str, str]]] | None = None,
+def switch_turnouts(devices_csv: Path, rows: list[tuple[int, dict[str, str]]] | None = None,
                     numbers: Iterable[int] = ()) -> dict[int, dict[str, str]]:
-    """Switch number -> the live turnout row ("Switch <n>", current == proposed) of the name map, for the
-    switches `numbers`. Only those rows are looked at for the answer; a name-map fault of another row (an unknown
-    layer, a bad DCC address: read_name_map) is the railroad-facts check's to report. A bad row ANYWHERE in the master
-    stops the load first (hartlib.devices.load checks the whole file, naming its line and row). Stops on a switch with
-    two live rows."""
+    """Switch number -> staging's turnout row "Switch <n>" of devices.csv (read_staging_rows), for the switches
+    `numbers`. Only those rows are looked at; a fault of another row (an unknown layer, a bad DCC address:
+    read_staging_devices) is the railroad-facts check's to report. A bad row ANYWHERE in the master stops the load
+    first (hartlib.devices.load checks the whole file, naming its line and row). Stops on a switch with two rows."""
     want = {f"Switch {n}": n for n in numbers}
     out: dict[int, dict[str, str]] = {}
     lines: dict[int, int] = {}
-    for line, r in read_name_rows(name_map) if rows is None else rows:
-        n = want.get(r["current"])
-        if n is None or r["layer"] != "turnout" or r["current"] != r["proposed"]:
+    for line, r in read_staging_rows(devices_csv) if rows is None else rows:
+        n = want.get(r["user_name"])
+        if n is None or r["layer"] != "turnout":
             continue
         if n in out:
-            raise FactsError(f"{name_map.name} lines {lines[n]} and {line}: both are the live turnout Switch {n}")
+            raise FactsError(f"{devices_csv.name} lines {lines[n]} and {line}: both are the turnout Switch {n}")
         out[n], lines[n] = r, line
     return out
 
 
-def staging_switches(rows: list[SwitchRow], path: Path, name_map: Path,
-                     name_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
-    """Switch number -> Switch of the level 1 rows (read_switch_rows of `path`), in file order; hardware, DCC address
-    and control point from each switch's live turnout row of `name_map` (switch_turnouts; `name_rows` when the caller
-    read it already). Stops on a switch whose first row lacks a whole-switch column, or a USS lever given twice."""
+def staging_switches(rows: list[SwitchRow], path: Path, devices_csv: Path,
+                     staging_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
+    """Switch number -> Switch of the level 1 rows (read_switch_rows of `path`), in file order; hardware
+    (system_name), DCC address and control point from each switch's turnout row of `devices_csv` (switch_turnouts;
+    `staging_rows` when the caller read them already). Stops on a switch whose first row lacks a whole-switch column, or a USS lever given twice."""
     groups = switch_groups(rows, (1,))
-    names = switch_turnouts(name_map, name_rows, groups)
+    names = switch_turnouts(devices_csv, staging_rows, groups)
     out: dict[int, Switch] = {}
     lever: dict[int, tuple[int, int]] = {}
     for n, rs in groups.items():
@@ -429,15 +415,15 @@ def staging_switches(rows: list[SwitchRow], path: Path, name_map: Path,
                         cats_inverted=_yes(first.cats_inverted, where), ctc_is=ctc_is,
                         ctc_signals=_yes(first.ctc_signals, where),
                         legs=tuple(Leg(r.os_block, r.closed_leg, r.thrown_leg) for r in rs), hand=first.hand,
-                        hardware=nm.get("hardware", ""), dcc=nm.get("dcc", ""), cp=nm.get("cp", ""))
+                        hardware=nm.get("system_name", ""), dcc=nm.get("dcc", ""), cp=nm.get("cp", ""))
     return out
 
 
-def read_switches(path: Path, name_map: Path,
-                  name_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
+def read_switches(path: Path, devices_csv: Path,
+                  staging_rows: list[tuple[int, dict[str, str]]] | None = None) -> dict[int, Switch]:
     """The staging switches of switches.csv (staging_switches of read_switch_rows). Line numbers in errors count the
     header as 1."""
-    return staging_switches(read_switch_rows(path), path, name_map, name_rows)
+    return staging_switches(read_switch_rows(path), path, devices_csv, staging_rows)
 
 
 # ---------------------------------------------------------------- inputs: main and upper control points and nodes
@@ -979,7 +965,7 @@ class DeviceRow:
         return cls(line=line, **{k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"})
 
 
-DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are the name map's
+DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are staging's
 
 
 @dataclass
