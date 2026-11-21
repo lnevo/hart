@@ -51,11 +51,13 @@ OUT = paths.REPO_TABLES_XML
 EXIT_NO_PLUGIN = 3      # the plugin is missing or off its pin: the deploy names the fix (sync_hart_package.sh)
 
 
-def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[bytes, dict]:
+def generate(discovered: tuple | None = None, with_logic: bool = True, review: bool = False) -> tuple[bytes, dict]:
     """(tables bytes, counts) from the sources (module text). `discovered`: (logics, properties) to use in place of
     the discovered file's. `with_logic` False: the discovery base, with no Signal Mast Logic and no mast properties
-    (the discovered file is not read). tb.TablesBuildError or ble.BuildError on anything that stops it."""
-    data, _P, _names, _bands = ble.build(levels="all", as_live=True)
+    (the discovered file is not read). `review`: a candidate for the owner's review, its staging panel not checked
+    against the approved fingerprint (build_layout_le.py --review). tb.TablesBuildError or ble.BuildError on anything
+    that stops it."""
+    data, _P, _names, _bands = ble.build(levels="all", as_live=True, **({"approved": None} if review else {}))
     doc = tables.loads(data)
     root = doc.root
     if doc.prolog != tb.PROLOG or doc.epilog != tb.EPILOG:
@@ -110,7 +112,12 @@ def main(argv=None) -> int:
     g.add_argument("--discovered-from", type=Path, metavar="STORE",
                    help="a PanelPro Store after SML discovery: its logic and mast properties replace "
                         f"{paths.rel(tb.DISCOVERED)}, then tables.xml is written")
+    ap.add_argument("--review", action="store_true",
+                    help="write a candidate for the owner's review although its staging panel is not the approved "
+                         "one (as build_layout_le.py --review); never with --check")
     args = ap.parse_args(argv)
+    if args.review and args.check:
+        ap.error("--review writes a candidate; --check holds tables.xml to the approved panel")
     if not args.check:
         message = paths.check_only_message(Path(__file__).name)
         if message:
@@ -131,7 +138,7 @@ def main(argv=None) -> int:
             if args.discovered_from:
                 new_doc = tb.discovered_from_store(tables.load(args.discovered_from).root)
                 discovered = tb.read_discovered_root(new_doc, str(args.discovered_from))
-            data, counts = generate(discovered, with_logic=not args.discovery_base)
+            data, counts = generate(discovered, with_logic=not args.discovery_base, review=args.review)
         except (tb.TablesBuildError, ble.BuildError, devices.DevicesError) as exc:
             print(f"build_tables.py: {exc}", file=sys.stderr)
             return 2
@@ -150,6 +157,9 @@ def main(argv=None) -> int:
         print(f"wrote {paths.rel(tb.DISCOVERED)} from {args.discovered_from}")
     wrote = tables.loads(data, path=OUT).save(OUT)
     print(f"{'wrote' if wrote else 'unchanged'} {paths.rel(OUT)} ({summary})")
+    if args.review:
+        print(f"REVIEW: {paths.rel(OUT)}'s staging panel was not checked against the approved one; it is a candidate "
+              "until the owner approves it (build_tables.py --check fails until then)")
     if args.discovery_base:
         print(f"NOTE: {paths.rel(OUT)} is the discovery base, with no Signal Mast Logic; it stays stale until "
               "run_sml_discover.sh finishes (build_tables.py --discovered-from)")

@@ -5,7 +5,9 @@
   columns by a digest, so a change to any cell of those rows is seen. Step 5 part 1 (owner, 2026-11-20) changed only
   this: staging's block and occupancy rows went from hand-kept to the one block builder's (written_by, left out of
   the digests), devices.csv gained part_of (left out too), staging's 14 links (and the piece of Scale in OS Switch 7)
-  became part rows, and the OS blocks' trial names lost the link pieces those rows now carry;
+  became part rows, and the OS blocks' trial names lost the link pieces those rows now carry. Step 5 part 2 (owner,
+  2026-11-20): the piece of Scale in OS Switch 7 went (Track Scale one block), and main and upper's 25 links became
+  part rows, their block and occupancy rows gone;
 - the block layer the readers build from those rows: staging_device_map.load's {strand: blocks} over the staging
   drawing, by the drawing's own keys (OS placeholders and track pieces, from the first end of each piece), and the
   main and upper rows build_device_map.build() writes.
@@ -73,7 +75,7 @@ STAGING_BLOCKS = (
     ('Track S-3', 'track', '', 'Track 21C-25C'),
     ('Track S-4', 'track', '', 'Track 21B-25B'),
     ('Track S-R', 'track', '', 'Track 15B-23B'),
-    ('Track Scale', 'track', '', 'Track 5C-7B 1/2'),
+    ('Track Scale', 'track', '', 'Track 5C-7B'),
     ('Track W-1', 'track', '', 'Track 3B-end'),
     ('Track W-2', 'track', '', 'Track 3C-end'),
     ('Track West Ext', 'track', '', 'Track 23B-35B'),
@@ -96,7 +98,6 @@ STAGING_PARTS = (
     ('Track 35-37', 'OS Switch 35a', 'Track 35B-37A'),
     ('Track 35-39 at 35', 'OS Switch 35b', 'Track 35A-39A 1/2'),
     ('Track 35-39 at 39', 'OS Switch 39', 'Track 35A-39A 2/2'),
-    ('Track Scale at 7', 'OS Switch 7', 'Track 5C-7B 2/2'),
 )
 STAGING_OCCUPANCY = (
     ('BS Barn', 'track', 'Track Barn', 'M2S1300'),
@@ -144,6 +145,37 @@ STAGING_OCCUPANCY = (
     ('BS West Ext', 'track', 'Track West Ext', 'M2S107'),
     ('unused Block 2-2', 'spare', '', 'M2S201'),
     ('unused Block 3-8', 'spare', '', 'M2S307'),
+)
+
+# (level, name, part_of, trial_name) of the main and upper parts: the 25 links, each in the lower-numbered switch's OS
+# block or, where a home mast stands at a switch's points facing it, the OS block at its other end (125-129, 201-205,
+# 227-231, 229-233); 225's in the corner block of its leg (step 5 part 2, owner 2026-11-20)
+MAIN_UPPER_PARTS = (
+    ('2', 'Track 101-103', 'OS Switch 101', 'Track e28'),
+    ('2', 'Track 105-109', 'OS Switch 105', 'Track e20'),
+    ('2', 'Track 109-111', 'OS Switch 109', 'Track e18'),
+    ('2', 'Track 111-117', 'OS Switch 111', 'Track e23'),
+    ('2', 'Track 113-115', 'OS Switch 113', 'Track e11'),
+    ('2', 'Track 115-117', 'OS Switch 115', 'Track e14'),
+    ('2', 'Track 117-119', 'OS Switch 117', 'Track e16'),
+    ('2', 'Track 121-123', 'OS Switch 121', 'Track e6'),
+    ('2', 'Track 123-125', 'OS Switch 123', 'Track e29'),
+    ('2', 'Track 125-129', 'OS Switch 129', 'Track e3'),
+    ('2', 'Track 127-131 2', 'OS Switch 127', 'Track e66'),
+    ('3', 'Track 201-203', 'OS Switch 201', 'Track e59'),
+    ('3', 'Track 201-205', 'OS Switch 205', 'Track e60'),
+    ('3', 'Track 201-219', 'OS Switch 201', 'Track e58'),
+    ('3', 'Track 205-209', 'OS Switch 205', 'Track e83'),
+    ('3', 'Track 213-215', 'OS Switch 213', 'Track e80'),
+    ('3', 'Track 219-221', 'OS Switch 219', 'Track e68'),
+    ('3', 'Track 225-227', 'OS Switch 225c', 'Track e65'),
+    ('3', 'Track 225-229', 'OS Switch 225b', 'Track e61'),
+    ('3', 'Track 227-231', 'OS Switch 231', 'Track e48'),
+    ('3', 'Track 229-233', 'OS Switch 233', 'Track e37'),
+    ('3', 'Track 231-237', 'OS Switch 231', 'Track e42'),
+    ('3', 'Track 235-243', 'OS Switch 235', 'Track e50'),
+    ('3', 'Track 237-239', 'OS Switch 237', 'Track e43'),
+    ('3', 'Track 239-245', 'OS Switch 239', 'Track e45'),
 )
 
 # the staging layer: {drawing key: blocks from the key's first end}
@@ -202,7 +234,7 @@ STAGING_LAYER = {
     'Track 3B-end': ('Track W-1',),
     'Track 3C-end': ('Track W-2',),
     'Track 5B-7A': ('Track East Ext',),
-    'Track 5C-7B': ('Track Scale', 'OS Switch 7'),
+    'Track 5C-7B': ('Track Scale',),
     'Track 7A-13C': ('Track Barn',),
     'Track 7B-33C': ('Track Main East',),
     'Track 9A-11C': ('OS Switch 9',),
@@ -212,7 +244,7 @@ STAGING_LAYER = {
 
 # (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by and part_of (and,
 # on staging, trial_name, pinned row by row above), joined by commas, one row a line, in file order
-DIGESTS = {"1": (90, 'ad63b0020d35c033f89db37d6008e69f9fcbfee42168039db7e4f2499bf90533'), "2": (96, '51059be5337ad1ee9c2f25cc643e89df97b50e6bcf4c52116cafdf2bcd9a9590'), "3": (148, '5c0d8784a6fdc81fc29baacf8385cd7c42a21dd1e435aeab6abc99c0ec27b5b9')}
+DIGESTS = {"1": (90, 'ad63b0020d35c033f89db37d6008e69f9fcbfee42168039db7e4f2499bf90533'), "2": (76, 'a6ab6b691e99672675b5f796ed5cea062da133a5bf828858a4d59a079e091846'), "3": (118, 'a35766af132630b83b97b13feb58091ae10cd3a69595c77f862bd388b3dea053')}
 SKIP = {"1": ("written_by", "trial_name", "part_of"), "2": ("written_by", "part_of"),
         "3": ("written_by", "part_of")}
 
@@ -252,8 +284,10 @@ class Committed(unittest.TestCase):
                     if r["level"] == "1" and r["role"] == "part")
         self.assertEqual(got, STAGING_PARTS)
 
-    def test_main_and_upper_have_no_parts_until_part_2(self):
-        self.assertEqual([r["user_name"] for r in self.rows if r["level"] != "1" and r["part_of"]], [])
+    def test_main_and_upper_parts(self):
+        got = tuple((r["level"], r["user_name"], r["part_of"], r["trial_name"]) for r in self.rows
+                    if r["level"] != "1" and r["role"] == "part")
+        self.assertEqual(got, MAIN_UPPER_PARTS)
 
     def test_staging_occupancy_rows(self):
         got = tuple((r["user_name"], r["role"], r["blocks"], r["system_name"]) for r in self.rows
@@ -294,12 +328,13 @@ class Readers(RepoReadOnly, unittest.TestCase):
         except bl.BuildError as exc:
             skip_or_fail(exc)
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
-        _cp, rows = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
-                              rr.lcos_nodes, rr.local_switches, corners)
+        _cp, rows, _parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
+                                      rr.lcos_nodes, rr.local_switches, corners)
         mine = [(str(r["level"]), r["user_name"], r["trial_name"], r["notes"]) for r in rows
                 if r["layer"] in ("block", "occupancy") and str(r["level"]) in ("2", "3")]
         want = [(r["level"], r["user_name"], r["trial_name"], r["notes"]) for r in committed()
-                if r["level"] in ("2", "3") and r["layer"] in ("block", "occupancy")]
+                if r["level"] in ("2", "3") and r["layer"] in ("block", "occupancy")
+                and r["role"] != "part"]
         self.assertEqual(mine, want)
 
 

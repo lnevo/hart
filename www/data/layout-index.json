@@ -10,7 +10,7 @@
     "width": 2513,
     "height": 1382,
     "scale": 1.0,
-    "inputs_sha256": "7656eaec1828ba2012a0836d653fc99cab6d02a4587b3f1cfa595eb2b8a10d37"
+    "inputs_sha256": "6b4cffc42d3b8edb0090b42f8d7c8e56074761efc937086b7639f032bb33c2d3"
   },
   "items": [
     {
@@ -1225,7 +1225,7 @@
     {
       "id": "sig-28",
       "kind": "signal",
-      "x": 517.0,
+      "x": 565.0,
       "y": 410.0,
       "systemName": "Mast 8RA",
       "publicName": "Mast 8RA",

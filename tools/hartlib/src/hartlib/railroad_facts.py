@@ -539,10 +539,10 @@ def read_plan_overrides(path: Path, sheet: str = PlanOverrides.SHEET) -> PlanOve
 
 # ---------------------------------------------------------------- inputs: block lengths and staging masts
 
-# block_lengths.csv: each staging block's 5.3c plan length (plan_in, written by tools/schematic/plan_lengths.py) and,
-# for a timed block, its measured length (measured_in). `source` says which one JMRI's block length is: `timed`
-# (measured_in) or `plan` (plan_in). The drawings and the signal rules use plan_in alone; the measured lengths serve
-# speed profiling and JMRI's block lengths only (owner, 2026-11-20).
+# block_lengths.csv: each block's 5.3c plan length on every level (plan_in, written by tools/schematic/plan_lengths.py)
+# and, for a timed staging block, its measured length (measured_in; `source` timed, else plan). JMRI's block length,
+# the drawings and the signal rules use plan_in alone; the measured lengths serve speed profiling only (owner,
+# 2026-11-20, level unification step 5 part 2).
 BLOCK_LENGTH_COLUMNS = ("user_name", "occupancy_sensor", "plan_in", "measured_in", "source", "note")
 LENGTH_SOURCES = ("timed", "plan")
 
@@ -554,12 +554,7 @@ class BlockLength:
     occupancy_sensor: str
     plan_in: float              # the AnyRail plan 5.3c length
     measured_in: float | None   # the timed length; None unless source is "timed"
-    source: str                 # LENGTH_SOURCES: which length JMRI's block holds
-
-    @property
-    def jmri_in(self) -> float:
-        """The block length JMRI holds: the measured length of a timed block, else the plan length."""
-        return self.measured_in if self.source == "timed" else self.plan_in
+    source: str                 # LENGTH_SOURCES: timed when the block has a measured length (speed profiling)
 
 
 def read_block_lengths(path: Path) -> dict[str, BlockLength]:
@@ -582,8 +577,10 @@ def read_block_lengths(path: Path) -> dict[str, BlockLength]:
                 lengths[col] = float(r[col])
             except ValueError:
                 raise FactsError(f"{where}: {col} {r[col]!r} is not a number") from None
-            if not lengths[col] > 0:
-                raise FactsError(f"{where}: {col} {r[col]} is not above zero")
+            # a plan length may be 0 (a block between two turnouts that touch in the plan); a measured one may not
+            if not (lengths[col] >= 0 if col == "plan_in" else lengths[col] > 0):
+                raise FactsError(f"{where}: {col} {r[col]} is " + ("below zero" if col == "plan_in" else
+                                                                   "not above zero"))
         if lengths["plan_in"] is None:
             raise FactsError(f"{where}: no plan_in (run tools/schematic/plan_lengths.py)")
         if (r["source"] == "timed") != (lengths["measured_in"] is not None):

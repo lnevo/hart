@@ -66,7 +66,7 @@ class CommittedFiles(Case):
         """The reader gives the main and upper rows of devices.csv, in the device-map form, checked against a plain read."""
         rows = AM.read_device_rows()
         master = plain(devices.Files.here().master)
-        want = [r for r in master if r["level"] in ("2", "3") and r["role"] not in ("spare", "panel_status")]
+        want = [r for r in master if r["level"] in ("2", "3") and r["role"] not in devices.OUT_OF_MAPS]
         self.assertTrue(rows)
         self.assertEqual({lv: sum(1 for r in rows if r["level"] == lv) for lv in ("2", "3")},
                          {lv: sum(1 for r in want if r["level"] == lv) for lv in ("2", "3")})

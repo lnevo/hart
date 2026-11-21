@@ -59,9 +59,9 @@ class RowRules(Master):
         self.assertEqual(cdm.check_rows(self.lines, self.helix), [])
 
     def test_a_cp_is_one_of_its_levels(self):
-        got = cdm.row_problems(self.edited({("2", "Track 101-103"): dict(cp="CP 201"),
+        got = cdm.row_problems(self.edited({("2", "Track 101-111"): dict(cp="CP 201"),
                                             ("1", "Track Barn"): dict(cp="CP 107")}), self.cps, ends_cps={})
-        self.assertProblem(r"\(level 2 block Track 101-103\): cp 'CP 201' is no level 2 control point", got)
+        self.assertProblem(r"\(level 2 block Track 101-111\): cp 'CP 201' is no level 2 control point", got)
         self.assertProblem(r"\(level 1 block Track Barn\): cp 'CP 107' is no level 1 control point", got)
 
     def test_a_cp_of_another_level_is_one_of_its_blocks_end_switches(self):
@@ -72,7 +72,7 @@ class RowRules(Master):
         self.assertFalse(hasattr(cdm, "KNOWN_CP"))
         self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps=ends), [])
         got = cdm.row_problems(self.lines, self.cps, ends_cps={})
-        self.assertEqual(len(got), 6, got)
+        self.assertEqual(len(got), 4, got)       # 127-221 and Helix Inner, block and occupancy (127-131 2 is a part)
         self.assertProblem(r"level 3 occupancy BS 127-221\): cp 'CP 127' is no level 3 control point .* and no "
                            r"control point of an end switch of its blocks", got)
         got = cdm.row_problems(self.edited({("3", "Track 127-221"): dict(cp="CP 107")}), self.cps, ends_cps=ends)
@@ -105,8 +105,8 @@ class RowRules(Master):
         self.assertProblem(r"level 2 occupancy BS Switch 101\): assignment virtual with detector 'wired'", got)
 
     def test_a_row_kept_by_hand_is_a_field_device(self):
-        got = cdm.row_problems(self.edited({("2", "Track 101-103"): dict(written_by="")}), self.cps)
-        self.assertProblem(r"level 2 block Track 101-103\): kept by hand, so a field device, not assignment none",
+        got = cdm.row_problems(self.edited({("2", "Track 101-111"): dict(written_by="")}), self.cps)
+        self.assertProblem(r"level 2 block Track 101-111\): kept by hand, so a field device, not assignment none",
                            got)
 
     def test_trial_names(self):
@@ -120,7 +120,7 @@ class RowRules(Master):
         self.assertProblem(r"level 3 turnout Switch 203\): a turnout row has facing", got)
 
     def test_only_the_helix_blocks_are_on_two_levels(self):
-        lines = self.edited({("2", "Track 101-103"): dict(user_name="Track K-1")})
+        lines = self.edited({("2", "Track 101-111"): dict(user_name="Track K-1")})
         self.assertProblem(r"blocks named on more than one level: \['Track Helix Inner', 'Track Helix Outer', "
                            r"'Track K-1'\]", cdm.check_rows(lines, self.helix))
         self.assertProblem(r"blocks named on more than one level: .*exactly the helix blocks",
@@ -129,9 +129,9 @@ class RowRules(Master):
     def test_a_block_has_one_occupancy_row_on_any_level(self):
         got = cdm.check_rows(self.edited(drop={("3", "BS Helix Inner")}), self.helix)
         self.assertProblem(r"block Track Helix Inner has 0 occupancy rows naming it", got)
-        got = cdm.check_rows(self.edited({("2", "BS 101-103"): dict(blocks="Track Barn")}), self.helix)
+        got = cdm.check_rows(self.edited({("2", "BS 101-111"): dict(blocks="Track Barn")}), self.helix)
         self.assertProblem(r"block Track Barn has 2 occupancy rows naming it", got)
-        self.assertProblem(r"block Track 101-103 has 0 occupancy rows", got)
+        self.assertProblem(r"block Track 101-111 has 0 occupancy rows", got)
 
     def test_names_given_twice(self):
         got = cdm.check_rows(self.edited({("3", "FB Switch 201 N"): dict(system_name="M2S470"),
@@ -182,15 +182,15 @@ class TablesCheck(Master):
         self.assertIn("block Track Barn: tables.xml has IB15, not IB99",
                       self.problems({("1", "Track Barn"): dict(system_name="IB99")}))
         self.assertIn("block Track Nowhere: tables.xml has none, not a block of that name",
-                      self.problems({("2", "Track 101-103"): dict(user_name="Track Nowhere")}))
+                      self.problems({("2", "Track 101-111"): dict(user_name="Track Nowhere")}))
 
     def test_a_station_is_its_comment(self):
         self.assertIn("block Track Barn: stop is empty, but its comment in tables.xml marks a station",
                       self.problems({("1", "Track Barn"): dict(stop="")}))
         self.assertIn("block Track East Ext: stop is yes, but its comment in tables.xml does not mark a station",
                       self.problems({("1", "Track East Ext"): dict(stop="yes")}))
-        self.assertIn("block Track 101-103: stop is yes, but its comment in tables.xml does not mark a station",
-                      self.problems({("2", "Track 101-103"): dict(stop="yes")}))
+        self.assertIn("block Track 101-111: stop is yes, but its comment in tables.xml does not mark a station",
+                      self.problems({("2", "Track 101-111"): dict(stop="yes")}))
 
     def test_the_rows_of_a_helix_block_agree_on_its_stop_but_the_known_ones(self):
         got = self.problems(known_stop={})
@@ -254,11 +254,11 @@ class Command(unittest.TestCase):
 
     def test_a_hand_kept_row_off_staging_has_no_drawing_reader(self):
         tsdm.Files.setUpClass()
-        lines = [(n, dict(r, written_by="") if (r["level"], r["user_name"]) == ("2", "Track 101-103") else r)
+        lines = [(n, dict(r, written_by="") if (r["level"], r["user_name"]) == ("2", "Track 101-111") else r)
                  for n, r in cdm.master_lines()]
         got = cdm.check_drawing(tsdm.Files.band, lines)
         self.assertEqual(len(got), 1, got)
-        self.assertIn("level 2 block Track 101-103): kept by hand, but only staging's hand-kept rows", got[0])
+        self.assertIn("level 2 block Track 101-111): kept by hand, but only staging's hand-kept rows", got[0])
 
 
 class CheckParts(Master):

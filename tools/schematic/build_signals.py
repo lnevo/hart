@@ -182,7 +182,7 @@ def main_upper_rows() -> list[dict]:
     rr = railroad.Railroad(bdm.sources(), upto="inputs")
     sw = railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
     cp_of = {s: v.cp for s, v in sw.items() if v.cp}
-    planned, _corner_blocks, _split = bdm.plan_masts(bands, joined, runs, found, cp_of, corners)   # mast_plan.plan
+    planned, _corner_blocks, _split, _layer = bdm.plan_masts(bands, joined, runs, found, cp_of, corners)   # mast_plan.plan
     placed = {m["name"]: m for m in planned["home"]}
     destinations = {m["name"]: m for m in planned["virtual"]}
     by_name = {t["name"]: t for t in found}

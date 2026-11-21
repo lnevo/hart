@@ -223,8 +223,14 @@ def _staging_blocks(rr: Railroad) -> list[str]:
             bad.append(f"{where}: no live mast {m.mast} in the name map")
         bad += [f"{where}: block {b} is no live block of the name map" for b in (m.facing, *m.protects)
                 if b not in blocks]
-    bad += [f"{rr.sources.block_lengths.name}: {name} is no live block of the name map"
-            for name in rr.block_lengths if name not in blocks]
+    # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's live blocks and main and upper's
+    # block rows of devices.csv, their parts among them (a main or upper part is a JMRI block of its own on its OS
+    # block's sensor, owner 2026-11-20)
+    from hartlib import devices
+    level_blocks = {r["user_name"] for r in devices.load(rr.sources.devices)
+                    if r["level"] in ("2", "3") and r["layer"] == "block"}
+    bad += [f"{rr.sources.block_lengths.name}: {name} is no live block of the name map or main and upper block row "
+            "of devices.csv" for name in rr.block_lengths if name not in blocks | level_blocks]
     return bad
 
 
@@ -311,9 +317,13 @@ def _level_masts(rr: Railroad) -> list[str]:
     names; its switch is in that control point (an APB intermediate has no switch; a spur's exit dwarf at a local
     switch has no control point, ADR-024); its facing and protected blocks are device map blocks; and every device
     map mast has a row. A virtual mast (a destination at a buffer stop, level_masts.is_level_virtual) stands at no
-    switch, protects nothing, and its control point is its track's switch's, if any."""
+    switch, protects nothing, and its control point is its track's switch's, if any. A main or upper part (a link
+    inside an OS block, devices.csv part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or
+    protect it, as Signal Mast Logic discovery does."""
+    from hartlib import devices
     dm, name = rr.device_map, rr.sources.level_masts.name
     masts = dm.by_user("mast")
+    blocks = set(dm.blocks) | {r["user_name"] for _line, r in devices.part_lines(("2", "3"), rr.sources.devices)}
     cps = {cp.name: cp for cp in rr.level_control_points}
     bad, seen = [], set()
     for r in rr.level_masts:
@@ -331,7 +341,7 @@ def _level_masts(rr: Railroad) -> list[str]:
                            "buffer stop")
             if r["cp"] and r["cp"] not in cps:
                 bad.append(f"{name}: virtual {r['mast']} names control point {r['cp']!r}, which is none")
-            if r["facing"] not in dm.blocks:
+            if r["facing"] not in blocks:
                 bad.append(f"{name}: virtual {r['mast']} faces {r['facing']}, which is no device map block")
             continue
         if not r["switch"]:
@@ -346,7 +356,7 @@ def _level_masts(rr: Railroad) -> list[str]:
         elif r["switch"] not in (cps[r["cp"]].switches if r["cp"] in cps else ()):
             bad.append(f"{name}: {r['mast']} protects Switch {r['switch']}, which is not in {r['cp']}")
         bad += [f"{name}: {r['mast']} {what} {b}, which is no device map block"
-                for what, b in (("faces", r["facing"]), ("protects", r["protects"])) if b not in dm.blocks]
+                for what, b in (("faces", r["facing"]), ("protects", r["protects"])) if b not in blocks]
     bad += [f"{name}: device map mast {m} has no row" for m in sorted(set(masts) - seen, key=natural)]
     return bad
 

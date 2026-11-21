@@ -1,11 +1,10 @@
 kind,ident,slot,mast
-point,AG20,east,Mast 8RA
-point,AG30,east,Mast 68
-point,AG30,west,Mast 67
-point,AG52,east,Mast A83
-point,AG52,west,Mast A84
-point,AG96,east,Mast B92
-point,AG96,west,Mast B93
+point,AG29,east,Mast 68
+point,AG29,west,Mast 67
+point,AG51,east,Mast A83
+point,AG51,west,Mast A84
+point,AG95,east,Mast B92
+point,AG95,west,Mast B93
 point,EBG10,west,Mast 122R
 point,EBG11,west,Mast 120RC
 point,EBG12,east,Mast 130LA
@@ -40,6 +39,7 @@ turnout,TO111,B,Mast 24L
 turnout,TO111,D,Mast 24RB
 turnout,TO113,A,Mast 36RA
 turnout,TO113,D,Mast 36RB
+turnout,TO117,A,Mast 8RA
 turnout,TO117,B,Mast 8LA
 turnout,TO117,C,Mast 8LB
 turnout,TO117,D,Mast 8RB
