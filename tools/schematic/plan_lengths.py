@@ -348,7 +348,9 @@ def main_upper_os(bands, graph: dict, parts: list, threeways: list[int]) -> dict
 
 
 def main_upper_lengths(plan: Path) -> dict:
-    """{block: (level, inches)} of every main and upper block of devices.csv but the helix blocks (staging's rows; module
+    """{block: (level, inches, the block whose occupancy sensor it has)} of every main and upper block of devices.csv,
+    its parts too (a JMRI block of their own whose sensor is their OS block's; a link whose turnouts touch in the plan
+    is 0 in long), but the helix blocks (staging's rows; module
     text). LengthError on a row whose trial names give no plan edge, or a block left with no length."""
     import build_device_map as bdm
     from hartlib import devices
@@ -362,14 +364,15 @@ def main_upper_lengths(plan: Path) -> dict:
     os_in = main_upper_os(bands, graph, parts, [p["index"] for p in plan_parts if p["kind"] == "threeway"])
     out, bad = {}, []
     for r in devices.load():
-        if r["level"] not in MAIN_UPPER or r["layer"] != "block" or r["role"] == "part" or r["user_name"] in helix:
+        if r["level"] not in MAIN_UPPER or r["layer"] != "block" or r["user_name"] in helix:
             continue
         name = r["user_name"]
+        sensor = r["part_of"] or name           # a part's occupancy sensor is its OS block's
         if name.startswith("OS Switch "):
             if name not in os_in:
                 bad.append(f"{name} (level {r['level']}): no turnout part found for it")
             else:
-                out[name] = (r["level"], os_in[name])
+                out[name] = (r["level"], os_in[name], sensor)
             continue
         total = 0.0
         for trial in (t.strip() for t in r["trial_name"].split(",") if t.strip()):
@@ -378,7 +381,7 @@ def main_upper_lengths(plan: Path) -> dict:
                 bad.append(f"{name} (level {r['level']}): trial name {trial!r} is no plan edge of {MAIN_GRAPH.name}")
                 continue
             total += edge_in[m.group(1)] / (2 if m.group(2) else 1)
-        out[name] = (r["level"], total)
+        out[name] = (r["level"], total, sensor)
     if bad:
         raise LengthError("; ".join(bad))
     return out
@@ -386,7 +389,7 @@ def main_upper_lengths(plan: Path) -> dict:
 
 def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
     """block_lengths.csv's text with plan_in set from `lengths` (staging's blocks, rounded to 0.1 in) and main and
-    upper's rows (`main_upper`, {block: (level, inches)}, main_upper_lengths) written after staging's in level and
+    upper's rows (`main_upper`, {block: (level, inches, sensor block)}, main_upper_lengths) written after staging's in level and
     name order (source plan, occupancy_sensor the block's occupancy row, no measured length). LengthError when a drawn
     staging block has no row, or a row is a block of no level."""
     from hartlib import level_devices
@@ -405,9 +408,10 @@ def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
     stray = sorted(r["user_name"] for r in rest if r["user_name"] not in main_upper)
     if stray:
         raise LengthError(f"{paths.rel(path)}: rows of no drawn block on any level: {stray}")
-    rest = [dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(name), plan_in=f"{inches:.1f}",
+    rest = [dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(sensor), plan_in=f"{inches:.1f}",
                  measured_in="", source="plan", note=f"{'main' if level == '2' else 'upper'} level, the plan's length")
-            for name, (level, inches) in sorted(main_upper.items(), key=lambda kv: (kv[1][0], railroad.natural(kv[0])))]
+            for name, (level, inches, sensor) in sorted(main_upper.items(),
+                                                        key=lambda kv: (kv[1][0], railroad.natural(kv[0])))]
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(railroad.BLOCK_LENGTH_COLUMNS), lineterminator="\n")
     w.writeheader()
@@ -439,7 +443,7 @@ def main(argv=None) -> int:
         if args.show:
             for b in sorted(lengths):
                 print(f"{b:24} {lengths[b]:7.1f} in")
-            for b, (level, inches) in sorted((main_upper or {}).items()):
+            for b, (level, inches, _sensor) in sorted((main_upper or {}).items()):
                 print(f"{b:24} {inches:7.1f} in  level {level}")
             return 0
         if not whole:

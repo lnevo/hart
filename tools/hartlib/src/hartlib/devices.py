@@ -262,11 +262,12 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
         if r["part_of"]:
             if r["layer"] != "block":
                 bad.append(f"{at}: part_of is for a block row (a piece of track inside another block)")
-            made = [c for c in ("system_name", "jmri_name", "layout_block", "stop", "node", "detector", "wiring",
-                                "dcc") if r[c]]
-            if made or a != "none":
-                bad.append(f"{at}: a part makes no JMRI block of its own, so assignment none and no "
-                           + ", ".join(made or ["JMRI name"]))
+            # a part may be a JMRI block and layout block of its own (main and upper's links, owner 2026-11-20),
+            # whose occupancy sensor is its block's: it has no detector, wiring, node or DCC address of its own
+            made = [c for c in ("node", "detector", "wiring", "dcc") if r[c]]
+            if made or a not in ("none", "virtual"):
+                bad.append(f"{at}: a part has no detector of its own (its sensor is its block's), so assignment none "
+                           "or virtual and no " + ", ".join(made or ["field facts"]))
             parts.append((at, r["level"], r["part_of"]))
             part_names.add((r["level"], r["user_name"]))
         elif r["layer"] == "block":

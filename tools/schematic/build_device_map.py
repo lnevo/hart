@@ -80,11 +80,13 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
   one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is not on a node until it is
   wired (NOT_WIRED), so no node or input assignment moves.
-  A link, a track under block_layer.LINK_CM (50 cm) between two switches, has no block of its own on any level
-  (step 5 part 2, owner 2026-11-20): it is a part (devices.csv part_of) of an OS block, the lower-numbered switch's,
-  or, where a home mast stands at a switch's points facing it, the OS block at its other end (the block boundary is
-  at the mast). A double crossover's link is part of the corner block of its leg; a part's row is on the level of its
-  OS block's row (127-131 2, drawn on the upper band, in the main level's OS Switch 127).
+  A link, a track under block_layer.LINK_CM (50 cm) between two switches, is a part (devices.csv part_of) of an OS
+  block (step 5 part 2, owner 2026-11-20): the lower-numbered switch's, or, where a home mast stands at a switch's
+  points facing it, the OS block at its other end (the block boundary is at the mast). On main and upper a part is
+  still a JMRI block and layout block of its own, drawn on the panel, whose occupancy sensor is its OS block's
+  (le_tables.level_sensors): no occupancy row or detector of its own. A double crossover's link is part of the corner
+  block of its leg; a part's row is on the level of its OS block's row (127-131 2, drawn on the upper band, in the
+  main level's OS Switch 127).
 - Detection on the main line only (owner, 2026-11-15): main-route tracks and the OS blocks of control point
   switches get a planned detector; yard and industry tracks and the OS blocks of switches in no control point
   get none (their virtual sensor stays, NO_DETECTOR).
@@ -528,36 +530,17 @@ def plan_masts(bands, joined, runs, found, cp_of: dict, corners: dict | None
                ) -> tuple[dict, dict, set, block_layer.Layer]:
     """(mast_plan.plan's masts of the main and upper levels, the double crossovers' corner blocks, the split track
     names, the block layer): the one mast process over this level's block layer (main_upper_layer) and the owner's
-    block splits. Each home mast gains `facing`, the block of the track it faces (home_facing). MapError on a double
-    crossover with no corners given, or a home mast whose track is part of the block it protects."""
+    block splits. Each home mast gains `facing`, the block of the track it faces (its track's: a part is a JMRI block
+    of its own). MapError on a double crossover with no corners given."""
     corner_blocks = corner_blocks_of(bands, corners)
     split = split_edges(found=found)
     home, posts = home_and_posts(bands, joined, found, LEVELS, cp_of, corner_blocks, set(split.values()))
     lay = main_upper_layer(bands, runs, found, split, corner_blocks, posts)
     got = mast_plan.plan(bands, joined, found, levels=LEVELS, cp_of=cp_of, layer=lay.bands, cm=lay.cm,
                          corner_blocks=corner_blocks, split=set(split.values()), home=home)
-    bad = []
     for m in got["home"]:
-        m["facing"] = home_facing(m, lay, bad)
-    if bad:
-        raise MapError("; ".join(bad))
+        m["facing"] = m["track"]
     return got, corner_blocks, set(split.values()), lay
-
-
-def home_facing(m: dict, lay: block_layer.Layer, bad: list) -> str:
-    """The block home mast `m` faces: its track's (half's) block, or the OS block its track is part of (a link,
-    lay.parts), as staging's 32R faces OS Switch 29. A link that is part of the block the mast protects would put the
-    mast inside one block, which Signal Mast Logic cannot use: the problem goes in `bad` (give the link to the far
-    switch's OS block in block_exceptions.csv, or move the mast)."""
-    part = lay.parts.get(m["track"])
-    if part is None:
-        return m["track"]
-    protects = m["protects"] or f"OS Switch {m['switch']}"
-    if part["part_of"] == protects:
-        bad.append(f"Mast {m['name']} at Switch {m['switch']} faces {m['track']}, which is part of {protects}, the "
-                   f"block it protects ({part['why']}): give {m['track']} to its other switch's OS block in "
-                   f"{block_layer.EXCEPTIONS_NAME}")
-    return part["part_of"]
 
 
 def master_virtual_names(files: devices.Files | None = None) -> dict:
@@ -793,8 +776,9 @@ FIELD_LAYERS = ("block", "occupancy")
 
 
 def part_row(level: str, name: str, part: dict, trial: str) -> dict:
-    """The master row of a part (block_layer.Layer.parts): a piece of track inside another block, part_of naming it;
-    no JMRI block, layout block or occupancy row of its own (hartlib.devices: role part, assignment none)."""
+    """The master row of a part (block_layer.Layer.parts): a piece of track inside another block, part_of naming it,
+    with no occupancy row or detector of its own (hartlib.devices: role part, assignment none). On main and upper the
+    Layout Editor build still makes it a JMRI block, its sensor its OS block's; staging's parts have no JMRI block."""
     t = part["track"]
     row = {c: "" for c in devices.COLUMNS}
     row.update(level=level, layer="block", role="part", user_name=name, assignment="none", trial_name=trial,

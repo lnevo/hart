@@ -136,10 +136,13 @@ class CsvWith(unittest.TestCase):
     def test_main_and_upper_rows_are_written_after_staging_in_level_and_name_order(self):
         p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["Track 201-203", "BS 201-203", "3.0", "", "plan", ""]])
         got = list(csv.DictReader(io.StringIO(PL.csv_with(
-            {"Track A": 1.0}, {"Track 201-203": ("3", 7.04), "OS Switch 101": ("2", 16.0)}, p))))
+            {"Track A": 1.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201"), "OS Switch 101": ("2", 16.0, "OS Switch 101"),
+                               "Track 117-119": ("2", 0.0, "OS Switch 117")}, p))))
+        # a part (201-203, 117-119) carries its OS block's sensor; a link whose turnouts touch is 0 in long
         self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["plan_in"], r["source"]) for r in got],
                          [("Track A", "x", "1.0", "plan"), ("OS Switch 101", "BS Switch 101", "16.0", "plan"),
-                          ("Track 201-203", "BS 201-203", "7.0", "plan")])
+                          ("Track 117-119", "BS Switch 117", "0.0", "plan"),
+                          ("Track 201-203", "BS Switch 201", "7.0", "plan")])
 
     def test_the_file_and_the_drawing_must_hold_the_same_blocks(self):
         p = self.write([["Track A", "x", "1.0", "", "plan", ""]])

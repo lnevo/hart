@@ -312,15 +312,16 @@ def name_loop_halves(bands, device=None):
     return out
 
 
-def part_blocks() -> dict[str, str]:
-    """{trial name: the block it is part of} of the main and upper parts (devices.csv part_of: a link inside an OS
-    block, step 5 part 2, owner 2026-11-20), which the device maps leave out."""
+def part_blocks() -> dict[str, tuple[str, str]]:
+    """{trial name: (part name, the block it is part of)} of the main and upper parts (devices.csv part_of: a link
+    inside an OS block, step 5 part 2, owner 2026-11-20), which the device maps leave out: a block of its own on the
+    desk, bound to its OS block's sensor."""
     out = {}
     for line, r in bdm.devices.part_lines(("2", "3")):
         for t in (x.strip() for x in r["trial_name"].split(",") if x.strip()):
             if t in out:
                 raise SystemExit(f"{DEVICE_MAP.name} line {line}: trial name {t} is given to two parts")
-            out[t] = r["part_of"]
+            out[t] = (r["user_name"], r["part_of"])
     return out
 
 
@@ -349,11 +350,11 @@ def device_name(bands, cats, keys, F, log):
     rows = sorted(n for n, r in F.device.blocks.items() if r.trial & edges)
     parts = part_blocks()
     if not rows and edges and edges <= set(parts):
-        # a link inside an OS block that the desk draws as a block of its own: it takes its OS block's name, and the
-        # bindings make the two one block (cats_bind.bind_blocks)
-        held = {parts[e] for e in edges}
+        # a link inside an OS block that the desk draws as a block of its own: the part's name (its sensor is its OS
+        # block's, dark_bindings)
+        held = {parts[e][0] for e in edges}
         if len(held) != 1:
-            raise SystemExit(f"desk block {sorted(keys)}: its tracks {', '.join(sorted(edges))} are parts of "
+            raise SystemExit(f"desk block {sorted(keys)}: its tracks {', '.join(sorted(edges))} are parts "
                              f"{', '.join(sorted(held))}; a desk block lies in one")
         return held.pop()
     numbers = {bdm.base(lb) for lb in ends}
@@ -435,6 +436,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     band_of = lambda k: int(k[1].split(":", 1)[0][1:])
     out, log, seen, missing, joined = {}, [], set(), {}, set()
     helix = mr.read_helix_tracks()
+    part_of = dict(part_blocks().values())                  # {part: its OS block}
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
         dark = [k for k in keys if level_band(bands, band_of(k), bound_bi)]
@@ -459,12 +461,13 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         e = block_entry(panel_name, name, MAIN_UPPER_DISCIPLINE)
         # from the device map alone: build_layout_le.py, which runs after this build in make panels, adds the sensor to
         # the tables, and check_layout_facts.py checks the desk against them
-        bound = virtual_sensor(name, F)
+        sensor_of = part_of.get(name, name)                 # a part: its OS block's sensor
+        bound = virtual_sensor(sensor_of, F)
         if bound:
             e.update(bound)
         elif name in F.device.blocks:
             raise SystemExit(f"{name}: no occupancy row in {DEVICE_MAP.name}")
-        planned = planned_sensor(name, F)
+        planned = planned_sensor(sensor_of, F)
         if planned:
             e.update({"_planned_" + k: v for k, v in planned.items()})
         if name in seen:
@@ -592,11 +595,12 @@ def level_signals(bands, F, bound_bi):
     which placeholder reads back as the one track), so a mast finds its own half. `bands` is changed in place (a copy:
     name_loop_halves). Stops on a mast drawn at no switch leg or at two."""
     by_trial = {t: name for name, row in F.device.blocks.items() for t in row.trial}
-    # a part (a link inside an OS block) is drawn as its block: a mast facing a link faces that OS block
-    clash = sorted(set(by_trial) & set(part_blocks()))
+    # a part (a link inside an OS block) is a block of its own, its sensor its OS block's: a mast may face it
+    parts = {t: name for t, (name, _of) in part_blocks().items()}
+    clash = sorted(set(by_trial) & set(parts))
     if clash:
         raise SystemExit(f"{DEVICE_MAP.name}: trial names {clash} are a part's and a block row's")
-    by_trial.update(part_blocks())
+    by_trial.update(parts)
     added = defaultdict(list)
     for r in F.level_masts:
         if level_masts.is_level_virtual(r["system_name"]):

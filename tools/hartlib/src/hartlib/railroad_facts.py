@@ -577,8 +577,10 @@ def read_block_lengths(path: Path) -> dict[str, BlockLength]:
                 lengths[col] = float(r[col])
             except ValueError:
                 raise FactsError(f"{where}: {col} {r[col]!r} is not a number") from None
-            if not lengths[col] > 0:
-                raise FactsError(f"{where}: {col} {r[col]} is not above zero")
+            # a plan length may be 0 (a block between two turnouts that touch in the plan); a measured one may not
+            if not (lengths[col] >= 0 if col == "plan_in" else lengths[col] > 0):
+                raise FactsError(f"{where}: {col} {r[col]} is " + ("below zero" if col == "plan_in" else
+                                                                   "not above zero"))
         if lengths["plan_in"] is None:
             raise FactsError(f"{where}: no plan_in (run tools/schematic/plan_lengths.py)")
         if (r["source"] == "timed") != (lengths["measured_in"] is not None):

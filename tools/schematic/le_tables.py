@@ -11,7 +11,7 @@ from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from hartlib import paths, tables  # noqa: E402
+from hartlib import devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
@@ -442,8 +442,9 @@ def numbered_blocks(blocks, require_listed: bool = False) -> list:
 def level_sensors(path: Path = DEVICE_MAP) -> dict:
     """{block: (sensor system name, sensor user name, comment)} for every main and upper block of the device map:
     its occupancy row's virtual sensor (jmri_name, hartlib.level_devices.block_sensor) and, in the comment, the planned
-    detector or why there is none. Stops on a block with no occupancy row or a row whose jmri_name is not the
-    block's."""
+    detector or why there is none. A part (devices.csv part_of: a link inside an OS block) takes its OS block's
+    sensor (owner, 2026-11-20). Stops on a block with no occupancy row, a row whose jmri_name is not the block's, or a
+    part whose block has none."""
     device = main_upper_device_map(path)               # read and checked by hartlib.railroad
     occ = device.by_user("occupancy")
     out, bad = {}, []
@@ -459,6 +460,15 @@ def level_sensors(path: Path = DEVICE_MAP) -> dict:
             continue
         planned = f"planned {o.system_name} (draft)" if o.system_name else o.notes
         out[block] = (want, o.user_name, f"{SENSOR_COMMENT}; {planned}")
+    try:
+        parts = devices.part_lines(("2", "3"), path)
+    except railroad.FactsError as exc:
+        raise BuildError(f"{paths.rel(path)}: {exc}") from None
+    for line, r in parts:
+        if r["part_of"] not in out:
+            bad.append(f"line {line}: part {r['user_name']} is part of {r['part_of']}, which has no occupancy sensor")
+            continue
+        out[r["user_name"]] = out[r["part_of"]]
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
     return out
@@ -472,7 +482,8 @@ def add_level_sensors(root: ET.Element, sensors: dict) -> int:
     section, as staging's internal sensors are stored, and bound to its block and layout block by user name as
     staging's are (<occupancysensor> after <permissive> in the block's full pass, the occupancysensor attribute after
     systemName on the layout block). Only blocks in `root` are bound; stops on a sensor name already taken or a block
-    already bound. The system names of the sensors added, in the order added."""
+    already bound. A sensor two blocks share (a part and its OS block) is added once. The system names of the sensors
+    added, in the order added."""
     internal = next((s for s in root.findall("sensors") if "InternalSensorManager" in (s.get("class") or "")), None)
     if internal is None:
         raise BuildError("the tables have no internal sensor section")
@@ -487,8 +498,11 @@ def add_level_sensors(root: ET.Element, sensors: dict) -> int:
                    (b in lbs and lbs[b].get("occupancysensor")))
     if bound:
         raise BuildError(f"main and upper blocks already have an occupancy sensor: {bound}")
-    beans = []
+    beans, once = [], {}
     for b in sorted(used, key=lambda b: sensors[b][0]):
+        if sensors[b][0] in once:
+            continue
+        once[sensors[b][0]] = b
         system, user, comment = sensors[b]
         el = ET.Element("sensor", {"inverted": "false"})
         for tag, text in (("systemName", system), ("userName", user), ("comment", comment)):
@@ -512,7 +526,7 @@ def add_level_sensors(root: ET.Element, sensors: dict) -> int:
             lb.attrib.clear()
             for k, v in attrs[:1] + [("occupancysensor", user)] + attrs[1:]:
                 lb.set(k, v)
-    return [sensors[b][0] for b in sorted(used, key=lambda b: sensors[b][0])]
+    return list(once)
 
 
 # The main and upper virtual block sensors start clear (owner, 2026-11-17): a LogixNG in the tables, stock JMRI, sets
@@ -712,7 +726,7 @@ def add_level_objects(root: ET.Element, P, names: dict, lengths: dict, base_keys
     # a helix block: the staging block drawn on a level too, bound to the device map's sensor (owner, 2026-11-20)
     shared = sorted(b for b in staging_blocks & set(P.blocks) if b in sensors)
     added = add_level_sensors(root, {b: sensors[b] for b in new_blocks + shared})
-    if sorted(added) != sorted(sensors[b][0] for b in new_blocks + shared):
+    if sorted(added) != sorted({sensors[b][0] for b in new_blocks + shared}):
         raise BuildError("main and upper blocks whose sensor was not added (no such block in the tables): "
                          f"{sorted({sensors[b][0] for b in new_blocks + shared} - set(added))}")
     # every virtual turnout starts Closed, its normal leg B, except where the main route runs through leg C

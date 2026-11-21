@@ -366,7 +366,7 @@ class Readers(Copy):
                          (w1.replace(",,plan,", ",99,plan,"), "a timed row gives its measured length, any other none"),
                          (w1.replace("Block 4-4,105.2,", "Block 4-4,long,"), "plan_in 'long' is not a number"),
                          (w1.replace("Block 4-4,105.2,", "Block 4-4,,"), "no plan_in"),
-                         (w1.replace("Block 4-4,105.2,", "Block 4-4,0,"), "plan_in 0 is not above zero")):
+                         (w1.replace("Block 4-4,105.2,", "Block 4-4,-1,"), "plan_in -1 is below zero")):
             self.src.block_lengths.write_text(text.replace(w1, bad), encoding="utf-8")
             self.fails(lambda: R.read_block_lengths(self.src.block_lengths), f"line 2: .*{why}")
         mw = next(line for line in text.splitlines() if line.startswith("Track Main West,"))

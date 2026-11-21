@@ -64,14 +64,14 @@
   },
   "105-109": {
    "discipline": "CTC",
-   "name": "OS Switch 105",
+   "name": "Track 105-109",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS105",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 105",
     "command": "close"
    },
-   "station": "105",
+   "station": "105-109",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS105",
     "JMRIPREFIX": "IS",
@@ -134,14 +134,14 @@
     "command": "throw"
    },
    "discipline": "CTC",
-   "name": "OS Switch 111",
+   "name": "Track 111-117",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS111",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 111",
     "command": "close"
    },
-   "station": "111",
+   "station": "111-117",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS111",
     "JMRIPREFIX": "IS",
@@ -150,14 +150,14 @@
   },
   "113-115": {
    "discipline": "CTC",
-   "name": "OS Switch 113",
+   "name": "Track 113-115",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS113",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 113",
     "command": "close"
    },
-   "station": "113",
+   "station": "113-115",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS113",
     "JMRIPREFIX": "IS",
@@ -338,14 +338,14 @@
   },
   "201-205": {
    "discipline": "CTC",
-   "name": "OS Switch 205",
+   "name": "Track 201-205",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 205",
     "command": "close"
    },
-   "station": "205",
+   "station": "201-205",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
@@ -397,14 +397,14 @@
   },
   "205-209": {
    "discipline": "CTC",
-   "name": "OS Switch 205",
+   "name": "Track 205-209",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 205",
     "command": "close"
    },
-   "station": "205",
+   "station": "205-209",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS205",
     "JMRIPREFIX": "IS",
@@ -536,14 +536,14 @@
   },
   "213-215": {
    "discipline": "CTC",
-   "name": "OS Switch 213",
+   "name": "Track 213-215",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS213",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 213",
     "command": "close"
    },
-   "station": "213",
+   "station": "213-215",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS213",
     "JMRIPREFIX": "IS",
@@ -751,14 +751,14 @@
   },
   "225-229": {
    "discipline": "CTC",
-   "name": "OS Switch 225b",
+   "name": "Track 225-229",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS225b",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 225b",
     "command": "close"
    },
-   "station": "225b",
+   "station": "225-229",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS225b",
     "JMRIPREFIX": "IS",
@@ -848,14 +848,14 @@
   },
   "231-237": {
    "discipline": "CTC",
-   "name": "OS Switch 231",
+   "name": "Track 231-237",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS231",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 231",
     "command": "close"
    },
-   "station": "231",
+   "station": "231-237",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS231",
     "JMRIPREFIX": "IS",
@@ -896,14 +896,14 @@
   },
   "235-243A": {
    "discipline": "CTC",
-   "name": "OS Switch 235",
+   "name": "Track 235-243",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS235",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 235",
     "command": "close"
    },
-   "station": "235",
+   "station": "235-243",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS235",
     "JMRIPREFIX": "IS",
@@ -944,14 +944,14 @@
   },
   "239-245A": {
    "discipline": "CTC",
-   "name": "OS Switch 239",
+   "name": "Track 239-245",
    "occupied": {
     "DECADDR": ":HART:C3:B:OS239",
     "JMRIPREFIX": "IS",
     "USER_NAME": "BS Switch 239",
     "command": "close"
    },
-   "station": "239",
+   "station": "239-245",
    "unoccupied": {
     "DECADDR": ":HART:C3:B:OS239",
     "JMRIPREFIX": "IS",

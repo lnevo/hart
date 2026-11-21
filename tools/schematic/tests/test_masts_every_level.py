@@ -11,11 +11,9 @@ others:
   staging 6LA and 8RA: one-low -> one-searchlight (Scale is running track by rule);
   staging virtual masts: 8LC, 10RA, 10RB, 12R and 14R went (virtual masts only as destinations);
   main and upper: 24 virtual bumper masts came (10 main, 14 upper).
-Step 5 part 2 (owner, 2026-11-20) changed these, and no others: staging 8RA from an anchor mast on Scale to a turnout
-mast at Switch 7 (OS Switch 7 ends at the switch); main and upper home masts facing a link now face the OS block the
-link is part of: 110L (OS 105), 118L (OS 115), 124LB (OS 121), and, where the mast stands at its own switch's points
-facing the link so the link joins the OS block at its other end, 126RB (OS 129), 202R (OS 205), 228RA (OS 231) and
-230LB (OS 233). No mast moved.
+Step 5 part 2 (owner, 2026-11-20) changed only staging 8RA, from an anchor mast on Scale to a turnout mast at Switch 7
+(OS Switch 7 ends at the switch). Main and upper's links are parts of OS blocks but still JMRI blocks of their own, so
+the masts facing them keep their facing blocks.
 """
 from __future__ import annotations
 
@@ -78,22 +76,22 @@ MAIN_UPPER_VISIBLE = (
     ("A84", "one-searchlight", 1, "", "Track 107 Loop 1", "Track 107 Loop 2", "east"),
     ("108LA", "two-searchlight", 2, "107", "Track 107 Loop 1", "OS Switch 107", "west"),
     ("108LB", "two-searchlight", 2, "107", "Track 107 Loop 2", "OS Switch 107", "west"),
-    ("110L", "two-low", 2, "109", "OS Switch 105", "OS Switch 109", "west"),
+    ("110L", "two-low", 2, "109", "Track 105-109", "OS Switch 109", "west"),
     ("112L", "two-low", 2, "111", "Track 101-111", "OS Switch 111", "west"),
-    ("118L", "two-low", 2, "117", "OS Switch 115", "OS Switch 117", "west"),
+    ("118L", "two-low", 2, "117", "Track 115-117", "OS Switch 117", "west"),
     ("120RA", "two-searchlight", 2, "119", "Track 119-123", "OS Switch 119", "east"),
     ("120RB", "two-searchlight", 2, "119", "Track 119-121", "OS Switch 119", "east"),
     ("124LA", "two-searchlight", 2, "123", "Track 119-123", "OS Switch 123", "west"),
-    ("124LB", "two-searchlight", 2, "123", "OS Switch 121", "OS Switch 123", "west"),
+    ("124LB", "two-searchlight", 2, "123", "Track 121-123", "OS Switch 123", "west"),
     ("126RA", "two-searchlight", 2, "125", "Track 125-127", "OS Switch 125", "east"),
-    ("126RB", "two-low", 2, "125", "OS Switch 129", "OS Switch 125", "east"),
+    ("126RB", "two-low", 2, "125", "Track 125-129", "OS Switch 125", "east"),
     ("128LA", "two-searchlight", 2, "127", "Track 125-127", "OS Switch 127", "west"),
     ("128LB", "two-searchlight", 2, "127", "Track 127-221", "OS Switch 127", "west"),
     ("132RA", "two-searchlight", 2, "131", "Track Helix Outer", "OS Switch 131", "east"),
     ("132RB", "two-searchlight", 2, "131", "Track Helix Inner", "OS Switch 131", "east"),
     ("B92", "one-searchlight", 1, "", "Track 227-241 2", "Track 227-241 1", "east"),
     ("B93", "one-searchlight", 1, "", "Track 227-241 1", "Track 227-241 2", "west"),
-    ("202R", "two-low", 2, "201", "OS Switch 205", "OS Switch 201", "east"),
+    ("202R", "two-low", 2, "201", "Track 201-205", "OS Switch 201", "east"),
     ("204RA", "two-low", 2, "203", "Track 203-207", "OS Switch 203", "east"),
     ("204RB", "two-searchlight", 2, "203", "Track 203-211", "OS Switch 203", "east"),
     ("212LA", "two-low", 2, "211", "Track 207-211", "OS Switch 211", "west"),
@@ -113,10 +111,10 @@ MAIN_UPPER_VISIBLE = (
     ("224R", "two-searchlight", 2, "223", "Track 221-223", "OS Switch 223", "east"),
     ("226RA", "two-searchlight", 2, "225", "Track 223-225 1", "OS Switch 225a", "east"),
     ("226RB", "two-searchlight", 2, "225", "Track 223-225 2", "OS Switch 225d", "east"),
-    ("228RA", "two-low", 2, "227", "OS Switch 231", "OS Switch 227", "east"),
+    ("228RA", "two-low", 2, "227", "Track 227-231", "OS Switch 227", "east"),
     ("228RB", "two-searchlight", 2, "227", "Track 227-241 1", "OS Switch 227", "east"),
     ("230LA", "two-searchlight", 2, "229", "Track 229-241", "OS Switch 229", "west"),
-    ("230LB", "two-low", 2, "229", "OS Switch 233", "OS Switch 229", "west"),
+    ("230LB", "two-low", 2, "229", "Track 229-233", "OS Switch 229", "west"),
     ("242L", "one-low", 1, "241", "Track 241 Spur", "OS Switch 241", "west"),
 )
 MAIN_UPPER_VIRTUAL = (
@@ -269,9 +267,8 @@ class RuleOutput(RepoReadOnly, unittest.TestCase):
         self.assertEqual(sorted(got), sorted(STAGING_VIRTUAL))
 
     def test_main_and_upper_visible(self):
-        # a home mast's facing is its track's block (half; a link's OS block), its protects the switch's OS block
-        # or, at a double crossover,
-        # its corner block; an intermediate names both blocks
+        # a home mast's facing is its track's block (half), its protects the switch's OS block or, at a double
+        # crossover, its corner block; an intermediate names both blocks
         got = [(m["name"], m["kind"], m["heads"], m["switch"], m["facing"],
                 m["protects"] or f"OS Switch {m['switch']}", m["dir"]) for m in self.planned["home"]]
         got += [(m["name"], "one-searchlight", 1, "", m["facing"], m["protects"], m["dir"])

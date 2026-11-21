@@ -259,9 +259,9 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     """{placeholder: device-map user name} for the main and upper turnouts and blocks: each turnout or block row's
     `trial_name` (comma separated: a crossover's two halves are one turnout, "Switch 101A, Switch 101B" -> "Switch
     101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
-    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (a piece of track
-    inside another block, devices.csv part_of: a link inside an OS block) gives its placeholder to the block it is part
-    of, which must be a main or upper block row."""
+    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (devices.csv part_of: a
+    link inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor
+    is its OS block's (le_tables.level_sensors); the block it names must be a main or upper block row."""
     out, bad = {}, []
     for r in main_upper_device_map(path).rows:         # read and checked by hartlib.railroad
         if r.layer not in ("turnout", "block"):
@@ -296,7 +296,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
         for t in trial:
             if t in out:
                 bad.append(f"line {line}: trial_name {t} is given to {out[t]} and part {r['user_name']}")
-            out[t] = r["part_of"]
+            out[t] = r["user_name"]
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
     if not out:
@@ -363,11 +363,6 @@ def named_bands(bands, names: dict):
     left as it is. The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off
     the panel among them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
-    try:
-        parts = {t.strip(): r["user_name"] for _line, r in devices.part_lines(("2", "3"), DEVICE_MAP)
-                 for t in r["trial_name"].split(",") if t.strip()}
-    except railroad.FactsError as exc:
-        raise BuildError(f"the device map: {exc}") from None
     for title, band, opts in bands:
         key = band_key(title)
         if key == STAGING:
@@ -402,11 +397,5 @@ def named_bands(bands, names: dict):
                 continue
             best = max(sids, key=lambda k: (band["strands"][k]["cm"], k))
             band["strands"][best]["name"] = block.removeprefix("Track ")
-        # a part (a link inside an OS block, step 5 part 2) keeps its track name as a label: track names stay as they
-        # are (owner, 2026-11-20), and the label layer keeps the room it gave them, so no track moves
-        for sid, s in band["strands"].items():
-            part = parts.get("Track " + re.sub(r"(?<=\d)[xy]$", "", s["edge"]))
-            if part and sid not in helix:
-                s["name"] = part.removeprefix("Track ")
         out.append((title, band, opts))
     return out

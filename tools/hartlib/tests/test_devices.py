@@ -244,12 +244,15 @@ class TheParts(unittest.TestCase):
     def test_only_a_block_row_is_a_part(self):
         self.assertIn("part_of is for a block row", problems([block(), part(layer="occupancy")]))
 
-    def test_a_part_makes_no_jmri_device(self):
-        for col, value in (("assignment", "field"), ("system_name", "IB9"), ("jmri_name", "IB9"),
-                           ("layout_block", "ILB9"), ("stop", "yes"), ("node", "4"), ("detector", "wired"),
+    def test_a_part_has_no_detector_of_its_own(self):
+        for col, value in (("assignment", "field"), ("node", "4"), ("detector", "wired"),
                            ("wiring", "Node: 4 Block: 2"), ("dcc", "100")):
             with self.subTest(col):
-                self.assertIn("a part makes no JMRI block", problems([block(), part(**{col: value})]))
+                self.assertIn("a part has no detector of its own", problems([block(), part(**{col: value})]))
+
+    def test_a_part_may_be_a_jmri_block_of_its_own(self):
+        # main and upper's links (owner, 2026-11-20): a JMRI block and layout block whose sensor is its block's
+        D.check_rows([block(), part(system_name="IB9", jmri_name="IB9", layout_block="ILB9", assignment="virtual")])
 
     def test_the_block_it_names_is_on_the_parts_own_level(self):
         other = block(level="2", assignment="none", system_name="", jmri_name="", layout_block="")
