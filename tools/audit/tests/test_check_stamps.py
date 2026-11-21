@@ -42,6 +42,22 @@ class DeclarationTest(unittest.TestCase):
             self.assertIn("tools/check.sh", cs.declared(kind))
 
 
+class StoreTest(unittest.TestCase):
+    def test_default_store_is_in_the_main_checkout_and_git_ignored(self) -> None:
+        main = cs.main_checkout()
+        common = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=REPO,
+                                capture_output=True, text=True, check=True).stdout.strip()
+        self.assertEqual(main, Path(common).parent)
+        with unittest.mock.patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("CHECK_STAMPS_DIR", None)
+            import importlib
+            fresh = importlib.reload(cs)
+            self.addCleanup(importlib.reload, cs)
+            self.assertEqual(fresh.STORE, main / ".cache" / "hart" / "check-stamps")
+        ignored = subprocess.run(["git", "check-ignore", "-q", ".cache/hart/check-stamps/x.sha256"], cwd=main)
+        self.assertEqual(ignored.returncode, 0, "the stamp folder is not git-ignored")
+
+
 class StampTest(unittest.TestCase):
     """A fake repo with a store of its own."""
 
