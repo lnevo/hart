@@ -34,9 +34,6 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 from pathlib import Path
 
-sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
-                if (p / "tools/hartlib/src").is_dir()][:1]
-from hartlib import paths as hart_paths  # noqa: E402
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_tables_browser  # noqa: E402
 import repo_guide_page  # noqa: E402
@@ -708,7 +705,13 @@ def _jpeg_cache() -> Path | None:
 def _jpeg_cache_at(value: str | None) -> Path | None:
     if value is not None and not value.strip():
         return None
-    path = Path(value).expanduser() if value else hart_paths.cache_dir("web-jpeg")
+    if value:
+        path = Path(value).expanduser()
+    else:                         # the shared default, resolved only now (hartlib needs git)
+        sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                        if (p / "tools/hartlib/src").is_dir()][:1]
+        from hartlib import paths as hart_paths
+        path = hart_paths.cache_dir("web-jpeg")
     try:
         path.mkdir(mode=0o700, parents=True, exist_ok=True)
         path.chmod(0o700)            # resized copies of mirror-only originals: private to this user

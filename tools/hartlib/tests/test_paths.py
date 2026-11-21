@@ -210,6 +210,39 @@ class SharedFoldersTest(unittest.TestCase):
         with mock.patch.dict(os.environ, {"HART_CACHE_DIR": "/x/c"}):
             self.assertEqual(Path("/x/c/web-jpeg"), paths.cache_dir("web-jpeg"))
 
+    def test_pulled_stores_dir_honours_the_override_and_refuses_a_worktree_or_unignored_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.dict(os.environ, {"HART_PULLED_DIR": str(Path(tmp) / "kept")}):
+                self.assertEqual(Path(tmp) / "kept", paths.pulled_stores_dir())          # outside every checkout
+            inside = paths.REPO_ROOT / "jmri/layouts/hart/output/pulled-test/kept"      # not ignored
+            with mock.patch.dict(os.environ, {"HART_PULLED_DIR": str(inside)}):
+                with self.assertRaises(ValueError):
+                    paths.pulled_stores_dir()
+            self.assertFalse(inside.parent.exists())
+        with mock.patch.dict(os.environ, {"HART_PULLED_DIR": ""}):
+            self.assertEqual(paths.main_checkout() / "media/pulled-stores", paths.pulled_stores_dir())
+
+    def test_a_linked_worktree_folder_is_refused(self):
+        env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        env.update(GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_SYSTEM="/dev/null")
+        def git(*args):
+            subprocess.run(["git", "-c", "commit.gpgsign=false", "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                            *args], check=True, env=env, capture_output=True)
+        with tempfile.TemporaryDirectory() as tmp:
+            main, work = Path(tmp).resolve() / "main", Path(tmp).resolve() / "work"
+            git("init", "-q", str(main))
+            git("-C", str(main), "commit", "-q", "--allow-empty", "-m", "x")
+            git("-C", str(main), "worktree", "add", "-q", str(work), "-b", "t")
+            self.assertEqual(main, paths.main_checkout(work))
+            with mock.patch.dict(os.environ, {"HART_PULLED_DIR": str(work / "media/stores")}):
+                with self.assertRaises(ValueError) as stop:
+                    paths.pulled_stores_dir(work)
+                self.assertIn("never in a worktree", str(stop.exception))
+
+    def test_the_cache_base_is_trimmed_and_expanded(self):
+        with mock.patch.dict(os.environ, {"HART_CACHE_DIR": "  ~/c  "}):
+            self.assertEqual(Path.home() / "c/x", paths.cache_dir("x"))
+
     def test_a_tree_git_cannot_read_answers_with_itself(self):
         with tempfile.TemporaryDirectory() as d:
             self.assertEqual(Path(d), paths.main_checkout(Path(d)))

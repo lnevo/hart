@@ -273,7 +273,8 @@ def default_folder():
     """<repo>/media/schematic-evolution; stops when media/ is missing rather than making a stray folder."""
     media = REPO / "media"
     if not media.is_dir():
-        sys.exit(f"{media} is missing: link or make the gitignored media/ folder first (make wt links it), or name an output folder")
+        sys.exit(f"{media} is missing. In a worktree link the main checkout's media/ (what make wt does: ln -s <main checkout>/media {media}); "
+                 "in a fresh clone make the gitignored folder; or name an output folder")
     return media / "schematic-evolution"
 
 

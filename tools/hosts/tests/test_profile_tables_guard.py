@@ -74,30 +74,55 @@ class Unpulled(unittest.TestCase):
 
 
 class PulledDir(unittest.TestCase):
+    GIT_ENV = {**{k: v for k, v in os.environ.items() if not k.startswith("GIT_") and k != "HART_PULLED_DIR"},
+               "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_CONFIG_SYSTEM": "/dev/null"}
+
+    def repo_with_worktree(self, tmp: str) -> tuple[Path, Path]:
+        """A throwaway main checkout (media/ ignored, the guard in it) and a linked worktree of it, also with the guard."""
+        def git(*args: str) -> None:
+            subprocess.run(["git", "-c", "commit.gpgsign=false", "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                            *args], check=True, env=self.GIT_ENV, capture_output=True)
+        main = Path(tmp).resolve() / "main"
+        git("init", "-q", str(main))
+        (main / ".gitignore").write_text("/media\n")
+        git("-C", str(main), "add", ".gitignore")
+        git("-C", str(main), "commit", "-q", "-m", "x")
+        work = Path(tmp).resolve() / "work"
+        git("-C", str(main), "worktree", "add", "-q", str(work), "-b", "t")
+        for root in (main, work):
+            (root / "tools/hosts").mkdir(parents=True, exist_ok=True)
+            shutil.copy2(GUARD, root / "tools/hosts/profile_tables_guard.sh")
+        return main, work
+
+    def pulled(self, root: Path, **env: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["bash", "-c", f'source "{root}/tools/hosts/profile_tables_guard.sh"; hart_pulled_dir'],
+                              capture_output=True, text=True, timeout=30, env={**self.GIT_ENV, **env})
+
     def test_the_default_is_media_in_the_main_checkout_and_made_on_demand(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            main = Path(tmp).resolve() / "main"
-            subprocess.run(["git", "init", "-q", str(main)], check=True)
-            (main / ".gitignore").write_text("/media\n")
-            (main / "tools/hosts").mkdir(parents=True)
-            guard = main / "tools/hosts/profile_tables_guard.sh"
-            shutil.copy2(GUARD, guard)
-            # a worktree of main finds the same folder
-            subprocess.run(["git", "-C", str(main), "-c", "user.name=t", "-c", "user.email=t@example.invalid",
-                            "commit", "-q", "--allow-empty", "-m", "x"], check=True)
-            work = Path(tmp).resolve() / "work"
-            subprocess.run(["git", "-C", str(main), "worktree", "add", "-q", str(work), "-b", "t"], check=True)
-            (work / "tools/hosts").mkdir(parents=True)
-            shutil.copy2(GUARD, work / "tools/hosts/profile_tables_guard.sh")
-            env = {k: v for k, v in os.environ.items() if k != "HART_PULLED_DIR"}
-            for g in (guard, work / "tools/hosts/profile_tables_guard.sh"):
-                done = subprocess.run(["bash", "-c", f'source "{g}"; hart_pulled_dir'], capture_output=True, text=True,
-                                      env=env, timeout=30)
+            main, work = self.repo_with_worktree(tmp)
+            for root in (main, work):               # a worktree finds the same folder
+                done = self.pulled(root)
                 self.assertEqual(0, done.returncode, done.stderr)
                 self.assertEqual(main / "media/pulled-stores", Path(done.stdout.strip()).resolve())
             self.assertTrue((main / "media/pulled-stores").is_dir())
-            ignored = subprocess.run(["git", "-C", str(main), "check-ignore", "-q", "media/pulled-stores"])
+            ignored = subprocess.run(["git", "-C", str(main), "check-ignore", "-q", "media/pulled-stores"],
+                                     env=self.GIT_ENV)
             self.assertEqual(0, ignored.returncode, "the default pulled folder must be git-ignored")
+
+    def test_a_folder_in_a_linked_worktree_is_refused_but_one_outside_every_checkout_is_fine(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            main, work = self.repo_with_worktree(tmp)
+            (work / ".gitignore").write_text("/media\n")           # ignored there too: still refused
+            for root in (main, work):
+                done = self.pulled(root, HART_PULLED_DIR=str(work / "media/pulled-stores"))
+                self.assertEqual(1, done.returncode, done.stdout)
+                self.assertIn("never in a worktree", done.stderr)
+                self.assertFalse((work / "media").exists())
+                outside = Path(tmp).resolve() / "elsewhere/stores"
+                done = self.pulled(root, HART_PULLED_DIR=str(outside))
+                self.assertEqual(0, done.returncode, done.stderr)
+                self.assertTrue(outside.is_dir())
 
     def test_the_cache_default_is_in_the_main_checkout_and_the_override_wins(self) -> None:
         done = bash(f'hart_cache_dir "{ROOT}" schematic', {"HART_CACHE_DIR": ""})
@@ -105,12 +130,15 @@ class PulledDir(unittest.TestCase):
         self.assertEqual(main / ".cache/hart/schematic", Path(done.stdout.strip()))
         self.assertEqual(0, subprocess.run(["git", "-C", str(ROOT), "check-ignore", "-q", ".cache/hart/schematic"]).returncode)
         self.assertEqual("/x/web", bash(f'hart_cache_dir "{ROOT}" web', {"HART_CACHE_DIR": "/x"}).stdout.strip())
+        self.assertEqual("/x/web", bash(f'hart_cache_dir "{ROOT}" web', {"HART_CACHE_DIR": "  /x  "}).stdout.strip())
+        self.assertEqual(f"{os.environ['HOME']}/c/web",
+                         bash(f'hart_cache_dir "{ROOT}" web', {"HART_CACHE_DIR": "~/c"}).stdout.strip())
 
     def test_a_folder_inside_a_checkout_is_refused(self) -> None:
         inside = ROOT / "jmri/layouts/hart/output/pulled-test/kept"
         done = bash("hart_pulled_dir", {"HART_PULLED_DIR": str(inside)})
         self.assertEqual(1, done.returncode)
-        self.assertIn("inside a git checkout", done.stderr)
+        self.assertIn("pulled Stores live in", done.stderr)
         self.assertFalse(inside.parent.exists())          # refused before anything was made
 
 

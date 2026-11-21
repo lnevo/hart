@@ -167,7 +167,7 @@ class MacPull(PullCase):
                               env={**{k: v for k, v in os.environ.items() if not k.startswith("HART_")},
                                    "HOME": str(self.home), "HART_PULLED_DIR": str(env_dir)})
         self.assertEqual(1, done.returncode, done.stdout)
-        self.assertIn("inside a git checkout", done.stderr)
+        self.assertIn("pulled Stores live in", done.stderr)
         self.assertFalse(env_dir.exists())
 
 
