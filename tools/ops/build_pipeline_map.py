@@ -11,6 +11,10 @@ in docs/pipeline-map/pipeline_map.json.
 The website copy renames the gitignored mirrors (PUBLIC_NAMES), whose real paths the site build treats as leaks, and
 can carry a link back to the page that links to it.
 
+The agent-doc lane (domain "agents": boxes and links marked "gen": "agent-docs") is generated from the files by
+tools/ops/agent_docs_map.py: a plain run rewrites it in the graph file, and --check fails when the committed graph
+differs. Everything else in the graph is hand-kept.
+
 The graph file holds domains (the horizontal lanes), nodes and edges. A node's `path` must exist in the checkout
 unless the node says `"local": true` (a gitignored mirror or a file made on a host). This script checks the graph and
 writes one self-contained page; the layout and the viewer are in tools/ops/pipeline_map.js, inlined into the page, so
@@ -55,6 +59,11 @@ class GraphError(Exception):
     pass
 
 
+_agent_spec = importlib.util.spec_from_file_location("agent_docs_map", Path(__file__).resolve().with_name("agent_docs_map.py"))
+AGENT_DOCS = importlib.util.module_from_spec(_agent_spec)
+_agent_spec.loader.exec_module(AGENT_DOCS)
+
+
 @functools.cache
 def tracked_paths() -> frozenset[str]:
     """Every git-tracked file in the repo and every folder that holds one, so the check is the same on any clone."""
@@ -66,8 +75,40 @@ def tracked_paths() -> frozenset[str]:
     return frozenset(paths)
 
 
+def read(path: Path) -> dict:
+    """The graph file as data, with its three lists; not yet checked further (validate does that)."""
+    try:
+        data = json.loads(path.read_text())
+    except OSError as err:
+        raise GraphError(f"cannot read the graph: {err.strerror}") from None
+    except json.JSONDecodeError as err:
+        raise GraphError(f"the graph is not valid JSON: {err}") from None
+    if not isinstance(data, dict):
+        raise GraphError("the graph must be a JSON object")
+    for key in ("domains", "nodes", "edges"):
+        if not isinstance(data.get(key), list):
+            raise GraphError(f"the graph needs a {key!r} list")
+    return data
+
+
+def graph_text(data: dict) -> str:
+    """The graph as the committed file holds it."""
+    return json.dumps(data, indent=1, ensure_ascii=False) + "\n"
+
+
+def regenerate(data: dict) -> dict:
+    """The graph with its generated parts (the agent-doc lane, tools/ops/agent_docs_map.py) rebuilt from the files."""
+    try:
+        return AGENT_DOCS.regenerate(data)
+    except AGENT_DOCS.AgentDocsMapError as err:
+        raise GraphError(f"agent-doc lane: {err}") from None
+
+
 def load(path: Path) -> dict:
-    data = json.loads(path.read_text())
+    return validate(read(path))
+
+
+def validate(data: dict) -> dict:
     for key in ("domains", "nodes", "edges"):
         if not isinstance(data.get(key), list):
             raise GraphError(f"the graph needs a {key!r} list")
@@ -424,11 +465,21 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.public and args.out.resolve() == PAGE.resolve():
         ap.error("--public writes the website copy; give it --out")
+    again = shlex.join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
     try:
-        data = load(args.graph)
+        raw = read(args.graph)
+        data = validate(regenerate(raw))
     except GraphError as err:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
+    fresh = graph_text(data)
+    if args.check and args.graph.read_text() != fresh:
+        print(f"{args.graph} is out of date (its agent-doc lane is generated from the files): run "
+              f"python3 tools/ops/build_pipeline_map.py {again}".rstrip(), file=sys.stderr)
+        return 1
+    if not args.check and args.graph.read_text() != fresh:
+        args.graph.write_text(fresh)
+        print(f"updated {args.graph.name}: the agent-doc lane, from the files")
     page = render(public_copy(data) if args.public else data, args.back, args.public)
     if args.public:
         try:
@@ -439,7 +490,6 @@ def main(argv: list[str] | None = None) -> int:
             return 1
     if args.check:
         if not args.out.exists() or args.out.read_text() != page:
-            again = shlex.join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
             print(f"{args.out} is out of date: run python3 tools/ops/build_pipeline_map.py {again}".rstrip(), file=sys.stderr)
             return 1
         return 0
