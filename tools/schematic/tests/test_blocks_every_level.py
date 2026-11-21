@@ -59,28 +59,28 @@ STAGING_BLOCKS = (
     ('OS Switch 35b', 'xover_corner', 'Princess', 'OS 35 A-39A, Track 35A-39A 1/2'),
     ('OS Switch 37', 'os', 'Princess', 'OS Switch 37'),
     ('OS Switch 39', 'os', 'Princess', 'OS Switch 39, Track 35A-39A 2/2'),
-    ('Track Barn', 'track', 'Barn', 'Track 7A-13C'),
-    ('Track Brick-Plane', 'track', 'Brick', 'Track 1C-5A #1, Track 1C-5A #2'),
-    ('Track EH-1', 'track', 'Engine House', 'Track 11B-end'),
-    ('Track EH-2', 'track', 'Engine House', 'Track 9B-end'),
-    ('Track EH-3', 'track', 'Engine House', 'Track 9C-end'),
-    ('Track East Ext', 'track', 'Plane', 'Track 5B-7A'),
-    ('Track East Lead', 'track', 'East End', 'Track 33A-35A'),
-    ('Track Helix Inner', 'helix', 'Princess', 'Track 37B-helix'),
-    ('Track Helix Outer', 'helix', 'Princess', 'Track 39B-helix'),
+    ('Track Barn', 'track', 'Barn;Engine House', 'Track 7A-13C'),
+    ('Track Brick-Plane', 'track', 'Brick;Plane', 'Track 1C-5A #1, Track 1C-5A #2'),
+    ('Track EH-1', 'track', 'Barn;Engine House', 'Track 11B-end'),
+    ('Track EH-2', 'track', 'Barn;Engine House', 'Track 9B-end'),
+    ('Track EH-3', 'track', 'Barn;Engine House', 'Track 9C-end'),
+    ('Track East Ext', 'track', 'Plane;Barn', 'Track 5B-7A'),
+    ('Track East Lead', 'track', 'East End;Princess', 'Track 33A-35A'),
+    ('Track Helix Inner', 'helix', 'Princess;CP 127', 'Track 37B-helix'),
+    ('Track Helix Outer', 'helix', 'Princess;CP 127', 'Track 39B-helix'),
     ('Track K-1', 'track', 'Princess', 'Track 37C-39C #2'),
     ('Track K-2', 'track', 'Princess', 'Track 37C-39C #1'),
-    ('Track Main East', 'track', '', 'Track 7B-33C'),
-    ('Track Main West', 'track', '', 'Track 1A-23A'),
-    ('Track S-1', 'track', 'South Yard', 'Track 17C-29C'),
-    ('Track S-2', 'track', 'South Yard', 'Track 19C-27C'),
-    ('Track S-3', 'track', 'South Yard', 'Track 21C-25C'),
-    ('Track S-4', 'track', 'South Yard', 'Track 21B-25B'),
-    ('Track S-R', 'track', 'South Yard', 'Track 15B-23B'),
-    ('Track Scale', 'track', 'Plane', 'Track 5C-7B'),
-    ('Track W-1', 'track', 'Brick', 'Track 3B-end'),
-    ('Track W-2', 'track', 'Brick', 'Track 3C-end'),
-    ('Track West Ext', 'track', 'East End', 'Track 23B-35B'),
+    ('Track Main East', 'track', 'Barn;East End', 'Track 7B-33C'),
+    ('Track Main West', 'track', 'Brick;East End', 'Track 1A-23A'),
+    ('Track S-1', 'track', 'South Yard;East End', 'Track 17C-29C'),
+    ('Track S-2', 'track', 'South Yard;East End', 'Track 19C-27C'),
+    ('Track S-3', 'track', 'South Yard;East End', 'Track 21C-25C'),
+    ('Track S-4', 'track', 'South Yard;East End', 'Track 21B-25B'),
+    ('Track S-R', 'track', 'South Yard;East End', 'Track 15B-23B'),
+    ('Track Scale', 'track', 'Plane;Barn', 'Track 5C-7B'),
+    ('Track W-1', 'track', 'Brick;West Yard', 'Track 3B-end'),
+    ('Track W-2', 'track', 'Brick;West Yard', 'Track 3C-end'),
+    ('Track West Ext', 'track', 'East End;Princess', 'Track 23B-35B'),
 )
 # (name, part_of, trial_name) of staging's parts: pieces of track inside another block (owner, 2026-11-20)
 STAGING_PARTS = (
@@ -366,7 +366,7 @@ STAGING_LAYER = {
 # (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by, part_of,
 # jmri_bean (only ever set on a level-less row) and trial_name (pinned row by row above, on every level), joined by
 # commas, one row a line, in file order
-DIGESTS = {"1": (90, 'c0f75e4b7d8b1b2835648d55fbe38e700a2f36e6d180d0e940c37576f623eb81'), "2": (76, '8871e5875dff14690427966e3b01226fdd88f321ee2028b850fc0767c198ca53'), "3": (118, 'fe15748b41c1f0fd72dee1343fb9fa4276ce36352adacd376b05a830fe91cd87')}
+DIGESTS = {"1": (90, 'd2f33636e9ffe8ff0123f05aca510884ab73a3e1afe7ac7b3f11f8d904bc9710'), "2": (76, '53a65d1321bf27e60712f6923b70efc85ad95024ad89eacf878ce276042f5455'), "3": (118, '81e6c6c5d9932b1efba2bf787171d753b1b74d949f29114e9c013e44d8677550')}
 SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean") for level in "123"}
 
 

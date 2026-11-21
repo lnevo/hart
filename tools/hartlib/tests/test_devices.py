@@ -203,6 +203,14 @@ class TheChecks(unittest.TestCase):
         self.assertIn("role panel_status and written_by panel_items.json go together", problems([row]))
         D.check_rows([row | {"written_by": "panel_items.json"}])
 
+    def test_only_a_line_block_lists_places_in_cp(self):
+        self.assertIn("cp 'Brick;Plane' is a list, but a turnout sits in one control point",
+                      problems([turnout(cp="Brick;Plane")]))
+        D.check_rows([blank(level="1", layer="block", role="track", user_name="Track X", assignment="none",
+                            cp="Brick;Plane", description="x")])
+        self.assertEqual(D.cp_list({"cp": "Brick;Plane"}), ["Brick", "Plane"])
+        self.assertEqual(D.cp_list({"cp": ""}), [])
+
     def test_a_row_has_one_comment(self):
         self.assertIn("wiring and jmri_comment are both set", problems([turnout(jmri_comment="x")]))
 
@@ -605,23 +613,26 @@ class TheStagingFacts(unittest.TestCase):
     def setUpClass(cls):
         cls.rows = {(r["level"], r["layer"], r["user_name"]): r for r in D.load()}
 
-    def test_every_staging_line_block_and_its_detector_carry_their_station(self):
-        lines = [r for k, r in self.rows.items() if k[0] == "1" and r["layer"] in ("block", "occupancy")
-                 and r["role"] in ("track", "helix", "part")]
-        self.assertGreaterEqual(len(lines), 49)
-        # the two mains sit between stations, in none; the Engine House tracks' detectors were never given
-        # one (their blocks were)
-        self.assertEqual(sorted(r["user_name"] for r in lines if not r["cp"]),
-                         ["BS EH-1", "BS EH-2", "BS EH-3", "BS Main East", "BS Main West", "Track Main East",
-                          "Track Main West"])
-        self.assertEqual(self.rows[("1", "block", "Track East Ext")]["cp"], "Plane")
-        self.assertEqual(self.rows[("1", "occupancy", "BS Barn")]["cp"], "Barn")
+    def test_a_line_blocks_cp_lists_the_places_it_joins(self):
+        """The owner's rule (2026-11-21): the stations (or control points) of the switches at a line block's two ends,
+        plus a station whose tracks name it, in stations.csv's order; its sensor has its block's."""
+        cp = lambda layer, name, level="1": self.rows[(level, layer, name)]["cp"]  # noqa: E731
+        self.assertEqual(cp("block", "Track Main East"), "Barn;East End")
+        self.assertEqual(cp("block", "Track Main West"), "Brick;East End")
+        self.assertEqual(cp("block", "Track East Ext"), "Plane;Barn")
+        self.assertEqual(cp("block", "Track W-1"), "Brick;West Yard")             # West Yard lists W-1 too
+        self.assertEqual(cp("occupancy", "BS EH-1"), "Barn;Engine House")         # was empty
+        self.assertEqual(cp("block", "Track Helix Inner"), "Princess;CP 127")     # one block across the levels
+        self.assertEqual(cp("block", "Track Helix Inner", "3"), "Princess;CP 127")
+        self.assertEqual(cp("block", "Track 119-123", "2"), "CP 107;CP 123")
 
-    def test_a_staging_part_is_in_its_blocks_station(self):
-        parts = [r for k, r in self.rows.items() if k[0] == "1" and r["role"] == "part"]
-        self.assertTrue(parts)
-        for r in parts:
-            self.assertEqual(r["cp"], self.rows[("1", "block", r["part_of"])]["cp"], r["user_name"])
+    def test_every_sensor_has_its_blocks_cp_and_only_a_line_block_a_list(self):
+        blocks = {(r["level"], r["user_name"]): r["cp"] for r in self.rows.values() if r["layer"] == "block"}
+        for r in self.rows.values():
+            if r["layer"] == "occupancy" and r["role"] != "spare":
+                self.assertEqual(r["cp"], blocks[(r["level"], r["blocks"])], r["user_name"])
+            if D.LIST in r["cp"]:
+                self.assertIn(r["role"], D.LINE_ROLES, r["user_name"])
 
     def test_the_old_name_maps_notes_kept_their_facts(self):
         """The owner's date on the internal heads and the alias's turnout and address, which the pnm_notes held."""

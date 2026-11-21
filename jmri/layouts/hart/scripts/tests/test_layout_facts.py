@@ -64,7 +64,7 @@ class LoaderTest(unittest.TestCase):
         self.assertEqual(levels[("fb", "FB Switch 9 N")], "1")       # its switch
         self.assertEqual(levels[("block", "Track Main East")], "1")  # a leg of Switch 7 and 33
         self.assertEqual(levels[("mast", "Mast 10LA")], "1")         # cp Engine House
-        self.assertNotIn(("block", "Track Main West"), levels)       # main between control points
+        self.assertEqual(levels[("block", "Track Main West")], "1")  # its cp, Brick;East End, both level 1
 
     def test_a_control_point_without_a_level_is_refused(self) -> None:
         text = (self.data / STATIONS).read_text().replace("1,Plane,5,", ",Plane,5,")

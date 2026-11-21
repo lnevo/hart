@@ -382,7 +382,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
             raise unittest.SkipTest(str(exc))
         cls.runs = staticmethod(runs)
 
-    def rows(self, edit=None, extra_exception="", pins=None):
+    def rows(self, edit=None, extra_exception="", pins=None, places=None):
         """staging_rows over a copy of the master (`edit`ed), of block_exceptions.csv (plus `extra_exception`) and of
         wiring.csv (`pins`: a function of its text)."""
         rows = [dict(r) for r in devices.load()]
@@ -396,7 +396,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         pf = temp_file("wiring.csv", pins(text) if pins else text)
         self.addCleanup(remove, pf)
         self.files = devices.Files.under(p.parent)
-        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf)
+        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf, places=places)
 
     @staticmethod
     def by(got):
@@ -422,7 +422,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_parts_cells_follow_its_rewired_block(self):
         """OS Switch 9 and OS Switch 11 swap inputs in wiring.csv: their parts (Track 9-11 and Track 11-13) take the
-        rewired block's control point and detector (the occupancy part of its comment) on the same build."""
+        rewired block's detector (the occupancy part of its comment) on the same build."""
         def swap(text):
             return (text.replace("1,detector,OS Switch 9,,,,,13,8,", "1,detector,OS Switch 9,,,,,13,2,")
                         .replace("1,detector,OS Switch 11,,,,,13,2,", "1,detector,OS Switch 11,,,,,13,8,"))
@@ -430,33 +430,33 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         for part, block in (("Track 9-11", "OS Switch 9"), ("Track 11-13", "OS Switch 11")):
             p, b = got[("block", part)], got[("block", block)]
             self.assertNotEqual(b["jmri_comment"], want[("block", block)]["jmri_comment"])
-            self.assertEqual(p["cp"], b["cp"], part)
             self.assertEqual(re.search("occupancy .*$", p["jmri_comment"]).group(0),
                              re.search("occupancy .*$", b["jmri_comment"]).group(0), part)
 
-    def test_a_part_is_in_its_blocks_control_point(self):
-        """A part takes its control point from its block on every build: one given another in the master is
-        written back as its block's."""
+    def test_a_line_blocks_cp_is_the_rule_not_carried(self):
+        """A line block's cp (and its sensor's, its block's) lists the stations of the switches at its ends, plus a
+        station whose tracks name it (owner, 2026-11-21): written by the rule on every build, so a hand edit in the
+        master goes."""
         def edit(rows):
             for r in rows:
-                if r["level"] == "1" and r["user_name"] == "Track 9-11":
-                    r["cp"] = "Brick"
-            return rows
-        by = self.by(self.rows(edit)[0])
-        self.assertEqual(by[("block", "Track 9-11")]["cp"], by[("block", "OS Switch 9")]["cp"])
-        self.assertEqual(by[("block", "Track 9-11")]["cp"], "Engine House")
-
-    def test_a_line_blocks_station_is_carried_over(self):
-        """A staging line block and its detector carry their station (cp) over from their rows, as the other field
-        facts: the owner's, not the rule's."""
-        def edit(rows):
-            for r in rows:
-                if r["level"] == "1" and r["user_name"] in ("Track Barn", "BS Barn"):
+                if r["level"] == "1" and r["user_name"] in ("Track Barn", "BS Barn", "Track 9-11"):
                     r["cp"] = "Plane"
             return rows
         by = self.by(self.rows(edit)[0])
-        self.assertEqual((by[("block", "Track Barn")]["cp"], by[("occupancy", "BS Barn")]["cp"]), ("Plane", "Plane"))
-        self.assertEqual(self.by(self.rows()[0])[("block", "Track Barn")]["cp"], "Barn")
+        self.assertEqual((by[("block", "Track Barn")]["cp"], by[("occupancy", "BS Barn")]["cp"]),
+                         ("Barn;Engine House", "Barn;Engine House"))
+        self.assertEqual(by[("block", "Track 9-11")]["cp"], "Barn;Engine House")      # a part: its own ends
+        self.assertEqual(by[("block", "Track East Ext")]["cp"], "Plane;Barn")
+        self.assertEqual(by[("block", "Track W-1")]["cp"], "Brick;West Yard")
+        self.assertEqual(by[("block", "OS Switch 1")]["cp"], "Brick")                  # an OS block keeps its one
+
+    def test_a_station_that_lists_a_track_adds_itself(self):
+        places = bdm.read_places()
+        more = places._replace(tracks={**places.tracks, "Track Barn": ["Princess"]})
+        self.assertEqual(self.by(self.rows(places=more)[0])[("block", "Track Barn")]["cp"],
+                         "Barn;Engine House;Princess")
+        with self.assertRaisesRegex(bdm.MapError, "Princess lists Nowhere in its tracks, which is no staging block"):
+            self.rows(places=places._replace(tracks={"Track Nowhere": ["Princess"]}))
 
     def test_a_hand_edit_of_the_wiring_in_the_master_is_overwritten(self):
         stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498", wiring="Node: 4 Block: 99"),
@@ -538,8 +538,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         by = {(r["layer"], r["user_name"]): r for r in got}
         part = by[("block", "Track East Lead")]
         self.assertEqual((part["role"], part["part_of"], part["assignment"]), ("part", "OS Switch 33", "virtual"))
-        self.assertEqual(part["cp"], by[("block", "OS Switch 33")]["cp"])
-        self.assertEqual(part["cp"], "East End")
+        self.assertEqual(part["cp"], "East End;Princess")                  # its ends, Switches 33 and 35
         # a JMRI block of its own (owner, 2026-11-20) under new names, the next free number: not the old block's
         self.assertRegex(part["jmri_name"] + " " + part["layout_block"], r"^IB:AUTO:00(\d\d) ILB\1$")
         self.assertNotIn(("occupancy", "BS East Lead"), by)

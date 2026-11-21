@@ -87,8 +87,10 @@ class LcosMimicNameMapTest(unittest.TestCase):
         cps = self.m.load_cps()
         self.assertEqual(cps["turnout"]["DCC Switch 1"], self.m.infer_plant("DCC Switch 1"))     # not its cp, Brick
         self.assertEqual(cps["turnout"]["DCC Switch 9"], "Engine House")                         # by its name
-        self.assertEqual(cps["occupancy"]["BS Barn"], "Barn")                                    # its cp
-        self.assertEqual(cps["block"]["Track East Ext"], "Plane")
+        self.assertEqual(cps["occupancy"]["BS Barn"], "Barn")                  # the first place of its cp list
+        self.assertEqual(cps["block"]["Track East Ext"], "Plane")              # Plane;Barn
+        self.assertEqual(cps["block"]["Track Main East"], "Barn")              # Barn;East End
+        self.assertEqual(self.m.infer_plant("Track X", "CP 107;CP 123"), "CP 107")
 
     def test_a_missing_master_gives_empty_layers_and_a_broken_one_stops(self) -> None:
         import tempfile

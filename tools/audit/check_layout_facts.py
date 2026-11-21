@@ -766,18 +766,22 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
             if sw and sw.level != cp["level"]:
                 r.add(f"level:Switch {sw.number}", f"Switch {sw.number}: switches.csv level {sw.level}, "
                                                    f"stations.csv puts {cp['cp_name']} on level {cp['level']}")
-    for cp in sorted({row["cp"] for row in rows if row["cp"]} - set(by_cp)):
+    # a line block's cp lists stations and control points of any level (check_device_master holds it); one row's is
+    # a desk area of stations.csv
+    for cp in sorted({row["cp"] for row in rows if row["cp"] and row["role"] not in devices.LINE_ROLES} - set(by_cp)):
         r.add(f"level:{cp}", f"{cp}: a cp of a staging row of devices.csv with no desk area (and no level) in stations.csv")
     # A block's level from its switches (throat blocks through their track) against its control point's.
     by_block = facts.switch_block_levels(switches)
     block_cp = {row["user_name"]: row["cp"] for row in rows if row["layer"] == "block"}
-    for name, cp in block_cp.items():
+    for name, cps in block_cp.items():
         from_switch = by_block.get(t.track_name(name), set())
         if len(from_switch) > 1:
             r.add(f"level:{name}", f"{name}: its switches in switches.csv are on levels {sorted(from_switch)}")
-        elif from_switch and cp in by_cp and by_cp[cp] not in from_switch:
-            r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switches.csv "
-                                   f"say level {next(iter(from_switch))}")
+            continue
+        for cp in (p for p in cps.split(";") if p in by_cp):
+            if from_switch and by_cp[cp] not in from_switch:
+                r.add(f"level:{name}", f"{name}: is in {cp} (level {by_cp[cp]}), its switches in switches.csv "
+                                       f"say level {next(iter(from_switch))}")
     levels = facts.staging_levels(data, switches, rows, t.track_name)
     for row in rows:
         key = (row["layer"], row["user_name"])

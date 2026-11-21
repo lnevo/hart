@@ -37,11 +37,14 @@ from types import MappingProxyType
 from typing import Iterable, Mapping
 
 from . import names, paths
-from .railroad_facts import DEVICE_COLUMNS, FactsError
+from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, FactsError
 
 LEVELS = ("1", "2", "3")
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head", "sensor")   # also the order within a level
 ASSIGNMENTS = ("field", "virtual", "none", "spare")
+# the roles of a line block (and its occupancy sensor): a block between switches, whose cp is a list of the places it
+# joins (build_device_map.line_cp); every other device sits in one control point at most
+LINE_ROLES = ("track", "helix", "part", "loop_half", "spur")
 ROLES = ("turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "loop_half", "helix",
          "home", "intermediate", "hidden", "head", "spare", "panel_status", "part")
 # The scripts that write rows (the one list: a merge of builders changes only this). Order is the order of rows
@@ -59,6 +62,7 @@ COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_na
 # staging: its plant is the field, so a rewrite of its field devices' rows carries their field facts over from the
 # rows they replace, and a writer may not drop one without saying so (carries_field_facts, replace_rows' drops)
 FIELD_LEVEL = "1"
+LIST = DEVICE_LIST              # the separator of a list column (blocks, protects, a line block's cp)
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))
 
@@ -184,6 +188,12 @@ def _rank(row: Mapping[str, str]) -> tuple[int, int, int]:
     return (level, LAYERS.index(row["layer"]), 0 if not writer else 1 + WRITERS.index(writer))
 
 
+def cp_list(row: Mapping[str, str]) -> list[str]:
+    """The places a row's cp names: one control point, or, for a line block (LINE_ROLES) and its sensor, the stations
+    or control points it joins (LIST separated); [] when it has none."""
+    return [p for p in row["cp"].split(LIST) if p]
+
+
 def carries_field_facts(row: Mapping[str, str]) -> bool:
     """A staging row of a physical device (assignment field or spare) that a rewrite carries its field facts over from
     (system name, node, wiring, notes, cp): a writer may not drop it without naming it (replace_rows). A row the rule
@@ -290,6 +300,9 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
             bad.append(f"{at}: role panel_status and written_by panel_items.json go together")
         if r["layout_block"] and (r["layer"] != "block" or not r["layout_block"].startswith("ILB")):
             bad.append(f"{at}: layout_block {r['layout_block']!r} is for a block row, an ILB name")
+        if LIST in r["cp"] and r["role"] not in LINE_ROLES:
+            bad.append(f"{at}: cp {r['cp']!r} is a list, but a {r['role'] or r['layer']} sits in one control point "
+                       f"(only a line block, roles {', '.join(LINE_ROLES)}, lists the places it joins)")
         if r["wiring"] and r["jmri_comment"]:
             bad.append(f"{at}: wiring and jmri_comment are both set; a row has one comment")
         if (r["role"] == "part") != bool(r["part_of"]):

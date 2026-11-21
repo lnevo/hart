@@ -301,7 +301,7 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
 
     def group(r: railroad.DeviceRow) -> str:
         if r.cp:
-            return r.cp
+            return first_place(r.cp)
         for num in re.findall(r"\d+[a-z]?", r.user_name):
             if region.get(num):
                 return region[num]
@@ -345,10 +345,16 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
     return {"blocks": blocks, "turnouts": turnouts, "heads": heads}
 
 
+def first_place(cp: str) -> str:
+    """The plant of a cp: the control point, or for a line block's list (the stations or control points it joins,
+    in stations.csv's then interlockings.csv's order) its first, so a block is grouped once."""
+    return cp.split(";")[0]
+
+
 def infer_plant(name: str, cp: str = "") -> str:
-    """Control point for mimic grouping. Empty map cp is filled from the public name."""
+    """Control point for mimic grouping (first_place of a list). An empty cp is filled from the public name."""
     if cp:
-        return cp
+        return first_place(cp)
     blob = (name or "").lower()
     if blob.startswith("os eh") or blob.startswith("track eh") or blob.startswith("bs eh") or "engine house" in blob:
         return "Engine House"

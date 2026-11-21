@@ -233,11 +233,12 @@ def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
 
     A turnout or feedback sensor of Switch N (``Switch N``, ``DCC Switch N``,
     ``FB Switch N R``) takes switches.csv; an OS block or a block a switch leg
-    leads to takes its switch's level; any other row takes its control point's.
+    leads to takes its switch's level; any other row takes its control point's (a line block's cp lists the
+    places it joins: their level when they all have one).
     ``track_name`` maps a Layout Editor throat block to its track (Track S-R West
     -> Track S-R, through their shared occupancy sensor in tables.xml); without it
     a throat block is matched by its own name only. A row with none of these (a
-    main between control points, Track Main West) is left out: check_layout_facts.py
+    block in no place) is left out: check_layout_facts.py
     gives it the level of the blocks it joins, and reports any block whose switch
     and control point give different levels (here the switch wins).
     """
@@ -255,8 +256,9 @@ def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
             level = switches[int(m.group(1))].level
         elif len(from_switch) == 1:
             level = next(iter(from_switch))
-        elif row["cp"] in by_cp:
-            level = by_cp[row["cp"]]
+        else:                       # its control point's; a line block's places (a cp list) all on one level
+            cp_level = {by_cp[p] for p in row["cp"].split(";") if p in by_cp}
+            level = next(iter(cp_level)) if len(cp_level) == 1 else ""
         if level:
             out[(layer, name)] = level
     return out

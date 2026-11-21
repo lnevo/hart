@@ -175,8 +175,7 @@ columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `sy
 - Staging (`FIELD_LEVEL`, level 1) is the field: its builders carry each row's field facts (system and layout-block
   names, node, wiring, comment, notes, `cp`) over from the row it replaces, so `replace_rows` stops a writer that would
   drop the row of a staging field device (`carries_field_facts`: assignment field or spare, not a panel status bean)
-  without naming it in `drops`; a rule's virtual mast, head or part, or a status bean, may go. A staging line block and its detector carry the station they sit
-  in (`cp`); a staging part takes its block's.
+  without naming it in `drops`; a rule's virtual mast, head or part, or a status bean, may go. A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
 - `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the
   main and upper layout blocks are numbered by the Layout Editor build. A wired head's comment is its `wiring`.
 

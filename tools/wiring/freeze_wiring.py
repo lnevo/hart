@@ -80,9 +80,12 @@ def track_keys(found: list[dict] | None = None) -> dict[str, dict]:
 def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str], today: str) -> list[dict]:
     """The wiring.csv rows (wiring.COLUMNS, status wired) of control point `cp`'s devices on a node. FreezeError on
     no such control point or a head with no node."""
-    mine = [r for r in rows if r["cp"] == cp]
+    # a line block's cp lists the control points it joins (devices.LIST); its detector is frozen with the first, as
+    # when the device map gave it that one alone
+    first = lambda r: r["cp"].split(devices.LIST)[0]  # noqa: E731
+    mine = [r for r in rows if first(r) == cp]
     if not mine:
-        cps = sorted({r["cp"] for r in rows if r["cp"]}, key=lambda c: [int(t) if t.isdigit() else t
+        cps = sorted({first(r) for r in rows if r["cp"]}, key=lambda c: [int(t) if t.isdigit() else t
                                                                          for t in re.split(r"(\d+)", c)])
         raise FreezeError(f"no main or upper control point {cp!r}; they are {', '.join(cps)}")
     note = f"frozen from the device map's rule ({cp}, {today})"

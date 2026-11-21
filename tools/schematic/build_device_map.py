@@ -713,15 +713,17 @@ def frozen_wires(path: Path | None = None) -> list:
     return [w for w in wiring_rows(path) if w.level != int(FIELD_LEVEL) and w.kind in ("turnout", "fb", "head")]
 
 
-def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None,
+def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None, places=None,
           virtual_names=None, frozen=None) -> tuple[dict, list[dict], list[dict]]:
     """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (the local switches of switches.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
     when a band has a double crossover. `helix`: read_helix_tracks (None: helix_tracks.csv; {}: no helix tracks);
     `pins`: read_pins (None: wiring.csv's detectors, resolved against the tracks found here); `virtual_names`:
     {mast: system name} of the virtual masts that have one already (None: master_virtual_names); `frozen`:
-    frozen_wires (None: wiring.csv's)."""
+    frozen_wires (None: wiring.csv's); `places`: read_places (None: stations.csv's and interlockings.csv's), the cp of
+    every line block (line_cp)."""
     helix = read_helix_tracks() if helix is None else helix
+    places = read_places() if places is None else places
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
     try:
@@ -874,7 +876,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if not m or m.group(1) not in switches:
             raise MapError(f"{name} (level {part['level']}) is part of {part['part_of']}, the OS block of no main or "
                            "upper switch")
-        part_rows.append(part_row(str(switches[m.group(1)].level), name, part, trial_of(name)))
+        part_rows.append(dict(part_row(str(switches[m.group(1)].level), name, part, trial_of(name)),
+                              cp=line_cp(name, part["track"], places)))
     for t in sorted(found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
         stray = [s for s in sws if s not in area_of]
@@ -884,12 +887,12 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if t["name"] in lay.parts:                  # a link inside an OS block: its part row, no block or detector
             continue
         ends_cp = sorted({cp_of[v] for v in sws if v in cp_of}, key=natural)
-        cp = ends_cp[0] if ends_cp else ""
         detect = t["main"] and sws
         split = t["name"] in split_names
         halves = sorted(LOOP_HALF.values()) if (t["loop"] or split) else [None]
         for half in halves:
             name = loop_placeholder(t["name"], half)
+            cp = line_cp(name, t, places, helix_ends(helix))
             cm = round(t["cm"] / 2, 1) if half else t["cm"]
             note = f"{cm} cm" + ("" if t["main"] else " no detector: off the main line")
             if half and split:
@@ -1133,6 +1136,59 @@ def level_trials(bands, joined, lay: block_layer.Layer) -> dict[str, str]:
 
 
 SPARE_RE = re.compile(r"^Node: (\d+) Block: (\d+)$")
+STATIONS = pd.DATA / "stations.csv"
+
+
+class Places(NamedTuple):
+    """Where a line block sits (owner, 2026-11-21): `of` {switch: its places}, a switch's places the stations of
+    stations.csv that list it, or, for a switch in no station, the control points of interlockings.csv that list it;
+    `order` {place: rank}, stations.csv's order then interlockings.csv's; `tracks` {block: the stations whose
+    `tracks` cell names it} (the owner's additions)."""
+    of: dict
+    order: dict
+    tracks: dict
+
+
+def read_places(stations: Path | None = None, interlockings: Path | None = None) -> Places:
+    """Places of stations.csv (`stations`, default the committed file) and interlockings.csv (`interlockings`,
+    default CPS). MapError when either cannot be read."""
+    try:
+        st = railroad.read_stations(stations or STATIONS)
+        ils = railroad.read_interlockings(interlockings or CPS)
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from None
+    order: dict[str, int] = {}
+    for name in [s.name for s in st] + [i.name for i in ils]:
+        order.setdefault(name, len(order))
+    in_station, in_cp, tracks = defaultdict(list), defaultdict(list), defaultdict(list)
+    for s in st:
+        for sw in s.switches:
+            in_station[sw].append(s.name)
+        if s.tracks and s.tracks != "none":
+            for t in (x.strip() for x in s.tracks.split(";")):
+                if t:
+                    tracks[f"Track {t}"].append(s.name)
+    for i in ils:
+        for sw in i.switches:
+            in_cp[sw].append(i.name)
+    return Places({sw: tuple(in_station[sw] or in_cp[sw]) for sw in set(in_station) | set(in_cp)}, order,
+                  dict(tracks))
+
+
+def helix_ends(helix: dict) -> dict[str, set[str]]:
+    """{helix block: its two end switches, staging's and the main or upper one's number} (`helix`:
+    read_helix_tracks): a helix block is one block across the levels, so each level's row of it has both ends."""
+    return {h["block"]: {h["staging_switch"], re.match(r"\d+", h["level_switch"]).group(0)} for h in helix.values()}
+
+
+def line_cp(block: str, track: dict, places: Places, helix_ends: dict | None = None) -> str:
+    """The cp of a line block (devices.LINE_ROLES) on `track` (a mast_rule track: its `ends`; a helix block's ends
+    from `helix_ends` too, which its drawing on one level does not reach): the places of the switches at its two ends
+    and the stations whose `tracks` name it, in Places.order, each once, joined by railroad.DEVICE_LIST (a block in
+    none: empty)."""
+    sws = {v for k, v in track["ends"] if k == "sw"} | (helix_ends or {}).get(block, set())
+    got = {p for v in sws for p in places.of.get(v, ())} | set(places.tracks.get(block, ()))
+    return railroad.DEVICE_LIST.join(sorted(got, key=lambda p: places.order[p]))
 
 
 def freed_spare(occ: dict, block: str, part_of: str) -> dict:
@@ -1235,7 +1291,8 @@ def wire_block(row: dict, node: int, k: int) -> dict:
 
 
 def staging_rows(bands, joined, runs, files: devices.Files | None = None,
-                 exceptions: Path | None = None, pins: Path | None = None) -> tuple[list[dict], set, set]:
+                 exceptions: Path | None = None, pins: Path | None = None,
+                 places: Places | None = None) -> tuple[list[dict], set, set]:
     """(staging's block and occupancy rows of the master, the keys they take over, the keys they drop): the one block
     process's blocks
     and parts of the staging band (staging_layer), each block row and its occupancy row carrying its field facts
@@ -1254,7 +1311,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     now a part: its row is carried, or made (new_spare); a spare row no pin is on any more is dropped."""
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
-    helix = {h["block"] for h in read_helix_tracks().values()}
+    helix_tracks = read_helix_tracks()
+    helix = {h["block"] for h in helix_tracks.values()}
     master = devices.load(files or device_files())
     prior = {(r["layer"], r["user_name"]): r for r in master
              if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
@@ -1328,7 +1386,6 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                 bad.append(f"staging part {r['user_name']}: its block {r['part_of']} has no row to take its control "
                            "point and detector from")
                 continue
-            r["cp"] = of["cp"]
             m = re.search(r"occupancy .*$", comment_of.get(r["part_of"], ""))
             if not m:
                 bad.append(f"staging part {r['user_name']}: its block {r['part_of']} has no occupancy in its comment")
@@ -1336,9 +1393,18 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
             t = lay.parts[r["user_name"]]["track"]
             ends = " to ".join(f"Switch {s}" for s in sorted({v for k, v in t["ends"] if k == "sw"}, key=natural))
             r["jmri_comment"] = f"Part of {r['part_of']}, the track from {ends}; {m.group(0)}"
+    places = read_places() if places is None else places
+    staging_names = blocks | set(lay.parts)
+    bad += [f"{STATIONS.name}: {', '.join(places.tracks[t])} lists {t.removeprefix('Track ')} in its tracks, which "
+            "is no staging block" for t in sorted(places.tracks) if t not in staging_names]
+    for r in out:               # a line block's cp is the rule's and the owner's additions (line_cp), not carried
+        if r is not None and r["role"] in devices.LINE_ROLES:
+            track = lay.parts[r["user_name"]]["track"] if r["role"] == "part" else lay.tracks[r["user_name"]][0]
+            r["cp"] = line_cp(r["user_name"], track, places, helix_ends(helix_tracks))
+    cp_of_block = {r["user_name"]: r["cp"] for r in out if r is not None}
     occupancy = []
     for b in sorted(blocks - helix, key=natural):
-        row = carried("occupancy", occupancy_user(b), blocks=b)
+        row = carried("occupancy", occupancy_user(b), blocks=b, cp=cp_of_block.get(b, ""))
         if row is None:
             continue
         if b not in pin_of:

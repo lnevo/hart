@@ -4,13 +4,18 @@
   var base = HARTOps.base;
   var esc = HARTOps.esc;
 
+  // a line block's cp lists the stations or control points it joins, ";" between (devices.csv)
+  function places(item) {
+    return (item.cp || "").split(";").filter(Boolean);
+  }
+
   function filtered() {
     var kind = document.querySelector("#kind-filter").value;
     var cp = document.querySelector("#cp-filter").value;
     var q = (document.querySelector("#roster-search").value || "").trim().toLowerCase();
     return (data.items || []).filter(function (item) {
       if (kind !== "all" && item.kind !== kind) return false;
-      if (cp !== "all" && (item.cp || "") !== cp) return false;
+      if (cp !== "all" && places(item).indexOf(cp) < 0) return false;
       if (!q) return true;
       return [item.publicName, item.systemName, item.hardware, item.mqtt, item.comment, item.cp]
         .join(" ")
@@ -36,7 +41,7 @@
           '</td><td class="mono">' +
           esc(item.systemName || "") +
           "</td><td>" +
-          esc(item.cp || "—") +
+          esc(places(item).join(", ") || "—") +
           '</td><td class="mono">' +
           esc(item.hardware || "—") +
           '</td><td class="mono">' +
@@ -58,7 +63,9 @@
     data = await res.json();
     var cps = {};
     (data.items || []).forEach(function (it) {
-      if (it.cp) cps[it.cp] = true;
+      places(it).forEach(function (cp) {
+        cps[cp] = true;
+      });
     });
     var cpSel = document.querySelector("#cp-filter");
     Object.keys(cps)
