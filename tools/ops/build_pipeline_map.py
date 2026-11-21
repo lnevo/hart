@@ -139,6 +139,7 @@ PAGE_TEMPLATE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HART pipeline map</title>
+<meta name="description" content="The source files, scripts and generated outputs in the HART repository, drawn as boxes and arrows by lane. Pick a file to see what feeds it and what it feeds, from the schematic to the panels, tables.xml and the website.">
 <style>
 html,body{margin:0;height:100%;font:13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#111;background:#fafafa}
 #wrap{position:fixed;inset:0;overflow:hidden;cursor:grab}
