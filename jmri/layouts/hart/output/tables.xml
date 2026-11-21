@@ -2098,18 +2098,36 @@
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A83)</systemName>
       <userName>Mast A83</userName>
       <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <properties>
+        <property>
+          <key>intermediateSignal</key>
+          <value class="java.lang.Boolean">true</value>
+        </property>
+      </properties>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A84)</systemName>
       <userName>Mast A84</userName>
       <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <properties>
+        <property>
+          <key>intermediateSignal</key>
+          <value class="java.lang.Boolean">true</value>
+        </property>
+      </properties>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B92)</systemName>
       <userName>Mast B92</userName>
       <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+      <properties>
+        <property>
+          <key>intermediateSignal</key>
+          <value class="java.lang.Boolean">true</value>
+        </property>
+      </properties>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
@@ -6160,16 +6178,6 @@
         <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
         <lockTurnouts>no</lockTurnouts>
       </destinationMast>
-      <destinationMast destination="Mast 204RB">
-        <destinationSignalMast>Mast 204RB</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
       <destinationMast destination="Mast 218RA">
         <destinationSignalMast>Mast 218RA</destinationSignalMast>
         <comment />
@@ -6265,16 +6273,6 @@
       </destinationMast>
       <destinationMast destination="Mast 212LA">
         <destinationSignalMast>Mast 212LA</destinationSignalMast>
-        <comment />
-        <enabled>yes</enabled>
-        <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-        <useLayoutEditor>yes</useLayoutEditor>
-        <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-        <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-        <lockTurnouts>no</lockTurnouts>
-      </destinationMast>
-      <destinationMast destination="Mast 204RB">
-        <destinationSignalMast>Mast 204RB</destinationSignalMast>
         <comment />
         <enabled>yes</enabled>
         <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>

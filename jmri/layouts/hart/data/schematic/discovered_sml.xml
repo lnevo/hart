@@ -16,6 +16,30 @@
       </property>
     </properties>
   </mastproperties>
+  <mastproperties mast="Mast A83">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
+  <mastproperties mast="Mast A84">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
+  <mastproperties mast="Mast B92">
+    <properties>
+      <property>
+        <key>intermediateSignal</key>
+        <value class="java.lang.Boolean">true</value>
+      </property>
+    </properties>
+  </mastproperties>
   <signalmastlogic source="Mast 4RA">
     <sourceSignalMast>Mast 4RA</sourceSignalMast>
     <destinationMast destination="Mast 24RA">
@@ -86,7 +110,7 @@
     <destinationMast destination="Mast 2R">
       <destinationSignalMast>Mast 2R</destinationSignalMast>
       <comment />
-      <enabled>no</enabled>
+      <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
       <useLayoutEditor>yes</useLayoutEditor>
       <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
@@ -1524,16 +1548,6 @@
       <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
       <lockTurnouts>no</lockTurnouts>
     </destinationMast>
-    <destinationMast destination="Mast 204RB">
-      <destinationSignalMast>Mast 204RB</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
     <destinationMast destination="Mast 218RA">
       <destinationSignalMast>Mast 218RA</destinationSignalMast>
       <comment />
@@ -1629,16 +1643,6 @@
     </destinationMast>
     <destinationMast destination="Mast 212LA">
       <destinationSignalMast>Mast 212LA</destinationSignalMast>
-      <comment />
-      <enabled>yes</enabled>
-      <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
-      <useLayoutEditor>yes</useLayoutEditor>
-      <useLayoutEditorTurnouts>yes</useLayoutEditorTurnouts>
-      <useLayoutEditorBlocks>yes</useLayoutEditorBlocks>
-      <lockTurnouts>no</lockTurnouts>
-    </destinationMast>
-    <destinationMast destination="Mast 204RB">
-      <destinationSignalMast>Mast 204RB</destinationSignalMast>
       <comment />
       <enabled>yes</enabled>
       <allowAutoMaticSignalMastGeneration>no</allowAutoMaticSignalMastGeneration>
