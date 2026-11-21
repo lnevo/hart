@@ -103,7 +103,7 @@ class PulledDir(unittest.TestCase):
         done = bash(f'hart_cache_dir "{ROOT}" schematic', {"HART_CACHE_DIR": ""})
         main = Path(bash(f'hart_main_checkout "{ROOT}"').stdout.strip())
         self.assertEqual(main / ".cache/hart/schematic", Path(done.stdout.strip()))
-        self.assertEqual(0, subprocess.run(["git", "-C", str(main), "check-ignore", "-q", ".cache/hart/schematic"]).returncode)
+        self.assertEqual(0, subprocess.run(["git", "-C", str(ROOT), "check-ignore", "-q", ".cache/hart/schematic"]).returncode)
         self.assertEqual("/x/web", bash(f'hart_cache_dir "{ROOT}" web', {"HART_CACHE_DIR": "/x"}).stdout.strip())
 
     def test_a_folder_inside_a_checkout_is_refused(self) -> None:

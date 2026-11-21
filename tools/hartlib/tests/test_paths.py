@@ -192,8 +192,10 @@ class SharedFoldersTest(unittest.TestCase):
     """Caches and pulled Stores live in the main checkout, gitignored, shared by every worktree."""
 
     def ignored(self, path):
+        """Whether this checkout's .gitignore ignores `path` (taken relative to the main checkout, which holds
+        the same tracked .gitignore; the main checkout itself may be a bare repo's parent on a build host)."""
         rel = path.relative_to(paths.main_checkout())
-        return subprocess.run(["git", "-C", str(paths.main_checkout()), "check-ignore", "-q", str(rel)]).returncode == 0
+        return subprocess.run(["git", "-C", str(paths.REPO_ROOT), "check-ignore", "-q", str(rel)]).returncode == 0
 
     def test_defaults_are_in_the_main_checkout_and_git_ignored(self):
         with mock.patch.dict(os.environ, {"HART_CACHE_DIR": ""}):
@@ -203,8 +205,6 @@ class SharedFoldersTest(unittest.TestCase):
         self.assertTrue(self.ignored(cache))
         self.assertEqual(main / "media/pulled-stores", paths.pulled_stores_dir())
         self.assertTrue(self.ignored(paths.pulled_stores_dir()))
-        # a worktree's .git is a file, and its common dir is the main checkout's: the answer is the same from there
-        self.assertTrue((main / ".git").exists())
 
     def test_the_override_moves_the_cache_base(self):
         with mock.patch.dict(os.environ, {"HART_CACHE_DIR": "/x/c"}):
