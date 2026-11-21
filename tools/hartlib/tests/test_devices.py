@@ -219,6 +219,51 @@ class TheChecks(unittest.TestCase):
         self.assertIn("out of order", problems(hand_after_writer))
 
 
+def block(user="OS Switch 9", **cells) -> dict:
+    return blank(**{**dict(level="1", layer="block", role="os", user_name=user, assignment="field",
+                           system_name="IB:AUTO:0040", jmri_name="IB:AUTO:0040", layout_block="ILB40",
+                           written_by="build_device_map.py", description="Block."), **cells})
+
+
+def part(user="Track 9-11", part_of="OS Switch 9", **cells) -> dict:
+    return blank(**{**dict(level="1", layer="block", role="part", user_name=user, assignment="none",
+                           part_of=part_of, written_by="build_device_map.py", description="Part."), **cells})
+
+
+class TheParts(unittest.TestCase):
+    """A block row with part_of is a piece of track inside another block (owner, 2026-11-20): it makes no JMRI block,
+    layout block or occupancy row of its own, and the block it names exists and is no part itself."""
+
+    def test_a_part_of_an_existing_block_passes(self):
+        D.check_rows([block(), part()])
+
+    def test_role_part_and_part_of_go_together(self):
+        self.assertIn("role part and part_of go together", problems([block(), part(role="track")]))
+        self.assertIn("role part and part_of go together", problems([block(), part(part_of="")]))
+
+    def test_only_a_block_row_is_a_part(self):
+        self.assertIn("part_of is for a block row", problems([block(), part(layer="occupancy")]))
+
+    def test_a_part_makes_no_jmri_device(self):
+        for col, value in (("assignment", "field"), ("system_name", "IB9"), ("jmri_name", "IB9"),
+                           ("layout_block", "ILB9"), ("stop", "yes"), ("node", "4")):
+            with self.subTest(col):
+                self.assertIn("a part makes no JMRI block", problems([block(), part(**{col: value})]))
+
+    def test_the_block_it_names_must_exist(self):
+        self.assertIn("part_of 'OS Switch 11' is no block row", problems([block(), part(part_of="OS Switch 11")]))
+
+    def test_a_part_of_a_part_is_refused_so_no_chain_or_cycle(self):
+        chain = [block(), part(), part("Track 7-9", part_of="Track 9-11")]
+        self.assertIn("part_of 'Track 9-11' is itself a part", problems(chain))
+        cycle = [part("Track 1-3", part_of="Track 3-5"), part("Track 3-5", part_of="Track 1-3")]
+        self.assertIn("itself a part", problems(cycle))
+
+    def test_the_device_maps_leave_parts_out(self):
+        self.assertIn("part", D.OUT_OF_MAPS)
+        self.assertEqual(D.describe(part()), "Piece Track 9-11 of block OS Switch 9: no JMRI block of its own.")
+
+
 class TheWritersRules(unittest.TestCase):
     def test_a_writer_replaces_only_its_own_rows_and_the_result_is_in_order(self):
         held = [turnout(), mast("Mast 2L"), mast("Mast 4L", system_name="IF$vsm:basic:one-low($2)",

@@ -42,16 +42,18 @@ LEVELS = ("1", "2", "3")
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head", "sensor")   # also the order within a level
 ASSIGNMENTS = ("field", "virtual", "none", "spare")
 ROLES = ("turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "loop_half", "helix",
-         "home", "intermediate", "hidden", "head", "spare", "panel_status")
+         "home", "intermediate", "hidden", "head", "spare", "panel_status", "part")
 # The scripts that write rows (the one list: a merge of builders changes only this). Order is the order of rows
 # within a (level, layer) after the hand-kept ones.
 WRITERS = ("build_staging_masts.py", "build_device_map.py", "build_main_upper_masts.py", "panel_items.json")
-OUT_OF_MAPS = ("spare", "panel_status")        # roles the two device maps leave out
+# roles the two device maps leave out: a spare detector, a panel status bean, and a part (a block row with part_of: a
+# piece of track inside another block, which makes no JMRI block, layout block or occupancy row of its own)
+OUT_OF_MAPS = ("spare", "panel_status", "part")
 SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 
 COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
-           "switch", "facing", "protects", "dir", "written_by", "description",
+           "part_of", "switch", "facing", "protects", "dir", "written_by", "description",
            "pnm_order", "pnm_cp", "pnm_hardware", "pnm_dcc", "pnm_comment", "pnm_notes")
 PNM_COLUMNS = ("layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes")
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
@@ -183,6 +185,7 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
     name). Run on every load and after every write."""
     bad, keys, jmri, field_systems = [], {}, {}, {}
     ranks, pnm = [], {}
+    parts, part_names, whole = [], set(), set()      # (row, part_of) of each part; the parts' and blocks' names
     for n, r in enumerate(rows, 2):
         at = f"line {n} ({r['level']} {r['layer']} {r['user_name']!r})"
         if r["level"] not in LEVELS:
@@ -247,8 +250,26 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
             pnm[order] = n
         elif any(pnms):
             bad.append(f"{at}: pnm_ columns are set but pnm_order is empty")
+        if (r["role"] == "part") != bool(r["part_of"]):
+            bad.append(f"{at}: role part and part_of go together")
+        if r["part_of"]:
+            if r["layer"] != "block":
+                bad.append(f"{at}: part_of is for a block row (a piece of track inside another block)")
+            made = [c for c in ("system_name", "jmri_name", "layout_block", "stop", "node") if r[c]]
+            if made or a != "none":
+                bad.append(f"{at}: a part makes no JMRI block of its own, so assignment none and no "
+                           + ", ".join(made or ["JMRI name"]))
+            parts.append((at, r["part_of"]))
+            part_names.add(r["user_name"])
+        elif r["layer"] == "block":
+            whole.add(r["user_name"])
         if not unknown:
             ranks.append((_rank(r), n))
+    for at, target in parts:
+        if target in part_names:
+            bad.append(f"{at}: part_of {target!r} is itself a part (a part names a whole block: no chain or cycle)")
+        elif target not in whole:
+            bad.append(f"{at}: part_of {target!r} is no block row")
     for (a, na), (b, nb) in zip(ranks, ranks[1:]):
         if b < a:
             bad.append(f"line {nb}: out of order (level, layer, then hand-kept rows before each writer's, "
@@ -340,6 +361,8 @@ def describe(r: Mapping[str, str]) -> str:
         return f"Signal head {u} of {'Mast ' + u.removeprefix('Head ').split(' ')[0]}, {live}."
     if role == "spare":
         return f"Spare detector {u}: a field detector with no block assigned."
+    if role == "part":
+        return f"Piece {u} of block {r['part_of']}: no JMRI block of its own."
     raise DevicesError(f"no description rule for role {role!r} ({u})")
 
 
@@ -385,12 +408,15 @@ def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | N
 # ---------------------------------------------------------------- writing
 
 def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[Mapping[str, str]],
-                 drops: Iterable[tuple[str, str, str]] = ()) -> list[dict[str, str]]:
+                 drops: Iterable[tuple[str, str, str]] = (),
+                 adopts: Iterable[tuple[str, str, str]] = ()) -> list[dict[str, str]]:
     """`rows` with the rows `writer` holds replaced by `new` (master rows with written_by == writer), sorted into the
     master's order (stable). DevicesError when the writer is not in WRITERS, a new row names another writer or
     would take a key (level, layer, user_name) a row held by someone else has, a row of the writer that has a place
     in the name map (pnm_order) would go with no new row of its key (a rename would lose its pnm_ columns silently:
-    name it in `drops` when the name map is meant to lose it), or the result breaks check_rows."""
+    name it in `drops` when the name map is meant to lose it), or the result breaks check_rows. `adopts` names the
+    keys of hand-kept rows the writer takes over (a hand-kept row of that key is replaced by its new row, as its own
+    would be): how a level's rows move from the owner's hand to a builder, which carries their hand facts over."""
     if writer not in WRITERS:
         raise DevicesError(f"writer {writer!r} is not one of {', '.join(WRITERS)}")
     rows, new = [dict(r) for r in rows], [dict(r) for r in new]
@@ -399,20 +425,23 @@ def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[M
         raise DevicesError(f"{writer} would write {len(foreign)} row(s) held by someone else, first "
                            f"{foreign[0]['level']} {foreign[0]['layer']} {foreign[0]['user_name']!r} "
                            f"(written_by {foreign[0]['written_by']!r})")
-    others = {(r["level"], r["layer"], r["user_name"]): r["written_by"] for r in rows if r["written_by"] != writer}
+    adopts = set(adopts)
+    mine = lambda r: r["written_by"] == writer or (not r["written_by"] and  # noqa: E731
+                                                   (r["level"], r["layer"], r["user_name"]) in adopts)
+    others = {(r["level"], r["layer"], r["user_name"]): r["written_by"] for r in rows if not mine(r)}
     clash = [k for k in ((r["level"], r["layer"], r["user_name"]) for r in new) if k in others]
     if clash:
         raise DevicesError(f"{writer} would rewrite row(s) it does not hold: "
                            + ", ".join(f"{k[2]!r} ({k[1]}, level {k[0]}; held by {others[k] or 'hand'})" for k in clash[:5]))
     kept = {(r["level"], r["layer"], r["user_name"]) for r in new} | set(drops)
-    lost = [r for r in rows if r["written_by"] == writer and r["pnm_order"]
+    lost = [r for r in rows if mine(r) and r["pnm_order"]
             and (r["level"], r["layer"], r["user_name"]) not in kept]
     if lost:
         raise DevicesError(f"{writer} would drop {len(lost)} row(s) that have a place in the name map (pnm_order), "
                            "first " + ", ".join(f"{r['user_name']!r} ({r['layer']}, level {r['level']}, pnm_order "
                                                 f"{r['pnm_order']})" for r in lost[:5])
                            + "; a renamed row loses its pnm_ columns: pass it in drops if the name map is to lose it")
-    out = [r for r in rows if r["written_by"] != writer] + new
+    out = [r for r in rows if not mine(r)] + new
     out.sort(key=_rank)
     check_rows(out, "devices.csv after the write")
     return out
@@ -447,7 +476,8 @@ def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Pat
 
 
 def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
-                       drops: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
+                       drops: Iterable[tuple[str, str, str]] = (),
+                       adopts: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
     """{path: text} of the master once `writer` has written `new`, master rows with
     written_by set to it, in place of the rows it holds. Each row keeps the pnm_ columns of the row it replaces.
     The caller writes the texts (or compares them for --check); nothing is written here. DevicesError when the
@@ -462,22 +492,28 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
         if old is not None and old["written_by"] == writer:
             row.update({c: old[c] for c in COLUMNS if c.startswith("pnm_")})
         rows.append(row)
-    return texts(replace_rows(held, writer, rows, drops), f)
+    return texts(replace_rows(held, writer, rows, drops, adopts), f)
 
 
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
-                  drops: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
-    """outputs_after_rows for `old_rows`, old-form device-map rows (master_row gives each its master form). What a
-    reader of the master sees for these rows is what the writer gave; DevicesError when it is not."""
+                  drops: Iterable[tuple[str, str, str]] = (), master_rows: Iterable[Mapping[str, str]] = (),
+                  adopts: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
+    """outputs_after_rows for `old_rows`, old-form device-map rows (master_row gives each its master form), and
+    `master_rows`, rows already in the master's form (a builder that carries a level's hand facts over, or rows the
+    device maps leave out). What a reader of the master sees for these rows is what the writer gave; DevicesError
+    when it is not."""
     f = files or Files.here()
     old_rows = list(old_rows)
     prior = {(r["level"], r["layer"], r["user_name"]): r for r in load(f)}
+    master_rows = [dict(r) for r in master_rows]
     new = [master_row(o, writer, prior.get((str(o["level"]), o["layer"], o["user_name"]))) for o in old_rows]
-    out = outputs_after_rows(writer, new, f, drops)
+    out = outputs_after_rows(writer, new + master_rows, f, drops, adopts)
     want = {(str(o["level"]), o["layer"], o["user_name"]): {c: str(o[c]) for c in DEVICE_COLUMNS} for o in old_rows}
-    held = {(r["level"], r["layer"], r["user_name"]): device_map_row(r)
-            for r in csv.DictReader(io.StringIO(out[f.master])) if r["written_by"] == writer}
-    if held != want:
+    whole = {(r["level"], r["layer"], r["user_name"]): r for r in master_rows}
+    back = {(r["level"], r["layer"], r["user_name"]): r for r in csv.DictReader(io.StringIO(out[f.master]))
+            if r["written_by"] == writer}
+    held = {k: device_map_row(r) for k, r in back.items() if k not in whole}
+    if held != want or any(back.get(k) != r for k, r in whole.items()):
         raise DevicesError(f"{writer}: the rows written do not read back as given")
     return out
 
