@@ -92,7 +92,7 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
 - Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices.csv`) or the template instead.
-- Leave the LCOS bridge (`serial_to_mqtt`) running detached. It is operator-owned and runs in a visible foreground console. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
+- Leave the LCOS bridge (`serial_to_mqtt`) stopped, or start a second one beside it. It is operator-owned and runs on the Pi as the `lcos-bridge` systemd service (`~/lcos-bridge`, `./bridge start|stop|restart|status|log`). If a lab test needs the Nano's port, `./bridge stop` first and `./bridge start` before ending the turn; the operating flag applies, since it is the Pi.
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction and confirmation.
 - Spell out what HART stands for in any file, commit or page. The repo and website are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.
