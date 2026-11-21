@@ -213,7 +213,7 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
     try:
         record(store_path, ctx, p)
     except (OSError, ValueError, KeyError, csv.Error) as exc:
-        return undo([f"{SPLITS.relative_to(ROOT)} could not be written: {exc!r}"])
+        return undo([f"{SPLITS.name} could not be written: {exc!r}"])
     merged = sorted(choices.merge)
     print(f"Applied plan {p.fingerprint}: {len(changes)} template change(s), {len(edits)} devices.csv cell(s)"
           + (f" (merged {', '.join(merged)})" if merged else "") + "; tables.xml rebuilt and checked.")

@@ -97,6 +97,20 @@ class MacPull(PullCase):
         self.assertIn(str(saved), again.stdout)
         self.assertEqual([saved], self.pulled())
 
+    def test_a_second_pull_names_the_base_the_store_was_kept_with(self) -> None:
+        """The stamp moved on between two pulls of the same Store: the kept .base wins, and the message says so."""
+        (self.uf / "tables.xml").write_text(STORE, encoding="utf-8")
+        self.stamp(self.uf, sha(GENERATED))
+        self.assertEqual(0, self.run_pull("pull_tables.sh").returncode)
+        [saved] = self.pulled()
+        first = f"deploy {sha(GENERATED)} {COMMIT}"
+        self.stamp(self.uf, sha("<later/>"))
+        again = self.run_pull("pull_tables.sh")
+        self.assertEqual(0, again.returncode, again.stderr)
+        self.assertEqual(first, Path(f"{saved}.base").read_text().strip())
+        self.assertIn(f"its base ({first})", again.stdout)
+        self.assertNotIn(sha("<later/>"), again.stdout)
+
     def test_a_store_split_in_is_nothing_to_pull(self) -> None:
         (self.uf / "tables.xml").write_text(STORE, encoding="utf-8")
         self.stamp(self.uf, sha(GENERATED))
