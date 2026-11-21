@@ -101,6 +101,8 @@ class RightEdge(unittest.TestCase):
                  ({"right": 76, "xml": LAMP}, "positionablelabel with text"),
                  ({"right": 76, "xml": self.caption("A").replace('fontFamily="Dialog"', 'fontFamily="Serif"')},
                   "measures the Dialog font"),
+                 ({"right": 76, "xml": self.caption("A").replace(' fontFamily="Dialog" fontname="Dialog"', "")},
+                  "must name fontFamily and fontname Dialog"),
                  ({"right": 76, "xml": self.caption("A").replace('size="12"', 'size="13"')},
                   "no Pi Dialog widths for size 13"),
                  ({"right": 76, "xml": self.caption("A\u00e9")}, "not printable ASCII")]

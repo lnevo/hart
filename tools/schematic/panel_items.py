@@ -25,8 +25,10 @@ bottom-right. `xml` is a Layout Editor element without x and y (the placement wr
 drawn size in px [w, h]: the panel grows to hold every item EDGE px beyond the furthest one (a [0, 0] backdrop
 does not count). A text label member may give `right` in place of dx and size: its right edge stands at that dx,
 its size measured from its text, font size and style with the Pi's Dialog widths (pi_dialog: what JMRI draws on
-the Pi), so captions of different lengths line up on their right edges beside their lamps there. Only the item tags below are taken, and an item whose element names a sensor, head or text it
-had before keeps it as written, so panel_status.py finds its icons by the same names.
+the Pi), so captions of different lengths line up on their right edges beside their lamps there (on the Mac and
+Windows, whose Dialog is another font, they may differ by a pixel). The label must name fontFamily and fontname
+Dialog. Only the item tags below are taken, and an item whose element names a sensor, head or text it had before
+keeps it as written, so panel_status.py finds its icons by the same names.
 """
 from __future__ import annotations
 
@@ -105,8 +107,9 @@ def member_box(m: dict, what: str) -> tuple[float, tuple[float, float]]:
     text, size, style = el.get("text"), el.get("size"), el.get("style", "0")
     if el.tag != "positionablelabel" or not text:
         raise ItemsError(f"{what}: right needs a positionablelabel with text")
-    if el.get("fontFamily", "Dialog") != "Dialog" or el.get("fontname", "Dialog") != "Dialog":
-        raise ItemsError(f"{what}: right measures the Dialog font; the label names {el.get('fontFamily')!r}")
+    if el.get("fontFamily") != "Dialog" or el.get("fontname") != "Dialog":
+        raise ItemsError(f"{what}: right measures the Dialog font; the label must name fontFamily and fontname "
+                         f"Dialog, not {el.get('fontFamily')!r} and {el.get('fontname')!r}")
     if style not in ("0", "1") or not (size or "").isdigit():
         raise ItemsError(f"{what}: right needs a whole font size and style 0 or 1, not size {size!r} style {style!r}")
     bold = style == "1"
