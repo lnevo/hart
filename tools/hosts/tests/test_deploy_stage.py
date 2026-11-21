@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
+STEPS = ROOT / "tools/hosts/deploy"   # the entry point's steps: gate, stage, ship_mac, ship_pi, ship_win; common.sh is shared
 WRAPPER = ROOT / "cats/scripts/sync_hart_package.sh"
 PI_SRC = ROOT / "tools/hosts/pi"
 WIN_SRC = ROOT / "tools/hosts/windows"
@@ -121,7 +122,7 @@ def tree(root: Path) -> list[str]:
 
 def live_panels() -> list[str]:
     """The panels the deploy ships: the LIVE_PANELS array in the script."""
-    src = SYNC.read_text(encoding="utf-8")
+    src = (STEPS / "common.sh").read_text(encoding="utf-8")
     block = src[src.index("LIVE_PANELS=(") + len("LIVE_PANELS=("):]
     return block[:block.index(")")].split()
 
@@ -187,7 +188,7 @@ class StageOnly(unittest.TestCase):
             self.assertTrue((pkg / "jmri/layouts/hart/scripts/hide_cats_desk_windows.py").is_file(), host)
 
     def test_apply_scripts_are_where_deploy_calls_them(self) -> None:
-        source = SYNC.read_text(encoding="utf-8")
+        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
         self.assertIn("${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh", source)
         self.assertIn("\\\\cats\\\\scripts\\\\windows\\\\apply_hart_package_local.ps1", source)
         self.assertTrue((self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh").is_file())
@@ -336,7 +337,7 @@ class StageOnlyRefusals(unittest.TestCase):
             self.assertFalse((Path(tmp) / "network.log").exists())
 
     def test_apply_steps_get_the_configured_user_files(self) -> None:
-        source = SYNC.read_text(encoding="utf-8")
+        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
         self.assertIn("JMRI_USERFILES='${PI_USERFILES}'", source)
         self.assertIn('-UserFiles \\"${WIN_USERFILES}\\"', source)
         win = (WIN_SRC / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
@@ -374,10 +375,10 @@ class DirtyListUnderPipefail(unittest.TestCase):
     """A long dirty-path list must warn, not kill the deploy with SIGPIPE (exit 141)."""
 
     def test_long_list_prints_ten_and_exits_zero(self) -> None:
-        line = next(l for l in SYNC.read_text(encoding="utf-8").splitlines()
-                    if 'printf \'%s\\n\' "$DEPLOY_CHANGES" |' in l and "wc -l" not in l)
+        line = next(l for l in (STEPS / "common.sh").read_text(encoding="utf-8").splitlines()
+                    if 'printf \'%s\\n\' "$changes" |' in l and "wc -l" not in l)
         script = ("set -euo pipefail\n"
-                  "DEPLOY_CHANGES=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
+                  "changes=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
                   + line.strip() + "\necho done\n")
         done = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
         self.assertEqual(done.returncode, 0, done.stderr)
