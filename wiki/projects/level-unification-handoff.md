@@ -128,8 +128,8 @@ so `build_device_map.py` writes no stop.
 
 ### 5. One block layer (with step 4)
 
-Staging's block rows are kept by hand in its device rows, with lengths in `block_lengths.csv`; main and upper generate
-theirs from the drawing (`build_device_map.py`). One block builder for every level, with hand data only for real
+Staging's block rows were kept by hand in its device rows (until part 1, below), with lengths in `block_lengths.csv`;
+main and upper generate theirs from the drawing (`build_device_map.py`). One block builder for every level, with hand data only for real
 exceptions: owner block decisions (the 35 to 37 short track, `block_splits.csv`) and measured lengths. This takes in
 step 1's short-tracks item (the `SHORT_CM` rule for every level, `short_tracks_staging.csv` kept only for
 exceptions, level column).
@@ -145,13 +145,63 @@ plan overrides section (or the strand names) for the rule to name it. Most diffe
 
 | Item | Decision |
 |---|---|
-| Short pieces between two switches | Join a neighbouring switch's OS block on every level, as staging's wiring does: the lower-numbered switch's unless the wiring says otherwise. Staging's wiring facts stay data in one exceptions file with a level column (35-37 in 35a, 13-15 to 15, 23-31 to 31, the mid-track splits of 1-3 and 35-39). Main and upper's 21 dark link blocks go: a panel change (SML rediscovery, approval); the CATS desks already draw them so |
+| Short pieces between two switches | Join a neighbouring switch's OS block on every level, as staging's wiring does: the lower-numbered switch's unless the wiring says otherwise. **`part_of` in `devices.csv` is the standard way** (owner, 2026-11-20): every track has a block row, and one inside another block names it in `part_of` (role `part`: no JMRI block, layout block or occupancy row of its own; the block it names exists, is on the track's level and is no part itself). Staging's wiring facts stay data in one exceptions file with a level column, `block_exceptions.csv` (35-37 in 35a, 13-15 to 15, 23-31 to 31, the piece of Scale in OS 7, a part per end for 1-3 and 35-39). Main and upper's 21 dark link blocks go: a panel change (SML rediscovery, approval); the CATS desks already draw them so |
 | Crossover OS blocks | A crossover half gets its own OS block when it has its own detector (staging 7, 23, 35); otherwise one OS block per crossover |
 | K-1/K-2 | Kept split: a level 1 row (37, 39) in `block_splits.csv`, an owner choice like 227-241. Masts 67 and 68 stay |
-| Scale and OS 7 | OS 7 ends at the switch; Track Scale is one block and 8RA becomes a turnout mast (panel approval). In the field OS 7's detector still covers about 23 cm of Scale, so a train standing there shows OS 7 |
+| Scale and OS 7 | OS 7 ends at the switch; Track Scale is one block and 8RA becomes a turnout mast (panel approval). In the field OS 7's detector still covers about 23 cm of Scale, so a train standing there shows OS 7. Confirmed (owner, 2026-11-20): the 23 cm stays part of Track Scale; part 1 keeps the "Track Scale at 7" row (no output change), part 2 removes it |
 | Track names | The plan's name when the track has one (all staging names stay), else from its end switches (main and upper stay). Nothing renamed |
 | Block lengths | `plan_lengths.py` (AnyRail 5.3c) for every level. Measured lengths are for speed profiling only, not block lengths: `block_lengths.csv` keeps `measured_in`, but JMRI's block takes `plan_in` (today the 21 timed staging blocks take `measured_in`, `export_track_lengths.py`). Main and upper's intermediates are placed by length: check none moves |
 | Helix | Named through `helix_tracks.csv` on every level and emitted once across levels (needed whatever else) |
+
+**Part 1: done** (branch `agent/claude/step5-one-block-builder`, 2026-11-20). One block process for every level,
+`tools/schematic/block_layer.py`; `build_device_map.py` writes staging's block and occupancy rows from it (written_by
+`build_device_map.py`) beside the main and upper rows. tables.xml, the CATS desks, the Layout Editor candidates and
+every approval fingerprint are unchanged; `devices.csv` changed only as follows: the `part_of` column (empty on every
+old row), written_by on staging's 90 block and occupancy rows (the two spare detectors included), 17 new part rows,
+and 14 staging OS rows' trial names, which lost the link pieces the part rows now carry.
+- Parts: "Track 9-11" and the like for a whole link (by the rule: 9-11, 11-13, 15-17, 17-19, 19-21, 25-27, 27-29,
+  29-31, 31-33; by `block_exceptions.csv`: 13-15, 23-31, 35-37), "Track 1-3 at 1" / "at 3" and "Track 35-39 at 35" /
+  "at 39" for a track split between two OS blocks, "Track Scale at 7" for OS 7's reach onto Scale.
+- The rule: a track between two switches under `LINK_CM` (50 cm) is part of the lower-numbered switch's OS block (the
+  half at that end, for a crossover whose halves have their own). 50, not `SHORT_CM` (30): staging's wiring folds
+  9-11 (38.7 cm) and 11-13 (42 cm) by the rule, and its next track between switches is Barn at 92 cm.
+- `block_exceptions.csv` (level, kind, switch_a, switch_b, parallel, end, block, notes) replaces
+  `short_tracks_staging.csv`: kind `track` rows give a track (or the piece at one end switch) to an OS block, kind
+  `crossover_half` rows name the own-detector halves (7 and 7b, 23a and 23b, 35a and 35b). A row that matches
+  nothing, or applies twice, or gives a block that is not the OS block at its end, stops the build.
+- `block_splits.csv` has a level 1 row (37, 39) for K-1 and K-2; a half takes its strand's plan name.
+- Track names: the plan's strand name ("Track Scale"), a helix track's block from `helix_tracks.csv` by its plan
+  name on every level (no `helix` key needed in staging's overrides), else the end-switch rule.
+- Helix: one block across levels. Its block row stays on each level it is drawn on (staging and main or upper, as
+  before), and its occupancy row is only on the main or upper level (the detector on node 41).
+- Staging's field facts stay in its rows and ride along (system and layout-block names, node, wiring, comment,
+  notes, detector, stop, the station group in `cp`, the name-map columns, lengths in `block_lengths.csv`). **A
+  staging block change made in PanelPro is carried by hand into the builder's data** (`block_exceptions.csv`,
+  `block_splits.csv`, `helix_tracks.csv`), not into `devices.csv`; a field fact (a new detector or system name) is
+  still edited in its row, which the builder keeps. A new staging block needs a hand-kept row with its field facts
+  first, which the builder then adopts.
+- Readers: `staging_device_map.load` gives a part's pieces to its `part_of` block and stops on a piece on no row or
+  on two (the short-tracks fallback is gone); every device-map reader skips parts (`hartlib.devices.OUT_OF_MAPS`),
+  and `tables_build` skips `part_of` rows by name.
+- Pinned by `tools/schematic/tests/test_blocks_every_level.py` (every level's block and occupancy rows, staging's
+  reader layer) and `tests/test_block_layer.py` (the rule, the exceptions and their stops, the staging writer);
+  the `part_of` invariants by `tools/hartlib/tests/test_devices.py` (TheParts).
+
+**Part 2 (next, a panel change: stock discovery in a sandbox, approvals, `--pi --win`):**
+- OS 7 ends at the switch: drop the "Track Scale at 7" row from `block_exceptions.csv`; Scale is one block, 8RA a
+  turnout mast (mast_plan over the new layer; the staging masts and signals rebuild).
+- Main and upper links folded: set `block_layer.FOLD_LINKS` true for levels 2 and 3 and remove the setting. That
+  makes part rows of their 21 dark link blocks under 30 cm, and with `LINK_CM` at 50 also 231-237 (39.5 cm),
+  113-115 (44.2), 239-245 (45.8) and 229-233 (48.2): the owner decides whether those four fold (a lower `LINK_CM`
+  plus staging rows for 9-11 and 11-13, or 50 everywhere). `build_device_map.build` then writes main and upper part
+  rows with `part_row` and leaves the folded links out of its track loop, the LCOS detector allocation and the
+  occupancy rows; `SHORT_CM` and its "short link" notes go; a link ending at a connector (the 127/131 halves) needs
+  the far switch's OS block (`block_layer.layer` stops on it today).
+- Plan lengths: JMRI's block length from `plan_in` for every level (`hartlib.railroad_facts.BlockLength`'s JMRI
+  length takes `measured_in` when `source` is timed; `tables_build.master_beans` writes it), after `plan_lengths.py`
+  (private plan, the Mac) refreshes `block_lengths.csv`; check no main or upper intermediate moves.
+- Main and upper trial names in staging's switch-and-leg keys (they still use plan edge ids, `Track e33`), if wanted,
+  so one grammar serves every level.
 
 ### 6. One wiring file per kind (with the device master's owners)
 

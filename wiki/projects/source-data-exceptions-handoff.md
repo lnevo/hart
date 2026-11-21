@@ -35,7 +35,7 @@ order; rows 1 to 7 are done.
   - control points and stations;
   - `block_numbering.csv`;
   - `helix_tracks.csv`;
-  - `short_tracks_staging.csv`;
+  - `block_exceptions.csv` (was `short_tracks_staging.csv`; step 5 part 1);
   - `main_lines.csv`;
   - the milepost origin (Switch 1 is MP 5.7).
 - **Measured facts:**
