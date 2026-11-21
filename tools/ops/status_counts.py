@@ -7,6 +7,7 @@ rewrites it; --check exits 1 when it is stale.
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -60,6 +61,26 @@ def rewrite(text: str, new: str) -> str:
     return text[:a] + "\n" + new + "\n" + text[b:]
 
 
+def duplicates(text: str) -> list[str]:
+    """Entries a union merge (.gitattributes: wiki/STATUS.md merge=union) can leave twice: a bullet line repeated, or two
+    bullets with the same bold lead ("- **Lead:**", two versions of one entry edited on both sides)."""
+    seen_line, seen_lead, out = set(), {}, []
+    for line_ in text.splitlines():
+        if not line_.startswith("- "):
+            continue
+        if line_ in seen_line:
+            out.append(f"repeated line: {line_[:90]}")
+            continue
+        seen_line.add(line_)
+        m = re.match(r"- \*\*([^*]+)\*\*", line_)
+        if m:
+            lead = m.group(1)
+            if lead in seen_lead:
+                out.append(f"two entries for: {lead}")
+            seen_lead[lead] = True
+    return out
+
+
 def main(argv: list[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--check", action="store_true", help="exit 1 if the line is stale; write nothing")
@@ -72,6 +93,11 @@ def main(argv: list[str]) -> int:
         return 1
     if not args.check:
         paths.exit_if_overridden(Path(__file__).name)
+    dup = duplicates(text)
+    if dup:
+        print("wiki/STATUS.md has duplicated entries (a union merge keeps both sides); keep one of each:")
+        print("\n".join(f"  {d}" for d in dup))
+        return 1
     if args.check:
         if new != text:
             print("wiki/STATUS.md Counts line is stale; run python3 tools/ops/status_counts.py")

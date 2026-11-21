@@ -39,7 +39,7 @@ After any task that **changed files**, do not wait to be asked:
 
 1. **Wiki** — if a live decision or railroad state changed, update `wiki/STATUS.md` (and an ADR if it is a decision).
    - A new or changed `docs/*.md` has one plain summary sentence right under its H1 (the rule in `tools/ops/build_docs_index.py`); rerun `python3 tools/ops/build_docs_index.py`.
-   - A `wiki/STATUS.md` entry is one or two sentences (current fact, owner, date, link to detail); history goes to `wiki/STATUS_LOG.md`.
+   - A `wiki/STATUS.md` entry is one or two sentences (current fact, owner, date, link to detail); history goes to `wiki/STATUS_LOG.md`. Both files merge with git's union driver (`.gitattributes`), so branches that each add an entry do not conflict: keep each entry on one line with its own bold lead, and edit an entry in one branch at a time (`status_counts.py --check` stops on a duplicate).
    - A hand-off or project page carries `Status: active | parked | done (YYYY-MM-DD)` under its H1, and the active list in `wiki/home.md` matches.
    - Things the owner said not to list go in `wiki/not-pending.md`.
 2. **Commit** in your own worktree, never in the main checkout. Start every task that changes files with `make wt TOPIC=<topic>`: it makes `.claude/worktrees/<topic>/` on `agent/claude/<topic>` from `origin/main`, links the gitignored mirrors and checks out the `model-railroad-skills` submodule the checks need. The main checkout stays on `main` for pulls and deploys. Cursor: `make wt TOPIC=<topic> AGENT=cursor`, then open that folder as the workspace. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`. Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
