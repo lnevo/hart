@@ -8,6 +8,8 @@ is reached. HEAD is usually this branch's unmerged commit, hence --allow-unmerge
 from __future__ import annotations
 
 import filecmp
+import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,9 +35,21 @@ def has_commit(ref: str) -> bool:
     return git("cat-file", "-e", f"{ref}^{{commit}}", check=False).returncode == 0
 
 
-def redeploy_trees() -> list[str]:
+def own_tmpdir(env: dict[str, str], tmp: Path) -> Path:
+    """Point the redeploy's temporary worktrees at this test's own folder (TMPDIR), so other sessions'
+    hart-redeploy.* worktrees in the shared worktree list are never counted as this run's."""
+    folder = tmp / "tmpdir"
+    folder.mkdir(parents=True, exist_ok=True)
+    env["TMPDIR"] = str(folder)
+    return folder
+
+
+def redeploy_trees(under: Path) -> list[str]:
+    """The hart-redeploy.* worktrees still registered under `under` (this test's TMPDIR)."""
+    roots = {under, under.resolve()}
     return [line for line in git("worktree", "list", "--porcelain").stdout.splitlines()
-            if line.startswith("worktree ") and "hart-redeploy." in line]
+            if line.startswith("worktree ") and "hart-redeploy." in line
+            and any(Path(line[len("worktree "):]).is_relative_to(r) for r in roots)]
 
 
 def run(env: dict[str, str], *args: str) -> subprocess.CompletedProcess:
@@ -61,27 +75,42 @@ class RedeployHead(unittest.TestCase):
         cls.network_log = cls.tmp / "network.log"
         # A root exported by the caller's shell must not point the old worktree's tools here.
         redeploy_env = dict(env, HART_REPO_ROOT=str(cls.tmp / "not-the-repo"))
+        cls.tmpdir = own_tmpdir(redeploy_env, cls.tmp)
         cls.done = run(redeploy_env, "HEAD", "--allow-unmerged", "--stage-only", str(cls.tmp / "redeploy"))
         # The normal stage of HEAD: this checkout if it is clean, else a clean copy of HEAD.
         src = ROOT
+        normal_env = env
         if git("status", "--porcelain").stdout.strip():
             src = cls.tmp / "head"
             git("worktree", "add", "-q", "--detach", str(src), "HEAD")
+            # The copy has no submodule checked out: hand it this checkout's plugin, as redeploy_commit.sh does.
+            plugin = Path(env.get("SCHEMATIC_PLUGIN") or ROOT / "external/model-railroad-skills/plugins/schematic-maps")
+            if not (plugin / "schematic" / "slots.py").is_file():
+                raise unittest.SkipTest("the schematic-maps plugin is not checked out: "
+                                        "git submodule update --init external/model-railroad-skills")
+            normal_env = dict(env, SCHEMATIC_PLUGIN=str(plugin))
         try:
             cls.normal = subprocess.run(["bash", str(src / SYNC_REL), "--stage-only", str(cls.tmp / "normal")],
-                                        cwd=src, env=env, capture_output=True, text=True, timeout=600)
+                                        cwd=src, env=normal_env, capture_output=True, text=True, timeout=600)
         finally:
             if src != ROOT:
                 git("worktree", "remove", "--force", str(src), check=False)
 
     @classmethod
     def tearDownClass(cls) -> None:
+        for line in redeploy_trees(cls.tmpdir):      # a run killed before its trap: unregister what it left
+            git("worktree", "remove", "--force", line[len("worktree "):], check=False)
         shutil.rmtree(cls.tmp, ignore_errors=True)
+        git("worktree", "prune", check=False)
 
     def test_runs_without_the_network(self) -> None:
         self.assertEqual(self.done.returncode, 0, self.done.stderr[-3000:])
         self.assertEqual(self.normal.returncode, 0, self.normal.stderr[-3000:])
         self.assertIn("DONE (stage only)", self.done.stdout)
+        made = re.search(r"temporary worktree (\S+)", self.done.stdout)
+        self.assertIsNotNone(made, "the redeploy did not name its temporary worktree")
+        self.assertTrue(Path(made.group(1)).resolve().is_relative_to(self.tmpdir.resolve()),
+                        "the redeploy did not make its worktree under TMPDIR, so the leak check cannot see it")
         self.assertFalse(self.network_log.exists(), "a stage-only redeploy called ssh or scp")
 
     def test_same_package_as_a_normal_stage(self) -> None:
@@ -105,7 +134,7 @@ class RedeployHead(unittest.TestCase):
                              {k: v for k, v in want.items() if k not in STAMP_RUN_KEYS}, host)
 
     def test_worktree_is_removed(self) -> None:
-        self.assertEqual(redeploy_trees(), [])
+        self.assertEqual(redeploy_trees(self.tmpdir), [])
         self.assertEqual(git("branch", "--list", "redeploy/*").stdout.strip(), "")
 
 
@@ -115,12 +144,14 @@ class Refusals(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.tmp, True)
         self.env = stage_env(self.tmp)
         self.env.update(HOME=str(self.tmp / "home"))
+        self.tmpdir = own_tmpdir(self.env, self.tmp)
 
     def assert_refused(self, done: subprocess.CompletedProcess, text: str) -> None:
         self.assertNotEqual(done.returncode, 0)
         self.assertIn(text, done.stderr)
         self.assertFalse((self.tmp / "network.log").exists(), "a refusal reached for the network")
-        self.assertEqual(redeploy_trees(), [])
+        self.assertEqual(redeploy_trees(self.tmpdir), [])
+        self.assertEqual(list(self.tmpdir.iterdir()), [], "a refusal made a temporary folder (so it got past the checks)")
 
     def test_unknown_commit(self) -> None:
         self.assert_refused(run(self.env, "0" * 40, "--stage-only", str(self.tmp / "s")), "is not a commit")

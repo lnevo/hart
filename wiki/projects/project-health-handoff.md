@@ -284,6 +284,32 @@ W6b builds wait for R9b and the level-unification mast step, since both touch `m
 
 R9b merged as #782: the master and its writers. R9b-2 (the readers, 2026-11-20): every reader of `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` now gets its rows from `devices.csv` through `hartlib.devices` (`device_map_lines`, `name_map_lines`), and `hartlib.railroad.Sources` has one `devices` path in place of `name_map` and `device_map`. The three old files are still generated and held byte-identical by `check.sh`; only the generator check and its tests read them. Readers that told a kind by its name prefix test `role` (`DeviceRow.role`, `DeviceMap.turnouts`, the LCC alias tests); `check_hart_phase02.py` stays free of hartlib and reads `devices.csv` with `csv` (a main or upper "BS Switch" corner has the same role as an OS corner, so it keeps the name test, on staging rows only). The name-map readers still read the `pnm_*` columns, because the name map's comments (a block's area, a head's wiring) differ from the device map's; they go with the `pnm_*` columns in R9e. `apply_public_names*.py` and `sync_public_name_map.py` are already gone from the repo. R9e (2026-11-20): the three old files are deleted and no longer generated. The `pnm_*` columns stay, as the only copy of 236 staging rows' hardware ID, DCC address, control point and wiring comment; folding them into the master's columns is a later clean-up (loose ends below).
 
+## Final state (2026-11-20, evening)
+
+**Merged:**
+- W3 #765, W5b #766, W1b #770, W2 #781;
+- tests W4a #767, W4b #768, W4c #771;
+- splits #772, #776, #777, #779 (W4b's USS generator not split while USS is parked, owner);
+- CK1 deletion lnevo/sts-docker-helpers#12 with #778;
+- decisions and ADR-029 #780, loose ends #784;
+- W6b: three-way rule and `level_leg` faults lnevo/model-railroad-skills#81 with #785; band levels, crossover halves and the loop flag #787; `le_signal_boundaries.csv` retired #791;
+- R9b #782, R9b-2 #790, R9c #795, R9e #800.
+
+R9c is deployed to the Pi and Windows (7f2d3e26, `tables.xml` hash equal to the repo's), and the site is deployed after R9c and R9e.
+
+**R9d is parked (owner, 2026-11-20).** The pull split is on branch `agent/claude/r9d-store-split` (c3067931), with no PR. It passed the full check except one Linux test, now fixed but not rerun. A third review found these gaps:
+- With no base, the split compares against the checkout as it stands, so a repo change made since the deploy can be reverted as an "owner edit".
+- The refusal for an earlier Store that was never split in is never shown.
+- `carry()` does not check that the carried edits land.
+- `split_at` runs this checkout's hartlib over the deployed commit's files.
+- An earlier-Store check failure can leave files written, and two messages are wrong.
+
+The owner was offered a strict, simple split instead: split only when this checkout's `tables.xml` equals the host's base, otherwise refuse with the worktree command, with no carry-forward or second-Store mode. That is the likely way to pick it up. Until then R9c's behaviour stands: a pull keeps the Store in `~/JMRI_UserFiles-pulled/`, records it as taken, and the edits go into `devices.csv` or the template by hand.
+
+**Not done from this hand-off:**
+- W6b staging `le_labels` rules (owner chose: `name_columns`/`name_steps` as plugin rules, HART derives its button groups, `lamp_columns` deleted if dead, fingerprints unchanged).
+- The row 8 follow-up: `le_common.STAGING`/`band_key` and `le_names` still find bands by title. The level-unification session's step 4 (#799) may have covered part of this; check first.
+
 ## Carried from the archived hand-offs (2026-11-20)
 
 These were still open when the older hand-offs went to `archive/wiki/projects/` ([`review-2026-11-19-handoff.md`](../../archive/wiki/projects/review-2026-11-19-handoff.md), [`architecture-followups-handoff.md`](../../archive/wiki/projects/architecture-followups-handoff.md)). Each is small and none is scheduled.
@@ -300,9 +326,9 @@ Found while running this hand-off. Each is small. None blocks the R9 or W6b work
 - **Wiring workbooks still show old names:** after #782, `refresh_wiring_docs.py` no longer translates pre-ADR-005 names, and its golden test already holds the new output. The committed workbooks under `docs/wiring/` (`LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`) were not regenerated. Fix: rerun the script, check the changed names, and commit the workbooks.
 - **`pnm_*` columns stay (R9e, 2026-11-20):** they are the only copy of 236 staging rows' hardware ID, DCC address, control point and wiring comment, so R9e kept them and retired only the three files. Folding them into the master's own columns (and dropping the `pnm_` names) is a later clean-up.
 - **Head comments can't be refreshed:** `refresh_bean_comments.py` writes head comments through `hartlib.devices.set_pnm_comments`, which changes hand-kept rows only. Every head row belongs to `build_staging_masts.py` or `panel_items.json`, so a real comment change is refused, naming that script. Decided in R9b-2: `set_pnm_comments` lets a builder's row take the comment. `pnm_comment` is no builder's output (a builder rewrite carries the `pnm_` columns over from the row it replaces), so the change survives the next run and `written_by` stays. Tests hold both. When the `pnm_` columns go (R9e) the head wiring comment becomes the `wiring` column, written by `build_staging_masts.py` from `signal_wiring.csv`.
-- **`test_redeploy_commit` is flaky:** it fails while another session's temporary worktrees (`hart-redeploy`, scratchpad sandboxes) are in the shared worktree list, and passes alone. Fix: make the test count only the worktrees it creates.
+- **`test_redeploy_commit` was flaky:** fixed in #803 (each run counts only the worktrees under its own TMPDIR).
 - **Two switch-number tables:** `ops/hart-ops/publications/rebuild_station_map_full.py` keeps its own `SWNUM` beside `local_station_maps/kit.py`'s, so the full map and the local maps can label switches differently. Fix: import it from `kit`.
-- **sts-docker docs name deleted scripts:** `external/sts-docker/AGENTS.md` (about line 53) still describes the CK1 weigh scripts in `sts-docker-helpers/sts/`, deleted in lnevo/sts-docker-helpers#12. This is an sts-docker docs PR on the `active` line. The unused `track_scale/` folder at the sts-helpers root can go in the same pass, once nothing outside that repo is found to read it.
+- **sts-docker docs named deleted scripts:** fixed in lnevo/sts-docker#22. The `track_scale/` folder at the sts-helpers root stays: its README lists it as a config reference.
 - **Traps left by the splits (#772, #776, #777, #779):** constants re-exported on an entry module do not change the moved functions when a test patches them on the entry. Each entry has a comment naming the module to patch. The wiring entry also imports its sibling modules by bare name.
 - **`gen_ctc_track_plan.py` leftovers (parked):** bare `assert`s in `main()` and unclosed PIL images. Fix these if USS is unparked and the script is split.
 

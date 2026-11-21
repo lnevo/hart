@@ -134,6 +134,25 @@ exceptions: owner block decisions (the 35 to 37 short track, `block_splits.csv`)
 step 1's short-tracks item (the `SHORT_CM` rule for every level, `short_tracks_staging.csv` kept only for
 exceptions, level column).
 
+**Comparison (2026-11-20, read-only):** main and upper's block process over the staging band gave 55 blocks for
+staging's 45: 7 the same, 17 renamed, 12 OS blocks smaller (their short links became blocks of their own), 2 changed
+(OS 7, Scale), 7 gone (OS 7b, 23a, 23b, 35a, 35b, K-1, K-2) and 17 added (OS 23, OS 35, Track 37-39 and 14 links).
+Masts: the same 23 home and 5 virtual masts; 8RA anchor to turnout mast; 8LB/8RB, 24L/24RA/24RB, 36RA/36RB protect
+the joined crossover OS blocks; 32R faces a link; Masts 67 and 68 gone. Staging's helix needs a `helix` key in its
+plan overrides section (or the strand names) for the rule to name it. Most differences are staging's field wiring.
+
+**Owner decisions (2026-11-20):**
+
+| Item | Decision |
+|---|---|
+| Short pieces between two switches | Join a neighbouring switch's OS block on every level, as staging's wiring does: the lower-numbered switch's unless the wiring says otherwise. Staging's wiring facts stay data in one exceptions file with a level column (35-37 in 35a, 13-15 to 15, 23-31 to 31, the mid-track splits of 1-3 and 35-39). Main and upper's 21 dark link blocks go: a panel change (SML rediscovery, approval); the CATS desks already draw them so |
+| Crossover OS blocks | A crossover half gets its own OS block when it has its own detector (staging 7, 23, 35); otherwise one OS block per crossover |
+| K-1/K-2 | Kept split: a level 1 row (37, 39) in `block_splits.csv`, an owner choice like 227-241. Masts 67 and 68 stay |
+| Scale and OS 7 | OS 7 ends at the switch; Track Scale is one block and 8RA becomes a turnout mast (panel approval). In the field OS 7's detector still covers about 23 cm of Scale, so a train standing there shows OS 7 |
+| Track names | The plan's name when the track has one (all staging names stay), else from its end switches (main and upper stay). Nothing renamed |
+| Block lengths | `plan_lengths.py` (AnyRail 5.3c) for every level. Measured lengths are for speed profiling only, not block lengths: `block_lengths.csv` keeps `measured_in`, but JMRI's block takes `plan_in` (today the 21 timed staging blocks take `measured_in`, `export_track_lengths.py`). Main and upper's intermediates are placed by length: check none moves |
+| Helix | Named through `helix_tracks.csv` on every level and emitted once across levels (needed whatever else) |
+
 ### 6. One wiring file per kind (with the device master's owners)
 
 `lcos_nodes_main_upper.csv` and `detector_pins_main_upper.csv` exist only for main and upper; staging's wiring is in
