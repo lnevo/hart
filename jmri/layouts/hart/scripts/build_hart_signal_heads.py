@@ -20,7 +20,7 @@ needs 9 pins. New 5V **OU4** on C1 / C4 / C13 (C12 and C11 use existing 5V OUs).
   radio 3  C3  Motors 103–106 only — no Digicon heads.
   radio 5  D5  DCC only — no signal ports
 
-It writes the head and mast plan CSVs from wiring.csv's wired heads (`--wiring-only`, the old flag, is still
+It writes the head plan CSV (signal_head_plan.csv) from wiring.csv's wired heads (`--wiring-only`, the old flag, is still
 accepted). It never writes tables.xml, which is generated (ADR-029); the full mode that refused to do so is gone.
 """
 
@@ -44,8 +44,8 @@ SKIP_MAST: set[str] = set()
 # (IH:HART:C1:<mast>, staging_masts.csv) until the owner wires it. The wired heads, their nodes and ports, are
 # jmri/layouts/hart/data/wiring.csv's head rows (hartlib.wiring, the physical wiring source; owner 2026-11-20); add a
 # head's row there when it is wired.
-# Masts whose field build has fewer heads than the wiring plan: signal_mast_plan.csv keeps the planned heads;
-# signal_head_plan.csv and the JMRI mast use only the fitted ones.
+# Masts whose field build has fewer heads than the mast rule gives them: signal_head_plan.csv and the JMRI mast use
+# only the fitted ones; the planned heads stay the mast rule's (staging_masts.csv, ADR-024).
 FITTED_HEADS: dict[str, set[int]] = {}
 # One 3-pin STOP/APPROACH/CLEAR object per physical disc. A 2-head mast owns
 # 6 consecutive pins on one board (T then B). Packed = radio*100 + UID.
@@ -200,57 +200,16 @@ def write_csvs(rows: list[dict]) -> None:
         "port_ids",
     ]
     masts = plan_masts(fitted_rows(rows))
-    planned = plan_masts(rows)
     with (DATA / "signal_head_plan.csv").open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=plan_fields, lineterminator="\n")
         w.writeheader()
         w.writerows(masts)
 
-    # Enrich Digicon plan CSV with mqtt/packed/port columns (keep panel coords).
-    plan_src = DATA / "signal_mast_plan.csv"
-    if plan_src.exists():
-        with plan_src.open(newline="") as f:
-            old = list(csv.DictReader(f))
-        by_name = {m["mast_user_name"]: m for m in planned}
-        out_fields = list(old[0].keys())
-        for col in (
-            "heads",
-            "mqtt_node",
-            "parent_node_id",
-            "packed_ids",
-            "port_ids",
-            "mast_system_name",
-            "jmri_binding",
-        ):
-            if col not in out_fields:
-                out_fields.append(col)
-        enriched = []
-        for row in old:
-            name = row["proposed_mast_name"]
-            if name in by_name:
-                m = by_name[name]
-                row = {
-                    **row,
-                    "heads": str(m["heads"]),
-                    "mqtt_node": str(m["mqtt_node"]),
-                    "parent_node_id": m["parent_node_id"],
-                    "packed_ids": m["packed_ids"],
-                    "port_ids": m["port_ids"],
-                    "mast_system_name": m["mast_system_name"],
-                    "jmri_binding": "virtual-heads+shsm",
-                }
-            enriched.append(row)
-        with plan_src.open("w", newline="") as f:
-            w = csv.DictWriter(f, fieldnames=out_fields, lineterminator="\n")
-            w.writeheader()
-            w.writerows(enriched)
-        print(f"updated {plan_src}")
-
     print(f"wrote {DATA / 'signal_head_plan.csv'} ({len(masts)} masts)")
 
 
 def main() -> int:
-    """Write signal_head_plan.csv and signal_mast_plan.csv from wiring.csv's wired heads. `--wiring-only`, the old
+    """Write signal_head_plan.csv from wiring.csv's wired heads. `--wiring-only`, the old
     name of this one mode, is still accepted."""
     try:
         rows = build_rows()
