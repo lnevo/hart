@@ -25,6 +25,8 @@ evolution video and [`HOW_WE_BUILT_CTC.md`](../HOW_WE_BUILT_CTC.md).
 
 Frame 16 was painted by PanelPro on the Pi through `jmri_cmd_watcher`, with the USS CTC runtime turned on so the lever lamps report (the levers read ? while it is off). Frames 12 to 16 show a wider machine, so `make_ctc_evolution_video.py` crops them with fixed boxes (`EXPLICIT_CROPS`) instead of the fixed-width alignment.
 
+All four site films run at one pace: 0.4 s a version and the last frame held 2 s, set in `tools/hartlib/src/hartlib/film_pace.py` (`STEP_S`, `FINAL_HOLD_S`), so a film grows as versions are added. The CTC script's GIF is a local file the site does not use; it samples at 5 fps so every 0.4 s version shows.
+
 Stop-motion outputs (`CTC_Panel_Evolution.gif`, `.mp4`, `CTC_Evolution_crops/`) are
 generated locally and gitignored; the copies the site uses live in `www/assets/behind/panel-evolution/`. Regenerate:
 
@@ -38,4 +40,4 @@ The CATS panel film comes from dated screenshots in `media/screenshots/` (gitign
 
 The CATS film gained `cats_dispatcher_20260826_123325.png` (routes lined in green), copied from the Desktop into `media/screenshots/` on 2026-11-09.
 
-The Layout Editor panel film uses the four `le_panel_*.png` captures in this folder (20 May, 7 June, 20 August and 31 August 2026, copied from the Desktop on 2026-11-09). `make_le_evolution_video.py` builds `LE_Panel_Evolution.mp4` and `le-poster.jpg`. The site copies of all three films and their posters live in `www/assets/behind/panel-evolution/`.
+The Layout Editor panel film uses the six `le_panel_*.png` captures in this folder (20 May, 7 June, 20 August and 31 August 2026, copied from the Desktop on 2026-11-09, then the hand-drawn panel of 15 November and the generated one of 16 November). `make_le_evolution_video.py` builds `LE_Panel_Evolution.mp4` and `le-poster.jpg`. The site copies of all three films and their posters live in `www/assets/behind/panel-evolution/`. The schematic film is not made here: `python3 tools/schematic/evolution.py --site` makes `schematic-evolution.mp4` (0.4 s a version, the last held 2 s) and `schematic-poster.jpg` from the committed drawings and sets the version count on the page; `evolution.py --check` says when the page is behind.

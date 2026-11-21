@@ -4,10 +4,15 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import film_pace  # noqa: E402
 
 HISTORY = Path(__file__).resolve().parents[2] / "docs/ctc/history"
 DESKTOP = HISTORY
@@ -16,8 +21,6 @@ OUT_GIF = HISTORY / "CTC_Panel_Evolution.gif"
 CANVAS = (1200, 820)
 BG = (32, 32, 36)
 CAPTION_H = 44
-FRAME_MS = 1400
-FINAL_HOLD_MS = 3200
 
 # Full-panel crops: anchor the track schematic top-left to a fixed point so
 # frames don't jitter during stop-motion. Pilot / partial-width frames are
@@ -252,7 +255,7 @@ def build_frames(work: Path, font) -> list[Path]:
 def write_concat_list(frame_paths: list[Path], list_path: Path) -> None:
     lines = []
     for i, p in enumerate(frame_paths):
-        dur = FINAL_HOLD_MS / 1000 if i == len(frame_paths) - 1 else FRAME_MS / 1000
+        dur = film_pace.durations(len(frame_paths))[i]
         lines.append(f"file '{p}'")
         lines.append(f"duration {dur:.3f}")
     lines.append(f"file '{frame_paths[-1]}'")
@@ -279,6 +282,8 @@ def main() -> None:
                 str(list_path),
                 "-vf",
                 "fps=30,format=yuv420p",
+                "-t",
+                str(film_pace.film_length(len(frame_paths))),
                 "-c:v",
                 "libx264",
                 "-pix_fmt",
@@ -305,7 +310,7 @@ def main() -> None:
                 "-i",
                 str(list_path),
                 "-vf",
-                f"fps=2,scale={CANVAS[0]}:{CANVAS[1]}:flags=lanczos,palettegen",
+                f"fps=5,scale={CANVAS[0]}:{CANVAS[1]}:flags=lanczos,palettegen",
                 str(palette),
             ],
             check=True,
@@ -325,7 +330,7 @@ def main() -> None:
                 "-i",
                 str(palette),
                 "-lavfi",
-                f"fps=2,scale={CANVAS[0]}:{CANVAS[1]}:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer",
+                f"fps=5,scale={CANVAS[0]}:{CANVAS[1]}:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer",
                 str(OUT_GIF),
             ],
             check=True,

@@ -41,6 +41,10 @@ Why not `pip install -e`:
 
 ## API
 
+### `hartlib.film_pace`
+
+`STEP_S` (0.4) and `FINAL_HOLD_S` (2.0), the pace of the four films on `www/behind/panel-evolution.html`; `durations(n)` and `film_length(n)`. Used by `tools/schematic/evolution.py` and `tools/ctc_history/make_*_evolution_video.py`.
+
 ### `hartlib.paths`
 
 Every path names a file in **this** checkout, the one hartlib sits in. `HART_REPO_ROOT`
