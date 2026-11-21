@@ -32,11 +32,11 @@ class Summary(unittest.TestCase):
     """summarize(): the first plain prose line after the first '# ' heading, or a summary: line."""
 
     def test_plain_line_after_heading(self) -> None:
-        self.assertEqual(INDEX.summarize("# T\n\nHello there.\nmore"), "Hello there")
+        self.assertEqual(INDEX.summarize("# T\n\nHello there.\nMore"), "Hello there")
 
     def test_each_skipped_prefix(self) -> None:
         for skipped in ("| a | b |", "- item", "* item", "> quote", "`code`", "<div>", "## sub", "![img](x.png)", "1. step", "12. step"):
-            self.assertEqual(INDEX.summarize(f"# T\n{skipped}\nReal text."), "Real text", skipped)
+            self.assertEqual(INDEX.summarize(f"# T\n{skipped}\n\nReal text."), "Real text", skipped)
 
     def test_digit_without_dot_is_prose(self) -> None:
         self.assertEqual(INDEX.summarize("# T\n2026 was the year."), "2026 was the year")
@@ -69,6 +69,42 @@ class Summary(unittest.TestCase):
 
     def test_heading_only(self) -> None:
         self.assertEqual(INDEX.summarize("# T\n\n- only a list"), "")
+
+    def test_wrapped_paragraph_is_joined(self) -> None:
+        text = "# T\nThe scripts are rebuilt to read today's sources and\nto write their pages. Second sentence."
+        self.assertEqual(INDEX.summarize(text), "The scripts are rebuilt to read today's sources and to write their pages")
+
+    def test_paragraph_stops_at_blank_line(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nFirst line\n\nSecond paragraph."), "First line")
+
+    def test_continuation_of_a_skipped_block_is_skipped(self) -> None:
+        for block in ("- item\n  of the sticker", "| a |\ncontinued row", "> quote\nstill quote", "1. step\n   more step"):
+            self.assertEqual(INDEX.summarize(f"# T\n{block}\n\nReal text."), "Real text", block)
+
+    def test_block_skipped_through_blank_lines_between_items(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n- a\n\n- b\n\nReal text."), "Real text")
+
+    def test_code_fence_is_skipped(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n```\ncode line\n\nmore code\n```\nAfter code."), "After code")
+
+    def test_html_comment_is_skipped(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n<!--\nhidden words\n-->\nShown."), "Shown")
+        self.assertEqual(INDEX.summarize("# T\n<!-- one line -->\nShown."), "Shown")
+
+    def test_links_keep_only_their_text(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nSee [the guide](../../archive/x.md) and ![p](a.png) now."), "See the guide and p now")
+        self.assertEqual(INDEX.summarize("summary: Read [it](../a.md)"), "Read it")
+
+    def test_bold_start_is_prose_but_star_bullet_is_not(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\n**Bold** start of prose."), "**Bold** start of prose")
+        self.assertEqual(INDEX.summarize("# T\n* bullet\n\nProse."), "Prose")
+        self.assertEqual(INDEX.summarize("# T\n-dash start of prose."), "-dash start of prose")
+
+    def test_sentence_end_needs_capital_and_not_abbreviation(self) -> None:
+        self.assertEqual(INDEX.summarize("# T\nUse e.g. the tool, i.e. this one. Then more."), "Use e.g. the tool, i.e. this one")
+        self.assertEqual(INDEX.summarize("# T\nVersion v1.0 shipped. Next."), "Version v1.0 shipped")
+        self.assertEqual(INDEX.summarize("# T\nIs it done? Yes."), "Is it done?")
+        self.assertEqual(INDEX.summarize("# T\nA lower. case follows."), "A lower. case follows")
 
 
 class Tree(unittest.TestCase):
@@ -160,6 +196,21 @@ class Tree(unittest.TestCase):
             status, _, err = self.run_main(["--check"])
         self.assertEqual(status, 1)
         self.assertIn("missing: ops: ops/new.md", err)
+
+    def test_check_reads_only_the_rows_own_link(self) -> None:
+        self.write_index()
+        text = (self.root / "docs/INDEX.md").read_text().replace("Spaced name", "Spaced name see [x](../gone.md)")
+        (self.root / "docs/INDEX.md").write_text(text)
+        self.assertEqual(self.run_main(["--check"])[0], 0)
+
+    def test_svg_is_a_listed_document_and_other_files_use_the_area_path(self) -> None:
+        files = sorted(self.FILES) + ["docs/ops/maps/st.svg"]
+        (self.root / "docs/ops/maps").mkdir()
+        (self.root / "docs/ops/maps/st.svg").write_text("x")
+        text = INDEX.render(files)
+        self.assertIn("[maps/st.svg](ops/maps/st.svg)", text)
+        self.assertIn("[sheet.docx](ops/sheet.docx)", text)
+        self.assertIn("- Plus 3 image", text)
 
     def test_new_asset_changes_the_count_and_fails(self) -> None:
         self.write_index()

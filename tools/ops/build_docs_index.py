@@ -9,7 +9,9 @@ Write docs/INDEX.md: every document under docs/ grouped by folder, each Markdown
     python3 tools/ops/build_docs_index.py --check --strict    the missing summaries fail too
 
 Summary of a Markdown file: a `summary: ...` line in its first 10 lines, else the first plain prose line after the
-first `# ` heading (not starting with | - * > ` < # ![ or a number and a dot), cut at the first sentence end.
+first `# ` heading (a paragraph of plain prose: the lines up to the next blank line, joined). A block starting with
+| ` < # ![ or a list, quote or numbered marker and a space is skipped to its next blank line, as are code fences and
+HTML comments. Links keep only their text. The summary is cut at the first sentence end (. ? ! and a capital).
 Images, css, js and fonts are counted per folder, not listed. No dates: a shallow clone (CI) has no history.
 """
 from __future__ import annotations
@@ -23,10 +25,10 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOLING = (".py", ".sh", ".scad", ".stl", ".3mf", ".gitignore")
-ASSETS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".svg", ".ico", ".css", ".js", ".woff", ".woff2", ".ttf", ".otf")
+ASSETS = (".jpg", ".jpeg", ".png", ".gif", ".webp", ".ico", ".css", ".js", ".woff", ".woff2", ".ttf", ".otf")
 SKIP = ("docs/INDEX.md",)
 MAX_SUMMARY = 160
-SKIP_PREFIXES = ("|", "-", "*", ">", "`", "<", "#", "![")
+SKIP_PREFIXES = ("|", "`", "<", "#", "![")
 OVERRIDE_LINES = 10
 USAGE = "build_docs_index.py [--check [--strict]]"
 
@@ -51,6 +53,11 @@ def area_of(path: str) -> str:
     return path.split("/")[1] if path.count("/") > 1 else "general"
 
 
+def _rel(path: str, area: str) -> str:
+    """The path shown for a document: below its area folder, or the file name in 'general'."""
+    return path.removeprefix(f"docs/{area}/") if area != "general" else Path(path).name
+
+
 def _cap(text: str) -> str:
     text = text.strip()
     if len(text) <= MAX_SUMMARY:
@@ -58,8 +65,23 @@ def _cap(text: str) -> str:
     return text[: MAX_SUMMARY - 3].rsplit(" ", 1)[0].rstrip(",;:") + "..."
 
 
-def _plain_prose(line: str) -> bool:
-    return bool(line) and not line.startswith(SKIP_PREFIXES) and not re.match(r"\d+\.", line)
+def _skipped(line: str) -> bool:
+    """A line that starts a block that is not prose: table, list, quote, code, HTML, heading, image, rule, numbered."""
+    return (line.startswith(SKIP_PREFIXES) or line in ("-", "*", ">") or line.startswith(("- ", "* ", "> "))
+            or bool(re.match(r"\d+\.(\s|$)", line)) or bool(re.match(r"([-*_])\1{2,}$", line)))
+
+
+def _first_sentence(paragraph: str) -> str:
+    """The paragraph up to its first sentence end: . ? or ! then a space and a capital, not after e.g. i.e. vs."""
+    for m in re.finditer(r"([.?!])\s+(?=[A-Z])", paragraph):
+        if not re.search(r"\b(e\.g|i\.e|vs|etc)\.$", paragraph[: m.end(1)]):
+            return paragraph[: m.end(1)].removesuffix(".")
+    return paragraph.removesuffix(".")
+
+
+def _plain_text(text: str) -> str:
+    """Markdown links reduced to their text: a link written for its own folder would be dead in docs/INDEX.md."""
+    return re.sub(r"!?\[([^\]]*)\]\([^)]*\)", r"\1", text)
 
 
 def summarize(text: str) -> str:
@@ -67,15 +89,33 @@ def summarize(text: str) -> str:
     lines = [ln.strip() for ln in text.splitlines()]
     for line in lines[:OVERRIDE_LINES]:
         if line.startswith("summary:"):
-            return _cap(line[len("summary:"):])
-    after_heading = False
+            return _cap(_plain_text(line[len("summary:"):]))
+    after_heading = in_fence = in_comment = in_block = False
+    paragraph: list[str] = []
     for line in lines:
         if not after_heading:
             after_heading = line.startswith("# ")
-        elif _plain_prose(line):
-            end = line.find(". ")
-            return _cap((line[:end] if end >= 0 else line).removesuffix("."))
-    return ""
+        elif in_fence:
+            in_fence = not line.startswith("```")
+        elif in_comment:
+            in_comment = "-->" not in line
+        elif not line:
+            if paragraph:
+                break
+            in_block = False
+        elif in_block:
+            continue
+        elif line.startswith("```"):
+            in_fence = True
+        elif line.startswith("<!--"):
+            in_comment = "-->" not in line
+        elif _skipped(line):
+            if paragraph:
+                break
+            in_block = True
+        else:
+            paragraph.append(line)
+    return _cap(_first_sentence(_plain_text(" ".join(paragraph)))) if paragraph else ""
 
 
 def read_summary(path: str) -> str:
@@ -101,12 +141,12 @@ def render(paths: list[str]) -> str:
         if readme in members and (intro := read_summary(readme)):
             lines += [intro, ""]
         for path in (p for p in members if p.endswith(".md")):
-            rel = path.removeprefix(f"docs/{area}/") if area != "general" else Path(path).name
+            rel = _rel(path, area)
             summary = read_summary(path)
             lines.append(f"- [{rel}]({doc_link(path)})" + (f": {summary}" if summary else ""))
         others = [p for p in members if not p.endswith(".md") and not is_asset(p)]
         if others:
-            links = ", ".join(f"[{Path(p).name}]({doc_link(p)})" for p in others)
+            links = ", ".join(f"[{_rel(p, area)}]({doc_link(p)})" for p in others)
             lines.append(f"- Other files: {links}")
         if assets := sum(is_asset(p) for p in members):
             lines.append(f"- Plus {assets} image, css or script files")
@@ -122,8 +162,10 @@ def listed(text: str) -> set[tuple[str, str]]:
             area = line[3:]
         elif line.startswith("- Plus "):
             rows.add((area, line))
-        elif line.startswith("- "):
+        elif line.startswith("- Other files: "):
             rows.update((area, link) for link in re.findall(r"\]\(([^)]*)\)", line))
+        elif line.startswith("- ") and (m := re.match(r"- \[[^\]]*\]\(([^)]*)\)", line)):
+            rows.add((area, m.group(1)))      # the row's own link only: a summary holds none, and its words are not compared
     return rows
 
 
