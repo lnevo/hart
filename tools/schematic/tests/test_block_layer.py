@@ -20,6 +20,23 @@ devices = bdm.devices
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 HEAD = ",".join(BL.EXCEPTION_COLUMNS) + "\n"
+# a piece of track at one end inside an OS block, its length given (the row OS Switch 7 had until step 5 part 2)
+SCALE_AT_7 = "1,track,5,7,1,7,OS Switch 7,23,a test row\n"
+# the 25 main and upper links (tracks between two switches under LINK_CM), each in the lower-numbered switch's OS
+# block (owner, 2026-11-20: LINK_CM 50 on every level; at a double crossover the corner block of its leg), but where a
+# home mast stands at a switch's points facing the link: then in the OS block at its other end (125-129, 201-205,
+# 227-231, 229-233 for Masts 126RB, 202R, 228RA and 230LB; owner, 2026-11-20: the block boundary is at the mast)
+MAIN_UPPER_LINKS = {
+    "Track 101-103": "OS Switch 101", "Track 105-109": "OS Switch 105", "Track 109-111": "OS Switch 109",
+    "Track 111-117": "OS Switch 111", "Track 113-115": "OS Switch 113", "Track 115-117": "OS Switch 115",
+    "Track 117-119": "OS Switch 117", "Track 121-123": "OS Switch 121", "Track 123-125": "OS Switch 123",
+    "Track 125-129": "OS Switch 129", "Track 127-131 2": "OS Switch 127", "Track 201-203": "OS Switch 201",
+    "Track 201-205": "OS Switch 205", "Track 201-219": "OS Switch 201", "Track 205-209": "OS Switch 205",
+    "Track 213-215": "OS Switch 213", "Track 219-221": "OS Switch 219", "Track 225-227": "OS Switch 225c",
+    "Track 225-229": "OS Switch 225b", "Track 227-231": "OS Switch 231", "Track 229-233": "OS Switch 233",
+    "Track 231-237": "OS Switch 231", "Track 235-243": "OS Switch 235", "Track 237-239": "OS Switch 237",
+    "Track 239-245": "OS Switch 239",
+}
 
 
 def temp_file(name: str, text: str) -> Path:
@@ -41,7 +58,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         super().setUpClass()
         import build_layout_le as bl
         try:
-            cls.bands, cls.joined, runs, _corners = bdm.solve()
+            cls.bands, cls.joined, runs, cls.corners = bdm.solve()
         except bl.BuildError as exc:
             if os.environ.get("SCHEMATIC_REQUIRED") == "1":
                 raise AssertionError(f"needs the plugin (SCHEMATIC_REQUIRED=1): {exc}")
@@ -64,6 +81,29 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         finally:
             remove(p)
         return BL.layer(self.bands, self.runs, self.found, self.levels, self.split, ex)
+
+    posts = None            # the home masts' places for main_upper (None: the rule's)
+
+    def main_upper(self, text: str | None = None) -> BL.Layer:
+        """The main and upper layer (build_device_map.main_upper_layer) with block_exceptions.csv's text `text`
+        (default: the committed file)."""
+        found = bdm.named_tracks(self.bands, self.joined, self.runs)
+        rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
+        switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
+        cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
+        split, corners = bdm.split_edges(found=found), bdm.corner_blocks_of(self.bands, self.corners)
+        _home, posts = bdm.home_and_posts(self.bands, self.joined, found, bdm.LEVELS, cp_of, corners,
+                                          set(split.values()))
+        self.last_posts, self.mu_found = posts, found
+        args = (self.bands, self.runs, found, split, corners, posts if self.posts is None else self.posts)
+        if text is None:
+            return bdm.main_upper_layer(*args)
+        p = temp_file("block_exceptions.csv", text)
+        try:
+            with unittest.mock.patch.object(BL, "exceptions_path", return_value=p):
+                return bdm.main_upper_layer(*args)
+        finally:
+            remove(p)
 
     def without(self, needle: str) -> str:
         return "".join(line for line in self.committed.splitlines(True) if needle not in line)
@@ -92,9 +132,16 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertNotIn("Track 1-3", lay.tracks)
 
     def test_a_piece_at_one_end_leaves_the_rest_its_own_block(self):
-        lay = self.layer()
+        lay = self.layer(self.committed + SCALE_AT_7)
         self.assertEqual(lay.parts["Track Scale at 7"]["part_of"], "OS Switch 7")
         self.assertIn("Track Scale", lay.tracks)
+
+    def test_os_switch_7_ends_at_the_switch(self):
+        # owner, 2026-11-20 (step 5 part 2): Track Scale is one block, none of it inside OS Switch 7
+        lay = self.layer()
+        self.assertNotIn("Track Scale at 7", lay.parts)
+        scale = next(t for t, _h in lay.tracks.values() if t["name"] == "Track Scale")
+        self.assertEqual(lay.cm["Track Scale"], scale["cm"])
 
     def test_a_crossover_without_rows_is_one_os_block(self):
         lay = self.layer(self.without("1,crossover_half,7,"))
@@ -102,12 +149,51 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         os_ = {b for n, b in lay.bands[bi]["os"].items() if self.bands[bi][1]["nodes"][n]["label"] == "7"}
         self.assertEqual(os_, {"OS Switch 7"})
 
-    def test_links_stay_blocks_of_their_own_where_the_level_does_not_fold(self):
-        with unittest.mock.patch.dict(BL.FOLD_LINKS, {1: False}):
-            lay = self.layer()
-        self.assertIn("Track 9-11", lay.tracks)
-        self.assertNotIn("Track 9-11", lay.parts)
-        self.assertIn("Track 13-15", lay.parts)         # an owner's row still applies
+    def test_every_level_folds_its_links(self):
+        self.assertFalse(hasattr(BL, "FOLD_LINKS"))      # one rule for every level (step 5 part 2)
+        lay = self.main_upper()
+        self.assertEqual({k: v["part_of"] for k, v in lay.parts.items()}, MAIN_UPPER_LINKS)
+        for name in MAIN_UPPER_LINKS:
+            self.assertNotIn(name, lay.tracks)
+        self.assertIn("Track 127-131 1", lay.tracks)    # 73.6 cm: over LINK_CM, a block of its own
+
+    def test_a_mast_at_a_links_end_puts_the_boundary_at_the_mast(self):
+        ends = {"125": "OS Switch 125", "129": "OS Switch 129"}
+        t = {"name": "Track 125-129"}
+        bad = []
+        self.assertEqual(BL.masted_block(t, ends, {}, 2, "x.csv", bad)[0], "OS Switch 125")
+        block, why = BL.masted_block(t, ends, {"125": "126RB"}, 2, "x.csv", bad)
+        self.assertEqual(block, "OS Switch 129")
+        self.assertIn("Mast 126RB", why)
+        self.assertEqual(BL.masted_block(t, ends, {"129": "130L"}, 2, "x.csv", bad)[0], "OS Switch 125")
+        self.assertEqual(bad, [])
+
+    def test_a_link_with_a_mast_facing_it_at_both_ends_stops(self):
+        bad = []
+        got = BL.masted_block({"name": "Track 125-129"}, {"125": "OS Switch 125", "129": "OS Switch 129"},
+                              {"125": "126RB", "129": "130L"}, 2, "x.csv", bad)
+        self.assertEqual(got, (None, None))
+        self.assertEqual(len(bad), 1)
+        self.assertIn("Mast 126RB at Switch 125, Mast 130L at Switch 129", bad[0])
+        # and through the layer: a mast placed at Switch 129's points facing 125-129 too
+        lay = self.main_upper()
+        self.posts = dict(self.last_posts)
+        t = next(t for t in self.mu_found if t["name"] == "Track 125-129")
+        far = next((n, p) for (n, p), (k, v) in zip(t["legs"], t["ends"]) if v == "129")
+        self.posts[(t["band"], *far)] = "130X"
+        try:
+            with self.assertRaisesRegex(BL.BlockError, "Track 125-129 has a home mast facing it at both ends "
+                                                       r"\(Mast 126RB at Switch 125, Mast 130X at Switch 129\)"):
+                self.main_upper()
+        finally:
+            self.posts = None
+        self.assertIn("Track 125-129", lay.parts)
+
+    def test_a_link_drawn_to_a_connector_takes_the_os_block_at_its_end_on_the_band(self):
+        # {end switch: its OS block on the link's band, None for a switch across a connector}
+        self.assertEqual(BL.link_block({"121": None, "127": "OS Switch 127"}), "OS Switch 127")
+        self.assertEqual(BL.link_block({"121": "OS Switch 121", "127": "OS Switch 127"}), "OS Switch 121")
+        self.assertIsNone(BL.link_block({"121": None, "127": None}))
 
     # ---------------------------------------------------------------- the stops
 
@@ -141,16 +227,17 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
     def test_a_split_track_with_rows_stops(self):
         self.stops(self.committed + "1,track,37,39,,,OS Switch 37,\n", "split in halves and given to OS blocks")
 
-    def test_a_main_or_upper_row_waits_for_part_2(self):
-        # the mast plan would read it and the device rows would not, so the panels and SML would disagree
-        for row in ("2,track,101,103,,,OS Switch 101,\n", "3,crossover_half,127,125,,,OS Switch 127,\n"):
-            with self.subTest(row=row):
-                self.stops(self.committed + row, "level 2 and 3 rows come with step 5 part 2")
+    def test_a_main_or_upper_row_applies_on_its_level(self):
+        lay = self.main_upper(self.committed + "2,track,113,115,,,OS Switch 115,,\n")
+        self.assertEqual(lay.parts["Track 113-115"]["part_of"], "OS Switch 115")
+        self.assertIn("block_exceptions.csv line", lay.parts["Track 113-115"]["why"])
+        with self.assertRaisesRegex(BL.BlockError, r"\(level 3\): no track runs Switch 113 to Switch 115"):
+            self.main_upper(self.committed + "3,track,113,115,,,OS Switch 115,,\n")
 
     # ---------------------------------------------------------------- lengths
 
     def test_a_piece_at_one_end_takes_its_length_off_the_rest(self):
-        lay = self.layer()
+        lay = self.layer(self.committed + SCALE_AT_7)
         scale = next(t for t, _h in lay.tracks.values() if t["name"] == "Track Scale")
         self.assertEqual(lay.parts["Track Scale at 7"]["cm"], 23.0)
         self.assertEqual(lay.cm["Track Scale"], round(scale["cm"] - 23.0, 1))
@@ -161,11 +248,9 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.assertEqual(lay.parts["Track 9-11"]["cm"], 38.7)
 
     def test_a_piece_at_one_end_needs_its_length(self):
-        bad = self.committed.replace(",OS Switch 7,23,", ",OS Switch 7,,")
-        self.assertNotEqual(bad, self.committed)
-        self.stops(bad, "Track Scale at 7: give its cm")
-        self.stops(self.committed.replace(",OS Switch 7,23,", ",OS Switch 7,500,"), "is not under the track's")
-        self.stops(self.committed.replace(",OS Switch 7,23,", ",OS Switch 7,x,"), "cm 'x' is a length")
+        self.stops(self.committed + SCALE_AT_7.replace(",23,", ",,"), "Track Scale at 7: give its cm")
+        self.stops(self.committed + SCALE_AT_7.replace(",23,", ",500,"), "is not under the track's")
+        self.stops(self.committed + SCALE_AT_7.replace(",23,", ",x,"), "cm 'x' is a length")
         self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 15,10,\n", "only a piece at one end")
 
     # ---------------------------------------------------------------- halves

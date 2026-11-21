@@ -356,20 +356,37 @@ def loop_halves(band, runs, split: dict | None = None) -> dict:
     return block_layer.loop_halves(band, runs, split_edges() if split is None else split, SPLIT.name)
 
 
-def track_layer(bands, runs, found, split_map: dict) -> tuple[dict, dict]:
-    """The main and upper block layer as mast_plan.plan reads it: ({band index: {"os": {switch node: OS block},
-    "blocks": {strand: [block]}}}, {block: cm}), block_layer.layer's for the main and upper levels with
-    `split_map` (split_edges) and block_exceptions.csv. One block per track, a balloon loop or split track in two
-    halves (half 1 at the lower-numbered switch; each half's length is half the track's), a crossover's inside its
-    switch's OS block; an OS block counts 0 cm (the boundary is at the switch's leg)."""
-    lay = main_upper_layer(bands, runs, found, split_map)
-    return lay.bands, lay.cm
-
-
-def main_upper_layer(bands, runs, found, split_map: dict) -> block_layer.Layer:
-    """block_layer.layer of the main and upper levels."""
+def main_upper_layer(bands, runs, found, split_map: dict, corner_blocks: dict, posts: dict) -> block_layer.Layer:
+    """block_layer.layer of the main and upper levels, as mast_plan.plan reads it (`bands`, `cm`) and build() writes
+    its rows: `split_map` (split_edges), block_exceptions.csv, `corner_blocks` (a double crossover's corner blocks,
+    {switch: {leg: block}}) and `posts` (where the home masts stand, home_and_posts). One block per track, a balloon
+    loop or split track in two halves (half 1 at the lower-numbered switch; each half's length is half the track's), a
+    crossover's inside its switch's OS block, a link (under block_layer.LINK_CM between two switches) a part of an OS
+    block; an OS block counts 0 cm (the boundary is at the switch's leg)."""
     return block_layer.layer(bands, runs, found, LEVELS, {"main_upper": split_map},
-                             block_layer.read_exceptions(found, bands, LEVELS))
+                             block_layer.read_exceptions(found, bands, LEVELS), corners=corner_blocks, posts=posts)
+
+
+def home_and_posts(bands, joined, found, levels: dict, cp_of: dict, corner_blocks: dict | None, split: set
+                   ) -> tuple[list[dict], dict]:
+    """(mast_plan.home_masts of `levels`, mast_plan.home_posts of them): the home masts stand where the track rule puts
+    them, before any block is known, and the block layer reads where they stand (a link a mast faces from its own
+    switch joins the OS block at its other end; owner, 2026-11-20). One step for every level."""
+    import mast_rule as mr
+    home = mast_plan.home_masts(bands, joined, found, cp_of, mr.running_tracks(bands, found, cp_of), levels=levels,
+                                corner_blocks=corner_blocks, split=split)
+    return home, mast_plan.home_posts(home)
+
+
+def corner_blocks_of(bands, corners: dict | None) -> dict:
+    """{switch: {schematic leg: corner block}} of each double crossover on the main and upper bands (xover_corners
+    over `corners`, dx_corners). MapError on a double crossover with no corners given."""
+    corners = corners or {}
+    dxs = {base(d["label"]) for title, band, _ in bands if band_level(title)
+           for d in band["nodes"].values() if d["kind"] == "dx"}
+    if dxs - set(corners):
+        raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
+    return {s: xover_corners(s, corners[s]) for s in dxs}
 
 
 def check_helix_ends(bands, joined, found, helix) -> None:
@@ -506,21 +523,40 @@ class Nodes:
 # ---------------------------------------------------------------- the map
 
 
-def plan_masts(bands, joined, runs, found, cp_of: dict, corners: dict | None) -> tuple[dict, dict, set]:
+def plan_masts(bands, joined, runs, found, cp_of: dict, corners: dict | None
+               ) -> tuple[dict, dict, set, block_layer.Layer]:
     """(mast_plan.plan's masts of the main and upper levels, the double crossovers' corner blocks, the split track
-    names): the one mast process over this level's block layer (track_layer) and the owner's block splits. MapError
-    on a double crossover with no corners given."""
-    corners = corners or {}
-    dxs = {base(d["label"]) for title, band, _ in bands if band_level(title)
-           for d in band["nodes"].values() if d["kind"] == "dx"}
-    if dxs - set(corners):
-        raise MapError(f"double crossover {', '.join(sorted(dxs - set(corners), key=natural))}: no corners given")
-    corner_blocks = {s: xover_corners(s, corners[s]) for s in dxs}
+    names, the block layer): the one mast process over this level's block layer (main_upper_layer) and the owner's
+    block splits. Each home mast gains `facing`, the block of the track it faces (home_facing). MapError on a double
+    crossover with no corners given, or a home mast whose track is part of the block it protects."""
+    corner_blocks = corner_blocks_of(bands, corners)
     split = split_edges(found=found)
-    layer, cm = track_layer(bands, runs, found, split)
-    got = mast_plan.plan(bands, joined, found, levels=LEVELS, cp_of=cp_of, layer=layer, cm=cm,
-                         corner_blocks=corner_blocks, split=set(split.values()))
-    return got, corner_blocks, set(split.values())
+    home, posts = home_and_posts(bands, joined, found, LEVELS, cp_of, corner_blocks, set(split.values()))
+    lay = main_upper_layer(bands, runs, found, split, corner_blocks, posts)
+    got = mast_plan.plan(bands, joined, found, levels=LEVELS, cp_of=cp_of, layer=lay.bands, cm=lay.cm,
+                         corner_blocks=corner_blocks, split=set(split.values()), home=home)
+    bad = []
+    for m in got["home"]:
+        m["facing"] = home_facing(m, lay, bad)
+    if bad:
+        raise MapError("; ".join(bad))
+    return got, corner_blocks, set(split.values()), lay
+
+
+def home_facing(m: dict, lay: block_layer.Layer, bad: list) -> str:
+    """The block home mast `m` faces: its track's (half's) block, or the OS block its track is part of (a link,
+    lay.parts), as staging's 32R faces OS Switch 29. A link that is part of the block the mast protects would put the
+    mast inside one block, which Signal Mast Logic cannot use: the problem goes in `bad` (give the link to the far
+    switch's OS block in block_exceptions.csv, or move the mast)."""
+    part = lay.parts.get(m["track"])
+    if part is None:
+        return m["track"]
+    protects = m["protects"] or f"OS Switch {m['switch']}"
+    if part["part_of"] == protects:
+        bad.append(f"Mast {m['name']} at Switch {m['switch']} faces {m['track']}, which is part of {protects}, the "
+                   f"block it protects ({part['why']}): give {m['track']} to its other switch's OS block in "
+                   f"{block_layer.EXCEPTIONS_NAME}")
+    return part["part_of"]
 
 
 def master_virtual_names(files: devices.Files | None = None) -> dict:
@@ -530,8 +566,8 @@ def master_virtual_names(files: devices.Files | None = None) -> dict:
 
 
 def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None,
-          virtual_names=None) -> tuple[dict, list[dict]]:
-    """(control_points, device map rows). `local`: the switches in no control point (local_switches_main_upper.csv
+          virtual_names=None) -> tuple[dict, list[dict], list[dict]]:
+    """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (local_switches_main_upper.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
     when a band has a double crossover. `helix`: read_helix_tracks (None: helix_tracks.csv; {}: no helix tracks);
     `pins`: read_pins (None: detector_pins_main_upper.csv, resolved against the tracks found here); `virtual_names`:
@@ -551,7 +587,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
     found = named_tracks(bands, joined, runs, overrides, helix)
     check_helix_ends(bands, joined, found, helix)
-    planned, corner_blocks, split_names = plan_masts(bands, joined, runs, found, cp_of, corners)
+    planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
     dxs = set(corner_blocks)
     pins = read_pins(found=found, split=split_names) if pins is None else pins
     ms = planned["home"] + [dict(m, heads=1, kind="one-searchlight", switch="", intermediate=True)
@@ -638,23 +674,35 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     for s in sorted(loc, key=natural):
         os_rows(loc[s].level, loc[s].area, "", s, loc[s].area, detect=False)
 
+    part_rows = []
+    for name, part in sorted(lay.parts.items(), key=lambda kv: natural(kv[0])):
+        if name != part["track"]["name"]:
+            raise MapError(f"{name}: a piece at one end of a main or upper track ({part['why']}); the main and upper "
+                           "drawing gives each strand one block, so give the whole track to an OS block")
+        # the part's row is on the level of the OS block's row, its switch's (a link between the halves of the
+        # crossovers 127 and 131 drawn on the upper band is in a main level OS block)
+        m = re.fullmatch(r"OS Switch (\d+)[a-d]?", part["part_of"])
+        if not m or m.group(1) not in switches:
+            raise MapError(f"{name} (level {part['level']}) is part of {part['part_of']}, the OS block of no main or "
+                           "upper switch")
+        part_rows.append(part_row(str(switches[m.group(1)].level), name, part, ", ".join(part["track"]["trial"])))
     for t in sorted(found, key=lambda t: natural(t["name"])):
         sws = [v for k, v in t["ends"] if k == "sw"]
         stray = [s for s in sws if s not in area_of]
         if stray:
             raise MapError(f"{t['name']} ends at switch {', '.join(stray)}, which is on neither the main nor the "
                            "upper level")
+        if t["name"] in lay.parts:                  # a link inside an OS block: its part row, no block or detector
+            continue
         ends_cp = sorted({cp_of[v] for v in sws if v in cp_of}, key=natural)
         cp = ends_cp[0] if ends_cp else ""
-        short = t["cm"] < SHORT_CM and all(k == "sw" for k, _ in t["ends"])
-        detect = not short and t["main"] and sws
+        detect = t["main"] and sws
         split = t["name"] in split_names
         halves = sorted(LOOP_HALF.values()) if (t["loop"] or split) else [None]
         for half in halves:
             name = loop_placeholder(t["name"], half)
             cm = round(t["cm"] / 2, 1) if half else t["cm"]
-            note = f"{cm} cm" + (" short link: inside the OS blocks of its switches, no detector" if short else
-                                 "" if t["main"] else " no detector: off the main line")
+            note = f"{cm} cm" + ("" if t["main"] else " no detector: off the main line")
             if half and split:
                 note += f", half {half} of the split track (block_splits.csv)"
             elif half:
@@ -665,7 +713,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             if not detect:
                 if pinned:
                     raise MapError(f"{PINS.name} pins a detector for {name}, which the rule gives none "
-                                   "(off the main line or a short link)")
+                                   "(off the main line)")
                 occupancy(t["level"], cp, name, notes=NO_DETECTOR)
                 continue
             if pinned:                                            # the owner's input (detector_pins_main_upper.csv)
@@ -711,7 +759,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         else:
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                jmri=virtual, switch=m["switch"], facing=m["track"], protects=m["protects"], dir=m["dir"])
+                jmri=virtual, switch=m["switch"], facing=m["facing"], protects=m["protects"], dir=m["dir"])
         for user, sysn, k, board, pin in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
@@ -733,7 +781,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     order = {"turnout": 0, "fb": 1, "block": 2, "occupancy": 3, "mast": 4, "head": 5}
     assign_ports(rows)
     rows.sort(key=lambda r: (r["level"], order[r["layer"]], natural(r["user_name"])))
-    return cp_keys, rows
+    return cp_keys, rows, part_rows
 
 
 # ---------------------------------------------------------------- staging's block layer (step 5 part 1)
@@ -757,14 +805,26 @@ def part_row(level: str, name: str, part: dict, trial: str) -> dict:
     return row
 
 
+def part_drops(parts: list[dict]) -> set:
+    """The keys a part leaves out of the master on purpose (hartlib.devices replace_rows' drops): its occupancy row, as
+    a part has no JMRI block and no sensor of its own (its block row is the part row, the same key)."""
+    return {(r["level"], "occupancy", occupancy_user(r["user_name"])) for r in parts}
+
+
 def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[block_layer.Layer, int, list[dict]]:
     """(block_layer.layer of the staging band, its band index, its tracks): the one block process over staging's
     drawing, block_splits.csv and block_exceptions.csv (`exceptions`, default the committed file)."""
     overrides = layer_files.read("plan_overrides", STAGING_SHEET, OVERRIDES.parent)
     levels = band_levels(overrides)
     found = named_tracks(bands, joined, runs, overrides)
+    try:
+        cp_of = {s: r.name for r in railroad.read_interlockings(CPS, (1,)) for s in r.switches}
+    except railroad.FactsError as exc:
+        raise MapError(str(exc)) from None
+    _home, posts = home_and_posts(bands, joined, found, levels, cp_of, None,
+                                  mast_rule.read_block_splits(SPLIT, found, levels))
     lay = block_layer.layer(bands, runs, found, levels, block_layer.split_edges(found, levels, SPLIT),
-                            block_layer.read_exceptions(found, bands, levels, exceptions))
+                            block_layer.read_exceptions(found, bands, levels, exceptions), posts=posts)
     if len(lay.bands) != 1:
         raise MapError(f"staging is drawn on {len(lay.bands)} bands; its trial names need one")
     return lay, next(iter(lay.bands)), found
@@ -865,6 +925,8 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         if r["user_name"] in taken:
             bad.append(f"{r['user_name']}: a spare of that name is in {OUT.name} already")
     spares += freed
+    for key in [k for k, r in prior.items() if r["role"] == "part"]:
+        prior.pop(key)          # a part no longer drawn (its row is this script's alone, no field facts): it goes
     if prior:
         bad.append(f"staging rows of {OUT.name} the drawing has no block for: "
                    + ", ".join(f"{layer} {name}" for layer, name in sorted(prior)))
@@ -956,15 +1018,15 @@ def main(argv=None) -> int:
         print(f"SKIPPED device map check: {exc}")
         return 1 if os.environ.get("SCHEMATIC_REQUIRED") == "1" else 0
     try:
-        cp_keys, rows = build(bands, joined, runs, overrides, *inputs, corners)
+        cp_keys, rows, parts = build(bands, joined, runs, overrides, *inputs, corners)
     except (MapError, railroad.FactsError) as exc:        # a DevicesError (reading the master) is a FactsError
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     try:
         staging, adopts, drops = staging_rows(bands, joined, runs)
         want = {OVERRIDES: overrides_text(overrides, cp_keys),
-                **devices.outputs_after("build_device_map.py", rows, device_files(), master_rows=staging,
-                                        adopts=adopts, drops=drops)}
+                **devices.outputs_after("build_device_map.py", rows, device_files(), master_rows=staging + parts,
+                                        adopts=adopts, drops=drops | part_drops(parts))}
     except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
         # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)

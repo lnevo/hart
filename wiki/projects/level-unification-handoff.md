@@ -209,6 +209,11 @@ and 14 staging OS rows' trial names, which lost the link pieces the part rows no
 - Main and upper trial names in staging's switch-and-leg keys (they still use plan edge ids, `Track e33`), if wanted,
   so one grammar serves every level.
 
+Part 2 progress (branch `agent/claude/step5-part2`):
+- 2026-11-20: links folded on every level (FOLD_LINKS gone, 25 main and upper part rows, the 225 links in their
+  corner block), the mast-edge rule (`block_layer.masted_block`), OS 7 ends at the switch (8RA a turnout mast); masts
+  and devices.csv regenerated, tests pass. Next: plan lengths, `make panels`, sandbox discovery, before/after.
+
 ### 6. One wiring file per kind (with the device master's owners)
 
 `lcos_nodes_main_upper.csv` and `detector_pins_main_upper.csv` exist only for main and upper; staging's wiring is in

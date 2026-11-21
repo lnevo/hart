@@ -17,21 +17,20 @@ What it makes, for each level drawn on a band:
   to two blocks of one level stops.
 - parts: a piece of track inside another block (devices.csv part_of; owner, 2026-11-20). A link, a track between two
   switches shorter than LINK_CM, is part of the lower-numbered switch's OS block (the one at that end: a crossover
-  half's, when the half has its own) on a level whose FOLD_LINKS is set; block_exceptions.csv (kind track) gives a
-  track, or the piece of it at one end switch, to another OS block where the field wiring says otherwise. A whole
-  track's part is named as the track; a piece at one end "<track> at <switch>" ("Track 1-3 at 1", "Track Scale at
-  7"). A track with pieces at both ends is all pieces, sharing its length evenly; with one, that piece's length is its
-  row's cm and the rest of the track is its own block (Track Scale, less the 23 cm inside OS Switch 7).
+  half's, when the half has its own; a double crossover's corner block of the leg it leaves, `corners`), on every
+  level (step 5 part 2, owner 2026-11-20). A link drawn to a connector, whose lower-numbered switch is on another
+  band, takes the OS block of its end switch on its own band (link_block). block_exceptions.csv (kind track) gives a
+  track, or the piece of it at one end switch, to another OS block where the field wiring (or, on main and upper, the
+  owner) says otherwise. A whole track's part is named as the track; a piece at one end "<track> at <switch>" ("Track
+  1-3 at 1"). A track with pieces at both ends is all pieces, sharing its length evenly; with one, that piece's length
+  is its row's cm and the rest of the track is its own block.
 
-LINK_CM is 50 cm: staging's wiring folds every track between two switches up to 42 cm (11-13) by the rule, and its
-next is Barn at 92 cm. FOLD_LINKS is a per-level setting for step 5 part 1 only: main and upper keep their links as
-blocks of their own until part 2 (a panel change: their 21 dark link blocks under build_device_map.SHORT_CM, and 4 more
-between 30 and 50 cm, 231-237, 113-115, 239-245 and 229-233, for the owner to decide).
+LINK_CM is 50 cm on every level (owner, 2026-11-20): staging's wiring folds every track between two switches up to
+42 cm (11-13) by the rule, and its next is Barn at 92 cm; on main and upper it folds 25 links, the longest 229-233
+(48.2 cm).
 
-block_exceptions.csv (EXCEPTION_COLUMNS), every row the owner's wiring fact, keyed by switch numbers so a new export
-moves rows with their tracks:
-- level 1 only until step 5 part 2: main and upper's device rows do not read the file yet, so a level 2 or 3 row
-  would reach the mast plan and not the rows (it stops).
+block_exceptions.csv (EXCEPTION_COLUMNS), every row the owner's fact, keyed by switch numbers so a new export moves
+rows with their tracks, a row of any level (1 staging, 2 main, 3 upper):
 - kind track: level, switch_a and switch_b (the track's end switches, lower first) and parallel (1, 2 from the top row
   where two tracks run between them, mast_rule.resolve_track); `end` empty for the whole track or one of its end
   switches for the piece at that end; `block` the OS block it is part of, which must be the OS block at that end (at
@@ -56,7 +55,6 @@ import mast_rule as mr
 from hartlib import railroad
 
 LINK_CM = 50.0
-FOLD_LINKS = {1: True, 2: False, 3: False}       # step 5 part 1: main and upper keep their links (part 2: all True)
 EXCEPTIONS_NAME = "block_exceptions.csv"       # in pd.DATA, looked up when read (a test may point pd.DATA elsewhere)
 EXCEPTION_COLUMNS = ["level", "kind", "switch_a", "switch_b", "parallel", "end", "block", "cm", "notes"]
 KINDS = ("track", "crossover_half")
@@ -176,11 +174,6 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
             bad.append(f"{at}: block {r['block']!r} is no OS block (a piece of track is part of a switch's OS block)")
             continue
         level = int(r["level"])
-        if level != 1:
-            # main and upper keep their links until part 2, and their device rows do not read this file yet: a row here
-            # would reach the mast plan and not the rows, and the panels and Signal Mast Logic would disagree
-            bad.append(f"{at}: level 2 and 3 rows come with step 5 part 2, when main and upper fold their links")
-            continue
         try:
             cm = float(r["cm"]) if r["cm"] else None
         except ValueError:
@@ -312,11 +305,68 @@ def is_link(t: dict) -> bool:
     return len(sws) == 2 == len(t["ends"]) and sws[0] != sws[1] and t["cm"] < LINK_CM
 
 
+def link_block(ends: dict) -> str | None:
+    """The OS block a link is part of, from `ends` ({end switch: the OS block at that end on the link's band, None
+    when the switch is drawn on another band}): the lower-numbered switch's, or, for a link drawn to a connector whose
+    lower-numbered switch is across it, the one end switch's on the band; None when neither is on the band."""
+    for s in sorted(ends, key=natural):
+        if ends[s] is not None:
+            return ends[s]
+    return None
+
+
+def masted_block(t: dict, ends: dict, masts: dict, level: int, where: str, bad: list
+                 ) -> tuple[str | None, str | None]:
+    """(the OS block link `t` is part of, why) from `ends` (end_blocks) and `masts` ({end switch: the home mast that
+    stands at its points facing the link}; owner, 2026-11-20: the block boundary is at the mast): with a mast at one
+    end, the OS block at the other end; with none, link_block's (the lower-numbered switch's). A mast at both ends is a
+    problem in `bad` (why None): the link would be inside the OS block of one of them."""
+    if len(masts) > 1:
+        bad.append(f"level {level}: the link {t['name']} has a home mast facing it at both ends ("
+                   + ", ".join(f"Mast {m} at Switch {s}" for s, m in sorted(masts.items(), key=lambda x: natural(x[0])))
+                   + f"): one of them would stand inside its own OS block; give the link to one OS block in {where}")
+        return None, None
+    if masts:
+        (s, mast), = masts.items()
+        other = [v for v in ends if v != s]
+        return (ends[other[0]] if other else None), (f"OS block at its other end: Mast {mast} stands at Switch {s}'s "
+                                                    "points facing it, so the block boundary is at the mast")
+    block = link_block(ends)
+    low = min(ends, key=natural)
+    return block, ("lower-numbered switch's OS block" if ends[low] == block else
+                   "OS block of its end switch on its band (a connector)")
+
+
+def end_blocks(t: dict, nodes: dict, os_: dict, corners: dict, level: int, bad: list) -> dict:
+    """{end switch: the OS block at that end of track `t` on this band (`os_`), None for a switch drawn on another
+    band}: a double crossover's corner block of the leg the track leaves (`corners`, {switch number: {leg: block}}).
+    A double crossover with no corners given is a problem in `bad` (and None)."""
+    out = {}
+    for (node, port), (k, v) in zip(t["legs"], t["ends"]):
+        if k != "sw":
+            continue
+        if node not in os_:
+            out[v] = None
+        elif nodes[node]["kind"] == "dx":
+            got = corners.get(v, {}).get(port)
+            if got is None:
+                bad.append(f"level {level}: {t['name']} leaves double crossover {v} at leg {port}, which has no "
+                           "corner block given")
+            out[v] = got
+        else:
+            out[v] = os_[node]
+    return out
+
+
 def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions: Exceptions,
-          exceptions_file: str = EXCEPTIONS_NAME) -> Layer:
+          exceptions_file: str = EXCEPTIONS_NAME, corners: dict | None = None, posts: dict | None = None) -> Layer:
     """The block layer of every band whose level `levels` ({band title: level}) holds, from `found` (name_tracks),
-    `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits) and `exceptions`
-    (read_exceptions). BlockError on a track the layer cannot place or a layer that breaks its invariants (check)."""
+    `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits), `exceptions`
+    (read_exceptions) and `corners` ({switch number: {schematic leg: corner block}} of each double crossover,
+    build_device_map.xover_corners) and `posts` ({(band index, switch node, leg): mast name} of the home masts,
+    mast_plan.home_posts: a link a mast faces from its own switch joins the OS block at its other end, masted_block).
+    BlockError on a track the layer cannot place or a layer that breaks its invariants (check)."""
+    corners, posts = corners or {}, posts or {}
     sheet = sheet_of(bands, levels)
     by_edge = {}
     for t in found:
@@ -337,6 +387,8 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 if own:
                     used.add((bi, n))
                 out.cm[os_[n]] = 0.0
+                if d["kind"] == "dx":           # its corner blocks, which a link may be part of: 0 cm as well
+                    out.cm.update({b: 0.0 for b in corners.get(base(d["label"]), {}).values()})
         for n, m in sorted(pairs.items()):
             if ((bi, n) in exceptions.halves) != ((bi, m) in exceptions.halves) or \
                     ((bi, n) in exceptions.halves and os_[n] == os_[m]):
@@ -367,15 +419,15 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
             out.tracks[name] = (t, h)
             out.cm[name] = round(t["cm"] / 2, 1) if h else t["cm"]
             ex = exceptions.tracks.get(id(t))
-            sws = [v for _k, v in t["ends"]]
             at_end = {v: node for (node, _p), (k, v) in zip(t["legs"], t["ends"]) if k == "sw"}
+            ends = end_blocks(t, nodes, os_, corners, level, bad)
             if ex:
                 if h:
                     lines = ", ".join(str(x[1]) for x in ex.values())
                     bad.append(f"level {level}: {t['name']} is split in halves and given to OS blocks in "
                                f"{exceptions_file} (lines {lines}): one or the other")
                     continue
-                pieces = exception_pieces(t, ex, name, os_, at_end, exceptions_file, bad)   # from switch_a's end
+                pieces = exception_pieces(t, ex, name, ends, exceptions_file, bad)   # from switch_a's end
                 if pieces is None:
                     continue
                 if st["src"][0] != at_end[min(at_end, key=natural)]:                # from the strand's first end
@@ -392,16 +444,24 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 blocks[sid], rows[sid] = [b for _r, b, _l, _c in pieces], [r for r, _b, _l, _c in pieces]
                 used.add(id(t))
                 continue
-            if FOLD_LINKS[level] and is_link(t):
-                low = min(sws, key=natural)
-                block = os_.get(at_end[low])
+            if is_link(t):
+                masts = {v: posts[(bi, node, port)] for (node, port), (k, v) in zip(t["legs"], t["ends"])
+                         if k == "sw" and (bi, node, port) in posts}
+                block, why = masted_block(t, ends, masts, level, exceptions_file, bad)
+                if why is None:
+                    continue
                 if block is None:
-                    bad.append(f"level {level}: the link {t['name']} ends at Switch {low} on another band; part 2 "
-                               "places such links")
+                    bad.append(f"level {level}: the link {t['name']} has neither end switch "
+                               f"({', '.join(sorted(ends, key=natural))}) with an OS block on {title!r}")
+                    continue
+                held = out.parts.get(t["name"])
+                if held is not None and held["part_of"] != block:     # drawn on two bands, across a connector
+                    bad.append(f"level {level}: the link {t['name']} is given {held['part_of']} on one band and "
+                               f"{block} on {title!r}; give it one in {exceptions_file}")
                     continue
                 out.parts[t["name"]] = dict(part_of=block, level=level, track=t, cm=t["cm"],
                                             why=f"the rule: under {LINK_CM:g} cm between two switches, so in the "
-                                                "lower-numbered switch's OS block")
+                                                + why)
                 out.tracks.pop(name, None)
                 out.cm.pop(name, None)
                 blocks[sid], rows[sid] = [block], [t["name"]]
@@ -414,27 +474,27 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                      for _b, line, _cm in got.values())
     if unused:
         bad.append(f"{exceptions_file} line(s) {', '.join(map(str, sorted(unused)))} match nothing drawn")
-    bad += check(bands, out, levels, found)
+    bad += check(bands, out, levels, found, corners)
     if bad:
         raise BlockError("; ".join(bad))
     return out
 
 
-def exception_pieces(t, ex: dict, own: str, os_: dict, at_end: dict, where: str, bad: list) -> list | None:
+def exception_pieces(t, ex: dict, own: str, ends: dict, where: str, bad: list) -> list | None:
     """[(row name, block, exceptions line or 0, cm)] of a track block_exceptions.csv gives to OS blocks (`ex`, {end:
     (block, line, cm)}), from its lower-numbered switch's end: the whole track as one part (its own name, its whole
     length), or a piece per end the file names ("<track> at <switch>"). Pieces at both ends share the track evenly;
-    a piece at one end takes the cm its row gives (OS 7's reach onto Scale), and the rest of the track, its own block
+    a piece at one end takes the cm its row gives, and the rest of the track, its own block
     `own`, the remaining length. None (with the problem in `bad`) when a block is not the OS block at its end, a
     parted track is drawn in several pieces, or a length is missing, out of range or given where none is taken."""
-    sws = sorted(at_end, key=natural)
+    sws = sorted(ends, key=natural)
     if "" in ex:
         block, line, cm = ex[""]
         if cm is not None:
             bad.append(f"{where} line {line}: cm {cm:g} for the whole of {t['name']}: only a piece at one end takes "
                        "its length")
             return None
-        if block not in {os_.get(at_end[s]) for s in sws}:
+        if block not in {ends[s] for s in sws}:
             bad.append(f"{where} line {line}: {t['name']} is given {block}, the OS block of neither of its end "
                        "switches")
             return None
@@ -449,9 +509,9 @@ def exception_pieces(t, ex: dict, own: str, os_: dict, at_end: dict, where: str,
             continue
         block, line, cm = ex[s]
         name = f"{t['name']} at {s}"
-        if block != os_.get(at_end[s]):
+        if block != ends[s]:
             bad.append(f"{where} line {line}: the piece of {t['name']} at Switch {s} is given {block}, not that "
-                       f"switch's OS block {os_.get(at_end[s])}")
+                       f"switch's OS block {ends[s]}")
             return None
         if len(ex) == 2:
             if cm is not None:
@@ -484,15 +544,19 @@ def half_block(band, t: dict, sid: str, h: int | None, halves: dict) -> str:
     return half_name(t["name"], h)
 
 
-def check(bands, lay: Layer, levels: dict, found: list[dict]) -> list[str]:
+def check(bands, lay: Layer, levels: dict, found: list[dict], corners: dict | None = None) -> list[str]:
     """The layer's invariants: every switch node in one OS block; every strand of a track in a block; a track whose
-    strands carry two plan names split into halves; every part's block an OS block of its level; no name both a part
+    strands carry two plan names split into halves; every part's block an OS block of its level (a double crossover's
+    corner blocks, `corners`, among them); no name both a part
     and a block, and no block of one level the name of two things (a helix block is one block across levels)."""
     bad = []
     os_of_level, owners = {}, {}
     for bi, got in lay.bands.items():
         level = mr.band_level(bands[bi][0], levels)
         os_of_level.setdefault(level, set()).update(got["os"].values())
+        for n, d in bands[bi][1]["nodes"].items():         # a double crossover's corner blocks are its OS blocks
+            if d["kind"] == "dx" and n in got["os"]:
+                os_of_level[level].update((corners or {}).get(base(d["label"]), {}).values())
         for sid in bands[bi][1]["strands"]:
             if sid not in got["blocks"] and any(sid in t["strands"] for t in found if t["band"] == bi):
                 bad.append(f"level {level}: strand {sid} of a track is in no block")

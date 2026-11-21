@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import paths, tables  # noqa: E402
+from hartlib import devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
     band_key, bare, BuildError, DEVICE_MAP, main_upper_device_map, STAGING,
@@ -258,7 +258,9 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     """{placeholder: device-map user name} for the main and upper turnouts and blocks: each turnout or block row's
     `trial_name` (comma separated: a crossover's two halves are one turnout, "Switch 101A, Switch 101B" -> "Switch
     101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
-    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>"."""
+    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (a piece of track
+    inside another block, devices.csv part_of: a link inside an OS block) gives its placeholder to the block it is part
+    of, which must be a main or upper block row."""
     out, bad = {}, []
     for r in main_upper_device_map(path).rows:         # read and checked by hartlib.railroad
         if r.layer not in ("turnout", "block"):
@@ -279,6 +281,21 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
             if t in out:
                 bad.append(f"line {r.line}: trial_name {t} is given to {out[t]} and {user}")
             out[t] = user
+    blocks = set(out.values())
+    try:
+        parts = devices.part_lines(("2", "3"), path)
+    except railroad.FactsError as exc:
+        raise BuildError(f"the device map: {exc}") from None
+    for line, r in parts:
+        if r["part_of"] not in blocks:
+            bad.append(f"line {line}: part {r['user_name']} names {r['part_of']}, no main or upper block row")
+        trial = [bare(t.strip()) for t in r["trial_name"].split(",") if t.strip()]
+        if not trial:
+            bad.append(f"line {line}: part {r['user_name']} has no trial_name")
+        for t in trial:
+            if t in out:
+                bad.append(f"line {line}: trial_name {t} is given to {out[t]} and part {r['user_name']}")
+            out[t] = r["part_of"]
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))
     if not out:

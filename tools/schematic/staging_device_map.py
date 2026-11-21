@@ -338,8 +338,7 @@ def part_lines(device_map: Path = DEVICE_MAP) -> list[tuple[int, dict]]:
     """(line, row) of staging's parts (role part: a piece of track inside another block, part_of naming it), which
     the device maps leave out (hartlib.devices.OUT_OF_MAPS)."""
     try:
-        return [(n, dict(r)) for n, r in enumerate(devices.load(device_map), 2)
-                if r["level"] == str(LEVEL) and r["role"] == "part"]
+        return devices.part_lines((str(LEVEL),), device_map)
     except railroad.FactsError as exc:
         raise StagingMapError(str(exc)) from None
 

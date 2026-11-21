@@ -138,6 +138,13 @@ def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None
             if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
 
 
+def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = None
+               ) -> list[tuple[int, dict[str, str]]]:
+    """(line of the master, row) of each part of `levels` (role part: a piece of track inside another block, part_of
+    naming it), which the device maps leave out (OUT_OF_MAPS), in master order."""
+    return [(n, dict(r)) for n, r in enumerate(load(source), 2) if r["level"] in levels and r["role"] == "part"]
+
+
 def name_map_lines(source: "Files | Path | str | None" = None) -> list[tuple[int, dict[str, str]]]:
     """(line of the master, name-map row) of each row that has a pnm_order, in that order. Rows are in the old name
     map's form: layer, current, proposed (both the user name), cp, hardware, dcc, comment, notes (the pnm_ columns)."""
