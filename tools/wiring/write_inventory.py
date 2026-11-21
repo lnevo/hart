@@ -338,7 +338,7 @@ def mast_role(rows: list, facing: str) -> str:
     return "Reverse Exit" if any(facing == r.thrown_leg for r in rows) else "Entry"
 
 
-def mast_half(rows: list, sw: str, mast: str, protects: str, where: str = "devices.csv") -> str | None:
+def mast_half(rows: list, sw: str, mast: str, protects: str, where: str = devices.MASTER_FILE) -> str | None:
     """The OS block (half) of switch sw that a staging mast belongs to: the one it faces into (its protects column).
     A switch with one OS block has no halves (None). A crossover mast that protects none of its halves stops."""
     if len(rows) < 2:
