@@ -59,7 +59,7 @@ worktree never reads the main checkout's tables.xml.
 | `LAYOUT_DIR`, `LAYOUT_DATA`, `LAYOUT_OUTPUT`, `LAYOUT_SCRIPTS` | `jmri/layouts/hart/` and its `data/`, `output/`, `scripts/` |
 | `TABLES_XML` | `jmri/layouts/hart/output/tables.xml` (ADR-008), or the file `HART_TABLES` names |
 | `REPO_TABLES_XML` | always `jmri/layouts/hart/output/tables.xml` |
-| `DEVICES` | `jmri/layouts/hart/data/devices.csv`, the device master (`hartlib.devices`) |
+| `DEVICES` | `jmri/layouts/hart/data/devices_generated.csv`, the device master's handle (`hartlib.devices` merges `devices_field.csv` beside it) |
 | `WIRING` | `jmri/layouts/hart/data/wiring.csv`, the physical wiring source (`hartlib.wiring`) |
 | `CATS_DIR` | `cats/` |
 | `JMRI_USER_FILES` | `~/JMRI_UserFiles` (ADR-014) |
@@ -157,35 +157,42 @@ anything else fails, and a `KNOWN` entry that no longer happens fails.
 
 ### `hartlib.devices`
 
-`jmri/layouts/hart/data/devices.csv` is the one device master for all three levels (ADR-029); `devices.columns.csv`
-describes every column and a test holds the two to each other both ways. Staging, main and upper are one structure,
+The device master for all three levels (ADR-029) is two files since 2026-11-21 (the amendment):
+`devices_generated.csv`, every row the builders make, and `devices_field.csv`, the owner's cells (`FIELD_COLUMNS`)
+keyed by (level, layer, user_name), plus a Store's level-less devices in full. `load()` and `index()` merge them (a
+non-empty field cell wins; a keyed field row with no generated row stops; a field `jmri_comment` with `{occupancy}`
+is the builder's to fill from `wiring.csv`), cached on both files' bytes. `field_index()` is a builder's one source
+of the owner's cells; `allocated_names()` its one read-back of its own output (the numbers it gave). `write_generated`
+and `write_field` are the only text writers; `one_file_copy` and `pair_copy` make a test's copy.
+`devices.columns.csv` (`column,file,description`) describes every column and which file may hold it, and a test holds
+the two to each other both ways. Staging, main and upper are one structure,
 a level differs in column values only. Every reader gets its rows from here (R9b-2, 2026-11-20): `load()` (the
 master rows) and `device_map_lines` (the old device-map rows of some levels, plus `role`); `comment_of(row)` is a row's
 JMRI comment. The two device maps and `public_name_map.csv` are gone (R9e, 2026-11-20), and so are the six `pnm_`
 columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `system_name`, `dcc`, `wiring`,
 `jmri_comment` and `notes`. Readers test `role`, never a name prefix.
 
-- `assignment` is `field`, `virtual`, `none` or `spare`; `role` says what the device is; `written_by` is empty for a
-  hand-kept row, else a script in `devices.WRITERS` (the one list). A writer replaces only its own rows
-  (`replace_rows`) and stops, naming the row, on a key someone else holds.
+- `assignment` is `field`, `virtual`, `none` or `spare`; `role` says what the device is; `written_by` is a script in
+  `devices.WRITERS` (the one list) on every row with a level, empty only on a Store's level-less row. A writer
+  replaces only its own rows and stops, naming the row, on a key someone else holds.
 - `load()` reads and checks once per file state; `check_rows` holds the invariants (unique key, written_by and
   assignment in their sets, field rows `system_name == jmri_name`, order, one comment per row, a description on every
-  row). Row order is level, layer, hand-kept rows, then each writer's.
+  row). Row order is level, layer, then each writer's; a Store's level-less rows come last. Messages name a row by
+  its key and file (`at(row)`: "devices_field.csv: Track 12 (level 1, block)"), never a line.
 - Writers call `outputs_after(writer, old_form_rows)` (or `outputs_after_rows` with master rows) and write the texts it
-  gives: the master's text. Nothing is written until every check has passed.
+  gives: the generated file's text, the field file's cells left empty (`unmerge`). It refuses a row that overrides a
+  field cell or drops a key the field file names. Nothing is written until every check has passed.
 - `python3 -m hartlib.devices check`. Errors are `DevicesError` (a `FactsError`).
-- Staging (`FIELD_LEVEL`, level 1) is the field: its builders carry each row's field facts (system and layout-block
-  names, node, wiring, comment, notes, `cp`) over from the row it replaces, so `replace_rows` stops a writer that would
-  drop the row of a staging field device (`carries_field_facts`: assignment field or spare, not a panel status bean)
-  without naming it in `drops`; a rule's virtual mast, head or part, or a status bean, may go. A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
+- Staging (`FIELD_LEVEL`, level 1) is the field: each of its devices has a field row (its identity, role and
+  assignment, and the owner's cells), the input its builder iterates; a spare detector is `wiring.csv`'s alone. A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
 - A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
-  and stops with a `DevicesError` naming `where` (file and line) when the row has none; `is_os(row)` says whether a block
+  and stops with a `DevicesError` naming `where` (file and key) when the row has none; `is_os(row)` says whether a block
   or occupancy row runs through a switch's points (`OS_ROLES`: `os`, `xover_corner`). A reader that holds only a name
   uses `index()`, the master by (layer, user name), built once per file state: `rows(layer, name)` (one per level the
-  device is on; a helix block has two), `role(layer, name)` (stops when the rows disagree, naming their lines),
+  device is on; a helix block has two), `role(layer, name)` (stops when the rows disagree, naming them),
   `is_os(block)`, `names(layer, roles=, levels=)` (a role query leaves out a device not on the layout yet, a
-  level-less row with no role), `has(layer, name)`, `is_unplaced(layer, name)` and `where(row)` (the row's
-  "devices.csv line N" for a message). No reader falls back to a name prefix; a tables.xml bean with no row is
+  level-less row with no role), `has(layer, name)`, `is_unplaced(layer, name)` and `where(row)` (the row's key and
+  file for a message). No reader falls back to a name prefix; a tables.xml bean with no row is
   named in a warning and left out.
   A writer states the role of every row it makes (part B): `master_row` takes it from the row (`role`, one of
   `ROLES`) and stops on a row with none, and `railroad.DeviceRow` has no role default (a row with none stops, naming

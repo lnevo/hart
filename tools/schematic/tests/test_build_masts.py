@@ -367,7 +367,7 @@ class Cli(unittest.TestCase):
         self.assertEqual((code, out), (1, ""))
         self.assertEqual(err.splitlines(),
                          ["masts.csv is stale: run python3 tools/schematic/build_masts.py",
-                          "devices.csv is stale: run python3 tools/schematic/build_masts.py"])
+                          "devices_generated.csv is stale: run python3 tools/schematic/build_masts.py"])
         self.assertEqual(self.stale.read_text(encoding="utf-8"), "mast\nold\n")
         self.assertFalse(self.missing.exists())
 
@@ -375,7 +375,7 @@ class Cli(unittest.TestCase):
         before = self.current.stat().st_mtime_ns
         code, out, err = self.run_main()
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(out.splitlines(), ["wrote masts.csv", "wrote devices.csv"])
+        self.assertEqual(out.splitlines(), ["wrote masts.csv", "wrote devices_generated.csv"])
         self.assertEqual(self.stale.read_text(encoding="utf-8"), "mast\nnew\n")
         self.assertEqual(self.missing.read_text(encoding="utf-8"), "level\n1\n")
         self.assertEqual(self.current.stat().st_mtime_ns, before)
@@ -515,7 +515,8 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
 
     def test_the_device_map_keeps_other_rows_then_masts_then_heads_by_name(self):
         old = bsm.devices.device_map_rows(bsm.devices.load(bsm.DEVICE_MAP), ("1",))     # the master's staging rows
-        new = bsm.devices.device_map_rows(rows_of(self.want[bsm.device_files().master]), ("1",))    # the master built
+        f = bsm.device_files()
+        new = bsm.devices.device_map_rows(bsm.devices.parse(self.want[f.master], f.master.name, f), ("1",))  # built
         other = [r for r in old if r["layer"] not in ("mast", "head")]
         self.assertEqual(new[:len(other)], other)
         masts = [r["user_name"] for r in new if r["layer"] == "mast"]

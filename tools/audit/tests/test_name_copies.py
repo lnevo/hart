@@ -34,9 +34,9 @@ class NameCopiesTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.map = self.tmp / check.DEVICES_REL
+        self.map = (self.tmp / check.DEVICES_REL).with_name(devices.ONE_FILE)     # a one-file copy of the master
         self.map.parent.mkdir(parents=True)
-        self.map.write_text(MAP.read_text(encoding="utf-8"), encoding="utf-8")
+        devices.one_file_copy(self.map)          # the master as one file (no field file beside it)
         self.tables = self.tmp / check.TABLES_REL
         self.tables.parent.mkdir(parents=True)
         self.tables.write_text(TABLES.read_text(encoding="utf-8"), encoding="utf-8")
@@ -57,7 +57,7 @@ class NameCopiesTest(unittest.TestCase):
         self.tables.write_text(text, encoding="utf-8")
 
     def stale(self, files: list[str], allow=None) -> list[str]:
-        hits, _counts, _used = check.run(self.tmp, files, allow=allow or {})
+        hits, _counts, _used = check.run(self.tmp, files, allow=allow or {}, devices_csv=self.map)
         return [str(h) for h in hits]
 
     def test_repo_is_clean(self):
@@ -144,7 +144,7 @@ class NameCopiesTest(unittest.TestCase):
         f = self.write("tools/x.py", '"Mast 32L", "Mast 99Z"\n')
         allow = {"tools/x.py": (frozenset({"Mast 32L", "Mast 31L"}), "dated record")}
         self.assertEqual(["tools/x.py:1: 'Mast 99Z' is not a current name"], self.stale([f], allow))
-        _hits, _counts, used = check.run(self.tmp, [f], allow=allow)
+        _hits, _counts, used = check.run(self.tmp, [f], allow=allow, devices_csv=self.map)
         self.assertEqual(["ALLOW tools/x.py: 'Mast 31L' is no longer there; remove it"],
                          check.unused_allow(allow, used))
 
