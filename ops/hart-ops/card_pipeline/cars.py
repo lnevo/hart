@@ -27,11 +27,13 @@ which new cars still need a card, STS or Operations Pro.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import csv
 import os
 import shutil
 import subprocess
 import sys
+import urllib.request
 import xml.etree.ElementTree as ET
 from datetime import date
 from pathlib import Path
@@ -1016,6 +1018,99 @@ def print_field_sections(rows: list[dict], ops_path: Path, show_all: bool) -> No
     )
 
 
+LIVE_STS_TIMEOUT = 20
+OPERATING_SH = HART_ROOT / "tools/hosts/operating.sh"
+
+
+class LiveStsError(RuntimeError):
+    """The live section cannot run; the message says why. Never falls back to the seed."""
+
+
+def operating_reason() -> str | None:
+    """The operating flag's reason when it is set, else None (operating.sh status exits 0 when set)."""
+    try:
+        out = subprocess.run(
+            [str(OPERATING_SH), "status"], capture_output=True, text=True, timeout=15, check=False
+        )
+    except (OSError, subprocess.SubprocessError) as err:
+        raise LiveStsError(f"cannot read the operating flag ({err}); not touching the live STS") from None
+    return (out.stdout.strip() or "set") if out.returncode == 0 else None
+
+
+@contextlib.contextmanager
+def capped_timeout(seconds: int):
+    """sts_api waits up to an hour per request (for long tasks); a read here must not."""
+    real = urllib.request.urlopen
+    urllib.request.urlopen = lambda req, timeout=None, **kw: real(req, timeout=seconds, **kw)
+    try:
+        yield
+    finally:
+        urllib.request.urlopen = real
+
+
+def fetch_live_cars() -> tuple[str, str, list[dict]]:
+    """(url, stack, cars) from GET /health and GET /cars through the sts-helpers client.
+
+    The URL is STS_API_URL (the caller sets it for this job only); GET requests only.
+    """
+    helpers_lib = str(STS_HELPERS / "lib")
+    if not (STS_HELPERS / "lib/sts_api.py").is_file():
+        raise LiveStsError(NO_SEED_DIR.format(path=STS_HELPERS / "lib"))
+    if helpers_lib not in sys.path:
+        sys.path.insert(0, helpers_lib)
+    import sts_api
+
+    url = sts_api.base_url()
+    try:
+        with capped_timeout(LIVE_STS_TIMEOUT):
+            health = sts_api.get("/health") or {}
+            cars = sts_api.get_all("/cars")
+    except sts_api.ApiError as err:
+        if err.code == "unreachable":
+            raise LiveStsError(f"cannot reach STS at {url}: {err.message.split(': ', 1)[-1]}") from None
+        raise LiveStsError(f"STS at {url} refused the read: {err}") from None
+    except (OSError, ValueError, TypeError) as err:  # timeouts and bad bodies
+        raise LiveStsError(f"cannot read STS at {url}: {type(err).__name__}: {err}") from None
+    return url, str(health.get("stack", "unknown")), cars
+
+
+def live_sts_diffs(rows: list[dict], live: list[dict], passenger_types) -> list[tuple]:
+    """Differences between the repository and the live STS car list, keyed by reporting marks.
+
+    Compared: remarks ("{type} {length}ft"), as the seed builds it. Reporting marks are the key.
+    Not compared: position, load, status, job or destination (ADR-016).
+    """
+    tool = {c["reporting_marks"]: {"remarks": c.get("remarks") or ""} for c in live if c.get("reporting_marks")}
+    want = {
+        f"{a['roadName']}{a['roadNumber']}": {"remarks": f"{a['type']} {a['length']}ft"}
+        for a in expected_cars(rows, frozenset(passenger_types)).values()
+        if a.get("type") and a.get("length")
+    }
+    return field_diffs(want, tool, {"remarks": "remarks"})
+
+
+def print_live_sts(rows: list[dict], show_all: bool, fetch=fetch_live_cars, operating=operating_reason) -> int:
+    """The opt-in live STS section. Returns 0, or 2 when it could not run (nothing else is read instead)."""
+    print("\nLive STS fields (GET /cars, read only):")
+    try:
+        reason = operating()
+        if reason:
+            raise LiveStsError(f"the operating flag is set ({reason}); the live STS is not read")
+        gen, why = seed_helpers()
+        if gen is None:
+            raise LiveStsError(f"cannot check: {why}")
+        url, stack, live = fetch()
+    except LiveStsError as err:
+        print(f"  Cannot check the live STS: {err}")
+        return 2
+    print(f"  Target: {stack} ({url}), {len(live)} cars")
+    print_diffs(live_sts_diffs(rows, live, gen.PASSENGER_TYPES), show_all)
+    repo_marks = {f"{a['roadName']}{a['roadNumber']}" for a in expected_cars(rows, frozenset()).values()}
+    extra = sorted({c["reporting_marks"] for c in live} - repo_marks)
+    print(f"  In the live STS, not in the repository: {' '.join(extra) or 'none'}")
+    return 0
+
+
 def cmd_compare(args: argparse.Namespace) -> int:
     from build_merged_car_roster import ROSTER_TYPO_IDS
 
@@ -1053,7 +1148,12 @@ def cmd_compare(args: argparse.Namespace) -> int:
     )
     photo_ids = {row_id(r) for r in rows if r.get("source_image")} - locos
     print(f"  Photographed cars not in STS: {' '.join(sorted(photo_ids - marks)) or 'none'}")
-    print_field_sections(rows, Path(args.ops_live), getattr(args, "all", False))
+    show_all = getattr(args, "all", False)
+    print_field_sections(rows, Path(args.ops_live), show_all)
+    if getattr(args, "live_sts", False):
+        if getattr(args, "sts_url", None):
+            os.environ["STS_API_URL"] = args.sts_url  # this run only
+        return print_live_sts(rows, show_all)
     return 0
 
 
@@ -1135,6 +1235,11 @@ def main() -> int:
     p = sub.add_parser("compare")
     p.add_argument("--ops-live", default=str(OPS_MERGED))
     p.add_argument("--all", action="store_true", help="List every field difference, not the first 20")
+    p.add_argument("--live-sts", action="store_true",
+                   help="Also read the live STS cars over its API (GET only; refused while the operating flag is set)")
+    p.add_argument("--sts-url", metavar="URL",
+                   help="STS API base URL for this run, e.g. http://RPi-JMRI.local:8980/sts/api/v1 "
+                        "(else STS_API_URL, else the Mac UAT)")
     p.set_defaults(run=cmd_compare)
     args = parser.parse_args()
     return args.run(args)
