@@ -86,19 +86,27 @@ class TrackLengths(unittest.TestCase):
                             "e28.1": ["Track BP"], "e29": ["Track Scale", "OS Switch 7"],
                             "e6": ["OS Switch 3", "OS Switch 1"]}}
         got = PL.track_lengths(b, names, {"e15": 245.8, "e28": 71.6, "e29": 158.0, "e6": 10.0},
-                               {"OS Switch 7", "OS Switch 3", "OS Switch 1"})
+                               {"OS Switch 7", "OS Switch 3", "OS Switch 1"}, {})
         self.assertEqual(got, {"Track K-1": 122.9, "Track K-2": 122.9, "Track BP": 71.6, "Track Scale": 158.0})
 
     def test_track_blocks_on_one_track_share_it_evenly_and_a_missing_run_stops(self):
-        """The k-th of a strand's n track blocks takes 1/n of its run, as on main and upper (plan_lengths.track_inches)
-        and in the block layer (a track with a part at each end: Track 1-3 at 1 and at 3)."""
+        """Parts at both ends of a track (Track 1-3 at 1 and at 3) share its run evenly, as track_inches reads a k/n
+        key; a part at one end with its own cm (block_exceptions.csv) takes that cm and the track's own block the rest
+        (the Scale-in-OS-7 shape); any other mix of track blocks on one strand stops."""
         b = band({"e22": ("e22", "")})
         names = {"blocks": {"e22": ["Track 1-3 at 1", "Track 1-3 at 3"]}}
-        self.assertEqual(PL.track_lengths(b, names, {"e22": 21.0}, set()),
+        parts = {"Track 1-3 at 1": 10.0, "Track 1-3 at 3": 10.0}
+        self.assertEqual(PL.track_lengths(b, names, {"e22": 21.0}, set(), parts),
                          {"Track 1-3 at 1": 10.5, "Track 1-3 at 3": 10.5})
+        scale = {"blocks": {"e22": ["Track Scale", "Track Scale at 7"]}}
+        got = PL.track_lengths(b, scale, {"e22": 100.0}, set(), {"Track Scale at 7": 25.4})
+        self.assertEqual({k: round(v, 6) for k, v in got.items()}, {"Track Scale at 7": 10.0, "Track Scale": 90.0})
+        with self.assertRaisesRegex(PL.LengthError, "Track Scale at 7: 254 cm is not under the track's 100.0 in"):
+            PL.track_lengths(b, scale, {"e22": 100.0}, set(), {"Track Scale at 7": 254.0})
+        with self.assertRaisesRegex(PL.LengthError, r"track e22: blocks \['Track A', 'Track B'\] share it"):
+            PL.track_lengths(b, {"blocks": {"e22": ["Track A", "Track B"]}}, {"e22": 21.0}, set(), {})
         with self.assertRaisesRegex(PL.LengthError, "track e22: no run in the plan file"):
-            PL.track_lengths(b, {"blocks": {"e22": ["Track A"]}}, {}, set())
-
+            PL.track_lengths(b, {"blocks": {"e22": ["Track A"]}}, {}, set(), {})
 
 class EdgeRuns(unittest.TestCase):
     GRAPH = {"nodes": {"a": {"kind": "switch", "label": "T1"}, "b": {"kind": "switch", "label": "T2"},
@@ -144,7 +152,7 @@ class CsvWith(unittest.TestCase):
         self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["plan_in"], r["source"]) for r in got],
                          [("Track A", "x", "1.0", "plan"), ("OS Switch 101", "BS Switch 101", "16.0", "plan"),
                           ("Track 117-119", "BS Switch 117", "0.0", "plan"),
-                          ("Track 201-203", "BS 201-203", "7.0", "plan")])     # a row it had keeps its columns
+                          ("Track 201-203", "BS Switch 201", "7.0", "plan")])  # a part: its block's sensor again
 
     def test_a_main_or_upper_row_keeps_its_own_columns(self):
         p = self.write([["Track A", "x", "1.0", "", "plan", ""],
@@ -153,6 +161,19 @@ class CsvWith(unittest.TestCase):
                                                           p))))
         self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["source"], r["note"]) for r in got],
                          [("Track A", "1.0", "", "plan", ""), ("Track 201-203", "7.0", "4.4", "timed", "laps")])
+
+    def test_a_parts_sensor_follows_its_block_every_build(self):
+        """A part reports on its block's detector (owner, 2026-11-20): its occupancy_sensor is set from that block's
+        row on every build, staging and main or upper alike, so a rewired block takes its parts with it."""
+        p = self.write([["OS Switch 1", "Block 4-9", "9.0", "", "plan", ""],
+                        ["Track 1-3 at 1", "Block 4-2", "5.0", "", "plan", "kept"],
+                        ["Track 201-203", "BS Switch 299", "3.0", "", "plan", ""]])
+        got = list(csv.DictReader(io.StringIO(PL.csv_with(
+            {"OS Switch 1": 9.0, "Track 1-3 at 1": 5.0}, {"Track 201-203": ("3", 7.04, "OS Switch 201")}, p,
+            parts={"Track 1-3 at 1": "OS Switch 1"}))))
+        self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["note"]) for r in got],
+                         [("OS Switch 1", "Block 4-9", ""), ("Track 1-3 at 1", "Block 4-9", "kept"),
+                          ("Track 201-203", "BS Switch 201", "")])
 
     def test_the_file_and_the_drawing_must_hold_the_same_blocks(self):
         p = self.write([["Track A", "x", "1.0", "", "plan", ""]])

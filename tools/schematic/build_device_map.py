@@ -1175,7 +1175,6 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
         row["description"] = devices.describe(row)
         return row
 
-    os_rows_by_name = {r["user_name"]: r for r in master if r["level"] == FIELD_LEVEL and r["layer"] == "block"}
     next_pnm = [max((int(r["pnm_order"]) for r in master if r["pnm_order"]), default=0)]
     for name in sorted(blocks | set(lay.parts), key=natural):
         if name in lay.parts:
@@ -1194,19 +1193,14 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                         bad.append(str(exc))
             row = part_row(FIELD_LEVEL, name, part, trials[name])
             row.update(assignment="virtual", jmri_name=beans[name][0], layout_block=beans[name][1])
-            # a JMRI block of its own, so a row of the public name map (ADR-005): the one it has, else the next place,
-            # with its block's control point, detector and comment
+            # a JMRI block of its own, so a row of the public name map (ADR-005): the place it has, else the next;
+            # its control point, detector and comment are its block's, taken below from the block's rewired row
             if old is not None and old["role"] == "part" and old["pnm_order"]:
-                row.update({c: old[c] for c in devices.COLUMNS if c.startswith("pnm_")})
+                row["pnm_order"] = old["pnm_order"]
             else:
-                of = os_rows_by_name.get(part["part_of"])
-                if of is None or not of["pnm_order"]:
-                    bad.append(f"staging part {name}: its block {part['part_of']} has no name-map row to take its "
-                               "control point and detector from")
-                else:
-                    next_pnm[0] += 1
-                    row.update(pnm_order=str(next_pnm[0]), pnm_cp=of["pnm_cp"], pnm_hardware=of["pnm_hardware"],
-                               pnm_comment=of["pnm_comment"], pnm_notes=f"part of {part['part_of']}")
+                next_pnm[0] += 1
+                row["pnm_order"] = str(next_pnm[0])
+            row["pnm_notes"] = f"part of {part['part_of']}"
             row["description"] = devices.describe(row)
             out.append(row)
         else:
@@ -1219,8 +1213,15 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
                     bad.append(str(exc))
             out.append(row)
     comment_of = {r["user_name"]: r["jmri_comment"] for r in out if r is not None and r["role"] != "part"}
+    block_rows = {r["user_name"]: r for r in out if r is not None and r["role"] != "part"}
     for r in out:               # a part's JMRI comment: where it is, and its block's detector (its occupancy sensor)
         if r is not None and r["role"] == "part":
+            of = block_rows.get(r["part_of"])       # as rewired on this build (wiring.csv)
+            if of is None or not of["pnm_order"]:
+                bad.append(f"staging part {r['user_name']}: its block {r['part_of']} has no name-map row to take its "
+                           "control point and detector from")
+                continue
+            r.update(pnm_cp=of["pnm_cp"], pnm_hardware=of["pnm_hardware"], pnm_comment=of["pnm_comment"])
             m = re.search(r"occupancy .*$", comment_of.get(r["part_of"], ""))
             if not m:
                 bad.append(f"staging part {r['user_name']}: its block {r['part_of']} has no occupancy in its comment")

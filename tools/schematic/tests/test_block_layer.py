@@ -378,6 +378,21 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(changed, {("occupancy", "BS Barn"), ("block", "Track Barn"),
                                    ("occupancy", "BS EH-1"), ("block", "Track EH-1")})
 
+    def test_a_parts_name_map_cells_follow_its_rewired_block(self):
+        """OS Switch 9 and OS Switch 11 swap inputs in wiring.csv: their parts (Track 9-11 and Track 11-13) take the
+        rewired block's control point, detector and comment in the name map on the same build, and keep their
+        place (pnm_order)."""
+        def swap(text):
+            return (text.replace("1,detector,OS Switch 9,,,,,13,8,", "1,detector,OS Switch 9,,,,,13,2,")
+                        .replace("1,detector,OS Switch 11,,,,,13,2,", "1,detector,OS Switch 11,,,,,13,8,"))
+        got, want = self.by(self.rows(pins=swap)[0]), self.by(self.rows()[0])
+        for part, block in (("Track 9-11", "OS Switch 9"), ("Track 11-13", "OS Switch 11")):
+            p, b = got[("block", part)], got[("block", block)]
+            self.assertNotEqual(b["pnm_hardware"], want[("block", block)]["pnm_hardware"])
+            self.assertEqual((p["pnm_cp"], p["pnm_hardware"], p["pnm_comment"]),
+                             (b["pnm_cp"], b["pnm_hardware"], b["pnm_comment"]), part)
+            self.assertEqual(p["pnm_order"], want[("block", part)]["pnm_order"])
+
     def test_a_hand_edit_of_the_wiring_in_the_master_is_overwritten(self):
         stale = {"BS Barn": dict(node="4", system_name="M2S498", jmri_name="M2S498", wiring="Node: 4 Block: 99",
                                  pnm_hardware="M2S498", pnm_comment="Node: 4 Block: 99"),

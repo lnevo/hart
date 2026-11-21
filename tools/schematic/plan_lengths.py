@@ -203,12 +203,15 @@ def edge_runs(graph: dict, runs: dict) -> dict:
     return out
 
 
-def track_lengths(band, names: dict, runs: dict, os_blocks: set) -> dict:
+def track_lengths(band, names: dict, runs: dict, os_blocks: set, parts: dict) -> dict:
     """{track block: inches} from `runs` ({plan edge id: inches}, edge_runs): each strand of the band takes its
     edge's run, split evenly over the strands the schematic draws it as (a balloon loop folded at its turnback). On a
-    strand, OS blocks take nothing (the run leaves the turnouts out) and its n track blocks (a track with a part at
-    each end: Track 1-3 at 1 and at 3) take 1/n of it each, as track_inches reads a k/n key; a block on several
-    strands adds them up. LengthError on an edge with no run in the plan."""
+    strand, OS blocks take nothing (the run leaves the turnouts out); one track block takes the rest; parts only
+    (`parts`: {part: its cm}, block_layer.Layer.parts; a track with a part at each end: Track 1-3 at 1 and at 3) share
+    it evenly, as track_inches reads a k/n key; a part at one end beside its track's own block takes its cm (the
+    piece block_exceptions.csv gives a length) and the track's block the rest. A block on several strands adds them
+    up. LengthError on an edge with no run in the plan, a part's cm not under its strand's run, or any other mix of
+    track blocks on one strand."""
     strands = band["strands"]
     by_edge = defaultdict(list)
     for sid, s in strands.items():
@@ -222,8 +225,21 @@ def track_lengths(band, names: dict, runs: dict, os_blocks: set) -> dict:
         share = runs[edge] / len(sids)
         for sid in sids:
             tracks = [b for b in names["blocks"][sid] if b not in os_blocks]
-            for b in tracks:
-                out[b] += share / len(tracks)
+            own = [b for b in tracks if b not in parts]
+            if len(tracks) <= 1 or not own:
+                for b in tracks:
+                    out[b] += share / len(tracks)
+            elif len(own) == 1:
+                pieces = {b: parts[b] / CM for b in tracks if b in parts}
+                if sum(pieces.values()) >= share:
+                    bad.append("; ".join(f"{b}: {parts[b]:g} cm is not under the track's {share:.1f} in"
+                                         for b in pieces))
+                    continue
+                for b, inches in pieces.items():
+                    out[b] += inches
+                out[own[0]] += share - sum(pieces.values())
+            else:
+                bad.append(f"track {sid}: blocks {tracks} share it and only one may take what its parts leave")
     if bad:
         raise LengthError("; ".join(bad))
     return dict(out)
@@ -239,7 +255,12 @@ def compute(plan: Path | None) -> tuple[dict, bool]:
     out = os_lengths(band, names, graph, parts)
     if plan is None:
         return out, False
-    out.update(track_lengths(band, names, edge_runs(graph, plan_runs(plan)), set(out)))
+    import build_device_map as bdm
+    with pd.cache_on():
+        bands, joined, runs, _corners = bdm.solve()
+    lay, _bi, _found = bdm.staging_layer(bands, joined, runs)
+    part_cm = {name: p["cm"] for name, p in lay.parts.items()}
+    out.update(track_lengths(band, names, edge_runs(graph, plan_runs(plan)), set(out), part_cm))
     drawn = {b for v in names["blocks"].values() for b in v} | set(names["os"].values())
     missing = sorted(drawn - set(out))
     if missing:
@@ -439,7 +460,8 @@ def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS, parts: dict 
     it (its occupancy sensor, measured length, source and note; only plan_in is set, as on staging); a new one gets a
     row (source plan, occupancy_sensor its sensor block's occupancy row, no measured length). Main and upper's rows
     come after staging's in level and name order. A staging part (`parts`: {part: its block}) with no row gets one on
-    its block's detector. LengthError when another drawn staging block has no row, or a row is a
+    its block's detector, and every part's occupancy_sensor is its block's again on every build (a part on any
+    level). LengthError when another drawn staging block has no row, or a row is a
     block of no level."""
     from hartlib import level_devices
     with path.open(newline="", encoding="utf-8") as fh:
@@ -462,6 +484,8 @@ def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS, parts: dict 
                             note=f"staging, the plan's length; a part of {parts[b]}, on its detector"))
     for r in staging:
         r["plan_in"] = f"{lengths[r['user_name']]:.1f}"
+        if r["user_name"] in parts:      # a part reports on its block's detector, as that block's row has it now
+            r["occupancy_sensor"] = sensor_of[parts[r["user_name"]]]
     stray = sorted(r["user_name"] for r in rest if r["user_name"] not in main_upper)
     if stray:
         raise LengthError(f"{paths.rel(path)}: rows of no drawn block on any level: {stray}")
@@ -471,6 +495,8 @@ def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS, parts: dict 
         row = held.get(name) or dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(sensor),
                                      measured_in="", source="plan",
                                      note=f"{'main' if level == '2' else 'upper'} level, the plan's length")
+        if sensor != name:              # a part: on its block's sensor, whatever its row held
+            row = dict(row, occupancy_sensor=level_devices.occupancy_user(sensor))
         rest.append(dict(row, plan_in=f"{inches:.1f}"))
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(railroad.BLOCK_LENGTH_COLUMNS), lineterminator="\n")
