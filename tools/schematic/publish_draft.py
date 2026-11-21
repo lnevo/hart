@@ -174,7 +174,7 @@ def solved_sheet(sheet):
     Layout Editor panel's and the CATS desks' windows are derived. host_screen.HostScreenError when that stops; a
     caller turns it into its own error (le_common.schematic: BuildError)."""
     with cache_on():
-        built = sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+        built = sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(layer_files.view(DATA)))
     apply_host_screen(built.opts)
     return built
 
@@ -296,7 +296,7 @@ def compare_drawing():
 def draw():
     with tempfile.TemporaryDirectory() as tmp:
         svg = Path(tmp) / "sheet.svg"
-        run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(DATA),
+        run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(layer_files.view(DATA)),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
@@ -309,7 +309,7 @@ def draw_stations():
     """{file name: SVG} of every station detail sheet (the detail_sheets preference), drawn from both
     inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet."""
     with tempfile.TemporaryDirectory() as tmp:
-        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(DATA),
+        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(layer_files.view(DATA)),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")

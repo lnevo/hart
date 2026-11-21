@@ -4,6 +4,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -126,6 +127,96 @@ class Temp(unittest.TestCase):
         self.fails(lambda: L.read("plan_overrides", "main_upper", self.data),
                    "staging.plan_overrides.json beside plan_overrides.json: move each into its section")
         self.fails(lambda: L.write({("plan_overrides", "main_upper"): {}}, self.data), "beside plan_overrides.json")
+
+
+# what the three builders write (T6b): the keys that moved out of plan_overrides.json into plan_generated.json
+MOVED = {"staging": ["stations", "control_points", "station_tracks", "_control_points", "milepost_route", "_main_lines"],
+         "main_upper": ["control_points", "stations", "_control_points", "main_route"]}
+
+
+def split_one_file(whole: dict) -> tuple[dict, dict]:
+    """The one-file plan_overrides of before T6b as (hand, generated), the way the migration cut it."""
+    hand, gen = json.loads(json.dumps(whole)), {"_sections": True, "staging": {}, "main_upper": {}}
+    for sheet, keys in MOVED.items():
+        for k in keys:
+            gen[sheet][k] = hand[sheet].pop(k)
+    named = [e for e in hand["staging"]["edits"] if e["op"] == "name"]
+    gen["staging"][L.NAME_MAIN] = []
+    for i, t in enumerate(named[0]["tracks"]):
+        if "main" in t[3:]:
+            gen["staging"][L.NAME_MAIN].append(i)
+            t[:] = [x for j, x in enumerate(t) if j < 3 or x != "main"]
+    return hand, gen
+
+
+class PlanGenerated(unittest.TestCase):
+    ONE_FILE = Path(__file__).resolve().parent / "fixtures" / "plan_overrides_one_file.json"
+
+    def test_the_merged_view_is_the_one_file_it_was_cut_from(self) -> None:
+        whole = json.loads(self.ONE_FILE.read_text(encoding="utf-8"))
+        hand, gen = split_one_file(whole)
+        self.assertFalse(set(gen["staging"]) & set(hand["staging"]))
+        self.assertEqual(L.merge(hand, gen), whole)
+
+    def test_a_hand_value_wins_and_a_generated_key_is_never_taken_from_the_hand_file(self) -> None:
+        merged = L.merge({"_sections": True, "staging": {"a": 1, "edits": []}},
+                         {"_sections": True, "staging": {"a": 2, "b": 3}})
+        self.assertEqual(merged["staging"], {"a": 1, "edits": [], "b": 3})
+
+    def test_a_flag_past_the_name_edit_stops(self) -> None:
+        hand = {"_sections": True, "staging": {"edits": [{"op": "name", "tracks": [["1", "2", "x"]]}]}}
+        with self.assertRaisesRegex(L.LayerFileError, "track 4 is past the 1"):
+            L.merge(hand, {"_sections": True, "staging": {L.NAME_MAIN: [4]}})
+
+    def test_the_repo_files_merge_to_a_whole_view_and_the_hand_file_has_no_generated_key(self) -> None:
+        hand = L.read_file("plan_overrides")
+        for sheet, keys in MOVED.items():
+            self.assertEqual([k for k in keys if k in hand[sheet]], [], sheet)
+        merged = L.merged()
+        self.assertEqual(L.merged_section("staging"), merged["staging"])
+        self.assertIn("main_route", merged["main_upper"])
+        self.assertIn("milepost_route", merged["staging"])
+
+    def test_a_generated_write_replaces_its_keys_only_and_never_touches_the_hand_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            data = Path(tmp)
+            hand, gen = split_one_file(json.loads(self.ONE_FILE.read_text(encoding="utf-8")))
+            (data / "plan_overrides.json").write_text(L.dumps(hand), encoding="utf-8")
+            (data / "plan_generated.json").write_text(L.dumps(gen), encoding="utf-8")
+            before = (data / "plan_overrides.json").read_bytes()
+            changed = L.write_generated({"main_upper": {"main_route": [["a", "b", "direct"]]}}, data)
+            self.assertEqual([p.name for p in changed], ["plan_generated.json"])
+            self.assertEqual((data / "plan_overrides.json").read_bytes(), before)
+            now = L.read("plan_generated", "main_upper", data)
+            self.assertEqual(now["main_route"], [["a", "b", "direct"]])
+            self.assertEqual(now["control_points"], gen["main_upper"]["control_points"])
+            self.assertEqual(L.read("plan_generated", "staging", data), gen["staging"])
+            with self.assertRaisesRegex(L.LayerFileError, "written key by key"):
+                L.texts({("plan_generated", "staging"): {}}, data)
+
+    def test_a_folder_without_a_generated_file_has_nothing_generated(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            whole = {"_sections": True, "staging": {"a": 1}}
+            (Path(tmp) / "plan_overrides.json").write_text(L.dumps(whole), encoding="utf-8")
+            self.assertEqual(L.merged(Path(tmp)), whole)
+            self.assertEqual(L.view(Path(tmp)), Path(tmp).resolve())
+
+    def test_the_plugin_folder_holds_the_merged_file_and_is_left_alone_when_nothing_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp, tempfile.TemporaryDirectory() as cache:
+            data = Path(tmp)
+            hand, gen = split_one_file(json.loads(self.ONE_FILE.read_text(encoding="utf-8")))
+            (data / "plan_overrides.json").write_text(L.dumps(hand), encoding="utf-8")
+            (data / "plan_generated.json").write_text(L.dumps(gen), encoding="utf-8")
+            (data / "preferences.json").write_text("{}", encoding="utf-8")
+            with unittest.mock.patch.dict("os.environ", {"HART_CACHE_DIR": cache}):
+                folder = L.view(data)
+                self.assertEqual(json.loads((folder / "plan_overrides.json").read_text(encoding="utf-8")),
+                                 L.merged(data))
+                self.assertTrue((folder / "preferences.json").is_symlink())
+                self.assertFalse((folder / "plan_generated.json").exists())
+                stamp = (folder / "plan_overrides.json").stat().st_mtime_ns
+                self.assertEqual(L.view(data), folder)
+                self.assertEqual((folder / "plan_overrides.json").stat().st_mtime_ns, stamp)
 
 
 if __name__ == "__main__":

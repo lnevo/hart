@@ -66,16 +66,18 @@ STEPS: dict[str, Step] = {
     "hands": Step(
         (f"{SCH}/inputs/main.json", f"{SCH}/plan_overrides.json", f"{DATA}/switches.csv"),
         (f"{DATA}/switches.csv",)),
+    # plan_generated.json is an output of staging-sets, main-route and device-map (each replaces only its own keys, so it
+    # reads the file it writes to carry the others' keys over) and an input of every step that draws from the plan.
     "staging-sets": Step(
-        (f"{SCH}/plan_overrides.json", f"{SCH}/preferences.json", f"{SCH}/sheets.csv", f"{SCH}/stations.csv",
+        (f"{SCH}/plan_generated.json", f"{SCH}/preferences.json", f"{SCH}/sheets.csv", f"{SCH}/stations.csv",
          f"{DATA}/switches.csv"),
-        (f"{SCH}/plan_overrides.json", f"{SCH}/preferences.json")),
+        (f"{SCH}/plan_generated.json", f"{SCH}/preferences.json")),
     "main-route": Step(
         (f"{SCH}/block_numbering.csv", f"{SCH}/inputs/*.json", f"{SCH}/main_lines.csv", f"{SCH}/plan_overrides.json",
-         f"{SCH}/preferences.json", f"{SCH}/signals.json", f"{SCH}/stations.csv", f"{SCH}/sheets.csv",
-         f"{DATA}/switches.csv"),
-        (f"{SCH}/plan_overrides.json",)),
-    "device-map": Step(ALL_DATA, (f"{SCH}/plan_overrides.json", f"{DATA}/{DEVICES_FILE}")),
+         f"{SCH}/plan_generated.json", f"{SCH}/preferences.json", f"{SCH}/signals.json", f"{SCH}/stations.csv",
+         f"{SCH}/sheets.csv", f"{DATA}/switches.csv"),
+        (f"{SCH}/plan_generated.json",)),
+    "device-map": Step(ALL_DATA, (f"{SCH}/plan_generated.json", f"{DATA}/{DEVICES_FILE}")),
     "masts": Step(ALL_DATA, (f"{SCH}/masts.csv", f"{DATA}/{DEVICES_FILE}")),
     "signals": Step(ALL_DATA, (f"{SCH}/signals.json",)),
     "head-plan": Step((f"{DATA}/wiring.csv", f"{SCH}/lcos_nodes.csv"), (f"{OUT}/signal_head_plan.csv",)),
