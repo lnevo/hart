@@ -1,5 +1,5 @@
-"""build_masts.py: a wired staging head is read from the staging rows of devices.csv and kept on every rebuild;
-a wired head the rule cannot carry stops the build."""
+"""build_masts.py: a wired staging head is wiring.csv's, its notes the owner's (devices_field.csv), and it is kept on
+every rebuild; a wired head the rule cannot carry stops the build."""
 from __future__ import annotations
 
 import csv
@@ -30,8 +30,14 @@ def rows_of(text: str) -> list[dict]:
 
 
 def staging_rows(master_text: str) -> list[dict]:
-    """The staging rows of a master's text, in the old device-map form."""
-    return devices.device_map_rows(rows_of(master_text), ("1",))
+    """The staging rows of a generated file's text merged with the repo's field file, in the old device-map form."""
+    files = devices.Files.here()
+    return devices.device_map_rows(devices.parse(master_text, files.master.name, files), ("1",))
+
+
+def owned(user="Head 6LB", notes="wired (owner, 2026-11-18)") -> dict:
+    """A field row of a staging head: its key and the owner's notes."""
+    return dict(dict.fromkeys(devices.COLUMNS, ""), level="1", layer="head", user_name=user, notes=notes)
 
 
 WIRED = row("head", "Head 6LB", "IH432", node="4", notes="wired (owner, 2026-11-18)")
@@ -61,33 +67,35 @@ def wiring_file(text: str) -> Path:
 
 
 class WiringHeads(unittest.TestCase):
-    """wiring_heads: a wired head's address, node and wiring text are wiring.csv's; a wired head row it does not
-    list stops."""
+    """wiring_heads: a wired head's address, node and wiring text are wiring.csv's, its notes its field row's; a field
+    head row it does not list stops."""
     HEAD = ",".join(bsm.wiring.COLUMNS) + "\n"
 
     def test_the_committed_head(self):
-        got = bsm.wiring_heads([MAST, WIRED, INTERNAL])
+        got = bsm.wiring_heads([owned()])
         h = got["Mast 6LB"]["Head 6LB"]
         self.assertEqual((h["jmri_name"], h["node"], h["comment"], h["notes"]),
                          ("IH432", "4", "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3", "wired (owner, 2026-11-18)"))
 
     def test_a_moved_head_follows_wiring_csv(self):
         p = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,1,OU2,"4,5,6",wired,\n')
-        h = bsm.wiring_heads([MAST, WIRED], p)["Mast 6LB"]["Head 6LB"]
+        h = bsm.wiring_heads([owned()], p)["Mast 6LB"]["Head 6LB"]
         self.assertEqual((h["system_name"], h["comment"]), ("IH433", "Node: 4 Signal: 1 | OU: 2 Ports: 4,5,6"))
 
-    def test_a_newly_wired_head_keeps_the_rows_own_note(self):
-        own = row("head", "Head 6LB", "IH:HART:C1:6LB", notes="one high head (owner)")
+    def test_a_wired_heads_notes_are_the_owners_else_wiring_csvs_else_wired(self):
         p = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,\n')
-        self.assertEqual(bsm.wiring_heads([own], p)["Mast 6LB"]["Head 6LB"]["notes"], "one high head (owner)")
-        internal = row("head", "Head 6LB", "IH:HART:C1:6LB", notes="internal, not wired")
-        self.assertEqual(bsm.wiring_heads([internal], p)["Mast 6LB"]["Head 6LB"]["notes"], "wired")
+        self.assertEqual(bsm.wiring_heads([owned(notes="one high head (owner)")], p)["Mast 6LB"]["Head 6LB"]["notes"],
+                         "one high head (owner)")
+        self.assertEqual(bsm.wiring_heads([], p)["Mast 6LB"]["Head 6LB"]["notes"], "wired")
+        noted = wiring_file(self.HEAD + '1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,from wiring\n')
+        self.assertEqual(bsm.wiring_heads([], noted)["Mast 6LB"]["Head 6LB"]["notes"], "from wiring")
 
     def test_a_wired_head_wiring_csv_does_not_list_stops(self):
-        with self.assertRaisesRegex(bsm.RuleError, "Head 6LB is wired .* but has no head row in wiring.csv"):
-            bsm.wiring_heads([MAST, WIRED], wiring_file(self.HEAD))
+        with self.assertRaisesRegex(bsm.RuleError, r"devices_field.csv: Head 6LB \(level 1, head\) has no head row in "
+                                                   r"wiring.csv: add its wiring there, or remove the field row"):
+            bsm.wiring_heads([owned()], wiring_file(self.HEAD))
         with self.assertRaisesRegex(bsm.RuleError, "Head 6LB is on node 41, no staging node"):
-            bsm.wiring_heads([MAST, WIRED], wiring_file(self.HEAD + '1,head,Head 6LB,,,,,41,0,OU2,"1,2,3",wired,\n'))
+            bsm.wiring_heads([owned()], wiring_file(self.HEAD + '1,head,Head 6LB,,,,,41,0,OU2,"1,2,3",wired,\n'))
         with self.assertRaisesRegex(bsm.RuleError, "is not a staging head name"):
             bsm.wiring_heads([], wiring_file(self.HEAD + '1,head,Signal 6,,,,,4,0,OU2,"1,2,3",wired,\n'))
 
@@ -154,25 +162,14 @@ class Rebuild(unittest.TestCase):
     def setUpClass(cls):
         cls.want, cls.gen, _virtual = bsm.build()
 
-    def build_with(self, edit=None, wiring_edit=None):
-        """build() on a copy of the repo's devices.csv whose staging device-map rows `edit(rows)` changed (the mast and
-        head rows it gives are the ones bsm holds) and of wiring.csv (`wiring_edit(text)`); returns ({path name:
-        text}, generated masts)."""
+    def build_with(self, field_edit=None, wiring_edit=None):
+        """build() on a copy of the repo's two device files whose field rows `field_edit(rows)` changed (the owner's
+        hand) and of wiring.csv (`wiring_edit(text)`); returns ({path name: text}, generated masts)."""
         with tempfile.TemporaryDirectory() as d:
-            real = devices.Files.here()
-            files = real.but(master=Path(d) / devices.MASTER_FILE)
-            held = list(devices.load(real))
-            rows = (edit or (lambda x: x))([dict(devices.device_map_row(r), role=r["role"]) for r in held  # its role
-                                            if r["level"] == "1" and r["role"] not in devices.OUT_OF_MAPS])
-            prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
-            mine = [devices.master_row(r, "build_masts.py", prior.get((r["level"], r["layer"], r["user_name"])))
-                    for r in rows if r["layer"] in bsm.WRITES]
-            # the edit may rename a row (that is the test); its old staging row is meant to go here
-            gone = {(r["level"], r["layer"], r["user_name"]) for r in held if r["written_by"] == "build_masts.py"} \
-                - {(r["level"], r["layer"], r["user_name"]) for r in mine}
-            held = devices.replace_rows(held, "build_masts.py", mine, drops=gone)
-            for path, text in devices.texts(held, files).items():
-                path.write_text(text, encoding="utf-8")
+            files = devices.pair_copy(Path(d))
+            if field_edit:
+                rows = field_edit([dict(r) for r in devices.field_rows(files)])
+                files.field.write_text(devices.master_text(rows), encoding="utf-8")
             text = bsm.wiring.PATH.read_text(encoding="utf-8")
             wf = Path(d) / "wiring.csv"
             wf.write_text(wiring_edit(text) if wiring_edit else text, encoding="utf-8")
@@ -220,13 +217,10 @@ class Rebuild(unittest.TestCase):
             self.build_with(wiring_edit=self.wire("Head 98L", 13, 2))
 
     def test_a_wired_head_whose_mast_has_other_heads_stops(self):
-        def split(rows):
-            for r in rows:
-                if r["user_name"] == "Head 6LB":
-                    r["user_name"] = "Head 6LB Top"
-            return rows
+        def gone(rows):         # the owner's notes of Head 6LB go with the name wiring.csv no longer has
+            return [r for r in rows if r["user_name"] != "Head 6LB"]
         with self.assertRaisesRegex(bsm.RuleError, "Mast 6LB: the rule gives 1 head"):
-            self.build_with(split, lambda text: text.replace("1,head,Head 6LB,", "1,head,Head 6LB Top,"))
+            self.build_with(gone, lambda text: text.replace("1,head,Head 6LB,", "1,head,Head 6LB Top,"))
 
 
 if __name__ == "__main__":

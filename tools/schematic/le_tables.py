@@ -466,7 +466,8 @@ def level_sensors(path: Path = DEVICE_MAP) -> dict:
         raise BuildError(f"{paths.rel(path)}: {exc}") from None
     for line, r in parts:
         if r["part_of"] not in out:
-            bad.append(f"line {line}: part {r['user_name']} is part of {r['part_of']}, which has no occupancy sensor")
+            bad.append(f"part {r['user_name']} (level {r['level']}) is part of {r['part_of']}, which has no occupancy "
+                       "sensor")
             continue
         out[r["user_name"]] = out[r["part_of"]]
     if bad:

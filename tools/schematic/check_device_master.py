@@ -14,7 +14,6 @@ Every row (row_problems), each naming the file, line, level, layer and device:
   row's level is the band its track is drawn on: Track 127-221 is drawn on the upper band from main level CP 127);
 - a field device names its user, system and jmri names;
 - only a turnout or block row has a trial_name, and no two rows of one level share one;
-- a row kept by hand (no written_by) is a field device: the railroad's own, in JMRI as it is;
 - an occupancy row is a field device exactly when its detector is wired.
 
 The rows together (check_rows):
@@ -35,7 +34,7 @@ occupancy row's; a turnout's jmri_name that turnout, its feedback sensors fb row
 turnout; a head's user name; a mast's heads its head rows, and its planned heads the head rows' planned devices.
 
 Against the drawing: the end switches of the main and upper tracks (build_device_map.named_tracks), for the cp rule
-above; the rows kept by hand are read on their level's band (staging_device_map.load: staging's
+above; staging's rows (the owner's, devices_field.csv) are read on their band (staging_device_map.load: staging's
 trial names, short tracks, normal legs and masts), and the helix tracks drawn from their staging switches
 (staging_device_map.check_helix). A builder's rows are its own --check's (build_device_map.py regenerates the main
 and upper rows from the drawing). masts.csv's staging rows are read in their shape (load_signal_masts,
@@ -109,7 +108,8 @@ def known_places(interlockings: list[railroad.Interlocking], stations_path: Path
 
 
 def _at(n: int, r: dict, where: str) -> str:
-    return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
+    """A master row as a message names it: its file and key, never a line (the master is two merged files)."""
+    return f"{where}: {devices.key_text(devices.key_of(r))}"
 
 
 def switch_cps(interlockings: list[railroad.Interlocking], stations_path: Path = STATIONS) -> dict[str, set[str]]:
@@ -238,10 +238,8 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
             bad.append(f"{at}: a {layer} row has a trial_name")
         for ph in phs:
             if (level, ph) in trial:
-                bad.append(f"{at}: trial_name {ph} is line {trial[(level, ph)]}'s as well")
-            trial.setdefault((level, ph), n)
-        if not r["written_by"] and r["assignment"] != "field":
-            bad.append(f"{at}: kept by hand, so a field device, not assignment {r['assignment']}")
+                bad.append(f"{at}: trial_name {ph} is {trial[(level, ph)]}'s as well")
+            trial.setdefault((level, ph), devices.key_text(devices.key_of(r)))
         if layer == "occupancy" and (r["assignment"] == "field") != (r["detector"] == "wired"):
             bad.append(f"{at}: assignment {r['assignment']} with detector {r['detector']!r}: a detector is wired "
                        "exactly when the row is a field device")
@@ -335,14 +333,9 @@ def stop_token(comment: str | None) -> bool:
 
 
 def check_drawing(band, lines: list[tuple[int, dict]]) -> list[str]:
-    """The hand-kept rows against the drawing (the module text): only staging_device_map.load reads hand-kept rows,
-    so a hand-kept row of another level is a problem, not a row left unread."""
-    # a level-less row (a device added in PanelPro, kept by its jmri_bean) is on no drawing yet, so nothing reads it here
-    other = [(n, r) for n, r in lines if not r["written_by"] and r["level"] not in (str(sdm.LEVEL), "")]
-    bad = [f"{_at(n, r, DEVICE_MAP.name)}: kept by hand, but only staging's hand-kept rows (level {sdm.LEVEL}) are "
-           "read against the drawing; give it a writer, whose --check reads it" for n, r in other]
-    bad += sdm.check_helix(band, sdm.load(band))
-    return bad
+    """Staging's rows against the drawing (the module text): the helix tracks drawn from their staging switches.
+    Every row with a level has a writer (hartlib.devices.check_generated), whose --check reads it."""
+    return sdm.check_helix(band, sdm.load(band))
 
 
 ERRORS = (DeviceMasterError, sdm.StagingMapError, railroad.FactsError, mr.MapError, lc.BuildError)

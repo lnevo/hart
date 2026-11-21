@@ -63,15 +63,15 @@ class RowRules(Master):
         got = cdm.row_problems(self.edited({("2", "Switch 107"): dict(cp="CP 201"),
                                             ("1", "OS Switch 9"): dict(cp="CP 107")}), self.cps, ends_cps={},
                                places=self.places)
-        self.assertProblem(r"\(level 2 turnout Switch 107\): cp 'CP 201' is no level 2 control point", got)
-        self.assertProblem(r"\(level 1 block OS Switch 9\): cp 'CP 107' is no level 1 control point", got)
+        self.assertProblem(r"Switch 107 \(level 2, turnout\): cp 'CP 201' is no level 2 control point", got)
+        self.assertProblem(r"OS Switch 9 \(level 1, block\): cp 'CP 107' is no level 1 control point", got)
 
     def test_a_line_blocks_cp_lists_known_places(self):
         """A line block lists the stations or control points it joins (build_device_map.line_cp), of any level (a
         helix block joins two); each is a station of stations.csv or a control point of interlockings.csv."""
         got = cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="Barn;Nowhere")}), self.cps,
                                places=self.places)
-        self.assertEqual(got, [f"devices.csv line {self.line('1', 'Track Barn')} (level 1 block Track Barn): cp "
+        self.assertEqual(got, ["devices_generated.csv: Track Barn (level 1, block): cp "
                                "names Nowhere, no station of stations.csv or control point of interlockings.csv"])
         self.assertEqual(cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="West Yard;CP 127")}),
                                           self.cps, places=self.places), [])
@@ -99,9 +99,9 @@ class RowRules(Master):
         got = cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="CP 201"),
                                             ("3", "BS 127-221"): dict(cp="CP 201;CP 107")}),
                                self.cps, places=self.places, line_places=line_places)
-        self.assertProblem(r"\(level 1 block Track Barn\): cp names CP 201, at no end switch of Track Barn and named "
+        self.assertProblem(r"Track Barn \(level 1, block\): cp names CP 201, at no end switch of Track Barn and named "
                            r"by no station's tracks", got)
-        self.assertProblem(r"\(level 3 occupancy BS 127-221\): cp names CP 107, at no end switch of Track 127-221",
+        self.assertProblem(r"BS 127-221 \(level 3, occupancy\): cp names CP 107, at no end switch of Track 127-221",
                            got)
         self.assertEqual(len(got), 2, got)
 
@@ -129,36 +129,31 @@ class RowRules(Master):
         got = cdm.check_rows(self.edited({("1", "Switch 3"): dict(jmri_name="M2T408"),
                                           ("3", "Head 202R Top"): dict(jmri_name="IH:HART:C3:202R_Bottom")}),
                              self.helix)
-        self.assertProblem(r"level 1 turnout Switch 3\): jmri_name 'M2T408' is line \d+'s as well", got)
-        self.assertProblem(r"level 3 head Head 202R Top\): jmri_name 'IH:HART:C3:202R_Bottom' is line \d+'s", got)
+        self.assertProblem(r"Switch 3 \(level 1, turnout\): jmri_name 'M2T408' is .*'s as well", got)
+        self.assertProblem(r"Head 202R Top \(level 3, head\): jmri_name 'IH:HART:C3:202R_Bottom' is .*'s", got)
 
     def test_every_turnout_has_one_lcc_alias(self):
         for level, alias, turnout in (("2", "DCC Switch 101", "Switch 101"), ("1", "DCC Switch 1", "Switch 1")):
             with self.subTest(level=level):
                 got = cdm.check_rows(self.edited(drop={(level, alias)}), self.helix)
-                self.assertProblem(rf"level {level} turnout {turnout}\): 0 LCC aliases carry its DCC address", got)
+                self.assertProblem(rf"{turnout} \(level {level}, turnout\): 0 LCC aliases carry its DCC address", got)
 
     def test_a_detector_is_wired_exactly_when_it_is_a_field_device(self):
         got = cdm.row_problems(self.edited({("1", "BS Barn"): dict(detector="planned"),
                                             ("2", "BS Switch 101"): dict(detector="wired", system_name="M2S1")}),
                                self.cps)
-        self.assertProblem(r"level 1 occupancy BS Barn\): assignment field with detector 'planned'", got)
-        self.assertProblem(r"level 2 occupancy BS Switch 101\): assignment virtual with detector 'wired'", got)
-
-    def test_a_row_kept_by_hand_is_a_field_device(self):
-        got = cdm.row_problems(self.edited({("2", "Track 101-111"): dict(written_by="")}), self.cps)
-        self.assertProblem(r"level 2 block Track 101-111\): kept by hand, so a field device, not assignment none",
-                           got)
+        self.assertProblem(r"BS Barn \(level 1, occupancy\): assignment field with detector 'planned'", got)
+        self.assertProblem(r"BS Switch 101 \(level 2, occupancy\): assignment virtual with detector 'wired'", got)
 
     def test_trial_names(self):
         got = cdm.row_problems(self.edited({("1", "FB Switch 1 N"): dict(trial_name="Track Nowhere"),
                                             ("3", "Switch 203"): dict(trial_name="Switch 201")}), self.cps)
-        self.assertProblem(r"level 1 fb FB Switch 1 N\): a fb row has a trial_name", got)
-        self.assertProblem(r"level 3 turnout Switch 203\): trial_name Switch 201 is line \d+'s as well", got)
+        self.assertProblem(r"FB Switch 1 N \(level 1, fb\): a fb row has a trial_name", got)
+        self.assertProblem(r"Switch 203 \(level 3, turnout\): trial_name Switch 201 is .*'s as well", got)
 
     def test_a_fact_column_out_of_place(self):
         got = cdm.row_problems(self.edited({("3", "Switch 203"): dict(facing="Track X")}), self.cps)
-        self.assertProblem(r"level 3 turnout Switch 203\): a turnout row has facing", got)
+        self.assertProblem(r"Switch 203 \(level 3, turnout\): a turnout row has facing", got)
 
     def test_only_the_helix_blocks_are_on_two_levels(self):
         lines = self.edited({("2", "Track 101-111"): dict(user_name="Track K-1")})
@@ -177,31 +172,31 @@ class RowRules(Master):
     def test_names_given_twice(self):
         got = cdm.check_rows(self.edited({("3", "FB Switch 201 N"): dict(system_name="M2S470"),
                                           ("1", "Switch 3"): dict(user_name="Switch 1")}), self.helix)
-        self.assertProblem(r"level 3 fb FB Switch 201 N\): system_name 'M2S470' is line \d+'s as well", got)
-        self.assertProblem(r"level 1 turnout Switch 1\): user_name 'Switch 1' is line \d+'s as well", got)
+        self.assertProblem(r"FB Switch 201 N \(level 3, fb\): system_name 'M2S470' is .*'s as well", got)
+        self.assertProblem(r"Switch 1 \(level 1, turnout\): user_name 'Switch 1' is .*'s as well", got)
 
     def test_a_dcc_address_or_device_on_two_levels(self):
         got = cdm.check_rows(self.edited({("2", "Switch 101"): dict(system_name="M2T408", dcc="100"),
                                           ("2", "DCC Switch 101"): dict(dcc="100", system_name="MTT100")}),
                              self.helix)
         one, alias = self.line("1", "Switch 1"), self.line("1", "DCC Switch 1")
-        self.assertProblem(rf"level 2 turnout Switch 101\): system_name 'M2T408' is line {one}'s as well", got)
-        self.assertProblem(rf"level 2 turnout Switch 101\): dcc '100' is line {one}'s as well", got)
-        self.assertProblem(rf"level 2 turnout DCC Switch 101\): system_name 'MTT100' is line {alias}'s as well", got)
+        self.assertProblem(rf"Switch 101 \(level 2, turnout\): system_name 'M2T408' is .*'s as well", got)
+        self.assertProblem(rf"Switch 101 \(level 2, turnout\): dcc '100' is .*'s as well", got)
+        self.assertProblem(rf"DCC Switch 101 \(level 2, turnout\): system_name 'MTT100' is .*'s as well", got)
         # one device is one row whatever its layer: a head planned on a feedback sensor's name
         got = cdm.check_rows(self.edited({("3", "Head 202R Top"): dict(system_name="M2S470")}), self.helix)
         fb = self.line("1", "FB Switch 1 N")
-        self.assertProblem(rf"level 3 head Head 202R Top\): system_name 'M2S470' is line {fb}'s as well", got)
+        self.assertProblem(rf"Head 202R Top \(level 3, head\): system_name 'M2S470' is .*'s as well", got)
 
     def test_an_lcc_alias_on_every_level(self):
         got = cdm.check_rows(self.edited({("2", "DCC Switch 101"): dict(jmri_name="IT:HART:C3:103"),
                                           ("1", "DCC Switch 1"): dict(jmri_name="M2T408")}), self.helix)
-        self.assertProblem(r"level 2 turnout DCC Switch 101\): the LCC alias of Switch 101 \(DCC 120\) is user, "
+        self.assertProblem(r"DCC Switch 101 \(level 2, turnout\): the LCC alias of Switch 101 \(DCC 120\) is user, "
                            r"system and jmri name DCC Switch 101, MTT120, IT:HART:C3:101 \(on its turnout\)", got)
-        self.assertProblem(r"level 1 turnout DCC Switch 1\): the LCC alias of Switch 1 \(DCC 100\) is .*MTT100, "
+        self.assertProblem(r"DCC Switch 1 \(level 1, turnout\): the LCC alias of Switch 1 \(DCC 100\) is .*MTT100, "
                            r"MTT100 \(a field device\)", got)
         got = cdm.check_rows(self.edited({("3", "DCC Switch 201"): dict(dcc="999")}), self.helix)
-        self.assertProblem(r"DCC Switch 201\): no level 3 turnout has its DCC address 999", got)
+        self.assertProblem(r"DCC Switch 201 \(level 3, turnout\): no level 3 turnout has its DCC address 999", got)
 
 
 class TablesCheck(Master):
@@ -288,18 +283,18 @@ class Command(unittest.TestCase):
         out = io.StringIO()
         with contextlib.redirect_stdout(out):
             self.assertEqual(cdm.main(["--check"]), 0)
-        self.assertIn("ok: devices.csv, stations.csv, masts.csv hold their rules", out.getvalue())
+        self.assertIn("ok: devices_generated.csv, stations.csv, masts.csv hold their rules", out.getvalue())
 
     def test_without_the_drawing_the_rest_still_runs(self):
         self.assertEqual(cdm.check(None), [])
 
-    def test_a_hand_kept_row_off_staging_has_no_drawing_reader(self):
-        tsdm.Files.setUpClass()
-        lines = [(n, dict(r, written_by="") if (r["level"], r["user_name"]) == ("2", "Track 101-111") else r)
-                 for n, r in cdm.master_lines()]
-        got = cdm.check_drawing(tsdm.Files.band, lines)
-        self.assertEqual(len(got), 1, got)
-        self.assertIn("level 2 block Track 101-111): kept by hand, but only staging's hand-kept rows", got[0])
+    def test_a_row_with_a_level_and_no_writer_is_refused(self):
+        """The hand-kept row is gone (ADR-029 amendment): the generated file's every row names its writer."""
+        from hartlib import devices as D
+        rows = [dict(r) for r in D.generated_rows()]
+        rows[0]["written_by"] = ""
+        with self.assertRaisesRegex(D.DevicesError, r"written_by '' is not one of .*devices_field.csv"):
+            D.check_generated(rows)
 
 
 class CheckParts(Master):
@@ -347,7 +342,7 @@ class StagingLoad(unittest.TestCase):
                                 ("OS Switch 9", dict(cp="Nowhere"), "cp 'Nowhere' is no level 1 control point"),
                                 ("Track Barn", dict(cp="Nowhere"), "cp names Nowhere, no station"),
                                 ("FB Switch 1 N", dict(trial_name="Track Nowhere"), "a fb row has a trial_name"),
-                                ("Switch 3", dict(trial_name="Switch 1"), r"trial_name Switch 1 is line \d+'s as well")):
+                                ("Switch 3", dict(trial_name="Switch 1"), r"trial_name Switch 1 is .*'s as well")):
             with self.subTest(msg=msg), self.assertRaisesRegex(sdm.StagingMapError, msg):
                 self._load(user, **cols)
 

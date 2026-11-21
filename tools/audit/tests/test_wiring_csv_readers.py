@@ -46,7 +46,7 @@ class Case(unittest.TestCase):
         rows = plain(source)
         keep = [c for c in rows[0] if c != column]
         self.assertLess(len(keep), len(rows[0]), f"{source.name} has no column {column}")
-        out = self.tmp / source.name
+        out = self.tmp / (devices.ONE_FILE if source.name == devices.GENERATED_FILE else source.name)   # one file
         with out.open("w", newline="", encoding="utf-8") as fh:
             w = csv.DictWriter(fh, keep, extrasaction="ignore", lineterminator="\n")
             w.writeheader()

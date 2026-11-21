@@ -483,7 +483,7 @@ class Readers(RepoReadOnly, unittest.TestCase):
         rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
         _cp, rows, parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
                                      rr.lcos_nodes, rr.local_switches, corners)
-        staging, _adopts, _drops = bdm.staging_rows(bands, joined, runs)
+        staging = bdm.staging_rows(bands, joined, runs)
         return sorted((str(r["level"]), r["user_name"], r["trial_name"]) for r in rows + parts + staging
                       if r["layer"] == "block")
 
