@@ -312,7 +312,12 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
         raise MapError(f"cannot read {path.name}: {exc}") from None
     if list(header) != PIN_COLUMNS:
         raise MapError(f"{path.name}: columns {list(header)}, not {PIN_COLUMNS}")
-    helix_level = {t["name"]: t.get("level") for t in found if any(k == "helix" for k, _v in t["ends"])}
+    helix_level = {}
+    for t in found:
+        if any(k == "helix" for k, _v in t["ends"]):
+            if helix_level.setdefault(t["name"], t["level"]) != t["level"]:
+                raise MapError(f"{path.name}: helix block {t['name']} is found on levels {helix_level[t['name']]} "
+                               f"and {t['level']}")
     out, slots, bad = {}, set(), []
     for i, r in enumerate(rows, 2):
         r = {k: (v or "").strip() for k, v in r.items()}
@@ -343,7 +348,7 @@ def read_pins(path: Path | None = None, found: list | None = None, split: set | 
             name = r["block"]
         else:
             problem = key_problem(r)
-            t = None if problem else resolve_track(r, [t for t in found if t.get("level") == level])
+            t = None if problem else resolve_track(r, [t for t in found if t["level"] == level])
             if t is None:
                 bad.append(f"line {i}: {problem or r['problem']}")
                 continue
@@ -463,7 +468,13 @@ class Nodes:
     def room(self, node, what, n=1):
         return self.used[node][what] + n <= CAP[what]
 
+    def staging(self, level):
+        if level == STAGING_LEVEL:
+            raise MapError(f"level {level} is staging: its nodes in {NODES.name} are as built, and the rule hands "
+                           "none out")
+
     def pick(self, level, area, what, n=1, prefer=()):
+        self.staging(level)
         for node in list(prefer) + self.pool[(level, area)]:
             if self.room(node, what, n):
                 return node
@@ -508,6 +519,7 @@ class Nodes:
         return None
 
     def pick_mast(self, level, area, heads, prefer=()):
+        self.staging(level)
         for node in list(prefer) + self.pool[(level, area)]:
             if self.room(node, "signal", heads) and self._fit(node, 3 * heads):
                 return node

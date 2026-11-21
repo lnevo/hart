@@ -292,9 +292,9 @@ def _device_map(rr: Railroad) -> list[str]:
         if (r.level, r.cp) != (sw.level, sw.cp):
             bad.append(f"{name} line {r.line}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
                        f"say level {sw.level} {sw.cp or 'local'}")
-    nodes = {n.node: n for n in rr.lcos_nodes}
-    # a helix block runs from staging up to main or upper: its detector may be on either level's node (owner,
-    # 2026-11-20: both helix tracks on helix node 41)
+    nodes = {n.node: n for n in rr.lcos_nodes if n.level != 1}     # staging's nodes are as built: none is the map's
+    # a helix block runs from staging up to main or upper: its detector may be on either main or upper level's node
+    # (owner, 2026-11-20: both helix tracks on helix node 41)
     helix = {b for h in rr.helix_tracks.values() for b in (h.block, level_devices.occupancy_user(h.block))}
     for r in dm.rows:
         if r.node and (not r.node.isdigit() or int(r.node) not in nodes or

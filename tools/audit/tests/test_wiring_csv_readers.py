@@ -114,6 +114,27 @@ class BadHeader(Case):
             with self.subTest(column):
                 self.stops(RW.occupancy_by_hw, RW.CATS / "occupancy_bindings.csv", column)
 
+    def test_a_node_level_that_is_no_level_stops(self) -> None:
+        bad = self.tmp / "nodes.csv"
+        bad.write_text(AM.NODES.read_text(encoding="utf-8") + "4,North,62,\n", encoding="utf-8")
+        with self.assertRaisesRegex(FactsError, r"nodes.csv line \d+: level is 1, 2 or 3, not '4'"):
+            AM.read_node_rows(bad)
+
+    def test_the_staging_nodes_match_the_inventory(self) -> None:
+        from openpyxl import load_workbook
+        wb = load_workbook(AM.SRC)
+        AM.check_staging_nodes(wb)                                    # the committed file
+        for old, new, msg in (("1,Helix,11,", "", r"missing \[11\], extra \[\]"),
+                              ("1,West,13,", "1,West,13,\n1,West,16,", r"missing \[\], extra \[16\]")):
+            with self.subTest(msg=msg):
+                bad = self.tmp / "nodes.csv"
+                text = AM.NODES.read_text(encoding="utf-8")
+                line = next(l for l in text.splitlines() if l.startswith(old))
+                bad.write_text(text.replace(line + "\n", (new + line[len(old):] + "\n") if new else ""),
+                               encoding="utf-8")
+                with self.assertRaisesRegex(FactsError, msg):
+                    AM.check_staging_nodes(wb, bad)
+
     def test_a_row_longer_than_the_header(self) -> None:
         bad = self.tmp / "nodes.csv"
         bad.write_text("level,area,node,source\n2,Barn,31,plan,stray\n", encoding="utf-8")

@@ -495,6 +495,12 @@ class Invariants(Copy):
         self.assertTrue(any("turnout Switch 101 is on node 99, no level 2 node" in p for p in got), got)
         self.assertTrue(any("head Head 108LA Top: jmri_name 'IH:HART:C3:108LX_Top'" in p for p in got), got)
 
+    def test_a_helix_block_is_never_on_a_staging_node(self) -> None:
+        """A helix block may sit on either main or upper node, never on one of staging's (as built)."""
+        change(self.src.devices, self.key("occupancy", "BS Helix Outer"), node="11")
+        got = self.problems("device-map")
+        self.assertTrue(any("occupancy BS Helix Outer is on node 11, no level 2 node" in p for p in got), got)
+
     def test_device_map_finds_clashes_and_missing_aliases_before_the_tables(self) -> None:
         """The rows of every level are held to each other at the device_map layer (railroad check --upto
         device_map), before tables.xml is built."""

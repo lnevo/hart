@@ -106,6 +106,11 @@ class Pins(unittest.TestCase):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
                 self.read(text)
 
+    def test_a_helix_block_on_two_levels_stops(self):
+        found = self.FOUND + [track("Track Helix Inner", "131", helix=True, row=2, level=2)]
+        with self.assertRaisesRegex(bdm.MapError, "Track Helix Inner is found on levels 3 and 2"):
+            bdm.read_pins(write(self.PINS), found, self.SPLIT)
+
     def test_the_rule_never_hands_out_a_pinned_input(self):
         nodes = bdm.Nodes([railroad.LcosNode(2, 3, "Helix", 41)])
         nodes.pin({"Track A": (41, 0), "Track B": (41, 2)})
@@ -121,8 +126,9 @@ class Pins(unittest.TestCase):
         """lcos_nodes.csv holds staging's nodes as built: the rule neither picks one nor lets a pin take it."""
         nodes = bdm.Nodes([railroad.LcosNode(2, 1, "Helix", 11), railroad.LcosNode(3, 3, "Helix", 41)])
         self.assertEqual(nodes.pick(3, "Helix", "block"), 41)
-        with self.assertRaisesRegex(bdm.MapError, "level 1 Helix: no LCOS node left"):
-            nodes.pick(1, "Helix", "block")
+        for pick in (lambda: nodes.pick(1, "Helix", "block"), lambda: nodes.pick_mast(1, "Helix", 1)):
+            with self.assertRaisesRegex(bdm.MapError, "level 1 is staging: its nodes .* are as built"):
+                pick()
         with self.assertRaisesRegex(bdm.MapError, "does not list"):
             nodes.pin({"Track A": (11, 0)})
 
