@@ -19,6 +19,9 @@ www/assets/behind/panel-evolution/, and it sets the version count and dates in t
 www/behind/panel-evolution.html (the spans marked data-film, and the count in words). It needs ffmpeg and stops
 with a message without it.
 
+Both count the history of the checked-out branch (git log from HEAD), so run them on main or a branch up to date
+with it: a stale branch makes a short film and a false pass.
+
 --check renders nothing: it counts the versions in git history (the same list the frames come from) and exits 1
 when the page's count or dates differ, that is when the site film is behind the drawing. It needs the spike ref
 (origin/agent/claude/schematic-spike), so it is a manual check, not part of tools/check.sh (CI clones lack the ref).
@@ -41,6 +44,7 @@ DRAFT_FROM = "60ce2ef3"  # the draft's first two commits are copies of spike sam
 PRIORITY = ["signals_sample.svg", "system_sample.svg", "main_asbuilt_sample.svg", "staging_sample.svg", "built_sample.svg"]
 WIDTH = 1400
 STEP_MS, HOLD_MS = 1600, 5000  # the GIF: each version's time on screen, and the last version's
+FPS = 25
 FILM_S, FILM_HOLD_S = 30.0, 2.0  # the site film always runs FILM_S seconds, however many versions there are
 SITE = REPO / "www/assets/behind/panel-evolution"
 PAGE = REPO / "www/behind/panel-evolution.html"
@@ -79,8 +83,8 @@ CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
 
 def render(svg, png):
-    from PIL import Image
     """The whole sheet as an image: Chrome when it is installed (sharp, twice the size), else sips."""
+    from PIL import Image
     if Path(CHROME).exists():
         with tempfile.TemporaryDirectory() as tmp:
             shot = Path(tmp) / "shot.png"
@@ -120,6 +124,8 @@ def film_durations(n):
     if n < 2:
         raise ValueError(f"{n} version: the film needs at least two")
     step = round((FILM_S - FILM_HOLD_S) / (n - 1), 4)
+    if step < 1 / FPS:
+        sys.exit(f"{n} versions in {FILM_S:.0f} s is under one frame ({FPS} fps) each: lengthen FILM_S in evolution.py")
     return [step] * (n - 1) + [round(FILM_S - step * (n - 1), 4)]
 
 
@@ -138,29 +144,37 @@ def day(when, year):
 
 def page_values(todo):
     """What the page must say for these versions: (count, first day, last day with year, count in words)."""
+    if not todo:
+        raise ValueError("no committed drawings found")
     return len(todo), day(todo[0][1], False), day(todo[-1][1], True), words(len(todo))
 
 
 SPAN = '<span data-film="{}">{}</span>'
 SPAN_RE = '<span data-film="{}">([^<]*)</span>'
 ARIA_RE = r'(aria-label=")([A-Za-z-]+)( versions of the system schematic)'
+IMG_RE = r'<img [^>]*?width="(\d+)" height="(\d+)"[^>]*? src="[^"]*' + POSTER  # the poster's fallback picture
 
 
-def page_text(html, values):
-    """The page with the count, dates and count in words set. Raises when a marker is missing."""
+def page_text(html, values, size, page=PAGE):
+    """The page with the count, dates, count in words and poster size (width, height) set. Raises when a marker is missing."""
     count, first, last, spelled = values
     for name, val in (("count", count), ("first", first), ("last", last)):
         html, n = re.subn(SPAN_RE.format(name), SPAN.format(name, val), html)
         if n != 1:
-            raise ValueError(f'{PAGE.name}: expected one <span data-film="{name}">, found {n}')
+            raise ValueError(f'{page.name}: expected one <span data-film="{name}">, found {n}')
     html, n = re.subn(ARIA_RE, lambda m: m[1] + spelled.capitalize() + m[3], html)
     if n != 1:
-        raise ValueError(f"{PAGE.name}: expected one aria-label '... versions of the system schematic', found {n}")
+        raise ValueError(f"{page.name}: expected one aria-label '... versions of the system schematic', found {n}")
+    img = list(re.finditer(IMG_RE, html))
+    if len(img) != 1:
+        raise ValueError(f"{page.name}: expected one <img> of {POSTER} with width and height, found {len(img)}")
+    a, b = img[0].span(1)[0], img[0].span(2)[1]
+    html = html[:a] + f'{size[0]}" height="{size[1]}' + html[b:]
     return html
 
 
-def page_drift(html, values):
-    """The statements on the page that differ from these versions, as text; empty when it is current."""
+def page_drift(html, values, size):
+    """The statements on the page that differ from these versions and poster size, as text; empty when current."""
     count, first, last, spelled = values
     out = []
     for name, val in (("count", count), ("first", first), ("last", last)):
@@ -174,11 +188,22 @@ def page_drift(html, values):
         out.append(f"expected one aria-label count, found {len(aria)}")
     elif aria[0][1].lower() != spelled:
         out.append(f"aria-label says {aria[0][1].lower()}, git history has {spelled}")
+    img = re.findall(IMG_RE, html)
+    if len(img) != 1:
+        out.append(f"expected one <img> of {POSTER} with width and height, found {len(img)}")
+    elif tuple(map(int, img[0])) != tuple(size):
+        out.append(f"poster img says {img[0][0]}x{img[0][1]}, the poster is {size[0]}x{size[1]}")
     return out
 
 
 def check():
-    drift = page_drift(PAGE.read_text(), page_values(versions()))
+    from PIL import Image
+    todo = versions()
+    if not todo:
+        print("no committed drawings found: run from a branch with the schematic history")
+        return 2
+    with Image.open(SITE / POSTER) as poster:
+        drift = page_drift(PAGE.read_text(), page_values(todo), poster.size)
     if drift:
         print(f"{PAGE.relative_to(REPO)} is behind the drawing: " + "; ".join(drift) + "; run evolution.py --site")
         return 1
@@ -186,7 +211,7 @@ def check():
     return 0
 
 
-def site(frames, todo, out=SITE):
+def site(frames, todo, out=SITE, page=PAGE):
     """The site's film and poster from the finished frames, and the page text. Stops without ffmpeg."""
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
@@ -206,15 +231,15 @@ def site(frames, todo, out=SITE):
         # fps=25 makes a steady-rate film: a variable-rate one reports a shorter length and browsers cut its hold
         (Path(tmp) / "list.txt").write_text("\n".join(lines) + "\n")
         film = Path(tmp) / MP4
-        run = subprocess.run([ffmpeg, "-v", "error", "-y", "-f", "concat", "-i", "list.txt", "-vf", "fps=25", "-t", str(FILM_S),
+        run = subprocess.run([ffmpeg, "-v", "error", "-y", "-f", "concat", "-i", "list.txt", "-vf", f"fps={FPS}", "-t", str(FILM_S),
                               "-c:v", "libx264", "-preset", "slow", "-crf", "24", "-pix_fmt", "yuv420p",
                               "-movflags", "+faststart", MP4], cwd=tmp, capture_output=True, text=True)
         if run.returncode or not film.exists():
             sys.exit(f"ffmpeg failed: {run.stderr.strip()}")
         shutil.copyfile(film, out / MP4)
     frames[-1].save(out / POSTER, quality=85, optimize=True)
-    PAGE.write_text(page_text(PAGE.read_text(), page_values(todo)))
-    print(f"site copy: {out / MP4} ({(out / MP4).stat().st_size // 1024} KB), {out / POSTER}, {PAGE.relative_to(REPO)}")
+    page.write_text(page_text(page.read_text(), page_values(todo), frames[-1].size, page))
+    print(f"site copy: {out / MP4} ({(out / MP4).stat().st_size // 1024} KB), {out / POSTER}, {page}")
 
 
 def main(folder, with_site=False):
@@ -256,7 +281,7 @@ if __name__ == "__main__":
     flags = [a for a in args if a.startswith("--")]
     rest = [a for a in args if not a.startswith("--")]
     if set(flags) - {"--site", "--check"} or len(rest) > 1 or (flags == ["--check"] and rest) or len(flags) > 1:
-        sys.exit(__doc__.split("\n\n")[0])
+        sys.exit(__doc__.split("\n\n")[0] + "\n--site and --check count the checked-out branch's history: run them on main")
     if flags == ["--check"]:
         sys.exit(check())
     main(Path(rest[0]).expanduser() if rest else Path.home() / "Documents/Layout/schematic-evolution", flags == ["--site"])
