@@ -61,14 +61,6 @@ from hartlib import devices, level_masts, paths, railroad, railroad_invariants, 
 DEVICE_MAP = sdm.DEVICE_MAP
 CPS = sdm.CPS                                   # staging's control points (their level column)
 TRIAL_LAYERS = ("turnout", "block")             # the rows that link to the drawing
-# Blocks whose rows disagree on stop -> why it is left; an entry whose rows agree fails, so the list stays honest (as
-# hartlib.railroad.KNOWN). Main and upper have no stations until the owner defines them (level unification step 7),
-# so build_device_map.py writes no stop on a main or upper row, also not on the helix blocks that staging marks.
-KNOWN_STOP: dict[str, str] = {
-    b: "the staging row marks the helix block a Dispatcher System station, as its tables.xml comment does; the main or "
-       "upper row (build_device_map.py, which writes no stop) leaves it empty (reported 2026-11-20)"
-    for b in ("Track Helix Inner", "Track Helix Outer")
-}
 
 
 class DeviceMasterError(RuntimeError):
@@ -193,11 +185,10 @@ def bound_name(r: dict) -> str:
     return r["system_name"] if r["assignment"] == "field" else r["jmri_name"]
 
 
-def check_tables(rows: list[dict], rr: railroad.Railroad, known_stop: dict | None = None) -> list[str]:
+def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
     """Every row the bean tables.xml holds (the module text), as problems naming the device. The rows of one block
-    (a helix block's, one per level) agree on its stop, but those `known_stop` (default KNOWN_STOP) lists, which are
-    a station when any of them says so; an entry whose rows agree is a problem too."""
-    known_stop = KNOWN_STOP if known_stop is None else known_stop
+    (a helix block's, one per level) agree on its stop: build_device_map.py marks the main and upper helix rows a
+    stop at their level_switch (helix_stops), as staging's rows are."""
     t = rr.tables
     heads = {tables.system_name(h): tables.user_name(h) for h in tables.signal_heads(t.root)}
     blocks = {tables.user_name(b): b for b in tables.blocks(t.root)}
@@ -212,9 +203,7 @@ def check_tables(rows: list[dict], rr: railroad.Railroad, known_stop: dict | Non
         if r["layer"] == "block":
             stops[r["user_name"]].add(r["stop"])
     bad = [f"block {b}: its rows disagree on stop ({', '.join(sorted(s or 'empty' for s in v))})"
-           for b, v in sorted(stops.items()) if len(v) > 1 and b not in known_stop]
-    bad += [f"KNOWN_STOP entry no longer happens; remove it: {b}" for b in sorted(known_stop)
-            if len(stops.get(b, ())) < 2]
+           for b, v in sorted(stops.items()) if len(v) > 1]
     for r in rows:
         user, layer, bound = r["user_name"], r["layer"], bound_name(r)
         if layer == "block":

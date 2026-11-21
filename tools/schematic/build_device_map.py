@@ -74,7 +74,9 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   switch; parallel tracks between the same ends take " 1", " 2" from the top row. A track up the helix is its helix
   block (helix_tracks.csv: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
   track below it (owner, 2026-11-20): the staging device map names its staging piece, and the Layout Editor build
-  binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives.
+  binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives, and
+  its row marks a stop there (stop yes, the parked Dispatcher's station mark, as its staging row does; helix_stops:
+  the helix stop on main and upper is at Switch 131A and 131B, owner 2026-11-20).
   A balloon loop is two blocks, "Track <n> Loop 1" from the switch's leg B and "Track <n> Loop 2" from leg C, parted
   at the turnback halfway round (owner, 2026-11-16): JMRI keys a mast by its facing and protected blocks
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
@@ -412,6 +414,17 @@ def check_helix_ends(bands, joined, found, helix) -> None:
         raise MapError("helix tracks: " + "; ".join(bad))
 
 
+def helix_stops(helix: dict) -> dict[str, str]:
+    """{helix block: the switch its stop is at} of the main and upper helix blocks (`helix`: read_helix_tracks). The
+    helix stop on main and upper is at the helix's main-level end, helix_tracks.csv's level_switch (owner, 2026-11-20:
+    Switch 131A and 131B), so each helix block's main or upper row marks a stop, as its staging row does. MapError on
+    an entry with no level_switch (railroad.read_helix_tracks needs one, so only a hand-made dict has none)."""
+    bad = sorted(h["block"] for h in helix.values() if not h["level_switch"])
+    if bad:
+        raise MapError(f"{', '.join(bad)}: no level_switch in {mast_rule.HELIX_TRACKS.name}, so no stop to mark")
+    return {h["block"]: h["level_switch"] for h in helix.values()}
+
+
 def loop_placeholder(placeholder: str, half: int | None) -> str:
     """The drawing's placeholder for one half of a balloon loop ("Track e33" -> "Track e33 1"), as
     build_layout_le.placeholder_names and build_cats_panel name it; any other track's is unchanged."""
@@ -571,6 +584,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
     found = named_tracks(bands, joined, runs, overrides, helix)
     check_helix_ends(bands, joined, found, helix)
+    stops = helix_stops(helix)              # check_helix_ends: each helix track ends at its level_switch
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
     dxs = set(corner_blocks)
     pins = read_pins(found=found, split=split_names) if pins is None else pins
@@ -692,7 +706,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             elif half:
                 note += f", half of the balloon loop from leg {'BC'[half - 1]}"
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
-                ", ".join(loop_placeholder(x, half) for x in t["trial"]), note)
+                ", ".join(loop_placeholder(x, half) for x in t["trial"]), note, stop="yes" if name in stops else "")
             pinned = nodes.take_pinned(name)
             if not detect:
                 if pinned:

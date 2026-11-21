@@ -90,6 +90,16 @@ class Pure(unittest.TestCase):
         self.assertEqual([t["name"] for t in found],
                          ["Track 101-105 2", "Track 101-105 1", "Track 113 Spur", "Track 107 Loop", "Track 135-H1"])
 
+    def test_a_helix_block_is_a_stop_at_its_level_switch(self):
+        """The helix stop on main and upper is at the helix's main-level end, helix_tracks.csv's level_switch
+        (owner, 2026-11-20): every helix block the file names is a stop, keyed by its block."""
+        helix = {"McKees Rocks": dict(block="Track Helix Outer", staging_switch="39", level_switch="131A"),
+                 "McKeesport": dict(block="Track Helix Inner", staging_switch="37", level_switch="131B")}
+        self.assertEqual(BD.helix_stops(helix), {"Track Helix Outer": "131A", "Track Helix Inner": "131B"})
+        self.assertEqual(BD.helix_stops({}), {})
+        with self.assertRaisesRegex(BD.MapError, "Track Helix Outer: no level_switch"):
+            BD.helix_stops({"McKees Rocks": dict(block="Track Helix Outer", staging_switch="39", level_switch="")})
+
     def test_nodes_pack_lcos_ids_and_overflow_in_area_order(self):
         nodes = BD.Nodes([R.LcosNode(0, 2, "West", 33), R.LcosNode(0, 2, "West", 43)])
         n = nodes.pick(2, "West", "turnout", 8)
@@ -118,6 +128,11 @@ class Output(unittest.TestCase):
                            + [f"OS Switch {o}" for o in os] + [f"BS Switch {o}" for o in os])
             want = sorted(["block"] * len(os) + ["fb", "fb"] + ["occupancy"] * len(os) + ["turnout", "turnout"])
             self.assertEqual(kinds, want, s)
+
+    def test_the_helix_blocks_are_stops_and_no_other_main_or_upper_block(self):
+        stops = sorted((x["level"], x["user_name"]) for x in rows() if x["layer"] == "block" and x["stop"])
+        self.assertEqual(stops, [("2", "Track Helix Outer"), ("3", "Track Helix Inner")])
+        self.assertTrue(all(x["stop"] in ("", "yes") for x in rows()))
 
     def test_dcc_continues_from_120_in_switch_order(self):
         got = [(x["user_name"], int(x["dcc"])) for x in rows() if x["layer"] == "turnout"
