@@ -200,7 +200,10 @@ def generate(plugin, out, bindings_out, out_abs=None):
     """Build the sheet once and write the bindings and the desks with the same plugin code."""
     cats, sheet = plugin_modules(plugin)
     F = load_facts()
-    s = pd.solved_sheet(sheet)
+    try:
+        s = pd.solved_sheet(sheet)
+    except pd.host_screen.HostScreenError as exc:       # the desks' window: the page's host_screen
+        sys.exit(f"error: {exc}")
     bands = name_loop_halves(s.bands, F.device)
     o = desk_options(cats, s.opts, bands)
     window, fit = o["window"], o["fit"]

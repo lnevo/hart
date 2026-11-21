@@ -170,15 +170,25 @@ def cache_on():
 def solved_sheet(sheet):
     """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
     through the cache. Every builder gets its bands here, so they share one cache key with publishing. Its page
-    options gain le_window and cats_window, both from the page's host_screen (host_screen.apply): the one place the
-    Layout Editor panel's and the CATS desks' windows are derived."""
+    options gain le_window and cats_window, both from the page's host_screen (apply_host_screen): the one place the
+    Layout Editor panel's and the CATS desks' windows are derived. host_screen.HostScreenError when that stops; a
+    caller turns it into its own error (le_common.schematic: BuildError)."""
     with cache_on():
         built = sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
-    try:
-        host_screen.apply(built.opts, page_prefs().read())
-    except (host_screen.HostScreenError, layer_files.LayerFileError) as exc:
-        raise SystemExit(f"error: {exc}") from None
+    apply_host_screen(built.opts)
     return built
+
+
+def apply_host_screen(opts, data=DATA):
+    """`opts` (the solved page options) with le_window and cats_window from preferences.json's host_screen
+    (host_screen.apply, over every section of the file in `data`). Every stop is a host_screen.HostScreenError,
+    a preferences file that cannot be read included."""
+    try:
+        map_revision.page_prefs(data)                   # stops on a sheet.preferences.json beside it
+        sections = layer_files.read_file("preferences", data)
+    except ValueError as exc:                           # LayerFileError is one
+        raise host_screen.HostScreenError(f"the page's preferences: {exc}") from None
+    return host_screen.apply(opts, sections, map_revision.PAGE_SHEET)
 
 
 STAMP_VERSION = b"publish_draft check 2"
