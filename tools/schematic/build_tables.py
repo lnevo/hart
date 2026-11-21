@@ -28,7 +28,7 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
    rewrite, disable_digicon_sml_in_tables.py, until R9c), so the hosts get exactly the committed bytes.
 
 A PanelPro Store of tables.xml is never copied over it: make tables-pull and tables-pull-pi keep the Store in
-~/JMRI_UserFiles-pulled (outside every checkout), and tools/schematic/split_store.py splits it into the template and
+media/pulled-stores in the main checkout (gitignored, shared by every worktree), and tools/schematic/split_store.py splits it into the template and
 devices.csv (R9d). Exit codes: 0 written or current, 1 stale (--check), 2 a source cannot make the tables, 3 the schematic-maps
 plugin is missing or not at its pin (EXIT_NO_PLUGIN; --check prints SKIPPED and exits 0 instead unless
 SCHEMATIC_REQUIRED=1, which the deploy sets).
@@ -94,10 +94,34 @@ DISCOVERY_BLIND_USERNAMES = ("sensors/sensor", "memories/memory", "signalheads/s
 DISCOVERY_BLIND_PANEL_ELEMENTS = ("positionablelabel", "BlockContentsIcon")
 
 
+# Geometry and looks, which discovery never reads: a drop-list, not a keep-list, because a keep-list that misses one
+# topology attribute (a new connection, slot or block name) would hide a real change, while a drop-list that misses a
+# drawing attribute only costs one needless discovery. Anything not named here stays in the digest.
+DISCOVERY_BLIND_ATTRS = frozenset({
+    "x", "y", "xcen", "ycen", "xa", "ya", "xb", "yb", "xc", "yc", "xd", "yd", "xscale", "yscale",
+    "width", "height", "windowwidth", "windowheight", "panelwidth", "panelheight", "zoom", "scale",
+    "arc", "flip", "circle", "angle", "hideConLines", "degrees", "level", "size", "style", "justification",
+    "red", "green", "blue", "hasBackground", "fontFamily", "fontname", "linewidth",
+    "redBackground", "greenBackground", "blueBackground", "gridSize", "gridSize2nd",
+    "mainlinetrackwidth", "sidetrackwidth", "turnoutcirclesize", "turnoutbx", "turnoutcx", "turnoutwid",
+    "xoverlong", "xoverhwid", "xovershort",
+})
+# Whole panel elements that only draw: track drawing options (colours, widths) and decoration shapes.
+DISCOVERY_BLIND_DRAWING = ("layoutTrackDrawingOptions", "layoutShape")
+
+
 def discovery_digest(data: bytes) -> str:
     """sha256 of the discovery base `data` without what discovery cannot see (see DISCOVERY_BLIND_*): a change that
-    leaves this the same needs no new discovery on PanelPro."""
+    leaves this the same needs no new discovery on PanelPro. Coordinates, sizes, colours and fonts are dropped; the
+    connections, blocks, turnout types, mast slots and mast definitions stay."""
     root = ET.fromstring(data)
+    for parent in list(root.iter()):
+        for child in [c for c in parent if c.tag in DISCOVERY_BLIND_DRAWING]:
+            parent.remove(child)
+    for el in root.iter():
+        for name in list(el.attrib):
+            if name in DISCOVERY_BLIND_ATTRS or (name.lower().endswith("color") and el.tag == "LayoutEditor"):
+                del el.attrib[name]
     for parent in root.iter():
         for child in [c for c in parent if c.tag == "comment"]:
             parent.remove(child)

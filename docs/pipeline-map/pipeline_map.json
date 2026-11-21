@@ -47,7 +47,7 @@
   },
   {
    "label": "Device master",
-   "focus": "jmri/layouts/hart/data/devices.csv",
+   "focus": "jmri/layouts/hart/data/devices_generated.csv",
    "up": 1,
    "down": 1
   },
@@ -720,7 +720,7 @@
    "kind": "external",
    "status": "live",
    "domain": "layout",
-   "desc": "Submodule plugin that solves and draws the schematic and builds CATS desks (cats module) and LE panels; cache in ~/.cache/hart/schematic.",
+   "desc": "Submodule plugin that reads the AnyRail .any plan (schematic anyplan: parts list, helix cut stubs), solves and draws the schematic and builds CATS desks (cats module) and LE panels; cache in ~/.cache/hart/schematic.",
    "path": "external/model-railroad-skills/plugins/schematic-maps",
    "local": true
   },
@@ -757,7 +757,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "AnyRail JMRI export snapshot; geometry source for the original bootstrap, kept for reference and anyplan test checks.",
+   "desc": "AnyRail JMRI export snapshot; geometry source for the original bootstrap, kept for reference.",
    "path": "jmri/layouts/hart/anyrail/hart.xml"
   },
   {
@@ -795,15 +795,6 @@
    "domain": "layout",
    "desc": "Column dictionary for devices.csv, read by hartlib.devices.",
    "path": "jmri/layouts/hart/data/devices.columns.csv"
-  },
-  {
-   "id": "jmri/layouts/hart/data/devices.csv",
-   "label": "devices.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Device master, all three levels: every turnout, sensor, block, head, mast with public name, JMRI/system names, wiring, DCC address. Field rows hand-kept, others written by build scripts.",
-   "path": "jmri/layouts/hart/data/devices.csv"
   },
   {
    "id": "jmri/layouts/hart/data/mast_cells.csv",
@@ -1204,15 +1195,6 @@
    "path": "jmri/layouts/hart/scripts/speedmatch/dashboard/export_site_runs.py"
   },
   {
-   "id": "tools/anyrail/anyplan.py",
-   "label": "anyplan.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Reverse-engineered reader of the binary .any archive; also writes the parts list JSON for the schematic-maps plugin.",
-   "path": "tools/anyrail/anyplan.py"
-  },
-  {
    "id": "tools/anyrail/levels",
    "label": "anyrail/levels (svg, meta)",
    "kind": "output",
@@ -1245,7 +1227,7 @@
    "kind": "generator",
    "status": "retired",
    "domain": "layout",
-   "desc": "Early graph and route parsing prototypes (parse1/2, hartgraph, loop_route); superseded by anyplan.py.",
+   "desc": "Early graph and route parsing prototypes (parse1/2, hartgraph, loop_route); superseded by the schematic-maps plugin's anyplan reader.",
    "path": "tools/anyrail/prototype"
   },
   {
@@ -3400,6 +3382,24 @@
    "domain": "layout",
    "desc": "Speed-match analysis (analyze.py, liverule.py), the Mac dashboard and the Pi live publisher (dashboard/publish_live.py with dashstate, dashsources); the deploy stages the publisher and its page for the Pi.",
    "path": "jmri/layouts/hart/scripts/speedmatch"
+  },
+  {
+   "id": "jmri/layouts/hart/data/devices_generated.csv",
+   "label": "devices_generated.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Device master, all three levels, the builders' file: every turnout, sensor, block, head, mast with public name, JMRI/system names, wiring, DCC address. Written only by build_device_map, build_masts and panel_items; hartlib.devices merges it with devices_field.csv into the one view readers get.",
+   "path": "jmri/layouts/hart/data/devices_generated.csv"
+  },
+  {
+   "id": "jmri/layouts/hart/data/devices_field.csv",
+   "label": "devices_field.csv",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The device master's owner's cells, keyed by level, layer and user name: staging's devices (names, layout blocks, comments, DCC, control points) and a Store's level-less devices. Written by hand and by split_store.py; read by the builders.",
+   "path": "jmri/layouts/hart/data/devices_field.csv"
   }
  ],
  "edges": [
@@ -3608,11 +3608,6 @@
    "from": "ext:LCOS_ESP32_MQTT_Client",
    "to": "host:lcos-nano",
    "label": "flashed"
-  },
-  {
-   "from": "ext:anyrail-plan",
-   "to": "tools/anyrail/anyplan.py",
-   "label": "reads"
   },
   {
    "from": "ext:anyrail-plan",
@@ -3923,11 +3918,6 @@
   },
   {
    "from": "human:owner-csv-edits",
-   "to": "jmri/layouts/hart/data/devices.csv",
-   "label": "field rows"
-  },
-  {
-   "from": "human:owner-csv-edits",
    "to": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "label": "edits"
   },
@@ -4077,11 +4067,6 @@
    "to": "www/scripts/share-cards.json"
   },
   {
-   "from": "jmri/layouts/hart/anyrail/hart.xml",
-   "to": "tools/anyrail/anyplan.py",
-   "label": "cross-check"
-  },
-  {
    "from": "jmri/layouts/hart/ctc",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "not shipped (parked)"
@@ -4119,68 +4104,6 @@
    "from": "jmri/layouts/hart/data/devices.columns.csv",
    "to": "tools/hartlib/src/hartlib/devices.py",
    "label": "column dictionary"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/audit/check_layout_facts.py",
-   "label": "check"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/audit/check_name_copies.py",
-   "label": "check"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/hartlib/src/hartlib/devices.py",
-   "label": "loads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/build_cats_panel.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/build_layout_le.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/build_masts.py",
-   "label": "reads mast/head rows"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/build_tables.py",
-   "label": "beans"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/check_device_master.py",
-   "label": "check only"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/plan_lengths.py",
-   "label": "reads blocks"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/wiring/freeze_wiring.py",
-   "label": "rule rows"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/wiring/write_inventory.py"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "www/scripts/jmri_additions_page.py"
   },
   {
    "from": "jmri/layouts/hart/data/mast_cells.csv",
@@ -5187,26 +5110,6 @@
    "label": "redraw PNGs"
   },
   {
-   "from": "tools/anyrail/anyplan.py",
-   "to": "jmri/layouts/hart/data/schematic/inputs/main.json",
-   "label": "writes graph"
-  },
-  {
-   "from": "tools/anyrail/anyplan.py",
-   "to": "jmri/layouts/hart/data/schematic/inputs/parts.json",
-   "label": "--parts"
-  },
-  {
-   "from": "tools/anyrail/anyplan.py",
-   "to": "jmri/layouts/hart/data/schematic/inputs/staging.json",
-   "label": "writes graph"
-  },
-  {
-   "from": "tools/anyrail/anyplan.py",
-   "to": "tools/anyrail/levels_svg.py",
-   "label": "reader"
-  },
-  {
    "from": "tools/anyrail/levels",
    "to": "tools/anyrail/levels_page.py"
   },
@@ -5635,11 +5538,6 @@
   },
   {
    "from": "tools/schematic/build_device_map.py",
-   "to": "jmri/layouts/hart/data/devices.csv",
-   "label": "step 7 levels 2-3 rows; wiring cells"
-  },
-  {
-   "from": "tools/schematic/build_device_map.py",
    "to": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "label": "main_upper section"
   },
@@ -5672,11 +5570,6 @@
    "from": "tools/schematic/build_signals.py",
    "to": "jmri/layouts/hart/data/schematic/signals.json",
    "label": "step 6 signals"
-  },
-  {
-   "from": "tools/schematic/build_masts.py",
-   "to": "jmri/layouts/hart/data/devices.csv",
-   "label": "staging mast/head rows"
   },
   {
    "from": "tools/schematic/build_staging_sets.py",
@@ -5727,11 +5620,6 @@
    "from": "tools/schematic/publish_draft.py",
    "to": "tools/hartlib/src/hartlib/map_revision.py",
    "label": "revision/date"
-  },
-  {
-   "from": "tools/schematic/split_store.py",
-   "to": "jmri/layouts/hart/data/devices.csv",
-   "label": "merged cells"
   },
   {
    "from": "tools/schematic/split_store.py",
@@ -6466,11 +6354,6 @@
    "label": "checks"
   },
   {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "jmri/scripts/check_hart_phase02.py",
-   "label": "checks"
-  },
-  {
    "from": "jmri/layouts/hart/data/switches.csv",
    "to": "jmri/scripts/check_hart_phase02.py",
    "label": "staging rows"
@@ -6526,11 +6409,6 @@
   },
   {
    "from": "tools/schematic/panel_items.py",
-   "to": "jmri/layouts/hart/data/devices.csv",
-   "label": "status bean rows"
-  },
-  {
-   "from": "tools/schematic/panel_items.py",
    "to": "tools/check.sh",
    "label": "check panel-status"
   },
@@ -6538,11 +6416,6 @@
    "from": "jmri/layouts/hart/data/schematic/discovered_sml.xml",
    "to": "tools/schematic/check_sml_current.py",
    "label": "stamp"
-  },
-  {
-   "from": "jmri/layouts/hart/data/devices.csv",
-   "to": "tools/schematic/check_sml_current.py",
-   "label": "discovery base"
   },
   {
    "from": "tools/schematic/build_panels.sh",
@@ -6683,6 +6556,133 @@
    "from": "jmri/layouts/hart/scripts/speedmatch",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "live publisher and page for the Pi"
+  },
+  {
+   "from": "human:owner-csv-edits",
+   "to": "jmri/layouts/hart/data/devices_field.csv",
+   "label": "field rows"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/audit/check_layout_facts.py",
+   "label": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/audit/check_name_copies.py",
+   "label": "check"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/hartlib/src/hartlib/devices.py",
+   "label": "loads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/mqtt-mimic/lcos_mqtt_mimic.py"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/build_cats_panel.py",
+   "label": "reads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "reads"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/build_masts.py",
+   "label": "reads mast/head rows"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/build_tables.py",
+   "label": "beans"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "check only"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "reads blocks"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/wiring/freeze_wiring.py",
+   "label": "rule rows"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "tools/wiring/write_inventory.py"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_generated.csv",
+   "to": "www/scripts/jmri_additions_page.py"
+  },
+  {
+   "from": "tools/schematic/build_device_map.py",
+   "to": "jmri/layouts/hart/data/devices_generated.csv",
+   "label": "step 7 levels 2-3 rows; wiring cells"
+  },
+  {
+   "from": "tools/schematic/build_masts.py",
+   "to": "jmri/layouts/hart/data/devices_generated.csv",
+   "label": "staging mast/head rows"
+  },
+  {
+   "from": "tools/schematic/split_store.py",
+   "to": "jmri/layouts/hart/data/devices_field.csv",
+   "label": "merged cells"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/build_device_map.py",
+   "label": "staging devices, owner's cells"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices_field.csv",
+   "to": "tools/schematic/build_masts.py",
+   "label": "wired mast node, head notes"
+  },
+  {
+   "from": "ext:anyrail-plan",
+   "to": "external/model-railroad-skills/plugins/schematic-maps",
+   "label": "reads"
+  },
+  {
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
+   "to": "jmri/layouts/hart/data/schematic/inputs/main.json",
+   "label": "anyplan --cut stubs"
+  },
+  {
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
+   "to": "jmri/layouts/hart/data/schematic/inputs/parts.json",
+   "label": "anyplan --parts"
+  },
+  {
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
+   "to": "jmri/layouts/hart/data/schematic/inputs/staging.json",
+   "label": "anyplan --cut stubs"
+  },
+  {
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
+   "to": "tools/anyrail/levels_svg.py",
+   "label": "plan reader (anyplan)"
+  },
+  {
+   "from": "external/model-railroad-skills/plugins/schematic-maps",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "plan reader (anyplan)"
+  },
+  {
+   "from": "ext:anyrail-plan",
+   "to": "jmri/layouts/hart/anyrail/hart.xml",
+   "label": "JMRI export (snapshot)"
   }
  ]
 }

@@ -102,7 +102,7 @@ class DispatcherVirtualsTest(unittest.TestCase):
     def test_virtual_masts_are_the_dispatcher_ones(self):
         audit = load("audit_panel_contracts")
         with tempfile.TemporaryDirectory() as tmp:
-            nm = Path(tmp) / devices.MASTER_FILE                 # a master of four masts, two of them staging's hidden ones
+            nm = Path(tmp) / devices.ONE_FILE                 # a master of four masts, two of them staging's hidden ones
             blank = dict.fromkeys(audit.devices.COLUMNS, "")
 
             def mast(user, role, n, level="1"):

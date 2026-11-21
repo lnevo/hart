@@ -45,7 +45,7 @@
 #
 # The approved-* steps stop a write that drifts from the owner-approved fingerprints, before anything else reads it.
 #
-# Each step reads the plugin's cache (~/.cache/hart/schematic): the solve is shared, and Layout Editor panels whose
+# Each step reads the plugin's cache (<main checkout>/.cache/hart/schematic): the solve is shared, and Layout Editor panels whose
 # inputs and plugin code are unchanged are read back, so a run after a small change redoes only what that change
 # reaches. A write stops at the first failure, since what follows reads that step's output (step) or the files it
 # checks (guard); --check runs every step and names each stale one.

@@ -33,17 +33,18 @@ digits.
 
 A wired head is a head row of wiring.csv of the planned level (hartlib.wiring, the physical wiring source; today one:
 Head 6LB on IH432, Switch 5, one high head since the owner dropped IH433 on 2026-11-19): the rebuild writes its
-address, node and wiring text (its JMRI comment, hartlib.tables_build) from there and keeps its notes, which say so.
-A head row of devices.csv whose jmri_name is not the internal name of its user name is wired too (wired_heads), and
-must be in wiring.csv. The build stops on a head row whose system_name and jmri_name differ, a wired head that is not
-an LCOS head (IH and digits), whose mast the rule does not place, or whose mast the rule gives a different set of
-heads; on a mast row that names an IH-digits head that is not one of its own wired head rows; and if a wired head is
-missing from the rows it writes. A wired mast keeps its node, or takes its wired heads' node when its row has none.
+address, node and wiring text (its JMRI comment, hartlib.tables_build) from there, and its notes from its field row
+(devices_field.csv: the owner's words, which say so), else wiring.csv's, else "wired". A field head row must be a
+wiring.csv head. The build stops on a wired head that is not an LCOS head (IH and digits), whose mast the rule does
+not place, or whose mast the rule gives a different set of heads, and if a wired head is missing from the rows it
+writes. A wired mast takes its node from its field row, or its wired heads' node when it has none. The owner's cells
+(CARRIED) are read from devices_field.csv alone (field_rows), never back from this script's last output.
 
 Virtual masts (IF$vsm, hidden, one-low) only where a visible mast's route reaches a buffer stop first (mast_plan;
 owner, 2026-11-20): staging's 4LA, 4LB, 10LA, 10LB and 12L. Each keeps the system name its device-map row had, a new
 one the next ordinal of its level's thousand (mast_plan.virtual_system_names); a dropped one's ordinal stays in
-retired_virtual_masts.csv.
+retired_virtual_masts.csv. The ordinals it gave are its one read-back of its own output (devices.allocated_names), so
+no name shifts.
 
 Writes (jmri/layouts/hart/data/schematic/): masts.csv, and the planned level's mast and head rows of ../devices.csv
 (written_by build_masts.py; hartlib.devices holds it to those rows, and the master is read and written only through
@@ -92,8 +93,8 @@ WIRED_HEAD = level_masts.WIRED_HEAD   # an LCOS head: signal_coordinator.py publ
 # the note of a head on its internal name (no field head drives it), with the owner's decision (2026-11-19)
 INTERNAL_HEAD_NOTE = "internal, not wired (owner, 2026-11-19)"
 WIRING_TEXT = devices._NODE_TEXT       # a wired head's comment is its wiring (Node: ...), as the master tells it
-# the cells a rebuild keeps from a mast or head's prior row (hand-owned, not the rule's): a wired mast's node, a head's
-# notes. carried() is the one place that reads them.
+# the owner's cells of a mast or head (devices_field.csv, not the rule's): a wired mast's node, a wired head's notes.
+# carried() is the one place that reads them, from the field row field_rows gives.
 CARRIED = {"mast": ("node",), "head": ("notes",)}
 
 
@@ -149,17 +150,33 @@ def wired_heads(rows: list[dict]) -> dict:
 
 
 def carried(prior: dict | None, layer: str) -> dict:
-    """The cells (CARRIED[layer]) a rebuilt mast or head row keeps from its prior row, {} when there is none."""
+    """The cells (CARRIED[layer]) a rebuilt mast or head row takes from its field row, {} when there is none."""
     return {c: prior[c] for c in CARRIED[layer]} if prior else {}
 
 
-def wiring_heads(rows: list[dict], path: Path | None = None) -> dict:
-    """wired_heads, with each wired head's address, node and wiring text from wiring.csv (`path`, default the
-    committed file; its level 1 head rows), the physical wiring source; the old head row keeps its notes. A head in
-    wiring.csv with no row yet is wired from there. RuleError on a wired head row that wiring.csv does not list, or a
-    wiring.csv head that is not a staging head name."""
-    old = wired_heads(rows)
-    by_user = {u: h for m in old.values() for u, h in m.items()}
+def field_rows(files: devices.Files | None = None) -> dict[str, list[dict]]:
+    """{layer: field rows} of staging's mast and head rows in devices_field.csv (the owner's cells, CARRIED), read
+    from the field file alone."""
+    out: dict[str, list[dict]] = {"mast": [], "head": []}
+    for k, f in devices.field_index(files or device_files()).items():
+        if k[0] == str(PLANNED_LEVEL) and k[1] in out:
+            out[k[1]].append(dict(f))
+    return out
+
+
+def allocated_masts(files: devices.Files | None = None) -> list[dict]:
+    """Staging's mast rows as this script last wrote them, for the virtual masts' ordinals alone (virtual_rows): its
+    one read-back of its own output (devices.allocated_names), so no system name shifts."""
+    return [dict(r) for r in devices.allocated_names((str(PLANNED_LEVEL),), "mast", files=files or device_files()).values()]
+
+
+def wiring_heads(owned: list[dict], path: Path | None = None) -> dict:
+    """{mast: {head user name: head row}} of the wired heads: wiring.csv's level 1 head rows (`path`, default the
+    committed file), the physical wiring source, each with its address, node and wiring text from there and its notes
+    from its field row (`owned`: the field file's staging head rows, field_rows), else wiring.csv's, else "wired".
+    RuleError on a field head row that wiring.csv does not list, or a wiring.csv head that is not a staging head
+    name."""
+    by_user = {h["user_name"]: h for h in owned}
     try:
         heads = [w for w in wiring.read(path) if w.level == 1 and w.kind == "head"]
         nodes = bdm.staging_nodes()
@@ -172,18 +189,13 @@ def wiring_heads(rows: list[dict], path: Path | None = None) -> dict:
         if not m:
             bad.append(f"{wiring.PATH.name} line {w.line}: {w.device!r} is not a staging head name (Head <mast>)")
             continue
-        prev = by_user.pop(w.device, None)              # a head row wired already keeps its notes
-        new = next((r for r in rows if r["layer"] == "head" and r["user_name"] == w.device), None) if prev is None \
-            else None                                       # a head wired from wiring.csv alone: its notes are there
-        row = dict(carried(prev or new, "head"), user_name=w.device, system_name=w.address, jmri_name=w.address,
-                   node=str(w.node), comment=w.wiring_text)
-        if prev is None:                                 # wiring.csv's note, else the row's own, unless it says
-            kept = carried(new, "head").get("notes", "")     # the head is not wired
-            row["notes"] = w.notes or (kept if kept and not kept.startswith("internal, not wired") else "wired")
+        prev = by_user.pop(w.device, None)              # the owner's notes of the head, if any
+        row = dict(user_name=w.device, system_name=w.address, jmri_name=w.address, node=str(w.node),
+                   comment=w.wiring_text, notes=carried(prev, "head").get("notes") or w.notes or "wired")
         out.setdefault("Mast " + m.group(1), {})[w.device] = row
-    for user, h in sorted(by_user.items()):
-        bad.append(f"head {user} is wired in devices.csv (its jmri_name is {h['jmri_name']}) but has no head row "
-                   f"in {wiring.PATH.name}: add its wiring there, or give the row its internal name back")
+    for user in sorted(by_user):
+        bad.append(f"{devices.FIELD_FILE}: {devices.key_text((str(PLANNED_LEVEL), 'head', user))} has no head row in "
+                   f"{wiring.PATH.name}: add its wiring there, or remove the field row")
     if bad:
         raise RuleError("; ".join(bad))
     return out
@@ -575,8 +587,8 @@ def build():
     problems = devices.stale(files)       # the master is read below: stop if it or the files generated from it are off
     if problems:
         raise RuleError("; ".join(problems))
-    old = devices.device_map_rows(devices.load(files), ("1",))    # the master's staging rows, as the old file reads
-    wired = wiring_heads(old)
+    owned = field_rows(files)                   # the owner's cells: devices_field.csv alone
+    wired = wiring_heads(owned["head"])
     cm = block_cm()
     parts = sdm.staging_parts(DEVICE_MAP)
     planned = plan(band, bands, joined, runs, sdm.os_layer(names, parts), locks, cm)   # parts inside their blocks
@@ -589,14 +601,14 @@ def build():
         m["cp"] = cp_of[m["toward"]]
     vgen = virtual_masts(band, planned, cp_of)
     gm = mast_rows(gen, wired)
-    vr = virtual_rows(vgen, old)
+    vr = virtual_rows(vgen, allocated_masts(files))
     taken = [r["system_name"] for r in gm + vr]
     if len(set(taken)) != len(taken):
         raise RuleError(f"two masts share a system name: {sorted({x for x in taken if taken.count(x) > 1})}")
-    mine = with_roles([r for r in device_rows(gm, vr, old, wired, {m["mast"]: m["toward"] for m in vgen})
+    mine = with_roles([r for r in device_rows(gm, vr, owned["mast"], wired, {m["mast"]: m["toward"] for m in vgen})
                        if r["layer"] in WRITES], gen + vgen)   # the mast and head rows only
     want = devices.outputs_after(WRITER, mine, files)
-    master = devices.parse(want[files.master], files.master.name)     # every level's rows, as they will be written
+    master = devices.parse(want[files.master], files.master.name, files)     # every level's rows, as they will be written
     rows = file_rows(master, plan_facts(gen + vgen))
     kinds = {m["mast"]: level_masts.signal_kind(m) for m in rows if m["mast"] in {g["mast"] for g in gen + vgen}}
     drift = sorted(m["mast"] for m in gen + vgen if kinds[m["mast"]] != m["signal_kind"])

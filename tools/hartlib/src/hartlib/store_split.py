@@ -27,7 +27,7 @@ What happens to an item the owner changed (store differs from base):
              review; listed so it is clear what was taken)
     CLASH    a template item the repo changed too, or any template item when the base is not known: reviewed, merge
              takes the Store's version, drop keeps the repo's
-    DEVICE   a rename or comment of a bean whose devices.csv row the owner keeps by hand: reviewed, merge writes the
+    DEVICE   a rename or comment of a bean whose row is a level-less device in devices_field.csv: reviewed, merge writes the
              row (user_name, and jmri_name where the tables bind it by its user name; jmri_comment), drop leaves it.
              Also a device the Store added (merge adds a level-less row, its beans in jmri_bean, owner 2026-11-20)
              and a change to or deletion of a level-less device (merge rewrites or deletes its row)
@@ -66,10 +66,16 @@ VERSION = ("jmriversion", None)
 VERSION_PARTS = ("major", "minor", "test")
 # Top-level tags that never go into the template: the panels and the file history.
 NEVER_TEMPLATE = frozenset({PANEL, "filehistory", "paneleditor"})
-# The bean sections a devices.csv row can give, and the layers that give them.
+def _row_at(r: Mapping[str, str]) -> str:
+    """A master row as a review note names it: the file that holds it (a writer's row is devices_generated.csv's, the
+    owner's level-less device devices_field.csv's) and its layer and user name."""
+    return f"{devices.GENERATED_FILE if r['written_by'] else devices.FIELD_FILE} row {r['layer']} {r['user_name']!r}"
+
+
+# The bean sections a master row can give, and the layers that give them.
 BEAN_LAYERS = {"turnouts": ("turnout",), "sensors": ("fb", "occupancy", "sensor"), "signalheads": ("head",),
                "signalmasts": ("mast",), "blocks": ("block",), "layoutblocks": ("block",)}
-# Names the build makes (on top of devices.csv rows and the main and upper naming rule).
+# Names the build makes (on top of the master's rows and the main and upper naming rule).
 BUILD_PREFIXES = ("IQ$HART:", "IQC$HART:", "IQDA$HART:", "IS:HART:", "IT:HART:", "IH:HART:", "IB:HART:")
 
 
@@ -324,7 +330,7 @@ def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) ->
         if key[1] in NEVER_TEMPLATE or key[1].lower().endswith("editor"):
             return "the schematic (a panel is never in the template)"
         if key[1] in {t for t, _ in tb.SECTIONS}:
-            return "devices.csv and the build (a section of a known kind with another connection)"
+            return "the device master and the build (a section of a known kind with another connection)"
         for feature, tags in parked.WHOLE.items():
             if key[1] in tags:
                 return f"the parked {parked.FEATURES[feature]}"
@@ -332,7 +338,7 @@ def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) ->
     if kind != "bean":
         return None
     if key[1] in tb.MASTER_SECTIONS:
-        return "devices.csv (a device needs a row with its level, cp and role)"
+        return f"the device master (a device needs a row in {devices.FIELD_FILE} with its level, cp and role)"
     return claimed_name(key, el, rows)
 
 
@@ -352,7 +358,7 @@ def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
                     return f"the parked {parked.FEATURES[feature]}"
         for r in rows:
             if name in (r["user_name"], r["jmri_name"], r["system_name"]):
-                return f"devices.csv row {r['layer']} {r['user_name']!r}"
+                return _row_at(r)
     return None
 
 
@@ -361,8 +367,8 @@ def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
 
 @dataclass(frozen=True)
 class Edit:
-    """One devices.csv cell a DEVICE merge writes."""
-    row: int            # the row's place among the data rows (0 is the first under the header)
+    """One devices_field.csv cell a DEVICE merge writes, its row named by its key (level, layer, user_name)."""
+    key: tuple[str, str, str]
     column: str
     old: str
     new: str
@@ -380,9 +386,8 @@ class RowAdd:
 
 @dataclass(frozen=True)
 class RowDelete:
-    """A level-less devices.csv row a DEVICE merge deletes: its device was deleted in the Store."""
-    row: int
-    user_name: str
+    """A level-less devices_field.csv row a DEVICE merge deletes: its device was deleted in the Store."""
+    key: tuple[str, str, str]
 
 
 @dataclass(frozen=True)
@@ -434,14 +439,14 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
         old, new = value(g, p), value(s, p)
         found = rows_of(rindex, key, g)
         if len(found) != 1:
-            out.append((p, None, "no devices.csv row gives this bean" if not found else
-                        f"{len(found)} devices.csv rows give this bean; change the right one by hand"))
+            out.append((p, None, "no row of the device master gives this bean" if not found else
+                        f"{len(found)} rows of the device master give this bean; change the right one by hand"))
             continue
         i = found[0]
         r = rows[i]
-        who = f"devices.csv row {r['layer']} {r['user_name']!r}"
+        who = _row_at(r)
         if r["written_by"] == "build_device_map.py" and r["level"] == "1" and r["layer"] in ("turnout", "fb"):
-            out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in devices.csv and in "
+            out.append((p, None, f"{who} is staging's, wired in wiring.csv: rename it by hand in devices_field.csv and in "
                                  "wiring.csv's row, which is keyed by the name"))
             continue
         if r["written_by"]:
@@ -455,9 +460,9 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
             if not new or taken:
                 out.append((p, None, f"{new!r} is {'empty' if not new else 'another row' + chr(39) + 's name'}"))
                 continue
-            edits = [Edit(i, "user_name", old, new)]
+            edits = [Edit(devices.key_of(r), "user_name", old, new)]
             if r["jmri_name"] == old:           # bound by its user name (owner decision Q13)
-                edits.append(Edit(i, "jmri_name", old, new))
+                edits.append(Edit(devices.key_of(r), "jmri_name", old, new))
             out.append((p, tuple(edits), f"{who}: user_name" + (" and jmri_name" if len(edits) > 1 else "")))
         else:
             if r["level"] not in tb.GENERATED_LEVELS:
@@ -475,7 +480,7 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
                                          "build adds; keep it"))
                     continue
                 text = text[: -len(tail)]
-            out.append((p, (Edit(i, "jmri_comment", r["jmri_comment"], text),), f"{who}: jmri_comment"))
+            out.append((p, (Edit(devices.key_of(r), "jmri_comment", r["jmri_comment"], text),), f"{who}: jmri_comment"))
     return out, rest
 
 
@@ -497,7 +502,7 @@ def _name_holder(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
             for col in cols:
                 if r[col] != name:
                     continue
-                at = f"devices.csv row {r['layer']} {r['user_name']!r}"
+                at = _row_at(r)
                 if col == "system_name" and what == "system name" and r["assignment"] in ("virtual", "none"):
                     return (f"{at} plans this device (system_name {name!r}, assignment {r['assignment']}); to bring "
                             "it into JMRI, set that row's assignment to field and rebuild, or give the Store's device "
@@ -525,8 +530,8 @@ def unplaced_row(beans: list[tuple[tuple, ET.Element]], old: Mapping[str, str] |
     return row
 
 
-def _row_edits(i: int, old: Mapping[str, str], new: Mapping[str, str]) -> tuple[Edit, ...]:
-    return tuple(Edit(i, c, old[c], new[c]) for c in devices.COLUMNS if old[c] != new[c])
+def _row_edits(old: Mapping[str, str], new: Mapping[str, str]) -> tuple[Edit, ...]:
+    return tuple(Edit(devices.key_of(old), c, old[c], new[c]) for c in devices.COLUMNS if old[c] != new[c])
 
 
 def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[str, str]], has_base: bool) -> None:
@@ -548,18 +553,18 @@ def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[
                     also=tuple((k, el) for k, _, el in got[1:]))
         if taken:
             found.append((DROPPED, key, dict(info, what="added in the Store", note=(
-                f"devices.csv row {taken[0]['layer']} {taken[0]['user_name']!r} has its name; rename one in PanelPro"))))
+                f"{_row_at(taken[0])} has its name; rename one in PanelPro"))))
             continue
         found.append((DEVICE, key, dict(info, what="added in the Store", edits=(RowAdd(tuple(row.items())),),
-                                        note=f"merge adds a level-less devices.csv {row['layer']} row "
+                                        note=f"merge adds a level-less devices_field.csv {row['layer']} row "
                                              f"{row['user_name']!r} (its level, cp and role come later)")))
     for i, got in changed.items():
         old = rows[i]
         key, b, g, s = got[0]
         info = dict(store=s, repo=g, base=b, part=ROW, also=tuple((k, el) for k, _, _, el in got[1:]))
         if all(el is None for _, _, _, el in got):
-            found.append((DEVICE, key, dict(info, what="deleted in the Store", edits=(RowDelete(i, old["user_name"]),),
-                                            note=f"merge deletes devices.csv {old['layer']} row {old['user_name']!r}")))
+            found.append((DEVICE, key, dict(info, what="deleted in the Store", edits=(RowDelete(devices.key_of(old)),),
+                                            note=f"merge deletes devices_field.csv {old['layer']} row {old['user_name']!r}")))
             continue
         by_key = {k: (bb, gg, ss) for k, bb, gg, ss in got}
 
@@ -579,12 +584,12 @@ def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[
         # a cell the owner did not change (the Store's equals the base's) keeps the repo's, so a repo edit since the
         # deploy survives; with no base every difference is the owner's
         wanted = {c: v for c, v in new.items() if was is None or v != was[c]}
-        edits = tuple(e for e in _row_edits(i, old, {**old, **wanted}))
+        edits = tuple(e for e in _row_edits(old, {**old, **wanted}))
         if not edits:
             continue
         both = [e.column for e in edits if was is not None and old[e.column] != was[e.column]]
         found.append((DEVICE, key, dict(info, what=change_text(g, s), edits=edits,
-                                        note=f"merge rewrites level-less devices.csv row {old['layer']} "
+                                        note=f"merge rewrites level-less devices_field.csv row {old['layer']} "
                                              f"{old['user_name']!r} ({', '.join(e.column for e in edits)})"
                                              + (f"; the repo changed {', '.join(both)} too since the deploy, and "
                                                 "merge takes the Store's" if both else ""))))
@@ -736,7 +741,7 @@ def _source(key: tuple) -> str:
     if kind == "logic":
         return "the discovery (jmri/layouts/hart/scripts/run_sml_discover.sh)"
     if kind == "bean" and key[1] in tb.MASTER_SECTIONS:
-        return "devices.csv"
+        return f"the device master ({devices.FIELD_FILE} for the owner's cells, else the builders' inputs)"
     return "the Layout Editor build's sources (wiki/pipelines/schematic-panels.md)"
 
 
@@ -773,8 +778,9 @@ def check_choices(p: Plan, c: Choices) -> None:
         for e in d.edits:
             if not isinstance(e, Edit):
                 continue
-            if cells.setdefault((e.row, e.column), e.new) != e.new:
-                raise SplitError(f"{d.id} and another merge write devices.csv row {e.row + 2} {e.column} two ways")
+            if cells.setdefault((e.key, e.column), e.new) != e.new:
+                raise SplitError(f"{d.id} and another merge write {devices.FIELD_FILE} {devices.key_text(e.key)} "
+                                 f"{e.column} two ways")
 
 
 def template_changes(p: Plan, c: Choices) -> list[Item]:
@@ -787,18 +793,29 @@ def device_edits(p: Plan, c: Choices) -> list[Edit]:
 
 
 def edited_rows(rows: Iterable[Mapping[str, str]], edits: Iterable[Edit]) -> list[dict[str, str]]:
-    """devices.csv rows with `edits` written. SplitError when a cell no longer holds the old value."""
+    """The field file's rows (`rows`) with `edits` written, each edit finding its row by key (never by its place in
+    the file). SplitError when the file has no row of an edit's key, or a cell no longer holds the old value."""
     out = [dict(r) for r in rows]
     edits = list(edits)
-    for e in edits:
+    at = {devices.key_of(r): n for n, r in enumerate(out)}
+
+    def find(key: tuple[str, str, str]) -> int:
+        if key not in at:
+            raise SplitError(f"{devices.FIELD_FILE} has no row {devices.key_text(key)} (a Store's device or an "
+                             "owner's row); change it by hand")
+        return at[key]
+
+    places = [(find(e.key), e) for e in edits if isinstance(e, (Edit, RowDelete))]    # every key before any edit
+    for n, e in places:
         if isinstance(e, Edit):
-            if out[e.row][e.column] != e.old:
-                raise SplitError(f"devices.csv row {e.row + 2} {e.column} is {out[e.row][e.column]!r}, not {e.old!r}")
-            out[e.row][e.column] = e.new
-    for e in sorted((e for e in edits if isinstance(e, RowDelete)), key=lambda e: -e.row):
-        if out[e.row]["user_name"] != e.user_name or not devices.is_unplaced(out[e.row]):
-            raise SplitError(f"devices.csv row {e.row + 2} is not the level-less row {e.user_name!r}")
-        del out[e.row]
+            if out[n][e.column] != e.old:
+                raise SplitError(f"{devices.FIELD_FILE} {devices.key_text(e.key)} {e.column} is "
+                                 f"{out[n][e.column]!r}, not {e.old!r}")
+            out[n][e.column] = e.new
+    for n, e in sorted(((n, e) for n, e in places if isinstance(e, RowDelete)), key=lambda t: -t[0]):
+        if not devices.is_unplaced(out[n]):
+            raise SplitError(f"{devices.FIELD_FILE} {devices.key_text(e.key)} is not a level-less row")
+        del out[n]
     for e in edits:
         if isinstance(e, RowAdd):
             new = e.row
@@ -952,7 +969,7 @@ def report(p: Plan, *, verbose: bool = False) -> list[str]:
     head = {
         KEPT: "KEPT: the owner's changes to what the template holds; the template takes them (drop K.. to refuse one)",
         CLASH: "CLASH, review: the repo changed these too (or there is no base); merge takes the Store's, drop the repo's",
-        DEVICE: "DEVICE, review: merge writes devices.csv, drop leaves it",
+        DEVICE: "DEVICE, review: merge writes devices_field.csv, drop leaves it",
         DROPPED: "DROPPED: the build owns these, so the repo wins; change the source named to keep one",
     }
     out = [f"plan {p.fingerprint}: " + ", ".join(f"{len(p.of(k))} {k}" for k in KINDS)]

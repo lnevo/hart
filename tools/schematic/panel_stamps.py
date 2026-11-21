@@ -33,9 +33,11 @@ STORE = ROOT / ".cache" / "panel-stamps"
 PLUGIN = ROOT / "external" / "model-railroad-skills"
 
 DATA = "jmri/layouts/hart/data"
-# The device master's file name. This script cannot import hartlib (the shell test runs a copy of it alone), so the
-# name is here, and test_panel_stamps pins it to hartlib.devices.MASTER_FILE.
-DEVICES_FILE = "devices.csv"
+# The device master's file names: the generated file the device-map and masts steps write, and the owner's field
+# file every step that reads the master reads (it is in ALL_DATA). This script cannot import hartlib (the shell test
+# runs a copy of it alone), so the names are here, and test_devices_one_path pins them to hartlib.devices.
+DEVICES_FILE = "devices_generated.csv"
+DEVICES_FIELD_FILE = "devices_field.csv"
 SCH = f"{DATA}/schematic"
 OUT = "jmri/layouts/hart/output"
 
@@ -106,6 +108,10 @@ def covered(rel: str, step: str) -> bool:
     """Is repo file `rel` named by `step`'s declaration (its inputs, outputs or the code every step may run), or the
     plugin (stamped by its commit)?"""
     if rel.startswith("external/model-railroad-skills/"):
+        return True
+    if rel.startswith(".cache/"):
+        # the shared build cache (hartlib.paths.cache_dir, in the main checkout since 2026-11-21): keyed on the
+        # real inputs, so it is no input of its own
         return True
     if "__pycache__" in rel.split("/"):
         return True

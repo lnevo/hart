@@ -10,7 +10,7 @@ name this command; run it in a task worktree (make wt TOPIC=...).
 The report lists every item the owner changed (hartlib.store_split): KEPT items go into the template, CLASH and
 DEVICE items wait for the owner's merge or drop (the agent asks in chat, in batches), DROPPED items are the build's
 and the repo wins. --apply takes the plan's fingerprint from the report, so the ids mean what the owner saw: it
-writes data/tables_template.xml and the merged devices.csv cells, rebuilds tables.xml (build_tables.py), checks the
+writes data/tables_template.xml and the merged devices_field.csv cells, rebuilds tables.xml (build_tables.py), checks the
 rebuild gives what the plan promised (store_split.verify) and records the Store in data/store_splits.csv, which is
 what lets the next deploy replace the host's file (ADR-029: a Store counts as taken once its split is on the branch
 deployed). On any failure every file is put back. It stops before commit: the files to commit are printed.
@@ -45,7 +45,8 @@ ROOT = paths.REPO_ROOT if hasattr(paths, "REPO_ROOT") else Path(__file__).resolv
 TABLES_REL = "jmri/layouts/hart/output/tables.xml"
 TABLES = ROOT / TABLES_REL
 TEMPLATE = ROOT / "jmri/layouts/hart/data/tables_template.xml"
-DEVICES = devices.MASTER
+DEVICE_FILES = devices.Files.here()    # the master: the split reads the merged view, writes the field file alone
+DEVICES = devices.FIELD                 # devices_field.csv: the owner's file, the one device file a split writes
 SPLITS = ROOT / "jmri/layouts/hart/data/store_splits.csv"
 SPLIT_COLUMNS = ("store_sha256", "host", "store_file", "base", "plan", "split_date")
 WRITES = (TEMPLATE, DEVICES, TABLES, SPLITS)
@@ -129,7 +130,7 @@ def make_plan(store_path: Path, args) -> tuple[ss.Plan, dict]:
     repo_bytes = _read(TABLES)
     try:
         template_doc = tb.read_template(TEMPLATE)
-        rows = devices.load(DEVICES)
+        rows = devices.load(DEVICE_FILES)
         roots = dict(
             base=ss.normalised(base_bytes, "the base") if base_bytes is not None else None,
             repo=ss.normalised(repo_bytes, "tables.xml"),
@@ -184,15 +185,17 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
         changes = ss.template_changes(p, choices)
         doc = ss.new_template(ctx["template_doc"], ctx["roots"]["store"], changes, p.by_content)
         edits = ss.device_edits(p, choices)
-        rows = ss.edited_rows(ctx["rows"], edits)
-        devices.check_rows(rows, "devices.csv (after the merges)")
+        rows = ss.edited_rows(devices.field_rows(DEVICE_FILES), edits)      # by key, never by place
+        devices.merge(devices.generated_rows(DEVICE_FILES), rows, (devices.GENERATED_FILE, devices.FIELD_FILE))
     except (ss.SplitError, devices.DevicesError) as exc:
         return undo([str(exc)])
     try:
         TEMPLATE.write_bytes(doc.tobytes())
         tb.read_template(TEMPLATE)
         if edits:
-            devices.write_master(rows, DEVICES)
+            devices.write_field(rows, DEVICE_FILES.but(field=DEVICES))
+    except devices.DevicesError as exc:
+        return undo([f"the new {DEVICES.name}: {exc}"])
     except (tb.TablesBuildError, OSError) as exc:
         return undo([f"the new template: {exc}"])
     built = subprocess.run([sys.executable, str(BUILD)], cwd=ROOT, env=build_env(), capture_output=True, text=True)
@@ -215,14 +218,14 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
     except (OSError, ValueError, KeyError, csv.Error) as exc:
         return undo([f"{SPLITS.name} could not be written: {exc!r}"])
     merged = sorted(choices.merge)
-    print(f"Applied plan {p.fingerprint}: {len(changes)} template change(s), {len(edits)} devices.csv change(s)"
+    print(f"Applied plan {p.fingerprint}: {len(changes)} template change(s), {len(edits)} {DEVICES.name} change(s)"
           + (f" (merged {', '.join(merged)})" if merged else "") + "; tables.xml rebuilt and checked.")
     written = [f for f in WRITES if (f.read_bytes() if f.exists() else None) != saved[f]]
     print("Commit these (nothing is committed yet):")
     for f in written:
         print(f"  {f.relative_to(ROOT)}")
     if edits:
-        print("devices.csv changed: run make panels CHECK=1 (make panels when it reports stale outputs), and "
+        print(f"{DEVICES.name} changed: run make panels CHECK=1 (make panels when it reports stale outputs), and "
               "make panelpro-test before the deploy.")
     print("Once merged, the next deploy replaces the host's tables.xml with the generated one (store_splits.csv).")
     return 0
@@ -248,7 +251,7 @@ def record(store_path: Path, ctx: dict, p: ss.Plan) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("store", type=Path, help="the kept Store (~/JMRI_UserFiles-pulled/pi-....xml)")
+    ap.add_argument("store", type=Path, help="the kept Store (media/pulled-stores/pi-....xml)")
     ap.add_argument("--base", type=Path, help="a tables file to use as the base, in place of STORE.base")
     ap.add_argument("--no-base", action="store_true", help="split with no base: every template change is reviewed")
     ap.add_argument("--show", metavar="ID", help="print one item as a diff")

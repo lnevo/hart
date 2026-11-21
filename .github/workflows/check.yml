@@ -34,7 +34,7 @@ jobs:
       # run saves a new copy (the plugin, the builders or their data changed).
       - uses: actions/cache@v4
         with:
-          path: ~/.cache/hart/schematic
+          path: .cache/hart/schematic
           key: schematic-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
           restore-keys: schematic-
       # A push run cannot restore a pull request run's cache (GitHub keeps each cache to its own ref), so the push
@@ -72,7 +72,7 @@ jobs:
             echo "pull request #$number, run $run: no schematic-cache artifact to download: only the cache restored above"
             exit 0
           fi
-          dir="$HOME/.cache/hart/schematic"
+          dir="$GITHUB_WORKSPACE/.cache/hart/schematic"
           mkdir -p "$dir"
           chmod 700 "$dir"
           find "$got" -maxdepth 1 -type f -name '*.pickle' -exec cp -f {} "$dir"/ \;
@@ -85,7 +85,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: schematic-cache
-          path: ~/.cache/hart/schematic/*.pickle
+          path: .cache/hart/schematic/*.pickle
           include-hidden-files: true
           retention-days: 7
           overwrite: true       # a re-run of the job uploads it again
