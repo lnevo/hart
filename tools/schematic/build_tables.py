@@ -28,7 +28,7 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
    rewrite, disable_digicon_sml_in_tables.py, until R9c), so the hosts get exactly the committed bytes.
 
 A PanelPro Store of tables.xml is never copied over it: make tables-pull and tables-pull-pi keep the Store in
-~/JMRI_UserFiles-pulled (outside every checkout), and tools/schematic/split_store.py splits it into the template and
+media/pulled-stores in the main checkout (gitignored, shared by every worktree), and tools/schematic/split_store.py splits it into the template and
 devices.csv (R9d). Exit codes: 0 written or current, 1 stale (--check), 2 a source cannot make the tables, 3 the schematic-maps
 plugin is missing or not at its pin (EXIT_NO_PLUGIN; --check prints SKIPPED and exits 0 instead unless
 SCHEMATIC_REQUIRED=1, which the deploy sets).

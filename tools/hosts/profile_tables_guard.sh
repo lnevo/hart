@@ -29,16 +29,37 @@ hart_split_shas() {
   tail -n +2 "$csv" | cut -d, -f1 | grep -E '^[0-9a-f]{64}$' || true
 }
 
+# hart_main_checkout ROOT prints the main checkout of the repo ROOT belongs to: the parent of git's common dir, so a
+# worktree answers with the checkout it was made from; ROOT itself where git cannot say (a copied tree). Mirrors
+# hartlib.paths.main_checkout().
+hart_main_checkout() {
+  local common
+  if common="$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"; then
+    dirname "$common"
+  else
+    echo "$1"
+  fi
+}
+
+# hart_cache_dir ROOT NAME prints the shared cache folder NAME: HART_CACHE_DIR/NAME, else
+# <main checkout>/.cache/hart/NAME (gitignored), so every worktree shares one warm cache. Mirrors hartlib.paths.cache_dir().
+hart_cache_dir() {
+  echo "${HART_CACHE_DIR:-$(hart_main_checkout "$1")/.cache/hart}/$2"
+}
+
 # hart_pulled_dir prints the folder PanelPro Stores taken off a host are kept in (make tables-pull, tables-pull-pi,
-# run_sml_discover.sh, run_panelpro_roundtrip.sh): HART_PULLED_DIR, else ~/JMRI_UserFiles-pulled, created on demand.
-# It is outside every checkout, so a worktree swept after its merge never takes the owner's only copy with it; a
-# folder inside a git checkout is refused (exit 1).
+# run_sml_discover.sh, run_panelpro_roundtrip.sh): HART_PULLED_DIR, else <main checkout>/media/pulled-stores, created
+# on demand. The main checkout is the parent of git's common dir, so every worktree shares one folder and a worktree
+# swept after its merge never takes the owner's only copy with it. A folder inside a git checkout that git does not
+# ignore is refused (exit 1), so a Store cannot reach a commit; media/ is gitignored.
 hart_pulled_dir() {
-  local dir="${HART_PULLED_DIR:-$HOME/JMRI_UserFiles-pulled}" probe
+  local dir="${HART_PULLED_DIR:-}" probe
+  [[ -n "$dir" ]] || dir="$(hart_main_checkout "$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)")/media/pulled-stores"
   probe="$dir"
   while [[ ! -d "$probe" ]]; do probe="$(dirname "$probe")"; done   # checked before anything is made
-  if git -C "$probe" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    echo "STOP: $dir is inside a git checkout; pulled Stores live outside every checkout (HART_PULLED_DIR)" >&2
+  if git -C "$probe" rev-parse --is-inside-work-tree >/dev/null 2>&1 \
+     && ! git -C "$probe" check-ignore -q "$dir" 2>/dev/null; then
+    echo "STOP: $dir is inside a git checkout and not git-ignored; pulled Stores live in the main checkout's gitignored media/ (HART_PULLED_DIR)" >&2
     return 1
   fi
   mkdir -p "$dir" || { echo "STOP: cannot make $dir for the pulled Stores" >&2; return 1; }

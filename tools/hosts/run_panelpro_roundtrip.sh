@@ -9,8 +9,8 @@
 #
 #   tools/hosts/run_panelpro_roundtrip.sh            # exit 0 when it passes, 1 when it fails or cannot run
 #
-# The Store is kept as roundtrip-<date>.xml in the pulled folder (~/JMRI_UserFiles-pulled, or HART_PULLED_DIR:
-# outside every checkout, profile_tables_guard.sh hart_pulled_dir) and the block path counts beside it (.paths.tsv), for a look and for split_store.py. It refuses while
+# The Store is kept as roundtrip-<date>.xml in the pulled folder (<main checkout>/media/pulled-stores, or HART_PULLED_DIR;
+# gitignored, shared by every worktree, profile_tables_guard.sh hart_pulled_dir) and the block path counts beside it (.paths.tsv), for a look and for split_store.py. It refuses while
 # PanelPro, DecoderPro or CATS is open. The run lifecycle (profile backup and restore, Start Up items that run
 # code off, stopping PanelPro on a timeout or a signal) is tools/hosts/panelpro_session.sh; PanelPro still
 # connects to MQTT, so run it with the layout idle. HART_ROUNDTRIP_WAIT (seconds, default 180) bounds the

@@ -11,7 +11,8 @@ the SVG with Chrome, or sips without it); needs Pillow, which the repo's root .v
 
     .venv/bin/python tools/schematic/evolution.py
 
-Default folder: ~/Documents/Layout/schematic-evolution (outside the repo; frames are large).
+Default folder: media/schematic-evolution under the repo root (media/ is gitignored, and a worktree has it linked;
+frames are large). With no media/ (a fresh clone without the mirror) it stops with a message and makes nothing.
 
 --site also makes the copy the website shows, after the frames are up to date: schematic-evolution.mp4 (H.264,
 yuv420p, faststart, 0.4 s a version and the last frame held 2 s, the pace of all four site films: hartlib.film_pace) and schematic-poster.jpg (the last frame) in
@@ -268,6 +269,14 @@ def ImageOpsPad(img, height):
     return canvas
 
 
+def default_folder():
+    """<repo>/media/schematic-evolution; stops when media/ is missing rather than making a stray folder."""
+    media = REPO / "media"
+    if not media.is_dir():
+        sys.exit(f"{media} is missing: link or make the gitignored media/ folder first (make wt links it), or name an output folder")
+    return media / "schematic-evolution"
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     flags = [a for a in args if a.startswith("--")]
@@ -276,4 +285,4 @@ if __name__ == "__main__":
         sys.exit(__doc__.split("\n\n")[0] + "\n--site and --check count the checked-out branch's history: run them on main")
     if flags == ["--check"]:
         sys.exit(check())
-    main(Path(rest[0]).expanduser() if rest else Path.home() / "Documents/Layout/schematic-evolution", flags == ["--site"])
+    main(Path(rest[0]).expanduser() if rest else default_folder(), flags == ["--site"])

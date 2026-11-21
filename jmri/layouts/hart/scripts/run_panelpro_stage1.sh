@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Load HART tables in PanelPro, run stock Stage 1 (auto-Yes shared-sensor), store.
 # Parked with the Dispatcher System. tables.xml is generated since R9c (ADR-029), so the Stage 1 Store and
-# its repairs go to stage1-<date>.xml in the pulled folder (hart_pulled_dir, outside every checkout), never over
+# its repairs go to stage1-<date>.xml in the pulled folder (hart_pulled_dir: the main checkout's gitignored media/, shared by every worktree), never over
 # tables.xml; split_store.py (R9d) takes such a Store back into the sources. On unpark, decide how Stage 1's output
 # becomes source data before relying on this wrapper.
 # The run lifecycle (profile backup and restore, Start Up items that run code off, stopping
@@ -18,7 +18,7 @@ MARKER="${HART_STAGE1_MARKER:-/tmp/hart_stage1.done}"
 LOG="${HART_STAGE1_LOG:-/tmp/hart_stage1.log}"
 REPO_TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
 PULLED="$(hart_pulled_dir)" || exit 1
-REPO_OUTPUT="$PULLED/stage1-$(date +%Y%m%d-%H%M%S).xml"   # the Store, outside every checkout
+REPO_OUTPUT="$PULLED/stage1-$(date +%Y%m%d-%H%M%S).xml"   # the Store, in the pulled folder
 REPO_TRAININFO="$ROOT/jmri/layouts/hart/dispatcher/traininfo"
 
 pp_refuse_running "Quit local CATS/PanelPro before Stage 1"

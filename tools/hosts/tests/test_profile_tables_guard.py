@@ -1,5 +1,5 @@
 """tools/hosts/profile_tables_guard.sh: profile_tables_unpulled (the Mac deploy's unpulled-Store guard) and
-hart_pulled_dir (where taken Stores are kept, outside every checkout)."""
+hart_pulled_dir (where taken Stores are kept, in the main checkout's gitignored media/) and the main-checkout and cache helpers."""
 from __future__ import annotations
 
 import hashlib
@@ -74,13 +74,37 @@ class Unpulled(unittest.TestCase):
 
 
 class PulledDir(unittest.TestCase):
-    def test_the_default_is_beside_the_user_files_and_made_on_demand(self) -> None:
-        with tempfile.TemporaryDirectory() as home:
-            done = bash("hart_pulled_dir", {"HOME": home, "HART_PULLED_DIR": ""})
-            self.assertEqual(0, done.returncode, done.stderr)
-            want = Path(home).resolve() / "JMRI_UserFiles-pulled"
-            self.assertEqual(want, Path(done.stdout.strip()).resolve())
-            self.assertTrue(want.is_dir())
+    def test_the_default_is_media_in_the_main_checkout_and_made_on_demand(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            main = Path(tmp).resolve() / "main"
+            subprocess.run(["git", "init", "-q", str(main)], check=True)
+            (main / ".gitignore").write_text("/media\n")
+            (main / "tools/hosts").mkdir(parents=True)
+            guard = main / "tools/hosts/profile_tables_guard.sh"
+            shutil.copy2(GUARD, guard)
+            # a worktree of main finds the same folder
+            subprocess.run(["git", "-C", str(main), "-c", "user.name=t", "-c", "user.email=t@example.invalid",
+                            "commit", "-q", "--allow-empty", "-m", "x"], check=True)
+            work = Path(tmp).resolve() / "work"
+            subprocess.run(["git", "-C", str(main), "worktree", "add", "-q", str(work), "-b", "t"], check=True)
+            (work / "tools/hosts").mkdir(parents=True)
+            shutil.copy2(GUARD, work / "tools/hosts/profile_tables_guard.sh")
+            env = {k: v for k, v in os.environ.items() if k != "HART_PULLED_DIR"}
+            for g in (guard, work / "tools/hosts/profile_tables_guard.sh"):
+                done = subprocess.run(["bash", "-c", f'source "{g}"; hart_pulled_dir'], capture_output=True, text=True,
+                                      env=env, timeout=30)
+                self.assertEqual(0, done.returncode, done.stderr)
+                self.assertEqual(main / "media/pulled-stores", Path(done.stdout.strip()).resolve())
+            self.assertTrue((main / "media/pulled-stores").is_dir())
+            ignored = subprocess.run(["git", "-C", str(main), "check-ignore", "-q", "media/pulled-stores"])
+            self.assertEqual(0, ignored.returncode, "the default pulled folder must be git-ignored")
+
+    def test_the_cache_default_is_in_the_main_checkout_and_the_override_wins(self) -> None:
+        done = bash(f'hart_cache_dir "{ROOT}" schematic', {"HART_CACHE_DIR": ""})
+        main = Path(bash(f'hart_main_checkout "{ROOT}"').stdout.strip())
+        self.assertEqual(main / ".cache/hart/schematic", Path(done.stdout.strip()))
+        self.assertEqual(0, subprocess.run(["git", "-C", str(main), "check-ignore", "-q", ".cache/hart/schematic"]).returncode)
+        self.assertEqual("/x/web", bash(f'hart_cache_dir "{ROOT}" web', {"HART_CACHE_DIR": "/x"}).stdout.strip())
 
     def test_a_folder_inside_a_checkout_is_refused(self) -> None:
         inside = ROOT / "jmri/layouts/hart/output/pulled-test/kept"

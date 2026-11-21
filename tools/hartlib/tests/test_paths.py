@@ -1,7 +1,9 @@
 """hartlib.paths: one checkout, one layout, and a check that the old shims are gone."""
 import importlib
 import os
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -184,6 +186,33 @@ class TablesOverrideTest(unittest.TestCase):
             out = self.probe(str(profile), home=home)
         self.assertNotEqual(0, out.returncode)
         self.assertIn("is in the JMRI profile", out.stderr)
+
+
+class SharedFoldersTest(unittest.TestCase):
+    """Caches and pulled Stores live in the main checkout, gitignored, shared by every worktree."""
+
+    def ignored(self, path):
+        rel = path.relative_to(paths.main_checkout())
+        return subprocess.run(["git", "-C", str(paths.main_checkout()), "check-ignore", "-q", str(rel)]).returncode == 0
+
+    def test_defaults_are_in_the_main_checkout_and_git_ignored(self):
+        with mock.patch.dict(os.environ, {"HART_CACHE_DIR": ""}):
+            cache = paths.cache_dir("schematic")
+        main = paths.main_checkout()
+        self.assertEqual(main / ".cache/hart/schematic", cache)
+        self.assertTrue(self.ignored(cache))
+        self.assertEqual(main / "media/pulled-stores", paths.pulled_stores_dir())
+        self.assertTrue(self.ignored(paths.pulled_stores_dir()))
+        # a worktree's .git is a file, and its common dir is the main checkout's: the answer is the same from there
+        self.assertTrue((main / ".git").exists())
+
+    def test_the_override_moves_the_cache_base(self):
+        with mock.patch.dict(os.environ, {"HART_CACHE_DIR": "/x/c"}):
+            self.assertEqual(Path("/x/c/web-jpeg"), paths.cache_dir("web-jpeg"))
+
+    def test_a_tree_git_cannot_read_answers_with_itself(self):
+        with tempfile.TemporaryDirectory() as d:
+            self.assertEqual(Path(d), paths.main_checkout(Path(d)))
 
 
 if __name__ == "__main__":

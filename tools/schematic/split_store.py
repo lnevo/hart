@@ -248,7 +248,7 @@ def record(store_path: Path, ctx: dict, p: ss.Plan) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    ap.add_argument("store", type=Path, help="the kept Store (~/JMRI_UserFiles-pulled/pi-....xml)")
+    ap.add_argument("store", type=Path, help="the kept Store (media/pulled-stores/pi-....xml)")
     ap.add_argument("--base", type=Path, help="a tables file to use as the base, in place of STORE.base")
     ap.add_argument("--no-base", action="store_true", help="split with no base: every template change is reviewed")
     ap.add_argument("--show", metavar="ID", help="print one item as a diff")

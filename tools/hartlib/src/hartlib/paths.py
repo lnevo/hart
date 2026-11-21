@@ -19,6 +19,7 @@ scripts refuse to run while ``HART_TABLES`` is set.
 from __future__ import annotations
 
 import os
+import subprocess
 from pathlib import Path
 
 
@@ -50,6 +51,32 @@ CATS_DIR = REPO_ROOT / "cats"
 
 # Where PanelPro loads preference:tables.xml on every host (ADR-014).
 JMRI_USER_FILES = Path.home() / "JMRI_UserFiles"
+
+
+def main_checkout(root: Path | None = None) -> Path:
+    """The main checkout of the repo ``root`` (default: this one) belongs to: the parent of git's common dir, so a
+    worktree answers with the checkout it was made from. ``root`` itself where git cannot say (a copied tree).
+    The shell twin is hart_main_checkout in tools/hosts/profile_tables_guard.sh."""
+    root = root or REPO_ROOT
+    try:
+        done = subprocess.run(["git", "-C", str(root), "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                              capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError):
+        return root
+    common = done.stdout.strip()
+    return Path(common).parent if done.returncode == 0 and common else root
+
+
+def cache_dir(name: str, root: Path | None = None) -> Path:
+    """The shared cache folder ``name``: ``HART_CACHE_DIR``/name, else <main checkout>/.cache/hart/name (gitignored),
+    so every worktree shares one warm cache. The shell twin is hart_cache_dir."""
+    base = os.environ.get("HART_CACHE_DIR", "").strip()
+    return (Path(base).expanduser() if base else main_checkout(root) / ".cache" / "hart") / name
+
+
+def pulled_stores_dir(root: Path | None = None) -> Path:
+    """Where PanelPro Stores taken off a host are kept: <main checkout>/media/pulled-stores (gitignored)."""
+    return main_checkout(root) / "media" / "pulled-stores"
 
 
 def _tables_xml() -> Path:

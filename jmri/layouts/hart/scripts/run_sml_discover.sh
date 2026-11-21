@@ -72,7 +72,7 @@ pp_wait_exit "${HART_PANELPRO_EXIT_WAIT:-60}" || { echo "PanelPro did not quit a
 # The discovered logic into its own file, then tables.xml from its sources. Discover stores Digicon
 # destinations Enabled; the generator stores them disabled until signal_coordinator.py takes control.
 if ! python3 "$ROOT/tools/schematic/build_tables.py" --discovered-from "$STORED" ${REVIEW[@]+"${REVIEW[@]}"}; then
-  # keep the discovery's Store, outside every checkout: the temporary file goes when this run ends
+  # keep the discovery's Store in the pulled folder (media/pulled-stores): the temporary file goes when this run ends
   pulled="$(hart_pulled_dir)" || exit 1
   kept="$pulled/discovery-$(date +%Y%m%d-%H%M%S).xml"
   cp "$STORED" "$kept"

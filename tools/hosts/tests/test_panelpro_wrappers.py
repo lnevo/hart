@@ -282,7 +282,7 @@ class StartupScriptsOff(WrapperCase):
         env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_TABLES_FAIL="1")
         done = self.box.run("run_sml_discover.sh", env)
         self.assertEqual(1, done.returncode, done.stderr)
-        kept = sorted((self.box.home / "JMRI_UserFiles-pulled").glob("discovery-*.xml"))
+        kept = sorted((self.box.root / "media/pulled-stores").glob("discovery-*.xml"))
         self.assertEqual(1, len(kept), done.stderr)
         self.assertIn(f"kept as {kept[0]}", done.stderr)
         self.assertIn(f"--discovered-from {kept[0]}", done.stderr)
