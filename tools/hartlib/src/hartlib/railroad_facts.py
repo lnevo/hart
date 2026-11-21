@@ -185,14 +185,12 @@ def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
 
 
 def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> StagingDevices:
-    """Staging's rows of devices.csv at `path` (or its `rows`, read_staging_rows), every row checked. Stops on a
-    layer outside NAME_LAYERS, an empty user name, or a DCC address that is not a number (the master's own check
-    holds the keys unique)."""
+    """Staging's rows of devices.csv at `path` (or its `rows`, read_staging_rows, which keeps NAME_LAYERS only), every
+    row checked. Stops on an empty user name or a DCC address that is not a number (the master's own check holds the
+    keys unique)."""
     out = []
     for line, r in read_staging_rows(path) if rows is None else rows:
         where = _where(path, line)
-        if r["layer"] not in NAME_LAYERS:
-            raise FactsError(f"{where}: layer is one of {', '.join(NAME_LAYERS)}, not {r['layer']!r}")
         if not r["user_name"]:
             raise FactsError(f"{where}: user_name is empty")
         if r["dcc"] and not r["dcc"].isdigit():

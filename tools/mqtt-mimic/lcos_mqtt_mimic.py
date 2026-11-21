@@ -347,7 +347,7 @@ def load_levels(root, rr: railroad.Railroad | None = None) -> dict:
 
 def first_place(cp: str) -> str:
     """The plant of a cp: the control point, or for a line block's list (the stations or control points it joins,
-    in stations.csv's then interlockings.csv's order) its first, so a block is grouped once."""
+    its own level's first: build_device_map.line_cp) its first, so a block is grouped once, on its own level."""
     return cp.split(";")[0]
 
 

@@ -103,7 +103,7 @@
           </figure>
           <p>Inside the repository, files fall into three kinds:</p>
           <ul>
-            <li><b>Sources of record.</b> The one file that owns a fact, such as the tables file, the name map or the car repository. A change starts here.</li>
+            <li><b>Sources of record.</b> The one file that owns a fact, such as the tables file, the device master (devices.csv) or the car repository. A change starts here.</li>
             <li><b>Tools.</b> Scripts that build copies from the sources, check that everything agrees, and deploy.</li>
             <li><b>Generated files.</b> Copies made by the tools, such as the two CATS desks, the crew documents and the website's data. Nobody edits these by hand; a fix goes into the source or the script that made them.</li>
           </ul>
@@ -182,7 +182,7 @@
           <h2 id="h-hartlib"><span class="num">05</span>Shared code</h2>
           <p>The Mac-side scripts share one small library, <code>hartlib</code>, in <code>tools/hartlib/</code>. These are its <!--rg:hartlib-main-count-->four<!--/rg--> main parts; the rest (<!--rg:hartlib-other-->the DCC group of a JMRI comment, the device master (devices.csv), its dictionary and its checks, the template and the other parts the generated tables.xml is built from, the split of a pulled PanelPro Store back into the template and devices.csv, the CATS desk conventions, the parked features, the main and upper levels' device names, their control-point masts, the station maps' revision, the schematic's layer files, a section per sheet and the physical wiring source (wiring.csv)<!--/rg-->) serve narrower jobs:</p>
           <ul>
-            <li><b><code>paths</code></b> names every file the tools use: the tables file, the name map, the wiring table, the layout folders. A path always points into the checkout the script sits in.</li>
+            <li><b><code>paths</code></b> names every file the tools use: the tables file, the device master (devices.csv), the wiring table, the layout folders. A path always points into the checkout the script sits in.</li>
             <li><b><code>tables</code></b> loads and saves <code>tables.xml</code>. A load followed by a save with no edit writes the same bytes JMRI wrote, so a script that changes one sensor changes one sensor in the diff. It also knows the file's traps: sensors and turnouts split over several sections, every block written twice, two kinds of mast.</li>
             <li><b><code>hosts</code></b> holds the MQTT broker and the address of each layout computer, read from the environment, then a local settings file, then the defaults in <code>tools/env/defaults.env</code>. The shell scripts read the same settings in the same order.</li>
             <li><b><code>railroad</code></b> reads the fact files above once each and checks the rules between them, such as no main or upper switch reusing a staging switch number, and every main and upper device in the device map also being in <code>tables.xml</code>. The panel builders read their facts through it, and each builder may read only the files made before its own step, so none of them reads an old copy of what it is about to write. <code>./tools/check.sh</code> runs its check.</li>

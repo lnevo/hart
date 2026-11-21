@@ -86,17 +86,37 @@ class RowRules(Master):
         # every line block lists its places now (owner, 2026-11-21), so none leans on its end switches
         self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps={}, places=self.places), [])
 
+    def test_a_line_blocks_places_are_the_rules_inputs(self):
+        """Each place a line block lists is at one of its end switches or a station whose tracks name it (the rule's
+        own inputs, build_device_map.line_cp): a hand edit naming another real place is caught, as a wrong level
+        was before the list."""
+        tsdm.Files.setUpClass()
+        with cdm.pd.cache_on():
+            line_places = cdm.line_block_places(cdm.block_end_switches(cdm.master_lines()))
+        self.assertEqual(line_places["Track W-1"], {"Brick", "West Yard"})
+        self.assertEqual(line_places["Track Helix Inner"], {"Princess", "CP 127"})
+        self.assertEqual(cdm.row_problems(self.lines, self.cps, places=self.places, line_places=line_places), [])
+        got = cdm.row_problems(self.edited({("1", "Track Barn"): dict(cp="CP 201"),
+                                            ("3", "BS 127-221"): dict(cp="CP 201;CP 107")}),
+                               self.cps, places=self.places, line_places=line_places)
+        self.assertProblem(r"\(level 1 block Track Barn\): cp names CP 201, at no end switch of Track Barn and named "
+                           r"by no station's tracks", got)
+        self.assertProblem(r"\(level 3 occupancy BS 127-221\): cp names CP 107, at no end switch of Track 127-221",
+                           got)
+        self.assertEqual(len(got), 2, got)
+
     def test_a_k_of_n_key_reads_its_strands_ends(self):
         """block_end_cps reads a trial name by its piece (staging_device_map.piece_of), so the k-th of a strand's n
         blocks has the strand's end switches, as a whole strand's key does; a key that is no track key stops."""
-        rows = [(2, dict(layer="block", user_name="Track A", trial_name="Track 127BB-221BA 1/2")),
-                (3, dict(layer="block", user_name="Track B", trial_name="Track 127BB-221BA 2/2, OS Switch 9"))]
+        rows = [(2, dict(level="2", layer="block", user_name="Track A", trial_name="Track 127BB-221BA 1/2")),
+                (3, dict(level="2", layer="block", user_name="Track B",
+                         trial_name="Track 127BB-221BA 2/2, OS Switch 9"))]
         tsdm.Files.setUpClass()
         with cdm.pd.cache_on():
             got = cdm.block_end_cps(rows, cdm.railroad.Railroad().interlockings)
             self.assertEqual(got, {"Track A": {"CP 127", "CP 201"}, "Track B": {"CP 127", "CP 201"}})
             with self.assertRaisesRegex(cdm.DeviceMasterError, "block Track C: 'Track e73 1' is no track trial key"):
-                cdm.block_end_cps([(2, dict(layer="block", user_name="Track C", trial_name="Track e73 1"))],
+                cdm.block_end_cps([(2, dict(level="2", layer="block", user_name="Track C", trial_name="Track e73 1"))],
                                   cdm.railroad.Railroad().interlockings)
 
     def test_a_field_row_names_all_three(self):

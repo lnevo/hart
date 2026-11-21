@@ -179,10 +179,10 @@ class Readers(Copy):
         """A bad staging row elsewhere is the facts check's to report; it does not stop switch loading
         (cats_turnout_io.py loads switches)."""
         rr = R.Railroad(self.src)
-        rows = rr.staging_rows + [(999, self.staging_row(layer="sensor", user_name="Lamp 1"))]
+        rows = rr.staging_rows + [(999, self.staging_row(layer="turnout", user_name="Lamp 1", dcc="1x"))]
         self.assertEqual(R.switch_turnouts(self.src.devices, rows, [1])[1]["system_name"], "M2T408")
         self.assertEqual(rr.switches[1].hardware, "M2T408")
-        self.fails(lambda: R.read_staging_devices(self.src.devices, rows), "line 999: layer is one of")
+        self.fails(lambda: R.read_staging_devices(self.src.devices, rows), "line 999: dcc is a number or blank")
         twice = rows + [(1000, self.staging_row(layer="turnout", user_name="Switch 1"))]
         self.fails(lambda: R.switch_turnouts(self.src.devices, twice, [1]), "both are the turnout Switch 1")
 

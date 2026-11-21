@@ -91,6 +91,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
         self.assertEqual(cps["block"]["Track East Ext"], "Plane")              # Plane;Barn
         self.assertEqual(cps["block"]["Track Main East"], "Barn")              # Barn;East End
         self.assertEqual(self.m.infer_plant("Track X", "CP 107;CP 123"), "CP 107")
+        self.assertEqual(self.m.first_place("CP 127;Princess"), "CP 127")      # a main helix row: its own CP
 
     def test_a_missing_master_gives_empty_layers_and_a_broken_one_stops(self) -> None:
         import tempfile

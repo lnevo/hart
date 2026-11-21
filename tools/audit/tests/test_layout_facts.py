@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
 
-DATA_FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "mast_cells.csv",
+DATA_FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv",
               "uss_board_cells.csv", "uss_board_plants.csv")
 
 

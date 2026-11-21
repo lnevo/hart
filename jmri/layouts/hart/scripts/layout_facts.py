@@ -54,7 +54,7 @@ from typing import Callable
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, railroad, railroad_facts  # noqa: E402
+from hartlib import devices, paths, railroad, railroad_facts  # noqa: E402
 from hartlib.railroad import Leg, Switch  # noqa: E402,F401  one definition, in hartlib.railroad
 
 DATA = paths.LAYOUT_DATA
@@ -216,6 +216,14 @@ def cp_levels(data: Path = DATA) -> dict[str, str]:
     return out
 
 
+def place_levels(data: Path = DATA) -> dict[str, str]:
+    """Place name -> level of every station of stations.csv and control point of interlockings.csv: the places a
+    line block's cp lists (build_device_map.line_cp)."""
+    out = {s.name: str(s.level) for s in railroad.read_stations(data / "schematic" / "stations.csv")}
+    out.update({i.name: str(i.level) for i in railroad.read_interlockings(railroad.Sources.under(data).interlockings)})
+    return out
+
+
 def switch_block_levels(switches: dict[int, Switch]) -> dict[str, set[str]]:
     """Block name -> levels of the switches whose OS block it is or whose legs lead to it."""
     out: dict[str, set[str]] = {}
@@ -233,8 +241,10 @@ def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
 
     A turnout or feedback sensor of Switch N (``Switch N``, ``DCC Switch N``,
     ``FB Switch N R``) takes switches.csv; an OS block or a block a switch leg
-    leads to takes its switch's level; any other row takes its control point's (a line block's cp lists the
-    places it joins: their level when they all have one).
+    leads to takes its switch's level; any other row takes its control point's. A line block's cp lists the
+    places it joins (stations of stations.csv, control points of interlockings.csv): it takes their level only
+    when every place has one and they agree (place_levels), so a helix block, whose places are on two levels, takes
+    its switch's.
     ``track_name`` maps a Layout Editor throat block to its track (Track S-R West
     -> Track S-R, through their shared occupancy sensor in tables.xml); without it
     a throat block is matched by its own name only. A row with none of these (a
@@ -245,6 +255,7 @@ def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
     switches = load_switches(data) if switches is None else switches
     rows = staging_rows(data) if rows is None else rows
     by_cp = cp_levels(data)
+    places = place_levels(data)
     by_block = switch_block_levels(switches)
     out: dict[tuple[str, str], str] = {}
     for row in rows:
@@ -256,9 +267,11 @@ def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
             level = switches[int(m.group(1))].level
         elif len(from_switch) == 1:
             level = next(iter(from_switch))
-        else:                       # its control point's; a line block's places (a cp list) all on one level
-            cp_level = {by_cp[p] for p in row["cp"].split(";") if p in by_cp}
-            level = next(iter(cp_level)) if len(cp_level) == 1 else ""
+        elif row["role"] in devices.LINE_ROLES:     # its places: every one with a level, all the same
+            got = [places.get(p) for p in row["cp"].split(";") if p]
+            level = got[0] if None not in got and len(set(got)) == 1 else ""
+        elif row["cp"] in by_cp:
+            level = by_cp[row["cp"]]
         if level:
             out[(layer, name)] = level
     return out

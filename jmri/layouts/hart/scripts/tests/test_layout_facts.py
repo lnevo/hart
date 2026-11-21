@@ -11,7 +11,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import layout_facts as facts  # noqa: E402
 
-FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "mast_cells.csv")
+FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv")
 
 STATIONS = "schematic/stations.csv"
 
@@ -65,6 +65,14 @@ class LoaderTest(unittest.TestCase):
         self.assertEqual(levels[("block", "Track Main East")], "1")  # a leg of Switch 7 and 33
         self.assertEqual(levels[("mast", "Mast 10LA")], "1")         # cp Engine House
         self.assertEqual(levels[("block", "Track Main West")], "1")  # its cp, Brick;East End, both level 1
+
+    def test_a_line_block_takes_its_places_level_only_when_every_place_has_one(self) -> None:
+        def row(cp):
+            return dict(layer="block", user_name="Track X", role="track", cp=cp)
+        self.assertEqual(facts.staging_levels(rows=[row("Brick;West Yard")]), {("block", "Track X"): "1"})
+        self.assertEqual(facts.staging_levels(rows=[row("Brick;Nowhere")]), {})       # a place with no level
+        self.assertEqual(facts.staging_levels(rows=[row("Princess;CP 127")]), {})     # places on two levels
+        self.assertEqual(facts.staging_levels(rows=[row("")]), {})
 
     def test_a_control_point_without_a_level_is_refused(self) -> None:
         text = (self.data / STATIONS).read_text().replace("1,Plane,5,", ",Plane,5,")

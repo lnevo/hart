@@ -622,8 +622,13 @@ class TheStagingFacts(unittest.TestCase):
         self.assertEqual(cp("block", "Track East Ext"), "Plane;Barn")
         self.assertEqual(cp("block", "Track W-1"), "Brick;West Yard")             # West Yard lists W-1 too
         self.assertEqual(cp("occupancy", "BS EH-1"), "Barn;Engine House")         # was empty
-        self.assertEqual(cp("block", "Track Helix Inner"), "Princess;CP 127")     # one block across the levels
-        self.assertEqual(cp("block", "Track Helix Inner", "3"), "Princess;CP 127")
+        # one block across the levels: each row lists its own level's place first
+        self.assertEqual(cp("block", "Track Helix Inner"), "Princess;CP 127")
+        self.assertEqual(cp("block", "Track Helix Outer"), "Princess;CP 127")
+        self.assertEqual(cp("block", "Track Helix Inner", "3"), "CP 127;Princess")
+        self.assertEqual(cp("occupancy", "BS Helix Inner", "3"), "CP 127;Princess")
+        self.assertEqual(cp("block", "Track Helix Outer", "2"), "CP 127;Princess")
+        self.assertEqual(cp("block", "Track 127-221", "3"), "CP 201;CP 127")       # upper's CP first
         self.assertEqual(cp("block", "Track 119-123", "2"), "CP 107;CP 123")
 
     def test_every_sensor_has_its_blocks_cp_and_only_a_line_block_a_list(self):
