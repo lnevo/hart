@@ -16,7 +16,8 @@ stale copy of its own output. Each file is read the first time it is asked for, 
 
     inputs      hand-kept: switches.csv and switch_legs.csv (staging switches, ADR-021), the name map of devices.csv,
                 schematic/interlockings.csv (every level's), local_switches_main_upper.csv, lcos_nodes.csv (every level),
-                helix_tracks.csv (each helix track one block from staging up the helix, owner 2026-11-20),
+                the helix tracks (plan_overrides.json's helix ends and map, preferences.json's track_labels: each
+                helix track one block, Track <plan name>, from staging up the helix, owner 2026-11-20/21),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
                 control_points and stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
                 device map's form, written by build_staging_masts.py from the mast rule, ADR-024, and run by hand
@@ -106,7 +107,7 @@ class Railroad:
 
     @cached_property
     def helix_tracks(self) -> dict[str, HelixTrack]:
-        return read_helix_tracks(self.sources.helix_tracks)
+        return read_helix_tracks(self.sources.plan_overrides)
 
     @cached_property
     def plan_overrides(self) -> PlanOverrides:

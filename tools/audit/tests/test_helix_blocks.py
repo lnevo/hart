@@ -1,4 +1,4 @@
-"""Each helix track one JMRI block from its staging switch up the helix (owner, 2026-11-20): helix_tracks.csv, the
+"""Each helix track one JMRI block from its staging switch up the helix (owner, 2026-11-20): the plan overrides, the
 detector pins, the staging map's shared blocks and the Layout Editor build's handling of them."""
 from __future__ import annotations
 
@@ -25,38 +25,66 @@ def write(text: str) -> Path:
     return p
 
 
-HELIX = ("helix,block,staging_switch,level_switch,notes\n"
-         "McKees Rocks,Track Helix Outer,39,131A,\nMcKeesport,Track Helix Inner,37,131B,\n")
+def copied(edit=None) -> Path:
+    """plan_overrides.json in a temporary copy of the schematic data folder (with preferences.json), each
+    (old, new, file) of `edit` replaced once in its file."""
+    import shutil
+    tmp = Path(tempfile.mkdtemp())
+    for name in ("plan_overrides.json", "preferences.json"):
+        shutil.copyfile(mr.HELIX_SOURCE.parent / name, tmp / name)
+    for old, new, name in edit or ():
+        f = tmp / name
+        text = f.read_text(encoding="utf-8")
+        assert old in text, (old, name)
+        f.write_text(text.replace(old, new, 1), encoding="utf-8")
+    return tmp / "plan_overrides.json"
 
 
-class HelixFile(unittest.TestCase):
-    def test_the_committed_file(self):
+class HelixTracks(unittest.TestCase):
+    """The helix tracks come from the plan overrides (owner, 2026-11-21): each a staging helix end and a main_upper
+    `helix` entry of one plan name, its block "Track <plan name>" by the ordinary rule, and the label drawn for it
+    from the plugin's track_labels preference."""
+
+    def test_the_committed_plan(self):
         got = mr.read_helix_tracks()
+        self.assertEqual(list(got), ["Helix Outer", "Helix Inner"])       # the main_upper helix map's order
         self.assertEqual({k: v["block"] for k, v in got.items()},
-                         {"McKees Rocks": "Track Helix Outer", "McKeesport": "Track Helix Inner"})
-        self.assertEqual((got["McKees Rocks"]["staging_switch"], got["McKees Rocks"]["level_switch"]), ("39", "131A"))
+                         {"Helix Outer": "Track Helix Outer", "Helix Inner": "Track Helix Inner"})
+        self.assertEqual((got["Helix Outer"]["staging_switch"], got["Helix Outer"]["level_switch"]), ("39", "131A"))
+        self.assertEqual((got["Helix Inner"]["staging_switch"], got["Helix Inner"]["level_switch"]), ("37", "131B"))
+        self.assertEqual({k: v["shown"] for k, v in got.items()},
+                         {"Helix Outer": "McKees Rocks", "Helix Inner": "McKeesport"})
 
-    def test_bad_rows_stop(self):
-        for text, msg in ((HELIX + "McKeesport,Track X,37,131B,\n", "given twice"),
-                          (HELIX.replace("Track Helix Inner", "Helix Inner"), "are all needed"),
-                          (HELIX.replace(",131B,", ",,"), "are all needed"),
-                          ("helix,block,staging_switch,level_switch,notes\n", "no helix tracks")):
+    def test_a_track_with_no_label_shows_its_plan_name(self):
+        got = mr.read_helix_tracks(copied([('"Helix Inner": "McKeesport"', '"Elsewhere": "McKeesport"',
+                                            "preferences.json")]))
+        self.assertEqual(got["Helix Inner"]["shown"], "Helix Inner")
+
+    def test_bad_plans_stop(self):
+        for edit, msg in (([('"131B": "Helix Inner"', '"131B": "Helix Other"', "plan_overrides.json")],
+                           "each helix track is one track with one name on both"),
+                          ([('"131B": "Helix Inner"', '"131B": "Helix Outer"', "plan_overrides.json")],
+                           "helix entry 131B is named 'Helix Outer'"),
+                          ([('"Helix Outer",\n      "helix"', '"",\n      "helix"', "plan_overrides.json")],
+                           "helix end at Switch 39 is named ''"),
+                          ([('"Helix Outer": "McKees Rocks"', '"Helix Outer": ""', "preferences.json")],
+                           "track_labels"),):
             with self.subTest(msg=msg), self.assertRaisesRegex(mr.MapError, msg):
-                mr.read_helix_tracks(write(text))
+                mr.read_helix_tracks(copied(edit))
 
     def test_tags_follow_the_overrides_order(self):
-        helix = mr.read_helix_tracks(write(HELIX))
-        over = {"helix": {"T210": "McKees Rocks", "T281": "McKeesport"}}
+        helix = mr.read_helix_tracks()
+        over = {"helix": {"T210": "Helix Outer", "T281": "Helix Inner"}}
         self.assertEqual(mr.helix_blocks(over, helix), {"H1": "Track Helix Outer", "H2": "Track Helix Inner"})
-        with self.assertRaisesRegex(mr.MapError, "names helix tracks"):
-            mr.helix_blocks({"helix": {"T210": "McKees Rocks"}}, helix)
+        with self.assertRaisesRegex(mr.MapError, "the helix tracks are"):
+            mr.helix_blocks({"helix": {"T210": "Helix Outer"}}, helix)
 
     def test_a_helix_track_takes_its_block_name(self):
         found = [dict(ends=(("sw", "131"), ("helix", "H1")), trial=["Track e88"], row=0),
                  dict(ends=(("sw", "107"), ("sw", "109")), trial=["Track e1"], row=0)]
         mr.track_names(found, {"H1": "Track Helix Outer"})
         self.assertEqual([t["name"] for t in found], ["Track Helix Outer", "Track 107-109"])
-        with self.assertRaisesRegex(mr.MapError, "names no block"):
+        with self.assertRaisesRegex(mr.MapError, "is no helix track of the plan overrides"):
             mr.track_names([dict(ends=(("sw", "131"), ("helix", "H2")), trial=["Track e89"], row=0)],
                            {"H1": "Track Helix Outer"})
         staging = [dict(ends=(("sw", "37"), ("helix", "H")), trial=["Track e37"], row=0)]

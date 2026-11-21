@@ -118,29 +118,30 @@ def helix_tags(bands, overrides) -> dict[int, str]:
     return out
 
 
-HELIX_TRACKS = railroad.Sources.under().helix_tracks
+HELIX_SOURCE = railroad.Sources.under().plan_overrides     # plan_overrides.json: the helix ends and map
 
 
 def read_helix_tracks(path: Path | None = None) -> dict[str, dict]:
-    """{plan helix track name: {block, staging_switch, level_switch}} from helix_tracks.csv (hartlib.railroad
-    .read_helix_tracks, which checks it): each helix track is one JMRI block from its staging switch to its main or
-    upper switch (owner, 2026-11-20). Its FactsError as a MapError."""
+    """{plan helix track name: {block, staging_switch, level_switch, shown}} from the plan overrides (hartlib.railroad
+    .read_helix_tracks, which checks them): each helix track is one JMRI block, "Track <plan name>" by the ordinary
+    rule, from its staging switch to its main or upper switch (owner, 2026-11-20/21); `shown` is the name a reader
+    sees (preferences.json track_labels). Its FactsError as a MapError."""
     try:
-        got = railroad.read_helix_tracks(path or HELIX_TRACKS)
+        got = railroad.read_helix_tracks(path or HELIX_SOURCE)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
-    return {h.helix: {"block": h.block, "staging_switch": h.staging_switch, "level_switch": h.level_switch}
-            for h in got.values()}
+    return {h.helix: {"block": h.block, "staging_switch": h.staging_switch, "level_switch": h.level_switch,
+                      "shown": h.shown} for h in got.values()}
 
 
 def helix_blocks(overrides, helix=None) -> dict[str, str]:
     """{helix tag ("H1", "H2", as helix_tags gives them): block} for the main and upper levels: the overrides' helix
-    tracks in order, each named in helix_tracks.csv. Stops on a helix track the file does not name, or one it names
-    that the overrides do not have."""
+    tracks in order, each "Track <plan name>" (read_helix_tracks). Stops on a helix track of `overrides` that
+    `helix` does not hold, or one it holds that the overrides do not have."""
     helix = read_helix_tracks() if helix is None else helix
     plan = list(overrides.get("helix", {}).values())
     if sorted(plan) != sorted(helix):
-        raise MapError(f"{HELIX_TRACKS.name} names helix tracks {sorted(helix)}, the plan overrides {sorted(plan)}")
+        raise MapError(f"the helix tracks are {sorted(helix)}, the plan overrides' helix map {sorted(plan)}")
     return {f"H{i + 1}": helix[name]["block"] for i, name in enumerate(plan)}
 
 
@@ -192,7 +193,7 @@ def track_names(found, helix=None) -> None:
         if hx and helix is not None:
             if len(hx) != 1 or hx[0] not in helix:
                 raise MapError(f"track {', '.join(t['trial'])} reaches helix {', '.join(hx)}, which "
-                               f"{HELIX_TRACKS.name} names no block for")
+                               "is no helix track of the plan overrides")
             groups[helix[hx[0]]].append(t)
             continue
         if len(sw) == 2 and sw[0] == sw[1]:
@@ -217,7 +218,7 @@ SWITCH_NUMBER = re.compile(r"\d+")
 def track_key(t: dict) -> tuple[str, str] | None:
     """The end switches of a track entry, lower number first: (a, b) between two switches, (n, n) for a balloon loop
     and (n, "") for a spur (one switch, a bumper at the other end). None for a track up the helix, which its helix
-    block names (helix_tracks.csv). Hand lists name a track by this key, so a renumbered switch moves the row with
+    block names ("Track <plan name>"). Hand lists name a track by this key, so a renumbered switch moves the row with
     it, where a generated name ("Track 119-121") would have to be retyped."""
     if any(k == "helix" for k, _v in t["ends"]):
         return None

@@ -68,7 +68,6 @@ class Sources:
     hands: Path
     level_masts: Path
     tables: Path
-    helix_tracks: Path
 
     @classmethod
     def under(cls, data: Path = paths.LAYOUT_DATA, tables_xml: Path | None = None) -> "Sources":
@@ -81,8 +80,7 @@ class Sources:
                    plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
                    staging_masts=s / "staging_masts.csv", hands=s / "hands.csv",
                    level_masts=s / level_masts.PATH.name,
-                   tables=paths.TABLES_XML if tables_xml is None else tables_xml,
-                   helix_tracks=s / "helix_tracks.csv")
+                   tables=paths.TABLES_XML if tables_xml is None else tables_xml)
 
     def but(self, **changes: Path) -> "Sources":
         """These sources with some files swapped (a builder's patched path, a test's copy)."""
@@ -612,34 +610,74 @@ def read_local_switches(path: Path) -> list[LocalSwitch]:
 
 @dataclass(frozen=True)
 class HelixTrack:
-    """A helix track (helix_tracks.csv): one JMRI block, `block`, from its staging switch up the helix to its main or
-    upper switch (`level_switch`, the label the drawing prints: 131A), under the plan's name `helix` (owner,
-    2026-11-20)."""
-    line: int
+    """A helix track: one JMRI block, `block` ("Track <plan name>", the ordinary rule), from its staging switch up the
+    helix to its main or upper switch (`level_switch`, the label the drawing prints: 131A), under the plan's name
+    `helix` (owner, 2026-11-20/21), and `shown`, the name drawn for it (track_labels)."""
     helix: str
     block: str
     staging_switch: str
     level_switch: str
-    notes: str = ""
+    shown: str
+
+
+TRACK_LABELS = "track_labels"   # preferences.json[main_upper]: {plan name: label drawn}, the schematic-maps preference
 
 
 def read_helix_tracks(path: Path) -> dict[str, HelixTrack]:
-    """{plan helix track name: HelixTrack}. Stops on an empty field, a block not named "Track ...", or a name or
-    block given twice."""
-    out: dict[str, HelixTrack] = {}
-    blocks: dict[str, int] = {}
-    for line, r in read_rows(path, ("helix", "block", "staging_switch", "level_switch"), optional=("notes",)):
-        where = _where(path, line)
-        if not all(r[k] for k in ("helix", "block", "staging_switch", "level_switch")) or \
-                not r["block"].startswith("Track "):
-            raise FactsError(f"{where}: helix, block (Track ...), staging_switch and level_switch are all needed")
-        if r["helix"] in out or r["block"] in blocks:
-            raise FactsError(f"{where}: helix {r['helix']!r} or block {r['block']!r} given twice")
-        blocks[r["block"]] = line
-        out[r["helix"]] = HelixTrack(line, r["helix"], r["block"], r["staging_switch"], r["level_switch"], r["notes"])
-    if not out:
-        raise FactsError(f"{path.name}: no helix tracks")
-    return out
+    """{plan helix track name: HelixTrack}, in the order of the main_upper `helix` map, from the plan overrides
+    `path` (plan_overrides.json) and the preferences beside it. A helix track is a staging `end` edit of kind helix
+    (its staging switch and plan name) and an entry of main_upper's `helix` map (its main or upper switch, the same
+    plan name); its block is "Track <plan name>", as every named track's is; its `shown` name is its label in
+    preferences.json[main_upper] track_labels (the schematic-maps plugin's sheet-wide preference, which every output
+    honours), else the plan name. Stops (FactsError, naming the file and section) on a helix end edit not of five
+    fields, an empty name, a name given twice in a section, the two sections naming different helix tracks, none at
+    all, or track_labels not an object of non-empty strings."""
+    folder = path.parent
+    try:
+        staging = layer_files.read("plan_overrides", "staging", folder)
+        upper = layer_files.read("plan_overrides", "main_upper", folder)
+        prefs = layer_files.read("preferences", "main_upper", folder)
+    except layer_files.LayerFileError as exc:
+        raise FactsError(f"helix tracks: {exc}") from None
+    feet: dict[str, str] = {}
+    for e in staging.get("edits", []):
+        if e.get("op") != "end":
+            continue
+        for end in e.get("ends", []):
+            if not isinstance(end, list) or len(end) != 5:
+                raise FactsError(f"{path.name}[staging]: end edit {end!r} is not [switch, leg, name, kind, to]")
+            ref, _leg, name, sub, _to = end
+            if sub != "helix":
+                continue
+            if not name or name in feet:
+                raise FactsError(f"{path.name}[staging]: helix end at Switch {ref} is named {name!r}: give each "
+                                 "helix track one name, once")
+            feet[name] = str(ref)
+    tops: dict[str, str] = {}
+    helix = upper.get("helix")
+    if not isinstance(helix, dict):
+        raise FactsError(f"{path.name}[main_upper]: `helix` is a map of switch to helix track name, not {helix!r}")
+    for ref, name in helix.items():
+        if not name or name in tops:
+            raise FactsError(f"{path.name}[main_upper]: helix entry {ref} is named {name!r}: give each helix track "
+                             "one name, once")
+        tops[name] = str(ref)
+    if not tops or set(feet) != set(tops):
+        raise FactsError(f"{path.name}: the staging helix ends name {sorted(feet)}, main_upper's helix map "
+                         f"{sorted(tops)}; each helix track is one track with one name on both")
+    labels = track_labels(prefs)
+    return {name: HelixTrack(name, f"Track {name}", feet[name], tops[name], labels.get(name, name)) for name in tops}
+
+
+def track_labels(prefs: dict) -> dict[str, str]:
+    """{plan name: label drawn} of a preferences section's track_labels ({} when unset). FactsError on a value that is
+    not an object of non-empty strings; the plugin checks each key against the sheet's tracks."""
+    labels = prefs.get(TRACK_LABELS, {})
+    if not isinstance(labels, dict) or not all(isinstance(k, str) and k.strip() and isinstance(v, str) and v.strip()
+                                               for k, v in labels.items()):
+        raise FactsError(f"preferences.json[main_upper] {TRACK_LABELS}: {labels!r} is not an object of plan name to "
+                         "label, both non-empty")
+    return dict(labels)
 
 
 @dataclass(frozen=True)

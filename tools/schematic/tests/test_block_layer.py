@@ -297,8 +297,18 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
             self.halves_layer({"e15.0": "Barn"})
 
     def test_a_helix_track_its_plan_name_does_not_name_stops(self):
-        with self.assertRaisesRegex(BL.BlockError, "helix_tracks.csv does not name"):
+        with self.assertRaisesRegex(BL.BlockError, "which is not a helix track of plan_overrides.json"):
             BL.name_tracks([dict(t) for t in self.found], self.bands, {})
+
+    def test_a_track_cut_by_the_level_split_is_one_block_by_the_ordinary_rule(self):
+        """A helix track arrives as two pieces, staging's and main or upper's, cut at the level split; both carry its
+        one plan name, so the ordinary rule names them one block, "Track <plan name>" (owner, 2026-11-21)."""
+        found = bdm.named_tracks(self.bands, self.joined, self.runs)
+        by_name = {}
+        for t in self.found + found:
+            if any(k == "helix" for k, _v in t["ends"]):
+                by_name.setdefault(t["name"], set()).add(t["level"])
+        self.assertEqual(by_name, {"Track Helix Outer": {1, 2}, "Track Helix Inner": {1, 3}})
 
     def test_a_track_with_two_plan_names_must_be_split(self):
         with self.assertRaisesRegex(BL.BlockError, r"Track 37-39 carries plan names \['K-1', 'K-2'\] but is one "

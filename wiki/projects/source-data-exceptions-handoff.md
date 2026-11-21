@@ -34,7 +34,7 @@ order; rows 1 to 7 are done.
   - switch numbers (the relabel maps);
   - control points and stations;
   - `block_numbering.csv`;
-  - `helix_tracks.csv`;
+  - the helix track names (`plan_overrides.json`, was `helix_tracks.csv`) and their labels (`track_labels`);
   - `block_overrides.csv` (was `short_tracks_staging.csv`, then `block_exceptions.csv` and `block_splits.csv`,
     merged 2026-11-21);
   - `main_lines.csv`;

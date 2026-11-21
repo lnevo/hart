@@ -1,7 +1,9 @@
 # Level unification: hand-off (2026-11-20)
 
 Since 2026-11-21 `block_exceptions.csv` and `block_splits.csv`, named below as they were, are one file,
-`data/schematic/block_overrides.csv`, with a `kind` column (`split`, `track`, `crossover_half`).
+`data/schematic/block_overrides.csv`, with a `kind` column (`split`, `track`, `crossover_half`), and
+`helix_tracks.csv` is gone: the helix tracks' plan names (Helix Outer, Helix Inner) in `plan_overrides.json` name their
+blocks by the ordinary rule, and `preferences.json` `track_labels` gives the labels shown (McKees Rocks, McKeesport).
 
 ## Why
 

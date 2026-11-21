@@ -852,15 +852,6 @@
    "path": "jmri/layouts/hart/data/schematic/hands.csv"
   },
   {
-   "id": "jmri/layouts/hart/data/schematic/helix_tracks.csv",
-   "label": "helix_tracks.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Helix blocks: one JMRI block from staging switch up the helix.",
-   "path": "jmri/layouts/hart/data/schematic/helix_tracks.csv"
-  },
-  {
    "id": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "label": "inputs/main.json",
    "kind": "structured",
@@ -1237,7 +1228,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Renders the Build track-plan article from level SVGs, block_lengths, helix_tracks and speedmatch routes; --check in tools/check.sh.",
+   "desc": "Renders the Build track-plan article from level SVGs, block_lengths, the helix tracks (plan_overrides, track_labels) and speedmatch routes; --check in tools/check.sh.",
    "path": "tools/anyrail/levels_page.py"
   },
   {
@@ -4056,11 +4047,11 @@
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/helix_tracks.csv",
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/anyrail/levels_page.py"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/helix_tracks.csv",
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
@@ -4171,11 +4162,6 @@
   {
    "from": "jmri/layouts/hart/data/schematic/panel_items.json",
    "to": "tools/schematic/build_layout_le.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
-   "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
   {

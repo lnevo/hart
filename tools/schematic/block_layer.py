@@ -9,7 +9,7 @@ What it makes, for each level drawn on a band:
   23 and 35). A double crossover's corners are build_device_map.xover_corners' (main and upper), not this module's;
   its node keeps "OS Switch <n>" here, as mast_plan reads it.
 - a block per track, named by name_tracks: the plan's name when its strands carry one ("Track <name>"; a helix track
-  its helix block from helix_tracks.csv, on every level, so each helix block is one block across levels), else
+  its "Track <plan name>" too, on every level, so each helix block is one block across levels), else
   mast_rule.track_names' end-switch rule ("Track 107-109", "Track 3 Spur 1", "Track 107 Loop"). A balloon loop, or a
   track block_overrides.csv splits (kind split, the owner's choice: 227-241, Princess K-1 and K-2), is two blocks
   parted at its turnback, half 1 at the lower-numbered switch (loop_halves); a half is named by its strand's plan name
@@ -135,10 +135,11 @@ def tracks(bands, runs, joined, levels: dict, data: Path | None = None) -> list[
 
 
 def name_tracks(found: list[dict], bands, helix: dict) -> None:
-    """Fill `name` in each track entry of mast_rule.tracks: the plan's name of its strands when they carry one (a
-    helix track's: its block in `helix`, read_helix_tracks), else the end-switch rule (mast_rule.track_names). A
-    track whose strands carry two names keeps the end-switch name: it must be split into halves (layer checks it),
-    each named by its own. BlockError on a helix track whose plan name helix_tracks.csv does not give."""
+    """Fill `name` in each track entry of mast_rule.tracks: "Track <plan name>" when its strands carry one plan name
+    (a helix track too: its pieces on two drawings carry one name, so they are one block across the level split, the
+    plugin pairing the cut ends by it), else the end-switch rule (mast_rule.track_names). A track whose strands carry
+    two names keeps the end-switch name: it must be split into halves (layer checks it), each named by its own.
+    BlockError on a track up the helix whose one plan name is not a helix track of `helix` (read_helix_tracks)."""
     rest, bad = [], []
     for t in found:
         band = bands[t["band"]][1]
@@ -147,10 +148,9 @@ def name_tracks(found: list[dict], bands, helix: dict) -> None:
             if len(names) != 1 or names[0] not in helix:
                 bad.append(f"level {t['level']}: the track up the helix from Switch "
                            f"{', '.join(v for k, v in t['ends'] if k == 'sw')} has plan name(s) {names or 'none'}, "
-                           f"which {mr.HELIX_TRACKS.name} does not name ({', '.join(sorted(helix))})")
+                           f"which is not a helix track of {mr.HELIX_SOURCE.name} ({', '.join(sorted(helix))})")
                 continue
-            t["name"] = helix[names[0]]["block"]
-        elif len(names) == 1:
+        if len(names) == 1:
             t["name"] = f"Track {names[0]}"
         else:
             rest.append(t)

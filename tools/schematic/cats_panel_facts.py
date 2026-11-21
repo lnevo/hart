@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
-import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
+import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of devices.csv)
 from hartlib import paths, railroad  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates  # noqa: E402
@@ -71,7 +71,7 @@ class Facts:
     turnouts: dict = field(default_factory=dict)            # JMRI turnout user name -> system name
     mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
     level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
-    helix: dict = field(default_factory=dict)               # plan helix track name -> its block (helix_tracks.csv)
+    helix: dict = field(default_factory=dict)       # helix track's shown name (the desk's) -> its block (read_helix_tracks)
 
 
 def staging_tracks() -> list[dict]:
@@ -95,7 +95,7 @@ def load_facts():
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,
                      t.sensors, t.turnouts, t.masts, rr.level_masts,
-                     {plan: h["block"] for plan, h in mr.read_helix_tracks().items()})
+                     {h["shown"]: h["block"] for h in mr.read_helix_tracks().values()})
     except (railroad.FactsError, mr.MapError) as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None
 

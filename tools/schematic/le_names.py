@@ -15,7 +15,7 @@ import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths an
 from hartlib import devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
 from le_common import (  # noqa: E402
-    band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
+    band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map, plugin,
 )
 
 
@@ -366,11 +366,45 @@ def shared_turnouts(names: dict, skip: set) -> None:
             nm["shared_turnouts"] = sorted(t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1)
 
 
+def track_labels() -> dict[str, str]:
+    """{plan name: label drawn} of preferences.json[main_upper] track_labels, the schematic-maps plugin's sheet-wide
+    preference (hartlib.railroad.track_labels): one source for every output (owner, 2026-11-21)."""
+    from hartlib import layer_files
+    try:
+        return railroad.track_labels(layer_files.read("preferences", "main_upper", pd.DATA))
+    except (layer_files.LayerFileError, railroad.FactsError) as exc:
+        raise BuildError(str(exc)) from None
+
+
+def shown_bands(bands, labels: dict | None = None):
+    """A copy of `bands` in which every strand named in the track_labels preference (`labels`, default
+    track_labels(): the helix tracks' McKees Rocks and McKeesport until the layout expands) carries its label in place
+    of its plan name, as the plugin's drawing shows it (its core.shown_name), on every band at once: the plugin draws
+    a strand's name as its Layout Editor label and the CATS desk's, and pairs the helix ends of two levels by that
+    name (le.partners), so both levels take it together and the join holds. Call it last, on the bands handed to the
+    plugin's panel or desk: the blocks are named before, by the plan names ("Track Helix Outer")."""
+    labels = track_labels() if labels is None else labels
+    if not labels:
+        return list(bands)
+    shown = plugin()[2].shown_name
+    opts = {"track_labels": labels}
+    out = []
+    for title, band, o in bands:
+        hits = [sid for sid, s in band["strands"].items() if s.get("name") and shown(s["name"], opts) != s["name"]]
+        if hits:
+            band = copy.deepcopy(band)
+            for sid in hits:
+                band["strands"][sid]["name"] = shown(band["strands"][sid]["name"], opts)
+        out.append((title, band, o))
+    return out
+
+
 def named_bands(bands, names: dict):
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
-    other main and upper track is unnamed, but a helix track keeps its plan name (McKees Rocks, McKeesport): the
-    plugin joins the helix ends of two levels by that name (le.partners), so it is the label there too. A band of a
+    other main and upper track is unnamed, but a helix track keeps its plan name (Helix Outer, Helix Inner): the
+    plugin joins the helix ends of two levels by that name (le.partners); shown_bands then gives it its shown name on
+    every level at once. A band of a
     level the base holds (BASE_LEVELS: staging, by its level) is left as it is. `bands` are the solved sheet's,
     titles unchanged, as for placeholder_names: a band plan_overrides.json does not title stops with BuildError.
     The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off the panel among

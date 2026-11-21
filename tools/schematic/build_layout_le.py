@@ -101,7 +101,7 @@ from approval import (  # noqa: E402,F401  re-exported: callers and tests read t
 from le_names import (  # noqa: E402,F401  re-exported: callers and tests read them here
     crossover_strands, runs,
     staging_lengths, MAIN_UPPER_MASTS, read_level_masts, lcos_rule, lcos_named, level_masts, placeholder_names,
-    device_names, level_names, shared_turnouts, named_bands,
+    device_names, level_names, shared_turnouts, named_bands, shown_bands,
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
     check_masts, mast_turnouts, check_unplaced, turnout_facts,
@@ -255,15 +255,15 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
             # holds (its status cluster stands in the gap: band_bottoms). Every crossover at its level's
             # le_crossover_angle, however each level is stretched
             S = base[1]
-            P = le_mod.panel(named_bands(bands, names), names, cell=le_mod.CELL * scale[0],
+            P = le_mod.panel(shown_bands(named_bands(bands, names)), names, cell=le_mod.CELL * scale[0],
                              row=staging_row * scale[1], page=dict(page, band_align=le_band_align(bands)),
                              labels_by_band=True, band_bottoms={staging: S.items["bottom"] - S.band_boxes[0][3]})
             P.scale, P.fit, P.stretch = scale, None, S.stretch
         else:                       # the staging candidate: the cut-over grid, no fitting (it scrolls in the le_window)
             # staging's own fit to the le_window, which the cut-over grid is stretched from
-            fitted = le_mod.panel(bands, names, page=page, fit=fit, row=staging_row).scale
+            fitted = le_mod.panel(shown_bands(bands), names, page=page, fit=fit, row=staging_row).scale
             scale, stretch = le_mod.stretched(fitted, page)
-            P = le_mod.panel(bands, names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1],
+            P = le_mod.panel(shown_bands(bands), names, cell=le_mod.CELL * scale[0], row=staging_row * scale[1],
                              page=page)
             P.scale, P.fit, P.staging_fit, P.stretch = scale, None, fitted, stretch
     except core.SchematicError as exc:

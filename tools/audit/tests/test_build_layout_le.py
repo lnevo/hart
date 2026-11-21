@@ -51,7 +51,7 @@ LIVE_PANEL = "HART Railroad"
 def _level_counts() -> tuple[int, int, int, int]:
     """(blocks, sensors, masts, heads) of the main and upper levels in the committed data: the blocks the build adds,
     the device map's block rows (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) less the
-    helix blocks, which are staging's beans (helix_tracks.csv, 2026-11-20), and the parts (links inside an OS block,
+    helix blocks, which are staging's beans (Track <plan name>, 2026-11-20/21), and the parts (links inside an OS block,
     each a block of its own, step 5 part 2); a virtual sensor for every block row, the helix blocks' too, which the
     parts share with their OS blocks; and main_upper_masts.csv."""
     from hartlib import devices
@@ -64,7 +64,7 @@ def _level_counts() -> tuple[int, int, int, int]:
 
 
 LEVEL_BLOCKS, LEVEL_SENSORS, LEVEL_MASTS, LEVEL_HEADS = _level_counts()
-HELIX_BLOCKS = {"Track Helix Outer", "Track Helix Inner"}       # helix_tracks.csv: staging's beans, bound by the build
+HELIX_BLOCKS = {"Track Helix Outer", "Track Helix Inner"}       # the helix tracks: staging's beans, bound by the build
 
 
 @functools.lru_cache(maxsize=None)
@@ -599,7 +599,7 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 101A"], "Switch 101")
         self.assertEqual(got["Switch 101B"], "Switch 101")
         self.assertEqual(got["Switch 223"], "Switch 223")
-        self.assertEqual(got["Track 131BB-helix"], "Track Helix Inner")    # one block with staging's McKeesport track
+        self.assertEqual(got["Track 131BB-helix"], "Track Helix Inner")    # one block with staging's Helix Inner track
         self.assertEqual(got["Track 115A-117C"], "Track 115-117")       # a part: a block of its own (step 5 part 2)
         self.assertEqual(len(got), 51 + LEVEL_SENSORS + 26)          # the 25 parts: 26 trial names (201-219 has two pieces)
 
@@ -682,7 +682,7 @@ class DeviceNames(unittest.TestCase):
             self.assertIs(o, given)                             # the preferences reach the plugin as they are
         named = [s["name"] for s in main["strands"].values() if s["name"]]
         self.assertEqual(len(named), len(set(named)))           # one track per block
-        self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name
+        self.assertIn("Helix Outer", named)                     # the helix track keeps its plan name
         self.assertIn("101-103", named)                         # named here; the plugin leaves it off (hidden_names)
         # a part (a link inside an OS block, step 5 part 2) keeps its track name as a label, so no track moves
         self.assertLessEqual({"109-111", "115-117", "125-129"}, set(named))

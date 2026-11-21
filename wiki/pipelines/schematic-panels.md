@@ -17,7 +17,10 @@ format in one place and stops on a missing section or an old `<sheet>.<kind>.jso
 the block layer of every level from the drawing: an OS block per switch (a single crossover's halves each their own
 when they have their own detectors, staging 7, 23 and 35), a block per track named by the plan's name, else by its end
 switches, halves from `block_overrides.csv` kind `split` (every level, the owner's choice: 227-241, staging's K-1 and K-2), helix blocks
-through `helix_tracks.csv`, and parts. A part is a piece of track inside another block: a `devices.csv` row with
+by the same rule (each helix track's two pieces, staging's and main or upper's, cut at the level split, carry one plan
+name, Helix Outer or Helix Inner, so they are one block, "Track <plan name>"; `plan_overrides.json` gives the names,
+the staging helix ends and the main_upper `helix` map, read by `hartlib.railroad.read_helix_tracks`, which replaced
+`helix_tracks.csv` on 2026-11-21), and parts. A part is a piece of track inside another block: a `devices.csv` row with
 `part_of` naming that block, role `part`, no occupancy row or detector of its own (the device maps skip it:
 `hartlib.devices.OUT_OF_MAPS`). That is the standard way to put a short piece in an OS
 block. The rule, on every level: a track between two switches under 50 cm (`LINK_CM`) is part of the lower-numbered
@@ -40,7 +43,12 @@ at its turnback, the owner's choice, not a rule), kind `track` (the wiring facts
 13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39; `inside` yes on a track row keeps
 the piece inside its OS block) and kind `crossover_half` (the crossover halves with detectors of their own).
 `mast_rule.read_block_overrides` reads it and checks every row's shape for its kind, naming the file and line; it
-replaced `block_exceptions.csv` and `block_splits.csv` (2026-11-21). `build_device_map.py` writes staging's block and occupancy rows
+replaced `block_exceptions.csv` and `block_splits.csv` (2026-11-21). What a reader sees for a track can differ from its
+plan name: `preferences.json[main_upper]` `track_labels` (the schematic-maps plugin's sheet-wide preference, since
+plugin 0.1.50) maps a plan name to the label drawn, McKees Rocks for Helix Outer and McKeesport for Helix Inner until
+the layout expands. The plugin draws it on the schematic and station sheets (helix letters follow the labels, so H1 is
+still the outer track); `le_names.shown_bands` puts the same labels on the Layout Editor panel and the CATS desks
+(`cats_panel.name_loop_halves`), and `levels_page` on the track-plan article, all from that one key. `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
 stop, station group and name-map columns, carried over from its row), so a staging block change made in PanelPro is
 carried by hand into those three data files, not into `devices.csv`. Main and upper write their part rows the same

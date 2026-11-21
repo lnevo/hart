@@ -19,7 +19,7 @@ Every row (row_problems), each naming the file, line, level, layer and device:
 
 The rows together (check_rows):
 - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
-  helix block (helix_tracks.csv: one JMRI block from its staging switch up the helix, owner 2026-11-20), and every
+  helix block (plan_overrides.json: one JMRI block from its staging switch up the helix, owner 2026-11-20), and every
   helix block is so named;
 - no two rows of one layer share a user name (but the helix blocks), a system name or a jmri_name (but a virtual LCC
   alias), and no two turnouts a DCC address, on any level;
@@ -190,7 +190,7 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
 def check_rows(lines: list[tuple[int, dict]], helix_blocks: set[str], where: str = DEVICE_MAP.name) -> list[str]:
     """The rules between rows (hartlib.railroad_invariants.device_row_problems, which the device-map invariant of
     `python3 -m hartlib.railroad check` also runs before tables.xml is built)."""
-    return railroad_invariants.device_row_problems(lines, helix_blocks, where, mr.HELIX_TRACKS.name)
+    return railroad_invariants.device_row_problems(lines, helix_blocks, where, mr.HELIX_SOURCE.name)
 
 
 def bound_name(r: dict) -> str:

@@ -40,12 +40,12 @@ Outputs:
 
 Blocks: one block process for every level (block_layer.py, level unification step 5 part 1, owner 2026-11-20): OS
 blocks, track blocks, halves (block_overrides.csv kind split, every level: 227-241 and staging's K-1 and K-2), helix
-blocks named through helix_tracks.csv, and parts (devices.csv part_of: a piece of track inside another block, by the
+blocks named through plan_overrides.json, and parts (devices.csv part_of: a piece of track inside another block, by the
 rule or block_overrides.csv). Staging's plant is the field, so its block and occupancy rows carry their field facts
 (system and layout-block names, node, wiring, comment, notes, detector, stop, the station group in cp and the
 name-map columns) over from the row of the same name; this script owns which blocks there are and what each holds (role, trial_name in
 staging's switch-and-leg keys, part_of, blocks, description). A staging block change made in PanelPro is carried by
-hand into this script's data (block_overrides.csv, helix_tracks.csv), not into devices.csv. A
+hand into this script's data (block_overrides.csv, plan_overrides.json), not into devices.csv. A
 staging detector's wiring (node and input, so its sensor, wiring and the name map's cells) is its level 1 row of
 wiring.csv (hartlib.wiring, the physical wiring source; owner 2026-11-20), as are its turnouts' and feedback's
 (staging_wired_rows) and main and upper's pinned detectors; any other field
@@ -78,7 +78,7 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   protects its own leg's corner block ("home signal from Track X into OS Switch <n><corner>").
 - Track "Track <a>-<b>" from its end switches, "Track <n> Spur" to a bumper, "Track <n> Loop" back to the same
   switch; parallel tracks between the same ends take " 1", " 2" from the top row. A track up the helix is its helix
-  block (helix_tracks.csv: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
+  block (plan_overrides.json: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
   track below it (owner, 2026-11-20): the staging device map names its staging piece, and the Layout Editor build
   binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives, and
   its row marks a stop there (stop yes, the parked Dispatcher's station mark, as its staging row does; helix_stops:
@@ -170,7 +170,7 @@ PINS = WIRING
 # spur, whose other end is a bumper; mast_rule.track_key), so a renumbered switch moves its row with it. `parallel`
 # (1, 2 from the top row) says which of two tracks between the same switches; `half` (1, 2) which half of a balloon
 # loop or split track, half 1 at the lower-numbered switch. A pin on a helix block, which the owner named
-# (helix_tracks.csv), has its name in `device` and no switches (wiring.csv's detector rows).
+# (plan_overrides.json), has its name in `device` and no switches (wiring.csv's detector rows).
 
 
 def device_files() -> devices.Files:
@@ -285,7 +285,7 @@ def split_tracks(path: Path | None = None, found: list | None = None) -> set[str
 
 def named_tracks(bands=None, joined=None, runs=None, overrides=None, helix=None) -> list[dict]:
     """The track entries of the bands `overrides` names (default: the main and upper bands) with their names
-    (block_layer.tracks and name_tracks: the plan's name, a helix track's helix block from helix_tracks.csv, else the
+    (block_layer.tracks and name_tracks: the plan's name, a helix track's helix block from plan_overrides.json, else the
     end-switch rule); the solved schematic's bands when none are given. `helix`: read_helix_tracks (default)."""
     if bands is None:
         bands, joined, runs, _corners = solve()
@@ -470,7 +470,7 @@ def corner_blocks_of(bands, corners: dict | None) -> dict:
 
 
 def check_helix_ends(bands, joined, found, helix) -> None:
-    """Stop unless each track up the helix ends at the switch helix_tracks.csv gives it (level_switch, the label the
+    """Stop unless each track up the helix ends at the switch plan_overrides.json gives it (level_switch, the label the
     drawing prints: 131A, 131B), so the file cannot give a helix track the other one's block."""
     if not helix:
         return
@@ -481,7 +481,7 @@ def check_helix_ends(bands, joined, found, helix) -> None:
             continue
         labels = [end_label(bands, joined, t["band"], n) for (n, _p), (k, _v) in zip(t["legs"], t["ends"]) if k == "sw"]
         if t["name"] not in want or labels != [want[t["name"]]]:
-            bad.append(f"{t['name']} runs from switch {', '.join(labels) or 'none'}, helix_tracks.csv says "
+            bad.append(f"{t['name']} runs from switch {', '.join(labels) or 'none'}, plan_overrides.json says "
                        f"{want.get(t['name'], 'nothing')}")
     drawn = {t["name"] for t in found}
     bad += [f"{b} is drawn on neither the main nor the upper band" for b in want if b not in drawn]
@@ -491,12 +491,12 @@ def check_helix_ends(bands, joined, found, helix) -> None:
 
 def helix_stops(helix: dict) -> dict[str, str]:
     """{helix block: the switch its stop is at} of the main and upper helix blocks (`helix`: read_helix_tracks). The
-    helix stop on main and upper is at the helix's main-level end, helix_tracks.csv's level_switch (owner, 2026-11-20:
+    helix stop on main and upper is at the helix's main-level end, plan_overrides.json's level_switch (owner, 2026-11-20:
     Switch 131A and 131B), so each helix block's main or upper row marks a stop, as its staging row does. MapError on
     an entry with no level_switch (railroad.read_helix_tracks needs one, so only a hand-made dict has none)."""
     bad = sorted(h["block"] for h in helix.values() if not h["level_switch"])
     if bad:
-        raise MapError(f"{', '.join(bad)}: no level_switch in {mast_rule.HELIX_TRACKS.name}, so no stop to mark")
+        raise MapError(f"{', '.join(bad)}: no level_switch in {mast_rule.HELIX_SOURCE.name}, so no stop to mark")
     return {h["block"]: h["level_switch"] for h in helix.values()}
 
 
@@ -717,7 +717,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
           virtual_names=None, frozen=None) -> tuple[dict, list[dict], list[dict]]:
     """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (local_switches_main_upper.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
-    when a band has a double crossover. `helix`: read_helix_tracks (None: helix_tracks.csv; {}: no helix tracks);
+    when a band has a double crossover. `helix`: read_helix_tracks (None: plan_overrides.json; {}: no helix tracks);
     `pins`: read_pins (None: wiring.csv's detectors, resolved against the tracks found here); `virtual_names`:
     {mast: system name} of the virtual masts that have one already (None: master_virtual_names); `frozen`:
     frozen_wires (None: wiring.csv's)."""

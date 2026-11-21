@@ -91,14 +91,14 @@ class Pure(unittest.TestCase):
                          ["Track 101-105 2", "Track 101-105 1", "Track 113 Spur", "Track 107 Loop", "Track 135-H1"])
 
     def test_a_helix_block_is_a_stop_at_its_level_switch(self):
-        """The helix stop on main and upper is at the helix's main-level end, helix_tracks.csv's level_switch
+        """The helix stop on main and upper is at the helix's main-level end, the main_upper helix map's switch (level_switch)
         (owner, 2026-11-20): every helix block the file names is a stop, keyed by its block."""
-        helix = {"McKees Rocks": dict(block="Track Helix Outer", staging_switch="39", level_switch="131A"),
-                 "McKeesport": dict(block="Track Helix Inner", staging_switch="37", level_switch="131B")}
+        helix = {"Helix Outer": dict(block="Track Helix Outer", staging_switch="39", level_switch="131A"),
+                 "Helix Inner": dict(block="Track Helix Inner", staging_switch="37", level_switch="131B")}
         self.assertEqual(BD.helix_stops(helix), {"Track Helix Outer": "131A", "Track Helix Inner": "131B"})
         self.assertEqual(BD.helix_stops({}), {})
         with self.assertRaisesRegex(BD.MapError, "Track Helix Outer: no level_switch"):
-            BD.helix_stops({"McKees Rocks": dict(block="Track Helix Outer", staging_switch="39", level_switch="")})
+            BD.helix_stops({"Helix Outer": dict(block="Track Helix Outer", staging_switch="39", level_switch="")})
 
     def test_a_staging_part_keeps_its_bean_names_and_a_new_one_takes_the_next_free(self):
         """A part of a level whose beans the generator writes (staging) is a JMRI block of its own (owner,

@@ -25,7 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
-import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
+import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 from hartlib import level_devices, level_masts, paths  # noqa: E402
 from hartlib.cats import station_plate  # noqa: E402
 
@@ -143,8 +143,8 @@ def os_blocks(band, F):
 
 
 def track_block(name, helix) -> str:
-    """The block of a staging track the plan names `name`: a helix track's helix block (`helix`, {plan name: block}:
-    one block up the helix, owner 2026-11-20), any other "Track <name>"."""
+    """The block of a staging track named `name` on the desk's bands: a helix track's helix block (`helix`, {shown
+    name: block}, Facts.helix: one block up the helix, owner 2026-11-20), any other "Track <name>"."""
     return helix.get(name) or "Track " + name
 
 
@@ -295,7 +295,9 @@ def name_loop_halves(bands, device=None):
     level, owner 2026-11-20; strand_placeholders, one desk block per strand; SystemExit on a connector the plugin's
     partners do not pair). Each balloon loop is two desk blocks: each half's strand is named by its device map
     block less "Track " (the plugin parts a turnback between two differently named tracks in the middle of its run,
-    and labels each half) and marked with its half (`loop_half`)."""
+    and labels each half) and marked with its half (`loop_half`). Last, each helix track takes the name shown for it
+    on every band at once (le_names.shown_bands: the desk prints it, and the plugin pairs the helix ends by it), so
+    the facts key the helix tracks by that name (Facts.helix, dark_bindings)."""
     import build_layout_le as bl
     import staging_device_map as sdm
     device = load_device_map() if device is None else device      # the caller's Facts.device, read once
@@ -325,7 +327,7 @@ def name_loop_halves(bands, device=None):
             if trial not in by_trial:
                 raise SystemExit(f"{title}: balloon loop half {trial} has no block row in {DEVICE_MAP.name}")
             band["strands"][sid]["name"] = by_trial[trial].removeprefix("Track ")
-    return out
+    return bl.shown_bands(out)
 
 
 def part_blocks() -> dict[str, tuple[str, str]]:
@@ -449,7 +451,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         groups[P.find(key)].append(key)
     band_of = lambda k: int(k[1].split(":", 1)[0][1:])
     out, log, seen, missing, joined = {}, [], set(), {}, set()
-    helix = mr.read_helix_tracks()
+    helix = {h["shown"]: h for h in mr.read_helix_tracks().values()}     # the desk's bands carry the shown names
     part_of = dict(part_blocks().values())                  # {part: its OS block}
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
@@ -462,7 +464,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
             if staged != {name}:
                 raise SystemExit(f"desk block {panel_name} holds track of staging ({', '.join(sorted(map(str, staged)))}"
                                  f") and of main or upper ({name}); only a helix block of "
-                                 f"{mr.HELIX_TRACKS.name} may, and both device maps must name it")
+                                 f"{mr.HELIX_SOURCE.name} may, and both device maps must name it")
         elif any(k[0] in ("corner", "xmid") for k in keys):
             # a double crossover's corner or the middle of its X: the plugin named it from the corners binding
             # (level_switch_bindings), which is the device map's name
@@ -502,8 +504,8 @@ def dark_bindings(bands, cats, P, F, bound_bi):
 
 
 def helix_block(band, key, helix) -> str | None:
-    """The helix block (helix_tracks.csv rows, `helix`) of staging desk key `key`: its strand's plan name is a helix
-    track's; else None. staging_device_map.check_helix holds the staging device map to the same block."""
+    """The helix block of staging desk key `key` (`helix`: {the name shown for a helix track: its read_helix_tracks
+    entry}, the name its strand carries on the desk's bands, name_loop_halves); else None. staging_device_map.check_helix holds the staging device map to the same block."""
     if key[0] != "track":
         return None
     s = band["strands"].get(key[1].split(":", 1)[1])
