@@ -57,7 +57,7 @@ Agents defined in `.claude/agents/` cannot commit, push or open PRs (`subagent_g
 
 ## While they run
 
-Set each brief's interval by the job's expected length (`AGENTS.md`, "Status reporting"). Watch the progress folder (a Monitor on it) and pass new lines to the owner as they arrive, as one short table of every agent (item, agent, model, stage, ETA). Never report a pending agent's result before it arrives.
+Set each brief's interval by the job's expected length (`AGENTS.md`, "Status reporting"). Watch the progress folder with a Monitor that polls every `*.log` in it and tracks each file's line count (`tail -F *.log` misses files created after it starts), prefixes each new line with the file's topic, and pass new lines to the owner as they arrive, as one short table of every agent (item, agent, model, stage, ETA). Never report a pending agent's result before it arrives.
 
 ## Merge
 
