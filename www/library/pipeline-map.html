@@ -500,7 +500,7 @@ function groupByFolder(nodes, edges, open) {
     list.forEach(n => { groupOf[n.id] = id; tally[n.domain] = (tally[n.domain] || 0) + 1; });
     const domain = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
     members[id] = list.map(n => n.id);
-    out.push({ id, folder: f, label: f.startsWith("outside") ? f : f + "/", kind: "folder", status: "live", domain,
+    out.push({ id, folder: f, label: f.startsWith("outside") ? f : f === "top level" ? "repository root" : f + "/", kind: "folder", status: "live", domain,
                desc: `${list.length} boxes`, path: "" });
   }
   const merged = new Map();
@@ -710,7 +710,14 @@ function app() {
     render(true);
     const t = lay.nodes.find(n => n.id === a.id) || was.members.map(m => lay.nodes.find(n => n.id === m)).find(Boolean) ||
       lay.nodes.find(n => n.id === groups.groupOf[a.id]);
-    if (!t) { fit(); return; }
+    if (!t) {  // the box itself was filtered out: a neighbour still drawn takes its place on screen, at the same zoom
+      const near = [...(insAll[a.id] || []).map(e => e.from), ...(outsAll[a.id] || []).map(e => e.to)]
+        .map(id => lay.nodes.find(n => n.id === id)).find(Boolean);
+      if (!near) { fit(); return; }
+      const [nx, ny] = mid(near);
+      setVB(nx - was.dx, ny - was.dy, was.w, was.h);
+      return;
+    }
     if (t.id !== a.id && t.id === lastBox && !selected) { selected = t.id; select(t.id, true); }  // unfolded: pick the box again
     const [tx, ty] = mid(t);
     setVB(tx - was.dx, ty - was.dy, was.w, was.h);
@@ -1051,7 +1058,7 @@ function app() {
   treeBox.addEventListener("click", e => {
     const a = e.target.closest("a[data-file]");
     if (!a) return;
-    browse.open = false;
+    browse.open = false; document.getElementById("more").open = false;  // the phone Menu too
     focusOn(a.dataset.file);
   });
   fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
@@ -1065,7 +1072,7 @@ function app() {
     const b = e.target.closest("button[data-preset]");
     if (!b) return;
     const pr = DATA.presets[Number(b.dataset.preset)], steps = v => (v === "all" ? Infinity : v);
-    document.getElementById("startmenu").open = false;
+    document.getElementById("startmenu").open = false; document.getElementById("more").open = false;
     view.focus = selected = pr.focus; view.up = steps(pr.up); view.down = steps(pr.down);
     view.lanes = new Set(allLanes); view.kindsOff.clear(); view.trim = false;  // the preset's step counts as written
     fileIn.value = byId[pr.focus].path || byId[pr.focus].label;
@@ -1101,7 +1108,7 @@ function app() {
     { at: ["#file", "#browse"], title: "Pick a file",
       text: "Type a file's name, or find it by folder under Browse. The map then draws its chain: everything it is built from on the left, everything built from it on the right." },
     { at: ["#startmenu"], title: "Or start from a common chain",
-      text: "Start opens the chains people ask about most: tables.xml, the CTC desk, the device master, wiring, Operations Pro, car cards and the website build." },
+      text: "Start opens the chains people ask about most" + (DATA.presets.length ? ": " + DATA.presets.map(p => p.label).join(", ") + "." : ".") },
     { at: [], title: "Click a box",
       text: "A click lights up what feeds the box (amber) and what it feeds (blue), and opens its details on the right. Double-click a box to draw its chain on its own." },
     { at: ["#viewmenu"], title: "Calm the drawing",
@@ -1132,7 +1139,7 @@ function app() {
       const rs = tourOn.map(el => el.getBoundingClientRect());
       const left = Math.min(...rs.map(r => r.left)), bottom = Math.max(...rs.map(r => r.bottom));
       tour.style.left = Math.max(10, Math.min(left, innerWidth - w - 10)) + "px";
-      tour.style.top = Math.min(bottom + 12, innerHeight - h - 10) + "px";
+      tour.style.top = Math.max(10, Math.min(bottom + 12, innerHeight - h - 10)) + "px";
     } else {  // the map itself: the middle of the screen
       tour.style.left = (innerWidth - w) / 2 + "px";
       tour.style.top = (innerHeight - h) / 2 + "px";

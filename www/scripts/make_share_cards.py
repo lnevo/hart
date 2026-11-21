@@ -267,7 +267,8 @@ def pipeline_map():
     # the site header goes too, and the page ground is forced back to #fafafa so _fill_band finds the band
     hide = "<style>.site-header,#bar,#tour,#legend,#nav,#info{display:none!important}#stage{background:#fafafa!important}</style>"
     out = _tmp / "pipeline-map-view.html"
-    out.write_text(page.replace("</head>", hide + "</head>", 1), encoding="utf-8")
+    base = f'<base href="{(PORTAL / "library").as_uri()}/">'  # the copy sits in a temp folder: load ../css/ops.css from www/
+    out.write_text(page.replace("<head>", "<head>" + base, 1).replace("</head>", hide + "</head>", 1), encoding="utf-8")
     im = shot(out.as_uri() + "#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1&compact=0")  # 2400 x 1260
     return card(_fill_band(im))
 
