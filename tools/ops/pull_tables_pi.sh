@@ -21,8 +21,8 @@ GENERATED="$ROOT/jmri/layouts/hart/output/tables.xml"
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
 
 generated_sha="$(shasum -a 256 "$GENERATED" | cut -d' ' -f1)"
-split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ')"
-unpulled="$(ssh "$PI_HOST" "bash -s -- '$UF' '$generated_sha' $split_shas" <"$ROOT/tools/hosts/pi/unpulled_changes.sh")" \
+split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ' | sed 's/ *$//')"
+unpulled="$(ssh "$PI_HOST" "bash -s -- '$UF' '$generated_sha'${split_shas:+ $split_shas}" <"$ROOT/tools/hosts/pi/unpulled_changes.sh")" \
   || { echo "Could not check the Pi for an unpulled Store; nothing pulled." >&2; exit 1; }
 if ! grep -qx tables <<<"$unpulled"; then
   echo "Nothing to pull: the Pi's tables.xml is what was last deployed, or a Store already split in (store_splits.csv)."

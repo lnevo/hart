@@ -295,8 +295,8 @@ pi_stop() {
 if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
   # the generated tables.xml is the reference when the Pi has none (no stamp, no pull): a file unlike it may be a Store
   generated_sha="$(shasum -a 256 "$ROOT/jmri/layouts/hart/output/tables.xml" 2>/dev/null | cut -d' ' -f1)"
-  split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ')"
-  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha' $split_shas" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
+  split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ' | sed 's/ *$//')"
+  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha'${split_shas:+ $split_shas}" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
     pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
   fi
   if [[ -n "$unpulled" ]]; then
