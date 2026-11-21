@@ -32,7 +32,7 @@ sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 from lcc_turnout_contract import identity_lcc_rows  # noqa: E402  the one reader of the MTT rows of devices.csv
 
 WIRING = paths.WIRING                       # wiring.csv: the wired heads (hartlib.wiring.digicon_rows)
-SIGNAL_HEAD_PLAN = ROOT / "docs/wiring/signals/signal_head_plan.csv"
+SIGNAL_HEAD_PLAN = paths.SIGNAL_HEAD_PLAN
 TABLES = paths.TABLES_XML
 
 _SECTION_RE = re.compile(r'<section systemName="(IY:AUTO:\d+)" userName="([^"]*)"')

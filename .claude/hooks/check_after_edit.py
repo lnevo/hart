@@ -20,7 +20,7 @@ import time
 WATCHED = re.compile(
     r"(^|/)(jmri/layouts/hart/output/tables\.xml"
     r"|jmri/layouts/hart/data/schematic/(staging|main_upper)_masts\.csv"
-    r"|docs/wiring/signals/signal_[a-z_]+\.csv"
+    r"|jmri/layouts/hart/output/signal_head_plan\.csv"
     r"|jmri/scripts/signal_coordinator\.py)$"
 )
 CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is still there

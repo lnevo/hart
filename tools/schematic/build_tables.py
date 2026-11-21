@@ -37,8 +37,10 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import os
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -84,6 +86,31 @@ def generate(discovered: tuple | None = None, with_logic: bool = True, review: b
                  "digicon destinations disabled": flipped + already}
 
 
+# What SML discovery cannot see in the discovery base, left out of its digest (conservative: anything not listed here
+# stays in). Discovery reads the masts and their slots, the Layout Editor track graph, the blocks, paths and layout
+# blocks, and the turnouts with their feedback. It does not read a bean's comment, the user name of a sensor, memory
+# or signal head, or the text and block-contents labels drawn on the panel.
+DISCOVERY_BLIND_USERNAMES = ("sensors/sensor", "memories/memory", "signalheads/signalhead")
+DISCOVERY_BLIND_PANEL_ELEMENTS = ("positionablelabel", "BlockContentsIcon")
+
+
+def discovery_digest(data: bytes) -> str:
+    """sha256 of the discovery base `data` without what discovery cannot see (see DISCOVERY_BLIND_*): a change that
+    leaves this the same needs no new discovery on PanelPro."""
+    root = ET.fromstring(data)
+    for parent in root.iter():
+        for child in [c for c in parent if c.tag == "comment"]:
+            parent.remove(child)
+    for path in DISCOVERY_BLIND_USERNAMES:
+        for bean in root.iterfind(path):
+            for name in bean.findall("userName"):
+                bean.remove(name)
+    for panel in root.iter("LayoutEditor"):
+        for child in [c for c in panel if c.tag in DISCOVERY_BLIND_PANEL_ELEMENTS]:
+            panel.remove(child)
+    return hashlib.sha256(ET.tostring(root, encoding="utf-8")).hexdigest()
+
+
 def check(root) -> None:
     """The output's invariants: the envelope is the fixed one, no name is given twice, every staging bean of the
     master is in it once, and every Digicon destination is disabled."""
@@ -109,6 +136,10 @@ def main(argv=None) -> int:
     g.add_argument("--discovery-base", action="store_true",
                    help="write tables.xml with no Signal Mast Logic, for run_sml_discover.sh to discover on; "
                         "tables.xml is then stale until --discovered-from")
+    g.add_argument("--base-hash", action="store_true",
+                   help="print the digest of the discovery base (what --discovery-base writes, less what discovery cannot "
+                        "see: discovery_digest) and write nothing: "
+                        "the stamp of data/schematic/discovered_sml.stamp")
     g.add_argument("--discovered-from", type=Path, metavar="STORE",
                    help="a PanelPro Store after SML discovery: its logic and mast properties replace "
                         f"{paths.rel(tb.DISCOVERED)}, then tables.xml is written")
@@ -118,7 +149,7 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
     if args.review and args.check:
         ap.error("--review writes a candidate; --check holds tables.xml to the approved panel")
-    if not args.check:
+    if not (args.check or args.base_hash):
         message = paths.check_only_message(Path(__file__).name)
         if message:
             print(f"ERROR: {message}", file=sys.stderr)
@@ -138,7 +169,8 @@ def main(argv=None) -> int:
             if args.discovered_from:
                 new_doc = tb.discovered_from_store(tables.load(args.discovered_from).root)
                 discovered = tb.read_discovered_root(new_doc, str(args.discovered_from))
-            data, counts = generate(discovered, with_logic=not args.discovery_base, review=args.review)
+            data, counts = generate(discovered, with_logic=not (args.discovery_base or args.base_hash),
+                                    review=args.review)
         except (tb.TablesBuildError, ble.BuildError, devices.DevicesError) as exc:
             print(f"build_tables.py: {exc}", file=sys.stderr)
             return 2
@@ -146,6 +178,9 @@ def main(argv=None) -> int:
             print(f"build_tables.py: {exc.filename}: {exc.strerror}", file=sys.stderr)
             return 2
     summary = ", ".join(f"{v} {k}" for k, v in counts.items())
+    if args.base_hash:
+        print(discovery_digest(data))
+        return 0
     if args.check:
         if not OUT.exists() or OUT.read_bytes() != data:
             print(f"STALE: {paths.rel(OUT)} is not what tools/schematic/build_tables.py writes; run it (never copy a "

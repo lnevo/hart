@@ -32,7 +32,7 @@ tools/mqtt-mimic/build_mimic_web.py
 tools/mqtt-mimic/lcos_mqtt_mimic.py
 tools/hartlib/src
 cats/data/occupancy_bindings.csv
-docs/wiring/signals/signal_head_plan.csv
+jmri/layouts/hart/output/signal_head_plan.csv
 jmri/layouts/hart/data/devices.csv
 jmri/layouts/hart/data/schematic/interlockings.csv
 jmri/layouts/hart/data/switches.csv
