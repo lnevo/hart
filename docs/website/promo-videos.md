@@ -1,5 +1,7 @@
 # Promo videos
 
+Describes the short promo videos for the website on TikTok and YouTube, where the files are kept and how they were made.
+
 Short videos that advertise www.hartrailroad.com on TikTok and YouTube, made
 2026-11-14.
 

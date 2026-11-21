@@ -1,5 +1,7 @@
 # Project health: hand-off (2026-11-20)
 
+Status: done (2026-11-21)
+
 Comes from the 2026-11-20 quick review of open fixes, workflow and where facts are kept. The owner made these choices on 2026-11-20:
 
 - Source-data rows 8 and 10 are included, as proposals the owner reviews before anything is built.

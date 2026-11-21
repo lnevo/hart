@@ -1,0 +1,168 @@
+"""tools/ops/pipeline_query.py on a small graph: a -> b -> c -> a (cycle), b -> d."""
+from __future__ import annotations
+
+import importlib.util
+import io
+import json
+import tempfile
+import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[3]
+SPEC = importlib.util.spec_from_file_location("pipeline_query", ROOT / "tools/ops/pipeline_query.py")
+Q = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(Q)
+
+DOMAINS = [{"id": "x", "label": "X", "color": "#000"}]
+
+
+def n(nid: str, path: str = "", desc: str = "") -> dict:
+    return {"id": nid, "label": nid, "kind": "generator", "status": "live", "domain": "x", "desc": desc,
+            "path": path, "local": True}
+
+
+NODES = [n("a", "src/a.py", "makes B"), n("b", "out/b.xml", "the Table"), n("c", "src/c.py"), n("d", "out/d.txt")]
+EDGES = [{"from": "a", "to": "b", "label": "writes"}, {"from": "b", "to": "c", "label": "reads"},
+         {"from": "c", "to": "a", "label": "loops"}, {"from": "b", "to": "d", "label": "feeds"}]
+
+
+class QueryTest(unittest.TestCase):
+    def setUp(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.graph_file = Path(tmp.name) / "g.json"
+        self.graph_file.write_text(json.dumps({"domains": DOMAINS, "nodes": NODES, "edges": EDGES}))
+
+    def run_q(self, *args: str) -> tuple[int, str, str]:
+        out, err = io.StringIO(), io.StringIO()
+        with redirect_stdout(out), redirect_stderr(err):
+            code = Q.main(["--graph", str(self.graph_file), *args])
+        return code, out.getvalue(), err.getvalue()
+
+    def test_find_is_case_insensitive_over_desc(self):
+        code, out, _ = self.run_q("find", "table")
+        self.assertEqual(code, 0)
+        self.assertEqual(out.strip().splitlines(), ["out/b.xml | generator | live | the Table"])
+
+    def test_find_no_match(self):
+        self.assertIn("no node matches", self.run_q("find", "zzz")[1])
+
+    def test_node_shows_inputs_and_outputs(self):
+        code, out, _ = self.run_q("node", "out/b.xml")
+        self.assertEqual(code, 0)
+        self.assertIn("src/a.py [writes]", out)
+        self.assertIn("src/c.py [reads]", out)
+        self.assertIn("out/d.txt [feeds]", out)
+
+    def test_node_by_id_and_dot_slash_path(self):
+        self.assertEqual(self.run_q("node", "b")[1], self.run_q("node", "./out/b.xml")[1])
+
+    def test_absolute_path_inside_repo(self):
+        g = Q.Graph({"nodes": NODES, "edges": EDGES}, root=ROOT)
+        self.assertEqual(g.resolve(str(ROOT / "out/b.xml")), "b")
+
+    def test_absolute_path_outside_repo(self):
+        g = Q.Graph({"nodes": NODES, "edges": EDGES}, root=ROOT)
+        with self.assertRaises(Q.QueryError):
+            g.resolve("/nowhere/else.txt")
+
+    def test_depth_limit(self):
+        _, out, _ = self.run_q("down", "a", "--depth", "1")
+        self.assertIn("out/b.xml", out)
+        self.assertNotIn("out/d.txt", out)
+        _, out, _ = self.run_q("down", "a")
+        self.assertIn("    out/d.txt", out)  # two levels in
+
+    def test_up(self):
+        _, out, _ = self.run_q("up", "d", "--depth", "2")
+        self.assertEqual([x.strip().split(" ")[0] for x in out.splitlines()], ["out/d.txt", "out/b.xml", "src/a.py"])
+
+    def test_cycle_terminates(self):
+        _, out, _ = self.run_q("down", "a", "--depth", "9")
+        self.assertIn("(shown above)", out)
+        self.assertLess(len(out.splitlines()), 10)
+
+    def test_unknown_node(self):
+        code, out, err = self.run_q("node", "out/b.xm")
+        self.assertEqual((code, out), (1, ""))
+        self.assertIn("closest: ", err)
+        self.assertIn("out/b.xml", err)
+
+    def test_negative_depth(self):
+        code, _, err = self.run_q("down", "a", "--depth", "-1")
+        self.assertEqual(code, 1)
+        self.assertIn("--depth", err)
+
+    def test_shortest_level_not_dropped(self):
+        # a->x->z, a->z, z->w: w is two steps from a through the short route
+        nodes = [n(i, f"p/{i}") for i in "axzw"]
+        edges = [{"from": f, "to": t} for f, t in (("a", "x"), ("x", "z"), ("a", "z"), ("z", "w"))]
+        g = Q.Graph({"nodes": nodes, "edges": edges})
+        seen = {nid for _, nid, _, _ in g.walk("a", "down", 2)}
+        self.assertEqual(seen, {"x", "z", "w"})
+
+    def test_symlinked_dir_inside_repo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root, other = Path(tmp) / "root", Path(tmp) / "other"
+            root.mkdir()
+            other.mkdir()
+            (root / "media").symlink_to(other)
+            g = Q.Graph({"nodes": [n("m", "media/x.jpg")], "edges": []}, root=root)
+            self.assertEqual(g.resolve(str(root / "media/x.jpg")), "m")
+
+    def test_stale_path_does_not_block_queries(self):
+        stale = [dict(n("a", "gone/missing.py"), local=False), n("b", "src/b")]
+        self.graph_file.write_text(json.dumps({"nodes": stale, "edges": [{"from": "a", "to": "b"}]}))
+        code, out, _ = self.run_q("down", "a")
+        self.assertEqual(code, 0)
+        self.assertIn("src/b", out)
+
+    def test_broken_graph_gives_clear_error(self):
+        self.graph_file.write_text(json.dumps({"nodes": NODES, "edges": [{"from": "a", "to": "zz"}]}))
+        code, _, err = self.run_q("find", "a")
+        self.assertEqual(code, 1)
+        self.assertIn("not a node", err)
+
+    def test_relative_names_are_normalised(self):
+        g = Q.Graph({"nodes": NODES, "edges": EDGES}, root=ROOT)
+        self.assertEqual(g.resolve("out/./b.xml"), "b")
+        self.assertEqual(g.resolve("src/../out/b.xml"), "b")
+        with self.assertRaises(Q.QueryError):
+            g.resolve("../elsewhere")
+
+    def test_json_node_is_id_everywhere(self):
+        obj = json.loads(self.run_q("--json", "node", "b")[1])
+        self.assertEqual((obj["node"], obj["detail"]["id"]), ("b", "b"))
+        self.assertEqual(json.loads(self.run_q("--json", "find", "table")[1])[0]["node"], "b")
+
+    def test_reference_marks_above_and_below(self):
+        nodes = [n(i, f"p/{i}") for i in "axz"]
+        edges = [{"from": f, "to": t} for f, t in (("a", "x"), ("a", "z"), ("x", "z"))]
+        g = Q.Graph({"nodes": nodes, "edges": edges})
+        self.assertEqual([(r[1], r[3]) for r in g.walk("a", "down", 3)], [("x", ""), ("z", "below"), ("z", "")])
+        self.assertEqual([(r[1], r[3]) for r in g.walk("x", "up", 3)], [("a", "")])
+        edges2 = [{"from": f, "to": t} for f, t in (("a", "x"), ("x", "z"), ("a", "z"), ("z", "x"))]
+        rows = Q.Graph({"nodes": nodes, "edges": edges2}).walk("a", "down", 3)
+        self.assertIn(("x", "above"), [(r[1], r[3]) for r in rows])
+
+    def test_repo_path_beats_cwd(self):
+        import os
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "out").mkdir()
+            (Path(tmp) / "out/b.xml").write_text("x")
+            old = os.getcwd()
+            os.chdir(tmp)
+            try:
+                g = Q.Graph({"nodes": NODES, "edges": EDGES}, root=ROOT)
+                self.assertEqual(g.resolve("out/b.xml"), "b")
+            finally:
+                os.chdir(old)
+
+    def test_json(self):
+        _, out, _ = self.run_q("--json", "down", "b", "--depth", "1")
+        self.assertEqual([i["node"] for i in json.loads(out)["items"]], ["c", "d"])
+
+
+if __name__ == "__main__":
+    unittest.main()

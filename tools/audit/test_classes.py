@@ -5,7 +5,8 @@
 
 tools/check.sh runs a file it names in BY_CLASS as one job per class this prints, selecting it with
 unittest -k "module.Class." (the test ids' own prefix, so a class imported from another module is still
-found). Exit 1 when the file cannot be loaded or holds no tests, so check.sh never drops a file's tests
+found). With `--methods module.Class` it prints that class's test ids instead (check.sh's BY_METHOD: one job per
+test, selected with -k "module.Class.test_name"). Exit 1 when the file cannot be loaded or holds no tests, so check.sh never drops a file's tests
 by listing nothing.
 """
 from __future__ import annotations
@@ -30,6 +31,14 @@ def main(argv: list[str]) -> int:
     if failed or not tests:
         print(f"{path}: {'cannot be loaded' if failed else 'holds no tests'}", file=sys.stderr)
         return 1
+    if "--methods" in argv:
+        cls = argv[argv.index("--methods") + 1]
+        mine = [t for t in tests if t.rsplit(".", 1)[0] == cls]
+        if not mine:
+            print(f"{path}: no tests in {cls}", file=sys.stderr)
+            return 1
+        print("\n".join(mine))
+        return 0
     classes = dict.fromkeys(t.rsplit(".", 1)[0] for t in tests)
     print("\n".join(classes))
     return 0

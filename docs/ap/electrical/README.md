@@ -1,5 +1,7 @@
 # Model Railroad Engineer – Electrical: SOQ package
 
+Index of the Model Railroad Engineer Electrical SOQ package: its source, builders, photographs and the frozen submitted PDF.
+
 **Submitted 15 November 2026 and frozen.** See [SUBMITTED.md](SUBMITTED.md): the build refuses to run unless the evaluator asks for changes.
 
 The Statement of Qualifications for the NMRA Achievement Program certificate, rebuilt 2026-11-15 as one bound PDF for review by the member's evaluator. Checklist and rules: [www/ap/index.html#electrical](../../../www/ap/index.html) (live at hartrailroad.com/ap/#electrical).
