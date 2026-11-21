@@ -193,7 +193,7 @@
    "kind": "output",
    "status": "live",
    "domain": "extras",
-   "desc": "Promo mp4 variants, shots PNGs, transcript and srt in the media mirror; consumed by the site videos.",
+   "desc": "Promo mp4 variants, shots PNGs, transcript and srt in the media mirror; written by tools/promo, not read by any site file.",
    "path": "media/promo",
    "local": true
   },
@@ -2196,7 +2196,7 @@
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Resized photo cache keyed on original bytes, size and JPEG settings; pruned after 60 days.",
+   "desc": "Cache of resized photos keyed on original bytes, size and JPEG settings; pruned after 60 days.",
    "path": ""
   },
   {
@@ -2690,7 +2690,7 @@
   {
    "id": "www/review-data/archive_review_log.jsonl",
    "label": "archive review log",
-   "kind": "output",
+   "kind": "structured",
    "status": "live",
    "domain": "website",
    "desc": "Append-only log of owner archive edits made through the edit API. Not published.",
@@ -3202,6 +3202,33 @@
    "domain": "wiring",
    "desc": "Writes LCOS_Layout_Inventory_v86.xlsx from scratch for every level; --check run by tools/check.sh (wiring-v86).",
    "path": "tools/wiring/write_inventory.py"
+  },
+  {
+   "id": "ops/hart-ops/card_pipeline/build_car_roster_sor.py",
+   "label": "build_car_roster_sor.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Rebuilds the merged car roster and exports the Operations roster from it; run by the publish step.",
+   "path": "ops/hart-ops/card_pipeline/build_car_roster_sor.py"
+  },
+  {
+   "id": "ops/hart-ops/card_pipeline/cars.py",
+   "label": "cars.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "ops",
+   "desc": "Python behind bin/cars: review, approve, records, publish, cards, site and the other steps.",
+   "path": "ops/hart-ops/card_pipeline/cars.py"
+  },
+  {
+   "id": "docs/ap/electrical/build_soq.py",
+   "label": "build_soq.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Builds the MRE Electrical SOQ package PDF from the wiring decks, drawings and soq.html; the submitted package is frozen.",
+   "path": "docs/ap/electrical/build_soq.py"
   }
  ],
  "edges": [
@@ -4749,10 +4776,6 @@
   },
   {
    "from": "ops/hart-ops/bin/cars",
-   "to": "ops/hart-ops/card_pipeline/export_operations_roster.py"
-  },
-  {
-   "from": "ops/hart-ops/bin/cars",
    "to": "ops/hart-ops/data/loco_queue.csv",
    "label": "review, mark-printed"
   },
@@ -4779,10 +4802,6 @@
    "label": "crop and OCR"
   },
   {
-   "from": "ops/hart-ops/card_pipeline/export_operations_roster.py",
-   "to": "jmri/layouts/hart/operations"
-  },
-  {
    "from": "ops/hart-ops/card_pipeline/generate_all_cards.py",
    "to": "ops/car-cards/print",
    "label": "bin/cars cards"
@@ -4790,7 +4809,7 @@
   {
    "from": "ops/hart-ops/card_pipeline/generate_all_cards.py",
    "to": "ops/hart-ops/card_pipeline/output",
-   "label": "HART_All_Car_Cards"
+   "label": "mirror, large deck"
   },
   {
    "from": "ops/hart-ops/card_pipeline/generate_card_template.py",
@@ -6079,21 +6098,6 @@
    "label": "drawn cards"
   },
   {
-   "from": "www/scripts/map_revision.py",
-   "to": "www/crew",
-   "label": "publication line"
-  },
-  {
-   "from": "www/scripts/map_revision.py",
-   "to": "www/data/crew.json",
-   "label": "schematic revision"
-  },
-  {
-   "from": "www/scripts/map_revision.py",
-   "to": "www/data/publications.json",
-   "label": "map revisions"
-  },
-  {
    "from": "www/scripts/photo_tabs.py",
    "to": "www/scripts/prepare_github_pages.py",
    "label": "search slugs"
@@ -6199,7 +6203,7 @@
   {
    "from": "www/scripts/share_cards.py",
    "to": "www/assets/share",
-   "label": "make crops"
+   "label": "crop (make, by hand)"
   },
   {
    "from": "www/scripts/share_cards.py",
@@ -6214,6 +6218,111 @@
    "from": "www/scripts/tables_page.py",
    "to": "www/scripts/prepare_github_pages.py",
    "label": "fills built copy"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/map_revision.py",
+   "to": "www/data/publications.json",
+   "label": "map revisions"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/map_revision.py",
+   "to": "www/crew",
+   "label": "publication line"
+  },
+  {
+   "from": "www/scripts/map_revision.py",
+   "to": "tools/hartlib/src/hartlib/map_revision.py",
+   "label": "wraps, --check"
+  },
+  {
+   "from": "www/scripts/share_cards.py",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "card_for, add_card_thumbs (import)"
+  },
+  {
+   "from": "www/scripts/build_layout_index.py",
+   "to": "www/scripts/build_cats_layout_index.py",
+   "label": "layout-index.json joined"
+  },
+  {
+   "from": "ops/hart-ops/card_pipeline/export_operations_roster.py",
+   "to": "ops/hart-ops/data/OperationsCarRoster.xml",
+   "label": "export"
+  },
+  {
+   "from": "ops/hart-ops/card_pipeline/build_car_roster_sor.py",
+   "to": "ops/hart-ops/card_pipeline/export_operations_roster.py",
+   "label": "imports"
+  },
+  {
+   "from": "ops/hart-ops/card_pipeline/cars.py",
+   "to": "ops/hart-ops/card_pipeline/build_car_roster_sor.py",
+   "label": "publish"
+  },
+  {
+   "from": "docs/INDEX.md",
+   "to": "tools/check.sh",
+   "label": "docs-index --check"
+  },
+  {
+   "from": "docs/benchwork/main_level",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "published-files.json"
+  },
+  {
+   "from": "docs/ops/schematic-system-draft.pdf",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "published-files.json"
+  },
+  {
+   "from": "wiki/STATUS.md",
+   "to": "tools/check.sh",
+   "label": "status-counts --check"
+  },
+  {
+   "from": "external/sts-docker-data/Rolling Stock photos",
+   "to": "ext:sts-live",
+   "label": "serves car photos"
+  },
+  {
+   "from": "www/assets/archive",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "www/assets/fleet",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "www/assets/gallery",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "www/assets/logos",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "www/behind/jmri-additions.html",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "www/behind/tables-file.html",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "www/library/repository-guide.html",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "docs/wiring/Wiring_Schematic.pptx",
+   "to": "docs/ap/electrical/build_soq.py",
+   "label": "reads nodes deck"
   }
  ]
 }
