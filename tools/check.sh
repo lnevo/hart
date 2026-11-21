@@ -45,8 +45,8 @@ if [[ -n "${CHECK_AUDIT:-}" ]]; then
   CHECK_AUDIT="$(cd "$CHECK_AUDIT" && pwd)"
   rm -f "$CHECK_AUDIT"/*.log "$CHECK_AUDIT"/*.name
 fi
-# The slow part (unit tests, public text, the portal build) runs at the same time once the read-only
-# checks above it are done, at most one job per core. Every one works in its own temp folders. `later`
+# The jobs (the read-only checks as one "static" job, unit tests, public text, the portal build) run at the same time,
+# at most one job per core. Every one works in its own temp folders. `later`
 # starts a job with its output in a file; `collect` waits for each in the order started and prints its
 # output under its heading. Job control (set -m) gives each job its own process group with the signals a
 # terminal has (a plain background job ignores SIGINT), and Ctrl-C or TERM stops every group still running.
@@ -72,7 +72,13 @@ later() {
   (
     start=$SECONDS
     src=2
-    if (( STAMPS )); then python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp"; src=$?; fi
+    if (( STAMPS )); then
+      python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp" >"$JOBS/$n.stamplog" 2>&1
+      src=$?
+      # anything but 0 (current) or 1 (not current) is run, don't record; so is a current verdict without a stamp file
+      (( src == 0 || src == 1 )) || src=2
+      if (( src == 0 )) && [[ ! -s "$JOBS/$n.stamp" ]]; then src=2; fi
+    fi
     if (( src == 0 )); then
       echo "$name: current, skipped" >"$JOBS/$n.log"
       : >"$JOBS/$n.skip"
@@ -85,9 +91,12 @@ later() {
       "$@" >"$JOBS/$n.log" 2>&1
       rc=$?
       # a check that printed SKIPPED did not really run: no stamp (a unit job's output may quote the word)
-      if (( rc == 0 && src == 1 )) && { [[ "$name" == unit-* ]] || ! grep -q SKIPPED "$JOBS/$n.log"; }; then
-        python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp"
+      # and a unit job whose output shows skipped tests (their conditions are not in the stamp)
+      if (( rc == 0 && src == 1 )) && [[ -s "$JOBS/$n.stamp" ]] && ! grep -q "skipped=" "$JOBS/$n.log" \
+         && { [[ "$name" == unit-* ]] || ! grep -q SKIPPED "$JOBS/$n.log"; }; then
+        python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" >>"$JOBS/$n.stamplog" 2>&1
       fi
+      if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
     fi
     echo "$((SECONDS - start))" >"$JOBS/$n.time"
     exit "$rc"

@@ -93,7 +93,7 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_site_device_names": ("www/data/**/*", "www/scripts/**/*"),
     "unit-guards test_write_inventory": ("docs/wiring/**/*",),
     "unit-guards test_docs_index": ("docs/**/*",),
-    "unit-guards test_check_stamps": ("docs/**/*", "www/**/*"),
+    "unit-guards test_check_stamps": EVERYTHING,
     "unit-hosts test_live_paths": ("docs/**/*",),
     "unit-hosts test_host_copies": ("ops/**/*",),
     "unit-hosts test_pull_tables": ("ops/**/*",),
@@ -127,24 +127,28 @@ def _pruned(rel: str) -> bool:
 
 
 def walk(patterns, root: Path = ROOT) -> list[Path]:
-    """Every file under `root` the patterns name, sorted; caches, VCS data, other worktrees and the plugin left out."""
+    """Every file under `root` the patterns name, sorted; caches, VCS data, other worktrees and the plugin left out.
+    Linked folders (media/, ops/car-cards in a worktree) are walked through their links, whatever the pattern."""
     heads = set()
     for pat in patterns:
         head = pat.split("*", 1)[0]
         heads.add(head.rsplit("/", 1)[0] if "/" in head else ("" if "*" in pat else pat))
     found: set[Path] = set()
     starts = {h for h in heads if not any(h != o and (h + "/").startswith(o + "/") for o in heads if o)}
+    seen: set[str] = set()                          # real paths of the folders walked: a link back up ends there
     for start in sorted(starts):
         base = root / start
         if base.is_file():
-            walked = [(base.parent, [], [base.name])]
+            walked = [(str(base.parent), [], [base.name])]
         else:
-            walked = os.walk(base, followlinks=False)
+            walked = os.walk(base, followlinks=True)
         for dirpath, dirnames, filenames in walked:
+            seen.add(os.path.realpath(dirpath))
             rel_dir = Path(dirpath).relative_to(root).as_posix()
             rel_dir = "" if rel_dir == "." else rel_dir
             dirnames[:] = [d for d in dirnames
-                           if d not in PRUNE and not _pruned(f"{rel_dir}/{d}".lstrip("/"))]
+                           if d not in PRUNE and not _pruned(f"{rel_dir}/{d}".lstrip("/"))
+                           and os.path.realpath(os.path.join(dirpath, d)) not in seen]
             for f in filenames:
                 if f.endswith(LITTER) or f == ".DS_Store":
                     continue
@@ -153,12 +157,6 @@ def walk(patterns, root: Path = ROOT) -> list[Path]:
                     p = root / rel
                     if p.is_file():
                         found.add(p)
-            # a symlinked folder named by a pattern (media/ in a worktree) is walked through its link
-            for d in list(dirnames):
-                full = Path(dirpath) / d
-                if full.is_symlink() and full.is_dir():
-                    dirnames.remove(d)
-                    found.update(walk([pat for pat in patterns if pat.startswith(f"{rel_dir}/{d}/".lstrip("/"))], root))
     return sorted(found)
 
 
@@ -192,12 +190,50 @@ class HashCache:
         os.replace(tmp, self.path)
 
 
+def plan_file() -> Path:
+    """The AnyRail plan levels_svg.py and plan_lengths.py read (private, never in the repo)."""
+    return Path(os.environ.get("ANYRAIL_PLAN") or Path.home() / "Documents/Layout/Lee Nevo Design Version 5.3c.any")
+
+
+def _run(*cmd: str, cwd: Path) -> str:
+    try:
+        done = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError):
+        return "unavailable"
+    return done.stdout if done.returncode == 0 else f"failed:{done.returncode}"
+
+
+def venv_state(python: Path) -> str:
+    """An interpreter's real path and the names and versions of the packages in its site-packages."""
+    out = [os.path.realpath(python)]
+    prefix = Path(python).parent.parent
+    for site in sorted(prefix.glob("lib/python*/site-packages")):
+        out += sorted(d.name for d in site.glob("*.dist-info"))
+    return "|".join(out)
+
+
+def outside_state(name: str, root: Path, cache: "HashCache") -> str:
+    """What the jobs read from outside the declared files: the private AnyRail plan, the interpreters and their
+    packages, the files git tracks (names only: a git-reading check follows a file being added or removed), the
+    environment that picks other inputs, and, for the checks that read git history, HEAD and the merge base."""
+    plan = plan_file()
+    parts = [f"plan={cache(plan) if plan.is_file() else 'absent'}",
+             f"python3={venv_state(Path(sys.executable))}",
+             "tracked=" + hashlib.sha256(_run("git", "ls-files", "-co", "--exclude-standard", cwd=root).encode()).hexdigest()]
+    hops = root / "ops/hart-ops/.venv/bin/python"
+    if name in ("unit-hart-ops", "public-text") and hops.exists():
+        parts.append(f"hops={venv_state(hops)}")
+    if name in ("static", "portal"):
+        parts.append("head=" + _run("git", "rev-parse", "HEAD", cwd=root).strip())
+        parts.append("base=" + _run("git", "merge-base", "HEAD", "origin/main", cwd=root).strip())
+    parts += [f"{k}={os.environ.get(k, '')}" for k in ("ANYRAIL_PLAN", "JMRI_LAYOUT", "SCHEMATIC_CACHE", "SCHEMATIC_REQUIRED")]
+    return "\n".join(parts)
+
+
 def not_stampable(name: str) -> str | None:
     if declared(name) is None:
         return f"{name} is not a stampable job"
-    if name == "static" and os.environ.get("HART_TABLES"):
-        return "HART_TABLES is set: the checks read another tables file"
-    return ps.unstampable(ROOT)
+    return ps.unstampable(ROOT)         # also while HART_TABLES is set, for every job: the unit jobs run without it
 
 
 def stamp(name: str, root: Path = ROOT, store: Path = STORE) -> str:
@@ -206,7 +242,7 @@ def stamp(name: str, root: Path = ROOT, store: Path = STORE) -> str:
     cache = HashCache(store / "filehash.json")
     try:
         return ps.digest(f"check:{name}", (), pats, root, hasher=cache, files=walk(pats, root),
-                         extra=os.environ.get("HART_TABLES", "") if name == "static" else "")
+                         extra=outside_state(name, root, cache))
     finally:
         cache.save()
 

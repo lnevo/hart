@@ -103,6 +103,41 @@ class StampTest(unittest.TestCase):
         (self.root / ".claude/worktrees/other/tools/y.py").write_text("v2\n")
         self.assertEqual(self.stamp("static"), before)
 
+    def test_a_linked_folder_below_a_wide_pattern_is_walked(self) -> None:
+        mirror = self.tmp / "mirror"
+        mirror.mkdir()
+        (mirror / "p.jpg").write_text("v1\n")
+        (self.root / "ops").mkdir(exist_ok=True)
+        (self.root / "ops/car-cards").symlink_to(mirror)
+        for name in ("unit-portal", "static"):
+            before = self.stamp(name)
+            (mirror / "p.jpg").write_text("v2\n")
+            self.assertNotEqual(self.stamp(name), before, name)
+            (mirror / "p.jpg").write_text("v1\n")
+
+    def test_the_private_plan_and_the_interpreter_packages_are_inputs(self) -> None:
+        plan = self.tmp / "plan.any"
+        plan.write_text("p1\n")
+        with unittest.mock.patch.dict(os.environ, {"ANYRAIL_PLAN": str(plan)}):
+            before = self.stamp("static")
+            plan.write_text("p2\n")
+            self.assertNotEqual(self.stamp("static"), before)
+        with unittest.mock.patch.object(cs, "venv_state", return_value="other interpreter"):
+            self.assertNotEqual(self.stamp("static"), before)
+
+    def test_a_stamp_helper_answer_other_than_0_or_1_is_not_a_skip(self) -> None:
+        self.assertEqual(cs.main(["current", "no such job"]), 2)
+
+    def test_the_hops_venv_is_an_input_of_its_jobs(self) -> None:
+        hops = self.root / "ops/hart-ops/.venv/bin"
+        hops.mkdir(parents=True)
+        (hops / "python").write_text("")
+        site = self.root / "ops/hart-ops/.venv/lib/python3.13/site-packages/numpy-1.0.dist-info"
+        site.mkdir(parents=True)
+        before = self.stamp("unit-hart-ops")
+        site.rename(site.with_name("numpy-2.0.dist-info"))
+        self.assertNotEqual(self.stamp("unit-hart-ops"), before)
+
     def test_the_command_name_and_the_job_are_in_the_stamp(self) -> None:
         self.assertNotEqual(self.stamp("unit-hartlib"), self.stamp("unit-mimic"))
 
@@ -120,13 +155,14 @@ class AuditTest(unittest.TestCase):
     @unittest.skipIf(os.environ.get("CHECK_AUDIT"), "already inside an audit run")
     def test_the_declared_inputs_cover_what_the_jobs_read(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            env = {k: v for k, v in os.environ.items() if k not in ("HART_TABLES", "FULL")}
+            env = {k: v for k, v in os.environ.items() if k not in ("HART_TABLES", "FULL", "CI")}
             env.update(CHECK_ONLY=AUDITED, CHECK_AUDIT=tmp)
             done = subprocess.run(["bash", str(REPO / "tools/check.sh")], cwd=REPO, env=env, capture_output=True,
                                   text=True, timeout=900)
             self.assertEqual(done.returncode, 0, done.stdout[-3000:] + done.stderr[-2000:])
             jobs = cs.read_audit(Path(tmp))
-            self.assertEqual(len(jobs), 8, sorted(jobs))
+            wanted = AUDITED[2:-2].split("|")
+            self.assertEqual(sorted(jobs), sorted(wanted), "the jobs CHECK_ONLY matched are not the ones audited")
             for name, (files, dirs) in jobs.items():
                 with self.subTest(job=name):
                     self.assertTrue(files, "the audit hook logged nothing")
