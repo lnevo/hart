@@ -85,7 +85,7 @@ import publish_draft as pd  # noqa: E402  DATA and the plugin cache
 from hartlib import devices, layer_files, level_masts, paths, railroad, tables  # noqa: E402
 
 LEVEL = 1
-DEVICE_MAP = paths.LAYOUT_DATA / "devices.csv"     # the master: its level 1 rows are staging's device map
+DEVICE_MAP = devices.MASTER     # the master: its level 1 rows are staging's device map
 STATIONS = pd.DATA / "stations.csv"          # the stations; their desk areas are staging's control points
 INTERLOCKINGS = railroad.Sources.under().interlockings     # every level's (the control points a row's cp may name)
 MASTS = level_masts.PATH         # masts.csv, every level's masts: staging's are its level 1 rows

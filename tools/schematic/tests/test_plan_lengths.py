@@ -258,11 +258,10 @@ class Repo(unittest.TestCase):
                 self.assertIn(b.plan_in, (9.2, 11.1), name)
 
     def test_every_main_and_upper_block_has_a_plan_length(self):
-        import csv as _csv
+        from hartlib import devices
         rows = PL.railroad.read_block_lengths(PL.LENGTHS)
-        with open(PL.pd.DATA.parents[0] / "devices.csv", newline="", encoding="utf-8") as fh:
-            want = {r["user_name"] for r in _csv.DictReader(fh)
-                    if r["level"] in ("2", "3") and r["layer"] == "block" and r["role"] != "part"}
+        want = {r["user_name"] for r in devices.load(devices.master_path(PL.pd.DATA.parents[0]))
+                if r["level"] in ("2", "3") and r["layer"] == "block" and r["role"] != "part"}
         self.assertEqual(sorted(want - set(rows)), [])
         self.assertFalse(hasattr(next(iter(rows.values())), "jmri_in"))    # JMRI's length is plan_in
 

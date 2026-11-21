@@ -255,7 +255,8 @@ if ws_ts:
     
     # Get TurnoutSummary headers
     ts_headers = [cell.value for cell in ws_ts[1]]
-    ts_turnout_col = ts_headers.index('Turnout') if 'Turnout' in ts_headers else None
+    # a crossover has a row per half (same JMRI Turnout, labelled by OS block): one entry here, both halves' signals
+    ts_turnout_col = ts_headers.index('JMRI Turnout') if 'JMRI Turnout' in ts_headers else None
     ts_node_col = ts_headers.index('Parent Node') if 'Parent Node' in ts_headers else None
     ts_location_col = ts_headers.index('Location/Area') if 'Location/Area' in ts_headers else None
     ts_button_col = ts_headers.index('Button') if 'Button' in ts_headers else None
@@ -267,6 +268,7 @@ if ws_ts:
     
     # Collect turnout data
     turnout_data = []
+    by_turnout = {}
     for row_idx, row in enumerate(ws_ts.iter_rows(min_row=2), start=2):
         turnout = ws_ts.cell(row_idx, ts_turnout_col + 1).value if ts_turnout_col is not None else None
         if not turnout:
@@ -299,15 +301,20 @@ if ws_ts:
             signals.append(str(normal_signal))
         if reverse_signal:
             signals.append(str(reverse_signal))
-        signals_str = ", ".join(signals) if signals else ''
-        
-        turnout_data.append({
+        if str(turnout) in by_turnout:                       # the other half of a crossover: merge its signals
+            held = by_turnout[str(turnout)]
+            held['signals'] += [x for x in signals if x not in held['signals']]
+            continue
+        by_turnout[str(turnout)] = entry = {
             'turnout': str(turnout),
             'node': str(node) if node else '',
             'button': str(button) if button else '',
             'feedback': feedback_str,
-            'signals': signals_str
-        })
+            'signals': signals
+        }
+        turnout_data.append(entry)
+    for entry in turnout_data:
+        entry['signals'] = ", ".join(entry['signals'])
     
     # Sort by control node (C{address}), then turnout
     def get_node_number(node_str):

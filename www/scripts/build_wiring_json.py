@@ -468,11 +468,23 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
         name = r.get("Turnout", "")
         if not name:
             continue
-        motor = {pos: device_ports.get(f"{name} {pos}", []) for pos in ("N", "R")}
+        # The turnout's own name; a crossover's half rows (labelled by OS block) share it. The older workbook (v85) has
+        # no such column and one row per turnout, so its label is the name.
+        jmri = r["JMRI Turnout"] if "JMRI Turnout" in r else name
+        if not jmri:
+            raise SystemExit(f"TurnoutSummary: row {name!r} has no JMRI Turnout; rebuild v86 with write_inventory.py")
+        motor = {pos: device_ports.get(f"{jmri} {pos}", []) for pos in ("N", "R")}
         if not motor["N"] and not motor["R"]:
             warn(f"TurnoutSummary: {name} has no motor pins on the DNOU8 sheet")
+        half = ""
+        if name != jmri:                    # a crossover half: "<turnout> (<OS block>)"
+            if not (name.startswith(jmri + " (") and name.endswith(")")):
+                raise SystemExit(f"TurnoutSummary: row {name!r} is not {jmri!r} or {jmri!r} (<OS block>)")
+            half = name[len(jmri) + 2:-1]
         t = {
             "turnout": name,
+            "name": jmri,
+            "half": half,
             "node": r.get("Parent Node", ""),
             "area": r.get("Location/Area", ""),
             "elements": r.get("Switch Elements", ""),
@@ -509,7 +521,7 @@ def build_inventory(path: Path) -> tuple[dict, dict]:
             if not pid:
                 continue
             dev = next((x["device"] for b in nodes.get(pid.split("-")[0], {}).get("inputs", []) for x in b["pins"] if x["port"] == pid), None)
-            if dev != f"{name} {want}":
+            if dev != f"{jmri} {want}":
                 warn(f"TurnoutSummary: {name} {f} → {pid}, but DNIN8 has {dev or 'nothing'} there")
         turnouts.append(t)
 

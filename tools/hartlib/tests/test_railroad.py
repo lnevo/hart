@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hartlib import layer_files, paths, railroad as R  # noqa: E402
+from hartlib import devices as _devices, layer_files, paths, railroad as R  # noqa: E402
 from master_edit import add, change, drop  # noqa: E402  the master is changed through hartlib.devices
 
 REPO = R.Sources.under()
@@ -94,7 +94,7 @@ class RepoData(unittest.TestCase):
     def test_the_sources_are_the_files_the_builders_name(self) -> None:
         from hartlib import level_masts
         self.assertEqual(REPO.masts, level_masts.PATH)
-        self.assertEqual(REPO.devices, paths.DEVICES)
+        self.assertEqual(REPO.devices, _devices.MASTER)
         self.assertEqual(REPO.tables, paths.TABLES_XML)
         for name in DATA_FILES:
             self.assertTrue(getattr(REPO, name).is_file(), name)

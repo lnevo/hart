@@ -119,3 +119,6 @@ jmri/layouts/hart/output/trial/
 
 # MRE Electrical SOQ build scratch (docs/ap/electrical/build_soq.py)
 /docs/ap/electrical/build/
+
+# make panels stamps (tools/schematic/panel_stamps.py), per checkout
+/.cache/

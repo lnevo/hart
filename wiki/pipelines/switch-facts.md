@@ -56,7 +56,7 @@ Exceptions are made only on purpose, each with its reason beside it:
 ## Rename checklist (a track, block or mast)
 
 1. **PanelPro:** rename it, Store, then `make tables-pull`. JMRI owns `tables.xml`; nothing renames there by script.
-2. **Name map:** apply the rename to the row's `user_name` in `devices.csv` (ADR-005, `wiki/pipelines/public-names.md`). The old name is no longer anything's. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
+2. **Device master:** apply the rename to the row's `user_name` in `devices.csv` (ADR-005, `wiki/pipelines/public-names.md`). The old name is no longer anything's. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
 3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switches.csv` (legs), `block_lengths.csv` (`user_name`), `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
 4. **CATS:** the desks are generated, so nothing is renamed in them. After the data files above are changed, run `make desks` (writes and validates `HART_CTC.xml` and `HART_ABS.xml`) and `gen_ctc_track_plan.py` (USS plant cells: `uss_board_plants.csv`).
 5. **Dispatcher:** traininfo files carry block names; regenerate them in PanelPro (Dispatcher System) if a station block was renamed.
@@ -69,7 +69,7 @@ The speed-match routes (`speedmatch/analyze.py`) hold only the running order of 
 ## Changing a level or a control point
 
 - Move a control point to another level: staging's control points stay on level 1 (`build_staging_sets.py` refuses another); a main or upper interlocking's level is its row in `interlockings.csv`. Change it and the `level` of its switches in `switches.csv` together; the check fails if they differ.
-- A new `cp` value in the name map needs a desk area in `schematic/stations.csv` (a station row with that name and a `desk_code`) first, or the check fails.
+- A new `cp` value in `devices.csv` needs a desk area in `schematic/stations.csv` (a station row with that name and a `desk_code`) first, or the check fails.
 
 ## Adding a level
 
@@ -83,7 +83,7 @@ The speed-match routes (`speedmatch/analyze.py`) hold only the running order of 
 
 - **Layout Editor:** turnout hardware and DCC address, layout turnout name and OS block, the leg the continuing sense closes to, and the stored block paths for both legs.
 - **CATS desks** (`HART_CTC.xml`, `HART_ABS.xml`): the turnout on each plant, where the close and throw legs lead, which leg is Normal, that every desk block is a Layout Editor block, and that each named lamp is the `mast_cells.csv` mast for that cell and edge.
-- **Masts:** each `mast_cells.csv` mast is in the name map and `tables.xml`, with one head (the one named) for d1 and two for h2.
+- **Masts:** each `mast_cells.csv` mast is in `devices.csv` and `tables.xml`, with one head (the one named) for d1 and two for h2.
 - **Levels:** a control point's switches are on its level, every block's control point agrees with the switches whose legs reach it (throat blocks included), every `cp` has a row, and every mast and block resolves to one level.
 - **USS CTC:** each code button's turnout, OS sensors, lever and signal levers. In both copies of the panel, each column's lever and points dot, and the track jewels and labels matching a fresh build from the CATS desk.
 

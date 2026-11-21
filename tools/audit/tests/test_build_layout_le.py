@@ -553,11 +553,11 @@ class FactsReaders(unittest.TestCase):
                     self.lc.switch_idents()
 
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
+        from hartlib import devices
         with tempfile.TemporaryDirectory() as tmp:
-            bad = Path(tmp) / "devices.csv"
-            text = B.DEVICE_MAP.read_text(encoding="utf-8")
-            block = next(line for line in text.splitlines() if line.startswith("2,") and ",block," in line)
-            bad.write_text(text + block + "\n", encoding="utf-8")                      # a block row twice
+            rows = list(devices.load(B.DEVICE_MAP))
+            block = next(r for r in rows if r["level"] == "2" and r["layer"] == "block")
+            bad = devices.write_master(rows + [block], devices.master_path(Path(tmp)))     # a block row twice
             for read in (B.level_sensors, B.device_names):
                 with self.subTest(read=read.__name__), \
                         self.assertRaisesRegex(B.BuildError, r"^the device map: devices.csv: .*the same level, layer"):
@@ -596,7 +596,7 @@ class DeviceNames(unittest.TestCase):
         mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]]),
                                    "build_device_map.py") for r in old]
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "devices.csv"
+            path = Path(tmp) / devices.MASTER_FILE
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
             return (reader or B.device_names)(path)
 

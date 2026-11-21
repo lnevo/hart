@@ -7653,7 +7653,23 @@
  ],
  "turnouts": [
   {
-   "turnout": "Switch 35",
+   "turnout": "Switch 35 (OS Switch 35b)",
+   "name": "Switch 35",
+   "half": "OS Switch 35b",
+   "node": "C1",
+   "area": "Princess (Helix - Staging)",
+   "elements": "Switch 35",
+   "motorN": "C1-OU1-1",
+   "motorR": "C1-OU1-2",
+   "button": "C1-IN2-1",
+   "fbN": "C1-IN1-1",
+   "fbR": "C1-IN1-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 35 (OS Switch 35a)",
+   "name": "Switch 35",
+   "half": "OS Switch 35a",
    "node": "C1",
    "area": "Princess (Helix - Staging)",
    "elements": "Switch 35",
@@ -7666,6 +7682,7 @@
   },
   {
    "turnout": "Switch 37",
+   "name": "Switch 37",
    "node": "C1",
    "area": "Princess (Helix - Staging)",
    "elements": "Switch 37",
@@ -7678,6 +7695,7 @@
   },
   {
    "turnout": "Switch 39",
+   "name": "Switch 39",
    "node": "C1",
    "area": "Princess (Helix - Staging)",
    "elements": "Switch 39",
@@ -7690,6 +7708,7 @@
   },
   {
    "turnout": "Switch 15",
+   "name": "Switch 15",
    "node": "C3",
    "area": "South Yard (West - Staging)",
    "elements": "Switch 15",
@@ -7702,6 +7721,7 @@
   },
   {
    "turnout": "Switch 17",
+   "name": "Switch 17",
    "node": "C3",
    "area": "South Yard (West - Staging)",
    "elements": "Switch 17",
@@ -7714,6 +7734,7 @@
   },
   {
    "turnout": "Switch 19",
+   "name": "Switch 19",
    "node": "C3",
    "area": "South Yard (West - Staging)",
    "elements": "Switch 19",
@@ -7726,6 +7747,7 @@
   },
   {
    "turnout": "Switch 21",
+   "name": "Switch 21",
    "node": "C3",
    "area": "South Yard (West - Staging)",
    "elements": "Switch 21",
@@ -7738,6 +7760,7 @@
   },
   {
    "turnout": "Switch 1",
+   "name": "Switch 1",
    "node": "C4",
    "area": "Brick (West - Staging)",
    "elements": "Switch 1",
@@ -7750,6 +7773,7 @@
   },
   {
    "turnout": "Switch 3",
+   "name": "Switch 3",
    "node": "C4",
    "area": "Brick (West - Staging)",
    "elements": "Switch 3",
@@ -7762,6 +7786,7 @@
   },
   {
    "turnout": "Switch 5",
+   "name": "Switch 5",
    "node": "C4",
    "area": "Plane (West - Staging)",
    "elements": "Switch 5",
@@ -7776,6 +7801,7 @@
   },
   {
    "turnout": "Switch 13",
+   "name": "Switch 13",
    "node": "C4",
    "area": "Engine House (West - Staging)",
    "elements": "Switch 13",
@@ -7787,7 +7813,23 @@
    "signals": {}
   },
   {
-   "turnout": "Switch 23",
+   "turnout": "Switch 23 (OS Switch 23a)",
+   "name": "Switch 23",
+   "half": "OS Switch 23a",
+   "node": "C12",
+   "area": "East End (North - Staging)",
+   "elements": "Switch 23",
+   "motorN": "C12-OU4-1",
+   "motorR": "C12-OU4-2",
+   "button": "C12-IN2-5",
+   "fbN": "C12-IN3-1",
+   "fbR": "C12-IN3-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 23 (OS Switch 23b)",
+   "name": "Switch 23",
+   "half": "OS Switch 23b",
    "node": "C12",
    "area": "East End (North - Staging)",
    "elements": "Switch 23",
@@ -7800,6 +7842,7 @@
   },
   {
    "turnout": "Switch 25",
+   "name": "Switch 25",
    "node": "C12",
    "area": "East End (North - Staging)",
    "elements": "Switch 25",
@@ -7812,6 +7855,7 @@
   },
   {
    "turnout": "Switch 27",
+   "name": "Switch 27",
    "node": "C12",
    "area": "East End (North - Staging)",
    "elements": "Switch 27",
@@ -7824,6 +7868,7 @@
   },
   {
    "turnout": "Switch 29",
+   "name": "Switch 29",
    "node": "C12",
    "area": "East End (North - Staging)",
    "elements": "Switch 29",
@@ -7836,6 +7881,7 @@
   },
   {
    "turnout": "Switch 31",
+   "name": "Switch 31",
    "node": "C12",
    "area": "East End (North - Staging)",
    "elements": "Switch 31",
@@ -7848,6 +7894,7 @@
   },
   {
    "turnout": "Switch 33",
+   "name": "Switch 33",
    "node": "C12",
    "area": "East End (North - Staging)",
    "elements": "Switch 33",
@@ -7859,7 +7906,23 @@
    "signals": {}
   },
   {
-   "turnout": "Switch 7",
+   "turnout": "Switch 7 (OS Switch 7)",
+   "name": "Switch 7",
+   "half": "OS Switch 7",
+   "node": "C13",
+   "area": "Barn (West - Staging)",
+   "elements": "Switch 7",
+   "motorN": "C13-OU2-1",
+   "motorR": "C13-OU2-2",
+   "button": "C13-IN2-1 (planned)",
+   "fbN": "C13-IN1-1",
+   "fbR": "C13-IN1-2",
+   "signals": {}
+  },
+  {
+   "turnout": "Switch 7 (OS Switch 7b)",
+   "name": "Switch 7",
+   "half": "OS Switch 7b",
    "node": "C13",
    "area": "Barn (West - Staging)",
    "elements": "Switch 7",
@@ -7872,6 +7935,7 @@
   },
   {
    "turnout": "Switch 9",
+   "name": "Switch 9",
    "node": "C13",
    "area": "Engine House (West - Staging)",
    "elements": "Switch 9",
@@ -7884,6 +7948,7 @@
   },
   {
    "turnout": "Switch 11",
+   "name": "Switch 11",
    "node": "C13",
    "area": "Engine House (West - Staging)",
    "elements": "Switch 11",
@@ -7896,6 +7961,7 @@
   },
   {
    "turnout": "Switch 105",
+   "name": "Switch 105",
    "node": "C33",
    "area": "West - Main",
    "elements": "Switch 105",
@@ -7907,6 +7973,7 @@
   },
   {
    "turnout": "Switch 107",
+   "name": "Switch 107",
    "node": "C33",
    "area": "CP 107 (West - Main)",
    "elements": "Switch 107",
@@ -7920,6 +7987,7 @@
   },
   {
    "turnout": "Switch 109",
+   "name": "Switch 109",
    "node": "C33",
    "area": "CP 107 (West - Main)",
    "elements": "Switch 109",
@@ -7933,6 +8001,7 @@
   },
   {
    "turnout": "Switch 111",
+   "name": "Switch 111",
    "node": "C33",
    "area": "CP 107 (West - Main)",
    "elements": "Switch 111",
@@ -7946,6 +8015,7 @@
   },
   {
    "turnout": "Switch 113",
+   "name": "Switch 113",
    "node": "C33",
    "area": "West - Main",
    "elements": "Switch 113",
@@ -7957,6 +8027,7 @@
   },
   {
    "turnout": "Switch 115",
+   "name": "Switch 115",
    "node": "C33",
    "area": "West - Main",
    "elements": "Switch 115",
@@ -7968,6 +8039,7 @@
   },
   {
    "turnout": "Switch 117",
+   "name": "Switch 117",
    "node": "C33",
    "area": "CP 107 (West - Main)",
    "elements": "Switch 117",
@@ -7981,6 +8053,7 @@
   },
   {
    "turnout": "Switch 119",
+   "name": "Switch 119",
    "node": "C33",
    "area": "CP 107 (West - Main)",
    "elements": "Switch 119A, Switch 119B",
@@ -7994,6 +8067,7 @@
   },
   {
    "turnout": "Switch 101",
+   "name": "Switch 101",
    "node": "C34",
    "area": "Peninsula - Main",
    "elements": "Switch 101A, Switch 101B",
@@ -8005,6 +8079,7 @@
   },
   {
    "turnout": "Switch 103",
+   "name": "Switch 103",
    "node": "C34",
    "area": "Peninsula - Main",
    "elements": "Switch 103A, Switch 103B",
@@ -8016,6 +8091,7 @@
   },
   {
    "turnout": "Switch 121",
+   "name": "Switch 121",
    "node": "C42",
    "area": "North - Main",
    "elements": "Switch 121A, Switch 121B",
@@ -8027,6 +8103,7 @@
   },
   {
    "turnout": "Switch 123",
+   "name": "Switch 123",
    "node": "C42",
    "area": "CP 123 (North - Main)",
    "elements": "Switch 123",
@@ -8040,6 +8117,7 @@
   },
   {
    "turnout": "Switch 125",
+   "name": "Switch 125",
    "node": "C42",
    "area": "CP 123 (North - Main)",
    "elements": "Switch 125A, Switch 125B",
@@ -8053,6 +8131,7 @@
   },
   {
    "turnout": "Switch 127",
+   "name": "Switch 127",
    "node": "C42",
    "area": "CP 127 (North - Main)",
    "elements": "Switch 127A, Switch 127B",
@@ -8066,6 +8145,7 @@
   },
   {
    "turnout": "Switch 129",
+   "name": "Switch 129",
    "node": "C42",
    "area": "North - Main",
    "elements": "Switch 129",
@@ -8077,6 +8157,7 @@
   },
   {
    "turnout": "Switch 131",
+   "name": "Switch 131",
    "node": "C42",
    "area": "CP 127 (North - Main)",
    "elements": "Switch 131A, Switch 131B",
@@ -8088,6 +8169,7 @@
   },
   {
    "turnout": "Switch 225",
+   "name": "Switch 225",
    "node": "C21",
    "area": "CP 225 (Helix - Upper)",
    "elements": "Switch 225",
@@ -8101,6 +8183,7 @@
   },
   {
    "turnout": "Switch 227",
+   "name": "Switch 227",
    "node": "C21",
    "area": "CP 225 (Helix - Upper)",
    "elements": "Switch 227",
@@ -8114,6 +8197,7 @@
   },
   {
    "turnout": "Switch 229",
+   "name": "Switch 229",
    "node": "C21",
    "area": "CP 225 (Helix - Upper)",
    "elements": "Switch 229",
@@ -8127,6 +8211,7 @@
   },
   {
    "turnout": "Switch 231",
+   "name": "Switch 231",
    "node": "C21",
    "area": "Helix - Upper",
    "elements": "Switch 231",
@@ -8138,6 +8223,7 @@
   },
   {
    "turnout": "Switch 233",
+   "name": "Switch 233",
    "node": "C21",
    "area": "Helix - Upper",
    "elements": "Switch 233",
@@ -8149,6 +8235,7 @@
   },
   {
    "turnout": "Switch 235",
+   "name": "Switch 235",
    "node": "C21",
    "area": "Helix - Upper",
    "elements": "Switch 235",
@@ -8160,6 +8247,7 @@
   },
   {
    "turnout": "Switch 237",
+   "name": "Switch 237",
    "node": "C21",
    "area": "Helix - Upper",
    "elements": "Switch 237",
@@ -8171,6 +8259,7 @@
   },
   {
    "turnout": "Switch 239",
+   "name": "Switch 239",
    "node": "C21",
    "area": "Helix - Upper",
    "elements": "Switch 239",
@@ -8182,6 +8271,7 @@
   },
   {
    "turnout": "Switch 223",
+   "name": "Switch 223",
    "node": "C22",
    "area": "CP 223 (North - Upper)",
    "elements": "Switch 223",
@@ -8195,6 +8285,7 @@
   },
   {
    "turnout": "Switch 201",
+   "name": "Switch 201",
    "node": "C23",
    "area": "CP 201 (West - Upper)",
    "elements": "Switch 201",
@@ -8208,6 +8299,7 @@
   },
   {
    "turnout": "Switch 203",
+   "name": "Switch 203",
    "node": "C23",
    "area": "CP 201 (West - Upper)",
    "elements": "Switch 203",
@@ -8221,6 +8313,7 @@
   },
   {
    "turnout": "Switch 205",
+   "name": "Switch 205",
    "node": "C23",
    "area": "West - Upper",
    "elements": "Switch 205",
@@ -8232,6 +8325,7 @@
   },
   {
    "turnout": "Switch 209",
+   "name": "Switch 209",
    "node": "C23",
    "area": "West - Upper",
    "elements": "Switch 209",
@@ -8243,6 +8337,7 @@
   },
   {
    "turnout": "Switch 219",
+   "name": "Switch 219",
    "node": "C23",
    "area": "CP 201 (West - Upper)",
    "elements": "Switch 219",
@@ -8256,6 +8351,7 @@
   },
   {
    "turnout": "Switch 221",
+   "name": "Switch 221",
    "node": "C23",
    "area": "CP 201 (West - Upper)",
    "elements": "Switch 221A, Switch 221B",
@@ -8269,6 +8365,7 @@
   },
   {
    "turnout": "Switch 207",
+   "name": "Switch 207",
    "node": "C24",
    "area": "Peninsula - Upper",
    "elements": "Switch 207",
@@ -8280,6 +8377,7 @@
   },
   {
    "turnout": "Switch 211",
+   "name": "Switch 211",
    "node": "C24",
    "area": "CP 211 (Peninsula - Upper)",
    "elements": "Switch 211A, Switch 211B",
@@ -8293,6 +8391,7 @@
   },
   {
    "turnout": "Switch 213",
+   "name": "Switch 213",
    "node": "C24",
    "area": "Peninsula - Upper",
    "elements": "Switch 213",
@@ -8304,6 +8403,7 @@
   },
   {
    "turnout": "Switch 215",
+   "name": "Switch 215",
    "node": "C24",
    "area": "Peninsula - Upper",
    "elements": "Switch 215",
@@ -8315,6 +8415,7 @@
   },
   {
    "turnout": "Switch 217",
+   "name": "Switch 217",
    "node": "C24",
    "area": "CP 217 (Peninsula - Upper)",
    "elements": "Switch 217A, Switch 217B",
@@ -8328,6 +8429,7 @@
   },
   {
    "turnout": "Switch 241",
+   "name": "Switch 241",
    "node": "C41",
    "area": "Helix - Upper",
    "elements": "Switch 241",
@@ -8339,6 +8441,7 @@
   },
   {
    "turnout": "Switch 243",
+   "name": "Switch 243",
    "node": "C41",
    "area": "Helix - Upper",
    "elements": "Switch 243A, Switch 243B",
@@ -8350,6 +8453,7 @@
   },
   {
    "turnout": "Switch 245",
+   "name": "Switch 245",
    "node": "C41",
    "area": "Helix - Upper",
    "elements": "Switch 245A, Switch 245B",

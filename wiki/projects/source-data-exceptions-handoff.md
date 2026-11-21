@@ -50,8 +50,7 @@ Done on branch `agent/claude/source-data-rows-2-3-7`, with every desk, panel and
   and 35 in the staging `name` edit, since no track had a name yet for `@track` to use.
 - **Row 2:** `mast_dir_pattern` and `signals_planned` deleted, the `move` hand branch gone from `build_hands.py`,
   comments corrected (127 and 131 at the helix top since the 2026-11-19 renumber).
-- **Row 3:** a mast's direction is the `dir` column (east or west) of the device maps, `main_upper_masts.csv` and
-  `staging_masts.csv`, set where the mast rule places it; no reader parses it from the name.
+- **Row 3:** a mast's direction is the `dir` column (east or west) of the device maps and `masts.csv` (its level column), set where the mast rule places it; no reader parses it from the name.
 - **Row 7:** a turnout's class (#6 or #8) comes from the angle of its leg ends; the Peco part table is gone.
 
 Merged as #754. Then, on branch `agent/claude/source-data-rows-4-5`, also with nothing drawn changed:

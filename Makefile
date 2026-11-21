@@ -23,7 +23,7 @@ portal-check:  ## Build the website and test its links
 	python3 www/scripts/check_portal_build.py
 
 panels:  ## Rebuild every panel drawn from the schematic, in order (CHECK=1 only checks)
-	./tools/schematic/build_panels.sh $(if $(filter 1 yes true,$(CHECK)),--check)
+	./tools/schematic/build_panels.sh $(if $(filter 1 yes true,$(CHECK)),--check) $(if $(filter 1 yes true,$(FULL)),--full)
 
 wiring-freeze:  ## Freeze a main or upper control point's wiring into wiring.csv once it is wired: make wiring-freeze CP="CP 107"
 	python3 tools/wiring/freeze_wiring.py --cp "$(CP)"

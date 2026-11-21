@@ -12,7 +12,7 @@ The workbook is a view: nobody edits it (owner, 2026-11-20). It is written from 
                                                wiring.csv lists.
   jmri/layouts/hart/data/wiring.csv            the fascia buttons and relays (no JMRI device).
   jmri/layouts/hart/data/schematic/lcos_nodes.csv   every node, its level and area.
-  docs/wiring/signals/signal_head_plan.csv     the DigiconSignals sheet's masts (its pins are wiring.csv's heads).
+  jmri/layouts/hart/output/signal_head_plan.csv     the DigiconSignals sheet's masts (its pins are wiring.csv's heads).
 
 One row per port, as the inventory always had: turnouts on the OU boards their wiring names, feedback on DNIN8 boards,
 heads on OU boards, detectors on B devices (two blocks each), and wiring.csv's fascia buttons, relays and
@@ -38,16 +38,15 @@ from openpyxl.utils import get_column_letter
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, wiring  # noqa: E402
+from hartlib import devices, paths, wiring  # noqa: E402
 from hartlib.railroad import FactsError, read_rows, read_switch_rows  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 WIRING_DOCS = ROOT / "docs/wiring"
 OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
 DATA = ROOT / "jmri/layouts/hart/data/schematic"
-DEVICE_MAP = DATA.parent / "devices.csv"
+DEVICE_MAP = devices.MASTER
 NODES = DATA / "lcos_nodes.csv"
-SIGNALS = WIRING_DOCS / "signals"
 
 LEVEL_NAME = {"1": "Staging", "2": "Main", "3": "Upper"}
 DESIGN = ("2", "3")                               # main and upper: the rule's draft, shaded
@@ -72,7 +71,8 @@ IN_COLUMNS = ["Input Port ID", "Parent Node ID", "Board Location", "Input Channe
 TURNOUT_COLUMNS = ["Turnout", "Parent Node", "Location/Area", "Switch Elements", "Button", "Feedback N", "Feedback R",
                    "Entry Signal", "Entry Signal R Port", "Entry Signal Y Port", "Entry Signal G Port",
                    "Normal Exit Signal", "Normal Exit R Port", "Normal Exit Y Port", "Normal Exit G Port",
-                   "Reverse Exit Signal", "Reverse Exit R Port", "Reverse Exit Y Port", "Reverse Exit G Port"]
+                   "Reverse Exit Signal", "Reverse Exit R Port", "Reverse Exit Y Port", "Reverse Exit G Port",
+                   "JMRI Turnout"]        # the turnout's own name: a crossover's two half rows carry the same one
 BLOCK_COLUMNS = ["Port ID", "Node ID", "B Device ID", "B Number (1-2)", "Block Section Name",
                  "Connected Track Segment", "Block Location", "Power District", "Notes"]
 DIGICON_COLUMNS = ["port_id", "parent_node_id", "mqtt_node", "board_location", "signal_index", "packed",
@@ -338,22 +338,41 @@ def mast_role(rows: list, facing: str) -> str:
     return "Reverse Exit" if any(facing == r.thrown_leg for r in rows) else "Entry"
 
 
-def take_role(place: dict, sw: str, role: str, mast: str, ports: list) -> None:
-    """Put a wired staging mast in its switch's role slot; two in one slot would need a row per crossover half."""
-    held = place[sw].get(role)
+def mast_half(rows: list, sw: str, mast: str, protects: str, where: str = devices.MASTER_FILE) -> str | None:
+    """The OS block (half) of switch sw that a staging mast belongs to: the one it faces into (its protects column).
+    A switch with one OS block has no halves (None). A crossover mast that protects none of its halves stops."""
+    if len(rows) < 2:
+        return None
+    for r in rows:
+        if r.os_block == protects:
+            return r.os_block
+    raise FactsError(f"{where}: Mast {mast} on crossover Switch {sw} protects {protects!r}, which is none of its OS blocks "
+                     f"({', '.join(r.os_block for r in rows)}) in switches.csv")
+
+
+def take_role(place: dict, sw: str, role: str, mast: str, ports: list, half: str | None = None,
+              design: bool = False) -> None:
+    """Put a wired mast in its role slot of its switch (of its half, on a crossover); two in one slot stop. Slots are
+    per level kind (staging, or main and upper), so a main or upper mast never lands on a staging switch's row."""
+    slots = place.setdefault((design, sw, half), {})
+    held = slots.get(role)
     if held:
-        raise FactsError(f"Switch {sw}: masts {held[0]} and {mast} are both wired as its {role} signal; "
-                         f"TurnoutSummary has one {role} slot per switch (a row per crossover half is not built)")
-    place[sw][role] = (mast, ports)
+        where = f"Switch {sw}" + (f" ({half})" if half else "")
+        raise FactsError(f"{where}: masts {held[0]} and {mast} are both wired as its {role} signal; "
+                         f"TurnoutSummary has one {role} slot per {'crossover half' if half else 'switch'}")
+    slots[role] = (mast, ports)
 
 
 def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
+    """One row per turnout, but a staging crossover (Switch 7, 23, 35: one turnout, two OS blocks) has one row per
+    half, each with its own entry and exit slots (owner, 2026-11-21); the turnout, DCC and button facts repeat."""
     ws = sheet(wb, "TurnoutSummary", TURNOUT_COLUMNS)
     fb = {name: port for n in nodes.values() for name, port in n.feedback}
     button = {name.removesuffix(" (planned)").removesuffix(" BTN"): port for n in nodes.values()
               for name, port in n.buttons}
     legs = staging_legs()
-    place = defaultdict(dict)        # switch -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
+    devices_index = devices.index(DEVICE_MAP)
+    place: dict = {}        # (main or upper, switch, half or None) -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
     for n in nodes.values():
         for head, spread in n.heads:
             ports = [f"{n.id}-OU{board}-{p}" for board, p in spread]
@@ -361,23 +380,27 @@ def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
             mast = by_name.get(f"Mast {key}", {})
             sw = mast.get("switch", "")
             if not n.design and sw in legs:                # staging: the leg it stands on (switches.csv)
-                role = mast_role(legs[sw], mast["facing"])
+                half = mast_half(legs[sw], sw, key, mast["protects"], devices_index.where(mast))
+                mine = [r for r in legs[sw] if half in (None, r.os_block)]
+                role = mast_role(mine, mast["facing"])
                 if not head.endswith(" Bottom"):
-                    take_role(place, sw, role, key, ports)
+                    take_role(place, sw, role, key, ports, half, n.design)
             elif head.endswith(" Top"):                  # main and upper: a two-head mast's top head is the entry
-                place[sw].setdefault("Entry", (key, ports))
+                place.setdefault((n.design, sw, None), {}).setdefault("Entry", (key, ports))
     for n in sorted(nodes.values(), key=lambda n: (n.level, n.num)):
         for name, _, r in n.turnouts:
             sw = name.removeprefix("Switch ")
-            vals = {"Turnout": name, "Parent Node": n.id,
-                    "Location/Area": f"{r['cp']} ({n.location})" if r["cp"] else n.location,
-                    "Switch Elements": r["trial_name"] or name, "Button": button.get(name),
-                    "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R")}
-            for role, (mast, pins) in place.get(sw, {}).items():
-                cols = "Entry Signal" if role == "Entry" else role          # the sheet's column names
-                vals.update({f"{role} Signal": mast, f"{cols} R Port": pins[0], f"{cols} Y Port": pins[1],
-                             f"{cols} G Port": pins[2]})
-            append(ws, [vals.get(c) for c in TURNOUT_COLUMNS], n.design)
+            halves = [x.os_block for x in legs[sw]] if not n.design and len(legs.get(sw, ())) > 1 else [None]
+            for half in halves:
+                vals = {"Turnout": f"{name} ({half})" if half else name, "Parent Node": n.id,
+                        "Location/Area": f"{r['cp']} ({n.location})" if r["cp"] else n.location,
+                        "JMRI Turnout": name, "Switch Elements": r["trial_name"] or name, "Button": button.get(name),
+                        "Feedback N": fb.get(f"FB {name} N"), "Feedback R": fb.get(f"FB {name} R")}
+                for role, (mast, pins) in place.get((n.design, sw, half), {}).items():
+                    cols = "Entry Signal" if role == "Entry" else role          # the sheet's column names
+                    vals.update({f"{role} Signal": mast, f"{cols} R Port": pins[0], f"{cols} Y Port": pins[1],
+                                 f"{cols} G Port": pins[2]})
+                append(ws, [vals.get(c) for c in TURNOUT_COLUMNS], n.design)
 
 
 def block_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
@@ -410,7 +433,7 @@ def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
         for c_i, key in enumerate(DIGICON_COLUMNS, start=1):
             ws.cell(r_i, c_i, row.get(key))
     start = 3 + len(wired) + 2
-    ws.cell(start, 1, "Masts (docs/wiring/signals/signal_head_plan.csv)").font = Font(bold=True, size=12)
+    ws.cell(start, 1, "Masts (jmri/layouts/hart/output/signal_head_plan.csv)").font = Font(bold=True, size=12)
     m_headers = list(heads[0].keys()) if heads else []
     for i, h in enumerate(m_headers, start=1):
         ws.cell(start + 1, i, h).font = Font(bold=True)
@@ -434,7 +457,7 @@ def build(dest: Path) -> None:
     port_sheets(wb, nodes)
     turnout_sheet(wb, nodes, by_name)
     block_sheet(wb, nodes, by_name)
-    digicon_sheet(wb, wired, load_csv(SIGNALS / "signal_head_plan.csv"))
+    digicon_sheet(wb, wired, load_csv(paths.SIGNAL_HEAD_PLAN))
     wb.save(dest)
 
 

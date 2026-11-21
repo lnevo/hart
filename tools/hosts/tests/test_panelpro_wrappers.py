@@ -117,6 +117,9 @@ class Sandbox:
         stub.write_text("import os, sys\nopen(sys.argv[0] + '.log', 'a').write(' '.join(sys.argv[1:]) + '\\n')\n"
                         "sys.exit(2 if os.environ.get('FAKE_TABLES_FAIL') and sys.argv[1] == '--discovered-from' "
                         "else 0)\n", encoding="utf-8")
+        stub.write_text(stub.read_text(encoding="utf-8").replace(
+            "sys.exit(2 if", "print('ab' * 32) if sys.argv[1] == '--base-hash' else None\nsys.exit(2 if"), encoding="utf-8")
+        (self.root / "jmri/layouts/hart/data/schematic").mkdir(parents=True)
         self.home = tmp / "home"
         self.profile = self.make_profile(self.home / "Library/Preferences/JMRI", "My_JMRI_Railroad", LIVE_ID,
                                          r"home\:JMRI_UserFiles/")
@@ -263,8 +266,11 @@ class StartupScriptsOff(WrapperCase):
         self.assertEqual(0, done.returncode, done.stderr)
         calls = (self.box.root / "tools/schematic/build_tables.py.log").read_text().splitlines()
         self.assertEqual("--discovery-base", calls[0])
-        self.assertTrue(calls[1].startswith("--discovered-from "), calls)
-        stored = calls[1].split(" ", 1)[1]
+        self.assertEqual("--base-hash", calls[1])
+        self.assertTrue(calls[2].startswith("--discovered-from "), calls)
+        stored = calls[2].split(" ", 1)[1]
+        stamp = self.box.root / "jmri/layouts/hart/data/schematic/discovered_sml.stamp"
+        self.assertEqual("ab" * 32 + "\n", stamp.read_text(), "the stamp is the base's hash, written after the take")
         launched = (self.box.state / "env").read_text()
         self.assertIn(f"HART_SML_DISCOVER_FILE={stored}\n", launched)
         self.assertNotIn("output/tables.xml", stored)
@@ -281,6 +287,7 @@ class StartupScriptsOff(WrapperCase):
         self.assertIn(f"kept as {kept[0]}", done.stderr)
         self.assertIn(f"--discovered-from {kept[0]}", done.stderr)
         self.assertIn("tables.xml is now the discovery base", done.stderr)
+        self.assertFalse((self.box.root / "jmri/layouts/hart/data/schematic/discovered_sml.stamp").exists())
         self.assertNotIn("DONE", done.stdout)
         self.assert_restored()
 
