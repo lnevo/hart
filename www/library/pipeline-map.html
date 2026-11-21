@@ -443,11 +443,22 @@ function chainOf(edges, id, stops) {
   return { up, down, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
 }
 
-/* Whether the view v (a viewBox) shows the whole drawing (x from -left, width W, height H), given that the top
-   topFrac of the screen is under the toolbar; the corner overview hides while it does. */
-function showsAll(v, W, H, left, topFrac) {
-  const top = v.y + topFrac * v.height;
-  return v.x <= -left + 1 && top <= 1 && v.x + v.width >= W - left - 1 && v.y + v.height >= H - 1;
+/* The free area is the part of the screen the reader can see the map in: below the toolbar and clear of the info
+   panel. free gives it as shares of the map's width and height: {top, right, bottom}, each 0 to 1. */
+
+/* Whether the view v (a viewBox) shows the whole drawing (x from -left, width W, height H) inside the free area;
+   the corner overview hides while it does. */
+function showsAll(v, W, H, left, free) {
+  const top = v.y + free.top * v.height, bottom = v.y + free.bottom * v.height, right = v.x + free.right * v.width;
+  return v.x <= -left + 1 && top <= 1 && right >= W - left - 1 && bottom >= H - 1;
+}
+
+/* The viewBox that fits the whole drawing into the free area, centred there, for a map of sw x sh px. */
+function fitView(W, H, left, free, sw, sh) {
+  const w = free.right * sw, top = free.top * sh, h = Math.max(free.bottom * sh - top, 1);
+  const s = Math.max(W / w, H / h);
+  const ox = (w - W / s) / 2, oy = top + (h - H / s) / 2;  // where the drawing's top left lands, in px
+  return { x: -left - ox * s, y: -oy * s, width: sw * s, height: sh * s };  // the viewBox's own field names
 }
 
 /* The graph with the boxes hide(id) is true for taken out and bridged over: each link into a hidden box is joined to
@@ -520,7 +531,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, chainOf, showsAll, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -702,7 +713,7 @@ function app() {
      A view that showed everything fits again; a box now inside a folder is followed to the folder, and a folder that
      opened to its boxes, to the first of them. */
   function renderKeeping() {
-    if (!lay || !lay.nodes.length || showsAll(vb, W, H, LEFT, topFrac())) { render(false); return; }
+    if (!lay || !lay.nodes.length || showsAll(vb, W, H, LEFT, freeShare())) { render(false); return; }
     const cx = vb.x + vb.width / 2, cy = vb.y + vb.height / 2, mid = n => [n.x + n.w / 2, n.y + n.h / 2];
     const dist = n => { const [x, y] = mid(n); return (x - cx) ** 2 + (y - cy) ** 2; };
     const a = lay.nodes.find(n => n.id === selected) || lay.nodes.reduce((b, n) => (dist(n) < dist(b) ? n : b));
@@ -774,16 +785,17 @@ function app() {
     nav.innerHTML = p.join("");
     navSvg = nav.firstChild; navRect = nav.querySelector(".vr");
   }
-  // the share of the map's height under the toolbar
-  function topFrac() {
-    const r = wrapEl.getBoundingClientRect();
-    return Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
+  // the free area as shares of the map (see showsAll)
+  function freeShare() {
+    const a = freeArea();
+    return { top: a.top / a.r.height, right: a.right / a.r.width, bottom: a.bottom / a.r.height };
   }
   function updateNav() {
     if (!navRect) return;
     const open = info.style.display === "block", narrow = innerWidth <= 900;
     // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
-    nav.hidden = showsAll(vb, W, H, LEFT, topFrac()) || (open && narrow);
+    fitted = showsAll(vb, W, H, LEFT, freeShare());
+    nav.hidden = fitted || (open && narrow);
     nav.style.right = open && !narrow ? `${innerWidth - info.getBoundingClientRect().left + 10}px` : "";
     navRect.setAttribute("x", vb.x); navRect.setAttribute("y", vb.y);
     navRect.setAttribute("width", vb.width); navRect.setAttribute("height", vb.height);
@@ -811,15 +823,14 @@ function app() {
     if (info.style.display === "block") {
       const i = info.getBoundingClientRect();
       if (innerWidth > 900) right = Math.max(200, i.left - r.left - 10);
-      else bottom = Math.max(top + 100, i.top - r.top - 10);
+      else bottom = Math.max(top + 40, i.top - r.top - 10);
     }
     return { r, top, right, bottom };
   }
+  let fitted = false;  // whether the whole drawing was in the free area at the last move (updateNav)
   function fit() {  // the whole drawing in the free area
-    const a = freeArea(), w = a.right, h = Math.max(a.bottom - a.top, 100);
-    const s = Math.max(W / w, H / h);
-    const ox = (w - W / s) / 2, oy = a.top + (h - H / s) / 2;  // where the drawing's top left lands, in px
-    setVB(-LEFT - ox * s, -oy * s, a.r.width * s, a.r.height * s);
+    const f = fitView(W, H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight);
+    setVB(f.x, f.y, f.width, f.height);
   }
   function zoomAt(f, cx, cy) {
     const r = wrapEl.getBoundingClientRect();
@@ -851,12 +862,14 @@ function app() {
     updateNav();
   });
   window.addEventListener("pointerup", () => { drag = null; wrapEl.classList.remove("drag"); });
-  window.addEventListener("resize", () => {
+  window.addEventListener("resize", () => {  // a fitted view fits again (the panel may have moved); others keep their middle
+    if (fitted) { fit(); return; }
     const r = wrapEl.getBoundingClientRect(), cy = vb.y + vb.height / 2, h = vb.width * r.height / r.width;
     setVB(vb.x, cy - h / 2, vb.width, h);
+    if (selected && visible.has(selected)) centreOn(selected, false);
   });
   document.getElementById("fit").onclick = fit;
-  const zoomCentre = f => { const r = wrapEl.getBoundingClientRect(); zoomAt(f, r.left + r.width / 2, r.top + r.height / 2); };
+  const zoomCentre = f => { const a = freeArea(); zoomAt(f, a.r.left + a.right / 2, a.r.top + (a.top + a.bottom) / 2); };  // about the middle of the free area
   document.getElementById("zin").onclick = () => zoomCentre(0.6);
   document.getElementById("zout").onclick = () => zoomCentre(1.6);
 
