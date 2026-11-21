@@ -338,6 +338,11 @@
       "alt": "Diagram: six submodules feed into the hart repository, which deploys to the layout Pi, the Windows PC and the website; a dashed arrow brings Stores, sessions and STS backups back from the Pi.",
       "from": "drawn from the overview figure in www/library/repository-guide.html (make_share_cards.py repo_guide)"
     },
+    "library/pipeline-map.html": {
+      "image": "assets/share/library-pipeline-map.jpg",
+      "alt": "The pipeline map filtered to run_sml_discover.sh: tables.xml, discover_sml.py and build_tables.py feed it, and it feeds discovered_sml.xml, in the Layout control lane.",
+      "from": "the map's own filtered view library/pipeline-map.html#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1, drawn by the page with its toolbar hidden (make_share_cards.py pipeline_map)"
+    },
     "library/operations-pro-article.html": {
       "image": "assets/share/library-operations-pro-article.jpg",
       "alt": "Route map of the invented Juniper Falls & Northern: a main line from West Staging through Carrow and Ferris Junction to East Staging, with a branch to Oakhaven and a branch to Northwood.",
