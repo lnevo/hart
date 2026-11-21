@@ -251,19 +251,26 @@ def strip_build_owned(root: ET.Element) -> dict[str, int]:
     return counts
 
 
-def level_items(P, panel_el: ET.Element) -> set:
-    """ids of the panel elements that belong to main and upper, by the plugin's own band of each: their turnouts,
+def level_items(P, panel_el: ET.Element, candidate: set[int]) -> set:
+    """ids of the panel elements that are not the staging candidate's: those of every band not in `candidate` (the
+    band indexes the staging candidate draws, the panel's first), by the plugin's own band of each: their turnouts,
     points, track segments (and the hidden helix and connector joins, drawn with no band), circles, labels (band
-    titles have no band either: every one but staging's) and block contents icons. The plugin writes its labels and
-    block contents icons in P.labels and P.bcis order, before the carried items, so the n-th of each on the panel is
-    the n-th of the plugin's (checked by text and block)."""
-    mine = {P.name(t["ident"]) for t in P.turnouts if t["band"] != 0} | \
-        {P.name(k) for k, p in P.points.items() if p["band"] != 0} | \
-        {P.name(s["ident"]) for s in P.segments if s.get("band") != 0} | \
-        {P.name(sh["ident"]) for sh in P.shapes if sh["band"] != 0}
-    staging_title = next((i for i, lb in enumerate(P.labels) if lb.get("kind") == "title"), None)
-    if staging_title is None:
+    titles have no band either: the first len(candidate) are the candidate's) and block contents icons. The plugin
+    writes its labels and block contents icons in P.labels and P.bcis order, before the carried items, so the n-th of
+    each on the panel is the n-th of the plugin's (checked by text and block)."""
+    if not candidate:
+        raise BuildError("staging guard: the staging candidate draws no band")
+    mine = {P.name(t["ident"]) for t in P.turnouts if t["band"] not in candidate} | \
+        {P.name(k) for k, p in P.points.items() if p["band"] not in candidate} | \
+        {P.name(s["ident"]) for s in P.segments if s.get("band") not in candidate} | \
+        {P.name(sh["ident"]) for sh in P.shapes if sh["band"] not in candidate}
+    titles = [i for i, lb in enumerate(P.labels) if lb.get("kind") == "title"]
+    if not titles:
         raise BuildError("staging guard: the plugin wrote no band title")
+    if len(titles) < len(candidate):
+        raise BuildError(f"staging guard: the plugin wrote {len(titles)} band titles, the staging candidate draws "
+                         f"{len(candidate)} bands")
+    candidate_titles = set(titles[:len(candidate)])
     labels = [el for el in panel_el.findall("positionablelabel")
               if not (el.get("hidden") == "yes" and el.get("text") == tables.GENERATED_PANEL_MARKER)]
     bcis = panel_el.findall("BlockContentsIcon")
@@ -271,19 +278,19 @@ def level_items(P, panel_el: ET.Element) -> set:
         raise BuildError(f"staging guard: the panel holds {len(labels)} labels and {len(bcis)} block contents icons, "
                          f"the plugin wrote {len(P.labels)} and {len(P.bcis)}")
     out = {id(el) for el in panel_el if el.get("ident") in mine}
-    level_masts_ = {m["mast"] for m in P.masts if m["band"] != 0}
+    level_masts_ = {m["mast"] for m in P.masts if m["band"] not in candidate}
     out |= {id(el) for el in panel_el.findall("signalmasticon") if el.get("signalmast") in level_masts_}
     for i, (el, lb) in enumerate(zip(labels, P.labels)):
         if el.get("text") != lb["text"]:
             raise BuildError(f"staging guard: label {i} on the panel reads {el.get('text')!r}, the plugin wrote "
                              f"{lb['text']!r}")
-        if lb["band"] != 0 and i != staging_title:
+        if lb["band"] not in candidate and i not in candidate_titles:
             out.add(id(el))
     for el, b in zip(bcis, P.bcis):
         if el.get("blockcontents") != b["block"]:
             raise BuildError(f"staging guard: a block contents icon on the panel is {el.get('blockcontents')}, the "
                              f"plugin wrote {b['block']}")
-        if b["band"] != 0:
+        if b["band"] not in candidate:
             out.add(id(el))
     return out
 
@@ -366,13 +373,18 @@ def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
     for k in sorted(set(old_le.attrib) | set(new_le.attrib)):
         if old_le.get(k) != new_le.get(k) and k not in PANEL_SIZE_ATTRS:
             bad.append(f"panel attribute {k}: {old_le.get(k)} -> {new_le.get(k)}")
+    # the bands the staging candidate draws are the three-level panel's first (build_layout_le.build draws them first)
+    candidate = set(range(len(S.band_boxes)))
+    if len(P.band_boxes) < len(candidate):
+        raise BuildError(f"staging guard: the staging candidate draws {len(candidate)} bands, the three-level panel "
+                         f"only {len(P.band_boxes)}")
     ends = {S.name(k) for k, p in S.points.items() if p["type"] == "END_BUMPER"} - \
         {P.name(k) for k, p in P.points.items() if p["type"] == "END_BUMPER"}
-    joins = {P.name(i) for (b, i) in P.join_ends if b == 0}     # the staging anchors the hidden joins start at
+    joins = {P.name(i) for (b, i) in P.join_ends if b in candidate}     # the staging anchors the hidden joins start at
     if not ends or len(joins) != len(ends):
         raise BuildError(f"staging guard: the helix is not joined: {len(ends)} staging end bumpers {sorted(ends)} "
                          f"became anchors, but {len(joins)} hidden joins start at staging anchors {sorted(joins)}")
-    level = level_items(P, new_le)
+    level = level_items(P, new_le, candidate)
     old_els = defaultdict(list)
     for el in old_le:
         old_els[canon(el)].append(el)

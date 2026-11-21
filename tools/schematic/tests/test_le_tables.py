@@ -12,6 +12,7 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import le_checks  # noqa: E402
+import le_common  # noqa: E402
 import le_tables  # noqa: E402
 from hartlib import level_devices, tables  # noqa: E402
 from le_common import BuildError, STAGING  # noqa: E402
@@ -139,19 +140,28 @@ class LevelItems(unittest.TestCase):
         P = fake_panel()
         panel = label_panel(P)
         got = {el.get("ident") or el.get("text") or el.get("blockcontents") or el.get("signalmast")
-               for el in panel if id(el) in le_tables.level_items(P, panel)}
+               for el in panel if id(el) in le_tables.level_items(P, panel, {0})}
         self.assertEqual(got, {"TO2", "A2", "T2", "TJ", "C2", "MAIN LEVEL", "105", "Track 105-109", "Mast 108LA"})
+
+    def test_a_candidate_of_two_bands_keeps_both_and_their_titles(self):
+        P = fake_panel()
+        panel = label_panel(P)
+        got = {el.get("ident") or el.get("text") or el.get("blockcontents") or el.get("signalmast")
+               for el in panel if id(el) in le_tables.level_items(P, panel, {0, 1})}
+        self.assertEqual(got, {"A2", "TJ", "C2"})
+        with self.assertRaisesRegex(BuildError, "draws no band"):
+            le_tables.level_items(P, panel, set())
 
     def test_a_label_or_icon_out_of_step_with_the_plugin_stops(self):
         P = fake_panel()
         panel = label_panel(P)
         next(el for el in panel if el.get("text") == "W-1").set("text", "W-9")
         with self.assertRaisesRegex(BuildError, "label 2 on the panel reads 'W-9'"):
-            le_tables.level_items(P, panel)
+            le_tables.level_items(P, panel, {0})
         P = fake_panel()
         P.labels = [lb for lb in P.labels if lb.get("kind") != "title"]
         with self.assertRaisesRegex(BuildError, "wrote no band title"):
-            le_tables.level_items(P, label_panel(P))
+            le_tables.level_items(P, label_panel(P), {0})
 
 
 class IsLevelBean(unittest.TestCase):
@@ -164,6 +174,23 @@ class IsLevelBean(unittest.TestCase):
         self.assertTrue(le_tables.is_level_bean(el("block", "IB:C3:0001")))
         self.assertTrue(le_tables.is_level_bean(el("layoutblock", "ILB1001", "Track 105-109")))
         self.assertFalse(le_tables.is_level_bean(el("layoutblock", "ILB12", "Track W-1")))
+
+
+class BandLevels(unittest.TestCase):
+    """A band's level is its plan-overrides section's (every section read), and the base levels are the ones the
+    generator's base writes beans for (hartlib.tables_build.GENERATED_LEVELS)."""
+
+    def test_the_committed_bands(self):
+        levels = le_common.plan_levels()
+        self.assertEqual(sorted(levels.values()), [1, 2, 3])
+        bands = sorted(((t, {}, {}) for t in levels), key=lambda b: levels[b[0]])
+        self.assertEqual(le_common.band_levels(bands), [1, 2, 3])
+        self.assertEqual(le_common.base_bands(bands), [0])
+        self.assertEqual(le_common.BASE_LEVELS, {1})
+
+    def test_a_band_with_no_level_stops_naming_it(self):
+        with self.assertRaisesRegex(BuildError, "gives no level to band 'Attic level'"):
+            le_common.band_levels([("Attic level", {}, {})])
 
 
 # ---------------------------------------------------------------- le_checks
