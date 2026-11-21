@@ -268,7 +268,7 @@ Windows runs Win32-OpenSSH 10.4 (winget `Microsoft.OpenSSH.Preview`) on port 222
 | `jmri/layouts/hart/scripts/run_sml_discover.sh` | Launch PanelPro, Discover, store `tables.xml`, quit; then disable Digicon SML dests |
 | `jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py` | `--check`: Digicon SML dests are Enabled=no in `tables.xml` (`tools/check.sh`). The generator applies the rule and the deploy ships the committed bytes (R9c); `--panel` patches another tables file only |
 | `archive/cats-scripts/digicon_header.py` | Archived with `wire_digicon.py`: the publication title row (now `cats/data/generated_desk_header.xml`) |
-| `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | Wiring CSVs and head plan (`--wiring-only`); full run updates the LCOS inventory, checks the publisher, then always refuses to rewrite `tables.xml` (heads and masts are edited there directly) |
+| `jmri/layouts/hart/scripts/build_hart_signal_heads.py` | The head and mast plan CSVs from `wiring.csv`'s wired heads (one mode; `--wiring-only` still accepted). `tables.xml` is generated (ADR-029) |
 | `tools/hosts/sync_hart_package.sh` | Stage the package to a temporary folder on the host; **rsync** to Pi, **tar+scp** to Windows (no git pull). Host apply copies into `JMRI_UserFiles`. `--dry-run`. Before copy, sets Digicon (MQTT) SML dests to Enabled=no in the shipped `tables.xml` |
 | `cats/scripts/install_jmri_web_override.sh` | STS link into JMRI `web/` (Mac/Pi) |
 | `tools/hosts/windows/apply_hart_package_local.ps1` | Windows host apply step, run over SSH by `sync_hart_package.sh --win` (Pi equivalent: `tools/hosts/pi/apply_hart_package_local.sh`) |

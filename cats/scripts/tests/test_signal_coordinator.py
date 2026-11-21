@@ -1,20 +1,10 @@
 from __future__ import annotations
 
-import importlib.util
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 PUBLISHER = ROOT / "jmri/scripts/signal_coordinator.py"
-BUILD = ROOT / "jmri/layouts/hart/scripts/build_hart_signal_heads.py"
-
-
-def load_build():
-    spec = importlib.util.spec_from_file_location("build_hart_signal_heads", BUILD)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
-    return module
 
 
 class MqttSignalheadPublisherTest(unittest.TestCase):
@@ -152,16 +142,15 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("_is_lcos_ih_sys", collect)
         self.assertNotIn("self.wanted", collect)
 
-    def test_write_publisher_checks_dynamic_roster(self) -> None:
-        module = load_build()
-        original = PUBLISHER.read_text(encoding="utf-8")
-        self.addCleanup(PUBLISHER.write_text, original, "utf-8")
-        module.write_publisher([{"system_name": "IH999"}])
-        updated = PUBLISHER.read_text(encoding="utf-8")
-        self.assertEqual(updated, original)
-        self.assertNotIn("HEAD_NAMES_BEGIN", updated)
-        self.assertNotIn("\nHEAD_NAMES =", updated)
-        self.assertNotIn("MQTT_HEAD_NAMES", updated)
+    def test_the_roster_is_dynamic(self) -> None:
+        """The Digicon publisher finds its masts from the LCOS heads and MQTT enrolment, with no head list to keep
+        (what build_hart_signal_heads.py's full run used to check before it went)."""
+        text = PUBLISHER.read_text(encoding="utf-8")
+        self.assertIn("DigiconMqttSml()", text)
+        self.assertIn("_enroll_packed", text)
+        self.assertNotIn("HEAD_NAMES_BEGIN", text)
+        self.assertNotIn("\nHEAD_NAMES =", text)
+        self.assertNotIn("MQTT_HEAD_NAMES", text)
 
     def test_roster_enrolls_from_signalmast_not_signalhead(self) -> None:
         text = PUBLISHER.read_text(encoding="utf-8")

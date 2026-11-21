@@ -32,7 +32,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables_build, wiring  # noqa: E402
+from hartlib import paths, wiring  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
 
 ROOT = paths.REPO_ROOT
