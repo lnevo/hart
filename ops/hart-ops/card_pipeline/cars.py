@@ -842,86 +842,87 @@ def seed_copy_report(inputs: Path, masters: tuple[Path, ...]) -> list[str]:
 # Field differences (compare): repository column -> the attribute the tool's writer sets.
 # The expected value is what build_merged_car_roster.manifest_to_car makes from the row, so
 # road code, number, type, length and colour are normalised exactly as the roster build does.
-# Not compared: weight and weightTons (a length default the owner may edit), location, load,
-# destination and position (STS owns them, ADR-016), the out-of-service flag (ADR-015, reported
-# above) and the STS AAR code (derived from several rules, not one field).
-OPS_FIELDS = {
+# A field is compared only when its repository column is filled in: manifest_to_car's defaults
+# (40 or 90 ft, default weights) are not repository facts. Not compared: weight and weightTons,
+# location, load, destination and position (STS owns them, ADR-016), the out-of-service flag
+# (ADR-015, reported above) and the STS AAR code (derived from several rules, not one field).
+# Operations Pro's car type is left out: it follows the STS car code, not car_type
+# (docs/ops/OPSPRO_MAPPING.md, D14), and no writer code in the repository derives it.
+ROSTER_FIELDS = {
     "roster_road": "roadName",
     "road_number": "roadNumber",
     "car_type": "type",
     "roster_length_ft": "length",
     "color": "color",
 }
+OPS_FIELDS = {c: a for c, a in ROSTER_FIELDS.items() if a != "type"}
 # STS seed copy of image_metadata.csv: the columns generate_hart_seed.load_roster_metadata reads.
 SEED_META_FIELDS = ("car_type", "car_class", "notes")
 # sts_added_cars.csv: reporting_marks is road code + number; remarks is "{type} {length}ft"
 # (generate_hart_seed.add_cars).
 ADDED_FIELDS = {"reporting_marks": "marks", "remarks": "remarks"}
 DIFF_LIMIT = 20
-# Operations Pro types are set from the STS code, so they are finer than the repository's
-# car_type (docs/ops/OPSPRO_MAPPING.md, D14); these are intended, not differences.
-OPS_TYPE_REFINEMENTS = {
-    ("type", "Hopper"): frozenset({"Coke Hopper", "Covered Hopper"}),
-    ("type", "Coil"): frozenset({"Coilcar"}),
-}
-OPS_SKIP_TYPES =frozenset({"Caboose", "Baggage", "Coach", "Combine", "Dining", "Observation"})
+# The roster build skips only locomotives, so Operations Pro is compared for every other type.
+# generate_hart_seed skips its PASSENGER_TYPES (passenger cars, cabooses, MOW) in add_cars.
+OPS_SKIP_TYPES: frozenset[str] = frozenset()
 
 
 def seed_helpers():
-    """generate_hart_seed from the sts-helpers submodule, or None when it is not checked out."""
+    """(generate_hart_seed, None), or (None, reason) when the sts-helpers submodule cannot load."""
     seed_dir = STS_HELPERS / "seed"
     if not (seed_dir / "generate_hart_seed.py").is_file():
-        return None
+        return None, NO_SEED_DIR.format(path=seed_dir)
     for path in (str(seed_dir), str(STS_HELPERS / "lib")):
         if path not in sys.path:
             sys.path.insert(0, path)
-    import generate_hart_seed
-
-    return generate_hart_seed
+    try:
+        import generate_hart_seed
+    except (ImportError, AttributeError) as err:
+        return None, f"{type(err).__name__}: {err}"
+    return generate_hart_seed, None
 
 
 def expected_cars(rows: list[dict], skip_types: frozenset[str]) -> dict[str, dict]:
-    """Roster attributes the build makes from each repository row, keyed by roster id."""
-    from build_merged_car_roster import manifest_to_car
+    """Roster attributes the build makes from each repository row, keyed by roster id.
+
+    An attribute whose repository column is blank is dropped, not defaulted.
+    """
+    from build_merged_car_roster import manifest_to_car, normalize_roster_type
     from engine_lookup import is_locomotive_row
 
     out = {}
     for row in rows:
         ctype = (row.get("car_type") or "").strip()
-        if is_locomotive_row(row) or ctype in ("Locomotive", "Streetcar") or ctype in skip_types:
+        if is_locomotive_row(row) or ctype in ("Locomotive", "Streetcar"):
+            continue
+        if normalize_roster_type(ctype) in skip_types or ctype in skip_types:
             continue
         attrs = manifest_to_car(row)
-        if attrs:
-            out[attrs["id"]] = attrs
+        if not attrs:
+            continue
+        for column, attr in ROSTER_FIELDS.items():
+            if attr != "roadName" and not (row.get(column) or "").strip():
+                attrs.pop(attr, None)
+        out[attrs["id"]] = attrs
     return out
 
 
-def field_diffs(
-    expected: dict[str, dict],
-    tool: dict[str, dict],
-    fields: dict[str, str],
-    accept: dict[tuple[str, str], frozenset[str]] | None = None,
-):
+def field_diffs(expected: dict[str, dict], tool: dict[str, dict], fields: dict[str, str]):
     """(id, field, repo value, tool value) for cars in both, over the mapped fields only.
 
-    A blank repository value is skipped: the roster build keeps the tool's own value then.
-    accept lists tool values that are intended for a repository value, by (field, value).
+    A field the repository leaves blank is skipped: the roster build keeps the tool's own value.
     """
     diffs = []
     for cid in sorted(expected.keys() & tool.keys()):
         for attr in fields.values():
             want = (expected[cid].get(attr) or "").strip()
             have = (tool[cid].get(attr) or "").strip()
-            if have in (accept or {}).get((attr, want), ()):
-                continue
             if want and want != have:
                 diffs.append((cid, attr, want, have))
     return diffs
 
 
 def ops_car_attrs(path: Path) -> dict[str, dict]:
-    if not path.is_file():
-        return {}
     return {c.get("id", ""): dict(c.attrib) for c in ET.parse(path).getroot().findall("./cars/car")}
 
 
@@ -932,6 +933,14 @@ def print_diffs(diffs: list[tuple], show_all: bool) -> None:
         print(f"    {cid} {field}: repo={want!r} tool={have!r}")
     if len(diffs) > len(shown):
         print(f"    +{len(diffs) - len(shown)} more (--all)")
+
+
+def print_if_present(path: Path, show_all: bool, make_diffs) -> None:
+    """Print make_diffs() for a tool file, or say the file is missing instead of reporting 0."""
+    if not path.is_file():
+        print(f"  Cannot check: {path} is missing")
+        return
+    print_diffs(make_diffs(), show_all)
 
 
 def seed_meta_diffs(rows: list[dict], copy_path: Path, gen) -> list[tuple]:
@@ -948,7 +957,7 @@ def seed_meta_diffs(rows: list[dict], copy_path: Path, gen) -> list[tuple]:
         cid = row_id(row)
         if cid not in copy_rows or "CarImagesFinal" not in (row.get("notes") or ""):
             continue
-        if (row.get("car_type") or "").strip() in gen.PASSENGER_TYPES:
+        if gen.normalize_car_type(row.get("car_type") or "") in gen.PASSENGER_TYPES:
             continue
         for field in SEED_META_FIELDS:
             want, have = reads[field](row), reads[field](copy_rows[cid])
@@ -957,47 +966,54 @@ def seed_meta_diffs(rows: list[dict], copy_path: Path, gen) -> list[tuple]:
     return sorted(diffs)
 
 
-def print_field_sections(rows: list[dict], ops_path: Path, show_all: bool) -> None:
-    """Field differences for cars present in the repository and a tool (read only)."""
-    print("\nOperations Pro fields (OperationsCarRoster.xml; passenger cars and cabooses left out):")
-    diffs = field_diffs(
-        expected_cars(rows, OPS_SKIP_TYPES), ops_car_attrs(ops_path), OPS_FIELDS, OPS_TYPE_REFINEMENTS
-    )
-    print_diffs(diffs, show_all)
-
-    gen = seed_helpers()
-    if gen is None or not SEED_INPUTS.is_dir():
-        print("\nSTS seed fields: cannot check: " + NO_SEED_DIR.format(path=SEED_INPUTS))
-        return
-    photos = {row_id(r) for r in rows if "CarImagesFinal" in (r.get("notes") or "")}
-    sts_rows = [r for r in rows if row_id(r) in photos]
-    sts_expected = expected_cars(sts_rows, frozenset(gen.PASSENGER_TYPES))
-    print("\nSTS seed roster copy fields (HART_MergedCarRoster.xml; cars with a photo only):")
-    tool = ops_car_attrs(SEED_INPUTS / MERGED.name)
-    print_diffs(field_diffs(sts_expected, tool, OPS_FIELDS), show_all)
-
-    print("\nSTS seed metadata copy fields (image_metadata.csv):")
-    copy = SEED_INPUTS / METADATA.name
-    if copy.is_file():
-        print_diffs(seed_meta_diffs(rows, copy, gen), show_all)
-    else:
-        print(f"  {copy.name} is missing from the seed inputs")
-
-    print("\nSTS added cars fields (sts_added_cars.csv):")
-    added = gen.load_added_cars(SEED_INPUTS)
-    all_expected = expected_cars(rows, frozenset(gen.PASSENGER_TYPES))
+def added_cars_diffs(rows: list[dict], added: dict[str, dict], gen) -> list[tuple]:
+    """Differences between the repository and sts_added_cars.csv (marks and remarks)."""
     tool = {
         cid: {"marks": a.get("reporting_marks", ""), "remarks": a.get("remarks", "")}
         for cid, a in added.items()
     }
     want = {
-        cid: {
-            "marks": f"{a['roadName']}{a['roadNumber']}",
-            "remarks": f"{a['type']} {a['length']}ft",
-        }
-        for cid, a in all_expected.items()
+        cid: {"marks": f"{a['roadName']}{a['roadNumber']}", "remarks": f"{a['type']} {a['length']}ft"}
+        for cid, a in expected_cars(rows, frozenset(gen.PASSENGER_TYPES)).items()
+        if a.get("type") and a.get("length")
     }
-    print_diffs(field_diffs(want, tool, ADDED_FIELDS), show_all)
+    return field_diffs(want, tool, ADDED_FIELDS)
+
+
+def print_field_sections(rows: list[dict], ops_path: Path, show_all: bool) -> None:
+    """Field differences for cars present in the repository and a tool (read only)."""
+    print("\nOperations Pro fields (OperationsCarRoster.xml, type left out):")
+    print_if_present(
+        ops_path, show_all,
+        lambda: field_diffs(expected_cars(rows, OPS_SKIP_TYPES), ops_car_attrs(ops_path), OPS_FIELDS),
+    )
+
+    gen, reason = seed_helpers()
+    if gen is None:
+        print(f"\nCannot check STS sections: {reason}")
+        return
+    if not SEED_INPUTS.is_dir():
+        print("\nCannot check STS sections: " + NO_SEED_DIR.format(path=SEED_INPUTS))
+        return
+    photos = {row_id(r) for r in rows if "CarImagesFinal" in (r.get("notes") or "")}
+    sts_expected = expected_cars(
+        [r for r in rows if row_id(r) in photos], frozenset(gen.PASSENGER_TYPES)
+    )
+    print("\nSTS seed roster copy fields (HART_MergedCarRoster.xml; cars with a photo only):")
+    copy = SEED_INPUTS / MERGED.name
+    print_if_present(
+        copy, show_all, lambda: field_diffs(sts_expected, ops_car_attrs(copy), ROSTER_FIELDS)
+    )
+
+    print("\nSTS seed metadata copy fields (image_metadata.csv):")
+    copy = SEED_INPUTS / METADATA.name
+    print_if_present(copy, show_all, lambda: seed_meta_diffs(rows, copy, gen))
+
+    print("\nSTS added cars fields (sts_added_cars.csv):")
+    added = SEED_INPUTS / "sts_added_cars.csv"
+    print_if_present(
+        added, show_all, lambda: added_cars_diffs(rows, gen.load_added_cars(SEED_INPUTS), gen)
+    )
 
 
 def cmd_compare(args: argparse.Namespace) -> int:

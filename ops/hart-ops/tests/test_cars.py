@@ -202,7 +202,7 @@ class FieldDifferenceTests(unittest.TestCase):
     def diffs(self, rows, path):
         return cars.field_diffs(
             cars.expected_cars(rows, cars.OPS_SKIP_TYPES), cars.ops_car_attrs(path),
-            cars.OPS_FIELDS, cars.OPS_TYPE_REFINEMENTS,
+            cars.OPS_FIELDS,
         )
 
     def test_match_reports_nothing(self):
@@ -221,27 +221,65 @@ class FieldDifferenceTests(unittest.TestCase):
             row = self.row(notes="changed", capy_lbs="99", ld_lmt_lbs="5")
             self.assertEqual(self.diffs([row], path), [])
 
-    def test_intended_exclusions_are_not_reported(self):
+    def test_type_is_not_compared_and_missing_cars_are_not_reported(self):
         with tempfile.TemporaryDirectory() as tmp:
-            path = self.ops(
-                tmp,
-                '<car id="NW2" roadName="NW" roadNumber="2" type="Coke Hopper" length="52" color="Black"/>'
-                '<car id="NW3" roadName="NW" roadNumber="3" type="Caboose" length="30" color="Red"/>'
-                '<car id="NW4" roadName="NW" roadNumber="4" type="Coilcar" length="52" color="Black"/>'
-                '<car id="NW5" roadName="NW" roadNumber="5" type="Boxcar" length="52" color="Black"/>',
-            )
-            rows = [
-                self.row("NW2", car_type="Hopper"),
-                self.row("NW3", car_type="Caboose", roster_length_ft="40"),
-                self.row("NW4", car_type="Coil"),
-                self.row("NW6", car_type="Boxcar"),  # not in the tool: existence is reported elsewhere
-            ]
+            path = self.ops(tmp, '<car id="NW2" roadName="NW" roadNumber="2" type="Coke Hopper" length="52" color="Black"/>')
+            rows = [self.row("NW2", car_type="Hopper"), self.row("NW6")]  # NW6 is not in the tool
             self.assertEqual(self.diffs(rows, path), [])
-            # a type outside the intended refinements is still a difference
-            self.assertEqual(
-                self.diffs([self.row("NW5", car_type="Flatcar")], path),
-                [("NW5", "type", "Flatcar", "Boxcar")],
+
+    def test_blank_repository_column_is_skipped_before_defaults(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = self.ops(tmp, '<car id="NW2" roadName="NW" roadNumber="2" type="Flatcar" length="50" color="Red"/>')
+            row = self.row(roster_length_ft="", color="")
+            self.assertEqual(self.diffs([row], path), [])
+
+    def test_missing_tool_file_is_not_reported_as_zero(self):
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            cars.print_if_present(Path("/nonexistent/ops.xml"), False, lambda: [])
+        self.assertIn("Cannot check: /nonexistent/ops.xml is missing", out.getvalue())
+        self.assertNotIn("Field differences", out.getvalue())
+
+    def test_seed_metadata_copy(self):
+        gen, reason = cars.seed_helpers()
+        if gen is None:
+            self.skipTest(reason)
+        header = "roster_id,road_name,road_number,car_type,car_class,notes\n"
+        repo = [
+            {"roster_id": "NW1", "car_type": "Coal", "car_class": "HM", "notes": "CarImagesFinal/a"},
+            {"roster_id": "NW2", "car_type": "Boxcar", "car_class": "XM", "notes": "CarImagesFinal/b"},
+            {"roster_id": "NW3", "car_type": "Coach", "car_class": "", "notes": "CarImagesFinal/c"},
+            {"roster_id": "NW4", "car_type": "Boxcar", "car_class": "XM", "notes": "no photo"},
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            copy = Path(tmp) / "m.csv"
+            copy.write_text(
+                header
+                + "NW1,,,Hopper,HM,CarImagesFinal/a\n"  # Coal reads as Hopper: same
+                + "NW2,,,Flatcar,XI,CarImagesFinal/x\n"  # type, class and notes differ
+                + "NW3,,,Boxcar,,CarImagesFinal/c\n"  # passenger car: skipped
+                + "NW4,,,Flatcar,XM,other\n"  # no photo: skipped
             )
+            diffs = cars.seed_meta_diffs(repo, copy, gen)
+        self.assertEqual(
+            diffs,
+            [("NW2", "car_class", "XM", "XI"), ("NW2", "car_type", "Boxcar", "Flatcar"),
+             ("NW2", "notes", "CarImagesFinal/b", "CarImagesFinal/x")],
+        )
+
+    def test_added_cars_marks_and_remarks(self):
+        gen, reason = cars.seed_helpers()
+        if gen is None:
+            self.skipTest(reason)
+        rows = [self.row("NW2", car_type="Hopper"), self.row("NW3", car_type="Caboose")]
+        added = {
+            "NW2": {"reporting_marks": "NW2", "remarks": "Hopper 50ft"},
+            "NW3": {"reporting_marks": "XX", "remarks": "x"},  # caboose: not an STS freight car
+        }
+        self.assertEqual(
+            cars.added_cars_diffs(rows, added, gen),
+            [("NW2", "remarks", "Hopper 52ft", "Hopper 50ft")],
+        )
 
     def test_limit_and_all(self):
         diffs = [(f"NW{i}", "length", "52", "50") for i in range(25)]
