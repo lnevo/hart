@@ -107,6 +107,10 @@ def covered(rel: str, step: str) -> bool:
     plugin (stamped by its commit)?"""
     if rel.startswith("external/model-railroad-skills/"):
         return True
+    if rel.startswith(".cache/"):
+        # the shared build cache (hartlib.paths.cache_dir, in the main checkout since 2026-11-21): keyed on the
+        # real inputs, so it is no input of its own
+        return True
     if "__pycache__" in rel.split("/"):
         return True
     s = STEPS[step]
