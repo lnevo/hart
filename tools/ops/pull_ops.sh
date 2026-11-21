@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # Bring the Pi's Operations Pro session state back into the repo (ADR-015).
+# --no-mark (the deploy gate's auto-pull) leaves the Pi's .deployed.sha256 alone: the session counts as pulled only
+# once the repo holds these files (the deploy compares the Pi's files with the repo's).
 set -euo pipefail
+MARK=1
+[[ "${1:-}" != "--no-mark" ]] || MARK=0
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 source "$ROOT/tools/env/load_env.sh"  # hosts: environment, hart.env, default
@@ -18,6 +22,6 @@ fi
 for f in "${FILES[@]}"; do
   scp -q "$PI_HOST:$PI_DIR/$f" "$DEST/$f"
 done
-ssh "$PI_HOST" "cd '$PI_DIR' && cat ${FILES[*]} | sha256sum | cut -d' ' -f1 >.deployed.sha256"
+[[ "$MARK" -eq 0 ]] || ssh "$PI_HOST" "cd '$PI_DIR' && cat ${FILES[*]} | sha256sum | cut -d' ' -f1 >.deployed.sha256"
 git -C "$ROOT" status --short -- "$DEST"
 echo "Operations files -> $DEST. Commit any changes."

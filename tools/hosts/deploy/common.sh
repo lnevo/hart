@@ -296,6 +296,16 @@ pi_stop() {
   exit 1
 }
 
+# ops_repo_sha: the hash unpulled_changes.sh and pull_ops.sh make of the six Operations files (cat in this order, sha256),
+# here of the copies this checkout ships.
+ops_repo_sha() {
+  local f dir="$ROOT/jmri/layouts/hart/operations"
+  for f in Operations.xml OperationsCarRoster.xml OperationsEngineRoster.xml OperationsLocationRoster.xml \
+           OperationsRouteRoster.xml OperationsTrainRoster.xml; do
+    cat "$dir/$f" 2>/dev/null || true
+  done | shasum -a 256 | cut -d' ' -f1
+}
+
 # check_pi_unpulled: what the owner changed on the Pi since the last deploy or pull would be replaced: Operations
 # Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Nothing is sent. Unless
 # HART_NO_AUTOPULL=1 the gate first saves what it found (autopull_pi_changes), then stops anyway: the person
@@ -307,11 +317,16 @@ check_pi_unpulled() {
   # the generated tables.xml is the reference when the Pi has none (no stamp, no pull): a file unlike it may be a Store
   generated_sha="$(shasum -a 256 "$ROOT/jmri/layouts/hart/output/tables.xml" 2>/dev/null | cut -d' ' -f1)"
   split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ' | sed 's/ *$//')"
+  # The Operations files this checkout would ship count as taken: a Pi session equal to them (an auto-pulled one,
+  # once it is committed and merged, and this deploy runs from that) is not "changed" (unpulled_changes.sh, ops:<sha>)
+  split_shas="ops:$(ops_repo_sha)${split_shas:+ $split_shas}"
   if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha'${split_shas:+ $split_shas}" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
     pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
   fi
   if [[ -n "$unpulled" ]]; then
-    if [[ "${HART_NO_AUTOPULL:-0}" != "1" ]]; then
+    # Never pull into a redeploy's temporary or detached worktree: it is thrown away.
+    if [[ "${HART_NO_AUTOPULL:-0}" != "1" && -z "${HART_REDEPLOY_FROM:-}" ]] \
+       && git -C "$ROOT" symbolic-ref -q HEAD >/dev/null 2>&1; then
       autopull_pi_changes "$unpulled"   # always stops
     fi
     msg=""
@@ -322,19 +337,20 @@ check_pi_unpulled() {
 }
 
 # autopull_pi_changes UNPULLED: save what check_pi_unpulled found, then stop (T9a). The same scripts a person runs:
-# tools/ops/pull_tables_pi.sh keeps a Store in the pulled folder with its base; tools/ops/pull_ops.sh writes the
-# Operations files into the checkout it runs from, so from the main checkout (which stays clean for deploys) it runs
-# in a fresh worktree (make wt TOPIC=ops-pull-<date>), the ops-pull skill's way. A pull needs JMRI closed:
-# PanelPro is quit first with pi_quit_panelpro.sh --for-deploy, and pi_stop's restart brings it back. The operating
-# flag's hook has already refused anything that reaches the Pi while it is set. A pull failure stops saying so and
-# what was and was not kept. Test hooks (the scripts are stubbed in tests): HART_AUTOPULL_QUIT, HART_AUTOPULL_TABLES,
-# HART_AUTOPULL_OPS (script), HART_AUTOPULL_NEWWT (prints the new worktree's path), HART_AUTOPULL_FROM_MAIN (1/0).
+# tools/ops/pull_tables_pi.sh keeps a Store in the pulled folder with its base (PanelPro may stay up for it);
+# tools/ops/pull_ops.sh --no-mark writes the Operations files into the checkout it runs from and leaves the Pi
+# unmarked, so the session counts as pulled only once the repo holds it (check_pi_unpulled compares the Pi's files
+# with this checkout's; a deploy before the merge stops again). From the main checkout (which stays clean for
+# deploys) it runs in a worktree: an existing ops-pull-* one is reused, else a new one (make wt TOPIC=ops-pull-<stamp>).
+# The Operations pull needs JMRI closed: PanelPro is quit first with pi_quit_panelpro.sh --for-deploy, and pi_stop's
+# restart brings it back. The operating flag's hook has already refused anything that reaches the Pi while it is set.
+# A pull failure stops saying so and what was and was not kept. Test hooks (the scripts are stubbed in tests):
+# HART_AUTOPULL_QUIT, HART_AUTOPULL_TABLES, HART_AUTOPULL_OPS (script), HART_AUTOPULL_NEWWT (prints the new
+# worktree's path), HART_AUTOPULL_RMWT (removes it: path, topic), HART_AUTOPULL_WT_DIR (where ops-pull-* live),
+# HART_AUTOPULL_FROM_MAIN (1/0).
 autopull_pi_changes() {
-  local unpulled="$1" out saved target topic from_main kept="" failed="" rc
+  local unpulled="$1" out saved target topic from_main kept="" failed="" rc made=0 wtdir existing
   echo "The Pi has changes that a deploy would replace; saving them first (HART_NO_AUTOPULL=1 only stops)."
-  if ! bash "${HART_AUTOPULL_QUIT:-$ROOT/tools/hosts/pi_quit_panelpro.sh}" --for-deploy; then
-    pi_stop "STOP: could not quit PanelPro on the Pi for the pull, so the pull failed and nothing was kept. Quit it (tools/hosts/pi_quit_panelpro.sh --for-deploy), then deploy again."
-  fi
   if grep -qx tables <<<"$unpulled"; then
     if out="$(bash "${HART_AUTOPULL_TABLES:-$ROOT/tools/ops/pull_tables_pi.sh}" 2>&1)"; then
       echo "$out"
@@ -350,34 +366,54 @@ autopull_pi_changes() {
     fi
   fi
   if grep -qx ops <<<"$unpulled"; then
+    rc=0
+    if ! bash "${HART_AUTOPULL_QUIT:-$ROOT/tools/hosts/pi_quit_panelpro.sh}" --for-deploy; then
+      rc=1
+      failed+="could not quit PanelPro on the Pi (tools/hosts/pi_quit_panelpro.sh --for-deploy), so the Operations pull failed and nothing was kept for the Operations files"$'\n'
+    fi
     from_main="${HART_AUTOPULL_FROM_MAIN:-}"
     if [[ -z "$from_main" ]]; then
       if [[ "$(git -C "$ROOT" rev-parse --git-dir 2>/dev/null)" == "$(git -C "$ROOT" rev-parse --git-common-dir 2>/dev/null)" ]]; then from_main=1; else from_main=0; fi
     fi
     target="$ROOT"
-    rc=0
-    if [[ "$from_main" == "1" ]]; then
-      topic="ops-pull-$(date +%Y%m%d-%H%M)"
-      if [[ -n "${HART_AUTOPULL_NEWWT:-}" ]]; then
-        target="$(bash "$HART_AUTOPULL_NEWWT" "$topic")" || rc=1
+    if [[ "$rc" -eq 0 && "$from_main" == "1" ]]; then
+      wtdir="${HART_AUTOPULL_WT_DIR:-$ROOT/.claude/worktrees}"
+      existing="$(ls -d "$wtdir"/ops-pull-* 2>/dev/null | tail -1 || true)"
+      if [[ -n "$existing" && -d "$existing" ]]; then
+        target="$existing"   # an earlier auto-pull not merged yet
       else
-        target="$(python3 "$ROOT/tools/agent/worktrees.py" new "$topic")" || rc=1
-      fi
-      if [[ "$rc" -ne 0 || ! -d "$target" ]]; then
-        rc=1
-        failed+="could not make the worktree $topic for the Operations pull; nothing was kept for the Operations files"$'\n'
+        topic="ops-pull-$(date +%Y%m%d-%H%M%S)"
+        if [[ -n "${HART_AUTOPULL_NEWWT:-}" ]]; then
+          target="$(bash "$HART_AUTOPULL_NEWWT" "$topic")" || rc=1
+        else
+          target="$(python3 "$ROOT/tools/agent/worktrees.py" new "$topic")" || rc=1
+        fi
+        made=1
+        if [[ "$rc" -ne 0 || ! -d "$target" ]]; then
+          rc=1
+          failed+="could not make the worktree $topic for the Operations pull; nothing was kept for the Operations files"$'\n'
+        fi
       fi
     fi
     if [[ "$rc" -eq 0 ]]; then
-      if out="$(cd "$target" && bash "${HART_AUTOPULL_OPS:-$target/tools/ops/pull_ops.sh}" 2>&1)"; then
+      if out="$(cd "$target" && bash "${HART_AUTOPULL_OPS:-$target/tools/ops/pull_ops.sh}" --no-mark 2>&1)"; then
         echo "$out"
-        kept+="brought the Pi's Operations session into $target/jmri/layouts/hart/operations; review and commit it"
-        [[ "$from_main" != "1" ]] || kept+=" (a new worktree: this deploy ran from the main checkout)"
-        kept+=", then deploy"$'\n'
+        kept+="brought the Pi's Operations session into $target/jmri/layouts/hart/operations; review, commit and merge it, then deploy from the updated main (the Pi counts as pulled only once the repo holds these files)"$'\n'
       else
         echo "$out" >&2
         failed+="the pull of the Pi's Operations files failed (see above); nothing was kept for them"
-        [[ "$target" != "$ROOT" ]] || failed+=" (check git status in jmri/layouts/hart/operations)"
+        if [[ "$made" -eq 1 ]]; then
+          if [[ -n "${HART_AUTOPULL_RMWT:-}" ]]; then
+            bash "$HART_AUTOPULL_RMWT" "$target" "$topic" && failed+="; the new worktree $target was removed" || failed+="; the new worktree $target was left (remove it)"
+          elif git -C "$ROOT" worktree remove --force "$target" >/dev/null 2>&1; then
+            git -C "$ROOT" branch -D "agent/claude/$topic" >/dev/null 2>&1 || true
+            failed+="; the new worktree $target was removed"
+          else
+            failed+="; the new worktree $target was left (remove it)"
+          fi
+        elif [[ "$target" == "$ROOT" ]]; then
+          failed+=" (check git status in jmri/layouts/hart/operations)"
+        fi
         failed+=$'\n'
       fi
     fi
