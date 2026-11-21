@@ -9,7 +9,7 @@ rule, named for the file, not a level test.
 
 Every row (row_problems), each naming the file, line, level, layer and device:
 - its fact columns hold (hartlib.railroad.device_facts);
-- its cp is a control point of its own level: control_points_staging.csv's or interlockings.csv's rows of that
+- its cp is a control point of its own level: stations.csv's desk areas or interlockings.csv's rows of that
   level; or, for a block or occupancy row, the control point of a switch at its block's ends on another level (a
   row's level is the band its track is drawn on: Track 127-221 is drawn on the upper band from main level CP 127);
 - a field device names its user, system and jmri names;
@@ -59,7 +59,7 @@ import staging_device_map as sdm  # noqa: E402  staging's rows, band and mast fi
 from hartlib import devices, level_masts, paths, railroad, railroad_invariants, tables  # noqa: E402
 
 DEVICE_MAP = sdm.DEVICE_MAP
-CPS = sdm.CPS                                   # staging's control points (their level column)
+STATIONS = sdm.STATIONS                         # staging's control points: the desk areas of its stations
 TRIAL_LAYERS = ("turnout", "block")             # the rows that link to the drawing
 
 
@@ -80,21 +80,21 @@ def master_lines(path: Path = DEVICE_MAP) -> list[tuple[int, dict[str, str]]]:
     return out
 
 
-def control_points(interlockings: list[railroad.Interlocking], cps_path: Path = CPS) -> dict[str, set[str]]:
-    """{level: control point names}: interlockings.csv's (every level) and control_points_staging.csv's, each by its
-    level column."""
+def _desk_areas(stations_path: Path) -> list[railroad.DeskArea]:
+    try:
+        return sdm.desk_areas(stations_path)
+    except sdm.StagingMapError as exc:
+        raise DeviceMasterError(str(exc)) from None
+
+
+def control_points(interlockings: list[railroad.Interlocking], stations_path: Path = STATIONS) -> dict[str, set[str]]:
+    """{level: control point names}: interlockings.csv's (every level) and the desk areas of stations.csv, each by its
+    level."""
     out = defaultdict(set)
     for i in interlockings:
         out[str(i.level)].add(i.name)
-    try:
-        rows = sdm.read_rows(cps_path, sdm.CP_COLUMNS)
-    except sdm.StagingMapError as exc:
-        raise DeviceMasterError(str(exc)) from None
-    for i, r in enumerate(rows, 2):
-        if r["level"] not in devices.LEVELS or not r["cp_name"]:
-            raise DeviceMasterError(f"{paths.rel(cps_path)} line {i}: level {r['level']!r} is one of "
-                                    f"{', '.join(devices.LEVELS)} and cp_name {r['cp_name']!r} is given")
-        out[r["level"]].add(r["cp_name"])
+    for a in _desk_areas(stations_path):
+        out[str(a.level)].add(a.name)
     return dict(out)
 
 
@@ -102,24 +102,20 @@ def _at(n: int, r: dict, where: str) -> str:
     return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
 
 
-def switch_cps(interlockings: list[railroad.Interlocking], cps_path: Path = CPS) -> dict[str, set[str]]:
-    """{switch number: the control points it is in, on any level} (interlockings.csv, control_points_staging.csv)."""
+def switch_cps(interlockings: list[railroad.Interlocking], stations_path: Path = STATIONS) -> dict[str, set[str]]:
+    """{switch number: the control points it is in, on any level} (interlockings.csv, stations.csv's desk areas)."""
     out = defaultdict(set)
     for i in interlockings:
         for s in i.switches:
             out[s].add(i.name)
-    try:
-        rows = sdm.read_rows(cps_path, sdm.CP_COLUMNS)
-    except sdm.StagingMapError as exc:
-        raise DeviceMasterError(str(exc)) from None
-    for r in rows:
-        for s in sdm.split_names(r["switches"]):
-            out[s].add(r["cp_name"])
+    for a in _desk_areas(stations_path):
+        for s in a.switches:
+            out[s].add(a.name)
     return dict(out)
 
 
 def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], drawing=None,
-                  cps_path: Path = CPS) -> dict[str, set[str]]:
+                  stations_path: Path = STATIONS) -> dict[str, set[str]]:
     """{block: the control points of the switches at its track's ends} of every block row whose trial names are
     tracks of the main and upper drawing (`drawing`: (bands, joined, runs), default build_device_map.solve's; its
     tracks build_device_map.named_tracks, each strand keyed by staging_device_map.band_refs, the grammar of every
@@ -138,7 +134,7 @@ def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.In
                 ends[refs[t["band"]][sid][0]] = {v for k, v in t["ends"] if k == "sw"}
     except sdm.StagingMapError as exc:
         raise DeviceMasterError(str(exc)) from None
-    cp_of = switch_cps(interlockings, cps_path)
+    cp_of = switch_cps(interlockings, stations_path)
     out = defaultdict(set)
     for _n, r in lines:
         if r["layer"] != "block":
@@ -174,7 +170,7 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
             if ends_cps is None and blocks:
                 pass                        # the drawing is not read: check_device_master main says SKIPPED
             elif not any(r["cp"] in (ends_cps or {}).get(b, ()) for b in blocks):
-                bad.append(f"{at}: cp {r['cp']!r} is no level {level} control point ({CPS.name}, interlockings.csv)"
+                bad.append(f"{at}: cp {r['cp']!r} is no level {level} control point ({STATIONS.name} desk areas, interlockings.csv)"
                            + (" and no control point of an end switch of its blocks" if blocks else ""))
         phs = sdm.split_names(r["trial_name"])
         if phs and layer not in TRIAL_LAYERS:
@@ -365,7 +361,7 @@ def main(argv=None) -> int:
     for b in bad:
         print(f"device master: {b}", file=sys.stderr)
     if not bad:
-        print("ok: " + ", ".join(p.name for p in (DEVICE_MAP, CPS, sdm.MASTS, sdm.SIGNALS)) + " hold their rules"
+        print("ok: " + ", ".join(p.name for p in (DEVICE_MAP, STATIONS, sdm.MASTS, sdm.SIGNALS)) + " hold their rules"
               + (" (but the drawing)" if skipped else ""))
     if bad:
         return 1

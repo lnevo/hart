@@ -27,7 +27,7 @@ ROOT = paths.REPO_ROOT
 
 PANEL = paths.TABLES_XML
 NAMES = paths.DEVICES
-CPS = paths.LAYOUT_DATA / "schematic" / "control_points_staging.csv"   # with switch_legs.csv: station_group_rows
+CPS = paths.LAYOUT_DATA / "schematic" / "stations.csv"   # its desk areas, with switch_legs.csv: station_group_rows
 OUT_JSON = PORTAL / "data/layout-index.json"
 SCHEMATIC = PORTAL / "assets/layout/HART_le_schematic.png"
 RENDER = paths.LAYOUT_SCRIPTS / "render_le_layout.py"

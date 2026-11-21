@@ -24,7 +24,7 @@ and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_stagin
 | Area | Staging | Main and upper |
 |---|---|---|
 | Plan input and sheet | `inputs/staging.json`; the `staging` section of `plan_overrides.json`, `preferences.json` and `signals.json` (step 3) | `inputs/main.json`; the `main_upper` sections of the same three files |
-| Groupings | `control_points_staging.csv` (station groups with desk codes), `stations.csv`, `sheets.csv` (level 1 rows only so far), `interlockings_staging.csv` (the signal rule's control points) | `control_points_main_upper.csv` (the signal rule's control points, also drawn as the stations); detail sheets by hand in `preferences.json`'s `main_upper` section |
+| Groupings | `stations.csv` (with desk codes: the station groups are its desk areas), `sheets.csv` (level 1 rows only so far), `interlockings_staging.csv` (the signal rule's control points) | `control_points_main_upper.csv` (the signal rule's control points, also drawn as the stations); detail sheets by hand in `preferences.json`'s `main_upper` section |
 | Hand lists | `short_tracks_staging.csv` | `running_tracks_`, `signalled_spurs_`, `split_tracks_`, `local_switches_main_upper.csv`; short tracks by a rule (`SHORT_CM` in `build_device_map.py`) |
 | Masts | `build_staging_masts.py`: `mast_rule.masts()` plus intermediates, anchor masts, virtual masts, interlockings | `build_device_map.py`: `mast_rule.masts()` plus running, spur and split lists, double-crossover corners; `build_main_upper_masts.py` copies them to `main_upper_masts.csv` |
 | Builders | `build_staging_sets.py`, `staging_device_map.py` | `build_device_map.py` (the CATS desk bindings are one builder for every level since step 4: `cats_panel.py`) |
@@ -44,7 +44,7 @@ What differs is what each level adds around it.
   and `main_lines_main_upper.csv`, with a `sheet` column (staging, main_upper); `count` is read on staging only and
   refused elsewhere. `build_main_route.py --check` unchanged apart from the note it writes.
 - **Groupings: needs the owner first.** The two levels use "control point" for different things. Staging has three:
-  station groups (`control_points_staging.csv`, with desk codes), stations, and interlockings (the signal rule's
+  station groups (since 2026-11-20 the desk areas of `stations.csv`, by its `desk_code` column), stations, and interlockings (the signal rule's
   control points). Main and upper have one file that is all three. Model, one file each with a `level` column:
   `interlockings.csv` (signal rule; owner, 2026-11-20), `stations.csv`, `sheets.csv`, and the station groups as desk
   areas.
@@ -246,7 +246,7 @@ Step 5 follow-ups (2026-11-20):
 
 ### Owner decisions, late 2026-11-20
 
-- **Desk codes** (BK, PL, BN, SY, EE, PR, EH) are layout-specific: they go back to the station map data, a desk-code column in `stations.csv`, and `control_points_staging.csv` goes. They do not line up with the interlockings (Brick's interlocking holds the BK and PL areas; South Yard and Engine House have none). Brick and West Yard share BK; Engine House has a desk area but no station row: check whether a row shows on the schematic or station sheets before adding it. Waits on the label rules PR (it edits build_cats_panel).
+- **Desk codes** (BK, PL, BN, SY, EE, PR, EH) are layout-specific: they go back to the station map data, a desk-code column in `stations.csv`, and `control_points_staging.csv` goes. They do not line up with the interlockings (Brick's interlocking holds the BK and PL areas; South Yard and Engine House have none). Brick and West Yard share BK. **Done** (desk-areas-from-stations PR): `stations.csv` has a `desk_code` column and `control_points_staging.csv` is gone; `hartlib.railroad_facts.read_desk_areas` is the one reader. Engine House got a station row nested in Barn (owner chose this 2026-11-20 after seeing the trial): a station whose switches all lie in another's takes them for its own desk area (BN = 7, EH = 9, 11, 13), areas named by a nested station come after the others, and partial overlap or a switch in two nested stations stops. The drawings gained the Engine House bar (18 cars) under Barn; desks, tables.xml and the desk areas are unchanged.
 - **Station maps for main and upper (step 7, stays on the to-do list):** a station map per control point from `interlockings.csv` is the minimum template for a station, not the whole definition; the owner extends it.
 - **Helix stop** on main and upper is at Switch 131A/131B: built with the trial-names PR (`helix_stops`, above).
 - **#5 turnout** class is the SL-8351/8352 at 8.3 in (confirmed).

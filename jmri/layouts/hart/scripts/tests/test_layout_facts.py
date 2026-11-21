@@ -11,10 +11,9 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import layout_facts as facts  # noqa: E402
 
-FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "schematic/control_points_staging.csv",
-         "mast_cells.csv")
+FILES = ("switches.csv", "switch_legs.csv", "devices.csv", "schematic/stations.csv", "mast_cells.csv")
 
-CPS = "schematic/control_points_staging.csv"
+STATIONS = "schematic/stations.csv"
 
 
 class LoaderTest(unittest.TestCase):
@@ -59,14 +58,14 @@ class LoaderTest(unittest.TestCase):
         self.assertNotIn(("block", "Track Main West"), levels)       # main between control points
 
     def test_a_control_point_without_a_level_is_refused(self) -> None:
-        text = (self.data / CPS).read_text().replace("cp_pl,Plane,1,", "cp_pl,Plane,,")
-        (self.data / CPS).write_text(text)
-        with self.assertRaisesRegex(ValueError, r"control_points_staging.csv line 3 \(Plane\): no level"):
+        text = (self.data / STATIONS).read_text().replace("1,Plane,5,", ",Plane,5,")
+        (self.data / STATIONS).write_text(text)
+        with self.assertRaisesRegex(ValueError, r"stations.csv line 4 \(Plane\): level is a whole number, not ''"):
             facts.cp_levels(self.data)
 
     def test_a_mast_follows_its_control_point_to_a_new_level(self) -> None:
-        text = (self.data / CPS).read_text().replace("cp_pl,Plane,1,", "cp_pl,Plane,2,")
-        (self.data / CPS).write_text(text)
+        text = (self.data / STATIONS).read_text().replace("1,Plane,5,", "2,Plane,5,")
+        (self.data / STATIONS).write_text(text)
         levels = facts.name_map_levels(self.data)
         self.assertEqual(levels[("mast", "Mast 6LA")], "2")
         self.assertEqual(levels[("turnout", "Switch 5")], "1")       # switches.csv still says 1

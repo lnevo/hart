@@ -15,7 +15,7 @@ Every level of the "HART Railroad" panel is built from its device map (owner, 20
 
 **Staging's files**, in `jmri/layouts/hart/data/schematic/`:
 - `device_map_staging.csv`, in the columns of the main and upper map: turnouts, feedback, blocks, occupancy, masts and heads.
-- `control_points_staging.csv`: the stations, held equal to the schematic's control points.
+- `stations.csv`: the stations; the stations that share a `desk_code` are a desk area, staging's control points (since 2026-11-20; `control_points_staging.csv` is gone).
 - `staging_masts.csv` and `staging_signals.csv`: the masts and their signal-plan facts.
 - `panel_items.json`: the panel's own items.
 

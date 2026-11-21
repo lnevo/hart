@@ -21,17 +21,17 @@
                      check_layout_facts.py)
 
 Hardware, DCC address (its own ``dcc`` column) and control point come from the
-canonical turnout row of the name map of devices.csv (current == proposed); control_points_staging.csv lists which
+canonical turnout row of the name map of devices.csv (current == proposed); the desk areas of schematic/stations.csv list which
 switches each control point holds and its level. Nothing here is copied from
 those files.
 
 Level is held once per switch (switches.csv) and once per control point
-(control_points_staging.csv). A mast, head, block or occupancy sensor has no level of
+(a station's, in stations.csv). A mast, head, block or occupancy sensor has no level of
 its own: it takes the level of its control point (the ``cp`` column of
 the name map of devices.csv), and an OS block or a switch leg takes its switch's.
 name_map_levels() resolves them. No grouping above the control point exists
 yet, so there is no district column; when the new levels need one, it goes beside ``level`` on the control-point
-files (control_points_staging.csv, interlockings.csv).
+files (stations.csv, interlockings.csv).
 
 Switch numbers are the plate numbers and are unique across the whole railroad,
 every level included: a number is never reused on another level. The loader
@@ -195,10 +195,10 @@ def legs_by_os(switches: dict[int, Switch]) -> dict[str, tuple[Switch, Leg]]:
 
 
 def load_control_points(data: Path = DATA) -> list[dict[str, str]]:
-    """Staging's control points (station groups) from schematic/control_points_staging.csv and switch_legs.csv, in the
+    """Staging's control points (the desk areas of schematic/stations.csv) and switch_legs.csv, in the
     older control_points.csv shape (hartlib.railroad_facts.station_group_rows); ``switches`` is the OS-block list,
     e.g. "23a,23b,33"."""
-    return railroad_facts.station_group_rows(data / "schematic" / "control_points_staging.csv",
+    return railroad_facts.station_group_rows(data / "schematic" / "stations.csv",
                                              data / "switch_legs.csv")
 
 
@@ -208,8 +208,8 @@ def station_names(data: Path = DATA) -> set[str]:
 
 
 def cp_levels(data: Path = DATA) -> dict[str, str]:
-    """Control point name -> level, from control_points_staging.csv. Every row needs a level (station_group_rows
-    stops on one without)."""
+    """Control point name -> level, from stations.csv's desk areas (a station's level; station_group_rows stops on a
+    row without one)."""
     out: dict[str, str] = {}
     for row in load_control_points(data):
         out[row["cp_name"]] = row["level"]
