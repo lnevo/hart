@@ -17,8 +17,9 @@ deployed). On any failure every file is put back. It stops before commit: the fi
 
 The base is what the host had before the session, named in STORE.base (the pull writes it from
 tools/hosts/pi/tables_base.sh): "deploy SHA COMMIT" (that commit's committed tables.xml, which must have that hash),
-"store SHA" (an earlier Store in the same folder) or "none". --base FILE names a tables file instead; with no base
-every template change is reviewed.
+"store SHA" (an earlier Store in the same folder) or "none". When a deploy's commit is missing or shipped another
+file, a kept file in the same folder with the deploy's hash is used. --base FILE names a tables file instead; with no
+base every template change is reviewed.
 
 Exit codes: 0 report printed, or applied; 1 the apply failed and was undone (the reason is printed); 2 it cannot run
 (a file that cannot be read, a stale tables.xml, the main checkout, uncommitted files, a plan that changed).
@@ -86,20 +87,24 @@ def read_base(store: Path, base_file: Path | None, no_base: bool) -> tuple[bytes
         return None, "none (the host had no deploy stamp)"
     kind, sha = words[0], words[1] if len(words) > 1 else ""
     commit = words[2] if len(words) > 2 else ""
+    why = ""
     if kind == "deploy" and commit:
         if git("cat-file", "-e", f"{commit}^{{commit}}", check=False).returncode != 0:
             git("fetch", "-q", "origin", check=False)
         got = git("show", f"{commit}:{TABLES_REL}", check=False)
         if got.returncode != 0:
-            return None, f"none (commit {commit[:10]} or its tables.xml is not in this repository)"
-        if sha256(got.stdout) != sha:
-            return None, f"none (the deploy of {commit[:10]} shipped another file than its committed tables.xml)"
-        return got.stdout, f"deploy {commit[:10]}"
+            why = f"commit {commit[:10]} or its tables.xml is not in this repository"
+        elif sha256(got.stdout) != sha:
+            why = f"the deploy of {commit[:10]} shipped another file than its committed tables.xml"
+        else:
+            return got.stdout, f"deploy {commit[:10]}"
     if kind in ("deploy", "store") and sha:
+        # A kept file with the base's hash: an earlier Store, or (for a deploy that shipped an uncommitted file) a
+        # copy of what was shipped.
         for f in sorted(store.parent.glob("*.xml")):
             if f != store and sha256(f.read_bytes()) == sha:
-                return f.read_bytes(), f"store {f.name}"
-        return None, f"none (no kept file in {store.parent} has the base's hash {sha[:12]})"
+                return f.read_bytes(), f"store {f.name}" + (f" ({why}; this kept file has its hash)" if why else "")
+        return None, f"none ({why + '; ' if why else ''}no kept file in {store.parent} has the base's hash {sha[:12]})"
     raise Stop(f"{note}: not 'deploy SHA COMMIT', 'store SHA' or 'none'")
 
 
@@ -177,7 +182,7 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
 
     try:
         changes = ss.template_changes(p, choices)
-        doc = ss.new_template(ctx["template_doc"], ctx["roots"]["store"], changes)
+        doc = ss.new_template(ctx["template_doc"], ctx["roots"]["store"], changes, p.by_content)
         edits = ss.device_edits(p, choices)
         rows = ss.edited_rows(ctx["rows"], edits)
         devices.check_rows(rows, "devices.csv (after the merges)")
@@ -205,7 +210,10 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
     bad = ss.verify(p, choices, ctx["roots"]["repo"], rebuilt, template_now)
     if bad:
         return undo(["the rebuild does not give what the plan promised:", *bad[:20]])
-    record(store_path, ctx, p)
+    try:
+        record(store_path, ctx, p)
+    except (OSError, ValueError, KeyError, csv.Error) as exc:
+        return undo([f"{SPLITS.name} could not be written: {exc!r}"])
     merged = sorted(choices.merge)
     print(f"Applied plan {p.fingerprint}: {len(changes)} template change(s), {len(edits)} devices.csv cell(s)"
           + (f" (merged {', '.join(merged)})" if merged else "") + "; tables.xml rebuilt and checked.")

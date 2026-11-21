@@ -9,9 +9,12 @@ it. Three files are compared item by item, all normalised (tables_build.normalis
     repo   this checkout's generated tables.xml
     store  the Store
 
-An item is one bean (by section and system name), one setting of a section (by tag and place), a section's own
-attributes, a Signal Mast Logic (by source mast), a whole section the template has no slot for, or a Layout Editor
-panel (by name). Who owns it:
+An item is one bean (by section and system name), one setting of a section (a nameless child such as <defaultspeed>;
+repeated_settings), a section's own attributes, a Signal Mast Logic (by source mast), a whole section the template has
+no slot for, or a Layout Editor panel (by name). A setting is matched by its tag when the tag is given once; when any
+file gives a tag more than once, by each copy's id (an id or name, such as a LogixNG <Thread>'s <id>) when every copy
+has a distinct one, else by its content. So adding or deleting one copy shows no false change in the rest; with
+content matching, an edit to a copy shows as that copy deleted and an edited one added. Who owns it:
 
 - the template (data/tables_template.xml): every item it holds, and a new memory, internal sensor, LogixNG part,
   setting or extra section of the Store on a name nothing else claims (claimed_by);
@@ -27,6 +30,9 @@ What happens to an item the owner changed (store differs from base):
     DEVICE   a rename or comment of a bean whose devices.csv row the owner keeps by hand: reviewed, merge writes the
              row (user_name, and jmri_name where the tables bind it by its user name; jmri_comment), drop leaves it
     DROPPED  anything else of the build's: the repo wins, and the item is listed with what to change instead
+
+<jmriversion> is the one exception: a Store from a newer JMRI is KEPT whatever the base and the repo say, so the next
+tables carry the newer version (owner, 2026-11-20); a Store from the same or an older JMRI gives no item.
 
 Nothing reads or writes a file here; tools/schematic/split_store.py runs it, rebuilds tables.xml and verifies the
 rebuild (verify). Every failure is a SplitError.
@@ -52,6 +58,8 @@ REVIEWED = (CLASH, DEVICE)          # the kinds a merge or drop is asked for
 PANEL = "LayoutEditor"
 LOGIC = "signalmastlogic"
 KNOWN_SECTIONS = frozenset(tb.SECTIONS)
+VERSION = ("jmriversion", None)
+VERSION_PARTS = ("major", "minor", "test")
 # Top-level tags that never go into the template: the panels and the file history.
 NEVER_TEMPLATE = frozenset({PANEL, "filehistory", "paneleditor"})
 # The bean sections a devices.csv row can give, and the layers that give them.
@@ -97,11 +105,71 @@ def section_key(sec: ET.Element) -> tuple[str, str | None]:
     return tb.section_key(sec)
 
 
-def index(root: ET.Element, what: str) -> dict[tuple, ET.Element]:
+BY_ID, BY_CONTENT = "id", "="
+
+
+def _ident(el: ET.Element) -> str | None:
+    """A setting's own id: its id attribute, <id> child, name attribute or <name> child, the first given."""
+    for got in (el.get("id"), el.findtext("id"), el.get("name"), el.findtext("name")):
+        if got is not None and got.strip():
+            return got.strip()
+    return None
+
+
+def _settings(sec: ET.Element) -> list[ET.Element]:
+    return [el for el in tables.elements(sec) if el.tag != LOGIC and not tables.system_name(el)]
+
+
+def repeated_settings(*roots: ET.Element | None) -> frozenset[tuple]:
+    """(section, tag, how) for each setting tag that any of `roots` gives more than once in a section: how is BY_ID
+    when every copy in every root has an id (_ident) no other copy in its root has, else BY_CONTENT."""
+    copies: dict[tuple, list[list[ET.Element]]] = {}
+    for root in roots:
+        if root is None:
+            continue
+        for sec in tables.elements(root):
+            if sec.tag == PANEL or section_key(sec) not in KNOWN_SECTIONS:
+                continue
+            here: dict[str, list[ET.Element]] = {}
+            for el in _settings(sec):
+                here.setdefault(el.tag, []).append(el)
+            for tag, els in here.items():
+                copies.setdefault((section_key(sec), tag), []).append(els)
+    out = set()
+    for (sk, tag), groups in copies.items():
+        if max(len(g) for g in groups) < 2:
+            continue
+        idents = [[_ident(el) for el in g] for g in groups]
+        by_id = all(None not in i and len(set(i)) == len(i) for i in idents)
+        out.add((sk, tag, BY_ID if by_id else BY_CONTENT))
+    return frozenset(out)
+
+
+def _setting_keys(sec: ET.Element, sk: tuple, repeated: frozenset[tuple]) -> list[tuple[tuple, ET.Element]]:
+    """The settings of a known section with their keys: ("setting", section, tag, 0) for a tag given once (any
+    change to it is a change of that one item); for a tag in `repeated` (repeated_settings), ("setting", section,
+    tag, (BY_ID, id)) or ("setting", section, tag, (BY_CONTENT, content, n)), the nth copy of the same content."""
+    how = {(k, t): h for k, t, h in repeated}
+    out = []
+    seen: dict[tuple, int] = {}
+    for el in _settings(sec):
+        mode = how.get((sk, el.tag))
+        if mode == BY_ID:
+            out.append((("setting", sk, el.tag, (BY_ID, _ident(el))), el))
+            continue
+        mark = (el.tag, canon(el)) if mode == BY_CONTENT else (el.tag,)
+        n = seen.get(mark, 0)
+        seen[mark] = n + 1
+        out.append((("setting", sk, el.tag, (BY_CONTENT, mark[1], n) if mode else n), el))
+    return out
+
+
+def index(root: ET.Element, what: str, by_content: frozenset[tuple] = frozenset()) -> dict[tuple, ET.Element]:
     """{item key: element} of normalised tables (the module docstring's items). Keys:
     ("panel", name), ("section", tag, class) for a whole section outside tables_build.SECTIONS,
     ("attrs", section) for a known section's own attributes (an element with no children),
-    ("logic", source mast), ("bean", section, tag, block pass, system name), ("setting", section, tag, n).
+    ("logic", source mast), ("bean", section, tag, block pass, system name), and a setting's key (_setting_keys;
+    `by_content` from repeated_settings over every file compared, so all of them key a tag the same way).
     SplitError on a key given twice (JMRI would load only one)."""
     out: dict[tuple, ET.Element] = {}
 
@@ -119,17 +187,14 @@ def index(root: ET.Element, what: str) -> dict[tuple, ET.Element]:
             put(("section",) + sk, sec)
             continue
         put(("attrs", sk), ET.Element(sec.tag, sec.attrib))
-        seen: dict[str, int] = {}
         for el in tables.elements(sec):
             name = tables.system_name(el)
             if el.tag == LOGIC:
                 put(("logic", el.get("source") or tables.text(el, "sourceSignalMast")), el)
             elif name:
                 put(("bean", sk, el.tag, tb._sort_group(el), name), el)
-            else:
-                n = seen.get(el.tag, 0)
-                seen[el.tag] = n + 1
-                put(("setting", sk, el.tag, n), el)
+        for key, el in _setting_keys(sec, sk, by_content):
+            put(key, el)
     return out
 
 
@@ -146,6 +211,13 @@ def label(key: tuple) -> str:
         return f"Signal Mast Logic from {key[1]!r}"
     if kind == "bean":
         return f"{key[2]} {key[4]}" + (" (names-only pass)" if key[3] == "block-names" else "")
+    if isinstance(key[3], tuple):
+        if key[3][0] == BY_ID:
+            return f"<{key[1][0]}> <{key[2]}> {key[3][1]!r}"
+        _, content, n = key[3]
+        hint = " ".join(" ".join(ET.fromstring(content).itertext()).split())[:40] or "no text"
+        tag = hashlib.sha256(content.encode()).hexdigest()[:6]
+        return f"<{key[1][0]}> <{key[2]}> ({hint}; {tag})" + (f" copy {n + 1}" if n else "")
     return f"<{key[1][0]}> <{key[2]}>" + (f" #{key[3] + 1}" if key[3] else "")
 
 
@@ -313,6 +385,7 @@ class Plan:
     items: list[Item]
     has_base: bool
     fingerprint: str
+    by_content: frozenset[tuple] = frozenset()      # repeated_settings of the files compared
 
     def of(self, kind: str) -> list[Item]:
         return [i for i in self.items if i.kind == kind]
@@ -382,10 +455,13 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
     rows = list(rows)
     rindex = row_index(rows)
     has_base = base is not None
-    B = index(base, "the base") if has_base else index(repo, "the repo")
-    G = index(repo, "the repo")
-    S = index(store, "the Store")
-    T = index(template, "the template")
+    by_content = repeated_settings(base, repo, store, template)
+    B = index(base, "the base", by_content) if has_base else index(repo, "the repo", by_content)
+    G = index(repo, "the repo", by_content)
+    S = index(store, "the Store", by_content)
+    T = index(template, "the template", by_content)
+    newer = newer_jmri(store, repo)
+    older = newer_jmri(repo, store)
     found: list[tuple[str, tuple, dict]] = []
     order = functools.cmp_to_key(lambda a, b: (repr(a) > repr(b)) - (repr(a) < repr(b)))
     for key in sorted(set(B) | set(G) | set(S), key=order):
@@ -393,6 +469,15 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
         if key[0] == "attrs" and s is None:
             continue                    # JMRI writes no section once it holds nothing; its children say what went
         cb, cg, cs = canon(b), canon(g), canon(s)
+        if key[0] != "panel" and key[1] == VERSION:
+            if newer and cs != cg:
+                found.append((KEPT, key, dict(store=s, repo=g, base=b, what=change_text(g, s),
+                                              note="a newer JMRI wrote the Store: the template always takes it")))
+            elif older and cs != cg:
+                found.append((DROPPED, key, dict(store=s, repo=g, base=b, what=change_text(g, s),
+                                                 note="an older JMRI wrote the Store than the tables name: the repo "
+                                                      "keeps its version; check the host's JMRI before the deploy")))
+            continue
         if cs == cb or cs == cg:
             continue                    # the owner changed nothing, or the repo has it already
         el = s if s is not None else g if g is not None else b
@@ -453,7 +538,28 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
     for kind, key, info in grouped:
         counts[kind] += 1
         items.append(Item(f"{ID_PREFIX[kind]}{counts[kind]}", kind, key, **info))
-    return Plan(items, has_base, _fingerprint(items, base, repo, store))
+    return Plan(items, has_base, _fingerprint(items, base, repo, store), by_content)
+
+
+def jmri_version(root: ET.Element | None) -> tuple[int, ...] | None:
+    """(major, minor, test) of a tables root's <jmriversion>; None when it has none. SplitError when a part is not a
+    number (the comparison would be a guess)."""
+    sec = root.find("jmriversion") if root is not None else None
+    if sec is None:
+        return None
+    out = []
+    for part in VERSION_PARTS:
+        text = (sec.findtext(part) or "0").strip() or "0"
+        if not (text.isascii() and text.isdigit()):
+            raise SplitError(f"<jmriversion> <{part}> is {text!r}, not a number")
+        out.append(int(text))
+    return tuple(out)
+
+
+def newer_jmri(store: ET.Element, repo: ET.Element) -> bool:
+    """True when `store` names a newer JMRI than `repo` (one without a <jmriversion> counts as the oldest)."""
+    s, g = jmri_version(store), jmri_version(repo)
+    return s is not None and (g is None or s > g)
 
 
 def _only(el: ET.Element, keep: list[str]) -> ET.Element:
@@ -532,10 +638,12 @@ def edited_rows(rows: Iterable[Mapping[str, str]], edits: Iterable[Edit]) -> lis
     return out
 
 
-def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[Item]) -> tables.Tables:
+def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[Item],
+                 by_content: frozenset[tuple] = frozenset()) -> tables.Tables:
     """A copy of the template with each change's Store version in it (or the item deleted), beans in JMRI order.
     An item the template lacks goes where the Store has it: a bean into its section, a setting after the section's
-    last setting of that tag (else before its beans), an extra section after the section before it in the Store."""
+    last setting of that tag (else before its beans), an extra section after the section before it in the Store.
+    `by_content` is the plan's (Plan.by_content), so settings are found by the keys the plan gave them."""
     doc = tables.Tables(root=copy.deepcopy(template.root), path=template.path, prolog=template.prolog,
                         epilog=template.epilog, original=template.original, escapes=template.escapes)
     root = doc.root
@@ -565,7 +673,7 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
             sec.attrib.clear()
             sec.attrib.update(keep)
             continue
-        here = index_section(sec, key[1])
+        here = index_section(sec, key[1], by_content)
         if key in here:
             old = here[key]
             idx = list(sec).index(old)
@@ -574,23 +682,21 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
                 sec.insert(idx, copy.deepcopy(s))
         elif s is not None:
             sec.insert(_slot(sec, key), copy.deepcopy(s))
+        else:
+            raise SplitError(f"{item.id} {label(key)}: deleted in the Store, but the template has no such item")
     tb.jmri_sort(root)
     tb.finish(root)
     return doc
 
 
-def index_section(sec: ET.Element, sk: tuple) -> dict[tuple, ET.Element]:
+def index_section(sec: ET.Element, sk: tuple, by_content: frozenset[tuple] = frozenset()) -> dict[tuple, ET.Element]:
     """index() of one known section's children."""
     out: dict[tuple, ET.Element] = {}
-    seen: dict[str, int] = {}
     for el in tables.elements(sec):
         name = tables.system_name(el)
         if name:
             out[("bean", sk, el.tag, tb._sort_group(el), name)] = el
-        elif el.tag != LOGIC:
-            n = seen.get(el.tag, 0)
-            seen[el.tag] = n + 1
-            out[("setting", sk, el.tag, n)] = el
+    out.update(_setting_keys(sec, sk, by_content))
     return out
 
 
@@ -627,9 +733,9 @@ def verify(p: Plan, c: Choices, repo: ET.Element, rebuilt: ET.Element, template:
     - every other template item is the repo's as before;
     - with no device merge, every build item is the repo's as before too (a merged rename may change the panel,
       the logic and other beans that name the device)."""
-    R = index(repo, "the repo")
-    N = index(rebuilt, "the rebuilt tables")
-    T = set(index(template, "the template"))
+    R = index(repo, "the repo", p.by_content)
+    N = index(rebuilt, "the rebuilt tables", p.by_content)
+    T = set(index(template, "the template", p.by_content))
     bad = []
     changed = {i.key for i in template_changes(p, c)}
     for i in template_changes(p, c):

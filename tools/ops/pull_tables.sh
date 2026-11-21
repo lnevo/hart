@@ -39,6 +39,7 @@ python3 -c 'import sys, xml.etree.ElementTree as ET; ET.parse(sys.argv[1])' "$tm
 base="$(bash "$ROOT/tools/hosts/pi/tables_base.sh" "$UF")"
 PULLED="$(hart_pulled_dir)" || exit 1
 saved="$(hart_keep_store "$tmp" "$PULLED" mac "$base")" || exit 1
+base="$(<"$saved.base")"   # a Store kept before keeps the base it was kept with
 cat <<EOF
 Pulled: the Store is kept as $saved (outside every checkout), its base ($base) in $saved.base.
 It is not recorded as taken: deploys to the Mac stay stopped until its split is merged.
