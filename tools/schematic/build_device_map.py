@@ -1366,8 +1366,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
             bad.append(f"staging {layer} {name}: no row in {OUT.name} to carry its field facts from (add it with its "
                        "system name, node and wiring; this script then keeps it)")
             return None
-        row = dict(old, written_by="build_device_map.py", part_of="", **owned)
-        row["role"] = devices.role_of(layer, row["user_name"], row["system_name"], row["jmri_name"])
+        row = dict(old, written_by="build_device_map.py", part_of="", **owned)     # its role is the row's own
         row["description"] = devices.describe(row)
         return row
 

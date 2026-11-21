@@ -435,12 +435,12 @@ def main_upper_lengths(plan: Path) -> dict:
         raise LengthError(str(exc)) from None
     os_in = main_upper_os(bands, graph, parts, [p["index"] for p in plan_parts if p["kind"] == "threeway"])
     out, bad = {}, []
-    for r in devices.load():
+    for line, r in enumerate(devices.load(), 2):
         if r["level"] not in MAIN_UPPER or r["layer"] != "block" or r["user_name"] in helix:
             continue
         name = r["user_name"]
         sensor = r["part_of"] or name           # a part's occupancy sensor is its OS block's
-        if name.startswith("OS Switch "):
+        if devices.is_os(r, f"devices.csv line {line}"):
             if name not in os_in:
                 bad.append(f"{name} (level {r['level']}): no turnout part found for it")
             else:

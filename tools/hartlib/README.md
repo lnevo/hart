@@ -174,6 +174,18 @@ columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `sy
   names, node, wiring, comment, notes, `cp`) over from the row it replaces, so `replace_rows` stops a writer that would
   drop the row of a staging field device (`carries_field_facts`: assignment field or spare, not a panel status bean)
   without naming it in `drops`; a rule's virtual mast, head or part, or a status bean, may go. A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
+- A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
+  and stops with a `DevicesError` naming `where` (file and line) when the row has none; `is_os(row)` says whether a block
+  or occupancy row runs through a switch's points (`OS_ROLES`: `os`, `xover_corner`). A reader that holds only a name
+  uses `index()`, the master by (layer, user name), built once per file state: `rows(layer, name)` (one per level the
+  device is on; a helix block has two), `role(layer, name)` (stops when the rows disagree, naming their lines),
+  `is_os(block)`, `names(layer, roles=, levels=)` (a role query leaves out a device not on the layout yet, a
+  level-less row with no role), `has(layer, name)`, `is_unplaced(layer, name)` and `where(row)` (the row's
+  "devices.csv line N" for a message). No reader falls back to a name prefix; a tables.xml bean with no row is
+  named in a warning and left out.
+  Still name-based for now: `role_of` and `block_role`, how a writer stamps the role on a row it makes (`master_row`,
+  shared with the mast writers), and `level_devices.block_key` and `occupancy_user`, the owner's naming rule for the
+  virtual names (2026-11-17).
 - `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the
   main and upper layout blocks are numbered by the Layout Editor build. A wired head's comment is its `wiring`.
 

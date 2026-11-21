@@ -383,18 +383,26 @@ def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]
 @functools.cache
 def device_map_rows() -> frozenset[str]:
     """The main and upper block names (the block rows of levels 2 and 3 of devices.csv)."""
-    names = {row["user_name"] for _n, row in devices.device_map_lines(("2", "3"), DEVICE_MAP) if row["layer"] == "block"}
-    if not names:
+    return frozenset(block_rows())
+
+
+def block_rows() -> dict[str, tuple[int, dict[str, str]]]:
+    """{block name: (line, row)} of the block rows of levels 2 and 3 of devices.csv."""
+    rows = {row["user_name"]: (n, row) for n, row in devices.device_map_lines(("2", "3"), DEVICE_MAP)
+            if row["layer"] == "block"}
+    if not rows:
         raise SystemExit(f"{paths.rel(DEVICE_MAP)} has no block rows")
-    return frozenset(names)
+    return rows
 
 
 @functools.cache
 def device_map_blocks() -> frozenset[str]:
-    """The device map's main and upper block names, a double crossover's corners also without the corner letter (the
-    middle of its X, a desk-only block)."""
-    names = device_map_rows()
-    return frozenset(names | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in names if n.startswith("OS Switch ")})
+    """The device map's main and upper block names, a double crossover's corners (role xover_corner) also without
+    the corner letter (the middle of its X, a desk-only block)."""
+    rows = block_rows()
+    corners = {n for n, (line, r) in rows.items()
+               if devices.row_role(r, f"{paths.rel(DEVICE_MAP)} line {line}") == "xover_corner"}
+    return frozenset(set(rows) | {re.sub(r"(?<=\d)[a-d]$", "", n) for n in corners})
 
 
 def check_level_sensors(desk: str, root: ET.Element, t: Tables, r: Report) -> None:

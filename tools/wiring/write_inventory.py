@@ -243,17 +243,15 @@ def rail(n: Node, board: int) -> str:
 
 
 def block_name(occ: dict, by_name: dict) -> str | None:
-    """The JMRI block an occupancy row detects: its `blocks` column, else by its name, a switch's sensor ("BS Switch
-    <n>") its OS block ("OS Switch <n>"), any other ("BS <a>-<b>") the track of the same name; None for a spare
-    input. SystemExit on a name with no block."""
-    if occ["role"] == "spare":
+    """The JMRI block an occupancy row detects: the first of its `blocks` column, never read from its name (hand-off
+    row 8); None for a spare input. SystemExit when the row names no block, or one with no block row."""
+    if devices.row_role(occ, devices.index(DEVICE_MAP).where(occ)) == "spare":
         return None
-    if occ.get("blocks"):
-        return occ["blocks"].split(";")[0].strip()
-    rest = occ["user_name"].removeprefix("BS ")
-    name = f"OS {rest}" if rest.startswith("Switch ") else f"Track {rest}"
+    name = next((b.strip() for b in occ.get("blocks", "").split(devices.LIST) if b.strip()), "")
+    if not name:
+        raise SystemExit(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} names no block in its blocks column")
     if name not in by_name:
-        raise SystemExit(f"{occ['user_name']}: no block {name} in {DEVICE_MAP.name}")
+        raise SystemExit(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} detects {name}, which has no block row")
     return name
 
 
@@ -322,13 +320,39 @@ def port_sheets(wb, nodes: dict[int, Node]) -> None:
                 append(inp, [f"{n.id}-IN{board}-{pin}", n.id, n.location, pin, dev, kind, notes], n.design)
 
 
+def staging_legs() -> dict[str, list]:
+    """Staging's switches.csv rows by switch number: a crossover (7, 23, 35) has one row per OS block."""
+    legs: dict[str, list] = {}
+    for r in read_switch_rows(SWITCHES):
+        if r.level == 1:
+            legs.setdefault(str(r.switch), []).append(r)
+    return legs
+
+
+def mast_role(rows: list, facing: str) -> str:
+    """The leg a mast faces, against every row of its switch (each OS block's closed and thrown legs)."""
+    if not rows:
+        raise FactsError(f"no switches.csv rows to place a mast facing {facing!r} against")
+    if any(facing == r.closed_leg for r in rows):
+        return "Normal Exit"
+    return "Reverse Exit" if any(facing == r.thrown_leg for r in rows) else "Entry"
+
+
+def take_role(place: dict, sw: str, role: str, mast: str, ports: list) -> None:
+    """Put a wired staging mast in its switch's role slot; two in one slot would need a row per crossover half."""
+    held = place[sw].get(role)
+    if held:
+        raise FactsError(f"Switch {sw}: masts {held[0]} and {mast} are both wired as its {role} signal; "
+                         f"TurnoutSummary has one {role} slot per switch (a row per crossover half is not built)")
+    place[sw][role] = (mast, ports)
+
+
 def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
     ws = sheet(wb, "TurnoutSummary", TURNOUT_COLUMNS)
     fb = {name: port for n in nodes.values() for name, port in n.feedback}
     button = {name.removesuffix(" (planned)").removesuffix(" BTN"): port for n in nodes.values()
               for name, port in n.buttons}
-    # staging's rows; a crossover keeps its last row's legs, as the older switch_legs.csv reading did
-    legs = {str(r.switch): r for r in read_switch_rows(SWITCHES) if r.level == 1}
+    legs = staging_legs()
     place = defaultdict(dict)        # switch -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
     for n in nodes.values():
         for head, spread in n.heads:
@@ -337,11 +361,9 @@ def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
             mast = by_name.get(f"Mast {key}", {})
             sw = mast.get("switch", "")
             if not n.design and sw in legs:                # staging: the leg it stands on (switches.csv)
-                leg = legs[sw]
-                role = ("Normal Exit" if mast["facing"] == leg.closed_leg else
-                        "Reverse Exit" if mast["facing"] == leg.thrown_leg else "Entry")
+                role = mast_role(legs[sw], mast["facing"])
                 if not head.endswith(" Bottom"):
-                    place[sw].setdefault(role, (key, ports))
+                    take_role(place, sw, role, key, ports)
             elif head.endswith(" Top"):                  # main and upper: a two-head mast's top head is the entry
                 place[sw].setdefault("Entry", (key, ports))
     for n in sorted(nodes.values(), key=lambda n: (n.level, n.num)):

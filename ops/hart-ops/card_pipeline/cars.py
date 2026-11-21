@@ -17,6 +17,7 @@
     cars.py locos ...       Locomotive repository and stage 4 publish (add, set, status, publish)
     cars.py cards           Build a print .docx for every queued car without a card
     cars.py publish         Rebuild rosters, feed STS, merge into Operations Pro
+    cars.py seed-copy       Rebuild the roster and refresh the STS seed copies only
     cars.py compare         Report differences between the repository and each tool
 
 ``data/image_metadata.csv`` is the repository: one row per car, with a blank
@@ -48,6 +49,14 @@ OPS = DATA / "OperationsCarRoster.xml"
 # ADR-015: the repo copy is the master; the deploy installs it on the hosts.
 OPS_MERGED = HART_ROOT / "jmri/layouts/hart/operations/OperationsCarRoster.xml"
 STS_HELPERS = HART_ROOT / "external/sts-helpers"
+# Publish copies these into the STS seed; compare reports when the copies drift.
+SEED_COPIES = (METADATA, MERGED)
+
+SEED_INPUTS = STS_HELPERS / "seed/inputs"
+NO_SEED_DIR = (
+    "{path} does not exist (is the external/sts-helpers submodule checked out? "
+    "git submodule update --init external/sts-helpers)"
+)
 PRINT_DIR = ROOT / "print"
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".heic", ".tif", ".tiff"}
 DEPLOY_NOTE = "Commit it in the hart repo, then deploy with tools/hosts/sync_hart_package.sh."
@@ -673,6 +682,27 @@ def publish_gate(args: argparse.Namespace) -> None:
         raise SystemExit(1)
 
 
+def sync_seed_copies(inputs: Path, masters: tuple[Path, ...]) -> None:
+    """Copy the master car files into the STS seed inputs and nothing else."""
+    if not inputs.is_dir():
+        raise SystemExit(NO_SEED_DIR.format(path=inputs))
+    for source in masters:
+        if not source.is_file():
+            raise SystemExit(f"Master file is missing: {source}")
+    for source in masters:
+        shutil.copy2(source, inputs / source.name)
+    print(f"Copied the repository and roster to {inputs}")
+
+
+def cmd_seed_copy(args: argparse.Namespace) -> int:
+    """Rebuild the merged roster as publish does, then refresh the STS seed copies only."""
+    from build_car_roster_sor import main as build_roster
+
+    build_roster()
+    sync_seed_copies(SEED_INPUTS, SEED_COPIES)
+    return 0
+
+
 def cmd_publish(args: argparse.Namespace) -> int:
     from build_car_roster_sor import main as build_roster
 
@@ -688,10 +718,7 @@ def cmd_publish(args: argparse.Namespace) -> int:
         """With --only, the rest of the queue is left exactly as it is."""
         return not args.only or item["roster_id"] in args.only
 
-    inputs = STS_HELPERS / "seed/inputs"
-    shutil.copy2(METADATA, inputs / METADATA.name)
-    shutil.copy2(MERGED, inputs / MERGED.name)
-    print(f"Copied the repository and roster to {inputs}")
+    sync_seed_copies(SEED_INPUTS, SEED_COPIES)
 
     for_sts = [q for q in queue if not q["sts"] and chosen(q)]
     if for_sts:
@@ -783,6 +810,35 @@ def ops_ids(path: Path) -> set[str]:
     return {c.get("id", "") for c in ET.parse(path).getroot().findall("./cars/car")}
 
 
+def seed_copy_report(inputs: Path, masters: tuple[Path, ...]) -> list[str]:
+    """Lines saying whether each master matches its copy in the STS seed inputs.
+
+    The roster is compared as last built; publish and seed-copy rebuild it first.
+    """
+    if not inputs.is_dir():
+        return ["  Cannot check: " + NO_SEED_DIR.format(path=inputs)]
+    lines = []
+    drift = False
+    for master in masters:
+        suffix = " (as last built)" if master == MERGED else ""
+        if not master.is_file():
+            lines.append(f"  {master.name}: master is missing")
+            continue
+        copy = inputs / master.name
+        if not copy.is_file():
+            state = "differs (copy is missing)"
+            drift = True
+        elif copy.read_bytes() == master.read_bytes():
+            state = "same"
+        else:
+            state = "differs"
+            drift = True
+        lines.append(f"  {master.name}: {state}{suffix}")
+    if drift:
+        lines.append("  Bring them in step with: bin/cars seed-copy")
+    return lines
+
+
 def cmd_compare(args: argparse.Namespace) -> int:
     from build_merged_car_roster import ROSTER_TYPO_IDS
 
@@ -805,6 +861,8 @@ def cmd_compare(args: argparse.Namespace) -> int:
         print(f"  Not in repository: {len(extra)} {' '.join(extra)}")
         if typos:
             print(f"  Recorded misreads: {' '.join(typos)}")
+    print("\nSTS seed copies:")
+    print("\n".join(seed_copy_report(SEED_INPUTS, SEED_COPIES)))
     marks = seed_marks()
     print(f"\nSTS seed: {len(marks)} cars")
     print(f"  Not in repository: {' '.join(sorted(marks - master)) or 'none'}")
@@ -895,6 +953,7 @@ def main() -> int:
     p = sub.add_parser("fix-ops")
     p.add_argument("--ops-live", default=str(OPS_MERGED))
     p.set_defaults(run=cmd_fix_ops)
+    sub.add_parser("seed-copy").set_defaults(run=cmd_seed_copy)
     p = sub.add_parser("compare")
     p.add_argument("--ops-live", default=str(OPS_MERGED))
     p.set_defaults(run=cmd_compare)

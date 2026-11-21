@@ -65,14 +65,16 @@ def load_names(path: Path):
     return by_hw, by_name
 
 
-def load_devices(path: Path = PANEL):
-    """Device rows read from tables.xml: system name -> {kind, userName, mqtt, comment}.
+def load_devices(path: Path = PANEL, master_files: "device_master.Files | None" = None):
+    """Device rows read from tables.xml: system name -> {kind, userName, mqtt, comment}. A block's kind is its row's
+    role in the device master (`master_files`, the repo's when None), never its name.
 
     Covers the layout hardware only: MQTT occupancy and feedback sensors, turnouts
     (MQTT and the DCC mirror), signal heads, signal masts, and the detected track blocks
     (not the hidden throat blocks). Internal lamps, lever and CTC sensors are left out.
     """
     root = tables.read(path)
+    master = device_master.index(master_files)
     out = {}
     pair = {}  # DCC mirror turnout -> its "Node: n Turnout: k" text, to sit beside its MQTT turnout
     address = re.compile(r"^(?:M2[ST]|IH)(\d+)$")  # hardware systems whose number is an MQTT address
@@ -113,7 +115,10 @@ def load_devices(path: Path = PANEL):
     for el in tables.blocks(root):
         if tables.text(el, "comment").startswith("Hidden"):
             continue
-        add(el, "os block" if tables.user_name(el).startswith("OS ") else "block")
+        # its kind is its devices.csv role, never its name (hand-off row 8)
+        # a device not on the layout yet (no level, no role: its beans come from its jmri_bean) is a plain block
+        name = tables.user_name(el)
+        add(el, "block" if master.is_unplaced("block", name) or not master.is_os(name) else "os block")
         out[tables.system_name(el)]["mqtt"] = detectors.get(tables.text(el, "occupancysensor"), "")
 
     # Address order (node, port), a block or DCC mirror after its sensor or turnout, masts last.
