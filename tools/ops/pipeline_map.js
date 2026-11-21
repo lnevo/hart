@@ -545,19 +545,27 @@ function app() {
     showDepth();
     const all = view.focus || sub.trim || view.kindsOff.size || view.group || view.lanes.size !== allLanes.length;
     const boxes = sub.nodes.reduce((n, b) => n + (groups.members[b.id] ? groups.members[b.id].length : 1), 0);  // a folder counts its boxes
-    el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${boxes} of ${DATA.nodes.length} boxes`
-      : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`) +
-      (all ? ' <button id="showall" title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>' : "") +
-      (filtersChanged() ? ' <button id="clearf" title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</button>' : "");
-    const cf = document.getElementById("clearf");
-    if (cf) cf.onclick = clearFilters;
-    const btn = document.getElementById("showall");
-    if (btn) btn.onclick = () => {
-      view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
-      view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
-      syncControls(); render(false); writeHash();
-    };
+    el.innerHTML = parts.length ? `Showing ${parts.join(" · ")} · ${boxes} of ${DATA.nodes.length} boxes`
+      : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`;
+    document.getElementById("showall").hidden = !all;
+    document.getElementById("clearf").hidden = !filtersChanged();
+    strip2.hidden = !(view.focus || filtersChanged());  // the second row only while there is a file view or a changed filter
+    updateStart();
   }
+  const strip2 = document.getElementById("strip2");
+  document.getElementById("clearf").onclick = clearFilters;
+  document.getElementById("showall").onclick = () => {
+    view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
+    view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
+    startShut = false;  // the start buttons come back over the map
+    syncControls(); render(false); writeHash();
+  };
+
+  /* ---- start buttons over the map: shown until a file is picked or a box selected; they do not block panning */
+  const startCard = document.getElementById("startcard");
+  let startShut = false;
+  function updateStart() { startCard.hidden = startShut || !DATA.presets.length || !!view.focus || !!selected; }
+  startCard.querySelector(".x").onclick = () => { startShut = true; updateStart(); };
 
   /* ---- overview in the corner: the whole drawing as plain boxes, with a box round what the main view shows */
   const nav = document.getElementById("nav");
@@ -578,6 +586,7 @@ function app() {
     return Math.max(0, document.getElementById("bar").getBoundingClientRect().bottom + 10 - r.top) / r.height;
   }
   function updateNav() {
+    updateStart();
     if (!navRect) return;
     const open = info.style.display === "block", narrow = innerWidth <= 900;
     // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
@@ -654,7 +663,7 @@ function app() {
     updateNav();
     if (!user) return;
     const was = trimmed();
-    selected = null;
+    selected = null; updateStart();
     if (was) render(false);  // "highlighted only" drew just that chain: bring the rest back
     writeHash();
   }
@@ -862,17 +871,44 @@ function app() {
   fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
 
   /* ---- start-here buttons: a preset file view for the questions people ask first */
-  document.getElementById("presets").innerHTML = DATA.presets.length ? "Start with: " + DATA.presets.map((pr, i) =>
-    `<button data-preset="${i}" title="${esc(byId[pr.focus].label)}, ${pr.up} back and ${pr.down} on">${esc(pr.label)}</button>`).join(" ") : "";
-  document.getElementById("presets").addEventListener("click", e => {
+  const presetBtns = DATA.presets.map((pr, i) =>
+    `<button data-preset="${i}" title="${esc(byId[pr.focus].label)}, ${pr.up} back and ${pr.down} on">${esc(pr.label)}</button>`).join("");
+  document.getElementById("presets").innerHTML = presetBtns;
+  document.getElementById("startbtns").innerHTML = presetBtns;
+  document.getElementById("startmenu").hidden = !DATA.presets.length;
+  function usePreset(e) {
     const b = e.target.closest("button[data-preset]");
     if (!b) return;
     const pr = DATA.presets[Number(b.dataset.preset)], steps = v => (v === "all" ? Infinity : v);
+    document.getElementById("startmenu").open = false;
     view.focus = selected = pr.focus; view.up = steps(pr.up); view.down = steps(pr.down);
     view.lanes = new Set(allLanes); view.kindsOff.clear(); view.trim = false;  // the preset's step counts as written
     fileIn.value = byId[pr.focus].path || byId[pr.focus].label;
     syncControls(); render(false); writeHash();
+  }
+  document.getElementById("presets").addEventListener("click", usePreset);
+  document.getElementById("startbtns").addEventListener("click", usePreset);
+
+  /* ---- menus: opening one closes the others (a menu inside an open one stays); a click elsewhere closes them all.
+     On a phone the menus and buttons after Find move into the Menu panel. */
+  const menus = [...document.querySelectorAll("details.menu")];
+  menus.forEach(m => m.addEventListener("toggle", () => {
+    if (!m.open) return;
+    menus.forEach(o => { if (o !== m && o.open && !o.contains(m) && !m.contains(o)) o.open = false; });
+  }));
+  document.addEventListener("click", e => {
+    if (e.target.closest && e.target.closest("details.menu")) return;
+    menus.forEach(m => (m.open = false));
   });
+  const moveIds = ["startmenu", "viewmenu", "lanes", "browse", "btns"], more = document.getElementById("morebody");
+  const homes = moveIds.map(id => { const el = document.getElementById(id), ph = document.createComment(id); el.before(ph); return [el, ph]; });
+  const phone = matchMedia("(max-width: 900px)");
+  function placeMenus() {
+    for (const [el, ph] of homes) { if (phone.matches) more.append(el); else ph.before(el); }
+    updateNav();
+  }
+  phone.addEventListener("change", () => { menus.forEach(m => (m.open = false)); placeMenus(); });
+  placeMenus();
 
   /* ---- share: the address with the view as it is now, zoom and position included, copied to the clipboard */
   document.getElementById("share").onclick = () => {

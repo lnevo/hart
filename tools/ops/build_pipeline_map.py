@@ -161,36 +161,49 @@ html,body{margin:0;height:100%;font:13px -apple-system,BlinkMacSystemFont,"Segoe
 #wrap.drag{cursor:grabbing}
 svg{width:100%;height:100%;display:block;user-select:none}
 .panel{background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-#bar{position:absolute;top:10px;left:10px;z-index:8;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
- max-width:calc(100vw - 420px)}
-#bar input[type=search]{width:170px;padding:4px 6px}
-#bar #file{width:260px;padding:4px 6px}
-#bar button{padding:3px 9px}
-#bar h1{font-size:14px;margin:0 6px 0 0}
-#back{color:#1d4ed8;text-decoration:none;margin-right:4px}
-#view{color:#333}
-#depth{flex-basis:100%;display:flex;gap:18px;flex-wrap:wrap}
-#depth[hidden]{display:none}
+#bar{position:absolute;top:10px;left:10px;z-index:8;padding:0;max-width:calc(100vw - 420px)}
+#row1{position:relative;min-height:40px;box-sizing:border-box;padding:4px 10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#row1 label{white-space:nowrap}
+#bar input[type=search]{width:90px;padding:4px 6px}
+#bar #file{width:150px;padding:4px 6px}
+#bar button{padding:3px 8px}
+#bar h1{font-size:14px;margin:0 2px 0 0;white-space:nowrap}
+#back{color:#1d4ed8;text-decoration:none;margin-right:2px;font-size:16px}
+#bar [hidden]{display:none!important}
+#btns{display:flex;gap:4px;align-items:center;flex-wrap:nowrap;white-space:nowrap}
+#hits{color:#555;font-size:12px}
+#strip2{display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap;padding:4px 10px;border-top:1px solid #ddd;color:#333;font-size:12px}
+#strip2 .sep{color:#bbb}
+#view:empty{display:none}
+#depth{display:flex;gap:6px 14px;flex-wrap:wrap}
 #depth .side{white-space:nowrap}
 #depth b{display:inline-block;min-width:22px;text-align:center}
-#view:empty{display:none}
-#lanes,#browse{position:relative}
-#lanes summary,#browse summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none}
-#lanelist{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.9}
+#strip2 button{padding:1px 8px;font-size:12px}
+.menu{position:relative}
+.menu>summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none;white-space:nowrap}
+.menu>summary::-webkit-details-marker{display:none}
+.pop{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.9;max-height:70vh;overflow:auto;
+ max-width:calc(100vw - 20px);box-sizing:border-box}
+#viewlist label{display:block}
 #lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
-#lanelist{max-height:70vh;overflow:auto}
-#tree{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.7;max-height:70vh;overflow:auto;min-width:260px}
+#tree{line-height:1.7;min-width:260px}
 #tree details details,#tree details>a{margin-left:14px}
 #bar #tree summary{cursor:pointer;border:0;background:none;padding:0;list-style:revert}
 #tree a{display:block;cursor:pointer;color:#1d4ed8}
 #tree .c{color:#888;font-size:11px}
-#viewrow{flex-basis:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #lanelist>b{display:block;margin-top:6px}
 #lanelist>b:first-child{margin-top:0}
 #lanelist .note{color:#666;font-size:11px;white-space:normal}
-#lanelist>label{margin-right:10px}
-#presets{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-#presets:empty{display:none}
+#lanelist>label.inl{display:inline-block;margin-right:10px}
+#presets{display:flex;flex-direction:column;gap:4px;align-items:stretch}
+#more{display:none;position:static}
+#startcard{position:absolute;inset:0;z-index:4;display:flex;align-items:center;justify-content:center;pointer-events:none}
+#startcard[hidden]{display:none}
+#startcard .card{pointer-events:auto;position:relative;padding:14px 18px 16px;max-width:min(560px,calc(100vw - 40px));text-align:center;opacity:.96}
+#startcard .t{font-size:15px;font-weight:700;margin-bottom:8px}
+#startcard .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#startcard button[data-preset]{font-size:14px;padding:7px 14px;cursor:pointer}
+#startcard .x{position:absolute;top:2px;right:6px;border:0;background:none;font-size:18px;cursor:pointer;color:#555}
 .node.folder .box{stroke-dasharray:7 4;stroke-width:2}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
@@ -230,38 +243,58 @@ svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 .hidden{display:none}
-@media (max-width:900px){#bar{right:10px;max-width:none} #bar input[type=search],#bar #file{width:120px}
+@media (max-width:900px){#bar{right:10px;max-width:none}
+ #bar h1{font-size:12px}
+ #row1 .lbl{display:none}
+ #bar input[type=search]{width:90px} #bar #file{width:auto;flex:1 1 90px;min-width:70px;max-width:170px}
+ #more{display:block}
+ #morebody{position:absolute;left:0;right:0;top:36px;z-index:6;padding:8px 10px;max-height:60vh;overflow:auto;box-sizing:border-box;
+  display:flex;flex-direction:column;align-items:flex-start;gap:8px;max-width:calc(100vw - 20px)}
+ #morebody .menu{position:static;width:100%}
+ #morebody .pop{position:static;max-height:none;box-shadow:none;border:0;padding:4px 6px;white-space:normal;max-width:none}
+ #morebody #btns{flex-wrap:wrap;white-space:normal}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
- #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
+ #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}
+ #startcard{align-items:flex-start;padding-top:140px}}
 __SITECSS__</style></head><body>__SITEHEADER__
 <div id="stage">
 <div id="wrap"></div>
-<div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
-<label>File <input list="files" id="file" placeholder="Pick a file to see its whole chain…" autocomplete="off"></label>
+<div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
+<label><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
-<details id="browse"><summary title="Pick a file from a folder tree">Browse ▾</summary><div id="tree" class="panel"></div></details>
-<input type="search" id="q" placeholder="Highlight text…">
+<details id="browse" class="menu"><summary title="Pick a file from a folder tree">Browse ▾</summary><div id="tree" class="pop panel"></div></details>
+<label><span class="lbl">Find </span><input type="search" id="q" placeholder="text in a box…" title="Highlight the boxes that hold this text"></label>
 <span id="hits"></span>
-<details id="lanes"><summary>Filters ▾</summary><div id="lanelist" class="panel">
-<b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
-<b>Also show</b>
-<label title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
-<label title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
-<label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
-</div></details>
+<details id="startmenu" class="menu"><summary title="Open a chain people ask about most">Start ▾</summary><div id="presets" class="pop panel"></div></details>
+<details id="viewmenu" class="menu"><summary>View ▾</summary><div id="viewlist" class="pop panel">
 <label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact" checked> compact</label>
 <label title="Draw the whole map as one box per folder; double-click a folder to open it"><input type="checkbox" id="group"> folders</label>
 <label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> highlighted only</label>
-<div id="presets"></div>
-<span id="depth" hidden title="How many links to show either side of the file">
+<label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
+</div></details>
+<details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
+<b>Lanes</b><div id="lanerows"></div>
+<b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
+<b>Also show</b>
+<label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
+<label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
+</div></details>
+<span id="btns"><button id="showall" hidden title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>
+<button id="fit" title="Show everything (F)">Fit</button><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button></span>
+<details id="more" class="menu"><summary>Menu ▾</summary><div id="morebody" class="panel"></div></details>
+</div>
+<div id="strip2" hidden><span id="view"></span>
+<span id="depth" hidden title="How many links to show either side of the file"><span class="sep">│</span>
  <span class="side">← feeds it <button data-side="up" data-step="-1">−</button> <b id="upn">all</b>
  <button data-side="up" data-step="1">+</button> <button data-side="up" data-step="all">all</button></span>
  <span class="side">it feeds → <button data-side="down" data-step="-1">−</button> <b id="downn">all</b>
  <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
-<div id="viewrow"><span id="view"></span><span id="viewbtns"><button id="fit" title="Show everything (F)">Fit</button> <button id="zin" title="Zoom in">+</button> <button id="zout" title="Zoom out">−</button>
-<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share this view</button></span></div>
+<button id="clearf" hidden title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</button></div>
 </div>
+<div id="startcard" hidden><div class="card panel"><button class="x" title="Hide these buttons">×</button>
+<div class="t">Start with a chain</div><div class="btns" id="startbtns"></div>
+<div style="color:#666;margin-top:8px;font-size:12px">or pick a file in the File box, or click a box</div></div></div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
@@ -270,14 +303,17 @@ to an earlier step.</div>
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
-out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The step counters under the toolbar set how many links show on each side: left is what feeds it, right
-is what it feeds (0 hides that side, all runs to the end). The <b>Start with</b> buttons open the chains people ask
-about most.</div>
-<div><b>Filters ▾</b> picks the lanes and the kinds of box to draw, and whether parked and retired boxes show. Untick a
+out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. A second row under the toolbar
+names the file and holds the step counters: left is what feeds it, right is what it feeds (0 hides that side, all runs to the end).
+<b>Start ▾</b> opens the chains people ask about most; the same buttons sit over the map until you pick a file or a box.
+<b>Find</b> highlights the boxes that hold a piece of text.</div>
+<div><b>View ▾</b> holds <b>compact</b> (on to start with: boxes as names only; untick it for each box's path and description),
+<b>folders</b> (the whole map as one dashed box per folder; double-click a folder, or use Open in its panel, to see its files),
+<b>highlighted only</b> and <b>edge labels</b>. <b>Filters ▾</b> picks the lanes and the kinds of box to draw, and whether parked and retired boxes show. Untick a
 kind, such as scripts, and its boxes are left out with their links joined up, so data runs straight to what it ends
-up in. <b>Compact</b> (on to start with) draws boxes as names only; untick it for each box's path and description. <b>Folders</b> draws the whole map as one dashed box per folder;
-double-click a folder, or use Open in its panel, to see its files. <b>Share this view</b> copies a link to the view as it is,
-with the selected box, zoom and position; the address bar also keeps the view, without the zoom.</div>
+up in. When a filter is changed, <b>Clear filters</b> in the second row puts them back and keeps the file and the selected box.
+<b>Whole map</b> appears when the view is cut down and goes back to the full drawing. <b>Share</b> copies a link to the view as it is,
+with the selected box, zoom and position; the address bar also keeps the view, without the zoom. On a phone, everything after Find is under <b>Menu ▾</b>.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
 </div>
@@ -302,7 +338,11 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #bar h1{font:700 1.35rem/1 var(--font-display);letter-spacing:.04em;color:var(--brand);margin:0 8px 0 0}
 #bar input,#bar button,#bar summary{font:inherit;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:4px}
 #bar button{cursor:pointer}
-#bar button:hover,#lanes summary:hover,#browse summary:hover{border-color:var(--brand-2)}
+#bar button:hover,.menu>summary:hover{border-color:var(--brand-2)}
+#strip2{border-top-color:var(--rule);color:var(--ink-soft)}
+#startcard .t{font:700 1.2rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
+#startcard button[data-preset]{font:inherit;color:var(--ink);background:#fff;border:1px solid var(--rule);border-radius:4px}
+#startcard button:hover{border-color:var(--brand-2)}
 #back,#lanelist a,#info a,#tree a{color:var(--brand-2)}
 #view{color:var(--ink-soft)}
 #info h2{font:700 1.3rem/1.1 var(--font-display);letter-spacing:.03em;color:var(--brand)}
@@ -362,7 +402,7 @@ def render(data: dict, back: str = "", site: bool = False) -> str:
         "domainColor": {d["id"]: d["color"] for d in data["domains"]},
     }
     counts = f'{len(data["nodes"])} boxes, {len(data["edges"])} links'
-    back_link = f'<a id="back" href="{esc(back)}">← Inside the repository</a>' if back else ""
+    back_link = f'<a id="back" href="{esc(back)}" title="Back to Inside the repository">←</a>' if back else ""
     return (
         PAGE_TEMPLATE.replace("__SITEHEAD__", SITE_HEAD if site else "")
         .replace("__SITECSS__", SITE_CSS if site else "")
