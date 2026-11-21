@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Car workflow: bin/cars status | intake | add | cards | service | publish | fix-ops | compare | seed-copy
+# Car workflow: bin/cars status | intake | add | cards | service | publish | fix-ops | compare | sync | seed-copy
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PY="$ROOT/.venv/bin/python"
