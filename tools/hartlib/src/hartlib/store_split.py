@@ -51,6 +51,8 @@ from . import devices, level_devices, parked, tables
 from . import tables_build as tb
 
 KEPT, CLASH, DEVICE, DROPPED = "kept", "clash", "device", "dropped"
+ROW = "row"                         # a DEVICE item that adds, rewrites or deletes a level-less row (unplaced)
+UNPLACED_DESCRIPTION = "Added in PanelPro; its level, cp and role come later."
 KINDS = (KEPT, CLASH, DEVICE, DROPPED)
 ID_PREFIX = {KEPT: "K", CLASH: "C", DEVICE: "D", DROPPED: "G"}
 REVIEWED = (CLASH, DEVICE)          # the kinds a merge or drop is asked for
@@ -329,6 +331,12 @@ def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) ->
         return None
     if key[1] in tb.MASTER_SECTIONS:
         return "devices.csv (a device needs a row with its level, cp and role)"
+    return claimed_name(key, el, rows)
+
+
+def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
+    """What claims a bean by its system or user name (claimed_by's checks after the section's): the build's names,
+    the main and upper naming rule, a parked feature or a devices.csv row's name; None when nothing does."""
     names = [n for n in (key[4], tables.user_name(el)) if n]
     for name in names:
         if name.startswith(BUILD_PREFIXES) or level_devices.is_level_name(name):
@@ -359,6 +367,23 @@ class Edit:
 
 
 @dataclass(frozen=True)
+class RowAdd:
+    """A devices.csv row a DEVICE merge adds: a device added in the Store, kept by its beans with no level yet."""
+    cells: tuple[tuple[str, str], ...]      # (column, value) in devices.COLUMNS order
+
+    @property
+    def row(self) -> dict[str, str]:
+        return dict(self.cells)
+
+
+@dataclass(frozen=True)
+class RowDelete:
+    """A level-less devices.csv row a DEVICE merge deletes: its device was deleted in the Store."""
+    row: int
+    user_name: str
+
+
+@dataclass(frozen=True)
 class Item:
     id: str             # K1, C1, D1, G1: stable for one (base, repo, Store)
     kind: str           # KEPT, CLASH, DEVICE or DROPPED
@@ -368,8 +393,8 @@ class Item:
     store: ET.Element | None = field(default=None, compare=False, repr=False)   # the Store's version (None: deleted)
     repo: ET.Element | None = field(default=None, compare=False, repr=False)
     base: ET.Element | None = field(default=None, compare=False, repr=False)
-    edits: tuple[Edit, ...] = ()
-    part: str = ""      # DEVICE: the part merged ("userName" or "comment")
+    edits: tuple = ()   # DEVICE: Edit, RowAdd and RowDelete
+    part: str = ""      # DEVICE: the part merged ("userName" or "comment"), or ROW for a level-less device's row
     also: tuple = ()    # DEVICE: the keys of other beans the same edits come from (a block's passes, its layout
                         # block), with their Store versions: ((key, store element), ...)
 
@@ -448,6 +473,79 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
     return out, rest
 
 
+# ---------------------------------------------------------------- a device added in the Store (no level yet)
+
+
+LAYER_OF = {"turnouts": "turnout", "sensors": "sensor", "signalheads": "head", "signalmasts": "mast",
+            "blocks": "block", "layoutblocks": "block"}
+
+
+def unplaced_row(beans: list[tuple[tuple, ET.Element]], old: Mapping[str, str] | None = None) -> dict[str, str]:
+    """The level-less devices.csv row of a device's Store beans ((section key, element)): its names and comment
+    from the main bean (a block's full pass, else the one bean), the rest of the beans in jmri_bean. `old`, the row
+    as it was, keeps its description."""
+    layer = LAYER_OF[beans[0][0][0]]
+    main = next((el for sk, el in beans if sk == tb.BLOCKS and tb._sort_group(el) == "block"),
+                next(el for sk, el in beans if sk != tb.LAYOUT_BLOCKS))
+    system = tables.system_name(main)
+    row = dict.fromkeys(devices.COLUMNS, "")
+    row.update(layer=layer, user_name=tables.user_name(main) or system, assignment="field", system_name=system,
+               jmri_name=system, jmri_comment=(main.findtext("comment") or "").strip(),
+               description=old["description"] if old else UNPLACED_DESCRIPTION)
+    lb = [el for sk, el in beans if sk == tb.LAYOUT_BLOCKS]
+    if lb:
+        row["layout_block"] = tables.system_name(lb[0])
+    row["jmri_bean"] = tb.bean_json(beans, row)
+    return row
+
+
+def _row_edits(i: int, old: Mapping[str, str], new: Mapping[str, str]) -> tuple[Edit, ...]:
+    return tuple(Edit(i, c, old[c], new[c]) for c in devices.COLUMNS if old[c] != new[c])
+
+
+def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[str, str]]) -> None:
+    """DEVICE items (appended to `found`) for the devices the Store added ({group: [(key, b, s)]}) and the level-less
+    rows whose beans it changed or deleted ({row: [(key, b, g, s)]})."""
+    for group, got in added.items():
+        beans = [(key[1], s) for key, _, s in got]
+        row = unplaced_row(beans)
+        taken = [r for r in rows if (r["level"], r["layer"], r["user_name"]) == ("", row["layer"], row["user_name"])
+                 or r["jmri_name"] == row["jmri_name"]]
+        key, b, s = got[0]
+        info = dict(store=s, repo=None, base=b, part=ROW,
+                    also=tuple((k, el) for k, _, el in got[1:]))
+        if taken:
+            found.append((DROPPED, key, dict(info, what="added in the Store", note=(
+                f"devices.csv row {taken[0]['layer']} {taken[0]['user_name']!r} has its name; rename one in PanelPro"))))
+            continue
+        found.append((DEVICE, key, dict(info, what="added in the Store", edits=(RowAdd(tuple(row.items())),),
+                                        note=f"merge adds a level-less devices.csv {row['layer']} row "
+                                             f"{row['user_name']!r} (its level, cp and role come later)")))
+    for i, got in changed.items():
+        old = rows[i]
+        key, b, g, s = got[0]
+        info = dict(store=s, repo=g, base=b, part=ROW, also=tuple((k, el) for k, _, _, el in got[1:]))
+        if all(el is None for _, _, _, el in got):
+            found.append((DEVICE, key, dict(info, what="deleted in the Store", edits=(RowDelete(i, old["user_name"]),),
+                                            note=f"merge deletes devices.csv {old['layer']} row {old['user_name']!r}")))
+            continue
+        by_key = {k: (bb, gg, ss) for k, bb, gg, ss in got}
+        beans = []
+        for sk, el in tb.row_beans(old):
+            k = ("bean", sk, el.tag, tb._sort_group(el), tables.system_name(el))
+            ss = by_key[k][2] if k in by_key else el
+            if ss is not None:
+                beans.append((sk, ss))
+        beans += [(k[1], ss) for k, bb, gg, ss in got if gg is None and ss is not None]
+        new = unplaced_row(beans, old)
+        edits = _row_edits(i, old, new)
+        if not edits:
+            continue
+        found.append((DEVICE, key, dict(info, what=change_text(g, s), edits=edits,
+                                        note=f"merge rewrites level-less devices.csv row {old['layer']} "
+                                             f"{old['user_name']!r} ({', '.join(e.column for e in edits)})")))
+
+
 def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template: ET.Element,
          rows: Iterable[Mapping[str, str]]) -> Plan:
     """The plan for a Store: each item the owner changed, and where it goes (the module docstring). All four roots
@@ -463,6 +561,8 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
     newer = newer_jmri(store, repo)
     older = newer_jmri(repo, store)
     found: list[tuple[str, tuple, dict]] = []
+    added: dict[tuple, list] = {}           # a device the Store added: {group: [(key, base, store)]}
+    changed: dict[int, list] = {}           # a level-less row's beans the Store changed: {row: [(key, b, g, s)]}
     order = functools.cmp_to_key(lambda a, b: (repr(a) > repr(b)) - (repr(a) < repr(b)))
     for key in sorted(set(B) | set(G) | set(S), key=order):
         b, g, s = B.get(key), G.get(key), S.get(key)
@@ -497,18 +597,31 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
                                                 note=f"{why}; merge takes the Store's, drop keeps the repo's")))
             continue
         # the build's
+        if key[0] == "bean" and key[1] in tb.MASTER_SECTIONS:
+            el_row = rows_of(rindex, key, g if g is not None else b if b is not None else s)
+            mine = [i for i in el_row if devices.is_unplaced(rows[i])]
+            if mine and (g is not None or b is not None):
+                changed.setdefault(mine[0], []).append((key, b, g, s))
+                continue
+            if g is None and b is None and not claimed_name(key, s, rows):
+                name = tables.user_name(s) if key[1] in (tb.BLOCKS, tb.LAYOUT_BLOCKS) else ""
+                added.setdefault((LAYER_OF[key[1][0]], name or key[4]), []).append((key, b, s))
+                continue
         if s is None:
             found.append((DROPPED, key, dict(info, what="deleted in the Store",
                                              note=f"delete it in its source ({_source(key)}) and rebuild")))
             continue
         if g is None:
-            why = claimed_by(key, s, rows) or "the build"
             new = b is None
+            named = claimed_name(key, s, rows) if key[0] == "bean" else None
+            if new and named and named.startswith("devices.csv row"):
+                found.append((DROPPED, key, dict(info, what="added in the Store", note=(
+                    f"{named} plans this name (system_name {key[4]!r}); to bring that device into JMRI, set the row's "
+                    "assignment to field and rebuild, or give the Store's device another name"))))
+                continue
+            why = claimed_by(key, s, rows) or "the build"
             found.append((DROPPED, key, dict(info, what="added in the Store" if new else "the repo no longer makes it",
-                                             note=f"{why} makes it" + (
-                                                 ": add the devices.csv row, rebuild and deploy, then make the change"
-                                                 " in PanelPro again" if new and key[0] == "bean" and
-                                                 key[1] in tb.MASTER_SECTIONS else ""))))
+                                             note=f"{why} makes it")))
             continue
         owner_parts = [p for p in parts(g, s) if b is None or p in parts(b, s)]
         cands, rest = (_device_items(key, b, g, s, owner_parts, rows, rindex) if key[0] == "bean"
@@ -523,6 +636,7 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
             sub_g, sub_s = _only(g, rest), _only(s, rest)
             found.append((DROPPED, key, dict(info, what=change_text(sub_g, sub_s),
                                              note=f"the repo wins: change it in {_source(key)}")))
+    _unplaced_items(found, added, changed, rows)
     grouped: list[tuple[str, tuple, dict]] = []
     by_edits: dict[tuple, dict] = {}
     for kind, key, info in found:
@@ -615,6 +729,8 @@ def check_choices(p: Plan, c: Choices) -> None:
     cells: dict[tuple[int, str], str] = {}
     for d in both:
         for e in d.edits:
+            if not isinstance(e, Edit):
+                continue
             if cells.setdefault((e.row, e.column), e.new) != e.new:
                 raise SplitError(f"{d.id} and another merge write devices.csv row {e.row + 2} {e.column} two ways")
 
@@ -631,10 +747,22 @@ def device_edits(p: Plan, c: Choices) -> list[Edit]:
 def edited_rows(rows: Iterable[Mapping[str, str]], edits: Iterable[Edit]) -> list[dict[str, str]]:
     """devices.csv rows with `edits` written. SplitError when a cell no longer holds the old value."""
     out = [dict(r) for r in rows]
+    edits = list(edits)
     for e in edits:
-        if out[e.row][e.column] != e.old:
-            raise SplitError(f"devices.csv row {e.row + 2} {e.column} is {out[e.row][e.column]!r}, not {e.old!r}")
-        out[e.row][e.column] = e.new
+        if isinstance(e, Edit):
+            if out[e.row][e.column] != e.old:
+                raise SplitError(f"devices.csv row {e.row + 2} {e.column} is {out[e.row][e.column]!r}, not {e.old!r}")
+            out[e.row][e.column] = e.new
+    for e in sorted((e for e in edits if isinstance(e, RowDelete)), key=lambda e: -e.row):
+        if out[e.row]["user_name"] != e.user_name or not devices.is_unplaced(out[e.row]):
+            raise SplitError(f"devices.csv row {e.row + 2} is not the level-less row {e.user_name!r}")
+        del out[e.row]
+    for e in edits:
+        if isinstance(e, RowAdd):
+            new = e.row
+            rank = devices._rank(new)
+            at = next((n for n, r in enumerate(out) if devices._rank(r) > rank), len(out))
+            out.insert(at, new)
     return out
 
 
@@ -743,6 +871,11 @@ def verify(p: Plan, c: Choices, repo: ET.Element, rebuilt: ET.Element, template:
             bad.append(f"{i.id} {i.where}: the rebuilt tables do not hold the Store's version")
     merged = [i for i in p.of(DEVICE) if i.id in c.merge]
     for i in merged:
+        if i.part == ROW:
+            for key, store_el in ((i.key, i.store),) + i.also:
+                if canon(N.get(key)) != canon(store_el):
+                    bad.append(f"{i.id} {label(key)}: the rebuilt tables do not hold the Store's version")
+            continue
         for key, store_el in ((i.key, i.store),) + i.also:
             el = _rebuilt_bean(N, key, store_el)
             if el is None or value(el, i.part) != value(store_el, i.part):
