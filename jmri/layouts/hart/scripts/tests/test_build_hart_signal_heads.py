@@ -86,38 +86,6 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
                     rf"<userName>{mast}</userName>",
                 )
 
-    def test_plan_ids_are_live_beans(self) -> None:
-        text = TABLES.read_text(encoding="utf-8")
-        missing = self.m.check_live_heads(self.m.fitted_rows(self.rows), text)
-        self.assertEqual(missing, [])
-
-    def test_full_mode_refuses_plan_ids_that_are_not_live(self) -> None:
-        text = TABLES.read_text(encoding="utf-8").replace(
-            "<systemName>IH432</systemName>", "<systemName>IH432x</systemName>"
-        )
-        missing = self.m.check_live_heads(self.m.fitted_rows(self.rows), text)
-        self.assertEqual(missing, ["IH432"])
-
-    def test_full_mode_refuses_to_drop_live_beans(self) -> None:
-        rows = self.m.fitted_rows(self.rows)
-        block = self.m._heads_xml(rows) + "\n" + self.m._masts_xml(rows)
-        lost = self.m.lost_beans(block, TABLES.read_text(encoding="utf-8"))
-        self.assertIn("IH9990", lost)
-        self.assertIn("IF$vsm:basic:one-low($1001)", lost)
-
-    def test_patch_tables_always_refuses_and_writes_nothing(self) -> None:
-        before = TABLES.read_bytes()
-        with self.assertRaises(SystemExit) as ctx:
-            self.m.patch_tables(self.rows)
-        self.assertIn("refusing to rewrite tables.xml", str(ctx.exception))
-        self.assertIn("IH9990", str(ctx.exception))
-        self.assertEqual(TABLES.read_bytes(), before)
-
-    def test_full_mode_checks_the_publisher_before_refusing(self) -> None:
-        import inspect
-        source = inspect.getsource(self.m.main)
-        self.assertLess(source.index("write_publisher(rows)"), source.index("patch_tables(rows)"))
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -228,10 +228,13 @@ The website's node grid (`www/assets/behind/lcos-node-grid.svg`, on `www/behind/
 python3 tools/wiring/node_grid_svg.py
 ```
 
-## What v85 changed vs Desktop v84
+## History: what v85 changed vs Desktop v84 (frozen)
+
+v85 and its refresh from the v84 import are history since 2026-11-20: v86 is written from `wiring.csv`, and the v84 snapshots and the refresh code are in `archive/docs/wiring-imported/` and `archive/tools-wiring/`.
+
 
 - Lower-deck **BlockSensors** names follow the panel: Scale, Barn, S-1…S-5, W-1/W-2, EH-1…EH-3, OS 100… (MQTT `Block n-n` stays in Notes).
 - **DNOU8** ports listed in `signal_wiring.csv` are overlayed as searchlight heads (replacing planned RGB on those ports). Previous RGB label is kept in Notes.
 - **D1-OU2/OU3** Princess rows were a mistaken overlay (D1 is DCC radio 5, now labeled **D5**). Princess is on C1; do not recreate D5 signal boards.
 - Upper-deck RGB is labeled as defined heads on CP4 / CP5 / CP6 using CTC numbers from 62 up (`64R`, `70RB`, …). 66RA+66RB share Switch 65; 70RB is Switch 69 reverse; 74RB is Switch 73 reverse.
-- **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `imported/`.
+- **Node ID = radio Address**. Digicon heads: C4 Brick+Plane, C13 Barn, C12 East End 34, C2 East End west 24, C1 Princess west, C11 Princess east + balloon. v84 sequential C1–C13 IDs live in **Legacy Node ID** and `archive/docs/wiring-imported/`.

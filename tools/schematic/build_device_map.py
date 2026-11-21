@@ -16,9 +16,10 @@ Inputs (jmri/layouts/hart/data/schematic/):
 - local_switches_main_upper.csv: every other switch (yards and industry spurs), with its area. These get a
   turnout and feedback but no control point, no signals and no detection.
 - lcos_nodes.csv: every level's LCOS radio addresses. Staging's are the nodes in service (inventory v86), which this
-  never hands out; main and upper's are the ones each level and area may use, in order: the upper level's
-  from LCOS_Layout_Inventory_v85.xlsx, the rest from the owner's node grid
-  (media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx, local), where an address 0XN is device X off
+  never hands out; main and upper's are the ones each level and area may use, in order (each row's source says
+  where its address was first taken from: the upper level's from the old inventory v85, the rest from the owner's
+  node grid
+  media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx, local), where an address 0XN is device X off
   node 0N.
 - the solved schematic bands (the inputs publish_draft.py draws), for tracks, their ends and which way is east.
 
@@ -187,7 +188,6 @@ UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}
 COLUMNS = list(railroad.DEVICE_COLUMNS)
 DCC_FIRST = 120                       # staging uses 100-119 (MTT100-MTT119); the owner continues from 120
 VIRTUAL_TURNOUT = level_devices.TURNOUT_PREFIX   # + switch number: the internal turnout the panels and desks use
-VIRTUAL_SENSOR = level_devices.SENSOR_PREFIX     # + block_key: the internal occupancy sensor of every block
 occupancy_user = level_devices.occupancy_user
 NOT_WIRED = "detector planned, not wired yet: no node or input (owner, 2026-11-16)"
 HEAD_NOT_WIRED = "head planned, no board room on the draft plant: placed when the wiring plan is reworked (owner, 2026-11-19)"
