@@ -12,7 +12,7 @@ The Statement of Qualifications for the NMRA Achievement Program certificate, re
 | `soq.html`, `soq.css` | Source of the document. Numbers, cross-references, contents and page numbers are filled in by the build. |
 | `build_soq.py` | Builds the PDF: drawings, numbering, two Chrome print passes for page numbers, the form ticks, Keynote export of the two wiring decks, footers and bookmarks. `--html-only` writes `build/` without printing. |
 | `make_drawings.py` | Writes plan clips P1 to P5 (the staging level copied from the system schematic, its own names removed, generic labels added) and drawings D1 to D6. The build also writes P0, the staging level to scale from `www/build/track-plan.html`. |
-| `PHOTO_PUNCH_LIST.md` | Photographs still to take, with file names. Until one exists, the PDF shows a dashed placeholder where it goes. |
+| `PHOTO_PUNCH_LIST.md` | Finished record of the photographs the SOQ needed, with file names (all in the SOQ since 2026-11-15). |
 | `photos/` | Photographs used, downsized from `media/photos-layout` (IMG_7226, 7471, 7813, 8070, 8414, 8415, 8940, 8947, 8954, 9231, 9288). |
 | `MRE-Electrical-SOQ-form.pdf` | The blank NMRA 2025 fillable form. The build ticks the claimed items and fills Region and Division only. |
 | `test_build_soq.py` | `python3 -m unittest docs/ap/electrical/test_build_soq.py` |
