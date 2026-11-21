@@ -1,0 +1,4 @@
+# STATUS entries are independent lines that many branches add at once: keep both sides instead of a conflict
+# (git's built-in union merge; tools/ops/status_counts.py --check stops on a duplicated entry it can leave).
+wiki/STATUS.md merge=union
+wiki/STATUS_LOG.md merge=union

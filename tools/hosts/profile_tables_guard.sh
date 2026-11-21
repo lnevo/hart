@@ -129,3 +129,16 @@ refuse_unrestored_profile() {
     exit 1
   fi
 }
+
+# hart_plugin_pin_problem ROOT prints why the schematic plugin (external/model-railroad-skills) is not usable as pinned,
+# or nothing when it is at the commit ROOT's branch records. A checked-out submodule on another commit (git submodule
+# status shows "+") gives builds and tests an older or newer plugin than the branch was written for, and their failures
+# look like real bugs (2026-11-21). SCHEMATIC_PLUGIN set means a local plugin on purpose: nothing is printed then.
+hart_plugin_pin_problem() {
+  local status
+  [[ -z "${SCHEMATIC_PLUGIN:-}" ]] || return 0
+  status="$(git -C "$1" submodule status -- external/model-railroad-skills 2>/dev/null)" || return 0
+  case "$status" in
+    +*) echo "external/model-railroad-skills is checked out at ${status:1:8}, not the commit this branch pins; run: git submodule update external/model-railroad-skills (or set SCHEMATIC_PLUGIN to test a local plugin on purpose)" ;;
+  esac
+}
