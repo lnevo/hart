@@ -129,8 +129,8 @@ run parked env PYTHONPATH=tools/hartlib/src python3 -m hartlib.parked check
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
 run layout-facts python3 tools/audit/check_layout_facts.py
-# The fact files against each other (hartlib.railroad: switches, name map, main and upper control points, device map,
-# masts, the tables file); KNOWN in the module lists what is reported and left.
+# The fact files against each other (hartlib.railroad: devices.csv, switches.csv, masts.csv, the tables file);
+# KNOWN in the module lists what is reported and left.
 run railroad-facts env PYTHONPATH=tools/hartlib/src python3 -m hartlib.railroad check
 # devices.csv and its column dictionary (python3 -m hartlib.devices)
 run devices env PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check

@@ -50,7 +50,7 @@ the layout expands. The plugin draws it on every output it makes: the schematic 
 follow the labels, so H1 is still the outer track), the Layout Editor panel and the CATS desks; `levels_page` reads the
 same key for the track-plan article. The desks' bindings stay keyed by plan name (Helix Outer, Helix Inner). `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
-stop, station group and name-map columns, carried over from its row), so a staging block change made in PanelPro is
+stop, station group and `devices.csv` columns (cp, level, role, node, dcc, wiring), carried over from its row), so a staging block change made in PanelPro is
 carried by hand into those three data files, not into `devices.csv`. Main and upper write their part rows the same
 way (25 links). Block lengths: JMRI's block takes `block_lengths.csv`'s `plan_in` on every level (`plan_lengths.py`,
 main and upper's rows too); a measured length is for speed profiling only. To review a candidate before the owner

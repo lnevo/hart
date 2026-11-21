@@ -15,8 +15,8 @@ In the hand-wired desks, the Designer save was the authority for rails, labels, 
 |--------|------|
 | 1 | Title |
 | 5 | CP names; Track K-1 east of Switch 39 (thrown leg), east to the edge with Mast 2035 / 2036 and the SHARED wrap |
-| **6** | **Track Main West** → OS Switch 23a → Track West Ext → OS Switch 35b → OS Switch 39 → Track McKees Rocks (closed leg, stub to x=59) |
-| **7** | Track Scale → OS Switch 7 → Track Barn → OS Switch 13 → OS Switch 15 → Track S-R → OS Switch 23b → OS Switch 31 → OS Switch 33 → Track East Lead → OS Switch 35a → OS Switch 37 → Track McKeesport (closed leg, stub to x=59) |
+| **6** | **Track Main West** → OS Switch 23a → Track West Ext → OS Switch 35b → OS Switch 39 → Track Helix Outer (closed leg, stub to x=59) |
+| **7** | Track Scale → OS Switch 7 → Track Barn → OS Switch 13 → OS Switch 15 → Track S-R → OS Switch 23b → OS Switch 31 → OS Switch 33 → Track East Lead → OS Switch 35a → OS Switch 37 → Track Helix Inner (closed leg, stub to x=59) |
 | **8** | Switch 1 Brick / Switch 5 Plane / Track East Ext / OS Switch 7b / Track EH-1 / Track S-1 / Track K-2 (thrown leg of Switch 37, east to the edge) |
 | 9 | Track W-2 / Track EH-2 / Track S-2 |
 | 10 | Track W-1 / Track EH-3 / Track S-3 |
@@ -44,19 +44,19 @@ West rims: `(1,6)` LEFT SHARED to `(1,8)` LEFT (Track Main West). East rims: `(6
 | (42,7) H+LS | **Switch 31** | Closed LEFT = Track S-R/Switch 23. Thrown BOTTOM geographic into Switch 29 `(42,8)` |
 | (44,7) H+LS | **Switch 33** | Closed LEFT = Switch 31. Thrown BOTTOM = Track Main East. **Not inverted** |
 | (52,6) / (52,7) | **Switch 35b / Switch 35a** | Crossover Track West Ext / Track East Lead |
-| (55,6) H+US | **Switch 39** | Closed RIGHT = Track McKees Rocks. Thrown TOP = Track K-1. Not inverted (since 2026-11-07) |
-| (55,7) H+LB | **Switch 37** | Closed RIGHT = Track McKeesport. Thrown BOTTOM = Track K-2. Not inverted (since 2026-11-07) |
+| (55,6) H+US | **Switch 39** | Closed RIGHT = Track Helix Outer. Thrown TOP = Track K-1. Not inverted (since 2026-11-07) |
+| (55,7) H+LB | **Switch 37** | Closed RIGHT = Track Helix Inner. Thrown BOTTOM = Track K-2. Not inverted (since 2026-11-07) |
 
 Track Brick-Plane is Y=8 between Switch 1 and Switch 5 (`Block 4-6`). Track East Ext is Y=8 between Switch 5 and Switch 7b (`Block 4-7`).
 
 ## Signals
 
-23 Designer lamps, named in place. **Mast 6LA** is 1-head (`LAMP1` / `IH434`). **Mast 2035** `(61,5)` RIGHT is `IH1134` (was 115R). **Mast 2036** `(62,5)` LEFT is `IH1133` (was 114R). **Mast 34R** is `(44,8)` LEFT on OS Switch 33. Occupancy cut Track Main East \| OS Switch 33 is `(43,8)` RIGHT \| `(44,8)` LEFT. **Mast 2L** is `(3,8)` LEFT. **Mast 32R** is `(42,7)` BOTTOM on OS Switch 31 at the OS Switch 31 \| OS Switch 29 cut. **Mast 4RA** is Track W-1 `(6,10)` RIGHT; **Mast 4RB** is Track W-2 `(6,9)` RIGHT. **Mast 8RA** is `LAMP1` on this board; field/JMRI still 2-head. Princess westbounds match LE: **Mast 40LA** / **Mast 38LA** (`LAMP2`, two-head) on Track McKees Rocks / Track McKeesport; **Mast 40LB** / **Mast 38LB** (`LAMP1`, dwarf) on Track K-1 / Track K-2 (types swapped 2026-11-07, ADR-017 item 9).
+23 Designer lamps, named in place. **Mast 6LA** is 1-head (`LAMP1` / `IH434`). **Mast 2035** `(61,5)` RIGHT is `IH1134` (was 115R). **Mast 2036** `(62,5)` LEFT is `IH1133` (was 114R). **Mast 34R** is `(44,8)` LEFT on OS Switch 33. Occupancy cut Track Main East \| OS Switch 33 is `(43,8)` RIGHT \| `(44,8)` LEFT. **Mast 2L** is `(3,8)` LEFT. **Mast 32R** is `(42,7)` BOTTOM on OS Switch 31 at the OS Switch 31 \| OS Switch 29 cut. **Mast 4RA** is Track W-1 `(6,10)` RIGHT; **Mast 4RB** is Track W-2 `(6,9)` RIGHT. **Mast 8RA** is `LAMP1` on this board; field/JMRI still 2-head. Princess westbounds match LE: **Mast 40LA** / **Mast 38LA** (`LAMP2`, two-head) on Track Helix Outer / Track Helix Inner; **Mast 40LB** / **Mast 38LB** (`LAMP1`, dwarf) on Track K-1 / Track K-2 (types swapped 2026-11-07, ADR-017 item 9).
 
 ## Remaining gaps
 
 - USS CTC is **v77**: every plant has an N/R switch lever. Yard ladders default Local. Brick column 1 is N/R, Switch 3 is L/N, Switch 5 is L/N, Switch 7 is LNR. UniqueIDs 28–35 are the switch-only columns for 119/118/104–109.
-- CATS Princess lamps match LE: **Mast 40LA** Track McKees Rocks and **Mast 38LA** Track McKeesport are 2-head (`LAMP2` / `double`); **Mast 40LB** Track K-1 and **Mast 38LB** Track K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from the wiring plan (`wiring.csv`'s heads) on wire so HOLD_ONLY `setAspect` cannot request a two-head aspect on a one-searchlight-low mast.
+- CATS Princess lamps match LE: **Mast 40LA** Track Helix Outer and **Mast 38LA** Track Helix Inner are 2-head (`LAMP2` / `double`); **Mast 40LB** Track K-1 and **Mast 38LB** Track K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from the wiring plan (`wiring.csv`'s heads) on wire so HOLD_ONLY `setAspect` cannot request a two-head aspect on a one-searchlight-low mast.
 - SML re-Discovered 2026-08-27 (now **38 sources / 98 dests**): **Mast 2035→Mast 40LB/Mast 38LB**, **Mast 2036→Mast 40LB/Mast 38LB**. **Mast 2035→Mast 38LB** is disabled; **Mast 2035→Mast 40LB** extra occupancy is **OS K-1** / **BS K-1**. **Mast 40LB** dests stay `Mast 24L`/`Mast 34L`; **Mast 38LB** stays `Mast 34L`. Reload **CATS CTC** or **CATS ABS**.
 
 ## Label fixes
