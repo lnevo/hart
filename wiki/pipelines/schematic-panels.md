@@ -13,21 +13,27 @@ sheet (`staging`, `main_upper`, the input names in `publish_draft.INPUTS`). The 
 (schematic-maps 0.1.49); every hart script reads and writes them through `hartlib.layer_files`, which keeps the JSON
 format in one place and stops on a missing section or an old `<sheet>.<kind>.json` left beside the file.
 
-**One block process (level unification step 5 part 1, owner 2026-11-20):** `tools/schematic/block_layer.py` makes
+**One block process (level unification step 5 parts 1 and 2, owner 2026-11-20):** `tools/schematic/block_layer.py` makes
 the block layer of every level from the drawing: an OS block per switch (a single crossover's halves each their own
 when they have their own detectors, staging 7, 23 and 35), a block per track named by the plan's name, else by its end
 switches, halves from `block_splits.csv` (every level, a `level` column: 227-241, staging's K-1 and K-2), helix blocks
 through `helix_tracks.csv`, and parts. A part is a piece of track inside another block: a `devices.csv` row with
 `part_of` naming that block, role `part`, no JMRI block, layout block or occupancy row of its own (every reader skips
 it: `hartlib.devices.OUT_OF_MAPS`, and `tables_build` by name). That is the standard way to put a short piece in an OS
-block. The rule: a track between two switches under 50 cm (`LINK_CM`) is part of the lower-numbered switch's OS block;
-`data/schematic/block_exceptions.csv` (a `level` column) holds only the owner's wiring facts where the wiring says
-otherwise (13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, the piece of Scale in OS 7, a part per end for 1-3 and 35-39)
-and the crossover halves with detectors of their own. `build_device_map.py` writes staging's block and occupancy rows
+block. The rule, on every level: a track between two switches under 50 cm (`LINK_CM`) is part of the lower-numbered
+switch's OS block (at a double crossover, the corner block of its leg), but where a home mast stands at a switch's
+points facing it, part of the OS block at its other end, so the block boundary is at the mast (`block_layer
+.masted_block`; a mast at both ends stops the build); on the Layout Editor panel a part keeps its track name as a
+label. `data/schematic/block_exceptions.csv` (a `level` column, rows of any level) holds only the owner's wiring facts
+where the wiring says otherwise (13-15 in OS 15, 23-31 in OS 31, 35-37 in 35a, a part per end for 1-3 and 35-39) and
+the crossover halves with detectors of their own. `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
 stop, station group and name-map columns, carried over from its row), so a staging block change made in PanelPro is
-carried by hand into those three data files, not into `devices.csv`. Main and upper still keep their links as blocks of
-their own (`FOLD_LINKS`): part 2 folds them, a panel change. Pinned by `tests/test_blocks_every_level.py` and
+carried by hand into those three data files, not into `devices.csv`. Main and upper write their part rows the same
+way (25 links). Block lengths: JMRI's block takes `block_lengths.csv`'s `plan_in` on every level (`plan_lengths.py`,
+main and upper's rows too); a measured length is for speed profiling only. To review a candidate before the owner
+approves its staging panel: `build_layout_le.py --as-live --review`, `build_tables.py --review` and
+`HART_TABLES_REVIEW=1 run_sml_discover.sh` (sandbox). Pinned by `tests/test_blocks_every_level.py` and
 `tests/test_block_layer.py`.
 
 ## Run

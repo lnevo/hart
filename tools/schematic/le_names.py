@@ -363,6 +363,11 @@ def named_bands(bands, names: dict):
     left as it is. The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off
     the panel among them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
+    try:
+        parts = {t.strip(): r["user_name"] for _line, r in devices.part_lines(("2", "3"), DEVICE_MAP)
+                 for t in r["trial_name"].split(",") if t.strip()}
+    except railroad.FactsError as exc:
+        raise BuildError(f"the device map: {exc}") from None
     for title, band, opts in bands:
         key = band_key(title)
         if key == STAGING:
@@ -397,5 +402,11 @@ def named_bands(bands, names: dict):
                 continue
             best = max(sids, key=lambda k: (band["strands"][k]["cm"], k))
             band["strands"][best]["name"] = block.removeprefix("Track ")
+        # a part (a link inside an OS block, step 5 part 2) keeps its track name as a label: track names stay as they
+        # are (owner, 2026-11-20), and the label layer keeps the room it gave them, so no track moves
+        for sid, s in band["strands"].items():
+            part = parts.get("Track " + re.sub(r"(?<=\d)[xy]$", "", s["edge"]))
+            if part and sid not in helix:
+                s["name"] = part.removeprefix("Track ")
         out.append((title, band, opts))
     return out

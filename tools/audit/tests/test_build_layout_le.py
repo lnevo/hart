@@ -656,6 +656,8 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(len(named), len(set(named)))           # one track per block
         self.assertIn("McKees Rocks", named)                    # the helix track keeps its plan name
         self.assertIn("101-103", named)                         # named here; the plugin leaves it off (hidden_names)
+        # a part (a link inside an OS block, step 5 part 2) keeps its track name as a label, so no track moves
+        self.assertLessEqual({"109-111", "115-117", "125-129"}, set(named))
         bad = copy.deepcopy(names)
         n = next(k for k, d in bands[1][1]["nodes"].items() if d.get("label") == "101B")
         bad["Main"]["turnouts"][n] = "Switch 999"

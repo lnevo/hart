@@ -181,5 +181,13 @@ class Skipped(unittest.TestCase):
             self.assertEqual(bt.EXIT_NO_PLUGIN, run()[0])         # a write needs the plugin
 
 
+class ReviewFlag(unittest.TestCase):
+    def test_review_writes_a_candidate_and_never_checks(self):
+        with contextlib.redirect_stderr(io.StringIO()) as err, self.assertRaises(SystemExit) as stop:
+            bt.main(["--check", "--review"])
+        self.assertEqual(stop.exception.code, 2)
+        self.assertIn("--review writes a candidate", err.getvalue())
+
+
 if __name__ == "__main__":
     unittest.main()
