@@ -16,7 +16,7 @@ from master_edit import add, change, drop  # noqa: E402  the master is changed t
 
 REPO = R.Sources.under()
 DATA_FILES = ("switches", "devices", "interlockings", "lcos_nodes",
-              "plan_overrides", "block_lengths", "staging_masts", "level_masts", "helix_tracks")
+              "plan_overrides", "block_lengths", "staging_masts", "level_masts")
 
 
 class Copy(unittest.TestCase):
@@ -30,6 +30,8 @@ class Copy(unittest.TestCase):
             dst = getattr(self.src, name)
             dst.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(getattr(REPO, name), dst)
+        prefs = layer_files.path("preferences", REPO.plan_overrides.parent)     # the helix tracks' labels
+        shutil.copyfile(prefs, self.src.plan_overrides.parent / prefs.name)
 
     def edit(self, name: str, old: str, new: str, count: int = 1) -> None:
         path = getattr(self.src, name)
@@ -776,21 +778,13 @@ class SmallHelpers(Copy):
         self.assertTrue(rr.switches)
         self.assertTrue(rr.helix_tracks)
         self.assertTrue(all(h.block.startswith("Track ") for h in rr.helix_tracks.values()))
-        self.assertEqual(R.read_helix_tracks(self.src.helix_tracks), rr.helix_tracks)
+        self.assertEqual(R.read_helix_tracks(self.src.plan_overrides), rr.helix_tracks)
+        self.assertEqual([h.block for h in rr.helix_tracks.values()], ["Track Helix Outer", "Track Helix Inner"])
 
-    def test_a_helix_block_given_twice_stops(self) -> None:
-        tracks = list(R.read_helix_tracks(self.src.helix_tracks).values())
-        path = self.src.helix_tracks
-        with path.open(newline="", encoding="utf-8") as fh:
-            rows = list(csv.DictReader(fh))
-            fields = rows[0].keys()
-        rows[1]["block"] = tracks[0].block
-        with path.open("w", newline="", encoding="utf-8") as fh:
-            w = csv.DictWriter(fh, fieldnames=list(fields))
-            w.writeheader()
-            w.writerows(rows)
-        with self.assertRaises(R.FactsError):
-            R.read_helix_tracks(path)
+    def test_a_helix_track_named_twice_stops(self) -> None:
+        self.edit("plan_overrides", '"131B": "Helix Inner"', '"131B": "Helix Outer"')
+        with self.assertRaisesRegex(R.FactsError, "named 'Helix Outer'"):
+            R.read_helix_tracks(self.src.plan_overrides)
 
     def test_sources_but_swaps_one_file(self) -> None:
         other = self.src.but(switches=Path("x.csv"))

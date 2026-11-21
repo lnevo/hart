@@ -209,7 +209,7 @@ def track_lengths(band, names: dict, runs: dict, os_blocks: set, parts: dict) ->
     strand, OS blocks take nothing (the run leaves the turnouts out); one track block takes the rest; parts only
     (`parts`: {part: its cm}, block_layer.Layer.parts; a track with a part at each end: Track 1-3 at 1 and at 3) share
     it evenly, as track_inches reads a k/n key; a part at one end beside its track's own block takes its cm (the
-    piece block_exceptions.csv gives a length) and the track's block the rest. A block on several strands adds them
+    piece block_overrides.csv gives a length) and the track's block the rest. A block on several strands adds them
     up. LengthError on an edge with no run in the plan, a part's cm not under its strand's run, or any other mix of
     track blocks on one strand."""
     strands = band["strands"]

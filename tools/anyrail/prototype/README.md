@@ -23,4 +23,4 @@ public model-railroad-skills plugin after the speed-matching run.
 
 Level plans page (`www/build/track-plan.html`): `../levels_svg.py` draws the three levels to scale from the plan with
 `../anyplan.py` (track only; it needs no prototype script) and `../levels_page.py` builds the page from those drawings,
-`block_lengths.csv` and `helix_tracks.csv`. See the docstrings of both.
+`block_lengths.csv` and `plan_overrides.json`. See the docstrings of both.

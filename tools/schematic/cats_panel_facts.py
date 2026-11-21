@@ -7,7 +7,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
-import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
+import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of devices.csv)
 from hartlib import paths, railroad  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates  # noqa: E402
@@ -39,7 +39,8 @@ class StagingTracks:
         if len(set(blocks)) != 1:
             raise SystemExit(f"{what}: the staging track from {a} to {b} holds blocks "
                              f"{', '.join(sorted(set(blocks)))}; give it to the one its gap leaves it in "
-                             "(a part row naming that block in devices.csv: block_exceptions.csv, or the rule in block_layer.py)")
+                             "(a part row naming that block in devices.csv: block_overrides.csv, or the rule in "
+                             "block_layer.py)")
         return blocks[0]
 
 
@@ -70,7 +71,7 @@ class Facts:
     turnouts: dict = field(default_factory=dict)            # JMRI turnout user name -> system name
     mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
     level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
-    helix: dict = field(default_factory=dict)               # plan helix track name -> its block (helix_tracks.csv)
+    helix: dict = field(default_factory=dict)       # plan helix track name -> its block (read_helix_tracks)
 
 
 def staging_tracks() -> list[dict]:

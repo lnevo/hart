@@ -369,8 +369,9 @@ def shared_turnouts(names: dict, skip: set) -> None:
 def named_bands(bands, names: dict):
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
-    other main and upper track is unnamed, but a helix track keeps its plan name (McKees Rocks, McKeesport): the
-    plugin joins the helix ends of two levels by that name (le.partners), so it is the label there too. A band of a
+    other main and upper track is unnamed, but a helix track keeps its plan name (Helix Outer, Helix Inner): the
+    plugin joins the helix ends of two levels by that name (le.partners) and draws its track_labels label (McKees
+    Rocks for Helix Outer) in its place. A band of a
     level the base holds (BASE_LEVELS: staging, by its level) is left as it is. `bands` are the solved sheet's,
     titles unchanged, as for placeholder_names: a band plan_overrides.json does not title stops with BuildError.
     The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off the panel among

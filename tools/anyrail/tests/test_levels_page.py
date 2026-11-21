@@ -1,5 +1,5 @@
 """tools/anyrail/levels_page.py on the committed drawings (tools/anyrail/levels/) and data (block_lengths.csv,
-helix_tracks.csv): the article www/build/track-plan.html is what the generator builds, its numbers come from those
+the helix tracks of the plan overrides): the article www/build/track-plan.html is what the generator builds, its numbers come from those
 files, and a figure that disagrees with its source stops the build. None of this needs the owner's plan."""
 import json
 import re

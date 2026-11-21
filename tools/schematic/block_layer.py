@@ -5,13 +5,13 @@ step 5, owner 2026-11-20; wiki/projects/level-unification-handoff.md).
 
 What it makes, for each level drawn on a band:
 - an OS block per switch, "OS Switch <n>". A single crossover is one OS block, unless its halves have their own
-  detectors: then each half is an OS block of its own, named in block_exceptions.csv (kind crossover_half; staging 7,
+  detectors: then each half is an OS block of its own, named in block_overrides.csv (kind crossover_half; staging 7,
   23 and 35). A double crossover's corners are build_device_map.xover_corners' (main and upper), not this module's;
   its node keeps "OS Switch <n>" here, as mast_plan reads it.
 - a block per track, named by name_tracks: the plan's name when its strands carry one ("Track <name>"; a helix track
-  its helix block from helix_tracks.csv, on every level, so each helix block is one block across levels), else
+  its "Track <plan name>" too, on every level, so each helix block is one block across levels), else
   mast_rule.track_names' end-switch rule ("Track 107-109", "Track 3 Spur 1", "Track 107 Loop"). A balloon loop, or a
-  track block_splits.csv names (the owner's choice, a level column: 227-241, Princess K-1 and K-2), is two blocks
+  track block_overrides.csv splits (kind split, the owner's choice: 227-241, Princess K-1 and K-2), is two blocks
   parted at its turnback, half 1 at the lower-numbered switch (loop_halves); a half is named by its strand's plan name
   when the two halves carry different ones (Track K-2, Track K-1), else "<track> <half>" (half_block). A name given
   to two blocks of one level stops.
@@ -19,7 +19,7 @@ What it makes, for each level drawn on a band:
   switches shorter than LINK_CM, is part of the lower-numbered switch's OS block (the one at that end: a crossover
   half's, when the half has its own; a double crossover's corner block of the leg it leaves, `corners`), on every
   level (step 5 part 2, owner 2026-11-20). A link drawn to a connector, whose lower-numbered switch is on another
-  band, takes the OS block of its end switch on its own band (link_block). block_exceptions.csv (kind track) gives a
+  band, takes the OS block of its end switch on its own band (link_block). block_overrides.csv (kind track) gives a
   track, or the piece of it at one end switch, to another OS block where the field wiring (or, on main and upper, the
   owner) says otherwise. A whole track's part is named as the track; a piece at one end "<track> at <switch>" ("Track
   1-3 at 1"). A track with pieces at both ends is all pieces, sharing its length evenly; with one, that piece's length
@@ -29,8 +29,10 @@ LINK_CM is 50 cm on every level (owner, 2026-11-20): staging's wiring folds ever
 42 cm (11-13) by the rule, and its next is Barn at 92 cm; on main and upper it folds 25 links, the longest 229-233
 (48.2 cm).
 
-block_exceptions.csv (EXCEPTION_COLUMNS), every row the owner's fact, keyed by switch numbers so a new export moves
-rows with their tracks, a row of any level (1 staging, 2 main, 3 upper):
+block_overrides.csv (mast_rule.OVERRIDE_COLUMNS, read and checked for shape by mast_rule.read_block_overrides, the
+one reader of the file), every row the owner's fact, keyed by switch numbers so a new export moves rows with their
+tracks, a row of any level (1 staging, 2 main, 3 upper). Its kind split rows are split_edges' (mast_rule
+.read_block_splits); this module resolves the other two:
 - kind track: level, switch_a and switch_b (the track's end switches, lower first) and parallel (1, 2 from the top row
   where two tracks run between them, mast_rule.resolve_track); `end` empty for the whole track or one of its end
   switches for the piece at that end; `block` the OS block it is part of, which must be the OS block at that end (at
@@ -47,7 +49,6 @@ block an OS block of its level, no name for two things.
 """
 from __future__ import annotations
 
-import csv
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
@@ -58,9 +59,8 @@ import mast_rule as mr
 from hartlib import layer_files, railroad
 
 LINK_CM = 50.0
-EXCEPTIONS_NAME = "block_exceptions.csv"       # in pd.DATA, looked up when read (a test may point pd.DATA elsewhere)
-EXCEPTION_COLUMNS = ["level", "kind", "switch_a", "switch_b", "parallel", "end", "block", "cm", "inside", "notes"]
-KINDS = ("track", "crossover_half")
+OVERRIDES_NAME = mr.OVERRIDES_NAME     # in pd.DATA, looked up when read (a test may point pd.DATA elsewhere)
+EXCEPTION_KINDS = ("track", "crossover_half")   # its rows this module resolves; its split rows are split_edges'
 natural, base = railroad.natural, railroad.switch_number
 
 
@@ -135,10 +135,11 @@ def tracks(bands, runs, joined, levels: dict, data: Path | None = None) -> list[
 
 
 def name_tracks(found: list[dict], bands, helix: dict) -> None:
-    """Fill `name` in each track entry of mast_rule.tracks: the plan's name of its strands when they carry one (a
-    helix track's: its block in `helix`, read_helix_tracks), else the end-switch rule (mast_rule.track_names). A
-    track whose strands carry two names keeps the end-switch name: it must be split into halves (layer checks it),
-    each named by its own. BlockError on a helix track whose plan name helix_tracks.csv does not give."""
+    """Fill `name` in each track entry of mast_rule.tracks: "Track <plan name>" when its strands carry one plan name
+    (a helix track too: its pieces on two drawings carry one name, so they are one block across the level split, the
+    plugin pairing the cut ends by it), else the end-switch rule (mast_rule.track_names). A track whose strands carry
+    two names keeps the end-switch name: it must be split into halves (layer checks it), each named by its own.
+    BlockError on a track up the helix whose one plan name is not a helix track of `helix` (read_helix_tracks)."""
     rest, bad = [], []
     for t in found:
         band = bands[t["band"]][1]
@@ -147,10 +148,9 @@ def name_tracks(found: list[dict], bands, helix: dict) -> None:
             if len(names) != 1 or names[0] not in helix:
                 bad.append(f"level {t['level']}: the track up the helix from Switch "
                            f"{', '.join(v for k, v in t['ends'] if k == 'sw')} has plan name(s) {names or 'none'}, "
-                           f"which {mr.HELIX_TRACKS.name} does not name ({', '.join(sorted(helix))})")
+                           f"which is not a helix track of {mr.HELIX_SOURCE.name} ({', '.join(sorted(helix))})")
                 continue
-            t["name"] = helix[names[0]]["block"]
-        elif len(names) == 1:
+        if len(names) == 1:
             t["name"] = f"Track {names[0]}"
         else:
             rest.append(t)
@@ -163,9 +163,10 @@ def name_tracks(found: list[dict], bands, helix: dict) -> None:
 
 @dataclass
 class Exceptions:
-    """block_exceptions.csv resolved against the drawing: track rows by track entry id, {end: (block, line, cm or
-    None)} ("" the whole track), crossover halves by (band, node): (block, line), and the lines of the track rows
-    marked `inside` (the piece stays inside its OS block, with no JMRI block of its own)."""
+    """block_overrides.csv's track and crossover_half rows resolved against the drawing: track rows by track entry
+    id, {end: (block, line, cm or None)} ("" the whole track), crossover halves by (band, node): (block, line), and
+    the lines of the track rows marked `inside` (the piece stays inside its OS block, with no JMRI block of its
+    own)."""
     tracks: dict = field(default_factory=dict)
     halves: dict = field(default_factory=dict)
     inside: set = field(default_factory=set)
@@ -184,51 +185,28 @@ def crossover_pairs(band) -> dict:
     return out
 
 
-def exceptions_path() -> Path:
-    """block_exceptions.csv in the schematic data folder as it is now (publish_draft.DATA)."""
-    return pd.DATA / EXCEPTIONS_NAME
+def overrides_path(data: Path | None = None) -> Path:
+    """block_overrides.csv in the schematic data folder `data` (default publish_draft.DATA as it is now): the one place
+    its path is made, for every kind of its rows (build_device_map.block_overrides passes its OVERRIDES folder)."""
+    return Path(pd.DATA if data is None else data) / OVERRIDES_NAME
 
 
 def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = None) -> Exceptions:
-    """block_exceptions.csv for the `levels` ({band title: level}) drawn, resolved in `found` (named tracks). A row of
-    a level not drawn is checked for shape only. See the module text for the rows and the stops."""
-    path = path or exceptions_path()
+    """block_overrides.csv's track and crossover_half rows for the `levels` ({band title: level}) drawn, resolved in
+    `found` (named tracks). A row of a level not drawn is checked for shape only (mast_rule.read_block_overrides,
+    which checks every row of the file). See the module text for the rows and the stops."""
+    path = path or overrides_path()
     where = path.name
     try:
-        with open(path, newline="", encoding="utf-8") as fh:
-            reader = csv.DictReader(fh)
-            rows = [{k: (v or "").strip() for k, v in r.items()} for r in reader]
-    except OSError as exc:
-        raise BlockError(f"cannot read {where}: {exc}") from None
-    if reader.fieldnames != EXCEPTION_COLUMNS:
-        raise BlockError(f"{where}: columns {reader.fieldnames}, not {EXCEPTION_COLUMNS}")
+        rows = mr.read_block_overrides(path, EXCEPTION_KINDS)
+    except mr.MapError as exc:
+        raise BlockError(str(exc)) from None
     wanted = set(levels.values())
     out, bad = Exceptions(), []
-    for i, r in enumerate(rows, 2):
+    for r in rows:
+        i, level, cm = r["line"], int(r["level"]), r["cm"]
         at = f"line {i} (level {r['level']})"
-        if r["level"] not in ("1", "2", "3") or r["kind"] not in KINDS:
-            bad.append(f"{at}: level is 1, 2 or 3 and kind one of {', '.join(KINDS)}")
-            continue
-        if not r["block"].startswith("OS Switch "):
-            bad.append(f"{at}: block {r['block']!r} is no OS block (a piece of track is part of a switch's OS block)")
-            continue
-        level = int(r["level"])
-        try:
-            cm = float(r["cm"]) if r["cm"] else None
-        except ValueError:
-            cm = -1.0
-        if cm is not None and not cm > 0:
-            bad.append(f"{at}: cm {r['cm']!r} is a length in cm, more than 0")
-            continue
-        if r["inside"] not in ("", "yes"):
-            bad.append(f"{at}: inside is yes or empty, not {r['inside']!r}")
-            continue
         if r["kind"] == "crossover_half":
-            if not (mr.SWITCH_NUMBER.fullmatch(r["switch_a"]) and mr.SWITCH_NUMBER.fullmatch(r["switch_b"])) or \
-                    r["parallel"] or r["end"] or r["cm"] or r["inside"]:
-                bad.append(f"{at}: a crossover half is switch_a (the crossover) and switch_b (where its leg A track "
-                           "runs), with no parallel, end, cm or inside")
-                continue
             if level not in wanted:
                 continue
             hits = []
@@ -250,10 +228,6 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
                 continue
             out.halves[hits[0]] = (r["block"], i)
             continue
-        problem = mr.key_problem(r)
-        if problem or not r["switch_b"] or (r["end"] and r["end"] not in (r["switch_a"], r["switch_b"])):
-            bad.append(f"{at}: {problem or 'a track between two switches, its end empty or one of them'}")
-            continue
         if level not in wanted:
             continue
         t = mr.resolve_track(r, [t for t in found if t["level"] == level])
@@ -274,7 +248,7 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
 
 # ---------------------------------------------------------------- the layer
 
-def loop_halves(band, runs, split: dict, split_file: str = "block_splits.csv") -> dict:
+def loop_halves(band, runs, split: dict, split_file: str = OVERRIDES_NAME) -> dict:
     """{strand id: 1 or 2} for each balloon loop of `band` (a run that leaves a switch and comes back to it), by the
     leg its strand leaves the switch from (mast_rule.LOOP_HALF), and for each track `split` names ({plan edge: track
     name}, build_device_map.split_edges: a run between two switches folded at one turnback, owner 2026-11-19): half
@@ -309,7 +283,7 @@ def loop_halves(band, runs, split: dict, split_file: str = "block_splits.csv") -
 
 
 def split_edges(found: list[dict], levels: dict, path: Path, data: Path | None = None) -> dict:
-    """{drawing (sheet_of): {plan edge: track name}} of the tracks block_splits.csv parts into two blocks at their
+    """{drawing (sheet_of): {plan edge: track name}} of the tracks block_overrides.csv splits into two blocks at their
     turnback (the owner's choice, not a rule: mast_rule.read_block_splits), among the `levels` drawn: each row's end
     switches resolved to the named track in `found`, and that track to the one plan edge it is drawn on. Stops on a
     track drawn on more than one plan edge (a split needs one track folded at one turnback)."""
@@ -338,7 +312,7 @@ class Layer:
     part of); `rows`: {band index: {strand: [row name, ...]}}, the same with a part's own name; `cm`: {block: cm} (an
     OS block 0: its boundary is at the switch's leg); `parts`: {part name: {part_of, level, track, why}}; `tracks`:
     {block: (track entry, half)} of the tracks' own blocks; `inside`: {piece name: its OS block} of the pieces
-    block_exceptions.csv keeps inside their OS block (`inside` yes: no part, no JMRI block of their own)."""
+    block_overrides.csv keeps inside their OS block (`inside` yes: no part, no JMRI block of their own)."""
     bands: dict = field(default_factory=dict)
     rows: dict = field(default_factory=dict)
     cm: dict = field(default_factory=dict)
@@ -406,7 +380,7 @@ def end_blocks(t: dict, nodes: dict, os_: dict, corners: dict, level: int, bad: 
 
 
 def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions: Exceptions,
-          exceptions_file: str = EXCEPTIONS_NAME, corners: dict | None = None, posts: dict | None = None,
+          overrides_file: str = OVERRIDES_NAME, corners: dict | None = None, posts: dict | None = None,
           data: Path | None = None) -> Layer:
     """The block layer of every band whose level `levels` ({band title: level}) holds, from `found` (name_tracks),
     `split` ({drawing: {plan edge: track name}}, split_edges: the owner's block splits), `exceptions`
@@ -441,7 +415,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
             if ((bi, n) in exceptions.halves) != ((bi, m) in exceptions.halves) or \
                     ((bi, n) in exceptions.halves and os_[n] == os_[m]):
                 bad.append(f"level {level}: crossover {base(nodes[n]['label'])}: give both halves an OS block of "
-                           f"their own in {exceptions_file}, or neither")
+                           f"their own in {overrides_file}, or neither")
         halves = loop_halves(band, runs, split.get(sheet[bi], {}))
         blocks, rows = {}, {}
         for sid, st in band["strands"].items():
@@ -473,9 +447,9 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 if h:
                     lines = ", ".join(str(x[1]) for x in ex.values())
                     bad.append(f"level {level}: {t['name']} is split in halves and given to OS blocks in "
-                               f"{exceptions_file} (lines {lines}): one or the other")
+                               f"{overrides_file} (lines {lines}): one or the other")
                     continue
-                pieces = exception_pieces(t, ex, name, ends, exceptions_file, bad)   # from switch_a's end
+                pieces = exception_pieces(t, ex, name, ends, overrides_file, bad)   # from switch_a's end
                 if pieces is None:
                     continue
                 if st["src"][0] != at_end[min(at_end, key=natural)]:                # from the strand's first end
@@ -485,7 +459,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                         out.inside[row] = block
                     elif line:
                         out.parts[row] = dict(part_of=block, level=level, track=t, cm=cm,
-                                              why=f"{exceptions_file} line {line}")
+                                              why=f"{overrides_file} line {line}")
                     else:                                       # the rest of the track, its own block
                         out.cm[name] = cm
                 if all(line for _r, _b, line, _c in pieces):    # no piece left to the track's own block
@@ -498,7 +472,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
             if is_link(t):
                 masts = {v: posts[(bi, node, port)] for (node, port), (k, v) in zip(t["legs"], t["ends"])
                          if k == "sw" and (bi, node, port) in posts}
-                block, why = masted_block(t, ends, masts, level, exceptions_file, bad)
+                block, why = masted_block(t, ends, masts, level, overrides_file, bad)
                 if why is None:
                     continue
                 if block is None:
@@ -508,7 +482,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 held = out.parts.get(t["name"])
                 if held is not None and held["part_of"] != block:     # drawn on two bands, across a connector
                     bad.append(f"level {level}: the link {t['name']} is given {held['part_of']} on one band and "
-                               f"{block} on {title!r}; give it one in {exceptions_file}")
+                               f"{block} on {title!r}; give it one in {overrides_file}")
                     continue
                 out.parts[t["name"]] = dict(part_of=block, level=level, track=t, cm=t["cm"],
                                             why=f"the rule: under {LINK_CM:g} cm between two switches, so in the "
@@ -524,7 +498,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
     unused += sorted(line for key, got in exceptions.tracks.items() if key not in used
                      for _b, line, _cm in got.values())
     if unused:
-        bad.append(f"{exceptions_file} line(s) {', '.join(map(str, sorted(unused)))} match nothing drawn")
+        bad.append(f"{overrides_file} line(s) {', '.join(map(str, sorted(unused)))} match nothing drawn")
     bad += check(bands, out, levels, found, corners)
     if bad:
         raise BlockError("; ".join(bad))
@@ -532,7 +506,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
 
 
 def exception_pieces(t, ex: dict, own: str, ends: dict, where: str, bad: list) -> list | None:
-    """[(row name, block, exceptions line or 0, cm)] of a track block_exceptions.csv gives to OS blocks (`ex`, {end:
+    """[(row name, block, overrides line or 0, cm)] of a track block_overrides.csv gives to OS blocks (`ex`, {end:
     (block, line, cm)}), from its lower-numbered switch's end: the whole track as one part (its own name, its whole
     length), or a piece per end the file names ("<track> at <switch>"). Pieces at both ends share the track evenly;
     a piece at one end takes the cm its row gives, and the rest of the track, its own block
@@ -618,7 +592,7 @@ def check(bands, lay: Layer, levels: dict, found: list[dict], corners: dict | No
         names = {plan_name(bands[t["band"]][1], sid) for sid in t["strands"]} - {""}
         if len(names) > 1 and h is None:
             bad.append(f"level {t['level']}: {t['name']} carries plan names {sorted(names)} but is one block: name "
-                       "one of them, or split it in block_splits.csv")
+                       f"one of them, or split it in {OVERRIDES_NAME} (kind split)")
     for name, p in lay.parts.items():
         if p["part_of"] not in os_of_level.get(p["level"], ()):
             bad.append(f"level {p['level']}: part {name} names {p['part_of']}, no OS block of its level")

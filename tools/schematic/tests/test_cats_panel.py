@@ -127,16 +127,16 @@ class StagingSwitches(unittest.TestCase):
             dests |= set(to.values())
         # the helix tracks lead up the helix as one block each (owner, 2026-11-20)
         self.assertLessEqual(set(self.F.helix.values()), dests)
-        self.assertFalse({"Track " + plan for plan in self.F.helix} & dests)
+        self.assertEqual(set(self.F.helix.values()), {"Track " + plan for plan in self.F.helix})    # the ordinary rule
 
 
 class Helix(unittest.TestCase):
     def test_the_helix_blocks(self):
-        """Each helix track of helix_tracks.csv is its block on staging: by track_block, and by helix_block on the
+        """Each helix track is its block on staging: by track_block, and by helix_block on the
         staging band's strands of that plan name; any other track is Track <name>."""
         k = built()
-        helix = B.bdm.mast_rule.read_helix_tracks()          # helix_tracks.csv rows, as dark_bindings reads them
-        self.assertTrue(helix)
+        helix = B.bdm.mast_rule.read_helix_tracks()          # by plan name, as dark_bindings reads them
+        self.assertEqual(set(helix), {"Helix Outer", "Helix Inner"})
         self.assertEqual(k["F"].helix, {plan: h["block"] for plan, h in helix.items()})
         for plan, h in helix.items():
             self.assertEqual(B.track_block(plan, k["F"].helix), h["block"])

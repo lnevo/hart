@@ -12,12 +12,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import build_main_route as M  # noqa: E402
 
-# main_route as it was written by hand against plan 5.3c part numbers (before main_lines.csv)
+# main_route as it was written by hand against plan 5.3c part numbers (before main_lines.csv), its helix tracks by
+# their plan names since 2026-11-21
 HAND_ROUTE = [
-    ["McKeesport", "T281"], ["T281", "T311", "direct"], ["T311", "T294", "direct"], ["T294", "T316", "direct"],
+    ["Helix Inner", "T281"], ["T281", "T311", "direct"], ["T311", "T294", "direct"], ["T294", "T316", "direct"],
     ["T316", "T310", "direct"], ["T310", "T283", "direct"], ["T283", "T261"], ["T261", "T307"], ["T307", "T289"],
     ["T289", "T331"], ["T331", "T322", "direct"], ["T322", "T268"], ["T268", "T270", "direct"], ["T270", "T322"],
-    ["McKees Rocks", "T210"], ["T210", "T215", "direct"], ["T215", "T194"], ["T194", "T200"],
+    ["Helix Outer", "T210"], ["T210", "T215", "direct"], ["T215", "T194"], ["T194", "T200"],
     ["T200", "T165", "direct"], ["T165", "T204"], ["T204", "T204", "direct"]]
 
 
@@ -230,7 +231,7 @@ class StagingLines(unittest.TestCase):
     def test_the_milepost_route_is_the_counted_lines_stops(self):
         hops = M.staging_section(self.overrides, self.plan, self.rows)["milepost_route"]
         self.assertEqual(hops[0], ["1", "5"])
-        self.assertEqual(hops[-2:], [["35@West Ext", "39"], ["39", "McKees Rocks"]])
+        self.assertEqual(hops[-2:], [["35@West Ext", "39"], ["39", "Helix Outer"]])
 
     def test_a_stale_flag_is_caught_by_the_comparison(self):
         stale = json.loads(json.dumps(self.overrides))

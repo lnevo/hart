@@ -20,9 +20,9 @@ def _at(n: int, r, where: str) -> str:
 
 
 def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
-                        helix_file: str = "helix_tracks.csv") -> list[str]:
+                        helix_file: str = "plan_overrides.json") -> list[str]:
     """The rules between the rows of devices.csv, one for every level, as problems naming the rows. `lines` are
-    (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the blocks of helix_tracks.csv.
+    (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the helix tracks' blocks.
     - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
       helix block (one JMRI block from its staging switch up the helix, owner 2026-11-20), and every helix block is;
     - no two rows of one layer share a user name (but a helix block's rows), a system name (a turnout, sensor or head's
@@ -306,7 +306,7 @@ def _device_map(rr: Railroad) -> list[str]:
     dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.devices.name
     bad = list(check_virtual_names(dm.rows))
     bad += device_row_problems(master_rows(rr), {h.block for h in rr.helix_tracks.values()}, name,
-                               rr.sources.helix_tracks.name)
+                               rr.sources.plan_overrides.name)
     turnouts = dm.turnouts
     for s in sorted(set(mu) | set(turnouts), key=natural):
         r, sw = turnouts.get(s), mu.get(s)
@@ -335,7 +335,7 @@ def _device_map(rr: Railroad) -> list[str]:
 @invariant("name-clash", "device_map")
 def _name_clash(rr: Railroad) -> list[str]:
     """No staging row of devices.csv uses a name the device map gives a main or upper device of the same layer. A
-    helix block (helix_tracks.csv) is one block from staging up the helix, so its staging row names the device map's
+    helix block (Track <plan name>) is one block from staging up the helix, so its staging row names the device map's
     block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
     helix = {h.block for h in rr.helix_tracks.values()}

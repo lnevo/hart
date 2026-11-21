@@ -6,7 +6,8 @@
 DIR (default `tools/anyrail/levels/`) holds what levels_svg.py wrote from the plan: staging.svg, main.svg, upper.svg and
 levels_meta.json, which names the plan version printed on the page. HTML (default www/build/track-plan.html) is the
 Build section article; never edit it by hand, rerun this. Every number on the page comes from levels_meta.json, from
-block_lengths.csv (plan and timed block lengths) or from helix_tracks.csv; nothing is typed here. A figure that
+block_lengths.csv (plan and timed block lengths) or from the helix tracks (hartlib.railroad.read_helix_tracks:
+plan_overrides.json, and preferences.json's track_labels for the names shown); nothing is typed here. A figure that
 disagrees with another source stops the build with the reason.
 
 Staging is drawn and signalled on the plan's lengths. block_lengths.csv keeps a timed length only for the blocks a loco
@@ -33,7 +34,7 @@ from levels_svg import switch_key  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 BLOCK_CSV = paths.LAYOUT_DATA / "block_lengths.csv"
-HELIX_CSV = paths.LAYOUT_DATA / "schematic" / "helix_tracks.csv"
+HELIX_SOURCE = railroad.Sources.under().plan_overrides     # the helix tracks: hartlib.railroad.read_helix_tracks
 SITE_HTML = paths.REPO_ROOT / "www/build/track-plan.html"
 CM_PER_IN = 2.54
 FITTED = re.compile(r"AnyRail (\d+(?:\.\d+)*[a-z]?) loop")
@@ -182,20 +183,23 @@ def _and(items):
 
 
 def helix_rows(meta, blocks):
-    """[(name, foot, top, run_in, below_cut_in, above_cut_in)]: each helix track by the owner's name, from the plan's
-    runs; every run must match its block's plan length."""
-    with open(HELIX_CSV, newline="") as f:
-        named = {(r["staging_switch"], r["level_switch"]): r for r in csv.DictReader(f)}
+    """[(name, foot, top, run_in, below_cut_in, above_cut_in)]: each helix track by the name shown for it
+    (preferences.json track_labels), from the plan's runs; every run must match its block's plan length."""
+    try:
+        helix = railroad.read_helix_tracks(HELIX_SOURCE)
+    except railroad.FactsError as exc:
+        raise SystemExit(str(exc)) from None
+    named = {(h.staging_switch, h.level_switch): h for h in helix.values()}
     rows = []
     for t in meta["helix"]:
-        row = named.get((t["foot"], t["top"]))
-        if row is None:
-            raise SystemExit(f"{HELIX_CSV.name} has no helix track from Switch {t['foot']} to Switch {t['top']}")
+        h = named.get((t["foot"], t["top"]))
+        if h is None:
+            raise SystemExit(f"{HELIX_SOURCE.name} has no helix track from Switch {t['foot']} to Switch {t['top']}")
         run = inches(t["cm"])
-        if abs(run - blocks[row["block"]].plan_in) > HELIX_PLAN_TOLERANCE_IN:
+        if abs(run - blocks[h.block].plan_in) > HELIX_PLAN_TOLERANCE_IN:
             raise SystemExit(f"the plan's run from Switch {t['foot']} to {t['top']} is {run:.1f} in; "
-                             f"block_lengths.csv has {blocks[row['block']].plan_in} in for {row['block']}")
-        rows.append((row["helix"], t["foot"], t["top"], run, inches(t["below_cut_cm"]), run - inches(t["below_cut_cm"])))
+                             f"block_lengths.csv has {blocks[h.block].plan_in} in for {h.block}")
+        rows.append((h.shown, t["foot"], t["top"], run, inches(t["below_cut_cm"]), run - inches(t["below_cut_cm"])))
     return rows
 
 

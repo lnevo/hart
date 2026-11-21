@@ -6,7 +6,7 @@ track from outside a control point meets one of its switches, unless no route it
 (reaches_signal; build_device_map.py's module text has the naming and head rules). band_level() maps a band title
 to its level by the `level` of its entry in a plan-overrides file (band_levels). The rules that replaced hand lists
 (owner, 2026-11-20): running_tracks (passing sidings between interlockings), signalled_spurs (exit dwarfs off a main track); read_block_splits reads the owner's block
-splits, which are a choice, not a rule. mast_plan.py runs them all as the one mast process of every level.
+splits (block_overrides.csv kind split), which are a choice, not a rule; read_block_overrides is that file's one reader. mast_plan.py runs them all as the one mast process of every level.
 """
 from __future__ import annotations
 
@@ -118,29 +118,30 @@ def helix_tags(bands, overrides) -> dict[int, str]:
     return out
 
 
-HELIX_TRACKS = railroad.Sources.under().helix_tracks
+HELIX_SOURCE = railroad.Sources.under().plan_overrides     # plan_overrides.json: the helix ends and map
 
 
 def read_helix_tracks(path: Path | None = None) -> dict[str, dict]:
-    """{plan helix track name: {block, staging_switch, level_switch}} from helix_tracks.csv (hartlib.railroad
-    .read_helix_tracks, which checks it): each helix track is one JMRI block from its staging switch to its main or
-    upper switch (owner, 2026-11-20). Its FactsError as a MapError."""
+    """{plan helix track name: {block, staging_switch, level_switch, shown}} from the plan overrides (hartlib.railroad
+    .read_helix_tracks, which checks them): each helix track is one JMRI block, "Track <plan name>" by the ordinary
+    rule, from its staging switch to its main or upper switch (owner, 2026-11-20/21); `shown` is the name a reader
+    sees (preferences.json track_labels). Its FactsError as a MapError."""
     try:
-        got = railroad.read_helix_tracks(path or HELIX_TRACKS)
+        got = railroad.read_helix_tracks(path or HELIX_SOURCE)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
-    return {h.helix: {"block": h.block, "staging_switch": h.staging_switch, "level_switch": h.level_switch}
-            for h in got.values()}
+    return {h.helix: {"block": h.block, "staging_switch": h.staging_switch, "level_switch": h.level_switch,
+                      "shown": h.shown} for h in got.values()}
 
 
 def helix_blocks(overrides, helix=None) -> dict[str, str]:
     """{helix tag ("H1", "H2", as helix_tags gives them): block} for the main and upper levels: the overrides' helix
-    tracks in order, each named in helix_tracks.csv. Stops on a helix track the file does not name, or one it names
-    that the overrides do not have."""
+    tracks in order, each "Track <plan name>" (read_helix_tracks). Stops on a helix track of `overrides` that
+    `helix` does not hold, or one it holds that the overrides do not have."""
     helix = read_helix_tracks() if helix is None else helix
     plan = list(overrides.get("helix", {}).values())
     if sorted(plan) != sorted(helix):
-        raise MapError(f"{HELIX_TRACKS.name} names helix tracks {sorted(helix)}, the plan overrides {sorted(plan)}")
+        raise MapError(f"the helix tracks are {sorted(helix)}, the plan overrides' helix map {sorted(plan)}")
     return {f"H{i + 1}": helix[name]["block"] for i, name in enumerate(plan)}
 
 
@@ -192,7 +193,7 @@ def track_names(found, helix=None) -> None:
         if hx and helix is not None:
             if len(hx) != 1 or hx[0] not in helix:
                 raise MapError(f"track {', '.join(t['trial'])} reaches helix {', '.join(hx)}, which "
-                               f"{HELIX_TRACKS.name} names no block for")
+                               "is no helix track of the plan overrides")
             groups[helix[hx[0]]].append(t)
             continue
         if len(sw) == 2 and sw[0] == sw[1]:
@@ -217,7 +218,7 @@ SWITCH_NUMBER = re.compile(r"\d+")
 def track_key(t: dict) -> tuple[str, str] | None:
     """The end switches of a track entry, lower number first: (a, b) between two switches, (n, n) for a balloon loop
     and (n, "") for a spur (one switch, a bumper at the other end). None for a track up the helix, which its helix
-    block names (helix_tracks.csv). Hand lists name a track by this key, so a renumbered switch moves the row with
+    block names ("Track <plan name>"). Hand lists name a track by this key, so a renumbered switch moves the row with
     it, where a generated name ("Track 119-121") would have to be retyped."""
     if any(k == "helix" for k, _v in t["ends"]):
         return None
@@ -237,32 +238,88 @@ def key_problem(row: dict) -> str:
     return ""
 
 
-def read_track_rows(path: Path, columns: list[str]) -> list[dict]:
-    """The rows of a hand list keyed by end switches (`columns` holds TRACK_KEY_COLUMNS), each with its `line`.
-    switch_a and switch_b are switch numbers, lower first; switch_b is blank for a spur (a bumper at the other end);
-    `parallel` (1, 2, from the top row, as the generated names count) is needed only where two tracks run between
-    the same switches. Stops on columns not in that shape or a malformed row, naming the line."""
+OVERRIDES_NAME = "block_overrides.csv"     # in the schematic data folder, beside plan_overrides.json
+OVERRIDE_COLUMNS = ["level", "kind"] + TRACK_KEY_COLUMNS + ["end", "block", "cm", "inside", "notes"]
+OVERRIDE_KINDS = ("split", "track", "crossover_half")
+
+
+def read_block_overrides(path: Path, kinds: tuple[str, ...] = OVERRIDE_KINDS) -> list[dict]:
+    """The rows of `kinds` of block_overrides.csv (OVERRIDE_COLUMNS), the owner's hand facts about blocks, each with
+    its `line` and its `cm` a number (None when blank); a short row's missing trailing fields are empty. Every row of every kind is checked for its shape, whichever
+    kinds are asked for, so a bad row stops every reader of the file; resolving a row against the drawing is the
+    reader's (read_block_splits, block_layer.read_exceptions). A row of any level (1 staging, 2 main, 3 upper), keyed
+    by switch numbers so a new export moves it with its track:
+    - split: the track switch_a to switch_b (lower first; parallel where two tracks run between them, resolve_track)
+      is two blocks parted at its turnback. The OWNER'S CHOICE, not a rule (owner, 2026-11-20: a rule would catch
+      every intermediate loop). No end, block, cm or inside.
+    - track: the track switch_a to switch_b (as for split), or with `end` one of them the piece of it at that end, is
+      part of `block`, an OS block, where the field wiring (or, on main and upper, the owner) says so; `cm` the
+      piece's length, for a piece at one end whose track keeps the rest; `inside` yes keeps it inside its OS block
+      with no JMRI or layout block of its own. block_layer's module text has the rules.
+    - crossover_half: switch_a the crossover's number, switch_b the switch its half's leg A track runs to, `block` the
+      half's own OS block. No parallel, end, cm or inside.
+    MapError naming the file and line on columns not OVERRIDE_COLUMNS, a level not 1 to 3, a kind not
+    OVERRIDE_KINDS, or a row not in its kind's shape."""
     import csv
+    unknown = sorted(set(kinds) - set(OVERRIDE_KINDS))
+    if unknown:
+        raise MapError(f"{path.name}: no kind {', '.join(unknown)} (kinds: {', '.join(OVERRIDE_KINDS)})")
     try:
         with open(path, newline="", encoding="utf-8") as fh:
             reader = csv.DictReader(fh)
             rows = list(reader)
     except OSError as exc:
         raise MapError(f"cannot read {path.name}: {exc}") from None
-    if reader.fieldnames != columns:
-        raise MapError(f"{path.name}: columns {reader.fieldnames}, not {columns}")
+    if reader.fieldnames != OVERRIDE_COLUMNS:
+        raise MapError(f"{path.name}: columns {reader.fieldnames}, not {OVERRIDE_COLUMNS}")
     out, bad = [], []
     for i, r in enumerate(rows, 2):
+        if None in r:                       # a short row's missing trailing fields are empty, as csv reads them
+            bad.append(f"line {i}: more fields than the header's {len(OVERRIDE_COLUMNS)}")
+            continue
         r = {k: (v or "").strip() for k, v in r.items()}
         r["line"] = i
-        problem = key_problem(r)
+        problem = override_problem(r)
         if problem:
-            bad.append(f"line {i}: {problem}")
-        else:
+            bad.append(f"line {i} (level {r['level']}, kind {r['kind']}): {problem}")
+            continue
+        r["cm"] = float(r["cm"]) if r["cm"] else None
+        if r["kind"] in kinds:
             out.append(r)
     if bad:
         raise MapError(f"{path.name}: " + "; ".join(bad))
     return out
+
+
+def override_problem(r: dict) -> str:
+    """Why a block_overrides.csv row (its fields stripped) is not in its kind's shape ("" when it is)."""
+    if r["level"] not in ("1", "2", "3") or r["kind"] not in OVERRIDE_KINDS:
+        return f"level is 1, 2 or 3 and kind one of {', '.join(OVERRIDE_KINDS)}"
+    kind = r["kind"]
+    if kind == "split":
+        if r["end"] or r["block"] or r["cm"] or r["inside"]:
+            return "a split is a track's switch_a, switch_b and parallel, with no end, block, cm or inside"
+        return key_problem(r)
+    if not r["block"].startswith("OS Switch "):
+        return f"block {r['block']!r} is no OS block (a piece of track is part of a switch's OS block)"
+    if kind == "crossover_half":
+        if not (SWITCH_NUMBER.fullmatch(r["switch_a"]) and SWITCH_NUMBER.fullmatch(r["switch_b"])) or \
+                r["parallel"] or r["end"] or r["cm"] or r["inside"]:
+            return ("a crossover half is switch_a (the crossover) and switch_b (where its leg A track runs), with no "
+                    "parallel, end, cm or inside")
+        return ""
+    try:
+        cm = float(r["cm"]) if r["cm"] else None
+    except ValueError:
+        cm = -1.0
+    if cm is not None and not cm > 0:
+        return f"cm {r['cm']!r} is a length in cm, more than 0"
+    if r["inside"] not in ("", "yes"):
+        return f"inside is yes or empty, not {r['inside']!r}"
+    problem = key_problem(r)
+    if problem or not r["switch_b"] or (r["end"] and r["end"] not in (r["switch_a"], r["switch_b"])):
+        return problem or "a track between two switches, its end empty or one of them"
+    return ""
 
 
 def resolve_track(row: dict, found: list[dict]) -> dict | None:
@@ -373,27 +430,22 @@ def signalled_spurs(found, cp_of: dict) -> set[str]:
     return out
 
 
-SPLIT_COLUMNS = ["level"] + TRACK_KEY_COLUMNS + ["notes"]
-
-
 def read_block_splits(path: Path, found: list[dict], levels) -> set[str]:
-    """The names of the tracks block_splits.csv parts into two blocks at their turnback, among `found` and the
-    `levels` ({band key: level}) asked for. Each row is the OWNER'S CHOICE, not a rule (owner, 2026-11-20: a rule would
-    catch every intermediate loop): `level` and the track's end switches (read_track_rows' key), resolved at build
-    time. Stops on a file not in that shape, a level that is not 1 to 3, a row naming no track or a track on another
-    level, or a track two rows name. A row of a level not asked for is checked for shape only."""
+    """The names of the tracks block_overrides.csv's split rows (read_block_overrides) part into two blocks at their
+    turnback, among `found` and the `levels` ({band key: level}) asked for, each row's end switches resolved at build
+    time. Stops on a row naming no track or a track on another level, or a track two rows name. A row of a level not
+    asked for is checked for shape only."""
     wanted = set(levels.values())
-    rows = read_track_rows(path, SPLIT_COLUMNS)
-    bad = [f"line {r['line']}: level {r['level']!r} is 1, 2 or 3" for r in rows if r["level"] not in ("1", "2", "3")]
-    out, seen = set(), {}
+    rows = read_block_overrides(path, ("split",))
+    out, seen, bad = set(), {}, []
     for r in rows:
-        if bad or int(r["level"]) not in wanted:
+        if int(r["level"]) not in wanted:
             continue
         t = resolve_track(r, [t for t in found if t["level"] == int(r["level"])])
         if t is None:
             bad.append(f"line {r['line']}: level {r['level']}: {r['problem']}")
         elif t["name"] in seen:
-            bad.append(f"line {r['line']}: {t['name']} is already named on line {seen[t['name']]}")
+            bad.append(f"line {r['line']}: {t['name']} is already split on line {seen[t['name']]}")
         else:
             seen[t["name"]] = r["line"]
             out.add(t["name"])

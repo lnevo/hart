@@ -860,13 +860,13 @@
    "path": "jmri/layouts/hart/data/schematic/approved_staging.sha256"
   },
   {
-   "id": "jmri/layouts/hart/data/schematic/block_exceptions.csv",
-   "label": "block_exceptions.csv",
+   "id": "jmri/layouts/hart/data/schematic/block_overrides.csv",
+   "label": "block_overrides.csv",
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Hand exceptions to the block rule (parts of blocks, piece lengths).",
-   "path": "jmri/layouts/hart/data/schematic/block_exceptions.csv"
+   "desc": "The owner's hand facts about blocks, by kind: split (tracks parted into two blocks at their turnback, the owner's choice), track (pieces of track inside an OS block, their lengths) and crossover_half.",
+   "path": "jmri/layouts/hart/data/schematic/block_overrides.csv"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/block_numbering.csv",
@@ -878,15 +878,6 @@
    "path": "jmri/layouts/hart/data/schematic/block_numbering.csv"
   },
   {
-   "id": "jmri/layouts/hart/data/schematic/block_splits.csv",
-   "label": "block_splits.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Owner's choice of tracks parted into two blocks at their turnback.",
-   "path": "jmri/layouts/hart/data/schematic/block_splits.csv"
-  },
-  {
    "id": "jmri/layouts/hart/data/schematic/discovered_sml.xml",
    "label": "discovered_sml.xml",
    "kind": "structured",
@@ -894,15 +885,6 @@
    "domain": "layout",
    "desc": "Signal Mast Logic and mast properties captured from stock JMRI discovery; merged into tables.xml.",
    "path": "jmri/layouts/hart/data/schematic/discovered_sml.xml"
-  },
-  {
-   "id": "jmri/layouts/hart/data/schematic/helix_tracks.csv",
-   "label": "helix_tracks.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Helix blocks: one JMRI block from staging switch up the helix.",
-   "path": "jmri/layouts/hart/data/schematic/helix_tracks.csv"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/inputs/main.json",
@@ -1263,7 +1245,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Renders the Build track-plan article from level SVGs, block_lengths, helix_tracks and speedmatch routes; --check in tools/check.sh.",
+   "desc": "Renders the Build track-plan article from level SVGs, block_lengths, the helix tracks (plan_overrides, track_labels) and speedmatch routes; --check in tools/check.sh.",
    "path": "tools/anyrail/levels_page.py"
   },
   {
@@ -3748,7 +3730,7 @@
   },
   {
    "from": "human:owner-csv-edits",
-   "to": "jmri/layouts/hart/data/schematic/block_splits.csv",
+   "to": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "label": "edits"
   },
   {
@@ -4047,12 +4029,12 @@
    "label": "checks"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/block_exceptions.csv",
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/block_exceptions.csv",
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/plan_lengths.py",
    "label": "reads"
   },
@@ -4062,12 +4044,7 @@
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/block_splits.csv",
-   "to": "tools/schematic/build_device_map.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/block_splits.csv",
+   "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
    "to": "tools/schematic/build_staging_masts.py",
    "label": "reads"
   },
@@ -4077,11 +4054,11 @@
    "label": "SML merge"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/helix_tracks.csv",
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/anyrail/levels_page.py"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/helix_tracks.csv",
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
@@ -4192,11 +4169,6 @@
   {
    "from": "jmri/layouts/hart/data/schematic/panel_items.json",
    "to": "tools/schematic/build_layout_le.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
-   "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
   {

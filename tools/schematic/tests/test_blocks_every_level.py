@@ -366,7 +366,7 @@ STAGING_LAYER = {
 # (rows, sha256) of each level's block and occupancy rows but the parts, every column but written_by, part_of,
 # jmri_bean (only ever set on a level-less row) and trial_name (pinned row by row above, on every level), joined by
 # commas, one row a line, in file order
-DIGESTS = {"1": (90, 'd2f33636e9ffe8ff0123f05aca510884ab73a3e1afe7ac7b3f11f8d904bc9710'), "2": (76, '2c21c33b454e521f57f9cc0399c9ec19eee8457a7d4368a25be71f976d3bebfe'), "3": (118, 'd6f9ee403de63010ab6fefa93b9c7d09e34b8702dcf65b581077264b41fa41fd')}
+DIGESTS = {"1": (90, 'd2f33636e9ffe8ff0123f05aca510884ab73a3e1afe7ac7b3f11f8d904bc9710'), "2": (76, '2c21c33b454e521f57f9cc0399c9ec19eee8457a7d4368a25be71f976d3bebfe'), "3": (118, '4ab0916d81d27de7a97f7c573fee7bdee9d10d80a70f3f5b1d6bb3e7150e1f1f')}
 SKIP = {level: ("written_by", "trial_name", "part_of", "jmri_bean") for level in "123"}
 
 

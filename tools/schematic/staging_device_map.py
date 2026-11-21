@@ -24,12 +24,12 @@ Files (jmri/layouts/hart/data/, schematic/ for the rest):
   the field; a block's `stop` "yes" for a Dispatcher System station, as its tables.xml comment marks it ("; stop",
   checked); a mast's `switch`, `facing` and `protects` as staging_masts.csv has them. The rules every level's rows
   keep are check_device_master.row_problems', which load() runs on these rows.
-  A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
+  A helix block (plan_overrides.json: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
   up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
   levels 2 and 3 of devices.csv, which name the same block for the piece on its level (check_device_master.check_rows).
 - parts (devices.csv part_of, role part; owner, 2026-11-20): a short piece of track between two switches has a block
   row of its own that names the block it is part of (the lower-numbered switch's OS block by rule, or the one
-  block_exceptions.csv gives it), and its trial_name. A part is a JMRI block of its own on that block's occupancy
+  block_overrides.csv gives it), and its trial_name. A part is a JMRI block of its own on that block's occupancy
   sensor (owner, 2026-11-20): load() draws its pieces as the part, and os_layer reads them inside its block, as the
   masts do. The device maps leave parts out (hartlib.devices.OUT_OF_MAPS), so load() reads them from the master.
 - stations.csv (level, station, switches, tracks, desk_code, notes): the stations, and through their desk codes
@@ -82,7 +82,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import le_common as lc  # noqa: E402  the band key, plugin, solved schematic and the files the build reads
 import le_names as ln  # noqa: E402  runs and crossovers
 import build_main_upper_masts as bmm  # noqa: E402  LEGS: two masts on one block pair, by letter
-import mast_rule as mr  # noqa: E402  the helix tracks (helix_tracks.csv)
+import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
 import publish_draft as pd  # noqa: E402  DATA and the plugin cache
 from hartlib import devices, layer_files, level_masts, paths, railroad, tables  # noqa: E402
 
@@ -272,7 +272,7 @@ def occupancy_blocks(r: dict) -> list[str]:
 
 
 def check_helix(band, names: dict, helix: dict | None = None) -> list[str]:
-    """Each helix track of helix_tracks.csv is drawn on the staging band from its staging_switch, and its staging
+    """Each helix track of plan_overrides.json is drawn on the staging band from its staging_switch, and its staging
     piece is that file's block (load()'s names)."""
     helix = mr.read_helix_tracks() if helix is None else helix
     bad = []
@@ -286,7 +286,7 @@ def check_helix(band, names: dict, helix: dict | None = None) -> list[str]:
                   if band["nodes"][e[0]]["kind"] == "switch"]
         if labels != [h["staging_switch"]] or names["blocks"].get(sids[0]) != [h["block"]]:
             bad.append(f"helix track {plan}: from switch {', '.join(map(str, labels)) or 'none'} in block(s) "
-                       f"{names['blocks'].get(sids[0])}, {mr.HELIX_TRACKS.name} says Switch {h['staging_switch']}, "
+                       f"{names['blocks'].get(sids[0])}, {mr.HELIX_SOURCE.name} says Switch {h['staging_switch']}, "
                        f"{h['block']}")
     return bad
 
