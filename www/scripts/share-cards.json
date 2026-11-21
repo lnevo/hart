@@ -341,7 +341,7 @@
     "library/pipeline-map.html": {
       "image": "assets/share/library-pipeline-map.jpg",
       "alt": "The pipeline map filtered to run_sml_discover.sh: tables.xml, discover_sml.py and build_tables.py feed it, and it feeds discovered_sml.xml, in the Layout control lane.",
-      "from": "the map's own filtered view library/pipeline-map.html#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1, drawn by the page with its toolbar, legend, overview and info panel hidden (make_share_cards.py pipeline_map); update the alt if that file's links change"
+      "from": "the map's own filtered view library/pipeline-map.html#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1&compact=0, drawn by the page with its toolbar, legend, overview and info panel hidden (make_share_cards.py pipeline_map); update the alt if that file's links change"
     },
     "library/operations-pro-article.html": {
       "image": "assets/share/library-operations-pro-article.jpg",

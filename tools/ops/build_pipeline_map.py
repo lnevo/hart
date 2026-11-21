@@ -161,7 +161,7 @@ html,body{margin:0;height:100%;font:13px -apple-system,BlinkMacSystemFont,"Segoe
 #wrap.drag{cursor:grabbing}
 svg{width:100%;height:100%;display:block;user-select:none}
 .panel{background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-#bar{position:absolute;top:10px;left:10px;z-index:5;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+#bar{position:absolute;top:10px;left:10px;z-index:8;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
  max-width:calc(100vw - 420px)}
 #bar input[type=search]{width:170px;padding:4px 6px}
 #bar #file{width:260px;padding:4px 6px}
@@ -236,6 +236,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 <input type="search" id="q" placeholder="Highlight text…">
 <span id="hits"></span>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share this view</button>
 <details id="lanes"><summary>Filters ▾</summary><div id="lanelist" class="panel">
 <b>Lanes</b><div id="lanerows"></div>
 <b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
@@ -244,10 +245,9 @@ __SITECSS__</style></head><body>__SITEHEADER__
 <label title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
 </div></details>
-<label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact"> compact</label>
+<label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact" checked> compact</label>
 <label title="Draw the whole map as one box per folder; double-click a folder to open it"><input type="checkbox" id="group"> folders</label>
 <label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> highlighted only</label>
-<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
 <div id="presets"></div>
 <span id="depth" hidden title="How many links to show either side of the file">
  <span class="side">← feeds it <button data-side="up" data-step="-1">−</button> <b id="upn">all</b>
@@ -269,8 +269,8 @@ is what it feeds (0 hides that side, all runs to the end). The <b>Start with</b>
 about most.</div>
 <div><b>Filters ▾</b> picks the lanes and the kinds of box to draw, and whether parked and retired boxes show. Untick a
 kind, such as scripts, and its boxes are left out with their links joined up, so data runs straight to what it ends
-up in. <b>Compact</b> draws boxes as names only. <b>Folders</b> draws the whole map as one dashed box per folder;
-double-click a folder, or use Open in its panel, to see its files. <b>Share</b> copies a link to the view as it is,
+up in. <b>Compact</b> (on to start with) draws boxes as names only; untick it for each box's path and description. <b>Folders</b> draws the whole map as one dashed box per folder;
+double-click a folder, or use Open in its panel, to see its files. <b>Share this view</b> copies a link to the view as it is,
 with the selected box, zoom and position; the address bar also keeps the view, without the zoom.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>

@@ -257,7 +257,7 @@ def repo_guide():
 
 
 def pipeline_map():
-    """library-pipeline-map: the map's own filtered view of run_sml_discover.sh, one step each side (#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1), drawn by the page with its toolbar and panels hidden."""
+    """library-pipeline-map: the map's own filtered view of run_sml_discover.sh, one step each side (#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1&compact=0, full boxes), drawn by the page with its toolbar and panels hidden."""
     built = subprocess.run([sys.executable, str(REPO / "tools/ops/build_pipeline_map.py"), "--public", "--out",
                             "www/library/pipeline-map.html", "--back", "repository-guide.html", "--check"],
                            cwd=REPO, capture_output=True, text=True)
@@ -268,7 +268,7 @@ def pipeline_map():
     hide = "<style>.site-header,#bar,#legend,#nav,#info{display:none!important}#stage{background:#fafafa!important}</style>"
     out = _tmp / "pipeline-map-view.html"
     out.write_text(page.replace("</head>", hide + "</head>", 1), encoding="utf-8")
-    im = shot(out.as_uri() + "#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1")  # 2400 x 1260
+    im = shot(out.as_uri() + "#focus=jmri/layouts/hart/scripts/run_sml_discover.sh&up=1&down=1&compact=0")  # 2400 x 1260
     return card(_fill_band(im))
 
 

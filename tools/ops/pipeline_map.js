@@ -348,7 +348,7 @@ function app() {
   const allLanes = DATA.domains.map(d => d.id);
 
   const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false,
-                 kindsOff: new Set(), compact: false, group: false, open: new Set() };
+                 kindsOff: new Set(), compact: true, group: false, open: new Set() };
   let groups = { members: {}, groupOf: {} }, gNodes = {};  // folder boxes in the current drawing
   const nodeOf = id => byId[id] || gNodes[id];
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
@@ -855,7 +855,7 @@ function app() {
   document.getElementById("trim").onchange = e => { view.trim = e.target.checked; render(selected === null); writeHash(); };
   document.getElementById("labels").onchange = e => document.getElementById("elabels").classList.toggle("hidden", !e.target.checked);
 
-  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=1
+  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=0
      &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width> (the zoom and position) */
   function writeHash(withView = false) {
     const h = new URLSearchParams();
@@ -866,7 +866,7 @@ function app() {
     if (show.length) h.set("show", show.join(","));
     if (view.trim) h.set("trim", "1");
     if (view.kindsOff.size) h.set("hidekind", [...view.kindsOff].join(","));
-    if (view.compact) h.set("compact", "1");
+    if (!view.compact) h.set("compact", "0");  // compact is the default
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
     if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).join(","));
@@ -891,7 +891,7 @@ function app() {
     else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     view.trim = h.get("trim") === "1";
     view.kindsOff = new Set((h.get("hidekind") || "").split(",").filter(hideable));
-    view.compact = h.get("compact") === "1";
+    view.compact = h.get("compact") !== "0";
     view.group = h.get("folders") === "1";
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");

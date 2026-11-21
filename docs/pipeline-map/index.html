@@ -10,7 +10,7 @@ html,body{margin:0;height:100%;font:13px -apple-system,BlinkMacSystemFont,"Segoe
 #wrap.drag{cursor:grabbing}
 svg{width:100%;height:100%;display:block;user-select:none}
 .panel{background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
-#bar{position:absolute;top:10px;left:10px;z-index:5;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+#bar{position:absolute;top:10px;left:10px;z-index:8;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
  max-width:calc(100vw - 420px)}
 #bar input[type=search]{width:170px;padding:4px 6px}
 #bar #file{width:260px;padding:4px 6px}
@@ -85,6 +85,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 <input type="search" id="q" placeholder="Highlight text…">
 <span id="hits"></span>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share this view</button>
 <details id="lanes"><summary>Filters ▾</summary><div id="lanelist" class="panel">
 <b>Lanes</b><div id="lanerows"></div>
 <b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
@@ -93,10 +94,9 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 <label title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
 </div></details>
-<label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact"> compact</label>
+<label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact" checked> compact</label>
 <label title="Draw the whole map as one box per folder; double-click a folder to open it"><input type="checkbox" id="group"> folders</label>
 <label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> highlighted only</label>
-<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
 <div id="presets"></div>
 <span id="depth" hidden title="How many links to show either side of the file">
  <span class="side">← feeds it <button data-side="up" data-step="-1">−</button> <b id="upn">all</b>
@@ -118,8 +118,8 @@ is what it feeds (0 hides that side, all runs to the end). The <b>Start with</b>
 about most.</div>
 <div><b>Filters ▾</b> picks the lanes and the kinds of box to draw, and whether parked and retired boxes show. Untick a
 kind, such as scripts, and its boxes are left out with their links joined up, so data runs straight to what it ends
-up in. <b>Compact</b> draws boxes as names only. <b>Folders</b> draws the whole map as one dashed box per folder;
-double-click a folder, or use Open in its panel, to see its files. <b>Share</b> copies a link to the view as it is,
+up in. <b>Compact</b> (on to start with) draws boxes as names only; untick it for each box's path and description. <b>Folders</b> draws the whole map as one dashed box per folder;
+double-click a folder, or use Open in its panel, to see its files. <b>Share this view</b> copies a link to the view as it is,
 with the selected box, zoom and position; the address bar also keeps the view, without the zoom.</div>
 <div style="color:#666">Built 2026-11-21 from docs/pipeline-map/pipeline_map.json · 346 boxes, 638 links</div></details>
 <div id="info" class="panel"></div>
@@ -476,7 +476,7 @@ function app() {
   const allLanes = DATA.domains.map(d => d.id);
 
   const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false,
-                 kindsOff: new Set(), compact: false, group: false, open: new Set() };
+                 kindsOff: new Set(), compact: true, group: false, open: new Set() };
   let groups = { members: {}, groupOf: {} }, gNodes = {};  // folder boxes in the current drawing
   const nodeOf = id => byId[id] || gNodes[id];
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
@@ -983,7 +983,7 @@ function app() {
   document.getElementById("trim").onchange = e => { view.trim = e.target.checked; render(selected === null); writeHash(); };
   document.getElementById("labels").onchange = e => document.getElementById("elabels").classList.toggle("hidden", !e.target.checked);
 
-  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=1
+  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=0
      &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width> (the zoom and position) */
   function writeHash(withView = false) {
     const h = new URLSearchParams();
@@ -994,7 +994,7 @@ function app() {
     if (show.length) h.set("show", show.join(","));
     if (view.trim) h.set("trim", "1");
     if (view.kindsOff.size) h.set("hidekind", [...view.kindsOff].join(","));
-    if (view.compact) h.set("compact", "1");
+    if (!view.compact) h.set("compact", "0");  // compact is the default
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
     if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).join(","));
@@ -1019,7 +1019,7 @@ function app() {
     else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     view.trim = h.get("trim") === "1";
     view.kindsOff = new Set((h.get("hidekind") || "").split(",").filter(hideable));
-    view.compact = h.get("compact") === "1";
+    view.compact = h.get("compact") !== "0";
     view.group = h.get("folders") === "1";
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");
