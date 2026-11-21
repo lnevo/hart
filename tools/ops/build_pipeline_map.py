@@ -6,6 +6,10 @@ in docs/pipeline-map/pipeline_map.json.
 
     python3 tools/ops/build_pipeline_map.py            write the page
     python3 tools/ops/build_pipeline_map.py --check    exit 1 when the graph is broken or the page is out of date
+    python3 tools/ops/build_pipeline_map.py --public --out www/... [--back HREF]   the website copy (with --check too)
+
+The website copy renames the gitignored mirrors (PUBLIC_NAMES), whose real paths the site build treats as leaks, and
+can carry a link back to the page that links to it.
 
 The graph file holds domains (the horizontal lanes), nodes and edges. A node's `path` must exist in the checkout
 unless the node says `"local": true` (a gitignored mirror or a file made on a host). This script checks the graph and
@@ -17,6 +21,7 @@ from __future__ import annotations
 import argparse
 import functools
 import html
+import importlib.util
 import json
 import subprocess
 import sys
@@ -37,6 +42,12 @@ KINDS = {
     "human": ("Hand work", "#fce7f3", "#9d174d"),
 }
 STATUSES = ("live", "parked", "retired")
+# Gitignored mirrors whose paths the website's leak check rejects; the public page names them like this instead.
+PUBLIC_NAMES = {
+    "external/sts-docker-data": "sts-docker-data (mirror)",
+    "ops/car-cards": "car-cards workspace",
+    "media/hart-research": "media mirror: hart-research",
+}
 
 
 class GraphError(Exception):
@@ -135,9 +146,11 @@ svg{width:100%;height:100%;display:block;user-select:none}
 .panel{background:#fff;border:1px solid #ccc;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.12)}
 #bar{position:fixed;top:10px;left:10px;z-index:5;padding:8px 10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;
  max-width:calc(100vw - 420px)}
-#bar input[type=search]{width:240px;padding:4px 6px}
+#bar input[type=search]{width:170px;padding:4px 6px}
+#bar #file{width:260px;padding:4px 6px}
 #bar button{padding:3px 9px}
 #bar h1{font-size:14px;margin:0 6px 0 0}
+#back{color:#1d4ed8;text-decoration:none;margin-right:4px}
 #view{flex-basis:100%;color:#333}
 #view:empty{display:none}
 #lanes{position:relative}
@@ -155,8 +168,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info .off{color:#888;font-size:11px}
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
 #info .chain{background:#f1f5f9;border-radius:6px;padding:8px;margin:8px 0 12px;line-height:2}
-.band{font-size:110px;font-weight:800;opacity:.35}
-.band.small{font-size:22px;opacity:.6}
+.band{font-weight:800;opacity:.45}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
 .elabel{font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
@@ -180,13 +192,15 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 .hidden{display:none}
 </style></head><body>
 <div id="wrap"></div>
-<div id="bar" class="panel"><h1>HART pipeline map</h1>
-<input type="search" id="q" placeholder="Find a file, script or output…">
+<div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
+<label>File <input list="files" id="file" placeholder="Pick a file to see its whole chain…" autocomplete="off"></label>
+<datalist id="files"></datalist>
+<input type="search" id="q" placeholder="Highlight text…">
 <span id="hits"></span>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
 <details id="lanes"><summary>Lanes ▾</summary><div id="lanelist" class="panel"></div></details>
-<label><input type="checkbox" id="parked" checked> parked</label>
-<label><input type="checkbox" id="retired" checked> retired</label>
+<label title="Parked features (NX, Dispatcher System, USS CTC)" data-title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
+<label title="Retired tools kept for reference" data-title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
 <span id="view"></span>
 </div>
@@ -195,9 +209,11 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 to an earlier step.</div>
 <div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Click a box for what feeds it (amber) and what it feeds
 (blue).</div>
-<div><b>Subsets:</b> Lanes ▾ picks the lanes to draw (or "only" one). Double-click a box, or use "Show only this box's
-chain" in its panel, to draw just that file and what feeds it and what it feeds, to a chosen number of steps. The
-address bar keeps the view, so it can be bookmarked or shared.</div>
+<div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
+that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
+out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The panel beside it can narrow that to the file's own links or a few steps. <b>Lanes ▾</b> picks the lanes of
+the whole map. Parked and retired boxes are hidden there until ticked; a file view always shows them. The address bar
+keeps the view, so it can be bookmarked or shared.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
 <script>const DATA = __DATA__;</script>
@@ -207,7 +223,35 @@ __SCRIPT__
 """
 
 
-def render(data: dict) -> str:
+def public_copy(data: dict) -> dict:
+    """The graph with every mirror path in PUBLIC_NAMES renamed, in ids, paths, labels, descriptions and links."""
+    def fix(value):
+        if isinstance(value, str):
+            for real, shown in PUBLIC_NAMES.items():
+                value = value.replace(real, shown)
+            return value
+        if isinstance(value, list):
+            return [fix(v) for v in value]
+        if isinstance(value, dict):
+            return {k: fix(v) for k, v in value.items()}
+        return value
+
+    out = fix(data)
+    leaks = sorted({m.group() for m in site_leak_patterns().finditer(json.dumps(out))})
+    if leaks:
+        raise GraphError(f"the public copy still holds text the website's leak check rejects: {', '.join(leaks)}")
+    return out
+
+
+def site_leak_patterns():
+    """The website build's own leak check (www/scripts/prepare_github_pages.py LEAK_PATTERNS), so the two agree."""
+    spec = importlib.util.spec_from_file_location("prepare_github_pages", ROOT / "www/scripts/prepare_github_pages.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.LEAK_PATTERNS
+
+
+def render(data: dict, back: str = "") -> str:
     legend = "".join(
         f'<div><span class="sw" style="background:{fill};border-color:{ink}"></span>{esc(label)}</div>'
         for label, fill, ink in KINDS.values()
@@ -223,8 +267,10 @@ def render(data: dict) -> str:
         "domainColor": {d["id"]: d["color"] for d in data["domains"]},
     }
     counts = f'{len(data["nodes"])} boxes, {len(data["edges"])} links'
+    back_link = f'<a id="back" href="{esc(back)}">← Inside the repository</a>' if back else ""
     return (
-        PAGE_TEMPLATE.replace("__LEGEND__", legend)
+        PAGE_TEMPLATE.replace("__BACK__", back_link)
+        .replace("__LEGEND__", legend)
         .replace("__DATE__", esc(data.get("updated", "")))
         .replace("__COUNTS__", counts)
         .replace("__DATA__", json.dumps(page_data, separators=(",", ":")).replace("<", "\\u003c"))
@@ -237,13 +283,17 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--check", action="store_true", help="fail when the graph is broken or the page is stale")
     ap.add_argument("--graph", type=Path, default=GRAPH)
     ap.add_argument("--out", type=Path, default=PAGE)
+    ap.add_argument("--public", action="store_true", help="write the website copy (mirror paths renamed); needs --out")
+    ap.add_argument("--back", default="", help="link at the top left of the page, back to the page that links to it")
     args = ap.parse_args(argv)
+    if args.public and args.out.resolve() == PAGE.resolve():
+        ap.error("--public writes the website copy; give it --out")
     try:
         data = load(args.graph)
+        page = render(public_copy(data) if args.public else data, args.back)
     except GraphError as err:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
-    page = render(data)
     if args.check:
         if not args.out.exists() or args.out.read_text() != page:
             print(f"{args.out} is out of date: run python3 tools/ops/build_pipeline_map.py", file=sys.stderr)

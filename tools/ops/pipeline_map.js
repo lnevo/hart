@@ -247,17 +247,24 @@ function app() {
   const wrapEl = document.getElementById("wrap"), info = document.getElementById("info");
   const allLanes = DATA.domains.map(d => d.id);
 
-  const view = { lanes: new Set(allLanes), parked: true, retired: true, focus: null, dir: "both", depth: Infinity };
+  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, dir: "both", depth: Infinity };
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
   let nodeEl = {}, edgeEls = [], ins = {}, outs = {}, visible = new Set();
 
   /* ---- which boxes are shown */
+  /* A chain is drawn through boxes but stops at deploy, hosts and runtime apps (the "hosts" lane) and at hand work:
+     they are shown, not walked through, because everything deploys and the Pi's saved state comes back, so walking
+     through them would reach most of the map. */
+  const endsChain = id => byId[id].domain === "hosts" || byId[id].kind === "host" || byId[id].kind === "human";
   function reach(start, adj, key, depth) {
     const seen = new Set([start]);
     let frontier = [start];
     for (let d = 0; d < depth && frontier.length; d++) {
       const next = [];
-      frontier.forEach(v => (adj[v] || []).forEach(e => { const w = e[key]; if (!seen.has(w)) { seen.add(w); next.push(w); } }));
+      frontier.forEach(v => {
+        if (v !== start && endsChain(v)) return;
+        (adj[v] || []).forEach(e => { const w = e[key]; if (!seen.has(w)) { seen.add(w); next.push(w); } });
+      });
       frontier = next;
     }
     return seen;
@@ -269,10 +276,12 @@ function app() {
       if (view.dir !== "down") reach(view.focus, insAll, "from", view.depth).forEach(v => keep.add(v));
       if (view.dir !== "up") reach(view.focus, outsAll, "to", view.depth).forEach(v => keep.add(v));
     }
-    const shown = n => n.id === view.focus || (view.lanes.has(n.domain) && (n.status === "live" || !n.status || view[n.status]));
+    // a file view shows every box related to the file, whatever its lane or status
+    const shown = n => view.focus || (view.lanes.has(n.domain) && (n.status === "live" || !n.status || view[n.status]));
     const nodes = DATA.nodes.filter(n => keep.has(n.id) && shown(n));
     const ids = new Set(nodes.map(n => n.id));
-    return { nodes, edges: DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to)) };
+    const own = view.focus && view.depth === 1;  // only the file's own links, not those between its neighbours
+    return { nodes, edges: DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus)) };
   }
 
   /* ---- drawing */
@@ -293,11 +302,11 @@ function app() {
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
     const big = lay.width > 4000;
     for (const b of lay.bands) {
-      const c = esc(b.color);
+      const c = esc(b.color), size = Math.round(Math.max(18, Math.min(big ? 110 : 22, b.h * 0.3)));
       p.push(`<rect x="${-LEFT}" y="${b.y}" width="${W}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
         `<line x1="${-LEFT}" x2="${W - LEFT}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
       for (let x = -LEFT + 10; x < W - LEFT; x += 3000)
-        p.push(`<text class="band${big ? "" : " small"}" x="${x}" y="${b.y + (big ? 110 : 28)}" fill="${c}">${esc(b.label)}</text>`);
+        p.push(`<text class="band" x="${x}" y="${b.y + size + 4}" font-size="${size}" fill="${c}">${esc(b.label)}</text>`);
     }
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
@@ -344,8 +353,9 @@ function app() {
     ins = {}; outs = {};
     sub.edges.forEach(e => { (outs[e.from] ||= []).push(e); (ins[e.to] ||= []).push(e); });
     visible = new Set(sub.nodes.map(n => n.id));
+    syncControls();
+    showStatus(sub);  // before fit, which measures the toolbar with the status line in it
     if (old) setVB(old.x, old.y, old.w, old.h); else fit();
-    showStatus(sub);
     runSearch(true);
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
@@ -356,24 +366,28 @@ function app() {
     const parts = [];
     if (view.focus) {
       const how = { both: "what feeds it and what it feeds", up: "what feeds it", down: "what it feeds" }[view.dir];
-      const depth = view.depth === Infinity ? "all steps" : `${view.depth} step${view.depth === 1 ? "" : "s"}`;
+      const depth = view.depth === 1 ? "its own links only" : view.depth === Infinity ? "the whole chain" : `${view.depth} steps`;
       parts.push(`<b>${esc(byId[view.focus].label)}</b>: ${how}, ${depth}`);
+    } else {
+      const lanesOff = allLanes.filter(d => !view.lanes.has(d));
+      if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
+      const off = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
+      if (off.length) parts.push(`${off.join(" and ")} hidden`);
     }
-    const lanesOff = allLanes.filter(d => !view.lanes.has(d));
-    if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
-    if (!view.parked || !view.retired) parts.push(`hiding ${[!view.parked && "parked", !view.retired && "retired"].filter(Boolean).join(" and ")}`);
-    el.innerHTML = parts.length
-      ? `Showing ${parts.join(" · ")} · ${sub.nodes.length} of ${DATA.nodes.length} boxes <button id="showall">Show all</button>`
-      : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`;
+    const all = view.focus || view.lanes.size !== allLanes.length;
+    el.innerHTML = (parts.length ? `Showing ${parts.join(" · ")} · ${sub.nodes.length} of ${DATA.nodes.length} boxes`
+      : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`) +
+      (all ? ' <button id="showall" title="Back to the whole map; parked and retired boxes follow their ticks">Whole map</button>' : "");
     const btn = document.getElementById("showall");
-    if (btn) btn.onclick = () => { view.focus = null; view.lanes = new Set(allLanes); view.parked = view.retired = true; syncControls(); render(false); writeHash(); };
+    if (btn) btn.onclick = () => { view.focus = null; view.lanes = new Set(allLanes); fileIn.value = ""; syncControls(); render(false); writeHash(); };
   }
 
   /* ---- pan and zoom */
   function setVB(x, y, w, h) { vb.x = x; vb.y = y; vb.width = w; vb.height = h; }
-  function fit() {
-    const r = wrapEl.getBoundingClientRect(), s = Math.max(W / r.width, H / r.height);
-    setVB(-LEFT - (r.width * s - W) / 2, -(r.height * s - H) / 2, r.width * s, r.height * s);
+  function fit() {  // whole drawing in view, below the toolbar
+    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom + 10;
+    const s = Math.max(W / r.width, H / Math.max(r.height - top, 100));
+    setVB(-LEFT - (r.width * s - W) / 2, -top * s - (r.height * s - top * s - H) / 2, r.width * s, r.height * s);
   }
   function zoomAt(f, cx, cy) {
     const r = wrapEl.getBoundingClientRect();
@@ -449,7 +463,7 @@ function app() {
       <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
       <div class="chain"><b>Show only this box's chain</b><br>
         <select id="fdir"><option value="both">what feeds it and what it feeds</option><option value="up">what feeds it</option><option value="down">what it feeds</option></select>
-        <select id="fdepth"><option value="1">1 step</option><option value="2" selected>2 steps</option><option value="3">3 steps</option><option value="4">4 steps</option><option value="Infinity">all steps</option></select>
+        <select id="fdepth"><option value="Infinity" selected>the whole chain</option><option value="1">its own links only</option><option value="2">2 steps</option><option value="3">3 steps</option></select>
         <button id="fgo">${isFocus ? "Update" : "Show"}</button></div>
       <b>Fed by</b><ul>${(insAll[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
       <b>Feeds</b><ul>${(outsAll[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
@@ -461,10 +475,13 @@ function app() {
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
   function goTo(id) {
-    if (!visible.has(id)) { if (!view.focus) { view.dir = "both"; view.depth = 2; } view.focus = id; view.lanes = new Set(allLanes); syncControls(); selected = id; render(false); writeHash(); }
-    else { select(id); centreOn(id, false); }
+    if (visible.has(id)) { select(id); centreOn(id, false); return; }
+    view.lanes = new Set(allLanes);
+    syncControls();
+    focusOn(id, view.focus ? view.dir : "both", view.focus ? view.depth : Infinity);
   }
   function focusOn(id, dir, depth) {
+    fileIn.value = byId[id].path || byId[id].label;
     view.focus = id; view.dir = dir; view.depth = depth; selected = id;
     render(false); writeHash();
   }
@@ -473,7 +490,7 @@ function app() {
     const g = e.target.closest(".node");
     if (g) select(g.dataset.id); else clearFocus(true);
   });
-  wrapEl.addEventListener("dblclick", e => { const g = e.target.closest(".node"); if (g) focusOn(g.dataset.id, view.focus ? view.dir : "both", view.focus ? view.depth : 2); });
+  wrapEl.addEventListener("dblclick", e => { const g = e.target.closest(".node"); if (g) focusOn(g.dataset.id, view.focus ? view.dir : "both", view.focus ? view.depth : Infinity); });
 
   /* ---- search */
   const q = document.getElementById("q"), hits = document.getElementById("hits");
@@ -495,10 +512,29 @@ function app() {
     else { centreOn(id, true); select(id); }
   });
   document.addEventListener("keydown", e => {
-    if (e.target === q || e.target.tagName === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.target === q || e.target === fileIn || e.target.tagName === "SELECT" || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === "Escape") clearFocus(true);
     if (e.key === "f" || e.key === "F") fit();
   });
+
+  /* ---- file filter: pick a file to see its whole chain, sources to end products */
+  const fileIn = document.getElementById("file");
+  document.getElementById("files").innerHTML = DATA.nodes.slice().sort((a, b) => a.label.localeCompare(b.label))
+    .map(n => `<option value="${esc(n.path || n.label)}">${esc(n.label)}</option>`).join("");
+  const byName = {};
+  DATA.nodes.forEach(n => { byName[(n.path || n.label).toLowerCase()] = n.id; byName[n.label.toLowerCase()] ??= n.id; byName[n.id.toLowerCase()] ??= n.id; });
+  function pickFile() {
+    const text = fileIn.value.trim();
+    if (!text) {  // an emptied box goes back to the whole map
+      if (view.focus) { view.focus = null; syncControls(); render(false); writeHash(); }
+      return;
+    }
+    const id = byName[text.toLowerCase()];
+    if (id) focusOn(id, "both", Infinity);
+    else hits.textContent = `no file named "${text}"`;
+  }
+  fileIn.addEventListener("change", pickFile);
+  fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
 
   /* ---- lanes and status filters */
   const lanesBox = document.getElementById("lanelist");
@@ -509,6 +545,11 @@ function app() {
     lanesBox.querySelectorAll("input[data-lane]").forEach(c => (c.checked = view.lanes.has(c.dataset.lane)));
     document.getElementById("parked").checked = view.parked;
     document.getElementById("retired").checked = view.retired;
+    for (const box of ["parked", "retired"]) {  // a file view shows every related box, so the ticks do not apply
+      const el = document.getElementById(box);
+      el.disabled = Boolean(view.focus);
+      el.parentElement.title = view.focus ? "A file view shows every related box" : el.parentElement.dataset.title;
+    }
   }
   lanesBox.addEventListener("change", e => {
     const lane = e.target.dataset.lane;
@@ -525,13 +566,13 @@ function app() {
   document.getElementById("retired").onchange = e => { view.retired = e.target.checked; render(true); writeHash(); };
   document.getElementById("labels").onchange = e => document.getElementById("elabels").classList.toggle("hidden", !e.target.checked);
 
-  /* ---- address bar: #focus=<id>&dir=both&depth=2&lanes=a,b&hide=parked&node=<id> */
+  /* ---- address bar: #focus=<id>&dir=both&depth=1&lanes=a,b&show=parked,retired&node=<id> */
   function writeHash() {
     const h = new URLSearchParams();
-    if (view.focus) { h.set("focus", view.focus); h.set("dir", view.dir); h.set("depth", view.depth === Infinity ? "all" : view.depth); }
+    if (view.focus) { h.set("focus", view.focus); h.set("dir", view.dir); if (view.depth !== Infinity) h.set("depth", view.depth); }
     if (view.lanes.size !== allLanes.length) h.set("lanes", view.lanes.size ? [...view.lanes].join(",") : "none");
-    const hide = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
-    if (hide.length) h.set("hide", hide.join(","));
+    const show = [view.parked && "parked", view.retired && "retired"].filter(Boolean);
+    if (show.length) h.set("show", show.join(","));
     if (selected) h.set("node", selected);
     const s = h.toString();
     history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
@@ -542,13 +583,16 @@ function app() {
     view.focus = focus && byId[focus] ? focus : null;
     view.dir = ["both", "up", "down"].includes(h.get("dir")) ? h.get("dir") : "both";
     const depth = Number(h.get("depth"));
-    view.depth = depth > 0 ? depth : h.get("depth") === "all" || !view.focus ? Infinity : 2;
+    view.depth = depth > 0 ? depth : Infinity;
     const lanes = (h.get("lanes") || "").split(",").filter(l => allLanes.includes(l));
     view.lanes = new Set(lanes.length || h.get("lanes") === "none" ? lanes : allLanes);
-    const hide = (h.get("hide") || "").split(",");
-    view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired");
+    const show = (h.get("show") || "").split(","), hide = h.get("hide");
+    if (hide !== null) { view.parked = !hide.includes("parked"); view.retired = !hide.includes("retired"); }  // older links
+    else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     const node = h.get("node");
     selected = node && byId[node] ? node : null;
+    if (selected && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
+    fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
     syncControls();
   }
   readHash();
