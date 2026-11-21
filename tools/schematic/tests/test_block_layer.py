@@ -422,7 +422,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         text = bdm.WIRING.read_text(encoding="utf-8")
         pf = temp_file("wiring.csv", pins(text) if pins else text)
         self.addCleanup(remove, pf)
-        self.files = devices.Files.under(p.parent)
+        self.files = devices.Files.under(p.parent).but(field=None)       # a one-file copy
         return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex, pins=pf, places=places)
 
     @staticmethod
@@ -536,7 +536,8 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.addCleanup(remove, master)
         ex = temp_file("block_overrides.csv", BL.overrides_path().read_text(encoding="utf-8") + extra)
         self.addCleanup(remove, ex)
-        again, _a, drops2 = bdm.staging_rows(self.bands, self.joined, self.runs, devices.Files.under(master.parent),
+        again, _a, drops2 = bdm.staging_rows(self.bands, self.joined, self.runs,
+                                             devices.Files.under(master.parent).but(field=None),
                                              exceptions=ex)
         self.assertEqual(again, got)
         self.assertEqual(drops2, set())
@@ -581,7 +582,7 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
 
     def test_a_block_with_no_row_to_carry_its_field_facts_from_stops(self):
         drop = lambda rows: [r for r in rows if not (r["level"] == "1" and r["user_name"] == "Track Barn")]  # noqa
-        with self.assertRaisesRegex(bdm.MapError, "staging block Track Barn: no row in devices.csv"):
+        with self.assertRaisesRegex(bdm.MapError, "staging block Track Barn: no row in devices_generated.csv"):
             self.rows(drop)
 
     def test_a_staging_row_the_drawing_has_no_block_for_stops(self):
@@ -640,7 +641,7 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         for edit, msg in ((lambda t: t.replace('1,turnout,Switch 1,,,,,4,0,OU1,"1,2",wired,\n', ""),
                            "staging turnout Switch 1: no turnout row for Switch 1"),
                           (lambda t: t + '1,turnout,Switch 999,,,,,5,0,OU1,"1,2",wired,\n',
-                           "staging turnout Switch 999 has no row in devices.csv"),
+                           "staging turnout Switch 999 has no row in devices_generated.csv"),
                           (lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,', '1,turnout,Switch 13,,,,,41,3,'),
                            "turnout Switch 13 is on node 41, no staging node")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):

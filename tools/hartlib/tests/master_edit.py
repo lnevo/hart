@@ -1,4 +1,4 @@
-"""Test helper: change a copy of devices.csv through hartlib.devices (its loader and writer), never by text.
+"""Test helper: change a one-file copy of the master (devices.one_file_copy) through hartlib.devices, never by text.
 
     from master_edit import add, change, drop, find
     change(path, ("2", "turnout", "Switch 101"), jmri_name="IT:HART:C3:999")   # one row's columns

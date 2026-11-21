@@ -42,9 +42,9 @@ class StaleHeadCommentsTest(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.files = devices.Files.under(self.tmp)
+        self.files = devices.Files.under(self.tmp).but(field=None)      # a one-file copy, edited row by row
         real = devices.Files.here()
-        shutil.copyfile(real.master, self.files.master)
+        devices.one_file_copy(self.files.master)
         shutil.copyfile(real.dictionary, self.files.dictionary)
 
     def test_the_committed_heads_are_wiring_csvs(self) -> None:

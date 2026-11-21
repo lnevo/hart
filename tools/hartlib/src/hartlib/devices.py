@@ -50,7 +50,7 @@ from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 # MASTER is the generated file, a reader's handle on the pair: load(MASTER) merges the field file beside it.
 GENERATED_FILE = "devices_generated.csv"     # every row the builders make (WRITERS), written by them alone
 FIELD_FILE = "devices_field.csv"             # the owner's cells, keyed by KEY, and the Store's level-less devices
-MASTER_FILE = "devices.csv"
+MASTER_FILE = GENERATED_FILE
 MASTER = paths.LAYOUT_DATA / MASTER_FILE
 FIELD = paths.LAYOUT_DATA / FIELD_FILE
 
@@ -126,8 +126,7 @@ class Files:
     def under(data: Path) -> "Files":
         """The files as they sit under a data folder (jmri/layouts/hart/data): one root, so a test or a script that
         points it elsewhere moves every file together and cannot write the repo's."""
-        field = field_path(data)
-        return Files(master_path(data), Path(data) / "devices.columns.csv", field if field.is_file() else None)
+        return Files(master_path(data), Path(data) / "devices.columns.csv", field_path(data))
 
     @staticmethod
     def here() -> "Files":
@@ -529,26 +528,35 @@ def index(files: "Files | Path | str | None" = None) -> Index:
     return out
 
 
+def column_file(column: str) -> str:
+    """Which file may hold `column` on a row with a level: "field" for the key and FIELD_COLUMNS (the owner's cell
+    in devices_field.csv when the row has a field row, else the builder's), "generated" for the rest (the builders'
+    alone). A Store's level-less row holds every column in the field file."""
+    return "field" if column in KEY or column in FIELD_COLUMNS else "generated"
+
+
 def read_dictionary(path: Path) -> dict[str, str]:
-    """{column: description} of devices.columns.csv; DevicesError unless it is exactly the columns `column,description`
-    with every master column once, and each described."""
+    """{column: description} of devices.columns.csv; DevicesError unless it is exactly the columns
+    `column,file,description` with every master column once, each described, and its file column_file's."""
     try:
         with path.open(newline="", encoding="utf-8") as fh:
             rows = list(csv.reader(fh))
     except OSError as exc:
         raise DevicesError(f"{path}: cannot read it ({exc.strerror})") from None
-    if not rows or rows[0] != ["column", "description"]:
-        raise DevicesError(f"{path.name}: the header is column,description")
+    if not rows or rows[0] != ["column", "file", "description"]:
+        raise DevicesError(f"{path.name}: the header is column,file,description")
     out, bad = {}, []
     for line, r in enumerate(rows[1:], 2):
-        if len(r) != 2:
-            bad.append(f"line {line}: {len(r)} fields, expected 2")
+        if len(r) != 3:
+            bad.append(f"line {line}: {len(r)} fields, expected 3")
         elif r[0] in out:
             bad.append(f"line {line}: {r[0]} is described twice")
-        elif not r[1].strip():
+        elif not r[2].strip():
             bad.append(f"line {line}: {r[0]} has no description")
+        elif r[0] in COLUMNS and r[1] != column_file(r[0]):
+            bad.append(f"line {line}: {r[0]} is in file {column_file(r[0])!r}, not {r[1]!r}")
         else:
-            out[r[0]] = r[1]
+            out[r[0]] = r[2]
     bad += [f"{c} is a master column with no description" for c in COLUMNS if c not in out]
     bad += [f"{c} is described but is no master column" for c in out if c not in COLUMNS]
     if bad:
@@ -710,7 +718,8 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
                        f"in WRITERS order); it follows line {na}")
             break
     if bad:
-        raise DevicesError(f"{where}: " + "; ".join(bad))
+        more = f"; and {len(bad) - 20} more" if len(bad) > 20 else ""
+        raise DevicesError(f"{where}: " + "; ".join(bad[:20]) + more)
 
 
 # ---------------------------------------------------------------- roles, assignments, descriptions
@@ -956,6 +965,28 @@ def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Fil
     return out
 
 
+def one_file_copy(path: Path, files: "Files | Path | str | None" = None) -> Path:
+    """Write the merged view of the master (or of `files`) to `path` as a one-file master (no field file beside it:
+    it holds every cell), for a test or a check that edits a copy row by row; the path written."""
+    path = Path(path)
+    if (path.parent / FIELD_FILE).exists():
+        raise DevicesError(f"{path.parent}: a field file is there already, so {path.name} would merge with it")
+    path.write_text(master_text(load(files)), encoding="utf-8")
+    return path
+
+
+def pair_copy(data: Path, files: "Files | Path | str | None" = None) -> Files:
+    """Copy the master's two files and its dictionary (or `files`') into the folder `data` as they are; their
+    Files there."""
+    src, data = Files.of(files), Path(data)
+    data.mkdir(parents=True, exist_ok=True)
+    out = Files.under(data)
+    for a, b in ((src.master, out.master), (src.field, out.field), (src.dictionary, out.dictionary)):
+        if a is not None:
+            b.write_bytes(a.read_bytes())
+    return out
+
+
 def stale_message(path: Path, files: Files, script: str) -> str:
     """What a --check says of a stale `path`: the writer to run."""
     return f"{path.name} is stale: run python3 {script}"
@@ -1003,7 +1034,9 @@ def main(argv: list[str] | None = None) -> int:
         for p in problems:
             print(p, file=sys.stderr)
         if not problems:
-            print(f"devices.csv: {len(load(f))} rows; its dictionary agrees")
+            for w in redundant(generated_rows(f), field_rows(f)):
+                print(f"warning: {w}", file=sys.stderr)
+            print(f"{f.master.name} with {f.field.name}: {len(load(f))} rows; its dictionary agrees")
         return 1 if problems else 0
     except DevicesError as exc:
         print(f"devices.py: {exc}", file=sys.stderr)

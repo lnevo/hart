@@ -128,29 +128,36 @@ class TheDictionary(unittest.TestCase):
             return D.read_dictionary(p)
 
     def full(self) -> str:
-        return "column,description\n" + "".join(f"{c},text\n" for c in D.COLUMNS)
+        return "column,file,description\n" + "".join(f"{c},{D.column_file(c)},text\n" for c in D.COLUMNS)
 
     def test_a_complete_dictionary_reads(self):
         self.assertEqual(set(self.read(self.full())), set(D.COLUMNS))
 
     def test_a_column_with_no_description_fails(self):
-        text = self.full().replace("cp,text\n", "cp,\n")
+        text = self.full().replace("cp,field,text\n", "cp,field,\n")
         with self.assertRaisesRegex(D.DevicesError, "cp has no description"):
             self.read(text)
 
     def test_a_master_column_missing_from_the_dictionary_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "dir is a master column with no description"):
-            self.read(self.full().replace("dir,text\n", ""))
+            self.read(self.full().replace("dir,generated,text\n", ""))
 
     def test_a_described_column_the_master_lacks_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "colour is described but is no master column"):
-            self.read(self.full() + "colour,text\n")
+            self.read(self.full() + "colour,generated,text\n")
 
     def test_a_column_described_twice_or_a_bad_header_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "cp is described twice"):
-            self.read(self.full() + "cp,again\n")
-        with self.assertRaisesRegex(D.DevicesError, "header is column,description"):
+            self.read(self.full() + "cp,field,again\n")
+        with self.assertRaisesRegex(D.DevicesError, "header is column,file,description"):
             self.read("name,text\n")
+
+    def test_a_column_in_the_wrong_file_fails(self):
+        """The file column says which file may hold a column: the key and FIELD_COLUMNS the field file, the rest the
+        generated file alone."""
+        self.assertEqual({c for c in D.COLUMNS if D.column_file(c) == "field"}, set(D.KEY) | set(D.FIELD_COLUMNS))
+        with self.assertRaisesRegex(D.DevicesError, "wiring is in file 'generated', not 'field'"):
+            self.read(self.full().replace("wiring,generated,", "wiring,field,"))
 
     def test_a_missing_file_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "cannot read it"):
@@ -448,8 +455,8 @@ class TheWriters(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.files = D.Files(self.tmp / "devices.csv", self.tmp / "devices.columns.csv")
-        for name in ("master", "dictionary"):
-            shutil.copyfile(getattr(REAL, name), getattr(self.files, name))
+        D.one_file_copy(self.files.master)              # a copy that holds every cell, edited row by row
+        shutil.copyfile(REAL.dictionary, self.files.dictionary)
 
     def test_the_master_and_its_dictionary_check_clean(self):
         self.assertEqual(D.stale(self.files), [])
@@ -575,7 +582,7 @@ class TheNits(unittest.TestCase):
     def test_a_stale_master_points_at_its_writer(self):
         f = D.Files.here()
         self.assertEqual(D.stale_message(f.master, f, "tools/schematic/x.py"),
-                         "devices.csv is stale: run python3 tools/schematic/x.py")
+                         "devices_generated.csv is stale: run python3 tools/schematic/x.py")
 
 
 class TheReaders(unittest.TestCase):
@@ -649,7 +656,7 @@ class TheKindFromTheRow(unittest.TestCase):
         self.assertNotIn("DCC Switch 101", ix.names("turnout", roles=("turnout",)))
         self.assertEqual(set(ix.names("occupancy", levels=("2",))),
                          {r["user_name"] for r in D.load() if r["layer"] == "occupancy" and r["level"] == "2"})
-        with self.assertRaisesRegex(D.DevicesError, "devices.csv: no block row 'Track Nowhere'"):
+        with self.assertRaisesRegex(D.DevicesError, "devices_generated.csv: no block row 'Track Nowhere'"):
             ix.role("block", "Track Nowhere")
 
     def test_a_device_not_on_the_layout_yet_is_left_out_of_a_role_query(self):
@@ -680,7 +687,7 @@ class TheKindFromTheRow(unittest.TestCase):
     def test_rows_that_disagree_on_a_role_stop_naming_their_lines(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "devices.csv"
-            rows = list(csv.reader(io.StringIO(REAL.master.read_text(encoding="utf-8"), newline="")))
+            rows = list(csv.reader(io.StringIO(D.master_text(D.load()), newline="")))
             col = rows[0].index
             helix = [i for i, r in enumerate(rows) if r[col("layer")] == "block" and r[col("user_name")] ==
                      "Track Helix Inner"]
@@ -749,8 +756,7 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.path = self.tmp / "devices.csv"
-        shutil.copyfile(REAL.master, self.path)
+        self.path = D.one_file_copy(self.tmp / "devices.csv")
 
     def test_a_bad_row_names_the_file_the_line_and_the_row(self):
         rows = [dict(r) for r in D.load(self.path)]
@@ -784,7 +790,7 @@ class TheLoaderIsStrictAndCurrent(unittest.TestCase):
 class TheMasterFile(unittest.TestCase):
     def read(self, text: str):
         with tempfile.TemporaryDirectory() as d:
-            files = D.Files.here().but(master=Path(d) / "devices.csv")
+            files = D.Files.here().but(master=Path(d) / "devices.csv", field=None)
             files.master.write_text(text, encoding="utf-8")
             return D.load(files)
 

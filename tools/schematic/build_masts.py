@@ -596,7 +596,7 @@ def build():
     mine = with_roles([r for r in device_rows(gm, vr, old, wired, {m["mast"]: m["toward"] for m in vgen})
                        if r["layer"] in WRITES], gen + vgen)   # the mast and head rows only
     want = devices.outputs_after(WRITER, mine, files)
-    master = devices.parse(want[files.master], files.master.name)     # every level's rows, as they will be written
+    master = devices.parse(want[files.master], files.master.name, files)     # every level's rows, as they will be written
     rows = file_rows(master, plan_facts(gen + vgen))
     kinds = {m["mast"]: level_masts.signal_kind(m) for m in rows if m["mast"] in {g["mast"] for g in gen + vgen}}
     drift = sorted(m["mast"] for m in gen + vgen if kinds[m["mast"]] != m["signal_kind"])

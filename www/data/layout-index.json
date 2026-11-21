@@ -2,7 +2,7 @@
   "source": {
     "workspace": "hart",
     "panel": "jmri/layouts/hart/output/tables.xml",
-    "names": "jmri/layouts/hart/data/devices.csv",
+    "names": "jmri/layouts/hart/data/devices_generated.csv",
     "devices": "jmri/layouts/hart/output/tables.xml"
   },
   "image": {

@@ -29,7 +29,10 @@ class Copy(unittest.TestCase):
         for name in DATA_FILES:
             dst = getattr(self.src, name)
             dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(getattr(REPO, name), dst)
+            if name == "devices":       # the master as one file (no field file beside it), edited row by row
+                _devices.one_file_copy(dst)
+            else:
+                shutil.copyfile(getattr(REPO, name), dst)
         prefs = layer_files.path("preferences", REPO.plan_overrides.parent)     # the helix tracks' labels
         shutil.copyfile(prefs, self.src.plan_overrides.parent / prefs.name)
 
@@ -561,7 +564,7 @@ class Invariants(Copy):
         self.assertEqual(len(got), 2, got)          # an LCC alias carries its turnout's DCC address: no clash
         drop(self.src.devices, ("1", "turnout", "Switch 997"))
         change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="")
-        self.assertIn("Switch 1 (switches.csv): devices.csv has no staging turnout row with a system_name and dcc",
+        self.assertIn("Switch 1 (switches.csv): devices_generated.csv has no staging turnout row with a system_name and dcc",
                       self.problems("staging-devices"))
 
     def test_a_staging_mast_on_a_block_staging_has_not(self) -> None:
@@ -596,7 +599,7 @@ class Invariants(Copy):
         drop(self.src.devices, self.key("turnout", "Switch 103"))
         change(self.src.devices, self.key("turnout", "Switch 107"), level="3")
         got = self.problems("device-map")
-        self.assertIn("Switch 103 (local, level 2): no turnout row in devices.csv", got)
+        self.assertIn("Switch 103 (local, level 2): no turnout row in devices_generated.csv", got)
         self.assertTrue(any("Switch 107 is level 3 CP 107, the control points say level 2 CP 107" in p for p in got),
                         got)
 
@@ -637,7 +640,7 @@ class Invariants(Copy):
                              system_name="M2T1208", dcc="107")
         got = self.problems("name-clash", upto="device_map")
         self.assertEqual(len(got), 1, got)
-        self.assertRegex(got[0], r"^devices\.csv line \d+: staging turnout Switch 107 is level 2 turnout Switch 107 "
+        self.assertRegex(got[0], r"^devices_generated\.csv line \d+: staging turnout Switch 107 is level 2 turnout Switch 107 "
                                  r"as well \(line \d+\)$")
 
     def test_level_masts(self) -> None:
@@ -690,7 +693,7 @@ class Known(unittest.TestCase):
         rr = R.Railroad(upto="device_map")
         rr.__dict__["staging_devices"] = self.broken_rows()
         first = rr.staging_devices.by_name[("turnout", "Switch 1")].line
-        problem = f"staging-devices: devices.csv lines {first} and 999: DCC 100 is Switch 1 and Switch 999"
+        problem = f"staging-devices: devices_generated.csv lines {first} and 999: DCC 100 is Switch 1 and Switch 999"
         fails, _ = R.run_check(rr, {})
         self.assertIn(problem, fails)
         fails, _ = R.run_check(rr, {problem: "test"})

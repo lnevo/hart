@@ -23,7 +23,10 @@ class LoaderTest(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.data)
         for name in FILES:
             (self.data / name).parent.mkdir(exist_ok=True)
-            shutil.copy(facts.DATA / name, self.data / name)
+            if name == devices.MASTER_FILE:      # the master as one file (no field file beside it), edited as text
+                devices.one_file_copy(self.data / name)
+            else:
+                shutil.copy(facts.DATA / name, self.data / name)
 
     def append(self, name: str, line: str) -> None:
         with (self.data / name).open("a", encoding="utf-8") as fh:
