@@ -276,7 +276,11 @@ class PreflightTest(DeployHarness):
         # and the hash of each Store a merged split took in (store_splits.csv), so the Pi's file of one is not unpulled
         splits = ROOT / "jmri/layouts/hart/data/store_splits.csv"
         shas = [ln.split(",", 1)[0] for ln in splits.read_text().splitlines()[1:]] if splits.is_file() else []
-        want = f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}'" + "".join(f" {h}" for h in shas)
+        # and the hash of the Operations files this checkout ships (ops:), which a merged auto-pulled session equals
+        ops = hashlib.sha256(b"".join((ROOT / "jmri/layouts/hart/operations" / n).read_bytes() for n in (
+            "Operations.xml", "OperationsCarRoster.xml", "OperationsEngineRoster.xml", "OperationsLocationRoster.xml",
+            "OperationsRouteRoster.xml", "OperationsTrainRoster.xml"))).hexdigest()
+        want = f"{PI} bash -s -- '/srv/fake-pi/JMRI_UserFiles' '{generated}' ops:{ops}" + "".join(f" {h}" for h in shas)
         self.assertTrue(calls[2].endswith(want), calls)
         # Windows' probe is the last gate call; then the first real host step, which the stand-in fails.
         self.assertIn("hart-probe-", calls[3])

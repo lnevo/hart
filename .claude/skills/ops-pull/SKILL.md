@@ -12,6 +12,10 @@ The repo is the master of the six Operations Pro files, in `jmri/layouts/hart/op
 - Quit JMRI and CATS on the Pi. The script checks over ssh and refuses to run otherwise.
 - The Pi is the only host whose Operations changes are kept. Changes made on the Mac or Windows are replaced at the next deploy.
 
+## When a deploy stops
+
+A Pi deploy that finds changed Operations files runs this pull itself (after `pi_quit_panelpro.sh --for-deploy`, as `pull_ops.sh --no-mark`) and stops with "brought the Pi's Operations session into <files>; review, commit and merge it, then deploy". `--no-mark` leaves the Pi's `.deployed.sha256` alone, so the session counts as pulled only once the repo holds those files: a deploy before the merge stops again, and one from the updated main passes (the Pi's files equal the repo's). `pull_ops.sh` writes into the checkout it runs from, so a deploy from the main checkout, which stays clean, pulls into an `ops-pull-<stamp>` worktree (an unmerged one is reused; a failed pull removes a new one). Run from a task worktree, it pulls into that worktree. A redeploy never pulls (it stops as before). `HART_NO_AUTOPULL=1` leaves it to you (the steps below, `make ops-pull`, which does mark).
+
 ## Steps
 
 1. `make ops-pull` (runs `tools/ops/pull_ops.sh`).

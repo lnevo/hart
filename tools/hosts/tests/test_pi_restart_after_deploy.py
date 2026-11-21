@@ -70,10 +70,18 @@ class RestartDueTest(unittest.TestCase):
 
 
 class ScriptsAgreeTest(unittest.TestCase):
-    def test_deploy_never_quits_panelpro_itself(self) -> None:
+    def test_deploy_quits_panelpro_only_to_pull(self) -> None:
+        """The one quit is the gate's pull (common.sh autopull_pi_changes, with the --for-deploy marker that
+        pi_restart_if_due reads); no step quits it to ship."""
+        quit_call = 'pi_quit_panelpro.sh}" --for-deploy'
         for path in [HOSTS / "sync_hart_package.sh", *sorted((HOSTS / "deploy").glob("*.sh"))]:
             src = path.read_text(encoding="utf-8")
-            self.assertNotIn('bash "$ROOT/tools/hosts/pi_quit_panelpro.sh"', src, path.name)
+            if path.name != "common.sh":
+                self.assertNotIn(quit_call, src, path.name)
+                self.assertNotIn('bash "$ROOT/tools/hosts/pi_quit_panelpro.sh"', src, path.name)
+                continue
+            self.assertLess(src.index("autopull_pi_changes() {"), src.index(quit_call))
+            self.assertLess(src.index(quit_call), src.index("# check_windows_can_take_package"))
 
     def test_restart_check_runs_on_exit_through_the_pi_apply_and_after_it(self) -> None:
         # the entry point restarts while PI_STEP is set, from the checks passing through the staging and the Mac
