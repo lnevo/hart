@@ -105,9 +105,24 @@ class Inventory(unittest.TestCase):
         self.assertEqual(len(buttons), 20)
         self.assertEqual(next(r for r in buttons if r[0] == "C1-IN2-1")[4], "Switch 35 BTN")
         turnouts = {r[0]: r for r in V86["TurnoutSummary"][1:]}
+        c13 = [(r[0], r[4], r[6]) for r in buttons if r[1] == "C13"]          # planned: not connected yet
+        self.assertEqual([x[:2] for x in c13], [("C13-IN2-1", "Switch 7 BTN"), ("C13-IN2-2", "Switch 11 BTN"),
+                                                ("C13-IN2-3", "Switch 9 BTN")])
+        self.assertTrue(all(x[2] == "planned, not connected; (owner, 2026-11-21)" for x in c13))
+        self.assertEqual(turnouts["Switch 7"][4], "C13-IN2-1 (planned)")
+        self.assertIn("Switch 7 BTN (planned)", next(r for r in V86["Nodes"] if r[0] == "C13")[
+            WI.NODE_COLUMNS.index("Button Devices")])
         self.assertEqual(turnouts["Switch 35"][4], "C1-IN2-1")
         c1 = next(r for r in V86["Nodes"] if r[0] == "C1")
         self.assertEqual(c1[WI.NODE_COLUMNS.index("Num Buttons")], 3)
+
+    def test_a_planned_relay_says_so(self):
+        import tempfile
+        p = Path(tempfile.mkdtemp()) / "wiring.csv"
+        p.write_text(",".join(WI.wiring.COLUMNS) + "\n1,relay,C3 relay 2,,,,,3,,OU2,7,planned,\n", encoding="utf-8")
+        nodes = WI.gather([], WI.read_node_rows())
+        WI.add_local(nodes, p)
+        self.assertEqual(nodes[3].ou[2][7], ("C3 relay 2", "Relay", "5V", "planned, not connected"))
 
     def test_a_wired_staging_mast_is_on_its_switchs_row(self):
         """Mast 6LB stands on Switch 5's closed leg (Track East Ext): its normal exit signal."""
