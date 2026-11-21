@@ -15,7 +15,6 @@ from hartlib import devices  # noqa: E402
 import le_tables as T  # noqa: E402
 import mast_rule as mr  # noqa: E402
 import check_device_master as cdm  # noqa: E402
-import staging_device_map as sdm  # noqa: E402
 from hartlib import railroad  # noqa: E402
 
 
@@ -122,27 +121,33 @@ class Pins(unittest.TestCase):
 
 
 class StagingShares(unittest.TestCase):
-    def test_only_the_helix_blocks_are_shared(self):
-        rows = [dict(layer="block", user_name="Track Helix Inner"), dict(layer="block", user_name="Track K-1")]
-        dm = railroad.DeviceMap()
-        occ = railroad.DeviceRow(level=3, layer="occupancy", user_name="BS Helix Inner", jmri_name="IS:HART:C3:B:Helix_Inner")
-        dm.rows.append(occ)
-        dm.blocks["Track Helix Inner"] = railroad.DeviceRow(level=3, layer="block", user_name="Track Helix Inner")
-        helix = {"McKeesport": {"block": "Track Helix Inner"}}
-        self.assertEqual(cdm.shared_blocks(rows, dm, helix), {"Track Helix Inner": occ})
-        dm.blocks["Track K-1"] = railroad.DeviceRow(level=3, layer="block", user_name="Track K-1")
-        with self.assertRaisesRegex(sdm.StagingMapError, "only the helix blocks"):
-            cdm.shared_blocks(rows, dm, helix)
-        del dm.blocks["Track K-1"]
-        dm.rows.remove(occ)
-        with self.assertRaisesRegex(sdm.StagingMapError, "no occupancy row"):
-            cdm.shared_blocks(rows, dm, helix)
+    """A helix block is one block on two levels (check_device_master.check_rows): its staging row and its main or
+    upper row, and one occupancy row on either level."""
 
-    def test_a_shared_block_needs_no_staging_occupancy_row(self):
-        rows = [dict(layer="block", user_name="Track Helix Inner", system_name="IB24", jmri_name="IB24")]
-        cdm.check_rows(rows, {"Track Helix Inner"})
-        with self.assertRaisesRegex(sdm.StagingMapError, "blocks and occupancy rows differ"):
-            cdm.check_rows(rows)
+    @staticmethod
+    def row(level, layer, user, **cols):
+        return dict(dict(level=level, layer=layer, user_name=user, system_name="", jmri_name="", role="", dcc="",
+                         blocks="", assignment="virtual"), **cols)
+
+    def lines(self, *extra):
+        return list(enumerate([self.row("1", "block", "Track Helix Inner", system_name="IB24"),
+                               self.row("3", "block", "Track Helix Inner"),
+                               self.row("3", "occupancy", "BS Helix Inner", blocks="Track Helix Inner"), *extra], 2))
+
+    def test_only_the_helix_blocks_are_on_two_levels(self):
+        self.assertEqual(cdm.check_rows(self.lines(), {"Track Helix Inner"}), [])
+        got = cdm.check_rows(self.lines(self.row("1", "block", "Track K-1"), self.row("3", "block", "Track K-1"),
+                                        self.row("1", "occupancy", "BS K-1", blocks="Track K-1")),
+                             {"Track Helix Inner"})
+        self.assertTrue(any("blocks named on more than one level: ['Track Helix Inner', 'Track K-1']" in p
+                            for p in got), got)
+        self.assertTrue(any("exactly the helix blocks" in p for p in cdm.check_rows(self.lines(), set())))
+
+    def test_a_helix_block_has_one_occupancy_row_on_either_level(self):
+        lines = self.lines()[:2]
+        self.assertEqual(cdm.check_rows(lines, {"Track Helix Inner"}),
+                         ["devices.csv line 2, 3: block Track Helix Inner has 0 occupancy rows naming it (none), "
+                          "not one"])
 
 
 class LayoutEditor(unittest.TestCase):

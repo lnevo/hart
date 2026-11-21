@@ -17,12 +17,13 @@ Files (jmri/layouts/hart/data/, schematic/ for the rest):
   bind "M2T408", some "Switch 23"), every other row's its system name. trial_name is the link to the drawing, as for
   main and upper (placeholders(), below). The facts are in columns (hartlib.railroad.DEVICE_FACTS, checked by
   device_facts; the comment and notes stay text for people): one occupancy row per detector, its `blocks` the blocks
-  it serves (a detector that serves several blocks lists each) and its `detector` wired, all
-  of staging's being in the field; a block's `stop` "yes" for a Dispatcher System station, as its tables.xml comment
-  marks it ("; stop", checked); a mast's `switch`, `facing` and `protects` as staging_masts.csv has them.
+  it serves (a detector that serves several blocks lists each) and its `detector` wired, all of staging's being in
+  the field; a block's `stop` "yes" for a Dispatcher System station, as its tables.xml comment marks it ("; stop",
+  checked); a mast's `switch`, `facing` and `protects` as staging_masts.csv has them. The rules every level's rows
+  keep are check_device_master.row_problems', which load() runs on these rows.
   A helix block (helix_tracks.csv: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
   up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
-  levels 2 and 3 of devices.csv, which name the same block for the piece on its level (check_device_master.shared_blocks).
+  levels 2 and 3 of devices.csv, which name the same block for the piece on its level (check_device_master.check_rows).
 - short_tracks_staging.csv (SHORT_COLUMNS): a short track between two switches with no block row of its own takes
   the OS block whose gap it sits inside (one of its two switches'), keyed by the two switch numbers, never by an
   edge id (read_short_tracks, short_track_blocks: a track with no row, a row with no such track or with a track that
@@ -413,35 +414,24 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
          turnout_idents: bool = True, with_masts: bool = True, short_path: Path | None = None) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
-    (le_ident, ADR-021); with_masts False leaves the masts out. Stops on any placeholder no row names, any row the drawing does not use, a broken k/n run,
-    or a mast row that is not well formed."""
-    rows = read_device_rows(device_map)
-    cp_names = {r["cp_name"] for r in read_rows(cps_path, CP_COLUMNS)}
-    turnout_ph, os_ph, strands = placeholders(band)
-    by_ph, bad = {}, []
-    for i, r in enumerate(rows, 2):
-        if r["layer"] not in LAYERS:
-            bad.append(f"line {i}: layer {r['layer']!r}")
-            continue
-        bad += [f"line {i}: {r['user_name']}: {p}" for p in railroad.device_facts(r)]
-        if r["layer"] == "occupancy" and r["detector"] != "wired":
-            bad.append(f"line {i}: {r['user_name']}: staging's detectors are in the field (wired), not "
-                       f"{r['detector']!r}")
-        if r["level"] != str(LEVEL):
-            bad.append(f"line {i}: level {r['level']!r}, staging is {LEVEL}")
-        if r["cp"] and r["cp"] not in cp_names:
-            bad.append(f"line {i}: cp {r['cp']!r} is no staging control point")
-        if not (r["user_name"] and r["system_name"] and r["jmri_name"]):
-            bad.append(f"line {i}: user_name, system_name and jmri_name are needed for a field device")
-        phs = split_names(r["trial_name"])
-        if phs and r["layer"] not in ("turnout", "block"):
-            bad.append(f"line {i}: a {r['layer']} row has a trial_name")
-        for ph in phs:
-            if ph in by_ph:
-                bad.append(f"line {i}: trial_name {ph} is given to {by_ph[ph][1]} and {r['user_name']}")
-            by_ph[ph] = (r["layer"], r["user_name"], r["jmri_name"])
+    (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
+    devices.csv keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
+    use, a broken k/n run, or a mast row that is not well formed."""
+    import check_device_master as cdm       # the rules of every level's rows (it imports this module)
+    try:
+        lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
+        cps = cdm.control_points(railroad.Railroad(upto="inputs").interlockings, cps_path)
+    except (cdm.DeviceMasterError, railroad.FactsError) as exc:
+        raise StagingMapError(str(exc)) from None
+    if not lines:
+        raise StagingMapError(f"{paths.rel(device_map)}: no staging rows")
+    bad = cdm.row_problems(lines, cps, paths.rel(device_map))
     if bad:
-        raise StagingMapError(f"{paths.rel(device_map)}: " + "; ".join(bad))
+        raise StagingMapError("; ".join(bad))
+    rows = [r for _n, r in lines]
+    cp_names = cps.get(str(LEVEL), set())
+    turnout_ph, os_ph, strands = placeholders(band)
+    by_ph = {ph: (r["layer"], r["user_name"], r["jmri_name"]) for r in rows for ph in split_names(r["trial_name"])}
     used = set()
 
     def get(ph, layer):

@@ -20,7 +20,7 @@ Every level of the "HART Railroad" panel is built from its device map (owner, 20
 
 **Field devices**
 - Staging is in the field. Its turnouts, feedback sensors and detectors carry the railroad's own system names, and the map records them as they are in `tables.xml`.
-- `staging_device_map.py --check` holds the files to their rules and to `tables.xml`. `make panels` and `tools/check.sh` run it.
+- `check_device_master.py --check` (`staging_device_map.py --check` until 2026-11-20, when it took every level) holds the files to their rules and to `tables.xml`. `make panels` and `tools/check.sh` run it.
 
 **Signals**
 - The visible masts are placed by the rule in [ADR-024](ADR-024-signals-by-rule.md). That ADR records the interlockings, the mast types, the milepost origin and the line codes, and they are not repeated here. `build_staging_masts.py` writes the masts into the files above.

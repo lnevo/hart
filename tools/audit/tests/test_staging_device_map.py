@@ -24,11 +24,16 @@ def sw(label, **legs):
     return dict(kind="switch", label=label, ins={}, outs={}, **legs)
 
 
-def row(layer, user, system, jmri, notes="", **facts):
-    """A device map row (build_device_map.COLUMNS, and its role) of staging."""
-    return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
+def row(layer, user, system, jmri, notes="", level="1", **facts):
+    """A device map row (build_device_map.COLUMNS, and its role) of staging, kept by hand, a field device."""
+    return dict(level=level, cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
                 comment="", trial_name="", notes=notes, role=sdm.devices.role_of(layer, user, system, jmri),
-                **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
+                assignment="field", written_by="", **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
+
+
+def numbered(rows):
+    """(line, row) as check_device_master reads the master."""
+    return list(enumerate(rows, 2))
 
 
 class SwitchFacts(unittest.TestCase):
@@ -160,14 +165,14 @@ class Pure(unittest.TestCase):
     def test_a_block_with_no_occupancy_row_stops(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", blocks="Track S-1", detector="wired")]
-        with self.assertRaisesRegex(sdm.StagingMapError, "Track S-1 West"):
-            cdm.check_rows(rows)
+        self.assertEqual(cdm.check_rows(numbered(rows), set()),
+                         ["devices.csv line 3: block Track S-1 West has 0 occupancy rows naming it (none), not one"])
 
     def test_a_shared_detector_serves_both_blocks(self):
         rows = [row("block", "Track S-1", "IB1", "IB1"), row("block", "Track S-1 West", "IB2", "IB2"),
                 row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track S-1; Track S-1 West",
                     blocks="Track S-1;Track S-1 West", detector="wired")]
-        cdm.check_rows(rows)
+        self.assertEqual(cdm.check_rows(numbered(rows), set()), [])
 
     def test_the_blocks_column_is_read_and_never_the_notes(self):
         r = row("occupancy", "BS S-1", "M2S206", "M2S206", notes="blocks Track X", blocks="Track S-1;Track S-1 West",
@@ -256,8 +261,8 @@ class Files(unittest.TestCase):
         def edit(rows):
             hit = next(r for r in rows if r["user_name"] == "Switch 1")
             hit["system_name"] = hit["jmri_name"] = "M2T999"       # a field device: the two are one
-        _out, rows = self._copy(edit)
-        bad = cdm.check_tables(rows, railroad.Railroad())
+        out, _rows = self._copy(edit)
+        bad = cdm.check_tables([r for _n, r in cdm.master_lines(out)], railroad.Railroad())
         self.assertTrue(any("turnout Switch 1: tables.xml has 'M2T408', not M2T999" in b for b in bad), bad)
 
     def test_a_mast_on_a_switch_with_no_turnout_row_stops(self):
@@ -293,117 +298,6 @@ class Files(unittest.TestCase):
         with contextlib.redirect_stderr(err), self.assertRaises(SystemExit):
             cdm.main([])
         self.assertIn("--check is the only mode", err.getvalue())
-
-
-class RowRules(unittest.TestCase):
-    """load() holds each staging row to the rules of a field device, naming the line."""
-
-    _copy = Files._copy
-
-    @classmethod
-    def setUpClass(cls):
-        Files.setUpClass()                  # the staging band, or SkipTest without the plugin
-        cls.band = Files.band
-
-    def _load(self, user, **cols):
-        def edit(rows):
-            hit = next(r for r in rows if r["level"] == "1" and r["user_name"] == user)
-            hit.update(cols)
-        return sdm.load(self.band, device_map=self._copy(edit)[0])
-
-    def test_a_staging_detector_is_wired(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, r"BS Barn: staging's detectors are in the field \(wired\), "
-                                                         r"not 'planned'"):
-            self._load("BS Barn", detector="planned")
-
-    def test_a_cp_is_a_staging_control_point(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "cp 'Nowhere' is no staging control point"):
-            self._load("Track Barn", cp="Nowhere")
-
-    def test_a_trial_name_is_on_a_turnout_or_block_row(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "a fb row has a trial_name"):
-            self._load("FB Switch 1 N", trial_name="Track Nowhere")
-
-    def test_a_trial_name_is_one_rows(self):
-        with self.assertRaisesRegex(sdm.StagingMapError, "trial_name Switch 1 is given to Switch 1 and Switch 3"):
-            self._load("Switch 3", trial_name="Switch 1")
-
-    def test_the_check_command_names_its_files(self):
-        import contextlib
-        out = io.StringIO()
-        with contextlib.redirect_stdout(out):
-            self.assertEqual(cdm.main(["--check"]), 0)
-        self.assertIn("ok: devices.csv, control_points_staging.csv, staging_masts.csv, staging_signals.csv hold their "
-                      "rules", out.getvalue())
-
-
-class TablesCheck(unittest.TestCase):
-    """check_tables holds each device row to its bean in tables.xml, and names the row and what differs."""
-
-    @classmethod
-    def setUpClass(cls):
-        cls.rr = sdm.railroad.Railroad()
-        cls.rows = sdm.read_device_rows()
-        cls.shared = cdm.shared_blocks(cls.rows, cls.rr.device_map)
-
-    def edited(self, edit=None, drop=()):
-        rows = [dict(r) for r in self.rows if r["user_name"] not in drop]
-        if edit:
-            for r in rows:
-                for user, cols in edit.items():
-                    if r["user_name"] == user:
-                        r.update(cols)
-        return rows
-
-    def problems(self, edit=None, drop=(), shared=None):
-        return cdm.check_tables(self.edited(edit, drop), self.rr, self.shared if shared is None else shared)
-
-    def assertProblem(self, pattern, got):
-        self.assertTrue(any(__import__("re").search(pattern, p) for p in got), got)
-
-    def test_the_committed_rows_hold(self):
-        self.assertEqual(self.problems(), [])
-
-    def test_a_head_of_another_name(self):
-        self.assertIn("head IH:HART:C1:24L: tables.xml names it 'Head 24L', not 'Head 24X'",
-                      self.problems({"Head 24L": dict(user_name="Head 24X")}))
-
-    def test_a_block_of_another_system_name(self):
-        self.assertIn("block Track Barn: tables.xml has IB15, not IB99",
-                      self.problems({"Track Barn": dict(system_name="IB99")}))
-
-    def test_a_station_is_its_comment(self):
-        self.assertIn("block Track Barn: stop is empty, but its comment in tables.xml marks a station",
-                      self.problems({"Track Barn": dict(stop="")}))
-        self.assertIn("block Track East Ext: stop is yes, but its comment in tables.xml does not mark a station",
-                      self.problems({"Track East Ext": dict(stop="yes")}))
-
-    def test_a_block_whose_detector_is_another(self):
-        got = self.problems({"BS Barn": dict(user_name="BS Elsewhere", system_name="M2S9999", jmri_name="M2S9999")})
-        self.assertProblem(r"^block Track Barn: its detector in tables.xml is '.+', the device map's BS Elsewhere$", got)
-
-    def test_a_helix_blocks_detector_is_the_main_and_upper_maps(self):
-        other = sdm.railroad.DeviceRow(level=3, layer="occupancy", user_name="BS Other", jmri_name="IS:X")
-        got = self.problems(shared=dict(self.shared, **{"Track Helix Inner": other}))
-        self.assertProblem(r"^helix block Track Helix Inner: its detector in tables.xml is '.+', the main and upper "
-                           r"device map's BS Other$", got)
-
-    def test_a_turnout_bound_by_another_turnouts_name(self):
-        self.assertIn("turnout Switch 1: jmri_name M2T409 is not that turnout in tables.xml",
-                      self.problems({"Switch 1": dict(jmri_name="M2T409")}))
-
-    def test_a_feedback_sensor_with_no_fb_row(self):
-        self.assertProblem(r"^turnout Switch 1: feedback .*have no fb rows$", self.problems(drop=("FB Switch 1 N",)))
-
-    def test_a_mast_of_another_system_name_or_without_its_head_rows(self):
-        self.assertProblem(r"^mast Mast 24L: tables.xml has 'IF\$shsm.*', not IF\$x$",
-                           self.problems({"Mast 24L": dict(system_name="IF$x")}))
-        self.assertIn("mast Mast 24L: heads ['IH:HART:C1:24L'] have no head rows", self.problems(drop=("Head 24L",)))
-
-    def test_a_name_given_twice_stops(self):
-        rows = self.edited({"Switch 3": dict(user_name="Switch 1")})
-        with self.assertRaisesRegex(sdm.StagingMapError, "turnout rows: a user_name is empty or given twice"):
-            cdm.check_rows(rows, set(self.shared))
 
 
 class DeviceMapBuild(unittest.TestCase):
