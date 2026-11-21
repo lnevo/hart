@@ -13,13 +13,15 @@ What it makes, for each level drawn on a band:
   mast_rule.track_names' end-switch rule ("Track 107-109", "Track 3 Spur 1", "Track 107 Loop"). A balloon loop, or a
   track block_splits.csv names (the owner's choice, a level column: 227-241, Princess K-1 and K-2), is two blocks
   parted at its turnback, half 1 at the lower-numbered switch (loop_halves); a half is named by its strand's plan name
-  when it has one (Track K-2, Track K-1), else "<track> <half>".
+  when the two halves carry different ones (Track K-2, Track K-1), else "<track> <half>" (half_block). A name given
+  to two blocks of one level stops.
 - parts: a piece of track inside another block (devices.csv part_of; owner, 2026-11-20). A link, a track between two
   switches shorter than LINK_CM, is part of the lower-numbered switch's OS block (the one at that end: a crossover
   half's, when the half has its own) on a level whose FOLD_LINKS is set; block_exceptions.csv (kind track) gives a
   track, or the piece of it at one end switch, to another OS block where the field wiring says otherwise. A whole
   track's part is named as the track; a piece at one end "<track> at <switch>" ("Track 1-3 at 1", "Track Scale at
-  7"). A track with pieces at both ends is all pieces; with one, the rest is the track's own block.
+  7"). A track with pieces at both ends is all pieces, sharing its length evenly; with one, that piece's length is its
+  row's cm and the rest of the track is its own block (Track Scale, less the 23 cm inside OS Switch 7).
 
 LINK_CM is 50 cm: staging's wiring folds every track between two switches up to 42 cm (11-13) by the rule, and its
 next is Barn at 92 cm. FOLD_LINKS is a per-level setting for step 5 part 1 only: main and upper keep their links as
@@ -28,10 +30,13 @@ between 30 and 50 cm, 231-237, 113-115, 239-245 and 229-233, for the owner to de
 
 block_exceptions.csv (EXCEPTION_COLUMNS), every row the owner's wiring fact, keyed by switch numbers so a new export
 moves rows with their tracks:
+- level 1 only until step 5 part 2: main and upper's device rows do not read the file yet, so a level 2 or 3 row
+  would reach the mast plan and not the rows (it stops).
 - kind track: level, switch_a and switch_b (the track's end switches, lower first) and parallel (1, 2 from the top row
   where two tracks run between them, mast_rule.resolve_track); `end` empty for the whole track or one of its end
   switches for the piece at that end; `block` the OS block it is part of, which must be the OS block at that end (at
-  either end for a whole track).
+  either end for a whole track); `cm` the piece's length, given only for a piece at one end whose track keeps the
+  rest (and then needed, under the track's length).
 - kind crossover_half: switch_a the crossover's number, switch_b the switch its half's leg A track runs to, `block`
   the half's own OS block. Both halves of a crossover have a row, or neither.
 Stops (BlockError, naming the file, line and level) on a row in no such shape, a track or half it does not find, a row
@@ -53,7 +58,7 @@ from hartlib import railroad
 LINK_CM = 50.0
 FOLD_LINKS = {1: True, 2: False, 3: False}       # step 5 part 1: main and upper keep their links (part 2: all True)
 EXCEPTIONS_NAME = "block_exceptions.csv"       # in pd.DATA, looked up when read (a test may point pd.DATA elsewhere)
-EXCEPTION_COLUMNS = ["level", "kind", "switch_a", "switch_b", "parallel", "end", "block", "notes"]
+EXCEPTION_COLUMNS = ["level", "kind", "switch_a", "switch_b", "parallel", "end", "block", "cm", "notes"]
 KINDS = ("track", "crossover_half")
 natural, base = railroad.natural, railroad.switch_number
 
@@ -123,8 +128,8 @@ def name_tracks(found: list[dict], bands, helix: dict) -> None:
 
 @dataclass
 class Exceptions:
-    """block_exceptions.csv resolved against the drawing: track rows by track entry id, {end: (block, line)}
-    ("" the whole track), and crossover halves by (band, node): (block, line)."""
+    """block_exceptions.csv resolved against the drawing: track rows by track entry id, {end: (block, line, cm or
+    None)} ("" the whole track), and crossover halves by (band, node): (block, line)."""
     tracks: dict = field(default_factory=dict)
     halves: dict = field(default_factory=dict)
 
@@ -171,11 +176,23 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
             bad.append(f"{at}: block {r['block']!r} is no OS block (a piece of track is part of a switch's OS block)")
             continue
         level = int(r["level"])
+        if level != 1:
+            # main and upper keep their links until part 2, and their device rows do not read this file yet: a row here
+            # would reach the mast plan and not the rows, and the panels and Signal Mast Logic would disagree
+            bad.append(f"{at}: level 2 and 3 rows come with step 5 part 2, when main and upper fold their links")
+            continue
+        try:
+            cm = float(r["cm"]) if r["cm"] else None
+        except ValueError:
+            cm = -1.0
+        if cm is not None and not cm > 0:
+            bad.append(f"{at}: cm {r['cm']!r} is a length in cm, more than 0")
+            continue
         if r["kind"] == "crossover_half":
             if not (mr.SWITCH_NUMBER.fullmatch(r["switch_a"]) and mr.SWITCH_NUMBER.fullmatch(r["switch_b"])) or \
-                    r["parallel"] or r["end"]:
+                    r["parallel"] or r["end"] or r["cm"]:
                 bad.append(f"{at}: a crossover half is switch_a (the crossover) and switch_b (where its leg A track "
-                           "runs), with no parallel or end")
+                           "runs), with no parallel, end or cm")
                 continue
             if level not in wanted:
                 continue
@@ -212,7 +229,7 @@ def read_exceptions(found: list[dict], bands, levels: dict, path: Path | None = 
         if r["end"] in got or ("" in got and r["end"]) or (got and not r["end"]):
             bad.append(f"{at}: {t['name']} is given a block on line {next(iter(got.values()))[1]} already")
             continue
-        got[r["end"]] = (r["block"], i)
+        got[r["end"]] = (r["block"], i, cm)
     if bad:
         raise BlockError(f"{where}: " + "; ".join(bad))
     return out
@@ -341,7 +358,12 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                 blocks[sid] = rows[sid] = [os_[ends[0]]]
                 continue
             h = halves.get(sid)
-            name = f"Track {plan_name(band, sid)}" if h and plan_name(band, sid) else half_name(t["name"], h)
+            name = half_block(band, t, sid, h, halves)
+            held = out.tracks.get(name)
+            if held is not None and held != (t, h) and held[0]["level"] == t["level"]:
+                bad.append(f"level {level}: {name} names two blocks ({', '.join(held[0]['trial'])} and "
+                           f"{', '.join(t['trial'])})")
+                continue
             out.tracks[name] = (t, h)
             out.cm[name] = round(t["cm"] / 2, 1) if h else t["cm"]
             ex = exceptions.tracks.get(id(t))
@@ -358,14 +380,16 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                     continue
                 if st["src"][0] != at_end[min(at_end, key=natural)]:                # from the strand's first end
                     pieces = pieces[::-1]
-                for row, block, line in pieces:
+                for row, block, line, cm in pieces:
                     if line:
-                        out.parts[row] = dict(part_of=block, level=level, track=t,
+                        out.parts[row] = dict(part_of=block, level=level, track=t, cm=cm,
                                               why=f"{exceptions_file} line {line}")
-                if all(line for _r, _b, line in pieces):        # no piece left to the track's own block
+                    else:                                       # the rest of the track, its own block
+                        out.cm[name] = cm
+                if all(line for _r, _b, line, _c in pieces):    # no piece left to the track's own block
                     out.tracks.pop(name, None)
                     out.cm.pop(name, None)
-                blocks[sid], rows[sid] = [b for _r, b, _l in pieces], [r for r, _b, _l in pieces]
+                blocks[sid], rows[sid] = [b for _r, b, _l, _c in pieces], [r for r, _b, _l, _c in pieces]
                 used.add(id(t))
                 continue
             if FOLD_LINKS[level] and is_link(t):
@@ -375,7 +399,7 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
                     bad.append(f"level {level}: the link {t['name']} ends at Switch {low} on another band; part 2 "
                                "places such links")
                     continue
-                out.parts[t["name"]] = dict(part_of=block, level=level, track=t,
+                out.parts[t["name"]] = dict(part_of=block, level=level, track=t, cm=t["cm"],
                                             why=f"the rule: under {LINK_CM:g} cm between two switches, so in the "
                                                 "lower-numbered switch's OS block")
                 out.tracks.pop(name, None)
@@ -386,7 +410,8 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
         out.bands[bi] = {"os": os_, "blocks": blocks}
         out.rows[bi] = rows
     unused = sorted(line for key, (block, line) in exceptions.halves.items() if key not in used)
-    unused += sorted(line for key, got in exceptions.tracks.items() if key not in used for _b, line in got.values())
+    unused += sorted(line for key, got in exceptions.tracks.items() if key not in used
+                     for _b, line, _cm in got.values())
     if unused:
         bad.append(f"{exceptions_file} line(s) {', '.join(map(str, sorted(unused)))} match nothing drawn")
     bad += check(bands, out, levels, found)
@@ -396,35 +421,67 @@ def layer(bands, runs, found: list[dict], levels: dict, split: dict, exceptions:
 
 
 def exception_pieces(t, ex: dict, own: str, os_: dict, at_end: dict, where: str, bad: list) -> list | None:
-    """[(row name, block, exceptions line or 0)] of a track block_exceptions.csv gives to OS blocks (`ex`, {end:
-    (block, line)}), from its lower-numbered switch's end: the whole track as one part (its own name), or a piece per
-    end the file names ("<track> at <switch>") and, with one end named, the rest as the track's own block `own`.
-    None (with the problem in `bad`) when a block is not the OS block at its end or a parted track is drawn in
-    several pieces."""
+    """[(row name, block, exceptions line or 0, cm)] of a track block_exceptions.csv gives to OS blocks (`ex`, {end:
+    (block, line, cm)}), from its lower-numbered switch's end: the whole track as one part (its own name, its whole
+    length), or a piece per end the file names ("<track> at <switch>"). Pieces at both ends share the track evenly;
+    a piece at one end takes the cm its row gives (OS 7's reach onto Scale), and the rest of the track, its own block
+    `own`, the remaining length. None (with the problem in `bad`) when a block is not the OS block at its end, a
+    parted track is drawn in several pieces, or a length is missing, out of range or given where none is taken."""
     sws = sorted(at_end, key=natural)
     if "" in ex:
-        block, line = ex[""]
+        block, line, cm = ex[""]
+        if cm is not None:
+            bad.append(f"{where} line {line}: cm {cm:g} for the whole of {t['name']}: only a piece at one end takes "
+                       "its length")
+            return None
         if block not in {os_.get(at_end[s]) for s in sws}:
             bad.append(f"{where} line {line}: {t['name']} is given {block}, the OS block of neither of its end "
                        "switches")
             return None
-        return [(t["name"], block, line)]
+        return [(t["name"], block, line, t["cm"])]
     if len(t["strands"]) != 1:
         bad.append(f"{where} lines {', '.join(str(x[1]) for x in ex.values())}: {t['name']} is drawn as "
                    f"{len(t['strands'])} pieces; a track parted at an end is one")
         return None
     out = []
     for s in sws:
-        if s in ex:
-            block, line = ex[s]
-            if block != os_.get(at_end[s]):
-                bad.append(f"{where} line {line}: the piece of {t['name']} at Switch {s} is given {block}, not that "
-                           f"switch's OS block {os_.get(at_end[s])}")
+        if s not in ex:
+            continue
+        block, line, cm = ex[s]
+        name = f"{t['name']} at {s}"
+        if block != os_.get(at_end[s]):
+            bad.append(f"{where} line {line}: the piece of {t['name']} at Switch {s} is given {block}, not that "
+                       f"switch's OS block {os_.get(at_end[s])}")
+            return None
+        if len(ex) == 2:
+            if cm is not None:
+                bad.append(f"{where} line {line}: cm {cm:g} for {name}: only a piece at one end takes its length "
+                           "(pieces at both ends share the track evenly)")
                 return None
-            out.append((f"{t['name']} at {s}", block, line))
-        elif len(ex) == 1:
-            out.append((own, own, 0))
+            cm = round(t["cm"] / 2, 1)
+        elif cm is None:
+            bad.append(f"{where} line {line}: {name}: give its cm, the length of the piece inside {block}")
+            return None
+        elif cm >= t["cm"]:
+            bad.append(f"{where} line {line}: {name}: cm {cm:g} is not under the track's {t['cm']:g}")
+            return None
+        out.append((name, block, line, cm))
+    if len(ex) == 1:                                   # the rest of the track stays its own block
+        rest = (own, own, 0, round(t["cm"] - out[0][3], 1))
+        out = [out[0], rest] if next(iter(ex)) == sws[0] else [rest, out[0]]
     return out
+
+
+def half_block(band, t: dict, sid: str, h: int | None, halves: dict) -> str:
+    """The block name of strand `sid` of track `t`: the track's name, or for a half (`h`) of a balloon loop or split
+    track its strand's plan name ("Track K-2") when the two halves carry different ones, else "<track> <half>"."""
+    if h is None:
+        return t["name"]
+    names = {halves[x]: plan_name(band, x) for x in t["strands"] if x in halves}
+    mine = plan_name(band, sid)
+    if mine and len(set(names.values())) == len(names) == 2:
+        return f"Track {mine}"
+    return half_name(t["name"], h)
 
 
 def check(bands, lay: Layer, levels: dict, found: list[dict]) -> list[str]:

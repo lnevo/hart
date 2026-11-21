@@ -118,7 +118,7 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
         self.stops(HEAD + "1,track,9,11,,,Track Barn,\n", "is no OS block")
         self.stops(HEAD + "1,track,11,9,,,OS Switch 9,\n", "lower first")
         self.stops(HEAD + "1,track,9,11,,13,OS Switch 9,\n", "its end empty or one of them")
-        self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,\n", "with no parallel or end")
+        self.stops(HEAD + "1,crossover_half,7,13,,7,OS Switch 7,\n", "with no parallel, end or cm")
 
     def test_a_row_that_matches_no_track_or_half_stops(self):
         self.stops(self.committed + "1,track,2,4,,,OS Switch 2,\n", "no track runs Switch 2 to Switch 4")
@@ -141,8 +141,59 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
     def test_a_split_track_with_rows_stops(self):
         self.stops(self.committed + "1,track,37,39,,,OS Switch 37,\n", "split in halves and given to OS blocks")
 
-    def test_a_row_of_a_level_not_drawn_is_checked_for_shape_only(self):
-        self.layer(self.committed + "3,track,2,4,,,OS Switch 2,\n")
+    def test_a_main_or_upper_row_waits_for_part_2(self):
+        # the mast plan would read it and the device rows would not, so the panels and SML would disagree
+        for row in ("2,track,101,103,,,OS Switch 101,\n", "3,crossover_half,127,125,,,OS Switch 127,\n"):
+            with self.subTest(row=row):
+                self.stops(self.committed + row, "level 2 and 3 rows come with step 5 part 2")
+
+    # ---------------------------------------------------------------- lengths
+
+    def test_a_piece_at_one_end_takes_its_length_off_the_rest(self):
+        lay = self.layer()
+        scale = next(t for t, _h in lay.tracks.values() if t["name"] == "Track Scale")
+        self.assertEqual(lay.parts["Track Scale at 7"]["cm"], 23.0)
+        self.assertEqual(lay.cm["Track Scale"], round(scale["cm"] - 23.0, 1))
+
+    def test_pieces_at_both_ends_share_the_track_evenly(self):
+        lay = self.layer()
+        self.assertEqual(lay.parts["Track 1-3 at 1"]["cm"], lay.parts["Track 1-3 at 3"]["cm"])
+        self.assertEqual(lay.parts["Track 9-11"]["cm"], 38.7)
+
+    def test_a_piece_at_one_end_needs_its_length(self):
+        bad = self.committed.replace(",OS Switch 7,23,", ",OS Switch 7,,")
+        self.assertNotEqual(bad, self.committed)
+        self.stops(bad, "Track Scale at 7: give its cm")
+        self.stops(self.committed.replace(",OS Switch 7,23,", ",OS Switch 7,500,"), "is not under the track's")
+        self.stops(self.committed.replace(",OS Switch 7,23,", ",OS Switch 7,x,"), "cm 'x' is a length")
+        self.stops(self.without("1,track,13,15,") + "1,track,13,15,,,OS Switch 15,10,\n", "only a piece at one end")
+
+    # ---------------------------------------------------------------- halves
+
+    def renamed(self, names: dict):
+        """(bands, found) with the staging strands' plan names changed ({strand: name})."""
+        import copy
+        bands = copy.deepcopy(self.bands)
+        bi = next(i for i, (t, _b, _o) in enumerate(bands) if self.levels.get(t) == 1)
+        for sid, name in names.items():
+            bands[bi][1]["strands"][sid]["name"] = name
+        over = bdm.layer_files.read("plan_overrides", bdm.STAGING_SHEET, bdm.OVERRIDES.parent)
+        return bands, bdm.named_tracks(bands, self.joined, self.runs, over)
+
+    def halves_layer(self, names: dict) -> BL.Layer:
+        bands, found = self.renamed(names)
+        return BL.layer(bands, self.runs, found, self.levels, BL.split_edges(found, self.levels, bdm.SPLIT),
+                        BL.read_exceptions(found, bands, self.levels))
+
+    def test_halves_with_one_plan_name_are_numbered_not_merged(self):
+        lay = self.halves_layer({"e15.0": "K", "e15.1": "K"})
+        self.assertIn("Track K 1", lay.tracks)
+        self.assertIn("Track K 2", lay.tracks)
+        self.assertNotIn("Track K", lay.tracks)
+
+    def test_a_half_named_like_another_block_stops(self):
+        with self.assertRaisesRegex(BL.BlockError, "Track Barn names two blocks"):
+            self.halves_layer({"e15.0": "Barn"})
 
     def test_a_helix_track_its_plan_name_does_not_name_stops(self):
         with self.assertRaisesRegex(BL.BlockError, "helix_tracks.csv does not name"):
@@ -153,6 +204,25 @@ class OnTheDrawing(RepoReadOnly, unittest.TestCase):
                                                    "block"):
             BL.layer(self.bands, self.runs, self.found, self.levels, {},
                      BL.read_exceptions(self.found, self.bands, self.levels))
+
+
+class TheCommand(RepoReadOnly, unittest.TestCase):
+    """A data error from staging's rows ends main() with its one-line message and exit 2, as the others do."""
+
+    def test_data_errors_exit_2(self):
+        import contextlib
+        import io
+        import staging_device_map as sdm
+        try:
+            bdm.solve()
+        except Exception as exc:  # noqa: BLE001  no plugin: nothing to run
+            raise unittest.SkipTest(str(exc))
+        for exc in (sdm.StagingMapError("staging: bad"), bdm.railroad.FactsError("facts: bad")):
+            with self.subTest(exc=type(exc).__name__), \
+                    unittest.mock.patch.object(bdm, "staging_rows", side_effect=exc), \
+                    contextlib.redirect_stderr(io.StringIO()) as err:
+                self.assertEqual(bdm.main(["--check"]), 2)
+            self.assertIn("bad", err.getvalue())
 
 
 class StagingRows(RepoReadOnly, unittest.TestCase):
@@ -169,19 +239,42 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
             raise unittest.SkipTest(str(exc))
         cls.runs = staticmethod(runs)
 
-    def rows(self, edit=None):
+    def rows(self, edit=None, extra_exception=""):
+        """staging_rows over a copy of the master (`edit`ed) and of block_exceptions.csv (plus `extra_exception`)."""
         rows = [dict(r) for r in devices.load()]
         if edit:
             rows = edit(rows)
         p = temp_file("devices.csv", devices.master_text(rows))
         self.addCleanup(remove, p)
-        return bdm.staging_rows(self.bands, self.joined, self.runs, devices.Files.under(p.parent))
+        ex = temp_file("block_exceptions.csv", BL.exceptions_path().read_text(encoding="utf-8") + extra_exception)
+        self.addCleanup(remove, ex)
+        self.files = devices.Files.under(p.parent)
+        return bdm.staging_rows(self.bands, self.joined, self.runs, self.files, exceptions=ex)
 
     def test_the_committed_rows_come_back_as_they_are(self):
-        got, adopts = self.rows()
+        got, adopts, drops = self.rows()
+        self.assertEqual(drops, set())
         want = [r for r in devices.load() if r["level"] == "1" and r["layer"] in ("block", "occupancy")]
         self.assertEqual(got, [dict(r) for r in want])
         self.assertEqual(adopts, {("1", r["layer"], r["user_name"]) for r in want})
+
+    def test_a_block_that_becomes_a_part_frees_its_detector_as_a_spare(self):
+        """East Lead given to OS Switch 33: its block row becomes a part (no name-map columns), its detector a spare
+        row named by its node input, and both old keys are dropped from the name map on purpose."""
+        got, adopts, drops = self.rows(extra_exception="1,track,33,35,,,OS Switch 33,,\n")
+        by = {(r["layer"], r["user_name"]): r for r in got}
+        part = by[("block", "Track East Lead")]
+        self.assertEqual((part["role"], part["part_of"], part["pnm_order"], part["layout_block"]),
+                         ("part", "OS Switch 33", "", ""))
+        self.assertNotIn(("occupancy", "BS East Lead"), by)
+        spare = by[("occupancy", "unused Block 1-7")]
+        self.assertEqual((spare["role"], spare["assignment"], spare["system_name"], spare["blocks"]),
+                         ("spare", "spare", "M2S106", ""))
+        self.assertEqual(drops, {("1", "block", "Track East Lead"), ("1", "occupancy", "BS East Lead")})
+        # the master takes it and reads it back as written
+        out = devices.outputs_after("build_device_map.py", [], self.files, drops=drops, master_rows=got,
+                                    adopts=adopts)
+        self.assertIn("unused Block 1-7", out[self.files.master])
 
     def test_a_block_with_no_row_to_carry_its_field_facts_from_stops(self):
         drop = lambda rows: [r for r in rows if not (r["level"] == "1" and r["user_name"] == "Track Barn")]  # noqa

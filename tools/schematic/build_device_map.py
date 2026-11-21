@@ -757,14 +757,14 @@ def part_row(level: str, name: str, part: dict, trial: str) -> dict:
     return row
 
 
-def staging_layer(bands, joined, runs) -> tuple[block_layer.Layer, int, list[dict]]:
+def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[block_layer.Layer, int, list[dict]]:
     """(block_layer.layer of the staging band, its band index, its tracks): the one block process over staging's
-    drawing, block_splits.csv and block_exceptions.csv."""
+    drawing, block_splits.csv and block_exceptions.csv (`exceptions`, default the committed file)."""
     overrides = layer_files.read("plan_overrides", STAGING_SHEET, OVERRIDES.parent)
     levels = band_levels(overrides)
     found = named_tracks(bands, joined, runs, overrides)
     lay = block_layer.layer(bands, runs, found, levels, block_layer.split_edges(found, levels, SPLIT),
-                            block_layer.read_exceptions(found, bands, levels))
+                            block_layer.read_exceptions(found, bands, levels, exceptions))
     if len(lay.bands) != 1:
         raise MapError(f"staging is drawn on {len(lay.bands)} bands; its trial names need one")
     return lay, next(iter(lay.bands)), found
@@ -789,21 +789,45 @@ def staging_trials(band, lay: block_layer.Layer, bi: int) -> dict[str, str]:
     return {row: ", ".join(ph for _k, ph in sorted(phs, key=lambda x: x[0])) for row, phs in got.items()}
 
 
-def staging_rows(bands, joined, runs, files: devices.Files | None = None) -> tuple[list[dict], set]:
-    """(staging's block and occupancy rows of the master, the keys they take over): the one block process's blocks
+SPARE_RE = re.compile(r"^Node: (\d+) Block: (\d+)$")
+
+
+def freed_spare(occ: dict, block: str, part_of: str) -> dict:
+    """The spare row of the field detector `occ` (an occupancy row) whose block became part of `part_of`: named by its
+    node input ("unused Block 1-7"), as the other spares are, with its sensor, node and wiring kept and no name-map
+    columns. MapError when its wiring names no node input."""
+    m = SPARE_RE.match(occ["wiring"])
+    if not m or occ["assignment"] != "field":
+        raise MapError(f"{occ['user_name']}: {block} is now part of {part_of}, but its detector's wiring "
+                       f"{occ['wiring']!r} names no node input to keep it as a spare by; reassign the detector")
+    row = dict(occ, user_name=f"unused Block {m.group(1)}-{m.group(2)}", role="spare", assignment="spare", cp="",
+               blocks="", detector="", jmri_comment="", trial_name="",
+               notes=f"freed when {block} became part of {part_of} (block_exceptions.csv)",
+               written_by="build_device_map.py", **{c: "" for c in devices.COLUMNS if c.startswith("pnm_")})
+    row["description"] = devices.describe(row)
+    return row
+
+
+def staging_rows(bands, joined, runs, files: devices.Files | None = None,
+                 exceptions: Path | None = None) -> tuple[list[dict], set, set]:
+    """(staging's block and occupancy rows of the master, the keys they take over, the keys they drop): the one block
+    process's blocks
     and parts of the staging band (staging_layer), each block row and its occupancy row carrying its field facts
     (system and layout-block names, node, wiring, comment, notes, detector, stop, control point and name-map columns)
     over from the row of its name in devices.csv; this script owns the rest (role, trial_name, part_of, blocks,
     written_by, description). The spare detectors' rows are carried as they are. A helix block's occupancy row is the
-    level of its helix switch's (main or upper), not staging's: the block is one across levels. MapError on a block
-    with no row to carry its field facts from, or a staging block or occupancy row the drawing has no block for."""
-    lay, bi, _found = staging_layer(bands, joined, runs)
+    level of its helix switch's (main or upper), not staging's: the block is one across levels. A block that becomes a
+    part (block_exceptions.csv gives it to an OS block) loses its JMRI block: its part row has no name-map columns, its
+    detector becomes a spare row named by its node input (freed_spare), and both old keys are dropped from the name
+    map on purpose (the keys returned, for hartlib.devices' drops). MapError on a block with no row to carry its field
+    facts from, or a staging block or occupancy row the drawing has no block for."""
+    lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
     helix = {h["block"] for h in read_helix_tracks().values()}
     prior = {(r["layer"], r["user_name"]): r for r in devices.load(files or device_files())
              if r["level"] == FIELD_LEVEL and r["layer"] in FIELD_LAYERS}
     blocks = set(lay.bands[bi]["os"].values()) | set(lay.tracks)
-    out, bad = [], []
+    out, bad, drops, freed = [], [], set(), []
 
     def carried(layer: str, name: str, **owned) -> dict | None:
         old = prior.pop((layer, name), None)
@@ -818,21 +842,41 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None) -> tup
 
     for name in sorted(blocks | set(lay.parts), key=natural):
         if name in lay.parts:
-            prior.pop(("block", name), None)            # a part's row is this script's alone
-            out.append(part_row(FIELD_LEVEL, name, lay.parts[name], trials[name]))
+            part = lay.parts[name]
+            old = prior.pop(("block", name), None)      # a part's row is this script's alone
+            if old is not None and old["role"] != "part":           # a block that became a part
+                drops.add((FIELD_LEVEL, "block", name))
+                occ = prior.pop(("occupancy", occupancy_user(name)), None)
+                if occ is not None:
+                    drops.add((FIELD_LEVEL, "occupancy", occ["user_name"]))
+                    try:
+                        freed.append(freed_spare(occ, name, part["part_of"]))
+                    except MapError as exc:
+                        bad.append(str(exc))
+            out.append(part_row(FIELD_LEVEL, name, part, trials[name]))
         else:
             out.append(carried("block", name, trial_name=trials.get(name, "")))
     occupancy = [carried("occupancy", occupancy_user(b), blocks=b) for b in sorted(blocks - helix, key=natural)]
     spares = [dict(r, written_by="build_device_map.py") for k, r in sorted(prior.items()) if r["role"] == "spare"]
     for r in spares:
         prior.pop((r["layer"], r["user_name"]))
+    taken = {r["user_name"] for r in spares}
+    for r in freed:
+        if r["user_name"] in taken:
+            bad.append(f"{r['user_name']}: a spare of that name is in {OUT.name} already")
+    spares += freed
     if prior:
         bad.append(f"staging rows of {OUT.name} the drawing has no block for: "
                    + ", ".join(f"{layer} {name}" for layer, name in sorted(prior)))
     if bad:
         raise MapError("; ".join(bad))
     out += sorted(occupancy + spares, key=lambda r: natural(r["user_name"]))
-    return out, {(FIELD_LEVEL, r["layer"], r["user_name"]) for r in out}
+    return out, {(FIELD_LEVEL, r["layer"], r["user_name"]) for r in out}, drops
+
+
+def staging_map_error() -> type:
+    import staging_device_map as sdm        # it imports this module
+    return sdm.StagingMapError
 
 
 def check_virtual(rows) -> None:
@@ -917,11 +961,12 @@ def main(argv=None) -> int:
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     try:
-        staging, adopts = staging_rows(bands, joined, runs)
+        staging, adopts, drops = staging_rows(bands, joined, runs)
         want = {OVERRIDES: overrides_text(overrides, cp_keys),
                 **devices.outputs_after("build_device_map.py", rows, device_files(), master_rows=staging,
-                                        adopts=adopts)}
-    except (MapError, devices.DevicesError, layer_files.LayerFileError) as exc:
+                                        adopts=adopts, drops=drops)}
+    except (MapError, staging_map_error(), railroad.FactsError, layer_files.LayerFileError) as exc:
+        # a DevicesError is a FactsError; a StagingMapError comes from staging's placeholder grammar
         print(f"build_device_map.py: {exc}", file=sys.stderr)
         return 2
     stale = [p for p, text in want.items() if not p.exists() or p.read_text(encoding="utf-8") != text]

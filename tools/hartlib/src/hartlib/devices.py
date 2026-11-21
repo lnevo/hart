@@ -185,7 +185,7 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
     name). Run on every load and after every write."""
     bad, keys, jmri, field_systems = [], {}, {}, {}
     ranks, pnm = [], {}
-    parts, part_names, whole = [], set(), set()      # (row, level, part_of) of each part; (level, name) of parts, blocks
+    parts, part_names, whole = [], set(), set()      # parts (row, level, part_of); (level, name)s
     for n, r in enumerate(rows, 2):
         at = f"line {n} ({r['level']} {r['layer']} {r['user_name']!r})"
         if r["level"] not in LEVELS:
@@ -478,19 +478,22 @@ def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Pat
 
 def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
                        drops: Iterable[tuple[str, str, str]] = (),
-                       adopts: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
+                       adopts: Iterable[tuple[str, str, str]] = (),
+                       as_given: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
     """{path: text} of the master once `writer` has written `new`, master rows with
     written_by set to it, in place of the rows it holds. Each row keeps the pnm_ columns of the row it replaces.
-    The caller writes the texts (or compares them for --check); nothing is written here. DevicesError when the
-    writer would touch a row it does not hold."""
+    A row whose key is in `as_given` is taken whole, its pnm_ columns too (a builder that sets them itself). The
+    caller writes the texts (or compares them for --check); nothing is written here. DevicesError when the writer
+    would touch a row it does not hold."""
     f = files or Files.here()
     held = load(f)
     prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
-    rows = []
+    rows, as_given = [], set(as_given)
     for n in new:
         row = dict(n)
-        old = prior.get((row["level"], row["layer"], row["user_name"]))
-        if old is not None and old["written_by"] == writer:
+        key = (row["level"], row["layer"], row["user_name"])
+        old = prior.get(key)
+        if old is not None and old["written_by"] == writer and key not in as_given:
             row.update({c: old[c] for c in COLUMNS if c.startswith("pnm_")})
         rows.append(row)
     return texts(replace_rows(held, writer, rows, drops, adopts), f)
@@ -508,7 +511,8 @@ def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Fil
     prior = {(r["level"], r["layer"], r["user_name"]): r for r in load(f)}
     master_rows = [dict(r) for r in master_rows]
     new = [master_row(o, writer, prior.get((str(o["level"]), o["layer"], o["user_name"]))) for o in old_rows]
-    out = outputs_after_rows(writer, new + master_rows, f, drops, adopts)
+    out = outputs_after_rows(writer, new + master_rows, f, drops, adopts,
+                             as_given={(r["level"], r["layer"], r["user_name"]) for r in master_rows})
     want = {(str(o["level"]), o["layer"], o["user_name"]): {c: str(o[c]) for c in DEVICE_COLUMNS} for o in old_rows}
     whole = {(r["level"], r["layer"], r["user_name"]): r for r in master_rows}
     back = {(r["level"], r["layer"], r["user_name"]): r for r in csv.DictReader(io.StringIO(out[f.master]))
