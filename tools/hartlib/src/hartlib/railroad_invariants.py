@@ -223,8 +223,13 @@ def _staging_blocks(rr: Railroad) -> list[str]:
             bad.append(f"{where}: no live mast {m.mast} in the name map")
         bad += [f"{where}: block {b} is no live block of the name map" for b in (m.facing, *m.protects)
                 if b not in blocks]
-    bad += [f"{rr.sources.block_lengths.name}: {name} is no live block of the name map"
-            for name in rr.block_lengths if name not in blocks]
+    # block_lengths.csv holds every level's blocks (step 5 part 2): staging's live blocks and main and upper's block
+    # rows of devices.csv (no part: a part has no JMRI block, so no length of its own)
+    from hartlib import devices
+    level_blocks = {r["user_name"] for r in devices.load(rr.sources.devices)
+                    if r["level"] in ("2", "3") and r["layer"] == "block" and r["role"] != "part"}
+    bad += [f"{rr.sources.block_lengths.name}: {name} is no live block of the name map or main and upper block row "
+            "of devices.csv" for name in rr.block_lengths if name not in blocks | level_blocks]
     return bad
 
 

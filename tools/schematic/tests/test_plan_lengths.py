@@ -36,7 +36,7 @@ class TurnoutLength(unittest.TestCase):
 
     def test_a_turnout_with_the_angle_of_no_class_stops(self):
         with self.assertRaisesRegex(PL.LengthError, r"'Odd 4' has leg-end angle .* in no class"):
-            PL.turnout_class(turnout("Odd 4", 8.3))
+            PL.turnout_class(turnout("Odd 4", 7.0))
         with self.assertRaisesRegex(PL.LengthError, "in no class"):
             PL.turnout_inches(turnout("Odd 12", 14.0))
 
@@ -60,10 +60,11 @@ class TurnoutLength(unittest.TestCase):
             try:
                 got[p["name"]] = PL.turnout_class(p)
             except PL.LengthError:
-                pass                                    # the #4s and other ends counts: no class, no reading
+                pass                                    # other ends counts: no class, no reading
         self.assertEqual({n for n, c in got.items() if c == "#6"}, {"SL-8361", "SL-8362", "SL-E8362"})
         self.assertEqual({n for n, c in got.items() if c == "#8"}, {"SL-8377", "SL-E8377"})
-        self.assertEqual({round(PL.turnout_inches(p), 1) for p in parts if p["name"] in got}, {9.2, 11.1})
+        self.assertEqual({n for n, c in got.items() if c == "#5"}, {"SL-8351", "SL-8352"})     # main and upper
+        self.assertEqual({round(PL.turnout_inches(p), 1) for p in parts if p["name"] in got}, {8.3, 9.2, 11.1})
 
     def test_a_part_label_is_its_index(self):
         self.assertEqual(PL.part_index("T139"), 139)
@@ -128,22 +129,72 @@ class CsvWith(unittest.TestCase):
 
     def test_plan_in_is_written_and_the_rest_kept(self):
         p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["OS Switch 1", "x", "1.0", "22.6", "timed", "laps"]])
-        got = list(csv.DictReader(io.StringIO(PL.csv_with({"Track A": 104.04, "OS Switch 1": 9.2}, p))))
+        got = list(csv.DictReader(io.StringIO(PL.csv_with({"Track A": 104.04, "OS Switch 1": 9.2}, {}, p))))
         self.assertEqual([(r["user_name"], r["plan_in"], r["measured_in"], r["note"]) for r in got],
                          [("Track A", "104.0", "", ""), ("OS Switch 1", "9.2", "22.6", "laps")])
 
+    def test_main_and_upper_rows_are_written_after_staging_in_level_and_name_order(self):
+        p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["Track 201-203", "BS 201-203", "3.0", "", "plan", ""]])
+        got = list(csv.DictReader(io.StringIO(PL.csv_with(
+            {"Track A": 1.0}, {"Track 201-203": ("3", 7.04), "OS Switch 101": ("2", 16.0)}, p))))
+        self.assertEqual([(r["user_name"], r["occupancy_sensor"], r["plan_in"], r["source"]) for r in got],
+                         [("Track A", "x", "1.0", "plan"), ("OS Switch 101", "BS Switch 101", "16.0", "plan"),
+                          ("Track 201-203", "BS 201-203", "7.0", "plan")])
+
     def test_the_file_and_the_drawing_must_hold_the_same_blocks(self):
+        p = self.write([["Track A", "x", "1.0", "", "plan", ""]])
+        with self.assertRaisesRegex(PL.LengthError, r"only drawn \['Track B'\]"):
+            PL.csv_with({"Track A": 1.0, "Track B": 2.0}, {}, p)
         p = self.write([["Track A", "x", "1.0", "", "plan", ""], ["Track Gone", "x", "1.0", "", "plan", ""]])
-        with self.assertRaisesRegex(PL.LengthError, r"only in the file \['Track Gone'\], only drawn \['Track B'\]"):
-            PL.csv_with({"Track A": 1.0, "Track B": 2.0}, p)
+        with self.assertRaisesRegex(PL.LengthError, r"rows of no drawn block on any level: \['Track Gone'\]"):
+            PL.csv_with({"Track A": 1.0}, {}, p)
+
+
+class MainUpper(unittest.TestCase):
+    """Main and upper's plan lengths (step 5 part 2, owner 2026-11-20): runs from the plan file, OS blocks from their
+    parts."""
+    GRAPH = {"nodes": {"a": {"kind": "switch", "label": "T1"}, "w1": {"kind": "switch", "label": "51"},
+                       "w2": {"kind": "switch", "label": "50"}, "end": {"kind": "end", "sub": "bumper"}},
+             "edges": [{"id": "e0", "u": "a", "up": "B", "v": "w1", "vp": "C", "cm": 30.0},
+                       {"id": "e1", "u": "TO_3W1-1", "up": "A", "v": "end", "vp": "E", "cm": 60.0},
+                       {"id": "e2", "u": "TO_3W1-1", "up": "B", "v": "TO_3W1-2", "vp": "A", "cm": 3.4}]}
+    GRAPH["nodes"]["TO_3W1-1"] = {"kind": "switch", "label": "51"}
+    GRAPH["nodes"]["TO_3W1-2"] = {"kind": "switch", "label": "50"}
+
+    def test_edges_take_the_plans_run_not_the_graphs_length(self):
+        got = PL.main_edge_inches(self.GRAPH, {(1, "B"): (10.0, None)}, threeway_bumper=20.0)
+        self.assertEqual(got, {"e0": 10.0, "e1": 20.0, "e2": 0.0})
+
+    def test_an_edge_with_no_run_stops(self):
+        with self.assertRaisesRegex(PL.LengthError, "edge e0 .*no run"):
+            PL.main_edge_inches(self.GRAPH, {}, threeway_bumper=20.0)
+
+    def test_the_main_and_upper_number_5_turnout_reads_from_its_geometry(self):
+        self.assertEqual(PL.turnout_class(turnout("Made-Up Maker 5", 8.3, spread_in=1.0)), "#5")
+        self.assertAlmostEqual(PL.turnout_inches(turnout("Made-Up Maker 5", 8.3)), 8.3, places=6)
+
+    def test_a_four_ended_part_spans_its_longest_end_to_end(self):
+        part = {"name": "X", "eps": [{"x": 0, "y": 0}, {"x": 10 * CM, "y": 0}, {"x": 0, "y": 1 * CM},
+                                     {"x": 10 * CM, "y": 1 * CM}]}
+        self.assertAlmostEqual(PL.part_span_inches(part), math.hypot(10, 1), places=6)
+        with self.assertRaisesRegex(PL.LengthError, "not a three-way's or double crossover's four"):
+            PL.part_span_inches(turnout("Y", 9.2))
 
 
 class Repo(unittest.TestCase):
     def test_the_os_rows_hold_their_turnout_lengths(self):
         rows = PL.railroad.read_block_lengths(PL.LENGTHS)
         for name, b in rows.items():
-            if name.startswith("OS "):
+            if name.startswith("OS ") and b.occupancy_sensor.startswith("Block "):      # staging's
                 self.assertIn(b.plan_in, (9.2, 11.1), name)
+
+    def test_every_main_and_upper_block_has_a_plan_length(self):
+        import csv as _csv
+        rows = PL.railroad.read_block_lengths(PL.LENGTHS)
+        with open(PL.pd.DATA.parents[0] / "devices.csv", newline="", encoding="utf-8") as fh:
+            want = {r["user_name"] for r in _csv.DictReader(fh)
+                    if r["level"] in ("2", "3") and r["layer"] == "block" and r["role"] != "part"}
+        self.assertEqual(sorted(want - set(rows)), [])
         self.assertFalse(hasattr(next(iter(rows.values())), "jmri_in"))    # JMRI's length is plan_in
 
 

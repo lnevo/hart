@@ -384,12 +384,11 @@ def main_upper_lengths(plan: Path) -> dict:
     return out
 
 
-def csv_with(lengths: dict, main_upper: dict | None = None, path: Path = LENGTHS) -> str:
-    """block_lengths.csv's text with plan_in set from `lengths` (staging's blocks, rounded to 0.1 in) and, when
-    `main_upper` ({block: (level, inches)}, main_upper_lengths) is given, main and upper's rows written after
-    staging's in level and name order (source plan, occupancy_sensor the block's occupancy row, no measured length);
-    None keeps the file's main and upper rows as they are. LengthError when the file's staging rows and the drawn
-    staging blocks differ, or a row is a block of no level."""
+def csv_with(lengths: dict, main_upper: dict, path: Path = LENGTHS) -> str:
+    """block_lengths.csv's text with plan_in set from `lengths` (staging's blocks, rounded to 0.1 in) and main and
+    upper's rows (`main_upper`, {block: (level, inches)}, main_upper_lengths) written after staging's in level and
+    name order (source plan, occupancy_sensor the block's occupancy row, no measured length). LengthError when a drawn
+    staging block has no row, or a row is a block of no level."""
     from hartlib import level_devices
     with path.open(newline="", encoding="utf-8") as fh:
         rows = list(csv.DictReader(fh))
@@ -403,13 +402,12 @@ def csv_with(lengths: dict, main_upper: dict | None = None, path: Path = LENGTHS
                           f"{sorted(set(lengths) - have)}")
     for r in staging:
         r["plan_in"] = f"{lengths[r['user_name']]:.1f}"
-    if main_upper is not None:
-        stray = sorted(r["user_name"] for r in rest if r["user_name"] not in main_upper)
-        if stray:
-            raise LengthError(f"{paths.rel(path)}: rows of no drawn block on any level: {stray}")
-        rest = [dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(name), plan_in=f"{inches:.1f}",
-                     measured_in="", source="plan", note=f"{'main' if level == '2' else 'upper'} level, the plan's length")
-                for name, (level, inches) in sorted(main_upper.items(), key=lambda kv: (kv[1][0], railroad.natural(kv[0])))]
+    stray = sorted(r["user_name"] for r in rest if r["user_name"] not in main_upper)
+    if stray:
+        raise LengthError(f"{paths.rel(path)}: rows of no drawn block on any level: {stray}")
+    rest = [dict(user_name=name, occupancy_sensor=level_devices.occupancy_user(name), plan_in=f"{inches:.1f}",
+                 measured_in="", source="plan", note=f"{'main' if level == '2' else 'upper'} level, the plan's length")
+            for name, (level, inches) in sorted(main_upper.items(), key=lambda kv: (kv[1][0], railroad.natural(kv[0])))]
     buf = io.StringIO()
     w = csv.DictWriter(buf, fieldnames=list(railroad.BLOCK_LENGTH_COLUMNS), lineterminator="\n")
     w.writeheader()

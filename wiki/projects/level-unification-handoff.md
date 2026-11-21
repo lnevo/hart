@@ -213,6 +213,10 @@ Part 2 progress (branch `agent/claude/step5-part2`):
 - 2026-11-20: links folded on every level (FOLD_LINKS gone, 25 main and upper part rows, the 225 links in their
   corner block), the mast-edge rule (`block_layer.masted_block`), OS 7 ends at the switch (8RA a turnout mast); masts
   and devices.csv regenerated, tests pass. Next: plan lengths, `make panels`, sandbox discovery, before/after.
+- 2026-11-20: plan lengths done: JMRI takes plan_in everywhere (`BlockLength.jmri_in` gone), main and upper's 95
+  blocks in block_lengths.csv (`plan_lengths.main_upper_lengths`, a #5 turnout class added); intermediates checked:
+  none moves (A83/A84 MP 8.395 to 8.397, B92/B93 9.269 to 9.274 with plan lengths; the mast places keep the
+  drawing's lengths). Next: `make panels`, sandbox discovery, before/after.
 
 ### 6. One wiring file per kind (with the device master's owners)
 
