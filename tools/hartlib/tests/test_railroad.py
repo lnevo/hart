@@ -1,6 +1,7 @@
 """hartlib.railroad: the fact files load once into typed objects, by layer, and every invariant between them holds."""
 import csv
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -407,10 +408,13 @@ class Invariants(Copy):
         self.edit("interlockings", "3,CP 211,", "3,CP 212,")
         self.edit("interlockings", '1,Brick,"1,3,5"', '1,Brick,"1,3,5,99"')
         got = self.problems("switch-numbers")
-        self.assertIn("Switch 9 is a staging switch (switches.csv) and a level 2 switch", got)
+        self.assertIn("Switch 9 is a switch of levels 1 (switches.csv) and 2 (local_switches_main_upper.csv)", got)
         self.assertTrue(any("CP 212 is named CP 211 by its lowest switch" in p for p in got), got)
-        self.assertTrue(any("staging interlocking Brick lists Switch 99, which is no staging switch" in p for p in got),
+        self.assertTrue(any("level 1 interlocking Brick lists Switch 99, which is no level 1 switch" in p for p in got),
                         got)
+        self.edit("interlockings", '2,CP 107,"107,', '2,CP 107,"201,107,')
+        self.assertTrue(any("level 2 interlocking CP 107 lists Switch 201, which is no level 2 switch" in p
+                            for p in self.problems("switch-numbers")), self.problems("switch-numbers"))
 
     def test_lcos_nodes(self) -> None:
         self.edit("local_switches", "101,2,Peninsula,", "101,2,Attic,")
@@ -471,14 +475,26 @@ class Invariants(Copy):
                         got)
 
     def test_device_map_nodes_dcc_and_names(self) -> None:
-        change(self.src.devices, self.key("turnout", "Switch 101"), system_name="M2T408", node="99", dcc="100")
+        """The DCC addresses, system names and LCC aliases of every level are check_device_master.py's
+        (tools/audit/tests/test_check_device_master.py)."""
+        change(self.src.devices, self.key("turnout", "Switch 101"), node="99")
         change(self.src.devices, self.key("head", "Head 108LA Top"), jmri_name="IH:HART:C3:108LX_Top")
         got = self.problems("device-map")
         self.assertTrue(any("turnout Switch 101 is on node 99, no level 2 node" in p for p in got), got)
-        self.assertTrue(any("Switch 101 has DCC 100, staging's Switch 1" in p for p in got), got)
-        self.assertTrue(any("Switch 101 plans M2T408, staging's Switch 1" in p for p in got), got)
-        self.assertTrue(any("Switch 101 has no LCC alias" in p for p in got), got)
         self.assertTrue(any("head Head 108LA Top: jmri_name 'IH:HART:C3:108LX_Top'" in p for p in got), got)
+
+    def test_device_map_finds_clashes_and_missing_aliases_before_the_tables(self) -> None:
+        """The rows of every level are held to each other at the device_map layer (railroad check --upto
+        device_map), before tables.xml is built."""
+        change(self.src.devices, self.key("turnout", "Switch 101"), system_name="M2T408", dcc="100")
+        drop(self.src.devices, self.key("turnout", "DCC Switch 103"))
+        got = self.problems("device-map", upto="device_map")
+        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): dcc '100' is line \d+'s as well", p)
+                            for p in got), got)
+        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): system_name 'M2T408' is line \d+'s", p)
+                            for p in got), got)
+        self.assertTrue(any(re.search(r"level 2 turnout Switch 103\): 0 LCC aliases carry its DCC address", p)
+                            for p in got), got)
 
     def test_name_clash(self) -> None:
         """The staging switches' DCC addresses are aliases "DCC <n>" (owner, 2026-11-17), not "Switch <n>": an alias
@@ -512,12 +528,28 @@ class Invariants(Copy):
         self.assertEqual(R.INVARIANTS[-1].run(rr), [])              # the checkout's tables.xml holds them all
         t = rr.tables
         t.turnouts.pop("Switch 1")
-        t.turnouts["Switch 107"] = "IT107"
-        t.sensors.pop("BS Switch 101")
+        t.turnouts["Switch 107"] = "IT107"          # devices.csv's rows: check_device_master.py's, every level
         got = R.INVARIANTS[-1].run(rr)
-        self.assertIn("Switch 1 (switches.csv): no turnout Switch 1 in tables.xml", got)
-        self.assertIn("Switch 107: tables.xml has IT107, the device map says IT:HART:C3:107", got)
-        self.assertIn("BS Switch 101: tables.xml has no such sensor, the device map says IS:HART:C3:B:OS101", got)
+        self.assertEqual(got, ["Switch 1 (switches.csv): no turnout Switch 1 in tables.xml"])
+
+    def test_tables_masts_of_both_mast_files(self) -> None:
+        rr = R.Railroad(self.src)
+        t = rr.tables
+        t.masts.pop("Mast 2L")
+        t.masts["Mast 110L"] = "IF$x"
+        got = R.INVARIANTS[-1].run(rr)
+        self.assertTrue(any(p.startswith("staging_masts.csv: Mast 2L: tables.xml has no such mast, the file says IF$")
+                            for p in got), got)
+        self.assertTrue(any(p.startswith("main_upper_masts.csv: Mast 110L: tables.xml has IF$x, the file says IF$")
+                            for p in got), got)
+
+    def test_tables_staging_switch_legs(self) -> None:
+        rr = R.Railroad(self.src)
+        rr.tables.turnouts.pop("Switch 3")
+        rr.tables.blocks.discard("Track Brick-Plane")
+        got = R.INVARIANTS[-1].run(rr)
+        self.assertIn("Switch 3 (switches.csv): no turnout Switch 3 in tables.xml", got)
+        self.assertIn("Switch 1 (switch_legs.csv): no block Track Brick-Plane in tables.xml", got)
 
 
 class Known(unittest.TestCase):

@@ -96,7 +96,9 @@ base holds from `tables_build.GENERATED_LEVELS` (`le_common.BASE_LEVELS`), not b
 the staging guard (`level_items`, `check_staging_unchanged`: the staging candidate's bands), the panel frame and the
 startup positions follow that. One mast check for every level (`le_checks.check_masts`, with each mast file's switch
 turnout from `mast_turnouts`) replaces `check_device_masts` and `check_level_slots`; one bound-names check
-(`le_tables.check_bound`, after the build adds its levels' beans) replaces the three staging-only checks. Left, as
+(`le_tables.check_bound`: a base level's names against the base as it was before the build adds beans, the others
+against the tables after, and a base band drawing only blocks its names hold) replaces the three staging-only
+checks. Left, as
 real facts until steps 5 and 6 or outside these files:
 - staging's names come from `staging_device_map.load` (switches.csv, switch_legs.csv, `staging_masts.csv`), main and
   upper's from devices.csv and `main_upper_masts.csv` (`le_names.level_names`, `read_level_masts`): two sources until
@@ -107,6 +109,22 @@ real facts until steps 5 and 6 or outside these files:
   stays as the choice of candidate);
 - `le_names.py` (placeholder names, `level_masts`, `shared_turnouts`, `named_bands`) still skips the band keyed
   `Staging`; it was outside this part.
+
+Device-map part (2026-11-20, PR #798): the check moved out of `staging_device_map.py` (which keeps staging's
+loaders, the builders' import) into `check_device_master.py`, which holds every level of `devices.csv` to one set of
+rules: fact columns, a control point of the row's own level (or, for a block or its detector, the control point of
+an end switch of its track on another level: a row's level is the band its track is drawn on, so Track 127-221 on
+the upper band is in main level CP 127), all three names on a field device, trial names, hand-kept rows are field
+devices, a detector wired exactly when the row is a field device, and every row against its `tables.xml` bean. The
+rules between rows (one occupancy row per block on any level, only the helix blocks on two levels, no system name,
+user name, jmri_name or DCC address twice, one LCC alias per turnout) are `hartlib.railroad_invariants
+.device_row_problems`, run by the check and by the device-map invariant, so `hartlib.railroad check --upto
+device_map` finds them before `tables.xml` is built. Staging-only parts are the files only staging has: its
+hand-kept rows read against the staging band (`load`), its helix drawing and its mast files.
+`railroad_invariants`: one switch-numbers rule for every level, one mast rule over both mast files. One discrepancy
+is listed in the check (`KNOWN_STOP`), not fixed: the helix blocks' main and upper rows leave `stop` empty, where the
+staging rows and `tables.xml` mark a station. Main and upper have no stations until the owner defines them (step 7),
+so `build_device_map.py` writes no stop.
 
 ### 5. One block layer (with step 4)
 

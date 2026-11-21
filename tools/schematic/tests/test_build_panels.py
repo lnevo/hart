@@ -35,7 +35,7 @@ STEPS = [
     ("approved-candidate", "check_approved.py le-candidate", True),
     ("tables", "build_tables.py", False),
     ("staging-sync", "sync_staging_signals.py --check", True),
-    ("staging-map", "staging_device_map.py --check", True),
+    ("device-master", "check_device_master.py --check", True),
     ("cats", "build_cats_panel.py", False),
     ("approved-desks", "check_approved.py cats-ctc cats-abs", True),
     ("approved-live", "check_approved.py le-panel", True),
@@ -71,7 +71,7 @@ class StepList(unittest.TestCase):
             self.assertLess(NAMES.index("staging-masts"), NAMES.index(late), late)
         # what reads tables.xml runs after the step that writes it (ADR-029): the staging checks, the CATS desks
         # (their turnouts, sensors and masts) and the live fingerprint, so one make panels leaves them all current
-        for check in ("staging-sync", "staging-map", "cats", "approved-desks", "approved-live"):
+        for check in ("staging-sync", "device-master", "cats", "approved-desks", "approved-live"):
             self.assertLess(NAMES.index("tables"), NAMES.index(check), check)
 
 

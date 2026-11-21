@@ -27,9 +27,8 @@
 #                         Editor build, the discovered Signal Mast Logic (ADR-029: tables.xml is an output)
 #   staging-sync          the staging heads and masts in tables.xml follow staging_masts.csv (sync_staging_signals.py
 #                         --check), in both modes; after tables, which generates them from devices.csv
-#   staging-map           the level 1 rows of devices.csv (its mast and head rows aside) are kept by hand: the staging
-#                         files are checked against tables.xml and the schematic (staging_device_map.py --check), in
-#                         both modes; after tables, which it checks
+#   device-master         devices.csv is checked against tables.xml and the schematic (check_device_master.py
+#                         --check), in both modes; after tables, which it checks
 #   cats                  the CATS desks (build_cats_panel.py); after tables, whose turnouts, sensors, layout blocks
 #                         and masts they read, so one make panels leaves the desks current with the tables
 #   approved-desks        check_approved.py on the desks, straight after they are written
@@ -82,7 +81,7 @@ step le-cutover python3 tools/schematic/build_layout_le.py --as-live
 guard approved-candidate python3 tools/schematic/check_approved.py le-candidate
 step tables python3 tools/schematic/build_tables.py
 guard staging-sync python3 tools/schematic/sync_staging_signals.py --check
-guard staging-map python3 tools/schematic/staging_device_map.py --check
+guard device-master python3 tools/schematic/check_device_master.py --check
 step cats python3 tools/schematic/build_cats_panel.py
 guard approved-desks python3 tools/schematic/check_approved.py cats-ctc cats-abs
 guard approved-live python3 tools/schematic/check_approved.py le-panel
