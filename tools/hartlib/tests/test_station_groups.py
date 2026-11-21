@@ -130,6 +130,17 @@ class DeskAreas(Files):
         self.assertEqual(len(self.areas("1,A,1,,AA,\n2,B,101,,BB,\n", switches={"1"})), 2)
 
 
+class NestedStations(unittest.TestCase):
+    def test_a_station_inside_another_is_nested_and_equal_or_apart_is_not(self):
+        self.assertEqual(rf.nested_stations({"Barn": ["7", "9", "11", "13"], "EH": [9, 11, 13], "Yard": ["15"]}),
+                         {"EH"})
+        self.assertEqual(rf.nested_stations({"A": ["1", "3"], "B": ["3", "1"]}), set())
+
+    def test_only_a_station_nested_in_another_desk_area_is_an_area_of_its_own(self):
+        rows = rf.read_stations(STATIONS)
+        self.assertEqual(rf.nested_own_areas(rows), {"Engine House"})        # not West Yard, nested in Brick (BK)
+
+
 class StationGroupRows(Files):
     def files(self, stations: str, legs: str) -> tuple[Path, Path]:
         d = self.dir()

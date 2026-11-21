@@ -454,6 +454,27 @@ def read_stations(path: Path) -> list[Station]:
     return out
 
 
+def nested_stations(switches: dict[str, Iterable[str]]) -> set[str]:
+    """The names of the stations nested in another: every switch of theirs is one of the other's, and the other has
+    more (`switches`: {station name: its switches}, one level's). The rule read_desk_areas gives a nested station its
+    own desk area by; the Layout Editor build may leave these out of its station names (le_nested_station_labels)."""
+    sets = {name: set(map(str, sw)) for name, sw in switches.items()}
+    return {a for a, sa in sets.items() if any(sa < sb for b, sb in sets.items() if b != a)}
+
+
+def nested_own_areas(stations: list[Station]) -> set[str]:
+    """The names of the stations nested in a station of another desk area (Engine House, EH, in Barn, BN): the
+    stations that make a desk area of their own inside another station. A station nested in one of its own desk area
+    (West Yard in Brick, both BK) is not one: it is part of that area. The Layout Editor build may leave these out of
+    its station names (preferences.json le_nested_station_labels)."""
+    out = set()
+    for a in stations:
+        sa = set(a.switches)
+        if any(b.level == a.level and b.desk_code != a.desk_code and sa < set(b.switches) for b in stations):
+            out.add(a.name)
+    return out
+
+
 def _nesting(stations: list[Station], path: Path) -> tuple[dict[tuple[int, str], Station], set[str]]:
     """({(level, switch): the innermost station holding it}, the names of the nested stations). Two stations of a
     level that share a switch must nest (one's switches all inside the other's); a switch may be in one nested station
@@ -472,7 +493,8 @@ def _nesting(stations: list[Station], path: Path) -> tuple[dict[tuple[int, str],
                 first = sorted(shared, key=int)[0]
                 raise FactsError(f"{pair} share switch {first} but neither is inside the other; stations overlap "
                                  "only when one is nested in the other")
-            nested.add((a if shared == set(a.switches) else b).name)
+    for level in {st.level for st in stations}:
+        nested |= nested_stations({st.name: st.switches for st in stations if st.level == level})
     for st in stations:
         for s in st.switches:
             key = (st.level, s)
