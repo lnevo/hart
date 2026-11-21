@@ -123,10 +123,11 @@ user name, jmri_name or DCC address twice, one LCC alias per turnout) are `hartl
 .device_row_problems`, run by the check and by the device-map invariant, so `hartlib.railroad check --upto
 device_map` finds them before `tables.xml` is built. Staging-only parts are the files only staging has: its
 hand-kept rows read against the staging band (`load`), its helix drawing and its mast files.
-`railroad_invariants`: one switch-numbers rule for every level, one mast rule over both mast files. One discrepancy
-is listed in the check (`KNOWN_STOP`), not fixed: the helix blocks' main and upper rows leave `stop` empty, where the
-staging rows and `tables.xml` mark a station. Main and upper have no stations until the owner defines them (step 7),
-so `build_device_map.py` writes no stop.
+`railroad_invariants`: one switch-numbers rule for every level, one mast rule over both mast files. The helix
+blocks' rows agree on `stop` (owner, 2026-11-20: on main and upper the helix stop is at Switch 131A and 131B, the
+helix's main-level end): `build_device_map.helix_stops` marks the main and upper helix rows from helix_tracks.csv's
+`level_switch`, and `KNOWN_STOP` is gone from the check (tables.xml unchanged: the staging row already marked it).
+Main and upper have no other stations until the owner defines them (step 7).
 
 ### 5. One block layer (with step 4)
 
@@ -208,8 +209,8 @@ and 14 staging OS rows' trial names, which lost the link pieces the part rows no
 - Plan lengths: JMRI's block length from `plan_in` for every level (`hartlib.railroad_facts.BlockLength`'s JMRI
   length takes `measured_in` when `source` is timed; `tables_build.master_beans` writes it), after `plan_lengths.py`
   (private plan, the Mac) refreshes `block_lengths.csv`; check no main or upper intermediate moves.
-- Main and upper trial names in staging's switch-and-leg keys (they still use plan edge ids, `Track e33`), if wanted,
-  so one grammar serves every level.
+- Main and upper trial names in staging's switch-and-leg keys: done (owner decision 2026-11-20, PR A of the
+  step 5 follow-up, branch `agent/claude/trial-names-by-leg`), see below.
 
 Part 2 progress (branch `agent/claude/step5-part2`):
 - 2026-11-20: links folded on every level (FOLD_LINKS gone, 25 main and upper part rows, the 225 links in their
@@ -224,13 +225,30 @@ Part 2 progress (branch `agent/claude/step5-part2`):
   stock discovery in a sandbox: all 177 SML pairs as before, no block added or removed, only Mast 8RA moves (a
   turnout mast at Switch 7); 140 block lengths change (plan lengths). Staging's 14 folded pieces are not yet JMRI
   blocks (the owner decides). Waiting on: the owner's approval of the staging, candidate, panel and desk
-  fingerprints, then `make panelpro-test` and `--pi --win`.
+  fingerprints, then `make panelpro-test` and `--pi --win`. Approved, merged (#811) and deployed 2026-11-20.
+- Turnout class (owner, 2026-11-20): the #5 class `plan_lengths.py` added is the SL-8351/8352 at 8.3 in (also in
+  the late decisions below).
+
+Step 5 follow-ups (2026-11-20):
+- **Trial names by switch and leg on every level** (owner decision, branch `agent/claude/trial-names-by-leg`).
+  Main and upper's track and part rows key `trial_name` by staging's grammar (`staging_device_map.end_key` and
+  `piece_refs`; `band_refs` follows a connector to the switch and leg beyond it), not by AnyRail edge ids, so a new
+  export leaves the rows as they are. Examples: `Track 101BA-111C` (Switch 101B leg A to Switch 111 leg C),
+  `Track 107B-107C #1` (the balloon loop's half from leg B), `Track 131AA-helix`, `Track 225D-229A`. Writer:
+  `build_device_map.level_trials` (and `piece_trials`, which staging's `staging_trials` shares). Readers:
+  `le_names.placeholder_names` (one spot), `cats_panel.placeholder` (keys put on the strands by `name_loop_halves`),
+  `plan_lengths.key_edges` (a key's share of its plan edges), `check_device_master.block_end_cps`. Only trial_name
+  cells changed in devices.csv (81: the 80 main and upper rows and the order of Brick-Plane's two keys); tables.xml,
+  the candidates, the desks and every fingerprint unchanged. Pinned by `test_blocks_every_level`
+  (`MAIN_UPPER_TRIALS` and the renumber test). `mast_rule.tracks` keeps an edge-keyed `trial` list internally (the
+  tie-break for parallel track numbers and `block_splits.csv`'s edge lookup); it is never written.
+- **Helix stop** (owner, 2026-11-20): see step 4's device-map part above (`helix_stops`, `KNOWN_STOP` gone).
 
 ### Owner decisions, late 2026-11-20
 
 - **Desk codes** (BK, PL, BN, SY, EE, PR, EH) are layout-specific: they go back to the station map data, a desk-code column in `stations.csv`, and `control_points_staging.csv` goes. They do not line up with the interlockings (Brick's interlocking holds the BK and PL areas; South Yard and Engine House have none). Brick and West Yard share BK; Engine House has a desk area but no station row: check whether a row shows on the schematic or station sheets before adding it. Waits on the label rules PR (it edits build_cats_panel).
 - **Station maps for main and upper (step 7, stays on the to-do list):** a station map per control point from `interlockings.csv` is the minimum template for a station, not the whole definition; the owner extends it.
-- **Helix stop** on main and upper is at Switch 131A/131B (being built with the trial-names PR).
+- **Helix stop** on main and upper is at Switch 131A/131B: built with the trial-names PR (`helix_stops`, above).
 - **#5 turnout** class is the SL-8351/8352 at 8.3 in (confirmed).
 - **Step 6** is a bigger job: start with a read-only comparison, and discuss with the owner first.
 

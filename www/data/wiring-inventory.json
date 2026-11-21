@@ -2,7 +2,7 @@
  "source": {
   "file": "LCOS_Layout_Inventory_v86.xlsx",
   "version": "v86",
-  "modified": "2026-11-20",
+  "modified": "2026-11-21",
   "built": "2026-11-20"
  },
  "nodes": [
@@ -10867,7 +10867,7 @@
    "detector": "C21-B2",
    "channel": "2",
    "block": "Track 229-241",
-   "track": "Track e62",
+   "track": "Track 229C-241A",
    "area": "Helix - Upper",
    "note": "Block 21-4 / M2S2103"
   },
@@ -10887,7 +10887,7 @@
    "detector": "C22-B1",
    "channel": "2",
    "block": "Track 223-225 1",
-   "track": "Track e79",
+   "track": "Track 223B-225C",
    "area": "North - Upper",
    "note": "Block 22-2 / M2S2201"
   },
@@ -10897,7 +10897,7 @@
    "detector": "C22-B2",
    "channel": "1",
    "block": "Track 223-225 2",
-   "track": "Track e78",
+   "track": "Track 223C-225B",
    "area": "North - Upper",
    "note": "Block 22-3 / M2S2202"
   },
@@ -10947,7 +10947,7 @@
    "detector": "C23-B3",
    "channel": "1",
    "block": "Track 127-221",
-   "track": "Track e73",
+   "track": "Track 127BB-221BA",
    "area": "West - Upper",
    "note": "Block 23-5 / M2S2304"
   },
@@ -10957,7 +10957,7 @@
    "detector": "C23-B3",
    "channel": "2",
    "block": "Track 203-211",
-   "track": "Track e67",
+   "track": "Track 203B-211BB",
    "area": "West - Upper",
    "note": "Block 23-6 / M2S2305"
   },
@@ -10967,7 +10967,7 @@
    "detector": "C23-B4",
    "channel": "1",
    "block": "Track 221-223",
-   "track": "Track e69",
+   "track": "Track 221AB-223A",
    "area": "West - Upper",
    "note": "Block 23-7 / M2S2306"
   },
@@ -10997,7 +10997,7 @@
    "detector": "C24-B2",
    "channel": "1",
    "block": "Track 211-217 2",
-   "track": "Track e77",
+   "track": "Track 211BA-217AA",
    "area": "Peninsula - Upper",
    "note": "Block 24-3 / M2S2402"
   },
@@ -11007,7 +11007,7 @@
    "detector": "C24-B2",
    "channel": "2",
    "block": "Track 217-221",
-   "track": "Track e74",
+   "track": "Track 217AB-221BB",
    "area": "Peninsula - Upper",
    "note": "Block 24-4 / M2S2403"
   },
@@ -11067,7 +11067,7 @@
    "detector": "C33-B3",
    "channel": "2",
    "block": "Track 107 Loop 1",
-   "track": "Track e33 1",
+   "track": "Track 107B-107C #1",
    "area": "West - Main",
    "note": "Block 33-6 / M2S3305"
   },
@@ -11077,7 +11077,7 @@
    "detector": "C33-B4",
    "channel": "1",
    "block": "Track 107-109",
-   "track": "Track e19",
+   "track": "Track 107A-109B",
    "area": "West - Main",
    "note": "Block 33-7 / M2S3306"
   },
@@ -11087,7 +11087,7 @@
    "detector": "C33-B4",
    "channel": "2",
    "block": "Track 119-123",
-   "track": "Track e17",
+   "track": "Track 119AB-123B",
    "area": "West - Main",
    "note": "Block 33-8 / M2S3307"
   },
@@ -11097,7 +11097,7 @@
    "detector": "C41-B1",
    "channel": "1",
    "block": "Track Helix Inner",
-   "track": "Track e89",
+   "track": "Track 131BB-helix",
    "area": "Helix - Upper",
    "note": "Block 41-1 / M2S4100"
   },
@@ -11107,7 +11107,7 @@
    "detector": "C41-B1",
    "channel": "2",
    "block": "Track Helix Outer",
-   "track": "Track e88",
+   "track": "Track 131AA-helix",
    "area": "Helix - Upper",
    "note": "Block 41-2 / M2S4101"
   },
@@ -11117,7 +11117,7 @@
    "detector": "C41-B2",
    "channel": "1",
    "block": "Track 227-241 1",
-   "track": "Track e63 1",
+   "track": "Track 227C-241B #1",
    "area": "Helix - Upper",
    "note": "Block 41-3 / M2S4102"
   },
@@ -11127,7 +11127,7 @@
    "detector": "C41-B2",
    "channel": "2",
    "block": "Track 227-241 2",
-   "track": "Track e63 2",
+   "track": "Track 227C-241B #2",
    "area": "Helix - Upper",
    "note": "Block 41-4 / M2S4103"
   },
@@ -11177,7 +11177,7 @@
    "detector": "C42-B3",
    "channel": "1",
    "block": "Track 125-127",
-   "track": "Track e30",
+   "track": "Track 125AB-127AA",
    "area": "North - Main",
    "note": "Block 42-5 / M2S4204"
   },
@@ -11187,7 +11187,7 @@
    "detector": "C42-B3",
    "channel": "2",
    "block": "Track 127-131 1",
-   "track": "Track e34",
+   "track": "Track 127AB-131AB",
    "area": "North - Main",
    "note": "Block 42-6 / M2S4205"
   }

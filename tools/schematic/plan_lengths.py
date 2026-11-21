@@ -22,8 +22,10 @@ only (level unification step 5 part 2).
 
 Main and upper (main_upper_lengths), from devices.csv's level 2 and 3 block rows and main.json, the plan graph of
 those levels:
-- a track block takes its plan edges' runs in the plan file (each row's trial names, "Track e33", "Track e33 1" for
-  half of a balloon loop or split track; main_edge_inches): flex track only, the turnouts left out, as staging's. The
+- a track block takes its plan edges' runs in the plan file (main_edge_inches), its share of each: each row's trial
+  names are switch-and-leg keys ("Track 101BA-111C", "Track 107B-107C #1" for half of a balloon loop), resolved on
+  the solved drawing to the plan edges their strands are drawn on (piece_edges: a loop half is one of its edge's two
+  strands, so half the edge): flex track only, the turnouts left out, as staging's. The
   plan graph's own edge lengths (main.json's cm, which the drawing, the link rule and the mast places use) count
   part of each turnout as well, so they are not block lengths. A helix
   block is staging's row (one block across levels), not counted again here. A part (a link inside an OS block) adds
@@ -347,10 +349,27 @@ def main_upper_os(bands, graph: dict, parts: list, threeways: list[int]) -> dict
     return dict(out)
 
 
-def track_inches(r: dict, edge_in: dict, bad: list) -> float | None:
-    """A main or upper track block row's plan length, in inches: its trial names' plan edges (main_edge_inches), half
-    an edge for "Track e33 1" (half of a balloon loop or split track). None, with the problem in `bad`, for a row with
-    no trial name or one that names no plan edge."""
+def piece_edges(strands: dict, refs: dict) -> dict[str, dict[str, float]]:
+    """{piece: {plan edge: the piece's share of it}} of the main and upper drawing: `strands` ({band index: the band's
+    strands}) and `refs` ({band index: staging_device_map.band_refs}), each strand's piece its switch-and-leg key
+    without "Track " or a k/n (staging_device_map.piece_of reads a trial name back to it). A piece's share of an edge
+    is its strands of that edge over all the edge's strands (a balloon loop half: one of two; a track cut by a
+    connector: both of its pieces), the edge its strand's with a connector's x/y piece letter dropped."""
+    held, count = defaultdict(lambda: defaultdict(int)), defaultdict(int)
+    for bi, band_refs in refs.items():
+        for sid, (piece, _against) in band_refs.items():
+            edge = re.sub(r"(?<=\d)[xy]$", "", strands[bi][sid]["edge"])
+            held[piece][edge] += 1
+            count[edge] += 1
+    return {piece: {e: n / count[e] for e, n in edges.items()} for piece, edges in held.items()}
+
+
+def track_inches(r: dict, pieces: dict, edge_in: dict, bad: list) -> float | None:
+    """A main or upper track block row's plan length, in inches: each trial name's piece (staging_device_map.piece_of)
+    and its share of plan edges (`pieces`, piece_edges), a k/n key taking 1/n of it (the k-th of a strand's n blocks,
+    staging_device_map.strand_placeholders), times each edge's length (`edge_in`, main_edge_inches). None, with the
+    problem in `bad`, for a row with no trial name, a trial name that is no track key or is drawn on no strand, or an
+    edge the plan graph does not have."""
     where = f"{r['user_name']} (level {r['level']})"
     trials = [t.strip() for t in r["trial_name"].split(",") if t.strip()]
     if not trials:
@@ -358,11 +377,20 @@ def track_inches(r: dict, edge_in: dict, bad: list) -> float | None:
         return None
     total = 0.0
     for trial in trials:
-        m = re.fullmatch(r"Track (e\d+)( [12])?", trial)
-        if not m or m.group(1) not in edge_in:
-            bad.append(f"{where}: trial name {trial!r} is no plan edge of {MAIN_GRAPH.name}")
+        try:
+            piece, _k, n = sdm.piece_of(trial)
+        except sdm.StagingMapError as exc:
+            bad.append(f"{where}: {exc}")
             return None
-        total += edge_in[m.group(1)] / (2 if m.group(2) else 1)
+        if piece not in pieces:
+            bad.append(f"{where}: trial name {trial!r} is drawn on no main or upper strand")
+            return None
+        for edge, share in sorted(pieces[piece].items()):
+            if edge not in edge_in:
+                bad.append(f"{where}: trial name {trial!r} is drawn on plan edge {edge}, which {MAIN_GRAPH.name} "
+                           "does not have")
+                return None
+            total += edge_in[edge] * share / n
     return total
 
 
@@ -379,7 +407,13 @@ def main_upper_lengths(plan: Path) -> dict:
     runs = plan_runs(plan)
     edge_in = main_edge_inches(graph, runs, threeway_bumper_inches(plan_parts))
     helix = {h["block"] for h in bdm.read_helix_tracks().values()}
-    bands, _joined, _runs, _corners = bdm.solve()
+    bands, joined, _runs, _corners = bdm.solve()
+    mine = [bi for bi, lv in enumerate(sdm.lc.band_levels(bands)) if lv not in sdm.lc.BASE_LEVELS]   # main, upper
+    try:
+        pieces = piece_edges({bi: bands[bi][1]["strands"] for bi in mine},
+                             {bi: sdm.band_refs(bands, joined, bi) for bi in mine})
+    except sdm.StagingMapError as exc:
+        raise LengthError(str(exc)) from None
     os_in = main_upper_os(bands, graph, parts, [p["index"] for p in plan_parts if p["kind"] == "threeway"])
     out, bad = {}, []
     for r in devices.load():
@@ -393,7 +427,7 @@ def main_upper_lengths(plan: Path) -> dict:
             else:
                 out[name] = (r["level"], os_in[name], sensor)
             continue
-        total = track_inches(r, edge_in, bad)
+        total = track_inches(r, pieces, edge_in, bad)
         if total is not None:
             out[name] = (r["level"], total, sensor)
     if bad:

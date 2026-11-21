@@ -52,12 +52,16 @@ ids when the files are read, and one that matches nothing, or more than one thin
 - OS block: "OS Switch <n>" of a plain switch; "OS <n> A-<end>" of a crossover half, by where the run from its leg A
   goes (staging's crossovers 7, 23 and 35 have an OS block per half: OS Switch 7 and 7b, 23a and 23b, 35a and 35b;
   the half's key is not written as a block name, so check_name_copies.py does not take it for one).
-- track block: "Track <end>-<end>" for the run between two ends, each a switch number and the leg the run leaves
-  it by ("17C"), "end" for a bumper or "helix" (end_key), the lower switch first; " #<i>" for the i-th of a run's
-  pieces (a run folded at a turnback) from that first end; " <k>/<n>" for the k-th of the piece's n blocks from that
-  end (Scale is "Track 5C-7B 1/2", OS Switch 7 "2/2").
-A block that several tracks or a switch share lists every placeholder, comma separated; a part's pieces are on
-its own row. Every piece of the drawing is on exactly one row.
+- track block: "Track <end>-<end>" for the run between two ends, each a switch label and the leg the run leaves
+  it by ("17C"; a lettered crossover half on main and upper "121AB", Switch 121A's leg B; a double crossover's leg
+  "225D"), "end" for a bumper or "helix" (end_key), the lower switch first; a run that ends at a connector is keyed
+  by the switch and leg beyond it on the other band (band_refs); " #<i>" for the i-th of a run's pieces (a run
+  folded at a turnback, a balloon loop) from that first end; " <k>/<n>" for the k-th of the piece's n blocks from
+  that end (Scale was "Track 5C-7B 1/2", OS Switch 7 "2/2").
+The track keys are one grammar for every level (owner, 2026-11-20): main and upper's track and part rows take them
+too (build_device_map.level_trials), where they used to name AnyRail plan edges ("Track e33"). A block that several
+tracks or a switch share lists every placeholder, comma separated, in key order; a part's pieces are on its own row.
+Every piece of the drawing is on exactly one row.
 
 The panel's own icons and labels are not device facts and are not here: the status cluster, captions and backdrop
 are in panel_items.json (panel_items.py); the occupancy lamps and station clusters are parked with the Dispatcher
@@ -120,27 +124,55 @@ def crossover_halves(band) -> dict:
     return out
 
 
-def end_key(band, end) -> str:
-    """A run's end (node, port) by what survives a new export: a switch's number and leg ("17C"), "helix" for a helix
-    end, "end" for any other track end (a bumper)."""
+def end_key(band, end, beyond=None) -> str:
+    """A run's end (node, port) by what survives a new export: a switch's label and leg ("17C", "121AB", a double
+    crossover's "225D"), "helix" for a helix end, the far side's key for a connector (`beyond`: a function of the end,
+    band_refs), "end" for any other track end (a bumper). StagingMapError on a connector with no `beyond`."""
     d = band["nodes"][end[0]]
-    if d["kind"] == "switch":
+    if d["kind"] in ("switch", "dx"):
         return f"{lc.bare(d.get('label'))}{end[1]}"
-    return "helix" if d.get("sub") == "helix" else "end"
+    if d.get("sub") == "helix":
+        return "helix"
+    if d.get("sub") == "link":
+        if beyond is None:
+            raise StagingMapError(f"connector {end[0]}: a run ends at it, and nothing says what is beyond it")
+        return beyond(end)
+    return "end"
 
 
 def _end_order(key: str):
-    m = re.fullmatch(r"(\d+)([A-D])", key)
-    return (0, int(m.group(1)), m.group(2)) if m else (1, 0, key)
+    m = re.fullmatch(r"(\d+)([AB]?)([A-D])", key)
+    return (0, int(m.group(1)), m.group(2), m.group(3)) if m else (1, 0, "", key)
 
 
-def piece_refs(band) -> dict[str, tuple[str, bool]]:
-    """{strand id: (its piece reference, whether the strand runs against it)} of every staging strand that carries
-    blocks (crossover insides carry none): "<end>-<end>" of its run (end_key, the lower first) and " #<i>" when the
+def band_refs(bands, joined: dict, bi: int) -> dict[str, tuple[str, bool]]:
+    """piece_refs of band `bi` of `bands` (the solved schematic), a run that ends at a connector keyed by the switch
+    and leg where the run beyond it, on the band `joined` (the plugin's partners: {(band, node): (band, node)}) gives,
+    ends: one track cut by a connector has one key on both bands. StagingMapError on a connector `joined` does not
+    pair, or one whose run beyond ends at another connector."""
+    def beyond(end):
+        if (bi, end[0]) not in joined:
+            raise StagingMapError(f"{bands[bi][0]}: connector {end[0]} is joined to no other band")
+        bj, m = joined[(bi, end[0])]
+        other = bands[bj][1]
+        for start, _chain, stop in ln.runs(other):
+            far = stop if start[0] == m else start if stop[0] == m else None
+            if far is not None:
+                if other["nodes"][far[0]].get("sub") == "link":
+                    raise StagingMapError(f"{bands[bj][0]}: the run from connector {m} ends at another connector")
+                return end_key(other, far)
+        raise StagingMapError(f"{bands[bj][0]}: no run reaches connector {m}")
+    return piece_refs(bands[bi][1], beyond)
+
+
+def piece_refs(band, beyond=None) -> dict[str, tuple[str, bool]]:
+    """{strand id: (its piece reference, whether the strand runs against it)} of every strand of `band` outside a
+    staging-style single crossover (two switches of one label joined C to C; their insides carry no blocks):
+    "<end>-<end>" of its run (end_key, the lower first; `beyond` keys a connector end, band_refs) and " #<i>" when the
     run has several pieces. Stops when two runs share ends, which could not be told apart."""
     out, seen = {}, {}
     for start, chain, stop in ln.runs(band, ln.crossover_strands(band)):
-        a, b = end_key(band, start), end_key(band, stop)
+        a, b = end_key(band, start, beyond), end_key(band, stop, beyond)
         flip = _end_order(b) < _end_order(a)
         run = f"{b}-{a}" if flip else f"{a}-{b}"
         if run in seen:
@@ -181,6 +213,27 @@ def placeholders(band) -> tuple[dict, dict, dict]:
 
 def track_placeholder(piece: str, k: int, count: int) -> str:
     return f"Track {piece}" if count == 1 else f"Track {piece} {k}/{count}"
+
+
+def strand_placeholders(ref: tuple[str, bool], count: int = 1) -> list[str]:
+    """The trial keys of a strand's `count` blocks, from the strand's first end as drawn: `ref` is its (piece, whether
+    it runs against the piece) from piece_refs or band_refs, and the k-th of n blocks is counted from the piece's
+    first end (track_placeholder). The one rule the writer (build_device_map.piece_trials) and every reader key a
+    strand by. ValueError on a count under 1."""
+    if count < 1:
+        raise ValueError(f"a strand carries at least one block, not {count}")
+    piece, against = ref
+    keys = [track_placeholder(piece, k, count) for k in range(1, count + 1)]
+    return keys[::-1] if against else keys
+
+
+def piece_of(key: str) -> tuple[str, int, int]:
+    """(piece, k, n) of a track trial key ("Track 37C-39C #2 1/2" -> ("37C-39C #2", 1, 2); one block: k = n = 1).
+    StagingMapError on a key that is no track key."""
+    m = TRACK_RE.fullmatch(key)
+    if not m:
+        raise StagingMapError(f"{key!r} is no track trial key (Track <end>-<end>[ #i][ k/n])")
+    return (m.group(1), int(m.group(2)), int(m.group(3))) if m.group(2) else (m.group(1), 1, 1)
 
 
 def split_names(cell: str) -> list[str]:
