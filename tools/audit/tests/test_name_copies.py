@@ -126,7 +126,7 @@ class NameCopiesTest(unittest.TestCase):
         sch = "jmri/layouts/hart/data/schematic/"
         for rel in ("staging_le/masts.csv", "staging_le/overlay.json", "plan_overrides.json"):
             self.assertTrue(check.readable(sch + rel), rel)
-        for rel in ("signals.json", "hands.csv", "main_upper_masts.csv", "inputs/staging.json"):
+        for rel in ("signals.json", "main_upper_masts.csv", "inputs/staging.json"):
             self.assertFalse(check.readable(sch + rel), rel)
         hand = self.write(sch + "staging_le/masts.csv", "mast\nMast 32L\n")
         self.assertEqual([f"{hand}:2: 'Mast 32L' is not a current name"], self.stale([hand]))

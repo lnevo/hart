@@ -1,21 +1,75 @@
-level,switch,le_ident,cats_inverted,ctc_is,ctc_signals,hand
-1,1,TOL3,no,3,yes,L
-1,3,TOL38,no,1,yes,L
-1,5,TOL42,no,5,yes,L
-1,7,TO117,no,7,yes,L
-1,9,TO10,no,31,no,L
-1,11,TO11,no,33,no,L
-1,13,TO1,no,9,no,L
-1,15,TOR14,no,11,no,R
-1,17,TOL15,no,35,no,L
-1,19,TOL17,no,37,no,L
-1,21,TOL19,no,39,no,L
-1,23,TO111,no,17,yes,R
-1,25,TOR11,no,13,no,R
-1,27,TOR9,no,15,no,R
-1,29,TOR7,no,19,no,R
-1,31,TOL6,no,21,yes,L
-1,33,TOL23,no,23,yes,L
-1,35,TO113,no,25,yes,L
-1,37,TOR36,no,27,yes,R
-1,39,TOL29,no,29,yes,L
+level,switch,half,os_block,closed_leg,thrown_leg,hand,hand_source,area,le_ident,cats_inverted,ctc_is,ctc_signals,notes
+1,1,,OS Switch 1,OS Switch 3,Track Brick-Plane,L,owner,,TOL3,no,3,yes,
+1,3,,OS Switch 3,Track W-1,Track W-2,L,owner,,TOL38,no,1,yes,
+1,5,,OS Switch 5,Track East Ext,Track Scale,L,owner,,TOL42,no,5,yes,
+1,7,,OS Switch 7,Track Scale,OS Switch 7b,L,owner,,TO117,no,7,yes,
+1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,,,,,,
+1,9,,OS Switch 9,Track EH-2,Track EH-3,L,owner,,TO10,no,31,no,
+1,11,,OS Switch 11,Track EH-1,OS Switch 9,L,owner,,TO11,no,33,no,
+1,13,,OS Switch 13,Track Barn,OS Switch 11,L,owner,,TO1,no,9,no,
+1,15,,OS Switch 15,Track S-R,OS Switch 17,R,owner,,TOR14,no,11,no,
+1,17,,OS Switch 17,OS Switch 19,Track S-1,L,owner,,TOL15,no,35,no,
+1,19,,OS Switch 19,OS Switch 21,Track S-2,L,owner,,TOL17,no,37,no,
+1,21,,OS Switch 21,Track S-4,Track S-3,L,owner,,TOL19,no,39,no,
+1,23,,OS Switch 23a,Track West Ext,OS Switch 23b,R,owner,,TO111,no,17,yes,
+1,23,,OS Switch 23b,Track S-R,OS Switch 23a,,,,,,,,
+1,25,,OS Switch 25,Track S-4,Track S-3,R,owner,,TOR11,no,13,no,
+1,27,,OS Switch 27,OS Switch 25,Track S-2,R,owner,,TOR9,no,15,no,
+1,29,,OS Switch 29,OS Switch 27,Track S-1,R,owner,,TOR7,no,19,no,
+1,31,,OS Switch 31,OS Switch 23b,OS Switch 29,L,owner,,TOL6,no,21,yes,
+1,33,,OS Switch 33,OS Switch 31,Track Main East,L,owner,,TOL23,no,23,yes,
+1,35,,OS Switch 35b,Track West Ext,OS Switch 35a,L,owner,,TO113,no,25,yes,
+1,35,,OS Switch 35a,OS Switch 37,OS Switch 35b,,,,,,,,
+1,37,,OS Switch 37,Track Helix Inner,Track K-2,R,owner,,TOR36,no,27,yes,
+1,39,,OS Switch 39,Track Helix Outer,Track K-1,L,owner,,TOL29,no,29,yes,
+2,101,101A,,,,L,plan,Peninsula,,,,,Yard throat crossover
+2,101,101B,,,,L,plan,,,,,,
+2,103,103A,,,,R,plan,Peninsula,,,,,Yard throat crossover
+2,103,103B,,,,R,plan,,,,,,
+2,105,105,,,,L,plan,West,,,,,Yard ladder
+2,107,107,,,,L,plan,,,,,,
+2,109,109,,,,R,plan,,,,,,
+2,111,111,,,,R,plan,,,,,,
+2,113,113,,,,L,plan,West,,,,,Industry 1 spur
+2,115,115,,,,R,plan,West,,,,,Industry 1 spur
+2,117,117,,,,L,plan,,,,,,
+2,119,119A,,,,R,plan,,,,,,
+2,119,119B,,,,R,plan,,,,,,
+2,121,121A,,,,L,plan,North,,,,,Industry 2 crossover off the siding (was 121 and 123)
+2,121,121B,,,,R,plan,,,,,,
+2,123,123,,,,L,plan,,,,,,
+2,125,125A,,,,R,plan,,,,,,
+2,125,125B,,,,L,plan,,,,,,
+2,127,127A,,,,L,plan,,,,,,
+2,127,127B,,,,L,plan,,,,,,
+2,129,129,,,,R,plan,North,,,,,Industry 2 spurs (was 133)
+2,131,131A,,,,R,plan,,,,,,
+2,131,131B,,,,R,plan,,,,,,
+3,201,201,,,,L,plan,,,,,,
+3,203,203,,,,L,plan,,,,,,
+3,205,205,,,,L,plan,West,,,,,Industry 3 spur
+3,207,207,,,,L,plan,Peninsula,,,,,Industry 3 lead (was 209)
+3,209,209,,,,L,plan,West,,,,,Industry 3 spurs (was 207)
+3,211,211A,,,,R,plan,,,,,,
+3,211,211B,,,,R,plan,,,,,,
+3,213,213,,,,L,plan,Peninsula,,,,,Industry 3 spur (was 211)
+3,215,215,,,,L,plan,Peninsula,,,,,Industry 3 spurs
+3,217,217A,,,,L,plan,,,,,,
+3,217,217B,,,,L,plan,,,,,,
+3,219,219,,,,L,plan,,,,,,
+3,221,221A,,,,R,plan,,,,,,
+3,221,221B,,,,R,plan,,,,,,
+3,223,223,,,,R,plan,,,,,,
+3,225,225,,,,,,,,,,,double crossover: no hand
+3,227,227,,,,R,plan,,,,,,
+3,229,229,,,,L,plan,,,,,,
+3,231,231,,,,R,plan,Helix,,,,,Yard spur (was 233)
+3,233,233,,,,R,plan,Helix,,,,,Yard throat (was 231)
+3,235,235,,,,R,plan,Helix,,,,,Yard throat
+3,237,237,,,,L,plan,Helix,,,,,Yard ladder
+3,239,239,,,,L,plan,Helix,,,,,Yard ladder (was 243)
+3,241,241,,,,R,plan,Helix,,,,,Spur off the peninsula loop (was 239)
+3,243,243A,,,,L,plan,Helix,,,,,Yard crossover (was 241)
+3,243,243B,,,,L,plan,,,,,,
+3,245,245A,,,,L,plan,Helix,,,,,Yard crossover
+3,245,245B,,,,L,plan,,,,,,

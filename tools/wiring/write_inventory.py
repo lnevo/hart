@@ -39,7 +39,7 @@ from openpyxl.utils import get_column_letter
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import devices, wiring  # noqa: E402
-from hartlib.railroad import FactsError, read_rows  # noqa: E402
+from hartlib.railroad import FactsError, read_rows, read_switch_rows  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 WIRING_DOCS = ROOT / "docs/wiring"
@@ -58,7 +58,7 @@ NODE_K = re.compile(r"^Node: (\d+) (Turnout|Signal|Sensor|Block): (\d+)")
 LEGACY = re.compile(r"\bwas ([CDM]\d+)\b")        # a staging node's old ID, as lcos_nodes.csv's source notes it
 NODE_ID = re.compile(r"^inventory v86: ([CDM]\d+)\b")    # a staging node's ID in the inventory (M1 main, D5 DCC)
 NODE_TYPE = {"C": "Client", "M": "Main", "D": "DCC"}
-SWITCH_LEGS = DATA.parent / "switch_legs.csv"        # staging's legs: a wired mast's place at its switch
+SWITCHES = DATA.parent / "switches.csv"              # staging's legs: a wired mast's place at its switch
 
 NODE_COLUMNS = ["Node ID", "Legacy Node ID", "Address", "Location", "Type", "DNOU8", "DNIN8", "12V Boards",
                 "5V Boards", "Num 12V", "12V Used", "12V Free", "Num Turnouts", "Turnout Output Ports",
@@ -327,7 +327,8 @@ def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
     fb = {name: port for n in nodes.values() for name, port in n.feedback}
     button = {name.removesuffix(" (planned)").removesuffix(" BTN"): port for n in nodes.values()
               for name, port in n.buttons}
-    legs = {r["switch"]: r for r in load_csv(SWITCH_LEGS)}
+    # staging's rows; a crossover keeps its last row's legs, as the older switch_legs.csv reading did
+    legs = {str(r.switch): r for r in read_switch_rows(SWITCHES) if r.level == 1}
     place = defaultdict(dict)        # switch -> {"Entry" | "Normal Exit" | "Reverse Exit": (mast, its head's pins)}
     for n in nodes.values():
         for head, spread in n.heads:
@@ -335,10 +336,10 @@ def turnout_sheet(wb, nodes: dict[int, Node], by_name: dict) -> None:
             key = re.sub(r" (Top|Bottom)$", "", head.removeprefix("Head "))
             mast = by_name.get(f"Mast {key}", {})
             sw = mast.get("switch", "")
-            if not n.design and sw in legs:                # staging: the leg it stands on (switch_legs.csv)
+            if not n.design and sw in legs:                # staging: the leg it stands on (switches.csv)
                 leg = legs[sw]
-                role = ("Normal Exit" if mast["facing"] == leg["closed_leg"] else
-                        "Reverse Exit" if mast["facing"] == leg["thrown_leg"] else "Entry")
+                role = ("Normal Exit" if mast["facing"] == leg.closed_leg else
+                        "Reverse Exit" if mast["facing"] == leg.thrown_leg else "Entry")
                 if not head.endswith(" Bottom"):
                     place[sw].setdefault(role, (key, ports))
             elif head.endswith(" Top"):                  # main and upper: a two-head mast's top head is the entry

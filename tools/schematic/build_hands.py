@@ -1,45 +1,42 @@
 """build_hands.py [--check]
 
-Write jmri/layouts/hart/data/schematic/hands.csv: the hand (R or L, the diverging side seen from the points) of every
-main and upper level switch, read from the AnyRail plan graph (inputs/main.json, node `hand` +1 = R, -1 = L) and
-renamed to the owner's switch numbers by the relabel edit in plan_overrides.json's main_upper section. Switch 225
-is the double crossover: it has no hand, so it is left out of the file. These are plan hands (owner decision
-2026-11-14), not the schematic's drawn hands: 101A/B, 103A/B, 105, 107, 109 and 111 are flipped on the sheet. Provisional until the
+Write the plan hands into jmri/layouts/hart/data/switches.csv: the hand (R or L, the diverging side seen from the
+points) of every main and upper level switch half, read from the AnyRail plan graph (inputs/main.json, node `hand`
++1 = R, -1 = L) and renamed to the owner's switch numbers by the relabel edit in plan_overrides.json's main_upper
+section. Switch 225 is the double crossover: it has no hand. These are plan hands (owner decision 2026-11-14), not
+the schematic's drawn hands: 101A/B, 103A/B, 105, 107, 109 and 111 are flipped on the sheet. Provisional until the
 Layout Editor import.
+
+switches.csv is hand-kept, one row per OS block or switch half (switches.columns.csv). This script changes only the
+`hand` cell of a main or upper row whose hand_source is `plan`; a row whose hand_source is `owner` is the owner's
+and is never touched, and no row is added or removed. It stops, naming the row, on a plan label with no row (add
+the row, hand_source plan), a plan row the plan has no hand for, and a row of a plan label with no hand_source.
 
 --check regenerates in memory and exits 1 if the file differs.
 """
 import csv
 import io
 import json
-import re
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS and hartlib paths
-from hartlib import railroad  # noqa: E402  the plan overrides, read and checked once
+from hartlib import railroad  # noqa: E402  the plan overrides and switches.csv, read and checked once
 
 GRAPH = pd.GRAPHS / "main.json"
 OVERRIDES = railroad.Sources.under().plan_overrides
-OUT = railroad.Sources.under().hands
-SOURCE = "plan geometry (provisional)"
-
-
-def natural(name):
-    m = re.match(r"(\d+)(.*)", name)
-    return int(m.group(1)), m.group(2)
-
+OUT = railroad.Sources.under().switches
 
 KNOWN_EDITS = {"relabel"}     # switch-changing edits this script reads; any other fails loudly
 
 
-def build():
-    """The file's text. Fails on anything it cannot vouch for: an edit kind it does not read (a `switch`,
-    `crossover` or `remove` edit changes which switches exist), a relabel key with no plan node other than the one
-    double crossover, or a graph hand that is not +1 or -1."""
+def plan_hands():
+    """{label: "L" or "R"} of the plan graph, in the owner's labels. Fails on anything it cannot vouch for: an edit
+    kind it does not read (a `switch`, `crossover` or `remove` edit changes which switches exist), a relabel key with
+    no plan node other than the one double crossover, or a graph hand that is not +1 or -1."""
     nodes = json.loads(GRAPH.read_text())["nodes"]
-    # hands.csv is the hands layer: it reads the inputs only (railroad.LAYERS)
+    # the hands are a layer of their own: this reads the inputs only (railroad.LAYERS)
     rr = railroad.Railroad(railroad.Sources.under().but(plan_overrides=OVERRIDES), upto="inputs")
     try:
         edits, relabel = rr.plan_overrides.edits, rr.plan_overrides.relabel
@@ -47,11 +44,11 @@ def build():
         raise SystemExit(f"build_hands.py: {exc}") from None
     unknown = sorted({e["op"] for e in edits} - KNOWN_EDITS)
     if unknown:
-        raise SystemExit(f"build_hands.py does not read {unknown} edits yet: teach it before using hands.csv")
+        raise SystemExit(f"build_hands.py does not read {unknown} edits yet: teach it before writing hands")
     by_label = {n["label"]: n for n in nodes.values() if n["kind"] == "switch"}
     by_label.update({i: n for i, n in nodes.items() if n["kind"] == "switch"})      # a switch the plan numbers no part for
     dx = {n["label"] for n in nodes.values() if n["kind"] == "dx"}
-    rows = {}
+    out = {}
     for old, new in relabel.items():
         node = by_label.get(old)
         if node is None:
@@ -59,15 +56,52 @@ def build():
                 continue                    # the double crossover: no hand
             raise SystemExit(f"relabel {old!r} -> {new!r}: no switch {old!r} in {GRAPH.name}")
         if node.get("hand") in (1, -1):
-            rows[new] = "R" if node["hand"] == 1 else "L"
+            out[new] = "R" if node["hand"] == 1 else "L"
         else:
             raise SystemExit(f"{old} ({new}): plan hand {node.get('hand')!r} is not +1 or -1")
-    out = io.StringIO()
-    w = csv.writer(out, lineterminator="\n")
-    w.writerow(["switch", "hand", "source"])
-    for name in sorted(rows, key=natural):
-        w.writerow([name, rows[name], SOURCE])
-    return out.getvalue()
+    return out
+
+
+def apply(path, hands):
+    """The text of switches.csv at `path` with the hand of each plan row set from `hands` ({label: hand}); every other
+    line as it was, byte for byte (a plan row whose hand is already right too). Stops (SystemExit naming the file and
+    line) on what the module text says."""
+    name = path.name
+    try:
+        rows = railroad.read_switch_rows(path)
+    except railroad.FactsError as exc:
+        raise SystemExit(f"build_hands.py: {exc}") from None
+    by_half = {r.half: r for r in rows if r.level in railroad.LEVEL_NUMBERS}
+    bad = [f"{name}: plan switch {label} has no row; add one (level, switch, half {label}, hand_source plan)"
+           for label in sorted(set(hands) - set(by_half), key=railroad.natural)]
+    for r in by_half.values():
+        where = f"{name} line {r.line} ({r.half})"
+        if r.hand_source == "plan" and r.half not in hands:
+            bad.append(f"{where}: hand_source plan, but the plan has no hand for {r.half}")
+        elif r.half in hands and not r.hand_source:
+            bad.append(f"{where}: the plan has a hand for it ({hands[r.half]}); set hand_source plan or owner")
+    if bad:
+        raise SystemExit("build_hands.py:\n  " + "\n  ".join(bad))
+    lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+    header = next(csv.reader(lines[:1]))
+    col, half_col = header.index("hand"), header.index("half")
+    for r in by_half.values():
+        if r.hand_source != "plan" or r.hand == hands[r.half]:
+            continue
+        # read_rows counts lines as the csv reader does; no cell of switches.csv holds a line break, so row N is line N
+        cells = next(csv.reader(lines[r.line - 1:r.line]))
+        if (cells[col], cells[half_col]) != (r.hand, r.half):
+            raise SystemExit(f"build_hands.py: {name} line {r.line}: cannot find the row of {r.half} on its line")
+        cells[col] = hands[r.half]
+        out = io.StringIO()
+        csv.writer(out, lineterminator="\n").writerow(cells)
+        lines[r.line - 1] = out.getvalue()
+    return "".join(lines)
+
+
+def build():
+    """switches.csv's text with the plan hands written in."""
+    return apply(OUT, plan_hands())
 
 
 def main(argv):
@@ -76,12 +110,12 @@ def main(argv):
         return 2
     text = build()
     if "--check" in argv:
-        if not OUT.exists() or OUT.read_text() != text:
-            print(f"{OUT.relative_to(pd.REPO)} is out of date: run tools/schematic/build_hands.py")
+        if OUT.read_text(encoding="utf-8") != text:
+            print(f"{OUT.relative_to(pd.REPO)}: its plan hands are out of date: run tools/schematic/build_hands.py")
             return 1
-        print("hands.csv up to date")
+        print("switches.csv plan hands up to date")
         return 0
-    OUT.write_text(text)
+    OUT.write_text(text, encoding="utf-8")
     print(f"wrote {OUT.relative_to(pd.REPO)}")
     return 0
 

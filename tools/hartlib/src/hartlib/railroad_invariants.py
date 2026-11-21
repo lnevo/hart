@@ -128,12 +128,12 @@ def invariant(name: str, layer: str):
 
 def switch_levels(rr: Railroad) -> dict[str, dict[int, str]]:
     """{switch number: {level: the file that puts it there}} of every level's switches: staging's in switches.csv,
-    main and upper's in their interlockings and local_switches_main_upper.csv."""
+    main and upper's in their interlockings and switches.csv (a local switch's area)."""
     out: dict[str, dict[int, str]] = {}
     for n, sw in rr.switches.items():
         out.setdefault(str(n), {})[int(sw.level)] = rr.sources.switches.name
     for s, sw in rr.main_upper_switches.items():
-        src = rr.sources.interlockings.name if sw.cp else rr.sources.local_switches.name
+        src = rr.sources.interlockings.name if sw.cp else rr.sources.switches.name
         out.setdefault(s, {})[sw.level] = src
     return out
 
@@ -218,7 +218,7 @@ def _name_map(rr: Railroad) -> list[str]:
 
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
-    """Every block a staging switch leg (switch_legs.csv), a staging mast (staging_masts.csv) or a measured
+    """Every block a staging switch leg (switches.csv), a staging mast (staging_masts.csv) or a measured
     length (block_lengths.csv) names is a live block of the name map of devices.csv, and every staging mast a live mast."""
     blocks, masts = rr.name_map.names("block"), rr.name_map.names("mast")
     bad = []
@@ -226,7 +226,7 @@ def _staging_blocks(rr: Railroad) -> list[str]:
         for leg in sw.legs:
             for what, b in (("OS block", leg.os_block), ("closed leg", leg.closed), ("thrown leg", leg.thrown)):
                 if b not in blocks:
-                    bad.append(f"Switch {sw.number} (switch_legs.csv): {what} {b} is no live block of the name map")
+                    bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no live block of the name map")
     for m in rr.staging_masts:
         where = f"{rr.sources.staging_masts.name}: {m.mast}"
         if m.mast not in masts:
@@ -261,11 +261,11 @@ def _plan_overrides(rr: Railroad) -> list[str]:
 
 @invariant("hands", "hands")
 def _hands(rr: Railroad) -> list[str]:
-    """Each hands.csv label is a main or upper switch the plan's relabel names (a crossover half by its label)."""
+    """Each hand label of switches.csv is a main or upper switch the plan's relabel names (a crossover half by its label)."""
     targets = set(rr.plan_overrides.relabel.values())
-    return [f"{rr.sources.hands.name} line {h.line}: {label} is no label the plan's relabel gives"
+    return [f"{rr.sources.switches.name} line {h.line}: {label} is no label the plan's relabel gives"
             for label, h in rr.hands.items() if label not in targets and label + "*" not in targets] + \
-           [f"{rr.sources.hands.name} line {h.line}: {label} is no main or upper switch"
+           [f"{rr.sources.switches.name} line {h.line}: {label} is no main or upper switch"
             for label, h in rr.hands.items() if switch_number(label) not in rr.main_upper_switches]
 
 
@@ -286,8 +286,8 @@ def _device_map(rr: Railroad) -> list[str]:
             bad.append(f"Switch {s} ({sw.cp or 'local'}, level {sw.level}): no turnout row in {name}")
             continue
         if sw is None:
-            bad.append(f"{name} line {r.line}: Switch {s} is in no control point and not in "
-                       f"{rr.sources.local_switches.name}")
+            bad.append(f"{name} line {r.line}: Switch {s} is in no control point and not a local switch (an area) in "
+                       f"{rr.sources.switches.name}")
             continue
         if (r.level, r.cp) != (sw.level, sw.cp):
             bad.append(f"{name} line {r.line}: Switch {s} is level {r.level} {r.cp or 'local'}, the control points "
@@ -374,14 +374,14 @@ def _level_masts(rr: Railroad) -> list[str]:
 @invariant("tables", "tables")
 def _tables(rr: Railroad) -> list[str]:
     """tables.xml holds the fact files' devices: every staging switch's turnout and the blocks of its legs
-    (switches.csv, switch_legs.csv), and every mast of both mast files (staging_masts.csv, main_upper_masts.csv) on
+    (switches.csv), and every mast of both mast files (staging_masts.csv, main_upper_masts.csv) on
     the system name its file gives it. The rows of devices.csv, every level's, are held to their beans by
     tools/schematic/check_device_master.py (check_tables)."""
     t, bad = rr.tables, []
     for sw in rr.switches.values():
         if sw.turnout not in t.turnouts:
             bad.append(f"Switch {sw.number} (switches.csv): no turnout {sw.turnout} in tables.xml")
-        bad += [f"Switch {sw.number} (switch_legs.csv): no block {b} in tables.xml"
+        bad += [f"Switch {sw.number} (switches.csv): no block {b} in tables.xml"
                 for leg in sw.legs for b in (leg.os_block, leg.closed, leg.thrown) if b not in t.blocks]
     masts = [(rr.sources.staging_masts.name, m.mast, m.system_name) for m in rr.staging_masts]
     masts += [(rr.sources.level_masts.name, r["mast"], r["system_name"]) for r in rr.level_masts]

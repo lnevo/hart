@@ -84,7 +84,7 @@ DEFAULT_ROUTE = "loop1"
 ORDER = [s for s, _ in LOOP]  # loop1 aliases: LOOP and ORDER
 
 # Switch positions the owner sets by hand before a run (nothing here is ever sent to JMRI):
-# (switch number, "closed" or "thrown"), checked against data/switch_legs.csv by the tests.
+# (switch number, "closed" or "thrown"), checked against the legs of data/switches.csv by the tests.
 ROUTE_LINEUP = {
     "loop1": [(5, "closed"), (7, "closed"), (33, "thrown"), (35, "closed"), (37, "thrown"),
               (39, "thrown"), (23, "closed"), (1, "thrown")],
