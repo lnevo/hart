@@ -45,7 +45,7 @@ ROOT = paths.REPO_ROOT if hasattr(paths, "REPO_ROOT") else Path(__file__).resolv
 TABLES_REL = "jmri/layouts/hart/output/tables.xml"
 TABLES = ROOT / TABLES_REL
 TEMPLATE = ROOT / "jmri/layouts/hart/data/tables_template.xml"
-DEVICES = ROOT / "jmri/layouts/hart/data/devices.csv"
+DEVICES = devices.MASTER
 SPLITS = ROOT / "jmri/layouts/hart/data/store_splits.csv"
 SPLIT_COLUMNS = ("store_sha256", "host", "store_file", "base", "plan", "split_date")
 WRITES = (TEMPLATE, DEVICES, TABLES, SPLITS)
@@ -192,7 +192,7 @@ def apply(store_path: Path, p: ss.Plan, ctx: dict, choices: ss.Choices) -> int:
         TEMPLATE.write_bytes(doc.tobytes())
         tb.read_template(TEMPLATE)
         if edits:
-            DEVICES.write_text(devices.master_text(rows), encoding="utf-8")
+            devices.write_master(rows, DEVICES)
     except (tb.TablesBuildError, OSError) as exc:
         return undo([f"the new template: {exc}"])
     built = subprocess.run([sys.executable, str(BUILD)], cwd=ROOT, env=build_env(), capture_output=True, text=True)

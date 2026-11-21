@@ -85,10 +85,8 @@ class Facts(unittest.TestCase):
         # the yard throats went; since step 5 part 2 (owner, 2026-11-20) a part on every level is a block of its own on
         # the occupancy sensor of the OS block it is part of (devices.csv part_of), so each such OS block's sensor is
         # shared, and no other
-        import csv
-        devices_csv = btb.SRC.parents[1] / "data/devices.csv"
-        with open(devices_csv, newline="", encoding="utf-8") as fh:
-            parts = [r for r in csv.DictReader(fh) if r["role"] == "part"]
+        from hartlib import devices
+        parts = [r for r in devices.load(devices.master_path(btb.SRC.parents[1] / "data")) if r["role"] == "part"]
         self.assertEqual(self.f["sharedCount"], len({r["part_of"] for r in parts}))
         self.assertEqual(self.f["sharedExamples"], [])
 

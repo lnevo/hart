@@ -21,6 +21,7 @@ import sys
 
 BLOCKED_PROGRAMS = {
     "deploy_hartrailroad.sh", "sync_hart_package.sh", "redeploy_commit.sh", "flash_nano.py",
+    "ship_pi.sh", "ship_win.sh", "ship_mac.sh", "gate.sh",
     "serial_to_mqtt.py", "mosquitto_pub", "scp", "rsync", "pull_ops.sh",
 }
 BLOCKED_PREFIXES = ("run_serial_mqtt", "pi_")  # pi_*.sh in tools/hosts act on the Pi
