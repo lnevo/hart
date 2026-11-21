@@ -38,6 +38,7 @@ base="$(ssh "$PI_HOST" "bash -s -- '$UF'" <"$ROOT/tools/hosts/pi/tables_base.sh"
   || { echo "Could not read the Pi's deploy stamp for the Store's base; nothing pulled." >&2; exit 1; }
 PULLED="$(hart_pulled_dir)" || exit 1
 saved="$(hart_keep_store "$tmp" "$PULLED" pi "$base")" || exit 1
+base="$(<"$saved.base")"   # a Store kept before keeps the base it was kept with
 cat <<EOF
 Pulled: the Pi's Store is kept as $saved (outside every checkout), its base ($base) in $saved.base.
 It is not recorded as taken: deploys to the Pi stay stopped until its split is merged.
