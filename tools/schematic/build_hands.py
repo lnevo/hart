@@ -10,7 +10,8 @@ Layout Editor import.
 switches.csv is hand-kept, one row per OS block or switch half (switches.columns.csv). This script changes only the
 `hand` cell of a main or upper row whose hand_source is `plan`; a row whose hand_source is `owner` is the owner's
 and is never touched, and no row is added or removed. It stops, naming the row, on a plan label with no row (add
-the row, hand_source plan), a plan row the plan has no hand for, and a row of a plan label with no hand_source.
+the row with hand_source plan and the hand blank: this fills it), a plan row the plan has no hand for, and a row of
+a plan label with no hand_source.
 
 --check regenerates in memory and exits 1 if the file differs.
 """
@@ -72,7 +73,8 @@ def apply(path, hands):
     except railroad.FactsError as exc:
         raise SystemExit(f"build_hands.py: {exc}") from None
     by_half = {r.half: r for r in rows if r.level in railroad.LEVEL_NUMBERS}
-    bad = [f"{name}: plan switch {label} has no row; add one (level, switch, half {label}, hand_source plan)"
+    bad = [f"{name}: plan switch {label} has no row; add one (level, switch, half {label}, hand_source plan, "
+           "hand blank) and run build_hands.py"
            for label in sorted(set(hands) - set(by_half), key=railroad.natural)]
     for r in by_half.values():
         where = f"{name} line {r.line} ({r.half})"
@@ -90,7 +92,7 @@ def apply(path, hands):
             continue
         # read_rows counts lines as the csv reader does; no cell of switches.csv holds a line break, so row N is line N
         cells = next(csv.reader(lines[r.line - 1:r.line]))
-        if (cells[col], cells[half_col]) != (r.hand, r.half):
+        if (cells[col].strip(), cells[half_col].strip()) != (r.hand, r.half):        # the reader strips values
             raise SystemExit(f"build_hands.py: {name} line {r.line}: cannot find the row of {r.half} on its line")
         cells[col] = hands[r.half]
         out = io.StringIO()

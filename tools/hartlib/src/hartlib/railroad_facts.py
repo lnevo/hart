@@ -256,8 +256,10 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
     together, a key (staging's os_block, main and upper's half) given twice, an os_block that is not an OS Switch block
     of the row's number, one leg without the other or legs without an os_block, a staging row without its os_block
     and legs or with a half, a main or upper row with a staging-only column (STAGING_ONLY) or a half that is not its
-    number (107) or its number and A or B (101A), a hand that is not L, R or blank, a hand with no hand_source (plan
-    or owner) or a hand_source with no hand, and a whole-switch column (SWITCH_WIDE) on a switch's later row. A main
+    number (107) or its number and A or B (101A), a main or upper switch whose rows are not either one half {n} or
+    both {n}A and {n}B, a hand that is not L, R or blank, a hand with no hand_source (plan or owner) or an owner
+    hand_source with no hand (a plan row's blank hand is build_hands.py's to fill), and a whole-switch column
+    (SWITCH_WIDE; on staging the hand too) on a switch's later row. A main
     or upper row's os_block and legs are optional: none is given yet; station_group_rows reads an os_block on any
     level, and only staging's legs are read so far (staging_switches)."""
     out: list[SwitchRow] = []
@@ -301,10 +303,14 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
                 raise FactsError(f"{where}: {', '.join(given)} are staging columns; main and upper leave them blank")
         if r["hand"] not in HANDS:
             raise FactsError(f"{where}: hand is L, R or blank, got {r['hand']!r}")
-        if bool(r["hand"]) != bool(r["hand_source"]) or (r["hand_source"] and r["hand_source"] not in HAND_SOURCES):
-            raise FactsError(f"{where}: a hand needs a hand_source ({' or '.join(HAND_SOURCES)}) and a hand_source a "
-                             f"hand; got hand {r['hand']!r}, hand_source {r['hand_source']!r}")
-        repeated = [c for c in SWITCH_WIDE if later and r[c]]
+        # a plan row may wait for build_hands.py to fill its hand; an owner row gives one
+        if ((r["hand"] and not r["hand_source"]) or (r["hand_source"] and r["hand_source"] not in HAND_SOURCES)
+                or (r["hand_source"] == "owner" and not r["hand"])):
+            raise FactsError(f"{where}: a hand needs a hand_source ({' or '.join(HAND_SOURCES)}), and an owner "
+                             f"hand_source a hand; got hand {r['hand']!r}, hand_source {r['hand_source']!r}")
+        # staging's hand is a fact of the whole switch (Switch.hand); main and upper give one per half
+        wide = SWITCH_WIDE + (("hand", "hand_source") if level == 1 else ())
+        repeated = [c for c in wide if later and r[c]]
         if repeated:
             raise FactsError(f"{where}: {', '.join(repeated)} hold a fact of the whole switch: give them on its first "
                              f"row (line {first_of[n][1]}) only")
@@ -313,6 +319,11 @@ def read_switch_rows(path: Path) -> list[SwitchRow]:
             raise FactsError(f"{path.name} lines {keys[row.key]} and {line}: both are {row.key}")
         keys[row.key] = line
         out.append(row)
+    for n, rs in switch_groups(out, LEVEL_NUMBERS).items():
+        halves = sorted(r.half for r in rs)
+        if halves not in ([str(n)], [f"{n}A", f"{n}B"]):
+            raise FactsError(f"{_where(path, rs[0].line)} (Switch {n}): a main or upper switch has one row, half {n}, "
+                             f"or two, halves {n}A and {n}B; not {', '.join(halves)}")
     return out
 
 
@@ -743,7 +754,7 @@ class LcosNode:
     level: int
     area: str
     node: int
-    source: str = ""     # the row's hand_source: plan (build_hands.py) or owner
+    source: str = ""
 
 
 def read_lcos_nodes(path: Path) -> list[LcosNode]:

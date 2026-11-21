@@ -318,6 +318,25 @@ class Readers(Copy):
                 self.assertIn(old, text)
                 self.src.switches.write_text(text.replace(old, new, 1), encoding="utf-8")
                 self.fails(lambda: R.read_switch_rows(self.src.switches), msg)
+        more = (
+            # a crossover's later staging row gives no hand: staging's hand is the switch's (Switch.hand)
+            ("1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,", "1,7,,OS Switch 7b,Track Main East,OS Switch 7,R,owner,",
+             r"line 6 \(Switch 7\): hand, hand_source hold a fact of the whole switch"),
+            # an owner row gives its hand; only a plan row waits for build_hands.py
+            ("2,105,105,,,,L,plan,", "2,105,105,,,,,owner,", "an owner hand_source a hand"),
+            # one row, half N, or both halves NA and NB
+            ("2,105,105,", "2,105,105A,", r"\(Switch 105\): a main or upper switch has one row, half 105, or two, "
+                                          r"halves 105A and 105B; not 105A"),
+            ("2,101,101B,", "2,101,101,", r"\(Switch 101\): .* not 101, 101A"),
+        )
+        for old, new, msg in more:
+            with self.subTest(new=new):
+                self.assertIn(old, text)
+                self.src.switches.write_text(text.replace(old, new, 1), encoding="utf-8")
+                self.fails(lambda: R.read_switch_rows(self.src.switches), msg)
+        # a new plan row may leave its hand blank for build_hands.py; it is no hand until then
+        self.src.switches.write_text(text.replace("2,105,105,,,,L,plan,", "2,105,105,,,,,plan,", 1), encoding="utf-8")
+        self.assertNotIn("105", R.read_hands(self.src.switches))
         # a main or upper row may give its OS block and legs (none does yet)
         self.src.switches.write_text(text.replace("2,105,105,,,,", "2,105,105,OS Switch 105,Track A,Track B,", 1),
                                      encoding="utf-8")

@@ -75,6 +75,16 @@ class PlanAndOwnerRows(unittest.TestCase):
         body = "2,105,105,,,,R,plan,West,,,,,\"Yard ladder\"\n"      # quoting the writer would not use is kept
         self.assertEqual(self.apply(body, {"105": "R"}), HEADER + STAGING + body)
 
+    def test_a_new_plan_row_with_no_hand_is_filled(self):
+        """The way to add a plan switch, as the no-row message says: a row with hand_source plan and the hand blank."""
+        body = "2,105,105,,,,R,plan,West,,,,,\n3,247,247,,,,,plan,Helix,,,,,\n"
+        self.assertEqual(self.apply(body, {"105": "R", "247": "L"}),
+                         HEADER + STAGING + "2,105,105,,,,R,plan,West,,,,,\n3,247,247,,,,L,plan,Helix,,,,,\n")
+
+    def test_cells_are_compared_as_the_reader_strips_them(self):
+        body = "2,105,105 ,,,, L ,plan,West,,,,,\n"
+        self.assertEqual(self.apply(body, {"105": "R"}), HEADER + STAGING + "2,105,105 ,,,,R,plan,West,,,,,\n")
+
     def test_a_plan_label_with_no_row_stops(self):
         with self.assertRaisesRegex(SystemExit, "plan switch 107 has no row; add one"):
             self.apply("2,105,105,,,,R,plan,West,,,,,\n", {"105": "R", "107": "L"})
