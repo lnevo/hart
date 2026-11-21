@@ -1,7 +1,11 @@
 # LCOS Layout Inventory v85 (2026-08-22)
 
-Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `docs/wiring/imported/`.
+Source of truth: hart occupancy + Digicon CSVs (`occupancy_bindings.csv`, `signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`). Desktop snapshot of v84 is in `archive/docs/wiring-imported/` (moved 2026-11-20).
 
+
+## 2026-11-20 — v86 written from the repo's wiring source
+
+`LCOS_Layout_Inventory_v86.xlsx` is no longer v85 with rows added: `tools/wiring/write_inventory.py` writes it from scratch from `devices.csv`, `jmri/layouts/hart/data/wiring.csv` (the physical wiring source) and `lcos_nodes.csv`. Staging holds only what is wired (owner, 2026-11-20): 20 turnouts, 40 feedback inputs, 20 fascia buttons, a calibration relay on each node with detectors (the relay that resets the DCC power so the detectors calibrate: C1, C2, C3, C4 and C12 in, C13's port reserved), Head 6LB and 43 detectors with 2 spare inputs. The buttons and relays have no JMRI device and are `button` and `calibration` rows of `wiring.csv` (`relay` for any other relay). Gone from staging: the old Digicon head plan (101 searchlight pins), the S3 signal LEDs, C2's freed buttons and feedback inputs (their devices are on C12), the reserved pins and C11's helix blocks (not in JMRI). Corrected: node 13's OU2-1 to 6 carry the motors of Switches 7, 11 and 9 (the Engine House reuse of node 13), the detector names are the panel's, and Mast 6LB is Switch 5's normal exit (it stands on the closed leg). The Power District column is blank: the old districts were never mapped (owner, 2026-11-21). Main and upper rows are unchanged; the Nodes sheet lists every node of `lcos_nodes.csv`, unused ones too, with M1 (main radio) and D5 (DCC). v85, `signals_asbuilt_abs_v2.xlsx` and `signals_split_v8.xlsx` are frozen history; the v84 import and the refresh chain are in `archive/`.
 
 ## 2026-11-15 — v86: main and upper levels from the device map
 

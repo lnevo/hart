@@ -113,8 +113,9 @@ Lookups (all take the root element unless noted):
 `jmri/layouts/hart/data/wiring.csv`, the physical wiring source (owner, 2026-11-20): one row per device on an LCOS
 node. `wiring.read()` gives checked `Wire` rows; `w.address` is the JMRI system name (M2T408, M2S470, IH432, M2S1300)
 and `w.wiring_text` the wiring text devices.csv and the JMRI comments carry ("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2").
-Staging's rows are as wired in JMRI; main and upper's are the detectors the owner placed (planned), the rest of those
-levels being given out by `build_device_map.py`'s rule.
+Staging's rows are as wired in JMRI, plus the fascia buttons, relays and calibration relays, which have no JMRI
+device (kinds `button`, `relay` and `calibration`, no index); main and upper's are the detectors the owner placed (planned), the rest of those levels being
+given out by `build_device_map.py`'s rule.
 
 ### `hartlib.railroad`
 

@@ -287,53 +287,6 @@ def write_csvs(rows: list[dict]) -> None:
     print(f"wrote {DATA / 'signal_head_plan.csv'} ({len(masts)} masts)")
 
 
-def update_lcos_inventory(rows: list[dict]) -> None:
-    """Rewrite Digicon signal ports on docs/wiring LCOS inventory DNOU8 sheet."""
-    inv = ROOT / "docs/wiring/LCOS_Layout_Inventory_v85.xlsx"
-    if not inv.exists():
-        print(f"skip inventory update (missing {inv})")
-        return
-    try:
-        from openpyxl import load_workbook
-    except ImportError:
-        print("skip inventory update (openpyxl not installed)")
-        return
-    wb = load_workbook(inv)
-    ws = wb["DNOU8"]
-    # Map existing rows by Output Port ID (col A)
-    by_port: dict[str, int] = {}
-    for i, row in enumerate(ws.iter_rows(min_row=2), start=2):
-        pid = row[0].value
-        if pid:
-            by_port[str(pid)] = i
-    assigned = {r["port_id"] for r in rows}
-    # Clear old dwarf labels on ports we are reclaiming (leave unrelated alone)
-    for r in rows:
-        port = r["port_id"]
-        channel = int(port.rsplit("-", 1)[-1])
-        vals = (
-            port,
-            r["parent_node_id"],
-            r["board_location"],
-            channel,
-            r["user_name"],
-            "Searchlight Signal Head",
-            "5V",
-            (
-                f"HART Digicon; MQTT {r['topic']}; "
-                f"packed {r['packed']} (node {r['mqtt_node']} sig {r['signal_index']})"
-            ),
-        )
-        if port in by_port:
-            rr = by_port[port]
-            for col, v in enumerate(vals, start=1):
-                ws.cell(rr, col, v)
-        else:
-            ws.append(vals)
-    wb.save(inv)
-    print(f"updated inventory DNOU8 → {inv}")
-
-
 def _heads_xml(rows: list[dict]) -> str:
     parts = [
         '  <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml">',
@@ -452,7 +405,7 @@ def main() -> int:
     if wiring_only:
         print("wiring-only: skipped inventory xlsx, tables.xml, publisher")
     else:
-        update_lcos_inventory(rows)
+        print("the wiring inventory takes these ports: python3 tools/wiring/write_inventory.py")
         write_publisher(rows)
         patch_tables(rows)
     by: dict[int, list] = {}

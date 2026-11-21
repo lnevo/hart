@@ -6,14 +6,19 @@ are given nodes and ports by build_device_map.py's rule, except the rows here, w
 (status `planned` for a detector the owner placed, `wired` once a control point is wired and frozen).
 
 Columns (COLUMNS):
-- level 1, 2 or 3; kind: turnout, fb (turnout feedback), head (signal head), detector (block occupancy).
+- level 1, 2 or 3; kind: turnout, fb (turnout feedback), head (signal head), detector (block occupancy), button (a
+  fascia button on an input), relay (on an output) or calibration (the relay on an output that resets the DCC power
+  so the node's block detectors calibrate; every node with detectors has one reserved, owner 2026-11-21). Buttons
+  and relays are wired on the nodes but have no JMRI device (owner, 2026-11-20: live today, more to come); their
+  index is blank. A calibration row's status is wired where the relay is in, planned where the port is reserved.
 - device: the device's user name (Switch 1, FB Switch 1 N, Head 6LB), or a detector's block name. A main or upper
   detector on a track is named by switch_a, switch_b, parallel and half instead (mast_rule.track_key: lower number
   first), since those block names are placeholders. A staging detector with no block is a spare input.
 - node: the LCOS radio address. index: the LCOS number in the device's wiring text, "Turnout: <i>", "Sensor: <i>",
   "Signal: <i>" from 0, "Block: <i>" from 1 (1 to 8). board (OU<n> or IN<n>) and ports: where a turnout, feedback or
   head lands; a detector has neither (its input is the index).
-- status: wired or planned. notes: text for people.
+- status: wired or planned. notes: text for people. (Power districts are not mapped yet; the owner,
+  2026-11-21: the inventory's were old names, not real.)
 
 The JMRI address follows from node and index (address), and the wiring text from all four (wiring_text): devices.csv
 holds both only as written from here.
@@ -31,11 +36,13 @@ from .railroad_facts import FactsError
 PATH = paths.LAYOUT_DATA / "wiring.csv"
 COLUMNS = ["level", "kind", "device", "switch_a", "switch_b", "parallel", "half", "node", "index", "board", "ports",
            "status", "notes"]
-KINDS = ("turnout", "fb", "head", "detector")
+KINDS = ("turnout", "fb", "head", "detector", "button", "relay", "calibration")
+LOCAL = ("button", "relay", "calibration")      # on a node, no JMRI device: no index, no address
 STATUSES = ("wired", "planned")
 # kind -> (system name prefix, LCOS UID offset, the word in the wiring text, the board it lands on, ports per device)
 LCOS = {"turnout": ("M2T", 8, "Turnout", "OU", 2), "fb": ("M2S", 67, "Sensor", "IN", 1),
-        "head": ("IH", 32, "Signal", "OU", 3), "detector": ("M2S", 0, "Block", "", 0)}
+        "head": ("IH", 32, "Signal", "OU", 3), "detector": ("M2S", 0, "Block", "", 0),
+        "button": ("", 0, "", "IN", 1), "relay": ("", 0, "", "OU", 1), "calibration": ("", 0, "", "OU", 1)}
 CAP = {"turnout": 8, "fb": 16, "head": 16, "detector": 8}     # LCOS numbers per node (a detector's from 1)
 BOARD = re.compile(r"^(OU|IN)([1-4])$")
 
@@ -50,7 +57,7 @@ class Wire(NamedTuple):
     parallel: str
     half: str
     node: int
-    index: int
+    index: int | None
     board: str
     ports: tuple[int, ...]
     status: str
@@ -58,7 +65,10 @@ class Wire(NamedTuple):
 
     @property
     def address(self) -> str:
-        """The JMRI system name: M2T, M2S or IH and node x 100 + the UID offset + the index (a detector's from 0)."""
+        """The JMRI system name: M2T, M2S or IH and node x 100 + the UID offset + the index (a detector's from 0).
+        A button or relay has none (ValueError)."""
+        if self.kind in LOCAL:
+            raise ValueError(f"a {self.kind} has no JMRI address")
         prefix, uid, _word, _board, _n = LCOS[self.kind]
         return f"{prefix}{self.node * 100 + uid + self.index - (self.kind == 'detector')}"
 
@@ -67,6 +77,8 @@ class Wire(NamedTuple):
         """The device's wiring as devices.csv and the JMRI comment tell it: "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
         a detector's "Node: 13 Block: 1"."""
         word = LCOS[self.kind][2]
+        if self.kind in LOCAL:
+            return f"Node: {self.node} | {self.board[:2]}: {self.board[2:]} Ports: {','.join(map(str, self.ports))}"
         text = f"Node: {self.node} {word}: {self.index}"
         if self.kind == "detector":
             return text
@@ -110,13 +122,18 @@ def read(path: Path | None = None) -> list[Wire]:
             continue
         kind = r["kind"]
         try:
-            node, index = int(r["node"]), int(r["index"])
+            node = int(r["node"])
+            index = None if kind in LOCAL and not r["index"] else int(r["index"])
             ports = tuple(int(p) for p in r["ports"].split(",")) if r["ports"] else ()
         except ValueError:
             bad.append(f"{at}: node, index and ports are numbers")
             continue
         low = 1 if kind == "detector" else 0
-        if not low <= index < low + CAP[kind]:
+        if kind in LOCAL:
+            if index is not None:
+                bad.append(f"{at}: a {kind} has no JMRI device, so no index")
+                continue
+        elif not low <= index < low + CAP[kind]:
             bad.append(f"{at}: a {kind}'s index is {low} to {low + CAP[kind] - 1}, not {index}")
             continue
         keyed = any(r[c] for c in ("switch_a", "switch_b", "parallel", "half"))
@@ -151,7 +168,7 @@ def read(path: Path | None = None) -> list[Wire]:
             bad.append(f"{at}: {kind} {name} is line {names[level, kind, name]}'s as well")
             continue
         number = (node, LCOS[kind][2], index)
-        if number in numbers:
+        if kind not in LOCAL and number in numbers:
             bad.append(f"{at}: node {node} {LCOS[kind][2]} {index} is line {numbers[number]}'s as well")
             continue
         taken = [p for p in ports if (node, r["board"], p) in pins]
@@ -160,7 +177,8 @@ def read(path: Path | None = None) -> list[Wire]:
             continue
         if name:
             names[level, kind, name] = i
-        numbers[number] = i
+        if kind not in LOCAL:
+            numbers[number] = i
         for p in ports:
             pins[node, r["board"], p] = i
         out.append(Wire(i, level, kind, r["device"], r["switch_a"], r["switch_b"], r["parallel"], r["half"], node,

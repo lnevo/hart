@@ -35,13 +35,19 @@ class Read(unittest.TestCase):
                                ("detector", "M2S201", "Node: 2 Block: 2"),
                                ("detector", "M2S4103", "Node: 41 Block: 4")])
         self.assertEqual(self.read(GOOD)[3].input, "Block 13-1")
+        local = self.read(GOOD + "1,button,Switch 1 BTN,,,,,4,,IN2,1,wired,\n1,relay,Relay 1,,,,,2,,OU2,8,wired,\n")
+        self.assertEqual([(w.kind, w.index, w.wiring_text) for w in local[-2:]],
+                         [("button", None, "Node: 4 | IN: 2 Ports: 1"), ("relay", None, "Node: 2 | OU: 2 Ports: 8")])
+        with self.assertRaisesRegex(ValueError, "no JMRI address"):
+            local[-1].address
 
     def test_the_committed_file(self):
         rows = W.read()
         count = lambda lv, kind: sum(w.level == lv and w.kind == kind for w in rows)  # noqa: E731
         self.assertEqual((count(1, "turnout"), count(1, "fb"), count(1, "head"), count(1, "detector")),
                          (20, 40, 1, 45))
-        self.assertTrue(all(w.status == "wired" for w in rows if w.level == 1))
+        self.assertTrue(all(w.status == "wired" for w in rows if w.level == 1 and w.kind != "calibration"))
+        self.assertEqual([w.node for w in rows if w.kind == "calibration" and w.status == "planned"], [13])  # reserved
 
     def test_bad_rows_stop(self):
         for extra, msg in (("4,turnout,Switch 2,,,,,4,1,OU1,\"3,4\",wired,", "level is 1, 2 or 3"),
@@ -58,6 +64,9 @@ class Read(unittest.TestCase):
                            ("1,detector,Track X,,,,,4,1,OU1,1,wired,", "no board or ports"),
                            ("3,detector,Track X,227,241,,1,41,5,,,planned,", "not both"),
                            ("1,detector,,13,15,,,3,1,,,wired,", "a staging detector is named by its block alone"),
+                           ("1,button,Switch 1 BTN,,,,,4,0,IN2,1,wired,", "a button has no JMRI device, so no index"),
+                           ("1,button,Switch 1 BTN,,,,,4,,OU2,1,wired,", "lands on an IN board"),
+                           ("1,relay,Relay 2,,,,,4,,OU1,2,wired,", r"OU1 port\(s\) \[2\] are line 2's"),
                            ("1,turnout,Switch 1,,,,,4,1,OU1,\"3,4\",wired,", "turnout Switch 1 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,0,OU1,\"3,4\",wired,", "node 4 Turnout 0 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,1,OU1,\"2,3\",wired,", r"OU1 port\(s\) \[2\] are line 2's"),

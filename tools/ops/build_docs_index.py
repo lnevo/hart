@@ -17,7 +17,7 @@ from urllib.parse import quote
 
 ROOT = Path(__file__).resolve().parents[2]
 TOOLING = (".py", ".sh", ".scad", ".stl", ".3mf", ".gitignore")
-SKIP = ("docs/wiring/imported/", "docs/INDEX.md")
+SKIP = ("docs/INDEX.md",)
 
 
 def tracked() -> list[str]:

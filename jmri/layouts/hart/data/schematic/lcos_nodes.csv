@@ -4,7 +4,7 @@ level,area,node,source
 1,North,2,inventory v86: C2 North - Lower (East End west 24); was C3
 1,West,3,inventory v86: C3 West - Lower (Switch 15-21 motors); was C4
 1,West,4,inventory v86: C4 West - Lower (Brick / Plane); was C6
-1,Helix,5,inventory v86: D5 Helix DCC (radio 5; no Digicon DNOU8)
+1,Helix,5,inventory v86: D5 Helix DCC (radio 5; no Digicon DNOU8); was D1
 1,Helix,11,inventory v86: C11 Helix (Princess east 40 + balloon); was C7
 1,North,12,inventory v86: C12 North - Lower (East End 34 + Switch 25-33); was C2
 1,West,13,inventory v86: C13 West - Lower (Barn); was C5

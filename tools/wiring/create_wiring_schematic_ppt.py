@@ -15,13 +15,10 @@ import re
 
 script_dir = os.path.dirname(os.path.abspath(__file__))
 wiring_dir = os.path.normpath(os.path.join(script_dir, '..', '..', 'docs', 'wiring'))
-# Find latest inventory file (skip imported/ snapshots)
-import glob
-inventory_files = sorted(
-    glob.glob(os.path.join(wiring_dir, 'LCOS_Layout_Inventory_v*.xlsx')),
-    reverse=True,
-)
-inventory_file = inventory_files[0] if inventory_files else os.path.join(wiring_dir, 'LCOS_Layout_Inventory_v85.xlsx')
+# The current inventory, written by tools/wiring/write_inventory.py (v85 is frozen history)
+inventory_file = os.path.join(wiring_dir, 'LCOS_Layout_Inventory_v86.xlsx')
+if not os.path.exists(inventory_file):
+    raise SystemExit(f"no {inventory_file}: run python3 tools/wiring/write_inventory.py first")
 output_ppt = os.path.join(wiring_dir, 'Wiring_Schematic.pptx')
 
 print("=" * 80)

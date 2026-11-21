@@ -122,7 +122,7 @@ run schematic-staging-sync python3 tools/schematic/sync_staging_signals.py --che
 # against its drawings and the block lengths.
 run levels-svg python3 tools/anyrail/levels_svg.py --check
 run levels-page python3 tools/anyrail/levels_page.py --check
-run wiring-v86 python3 tools/wiring/add_main_upper_levels.py --check
+run wiring-v86 python3 tools/wiring/write_inventory.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 # The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables
 # file, all of them in jmri/layouts/hart/parked/tables_parked.xml (the live snapshot, with its source commit).
