@@ -59,6 +59,21 @@
       <userName>Clock rate</userName>
       <comment>JMRI fast-clock rate</comment>
     </memory>
+    <memory>
+      <systemName>IMSTS_CAR_SYNC_READY</systemName>
+      <userName>STS car sync ready</userName>
+      <comment>sts_car_sync.py's version once it is listening</comment>
+    </memory>
+    <memory>
+      <systemName>IMSTS_CAR_SYNC_REPLY</systemName>
+      <userName>STS car sync reply</userName>
+      <comment>sts_car_sync.py's answer to the last batch</comment>
+    </memory>
+    <memory>
+      <systemName>IMSTS_CAR_SYNC_REQUEST</systemName>
+      <userName>STS car sync request</userName>
+      <comment>The batch STS sends; sts_car_sync.py applies it</comment>
+    </memory>
   </memories>
   <signalheads class="jmri.managers.configurexml.AbstractSignalHeadManagerXml" />
   <signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml" />
