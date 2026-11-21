@@ -10,12 +10,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import railroad  # noqa: E402  the railroad's facts, each file read and checked in one place
+import mast_rule  # noqa: E402  band_levels: a band's level from its plan-overrides section (after pd: hartlib's path)
+from hartlib import layer_files, railroad  # noqa: E402  the layer files; the railroad's facts, each read and checked once
 from hartlib import level_devices  # noqa: E402  the main and upper naming rule
+from hartlib import tables_build  # noqa: E402  GENERATED_LEVELS: the levels whose beans the base holds
 
 
 DEVICE_MAP = railroad.Sources.under().devices    # devices.csv: main and upper names (trial_name: the drawing's placeholder)
 STAGING = "Staging"                  # band key (first word of the band title) bound to the live objects
+# The levels whose turnouts, blocks, sensors and masts the generator's base holds (hartlib.tables_build's
+# GENERATED_LEVELS: devices.csv's level 1 rows): a band of one of them binds the base's beans and adds none, and its
+# candidate is the one the owner approves alone (the staging candidate). Every other level's beans the build adds,
+# virtual (le_tables.add_level_objects, add_level_signals).
+BASE_LEVELS = frozenset(int(v) for v in tables_build.GENERATED_LEVELS)
 
 TURNOUT_SYS = level_devices.TURNOUT_PREFIX     # internal turnouts: nothing reaches the field
 BLOCK_SYS = level_devices.BLOCK_PREFIX
@@ -54,6 +61,55 @@ def slots_module():
 
 def band_key(title: str) -> str:
     return (title or "").split()[0] if title else ""
+
+
+def plan_levels(data: Path | None = None) -> dict[str, int]:
+    """{band title: level} of every band of the schematic, from each section of plan_overrides.json in `data`
+    (default publish_draft.DATA, read when called; mast_rule.band_levels: the owner's level numbers, not the titles).
+    Read once per folder and file state (its modification time and size), so a patched folder or an edited file is
+    read again. BuildError names the file and section."""
+    folder = Path(pd.DATA if data is None else data)
+    try:
+        st = layer_files.path("plan_overrides", folder).stat()
+    except OSError as exc:
+        raise BuildError(f"plan_overrides.json in {folder}: cannot be read ({exc.strerror or exc})") from None
+    return dict(_plan_levels(folder.resolve(), st.st_mtime_ns, st.st_size))
+
+
+@functools.lru_cache(maxsize=8)
+def _plan_levels(folder: Path, _mtime_ns: int, _size: int) -> dict[str, int]:
+    """plan_levels for one folder and file state (the last two arguments only key the cache)."""
+    try:
+        whole = layer_files.read_file("plan_overrides", folder)
+    except layer_files.LayerFileError as exc:
+        raise BuildError(str(exc)) from None
+    out = {}
+    for sheet in (k for k in whole if not k.startswith("_")):
+        try:
+            levels = mast_rule.band_levels(whole[sheet])
+        except mast_rule.MapError as exc:
+            raise BuildError(f"plan_overrides.json section {sheet}: {exc}") from None
+        clash = sorted(set(levels) & set(out))
+        if clash:
+            raise BuildError(f"plan_overrides.json: band {', '.join(clash)} is titled in two sections")
+        out.update(levels)
+    return out
+
+
+def band_levels(bands) -> list[int]:
+    """The level of each of `bands` (the solved sheet's (title, band, options)), in order (plan_levels). BuildError
+    names a band the plan overrides give no level."""
+    levels = plan_levels()
+    missing = [t for t, _b, _o in bands if t not in levels]
+    if missing:
+        raise BuildError(f"plan_overrides.json gives no level to band {', '.join(map(repr, missing))} (it has "
+                         f"{', '.join(map(repr, levels))})")
+    return [levels[t] for t, _b, _o in bands]
+
+
+def base_bands(bands) -> list[int]:
+    """The indexes of the bands of a level the base holds (BASE_LEVELS): the staging candidate's bands."""
+    return [i for i, lv in enumerate(band_levels(bands)) if lv in BASE_LEVELS]
 
 
 def bare(label: str) -> str:

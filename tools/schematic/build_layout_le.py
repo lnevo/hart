@@ -62,8 +62,8 @@ place, by the generated one under that name and panel_items.json's attributes, s
 keep their switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
 staging_masts.csv names them by block, not by ident. Every staging mast goes in the one slot whose facing and protected blocks and kind of
 slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
-train it governs, hidden for a virtual mast; check_device_masts stops on a mast two slots would fit or one on another
-turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), the same helix block,
+train it governs, hidden for a virtual mast; check_masts (one check for every level's masts) stops on a mast two slots
+would fit, one JMRI does not resolve to its blocks, or one on another turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), the same helix block,
 so the join is no block boundary and no mast stands there. The panel carries the
 hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): the build starts only from tables that hold
 it, and the Stage 1 repairs of the parked Dispatcher System run only on a panel that holds it. The staging
@@ -92,7 +92,7 @@ from hartlib import parked, paths, tables, tables_build  # noqa: E402
 # below, so callers and tests read them here. Patch a name in the module that calls it (le_names.placeholder_names).
 from le_common import (  # noqa: E402,F401  re-exported: callers and tests read them here
     STAGING, staging_switches, DEVICE_MAP, TURNOUT_SYS, BLOCK_SYS, LAYOUT_BLOCK_FIRST, BuildError, plugin,
-    schematic, slots_module, band_key, bare, read_csv,
+    schematic, slots_module, band_key, bare, read_csv, BASE_LEVELS, band_levels, base_bands,
 )
 from approval import (  # noqa: E402,F401  re-exported: callers and tests read them here
     ApprovalError, STAGING_APPROVED as APPROVED, approved_fingerprint, check_approved, read_approved, write_approved,
@@ -103,14 +103,15 @@ from le_names import (  # noqa: E402,F401  re-exported: callers and tests read t
     device_names, level_names, shared_turnouts, named_bands,
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
+    check_masts, mast_turnouts, check_unplaced, turnout_facts,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
     RETIRED_TURNOUT_PREFIX, retire_yard_ladder, replace, place, canon, is_level_bean, level_items,
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, numbered_blocks, STRIPPED, strip_build_owned,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
-    add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals,
+    add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals, band_blocks, check_bound,
+    bean_names, drawn_blocks,
 )
 
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
@@ -201,24 +202,26 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     base = None             # the three-level candidate: the staging candidate it must hold unchanged, and its grid
     if levels == "all":
         base = build(bands, "staging", True, approved=approved, page=page, base_data=base_data)
-    keys = [band_key(t) for t, _, _ in bands]
-    if STAGING not in keys:
-        raise BuildError(f"no {STAGING} band in the schematic (bands: {', '.join(keys)})")
+    # One band of a level the base holds (BASE_LEVELS), drawn first: the staging candidate, which the staging device
+    # map names (staging_device_map.load reads one band, keyed STAGING) and every level the build adds is drawn under
+    levels_of = band_levels(bands)
+    if base_bands(bands) != [0] or band_key(bands[0][0]) != STAGING:
+        raise BuildError(f"the schematic must draw one band of level {', '.join(map(str, sorted(BASE_LEVELS)))} "
+                         f"(the beans the base holds), titled {STAGING} ..., first; its bands are "
+                         + ", ".join(f"{t!r} (level {lv})" for (t, _b, _o), lv in zip(bands, levels_of)))
     if levels == "staging":
-        bands = [bands[keys.index(STAGING)]]
-        keys = [STAGING]
-    if band_key(bands[0][0]) != STAGING:
-        raise BuildError(f"the first band is {bands[0][0]!r}, not {STAGING}")
+        bands, levels_of = bands[:1], levels_of[:1]
+    # whether the drawing holds a level whose beans this build adds (virtual: le_tables), or only the base's
+    adds = any(lv not in BASE_LEVELS for lv in levels_of)
     doc = tables.loads(base_data)
     root = doc.root
     if root.find("LayoutEditor") is not None:
         raise BuildError(f"{BASE_NAME} holds a Layout Editor panel; the build adds the one panel")
     panel_name = TEMPLATE_PANEL
 
-    names, lengths = level_names(bands, le_mod, page=page) if levels == "all" else ({}, {})
-    level_rows = []
-    if levels == "all":                 # the main and upper control-point masts (main_upper_masts.csv)
-        level_rows = read_level_masts()
+    # the names and masts of the levels the build adds: from devices.csv and main_upper_masts.csv
+    names, lengths = level_names(bands, le_mod, page=page) if adds else ({}, {})
+    level_rows = read_level_masts() if adds else []
     shared_turnouts(names)
     if base is not None:        # the staging candidate above read the staging device map from the same band: reuse it
         names[STAGING] = copy.deepcopy(base[2][STAGING])
@@ -227,11 +230,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
             names[STAGING] = sdm.load(bands[0][1])
         except sdm.StagingMapError as exc:
             raise BuildError(f"staging device map: {exc}") from None
-    system = tables.mast_system_names(root)
-    absent = sorted(m["mast"] for m in names[STAGING]["masts"] if m["mast"] not in system)
-    if absent:
-        raise BuildError(f"staging_masts.csv names masts that are not in the signal mast table: {absent}")
-    if levels == "all":                 # after staging's names: a helix intermediate protects a staging track
+    if adds:                            # after staging's names: a helix intermediate protects a staging track
         level_masts(names, level_rows)
         names[STAGING]["joins"] = "other"   # staging's helix ends join the next level (helix-join release, 2026-11-17)
     names[STAGING]["lengths"] = staging_lengths(names[STAGING])
@@ -260,23 +259,18 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
     P.mast_notes = check_unplaced(P)
-    check_device_masts(P, names[STAGING]["masts"], le_mod)      # each mast in one slot, on its switch's turnout
-    check_level_slots(P, level_rows, le_mod)
+    # every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels)
+    check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
 
-    # staging: every name must already be in the base (devices.csv)
-    staging_turnouts = set(names[STAGING]["turnouts"].values())
-    staging_blocks = set(names[STAGING]["os"].values()) | {b for v in names[STAGING]["blocks"].values() for b in v}
-    live_turnouts = tables.by_any_name(tables.turnouts(root))
-    live_lb = {tables.user_name(b) for b in tables.layout_blocks(root)}
-    missing = sorted(t for t in staging_turnouts if t not in live_turnouts) + \
-        sorted(b for b in staging_blocks if b not in live_lb)
-    if missing:
-        raise BuildError(f"staging names not in {BASE_NAME}: {missing}")
-    if levels == "staging" and set(P.blocks) - staging_blocks:
-        raise BuildError(f"the staging panel draws blocks that are not live: {sorted(set(P.blocks) - staging_blocks)}")
-    if levels == "all":
-        add_level_objects(root, P, names, lengths, staging_blocks, startup_thrown(bands))
+    # the beans of the levels the build adds (the base's levels' are the base's, from devices.csv), then one check
+    # for every level: each name the panel binds is a bean of the tables
+    base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
+    base_keys = {band_key(bands[i][0]) for i in base_ix}
+    base_beans = bean_names(root)       # before the build adds any: a base level's names must be the base's own
+    if adds:
+        add_level_objects(root, P, names, lengths, base_keys, startup_thrown(bands))
         add_level_signals(root, level_rows)
+    check_bound(root, P, names, base_keys, base_ix, base_beans, BASE_NAME)
 
     try:
         attrs, options = panel_items.panel_attributes(items)
@@ -285,7 +279,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # the panel's own items by rule (panel_items.json), tied to the staging track, so they stand where the staging
     # candidate has them on three levels too (by the staging band's own track: a helix block runs on up a level)
     panel_el = le_mod.to_xml(P, panel_name, attrs, options)
-    frame = {P.name(o["ident"]) for o in P.segments + P.turnouts if o["band"] == 0}
+    frame = {P.name(o["ident"]) for o in P.segments + P.turnouts if o["band"] in base_ix}
     try:
         P.items = panel_items.place(panel_el, items, le_mod, slots_module(), fit, le_mod.CHROME,
                                     frame_idents=frame)
@@ -302,7 +296,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # the marker that tells the build and the Stage 1 repairs the panel is a generated one
     opts = panel_el.find("layoutTrackDrawingOptions")
     panel_el.insert(list(panel_el).index(opts) + 1 if opts is not None else 0, tables.generated_marker_label())
-    if levels == "staging" and approved is not None:
+    if not adds and approved is not None:      # the staging candidate: the owner's approved panel
         try:
             check_approved(panel_el, approved)
         except ApprovalError as exc:
@@ -336,13 +330,14 @@ def live_target(out: Path) -> bool:
 
 
 def startup_thrown(bands) -> frozenset:
-    """The main and upper turnouts ("Switch <n>") that start Thrown: those whose main route runs through leg C and
-    not leg B, so every virtual turnout lines the main line when the tables load (owner, 2026-11-19: 227 and 229
-    at the peninsula loop). A double crossover or a crossover half stays Closed (straight through)."""
+    """The turnouts ("Switch <n>") of the levels the build adds (not BASE_LEVELS: the base's are the field's) that
+    start Thrown: those whose main route runs through leg C and not leg B, so every virtual turnout lines the main
+    line when the tables load (owner, 2026-11-19: 227 and 229 at the peninsula loop). A double crossover or a
+    crossover half stays Closed (straight through)."""
     import build_device_map as bdm      # imports this module's plugin path: here, not at load
     out = set()
-    for title, band, _opts in bands:
-        if not bdm.band_level(title):
+    for (_title, band, _opts), level in zip(bands, band_levels(bands)):
+        if level in BASE_LEVELS:
             continue
         for d in band["nodes"].values():
             if d["kind"] != "switch":

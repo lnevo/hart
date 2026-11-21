@@ -718,6 +718,38 @@ class ReviewFixes(unittest.TestCase):
             B.build(bands=Built.bands, as_live=True, approved=None, base_data=doc.tobytes())
 
 
+class BaseNames(unittest.TestCase):
+    """The staging candidate binds staging's turnouts, blocks and masts to the base's beans and adds none: one the
+    base lacks stops the build, naming it."""
+
+    def build_without(self, section: str, name: str):
+        doc = tables.loads(B.base_tables())
+        sec = next(s for s in doc.root.findall(section)
+                   if any(name in (tables.system_name(e), tables.user_name(e)) for e in tables.elements(s)))
+        sec.remove(next(e for e in tables.elements(sec) if name in (tables.system_name(e), tables.user_name(e))))
+        with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
+            return B.build(levels="staging", as_live=True, approved=None, base_data=doc.tobytes())
+
+    def test_a_staging_turnout_block_or_mast_the_base_lacks_stops(self) -> None:
+        names = built()[2][B.STAGING]
+        turnout = sorted(names["turnouts"].values())[0]
+        block = sorted(names["os"].values())[0]
+        mast = sorted(m["mast"] for m in names["masts"])[0]
+        for section, name in (("turnouts", turnout), ("layoutblocks", block), ("signalmasts", mast)):
+            with self.subTest(name=name), self.assertRaisesRegex(B.BuildError, re.escape(repr(name))):
+                self.build_without(section, name)
+
+    def test_the_staging_candidate_adds_no_bean(self) -> None:
+        base = tables.loads(B.base_tables()).root
+        with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
+            data = B.build(levels="staging", as_live=True, approved=None)[0]
+        root = tables.loads(data).root
+        for section in ("turnouts", "sensors", "blocks", "layoutblocks", "signalheads", "signalmasts"):
+            with self.subTest(section=section):
+                self.assertEqual(sorted(tables.system_name(e) for s in root.findall(section) for e in tables.elements(s)),
+                                 sorted(tables.system_name(e) for s in base.findall(section) for e in tables.elements(s)))
+
+
 def anchor_panel(*anchors) -> str:
     """A panel of separate W|E boundaries, one anchor each (A1, A2, ...), the anchor's east slot holding `anchors`."""
     parts = []
@@ -746,17 +778,18 @@ class SecondReview(unittest.TestCase):
         return P, el, le_mod
 
     def test_a_mast_two_slots_would_fit_stops_the_build(self) -> None:
-        want = [{"mast": "M", "kind": "anchor"}]
         P, el, le_mod = self.fake(1)
-        B.check_device_masts(P, want, le_mod, facts={})                     # one W|E boundary: certain
+        f, pr = B.slots_module().Index(el).blocks("anchor", "A1", "east")
+        want = {"Staging": [{"mast": "M", "kind": "anchor", "facing": f, "protects": pr}]}
+        B.check_masts(P, want, le_mod, {})                                  # one W|E boundary: certain
         P, el, le_mod = self.fake(2)
         with self.assertRaisesRegex(B.BuildError, "fits 2 slots"):
-            B.check_device_masts(P, want, le_mod, facts={})
+            B.check_masts(P, want, le_mod, {})
         P, el, le_mod = self.fake(1)
-        with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
-            B.check_device_masts(P, [{"mast": "N", "kind": "anchor"}], le_mod, facts={})
-        with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a staging mast nobody listed
-            B.check_device_masts(P, [], le_mod, facts={})
+        with self.assertRaisesRegex(B.BuildError, "N \\(Staging\\) is not on the panel"):
+            B.check_masts(P, {"Staging": [dict(want["Staging"][0], mast="N")]}, le_mod, {})
+        with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a mast no band lists
+            B.check_masts(P, {"Staging": []}, le_mod, {})
 
     def test_the_build_is_never_written_over_the_live_tables(self) -> None:
         self.assertTrue(B.live_target(paths.TABLES_XML))
@@ -1048,23 +1081,17 @@ class LevelMasts(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "Mast 110L \\(Track Nowhere into OS Switch 109\\): drawn on no band"):
             B.level_masts(names, rows)
 
-    def test_check_level_slots(self) -> None:
+    def test_a_level_mast_where_jmri_resolves_it(self) -> None:
         el = ET.fromstring(anchor_panel("M"))
-        P = mock.Mock(turnouts=[], masts=[dict(mast="M", kind="anchor", ident="A1", slot="east", band=1)])
-        P.name = lambda i: i
+        P = mock.Mock()
         le_mod = mock.Mock(to_xml=lambda *_a: el)
-        ix = B.slots_module().Index(el)
-        f, pr = ix.blocks("anchor", "A1", "east")
-        row = dict(mast="M", facing=f, protects=pr[0], leg="")
-        B.check_level_slots(P, [row], le_mod)                               # where JMRI resolves it: fine
-        with self.assertRaisesRegex(B.BuildError, "M at A1 east faces"):
-            B.check_level_slots(P, [dict(row, facing="Elsewhere")], le_mod)
-        with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
-            B.check_level_slots(P, [dict(row, mast="N")], le_mod)
-        P.masts = [dict(mast="M", kind="anchor", ident="A1", slot="east")]          # no band: named
-        P.points, P.moved = {}, []
-        with self.assertRaisesRegex(B.BuildError, "mast M: the plugin gave it no band"):
-            B.check_level_slots(P, [row], le_mod)
+        f, pr = B.slots_module().Index(el).blocks("anchor", "A1", "east")
+        m = dict(mast="M", kind="anchor", facing=f, protects=pr)
+        B.check_masts(P, {"Main": [m]}, le_mod, {})                         # where JMRI resolves it: fine
+        with self.assertRaisesRegex(B.BuildError, "M \\(Main\\) at A1 east faces"):
+            B.check_masts(P, {"Main": [dict(m, facing="Elsewhere")]}, le_mod, {})
+        with self.assertRaisesRegex(B.BuildError, "N \\(Main\\) is not on the panel"):
+            B.check_masts(P, {"Main": [m, dict(m, mast="N")]}, le_mod, {})
 
     def test_audit_masts_on_a_panel_that_draws_the_levels(self) -> None:
         def run(masts, levels):
