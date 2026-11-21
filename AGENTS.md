@@ -98,7 +98,7 @@ Every session and agent, so the owner can follow the work:
 - Also report by time. A job under about 10 minutes needs only start and end lines; 10 to 30 minutes, a line at least every 3 minutes; longer, at least every 5 minutes. With no milestone, write "still on step X, why, new ETA". Take the time from `date +%H:%M`.
 - Before a long command (full `check.sh`, `make remote`, a build), log what starts and how long it should take, from logged timings where they exist, and log again when it returns.
 - Report a blocker, a failed check or a change of plan when it happens, not at the end. The final report says plainly what was skipped, failed or left, and what was not checked.
-- The main session cannot see inside a background agent until it finishes, so a subagent also appends each status line to the progress file its brief names (for example `<scratchpad>/progress/<topic>.log`, format `HH:MM step done/total ETA note`). The main session watches those files (for example a Monitor on the progress folder) and passes new lines to the owner as they arrive, as a short table of all agents, instead of waiting for agents to finish.
+- The main session cannot see inside a background agent until it finishes, so a subagent also appends each status line to the progress file its brief names (for example `<scratchpad>/progress/<topic>.log`, format `HH:MM <topic> step done/total ETA note`, with the topic name because several agents write at once). The main session watches those files (for example a Monitor on the progress folder) and passes new lines to the owner as they arrive, as a short table of all agents, instead of waiting for agents to finish.
 
 ## Do not
 
