@@ -92,10 +92,10 @@ class NameCopiesTest(unittest.TestCase):
         tables_xml.write_text(text.replace(">Track Scale<", ">Track Weigh<"), encoding="utf-8")
         hits, _counts, _used = check.run(ROOT, devices_csv=renamed, tables_xml=tables_xml)
         files = {h.path for h in hits}
-        self.assertEqual({"Mast 24RB"}, {h.name for h in hits})
-        # Known hand-kept copies of a mast name today: the staging mast and signal facts. (A renamed track's old name
+        # No hand-kept copy of a mast name is left: masts.csv, which held the staging masts' copies as
+        # staging_masts.csv did, is generated (build_masts.py --check names a stale one). (A renamed track's old name
         # is no longer matched, the master having no alias rows.)
-        self.assertIn("jmri/layouts/hart/data/schematic/staging_masts.csv", files)
+        self.assertEqual(set(), {h.name for h in hits}, files)
         # Generated files under their own --check and the map itself are not read.
         self.assertFalse(any(f.startswith(check.SKIP_PREFIXES) for f in files), files)
 
@@ -126,7 +126,7 @@ class NameCopiesTest(unittest.TestCase):
         sch = "jmri/layouts/hart/data/schematic/"
         for rel in ("staging_le/masts.csv", "staging_le/overlay.json", "plan_overrides.json"):
             self.assertTrue(check.readable(sch + rel), rel)
-        for rel in ("signals.json", "main_upper_masts.csv", "inputs/staging.json"):
+        for rel in ("signals.json", "masts.csv", "inputs/staging.json"):
             self.assertFalse(check.readable(sch + rel), rel)
         hand = self.write(sch + "staging_le/masts.csv", "mast\nMast 32L\n")
         self.assertEqual([f"{hand}:2: 'Mast 32L' is not a current name"], self.stale([hand]))

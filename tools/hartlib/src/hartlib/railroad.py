@@ -4,7 +4,7 @@
     rr = railroad.Railroad()                      # every layer, from this checkout's files
     rr = railroad.Railroad(upto="inputs")         # a builder of a later layer reads only what comes before it
     rr.switches[9].legs[0].closed                 # "Track EH-2"
-    rr.device_map.sensors["BS Switch 101"]        # "IS:HART:C3:B:OS101"
+    rr.device_map.occupancy["OS Switch 101"].jmri_name   # "IS:HART:C3:B:OS101"
     problems = rr.check()                         # [Problem(invariant, message)], [] when the files agree
 
     python3 -m hartlib.railroad check [--upto LAYER]    # tools/check.sh runs it
@@ -20,12 +20,10 @@ stale copy of its own output. Each file is read the first time it is asked for, 
                 the helix tracks (plan_overrides.json's helix ends and map, preferences.json's track_labels: each
                 helix track one block, Track <plan name>, from staging up the helix, owner 2026-11-20/21),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
-                control_points and stations keys), block_lengths.csv and schematic/staging_masts.csv (the staging masts in the
-                device map's form, written by build_staging_masts.py from the mast rule, ADR-024, and run by hand
-                before the pipeline, which only checks it)
+                control_points and stations keys), block_lengths.csv
     hands       the hand of switches.csv's plan rows      build_hands.py
     device_map  the main and upper rows of devices.csv      build_device_map.py
-    masts       schematic/main_upper_masts.csv            build_main_upper_masts.py (hartlib.level_masts)
+    masts       schematic/masts.csv, every level's masts  build_masts.py (hartlib.level_masts)
     tables      jmri/layouts/hart/output/tables.xml       build_layout_le.py --as-live, and PanelPro's Store
 
 Every reader checks its own file's shape and stops with FactsError naming the file and line. The rules between files
@@ -48,13 +46,13 @@ from .railroad_facts import *  # noqa: F401,F403
 from .railroad_facts import _int, _level, _where, _yes  # noqa: F401
 from .railroad_facts import (LAYERS, LEVEL_NUMBERS, WRITERS, BlockLength, DeviceMap, FactsError, Hand, HelixTrack, LayerError,
                              Interlocking, LcosNode, LocalSwitch, MainUpperSwitch, PlanOverrides, StagingDevices,
-                             Sources, StagingMast, Switch, SwitchRow, TablesNames, hands, join_main_upper,
+                             Sources, Mast, Switch, SwitchRow, TablesNames, hands, join_main_upper,
                              local_switches, read_block_lengths, read_switch_rows, staging_switches,
                              read_device_map, read_hands, read_helix_tracks, read_lcos_nodes,
                              read_interlockings, read_local_switches, read_staging_devices, read_staging_rows,
-                             read_plan_overrides, read_staging_masts, read_switches, read_tables)
+                             read_plan_overrides, read_masts, read_switches, read_tables)
 from .railroad_invariants import INVARIANTS, Invariant, Problem, invariant  # noqa: F401
-from .railroad_invariants import (_device_map, _hands, _lcos_nodes, _level_masts, _name_clash, _staging_devices,  # noqa: F401
+from .railroad_invariants import (_device_map, _hands, _lcos_nodes, _masts, _name_clash, _staging_devices,  # noqa: F401
                                   _plan_overrides, _staging_blocks, _switch_numbers, _tables)
 
 
@@ -127,10 +125,6 @@ class Railroad:
         return read_block_lengths(self.sources.block_lengths)
 
     @cached_property
-    def staging_masts(self) -> list[StagingMast]:
-        return read_staging_masts(self.sources.staging_masts)
-
-    @cached_property
     def main_upper_switches(self) -> dict[str, MainUpperSwitch]:
         """Switch number -> its control point or local row (join_main_upper)."""
         return join_main_upper(self.level_control_points, self.local_switches, self.sources.switches.name)
@@ -149,11 +143,12 @@ class Railroad:
         return read_device_map(self.sources.devices)
 
     @cached_property
-    def level_masts(self) -> list[dict]:
-        """main_upper_masts.csv rows (hartlib.level_masts.read: dicts with `heads` as (system, user) pairs)."""
-        self._need("masts", self.sources.level_masts.name)
+    def masts(self) -> list[dict]:
+        """masts.csv's rows, every level (hartlib.level_masts.read: dicts with `level`, `line` and `heads` as
+        (system, user) pairs)."""
+        self._need("masts", self.sources.masts.name)
         try:
-            return level_masts.read(self.sources.level_masts)
+            return level_masts.read(self.sources.masts)
         except (OSError, ValueError) as exc:
             raise FactsError(str(exc)) from None
 

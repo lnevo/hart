@@ -17,10 +17,11 @@ LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
 WRITERS = {
     "hands": "tools/schematic/build_hands.py",
     "device_map": "tools/schematic/build_device_map.py",
-    "masts": "tools/schematic/build_main_upper_masts.py",
+    "masts": "tools/schematic/build_masts.py",
     "tables": "tools/schematic/build_layout_le.py --as-live (or a PanelPro Store)",
 }
 LEVEL_NUMBERS = (2, 3)                  # main and upper: the levels of the schematic's main_upper files
+STAGING_LEVEL = "1"                     # staging: the level of the staging rows (read_staging_rows) and their device views
 YES = {"yes": True, "no": False}
 HANDS = {"", "L", "R"}
 NAME_LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
@@ -62,8 +63,7 @@ class Sources:
     lcos_nodes: Path
     plan_overrides: Path
     block_lengths: Path
-    staging_masts: Path
-    level_masts: Path
+    masts: Path
     tables: Path
 
     @classmethod
@@ -75,8 +75,7 @@ class Sources:
                    interlockings=s / "interlockings.csv",
                    lcos_nodes=s / "lcos_nodes.csv",
                    plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
-                   staging_masts=s / "staging_masts.csv",
-                   level_masts=s / level_masts.PATH.name,
+                   masts=s / level_masts.PATH.name,
                    tables=paths.TABLES_XML if tables_xml is None else tables_xml)
 
     def but(self, **changes: Path) -> "Sources":
@@ -179,7 +178,7 @@ def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
     unchecked beyond the master's own checks (read_staging_devices checks them)."""
     from . import devices
     return [(n, {c: r[c].strip() for c in STAGING_COLUMNS}) for n, r in enumerate(devices.load(path), 2)
-            if r["level"] == "1" and r["layer"] in NAME_LAYERS]
+            if r["level"] == STAGING_LEVEL and r["layer"] in NAME_LAYERS]
 
 
 def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> StagingDevices:
@@ -902,25 +901,20 @@ def plan_cm(lengths: dict[str, BlockLength]) -> dict[str, float]:
 
 
 @dataclass(frozen=True)
-class StagingMast:
-    """A staging mast's name and blocks, from schematic/staging_masts.csv (protects ";" separated)."""
+class Mast:
+    """A mast's level, name and blocks, from schematic/masts.csv (hartlib.level_masts; protects ";" separated)."""
     line: int
+    level: int
     mast: str
     facing: str
     protects: tuple[str, ...]
     system_name: str = ""     # "IF$vsm:..." for a hidden virtual mast
 
 
-def read_staging_masts(path: Path) -> list[StagingMast]:
-    out, seen = [], {}
-    for line, r in read_rows(path, ("mast", "facing", "protects"), optional=("system_name",)):
-        if not r["mast"] or r["mast"] in seen or not r["facing"]:
-            raise FactsError(f"{_where(path, line)}: mast {r['mast']!r} is empty or given twice, or has no facing "
-                             "block")
-        seen[r["mast"]] = line
-        out.append(StagingMast(line, r["mast"], r["facing"], tuple(b for b in r["protects"].split(";") if b),
-                               r["system_name"]))
-    return out
+def read_masts(path: Path, *, levels: tuple[int, ...] | None = None) -> list[Mast]:
+    """masts.csv's rows of `levels` (every level when None) as Mast (hartlib.level_masts.read checks the file)."""
+    return [Mast(r["line"], r["level"], r["mast"], r["facing"], tuple(b for b in r["protects"].split(";") if b),
+                 r["system_name"]) for r in level_masts.read(path, levels=levels)]
 
 
 # ---------------------------------------------------------------- hands (build_hands.py)
@@ -954,11 +948,12 @@ def read_hands(path: Path) -> dict[str, Hand]:
 @dataclass(frozen=True)
 class DeviceRow:
     """A main or upper row of devices.csv: a JMRI device (jmri_name, virtual) and its planned physical part
-    (system_name, a draft). `role` is what the device is (devices.ROLES); readers test it, not the name."""
+    (system_name, a draft). `role` is what the device is (devices.ROLES), given by the row or its writer; readers test
+    it, not the name."""
     level: int
     layer: str
     user_name: str
-    role: str = ""
+    role: str
     cp: str = ""
     system_name: str = ""
     jmri_name: str = ""
@@ -977,10 +972,11 @@ class DeviceRow:
     line: int = 0
 
     def __post_init__(self) -> None:
-        if not self.role:           # a row built by hand is never roleless: the role its layer and names give
-            from . import devices
-            object.__setattr__(self, "role", devices.role_of(self.layer, self.user_name, self.system_name,
-                                                             self.jmri_name))
+        from . import devices
+        if self.role not in devices.ROLES:      # no role is read off a name (hand-off row 8)
+            at = f"line {self.line}: " if self.line else ""
+            raise FactsError(f"{at}{self.layer} {self.user_name!r} has role {self.role!r}, not one of "
+                             f"{', '.join(devices.ROLES)}")
 
     @property
     def served(self) -> list[str]:
@@ -999,7 +995,8 @@ class DeviceRow:
 
     @classmethod
     def from_dict(cls, row: dict, line: int = 0) -> "DeviceRow":
-        """A row as build_device_map.py makes it (str or int level); __post_init__ gives it the role devices.role_of says."""
+        """A row as build_device_map.py makes it (str or int level); its role is the row's own (a row with none stops)."""
+        row = {"role": "", **row}           # a row with no role stops in __post_init__, naming it
         return cls(line=line, **{k: (int(v) if k == "level" else str(v)) for k, v in row.items() if k != "line"})
 
 
@@ -1008,12 +1005,10 @@ DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are staging's
 
 @dataclass
 class DeviceMap:
-    """The main and upper device map. `blocks`: block user name -> row; `sensors`: occupancy user name -> virtual
-    sensor (jmri_name); `planned`: occupancy user name -> planned detector (M2S...), when the map has one."""
+    """The main and upper device map. `blocks`: block user name -> row; `occupancy`: block user name -> the
+    occupancy row that serves it (its virtual sensor is the row's jmri_name, its planned detector the system_name)."""
     rows: list[DeviceRow] = field(default_factory=list)
     blocks: dict[str, DeviceRow] = field(default_factory=dict)
-    sensors: dict[str, str] = field(default_factory=dict)
-    planned: dict[str, str] = field(default_factory=dict)
     path: Path | None = None
 
     def of(self, layer: str) -> list[DeviceRow]:
@@ -1021,6 +1016,22 @@ class DeviceMap:
 
     def by_user(self, layer: str) -> dict[str, DeviceRow]:
         return {r.user_name: r for r in self.of(layer)}
+
+    @cached_property
+    def occupancy(self) -> dict[str, DeviceRow]:
+        """Block user name -> the occupancy row that serves it, by the row's own blocks column (read_device_map holds
+        each occupancy row to the one block it is named for), so a reader finds a block's sensor row without
+        building its name. Built once, from `rows` as they are then. FactsError on a block two occupancy rows
+        serve, naming their lines."""
+        out: dict[str, DeviceRow] = {}
+        for r in self.of("occupancy"):
+            for block in r.served:
+                if block in out:
+                    raise FactsError(f"{self.path.name if self.path else 'the device map'} lines {out[block].line} "
+                                     f"and {r.line}: occupancy {out[block].user_name} and {r.user_name} both serve "
+                                     f"block {block}")
+                out[block] = r
+        return out
 
     @property
     def turnouts(self) -> dict[str, DeviceRow]:
@@ -1098,9 +1109,7 @@ def read_device_map(path: Path) -> DeviceMap:
             if len(row.served) != 1 or level_devices.occupancy_user(row.served[0]) != row.user_name:
                 raise FactsError(f"{where}: occupancy {row.user_name} serves {row.served}, not the one block it is "
                                  "named for")
-            out.sensors[row.user_name] = row.jmri_name
-            if row.system_name:
-                out.planned[row.user_name] = row.system_name
+    out.occupancy                   # noqa: B018  built here, so a block two rows serve stops the read
     return out
 
 

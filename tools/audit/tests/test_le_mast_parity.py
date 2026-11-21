@@ -1,6 +1,6 @@
 """Mast parity between the hand-drawn "HART Railroad" panel, as its masts are frozen in
 jmri/layouts/hart/data/schematic/staging_le/masts.csv (retired) and now kept in the staging device map's form
-(schematic/staging_masts.csv, staging_device_map.mast_facts), and the generated panel of the three-level cut-over
+(schematic/masts.csv, staging_device_map.mast_facts), and the generated panel of the three-level cut-over
 candidate (staging), whose name is "HART Railroad".
 
 Signal Mast Logic discovery, the Dispatcher System and Entry/Exit never read a mast icon: they read the slot a mast
@@ -63,7 +63,7 @@ class MastParity(unittest.TestCase):
         cls.slots = B.slots_module()
         cls.root = tables.loads(cls.data).root
         cls.gen_le = tables.layout_editor(cls.root, cls.PANEL)
-        # the staging masts' facts in the device map's form (staging_masts.csv, kept by hand): slot kind, blocks,
+        # the staging masts' facts in the device map's form (masts.csv's staging rows): slot kind, blocks,
         # hidden, and a turnout mast's turnout
         cls.frozen = B.sdm.mast_facts()
         cls.live = {n: dict(mast=n, kind=m["kind"], facing=m["facing"], protects=m["protects"],
@@ -95,7 +95,7 @@ class MastParity(unittest.TestCase):
                     self.assertEqual(gen["turnout"], live["turnout"], name)
 
     def test_every_mast_is_placed_once(self) -> None:
-        # staging's live masts and the main and upper control-point masts (main_upper_masts.csv)
+        # staging's live masts and the main and upper control-point masts (masts.csv)
         level = {r["mast"] for r in B.read_level_masts()}
         self.assertEqual(set(self.gen), set(self.live) | level)
         self.assertFalse(set(self.live) & level)
@@ -126,7 +126,7 @@ class MastParity(unittest.TestCase):
         live_hidden = {n: "yes" if m["hidden"] else "no" for n, m in self.frozen.items()}
         # and for a main or upper virtual mast, a destination at a buffer stop (mast_plan, owner 2026-11-20)
         from hartlib import level_masts
-        live_hidden |= {r["mast"]: "yes" for r in level_masts.read() if level_masts.is_level_virtual(r["system_name"])}
+        live_hidden |= {r["mast"]: "yes" for r in level_masts.read(levels=(2, 3)) if level_masts.is_level_virtual(r["system_name"])}
         size = {m["mast"]: m["box"][2:] for m in self.P.masts}
         for name, m in sorted(self.gen.items()):
             with self.subTest(mast=name):

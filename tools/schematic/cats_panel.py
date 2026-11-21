@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
-from hartlib import level_devices, level_masts, paths  # noqa: E402
+from hartlib import level_masts, paths  # noqa: E402
 from hartlib.cats import station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -259,7 +259,7 @@ def mast_bindings(opts, F):
     return out
 
 
-# --- main and upper (levels 2 and 3): devices.csv, internal turnouts, main_upper_masts.csv --------------------------
+# --- main and upper (levels 2 and 3): devices.csv, internal turnouts, masts.csv --------------------------------------
 
 def xover_corners(name, F) -> list:
     """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
@@ -398,18 +398,16 @@ def spec(system, user):
 
 
 def virtual_sensor(name, F):
-    """The IOSPECs of block `name`'s virtual occupancy sensor (the device map's jmri_name for BS + the name less
-    Track; BS Switch N for OS Switch N), or None: the middle of a double crossover's X has none (its corners do)."""
-    user = level_devices.occupancy_user(name)
-    system = F.device.sensors.get(user)
-    return None if system is None else spec(system, user)
+    """The IOSPECs of block `name`'s virtual occupancy sensor (the jmri_name of the device map's occupancy row that
+    serves it, by that row's blocks column), or None: the middle of a double crossover's X has none (its corners do)."""
+    row = F.device.occupancy.get(name)
+    return None if row is None else spec(row.jmri_name, row.user_name)
 
 
 def planned_sensor(name, F):
-    """The IOSPECs of block `name`'s planned detector (the device map's system_name, a draft), or None."""
-    user = level_devices.occupancy_user(name)
-    system = F.device.planned.get(user)
-    return None if system is None else spec(system, user)
+    """The IOSPECs of block `name`'s planned detector (its occupancy row's system_name, a draft), or None."""
+    row = F.device.occupancy.get(name)
+    return None if row is None or not row.system_name else spec(row.system_name, row.user_name)
 
 
 def inside_os(bands, P, bound_bi, name, row):
@@ -496,7 +494,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     for name, why in sorted(missing.items()):
         report[name] = {"why": why}
         if planned_sensor(name, F):
-            report[name]["detector"] = level_devices.occupancy_user(name)
+            report[name]["detector"] = F.device.occupancy[name].user_name
             log.append(f"{name}: not a block of its own on the desk ({why}); its detector "
                        f"{report[name]['detector']} has no block to bind")
     return out, log, report, joined
@@ -565,7 +563,7 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
 
 
 def intermediate_signal(bands, F, bound_bi, r, by_trial):
-    """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
+    """(band index, signal) of an APB intermediate (a masts.csv row with no switch): at the turnback where
     the loop or split track's half it faces meets the half it protects, heading the way its row's dir says. The
     piece it stands on is the one that meets the protected half at a turnback, whatever the strands' order; only the
     halves joined there get edges of their own (loop_half_edge), so other loops on the band keep theirs. Never
@@ -603,7 +601,7 @@ def intermediate_signal(bands, F, bound_bi, r, by_trial):
 
 
 def level_signals(bands, F, bound_bi):
-    """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn
+    """Put each main and upper mast (masts.csv) in its band's signals, as the plugin reads a band's drawn
     masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
     that switch (its toward end), heading the way its row's dir says, its heads from its row. The two halves of a
     balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (loop_half_edge,
@@ -668,7 +666,7 @@ def level_signals(bands, F, bound_bi):
 
 def level_mast_bindings(bands, F, bound_bi):
     """{mast: {name, template}} for the main and upper masts level_signals drew: each a mast in tables.xml whose
-    system name is its main_upper_masts.csv row's, with its template by mast_template: its own signal_head_plan.csv
+    system name is its masts.csv row's, with its template by mast_template: its own signal_head_plan.csv
     row when it has one, else the template masts of its appearance type take. A row not drawn stops, but a virtual
     one (hidden, no desk signal)."""
     rows = {r["mast"]: r for r in F.level_masts}

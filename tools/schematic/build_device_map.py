@@ -513,6 +513,26 @@ def helix_stops(helix: dict) -> dict[str, str]:
     return {h["block"]: h["level_switch"] for h in helix.values()}
 
 
+def line_role(t: dict, half: int | None) -> str:
+    """The role (hartlib.devices.ROLES) of a line block of track entry `t`, from its ends (mast_rule.end_ref: sw,
+    helix, bumper), never its name: helix for a track up the helix, loop_half for a half of a balloon loop, spur for a
+    switch at one end and a buffer stop at the other, track for a switch at each end (a split track's halves are track
+    blocks, as the whole track would be). MapError, naming the track, on any other pair of ends."""
+    kinds = sorted(k for k, _v in t["ends"])
+    if "helix" in kinds:
+        return "helix"
+    if t["loop"]:
+        if half is None:
+            raise MapError(f"{t['name']}: a balloon loop is two blocks, one per half; this one has none")
+        return "loop_half"
+    if kinds == ["bumper", "sw"]:
+        return "spur"
+    if kinds == ["sw", "sw"]:
+        return "track"
+    raise MapError(f"{t['name']}: a line block ends at {' and '.join(kinds) or 'nothing'}; a track runs from a switch "
+                   "to a switch, a buffer stop or the helix")
+
+
 def loop_placeholder(placeholder: str, half: int | None) -> str:
     """The block name of one half of a balloon loop or split track ("Track 107 Loop" -> "Track 107 Loop 1", as
     block_layer.half_name); any other track's is unchanged."""
@@ -783,21 +803,24 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     nodes.freeze(frozen_wires() if frozen is None else frozen)
     rows = []
 
-    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri="", **facts):
+    def add(level, cp, layer, user, system="", node="", comment="", trial="", notes="", dcc="", jmri="", *, role,
+            **facts):
+        """A device-map row with the role (hartlib.devices.ROLES) its caller says it has: no role is read off a name."""
         rows.append(dict(level=level, cp=cp, layer=layer, user_name=user, system_name=system, jmri_name=jmri,
-                         node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes,
+                         node=node, dcc=dcc, comment=comment, trial_name=trial, notes=notes, role=role,
                          **{c: facts.pop(c, "") for c in railroad.DEVICE_FACTS}))
         if facts:
             raise MapError(f"{layer} {user}: unknown fact columns {sorted(facts)}")
 
-    def occupancy(level, cp, block, system="", node="", comment="", notes=""):
-        """The occupancy row of `block`: its virtual sensor (jmri_name), the block it serves and its detector: planned
-        on an input (`system`, M2S), planned with no input yet (NOT_WIRED) or none planned (NO_DETECTOR)."""
+    def occupancy(level, cp, block, system="", node="", comment="", notes="", *, role):
+        """The occupancy row of `block`, whose role (`role`) it shares: its virtual sensor (jmri_name), the block it
+        serves and its detector: planned on an input (`system`, M2S), planned with no input yet (NOT_WIRED) or none
+        planned (NO_DETECTOR)."""
         detector = "planned" if system else {NOT_WIRED: "not_wired", NO_DETECTOR: "none"}.get(notes)
         if detector is None:
             raise MapError(f"occupancy of {block}: no detector and no reason why ({notes!r})")
         add(level, cp, "occupancy", occupancy_user(block), system, node, comment, notes=notes,
-            jmri=block_sensor(block), blocks=block, detector=detector)
+            jmri=block_sensor(block), blocks=block, detector=detector, role=role)
 
     dcc = {s: DCC_FIRST + i for i, s in enumerate(sorted(set(cp_of) | set(loc), key=natural))}
     home, area_of = {}, {}                  # switch -> its turnout's node, its area
@@ -813,28 +836,31 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         home[s], area_of[s] = node, (lv, area)
         halves = sorted({lb for labels in by_level.values() for lb in labels if base(lb) == s}, key=natural)
         add(lv, name, "turnout", f"Switch {s}", f"M2T{packed}", node, where,
-            ", ".join(f"Switch {lb}" for lb in halves), note, dcc[s], jmri=VIRTUAL_TURNOUT + s)
+            ", ".join(f"Switch {lb}" for lb in halves), note, dcc[s], jmri=VIRTUAL_TURNOUT + s, role="turnout")
         add(lv, name, "turnout", f"DCC Switch {s}", f"MTT{dcc[s]}", node, where,
-            notes="LCC alias of the MQTT turnout (ADR-005)", dcc=dcc[s], jmri=VIRTUAL_TURNOUT + s)
+            notes="LCC alias of the MQTT turnout (ADR-005)", dcc=dcc[s], jmri=VIRTUAL_TURNOUT + s, role="lcc_alias")
         for nr in "NR":
             fb = nodes.take_frozen("fb", f"FB Switch {s} {nr}")
             if fb:
-                add(lv, name, "fb", f"FB Switch {s} {nr}", fb.address, fb.node, fb.wiring_text)
+                add(lv, name, "fb", f"FB Switch {s} {nr}", fb.address, fb.node, fb.wiring_text, role="fb")
                 continue
             fnode = nodes.pick(lv, area, "sensor", prefer=[node])
             kk, pp = nodes.take(fnode, "sensor")
-            add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}")
+            add(lv, name, "fb", f"FB Switch {s} {nr}", f"M2S{pp}", fnode, f"Node: {fnode} Sensor: {kk}", role="fb")
+
+    CORNER = "xover_corner"                     # a double crossover's corner block and its occupancy row
 
     def os_rows(lv, area, name, s, comment, detect=True):
         if s in dxs:                            # a double crossover: a block per corner, corner a detected
             for block in sorted(corner_blocks[s].values()):
                 note = f"corner {block[-1].upper()} of the double crossover"
                 if not detect:
-                    add(lv, name, "block", block, "", "", comment, block, note + ", no detector: off the main line")
-                    occupancy(lv, name, block, notes=NO_DETECTOR)
+                    add(lv, name, "block", block, "", "", comment, block, note + ", no detector: off the main line",
+                        role=CORNER)
+                    occupancy(lv, name, block, notes=NO_DETECTOR, role=CORNER)
                 elif not block.endswith("a"):             # wired later: no node or input yet
-                    add(lv, name, "block", block, "", "", comment, block, note)
-                    occupancy(lv, name, block, notes=NOT_WIRED)
+                    add(lv, name, "block", block, "", "", comment, block, note, role=CORNER)
+                    occupancy(lv, name, block, notes=NOT_WIRED, role=CORNER)
                 else:                                     # corner a keeps the switch's detector
                     pinned = nodes.take_pinned(block)
                     if pinned and os_pin_level.get(block, lv) != lv:
@@ -844,13 +870,13 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                     else:
                         bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
                         k, packed = nodes.take(bnode, "block")
-                    add(lv, name, "block", block, "", bnode, comment, block, note)
-                    occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+                    add(lv, name, "block", block, "", bnode, comment, block, note, role=CORNER)
+                    occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=CORNER)
             return
         block = f"OS Switch {s}"
         if not detect:
-            add(lv, name, "block", block, "", "", comment, block, "no detector: off the main line")
-            occupancy(lv, name, block, notes=NO_DETECTOR)
+            add(lv, name, "block", block, "", "", comment, block, "no detector: off the main line", role="os")
+            occupancy(lv, name, block, notes=NO_DETECTOR, role="os")
             return
         pinned = nodes.take_pinned(block)
         if pinned and os_pin_level.get(block, lv) != lv:
@@ -860,8 +886,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         else:
             bnode = nodes.pick(lv, area, "block", prefer=[home[s]])
             k, packed = nodes.take(bnode, "block")
-        add(lv, name, "block", block, "", bnode, comment, block)
-        occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+        add(lv, name, "block", block, "", bnode, comment, block, role="os")
+        occupancy(lv, name, block, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role="os")
 
     for cp in cps:                               # turnouts first: a node's 12V boards come before its 5V boards
         loose = [s for s in cp.switches if ("turnout", f"Switch {s}") not in nodes.frozen]
@@ -904,7 +930,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         split = t["name"] in split_names
         halves = sorted(LOOP_HALF.values()) if (t["loop"] or split) else [None]
         for half in halves:
-            name = loop_placeholder(t["name"], half)
+            name, role = loop_placeholder(t["name"], half), line_role(t, half)
             cp = line_cp(name, t["level"], t, places, helix_ends(helix))
             cm = round(t["cm"] / 2, 1) if half else t["cm"]
             note = f"{cm} cm" + ("" if t["main"] else " no detector: off the main line")
@@ -913,25 +939,25 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             elif half:
                 note += f", half of the balloon loop from leg {'BC'[half - 1]}"
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
-                trial_of(name), note, stop="yes" if name in stops else "")
+                trial_of(name), note, stop="yes" if name in stops else "", role=role)
             pinned = nodes.take_pinned(name)
             if not detect:
                 if pinned:
                     raise MapError(f"{PINS.name} pins a detector for {name}, which the rule gives none "
                                    "(off the main line)")
-                occupancy(t["level"], cp, name, notes=NO_DETECTOR)
+                occupancy(t["level"], cp, name, notes=NO_DETECTOR, role=role)
                 continue
             if pinned:                                            # the owner's input (wiring.csv)
                 bnode, k, packed = pinned
             elif half and half > 1:                               # wired later: no node or input yet
-                occupancy(t["level"], cp, name, notes=NOT_WIRED)
+                occupancy(t["level"], cp, name, notes=NOT_WIRED, role=role)
                 continue
             else:
                 sws.sort(key=lambda s: area_of[s][0] != t["level"])      # a node on the track's own level first
                 lv, area = t["level"], area_of[sws[0]][1]                 # the track's level, its switch's area
                 bnode = nodes.pick(lv, area, "block", prefer=[home[s] for s in sws if area_of[s][0] == lv])
                 k, packed = nodes.take(bnode, "block")
-            occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}")
+            occupancy(t["level"], cp, name, f"M2S{packed}", bnode, f"Node: {bnode} Block: {k + 1}", role=role)
 
     groups = [(cp.level, cp.area, cp.name, cp.switches[0]) for cp in cps]
     groups += [(loc[s].level, loc[s].area, "", s)
@@ -969,26 +995,29 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
         if m.get("intermediate"):
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | intermediate",
                 notes=f"intermediate signal from {m['facing']} into {m['protects']} at MP {m['name'][0]} "
-                      f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"], dir=m["dir"])
+                      f"{m['milepost']:.2f}", jmri=virtual, facing=m["facing"], protects=m["protects"], dir=m["dir"],
+                role="intermediate")
         else:
             add(lv, name, "mast", f"Mast {m['name']}", sysname, hnode, f"{name or area} | Switch {m['switch']}",
                 notes=f"home signal from {m['track']}" + (f" into {m['protects']}" if m["protects"] else ""),
-                jmri=virtual, switch=m["switch"], facing=m["facing"], protects=m["protects"], dir=m["dir"])
+                jmri=virtual, switch=m["switch"], facing=m["facing"], protects=m["protects"], dir=m["dir"],
+                role="home")
         for user, sysn, k, ports in heads:
             if not sysn:                    # no node yet: the mast's comment says where it stands
                 where = f"{name or area} | " + (f"Switch {m['switch']}" if m["switch"] else "intermediate")
-                add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user))
+                add(lv, name, "head", user, "", "", where, notes=HEAD_NOT_WIRED, jmri=level_devices.head_name(user),
+                    role="head")
                 continue
             add(lv, name, "head", user, sysn, hnode,
                 f"Node: {hnode} Signal: {k} | {ports}",
-                jmri=level_devices.head_name(user))
+                jmri=level_devices.head_name(user), role="head")
     for m in planned["virtual"]:            # a destination for the visible masts' routes: hidden, no heads, no node
         sw = switches[m["switch"]]
         system = vnames[m["name"]]
         add(m["level"], sw.cp, "mast", f"Mast {m['name']}", system, "", f"{sw.cp or sw.area} | buffer stop",
             notes=f"virtual bumper mast facing {m['facing']} at its buffer stop: the destination of "
                   f"{', '.join('Mast ' + x for x in m['needed_by'])}",
-            jmri=system, facing=m["facing"], dir=m["dir"])
+            jmri=system, facing=m["facing"], dir=m["dir"], role="hidden")
     nodes.check_boards()
     nodes.check_pins()
     nodes.check_frozen()
@@ -1366,8 +1395,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
             bad.append(f"staging {layer} {name}: no row in {OUT.name} to carry its field facts from (add it with its "
                        "system name, node and wiring; this script then keeps it)")
             return None
-        row = dict(old, written_by="build_device_map.py", part_of="", **owned)
-        row["role"] = devices.role_of(layer, row["user_name"], row["system_name"], row["jmri_name"])
+        row = dict(old, written_by="build_device_map.py", part_of="", **owned)     # its role is the row's own
         row["description"] = devices.describe(row)
         return row
 

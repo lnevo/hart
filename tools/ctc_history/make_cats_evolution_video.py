@@ -11,10 +11,15 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
+                if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
+from hartlib import film_pace  # noqa: E402
 
 HERE = Path(__file__).resolve().parents[2] / "docs/ctc/history"
 SRC = Path(os.environ.get("HART_SCREENSHOTS", str(Path(__file__).resolve().parents[2] / "media" / "screenshots")))
@@ -24,8 +29,6 @@ CANVAS = (1280, 720)    # 16:9 so the three-level desk of November is readable
 BG = (0, 0, 0)
 CAPTION_H = 44
 SCALE = 0.88
-FRAME_MS = 2200
-FINAL_HOLD_MS = 4000
 
 # (file, crop box in source pixels, caption). Crops drop other windows.
 FRAMES: list[tuple[str, tuple[int, int, int, int], str]] = [
@@ -83,13 +86,13 @@ def main() -> None:
             frame.save(p)
             if i == len(FRAMES) - 1:
                 frame.save(OUT_POSTER, quality=88)
-            dur = (FINAL_HOLD_MS if i == len(FRAMES) - 1 else FRAME_MS) / 1000
+            dur = film_pace.durations(len(FRAMES))[i]
             lines += [f"file '{p}'", f"duration {dur:.3f}"]
         lines.append(f"file '{work / f'f{len(FRAMES) - 1:02d}.png'}'")
         lst = work / "concat.txt"
         lst.write_text("\n".join(lines) + "\n")
         subprocess.run(
-            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-vf", "fps=30,format=yuv420p",
+            ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-vf", "fps=30,format=yuv420p", "-t", str(film_pace.film_length(len(FRAMES))),
              "-c:v", "libx264", "-crf", "26", "-movflags", "+faststart", str(OUT_MP4)],
             check=True, capture_output=True, text=True,
         )

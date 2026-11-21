@@ -29,6 +29,10 @@ A Store counts as taken only once its split is merged (`data/store_splits.csv` h
 7. Run `./tools/check.sh`, then `make panelpro-test` (AGENTS.md close-out, step 4).
 8. Commit the files it names, by name, then follow the close-out in AGENTS.md. After the merge, deploy `--pi --win`: the host's Store now counts as taken, and the deploy replaces it with the generated file that holds its edits.
 
+## Not for a one-line setting
+
+For a memory or clock change, use `tools/schematic/template_edit.py` instead of a Store: it edits the template and rebuilds `tables.xml` (`template_edit.py list`, `memory add|set|remove`, `clock set`, `setting set`; `--dry-run` writes nothing). Pull a Store only for what that tool does not hold.
+
 ## Why deploy stops
 
 `sync_hart_package.sh` stops with "tables.xml changed since the last deploy" when the Mac's `~/JMRI_UserFiles/tables.xml` differs from the last deployed hash and no merged split names it. On the Pi the deploy checks before sending anything (`tools/hosts/pi/unpulled_changes.sh`, given the split hashes) and stops with "the Pi's tables.xml changed since the last deploy". In both cases, run the steps above. `HART_DISCARD_PI_CHANGES=1` replaces the Pi's Store and Operations files anyway, so use it only when the owner says to. Windows is replaced without a check. `HART_OVERWRITE_PROFILE_TABLES=1` skips the guard and throws the Store away, so use it only when the owner says to.

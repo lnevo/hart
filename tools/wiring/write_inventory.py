@@ -243,17 +243,15 @@ def rail(n: Node, board: int) -> str:
 
 
 def block_name(occ: dict, by_name: dict) -> str | None:
-    """The JMRI block an occupancy row detects: its `blocks` column, else by its name, a switch's sensor ("BS Switch
-    <n>") its OS block ("OS Switch <n>"), any other ("BS <a>-<b>") the track of the same name; None for a spare
-    input. SystemExit on a name with no block."""
-    if occ["role"] == "spare":
+    """The JMRI block an occupancy row detects: the first of its `blocks` column, never read from its name (hand-off
+    row 8); None for a spare input. SystemExit when the row names no block, or one with no block row."""
+    if devices.row_role(occ, devices.index(DEVICE_MAP).where(occ)) == "spare":
         return None
-    if occ.get("blocks"):
-        return occ["blocks"].split(";")[0].strip()
-    rest = occ["user_name"].removeprefix("BS ")
-    name = f"OS {rest}" if rest.startswith("Switch ") else f"Track {rest}"
+    name = next((b.strip() for b in occ.get("blocks", "").split(devices.LIST) if b.strip()), "")
+    if not name:
+        raise SystemExit(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} names no block in its blocks column")
     if name not in by_name:
-        raise SystemExit(f"{occ['user_name']}: no block {name} in {DEVICE_MAP.name}")
+        raise SystemExit(f"{DEVICE_MAP.name}: occupancy {occ['user_name']} detects {name}, which has no block row")
     return name
 
 

@@ -53,7 +53,7 @@ def _level_counts() -> tuple[int, int, int, int]:
     the device map's block rows (the 107 Loop's halves, 225's corners and Track 227-241's halves among them) less the
     helix blocks, which are staging's beans (Track <plan name>, 2026-11-20/21), and the parts (links inside an OS block,
     each a block of its own, step 5 part 2); a virtual sensor for every block row, the helix blocks' too, which the
-    parts share with their OS blocks; and main_upper_masts.csv."""
+    parts share with their OS blocks; and masts.csv."""
     from hartlib import devices
     helix = {h["block"] for h in sys.modules["mast_rule"].read_helix_tracks().values()}
     rows = [r["user_name"] for _n, r in devices.device_map_lines(("2", "3"), B.DEVICE_MAP) if r["layer"] == "block"]
@@ -396,7 +396,7 @@ class Built(unittest.TestCase):
         self.assertEqual({el.get("sensor") for el in self.le.iter("sensoricon")}, status)
         self.assertEqual(B.base_band(self.bands), 0)            # staging, found by its level, is drawn first
         self.assertTrue(self.P.masts)
-        # main and upper: their control-point masts (main_upper_masts.csv), every one placed
+        # main and upper: their control-point masts (masts.csv), every one placed
         level = {m["mast"] for m in self.P.masts if m["band"] != 0}
         self.assertEqual(level, {r["mast"] for r in B.read_level_masts()})
         self.assertEqual(len(level), LEVEL_MASTS)
@@ -571,7 +571,8 @@ class FactsReaders(unittest.TestCase):
         parts = {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("2", "3"), B.DEVICE_MAP)}
         self.assertEqual(list(sensors), list(device.blocks) + list(parts))
         for block, (system, user, _comment) in sensors.items():
-            self.assertEqual(device.sensors[user], system)
+            occ = device.occupancy[parts.get(block, block)]          # a part: its OS block's row
+            self.assertEqual((occ.user_name, occ.jmri_name), (user, system))
         for part, block in parts.items():          # a part is read with its OS block's sensor (step 5 part 2)
             self.assertEqual(sensors[part], sensors[block])
 
@@ -581,18 +582,32 @@ class DeviceNames(unittest.TestCase):
     else stops."""
     HEAD = ",".join(T_railroad.DEVICE_COLUMNS) + "\n"    # the fact columns (DEVICE_FACTS) left empty in each row
 
-    def read(self, rows: str) -> dict:
-        """device_names of a master made of these device-map rows (old form, the fact columns left out)."""
+    LAYER_ROLES = {"turnout": "turnout", "fb": "fb", "block": "track"}
+
+    def read(self, rows: str, roles: dict | None = None, reader=None) -> dict:
+        """device_names of a master made of these device-map rows (old form, the fact columns left out), each with the
+        role its writer gives it: `roles` ({user name: role}), else its layer's in LAYER_ROLES; `reader` (default
+        device_names) reads the master's path."""
         import csv
         import io
         from hartlib import devices
         text = self.HEAD + rows.replace("\n", "," * len(T_railroad.DEVICE_FACTS) + "\n")
         old = list(csv.DictReader(io.StringIO(text)))
-        mine = [devices.master_row(r, "build_device_map.py") for r in old]
+        mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]]),
+                                   "build_device_map.py") for r in old]
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "devices.csv"
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
-            return B.device_names(path)
+            return (reader or B.device_names)(path)
+
+    def test_block_roles_are_the_given_maps_main_and_upper_blocks(self) -> None:
+        """named_bands' roles come from the map the names were made from: block_roles(path) reads that file's main
+        and upper block rows (not the committed master's), with the role each row gives."""
+        got = self.read('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,OS Switch 1,,,,,,Switch 1,\n'
+                        '1,,block,Track Barn,,,,,,,\n', roles={"OS Switch 1": "os"},
+                        reader=sys.modules["le_names"].block_roles)
+        self.assertEqual(got, {"Track 1-2": "track", "OS Switch 1": "os"})        # staging's Track Barn left out
+        self.assertNotIn("Track 101-103", got)
 
     def test_the_committed_map(self) -> None:
         got = B.device_names()
@@ -607,7 +622,7 @@ class DeviceNames(unittest.TestCase):
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
                         '2,,turnout,Switch 101,M2T1,,34,120,,"Switch 101A, Switch 101B",\n'
                         '2,,fb,FB Switch 101 N,M2S1,,34,,,,\n'
-                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n')
+                        '2,,block,Track 1-2,,,,,,Track 1A-2B,\n', roles={"DCC Switch 101": "lcc_alias"})
         self.assertEqual(got, {"Switch 101A": "Switch 101", "Switch 101B": "Switch 101", "Track 1A-2B": "Track 1-2"})
         for rows, why in (('2,,block,Track 1-2,,,,,,,\n', "has no trial_name"),
                           ('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,Track 3-4,,,,,,Track 1A-2B,\n',
@@ -1045,18 +1060,11 @@ class LoopAndCrossover(unittest.TestCase):
         self.assertNotIn(n, names["Upper"]["os"])
 
 
-def head(user: str, jmri: str):
-    """A device map head row (hartlib.railroad.DeviceRow), as build_main_upper_masts.virtual takes it."""
-    from hartlib import railroad
-    return railroad.DeviceRow(level=2, layer="head", user_name=user, jmri_name=jmri)
-
-
 class LevelMasts(unittest.TestCase):
-    """main_upper_masts.csv (build_main_upper_masts.py) and how the build takes it."""
+    """masts.csv's main and upper rows (build_masts.py; tools/schematic/tests/test_masts_file.py holds the file to the
+    device map) and how the build takes them."""
 
-    def test_the_file_is_current_and_from_the_device_map(self) -> None:
-        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
-        self.assertEqual(gen.build(), B.MAIN_UPPER_MASTS.read_text(encoding="utf-8"))
+    def test_the_rows_the_build_adds(self) -> None:
         rows = B.read_level_masts()
         self.assertEqual((LEVEL_BLOCKS, len(rows), sum(len(r["heads"]) for r in rows)), (120, 68, 76))
         r = next(r for r in rows if r["mast"] == "Mast 108LB")
@@ -1084,15 +1092,18 @@ class LevelMasts(unittest.TestCase):
         self.assertEqual([p for p, n in pairs.items() if n > 1], [])
 
     def test_an_lcos_name_stops_the_build(self) -> None:
-        text = B.MAIN_UPPER_MASTS.read_text(encoding="utf-8")
+        text = B.MASTS.read_text(encoding="utf-8")
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / "m.csv"
-            for old, new in (("IH:HART:C3:108LA", "IH3332"),            # a field (LCOS) name
-                             ("IH:HART:C3:108LA", "IH:HART:C3:108LB")):  # a virtual name not from its user name
-                path.write_text(text.replace(old, new), encoding="utf-8")
-                with self.subTest(head=new), self.assertRaisesRegex(
-                        B.BuildError, r"^m\.csv line \d+: mast Mast 108LA: heads .* virtual heads$"):   # the file once
-                    B.read_level_masts(path)
+            path = Path(tmp) / "masts.csv"
+            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH:HART:C3:108LB_Top"), encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, r"^masts\.csv line \d+: mast Mast 108LA: head Head 108LA Top is "
+                                                      r"'IH:HART:C3:108LB_Top', neither its internal name"):
+                B.read_level_masts(path)                # a virtual name not from its user name: the file's own rule
+            path.write_text(text.replace("IH:HART:C3:108LA_Top", "IH3332"), encoding="utf-8")
+            with self.assertRaisesRegex(B.BuildError, r"head Head 108LA Top is the wired LCOS head 'IH3332', but a "
+                                                      r"level 2 head is internal"):
+                B.read_level_masts(path)                # a field (LCOS) name: no main or upper head is wired yet,
+            # so the file's reader refuses it before the coordinator's own test below would
         # and the coordinator's own test, which read_level_masts runs as well: no virtual name is an LCOS head
         self.assertEqual(B.lcos_named(["IH3332", "IF$shsm:basic:one-low(IH3332)", "IH:HART:C3:108LA",
                                        "IF$shsm:basic:one-low(IH:HART:C3:108LA)"]),
@@ -1100,14 +1111,15 @@ class LevelMasts(unittest.TestCase):
         rows = B.read_level_masts()
         self.assertEqual(B.lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]]),
                          [])
-        gen = _load("build_main_upper_masts", ROOT / "tools/schematic/build_main_upper_masts.py")
-        for bad in ("Head 108", "Mast 108LA", "Head 108LA Middle"):
-            with self.subTest(head=bad), self.assertRaisesRegex(SystemExit, "mast Mast 1: head"):
-                gen.virtual(head(bad, "IH:HART:C3:108LA"), "Mast 1")
-        with self.assertRaisesRegex(SystemExit, "has jmri_name 'IH93332', not IH:HART:C3:108LA"):
-            gen.virtual(head("Head 108LA", "IH93332"), "Mast 1")
-        self.assertEqual(gen.virtual(head("Head 108R Top", "IH:HART:C3:108R_Top"), "Mast 1"),
-                         "IH:HART:C3:108R_Top")
+        from hartlib import level_masts
+        for bad in ("Mast 108LA", "Head 108LA Middle"):
+            with self.subTest(head=bad):
+                self.assertIn("is not named Head", level_masts.head_problem("IH:HART:C3:108LA", bad, 2, False))
+        self.assertIn("neither its internal name IH:HART:C3:108LA",
+                      level_masts.head_problem("IH:HART:C3:108LB", "Head 108LA", 2, False))
+        self.assertIsNone(level_masts.head_problem("IH:HART:C3:108R_Top", "Head 108R Top", 2, False))
+        self.assertIn("until it is a field head", level_masts.head_problem("IH3332", "Head 108LA", 2, False))
+        self.assertIsNone(level_masts.head_problem("IH3332", "Head 108LA", 2, True))
 
     def test_a_mast_no_band_draws_stops(self) -> None:
         rows = [dict(r, facing="Track Nowhere") if r["mast"] == "Mast 110L" else r for r in B.read_level_masts()]

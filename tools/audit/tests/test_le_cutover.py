@@ -4,7 +4,7 @@ generated staging panel, built from the staging device map and panel_items.json 
 
 The candidate must be a drop-in: the tables it is built on (the generator's base, hartlib.tables_build.base) and
 the one panel, every staging turnout as the live panel in tables.xml has it (ident,
-name, type, continuing route and leg blocks), every mast resolving to the blocks and kind of slot staging_masts.csv gives it, the panel's own items
+name, type, continuing route and leg blocks), every mast resolving to the blocks and kind of slot masts.csv gives it, the panel's own items
 (panel_items.json) each once, no Entry/Exit sensor (parked), and the audits passing on it.
 """
 from __future__ import annotations
@@ -612,7 +612,7 @@ class ThreeLevels(unittest.TestCase):
                             if B.is_level_bean(b)))
 
     def test_main_and_upper_masts_and_no_sensors(self) -> None:
-        """Main and upper: their masts (main_upper_masts.csv: control-point masts and APB intermediates), each in the slot JMRI resolves to its
+        """Main and upper: their masts (masts.csv: control-point masts and APB intermediates), each in the slot JMRI resolves to its
         facing track and protected OS block (108LA and 108LB on Switch 107's normal and diverging legs, facing the 107
         Loop's two halves; 226RA and 226RB each protecting its own corner of double crossover 225), on virtual heads
         and masts signal_coordinator.py never enrols; no sensors."""

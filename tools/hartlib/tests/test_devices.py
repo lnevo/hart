@@ -30,7 +30,13 @@ def turnout(user="Switch 1", **cells) -> dict:
 def mast(user="Mast 2L", **cells) -> dict:
     return blank(**{**dict(level="1", layer="mast", role="home", user_name=user, assignment="virtual",
                            system_name="IF$vsm:basic:one-low($1)", jmri_name="IF$vsm:basic:one-low($1)",
-                           written_by="build_staging_masts.py", description="Mast."), **cells})
+                           written_by="build_masts.py", description="Mast."), **cells})
+
+
+def old_form(rows, levels=("1",)) -> list[dict]:
+    """The device-map rows of `levels` (device_map_rows) each with its role, as a writer gives them to outputs_after."""
+    return [dict(D.device_map_row(r), role=r["role"]) for r in rows
+            if r["level"] in levels and r["role"] not in D.OUT_OF_MAPS]
 
 
 def problems(rows) -> str:
@@ -339,7 +345,7 @@ class TheWritersRules(unittest.TestCase):
         held = [turnout(), mast("Mast 2L"), mast("Mast 4L", system_name="IF$vsm:basic:one-low($2)",
                                                   jmri_name="IF$vsm:basic:one-low($2)")]
         new = [mast("Mast 6L", system_name="IF$vsm:basic:one-low($3)", jmri_name="IF$vsm:basic:one-low($3)")]
-        got = D.replace_rows(held, "build_staging_masts.py", new)     # virtual masts: the rule's, no field facts
+        got = D.replace_rows(held, "build_masts.py", new)     # virtual masts: the rule's, no field facts
         self.assertEqual([r["user_name"] for r in got], ["Switch 1", "Mast 6L"])
 
     def test_a_writer_not_in_the_one_list_is_refused(self):
@@ -357,31 +363,31 @@ class TheWritersRules(unittest.TestCase):
             D.replace_rows(held, "build_device_map.py", [clash])
         other = mast() | {"written_by": "build_device_map.py", "level": "2"}
         with self.assertRaisesRegex(D.DevicesError, "held by build_device_map.py"):
-            D.replace_rows([other], "build_staging_masts.py", [mast() | {"level": "2"}])
+            D.replace_rows([other], "build_masts.py", [mast() | {"level": "2"}])
 
     def test_a_result_that_breaks_a_check_is_refused(self):
         with self.assertRaisesRegex(D.DevicesError, "description is empty"):
-            D.replace_rows([], "build_staging_masts.py", [mast() | {"description": ""}])
+            D.replace_rows([], "build_masts.py", [mast() | {"description": ""}])
 
 
 class TheRowForms(unittest.TestCase):
     OLD = dict(level="1", cp="Brick", layer="turnout", user_name="Switch 1", system_name="M2T408",
                jmri_name="M2T408", node="4", dcc="100", comment="Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2",
                trial_name="Switch 1", notes="", blocks="", detector="", stop="", switch="", facing="", protects="",
-               dir="")
+               dir="", role="turnout")
 
     def test_a_field_turnouts_dcc_group_is_split_out_and_put_back(self):
         r = D.master_row(self.OLD, "")
         self.assertEqual((r["wiring"], r["dcc"], r["jmri_comment"]), ("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2", "100", ""))
-        self.assertEqual(D.device_map_row(r), self.OLD)
+        self.assertEqual(dict(D.device_map_row(r), role=r["role"]), self.OLD)
 
     def test_text_that_is_not_wiring_is_a_jmri_comment(self):
         old = dict(self.OLD, layer="mast", user_name="Mast 2L", comment="Brick | Switch 1", dcc="",
-                   system_name="IF$vsm:basic:one-low($1)", jmri_name="IF$vsm:basic:one-low($1)")
-        r = D.master_row(old, "build_staging_masts.py")
+                   system_name="IF$vsm:basic:one-low($1)", jmri_name="IF$vsm:basic:one-low($1)", role="hidden")
+        r = D.master_row(old, "build_masts.py")
         self.assertEqual((r["wiring"], r["jmri_comment"], r["role"], r["assignment"]),
                          ("", "Brick | Switch 1", "hidden", "virtual"))
-        self.assertEqual(D.device_map_row(r), old)
+        self.assertEqual(dict(D.device_map_row(r), role=r["role"]), old)
 
     def test_a_comment_that_cannot_be_split_back_fails(self):
         with self.assertRaisesRegex(D.DevicesError, "does not survive the split"):
@@ -395,16 +401,21 @@ class TheRowForms(unittest.TestCase):
         with self.assertRaisesRegex(D.DevicesError, "misses columns"):
             D.master_row({"layer": "turnout", "user_name": "x"}, "")
 
-    def test_roles_and_assignments_come_from_the_names(self):
-        self.assertEqual([D.block_role(n) for n in ("OS Switch 7", "OS Switch 225b", "Track 101 Spur 1",
-                                                    "Track Helix Inner", "BS 107 Loop 2", "Track Barn", "BS Switch 9")],
-                         ["os", "xover_corner", "spur", "helix", "loop_half", "track", "os"])
-        self.assertEqual(D.role_of("turnout", "DCC Switch 1", "MTT100", "MTT100"), "lcc_alias")
-        self.assertEqual(D.role_of("mast", "Mast 67", "", "IF$shsm:basic:one-searchlight(IH:HART:C1:67)"), "intermediate")
-        self.assertEqual(D.role_of("mast", "Mast A83", "", "IF$shsm:x(IH:HART:C3:A83)"), "intermediate")
-        self.assertEqual(D.role_of("mast", "Mast 108LA", "", "IF$shsm:x(IH:HART:C3:108LA)"), "home")
+    def test_the_role_is_the_writers_never_the_names(self):
+        """A writer states each row's role (hand-off row 8): master_row keeps it whatever the name says, and stops on
+        a row with none, one not in ROLES, or a layer a device map does not hold."""
+        odd = dict(self.OLD, layer="block", user_name="OS Switch 7", system_name="", jmri_name="", node="", dcc="",
+                   comment="", role="track")          # an OS-shaped name: the role given wins
+        self.assertEqual(D.master_row(odd, "build_device_map.py")["role"], "track")
+        for role in (None, "", "siding"):
+            with self.subTest(role=role), self.assertRaisesRegex(D.DevicesError, "gives it role"):
+                row = {k: v for k, v in self.OLD.items() if k != "role"} if role is None else dict(self.OLD, role=role)
+                D.master_row(row, "build_device_map.py")
         with self.assertRaisesRegex(D.DevicesError, "has no sensor rows"):
-            D.role_of("sensor", "SML Mode", "IS:SML_MODE", "IS:SML_MODE")
+            D.master_row(dict(self.OLD, layer="sensor", user_name="SML Mode"), "build_masts.py")
+        self.assertFalse(hasattr(D, "role_of") or hasattr(D, "block_role"))
+
+    def test_assignments_come_from_the_jmri_name(self):
         self.assertEqual([D.assignment_of(n) for n in ("", "IT:HART:C3:101", "IH:HART:C1:2R", "IF$vsm:basic:one-low($1)",
                                                       "IF$shsm:basic:one-searchlight(IH:HART:C1:2R)",
                                                       "IF$shsm:basic:one-searchlight(IH432)", "IH432", "M2T408")],
@@ -443,6 +454,13 @@ class TheWriters(unittest.TestCase):
     def test_the_master_and_its_dictionary_check_clean(self):
         self.assertEqual(D.stale(self.files), [])
 
+    def test_a_device_not_on_the_layout_yet_passes_the_check(self):
+        """A Store's level-less row (split_store --apply) has no role: it is on no device map, so the check leaves it
+        out rather than stopping on its empty role."""
+        self.files.master.write_text(D.master_text(list(D.load(self.files)) + [unplaced()]), encoding="utf-8")
+        self.assertTrue(any(D.is_unplaced(r) for r in D.load(self.files)))
+        self.assertEqual(D.stale(self.files), [])
+
     def test_a_row_the_old_form_readers_cannot_convert_fails_the_check(self):
         rows = [dict(r) for r in D.load(self.files)]
         row = next(r for r in rows if r["role"] == "turnout" and r["assignment"] == "field" and r["wiring"] and r["dcc"])
@@ -461,43 +479,43 @@ class TheWriters(unittest.TestCase):
         self.assertFalse(names & {"unused Block 2-2", "SML Mode", "Turnout FB status"})
 
     def test_a_writer_that_gives_its_rows_back_unchanged_changes_no_file(self):
-        mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"], ("1",))
-        out = D.outputs_after("build_staging_masts.py", mine, self.files)
+        mine = old_form([r for r in D.load(self.files) if r["written_by"] == "build_masts.py"])
+        out = D.outputs_after("build_masts.py", mine, self.files)
         for path, text in out.items():
             self.assertEqual(path.read_text(encoding="utf-8"), text, path.name)
 
     def test_a_writer_that_drops_a_row_changes_only_its_own_rows_of_the_master(self):
-        mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"], ("1",))
+        mine = old_form([r for r in D.load(self.files) if r["written_by"] == "build_masts.py"])
         gone = (mine[0]["level"], mine[0]["layer"], mine[0]["user_name"])
-        out = D.outputs_after("build_staging_masts.py", mine[1:], self.files, drops=[gone])
+        out = D.outputs_after("build_masts.py", mine[1:], self.files, drops=[gone])
         before = {(r["level"], r["layer"], r["user_name"]) for r in D.load(self.files)}
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
         self.assertEqual(before - after, {gone})
         self.assertEqual(after - before, set())                       # no row is added
-        held = [dict(r) for r in D.load(self.files) if r["written_by"] != "build_staging_masts.py"]
-        kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_staging_masts.py"]
+        held = [dict(r) for r in D.load(self.files) if r["written_by"] != "build_masts.py"]
+        kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_masts.py"]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
     def test_a_writer_that_would_lose_a_staging_field_row_without_saying_so_is_refused(self):
         """A rename gives a new key: the old row of a wired staging device (and the field facts a rewrite carries
         over from it) would go with no word, so the write stops."""
-        held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
-        mine = D.device_map_rows(held, ("1",))
+        held = [r for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
+        mine = old_form(held)
         first = next(r for r in mine if r["user_name"] == "Mast 6LB")            # the wired mast
         renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
         with self.assertRaisesRegex(D.DevicesError,
                                     rf"would drop 1 staging field device row\(s\), first {first['user_name']!r}"):
-            D.outputs_after("build_staging_masts.py", renamed, self.files)
+            D.outputs_after("build_masts.py", renamed, self.files)
         key = ("1", first["layer"], first["user_name"])
-        D.outputs_after("build_staging_masts.py", renamed, self.files, drops=[key])
+        D.outputs_after("build_masts.py", renamed, self.files, drops=[key])
 
     def test_a_rule_mast_and_a_panel_status_bean_may_go_without_saying_so(self):
         """Rows the rule makes (a virtual staging mast) or panel_items.json writes carry no field facts, so their
-        writers drop them freely (build_staging_masts.py and panel_items.py pass no drops)."""
-        held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
-        mine = [r for r in D.device_map_rows(held, ("1",)) if r["user_name"] != "Mast 4LA"]
-        out = D.outputs_after("build_staging_masts.py", mine, self.files)
+        writers drop them freely (build_masts.py and panel_items.py pass no drops)."""
+        held = [r for r in D.load(self.files) if r["written_by"] == "build_masts.py"]
+        mine = [r for r in old_form(held) if r["user_name"] != "Mast 4LA"]
+        out = D.outputs_after("build_masts.py", mine, self.files)
         self.assertNotIn(",Mast 4LA,", out[self.files.master])
         status = [dict(r) for r in D.load(self.files) if r["written_by"] == "panel_items.json"]
         out = D.outputs_after_rows("panel_items.json", [r for r in status if r["user_name"] != "SML Mode"], self.files)
@@ -529,14 +547,14 @@ class TheWriters(unittest.TestCase):
 
     def test_a_writer_that_gives_a_row_a_hand_kept_row_has_is_refused(self):
         hand = hand_keep(self.files)
-        stray = D.device_map_row(hand)
+        stray = dict(D.device_map_row(hand), role=hand["role"])
         with self.assertRaisesRegex(D.DevicesError, "would rewrite row"):
-            D.outputs_after("build_staging_masts.py", [stray], self.files)
+            D.outputs_after("build_masts.py", [stray], self.files)
 
     def test_a_row_the_writer_gave_that_is_not_a_device_map_layer_is_refused(self):
         row = dict(TheRowForms.OLD, layer="sensor", user_name="SML Mode")
         with self.assertRaisesRegex(D.DevicesError, "has no sensor rows"):
-            D.outputs_after("build_staging_masts.py", [row], self.files)
+            D.outputs_after("build_masts.py", [row], self.files)
 
 
 class TheNits(unittest.TestCase):
@@ -604,6 +622,76 @@ class TheReaders(unittest.TestCase):
 
     def test_the_path_or_the_files_name_the_same_master(self):
         self.assertEqual(D.device_map_lines(("1",), REAL.master), D.device_map_lines(("1",), REAL))
+
+
+class TheKindFromTheRow(unittest.TestCase):
+    """A reader takes a device's kind from its row's layer and role (row_role, is_os, index), never from its name
+    (hand-off row 8)."""
+
+    def test_the_role_is_the_rows(self):
+        self.assertEqual(D.row_role(turnout()), "turnout")
+        self.assertTrue(D.is_os(blank(layer="block", role="xover_corner", user_name="Track Odd")))
+        self.assertFalse(D.is_os(blank(layer="block", role="track", user_name="OS Switch 9")))
+
+    def test_a_row_with_no_role_stops_naming_where(self):
+        for row in (blank(layer="block", user_name="OS Switch 9"), {"layer": "block", "user_name": "OS Switch 9"}):
+            with self.assertRaisesRegex(D.DevicesError, r"devices.csv line 7: block 'OS Switch 9' has no role"):
+                D.is_os(row, "devices.csv line 7")
+
+    def test_the_index_finds_a_device_by_layer_and_name(self):
+        ix = D.index()
+        self.assertIs(ix, D.index())                # built once per file state
+        self.assertEqual(ix.role("block", "OS Switch 225b"), "xover_corner")
+        self.assertTrue(ix.is_os("OS Switch 101"))
+        self.assertFalse(ix.is_os("Track Helix Inner"))        # a row on staging and one on the upper level
+        self.assertEqual(len(ix.rows("block", "Track Helix Inner")), 2)
+        self.assertIn("Switch 101", ix.names("turnout", roles=("turnout",)))
+        self.assertNotIn("DCC Switch 101", ix.names("turnout", roles=("turnout",)))
+        self.assertEqual(set(ix.names("occupancy", levels=("2",))),
+                         {r["user_name"] for r in D.load() if r["layer"] == "occupancy" and r["level"] == "2"})
+        with self.assertRaisesRegex(D.DevicesError, "devices.csv: no block row 'Track Nowhere'"):
+            ix.role("block", "Track Nowhere")
+
+    def test_a_device_not_on_the_layout_yet_is_left_out_of_a_role_query(self):
+        """A level-less row (added in PanelPro, no role yet) is no layout element: a role query skips it, never stops
+        on it; has, is_unplaced and where still see it."""
+        from hartlib import tables_build as TB
+        import xml.etree.ElementTree as ET
+        el = ET.fromstring("<sensor inverted=\"false\"><systemName>M2S9999</systemName>"
+                           "<userName>BS Store Added</userName></sensor>")
+        row = unplaced("BS Store Added", layer="occupancy", system_name="M2S9999", jmri_name="M2S9999")
+        row["jmri_bean"] = TB.bean_json([(TB.MQTT_SENSORS, el)], row)
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "devices.csv"
+            path.write_text(D.master_text(list(D.load()) + [row]), encoding="utf-8")
+            ix = D.index(path)
+            detectors = ix.names("occupancy", roles=set(D.ROLES) - {"spare"})
+            self.assertNotIn("BS Store Added", detectors)
+            self.assertIn("BS Switch 101", detectors)
+            self.assertIn("BS Store Added", ix.names("occupancy"))         # no role asked: every row
+            self.assertTrue(ix.has("occupancy", "BS Store Added"))
+            self.assertTrue(ix.is_unplaced("occupancy", "BS Store Added"))
+            self.assertFalse(ix.is_unplaced("occupancy", "BS Switch 101"))
+            self.assertEqual(ix.where(row), f"devices.csv line {len(D.load()) + 2}")
+            self.assertEqual(ix.where(dict(row, user_name="BS Nowhere")), "devices.csv")
+            with self.assertRaisesRegex(D.DevicesError, "has no role"):
+                ix.role("occupancy", "BS Store Added")
+
+    def test_rows_that_disagree_on_a_role_stop_naming_their_lines(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "devices.csv"
+            rows = list(csv.reader(io.StringIO(REAL.master.read_text(encoding="utf-8"), newline="")))
+            col = rows[0].index
+            helix = [i for i, r in enumerate(rows) if r[col("layer")] == "block" and r[col("user_name")] ==
+                     "Track Helix Inner"]
+            rows[helix[1]][col("role")] = "track"
+            buf = io.StringIO()
+            csv.writer(buf, lineterminator="\n").writerows(rows)
+            path.write_text(buf.getvalue(), encoding="utf-8")
+            ix = D.index(path)
+            with self.assertRaisesRegex(D.DevicesError, rf"lines {helix[0] + 1}, {helix[1] + 1}: block "
+                                                        r"'Track Helix Inner' has roles helix, track"):
+                ix.role("block", "Track Helix Inner")
 
 
 class TheStagingFacts(unittest.TestCase):
@@ -714,8 +802,7 @@ class TheMasterFile(unittest.TestCase):
 
     def test_the_writers_are_one_tuple_of_distinct_names(self):
         self.assertEqual(len(set(D.WRITERS)), len(D.WRITERS))
-        self.assertEqual(set(D.WRITERS), {"build_staging_masts.py", "build_device_map.py", "build_main_upper_masts.py",
-                                          "panel_items.json"})
+        self.assertEqual(set(D.WRITERS), {"build_masts.py", "build_device_map.py", "panel_items.json"})
 
 
 if __name__ == "__main__":

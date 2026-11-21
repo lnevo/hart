@@ -285,7 +285,7 @@ class Output(unittest.TestCase):
                 if x["layer"] == "turnout":
                     self.assertEqual(x["jmri_name"], "IT:HART:C3:" + x["user_name"].rpartition(" ")[2])
                 elif x["layer"] == "head":
-                    self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"]))
+                    self.assertEqual(x["jmri_name"], level_masts.head_name(x["user_name"], int(x["level"])))
                 elif x["layer"] == "mast" and level_masts.is_level_virtual(x["jmri_name"]):
                     self.assertEqual(x["system_name"], x["jmri_name"])        # a hidden virtual mast, no heads
                 elif x["layer"] == "mast":
@@ -335,7 +335,7 @@ class Output(unittest.TestCase):
                 BD.block_sensor(bad)
 
     def test_check_virtual_stops_on_a_block_without_occupancy_or_a_name_twice(self):
-        row = lambda layer, user, jmri="": dict(level=2, layer=layer, user_name=user, jmri_name=jmri)
+        row = lambda layer, user, jmri="": dict(level=2, layer=layer, user_name=user, jmri_name=jmri, role="track")
         ok = [row("block", "Track 1-3"), row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3")]
         BD.check_virtual(ok)
         with self.assertRaisesRegex(BD.MapError, "blocks and occupancy rows differ"):
@@ -348,6 +348,22 @@ class Output(unittest.TestCase):
                          {"A": "OS Switch 7c", "B": "OS Switch 7d", "C": "OS Switch 7a", "D": "OS Switch 7b"})
         with self.assertRaisesRegex(BD.MapError, "not one corner per leg"):
             BD.xover_corners("7", {"A": "A", "B": "A", "C": "C", "D": "D"})
+
+    def test_a_line_blocks_role_comes_from_its_ends_never_its_name(self):
+        """build() states each row's role (hand-off row 8): a line block's from its track's ends and loop flag, so a
+        name that reads like another kind gives no role."""
+        t = lambda name, *ends, loop=False: dict(name=name, ends=list(ends), loop=loop)    # noqa: E731
+        self.assertEqual(BD.line_role(t("Track 1-3", ("sw", "1"), ("sw", "3")), None), "track")
+        self.assertEqual(BD.line_role(t("Track 1-3", ("sw", "1"), ("sw", "3")), 2), "track")       # a split half
+        self.assertEqual(BD.line_role(t("Track Helix", ("bumper", None), ("sw", "1")), None), "spur")
+        self.assertEqual(BD.line_role(t("Track 1 Spur", ("sw", "1"), ("helix", "H")), None), "helix")
+        self.assertEqual(BD.line_role(t("Track 1-1", ("sw", "1"), ("sw", "1"), loop=True), 1), "loop_half")
+        with self.assertRaisesRegex(BD.MapError, "a balloon loop is two blocks"):
+            BD.line_role(t("Track 1 Loop", ("sw", "1"), ("sw", "1"), loop=True), None)
+        for ends, said in ((((("bumper", None), ("bumper", None))), "bumper and bumper"),
+                           ((("sw", "1"),), "sw"), ((("sw", "1"), ("link", "x")), "link and sw"), ((), "nothing")):
+            with self.subTest(ends=ends), self.assertRaisesRegex(BD.MapError, f"Track X: a line block ends at {said};"):
+                BD.line_role(t("Track X", *ends), None)
 
     def test_helix_top_crossover_tracks_are_not_loops(self):
         names = {x["user_name"] for x in rows() if x["layer"] == "block"}

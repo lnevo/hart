@@ -41,11 +41,11 @@ DATA = ROOT / "docs/wiring/signals"
 SKIP_MAST: set[str] = set()
 
 # Wired heads only (ADR-024, owner 2026-11-19): every other staging mast stands on internal heads
-# (IH:HART:C1:<mast>, staging_masts.csv) until the owner wires it. The wired heads, their nodes and ports, are
+# (IH:HART:C1:<mast>, masts.csv) until the owner wires it. The wired heads, their nodes and ports, are
 # jmri/layouts/hart/data/wiring.csv's head rows (hartlib.wiring, the physical wiring source; owner 2026-11-20); add a
 # head's row there when it is wired.
 # Masts whose field build has fewer heads than the mast rule gives them: signal_head_plan.csv and the JMRI mast use
-# only the fitted ones; the planned heads stay the mast rule's (staging_masts.csv, ADR-024).
+# only the fitted ones; the planned heads stay the mast rule's (masts.csv, ADR-024).
 FITTED_HEADS: dict[str, set[int]] = {}
 # One 3-pin STOP/APPROACH/CLEAR object per physical disc. A 2-head mast owns
 # 6 consecutive pins on one board (T then B). Packed = radio*100 + UID.

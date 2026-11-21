@@ -32,6 +32,18 @@ class Inventory(unittest.TestCase):
     def test_v86_is_current(self):
         self.assertEqual(WI.main(["--check"]), 0)
 
+    def test_a_detector_names_its_block_by_its_blocks_column_never_its_name(self):
+        by_name = {"Track 9-11": {}, "OS Switch 9": {}}
+        occ = dict(role="os", user_name="BS Switch 9", blocks="Track 9-11")
+        self.assertEqual(WI.block_name(occ, by_name), "Track 9-11")
+        self.assertIsNone(WI.block_name(dict(occ, role="spare", blocks=""), by_name))
+        with self.assertRaisesRegex(SystemExit, "occupancy BS Switch 9 names no block in its blocks column"):
+            WI.block_name(dict(occ, blocks=""), by_name)
+        with self.assertRaisesRegex(SystemExit, "detects Track 1-3, which has no block row"):
+            WI.block_name(dict(occ, blocks="Track 1-3"), by_name)
+        with self.assertRaisesRegex(WI.devices.DevicesError, "has no role"):
+            WI.block_name(dict(occ, role=""), by_name)
+
     def test_every_node_is_listed(self):
         self.assertEqual({r[2] for r in V86["Nodes"][1:]}, set(NODES))
         self.assertEqual(next(r for r in V86["Nodes"] if r[0] == "C2")[1], "C3")     # its legacy ID, from the source

@@ -24,10 +24,11 @@ def sw(label, **legs):
     return dict(kind="switch", label=label, ins={}, outs={}, **legs)
 
 
-def row(layer, user, system, jmri, notes="", level="1", **facts):
-    """A device map row (build_device_map.COLUMNS, and its role) of staging, kept by hand, a field device."""
+def row(layer, user, system, jmri, notes="", level="1", role="track", **facts):
+    """A device map row (build_device_map.COLUMNS, and its role: a track block's or its sensor's unless given) of
+    staging, kept by hand, a field device."""
     return dict(level=level, cp="", layer=layer, user_name=user, system_name=system, jmri_name=jmri, node="", dcc="",
-                comment="", trial_name="", notes=notes, role=sdm.devices.role_of(layer, user, system, jmri),
+                comment="", trial_name="", notes=notes, role=role,
                 assignment="field", written_by="", **{c: facts.get(c, "") for c in sdm.railroad.DEVICE_FACTS})
 
 

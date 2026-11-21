@@ -1,4 +1,4 @@
-"""sync_staging_signals.py: the staging masts and heads of a tables file follow staging_masts.csv, and Signal Mast
+"""sync_signals.py: every level's masts and heads of a tables file follow masts.csv, and Signal Mast
 Logic naming a mast that went or changed goes. Every test works on a small hand-written tables file and CSVs in a
 temporary directory; only CommittedData reads the repo's files, as data checks under a guard that fails any write
 into the repo (repo_read_only.py)."""
@@ -20,7 +20,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
-import sync_staging_signals as sss  # noqa: E402
+import sync_signals as sss  # noqa: E402
 from hartlib import devices, level_masts, paths, railroad, tables  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
@@ -104,14 +104,15 @@ TABLES = (
 )
 
 
-def mast_row(mast, system, cp="", switch="", heads=""):
-    return dict(mast=mast, cp=cp, switch=switch, facing="Track X", protects="OS Switch 1", dir="west", leg="",
-                system_name=system,
-                head_system_names=heads, device_system_name=system)
+def mast_row(mast, system, cp="", switch="", heads="", level="1"):
+    virtual = system.startswith("IF$vsm:")
+    return dict(level=level, mast=mast, cp=cp, switch=switch, facing="Track X",
+                protects="" if virtual else "OS Switch 1", dir="west", leg="", system_name=system,
+                head_system_names=heads, device_system_name=system, **dict.fromkeys(level_masts.PLAN_FIELDS, ""))
 
 
-# staging_masts.csv of the fixture: 2R, 6LB and 4LA as the tables file has them, 4RA with another appearance on the
-# same head, 10L and 12R new, and no 9L or 5R.
+# masts.csv of the fixture: 2R, 6LB, 4LA and the main level's 101L as the tables file has them, 4RA with another
+# appearance on the same head, 10L and 12R new, and no 9L or 5R.
 ROWS = [
     mast_row("Mast 2R", "IF$shsm:basic:one-searchlight(IH:HART:C1:2R)", "Brick", "1", "IH:HART:C1:2R=Head 2R"),
     mast_row("Mast 4RA", "IF$shsm:basic:one-searchlight(IH:HART:C1:4RA)", "Brick", "3", "IH:HART:C1:4RA=Head 4RA"),
@@ -119,22 +120,26 @@ ROWS = [
     mast_row("Mast 10L", "IF$shsm:basic:two-searchlight(IH:HART:C1:10L_Top)(IH:HART:C1:10L_Bottom)", "Barn", "",
              "IH:HART:C1:10L_Top=Head 10L Top;IH:HART:C1:10L_Bottom=Head 10L Bottom"),
     mast_row("Mast 4LA", "IF$vsm:basic:one-low($1001)", "Brick"),
-    mast_row("Mast 12R", "IF$vsm:basic:one-low($1012)", "", "11"),
+    mast_row("Mast 12R", "IF$vsm:basic:one-low($1012)", "Barn"),
+    mast_row("Mast 101L", "IF$shsm:basic:two-searchlight(IH:HART:C3:101L_Top)(IH:HART:C3:101L_Bottom)", "CP 101", "101",
+             "IH:HART:C3:101L_Top=Head 101L Top;IH:HART:C3:101L_Bottom=Head 101L Bottom", level="2"),
 ]
 COMMENTS = {"IH:HART:C1:10L_Top": "Barn | from the device map"}
 NO_CHANGE = dict.fromkeys(("masts added", "masts removed", "heads added", "heads removed", "logics removed",
                            "destinations removed"), 0)
 
 
-def device_row(layer, user, system, comment="", notes=""):
+def device_row(layer, user, system, comment="", notes="", role=None):
+    """A staging device-map row with the role its writer gives it: a head's is head, a mast's home unless given."""
     return dict(level="1", cp="", layer=layer, user_name=user, system_name=system, jmri_name=system, node="", dcc="",
-                comment=comment, trial_name="", notes=notes, **dict.fromkeys(railroad.DEVICE_FACTS, ""))
+                comment=comment, trial_name="", notes=notes, role=role or ("head" if layer == "head" else "home"),
+                **dict.fromkeys(railroad.DEVICE_FACTS, ""))
 
 
 def write_master(path: Path, rows) -> Path:
     """A devices.csv of just these staging device-map rows (hartlib.devices makes the master rows and holds them)."""
-    mine = [devices.master_row(r, "build_staging_masts.py") for r in rows]
-    path.write_text(devices.master_text(devices.replace_rows([], "build_staging_masts.py", mine)), encoding="utf-8")
+    mine = [devices.master_row(r, "build_masts.py") for r in rows]
+    path.write_text(devices.master_text(devices.replace_rows([], "build_masts.py", mine)), encoding="utf-8")
     return path
 
 
@@ -162,24 +167,28 @@ def users(root, beans) -> list[str]:
 
 
 class Names(unittest.TestCase):
-    def test_a_staging_mast_is_mast_and_a_number_under_100(self):
-        for name in ("Mast 2L", "Mast 4RA", "Mast 67", "Mast 8RC", "Mast 5"):
-            self.assertTrue(sss.is_staging_mast(name), name)
-        for name in ("Mast 101L", "Mast A 5.7", "Mast 4RD", "Mast 4X", "Head 2L", "", None, "Mast 2L "):
-            self.assertFalse(sss.is_staging_mast(name), name)
+    def test_a_mast_is_a_mast_name_of_any_level(self):
+        for name in ("Mast 2L", "Mast 4RA", "Mast 67", "Mast 8RC", "Mast 5", "Mast 101L", "Mast 120RC", "Mast A83"):
+            self.assertTrue(sss.is_mast(name), name)
+        for name in ("Mast A 5.7", "Mast 4r", "Head 2L", "Signal 2L", "", None, "Mast 2L "):
+            self.assertFalse(sss.is_mast(name), name)
+        self.assertTrue(sss.is_head("Head 101L Top") and sss.is_head("Head 67") and not sss.is_head("Turnout FB status"))
 
 
 class Inputs(unittest.TestCase):
-    """want_masts and head_comments read the files they are given (staging_masts.csv, the master devices.csv)."""
+    """want_masts and head_comments read the files they are given (masts.csv, the master devices.csv)."""
 
     def test_want_masts_reads_the_rows_and_checks_the_columns(self):
         with tempfile.TemporaryDirectory() as d:
-            path = write_csv(Path(d) / "staging_masts.csv", level_masts.FIELDS, ROWS)
-            self.assertEqual(sss.want_masts(path), ROWS)
+            path = write_csv(Path(d) / "masts.csv", level_masts.FIELDS, ROWS)
+            got = sss.want_masts(path)
+            self.assertEqual([{c: r[c] for c in level_masts.FIELDS if c != "level"} for r in got],
+                             [{c: r[c] for c in level_masts.FIELDS if c != "level"} for r in ROWS])
+            self.assertEqual([r["level"] for r in got], [1, 1, 1, 1, 1, 1, 2])
             bad = write_csv(Path(d) / "bad.csv", ["mast", "system_name"], [dict(mast="Mast 2R", system_name="x")])
-            with self.assertRaisesRegex(sss.sdm.StagingMapError, "columns"):
+            with self.assertRaisesRegex(railroad.FactsError, "columns"):
                 sss.want_masts(bad)
-            with self.assertRaisesRegex(sss.sdm.StagingMapError, "cannot read"):
+            with self.assertRaisesRegex(railroad.FactsError, "cannot read"):
                 sss.want_masts(Path(d) / "missing.csv")
 
     def test_head_comments_join_comment_and_notes_of_head_rows_only(self):
@@ -189,27 +198,26 @@ class Inputs(unittest.TestCase):
                 device_row("head", "Head 6LB", "IH432", "", "wired"),
                 device_row("head", "Head 4RA", "IH:HART:C1:4RA", "Brick", ""),
                 device_row("head", "Head 9L", "IH:HART:C1:9L"),
-                device_row("mast", "Mast 2R", "IF$shsm:basic:one-searchlight(IH:HART:C1:2R)", "a mast", "no head")])
+                device_row("mast", "Mast 2R", "IF$shsm:basic:one-searchlight(IH:HART:C1:2R)", "a mast", "no head"),
+                dict(device_row("head", "Head 101L", "IH:HART:C3:101L", "CP 101", "virtual"), level="2")])
             self.assertEqual(sss.head_comments(path), {"IH:HART:C1:2R": "Brick | Switch 1 | internal, not wired",
                                                        "IH432": "wired", "IH:HART:C1:4RA": "Brick",
-                                                       "IH:HART:C1:9L": ""})
+                                                       "IH:HART:C1:9L": "", "IH:HART:C3:101L": "CP 101 | virtual"})
 
 
 class HeadCommentsErrors(unittest.TestCase):
-    def test_a_master_that_cannot_be_read_stops_with_the_staging_error(self):
+    def test_a_master_that_cannot_be_read_stops_with_the_devices_error(self):
         with tempfile.TemporaryDirectory() as d:
-            with self.assertRaisesRegex(sss.sdm.StagingMapError, "cannot read it"):
+            with self.assertRaisesRegex(devices.DevicesError, "cannot read it"):
                 sss.head_comments(Path(d) / "missing.csv")
             bad = Path(d) / "devices.csv"
             bad.write_text("layer,user_name\nhead,Head 2R\n", encoding="utf-8")
-            with self.assertRaisesRegex(sss.sdm.StagingMapError, "the header is not the master's columns"):
+            with self.assertRaisesRegex(devices.DevicesError, "the header is not the master's columns"):
                 sss.head_comments(bad)
 
-    def test_a_master_with_no_staging_rows_stops(self):
+    def test_a_master_with_no_head_rows_gives_no_comments(self):
         with tempfile.TemporaryDirectory() as d:
-            only_main = write_master(Path(d) / "devices.csv", [])
-            with self.assertRaisesRegex(sss.sdm.StagingMapError, "no staging rows"):
-                sss.head_comments(only_main)
+            self.assertEqual(sss.head_comments(write_master(Path(d) / "devices.csv", [])), {})
 
 
 class Sync(unittest.TestCase):
@@ -221,7 +229,7 @@ class Sync(unittest.TestCase):
         cls.out = text_of(cls.t)
 
     def test_counts(self):
-        self.assertEqual(self.counts, {"masts kept": 3, "masts added": 3, "masts removed": 3, "heads added": 2,
+        self.assertEqual(self.counts, {"masts kept": 4, "masts added": 3, "masts removed": 3, "heads added": 2,
                                        "heads removed": 3, "logics removed": 3, "destinations removed": 2})
 
     def test_an_unchanged_mast_stays_byte_for_byte(self):
@@ -230,7 +238,7 @@ class Sync(unittest.TestCase):
             self.assertIn(block, TABLES)
             self.assertIn(block, self.out)
 
-    def test_masts_and_heads_that_are_not_staging_stay_byte_for_byte(self):
+    def test_another_levels_mast_in_the_file_and_a_head_of_no_mast_name_stay_byte_for_byte(self):
         for block in (MAST_101L, HEAD_LAMP, LEVEL_HEADS):
             self.assertIn(block, TABLES)
             self.assertIn(block, self.out)
@@ -255,7 +263,7 @@ class Sync(unittest.TestCase):
     def test_new_masts_and_heads_are_added_as_jmri_writes_them(self):
         self.assertIn(mast_xml("IF$shsm:basic:two-searchlight(IH:HART:C1:10L_Top)(IH:HART:C1:10L_Bottom)", "Mast 10L",
                                "Barn"), self.out)
-        self.assertIn(vsm_xml("IF$vsm:basic:one-low($1012)", "Mast 12R", "Switch 11"), self.out)
+        self.assertIn(vsm_xml("IF$vsm:basic:one-low($1012)", "Mast 12R", "Barn"), self.out)
         # a new head takes the device map's comment and notes, or an empty comment
         self.assertIn(head_xml("IH:HART:C1:10L_Top", "Head 10L Top", "Barn | from the device map"), self.out)
         self.assertIn(head_xml("IH:HART:C1:10L_Bottom", "Head 10L Bottom", ""), self.out)
@@ -290,7 +298,7 @@ class Sync(unittest.TestCase):
 
     def test_a_second_sync_changes_nothing(self):
         again, counts = synced(self.out)
-        self.assertEqual(counts, dict(NO_CHANGE, **{"masts kept": 6}))
+        self.assertEqual(counts, dict(NO_CHANGE, **{"masts kept": 7}))
         self.assertEqual(text_of(again), self.out)
         self.assertFalse(again.changed())
 
@@ -301,23 +309,28 @@ class SyncEdges(unittest.TestCase):
                 ROWS[2], mast_row("Mast 9L", "IF$shsm:basic:two-searchlight(IH:HART:C1:9L_Top)(IH:HART:C1:9L_Bottom)",
                                   heads="IH:HART:C1:9L_Top=Head 9L Top;IH:HART:C1:9L_Bottom=Head 9L Bottom"),
                 ROWS[4], mast_row("Mast 5R", "IF$vsm:basic:one-low($1005)"),
-                mast_row("Mast 30R", "IF$shsm:basic:one-low(IH:HART:C1:30R)", heads="IH:HART:C1:30R=Head 30R")]
+                mast_row("Mast 30R", "IF$shsm:basic:one-low(IH:HART:C1:30R)", heads="IH:HART:C1:30R=Head 30R"),
+                ROWS[-1]]                                       # the main level's 101L, in the same file
         text = TABLES.replace(MAST_5R, MAST_5R + mast_xml("IF$shsm:basic:one-low(IH:HART:C1:30R)", "Mast 30R", "added by hand"))
         t, counts = synced(text, rows)
-        self.assertEqual(counts, dict(NO_CHANGE, **{"masts kept": 7}))
+        self.assertEqual(counts, dict(NO_CHANGE, **{"masts kept": 8}))
         self.assertFalse(t.changed())
         self.assertEqual(text_of(t), text)
+
+    def test_a_mast_of_another_level_the_file_does_not_hold_goes_as_a_staging_one_does(self):
+        _t, counts = synced(rows=ROWS[:-1])                     # 101L left out: one check for every level
+        self.assertEqual((counts["masts removed"], counts["heads removed"]), (4, 5))
 
     def test_a_mast_whose_class_does_not_fit_its_system_name_is_replaced(self):
         # a virtual mast's row over a SignalHeadSignalMast element of the same names
         text = TABLES.replace(MAST_4LA, mast_xml("IF$vsm:basic:one-low($1001)", "Mast 4LA", "wrong class"))
         t, counts = synced(text)
-        self.assertEqual((counts["masts kept"], counts["masts removed"], counts["masts added"]), (2, 4, 4))
+        self.assertEqual((counts["masts kept"], counts["masts removed"], counts["masts added"]), (3, 4, 4))
         self.assertIn(vsm_xml("IF$vsm:basic:one-low($1001)", "Mast 4LA", "Brick"), text_of(t))
 
     def test_a_kept_mast_gets_a_head_the_tables_lack(self):
         t, counts = synced(TABLES.replace(HEAD_2R, ""))
-        self.assertEqual((counts["masts kept"], counts["heads added"]), (3, 3))
+        self.assertEqual((counts["masts kept"], counts["heads added"]), (4, 3))
         self.assertIn(MAST_2R, text_of(t))
         self.assertEqual(users(t.root, tables.signal_heads)[-3:], ["Head 2R", "Head 10L Top", "Head 10L Bottom"])
 
@@ -325,7 +338,7 @@ class SyncEdges(unittest.TestCase):
         text = TABLES.replace("<userName>Head 2R</userName>", "<userName>Head 2R Top</userName>")
         with self.assertRaises(SystemExit) as stop:
             synced(text)
-        self.assertIn("head IH:HART:C1:2R is 'Head 2R Top' in tables.xml, 'Head 2R' in staging_masts.csv",
+        self.assertIn("head IH:HART:C1:2R is 'Head 2R Top' in tables.xml, 'Head 2R' in masts.csv",
                       str(stop.exception))
 
     def test_tables_without_a_heads_or_masts_section_stop(self):
@@ -361,7 +374,7 @@ class Cli(unittest.TestCase):
         d = Path(tmp.name)
         self.tables = d / "tables.xml"
         self.tables.write_bytes(TABLES.encode("utf-8"))
-        masts = write_csv(d / "staging_masts.csv", level_masts.FIELDS, ROWS)
+        masts = write_csv(d / "masts.csv", level_masts.FIELDS, ROWS)
         device_map = write_master(d / "devices.csv",
                                   [device_row("head", "Head 10L Top", "IH:HART:C1:10L_Top", "Barn", "from the device map")])
         for name, path in (("want_masts", masts), ("head_comments", device_map)):
@@ -383,31 +396,31 @@ class Cli(unittest.TestCase):
         stat = self.tables.stat()
         code, out, err = self.run_main("--check")
         self.assertEqual((code, out), (1, ""))
-        self.assertIn("differs from staging_masts.csv", err)
+        self.assertIn("differs from masts.csv", err)
         self.assertIn("'masts added': 3", err)
         self.assertIn("'logics removed': 3", err)
         self.assertNotIn("masts kept", err)
-        self.assertIn("run tools/schematic/sync_staging_signals.py", err)
+        self.assertIn("run tools/schematic/build_masts.py, then tools/schematic/build_tables.py", err)       # tables.xml is generated: sync_signals.py only checks
         self.assertEqual(self.tables.read_bytes(), before)
         self.assertEqual(self.tables.stat().st_mtime_ns, stat.st_mtime_ns)
         self.assertEqual(sorted(p.name for p in self.tables.parent.iterdir()),
-                         ["devices.csv", "staging_masts.csv", "tables.xml"])
+                         ["devices.csv", "masts.csv", "tables.xml"])
 
     def test_sync_writes_then_check_reports_current_and_a_second_sync_is_the_same_file(self):
         code, out, err = self.run_main()
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(out.strip(), "3 masts kept, 3 masts added, 3 masts removed, 2 heads added, 3 heads removed, "
+        self.assertEqual(out.strip(), "4 masts kept, 3 masts added, 3 masts removed, 2 heads added, 3 heads removed, "
                                       "3 logics removed, 2 destinations removed")
         first = self.tables.read_bytes()
         self.assertEqual(first.decode("utf-8"), text_of(synced()[0]))
         code, out, err = self.run_main("--check")
         self.assertEqual((code, err), (0, ""))
-        self.assertTrue(out.startswith("ok: staging signals in "), out)
-        self.assertIn("follow staging_masts.csv", out)
+        self.assertTrue(out.startswith("ok: every level's signals in "), out)
+        self.assertIn("follow masts.csv (7 masts)", out)
         self.assertEqual(self.tables.read_bytes(), first)
         code, out, _err = self.run_main()
         self.assertEqual(code, 0)
-        self.assertEqual(out.strip(), "6 masts kept, 0 masts added, 0 masts removed, 0 heads added, 0 heads removed, "
+        self.assertEqual(out.strip(), "7 masts kept, 0 masts added, 0 masts removed, 0 heads added, 0 heads removed, "
                                       "0 logics removed, 0 destinations removed")
         self.assertEqual(self.tables.read_bytes(), first)
 
@@ -422,7 +435,7 @@ class Cli(unittest.TestCase):
 
 
 class CommittedData(RepoReadOnly, unittest.TestCase):
-    """Data checks, not rule tests: the repo's tables.xml follows the repo's staging_masts.csv. They run --check and
+    """Data checks, not rule tests: the repo's tables.xml follows the repo's masts.csv. They run --check and
     an in-memory sync under RepoReadOnly, so a write into the repo fails the test instead of changing a file."""
 
     def test_check_passes_on_the_committed_files_and_writes_nothing(self):
@@ -431,10 +444,10 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         with contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
             code = sss.main(["--check"])
         self.assertEqual(code, 0, err.getvalue())
-        self.assertIn("ok: staging signals", out.getvalue())
+        self.assertIn("ok: every level's signals", out.getvalue())
         self.assertEqual(paths.TABLES_XML.read_bytes(), before)
 
-    def test_every_committed_staging_mast_is_kept_by_a_sync_in_memory(self):
+    def test_every_committed_mast_is_kept_by_a_sync_in_memory(self):
         rows = sss.want_masts()
         counts = sss.sync(tables.read(paths.TABLES_XML), rows, sss.head_comments())
         self.assertEqual(counts, dict(NO_CHANGE, **{"masts kept": len(rows)}))

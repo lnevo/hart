@@ -1,4 +1,4 @@
-"""build_staging_masts.py: staging's masts by rule. The rule functions on small hand-written inputs (names, numbers,
+"""build_masts.py: staging's masts by rule. The rule functions on small hand-written inputs (names, numbers,
 control points, ordering, the rows it writes), main() on temporary files, and, as data checks under a guard that fails
 any write into the repo (repo_read_only.py), the repo's committed data.
 The wired heads have their own tests (tools/audit/tests/test_staging_wired_heads.py)."""
@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
-import build_staging_masts as bsm  # noqa: E402
+import build_masts as bsm  # noqa: E402
 import mast_plan  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import level_masts  # noqa: E402
@@ -43,13 +43,24 @@ def write_rows(path: Path, columns, rows) -> Path:
     return path
 
 
+class Carried(unittest.TestCase):
+    """The one place a rebuild reads a prior row's hand-owned cells (CARRIED)."""
+
+    def test_a_mast_keeps_its_node_and_a_head_its_notes(self):
+        prior = dict(layer="head", node="4", notes="one high head", comment="Node: 4")
+        self.assertEqual(bsm.carried(prior, "head"), {"notes": "one high head"})
+        self.assertEqual(bsm.carried(dict(prior, layer="mast"), "mast"), {"node": "4"})
+        self.assertEqual(bsm.carried(None, "head"), {})
+        self.assertEqual(bsm.CARRIED, {"mast": ("node",), "head": ("notes",)})
+
+
 class Names(unittest.TestCase):
     def test_internal_head_names(self):
         self.assertEqual(bsm.internal_head("Head 2R"), "IH:HART:C1:2R")
         self.assertEqual(bsm.internal_head("Head 24RA Top"), "IH:HART:C1:24RA_Top")
         self.assertEqual(bsm.internal_head("Head 67"), "IH:HART:C1:67")
         for bad in ("Mast 2R", "Head", "Head 2R Middle", "Head 2r", "head 2R", "Head 2R "):
-            with self.assertRaisesRegex(bsm.RuleError, r"is not named Head <key>"):
+            with self.assertRaisesRegex(bsm.RuleError, r"is not named Head <mast key>"):
                 bsm.internal_head(bad)
 
     def test_one_head_takes_the_masts_key_two_take_top_and_bottom(self):
@@ -151,7 +162,7 @@ class Generate(unittest.TestCase):
         self.assertEqual(got, dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West",
                                    protects="OS Switch 1", kind="two-searchlight", heads=2, dir="west", toward="1",
                                    run="1;", names=["Main West"], edge_cm=300.0, cm_from_toward=0.0, edge="e1",
-                                   node="N1", leg="A", strand="s", running=True, signal_kind="planned"))
+                                   node="N1", leg="A", strand="s", running=True, role="home", signal_kind="planned"))
 
     def test_an_anchor_mast_where_the_os_block_runs_past_the_leg(self):
         got = self.one(home("2R", "N1", "B"))
@@ -205,7 +216,7 @@ class Generate(unittest.TestCase):
         self.assertEqual(got, dict(mast="Mast 67", cp="Brick", switch="", facing="Track Scale", protects="OS Switch 1",
                                    kind="one-searchlight", heads=1, dir="west", toward="1", run="1;3", names=["Scale"],
                                    edge_cm=150.0, cm_from_toward=20.0, edge="e2", node="N1", milepost=6.7,
-                                   signal_kind="planned"))
+                                   role="intermediate", signal_kind="planned"))
 
     def test_direction_comes_from_the_rule(self):
         self.assertEqual(self.one(home("2L", "N1", "A"))["dir"], "west")
@@ -247,7 +258,7 @@ def device(layer, user, system, **more):
 
 
 class Rows(unittest.TestCase):
-    """The rows written to staging_masts.csv, staging_signals.csv and the staging rows of devices.csv."""
+    """The rows written to masts.csv (the mast columns and the plan facts) and the staging rows of devices.csv."""
 
     def test_mast_rows(self):
         wired = {"Mast 67": {"Head 67": device("head", "Head 67", "IH467")}}
@@ -258,17 +269,18 @@ class Rows(unittest.TestCase):
             dict(mast="Mast 67", cp="Princess", switch="", facing="Track K-2", protects="Track K-1", dir="west",
                  leg="", system_name="IF$shsm:basic:one-searchlight(IH467)", head_system_names="IH467=Head 67",
                  device_system_name="IF$shsm:basic:one-searchlight(IH467)")])
-        self.assertEqual(list(bsm.mast_rows(GEN, {})[0]), level_masts.FIELDS)
+        self.assertEqual(list(bsm.mast_rows(GEN, {})[0]), level_masts.MAST_FIELDS)
 
-    def test_signal_rows(self):
-        self.assertEqual(bsm.signal_rows(GEN), [
-            dict(mast="Mast 2L", signal="2L", toward="1", run="1;23", names="Main West", edge_cm="551.9",
-                 cm_from_toward="0.0", dir="west", signal_kind="planned", heads="2", schematic_edge="e9+e10",
-                 schematic_toward_node="N1"),
-            dict(mast="Mast 67", signal="67", toward="39", run="39;37", names="K-1;K-2", edge_cm="602.9",
-                 cm_from_toward="314.2", dir="west", signal_kind="field", heads="1", schematic_edge="e16",
-                 schematic_toward_node="N39")])
-        self.assertEqual(list(bsm.signal_rows(GEN)[0]), list(sdm.SIGNAL_COLUMNS))
+    def test_plan_facts(self):
+        """Each placed mast's plan facts, keyed by level and mast; its signal name, kind and heads are not facts of
+        their own (level_masts.signal_name, signal_kind, head_count give them from the row)."""
+        self.assertEqual(bsm.plan_facts(GEN), {
+            (1, "Mast 2L"): dict(toward="1", run="1;23", names="Main West", edge_cm="551.9", cm_from_toward="0.0",
+                                 schematic_edge="e9+e10", schematic_toward_node="N1"),
+            (1, "Mast 67"): dict(toward="39", run="39;37", names="K-1;K-2", edge_cm="602.9", cm_from_toward="314.2",
+                                 schematic_edge="e16", schematic_toward_node="N39")})
+        self.assertEqual(list(bsm.plan_facts(GEN)[(1, "Mast 2L")]), level_masts.PLAN_FIELDS)
+        self.assertEqual(set(bsm.plan_facts(GEN, level=2)), {(2, "Mast 2L"), (2, "Mast 67")})
 
     def test_csv_text_has_lf_ends_and_quotes_only_what_needs_it(self):
         text = bsm.csv_text([dict(a="1", b="x,y"), dict(a="", b='say "hi"')], ("a", "b"))
@@ -306,6 +318,16 @@ class Rows(unittest.TestCase):
                                                    comment="Brick | Switch 1",
                                                    notes="internal, not wired (owner, 2026-11-19)"))   # with its date
 
+    def test_with_roles_gives_each_row_the_role_the_rule_placed_it_with(self):
+        """A mast row's role is the one generate() or virtual_masts() placed it with, a head row's head: none is read
+        off a name (Mast 67 and Mast 2L are both named like the other kind on main and upper)."""
+        rows = [device("mast", "Mast 67", "x"), device("mast", "Mast 2L", SHSM_2L), device("head", "Head 67", "IH467")]
+        got = bsm.with_roles(rows, [dict(mast="Mast 67", role="home"), dict(mast="Mast 2L", role="intermediate")])
+        self.assertEqual([r["role"] for r in got], ["home", "intermediate", "head"])
+        self.assertEqual([{k: v for k, v in r.items() if k != "role"} for r in got], rows)
+        with self.assertRaisesRegex(bsm.RuleError, r"mast row\(s\) \['Mast 2L'\] the rule did not place"):
+            bsm.with_roles(rows, [dict(mast="Mast 67", role="home")])
+
     def test_device_rows_sort_by_plain_string_order(self):
         masts = [dict(mast=f"Mast {n}", cp="", switch="", facing="x", protects="", dir="east", system_name="IF$vsm:basic:one-low($1)",
                       head_system_names="") for n in ("8LA", "24L", "2L", "36RA", "4RA")]
@@ -320,9 +342,9 @@ class Cli(unittest.TestCase):
         tmp = tempfile.TemporaryDirectory()
         self.addCleanup(tmp.cleanup)
         self.dir = Path(tmp.name)
-        self.current = self.dir / "staging_masts.csv"
+        self.current = self.dir / "current.csv"
         self.current.write_text("mast\nMast 2L\n", encoding="utf-8")
-        self.stale = self.dir / "staging_signals.csv"
+        self.stale = self.dir / "masts.csv"
         self.stale.write_text("mast\nold\n", encoding="utf-8")
         self.missing = self.dir / "devices.csv"
         want = {self.current: "mast\nMast 2L\n", self.stale: "mast\nnew\n", self.missing: "level\n1\n"}
@@ -343,8 +365,8 @@ class Cli(unittest.TestCase):
         code, out, err = self.run_main("--check")
         self.assertEqual((code, out), (1, ""))
         self.assertEqual(err.splitlines(),
-                         ["staging_signals.csv is stale: run python3 tools/schematic/build_staging_masts.py",
-                          "devices.csv is stale: run python3 tools/schematic/build_staging_masts.py"])
+                         ["masts.csv is stale: run python3 tools/schematic/build_masts.py",
+                          "devices.csv is stale: run python3 tools/schematic/build_masts.py"])
         self.assertEqual(self.stale.read_text(encoding="utf-8"), "mast\nold\n")
         self.assertFalse(self.missing.exists())
 
@@ -352,7 +374,7 @@ class Cli(unittest.TestCase):
         before = self.current.stat().st_mtime_ns
         code, out, err = self.run_main()
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(out.splitlines(), ["wrote staging_signals.csv", "wrote devices.csv"])
+        self.assertEqual(out.splitlines(), ["wrote masts.csv", "wrote devices.csv"])
         self.assertEqual(self.stale.read_text(encoding="utf-8"), "mast\nnew\n")
         self.assertEqual(self.missing.read_text(encoding="utf-8"), "level\n1\n")
         self.assertEqual(self.current.stat().st_mtime_ns, before)
@@ -380,7 +402,7 @@ class Cli(unittest.TestCase):
         with unittest.mock.patch.object(bsm, "build", stop):
             code, out, err = self.run_main("--check")
         self.assertEqual((code, out), (2, ""))
-        self.assertEqual(err.strip(), "build_staging_masts.py: the rule names a mast twice: ['Mast 2L']")
+        self.assertEqual(err.strip(), "build_masts.py: the rule names a mast twice: ['Mast 2L']")
 
 
 class WriteGuard(unittest.TestCase):
@@ -414,7 +436,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.files = {p: p.read_bytes() for p in (bsm.MASTS, bsm.SIGNALS, bsm.DEVICE_MAP, bsm.device_files().master)}
+        cls.files = {p: p.read_bytes() for p in (bsm.MASTS, bsm.DEVICE_MAP, bsm.device_files().master)}
         cls.want, cls.gen, cls.virtual = bsm.build()
 
     def test_check_reports_the_committed_files_current_and_writes_nothing(self):
@@ -425,9 +447,9 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         for path, data in self.files.items():
             self.assertEqual(path.read_bytes(), data, path.name)
 
-    def test_build_gives_the_masts_signals_and_master(self):
+    def test_build_gives_the_masts_and_master(self):
         f = bsm.device_files()
-        self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, f.master})
+        self.assertEqual(set(self.want), {bsm.MASTS, f.master})
 
     def test_masts_are_in_number_then_name_order_each_named_once(self):
         for masts in (self.gen, self.virtual):
@@ -469,13 +491,21 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
             self.assertEqual(number % 2, 1 if m["dir"] == "west" else 0, m["mast"])
             self.assertLess(number, 100)
 
-    def test_the_files_list_the_rule_masts_first_then_the_virtual_ones(self):
-        rule = [m["mast"] for m in self.gen] + [m["mast"] for m in self.virtual]
-        self.assertEqual([r["mast"] for r in rows_of(self.want[bsm.MASTS])], rule)
-        self.assertEqual([r["mast"] for r in rows_of(self.want[bsm.SIGNALS])], rule)
+    def test_the_file_holds_every_level_in_level_number_and_name_order_the_placed_ones_with_plan_facts(self):
+        rows = rows_of(self.want[bsm.MASTS])
+        key = lambda r: (int(r["level"]), int("".join(c for c in r["mast"][5:] if c.isdigit())), r["mast"])  # noqa: E731
+        self.assertEqual(rows, sorted(rows, key=key))
+        self.assertEqual({r["level"] for r in rows}, {"1", "2", "3"})
+        placed = {m["mast"] for m in self.gen + self.virtual}
+        mine = [r for r in rows if r["level"] == str(bsm.PLANNED_LEVEL)]
+        self.assertEqual({r["mast"] for r in mine}, placed)
         virtual = {m["mast"] for m in self.virtual}
-        for r in rows_of(self.want[bsm.MASTS]):
-            self.assertEqual(r["system_name"].startswith("IF$vsm:"), r["mast"] in virtual, r["mast"])
+        for r in rows:
+            self.assertEqual(all(r[c] for c in ("toward", "run", "edge_cm")), r["mast"] in placed, r["mast"])
+            if r["mast"] in placed:
+                self.assertEqual(r["system_name"].startswith("IF$vsm:"), r["mast"] in virtual, r["mast"])
+        kinds = {m["mast"]: m["signal_kind"] for m in self.gen + self.virtual}
+        self.assertEqual({r["mast"]: level_masts.signal_kind(r) for r in mine}, kinds)
 
     def test_no_hand_kept_virtual_files_are_left(self):
         """The helix-foot masts were the last hand-kept ones (2026-11-20): the files that held them are gone."""
@@ -492,7 +522,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         self.assertEqual([r["layer"] for r in new[len(other):]], ["mast"] * len(masts) + ["head"] * len(heads))
         self.assertEqual(masts, sorted(masts))
         self.assertEqual(heads, sorted(heads))
-        self.assertEqual(sorted(masts), sorted(r["mast"] for r in rows_of(self.want[bsm.MASTS])))
+        self.assertEqual(sorted(masts), sorted(r["mast"] for r in rows_of(self.want[bsm.MASTS]) if r["level"] == "1"))
 
 
 if __name__ == "__main__":

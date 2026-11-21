@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 from hartlib import devices, paths, railroad, tables  # noqa: E402
-from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
+from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
     band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
 )
@@ -97,15 +97,17 @@ def plan_lengths() -> dict:
 
 
 MM_PER_INCH = 25.4
-MAIN_UPPER_MASTS = level_masts_lib.PATH      # build_main_upper_masts.py, from the device map
+MASTS = level_masts_lib.PATH      # masts.csv, every level's (build_masts.py)
+# the levels the build adds (main and upper), whose masts it draws on internal heads: every level the base holds none of
+ADDED_LEVELS = tuple(lv for lv in level_masts_lib.LEVELS if lv not in BASE_LEVELS)
 
 
-def read_level_masts(path: Path = MAIN_UPPER_MASTS) -> list[dict]:
-    """main_upper_masts.csv's rows (hartlib.level_masts.read: each with `heads` as [(internal system name, user
-    name)], every head internal), checked again against signal_coordinator.py's own test: no mast or head on a name
-    it would enrol or publish (lcos_named)."""
+def read_level_masts(path: Path = MASTS) -> list[dict]:
+    """masts.csv's rows of the levels the build adds (ADDED_LEVELS; hartlib.level_masts.read: each with `heads` as
+    [(internal system name, user name)]), checked again against signal_coordinator.py's own test: no mast or head on
+    a name it would enrol or publish (lcos_named)."""
     try:
-        rows = level_masts_lib.read(path)
+        rows = level_masts_lib.read(path, levels=ADDED_LEVELS)
     except ValueError as exc:
         raise BuildError(str(exc)) from None      # hartlib names the file and the line itself
     bad = lcos_named([r["system_name"] for r in rows] + [h for r in rows for h, _u in r["heads"]])
@@ -150,7 +152,7 @@ def lcos_named(names: list[str]) -> list[str]:
 
 def level_masts(names: dict, rows: list[dict], skip: set) -> None:
     """Give each main and upper band in `names` (every key but `skip`: the bands of a level the base holds,
-    le_common.base_keys) its masts (main_upper_masts.csv rows) for the plugin: each in the
+    le_common.base_keys) its masts (masts.csv rows) for the plugin: each in the
     band whose drawing has its facing track and its protected OS block (127-221 and Helix Inner meet Switches 127 and 131
     on the upper band), as a turnout mast with its icon's size (hartlib.tables.mast_icon_size) and `leg` where two
     masts share one facing and protected block; a virtual mast (a destination, no switch) hidden in the end bumper
@@ -366,17 +368,40 @@ def shared_turnouts(names: dict, skip: set) -> None:
             nm["shared_turnouts"] = sorted(t for t in set(nm["turnouts"].values()) if len(bands_of[t]) > 1)
 
 
-def named_bands(bands, names: dict):
+def block_roles(path: Path = DEVICE_MAP) -> dict[str, str]:
+    """{block: role} of the main and upper block rows of the device map at `path`, parts among them (placed rows of
+    levels 2 and 3 only: a Store's level-less row is no block of the drawing). BuildError when the map cannot be
+    read."""
+    out = {name: r.role for name, r in main_upper_device_map(path).blocks.items()}
+    try:
+        out.update((r["user_name"], r["role"]) for _line, r in devices.part_lines(("2", "3"), path))
+    except railroad.FactsError as exc:
+        raise BuildError(f"the device map: {exc}") from None
+    return out
+
+
+def named_bands(bands, names: dict, roles: dict[str, str] | None = None):
     """A copy of `bands` in which each main and upper track block is named on one of its tracks (the longest; its
     name the block's without "Track "), so the plugin's label layer writes the device-map track names there; every
     other main and upper track is unnamed, but a helix track keeps its plan name (Helix Outer, Helix Inner): the
     plugin joins the helix ends of two levels by that name (le.partners) and draws its track_labels label (McKees
-    Rocks for Helix Outer) in its place. A band of a
+    Rocks for Helix Outer) in its place. A track block is a line block by its role (devices.LINE_ROLES, a part among
+    them; an OS block or crossover corner is not) in `roles` (block_roles: default the main and upper rows of
+    DEVICE_MAP, the map level_names reads by default; give block_roles(path) for names made from another map): a
+    block it does not hold stops with BuildError. A band of a
     level the base holds (BASE_LEVELS: staging, by its level) is left as it is. `bands` are the solved sheet's,
     titles unchanged, as for placeholder_names: a band plan_overrides.json does not title stops with BuildError.
     The label options (preferences.json[main_upper]'s le_labels and le_band_labels, a name left off the panel among
     them: hidden_names) reach the plugin through each band's own preferences, unchanged here."""
     out = []
+
+    def line_block(block: str) -> bool:
+        nonlocal roles
+        roles = block_roles() if roles is None else roles      # read once a band names a block
+        if block not in roles:
+            raise BuildError(f"the device map has no main or upper block row {block!r}")
+        return roles[block] in devices.LINE_ROLES
+
     for (title, band, opts), level in zip(bands, band_levels(bands)):
         if level in BASE_LEVELS:
             out.append((title, band, opts))
@@ -399,7 +424,7 @@ def named_bands(bands, names: dict):
         for sid, blocks in names[key]["blocks"].items():
             if len(blocks) != 1:
                 raise BuildError(f"{title}: track {sid} has blocks {blocks}, not one")
-            if blocks[0].startswith("Track "):
+            if line_block(blocks[0]):
                 by_block[blocks[0]].append(sid)
         helix = {sid for sid, s in band["strands"].items()
                  if any(nodes[e[0]].get("sub") == "helix" for e in (s["src"], s["dst"]))}

@@ -13,7 +13,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib import devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
-from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv and its virtual names
+from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
     BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, main_upper_device_map, TURNOUT_SYS,
 )
@@ -446,10 +446,10 @@ def level_sensors(path: Path = DEVICE_MAP) -> dict:
     sensor (owner, 2026-11-20). Stops on a block with no occupancy row, a row whose jmri_name is not the block's, or a
     part whose block has none."""
     device = main_upper_device_map(path)               # read and checked by hartlib.railroad
-    occ = device.by_user("occupancy")
+    occ = device.occupancy                             # {block: the occupancy row serving it}, by its blocks column
     out, bad = {}, []
     for block in device.blocks:
-        o = occ.get(level_devices.occupancy_user(block))
+        o = occ.get(block)
         try:
             want = level_devices.block_sensor(block)
         except ValueError as exc:
@@ -749,7 +749,7 @@ VIRTUAL_MAST_CLASS = "jmri.implementation.configurexml.VirtualSignalMastXml"
 
 
 def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
-    """Main and upper: each mast of main_upper_masts.csv as a SignalHeadSignalMast over VirtualSignalHeads, under
+    """Main and upper: each of their masts in masts.csv as a SignalHeadSignalMast over VirtualSignalHeads, under
     the device map's user names on its virtual system names (jmri_name, from the head's user name; read_level_masts
     checks them), so nothing reaches MQTT or the field; each comment gives its CP, switch and the planned physical
     device (the device map's system_name, a draft). A virtual mast (a destination at a buffer stop, no heads) is a

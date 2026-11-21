@@ -41,6 +41,10 @@ Why not `pip install -e`:
 
 ## API
 
+### `hartlib.film_pace`
+
+`STEP_S` (0.4) and `FINAL_HOLD_S` (2.0), the pace of the four films on `www/behind/panel-evolution.html`; `durations(n)` and `film_length(n)`. Used by `tools/schematic/evolution.py` and `tools/ctc_history/make_*_evolution_video.py`.
+
 ### `hartlib.paths`
 
 Every path names a file in **this** checkout, the one hartlib sits in. `HART_REPO_ROOT`
@@ -125,17 +129,15 @@ checked together. `python3 -m hartlib.railroad check` (in `tools/check.sh`) runs
 ```python
 rr = railroad.Railroad()                  # this checkout's files; Railroad(Sources.under(data_dir), upto=...)
 rr.switches[9].legs[0].closed             # staging switches (the level 1 rows of switches.csv + devices.csv)
-rr.device_map.sensors["BS Switch 101"]    # IS:HART:C3:B:OS101
+rr.device_map.occupancy["OS Switch 101"].jmri_name    # IS:HART:C3:B:OS101
 rr.check()                                # [Problem(invariant, message)]
 ```
 
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
 `switches.csv` (every level's switches, ADR-021), staging's rows of `devices.csv`, `interlockings.csv` (every level),
-`lcos_nodes.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`,
-`schematic/staging_masts.csv`), `hands` (the main and upper hands of `switches.csv`, which `build_hands.py` writes into its plan rows), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
+`lcos_nodes.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`), `hands` (the main and upper hands of `switches.csv`, which `build_hands.py` writes into its plan rows), `device_map`, `masts` (`schematic/masts.csv`, every level's masts) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
-stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `build_main_upper_masts.py`
-`upto="device_map"`, `build_cats_panel.py` everything.
+stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `build_cats_panel.py` everything.
 
 | Name | What |
 |------|------|
@@ -143,9 +145,9 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to its level's shape); `{number: Switch}` of its staging rows (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
-| `Railroad.block_lengths`, `staging_masts`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `[StagingMast]`, `{label: Hand}` |
-| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `sensors`, `planned`, `turnouts`, `heads_by_system`, `of(layer)` |
-| `Railroad.level_masts` | `hartlib.level_masts.read()` rows |
+| `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `{label: Hand}` |
+| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `occupancy` (block -> its occupancy row), `turnouts`, `heads_by_system`, `of(layer)` |
+| `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
 | `read_*(path)` | each file alone; `FactsError` names the file and line |
 | `check_virtual_names(rows)`, `join_main_upper(cps, local)` | the rules `build_device_map.py` builds by |
@@ -176,6 +178,22 @@ columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `sy
   names, node, wiring, comment, notes, `cp`) over from the row it replaces, so `replace_rows` stops a writer that would
   drop the row of a staging field device (`carries_field_facts`: assignment field or spare, not a panel status bean)
   without naming it in `drops`; a rule's virtual mast, head or part, or a status bean, may go. A line block (`LINE_ROLES`) and its sensor list in `cp` the places it joins, `;` between (`build_device_map.line_cp`); any other row has one control point at most, and `check_rows` holds it.
+- A device's kind comes from its row, never from its name (hand-off row 8): `row_role(row, where)` is a row's `role`
+  and stops with a `DevicesError` naming `where` (file and line) when the row has none; `is_os(row)` says whether a block
+  or occupancy row runs through a switch's points (`OS_ROLES`: `os`, `xover_corner`). A reader that holds only a name
+  uses `index()`, the master by (layer, user name), built once per file state: `rows(layer, name)` (one per level the
+  device is on; a helix block has two), `role(layer, name)` (stops when the rows disagree, naming their lines),
+  `is_os(block)`, `names(layer, roles=, levels=)` (a role query leaves out a device not on the layout yet, a
+  level-less row with no role), `has(layer, name)`, `is_unplaced(layer, name)` and `where(row)` (the row's
+  "devices.csv line N" for a message). No reader falls back to a name prefix; a tables.xml bean with no row is
+  named in a warning and left out.
+  A writer states the role of every row it makes (part B): `master_row` takes it from the row (`role`, one of
+  `ROLES`) and stops on a row with none, and `railroad.DeviceRow` has no role default (a row with none stops, naming
+  its line). `build_device_map` gives each row the role of what it builds (a line block's from its track's ends:
+  `line_role`), `build_masts` the role the mast rule placed each mast with (`with_roles`). A block's occupancy row is
+  found by its `blocks` column (`DeviceMap.occupancy`), not by building the sensor's name. Kept on purpose:
+  `level_devices.block_key` and `occupancy_user`, the owner's naming rule that builds a virtual sensor's name from
+  its block's name (2026-11-17), with the checks that hold the rows to it (`check_virtual_names`, `read_device_map`).
 - `layout_block` (staging block rows) is the block's JMRI layout block (`ILB...`), which JMRI numbered once; the
   main and upper layout blocks are numbered by the Layout Editor build. A wired head's comment is its `wiring`.
 
@@ -218,16 +236,23 @@ table, say), never a second copy of a known one. Errors are `SplitError`.
 
 ### `hartlib.level_masts`
 
-The main and upper levels' control-point masts: `PATH` (`main_upper_masts.csv`, written by
-`tools/schematic/build_main_upper_masts.py`), `read()` (rows with their `heads` as system=user pairs; see below), `names()`,
-`head_name()` (the virtual head from its user name: "Head 108R Top" -> IH:HART:C3:108R_Top, never from the draft
-physical head), `mast_heads()`, `is_level_head()` and `is_level_mast()`. Used by `build_layout_le.py`,
-and `audit_panel_contracts.py`.
+Every level's masts, one file with a `level` column (owner, 2026-11-21: the level is a column): `PATH`
+(`schematic/masts.csv`, written by `tools/schematic/build_masts.py` from the mast and head rows of `devices.csv`),
+`FIELDS` (`level`, the mast columns and `PLAN_FIELDS`, the plan facts the drawing places a mast by: filled for the
+masts `build_masts.py` places from a block layer of its own, staging today, and empty on main and upper, whose
+`build_signals.py` places from the plan graph), `read(path, levels=...)` (the rows of `levels`, by keyword, every level when `None`,
+each with `level`, `line` and `heads` as system=user pairs), `names(levels=...)`, `visible_names(levels=...)`,
+`head_name(user, level)` (a head's internal name from its user name and level: "Head 2L Top" on level 1 ->
+IH:HART:C1:2L_Top, "Head 108R Top" on level 2 -> IH:HART:C3:108R_Top, never from a draft physical head),
+`head_problem()`, `signal_name()`, `signal_kind()` and `head_count()` (what the drawings show, from the row),
+`mast_heads()`, `virtual_level()`, `is_level_head()` and `is_level_mast()`.
 
-`read()` goes through `railroad.read_rows` and stops with `railroad.FactsError` (a `ValueError`), naming the file and
-the line, when the header lacks a `FIELDS` column, a row is shorter or longer than the header, a row has no mast
-name, a mast is named twice, or a row's heads are not system=user pairs of the virtual heads in its system name. A
-column beyond `FIELDS` is allowed and left out of the rows.
+`read()` checks the whole file whatever `levels` is and stops with `railroad.FactsError` (a `ValueError`), naming
+the file and the line, when the header is not `FIELDS`, a row is shorter or longer than the header, a level is not
+1, 2 or 3, a mast name is out of the grammar or given twice (on any level), a dir or leg is not one of its values, a
+row has some plan facts and not all, or a row's heads are not system=user pairs of its system name's heads, each its
+level's internal name or, on `WIRED_LEVELS` (staging), a wired LCOS head (main and upper heads stay internal, so nothing
+of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at a buffer stop.
 
 ### `hartlib.parked`
 

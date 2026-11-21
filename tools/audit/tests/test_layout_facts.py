@@ -237,7 +237,7 @@ class LayoutFactsTest(unittest.TestCase):
         out = self.failures(desks=(self.copy(check.DESKS[0], lambda t: t.replace(">Mast 24L<", ">Mast 24LX<", 1)),
                                    check.DESKS[1]))
         self.assertIn("Mast 24L: HART_CTC.xml has 0 lamps for it, not one", out)
-        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, staging_masts.csv has no such visible mast", out)
+        self.assertIn("Mast 24LX: HART_CTC.xml has a lamp for it, masts.csv has no such visible mast", out)
 
     def test_a_mast_on_the_wrong_block_edge_fails(self) -> None:
         # Mast 24L protects OS Switch 23a: its lamp on another block's edge is named
@@ -251,7 +251,7 @@ class LayoutFactsTest(unittest.TestCase):
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move), check.DESKS[1]))
         self.assertIn("Mast 24L: HART_CTC.xml has its lamp on the edge of Track West Ext, but it protects "
-                      "OS Switch 23a (staging_masts.csv)", out)
+                      "OS Switch 23a (masts.csv)", out)
 
     def test_mast_cells_are_not_checked_while_the_uss_board_is_parked(self) -> None:
         # mast_cells.csv and the board's grid are the parked USS machine's (owner, 2026-11-19): a wrong head or a
@@ -280,7 +280,7 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertEqual(report.failures(known),
                          ["EH-1: GUIObjects.xml labels (1,1) 'EH-1'; the CATS desk does not"])
 
-    # ---- main and upper: plants on internal turnouts, masts from main_upper_masts.csv
+    # ---- main and upper: plants on internal turnouts, masts from masts.csv
 
     def test_main_and_upper_pass_on_the_release_candidate_tables(self) -> None:
         candidate = check.HART / "output/trial/tables_cutover.xml"
@@ -440,7 +440,7 @@ class LayoutFactsTest(unittest.TestCase):
 
         out = self.failures(desks=(self.copy(check.DESKS[0], move),))
         self.assertIn("Mast 226RA: HART_CTC.xml has its lamp on the edge of Track 225-229, but it protects "
-                      "OS Switch 225a (main_upper_masts.csv)", out)
+                      "OS Switch 225a (masts.csv)", out)
 
     def test_desk_legs_name_the_layout_editor_tracks_inside_os_blocks(self) -> None:
         self.assertTrue(check.same_place("OS Switch 107", "Track 107-109"))

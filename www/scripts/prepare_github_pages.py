@@ -11,7 +11,10 @@ deploy from a worktree without media/ cannot strip the photos). The build fails
 if the output still names local hosts or paths. (The file name predates the move
 off GitHub Pages.)
 
-Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors]
+Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors] [--full]
+
+The photo stages are reused from the last full run when their inputs are unchanged (see PHOTO_CODE_VERSION);
+--full runs them anyway.
 """
 
 from __future__ import annotations
@@ -1109,6 +1112,255 @@ def _unsafe_dest(dest: Path) -> bool:
     return any(dest == p or dest in p.parents for p in (repo, PORTAL))
 
 
+def _scrub_site_json(dest: Path) -> None:
+    """Stage 3: mark data/site.json public, empty the engineering desk link and drop the localhost tool URLs."""
+    site_path = dest / "data" / "site.json"
+    site = json.loads(site_path.read_text(encoding="utf-8"))
+    site["engDesk"] = ""
+    site["public"] = True
+    site.pop("tools", None)  # localhost service URLs
+    site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def _vendor_logos(dest: Path) -> None:
+    """Stage 4: copy the ../external/ logos named in the industry and lineage data into assets/logos/."""
+    _vendor_json_logos(dest / "data" / "industries.json", dest)
+    for lineage in sorted((dest / "data").glob("*-lineage.json")):  # Who became who charts
+        _vendor_json_logos(lineage, dest)
+
+
+def _vendor_photos(dest: Path) -> None:
+    """Stage 5: vendor, filter and thumbnail the gallery, fleet and archive photos (in this order per file)."""
+    _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
+    _filter_gallery(dest / "data" / "gallery.json", dest)
+    _gallery_thumbs(dest / "data" / "gallery.json", dest, "gallery")
+    _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
+    _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
+    _gallery_thumbs(dest / "data" / "fleet-gallery.json", dest, "fleet")
+    _vendor_archive_images(dest / "data" / "archive.json", dest)
+
+
+def _provenance_stage(dest: Path) -> bool:
+    """Stage 9: provenance tags, llms.txt, robots.txt, sitemap. False (said on stderr) when a page has no rule."""
+    unclassified = _add_provenance(dest)
+    if unclassified:
+        print("Pages missing from scripts/provenance.json (prototype, fiction, hobby or mixed):", file=sys.stderr)
+        print("\n".join("  " + p for p in unclassified), file=sys.stderr)
+        return False
+    return True
+
+
+def _leak_stage(dest: Path) -> bool:
+    """Stage 12: False (said on stderr) when the finished tree names a local host or path."""
+    leaks = _check_leaks(dest)
+    if leaks:
+        print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)
+        print("\n".join("  " + h for h in leaks), file=sys.stderr)
+        return False
+    return True
+
+
+def _search_stage(dest: Path) -> None:
+    """Stage 13: the search index over the finished tree."""
+    index = build_search_index(dest)
+    print(f"Search index: {len(index['records'])} records")
+
+
+# The photo group (logos, photo vendor/filter/thumbs/archive, card thumbs, WebP) reads every original and re-encodes
+# the large JPEGs, which is most of a build. Its outputs are saved under the JPEG cache after a full run, with a stamp
+# of its inputs; a later build whose stamp matches copies them back and reads no original. The text group (copy,
+# page fills, scrubs, head tags, provenance, leak check, search) always runs. Any doubt runs the photo group in full.
+# PHOTO_CODE_VERSION: bump it when the group's output changes in a way its source text does not show.
+PHOTO_CODE_VERSION = "1"
+PHOTO_STORE = "photo-group"
+_PHOTO_JSON = ("data/industries.json", "data/gallery.json", "data/fleet-gallery.json", "data/archive.json")
+
+
+@functools.lru_cache(maxsize=None)
+def _photo_code_key() -> str:
+    """The version constant plus the source of every function the photo group runs, so editing one misses the stamp."""
+    funcs = (_vendor_logos, _vendor_json_logos, _vendor_logos_in, _vendor_logo, _vendor_photos, _vendor_fleet_images,
+             _filter_gallery, _keep_src, _gallery_thumbs, _vendor_archive_images, _web_jpeg, _card_thumbs, _webp_companions)
+    h = hashlib.sha256(PHOTO_CODE_VERSION.encode())
+    for f in funcs:
+        h.update(inspect.getsource(f).encode())
+    try:
+        h.update(_render_key())
+    except ImportError:      # no Pillow: _photo_load says so and every stage runs as it always did
+        h.update(b"no-pillow")
+    h.update(Path(share_cards.__file__).read_bytes())
+    return h.hexdigest()
+
+
+def _named_sources(node: object):
+    """Every source file a data file names: src, thumb and pdf (mirror or site-local, not a URL) and logo ("../")."""
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if isinstance(value, str) and value:
+                if key == "logo" and value.startswith("../"):
+                    yield value
+                elif key in ("src", "thumb", "pdf") and not value.startswith(("http://", "https://")):
+                    yield value
+            else:
+                yield from _named_sources(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _named_sources(value)
+
+
+def _early_stamp(dest: Path) -> str:
+    """Hash of what the logo and photo stages read: the data files as copied into dest, the manifest, the code, and
+    the path, size, mtime, inode and ctime of every file those data files name (missing ones too)."""
+    h = hashlib.sha256(_photo_code_key().encode())
+    files = [dest / rel for rel in _PHOTO_JSON] + sorted((dest / "data").glob("*-lineage.json"))
+    named: set[str] = set()
+    for f in files:
+        h.update(f.name.encode())
+        if f.is_file():
+            raw = f.read_bytes()
+            h.update(raw)
+            named.update(_named_sources(json.loads(raw)))
+    h.update(json.dumps(_manifest(), sort_keys=True).encode())
+    for rel in sorted(named):
+        try:
+            src = _source(rel)
+            st = src.stat()
+            h.update(f"|{rel}:{src}:{st.st_size}:{st.st_mtime_ns}:{st.st_ino}:{st.st_ctime_ns}".encode())
+        except OSError:
+            h.update(f"|{rel}:missing".encode())
+    return h.hexdigest()
+
+
+def _tree_state(dest: Path) -> dict[str, tuple[int, int]]:
+    state = {}
+    for p in dest.rglob("*"):
+        if p.is_file():
+            st = p.stat()
+            state[p.relative_to(dest).as_posix()] = (st.st_size, st.st_mtime_ns)
+    return state
+
+
+def _photo_store(part: str) -> Path | None:
+    cache = _jpeg_cache()
+    return cache / PHOTO_STORE / part if cache is not None else None
+
+
+def _photo_load(part: str, stamp: str, full: bool) -> tuple[Path, dict] | str:
+    """The saved output of one part when its stamp matches, else the reason it cannot be reused."""
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        return "Pillow is missing"
+    if full:
+        return "--full"
+    store = _photo_store(part)
+    if store is None:
+        return "the photo cache is off"
+    try:
+        meta = json.loads((store / "stamp.json").read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return "no saved run"
+    except (OSError, ValueError):
+        return "saved stamp unreadable"
+    if not isinstance(meta, dict) or meta.get("stamp") != stamp:
+        return "inputs changed"
+    files = meta.get("files")
+    if not isinstance(files, dict) or any(
+        not (store / "files" / rel).is_file() or (store / "files" / rel).stat().st_size != size for rel, size in files.items()
+    ):
+        return "saved files incomplete"
+    return store, meta
+
+
+def _photo_restore(store: Path, meta: dict, dest: Path) -> None:
+    for rel in meta["files"]:
+        out = dest / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(store / "files" / rel, out)   # fresh time stamp, as _web_jpeg does
+
+
+def _photo_save(part: str, stamp: str, dest: Path, before: dict, extra: dict | None = None) -> None:
+    """Keep the files a part added or rewrote in dest, with the stamp, replacing the last saved run."""
+    store = _photo_store(part)
+    if store is None:
+        return
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        return
+    after = _tree_state(dest)
+    changed = sorted(rel for rel, st in after.items() if before.get(rel) != st)
+    tmp = store.with_name(f"{store.name}.{os.getpid()}.tmp")
+    try:
+        shutil.rmtree(tmp, ignore_errors=True)
+        for rel in changed:
+            out = tmp / "files" / rel
+            out.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(dest / rel, out)
+        meta = {"stamp": stamp, "files": {rel: after[rel][0] for rel in changed}, **(extra or {})}
+        (tmp / "stamp.json").write_text(json.dumps(meta), encoding="utf-8")
+        store.parent.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(store, ignore_errors=True)
+        os.replace(tmp, store)
+    except OSError as exc:
+        print(f"photo stages: could not save this run for reuse ({exc})", file=sys.stderr)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _photo_early(dest: Path, full: bool) -> tuple[str, set[str], bool]:
+    """Logos and photos (stages 4 and 5), reused when the stamp matches. Returns the stamp, the files it wrote and
+    whether the saved run was reused."""
+    stamp = _early_stamp(dest)
+    got = _photo_load("early", stamp, full)
+    if isinstance(got, tuple):
+        store, meta = got
+        _photo_restore(store, meta, dest)
+        print(f"photo stages: reused the saved run ({len(meta['files'])} files), no original read")
+        return stamp, set(meta["files"]), True
+    print(f"photo stages: full run ({got})")
+    before = _tree_state(dest)
+    _vendor_logos(dest)
+    _vendor_photos(dest)
+    _photo_save("early", stamp, dest, before)
+    after = _tree_state(dest)
+    return stamp, {rel for rel, st in after.items() if before.get(rel) != st}, False
+
+
+def _late_stamp(dest: Path, early_stamp: str, early_files: set[str]) -> str:
+    """Card thumbs and WebP read the finished pages and the JPEGs: hash every file but the photos the early stamp covers."""
+    h = hashlib.sha256(_photo_code_key().encode())
+    h.update(f"|{early_stamp}|{SITE_URL}|".encode())
+    if share_cards.CARDS.is_file():
+        h.update(share_cards.CARDS.read_bytes())   # the cards and links _card_thumbs reads
+    for p in sorted(dest.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(dest).as_posix()
+        if rel in early_files and p.suffix.lower() != ".json":
+            continue
+        h.update(f"|{rel}|".encode())
+        h.update(p.read_bytes())
+    return h.hexdigest()
+
+
+def _photo_late(dest: Path, early_stamp: str, early_files: set[str], full: bool) -> None:
+    """Card thumbs and WebP (stages 10 and 11), reused when the pages and photos they read are unchanged."""
+    stamp = _late_stamp(dest, early_stamp, early_files)
+    got = _photo_load("late", stamp, full)
+    if isinstance(got, tuple):
+        store, meta = got
+        _photo_restore(store, meta, dest)
+        print(f"WebP companions: {meta['saved'] // 1024} KB smaller than the JPEGs they stand beside")
+        return
+    print(f"photo stages, card thumbs and WebP: full run ({got})")
+    before = _tree_state(dest)
+    _card_thumbs(dest)
+    saved = _webp_companions(dest)
+    print(f"WebP companions: {saved // 1024} KB smaller than the JPEGs they stand beside")
+    _photo_save("late", stamp, dest, before, {"saved": saved})
+
+
 def main() -> int:
     global SITE_URL
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
@@ -1119,6 +1371,7 @@ def main() -> int:
         action="store_true",
         help="stop when a public photo's gitignored original (media/, ops/car-cards/) or Pillow is missing",
     )
+    parser.add_argument("--full", action="store_true", help="run every photo stage even when the saved run of them still fits")
     args = parser.parse_args()
     if args.require_mirrors and (missing := _missing_mirrors()):
         print(
@@ -1138,45 +1391,22 @@ def main() -> int:
         shutil.rmtree(dest)
     _copy_published(dest)
     _refresh_tables_page(dest)
-
-    site_path = dest / "data" / "site.json"
-    site = json.loads(site_path.read_text(encoding="utf-8"))
-    site["engDesk"] = ""
-    site["public"] = True
-    site.pop("tools", None)  # localhost service URLs
-    site_path.write_text(json.dumps(site, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-
-    _vendor_json_logos(dest / "data" / "industries.json", dest)
-    for lineage in sorted((dest / "data").glob("*-lineage.json")):  # Who became who charts
-        _vendor_json_logos(lineage, dest)
-    _vendor_fleet_images(dest / "data" / "gallery.json", dest, subdir="gallery")
-    _filter_gallery(dest / "data" / "gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "gallery.json", dest, "gallery")
-    _vendor_fleet_images(dest / "data" / "fleet-gallery.json", dest)
-    _filter_gallery(dest / "data" / "fleet-gallery.json", dest)
-    _gallery_thumbs(dest / "data" / "fleet-gallery.json", dest, "fleet")
-    _vendor_archive_images(dest / "data" / "archive.json", dest)
+    _scrub_site_json(dest)
+    early_stamp, early_files, reused = _photo_early(dest, args.full)
     _strip_external_data(dest)
 
     # 404.html is a tracked page (site-root links); the web server must point error_page 404 at it
     # (nginx; .htaccess is ignored).
     _strip_local_only_pages(dest)
     _add_head_tags(dest)
-    unclassified = _add_provenance(dest)
-    if unclassified:
-        print("Pages missing from scripts/provenance.json (prototype, fiction, hobby or mixed):", file=sys.stderr)
-        print("\n".join("  " + p for p in unclassified), file=sys.stderr)
+    if not _provenance_stage(dest):
         return 1
-    _card_thumbs(dest)
-    print(f"WebP companions: {_webp_companions(dest) // 1024} KB smaller than the JPEGs they stand beside")
-    leaks = _check_leaks(dest)
-    if leaks:
-        print("Local hosts or paths in the public tree; fix the source or skip the file:", file=sys.stderr)
-        print("\n".join("  " + h for h in leaks), file=sys.stderr)
+    _photo_late(dest, early_stamp, early_files, args.full)
+    if not _leak_stage(dest):
         return 1
-    index = build_search_index(dest)
-    print(f"Search index: {len(index['records'])} records")
-    _prune_jpeg_cache()
+    _search_stage(dest)
+    if not reused:      # a reused run touches no cache entry, so pruning by last use would empty the cache
+        _prune_jpeg_cache()
     print(f"Prepared public portal tree → {dest}", flush=True)
     return 0
 

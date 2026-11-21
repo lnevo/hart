@@ -37,7 +37,7 @@ from types import MappingProxyType
 from typing import Iterable, Mapping
 
 from . import names, paths
-from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, FactsError
+from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 
 LEVELS = ("1", "2", "3")
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head", "sensor")   # also the order within a level
@@ -45,11 +45,14 @@ ASSIGNMENTS = ("field", "virtual", "none", "spare")
 # the roles of a line block (and its occupancy sensor): a block between switches, whose cp is a list of the places it
 # joins (build_device_map.line_cp); every other device sits in one control point at most
 LINE_ROLES = ("track", "helix", "part", "loop_half", "spur")
+# the roles of a block through a switch's points (and its occupancy sensor): an OS block, or a corner of a double
+# crossover; readers test these (is_os, Index.is_os), never an "OS Switch " prefix
+OS_ROLES = ("os", "xover_corner")
 ROLES = ("turnout", "lcc_alias", "fb", "os", "xover_corner", "track", "spur", "loop_half", "helix",
          "home", "intermediate", "hidden", "head", "spare", "panel_status", "part")
 # The scripts that write rows (the one list: a merge of builders changes only this). Order is the order of rows
 # within a (level, layer) after the hand-kept ones.
-WRITERS = ("build_staging_masts.py", "build_device_map.py", "build_main_upper_masts.py", "panel_items.json")
+WRITERS = ("build_masts.py", "build_device_map.py", "panel_items.json")
 # roles the two device maps leave out: a spare detector, a panel status bean, and a part (a block row with part_of: a
 # piece of track inside another block: a JMRI block on its block's occupancy sensor, built by its level's builder, with
 # no occupancy row or detector of its own)
@@ -116,6 +119,14 @@ def _read(name: str, data: bytes) -> tuple[Mapping[str, str], ...]:
     return tuple(rows)
 
 
+def parse(text: str, name: str = "devices.csv") -> tuple[Mapping[str, str], ...]:
+    """The rows of a master's text (one outputs_after gives, before it is written), checked as load checks the file.
+    DevicesError naming `name` on any problem."""
+    rows = _read(name, text.encode("utf-8"))
+    check_rows(rows, name)
+    return rows
+
+
 def _master_path(source: "Files | Path | str | None") -> Path:
     if source is None:
         return Files.here().master
@@ -150,6 +161,108 @@ def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = No
     """(line of the master, row) of each part of `levels` (role part: a piece of track inside another block, part_of
     naming it), which the device maps leave out (OUT_OF_MAPS), in master order."""
     return [(n, dict(r)) for n, r in enumerate(load(source), 2) if r["level"] in levels and r["role"] == "part"]
+
+
+# ---------------------------------------------------------------- a device's kind, from its row
+
+def row_role(row: Mapping[str, str], where: str = "devices.csv") -> str:
+    """The role column of `row` (ROLES). DevicesError naming `where` (the file and line) and the row when the row has
+    no role column or an empty one: a reader asks the row what a device is, never its name (hand-off row 8)."""
+    role = row.get("role", "")
+    if not role:
+        raise DevicesError(f"{where}: {row.get('layer', '?')} {row.get('user_name', '?')!r} has no role "
+                           f"(one of {', '.join(ROLES)})")
+    return role
+
+
+def is_os(row: Mapping[str, str], where: str = "devices.csv") -> bool:
+    """Whether a block or occupancy row is the block through a switch's points (OS_ROLES), by its role."""
+    return row_role(row, where) in OS_ROLES
+
+
+@dataclass(frozen=True)
+class Index:
+    """The master's rows by (layer, user name), each with its line: the one lookup for a reader that holds a device's
+    name and needs its row's facts (role, level, layer). Built by index()."""
+    path: Path
+    by_key: Mapping[tuple[str, str], tuple[tuple[int, Mapping[str, str]], ...]]
+    lines: tuple[tuple[int, Mapping[str, str]], ...]
+
+    def rows(self, layer: str, name: str) -> tuple[tuple[int, Mapping[str, str]], ...]:
+        """(line, row) of every row of `layer` named `name`: one per level the device is on (a helix block is a row
+        on staging and one on its main or upper level). DevicesError when there is none."""
+        got = self.by_key.get((layer, name))
+        if not got:
+            raise DevicesError(f"{self.path.name}: no {layer} row {name!r}")
+        return got
+
+    def role(self, layer: str, name: str) -> str:
+        """The role of the `layer` device `name`. DevicesError when it has no row, a row with no role, or rows on two
+        levels that give it different roles (naming their lines)."""
+        got = self.rows(layer, name)
+        roles = {row_role(r, f"{self.path.name} line {n}") for n, r in got}
+        if len(roles) != 1:
+            raise DevicesError(f"{self.path.name} lines {', '.join(str(n) for n, _ in got)}: {layer} {name!r} has "
+                               f"roles {', '.join(sorted(roles))}; its rows give it one")
+        return roles.pop()
+
+    def is_os(self, block: str) -> bool:
+        """Whether block `block` runs through a switch's points (OS_ROLES), by its role."""
+        return self.role("block", block) in OS_ROLES
+
+    def has(self, layer: str, name: str) -> bool:
+        """Whether the master holds a `layer` row named `name` (placed or not)."""
+        return (layer, name) in self.by_key
+
+    def is_unplaced(self, layer: str, name: str) -> bool:
+        """Whether every `layer` row named `name` is a device not on the layout yet (is_unplaced: no level, no role,
+        kept by its jmri_bean). DevicesError when there is no such row."""
+        return all(is_unplaced(r) for _n, r in self.rows(layer, name))
+
+    def where(self, row: Mapping[str, str]) -> str:
+        """"devices.csv line N" for the master's row with `row`'s level, layer and user name, for a message; the file's
+        name alone when the master has no such row (a caller's own row, as in a test)."""
+        for n, r in self.by_key.get((row.get("layer", ""), row.get("user_name", "")), ()):
+            if r["level"] == row.get("level"):
+                return f"{self.path.name} line {n}"
+        return self.path.name
+
+    def names(self, layer: str, roles: Iterable[str] | None = None, levels: Iterable[str] | None = None
+              ) -> list[str]:
+        """The user names of the `layer` rows (of `roles` and `levels` when given), in master order, each once. With
+        `roles`, a device not on the layout yet (is_unplaced: it has no role) is left out."""
+        roles = None if roles is None else frozenset(roles)
+        levels = None if levels is None else frozenset(levels)
+        out: dict[str, None] = {}
+        for n, r in self.lines:
+            if r["layer"] != layer or (levels is not None and r["level"] not in levels):
+                continue
+            if roles is not None and (is_unplaced(r) or row_role(r, f"{self.path.name} line {n}") not in roles):
+                continue
+            out.setdefault(r["user_name"], None)
+        return list(out)
+
+
+_INDEXES: dict[int, tuple[tuple[Mapping[str, str], ...], Index]] = {}
+
+
+def index(files: "Files | Path | str | None" = None) -> Index:
+    """The Index of the master (or of `files`, a copy), built once per file state: load() returns the same rows for
+    the same bytes, and the index is kept with them."""
+    path = _master_path(files)
+    rows = load(files)
+    kept = _INDEXES.get(id(rows))
+    if kept is not None and kept[0] is rows and kept[1].path == path:
+        return kept[1]
+    lines = tuple(enumerate(rows, 2))
+    by_key: dict[tuple[str, str], list[tuple[int, Mapping[str, str]]]] = {}
+    for n, r in lines:
+        by_key.setdefault((r["layer"], r["user_name"]), []).append((n, r))
+    out = Index(path, MappingProxyType({k: tuple(v) for k, v in by_key.items()}), lines)
+    _INDEXES[id(rows)] = (rows, out)
+    while len(_INDEXES) > 8:                    # as many file states as _read keeps
+        del _INDEXES[next(iter(_INDEXES))]
+    return out
 
 
 def read_dictionary(path: Path) -> dict[str, str]:
@@ -338,39 +451,6 @@ def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") ->
 
 # ---------------------------------------------------------------- roles, assignments, descriptions
 
-def block_role(name: str) -> str:
-    """The role of a block or its occupancy row from its name ("OS Switch 7", "BS Switch 225b", "Track 101 Spur 1",
-    "Track Helix Inner", "BS 107 Loop 2")."""
-    if re.fullmatch(r"(?:OS|BS) Switch \d+[a-d]", name):
-        return "xover_corner"
-    if re.fullmatch(r"(?:OS|BS) Switch \d+", name):
-        return "os"
-    if "Helix" in name:
-        return "helix"
-    if re.search(r" Spur(?: \d+)?$", name):
-        return "spur"
-    if re.search(r" Loop(?: \d+)?$", name):
-        return "loop_half"
-    return "track"
-
-
-def role_of(layer: str, user_name: str, system_name: str, jmri_name: str) -> str:
-    """The role a device-map row gets: DevicesError on a layer a device map does not hold."""
-    if layer == "turnout":
-        return "lcc_alias" if user_name.startswith("DCC Switch ") else "turnout"
-    if layer == "fb":
-        return "fb"
-    if layer in ("block", "occupancy"):
-        return block_role(user_name)
-    if layer == "head":
-        return "head"
-    if layer == "mast":
-        if (jmri_name or system_name).startswith("IF$vsm"):
-            return "hidden"
-        return "intermediate" if re.fullmatch(r"Mast [AB]?\d+", user_name) else "home"
-    raise DevicesError(f"layer {layer!r}: a device map has no {layer} rows")
-
-
 def assignment_of(jmri_name: str) -> str:
     """How a device-map row is in JMRI: none without a jmri_name, virtual for an internal name (IT/IS/IH/IB:HART:, a
     hidden mast, a mast over internal heads), else field."""
@@ -443,14 +523,22 @@ def device_map_row(r: Mapping[str, str]) -> dict[str, str]:
 
 def master_row(old: Mapping[str, str], writer: str, prior: Mapping[str, str] | None = None,
                description: str | None = None) -> dict[str, str]:
-    """The master row of an old-form device-map row. `prior` is the row it replaces, whose description a hand-kept
-    row keeps. DevicesError when the comment cannot be split back by device_map_row."""
+    """The master row of an old-form device-map row with its `role` (the writer states what each row is: no role is
+    read off a name, hand-off row 8). `prior` is the row it replaces, whose description a hand-kept row keeps.
+    DevicesError on a layer a device map does not hold, a row with no role or one not in ROLES, or a comment that
+    cannot be split back by device_map_row."""
     if not set(DEVICE_COLUMNS) <= set(old):
         raise DevicesError(f"device-map row {old.get('user_name')!r} misses columns "
                            f"{sorted(set(DEVICE_COLUMNS) - set(old))}")
+    if old["layer"] not in NAME_LAYERS:
+        raise DevicesError(f"layer {old['layer']!r}: a device map has no {old['layer']} rows")
+    role = str(old.get("role") or "")
+    if role not in ROLES:
+        raise DevicesError(f"{old['level']} {old['layer']} {old['user_name']!r}: {writer or 'a hand-kept row'} gives "
+                           f"it role {role!r}, not one of {', '.join(ROLES)}")
     r = {c: "" for c in COLUMNS}
     r.update({c: str(old[c]) for c in _SHARED})
-    r["role"] = role_of(old["layer"], old["user_name"], old["system_name"], old["jmri_name"])
+    r["role"] = role
     r["assignment"] = assignment_of(old["jmri_name"])
     r["written_by"] = writer
     comment = old["comment"]
@@ -542,7 +630,8 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
                   drops: Iterable[tuple[str, str, str]] = (), master_rows: Iterable[Mapping[str, str]] = (),
                   adopts: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
-    """outputs_after_rows for `old_rows`, old-form device-map rows (master_row gives each its master form), and
+    """outputs_after_rows for `old_rows`, old-form device-map rows each with the role its writer gives it (master_row
+    gives each its master form), and
     `master_rows`, rows already in the master's form (a builder that carries a level's hand facts over, or rows the
     device maps leave out). What a reader of the master sees for these rows is what the writer gave; DevicesError
     when it is not."""
@@ -581,16 +670,17 @@ def write_all(files: Files, content: Mapping[Path, str]) -> list[Path]:
 
 def stale(files: Files | None = None) -> list[str]:
     """What is wrong with the master: [] when it and its dictionary check and every row the old-form readers take
-    converts to that form and back (a DevicesError otherwise, naming the row)."""
+    converts to that form and back (a DevicesError otherwise, naming the row). A device not on the layout yet
+    (is_unplaced: a Store's, with no level and no role) is on no device map, so it is left out as OUT_OF_MAPS is."""
     f = files or Files.here()
     rows = load(f)
     read_dictionary(f.dictionary)
     out = []
     for r in rows:
-        if r["role"] in OUT_OF_MAPS:
+        if r["role"] in OUT_OF_MAPS or is_unplaced(r):
             continue
         try:
-            master_row(device_map_row(r), r["written_by"], r)
+            master_row(dict(device_map_row(r), role=r["role"]), r["written_by"], r)
         except DevicesError as exc:
             out.append(str(exc))
         except (KeyError, ValueError) as exc:
