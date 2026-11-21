@@ -596,7 +596,7 @@ class DeviceNames(unittest.TestCase):
         self.assertEqual(got["Switch 223"], "Switch 223")
         self.assertEqual(got["Track 131BB-helix"], "Track Helix Inner")    # one block with staging's McKeesport track
         self.assertEqual(got["Track 115A-117C"], "Track 115-117")       # a part: a block of its own (step 5 part 2)
-        self.assertEqual(len(got), 51 + LEVEL_SENSORS + 25)          # the 25 parts' trial names
+        self.assertEqual(len(got), 51 + LEVEL_SENSORS + 26)          # the 25 parts: 26 trial names (201-219 has two pieces)
 
     def test_rows_read_and_bad_rows_stop(self) -> None:
         got = self.read('2,,turnout,DCC Switch 101,MTT120,,34,120,,,\n'
