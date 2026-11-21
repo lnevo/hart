@@ -45,7 +45,7 @@ ROOT = Path(__file__).resolve().parents[2]
 WIRING_DOCS = ROOT / "docs/wiring"
 OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
 DATA = ROOT / "jmri/layouts/hart/data/schematic"
-DEVICE_MAP = DATA.parent / "devices.csv"
+DEVICE_MAP = devices.MASTER
 NODES = DATA / "lcos_nodes.csv"
 SIGNALS = WIRING_DOCS / "signals"
 

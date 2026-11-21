@@ -22,6 +22,8 @@ import mast_plan  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import level_masts  # noqa: E402
 from repo_read_only import RepoReadOnly, in_repo, repo_read_only  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+from hartlib.devices import MASTER_FILE  # noqa: E402
 
 CM_PER_SCALE_MILE = 63360 * 2.54 / 87.1
 
@@ -346,7 +348,7 @@ class Cli(unittest.TestCase):
         self.current.write_text("mast\nMast 2L\n", encoding="utf-8")
         self.stale = self.dir / "masts.csv"
         self.stale.write_text("mast\nold\n", encoding="utf-8")
-        self.missing = self.dir / "devices.csv"
+        self.missing = self.dir / MASTER_FILE
         want = {self.current: "mast\nMast 2L\n", self.stale: "mast\nnew\n", self.missing: "level\n1\n"}
         gen = [dict(GEN[0]), dict(GEN[1], milepost=6.714)]
         patch = unittest.mock.patch.object(bsm, "build", lambda: (want, gen, []))

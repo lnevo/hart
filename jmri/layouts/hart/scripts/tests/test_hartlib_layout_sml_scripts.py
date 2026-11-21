@@ -15,6 +15,8 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1]
 REPO = SCRIPTS.parents[3]
 TABLES = REPO / "jmri/layouts/hart/output/tables.xml"
+sys.path.insert(0, str(REPO / "tools/hartlib/src"))
+from hartlib import devices  # noqa: E402
 
 
 def script_path(name):
@@ -58,7 +60,7 @@ class PathsTest(unittest.TestCase):
                 "ROOT": REPO, "DEFAULT_PANEL": TABLES, "SYNC_PANEL": TABLES},
             "refresh_bean_comments": {
                 "ROOT": REPO, "TABLES": TABLES,
-                "DEVICES": REPO / "jmri/layouts/hart/data/devices.csv"},
+                "DEVICES": devices.MASTER},
             "layout_facts": {"DATA": REPO / "jmri/layouts/hart/data"},
         }.items():
             mod = load(name)

@@ -17,6 +17,8 @@ from unittest import mock
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "hartlib/src"))
 import split_store as S  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+from hartlib.devices import MASTER_FILE  # noqa: E402
 
 
 def sha(data: bytes) -> str:
@@ -68,7 +70,7 @@ class ApplyUndo(unittest.TestCase):
     def test_a_failed_store_splits_row_puts_every_file_back(self) -> None:
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        files = {name: tmp / name for name in ("template.xml", "devices.csv", "tables.xml", "store_splits.csv")}
+        files = {name: tmp / name for name in ("template.xml", MASTER_FILE, "tables.xml", "store_splits.csv")}
         for f in files.values():
             f.write_text(f"before {f.name}\n", encoding="utf-8")
         build = tmp / "build.py"
@@ -78,7 +80,7 @@ class ApplyUndo(unittest.TestCase):
         plan.of.return_value = []
         ctx = dict(template_doc=None, roots=dict(store=None, repo=None), rows=[], store_sha="x", base_what="none")
         with contextlib.ExitStack() as st:
-            for attr, key in (("TEMPLATE", "template.xml"), ("DEVICES", "devices.csv"), ("TABLES", "tables.xml"),
+            for attr, key in (("TEMPLATE", "template.xml"), ("DEVICES", MASTER_FILE), ("TABLES", "tables.xml"),
                               ("SPLITS", "store_splits.csv")):
                 st.enter_context(mock.patch.object(S, attr, files[key]))
             st.enter_context(mock.patch.object(S, "WRITES", tuple(files.values())))

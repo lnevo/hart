@@ -13,6 +13,8 @@ HART = JMRI_ROOT / "layouts" / "hart"
 # HART_TABLES names another tables file for the checks (tools/check.sh, hartlib.paths); this
 # script stays free of hartlib.
 PANEL = Path(os.environ["HART_TABLES"]) if os.environ.get("HART_TABLES") else HART / "output" / "tables.xml"
+# The one script outside hartlib that names the master's file: it runs as Jython inside JMRI and cannot import
+# hartlib.devices, whose MASTER this path must equal (tools/hartlib/tests/test_devices_one_path.py pins it).
 DEVICES = HART / "data" / "devices.csv"
 SWITCHES = HART / "data" / "switches.csv"
 STAGING_COLUMNS = ("level", "switch", "os_block", "le_ident")

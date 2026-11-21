@@ -16,6 +16,8 @@ import build_device_map as bdm  # noqa: E402
 import build_masts as bsm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
 from hartlib import devices, level_masts  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+from hartlib.devices import MASTER_FILE  # noqa: E402
 
 
 def row(layer, user, system, jmri=None, node="", notes=""):
@@ -160,7 +162,7 @@ class Rebuild(unittest.TestCase):
         text}, generated masts)."""
         with tempfile.TemporaryDirectory() as d:
             real = devices.Files.here()
-            files = real.but(master=Path(d) / "devices.csv")
+            files = real.but(master=Path(d) / MASTER_FILE)
             held = list(devices.load(real))
             rows = (edit or (lambda x: x))([dict(devices.device_map_row(r), role=r["role"]) for r in held  # its role
                                             if r["level"] == "1" and r["role"] not in devices.OUT_OF_MAPS])

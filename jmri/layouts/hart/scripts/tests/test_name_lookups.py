@@ -24,6 +24,8 @@ sys.path.insert(0, str(SCRIPTS / "speedmatch"))
 sys.path.insert(0, str(SCRIPTS))
 import analyze  # noqa: E402
 import build_routes  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[5] / "tools/hartlib/src"))
+from hartlib.devices import MASTER_FILE  # noqa: E402
 
 
 def load(name: str):
@@ -101,7 +103,7 @@ class DispatcherVirtualsTest(unittest.TestCase):
     def test_virtual_masts_are_the_dispatcher_ones(self):
         audit = load("audit_panel_contracts")
         with tempfile.TemporaryDirectory() as tmp:
-            nm = Path(tmp) / "devices.csv"                 # a master of four masts, two of them staging's hidden ones
+            nm = Path(tmp) / MASTER_FILE                 # a master of four masts, two of them staging's hidden ones
             blank = dict.fromkeys(audit.devices.COLUMNS, "")
 
             def mast(user, role, n, level="1"):

@@ -38,7 +38,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
 from hartlib import devices, paths, tables  # noqa: E402
 
-DEVICES_REL = "jmri/layouts/hart/data/devices.csv"
+DEVICES_REL = devices.MASTER.relative_to(paths.REPO_ROOT).as_posix()
 TABLES_REL = "jmri/layouts/hart/output/tables.xml"
 LAYERS = ("block", "mast")
 

@@ -39,6 +39,13 @@ from typing import Iterable, Mapping
 from . import names, paths
 from .railroad_facts import DEVICE_COLUMNS, DEVICE_LIST, NAME_LAYERS, FactsError
 
+# The one place the master's file name and path are written (T6a step 0): every other module asks for them here, and
+# tools/audit/tests/test_devices_one_path.py fails on any tracked .py outside hartlib that names the file itself.
+# The one exception is jmri/scripts/check_hart_phase02.py, Jython inside JMRI that cannot import hartlib; a test
+# there pins its path to MASTER.
+MASTER_FILE = "devices.csv"
+MASTER = paths.LAYOUT_DATA / MASTER_FILE
+
 LEVELS = ("1", "2", "3")
 LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head", "sensor")   # also the order within a level
 ASSIGNMENTS = ("field", "virtual", "none", "spare")
@@ -77,6 +84,11 @@ class DevicesError(FactsError):
     """The master or its dictionary cannot stand as it is, or a write would break it."""
 
 
+def master_path(data: Path | None = None) -> Path:
+    """The master's path: MASTER, or the one under a data folder `data` (Sources.under(root), a test's temp dir)."""
+    return MASTER if data is None else Path(data) / MASTER_FILE
+
+
 @dataclass(frozen=True)
 class Files:
     """The master and its dictionary; tests point them at a copy."""
@@ -87,7 +99,7 @@ class Files:
     def under(data: Path) -> "Files":
         """The files as they sit under a data folder (jmri/layouts/hart/data): one root, so a test or a script that
         points it elsewhere moves every file together and cannot write the repo's."""
-        return Files(data / "devices.csv", data / "devices.columns.csv")
+        return Files(master_path(data), data / "devices.columns.csv")
 
     @staticmethod
     def here() -> "Files":
@@ -604,6 +616,13 @@ def _text(columns: Iterable[str], rows: Iterable[Mapping[str, str]]) -> str:
 
 def master_text(rows: Iterable[Mapping[str, str]]) -> str:
     return _text(COLUMNS, rows)
+
+
+def write_master(rows: Iterable[Mapping[str, str]], files: "Files | Path | str | None" = None) -> Path:
+    """Write `rows` as the master (or as `files`, a copy); the path written. The one writer of the file's text."""
+    path = _master_path(files)
+    path.write_text(master_text(rows), encoding="utf-8")
+    return path
 
 
 def device_map_rows(rows: Iterable[Mapping[str, str]], levels: tuple[str, ...]) -> list[dict[str, str]]:

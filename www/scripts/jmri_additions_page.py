@@ -36,7 +36,7 @@ from hartlib import devices, tables as T  # noqa: E402
 
 PAGE_REL = "behind/jmri-additions.html"
 REGION = re.compile(r"<!--ja:([a-z0-9-]+)-->(.*?)<!--/ja-->", re.S)
-DEVICES = "jmri/layouts/hart/data/devices.csv"
+DATA = "jmri/layouts/hart/data"          # the master is under it (devices.master_path)
 DEVICE_LEVELS = {"main and upper": ("2", "3"), "staging": ("1",)}      # the master's levels of each group of masts
 COORDINATOR = "jmri/scripts/signal_coordinator.py"
 TABLES = "jmri/layouts/hart/output/tables.xml"
@@ -115,7 +115,7 @@ def facts(root: Path = ROOT) -> dict:
 def _facts(root: Path) -> dict:
     planned = {}
     for label, levels in DEVICE_LEVELS.items():
-        planned[label] = [r for _line, r in devices.device_map_lines(levels, root / DEVICES) if r["layer"] == "mast"]
+        planned[label] = [r for _line, r in devices.device_map_lines(levels, devices.master_path(root / DATA)) if r["layer"] == "mast"]
     masts = [m for rows in planned.values() for m in rows]
     hidden = [m for m in masts if m["role"] == "hidden"]
 

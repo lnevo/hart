@@ -40,7 +40,7 @@ from hartlib.hosts import default as host_default, mqtt_broker, mqtt_port  # noq
 
 ROOT = paths.REPO_ROOT
 TABLES = paths.TABLES_XML
-DEVICES = paths.DEVICES
+DEVICES = devices.MASTER
 OCC_CSV = ROOT / "cats" / "data" / "occupancy_bindings.csv"
 HEAD_CSV = ROOT / "docs/wiring/signals/signal_head_plan.csv"
 HTML = Path(__file__).with_suffix(".html")

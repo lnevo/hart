@@ -18,7 +18,6 @@ panel (the approval fingerprints rule).
 """
 from __future__ import annotations
 
-import csv
 import hashlib
 import os
 import re
@@ -31,6 +30,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))     # repo_read_only.py
 
 import build_device_map as bdm  # noqa: E402
 import staging_device_map as sdm  # noqa: E402
+from hartlib import devices  # noqa: E402
 from repo_read_only import RepoReadOnly  # noqa: E402
 
 DEVICES = bdm.OUT
@@ -378,8 +378,7 @@ def skip_or_fail(exc: Exception) -> None:
 
 
 def committed() -> list[dict]:
-    with open(DEVICES, newline="", encoding="utf-8") as fh:
-        return list(csv.DictReader(fh))
+    return [dict(r) for r in devices.load(DEVICES)]
 
 
 def digest(rows: list[dict], level: str) -> tuple[int, str]:

@@ -17,8 +17,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/audit"))
 import check_layout_facts as check  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "tools/hartlib/src"))
+from hartlib.devices import MASTER_FILE  # noqa: E402
 
-DATA_FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv",
+DATA_FILES = ("switches.csv", MASTER_FILE, "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv",
               "uss_board_cells.csv", "uss_board_plants.csv")
 
 
@@ -124,7 +126,7 @@ class LayoutFactsTest(unittest.TestCase):
         self.assertEqual(given.os_of("Track X"), "OS Switch 1")
         # run() takes the parts from the master it is given: a master with no part rows leaves Switch 1's leg a part
         rows = [r for r in check.devices.load(check.DEVICE_MAP) if r["role"] != "part"]
-        master = self.tmp / "devices.csv"
+        master = self.tmp / MASTER_FILE
         master.write_text(check.devices.master_text(rows), encoding="utf-8")
         self.assertEqual(check.part_map(master), {})
         self.assertEqual(len(check.part_map(check.DEVICE_MAP)), 39)          # 14 staging, 11 main, 14 upper
@@ -220,7 +222,7 @@ class LayoutFactsTest(unittest.TestCase):
         sys.path.insert(0, str(ROOT / "tools/hartlib/tests"))
         from master_edit import change
         data = self.data_copy()
-        change(data / "devices.csv", ("1", "block", "Track Main West"), cp="")
+        change(data / MASTER_FILE, ("1", "block", "Track Main West"), cp="")
         import gen_ctc_track_plan  # noqa: F401  it reads switches.csv once at import: before the patch moves Switch 1
         real = check.facts.load_switches
 

@@ -10,8 +10,10 @@ from pathlib import Path
 SCRIPTS = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SCRIPTS))
 import layout_facts as facts  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parents[5] / "tools/hartlib/src"))
+from hartlib.devices import MASTER_FILE  # noqa: E402
 
-FILES = ("switches.csv", "devices.csv", "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv")
+FILES = ("switches.csv", MASTER_FILE, "schematic/stations.csv", "schematic/interlockings.csv", "mast_cells.csv")
 
 STATIONS = "schematic/stations.csv"
 
