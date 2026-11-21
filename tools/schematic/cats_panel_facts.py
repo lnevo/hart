@@ -70,7 +70,7 @@ class Facts:
     sensors: dict = field(default_factory=dict)             # JMRI sensor user name -> system name
     turnouts: dict = field(default_factory=dict)            # JMRI turnout user name -> system name
     mast_system: dict = field(default_factory=dict)         # JMRI mast user name -> system name
-    level_masts: list = field(default_factory=list)         # main_upper_masts.csv rows (hartlib.level_masts)
+    level_masts: list = field(default_factory=list)         # masts.csv rows of the device map's levels (hartlib.level_masts)
     helix: dict = field(default_factory=dict)       # plan helix track name -> its block (read_helix_tracks)
 
 
@@ -91,10 +91,11 @@ def load_facts():
     rr = railroad.Railroad()
     try:
         t = rr.tables
+        dm_levels = {r.level for r in rr.device_map.rows}       # main and upper: the device map's levels
         return Facts(rr.switches, tio.load_turnouts(t.root, rr.switches), le.load_occupancy(t.root), le.load_disciplines(),
                      StagingTracks(staging_tracks()), mast_templates(systems=t.masts), set(t.masts),
                      rr.device_map,
-                     t.sensors, t.turnouts, t.masts, rr.level_masts,
+                     t.sensors, t.turnouts, t.masts, [r for r in rr.masts if r["level"] in dm_levels],
                      {plan: h["block"] for plan, h in mr.read_helix_tracks().items()})
     except (railroad.FactsError, mr.MapError) as exc:
         raise SystemExit(f"build_cats_panel.py: {exc}") from None

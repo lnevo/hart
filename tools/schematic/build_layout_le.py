@@ -13,10 +13,10 @@ tables_layout_staging.xml of staging alone), are retired (owner, 2026-11-17): th
 without --as-live stops and says so.
 
 One input path (owner, 2026-11-17, the device-map switch-over). Every level is drawn from its device map: staging
-from the level 1 rows of devices.csv, stations.csv (its desk areas) and staging_masts.csv (staging_device_map.load: each switch's
+from the level 1 rows of devices.csv, stations.csv (its desk areas) and masts.csv (staging_device_map.load: each switch's
 turnout and OS block, each track's blocks in order by the drawing's keys, each switch's normal leg from
 switches.csv, its turnout ident from the same file), main and upper from the rest of devices.csv and
-main_upper_masts.csv (level_names, level_masts). The panel's own icons and labels, and its attributes, are
+masts.csv's other rows (level_names, level_masts). The panel's own icons and labels, and its attributes, are
 panel_items.json (panel_items.py): the status cluster panel_status.py drives, the frame captions, the helix
 destination labels and the backdrop, each tied to the staging track. The occupancy lamps and station clusters are
 parked with the Dispatcher System (jmri/layouts/hart/parked/staging_panel_lamps.json); Entry/Exit sensors are not
@@ -60,8 +60,8 @@ jmri/layouts/hart/output/trial/tables_cutover_staging.xml: the tables with the "
 place, by the generated one under that name and panel_items.json's attributes, sized by the le_window and opening at
 0, 0; everything else unchanged. Staging's turnouts
 keep their switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
-staging_masts.csv names them by block, not by ident. Every staging mast goes in the one slot whose facing and protected blocks and kind of
-slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
+masts.csv names them by block, not by ident. Every staging mast goes in the one slot whose facing and protected blocks and kind of
+slot are its own (masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
 train it governs, hidden for a virtual mast; check_masts (one check for every level's masts) stops on a mast two slots
 would fit, one JMRI does not resolve to its blocks, or one on another turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), the same helix block,
 so the join is no block boundary and no mast stands there. The panel carries the
@@ -100,7 +100,7 @@ from approval import (  # noqa: E402,F401  re-exported: callers and tests read t
 )
 from le_names import (  # noqa: E402,F401  re-exported: callers and tests read them here
     crossover_strands, runs,
-    staging_lengths, MAIN_UPPER_MASTS, read_level_masts, lcos_rule, lcos_named, level_masts, placeholder_names,
+    staging_lengths, MASTS, read_level_masts, lcos_rule, lcos_named, level_masts, placeholder_names,
     device_names, level_names, shared_turnouts, named_bands,
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
@@ -225,7 +225,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
         raise BuildError(f"{BASE_NAME} holds a Layout Editor panel; the build adds the one panel")
     panel_name = TEMPLATE_PANEL
 
-    # the names and masts of the levels the build adds: from devices.csv and main_upper_masts.csv
+    # the names and masts of the levels the build adds: from devices.csv and masts.csv
     names, lengths = level_names(bands, le_mod, page=page) if adds else ({}, {})
     level_rows = read_level_masts() if adds else []
     skip = base_keys(bands)             # the staging band's: its names are the staging device map's

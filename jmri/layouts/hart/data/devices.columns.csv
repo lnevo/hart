@@ -22,6 +22,6 @@ switch,"Mast rows: the switch whose leg the mast stands at. Empty for an interme
 facing,"Mast rows: the block the mast faces."
 protects,"Mast rows: the blocks the mast protects, separated by a semicolon."
 dir,"Mast rows: the way the mast looks, east or west."
-written_by,"The script that writes the row (build_staging_masts.py, build_device_map.py, build_main_upper_masts.py or panel_items.json). A writer rewrites only rows that carry its name and stops on any other. Empty means the owner keeps the row by hand. The allowed names are one constant in hartlib.devices."
+written_by,"The script that writes the row (build_masts.py, build_device_map.py or panel_items.json). A writer rewrites only rows that carry its name and stops on any other. Empty means the owner keeps the row by hand. The allowed names are one constant in hartlib.devices."
 description,"One plain sentence saying what the device is."
 jmri_bean,"A device not on the layout yet (no level): the beans as the PanelPro Store wrote them, as compact JSON (hartlib.tables_build.bean_json), which the build copies into tables.xml. Empty for every row with a level."

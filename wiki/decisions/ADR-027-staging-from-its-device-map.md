@@ -16,7 +16,7 @@ Every level of the "HART Railroad" panel is built from its device map (owner, 20
 **Staging's files**, in `jmri/layouts/hart/data/schematic/`:
 - `device_map_staging.csv`, in the columns of the main and upper map: turnouts, feedback, blocks, occupancy, masts and heads.
 - `stations.csv`: the stations; the stations that share a `desk_code` are a desk area, staging's control points (since 2026-11-20; `control_points_staging.csv` is gone).
-- `staging_masts.csv` and `staging_signals.csv`: the masts and their signal-plan facts.
+- `masts.csv` (every level, with a `level` column): the masts and their signal-plan facts.
 - `panel_items.json`: the panel's own items.
 
 **Field devices**
@@ -24,13 +24,13 @@ Every level of the "HART Railroad" panel is built from its device map (owner, 20
 - `check_device_master.py --check` (`staging_device_map.py --check` until 2026-11-20, when it took every level) holds the files to their rules and to `tables.xml`. `make panels` and `tools/check.sh` run it.
 
 **Signals**
-- The visible masts are placed by the rule in [ADR-024](ADR-024-signals-by-rule.md). That ADR records the interlockings, the mast types, the milepost origin and the line codes, and they are not repeated here. `build_staging_masts.py` writes the masts into the files above.
+- The visible masts are placed by the rule in [ADR-024](ADR-024-signals-by-rule.md). That ADR records the interlockings, the mast types, the milepost origin and the line codes, and they are not repeated here. `build_masts.py` writes the masts into the files above.
 - The heads are internal (`IH:HART:C1:`). The one wired head is IH432 on Mast 6LB, kept as a head row in the device map.
 - The hidden routing masts are placed by rule as well (ADR-024, owner 2026-11-20); none is hand-kept since the helix-foot masts 38RA and 40RA went with the one-block helix tracks, and `staging_masts_virtual.csv` and `staging_signals_virtual.csv` are gone.
 
 ## Consequences
 
 - A staging change is an edit to these files followed by `make panels`. A PanelPro Store still owns `tables.xml` (ADR-008).
-- A changed mast set also needs `sync_staging_signals.py`, stock discovery in a sandbox and the owner's approval (ADR-024).
+- A changed mast set also needs `sync_signals.py`, stock discovery in a sandbox and the owner's approval (ADR-024).
 - A wired staging head goes in as a head row whose `jmri_name` is the wired head, as main and upper swap a device in (ADR-028).
 

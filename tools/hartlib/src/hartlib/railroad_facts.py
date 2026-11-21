@@ -17,10 +17,11 @@ LAYERS = ("inputs", "hands", "device_map", "masts", "tables")
 WRITERS = {
     "hands": "tools/schematic/build_hands.py",
     "device_map": "tools/schematic/build_device_map.py",
-    "masts": "tools/schematic/build_main_upper_masts.py",
+    "masts": "tools/schematic/build_masts.py",
     "tables": "tools/schematic/build_layout_le.py --as-live (or a PanelPro Store)",
 }
 LEVEL_NUMBERS = (2, 3)                  # main and upper: the levels of the schematic's main_upper files
+STAGING_LEVEL = "1"                     # staging: the level of the staging rows (read_staging_rows) and their device views
 YES = {"yes": True, "no": False}
 HANDS = {"", "L", "R"}
 NAME_LAYERS = ("turnout", "fb", "block", "occupancy", "mast", "head")
@@ -62,8 +63,7 @@ class Sources:
     lcos_nodes: Path
     plan_overrides: Path
     block_lengths: Path
-    staging_masts: Path
-    level_masts: Path
+    masts: Path
     tables: Path
 
     @classmethod
@@ -75,8 +75,7 @@ class Sources:
                    interlockings=s / "interlockings.csv",
                    lcos_nodes=s / "lcos_nodes.csv",
                    plan_overrides=layer_files.path("plan_overrides", s), block_lengths=data / "block_lengths.csv",
-                   staging_masts=s / "staging_masts.csv",
-                   level_masts=s / level_masts.PATH.name,
+                   masts=s / level_masts.PATH.name,
                    tables=paths.TABLES_XML if tables_xml is None else tables_xml)
 
     def but(self, **changes: Path) -> "Sources":
@@ -179,7 +178,7 @@ def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
     unchecked beyond the master's own checks (read_staging_devices checks them)."""
     from . import devices
     return [(n, {c: r[c].strip() for c in STAGING_COLUMNS}) for n, r in enumerate(devices.load(path), 2)
-            if r["level"] == "1" and r["layer"] in NAME_LAYERS]
+            if r["level"] == STAGING_LEVEL and r["layer"] in NAME_LAYERS]
 
 
 def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> StagingDevices:
@@ -902,25 +901,20 @@ def plan_cm(lengths: dict[str, BlockLength]) -> dict[str, float]:
 
 
 @dataclass(frozen=True)
-class StagingMast:
-    """A staging mast's name and blocks, from schematic/staging_masts.csv (protects ";" separated)."""
+class Mast:
+    """A mast's level, name and blocks, from schematic/masts.csv (hartlib.level_masts; protects ";" separated)."""
     line: int
+    level: int
     mast: str
     facing: str
     protects: tuple[str, ...]
     system_name: str = ""     # "IF$vsm:..." for a hidden virtual mast
 
 
-def read_staging_masts(path: Path) -> list[StagingMast]:
-    out, seen = [], {}
-    for line, r in read_rows(path, ("mast", "facing", "protects"), optional=("system_name",)):
-        if not r["mast"] or r["mast"] in seen or not r["facing"]:
-            raise FactsError(f"{_where(path, line)}: mast {r['mast']!r} is empty or given twice, or has no facing "
-                             "block")
-        seen[r["mast"]] = line
-        out.append(StagingMast(line, r["mast"], r["facing"], tuple(b for b in r["protects"].split(";") if b),
-                               r["system_name"]))
-    return out
+def read_masts(path: Path, *, levels: tuple[int, ...] | None = None) -> list[Mast]:
+    """masts.csv's rows of `levels` (every level when None) as Mast (hartlib.level_masts.read checks the file)."""
+    return [Mast(r["line"], r["level"], r["mast"], r["facing"], tuple(b for b in r["protects"].split(";") if b),
+                 r["system_name"]) for r in level_masts.read(path, levels=levels)]
 
 
 # ---------------------------------------------------------------- hands (build_hands.py)

@@ -185,12 +185,12 @@ Dispatcher must restore the throat blocks and their rear and yard-end masts**. T
   - Dispatcher rear masts:
     - 36L ($1025), Track East Lead East into Track East Lead;
     - 40RB ($1026), Track K-1 West into Track K-1.
-  - Put them in by a rule in `build_staging_masts.py`, or bring back the hand-kept files and the code that read
-    them (`read_virtual` in `build_staging_masts.py` at 5a5bff0a; both were removed when nothing was left in them).
+  - Put them in by a rule in `build_masts.py`, or bring back the hand-kept files and the code that read
+    them (`read_virtual` in `build_staging_masts.py` at 5a5bff0a, now `build_masts.py`; both were removed when nothing was left in them).
 - **tables.xml**: each throat's `<block>` (both passes) and `<layoutblock>`. Its block paths were moved onto its
   track: the track's path to the throat became the throat's path to its OS block (with the turnout setting), and
   the OS block's path to the throat now points at the track. Take them from `tables.xml` at 5a5bff0a.
-- Then `make panels`, `sync_staging_signals.py`, stock discovery in a sandbox and the owner's approval, as for any
+- Then `make panels`, `sync_signals.py --check`, stock discovery in a sandbox and the owner's approval, as for any
   staging change (ADR-024).
 
 Exception to ADR-010 (owner, 2026-11-20): the notes for a parked feature live with its parked data, so `DISPATCHER_LAYOUT_HOOPS.md` is here and not in `docs/`.

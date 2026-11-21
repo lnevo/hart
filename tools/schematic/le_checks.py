@@ -9,34 +9,34 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from le_common import BuildError, slots_module  # noqa: E402
-from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv's virtual masts
+from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual masts
 
 
 def mast_turnouts(rows: list[dict], facts: dict | None = None) -> dict[str, tuple[str, str | None, str]]:
     """{mast: (the mast file that lists it, the turnout name the panel binds its switch by or None, its kind of slot
-    there)} of every mast of both mast files, the turnout from each file's `switch`: staging_masts.csv's through the
-    device map's turnout row (`facts`, default staging_device_map.mast_facts: its jmri_name), main_upper_masts.csv's
-    (`rows`, read_level_masts) as the device map's turnout user name, "Switch <switch>" (le_names.level_names names
-    those turnouts by it). Only a turnout mast has a switch; a virtual mast is an end bumper one. Stops on a mast both
-    files list."""
+    there)} of every mast of masts.csv, the turnout from its `switch`: a base level's (staging) through the device
+    map's turnout row (`facts`, default staging_device_map.mast_facts: its jmri_name), an added level's (`rows`,
+    read_level_masts) as the device map's turnout user name, "Switch <switch>" (le_names.level_names names those
+    turnouts by it). Only a turnout mast has a switch; a virtual mast is an end bumper one. Stops on a mast given in
+    both."""
     import staging_device_map as sdm
     if facts is None:
         try:
             facts = sdm.mast_facts()
         except sdm.StagingMapError as exc:
             raise BuildError(f"staging device map: {exc}") from None
-    out = {mast: ("staging_masts.csv", f["turnout"] if f["kind"] == "turnout" else None, f["kind"])
-           for mast, f in facts.items()}
+    name = level_masts_lib.PATH.name
+    out = {mast: (name, f["turnout"] if f["kind"] == "turnout" else None, f["kind"]) for mast, f in facts.items()}
     both = sorted(set(facts) & {r["mast"] for r in rows})
     if both:
-        raise BuildError(f"staging_masts.csv and main_upper_masts.csv both list {', '.join(both)}")
+        raise BuildError(f"{name}: the base level's masts and the added levels' both give {', '.join(both)}")
     for r in rows:      # as le_names.level_masts gives each its kind of slot
         if level_masts_lib.is_level_virtual(r["system_name"]):
-            out[r["mast"]] = ("main_upper_masts.csv", None, "end bumper")
+            out[r["mast"]] = (name, None, "end bumper")
         elif r["switch"]:
-            out[r["mast"]] = ("main_upper_masts.csv", f"Switch {r['switch']}", "turnout")
+            out[r["mast"]] = (name, f"Switch {r['switch']}", "turnout")
         else:
-            out[r["mast"]] = ("main_upper_masts.csv", None, "anchor")
+            out[r["mast"]] = (name, None, "anchor")
     return out
 
 
@@ -82,8 +82,8 @@ def check_masts(P, masts: dict[str, list[dict]], le_mod, turnouts: dict[str, str
         if m["kind"] == "turnout":
             source, want, kind = turnouts.get(name, (None, None, None))
             if source is None:
-                bad.append(f"{name} ({key}) is a turnout mast on the panel, but neither staging_masts.csv nor "
-                           "main_upper_masts.csv lists it (mast_turnouts)")
+                bad.append(f"{name} ({key}) is a turnout mast on the panel, but {level_masts_lib.PATH.name} "
+                           "does not list it (mast_turnouts)")
             elif want is None:
                 bad.append(f"{name} ({key}) is a turnout mast on the panel, but {source} gives it no switch (a {kind} "
                            "mast there)")

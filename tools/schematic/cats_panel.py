@@ -259,7 +259,7 @@ def mast_bindings(opts, F):
     return out
 
 
-# --- main and upper (levels 2 and 3): devices.csv, internal turnouts, main_upper_masts.csv --------------------------
+# --- main and upper (levels 2 and 3): devices.csv, internal turnouts, masts.csv --------------------------------------
 
 def xover_corners(name, F) -> list:
     """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
@@ -565,7 +565,7 @@ def level_switch_bindings(bands, F, bound_bi, dx_corners=None):
 
 
 def intermediate_signal(bands, F, bound_bi, r, by_trial):
-    """(band index, signal) of an APB intermediate (a main_upper_masts.csv row with no switch): at the turnback where
+    """(band index, signal) of an APB intermediate (a masts.csv row with no switch): at the turnback where
     the loop or split track's half it faces meets the half it protects, heading the way its row's dir says. The
     piece it stands on is the one that meets the protected half at a turnback, whatever the strands' order; only the
     halves joined there get edges of their own (loop_half_edge), so other loops on the band keep theirs. Never
@@ -603,7 +603,7 @@ def intermediate_signal(bands, F, bound_bi, r, by_trial):
 
 
 def level_signals(bands, F, bound_bi):
-    """Put each main and upper mast (main_upper_masts.csv) in its band's signals, as the plugin reads a band's drawn
+    """Put each main and upper mast (masts.csv) in its band's signals, as the plugin reads a band's drawn
     masts: on the track it faces (the device map block holding the schematic track at that leg of its switch), at
     that switch (its toward end), heading the way its row's dir says, its heads from its row. The two halves of a
     balloon loop are one schematic track drawn twice: each half's piece gets an edge of its own (loop_half_edge,
@@ -668,7 +668,7 @@ def level_signals(bands, F, bound_bi):
 
 def level_mast_bindings(bands, F, bound_bi):
     """{mast: {name, template}} for the main and upper masts level_signals drew: each a mast in tables.xml whose
-    system name is its main_upper_masts.csv row's, with its template by mast_template: its own signal_head_plan.csv
+    system name is its masts.csv row's, with its template by mast_template: its own signal_head_plan.csv
     row when it has one, else the template masts of its appearance type take. A row not drawn stops, but a virtual
     one (hidden, no desk signal)."""
     rows = {r["mast"]: r for r in F.level_masts}

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 from . import level_devices, level_masts, tables
-from .railroad_facts import (LEVEL_NUMBERS, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
+from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, StagingDevice, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
                              switch_groups, switch_number)
 
 if TYPE_CHECKING:
@@ -246,21 +246,15 @@ def _staging_devices(rr: Railroad) -> list[str]:
 
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
-    """Every block a staging switch leg (switches.csv), a staging mast (staging_masts.csv) or a measured
-    length (block_lengths.csv) names is a staging block row of devices.csv, and every staging mast a staging mast row."""
-    blocks, masts = rr.staging_devices.names("block"), rr.staging_devices.names("mast")
+    """Every block a staging switch leg (switches.csv) or a measured length (block_lengths.csv) names is a block
+    row of devices.csv (the masts' blocks are the masts invariant's: masts.csv is a later layer)."""
+    blocks = rr.staging_devices.names("block")
     bad = []
     for sw in rr.switches.values():
         for leg in sw.legs:
             for what, b in (("OS block", leg.os_block), ("closed leg", leg.closed), ("thrown leg", leg.thrown)):
                 if b not in blocks:
                     bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of devices.csv")
-    for m in rr.staging_masts:
-        where = f"{rr.sources.staging_masts.name}: {m.mast}"
-        if m.mast not in masts:
-            bad.append(f"{where}: no staging mast row {m.mast} in devices.csv")
-        bad += [f"{where}: block {b} is no staging block row of devices.csv" for b in (m.facing, *m.protects)
-                if b not in blocks]
     # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
     # block rows of devices.csv, their parts among them (a main or upper part is a JMRI block of its own on its OS
     # block's sensor, owner 2026-11-20)
@@ -349,22 +343,41 @@ def _name_clash(rr: Railroad) -> list[str]:
     return out
 
 
-@invariant("level-masts", "masts")
-def _level_masts(rr: Railroad) -> list[str]:
-    """Each main_upper_masts.csv mast is a device map mast of the same control point, on its virtual and planned
-    names; its switch is in that control point (an APB intermediate has no switch; a spur's exit dwarf at a local
-    switch has no control point, ADR-024); its facing and protected blocks are device map blocks; and every device
-    map mast has a row. A virtual mast (a destination at a buffer stop, level_masts.is_level_virtual) stands at no
-    switch, protects nothing, and its control point is its track's switch's, if any. A main or upper part (a link
-    inside an OS block, devices.csv part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or
-    protect it, as Signal Mast Logic discovery does."""
+@invariant("masts", "masts")
+def _masts(rr: Railroad) -> list[str]:
+    """Every masts.csv row is a mast of the device rows of its level, its blocks theirs. The rows of the levels
+    the staging device rows hold (staging): a mast row of theirs, facing and protecting their block rows. The rows
+    of the levels the device map holds (main and upper): each a device map mast of the same control point, on its
+    virtual and planned names; its switch is in that control point (an APB intermediate has no switch; a spur's exit
+    dwarf at a local switch has no control point, ADR-024); its facing and protected blocks are device map blocks;
+    and every device map mast has a row. A virtual mast (a destination at a buffer stop) stands at no switch,
+    protects nothing, and its control point is its track's switch's, if any. A main or upper part (a link inside an
+    OS block, devices.csv part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or protect it,
+    as Signal Mast Logic discovery does."""
+    name = rr.sources.masts.name
+    staging = {int(STAGING_LEVEL)}                      # the level the staging rows (rr.staging_devices) are
+    st_blocks, st_masts = rr.staging_devices.names("block"), rr.staging_devices.names("mast")
+    bad = []
+    for r in (r for r in rr.masts if r["level"] in staging):
+        where = f"{name}: {r['mast']}"
+        if r["mast"] not in st_masts:
+            bad.append(f"{where}: no level {r['level']} mast row {r['mast']} in devices.csv")
+        bad += [f"{where}: block {b} is no level {r['level']} block row of devices.csv"
+                for b in (r["facing"], *(x for x in r["protects"].split(";") if x)) if b not in st_blocks]
+    return bad + _device_map_masts(rr)
+
+
+def _device_map_masts(rr: Railroad) -> list[str]:
+    """The masts invariant's rows of the levels the device map holds (main and upper)."""
     from hartlib import devices
-    dm, name = rr.device_map, rr.sources.level_masts.name
+    dm, name = rr.device_map, rr.sources.masts.name
+    levels = {r.level for r in dm.rows}
     masts = dm.by_user("mast")
-    blocks = set(dm.blocks) | {r["user_name"] for _line, r in devices.part_lines(("2", "3"), rr.sources.devices)}
+    blocks = set(dm.blocks) | {r["user_name"] for _line, r in
+                               devices.part_lines(tuple(map(str, sorted(levels))), rr.sources.devices)}
     cps = {cp.name: cp for cp in rr.level_control_points}
     bad, seen = [], set()
-    for r in rr.level_masts:
+    for r in (r for r in rr.masts if r["level"] in levels):
         seen.add(r["mast"])
         m = masts.get(r["mast"])
         if m is None:
@@ -373,7 +386,7 @@ def _level_masts(rr: Railroad) -> list[str]:
         if (r["cp"], r["system_name"], r["device_system_name"]) != (m.cp, m.jmri_name, m.system_name):
             bad.append(f"{name}: {r['mast']} is {r['cp']} {r['system_name']} on {r['device_system_name']}; the "
                        f"device map says {m.cp} {m.jmri_name} on {m.system_name}")
-        if level_masts.is_level_virtual(r["system_name"]):
+        if r["system_name"].startswith("IF$vsm:"):
             if r["switch"] or r["protects"]:
                 bad.append(f"{name}: virtual {r['mast']} stands at a switch or protects a block; it stands at a "
                            "buffer stop")
@@ -402,8 +415,7 @@ def _level_masts(rr: Railroad) -> list[str]:
 @invariant("tables", "tables")
 def _tables(rr: Railroad) -> list[str]:
     """tables.xml holds the fact files' devices: every staging switch's turnout and the blocks of its legs
-    (switches.csv), and every mast of both mast files (staging_masts.csv, main_upper_masts.csv) on
-    the system name its file gives it. The rows of devices.csv, every level's, are held to their beans by
+    (switches.csv), and every mast of masts.csv on the system name the file gives it. The rows of devices.csv, every level's, are held to their beans by
     tools/schematic/check_device_master.py (check_tables)."""
     t, bad = rr.tables, []
     for sw in rr.switches.values():
@@ -411,8 +423,7 @@ def _tables(rr: Railroad) -> list[str]:
             bad.append(f"Switch {sw.number} (switches.csv): no turnout {sw.turnout} in tables.xml")
         bad += [f"Switch {sw.number} (switches.csv): no block {b} in tables.xml"
                 for leg in sw.legs for b in (leg.os_block, leg.closed, leg.thrown) if b not in t.blocks]
-    masts = [(rr.sources.staging_masts.name, m.mast, m.system_name) for m in rr.staging_masts]
-    masts += [(rr.sources.level_masts.name, r["mast"], r["system_name"]) for r in rr.level_masts]
+    masts = [(rr.sources.masts.name, r["mast"], r["system_name"]) for r in rr.masts]
     for name, mast, system in masts:
         if not system:
             bad.append(f"{name}: {mast} has no system name")
