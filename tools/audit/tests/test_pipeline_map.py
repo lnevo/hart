@@ -121,6 +121,21 @@ class LayoutTest(unittest.TestCase):
                 for upper, lower in zip(col, col[1:]):
                     self.assertLessEqual(upper["y"] + upper["h"], lower["y"] + 0.01, (upper["id"], lower["id"]))
 
+    def test_highlighted_only_keeps_the_lit_chain(self) -> None:
+        """chainOf: both sides of the clicked box, stopping at a stop box, and only links inside one side."""
+        edges = [{"from": "a", "to": "x"}, {"from": "x", "to": "b"}, {"from": "a", "to": "b"},
+                 {"from": "c", "to": "b"}, {"from": "b", "to": "host"}, {"from": "host", "to": "d"}]
+        script = (
+            "const m = require(process.argv[1]); const c = m.chainOf(JSON.parse(process.argv[2]), 'x', v => v === 'host');"
+            "process.stdout.write(JSON.stringify({up: [...c.up].sort(), down: [...c.down].sort(),"
+            "lit: JSON.parse(process.argv[2]).filter(c.lit).map(e => e.from + e.to)}));"
+        )
+        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(edges)], capture_output=True,
+                                        text=True, check=True).stdout)
+        self.assertEqual(out["up"], ["a", "x"])
+        self.assertEqual(out["down"], ["b", "host", "x"])  # c feeds b but is not on x's chain; d is past the host
+        self.assertEqual(out["lit"], ["ax", "xb", "bhost"])  # a -> b bypasses x, so it stays dim and is left out
+
     def test_empty_subset(self) -> None:
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])
 
