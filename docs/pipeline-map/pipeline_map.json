@@ -171,15 +171,6 @@
    "path": "docs/ctc/history"
   },
   {
-   "id": "ext:schematic-evolution",
-   "label": "~/Documents/Layout/schematic-evolution",
-   "kind": "output",
-   "status": "live",
-   "domain": "extras",
-   "desc": "Folder of schematic frames and the evolution GIF, outside the repo.",
-   "path": ""
-  },
-  {
    "id": "media",
    "label": "media/ mirror",
    "kind": "unstructured",
@@ -253,7 +244,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Audit: switches.csv, devices.csv, tables.xml and CATS desk panels agree.",
+   "desc": "Audit: switches.csv, the device master (devices_generated.csv and devices_field.csv), tables.xml and CATS desk panels agree.",
    "path": "tools/audit/check_layout_facts.py"
   },
   {
@@ -271,7 +262,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Audit: no stale copies of renamed track names in code or data; reads devices.csv and keyed data files.",
+   "desc": "Audit: no stale copies of renamed track names in code or data; reads the device master (devices_generated.csv and devices_field.csv) and keyed data files.",
    "path": "tools/audit/check_name_copies.py"
   },
   {
@@ -343,7 +334,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Pre-commit runner executing every --check and audit as parallel jobs; HART_TABLES overrides the tables file.",
+   "desc": "Pre-commit runner executing every --check and audit as parallel jobs; skips a job whose stamped inputs are unchanged; includes the wiring-frozen audit (check_wiring_frozen.py); HART_TABLES overrides the tables file.",
    "path": "tools/check.sh"
   },
   {
@@ -415,7 +406,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Renders every committed version of the published schematic SVG from git history into frames and an animated GIF.",
+   "desc": "Renders every committed version of the published schematic SVG from git history into frames (media/schematic-evolution) and an animated GIF; --site also writes the site film and poster into www/assets/behind/panel-evolution and the version count and dates on behind/panel-evolution.html; --check compares them with history.",
    "path": "tools/schematic/evolution.py"
   },
   {
@@ -550,7 +541,7 @@
    "kind": "host",
    "status": "live",
    "domain": "hosts",
-   "desc": "Runs CATS and PanelPro profile, and the foreground serial_to_mqtt bridge on COM3 to the Nano; never the broker.",
+   "desc": "Runs CATS and PanelPro profile, and the foreground serial_to_mqtt bridge on COM3 to the Nano; never the broker. Its WSL also runs make remote checks through win_run.sh (two runs at a time).",
    "path": ""
   },
   {
@@ -577,7 +568,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "hosts",
-   "desc": "Deploy: gates on build_tables --check, Digicon check, parked skip; ships tables.xml, CATS desks, jython, host scripts to Pi (rsync), Windows (tar), Mac.",
+   "desc": "Deploy entry point; runs tools/hosts/deploy/ in order: gate.sh (every check; a changed Pi Store or Operations session is auto-pulled and the deploy stops), stage.sh (one package per host), ship_mac.sh, ship_pi.sh (rsync), ship_win.sh (tar). Ships tables.xml, CATS desks, jython, host scripts.",
    "path": "tools/hosts/sync_hart_package.sh"
   },
   {
@@ -680,15 +671,6 @@
    "path": "docs/ops/stations"
   },
   {
-   "id": "ext:JMRI_UserFiles-pulled",
-   "label": "~/JMRI_UserFiles-pulled Stores",
-   "kind": "unstructured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Pulled PanelPro Store files with .base, outside the repo; input to split_store.py.",
-   "path": ""
-  },
-  {
    "id": "ext:anyrail-plan",
    "label": "AnyRail plan 5.3c (.any)",
    "kind": "unstructured",
@@ -741,7 +723,7 @@
    "kind": "human",
    "status": "live",
    "domain": "layout",
-   "desc": "Hand edits of the layer CSV/JSON files and devices.csv field rows that author the layout facts.",
+   "desc": "Hand edits of the layer CSV/JSON files, plan_overrides.json and the owner's cells in devices_field.csv that author the layout facts.",
    "path": ""
   },
   {
@@ -795,7 +777,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Column dictionary for devices.csv, read by hartlib.devices.",
+   "desc": "Column dictionary for the device master (both files), read by hartlib.devices; a test holds the two to each other.",
    "path": "jmri/layouts/hart/data/devices.columns.csv"
   },
   {
@@ -948,7 +930,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Per-level edits to the plan graph (relabel, names, control_points, stations, main_route). Staging and main_upper sections are partly generated.",
+   "desc": "The owner's hand edits to the plan graph (relabel, names, control_points, stations, main_route) and the helix ends; generated keys are in plan_generated.json (T6b).",
    "path": "jmri/layouts/hart/data/schematic/plan_overrides.json"
   },
   {
@@ -1021,7 +1003,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "What PanelPro owns in tables.xml: settings, memories, clock sensor, hide-windows LogixNG. Updated by split_store.py from kept Store changes.",
+   "desc": "What PanelPro owns in tables.xml: settings, memories, clock sensor, hide-windows LogixNG. Updated by split_store.py from kept Store changes, or one line at a time by template_edit.py.",
    "path": "jmri/layouts/hart/data/tables_template.xml"
   },
   {
@@ -1184,7 +1166,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Writes discovery-base tables, launches PanelPro with discover_sml.py, captures Signal Mast Logic into discovered_sml.xml; run by hand when masts change.",
+   "desc": "Writes discovery-base tables, launches PanelPro with discover_sml.py, captures Signal Mast Logic into discovered_sml.xml and its discovered_sml.stamp; run by hand when masts change.",
    "path": "jmri/layouts/hart/scripts/run_sml_discover.sh"
   },
   {
@@ -1238,7 +1220,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Library that loads devices.csv and the layer files, enforces invariants; CLI python3 -m hartlib.devices check validates public names.",
+   "desc": "Library that loads the device master (devices_generated.csv merged with devices_field.csv) and the layer files, enforces invariants; CLI python3 -m hartlib.devices check validates the master and public names.",
    "path": "tools/hartlib/src/hartlib/devices.py"
   },
   {
@@ -1274,7 +1256,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Library used by build_tables: fixed envelope, base beans from devices.csv, block lengths, comments from wiring, SML merge.",
+   "desc": "Library used by build_tables: fixed envelope, base beans from the device master (devices_generated.csv and devices_field.csv), block lengths, comments from wiring, SML merge.",
    "path": "tools/hartlib/src/hartlib/tables_build.py"
   },
   {
@@ -1292,7 +1274,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make tables-pull-pi: copies a changed Pi Store to ~/JMRI_UserFiles-pulled/pi-<date>.xml with a .base file.",
+   "desc": "make tables-pull-pi (also run by the deploy gate): copies a changed Pi Store to media/pulled-stores/pi-<date>.xml with a .base file.",
    "path": "tools/ops/pull_tables_pi.sh"
   },
   {
@@ -1328,7 +1310,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 7: writes level 2 and 3 rows of devices.csv and plan_overrides main_upper section from the solved sheet.",
+   "desc": "make panels step 7: writes level 2 and 3 rows of devices_generated.csv and (T6b) the plan_generated.json main_upper section from the solved sheet; reads the owner's cells from devices_field.csv.",
    "path": "tools/schematic/build_device_map.py"
   },
   {
@@ -1346,7 +1328,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 10: builds the three-level Layout Editor cut-over candidate and staging candidate from devices.csv and the schematic; also used by build_tables.",
+   "desc": "make panels step 10: builds the three-level Layout Editor cut-over candidate and staging candidate from the device master (devices_generated.csv and devices_field.csv) and the schematic; also used by build_tables.",
    "path": "tools/schematic/build_layout_le.py"
   },
   {
@@ -1355,7 +1337,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 3: writes main_route and staging milepost_route in plan_overrides.json from main_lines.csv.",
+   "desc": "make panels step 3: writes main_route, staging milepost_route and name_main into plan_generated.json from main_lines.csv.",
    "path": "tools/schematic/build_main_route.py"
   },
   {
@@ -1364,7 +1346,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels masts step: staging's mast/head rows of devices.csv by the mast rule, and masts.csv for every level from the master.",
+   "desc": "make panels masts step: staging's mast/head rows of devices_generated.csv by the mast rule, and masts.csv for every level from the master.",
    "path": "tools/schematic/build_masts.py"
   },
   {
@@ -1382,7 +1364,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 2: writes staging control points, stations and detail sheets into plan_overrides.json and preferences.json.",
+   "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences.json.",
    "path": "tools/schematic/build_staging_sets.py"
   },
   {
@@ -1391,7 +1373,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 12: writes tables.xml from the template, devices.csv beans, the LE build and discovered SML; applies Digicon boot rule.",
+   "desc": "make panels step 12: writes tables.xml from the template, the device master's beans, the LE build and discovered SML; applies Digicon boot rule.",
    "path": "tools/schematic/build_tables.py"
   },
   {
@@ -1400,7 +1382,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Check only in make panels: devices.csv rules, rows against tables.xml and schematic.",
+   "desc": "Check only in make panels: device master rules (both files), rows against tables.xml and schematic.",
    "path": "tools/schematic/check_device_master.py"
   },
   {
@@ -1427,7 +1409,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Splits a pulled Store back into sources: kept items to tables_template.xml, merged devices.csv cells, records store_splits.csv, rebuilds tables.xml.",
+   "desc": "Splits a pulled Store back into sources: kept items to tables_template.xml, merged devices_field.csv cells (a Store's new device is added there), records store_splits.csv, rebuilds tables.xml.",
    "path": "tools/schematic/split_store.py"
   },
   {
@@ -1756,7 +1738,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Car workflow CLI (ADR-013/018): review, approve, records, publish, locos, cards, site, compare, fix-ops, service. Wraps card_pipeline/cars.py.",
+   "desc": "Car workflow CLI (ADR-013/018): review, approve, records, publish, locos, cards, site, compare, fix-ops, service, seed-copy, sync. Wraps card_pipeline/cars.py. compare reports field differences against Operations Pro, the STS seed copies and (--live-sts) the live STS over GET; sync (dry run unless --apply) writes the identity fields into the Operations roster, the seed copies and (--live-sts --sts-url) the live STS by PATCH.",
    "path": "ops/hart-ops/bin/cars"
   },
   {
@@ -2149,11 +2131,11 @@
   },
   {
    "id": "ext:web-jpeg-cache",
-   "label": "~/.cache/hart/web-jpeg",
+   "label": "<main checkout>/.cache/hart/web-jpeg",
    "kind": "output",
    "status": "live",
    "domain": "website",
-   "desc": "Cache of resized photos keyed on original bytes, size and JPEG settings; pruned after 60 days.",
+   "desc": "Cache of resized photos keyed on original bytes, size and JPEG settings, pruned after 60 days, plus the photo-group folder that holds the photo stages' outputs with a stamp of their inputs (#861). In the main checkout, shared by every worktree (#876).",
    "path": ""
   },
   {
@@ -2740,7 +2722,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Fills counts and host lists on behind/jmri-additions.html from tables.xml, devices.csv and host scripts; --check.",
+   "desc": "Fills counts and host lists on behind/jmri-additions.html from tables.xml, the device master (devices_generated.csv and devices_field.csv) and host scripts; --check.",
    "path": "www/scripts/jmri_additions_page.py"
   },
   {
@@ -2776,7 +2758,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Site build: git-tracked files only, skip lists, WebP and thumbs, mirror photo resize with cache, logo vendoring, data scrubbing, search index, leak check.",
+   "desc": "Site build: tracked files only, skip lists, WebP and thumbs, mirror photo resize with cache, photo stages reused while their inputs are unchanged (--full runs them), logo vendoring, data scrubbing, search index, leak check.",
    "path": "www/scripts/prepare_github_pages.py"
   },
   {
@@ -2929,7 +2911,7 @@
    "kind": "output",
    "status": "live",
    "domain": "wiring",
-   "desc": "Planned signal heads and mast templates; read by hartlib.cats and the CATS desk builder.",
+   "desc": "Planned signal heads and mast templates, written by make panels' head-plan step; read by hartlib.cats and the CATS desk builder.",
    "path": "jmri/layouts/hart/output/signal_head_plan.csv"
   },
   {
@@ -2984,7 +2966,7 @@
    "kind": "structured",
    "status": "live",
    "domain": "wiring",
-   "desc": "Physical wiring source of truth (hartlib.wiring): staging as wired, main/upper devices placed so far; nodes, boards, ports, heads.",
+   "desc": "Physical wiring source of truth (hartlib.wiring): staging as wired by hand; main and upper rows only through freeze_wiring.py (check_wiring_frozen.py audits it); nodes, boards, ports, heads.",
    "path": "jmri/layouts/hart/data/wiring.csv"
   },
   {
@@ -2993,7 +2975,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "wiring",
-   "desc": "With --wiring-only writes the Digicon signal head plan from wiring.csv heads (the old mast plan is archived).",
+   "desc": "make panels head-plan step: with --wiring-only writes the Digicon signal head plan from wiring.csv heads (the old mast plan is archived).",
    "path": "jmri/layouts/hart/scripts/build_hart_signal_heads.py"
   },
   {
@@ -3085,7 +3067,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "wiring",
-   "desc": "Mac mimic web server showing staging via MQTT; load_layout reads devices.csv, occupancy bindings and head plan. Launch agent disabled.",
+   "desc": "Mac mimic web server showing staging via MQTT; load_layout reads the device master, occupancy bindings and head plan. Launch agent disabled.",
    "path": "tools/mqtt-mimic/lcos_mqtt_mimic.py"
   },
   {
@@ -3139,7 +3121,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "wiring",
-   "desc": "make wiring-freeze: copies a main/upper control point's rule-given wiring from devices.csv into wiring.csv as wired rows.",
+   "desc": "make wiring-freeze: copies a main/upper control point's rule-given wiring from the device master (devices_generated.csv) into wiring.csv as wired rows; the only writer of wiring.csv's main and upper rows (#900).",
    "path": "tools/wiring/freeze_wiring.py"
   },
   {
@@ -3175,7 +3157,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "ops",
-   "desc": "Python behind bin/cars: review, approve, records, publish, cards, site and the other steps.",
+   "desc": "Python behind bin/cars: review, approve, records, publish, cards, site, compare, seed-copy, sync and the other steps.",
    "path": "ops/hart-ops/card_pipeline/cars.py"
   },
   {
@@ -3193,7 +3175,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Acceptance checks for phases 0-2: tables.xml against devices.csv and switches.csv (check.sh phase02).",
+   "desc": "Acceptance checks for phases 0-2: tables.xml against the device master (devices_generated.csv and devices_field.csv) and switches.csv (check.sh phase02).",
    "path": "jmri/scripts/check_hart_phase02.py"
   },
   {
@@ -3229,7 +3211,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices.csv; --check in check.sh.",
+   "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv; --check in check.sh.",
    "path": "tools/schematic/panel_items.py"
   },
   {
@@ -3238,7 +3220,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels guard: discovered_sml.xml's stamp equals the discovery base the sources give now (run_sml_discover.sh again if not).",
+   "desc": "make panels guard: discovered_sml.stamp equals the discovery base the sources give now (run_sml_discover.sh again if not).",
    "path": "tools/schematic/check_sml_current.py"
   },
   {
@@ -3247,7 +3229,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels: runs the schematic builders and guards in order (hands to CATS), skipping a step whose inputs are unchanged.",
+   "desc": "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan step and sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all).",
    "path": "tools/schematic/build_panels.sh"
   },
   {
@@ -3411,6 +3393,98 @@
    "domain": "layout",
    "desc": "The device master's owner's cells, keyed by level, layer and user name: staging's devices (names, layout blocks, comments, DCC, control points) and a Store's level-less devices. Written by hand and by split_store.py; read by the builders.",
    "path": "jmri/layouts/hart/data/devices_field.csv"
+  },
+  {
+   "id": "media/schematic-evolution",
+   "label": "media/schematic-evolution",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Folder of schematic frames and the evolution GIF in the main checkout's gitignored media/ (a worktree links it).",
+   "path": "media/schematic-evolution",
+   "local": true
+  },
+  {
+   "id": "media/pulled-stores",
+   "label": "media/pulled-stores",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Pulled PanelPro Store files with .base, in the main checkout's gitignored media/ (HART_PULLED_DIR moves it); input to split_store.py.",
+   "path": "media/pulled-stores",
+   "local": true
+  },
+  {
+   "id": "tools/hartlib/src/hartlib/film_pace.py",
+   "label": "film_pace.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The pace shared by the four panel films on behind/panel-evolution.html: 0.4 s a version, the last held 2 s (#858).",
+   "path": "tools/hartlib/src/hartlib/film_pace.py"
+  },
+  {
+   "id": "www/assets/behind/panel-evolution",
+   "label": "panel-evolution films",
+   "kind": "output",
+   "status": "live",
+   "domain": "website",
+   "desc": "The four panel films and posters (schematic, CATS, LE, USS) shown on behind/panel-evolution.html; the schematic pair is written by evolution.py --site.",
+   "path": "www/assets/behind/panel-evolution"
+  },
+  {
+   "id": "tools/schematic/template_edit.py",
+   "label": "template_edit.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "One-line edits of what PanelPro owns (memories, clock, manager settings) in tables_template.xml, then rebuilds tables.xml with build_tables.py and checks it; the template and tables.xml are put back on failure (#862).",
+   "path": "tools/schematic/template_edit.py"
+  },
+  {
+   "id": "ext:schematic-cache",
+   "label": "<main checkout>/.cache/hart/schematic",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The schematic plugin's solved-sheet cache, shared by every worktree (SCHEMATIC_CACHE; check.sh sets it too); a run after a small change redoes only what that change reaches.",
+   "path": ""
+  },
+  {
+   "id": "ext:panel-stamps",
+   "label": ".cache/panel-stamps (per checkout)",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "make panels step stamps (panel_stamps.py): a step whose inputs, code, plugin commit and outputs match its last good run is skipped; FULL=1 ignores them.",
+   "path": ""
+  },
+  {
+   "id": "ext:check-stamps",
+   "label": "<main checkout>/.cache/hart/check-stamps",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "tools/check.sh job stamps (check_stamps.py): content hashes of a job's declared inputs; a job whose inputs match its last pass is skipped (not in CI, not with FULL=1) (#880).",
+   "path": ""
+  },
+  {
+   "id": "jmri/layouts/hart/data/schematic/discovered_sml.stamp",
+   "label": "discovered_sml.stamp",
+   "kind": "structured",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Digest of the discovery base that run_sml_discover.sh used; the sml-current guard compares it with the base the sources give now.",
+   "path": "jmri/layouts/hart/data/schematic/discovered_sml.stamp"
+  },
+  {
+   "id": "jmri/layouts/hart/data/schematic/plan_generated.json",
+   "label": "plan_generated.json",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The generated half of plan_overrides: staging control points and stations, name_main and milepost_route, main_upper main_route, control_points and stations. Each of three builders replaces only its own keys (T6b).",
+   "path": "jmri/layouts/hart/data/schematic/plan_generated.json"
   },
   {
    "id": ".claude/agents/archive-researcher.md",
@@ -3871,11 +3945,6 @@
    "to": "tools/wiring/write_inventory.py"
   },
   {
-   "from": "ext:JMRI_UserFiles-pulled",
-   "to": "tools/schematic/split_store.py",
-   "label": "reads Store"
-  },
-  {
    "from": "ext:LCOS_ESP32_MQTT_Client",
    "to": "external/lcos-bridge",
    "label": "same code"
@@ -4167,11 +4236,6 @@
   },
   {
    "from": "human:owner",
-   "to": "jmri/layouts/hart/data/wiring.csv",
-   "label": "hand edits"
-  },
-  {
-   "from": "human:owner",
    "to": "media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx"
   },
   {
@@ -4225,11 +4289,6 @@
   {
    "from": "human:owner-csv-edits",
    "to": "jmri/layouts/hart/data/switches.csv",
-   "label": "edits"
-  },
-  {
-   "from": "human:owner-csv-edits",
-   "to": "jmri/layouts/hart/data/wiring.csv",
    "label": "edits"
   },
   {
@@ -5106,11 +5165,6 @@
   },
   {
    "from": "ops/hart-ops/bin/cars",
-   "to": "jmri/layouts/hart/operations",
-   "label": "publish: add cars, out-of-service"
-  },
-  {
-   "from": "ops/hart-ops/bin/cars",
    "to": "jmri/resources/roster",
    "label": "loco photos"
   },
@@ -5732,16 +5786,6 @@
    "label": "overwrites repo copy"
   },
   {
-   "from": "tools/ops/pull_tables.sh",
-   "to": "ext:JMRI_UserFiles-pulled",
-   "label": "mac-<date>.xml"
-  },
-  {
-   "from": "tools/ops/pull_tables_pi.sh",
-   "to": "ext:JMRI_UserFiles-pulled",
-   "label": "pi-<date>.xml"
-  },
-  {
    "from": "tools/ops/rebuild_publications.sh",
    "to": "docs/ops",
    "label": "make publications"
@@ -5813,11 +5857,6 @@
    "label": "step cats"
   },
   {
-   "from": "tools/schematic/build_device_map.py",
-   "to": "jmri/layouts/hart/data/schematic/plan_overrides.json",
-   "label": "main_upper section"
-  },
-  {
    "from": "tools/schematic/build_hands.py",
    "to": "jmri/layouts/hart/data/switches.csv",
    "label": "step 1 hands"
@@ -5833,11 +5872,6 @@
    "label": "LE build"
   },
   {
-   "from": "tools/schematic/build_main_route.py",
-   "to": "jmri/layouts/hart/data/schematic/plan_overrides.json",
-   "label": "step 3 main_route"
-  },
-  {
    "from": "tools/schematic/build_masts.py",
    "to": "jmri/layouts/hart/data/schematic/masts.csv",
    "label": "writes (every level)"
@@ -5846,11 +5880,6 @@
    "from": "tools/schematic/build_signals.py",
    "to": "jmri/layouts/hart/data/schematic/signals.json",
    "label": "step 6 signals"
-  },
-  {
-   "from": "tools/schematic/build_staging_sets.py",
-   "to": "jmri/layouts/hart/data/schematic/plan_overrides.json",
-   "label": "step 2 staging section"
   },
   {
    "from": "tools/schematic/build_staging_sets.py",
@@ -5866,11 +5895,6 @@
    "from": "tools/schematic/build_tables.py",
    "to": "jmri/layouts/hart/scripts/run_sml_discover.sh",
    "label": "--discovery-base"
-  },
-  {
-   "from": "tools/schematic/evolution.py",
-   "to": "ext:schematic-evolution",
-   "label": "frames + GIF"
   },
   {
    "from": "tools/schematic/plan_lengths.py",
@@ -6409,11 +6433,6 @@
   },
   {
    "from": "www/scripts/prepare_github_pages.py",
-   "to": "ext:web-jpeg-cache",
-   "label": "photo cache"
-  },
-  {
-   "from": "www/scripts/prepare_github_pages.py",
    "to": "www/assets/archive",
    "label": "resize + thumbs"
   },
@@ -6687,11 +6706,6 @@
    "from": "tools/schematic/panel_items.py",
    "to": "tools/check.sh",
    "label": "check panel-status"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/discovered_sml.xml",
-   "to": "tools/schematic/check_sml_current.py",
-   "label": "stamp"
   },
   {
    "from": "tools/schematic/build_panels.sh",
@@ -6969,6 +6983,236 @@
    "from": "ext:anyrail-plan",
    "to": "jmri/layouts/hart/anyrail/hart.xml",
    "label": "JMRI export (snapshot)"
+  },
+  {
+   "from": "media/pulled-stores",
+   "to": "tools/schematic/split_store.py",
+   "label": "reads Store"
+  },
+  {
+   "from": "human:owner",
+   "to": "jmri/layouts/hart/data/wiring.csv",
+   "label": "hand edits (staging rows)"
+  },
+  {
+   "from": "human:owner-csv-edits",
+   "to": "jmri/layouts/hart/data/wiring.csv",
+   "label": "edits (staging rows)"
+  },
+  {
+   "from": "ops/hart-ops/bin/cars",
+   "to": "jmri/layouts/hart/operations",
+   "label": "publish: add cars, out-of-service; sync --apply: identity fields"
+  },
+  {
+   "from": "tools/ops/pull_tables.sh",
+   "to": "media/pulled-stores",
+   "label": "mac-<date>.xml"
+  },
+  {
+   "from": "tools/ops/pull_tables_pi.sh",
+   "to": "media/pulled-stores",
+   "label": "pi-<date>.xml"
+  },
+  {
+   "from": "tools/schematic/evolution.py",
+   "to": "media/schematic-evolution",
+   "label": "frames + GIF"
+  },
+  {
+   "from": "www/scripts/prepare_github_pages.py",
+   "to": "ext:web-jpeg-cache",
+   "label": "photo cache; saves photo-stage outputs"
+  },
+  {
+   "from": "tools/schematic/panel_items.py",
+   "to": "jmri/layouts/hart/data/devices_generated.csv",
+   "label": "status beans rows"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/film_pace.py",
+   "to": "tools/schematic/evolution.py",
+   "label": "pace"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/film_pace.py",
+   "to": "tools/ctc_history/make_ctc_evolution_video.py",
+   "label": "pace (ctc, cats, le)"
+  },
+  {
+   "from": "tools/schematic/evolution.py",
+   "to": "www/assets/behind/panel-evolution",
+   "label": "--site: mp4 + poster"
+  },
+  {
+   "from": "tools/schematic/evolution.py",
+   "to": "www/behind",
+   "label": "--site: version count and dates"
+  },
+  {
+   "from": "www/assets/behind/panel-evolution",
+   "to": "www/behind",
+   "label": "films"
+  },
+  {
+   "from": "tools/schematic/template_edit.py",
+   "to": "jmri/layouts/hart/data/tables_template.xml",
+   "label": "memory, clock, setting edits"
+  },
+  {
+   "from": "tools/schematic/template_edit.py",
+   "to": "tools/schematic/build_tables.py",
+   "label": "runs, then --check"
+  },
+  {
+   "from": "tools/schematic/template_edit.py",
+   "to": "jmri/layouts/hart/output/tables.xml",
+   "label": "rebuild; put back on failure"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "tools/schematic/template_edit.py",
+   "label": "memory use"
+  },
+  {
+   "from": "ops/hart-ops/bin/cars",
+   "to": "external/sts-helpers/seed/inputs",
+   "label": "seed-copy, sync --apply: seed copies"
+  },
+  {
+   "from": "ops/hart-ops/bin/cars",
+   "to": "ext:sts-live",
+   "label": "compare/sync --live-sts: GET, PATCH"
+  },
+  {
+   "from": "jmri/layouts/hart/operations",
+   "to": "ops/hart-ops/bin/cars",
+   "label": "compare, sync read"
+  },
+  {
+   "from": "external/sts-helpers/seed/inputs",
+   "to": "ops/hart-ops/bin/cars",
+   "label": "compare reads seed copies"
+  },
+  {
+   "from": "ext:web-jpeg-cache",
+   "to": "www/scripts/prepare_github_pages.py",
+   "label": "cached resizes; photo stages reused when the stamp fits"
+  },
+  {
+   "from": "tools/schematic/publish_draft.py",
+   "to": "ext:schematic-cache",
+   "label": "solved sheets"
+  },
+  {
+   "from": "ext:schematic-cache",
+   "to": "tools/schematic/build_tables.py",
+   "label": "cache_on"
+  },
+  {
+   "from": "ext:schematic-cache",
+   "to": "tools/schematic/build_masts.py",
+   "label": "cache_on"
+  },
+  {
+   "from": "ext:schematic-cache",
+   "to": "tools/schematic/build_signals.py",
+   "label": "cache_on"
+  },
+  {
+   "from": "ext:schematic-cache",
+   "to": "tools/schematic/plan_lengths.py",
+   "label": "cache_on"
+  },
+  {
+   "from": "ext:schematic-cache",
+   "to": "tools/schematic/check_device_master.py",
+   "label": "cache_on"
+  },
+  {
+   "from": "ext:schematic-cache",
+   "to": "tools/schematic/check_sml_current.py",
+   "label": "cache_on"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "ext:panel-stamps",
+   "label": "records a stamp after a step passes"
+  },
+  {
+   "from": "ext:panel-stamps",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "skips a current step"
+  },
+  {
+   "from": "tools/check.sh",
+   "to": "ext:check-stamps",
+   "label": "records a pass"
+  },
+  {
+   "from": "ext:check-stamps",
+   "to": "tools/check.sh",
+   "label": "skips a current job"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
+   "label": "head-plan step (--wiring-only)"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/run_sml_discover.sh",
+   "to": "jmri/layouts/hart/data/schematic/discovered_sml.stamp",
+   "label": "writes with discovered_sml.xml"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/discovered_sml.stamp",
+   "to": "tools/schematic/check_sml_current.py",
+   "label": "compared"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/ops/pull_tables_pi.sh",
+   "label": "gate auto-pulls a changed Pi Store"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/ops/pull_ops.sh",
+   "label": "gate auto-pulls an Ops session (--no-mark)"
+  },
+  {
+   "from": "tools/schematic/build_staging_sets.py",
+   "to": "jmri/layouts/hart/data/schematic/plan_generated.json",
+   "label": "step 2 staging section"
+  },
+  {
+   "from": "tools/schematic/build_main_route.py",
+   "to": "jmri/layouts/hart/data/schematic/plan_generated.json",
+   "label": "step 3 main_route, name_main, milepost_route"
+  },
+  {
+   "from": "tools/schematic/build_device_map.py",
+   "to": "jmri/layouts/hart/data/schematic/plan_generated.json",
+   "label": "main_upper section"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
+   "to": "tools/schematic/build_main_route.py",
+   "label": "staging name edit"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
+   "to": "tools/schematic/publish_draft.py",
+   "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
+   "to": "tools/schematic/build_signals.py",
+   "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
+   "to": "tools/schematic/build_signals.py",
+   "label": "merged view (layer_files.view)"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
