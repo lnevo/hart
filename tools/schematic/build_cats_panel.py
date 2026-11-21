@@ -70,13 +70,11 @@ sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 
 from cats_panel_facts import (DEVICE_MAP, DeviceMap, Facts, StagingTracks, load_device_map, load_facts,  # noqa: E402,F401
                               mast_type, staging_tracks, template_by_type)
-from cats_panel_staging import (block_bindings, dest, half_label, legs_of, mast_bindings, os_blocks,  # noqa: E402,F401
-                                switch_bindings, switch_of, track_block)
-from cats_panel_levels import (LEVEL_TURNOUT, LEVEL_TURNOUT_PREFIX, MAIN_UPPER_DISCIPLINE, dark_bindings,  # noqa: E402,F401
-                               device_name, helix_block, inside_os, intermediate_signal, level_bands,
-                               level_mast_bindings, level_signals, level_switch_bindings, loop_half_edge,
-                               name_loop_halves, plan_edge, placeholder, planned_sensor, spec, virtual_sensor,
-                               xover_corners)
+from cats_panel import (LEVEL_TURNOUT, LEVEL_TURNOUT_PREFIX, MAIN_UPPER_DISCIPLINE, block_bindings,  # noqa: E402,F401
+                        dark_bindings, dest, device_name, half_label, helix_block, inside_os, intermediate_signal,
+                        legs_of, level_bands, level_mast_bindings, level_signals, level_switch_bindings,
+                        loop_half_edge, mast_bindings, name_loop_halves, os_blocks, plan_edge, placeholder,
+                        planned_sensor, spec, switch_bindings, switch_of, track_block, virtual_sensor, xover_corners)
 from cats_panel_dress import (ABS_PLATE, HEADER, ORDER, PLATE_PX, dress, frozen_header, label_clashes,  # noqa: E402,F401
                               plate_box)
 
