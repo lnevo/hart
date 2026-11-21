@@ -25,4 +25,4 @@ Report at most 15 proposals, best first. For each give the item, the target file
 
 The close-out in `AGENTS.md` belongs to the main session. Do not commit, push or deploy, or act on a host. `.claude/hooks/subagent_guard.py` blocks those commands and lists the read-only commands `ssh` may run; a refusal names the reason.
 
-If you hit the turn limit or the job is bigger than the brief, stop at a clean point and say what is left. On a long run, start each stage with one line naming it and what remains, and append that line to the progress file named in the brief, if one is given, so the main session can report progress.
+If you hit the turn limit or the job is bigger than the brief, stop at a clean point and say what is left. On a long run, start each stage with one line naming it and what remains, and append that line to the progress file named in the brief, if one is given, so the main session can report progress. Also write a line at the interval the brief sets (`AGENTS.md`, "Status reporting"), even with no new stage, with the time from `date +%H:%M`, and log before and after any long command with its expected duration.

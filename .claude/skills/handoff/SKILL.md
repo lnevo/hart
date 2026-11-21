@@ -35,7 +35,11 @@ Checks: single tests while iterating; the full ./tools/check.sh once, through
 Close: commit (stage by name, conventional message), git push -u origin HEAD,
   gh pr create. Do NOT merge.
 Progress (required): append one line per milestone, blocker or failed check to
-  <scratchpad>/progress/<topic>.log, format "HH:MM step done/total ETA note".
+  <scratchpad>/progress/<topic>.log, format "HH:MM step done/total ETA note"
+  (time from date +%H:%M). Interval for this job: <start and end only | every 3 min |
+  every 5 min>; with no milestone, write "still on step X, why, new ETA". Before a
+  long command (check.sh, make remote, a build), log it and its expected duration;
+  log again when it returns.
 Report: PR URL, files changed, checks and where they ran, what was skipped, failed,
   left or not checked.
 ```
@@ -44,7 +48,7 @@ Agents defined in `.claude/agents/` cannot commit, push or open PRs (`subagent_g
 
 ## While they run
 
-Keep one table of every agent (item, agent, model, stage, ETA) from the progress files, updated at each state change. Never report a pending agent's result before it arrives.
+Set each brief's interval by the job's expected length (`AGENTS.md`, "Status reporting"). Watch the progress folder (a Monitor on it) and pass new lines to the owner as they arrive, as one short table of every agent (item, agent, model, stage, ETA). Never report a pending agent's result before it arrives.
 
 ## Merge
 
@@ -56,4 +60,4 @@ The main session merges, one PR at a time, once its required check passes, never
 
 ## Finish
 
-End with what is done (PR, agent, model), then "nothing left in progress" or what is and why, then loose ends grouped as waiting on the owner, parked, and outside our control. If `wiki/not-pending.md` exists, drop anything it lists. Ask several owner decisions as multiple choice, up to 4 at a time, recommended option first.
+End with what is done (PR, agent, model), then "nothing left in progress" or what is and why, then loose ends grouped as waiting on the owner, parked, and outside our control. If `not-pending.md` exists in `wiki/` (a parallel PR adds it), drop anything it lists. Ask several owner decisions as multiple choice, up to 4 at a time, recommended option first.
