@@ -108,7 +108,7 @@ def stage_env(tmp: Path) -> dict[str, str]:
 
 def run(script: Path, out: Path, env: dict[str, str], *flags: str, cwd: Path = ROOT) -> subprocess.CompletedProcess:
     return subprocess.run(["bash", str(script), *flags, "--stage-only", str(out)],
-                          cwd=cwd, env=env, capture_output=True, text=True, timeout=300)
+                          cwd=cwd, env=env, capture_output=True, text=True, timeout=600)  # 106 s alone, near 300 s on a loaded box
 
 
 def read_stamp(path: Path) -> dict[str, str]:
