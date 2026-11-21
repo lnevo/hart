@@ -1,4 +1,4 @@
-# LCOS Layout Inventory v85 (2026-08-22)
+# LCOS layout inventory changelog (v85 to v86)
 
 Change log of the LCOS layout inventory from v85 on, frozen history now that v86 is written from wiring.csv.
 
