@@ -207,7 +207,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "extras",
-   "desc": "Audit: switches.csv, switch_legs.csv, name map, tables.xml and CATS desk panels agree.",
+   "desc": "Audit: switches.csv, name map, tables.xml and CATS desk panels agree.",
    "path": "tools/audit/check_layout_facts.py"
   },
   {
@@ -843,15 +843,6 @@
    "path": "jmri/layouts/hart/data/schematic/discovered_sml.xml"
   },
   {
-   "id": "jmri/layouts/hart/data/schematic/hands.csv",
-   "label": "hands.csv",
-   "kind": "output",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Switch hand (R or L) of every main and upper switch from the plan graph, owner's switch numbers.",
-   "path": "jmri/layouts/hart/data/schematic/hands.csv"
-  },
-  {
    "id": "jmri/layouts/hart/data/schematic/inputs/main.json",
    "label": "inputs/main.json",
    "kind": "structured",
@@ -886,15 +877,6 @@
    "domain": "layout",
    "desc": "Interlocking control points for every level; the signal rule's control points.",
    "path": "jmri/layouts/hart/data/schematic/interlockings.csv"
-  },
-  {
-   "id": "jmri/layouts/hart/data/schematic/local_switches_main_upper.csv",
-   "label": "local_switches_main_upper.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Yard and industry spur switches on main and upper with their areas; get virtual devices.",
-   "path": "jmri/layouts/hart/data/schematic/local_switches_main_upper.csv"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/main_lines.csv",
@@ -1006,21 +988,12 @@
    "local": true
   },
   {
-   "id": "jmri/layouts/hart/data/switch_legs.csv",
-   "label": "switch_legs.csv",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Per OS block at the points: blocks the closed and thrown legs lead to; gives CATS normal leg.",
-   "path": "jmri/layouts/hart/data/switch_legs.csv"
-  },
-  {
    "id": "jmri/layouts/hart/data/switches.csv",
    "label": "switches.csv",
    "kind": "structured",
    "status": "live",
    "domain": "layout",
-   "desc": "Per switch: level, Layout Editor turnout, CATS inversion, USS lever, hand. Read by CATS, LE and facts checks.",
+   "desc": "Every level's switches, one row per OS block or switch half: legs, hand (plan or owner), local area; staging's Layout Editor turnout, CATS inversion, USS lever. Read by CATS, LE, device map and facts checks.",
    "path": "jmri/layouts/hart/data/switches.csv"
   },
   {
@@ -1354,7 +1327,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 1 (hands): writes hands.csv from the plan graph and relabel edits.",
+   "desc": "make panels step 1 (hands): writes the hand of switches.csv's plan rows from the plan graph and relabel edits; owner rows are left alone.",
    "path": "tools/schematic/build_hands.py"
   },
   {
@@ -3743,11 +3716,6 @@
   },
   {
    "from": "human:owner-csv-edits",
-   "to": "jmri/layouts/hart/data/switch_legs.csv",
-   "label": "edits"
-  },
-  {
-   "from": "human:owner-csv-edits",
    "to": "jmri/layouts/hart/data/switches.csv",
    "label": "edits"
   },
@@ -4042,11 +4010,6 @@
    "label": "SML merge"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/hands.csv",
-   "to": "tools/schematic/publish_draft.py",
-   "label": "reads"
-  },
-  {
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/anyrail/levels_page.py"
   },
@@ -4135,7 +4098,7 @@
    "to": "tools/wiring/write_inventory.py"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/local_switches_main_upper.csv",
+   "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/schematic/build_device_map.py",
    "label": "reads"
   },
@@ -4279,52 +4242,32 @@
    "label": "linked"
   },
   {
-   "from": "jmri/layouts/hart/data/switch_legs.csv",
+   "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/audit/check_layout_facts.py",
    "label": "check"
   },
   {
-   "from": "jmri/layouts/hart/data/switch_legs.csv",
+   "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/schematic/build_cats_panel.py",
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/switch_legs.csv",
+   "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/schematic/build_layout_le.py",
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/switch_legs.csv",
+   "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/schematic/build_staging_sets.py",
    "label": "reads"
   },
   {
-   "from": "jmri/layouts/hart/data/switch_legs.csv",
+   "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/wiring/write_inventory.py"
   },
   {
-   "from": "jmri/layouts/hart/data/switch_legs.csv",
+   "from": "jmri/layouts/hart/data/switches.csv",
    "to": "www/scripts/build_layout_index.py"
-  },
-  {
-   "from": "jmri/layouts/hart/data/switches.csv",
-   "to": "tools/audit/check_layout_facts.py",
-   "label": "check"
-  },
-  {
-   "from": "jmri/layouts/hart/data/switches.csv",
-   "to": "tools/schematic/build_cats_panel.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/switches.csv",
-   "to": "tools/schematic/build_layout_le.py",
-   "label": "reads"
-  },
-  {
-   "from": "jmri/layouts/hart/data/switches.csv",
-   "to": "tools/schematic/build_staging_sets.py",
-   "label": "reads"
   },
   {
    "from": "jmri/layouts/hart/data/tables_template.xml",
@@ -5493,7 +5436,7 @@
   },
   {
    "from": "tools/schematic/build_hands.py",
-   "to": "jmri/layouts/hart/data/schematic/hands.csv",
+   "to": "jmri/layouts/hart/data/switches.csv",
    "label": "step 1 hands"
   },
   {

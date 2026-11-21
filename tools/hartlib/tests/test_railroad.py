@@ -15,8 +15,8 @@ from hartlib import layer_files, paths, railroad as R  # noqa: E402
 from master_edit import add, change, drop  # noqa: E402  the master is changed through hartlib.devices
 
 REPO = R.Sources.under()
-DATA_FILES = ("switches", "switch_legs", "devices", "interlockings", "local_switches", "lcos_nodes",
-              "plan_overrides", "block_lengths", "staging_masts", "hands", "level_masts")
+DATA_FILES = ("switches", "devices", "interlockings", "lcos_nodes",
+              "plan_overrides", "block_lengths", "staging_masts", "level_masts")
 
 
 class Copy(unittest.TestCase):
@@ -133,8 +133,8 @@ class Readers(Copy):
     """Each reader stops on its own file's shape, naming the file and line."""
 
     def test_columns_and_field_counts(self) -> None:
-        self.edit("local_switches", "switch,level,area,notes", "switch,level,notes")
-        self.fails(lambda: R.read_local_switches(self.src.local_switches), "no column area")
+        self.edit("switches", ",hand_source,area,", ",hand_source,")
+        self.fails(lambda: R.read_local_switches(self.src.switches), "switches.csv: no column area")
         self.edit("lcos_nodes", "2,North,42,", "2,North,42,x,y,")
         self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), r"lcos_nodes.csv line 11: 4 fields")
         self.fails(lambda: R.read_rows(self.tmp / "missing.csv", ["a"]), "cannot read it")
@@ -159,20 +159,18 @@ class Readers(Copy):
                 self.fails(lambda: R.read_device_map(self.src.devices), msg)
                 self.src.devices.write_text(text, encoding="utf-8")
 
-    def test_extra_columns_are_allowed_and_optional_ones_optional(self) -> None:
-        """A column a reader does not use may be added, and an optional one (switches.csv `hand`, a notes column)
-        may be missing from the header or from the end of a short row."""
+    def test_extra_columns_are_allowed_and_every_switches_column_is_needed(self) -> None:
+        """A column a reader does not use may be added; switches.csv needs every column of its own (SWITCH_COLUMNS),
+        in the header and in each row."""
         text = self.src.switches.read_text(encoding="utf-8")
         lines = text.splitlines()
         self.src.switches.write_text("\n".join([lines[0] + ",note"] + [l + ",x" for l in lines[1:]]) + "\n",
                                      encoding="utf-8")
         self.assertEqual(R.Railroad(self.src).switches[9].hand, "L")
         self.src.switches.write_text("\n".join(l.rsplit(",", 1)[0] for l in lines) + "\n", encoding="utf-8")
-        self.assertEqual(R.Railroad(self.src).switches[9].hand, "")
-        self.src.switches.write_text(text + "1,99,TO999,no,99,no\n", encoding="utf-8")       # short: no hand
-        self.fails(lambda: R.Railroad(self.src).switches, "Switch 99.*no rows in switch_legs.csv")
-        self.src.switches.write_text(text + "1,99,TO999,no\n", encoding="utf-8")             # short: required
-        self.fails(lambda: R.Railroad(self.src).switches, "switches.csv line 22: 7 fields")
+        self.fails(lambda: R.read_switch_rows(self.src.switches), "switches.csv: no column notes")
+        self.src.switches.write_text(text + "1,99,,OS Switch 99,Track A,Track B\n", encoding="utf-8")   # short
+        self.fails(lambda: R.read_switch_rows(self.src.switches), rf"switches.csv line {len(lines) + 1}: 14 fields")
         self.src.block_lengths.write_text("user_name,occupancy_sensor,plan_in,measured_in,source,note,extra\n"
                                           "Track W-1,Block 4-4,105.2,,plan,,x\n", encoding="utf-8")
         self.assertEqual(R.read_block_lengths(self.src.block_lengths)["Track W-1"].plan_in, 105.2)
@@ -287,10 +285,92 @@ class Readers(Copy):
         self.fails(lambda: R.read_name_map(self.src.devices), "dcc is a number or blank")
 
     def test_switches_are_the_adr021_loader(self) -> None:
-        self.append("switches", "2,9,TO999,no,99,no,")
-        self.fails(lambda: R.Railroad(self.src).switches, r"lines 6 \(level 1\) and \d+ \(level 2\) both use Switch 9")
-        self.edit("switches", "2,9,TO999,no,99,no,", "1,99,TO999,maybe,99,no,")
-        self.fails(lambda: R.Railroad(self.src).switches, "Switch 99.*no rows in switch_legs.csv")
+        self.append("switches", "2,9,9,,,,,,,,,,,")
+        self.fails(lambda: R.Railroad(self.src).switches, r"lines 7 \(level 1\) and \d+ \(level 2\) both use Switch 9")
+        self.edit("switches", "2,9,9,,,,,,,,,,,", "1,99,,OS Switch 99,Track A,Track B,,,,TO999,maybe,99,no,")
+        self.fails(lambda: R.Railroad(self.src).switches, r"\(Switch 99\): expected yes or no, got 'maybe'")
+        self.edit("switches", "TO999,maybe,99,no,", ",,,,")
+        self.fails(lambda: R.Railroad(self.src).switches,
+                   r"\(Switch 99\): a staging switch's first row gives le_ident, cats_inverted, ctc_is, ctc_signals")
+
+    def test_switches_csv_rows_by_level(self) -> None:
+        """Each row is held to its level's shape and names its file and line (read_switch_rows)."""
+        text = self.src.switches.read_text(encoding="utf-8")
+        cases = (
+            ("1,9,,OS Switch 9,", "1,9,,OS Switch 11,", r"line 7 \(Switch 9\): os_block is OS Switch 9 or a half"),
+            ("1,9,,OS Switch 9,Track EH-2,Track EH-3,", "1,9,,OS Switch 9,,,", "a staging row gives them"),
+            ("1,9,,OS Switch 9,Track EH-2,", "1,9,,OS Switch 9,,", "gives both legs"),
+            ("1,9,,OS Switch 9,", "1,9,9,OS Switch 9,", "a staging row has no half"),
+            ("2,105,105,,,,", "2,105,105,,Track A,Track B,", "legs .* with its os_block, or neither"),
+            ("2,105,105,,", "2,105,105,OS Switch 106,", r"os_block is OS Switch 105 or a half"),
+            ("Track EH-3,L,owner,", "Track EH-3,L,plan,", "hand_source plan is for main and upper"),
+            ("Track EH-3,L,owner,", "Track EH-3,L,,", "a hand needs a hand_source"),
+            ("Track EH-3,L,owner,", "Track EH-3,,owner,", "a hand needs a hand_source"),
+            ("Track EH-3,L,owner,", "Track EH-3,L,someone,", "a hand needs a hand_source"),
+            ("1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,,,", "1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,,TO117,",
+             r"line 6 \(Switch 7\): le_ident hold a fact of the whole switch: give them on its first row \(line 5\)"),
+            ("2,105,105,", "2,105,106,", r"\(Switch 105\): half is 105, 105A or 105B, not '106'"),
+            ("2,105,105,,,,L,plan,West,,", "2,105,105,,,,L,plan,West,TO1,",
+             "le_ident are staging columns; main and upper leave them blank"),
+            ("2,105,105,", "4,105,105,", "level is 1, 2 or 3"),
+            ("2,101,101B,", "2,101,101A,", r"lines \d+ and \d+: both are 101A"),
+        )
+        for old, new, msg in cases:
+            with self.subTest(new=new):
+                self.assertIn(old, text)
+                self.src.switches.write_text(text.replace(old, new, 1), encoding="utf-8")
+                self.fails(lambda: R.read_switch_rows(self.src.switches), msg)
+        more = (
+            # a crossover's later staging row gives no hand: staging's hand is the switch's (Switch.hand)
+            ("1,7,,OS Switch 7b,Track Main East,OS Switch 7,,,", "1,7,,OS Switch 7b,Track Main East,OS Switch 7,R,owner,",
+             r"line 6 \(Switch 7\): hand, hand_source hold a fact of the whole switch"),
+            # an owner row gives its hand; only a plan row waits for build_hands.py
+            ("2,105,105,,,,L,plan,", "2,105,105,,,,,owner,", "an owner hand_source a hand"),
+            # one row, half N, or both halves NA and NB
+            ("2,105,105,", "2,105,105A,", r"\(Switch 105\): a main or upper switch has one row, half 105, or two, "
+                                          r"halves 105A and 105B; not 105A"),
+            ("2,101,101B,", "2,101,101,", r"\(Switch 101\): .* not 101, 101A"),
+        )
+        for old, new, msg in more:
+            with self.subTest(new=new):
+                self.assertIn(old, text)
+                self.src.switches.write_text(text.replace(old, new, 1), encoding="utf-8")
+                self.fails(lambda: R.read_switch_rows(self.src.switches), msg)
+        # a new plan row may leave its hand blank for build_hands.py; it is no hand until then
+        self.src.switches.write_text(text.replace("2,105,105,,,,L,plan,", "2,105,105,,,,,plan,", 1), encoding="utf-8")
+        self.assertNotIn("105", R.read_hands(self.src.switches))
+        # a main or upper row may give its OS block and legs (none does yet)
+        self.src.switches.write_text(text.replace("2,105,105,,,,", "2,105,105,OS Switch 105,Track A,Track B,", 1),
+                                     encoding="utf-8")
+        self.assertEqual(next(r for r in R.read_switch_rows(self.src.switches) if r.half == "105").closed_leg, "Track A")
+        self.src.switches.write_text(text + "1,9,,OS Switch 9b,Track A,Track B,,,,,,,,\n", encoding="utf-8")
+        self.fails(lambda: R.read_switch_rows(self.src.switches), r"Switch 9 is also on line 7; a switch's rows go together")
+
+    def test_switches_csv_and_its_dictionary_have_the_readers_columns(self) -> None:
+        """switches.csv's header is SWITCH_COLUMNS, in order, and switches.columns.csv describes each column once."""
+        with REPO.switches.open(newline="", encoding="utf-8") as fh:
+            self.assertEqual(tuple(next(csv.reader(fh))), R.SWITCH_COLUMNS)
+        with (REPO.switches.parent / "switches.columns.csv").open(newline="", encoding="utf-8") as fh:
+            rows = list(csv.reader(fh))
+        self.assertEqual(rows[0], ["column", "description"])
+        self.assertEqual(tuple(r[0] for r in rows[1:]), R.SWITCH_COLUMNS)
+        self.assertTrue(all(len(r) == 2 and r[1].strip() for r in rows[1:]), rows)
+
+    def test_the_views_of_switches_csv(self) -> None:
+        """Staging switches (level 1, legs in row order, the first row's whole-switch columns), local switches (main and
+        upper switches whose first row gives an area) and hands (main and upper rows with a hand) are views of one file."""
+        rr = R.Railroad(self.src)
+        self.assertEqual(rr.switches[7].os_blocks, ("OS Switch 7", "OS Switch 7b"))
+        self.assertEqual(rr.switches[35].os_blocks, ("OS Switch 35b", "OS Switch 35a"))
+        self.assertEqual((rr.switches[7].le_ident, rr.switches[7].hand), ("TO117", "L"))
+        self.assertEqual(set(rr.switches), {r.switch for r in rr.switch_rows if r.level == 1})
+        local = {s.switch: s for s in rr.local_switches}
+        self.assertEqual((local["101"].level, local["101"].area, local["101"].notes),
+                         (2, "Peninsula", "Yard throat crossover"))
+        self.assertNotIn("107", local)                                  # a control point switch: no area here
+        self.assertEqual((rr.hands["101A"].hand, rr.hands["101A"].source), ("L", "plan"))
+        self.assertNotIn("225", rr.hands)                               # the double crossover has a row, no hand
+        self.assertFalse(any(label.isdigit() and int(label) < 100 for label in rr.hands))
 
     def test_interlockings(self) -> None:
         read = lambda: R.read_interlockings(self.src.interlockings)  # noqa: E731
@@ -319,15 +399,16 @@ class Readers(Copy):
             R.join_main_upper(rr.interlockings, [])
 
     def test_local_switches_and_nodes(self) -> None:
-        self.append("local_switches", "101,2,Peninsula,again")
-        self.fails(lambda: R.read_local_switches(self.src.local_switches), "both are switch 101")
+        self.append("switches", "2,101,101A,,,,L,plan,Peninsula,,,,,again")
+        self.fails(lambda: R.read_local_switches(self.src.switches),
+                   r"\(Switch 101\): Switch 101 is also on line 25; a switch's rows go together")
         self.append("lcos_nodes", "3,West,42,again")
         self.fails(lambda: R.read_lcos_nodes(self.src.lcos_nodes), "both list node 42")
 
     def test_a_switch_in_a_control_point_and_local(self) -> None:
-        self.append("local_switches", "107,2,West,also")
+        self.edit("switches", "2,107,107,,,,L,plan,,,,,,", "2,107,107,,,,L,plan,West,,,,,also")
         self.fails(lambda: R.Railroad(self.src).main_upper_switches,
-                   r"switch 107 is in a control point and in local_switches_main_upper.csv \(line \d+, CP 107\)")
+                   r"switch 107 is in a control point and in switches.csv \(line \d+, CP 107\)")
 
     def test_plan_overrides(self) -> None:
         section = lambda data: self.src.plan_overrides.write_text(
@@ -375,8 +456,8 @@ class Readers(Copy):
         self.src.block_lengths.write_text(text.replace(mw, mw.replace(",timed,", ",plan,")), encoding="utf-8")
         self.fails(lambda: R.read_block_lengths(self.src.block_lengths), "source plan with measured_in")
         self.src.block_lengths.write_text(text, encoding="utf-8")
-        self.edit("hands", "101A,L,", "101A,X,")
-        self.fails(lambda: R.read_hands(self.src.hands), "hands.csv line 2")
+        self.edit("switches", "2,101,101A,,,,L,", "2,101,101A,,,,X,")
+        self.fails(lambda: R.read_hands(self.src.switches), r"switches.csv line 25 \(Switch 101\): hand is L, R or blank")
 
     def test_device_map(self) -> None:
         dm = R.read_device_map(self.src.devices)
@@ -409,11 +490,12 @@ class Invariants(Copy):
                     self.assertEqual([p for p in self.problems(inv.name) if f"{inv.name}: {p}" not in R.KNOWN], [])
 
     def test_switch_numbers(self) -> None:
-        self.edit("local_switches", "101,2,Peninsula,", "9,2,Peninsula,")
+        # switches.csv itself refuses a number on two levels (read_switch_rows); a control point can still list one
+        self.edit("interlockings", "3,CP 217,217,", '3,CP 217,"217,9",')
         self.edit("interlockings", "3,CP 211,", "3,CP 212,")
         self.edit("interlockings", '1,Brick,"1,3,5"', '1,Brick,"1,3,5,99"')
         got = self.problems("switch-numbers")
-        self.assertIn("Switch 9 is a switch of levels 1 (switches.csv) and 2 (local_switches_main_upper.csv)", got)
+        self.assertIn("Switch 9 is a switch of levels 1 (switches.csv) and 3 (interlockings.csv)", got)
         self.assertTrue(any("CP 212 is named CP 211 by its lowest switch" in p for p in got), got)
         self.assertTrue(any("level 1 interlocking Brick lists Switch 99, which is no level 1 switch" in p for p in got),
                         got)
@@ -421,8 +503,19 @@ class Invariants(Copy):
         self.assertTrue(any("level 2 interlocking CP 107 lists Switch 201, which is no level 2 switch" in p
                             for p in self.problems("switch-numbers")), self.problems("switch-numbers"))
 
+    def test_switches_csv_rows_match_the_main_and_upper_switches(self) -> None:
+        """Every main and upper switch has rows in switches.csv, on its control point's level, and no row is for a
+        number that is no main or upper switch."""
+        self.edit("switches", "2,107,107,", "3,107,107,")
+        self.edit("switches", "3,225,225,,,,,,,,,,,double crossover: no hand\n", "")
+        self.append("switches", "3,299,299,,,,,,,,,,,")
+        got = self.problems("switch-numbers")
+        self.assertTrue(any("Switch 107 is level 3, its control point CP 107 level 2" in p for p in got), got)
+        self.assertIn("Switch 225 (CP 225, level 3): no row in switches.csv", got)
+        self.assertTrue(any("Switch 299 is in no main or upper control point and gives no area" in p for p in got), got)
+
     def test_lcos_nodes(self) -> None:
-        self.edit("local_switches", "101,2,Peninsula,", "101,2,Attic,")
+        self.edit("switches", "2,101,101A,,,,L,plan,Peninsula,", "2,101,101A,,,,L,plan,Attic,")
         self.edit("lcos_nodes", "1,West,4,", "2,West,4,")           # a staging node given to the main level
         self.edit("lcos_nodes", "1,North,12,", "1,North,62,")        # and one that staging uses, left out
         got = self.problems("lcos-nodes")
@@ -458,8 +551,8 @@ class Invariants(Copy):
                       "(current == proposed)", inv.run(rr))
 
     def test_staging_blocks(self) -> None:
-        self.edit("switch_legs", "1,OS Switch 1,OS Switch 3,Track Brick-Plane", "1,OS Switch 1,OS Switch 3,Track Nowhere")
-        self.assertIn("Switch 1 (switch_legs.csv): thrown leg Track Nowhere is no live block of the name map",
+        self.edit("switches", "1,1,,OS Switch 1,OS Switch 3,Track Brick-Plane", "1,1,,OS Switch 1,OS Switch 3,Track Nowhere")
+        self.assertIn("Switch 1 (switches.csv): thrown leg Track Nowhere is no live block of the name map",
                       self.problems("staging-blocks"))
 
     def test_plan_overrides(self) -> None:
@@ -475,10 +568,10 @@ class Invariants(Copy):
         self.assertIn("plan_overrides.json[main_upper]: move edit names 'T0', which the relabel does not rename", got)
 
     def test_hands(self) -> None:
-        self.append("hands", "9,L,test")
+        self.append("switches", "3,299,299,,,,L,owner,,,,,,test")
         got = self.problems("hands")
-        self.assertTrue(any("9 is no label the plan's relabel gives" in p for p in got), got)
-        self.assertTrue(any("9 is no main or upper switch" in p for p in got), got)
+        self.assertTrue(any("299 is no label the plan's relabel gives" in p for p in got), got)
+        self.assertTrue(any("299 is no main or upper switch" in p for p in got), got)
 
     def test_device_map(self) -> None:
         drop(self.src.devices, self.key("turnout", "Switch 103"))
@@ -563,13 +656,13 @@ class Invariants(Copy):
         self.assertTrue(any(p.startswith("main_upper_masts.csv: Mast 110L: tables.xml has IF$x, the file says IF$")
                             for p in got), got)
 
-    def test_tables_staging_switch_legs(self) -> None:
+    def test_tables_staging_switches(self) -> None:
         rr = R.Railroad(self.src)
         rr.tables.turnouts.pop("Switch 3")
         rr.tables.blocks.discard("Track Brick-Plane")
         got = R.INVARIANTS[-1].run(rr)
         self.assertIn("Switch 3 (switches.csv): no turnout Switch 3 in tables.xml", got)
-        self.assertIn("Switch 1 (switch_legs.csv): no block Track Brick-Plane in tables.xml", got)
+        self.assertIn("Switch 1 (switches.csv): no block Track Brick-Plane in tables.xml", got)
 
 
 class Known(unittest.TestCase):
@@ -690,9 +783,9 @@ class SmallHelpers(Copy):
             R.read_helix_tracks(self.src.plan_overrides)
 
     def test_sources_but_swaps_one_file(self) -> None:
-        other = self.src.but(hands=Path("x.csv"))
-        self.assertEqual(other.hands, Path("x.csv"))
-        self.assertEqual(other.switches, self.src.switches)
+        other = self.src.but(switches=Path("x.csv"))
+        self.assertEqual(other.switches, Path("x.csv"))
+        self.assertEqual(other.devices, self.src.devices)
 
     def test_a_layer_beyond_upto_is_refused(self) -> None:
         rr = R.Railroad(self.src, upto="inputs")

@@ -13,7 +13,7 @@ Inputs (jmri/layouts/hart/data/schematic/):
   interlockings that affect the main route are control points, as in the bench plans
   (docs/wiring/bench/control_point_4 to 6): switches on the main route, grouped where they stand close together.
 - block_overrides.csv kind split: the owner's choice of tracks parted into two blocks at their turnback (not a rule).
-- local_switches_main_upper.csv: every other switch (yards and industry spurs), with its area. These get a
+- switches.csv, its main and upper rows: every other switch (yards and industry spurs) has its area there. These get a
   turnout and feedback but no control point, no signals and no detection.
 - lcos_nodes.csv: every level's LCOS radio addresses. Staging's are the nodes in service (inventory v86), which this
   never hands out; main and upper's are the ones each level and area may use, in order (each row's source says
@@ -157,7 +157,7 @@ from hartlib import devices, layer_files, level_devices, level_masts, railroad, 
 SOURCES = railroad.Sources.under()
 CPS = SOURCES.interlockings
 NODES = SOURCES.lcos_nodes
-LOCAL = SOURCES.local_switches
+SWITCHES = SOURCES.switches                     # switches.csv: its main and upper rows give the local switches' areas
 OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json; this writes its main_upper section
 SHEET = railroad.PlanOverrides.SHEET
 OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
@@ -180,7 +180,7 @@ def device_files() -> devices.Files:
 
 def sources() -> railroad.Sources:
     """The files main() reads and writes: the module's paths as they are when it runs (a test may patch them)."""
-    return railroad.Sources.under().but(interlockings=CPS, lcos_nodes=NODES, local_switches=LOCAL,
+    return railroad.Sources.under().but(interlockings=CPS, lcos_nodes=NODES, switches=SWITCHES,
                                         plan_overrides=OVERRIDES, devices=OUT)
 
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
@@ -715,7 +715,7 @@ def frozen_wires(path: Path | None = None) -> list:
 
 def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None, helix=None, pins=None,
           virtual_names=None, frozen=None) -> tuple[dict, list[dict], list[dict]]:
-    """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (local_switches_main_upper.csv
+    """(control_points, device map rows, the parts' master rows: links inside an OS block, part_row). `local`: the switches in no control point (the local switches of switches.csv
     rows). Every switch on the main and upper bands must be in exactly one of the two. `corners`: dx_corners, needed
     when a band has a double crossover. `helix`: read_helix_tracks (None: plan_overrides.json; {}: no helix tracks);
     `pins`: read_pins (None: wiring.csv's detectors, resolved against the tracks found here); `virtual_names`:
@@ -725,7 +725,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     by_level = labels_by_level(bands)
     cp_keys = overrides_keys(cps, by_level)
     try:
-        switches = railroad.join_main_upper(cps, local, LOCAL.name)
+        switches = railroad.join_main_upper(cps, local, SWITCHES.name)
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
     cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
@@ -733,7 +733,8 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
     on_bands = {base(lb) for labels in by_level.values() for lb in labels}
     missing = sorted(on_bands - set(cp_of) - set(loc), key=natural)
     if missing:
-        raise MapError(f"switch {', '.join(missing)} is in no control point and not in {LOCAL.name}")
+        raise MapError(f"switch {', '.join(missing)} is in no control point and not a local switch (an area) "
+                       f"in {SWITCHES.name}")
     found = named_tracks(bands, joined, runs, overrides, helix)
     check_helix_ends(bands, joined, found, helix)
     stops = helix_stops(helix)              # check_helix_ends: each helix track ends at its level_switch

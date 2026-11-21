@@ -103,10 +103,10 @@ def uss_plants(switches: dict, plant_cells: dict) -> dict:
     missing = [f"{os_name} at {xy}" for xy, os_name in plant_cells.items() if os_name not in owner]
     if missing:
         raise SystemExit("uss_board_plants.csv names OS blocks with no row in "
-                         "switch_legs.csv: " + ", ".join(missing))
+                         "switches.csv: " + ", ".join(missing))
     undrawn = sorted(set(owner) - set(plant_cells.values()))
     if undrawn:
-        raise SystemExit("switch_legs.csv OS blocks with no cell in uss_board_plants.csv: "
+        raise SystemExit("switches.csv OS blocks with no cell in uss_board_plants.csv: "
                          + ", ".join(undrawn))
     return {
         xy: (owner[os_name].turnout, owner[os_name].cats_inverted)

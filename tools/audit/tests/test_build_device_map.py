@@ -134,7 +134,7 @@ class Output(unittest.TestCase):
     def test_every_switch_has_a_turnout_two_feedbacks_and_an_os_block(self):
         have = rows()
         cp_sw = [s for c in BD.load_cps() for s in c.switches]
-        local = [row.switch for row in R.read_local_switches(BD.LOCAL)]
+        local = [row.switch for row in R.read_local_switches(BD.SWITCHES)]
         dx = {"225"}                            # the double crossover: an OS block and a detector per corner
         for s in cp_sw + local:
             os = [f"{s}{c}" for c in "abcd"] if s in dx else [s]

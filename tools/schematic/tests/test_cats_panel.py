@@ -1,5 +1,5 @@
 """The CATS desk bindings each level's builder gives, on the committed railroad (the sheet, tables.xml, devices.csv,
-switches.csv, switch_legs.csv, main_upper_masts.csv), held to cats/panels/HART_CTC.bindings.json part by part: the
+switches.csv, main_upper_masts.csv), held to cats/panels/HART_CTC.bindings.json part by part: the
 staging switches, OS blocks, destinations, half labels, blocks and masts, and the main and upper switches, blocks,
 helix blocks and masts. These pin the builders' behaviour so they can be merged into one without a desk changing.
 They go through build_cats_panel (the names it exports), so they hold for any module layout behind it.
@@ -59,7 +59,7 @@ class Whole(unittest.TestCase):
                          B.BINDINGS.read_text(encoding="utf-8"))
 
     def test_the_counts_follow_the_sources(self):
-        """One staging switch binding per switch_legs.csv row, the main and upper ones the internal turnouts of
+        """One staging switch binding per staging row of switches.csv, the main and upper ones the internal turnouts of
         tables.xml, one mast per drawn staging mast and visible main_upper_masts.csv row."""
         k = built()
         c, F = k["committed"], k["F"]
@@ -84,7 +84,7 @@ class StagingSwitches(unittest.TestCase):
         self.assertEqual(set(self.os_of), nodes)
         self.assertEqual(len(set(self.os_of.values())), len(nodes))  # never two nodes on one OS block
         legs = {leg.os_block for sw in self.F.switches.values() for leg in sw.legs}
-        self.assertEqual(set(self.os_of.values()), legs)              # every switch_legs.csv row drawn once
+        self.assertEqual(set(self.os_of.values()), legs)              # every staging row of switches.csv drawn once
 
     def test_switch_bindings_are_the_committed_staging_ones(self):
         got = B.switch_bindings(self.band, self.F, self.os_of)
@@ -92,7 +92,7 @@ class StagingSwitches(unittest.TestCase):
         self.assertEqual(got, want)
 
     def test_half_labels(self):
-        """A switch with several switch_legs.csv rows is drawn as halves, labelled its number and A, B, ... one per
+        """A switch with several staging rows of switches.csv is drawn as halves, labelled its number and A, B, ... one per
         row; a switch with one row has no label."""
         got = B.switch_bindings(self.band, self.F, self.os_of)
         by_number = {}
@@ -109,7 +109,7 @@ class StagingSwitches(unittest.TestCase):
             self.assertEqual(labels, {f"{number}{c}" for c in "ABCD"[:len(self.F.switches[number].legs)]})
 
     def test_destinations_are_the_closed_and_thrown_legs(self):
-        """Each staging switch's legs B and C lead to its switch_legs.csv closed and thrown blocks, the closed one
+        """Each staging switch's legs B and C lead to its switches.csv closed and thrown blocks, the closed one
         on the leg its binding closes the turnout for."""
         got = B.switch_bindings(self.band, self.F, self.os_of)
         by_block = {e["block"]: (k, e) for k, e in got.items()}

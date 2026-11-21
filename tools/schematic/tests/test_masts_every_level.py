@@ -232,7 +232,7 @@ def main_upper_rule(no_pruning: bool = False) -> dict:
         skip_or_fail(exc)
     rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
     found = bdm.named_tracks(bands, joined, runs, rr.plan_overrides.data)
-    switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.LOCAL.name)
+    switches = bdm.railroad.join_main_upper(rr.level_control_points, rr.local_switches, bdm.SWITCHES.name)
     cp_of = {s: sw.cp for s, sw in switches.items() if sw.cp}
     with contextlib.ExitStack() as stack:
         if no_pruning:

@@ -333,7 +333,7 @@ def read_rows(path: Path, columns) -> list[dict]:
 
 
 def switch_facts(read):
-    """`read()` (a le_common reader of the staging switches, hartlib.railroad: switches.csv and switch_legs.csv,
+    """`read()` (a le_common reader of the staging switches, hartlib.railroad: switches.csv,
     ADR-021, read once per run), with its BuildError as a StagingMapError naming the file and row."""
     try:
         return read()
@@ -342,7 +342,7 @@ def switch_facts(read):
 
 
 def closed_legs() -> dict:
-    """{OS block: closed leg block} of every staging switch (switch_legs.csv, ADR-021)."""
+    """{OS block: closed leg block} of every staging switch (switches.csv, ADR-021)."""
     return {leg.os_block: leg.closed for sw in switch_facts(lc.staging_switches).values() for leg in sw.legs}
 
 
@@ -380,7 +380,7 @@ def leg_first_blocks(band, names: dict) -> dict:
 
 
 def normal_legs(band, names: dict) -> dict:
-    """{plain switch node: "B" or "C"}: the drawn leg whose first block is the switch's closed leg in switch_legs.csv."""
+    """{plain switch node: "B" or "C"}: the drawn leg whose first block is the switch's closed leg in switches.csv."""
     closed = closed_legs()
     first = leg_first_blocks(band, names)
     halves = crossover_halves(band)
@@ -390,7 +390,7 @@ def normal_legs(band, names: dict) -> dict:
             continue
         want = closed.get(names["os"][n])
         if want is None:
-            bad.append(f"switch {d['label']}: {names['os'][n]} is not in switch_legs.csv")
+            bad.append(f"switch {d['label']}: {names['os'][n]} is not in switches.csv")
             continue
         legs = [p for p in "BC" if first.get((n, p)) == want]
         if len(legs) != 1:
@@ -416,7 +416,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
          turnout_idents: bool = True, with_masts: bool = True,
          interlockings_path: Path = INTERLOCKINGS) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
-    switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
+    switches.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
     devices.csv keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
     use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed. A
@@ -482,7 +482,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
         bad.append(f"trial names the staging drawing does not have: {unused}")
     if bad:
         raise StagingMapError(f"{paths.rel(device_map)}: " + "; ".join(bad))
-    names["normal"] = normal_legs(band, os_layer(names, parts))  # switch_legs.csv names a leg by its first OS block
+    names["normal"] = normal_legs(band, os_layer(names, parts))  # switches.csv names a leg by its first OS block
     if turnout_idents:
         ident_of = switch_facts(lc.switch_idents)
         idents = {}

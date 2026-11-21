@@ -163,11 +163,11 @@ class Switches(unittest.TestCase):
         with self.assertRaisesRegex(SystemExit, "the desks need \"one\""):
             B.desk_options(plugin_cats(), {"cats_window": [1900, 1020], "cats_helix_blocks": "apart"}, [])
 
-    def test_legs_disagreeing_with_switch_legs_stop(self):
+    def test_legs_disagreeing_with_the_switch_facts_stop(self):
         f = facts()
         f.switches[1] = Switch(1, "1", "TO1", False, 1, True, (Leg("OS Switch 1", "Track Main", "Track Yard"),))
         b = band()
-        with self.assertRaisesRegex(SystemExit, "switch_legs.csv says"):
+        with self.assertRaisesRegex(SystemExit, "switches.csv says"):
             B.switch_bindings(b, f, B.os_blocks(b, f))
 
 

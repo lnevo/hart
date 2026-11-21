@@ -5,7 +5,7 @@ bands.
 One builder for all three levels. A band's level says where its facts come from, never how a binding is made:
 
   level      band                         switches and OS blocks              blocks                    masts
-  bound (1)  bound_bi (staging)           switches.csv, switch_legs.csv,      occupancy_bindings.csv,   signals.json
+  bound (1)  bound_bi (staging)           switches.csv,                       occupancy_bindings.csv,   signals.json
                                           M2T turnouts (Facts.turnout_io)     M2S detectors             [staging]
   2 and 3    level_band (bdm.band_level)  internal turnouts (LEVEL_TURNOUT),  devices.csv block rows,   main_upper_
                                           the drawing's crossover halves      virtual sensors           masts.csv
@@ -101,7 +101,7 @@ def mast_template(name, F, by_type):
     return F.templates.get(name) or by_type.get(mast_type(F.mast_system.get(name)))
 
 
-# --- the bound level (staging): switches.csv, switch_legs.csv, occupancy_bindings.csv -------------------------------
+# --- the bound level (staging): switches.csv, occupancy_bindings.csv -------------------------------------------
 
 def switch_of(F, d):
     try:
@@ -111,7 +111,7 @@ def switch_of(F, d):
 
 
 def os_blocks(band, F):
-    """{switch node: its OS block}: the switch's only one, else the switch_legs.csv row whose named tracks its legs
+    """{switch node: its OS block}: the switch's only one, else the switches.csv row whose named tracks its legs
     touch, else the one row left. Two nodes never get one row."""
     nodes, strands = band["nodes"], band["strands"]
     sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
@@ -132,7 +132,7 @@ def os_blocks(band, F):
             left = [leg.os_block for leg in sw.legs if leg.os_block not in {os_of.get(m) for m in mates}]
             if len(left) != 1:
                 raise SystemExit(f"switch {d['label']}: cannot tell which of {[l.os_block for l in sw.legs]} "
-                                 f"node {n} is from switch_legs.csv")
+                                 f"node {n} is from switches.csv")
             os_of[n] = left[0]
     seen = {}
     for n, os_name in sorted(os_of.items()):
@@ -173,21 +173,21 @@ def dest(band, os_of, n, port, helix=None):
 
 def half_label(sw, leg):
     """The panel label of one half of a switch with several OS blocks (a crossover): its number and the letter of
-    its OS block in switch_legs.csv, upper case (OS Switch 23a -> 23A). The row without a letter is A when every
+    its OS block in switches.csv, upper case (OS Switch 23a -> 23A). The row without a letter is A when every
     other row has one (OS Switch 7 and 7b -> 7A, 7B)."""
     letter = lambda name: m.group(1) if (m := re.fullmatch(rf"OS Switch {sw.number}([a-z])", name)) else None
     own = letter(leg.os_block)
     if own is None:
         others = [letter(l.os_block) for l in sw.legs if l is not leg]
         if None in others or "a" in others:
-            raise SystemExit(f"Switch {sw.number}: cannot tell which half {leg.os_block} is from switch_legs.csv")
+            raise SystemExit(f"Switch {sw.number}: cannot tell which half {leg.os_block} is from switches.csv")
         own = "a"
     return f"{sw.number}{own.upper()}"
 
 
 def switch_bindings(band, F, os_of):
     """{switch key: binding} for the staging switches: each node's OS block (os_of), its M2T turnout, closed on the
-    leg that leads to its switch_legs.csv closed block, NORMAL the thrown leg when CATS normal is JMRI thrown
+    leg that leads to its switches.csv closed block, NORMAL the thrown leg when CATS normal is JMRI thrown
     (cats_inverted); a switch drawn as halves is keyed label/alias and labelled by half (half_label)."""
     nodes = band["nodes"]
     sw_nodes = {n: d for n, d in nodes.items() if d["kind"] == "switch"}
@@ -198,7 +198,7 @@ def switch_bindings(band, F, os_of):
         leg = next(l for l in sw.legs if l.os_block == os_of[n])
         to = {p: dest(band, os_of, n, p, F.helix) for p in "BC"}
         if sorted(to.values()) != sorted((leg.closed, leg.thrown)):
-            raise SystemExit(f"{leg.os_block}: the schematic's legs lead to {to}, but switch_legs.csv says "
+            raise SystemExit(f"{leg.os_block}: the schematic's legs lead to {to}, but switches.csv says "
                              f"closed {leg.closed}, thrown {leg.thrown}")
         closed = next(p for p in "BC" if to[p] == leg.closed)
         thrown = "C" if closed == "B" else "B"
