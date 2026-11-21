@@ -514,17 +514,23 @@ def helix_stops(helix: dict) -> dict[str, str]:
 
 
 def line_role(t: dict, half: int | None) -> str:
-    """The role (hartlib.devices.ROLES) of a line block of track entry `t`, from its ends, never its name: helix for a
-    track up the helix, loop_half for a half of a balloon loop, spur for a track with one switch end (a buffer stop
-    at the other), else track (a split track's halves are track blocks, as the whole track would be)."""
-    kinds = [k for k, _v in t["ends"]]
+    """The role (hartlib.devices.ROLES) of a line block of track entry `t`, from its ends (mast_rule.end_ref: sw,
+    helix, bumper), never its name: helix for a track up the helix, loop_half for a half of a balloon loop, spur for a
+    switch at one end and a buffer stop at the other, track for a switch at each end (a split track's halves are track
+    blocks, as the whole track would be). MapError, naming the track, on any other pair of ends."""
+    kinds = sorted(k for k, _v in t["ends"])
     if "helix" in kinds:
         return "helix"
     if t["loop"]:
         if half is None:
             raise MapError(f"{t['name']}: a balloon loop is two blocks, one per half; this one has none")
         return "loop_half"
-    return "spur" if kinds.count("sw") == 1 else "track"
+    if kinds == ["bumper", "sw"]:
+        return "spur"
+    if kinds == ["sw", "sw"]:
+        return "track"
+    raise MapError(f"{t['name']}: a line block ends at {' and '.join(kinds) or 'nothing'}; a track runs from a switch "
+                   "to a switch, a buffer stop or the helix")
 
 
 def loop_placeholder(placeholder: str, half: int | None) -> str:

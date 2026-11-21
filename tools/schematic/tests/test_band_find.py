@@ -226,6 +226,22 @@ class LabelRuleNamingNoBand(unittest.TestCase):
 class NamesSkipTheBaseByLevel(unittest.TestCase):
     """le_names skips the bands of a level the base holds (le_common.base_keys), found by level, not by title."""
 
+    def test_named_bands_names_a_track_by_the_role_it_is_given_never_its_name(self):
+        """A line block (devices.LINE_ROLES) is named on its longest track; any other is not; a block `roles` does
+        not hold stops. The roles are the caller's (le_names.block_roles of the map the names came from)."""
+        band = {"nodes": {"a": {"kind": "end"}, "b": {"kind": "end"}},
+                "strands": {"s1": {"src": ("a", "A"), "dst": ("b", "B"), "cm": 5.0, "name": "plan"}}}
+        empty = {"nodes": {}, "strands": {}}
+        bands = [("Cellar deck", empty, {}), ("Lower deck", band, {}), ("Top deck, 4 in", empty, {})]
+        names = {"Lower": dict(turnouts={}, blocks={"s1": ["Track 1-2"]}), "Top": dict(turnouts={}, blocks={})}
+        with Folder(overrides()):
+            named = lambda roles: le_names.named_bands(bands, names, roles)[1][1]["strands"]["s1"]["name"]  # noqa: E731
+            self.assertEqual(named({"Track 1-2": "track"}), "1-2")
+            self.assertEqual(named({"Track 1-2": "part"}), "1-2")
+            self.assertEqual(named({"Track 1-2": "os"}), "")             # named like a track, but an OS block
+            with self.assertRaisesRegex(BuildError, "no main or upper block row 'Track 1-2'"):
+                named({"OS Switch 1": "os"})
+
     def test_named_bands_leaves_the_base_band_as_it_is(self):
         plan = overrides(staging={"level_title": "Cellar deck", "level": 2},
                          levels=[{"name": "Lower deck", "level": 1, "below": 5},

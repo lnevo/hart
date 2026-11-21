@@ -45,7 +45,8 @@ class StagingTracks:
 
 
 # The main and upper rows of devices.csv: block rows (each with its level and the schematic tracks it holds, `trial`) and
-# occupancy sensors by name (virtual, and the planned detector when there is one); hartlib.railroad reads and checks it.
+# each block's occupancy row (its virtual sensor, and the planned detector when there is one); hartlib.railroad reads and
+# checks it.
 DeviceMap = railroad.DeviceMap
 
 

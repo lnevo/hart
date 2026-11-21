@@ -1005,12 +1005,10 @@ DEVICE_LAYERS = NAME_LAYERS             # the device map's layers are staging's
 
 @dataclass
 class DeviceMap:
-    """The main and upper device map. `blocks`: block user name -> row; `sensors`: occupancy user name -> virtual
-    sensor (jmri_name); `planned`: occupancy user name -> planned detector (M2S...), when the map has one."""
+    """The main and upper device map. `blocks`: block user name -> row; `occupancy`: block user name -> the
+    occupancy row that serves it (its virtual sensor is the row's jmri_name, its planned detector the system_name)."""
     rows: list[DeviceRow] = field(default_factory=list)
     blocks: dict[str, DeviceRow] = field(default_factory=dict)
-    sensors: dict[str, str] = field(default_factory=dict)
-    planned: dict[str, str] = field(default_factory=dict)
     path: Path | None = None
 
     def of(self, layer: str) -> list[DeviceRow]:
@@ -1019,12 +1017,21 @@ class DeviceMap:
     def by_user(self, layer: str) -> dict[str, DeviceRow]:
         return {r.user_name: r for r in self.of(layer)}
 
-    @property
+    @cached_property
     def occupancy(self) -> dict[str, DeviceRow]:
         """Block user name -> the occupancy row that serves it, by the row's own blocks column (read_device_map holds
         each occupancy row to the one block it is named for), so a reader finds a block's sensor row without
-        building its name."""
-        return {r.served[0]: r for r in self.of("occupancy") if r.served}
+        building its name. Built once, from `rows` as they are then. FactsError on a block two occupancy rows
+        serve, naming their lines."""
+        out: dict[str, DeviceRow] = {}
+        for r in self.of("occupancy"):
+            for block in r.served:
+                if block in out:
+                    raise FactsError(f"{self.path.name if self.path else 'the device map'} lines {out[block].line} "
+                                     f"and {r.line}: occupancy {out[block].user_name} and {r.user_name} both serve "
+                                     f"block {block}")
+                out[block] = r
+        return out
 
     @property
     def turnouts(self) -> dict[str, DeviceRow]:
@@ -1102,9 +1109,7 @@ def read_device_map(path: Path) -> DeviceMap:
             if len(row.served) != 1 or level_devices.occupancy_user(row.served[0]) != row.user_name:
                 raise FactsError(f"{where}: occupancy {row.user_name} serves {row.served}, not the one block it is "
                                  "named for")
-            out.sensors[row.user_name] = row.jmri_name
-            if row.system_name:
-                out.planned[row.user_name] = row.system_name
+    out.occupancy                   # noqa: B018  built here, so a block two rows serve stops the read
     return out
 
 

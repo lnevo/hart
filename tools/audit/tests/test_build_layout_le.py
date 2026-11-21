@@ -571,7 +571,8 @@ class FactsReaders(unittest.TestCase):
         parts = {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("2", "3"), B.DEVICE_MAP)}
         self.assertEqual(list(sensors), list(device.blocks) + list(parts))
         for block, (system, user, _comment) in sensors.items():
-            self.assertEqual(device.sensors[user], system)
+            occ = device.occupancy[parts.get(block, block)]          # a part: its OS block's row
+            self.assertEqual((occ.user_name, occ.jmri_name), (user, system))
         for part, block in parts.items():          # a part is read with its OS block's sensor (step 5 part 2)
             self.assertEqual(sensors[part], sensors[block])
 
@@ -583,9 +584,10 @@ class DeviceNames(unittest.TestCase):
 
     LAYER_ROLES = {"turnout": "turnout", "fb": "fb", "block": "track"}
 
-    def read(self, rows: str, roles: dict | None = None) -> dict:
+    def read(self, rows: str, roles: dict | None = None, reader=None) -> dict:
         """device_names of a master made of these device-map rows (old form, the fact columns left out), each with the
-        role its writer gives it: `roles` ({user name: role}), else its layer's in LAYER_ROLES."""
+        role its writer gives it: `roles` ({user name: role}), else its layer's in LAYER_ROLES; `reader` (default
+        device_names) reads the master's path."""
         import csv
         import io
         from hartlib import devices
@@ -596,7 +598,16 @@ class DeviceNames(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "devices.csv"
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
-            return B.device_names(path)
+            return (reader or B.device_names)(path)
+
+    def test_block_roles_are_the_given_maps_main_and_upper_blocks(self) -> None:
+        """named_bands' roles come from the map the names were made from: block_roles(path) reads that file's main
+        and upper block rows (not the committed master's), with the role each row gives."""
+        got = self.read('2,,block,Track 1-2,,,,,,Track 1A-2B,\n2,,block,OS Switch 1,,,,,,Switch 1,\n'
+                        '1,,block,Track Barn,,,,,,,\n', roles={"OS Switch 1": "os"},
+                        reader=sys.modules["le_names"].block_roles)
+        self.assertEqual(got, {"Track 1-2": "track", "OS Switch 1": "os"})        # staging's Track Barn left out
+        self.assertNotIn("Track 101-103", got)
 
     def test_the_committed_map(self) -> None:
         got = B.device_names()

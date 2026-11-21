@@ -670,13 +670,14 @@ def write_all(files: Files, content: Mapping[Path, str]) -> list[Path]:
 
 def stale(files: Files | None = None) -> list[str]:
     """What is wrong with the master: [] when it and its dictionary check and every row the old-form readers take
-    converts to that form and back (a DevicesError otherwise, naming the row)."""
+    converts to that form and back (a DevicesError otherwise, naming the row). A device not on the layout yet
+    (is_unplaced: a Store's, with no level and no role) is on no device map, so it is left out as OUT_OF_MAPS is."""
     f = files or Files.here()
     rows = load(f)
     read_dictionary(f.dictionary)
     out = []
     for r in rows:
-        if r["role"] in OUT_OF_MAPS:
+        if r["role"] in OUT_OF_MAPS or is_unplaced(r):
             continue
         try:
             master_row(dict(device_map_row(r), role=r["role"]), r["written_by"], r)

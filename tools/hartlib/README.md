@@ -129,7 +129,7 @@ checked together. `python3 -m hartlib.railroad check` (in `tools/check.sh`) runs
 ```python
 rr = railroad.Railroad()                  # this checkout's files; Railroad(Sources.under(data_dir), upto=...)
 rr.switches[9].legs[0].closed             # staging switches (the level 1 rows of switches.csv + devices.csv)
-rr.device_map.sensors["BS Switch 101"]    # IS:HART:C3:B:OS101
+rr.device_map.occupancy["OS Switch 101"].jmri_name    # IS:HART:C3:B:OS101
 rr.check()                                # [Problem(invariant, message)]
 ```
 
@@ -146,7 +146,7 @@ stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `buil
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
 | `Railroad.block_lengths`, `hands` | `{name: BlockLength}` (`plan_in`, `measured_in`, `source`, `jmri_in`; `plan_cm()` for the drawings and signal rules), `{label: Hand}` |
-| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `sensors`, `planned`, `turnouts`, `heads_by_system`, `of(layer)` |
+| `Railroad.device_map` | `DeviceMap`: `rows` (`DeviceRow`), `blocks`, `occupancy` (block -> its occupancy row), `turnouts`, `heads_by_system`, `of(layer)` |
 | `Railroad.masts` | `hartlib.level_masts.read()` rows, every level (`read_masts(path, levels=...)` gives `[Mast]`: line, level, name, blocks) |
 | `Railroad.tables` | `TablesNames`: `root`, `turnouts`, `sensors`, `masts` (user -> system), `blocks` |
 | `read_*(path)` | each file alone; `FactsError` names the file and line |

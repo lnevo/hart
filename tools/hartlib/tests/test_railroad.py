@@ -77,7 +77,7 @@ class RepoData(unittest.TestCase):
         self.assertEqual(rr.switches[1].hardware, "M2T408")
         self.assertEqual(rr.main_upper_switches["225"].cp, "CP 225")
         self.assertEqual(rr.main_upper_switches["101"].cp, "")
-        self.assertEqual(rr.device_map.sensors["BS Switch 101"], "IS:HART:C3:B:OS101")
+        self.assertEqual(rr.device_map.occupancy["OS Switch 101"].jmri_name, "IS:HART:C3:B:OS101")
         self.assertEqual(rr.device_map.turnouts["107"].jmri_name, "IT:HART:C3:107")
         self.assertEqual(rr.hands["223"].hand, "R")
         # the 2026-11-19 plan, APB intermediates and Mast 242L (240L before), and 24 virtual destination masts (2026-11-20)
@@ -733,6 +733,11 @@ class VirtualNames(unittest.TestCase):
         dm = R.DeviceMap(rows=[self.row("block", "Track 1-3", ""), replace(occ, blocks="Track 1-3")])
         self.assertEqual(dm.occupancy["Track 1-3"].user_name, "BS Odd Name")
         self.assertEqual(R.DeviceMap(rows=[occ]).occupancy, {})            # an occupancy row serving no block
+        twice = R.DeviceMap(rows=[replace(occ, blocks="Track 1-3", line=4),
+                                  replace(occ, user_name="BS 1-3", blocks="Track 1-3", line=9)], path=Path("d.csv"))
+        with self.assertRaisesRegex(R.FactsError, "d.csv lines 4 and 9: occupancy BS Odd Name and BS 1-3 both serve "
+                                                  "block Track 1-3"):
+            twice.occupancy  # noqa: B018
 
     def test_the_level_devices_naming_rule(self) -> None:
         ok = [self.row("block", "Track 1-3", ""), self.row("occupancy", "BS 1-3", "IS:HART:C3:B:1-3"),

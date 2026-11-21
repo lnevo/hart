@@ -355,11 +355,15 @@ class Output(unittest.TestCase):
         t = lambda name, *ends, loop=False: dict(name=name, ends=list(ends), loop=loop)    # noqa: E731
         self.assertEqual(BD.line_role(t("Track 1-3", ("sw", "1"), ("sw", "3")), None), "track")
         self.assertEqual(BD.line_role(t("Track 1-3", ("sw", "1"), ("sw", "3")), 2), "track")       # a split half
-        self.assertEqual(BD.line_role(t("Track Helix", ("sw", "1"), ("end", "")), None), "spur")
+        self.assertEqual(BD.line_role(t("Track Helix", ("bumper", None), ("sw", "1")), None), "spur")
         self.assertEqual(BD.line_role(t("Track 1 Spur", ("sw", "1"), ("helix", "H")), None), "helix")
         self.assertEqual(BD.line_role(t("Track 1-1", ("sw", "1"), ("sw", "1"), loop=True), 1), "loop_half")
         with self.assertRaisesRegex(BD.MapError, "a balloon loop is two blocks"):
             BD.line_role(t("Track 1 Loop", ("sw", "1"), ("sw", "1"), loop=True), None)
+        for ends, said in ((((("bumper", None), ("bumper", None))), "bumper and bumper"),
+                           ((("sw", "1"),), "sw"), ((("sw", "1"), ("link", "x")), "link and sw"), ((), "nothing")):
+            with self.subTest(ends=ends), self.assertRaisesRegex(BD.MapError, f"Track X: a line block ends at {said};"):
+                BD.line_role(t("Track X", *ends), None)
 
     def test_helix_top_crossover_tracks_are_not_loops(self):
         names = {x["user_name"] for x in rows() if x["layer"] == "block"}

@@ -454,6 +454,13 @@ class TheWriters(unittest.TestCase):
     def test_the_master_and_its_dictionary_check_clean(self):
         self.assertEqual(D.stale(self.files), [])
 
+    def test_a_device_not_on_the_layout_yet_passes_the_check(self):
+        """A Store's level-less row (split_store --apply) has no role: it is on no device map, so the check leaves it
+        out rather than stopping on its empty role."""
+        self.files.master.write_text(D.master_text(list(D.load(self.files)) + [unplaced()]), encoding="utf-8")
+        self.assertTrue(any(D.is_unplaced(r) for r in D.load(self.files)))
+        self.assertEqual(D.stale(self.files), [])
+
     def test_a_row_the_old_form_readers_cannot_convert_fails_the_check(self):
         rows = [dict(r) for r in D.load(self.files)]
         row = next(r for r in rows if r["role"] == "turnout" and r["assignment"] == "field" and r["wiring"] and r["dcc"])
