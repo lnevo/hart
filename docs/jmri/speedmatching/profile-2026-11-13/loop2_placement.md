@@ -1,5 +1,7 @@
 # Loop 2 placement (2026-11-13)
 
+Measured positions on loop 2 from two timed passes and a one-lap survey, not yet applied to block_lengths.csv.
+
 Two passes (steps 24 and 48), then the one-lap survey. Neither is applied to `block_lengths.csv` yet.
 
 ## Passes

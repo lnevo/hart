@@ -1,5 +1,7 @@
 # How We Built the HART CTC Panel
 
+Overview for clubs of how the Neville Island USS CTC lever machine was built in JMRI; the machine is now parked and the CATS desks are the live dispatcher desks.
+
 Short overview for clubs and operators asking how the Neville Island (HART) CTC
 machine was implemented. For day-to-day dispatching, see
 [`DISPATCHER_GUIDE.md`](../../jmri/layouts/hart/ctc/DISPATCHER_GUIDE.md). For the separate CATS Digicon panel,

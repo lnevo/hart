@@ -1,5 +1,7 @@
 # Context for AI assistants
 
+Short list of the layout facts and landmines an AI assistant needs before touching tables, panels or signals in this repo.
+
 Read [`../AGENTS.md`](../AGENTS.md) and [`../wiki/home.md`](../wiki/home.md) first.
 
 - **One tables file:** `jmri/layouts/hart/output/tables.xml` holds the beans and SML. The Dispatcher panel, Entry/Exit (NX) and USS CTC data are parked since the helix-join release (November 2026), kept in `jmri/layouts/hart/parked/`. JMRI loads it and deploy ships it (ADR-008).

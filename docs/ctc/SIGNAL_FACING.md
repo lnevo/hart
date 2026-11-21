@@ -1,5 +1,7 @@
 # Digicon signals + existing JMRI MQTT masts
 
+Rules for how Digicon panel signal lamps face their blocks, and the steps for attaching a Digicon lamp to an existing JMRI MQTT mast.
+
 ## Facing (West Yard sheet)
 
 Panel lamps (`SECSIGNAL` / `PANELSIGNAL`) tip **into** the named BLOCK on that edge.

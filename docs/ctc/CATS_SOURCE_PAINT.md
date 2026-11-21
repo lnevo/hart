@@ -1,5 +1,7 @@
 # CATS source: why Digicon paints (or doesn’t)
 
+Explains from the CATS source why a Digicon desk paints track or leaves it blank, and how to read the launch log when it does not.
+
 Upstream (open source): [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/). Clone with `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` (gitignored). Do **not** explode `cats.jar` into `cats/`.
 
 ## Paint gate
