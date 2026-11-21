@@ -29,9 +29,11 @@ class FakeApiError(RuntimeError):
 class FakeApi:
     ApiError = FakeApiError
 
-    def __init__(self, remarks="Flatcar 50ft", backup_fails=False, stale_readback=False):
+    def __init__(self, remarks="Flatcar 50ft", backup_fails=False, stale_readback=False, envelope=False):
         self.car = {"id": 11, "reporting_marks": "NW2", "remarks": remarks, "position": 5, "status": "Loaded"}
-        self.backup_fails, self.stale_readback = backup_fails, stale_readback
+        self.backup_fails, self.stale_readback, self.envelope = backup_fails, stale_readback, envelope
+        self.backups = Path(tempfile.mkdtemp())
+        self.timeout_on_patch = False
         self.calls = []
 
     def post(self, path, body=None):
@@ -42,13 +44,18 @@ class FakeApi:
 
     def patch(self, path, body):
         self.calls.append(("PATCH", path, body))
+        if self.timeout_on_patch:
+            raise TimeoutError("timed out")
         if not self.stale_readback:
             self.car.update(body)
         return dict(self.car)
 
     def get(self, path):
         self.calls.append(("GET", path, None))
-        return dict(self.car)
+        return {"data": dict(self.car)} if self.envelope else dict(self.car)
+
+    def backups_dir(self):
+        return self.backups
 
     def writes(self):
         return [c for c in self.calls if c[0] != "GET"]
@@ -119,7 +126,43 @@ class SyncTests(unittest.TestCase):
         self.api.stale_readback = True
         rc, _, err = self.run_sync(apply=True, live_sts=True, sts_url=LIVE_URL)
         self.assertEqual(rc, 2)
+        self.assertIn("sync stopped at car NW2", err)
         self.assertIn("read back", err)
+        self.assertIn("written so far: none", err)
+
+    def test_read_back_accepts_an_enveloped_body(self):
+        self.api.envelope = True
+        rc, out, _ = self.run_sync(apply=True, live_sts=True, sts_url=LIVE_URL)
+        self.assertEqual(rc, 0, out)
+
+    def test_a_timeout_stops_the_live_write_with_a_reason(self):
+        self.api.timeout_on_patch = True
+        rc, _, err = self.run_sync(apply=True, live_sts=True, sts_url=LIVE_URL)
+        self.assertEqual(rc, 2)
+        self.assertIn("sync stopped at car NW2: TimeoutError", err)
+
+    def test_ops_live_other_than_the_repo_roster_is_refused(self):
+        other = self.tmp / "other.xml"
+        other.write_text(OPS_OLD)
+        rc, _, err = self.run_sync(apply=True, ops_live=str(other))
+        self.assertEqual(rc, 2)
+        self.assertIn("only edits the repo roster", err)
+        self.assertEqual(other.read_text(), OPS_OLD)
+
+    def test_missing_seed_folder_refuses_before_the_ops_edit(self):
+        seed = self.tmp / "seed"
+        seed.mkdir()
+        (seed / cars.MERGED.name).write_text(
+            '<operations-config><cars><car id="NW2" roadName="NW" roadNumber="2" type="Flatcar" '
+            'length="40" color="Black"/></cars></operations-config>')
+        row = dict(ROW, notes="CarImagesFinal/x.png")
+        self.stack.enter_context(unittest.mock.patch.object(cars, "read_rows", lambda: ([row], [])))
+        self.stack.enter_context(unittest.mock.patch.object(cars, "SEED_INPUTS", seed))
+        self.stack.enter_context(unittest.mock.patch.object(cars, "METADATA", self.tmp / "absent.csv"))
+        rc, _, err = self.run_sync(apply=True)
+        self.assertEqual(rc, 2)
+        self.assertIn("Master file is missing", err)
+        self.assertEqual(self.ops.read_text(), OPS_OLD)
 
     def test_operating_flag_refuses_before_any_write(self):
         self.operating = "owner is operating"
