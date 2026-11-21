@@ -126,6 +126,12 @@ def load(path: Path) -> dict:
             problems.append(f"edge {e['from']} points at itself")
     for nid in sorted(ids - linked):
         problems.append(f"node {nid!r} has no links; link it or remove it")
+    for i, pr in enumerate(data.get("presets", [])):  # the page's start-here buttons
+        if not pr.get("label") or pr.get("focus") not in ids:
+            problems.append(f"preset {i + 1} needs a label and a focus that is a node: {pr}")
+        for side in ("up", "down"):
+            if not (pr.get(side) == "all" or isinstance(pr.get(side), int) and pr[side] >= 0):
+                problems.append(f"preset {pr.get('label')!r}: {side} must be a step count or \"all\"")
     if problems:
         raise GraphError("\n".join(problems))
     return data
@@ -164,6 +170,14 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #lanes summary{cursor:pointer;padding:3px 8px;border:1px solid #bbb;border-radius:4px;list-style:none}
 #lanelist{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.9}
 #lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
+#lanelist{max-height:70vh;overflow:auto}
+#lanelist>b{display:block;margin-top:6px}
+#lanelist>b:first-child{margin-top:0}
+#lanelist .note{color:#666;font-size:11px;white-space:normal}
+#lanelist>label{margin-right:10px}
+#presets{flex-basis:100%;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#presets:empty{display:none}
+.node.folder .box{stroke-dasharray:7 4;stroke-width:2}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
@@ -214,11 +228,19 @@ __SITECSS__</style></head><body>__SITEHEADER__
 <input type="search" id="q" placeholder="Highlight text…">
 <span id="hits"></span>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin">+</button><button id="zout">−</button>
-<details id="lanes"><summary>Lanes ▾</summary><div id="lanelist" class="panel"></div></details>
+<details id="lanes"><summary>Filters ▾</summary><div id="lanelist" class="panel">
+<b>Lanes</b><div id="lanerows"></div>
+<b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through</span><div id="kindlist"></div>
+<b>Also show</b>
 <label title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
 <label title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
+</div></details>
+<label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact"> compact</label>
+<label title="Draw the whole map as one box per folder; double-click a folder to open it"><input type="checkbox" id="group"> folders</label>
 <label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> highlighted only</label>
+<button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
+<div id="presets"></div>
 <span id="depth" hidden title="How many links to show either side of the file">
  <span class="side">← feeds it <button data-side="up" data-step="-1">−</button> <b id="upn">all</b>
  <button data-side="up" data-step="1">+</button> <button data-side="up" data-step="all">all</button></span>
@@ -235,9 +257,13 @@ to an earlier step.</div>
 <div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
 out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. The step counters under the toolbar set how many links show on each side: left is what feeds it, right
-is what it feeds (0 hides that side, all runs to the end). <b>Lanes ▾</b> picks the lanes to draw, on the whole map and in a file view.
-Parked and retired boxes are hidden until ticked. The address bar
-keeps the view, so it can be bookmarked or shared.</div>
+is what it feeds (0 hides that side, all runs to the end). The <b>Start with</b> buttons open the chains people ask
+about most.</div>
+<div><b>Filters ▾</b> picks the lanes and the kinds of box to draw, and whether parked and retired boxes show. Untick a
+kind, such as scripts, and its boxes are left out with their links joined up, so data runs straight to what it ends
+up in. <b>Compact</b> draws boxes as names only. <b>Folders</b> draws the whole map as one dashed box per folder;
+double-click a folder, or use Open in its panel, to see its files. <b>Share</b> copies a link to the view as it is,
+with the selected box, zoom and position; the address bar also keeps the view, without the zoom.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
 </div>
@@ -317,6 +343,7 @@ def render(data: dict, back: str = "", site: bool = False) -> str:
         ],
         "edges": [{k: e[k] for k in ("from", "to", "label") if k in e} for e in data["edges"]],
         "kinds": {k: list(v) for k, v in KINDS.items()},
+        "presets": data.get("presets", []),
         "domains": [{"id": d["id"], "label": d["label"], "color": d["color"]} for d in data["domains"]],
         "domainColor": {d["id"]: d["color"] for d in data["domains"]},
     }

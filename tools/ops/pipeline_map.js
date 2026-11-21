@@ -4,7 +4,7 @@
    the file only exports the layout, for the unit tests. */
 "use strict";
 
-const NODE_W = 250, COL_GAP = 150, V_GAP = 14, BAND_PAD = 40, DUMMY_H = 6;
+const NODE_W = 250, COL_GAP = 150, V_GAP = 14, BAND_PAD = 40, DUMMY_H = 2, DUMMY_GAP = 3;
 const WRAP = 44, TITLE_WRAP = 30, LEFT = 180;
 
 /* Greedy word wrap; a word longer than the width is cut. */
@@ -117,6 +117,8 @@ function layout(nodes, edges, domains) {
   const domain = v => (byId.has(v) ? byId.get(v).domain : vdom.get(v));
   const heights = new Map(ids.map(v => [v, nodeHeight(byId.get(v))]));
   const height = v => heights.get(v) ?? DUMMY_H;
+  // the room a box or a passing link takes in its column; passing links pack close, so long links run as bundles
+  const room = v => height(v) + (byId.has(v) ? V_GAP : DUMMY_GAP);
   const up = new Map(), down = new Map();
   chains.forEach(([, c]) => { for (let j = 0; j + 1 < c.length; j++) { getList(down, c[j]).push(c[j + 1]); getList(up, c[j + 1]).push(c[j]); } });
 
@@ -167,7 +169,7 @@ function layout(nodes, edges, domains) {
   for (const d of domains) {
     let tallest = 0;
     for (const layer of layers) {
-      const used = layer.filter(v => domain(v) === d.id).reduce((s, v) => s + height(v) + V_GAP, 0);
+      const used = layer.filter(v => domain(v) === d.id).reduce((s, v) => s + room(v), 0);
       tallest = Math.max(tallest, used);
     }
     bandH.set(d.id, tallest ? tallest + 2 * BAND_PAD : 0);
@@ -179,9 +181,9 @@ function layout(nodes, edges, domains) {
   for (const layer of layers) {
     for (const d of domains) {
       const col = layer.filter(v => domain(v) === d.id);
-      const used = col.reduce((s, v) => s + height(v) + V_GAP, 0);
+      const used = col.reduce((s, v) => s + room(v), 0);
       let cur = bandTop.get(d.id) + BAND_PAD + (bandH.get(d.id) - 2 * BAND_PAD - used) / 2;
-      for (const v of col) { ys.set(v, cur); cur += height(v) + V_GAP; }
+      for (const v of col) { ys.set(v, cur); cur += room(v); }
     }
   }
   const centre = v => ys.get(v) + height(v) / 2;
@@ -201,11 +203,11 @@ function layout(nodes, edges, domains) {
         });
         const lo = bandTop.get(d.id) + BAND_PAD, hi = bandTop.get(d.id) + bandH.get(d.id) - BAND_PAD;
         for (let i = 0; i < col.length; i++) {
-          const floor = i === 0 ? lo : place[i - 1] + height(col[i - 1]) + V_GAP;
+          const floor = i === 0 ? lo : place[i - 1] + room(col[i - 1]);
           place[i] = Math.max(place[i], floor);
         }
         for (let i = col.length - 1; i >= 0; i--) {
-          const ceil = i === col.length - 1 ? hi - height(col[i]) : place[i + 1] - height(col[i]) - V_GAP;
+          const ceil = i === col.length - 1 ? hi - height(col[i]) : place[i + 1] - room(col[i]);
           place[i] = Math.min(place[i], ceil);
         }
         col.forEach((v, i) => ys.set(v, place[i]));
@@ -255,8 +257,77 @@ function showsAll(v, W, H, left, topFrac) {
   return v.x <= -left + 1 && top <= 1 && v.x + v.width >= W - left - 1 && v.y + v.height >= H - 1;
 }
 
+/* The graph with the boxes hide(id) is true for taken out and bridged over: each link into a hidden box is joined to
+   every shown box beyond it, through any run of hidden boxes, and the new link keeps the hidden boxes in via. So
+   with the scripts hidden, a data file links straight to what it ends up in. */
+function contract(nodes, edges, hide) {
+  const outs = {};
+  edges.forEach(e => (outs[e.from] ||= []).push(e));
+  const kept = nodes.filter(n => !hide(n.id)), out = [], seen = new Set();
+  const add = (from, to, label, via) => {
+    const key = from + "\u0000" + to;
+    if (from === to || seen.has(key)) return;
+    seen.add(key);
+    out.push(via.length ? { from, to, via } : (label ? { from, to, label } : { from, to }));
+  };
+  for (const n of kept) {
+    for (const e of outs[n.id] || []) if (!hide(e.to)) add(n.id, e.to, e.label, []);  // direct links win
+    for (const e of outs[n.id] || []) {
+      if (!hide(e.to)) continue;
+      const stack = [[e.to, [e.to]]], visited = new Set([e.to]);  // depth first through hidden boxes
+      while (stack.length) {
+        const [v, via] = stack.pop();
+        for (const f of outs[v] || []) {
+          if (!hide(f.to)) add(n.id, f.to, "", via);
+          else if (!visited.has(f.to)) { visited.add(f.to); stack.push([f.to, via.concat(f.to)]); }
+        }
+      }
+    }
+  }
+  return { nodes: kept, edges: out };
+}
+
+/* The folder a box is grouped under: its path's folder, or for a box with no path (hosts, hand work, outside
+   tools) one group per lane. */
+function folderOf(n) {
+  if (!n.path) return `outside the repo: ${n.domain}`;
+  const p = n.path.replace(/\/+$/, ""), i = p.lastIndexOf("/");
+  return i < 0 ? "top level" : p.slice(0, i);
+}
+
+/* One box per folder that holds two or more of the boxes, except the folders named in open; links between
+   folders are merged and counted, links inside one folder dropped. members maps each group id to its box ids. */
+function groupByFolder(nodes, edges, open) {
+  const byFolder = new Map();
+  nodes.forEach(n => { const f = folderOf(n); if (!byFolder.has(f)) byFolder.set(f, []); byFolder.get(f).push(n); });
+  const groupOf = {}, members = {}, out = [];
+  for (const [f, list] of byFolder) {
+    if (list.length < 2 || open.has(f)) { out.push(...list); continue; }
+    const id = "folder:" + f, tally = {};
+    list.forEach(n => { groupOf[n.id] = id; tally[n.domain] = (tally[n.domain] || 0) + 1; });
+    const domain = Object.keys(tally).sort((a, b) => tally[b] - tally[a])[0];
+    members[id] = list.map(n => n.id);
+    out.push({ id, folder: f, label: f.startsWith("outside") ? f : f + "/", kind: "folder", status: "live", domain,
+               desc: `${list.length} boxes`, path: "" });
+  }
+  const merged = new Map();
+  for (const e of edges) {
+    const from = groupOf[e.from] || e.from, to = groupOf[e.to] || e.to;
+    if (from === to) continue;
+    const key = from + "\u0000" + to;
+    if (!merged.has(key)) merged.set(key, { from, to, n: 0, label: e.label });
+    merged.get(key).n++;
+  }
+  const outEdges = [...merged.values()].map(m => {
+    const grouped = groupOf[m.from] || groupOf[m.to] || m.from.startsWith("folder:") || m.to.startsWith("folder:");
+    const label = m.n > 1 ? `${m.n} links` : grouped ? "" : m.label;
+    return label ? { from: m.from, to: m.to, label } : { from: m.from, to: m.to };
+  });
+  return { nodes: out, edges: outEdges, members, groupOf };
+}
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, chainOf, showsAll };
+  module.exports = { layout, wrap, nodeHeight, inversions, chainOf, showsAll, contract, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -267,6 +338,8 @@ function app() {
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const byId = {};
   DATA.nodes.forEach(n => (byId[n.id] = n));
+  DATA.kinds.folder ||= ["Folder", "#f8fafc", "#334155"];
+  DATA.presets ||= [];
   const insAll = {}, outsAll = {};
   DATA.edges.forEach(e => { (outsAll[e.from] ||= []).push(e); (insAll[e.to] ||= []).push(e); });
   const domainLabel = {};
@@ -274,7 +347,10 @@ function app() {
   const wrapEl = document.getElementById("wrap"), info = document.getElementById("info");
   const allLanes = DATA.domains.map(d => d.id);
 
-  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false };
+  const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false,
+                 kindsOff: new Set(), compact: false, group: false, open: new Set() };
+  let groups = { members: {}, groupOf: {} }, gNodes = {};  // folder boxes in the current drawing
+  const nodeOf = id => byId[id] || gNodes[id];
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
   let nodeEl = {}, edgeEls = [], sub = { nodes: [], edges: [] }, visible = new Set(), baseIds = new Set();
 
@@ -282,10 +358,25 @@ function app() {
   /* A chain is drawn through boxes but stops at deploy, hosts and runtime apps (the "hosts" lane) and at hand work:
      they are shown, not walked through, because everything deploys and the Pi's saved state comes back, so walking
      through them would reach most of the map. */
-  const endsChain = id => byId[id].domain === "hosts" || byId[id].kind === "host" || byId[id].kind === "human";
-  // whether the lane and status filters draw a box; the picked file always shows
-  const isShown = id => id === view.focus ||
-    (view.lanes.has(byId[id].domain) && (byId[id].status === "live" || !byId[id].status || view[byId[id].status]));
+  const endsChain = id => nodeOf(id).domain === "hosts" || nodeOf(id).kind === "host" || nodeOf(id).kind === "human";
+  // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
+  const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
+  /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
+     are bridged over (contract), so the links run on through them. The picked file always stays. */
+  let g1Key = null, g1 = null, ins1 = {}, outs1 = {};
+  function filtered() {
+    const key = JSON.stringify([view.parked, view.retired, [...view.kindsOff].sort(), view.focus]);
+    if (key === g1Key) return g1;
+    const ok = n => n.id === view.focus || !n.status || n.status === "live" || view[n.status];
+    const nodes = DATA.nodes.filter(ok), ids = new Set(nodes.map(n => n.id));
+    const edges = DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to));
+    g1 = !view.kindsOff.size ? { nodes, edges } : contract(nodes, edges, id => id !== view.focus && view.kindsOff.has(byId[id].kind));
+    g1.edges = g1.edges.map(e => !e.via ? e : { ...e, label: e.via.length === 1 ? "via " + byId[e.via[0]].label : `via ${e.via.length} steps` });
+    ins1 = {}; outs1 = {};
+    g1.edges.forEach(e => { (outs1[e.from] ||= []).push(e); (ins1[e.to] ||= []).push(e); });
+    g1Key = key;
+    return g1;
+  }
   /* Boxes within depth links of start; with onlyShown the walk does not pass through a box the filters hide, so
      nothing past a hidden box is drawn cut off from the file. */
   function reach(start, adj, key, depth, onlyShown = false) {
@@ -305,18 +396,26 @@ function app() {
     return seen;
   }
   function subset() {
-    let keep = new Set(DATA.nodes.map(n => n.id));
+    const g = filtered();
+    groups = { members: {}, groupOf: {} }; gNodes = {};
+    let keep = new Set(g.nodes.map(n => n.id));
     if (view.focus) {
       keep = new Set([view.focus]);
-      reach(view.focus, insAll, "from", view.up, true).forEach(v => keep.add(v));
-      reach(view.focus, outsAll, "to", view.down, true).forEach(v => keep.add(v));
+      reach(view.focus, ins1, "from", view.up, true).forEach(v => keep.add(v));
+      reach(view.focus, outs1, "to", view.down, true).forEach(v => keep.add(v));
     }
-    const nodes = DATA.nodes.filter(n => keep.has(n.id) && isShown(n.id));
+    let nodes = g.nodes.filter(n => keep.has(n.id) && isShown(n.id));
     const ids = new Set(nodes.map(n => n.id));
     const own = view.focus && view.up <= 1 && view.down <= 1;  // only the file's own links, not its neighbours' links
-    const edges = DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus));
-    baseIds = ids;  // what the filters draw before "highlighted only" trims it
-    return trimmed() && ids.has(selected) ? { ...chainOnly(nodes, edges, selected), trim: true } : { nodes, edges };
+    let edges = g.edges.filter(e => ids.has(e.from) && ids.has(e.to) && (!own || e.from === view.focus || e.to === view.focus));
+    if (view.group && !view.focus) {  // folders: the whole map only; a file's chain is short enough already
+      groups = groupByFolder(nodes, edges, view.open);
+      ({ nodes, edges } = groups);
+      nodes.forEach(n => { if (n.kind === "folder") gNodes[n.id] = n; });
+    }
+    if (view.compact) nodes = nodes.map(n => (n.kind === "folder" ? n : { ...n, desc: "", path: "" }));
+    baseIds = new Set(nodes.map(n => n.id));  // what the filters draw before "highlighted only" trims it
+    return trimmed() && baseIds.has(selected) ? { ...chainOnly(nodes, edges, selected), trim: true } : { nodes, edges };
   }
   const trimmed = () => view.trim && selected !== null;
   const chain = (edges, id) => chainOf(edges, id, endsChain);
@@ -406,7 +505,9 @@ function app() {
     const el = document.getElementById("view");
     const parts = [];
     if (view.focus) parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
-    if (sub.trim) parts.push(selected === view.focus ? "highlighted only" : `only the chain of <b>${esc(byId[selected].label)}</b>`);
+    if (sub.trim) parts.push(selected === view.focus ? "highlighted only" : `only the chain of <b>${esc(nodeOf(selected).label)}</b>`);
+    if (view.kindsOff.size) parts.push(`${[...view.kindsOff].map(k => DATA.kinds[k][0].toLowerCase()).join(", ")} bridged over`);
+    if (view.group && !view.focus) parts.push("grouped by folder");
     const lanesOff = allLanes.filter(d => !view.lanes.has(d));
     if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
     const off = [!view.parked && "parked", !view.retired && "retired"].filter(Boolean);
@@ -523,7 +624,7 @@ function app() {
   }
   // a box the user can pick in place: with "highlighted only" it may be off the drawn chain but inside the filters
   const pickable = id => (view.trim ? baseIds : visible).has(id);
-  const link = id => `<a data-go="${esc(id)}">${esc(byId[id].label)}</a>${visible.has(id) ? "" : ' <span class="off">(not shown)</span>'}`;
+  const link = id => `<a data-go="${esc(id)}">${esc(byId[id].label)}</a>${visible.has(id) || groups.groupOf[id] ? "" : ' <span class="off">(not shown)</span>'}`;
   function select(id, quiet) {
     clearFocus(false);
     selected = id;
@@ -544,6 +645,7 @@ function app() {
       const l = svg.querySelector(`.elabel[data-edge="e${i}"]`);
       if (l) { l.classList.add("on"); if (near) l.classList.add("near"); }
     });
+    if (gNodes[id]) { folderInfo(id); return; }
     const n = byId[id];
     const fullUp = walk(id, insAll, "from").size - 1, fullDown = walk(id, outsAll, "to").size - 1;
     const isFocus = view.focus === id;
@@ -562,7 +664,26 @@ function app() {
     if (!isFocus) info.querySelector("#fgo").onclick = () => focusOn(id);
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
   }
+  function folderInfo(id) {  // the info panel for a folder box
+    const g = gNodes[id], list = groups.members[id];
+    info.innerHTML = `<button class="close" title="Close (Esc)">×</button><h2>${esc(g.label)}</h2>
+      <div>Folder · ${list.length} boxes · ${esc(domainLabel[g.domain])}</div>
+      <p><button id="fopen">Open this folder</button></p>
+      <b>Boxes in it</b><ul>${list.map(m => `<li><a data-go="${esc(m)}">${esc(byId[m].label)}</a></li>`).join("")}</ul>`;
+    info.style.display = "block";
+    updateNav();
+    info.querySelector(".close").onclick = () => clearFocus(true);
+    info.querySelector("#fopen").onclick = () => openFolder(g.folder);
+    info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
+  }
+  function openFolder(folder, then) {
+    view.open.add(folder);
+    selected = then || null;
+    render(false); writeHash();
+    if (then && visible.has(then)) centreOn(then, false);
+  }
   function goTo(id) {
+    if (groups.groupOf[id]) { openFolder(folderOf(byId[id]), id); return; }  // a box inside a closed folder
     if (pickable(id)) { pick(id, "pan"); return; }
     view.lanes = new Set(allLanes);
     if (byId[id].status in view) view[byId[id].status] = true;
@@ -589,7 +710,8 @@ function app() {
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
     const g = e.target.closest(".node");
-    if (g) focusOn(g.dataset.id, !view.focus);
+    if (g && gNodes[g.dataset.id]) openFolder(gNodes[g.dataset.id].folder);
+    else if (g) focusOn(g.dataset.id, !view.focus);
   });
 
   /* ---- search */
@@ -599,8 +721,9 @@ function app() {
     svg.querySelectorAll(".node.hit").forEach(g => g.classList.remove("hit"));
     const t = q.value.trim().toLowerCase();
     found = !t ? [] : DATA.nodes.filter(n => (n.label + " " + n.id + " " + (n.path || "") + " " + (n.desc || "")).toLowerCase().includes(t)).map(n => n.id);
-    const shown = found.filter(id => visible.has(id));
-    shown.forEach(id => nodeEl[id].classList.add("hit"));
+    const where = id => (visible.has(id) ? id : visible.has(groups.groupOf[id]) ? groups.groupOf[id] : null);
+    const shown = found.filter(where);
+    shown.forEach(id => nodeEl[where(id)].classList.add("hit"));
     hits.textContent = !t ? "" : `${shown.length} found` + (found.length > shown.length ? ` (+${found.length - shown.length} not shown)` : "") + (found.length ? " · Enter steps" : "");
     if (!keepIndex) fi = 0;
   }
@@ -631,7 +754,7 @@ function app() {
     return n;
   }
   function step(side, change) {
-    const adj = side === "up" ? [insAll, "from"] : [outsAll, "to"], most = maxSteps(...adj);
+    const adj = side === "up" ? [ins1, "from"] : [outs1, "to"], most = maxSteps(...adj);
     let n = view[side] === Infinity ? most : view[side];
     n = change === "all" ? Infinity : Math.max(0, n + change);
     if (most > 0 && n >= most) n = Infinity;  // a side with no links stays at the number chosen
@@ -662,8 +785,40 @@ function app() {
   fileIn.addEventListener("change", pickFile);
   fileIn.addEventListener("keydown", e => { if (e.key === "Enter") pickFile(); });
 
-  /* ---- lanes and status filters */
-  const lanesBox = document.getElementById("lanelist");
+  /* ---- start-here buttons: a preset file view for the questions people ask first */
+  document.getElementById("presets").innerHTML = DATA.presets.length ? "Start with: " + DATA.presets.map((pr, i) =>
+    `<button data-preset="${i}" title="${esc(byId[pr.focus].label)}, ${pr.up} back and ${pr.down} on">${esc(pr.label)}</button>`).join(" ") : "";
+  document.getElementById("presets").addEventListener("click", e => {
+    const b = e.target.closest("button[data-preset]");
+    if (!b) return;
+    const pr = DATA.presets[Number(b.dataset.preset)], steps = v => (v === "all" ? Infinity : v);
+    view.focus = selected = pr.focus; view.up = steps(pr.up); view.down = steps(pr.down);
+    view.lanes = new Set(allLanes);
+    fileIn.value = byId[pr.focus].path || byId[pr.focus].label;
+    syncControls(); render(false); writeHash();
+  });
+
+  /* ---- share: the address with the view as it is now, zoom and position included, copied to the clipboard */
+  document.getElementById("share").onclick = () => {
+    writeHash(true);
+    const done = t => { hits.textContent = t; setTimeout(() => { if (hits.textContent === t) runSearch(true); }, 4000); };
+    if (navigator.clipboard) navigator.clipboard.writeText(location.href).then(() => done("Link copied"), () => done("Copy the address bar to share"));
+    else done("Copy the address bar to share");
+  };
+
+  /* ---- lanes, kinds and status filters */
+  const kindsBox = document.getElementById("kindlist");
+  kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => k !== "folder").map(([k, [label, fill, ink]]) =>
+    `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>`).join("<br>");
+  kindsBox.addEventListener("change", e => {
+    const k = e.target.dataset.kind;
+    if (!k) return;
+    if (e.target.checked) view.kindsOff.delete(k); else view.kindsOff.add(k);
+    render(false); writeHash();
+  });
+  document.getElementById("compact").onchange = e => { view.compact = e.target.checked; render(false); writeHash(); };
+  document.getElementById("group").onchange = e => { view.group = e.target.checked; view.open.clear(); render(false); writeHash(); };
+  const lanesBox = document.getElementById("lanerows");
   lanesBox.innerHTML = DATA.domains.map(d =>
     `<label><input type="checkbox" data-lane="${esc(d.id)}" checked> <span class="sw" style="background:${esc(d.color)}"></span>${esc(d.label)}</label>` +
     ` <a data-only="${esc(d.id)}">only</a>`).join("<br>");
@@ -672,6 +827,9 @@ function app() {
     document.getElementById("parked").checked = view.parked;
     document.getElementById("retired").checked = view.retired;
     document.getElementById("trim").checked = view.trim;
+    kindsBox.querySelectorAll("input[data-kind]").forEach(c => (c.checked = !view.kindsOff.has(c.dataset.kind)));
+    document.getElementById("compact").checked = view.compact;
+    document.getElementById("group").checked = view.group;
   }
   lanesBox.addEventListener("change", e => {
     const lane = e.target.dataset.lane;
@@ -689,8 +847,9 @@ function app() {
   document.getElementById("trim").onchange = e => { view.trim = e.target.checked; render(selected === null); writeHash(); };
   document.getElementById("labels").onchange = e => document.getElementById("elabels").classList.toggle("hidden", !e.target.checked);
 
-  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&node=<id> */
-  function writeHash() {
+  /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=1
+     &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width> (the zoom and position) */
+  function writeHash(withView = false) {
     const h = new URLSearchParams();
     const steps = n => (n === Infinity ? "all" : String(n));
     if (view.focus) { h.set("focus", view.focus); h.set("up", steps(view.up)); h.set("down", steps(view.down)); }
@@ -698,7 +857,11 @@ function app() {
     const show = [view.parked && "parked", view.retired && "retired"].filter(Boolean);
     if (show.length) h.set("show", show.join(","));
     if (view.trim) h.set("trim", "1");
+    if (view.kindsOff.size) h.set("hidekind", [...view.kindsOff].join(","));
+    if (view.compact) h.set("compact", "1");
+    if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
+    if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).join(","));
     const s = h.toString();
     history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
   }
@@ -719,14 +882,29 @@ function app() {
     else if (h.get("show") === null && (h.get("dir") !== null || h.get("depth") !== null)) view.parked = view.retired = true;  // older file links showed every status
     else { view.parked = show.includes("parked"); view.retired = show.includes("retired"); }
     view.trim = h.get("trim") === "1";
+    view.kindsOff = new Set((h.get("hidekind") || "").split(",").filter(k => k in DATA.kinds && k !== "folder"));
+    view.compact = h.get("compact") === "1";
+    view.group = h.get("folders") === "1";
+    view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");
-    selected = node && byId[node] ? node : null;
-    if (selected && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
+    selected = node && (byId[node] || node.startsWith("folder:")) ? node : null;
+    if (selected && byId[selected] && !view.focus && byId[selected].status in view) view[byId[selected].status] = true;  // keep a shared box in view
     fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
     syncControls();
   }
-  readHash();
-  render(false);
-  if (selected && visible.has(selected) && !view.focus && !view.trim) centreOn(selected, true);
-  window.addEventListener("hashchange", () => { readHash(); render(false); if (selected && visible.has(selected) && !view.trim) centreOn(selected, !view.focus); });
+  /* A shared link's zoom and position (at=x,y,width), kept to the window's shape. */
+  function restoreView() {
+    const at = (new URLSearchParams(location.hash.slice(1)).get("at") || "").split(",").map(Number);
+    if (at.length !== 3 || at.some(v => !Number.isFinite(v)) || at[2] <= 0) return false;
+    const r = wrapEl.getBoundingClientRect();
+    setVB(at[0], at[1], at[2], at[2] * r.height / r.width);
+    return true;
+  }
+  function arrive() {
+    readHash();
+    render(false);
+    if (!restoreView() && selected && visible.has(selected) && !view.focus && !view.trim) centreOn(selected, true);
+  }
+  arrive();
+  window.addEventListener("hashchange", arrive);
 }

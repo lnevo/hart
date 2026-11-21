@@ -69,6 +69,16 @@ class GraphChecksTest(unittest.TestCase):
         data = MAP.load(MAP.GRAPH)
         self.assertEqual(MAP.PAGE.read_text(), MAP.render(data), "run python3 tools/ops/build_pipeline_map.py")
 
+    def test_presets_name_a_node_and_steps(self) -> None:
+        g = {"domains": DOMAINS, "nodes": [node("x"), node("y")], "edges": [{"from": "x", "to": "y"}]}
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "g.json"
+            p.write_text(json.dumps({**g, "presets": [{"label": "X", "focus": "x", "up": 1, "down": "all"}]}))
+            MAP.load(p)
+            p.write_text(json.dumps({**g, "presets": [{"label": "Z", "focus": "z", "up": -1, "down": 1}]}))
+            with self.assertRaisesRegex(MAP.GraphError, "preset 1 needs a label and a focus(.|\n)*up must be"):
+                MAP.load(p)
+
     def test_repeated_node_and_edge(self) -> None:
         with self.assertRaisesRegex(MAP.GraphError, "listed twice"):
             load([node("x"), node("x")], [])
@@ -148,6 +158,35 @@ class LayoutTest(unittest.TestCase):
         out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(cases)], capture_output=True,
                                         text=True, check=True).stdout)
         self.assertEqual(out, {k: want for k, (_, want) in cases.items()})
+
+    def run_js(self, call: str, arg) -> dict:
+        script = f"const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]); process.stdout.write(JSON.stringify({call}));"
+        return json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(arg)], capture_output=True,
+                                         text=True, check=True).stdout)
+
+    def test_hidden_kinds_are_bridged_over(self) -> None:
+        """contract: links run on through hidden boxes, keep the hidden boxes in via, and a direct link wins."""
+        edges = [{"from": "a", "to": "s"}, {"from": "s", "to": "t"}, {"from": "t", "to": "b"}, {"from": "s", "to": "c"},
+                 {"from": "a", "to": "c", "label": "direct"}, {"from": "t", "to": "s"}]
+        out = self.run_js("m.contract(a.nodes, a.edges, id => id === 's' || id === 't')",
+                          {"nodes": [{"id": i} for i in "astbc"], "edges": edges})
+        self.assertEqual([n["id"] for n in out["nodes"]], ["a", "b", "c"])
+        self.assertEqual(out["edges"], [{"from": "a", "to": "c", "label": "direct"},
+                                        {"from": "a", "to": "b", "via": ["s", "t"]}])  # the s <-> t loop ends
+
+    def test_folders_group_two_or_more_and_merge_links(self) -> None:
+        nodes = [{"id": i, "path": p, "domain": "a"} for i, p in
+                 (("x1", "tools/x/one.py"), ("x2", "tools/x/two.py"), ("y", "www/y.html"), ("h", ""), ("top", "Makefile"))]
+        edges = [{"from": "x1", "to": "y"}, {"from": "x2", "to": "y"}, {"from": "x1", "to": "x2"}, {"from": "h", "to": "x1", "label": "runs"}]
+        out = self.run_js("[m.groupByFolder(a.nodes, a.edges, new Set()), m.groupByFolder(a.nodes, a.edges, new Set(['tools/x'])),"
+                          " a.nodes.map(m.folderOf)]", {"nodes": nodes, "edges": edges})
+        shut, opened, folders = out
+        self.assertEqual(folders, ["tools/x", "tools/x", "www", "outside the repo: a", "top level"])
+        self.assertEqual(shut["members"], {"folder:tools/x": ["x1", "x2"]})  # single-box folders stay as the box
+        self.assertEqual(sorted(n["id"] for n in shut["nodes"]), ["folder:tools/x", "h", "top", "y"])
+        self.assertEqual(shut["edges"], [{"from": "folder:tools/x", "to": "y", "label": "2 links"}, {"from": "h", "to": "folder:tools/x"}])
+        self.assertEqual(opened["members"], {})
+        self.assertEqual(len(opened["edges"]), 4)
 
     def test_empty_subset(self) -> None:
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])

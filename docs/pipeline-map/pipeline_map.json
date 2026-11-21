@@ -32,6 +32,50 @@
    "color": "#dc2626"
   }
  ],
+ "presets": [
+  {
+   "label": "tables.xml",
+   "focus": "jmri/layouts/hart/output/tables.xml",
+   "up": 2,
+   "down": 1
+  },
+  {
+   "label": "CTC desk",
+   "focus": "cats/panels/HART_CTC.xml",
+   "up": 2,
+   "down": 1
+  },
+  {
+   "label": "Device master",
+   "focus": "jmri/layouts/hart/data/devices.csv",
+   "up": 1,
+   "down": 1
+  },
+  {
+   "label": "Wiring",
+   "focus": "jmri/layouts/hart/data/wiring.csv",
+   "up": 1,
+   "down": 1
+  },
+  {
+   "label": "Operations Pro",
+   "focus": "jmri/layouts/hart/operations",
+   "up": 1,
+   "down": 1
+  },
+  {
+   "label": "Car cards",
+   "focus": "ops/car-cards/print",
+   "up": 2,
+   "down": 0
+  },
+  {
+   "label": "Website build",
+   "focus": "ext:site-dist",
+   "up": 1,
+   "down": 1
+  }
+ ],
  "nodes": [
   {
    "id": "AGENTS.md",
