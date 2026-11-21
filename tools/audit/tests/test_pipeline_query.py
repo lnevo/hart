@@ -94,6 +94,48 @@ class QueryTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("--depth", err)
 
+    def test_shortest_level_not_dropped(self):
+        # a->x->z, a->z, z->w: w is two steps from a through the short route
+        nodes = [n(i, f"p/{i}") for i in "axzw"]
+        edges = [{"from": f, "to": t} for f, t in (("a", "x"), ("x", "z"), ("a", "z"), ("z", "w"))]
+        g = Q.Graph({"nodes": nodes, "edges": edges})
+        seen = {nid for _, nid, _, _ in g.walk("a", "down", 2)}
+        self.assertEqual(seen, {"x", "z", "w"})
+
+    def test_symlinked_dir_inside_repo(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root, other = Path(tmp) / "root", Path(tmp) / "other"
+            root.mkdir()
+            other.mkdir()
+            (root / "media").symlink_to(other)
+            g = Q.Graph({"nodes": [n("m", "media/x.jpg")], "edges": []}, root=root)
+            self.assertEqual(g.resolve(str(root / "media/x.jpg")), "m")
+
+    def test_stale_path_does_not_block_queries(self):
+        stale = [dict(n("a", "gone/missing.py"), local=False), n("b", "src/b")]
+        self.graph_file.write_text(json.dumps({"nodes": stale, "edges": [{"from": "a", "to": "b"}]}))
+        code, out, _ = self.run_q("down", "a")
+        self.assertEqual(code, 0)
+        self.assertIn("src/b", out)
+
+    def test_broken_graph_gives_clear_error(self):
+        self.graph_file.write_text(json.dumps({"nodes": NODES, "edges": [{"from": "a", "to": "zz"}]}))
+        code, _, err = self.run_q("find", "a")
+        self.assertEqual(code, 1)
+        self.assertIn("not a node", err)
+
+    def test_relative_names_are_normalised(self):
+        g = Q.Graph({"nodes": NODES, "edges": EDGES}, root=ROOT)
+        self.assertEqual(g.resolve("out/./b.xml"), "b")
+        self.assertEqual(g.resolve("src/../out/b.xml"), "b")
+        with self.assertRaises(Q.QueryError):
+            g.resolve("../elsewhere")
+
+    def test_json_node_is_id_everywhere(self):
+        obj = json.loads(self.run_q("--json", "node", "b")[1])
+        self.assertEqual((obj["node"], obj["detail"]["id"]), ("b", "b"))
+        self.assertEqual(json.loads(self.run_q("--json", "find", "table")[1])[0]["node"], "b")
+
     def test_json(self):
         _, out, _ = self.run_q("--json", "down", "b", "--depth", "1")
         self.assertEqual([i["node"] for i in json.loads(out)["items"]], ["c", "d"])
