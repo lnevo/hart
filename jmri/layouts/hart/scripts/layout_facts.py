@@ -195,15 +195,15 @@ def legs_by_os(switches: dict[int, Switch]) -> dict[str, tuple[Switch, Leg]]:
 
 
 def load_control_points(data: Path = DATA) -> list[dict[str, str]]:
-    """Staging's control points (the desk areas of schematic/stations.csv) and switch_legs.csv, in the
-    older control_points.csv shape (hartlib.railroad_facts.station_group_rows); ``switches`` is the OS-block list,
-    e.g. "23a,23b,33"."""
+    """The control points of every level that has desk areas in schematic/stations.csv (staging's only so far; each
+    row carries its ``level``), with switch_legs.csv, in the older control_points.csv shape
+    (hartlib.railroad_facts.station_group_rows); ``switches`` is the OS-block list, e.g. "23a,23b,33"."""
     return railroad_facts.station_group_rows(data / "schematic" / "stations.csv",
                                              data / "switch_legs.csv")
 
 
 def station_names(data: Path = DATA) -> set[str]:
-    """Control point names as the desks print them, e.g. EAST END."""
+    """Control point names as the desks print them, e.g. EAST END (every level's desk areas: staging's so far)."""
     return {row["cp_name"].upper() for row in load_control_points(data)}
 
 

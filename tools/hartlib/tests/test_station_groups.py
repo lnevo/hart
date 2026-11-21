@@ -93,7 +93,19 @@ class DeskAreas(Files):
 
     def test_a_switch_in_two_nested_stations_stops_naming_both(self):
         self.stops('1,A,"1,3,5",,AA,\n1,B,"3,5",,BB,\n1,C,5,,CC,\n', "stations.csv lines 3 and 4", "B and C",
-                   "switch 5")
+                   "switch 5", "desk areas nested in another area's station")
+
+    def test_stations_nested_in_their_own_area_do_not_clash(self):
+        areas = self.areas('1,A,"1,3,5",,AA,\n1,B,"3,5",,AA,\n1,C,5,,AA,\n')
+        self.assertEqual([(a.name, a.switches, a.stations) for a in areas], [("A", ("1", "3", "5"), ("A", "B", "C"))])
+
+    def test_an_area_named_by_a_station_inside_one_of_its_own_stops(self):
+        self.stops('1,West Yard,3,,BK,\n1,Brick,"1,3",none,BK,\n', "stations.csv line 2 (West Yard)",
+                   "inside Brick (line 3)", "desk area BK")
+
+    def test_an_area_nested_in_its_own_area_does_not_move_it_to_the_end(self):
+        areas = self.areas('1,Brick,"1,3",,BK,\n1,West Yard,3,,BK,\n1,Barn,"7,9",,BN,\n1,EH,9,,EH,\n1,Yard,15,,SY,\n')
+        self.assertEqual([a.name for a in areas], ["Brick", "Barn", "Yard", "EH"])
 
     def test_an_area_whose_switches_clash_with_another_stops(self):
         # a desk area clashes when its switches are another code's too: two codes on one switch, not nested
@@ -131,11 +143,6 @@ class DeskAreas(Files):
 
 
 class NestedStations(unittest.TestCase):
-    def test_a_station_inside_another_is_nested_and_equal_or_apart_is_not(self):
-        self.assertEqual(rf.nested_stations({"Barn": ["7", "9", "11", "13"], "EH": [9, 11, 13], "Yard": ["15"]}),
-                         {"EH"})
-        self.assertEqual(rf.nested_stations({"A": ["1", "3"], "B": ["3", "1"]}), set())
-
     def test_only_a_station_nested_in_another_desk_area_is_an_area_of_its_own(self):
         rows = rf.read_stations(STATIONS)
         self.assertEqual(rf.nested_own_areas(rows), {"Engine House"})        # not West Yard, nested in Brick (BK)
@@ -152,6 +159,15 @@ class StationGroupRows(Files):
         st, legs = self.files('1,X Y,"7,5",,XX,n\n', "7,OS Switch 7b\n7,OS Switch 7\n5,OS Switch 5\n")
         self.assertEqual(rf.station_group_rows(st, legs),
                          [dict(cp_id="x_y", cp_name="X Y", level="1", switches="7,7b,5", notes="n", code="XX")])
+
+    def test_every_level_is_given(self):
+        st, legs = self.files("1,X,5,,XX,\n2,Y,105,,YY,\n", "5,OS Switch 5\n105,OS Switch 105\n")
+        self.assertEqual([(r["cp_name"], r["level"]) for r in rf.station_group_rows(st, legs)], [("X", "1"), ("Y", "2")])
+
+    def test_a_switch_with_no_os_block_names_the_station_that_holds_it(self):
+        st, legs = self.files('1,Brick,"1,3",none,BK,\n1,West Yard,3,,BK,\n', "1,OS Switch 1\n")
+        with self.assertRaisesRegex(rf.FactsError, r"stations.csv line 3 \(West Yard\): switch 3 has no OS block"):
+            rf.station_group_rows(st, legs)
 
     def test_errors_name_the_file_and_line(self):
         st, legs = self.files("1,X,9,,XX,\n", "5,OS Switch 5\n")

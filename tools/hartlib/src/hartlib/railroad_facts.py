@@ -454,14 +454,6 @@ def read_stations(path: Path) -> list[Station]:
     return out
 
 
-def nested_stations(switches: dict[str, Iterable[str]]) -> set[str]:
-    """The names of the stations nested in another: every switch of theirs is one of the other's, and the other has
-    more (`switches`: {station name: its switches}, one level's). The rule read_desk_areas gives a nested station its
-    own desk area by; the Layout Editor build may leave these out of its station names (le_nested_station_labels)."""
-    sets = {name: set(map(str, sw)) for name, sw in switches.items()}
-    return {a for a, sa in sets.items() if any(sa < sb for b, sb in sets.items() if b != a)}
-
-
 def nested_own_areas(stations: list[Station]) -> set[str]:
     """The names of the stations nested in a station of another desk area (Engine House, EH, in Barn, BN): the
     stations that make a desk area of their own inside another station. A station nested in one of its own desk area
@@ -475,12 +467,10 @@ def nested_own_areas(stations: list[Station]) -> set[str]:
     return out
 
 
-def _nesting(stations: list[Station], path: Path) -> tuple[dict[tuple[int, str], Station], set[str]]:
-    """({(level, switch): the innermost station holding it}, the names of the nested stations). Two stations of a
-    level that share a switch must nest (one's switches all inside the other's); a switch may be in one nested station
-    only."""
-    owner: dict[tuple[int, str], Station] = {}
-    nested: set[str] = set()
+def _innermost(stations: list[Station], path: Path) -> dict[tuple[int, str], Station]:
+    """{(level, switch): the innermost station holding it}. Two stations of a level that share a switch must nest
+    (one's switches all inside the other's), so the stations holding a switch run from the largest in to the smallest;
+    of them, one at most may be a desk area nested in another area's station (nested_own_areas)."""
     for i, a in enumerate(stations):
         for b in stations[i + 1:]:
             shared = set(a.switches) & set(b.switches)
@@ -493,30 +483,32 @@ def _nesting(stations: list[Station], path: Path) -> tuple[dict[tuple[int, str],
                 first = sorted(shared, key=int)[0]
                 raise FactsError(f"{pair} share switch {first} but neither is inside the other; stations overlap "
                                  "only when one is nested in the other")
-    for level in {st.level for st in stations}:
-        nested |= nested_stations({st.name: st.switches for st in stations if st.level == level})
+    own = nested_own_areas(stations)
+    holders: dict[tuple[int, str], list[Station]] = {}
     for st in stations:
         for s in st.switches:
-            key = (st.level, s)
-            have = owner.get(key)
-            if have is None:
-                owner[key] = st
-                continue
-            if have.name in nested and st.name in nested:
-                raise FactsError(f"{path.name} lines {have.line} and {st.line}: {have.name} and {st.name} are both "
-                                 f"nested stations with switch {s}; a switch is in one nested station only")
-            if st.name in nested:
-                owner[key] = st
-    return owner, nested
+            holders.setdefault((st.level, s), []).append(st)
+    out = {}
+    for (level, s), held in holders.items():
+        areas = [st for st in held if st.name in own]
+        if len(areas) > 1:
+            x, y = areas[:2]
+            raise FactsError(f"{path.name} lines {x.line} and {y.line}: {x.name} and {y.name} are both desk areas "
+                             f"nested in another area's station, with switch {s}; a switch is in one such area only")
+        out[(level, s)] = min(held, key=lambda st: len(st.switches))
+    return out
 
 
 def desk_areas(stations: list[Station], path: Path, switches: Iterable[str] | None = None) -> list[DeskArea]:
-    """The desk areas of `stations` (read from `path`, named in errors): first those named by a station nested in
-    none, then those named by a nested one (Engine House), each in the order its code first appears.
+    """The desk areas of `stations` (read from `path`, named in errors), each named by its first station: first the
+    areas nested in no other area's station, then those that are (nested_own_areas: Engine House), each in the order
+    its code first appears.
     `switches`, when given, are staging's switch numbers (level 1 of switches.csv): each must be in one staging desk
     area and every staging station switch one of them. Stops on a code used on two levels, an area left with no
-    switches of its own, and what _nesting stops on."""
-    inner, nested = _nesting(stations, path)
+    switches of its own, an area whose first station lies inside another station of the same area (it would name
+    the area), and what _innermost stops on."""
+    inner = _innermost(stations, path)
+    own = nested_own_areas(stations)
     first: dict[str, Station] = {}
     members: dict[str, list[Station]] = {}
     for st in stations:
@@ -525,13 +517,19 @@ def desk_areas(stations: list[Station], path: Path, switches: Iterable[str] | No
             raise FactsError(f"{_where(path, st.line)} ({st.name}): desk code {st.desk_code} is level {lead.level}'s "
                              f"({lead.name}, line {lead.line}); a desk area is on one level")
         members.setdefault(st.desk_code, []).append(st)
+    for code, lead in first.items():
+        outer = next((st for st in members[code] if set(lead.switches) < set(st.switches)), None)
+        if outer is not None:
+            raise FactsError(f"{_where(path, lead.line)} ({lead.name}): the first station of desk area {code} lies "
+                             f"inside {outer.name} (line {outer.line}) of the same area; list {outer.name} first, as "
+                             "the area takes its name from its first station")
     out = []
-    for code, lead in sorted(first.items(), key=lambda kv: kv[1].name in nested):
-        own = tuple(s for st in members[code] for s in st.switches if inner[(st.level, s)] is st)
-        if not own:
+    for code, lead in sorted(first.items(), key=lambda kv: kv[1].name in own):
+        held = tuple(s for st in members[code] for s in st.switches if inner[(st.level, s)] is st)
+        if not held:
             raise FactsError(f"desk area {code} ({lead.name}, {_where(path, lead.line)}) has no switches of its own: "
                              "the stations nested in its stations hold them all")
-        out.append(DeskArea(lead.line, lead.level, lead.name, code, own, tuple(st.name for st in members[code]),
+        out.append(DeskArea(lead.line, lead.level, lead.name, code, held, tuple(st.name for st in members[code]),
                             lead.notes))
     if switches is not None:
         known = set(switches)
@@ -556,7 +554,8 @@ STATION_GROUP_COLUMNS = ("cp_id", "cp_name", "level", "switches", "notes", "code
 
 
 def station_group_rows(stations: Path, switch_legs: Path) -> list[dict[str, str]]:
-    """The desk areas (staging's: the drawings' brackets and the CATS desk names) in the shape the older
+    """The desk areas of every level (staging's only so far: the drawings' brackets and the CATS desk names; each
+    row carries its level, so a caller that wants one level filters on it) in the shape the older
     data/control_points.csv had, which this replaces (level-unification step 8): cp_id the name in lower case with
     underscores, level, code and notes the area's, and switches the OS block of each switch (a crossover by its
     halves, 7 as 7,7b and 23 as 23a,23b, from switch_legs.csv), "," between. Stops with FactsError, naming the file,
@@ -568,12 +567,13 @@ def station_group_rows(stations: Path, switch_legs: Path) -> list[dict[str, str]
             raise FactsError(f"{_where(switch_legs, line)}: {r['os_block']!r} is not an OS Switch block")
         halves.setdefault(r["switch"], []).append(m.group(1))
     rows = read_stations(stations)
+    inner = _innermost(rows, stations)
     out = []
     for a in desk_areas(rows, stations):
         sw = []
         for s in a.switches:
             if s not in halves:
-                st = next(st for st in rows if st.name in a.stations and s in st.switches)
+                st = inner[(a.level, s)]        # the station that holds it for its area, not the one it lies in
                 raise FactsError(f"{_where(stations, st.line)} ({st.name}): switch {s} has no OS block in "
                                  f"{switch_legs.name}")
             sw += sorted(halves[s])
