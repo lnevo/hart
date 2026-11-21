@@ -11,7 +11,10 @@ deploy from a worktree without media/ cannot strip the photos). The build fails
 if the output still names local hosts or paths. (The file name predates the move
 off GitHub Pages.)
 
-Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors]
+Usage: prepare_github_pages.py [DEST] [--site-url URL] [--require-mirrors] [--full]
+
+The photo stages are reused from the last full run when their inputs are unchanged (see PHOTO_CODE_VERSION);
+--full runs them anyway.
 """
 
 from __future__ import annotations
@@ -1147,11 +1150,6 @@ def _provenance_stage(dest: Path) -> bool:
     return True
 
 
-def _webp_stage(dest: Path) -> None:
-    """Stage 11: WebP companions for large JPEGs, with the one-line saving."""
-    print(f"WebP companions: {_webp_companions(dest) // 1024} KB smaller than the JPEGs they stand beside")
-
-
 def _leak_stage(dest: Path) -> bool:
     """Stage 12: False (said on stderr) when the finished tree names a local host or path."""
     leaks = _check_leaks(dest)
@@ -1168,6 +1166,186 @@ def _search_stage(dest: Path) -> None:
     print(f"Search index: {len(index['records'])} records")
 
 
+# The photo group (logos, photo vendor/filter/thumbs/archive, card thumbs, WebP) reads every original and re-encodes
+# the large JPEGs, which is most of a build. Its outputs are saved under the JPEG cache after a full run, with a stamp
+# of its inputs; a later build whose stamp matches copies them back and reads no original. The text group (copy,
+# page fills, scrubs, head tags, provenance, leak check, search) always runs. Any doubt runs the photo group in full.
+# PHOTO_CODE_VERSION: bump it when the group's output changes in a way its source text does not show.
+PHOTO_CODE_VERSION = "1"
+PHOTO_STORE = "photo-group"
+_PHOTO_JSON = ("data/industries.json", "data/gallery.json", "data/fleet-gallery.json", "data/archive.json")
+
+
+@functools.lru_cache(maxsize=None)
+def _photo_code_key() -> str:
+    """The version constant plus the source of every function the photo group runs, so editing one misses the stamp."""
+    funcs = (_vendor_logos, _vendor_json_logos, _vendor_logos_in, _vendor_logo, _vendor_photos, _vendor_fleet_images,
+             _filter_gallery, _keep_src, _gallery_thumbs, _vendor_archive_images, _web_jpeg, _card_thumbs, _webp_companions)
+    h = hashlib.sha256(PHOTO_CODE_VERSION.encode())
+    for f in funcs:
+        h.update(inspect.getsource(f).encode())
+    h.update(_render_key())
+    h.update(Path(share_cards.__file__).read_bytes())
+    return h.hexdigest()
+
+
+def _mirror_paths(node: object):
+    """Every string under node that points into the mirrors (src, logo, pdf)."""
+    if isinstance(node, str):
+        if node.startswith(MIRROR_PREFIXES):
+            yield node
+    elif isinstance(node, dict):
+        for value in node.values():
+            yield from _mirror_paths(value)
+    elif isinstance(node, list):
+        for value in node:
+            yield from _mirror_paths(value)
+
+
+def _early_stamp(dest: Path) -> str:
+    """Hash of what the logo and photo stages read: the data files as copied into dest, the manifest, the code, and
+    the size and mtime of every original those files name (missing ones too)."""
+    h = hashlib.sha256(_photo_code_key().encode())
+    files = [dest / rel for rel in _PHOTO_JSON] + sorted((dest / "data").glob("*-lineage.json"))
+    mirrors: set[str] = set()
+    for f in files:
+        h.update(f.name.encode())
+        if f.is_file():
+            raw = f.read_bytes()
+            h.update(raw)
+            mirrors.update(_mirror_paths(json.loads(raw)))
+    h.update(json.dumps(_manifest(), sort_keys=True).encode())
+    for rel in sorted(mirrors):
+        try:
+            st = _source(rel).stat()
+            h.update(f"|{rel}:{st.st_size}:{st.st_mtime_ns}".encode())
+        except OSError:
+            h.update(f"|{rel}:missing".encode())
+    return h.hexdigest()
+
+
+def _tree_state(dest: Path) -> dict[str, tuple[int, int]]:
+    state = {}
+    for p in dest.rglob("*"):
+        if p.is_file():
+            st = p.stat()
+            state[p.relative_to(dest).as_posix()] = (st.st_size, st.st_mtime_ns)
+    return state
+
+
+def _photo_store(part: str) -> Path | None:
+    cache = _jpeg_cache()
+    return cache / PHOTO_STORE / part if cache is not None else None
+
+
+def _photo_load(part: str, stamp: str, full: bool) -> tuple[Path, dict] | str:
+    """The saved output of one part when its stamp matches, else the reason it cannot be reused."""
+    try:
+        import PIL  # noqa: F401
+    except ImportError:
+        return "Pillow is missing"
+    if full:
+        return "--full"
+    store = _photo_store(part)
+    if store is None:
+        return "the photo cache is off"
+    try:
+        meta = json.loads((store / "stamp.json").read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return "no saved run"
+    except (OSError, ValueError):
+        return "saved stamp unreadable"
+    if not isinstance(meta, dict) or meta.get("stamp") != stamp:
+        return "inputs changed"
+    files = meta.get("files")
+    if not isinstance(files, dict) or any(
+        not (store / "files" / rel).is_file() or (store / "files" / rel).stat().st_size != size for rel, size in files.items()
+    ):
+        return "saved files incomplete"
+    return store, meta
+
+
+def _photo_restore(store: Path, meta: dict, dest: Path) -> None:
+    for rel in meta["files"]:
+        out = dest / rel
+        out.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(store / "files" / rel, out)   # fresh time stamp, as _web_jpeg does
+
+
+def _photo_save(part: str, stamp: str, dest: Path, before: dict, extra: dict | None = None) -> None:
+    """Keep the files a part added or rewrote in dest, with the stamp, replacing the last saved run."""
+    store = _photo_store(part)
+    if store is None:
+        return
+    after = _tree_state(dest)
+    changed = sorted(rel for rel, st in after.items() if before.get(rel) != st)
+    tmp = store.with_name(f"{store.name}.{os.getpid()}.tmp")
+    try:
+        shutil.rmtree(tmp, ignore_errors=True)
+        for rel in changed:
+            out = tmp / "files" / rel
+            out.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(dest / rel, out)
+        meta = {"stamp": stamp, "files": {rel: after[rel][0] for rel in changed}, **(extra or {})}
+        (tmp / "stamp.json").write_text(json.dumps(meta), encoding="utf-8")
+        store.parent.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(store, ignore_errors=True)
+        os.replace(tmp, store)
+    except OSError as exc:
+        print(f"photo stages: could not save this run for reuse ({exc})", file=sys.stderr)
+    finally:
+        shutil.rmtree(tmp, ignore_errors=True)
+
+
+def _photo_early(dest: Path, full: bool) -> tuple[str, set[str]]:
+    """Logos and photos (stages 4 and 5), reused when the stamp matches. Returns the stamp and the files it wrote."""
+    stamp = _early_stamp(dest)
+    got = _photo_load("early", stamp, full)
+    if isinstance(got, tuple):
+        store, meta = got
+        _photo_restore(store, meta, dest)
+        print(f"photo stages: reused the saved run ({len(meta['files'])} files), no original read")
+        return stamp, set(meta["files"])
+    print(f"photo stages: full run ({got})")
+    before = _tree_state(dest)
+    _vendor_logos(dest)
+    _vendor_photos(dest)
+    _photo_save("early", stamp, dest, before)
+    after = _tree_state(dest)
+    return stamp, {rel for rel, st in after.items() if before.get(rel) != st}
+
+
+def _late_stamp(dest: Path, early_stamp: str, early_files: set[str]) -> str:
+    """Card thumbs and WebP read the finished pages and the JPEGs: hash every file but the photos the early stamp covers."""
+    h = hashlib.sha256(_photo_code_key().encode())
+    h.update(f"|{early_stamp}|{SITE_URL}|".encode())
+    for p in sorted(dest.rglob("*")):
+        if not p.is_file():
+            continue
+        rel = p.relative_to(dest).as_posix()
+        if rel in early_files and p.suffix.lower() != ".json":
+            continue
+        h.update(f"|{rel}|".encode())
+        h.update(p.read_bytes())
+    return h.hexdigest()
+
+
+def _photo_late(dest: Path, early_stamp: str, early_files: set[str], full: bool) -> None:
+    """Card thumbs and WebP (stages 10 and 11), reused when the pages and photos they read are unchanged."""
+    stamp = _late_stamp(dest, early_stamp, early_files)
+    got = _photo_load("late", stamp, full)
+    if isinstance(got, tuple):
+        store, meta = got
+        _photo_restore(store, meta, dest)
+        print(f"WebP companions: {meta['saved'] // 1024} KB smaller than the JPEGs they stand beside")
+        return
+    before = _tree_state(dest)
+    _card_thumbs(dest)
+    saved = _webp_companions(dest)
+    print(f"WebP companions: {saved // 1024} KB smaller than the JPEGs they stand beside")
+    _photo_save("late", stamp, dest, before, {"saved": saved})
+
+
 def main() -> int:
     global SITE_URL
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
@@ -1178,6 +1356,7 @@ def main() -> int:
         action="store_true",
         help="stop when a public photo's gitignored original (media/, ops/car-cards/) or Pillow is missing",
     )
+    parser.add_argument("--full", action="store_true", help="run every photo stage even when the saved run of them still fits")
     args = parser.parse_args()
     if args.require_mirrors and (missing := _missing_mirrors()):
         print(
@@ -1198,8 +1377,7 @@ def main() -> int:
     _copy_published(dest)
     _refresh_tables_page(dest)
     _scrub_site_json(dest)
-    _vendor_logos(dest)
-    _vendor_photos(dest)
+    early_stamp, early_files = _photo_early(dest, args.full)
     _strip_external_data(dest)
 
     # 404.html is a tracked page (site-root links); the web server must point error_page 404 at it
@@ -1208,8 +1386,7 @@ def main() -> int:
     _add_head_tags(dest)
     if not _provenance_stage(dest):
         return 1
-    _card_thumbs(dest)
-    _webp_stage(dest)
+    _photo_late(dest, early_stamp, early_files, args.full)
     if not _leak_stage(dest):
         return 1
     _search_stage(dest)
