@@ -62,9 +62,10 @@ def is_repo_path(token: str) -> bool:
 
 
 def _normal(path: str) -> str | None:
-    """The repo-relative form of a path written from the repo root, or None when it climbs out."""
+    """The repo-relative form of a path written from the repo root ("." for the root itself), or None when it climbs
+    out: an absolute path or one that starts with "..". """
     norm = os.path.normpath(path)
-    if norm == "." or PurePosixPath(norm).is_absolute() or norm.split("/")[0] == "..":
+    if PurePosixPath(norm).is_absolute() or norm.split("/")[0] == "..":
         return None
     return norm
 

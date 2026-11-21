@@ -57,6 +57,11 @@ class ReferencesTest(unittest.TestCase):
                          ["wiki/x.md: link ../../out.md leaves the repo",
                           "wiki/x.md: path tools/../../secret/x.py leaves the repo"])
 
+    def test_link_to_the_repo_root_is_inside(self) -> None:
+        self.assertEqual(targets("wiki/home.md", "[root](../) [here](./)"), [("link", "."), ("link", "wiki")])
+        self.assertEqual(targets("AGENTS.md", "[x](./)"), [("link", ".")])
+        self.assertEqual(DOCS.problems_in("wiki/home.md", "[root](../) [x](../wiki/)"), [])
+
     def test_git_failure_is_a_clear_error(self) -> None:
         with self.assertRaisesRegex(DOCS.AgentDocsError, "git ls-files --no-such-flag failed"):
             DOCS._git("ls-files", "--no-such-flag")
@@ -88,7 +93,8 @@ class FrontMatterTest(unittest.TestCase):
 
     def test_quoted_descriptions(self) -> None:
         for raw, want in (("Use with the 'deploy'", "Use with the 'deploy'"), ("'it''s'", "it's"),
-                          ('"say \\"hi\\""', 'say "hi"'), ("'x'", "x")):
+                          ('"say \\"hi\\""', 'say "hi"'), ("'x'", "x"),
+                          ("Use for x # a YAML comment", "Use for x"), ("Issue#5 stays", "Issue#5 stays")):
             with self.subTest(raw=raw):
                 self.assertEqual(GEN.front_description("s.md", f"---\ndescription: {raw}\n---\n"), want)
         for raw in ('"open', '"bad \\q"'):

@@ -233,6 +233,15 @@ function layout(nodes, edges, domains) {
 /* The step headers over the columns in view: column r is r links from a file nothing on the map builds (step 0). px is
    how many screen pixels one drawing unit takes; when the columns are too narrow for every number, only every 2nd, 5th,
    10th or 20th is named, always with step 0. Returns {every, cols: [{r, x}]}, x the column's middle in drawing units. */
+/* Whether column 0 of a drawing is raw data: it has boxes and nothing in the whole graph (edges, every link, filtered
+   or not) builds any of them. A filtered view can hide what builds its first column, and a folder box (unknown id)
+   stands for files that may be built, so either makes it plain "Step 0". */
+function firstColumnIsRaw(layNodes, edges, known) {
+  const step = NODE_W + COL_GAP, fed = new Set(edges.map(e => e.to));
+  const first = layNodes.filter(n => Math.round(n.x / step) === 0);
+  return first.length > 0 && first.every(n => known(n.id) && !fed.has(n.id));
+}
+
 function stepTicks(columns, x0, x1, px) {
   const step = NODE_W + COL_GAP, wide = step * px;
   const every = [1, 2, 5, 10, 20, 50].find(k => k * wide >= 64) || 100;
@@ -352,7 +361,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, firstColumnIsRaw, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -613,14 +622,17 @@ function app() {
   const rulers = document.getElementById("rulers"), steps = document.getElementById("steps"), laneTags = document.getElementById("lanetags");
   const STRIP_H = 24;
   let colKinds = [];  // per column: what its boxes are, for the header's tooltip
+  let rawFirst = false;  // whether nothing in the whole graph builds any box of column 0 (a filtered view may hide what does)
+  const showRulers = () => !!(lay && lay.nodes.length);  // the strip shows only over a drawing with boxes
   function columnKinds() {
     const step = NODE_W + COL_GAP, cols = Array.from({ length: lay.columns }, () => ({}));
     lay.nodes.forEach(n => { const c = cols[Math.round(n.x / step)]; c[n.kind] = (c[n.kind] || 0) + 1; });
+    rawFirst = firstColumnIsRaw(lay.nodes, DATA.edges, id => Object.hasOwn(byId, id));
     colKinds = cols.map(c => Object.entries(c).sort((a, b) => b[1] - a[1])
       .map(([k, n]) => `${n} ${(DATA.kinds[k] ? DATA.kinds[k][0] : k).toLowerCase()}`).join(", "));
   }
   function drawRulers() {
-    if (!lay || !lay.nodes.length) { rulers.hidden = true; return; }
+    if (!showRulers()) { rulers.hidden = true; return; }
     rulers.hidden = false;
     const r = wrapEl.getBoundingClientRect(), m = svg.getScreenCTM(), a = freeArea();
     const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
@@ -630,12 +642,12 @@ function app() {
     const t = stepTicks(lay.columns, x0, x1, m.a), out = [];
     let edge = -Infinity;  // right end of the last label placed; a label that would overlap it is left out
     for (const c of t.cols) {
-      const label = c.r === 0 ? "Step 0 · raw data" : c.r === last && t.every === 1 ? `Step ${c.r} · built last` : `Step ${c.r}`;
+      const label = c.r === 0 ? (rawFirst ? "Step 0 · raw data" : "Step 0") : c.r === last && t.every === 1 ? `Step ${c.r} · built last` : `Step ${c.r}`;
       const half = label.length * 3.6 + 4;  // about 7.2 px a character at 12 px
       const x = c.r === 0 ? Math.max(sx(c.x), half + 4) : sx(c.x);  // step 0 stays readable at the left edge; others go when cut off
       if (x - half < Math.max(edge + 10, 0)) continue;
       edge = x + half;
-      out.push(`<span style="left:${x.toFixed(0)}px" title="Step ${c.r}: ${esc(c.r === 0 ? "nothing on the map builds these. " : `${c.r} links from raw data. `)}${esc(colKinds[c.r] || "")}">${esc(label)}</span>`);
+      out.push(`<span style="left:${x.toFixed(0)}px" title="Step ${c.r}: ${esc(c.r === 0 ? (rawFirst ? "nothing on the map builds these. " : "the first column of this view; boxes the filters hide may build these. ") : `${c.r} links from step 0. `)}${esc(colKinds[c.r] || "")}">${esc(label)}</span>`);
     }
     steps.innerHTML = out.join("");
     const left = Math.max(8, sx(-LEFT) + 8), floor = top + STRIP_H + 6, tags = [];
@@ -675,7 +687,7 @@ function app() {
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
      on a phone, above it) while that is open. */
   function freeArea() {
-    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10 + STRIP_H + 4;  // under the step headers
+    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10 + (showRulers() ? STRIP_H + 4 : 0);  // under the step headers, when they show
     let right = r.width, bottom = r.height;
     if (info.style.display === "block") {
       const i = info.getBoundingClientRect();
@@ -710,7 +722,9 @@ function app() {
     zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY);
   }, { passive: false });
   let drag = null, moved = false;
-  wrapEl.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; moved = false; wrapEl.classList.add("drag"); });
+  const startDrag = e => { drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; moved = false; wrapEl.classList.add("drag"); };
+  wrapEl.addEventListener("pointerdown", startDrag);
+  steps.addEventListener("pointerdown", startDrag);  // a drag that starts on a step header pans the map too; the headers keep their hover text
   window.addEventListener("pointermove", e => {
     if (!drag) return;
     const r = wrapEl.getBoundingClientRect(), dx = e.clientX - drag.x, dy = e.clientY - drag.y;

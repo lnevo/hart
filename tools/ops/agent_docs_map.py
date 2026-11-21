@@ -67,6 +67,7 @@ GLOBS = {
 }
 HAND_KEPT = ("wiki/STATUS.md", "docs/INDEX.md", "docs/pipeline-map/pipeline_map.json", "tools/ops/pipeline_query.py")
 READ_SUFFIXES = (".md", ".mdc")    # the files whose links are read; the others are only link targets
+PLAIN_COMMENT = re.compile(r"\s+#.*$")
 FRONT_KEY = re.compile(r"^(?P<key>[A-Za-z_]+):(?P<value>.*)$")
 
 
@@ -99,11 +100,11 @@ def _prefix(path: str) -> str:
 
 def _unquote(path: str, value: str) -> str:
     """A YAML scalar's text: a quoted one without its pair of quotes ('' inside single quotes is one quote; a double
-    quoted one is read with its escapes), a plain one as written."""
-    if len(value) < 2 or value[0] != value[-1] or value[0] not in "\"'":
-        if value[0] in "\"'":
-            raise AgentDocsMapError(f"{path}: the front matter description opens a quote it does not close")
-        return value
+    quoted one is read with its escapes), a plain one without a trailing # comment."""
+    if value[0] not in "\"'":
+        return PLAIN_COMMENT.sub("", value)    # a plain scalar ends at " #": the rest is a YAML comment
+    if len(value) < 2 or value[0] != value[-1]:
+        raise AgentDocsMapError(f"{path}: the front matter description opens a quote it does not close")
     if value[0] == "'":
         return value[1:-1].replace("''", "'")
     try:

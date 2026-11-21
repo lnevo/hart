@@ -277,7 +277,6 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info a{cursor:pointer;color:#1d4ed8}
 #info .off{color:#888;font-size:11px}
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
-.band{font-weight:800;opacity:.45}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
 .elabel{font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}

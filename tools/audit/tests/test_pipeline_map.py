@@ -172,6 +172,19 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual((far["every"], [c["r"] for c in far["cols"]]), (20, [0, 20, 40, 60]))
         self.assertEqual(far["cols"][1]["x"], 20 * 400 + 125)  # the middle of the column's boxes
 
+    def test_step_zero_is_raw_data_only_when_the_whole_graph_feeds_none_of_it(self) -> None:
+        """firstColumnIsRaw: a filtered view whose first column a hidden box builds, or a folder box, is plain step 0."""
+        cases = {
+            "raw": ([{"id": "a", "x": 0}, {"id": "b", "x": 400}], [{"from": "a", "to": "b"}], ["a", "b"], True),
+            "fed by a hidden box": ([{"id": "b", "x": 0}], [{"from": "a", "to": "b"}], ["a", "b"], False),
+            "folder box": ([{"id": "folder:x", "x": 0}], [], ["a"], False),
+            "no boxes": ([], [], [], False),
+        }
+        for name, (nodes, edges, known, want) in cases.items():
+            with self.subTest(name):
+                got = self.run_js("m.firstColumnIsRaw(a[0], a[1], id => a[2].includes(id))", [nodes, edges, known])
+                self.assertIs(got, want)
+
     def run_js(self, call: str, arg) -> dict:
         script = f"const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]); process.stdout.write(JSON.stringify({call}));"
         return json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(arg)], capture_output=True,
