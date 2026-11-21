@@ -1,4 +1,0 @@
-port_id,parent_node_id,mqtt_node,board_location,signal_index,uid,packed,system_name,user_name,mast_user_name,disc_role,head_role,lamp_color,topic,device_type,voltage_rail,notes
-C4-OU2-1,C4,4,West - Lower (Plane),0,32,432,IH432,Head 6LB T R,Mast 6LB,T,T,R,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp R; was S3-6 R/Y/G
-C4-OU2-2,C4,4,West - Lower (Plane),0,32,432,IH432,Head 6LB T Y,Mast 6LB,T,T,Y,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp Y; was S3-6 R/Y/G
-C4-OU2-3,C4,4,West - Lower (Plane),0,32,432,IH432,Head 6LB T G,Mast 6LB,T,T,G,track/signalhead/432,Searchlight Signal Head,5V,LCOS Signal 0 UID 32; STOP/APPROACH/CLEAR; lamp G; was S3-6 R/Y/G

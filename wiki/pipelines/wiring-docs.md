@@ -6,36 +6,34 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 
 ## Inputs
 
-- `cats/data/occupancy_bindings.csv`
-- `docs/wiring/signals/signal_wiring.csv`, `signal_head_plan.csv`, `signal_mast_plan.csv`
+- `jmri/layouts/hart/data/wiring.csv`: the physical wiring source (`hartlib.wiring`; owner, 2026-11-20). Staging as JMRI has it wired, and the main and upper devices placed so far
+- `jmri/layouts/hart/data/devices.csv`: every level's devices with their wiring text (`build_device_map.py` writes staging's from `wiring.csv`, main and upper's by its rule)
+- `jmri/layouts/hart/data/schematic/lcos_nodes.csv`: every node
+- `docs/wiring/signals/signal_head_plan.csv`, `signal_mast_plan.csv`: the Digicon masts, written by `build_hart_signal_heads.py --wiring-only` from `wiring.csv`'s heads
 - `docs/wiring/lcos/lcos_signal_logic.csv` → `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` (Main/Diverged + OR)
-- `docs/wiring/imported/` snapshots
-- `devices.csv` (the name map: proposed strings)
 
 ## Outputs
 
-- `docs/wiring/LCOS_Layout_Inventory_v85.xlsx` (staging)
-- `docs/wiring/LCOS_Layout_Inventory_v86.xlsx` (v85 plus the main and upper levels from `devices.csv`)
-- `docs/wiring/signals_asbuilt_abs_v2.xlsx`
-- `docs/wiring/signals_split_v8.xlsx` (frozen RGB plan + notes)
+- `docs/wiring/LCOS_Layout_Inventory_v86.xlsx`: every level, a view written from scratch
 - `docs/wiring/Wiring_Schematic.pptx`
 - `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`
+- `www/data/wiring-inventory.json`: the website's viewer
+
+History, frozen (no generator): `LCOS_Layout_Inventory_v85.xlsx`, `signals_asbuilt_abs_v2.xlsx`, `signals_split_v8.xlsx`. The v84 import and the refresh that turned it into v85 are in `archive/` (2026-11-20).
 
 ## Run
 
 ```bash
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 python3 tools/wiring/build_lcos_signal_manager_plan.py
-python3 tools/wiring/refresh_wiring_docs.py
 python3 tools/schematic/build_device_map.py
-python3 tools/wiring/add_main_upper_levels.py
+python3 tools/wiring/write_inventory.py
+make wiring-freeze CP="CP 123"              # once a main or upper control point is wired: its wiring becomes static
 python3 tools/wiring/create_wiring_schematic_ppt.py
 python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85 pins (--splits-inventory); tools/check.sh fails while it is stale
 ```
 
-`refresh_wiring_docs.py` is the entry point; its rename tables and sheet steps live in the `refresh_wiring_*.py` modules beside it, and its tests are `tools/audit/tests/test_refresh_wiring_docs.py`.
-
-Copy the three workbooks **and** the pptx back to the Desktop pack after XML apply so the bench matches live beans. Also copy `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` if you are punching Signal Manager. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).
+Copy v86 **and** the pptx back to the Desktop pack after XML apply so the bench matches live beans. Also copy `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` if you are punching Signal Manager. Detail: [`docs/wiring/README.md`](../../docs/wiring/README.md).
 
 ## Do not
 

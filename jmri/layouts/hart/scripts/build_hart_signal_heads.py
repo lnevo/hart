@@ -20,7 +20,7 @@ needs 9 pins. New 5V **OU4** on C1 / C4 / C13 (C12 and C11 use existing 5V OUs).
   radio 3  C3  Motors 103–106 only — no Digicon heads.
   radio 5  D5  DCC only — no signal ports
 
-`--wiring-only` writes CSVs only (no publisher). It never writes tables.xml, which is generated (ADR-029).
+`--wiring-only` writes the head and mast plan CSVs only (no publisher), from wiring.csv's wired heads. It never writes tables.xml, which is generated (ADR-029).
 """
 
 from __future__ import annotations
@@ -32,7 +32,8 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths, tables_build  # noqa: E402
+from hartlib import paths, tables_build, wiring  # noqa: E402
+from hartlib.railroad_facts import FactsError  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 DATA = ROOT / "docs/wiring/signals"
@@ -41,21 +42,32 @@ SKIP_HEAD: set[str] = set()
 SKIP_MAST: set[str] = set()
 
 # Wired heads only (ADR-024, owner 2026-11-19): every other staging mast stands on internal heads
-# (IH:HART:C1:<mast>, staging_masts.csv) until the owner wires it; add its rows here then.
-# Masts whose field build has fewer heads than the wiring plan: signal_wiring.csv and signal_mast_plan.csv
-# keep the planned heads; signal_head_plan.csv and the JMRI mast use only the fitted ones.
+# (IH:HART:C1:<mast>, staging_masts.csv) until the owner wires it. The wired heads, their nodes and ports, are
+# jmri/layouts/hart/data/wiring.csv's head rows (hartlib.wiring, the physical wiring source; owner 2026-11-20); add a
+# head's row there when it is wired.
+# Masts whose field build has fewer heads than the wiring plan: signal_mast_plan.csv keeps the planned heads;
+# signal_head_plan.csv and the JMRI mast use only the fitted ones.
 FITTED_HEADS: dict[str, set[int]] = {}
-
 # One 3-pin STOP/APPROACH/CLEAR object per physical disc. A 2-head mast owns
 # 6 consecutive pins on one board (T then B). Packed = radio*100 + UID.
 # disc: T top, B bottom, S single.
 # Field pin order is R (Stop), Y (Approach), G (Clear) — Port A/B/C on
-# consecutive increasing LCOS ports. Tuple fields: g_port, y_port, r_port.
-# mast, node, parent, location, packed, g, y, r, disc, v84_was
-HEADS_3PIN: list[tuple[str, int, str, str, int, str, str, str, str, str]] = [
-    # C4 radio 4 — Brick + Plane (motors Switch 1/3/5/13 on OU1). Packed 4xx.
-    ("Mast 6LB", 4, "C4", "West - Lower (Plane)", 432, "C4-OU2-3", "C4-OU2-2", "C4-OU2-1", "T", "S3-6 R/Y/G"),
-]
+# consecutive increasing LCOS ports.
+
+
+def heads_3pin(path: Path | None = None) -> list[tuple[str, int, str, str, int, str, str, str, str, str]]:
+    """(mast, node, parent, location, packed, g port, y port, r port, disc, was) of each wired head, from
+    wiring.csv (hartlib.wiring.digicon_rows); location and was are left blank (history only)."""
+    pins: dict[int, dict[str, dict]] = {}
+    for r in wiring.digicon_rows(path):
+        pins.setdefault(int(r["packed"]), {})[r["lamp_color"]] = r
+    out = []
+    for packed_id, lamp in pins.items():
+        r = lamp["R"]
+        out.append((r["mast_user_name"], int(r["mqtt_node"]), r["parent_node_id"], "", packed_id,
+                    lamp["G"]["port_id"], lamp["Y"]["port_id"], r["port_id"], r["disc_role"], ""))
+    return out
+
 
 APPEAR = {1: "one-searchlight", 2: "two-searchlight", 3: "SL-3-high"}
 SYSTEM_BY_HEADS = {1: "basic", 2: "basic", 3: "AAR-1946"}
@@ -63,22 +75,8 @@ DISC_SORT = {"T": 0, "S": 1, "B": 2}
 
 PIN_ORDER = (("R", "r_port"), ("Y", "y_port"), ("G", "g_port"))
 
-# Pin 8 of the first 5V DNOU8 on every node that has block sensors.
-# Occupancy-detector calibration current; never a lamp or relay.
-BLOCK_CAL_PORTS = {
-    "C1-OU2-8",
-    "C2-OU1-8",
-    "C3-OU2-8",
-    "C4-OU2-8",
-    "C11-OU2-8",
-    "C12-OU2-8",
-    "C13-OU1-8",
-    "C14-OU2-8",
-    "C21-OU2-8",
-    "C22-OU2-8",
-    "C23-OU2-8",
-    "C24-OU2-8",
-}
+# The calibration relays' ports (wiring.csv's calibration rows: the relay that resets the DCC power so a node's
+# block detectors calibrate, one on every node with detectors; owner 2026-11-21): never a lamp.
 
 
 def packed(node: int, signal_index: int) -> int:
@@ -95,10 +93,13 @@ def discs_of(mast: str, rows: list[dict]) -> list[dict]:
     return discs
 
 
-def build_rows() -> list[dict]:
+def build_rows(path: Path | None = None) -> list[dict]:
+    """The pin rows of the wired heads (heads_3pin, from wiring.csv `path`). SystemExit on a lamp on a calibration
+    relay's port or two lamps on one port."""
     rows: list[dict] = []
     seen_ports: dict[str, str] = {}
-    for mast, node, parent, loc, pid, g, y, r, disc, was in HEADS_3PIN:
+    cal_ports = wiring.calibration_ports(path)
+    for mast, node, parent, loc, pid, g, y, r, disc, was in heads_3pin(path):
         uid = pid - node * 100
         idx = uid - 32
         short = mast[5:] if mast.startswith("Mast ") else mast
@@ -106,9 +107,9 @@ def build_rows() -> list[dict]:
         label = f"{short} {disc}" if disc in ("T", "B") else short
         for color, _key in PIN_ORDER:
             port = ports[color]
-            if port in BLOCK_CAL_PORTS:
+            if port in cal_ports:
                 raise SystemExit(
-                    f"{port} is block-sensor calibration on the first 5V OU; "
+                    f"{port} is a calibration relay's port (wiring.csv); "
                     f"cannot assign {mast} {disc} {color}"
                 )
             if port in seen_ports:
@@ -132,7 +133,6 @@ def build_rows() -> list[dict]:
                     "g_port": g,
                     "y_port": y,
                     "r_port": r,
-                    "v84_was": was,
                     "lcos_recipe": "STOP/APPROACH/CLEAR",
                     "topic": f"track/signalhead/{pid}",
                 }
@@ -188,42 +188,6 @@ def mast_system_name(mast: str, rows: list[dict]) -> str:
 
 def write_csvs(rows: list[dict]) -> None:
     DATA.mkdir(parents=True, exist_ok=True)
-    wiring_fields = [
-        "port_id",
-        "parent_node_id",
-        "mqtt_node",
-        "board_location",
-        "signal_index",
-        "uid",
-        "packed",
-        "system_name",
-        "user_name",
-        "mast_user_name",
-        "disc_role",
-        "head_role",
-        "lamp_color",
-        "topic",
-        "device_type",
-        "voltage_rail",
-        "notes",
-    ]
-    with (DATA / "signal_wiring.csv").open("w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=wiring_fields, lineterminator="\n")
-        w.writeheader()
-        for r in rows:
-            w.writerow(
-                {
-                    **{k: r[k] for k in wiring_fields if k in r},
-                    "device_type": "Searchlight Signal Head",
-                    "voltage_rail": "5V",
-                    "notes": (
-                        f"LCOS Signal {r['signal_index']} UID {r['uid']}; "
-                        f"{r['lcos_recipe']}; lamp {r['lamp_color']}; "
-                        f"was {r['v84_was']}"
-                    ),
-                }
-            )
-
     plan_fields = [
         "mast_user_name",
         "mqtt_node",
@@ -283,55 +247,7 @@ def write_csvs(rows: list[dict]) -> None:
             w.writerows(enriched)
         print(f"updated {plan_src}")
 
-    print(f"wrote {DATA / 'signal_wiring.csv'} ({len(rows)} pin rows, {len(masts)} masts)")
     print(f"wrote {DATA / 'signal_head_plan.csv'} ({len(masts)} masts)")
-
-
-def update_lcos_inventory(rows: list[dict]) -> None:
-    """Rewrite Digicon signal ports on docs/wiring LCOS inventory DNOU8 sheet."""
-    inv = ROOT / "docs/wiring/LCOS_Layout_Inventory_v85.xlsx"
-    if not inv.exists():
-        print(f"skip inventory update (missing {inv})")
-        return
-    try:
-        from openpyxl import load_workbook
-    except ImportError:
-        print("skip inventory update (openpyxl not installed)")
-        return
-    wb = load_workbook(inv)
-    ws = wb["DNOU8"]
-    # Map existing rows by Output Port ID (col A)
-    by_port: dict[str, int] = {}
-    for i, row in enumerate(ws.iter_rows(min_row=2), start=2):
-        pid = row[0].value
-        if pid:
-            by_port[str(pid)] = i
-    assigned = {r["port_id"] for r in rows}
-    # Clear old dwarf labels on ports we are reclaiming (leave unrelated alone)
-    for r in rows:
-        port = r["port_id"]
-        channel = int(port.rsplit("-", 1)[-1])
-        vals = (
-            port,
-            r["parent_node_id"],
-            r["board_location"],
-            channel,
-            r["user_name"],
-            "Searchlight Signal Head",
-            "5V",
-            (
-                f"HART Digicon; MQTT {r['topic']}; "
-                f"packed {r['packed']} (node {r['mqtt_node']} sig {r['signal_index']})"
-            ),
-        )
-        if port in by_port:
-            rr = by_port[port]
-            for col, v in enumerate(vals, start=1):
-                ws.cell(rr, col, v)
-        else:
-            ws.append(vals)
-    wb.save(inv)
-    print(f"updated inventory DNOU8 → {inv}")
 
 
 def _heads_xml(rows: list[dict]) -> str:
@@ -447,12 +363,16 @@ def main() -> int:
     wiring_only = "--wiring-only" in sys.argv
     if not wiring_only:
         paths.exit_if_overridden(Path(__file__).name)
-    rows = build_rows()
+    try:
+        rows = build_rows()
+    except FactsError as exc:
+        print(f"build_hart_signal_heads.py: {exc}", file=sys.stderr)
+        return 2
     write_csvs(rows)
     if wiring_only:
         print("wiring-only: skipped inventory xlsx, tables.xml, publisher")
     else:
-        update_lcos_inventory(rows)
+        print("the wiring inventory takes these ports: python3 tools/wiring/write_inventory.py")
         write_publisher(rows)
         patch_tables(rows)
     by: dict[int, list] = {}

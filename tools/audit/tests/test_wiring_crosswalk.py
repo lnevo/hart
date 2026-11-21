@@ -1,5 +1,4 @@
-"""check_wiring_crosswalk: heads in tables.xml must follow signal_wiring.csv."""
-import csv
+"""check_wiring_crosswalk: heads in tables.xml must follow wiring.csv's wired heads."""
 import importlib.util
 import sys
 import unittest
@@ -8,7 +7,7 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import paths, wiring  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 SPEC = importlib.util.spec_from_file_location(
@@ -99,7 +98,7 @@ class WiringCrosswalkTest(unittest.TestCase):
     def test_unwired_head_mast_fails(self):
         masts = dict(MASTS, **{"Mast 99X": "IF$shsm:basic:one-low(IH999)"})
         found = check.problems(WIRING, tables(masts=masts))
-        self.assertIn("Mast 99X: head mast IH999 is not in signal_wiring.csv", found)
+        self.assertIn("Mast 99X: head mast IH999 has no head in wiring.csv", found)
 
     def test_comment_disagreeing_with_ports_fails(self):
         comments = dict(COMMENTS, IH232="Node: 12 Signal: 0 | OU: 2 Ports: 1,2,3")
@@ -148,16 +147,14 @@ class WiringCrosswalkTest(unittest.TestCase):
             check.problems(bad, tables())
 
     def test_repo_tables_follow_wiring_plan(self):
-        with (paths.SIGNAL_WIRING).open(newline="") as f:
-            rows = list(csv.DictReader(f))
+        rows = wiring.digicon_rows()
         root = ET.parse(paths.TABLES_XML).getroot()
         self.assertEqual(check.problems(rows, root), [])
 
     def test_main_and_upper_masts_are_checked_against_their_own_file(self):
         """A main or upper mast on virtual heads (IH:HART:C3:...) is not in the wiring plan yet: it must carry the
         heads main_upper_masts.csv gives it, and its virtual heads are no reason to fail the read."""
-        with (paths.SIGNAL_WIRING).open(newline="") as f:
-            rows = list(csv.DictReader(f))
+        rows = wiring.digicon_rows()
         root = ET.parse(paths.TABLES_XML).getroot()
         mast = next(m for m in root.iter("signalmast") if (m.findtext("userName") or "") == "Mast 108LA")
         mast.find("systemName").text = "IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LB_Top)"
@@ -168,8 +165,7 @@ class WiringCrosswalkTest(unittest.TestCase):
     def test_staging_masts_are_checked_against_staging_masts_csv(self):
         """A staging mast on internal heads (IH:HART:C1:...; ADR-024) must carry the heads staging_masts.csv
         gives it, in order."""
-        with (paths.SIGNAL_WIRING).open(newline="") as f:
-            rows = list(csv.DictReader(f))
+        rows = wiring.digicon_rows()
         want = check.staging_heads()
         mast, heads = next((m, h) for m, h in sorted(want.items()) if len(h) == 2)
         root = ET.parse(paths.TABLES_XML).getroot()

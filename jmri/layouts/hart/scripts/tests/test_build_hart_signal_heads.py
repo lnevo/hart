@@ -1,6 +1,6 @@
 """build_hart_signal_heads.py must reproduce the committed wiring CSVs.
 
-`--wiring-only` (wiki/pipelines/wiring-docs.md) rewrites signal_wiring.csv,
+`--wiring-only` (wiki/pipelines/wiring-docs.md) rewrites, from wiring.csv's wired heads,
 signal_head_plan.csv and signal_mast_plan.csv, and the CATS desk build
 (hartlib.cats.mast_templates) reads PHYSIGNAL from signal_head_plan.csv. A builder list that drifts from
 those files silently undoes field changes on the next run.
@@ -20,7 +20,7 @@ SCRIPTS = Path(__file__).resolve().parents[1]
 ROOT = SCRIPTS.parents[3]
 SIGNALS = ROOT / "docs/wiring/signals"
 TABLES = ROOT / "jmri/layouts/hart/output/tables.xml"
-FILES = ("signal_wiring.csv", "signal_head_plan.csv", "signal_mast_plan.csv")
+FILES = ("signal_head_plan.csv", "signal_mast_plan.csv")
 
 
 def load_module():
@@ -55,29 +55,8 @@ class BuildHartSignalHeadsTest(unittest.TestCase):
                     self.assertEqual(
                         (out / name).read_bytes(),
                         (SIGNALS / name).read_bytes(),
-                        f"{name} differs from the builder; fix HEADS_3PIN or the CSV",
+                        f"{name} differs from the builder; fix wiring.csv or the CSV",
                     )
-
-    def test_inventory_update_writes_only_the_inventory(self) -> None:
-        # The v85 signal-ports copy in docs/wiring/signals had no reader and is gone (2026-11-17).
-        try:
-            import openpyxl  # noqa: F401
-        except ImportError:
-            self.skipTest("openpyxl not installed: update_lcos_inventory skips and writes nothing")
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            (root / "docs/wiring/signals").mkdir(parents=True)
-            inv = root / "docs/wiring/LCOS_Layout_Inventory_v85.xlsx"
-            shutil.copy(ROOT / "docs/wiring/LCOS_Layout_Inventory_v85.xlsx", inv)
-            saved = self.m.ROOT, self.m.DATA
-            self.m.ROOT, self.m.DATA = root, root / "docs/wiring/signals"
-            try:
-                with redirect_stdout(StringIO()):
-                    self.m.update_lcos_inventory(self.rows)
-            finally:
-                self.m.ROOT, self.m.DATA = saved
-            written = sorted(str(p.relative_to(root)) for p in root.rglob("*") if p.is_file())
-            self.assertEqual(written, ["docs/wiring/LCOS_Layout_Inventory_v85.xlsx"])
 
     def head_plan(self) -> dict[str, dict]:
         with (SIGNALS / "signal_head_plan.csv").open(newline="") as f:

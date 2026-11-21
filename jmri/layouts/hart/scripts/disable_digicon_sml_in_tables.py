@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check that the Digicon masts' Signal Mast Logic is stored disabled in a tables file.
 
-Digicon field masts (docs/wiring/signals/signal_wiring.csv, on wired LCOS heads) boot with SML Enabled=no so JMRI
+Digicon field masts (their heads wired in jmri/layouts/hart/data/wiring.csv, on wired LCOS heads) boot with SML Enabled=no so JMRI
 does not run ABS until signal_coordinator.py takes Digicon control. Non-Digicon sources are left alone.
 
 Since R9c (ADR-029) the generator applies the rule: tools/schematic/build_tables.py writes tables.xml with these
@@ -29,7 +29,7 @@ from hartlib import paths, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-WIRING = paths.SIGNAL_WIRING
+WIRING = paths.WIRING
 NEW_TABLES = paths.TABLES_XML
 
 

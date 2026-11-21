@@ -3,10 +3,10 @@
 
 The IH number of a head is its MQTT topic (track/signalhead/<packed>), and the
 wiring rule is packed = cabinet radio address x 100 + slot
-(docs/wiring/README.md). docs/wiring/signals/signal_wiring.csv holds that
-number for every head as system_name. This check fails when:
+(docs/wiring/README.md). jmri/layouts/hart/data/wiring.csv holds every wired
+head (hartlib.wiring.digicon_rows gives its pins, IH number and mast). This check fails when:
 
-- a physical mast (a SignalHeadSignalMast named in signal_wiring.csv) carries
+- a physical mast (a SignalHeadSignalMast with a head in wiring.csv) carries
   a head other than its planned head, in planned order (top, bottom);
 - a SignalHeadSignalMast in tables.xml is not in the wiring plan;
 - a wired mast is missing from tables.xml;
@@ -32,14 +32,15 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import level_masts, paths, tables  # noqa: E402
+from hartlib import level_masts, paths, tables, wiring  # noqa: E402
+from hartlib.railroad_facts import FactsError  # noqa: E402
 
 ROLE_ORDER = {"T": 0, "S": 0, "B": 1}
 SHSM_RE = re.compile(r"^IF\$shsm:[^:]+:[^(]+((?:\(IH\d+\))+)$")
 
 
 class WiringError(ValueError):
-    """signal_wiring.csv contradicts itself."""
+    """The wired heads contradict themselves."""
 
 
 def row_problems(r: dict[str, str]) -> list[str]:
@@ -183,7 +184,7 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
                 out.append(f"{mast}: virtual heads {' '.join(have)}, main_upper_masts.csv "
                            f"{' '.join(level.get(mast) or ['none'])}")
             continue
-        out.append(f"{mast}: head mast {' '.join(have)} is not in signal_wiring.csv")
+        out.append(f"{mast}: head mast {' '.join(have)} has no head in wiring.csv")
 
     on_mast = {h for hs in masts.values() for h in hs}
     for name, h in sorted(heads.items()):
@@ -199,22 +200,20 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
 
 
 def main() -> int:
-    wiring = paths.SIGNAL_WIRING
     tables_xml = paths.TABLES_XML
-    for p in (wiring, tables_xml):
+    for p in (paths.WIRING, tables_xml):
         if not p.is_file():
             print(f"MISSING: {p}", file=sys.stderr)
             return 2
-    with wiring.open(newline="", encoding="utf-8") as f:
-        rows = list(csv.DictReader(f))
     try:
+        rows = wiring.digicon_rows()
         found = problems(rows, tables.read(tables_xml))
-    except WiringError as e:
-        print(f"FAIL: signal_wiring.csv: {e}")
+    except (WiringError, FactsError) as e:
+        print(f"FAIL: wiring.csv: {e}")
         return 1
     n_heads = len(load_wiring(rows))
     if found:
-        print(f"FAIL: {len(found)} signal head(s) disagree with signal_wiring.csv")
+        print(f"FAIL: {len(found)} signal head(s) disagree with wiring.csv")
         for line in found:
             print(f"  - {line}")
         return 1

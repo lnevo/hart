@@ -35,13 +35,21 @@ class Read(unittest.TestCase):
                                ("detector", "M2S201", "Node: 2 Block: 2"),
                                ("detector", "M2S4103", "Node: 41 Block: 4")])
         self.assertEqual(self.read(GOOD)[3].input, "Block 13-1")
+        local = self.read(GOOD + "1,button,Switch 1 BTN,,,,,4,,IN2,1,wired,\n1,relay,Relay 1,,,,,2,,OU2,8,wired,\n")
+        self.assertEqual([(w.kind, w.index, w.wiring_text) for w in local[-2:]],
+                         [("button", None, "Node: 4 | IN: 2 Ports: 1"), ("relay", None, "Node: 2 | OU: 2 Ports: 8")])
+        with self.assertRaisesRegex(ValueError, "no JMRI address"):
+            local[-1].address
 
     def test_the_committed_file(self):
         rows = W.read()
         count = lambda lv, kind: sum(w.level == lv and w.kind == kind for w in rows)  # noqa: E731
         self.assertEqual((count(1, "turnout"), count(1, "fb"), count(1, "head"), count(1, "detector")),
                          (20, 40, 1, 45))
-        self.assertTrue(all(w.status == "wired" for w in rows if w.level == 1))
+        self.assertTrue(all(w.status == "wired" for w in rows if w.level == 1 and w.kind not in ("calibration", "button")))
+        self.assertEqual([w.device for w in rows if w.kind == "button" and w.status == "planned"],
+                         ["Switch 7 BTN", "Switch 11 BTN", "Switch 9 BTN"])           # C13-IN2-1 to 3, not connected
+        self.assertEqual([w.node for w in rows if w.kind == "calibration" and w.status == "planned"], [13])  # reserved
 
     def test_bad_rows_stop(self):
         for extra, msg in (("4,turnout,Switch 2,,,,,4,1,OU1,\"3,4\",wired,", "level is 1, 2 or 3"),
@@ -58,6 +66,9 @@ class Read(unittest.TestCase):
                            ("1,detector,Track X,,,,,4,1,OU1,1,wired,", "no board or ports"),
                            ("3,detector,Track X,227,241,,1,41,5,,,planned,", "not both"),
                            ("1,detector,,13,15,,,3,1,,,wired,", "a staging detector is named by its block alone"),
+                           ("1,button,Switch 1 BTN,,,,,4,0,IN2,1,wired,", "a button has no JMRI device, so no index"),
+                           ("1,button,Switch 1 BTN,,,,,4,,OU2,1,wired,", "lands on an IN board"),
+                           ("1,relay,Relay 2,,,,,4,,OU1,2,wired,", r"OU1 port\(s\) \[2\] are line 2's"),
                            ("1,turnout,Switch 1,,,,,4,1,OU1,\"3,4\",wired,", "turnout Switch 1 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,0,OU1,\"3,4\",wired,", "node 4 Turnout 0 is line 2's"),
                            ("1,turnout,Switch 2,,,,,4,1,OU1,\"2,3\",wired,", r"OU1 port\(s\) \[2\] are line 2's"),
@@ -67,6 +78,46 @@ class Read(unittest.TestCase):
                 self.read(GOOD + extra + "\n")
         with self.assertRaisesRegex(FactsError, "columns"):
             self.read("level,kind\n1,turnout\n")
+
+
+
+class Digicon(unittest.TestCase):
+    """digicon_rows: the wired heads' pins in the old signal_wiring.csv columns; calibration_ports."""
+
+    def read(self, text):
+        d = Path(tempfile.mkdtemp())
+        p = d / "wiring.csv"
+        p.write_text(HEAD + text, encoding="utf-8")
+        return p
+
+    def test_a_two_head_mast_and_a_single_head(self):
+        p = self.read('1,head,Head 24RA Top,,,,,2,0,OU1,"1,2,3",wired,\n1,head,Head 24RA Bottom,,,,,2,6,OU1,"4,5,6",wired,\n'
+                      '1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,\n1,calibration,C4 calibration relay,,,,,4,,OU2,8,wired,\n')
+        rows = W.digicon_rows(p)
+        self.assertEqual([(r["port_id"], r["system_name"], r["user_name"], r["head_role"], r["topic"]) for r in rows[:4]],
+                         [("C2-OU1-1", "IH232", "Head 24RA T R", "T", "track/signalhead/232"),
+                          ("C2-OU1-2", "IH232", "Head 24RA T Y", "T", "track/signalhead/232"),
+                          ("C2-OU1-3", "IH232", "Head 24RA T G", "T", "track/signalhead/232"),
+                          ("C2-OU1-4", "IH238", "Head 24RA B R", "B", "track/signalhead/238")])
+        self.assertEqual({r["mast_user_name"] for r in rows}, {"Mast 24RA", "Mast 6LB"})
+        single = [r for r in rows if r["mast_user_name"] == "Mast 6LB"]
+        self.assertEqual([(r["uid"], r["head_role"], r["user_name"]) for r in single],
+                         [("32", "S", "Head 6LB R"), ("32", "S", "Head 6LB Y"), ("32", "S", "Head 6LB G")])
+        self.assertEqual({r["board_location"] for r in rows}, {"North - Staging", "West - Staging"})
+        self.assertEqual(W.calibration_ports(p), {"C4-OU2-8"})
+
+    def test_a_planned_head_is_no_digicon_head(self):
+        """Only wired heads are Digicon heads, as the old signal_wiring.csv held: a planned head's ports are
+        reserved, nothing is on them yet."""
+        p = self.read('1,head,Head 24RA Top,,,,,2,0,OU1,"1,2,3",planned,\n1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,\n')
+        self.assertEqual({r["mast_user_name"] for r in W.digicon_rows(p)}, {"Mast 6LB"})
+
+    def test_the_committed_heads_are_6lb(self):
+        self.assertEqual({r["system_name"] for r in W.digicon_rows()}, {"IH432"})
+
+    def test_a_head_that_is_not_named_as_a_head_stops(self):
+        with self.assertRaisesRegex(FactsError, "is not a head name"):
+            W.digicon_rows(self.read('1,head,Signal 6LB,,,,,4,0,OU2,"1,2,3",wired,\n'))
 
 
 if __name__ == "__main__":

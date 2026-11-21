@@ -25,6 +25,10 @@ portal-check:  ## Build the website and test its links
 panels:  ## Rebuild every panel drawn from the schematic, in order (CHECK=1 only checks)
 	./tools/schematic/build_panels.sh $(if $(filter 1 yes true,$(CHECK)),--check)
 
+wiring-freeze:  ## Freeze a main or upper control point's wiring into wiring.csv once it is wired: make wiring-freeze CP="CP 107"
+	python3 tools/wiring/freeze_wiring.py --cp "$(CP)"
+	python3 tools/schematic/build_device_map.py --check
+
 desks:  ## Rebuild and validate the CATS desks (generated from the schematic)
 	python3 tools/schematic/build_cats_panel.py
 	python3 cats/scripts/validate_cats_panel.py
