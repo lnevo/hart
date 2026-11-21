@@ -52,7 +52,7 @@ fi
 # terminal has (a plain background job ignores SIGINT), and Ctrl-C or TERM stops every group still running.
 set -m
 JOBS="$(mktemp -d)"
-MAX_JOBS="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+MAX_JOBS="${CHECK_MAX_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"   # win_run.sh sets CHECK_MAX_JOBS to its share of the box
 (( MAX_JOBS >= 2 )) || MAX_JOBS=2
 names=()
 pids=()
