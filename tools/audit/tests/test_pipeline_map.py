@@ -126,6 +126,31 @@ class LayoutTest(unittest.TestCase):
 
 
 class PageTest(unittest.TestCase):
+    def test_site_copy_is_current(self) -> None:
+        """The website copy check.sh guards, with the same flags."""
+        args = ["--public", "--out", str(ROOT / "www/library/pipeline-map.html"), "--back", "repository-guide.html", "--check"]
+        self.assertEqual(MAP.main(args), 0)
+
+    def test_relative_out_and_stale_hint(self) -> None:
+        import contextlib
+        import io
+        import os
+        with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
+            rel = os.path.relpath(Path(tmp) / "map.html")
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out):
+                self.assertEqual(MAP.main(["--public", "--out", rel]), 0)
+            self.assertIn("map.html", out.getvalue())
+            Path(rel).write_text("stale")
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                self.assertEqual(MAP.main(["--public", "--out", rel, "--check"]), 1)
+            self.assertIn(f"--public --out {rel}", err.getvalue())
+
+    def test_public_page_rejects_a_leak_anywhere(self) -> None:
+        with self.assertRaisesRegex(MAP.GraphError, "leak check rejects: localhost"):
+            MAP.check_public_page("<p>see localhost:8760</p>")
+
     def test_public_copy_passes_the_site_leak_check(self) -> None:
         spec = importlib.util.spec_from_file_location("prep", ROOT / "www/scripts/prepare_github_pages.py")
         prep = importlib.util.module_from_spec(spec)
