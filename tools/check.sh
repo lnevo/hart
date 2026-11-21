@@ -184,6 +184,7 @@ run sml-invariants python3 tools/audit/check_sml_invariants.py
 run parked env PYTHONPATH=tools/hartlib/src python3 -m hartlib.parked check
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
+run wiring-frozen python3 tools/wiring/check_wiring_frozen.py
 run layout-facts python3 tools/audit/check_layout_facts.py
 # The fact files against each other (hartlib.railroad: devices.csv, switches.csv, masts.csv, the tables file);
 # KNOWN in the module lists what is reported and left.

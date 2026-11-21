@@ -55,6 +55,8 @@ the detector's part of the comment (`{occupancy}` in the field text) come from `
 no hand file. A staging block change made in PanelPro is carried by hand into those three data files and the field
 row.
 
+Main and upper wiring goes one way: the device map's rule proposes it in `devices_generated.csv` on every build, `make wiring-freeze` is the only writer into `wiring.csv` (a control point's proposal copied in as wired rows), and for a frozen control point `build_device_map.py` reads `wiring.csv` (`hartlib.wiring.held`) and proposes nothing. `check_wiring_frozen.py` (in `check.sh`) fails on any other change to `wiring.csv`. The step declarations in `panel_stamps.py` are unchanged: `wiring.csv` is still an input of the device map, and the freeze is no step.
+
 The device master is two files (ADR-029 amendment, built 2026-11-21): `devices_generated.csv`, every row the builders
 make, written only by `build_device_map.py`, `build_masts.py` and `panel_items.py`, and `devices_field.csv`, the
 owner's cells keyed by level, layer and user name (`hartlib.devices.FIELD_COLUMNS`) and a Store's level-less devices.

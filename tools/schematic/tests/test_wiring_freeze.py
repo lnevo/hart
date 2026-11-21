@@ -110,12 +110,22 @@ class TheBuild(unittest.TestCase):
             raise unittest.SkipTest(str(exc))
         cls.rr = bdm.railroad.Railroad(bdm.sources(), upto="inputs")
 
-    def build(self, frozen):
+    def build(self, frozen, pins=None):
         bands, joined, runs, corners = self.solved
         rr = self.rr
         _cp, rows, _parts = bdm.build(bands, joined, runs, rr.plan_overrides.data, rr.level_control_points,
-                                      rr.lcos_nodes, rr.local_switches, corners, frozen=frozen)
+                                      rr.lcos_nodes, rr.local_switches, corners, frozen=frozen, pins=pins)
         return {(r["layer"], r["user_name"]): r for r in rows}
+
+    def freeze(self, cp, today="2026-11-21"):
+        """wiring.csv as freezing `cp` writes it, read back: (the file, its rows' device wires, its detector pins)."""
+        helix = {h["block"] for h in bdm.read_helix_tracks().values()}
+        rows = fw.freeze_rows(cp, fw.device_rows(), fw.track_keys(), helix, today)
+        text, _added, _turned = fw.merge(HEAD, rows)
+        p = Path(tempfile.mkdtemp()) / "wiring.csv"
+        p.write_text(text, encoding="utf-8")
+        pins = bdm.read_pins() | bdm.read_pins(p)            # the committed file's pins, the frozen ones over them
+        return p, bdm.frozen_wires(p), pins
 
     def test_frozen_where_the_rule_would_not_put_it(self):
         """Switch 123 frozen on node 42's Turnout 7 (OU2-7, 8) and Mast 124LA on OU4: the build keeps both, and no
@@ -150,15 +160,29 @@ class TheBuild(unittest.TestCase):
     def test_the_freeze_gives_the_same_map(self):
         """Freezing a control point as the rule has it changes no device row."""
         before = self.build([])
-        helix = {h["block"] for h in bdm.read_helix_tracks().values()}
-        rows = fw.freeze_rows("CP 123", fw.device_rows(), fw.track_keys(), helix, "2026-11-21")
-        text, _added, _turned = fw.merge(HEAD, rows)
-        p = Path(tempfile.mkdtemp()) / "wiring.csv"
-        p.write_text(text, encoding="utf-8")
-        frozen = bdm.frozen_wires(p)
+        p, frozen, pins = self.freeze("CP 123")
         self.assertEqual(wiring.digicon_rows(p), [])          # main and upper heads stay virtual: no Digicon head
         self.assertEqual(len([w for w in frozen if w.kind == "head"]), 8)
-        self.assertEqual(self.build(frozen), before)
+        self.assertEqual(self.build(frozen, pins), before)
+        self.assertEqual(wiring.audit(p), [])                 # what the freeze wrote passes the audit
+
+    def test_a_frozen_control_point_reads_back_identically_with_its_detectors(self):
+        """The proposal, frozen and read back from wiring.csv (devices and detector pins both), is the same rows."""
+        before = self.build([])
+        p, frozen, pins = self.freeze("CP 123")
+        self.assertTrue(pins, "CP 123 has detectors to pin")
+        self.assertEqual(wiring.held(p).cps, {"CP 123"})
+        self.assertEqual(self.build(frozen, pins), before)
+
+    def test_a_frozen_control_point_proposes_nothing_more(self):
+        """A frozen control point with one device dropped from wiring.csv is no longer proposed for by the rule."""
+        p, frozen, pins = self.freeze("CP 123")
+        gone = next(w for w in frozen if w.kind == "fb")
+        with self.assertRaisesRegex(bdm.MapError, f"CP 123 are frozen, but the rule proposes fb {gone.device}"):
+            self.build([w for w in frozen if w is not gone], pins)
+        block = next(iter(bdm.read_pins(p)))
+        with self.assertRaisesRegex(bdm.MapError, "CP 123 are frozen, but the rule proposes .*occupancy of "):
+            self.build(frozen, {k: v for k, v in pins.items() if k != block})
 
 
 class TheCommand(unittest.TestCase):
