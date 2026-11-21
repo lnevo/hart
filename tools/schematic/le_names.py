@@ -302,13 +302,13 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
         raise BuildError(f"the device map: {exc}") from None
     for line, r in parts:
         if r["part_of"] not in blocks:
-            bad.append(f"line {line}: part {r['user_name']} names {r['part_of']}, no main or upper block row")
+            bad.append(f"part {r['user_name']} (level {r['level']}) names {r['part_of']}, no main or upper block row")
         trial = [bare(t.strip()) for t in r["trial_name"].split(",") if t.strip()]
         if not trial:
-            bad.append(f"line {line}: part {r['user_name']} has no trial_name")
+            bad.append(f"part {r['user_name']} (level {r['level']}) has no trial_name")
         for t in trial:
             if t in out:
-                bad.append(f"line {line}: trial_name {t} is given to {out[t]} and part {r['user_name']}")
+                bad.append(f"trial_name {t} is given to {out[t]} and part {r['user_name']} (level {r['level']})")
             out[t] = r["user_name"]
     if bad:
         raise BuildError(f"{paths.rel(path)}: " + "; ".join(bad))

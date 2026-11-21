@@ -26,10 +26,14 @@ class Copy(unittest.TestCase):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
         self.src = R.Sources.under(self.tmp / "data", tables_xml=REPO.tables)
+        self.src = self.src.but(devices=self.src.devices.with_name(_devices.ONE_FILE))     # a one-file copy
         for name in DATA_FILES:
             dst = getattr(self.src, name)
             dst.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copyfile(getattr(REPO, name), dst)
+            if name == "devices":       # the master as one file (no field file beside it), edited row by row
+                _devices.one_file_copy(dst)
+            else:
+                shutil.copyfile(getattr(REPO, name), dst)
         prefs = layer_files.path("preferences", REPO.plan_overrides.parent)     # the helix tracks' labels
         shutil.copyfile(prefs, self.src.plan_overrides.parent / prefs.name)
 
@@ -185,9 +189,9 @@ class Readers(Copy):
         rows = rr.staging_rows + [(999, self.staging_row(layer="turnout", user_name="Lamp 1", dcc="1x"))]
         self.assertEqual(R.switch_turnouts(self.src.devices, rows, [1])[1]["system_name"], "M2T408")
         self.assertEqual(rr.switches[1].hardware, "M2T408")
-        self.fails(lambda: R.read_staging_devices(self.src.devices, rows), "line 999: dcc is a number or blank")
+        self.fails(lambda: R.read_staging_devices(self.src.devices, rows), "Lamp 1 \\(level 1, turnout\\): dcc is a number or blank")
         twice = rows + [(1000, self.staging_row(layer="turnout", user_name="Switch 1"))]
-        self.fails(lambda: R.switch_turnouts(self.src.devices, twice, [1]), "both are the turnout Switch 1")
+        self.fails(lambda: R.switch_turnouts(self.src.devices, twice, [1]), "two rows are both the turnout Switch 1")
 
     def test_a_switchs_hardware_dcc_and_cp_are_its_turnout_rows_own_columns(self) -> None:
         change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="140", cp="Plane")
@@ -292,7 +296,7 @@ class Readers(Copy):
     def test_staging_devices_name_and_dcc(self) -> None:
         rows = R.read_staging_rows(self.src.devices)
         self.fails(lambda: R.read_staging_devices(self.src.devices, rows + [(999, self.staging_row(layer="turnout"))]),
-                   "line 999: user_name is empty")
+                   r"\(level 1, turnout\): user_name is empty")
         change(self.src.devices, ("1", "turnout", "Switch 1"), dcc="1x")
         self.fails(lambda: R.read_staging_devices(self.src.devices), "dcc is a number or blank, not '1x'")
 
@@ -482,7 +486,7 @@ class Readers(Copy):
         change(self.src.devices, occ, jmri_name="IS:HART:C3:B:OS101")
         # the master holds a (level, layer, name) once, as its own loader checks before the map is read
         change(self.src.devices, self.key("turnout", "DCC Switch 103"), user_name="DCC Switch 101")
-        self.fails(lambda: R.read_device_map(self.src.devices), r"the same level, layer and user_name as line")
+        self.fails(lambda: R.read_device_map(self.src.devices), r"DCC Switch 101 \(level 2, turnout\): the same level, layer and user_name twice")
 
     def test_a_master_that_cannot_be_read(self) -> None:
         self.fails(lambda: R.read_device_map(self.tmp / "missing.csv"), "cannot read it")
@@ -621,11 +625,11 @@ class Invariants(Copy):
         change(self.src.devices, self.key("turnout", "Switch 101"), system_name="M2T408", dcc="100")
         drop(self.src.devices, self.key("turnout", "DCC Switch 103"))
         got = self.problems("device-map", upto="device_map")
-        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): dcc '100' is line \d+'s as well", p)
+        self.assertTrue(any(re.search(r"Switch 101 \(level 2, turnout\): dcc '100' is Switch 1 \(level 1, turnout\)'s as well", p)
                             for p in got), got)
-        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): system_name 'M2T408' is line \d+'s", p)
+        self.assertTrue(any(re.search(r"Switch 101 \(level 2, turnout\): system_name 'M2T408' is Switch 1 \(level 1, turnout\)'s", p)
                             for p in got), got)
-        self.assertTrue(any(re.search(r"level 2 turnout Switch 103\): 0 LCC aliases carry its DCC address", p)
+        self.assertTrue(any(re.search(r"Switch 103 \(level 2, turnout\): 0 LCC aliases carry its DCC address", p)
                             for p in got), got)
 
     def test_name_clash(self) -> None:
@@ -637,8 +641,8 @@ class Invariants(Copy):
                              system_name="M2T1208", dcc="107")
         got = self.problems("name-clash", upto="device_map")
         self.assertEqual(len(got), 1, got)
-        self.assertRegex(got[0], r"^devices\.csv line \d+: staging turnout Switch 107 is level 2 turnout Switch 107 "
-                                 r"as well \(line \d+\)$")
+        self.assertEqual(got[0], "devices.csv: Switch 107 (level 1, turnout): staging turnout Switch 107 is "
+                                 "level 2 turnout Switch 107 as well")
 
     def test_level_masts(self) -> None:
         self.edit("masts", "Mast 110L,CP 107,109,Track 105-109,", "Mast 110L,CP 107,125,Track Nowhere,")
@@ -689,8 +693,8 @@ class Known(unittest.TestCase):
     def test_unknown_problems_fail_and_stale_known_entries_fail(self) -> None:
         rr = R.Railroad(upto="device_map")
         rr.__dict__["staging_devices"] = self.broken_rows()
-        first = rr.staging_devices.by_name[("turnout", "Switch 1")].line
-        problem = f"staging-devices: devices.csv lines {first} and 999: DCC 100 is Switch 1 and Switch 999"
+        problem = ("staging-devices: devices_generated.csv: Switch 1 and Switch 999 (level 1, turnout): DCC 100 is "
+                   "Switch 1 and Switch 999")
         fails, _ = R.run_check(rr, {})
         self.assertIn(problem, fails)
         fails, _ = R.run_check(rr, {problem: "test"})
@@ -721,7 +725,7 @@ class VirtualNames(unittest.TestCase):
         self.assertEqual(R.DeviceRow(level=2, layer="block", user_name="OS Switch 7", role="track").role, "track")
         given = R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="DCC Switch 1", role="lcc_alias"))
         self.assertEqual(given.role, "lcc_alias")
-        with self.assertRaisesRegex(R.FactsError, "line 7: turnout 'DCC Switch 1' has role ''"):
+        with self.assertRaisesRegex(R.FactsError, "level 2 turnout 'DCC Switch 1' has role ''"):
             R.DeviceRow.from_dict(dict(level=2, layer="turnout", user_name="DCC Switch 1"), line=7)
         with self.assertRaisesRegex(R.FactsError, "has role 'siding', not one of"):
             R.DeviceRow(level=2, layer="block", user_name="Track 1-3", role="siding")
@@ -735,7 +739,7 @@ class VirtualNames(unittest.TestCase):
         self.assertEqual(R.DeviceMap(rows=[occ]).occupancy, {})            # an occupancy row serving no block
         twice = R.DeviceMap(rows=[replace(occ, blocks="Track 1-3", line=4),
                                   replace(occ, user_name="BS 1-3", blocks="Track 1-3", line=9)], path=Path("d.csv"))
-        with self.assertRaisesRegex(R.FactsError, "d.csv lines 4 and 9: occupancy BS Odd Name and BS 1-3 both serve "
+        with self.assertRaisesRegex(R.FactsError, "d.csv: occupancy BS Odd Name and BS 1-3 both serve "
                                                   "block Track 1-3"):
             twice.occupancy  # noqa: B018
 
