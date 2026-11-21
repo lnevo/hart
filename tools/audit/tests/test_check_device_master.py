@@ -38,6 +38,19 @@ class Master(unittest.TestCase):
     def assertProblem(self, pattern, got):
         self.assertTrue(any(re.search(pattern, p) for p in got), got)
 
+    def line(self, level, user):
+        """The master line of the row (level, user_name)."""
+        hit = [n for n, r in self.lines if (r["level"], r["user_name"]) == (level, user)]
+        self.assertEqual(len(hit), 1, (level, user))
+        return hit[0]
+
+    @staticmethod
+    def ends():
+        """{block: control points of its end switches} from the drawing (SkipTest without the plugin)."""
+        tsdm.Files.setUpClass()
+        with cdm.pd.cache_on():
+            return cdm.block_end_cps(cdm.master_lines(), cdm.railroad.Railroad().interlockings)
+
 
 class RowRules(Master):
     def test_the_committed_rows_hold_on_every_level(self):
@@ -47,14 +60,42 @@ class RowRules(Master):
 
     def test_a_cp_is_one_of_its_levels(self):
         got = cdm.row_problems(self.edited({("2", "Track 101-103"): dict(cp="CP 201"),
-                                            ("1", "Track Barn"): dict(cp="CP 107")}), self.cps)
+                                            ("1", "Track Barn"): dict(cp="CP 107")}), self.cps, ends_cps={})
         self.assertProblem(r"\(level 2 block Track 101-103\): cp 'CP 201' is no level 2 control point", got)
         self.assertProblem(r"\(level 1 block Track Barn\): cp 'CP 107' is no level 1 control point", got)
 
-    def test_a_known_cp_exception_that_no_row_uses_fails(self):
-        got = cdm.row_problems(self.lines, self.cps, known_cp={**cdm.KNOWN_CP, ("2", "CP 201"): "test"})
-        self.assertEqual(got, ["KNOWN_CP entry no longer happens; remove it: level 2 CP 201"])
-        self.assertTrue(cdm.row_problems(self.lines, self.cps, known_cp={}))      # the CP 127 rows are reported
+    def test_a_cp_of_another_level_is_one_of_its_blocks_end_switches(self):
+        """A row's level is the band its track is drawn on: Track 127-221 is drawn on the upper band from main level
+        CP 127, so it and its detector are in CP 127."""
+        ends = self.ends()
+        self.assertEqual(ends["Track 127-221"], {"CP 127", "CP 201"})
+        self.assertFalse(hasattr(cdm, "KNOWN_CP"))
+        self.assertEqual(cdm.row_problems(self.lines, self.cps, ends_cps=ends), [])
+        got = cdm.row_problems(self.lines, self.cps, ends_cps={})
+        self.assertEqual(len(got), 6, got)
+        self.assertProblem(r"level 3 occupancy BS 127-221\): cp 'CP 127' is no level 3 control point .* and no "
+                           r"control point of an end switch of its blocks", got)
+        got = cdm.row_problems(self.edited({("3", "Track 127-221"): dict(cp="CP 107")}), self.cps, ends_cps=ends)
+        self.assertProblem(r"level 3 block Track 127-221\): cp 'CP 107' is no level 3 control point", got)
+
+    def test_a_field_row_names_all_three(self):
+        for col in ("user_name", "system_name", "jmri_name"):
+            with self.subTest(col=col):
+                got = cdm.row_problems(self.edited({("1", "Switch 1"): {col: ""}}), self.cps)
+                self.assertProblem(r"a field device needs a user_name, a system_name and a jmri_name", got)
+
+    def test_a_jmri_name_given_twice(self):
+        got = cdm.check_rows(self.edited({("1", "Switch 3"): dict(jmri_name="M2T408"),
+                                          ("3", "Head 202R Top"): dict(jmri_name="IH:HART:C3:202R_Bottom")}),
+                             self.helix)
+        self.assertProblem(r"level 1 turnout Switch 3\): jmri_name 'M2T408' is line \d+'s as well", got)
+        self.assertProblem(r"level 3 head Head 202R Top\): jmri_name 'IH:HART:C3:202R_Bottom' is line \d+'s", got)
+
+    def test_every_turnout_has_one_lcc_alias(self):
+        for level, alias, turnout in (("2", "DCC Switch 101", "Switch 101"), ("1", "DCC Switch 1", "Switch 1")):
+            with self.subTest(level=level):
+                got = cdm.check_rows(self.edited(drop={(level, alias)}), self.helix)
+                self.assertProblem(rf"level {level} turnout {turnout}\): 0 LCC aliases carry its DCC address", got)
 
     def test_a_detector_is_wired_exactly_when_it_is_a_field_device(self):
         got = cdm.row_problems(self.edited({("1", "BS Barn"): dict(detector="planned"),
@@ -102,12 +143,14 @@ class RowRules(Master):
         got = cdm.check_rows(self.edited({("2", "Switch 101"): dict(system_name="M2T408", dcc="100"),
                                           ("2", "DCC Switch 101"): dict(dcc="100", system_name="MTT100")}),
                              self.helix)
-        self.assertProblem(r"level 2 turnout Switch 101\): system_name 'M2T408' is line 22's as well", got)
-        self.assertProblem(r"level 2 turnout Switch 101\): dcc '100' is line 22's as well", got)
-        self.assertProblem(r"level 2 turnout DCC Switch 101\): system_name 'MTT100' is line 2's as well", got)
+        one, alias = self.line("1", "Switch 1"), self.line("1", "DCC Switch 1")
+        self.assertProblem(rf"level 2 turnout Switch 101\): system_name 'M2T408' is line {one}'s as well", got)
+        self.assertProblem(rf"level 2 turnout Switch 101\): dcc '100' is line {one}'s as well", got)
+        self.assertProblem(rf"level 2 turnout DCC Switch 101\): system_name 'MTT100' is line {alias}'s as well", got)
         # one device is one row whatever its layer: a head planned on a feedback sensor's name
         got = cdm.check_rows(self.edited({("3", "Head 202R Top"): dict(system_name="M2S470")}), self.helix)
-        self.assertProblem(r"level 3 head Head 202R Top\): system_name 'M2S470' is line 42's as well", got)
+        fb = self.line("1", "FB Switch 1 N")
+        self.assertProblem(rf"level 3 head Head 202R Top\): system_name 'M2S470' is line {fb}'s as well", got)
 
     def test_an_lcc_alias_on_every_level(self):
         got = cdm.check_rows(self.edited({("2", "DCC Switch 101"): dict(jmri_name="IT:HART:C3:103"),
@@ -181,6 +224,10 @@ class TablesCheck(Master):
         self.assertProblem(r"^turnout Switch 1: feedback .*have no fb rows$",
                            self.problems(drop={("1", "FB Switch 1 N")}))
 
+    def test_a_layer_no_device_map_holds_is_reported(self):
+        rows = [r for _n, r in self.edited({("1", "Switch 1"): dict(layer="sensor")})]
+        self.assertIn("sensor Switch 1: a device map holds no sensor rows", cdm.check_tables(rows, self.rr))
+
     def test_a_row_with_no_jmri_name_is_not_looked_for(self):
         self.assertEqual(self.problems({("2", "FB Switch 101 N"): dict(user_name="FB Nowhere")}), [])
 
@@ -214,6 +261,30 @@ class Command(unittest.TestCase):
         self.assertIn("level 2 block Track 101-103): kept by hand, but only staging's hand-kept rows", got[0])
 
 
+class CheckParts(Master):
+    """A broken staging row is reported once, and the tables part still runs."""
+
+    def run_check(self, lines, load):
+        from unittest import mock
+        tsdm.Files.setUpClass()                 # the band (it loads the staging rows itself)
+        with mock.patch.object(cdm, "master_lines", return_value=lines), \
+                mock.patch.object(cdm.sdm, "load", side_effect=load) as loaded:
+            return cdm.check(tsdm.Files.band), loaded
+
+    def test_a_bad_staging_row_skips_the_drawing_and_not_the_tables(self):
+        lines = self.edited({("1", "Track Barn"): dict(cp="Nowhere"), ("2", "Switch 107"): dict(jmri_name="IT107")})
+        got, loaded = self.run_check(lines, cdm.sdm.StagingMapError("load ran"))
+        self.assertFalse(loaded.called)
+        self.assertEqual(len([p for p in got if "cp 'Nowhere'" in p]), 1, got)
+        self.assertIn("turnout Switch 107: tables.xml has 'IT:HART:C3:107', not IT107", got)
+
+    def test_a_drawing_error_leaves_the_tables_check_running(self):
+        lines = self.edited({("2", "Switch 107"): dict(jmri_name="IT107")})
+        got, _loaded = self.run_check(lines, cdm.sdm.StagingMapError("the drawing broke"))
+        self.assertIn("the drawing broke", got)
+        self.assertIn("turnout Switch 107: tables.xml has 'IT:HART:C3:107', not IT107", got)
+
+
 class StagingLoad(unittest.TestCase):
     """staging_device_map.load holds its rows to the same rules, naming the line."""
 
@@ -237,6 +308,22 @@ class StagingLoad(unittest.TestCase):
                                 ("Switch 3", dict(trial_name="Switch 1"), r"trial_name Switch 1 is line \d+'s as well")):
             with self.subTest(msg=msg), self.assertRaisesRegex(sdm.StagingMapError, msg):
                 self._load(user, **cols)
+
+    def test_the_interlockings_are_the_ones_given(self):
+        import shutil
+        import tempfile
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        src = cdm.railroad.Sources.under().interlockings
+        il = tmp / src.name
+        il.write_text(src.read_text(encoding="utf-8") + "1,Nowhere,15,,\n", encoding="utf-8")
+
+        def edit(rows):
+            next(r for r in rows if r["level"] == "1" and r["user_name"] == "Track Barn")["cp"] = "Nowhere"
+        dm = self._copy(edit)[0]
+        with self.assertRaisesRegex(sdm.StagingMapError, "cp 'Nowhere' is no level 1 control point"):
+            sdm.load(self.band, device_map=dm)
+        sdm.load(self.band, device_map=dm, interlockings_path=il)
 
 
 if __name__ == "__main__":

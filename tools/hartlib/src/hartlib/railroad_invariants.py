@@ -2,15 +2,98 @@
 from __future__ import annotations
 
 import re
+from collections import defaultdict
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
 
 from . import level_devices, level_masts, tables
-from .railroad_facts import (NameRow, UNIQUE_HARDWARE, check_virtual_names, natural,
+from .railroad_facts import (NameRow, UNIQUE_HARDWARE, check_virtual_names, device_list, natural,
                              switch_number)
 
 if TYPE_CHECKING:
     from .railroad import Railroad
+
+# ---------------------------------------------------------------- the rows of devices.csv, every level
+
+def _at(n: int, r, where: str) -> str:
+    return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
+
+
+def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
+                        helix_file: str = "helix_tracks.csv") -> list[str]:
+    """The rules between the rows of devices.csv, one for every level, as problems naming the rows. `lines` are
+    (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the blocks of helix_tracks.csv.
+    - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
+      helix block (one JMRI block from its staging switch up the helix, owner 2026-11-20), and every helix block is;
+    - no two rows of one layer share a user name (but a helix block's rows), a system name (a turnout, sensor or head's
+      is no other such row's, of any of those layers) or a jmri_name (but a virtual LCC alias, which stands on its
+      turnout's); no two turnouts share a DCC address;
+    - every turnout has exactly one LCC alias "DCC <its user name>" on its DCC address, MTT<dcc>, bound by its own
+      system name when it is a field device and by its turnout's jmri_name when it is virtual (one internal turnout)."""
+    lines = list(lines)
+    bad = []
+    block_levels = defaultdict(list)
+    for n, r in lines:
+        if r["layer"] == "block":
+            block_levels[r["user_name"]].append((n, r))
+    shared = {b for b, rs in block_levels.items() if len({r["level"] for _n, r in rs}) > 1}
+    if shared != helix_blocks:
+        bad.append(f"{where}: blocks named on more than one level: {sorted(shared) or 'none'}; exactly the helix "
+                   f"blocks of {helix_file} ({sorted(helix_blocks)}) are")
+    served = defaultdict(list)
+    for n, r in lines:
+        if r["layer"] == "occupancy":
+            for b in device_list(r["blocks"]):
+                served[b].append(n)
+    for b in sorted(set(block_levels) | set(served)):
+        if b not in block_levels:
+            bad.append(f"{where} line(s) {', '.join(map(str, served[b]))}: occupancy of {b}, which is no block row")
+        elif len(served[b]) != 1:
+            lines_ = ", ".join(str(n) for n, _r in block_levels[b])
+            bad.append(f"{where} line {lines_}: block {b} has {len(served[b])} occupancy rows naming it "
+                       f"({', '.join(map(str, served[b])) or 'none'}), not one")
+    for col in ("system_name", "user_name", "jmri_name", "dcc"):
+        seen: dict[tuple[str, str], int] = {}
+        for n, r in lines:
+            v = r[col]
+            if not v or (col == "user_name" and r["layer"] == "block" and v in shared) or \
+                    (col == "dcc" and r["role"] != "turnout") or \
+                    (col == "jmri_name" and r["role"] == "lcc_alias" and r["assignment"] == "virtual"):
+                continue                    # an LCC alias carries its turnout's address; a virtual one its name
+            # one physical device is one row: a turnout, sensor or head's system name is no other such row's
+            kind = "hardware" if col == "system_name" and r["layer"] in UNIQUE_HARDWARE else r["layer"]
+            key = (kind, v)
+            if key in seen:
+                bad.append(f"{_at(n, r, where)}: {col} {v!r} is line {seen[key]}'s as well")
+            seen.setdefault(key, n)
+    turnouts = {(r["level"], r["dcc"]): r for _n, r in lines if r["role"] == "turnout" and r["dcc"]}
+    aliases = defaultdict(int)
+    for n, r in lines:
+        if r["role"] != "lcc_alias":
+            continue
+        aliases[(r["level"], r["dcc"])] += 1
+        t = turnouts.get((r["level"], r["dcc"]))
+        if t is None:
+            bad.append(f"{_at(n, r, where)}: no level {r['level']} turnout has its DCC address {r['dcc'] or 'none'}")
+            continue
+        field = r["assignment"] == "field"
+        want = (f"DCC {t['user_name']}", f"MTT{r['dcc']}", f"MTT{r['dcc']}" if field else t["jmri_name"])
+        if (r["user_name"], r["system_name"], r["jmri_name"]) != want:
+            bad.append(f"{_at(n, r, where)}: the LCC alias of {t['user_name']} (DCC {r['dcc']}) is user, system and "
+                       f"jmri name {', '.join(want)} ({'a field device' if field else 'on its turnout'}), not "
+                       f"{r['user_name']}, {r['system_name']}, {r['jmri_name']}")
+    for n, r in lines:
+        if r["role"] == "turnout" and aliases[(r["level"], r["dcc"])] != 1:
+            bad.append(f"{_at(n, r, where)}: {aliases[(r['level'], r['dcc'])]} LCC aliases carry its DCC address "
+                       f"{r['dcc'] or 'none'}, not one")
+    return bad
+
+
+def master_rows(rr: Railroad) -> list[tuple[int, dict]]:
+    """(line, row) of every level's rows of devices.csv that a device map holds (hartlib.devices)."""
+    from . import devices
+    return [(n, r) for n, r in enumerate(devices.load(rr.sources.devices), 2) if r["role"] not in devices.OUT_OF_MAPS]
+
 
 # ---------------------------------------------------------------- invariants
 
@@ -173,11 +256,13 @@ def _hands(rr: Railroad) -> list[str]:
 @invariant("device-map", "device_map")
 def _device_map(rr: Railroad) -> list[str]:
     """The device map's turnouts are exactly the main and upper switches, on their own level and control point; its
-    virtual names follow hartlib.level_devices (check_virtual_names); its nodes are the level's LCOS nodes. The LCC
-    aliases and the DCC addresses and system names no two devices share, on any level, are
-    tools/schematic/check_device_master.py's (check_rows)."""
+    virtual names follow hartlib.level_devices (check_virtual_names); its nodes are the level's LCOS nodes; and the
+    rows of every level hold to each other (device_row_problems: one occupancy row per block, names, DCC addresses
+    and system names given once, every turnout's one LCC alias), before tables.xml is built."""
     dm, mu, name = rr.device_map, rr.main_upper_switches, rr.sources.devices.name
     bad = list(check_virtual_names(dm.rows))
+    bad += device_row_problems(master_rows(rr), {h.block for h in rr.helix_tracks.values()}, name,
+                               rr.sources.helix_tracks.name)
     turnouts = dm.turnouts
     for s in sorted(set(mu) | set(turnouts), key=natural):
         r, sw = turnouts.get(s), mu.get(s)

@@ -80,6 +80,7 @@ from hartlib import devices, layer_files, level_masts, paths, railroad, tables  
 LEVEL = 1
 DEVICE_MAP = paths.LAYOUT_DATA / "devices.csv"     # the master: its level 1 rows are staging's device map
 CPS = pd.DATA / "control_points_staging.csv"
+INTERLOCKINGS = railroad.Sources.under().interlockings     # every level's (the control points a row's cp may name)
 MASTS = pd.DATA / "staging_masts.csv"
 SIGNALS = pd.DATA / "staging_signals.csv"
 SHEET = "staging"           # staging's section of the layer files (plan_overrides.json, signals.json)
@@ -411,7 +412,8 @@ def normal_legs(band, names: dict) -> dict:
 
 
 def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path: Path = CPS,
-         turnout_idents: bool = True, with_masts: bool = True, short_path: Path | None = None) -> dict:
+         turnout_idents: bool = True, with_masts: bool = True, short_path: Path | None = None,
+         interlockings_path: Path = INTERLOCKINGS) -> dict:
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switch_legs.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
@@ -420,12 +422,12 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, cps_path
     import check_device_master as cdm       # the rules of every level's rows (it imports this module)
     try:
         lines = [(n, r) for n, r in cdm.master_lines(device_map) if r["level"] == str(LEVEL)]
-        cps = cdm.control_points(railroad.Railroad(upto="inputs").interlockings, cps_path)
+        cps = cdm.control_points(railroad.read_interlockings(interlockings_path), cps_path)
     except (cdm.DeviceMasterError, railroad.FactsError) as exc:
         raise StagingMapError(str(exc)) from None
     if not lines:
         raise StagingMapError(f"{paths.rel(device_map)}: no staging rows")
-    bad = cdm.row_problems(lines, cps, paths.rel(device_map))
+    bad = cdm.row_problems(lines, cps, paths.rel(device_map), ends_cps={})     # staging's rows cross no level
     if bad:
         raise StagingMapError("; ".join(bad))
     rows = [r for _n, r in lines]

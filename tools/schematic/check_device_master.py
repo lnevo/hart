@@ -10,7 +10,9 @@ rule, named for the file, not a level test.
 Every row (row_problems), each naming the file, line, level, layer and device:
 - its fact columns hold (hartlib.railroad.device_facts);
 - its cp is a control point of its own level: control_points_staging.csv's or interlockings.csv's rows of that
-  level (KNOWN_CP lists the exceptions already reported to the owner);
+  level; or, for a block or occupancy row, the control point of a switch at its block's ends on another level (a
+  row's level is the band its track is drawn on: Track 127-221 is drawn on the upper band from main level CP 127);
+- a field device names its user, system and jmri names;
 - only a turnout or block row has a trial_name, and no two rows of one level share one;
 - a row kept by hand (no written_by) is a field device: the railroad's own, in JMRI as it is;
 - an occupancy row is a field device exactly when its detector is wired.
@@ -19,9 +21,11 @@ The rows together (check_rows):
 - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
   helix block (helix_tracks.csv: one JMRI block from its staging switch up the helix, owner 2026-11-20), and every
   helix block is so named;
-- no two rows of one layer share a system name (on any level), nor a user name (but the helix blocks);
-- an LCC alias "DCC Switch <n>" is MTT<dcc> of the turnout of its level with that DCC address, bound by its own
-  system name when it is a field device and by its turnout's jmri_name when it is virtual (one internal turnout).
+- no two rows of one layer share a user name (but the helix blocks), a system name or a jmri_name (but a virtual LCC
+  alias), and no two turnouts a DCC address, on any level;
+- every turnout has exactly one LCC alias "DCC Switch <n>": MTT<dcc>, bound by its own system name when it is a
+  field device and by its turnout's jmri_name when it is virtual (one internal turnout).
+These are hartlib.railroad_invariants.device_row_problems, which `python3 -m hartlib.railroad check` also runs.
 
 Every row against tables.xml (check_tables, hartlib.railroad's tables by user name): the bean its user name names
 is the device the row binds (its system name when it is a field device, its jmri_name when it is virtual; a row
@@ -30,12 +34,14 @@ numbers); a block's system name when the row has one, its stop as its comment ma
 occupancy row's; a turnout's jmri_name that turnout, its feedback sensors fb rows', both of them for a field
 turnout; a head's user name; a mast's heads its head rows, and its planned heads the head rows' planned devices.
 
-Against the drawing: the rows kept by hand are read on their level's band (staging_device_map.load: staging's
+Against the drawing: the end switches of the main and upper tracks (build_device_map.named_tracks), for the cp rule
+above; the rows kept by hand are read on their level's band (staging_device_map.load: staging's
 trial names, short tracks, normal legs and masts), and the helix tracks drawn from their staging switches
 (staging_device_map.check_helix). A builder's rows are its own --check's (build_device_map.py regenerates the main
 and upper rows from the drawing). staging_masts.csv and staging_signals.csv are read in their shape
-(load_signal_masts, mast_facts). Without the plugin submodule the drawing part prints SKIPPED and the rest runs
-(exit 1 with SCHEMATIC_REQUIRED=1), as build_device_map.py does.
+(load_signal_masts, mast_facts). Each part runs on its own, so one that stops leaves the others running. Without
+the plugin submodule the drawing part prints SKIPPED and the rest runs, a cp of another level unchecked (exit 1
+with SCHEMATIC_REQUIRED=1), as build_device_map.py does.
 """
 from __future__ import annotations
 
@@ -50,18 +56,14 @@ import le_common as lc  # noqa: E402  the plugin
 import mast_rule as mr  # noqa: E402  MapError of the helix tracks file
 import publish_draft as pd  # noqa: E402  the plugin cache
 import staging_device_map as sdm  # noqa: E402  staging's rows, band and mast files
-from hartlib import devices, level_masts, paths, railroad, tables  # noqa: E402
+from hartlib import devices, level_masts, paths, railroad, railroad_invariants, tables  # noqa: E402
 
 DEVICE_MAP = sdm.DEVICE_MAP
 CPS = sdm.CPS                                   # staging's control points (their level column)
 TRIAL_LAYERS = ("turnout", "block")             # the rows that link to the drawing
-# Rows that name a control point of another level: (row level, cp) -> why it is left. Each was reported to the owner;
-# an entry no row uses any more fails, so the list stays honest (as hartlib.railroad.KNOWN).
-KNOWN_CP: dict[tuple[str, str], str] = {
-    ("3", "CP 127"): "the upper blocks at the helix top (Track 127-131 2, Track 127-221, Track Helix Inner and their "
-                     "detectors) are in CP 127, a main level interlocking (build_device_map.py; reported 2026-11-20)",
-}
-# Blocks whose rows disagree on stop -> why it is left (reported to the owner; a stale entry fails, as KNOWN_CP).
+# Blocks whose rows disagree on stop -> why it is left; an entry whose rows agree fails, so the list stays honest (as
+# hartlib.railroad.KNOWN). Main and upper have no stations until the owner defines them (level unification step 7),
+# so build_device_map.py writes no stop on a main or upper row, also not on the helix blocks that staging marks.
 KNOWN_STOP: dict[str, str] = {
     b: "the staging row marks the helix block a Dispatcher System station, as its tables.xml comment does; the main or "
        "upper row (build_device_map.py, which writes no stop) leaves it empty (reported 2026-11-20)"
@@ -107,23 +109,64 @@ def _at(n: int, r: dict, where: str) -> str:
     return f"{where} line {n} (level {r['level']} {r['layer']} {r['user_name']})"
 
 
+def switch_cps(interlockings: list[railroad.Interlocking], cps_path: Path = CPS) -> dict[str, set[str]]:
+    """{switch number: the control points it is in, on any level} (interlockings.csv, control_points_staging.csv)."""
+    out = defaultdict(set)
+    for i in interlockings:
+        for s in i.switches:
+            out[s].add(i.name)
+    try:
+        rows = sdm.read_rows(cps_path, sdm.CP_COLUMNS)
+    except sdm.StagingMapError as exc:
+        raise DeviceMasterError(str(exc)) from None
+    for r in rows:
+        for s in sdm.split_names(r["switches"]):
+            out[s].add(r["cp_name"])
+    return dict(out)
+
+
+def block_end_cps(lines: list[tuple[int, dict]], interlockings: list[railroad.Interlocking], found=None,
+                  cps_path: Path = CPS) -> dict[str, set[str]]:
+    """{block: the control points of the switches at its track's ends} of every block row whose trial names are
+    tracks of the main and upper drawing (build_device_map.named_tracks, `found`; a loop or split half's name carries
+    its half after the track's). A row's level is the band its track is drawn on, so a track drawn on the upper band
+    from a main level switch (Track 127-221) has that switch's control point among them."""
+    import build_device_map as bdm      # the drawing's tracks and their end switches (needs the plugin)
+    found = bdm.named_tracks() if found is None else found
+    ends = {x: {v for k, v in t["ends"] if k == "sw"} for t in found for x in t["trial"]}
+    cp_of = switch_cps(interlockings, cps_path)
+    out = defaultdict(set)
+    for _n, r in lines:
+        if r["layer"] != "block":
+            continue
+        for ph in sdm.split_names(r["trial_name"]):
+            got = ends.get(ph, ends.get(ph.rsplit(" ", 1)[0]))
+            for s in got or ():
+                out[r["user_name"]] |= cp_of.get(s, set())
+    return dict(out)
+
+
 def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where: str = DEVICE_MAP.name,
-                 known_cp: dict | None = None) -> list[str]:
-    """Each row's own rules (the module text), as problems naming its line, level, layer and user name. `known_cp`
-    (default KNOWN_CP) lists the (level, cp) pairs let through; one that no row uses is a problem too."""
-    known_cp = KNOWN_CP if known_cp is None else known_cp
-    bad, trial, used = [], {}, set()
+                 ends_cps: dict[str, set[str]] | None = None) -> list[str]:
+    """Each row's own rules (the module text), as problems naming its line, level, layer and user name. `ends_cps`
+    (block_end_cps) lets a block or occupancy row name the control point of an end switch of its block on another
+    level; None (no drawing read) leaves such a row unchecked, {} refuses it."""
+    bad, trial = [], {}
     for n, r in lines:
         at, level, layer = _at(n, r, where), r["level"], r["layer"]
         if layer not in sdm.LAYERS:
             bad.append(f"{at}: a device map holds no {layer} rows (layers {', '.join(sdm.LAYERS)})")
             continue
         bad += [f"{at}: {p}" for p in railroad.device_facts(r)]
+        if r["assignment"] == "field" and not (r["user_name"] and r["system_name"] and r["jmri_name"]):
+            bad.append(f"{at}: a field device needs a user_name, a system_name and a jmri_name")
         if r["cp"] and r["cp"] not in cps.get(level, ()):
-            if (level, r["cp"]) in known_cp:
-                used.add((level, r["cp"]))
-            else:
-                bad.append(f"{at}: cp {r['cp']!r} is no level {level} control point ({CPS.name}, interlockings.csv)")
+            blocks = [r["user_name"]] if layer == "block" else sdm.occupancy_blocks(r) if layer == "occupancy" else []
+            if ends_cps is None and blocks:
+                pass                        # the drawing is not read: check_device_master main says SKIPPED
+            elif not any(r["cp"] in (ends_cps or {}).get(b, ()) for b in blocks):
+                bad.append(f"{at}: cp {r['cp']!r} is no level {level} control point ({CPS.name}, interlockings.csv)"
+                           + (" and no control point of an end switch of its blocks" if blocks else ""))
         phs = sdm.split_names(r["trial_name"])
         if phs and layer not in TRIAL_LAYERS:
             bad.append(f"{at}: a {layer} row has a trial_name")
@@ -136,63 +179,13 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
         if layer == "occupancy" and (r["assignment"] == "field") != (r["detector"] == "wired"):
             bad.append(f"{at}: assignment {r['assignment']} with detector {r['detector']!r}: a detector is wired "
                        "exactly when the row is a field device")
-    levels = {r["level"] for _n, r in lines}
-    bad += [f"KNOWN_CP entry no longer happens; remove it: level {lv} {cp}" for lv, cp in sorted(set(known_cp) - used)
-            if lv in levels]                # a reader of some levels' rows (staging_device_map.load) leaves the rest
     return bad
 
 
 def check_rows(lines: list[tuple[int, dict]], helix_blocks: set[str], where: str = DEVICE_MAP.name) -> list[str]:
-    """The rules between rows (the module text), as problems naming the rows."""
-    bad = []
-    block_levels = defaultdict(list)
-    for n, r in lines:
-        if r["layer"] == "block":
-            block_levels[r["user_name"]].append((n, r))
-    shared = {b for b, rs in block_levels.items() if len({r["level"] for _n, r in rs}) > 1}
-    if shared != helix_blocks:
-        bad.append(f"{where}: blocks named on more than one level: {sorted(shared) or 'none'}; exactly the helix "
-                   f"blocks of {mr.HELIX_TRACKS.name} ({sorted(helix_blocks)}) are")
-    served = defaultdict(list)
-    for n, r in lines:
-        if r["layer"] == "occupancy":
-            for b in sdm.occupancy_blocks(r):
-                served[b].append(n)
-    for b in sorted(set(block_levels) | set(served)):
-        if b not in block_levels:
-            bad.append(f"{where} line(s) {', '.join(map(str, served[b]))}: occupancy of {b}, which is no block row")
-        elif len(served[b]) != 1:
-            lines_ = ", ".join(str(n) for n, _r in block_levels[b])
-            bad.append(f"{where} line {lines_}: block {b} has {len(served[b])} occupancy rows naming it "
-                       f"({', '.join(map(str, served[b])) or 'none'}), not one")
-    for col in ("system_name", "user_name", "dcc"):
-        seen: dict[tuple[str, str], int] = {}
-        for n, r in lines:
-            v = r[col]
-            if not v or (col == "user_name" and r["layer"] == "block" and v in shared) or \
-                    (col == "dcc" and r["role"] != "turnout"):      # an LCC alias carries its turnout's address
-                continue
-            # one physical device is one row: a turnout, sensor or head's system name is no other such row's
-            kind = "hardware" if col == "system_name" and r["layer"] in railroad.UNIQUE_HARDWARE else r["layer"]
-            key = (kind, v)
-            if key in seen:
-                bad.append(f"{_at(n, r, where)}: {col} {v!r} is line {seen[key]}'s as well")
-            seen.setdefault(key, n)
-    turnouts = {(r["level"], r["dcc"]): r for _n, r in lines if r["role"] == "turnout" and r["dcc"]}
-    for n, r in lines:
-        if r["role"] != "lcc_alias":
-            continue
-        t = turnouts.get((r["level"], r["dcc"]))
-        if t is None:
-            bad.append(f"{_at(n, r, where)}: no level {r['level']} turnout has its DCC address {r['dcc'] or 'none'}")
-            continue
-        field = r["assignment"] == "field"
-        want = (f"DCC {t['user_name']}", f"MTT{r['dcc']}", f"MTT{r['dcc']}" if field else t["jmri_name"])
-        if (r["user_name"], r["system_name"], r["jmri_name"]) != want:
-            bad.append(f"{_at(n, r, where)}: the LCC alias of {t['user_name']} (DCC {r['dcc']}) is user, system and "
-                       f"jmri name {', '.join(want)} ({'a field device' if field else 'on its turnout'}), not "
-                       f"{r['user_name']}, {r['system_name']}, {r['jmri_name']}")
-    return bad
+    """The rules between rows (hartlib.railroad_invariants.device_row_problems, which the device-map invariant of
+    `python3 -m hartlib.railroad check` also runs before tables.xml is built)."""
+    return railroad_invariants.device_row_problems(lines, helix_blocks, where, mr.HELIX_TRACKS.name)
 
 
 def bound_name(r: dict) -> str:
@@ -240,6 +233,9 @@ def check_tables(rows: list[dict], rr: railroad.Railroad, known_stop: dict | Non
                 bad.append(f"block {user}: its detector in tables.xml is {occ!r}, the device map's "
                            f"{row['user_name'] if row else 'none'}")
             continue
+        if layer not in by_layer and layer != "head":
+            bad.append(f"{layer} {user}: a device map holds no {layer} rows")
+            continue
         if r["assignment"] == "none" or (r["role"] == "lcc_alias" and r["assignment"] == "virtual"):
             continue            # no JMRI name of its own: none gives none, a virtual alias stands on its turnout
         if layer == "head":
@@ -285,21 +281,56 @@ def check_drawing(band, lines: list[tuple[int, dict]]) -> list[str]:
     return bad
 
 
+ERRORS = (DeviceMasterError, sdm.StagingMapError, railroad.FactsError, mr.MapError, lc.BuildError)
+
+
+def _part(bad: list[str], fn) -> None:
+    """Run one part of the check, its problems (or the error that stopped it) added to `bad`, so a part that stops
+    leaves the others running."""
+    try:
+        bad += fn() or []
+    except ERRORS as exc:
+        bad.append(str(exc))
+
+
+def read_mast_files() -> list[str]:
+    """staging_masts.csv and staging_signals.csv read in their shape (StagingMapError on one that is not)."""
+    sdm.load_signal_masts()
+    sdm.mast_facts()
+    return []
+
+
 def check(band=None) -> list[str]:
-    """Every rule (the module text), as problems; [] when they hold. With `band` None the drawing part is left out."""
-    bad = []
+    """Every rule (the module text), as problems; [] when they hold. With `band` None the drawing part is left out,
+    and a cp of another level goes unchecked. The drawing part reads the hand-kept staging rows again
+    (staging_device_map.load), so it runs only when those rows hold their own rules: a broken row is reported once."""
     try:
         lines = master_lines()
         rr = railroad.Railroad()
-        bad += row_problems(lines, control_points(rr.interlockings))
-        bad += check_rows(lines, {h.block for h in rr.helix_tracks.values()})
-        if band is not None:
-            bad += check_drawing(band, lines)
-        sdm.load_signal_masts()
-        sdm.mast_facts()
-        bad += check_tables([r for _n, r in lines], rr)
-    except (DeviceMasterError, sdm.StagingMapError, railroad.FactsError, mr.MapError) as exc:
-        bad.append(str(exc))
+        cps = control_points(rr.interlockings)
+    except ERRORS as exc:
+        return [str(exc)]
+    bad: list[str] = []
+    ends = None
+    if band is not None:
+        try:
+            ends = block_end_cps(lines, rr.interlockings)
+        except ERRORS as exc:
+            bad.append(f"the main and upper drawing's tracks: {exc}")
+            ends = {}
+    by_level = defaultdict(list)
+    for n, r in lines:
+        by_level[r["level"]].append((n, r))
+    staging_bad = False
+    for level, mine in sorted(by_level.items()):
+        got = row_problems(mine, cps, ends_cps=ends)
+        staging_bad = staging_bad or (level == str(sdm.LEVEL) and bool(got))
+        bad += got
+    _part(bad, lambda: check_rows(lines, {h.block for h in rr.helix_tracks.values()}))
+    if band is not None and not staging_bad:
+        _part(bad, lambda: check_drawing(band, lines))
+    _part(bad, read_mast_files)
+    _part(bad, lambda: check_tables([r for _n, r in lines], rr))
     return bad
 
 
@@ -322,7 +353,8 @@ def main(argv=None) -> int:
         except (sdm.StagingMapError, lc.BuildError) as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 2
-    bad = check(band)
+    with pd.cache_on():
+        bad = check(band)
     for b in bad:
         print(f"device master: {b}", file=sys.stderr)
     if not bad:

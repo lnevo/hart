@@ -1,6 +1,7 @@
 """hartlib.railroad: the fact files load once into typed objects, by layer, and every invariant between them holds."""
 import csv
 import json
+import re
 import shutil
 import sys
 import tempfile
@@ -481,6 +482,19 @@ class Invariants(Copy):
         got = self.problems("device-map")
         self.assertTrue(any("turnout Switch 101 is on node 99, no level 2 node" in p for p in got), got)
         self.assertTrue(any("head Head 108LA Top: jmri_name 'IH:HART:C3:108LX_Top'" in p for p in got), got)
+
+    def test_device_map_finds_clashes_and_missing_aliases_before_the_tables(self) -> None:
+        """The rows of every level are held to each other at the device_map layer (railroad check --upto
+        device_map), before tables.xml is built."""
+        change(self.src.devices, self.key("turnout", "Switch 101"), system_name="M2T408", dcc="100")
+        drop(self.src.devices, self.key("turnout", "DCC Switch 103"))
+        got = self.problems("device-map", upto="device_map")
+        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): dcc '100' is line \d+'s as well", p)
+                            for p in got), got)
+        self.assertTrue(any(re.search(r"level 2 turnout Switch 101\): system_name 'M2T408' is line \d+'s", p)
+                            for p in got), got)
+        self.assertTrue(any(re.search(r"level 2 turnout Switch 103\): 0 LCC aliases carry its DCC address", p)
+                            for p in got), got)
 
     def test_name_clash(self) -> None:
         """The staging switches' DCC addresses are aliases "DCC <n>" (owner, 2026-11-17), not "Switch <n>": an alias
