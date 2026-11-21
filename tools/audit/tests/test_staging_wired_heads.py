@@ -162,7 +162,8 @@ class Rebuild(unittest.TestCase):
             real = devices.Files.here()
             files = real.but(master=Path(d) / "devices.csv")
             held = list(devices.load(real))
-            rows = (edit or (lambda x: x))(devices.device_map_rows(held, ("1",)))
+            rows = (edit or (lambda x: x))([dict(devices.device_map_row(r), role=r["role"]) for r in held  # its role
+                                            if r["level"] == "1" and r["role"] not in devices.OUT_OF_MAPS])
             prior = {(r["level"], r["layer"], r["user_name"]): r for r in held}
             mine = [devices.master_row(r, "build_masts.py", prior.get((r["level"], r["layer"], r["user_name"])))
                     for r in rows if r["layer"] in bsm.WRITES]

@@ -446,10 +446,10 @@ def level_sensors(path: Path = DEVICE_MAP) -> dict:
     sensor (owner, 2026-11-20). Stops on a block with no occupancy row, a row whose jmri_name is not the block's, or a
     part whose block has none."""
     device = main_upper_device_map(path)               # read and checked by hartlib.railroad
-    occ = device.by_user("occupancy")
+    occ = device.occupancy                             # {block: the occupancy row serving it}, by its blocks column
     out, bad = {}, []
     for block in device.blocks:
-        o = occ.get(level_devices.occupancy_user(block))
+        o = occ.get(block)
         try:
             want = level_devices.block_sensor(block)
         except ValueError as exc:

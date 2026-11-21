@@ -162,7 +162,7 @@ class Generate(unittest.TestCase):
         self.assertEqual(got, dict(mast="Mast 2L", cp="Brick", switch="1", facing="Track Main West",
                                    protects="OS Switch 1", kind="two-searchlight", heads=2, dir="west", toward="1",
                                    run="1;", names=["Main West"], edge_cm=300.0, cm_from_toward=0.0, edge="e1",
-                                   node="N1", leg="A", strand="s", running=True, signal_kind="planned"))
+                                   node="N1", leg="A", strand="s", running=True, role="home", signal_kind="planned"))
 
     def test_an_anchor_mast_where_the_os_block_runs_past_the_leg(self):
         got = self.one(home("2R", "N1", "B"))
@@ -216,7 +216,7 @@ class Generate(unittest.TestCase):
         self.assertEqual(got, dict(mast="Mast 67", cp="Brick", switch="", facing="Track Scale", protects="OS Switch 1",
                                    kind="one-searchlight", heads=1, dir="west", toward="1", run="1;3", names=["Scale"],
                                    edge_cm=150.0, cm_from_toward=20.0, edge="e2", node="N1", milepost=6.7,
-                                   signal_kind="planned"))
+                                   role="intermediate", signal_kind="planned"))
 
     def test_direction_comes_from_the_rule(self):
         self.assertEqual(self.one(home("2L", "N1", "A"))["dir"], "west")
@@ -317,6 +317,16 @@ class Rows(unittest.TestCase):
         self.assertEqual(by["Head 2L Top"], device("head", "Head 2L Top", "IH:HART:C1:2L_Top",
                                                    comment="Brick | Switch 1",
                                                    notes="internal, not wired (owner, 2026-11-19)"))   # with its date
+
+    def test_with_roles_gives_each_row_the_role_the_rule_placed_it_with(self):
+        """A mast row's role is the one generate() or virtual_masts() placed it with, a head row's head: none is read
+        off a name (Mast 67 and Mast 2L are both named like the other kind on main and upper)."""
+        rows = [device("mast", "Mast 67", "x"), device("mast", "Mast 2L", SHSM_2L), device("head", "Head 67", "IH467")]
+        got = bsm.with_roles(rows, [dict(mast="Mast 67", role="home"), dict(mast="Mast 2L", role="intermediate")])
+        self.assertEqual([r["role"] for r in got], ["home", "intermediate", "head"])
+        self.assertEqual([{k: v for k, v in r.items() if k != "role"} for r in got], rows)
+        with self.assertRaisesRegex(bsm.RuleError, r"mast row\(s\) \['Mast 2L'\] the rule did not place"):
+            bsm.with_roles(rows, [dict(mast="Mast 67", role="home")])
 
     def test_device_rows_sort_by_plain_string_order(self):
         masts = [dict(mast=f"Mast {n}", cp="", switch="", facing="x", protects="", dir="east", system_name="IF$vsm:basic:one-low($1)",

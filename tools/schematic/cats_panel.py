@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
-from hartlib import level_devices, level_masts, paths  # noqa: E402
+from hartlib import level_masts, paths  # noqa: E402
 from hartlib.cats import station_plate  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
@@ -398,18 +398,16 @@ def spec(system, user):
 
 
 def virtual_sensor(name, F):
-    """The IOSPECs of block `name`'s virtual occupancy sensor (the device map's jmri_name for BS + the name less
-    Track; BS Switch N for OS Switch N), or None: the middle of a double crossover's X has none (its corners do)."""
-    user = level_devices.occupancy_user(name)
-    system = F.device.sensors.get(user)
-    return None if system is None else spec(system, user)
+    """The IOSPECs of block `name`'s virtual occupancy sensor (the jmri_name of the device map's occupancy row that
+    serves it, by that row's blocks column), or None: the middle of a double crossover's X has none (its corners do)."""
+    row = F.device.occupancy.get(name)
+    return None if row is None else spec(row.jmri_name, row.user_name)
 
 
 def planned_sensor(name, F):
-    """The IOSPECs of block `name`'s planned detector (the device map's system_name, a draft), or None."""
-    user = level_devices.occupancy_user(name)
-    system = F.device.planned.get(user)
-    return None if system is None else spec(system, user)
+    """The IOSPECs of block `name`'s planned detector (its occupancy row's system_name, a draft), or None."""
+    row = F.device.occupancy.get(name)
+    return None if row is None or not row.system_name else spec(row.system_name, row.user_name)
 
 
 def inside_os(bands, P, bound_bi, name, row):
@@ -496,7 +494,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
     for name, why in sorted(missing.items()):
         report[name] = {"why": why}
         if planned_sensor(name, F):
-            report[name]["detector"] = level_devices.occupancy_user(name)
+            report[name]["detector"] = F.device.occupancy[name].user_name
             log.append(f"{name}: not a block of its own on the desk ({why}); its detector "
                        f"{report[name]['detector']} has no block to bind")
     return out, log, report, joined

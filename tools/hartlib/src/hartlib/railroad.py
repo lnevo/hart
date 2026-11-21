@@ -4,7 +4,7 @@
     rr = railroad.Railroad()                      # every layer, from this checkout's files
     rr = railroad.Railroad(upto="inputs")         # a builder of a later layer reads only what comes before it
     rr.switches[9].legs[0].closed                 # "Track EH-2"
-    rr.device_map.sensors["BS Switch 101"]        # "IS:HART:C3:B:OS101"
+    rr.device_map.occupancy["OS Switch 101"].jmri_name   # "IS:HART:C3:B:OS101"
     problems = rr.check()                         # [Problem(invariant, message)], [] when the files agree
 
     python3 -m hartlib.railroad check [--upto LAYER]    # tools/check.sh runs it
