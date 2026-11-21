@@ -399,8 +399,6 @@ def inside_os(bands, P, bound_bi, name, row):
         raise SystemExit(f"{name}: the device map's tracks {', '.join(sorted(row.trial))} are not all drawn on "
                          "main or upper")
     length = round(sum(cm.values()), 1)
-    if length < bdm.SHORT_CM:
-        return f"a short link ({length:g} cm) inside its switches' OS blocks"
     return (f"inside its switches' OS blocks on the desk ({length:g} cm, too short at one cell per grid unit for a "
             "block)")
 

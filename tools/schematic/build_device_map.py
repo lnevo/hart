@@ -45,8 +45,7 @@ over from the row of the same name; this script owns which blocks there are and 
 staging's switch-and-leg keys, part_of, blocks, description). A staging block change made in PanelPro is carried by
 hand into this script's data (block_exceptions.csv, block_splits.csv, helix_tracks.csv), not into devices.csv; a field
 fact of a staging block (a new system name or detector) is still edited in its devices.csv row, which this script keeps.
-A new staging block needs a row with its field facts first (hand-kept, no written_by: this script adopts it). Main and
-upper keep their links as blocks of their own until part 2 (block_layer.FOLD_LINKS).
+A new staging block needs a row with its field facts first (hand-kept, no written_by: this script adopts it).
 
 Virtual names (owner, 2026-11-17), from each device's stable identity:
 - Turnout "Switch <n>" (and its LCC alias "DCC Switch <n>"): IT:HART:C3:<n>.
@@ -81,8 +80,11 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
   one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is not on a node until it is
   wired (NOT_WIRED), so no node or input assignment moves.
-  A track under SHORT_CM between two switches gets a block but no detector (it would sit inside their OS blocks;
-  step 5 part 2 makes such links parts of an OS block, as staging's are).
+  A link, a track under block_layer.LINK_CM (50 cm) between two switches, has no block of its own on any level
+  (step 5 part 2, owner 2026-11-20): it is a part (devices.csv part_of) of an OS block, the lower-numbered switch's,
+  or, where a home mast stands at a switch's points facing it, the OS block at its other end (the block boundary is
+  at the mast). A double crossover's link is part of the corner block of its leg; a part's row is on the level of its
+  OS block's row (127-131 2, drawn on the upper band, in the main level's OS Switch 127).
 - Detection on the main line only (owner, 2026-11-15): main-route tracks and the OS blocks of control point
   switches get a planned detector; yard and industry tracks and the OS blocks of switches in no control point
   get none (their virtual sensor stays, NO_DETECTOR).
@@ -163,7 +165,6 @@ def sources() -> railroad.Sources:
     return railroad.Sources.under().but(interlockings=CPS, lcos_nodes=NODES, local_switches=LOCAL,
                                         plan_overrides=OVERRIDES, devices=OUT)
 
-SHORT_CM = 30.0
 CAP = {"turnout": 8, "block": 8, "signal": 16, "sensor": 16}
 MAX_OU = 4                            # DNOU8 boards per node: the most any node has in LCOS_Layout_Inventory_v85
 UID = {"block": 0, "turnout": 8, "signal": 32, "sensor": 67}

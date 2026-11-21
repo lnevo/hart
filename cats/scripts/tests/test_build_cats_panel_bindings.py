@@ -349,7 +349,8 @@ class MainAndUpper(unittest.TestCase):
         bands[1][1]["strands"]["e24"]["cm"] = 398.1
         row = block
         self.assertEqual(B.inside_os(bands, FakeP({}), 0, "Track 101-103", row("Track e28")),
-                         "a short link (3.4 cm) inside its switches' OS blocks")
+                         "inside its switches' OS blocks on the desk (3.4 cm, too short at one cell per grid unit "
+                         "for a block)")
         # a track key joined to an OS block counts as inside it; a long one says why it has no block
         bands[1][1]["strands"]["e24"] = dict(strand(("B", "C"), ("C", "B")), edge="e24", cm=398.1)
         self.assertIn("398.1 cm, too short at one cell per grid unit",
