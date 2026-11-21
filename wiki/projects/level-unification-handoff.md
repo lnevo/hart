@@ -224,6 +224,14 @@ Part 2 progress (branch `agent/claude/step5-part2`):
   blocks (the owner decides). Waiting on: the owner's approval of the staging, candidate, panel and desk
   fingerprints, then `make panelpro-test` and `--pi --win`.
 
+### Owner decisions, late 2026-11-20
+
+- **Desk codes** (BK, PL, BN, SY, EE, PR, EH) are layout-specific: they go back to the station map data, a desk-code column in `stations.csv`, and `control_points_staging.csv` goes. They do not line up with the interlockings (Brick's interlocking holds the BK and PL areas; South Yard and Engine House have none). Brick and West Yard share BK; Engine House has a desk area but no station row: check whether a row shows on the schematic or station sheets before adding it. Waits on the label rules PR (it edits build_cats_panel).
+- **Station maps for main and upper (step 7, stays on the to-do list):** a station map per control point from `interlockings.csv` is the minimum template for a station, not the whole definition; the owner extends it.
+- **Helix stop** on main and upper is at Switch 131A/131B (being built with the trial-names PR).
+- **#5 turnout** class is the SL-8351/8352 at 8.3 in (confirmed).
+- **Step 6** is a bigger job: start with a read-only comparison, and discuss with the owner first.
+
 ### 6. One wiring file per kind (with the device master's owners)
 
 `lcos_nodes_main_upper.csv` and `detector_pins_main_upper.csv` exist only for main and upper; staging's wiring is in
