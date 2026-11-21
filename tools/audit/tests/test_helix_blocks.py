@@ -83,6 +83,8 @@ class Pins(unittest.TestCase):
 
     def test_read(self):
         self.assertEqual(self.read(self.PINS), {"Track Helix Inner": (41, 0), "Track 227-241 2": (41, 3)})
+        # staging's rows (level 1) are read_staging_pins': this reader passes them by
+        self.assertEqual(self.read(self.PINS + "1,,,,,Track Barn,13,1,\n"), self.read(self.PINS))
         self.assertEqual(bdm.read_pins()["Track Helix Outer"], (41, 1))        # the committed file
 
     def test_bad_pins_stop(self):
@@ -99,8 +101,7 @@ class Pins(unittest.TestCase):
                           # the level: a track is looked for on its row's level only, a helix block is on one
                           (self.PINS + "2,241,,,,,41,2,\n", "no track runs Switch 241 spur"),
                           (self.PINS + "3,,,,,Track Helix Outer,41,2,\n", "level 2 block, not level 3"),
-                          (self.PINS + "1,,,,,Track Helix Outer,41,2,\n", "staging's detectors are its devices.csv"),
-                          (self.PINS + ",,,,,Track Helix Outer,41,2,\n", "is not 2 or 3"),
+                          (self.PINS + ",,,,,Track Helix Outer,41,2,\n", "is not 1, 2 or 3"),
                           ("switch_a,switch_b,parallel,half,block,node,block_input,notes\n,,,,Track Helix Inner,41,1,\n",
                            "columns")):
             with self.subTest(msg=msg), self.assertRaisesRegex(bdm.MapError, msg):
