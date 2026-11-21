@@ -21,7 +21,7 @@ CSV source of truth for Digicon ports: [`docs/wiring/signals/signal_wiring.csv`]
 
 **Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is Switch 15–21 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
 
-**Block-sensor calibration:** every node that has occupancy detectors reserves **pin 8 of its first 5V DNOU8** for detector calibration current (not a lamp, not a relay). First 5V board is the lowest-numbered OU on the 5V rail (OU1 when that board is 5V; otherwise OU2).
+**Calibration relay:** every node that has occupancy detectors has a relay that resets the DCC power so the detectors calibrate, on **pin 8 of its first 5V DNOU8** by the rule (owner, 2026-11-21). Staging's are `calibration` rows of `jmri/layouts/hart/data/wiring.csv`; main and upper's follow the rule. First 5V board is the lowest-numbered OU on the 5V rail (OU1 when that board is 5V; otherwise OU2).
 
 ## Digicon heads and OU boards
 

@@ -11,6 +11,7 @@ level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,
 1,button,Switch 35 BTN,,,,,1,,IN2,1,wired,
 1,button,Switch 37 BTN,,,,,1,,IN2,2,wired,
 1,button,Switch 39 BTN,,,,,1,,IN2,3,wired,
+1,calibration,C1 calibration relay,,,,,1,,OU2,8,wired,was C1 RELAY 1 in v85
 1,detector,Track K-1,,,,,1,1,,,wired,
 1,detector,Track K-2,,,,,1,2,,,wired,
 1,detector,OS Switch 37,,,,,1,3,,,wired,
@@ -19,7 +20,7 @@ level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,
 1,detector,OS Switch 35a,,,,,1,6,,,wired,
 1,detector,Track East Lead,,,,,1,7,,,wired,
 1,detector,Track West Ext,,,,,1,8,,,wired,
-1,relay,C2 RELAY 1,,,,,2,,OU2,8,wired,
+1,calibration,C2 calibration relay,,,,,2,,OU2,8,wired,C2 RELAY 1
 1,detector,Track Main West,,,,,2,1,,,wired,
 1,detector,,,,,,2,2,,,wired,"spare: wired, no block assigned"
 1,detector,Track Main East,,,,,2,3,,,wired,
@@ -44,6 +45,7 @@ level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,
 1,button,Switch 17 BTN,,,,,3,,IN2,2,wired,
 1,button,Switch 19 BTN,,,,,3,,IN2,3,wired,
 1,button,Switch 21 BTN,,,,,3,,IN2,4,wired,
+1,calibration,C3 calibration relay,,,,,3,,OU2,8,wired,was C3 RELAY 1 in v85
 1,detector,OS Switch 13,,,,,3,1,,,wired,
 1,detector,OS Switch 15,,,,,3,2,,,wired,
 1,detector,OS Switch 17,,,,,3,3,,,wired,
@@ -67,6 +69,7 @@ level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,
 1,button,Switch 5 BTN,,,,,4,,IN2,3,wired,
 1,button,Switch 13 BTN,,,,,4,,IN2,4,wired,
 1,head,Head 6LB,,,,,4,0,OU2,"1,2,3",wired,
+1,calibration,C4 calibration relay,,,,,4,,OU2,8,wired,was C4 RELAY 1 in v85
 1,detector,OS Switch 3,,,,,4,1,,,wired,
 1,detector,OS Switch 1,,,,,4,2,,,wired,
 1,detector,Track W-2,,,,,4,3,,,wired,
@@ -99,6 +102,7 @@ level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,
 1,button,Switch 31 BTN,,,,,12,,IN2,4,wired,
 1,button,Switch 23 BTN,,,,,12,,IN2,5,wired,
 1,button,Switch 33 BTN,,,,,12,,IN2,6,wired,
+1,calibration,C12 calibration relay,,,,,12,,OU2,8,wired,was C12 RELAY 1 in v85
 1,detector,OS Switch 25,,,,,12,1,,,wired,
 1,detector,OS Switch 27,,,,,12,3,,,wired,
 1,detector,OS Switch 23a,,,,,12,4,,,wired,
@@ -118,6 +122,7 @@ level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,
 1,button,Switch 7 BTN,,,,,13,,IN2,1,wired,its port is assumed in v85: confirm
 1,button,Switch 11 BTN,,,,,13,,IN2,2,wired,its port is assumed in v85: confirm
 1,button,Switch 9 BTN,,,,,13,,IN2,3,wired,its port is assumed in v85: confirm
+1,calibration,C13 calibration relay,,,,,13,,OU1,8,planned,pin 8 of the first 5V board
 1,detector,Track Barn,,,,,13,1,,,wired,
 1,detector,OS Switch 11,,,,,13,2,,,wired,
 1,detector,OS Switch 7,,,,,13,3,,,wired,

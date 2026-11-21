@@ -286,7 +286,8 @@ v86 from the wiring source (owner's yes, 2026-11-20, branch `agent/claude/v86-fr
 golden files are in `archive/tools-wiring/` and `archive/docs/wiring-imported/`; v85, `signals_asbuilt_abs_v2.xlsx`
 and `signals_split_v8.xlsx` stay in docs/wiring as frozen history (the website's signal splits read v85's pins).
 `build_hart_signal_heads.py` no longer patches v85. Fascia buttons and relays are live with no JMRI device (owner,
-2026-11-20: track them, more to come): `button` and `relay` rows of wiring.csv (20 buttons, the C2 relay). Power
+2026-11-20: track them, more to come): `button`, `relay` and `calibration` rows of wiring.csv (20 buttons; a calibration relay on every node with
+detectors, which resets the DCC power so they calibrate, owner 2026-11-21: C2's is C2 RELAY 1, C13's port reserved). Power
 districts were never mapped, so the inventory's old ones are dropped (owner, 2026-11-21).
 
 Next: `signal_wiring.csv` folded into wiring.csv (its readers: `hartlib.tables_build.digicon_masts`,

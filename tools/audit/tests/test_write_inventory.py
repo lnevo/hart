@@ -60,10 +60,10 @@ class Inventory(unittest.TestCase):
                 self.assertEqual(blocks[x["system_name"]][0], f"{node}-B{k // 2 + 1}-{k % 2 + 1}")
 
     def test_staging_holds_only_what_is_wired(self):
-        """Staging's ports are what is wired: its turnouts, feedback, buttons, the relay, the 6LB head and its
-        detectors, nothing planned (owner, 2026-11-20): no reserved or calibration pins and no old signal LEDs."""
+        """Staging's ports are what is wired: its turnouts, feedback, buttons, calibration relays, the 6LB head and
+        its detectors, nothing from the old plan (owner, 2026-11-20): no reserved pins and no old signal LEDs."""
         kinds = {r[5] for r in V86["DNOU8"][1:] if r[1] in STAGING and r[4]}
-        self.assertEqual(kinds, {"Turnout Motor", "Searchlight Signal Head", "Relay"})
+        self.assertEqual(kinds, {"Turnout Motor", "Searchlight Signal Head", "Calibration Relay"})
         self.assertEqual({r[5] for r in V86["DNIN8"][1:] if r[1] in STAGING and r[4]}, {"Turnout Feedback", "Button"})
         heads = [r for r in V86["DNOU8"][1:] if r[1] in STAGING and r[5] == "Searchlight Signal Head"]
         self.assertEqual([r[0] for r in heads], ["C4-OU2-1", "C4-OU2-2", "C4-OU2-3"])
@@ -84,19 +84,26 @@ class Inventory(unittest.TestCase):
                     shaded = cell.fill.fill_type == "solid" and str(cell.fill.fgColor.rgb).endswith("DDEBF7")
                     self.assertEqual(shaded, row[c].value in DESIGN, f"{sheet} {row[0].value} {cell.coordinate}")
 
-    def test_the_calibration_pin_is_the_rules_on_main_and_upper_only(self):
-        cal = {r[1] for r in V86["DNOU8"][1:] if r[4] == "Block sensor calibration"}
-        detectors = {r[1] for r in V86["BlockSensors"][1:]}
-        self.assertEqual(cal, detectors & DESIGN)
+    def test_every_node_with_detectors_has_its_calibration_relay(self):
+        """The relay that resets the DCC power so the detectors calibrate (owner, 2026-11-21): staging's from
+        wiring.csv (C2's is C2 RELAY 1, C13's reserved), main and upper's by the rule, one each."""
+        cal = [r for r in V86["DNOU8"][1:] if r[5] == "Calibration Relay"]
+        self.assertEqual(sorted(r[1] for r in cal), sorted({r[1] for r in V86["BlockSensors"][1:]}))
+        by = {r[1]: r for r in cal}
+        self.assertEqual((by["C2"][0], by["C13"][0]), ("C2-OU2-8", "C13-OU1-8"))
+        self.assertIn("reserved", by["C13"][7])
 
-    def test_the_buttons_and_relay_are_wiring_csvs(self):
-        """Fascia buttons and relays are live with no JMRI device (owner, 2026-11-20): wiring.csv puts them on the
-        sheets, a turnout's button on its TurnoutSummary row."""
+    def test_a_staging_detector_node_with_no_calibration_relay_stops(self):
+        nodes = WI.gather(MAP + WI.spare_rows(), WI.read_node_rows())       # no wiring.csv rows added
+        with self.assertRaisesRegex(WI.FactsError, "has block detectors but no calibration relay port"):
+            WI.calibration(nodes)
+
+    def test_the_buttons_are_wiring_csvs(self):
+        """Fascia buttons are live with no JMRI device (owner, 2026-11-20): wiring.csv puts them on the sheets, a
+        turnout's button on its TurnoutSummary row."""
         buttons = [r for r in V86["DNIN8"][1:] if r[5] == "Button"]
         self.assertEqual(len(buttons), 20)
         self.assertEqual(next(r for r in buttons if r[0] == "C1-IN2-1")[4], "Switch 35 BTN")
-        relays = [r[0] for r in V86["DNOU8"][1:] if r[5] == "Relay"]
-        self.assertEqual(relays, ["C2-OU2-8"])
         turnouts = {r[0]: r for r in V86["TurnoutSummary"][1:]}
         self.assertEqual(turnouts["Switch 35"][4], "C1-IN2-1")
         c1 = next(r for r in V86["Nodes"] if r[0] == "C1")

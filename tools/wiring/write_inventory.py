@@ -15,9 +15,11 @@ The workbook is a view: nobody edits it (owner, 2026-11-20). It is written from 
   docs/wiring/signals/signal_wiring.csv and signal_head_plan.csv   the DigiconSignals sheet.
 
 One row per port, as the inventory always had: turnouts on the OU boards their wiring names, feedback on DNIN8 boards,
-heads on OU boards, detectors on B devices (two blocks each). Staging's rows are only what is wired; main and upper's
-follow the rule's boards (12V boards for turnouts first, 5V boards after them, pin 8 of the first 5V board for the
-detector calibration current) and are shaded light blue (owner, 2026-11-15). The workbooks before it, the imported
+heads on OU boards, detectors on B devices (two blocks each), and wiring.csv's fascia buttons, relays and
+calibration relays (the relay that resets the DCC power so a node's detectors calibrate; every node with detectors
+has one, owner 2026-11-21). Staging's rows are only what is wired, or reserved; main and upper's follow the rule's
+boards (12V boards for turnouts first, 5V boards after them, pin 8 of the first 5V board for the calibration relay)
+and are shaded light blue (owner, 2026-11-15). The workbooks before it, the imported
 v84 and the v85 written from it, are history in archive/ (owner, 2026-11-20).
 """
 from __future__ import annotations
@@ -179,19 +181,32 @@ def gather(rows, node_rows, lamps: dict | None = None) -> dict[int, Node]:
         elif r["layer"] == "occupancy":
             k = int(NODE_K.match(r["comment"]).group(3)) - 1      # "Block: 1" is UID 0
             n.blocks.append((k, r))
-    for n in nodes.values():
-        if n.design and n.blocks:                     # pin 8 of the first 5V board: detector calibration (the rule)
-            first5 = next(b for b in range(1, 6) if b not in n.twelve)
-            if 8 in n.ou[first5]:
-                raise FactsError(f"node {n.num}: OU{first5}-8 is the detector calibration pin, but "
-                                 f"{n.ou[first5][8][0]} is on it")
-            n.ou[first5][8] = ("Block sensor calibration", "Block Sensor Cal", "5V",
-                               "Block sensor calibration current (first 5V OU pin 8); not a lamp")
     return nodes
 
 
+CAL = "Calibration Relay"
+CAL_NOTE = "resets the DCC power so the node's block detectors calibrate"
+
+
+def calibration(nodes: dict[int, Node]) -> None:
+    """Every node with block detectors has a calibration relay port (owner, 2026-11-21). Staging's are wiring.csv's
+    rows (add_local); a main or upper node without one gets the rule's, pin 8 of its first 5V board. FactsError on a
+    staging node with detectors and no calibration row, or a rule pin something else holds."""
+    for n in nodes.values():
+        if not n.blocks or any(v[1] == CAL for b in n.ou.values() for v in b.values()):
+            continue
+        if not n.design:
+            raise FactsError(f"node {n.num} has block detectors but no calibration relay port in "
+                             f"{wiring.PATH.name}: add a calibration row")
+        first5 = next(b for b in range(1, 6) if b not in n.twelve)
+        if 8 in n.ou[first5]:
+            raise FactsError(f"node {n.num}: OU{first5}-8 is the calibration relay's port by the rule, but "
+                             f"{n.ou[first5][8][0]} is on it")
+        n.ou[first5][8] = (f"{n.id} calibration relay", CAL, "5V", f"{CAL_NOTE} (the rule: first 5V OU pin 8)")
+
+
 def add_local(nodes: dict[int, Node], path: Path | None = None) -> None:
-    """The fascia buttons and relays of wiring.csv (no JMRI device) on their nodes' boards."""
+    """The fascia buttons, relays and calibration relays of wiring.csv (no JMRI device) on their nodes' boards."""
     for w in wiring.read(path):
         if w.kind not in wiring.LOCAL:
             continue
@@ -205,6 +220,10 @@ def add_local(nodes: dict[int, Node], path: Path | None = None) -> None:
         if w.kind == "button":
             n.inp[board][pin] = (w.device, "Button", w.notes or None)
             n.buttons.append((w.device, f"{n.id}-IN{board}-{pin}"))
+        elif w.kind == "calibration":
+            n.ou[board][pin] = (w.device, CAL, "5V", "; ".join(x for x in (CAL_NOTE, w.notes,
+                                                                          "reserved" if w.status == "planned" else "")
+                                                               if x))
         else:
             n.ou[board][pin] = (w.device, "Relay", "5V", w.notes or None)
 
@@ -381,6 +400,7 @@ def build(dest: Path) -> None:
     wired = load_csv(SIGNALS / "signal_wiring.csv")
     nodes = gather(rows + spare_rows(), read_node_rows(), lamp_names(wired))
     add_local(nodes)
+    calibration(nodes)
     wb = Workbook()
     wb.remove(wb.active)
     nodes_sheet(wb, nodes, by_name)

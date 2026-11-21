@@ -7,8 +7,10 @@ are given nodes and ports by build_device_map.py's rule, except the rows here, w
 
 Columns (COLUMNS):
 - level 1, 2 or 3; kind: turnout, fb (turnout feedback), head (signal head), detector (block occupancy), button (a
-  fascia button on an input) or relay (on an output). Buttons and relays are wired on the nodes but have no JMRI
-  device (owner, 2026-11-20: live today, more to come); their index is blank.
+  fascia button on an input), relay (on an output) or calibration (the relay on an output that resets the DCC power
+  so the node's block detectors calibrate; every node with detectors has one reserved, owner 2026-11-21). Buttons
+  and relays are wired on the nodes but have no JMRI device (owner, 2026-11-20: live today, more to come); their
+  index is blank. A calibration row's status is wired where the relay is in, planned where the port is reserved.
 - device: the device's user name (Switch 1, FB Switch 1 N, Head 6LB), or a detector's block name. A main or upper
   detector on a track is named by switch_a, switch_b, parallel and half instead (mast_rule.track_key: lower number
   first), since those block names are placeholders. A staging detector with no block is a spare input.
@@ -34,13 +36,13 @@ from .railroad_facts import FactsError
 PATH = paths.LAYOUT_DATA / "wiring.csv"
 COLUMNS = ["level", "kind", "device", "switch_a", "switch_b", "parallel", "half", "node", "index", "board", "ports",
            "status", "notes"]
-KINDS = ("turnout", "fb", "head", "detector", "button", "relay")
-LOCAL = ("button", "relay")                     # on a node, no JMRI device: no index, no address
+KINDS = ("turnout", "fb", "head", "detector", "button", "relay", "calibration")
+LOCAL = ("button", "relay", "calibration")      # on a node, no JMRI device: no index, no address
 STATUSES = ("wired", "planned")
 # kind -> (system name prefix, LCOS UID offset, the word in the wiring text, the board it lands on, ports per device)
 LCOS = {"turnout": ("M2T", 8, "Turnout", "OU", 2), "fb": ("M2S", 67, "Sensor", "IN", 1),
         "head": ("IH", 32, "Signal", "OU", 3), "detector": ("M2S", 0, "Block", "", 0),
-        "button": ("", 0, "", "IN", 1), "relay": ("", 0, "", "OU", 1)}
+        "button": ("", 0, "", "IN", 1), "relay": ("", 0, "", "OU", 1), "calibration": ("", 0, "", "OU", 1)}
 CAP = {"turnout": 8, "fb": 16, "head": 16, "detector": 8}     # LCOS numbers per node (a detector's from 1)
 BOARD = re.compile(r"^(OU|IN)([1-4])$")
 
