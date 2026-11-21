@@ -56,7 +56,7 @@ Track Brick-Plane is Y=8 between Switch 1 and Switch 5 (`Block 4-6`). Track East
 ## Remaining gaps
 
 - USS CTC is **v77**: every plant has an N/R switch lever. Yard ladders default Local. Brick column 1 is N/R, Switch 3 is L/N, Switch 5 is L/N, Switch 7 is LNR. UniqueIDs 28–35 are the switch-only columns for 119/118/104–109.
-- CATS Princess lamps match LE: **Mast 40LA** Track McKees Rocks and **Mast 38LA** Track McKeesport are 2-head (`LAMP2` / `double`); **Mast 40LB** Track K-1 and **Mast 38LB** Track K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from `signal_wiring.csv` on wire so HOLD_ONLY `setAspect` cannot request a two-head aspect on a one-searchlight-low mast.
+- CATS Princess lamps match LE: **Mast 40LA** Track McKees Rocks and **Mast 38LA** Track McKeesport are 2-head (`LAMP2` / `double`); **Mast 40LB** Track K-1 and **Mast 38LB** Track K-2 are dwarfs (`LAMP1` / `single`). `PHYSIGNAL` is forced from the wiring plan (`wiring.csv`'s heads) on wire so HOLD_ONLY `setAspect` cannot request a two-head aspect on a one-searchlight-low mast.
 - SML re-Discovered 2026-08-27 (now **38 sources / 98 dests**): **Mast 2035→Mast 40LB/Mast 38LB**, **Mast 2036→Mast 40LB/Mast 38LB**. **Mast 2035→Mast 38LB** is disabled; **Mast 2035→Mast 40LB** extra occupancy is **OS K-1** / **BS K-1**. **Mast 40LB** dests stay `Mast 24L`/`Mast 34L`; **Mast 38LB** stays `Mast 34L`. Reload **CATS CTC** or **CATS ABS**.
 
 ## Label fixes

@@ -48,7 +48,7 @@ class Inventory(unittest.TestCase):
             if x["layer"] == "turnout":
                 for pin, nr in zip(m.group(3).split(","), "NR"):
                     self.assertEqual(out[f"{node}-OU{m.group(2)}-{pin}"][4], f"{x['user_name']} {nr}")
-            elif x["layer"] == "head" and m:          # staging's lamps are named as signal_wiring.csv names them
+            elif x["layer"] == "head" and m:          # staging's lamps are named as wiring.csv's heads (digicon_rows)
                 for pin, lamp in zip(m.group(3).split(","), "RYG"):
                     got = out[f"{node}-OU{m.group(2)}-{pin}"][4]
                     self.assertTrue(got.startswith(x["user_name"]) and got.endswith(f" {lamp}"), got)
@@ -133,7 +133,7 @@ class Inventory(unittest.TestCase):
 
     def test_the_lamps_are_named_as_the_digicon_sheet_names_them(self):
         names = {r[0]: r[4] for r in V86["DNOU8"][1:]}
-        self.assertEqual([names[f"C4-OU2-{p}"] for p in (1, 2, 3)], ["Head 6LB T R", "Head 6LB T Y", "Head 6LB T G"])
+        self.assertEqual([names[f"C4-OU2-{p}"] for p in (1, 2, 3)], ["Head 6LB R", "Head 6LB Y", "Head 6LB G"])
 
     def test_the_power_districts_are_left_blank(self):
         """Not mapped yet (owner, 2026-11-21): the old inventory's districts were old names, not real."""

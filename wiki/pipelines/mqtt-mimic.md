@@ -22,7 +22,7 @@ The JMRI page has Staging, Main and Upper tabs. Staging is the LCOS plant: click
 
 - **Live roster:** non-empty `track/signalmast/<packed>` from LCOS — not static allow-lists.
 - **Topics:** `track/signalhead/<packed>` (SET), `track/signalmast/<packed>` (field status).
-- **Packed ID:** deploy `IH*` digits, the same as `system_name` in `signal_wiring.csv` (`check_wiring_crosswalk.py`).
+- **Packed ID:** deploy `IH*` digits, the same as the IH number of the head in `wiring.csv` (`hartlib.wiring.digicon_rows`, `check_wiring_crosswalk.py`).
 - **Bridge:** Windows serial bridge runs **foreground** only (do not `Start-Process` Hidden).
 
 ## Broker setting

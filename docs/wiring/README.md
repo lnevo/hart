@@ -6,7 +6,7 @@ The LCOS wiring documentation, refreshed against current public names and Digico
 
 | File | Role |
 |------|------|
-| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory of every level, a view written by `tools/wiring/write_inventory.py` (nobody edits it). Staging is what JMRI has wired, from `jmri/layouts/hart/data/wiring.csv` (the physical wiring source, owner 2026-11-20); main and upper are the draft `tools/schematic/build_device_map.py` gives them, shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. **Node ID = C{radio Address}**; **Legacy Node ID** is a staging node's old sequential label. The **DigiconSignals** sheet is `docs/wiring/signals/signal_wiring.csv`. |
+| [`LCOS_Layout_Inventory_v86.xlsx`](LCOS_Layout_Inventory_v86.xlsx) | Current inventory of every level, a view written by `tools/wiring/write_inventory.py` (nobody edits it). Staging is what JMRI has wired, from `jmri/layouts/hart/data/wiring.csv` (the physical wiring source, owner 2026-11-20); main and upper are the draft `tools/schematic/build_device_map.py` gives them, shaded light blue on the Nodes, DNOU8, DNIN8, TurnoutSummary and BlockSensors sheets. **Node ID = C{radio Address}**; **Legacy Node ID** is a staging node's old sequential label. The **DigiconSignals** sheet is `wiring.csv`'s wired heads, one row per lamp pin. |
 | [`LCOS_Layout_Inventory_v85.xlsx`](LCOS_Layout_Inventory_v85.xlsx) | History, frozen: the staging inventory as the old refresh wrote it from the v84 import, with the old signal plan's ports. The website's signal-splits view still reads its lamp pins. Its generator is in `archive/tools-wiring/`. |
 | [`Wiring_Schematic.pptx`](Wiring_Schematic.pptx) | One slide per client node, regenerated from v86 (2026-11-21) by `create_wiring_schematic_ppt.py`. |
 | [`Layout Documentation.pptx`](Layout%20Documentation.pptx) | Editable source of the track bus, power district, bus wiring and node drawings published at `www/behind/layout-docs.html`. |
@@ -17,7 +17,7 @@ The LCOS wiring documentation, refreshed against current public names and Digico
 
 LCOS Signal Manager punch list (ports + Main/Diverged + OR): [`docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx`](../../docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx). Source table: [`docs/wiring/lcos/lcos_signal_logic.csv`](../../docs/wiring/lcos/lcos_signal_logic.csv).
 
-CSV source of truth for Digicon ports: [`docs/wiring/signals/signal_wiring.csv`](../../docs/wiring/signals/signal_wiring.csv). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
+Source of truth for Digicon ports: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (`signal_wiring.csv` is folded into it, 2026-11-21). Public block names: [`occupancy_bindings.csv`](../../cats/data/occupancy_bindings.csv) / [ADR-005](../../wiki/decisions/ADR-005-public-equipment-names.md).
 
 **Enclosure = radio Address.** Cabinets sit with their plants: **C4** Brick+Plane, **C13** Barn, **C12** East End 34, **C2** East End west 24, **C1** Princess west (36+38), **C11** Princess east (40) + balloon. **C3** is Switch 15–21 motors only (no Digicon heads). Packed MQTT = radio. Never **D5**.
 
@@ -25,7 +25,7 @@ CSV source of truth for Digicon ports: [`docs/wiring/signals/signal_wiring.csv`]
 
 ## Digicon heads and OU boards
 
-Pin-level source: [`docs/wiring/signals/signal_wiring.csv`](../../docs/wiring/signals/signal_wiring.csv). Each disc is one 3-pin `STOP/APPROACH/CLEAR` object wired **R then Y then G** on consecutive increasing LCOS ports (Port A Stop, B Approach, C Clear). **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
+Pin-level source: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv), one row per disc (node, LCOS signal, board, its three ports). Each disc is one 3-pin `STOP/APPROACH/CLEAR` object wired **R then Y then G** on consecutive increasing LCOS ports (Port A Stop, B Approach, C Clear). **T** = top, **B** = bottom, blank = dwarf. Each 2-head mast uses 6 consecutive pins on one DNOU8 so that board can sit next to the mast. A neighboring dwarf uses the leftover 2; the 3rd pin spills to the adjacent cluster when the plant needs 9.
 
 New 5V **OU4** on C1 / C4 / C13 only.
 

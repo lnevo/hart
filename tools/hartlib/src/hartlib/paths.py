@@ -44,8 +44,8 @@ LAYOUT_SCRIPTS = LAYOUT_DIR / "scripts"
 
 REPO_TABLES_XML = LAYOUT_OUTPUT / "tables.xml"
 DEVICES = LAYOUT_DATA / "devices.csv"        # the device master (hartlib.devices): every device, all levels
-SIGNAL_WIRING = REPO_ROOT / "docs" / "wiring" / "signals" / "signal_wiring.csv"
-SIGNAL_HEAD_PLAN = SIGNAL_WIRING.parent / "signal_head_plan.csv"
+WIRING = LAYOUT_DATA / "wiring.csv"          # the physical wiring source (hartlib.wiring); it holds the Digicon heads
+SIGNAL_HEAD_PLAN = REPO_ROOT / "docs" / "wiring" / "signals" / "signal_head_plan.csv"
 CATS_DIR = REPO_ROOT / "cats"
 
 # Where PanelPro loads preference:tables.xml on every host (ADR-014).

@@ -35,7 +35,8 @@ from typing import NamedTuple
 from . import paths
 from .railroad_facts import FactsError
 
-PATH = paths.LAYOUT_DATA / "wiring.csv"
+PATH = paths.WIRING
+NODES = paths.LAYOUT_DATA / "schematic" / "lcos_nodes.csv"   # each node's level and area (board_location)
 COLUMNS = ["level", "kind", "device", "switch_a", "switch_b", "parallel", "half", "node", "index", "board", "ports",
            "status", "notes"]
 KINDS = ("turnout", "fb", "head", "detector", "button", "relay", "calibration")
@@ -188,3 +189,49 @@ def read(path: Path | None = None) -> list[Wire]:
     if bad:
         raise FactsError(f"{path.name}: " + "; ".join(bad))
     return out
+
+
+HEAD_NAME = re.compile(r"^Head (?P<key>\S+)(?: (?P<pos>Top|Bottom))?$")
+DIGICON_COLUMNS = ["port_id", "parent_node_id", "mqtt_node", "board_location", "signal_index", "uid", "packed",
+                   "system_name", "user_name", "mast_user_name", "disc_role", "head_role", "lamp_color", "topic",
+                   "device_type", "voltage_rail", "notes"]
+
+
+def digicon_rows(path: Path | None = None) -> list[dict[str, str]]:
+    """The wired Digicon searchlight heads (status wired, every level), one row per lamp pin, in the columns the old
+    signal_wiring.csv had (DIGICON_COLUMNS), from wiring.csv's head rows: each head is one LCOS signal object, its
+    three ports R (Stop), Y (Approach) and G (Clear) in that order. A head named "Head <mast> Top" or "Bottom" is its
+    mast's top (T) or bottom (B) disc; a head with neither is the mast's one disc (S), its lamps "Head <mast> R".
+    board_location is the node's place in lcos_nodes.csv ("West - Staging"). FactsError on a head whose name is not
+    "Head <mast>[ Top| Bottom]"."""
+    from .railroad_facts import read_lcos_nodes
+    level_name = {1: "Staging", 2: "Main", 3: "Upper"}
+    place = {n.node: f"{n.area} - {level_name[n.level]}" for n in read_lcos_nodes(NODES)}
+    out, bad = [], []
+    for w in read(path):
+        if w.kind != "head" or w.status != "wired":
+            continue
+        m = HEAD_NAME.match(w.device)
+        if not m:
+            bad.append(f"line {w.line}: {w.device!r} is not a head name (Head <mast>[ Top| Bottom])")
+            continue
+        role = {"Top": "T", "Bottom": "B"}.get(m.group("pos"), "S")
+        lamp_of = f"Head {m.group('key')} {role}" if role != "S" else f"Head {m.group('key')}"
+        uid = LCOS["head"][1] + w.index
+        packed = w.node * 100 + uid
+        for port, lamp in zip(w.ports, "RYG"):
+            out.append(dict(port_id=f"C{w.node}-{w.board}-{port}", parent_node_id=f"C{w.node}",
+                            mqtt_node=str(w.node), board_location=place.get(w.node, ""), signal_index=str(w.index),
+                            uid=str(uid), packed=str(packed), system_name=f"IH{packed}",
+                            user_name=f"{lamp_of} {lamp}", mast_user_name=f"Mast {m.group('key')}",
+                            disc_role=role, head_role=role, lamp_color=lamp, topic=f"track/signalhead/{packed}",
+                            device_type="Searchlight Signal Head", voltage_rail="5V",
+                            notes=f"LCOS Signal {w.index} UID {uid}; STOP/APPROACH/CLEAR; lamp {lamp}"))
+    if bad:
+        raise FactsError(f"{(path or PATH).name}: " + "; ".join(bad))
+    return out
+
+
+def calibration_ports(path: Path | None = None) -> set[str]:
+    """The port IDs of wiring.csv's calibration relays ("C4-OU2-8"): no lamp may be put on one."""
+    return {f"C{w.node}-{w.board}-{w.ports[0]}" for w in read(path) if w.kind == "calibration"}

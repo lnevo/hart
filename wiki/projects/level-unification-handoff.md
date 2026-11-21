@@ -290,10 +290,15 @@ and `signals_split_v8.xlsx` stay in docs/wiring as frozen history (the website's
 detectors, which resets the DCC power so they calibrate, owner 2026-11-21: C2's is C2 RELAY 1, C13's port reserved). Power
 districts were never mapped, so the inventory's old ones are dropped (owner, 2026-11-21).
 
-Next: `signal_wiring.csv` folded into wiring.csv (its readers: `hartlib.tables_build.digicon_masts`,
-`check_wiring_crosswalk.py`, `build_lcos_signal_manager_plan.py`, `refresh_bean_comments.py`, and
-`build_hart_signal_heads.py`, which writes it). Then a freeze command that copies a control point's generated
-wiring into wiring.csv as wired rows.
+`signal_wiring.csv` folded into wiring.csv (2026-11-21, branch `agent/claude/signal-wiring-fold`): its pins came
+from a table in `build_hart_signal_heads.py` (HEADS_3PIN, with a third list of calibration ports); both now come
+from wiring.csv's head and calibration rows. `hartlib.wiring.digicon_rows` gives the pin rows in the old columns to
+the readers (`tables_build.digicon_masts`, `check_wiring_crosswalk.py`, `build_lcos_signal_manager_plan.py`,
+`refresh_bean_comments.py`, `write_inventory.py`). `signal_head_plan.csv` and `signal_mast_plan.csv` stay
+`--wiring-only`'s outputs (they hold mast facts too), byte-identical. A head is on one board: a head whose pins spill
+onto a second board needs the format widened when one is wired.
+
+Next: a freeze command that copies a control point's generated wiring into wiring.csv as wired rows.
 
 ### 7. Main and upper stations and sheets (waits on the owner)
 

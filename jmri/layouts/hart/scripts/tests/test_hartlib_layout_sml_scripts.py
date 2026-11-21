@@ -52,7 +52,7 @@ class PathsTest(unittest.TestCase):
             "cleanup_uss_ctc_leftovers": {"ROOT": REPO, "TABLES": [TABLES]},
             "disable_digicon_sml_in_tables": {
                 "ROOT": REPO, "NEW_TABLES": TABLES,
-                "WIRING": REPO / "docs/wiring/signals/signal_wiring.csv"},
+                "WIRING": REPO / "jmri/layouts/hart/data/wiring.csv"},
             "polish_hart_layout_editor": {"ROOT": REPO, "DEFAULT_PANEL": TABLES},
             "reconcile_dispatcher_stations": {
                 "ROOT": REPO, "DEFAULT_PANEL": TABLES, "SYNC_PANEL": TABLES},

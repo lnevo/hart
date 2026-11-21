@@ -108,23 +108,23 @@ class BeanCommentFormatTest(unittest.TestCase):
         comments = self.m.load_wiring_head_comments()
         self.assertEqual(comments, {"Head 6LB": "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3"})
 
-    def test_wiring_head_comments_group_spilled_ports(self) -> None:
+    def test_wiring_head_comments_from_wiring_csv(self) -> None:
+        """A head's comment is its node, LCOS signal and ports as wiring.csv gives them (one board per head)."""
         import tempfile
         rows = [
-            "port_id,mqtt_node,signal_index,packed,mast_user_name,disc_role",
-            "C2-OU1-1,2,0,232,Mast 24RA,T", "C2-OU1-2,2,0,232,Mast 24RA,T", "C2-OU1-3,2,0,232,Mast 24RA,T",
-            "C2-OU1-4,2,6,238,Mast 24RA,B", "C2-OU1-5,2,6,238,Mast 24RA,B", "C2-OU1-6,2,6,238,Mast 24RA,B",
-            "C12-OU2-7,12,2,1234,Mast 32R,S", "C12-OU3-8,12,2,1234,Mast 32R,S", "C12-OU3-7,12,2,1234,Mast 32R,S",
+            "level,kind,device,switch_a,switch_b,parallel,half,node,index,board,ports,status,notes",
+            '1,head,Head 24RA Top,,,,,2,0,OU1,"1,2,3",wired,', '1,head,Head 24RA Bottom,,,,,2,6,OU1,"4,5,6",wired,',
+            '1,head,Head 32R,,,,,12,2,OU2,"6,7,8",wired,',
         ]
         plan = "mast_user_name,heads,packed_ids\nMast 24RA,2,232 238\nMast 32R,1,1234\n"
         with tempfile.TemporaryDirectory() as d:
-            wiring, head_plan = Path(d) / "signal_wiring.csv", Path(d) / "signal_head_plan.csv"
+            wiring, head_plan = Path(d) / "wiring.csv", Path(d) / "signal_head_plan.csv"
             wiring.write_text("\n".join(rows) + "\n", encoding="utf-8")
             head_plan.write_text(plan, encoding="utf-8")
             comments = self.m.load_wiring_head_comments(wiring, head_plan)
         self.assertEqual(comments["Head 24RA Top"], "Node: 2 Signal: 0 | OU: 1 Ports: 1,2,3")
         self.assertEqual(comments["Head 24RA Bottom"], "Node: 2 Signal: 6 | OU: 1 Ports: 4,5,6")
-        self.assertEqual(comments["Head 32R"], "Node: 12 Signal: 2 | OU: 2 Ports: 7 | OU: 3 Ports: 8,7")
+        self.assertEqual(comments["Head 32R"], "Node: 12 Signal: 2 | OU: 2 Ports: 6,7,8")
 
     def test_head_comment_from_wiring(self) -> None:
         self.assertEqual(

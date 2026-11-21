@@ -12,7 +12,7 @@ The workbook is a view: nobody edits it (owner, 2026-11-20). It is written from 
                                                wiring.csv lists.
   jmri/layouts/hart/data/wiring.csv            the fascia buttons and relays (no JMRI device).
   jmri/layouts/hart/data/schematic/lcos_nodes.csv   every node, its level and area.
-  docs/wiring/signals/signal_wiring.csv and signal_head_plan.csv   the DigiconSignals sheet.
+  docs/wiring/signals/signal_head_plan.csv     the DigiconSignals sheet's masts (its pins are wiring.csv's heads).
 
 One row per port, as the inventory always had: turnouts on the OU boards their wiring names, feedback on DNIN8 boards,
 heads on OU boards, detectors on B devices (two blocks each), and wiring.csv's fascia buttons, relays and
@@ -128,7 +128,7 @@ def spare_rows(path: Path | None = None) -> list[dict]:
 
 
 def lamp_names(wired: list[dict]) -> dict[str, str]:
-    """{port id: lamp name} of the Digicon heads as wired (signal_wiring.csv: "Head 6LB T R"), so DNOU8 and the
+    """{port id: lamp name} of the Digicon heads as wired (hartlib.wiring.digicon_rows: "Head 6LB R", "Head 24RA T R"), so DNOU8 and the
     DigiconSignals sheet name a staging lamp the same."""
     return {r["port_id"]: r["user_name"] for r in wired if r.get("port_id") and r.get("user_name")}
 
@@ -374,10 +374,10 @@ def load_csv(path: Path) -> list[dict]:
 
 
 def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
-    """The Digicon searchlight heads as wired (signal_wiring.csv, three pins per disc) and the mast plan
+    """The Digicon searchlight heads as wired (wiring.csv's heads, three pins per disc) and the mast plan
     (signal_head_plan.csv), first in the workbook as it always was."""
     ws = wb.create_sheet("DigiconSignals", 0)
-    ws["A1"] = "HART Digicon searchlight heads (from docs/wiring/signals/signal_wiring.csv)"
+    ws["A1"] = "HART Digicon searchlight heads (from jmri/layouts/hart/data/wiring.csv)"
     ws["A1"].font = Font(bold=True, size=14)
     ws.merge_cells("A1:L1")
     for i, h in enumerate(DIGICON_COLUMNS, start=1):
@@ -400,7 +400,7 @@ def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
 def build(dest: Path) -> None:
     rows = read_device_rows()
     by_name = {r["user_name"]: r for r in rows}
-    wired = load_csv(SIGNALS / "signal_wiring.csv")
+    wired = wiring.digicon_rows()
     nodes = gather(rows + spare_rows(), read_node_rows(), lamp_names(wired))
     add_local(nodes)
     calibration(nodes)

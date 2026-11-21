@@ -187,7 +187,7 @@ Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1
 ### Mast index (Digicon name → JMRI)
 
 Full table: [`docs/wiring/signals/signal_mast_plan.csv`](../wiring/signals/signal_mast_plan.csv)  
-Port / topic / LCOS inventory: [`docs/wiring/signals/signal_wiring.csv`](../wiring/signals/signal_wiring.csv)  
+Port / topic / LCOS inventory: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (`hartlib.wiring.digicon_rows` gives the pins, IH number and topic)  
 Head plan: [`docs/wiring/signals/signal_head_plan.csv`](../wiring/signals/signal_head_plan.csv)
 
 Pin map: [`docs/wiring/README.md`](../../docs/wiring/README.md#digicon-heads-and-ou-boards) · CSVs above.
@@ -211,7 +211,7 @@ Refresh the wiring CSVs from the head plan (publisher roster is dynamic):
 python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 ```
 
-Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `signal_wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
+Head IH numbers in `tables.xml` follow the wiring plan (packed = radio address × 100 + slot); `tools/audit/check_wiring_crosswalk.py` fails in `./tools/check.sh` when a head on a physical mast differs from `wiring.csv`. The full run (no flag) refuses to rewrite `tables.xml`, because its generated block would drop the virtual masts, IH9990 and the mast comments. Change heads and masts in `tables.xml` directly (PanelPro and CATS closed), then run `--wiring-only` and check that `git diff` shows only what you meant. Interim builds with fewer heads than planned (Mast 6LB) are listed in `FITTED_HEADS` in the script.
 
 LE `signalmasticon`s use the stock Basic `default` image set (no custom imagelinks). Digicon binds by userName either way.
 

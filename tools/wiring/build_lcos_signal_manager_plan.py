@@ -2,7 +2,7 @@
 """Build the LCOS Signal Manager plan workbook from live data.
 
 Every sheet is generated, so nothing depends on an earlier workbook:
-  By Signal      ports from docs/wiring/signals/signal_wiring.csv, logic from
+  By Signal      ports from jmri/layouts/hart/data/wiring.csv, logic from
                  lcos_signal_logic.csv, watch lists from lcos_signal_plan_notes.csv
   Block Index    BS sensors and their Node:Block comments in tables.xml
   Turnout Index  switches and their Node:Turnout comments in tables.xml
@@ -29,7 +29,7 @@ from hartlib import paths  # noqa: E402
 ROOT = paths.REPO_ROOT
 LCOS = ROOT / "docs/wiring/lcos"
 PLAN = LCOS / "lcos_signal_manager_config_plan.xlsx"
-WIRING = paths.SIGNAL_WIRING
+from hartlib import wiring  # noqa: E402  the wired heads (wiring.csv)
 LOGIC = LCOS / "lcos_signal_logic.csv"
 NOTES = LCOS / "lcos_signal_plan_notes.csv"
 TABLES = paths.TABLES_XML
@@ -80,7 +80,7 @@ LEGEND = [
     "Cross-node: if Node:id is not this signal client, subscribe that node and use Remote 8–15",
     "  (remote checkbox = 8 + neighbor local idx). Confirm peer order in LCOS object listen list.",
     "",
-    "Sources: docs/wiring/signals/signal_wiring.csv, docs/wiring/lcos/lcos_signal_logic.csv,",
+    "Sources: jmri/layouts/hart/data/wiring.csv, docs/wiring/lcos/lcos_signal_logic.csv,",
     "  docs/wiring/lcos/lcos_signal_plan_notes.csv, jmri/layouts/hart/output/tables.xml",
     "",
     "Plant block assignments are the intended ABS watch lists for native LCOS / proposed route UI.",
@@ -99,11 +99,10 @@ def port_index(port_id: str) -> int:
 def load_heads() -> dict[tuple[str, str], dict]:
     lamps: dict[tuple[str, int], dict[str, str]] = defaultdict(dict)
     meta: dict[tuple[str, int], dict[str, str]] = {}
-    with WIRING.open(newline="", encoding="utf-8") as f:
-        for row in csv.DictReader(f):
-            key = (row["mast_user_name"], int(row["packed"]))
-            lamps[key][row["lamp_color"]] = row["port_id"]
-            meta[key] = row
+    for row in wiring.digicon_rows():
+        key = (row["mast_user_name"], int(row["packed"]))
+        lamps[key][row["lamp_color"]] = row["port_id"]
+        meta[key] = row
     return {
         (mast, meta[(mast, packed)]["disc_role"]): {**meta[(mast, packed)], "lamps": found}
         for (mast, packed), found in lamps.items()
