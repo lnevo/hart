@@ -5,6 +5,8 @@
 # Usage: ship_pi.sh [--dry-run] STAGED_PI_DIR     (the pi/ folder stage.sh built)
 #   --dry-run  rsync -n --stats only: no drop folder, no apply
 # PanelPro quit for this deploy (pi_quit_panelpro.sh --for-deploy) comes back also when this step fails.
+# Run alone it repeats the gate's host checks (the Pi answers over ssh, nothing unpulled on it); the entry point
+# exports HART_GATED=1 once gate.sh has passed in the same run, and they are not asked twice.
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 DO_PI=1
@@ -19,8 +21,9 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -d "$STAGE" ]] || { echo "Usage: ship_pi.sh [--dry-run] STAGED_PI_DIR" >&2; exit 1; }
 deploy_facts
+refuse_before_changing
 
-PI_STEP=1   # 1 until the Pi step is done: PanelPro quit for this deploy comes back on any way out
+PI_STEP=0   # 1 until the Pi step is done: PanelPro quit for this deploy comes back on any way out
 on_exit() {
   if [[ "$PI_STEP" -eq 1 ]]; then
     PI_STEP=0
@@ -30,6 +33,11 @@ on_exit() {
 }
 trap on_exit EXIT
 ssh_mux_open
+if [[ "${HART_GATED:-0}" != 1 && "$DRY_RUN" -eq 0 ]]; then
+  preflight_hosts
+  check_pi_unpulled
+fi
+PI_STEP=1
 
 push_rsync() {
   local stage="$1"

@@ -7,6 +7,7 @@
 set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 [[ $# -eq 0 ]] || { echo "Usage: ship_mac.sh" >&2; exit 1; }
+refuse_before_changing
 load_parked
 deploy_facts
 tables_facts

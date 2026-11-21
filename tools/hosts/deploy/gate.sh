@@ -2,12 +2,13 @@
 # Deploy step 1: every check, before anything is sent to a host or installed on this Mac. Run by
 # tools/hosts/sync_hart_package.sh; it can run alone to check a deploy that is not yet wanted.
 #
-# Usage: gate.sh [--pi] [--win] [--mac] [--dry-run] [--check-only] [--stage-only]
+# Usage: gate.sh [--pi] [--win] [--mac] [--dry-run] [--check-only] [--stage-only] [--stage-dir DIR]
 #   --pi --win   the hosts the deploy names (checks that need a host only run for those)
 #   --mac        the Mac install will follow (its Store check runs)
 #   --dry-run    no ssh, no Mac check: the local checks only
 #   --check-only the host checks (ssh answers, the Pi's unpulled files) and stop there
 #   --stage-only the local checks only, for a staging run (implies --dry-run)
+#   --stage-dir  G7 builds the package into DIR and keeps it, for the run to ship (else a folder thrown away)
 #
 # Order (the first failure stops it; nothing has changed on any host or on the Mac):
 #   G0  the HART_TABLES and unrestored-profile refusals, the live paths list, the parked features
@@ -22,6 +23,7 @@ source "$(dirname "${BASH_SOURCE[0]}")/common.sh"
 DO_MAC_WEB=0
 CHECK_ONLY=0
 STAGE_ONLY=0
+KEEP_DIR=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --pi) DO_PI=1 ;;
@@ -30,13 +32,14 @@ while [[ $# -gt 0 ]]; do
     --dry-run) DRY_RUN=1 ;;
     --check-only) CHECK_ONLY=1 ;;
     --stage-only) STAGE_ONLY=1; DRY_RUN=1; DO_MAC_WEB=0 ;;
+    --stage-dir) [[ $# -ge 2 && -n "$2" ]] || { echo "gate.sh: --stage-dir needs a folder" >&2; exit 1; }; KEEP_DIR="$2"; shift ;;
     *) echo "gate.sh: unknown option: $1" >&2; exit 1 ;;
   esac
   shift
 done
 
-TRIAL=""        # the trial staging folder
-RESTART=0       # 1 once a host answered: a PanelPro quit for this deploy comes back if a later check stops the run
+TRIAL=""        # the trial staging folder, when it is not kept
+# RESTART (common.sh) is 1 once a host answered: a PanelPro quit for this deploy comes back if a later check stops the run
 on_exit() {
   local rc=$?
   [[ -z "$TRIAL" ]] || rm -rf "$TRIAL"
@@ -49,8 +52,7 @@ on_exit() {
 trap on_exit EXIT
 
 # ---- G0: before anything (no ssh) ----
-refuse_hart_tables "deploy"
-refuse_unrestored_profile "deploy"
+refuse_before_changing
 load_parked
 # The shipped paths are listed in tools/hosts/live_paths.txt (deploy_status.sh counts commits that touch them).
 # A run that stages or deploys stops if the list names a path that is gone, so the list cannot drift from the
@@ -61,59 +63,15 @@ fi
 deploy_facts
 ssh_mux_open
 
-# ---- G1: Windows is kept matching the Pi, and the Pi step runs first. A host that does not answer would
-# stop the run after the other host, the Mac or the repo's tables.xml had already changed, so ask every host
-# named for one ssh no-op before the checks below. It runs before the Pi's unpulled check, which needs ssh too and
-# would name the wrong cause for a Pi that is down. A dry run and --stage-only change nothing on a host and skip it.
-preflight_hosts() {
-  local down=() pi_up=0 h
-  if [[ "$DO_PI" -eq 1 ]]; then
-    if ssh_pi true </dev/null >/dev/null; then pi_up=1; else down+=("the Pi ($PI_HOST)"); fi
-  fi
-  # "exit 0" also runs under cmd.exe, the Windows OpenSSH shell.
-  if [[ "$DO_WIN" -eq 1 ]] && ! ssh_win "exit 0" </dev/null >/dev/null; then
-    down+=("Windows ($WIN_HOST port $WIN_PORT)")
-  fi
-  [[ "${#down[@]}" -gt 0 ]] || return 0
-  for h in "${down[@]}"; do
-    echo "STOP: cannot reach $h over ssh." >&2
-  done
-  echo "No file was sent to or installed on any host, and the Mac install did not run. Deploy again once every host answers." >&2
-  # A PanelPro quit for this deploy comes back, as after any stopped Pi deploy: the one thing done on a host.
-  if [[ "$pi_up" -eq 1 ]]; then
-    echo "The Pi answered: PanelPro there is started again if it was quit for this deploy (a line below says so)." >&2
-    pi_restart_if_due
-  fi
-  exit 1
-}
+# ---- G1: one ssh no-op to each host named (preflight_hosts, common.sh); a dry run and --stage-only skip it ----
 if [[ "$DRY_RUN" -eq 0 ]]; then
   preflight_hosts
   [[ "$DO_PI" -eq 0 ]] || RESTART=1
 fi
 
-# ---- G2: what the owner changed on the Pi since the last deploy or pull would be replaced: Operations
-# Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Stop before
-# a byte is sent, and bring back a PanelPro quit for this deploy.
-# HART_DISCARD_PI_CHANGES=1 replaces them anyway (the owner's call).
-pi_stop() {
-  echo "$1" >&2
-  RESTART=0
-  pi_restart_if_due
-  exit 1
-}
-if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 && "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]]; then
-  # the generated tables.xml is the reference when the Pi has none (no stamp, no pull): a file unlike it may be a Store
-  generated_sha="$(shasum -a 256 "$ROOT/jmri/layouts/hart/output/tables.xml" 2>/dev/null | cut -d' ' -f1)"
-  split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ' | sed 's/ *$//')"
-  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha'${split_shas:+ $split_shas}" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
-    pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
-  fi
-  if [[ -n "$unpulled" ]]; then
-    msg=""
-    grep -qx ops <<<"$unpulled" && msg+="STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first."$'\n'
-    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in ~/JMRI_UserFiles-pulled; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
-    pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
-  fi
+# ---- G2: the Pi's unpulled files (check_pi_unpulled, common.sh) ----
+if [[ "$DO_PI" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
+  check_pi_unpulled
 fi
 if [[ "$CHECK_ONLY" -eq 1 ]]; then
   [[ "$DO_PI" -eq 0 ]] || echo "Pi check: nothing unpulled."
@@ -170,41 +128,26 @@ if [[ "$DO_MAC_WEB" -eq 1 && "$DRY_RUN" -eq 0 ]]; then
   check_mac_store || exit 1
 fi
 
-# ---- G7: the package builds. The trial is staged by stage.sh into a folder that is thrown away. ----
+# ---- G7: the package builds. stage.sh builds it into --stage-dir (kept: the run ships that same folder, so the
+# package is built once) or, run alone, into a folder that is thrown away. ----
 if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$DRY_RUN" -eq 0 ]]; then
-  TRIAL="$(mktemp -d)"
+  if [[ -n "$KEEP_DIR" ]]; then
+    stage_to="$KEEP_DIR"
+  else
+    TRIAL="$(mktemp -d)"
+    stage_to="$TRIAL/stage"
+  fi
   trial_flags=()
   [[ "$DO_PI" -eq 0 ]] || trial_flags+=(--pi)
   [[ "$DO_WIN" -eq 0 ]] || trial_flags+=(--win)
-  if ! bash "$DEPLOY_STEPS_DIR/stage.sh" "${trial_flags[@]}" "$TRIAL/stage" >/dev/null; then
+  if ! bash "$DEPLOY_STEPS_DIR/stage.sh" "${trial_flags[@]}" "$stage_to" >/dev/null; then
     echo "STOP: the host package cannot be built (see above). Nothing was sent to any host, and the Mac install did not run." >&2
     exit 1
   fi
-  rm -rf "$TRIAL"
-  TRIAL=""
+  [[ -n "$KEEP_DIR" ]] || { rm -rf "$TRIAL"; TRIAL=""; }
 fi
 
-# ---- G8: Windows can take the package. The tarball is made here, so tar, scp and a temp file must work; the
-# temp folder on Windows and its tar (which unpacks it) are asked for with a folder made and removed again. ----
-if [[ "$DO_WIN" -eq 1 ]]; then
-  for tool in tar scp; do
-    command -v "$tool" >/dev/null 2>&1 || {
-      echo "STOP: Windows needs $tool on this Mac to send the package, and it is not on PATH. Nothing was sent to any host." >&2
-      exit 1
-    }
-  done
-  tgz_probe="$(mktemp "${TMPDIR:-/tmp}/hart-pkg.XXXXXX")" || {
-    echo "STOP: Windows needs a temporary file on this Mac for the package (mktemp failed in ${TMPDIR:-/tmp}). Nothing was sent to any host." >&2
-    exit 1
-  }
-  rm -f "$tgz_probe"
-  if [[ "$DRY_RUN" -eq 0 ]]; then
-    # Windows OpenSSH is cmd.exe; the probe runs in PowerShell like the real steps.
-    if ! ssh_win "powershell -NoProfile -Command \"\$d = Join-Path \$env:TEMP ('hart-probe-' + [guid]::NewGuid().ToString('N')); New-Item -ItemType Directory \$d | Out-Null; Remove-Item -LiteralPath \$d -Force; if (-not (Get-Command tar -ErrorAction SilentlyContinue)) { exit 1 }\"" </dev/null >/dev/null; then
-      echo "STOP: Windows ($WIN_HOST port $WIN_PORT) cannot take the package: it did not give a temp folder, or it has no tar. Nothing was sent to any host, and the Mac install did not run." >&2
-      exit 1
-    fi
-  fi
-fi
+# ---- G8: Windows can take the package (check_windows_can_take_package, common.sh; nothing in a dry run) ----
+check_windows_can_take_package
 RESTART=0
 exit 0

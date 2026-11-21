@@ -21,9 +21,8 @@ ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 DEPLOY_STEPS="$ROOT/tools/hosts/deploy"
 source "$DEPLOY_STEPS/common.sh"
 DRY_RUN=0
-# The profile refusals come first, before anything else is read or made; gate.sh makes them too, for a run of its own.
-refuse_hart_tables "deploy"
-refuse_unrestored_profile "deploy"
+# The profile refusals come first, before anything else is read or made; every step makes them too, for a run of its own.
+refuse_before_changing
 
 DO_PI=0
 DO_WIN=0
@@ -105,8 +104,15 @@ if [[ -z "$STAGE_ONLY" ]]; then
   ssh_mux_open
 fi
 
-# 1. every check, before anything ships
+# 1. every check, before anything ships. A real run to a host also builds its package here (the gate's last local
+# check), into the folder the steps below ship, so the package is built once.
+STAGED_BY_GATE=0
 gate_flags=()
+if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$DRY_RUN" -eq 0 && -z "$STAGE_ONLY" ]]; then
+  STAGE_DIR="$(mktemp -d)"
+  STAGED_BY_GATE=1
+  gate_flags+=(--stage-dir "$STAGE_DIR")
+fi
 [[ "$DO_PI" -eq 0 ]] || gate_flags+=(--pi)
 [[ "$DO_WIN" -eq 0 ]] || gate_flags+=(--win)
 [[ "$DO_MAC_WEB" -eq 0 ]] || gate_flags+=(--mac)
@@ -117,6 +123,7 @@ bash "$DEPLOY_STEPS/gate.sh" ${gate_flags[@]+"${gate_flags[@]}"}
 if [[ "$CHECK_ONLY" -eq 1 ]]; then
   exit 0
 fi
+export HART_GATED=1   # every check has passed: the steps below do not ask the hosts again
 # The Pi's PanelPro may have been quit for this deploy: a later failure brings it back (ship_pi.sh does too, once it runs).
 [[ "$DRY_RUN" -eq 1 ]] || PI_STEP="$DO_PI"
 
@@ -132,8 +139,8 @@ if [[ -n "$STAGE_ONLY" ]]; then
   echo "DONE (stage only)"
   exit 0
 fi
-if [[ "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ]]; then
-  STAGE_DIR="$(mktemp -d)"
+if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$STAGED_BY_GATE" -eq 0 ]]; then
+  STAGE_DIR="$(mktemp -d)"   # a dry run: nothing was checked on a host, and the package is built now
   bash "$DEPLOY_STEPS/stage.sh" "${stage_flags[@]}" "$STAGE_DIR"
 fi
 

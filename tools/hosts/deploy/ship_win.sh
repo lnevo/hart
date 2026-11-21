@@ -4,6 +4,8 @@
 #
 # Usage: ship_win.sh [--dry-run] STAGED_WIN_DIR     (the win/ folder stage.sh built)
 #   --dry-run  builds the tarball and says what it would send: no ssh
+# Run alone it repeats the gate's checks for Windows (it answers over ssh, can make a temp folder and has tar); the
+# entry point exports HART_GATED=1 once gate.sh has passed in the same run, and they are not asked twice.
 # When the Pi already has this deploy (HART_PI_DONE=1, set by sync_hart_package.sh), a failure here says so and
 # names the redeploy that brings Windows to the same commit.
 set -euo pipefail
@@ -20,6 +22,7 @@ while [[ $# -gt 0 ]]; do
 done
 [[ -d "$STAGE" ]] || { echo "Usage: ship_win.sh [--dry-run] STAGED_WIN_DIR" >&2; exit 1; }
 deploy_facts
+refuse_before_changing
 
 WIN_TGZ=""      # the Windows tarball
 WIN_STEP=1      # 1 until Windows' apply succeeds
@@ -39,6 +42,10 @@ on_exit() {
 }
 trap on_exit EXIT
 ssh_mux_open
+if [[ "${HART_GATED:-0}" != 1 && "$DRY_RUN" -eq 0 ]]; then
+  preflight_hosts
+  check_windows_can_take_package
+fi
 
 # The Windows tarball. The name ends in the X's: BSD mktemp (macOS) only fills trailing ones, so a
 # template ending in .tgz made the literal name and failed on the next run. on_exit

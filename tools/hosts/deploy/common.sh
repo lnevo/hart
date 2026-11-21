@@ -26,9 +26,13 @@ REWRITE="$ROOT/cats/scripts/rewrite_button_icon_paths.py"
 # The repo is the master of the Operations Pro files (ADR-015). 0 restores the guards.
 HART_OVERWRITE_OPS="${HART_OVERWRITE_OPS:-1}"
 export HART_OVERWRITE_OPS
-DO_PI="${DO_PI:-0}"
-DO_WIN="${DO_WIN:-0}"
-DRY_RUN="${DRY_RUN:-0}"
+# What a step does comes from its flags only, never from the caller's environment: an exported DO_PI, DO_WIN or
+# DRY_RUN changes nothing. (Steps pass facts to each other in HART_-prefixed variables: HART_GATED, HART_DEPLOY_*.)
+DO_PI=0
+DO_WIN=0
+DRY_RUN=0
+RESTART=0   # gate.sh: 1 while a PanelPro quit for this deploy must come back if the run stops
+PI_STEP=0   # ship_pi.sh and the entry point: the same, from the Pi step
 
 TABLES=""
 if [[ -f "$ROOT/jmri/layouts/hart/output/tables.xml" ]]; then
@@ -247,5 +251,91 @@ check_mac_store() {
   if profile_tables_unpulled "$TABLES" "$dir"; then
     echo "STOP: $dir/tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull: it keeps the Store in ~/JMRI_UserFiles-pulled; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy. HART_OVERWRITE_PROFILE_TABLES=1 replaces it unkept." >&2
     return 1
+  fi
+}
+
+# refuse_before_changing: the refusals every step that changes something makes first, so a step run alone is as
+# careful as the gate: HART_TABLES (for checks only) and a PanelPro wrapper backup left on the profile.
+refuse_before_changing() {
+  refuse_hart_tables "deploy"
+  refuse_unrestored_profile "deploy"
+}
+
+# preflight_hosts: Windows is kept matching the Pi, and the Pi step runs first. A host that does not answer would
+# stop the run after the other host, the Mac or the repo's tables.xml had already changed, so ask every host named
+# (DO_PI, DO_WIN) for one ssh no-op before anything is sent. It runs before the Pi's unpulled check, which needs ssh
+# too and would name the wrong cause for a Pi that is down. A dry run and --stage-only skip it.
+preflight_hosts() {
+  local down=() pi_up=0 h
+  if [[ "$DO_PI" -eq 1 ]]; then
+    if ssh_pi true </dev/null >/dev/null; then pi_up=1; else down+=("the Pi ($PI_HOST)"); fi
+  fi
+  # "exit 0" also runs under cmd.exe, the Windows OpenSSH shell.
+  if [[ "$DO_WIN" -eq 1 ]] && ! ssh_win "exit 0" </dev/null >/dev/null; then
+    down+=("Windows ($WIN_HOST port $WIN_PORT)")
+  fi
+  [[ "${#down[@]}" -gt 0 ]] || return 0
+  for h in "${down[@]}"; do
+    echo "STOP: cannot reach $h over ssh." >&2
+  done
+  echo "No file was sent to or installed on any host, and the Mac install did not run. Deploy again once every host answers." >&2
+  # A PanelPro quit for this deploy comes back, as after any stopped Pi deploy: the one thing done on a host.
+  if [[ "$pi_up" -eq 1 ]]; then
+    echo "The Pi answered: PanelPro there is started again if it was quit for this deploy (a line below says so)." >&2
+    pi_restart_if_due
+  fi
+  exit 1
+}
+
+# pi_stop MESSAGE: stop the run, with PanelPro back up first.
+pi_stop() {
+  echo "$1" >&2
+  RESTART=0
+  PI_STEP=0
+  pi_restart_if_due
+  exit 1
+}
+
+# check_pi_unpulled: what the owner changed on the Pi since the last deploy or pull would be replaced: Operations
+# Pro saves its files as the session runs, and a PanelPro Store rewrites tables.xml. Stop before a byte is sent.
+# HART_DISCARD_PI_CHANGES=1 replaces them anyway (the owner's call).
+check_pi_unpulled() {
+  [[ "${HART_DISCARD_PI_CHANGES:-0}" != "1" ]] || return 0
+  local generated_sha split_shas unpulled msg
+  # the generated tables.xml is the reference when the Pi has none (no stamp, no pull): a file unlike it may be a Store
+  generated_sha="$(shasum -a 256 "$ROOT/jmri/layouts/hart/output/tables.xml" 2>/dev/null | cut -d' ' -f1)"
+  split_shas="$(hart_split_shas "$ROOT" | tr '\n' ' ' | sed 's/ *$//')"
+  if ! unpulled="$(ssh_pi "bash -s -- '$PI_USERFILES' '$generated_sha'${split_shas:+ $split_shas}" < "$ROOT/tools/hosts/pi/unpulled_changes.sh")"; then
+    pi_stop "STOP: could not check the Pi for unpulled changes. HART_DISCARD_PI_CHANGES=1 deploys without the check."
+  fi
+  if [[ -n "$unpulled" ]]; then
+    msg=""
+    grep -qx ops <<<"$unpulled" && msg+="STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first."$'\n'
+    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in ~/JMRI_UserFiles-pulled; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
+    pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
+  fi
+}
+
+# check_windows_can_take_package: Windows can take the package. The tarball is made here, so tar, scp and a temp file
+# must work; the temp folder on Windows and its tar (which unpacks it) are asked for with a folder made and removed
+# again. Nothing at all in a dry run (no ssh, and --stage-only needs no scp).
+check_windows_can_take_package() {
+  [[ "$DO_WIN" -eq 1 && "$DRY_RUN" -eq 0 ]] || return 0
+  local tool tgz_probe
+  for tool in tar scp; do
+    command -v "$tool" >/dev/null 2>&1 || {
+      echo "STOP: Windows needs $tool on this Mac to send the package, and it is not on PATH. Nothing was sent to any host." >&2
+      exit 1
+    }
+  done
+  tgz_probe="$(mktemp "${TMPDIR:-/tmp}/hart-pkg.XXXXXX")" || {
+    echo "STOP: Windows needs a temporary file on this Mac for the package (mktemp failed in ${TMPDIR:-/tmp}). Nothing was sent to any host." >&2
+    exit 1
+  }
+  rm -f "$tgz_probe"
+  # Windows OpenSSH is cmd.exe; the probe runs in PowerShell like the real steps.
+  if ! ssh_win "powershell -NoProfile -Command \"\$d = Join-Path \$env:TEMP ('hart-probe-' + [guid]::NewGuid().ToString('N')); New-Item -ItemType Directory \$d | Out-Null; Remove-Item -LiteralPath \$d -Force; if (-not (Get-Command tar -ErrorAction SilentlyContinue)) { exit 1 }\"" </dev/null >/dev/null; then
+    echo "STOP: Windows ($WIN_HOST port $WIN_PORT) cannot take the package: it did not give a temp folder, or it has no tar. Nothing was sent to any host, and the Mac install did not run." >&2
+    exit 1
   fi
 }

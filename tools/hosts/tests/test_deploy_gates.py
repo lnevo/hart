@@ -84,7 +84,7 @@ for a in "$@"; do
     hartlib.parked) [[ ! -f "{tmp}/fail_parked" ]] || {{ echo "stand-in: parked features unreadable" >&2; exit 1; }} ;;
     */audit_panel_contracts.py) [[ ! -f "{tmp}/fail_audit" ]] || {{ echo "stand-in: panel audit failed" >&2; exit 1; }} ;;
     */live_paths.py) [[ ! -f "{tmp}/fail_live_paths" ]] || {{ echo "stand-in: live path gone" >&2; exit 1; }} ;;
-    */build_mimic_web.py) [[ ! -f "{tmp}/fail_stage" ]] || {{ echo "stand-in: staging failed" >&2; exit 1; }} ;;
+    */build_mimic_web.py) echo build >>"{tmp}/builds.log"; [[ ! -f "{tmp}/fail_stage" ]] || {{ echo "stand-in: staging failed" >&2; exit 1; }} ;;
   esac
 done
 exec "{real}" "$@"
@@ -449,6 +449,111 @@ class EveryCheckRunsBeforeAnythingShips(GateHarness):
         first_pi_ship = next(i for i, c in enumerate(calls) if c.startswith("rsync "))
         self.assertLess(probes[0], first_pi_ship, "the Windows probe came after the Pi was shipped")
         self.assertLess(done.stdout.index("deploy stamp ->"), done.stdout.index("Deploy → Pi"))
+
+
+class StepsRunAlone(GateHarness):
+    """A step run on its own is as careful as the gate: ship_pi.sh and ship_win.sh repeat the host checks unless the
+    entry point exported HART_GATED=1 after gate.sh passed; every changing step refuses first; the package is built
+    once per run; what a step does comes from its flags, never from DO_PI, DO_WIN or DRY_RUN in the environment."""
+
+    def step(self, script: str, *args: str, **env: str) -> subprocess.CompletedProcess:
+        return subprocess.run(["bash", str(ROOT / "tools/hosts/deploy" / script), *args], cwd=ROOT,
+                              env={**self.env, **env}, capture_output=True, text=True, timeout=300)
+
+    def staged(self, host: str) -> str:
+        folder = self.tmp / "staged" / host
+        folder.mkdir(parents=True, exist_ok=True)
+        (folder / "tables.xml").write_text("<x/>\n", encoding="utf-8")
+        return str(folder)
+
+    def builds(self) -> int:
+        log = self.tmp / "builds.log"
+        return len(log.read_text().splitlines()) if log.exists() else 0
+
+    def test_ship_pi_alone_repeats_the_unpulled_check(self) -> None:
+        self.hosts_ok()
+        self.unpulled("ops")
+        done = self.step("ship_pi.sh", self.staged("pi"))
+        self.assertEqual(1, done.returncode, done.stderr[-1500:])
+        self.assertIn("make ops-pull", done.stderr)
+        self.assertEqual([], self.shipped(), self.calls())
+
+    def test_ship_pi_alone_asks_the_pi_to_answer_first(self) -> None:
+        self.hosts_ok()
+        self.down(PI)
+        done = self.step("ship_pi.sh", self.staged("pi"))
+        self.assertEqual(1, done.returncode, done.stderr[-1500:])
+        self.assertIn("STOP: cannot reach the Pi", done.stderr)
+        self.assertEqual([], [c for c in self.calls() if c.startswith("rsync ")])
+
+    def test_ship_pi_after_the_gate_does_not_ask_again(self) -> None:
+        self.hosts_ok()
+        self.unpulled("ops")
+        done = self.step("ship_pi.sh", self.staged("pi"), HART_GATED="1")
+        self.assertEqual(0, done.returncode, done.stderr[-1500:])
+        self.assertFalse(any(c.endswith(f"{PI} true") or " bash -s -- '" in c for c in self.calls()), self.calls())
+
+    def test_ship_win_alone_repeats_the_ssh_and_package_checks(self) -> None:
+        self.hosts_ok()
+        self.down(WIN)
+        done = self.step("ship_win.sh", self.staged("win"))
+        self.assertIn("STOP: cannot reach Windows", done.stderr)
+        self.assertEqual(1, done.returncode)
+        self.down()
+        (self.tmp / "win_no_tar").touch()
+        done = self.step("ship_win.sh", self.staged("win"))
+        self.assertIn("STOP: Windows", done.stderr)
+        self.assertEqual(1, done.returncode)
+        self.assertEqual([], self.ship_log(), "a tarball was made")
+
+    def test_ship_win_after_the_gate_does_not_ask_again(self) -> None:
+        self.hosts_ok()
+        done = self.step("ship_win.sh", self.staged("win"), HART_GATED="1")
+        self.assertEqual(0, done.returncode, done.stderr[-1500:])
+        self.assertFalse(any(WIN in c and ("exit 0" in c or WIN_PROBE in c) for c in self.calls()), self.calls())
+
+    def test_ship_mac_alone_refuses_hart_tables(self) -> None:
+        done = self.step("ship_mac.sh", HART_TABLES="/nowhere/tables.xml")
+        self.assertEqual(1, done.returncode)
+        self.assertIn("HART_TABLES is set", done.stderr)
+        self.assertFalse((self.tmp / "home").exists(), "the Mac install began")
+
+    def test_every_changing_step_refuses_hart_tables(self) -> None:
+        for script, args in (("ship_pi.sh", ("PI",)), ("ship_win.sh", ("WIN",)), ("gate.sh", ())):
+            with self.subTest(script=script):
+                argv = [self.staged(a.lower()) for a in args]
+                done = self.step(script, *argv, HART_TABLES="/nowhere/tables.xml")
+                self.assertEqual(1, done.returncode)
+                self.assertIn("HART_TABLES is set", done.stderr)
+        self.assertEqual([], self.calls())
+
+    def test_a_real_run_builds_the_package_once(self) -> None:
+        self.hosts_ok()
+        for flags in (("--pi", "--win"), ("--pi",), ("--win",)):
+            (self.tmp / "builds.log").unlink(missing_ok=True)
+            done = self.deploy(*flags)
+            self.assertEqual(0, done.returncode, done.stderr[-1500:])
+            self.assertEqual(1, self.builds(), flags)
+
+    def test_a_dry_run_builds_it_once_too(self) -> None:
+        done = self.deploy("--pi", "--win", "--dry-run")
+        self.assertEqual(0, done.returncode, done.stderr[-1500:])
+        self.assertEqual(1, self.builds())
+
+    def test_stage_only_asks_for_no_scp_and_no_ssh(self) -> None:
+        done = self.deploy("--win", "--stage-only", str(self.tmp / "stage"))
+        self.assertEqual(0, done.returncode, done.stderr[-1500:])
+        self.assertEqual([], self.calls())
+
+    def test_an_exported_dry_run_or_host_flag_changes_nothing(self) -> None:
+        self.hosts_ok()
+        done = self.step("gate.sh", "--pi", DRY_RUN="1")
+        self.assertEqual(0, done.returncode, done.stderr[-1500:])
+        self.assertTrue(any(c.endswith(f"{PI} true") for c in self.calls()), "the gate took the exported DRY_RUN")
+        (self.tmp / "network.log").unlink()
+        done = self.step("gate.sh", DO_PI="1", DO_WIN="1")
+        self.assertEqual(0, done.returncode, done.stderr[-1500:])
+        self.assertEqual([], self.calls(), "the gate took the exported DO_PI and DO_WIN")
 
 
 class ParkedFeaturesAreNotInstalled(GateHarness):
