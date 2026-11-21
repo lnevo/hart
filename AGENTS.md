@@ -86,12 +86,12 @@ Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
 ## Do not
 
-- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so it stops until `make ops-pull` is run and committed, or `make tables-pull-pi` has kept the Store and its edits are in `devices.csv` or the template. `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
+- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so it stops until `make ops-pull` is run and committed, or `make tables-pull-pi` has kept the Store and its edits are in `devices_field.csv` or the template. `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
 - Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
 - Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
-- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices.csv`) or the template instead.
+- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (the owner's cells in `jmri/layouts/hart/data/devices_field.csv`, or the builders' inputs) or the template instead.
 - Leave the LCOS bridge (`serial_to_mqtt`) running detached. It is operator-owned and runs in a visible foreground console. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
 - Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction and confirmation.
 - Spell out what HART stands for in any file, commit or page. The repo and website are public.
@@ -109,4 +109,4 @@ New documents go in `docs/` (ADR-010); run the index command after adding one.
 - Git / branches, and where agent instructions live: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md)
 - Submodules: each has its own rules and repo; see [`wiki/REPOS.md`](wiki/REPOS.md)
 - CATS: [`cats/README.md`](cats/README.md) · [`cats/AGENTS.md`](cats/AGENTS.md)
-- Public names: [ADR-005](wiki/decisions/ADR-005-public-equipment-names.md) · `jmri/layouts/hart/data/devices.csv`
+- Public names: [ADR-005](wiki/decisions/ADR-005-public-equipment-names.md) · `jmri/layouts/hart/data/devices_field.csv` and `devices_generated.csv` (one view: `hartlib.devices`)

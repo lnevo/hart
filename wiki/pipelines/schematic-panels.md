@@ -49,9 +49,19 @@ plugin 0.1.50) maps a plan name to the label drawn, McKees Rocks for Helix Outer
 the layout expands. The plugin draws it on every output it makes: the schematic and station sheets (helix letters
 follow the labels, so H1 is still the outer track), the Layout Editor panel and the CATS desks; `levels_page` reads the
 same key for the track-plan article. The desks' bindings stay keyed by plan name (Helix Outer, Helix Inner). `build_device_map.py` writes staging's block and occupancy rows
-from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
-stop, station group and `devices.csv` columns (cp, level, role, node, dcc, wiring), carried over from its row), so a staging block change made in PanelPro is
-carried by hand into those three data files, not into `devices.csv`. Main and upper write their part rows the same
+from it (written_by `build_device_map.py`), each built on the owner's row of its name in `devices_field.csv`: the
+system and layout-block names, comment, stop, notes, detector and an OS block's control point; the node, wiring and
+the detector's part of the comment (`{occupancy}` in the field text) come from `wiring.csv`, so a moved pin changes
+no hand file. A staging block change made in PanelPro is carried by hand into those three data files and the field
+row.
+
+The device master is two files (ADR-029 amendment, built 2026-11-21): `devices_generated.csv`, every row the builders
+make, written only by `build_device_map.py`, `build_masts.py` and `panel_items.py`, and `devices_field.csv`, the
+owner's cells keyed by level, layer and user name (`hartlib.devices.FIELD_COLUMNS`) and a Store's level-less devices.
+`hartlib.devices` merges them into the one view every reader gets. A builder reads the owner's cells from the field
+file, never back from its own last output; its one read-back is its name numbering (`devices.allocated_names`: a
+part's block numbers, a virtual mast's ordinal), so a name never shifts. A builder that would drop a key the field
+file names stops: rename or remove the field row. `split_store.py` writes only the field file. Main and upper write their part rows the same
 way (25 links). Block lengths: JMRI's block takes `block_lengths.csv`'s `plan_in` on every level (`plan_lengths.py`,
 main and upper's rows too); a measured length is for speed profiling only. To review a candidate before the owner
 approves its staging panel: `build_layout_le.py --as-live --review`, `build_tables.py --review` and
@@ -74,8 +84,8 @@ make desks            # only the CATS desks, then validate them
 | staging-sets | `build_staging_sets.py` | in `plan_overrides.json`'s `staging` section the `control_points`, `stations` and `station_tracks` keys, in `preferences.json`'s `staging` section the `detail_sheets` key, from `stations.csv` (the control points are its desk areas: the stations that share a `desk_code`, a nested station's switches its own) and `sheets.csv`; stops with file, line and station on an unknown switch, a staging switch in no desk area, stations that partly overlap, a switch in two nested stations, a missing or double desk code, or a sheet naming a station that is not there |
 | main-route | `build_main_route.py` | the `main_route` key of `plan_overrides.json`'s `main_upper` section and, for staging, the `main` flags of its `name` edit and its `milepost_route`. Both from `main_lines.csv`, one file with a `sheet` column (staging or main_upper). Main and upper: worked out from its main_upper rows (the two main lines by helix end, end switch, turnback and double tracks) and the plan graph; stops when a stretch has two equally short ways or a pair of switches has two tracks nobody declared; staging: from its staging rows, each line naming the junctions it passes (a track must join each to the next; `count` yes marks the lines the mileposts run along) |
 | plan-lengths | `plan_lengths.py --check` | nothing: stops when `block_lengths.csv`'s `plan_in` no longer matches the AnyRail plan 5.3c (the track runs need the private plan file; without it only the OS rows, from `parts.json`, are checked). Run `plan_lengths.py` by hand to write them |
-| device-map | `build_device_map.py` | the levels 2 and 3 rows of `devices.csv`, staging's block and occupancy rows (the one block process, below), and the layer overrides the schematic reads |
-| masts | `build_masts.py` | `masts.csv`, every level's masts with a `level` column (hartlib.level_masts), from the mast and head rows of `devices.csv`: staging's rows planned here by the mast rule over its device map (with their plan facts, where the drawing puts each), main and upper's written by `build_device_map.py`. After device-map, whose rows it reads |
+| device-map | `build_device_map.py` | `devices_generated.csv` (reading `devices_field.csv`): the levels 2 and 3 rows, staging's block and occupancy rows (the one block process, below), and the layer overrides the schematic reads |
+| masts | `build_masts.py` | `masts.csv`, every level's masts with a `level` column (hartlib.level_masts), from the mast and head rows of the device master (it writes staging's into `devices_generated.csv`, a wired mast's node and head's notes from `devices_field.csv`): staging's rows planned here by the mast rule over its device map (with their plan facts, where the drawing puts each), main and upper's written by `build_device_map.py`. After device-map, whose rows it reads |
 | signals | `build_signals.py` | `signals.json` (a section per sheet) from the plan graph and `masts.csv`: staging's rows by their plan facts, main and upper's placed from the plan graph. After masts, so one run draws the masts it writes; nothing before it reads `signals.json` (device-map and masts give the same outputs with every signal dropped from it), so there is no cycle |
 | head-plan | `build_hart_signal_heads.py --wiring-only` | `jmri/layouts/hart/output/signal_head_plan.csv` from `wiring.csv`'s wired heads (`--check` compares in memory). The CATS desks read its templates, so it runs before `cats` |
 | schematic | `publish_draft.py` | the schematic sheets and station pages |

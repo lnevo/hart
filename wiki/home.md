@@ -14,7 +14,7 @@ Chat is a scratchpad. Decisions that count live here.
 | Pipelines | [`pipelines/README.md`](pipelines/README.md) |
 
 **Active projects:** [`projects/cats-integration.md`](projects/cats-integration.md) · [3D station maps](../docs/benchwork/station_maps_3d/README.md) · [`projects/speedmatching.md`](projects/speedmatching.md) (parked) · [schematic panels pipeline](pipelines/schematic-panels.md) · [project health hand-off](projects/project-health-handoff.md) · [source-data exceptions](projects/source-data-exceptions-handoff.md) · [web server migration](projects/web-server-migration.md)  
-**Public names:** [ADR-002](decisions/ADR-002-naming-contract.md) · [ADR-005](decisions/ADR-005-public-equipment-names.md) · [ADR-011](decisions/ADR-011-basic-signals.md) · [`devices.csv`](../jmri/layouts/hart/data/devices.csv)
+**Public names:** [ADR-002](decisions/ADR-002-naming-contract.md) · [ADR-005](decisions/ADR-005-public-equipment-names.md) · [ADR-011](decisions/ADR-011-basic-signals.md) · [`devices_field.csv`](../jmri/layouts/hart/data/devices_field.csv) and [`devices_generated.csv`](../jmri/layouts/hart/data/devices_generated.csv) (the device master, ADR-029)
 **Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`  
 **CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style; source [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/))  
 **Digicon system overview (desks + LCOS signals):** [`../docs/ctc/HART_DIGICON_SYSTEM.md`](../docs/ctc/HART_DIGICON_SYSTEM.md)  
