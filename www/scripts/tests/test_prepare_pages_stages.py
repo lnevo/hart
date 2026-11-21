@@ -1,47 +1,47 @@
 """prepare_github_pages.py, stage by stage: the behaviour a split of the build could break.
 
-STAGE MAP (line numbers are of prepare_github_pages.py; main() runs 1 to 14 in this order)
+STAGE MAP (functions of prepare_github_pages.py; main() runs 1 to 14 in this order)
 
- 1. Copy         _published_files, _copy_published (82-126; main 1139). Reads: git ls-files of www/,
+ 1. Copy         _published_files, _copy_published. Reads: git ls-files of www/,
                  scripts/published-files.json and the files it names outside www/. Skip lists
-                 SKIP_DIRS, SKIP_FILES, SKIP_GLOBS (48-65). Writes: the whole tree in DEST.
- 2. Fill pages   _refresh_tables_page (1079-1096; main 1140). Reads tables.xml, the repo's file lists and
+                 SKIP_DIRS, SKIP_FILES, SKIP_GLOBS. Writes: the whole tree in DEST.
+ 2. Fill pages   _refresh_tables_page. Reads tables.xml, the repo's file lists and
                  the JMRI additions (build_tables_browser, repo_guide_page, jmri_additions_page, each
-                 with its own tests). Rewrites behind/ pages and data/ in DEST. A failure is a warning.
- 3. site.json    (main 1142-1147). Sets public, empties engDesk, drops tools.
- 4. Logos        _vendor_json_logos (860-895; main 1149-1151). Reads ../external/ logos through
+                 with its own tests). Rewrites behind/ pages and data/ in DEST. A failed repo guide or JMRI
+                 additions refill is a warning; a failed tables browser write stops the build.
+ 3. site.json     (inline in main). Sets public, empties engDesk, drops tools.
+ 4. Logos        _vendor_json_logos. Reads ../external/ logos through
                  _source (manifest first). Writes assets/logos/ and rewrites "logo" in
                  data/industries.json and data/*-lineage.json.
- 5. Photos       _vendor_fleet_images 663, _filter_gallery 642, _gallery_thumbs 791,
-                 _vendor_archive_images 822 (main 1152-1158), over gallery.json, fleet-gallery.json
+ 5. Photos       _vendor_fleet_images, _filter_gallery, _gallery_thumbs,
+                 _vendor_archive_images, over gallery.json, fleet-gallery.json
                  and archive.json. Reads ../media/ and ../ops/car-cards/ originals. Writes
                  assets/{gallery,fleet,archive}/ and the thumb, width, height and src fields.
-                 Every resize goes through _web_jpeg (722) and its cache in ~/.cache/hart/web-jpeg
-                 (690-788). Order inside the stage: vendor, then filter, then thumbs.
- 6. Scrub data   _strip_external_data (154-170; main 1159). Every data/*.json loses fields still
+                 Every resize goes through _web_jpeg and its cache in ~/.cache/hart/web-jpeg.
+                 Order inside the stage: vendor, then filter, then thumbs.
+ 6. Scrub data   _strip_external_data. Every data/*.json loses fields still
                  pointing at ../external, ../media, ../ops, ../docs. Must follow stages 4 and 5,
                  which read those paths.
- 7. Local-only   _strip_local_only_pages (129-151; main 1163). Drops data-local-only elements.
- 8. Head tags    _add_head_tags (898-963; main 1164). Icon and share tags (share_cards).
- 9. Provenance   _add_provenance (966-998; main 1165). JSON-LD in every page, llms.txt, robots.txt,
+ 7. Local-only   _strip_local_only_pages. Drops data-local-only elements.
+ 8. Head tags    _add_head_tags. Icon and share tags (share_cards).
+ 9. Provenance   _add_provenance. JSON-LD in every page, llms.txt, robots.txt,
                  sitemap.xml. A page provenance.json does not classify stops the build (exit 1).
-10. Card thumbs  _card_thumbs (1001-1018; main 1170). Small share pictures for hub cards; _web_jpeg.
-11. WebP         _webp_companions (1027-1076; main 1171). Reads every page and its JPEGs, so it must
+10. Card thumbs  _card_thumbs. Small share pictures for hub cards; _web_jpeg.
+11. WebP         _webp_companions. Reads every page and its JPEGs, so it must
                  follow stages 5 and 10.
-12. Leak check   _check_leaks (173-181; main 1172). Reads the finished tree; exit 1 on any hit.
-13. Search       build_search_index (581-604, records 304-579; main 1177). Reads the built pages and
+12. Leak check   _check_leaks. Reads the finished tree; exit 1 on any hit.
+13. Search       build_search_index. Reads the built pages and
                  data/*.json after stages 5 to 7, and the grid thumbs; writes search-index.json and
-                 assets/search/ (80 px copies). Fails on a leak or the private name (294-301).
-14. Cache prune  _prune_jpeg_cache (756-770; main 1179).
+                 assets/search/ (80 px copies). Fails on a leak or the private name.
+14. Cache prune  _prune_jpeg_cache.
 
 Dependencies: 1 feeds everything. 4 and 5 read paths that 6 deletes. 7 to 9 are independent of the
 photo stages, apart from both editing page text (8 skips a page that already has icons). 11 needs the
 JPEGs of 5 and 10. 12 and 13 need the final tree. Stages 3 to 9, 12 and 13 touch no photo; only
 5, 10, 11 and the thumbs part of 13 resize or read photos.
 
-Split points noted while writing these tests: stage 3 and the stage 7 to 12 sequence live inline in
-main(), so they are tested through main() on a fixture tree (FullBuild below); the rest are called
-directly. The ~/.cache/hart/web-jpeg path and SITE_URL are module state, patched here.
+Split point noted while writing these tests: stage 3 is inline in main(), so it is tested through
+main() on a fixture tree (FullBuild below); the rest are called directly. The ~/.cache/hart/web-jpeg path and SITE_URL are module state, patched here.
 """
 import contextlib
 import hashlib
@@ -85,6 +85,11 @@ def _png(path: Path, colour=(200, 120, 40), size=(300, 200)) -> Path:
     return path
 
 
+def _clean_env() -> dict:
+    """The environment without any GIT_* variable (a hook or worktree sets GIT_DIR and friends)."""
+    return {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+
+
 class _Repo(unittest.TestCase):
     """A throwaway git repo holding a www/ tree; PORTAL points at it."""
 
@@ -94,7 +99,12 @@ class _Repo(unittest.TestCase):
         self.repo = Path(self._tmp.name) / "repo"
         self.portal = self.repo / "www"
         self.portal.mkdir(parents=True)
-        subprocess.run(["git", "-C", str(self.repo), "init", "-q"], check=True)
+        env = mock.patch.dict(os.environ)  # restored on cleanup; the module's own git calls read it
+        env.start()
+        self.addCleanup(env.stop)
+        for key in [k for k in os.environ if k.startswith("GIT_")]:
+            del os.environ[key]
+        subprocess.run(["git", "-C", str(self.repo), "init", "-q"], check=True, env=_clean_env())
         for patch in (
             mock.patch.object(build, "PORTAL", self.portal),
             mock.patch.object(build, "SITE_URL", "https://example.invalid/"),
@@ -108,7 +118,7 @@ class _Repo(unittest.TestCase):
 
     def track(self, rel: str, text: str = "x") -> Path:
         path = _write(self.portal, rel, text)
-        subprocess.run(["git", "-C", str(self.repo), "add", "-f", f"www/{rel}"], check=True)
+        subprocess.run(["git", "-C", str(self.repo), "add", "-f", f"www/{rel}"], check=True, env=_clean_env())
         return path
 
     def track_json(self, rel: str, data) -> Path:
@@ -328,6 +338,52 @@ class PhotoStages(_Repo):
         self.assertFalse((dest / "assets/archive/h2.jpg").exists())
 
 
+class RefillFailures(unittest.TestCase):
+    """_refresh_tables_page: which failed refills are warnings and which stop the build."""
+
+    PAGES = (build.build_tables_browser.PAGE_REL, build.repo_guide_page.PAGE_REL, build.jmri_additions_page.PAGE_REL)
+
+    def run_refresh(self, **failing):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for rel in self.PAGES:
+                _write(root, str(rel))
+            targets = {
+                "tables": (build.build_tables_browser, "write"),
+                "guide": (build.repo_guide_page, "write"),
+                "jmri": (build.jmri_additions_page, "write"),
+            }
+            out = io.StringIO()
+            with contextlib.redirect_stdout(out), contextlib.ExitStack() as stack:
+                for name, (mod, fn) in targets.items():
+                    stack.enter_context(mock.patch.object(mod, fn, side_effect=failing.get(name)))
+                build._refresh_tables_page(root)
+            return out.getvalue()
+
+    def test_all_refills_succeeding_prints_nothing(self):
+        self.assertEqual(self.run_refresh(), "")
+
+    def test_repo_guide_failures_are_warnings(self):
+        for exc in (build.repo_guide_page.PageError("stale"), subprocess.CalledProcessError(1, "git"), OSError("disk")):
+            with self.subTest(exc=type(exc).__name__):
+                self.assertIn("WARNING: repository guide not refilled", self.run_refresh(guide=exc))
+
+    def test_jmri_additions_failures_are_warnings(self):
+        for exc in (build.jmri_additions_page.PageError("stale"), OSError("disk"), ValueError("bad")):
+            with self.subTest(exc=type(exc).__name__):
+                self.assertIn("WARNING: JMRI additions page not refilled", self.run_refresh(jmri=exc))
+
+    def test_a_tables_browser_failure_stops_the_build(self):
+        with self.assertRaises(OSError):
+            self.run_refresh(tables=OSError("no tables.xml"))
+
+    def test_other_errors_in_the_guide_or_additions_stop_the_build(self):
+        with self.assertRaises(KeyError):
+            self.run_refresh(guide=KeyError("x"))
+        with self.assertRaises(KeyError):
+            self.run_refresh(jmri=KeyError("x"))
+
+
 @unittest.skipIf(Image is None, "Pillow is not installed")
 class FullBuild(_Repo):
     """main() on a small fixture site: the output list must stay the same however the stages are split."""
@@ -343,6 +399,20 @@ class FullBuild(_Repo):
     def setUp(self):
         super().setUp()
         self.out = Path(self._tmp.name) / "out"
+        # Small fixtures, so the real provenance.json and share-cards.json can change without touching this test.
+        prov = _write(Path(self._tmp.name), "prov/provenance.json", json.dumps({
+            "site": {"name": "Test Railroad", "summary": "A test site.", "notes": ["Everything here is a fixture."], "setting": "Nowhere"},
+            "classes": {c: f"{c} pages" for c in ("prototype", "fiction", "hobby", "mixed")},
+            "rules": {"index.html": {"class": "hobby"}, "about/": {"class": "hobby"}, "docs/": {"class": "hobby"}},
+        }))
+        original_load = build.provenance.load
+        for patch in (
+            mock.patch.object(build.provenance, "load", lambda path=prov: original_load(path)),
+            mock.patch.object(build.share_cards, "load", return_value={"about/index.html": {"image": "assets/share/about.jpg", "alt": "About card"}}),
+            mock.patch.object(build.share_cards, "load_links", return_value={}),
+        ):
+            patch.start()
+            self.addCleanup(patch.stop)
         _png(self.repo / "media/p1.png")
         _png(self.repo / "media/h1.png")
         _write(self.repo, "external/logos/a.png", "logo")
@@ -380,7 +450,8 @@ class FullBuild(_Repo):
         self.assertEqual(self.tree(), self.EXPECTED)
 
     def test_public_data_and_pages_are_scrubbed(self):
-        self.run_main()
+        code, _, err = self.run_main()
+        self.assertEqual(code, 0, err)
         site = json.loads((self.out / "data/site.json").read_text())
         self.assertEqual(site, {"engDesk": "", "name": "HART", "public": True})
         industries = json.loads((self.out / "data/industries.json").read_text())
@@ -394,11 +465,15 @@ class FullBuild(_Repo):
         self.assertNotIn("Engineering desk", home)
         self.assertIn('rel="icon"', home)
         self.assertIn("application/ld+json", home)
+        about = (self.out / "about/index.html").read_text()
+        self.assertIn("https://example.invalid/assets/share/about.jpg", about)
+        self.assertIn("Test Railroad", about)
         for skipped in ("README.md", "docs/note.md", "scripts/tool.py", "review/a.html"):
             self.assertFalse((self.out / skipped).exists(), skipped)
 
     def test_search_index_holds_the_pages_and_the_archive_item(self):
-        self.run_main()
+        code, _, err = self.run_main()
+        self.assertEqual(code, 0, err)
         index = json.loads((self.out / build.INDEX_NAME).read_text())
         urls = sorted(r["url"] for r in index["records"])
         self.assertEqual(urls, ["about/index.html", "docs/page.html", "index.html", "photos/index.html#historical/h1"])
