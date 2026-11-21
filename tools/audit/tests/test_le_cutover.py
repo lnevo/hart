@@ -430,13 +430,12 @@ class ThreeLevels(unittest.TestCase):
                 rows.setdefault(el.tag == "positionablelabel", []).append(el)
         captions, lamps = rows[True], rows[False]
         self.assertEqual((len(captions), len(lamps)), (4, 4))
-        B.plugin()
-        jt = importlib.import_module("schematic.jmri_text")
-        rights = {box(c)[0] + jt.width(c.get("text"), 12) for c in captions}
+        # right edges in one line as JMRI draws Dialog on the Pi (pi_dialog), 4 px left of the lamps (owner, 2026-11-21)
+        rights = {box(c)[0] + B.panel_items.pi_dialog.width(c.get("text"), 12) for c in captions}
         self.assertEqual(len(rights), 1)                    # right-justified ...
         self.assertTrue(all(c.get("justification") == "right" for c in captions))
         self.assertEqual(len({box(l)[0] for l in lamps}), 1)                     # ... lamps in a column beside them
-        self.assertGreater(min(box(l)[0] for l in lamps), rights.pop())
+        self.assertEqual(min(box(l)[0] for l in lamps) - rights.pop(), 4)
         right = max(box(l)[0] + 21 for l in lamps)          # the lamps' right edge: by the panel's right edge
         width = int(tables.layout_editor(tables.loads(self.base[0]).root, LIVE).get("panelwidth"))
         self.assertLessEqual(right, width - B.panel_items.EDGE)
