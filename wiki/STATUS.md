@@ -67,7 +67,7 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
   - **Place every head.** The draft board plan has no room for 14 heads: CP 107's 120RB (two heads), A83 and A84; CP 127's 132RA and 132RB (two each); CP 201's 222LB; CP 225's 230LB (two), B92 and B93; and 242L (no control point). A control point with an unplaced head cannot be frozen.
   - **Name the main and upper stations** in PanelPro (level unification step 7): then `stations.csv` and `sheets.csv` take every level, the hand-kept sheet lists in `preferences.json`'s `main_upper` section go, and the station maps follow.
   - **Map the power districts.** None is recorded on any level: the inventory's old districts were names, not a mapping (owner, 2026-11-21).
-  - **Wire, freeze and swap, control point by control point:** wire it as the device map has it, `make wiring-freeze CP="CP 123"` to make its wiring static in `wiring.csv`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now.
+  - **Wire, freeze and swap, control point by control point** (the 35 main-line occupancy detectors with them): wire it as the device map has it, `make wiring-freeze CP="CP 123"` to make its wiring static in `wiring.csv`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now.
 - **Speed matching follow-ups:** read both decoders back on the programming track (the roster still has 2738's old CV66, CV69 and CV70), and the loop 2 lap survey for Track S-R, OS 23b, OS 31 and OS 7 ([`projects/speedmatching.md`](projects/speedmatching.md)).
 
 ## In progress
@@ -77,7 +77,6 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
 
 ## Future goals
 
-- Main and upper levels into service: the wiring, stations and the swap to physical devices are Finalize wiring, under Owed; occupancy detection with it (35 detectors, main line only). NX, the Dispatcher System and the USS CTC are parked and not on this list.
-- Station maps for the main and upper levels drawn from the schematic diagrams, once those levels' stations are named. The same drawings would feed the 3D station map prints if the Barn trial works out.
+- Station maps for the main and upper levels drawn from the schematic diagrams, once those levels' stations are named (Finalize wiring, under Owed). The same drawings would feed the 3D station map prints if the Barn trial works out.
 - Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
