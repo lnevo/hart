@@ -718,6 +718,38 @@ class ReviewFixes(unittest.TestCase):
             B.build(bands=Built.bands, as_live=True, approved=None, base_data=doc.tobytes())
 
 
+class BaseNames(unittest.TestCase):
+    """The staging candidate binds staging's turnouts, blocks and masts to the base's beans and adds none: one the
+    base lacks stops the build, naming it."""
+
+    def build_without(self, section: str, name: str):
+        doc = tables.loads(B.base_tables())
+        sec = next(s for s in doc.root.findall(section)
+                   if any(name in (tables.system_name(e), tables.user_name(e)) for e in tables.elements(s)))
+        sec.remove(next(e for e in tables.elements(sec) if name in (tables.system_name(e), tables.user_name(e))))
+        with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
+            return B.build(levels="staging", as_live=True, approved=None, base_data=doc.tobytes())
+
+    def test_a_staging_turnout_block_or_mast_the_base_lacks_stops(self) -> None:
+        names = built()[2][B.STAGING]
+        turnout = sorted(names["turnouts"].values())[0]
+        block = sorted(names["os"].values())[0]
+        mast = sorted(m["mast"] for m in names["masts"])[0]
+        for section, name in (("turnouts", turnout), ("layoutblocks", block), ("signalmasts", mast)):
+            with self.subTest(name=name), self.assertRaisesRegex(B.BuildError, re.escape(repr(name))):
+                self.build_without(section, name)
+
+    def test_the_staging_candidate_adds_no_bean(self) -> None:
+        base = tables.loads(B.base_tables()).root
+        with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
+            data = B.build(levels="staging", as_live=True, approved=None)[0]
+        root = tables.loads(data).root
+        for section in ("turnouts", "sensors", "blocks", "layoutblocks", "signalheads", "signalmasts"):
+            with self.subTest(section=section):
+                self.assertEqual(sorted(tables.system_name(e) for s in root.findall(section) for e in tables.elements(s)),
+                                 sorted(tables.system_name(e) for s in base.findall(section) for e in tables.elements(s)))
+
+
 def anchor_panel(*anchors) -> str:
     """A panel of separate W|E boundaries, one anchor each (A1, A2, ...), the anchor's east slot holding `anchors`."""
     parts = []
