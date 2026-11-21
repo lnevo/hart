@@ -90,9 +90,11 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv
 
 
 def master_rows(rr: Railroad) -> list[tuple[int, dict]]:
-    """(line, row) of every level's rows of devices.csv that a device map holds (hartlib.devices)."""
+    """(line, row) of every level's rows of devices.csv that a device map holds (hartlib.devices): not a level-less
+    device, which is on no level's map yet."""
     from . import devices
-    return [(n, r) for n, r in enumerate(devices.load(rr.sources.devices), 2) if r["role"] not in devices.OUT_OF_MAPS]
+    return [(n, r) for n, r in enumerate(devices.load(rr.sources.devices), 2)
+            if r["role"] not in devices.OUT_OF_MAPS and not devices.is_unplaced(r)]
 
 
 # ---------------------------------------------------------------- invariants

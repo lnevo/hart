@@ -59,6 +59,12 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
         issues = contract.contract_violations(root, None)
         self.assertTrue(any("MTT100" in item for item in issues))
 
+    def test_a_dcc_turnout_needs_no_lcos_plant(self) -> None:
+        """Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS (owner, 2026-11-20)."""
+        root = ET.fromstring('<layout-config><turnout feedback="MONITORING"><systemName>MTT999</systemName>'
+                             "</turnout></layout-config>")
+        self.assertEqual([], contract.contract_violations(root, None))
+
     def test_cleanup_must_not_list_or_delete_mtt(self) -> None:
         self.assertFalse(
             any(name.startswith("MTT") for name in cleanup.DELETE_SYSTEM_NAMES)

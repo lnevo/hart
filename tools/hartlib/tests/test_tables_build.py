@@ -203,6 +203,25 @@ class MasterBeans(unittest.TestCase):
         with self.assertRaisesRegex(tb.TablesBuildError, "holds beans the master gives too.*ISCLOCKRUNNING"):
             tb.base(rows() + [clock], lengths=LENGTHS)
 
+    def test_a_level_less_device_lands_as_its_bean(self) -> None:
+        """A device added in PanelPro (no level, its Store bean in jmri_bean) goes into tables.xml as it was."""
+        store = ET.fromstring('<turnout feedback="MONITORING" inverted="false"><systemName>MTT999</systemName>'
+                              "<userName>Test 999</userName></turnout>")
+        row = blank(level="", layer="turnout", user_name="Test 999", assignment="field", system_name="MTT999",
+                    jmri_name="MTT999")
+        row["jmri_bean"] = tb.bean_json([(tb.LCC_TURNOUTS, store)], row)
+        root = tb.base(rows() + [row], lengths=LENGTHS).root
+        got = next(el for el in root.iter("turnout") if tables.system_name(el) == "MTT999")
+        self.assertEqual(("MONITORING", "Test 999", None), (got.get("feedback"), tables.user_name(got), got.get("sensor1")))
+
+    def test_a_level_less_bean_a_level_row_makes_too_stops(self) -> None:
+        store = ET.fromstring("<turnout><systemName>MTT100</systemName></turnout>")
+        row = blank(level="", layer="turnout", user_name="Test", assignment="field", system_name="MTT100",
+                    jmri_name="MTT100")
+        row["jmri_bean"] = tb.bean_json([(tb.LCC_TURNOUTS, store)], row)
+        with self.assertRaisesRegex(tb.TablesBuildError, "a level row makes too \\(MTT100\\)"):
+            tb.base(rows() + [row], lengths=LENGTHS)
+
     def test_a_bad_master_row_stops_before_any_bean(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "devices.csv"

@@ -77,9 +77,10 @@ class DeviceMasterError(RuntimeError):
 
 def master_lines(path: Path = DEVICE_MAP) -> list[tuple[int, dict[str, str]]]:
     """(line, row) of every row of the master at `path` that a device map holds (all levels, outside
-    devices.OUT_OF_MAPS), each a dict of the master's columns. DeviceMasterError when it cannot be read or is empty."""
+    devices.OUT_OF_MAPS, and not a level-less device), each a dict of the master's columns. DeviceMasterError when it cannot be read or is empty."""
     try:
-        out = [(n, dict(r)) for n, r in enumerate(devices.load(path), 2) if r["role"] not in devices.OUT_OF_MAPS]
+        out = [(n, dict(r)) for n, r in enumerate(devices.load(path), 2)
+               if r["role"] not in devices.OUT_OF_MAPS and not devices.is_unplaced(r)]   # on no level's map yet
     except railroad.FactsError as exc:
         raise DeviceMasterError(str(exc)) from None
     if not out:

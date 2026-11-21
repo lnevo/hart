@@ -482,6 +482,26 @@ LAYER_OF = {"turnouts": "turnout", "sensors": "sensor", "signalheads": "head", "
             "blocks": "block", "layoutblocks": "block"}
 
 
+def _name_holder(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
+    """Why a bean the Store added cannot be a new row because a devices.csv row holds one of its names, with what to do;
+    None when no row does."""
+    names = [(n, what, cols) for n, what, cols in (
+        (key[4], "system name", ("system_name", "jmri_name", "user_name")),
+        (tables.user_name(el), "user name", ("user_name", "jmri_name", "system_name"))) if n]
+    for r in rows:
+        for name, what, cols in names:
+            for col in cols:
+                if r[col] != name:
+                    continue
+                at = f"devices.csv row {r['layer']} {r['user_name']!r}"
+                if col == "system_name" and what == "system name" and r["assignment"] in ("virtual", "none"):
+                    return (f"{at} plans this device (system_name {name!r}, assignment {r['assignment']}); to bring "
+                            "it into JMRI, set that row's assignment to field and rebuild, or give the Store's device "
+                            "another name")
+                return f"its {what} {name!r} is that row's {col}; give the Store's device another name in PanelPro"
+    return None
+
+
 def unplaced_row(beans: list[tuple[tuple, ET.Element]], old: Mapping[str, str] | None = None) -> dict[str, str]:
     """The level-less devices.csv row of a device's Store beans ((section key, element)): its names and comment
     from the main bean (a block's full pass, else the one bean), the rest of the beans in jmri_bean. `old`, the row
@@ -505,11 +525,17 @@ def _row_edits(i: int, old: Mapping[str, str], new: Mapping[str, str]) -> tuple[
     return tuple(Edit(i, c, old[c], new[c]) for c in devices.COLUMNS if old[c] != new[c])
 
 
-def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[str, str]]) -> None:
+def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[str, str]], has_base: bool) -> None:
     """DEVICE items (appended to `found`) for the devices the Store added ({group: [(key, b, s)]}) and the level-less
     rows whose beans it changed or deleted ({row: [(key, b, g, s)]})."""
     for group, got in added.items():
         beans = [(key[1], s) for key, _, s in got]
+        if all(sk == tb.LAYOUT_BLOCKS for sk, _ in beans):
+            key, b, s = got[0]
+            found.append((DROPPED, key, dict(store=s, repo=None, base=b, what="added in the Store", note=(
+                "a layout block with no block of the same user name added with it; add the block, or name the "
+                "layout block as its block"))))
+            continue
         row = unplaced_row(beans)
         taken = [r for r in rows if (r["level"], r["layer"], r["user_name"]) == ("", row["layer"], row["user_name"])
                  or r["jmri_name"] == row["jmri_name"]]
@@ -532,20 +558,32 @@ def _unplaced_items(found: list, added: dict, changed: dict, rows: list[Mapping[
                                             note=f"merge deletes devices.csv {old['layer']} row {old['user_name']!r}")))
             continue
         by_key = {k: (bb, gg, ss) for k, bb, gg, ss in got}
-        beans = []
-        for sk, el in tb.row_beans(old):
-            k = ("bean", sk, el.tag, tb._sort_group(el), tables.system_name(el))
-            ss = by_key[k][2] if k in by_key else el
-            if ss is not None:
-                beans.append((sk, ss))
-        beans += [(k[1], ss) for k, bb, gg, ss in got if gg is None and ss is not None]
-        new = unplaced_row(beans, old)
-        edits = _row_edits(i, old, new)
+
+        def side(n: int) -> list[tuple[tuple, ET.Element]]:
+            """The row's beans with the Store's (n=2) or the base's (n=0) version of each one the Store touched."""
+            out = []
+            for sk, el in tb.row_beans(old):
+                k = ("bean", sk, el.tag, tb._sort_group(el), tables.system_name(el))
+                v = by_key[k][n] if k in by_key else el
+                if v is not None:
+                    out.append((sk, v))
+            return out + [(k[1], t[n]) for k, *t in got if t[1] is None and t[n] is not None]
+
+        new = unplaced_row(side(2), old)
+        known = has_base and any(t[0] is not None for _, *t in got)
+        was = unplaced_row(side(0), old) if known and side(0) else None
+        # a cell the owner did not change (the Store's equals the base's) keeps the repo's, so a repo edit since the
+        # deploy survives; with no base every difference is the owner's
+        wanted = {c: v for c, v in new.items() if was is None or v != was[c]}
+        edits = tuple(e for e in _row_edits(i, old, {**old, **wanted}))
         if not edits:
             continue
+        both = [e.column for e in edits if was is not None and old[e.column] != was[e.column]]
         found.append((DEVICE, key, dict(info, what=change_text(g, s), edits=edits,
                                         note=f"merge rewrites level-less devices.csv row {old['layer']} "
-                                             f"{old['user_name']!r} ({', '.join(e.column for e in edits)})")))
+                                             f"{old['user_name']!r} ({', '.join(e.column for e in edits)})"
+                                             + (f"; the repo changed {', '.join(both)} too since the deploy, and "
+                                                "merge takes the Store's" if both else ""))))
 
 
 def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template: ET.Element,
@@ -602,7 +640,7 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
         if key[0] == "bean" and key[1] in tb.MASTER_SECTIONS:
             el_row = rows_of(rindex, key, g if g is not None else b if b is not None else s)
             mine = [i for i in el_row if devices.is_unplaced(rows[i])]
-            if mine and (g is not None or b is not None):
+            if mine:
                 changed.setdefault(mine[0], []).append((key, b, g, s))
                 continue
             if g is None and b is None and not claimed_name(key, s, rows):
@@ -615,13 +653,11 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
             continue
         if g is None:
             new = b is None
-            named = claimed_name(key, s, rows) if key[0] == "bean" else None
-            if new and named and named.startswith("devices.csv row"):
-                found.append((DROPPED, key, dict(info, what="added in the Store", note=(
-                    f"{named} plans this name (system_name {key[4]!r}); to bring that device into JMRI, set the row's "
-                    "assignment to field and rebuild, or give the Store's device another name"))))
+            holder = _name_holder(key, s, rows) if new and key[0] == "bean" else None
+            if holder:
+                found.append((DROPPED, key, dict(info, what="added in the Store", note=holder)))
                 continue
-            why = claimed_by(key, s, rows) or "the build"
+            why = (claimed_name(key, s, rows) if key[0] == "bean" else None) or claimed_by(key, s, rows) or "the build"
             found.append((DROPPED, key, dict(info, what="added in the Store" if new else "the repo no longer makes it",
                                              note=f"{why} makes it")))
             continue
@@ -638,7 +674,7 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
             sub_g, sub_s = _only(g, rest), _only(s, rest)
             found.append((DROPPED, key, dict(info, what=change_text(sub_g, sub_s),
                                              note=f"the repo wins: change it in {_source(key)}")))
-    _unplaced_items(found, added, changed, rows)
+    _unplaced_items(found, added, changed, rows, has_base)
     grouped: list[tuple[str, tuple, dict]] = []
     by_edits: dict[tuple, dict] = {}
     for kind, key, info in found:

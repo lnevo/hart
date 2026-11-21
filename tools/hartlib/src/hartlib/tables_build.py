@@ -583,7 +583,14 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     except railroad.FactsError as exc:
         raise TablesBuildError(str(exc)) from None
     beans = master_beans(rows, lengths)
-    for key, els in kept_beans(rows).items():
+    made = {n for els in beans.values() for el in els for n in (tables.system_name(el), tables.user_name(el)) if n}
+    kept = kept_beans(rows)
+    twice = sorted({tables.system_name(el) for key, els in kept.items() if key[0] != "blocks-names" for el in els
+                    if tables.system_name(el) in made})
+    if twice:
+        raise TablesBuildError(f"devices.csv: a level-less device's jmri_bean names a bean a level row makes too "
+                               f"({', '.join(twice[:8])}); a bean has one source")
+    for key, els in kept.items():
         beans.setdefault(key, []).extend(els)
     if ("blocks-names",) + BLOCKS in beans:
         beans.setdefault(BLOCKS, [])
