@@ -380,6 +380,7 @@ function app() {
     nodeEl = {};
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
+    drawNav();
     svg.querySelectorAll(".elabel").forEach(l => {
       const path = document.getElementById(l.dataset.edge), m = path.getPointAtLength(path.getTotalLength() / 2);
       l.setAttribute("x", m.x); l.setAttribute("y", m.y - 3); l.setAttribute("text-anchor", "middle");
@@ -391,6 +392,7 @@ function app() {
     runSearch(true);
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
+    updateNav();
   }
 
   function showStatus(sub) {
@@ -411,8 +413,42 @@ function app() {
     if (btn) btn.onclick = () => { view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes); fileIn.value = ""; syncControls(); render(false); writeHash(); };
   }
 
+  /* ---- overview in the corner: the whole drawing as plain boxes, with a box round what the main view shows */
+  const nav = document.getElementById("nav");
+  let navSvg = null, navRect = null;
+  function drawNav() {
+    const w = Math.min(240, 160 * W / H), h = w * H / W;  // at most 240 wide or 160 tall
+    const p = [`<svg width="${w.toFixed(0)}" height="${h.toFixed(0)}" viewBox="${-LEFT} 0 ${W} ${H}">`];
+    for (const b of lay.bands) p.push(`<rect x="${-LEFT}" y="${b.y}" width="${W}" height="${b.h}" fill="${esc(b.color)}" fill-opacity="0.15"/>`);
+    for (const n of lay.nodes)
+      p.push(`<rect class="n" data-id="${esc(n.id)}" x="${n.x}" y="${n.y}" width="${n.w}" height="${n.h}" fill="${esc(DATA.kinds[n.kind][2])}"/>`);
+    p.push('<rect class="vr"/></svg>');
+    nav.innerHTML = p.join("");
+    navSvg = nav.firstChild; navRect = nav.querySelector(".vr");
+  }
+  function updateNav() {
+    if (!navRect) return;
+    // hidden while the whole drawing is in view, as at Fit
+    nav.hidden = vb.x <= -LEFT + 1 && vb.y <= 1 && vb.x + vb.width >= W - LEFT - 1 && vb.y + vb.height >= H - 1;
+    nav.style.right = info.style.display === "block" && innerWidth > 900 ? "380px" : "";
+    navRect.setAttribute("x", vb.x); navRect.setAttribute("y", vb.y);
+    navRect.setAttribute("width", vb.width); navRect.setAttribute("height", vb.height);
+  }
+  function panFromNav(e) {  // centre the main view on the drawing point under the pointer
+    const pt = navSvg.createSVGPoint();
+    pt.x = e.clientX; pt.y = e.clientY;
+    const m = pt.matrixTransform(navSvg.getScreenCTM().inverse());
+    setVB(m.x - vb.width / 2, m.y - vb.height / 2, vb.width, vb.height);
+  }
+  let navDrag = false;
+  nav.addEventListener("pointerdown", e => { navDrag = true; nav.setPointerCapture(e.pointerId); panFromNav(e); e.preventDefault(); });
+  nav.addEventListener("pointermove", e => { if (navDrag) panFromNav(e); });
+  nav.addEventListener("pointerup", () => (navDrag = false));
+  nav.addEventListener("pointercancel", () => (navDrag = false));
+  nav.addEventListener("wheel", e => e.preventDefault(), { passive: false });
+
   /* ---- pan and zoom */
-  function setVB(x, y, w, h) { vb.x = x; vb.y = y; vb.width = w; vb.height = h; }
+  function setVB(x, y, w, h) { vb.x = x; vb.y = y; vb.width = w; vb.height = h; updateNav(); }
   function fit() {  // whole drawing in view, below the toolbar
     const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom + 10;
     const s = Math.max(W / r.width, H / Math.max(r.height - top, 100));
@@ -434,7 +470,7 @@ function app() {
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? wrapEl.clientHeight : 1;
     const dx = e.deltaX * unit, dy = e.deltaY * unit;
-    if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { vb.x += dx * vb.width / wrapEl.getBoundingClientRect().width; return; }
+    if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { vb.x += dx * vb.width / wrapEl.getBoundingClientRect().width; updateNav(); return; }
     zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY);
   }, { passive: false });
   let drag = null, moved = false;
@@ -444,6 +480,7 @@ function app() {
     const r = wrapEl.getBoundingClientRect(), dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
     vb.x = drag.vx - dx * vb.width / r.width; vb.y = drag.vy - dy * vb.height / r.height;
+    updateNav();
   });
   window.addEventListener("pointerup", () => { drag = null; wrapEl.classList.remove("drag"); });
   window.addEventListener("resize", () => {
@@ -461,6 +498,8 @@ function app() {
     svg.classList.remove("focus");
     svg.querySelectorAll(".on,.sel,.upstream,.near").forEach(el => el.classList.remove("on", "sel", "upstream", "near"));
     info.style.display = "none";
+    nav.classList.remove("focus"); nav.querySelectorAll("rect.on").forEach(r => r.classList.remove("on"));
+    updateNav();
     if (!user) return;
     const was = trimmed();
     selected = null;
@@ -507,6 +546,9 @@ function app() {
       <b>Feeds</b><ul>${(outsAll[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
       <div style="color:#666">${fullUp} upstream, ${fullDown} downstream in the whole map.</div>`;
     info.style.display = "block";
+    nav.classList.add("focus");
+    nav.querySelectorAll("rect.n").forEach(r => { if (upSet.has(r.dataset.id) || downSet.has(r.dataset.id)) r.classList.add("on"); });
+    updateNav();
     info.querySelector(".close").onclick = () => clearFocus(true);
     if (!isFocus) info.querySelector("#fgo").onclick = () => focusOn(id);
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));

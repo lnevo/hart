@@ -165,6 +165,12 @@ svg{width:100%;height:100%;display:block;user-select:none}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:fixed;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
+#nav{position:fixed;right:10px;bottom:10px;z-index:6;padding:4px;cursor:crosshair;touch-action:none;user-select:none}
+#nav[hidden]{display:none}
+#nav svg{display:block}
+#nav .vr{fill:rgba(220,38,38,.08);stroke:#dc2626;stroke-width:2;vector-effect:non-scaling-stroke}
+#nav.focus rect.n{opacity:.2}
+#nav.focus rect.n.on{opacity:1}
 #info{position:fixed;top:10px;right:10px;bottom:10px;width:360px;z-index:5;padding:12px 14px;overflow:auto;display:none}
 #info h2{font-size:16px;margin:0 0 4px}
 #info code{font-size:12px;word-break:break-all}
@@ -195,7 +201,8 @@ svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 .hidden{display:none}
 @media (max-width:900px){#bar{right:10px;max-width:none} #bar input[type=search],#bar #file{width:120px}
- #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}}
+ #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
+ #nav svg{max-width:150px;height:auto}}
 </style></head><body>
 <div id="wrap"></div>
 <div id="bar" class="panel">__BACK__<h1>HART pipeline map</h1>
@@ -216,10 +223,11 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
  <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
 <span id="view"></span>
 </div>
+<div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
