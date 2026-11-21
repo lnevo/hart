@@ -1182,6 +1182,60 @@
     "command": "throw"
    }
   },
+  "Helix Inner": {
+   "_planned_occupied": {
+    "DECADDR": "4100",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Helix Inner",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4100",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "name": "Track Helix Inner",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:Helix_Inner",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Helix Inner",
+    "command": "close"
+   },
+   "station": "Helix",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:Helix_Inner",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
+  "Helix Outer": {
+   "_planned_occupied": {
+    "DECADDR": "4101",
+    "JMRIPREFIX": "M2S",
+    "USER_NAME": "BS Helix Outer",
+    "command": "close"
+   },
+   "_planned_unoccupied": {
+    "DECADDR": "4101",
+    "JMRIPREFIX": "M2S",
+    "command": "throw"
+   },
+   "discipline": "CTC",
+   "name": "Track Helix Outer",
+   "occupied": {
+    "DECADDR": ":HART:C3:B:Helix_Outer",
+    "JMRIPREFIX": "IS",
+    "USER_NAME": "BS Helix Outer",
+    "command": "close"
+   },
+   "station": "Helix",
+   "unoccupied": {
+    "DECADDR": ":HART:C3:B:Helix_Outer",
+    "JMRIPREFIX": "IS",
+    "command": "throw"
+   }
+  },
   "K-1": {
    "discipline": "CTC",
    "name": "Track K-1",
@@ -1243,60 +1297,6 @@
    "unoccupied": {
     "DECADDR": "200",
     "JMRIPREFIX": "M2S",
-    "command": "throw"
-   }
-  },
-  "McKees Rocks": {
-   "_planned_occupied": {
-    "DECADDR": "4101",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Helix Outer",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "4101",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "Track Helix Outer",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:Helix_Outer",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS Helix Outer",
-    "command": "close"
-   },
-   "station": "Helix",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:Helix_Outer",
-    "JMRIPREFIX": "IS",
-    "command": "throw"
-   }
-  },
-  "McKeesport": {
-   "_planned_occupied": {
-    "DECADDR": "4100",
-    "JMRIPREFIX": "M2S",
-    "USER_NAME": "BS Helix Inner",
-    "command": "close"
-   },
-   "_planned_unoccupied": {
-    "DECADDR": "4100",
-    "JMRIPREFIX": "M2S",
-    "command": "throw"
-   },
-   "discipline": "CTC",
-   "name": "Track Helix Inner",
-   "occupied": {
-    "DECADDR": ":HART:C3:B:Helix_Inner",
-    "JMRIPREFIX": "IS",
-    "USER_NAME": "BS Helix Inner",
-    "command": "close"
-   },
-   "station": "Helix",
-   "unoccupied": {
-    "DECADDR": ":HART:C3:B:Helix_Inner",
-    "JMRIPREFIX": "IS",
     "command": "throw"
    }
   },

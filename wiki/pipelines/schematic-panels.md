@@ -46,9 +46,9 @@ the piece inside its OS block) and kind `crossover_half` (the crossover halves w
 replaced `block_exceptions.csv` and `block_splits.csv` (2026-11-21). What a reader sees for a track can differ from its
 plan name: `preferences.json[main_upper]` `track_labels` (the schematic-maps plugin's sheet-wide preference, since
 plugin 0.1.50) maps a plan name to the label drawn, McKees Rocks for Helix Outer and McKeesport for Helix Inner until
-the layout expands. The plugin draws it on the schematic and station sheets (helix letters follow the labels, so H1 is
-still the outer track); `le_names.shown_bands` puts the same labels on the Layout Editor panel and the CATS desks
-(`cats_panel.name_loop_halves`), and `levels_page` on the track-plan article, all from that one key. `build_device_map.py` writes staging's block and occupancy rows
+the layout expands. The plugin draws it on every output it makes: the schematic and station sheets (helix letters
+follow the labels, so H1 is still the outer track), the Layout Editor panel and the CATS desks; `levels_page` reads the
+same key for the track-plan article. The desks' bindings stay keyed by plan name (Helix Outer, Helix Inner). `build_device_map.py` writes staging's block and occupancy rows
 from it (written_by `build_device_map.py`; each row's field facts, the system and layout-block names, node, wiring,
 stop, station group and name-map columns, carried over from its row), so a staging block change made in PanelPro is
 carried by hand into those three data files, not into `devices.csv`. Main and upper write their part rows the same

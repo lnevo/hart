@@ -143,8 +143,8 @@ def os_blocks(band, F):
 
 
 def track_block(name, helix) -> str:
-    """The block of a staging track named `name` on the desk's bands: a helix track's helix block (`helix`, {shown
-    name: block}, Facts.helix: one block up the helix, owner 2026-11-20), any other "Track <name>"."""
+    """The block of a staging track the plan names `name`: a helix track's helix block (`helix`, {plan name: block},
+    Facts.helix: one block up the helix, owner 2026-11-20), any other "Track <name>"."""
     return helix.get(name) or "Track " + name
 
 
@@ -295,9 +295,8 @@ def name_loop_halves(bands, device=None):
     level, owner 2026-11-20; strand_placeholders, one desk block per strand; SystemExit on a connector the plugin's
     partners do not pair). Each balloon loop is two desk blocks: each half's strand is named by its device map
     block less "Track " (the plugin parts a turnback between two differently named tracks in the middle of its run,
-    and labels each half) and marked with its half (`loop_half`). Last, each helix track takes the name shown for it
-    on every band at once (le_names.shown_bands: the desk prints it, and the plugin pairs the helix ends by it), so
-    the facts key the helix tracks by that name (Facts.helix, dark_bindings)."""
+    and labels each half) and marked with its half (`loop_half`). The plugin prints a track's track_labels label
+    (the helix tracks' McKees Rocks and McKeesport) in place of its name."""
     import build_layout_le as bl
     import staging_device_map as sdm
     device = load_device_map() if device is None else device      # the caller's Facts.device, read once
@@ -327,7 +326,7 @@ def name_loop_halves(bands, device=None):
             if trial not in by_trial:
                 raise SystemExit(f"{title}: balloon loop half {trial} has no block row in {DEVICE_MAP.name}")
             band["strands"][sid]["name"] = by_trial[trial].removeprefix("Track ")
-    return bl.shown_bands(out)
+    return out
 
 
 def part_blocks() -> dict[str, tuple[str, str]]:
@@ -451,7 +450,7 @@ def dark_bindings(bands, cats, P, F, bound_bi):
         groups[P.find(key)].append(key)
     band_of = lambda k: int(k[1].split(":", 1)[0][1:])
     out, log, seen, missing, joined = {}, [], set(), {}, set()
-    helix = {h["shown"]: h for h in mr.read_helix_tracks().values()}     # the desk's bands carry the shown names
+    helix = mr.read_helix_tracks()
     part_of = dict(part_blocks().values())                  # {part: its OS block}
     for root, keys in sorted(groups.items(), key=lambda kv: P.names[kv[0]]):
         panel_name = P.names[root]
@@ -504,8 +503,8 @@ def dark_bindings(bands, cats, P, F, bound_bi):
 
 
 def helix_block(band, key, helix) -> str | None:
-    """The helix block of staging desk key `key` (`helix`: {the name shown for a helix track: its read_helix_tracks
-    entry}, the name its strand carries on the desk's bands, name_loop_halves); else None. staging_device_map.check_helix holds the staging device map to the same block."""
+    """The helix block of staging desk key `key` (`helix`: {plan name: its read_helix_tracks entry}): its strand's
+    plan name is a helix track's; else None. staging_device_map.check_helix holds the staging device map to the same block."""
     if key[0] != "track":
         return None
     s = band["strands"].get(key[1].split(":", 1)[1])
