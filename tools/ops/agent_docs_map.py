@@ -63,6 +63,7 @@ GLOBS = {
     ".claude/agents/*.md": "agent: ",
     ".claude/commands/*.md": "/",
     "*/AGENTS.md": "",
+    "*/*/AGENTS.md": "",    # with the line above, every AGENTS.md check_agent_docs.py reads (its */AGENTS.md crosses /)
 }
 HAND_KEPT = ("wiki/STATUS.md", "docs/INDEX.md", "docs/pipeline-map/pipeline_map.json", "tools/ops/pipeline_query.py")
 READ_SUFFIXES = (".md", ".mdc")    # the files whose links are read; the others are only link targets
@@ -96,6 +97,21 @@ def _prefix(path: str) -> str:
     return next(label for g, label in GLOBS.items() if matches(path, g))
 
 
+def _unquote(path: str, value: str) -> str:
+    """A YAML scalar's text: a quoted one without its pair of quotes ('' inside single quotes is one quote; a double
+    quoted one is read with its escapes), a plain one as written."""
+    if len(value) < 2 or value[0] != value[-1] or value[0] not in "\"'":
+        if value[0] in "\"'":
+            raise AgentDocsMapError(f"{path}: the front matter description opens a quote it does not close")
+        return value
+    if value[0] == "'":
+        return value[1:-1].replace("''", "'")
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        raise AgentDocsMapError(f"{path}: the front matter description has an escape the map cannot read") from None
+
+
 def front_description(path: str, text: str) -> str:
     """The one-line `description:` in the file's front matter (between --- lines at the top)."""
     lines = text.splitlines()
@@ -110,7 +126,7 @@ def front_description(path: str, text: str) -> str:
             if not value or value in (">", "|", ">-", "|-") or (i + 1 < len(head) and head[i + 1][:1].isspace()):
                 raise AgentDocsMapError(f"{path}: the map reads a one-line front matter description; this one is "
                                         f"empty or runs over several lines")
-            return value.strip("\"'")
+            return _unquote(path, value)
     raise AgentDocsMapError(f"{path}: front matter has no description; add one")
 
 
@@ -197,11 +213,20 @@ def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked:
     return [{"from": a, "to": b, "label": label, "gen": GEN} for (a, b), label in sorted(edges.items())]
 
 
+def _read_file(rel: str) -> str:
+    try:
+        return (ROOT / rel).read_text(encoding="utf-8")
+    except OSError as err:
+        raise AgentDocsMapError(f"{rel} is in git but cannot be read ({err.strerror}); restore it or git rm it") from None
+    except UnicodeDecodeError:
+        raise AgentDocsMapError(f"{rel} is not UTF-8 text") from None
+
+
 def regenerate(data: dict, tracked: frozenset[str] | None = None, read=None,
                checked: list[str] | None = None) -> dict:
     """The graph with its generated agent-doc boxes and links replaced by fresh ones from the files."""
     tracked = tracked if tracked is not None else frozenset(_ls())
-    read = read or (lambda p: (ROOT / p).read_text(encoding="utf-8"))
+    read = read or _read_file
     checked = checked if checked is not None else DOCS_CHECK.agent_files()
     if DOMAIN not in {d.get("id") for d in data["domains"]}:
         raise AgentDocsMapError(f"the graph has no {DOMAIN!r} domain for the agent docs; add it to its domains")

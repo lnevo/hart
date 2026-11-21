@@ -20,7 +20,8 @@ What must be in the map:
   and not ignored) fails: it is a call to a file that is gone. Comments are not read.
 - Outputs: every tracked file under OUTPUT_ROOTS, and every repo path an entry file gives to `--out`.
 - Agent docs: every file, tracked or new and not ignored, that matches GLOBS in tools/ops/agent_docs_map.py (the
-  .claude skills, subagents and commands, and */AGENTS.md). The map build draws each tracked one, so ALLOWED does
+  .claude skills, subagents and commands, and the
+  AGENTS.md files one or two folders down). The map build draws each tracked one, so ALLOWED does
   not apply to them.
 
 A file is known when a node's path is the file or a folder above it, except a top-level folder (a `www` box stands

@@ -36,6 +36,9 @@ ROOT = Path(__file__).resolve().parents[2]
 GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
 PAGE = ROOT / "docs" / "pipeline-map" / "index.html"
 SCRIPT = Path(__file__).resolve().with_name("pipeline_map.js")
+# the website copy, as tools/check.sh checks it
+SITE_BUILD = ("python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html "
+              "--back repository-guide.html")
 
 KINDS = {
     "structured": ("Structured data", "#dbeafe", "#1e40af"),
@@ -88,6 +91,12 @@ def read(path: Path) -> dict:
     for key in ("domains", "nodes", "edges"):
         if not isinstance(data.get(key), list):
             raise GraphError(f"the graph needs a {key!r} list")
+        bad = [item for item in data[key] if not isinstance(item, dict)]
+        if bad:
+            raise GraphError(f"every entry of {key!r} must be an object: {bad[0]!r}")
+    bad_paths = [n for n in data["nodes"] if not isinstance(n.get("path", ""), str)]
+    if bad_paths:
+        raise GraphError(f"a node's path must be text: {bad_paths[0]!r}")
     return data
 
 
@@ -473,13 +482,17 @@ def main(argv: list[str] | None = None) -> int:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
     fresh = graph_text(data)
-    if args.check and args.graph.read_text() != fresh:
-        print(f"{args.graph} is out of date (its agent-doc lane is generated from the files): run "
-              f"python3 tools/ops/build_pipeline_map.py {again}".rstrip(), file=sys.stderr)
-        return 1
-    if not args.check and args.graph.read_text() != fresh:
+    plain = "python3 tools/ops/build_pipeline_map.py" + (
+        f" --graph {shlex.quote(str(args.graph))}" if args.graph.resolve() != GRAPH.resolve() else "")
+    if args.graph.read_text() != fresh:
+        # Only the plain build writes the graph, so a website build or a --check never changes a tracked source.
+        if args.check or args.public:
+            print(f"{args.graph} is out of date (its agent-doc lane is generated from the files): run {plain} "
+                  f"(it rewrites the graph and the docs page), then {SITE_BUILD}", file=sys.stderr)
+            return 1
         args.graph.write_text(fresh)
-        print(f"updated {args.graph.name}: the agent-doc lane, from the files")
+        print(f"updated {args.graph.name}: the agent-doc lane, from the files; rebuild the website copy too: "
+              f"{SITE_BUILD}")
     page = render(public_copy(data) if args.public else data, args.back, args.public)
     if args.public:
         try:

@@ -52,6 +52,11 @@ class ReferencesTest(unittest.TestCase):
         self.assertEqual(targets("AGENTS.md", "`./tools/check.sh` `wiki/projects/` `tools/../wiki/home.md`"),
                          [("code", "tools/check.sh"), ("code", "wiki/projects"), ("code", "wiki/home.md")])
 
+    def test_path_or_link_that_climbs_out_is_reported(self) -> None:
+        self.assertEqual(DOCS.problems_in("wiki/x.md", "`tools/../../secret/x.py` [a](../../out.md) `tools/check.sh`"),
+                         ["wiki/x.md: link ../../out.md leaves the repo",
+                          "wiki/x.md: path tools/../../secret/x.py leaves the repo"])
+
     def test_git_failure_is_a_clear_error(self) -> None:
         with self.assertRaisesRegex(DOCS.AgentDocsError, "git ls-files --no-such-flag failed"):
             DOCS._git("ls-files", "--no-such-flag")
@@ -81,10 +86,27 @@ class FrontMatterTest(unittest.TestCase):
             with self.subTest(text=text), self.assertRaisesRegex(GEN.AgentDocsMapError, why):
                 GEN.front_description("s.md", text)
 
+    def test_quoted_descriptions(self) -> None:
+        for raw, want in (("Use with the 'deploy'", "Use with the 'deploy'"), ("'it''s'", "it's"),
+                          ('"say \\"hi\\""', 'say "hi"'), ("'x'", "x")):
+            with self.subTest(raw=raw):
+                self.assertEqual(GEN.front_description("s.md", f"---\ndescription: {raw}\n---\n"), want)
+        for raw in ('"open', '"bad \\q"'):
+            with self.subTest(raw=raw), self.assertRaises(GEN.AgentDocsMapError):
+                GEN.front_description("s.md", f"---\ndescription: {raw}\n---\n")
+
+    def test_nested_agents_md_is_in_the_set(self) -> None:
+        self.assertTrue(any(GEN.matches("ops/hart-ops/AGENTS.md", g) for g in GEN.GLOBS))
+        self.assertTrue(any(GEN.matches("cats/AGENTS.md", g) for g in GEN.GLOBS))
+
+    def test_unreadable_doc_is_a_clear_error(self) -> None:
+        with self.assertRaisesRegex(GEN.AgentDocsMapError, "no/such.md is in git but cannot be read"):
+            GEN._read_file("no/such.md")
+
     def test_glob_star_stays_in_one_folder(self) -> None:
         self.assertTrue(GEN.matches(".claude/skills/a/SKILL.md", ".claude/skills/*/SKILL.md"))
         self.assertFalse(GEN.matches(".claude/skills/a/b/SKILL.md", ".claude/skills/*/SKILL.md"))
-        self.assertFalse(GEN.matches("ops/hart-ops/AGENTS.md", "*/AGENTS.md"))
+        self.assertFalse(GEN.matches("ops/hart-ops/AGENTS.md", "*/AGENTS.md"))   # "*/*/AGENTS.md" covers it
 
 
 FILES = {
@@ -177,6 +199,32 @@ class BuildCheckTest(unittest.TestCase):
                 self.assertEqual(MAP.main(["--graph", str(graph), "--out", str(out), "--check"]), 1)
             self.assertIn("agent-doc lane is generated", err.getvalue())
             self.assertEqual(json.loads(graph.read_text()), data)    # --check writes nothing
+
+    def test_only_the_plain_build_writes_the_graph(self) -> None:
+        data = json.loads(MAP.GRAPH.read_text())
+        data["edges"] = [e for e in data["edges"] if not (e.get("gen") and e["label"] == "check")]
+        with tempfile.TemporaryDirectory() as tmp:
+            graph, out = Path(tmp) / "g.json", Path(tmp) / "m.html"
+            graph.write_text(json.dumps(data))
+            err = io.StringIO()
+            with contextlib.redirect_stderr(err):
+                self.assertEqual(MAP.main(["--graph", str(graph), "--public", "--out", str(out)]), 1)
+            self.assertEqual(json.loads(graph.read_text()), data)
+            self.assertFalse(out.exists())
+            self.assertIn(f"python3 tools/ops/build_pipeline_map.py --graph {graph}", err.getvalue())
+            self.assertIn(MAP.SITE_BUILD, err.getvalue())
+            with contextlib.redirect_stdout(io.StringIO()):
+                self.assertEqual(MAP.main(["--graph", str(graph), "--out", str(out)]), 0)
+            self.assertEqual(graph.read_text(), MAP.GRAPH.read_text())
+
+    def test_malformed_entries_are_graph_errors(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "g.json"
+            for nodes, why in ((["x"], "every entry of 'nodes' must be an object"),
+                               ([{"id": "x", "path": 5}], "path must be text")):
+                bad.write_text(json.dumps({"domains": [], "nodes": nodes, "edges": []}))
+                with self.subTest(why=why), self.assertRaisesRegex(MAP.GraphError, why):
+                    MAP.read(bad)
 
     def test_committed_graph_is_current(self) -> None:
         self.assertEqual(MAP.graph_text(MAP.validate(MAP.regenerate(MAP.read(MAP.GRAPH)))), MAP.GRAPH.read_text())

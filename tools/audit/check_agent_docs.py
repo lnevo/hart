@@ -86,8 +86,9 @@ def references(rel: str, text: str) -> list[Ref]:
     return found
 
 
-def problems_in(rel: str) -> list[str]:
-    text = (ROOT / rel).read_text(encoding="utf-8")
+def problems_in(rel: str, text: str | None = None) -> list[str]:
+    """What is wrong with the paths the doc at repo path `rel` names; `text` stands in for its content in tests."""
+    text = (ROOT / rel).read_text(encoding="utf-8") if text is None else text
     found = []
     for ref in references(rel, text):
         if ref.kind == "link":
@@ -95,6 +96,8 @@ def problems_in(rel: str) -> list[str]:
                 found.append(f"{rel}: link {ref.raw} leaves the repo")
             elif not (ROOT / ref.target).exists():
                 found.append(f"{rel}: broken link {ref.raw}")
+        elif ref.target is None and is_repo_path(ref.raw.removeprefix("./")):
+            found.append(f"{rel}: path {ref.raw} leaves the repo")
         elif ref.target and is_repo_path(ref.target) and not (ROOT / ref.target).exists() \
                 and not is_ignored(ref.target):
             found.append(f"{rel}: missing path {ref.target}")

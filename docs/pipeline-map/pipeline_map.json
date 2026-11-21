@@ -3612,6 +3612,16 @@
    "gen": "agent-docs"
   },
   {
+   "id": "ops/hart-ops/AGENTS.md",
+   "label": "ops/hart-ops/AGENTS.md",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Agent instructions for this folder.",
+   "path": "ops/hart-ops/AGENTS.md",
+   "gen": "agent-docs"
+  },
+  {
    "id": "wiki/AGENTS_GIT.md",
    "label": "wiki/AGENTS_GIT.md",
    "kind": "unstructured",
@@ -7253,6 +7263,12 @@
    "gen": "agent-docs"
   },
   {
+   "from": "ops/hart-ops/AGENTS.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
    "from": "wiki/AGENTS_GIT.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -7291,6 +7307,12 @@
   {
    "from": "wiki/not-pending.md",
    "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "wiki/pipelines",
+   "to": "ops/hart-ops/AGENTS.md",
    "label": "points to",
    "gen": "agent-docs"
   },
