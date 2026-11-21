@@ -18,7 +18,7 @@ CHECK_STAMPS_DIR) that every worktree and `make remote` run shares; a file hash 
 The risk is an input a declaration misses. tests/test_check_stamps.py runs check.sh under CHECK_AUDIT for the quick
 jobs: tools/audit/stamp_audit/sitecustomize.py logs every repo file the job's Python processes open or list, and the test
 fails for any the declaration does not cover. `CHECK_AUDIT=DIR FULL=1 tools/check.sh` then `audit-report DIR` does it for
-every job. What the hook cannot see: a non-Python subprocess (git, bash) and the plugin's files (covered by its commit).
+every job (unit-hosts test_live_paths fails there: it finds the hook an unlisted builder input). What the hook cannot see: a non-Python subprocess (git, bash) and the plugin's files (covered by its commit).
 Declarations are wide on purpose: a job names whole folders, so a new file in them can never be missed.
 """
 from __future__ import annotations
@@ -59,7 +59,7 @@ BY_KIND: dict[str, tuple[str, ...]] = {
     "unit-hart-ops": (*CODE, *SITE),
     "unit-schematic": (*CODE, "docs/ops/**/*", "wiki/pipelines/**/*", "www/crew/**/*", "www/data/**/*", "ops/**/*"),
     "unit-anyrail": (*CODE, "www/build/**/*", "docs/**/*"),
-    "unit-hartlib": CODE,
+    "unit-hartlib": (*CODE, "**/*.py"),             # test_devices_one_path reads every tracked .py
     "unit-mimic": CODE,
     "unit-cats": CODE,
     "unit-jmri-scripts": CODE,
@@ -79,7 +79,7 @@ EXTRA: dict[str, tuple[str, ...]] = {
     "unit-guards test_pipeline_map": ("docs/pipeline-map/**/*", "www/library/**/*", "www/scripts/**/*"),
     "unit-guards test_portal_inputs": ("www/scripts/**/*",),
     "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/**/*"),
-    "unit-guards test_site_device_names": ("www/data/**/*",),
+    "unit-guards test_site_device_names": ("www/data/**/*", "www/scripts/**/*"),
     "unit-guards test_write_inventory": ("docs/wiring/**/*",),
     "unit-guards test_docs_index": ("docs/**/*",),
     "unit-guards test_check_stamps": ("docs/**/*", "www/**/*"),
