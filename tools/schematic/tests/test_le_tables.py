@@ -126,18 +126,44 @@ class CheckBound(unittest.TestCase):
         return {STAGING: dict(dict(turnouts={"s1": "T1"}, os={}, blocks={"e1": ["Track Helix Outer"]},
                                    masts=[dict(mast="Mast 2L")]), **staging)}
 
+    def P(self, blocks=("Track Helix Outer",), base_drawn=("Track Helix Outer",)):
+        """A panel drawing `blocks`, of which `base_drawn` on band 0 (staging's)."""
+        return SimpleNamespace(blocks=set(blocks), turnouts=[],
+                               segments=[dict(ident=f"T{i}", block=b, band=0) for i, b in enumerate(base_drawn)])
+
+    def check(self, root, P, names, base=None):
+        base = le_tables.bean_names(root) if base is None else base
+        le_tables.check_bound(root, P, names, {STAGING}, {0}, base, "the base")
+
     def test_every_name_bound(self):
-        le_tables.check_bound(self.root(), SimpleNamespace(blocks={"Track Helix Outer"}), self.names(), "the base")
+        self.check(self.root(), self.P(), self.names())
 
     def test_a_missing_turnout_block_mast_or_drawn_block_is_named_by_band(self):
-        P = SimpleNamespace(blocks={"Track Helix Outer"})
         for staging, want in ((dict(turnouts={"s1": "T9"}), r"Staging: turnouts \['T9'\]"),
                               (dict(os={"s1": "OS Switch 9"}), r"Staging: blocks \['OS Switch 9'\]"),
                               (dict(masts=[dict(mast="Mast 9L")]), r"Staging: masts \['Mast 9L'\]")):
             with self.subTest(want=want), self.assertRaisesRegex(BuildError, "no bean of the base .*" + want):
-                le_tables.check_bound(self.root(), P, self.names(**staging), "the base")
+                self.check(self.root(), self.P(), self.names(**staging))
         with self.assertRaisesRegex(BuildError, r"the panel draws blocks \['Track X'\]"):
-            le_tables.check_bound(self.root(), SimpleNamespace(blocks={"Track X"}), self.names(), "the base")
+            self.check(self.root(), self.P(blocks={"Track X"}, base_drawn=()), self.names())
+
+    def test_a_base_band_drawing_a_block_its_names_do_not_hold_stops(self):
+        """The staging panel draws only staging's blocks, even one the base's tables hold under another name list."""
+        root = self.root()
+        blocks = root.find("layoutblocks")
+        ET.SubElement(ET.SubElement(blocks, "layoutblock"), "userName").text = "Track W-9"
+        with self.assertRaisesRegex(BuildError, r"Staging draws blocks its names do not hold: \['Track W-9'\]"):
+            self.check(root, self.P(blocks={"Track Helix Outer", "Track W-9"},
+                                    base_drawn=("Track Helix Outer", "Track W-9")), self.names())
+
+    def test_a_base_name_is_checked_against_the_base_before_the_build_adds_beans(self):
+        """A staging turnout named like a bean the build adds for another level is still missing from the base."""
+        root = self.root()
+        base = le_tables.bean_names(root)
+        sec = root.find("turnouts")
+        ET.SubElement(ET.SubElement(sec, "turnout"), "userName").text = "Switch 105"     # added for main
+        with self.assertRaisesRegex(BuildError, r"Staging: turnouts \['Switch 105'\]"):
+            self.check(root, self.P(), self.names(turnouts={"s1": "Switch 105"}), base)
 
 
 def label_panel(P) -> ET.Element:
@@ -223,6 +249,20 @@ class BandLevels(unittest.TestCase):
         self.assertEqual(le_common.base_bands(bands), [0])
         self.assertEqual(le_common.BASE_LEVELS, {1})
 
+    def test_the_levels_follow_the_data_folder(self):
+        import json
+        import tempfile
+        le_common.plan_levels()                                 # the committed folder, cached
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "plan_overrides.json").write_text(json.dumps(
+                {"_sections": True, "staging": {"level_title": "Attic level", "level": 1}}), encoding="utf-8")
+            with mock.patch.object(le_common.pd, "DATA", Path(tmp)):
+                self.assertEqual(le_common.plan_levels(), {"Attic level": 1})
+                (Path(tmp) / "plan_overrides.json").write_text(json.dumps(
+                    {"_sections": True, "staging": {"level_title": "Cellar level", "level": 1}}), encoding="utf-8")
+                self.assertEqual(le_common.plan_levels(), {"Cellar level": 1})     # a changed file is read again
+        self.assertIn(1, le_common.plan_levels().values())
+
     def test_a_band_with_no_level_stops_naming_it(self):
         with self.assertRaisesRegex(BuildError, "gives no level to band 'Attic level'"):
             le_common.band_levels([("Attic level", {}, {})])
@@ -280,9 +320,12 @@ class MastChecks(unittest.TestCase):
              ("end bumper", "EB1", "west"): ("Track 101 Spur", [])}
     TURNOUTS = {"TO1": ("M1", "2"), "TO2": ("M2", "2"), "TO3": ("Switch 109", "2")}
 
-    def check(self, bound, masts, turnouts, panel_turnouts=None):
+    def check(self, bound, masts, turnouts, panel_turnouts=None, listed=None):
+        """`turnouts` {mast: turnout name}: listed as turnout masts in a mast file; `listed` as mast_turnouts gives it,
+        whole."""
+        listed = {m: ("x_masts.csv", t, "turnout") for m, t in turnouts.items()} if listed is None else listed
         with checks_with(FakeIndex(self.SLOTS, bound, panel_turnouts or self.TURNOUTS)):
-            le_checks.check_masts(P0, masts, LE, turnouts)
+            le_checks.check_masts(P0, masts, LE, listed)
 
     def test_every_levels_masts_in_one_check(self):
         self.check({("turnout", "TO1", "A"): "Mast 2L", ("turnout", "TO3", "B"): "Mast 110L",
@@ -298,8 +341,12 @@ class MastChecks(unittest.TestCase):
             self.check(bound, want, {"Mast 2L": "M2"})
         with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) fits 2 slots \(TO1 A, TO2 A\)"):
             self.check(bound, want, {"Mast 2L": "M1"}, dict(self.TURNOUTS, TO2=("M1", "2")))
-        with self.assertRaisesRegex(BuildError, "a turnout mast whose mast file gives no switch"):
+        with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) is a turnout mast on the panel, but neither "
+                                                r"staging_masts.csv nor main_upper_masts.csv lists it"):
             self.check(bound, want, {})
+        with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) is a turnout mast on the panel, but "
+                                                r"staging_masts.csv gives it no switch \(a end bumper mast there\)"):
+            self.check(bound, want, {}, listed={"Mast 2L": ("staging_masts.csv", None, "end bumper")})
 
     def test_a_mast_bound_twice_not_asked_for_or_missing_stops(self):
         with self.assertRaisesRegex(BuildError, "Mast 2L is bound in two slots"):
@@ -335,6 +382,22 @@ class MastChecks(unittest.TestCase):
         # continuing route 4: the normal leg is C
         self.check({("turnout", "TO3", "C"): "Mast 110L"}, want, turnouts, dict(self.TURNOUTS, TO3=("Switch 109", "4")))
 
+    def test_a_leg_on_a_slot_that_is_not_b_or_c_stops(self):
+        slots = {**self.SLOTS, ("turnout", "TO3", "A"): ("Track 105-109", ["OS Switch 109"]),
+                                    ("turnout", "TO3", "D"): ("Track 105-109", ["OS Switch 109"])}
+        want = {"Main": [mast("Mast 110L", facing="Track 105-109", protects=["OS Switch 109"], leg="diverging")]}
+        for slot in "AD":
+            with self.subTest(slot=slot), checks_with(FakeIndex(slots, {("turnout", "TO3", slot): "Mast 110L"},
+                                                                self.TURNOUTS)), \
+                    self.assertRaisesRegex(BuildError, rf"Mast 110L \(Main\) has leg diverging but stands on leg "
+                                                       rf"{slot} of TO3, not B or C"):
+                le_checks.check_masts(P0, want, LE, {"Mast 110L": ("x_masts.csv", "Switch 109", "turnout")})
+
+    def test_a_leg_mast_in_a_slot_that_is_no_turnout_is_named(self):
+        want = {"Main": [mast("Mast A", kind="turnout", protects=["Track E"], leg="normal")]}
+        with self.assertRaisesRegex(BuildError, r"Mast A \(Main\) at A1 east is in a anchor slot, not a turnout one"):
+            self.check({("anchor", "A1", "east"): "Mast A"}, want, {"Mast A": "Switch 109"})
+
 
 class MastTurnouts(unittest.TestCase):
     """mast_turnouts: each turnout mast's switch turnout from its own mast file."""
@@ -345,8 +408,13 @@ class MastTurnouts(unittest.TestCase):
     def test_from_each_mast_file(self):
         facts = {"Mast 2L": dict(kind="turnout", turnout="M2T408"), "Mast 4LA": dict(kind="end bumper")}
         rows = [self.row("Mast 110L", "109"), self.row("Mast A87", ""),
-                self.row("Mast 102RA", "", "IF$vsm:HART:C3:($3001)")]
-        self.assertEqual(le_checks.mast_turnouts(rows, facts), {"Mast 2L": "M2T408", "Mast 110L": "Switch 109"})
+                self.row("Mast 102RA", "", "IF$vsm:basic:one-low($2001)")]
+        self.assertEqual(le_checks.mast_turnouts(rows, facts), {
+            "Mast 2L": ("staging_masts.csv", "M2T408", "turnout"),
+            "Mast 4LA": ("staging_masts.csv", None, "end bumper"),
+            "Mast 110L": ("main_upper_masts.csv", "Switch 109", "turnout"),
+            "Mast A87": ("main_upper_masts.csv", None, "anchor"),
+            "Mast 102RA": ("main_upper_masts.csv", None, "end bumper")})
 
     def test_a_mast_in_both_files_stops(self):
         with self.assertRaisesRegex(BuildError, "both list Mast 2L"):

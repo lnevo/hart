@@ -111,6 +111,7 @@ from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read 
     PANEL_SIZE_ATTRS, helix_join_changes, check_staging_unchanged, numbered_blocks, STRIPPED, strip_build_owned,
     level_sensors, SENSOR_COMMENT, add_level_sensors, MALE_DEBUGGER, MALE_ACTION, male_socket, add_level_clear,
     add_level_objects, SIGNAL_NOTE, HEAD_CLASS, MAST_CLASS, add_level_signals, band_blocks, check_bound,
+    bean_names, drawn_blocks,
 )
 
 CUTOVER = paths.LAYOUT_OUTPUT / "trial" / "tables_cutover.xml"                    # all three levels (the candidate)
@@ -265,10 +266,11 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # for every level: each name the panel binds is a bean of the tables
     base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
     base_keys = {band_key(bands[i][0]) for i in base_ix}
+    base_beans = bean_names(root)       # before the build adds any: a base level's names must be the base's own
     if adds:
         add_level_objects(root, P, names, lengths, base_keys, startup_thrown(bands))
         add_level_signals(root, level_rows)
-    check_bound(root, P, names, BASE_NAME)
+    check_bound(root, P, names, base_keys, base_ix, base_beans, BASE_NAME)
 
     try:
         attrs, options = panel_items.panel_attributes(items)

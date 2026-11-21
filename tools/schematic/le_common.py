@@ -63,12 +63,24 @@ def band_key(title: str) -> str:
     return (title or "").split()[0] if title else ""
 
 
-@functools.lru_cache(maxsize=None)
-def plan_levels() -> dict[str, int]:
-    """{band title: level} of every band of the schematic, from each section of plan_overrides.json
-    (mast_rule.band_levels: the owner's level numbers, not the titles). BuildError names the file and section."""
+def plan_levels(data: Path | None = None) -> dict[str, int]:
+    """{band title: level} of every band of the schematic, from each section of plan_overrides.json in `data`
+    (default publish_draft.DATA, read when called; mast_rule.band_levels: the owner's level numbers, not the titles).
+    Read once per folder and file state (its modification time and size), so a patched folder or an edited file is
+    read again. BuildError names the file and section."""
+    folder = Path(pd.DATA if data is None else data)
     try:
-        whole = layer_files.read_file("plan_overrides", pd.DATA)
+        st = layer_files.path("plan_overrides", folder).stat()
+    except OSError as exc:
+        raise BuildError(f"plan_overrides.json in {folder}: cannot be read ({exc.strerror or exc})") from None
+    return dict(_plan_levels(folder.resolve(), st.st_mtime_ns, st.st_size))
+
+
+@functools.lru_cache(maxsize=8)
+def _plan_levels(folder: Path, _mtime_ns: int, _size: int) -> dict[str, int]:
+    """plan_levels for one folder and file state (the last two arguments only key the cache)."""
+    try:
+        whole = layer_files.read_file("plan_overrides", folder)
     except layer_files.LayerFileError as exc:
         raise BuildError(str(exc)) from None
     out = {}

@@ -612,22 +612,44 @@ def band_blocks(nm: dict) -> set[str]:
         {b for v in nm["blocks"].values() for b in v}
 
 
-def check_bound(root: ET.Element, P, names: dict, base_name: str) -> None:
+def bean_names(root: ET.Element) -> dict[str, set[str]]:
+    """{turnouts, blocks, masts}: the names a panel can bind in tables `root` (a turnout's system or user name, a
+    layout block's user name, a mast's system or user name)."""
+    return dict(turnouts=set(tables.by_any_name(tables.turnouts(root))),
+                blocks={tables.user_name(b) for b in tables.layout_blocks(root)},
+                masts=set(tables.mast_system_names(root)))
+
+
+def drawn_blocks(P, bands: set[int]) -> set[str]:
+    """The blocks the plugin drew on `bands` (band indexes): its track segments' and turnouts' legs'."""
+    return {s["block"] for s in P.segments if s.get("band") in bands and s.get("block")} | \
+        {b for t in P.turnouts if t.get("band") in bands for b in (t.get("blocks") or {}).values() if b}
+
+
+def check_bound(root: ET.Element, P, names: dict, base_keys: set, base_ix: set, base: dict, base_name: str) -> None:
     """One check for every level once the build's beans are in tables `root`: each turnout, block and mast a band's
-    names bind (`names`: {band key: names}), and each block the panel draws (P.blocks), is a bean of the tables, the
-    base's (`base_name`) for a level it holds, the build's for the rest. BuildError names each by band."""
-    turnouts = tables.by_any_name(tables.turnouts(root))
-    blocks = {tables.user_name(b) for b in tables.layout_blocks(root)}
-    masts = tables.mast_system_names(root)
+    names bind (`names`: {band key: names}) is a bean, for a band of a level the base holds (`base_keys`) of the base
+    itself (`base`: bean_names of the tables before the build added any, `base_name`), for the rest of `root`; the
+    bands of those levels (`base_ix`, band indexes) draw only blocks their names hold; and each block the panel draws
+    (P.blocks) is a bean of `root`. BuildError names each by band."""
+    if base_keys - set(names):
+        raise BuildError(f"the base's bands {sorted(base_keys - set(names))} are not among the bands named "
+                         f"{sorted(names)}")
+    built = bean_names(root)
     bad = []
     for key, nm in names.items():
-        lost = [f"turnouts {sorted(t for t in set(nm['turnouts'].values()) if t not in turnouts)}",
-                f"blocks {sorted(b for b in band_blocks(nm) if b not in blocks)}",
-                f"masts {sorted(m['mast'] for m in nm.get('masts', []) if m['mast'] not in masts)}"]
+        have = base if key in base_keys else built
+        lost = [f"turnouts {sorted(t for t in set(nm['turnouts'].values()) if t not in have['turnouts'])}",
+                f"blocks {sorted(b for b in band_blocks(nm) if b not in have['blocks'])}",
+                f"masts {sorted(m['mast'] for m in nm.get('masts', []) if m['mast'] not in have['masts'])}"]
         lost = [x for x in lost if not x.endswith(" []")]
         if lost:
             bad.append(f"{key}: {', '.join(lost)}")
-    drawn = sorted(set(P.blocks) - blocks)
+    own = {b for k in base_keys for b in band_blocks(names[k])}
+    stray = sorted(drawn_blocks(P, base_ix) - own)
+    if stray:
+        bad.append(f"{', '.join(sorted(base_keys))} draws blocks its names do not hold: {stray}")
+    drawn = sorted(set(P.blocks) - built["blocks"])
     if drawn:
         bad.append(f"the panel draws blocks {drawn}")
     if bad:

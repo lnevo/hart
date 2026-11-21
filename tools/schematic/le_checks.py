@@ -12,11 +12,12 @@ from le_common import BuildError, slots_module  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  main_upper_masts.csv's virtual masts
 
 
-def mast_turnouts(rows: list[dict], facts: dict | None = None) -> dict[str, str]:
-    """{mast: the turnout name the panel binds its switch by} of every turnout mast, from each mast file's `switch`:
-    staging_masts.csv's through the device map's turnout row (`facts`, default staging_device_map.mast_facts: its
-    jmri_name), main_upper_masts.csv's (`rows`, read_level_masts) as the device map's turnout user name, "Switch
-    <switch>" (le_names.level_names names those turnouts by it). A virtual mast has no switch. Stops on a mast both
+def mast_turnouts(rows: list[dict], facts: dict | None = None) -> dict[str, tuple[str, str | None, str]]:
+    """{mast: (the mast file that lists it, the turnout name the panel binds its switch by or None, its kind of slot
+    there)} of every mast of both mast files, the turnout from each file's `switch`: staging_masts.csv's through the
+    device map's turnout row (`facts`, default staging_device_map.mast_facts: its jmri_name), main_upper_masts.csv's
+    (`rows`, read_level_masts) as the device map's turnout user name, "Switch <switch>" (le_names.level_names names
+    those turnouts by it). Only a turnout mast has a switch; a virtual mast is an end bumper one. Stops on a mast both
     files list."""
     import staging_device_map as sdm
     if facts is None:
@@ -24,13 +25,18 @@ def mast_turnouts(rows: list[dict], facts: dict | None = None) -> dict[str, str]
             facts = sdm.mast_facts()
         except sdm.StagingMapError as exc:
             raise BuildError(f"staging device map: {exc}") from None
-    out = {mast: f["turnout"] for mast, f in facts.items() if f["kind"] == "turnout"}
+    out = {mast: ("staging_masts.csv", f["turnout"] if f["kind"] == "turnout" else None, f["kind"])
+           for mast, f in facts.items()}
     both = sorted(set(facts) & {r["mast"] for r in rows})
     if both:
         raise BuildError(f"staging_masts.csv and main_upper_masts.csv both list {', '.join(both)}")
-    for r in rows:
-        if r["switch"] and not level_masts_lib.is_level_virtual(r["system_name"]):
-            out[r["mast"]] = f"Switch {r['switch']}"
+    for r in rows:      # as le_names.level_masts gives each its kind of slot
+        if level_masts_lib.is_level_virtual(r["system_name"]):
+            out[r["mast"]] = ("main_upper_masts.csv", None, "end bumper")
+        elif r["switch"]:
+            out[r["mast"]] = ("main_upper_masts.csv", f"Switch {r['switch']}", "turnout")
+        else:
+            out[r["mast"]] = ("main_upper_masts.csv", None, "anchor")
     return out
 
 
@@ -66,25 +72,33 @@ def check_masts(P, masts: dict[str, list[dict]], le_mod, turnouts: dict[str, str
             bad.append(f"{name} ({key}) is not on the panel")
             continue
         where = f"{name} ({key}) at {got['ident']} {got['slot']}"
-        if got["kind"] != m["kind"]:
-            bad.append(f"{where} is in a {got['kind']} slot, not a {m['kind']} one")
         if (got["facing"], list(got["protects"])) != (m["facing"], list(m["protects"])):
             bad.append(f"{where} faces {got['facing']} and protects {got['protects']}, not {m['facing']} into "
                        f"{m['protects']}")
+        if got["kind"] != m["kind"]:        # its turnout, leg and other slots mean nothing in a slot of another kind
+            bad.append(f"{where} is in a {got['kind']} slot, not a {m['kind']} one")
+            continue
         same = fits[(got["kind"], got["facing"], tuple(got["protects"]))]
         if m["kind"] == "turnout":
-            want = turnouts.get(name)
-            if want is None:
-                bad.append(f"{name} ({key}) is a turnout mast whose mast file gives no switch")
+            source, want, kind = turnouts.get(name, (None, None, None))
+            if source is None:
+                bad.append(f"{name} ({key}) is a turnout mast on the panel, but neither staging_masts.csv nor "
+                           "main_upper_masts.csv lists it (mast_turnouts)")
+            elif want is None:
+                bad.append(f"{name} ({key}) is a turnout mast on the panel, but {source} gives it no switch (a {kind} "
+                           "mast there)")
             elif got.get("turnout") != want:
-                bad.append(f"{name} ({key}) is on turnout {got.get('turnout')}, its switch's is {want}")
+                bad.append(f"{name} ({key}) is on turnout {got.get('turnout')}, its switch's is {want} ({source})")
             same = [c for c in same if ix.turnouts[c[1]].get("turnoutname") == want]
-        if m.get("leg"):
-            def on_normal(c):
-                return c[2] == ("B" if ix.turnouts[c[1]].get("continuing") == "2" else "C")
-            if on_normal((got["kind"], got["ident"], got["slot"])) != (m["leg"] == "normal"):
+        if m.get("leg"):                    # a turnout mast (the plugin allows a leg on no other kind)
+            def normal(c):
+                return "B" if ix.turnouts[c[1]].get("continuing") == "2" else "C"
+            if got["slot"] not in ("B", "C"):
+                bad.append(f"{name} ({key}) has leg {m['leg']} but stands on leg {got['slot']} of {got['ident']}, "
+                           "not B or C")
+            elif (got["slot"] == normal((got["kind"], got["ident"]))) != (m["leg"] == "normal"):
                 bad.append(f"{name} ({key}) is on leg {got['slot']} of {got['ident']}, not its {m['leg']} leg")
-            same = [c for c in same if on_normal(c) == (m["leg"] == "normal")]
+            same = [c for c in same if c[2] in ("B", "C") and (c[2] == normal(c)) == (m["leg"] == "normal")]
         if len(same) > 1:
             bad.append(f"{name} ({key}) fits {len(same)} slots ({', '.join(f'{c[1]} {c[2]}' for c in same)}): which "
                        "one is a guess")
