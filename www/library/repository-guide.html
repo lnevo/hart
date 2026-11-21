@@ -22,6 +22,9 @@
     .repo-svg .t-s { fill: var(--muted); font-size: 13px; }
     .repo-svg .t-w { fill: #fff; }
     .repo-svg .t-l { fill: var(--ink-soft); font-size: 13px; }
+    /* Where each fact lives: long rows; fixed widths stop the Owned by column taking the whole table. */
+    table.owners { table-layout: fixed; min-width: 40rem; }
+    table.owners code { overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
@@ -133,7 +136,8 @@
           <h2 id="h-owners"><span class="num">03</span>Where each fact lives</h2>
           <p>Each kind of fact has one file that owns it. Everything else that shows the same fact is built from that file or checked against it.</p>
           <div class="table-wrap">
-            <table class="roster">
+            <table class="roster owners">
+              <colgroup><col style="width:22%"><col style="width:44%"><col style="width:34%"></colgroup>
               <thead><tr><th>Fact</th><th>Owned by</th><th>Used by</th></tr></thead>
               <tbody>
                 <tr><td>JMRI setup: sensors, turnouts, blocks, masts, panels</td><td>Generated: <code>jmri/layouts/hart/output/tables.xml</code> is written by <code>tools/schematic/build_tables.py</code> from <code>devices.csv</code> and a template, and a pulled PanelPro Store is split back into those sources</td><td>Every JMRI computer, the CATS desks, the tables browser on this site</td></tr>
