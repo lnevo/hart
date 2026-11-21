@@ -83,6 +83,13 @@ class LcosMimicNameMapTest(unittest.TestCase):
         self.assertIn("OS Switch 1", cps["block"])
         self.assertTrue(cps["occupancy"] and cps["mast"])
 
+    def test_an_lcc_alias_is_grouped_by_its_name_and_a_line_detector_by_its_cp(self) -> None:
+        cps = self.m.load_cps()
+        self.assertEqual(cps["turnout"]["DCC Switch 1"], self.m.infer_plant("DCC Switch 1"))     # not its cp, Brick
+        self.assertEqual(cps["turnout"]["DCC Switch 9"], "Engine House")                         # by its name
+        self.assertEqual(cps["occupancy"]["BS Barn"], "Barn")                                    # its cp
+        self.assertEqual(cps["block"]["Track East Ext"], "Plane")
+
     def test_a_missing_master_gives_empty_layers_and_a_broken_one_stops(self) -> None:
         import tempfile
         from unittest import mock

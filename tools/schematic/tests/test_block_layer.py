@@ -601,6 +601,8 @@ class StagingWiredRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual(by["Switch 3"]["system_name"], "M2T408")
         self.assertEqual(by["Switch 23"]["jmri_name"], "Switch 23")
         self.assertEqual(by["DCC Switch 1"]["dcc"], "100")              # the alias keeps its address
+        self.assertEqual(by["DCC Switch 1"]["notes"], "LCC alias of Switch 1 (M2T409)")    # and names its turnout's
+        self.assertEqual(by["DCC Switch 3"]["notes"], "LCC alias of Switch 3 (M2T408)")
 
     def test_the_description_names_the_new_node(self):
         got = {r["user_name"]: r for r in self.rows(lambda t: t.replace('1,turnout,Switch 13,,,,,4,3,OU1,"7,8"',

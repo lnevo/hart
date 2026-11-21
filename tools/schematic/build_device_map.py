@@ -1154,12 +1154,21 @@ def freed_spare(occ: dict, block: str, part_of: str) -> dict:
 WIRED_LAYERS = {"turnout": "turnout", "fb": "fb"}      # devices.csv layer -> wiring.csv kind of staging's wired rows
 
 
+def alias_note(turnout: str, address: str) -> str:
+    """The note of an LCC alias row: the turnout it stands for and that turnout's LCOS address. MapError when the
+    turnout has no address (no wiring.csv row)."""
+    if not address:
+        raise MapError(f"LCC alias DCC {turnout}: {turnout} has no turnout row in {WIRING.name}")
+    return f"LCC alias of {turnout} ({address})"
+
+
 def staging_wired_rows(files: devices.Files | None = None, path: Path | None = None,
                        nodes: set | None = None) -> tuple[list[dict], set]:
     """(staging's turnout, LCC alias and feedback rows of the master, the keys this takes over): each row as it is,
     but its wiring cells from wiring.csv (`path`, default the committed file): node, the wiring text, the address
     (system name, and the JMRI name where it was the address). An LCC alias ("DCC Switch <n>") takes its turnout's
-    node and wiring and keeps its MTT<dcc> name. The description is written again from the row (devices.describe), as it names the node.
+    node and wiring and keeps its MTT<dcc> name; its note names the turnout and its address (alias_note). The
+    description is written again from the row (devices.describe), as it names the node.
     `nodes`: staging's (default staging_nodes()). MapError on a row with no wiring row, a wiring row with no device
     row or on a node that is not staging's."""
     nodes = staging_nodes() if nodes is None else nodes
@@ -1169,6 +1178,7 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
     rows = [r for r in devices.load(files or device_files())
             if r["level"] == FIELD_LEVEL and r["layer"] in WIRED_LAYERS]
     out, seen = [], set()
+    turnout_address = {w.device: w.address for (kind, _d), w in by.items() if kind == "turnout"}
     for r in rows:
         alias = r["role"] == "lcc_alias"
         name = r["user_name"].removeprefix("DCC ") if alias else r["user_name"]
@@ -1183,6 +1193,8 @@ def staging_wired_rows(files: devices.Files | None = None, path: Path | None = N
             if r["jmri_name"] == r["system_name"]:
                 row["jmri_name"] = w.address
             row["system_name"] = w.address
+        else:
+            row["notes"] = alias_note(name, turnout_address.get(name, ""))
         row["description"] = devices.describe(row)
         out.append(row)
     for kind, device in sorted(set(by) - seen):

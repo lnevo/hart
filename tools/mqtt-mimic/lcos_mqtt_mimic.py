@@ -372,7 +372,8 @@ def infer_plant(name: str, cp: str = "") -> str:
 
 
 def load_cps() -> dict[str, dict[str, str]]:
-    """Staging's rows of devices.csv: user name (and an occupancy sensor's system name) -> its cp, by layer."""
+    """Staging's rows of devices.csv: user name (and an occupancy sensor's system name) -> its cp, by layer. An LCC
+    alias (DCC Switch N) is grouped by its name alone (infer_plant), as the name map, which gave it no cp, had it."""
     turnout: dict[str, str] = {}
     occupancy: dict[str, str] = {}
     block: dict[str, str] = {}
@@ -383,7 +384,7 @@ def load_cps() -> dict[str, dict[str, str]]:
         if row["level"] != devices.FIELD_LEVEL:
             continue
         layer, name = row["layer"], row["user_name"]
-        plant = infer_plant(name, row["cp"])
+        plant = infer_plant(name, "" if row["role"] == "lcc_alias" else row["cp"])
         if layer == "turnout":
             turnout[name] = plant
         elif layer == "occupancy":

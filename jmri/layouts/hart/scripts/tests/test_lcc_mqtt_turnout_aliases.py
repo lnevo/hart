@@ -100,6 +100,19 @@ class LccMqttTurnoutAliasContractTest(unittest.TestCase):
         got = self.violations(TWIN, [TURNOUT, ALIAS])
         self.assertTrue(any("has no MQTT plant M2T408 in tables.xml" in p for p in got), got)
 
+    def test_a_refused_row_is_reported_once(self) -> None:
+        """A turnout row the contract refuses (no dcc, no alias, a wrong alias) is reported for that, not again as a
+        missing row."""
+        for rows in ([dict(TURNOUT, dcc=""), ALIAS], [TURNOUT], [dict(TURNOUT, dcc="101"), ALIAS]):
+            with self.subTest(rows=len(rows)):
+                got = self.violations(MQTT + TWIN, rows)
+                self.assertFalse(any("has no field turnout row" in p for p in got), got)
+
+    def test_an_unreadable_master_is_a_violation_not_a_crash(self) -> None:
+        got = contract.contract_violations(ET.fromstring("<layout-config/>"), self.tmp / "missing.csv")
+        self.assertEqual(len(got), 1)
+        self.assertRegex(got[0], r"^missing\.csv: cannot check the LCC aliases: .*cannot read it")
+
     def test_a_dcc_turnout_needs_no_lcos_plant(self) -> None:
         """Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS (owner, 2026-11-20)."""
         self.assertEqual([], self.violations('<turnout feedback="MONITORING"><systemName>MTT999</systemName></turnout>',

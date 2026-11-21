@@ -331,8 +331,7 @@ class TheWritersRules(unittest.TestCase):
         held = [turnout(), mast("Mast 2L"), mast("Mast 4L", system_name="IF$vsm:basic:one-low($2)",
                                                   jmri_name="IF$vsm:basic:one-low($2)")]
         new = [mast("Mast 6L", system_name="IF$vsm:basic:one-low($3)", jmri_name="IF$vsm:basic:one-low($3)")]
-        got = D.replace_rows(held, "build_staging_masts.py", new,
-                             drops=[("1", "mast", "Mast 2L"), ("1", "mast", "Mast 4L")])     # staging rows: named
+        got = D.replace_rows(held, "build_staging_masts.py", new)     # virtual masts: the rule's, no field facts
         self.assertEqual([r["user_name"] for r in got], ["Switch 1", "Mast 6L"])
 
     def test_a_writer_not_in_the_one_list_is_refused(self):
@@ -472,17 +471,41 @@ class TheWriters(unittest.TestCase):
         kept = [r for r in csv.DictReader(io.StringIO(out[self.files.master])) if r["written_by"] != "build_staging_masts.py"]
         self.assertEqual(kept, held)                                  # every other writer's and hand-kept row is as it was
 
-    def test_a_writer_that_would_lose_a_staging_row_without_saying_so_is_refused(self):
-        """A rename gives a new key: the old staging row (and the field facts a rewrite carries over from it) would
-        go with no word, so the write stops."""
+    def test_a_writer_that_would_lose_a_staging_field_row_without_saying_so_is_refused(self):
+        """A rename gives a new key: the old row of a wired staging device (and the field facts a rewrite carries
+        over from it) would go with no word, so the write stops."""
         held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
         mine = D.device_map_rows(held, ("1",))
-        first = mine[0]
+        first = next(r for r in mine if r["user_name"] == "Mast 6LB")            # the wired mast
         renamed = [dict(r, user_name=r["user_name"] + " X") if r is first else r for r in mine]
-        with self.assertRaisesRegex(D.DevicesError, rf"would drop 1 staging row\(s\), first {first['user_name']!r}"):
+        with self.assertRaisesRegex(D.DevicesError,
+                                    rf"would drop 1 staging field device row\(s\), first {first['user_name']!r}"):
             D.outputs_after("build_staging_masts.py", renamed, self.files)
         key = ("1", first["layer"], first["user_name"])
         D.outputs_after("build_staging_masts.py", renamed, self.files, drops=[key])
+
+    def test_a_rule_mast_and_a_panel_status_bean_may_go_without_saying_so(self):
+        """Rows the rule makes (a virtual staging mast) or panel_items.json writes carry no field facts, so their
+        writers drop them freely (build_staging_masts.py and panel_items.py pass no drops)."""
+        held = [r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"]
+        mine = [r for r in D.device_map_rows(held, ("1",)) if r["user_name"] != "Mast 4LA"]
+        out = D.outputs_after("build_staging_masts.py", mine, self.files)
+        self.assertNotIn(",Mast 4LA,", out[self.files.master])
+        status = [dict(r) for r in D.load(self.files) if r["written_by"] == "panel_items.json"]
+        out = D.outputs_after_rows("panel_items.json", [r for r in status if r["user_name"] != "SML Mode"], self.files)
+        self.assertNotIn(",SML Mode,", out[self.files.master])
+
+    def test_the_guarded_rows_are_stagings_field_devices(self):
+        """The guard covers the staging rows of wired devices: the old name map's rows (all of level 1 but the three
+        status sensors) less the rule's virtual masts, heads and parts and the status lamp IH9990."""
+        rows = D.load(self.files)
+        guarded = [r for r in rows if D.carries_field_facts(r)]
+        self.assertEqual(len(guarded), 172)
+        self.assertEqual({r["level"] for r in guarded}, {"1"})
+        self.assertEqual({r["assignment"] for r in guarded}, {"field", "spare"})
+        rest = [r for r in rows if r["level"] == "1" and r["layer"] != "sensor" and not D.carries_field_facts(r)]
+        self.assertEqual(len(guarded) + len(rest), 250)
+        self.assertTrue(all(r["assignment"] == "virtual" or r["role"] == "panel_status" for r in rest))
 
     def test_a_writer_may_drop_a_main_or_upper_row_without_saying_so(self):
         """Only staging's rows carry field facts over a rewrite (FIELD_LEVEL); a main or upper row is the rule's
@@ -599,6 +622,18 @@ class TheStagingFacts(unittest.TestCase):
         self.assertTrue(parts)
         for r in parts:
             self.assertEqual(r["cp"], self.rows[("1", "block", r["part_of"])]["cp"], r["user_name"])
+
+    def test_the_old_name_maps_notes_kept_their_facts(self):
+        """The owner's date on the internal heads and the alias's turnout and address, which the pnm_notes held."""
+        rows = [r for k, r in self.rows.items() if k[0] == "1"]
+        internal = [r for r in rows if r["layer"] == "head" and r["assignment"] == "virtual"]
+        self.assertEqual({r["notes"] for r in internal}, {"internal, not wired (owner, 2026-11-19)"})
+        turnouts = {r["user_name"]: r["system_name"] for r in rows if r["role"] == "turnout"}
+        aliases = [r for r in rows if r["role"] == "lcc_alias"]
+        self.assertEqual(len(aliases), 20)
+        for r in aliases:
+            sw = r["user_name"].removeprefix("DCC ")
+            self.assertEqual(r["notes"], f"LCC alias of {sw} ({turnouts[sw]})")
 
     def test_head_6lb_says_it_is_one_high_head(self):
         self.assertEqual(self.rows[("1", "head", "Head 6LB")]["notes"], "one high head (owner 2026-11-19); IH433 dropped")

@@ -56,8 +56,8 @@ SOURCE_PREFIXES = ("IT:HART:", "IS:HART:", "IH:HART:", "IB:HART:")
 COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_name", "jmri_name", "node", "dcc",
            "wiring", "jmri_comment", "trial_name", "notes", "blocks", "detector", "stop", "layout_block",
            "part_of", "switch", "facing", "protects", "dir", "written_by", "description", "jmri_bean")
-# staging: its plant is the field, so a rewrite of its rows carries their field facts over from the rows they replace,
-# and a writer may not drop one without saying so (replace_rows' drops)
+# staging: its plant is the field, so a rewrite of its field devices' rows carries their field facts over from the
+# rows they replace, and a writer may not drop one without saying so (carries_field_facts, replace_rows' drops)
 FIELD_LEVEL = "1"
 # the columns an old-form device-map row shares with the master; its comment is built, the rest of the master is left out
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))
@@ -182,6 +182,14 @@ def _rank(row: Mapping[str, str]) -> tuple[int, int, int]:
     writer = row["written_by"]
     level = LEVELS.index(row["level"]) if row["level"] else len(LEVELS)
     return (level, LAYERS.index(row["layer"]), 0 if not writer else 1 + WRITERS.index(writer))
+
+
+def carries_field_facts(row: Mapping[str, str]) -> bool:
+    """A staging row of a physical device (assignment field or spare) that a rewrite carries its field facts over from
+    (system name, node, wiring, notes, cp): a writer may not drop it without naming it (replace_rows). A row the rule
+    makes (a virtual mast or head, a part) or a panel status bean (panel_items.json) carries none, so it may go."""
+    return (row["level"] == FIELD_LEVEL and row["assignment"] in ("field", "spare")
+            and row["role"] != "panel_status")
 
 
 def is_unplaced(row: Mapping[str, str]) -> bool:
@@ -451,9 +459,9 @@ def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[M
                  adopts: Iterable[tuple[str, str, str]] = ()) -> list[dict[str, str]]:
     """`rows` with the rows `writer` holds replaced by `new` (master rows with written_by == writer), sorted into the
     master's order (stable). DevicesError when the writer is not in WRITERS, a new row names another writer or
-    would take a key (level, layer, user_name) a row held by someone else has, a staging row of the writer
-    (FIELD_LEVEL) would go with no new row of its key (a rename would lose the field facts it carries over silently:
-    name it in `drops` when the row is meant to go), or the result breaks check_rows. `adopts` names the
+    would take a key (level, layer, user_name) a row held by someone else has, a row of the writer that carries
+    field facts (carries_field_facts) would go with no new row of its key (a rename would lose them silently: name it
+    in `drops` when the row is meant to go), or the result breaks check_rows. `adopts` names the
     keys of hand-kept rows the writer takes over (a hand-kept row of that key is replaced by its new row, as its own
     would be): how a level's rows move from the owner's hand to a builder, which carries their hand facts over."""
     if writer not in WRITERS:
@@ -473,10 +481,10 @@ def replace_rows(rows: Iterable[Mapping[str, str]], writer: str, new: Iterable[M
         raise DevicesError(f"{writer} would rewrite row(s) it does not hold: "
                            + ", ".join(f"{k[2]!r} ({k[1]}, level {k[0]}; held by {others[k] or 'hand'})" for k in clash[:5]))
     kept = {(r["level"], r["layer"], r["user_name"]) for r in new} | set(drops)
-    lost = [r for r in rows if mine(r) and r["level"] == FIELD_LEVEL
+    lost = [r for r in rows if mine(r) and carries_field_facts(r)
             and (r["level"], r["layer"], r["user_name"]) not in kept]
     if lost:
-        raise DevicesError(f"{writer} would drop {len(lost)} staging row(s), first "
+        raise DevicesError(f"{writer} would drop {len(lost)} staging field device row(s), first "
                            + ", ".join(f"{r['user_name']!r} ({r['layer']}, level {r['level']})" for r in lost[:5])
                            + "; a renamed row loses the field facts it carries over: pass it in drops if it is to go")
     out = [r for r in rows if not mine(r)] + new

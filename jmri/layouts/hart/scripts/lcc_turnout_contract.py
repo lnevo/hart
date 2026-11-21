@@ -40,37 +40,39 @@ class Plant:
     alias_comment: str     # the alias row's JMRI comment (devices.comment_of): its wiring, no DCC group
 
 
-def field_plants(csv_path: Path) -> tuple[dict[str, Plant], list[str]]:
-    """({M2T system name: Plant} of the field turnout rows of devices.csv, problems): a field turnout with no DCC
-    address or no LCC alias row, an alias whose system name is not MTT{dcc}, or an alias with no turnout row.
-    DevicesError when the master cannot be read."""
+def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]:
+    """({M2T system name: Plant} of the field turnout rows of devices.csv, the system names of the field turnout rows
+    refused, problems): a refused row is a field turnout with no DCC address or no LCC alias row, or one whose alias's
+    system name is not MTT{dcc}; an alias with no turnout row is a problem too. DevicesError when the master cannot be
+    read."""
     rows = list(enumerate(devices.load(csv_path), 2))
     aliases = {r["user_name"]: r for _n, r in rows if r["role"] == "lcc_alias" and r["assignment"] == "field"}
-    out, bad = {}, []
+    out, refused, bad = {}, set(), []
     for n, r in rows:
         if r["role"] != "turnout" or r["assignment"] != "field":
             continue
         at = f"{csv_path.name} line {n} ({r['user_name']}, {r['system_name']})"
         a = aliases.pop(f"DCC {r['user_name']}", None)
-        if not r["dcc"]:
-            bad.append(f"{at}: a field turnout with no dcc")
-        elif a is None:
-            bad.append(f"{at}: no LCC alias row DCC {r['user_name']}")
-        elif a["system_name"] != f"MTT{r['dcc']}":
-            bad.append(f"{at}: its alias DCC {r['user_name']} is {a['system_name']}, not MTT{r['dcc']} (its dcc)")
+        problem = ("a field turnout with no dcc" if not r["dcc"] else
+                   f"no LCC alias row DCC {r['user_name']}" if a is None else
+                   f"its alias DCC {r['user_name']} is {a['system_name']}, not MTT{r['dcc']} (its dcc)"
+                   if a["system_name"] != f"MTT{r['dcc']}" else "")
+        if problem:
+            bad.append(f"{at}: {problem}")
+            refused.add(r["system_name"])
         else:
             out[r["system_name"]] = Plant(n, r["user_name"], r["system_name"], r["dcc"], a["system_name"],
                                           a["user_name"], devices.comment_of(a))
     bad += [f"{csv_path.name}: alias {u} ({a['system_name']}) has no field turnout row {u.removeprefix('DCC ')}"
             for u, a in sorted(aliases.items())]
-    return out, bad
+    return out, refused, bad
 
 
 def identity_lcc_rows(csv_path: Path) -> dict[str, tuple[str, str]]:
     """MTT* -> (user name, JMRI comment) of the field LCC alias rows of devices.csv."""
     if not csv_path.is_file():
         return {}
-    plants, _bad = field_plants(csv_path)
+    plants, _refused, _bad = field_plants(csv_path)
     return {p.alias: (p.alias_user, p.alias_comment) for p in plants.values()}
 
 
@@ -85,17 +87,21 @@ def turnout_index(root: ET.Element) -> dict[str, ET.Element]:
 
 def contract_violations(root: ET.Element, csv_path: Path) -> list[str]:
     """Human-readable failures of tables.xml `root` against the field turnouts of devices.csv `csv_path`; empty means
-    the contract holds."""
+    the contract holds. A devices.csv that cannot be read is one failure, naming it."""
     beans = turnout_index(root)
     mqtt = {sn: el for sn, el in beans.items() if sn.startswith("M2T")}
     lcc = {sn: el for sn, el in beans.items() if sn.startswith("MTT")}
-    plants, problems = field_plants(csv_path)
+    try:
+        plants, refused, problems = field_plants(csv_path)
+    except devices.DevicesError as exc:
+        return [f"{csv_path.name}: cannot check the LCC aliases: {exc}"]
 
     for sn, el in sorted(mqtt.items()):
         user = child_text(el, "userName")
         plant = plants.get(sn)
         if plant is None:
-            problems.append(f"{sn} ({user or '?'}) has no field turnout row in {csv_path.name}")
+            if sn not in refused:                   # a refused row is reported once, by field_plants
+                problems.append(f"{sn} ({user or '?'}) has no field turnout row in {csv_path.name}")
             continue
         if user != plant.user:
             problems.append(f"{sn} userName {user!r} expected {plant.user!r} ({csv_path.name} line {plant.line})")
