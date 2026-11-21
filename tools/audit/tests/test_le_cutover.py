@@ -202,9 +202,9 @@ class Cutover(unittest.TestCase):
         self.assertNotIn("Neville Island", texts)
         bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
         self.assertEqual(set(bcis.values()), {1})              # one block contents icon per block
-        # but the optional ones with no clean spot (logged): staging's Track 27-29 and 31-33 at the layout hosts'
-        # 1920 x 1032 window's grid (2026-11-21; Track 11-13 and 13-15 at the 1900 x 1140 one)
-        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 27-29", "Track 31-33"})
+        # but the optional ones with no clean spot (logged): staging's Track 29-31 at candidate C1's grid (owner,
+        # 2026-11-21; Track 27-29 and 31-33 at the 1920 x 1032 window's grid before it, 11-13 and 13-15 at 1900 x 1140)
+        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 29-31"})
         self.assertLessEqual(T.used_blocks(self.le) - set(bcis), optional_staging())
         # the lamps and station clusters are parked: only the status cluster's sensor icons are on the panel
         self.assertEqual({i.get("sensor") for i in self.le.findall("sensoricon")}, STATUS["sensoricon"])
@@ -678,7 +678,7 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
-        self.assertEqual(len(staging), 57)        # 45 blocks and 14 parts (owner, 2026-11-20), less 11-13 and 13-15
+        self.assertEqual(len(staging), 58)        # 45 blocks and 14 parts (owner, 2026-11-20), less 29-31 (C1)
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
         self.assertEqual({size[b] for b in staging}, {"11"})         # candidate C1 (owner, 2026-11-21)
         # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)
