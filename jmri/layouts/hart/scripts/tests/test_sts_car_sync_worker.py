@@ -15,7 +15,8 @@ ends a `java.lang.Thread`. So the fakes derive from BaseException, outside Excep
 
 `runOnGUI` is modelled on stock JMRI 5.16 (java/src/jmri/util/ThreadingUtil.java): called off
 the GUI thread, as the worker calls it, it runs the function with `invokeAndWait`, logs
-whatever the function throws and returns normally. The worker never sees that failure.
+whatever the function throws and returns normally. So the worker's `on_gui` catches the failure
+inside the function it hands over and raises it again on the worker thread.
 """
 from __future__ import annotations
 
@@ -343,11 +344,9 @@ class Worker(unittest.TestCase):
         self.assertEqual(self.jmri.events, [])
         self.assertEqual(self.jmri.replies[1]["id"], "after")
 
-    # --- a failure while applying, on the GUI thread: logged by JMRI, never seen here ----
+    # --- a failure while applying, on the GUI thread: caught there, answered here --------
 
-    def test_a_python_error_while_applying_is_swallowed_and_the_reply_says_saved(self):
-        """Known fault, not fixed here: stock runOnGUI logs the failure and returns, so the
-        worker saves and answers ok/saved/changed for a car that did not change."""
+    def test_a_python_error_while_applying_is_answered_as_a_failure_and_not_saved(self):
         def refuse(load):
             raise ValueError("cannot set load")
         self.car().setLoadName = refuse
@@ -355,40 +354,42 @@ class Worker(unittest.TestCase):
         self.request.setValue(batch("after"))
         self.run_worker()
         first, after = self.jmri.replies
-        self.assertEqual((first["id"], first["ok"], first["saved"], first["summary"]),
-                         ("a1", True, True, {"changed": 1}))
-        self.assertNotIn("error", first)
-        self.assertEqual(self.car().load, "E")                      # the reply is wrong
-        self.assertEqual(self.jmri.events, ["gui", "save"])
-        self.assertEqual([str(e) for e in self.jmri.gui_errors], ["cannot set load"])
+        self.assertEqual((first["id"], first["ok"], first["saved"], first["applied"]), ("a1", False, False, []))
+        self.assertEqual(first["error"], "applying failed at car BO8476 (cannot set load); nothing was saved. "
+                                         "No car was changed.")
+        self.assertEqual([c["car"] for c in first["cars"]], ["BO8476"])
+        self.assertEqual(self.car().load, "E")
+        self.assertEqual(self.jmri.events, ["gui"])                 # no save
+        self.assertEqual(self.jmri.gui_errors, [])                  # nothing left for JMRI to log
         self.assertEqual((after["id"], after["ok"]), ("after", True))
 
-    def test_a_java_exception_while_applying_is_swallowed_and_the_reply_says_saved(self):
-        """Known fault, not fixed here: the cars before the failure change, the failing car and
-        every car after it do not, and the reply still says ok, saved and all of them changed."""
+    def test_a_java_exception_while_applying_names_the_cars_changed_before_it(self):
+        """The cars before the failure change in memory and a later save writes them, so the reply names them.
+        Sending the same batch again plans them as unchanged."""
         def refuse(location, track, force):
             raise JavaException("setLocation failed")
         self.car("UTLX1").setLocation = refuse
-        self.request.setValue(json.dumps({"id": "j3", "cars": [
-            {"car": "BO8476", "load": "Steel"}, {"car": "UTLX1", "location": "Ferrellgas"},
-            {"car": "BO8476", "load": "E"}]}))
+        cars = [{"car": "BO8476", "load": "Steel"}, {"car": "UTLX1", "location": "Ferrellgas"}]
+        self.request.setValue(json.dumps({"id": "j3", "cars": cars}))
+        self.request.setValue(json.dumps({"id": "again", "cars": cars[:1]}))
         self.run_worker()
-        out = self.jmri.replies[0]
-        self.assertEqual((out["id"], out["ok"], out["saved"]), ("j3", True, True))
-        self.assertEqual([c["status"] for c in out["cars"]], ["changed", "changed", "unchanged"])
+        out, again = self.jmri.replies
+        self.assertEqual((out["id"], out["ok"], out["saved"], out["applied"]), ("j3", False, False, ["BO8476"]))
+        self.assertEqual(out["error"], "applying failed at car UTLX1 (setLocation failed); nothing was saved. "
+                                       "Changed in memory, saved by the next batch: BO8476.")
         self.assertEqual(self.car().load, "Steel")                  # applied before the failure
-        self.assertEqual(self.jmri.events, ["gui", "save"])         # saved half applied
-        self.assertEqual([str(e) for e in self.jmri.gui_errors], ["setLocation failed"])
+        self.assertEqual(self.jmri.events, ["gui"])                 # not saved
+        self.assertEqual(self.jmri.gui_errors, [])
+        self.assertEqual([c["status"] for c in again["cars"]], ["unchanged"])
 
-    @unittest.expectedFailure
-    def test_wanted_a_failure_while_applying_is_not_answered_as_ok(self):
-        """What the reply should say; fails today (see the two tests above)."""
-        def refuse(load):
-            raise ValueError("cannot set load")
-        self.car().setLoadName = refuse
-        self.request.setValue(batch("w0", load="Steel"))
+    def test_a_java_error_while_applying_is_left_to_jmris_log(self):
+        """A java.lang.Error is not turned into a routine reply: runOnGUI logs it, as stock JMRI does."""
+        def broken(load):
+            raise JavaError("NoClassDefFoundError")
+        self.car().setLoadName = broken
+        self.request.setValue(batch("e0", load="Steel"))
         self.run_worker()
-        self.assertFalse(self.jmri.replies[0]["ok"])
+        self.assertEqual([str(e) for e in self.jmri.gui_errors], ["NoClassDefFoundError"])
 
     # --- what ends the thread ---------------------------------------------------------
 
