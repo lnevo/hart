@@ -328,7 +328,7 @@ class DeviceMapBuild(unittest.TestCase):
         from unittest import mock
         with mock.patch.object(sdm, "mast_facts", side_effect=sdm.StagingMapError("x is on switch 99")):
             with self.assertRaisesRegex(self.B.BuildError, "staging device map: x is on switch 99"):
-                le_checks.check_device_masts(self.P, [], self.B.plugin()[1])
+                le_checks.mast_turnouts([])
 
     def test_the_panel_attributes_are_the_items_files(self):
         import panel_items

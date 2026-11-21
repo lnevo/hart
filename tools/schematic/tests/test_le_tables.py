@@ -197,11 +197,11 @@ class BandLevels(unittest.TestCase):
 
 class FakeIndex:
     """slots.Index's answers for a made-up panel: `slots` {(kind, ident, slot): (facing, protects)}, `bound`
-    {(kind, ident, slot): mast}, `turnouts` {ident: turnout name}."""
+    {(kind, ident, slot): mast}, `turnouts` {ident: (turnout name, continuing route)}."""
 
     def __init__(self, slots, bound, turnouts=None):
         self.slots, self.bound = slots, bound
-        self.turnouts = {t: {"turnoutname": n} for t, n in (turnouts or {}).items()}
+        self.turnouts = {t: {"turnoutname": n, "continuing": c} for t, (n, c) in (turnouts or {}).items()}
 
     def candidates(self):
         return list(self.slots)
@@ -225,85 +225,105 @@ def checks_with(ix):
 
 
 LE = SimpleNamespace(to_xml=lambda *_a: None)
+P0 = SimpleNamespace()
 
 
-class DeviceMasts(unittest.TestCase):
-    """check_device_masts (staging's masts): each placed once, on its switch's turnout, in the one slot of its kind
-    its blocks fit; a staging mast nobody asked for stops it; masts of other bands are not its business."""
+def mast(name, kind="turnout", facing="Track W", protects=("OS Switch 1",), **kw):
+    return dict(mast=name, kind=kind, facing=facing, protects=list(protects), **kw)
+
+
+class MastChecks(unittest.TestCase):
+    """check_masts, one check for every level's masts (it was check_device_masts for staging's and
+    check_level_slots for main and upper's): each placed once, in a slot of its kind JMRI resolves to its blocks, on
+    its switch's turnout and its leg, in the one slot its blocks fit; a mast no band asks for stops it."""
 
     SLOTS = {("turnout", "TO1", "A"): ("Track W", ["OS Switch 1"]),
              ("turnout", "TO2", "A"): ("Track W", ["OS Switch 1"]),
-             ("anchor", "A1", "east"): ("Track W", ["Track E"])}
+             ("turnout", "TO3", "B"): ("Track 105-109", ["OS Switch 109"]),
+             ("turnout", "TO3", "C"): ("Track 105-109", ["OS Switch 109"]),
+             ("anchor", "A1", "east"): ("Track W", ["Track E"]),
+             ("end bumper", "EB1", "west"): ("Track 101 Spur", [])}
+    TURNOUTS = {"TO1": ("M1", "2"), "TO2": ("M2", "2"), "TO3": ("Switch 109", "2")}
 
-    def P(self, masts):
-        return SimpleNamespace(masts=masts)
+    def check(self, bound, masts, turnouts, panel_turnouts=None):
+        with checks_with(FakeIndex(self.SLOTS, bound, panel_turnouts or self.TURNOUTS)):
+            le_checks.check_masts(P0, masts, LE, turnouts)
+
+    def test_every_levels_masts_in_one_check(self):
+        self.check({("turnout", "TO1", "A"): "Mast 2L", ("turnout", "TO3", "B"): "Mast 110L",
+                    ("end bumper", "EB1", "west"): "Mast 102R"},
+                   {"Staging": [mast("Mast 2L")],
+                    "Main": [mast("Mast 110L", facing="Track 105-109", protects=["OS Switch 109"], leg="normal"),
+                             mast("Mast 102R", kind="end bumper", facing="Track 101 Spur", protects=[], hidden=True)]},
+                   {"Mast 2L": "M1", "Mast 110L": "Switch 109"})
 
     def test_a_turnout_mast_on_another_turnout_or_fitting_two_stops(self):
-        ix = FakeIndex(self.SLOTS, {("turnout", "TO1", "A"): "Mast 2L"}, {"TO1": "M1", "TO2": "M2"})
-        P = self.P([dict(mast="Mast 2L", band=0)])
-        want = [dict(mast="Mast 2L", kind="turnout")]
-        with checks_with(ix):
-            le_checks.check_device_masts(P, want, LE, facts={"Mast 2L": {"turnout": "M1"}})
-            with self.assertRaisesRegex(BuildError, "Mast 2L is on turnout M1, its switch's is M2"):
-                le_checks.check_device_masts(P, want, LE, facts={"Mast 2L": {"turnout": "M2"}})
-        ix = FakeIndex(self.SLOTS, {("turnout", "TO1", "A"): "Mast 2L"}, {"TO1": "M1", "TO2": "M1"})
-        with checks_with(ix), self.assertRaisesRegex(BuildError, "Mast 2L fits 2 slots"):
-            le_checks.check_device_masts(P, want, LE, facts={"Mast 2L": {"turnout": "M1"}})
+        bound, want = {("turnout", "TO1", "A"): "Mast 2L"}, {"Staging": [mast("Mast 2L")]}
+        with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) is on turnout M1, its switch's is M2"):
+            self.check(bound, want, {"Mast 2L": "M2"})
+        with self.assertRaisesRegex(BuildError, r"Mast 2L \(Staging\) fits 2 slots \(TO1 A, TO2 A\)"):
+            self.check(bound, want, {"Mast 2L": "M1"}, dict(self.TURNOUTS, TO2=("M1", "2")))
+        with self.assertRaisesRegex(BuildError, "a turnout mast whose mast file gives no switch"):
+            self.check(bound, want, {})
 
-    def test_a_mast_bound_twice_stops(self):
-        ix = FakeIndex(self.SLOTS, {("turnout", "TO1", "A"): "Mast 2L", ("anchor", "A1", "east"): "Mast 2L"},
-                       {"TO1": "M1", "TO2": "M2"})
-        with checks_with(ix), self.assertRaisesRegex(BuildError, "Mast 2L is bound in two slots"):
-            le_checks.check_device_masts(self.P([]), [], LE, facts={})
+    def test_a_mast_bound_twice_not_asked_for_or_missing_stops(self):
+        with self.assertRaisesRegex(BuildError, "Mast 2L is bound in two slots"):
+            self.check({("turnout", "TO1", "A"): "Mast 2L", ("anchor", "A1", "east"): "Mast 2L"}, {}, {})
+        with self.assertRaisesRegex(BuildError, "Mast B1 was not asked for"):      # on any band
+            self.check({("anchor", "A1", "east"): "Mast B1"}, {"Staging": [], "Main": []}, {})
+        with self.assertRaisesRegex(BuildError, r"Mast N \(Upper\) is not on the panel"):
+            self.check({}, {"Upper": [mast("Mast N", kind="anchor")]}, {})
+        with self.assertRaisesRegex(BuildError, "Mast M is asked for on Main and Upper"):
+            self.check({("anchor", "A1", "east"): "Mast M"},
+                       {"Main": [mast("Mast M", kind="anchor", protects=["Track E"])],
+                        "Upper": [mast("Mast M", kind="anchor", protects=["Track E"])]}, {})
 
-    def test_only_staging_masts_count_as_not_asked_for(self):
-        ix = FakeIndex(self.SLOTS, {("anchor", "A1", "east"): "Mast B1"})
-        with checks_with(ix):
-            le_checks.check_device_masts(self.P([dict(mast="Mast B1", band=1)]), [], LE, facts={})
-            with self.assertRaisesRegex(BuildError, "Mast B1 was not asked for"):
-                le_checks.check_device_masts(self.P([dict(mast="Mast B1", band=0)]), [], LE, facts={})
-
-
-class LevelSlots(unittest.TestCase):
-    """check_level_slots (main and upper's masts, main_upper_masts.csv rows): each on the panel in a slot JMRI
-    resolves to its facing and protected blocks, on its leg where it has one; staging's masts are not its business."""
-
-    SLOTS = {("turnout", "TO1", "B"): ("Track 105-109", ["OS Switch 109"]),
-             ("turnout", "TO1", "C"): ("Track 105-109", ["OS Switch 109"]),
-             ("end bumper", "EB1", "west"): ("Track 101 Spur", [])}
-
-    def P(self, masts):
-        P = SimpleNamespace(masts=masts, turnouts=[dict(ident="TO1", continuing="2")])
-        P.name = lambda i: i
-        return P
-
-    def row(self, **kw):
-        return dict(dict(mast="Mast 110L", facing="Track 105-109", protects="OS Switch 109", leg=""), **kw)
-
-    def test_the_slot_resolves_to_the_rows_blocks(self):
-        P = self.P([dict(mast="Mast 110L", kind="turnout", ident="TO1", slot="B", band=1),
-                    dict(mast="Mast 102R", kind="end bumper", ident="EB1", slot="west", band=2),
-                    dict(mast="Mast 2L", kind="turnout", ident="TO9", slot="A", band=0)])
-        with checks_with(FakeIndex(self.SLOTS, {})):
-            le_checks.check_level_slots(P, [self.row(), dict(mast="Mast 102R", facing="Track 101 Spur", protects="",
-                                                             leg="")], LE)
-            with self.assertRaisesRegex(BuildError, "Mast 110L at TO1 B faces Track 105-109"):
-                le_checks.check_level_slots(P, [self.row(protects="OS Switch 105")], LE)
-            with self.assertRaisesRegex(BuildError, "Mast 2L is not on the panel"):      # staging's are not looked at
-                le_checks.check_level_slots(P, [self.row(mast="Mast 2L")], LE)
+    def test_the_slot_resolves_to_the_masts_blocks_and_kind(self):
+        bound = {("anchor", "A1", "east"): "Mast A"}
+        self.check(bound, {"Main": [mast("Mast A", kind="anchor", protects=["Track E"])]}, {})
+        with self.assertRaisesRegex(BuildError, r"Mast A \(Main\) at A1 east faces Track W and protects \['Track E'\], "
+                                                r"not Track W into \['OS Switch 9'\]"):
+            self.check(bound, {"Main": [mast("Mast A", kind="anchor", protects=["OS Switch 9"])]}, {})
+        with self.assertRaisesRegex(BuildError, "is in a anchor slot, not a end bumper one"):
+            self.check(bound, {"Main": [mast("Mast A", kind="end bumper", protects=["Track E"])]}, {})
 
     def test_the_leg(self):
-        normal = self.P([dict(mast="Mast 110L", kind="turnout", ident="TO1", slot="B", band=1)])
-        diverging = self.P([dict(mast="Mast 110L", kind="turnout", ident="TO1", slot="C", band=1)])
-        with checks_with(FakeIndex(self.SLOTS, {})):
-            le_checks.check_level_slots(normal, [self.row(leg="normal")], LE)
-            le_checks.check_level_slots(diverging, [self.row(leg="diverging")], LE)
-            with self.assertRaisesRegex(BuildError, "Mast 110L is on leg C of TO1, not its normal leg"):
-                le_checks.check_level_slots(diverging, [self.row(leg="normal")], LE)
+        want = {"Main": [mast("Mast 110L", facing="Track 105-109", protects=["OS Switch 109"], leg="normal")]}
+        turnouts = {"Mast 110L": "Switch 109"}
+        self.check({("turnout", "TO3", "B"): "Mast 110L"}, want, turnouts)
+        self.check({("turnout", "TO3", "C"): "Mast 110L"},
+                   {"Main": [dict(want["Main"][0], leg="diverging")]}, turnouts)
+        with self.assertRaisesRegex(BuildError, r"Mast 110L \(Main\) is on leg C of TO3, not its normal leg"):
+            self.check({("turnout", "TO3", "C"): "Mast 110L"}, want, turnouts)
+        with self.assertRaisesRegex(BuildError, "fits 2 slots"):              # without its leg: a guess
+            self.check({("turnout", "TO3", "B"): "Mast 110L"}, {"Main": [dict(want["Main"][0], leg=None)]}, turnouts)
+        # continuing route 4: the normal leg is C
+        self.check({("turnout", "TO3", "C"): "Mast 110L"}, want, turnouts, dict(self.TURNOUTS, TO3=("Switch 109", "4")))
 
-    def test_no_rows_checks_nothing(self):
-        le_checks.check_level_slots(self.P([]), [], LE)
+
+class MastTurnouts(unittest.TestCase):
+    """mast_turnouts: each turnout mast's switch turnout from its own mast file."""
+
+    def row(self, mast, switch, system="IF$xx"):
+        return dict(mast=mast, switch=switch, system_name=system)
+
+    def test_from_each_mast_file(self):
+        facts = {"Mast 2L": dict(kind="turnout", turnout="M2T408"), "Mast 4LA": dict(kind="end bumper")}
+        rows = [self.row("Mast 110L", "109"), self.row("Mast A87", ""),
+                self.row("Mast 102RA", "", "IF$vsm:HART:C3:($3001)")]
+        self.assertEqual(le_checks.mast_turnouts(rows, facts), {"Mast 2L": "M2T408", "Mast 110L": "Switch 109"})
+
+    def test_a_mast_in_both_files_stops(self):
+        with self.assertRaisesRegex(BuildError, "both list Mast 2L"):
+            le_checks.mast_turnouts([self.row("Mast 2L", "1")], {"Mast 2L": dict(kind="turnout", turnout="M")})
+
+    def test_a_staging_map_error_names_it(self):
+        import staging_device_map as sdm
+        with mock.patch.object(sdm, "mast_facts", side_effect=sdm.StagingMapError("x is on switch 99")), \
+                self.assertRaisesRegex(BuildError, "staging device map: x is on switch 99"):
+            le_checks.mast_turnouts([])
 
 
 if __name__ == "__main__":
     unittest.main()
+

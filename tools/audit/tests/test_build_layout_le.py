@@ -778,17 +778,18 @@ class SecondReview(unittest.TestCase):
         return P, el, le_mod
 
     def test_a_mast_two_slots_would_fit_stops_the_build(self) -> None:
-        want = [{"mast": "M", "kind": "anchor"}]
         P, el, le_mod = self.fake(1)
-        B.check_device_masts(P, want, le_mod, facts={})                     # one W|E boundary: certain
+        f, pr = B.slots_module().Index(el).blocks("anchor", "A1", "east")
+        want = {"Staging": [{"mast": "M", "kind": "anchor", "facing": f, "protects": pr}]}
+        B.check_masts(P, want, le_mod, {})                                  # one W|E boundary: certain
         P, el, le_mod = self.fake(2)
         with self.assertRaisesRegex(B.BuildError, "fits 2 slots"):
-            B.check_device_masts(P, want, le_mod, facts={})
+            B.check_masts(P, want, le_mod, {})
         P, el, le_mod = self.fake(1)
-        with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
-            B.check_device_masts(P, [{"mast": "N", "kind": "anchor"}], le_mod, facts={})
-        with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a staging mast nobody listed
-            B.check_device_masts(P, [], le_mod, facts={})
+        with self.assertRaisesRegex(B.BuildError, "N \\(Staging\\) is not on the panel"):
+            B.check_masts(P, {"Staging": [dict(want["Staging"][0], mast="N")]}, le_mod, {})
+        with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a mast no band lists
+            B.check_masts(P, {"Staging": []}, le_mod, {})
 
     def test_the_build_is_never_written_over_the_live_tables(self) -> None:
         self.assertTrue(B.live_target(paths.TABLES_XML))
@@ -1080,23 +1081,17 @@ class LevelMasts(unittest.TestCase):
         with self.assertRaisesRegex(B.BuildError, "Mast 110L \\(Track Nowhere into OS Switch 109\\): drawn on no band"):
             B.level_masts(names, rows)
 
-    def test_check_level_slots(self) -> None:
+    def test_a_level_mast_where_jmri_resolves_it(self) -> None:
         el = ET.fromstring(anchor_panel("M"))
-        P = mock.Mock(turnouts=[], masts=[dict(mast="M", kind="anchor", ident="A1", slot="east", band=1)])
-        P.name = lambda i: i
+        P = mock.Mock()
         le_mod = mock.Mock(to_xml=lambda *_a: el)
-        ix = B.slots_module().Index(el)
-        f, pr = ix.blocks("anchor", "A1", "east")
-        row = dict(mast="M", facing=f, protects=pr[0], leg="")
-        B.check_level_slots(P, [row], le_mod)                               # where JMRI resolves it: fine
-        with self.assertRaisesRegex(B.BuildError, "M at A1 east faces"):
-            B.check_level_slots(P, [dict(row, facing="Elsewhere")], le_mod)
-        with self.assertRaisesRegex(B.BuildError, "N is not on the panel"):
-            B.check_level_slots(P, [dict(row, mast="N")], le_mod)
-        P.masts = [dict(mast="M", kind="anchor", ident="A1", slot="east")]          # no band: named
-        P.points, P.moved = {}, []
-        with self.assertRaisesRegex(B.BuildError, "mast M: the plugin gave it no band"):
-            B.check_level_slots(P, [row], le_mod)
+        f, pr = B.slots_module().Index(el).blocks("anchor", "A1", "east")
+        m = dict(mast="M", kind="anchor", facing=f, protects=pr)
+        B.check_masts(P, {"Main": [m]}, le_mod, {})                         # where JMRI resolves it: fine
+        with self.assertRaisesRegex(B.BuildError, "M \\(Main\\) at A1 east faces"):
+            B.check_masts(P, {"Main": [dict(m, facing="Elsewhere")]}, le_mod, {})
+        with self.assertRaisesRegex(B.BuildError, "N \\(Main\\) is not on the panel"):
+            B.check_masts(P, {"Main": [m, dict(m, mast="N")]}, le_mod, {})
 
     def test_audit_masts_on_a_panel_that_draws_the_levels(self) -> None:
         def run(masts, levels):

@@ -62,8 +62,8 @@ place, by the generated one under that name and panel_items.json's attributes, s
 keep their switches.csv idents; anchors, end bumpers and segments take generated idents (owner, 2026-11-17), which
 staging_masts.csv names them by block, not by ident. Every staging mast goes in the one slot whose facing and protected blocks and kind of
 slot are its own (staging_masts.csv; the plugin's slots.py holds JMRI's rules), its icon on the right-hand side of the
-train it governs, hidden for a virtual mast; check_device_masts stops on a mast two slots would fit or one on another
-turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), the same helix block,
+train it governs, hidden for a virtual mast; check_masts (one check for every level's masts) stops on a mast two slots
+would fit, one JMRI does not resolve to its blocks, or one on another turnout than its switch's. Staging's helix joins carry the next level's block ("joins": "other"), the same helix block,
 so the join is no block boundary and no mast stands there. The panel carries the
 hidden generated-panel label (hartlib.tables.GENERATED_PANEL_MARKER): the build starts only from tables that hold
 it, and the Stage 1 repairs of the parked Dispatcher System run only on a panel that holds it. The staging
@@ -103,7 +103,7 @@ from le_names import (  # noqa: E402,F401  re-exported: callers and tests read t
     device_names, level_names, shared_turnouts, named_bands,
 )
 from le_checks import (  # noqa: E402,F401  re-exported: callers and tests read them here
-    mast_band, check_level_slots, check_unplaced, turnout_facts, check_device_masts,
+    check_masts, mast_turnouts, check_unplaced, turnout_facts,
 )
 from le_tables import (  # noqa: E402,F401  re-exported: callers and tests read them here
     BLOCK_NUMBERED_AS, APPENDED_BLOCKS, RETIRED_BLOCKS, NUMBERING, load_numbering, COMMENT, bean, r1, block_sort,
@@ -262,8 +262,8 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     except core.SchematicError as exc:
         raise BuildError(f"schematic le: {exc}") from None
     P.mast_notes = check_unplaced(P)
-    check_device_masts(P, names[STAGING]["masts"], le_mod)      # each mast in one slot, on its switch's turnout
-    check_level_slots(P, level_rows, le_mod)
+    # every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels)
+    check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
 
     # staging: every name must already be in the base (devices.csv)
     staging_turnouts = set(names[STAGING]["turnouts"].values())
