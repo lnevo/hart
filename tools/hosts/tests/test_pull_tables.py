@@ -111,6 +111,17 @@ class MacPull(PullCase):
         self.assertIn(f"its base ({first})", again.stdout)
         self.assertNotIn(sha("<later/>"), again.stdout)
 
+    def test_a_base_not_known_at_the_first_pull_is_taken_at_the_next(self) -> None:
+        (self.uf / "tables.xml").write_text(STORE, encoding="utf-8")
+        self.assertEqual(0, self.run_pull("pull_tables.sh").returncode)
+        [saved] = self.pulled()
+        self.assertEqual("none", Path(f"{saved}.base").read_text().strip())
+        self.stamp(self.uf, sha(GENERATED))
+        again = self.run_pull("pull_tables.sh")
+        self.assertEqual(0, again.returncode, again.stderr)
+        self.assertEqual(f"deploy {sha(GENERATED)} {COMMIT}", Path(f"{saved}.base").read_text().strip())
+        self.assertEqual([saved], self.pulled())
+
     def test_a_store_split_in_is_nothing_to_pull(self) -> None:
         (self.uf / "tables.xml").write_text(STORE, encoding="utf-8")
         self.stamp(self.uf, sha(GENERATED))

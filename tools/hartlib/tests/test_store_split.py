@@ -310,7 +310,7 @@ def with_threads(root: ET.Element, *names: str) -> ET.Element:
                                                     "DefaultLogixNGManagerXml"})
     for name in names:
         t = ET.SubElement(sec, "Thread")
-        ET.SubElement(t, "id").text = str(len(name))    # a thread keeps its id when others come and go
+        ET.SubElement(t, "id").text = name[0]           # a thread keeps its id when others come and go
         ET.SubElement(t, "name").text = name
     tb.finish(root)
     return root
@@ -326,11 +326,9 @@ class JmriVersion(unittest.TestCase):
             self.assertEqual({ss.KEPT: ["<jmriversion> <minor>"]}, kinds(p), base)
             self.assertIn("'16' -> '18'", p.by_id()["K1"].what)
 
-    def test_the_same_or_an_older_jmri_gives_no_item(self) -> None:
+    def test_the_same_jmri_gives_no_item(self) -> None:
         repo = with_version(doc(), "5", "16")
-        for older in ("16", "12"):
-            p = plan(repo, repo, with_version(doc(), "5", older))
-            self.assertEqual([], p.items, older)
+        self.assertEqual([], plan(repo, repo, with_version(doc(), "5", "16")).items)
 
     def test_the_template_takes_the_newer_version(self) -> None:
         template = with_version(doc(template=True), "5", "16")
@@ -340,9 +338,17 @@ class JmriVersion(unittest.TestCase):
         new = ss.new_template(tdoc, store, ss.template_changes(p, ss.Choices()), p.by_content).root
         self.assertEqual(("6", "0"), (new.findtext("jmriversion/major"), new.findtext("jmriversion/minor")))
 
+    def test_an_older_jmri_is_named_and_the_repo_keeps_its_version(self) -> None:
+        p = plan(None, with_version(doc(), "5", "16"), with_version(doc(), "5", "14"))
+        [item] = p.items
+        self.assertEqual(ss.DROPPED, item.kind)
+        self.assertIn("older JMRI", item.note)
+
     def test_a_version_that_is_not_a_number_stops(self) -> None:
         with self.assertRaises(ss.SplitError):
             plan(None, doc(), with_version(doc(), "5", "16beta"))
+        with self.assertRaises(ss.SplitError):
+            plan(None, doc(), with_version(doc(), "5", "1\u00b2"))
 
 
 class RepeatedSettings(unittest.TestCase):
@@ -353,7 +359,7 @@ class RepeatedSettings(unittest.TestCase):
         p = plan(base, copy.deepcopy(base), store, template=with_threads(doc(template=True), "Main", "Late"))
         [item] = p.items
         self.assertEqual((ss.KEPT, "added"), (item.kind, item.what))
-        self.assertIn("Owner", item.where)
+        self.assertIn("'O'", item.where)          # its id
 
     def test_a_tag_given_once_still_shows_a_change(self) -> None:
         p = plan(with_threads(doc(), "Main"), with_threads(doc(), "Main"), with_threads(doc(), "Renamed"))
@@ -365,6 +371,37 @@ class RepeatedSettings(unittest.TestCase):
         base = with_threads(doc(), "Main")
         p = plan(base, copy.deepcopy(base), with_threads(doc(), "Main", "Owner"))
         self.assertEqual(["added"], [i.what for i in p.items])
+
+    def test_an_edit_to_one_copy_with_an_id_is_one_change(self) -> None:
+        """Threads carry an <id>, so a renamed one is matched by it: one change, not a deletion and an addition."""
+        base = with_threads(doc(), "Main", "Late")
+        store = copy.deepcopy(base)
+        [late] = [t for t in store.iter("Thread") if t.findtext("name") == "Late"]
+        late.find("name").text = "Lane"           # the same id, L
+        p = plan(base, copy.deepcopy(base), store, template=with_threads(doc(template=True), "Main", "Late"))
+        [item] = p.items
+        self.assertEqual(ss.KEPT, item.kind)
+        self.assertIn("'Late' -> 'Lane'", item.what)
+        self.assertIn("'L'", item.where)
+
+    def test_copies_without_ids_are_matched_by_content(self) -> None:
+        base, store = doc(), doc()
+        for root, names in ((base, ("a", "b")), (store, ("a", "x", "b"))):
+            sec = root.find("blocks")
+            for n in names:
+                ET.SubElement(sec, "defaultspeed").text = n
+        p = plan(base, copy.deepcopy(base), store)
+        [item] = p.items
+        self.assertEqual("added", item.what)
+        self.assertIn("(x;", item.where)
+
+    def test_a_deleted_item_the_template_lacks_stops(self) -> None:
+        base = with_threads(doc(), "Main", "Late")
+        p = plan(base, copy.deepcopy(base), with_threads(doc(), "Main"),
+                 template=with_threads(doc(template=True), "Main", "Late"))
+        tdoc = tables.loads(ET.tostring(with_threads(doc(template=True), "Main")))
+        with self.assertRaises(ss.SplitError):
+            ss.new_template(tdoc, doc(), ss.template_changes(p, ss.Choices()), p.by_content)
 
     def test_a_deleted_one_leaves_the_template_and_the_rest_stays(self) -> None:
         template = with_threads(doc(template=True), "Main", "Owner", "Late")

@@ -9,10 +9,12 @@ it. Three files are compared item by item, all normalised (tables_build.normalis
     repo   this checkout's generated tables.xml
     store  the Store
 
-An item is one bean (by section and system name), one setting of a section (a nameless child such as
-<defaultspeed>: by tag when the tag is given once, by its content when any of the files gives it more than once, so
-adding or deleting one shows no false change in the rest; repeated_settings), a section's own attributes, a Signal Mast Logic (by source mast), a whole section the template has no slot for, or a Layout Editor
-panel (by name). Who owns it:
+An item is one bean (by section and system name), one setting of a section (a nameless child such as <defaultspeed>;
+repeated_settings), a section's own attributes, a Signal Mast Logic (by source mast), a whole section the template has
+no slot for, or a Layout Editor panel (by name). A setting is matched by its tag when the tag is given once; when any
+file gives a tag more than once, by each copy's id (an id or name, such as a LogixNG <Thread>'s <id>) when every copy
+has a distinct one, else by its content. So adding or deleting one copy shows no false change in the rest; with
+content matching, an edit to a copy shows as that copy deleted and an edited one added. Who owns it:
 
 - the template (data/tables_template.xml): every item it holds, and a new memory, internal sensor, LogixNG part,
   setting or extra section of the Store on a name nothing else claims (claimed_by);
@@ -103,43 +105,62 @@ def section_key(sec: ET.Element) -> tuple[str, str | None]:
     return tb.section_key(sec)
 
 
+BY_ID, BY_CONTENT = "id", "="
+
+
+def _ident(el: ET.Element) -> str | None:
+    """A setting's own id: its id attribute, <id> child, name attribute or <name> child, the first given."""
+    for got in (el.get("id"), el.findtext("id"), el.get("name"), el.findtext("name")):
+        if got is not None and got.strip():
+            return got.strip()
+    return None
+
+
+def _settings(sec: ET.Element) -> list[ET.Element]:
+    return [el for el in tables.elements(sec) if el.tag != LOGIC and not tables.system_name(el)]
+
+
 def repeated_settings(*roots: ET.Element | None) -> frozenset[tuple]:
-    """The (section, tag) pairs of settings that any of `roots` gives more than once: those are keyed by content."""
-    out: set[tuple] = set()
+    """(section, tag, how) for each setting tag that any of `roots` gives more than once in a section: how is BY_ID
+    when every copy in every root has an id (_ident) no other copy in its root has, else BY_CONTENT."""
+    copies: dict[tuple, list[list[ET.Element]]] = {}
     for root in roots:
         if root is None:
             continue
         for sec in tables.elements(root):
             if sec.tag == PANEL or section_key(sec) not in KNOWN_SECTIONS:
                 continue
-            seen: set[str] = set()
-            for el in tables.elements(sec):
-                if el.tag == LOGIC or tables.system_name(el):
-                    continue
-                if el.tag in seen:
-                    out.add((section_key(sec), el.tag))
-                seen.add(el.tag)
+            here: dict[str, list[ET.Element]] = {}
+            for el in _settings(sec):
+                here.setdefault(el.tag, []).append(el)
+            for tag, els in here.items():
+                copies.setdefault((section_key(sec), tag), []).append(els)
+    out = set()
+    for (sk, tag), groups in copies.items():
+        if max(len(g) for g in groups) < 2:
+            continue
+        idents = [[_ident(el) for el in g] for g in groups]
+        by_id = all(None not in i and len(set(i)) == len(i) for i in idents)
+        out.add((sk, tag, BY_ID if by_id else BY_CONTENT))
     return frozenset(out)
 
 
-def _setting_keys(sec: ET.Element, sk: tuple, by_content: frozenset[tuple]) -> list[tuple[tuple, ET.Element]]:
+def _setting_keys(sec: ET.Element, sk: tuple, repeated: frozenset[tuple]) -> list[tuple[tuple, ET.Element]]:
     """The settings of a known section with their keys: ("setting", section, tag, 0) for a tag given once (any
-    change to it is a change of that one item), ("setting", section, tag, (content, n)) for a tag in `by_content`,
-    the nth copy of the same content."""
+    change to it is a change of that one item); for a tag in `repeated` (repeated_settings), ("setting", section,
+    tag, (BY_ID, id)) or ("setting", section, tag, (BY_CONTENT, content, n)), the nth copy of the same content."""
+    how = {(k, t): h for k, t, h in repeated}
     out = []
     seen: dict[tuple, int] = {}
-    for el in tables.elements(sec):
-        if el.tag == LOGIC or tables.system_name(el):
+    for el in _settings(sec):
+        mode = how.get((sk, el.tag))
+        if mode == BY_ID:
+            out.append((("setting", sk, el.tag, (BY_ID, _ident(el))), el))
             continue
-        if (sk, el.tag) in by_content:
-            mark = (el.tag, canon(el))
-            n = seen.get(mark, 0)
-            seen[mark] = n + 1
-            out.append((("setting", sk, el.tag, (mark[1], n)), el))
-        else:
-            n = seen.get((el.tag,), 0)
-            seen[(el.tag,)] = n + 1
-            out.append((("setting", sk, el.tag, n), el))
+        mark = (el.tag, canon(el)) if mode == BY_CONTENT else (el.tag,)
+        n = seen.get(mark, 0)
+        seen[mark] = n + 1
+        out.append((("setting", sk, el.tag, (BY_CONTENT, mark[1], n) if mode else n), el))
     return out
 
 
@@ -191,10 +212,12 @@ def label(key: tuple) -> str:
     if kind == "bean":
         return f"{key[2]} {key[4]}" + (" (names-only pass)" if key[3] == "block-names" else "")
     if isinstance(key[3], tuple):
-        content, n = key[3]
-        short = " ".join(ET.fromstring(content).itertext()).split()
-        hint = " ".join(short)[:40] or "no text"
-        return f"<{key[1][0]}> <{key[2]}> ({hint})" + (f" copy {n + 1}" if n else "")
+        if key[3][0] == BY_ID:
+            return f"<{key[1][0]}> <{key[2]}> {key[3][1]!r}"
+        _, content, n = key[3]
+        hint = " ".join(" ".join(ET.fromstring(content).itertext()).split())[:40] or "no text"
+        tag = hashlib.sha256(content.encode()).hexdigest()[:6]
+        return f"<{key[1][0]}> <{key[2]}> ({hint}; {tag})" + (f" copy {n + 1}" if n else "")
     return f"<{key[1][0]}> <{key[2]}>" + (f" #{key[3] + 1}" if key[3] else "")
 
 
@@ -364,7 +387,6 @@ class Plan:
     fingerprint: str
     by_content: frozenset[tuple] = frozenset()      # repeated_settings of the files compared
 
-
     def of(self, kind: str) -> list[Item]:
         return [i for i in self.items if i.kind == kind]
 
@@ -439,6 +461,7 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
     S = index(store, "the Store", by_content)
     T = index(template, "the template", by_content)
     newer = newer_jmri(store, repo)
+    older = newer_jmri(repo, store)
     found: list[tuple[str, tuple, dict]] = []
     order = functools.cmp_to_key(lambda a, b: (repr(a) > repr(b)) - (repr(a) < repr(b)))
     for key in sorted(set(B) | set(G) | set(S), key=order):
@@ -450,6 +473,10 @@ def plan(base: ET.Element | None, repo: ET.Element, store: ET.Element, template:
             if newer and cs != cg:
                 found.append((KEPT, key, dict(store=s, repo=g, base=b, what=change_text(g, s),
                                               note="a newer JMRI wrote the Store: the template always takes it")))
+            elif older and cs != cg:
+                found.append((DROPPED, key, dict(store=s, repo=g, base=b, what=change_text(g, s),
+                                                 note="an older JMRI wrote the Store than the tables name: the repo "
+                                                      "keeps its version; check the host's JMRI before the deploy")))
             continue
         if cs == cb or cs == cg:
             continue                    # the owner changed nothing, or the repo has it already
@@ -523,14 +550,14 @@ def jmri_version(root: ET.Element | None) -> tuple[int, ...] | None:
     out = []
     for part in VERSION_PARTS:
         text = (sec.findtext(part) or "0").strip() or "0"
-        if not text.isdigit():
+        if not (text.isascii() and text.isdigit()):
             raise SplitError(f"<jmriversion> <{part}> is {text!r}, not a number")
         out.append(int(text))
     return tuple(out)
 
 
 def newer_jmri(store: ET.Element, repo: ET.Element) -> bool:
-    """True when the Store was written by a newer JMRI than the repo's tables name."""
+    """True when `store` names a newer JMRI than `repo` (one without a <jmriversion> counts as the oldest)."""
     s, g = jmri_version(store), jmri_version(repo)
     return s is not None and (g is None or s > g)
 
@@ -655,6 +682,8 @@ def new_template(template: tables.Tables, store: ET.Element, changes: Iterable[I
                 sec.insert(idx, copy.deepcopy(s))
         elif s is not None:
             sec.insert(_slot(sec, key), copy.deepcopy(s))
+        else:
+            raise SplitError(f"{item.id} {label(key)}: deleted in the Store, but the template has no such item")
     tb.jmri_sort(root)
     tb.finish(root)
     return doc

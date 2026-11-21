@@ -47,13 +47,16 @@ hart_pulled_dir() {
 
 # hart_keep_store FILE DIR HOST BASE keeps a pulled Store in DIR as HOST-<date>.xml with BASE (a tables_base.sh
 # line) in HOST-<date>.xml.base, and prints the kept path. A Store whose hash a kept HOST-*.xml already has is kept
-# once: that file is printed and its base left as it is (the same Store has the same base).
+# once: that file is printed and its base left as it is (the same Store has the same base), unless the kept base is
+# "none" and BASE is not: then BASE, which was not known at the first pull, replaces it.
 hart_keep_store() {
   local file="$1" dir="$2" host="$3" base="$4" sha f saved
   sha="$(shasum -a 256 "$file" | cut -d' ' -f1)"
   for f in "$dir/$host"-*.xml; do
     [[ -f "$f" && "$(shasum -a 256 "$f" | cut -d' ' -f1)" == "$sha" ]] || continue
-    [[ -f "$f.base" ]] || echo "$base" >"$f.base"
+    if [[ ! -f "$f.base" ]] || { [[ "$(<"$f.base")" == none ]] && [[ "$base" != none ]]; }; then
+      echo "$base" >"$f.base"
+    fi
     echo "$f"
     return 0
   done
