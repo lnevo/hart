@@ -3202,6 +3202,195 @@
    "domain": "wiring",
    "desc": "Builds the MRE Electrical SOQ package PDF from the wiring decks, drawings and soq.html; the submitted package is frozen.",
    "path": "docs/ap/electrical/build_soq.py"
+  },
+  {
+   "id": "jmri/scripts/check_hart_phase02.py",
+   "label": "check_hart_phase02.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Acceptance checks for phases 0-2: tables.xml against devices.csv and switches.csv (check.sh phase02).",
+   "path": "jmri/scripts/check_hart_phase02.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
+   "label": "capture_public_name_baseline.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Snapshots user names and bindings from tables.xml (and the CATS CTC panel) into data/baselines before a rename; --check in check.sh.",
+   "path": "jmri/layouts/hart/scripts/capture_public_name_baseline.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
+   "label": "speedmatch/build_routes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Writes speedmatch/routes.json, each test route's block sensor and block pairs, from tables.xml and analyze.py's route lists.",
+   "path": "jmri/layouts/hart/scripts/speedmatch/build_routes.py"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/speedmatch/routes.json",
+   "label": "speedmatch/routes.json",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Test routes as block sensor and block pairs, read by analyze.py with the standard library only (the Pi has no tables.xml).",
+   "path": "jmri/layouts/hart/scripts/speedmatch/routes.json"
+  },
+  {
+   "id": "tools/schematic/panel_items.py",
+   "label": "panel_items.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices.csv; --check in check.sh.",
+   "path": "tools/schematic/panel_items.py"
+  },
+  {
+   "id": "tools/schematic/check_sml_current.py",
+   "label": "check_sml_current.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "make panels guard: discovered_sml.xml's stamp equals the discovery base the sources give now (run_sml_discover.sh again if not).",
+   "path": "tools/schematic/check_sml_current.py"
+  },
+  {
+   "id": "tools/schematic/build_panels.sh",
+   "label": "build_panels.sh (make panels)",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "make panels: runs the schematic builders and guards in order (hands to CATS), skipping a step whose inputs are unchanged.",
+   "path": "tools/schematic/build_panels.sh"
+  },
+  {
+   "id": "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
+   "label": "run_panelpro_smoke_test.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "make panelpro-test: loads tables.xml in real PanelPro on the Mac, checks the core beans and quits; SKIPPED when PanelPro or CATS is open.",
+   "path": "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh"
+  },
+  {
+   "id": "tools/hosts/redeploy_commit.sh",
+   "label": "redeploy_commit.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "make redeploy (rollback): runs an older commit's own sync_hart_package.sh from a temporary worktree, with the deploy's guards.",
+   "path": "tools/hosts/redeploy_commit.sh"
+  },
+  {
+   "id": "tools/hosts/live_paths.py",
+   "label": "live_paths.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Checks every path in live_paths.txt exists (deploy gate) and reports which commits touch a shipped path (deploy-status).",
+   "path": "tools/hosts/live_paths.py"
+  },
+  {
+   "id": "cats/scripts/install_ops_files.sh",
+   "label": "install_ops_files.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Installs the six Operations Pro files into a host's JMRI operations folder, keeping a backup; guards an unpulled session.",
+   "path": "cats/scripts/install_ops_files.sh"
+  },
+  {
+   "id": "cats/scripts/install_jmri_web_override.sh",
+   "label": "install_jmri_web_override.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Installs the JMRI web home page (STS and mimic links) into the profile's web folder on each host.",
+   "path": "cats/scripts/install_jmri_web_override.sh"
+  },
+  {
+   "id": "jmri/resources/jmri-web/servlet/home/Home.html",
+   "label": "JMRI web home (Home.html)",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Hand-written JMRI web server home page with the STS and mimic links; hosts get it from the deploy.",
+   "path": "jmri/resources/jmri-web/servlet/home/Home.html"
+  },
+  {
+   "id": "cats/scripts/patch_jmri_startup.py",
+   "label": "patch_jmri_startup.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Adds or removes a Start Up script entry in a JMRI profile, used by the deploy to register the shipped jython.",
+   "path": "cats/scripts/patch_jmri_startup.py"
+  },
+  {
+   "id": "tools/ops/build_pipeline_map.py",
+   "label": "build_pipeline_map.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Checks pipeline_map.json and writes the zoomable map page and its website copy; --check in check.sh.",
+   "path": "tools/ops/build_pipeline_map.py"
+  },
+  {
+   "id": "tools/ops/pipeline_map.js",
+   "label": "pipeline_map.js",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Layout and viewer script inlined into both pipeline map pages.",
+   "path": "tools/ops/pipeline_map.js"
+  },
+  {
+   "id": "docs/pipeline-map/pipeline_map.json",
+   "label": "pipeline_map.json",
+   "kind": "structured",
+   "status": "live",
+   "domain": "extras",
+   "desc": "This map: domains, nodes and edges of every source, generator and output; hand-kept, checked against the repo.",
+   "path": "docs/pipeline-map/pipeline_map.json"
+  },
+  {
+   "id": "docs/pipeline-map/index.html",
+   "label": "docs/pipeline-map/index.html",
+   "kind": "output",
+   "status": "live",
+   "domain": "extras",
+   "desc": "The repo copy of the pipeline map page.",
+   "path": "docs/pipeline-map/index.html"
+  },
+  {
+   "id": "www/library/pipeline-map.html",
+   "label": "library/pipeline-map.html",
+   "kind": "output",
+   "status": "live",
+   "domain": "website",
+   "desc": "Website copy of the pipeline map, mirror paths renamed, linked from the repository guide.",
+   "path": "www/library/pipeline-map.html"
+  },
+  {
+   "id": "tools/ops/pipeline_query.py",
+   "label": "pipeline_query.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "Prints what writes or reads a file, from pipeline_map.json, for agents and people.",
+   "path": "tools/ops/pipeline_query.py"
+  },
+  {
+   "id": "tools/ops/pipeline_map_coverage.py",
+   "label": "pipeline_map_coverage.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "check.sh pipeline-map-coverage: fails when a script check.sh, the Makefile, make panels or a deploy runs, or a file in an output folder, is not in pipeline_map.json.",
+   "path": "tools/ops/pipeline_map_coverage.py"
   }
  ],
  "edges": [
@@ -6261,6 +6450,210 @@
    "from": "docs/wiring/Wiring_Schematic.pptx",
    "to": "docs/ap/electrical/build_soq.py",
    "label": "reads nodes deck"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/scripts/check_hart_phase02.py",
+   "label": "checks"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices.csv",
+   "to": "jmri/scripts/check_hart_phase02.py",
+   "label": "checks"
+  },
+  {
+   "from": "jmri/layouts/hart/data/switches.csv",
+   "to": "jmri/scripts/check_hart_phase02.py",
+   "label": "staging rows"
+  },
+  {
+   "from": "jmri/scripts/check_hart_phase02.py",
+   "to": "tools/check.sh",
+   "label": "check phase02"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
+   "label": "names, bindings"
+  },
+  {
+   "from": "cats/panels/HART_CTC.xml",
+   "to": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
+   "label": "bindings"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
+   "to": "jmri/layouts/hart/data/baselines",
+   "label": "snapshot"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
+   "to": "tools/check.sh",
+   "label": "check baselines"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
+   "label": "block sensors"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
+   "to": "jmri/layouts/hart/scripts/speedmatch/routes.json"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
+   "to": "tools/check.sh",
+   "label": "check speedmatch-routes"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/panel_items.json",
+   "to": "tools/schematic/panel_items.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/schematic/panel_items.py",
+   "to": "tools/schematic/build_layout_le.py",
+   "label": "placed items"
+  },
+  {
+   "from": "tools/schematic/panel_items.py",
+   "to": "jmri/layouts/hart/data/devices.csv",
+   "label": "status bean rows"
+  },
+  {
+   "from": "tools/schematic/panel_items.py",
+   "to": "tools/check.sh",
+   "label": "check panel-status"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/discovered_sml.xml",
+   "to": "tools/schematic/check_sml_current.py",
+   "label": "stamp"
+  },
+  {
+   "from": "jmri/layouts/hart/data/devices.csv",
+   "to": "tools/schematic/check_sml_current.py",
+   "label": "discovery base"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/build_hands.py",
+   "label": "runs every step in order"
+  },
+  {
+   "from": "tools/schematic/check_sml_current.py",
+   "to": "tools/schematic/build_panels.sh",
+   "label": "guard before tables"
+  },
+  {
+   "from": "jmri/layouts/hart/output/tables.xml",
+   "to": "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
+   "label": "loads"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
+   "to": "host:mac",
+   "label": "PanelPro on the Mac"
+  },
+  {
+   "from": "tools/hosts/redeploy_commit.sh",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "older commit's own deploy"
+  },
+  {
+   "from": "tools/hosts/live_paths.txt",
+   "to": "tools/hosts/live_paths.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/hosts/live_paths.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "gate: paths exist"
+  },
+  {
+   "from": "jmri/layouts/hart/operations",
+   "to": "cats/scripts/install_ops_files.sh",
+   "label": "six files"
+  },
+  {
+   "from": "cats/scripts/install_ops_files.sh",
+   "to": "ext:operations-pro",
+   "label": "installs"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "cats/scripts/install_ops_files.sh",
+   "label": "runs on each host"
+  },
+  {
+   "from": "jmri/resources/jmri-web/servlet/home/Home.html",
+   "to": "cats/scripts/install_jmri_web_override.sh"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "cats/scripts/install_jmri_web_override.sh",
+   "label": "runs on each host"
+  },
+  {
+   "from": "cats/scripts/install_jmri_web_override.sh",
+   "to": "host:panelpro",
+   "label": "profile web/ home"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "cats/scripts/patch_jmri_startup.py",
+   "label": "runs on each host"
+  },
+  {
+   "from": "cats/scripts/patch_jmri_startup.py",
+   "to": "host:panelpro",
+   "label": "Start Up scripts"
+  },
+  {
+   "from": "docs/pipeline-map/pipeline_map.json",
+   "to": "tools/ops/build_pipeline_map.py"
+  },
+  {
+   "from": "tools/ops/pipeline_map.js",
+   "to": "tools/ops/build_pipeline_map.py",
+   "label": "inlined"
+  },
+  {
+   "from": "tools/ops/build_pipeline_map.py",
+   "to": "docs/pipeline-map/index.html"
+  },
+  {
+   "from": "tools/ops/build_pipeline_map.py",
+   "to": "www/library/pipeline-map.html",
+   "label": "--public"
+  },
+  {
+   "from": "tools/ops/build_pipeline_map.py",
+   "to": "tools/check.sh",
+   "label": "check pipeline-map-site"
+  },
+  {
+   "from": "www/library/pipeline-map.html",
+   "to": "ext:site-dist",
+   "label": "served"
+  },
+  {
+   "from": "docs/pipeline-map/pipeline_map.json",
+   "to": "tools/ops/pipeline_query.py"
+  },
+  {
+   "from": "docs/pipeline-map/pipeline_map.json",
+   "to": "tools/ops/pipeline_map_coverage.py"
+  },
+  {
+   "from": "tools/check.sh",
+   "to": "tools/ops/pipeline_map_coverage.py",
+   "label": "entry files"
+  },
+  {
+   "from": "tools/ops/pipeline_map_coverage.py",
+   "to": "tools/check.sh",
+   "label": "check pipeline-map-coverage"
   }
  ]
 }
