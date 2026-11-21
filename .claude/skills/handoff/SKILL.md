@@ -44,7 +44,7 @@ Review (code only): after pushing, run /code-review medium on your branch while
 Close: commit (stage by name, conventional message), git push -u origin HEAD,
   gh pr create. Do NOT merge.
 Progress (required): append one line per milestone, blocker or failed check to
-  <scratchpad>/progress/<topic>.log, format "HH:MM step done/total ETA note"
+  <scratchpad>/progress/<topic>.log, format "HH:MM <topic> step done/total ETA note"
   (time from date +%H:%M). Interval for this job: <start and end only | every 3 min |
   every 5 min>; with no milestone, write "still on step X, why, new ETA". Before a
   long command (check.sh, make remote, a build), log it and its expected duration;
