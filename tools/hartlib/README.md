@@ -122,7 +122,7 @@ rr.check()                                # [Problem(invariant, message)]
 
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
 `switches.csv`, `switch_legs.csv`, the name map of `devices.csv`, `interlockings.csv` (every level),
-`local_switches_main_upper.csv`, `lcos_nodes_main_upper.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`,
+`local_switches_main_upper.csv`, `lcos_nodes.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`,
 `schematic/staging_masts.csv`), `hands` (`hands.csv`), `device_map`, `masts` (`main_upper_masts.csv`) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
 stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `build_main_upper_masts.py`

@@ -7,7 +7,7 @@
 Runs after refresh_wiring_docs.py (which writes v85, staging only). Reads:
   docs/wiring/LCOS_Layout_Inventory_v85.xlsx
   jmri/layouts/hart/data/devices.csv   (levels 2 and 3; tools/schematic/build_device_map.py writes them)
-  jmri/layouts/hart/data/schematic/lcos_nodes_main_upper.csv  (each node's level and area)
+  jmri/layouts/hart/data/schematic/lcos_nodes.csv  (each main and upper node's level and area)
 
 v85 still carries the August 2026 upper-deck plan, drawn for an older track plan: nodes C14, C21, C22, C23, C24
 and C32 with Switches 61 to 91, and three motor outputs on C11 (Switches 63, 65, 67). Those rows go; C11 keeps
@@ -39,7 +39,7 @@ SRC = WIRING / "LCOS_Layout_Inventory_v85.xlsx"
 OUT = WIRING / "LCOS_Layout_Inventory_v86.xlsx"
 DATA = ROOT / "jmri/layouts/hart/data/schematic"
 DEVICE_MAP = DATA.parent / "devices.csv"
-NODES = DATA / "lcos_nodes_main_upper.csv"
+NODES = DATA / "lcos_nodes.csv"
 
 OLD_UPPER = {"C14", "C21", "C22", "C23", "C24", "C32"}       # the August 2026 upper-deck nodes
 OLD_SWITCH = re.compile(r"^Switch (6[1-9]|[78]\d|9[01])\b")    # its Switches 61 to 91
@@ -56,7 +56,14 @@ def read_device_rows(path: Path = DEVICE_MAP) -> list[dict]:
 
 
 def read_node_rows(path: Path = NODES) -> list[dict]:
-    return [r for _line, r in read_rows(path, ("level", "area", "node"), optional=("source",))]
+    """The main and upper rows of the node file (staging's nodes are v85's own rows, which this leaves as they are)."""
+    out = []
+    for line, r in read_rows(path, ("level", "area", "node"), optional=("source",)):
+        if r["level"] not in ("1", *LEVEL_NAME):
+            raise FactsError(f"{path.name} line {line}: level is 1, 2 or 3, not {r['level']!r}")
+        if r["level"] in LEVEL_NAME:
+            out.append(r)
+    return out
 
 
 def natural(s: str):
@@ -250,10 +257,26 @@ def block_name(occ: dict, by_name: dict) -> str:
     return name
 
 
+def check_staging_nodes(wb, path: Path = NODES) -> None:
+    """The staging rows of the node file (level 1) are v85's staging nodes, the ones this keeps: every Nodes row
+    but the August 2026 upper deck's. Stops when the two lists differ, so a staging node renumbered or retired in
+    the inventory cannot be left behind in the node file, or the other way round."""
+    ws = wb["Nodes"]
+    cols = header(ws)
+    sheet = {int(v[cols.index("Address")]) for v in ws.iter_rows(min_row=2, values_only=True)
+             if v[0] and v[0] not in OLD_UPPER}
+    listed = {int(r["node"]) for _line, r in read_rows(path, ("level", "area", "node"), optional=("source",))
+              if r["level"] == "1"}
+    if sheet != listed:
+        raise FactsError(f"{path.name}'s staging rows (level 1) are nodes {sorted(listed)}, {SRC.name}'s staging "
+                         f"nodes are {sorted(sheet)}: missing {sorted(sheet - listed)}, extra {sorted(listed - sheet)}")
+
+
 def build(dest: Path) -> None:
     rows = read_device_rows()
     nodes = gather(rows, read_node_rows())
     wb = load_workbook(SRC)
+    check_staging_nodes(wb)
     apply(wb, nodes, rows)
     wb.save(dest)
 
