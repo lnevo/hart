@@ -204,7 +204,7 @@ class SharedFoldersTest(unittest.TestCase):
         self.assertEqual(main / ".cache/hart/schematic", cache)
         self.assertTrue(self.ignored(cache))
         self.assertEqual(main / "media/pulled-stores", paths.pulled_stores_dir())
-        self.assertTrue(self.ignored(paths.pulled_stores_dir()))
+        self.assertTrue(self.ignored(paths.main_checkout() / "media"))   # media/ is a link in a worktree: ask about the folder itself
 
     def test_the_override_moves_the_cache_base(self):
         with mock.patch.dict(os.environ, {"HART_CACHE_DIR": "/x/c"}):
