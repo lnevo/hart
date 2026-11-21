@@ -37,9 +37,8 @@ next ordinal of staging's thousand (mast_plan.virtual_system_names); a dropped o
 retired_virtual_masts.csv.
 
 Writes (jmri/layouts/hart/data/schematic/): staging_masts.csv, staging_signals.csv, and the staging mast and head
-rows of ../devices.csv (written_by build_staging_masts.py; hartlib.devices holds it to those rows), then the three
-files devices.csv generates, device_map_staging.csv among them (read by no builder; each mast and head row's
-system_name and jmri_name are its JMRI name; there is no planned physical head for the internal ones).
+rows of ../devices.csv (written_by build_staging_masts.py; hartlib.devices holds it to those rows). Each mast and
+head row's system_name and jmri_name are its JMRI name; there is no planned physical head for the internal ones.
 """
 from __future__ import annotations
 

@@ -6,7 +6,7 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 
 ## Inputs
 
-- [`jmri/layouts/hart/data/devices.csv`](../../jmri/layouts/hart/data/devices.csv): the device master. A public name is a row's `user_name`. `public_name_map.csv` and the two device maps are generated from it
+- [`jmri/layouts/hart/data/devices.csv`](../../jmri/layouts/hart/data/devices.csv): the device master. A public name is a row's `user_name`. The old public name map and the two device maps are gone (ADR-029)
 - Device-map comments (node / OU / ports / `DCC: NNN`)
 
 ## Outputs

@@ -64,7 +64,7 @@ class TheCommittedMaster(unittest.TestCase):
 
 
 class TheMasterAgainstTables(unittest.TestCase):
-    """The guards public_name_map.csv had against tables.xml, now on the master."""
+    """The guards the old public name map had against tables.xml, now on the master."""
 
     @classmethod
     def setUpClass(cls):
@@ -309,26 +309,22 @@ class TheGeneratedFiles(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        self.files = D.Files(self.tmp / "devices.csv", self.tmp / "devices.columns.csv", self.tmp / "staging.csv",
-                             self.tmp / "main_upper.csv", self.tmp / "public_name_map.csv")
-        for name in ("master", "dictionary", "staging", "main_upper", "name_map"):
+        self.files = D.Files(self.tmp / "devices.csv", self.tmp / "devices.columns.csv")
+        for name in ("master", "dictionary"):
             shutil.copyfile(getattr(REAL, name), getattr(self.files, name))
 
-    def test_a_tampered_generated_file_is_named(self):
-        self.files.staging.write_text(self.files.staging.read_text(encoding="utf-8") + "extra\n", encoding="utf-8")
-        got = D.stale(self.files)
-        self.assertEqual(len(got), 1)
-        self.assertIn("staging.csv is not what devices.csv generates", got[0])
+    def test_the_master_and_its_dictionary_check_clean(self):
+        self.assertEqual(D.stale(self.files), [])
 
     def test_the_name_map_is_the_rows_with_a_pnm_order_in_that_order_and_has_no_alias_rows(self):
-        rows = list(csv.DictReader(io.StringIO(D.name_map_text(D.load(self.files)))))
+        rows = [r for _n, r in D.name_map_lines(self.files)]
         self.assertTrue(rows)
         self.assertTrue(all(r["current"] == r["proposed"] for r in rows))
         self.assertEqual(len(rows), sum(1 for r in D.load(self.files) if r["pnm_order"]))
 
     def test_the_device_maps_leave_out_spare_and_status_rows_and_split_levels(self):
-        staging = list(csv.DictReader(io.StringIO(D.device_map_text(D.load(self.files), ("1",)))))
-        both = list(csv.DictReader(io.StringIO(D.device_map_text(D.load(self.files), ("2", "3")))))
+        staging = D.device_map_rows(D.load(self.files), ("1",))
+        both = D.device_map_rows(D.load(self.files), ("2", "3"))
         self.assertEqual({r["level"] for r in staging}, {"1"})
         self.assertEqual({r["level"] for r in both}, {"2", "3"})
         names = {r["user_name"] for r in staging}
@@ -340,14 +336,14 @@ class TheGeneratedFiles(unittest.TestCase):
         for path, text in out.items():
             self.assertEqual(path.read_text(encoding="utf-8"), text, path.name)
 
-    def test_a_writer_that_drops_a_row_changes_the_master_and_the_maps_but_no_other_writers_rows(self):
+    def test_a_writer_that_drops_a_row_changes_only_its_own_rows_of_the_master(self):
         mine = D.device_map_rows([r for r in D.load(self.files) if r["written_by"] == "build_staging_masts.py"], ("1",))
         gone = (mine[0]["level"], mine[0]["layer"], mine[0]["user_name"])
         out = D.outputs_after("build_staging_masts.py", mine[1:], self.files, drops=[gone])
         before = {(r["level"], r["layer"], r["user_name"]) for r in D.load(self.files)}
         after = {(r["level"], r["layer"], r["user_name"]) for r in csv.DictReader(io.StringIO(out[self.files.master]))}
         self.assertEqual(len(before - after), 1)
-        self.assertEqual(out[self.files.main_upper], self.files.main_upper.read_text(encoding="utf-8"))
+        self.assertEqual(before - after, {gone})
 
     def test_a_writer_that_would_lose_a_name_map_row_without_saying_so_is_refused(self):
         """A rename gives a new key: the old row (and its pnm_ columns) would go with no word, so the write stops."""
@@ -387,33 +383,33 @@ class TheNits(unittest.TestCase):
 
     def test_one_data_folder_moves_every_file(self):
         f = D.Files.under(Path("/x/data"))
-        self.assertEqual({p.parent for p in (f.master, f.dictionary, f.name_map)}, {Path("/x/data")})
-        self.assertEqual({f.staging.parent, f.main_upper.parent}, {Path("/x/data/schematic")})
+        self.assertEqual({p.parent for p in (f.master, f.dictionary)}, {Path("/x/data")})
 
     def test_a_row_with_a_wrong_column_set_is_a_devices_error(self):
         with self.assertRaisesRegex(D.DevicesError, "misses columns"):
             D.master_row({"layer": "turnout", "user_name": "x", "comment": "", "extra": ""}, "")
 
-    def test_a_stale_generated_file_points_at_regenerate(self):
+    def test_a_stale_master_points_at_its_writer(self):
         f = D.Files.here()
-        self.assertIn("hartlib.devices regenerate", D.stale_message(f.staging, f, "tools/schematic/x.py"))
-        self.assertNotIn("regenerate", D.stale_message(f.master, f, "tools/schematic/x.py"))
+        self.assertEqual(D.stale_message(f.master, f, "tools/schematic/x.py"),
+                         "devices.csv is stale: run python3 tools/schematic/x.py")
 
 
 class TheReaders(unittest.TestCase):
-    """The one way a reader gets the old files' rows: from the master (device_map_lines, name_map_lines)."""
+    """The one way a reader gets device-map and name-map rows: from the master (device_map_lines, name_map_lines)."""
 
-    def test_the_lines_give_what_the_generated_files_hold(self):
+    def test_the_lines_give_the_old_forms(self):
         rows = list(D.load())
-        for levels, path in ((("1",), REAL.staging), (("2", "3"), REAL.main_upper)):
-            with self.subTest(levels=levels), path.open(newline="", encoding="utf-8") as fh:
-                want = list(csv.DictReader(fh))
-            got = [{c: r[c] for c in D.DEVICE_COLUMNS} for _n, r in D.device_map_lines(levels)]
-            self.assertEqual(got, want)
-        with REAL.name_map.open(newline="", encoding="utf-8") as fh:
-            old = list(csv.DictReader(fh))
-        self.assertEqual([r for _n, r in D.name_map_lines()], old)
-        self.assertTrue(all(0 < n <= len(rows) + 1 for n, _r in D.name_map_lines()))
+        for levels in (("1",), ("2", "3")):
+            with self.subTest(levels=levels):
+                got = D.device_map_lines(levels)
+                self.assertTrue(got)
+                self.assertTrue(all(set(r) == set(D.DEVICE_COLUMNS) | {"role"} for _n, r in got))
+                self.assertEqual({r["level"] for _n, r in got}, set(levels))
+        names = D.name_map_lines()
+        self.assertTrue(names)
+        self.assertTrue(all(set(r) == set(D.PNM_COLUMNS) and r["current"] == r["proposed"] for _n, r in names))
+        self.assertTrue(all(0 < n <= len(rows) + 1 for n, _r in names))
 
     def test_a_line_is_the_masters_own(self):
         rows = list(D.load())
@@ -444,9 +440,8 @@ class ThePnmComments(unittest.TestCase):
     def setUp(self):
         self.tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, self.tmp)
-        (self.tmp / "schematic").mkdir()
         self.files = D.Files.under(self.tmp)
-        for name in ("master", "dictionary", "staging", "main_upper", "name_map"):
+        for name in ("master", "dictionary"):
             shutil.copyfile(getattr(REAL, name), getattr(self.files, name))
 
     def test_a_row_a_builder_writes_takes_the_comment_and_keeps_its_owner(self):
@@ -459,7 +454,6 @@ class ThePnmComments(unittest.TestCase):
         self.assertEqual((row["pnm_comment"], row["written_by"]), ("a new comment", head["written_by"]))
         self.assertEqual({k: v for k, v in row.items() if k != "pnm_comment"},
                          {k: v for k, v in head.items() if k != "pnm_comment"})
-        self.assertIn("a new comment", update.texts[self.files.name_map])
 
     def test_the_comment_survives_the_builders_next_run(self):
         """The builder's rewrite carries the pnm_ columns of the row it replaces (outputs_after_rows)."""
@@ -484,13 +478,14 @@ class ThePnmComments(unittest.TestCase):
             if head["pnm_comment"] else D.set_pnm_comments("head", {}, self.files)
         self.assertEqual((update.changed, update.texts), (0, {}))
 
-    def test_a_hand_kept_row_changes_and_the_name_map_follows(self):
+    def test_a_hand_kept_row_changes_too(self):
         rows = [dict(r) for r in D.load(self.files)]
         hand = next(r for r in rows if r["layer"] == "turnout" and r["pnm_order"] and not r["written_by"])
         update = D.set_pnm_comments("turnout", {hand["user_name"]: "Node: 99"}, self.files)
         self.assertEqual(update.changed, 1)
-        self.assertIn("Node: 99", update.texts[self.files.name_map])
-        self.assertNotIn("Node: 99", update.texts[self.files.staging])
+        changed = {(r["layer"], r["user_name"]): r for r in csv.DictReader(io.StringIO(update.texts[self.files.master]))}
+        self.assertEqual(changed[("turnout", hand["user_name"])]["pnm_comment"], "Node: 99")
+        self.assertEqual(changed[("turnout", hand["user_name"])]["jmri_comment"], hand["jmri_comment"])
 
 
 class TheLoaderIsStrictAndCurrent(unittest.TestCase):

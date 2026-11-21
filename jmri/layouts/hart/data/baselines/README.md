@@ -45,7 +45,7 @@ Also consulted (not written): `cats/data/occupancy_bindings.csv`.
 1. Re-run the capture script into a scratch directory or replace these files intentionally.
 2. Diff against this baseline:
    - **`hardware_identity.csv`**: `systemName` values must be **identical** (MQTT / internal ids are frozen).
-   - **`userName` values** should match the `proposed` column in `jmri/layouts/hart/data/public_name_map.csv` where a rename applies; identity rows (`current` == `proposed`) should match `current`.
+   - **`userName` values** should match the `user_name` column of `jmri/layouts/hart/data/devices.csv`.
    - **SML / CTC / LE / block / CATS** CSVs: public names in mast, section, destination, and block columns should follow the map; hardware columns (`occupancySensor`, `mqttAddr`, `sensorUserName`) must not change.
 3. Use `git diff` on `tables.xml` to see what else changed; a row count that moves in `counts.txt` means beans were added or removed.
 

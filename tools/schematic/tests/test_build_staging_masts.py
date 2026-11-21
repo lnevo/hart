@@ -231,7 +231,7 @@ def device(layer, user, system, **more):
 
 
 class Rows(unittest.TestCase):
-    """The rows written to staging_masts.csv, staging_signals.csv and device_map_staging.csv."""
+    """The rows written to staging_masts.csv, staging_signals.csv and the staging rows of devices.csv."""
 
     def test_mast_rows(self):
         wired = {"Mast 67": {"Head 67": device("head", "Head 67", "IH467")}}
@@ -307,7 +307,7 @@ class Cli(unittest.TestCase):
         self.current.write_text("mast\nMast 2L\n", encoding="utf-8")
         self.stale = self.dir / "staging_signals.csv"
         self.stale.write_text("mast\nold\n", encoding="utf-8")
-        self.missing = self.dir / "device_map_staging.csv"
+        self.missing = self.dir / "devices.csv"
         want = {self.current: "mast\nMast 2L\n", self.stale: "mast\nnew\n", self.missing: "level\n1\n"}
         gen = [dict(GEN[0]), dict(GEN[1], milepost=6.714)]
         patch = unittest.mock.patch.object(bsm, "build", lambda: (want, gen, []))
@@ -327,7 +327,7 @@ class Cli(unittest.TestCase):
         self.assertEqual((code, out), (1, ""))
         self.assertEqual(err.splitlines(),
                          ["staging_signals.csv is stale: run python3 tools/schematic/build_staging_masts.py",
-                          "device_map_staging.csv is stale: run python3 tools/schematic/build_staging_masts.py"])
+                          "devices.csv is stale: run python3 tools/schematic/build_staging_masts.py"])
         self.assertEqual(self.stale.read_text(encoding="utf-8"), "mast\nold\n")
         self.assertFalse(self.missing.exists())
 
@@ -335,7 +335,7 @@ class Cli(unittest.TestCase):
         before = self.current.stat().st_mtime_ns
         code, out, err = self.run_main()
         self.assertEqual((code, err), (0, ""))
-        self.assertEqual(out.splitlines(), ["wrote staging_signals.csv", "wrote device_map_staging.csv"])
+        self.assertEqual(out.splitlines(), ["wrote staging_signals.csv", "wrote devices.csv"])
         self.assertEqual(self.stale.read_text(encoding="utf-8"), "mast\nnew\n")
         self.assertEqual(self.missing.read_text(encoding="utf-8"), "level\n1\n")
         self.assertEqual(self.current.stat().st_mtime_ns, before)
@@ -408,9 +408,9 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
         for path, data in self.files.items():
             self.assertEqual(path.read_bytes(), data, path.name)
 
-    def test_build_gives_the_masts_signals_master_and_the_files_it_generates(self):
+    def test_build_gives_the_masts_signals_and_master(self):
         f = bsm.device_files()
-        self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, f.master, f.staging, f.main_upper, f.name_map})
+        self.assertEqual(set(self.want), {bsm.MASTS, bsm.SIGNALS, f.master})
 
     def test_masts_are_in_number_then_name_order_each_named_once(self):
         for masts in (self.gen, self.virtual):
@@ -469,7 +469,7 @@ class CommittedData(RepoReadOnly, unittest.TestCase):
 
     def test_the_device_map_keeps_other_rows_then_masts_then_heads_by_name(self):
         old = bsm.devices.device_map_rows(bsm.devices.load(bsm.DEVICE_MAP), ("1",))     # the master's staging rows
-        new = rows_of(self.want[bsm.device_files().staging])                           # the file the master generates
+        new = bsm.devices.device_map_rows(rows_of(self.want[bsm.device_files().master]), ("1",))    # the master built
         other = [r for r in old if r["layer"] not in ("mast", "head")]
         self.assertEqual(new[:len(other)], other)
         masts = [r["user_name"] for r in new if r["layer"] == "mast"]

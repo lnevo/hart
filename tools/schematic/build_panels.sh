@@ -13,7 +13,7 @@
 #   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
 #                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
 #   staging-masts         staging_masts.csv, staging_signals.csv and the devices.csv rows of the staging masts and
-#                         heads (device_map_staging.csv is a generated copy of devices.csv) are written by build_staging_masts.py,
+#                         heads are written by build_staging_masts.py,
 #                         run by hand: this only checks them (--check), in both modes
 #   signals               signals.json (a section per sheet), from the plan graph and the masts; the schematic reads it
 #   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic

@@ -1,14 +1,9 @@
-"""devices.csv: the one device master for all three levels, and the three older files generated from it.
+"""devices.csv: the one device master for all three levels.
 
 jmri/layouts/hart/data/devices.csv holds one row per railroad device (ADR-029). Staging, main and upper are one
 structure; a level differs only in column values. devices.columns.csv describes every column (column, description),
 and a test holds the two files to each other both ways. Every reader gets its rows from the master (device_map_lines
-and name_map_lines below, R9b-2); three older files stay generated from it until R9e and must match it byte for byte:
-
-    schematic/device_map_staging.csv      the rows of level 1
-    schematic/device_map_main_upper.csv   the rows of levels 2 and 3
-    public_name_map.csv                   the rows that carry pnm_order, in that order (the alias rows and the
-                                          retired identity rows of the old file are gone)
+and name_map_lines below). The two device maps and the public name map that once sat beside it are gone (R9e, ADR-029).
 
 The master's values.
 - level 1 staging, 2 main, 3 upper. layer: turnout, fb, block, occupancy, mast, head, sensor.
@@ -23,8 +18,7 @@ Row order is level, layer (LAYERS), then who holds the row (hand-kept first, the
 holder gave, so a rebuild changes only its own rows and `check` can hold the file to it. Block and mast numbers
 that le_tables.block_sort and block_numbering.csv set are not touched here.
 
-    python3 -m hartlib.devices check         # the master and its dictionary are valid and the three files match
-    python3 -m hartlib.devices regenerate    # write the three files from the master
+    python3 -m hartlib.devices check         # the master and its dictionary are valid
 
 Every failure is a DevicesError (a FactsError) naming the file and row.
 """
@@ -60,7 +54,7 @@ COLUMNS = ("level", "cp", "layer", "role", "user_name", "assignment", "system_na
            "switch", "facing", "protects", "dir", "written_by", "description",
            "pnm_order", "pnm_cp", "pnm_hardware", "pnm_dcc", "pnm_comment", "pnm_notes")
 PNM_COLUMNS = ("layer", "current", "proposed", "cp", "hardware", "dcc", "comment", "notes")
-# the columns a device map shares with the master, and the three that are built (comment) or dropped (the rest)
+# the columns a device map shares with the master, and the one that is built (comment) or dropped (the rest)
 _SHARED = tuple(c for c in DEVICE_COLUMNS if c not in ("comment",))
 
 _NODE_TEXT = re.compile(r"Node: \d+")
@@ -73,19 +67,15 @@ class DevicesError(FactsError):
 
 @dataclass(frozen=True)
 class Files:
-    """The files the master and the three generated files live in; tests point them at a copy."""
+    """The master and its dictionary; tests point them at a copy."""
     master: Path
     dictionary: Path
-    staging: Path
-    main_upper: Path
-    name_map: Path
 
     @staticmethod
     def under(data: Path) -> "Files":
         """The files as they sit under a data folder (jmri/layouts/hart/data): one root, so a test or a script that
         points it elsewhere moves every file together and cannot write the repo's."""
-        return Files(data / "devices.csv", data / "devices.columns.csv", data / "schematic" / "device_map_staging.csv",
-                     data / "schematic" / "device_map_main_upper.csv", data / "public_name_map.csv")
+        return Files(data / "devices.csv", data / "devices.columns.csv")
 
     @staticmethod
     def here() -> "Files":
@@ -93,9 +83,6 @@ class Files:
 
     def but(self, **changes) -> "Files":
         return replace(self, **changes)
-
-    def generated(self) -> tuple[Path, ...]:
-        return self.staging, self.main_upper, self.name_map
 
 
 # ---------------------------------------------------------------- reading
@@ -150,9 +137,8 @@ def device_map_lines(levels: tuple[str, ...], source: "Files | Path | str | None
 
 
 def name_map_lines(source: "Files | Path | str | None" = None) -> list[tuple[int, dict[str, str]]]:
-    """(line of the master, name-map row) of each row that has a pnm_order, in that order: what public_name_map.csv
-    holds (name_map_text). Rows are the old file's: layer, current, proposed (both the user name), cp, hardware, dcc,
-    comment, notes."""
+    """(line of the master, name-map row) of each row that has a pnm_order, in that order. Rows are in the old name
+    map's form: layer, current, proposed (both the user name), cp, hardware, dcc, comment, notes (the pnm_ columns)."""
     kept = sorted(((n, r) for n, r in enumerate(load(source), 2) if r["pnm_order"]),
                   key=lambda t: int(t[1]["pnm_order"]))
     return [(n, _name_row(r)) for n, r in kept]
@@ -449,32 +435,20 @@ def device_map_rows(rows: Iterable[Mapping[str, str]], levels: tuple[str, ...]) 
     return [device_map_row(r) for r in rows if r["level"] in levels and r["role"] not in OUT_OF_MAPS]
 
 
-def device_map_text(rows: Iterable[Mapping[str, str]], levels: tuple[str, ...]) -> str:
-    """The text of a device map (device_map_rows)."""
-    return _text(DEVICE_COLUMNS, device_map_rows(rows, levels))
-
-
-def name_map_text(rows: Iterable[Mapping[str, str]]) -> str:
-    """The text of public_name_map.csv: one identity row per master row that has a pnm_order, in that order."""
-    return _text(PNM_COLUMNS, (_name_row(r) for r in sorted((r for r in rows if r["pnm_order"]),
-                                                            key=lambda r: int(r["pnm_order"]))))
-
-
 def _name_row(r: Mapping[str, str]) -> dict[str, str]:
     return {"layer": r["layer"], "current": r["user_name"], "proposed": r["user_name"], "cp": r["pnm_cp"],
             "hardware": r["pnm_hardware"], "dcc": r["pnm_dcc"], "comment": r["pnm_comment"], "notes": r["pnm_notes"]}
 
 
 def texts(rows: list[Mapping[str, str]], files: Files | None = None) -> dict[Path, str]:
-    """{path: text} of the master and the three files generated from `rows`."""
+    """{path: text} of the master from `rows`."""
     f = files or Files.here()
-    return {f.master: master_text(rows), f.staging: device_map_text(rows, ("1",)),
-            f.main_upper: device_map_text(rows, ("2", "3")), f.name_map: name_map_text(rows)}
+    return {f.master: master_text(rows)}
 
 
 def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Files | None = None,
                        drops: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
-    """{path: text} of the master and the three generated files once `writer` has written `new`, master rows with
+    """{path: text} of the master once `writer` has written `new`, master rows with
     written_by set to it, in place of the rows it holds. Each row keeps the pnm_ columns of the row it replaces.
     The caller writes the texts (or compares them for --check); nothing is written here. DevicesError when the
     writer would touch a row it does not hold."""
@@ -494,7 +468,7 @@ def outputs_after_rows(writer: str, new: Iterable[Mapping[str, str]], files: Fil
 def outputs_after(writer: str, old_rows: Iterable[Mapping[str, str]], files: Files | None = None,
                   drops: Iterable[tuple[str, str, str]] = ()) -> dict[Path, str]:
     """outputs_after_rows for `old_rows`, old-form device-map rows (master_row gives each its master form). What a
-    reader of the generated file sees for these rows is what the writer gave; DevicesError when it is not."""
+    reader of the master sees for these rows is what the writer gave; DevicesError when it is not."""
     f = files or Files.here()
     old_rows = list(old_rows)
     prior = {(r["level"], r["layer"], r["user_name"]): r for r in load(f)}
@@ -515,7 +489,7 @@ class PnmUpdate:
 
 
 def set_pnm_comments(layer: str, comments: Mapping[str, str], files: Files | None = None) -> PnmUpdate:
-    """The master and generated files' texts once the `pnm_comment` of each `layer` row in the name map whose user
+    """The master's text once the `pnm_comment` of each `layer` row in the name map whose user
     name is in `comments` is the one given, and how many rows changed. A row a builder holds may change too: pnm_
     columns are no builder's output (a builder's rewrite carries them over from the row it replaces: outputs_after_rows),
     so the change survives its next run, and the row keeps its written_by. Nothing else of the row is touched."""
@@ -532,11 +506,7 @@ def set_pnm_comments(layer: str, comments: Mapping[str, str], files: Files | Non
 
 
 def stale_message(path: Path, files: Files, script: str) -> str:
-    """What a --check says of a stale `path`: the writer to run, and for a generated file the command that rewrites it
-    from the master when the master itself is right."""
-    if path in files.generated():
-        return (f"{path.name} is stale: run python3 {script}, or, when only this generated file differs, "
-                f"python3 -m hartlib.devices regenerate")
+    """What a --check says of a stale `path`: the writer to run."""
     return f"{path.name} is stale: run python3 {script}"
 
 
@@ -553,38 +523,25 @@ def write_all(files: Files, content: Mapping[Path, str]) -> list[Path]:
 # ---------------------------------------------------------------- the check
 
 def stale(files: Files | None = None) -> list[str]:
-    """What is wrong with the generated files: [] when the master and its dictionary check and the three files are
-    what the master generates."""
+    """What is wrong with the master: [] when it and its dictionary check (a DevicesError otherwise)."""
     f = files or Files.here()
-    rows = load(f)
+    load(f)
     read_dictionary(f.dictionary)
-    out = []
-    for path, text in texts(list(rows), f).items():
-        if path == f.master:
-            continue
-        if not path.exists() or path.read_text(encoding="utf-8") != text:
-            out.append(f"{path.name} is not what devices.csv generates: run python3 -m hartlib.devices regenerate")
-    return out
+    return []
 
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(prog="python3 -m hartlib.devices", description=__doc__.split("\n")[0])
-    ap.add_argument("action", choices=("check", "regenerate"))
+    ap.add_argument("action", choices=("check",))
     args = ap.parse_args(argv)
     f = Files.here()
     try:
-        if args.action == "check":
-            problems = stale(f)
-            for p in problems:
-                print(p, file=sys.stderr)
-            if not problems:
-                print(f"devices.csv: {len(load(f))} rows; its dictionary and the three generated files agree")
-            return 1 if problems else 0
-        rows = list(load(f))
-        read_dictionary(f.dictionary)
-        for p in write_all(f, {k: v for k, v in texts(rows, f).items() if k != f.master}):
-            print(f"wrote {p.name}")
-        return 0
+        problems = stale(f)
+        for p in problems:
+            print(p, file=sys.stderr)
+        if not problems:
+            print(f"devices.csv: {len(load(f))} rows; its dictionary agrees")
+        return 1 if problems else 0
     except DevicesError as exc:
         print(f"devices.py: {exc}", file=sys.stderr)
         return 2

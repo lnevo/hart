@@ -63,11 +63,11 @@ class CommittedFiles(Case):
     """Each moved reader against the committed CSV."""
 
     def test_the_device_map(self) -> None:
-        """The main and upper rows of the master are what the generated main and upper device map holds."""
+        """The reader gives the main and upper rows of the master, in the device-map form."""
         rows = AM.read_device_rows()
         self.assertTrue(rows)
         self.assertEqual([{c: r[c] for c in DEVICE_COLUMNS} for r in rows],
-                         [{c: r[c] for c in DEVICE_COLUMNS} for r in plain(devices.Files.here().main_upper)])
+                         [{c: r[c] for c in DEVICE_COLUMNS} for _n, r in devices.device_map_lines(("2", "3"))])
         self.assertEqual({r["level"] for r in rows}, {"2", "3"})
 
     def test_the_nodes(self) -> None:

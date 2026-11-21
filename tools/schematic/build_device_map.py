@@ -29,7 +29,7 @@ Outputs:
   on the control point's level. The bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
 - devices.csv (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
-  device_map_main_upper.csv is a generated copy of them (nothing reads it; R9e retires it). The rows are the one mapping from each
+  The rows are the one mapping from each
   main and upper JMRI device to its planned physical part. Per
   row: the user name under ADR-005; jmri_name, the virtual device tables.xml and the CATS desks use now; system_name,
   the planned physical device (LCOS, a DRAFT: the main and upper plant is not reviewed yet, owner 2026-11-17). Later
