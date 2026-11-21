@@ -1,5 +1,7 @@
 # HART Railroad — CATS CTC Dispatcher Guide
 
+Dispatcher guide for the CATS CTC desk: granting authority, lining routes, fleeting, stacking and call-on.
+
 **Publication:** DS-CATS-DISP · Rev A · Eff 2026-08-19  
 **Railroad:** HART Railroad · Pittsburgh & Chartiers Valley Division · Neville Island Operations  
 **Scope:** CATS Digicon panel (`HART_CTC.xml`), mouse dispatching in CTC mode

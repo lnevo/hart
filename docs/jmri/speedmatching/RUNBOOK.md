@@ -1,5 +1,7 @@
 # Speed-match runbook
 
+Step-by-step runbook for measuring loco speeds per throttle step, comparing two locos and working out a corrected speed table with the speedmatch tools.
+
 The tools live in [`jmri/layouts/hart/scripts/speedmatch/`](../../../jmri/layouts/hart/scripts/speedmatch/). Paths below are from the repo root.
 
 Measure how fast a loco runs at each throttle step, compare two locos in the directions they

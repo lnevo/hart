@@ -1,5 +1,7 @@
 # Stop tests, solo (2026-11-13)
 
+Table of solo stop-test timings for CSX 2738 and CSX 2121 at step 32 on 2026-11-13.
+
 Step 32, trigger BS Switch 35a
 
 | Seconds after the stop command | CSX 2738 (forward, step 32) | CSX 2121 (reverse, step 32) | difference |

@@ -1,5 +1,7 @@
 # Programming on the main: the guard
 
+Describes the guard that every speed-matching CV write on the main must pass through, and how a write reaches the decoder.
+
 Part C of [`RERUN_PLAN.md`](RERUN_PLAN.md). Every CV write on the main for speed matching goes
 through `jmri/layouts/hart/scripts/speedmatch/pom_guard.py`; `pom_write.py` next to it is the
 only thing that sends one, from inside the Pi's JMRI. Tests:

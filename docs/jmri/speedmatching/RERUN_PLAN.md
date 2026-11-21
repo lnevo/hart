@@ -1,5 +1,7 @@
 # Plan: better speed-matching tools and a re-run of CSX 2121 and CSX 2738
 
+Plan for better speed-matching tools and the re-run measuring CSX 2121 and CSX 2738 again, written 2026-11-12 and carried out on 2026-11-13.
+
 Written 2026-11-12. Follows the first profile of 2026-11-08
 ([`profile-2026-11-08/README.md`](profile-2026-11-08/README.md)) and takes over what is useful
 from the STRR club procedure ([`README.md`](README.md), the SOP PDF in `docs/ops/`).

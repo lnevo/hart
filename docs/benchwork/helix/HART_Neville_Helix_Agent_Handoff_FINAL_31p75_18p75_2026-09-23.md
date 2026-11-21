@@ -1,5 +1,7 @@
 # HART Railroad — Neville Island Helix Agent Handoff
 
+Design rationale, calculations, alternatives and failure modes for the Neville Island helix, for an agent continuing helix engineering; the as-built status file overrides it.
+
 Status: done (2026-10-31)
 
 **Purpose:** Give a new agent enough context to continue helix engineering, sourcing, troubleshooting, or documentation without reconstructing the full prior conversation.

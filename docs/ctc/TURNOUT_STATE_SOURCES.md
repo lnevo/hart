@@ -1,5 +1,7 @@
 # Turnout state SoR (HART Digicon)
 
+Fixes where the Digicon desk gets each turnout's state (feedback versus command) and the close and throw polarity for the special turnouts 112 to 119.
+
 ## Rules
 
 1. **Live Digicon state follows FB** for every turnout **except 116–119**.
