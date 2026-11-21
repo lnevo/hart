@@ -369,28 +369,6 @@ class PreflightTest(DeployHarness):
         self.assertEqual(1, done.returncode, done.stderr)
         self.assertIn(WIN_DOWN, done.stderr)
 
-    def test_a_redeploy_whose_hosts_answered_does_not_ask_again(self) -> None:
-        """redeploy_commit.sh has run --check-only and passes HART_HOSTS_ANSWERED=1: no second ssh no-op."""
-        self.env.update(HART_REDEPLOY_FROM="0" * 40, HART_HOSTS_ANSWERED="1")
-        done = self.deploy("--pi", "--win")
-        self.assertIn("Deploy → Pi", done.stdout)
-        self.assertFalse(any(c.endswith((f"{PI} true", f"{WIN} exit 0")) for c in self.calls()), self.calls())
-        # the Pi's unpulled check still runs
-        self.assertTrue(any(f"{PI} bash -s -- " in c for c in self.calls()), self.calls())
-
-    def test_hosts_answered_alone_does_not_skip_the_check(self) -> None:
-        self.env["HART_HOSTS_ANSWERED"] = "1"
-        self.down(WIN)
-        done = self.deploy("--pi", "--win")
-        self.assertEqual(1, done.returncode, done.stderr)
-        self.assertIn(WIN_DOWN, done.stderr)
-
-    def test_redeploy_tells_the_older_deploy_the_hosts_answered(self) -> None:
-        text = REDEPLOY.read_text(encoding="utf-8")
-        check = text.index('--check-only "${CHECK_HOSTS[@]}"')
-        self.assertGreater(text.index("CHILD_ENV+=(HART_HOSTS_ANSWERED=1)"), check)
-        self.assertLess(text.index("CHILD_ENV+=(HART_HOSTS_ANSWERED=1)"), text.index('env -i "${CHILD_ENV[@]}"'))
-
     def test_redeploy_checks_the_hosts_before_the_older_commits_deploy(self) -> None:
         self.down(WIN)
         for hosts in (("--pi", "--win"), ("--win",)):

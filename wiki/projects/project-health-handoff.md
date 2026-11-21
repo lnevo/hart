@@ -328,7 +328,7 @@ These were still open when the older hand-offs went to `archive/wiki/projects/` 
 - **Hand-typed names, phases 2 and 3 (owner, 2026-11-14):** the desk, Layout Editor and wiring generators still hold some track, block and mast names typed by hand. They wait for the import of the main and upper levels. Phase 0 (`tools/audit/check_name_copies.py` in `check.sh`) and phase 1 are done.
 - **`signal_number` at MP 6.6 and 6.7:** it gives 67/66 at MP 6.6 and 67/68 at MP 6.7, so two pairs a tenth apart share a westward name, and MP 9.8 westward returns 99 although the message says names stop at 98. Pinned by the `test_open_question_...` tests in `tools/schematic/tests/test_build_staging_masts.py`. The staging signal rule decides it.
 - **`sts_car_sync.py` line 239:** stock `ThreadingUtil.runOnGUI` logs and drops an exception raised off the GUI thread, so a failed batch answers `ok: true, saved: true`. Pinned as a known fault in `jmri/layouts/hart/scripts/tests/test_sts_car_sync_worker.py`; not fixed.
-- **Redeploy runs the preflight twice:** fixed 2026-11-20. `redeploy_commit.sh` passes `HART_HOSTS_ANSWERED=1` after its `--check-only`, and a deploy from then on skips its own ssh no-op; older commits still ask again.
+- **Redeploy runs the preflight twice:** kept on purpose (2026-11-20). The older commit's own ssh check closes the gap after the redeploy's check, so a host that drops in between still stops the run before the Pi step, and the hosts keep matching. It costs about a second.
 
 ## Loose ends from the 2026-11-20 run
 

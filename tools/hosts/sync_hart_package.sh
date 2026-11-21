@@ -279,9 +279,7 @@ preflight_hosts() {
   fi
   exit 1
 }
-# A redeploy has just run this checkout's --check-only for the same hosts and says so with
-# HART_HOSTS_ANSWERED=1 (with HART_REDEPLOY_FROM), so the older commit's deploy does not ask again.
-if [[ "$DRY_RUN" -eq 0 && ! ( "${HART_HOSTS_ANSWERED:-0}" == 1 && -n "${HART_REDEPLOY_FROM:-}" ) ]]; then
+if [[ "$DRY_RUN" -eq 0 ]]; then
   preflight_hosts
 fi
 
