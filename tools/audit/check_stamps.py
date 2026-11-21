@@ -35,17 +35,10 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "schematic"))
 import panel_stamps as ps  # noqa: E402
 
-def main_checkout(root: Path = ROOT) -> Path:
-    """The main checkout this worktree belongs to: the parent of git's common dir (the checkout itself when it is the
-    main one). To fold into hartlib.paths.main_checkout() when that merges."""
-    done = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=root,
-                          capture_output=True, text=True, timeout=30)
-    if done.returncode != 0 or not done.stdout.strip():
-        return root
-    return Path(done.stdout.strip()).parent
+sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
+from hartlib.paths import cache_dir, main_checkout  # noqa: E402
 
-
-STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or main_checkout() / ".cache" / "hart" / "check-stamps")
+STORE = Path(os.environ.get("CHECK_STAMPS_DIR") or cache_dir("check-stamps", ROOT))
 PRUNE = {".git", ".cache", "__pycache__", "node_modules", ".venv", "venv", ".pages-dist", ".mypy_cache", ".pytest_cache"}
 PRUNE_PATHS = {".claude/worktrees", "external/model-railroad-skills"}     # the plugin is stamped by its commit
 LITTER = (".DS_Store", ".pyc")
