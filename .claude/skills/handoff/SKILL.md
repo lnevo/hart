@@ -29,9 +29,18 @@ Scope: <paths you may change>. Do not touch: <paths other agents own>.
 Quality (code only): 1 clear domain errors, not raw exceptions; 2 no silent fallbacks
   (guessing, defaulting, skipping); 3 invariant checks after mutations; 4 inputs validated
   up front; 5 no duplicated helpers or per-call rebuilds. Test the error paths. Check your
-  whole diff against these five before reporting.
+  whole diff against these five before reporting. Reviews here keep finding: paths
+  (symlinked worktree mirrors such as media/ and ops/car-cards/, cwd-relative names,
+  ../ and ./ segments), git or subprocess failures shown as tracebacks, graph or tree
+  walks (shortest level first, cycles), Markdown parsing (wrapped paragraphs, code
+  fences, HTML comments, multi-line list items, lines that start with bold), links
+  copied into another file without rewriting, and checks that compare more than they
+  claim. Test the ones that apply.
 Checks: single tests while iterating; the full ./tools/check.sh once, through
   make remote CMD="./tools/check.sh" after pushing. Take timings from logs, not re-runs.
+Review (code only): after pushing, run /code-review medium on your branch while
+  make remote runs, fix what it confirms with a test each, push again, and list
+  its findings and what you did with each in the report.
 Close: commit (stage by name, conventional message), git push -u origin HEAD,
   gh pr create. Do NOT merge.
 Progress (required): append one line per milestone, blocker or failed check to
@@ -54,7 +63,7 @@ Set each brief's interval by the job's expected length (`AGENTS.md`, "Status rep
 
 The main session merges, one PR at a time, once its required check passes, never with `--admin`.
 
-1. Code PRs first get `/code-review medium`. Fix confirmed correctness bugs, check each unverified finding against the code, and leave performance and style for later unless trivial. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
+1. Code PRs are reviewed by their own agent (brief, Review). Before merging, the main session runs `/code-review low` on the PR to catch what the fixes broke; when the agent could not run a review, it runs `/code-review medium` instead. Fix confirmed correctness bugs, check each unverified finding against the code, and leave performance and style for later unless trivial. Add a finding that recurs to the list in the brief's Quality line. After a review, check `git branch --show-current` before committing; it can leave a detached HEAD.
 2. Merge PRs that others build on first. Rebase each remaining one on the new main, regenerate its generated files, and wait for CI again.
 3. Deploy once after the last merge if live artifacts changed (`deploy` skill).
 
