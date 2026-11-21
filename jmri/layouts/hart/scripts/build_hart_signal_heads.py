@@ -36,7 +36,7 @@ from hartlib import paths, wiring  # noqa: E402
 from hartlib.railroad_facts import FactsError  # noqa: E402
 
 ROOT = paths.REPO_ROOT
-DATA = ROOT / "docs/wiring/signals"
+HEAD_PLAN = paths.SIGNAL_HEAD_PLAN
 
 SKIP_MAST: set[str] = set()
 
@@ -186,7 +186,7 @@ def mast_system_name(mast: str, rows: list[dict]) -> str:
 
 
 def write_csvs(rows: list[dict]) -> None:
-    DATA.mkdir(parents=True, exist_ok=True)
+    HEAD_PLAN.parent.mkdir(parents=True, exist_ok=True)
     plan_fields = [
         "mast_user_name",
         "mqtt_node",
@@ -200,12 +200,12 @@ def write_csvs(rows: list[dict]) -> None:
         "port_ids",
     ]
     masts = plan_masts(fitted_rows(rows))
-    with (DATA / "signal_head_plan.csv").open("w", newline="") as f:
+    with HEAD_PLAN.open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=plan_fields, lineterminator="\n")
         w.writeheader()
         w.writerows(masts)
 
-    print(f"wrote {DATA / 'signal_head_plan.csv'} ({len(masts)} masts)")
+    print(f"wrote {HEAD_PLAN} ({len(masts)} masts)")
 
 
 def main() -> int:
