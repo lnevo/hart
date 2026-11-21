@@ -1,0 +1,493 @@
+"""Pins the order of gates and ship steps in tools/hosts/sync_hart_package.sh before it is split.
+
+WHY: the script builds, gates and ships to the Pi, Windows and the Mac in one run, so a failed gate or a
+one-host retry repeats everything. The planned split is a gate step and one ship step per host. These tests
+pin what a split could break; they change no behaviour. Line numbers are of the script at the time of writing.
+
+MAP OF THE SCRIPT, in the order it runs (L = line):
+
+  Before anything (no ssh)
+    G0  L17-19   refuse_hart_tables, refuse_unrestored_profile       needs: env, ~/JMRI_UserFiles state
+    G0  L34-37   read the parked features (hartlib.parked)           needs: python3, hartlib
+    --  L50-91   parse flags (--pi --win --all --dry-run --stage-only --check-only ...)
+    G0  L95      live_paths.py check (not for --check-only/--dry-run) needs: local files
+    --  L99-107  --stage-only: folder must be empty; sets DRY_RUN=1, DO_MAC_WEB=0
+    --  L111-136 stamp facts (commit, dirty warning, source)        needs: git
+    --  L252     ssh_mux_open (a folder of ssh sockets, closed by on_exit)
+
+  Host gates (ssh, read-only; skipped by --dry-run and --stage-only)
+    G1  L261-284 preflight_hosts: one ssh no-op to each host named   needs: ssh to the Pi and/or Windows
+    G2  L295-308 Pi unpulled check (Operations Pro files, Store)     needs: ssh to the Pi; only with --pi;
+                 pi_stop also starts PanelPro again                   HART_DISCARD_PI_CHANGES=1 skips it
+    --  L309-313 --check-only stops here
+
+  Local gates (no ssh; --stage-only and --dry-run still run them)
+    G3  L321-329 audit_panel_contracts.py --strict                   needs: schematic-maps plugin, local files
+    G4  L339-352 build_tables.py --check (not on a redeploy, L334)   needs: plugin at its pin; exit 3/2/other
+    G5  L353-356 disable_digicon_sml_in_tables.py --check            needs: tables.xml
+    --  L361-370 tables sha for the stamp (a warning, not a stop)
+
+  Ship steps
+    S0  L683-690 --stage-only: build DIR/pi and DIR/win and exit     (stage_hosts, L640-649)
+    S1  L692-704 Mac install (web override, tables, ops, panels, CTC icons, jython, stamp)   needs: ~/JMRI_UserFiles
+                 runs with any host flag, and with no flag at all (the Mac only)
+    S2  L706-711 stage_hosts into a temp folder, once for both hosts  needs: local files, rsync, python3
+    S3  L713-729 Pi: ssh mktemp, rsync, ssh apply, restart check      needs: ssh, rsync to the Pi
+    S4  L731-748 Windows: tarball, ssh mktemp, scp, ssh unpack, ssh apply, ssh cleanup   needs: ssh, scp, tar
+
+GATES THAT RUN AFTER SHIPPING HAS STARTED (the main finding):
+  A. L451-454 install_tables_local: "tables.xml changed since the last deploy (a PanelPro Store)" on the MAC
+     profile. It runs inside S1, after install_jmri_web_override.sh (L696) has already changed the Mac, and it is
+     the Mac's own Store check: a gate step that only reads hosts never makes it. A split has to move it ahead of
+     the Mac ship step or leave it there.
+  B. S2 staging (L542-649) can fail (build_mimic_web.py, publish_live.py, rsync, a missing source file) AFTER the
+     Mac install of S1 is done and before any host is touched. Nothing proves the package can be built until the
+     Mac has been changed; the package build is the one "gate" that has no step of its own.
+  C. S4 scp/tar/mktemp failures on Windows come after the Pi step is finished: the script reports the commit the
+     Pi got (L240-248) and Windows can be left behind. Only the ssh no-op (G1) is checked ahead of time.
+  D. The operating flag is not in the script at all: .claude/hooks/main_guard.py refuses a command whose program
+     is sync_hart_package.sh or redeploy_commit.sh with --pi/--win/--all, or a make deploy target (a new ship
+     script name is not covered until the hook's program list names it).
+
+Everything below runs with ssh, scp, rsync-to-a-host and tar as recorders on PATH (the hosts are example.invalid
+names) and a temporary HOME; nothing reaches a host, and nothing publishes MQTT.
+"""
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from test_deploy_preflight import FAKE_RSYNC, PI, ROOT, SYNC, WIN, DeployHarness  # noqa: E402
+
+HOOK = ROOT / ".claude/hooks/main_guard.py"
+OPERATING = ROOT / "tools/hosts/operating.sh"
+# Read-only ssh calls a gate step may make: the no-ops, the unpulled check, the restart check.
+READ_ONLY_SUFFIXES = (" true", " exit 0", " bash -s")
+
+
+def is_read_only(call: str) -> bool:
+    return call.endswith(READ_ONLY_SUFFIXES) or " bash -s -- '" in call
+
+
+def wrapper(tmp: Path, real: Path) -> None:
+    """A python3 in front of the harness one that fails a named step while its marker file exists, and
+    otherwise hands over to the harness python3 (the tables and Digicon stand-ins)."""
+    tool = tmp / "bin2/python3"
+    tool.parent.mkdir()
+    tool.write_text(f"""#!/bin/bash
+for a in "$@"; do
+  case "$a" in
+    hartlib.parked) [[ ! -f "{tmp}/fail_parked" ]] || {{ echo "stand-in: parked features unreadable" >&2; exit 1; }} ;;
+    */audit_panel_contracts.py) [[ ! -f "{tmp}/fail_audit" ]] || {{ echo "stand-in: panel audit failed" >&2; exit 1; }} ;;
+    */live_paths.py) [[ ! -f "{tmp}/fail_live_paths" ]] || {{ echo "stand-in: live path gone" >&2; exit 1; }} ;;
+    */build_mimic_web.py) [[ ! -f "{tmp}/fail_stage" ]] || {{ echo "stand-in: staging failed" >&2; exit 1; }} ;;
+  esac
+done
+exec "{real}" "$@"
+""", encoding="utf-8")
+    tool.chmod(0o755)
+
+
+class GateHarness(DeployHarness):
+    """DeployHarness plus recorders: rsync to a host, scp and tar log to network.log / ship.log; the Pi's
+    unpulled check answers what unpulled.txt holds (or fails while unpulled_fail exists); the Pi and Windows
+    apply steps succeed after hosts_ok()."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        wrapper(self.tmp, self.tmp / "bin/python3")
+        self.env["PATH"] = f"{self.tmp / 'bin2'}{os.pathsep}{self.env['PATH']}"
+        rsync, tar = shutil.which("rsync"), shutil.which("tar")
+        assert rsync and tar, "rsync and tar are needed for the staging"
+        bins = self.tmp / "bin"
+        (bins / "rsync").write_text(FAKE_RSYNC.replace("@TMP@", str(self.tmp)).replace("@RSYNC@", rsync),
+                                    encoding="utf-8")
+        (bins / "tar").write_text(f'#!/bin/bash\necho "tar $*" >>"{self.tmp}/ship.log"\nexec "{tar}" "$@"\n',
+                                  encoding="utf-8")
+        (bins / "scp").write_text(f'#!/bin/sh\necho "scp $*" >>"{self.tmp}/network.log"\nexit 0\n', encoding="utf-8")
+        # the unpulled check prints what unpulled.txt holds (ops, tables)
+        ssh = (bins / "ssh").read_text(encoding="utf-8")
+        old = '''"bash -s -- '"*) cat >/dev/null; exit 0 ;;'''
+        assert old in ssh, "the preflight ssh stand-in changed: update this one"
+        ssh = ssh.replace(old, f'''"bash -s -- '"*) cat >/dev/null; [[ ! -f "{self.tmp}/unpulled_fail" ]] || exit 5; '''
+                               f'''cat "{self.tmp}/unpulled.txt" 2>/dev/null; exit 0 ;;''')
+        (bins / "ssh").write_text(ssh, encoding="utf-8")
+        for name in ("rsync", "tar", "scp", "ssh"):
+            (bins / name).chmod(0o755)
+
+    def hosts_ok(self) -> None:
+        """Both hosts take the package and their apply steps succeed (the folder cleanup on Windows fails, as in
+        the preflight tests, which is only a warning)."""
+        (self.tmp / "pi_ok").touch()
+        (self.tmp / "win_ok").touch()
+        (self.tmp / "win_apply_rc").write_text("0\n", encoding="utf-8")
+
+    def unpulled(self, *what: str) -> None:
+        (self.tmp / "unpulled.txt").write_text("".join(f"{w}\n" for w in what), encoding="utf-8")
+
+    def ship_log(self) -> list[str]:
+        log = self.tmp / "ship.log"
+        return log.read_text().splitlines() if log.exists() else []
+
+    def shipped(self) -> list[str]:
+        """Everything that is not a read-only gate call: any other ssh, an rsync to a host, scp or the tarball."""
+        sent = [c for c in self.calls()
+                if c.startswith(("rsync ", "scp ")) or (c.startswith("ssh ") and not is_read_only(c))]
+        return sent + self.ship_log()
+
+    def mac_installed(self) -> bool:
+        return (self.tmp / "home/JMRI_UserFiles/cats/deploy_stamp.txt").exists()
+
+    def assert_nothing_shipped(self, done: subprocess.CompletedProcess, *, mac: bool = False) -> None:
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertEqual([], self.shipped(), self.calls())
+        self.assertNotIn("Deploy →", done.stdout)
+        self.assertEqual(mac, self.mac_installed(), "the Mac install " + ("did not run" if mac else "ran"))
+        self.assertEqual([], sorted(p.name for p in self.scratch.iterdir()), "staging or tarball left behind")
+
+
+class EveryGateStopsBeforeAnythingShips(GateHarness):
+    """A failed gate leaves the hosts, the Mac and the scratch folder as they were: no ssh beyond the read-only
+    checks, no rsync, scp or tar, no Mac install."""
+
+    def stops(self, marker: str, text: str, *flags: str) -> None:
+        (self.tmp / marker).touch()
+        done = self.deploy(*(flags or ("--pi", "--win")))
+        self.assertIn(text, done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_tables_not_what_the_generator_writes(self) -> None:
+        self.stops("tables_stale", "STOP: tables.xml is not what tools/schematic/build_tables.py writes")
+
+    def test_tables_check_needs_the_plugin(self) -> None:
+        self.stops("tables_no_plugin", "STOP: the tables check needs the schematic-maps plugin")
+
+    def test_tables_source_error(self) -> None:
+        self.stops("tables_source_error", "cannot make tables.xml from its sources")
+
+    def test_digicon_destination_enabled(self) -> None:
+        self.stops("digicon_enabled", "STOP: a Digicon mast's Signal Mast Logic is stored enabled")
+
+    def test_panel_audit_failure(self) -> None:
+        self.stops("fail_audit", "stand-in: panel audit failed")
+
+    def test_unreadable_parked_features_stop_before_any_ssh(self) -> None:
+        self.stops("fail_parked", "cannot read the parked features")
+        self.assertEqual([], self.calls(), "the script asked a host before it knew what is parked")
+
+    def test_a_missing_live_path_stops_before_any_ssh(self) -> None:
+        self.stops("fail_live_paths", "stand-in: live path gone")
+        self.assertEqual([], self.calls())
+
+    def test_the_gates_also_stop_a_single_host_and_the_mac_only_run(self) -> None:
+        for flags in (("--pi",), ("--win",), ()):
+            with self.subTest(flags=flags):
+                (self.tmp / "tables_stale").touch()
+                done = self.deploy(*flags)
+                self.assertIn("STOP: tables.xml is not what", done.stderr)
+                self.assert_nothing_shipped(done)
+
+    def test_stage_only_runs_the_local_gates_and_builds_nothing_when_one_fails(self) -> None:
+        (self.tmp / "tables_stale").touch()
+        stage = self.tmp / "stage"
+        done = self.deploy("--pi", "--win", "--stage-only", str(stage))
+        self.assertEqual(1, done.returncode, done.stderr[-2000:])
+        self.assertIn("STOP: tables.xml is not what", done.stderr)
+        self.assertFalse(stage.exists() and any(stage.iterdir()), "a package was built after a failed gate")
+        self.assertEqual([], self.calls())
+
+    def test_the_host_gates_run_before_the_local_gates(self) -> None:
+        """Order: ssh no-ops, then the Pi's unpulled check, then the local gates. A stale tables.xml is not
+        reported while the Pi has a Store, and an unreachable host hides every local gate."""
+        (self.tmp / "tables_stale").touch()
+        self.unpulled("tables")
+        done = self.deploy("--pi", "--win")
+        self.assertIn("make tables-pull-pi", done.stderr)
+        self.assertNotIn("is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertFalse((self.tmp / "tables_check.log").exists())
+        self.assert_nothing_shipped(done)
+        (self.tmp / "unpulled.txt").unlink()
+        self.down(WIN)
+        done = self.deploy("--pi", "--win")
+        self.assertIn("STOP: cannot reach Windows", done.stderr)
+        self.assertFalse((self.tmp / "tables_check.log").exists())
+
+
+class PiChangedSinceLastDeploy(GateHarness):
+    """The Pi's Operations Pro files or tables.xml changed since the last deploy or pull: stop before anything
+    is sent, and name the way out."""
+
+    def test_operations_files_changed(self) -> None:
+        self.unpulled("ops")
+        done = self.deploy("--pi", "--win")
+        self.assertIn("make ops-pull", done.stderr)
+        self.assertNotIn("make tables-pull-pi", done.stderr)
+        self.assertIn("HART_DISCARD_PI_CHANGES=1 replaces them anyway.", done.stderr)
+        self.assert_nothing_shipped(done)
+        # Windows was asked for its no-op only, and the gate ran before the local ones.
+        self.assertEqual(["exit 0"], [c.split(f"{WIN} ", 1)[1] for c in self.calls() if f"{WIN} " in c])
+        self.assertFalse((self.tmp / "tables_check.log").exists())
+
+    def test_the_store_changed(self) -> None:
+        self.unpulled("tables")
+        done = self.deploy("--pi")
+        self.assertIn("STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store)", done.stderr)
+        self.assertNotIn("make ops-pull", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_both_changed_name_both(self) -> None:
+        self.unpulled("ops", "tables")
+        done = self.deploy("--pi", "--win")
+        self.assertIn("make ops-pull", done.stderr)
+        self.assertIn("make tables-pull-pi", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_the_stop_starts_panelpro_again_when_it_was_quit_for_the_deploy(self) -> None:
+        self.unpulled("ops")
+        (self.tmp / "restart.txt").write_text("yes\n", encoding="utf-8")
+        done = self.deploy("--pi")
+        self.assertIn("Starting PanelPro on the Pi again (it was quit for this deploy)", done.stdout)
+        self.assertEqual(1, done.returncode, done.stderr)
+
+    def test_only_a_pi_deploy_asks(self) -> None:
+        self.unpulled("ops", "tables")
+        self.hosts_ok()
+        done = self.deploy("--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertFalse(any("bash -s --" in c for c in self.calls()), self.calls())
+        self.assertIn("Windows deploy done.", done.stdout)
+
+    def test_discarding_goes_on_to_ship_to_both(self) -> None:
+        self.unpulled("ops", "tables")
+        self.hosts_ok()
+        self.env["HART_DISCARD_PI_CHANGES"] = "1"
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertFalse(any("bash -s --" in c for c in self.calls()), self.calls())
+        self.assertIn("Pi deploy done.", done.stdout)
+        self.assertIn("Windows deploy done.", done.stdout)
+
+    def test_a_failed_check_stops_too(self) -> None:
+        """The check itself failing (ssh drops) is a stop with its own text, not a pass."""
+        (self.tmp / "unpulled_fail").touch()
+        done = self.deploy("--pi")
+        self.assertIn("STOP: could not check the Pi for unpulled changes", done.stderr)
+        self.assert_nothing_shipped(done)
+
+
+class WhatShipsWhere(GateHarness):
+    """The ship steps: --pi --win ships both, each flag alone ships one, no flag is the Mac only."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.hosts_ok()
+
+    def pi_pushes(self) -> list[str]:
+        return [c for c in self.calls() if c.startswith("rsync ")]
+
+    def pi_applies(self) -> list[str]:
+        return [c for c in self.calls() if "apply_hart_package_local.sh" in c]
+
+    def win_applies(self) -> list[str]:
+        return [c for c in self.calls() if "apply_hart_package_local.ps1" in c]
+
+    def scps(self) -> list[str]:
+        return [c for c in self.calls() if c.startswith("scp ")]
+
+    def test_pi_and_win_ship_both_pi_first_after_the_mac(self) -> None:
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertEqual(1, len(self.pi_pushes()), self.calls())
+        self.assertEqual(1, len(self.pi_applies()), self.calls())
+        self.assertEqual(1, len(self.scps()), self.calls())
+        self.assertEqual(1, len(self.win_applies()), self.calls())
+        self.assertEqual(1, len(self.ship_log()), "one tarball for Windows")
+        self.assertTrue(self.mac_installed())
+        calls = self.calls()
+        first_win_step = next(i for i, c in enumerate(calls) if WIN in c and not is_read_only(c))
+        self.assertLess(calls.index(self.pi_applies()[0]), first_win_step, "Windows came before the Pi's apply")
+        self.assertLess(done.stdout.index("Deploy → Pi"), done.stdout.index("Deploy → Windows"))
+        self.assertTrue(done.stdout.rstrip().endswith("DONE"), done.stdout[-300:])
+
+    def test_all_is_pi_and_win(self) -> None:
+        done = self.deploy("--all")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertIn("Pi deploy done.", done.stdout)
+        self.assertIn("Windows deploy done.", done.stdout)
+
+    def test_pi_alone_ships_only_the_pi(self) -> None:
+        done = self.deploy("--pi")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertEqual(1, len(self.pi_pushes()))
+        self.assertEqual(1, len(self.pi_applies()))
+        self.assertFalse(any(WIN in c for c in self.calls()), self.calls())
+        self.assertEqual([], self.scps())
+        self.assertEqual([], self.ship_log(), "a Windows tarball was made for a Pi-only deploy")
+        self.assertNotIn("Windows", done.stdout)
+        self.assertTrue(self.mac_installed(), "a host flag also installs on the Mac")
+
+    def test_win_alone_ships_only_windows(self) -> None:
+        done = self.deploy("--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertFalse(any(PI in c for c in self.calls()), self.calls())
+        self.assertEqual([], self.pi_pushes())
+        self.assertEqual(1, len(self.scps()))
+        self.assertEqual(1, len(self.win_applies()))
+        self.assertNotIn("Pi deploy", done.stdout)
+        self.assertTrue(self.mac_installed())
+
+    def test_no_flag_is_the_mac_only(self) -> None:
+        done = self.deploy()
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertEqual([], self.calls(), "a Mac-only deploy reached for a host")
+        self.assertEqual([], self.ship_log())
+        self.assertTrue(self.mac_installed())
+        self.assertIn("deploy stamp ->", done.stdout)
+        self.assertIn("target=mac", (self.tmp / "home/JMRI_UserFiles/cats/deploy_stamp.txt").read_text())
+
+    def test_dry_run_installs_and_sends_nothing(self) -> None:
+        done = self.deploy("--pi", "--win", "--dry-run")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertFalse(self.mac_installed())
+        # the only network call is rsync -n (statistics, no copy); no apply, no scp
+        self.assertTrue(all(" -n " in c for c in self.pi_pushes()), self.pi_pushes())
+        self.assertEqual([], self.scps())
+        self.assertEqual([], self.pi_applies() + self.win_applies())
+        self.assertEqual([], [c for c in self.calls() if c.startswith("ssh ")])
+
+    def test_a_pi_failure_stops_before_windows(self) -> None:
+        (self.tmp / "pi_ok").unlink()
+        done = self.deploy("--pi", "--win")
+        self.assertNotEqual(0, done.returncode)
+        self.assertFalse(any(WIN in c and not is_read_only(c) for c in self.calls()), self.calls())
+        self.assertEqual([], self.ship_log())
+
+
+class ShippingStartsBeforeSomeGates(GateHarness):
+    """Gates that run after the Mac install has begun (see the map): pinned as they are today, so a split that
+    moves them does it on purpose."""
+
+    def mac_store(self) -> Path:
+        uf = self.tmp / "home/JMRI_UserFiles"
+        uf.mkdir(parents=True)
+        (uf / "tables.xml").write_text("<!-- a Store the owner saved -->\n", encoding="utf-8")
+        (uf / ".tables_deployed.sha256").write_text("0" * 64 + "\n", encoding="utf-8")
+        return uf
+
+    def test_a_mac_store_stops_after_the_mac_install_began_but_before_any_host(self) -> None:
+        uf = self.mac_store()
+        done = self.deploy("--pi", "--win")
+        self.assertIn(f"STOP: {uf}/tables.xml changed since the last deploy (a PanelPro Store)", done.stderr)
+        self.assert_nothing_shipped(done)
+        self.assertEqual("<!-- a Store the owner saved -->\n", (uf / "tables.xml").read_text())
+        self.assertFalse(self.mac_installed(), "the Mac stamp is written last")
+        # the hosts were asked first: both no-ops and the Pi's unpulled check ran before the Mac gate
+        self.assertTrue(any(" bash -s -- '" in c for c in self.calls()), self.calls())
+
+    def test_the_mac_store_gate_stops_a_mac_only_run_too(self) -> None:
+        self.mac_store()
+        done = self.deploy()
+        self.assertEqual(1, done.returncode)
+        self.assertIn("a PanelPro Store", done.stderr)
+
+    def test_a_staging_failure_comes_after_the_mac_install_and_before_any_host_step(self) -> None:
+        (self.tmp / "fail_stage").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertNotEqual(0, done.returncode)
+        self.assertIn("stand-in: staging failed", done.stderr)
+        self.assertTrue(self.mac_installed(), "staging ran before the Mac install: the map is out of date")
+        self.assertEqual([], self.shipped(), self.calls())
+        self.assertNotIn("Deploy →", done.stdout)
+        self.assertEqual([], sorted(p.name for p in self.scratch.iterdir()), "staging left behind")
+
+    def test_a_windows_failure_comes_after_the_pi_is_done(self) -> None:
+        (self.tmp / "pi_ok").touch()          # the Pi takes the package; Windows gives no drop folder
+        done = self.deploy("--pi", "--win")
+        self.assertNotEqual(0, done.returncode)
+        self.assertIn("Pi deploy done.", done.stdout)
+        self.assertIn("The Pi has this deploy", done.stderr)
+
+
+class ParkedFeaturesAreNotInstalled(GateHarness):
+    """The parked skip list (hartlib.parked) also governs the Mac install; the host packages are pinned in
+    test_deploy_stage and again here, so the split keeps one list for the gate and the ship steps."""
+
+    def parked(self) -> set[str]:
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import parked
+        return set(parked.PARKED)
+
+    def test_mac_install_skips_parked_folders_and_says_so(self) -> None:
+        parked = self.parked()
+        done = self.deploy()
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        home = self.tmp / "home/JMRI_UserFiles"
+        self.assertEqual("dispatcher" in parked, "Dispatcher traininfo parked: not installed" in done.stdout)
+        self.assertEqual("uss" in parked, "USS CTC icons parked: not installed" in done.stdout)
+        self.assertEqual("dispatcher" not in parked, (home / "dispatcher").exists())
+        self.assertEqual("uss" not in parked, (home / "ctc").exists())
+
+    def test_the_package_leaves_parked_folders_out_for_both_hosts(self) -> None:
+        parked = self.parked()
+        out = self.tmp / "stage"
+        done = self.deploy("--pi", "--win", "--stage-only", str(out))
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        for host in ("pi", "win"):
+            self.assertEqual("dispatcher" not in parked, (out / host / "jmri/layouts/hart/dispatcher").exists())
+            self.assertEqual("uss" not in parked, (out / host / "ctc").exists())
+
+
+class OperatingFlagRefusal(unittest.TestCase):
+    """The script does not read the operating flag: the main guard hook refuses the command that runs it.
+    A ship step split out under another name stays open to a host while the flag is set until the hook names it."""
+
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.flag = Path(tmp.name) / "operating"
+        self.env = {k: v for k, v in os.environ.items() if not k.startswith(("HART_", "CLAUDE_"))}
+        # git only on PATH: no ssh, no MQTT tool can run from here
+        self.env.update(HART_OPERATING_FLAG=str(self.flag), PATH="/usr/bin:/bin")
+
+    def operating(self, *args: str) -> None:
+        subprocess.run(["bash", str(OPERATING), *args], env=self.env, check=True, capture_output=True)
+
+    def hook(self, command: str) -> subprocess.CompletedProcess:
+        payload = json.dumps({"tool_input": {"command": command}, "cwd": str(ROOT)})
+        return subprocess.run([sys.executable, str(HOOK)], input=payload, env=self.env,
+                              capture_output=True, text=True, timeout=60)
+
+    def test_the_script_has_no_flag_check_of_its_own(self) -> None:
+        self.assertNotIn("hart_operating", SYNC.read_text(encoding="utf-8").lower(),
+                         "the script reads the operating flag now: update the map and this test")
+
+    def test_deploys_to_a_host_are_refused_while_the_flag_is_set(self) -> None:
+        self.operating("on", "ops session")
+        for command in ("./tools/hosts/sync_hart_package.sh --pi --win", "tools/hosts/sync_hart_package.sh --pi",
+                        "./tools/hosts/sync_hart_package.sh --win", "./tools/hosts/sync_hart_package.sh --all",
+                        "make deploy-layout", 'make redeploy COMMIT=abc HOSTS="--pi --win"'):
+            with self.subTest(command=command):
+                done = self.hook(command)
+                self.assertEqual(2, done.returncode, done.stdout + done.stderr)
+                self.assertIn("the operating flag is set", done.stderr)
+                self.assertIn("a deploy to the Pi or Windows", done.stderr)
+
+    def test_the_mac_only_deploy_stays_open_while_the_flag_is_set(self) -> None:
+        self.operating("on", "ops session")
+        done = self.hook("./tools/hosts/sync_hart_package.sh")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+
+    def test_deploys_are_open_when_the_flag_is_clear(self) -> None:
+        done = self.hook("./tools/hosts/sync_hart_package.sh --pi --win")
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+
+
+if __name__ == "__main__":
+    unittest.main()
