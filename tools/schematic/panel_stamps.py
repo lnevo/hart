@@ -70,8 +70,8 @@ STEPS: dict[str, Step] = {
          f"{SCH}/preferences.json", f"{SCH}/signals.json", f"{SCH}/stations.csv", f"{SCH}/sheets.csv",
          f"{DATA}/switches.csv"),
         (f"{SCH}/plan_overrides.json",)),
-    "device-map": Step(ALL_DATA, (f"{SCH}/plan_overrides.json", f"{DATA}/devices.csv")),
-    "masts": Step(ALL_DATA, (f"{SCH}/masts.csv", f"{DATA}/devices.csv")),
+    "device-map": Step(ALL_DATA, (f"{SCH}/plan_overrides.json", f"{DATA}/devices*.csv")),
+    "masts": Step(ALL_DATA, (f"{SCH}/masts.csv", f"{DATA}/devices*.csv")),
     "signals": Step(ALL_DATA, (f"{SCH}/signals.json",)),
     "head-plan": Step((f"{DATA}/wiring.csv", f"{SCH}/lcos_nodes.csv"), (f"{OUT}/signal_head_plan.csv",)),
     "schematic": Step(

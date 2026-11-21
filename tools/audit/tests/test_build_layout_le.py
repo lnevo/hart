@@ -555,6 +555,7 @@ class FactsReaders(unittest.TestCase):
                     self.lc.switch_idents()
 
     def test_a_bad_device_map_stops_with_a_build_error(self) -> None:
+        from hartlib import devices
         with tempfile.TemporaryDirectory() as tmp:
             rows = list(devices.load(B.DEVICE_MAP))
             block = next(r for r in rows if r["level"] == "2" and r["layer"] == "block")
