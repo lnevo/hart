@@ -249,7 +249,7 @@ check_mac_store() {
   [[ -n "$TABLES" ]] || return 0
   local dir="${HOME}/JMRI_UserFiles"
   if profile_tables_unpulled "$TABLES" "$dir"; then
-    echo "STOP: $dir/tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull: it keeps the Store in ~/JMRI_UserFiles-pulled; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy. HART_OVERWRITE_PROFILE_TABLES=1 replaces it unkept." >&2
+    echo "STOP: $dir/tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull: it keeps the Store in media/pulled-stores in the main checkout; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy. HART_OVERWRITE_PROFILE_TABLES=1 replaces it unkept." >&2
     return 1
   fi
 }
@@ -333,7 +333,7 @@ check_pi_unpulled() {
     fi
     msg=""
     grep -qx ops <<<"$unpulled" && msg+="STOP: the Pi's Operations Pro files changed since the last deploy or pull. Run make ops-pull and commit first."$'\n'
-    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in ~/JMRI_UserFiles-pulled; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
+    grep -qx tables <<<"$unpulled" && msg+="STOP: the Pi's tables.xml changed since the last deploy (a PanelPro Store). Run make tables-pull-pi: it keeps the Store in media/pulled-stores in the main checkout; split it in a task worktree (tools/schematic/split_store.py) and merge that, then deploy (this deploy would replace the Pi's file with the generated tables.xml)."$'\n'
     pi_stop "${msg}HART_DISCARD_PI_CHANGES=1 replaces them anyway."
   fi
 }

@@ -1,7 +1,7 @@
 """make tables-pull and tables-pull-pi (tools/ops/pull_tables.sh, pull_tables_pi.sh) never copy a Store over the
 generated tables.xml (ADR-029). A Store that differs from what was last deployed or pulled (or, with no reference
-at all, from the generated tables.xml) is kept once per hash in the pulled folder, ~/JMRI_UserFiles-pulled
-(HART_PULLED_DIR), outside every checkout, with STORE.base naming what the host had before (tables_base.sh). It is
+at all, from the generated tables.xml) is kept once per hash in the pulled folder, media/pulled-stores
+(HART_PULLED_DIR), in the main checkout (gitignored), with STORE.base naming what the host had before (tables_base.sh). It is
 not recorded as taken (R9d): the deploy stays stopped until tools/schematic/split_store.py has split it in and
 store_splits.csv names its hash, and then the pull finds nothing to take.
 
@@ -64,7 +64,7 @@ class PullCase(unittest.TestCase):
                               capture_output=True, text=True, timeout=60)
 
     def pulled(self) -> list[Path]:
-        folder = self.home / "JMRI_UserFiles-pulled"            # the default, outside the checkout
+        folder = self.root / "media/pulled-stores"            # the default: the main checkout's media/ (here a copied tree)
         return sorted(p for p in folder.iterdir() if p.suffix == ".xml") if folder.exists() else []
 
     def stamp(self, uf: Path, tables_sha: str) -> None:
@@ -167,7 +167,7 @@ class MacPull(PullCase):
                               env={**{k: v for k, v in os.environ.items() if not k.startswith("HART_")},
                                    "HOME": str(self.home), "HART_PULLED_DIR": str(env_dir)})
         self.assertEqual(1, done.returncode, done.stdout)
-        self.assertIn("inside a git checkout", done.stderr)
+        self.assertIn("pulled Stores live in", done.stderr)
         self.assertFalse(env_dir.exists())
 
 

@@ -23,6 +23,21 @@ def versions(n, first="2026-11-13 11:14", last="2026-11-21 09:00"):
     return [("h%d" % i, first if i == 0 else last if i == n - 1 else "2026-11-15 10:00", "s", "f") for i in range(n)]
 
 
+class DefaultFolderTest(unittest.TestCase):
+    def test_the_default_is_media_under_the_repo_root(self):
+        with tempfile.TemporaryDirectory() as d:
+            (Path(d) / "media").mkdir()
+            with mock.patch.object(evolution, "REPO", Path(d)):
+                self.assertEqual(Path(d) / "media/schematic-evolution", evolution.default_folder())
+
+    def test_without_media_it_stops_and_makes_nothing(self):
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(evolution, "REPO", Path(d)):
+            with self.assertRaises(SystemExit) as stop:
+                evolution.default_folder()
+            self.assertIn("media", str(stop.exception))
+            self.assertEqual([], list(Path(d).iterdir()))
+
+
 class WordsTest(unittest.TestCase):
     def test_numbers(self):
         self.assertEqual([evolution.words(n) for n in (1, 13, 20, 38, 70, 99)],

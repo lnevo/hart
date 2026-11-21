@@ -1,6 +1,7 @@
 """plan_lengths.py: each staging block's AnyRail plan 5.3c length (owner, 2026-11-20)."""
 from __future__ import annotations
 
+import contextlib
 import csv
 import io
 import math
@@ -8,6 +9,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 HERE = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(HERE))
@@ -264,6 +266,27 @@ class Repo(unittest.TestCase):
                 if r["level"] in ("2", "3") and r["layer"] == "block" and r["role"] != "part"}
         self.assertEqual(sorted(want - set(rows)), [])
         self.assertFalse(hasattr(next(iter(rows.values())), "jmri_in"))    # JMRI's length is plan_in
+
+
+class NoPlugin(unittest.TestCase):
+    """The plan reader is the schematic-maps plugin's: without the plugin, --check skips (fails under
+    SCHEMATIC_REQUIRED=1) and a write stops, each naming what is missing."""
+
+    def run_main(self, argv, required):
+        missing = PL.sdm.lc.BuildError("schematic-maps plugin not found")
+        out, err = io.StringIO(), io.StringIO()
+        with mock.patch.object(PL.sdm.lc, "plugin_module", side_effect=missing), \
+                mock.patch.dict("os.environ", {"SCHEMATIC_REQUIRED": "1" if required else ""}), \
+                contextlib.redirect_stdout(out), contextlib.redirect_stderr(err):
+            return PL.main(argv), out.getvalue() + err.getvalue()
+
+    def test_check_skips_unless_the_plugin_is_required(self):
+        self.assertEqual(self.run_main(["--check"], False), (0, "SKIPPED plan lengths check: schematic-maps plugin "
+                                                                "not found\n"))
+        self.assertEqual(self.run_main(["--check"], True)[0], 1)
+
+    def test_a_write_without_the_plugin_stops(self):
+        self.assertEqual(self.run_main([], False), (2, "plan_lengths.py: schematic-maps plugin not found\n"))
 
 
 if __name__ == "__main__":
