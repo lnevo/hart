@@ -282,6 +282,9 @@ def read_audit(folder: Path) -> dict[str, tuple[set[str], set[str]]]:
 def uncovered(name: str, files: set[str], dirs: set[str]) -> list[str]:
     pats = declared(name)
     assert pats is not None
+    # the shared build cache (<main checkout>/.cache/, hartlib.paths.cache_dir) is keyed on real inputs: no input itself
+    files = {f for f in files if not f.startswith(".cache/")}
+    dirs = {d for d in dirs if d != ".cache" and not d.startswith(".cache/")}
     bad = [f for f in sorted(files) if not any(ps._glob_match(f, p) for p in pats)]
     parts = name.split(" ", 2)
     listed = LISTED_ONLY.get(f"{parts[0]} {parts[1].split('.')[0]}", ()) if len(parts) > 1 else ()
