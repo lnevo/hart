@@ -190,8 +190,8 @@ run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
-# Missing Markdown summaries only warn for now; switch to `--check --strict` once every document has one.
-run docs-index python3 tools/ops/build_docs_index.py --check
+# Every Markdown document under docs/ needs a summary line (see summarize() in the script).
+run docs-index python3 tools/ops/build_docs_index.py --check --strict
 run desks python3 cats/scripts/validate_cats_panel.py
   return "$static_rc"
 }

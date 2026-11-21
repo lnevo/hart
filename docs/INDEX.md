@@ -19,6 +19,8 @@ Construction records for the layout benchwork: helix, main level, staging level 
 
 - [README.md](benchwork/README.md): Construction records for the layout benchwork: helix, main level, staging level and the 3D-printed station maps
 - [helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md](benchwork/helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md): Design rationale, calculations, alternatives and failure modes for the Neville Island helix, for an agent continuing helix engineering; the as-built status...
+- [helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md](benchwork/helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md): Design rationale, calculations, alternatives and failure modes for the Neville Island helix, for an agent continuing helix engineering; the as-built status...
+- [helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md](benchwork/helix/HART_Neville_Helix_Agent_Handoff_FINAL_31p75_18p75_2026-09-23.md): Design rationale, calculations, alternatives and failure modes for the Neville Island helix, for an agent continuing helix engineering; the as-built status...
 - [helix/HART_Neville_Helix_BUILD_STATUS.md](benchwork/helix/HART_Neville_Helix_BUILD_STATUS.md): The single living status file for the helix build: as-built facts, decisions that override the handoff and the PDF plan, every fixture and script, and open...
 - [main_level/HART_main_level_BOM.md](benchwork/main_level/HART_main_level_BOM.md): Bill of materials and shopping list for the main level benchwork (plywood, lumber and hardware), with supplier SKUs and prices
 - [station_maps_3d/README.md](benchwork/station_maps_3d/README.md): Multi-colour fascia plates that hold Touch Toggles
@@ -41,10 +43,6 @@ Documents about the CATS Digicon CTC desks, how their signals and turnouts get t
 - [TURNOUT_STATE_SOURCES.md](ctc/TURNOUT_STATE_SOURCES.md): Fixes where the Digicon desk gets each turnout's state (feedback versus command) and the close and throw polarity for the special turnouts 112 to 119
 - [history/README.md](ctc/history/README.md): Index of the dated screenshots kept to show how the USS CTC, CATS and Layout Editor panels grew, used for the evolution videos
 - Plus 22 image, css or script files
-
-## general
-
-- [AI_CONTEXT.md](AI_CONTEXT.md): Short list of the layout facts and landmines an AI assistant needs before touching tables, panels or signals in this repo
 
 ## jmri
 

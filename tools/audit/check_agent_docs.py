@@ -13,7 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 PATTERNS = ("AGENTS.md", "*/AGENTS.md", ".cursor/*", ".claude/*", "wiki/home.md",
-            "wiki/AGENTS_GIT.md", "docs/AI_CONTEXT.md")
+            "wiki/AGENTS_GIT.md")
 EXCLUDED = ("external/",)
 ROOTS = ("jmri", "cats", "docs", "www", "ops", "tools", "wiki", "archive", ".cursor", ".claude")
 LINK = re.compile(r"\]\(([^)#\s]+)")
