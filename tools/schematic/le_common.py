@@ -59,9 +59,16 @@ def slots_module():
 
 
 def plugin_module(name: str):
-    """The plugin's module schematic.<name> (the plugin found and checked once: plugin())."""
-    plugin()
-    return importlib.import_module(f"schematic.{name}")
+    """The plugin's module schematic.<name> (the plugin found and checked once: plugin()); BuildError when the plugin
+    has no such module (a SCHEMATIC_PLUGIN older than the module)."""
+    folder = plugin()[0].__file__
+    try:
+        return importlib.import_module(f"schematic.{name}")
+    except ModuleNotFoundError as exc:
+        if exc.name != f"schematic.{name}":
+            raise                       # the module is there but imports something missing: its own fault, shown
+        raise BuildError(f"the schematic-maps plugin at {Path(folder).parents[1]} has no schematic.{name}: "
+                         "update it (git submodule update, or a newer SCHEMATIC_PLUGIN)") from None
 
 
 def band_key(title: str) -> str:

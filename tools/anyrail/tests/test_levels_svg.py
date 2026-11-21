@@ -5,17 +5,16 @@ import json
 import math
 import sys
 import io
+import subprocess
 import tempfile
 import unittest
-from contextlib import redirect_stderr
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest import mock
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent))
 import levels_svg as L  # noqa: E402
-
-A = L.anyplan()     # the schematic-maps plugin's plan reader (schematic.anyplan)
 
 PLAN = L.DEFAULT_PLAN
 LEVELS_DIR = HERE.parent / "levels"
@@ -26,7 +25,7 @@ def part(index, ends, curve=None):
     """A part from (x, y, z, heading degrees) ends, classified as the plan reader does."""
     e = [dict(x=x, y=y, z=z, a=math.radians(d)) for x, y, z, d in ends]
     p = dict(index=index, name="t%d" % index, ends=e, curve=curve, cm=100.0 if len(e) == 2 else None)
-    p.update(A.classify(e))
+    p.update(L.anyplan().classify(e))
     return p
 
 
@@ -129,7 +128,7 @@ class Levels(unittest.TestCase):
 
     def test_ramps_are_listed_by_foot_and_top(self) -> None:
         parts = self.plan()
-        links, _ = A.joins(parts)
+        links, _ = L.anyplan().joins(parts)
         got = L.ramps(parts, links, HEIGHTS)
         self.assertEqual([(r["foot"], r["top"], r["flex_m"]) for r in got], [("staging", "main", 5.0), ("main", "upper", 1.0)])
 
@@ -215,11 +214,28 @@ class Cli(unittest.TestCase):
         self.assertIn("No such file", err.getvalue())
 
     def test_a_missing_plugin_is_an_error_that_names_it(self) -> None:
-        missing = L.le_common.BuildError("schematic-maps plugin not found: run git submodule update --init ...")
+        missing = L.le_common().BuildError("schematic-maps plugin not found: run git submodule update --init ...")
         with tempfile.TemporaryDirectory() as tmp, redirect_stderr(io.StringIO()) as err, \
-                mock.patch.object(L.le_common, "plugin_module", side_effect=missing):
+                mock.patch.object(L.le_common(), "plugin_module", side_effect=missing):
             self.assertEqual(L.main(["/nonexistent/Version 9.9z.any", tmp]), 2)
         self.assertIn("the schematic-maps plugin: schematic-maps plugin not found", err.getvalue())
+
+    def test_check_without_the_plugin_skips_unless_it_is_required(self) -> None:
+        missing = L.le_common().BuildError("schematic-maps plugin not found")
+        with tempfile.NamedTemporaryFile(suffix=".any") as plan, \
+                mock.patch.object(L.le_common(), "plugin_module", side_effect=missing):
+            for required, want in (("", 0), ("1", 2)):
+                with mock.patch.dict("os.environ", {"SCHEMATIC_REQUIRED": required}), \
+                        redirect_stderr(io.StringIO()), redirect_stdout(io.StringIO()) as out:
+                    self.assertEqual(L.main([plan.name, "--check"]), want)
+                self.assertEqual("SKIPPED" in out.getvalue(), want == 0)
+
+    def test_importing_it_loads_no_layout_editor_build(self) -> None:
+        """levels_page.py imports this file for switch_key: le_common (and the plugin) load only to read a plan."""
+        code = (f"import sys; sys.path.insert(0, {str(HERE.parent)!r}); import levels_svg; "
+                "print('le_common' in sys.modules)")
+        got = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
+        self.assertEqual(got.stdout.strip(), "False")
 
 
 @unittest.skipUnless(PLAN.exists(), "the owner's plan 5.3c is not on this machine")
@@ -228,7 +244,7 @@ class Plan53c(unittest.TestCase):
     def setUpClass(cls):
         cls.files = L.build(PLAN)
         cls.meta = json.loads(cls.files["levels_meta.json"])
-        cls.parts = A.read(PLAN)
+        cls.parts = L.anyplan().read(PLAN)
 
     def test_the_committed_drawings_are_what_the_plan_gives(self) -> None:
         self.assertEqual(L.main([str(PLAN), str(LEVELS_DIR), "--check"]), 0)
@@ -245,7 +261,7 @@ class Plan53c(unittest.TestCase):
     def test_every_flex_piece_is_drawn_once_and_the_ramps_are_the_sloped_ones(self) -> None:
         flat = sum(lv["flex"] for lv in self.meta["levels"].values())
         sloped = sum(1 for p in self.parts if len(p["ends"]) == 2
-                     and abs(p["ends"][0]["z"] - p["ends"][1]["z"]) > A.LEVEL_CM)
+                     and abs(p["ends"][0]["z"] - p["ends"][1]["z"]) > L.anyplan().LEVEL_CM)
         self.assertEqual(flat + sloped, sum(1 for p in self.parts if len(p["ends"]) == 2))
         # each helix track's top layer ends inside one piece, drawn in two parts (upper level and staging)
         self.assertEqual(sum(self.files[k + ".svg"].count('class="ramp"') for k in L.LEVELS), sloped + 2)

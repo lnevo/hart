@@ -26,15 +26,16 @@ Coordinates are plan centimetres, y down, so the three drawings line up. What a 
 from __future__ import annotations
 
 import argparse
+import importlib
 import collections
 import json
 import math
+import os
 import re
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "schematic"))
-import le_common  # noqa: E402  the pinned schematic-maps plugin, whose schematic.anyplan reads the plan
+SCHEMATIC_TOOLS = Path(__file__).resolve().parents[1] / "schematic"
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
@@ -43,10 +44,18 @@ from hartlib import railroad_facts  # noqa: E402
 LEVELS = ("staging", "main", "upper")          # lowest to highest
 
 
+def le_common():
+    """tools/schematic/le_common.py, which finds the pinned schematic-maps plugin. Imported only when the plan is read,
+    so levels_page.py (which imports this file for switch_key) never loads the Layout Editor build's modules."""
+    if str(SCHEMATIC_TOOLS) not in sys.path:
+        sys.path.insert(0, str(SCHEMATIC_TOOLS))
+    return importlib.import_module("le_common")
+
+
 def anyplan():
     """The plugin's plan reader, schematic.anyplan (le_common.plugin_module: the pinned submodule, or SCHEMATIC_PLUGIN;
-    le_common.BuildError when it is missing or off its pin)."""
-    return le_common.plugin_module("anyplan")
+    le_common.BuildError when it is missing, off its pin or has no such module)."""
+    return le_common().plugin_module("anyplan")
 
 
 def switch_key(label):
@@ -450,7 +459,10 @@ def main(argv=None):
         return 0
     try:
         reader = anyplan()
-    except le_common.BuildError as e:
+    except le_common().BuildError as e:
+        if a.check and os.environ.get("SCHEMATIC_REQUIRED") != "1":     # as the schematic checks in tools/check.sh
+            print(f"levels_svg: SKIPPED, the schematic-maps plugin: {e}")
+            return 0
         print(f"levels_svg: the schematic-maps plugin: {e}", file=sys.stderr)
         return 2
     try:

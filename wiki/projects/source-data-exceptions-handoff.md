@@ -71,7 +71,7 @@ Then, on branch `agent/claude/label-refs-by-switch` (schematic-maps 0.1.47), wit
 reach their half as `number@neighbour` (`23@1`: the half a track joins to Switch 1), so no part number is left
 outside the `relabel` edit; `test_override_refs.py` checks each finds the half its part number did.
 
-Row 6 (track-plan page, regenerated from 5.3c: `levels_svg.py` draws all three levels from the `.any` through `anyplan.py`) is merged from another session (#749). Rows 8, 9 and 10 wait (owner, 2026-11-20).
+Row 6 (track-plan page, regenerated from 5.3c: `levels_svg.py` draws all three levels from the `.any` through the plan reader, now the schematic-maps plugin's `anyplan`) is merged from another session (#749). Rows 8, 9 and 10 wait (owner, 2026-11-20).
 
 ## What is left to remove, ranked
 
