@@ -465,27 +465,56 @@
         );
       }
 
+      // A crossover is one turnout with a row per half (same name, a half label each): group them under one heading.
+      function groupTurnouts(list) {
+        var groups = [];
+        var byName = {};
+        list.forEach(function (t) {
+          if (!byName[t.name]) {
+            byName[t.name] = { name: t.name, first: t, halves: [] };
+            groups.push(byName[t.name]);
+          }
+          byName[t.name].halves.push(t);
+        });
+        return groups;
+      }
+
+      function turnoutSignals(t) {
+        var sigs = [];
+        [["entry", "entry"], ["normal", "normal"], ["reverse", "reverse"]].forEach(function (k) {
+          var s = (t.signals || {})[k[0]];
+          if (s) sigs.push('<span class="wr-nowrap">' + searchLink(s, "signals") + ' <small class="muted">' + k[1] + "</small></span>");
+        });
+        return sigs.join(" ");
+      }
+
       function renderTurnouts(list) {
         if (!list.length) return empty();
         return (
           '<div class="wr-table-wrap"><table class="wr-table wr-stack">' +
           "<thead><tr><th>Switch</th><th>Node</th><th>Motor N</th><th>Motor R</th><th>Button</th><th>Position N</th><th>Position R</th><th>Signals</th></tr></thead><tbody>" +
-          list
-            .map(function (t) {
-              var sigs = [];
-              [["entry", "entry"], ["normal", "normal"], ["reverse", "reverse"]].forEach(function (k) {
-                var s = (t.signals || {})[k[0]];
-                if (s) sigs.push('<span class="wr-nowrap">' + searchLink(s, "signals") + ' <small class="muted">' + k[1] + "</small></span>");
-              });
+          groupTurnouts(list)
+            .map(function (g) {
+              var t = g.first;
+              var sigHtml;
+              if (g.halves.length > 1 || t.half) {
+                sigHtml = g.halves
+                  .map(function (h) {
+                    return '<div><small class="muted">' + esc(h.half) + "</small> " + (turnoutSignals(h) || '<span class="muted">—</span>') + "</div>";
+                  })
+                  .join("");
+              } else {
+                sigHtml = turnoutSignals(t) || '<span class="muted">—</span>';
+              }
               return (
-                "<tr><th scope=\"row\">" + esc(t.turnout) +
-                (t.elements && t.elements !== t.turnout ? '<small class="muted wr-sub">' + esc(t.elements) + "</small>" : "") +
+                "<tr><th scope=\"row\">" + esc(g.name) +
+                (t.elements && t.elements !== g.name ? '<small class="muted wr-sub">' + esc(t.elements) + "</small>" : "") +
                 (t.area ? '<small class="muted wr-sub">' + esc(t.area) + "</small>" : "") + "</th>" +
                 '<td data-label="Node">' + nodeLink(t.node) + "</td>" +
                 '<td data-label="Motor N">' + portLink(t.motorN) + '</td><td data-label="Motor R">' + portLink(t.motorR) + "</td>" +
                 '<td data-label="Button">' + portLink(t.button) + '</td><td data-label="Position N">' + portLink(t.fbN) +
                 '</td><td data-label="Position R">' + portLink(t.fbR) + "</td>" +
-                '<td data-label="Signals" class="wr-span">' + (sigs.join(" ") || '<span class="muted">—</span>') + "</td></tr>"
+                '<td data-label="Signals" class="wr-span">' + sigHtml + "</td></tr>"
               );
             })
             .join("") +
@@ -634,7 +663,7 @@
           nodes: res.nodes.length,
           signals: res.signals.length,
           splits: res.splitCount,
-          turnouts: res.turnouts.length,
+          turnouts: groupTurnouts(res.turnouts).length,
           blocks: res.blocks.length,
         };
         tabBar.innerHTML = TABS.map(function (t) {

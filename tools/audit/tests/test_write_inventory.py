@@ -170,14 +170,22 @@ class Inventory(unittest.TestCase):
         self.assertIsNone(WI.mast_half(legs["5"], "5", "6LB", "anything"))        # one OS block: no halves
         self.assertEqual(WI.mast_half(legs["7"], "7", "8LB", "OS Switch 7b"), "OS Switch 7b")
         self.assertEqual(WI.mast_half(legs["7"], "7", "8LA", "OS Switch 7"), "OS Switch 7")
-        with self.assertRaisesRegex(WI.FactsError, "Mast 8LA on crossover Switch 7 protects 'OS Switch 9'"):
-            WI.mast_half(legs["7"], "7", "8LA", "OS Switch 9")
+        with self.assertRaisesRegex(WI.FactsError, "devices.csv line 12: Mast 8LA on crossover Switch 7 protects 'OS Switch 9'"):
+            WI.mast_half(legs["7"], "7", "8LA", "OS Switch 9", "devices.csv line 12")
+
+    def test_a_main_or_upper_mast_never_lands_in_a_staging_slot(self):
+        place = {}
+        WI.take_role(place, "5", "Entry", "6LB", ["a", "b", "c"])
+        WI.take_role(place, "5", "Entry", "M5", ["d", "e", "f"], design=True)     # same number, other level kind
+        self.assertEqual((place[(False, "5", None)]["Entry"][0], place[(True, "5", None)]["Entry"][0]), ("6LB", "M5"))
+        rows = [dict(zip(WI.TURNOUT_COLUMNS, r)) for r in V86["TurnoutSummary"][1:]]
+        self.assertTrue(all(r["JMRI Turnout"] and r["Turnout"].startswith(r["JMRI Turnout"]) for r in rows))
 
     def test_a_crossover_has_a_row_per_half_and_a_plain_switch_one(self):
         rows = [r for r in V86["TurnoutSummary"][1:] if r[0].startswith("Switch ")]
         for sw, halves in (("7", ("OS Switch 7", "OS Switch 7b")), ("23", ("OS Switch 23a", "OS Switch 23b")),
                            ("35", ("OS Switch 35b", "OS Switch 35a"))):
-            got = [r for r in rows if r[0].split(" (")[0] == f"Switch {sw}"]
+            got = [r for r in rows if r[-1] == f"Switch {sw}"]            # the JMRI Turnout column
             self.assertEqual([r[0] for r in got], [f"Switch {sw} ({h})" for h in halves])
             self.assertEqual(len({r[1:7] for r in got}), 1)             # the turnout's facts repeat on both
         self.assertEqual([r[0] for r in rows if r[0].startswith("Switch 5")], ["Switch 5"])
