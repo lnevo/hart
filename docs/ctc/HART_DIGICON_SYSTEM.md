@@ -186,7 +186,7 @@ Mast icons use the Basic `default` image set (JMRI draws it with its stock AAR-1
 
 ### Mast index (Digicon name → JMRI)
 
-Full table: [`docs/wiring/signals/signal_head_plan.csv`](../wiring/signals/signal_head_plan.csv), every wired mast and its JMRI binding  
+Full table: [`jmri/layouts/hart/output/signal_head_plan.csv`](../../jmri/layouts/hart/output/signal_head_plan.csv), every wired mast and its JMRI binding  
 Port / topic / LCOS inventory: the head rows of [`jmri/layouts/hart/data/wiring.csv`](../../jmri/layouts/hart/data/wiring.csv) (`hartlib.wiring.digicon_rows` gives the pins, IH number and topic)  
 The old plan's mast table (history, archived 2026-11-21): [`archive/docs/wiring/signals/signal_mast_plan.csv`](../../archive/docs/wiring/signals/signal_mast_plan.csv)
 

@@ -12,7 +12,7 @@ The workbook is a view: nobody edits it (owner, 2026-11-20). It is written from 
                                                wiring.csv lists.
   jmri/layouts/hart/data/wiring.csv            the fascia buttons and relays (no JMRI device).
   jmri/layouts/hart/data/schematic/lcos_nodes.csv   every node, its level and area.
-  docs/wiring/signals/signal_head_plan.csv     the DigiconSignals sheet's masts (its pins are wiring.csv's heads).
+  jmri/layouts/hart/output/signal_head_plan.csv     the DigiconSignals sheet's masts (its pins are wiring.csv's heads).
 
 One row per port, as the inventory always had: turnouts on the OU boards their wiring names, feedback on DNIN8 boards,
 heads on OU boards, detectors on B devices (two blocks each), and wiring.csv's fascia buttons, relays and
@@ -38,7 +38,7 @@ from openpyxl.utils import get_column_letter
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import devices, wiring  # noqa: E402
+from hartlib import devices, paths, wiring  # noqa: E402
 from hartlib.railroad import FactsError, read_rows, read_switch_rows  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -47,7 +47,6 @@ OUT = WIRING_DOCS / "LCOS_Layout_Inventory_v86.xlsx"
 DATA = ROOT / "jmri/layouts/hart/data/schematic"
 DEVICE_MAP = DATA.parent / "devices.csv"
 NODES = DATA / "lcos_nodes.csv"
-SIGNALS = WIRING_DOCS / "signals"
 
 LEVEL_NAME = {"1": "Staging", "2": "Main", "3": "Upper"}
 DESIGN = ("2", "3")                               # main and upper: the rule's draft, shaded
@@ -410,7 +409,7 @@ def digicon_sheet(wb, wired: list[dict], heads: list[dict]) -> None:
         for c_i, key in enumerate(DIGICON_COLUMNS, start=1):
             ws.cell(r_i, c_i, row.get(key))
     start = 3 + len(wired) + 2
-    ws.cell(start, 1, "Masts (docs/wiring/signals/signal_head_plan.csv)").font = Font(bold=True, size=12)
+    ws.cell(start, 1, "Masts (jmri/layouts/hart/output/signal_head_plan.csv)").font = Font(bold=True, size=12)
     m_headers = list(heads[0].keys()) if heads else []
     for i, h in enumerate(m_headers, start=1):
         ws.cell(start + 1, i, h).font = Font(bold=True)
@@ -434,7 +433,7 @@ def build(dest: Path) -> None:
     port_sheets(wb, nodes)
     turnout_sheet(wb, nodes, by_name)
     block_sheet(wb, nodes, by_name)
-    digicon_sheet(wb, wired, load_csv(SIGNALS / "signal_head_plan.csv"))
+    digicon_sheet(wb, wired, load_csv(paths.SIGNAL_HEAD_PLAN))
     wb.save(dest)
 
 

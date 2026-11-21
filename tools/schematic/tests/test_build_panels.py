@@ -22,25 +22,28 @@ sys.path.insert(0, str(HERE))
 
 # (step, script and arguments, True when it only checks in both modes), in the order the outputs depend on each other.
 STEPS = [
-    ("hands", "build_hands.py", False),
-    ("staging-sets", "build_staging_sets.py", False),
-    ("main-route", "build_main_route.py", False),
-    ("plan-lengths", "plan_lengths.py --check", True),
-    ("device-map", "build_device_map.py", False),
-    ("masts", "build_masts.py", False),
-    ("signals", "build_signals.py", False),
-    ("schematic", "publish_draft.py", False),
-    ("le-cutover", "build_layout_le.py --as-live", False),
-    ("approved-candidate", "check_approved.py le-candidate", True),
-    ("tables", "build_tables.py", False),
-    ("signals-sync", "sync_signals.py --check", True),
-    ("device-master", "check_device_master.py --check", True),
-    ("cats", "build_cats_panel.py", False),
-    ("approved-desks", "check_approved.py cats-ctc cats-abs", True),
-    ("approved-live", "check_approved.py le-panel", True),
+    ("hands", "tools/schematic/build_hands.py", False),
+    ("staging-sets", "tools/schematic/build_staging_sets.py", False),
+    ("main-route", "tools/schematic/build_main_route.py", False),
+    ("plan-lengths", "tools/schematic/plan_lengths.py --check", True),
+    ("device-map", "tools/schematic/build_device_map.py", False),
+    ("masts", "tools/schematic/build_masts.py", False),
+    ("signals", "tools/schematic/build_signals.py", False),
+    ("head-plan", "jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only", False),
+    ("schematic", "tools/schematic/publish_draft.py", False),
+    ("le-cutover", "tools/schematic/build_layout_le.py --as-live", False),
+    ("approved-candidate", "tools/schematic/check_approved.py le-candidate", True),
+    ("sml-current", "tools/schematic/check_sml_current.py", True),
+    ("tables", "tools/schematic/build_tables.py", False),
+    ("signals-sync", "tools/schematic/sync_signals.py --check", True),
+    ("device-master", "tools/schematic/check_device_master.py --check", True),
+    ("cats", "tools/schematic/build_cats_panel.py", False),
+    ("approved-desks", "tools/schematic/check_approved.py cats-ctc cats-abs", True),
+    ("approved-live", "tools/schematic/check_approved.py le-panel", True),
 ]
 NAMES = [name for name, _cmd, _only in STEPS]
 FAKE_PYTHON = """#!/bin/sh
+case "$1" in */panel_stamps.py) [ "$2" = current ] && exit 1; exit 0 ;; esac    # the stamps: nothing is current
 echo "$*" >> "$PANELS_LOG"
 case "$1" in *"/$PANELS_FAIL") exit 1 ;; esac
 exit 0
@@ -49,13 +52,13 @@ exit 0
 
 class StepList(unittest.TestCase):
     def test_the_script_lists_these_steps_in_this_order(self):
-        got = re.findall(r"^(step|guard) (\S+) python3 tools/schematic/(.+)$", SCRIPT.read_text(encoding="utf-8"),
+        got = re.findall(r"^(step|guard) (\S+) python3 (.+)$", SCRIPT.read_text(encoding="utf-8"),
                          re.M)
         self.assertEqual([(name, cmd, kind == "guard") for kind, name, cmd in got], STEPS)
 
     def test_every_script_it_names_exists(self):
         for _name, cmd, _only in STEPS:
-            self.assertTrue((HERE / cmd.split()[0]).is_file(), cmd)
+            self.assertTrue((REPO / cmd.split()[0]).is_file(), cmd)
 
     def test_the_header_comment_lists_the_steps_in_the_same_order(self):
         header = SCRIPT.read_text(encoding="utf-8").split("\nset -uo pipefail")[0]
@@ -63,7 +66,7 @@ class StepList(unittest.TestCase):
 
     def test_the_wiki_table_lists_the_steps_in_the_same_order(self):
         rows = re.findall(r"^\| ([a-z][a-z-]+) \| `([^`]+)` \|", WIKI.read_text(encoding="utf-8"), re.M)
-        self.assertEqual(rows, [(name, cmd) for name, cmd, _only in STEPS])
+        self.assertEqual(rows, [(name, cmd.rsplit('/', 1)[-1]) for name, cmd, _only in STEPS])
 
     def test_the_masts_come_after_the_device_map_and_before_what_reads_them(self):
         self.assertLess(NAMES.index("device-map"), NAMES.index("masts"))     # main and upper's rows are its
@@ -95,18 +98,19 @@ class DryRun(unittest.TestCase):
 
     def test_a_write_runs_every_step_in_order(self):
         code, out, ran = self.run_script()
-        self.assertEqual((code, ran), (0, [f"tools/schematic/{cmd}" for _n, cmd, _o in STEPS]), out)
+        self.assertEqual((code, ran), (0, [cmd for _n, cmd, _o in STEPS]), out)
         self.assertIn("all current", out)
 
     def test_a_check_runs_every_step_with_check_and_names_each_stale_one(self):
         code, out, ran = self.run_script("--check", fail="sync_signals.py")
-        self.assertEqual(ran, [f"tools/schematic/{cmd} --check" for _n, cmd, _o in STEPS])
+        self.assertEqual(ran, [f"{cmd} --check" for _n, cmd, _o in STEPS])
         self.assertEqual(code, 1)
         self.assertIn("stale or failed: signals-sync\n", out)
         self.assertNotIn("stopped", out)
 
     def test_a_write_stops_at_a_failed_check_and_does_not_say_it_writes(self):
-        for name, script in (("plan-lengths", "plan_lengths.py"), ("signals-sync", "sync_signals.py")):
+        for name, script in (("plan-lengths", "plan_lengths.py"), ("signals-sync", "sync_signals.py"),
+                             ("sml-current", "check_sml_current.py")):
             with self.subTest(name):
                 code, out, ran = self.run_script(fail=script)
                 self.assertEqual((code, ran[-1].split()[0]), (1, f"tools/schematic/{script}"), out)
@@ -128,6 +132,7 @@ class DryRun(unittest.TestCase):
 # file: the repo's data files are only read) and answers every other script with success.
 STALE_SYNC_PYTHON = """#!/bin/sh
 case "$1" in
+  */panel_stamps.py) [ "$2" = current ] && exit 1; exit 0 ;;
   */sync_signals.py) shift; exec "$REAL_PYTHON" "$STALE_RUNNER" "$SCHEMATIC_DIR" "$STALE_CSV" "$@" ;;
 esac
 echo "$*" >> "$PANELS_LOG"
