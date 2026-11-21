@@ -185,6 +185,21 @@ class LayoutTest(unittest.TestCase):
                 got = self.run_js("m.firstColumnIsRaw(a[0], a[1], id => a[2].includes(id))", [nodes, edges, known])
                 self.assertIs(got, want)
 
+    def test_lane_tags_clear_the_legend_and_fit_their_lane(self) -> None:
+        """laneTagTops: a tag sits 6 px into its lane, moves up to clear the legend, is left out when its lane is
+        behind the legend or too thin for it, and an open legend reaching up to the strip hides no names."""
+        lanes = [[0, 200], [200, 300], [300, 320], [320, 900], [900, 1000]]
+        out = self.run_js("m.laneTagTops(a, 50, 980, 880)", lanes)
+        self.assertEqual(out, [50,   # under the strip, not 6 px into a lane that starts above it
+                               206,  # 6 px in
+                               None,  # 20 px on screen: no room for the 22 px tag
+                               326,
+                               None])  # behind the legend
+        moved = self.run_js("m.laneTagTops(a, 50, 980, 880)", [[855, 1000], [800, 1000]])
+        self.assertEqual(moved, [858, 806])  # 855: pushed up 3 px to sit just above the legend; 800: fits as it is
+        tall_legend = self.run_js("m.laneTagTops(a, 50, 980, 60)", lanes)
+        self.assertEqual(tall_legend[1], 206)  # the legend reaches the strip: it is ignored, the names stay
+
     def run_js(self, call: str, arg) -> dict:
         script = f"const m = require(process.argv[1]); const a = JSON.parse(process.argv[2]); process.stdout.write(JSON.stringify({call}));"
         return json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(arg)], capture_output=True,

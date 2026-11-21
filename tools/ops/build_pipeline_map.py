@@ -269,7 +269,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #rulers[hidden]{display:none}
 #steps{position:absolute;left:0;height:24px;overflow:hidden;background:rgba(250,250,250,.88);border-bottom:1px solid #ccc}
 #steps span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:600;color:#475569;pointer-events:auto;cursor:help}
-#lanetags span{position:absolute;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap}
+#lanetags span{position:absolute;box-sizing:border-box;height:22px;line-height:18px;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap}
 #info{position:absolute;top:10px;right:10px;bottom:10px;width:360px;z-index:5;padding:12px 14px;overflow:auto;display:none}
 #info h2{font-size:16px;margin:0 0 4px}
 #info code{font-size:12px;word-break:break-all}

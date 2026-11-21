@@ -253,6 +253,20 @@ function stepTicks(columns, x0, x1, px) {
   return { every, cols };
 }
 
+/* Where the pinned lane name tags go, in screen px: lanes holds each lane's [top, bottom] on screen, floor is the
+   first y under the step strip, bottom the end of the free area, and under the top of the legend beside the tags
+   (Infinity when it is not there). A tag sits 6 px into its lane, or higher to stay above the legend; a lane with no
+   room for the whole tag gets none. When the legend reaches up near the strip it is ignored, rather than hiding every
+   lane name. Returns one y per lane, null for a lane left without a tag. */
+const TAG_H = 22;
+function laneTagTops(lanes, floor, bottom, under) {
+  const clip = under > floor + TAG_H ? under : Infinity;
+  return lanes.map(([y0, y1]) => {
+    const y = Math.min(Math.max(y0 + 6, floor), Math.min(y1, bottom, clip) - TAG_H);
+    return y < Math.max(y0 + 2, floor) ? null : y;  // out of view, behind the legend, or too thin on screen
+  });
+}
+
 /* What a click on id lights up in a drawing of these edges: every box that feeds it (up) and every box it feeds
    (down), not walking on through a box where stops(box) is true, and the links inside one side (lit). */
 function chainOf(edges, id, stops) {
@@ -361,7 +375,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, firstColumnIsRaw, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -636,6 +650,7 @@ function app() {
     if (!showRulers()) { rulers.hidden = true; return; }
     rulers.hidden = false;
     const r = wrapEl.getBoundingClientRect(), m = svg.getScreenCTM(), a = freeArea();
+    const lg = legend.getBoundingClientRect();  // read before the writes below, so a pan forces no extra layout
     const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
     const top = a.top - STRIP_H - 4;  // the strip sits in the room freeArea keeps for it, just under the toolbar
     steps.style.top = `${top}px`; steps.style.width = `${a.right}px`;
@@ -651,15 +666,15 @@ function app() {
       out.push(`<span style="left:${x.toFixed(0)}px" title="Step ${c.r}: ${esc(c.r === 0 ? (rawFirst ? "nothing on the map builds these. " : "the first column of this view; boxes the filters hide may build these. ") : `${c.r} links from step 0. `)}${esc(colKinds[c.r] || "")}">${esc(label)}</span>`);
     }
     steps.innerHTML = out.join("");
-    const left = Math.max(8, sx(-LEFT) + 8), floor = top + STRIP_H + 6, tags = [];
-    const lg = legend.getBoundingClientRect();  // the legend sits bottom left: a tag beside it moves up clear of it
-    const under = lg.width && left < lg.right - r.left ? lg.top - r.top - 4 : Infinity;
-    for (const b of lay.bands) {
-      const y0 = sy(b.y), y1 = sy(b.y + b.h), limit = Math.min(y1, a.bottom, under);
-      const y = Math.min(Math.max(y0 + 6, floor), limit - 18);
-      if (y < Math.max(y0, floor)) continue;  // the lane is out of view, behind the legend, or too thin on screen for its name
-      tags.push(`<span style="top:${y.toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
-    }
+    // the legend sits bottom left: tags beside it move up clear of it, unless it is below the free area (on a phone,
+    // behind the open info panel)
+    const left = Math.max(8, sx(-LEFT) + 8), floor = top + STRIP_H + 6, lgTop = lg.top - r.top - 4;
+    const under = lg.width && left < lg.right - r.left && lgTop < a.bottom ? lgTop : Infinity;
+    const tops = laneTagTops(lay.bands.map(b => [sy(b.y), sy(b.y + b.h)]), floor, a.bottom, under), tags = [];
+    lay.bands.forEach((b, i) => {
+      if (tops[i] !== null)
+        tags.push(`<span style="top:${tops[i].toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
+    });
     laneTags.innerHTML = tags.join("");
   }
   function updateNav() {
