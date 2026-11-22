@@ -21,7 +21,7 @@ Comes from the 2026-11-21 rescore (8.5/10, up from 8 on 2026-10-31). Organizatio
 
 On 2026-11-21 a cold `./tools/check.sh` on clean `main` ended `FAILED` after 3m21s, and the next two runs passed. The log printed `not stamped: ops/hart-ops/.venv/bin/python changed while the job ran` for `unit-hart-ops`. Find which job failed (rerun cold, `FULL=1`) and fix the cause: a venv rebuilt mid-run, or a flaky test. Size: S.
 
-2026-11-22: two cold `FULL=1` runs failed on different tests. `test_stamp_gate` copied `FULL=1` into its own check.sh call and skipped the stamp branch it tests (fixed in PR #930). `test_panelpro_wrappers` (the SIGINT and SIGHUP cleanup) fails under the full parallel load and in CI, and passes alone; a separate PR fixes it. The 2026-11-21 log is gone, so which of the two failed then is not known. The venv line is a warning that only leaves `unit-hart-ops` unstamped; it did not recur.
+2026-11-22: two cold `FULL=1` runs failed on different tests. `test_stamp_gate` copied `FULL=1` into its own check.sh call and skipped the stamp branch it tests (fixed in PR #930). `test_panelpro_wrappers` (the SIGINT and SIGHUP cleanup) fails under the full parallel load and in CI, and passes alone; PR #938 fixes the lost signal in `panelpro_session.sh`. The 2026-11-21 log is gone, so which of the two failed then is not known. The venv line is a warning that only leaves `unit-hart-ops` unstamped; it did not recur.
 
 ## 1. `signal_coordinator.py` into sibling modules
 
@@ -38,7 +38,7 @@ The file is one class, `DigiconMqttSml`, of about 1,800 lines, with 135 tests in
 
 Size: M. Done when the file is under 1,200 lines, the tests pass unchanged, and both hosts run it.
 
-Code split in PR #933 (2026-11-22): the script is 1,175 lines, with `sml_beans.py`, `sml_claims.py` and `sml_handoff.py` beside it; the PanelPro load, the live test and the deploy are pending.
+Done 2026-11-22 (PR #933, deployed `--pi --win` at f0e6ac0c): the script is 1,187 lines, with `sml_beans.py`, `sml_claims.py` and `sml_handoff.py` beside it, loaded from `preference:jython` and reloaded on a re-run. A real PanelPro load on the Mac (a copy of the profile on a private broker) matched main's log line for line. On the hosts the Pi loaded the modules, a Windows force claim made it stand down, an operator Enable took Digicon back, and the quit released (Hold, Unheld, disabled) before a clean boot take; Windows stayed Disabled. The boot race was not staged (owner, 2026-11-22: hard to reproduce and covered by the claim tests). Rollback: `make redeploy COMMIT=59811d92`.
 
 ## 2. `build_device_map.py` into three modules
 
