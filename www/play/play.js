@@ -68,7 +68,7 @@ function renderMap(){
   let s=`<svg viewBox="0 0 ${W} 150" role="img" aria-label="Track sketch of the east end of Neville Island, ${esc(S.def.code)} at ${esc(where)}">`;
   s+=`<rect x="0" y="0" width="${W}" height="150" fill="var(--river)"/><rect x="0" y="11" width="${W}" height="129" fill="var(--land)"/>`;
   s+=`<text x="8" y="8" font-size="${fs(6.5)}" class="water">OHIO RIVER · MAIN CHANNEL</text><text x="${W-8}" y="148" font-size="${fs(6.5)}" text-anchor="end" class="water">BACK CHANNEL</text>`;
-  s+=`<text x="${W-8}" y="8" font-size="${fs(6)}" text-anchor="end" class="water">${esc(S.def.year)} · sketch, not to scale</text>`;
+  s+=`<text x="${W-8}" y="8" font-size="${fs(6)}" text-anchor="end" class="water">${esc(S.def.year)}</text>`;
   // the road across the island at the main crossing
   s+=`<line x1="345" y1="11" x2="345" y2="140" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>`;
   // running tracks
@@ -172,7 +172,7 @@ function renderSheet(){
   el.innerHTML=`<h3>Pittsburgh &amp; Ohio Valley</h3><div class="sub">Switching orders · ${esc(D.code)} ${esc(D.name)} · ${esc(D.dateLine)}</div>
     <div class="xw-orders"><b>Work</b>${S.jobs.map(j=>`<div class="ord${j.done?" done":""}">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div>
     <div class="xw-si"><b>On the island, ${esc(D.year)}</b><ul>${D.plants.map(p=>`<li>${p}</li>`).join("")}</ul></div>
-    <div class="xw-si"><b>Game special instructions</b><ul>${D.si.map(p=>`<li>${p}</li>`).join("")}<li>The P&amp;OV's own rule book is not known. Rule decisions use the GCOR rules in the C&amp;E study deck.</li></ul></div>`;
+    <div class="xw-si"><b>Special instructions</b><ul>${D.si.map(p=>`<li>${p}</li>`).join("")}<li>Rules: GCOR.</li></ul></div>`;
 }
 
 /* ---------- the end ---------- */
@@ -235,7 +235,7 @@ function reliefToday(){
   if(d===1||d===2)return `Today is ${n}: #115 works the midnight trick, the night #305 has off.`;
   if(d===3)return `Today is ${n}: #115 works the second trick, while #205 is off.`;
   if(d===0||d===6)return `Today is ${n}: #115 is the daylight crew, with #105 and #110 off.`;
-  return `Today is ${n}: the blog lists no #115 shift on ${n}s.`;
+  return `Today is ${n}: #115 has the day off.`;
 }
 function showStart(){
   $("xwStart").hidden=false;$("xwGame").hidden=true;
