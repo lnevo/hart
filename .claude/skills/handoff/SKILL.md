@@ -38,6 +38,8 @@ Quality (code only): 1 clear domain errors, not raw exceptions; 2 no silent fall
   claim. Test the ones that apply.
 Checks: single tests while iterating; the full ./tools/check.sh once, through
   make remote CMD="./tools/check.sh" after pushing. Take timings from logs, not re-runs.
+  Stop your own background jobs by PID or a pattern holding your worktree path, never
+  pkill -f a shared script name: other sessions run the same scripts.
 Review (code only): after pushing, run /code-review medium on your branch while
   make remote runs, fix what it confirms with a test each, push again, and list
   its findings and what you did with each in the report.

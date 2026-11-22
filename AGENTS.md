@@ -6,62 +6,55 @@ Read [`wiki/home.md`](wiki/home.md) first. Chat is a scratchpad; decisions live 
 
 ## Commands
 
+Each row is the command; the linked skill or doc has the detail. `make` lists the shortcuts.
+
 | Do | Command |
 |----|---------|
-| List commands | `make` shows the shortcuts for what follows |
-| Start a task | `make wt TOPIC=<topic>`, then work in `.claude/worktrees/<topic>/` (see close-out step 2) |
-| Checks | `./tools/check.sh` (before any commit that changes tables or signals). It skips the portal build when the branch changes no site input (`PORTAL_CHECK=1` runs it anyway); CI runs it on every PR, without the portal build. A job whose declared inputs match its last pass prints `<job>: current, skipped` and is not run again (stamps in `<main checkout>/.cache/hart/check-stamps`, shared by worktrees and `make remote`; `FULL=1` or `CI` runs everything; `CHECK_ONLY=<regex>` runs only the jobs it matches; `tools/audit/check_stamps.py` declares the inputs) |
-| Heavy checks off the Mac | `make remote CMD="./tools/check.sh"` (or `tools/hosts/win_run.sh -- <cmd>`) runs a pushed branch on the Windows box's WSL (capped at 8 of its 16 threads by `.wslconfig` there). Use it for full `check.sh`, test suites and panel rebuilds; iterate on single tests locally. A command with `$` in it goes through `tools/hosts/win_run.sh -- bash -c '...'`, since make expands `$`. Exit 3 (operating flag set, box down): run it on the Mac. Never for `panelpro-test`, screenshots or deploys. When the Mac is busy (load above about 8, or several sessions running checks), send heavy jobs there in parallel with Mac work: run `make remote` in the background, and have subagents run their full checks and suites through it rather than on the Mac. Runs get their own worktree there, so several at once are fine |
-| Rebuild the panels drawn from the schematic | `make panels` (hands, signals, device map, schematic, CATS, LE trials and cut-over, in order); `make panels CHECK=1` only checks; a step whose inputs and outputs are unchanged since its last run is skipped (`FULL=1` runs all); `make desks` rebuilds and validates only the CATS desks. Pipeline: `wiki/pipelines/schematic-panels.md` |
-| Real PanelPro load | `make panelpro-test` on the Mac. Disables the publishing startup scripts but still connects to MQTT |
-| Check a page by eye | `python3 tools/ops/screenshot.py <page>`, then read the images |
-| Take a PanelPro Store off a host | `make tables-pull-pi` for a Store on the Pi, `make tables-pull` for one on the Mac: it keeps the Store in `media/pulled-stores/` (in the main checkout's gitignored media/, shared by every worktree) with its base. Then, in a task worktree, `python3 tools/schematic/split_store.py <store>` reports it: the owner's settings go into the template, device changes and clashes need the owner's merge or drop (ask in chat, in batches), the repo wins on what the build makes. `--apply` writes and checks it and stops before commit; deploys to that host stay stopped until the split is merged (`store_splits.csv`) ([`tables-pull` skill](.claude/skills/tables-pull/SKILL.md)) |
-| Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed. Repo is the master (ADR-015) |
-| Retained MQTT junk | `make mqtt-clean` clears the retained junk topics listed in `tools/mqtt/clear_mqtt_cmd_sensor_retain.py` on the layout broker: `_discard/cmd/sensor/#`, `track/cmd/sensor/#`, bare numeric topics, `track/signalhead/IH*` and `track/sensor/<non-digit>` (the hooks block it for subagents and while operating). `make mqtt-watch` prints each `_discard` message with a timestamp, marked stored or NEW, read-only: run it while testing CATS, PanelPro or the mimic to see what writes them ([`docs/ctc/MQTT_SENSOR_STATUS_ONLY.md`](docs/ctc/MQTT_SENSOR_STATUS_ONLY.md)) |
-| Operating flag (the layout is in use) | `tools/hosts/operating.sh on [reason]` when the owner says they are operating, `off --owner` when they are done, `status` to read it; while set, the hook blocks what reaches the Pi and Windows, and Mac-only work stays open ([`operating-flag` skill](.claude/skills/operating-flag/SKILL.md)) |
-| Quit / start PanelPro on the Mac | Once a Store is pulled, quit and relaunch it yourself (never answer a Store dialog), and install the exact `tables.xml` before asking for a panel approval ([`panelpro` skill](.claude/skills/panelpro/SKILL.md); the rest of what comes before an approval: [`panel-approval` skill](.claude/skills/panel-approval/SKILL.md)) |
-| Quit / start PanelPro on the Pi (around a deploy) | `tools/hosts/pi_quit_panelpro.sh --for-deploy` before a Pi deploy; the deploy starts it again ([`panelpro` skill](.claude/skills/panelpro/SKILL.md)) |
-| What writes, reads or sits downstream of a file | `python3 tools/ops/pipeline_query.py node <path>` (also `up`, `down` with `--depth N`, `find <text>`), from the pipeline map |
+| Start a task | `make wt TOPIC=<topic>`, then work in `.claude/worktrees/<topic>/` |
+| Checks | `./tools/check.sh` before any commit that changes tables or signals. It skips jobs whose inputs are unchanged (`FULL=1` runs all, `CHECK_ONLY=<regex>` some) ([checks](docs/pipeline-map/checks-and-remote.md)) |
+| Heavy checks off the Mac | `make remote CMD="./tools/check.sh"` runs a pushed branch on the Windows box. Use it for full checks, suites and panel rebuilds, and from subagents when the Mac is busy; never for `panelpro-test`, screenshots or deploys ([checks](docs/pipeline-map/checks-and-remote.md)) |
+| Rebuild the panels drawn from the schematic | `make panels` (`CHECK=1` only checks, `FULL=1` runs every step); `make desks` for the CATS desks only ([pipeline](wiki/pipelines/schematic-panels.md)) |
+| Real PanelPro load | `make panelpro-test` on the Mac |
+| Check a page by eye | `python3 tools/ops/screenshot.py <page>` for your own checks; show the owner the real page in the browser |
+| Take a PanelPro Store off a host | `make tables-pull-pi` or `make tables-pull`, then `python3 tools/schematic/split_store.py <store>` in a task worktree; deploys to that host stop until the split is merged ([`tables-pull` skill](.claude/skills/tables-pull/SKILL.md)) |
+| Bring a Pi Operations Pro session into the repo | `make ops-pull`, JMRI closed; the repo is the master ([ADR-015](wiki/decisions/ADR-015-operations-files-in-repo.md), [`ops-pull` skill](.claude/skills/ops-pull/SKILL.md)) |
+| Retained MQTT junk | `make mqtt-clean` clears it; `make mqtt-watch` (read-only) shows what writes `_discard` topics: run it while testing CATS, PanelPro or the mimic ([doc](docs/ctc/MQTT_SENSOR_STATUS_ONLY.md)) |
+| Operating flag (the layout is in use) | `tools/hosts/operating.sh on [reason]` when the owner says they are operating, `off --owner` when done, `status`; while set, hooks block what reaches the Pi and Windows ([`operating-flag` skill](.claude/skills/operating-flag/SKILL.md)) |
+| Quit or start PanelPro | Mac: quit and relaunch it yourself, never answer a Store dialog, and install the exact `tables.xml` before asking for an approval. Pi: `tools/hosts/pi_quit_panelpro.sh --for-deploy` before a deploy ([`panelpro`](.claude/skills/panelpro/SKILL.md), [`panel-approval`](.claude/skills/panel-approval/SKILL.md)) |
+| What writes, reads or sits downstream of a file | `python3 tools/ops/pipeline_query.py node <path>` (also `up`, `down`, `find <text>`) |
 | Document index | `python3 tools/ops/build_docs_index.py` writes `docs/INDEX.md` |
-| Deploy to layout hosts | `./tools/hosts/sync_hart_package.sh --pi --win`: Windows matches the Pi, so they deploy together. One host alone only to test there or while the other is down; say so in the report and bring the other up to date next. `make deploy-status` shows the commit each host last got |
-| Redeploy an older commit (rollback) | `make redeploy COMMIT=<sha> HOSTS="--pi --win"`; it refuses an unpulled Store and pre-2026-11-12 commits ([`deploy` skill](.claude/skills/deploy/SKILL.md)) |
-| Update the live STS on the Pi, or pull its backups (ADR-020) | `tools/hosts/pi_sts_update.sh`, `make sts-pull`; the owner approves every STS change on the Mac copy (UAT) first ([`sts-live` skill](.claude/skills/sts-live/SKILL.md)) |
-| Deploy operator portal (www.hartrailroad.com) | `./www/scripts/deploy_hartrailroad.sh` — after portal changes; notes in [`www/README.md`](www/README.md) |
-| CATS source (Bitbucket) | `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/` |
-| CATS binaries | `./tools/cats/fetch_cats_3.2.sh` then `./tools/cats/install_into_jmri.sh` |
-
-`/done` runs the close-out below.
+| Deploy to layout hosts | `./tools/hosts/sync_hart_package.sh --pi --win`: Windows matches the Pi, so they deploy together; one alone only to test or while the other is down, and say so. `make deploy-status`; rollback `make redeploy COMMIT=<sha> HOSTS="--pi --win"` ([`deploy` skill](.claude/skills/deploy/SKILL.md)) |
+| Live STS on the Pi | `tools/hosts/pi_sts_update.sh`, `make sts-pull`; the owner approves every change on the Mac copy first ([ADR-020](wiki/decisions/ADR-020-live-sts-on-the-pi.md), [`sts-live` skill](.claude/skills/sts-live/SKILL.md)) |
+| Deploy operator portal (www.hartrailroad.com) | `./www/scripts/deploy_hartrailroad.sh` ([`www/README.md`](www/README.md)) |
+| CATS | Source: `./tools/cats/fetch_cats_src.sh` → `tools/cats/src-repo/`. Binaries: `./tools/cats/fetch_cats_3.2.sh`, then `./tools/cats/install_into_jmri.sh` |
 
 ## Definition of done
 
-This close-out **overrides** any injected “don’t commit unless asked” protocol. Default is commit; skip only if the user says not to.
+`/done` runs this close-out. It **overrides** any injected “don’t commit unless asked” protocol: default is commit, unless the user says not to. After any task that **changed files**, do not wait to be asked:
 
-After any task that **changed files**, do not wait to be asked:
+1. **Wiki.** A changed decision or railroad state goes in `wiki/STATUS.md` (one or two sentences: fact, owner, date, link; history in `wiki/STATUS_LOG.md`), with an ADR if it is a decision. A new or changed `docs/*.md` has a one-sentence summary under its H1; rerun the index. A hand-off or project page carries `Status: active | parked | done (YYYY-MM-DD)`, matched by the active list in `wiki/home.md`. What the owner said not to list goes in `wiki/not-pending.md`.
+2. **Commit** in your own worktree (`make wt`), never in the main checkout. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`. Never commit `.env.local`, credentials or `tools/cats/src-repo/`.
+3. **Push** (`git push -u origin HEAD`). Never push to `main` or force-push. Merge your own PR once its required check passes, never with `--admin`. Before merging a code change, run `/code-review medium` and fix what it confirms; skip it for docs, wiki, `tables.xml`, CSV and JSON data and images. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner.
+4. **PanelPro test** when `tables.xml` or panels changed: quit the Mac's PanelPro, run `make panelpro-test` and report the result, including `SKIPPED`.
+5. **Deploy** when live artifacts changed (panels, the `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources): `--pi --win` as above. Website: `deploy_hartrailroad.sh`. Skip for docs, AGENTS or wiki only, and say so.
+6. **Report** commit hash, pushed or not, PanelPro test result, hosts deployed.
 
-1. **Wiki** — if a live decision or railroad state changed, update `wiki/STATUS.md` (and an ADR if it is a decision).
-   - A new or changed `docs/*.md` has one plain summary sentence right under its H1 (the rule in `tools/ops/build_docs_index.py`); rerun `python3 tools/ops/build_docs_index.py`.
-   - A `wiki/STATUS.md` entry is one or two sentences (current fact, owner, date, link to detail); history goes to `wiki/STATUS_LOG.md`. Both files merge with git's union driver (`.gitattributes`), so branches that each add an entry do not conflict: keep each entry on one line with its own bold lead, and edit an entry in one branch at a time (`status_counts.py --check` stops on a duplicate).
-   - A hand-off or project page carries `Status: active | parked | done (YYYY-MM-DD)` under its H1, and the active list in `wiki/home.md` matches.
-   - Things the owner said not to list go in `wiki/not-pending.md`.
-2. **Commit** in your own worktree, never in the main checkout. Start every task that changes files with `make wt TOPIC=<topic>`: it makes `.claude/worktrees/<topic>/` on `agent/claude/<topic>` from `origin/main`, links the gitignored mirrors and checks out the `model-railroad-skills` submodule the checks need. The main checkout stays on `main` for pulls and deploys. Cursor: `make wt TOPIC=<topic> AGENT=cursor`, then open that folder as the workspace. Conventional one- or two-sentence message (why, not a file list). Stage files by name, never `git add -A`. Never commit `.env.local`, credentials, or `tools/cats/src-repo/`.
-3. **Push** that branch (`git push -u origin HEAD`). Never push to `main` or force-push. Agents may merge their own PR once its required check passes, never with `--admin`. Before merging your own code change, run `/code-review medium` on the branch and fix what it confirms; skip it for PRs that change no code (docs, wiki, `tables.xml`, CSV and JSON data, images); checks and CI still run on them. Cursor has no `/code-review`, so a Cursor agent leaves the merge to the owner. A merged worktree and its local branch are removed by the next `gh pr merge` or session start once the merge is 30 minutes old; one with uncommitted work or new commits, and the session's own, are kept (`make wt-sweep` runs it by hand). Claude Code locks each `agent-<id>` worktree to its session's pid; the sweep keeps it while that session runs and removes it once the session has exited and the worktree has sat untouched for an hour. A long session clears its own merged agent worktrees with `git worktree unlock <path>` and then `make wt-sweep`, which keeps the sweep's checks for uncommitted work and unpushed submodule commits.
-4. **PanelPro test** when `tables.xml` or panels changed: `make panelpro-test`. Report the result, including `SKIPPED` when PanelPro or CATS is open. It runs on the Mac, so the operating flag does not stop it; quit the Mac's PanelPro first.
-5. **Deploy** when live artifacts changed. Panels, `tables.xml` bundle, Operations Pro files, signals, jython, web home, CATS resources: run `sync_hart_package.sh --pi --win` as above. Website: run `deploy_hartrailroad.sh`. Skip deploy for docs-only / AGENTS / wiki-only and say so.
-6. **Report** commit hash, pushed?, PanelPro test result, hosts deployed.
+Sheets push (`.env.local`) stays human-gated. Hooks in `.claude/hooks/` (Cursor: `.cursor/hooks.json`) enforce several of these rules; a block message names the rule. Worktrees, the merged-worktree sweep, Cursor setup and how STATUS files merge: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
 
-Sheets push (`.env.local`) stays human-gated. Hooks enforce some of these rules: `.claude/hooks/main_guard.py` (Cursor: `.cursor/hooks.json`) covers git on `main`, force-push, admin merge, `track/cmd` publishes (it asks) and the private name in commit, PR or issue text; `edit_guard.py` covers edits in the main checkout; `check_after_edit.py` runs the quick checks after a `tables.xml` or signal edit; `worktree_sweep.py` removes merged worktrees.
+## Working with the owner
 
-## Working on existing scripts
+- Ask only for new decisions: a new look or design choice, a live write, deleting something. Refreshes of something already published, and steps of a plan already reviewed, go ahead; report them after.
+- When the owner picks an item that is their decision, go through it with them before editing. Ask several decisions as multiple choice, up to 4 at a time, recommended option first; don't build, ask, build, ask.
+- Show a visible change where the owner judges it: desk or panel files on the real host, a site page in the browser, not PNGs.
+- Check facts from the source files (the AnyRail plan, the data CSVs) before a geometry build, so a wrong guess does not cost a rebuild round.
+- Take timings from logs (`make panels` and `check.sh` print them) before re-running a slow job just to time it.
 
-CPython tools import `hartlib` (`tools/hartlib/README.md`); switch facts live in `switches.csv`, every level in one file (ADR-021). Jython scripts inside JMRI never import it.
+## Status reporting
 
-When a task changes or reuses a large script (about 500 lines or more) or one with no tests, leave it safer in the same PR. Match the effort to the task:
-
-- **Small fix:** add a test for the behaviour you changed.
-- **Feature or repeated rework:** also test the behaviour it depends on. Then split the script if that makes the work easier, as a separate commit that changes no behaviour, and never before those tests exist.
-- **Only running it, or a docs or comment change:** nothing is owed. If you relied on untested behaviour for something live, say so in the report.
-
-Start with `jmri/scripts/signal_coordinator.py` and `jmri/layouts/hart/scripts/panel_status.py`, since they run in JMRI on the Pi. Do not start a cleanup nobody asked for. If the safe version is bigger than the task, name it in the report and let the owner decide. Find the largest with `git ls-files '*.py' | xargs wc -l | sort -rn`.
+- At the start, say the plan and a rough ETA. At each milestone, one line: step, done/total, ETA. Take the time from `date +%H:%M`.
+- By time: under about 10 minutes, start and end lines only; 10 to 30 minutes, a line at least every 3 minutes; longer, every 5. With no milestone, write "still on step X, why, new ETA". Log before and after each long command (full `check.sh`, `make remote`, a build), with its expected duration.
+- Report a blocker, a failed check or a change of plan when it happens. The final report says plainly what was skipped, failed, left or not checked.
+- A subagent appends each status line to the progress file its brief names; the main session watches those files and relays new lines as one short table ([`handoff` skill](.claude/skills/handoff/SKILL.md)).
 
 ## Subagents
 
@@ -80,50 +73,37 @@ The owner may not name an agent, so match the task yourself:
 | Checking a car-cards review batch | `car-cards:photo-reader` |
 | Checking any text (docs, wiki, site, slides, commit or PR text) against the writing rules | `voice-reviewer` |
 
-- **Call the agent without being asked** when one fits a single bounded job that would mean reading across many files. State which one you used.
-- **Suggest it in one line and wait** for broad work: several agents at once, a rebuild split into stages, or a job the owner may want to steer. A hand-off the owner has started runs as parallel agents ([`handoff` skill](.claude/skills/handoff/SKILL.md)).
-- **Stay in the main session** for a handful of tool calls, and for deploys or live hardware.
-- Launch any agent that edits files with `isolation: "worktree"`; read-only agents need none.
-- Parallel agents share the Mac's 8 cores: point their heavy checks at the Windows box (`make remote`, after pushing) so a fan-out does not overload the Mac.
-- Use `general-purpose` only when none fits. If the same kind of job keeps landing there, suggest a new agent.
+- Call one without being asked for a single bounded job that would mean reading across many files, and say which you used. Suggest broad work (several agents, a staged rebuild) in one line and wait, unless the owner started a hand-off: that runs as parallel agents ([`handoff` skill](.claude/skills/handoff/SKILL.md)). Deploys, live hardware and a handful of tool calls stay in the main session.
+- Launch any agent that edits files with `isolation: "worktree"`. Point their heavy checks at `make remote`. Use `general-purpose` only when none fits.
+- The `car-cards` and `operations-pro` plugins are off by default. For their tasks, `claude plugin enable <name>@model-railroad-skills --scope local`, reload, say so in the report, and disable it when done.
 
-The `car-cards` and `operations-pro` plugins are off by default (owner, 2026-11-18). When a task is theirs, turn one on for this checkout only: `claude plugin enable car-cards@model-railroad-skills --scope local` (or `operations-pro@…`), which writes the uncommitted local settings file, not the committed one, then reload plugins or start a new session; say so in the report, and `claude plugin disable … --scope local` when the task is done.
+## Working on existing scripts
 
-Details: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md).
+CPython tools import `hartlib` (`tools/hartlib/README.md`); switch facts live in `switches.csv` (ADR-021). Jython scripts inside JMRI never import it.
 
-## Status reporting
-
-Every session and agent, so the owner can follow the work:
-
-- At the start, say the plan and a rough ETA. At each milestone, one line: step, done/total, ETA.
-- Also report by time. A job under about 10 minutes needs only start and end lines; 10 to 30 minutes, a line at least every 3 minutes; longer, at least every 5 minutes. With no milestone, write "still on step X, why, new ETA". Take the time from `date +%H:%M`.
-- Before a long command (full `check.sh`, `make remote`, a build), log what starts and how long it should take, from logged timings where they exist, and log again when it returns.
-- Report a blocker, a failed check or a change of plan when it happens, not at the end. The final report says plainly what was skipped, failed or left, and what was not checked.
-- The main session cannot see inside a background agent until it finishes, so a subagent also appends each status line to the progress file its brief names (for example `<scratchpad>/progress/<topic>.log`, format `HH:MM <topic> step done/total ETA note`, with the topic name because several agents write at once). The main session watches those files (for example a Monitor on the progress folder) and passes new lines to the owner as they arrive, as a short table of all agents, instead of waiting for agents to finish.
+When a task changes or reuses a script of about 500 lines or more, or one with no tests, leave it safer in the same PR: a small fix adds a test for what it changed; a feature also tests what it depends on, and may then split the script in a separate commit that changes no behaviour. Running a script or editing its comments owes nothing, but say so if you relied on untested behaviour for something live. Start with `jmri/scripts/signal_coordinator.py` and `jmri/layouts/hart/scripts/panel_status.py`. Do not start a cleanup nobody asked for; if the safe version is bigger than the task, name it in the report.
 
 ## Do not
 
-- Deploy before saving what the Pi wrote live. Operations Pro saves its files on the Pi as the owner works, and `tables.xml` changes on a Store (not the default); a deploy replaces both, so the gate saves them itself and stops (the same code as `make tables-pull-pi`, and as `make ops-pull` without marking the Pi, after quitting PanelPro; from the main checkout Operations go into an `ops-pull-<stamp>` worktree). The Pi counts as pulled only once the Operations files are committed and merged and the Store's split (its edits in `devices_field.csv` or the template) is merged; deploy from the updated main after that (`HART_NO_AUTOPULL=1` only stops; a redeploy never pulls). `HART_DISCARD_PI_CHANGES=1` is the owner's call. The deploy leaves the DecoderPro roster alone (it ships only the photos). The Mac is expendable: PanelPro or CATS open there blocks nothing.
+- Deploy before saving what the Pi wrote live (Operations Pro files, a Store). The deploy gate saves them and stops; deploy from the updated main once they are merged. `HART_DISCARD_PI_CHANGES=1` is the owner's call ([`deploy` skill](.claude/skills/deploy/SKILL.md)). The Mac is expendable.
 - Explode or decompile `cats.jar` into `cats/`. CATS is open source: [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/).
-- Command field turnouts / publish `track/cmd` from launch or “fix paint” scripts.
-- Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`), or 2× draw scale unless asked.
+- Command field turnouts or publish `track/cmd` from launch or “fix paint” scripts. Never pass an MQTT publish command through a shell, even as test input (`tools/audit/tests/test_guards.py` shows how).
+- Run `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` or 2× draw scale unless asked.
 - Store JMRI tables from a CATS session. PanelPro owns `tables.xml`.
-- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (the owner's cells in `jmri/layouts/hart/data/devices_field.csv`, or the builders' inputs) or the template instead.
-- Leave the LCOS bridge (`serial_to_mqtt`) running detached. It is operator-owned and runs in a visible foreground console. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
-- Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction and confirmation.
+- Patch or wrap JMRI or CATS. Both are stock installs; fix the source data (`jmri/layouts/hart/data/devices_field.csv`, the builders' inputs) or the template.
+- Leave the LCOS bridge (`serial_to_mqtt`) running detached. Start it only for a lab test, stop it before ending the turn, and ask the user to restart it (`.\run_serial_mqtt.cmd verbose`).
+- Edit `external/lcos-bridge/lcos/` or `reference/` (vendor source) without explicit instruction.
+- Stop a run with `pkill -f` on a shared script name. Use its PID or a pattern with your worktree path.
 - Spell out what HART stands for in any file, commit or page. The repo and website are public.
 - Normalize **P&CV** and **P&OV** to each other. They are different names on purpose.
+- List or fix the parked features (Entry/Exit, the Dispatcher System, the USS CTC machine, the occupancy lamps) in `jmri/layouts/hart/parked/`. Their rules for the day they return: [`docs/parked/UNPARK.md`](docs/parked/UNPARK.md).
 
-**Parked** since the helix-join release (November 2026): JMRI Entry/Exit (NX), the stock Dispatcher System and the USS CTC machine, kept in `jmri/layouts/hart/parked/`. On unpark these rules return: never run CATS CTC and the USS machine (or Dispatcher System from inside CATS) at the same time, and never patch the Dispatcher System package (`CreateTransits`, `CreateIcons`, `Startup.py`, `TransitCreationTool`); fix `tables.xml` so stock Discover and Stage 1 succeed. Landmines: [`jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md`](jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md).
-
-New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Hart has no `export_options.json`.
-
-New documents go in `docs/` (ADR-010); run the index command after adding one.
+New JMRI track: **Mainline → Yes** (`mainline="yes"`). Geometry **1:1**. Hart has no `export_options.json`. New documents go in `docs/` (ADR-010).
 
 ## Pointers
 
-- Pipelines: [`wiki/pipelines/README.md`](wiki/pipelines/README.md) · what writes or reads a file: [`docs/pipeline-map/pipeline_map.json`](docs/pipeline-map/pipeline_map.json) (see [`wiki/home.md`](wiki/home.md))
-- Git / branches, and where agent instructions live: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md)
-- Submodules: each has its own rules and repo; see [`wiki/REPOS.md`](wiki/REPOS.md)
+- Pipelines: [`wiki/pipelines/README.md`](wiki/pipelines/README.md) · what writes or reads a file: [`docs/pipeline-map/pipeline_map.json`](docs/pipeline-map/pipeline_map.json)
+- Git, branches and where agent instructions live: [`wiki/AGENTS_GIT.md`](wiki/AGENTS_GIT.md) · submodules: [`wiki/REPOS.md`](wiki/REPOS.md)
 - CATS: [`cats/README.md`](cats/README.md) · [`cats/AGENTS.md`](cats/AGENTS.md)
-- Public names: [ADR-005](wiki/decisions/ADR-005-public-equipment-names.md) · `jmri/layouts/hart/data/devices_field.csv` and `devices_generated.csv` (one view: `hartlib.devices`)
+- Public names: [ADR-005](wiki/decisions/ADR-005-public-equipment-names.md); devices in `jmri/layouts/hart/data/devices_field.csv` and `devices_generated.csv` (one view: `hartlib.devices`)
+- Never list as pending: [`wiki/not-pending.md`](wiki/not-pending.md)
