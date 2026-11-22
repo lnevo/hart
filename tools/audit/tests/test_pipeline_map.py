@@ -332,11 +332,12 @@ process.stdout.write(JSON.stringify(out));"""
         """hubs: a box with HUB_OUT or more links out and one in is a hub; on the real map a hovered line's chain stops
         at hubs, so the line from staging.json to build_main_route.py lights its own pipeline, not what tables.xml feeds."""
         edges = [{"from": "s", "to": "h"}] + [{"from": "h", "to": f"o{i}"} for i in range(6)] + \
-                [{"from": "r", "to": f"p{i}"} for i in range(6)]  # r has six links out but nothing feeds it
+                [{"from": "r", "to": f"p{i}"} for i in range(6)] + \
+                [{"from": "q", "to": "q"}] + [{"from": "q", "to": f"p{i % 5}"} for i in range(6)]
+        # r feeds six but nothing feeds it; q feeds five distinct boxes (one twice) and only itself feeds it
         self.assertEqual(self.run_js("[...m.hubs(a)]", edges), ["h"])
         call = ("(g => { const by = {}; g.nodes.forEach(n => { by[n.id] = n; });"
-                " const live = new Set(g.nodes.filter(n => n.status === 'live').map(n => n.id));"
-                " const hub = m.hubs(g.edges.filter(e => live.has(e.from) && live.has(e.to)));"
+                " const hub = m.liveHubs(g);"
                 " return [[...hub], [...m.linkChain(g.edges, 'jmri/layouts/hart/data/schematic/inputs/staging.json',"
                 " 'tools/schematic/build_main_route.py', id => m.stopsChain(by[id]) || hub.has(id)).boxes]]; })"
                 "(JSON.parse(require('fs').readFileSync(a, 'utf8')))")
