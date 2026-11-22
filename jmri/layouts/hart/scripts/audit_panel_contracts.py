@@ -57,8 +57,6 @@ def station_comments(rows=None) -> dict[str, str]:
     return out
 
 
-STATION_COMMENTS = station_comments()
-
 def text(element: ET.Element | None, child: str) -> str:
     if element is None:
         return ""
@@ -617,13 +615,18 @@ def audit_stations(
     root: ET.Element, panel: ET.Element | None, audit: Audit, *, required: bool
 ) -> None:
     problem = audit.error if required else audit.warn
+    try:
+        expected_comments = station_comments()
+    except devices.DevicesError as e:
+        audit.error(f"Dispatcher stations: {e}")
+        return
     definitions = block_definitions(root)
     station_names = {
         name
         for name, comments in definitions.items()
         if any(comment == "stop" or comment.endswith("; stop") for comment in comments)
     }
-    expected_names = set(STATION_COMMENTS)
+    expected_names = set(expected_comments)
     if station_names != expected_names:
         problem(
             "Dispatcher station block names differ; "
@@ -631,7 +634,7 @@ def audit_stations(
             f"extra={sorted(station_names - expected_names) or 'none'}"
         )
     station_snapshot: list[tuple[str, str]] = []
-    for name, expected_comment in STATION_COMMENTS.items():
+    for name, expected_comment in expected_comments.items():
         comments = definitions.get(name, [])
         if expected_comment not in comments:
             problem(
@@ -650,7 +653,7 @@ def audit_stations(
     expected_icons: set[str] = set()
     # the Dispatcher System parked (hartlib.parked): the station blocks keep their comments, but no MoveTo or
     # move-in-progress sensor or icon is left in the tables
-    for name in (() if "dispatcher" in parked.parked_in(root) else STATION_COMMENTS):
+    for name in (() if "dispatcher" in parked.parked_in(root) else expected_comments):
         key = sensor_key(name)
         expected_sensors.update(
             {f"MoveTo{key}_stored", f"MoveInProgress{key}"}

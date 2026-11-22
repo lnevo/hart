@@ -2,7 +2,9 @@
 staging block rows marked `stop` (2026-11-22: it replaced the hand-kept copy in refresh_bean_comments.BLOCK_COMMENTS)."""
 import sys
 import unittest
+import xml.etree.ElementTree as ET
 from pathlib import Path
+from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import audit_panel_contracts as apc  # noqa: E402
@@ -42,6 +44,13 @@ class StationComments(unittest.TestCase):
     def test_the_same_comment_twice_is_one_station(self):
         self.assertEqual(apc.station_comments([row("Track A", "a; stop"), row("Track A", "a; stop")]),
                          {"Track A": "a; stop"})
+
+
+    def test_a_bad_master_is_an_audit_error_not_a_traceback(self):
+        audit = apc.Audit("test", Path("tables.xml"))
+        with mock.patch.object(apc, "station_comments", side_effect=devices.DevicesError("station 'Track A' ...")):
+            apc.audit_stations(ET.Element("layout-config"), None, audit, required=True)
+        self.assertEqual(audit.errors, ["Dispatcher stations: station 'Track A' ..."])
 
 
 if __name__ == "__main__":

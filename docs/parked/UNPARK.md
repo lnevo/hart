@@ -55,11 +55,10 @@ masts and Signal Mast Logic stay live.
 
 A rebuilt script reads these and nothing older:
 
-- The device master (`devices_field.csv` + `devices_generated.csv`) through `hartlib.devices` (role, level, cp, system_name, dcc, wiring,
-  jmri_comment, notes). The `pnm_*` columns, `public_name_map.csv` and the device-map files are gone. The coming
-  split (ADR-029 amendment) makes it `devices_generated.csv` (written by the build scripts) and `devices_field.csv`
-  (the owner's cells and Store-added devices), merged by `hartlib.devices`, so a reader that goes through
-  `hartlib.devices` needs no change for it.
+- The device master through `hartlib.devices` (role, level, cp, system_name, dcc, wiring, jmri_comment, notes):
+  `devices_generated.csv` (written by the build scripts) and `devices_field.csv` (the owner's cells and Store-added
+  devices), split on 2026-11-21 (ADR-029 amendment). The `pnm_*` columns, `public_name_map.csv` and the device-map
+  files are gone.
 - `jmri/layouts/hart/data/switches.csv`, one row per OS block on every level (`hand_source` says where the hand
   comes from). `switch_legs.csv`, `hands.csv` and `local_switches_main_upper.csv` are gone.
 - `jmri/layouts/hart/data/schematic/block_overrides.csv` with its `kind` column (`split`, `track`,
