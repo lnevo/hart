@@ -3116,6 +3116,32 @@ html.zoomer-open body {
   gap: 0.4rem;
 }
 
+/* Hub pages: the "On this page" row under the title, and "Back to top" links.
+   href="#top" relies on the HTML rule that an unmatched #top scrolls to the page top,
+   so no element on a hub may take id="top". */
+.hub-sub[id] {
+  scroll-margin-top: 6rem;
+}
+
+.jump-label {
+  margin: 0 0 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.back-top {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.back-top a {
+  color: var(--muted);
+}
+
 .jump a {
   display: inline-flex;
   align-items: center;
@@ -4149,7 +4175,9 @@ html.zoomer-open body {
 @media (max-width: 640px) {
   .panel[id],
   .glossary-group,
-  .spot-sheet {
+  .spot-sheet,
+  .hub-group,
+  .hub-sub[id] {
     scroll-margin-top: 7rem;
   }
 }
