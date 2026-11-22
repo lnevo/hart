@@ -100,7 +100,7 @@ svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
-svg.far .node text,svg.far #elabels{display:none}
+svg.far .node text,svg.far #elabels,svg:not(.far) #far{display:none}
 svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1px}
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
 svg.far.focus .edge.on{stroke-width:1.5px}
@@ -229,10 +229,10 @@ with the selected box, zoom and position; the address bar also keeps the view, w
 const V_GAP = 14, BAND_PAD = 40, DUMMY_H = 2, DUMMY_GAP = 3;
 const WRAP = 44, LEFT = 180, BAND_RUN = 100000;  // BAND_RUN: how far the lane colours run past the drawing's ends
 /* Column geometry: box width, the gap between columns and the title's wrap width in characters. Full boxes carry a
-   path and a description; compact boxes (names only) are narrower with a smaller gap, so the whole map is about 40%
+   path and a description; compact boxes (names only) are narrower with a smaller gap, so the whole map is about 35%
    narrower and everything is drawn bigger at Fit. */
 const WIDE = { nodeW: 250, colGap: 150, titleWrap: 30 };
-const NARROW = { nodeW: 170, colGap: 80, titleWrap: 20 };
+const NARROW = { nodeW: 180, colGap: 80, titleWrap: 22 };
 const stepOf = geo => geo.nodeW + geo.colGap;
 
 /* Greedy word wrap; a word longer than the width is cut. */
@@ -805,15 +805,24 @@ function app() {
   /* Which boxes get a tag: the boxes in view, in order of how much they matter now (hovered and its neighbours, the
      selected box, search hits, the lit chain, then the most links), each placed unless it would overlap one already
      placed. */
-  function updateFar() {
+  let farFrame = 0, farShown = new Set();
+  function updateFar() {  // at most once a frame: a drag or wheel calls it on every event
+    if (!farFrame) farFrame = requestAnimationFrame(() => { farFrame = 0; placeFar(); });
+  }
+  function showFar(placed) {
+    for (const id of farShown) if (!placed.has(id) && farEl[id]) farEl[id].setAttribute("display", "none");
+    for (const id of placed) if (!farShown.has(id)) farEl[id].setAttribute("display", "inline");
+    farShown = placed;
+  }
+  function placeFar() {
     if (!svg) return;
     const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a < FAR_PX;
     svg.classList.toggle("far", far);
-    if (!far) return;
+    if (!far) { showFar(new Set()); return; }
     const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a;
     const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
     const has = (id, c) => nodeEl[id].classList.contains(c);
-    const rank = id => (has(id, "hn") || id === hoverId ? 0 : has(id, "sel") ? 1 : has(id, "hit") ? 2 : has(id, "near") ? 3 : has(id, "on") ? 4 : 5);
+    const rank = id => (id === hoverId ? -1 : has(id, "hn") ? 0 : has(id, "sel") ? 1 : has(id, "hit") ? 2 : has(id, "near") ? 3 : has(id, "on") ? 4 : 5);
     const inView = lay.nodes.filter(n => sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
     inView.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
     // a box cut off at the left edge has its tag at the edge; the pinned lane names sit over the map, so no tag under them
@@ -832,7 +841,7 @@ function app() {
       g.setAttribute("transform", `translate(${at.toFixed(1)},${(n.y + n.h / 2).toFixed(1)}) scale(${(1 / s).toFixed(4)})`);
       g.setAttribute("class", "fl " + ["on", "near", "sel", "hit", "hn"].filter(c => has(n.id, c)).join(" "));
     }
-    for (const id in farEl) farEl[id].setAttribute("display", placed.has(id) ? "inline" : "none");
+    showFar(placed);
   }
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
   function setHover(id) {
@@ -919,7 +928,8 @@ function app() {
     nodeEl = {};
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
-    farEl = {}; degree = {}; edgesAt = {}; hoverId = null; laneBack = null;
+    farEl = {}; farShown = new Set(); degree = {}; edgesAt = {}; hoverId = null; laneBack = null;
+    closeLens();  // the lens holds a copy of the old drawing
     svg.querySelectorAll(".fl").forEach(g => (farEl[g.dataset.id] = g));
     edgeEls.forEach(el => [el.dataset.from, el.dataset.to].forEach(v => { degree[v] = (degree[v] || 0) + 1; (edgesAt[v] ||= []).push(el); }));
     drawNav();
@@ -1066,25 +1076,31 @@ function app() {
     const tops = laneTagTops(lay.bands.map(b => [sy(b.y), sy(b.y + b.h)]), floor, a.bottom, under), tags = [];
     lay.bands.forEach((b, i) => {
       if (tops[i] !== null)
-        tags.push(`<span data-lane="${i}" title="${laneBack && laneBack.lane === b.id ? "Click to go back to the view before" : "Click to zoom to this lane"}" style="top:${tops[i].toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
+        tags.push(`<span data-lane="${i}" title="${atLane(b.id) ? "Click to go back to the view before" : "Click to zoom to this lane"}" style="top:${tops[i].toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
     });
     laneTags.innerHTML = tags.join("");
   }
   /* ---- a click on a lane's name: the lane's boxes fill the free area's height (at most at full size), from its first
      box, so they are big enough to read and the reader pans along the lane; a second click on the same name goes back
      to the view before. */
-  let laneBack = null;  // {lane, v: [x, y, width, height]} while zoomed to a lane
+  let laneBack = null;  // {lane, v: [x, y, width, height] before, at: the lane view} after a lane zoom
+  // whether the view is still the one the lane zoom set (a pan, zoom or Fit since leaves it)
+  const atLane = id => !!laneBack && laneBack.lane === id && laneBack.at.length > 0 && laneBack.at.every((t, i) => Math.abs(t - [vb.x, vb.y, vb.width][i]) <= 1);
   laneTags.addEventListener("click", e => {
+    if (moved) return;
     const t = e.target.closest("span[data-lane]"), b = t && lay.bands[Number(t.dataset.lane)];
     if (!b) return;
-    if (laneBack && laneBack.lane === b.id) { const v = laneBack.v; laneBack = null; setVB(...v); return; }
+    if (atLane(b.id)) { const v = laneBack.v; laneBack = null; setVB(...v); return; }
+    if (laneBack && !lay.bands.some(o => atLane(o.id))) laneBack = null;  // moved away since: the view now is the one to go back to
     const was = laneBack ? laneBack.v : [vb.x, vb.y, vb.width, vb.height], a = freeArea();
     const mine = lay.nodes.filter(n => n.domain === b.id);
     if (!mine.length) return;
     const y0 = Math.min(...mine.map(n => n.y)) - 20, y1 = Math.max(...mine.map(n => n.y + n.h)) + 20;
     const s = Math.min((a.bottom - a.top) / (y1 - y0), 1), x0 = Math.min(...mine.map(n => n.x));
-    laneBack = { lane: b.id, v: was };
+    laneBack = { lane: b.id, v: was, at: [] };  // at is set once the view has moved
     setVB(x0 - 240 / s, (y0 + y1) / 2 - (a.top + a.bottom) / 2 / s, a.r.width / s, a.r.height / s);  // 240 px left of the first box, for the lane names
+    laneBack.at = [vb.x, vb.y, vb.width];
+    drawRulers();  // the tag's hover text now says it goes back
   });
 
   function updateNav() {
@@ -1158,17 +1174,20 @@ function app() {
     const cx = a.right / 2, cy = (a.top + a.bottom) / 2;
     setVB(n.x + n.w / 2 - cx * s, n.y + n.h / 2 - cy * s, w, h);
   }
-  wrapEl.addEventListener("wheel", e => {
+  const onWheel = e => {
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? wrapEl.clientHeight : 1;
     const dx = e.deltaX * unit, dy = e.deltaY * unit;
     if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { setVB(vb.x + dx * vb.width / wrapEl.getBoundingClientRect().width, vb.y, vb.width, vb.height); return; }
     zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY);
-  }, { passive: false });
+  };
+  wrapEl.addEventListener("wheel", onWheel, { passive: false });
+  laneTags.addEventListener("wheel", onWheel, { passive: false });  // the lane names take clicks, so they pass the wheel on
   let drag = null, moved = false;
   const startDrag = e => { drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; moved = false; wrapEl.classList.add("drag"); };
   wrapEl.addEventListener("pointerdown", startDrag);
-  steps.addEventListener("pointerdown", startDrag);  // a drag that starts on a step header pans the map too; the headers keep their hover text
+  steps.addEventListener("pointerdown", startDrag);
+  laneTags.addEventListener("pointerdown", startDrag);  // so does one on a lane name; a click without a drag zooms to the lane  // a drag that starts on a step header pans the map too; the headers keep their hover text
   window.addEventListener("pointermove", e => {
     if (!drag) return;
     const r = wrapEl.getBoundingClientRect(), dx = e.clientX - drag.x, dy = e.clientY - drag.y;
@@ -1235,6 +1254,7 @@ function app() {
     info.style.display = "none";
     nav.classList.remove("focus"); nav.querySelectorAll("rect.on").forEach(r => r.classList.remove("on"));
     setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the wider free area
+    updateFar();
     if (!user) return;
     const was = trimmed();
     selected = null;
@@ -1270,6 +1290,7 @@ function app() {
       const l = svg.querySelector(`.elabel[data-edge="e${i}"]`);
       if (l) { l.classList.add("on"); if (near) l.classList.add("near"); }
     });
+    updateFar();  // the tags take the new classes
     if (gNodes[id]) { folderInfo(id); return; }
     lastBox = id;
     const n = byId[id];

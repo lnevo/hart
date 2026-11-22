@@ -203,16 +203,16 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(far["cols"][1]["x"], 20 * 400 + 125)  # the middle of the column's boxes
 
     def test_compact_geometry_is_narrower_and_the_headers_follow_it(self) -> None:
-        """layout with NARROW (compact boxes): the same columns at 250 units a column instead of 400, and stepTicks
+        """layout with NARROW (compact boxes): the same columns at 260 units a column instead of 400, and stepTicks
         given the same geometry puts each header over the middle of its column's boxes."""
         g = self.graph()
         wide = self.run_js("m.layout(a.nodes, a.edges, a.domains, 0, m.WIDE)", g)
         narrow = self.run_js("m.layout(a.nodes, a.edges, a.domains, 0, m.NARROW)", g)
         self.assertEqual(narrow["columns"], wide["columns"])
-        self.assertEqual(narrow["width"], wide["columns"] * 250 - 80)
-        self.assertTrue(all(n["w"] == 170 and n["x"] % 250 == 0 for n in narrow["nodes"]))
-        ticks = self.run_js("m.stepTicks(10, 0, 2500, 1, m.NARROW)", None)
-        self.assertEqual(ticks["cols"][1]["x"], 250 + 85)
+        self.assertEqual(narrow["width"], wide["columns"] * 260 - 80)
+        self.assertTrue(all(n["w"] == 180 and n["x"] % 260 == 0 for n in narrow["nodes"]))
+        ticks = self.run_js("m.stepTicks(10, 0, 2600, 1, m.NARROW)", None)
+        self.assertEqual(ticks["cols"][1]["x"], 260 + 90)
 
     def test_name_tags_never_overlap(self) -> None:
         """placeTags: in priority order, a tag that overlaps one already placed or a blocked area is left out."""

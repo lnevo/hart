@@ -316,7 +316,7 @@ svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
-svg.far .node text,svg.far #elabels{display:none}
+svg.far .node text,svg.far #elabels,svg:not(.far) #far{display:none}
 svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1px}
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
 svg.far.focus .edge.on{stroke-width:1.5px}
