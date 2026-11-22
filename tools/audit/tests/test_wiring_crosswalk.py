@@ -70,9 +70,27 @@ def tables(comments=COMMENTS, masts=MASTS) -> ET.Element:
     )
 
 
+def with_place(root: ET.Element, mast: str, comment: str, head: str, head_comment: str) -> ET.Element:
+    for el in root.iter("signalmast"):
+        if el.findtext("userName") == mast:
+            ET.SubElement(el, "comment").text = comment
+    for el in root.iter("signalhead"):
+        if el.findtext("systemName") == head:
+            el.find("comment").text = head_comment
+    return root
+
+
 class WiringCrosswalkTest(unittest.TestCase):
     def test_matching_tables_pass(self):
         self.assertEqual(check.problems(WIRING, tables()), [])
+
+    def test_a_wired_head_reads_its_masts_place_first(self):
+        """The mast's comment without its direction leads the head's (owner, 2026-11-22)."""
+        wiring_text = COMMENTS["IH432"]
+        good = with_place(tables(), "Mast 6LB", "Plane | Switch 5 | West", "IH432", f"Plane | Switch 5 | {wiring_text}")
+        self.assertEqual(check.problems(WIRING, good), [])
+        wrong = with_place(tables(), "Mast 6LB", "Plane | Switch 5 | West", "IH432", f"Brick | Switch 3 | {wiring_text}")
+        self.assertEqual(1, len(check.problems(WIRING, wrong)))
 
     def test_wrong_ih_number_on_mast_fails(self):
         masts = dict(MASTS, **{"Mast 24RA": "IF$shsm:basic:two-searchlight(IH1232)(IH1233)"})

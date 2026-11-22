@@ -16,7 +16,7 @@ V = "IH:HART:C3:"
 
 
 def row(mast, heads, device):
-    return dict(cp="CP 107", switch="119", mast=f"Mast {mast}", device_system_name=device,
+    return dict(cp="CP 107", switch="119", dir="west", mast=f"Mast {mast}", device_system_name=device,
                 system_name="IF$shsm:basic:two-searchlight" + "".join(f"({V}{h})" for h in heads),
                 heads=[(V + h, f"Head {h}") for h in heads])
 
@@ -34,10 +34,12 @@ class Comments(unittest.TestCase):
         got = comments([row("120RA", ["120RA_Top", "120RA_Bottom"], "IF$shsm:basic:two-searchlight(IH4338)(IH4339)"),
                         row("120RB", ["120RB_Top", "120RB_Bottom"], "")])
         self.assertEqual(got["Head 120RA_Bottom"], "CP 107 | Switch 119 | virtual (device map); planned IH4339")
-        self.assertEqual(got["Mast 120RA"], "CP 107 | Switch 119 | virtual (device map); planned "
+        self.assertEqual(got["Mast 120RA"], "CP 107 | Switch 119 | West | virtual (device map); planned "
                                             "IF$shsm:basic:two-searchlight(IH4338)(IH4339)")
-        for name in ("Head 120RB_Top", "Head 120RB_Bottom", "Mast 120RB"):
+        for name in ("Head 120RB_Top", "Head 120RB_Bottom"):
             self.assertEqual(got[name], "CP 107 | Switch 119 | virtual (device map); not on a node yet")
+        # a mast names the way it faces after its place; its heads do not (owner, 2026-11-22)
+        self.assertEqual(got["Mast 120RB"], "CP 107 | Switch 119 | West | virtual (device map); not on a node yet")
         self.assertFalse([c for c in got.values() if "?" in c or c.endswith("planned ")])
 
 

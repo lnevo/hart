@@ -229,16 +229,29 @@ class LayoutTest(unittest.TestCase):
         got = self.run_js("[m.lineEnd(a, false, () => true), m.lineEnd(a, true, () => true), m.lineEnd(a, true, id => id === 'b')]", edge)
         self.assertEqual(got, ["b", "a", None])
 
-    def test_grown_box_moves_in_to_stay_on_screen_unless_hovered(self) -> None:
-        """growRect: a box grown past the screen's right edge or above the free area moves in; the hovered box stays
-        put, so it stays under the pointer."""
+    def test_grown_box_moves_in_to_stay_on_screen(self) -> None:
+        """growRect: a box grown past the screen's right edge or above the free area moves in, the hovered one too."""
         area = {"left": 0, "top": 100, "right": 1000, "bottom": 800}
         mid = self.run_js("m.growRect(500, 400, 80, 20, a)", area)
         self.assertEqual((mid["dx"], mid["dy"], mid["x0"], mid["y1"]), (0, 0, 418, 422))
         edge = self.run_js("m.growRect(980, 110, 80, 20, a)", area)
         self.assertEqual((edge["dx"], edge["dy"]), (1000 - 84 - 980, 124 - 110))
-        held = self.run_js("m.growRect(980, 110, 80, 20, a, true)", area)
-        self.assertEqual((held["dx"], held["dy"]), (0, 0))
+        corner = self.run_js("m.growRect(5, 795, 80, 20, a)", area)  # bottom left: in from both edges
+        self.assertEqual((corner["dx"], corner["dy"], corner["x0"], corner["y1"]), (79, -19, 2, 798))
+
+    def test_hovered_card_moves_clear_of_lane_names(self) -> None:
+        """clearOf: a grown rect under a lane name moves the least way clear of it inside the area; one already clear
+        stays."""
+        area = {"left": 0, "top": 100, "right": 1000, "bottom": 800}
+        tag = {"x0": 0, "y0": 200, "x1": 150, "y1": 220}
+        b = {"x0": 20, "y0": 190, "x1": 180, "y1": 240, "dx": 5, "dy": 0}  # down 31 beats up 41 and right 131
+        got = self.run_js("m.clearOf(a.b, [a.tag], a.area)", {"b": b, "tag": tag, "area": area})
+        self.assertEqual((got["y0"], got["dx"], got["dy"]), (221, 5, 31))
+        tall = {"x0": 20, "y0": 110, "x1": 180, "y1": 790, "dx": 0, "dy": 0}  # no room above or below: right
+        got = self.run_js("m.clearOf(a.b, [a.tag], a.area)", {"b": tall, "tag": tag, "area": area})
+        self.assertEqual((got["x0"], got["dx"]), (151, 131))
+        clear = {"x0": 300, "y0": 300, "x1": 400, "y1": 340, "dx": 0, "dy": 0}
+        self.assertEqual(self.run_js("m.clearOf(a.b, [a.tag], a.area)", {"b": clear, "tag": tag, "area": area}), clear)
 
     def test_long_link_runs_level_across_the_columns_it_skips(self) -> None:
         """layout: a link that skips three columns runs through each at one height, so it is drawn as a straight run,
@@ -412,6 +425,42 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertIn("folder:d>folder:e:check", got)  # both links are checks
         self.assertIn("folder:d>f/t:pointer", got)
 
+    def test_pointer_pick_order(self) -> None:
+        """pointerPick: a box drawn under the pointer, then a grown box's drawn spot, then the hovered box's own card,
+        then the hovered line, then a grown card, then a line; else nothing."""
+        cases = [{"box": "b", "spot": "s", "own": "o", "hovered": 1, "card": "c", "line": 2},
+                 {"spot": "s", "own": "o", "hovered": 1, "card": "c", "line": 2},
+                 {"own": "o", "hovered": 1, "card": "c", "line": 2},
+                 {"hovered": 0, "card": "c", "line": 0},
+                 {"card": "c", "line": 2}, {"line": 0}, {"box": None, "line": None}]
+        self.assertEqual(self.run_js("a.map(m.pointerPick)", cases),
+                         [{"box": "b"}, {"box": "s"}, {"box": "o"}, {"edge": 0}, {"box": "c"}, {"edge": 0}, {}])
+
+    def test_stop_kinds_and_note(self) -> None:
+        """stopKind names why a chain stops at a box; stopsNote lists up to four, escaped, and counts the rest."""
+        hub = "new Set(['h'])"
+        nodes = [{"id": "r", "runner": True}, {"label": ".cache/x"}, {"kind": "human"}, {"domain": "hosts"},
+                 {"id": "h"}, {"id": "p"}]
+        self.assertEqual(self.run_js(f"a.map(n => m.stopKind(n, {hub}))", nodes),
+                         ["runner", "cache", "hand work", "host", "hub", None])
+        self.assertEqual(self.run_js("m.stopsNote(a)", []), "")
+        note = self.run_js("m.stopsNote(a)", [["a<b>", "hub"], ["c", "runner"], ["d", "cache"], ["e", "hub"], ["f", "hub"]])
+        self.assertEqual(note, '<div class="off">stops at a&lt;b&gt; (hub), c (runner), d (cache), e (hub) and 1 more</div>')
+
+    def test_page_has_only_links_for_kinds(self) -> None:
+        """The Filters menu offers "only" beside each kind, as beside each lane, from the same script."""
+        page = MAP.render(json.loads(MAP.GRAPH.read_text()))
+        self.assertIn('data-kindonly="${esc(k)}">only</a>', page)
+        self.assertIn('data-only="${esc(d.id)}">only</a>', page)
+
+    def test_only_kind(self) -> None:
+        """onlyKind: hides every other hideable kind; a second click on the kind shown alone shows them all again."""
+        kinds = ["structured", "generator", "output", "human"]
+        self.assertEqual(self.run_js("m.onlyKind(a, [], 'generator')", kinds), ["structured", "output", "human"])
+        self.assertEqual(self.run_js("m.onlyKind(a, ['structured', 'output', 'human'], 'generator')", kinds), [])
+        self.assertEqual(self.run_js("m.onlyKind(a, ['structured', 'output', 'human'], 'output')", kinds),
+                         ["structured", "generator", "human"])  # another kind's only moves to that kind
+
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
         boxes = [{"id": "a", "x": 0, "y": 0, "w": 10, "h": 5}, {"id": "b", "x": 20, "y": 0, "w": 10, "h": 5}]
@@ -518,6 +567,40 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(shut["edges"], [{"from": "folder:tools/x", "to": "y", "label": "2 links"}, {"from": "h", "to": "folder:tools/x"}])
         self.assertEqual(opened["members"], {})
         self.assertEqual(len(opened["edges"]), 4)
+
+    def test_fit_keeps_a_margin(self) -> None:
+        """fitView with pad: the drawing sits pad px inside the free area on the limiting sides, centred the other way,
+        and showsAll still counts it as the whole map; clampView keeps that view as it is."""
+        free = {"top": 0.1, "right": 1, "bottom": 1}
+        out = self.run_js("(() => { const f = m.fitView(1000, 500, 100, a.free, 1000, 800, 28);"
+                          " const c = v => m.clampView(v, 1000, 500, 100, a.free, f.width, 28 / 1000, 28 / 800);"
+                          " return [f, m.showsAll(f, 1000, 500, 100, a.free), c(f),"
+                          " c({...f, x: f.x + 40 * f.width / 1000}), c({...f, x: f.x - 40 * f.width / 1000})]; })()",
+                          {"free": free})
+        view, fits, clamped, right, left = out
+        for dragged in (right, left):  # at the Fit width a drag across cannot eat the margin
+            self.assertAlmostEqual(dragged["x"], view["x"], places=6)
+        s = view["width"] / 1000
+        left_px = (-100 - view["x"]) / s
+        self.assertAlmostEqual(left_px, 28, places=3)  # width-limited: 28 px in from each side
+        self.assertAlmostEqual(left_px + 1000 / s, 1000 - 28, places=3)
+        self.assertAlmostEqual(-view["y"] / s, 80 + 28, places=3)  # 28 px under the step strip
+        self.assertTrue(fits)
+        for k in ("x", "y", "width", "height"):
+            self.assertAlmostEqual(clamped[k], view[k], places=6)
+
+    def test_fit_margin_when_height_limits_or_room_is_small(self) -> None:
+        """fitView: a tall drawing is limited by height and sits pad px below the strip and above the bottom; fitPad
+        keeps at most a quarter of a small area (a phone with the panel open) as margin."""
+        free = {"top": 0.1, "right": 1, "bottom": 1}
+        view = self.run_js("m.fitView(100, 1000, 0, a, 1000, 800, 28)", free)
+        s = view["width"] / 1000
+        top_px = -view["y"] / s
+        self.assertAlmostEqual(top_px, 80 + 28, places=3)
+        self.assertAlmostEqual(top_px + 1000 / s, 800 - 28, places=3)
+        pads = self.run_js("[m.fitPad(28, a, 1000, 800), m.fitPad(28, {top: 0.9, right: 1, bottom: 0.95}, 1000, 800)]", free)
+        self.assertEqual(pads[0], 28)
+        self.assertAlmostEqual(pads[1], 10, places=6)  # a 40 px high area keeps 10 px each side
 
     def test_fit_leaves_room_for_the_panel(self) -> None:
         """fitView: the drawing fills the free area left of an info panel, against its top, and showsAll agrees; the
