@@ -8,7 +8,9 @@ apply scripts, and live_paths.txt. A module is imported, not run: no Start Up it
 from __future__ import annotations
 
 import re
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -77,6 +79,43 @@ class CoordinatorShipping(unittest.TestCase):
         retarget = block(read(WIN_APPLY), "$retargetNames = @(", "Windows apply")
         for m in SIBLINGS:
             self.assertNotIn(f"'{m}.py'", retarget)
+
+    # Jython writes <module>$py.class beside a module it imports and reuses it while it is not older than the .py:
+    # a deploy that keeps the source's time (Copy-Item) or rolls back could leave a newer stale class that wins.
+    MAC_RM = 'rm -f "$dest/$(basename "$f" .py)\\$py.class"'
+    PI_RM = 'rm -f "$UF/jython/$(basename "$f" .py)\\$py.class"'
+    WIN_RM = "[System.IO.Path]::GetFileNameWithoutExtension($src) + '$py.class'"
+
+    def copy_loop(self, text: str, opener: str, where: str) -> str:
+        """The body of the loop that copies the jython files, from `opener` to its `done`."""
+        found = re.findall(re.escape(opener) + r"(.*?)^\s*done\s*$", text, re.M | re.S)
+        self.assertEqual(len(found), 1, f"{where}: one copy loop opened by {opener!r}")
+        return found[0]
+
+    def test_each_site_deletes_the_compiled_class_of_what_it_copies(self) -> None:
+        mac = self.copy_loop(read(DEPLOY / "ship_mac.sh"),
+                             'for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}"; do', "ship_mac.sh")
+        self.assertIn(self.MAC_RM, mac)
+        pi = self.copy_loop(read(PI_APPLY), 'for f in "${JYTHON[@]}"; do', "Pi apply")
+        self.assertIn(self.PI_RM, pi)
+        win = read(WIN_APPLY)
+        loop = win[win.index("foreach ($src in $jythonSrc) {"):win.index("$staleNx")]
+        self.assertIn(self.WIN_RM, loop)
+        self.assertIn("Remove-Item -LiteralPath $compiled -Force", loop)
+
+    def test_the_bash_deletes_remove_each_modules_class_only(self) -> None:
+        names = ["signal_coordinator", *SIBLINGS]
+        for line, var in ((self.MAC_RM, "dest"), (self.PI_RM, "UF")):
+            with tempfile.TemporaryDirectory() as tmp:
+                jython = Path(tmp) / "jython" if var == "UF" else Path(tmp)
+                jython.mkdir(exist_ok=True)
+                for n in names:
+                    (jython / f"{n}$py.class").write_text("stale", encoding="utf-8")
+                (jython / "other$py.class").write_text("keep", encoding="utf-8")
+                script = "\n".join(f'f="/pkg/jmri/scripts/{n}.py"; {line}' for n in names)
+                subprocess.run(["bash", "-c", script], check=True, env={var: tmp if var == "UF" else str(jython),
+                                                                        "PATH": "/usr/bin:/bin"})
+                self.assertEqual(sorted(p.name for p in jython.iterdir()), ["other$py.class"], var)
 
     def test_block_reader_refuses_a_missing_or_doubled_list(self) -> None:
         with self.assertRaisesRegex(AssertionError, "found 0"):

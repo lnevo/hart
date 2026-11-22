@@ -123,6 +123,8 @@ JYTHON=(
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do
   [[ -f "$f" ]] && cp -f "$f" "$UF/jython/"
+  # Jython's compiled copy of a module it imported: one not older than the new .py would be reused.
+  rm -f "$UF/jython/$(basename "$f" .py)\$py.class"
 done
 rm -f "$UF/jython/hart_dispatcher_startup.py" "$UF/jython/patch_dispatcher_facing.py"
 for d in "$UF/jython" "$HOME"/.jmri/*.jmri/jython; do

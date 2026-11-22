@@ -198,6 +198,10 @@ foreach ($r in ($roots | Select-Object -Unique)) {
     if (Test-Path $src) {
       Copy-Item $src (Join-Path $dest (Split-Path $src -Leaf)) -Force
     }
+    # Jython's compiled copy of a module it imported: Copy-Item keeps the source's time, so a class
+    # not older than the new .py (a rollback, a clock skew) would be reused.
+    $compiled = Join-Path $dest ([System.IO.Path]::GetFileNameWithoutExtension($src) + '$py.class')
+    if (Test-Path -LiteralPath $compiled) { Remove-Item -LiteralPath $compiled -Force }
   }
   $staleNx = Join-Path $dest 'prepare_nx_sml_paths.py'
   if (Test-Path $staleNx) { Remove-Item $staleNx -Force }
