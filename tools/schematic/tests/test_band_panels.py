@@ -145,7 +145,8 @@ class RealBuild(unittest.TestCase):
             ys = [float(e.get(a)) for el in band for e in el.iter() for a in bp.Y_ATTRS if e.get(a) is not None]
             self.assertEqual(round(min(ys)), bp.MARGIN, name)
             self.assertEqual(int(p.get("panelheight")), round(max(ys)) + bp.MARGIN, name)
-            self.assertEqual(int(p.get("windowheight")), int(p.get("panelheight")) + 60, name)     # le.CHROME
+            chrome = ble.plugin()[1].CHROME             # the frame built() passed to bp.add
+            self.assertEqual(int(p.get("windowheight")), int(p.get("panelheight")) + chrome[1], name)
             self.assertEqual(p.get("windowwidth"), self.full.get("windowwidth"), name)
 
 
@@ -165,7 +166,8 @@ def seg(ident, a, b, hidden="no"):
 
 def small():
     """(root, P): two bands, each an end bumper, a track and an anchor, joined by hidden segment J."""
-    full = ET.Element("LayoutEditor", {"name": bp.FULL_PANEL, "panelheight": "100", "windowheight": "1032"})
+    full = ET.Element("LayoutEditor", {"name": bp.FULL_PANEL, "panelheight": "100", "windowheight": "1032",
+                                       "windowwidth": "1920"})
     full.append(ET.Element("layoutTrackDrawingOptions", {"name": bp.FULL_PANEL}))
     for b, y in ((1, "20.0"), (2, "70.0")):
         e = point(f"E{b}", "END_BUMPER", f"T{b}")
@@ -196,6 +198,9 @@ class SmallPanel(unittest.TestCase):
             report = bp.add(root, P, bands=None, chrome=(18, 60))
         self.assertEqual([("A1", "Two", "A2")], report[0]["edges"])
         self.assertEqual([("A2", "One", "A1")], report[1]["edges"])
+        for name in ("One", "Two"):          # the window: the panel's height and the frame's, the full panel's width
+            self.assertEqual(int(panel(root, name).get("windowheight")), int(panel(root, name).get("panelheight")) + 60)
+            self.assertEqual(panel(root, name).get("windowwidth"), root.find("LayoutEditor").get("windowwidth"))
         one = panel(root, "One")
         self.assertEqual(["layoutTrackDrawingOptions", "positionablepoint", "tracksegment", "positionablepoint"],
                          [el.tag for el in one])
