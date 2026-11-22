@@ -1,7 +1,7 @@
 """The device map's small readers and staging helpers that had no test of their own: helix_pins, read_places,
 loop_placeholder, helix_ends, line_cp, part_row, piece_trials, alias_note, new_spare, wire_block, staging_field and
-taken_bean_names. They pin the behaviour the split of build_device_map.py into device_map_inputs.py and
-device_map_staging.py keeps; none needs the schematic plugin."""
+taken_bean_names. They pin the behaviour the split of build_device_map.py into device_map_inputs.py,
+device_map_schematic.py and device_map_staging.py keeps; none needs the schematic plugin."""
 from __future__ import annotations
 
 import subprocess
@@ -16,6 +16,7 @@ ROOT = HERE.parents[2]
 sys.path[:0] = [str(HERE.parent), str(ROOT / "tools/hartlib/src")]
 import build_device_map as bdm  # noqa: E402
 import device_map_inputs as inputs  # noqa: E402
+import device_map_schematic as schematic  # noqa: E402
 import device_map_staging as staging  # noqa: E402
 from hartlib import devices, railroad, wiring  # noqa: E402
 
@@ -182,8 +183,18 @@ class TheSplit(TempFiles):
             with self.subTest(name=name):
                 self.assertIs(getattr(bdm, name), getattr(staging, name))
 
-    def test_neither_module_loads_the_builder_at_import(self):
-        for mod in ("device_map_inputs", "device_map_staging"):
+    SCHEMATIC = ("block_overrides", "check_helix_ends", "corner_blocks_of", "dx_corners", "helix_stops",
+                 "helix_tracks", "home_and_posts", "labels_by_level", "line_role", "loop_halves", "main_upper_layer",
+                 "named_tracks", "overrides_keys", "read_pins", "split_edges", "split_tracks", "xover_corners")
+
+    def test_the_builder_re_exports_the_schematic_helpers(self):
+        for name in self.SCHEMATIC:
+            with self.subTest(name=name):
+                self.assertIs(getattr(bdm, name), getattr(schematic, name))
+        self.assertIs(staging.builder, schematic.builder)
+
+    def test_no_module_loads_the_builder_at_import(self):
+        for mod in ("device_map_inputs", "device_map_staging", "device_map_schematic"):
             with self.subTest(mod=mod):
                 code = f"import sys; import {mod}; sys.exit('build_device_map' in sys.modules)"
                 got = subprocess.run([sys.executable, "-c", code], cwd=HERE.parent, capture_output=True, text=True)
@@ -195,6 +206,8 @@ class TheSplit(TempFiles):
         with tempfile.TemporaryDirectory() as d, unittest.mock.patch.object(bdm, "OUT", Path(d) / "devices.csv"):
             with self.assertRaises(railroad.FactsError):     # no field file there: read from the patched folder
                 staging.staging_field()
+        with unittest.mock.patch.object(bdm, "OVERRIDES", Path("/nonexistent/plan_overrides.json")):
+            self.assertEqual(schematic.block_overrides(), Path("/nonexistent") / "block_overrides.csv")
 
     def test_read_pins_needs_its_tracks(self):
         """The reader takes the tracks it resolves against; the builder's read_pins gives the solved schematic's."""

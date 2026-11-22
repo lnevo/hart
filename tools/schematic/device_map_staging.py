@@ -16,9 +16,9 @@ devices_field.csv (ADR-029 amendment, 2026-11-21), which this script reads and n
 devices_generated.csv, and never reads its own last rows back but for the numbers it gave (devices.allocated_names).
 A new staging block needs its field row first.
 
-The builder's schematic helpers (named_tracks, home_and_posts, helix_tracks, block_overrides) and its paths (OVERRIDES,
-OUT through device_files) are read from build_device_map when a function runs (builder()), as they are then: that
-module imports this one, so this one does not import it at load.
+The drawing's tracks come from device_map_schematic; the builder's paths (OVERRIDES, OUT through device_files) are read
+from build_device_map when a function runs (device_map_schematic.builder), as they are then: that module imports this
+one, so this one does not import it at load.
 """
 from __future__ import annotations
 
@@ -35,17 +35,11 @@ from mast_rule import MapError, band_levels  # noqa: E402
 from device_map_inputs import (  # noqa: E402  the readers
     CPS, FIELD_LEVEL, NODES, PINS, STATIONS, WIRING, Places, StagingPin, helix_pins, read_places, read_staging_pins,
     staging_nodes, wiring_rows)
+from device_map_schematic import block_overrides, builder, helix_tracks, home_and_posts, named_tracks  # noqa: E402
 from hartlib import devices, layer_files, level_devices, railroad  # noqa: E402
 
 natural = railroad.natural
 occupancy_user = level_devices.occupancy_user
-
-
-def builder():
-    """build_device_map, imported on first use (it imports this module): its schematic helpers and its paths as they
-    are when called (a test may patch them)."""
-    import build_device_map
-    return build_device_map
 
 
 STAGING_SHEET = "staging"           # staging's section of plan_overrides.json
@@ -124,15 +118,15 @@ def staging_layer(bands, joined, runs, exceptions: Path | None = None) -> tuple[
     drawing and block_overrides.csv (`exceptions`, default block_overrides()), every kind of its rows from that one
     file."""
     bdm = builder()
-    exceptions = exceptions or bdm.block_overrides()
+    exceptions = exceptions or block_overrides()
     overrides = layer_files.read("plan_overrides", STAGING_SHEET, bdm.OVERRIDES.parent)
     levels = band_levels(overrides)
-    found = bdm.named_tracks(bands, joined, runs, overrides)
+    found = named_tracks(bands, joined, runs, overrides)
     try:
         cp_of = {s: r.name for r in railroad.read_interlockings(CPS, (1,)) for s in r.switches}
     except railroad.FactsError as exc:
         raise MapError(str(exc)) from None
-    _home, posts = bdm.home_and_posts(bands, joined, found, levels, cp_of, None,
+    _home, posts = home_and_posts(bands, joined, found, levels, cp_of, None,
                                   mast_rule.read_block_splits(exceptions, found, levels))
     split = block_layer.split_edges(found, levels, exceptions, bdm.OVERRIDES.parent)
     lay = block_layer.layer(bands, runs, found, levels, split,
@@ -342,7 +336,7 @@ def staging_rows(bands, joined, runs, files: devices.Files | None = None,
     bdm = builder()
     lay, bi, _found = staging_layer(bands, joined, runs, exceptions)
     trials = staging_trials(bands[bi][1], lay, bi)
-    helix_rows = bdm.helix_tracks()
+    helix_rows = helix_tracks()
     helix = {h["block"] for h in helix_rows.values()}
     f = files or bdm.device_files()
     prior = staging_field(f)
