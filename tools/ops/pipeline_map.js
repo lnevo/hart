@@ -1141,10 +1141,12 @@ function app() {
       : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`;
     document.getElementById("showall").hidden = !all;
     document.getElementById("clearf").hidden = !filtersChanged();
+    document.getElementById("clearf2").parentElement.hidden = !filtersChanged();  // its twin at the foot of Filters
     strip2.hidden = !(view.focus || filtersChanged());  // the second row only while there is a file view or a changed filter
   }
   const strip2 = document.getElementById("strip2");
   document.getElementById("clearf").onclick = clearFilters;
+  document.getElementById("clearf2").onclick = () => { clearFilters(); document.getElementById("lanes").open = false; };  // the same, in Filters
   document.getElementById("showall").onclick = () => {
     view.focus = null; if (view.trim) selected = null; view.lanes = new Set(allLanes);
     view.kindsOff.clear(); view.group = false; view.open.clear(); fileIn.value = "";
@@ -1198,17 +1200,16 @@ function app() {
     try { saved = localStorage.getItem(DARK_KEY); } catch (err) { saved = null; }
     if (saved === null) setDark(e.matches, false);
   });
-  const cleanBtn = document.getElementById("clean");
+  const cleanBox = document.getElementById("clean");  // View, Clean view (H)
   function setClean(on) {
     clean = on;
     document.body.classList.toggle("clean", on);
-    cleanBtn.textContent = on ? "Show" : "Hide";
-    cleanBtn.setAttribute("aria-pressed", String(on));
+    cleanBox.checked = on;
     if (!svg) return;
     if (fitted) fit();  // a whole-map view fits again into the room the step strip had, or gives it back
     else setVB(vb.x, vb.y, vb.width, vb.height);  // the free area changed: clamped again, rulers and overview redrawn
   }
-  cleanBtn.onclick = () => setClean(!clean);
+  cleanBox.onchange = () => setClean(cleanBox.checked);
   function columnKinds() {
     const step = stepOf(lay.geo), cols = Array.from({ length: lay.columns }, () => ({}));
     lay.nodes.forEach(n => { const c = cols[Math.round(n.x / step)]; c[n.kind] = (c[n.kind] || 0) + 1; });
@@ -1713,8 +1714,12 @@ function app() {
   const moveIds = ["startmenu", "viewmenu", "lanes", "browse", "btns"], more = document.getElementById("morebody");
   const homes = moveIds.map(id => { const el = document.getElementById(id), ph = document.createComment(id); el.before(ph); return [el, ph]; });
   const phone = matchMedia("(max-width: 900px)");
+  // Fit stays on the toolbar on a phone, beside More, as the control used most
+  const fitBtn = document.getElementById("fit"), fitHome = document.createComment("fit");
+  fitBtn.before(fitHome);
   function placeMenus() {
     for (const [el, ph] of homes) { if (phone.matches) more.append(el); else ph.before(el); }
+    if (phone.matches) document.getElementById("more").before(fitBtn); else fitHome.before(fitBtn);
     updateNav();
   }
   phone.addEventListener("change", () => { menus.forEach(m => (m.open = false)); placeMenus(); });
@@ -1730,12 +1735,16 @@ function app() {
       text: "Start opens the chains people ask about most" + (DATA.presets.length ? ": " + DATA.presets.map(p => p.label).join(", ") + "." : ".") },
     { at: [], title: "Click a box",
       text: "A click lights up what feeds the box (amber) and what it feeds (blue), and opens its details on the right. Double-click a box to draw its chain on its own." },
-    { at: ["#viewmenu"], title: "Calm the drawing",
-      text: "View holds compact (names only, on to start with), folders (one box per folder on the whole map), highlighted only (just the chain of the box you clicked) and dark." },
+    { at: ["#viewmenu"], title: "Change how it looks",
+      text: "View holds the drawing options: compact boxes (names only, on to start with), group by folder, edge labels and highlighted chain only (just the chain of the box you clicked); two pointer settings, hover highlights and near pipeline on click; and dark background and clean view." },
     { at: ["#lanes"], title: "Filter",
-      text: "Filters picks the lanes and kinds of box, and whether parked and retired work shows. Clear filters, under the toolbar, puts them back." },
-    { at: ["#btns"], title: "Move around and share",
-      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, hover a line to light its whole chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Hide (or H) clears the lane names, step headers, legend and overview off the map. Share copies a link that opens this exact view. The ? button runs this tour again." },
+      text: "Filters picks the lanes and kinds of box, and whether parked features and retired tools show. Clear filters, at the foot of Filters or under the toolbar, puts them back." },
+    { at: ["#q"], title: "Find text",
+      text: "Find highlights the boxes whose name, path or description holds the text you type." },
+    { at: [], title: "Hover",
+      text: "Zoomed out, hover a line to light its chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. The note by the pointer names where the chain stops. Click a line to open the box it leads to, Cmd-click (Ctrl-click off a Mac) for the box it comes from. Click a lane's name to zoom to that lane, and hold Shift for a magnifier." },
+    { at: ["#fit", "#btns"], title: "Move around and share",
+      text: "Scroll or pinch to zoom and drag to pan; Fit shows the whole map. Share copies a link that opens this exact view. The ? button runs this tour again." },
   ];
   let tourAt = -1, tourOn = [];
   const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden

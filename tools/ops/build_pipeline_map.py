@@ -259,6 +259,10 @@ svg{width:100%;height:100%;display:block;user-select:none}
 .pop{position:absolute;top:30px;left:0;z-index:6;padding:8px 10px;white-space:nowrap;line-height:1.9;max-height:70vh;overflow:auto;
  max-width:calc(100vw - 20px);box-sizing:border-box}
 #viewlist label{display:block}
+#viewlist>b{display:block;margin-top:6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#666}
+#viewlist>b:first-child{margin-top:0}
+#lanelist .foot{margin-top:6px}
+#btns .gap{width:8px}
 #lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
 #tree{line-height:1.7;min-width:260px}
 #tree details details,#tree details>a{margin-left:14px}
@@ -359,7 +363,7 @@ html.dark #tour .skip,html.dark #info .close{background:none;border:0}
 html.dark #hits,html.dark #view,html.dark #strip2,html.dark #legend div[style]{color:#cbd5e1!important}
 html.dark #strip2{border-top-color:#334155}
 html.dark #back,html.dark #lanelist a,html.dark #info a,html.dark #tree a{color:#93c5fd}
-html.dark #info .off,html.dark #tree .c,html.dark #lanelist .note,html.dark #tour .tn,html.dark #etip .off{color:#94a3b8}
+html.dark #info .off,html.dark #tree .c,html.dark #lanelist .note,html.dark #viewlist>b,html.dark #tour .tn,html.dark #etip .off{color:#94a3b8}
 html.dark #steps{background:rgba(15,23,42,.9);border-bottom-color:#334155}
 html.dark #steps span{color:#cbd5e1}
 html.dark #lanetags span{background:rgba(15,23,42,.92)}
@@ -394,64 +398,80 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <div id="wrap"></div>
 <div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
 <div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
-<label><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
+<label title="Type a file's name to draw its whole chain"><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
 <details id="browse" class="menu"><summary title="Pick a file from a folder tree">Browse ▾</summary><div id="tree" class="pop panel"></div></details>
-<label><span class="lbl">Find </span><input type="search" id="q" placeholder="text in a box…" title="Highlight the boxes that hold this text"></label>
+<label><span class="lbl">Find </span><input type="search" id="q" placeholder="Find text in boxes…" title="Highlight the boxes whose name, path or description holds this text"></label>
 <span id="hits"></span>
-<details id="startmenu" class="menu"><summary title="Open a chain people ask about most">Start ▾</summary><div id="presets" class="pop panel"></div></details>
-<details id="viewmenu" class="menu"><summary>View ▾</summary><div id="viewlist" class="pop panel">
-<label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact" checked> compact</label>
-<label title="Draw the whole map as one box per folder; double-click a folder to open it"><input type="checkbox" id="group"> folders</label>
-<label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> highlighted only</label>
-<label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
-<label title="Hovering a box or line lights its chain and grows its boxes when zoomed out; untick for a still map"><input type="checkbox" id="hover" checked> hover highlights</label>
-<label title="A clicked box lights its near pipeline, stopping at hubs and runners as a hover does, not everything it reaches"><input type="checkbox" id="near"> near pipeline on click</label>
-<label title="Dark background; starts from the system setting and is remembered on this browser"><input type="checkbox" id="dark"> dark</label>
+<details id="startmenu" class="menu"><summary title="Open a common chain">Start ▾</summary><div id="presets" class="pop panel"></div></details>
+<details id="viewmenu" class="menu"><summary title="How boxes, links and hover are drawn">View ▾</summary><div id="viewlist" class="pop panel">
+<b>Boxes and links</b>
+<label title="Draw each box as its name only; click it for the path and description"><input type="checkbox" id="compact" checked> Compact boxes</label>
+<label title="Draw the whole map as one box per folder; double-click a folder to open it"><input type="checkbox" id="group"> Group by folder</label>
+<label title="Write what each link carries on the line"><input type="checkbox" id="labels" checked> Edge labels</label>
+<label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> Highlighted chain only</label>
+<b>Pointer</b>
+<label title="Hovering a box or line lights its chain and grows its boxes when zoomed out; untick for a still map"><input type="checkbox" id="hover" checked> Hover highlights</label>
+<label title="A clicked box lights its near pipeline, stopping at hubs and runners as a hover does, not everything it reaches; works with hover on or off"><input type="checkbox" id="near"> Near pipeline on click</label>
+<b>Page</b>
+<label title="Dark background; starts from the system setting and is remembered on this browser"><input type="checkbox" id="dark"> Dark background</label>
+<label title="Hide the lane names, step headers, legend and overview, for a clear view of the map (H)"><input type="checkbox" id="clean"> Clean view (H)</label>
 </div></details>
-<details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
+<details id="lanes" class="menu"><summary title="Choose lanes, kinds, parked and retired">Filters ▾</summary><div id="lanelist" class="pop panel">
 <b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">an unticked kind is bridged over, its links running straight through; its boxes where chains stop (the hosts lane, host, hand work and caches) are left out with their links</span><div id="kindlist"></div>
-<b>Also show</b>
-<label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
-<label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
+<b>Kinds</b> <span class="note">Unticking a kind joins its links straight through (hosts, hand work and caches are left out with their links).</span><div id="kindlist"></div>
+<b>Include</b>
+<label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> Parked features</label>
+<label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> Retired tools</label>
+<div class="foot" hidden><a id="clearf2" title="Every lane and kind, parked and retired hidden; also puts View's boxes and links options back (compact on, no folders, edge labels on); keeps the file and the selected box">Clear filters</a></div>
 </div></details>
-<span id="btns"><button id="showall" hidden title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>
-<button id="fit" title="Show everything (F)">Fit</button><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button>
-<button id="clean" title="Hide the lane names, step headers, legend and overview, for a clear view of the map (H)" aria-pressed="false">Hide</button>
+<span id="btns"><button id="showall" hidden title="Back to the full map: all lanes and kinds, no folders. Parked and retired follow their ticks.">Whole map</button>
+<button id="fit" title="Show the whole map (F)">Fit</button><button id="zout" title="Zoom out (scroll or pinch)" aria-label="Zoom out">−</button><button id="zin" title="Zoom in (scroll or pinch)" aria-label="Zoom in">+</button>
+<span class="gap"></span>
 <button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
-<button id="tourbtn" title="A short tour of the controls">?</button></span>
-<details id="more" class="menu"><summary>Menu ▾</summary><div id="morebody" class="panel"></div></details>
+<button id="tourbtn" title="Run the tour of the controls again" aria-label="Tour">?</button></span>
+<details id="more" class="menu"><summary title="The rest of the controls">More ▾</summary><div id="morebody" class="panel"></div></details>
 </div>
 <div id="strip2" hidden><span id="view"></span>
 <span id="depth" hidden title="How many links to show either side of the file"><span class="sep">│</span>
- <span class="side">← feeds it <button data-side="up" data-step="-1">−</button> <b id="upn">all</b>
- <button data-side="up" data-step="1">+</button> <button data-side="up" data-step="all">all</button></span>
- <span class="side">it feeds → <button data-side="down" data-step="-1">−</button> <b id="downn">all</b>
- <button data-side="down" data-step="1">+</button> <button data-side="down" data-step="all">all</button></span></span>
+ <span class="side">← Upstream: what feeds it <button data-side="up" data-step="-1" title="One step fewer upstream">−</button> <b id="upn">all</b>
+ <button data-side="up" data-step="1" title="One step more upstream">+</button> <button data-side="up" data-step="all" title="Every step upstream">all</button></span>
+ <span class="side">Downstream: what it feeds → <button data-side="down" data-step="-1" title="One step fewer downstream">−</button> <b id="downn">all</b>
+ <button data-side="down" data-step="1" title="One step more downstream">+</button> <button data-side="down" data-step="all" title="Every step downstream">all</button></span></span>
 <button id="clearf" hidden title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</button></div>
 </div>
 <div id="tour" class="panel" hidden role="dialog" aria-label="Tour of the controls"><div class="tt"></div><div class="tx"></div>
-<div class="tb"><span class="tn"></span><button class="skip">Skip tutorial</button><button class="back">Back</button><button class="next">Next</button></div></div>
+<div class="tb"><span class="tn"></span><button class="skip">Skip tour</button><button class="back">Back</button><button class="next">Next</button></div></div>
 <div id="nav" class="panel" hidden title="Overview of the whole drawing: click or drag to move the view"></div>
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml) and runners such as check.sh (they light but the chain stops there), and not across side links that carry no content on (what a check reads, a doc pointer, a Store pull back into the sources); boxes and links more than two steps from the line are outlined fainter, more than four fainter still (still brighter than the rest of the map); the note by the pointer names the boxes it stopped at; click a box for its full reach (View, near pipeline on click, stops a click there too; View, hover highlights, turns hovering off), and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Cmd-click (Ctrl-click off a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back (a box under the name takes the click and the hover first). Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
-(blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
-<div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
-that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
-out. A chain stops at deploy, host, hand-work and cache boxes: they show, but the chain does not run on through them. A second row under the toolbar
-names the file and holds the step counters: left is what feeds it, right is what it feeds (0 hides that side, all runs to the end).
-<b>Start ▾</b> opens the chains people ask about most. A first visit gets a short tour of the controls; <b>?</b> runs it again.
-<b>Find</b> highlights the boxes that hold a piece of text.</div>
-<div><b>View ▾</b> holds <b>compact</b> (on to start with: boxes as names only; untick it for each box's path and description),
-<b>folders</b> (the whole map as one dashed box per folder; double-click a folder, or use Open in its panel, to see its files),
-<b>highlighted only</b> and <b>edge labels</b>. <b>Filters ▾</b> picks the lanes and the kinds of box to draw, and whether parked and retired boxes show. Untick a
-kind, such as scripts, and its boxes are left out with their links joined up, so data runs straight to what it ends
-up in. When a filter is changed, <b>Clear filters</b> in the second row puts them back and keeps the file and the selected box.
-<b>Whole map</b> appears when the view is cut down and goes back to the full drawing. <b>Share</b> copies a link to the view as it is,
-with the selected box, zoom and position; the address bar also keeps the view, without the zoom. <b>Hide</b> (or H) hides the lane names, step headers, this legend and the overview, and shows them again; <b>View ▾</b> also holds <b>dark</b>, a dark background. On a phone, Browse and everything after Find are under <b>Menu ▾</b>.</div>
+<div><b>One file:</b> type or pick it in the File box, or find it under <b>Browse ▾</b> by folder (or double-click its box), to draw its
+whole chain: everything that feeds it, back to the sources, and everything it feeds, out to the end products. A second row
+under the toolbar names the file and holds the step counters for upstream and downstream (0 hides that side, all runs to the
+end). <b>Start ▾</b> opens common chains. <b>Find</b> highlights the boxes that hold a piece of text.</div>
+<div><b>View ▾</b>, boxes and links: <b>Compact boxes</b> (on to start with: names only; untick for each box's path and description),
+<b>Group by folder</b> (one dashed box per folder; double-click a folder, or use Open in its panel, to see its files),
+<b>Edge labels</b> and <b>Highlighted chain only</b> (leave out everything a clicked box does not light). Pointer:
+<b>Hover highlights</b> and <b>Near pipeline on click</b>. Page: <b>Dark background</b> and <b>Clean view</b> (or H: hides the lane
+names, step headers, this legend and the overview).</div>
+<div><b>Filters ▾</b> picks the lanes and kinds of box to draw, and whether parked features and retired tools show. Untick a kind,
+such as scripts, and its boxes are left out with their links joined up. <b>Clear filters</b>, at the foot of Filters or in the
+second row, puts them back and keeps the file and the selected box. <b>Whole map</b> appears when the view is cut down.
+<b>Share</b> copies a link to the view as it is, with the selected box, zoom and position. A first visit gets a short tour;
+<b>?</b> runs it again. On a phone, Browse, Start, View, Filters and the buttons are under <b>More ▾</b>; Fit stays out.</div>
+<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. Click a lane's name on the left to zoom to that lane,
+and again to go back (a box under the name takes the click first). Hold Shift for a magnifier. Zoomed in, the overview in the
+corner shows the whole drawing with a red box round what is in view; click or drag in it to move.</div>
+<div><b>Hover:</b> zoomed out, hover a line to light its chain, what feeds it and what it feeds, and grow its boxes to a readable
+size; hover a box to do the same for its neighbours. A hovered chain stops at hubs where many pipelines meet (such as
+tables.xml), runners such as check.sh, caches, hosts and hand work, and does not cross side links that carry nothing on (what a
+check reads, a doc pointer, a Store pull back into the sources). Boxes more than two steps from the line are outlined fainter.
+The note by the pointer names where the chain stopped.</div>
+<div><b>Click:</b> a box lights what feeds it (amber) and what it feeds (blue), its full reach; with Near pipeline on click it stops
+where a hover does. A line opens the box it leads to; Cmd-click (Ctrl-click off a Mac) opens the box it comes from. A click on
+empty map, or Esc, clears the selection. A click-chain stops at deploy, host, hand-work and cache boxes: they show, but the chain
+does not run on through them.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
 </div>
