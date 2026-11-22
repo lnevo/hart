@@ -284,10 +284,10 @@ function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
   const outEdges = chains.map(([i, chain, flipped]) => {
     const pts = [];
     chain.forEach((v, j) => {
-      // a waypoint is one point in the middle of its column, so a change of height bends over a whole step, not
-      // only the gap between two columns
+      // a waypoint runs level through its column, in the slot kept for it, and bends only in the gaps between
+      // columns, so a link never crosses a box (the levelling above keeps those bends few)
       if (byId.has(v)) pts.push([j === 0 ? xOf(v) + NODE_W : xOf(v), centre(v)]);
-      else pts.push([xOf(v) + NODE_W / 2, centre(v)]);
+      else { pts.push([xOf(v), centre(v)]); pts.push([xOf(v) + NODE_W, centre(v)]); }
     });
     if (flipped) pts.reverse();
     return { ...edges[i], pts, back: flipped };
@@ -360,6 +360,18 @@ function growRect(cx, cy, hw, hh, area, fixed = false) {
   const inside = (c, h, lo, hi) => Math.min(Math.max(c, lo + h), Math.max(hi - h, lo + h)) - c;
   const dx = fixed ? 0 : inside(cx, hw + 4, area.left, area.right), dy = fixed ? 0 : inside(cy, hh + 4, area.top, area.bottom);
   return { x0: cx + dx - hw - 2, y0: cy + dy - hh - 2, x1: cx + dx + hw + 2, y1: cy + dy + hh + 2, dx, dy };
+}
+
+/* A link's drawn shape from its layout points: a straight piece where the height stays the same, otherwise an S-bend
+   with level ends between the two points. Each segment is [from, control1, control2, to], the controls null for a
+   straight piece. */
+function pathSegments(pts) {
+  const out = [];
+  for (let i = 1; i < pts.length; i++) {
+    const [px, py] = pts[i - 1], [x, y] = pts[i], mx = (px + x) / 2;
+    out.push(Math.abs(y - py) < 0.5 ? [pts[i - 1], null, null, pts[i]] : [pts[i - 1], [mx, py], [mx, y], pts[i]]);
+  }
+  return out;
 }
 
 /* Greedy label placement: boxes ({x0, y0, x1, y1}, screen px) in order of priority; each is placed unless it overlaps
@@ -536,7 +548,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -639,13 +651,8 @@ function app() {
 
   /* ---- drawing */
   function pathD(pts) {
-    let [px, py] = pts[0];
-    const d = [`M${px.toFixed(1)},${py.toFixed(1)}`];
-    for (const [x, y] of pts.slice(1)) {
-      if (Math.abs(y - py) < 0.5) d.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
-      else { const mx = ((px + x) / 2).toFixed(1); d.push(`C${mx},${py.toFixed(1)} ${mx},${y.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`); }
-      [px, py] = [x, y];
-    }
+    const f = v => v.toFixed(1), segs = pathSegments(pts), d = [`M${f(pts[0][0])},${f(pts[0][1])}`];
+    for (const [, c1, c2, q] of segs) d.push(c1 ? `C${f(c1[0])},${f(c1[1])} ${f(c2[0])},${f(c2[1])} ${f(q[0])},${f(q[1])}` : `L${f(q[0])},${f(q[1])}`);
     return d.join(" ");
   }
   /* ---- zoomed out: below FAR_PX screen px a drawing unit the boxes' text is too small to read. The edges and box

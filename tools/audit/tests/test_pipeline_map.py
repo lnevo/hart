@@ -234,18 +234,44 @@ class LayoutTest(unittest.TestCase):
         held = self.run_js("m.growRect(980, 110, 80, 20, a, true)", area)
         self.assertEqual((held["dx"], held["dy"]), (0, 0))
 
-    def test_long_link_runs_level_with_one_point_a_column(self) -> None:
-        """layout: a link that skips three columns has one waypoint in the middle of each, all at one height, so it is
-        drawn as a straight run, not a bend at every step; the other boxes in those columns keep their lane."""
+    def test_long_link_runs_level_across_the_columns_it_skips(self) -> None:
+        """layout: a link that skips three columns runs through each at one height, so it is drawn as a straight run,
+        not a bend at every step; the other boxes in those columns keep their lane."""
         nodes = [node(f"c{i}") for i in range(5)] + [node("x1"), node("x2", domain="b"), node("x3")]
         edges = [{"from": f"c{i}", "to": f"c{i + 1}"} for i in range(4)] + [{"from": "c0", "to": "c4"}]
         edges += [{"from": "x1", "to": "c2"}, {"from": "x2", "to": "c3"}, {"from": "c1", "to": "x3"}]
         lay = self.run_js("m.layout(a.nodes, a.edges, a.domains, 0, m.NARROW)", {"domains": DOMAINS, "nodes": nodes, "edges": edges})
         long = next(e for e in lay["edges"] if (e["from"], e["to"]) == ("c0", "c4"))
         way = long["pts"][1:-1]
-        self.assertEqual(len(way), 3)
-        self.assertEqual([x for x, _ in way], [260 + 90, 520 + 90, 780 + 90])
+        self.assertEqual([x for x, _ in way], [260, 440, 520, 700, 780, 960])  # in and out of each skipped column
         self.assertEqual(len({round(y, 3) for _, y in way}), 1)
+        bands = {b["id"]: (b["y"], b["y"] + b["h"]) for b in lay["bands"]}
+        for n in lay["nodes"]:
+            lo, hi = bands[n["domain"]]
+            self.assertTrue(lo <= n["y"] and n["y"] + n["h"] <= hi, n["id"])
+
+    def test_no_link_crosses_another_box_on_the_real_map(self) -> None:
+        """layout and pathSegments on the repo's graph, compact and full: no link's drawn curve passes through a box
+        other than its own two ends (sampled along each segment)."""
+        script = r"""
+const m = require(process.argv[1]); const g = JSON.parse(require('fs').readFileSync(process.argv[2], 'utf8'));
+const out = {};
+for (const geo of ['NARROW', 'WIDE']) {
+  const nodes = g.nodes.filter(n => !n.status || n.status === 'live').map(n => geo === 'NARROW' ? { ...n, desc: '', path: '' } : n);
+  const ids = new Set(nodes.map(n => n.id));
+  const lay = m.layout(nodes, g.edges.filter(e => ids.has(e.from) && ids.has(e.to)), g.domains, 0, m[geo]);
+  const bad = new Set();
+  for (const e of lay.edges) for (const [p, c1, c2, q] of m.pathSegments(e.pts)) for (let t = 0.02; t < 1; t += 0.04) {
+    const u = 1 - t, x = c1 ? u*u*u*p[0] + 3*u*u*t*c1[0] + 3*u*t*t*c2[0] + t*t*t*q[0] : p[0] + t * (q[0] - p[0]);
+    const y = c1 ? u*u*u*p[1] + 3*u*u*t*c1[1] + 3*u*t*t*c2[1] + t*t*t*q[1] : p[1] + t * (q[1] - p[1]);
+    for (const n of lay.nodes) if (n.id !== e.from && n.id !== e.to && x > n.x + 1 && x < n.x + n.w - 1 && y > n.y + 1 && y < n.y + n.h - 1) bad.add(e.from + ' -> ' + e.to + ' over ' + n.id);
+  }
+  out[geo] = [...bad].slice(0, 5);
+}
+process.stdout.write(JSON.stringify(out));"""
+        out = json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), str(MAP.GRAPH)], capture_output=True,
+                                        text=True, check=True).stdout)
+        self.assertEqual(out, {"NARROW": [], "WIDE": []})
 
     def test_name_tags_never_overlap(self) -> None:
         """placeTags: in priority order, a tag that overlaps one already placed or a blocked area is left out."""
