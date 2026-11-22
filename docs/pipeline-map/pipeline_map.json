@@ -3089,6 +3089,15 @@
    "path": "tools/mqtt/clear_mqtt_cmd_sensor_retain.py"
   },
   {
+   "id": "tools/mqtt/watch_discard.py",
+   "label": "watch_discard.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Prints each _discard write on the broker with its time, read-only (make mqtt-watch), to find what writes them.",
+   "path": "tools/mqtt/watch_discard.py"
+  },
+  {
    "id": "tools/mqtt/sync_mqtt_turnouts_from_fb.py",
    "label": "sync_mqtt_turnouts_from_fb.py",
    "kind": "generator",
@@ -5746,6 +5755,16 @@
    "from": "tools/mqtt-mimic/qa/run_native_sml_qa.py",
    "to": "host:panelpro",
    "label": "JSON check"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/hosts.py",
+   "to": "tools/mqtt/watch_discard.py",
+   "label": "broker"
+  },
+  {
+   "from": "host:mosquitto",
+   "to": "tools/mqtt/watch_discard.py",
+   "label": "_discard writes"
   },
   {
    "from": "tools/mqtt/clear_mqtt_cmd_sensor_retain.py",
