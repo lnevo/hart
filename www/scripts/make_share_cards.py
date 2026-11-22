@@ -498,6 +498,8 @@ def link_build_main_level():
 def link_exam_run_title():
     """link-exam-run-title: the game's own pixel-art title screen with the train standing in it, the canvas at the top of Extra East (hub card for exam/run.html#xw)."""
     page = (PORTAL / "exam/run.html").read_text(encoding="utf-8")
+    if "<head>" not in page or "</head>" not in page:  # without them the style and base are skipped and the wrong picture is written
+        raise SystemExit("link-exam-run-title: exam/run.html has no plain <head> ... </head>; fix the patch below")
     # the canvas fills the frame, cropped evenly at the sides so the whole title stays in; the rest of the page is hidden under it
     fill = (f"<style>#xwTitleCv{{position:fixed!important;left:0!important;top:0!important;width:{W}px!important;height:{H}px!important;"
             "object-fit:cover;object-position:center;z-index:9999}</style>")
