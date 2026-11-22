@@ -442,6 +442,27 @@ function stopsChain(n) {
   return !!n && (n.domain === "hosts" || n.kind === "host" || n.kind === "human" || isCache(n));
 }
 
+/* The hub boxes of a map: those at least min links go out of and at least one comes into, such as tables.xml or
+   devices_generated.csv, where many pipelines meet. A hovered line's chain shows a hub but does not run on through
+   it, or the line into it would light most of the map; a click still traces the full reach. */
+const HUB_OUT = 6;
+function hubs(edges, min = HUB_OUT) {
+  const outs = new Map(), fed = new Set();  // the distinct boxes each box feeds; a link to itself counts for nothing
+  edges.forEach(e => {
+    if (e.from === e.to) return;
+    if (!outs.has(e.from)) outs.set(e.from, new Set());
+    outs.get(e.from).add(e.to); fed.add(e.to);
+  });
+  return new Set([...outs].filter(([id, to]) => to.size >= min && fed.has(id)).map(([id]) => id));
+}
+
+/* The hubs of the live map in data ({nodes, edges}): parked and retired boxes and their links left out, so filters
+   do not move them. */
+function liveHubs(data) {
+  const live = new Set(data.nodes.filter(n => !n.status || n.status === "live").map(n => n.id));
+  return hubs(data.edges.filter(e => live.has(e.from) && live.has(e.to)));
+}
+
 /* The chain one link from -> to belongs to: everything that feeds from and everything to feeds (chainOf, not
    walking on through a box where stops(box) is true, an end of the link included: a line out of a host does not
    light everything deployed to it), and the links inside it (lit). */
@@ -578,7 +599,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { isCache, stopsChain, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -611,6 +632,11 @@ function app() {
      through them would reach most of the map. A chain also stops at a cache (isCache): it only saves time, so what
      reads it does not depend on what wrote it. */
   const endsChain = id => stopsChain(nodeOf(id));
+  /* The hubs of the live map (liveHubs), where a hovered line's chain stops too; worked out once, so filters do not move
+     them. A closed folder holding a hub is a hub, and a link bridged over a hidden hub (its via) is not walked. */
+  const hubSet = liveHubs(DATA);
+  const endsHover = id => endsChain(id) || hubSet.has(id) || (groups.members[id] || []).some(m => hubSet.has(m));
+  const overHub = e => (e.via || []).some(v => hubSet.has(v));
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
@@ -737,7 +763,7 @@ function app() {
     magnified = now;
   }
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
-  /* Hovering a link (edge: its index in lay.edges) lights the whole chain it is on (linkChain) and tags its boxes, the
+  /* Hovering a link (edge: its index in lay.edges) lights the chain it is on (linkChain), up to the hubs, and tags its boxes, the
      two ends first, and a note by the pointer names the ends and the link's label. */
   const etip = document.createElement("div");
   etip.id = "etip"; etip.className = "panel"; etip.hidden = true; document.getElementById("stage").append(etip);
@@ -759,7 +785,7 @@ function app() {
     etip.hidden = !e;
     hoverEnds = new Set(e ? [e.from, e.to] : []);
     if (e) {  // the whole chain the line is on: what feeds its start and what its end feeds
-      const c = linkChain(sub.edges, e.from, e.to, endsChain);
+      const c = linkChain(sub.edges.filter(x => !overHub(x)), e.from, e.to, endsHover);  // stops at hubs too: a hover shows the line's own pipeline
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));

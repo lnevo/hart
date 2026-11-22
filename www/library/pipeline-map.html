@@ -233,7 +233,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)<div><span class="sw" style="background:#dbeafe;border-color:#1e40af"></span>Structured data</div><div><span class="sw" style="background:#fef3c7;border-color:#92400e"></span>Unstructured source</div><div><span class="sw" style="background:#dcfce7;border-color:#166534"></span>Generator / script</div><div><span class="sw" style="background:#f3e8ff;border-color:#6b21a8"></span>Generated output</div><div><span class="sw" style="background:#e5e7eb;border-color:#374151"></span>External tool / repo</div><div><span class="sw" style="background:#fee2e2;border-color:#991b1b"></span>Host / runtime</div><div><span class="sw" style="background:#fce7f3;border-color:#9d174d"></span>Hand work</div>
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its whole chain, everything that feeds it and everything it feeds, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Alt-click (Option on a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml: they light but the chain stops there; click a box for its full reach), and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Alt-click (Option on a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
@@ -697,6 +697,27 @@ function stopsChain(n) {
   return !!n && (n.domain === "hosts" || n.kind === "host" || n.kind === "human" || isCache(n));
 }
 
+/* The hub boxes of a map: those at least min links go out of and at least one comes into, such as tables.xml or
+   devices_generated.csv, where many pipelines meet. A hovered line's chain shows a hub but does not run on through
+   it, or the line into it would light most of the map; a click still traces the full reach. */
+const HUB_OUT = 6;
+function hubs(edges, min = HUB_OUT) {
+  const outs = new Map(), fed = new Set();  // the distinct boxes each box feeds; a link to itself counts for nothing
+  edges.forEach(e => {
+    if (e.from === e.to) return;
+    if (!outs.has(e.from)) outs.set(e.from, new Set());
+    outs.get(e.from).add(e.to); fed.add(e.to);
+  });
+  return new Set([...outs].filter(([id, to]) => to.size >= min && fed.has(id)).map(([id]) => id));
+}
+
+/* The hubs of the live map in data ({nodes, edges}): parked and retired boxes and their links left out, so filters
+   do not move them. */
+function liveHubs(data) {
+  const live = new Set(data.nodes.filter(n => !n.status || n.status === "live").map(n => n.id));
+  return hubs(data.edges.filter(e => live.has(e.from) && live.has(e.to)));
+}
+
 /* The chain one link from -> to belongs to: everything that feeds from and everything to feeds (chainOf, not
    walking on through a box where stops(box) is true, an end of the link included: a line out of a host does not
    light everything deployed to it), and the links inside it (lit). */
@@ -833,7 +854,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { isCache, stopsChain, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -866,6 +887,11 @@ function app() {
      through them would reach most of the map. A chain also stops at a cache (isCache): it only saves time, so what
      reads it does not depend on what wrote it. */
   const endsChain = id => stopsChain(nodeOf(id));
+  /* The hubs of the live map (liveHubs), where a hovered line's chain stops too; worked out once, so filters do not move
+     them. A closed folder holding a hub is a hub, and a link bridged over a hidden hub (its via) is not walked. */
+  const hubSet = liveHubs(DATA);
+  const endsHover = id => endsChain(id) || hubSet.has(id) || (groups.members[id] || []).some(m => hubSet.has(m));
+  const overHub = e => (e.via || []).some(v => hubSet.has(v));
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
@@ -992,7 +1018,7 @@ function app() {
     magnified = now;
   }
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
-  /* Hovering a link (edge: its index in lay.edges) lights the whole chain it is on (linkChain) and tags its boxes, the
+  /* Hovering a link (edge: its index in lay.edges) lights the chain it is on (linkChain), up to the hubs, and tags its boxes, the
      two ends first, and a note by the pointer names the ends and the link's label. */
   const etip = document.createElement("div");
   etip.id = "etip"; etip.className = "panel"; etip.hidden = true; document.getElementById("stage").append(etip);
@@ -1014,7 +1040,7 @@ function app() {
     etip.hidden = !e;
     hoverEnds = new Set(e ? [e.from, e.to] : []);
     if (e) {  // the whole chain the line is on: what feeds its start and what its end feeds
-      const c = linkChain(sub.edges, e.from, e.to, endsChain);
+      const c = linkChain(sub.edges.filter(x => !overHub(x)), e.from, e.to, endsHover);  // stops at hubs too: a hover shows the line's own pipeline
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
