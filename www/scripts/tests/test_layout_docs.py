@@ -1,6 +1,5 @@
 """The layout documentation page and its drawings match their sources, one row per detector."""
 import csv
-import json
 import re
 import sys
 import tempfile
@@ -19,12 +18,17 @@ class LayoutDocs(unittest.TestCase):
             self.assertTrue(path.exists() and path.read_text() == text,
                             f"{path} is stale: run python3 www/scripts/build_layout_docs.py")
 
-    def test_every_photo_is_published(self):
-        manifest = json.loads((SCRIPTS / "published-files.json").read_text())
+    def test_page_reads_nothing_from_the_soq(self):
+        # The SOQ is submitted and frozen; the page is maintained on its own (owner, 2026-11-22).
         page = ld.PAGE.read_text()
-        for rel in set(re.findall(r'\.\./(assets/behind/layout-docs/photos/[\w.-]+)', page)):
-            self.assertIn(rel, manifest)
-            self.assertTrue((ld.ROOT / manifest[rel]).is_file(), manifest[rel])
+        self.assertNotIn("docs/ap/electrical", page)
+        self.assertNotIn("ap/electrical", (SCRIPTS / "build_layout_docs.py").read_text().split('"""', 2)[2])
+        for rel in set(re.findall(r'\.\./(assets/behind/layout-docs/[\w./-]+)', page)):
+            self.assertTrue((ld.PORTAL / rel).is_file(), rel)
+
+    def test_every_section_has_a_label(self):
+        for s in ld.detected_sections():
+            ld.label(s["name"])
 
     def test_parts_fold_into_their_detector(self):
         rows = [
@@ -59,9 +63,10 @@ class LayoutDocs(unittest.TestCase):
             with mock.patch.object(ld, "BLOCKS", path), self.assertRaises(SystemExit):
                 ld.detected_sections()
 
-    def test_d2_states_the_live_count(self):
-        d2 = (ld.DRAWINGS_OUT / "D2-propulsion-sections.svg").read_text()
-        self.assertIn(f"All {len(ld.detected_sections())} detected sections", d2)
+    def test_d2_must_state_the_live_count(self):
+        ld.check_d2(len(ld.detected_sections()))
+        with self.assertRaises(SystemExit):
+            ld.check_d2(len(ld.detected_sections()) + 1)
 
 
 if __name__ == "__main__":

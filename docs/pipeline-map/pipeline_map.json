@@ -2704,7 +2704,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "website",
-   "desc": "Writes behind/layout-docs.html from layout_docs_template.html and the SOQ's drawings (SOQ references removed), with the section list from block_lengths.csv; --check.",
+   "desc": "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv; checks drawing D2's section count; --check. Drawings and photos are its own files (the frozen SOQ is not read).",
    "path": "www/scripts/build_layout_docs.py"
   },
   {
@@ -3186,15 +3186,6 @@
    "domain": "ops",
    "desc": "Python behind bin/cars: review, approve, records, publish, cards, site, compare, seed-copy, sync and the other steps.",
    "path": "ops/hart-ops/card_pipeline/cars.py"
-  },
-  {
-   "id": "docs/ap/electrical/build_soq.py",
-   "label": "build_soq.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "wiring",
-   "desc": "Builds the MRE Electrical SOQ package PDF from the wiring decks, drawings and soq.html; the submitted package is frozen.",
-   "path": "docs/ap/electrical/build_soq.py"
   },
   {
    "id": "jmri/scripts/check_hart_phase02.py",
@@ -6807,11 +6798,6 @@
    "label": "served"
   },
   {
-   "from": "docs/wiring/Wiring_Schematic.pptx",
-   "to": "docs/ap/electrical/build_soq.py",
-   "label": "reads nodes deck"
-  },
-  {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/scripts/check_hart_phase02.py",
    "label": "checks",
@@ -7405,11 +7391,6 @@
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
    "to": "www/scripts/build_layout_docs.py"
-  },
-  {
-   "from": "docs/ap/electrical/build_soq.py",
-   "to": "www/scripts/build_layout_docs.py",
-   "label": "imports"
   },
   {
    "from": "www/scripts/build_layout_docs.py",

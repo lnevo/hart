@@ -1,52 +1,55 @@
 #!/usr/bin/env python3
-"""Write www/behind/layout-docs.html, the layout documentation, from the SOQ's drawings and data.
+"""Write www/behind/layout-docs.html, the layout documentation, from its template and block_lengths.csv.
 
-The page is the Model Railroad Engineer SOQ (docs/ap/electrical) without the NMRA form, the
-checklist, the requirement framing and the wiring-record appendix (owner, 2026-11-22). Its text
-is layout_docs_template.html; this script fills in the list of detected sections from
-jmri/layouts/hart/data/block_lengths.csv and writes copies of the SOQ drawings with the SOQ's
-section and appendix references taken out. The SOQ itself is frozen and is not touched. Photos
-are served from docs/ap/electrical/photos through published-files.json.
+The page began as the Model Railroad Engineer SOQ (docs/ap/electrical) without the NMRA form, the
+checklist, the requirement framing and the wiring-record appendix (owner, 2026-11-22). It no longer
+reads anything from the SOQ, which was submitted and is frozen; the page is maintained on its own
+(owner, 2026-11-22). Its text is layout_docs_template.html, and its drawings and photos are files
+under www/assets/behind/layout-docs/, edited in place. This script fills in the list of detected
+sections from jmri/layouts/hart/data/block_lengths.csv and checks that drawing D2 states the same
+count.
 
-    python3 www/scripts/build_layout_docs.py           # write the page and drawings
-    python3 www/scripts/build_layout_docs.py --check   # exit 1 if either is out of date
+    python3 www/scripts/build_layout_docs.py           # write the page
+    python3 www/scripts/build_layout_docs.py --check   # exit 1 if the page is out of date
 """
 from __future__ import annotations
 
 import argparse
 import csv
 import html
-import importlib.util
 import re
 import sys
 from pathlib import Path
 
 PORTAL = Path(__file__).resolve().parents[1]
 ROOT = PORTAL.parent
-SOQ = ROOT / "docs/ap/electrical"
 BLOCKS = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
 TEMPLATE = PORTAL / "scripts/layout_docs_template.html"
 PAGE = PORTAL / "behind/layout-docs.html"
-DRAWINGS_OUT = PORTAL / "assets/behind/layout-docs/drawings"
-DRAWINGS = ["D1-propulsion-one-line", "D2-propulsion-sections", "D3-turnout-frog-indication", "D4-crossover",
-            "D5-reversing-section", "D6-computer-interface", "P0-staging-to-scale", "P1-staging-plan",
-            "P2-reversing-sections", "P3-passing-siding", "P4-yard", "P5-engine-storage"]
+D2 = PORTAL / "assets/behind/layout-docs/drawings/D2-propulsion-sections.svg"
 
-# Text in the SOQ drawings that points into the SOQ: (drawing, old, new). Each must be found.
-FIXES = [
-    ("D2-propulsion-sections", "are wired this way; Appendix B lists them.", "are wired this way."),
-    ("D2-propulsion-sections", "All 43 detected sections", "All {count} detected sections"),
-    ("D3-turnout-frog-indication", " (Section 5.1).", "."),
-    ("D6-computer-interface", "my own work", "built for HART"),
-    ("D6-computer-interface", "were designed and written by me and are", "were designed and written for HART and are"),
-    ("D6-computer-interface", "bridge node firmware were written by me.", "bridge node firmware were written for HART."),
-    ("P2-reversing-sections", "(positions schematic; the witness sees the real gaps)", "(positions schematic)"),
-    ("P1-staging-plan", " (Section 3.3)", ""),
-    ("P1-staging-plan", " (Section 3.4)", ""),
-    ("P1-staging-plan", " (Section 3.6)", ""),
-    ("P1-staging-plan", " (Sections 3.5 and 3.6)", ""),
-]
-LEFTOVER = ("Section 3.", "Section 5.", "Appendix", "SOQ", "my own", "by me", "witness", "evaluator")
+# Labels used on the page for the layout's section names (the overview's label table).
+YARD = {"S-R": "Y1", "S-1": "Y2", "S-2": "Y3", "S-3": "Y4", "S-4": "Y5"}
+FIXED = {"Main West": "Main line (west), RS-1", "West Ext": "Double-track section", "East Lead": "Double-track section",
+         "Brick-Plane": "Main line (east)", "East Ext": "Main line beside the passing siding", "Main East": "Main line (east)",
+         "K-1": "Return loop RS-2", "K-2": "Return loop RS-2", "Scale": "Passing siding", "Barn": "Yard lead",
+         "W-1": "Holding track", "W-2": "Holding track"}
+
+
+def label(name: str) -> str:
+    """The page's description of a detected section, from its layout name."""
+    if name in YARD:
+        return f"Yard track {YARD[name]}"
+    m = re.fullmatch(r"EH-(\d)", name)
+    if m:
+        return f"Engine storage E{m.group(1)}"
+    if name in FIXED:
+        return FIXED[name]
+    m = re.fullmatch(r"OS Switch (\d+)([ab]?)", name)
+    if m:
+        n, half = m.groups()
+        return f"Turnout {n}{' (crossover half ' + half + ')' if half else ''}"
+    raise SystemExit(f"build_layout_docs: no label for section {name!r}; add it to label()")
 
 
 def detected_sections() -> list[dict]:
@@ -87,19 +90,10 @@ def detected_sections() -> list[dict]:
     return sorted(out, key=lambda s: (s["node"], s["ch"]))
 
 
-def _build_soq():
-    """The frozen SOQ builder, loaded from its file so docs/ap/electrical never goes on sys.path."""
-    spec = importlib.util.spec_from_file_location("build_soq", SOQ / "build_soq.py")
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    return mod
-
-
 def sections_table() -> tuple[str, int]:
-    build_soq = _build_soq()
     rows = detected_sections()
     body = "".join(
-        f"<tr><td class=\"num\">{i}</td><td>{html.escape(build_soq.generic(s['name']))}</td>"
+        f"<tr><td class=\"num\">{i}</td><td>{html.escape(label(s['name']))}</td>"
         f"<td>{html.escape(s['name'])}</td><td>C{s['node']} · {s['ch']}</td>"
         f"<td class=\"num\">{'≈ ' if s['estimate'] else ''}{s['inches']:.0f}</td></tr>"
         for i, s in enumerate(rows, 1))
@@ -110,19 +104,12 @@ def sections_table() -> tuple[str, int]:
     return table, len(rows)
 
 
-def drawing(name: str, count: int) -> str:
-    svg = (SOQ / "drawings" / f"{name}.svg").read_text()
-    for d, old, new in FIXES:
-        if d != name:
-            continue
-        if old not in svg:
-            raise SystemExit(f"build_layout_docs: {name}.svg no longer has {old!r}; update FIXES")
-        svg = svg.replace(old, new.format(count=count))
-    text = " ".join(re.findall(r"<(?:text|tspan|title|desc)\b[^>]*>([^<]*)", svg))
-    for word in LEFTOVER:
-        if word in text:
-            raise SystemExit(f"build_layout_docs: {name}.svg still says {word!r}; add it to FIXES")
-    return svg
+def check_d2(count: int) -> None:
+    """Drawing D2 says how many sections are wired its way; it must match the section list."""
+    said = re.search(r"All (\d+) detected sections", D2.read_text())
+    if not said or int(said.group(1)) != count:
+        raise SystemExit(f"build_layout_docs: {D2.relative_to(ROOT)} says {said.group(1) if said else 'no'} detected "
+                         f"sections, block_lengths.csv has {count}; edit the drawing")
 
 
 def outputs() -> dict[Path, str]:
@@ -130,9 +117,8 @@ def outputs() -> dict[Path, str]:
     page = TEMPLATE.read_text().replace("{{SECTIONS_TABLE}}", table).replace("{{SECTION_COUNT}}", str(count))
     if "{{" in page:
         raise SystemExit("build_layout_docs: a placeholder is left in the page")
-    out = {PAGE: page}
-    out.update({DRAWINGS_OUT / f"{n}.svg": drawing(n, count) for n in DRAWINGS})
-    return out
+    check_d2(count)
+    return {PAGE: page}
 
 
 def main() -> int:
