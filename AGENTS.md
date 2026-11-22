@@ -67,6 +67,8 @@ The owner may not name an agent, so match the task yourself:
 | Review of the website through a named lens | `site-reviewer` |
 | Railroad or local history, photos and sources | `archive-researcher` |
 | A bounded page or data job under `www/` | `site-builder` |
+| An edit under `tools/schematic/`, `tools/hartlib/` or the Layout Editor scripts (always in a worktree; leaves changes uncommitted) | `schematic-builder` |
+| Whether one claimed bug from `/code-review` or an audit is real (CONFIRMED, PLAUSIBLE or WRONG, with the line) | `finding-verifier` |
 | Where an STS car is, why an order is unfilled, what a session holds | `sts:sts-inspector` |
 | Running STS operating steps (UAT, or live with the owner's yes) | `sts:sts-operator` |
 | Why an Operations Pro build left or sent cars oddly | `operations-pro:ops-diagnoser` |

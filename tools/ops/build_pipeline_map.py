@@ -285,7 +285,10 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #rulers[hidden]{display:none}
 #steps{position:absolute;left:0;height:24px;overflow:hidden;background:rgba(250,250,250,.88);border-bottom:1px solid #ccc}
 #steps span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:600;color:#475569;pointer-events:auto;cursor:help}
-#lanetags span{position:absolute;box-sizing:border-box;height:22px;line-height:18px;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap}
+#lanetags span{position:absolute;box-sizing:border-box;height:22px;line-height:18px;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap;pointer-events:auto;cursor:zoom-in}
+#lens{position:fixed;width:320px;height:320px;border-radius:50%;overflow:hidden;z-index:9;pointer-events:none;background:#fafafa;
+ border:3px solid #334155;box-shadow:0 4px 16px rgba(0,0,0,.3)}
+#lens[hidden]{display:none}
 #info{position:absolute;top:10px;right:10px;bottom:10px;width:360px;z-index:5;padding:12px 14px;overflow:auto;display:none}
 #info h2{font-size:16px;margin:0 0 4px}
 #info code{font-size:12px;word-break:break-all}
@@ -295,7 +298,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
-.elabel{font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
+.elabel{pointer-events:none;font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
 .node .box{stroke-width:1.2}
 .node .t{font-size:13px;font-weight:700}
 .node .p{font:10.5px ui-monospace,Menlo,monospace;fill:#334155}
@@ -313,6 +316,29 @@ svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
 svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
+svg.far .node text,svg.far #elabels,svg:not(.far) #far{display:none}
+svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1px}
+svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
+svg.far.focus .edge.on{stroke-width:1.5px}
+svg.far.focus .edge.near{stroke-width:2.5px}
+svg.far .node.hit .box,svg.far.focus .node.sel .box{stroke-width:3px;stroke:#facc15}
+.fl{cursor:pointer}
+.fl .fb{stroke-width:1px}
+.fl .ft{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.fl.hit .fb,.fl.sel .fb{stroke:#dc2626;stroke-width:2.5px}
+svg.focus .fl{opacity:.3}
+svg.focus .fl.on{opacity:.7}
+svg.focus .fl.near,svg.focus .fl.sel,svg.focus .fl.hn{opacity:1}
+svg.hovering .edge{stroke-opacity:.25}
+.eh{fill:none;stroke:transparent;stroke-width:8px;pointer-events:stroke;vector-effect:non-scaling-stroke}
+svg.far .eh{stroke-width:6px}
+#etip{position:fixed;z-index:9;pointer-events:none;padding:5px 8px;font-size:12px;max-width:360px}
+#etip[hidden]{display:none}
+#etip .off{color:#888;font-size:11px}
+svg.hovering .edge.he.he{stroke:#7c3aed;stroke-opacity:1;opacity:1;stroke-width:2.5px}
+svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
+svg.hovering .fl.hn .fb{stroke:#7c3aed;stroke-width:2px}
+svg.focus.hovering .node.hn{opacity:1}
 .hidden{display:none}
 @media (max-width:900px){#bar{right:10px;max-width:none}
  #bar h1{font-size:12px}
@@ -370,7 +396,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, the boxes' own text is too small to read, so they are drawn as small solid blocks in their kind's colour. Hover a line to light its whole chain, everything that feeds it and everything it feeds, and name every box on it; hover a box to light its own links and name the boxes at their other ends. A selected box's chain and search hits are named too. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left

@@ -21,6 +21,8 @@ Comes from the 2026-11-21 rescore (8.5/10, up from 8 on 2026-10-31). Organizatio
 
 On 2026-11-21 a cold `./tools/check.sh` on clean `main` ended `FAILED` after 3m21s, and the next two runs passed. The log printed `not stamped: ops/hart-ops/.venv/bin/python changed while the job ran` for `unit-hart-ops`. Find which job failed (rerun cold, `FULL=1`) and fix the cause: a venv rebuilt mid-run, or a flaky test. Size: S.
 
+2026-11-22: two cold `FULL=1` runs failed on different tests. `test_stamp_gate` copied `FULL=1` into its own check.sh call and skipped the stamp branch it tests (fixed in PR #930). `test_panelpro_wrappers` (the SIGINT and SIGHUP cleanup) fails under the full parallel load and in CI, and passes alone; a separate PR fixes it. The 2026-11-21 log is gone, so which of the two failed then is not known. The venv line is a warning that only leaves `unit-hart-ops` unstamped; it did not recur.
+
 ## 1. `signal_coordinator.py` into sibling modules
 
 The file is one class, `DigiconMqttSml`, of about 1,800 lines, with 135 tests in `jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py`. It runs on the Pi and Windows from `JMRI_UserFiles/jython/`. No HART Jython script imports a sibling today.
@@ -53,6 +55,7 @@ From 404 `general-purpose` launches between 2026-10-31 and 2026-11-21: about 114
 - **`schematic-builder`**: edits under `tools/schematic/`, `tools/hartlib/` and the Layout Editor scripts, run in a worktree. Its brief carries the rules agents keep needing: geometry 1:1, `mainline="yes"`, never `fit_panel_*` or `polish_layout_geometry`, approval fingerprints, `make panels CHECK=1`, outputs byte-identical unless the task changes them.
 - **`finding-verifier`**: read-only. It gets one claimed bug and the code, and answers confirmed, plausible or wrong, with the line that shows it. It is used to triage `/code-review` and audit findings.
 - Add both to the `AGENTS.md` subagent table and update `subagent_guard.py` if it lists agents.
+- Built 2026-11-22 (`.claude/agents/schematic-builder.md`, `finding-verifier.md`, table rows added; the guard lists no agents). Not done: the re-measure below is pending.
 - **Re-measure on 2026-12-05** with the same transcript count. Target: `general-purpose` under 50% of launches.
 
 Size: S.
@@ -65,6 +68,8 @@ Twelve table cells run over 80 words. The longest is row 8 of [`source-data-exce
 2. Add a rule to `check_agent_docs.py` (or the static job's wiki check): a table cell in `wiki/` or `AGENTS.md` over 80 words fails. `STATUS_LOG.md` and `archive/` are exempt, since they hold history.
 
 Size: S. Done when the check passes on `main`.
+
+Done (2026-11-22, PR open): all twelve cells cut with their detail in sections below the tables, and `check_agent_docs.py` fails a cell over 80 words.
 
 ## Done when
 
