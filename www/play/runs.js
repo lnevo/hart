@@ -57,7 +57,7 @@ j105:{pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981"
     const drags=H.rnd(2,3),gang=H.R()<.5,relief=H.R()<.5;
     const work=["Make up a ten-car ore drag on the South Runner"];
     for(let i=1;i<=drags;i++)work.push(`Shove drag ${i} of ${drags} to the car dumper`);
-    work.push("Fuel #4 at South Yard between trips","Tie up in the West Yard by 3:30");
+    work.push("Fuel #4 between trips","Tie up in the West Yard by 3:30");
     const steps=[
       H.info("South Yard","On duty, 7:00",`<p>You are the conductor of #105, the ore job, with SW9 #4. Iron ore for Shenango's blast furnaces comes onto the island over the PC&amp;Y from Scully Yard. Your job shoves it from the West Yard to the Shenango car dumper in ten-car drags.</p><p>The trainmaster has written today's switching orders: ${drags} drags. Mark Connolly called this the clean end of the plant.</p>`,"Go to work"),
       ask(H,Q.conductor,{body:"Your brakeman is new to #105 and the engineer has his own way of making up a drag. For the work on the switching order, whose instructions do they follow?"}),
@@ -76,11 +76,11 @@ j105:{pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981"
       H.ask({sec:"pov",src:"PV p.39",url:"87216028880",title:"Coming down from the dumper",body:"At the dumper the hoppers are turned over on E2. How do the empties get back down the hill?",
         right:"A car rider rides them down in strings, braking by hand",wrong:[["#4 pulls each empty back off the trestle"],["They roll down by themselves into the East Yard"],["The Shenango transfer car carries them down"]],
         why:"The car riders worked the dumper side and rode the empties down the hill in strings, braking by hand. John Iwanonkiw was a car rider."}),
-      H.info("furnace lead","Coffee",`<p>Mid-morning. After a drag to the dumper, around 10:00 or 10:30, the ore job stopped at the millwrights on the furnace lead and brought coffee back for the yard office. A four-cup holder hung on the bulletin board there.</p>`,"Back to work",()=>{H.addTime(10);H.S.parAdd+=10*H.S.pace;H.log("Coffee from the millwrights for the yard office")}),
-      H.mv("syard",10,"#4 fueled at South Yard"),H.done(drags+1),
+      H.info("furnace lead","Coffee",`<p>Mid-morning. After a drag to the dumper, around 10:00 or 10:30, the ore job stopped at the millwrights on the furnace lead and brought coffee back for the yard office. A four-cup holder hung on the bulletin board there.</p>`,"Back to work",()=>{H.S.parAdd+=H.addTime(10);H.log("Coffee from the millwrights for the yard office")}),
       H.ask({sec:"pov",src:"PV p.58",url:"61429804213",title:"Between trips",body:"Between drags #4 needs fuel. Where does the ore job's engine take it?",
         right:"In the South Yard",wrong:[["At the P&LE shop in McKees Rocks"],["At the scale house, by the bucket"],["On E1 by the river"]],
         why:"Captions show the ore job's engine spotted for fuel in the South Yard between trips. Sand went on at S9 by the bucket, and heavy repairs went to the P&LE shops in McKees Rocks."}),
+      H.mv("syard",10,"#4 fueled at South Yard"),H.done(drags+1),
       H.mv("srun",8,"Drag 2 made up"),
       ask(H,Q.men,{title:"Men by the coke plant lead",body:"Shoving drag 2, you come up on the track gang working beside the coke plant lead. What does the engineer sound?"}),
       H.mv("dumper",16,"Drag 2 at the car dumper"),H.done(2)
@@ -93,7 +93,7 @@ j105:{pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981"
       H.mv("dumper",16,"Drag 3 at the car dumper"),H.done(3));
     steps.push(ask(H,Q.clear,{title:"The last empties",body:"The last string of empties comes down and you set it on the West Yard track off the ladder. Where must the last car stand?"}),
       H.mv("wyard",12,"Empties set over in the West Yard"));
-    if(relief)steps.push(H.info("West Yard","Relief on the footboard",`<p>The second-trick crew comes out early. Their engineer steps up on the footboard and offers to take the last move so your crew can get home a little early. Crews on the P&amp;OV did that for each other: weigh the cars, or take one more drag.</p>`,"Take the early quit",()=>{H.addTime(-8);H.S.parAdd-=8*H.S.pace;H.log("Relieved on the footboard: an early quit")}));
+    if(relief)steps.push(H.info("West Yard","Relief on the footboard",`<p>The second-trick crew comes out early. Their engineer steps up on the footboard and offers to take the last move so your crew can get home a little early. Crews on the P&amp;OV did that for each other: weigh the cars, or take one more drag.</p>`,"Take the early quit",()=>{H.S.parAdd+=H.addTime(-8);H.log("Relieved on the footboard: an early quit")}));
     steps.push(H.done(drags+2));
     return {work,steps,end:()=>relief?"#105 tied up at {t}: an early quit.":"#105 tied up at {t}."};
   }},
@@ -104,7 +104,7 @@ j110:{pace:3.5,code:"#110",name:"furnace job",year:"1984",dateLine:"January 1984
   coda:"The furnace job worked the east end, which Mark Connolly called a graphite and coke dust area: the two blast furnaces, the pig machine and the coke plant. John Doubt ran it often enough that a caption names it the Furnace Job (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783\" rel=\"noopener\">p.139</a>).",
   build(H){
     const ladles=3,spread=H.R()<.6,cast=H.pick(["9:40","10:10","10:40"]);
-    const work=["Pull furnace coke at the battery, weigh it, take it to F1","Switch the ladles into the furnace's order","Take three ladles of hot metal out of the ladle house","Pull the two loads at the A pig machine; spot pig iron on E1","Bring the empty pig gons out of the East Yard"];
+    const work=["Furnace coke from the battery to F1","Switch the ladles into the furnace's order","Take three ladles of hot metal out of the ladle house","Pull the two loads at the A pig machine; spot pig iron on E1","Bring the empty pig gons out of the East Yard"];
     const steps=[
       H.info("East Yard","On duty, 7:00",`<p>January 1984, daylight. You are the conductor of #110, the furnace job. The blog names no engine for it; the game gives you SW9 #6. Your territory is the east end: Shenango's two blast furnaces, A and B, the pig machine at A, the ladle house and the coke battery.</p><p>The trainmaster's orders say B furnace will cast about ${cast}. Before then the furnace needs its coke and its ladles in order.</p>`,"Go to work"),
       H.mv("coke",8,"At the coke battery"),
@@ -189,10 +189,10 @@ j115:{pace:3.5,code:"#115",name:"relief job",year:"1979",dateLine:"a Saturday in
       H.ask({sec:"gcor",src:"GC · 1.47B",title:"Tank cars",body:`${tanks} loaded tank cars from USS Chemicals are going out to the PC&Y. What must the engineer check with the conductor before handling them?`,
         right:"Whether any cars need special handling",wrong:[["Only the car numbers for the time sheet"],["Nothing: that is the conductor's paperwork"],["The weights, before they are weighed"]],
         why:"GCOR 1.47B: the engineer must check with the conductor whether any cars or units need special handling."}),
-      H.mv("s9",8),
       H.ask({sec:"pov",src:"PV p.90",url:"46415908175",title:"Run around them",body:"The engine has to get to the other end of the tank cars. Where does it run around them?",
         right:"On S9, just west of the scale",wrong:[["On E1"],["On the dumper track, E2"],["At the Y Interchange"]],
         why:"S9, just west of the scale, was the run-around for outbound tank cars, and also the sand spot."}),
+      H.mv("s9",8,"Tank cars run around on S9"),
       H.done(1),
       signal?H.ask({sec:"gcor",src:"GC · 6.28",title:"The scale is thrown red",body:"You start to roll the tank cars toward the scale. The signal at the scale has been thrown red. What do you do?",
         right:"Stop short of it: the move must be able to stop short of a stop signal",wrong:[["Keep rolling at a walk: it only means weighing is in progress",{min:10,marks:2}],["Sound two shorts and go across"],["Back off and go around by the East Runner"]],
@@ -246,7 +246,7 @@ j205:{pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in
       H.ask({sec:"yl",src:"GC · 6.13",title:"No block signals",body:"For the game the East Runner Main is main track inside yard limits, with no block signals. At what speed do you run?",
         right:"Restricted speed: able to stop within half the range of vision, not over 20 MPH",wrong:[["Track speed, since no train is lined up against you"],["Any speed: yard limits need no protection"],["10 MPH, as on a yard track"]],
         why:"GCOR 6.13: within yard limits, all movements at restricted speed unless under a block signal more favorable than Approach. GCOR 6.27: restricted speed allows stopping within half the range of vision, looking out for broken rail, not over 20 MPH."}));
-    if(crane)steps.push(H.info("East Runner","A crane on the main",`<p>Your headlight picks up a Shenango track crane, hung up on the East Runner Main with five loads. At restricted speed you stop short of it. In 1987 Jack Burik found the same thing there; the union grieved it and won (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371" rel="noopener">p.49</a>).</p><p>You wait while it is moved.</p>`,"Wait it out",()=>{H.addTime(25);H.S.parAdd+=25*H.S.pace;H.log("Held for the Shenango crane on the East Runner")}));
+    if(crane)steps.push(H.info("East Runner","A crane on the main",`<p>Your headlight picks up a Shenango track crane, hung up on the East Runner Main with five loads. At restricted speed you stop short of it. In 1987 Jack Burik found the same thing there; the union grieved it and won (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371" rel="noopener">p.49</a>).</p><p>You wait while it is moved.</p>`,"Wait it out",()=>{H.S.parAdd+=H.addTime(25);H.log("Held for the Shenango crane on the East Runner")}));
     steps.push(
       H.mv("ladle",14,"Empty ladles lifted at the house"),
       H.ask({sec:"sig",src:"GC · 5.8.3",title:"The whistle fails",body:"At 10 p.m. #3's whistle fails, and there is no other unit to lead. You still have the main crossing ahead. What now?",
@@ -265,7 +265,7 @@ j305:{pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a wi
   cement:"Marquette",plants:plants(1981),si:SI,endPlace:"S9",tieUp:"#305 tied up at {t}, its engine on S9 for sand.",
   coda:"The one task a caption names for the midnight job is the last one: the crew spotted the engine on S9 for sand and went home. In a 1980 photo that engine is #3, just west of the scale, with the track gang loading sand by the bucket (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">p.99</a>).",
   build(H){
-    const work=["Pull the night's coke from the battery and weigh it","Coke to F1 for the morning","Line the West Yard over C9 for #105's first drag","Set the engine on S9 for sand"];
+    const work=["Pull the night's coke from the battery and weigh it","Coke to F1 for the morning","Line the West Yard over C9 for #105's first drag","Put #3 away for the day crew"];
     const steps=[
       H.info("the yard office","On duty, midnight",`<p>It is ten below zero. You are the conductor of #305, the midnight job: midnight to 7:00 a.m., east and west. Switcher #3 is idling outside the yard office with its doors iced.</p>`,"Go to work"),
       H.ask({sec:"sig",src:"GC · 5.8.2",title:"Air in the cold",body:"#3 has pumped up the coke string and the brakeman has finished the air test. The engineer is ready to go. Which whistle signal means release brakes, proceed?",
@@ -286,14 +286,14 @@ j305:{pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a wi
         right:"No: the move must stop short of a switch lined improperly",wrong:[["Yes, slowly, and let the wheels push the points over",{end:true,endText:"#3 went on the ground at the frozen C9 switch."}],["Yes, if the brakeman stands on the lever"],["Yes, at restricted speed"]],
         why:"GCOR 6.28: off main track, move at a speed that allows stopping short of a train, engine, car, men or equipment fouling the track, stop signal, or derail or switch lined improperly."}),
       H.info("West Yard","Ten below","<p>In the early 1980s at −10 °F, Mark Connolly and John Iwanonkiw could not throw the frozen C9 switch. Bill McEwen Sr. told them: “If I could have thrown that switch you two would have both been up on the road.” Mark adds: “In this case we really could not throw the switch over.”</p><p>You report it to the yard office for the track gang and work the other ladder.</p>",
-        "Work around it",()=>{H.addTime(20);H.S.parAdd+=20*H.S.pace;H.log("C9 frozen; reported, worked around")}),
+        "Work around it",()=>{H.S.parAdd+=H.addTime(20);H.log("C9 frozen; reported, worked around")}),
       H.done(2),
       H.mv("srun",16),
       ask(H,Q.men,{title:"The track gang at daybreak",body:"Near 6:30 the track gang is out by S1 with buckets for the sand. You come up on them with #3. What does the engineer sound?"}),
-      H.mv("s9",14,"#3 on S9 for sand"),
       H.ask({sec:"pov",src:"PV p.99",url:"45830819194",title:"The last move",body:"What is the midnight job's last move of the shift?",
         right:"Spot the engine on S9 for sand and go home",wrong:[["Take one more drag to the dumper"],["Run light to the P&LE shop for fuel"],["Leave the engine at the Y Interchange"]],
         why:"The crew spotted the engine on S9 for sand and went home; the track gang loaded the sand by the bucket."}),
+      H.mv("s9",14,"#3 on S9 for sand"),
       H.done(3)
     ];
     return {work,steps};
@@ -309,7 +309,7 @@ extra:{pace:4,code:"EXTRA",name:"called off the extra board",year:"1988",dateLin
       :["Water #4 at the scale house","Extra ore drag to the dumper","Extra furnace coke to F1","Empty pig gons out of the East Yard"];
     const steps=[
       H.info("the yard office","The call, 1:00 p.m.",`<p>1988. You have been on the extra board for weeks, third out most of the time. The phone rings: ${why==="scale"?"the scale is down":"the plant is super busy"}, and the trainmaster wants an extra. You report to the yard office for engine #4.</p>`,"Take the call"),
-      H.info("the scale house","Water, the hard way","<p>#4 is low on water. In 1988 Scott Morrison, who was usually third out, added water to #4 the hard way at the scale house, by hand. You add water to #4 by hand.</p>","Done",()=>{H.addTime(10);H.S.parAdd+=10*H.S.pace;H.log("Water added to #4 by hand at the scale house")}),
+      H.info("the scale house","Water, the hard way","<p>#4 is low on water. In 1988 Scott Morrison, who was usually third out, added water to #4 the hard way at the scale house, by hand. You add water to #4 by hand.</p>","Done",()=>{H.S.parAdd+=H.addTime(10);H.log("Water added to #4 by hand at the scale house")}),
       H.done(0),
       H.ask({sec:"gcor",src:"GC · 1.47B",title:"An engineer off the board",body:"Your engineer has not run #4 in a month. Who is responsible for operating the engine safely and efficiently?",
         right:"The engineer; the crew obey his instructions about operating it",wrong:[["The conductor, who supervises the job"],["The trainmaster, who called the extra"],["Whoever is senior in the cab"]],

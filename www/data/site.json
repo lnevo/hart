@@ -31,8 +31,7 @@
         "articles",
         "plants",
         "railroads",
-        "photos",
-        "play"
+        "photos"
       ]
     },
     {
@@ -86,7 +85,8 @@
         "build",
         "build-track-plan",
         "helix",
-        "helix-status"
+        "helix-status",
+        "play"
       ]
     },
     {

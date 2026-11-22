@@ -103,7 +103,7 @@ const MAXMARKS=5;
 let queue=[];
 function next(){if(S.ended)return;const f=queue.shift();if(f)f()}
 function log(t){S.log.push(fmt(S.clock)+"  "+t);const li=document.createElement("li");li.textContent=fmt(S.clock)+"  "+t;$("xwLog").appendChild(li)}
-function addTime(m){S.clock+=Math.round(m*S.pace)} // a shift's minutes on the map are its pace times the move's own
+function addTime(m){const t=Math.round(m*S.pace);S.clock+=t;return t} // a shift's minutes on the map are its pace times the move's own
 function hereName(){const L=LOC[S.units[S.lead]];return L?L.n:"Neville Island"}
 function scene(where,title,html){
   const el=$("xwScene");el.classList.remove("in");void el.offsetWidth;el.classList.add("in");
@@ -153,8 +153,8 @@ function info(where,title,html,btn,after){
   };
 }
 /* Move an engine (the job's own unless named) to a place, taking some minutes; par is the sum of the moves. */
-const mv=(to,min,note,unit)=>()=>{S.units[unit||S.lead]=to;addTime(min);S.parAdd+=min*S.pace;if(note)log(note);renderStatus();next()};
-const wait=(min,note)=>()=>{addTime(min);S.parAdd+=min*S.pace;if(note)log(note);renderStatus();next()};
+const mv=(to,min,note,unit)=>()=>{S.units[unit||S.lead]=to;S.parAdd+=addTime(min);if(note)log(note);renderStatus();next()};
+const wait=(min,note)=>()=>{S.parAdd+=addTime(min);if(note)log(note);renderStatus();next()};
 const done=i=>()=>{S.jobs[i].done=true;renderSheet();next()};
 const H={ask,info,mv,wait,done,rnd,pick,fmt,esc,log,addTime,get S(){return S},get R(){return R}};
 
@@ -172,7 +172,7 @@ function renderSheet(){
 function finish(text,failed){
   if(S.ended)return;S.ended=true;
   const D=S.def,time=S.clock-S.start;
-  const par=S.par?S.par-S.start:null;
+  const par=S.par?Math.round(S.par-S.start):null;
   let verdict,cls="";
   if(failed)verdict="Taken off the job";
   else if(S.marks===0&&(par===null||time<=par+15*S.pace)){verdict="Clean shift";cls="good"}
@@ -308,16 +308,16 @@ function title(){
     puffs.forEach(([x,y],k)=>{for(let i=0;i<5;i++){const p=((t/180)+i*2.2+k*1.3)%11;const a=(1-p/11)*.55;
       g.fillStyle=k===3?`rgba(230,225,230,${a})`:`rgba(${C.smoke},${a})`;g.fillRect(Math.round(x-p*2.6),Math.round(y-2-p*1.6),2+(p>>2),2+(p>>2))}});
   }
-  // the ore drag: green SW9 #4 shoving ten hoppers is too long for the frame; four hoppers and the engine
+  // the ore drag: SW9 #4 shoving ten hoppers is too long for the frame, so four hoppers and the engine
   function train(x,f){
     const Rr=(c,a,y,w,h)=>{g.fillStyle=c;g.fillRect(Math.round(x+a),y,w,h)};
-    for(let k=0;k<4;k++){const o=k*18;Rr(C.hopper,o,92,16,8);Rr(C.ore,o+1,90,14,2);Rr(C.ink,o+2,100,3,2);Rr(C.ink,o+11,100,3,2)}
-    // SW9: long hood, cab at the rear, facing east (right)
-    Rr(C.green,74,90,24,10);Rr(C.green2,74,90,24,1);Rr(C.green,98,86,8,14);Rr(C.cream,100,88,4,3);Rr(C.ink,98,85,8,1);
-    Rr(C.glow,72,92,2,2); // headlight on the long hood end
-    Rr(C.ink,77,100,4,2);Rr(C.ink,91,100,4,2);
-    Rr(C.cream,82,93,1,3);Rr(C.cream,84,93,3,1);Rr(C.cream,84,95,3,1); // a 4 on the hood
-    for(let i=0;i<3;i++){const p=(f+i*3)%9;g.fillStyle=`rgba(60,55,60,${(1-p/9)*.6})`;g.fillRect(Math.round(x+86-p*1.5),88-p*2,2,2)}
+    // SW9 on the west end, long hood leading west, cab coupled to the drag: it shoves east (right)
+    Rr(C.green,0,90,24,10);Rr(C.green2,0,90,24,1);Rr(C.green,24,86,8,14);Rr(C.cream,26,88,4,3);Rr(C.ink,24,85,8,1);
+    Rr(C.glow,-2,92,2,2); // headlight on the long hood end
+    Rr(C.ink,3,100,4,2);Rr(C.ink,21,100,4,2);
+    Rr(C.cream,8,93,1,3);Rr(C.cream,10,93,3,1);Rr(C.cream,10,95,3,1); // a 4 on the hood
+    for(let k=0;k<4;k++){const o=34+k*18;Rr(C.hopper,o,92,16,8);Rr(C.ore,o+1,90,14,2);Rr(C.ink,o+2,100,3,2);Rr(C.ink,o+11,100,3,2)}
+    for(let i=0;i<3;i++){const p=(f+i*3)%9;g.fillStyle=`rgba(60,55,60,${(1-p/9)*.6})`;g.fillRect(Math.round(x+12-p*1.5),88-p*2,2,2)}
   }
   function draw(t){
     g.drawImage(bg,0,0);smoke(t);g.drawImage(fg,0,0);
