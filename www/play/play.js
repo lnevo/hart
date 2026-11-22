@@ -19,9 +19,10 @@ const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").
 /* Sources. GC/YL point into the C&E study deck; PV is Mark Connolly's P&OV blog, linked post by post. */
 const DECK="../exam/index.html";
 const POV="../library/pittsburgh-ohio-valley-railway.html";
-const SEC={gcor:"GCOR crew & speed",sig:"Signals & whistles",def:"Definitions",yl:"Yard limits",pov:"The P&OV jobs"};
-const SRC={GC:"GCOR",YL:"Yard Limits guide",PV:"Mark Connolly's P&OV blog,"};
-const srcLabel=s=>s.replace(/^(GC|YL|PV)\b( ·)?/,(m,k)=>SRC[k]);
+const SEC={gcor:"GCOR crew & speed",sig:"Signals & whistles",def:"Definitions",yl:"Yard limits",pov:"The P&OV jobs",
+  sup:"Superiority & movement",to:"Train orders",sem:"Semaphores",twc:"Track warrants"};
+const SRC={GC:"GCOR",YL:"Yard Limits guide",PV:"Mark Connolly's P&OV blog,",SC:"1949 Standard Code",TT:"TT&TO primer",SG:"Signals guide",SM:"Semaphores guide"};
+const srcLabel=s=>s.replace(/^(?:(GC|YL|PV)\b( ·)?|(SC|TT|SG|SM)\b)/,(m,k,_,j)=>SRC[k||j]); // GC, YL and PV drop their dot; the Standard Code and guides keep it
 const studyHref=sec=>sec==="pov"?POV:DECK+"#learn-"+sec;
 const TUMBLR="https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 
@@ -61,10 +62,12 @@ const LOC={
 let S=null;
 function newState(id){return {run:id,pace:1,clock:0,start:0,marks:0,misses:[],log:[],ended:false,jobs:[],parAdd:0,par:0,units:{},lead:"",d:{},plants:[]}}
 
+const placeName=()=>S.def.where?S.def.where(S):(LOC[S.units[S.lead]]?LOC[S.units[S.lead]].n:"");
 function renderMap(){
   const box=$("xwMap");if(!S)return;
+  if(S.def.map){box.innerHTML=S.def.map(S,H);return} // a road run draws its own line
   const W=600,k=box.clientWidth&&box.clientWidth<560?1.3:1,fs=n=>(n*k).toFixed(1);
-  const where=LOC[S.units[S.lead]]?LOC[S.units[S.lead]].n:"";
+  const where=placeName();
   let s=`<svg viewBox="0 0 ${W} 150" role="img" aria-label="Track sketch of the east end of Neville Island, ${esc(S.def.code)} at ${esc(where)}">`;
   s+=`<rect x="0" y="0" width="${W}" height="150" fill="var(--river)"/><rect x="0" y="11" width="${W}" height="129" fill="var(--land)"/>`;
   s+=`<text x="8" y="8" font-size="${fs(6.5)}" class="water">OHIO RIVER · MAIN CHANNEL</text><text x="${W-8}" y="148" font-size="${fs(6.5)}" text-anchor="end" class="water">BACK CHANNEL</text>`;
@@ -100,7 +103,7 @@ function renderMap(){
 function renderStatus(){
   if(!S)return;
   const end=S.def.end,left=end-S.clock;
-  const where=LOC[S.units[S.lead]]?LOC[S.units[S.lead]].n:"";
+  const where=placeName();
   $("xwStatus").innerHTML=`<span><span class="lbl">Job</span><b>${esc(S.def.code)}</b></span><span><span class="lbl">Clock</span><b>${fmt(S.clock)}</b></span><span><span class="lbl">Quits</span>${fmt(end)}${left<0?` <i class="over">+${Math.round(-left)} min</i>`:""}</span><span><span class="lbl">At</span>${esc(where)}</span><span class="marks"><span class="lbl">Marks</span><b>${S.marks}</b>/${MAXMARKS}</span>`;
   renderMap();
 }
@@ -111,7 +114,7 @@ let queue=[];
 function next(){if(S.ended)return;const f=queue.shift();if(f)f()}
 function log(t){S.log.push(fmt(S.clock)+"  "+t);const li=document.createElement("li");li.textContent=fmt(S.clock)+"  "+t;$("xwLog").appendChild(li)}
 function addTime(m){const t=Math.round(m*S.pace);S.clock+=t;return t} // a shift's minutes on the map are its pace times the move's own
-function hereName(){const L=LOC[S.units[S.lead]];return L?L.n:"Neville Island"}
+function hereName(){if(S.def&&S.def.where)return S.def.where(S);const L=LOC[S.units[S.lead]];return L?L.n:"Neville Island"}
 function scene(where,title,html){
   const el=$("xwScene");el.classList.remove("in");void el.offsetWidth;el.classList.add("in");
   el.innerHTML=`<div class="where"><span>${esc(where)}</span><span>${fmt(S.clock)}</span></div><h2>${esc(title)}</h2>${html}`;
@@ -138,8 +141,8 @@ function ask(o){
       const cost=[];if(c.min)cost.push("+"+cm+" min");if(c.marks)cost.push("+"+c.marks+" mark"+(c.marks>1?"s":""));
       const why=(!x.ok&&x.why?x.why+" ":"")+o.why;
       const over=c.end||S.marks>=MAXMARKS;
-      res.innerHTML=`<div class="verdict ${x.ok?"ok":"no"}">${x.ok?"Right.":(c.end?"Shift over.":"Not right.")}${cost.length?` <small>${cost.join(" · ")}</small>`:""}</div><p>${why}</p><div class="src">${srcHtml(o)}</div><div><button class="xw-btn primary" id="xwGo">${over?"See the record":"Continue"}</button></div>`;
-      if(!x.ok)S.misses.push({title:o.title,why:o.why,src:o.src,url:o.url,sec:o.sec,end:!!c.end});
+      res.innerHTML=`<div class="verdict ${x.ok?"ok":"no"}">${x.ok?(o.okText||"Right."):(c.end?"Shift over.":"Not right.")}${cost.length?` <small>${cost.join(" · ")}</small>`:""}</div><p>${why}</p><div class="src">${srcHtml(o)}</div><div><button class="xw-btn primary" id="xwGo">${over?"See the record":"Continue"}</button></div>`;
+      if(!x.ok||o.miss)S.misses.push({title:o.title,why:o.why,src:o.src,url:o.url,sec:o.sec,end:!!c.end}); // miss: right answer, but it records what the player had just done wrong
       log((x.ok?"✓ ":"✗ ")+o.title);
       if(o.after)o.after(x.ok);
       renderStatus();renderSheet();
@@ -163,12 +166,17 @@ function info(where,title,html,btn,after){
 const mv=(to,min,note,unit)=>()=>{S.units[unit||S.lead]=to;S.parAdd+=addTime(min);if(note)log(note);renderStatus();next()};
 const wait=(min,note)=>()=>{S.parAdd+=addTime(min);if(note)log(note);renderStatus();next()};
 const done=i=>()=>{S.jobs[i].done=true;renderSheet();next()};
-const H={ask,info,mv,wait,done,rnd,pick,fmt,esc,log,addTime,get S(){return S},get R(){return R}};
+/* What a road run (road.js) needs besides the island's helpers: put scenes at the front of the queue, draw its own
+   scene, and list a question the player may meet only on some paths (key: no-op here, the answer key's build reads it). */
+const front=(...f)=>queue.unshift(...f);
+const key=()=>null;
+const H={ask,info,mv,wait,done,rnd,pick,fmt,esc,log,addTime,front,scene,key,next,renderStatus,shuffle,srcHtml,finish,$,get S(){return S},get R(){return R}};
 
 /* ---------- the switch list ---------- */
 function renderSheet(){
   const el=$("xwSheet");if(!S){el.innerHTML="";return}
   const D=S.def;
+  if(D.sheet){el.innerHTML=D.sheet(S,H);return} // a road run prints its own time-table and orders
   el.innerHTML=`<h3>Pittsburgh &amp; Ohio Valley</h3><div class="sub">Switching orders · ${esc(D.code)} ${esc(D.name)} · ${esc(D.dateLine)}</div>
     <div class="xw-orders"><b>Work</b>${S.jobs.map(j=>`<div class="ord${j.done?" done":""}">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div>
     <div class="xw-si"><b>On the island, ${esc(D.year)}</b><ul>${D.plants.map(p=>`<li>${p}</li>`).join("")}</ul></div>
@@ -224,7 +232,7 @@ function begin(id,daily){
   $("xwLog").innerHTML="";
   const def=RUNS[id];S.def=def;S.pace=def.pace||1;S.clock=S.start=def.start;S.lead=def.engine;S.units=Object.assign({},def.units);
   const shift=def.build(H);S.jobs=shift.work.map(t=>({t,done:false}));
-  queue=shift.steps.concat([()=>{S.par=S.start+S.parAdd;const t=shift.end?shift.end():def.tieUp;log("Tied up");finish(t.replace("{t}",fmt(S.clock)),false)}]);
+  queue=shift.steps.concat([()=>{S.par=shift.noPar?0:S.start+S.parAdd;const t=shift.end?shift.end():def.tieUp;log("Tied up");finish(t.replace("{t}",fmt(S.clock)),false)}]);
   $("xwStart").hidden=true;$("xwGame").hidden=false;
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
@@ -326,7 +334,7 @@ function title(){
   // the lettering sits on its own layer, drawn over the smoke
   const fg=document.createElement("canvas");fg.width=W;fg.height=H;
   {const keep=g;g=fg.getContext("2d");
-    text("NEVILLE ISLAND","c",4,1,"#f4d9a0","#1b1830");
+    text("NEVILLE ISLAND · UP THE CHARTIERS","c",4,1,"#f4d9a0","#1b1830");
     text("EXTRA EAST","c",14,3,C.cream,"#7a2a24");
     text("HART RAILROAD","c",39,1,C.glow,"#1b1830");
     g=keep}
