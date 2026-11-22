@@ -119,6 +119,9 @@ function scene(where,title,html){
   const el=$("xwScene");el.classList.remove("in");void el.offsetWidth;el.classList.add("in");
   el.innerHTML=`<div class="where"><span>${esc(where)}</span><span>${fmt(S.clock)}</span></div><h2>${esc(title)}</h2>${html}`;
   renderStatus();renderSheet();
+  // on a phone the sheet sits under the scene: bring a new scene into view if the player was reading further down
+  const top=el.getBoundingClientRect().top,vh=window.innerHeight||0;
+  if(vh&&(top<60||top>vh*.6))window.scrollTo({top:top+scrollY-70,behavior:reduced?"auto":"smooth"});
   return el;
 }
 const srcHtml=o=>{const t=esc(srcLabel(o.src));return o.url?`<a href="${o.url.startsWith("http")?o.url:TUMBLR+o.url}" rel="noopener">${t}</a>`:t};
