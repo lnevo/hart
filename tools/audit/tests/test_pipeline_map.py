@@ -273,6 +273,11 @@ process.stdout.write(JSON.stringify(out));"""
                                         text=True, check=True).stdout)
         self.assertEqual(out, {"NARROW": [], "WIDE": []})
 
+    def test_lane_names_lighten_for_dark_mode(self) -> None:
+        """lighten: a lane colour goes halfway to white for the dark background; anything not #rrggbb is left alone."""
+        self.assertEqual(self.run_js("a.map(m.lighten)", ["#1d4ed8", "#000000", "red", "#fff"]),
+                         ["#8ea7ec", "#808080", "red", "#fff"])
+
     def test_name_tags_never_overlap(self) -> None:
         """placeTags: in priority order, a tag that overlaps one already placed or a blocked area is left out."""
         boxes = [{"x0": 0, "y0": 0, "x1": 100, "y1": 20},     # placed first

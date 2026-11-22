@@ -374,6 +374,13 @@ function pathSegments(pts) {
   return out;
 }
 
+/* A #rrggbb colour halfway to white, for text in that colour on a dark background; any other value is returned as is. */
+function lighten(c) {
+  if (!/^#[0-9a-f]{6}$/i.test(c)) return c;
+  const mix = i => Math.round(parseInt(c.slice(i, i + 2), 16) * 0.5 + 255 * 0.5).toString(16).padStart(2, "0");
+  return "#" + mix(1) + mix(3) + mix(5);
+}
+
 /* Greedy label placement: boxes ({x0, y0, x1, y1}, screen px) in order of priority; each is placed unless it overlaps
    one already placed or one of blocked (areas covered by something else). Returns the indexes placed. */
 function placeTags(boxes, blocked = []) {
@@ -548,7 +555,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, lighten, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -932,7 +939,36 @@ function app() {
   legend.addEventListener("toggle", () => drawRulers());  // open, it is taller: the tags beside it move up
   let colKinds = [];  // per column: what its boxes are, for the header's tooltip
   let rawFirst = false;  // whether nothing in the whole graph builds any box of column 0 (a filtered view may hide what does)
-  const showRulers = () => sub.nodes.length > 0;  // the strip shows only over a drawing with boxes (sub is set before layout)
+  // the strip shows only over a drawing with boxes (sub is set before layout), and not while the extras are hidden
+  const showRulers = () => !clean && sub.nodes.length > 0;
+  /* ---- dark mode and hidden extras. Dark starts from the system setting and a choice is remembered on this browser;
+     the lane names take a lighter shade of their colour on the dark background. Hide extras takes away the lane names,
+     step headers, legend and overview, and gives the map the room the step strip had. */
+  let clean = false;
+  const DARK_KEY = "pipelineMapDark", darkBox = document.getElementById("dark");
+  const isDark = () => document.documentElement.classList.contains("dark");
+  const tagInk = c => (isDark() ? lighten(c) : c);
+  function setDark(on, remember) {
+    document.documentElement.classList.toggle("dark", on);
+    darkBox.checked = on;
+    if (remember) try { localStorage.setItem(DARK_KEY, on ? "1" : "0"); } catch (e) { /* storage off: not remembered */ }
+    if (svg) drawRulers();
+  }
+  let darkSaved = null;
+  try { darkSaved = localStorage.getItem(DARK_KEY); } catch (e) { darkSaved = null; }
+  setDark(darkSaved === null ? matchMedia("(prefers-color-scheme: dark)").matches : darkSaved === "1", false);
+  darkBox.onchange = e => setDark(e.target.checked, true);
+  const cleanBtn = document.getElementById("clean");
+  function setClean(on) {
+    clean = on;
+    document.body.classList.toggle("clean", on);
+    cleanBtn.textContent = on ? "Show" : "Hide";
+    cleanBtn.setAttribute("aria-pressed", String(on));
+    if (!svg) return;
+    if (fitted) fit();  // a whole-map view fits again into the room the step strip had, or gives it back
+    else setVB(vb.x, vb.y, vb.width, vb.height);  // the free area changed: clamped again, rulers and overview redrawn
+  }
+  cleanBtn.onclick = () => setClean(!clean);
   function columnKinds() {
     const step = stepOf(lay.geo), cols = Array.from({ length: lay.columns }, () => ({}));
     lay.nodes.forEach(n => { const c = cols[Math.round(n.x / step)]; c[n.kind] = (c[n.kind] || 0) + 1; });
@@ -967,7 +1003,7 @@ function app() {
     const tops = laneTagTops(lay.bands.map(b => [sy(b.y), sy(b.y + b.h)]), floor, a.bottom, under), tags = [];
     lay.bands.forEach((b, i) => {
       if (tops[i] !== null)
-        tags.push(`<span data-lane="${i}" title="${atLane(b.id) ? "Click to go back to the view before" : "Click to zoom to this lane"}" style="top:${tops[i].toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
+        tags.push(`<span data-lane="${i}" title="${atLane(b.id) ? "Click to go back to the view before" : "Click to zoom to this lane"}" style="top:${tops[i].toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(tagInk(b.color))};border-color:${esc(tagInk(b.color))}">${esc(b.label)}</span>`);
     });
     laneTags.innerHTML = tags.join("");
   }
@@ -1297,6 +1333,7 @@ function app() {
     if (e.target.matches("input:not([type=checkbox]):not([type=radio]):not([type=button]),textarea,select") || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;  // typing in any field, the site header's search too
     if (e.key === "Escape") clearFocus(true);
     if (e.key === "f" || e.key === "F") fit();
+    if (e.key === "h" || e.key === "H") setClean(!clean);
   });
 
   /* ---- steps either side of a file: how far the chain runs left (what feeds it) and right (what it feeds) */
@@ -1426,11 +1463,11 @@ function app() {
     { at: [], title: "Click a box",
       text: "A click lights up what feeds the box (amber) and what it feeds (blue), and opens its details on the right. Double-click a box to draw its chain on its own." },
     { at: ["#viewmenu"], title: "Calm the drawing",
-      text: "View holds compact (names only, on to start with), folders (one box per folder on the whole map) and highlighted only (just the chain of the box you clicked)." },
+      text: "View holds compact (names only, on to start with), folders (one box per folder on the whole map), highlighted only (just the chain of the box you clicked) and dark." },
     { at: ["#lanes"], title: "Filter",
       text: "Filters picks the lanes and kinds of box, and whether parked and retired work shows. Clear filters, under the toolbar, puts them back." },
     { at: ["#btns"], title: "Move around and share",
-      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, hover a line to light its whole chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Share copies a link that opens this exact view. The ? button runs this tour again." },
+      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, hover a line to light its whole chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Hide (or H) clears the lane names, step headers, legend and overview off the map. Share copies a link that opens this exact view. The ? button runs this tour again." },
   ];
   let tourAt = -1, tourOn = [];
   const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden

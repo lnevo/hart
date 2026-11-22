@@ -334,6 +334,29 @@ svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
 svg.lhover .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
 .hidden{display:none}
+body.clean #rulers,body.clean #legend,body.clean #nav{display:none!important}
+html.dark{color-scheme:dark}
+html.dark,html.dark body{background:#0f172a;color:#e2e8f0}
+html.dark .panel{background:#1e293b;border-color:#334155;color:#e2e8f0;box-shadow:0 2px 10px rgba(0,0,0,.5)}
+html.dark #bar input,html.dark #bar button,html.dark #bar summary,html.dark .panel button{background:#0f172a;color:#e2e8f0;border-color:#475569}
+html.dark #tour .skip,html.dark #info .close{background:none;border:0}
+html.dark #hits,html.dark #view,html.dark #strip2,html.dark #legend div[style]{color:#cbd5e1!important}
+html.dark #strip2{border-top-color:#334155}
+html.dark #back,html.dark #lanelist a,html.dark #info a,html.dark #tree a{color:#93c5fd}
+html.dark #info .off,html.dark #tree .c,html.dark #lanelist .note,html.dark #tour .tn,html.dark #etip .off{color:#94a3b8}
+html.dark #steps{background:rgba(15,23,42,.9);border-bottom-color:#334155}
+html.dark #steps span{color:#cbd5e1}
+html.dark #lanetags span{background:rgba(15,23,42,.92)}
+html.dark #bands rect{fill-opacity:.17}
+html.dark .edge{stroke:#94a3b8}
+html.dark svg.far .edge{stroke-opacity:.45}
+html.dark .elabel{fill:#e2e8f0;stroke:#0f172a}
+html.dark svg.focus .edge.on{stroke:#60a5fa}
+html.dark svg.focus .edge.on.upstream{stroke:#f59e0b}
+html.dark svg.hovering .edge.he.he{stroke:#c4b5fd}
+html.dark svg.hovering .node.hn .box{stroke:#c4b5fd}
+html.dark #lens{background:#0f172a;border-color:#94a3b8}
+html.dark #nav .vr{fill:rgba(248,113,113,.12);stroke:#f87171}
 @media (max-width:900px){#bar{right:10px;max-width:none}
  #bar h1{font-size:12px}
  #row1 .lbl{display:none}
@@ -362,6 +385,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 <label title="Draw the whole map as one box per folder; double-click a folder to open it"><input type="checkbox" id="group"> folders</label>
 <label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> highlighted only</label>
 <label title="Show edge labels"><input type="checkbox" id="labels" checked> edge labels</label>
+<label title="Dark background; starts from the system setting and is remembered on this browser"><input type="checkbox" id="dark"> dark</label>
 </div></details>
 <details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
 <b>Lanes</b><div id="lanerows"></div>
@@ -372,6 +396,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 </div></details>
 <span id="btns"><button id="showall" hidden title="Back to the whole map, every lane and kind, no folders; parked and retired boxes follow their ticks">Whole map</button>
 <button id="fit" title="Show everything (F)">Fit</button><button id="zin" title="Zoom in">+</button><button id="zout" title="Zoom out">−</button>
+<button id="clean" title="Hide the lane names, step headers, legend and overview, for a clear view of the map (H)" aria-pressed="false">Hide</button>
 <button id="share" title="Copy a link to this view: the file, filters, selected box, zoom and position">Share</button>
 <button id="tourbtn" title="A short tour of the controls">?</button></span>
 <details id="more" class="menu"><summary>Menu ▾</summary><div id="morebody" class="panel"></div></details>
@@ -404,7 +429,7 @@ names the file and holds the step counters: left is what feeds it, right is what
 kind, such as scripts, and its boxes are left out with their links joined up, so data runs straight to what it ends
 up in. When a filter is changed, <b>Clear filters</b> in the second row puts them back and keeps the file and the selected box.
 <b>Whole map</b> appears when the view is cut down and goes back to the full drawing. <b>Share</b> copies a link to the view as it is,
-with the selected box, zoom and position; the address bar also keeps the view, without the zoom. On a phone, Browse and everything after Find are under <b>Menu ▾</b>.</div>
+with the selected box, zoom and position; the address bar also keeps the view, without the zoom. <b>Hide</b> (or H) hides the lane names, step headers, this legend and the overview, and shows them again; <b>View ▾</b> also holds <b>dark</b>, a dark background. On a phone, Browse and everything after Find are under <b>Menu ▾</b>.</div>
 <div style="color:#666">Built __DATE__ from docs/pipeline-map/pipeline_map.json · __COUNTS__</div></details>
 <div id="info" class="panel"></div>
 </div>
@@ -444,6 +469,8 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 svg.focus .edge.on{stroke:var(--brand-2)}
 svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
 .node .t,.node .d{font-family:var(--font-body)}
+html.dark{--paper:#0f172a;--paper-2:#0b1220;--card:#1e293b;--ink:#e2e8f0;--ink-soft:#cbd5e1;--rule:#334155;--muted:#94a3b8;
+ --brand:#93c5fd;--brand-2:#93c5fd}
 """
 
 
