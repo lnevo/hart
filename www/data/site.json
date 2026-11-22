@@ -138,62 +138,62 @@
     ],
     "behind-jmri": [
       {
-        "label": "Control & signals",
-        "href": "behind/index.html#control"
+        "label": "Reference",
+        "href": "behind/index.html#reference"
       }
     ],
     "behind-tables": [
       {
-        "label": "Control & signals",
-        "href": "behind/index.html#control"
+        "label": "Reference",
+        "href": "behind/index.html#reference"
       }
     ],
     "behind-panels": [
       {
-        "label": "Control & signals",
-        "href": "behind/index.html#control"
+        "label": "The Build",
+        "href": "behind/index.html#build"
       }
     ],
     "behind-sts": [
       {
-        "label": "Operations",
-        "href": "behind/index.html#operations"
+        "label": "How it works today",
+        "href": "behind/index.html#today"
       }
     ],
     "behind-stl": [
       {
-        "label": "Artificial Intelligence",
-        "href": "behind/index.html#ai"
+        "label": "Tools to take home",
+        "href": "behind/index.html#tools"
       }
     ],
     "behind-build": [
       {
-        "label": "Artificial Intelligence",
-        "href": "behind/index.html#ai"
+        "label": "The Build",
+        "href": "behind/index.html#build"
       }
     ],
     "behind-opspro": [
       {
-        "label": "Operations",
-        "href": "behind/index.html#operations"
+        "label": "Tools to take home",
+        "href": "behind/index.html#tools"
       }
     ],
     "behind-opspro-guide": [
       {
-        "label": "Operations",
-        "href": "behind/index.html#operations"
+        "label": "Tools to take home",
+        "href": "behind/index.html#tools"
       }
     ],
     "behind-car-cards": [
       {
-        "label": "Operations",
-        "href": "behind/index.html#operations"
+        "label": "Tools to take home",
+        "href": "behind/index.html#tools"
       }
     ],
     "behind-repo": [
       {
-        "label": "Artificial Intelligence",
-        "href": "behind/index.html#ai"
+        "label": "Reference",
+        "href": "behind/index.html#reference"
       }
     ],
     "behind-ai-research": [
