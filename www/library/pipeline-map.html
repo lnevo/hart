@@ -105,7 +105,7 @@ svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
 svg.far.focus .edge.on{stroke-width:1.5px}
 svg.far.focus .edge.near{stroke-width:2.5px}
-svg.far .node.hit .box,svg.far.focus .node.sel .box{stroke-width:3px}
+svg.far .node.hit .box,svg.far.focus .node.sel .box{stroke-width:3px;stroke:#facc15}
 .fl{cursor:pointer}
 .fl .fb{stroke-width:1px}
 .fl .ft{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -205,7 +205,7 @@ svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)<div><span class="sw" style="background:#dbeafe;border-color:#1e40af"></span>Structured data</div><div><span class="sw" style="background:#fef3c7;border-color:#92400e"></span>Unstructured source</div><div><span class="sw" style="background:#dcfce7;border-color:#166534"></span>Generator / script</div><div><span class="sw" style="background:#f3e8ff;border-color:#6b21a8"></span>Generated output</div><div><span class="sw" style="background:#e5e7eb;border-color:#374151"></span>External tool / repo</div><div><span class="sw" style="background:#fee2e2;border-color:#991b1b"></span>Host / runtime</div><div><span class="sw" style="background:#fce7f3;border-color:#9d174d"></span>Hand work</div>
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, the boxes' own text is too small to read, so the boxes with the most links get name tags, as many as fit; hover a box to light its links and tag the boxes at their other ends, or hover a line to see what it links. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, the boxes' own text is too small to read, so they are drawn as small solid blocks in their kind's colour. Hover a line to light its whole chain, everything that feeds it and everything it feeds, and name every box on it; hover a box to light its own links and name the boxes at their other ends. A selected box's chain and search hits are named too. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
@@ -567,6 +567,16 @@ function chainOf(edges, id, stops) {
   return { up, down, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
 }
 
+/* The chain one link from -> to belongs to: everything that feeds from and everything to feeds (chainOf, not
+   walking on through a box where stops(box) is true, an end of the link included: a line out of a host does not
+   light everything deployed to it), and the links inside it (lit). */
+function linkChain(edges, from, to, stops) {
+  const up = stops(from) ? new Set([from]) : chainOf(edges, from, stops).up;
+  const down = stops(to) ? new Set([to]) : chainOf(edges, to, stops).down;
+  const lit = e => (e.from === from && e.to === to) || (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to));
+  return { boxes: new Set([...up, ...down]), lit };
+}
+
 /* The free area is the part of the screen the reader can see the map in: below the toolbar and clear of the info
    panel. free gives it as shares of the map's width and height: {top, right, bottom}, each 0 to 1. */
 
@@ -693,7 +703,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, placeTags, edgeTip, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -705,6 +715,11 @@ function app() {
   const byId = {};
   DATA.nodes.forEach(n => (byId[n.id] = n));
   DATA.kinds.folder ||= ["Folder", "#f8fafc", "#334155"];
+  // zoomed out, each box is a solid block in its kind's ink, which stands out from the light lanes better than its fill
+  const farStyle = document.createElement("style");
+  farStyle.textContent = Object.entries(DATA.kinds).filter(([k]) => /^[\w-]+$/.test(k))
+    .map(([k, [, , ink]]) => `svg.far .node.${k}.live .box{fill:${String(ink).replace(/[^#\w(),. %]/g, "")}}`).join("\n");  // parked and retired keep their light fill, so their dashes show
+  document.head.append(farStyle);
   DATA.presets ||= [];
   const insAll = {}, outsAll = {};
   DATA.edges.forEach(e => { (outsAll[e.from] ||= []).push(e); (insAll[e.to] ||= []).push(e); });
@@ -814,10 +829,10 @@ function app() {
     if (!widths.has(text)) { measure.font = TAG_FONT; widths.set(text, measure.measureText(text).width); }
     return widths.get(text);
   }
-  let farEl = {}, degree = {}, edgesAt = {}, hoverId = null;
-  /* Which boxes get a tag: the boxes in view, in order of how much they matter now (hovered and its neighbours, the
-     selected box, search hits, the lit chain, then the most links), each placed unless it would overlap one already
-     placed. */
+  let farEl = {}, degree = {}, edgesAt = {}, hoverId = null, hoverEnds = new Set();
+  /* Which boxes get a tag: only boxes in view that something points at, in order of how much they matter (the hovered
+     box or line's ends, the rest of the hovered chain, the selected box, search hits, the lit chain, then the most
+     links), each placed unless it would overlap one already placed. The others stay small solid blocks. */
   let farFrame = 0, farShown = new Set();
   function updateFar() {  // at most once a frame: a drag or wheel calls it on every event
     if (!farFrame) farFrame = requestAnimationFrame(() => { farFrame = 0; placeFar(); });
@@ -835,11 +850,13 @@ function app() {
     const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a;
     const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
     const has = (id, c) => nodeEl[id].classList.contains(c);
-    const rank = id => (id === hoverId ? -1 : has(id, "hn") ? 0 : has(id, "sel") ? 1 : has(id, "hit") ? 2 : has(id, "near") ? 3 : has(id, "on") ? 4 : 5);
+    const rank = id => (id === hoverId || hoverEnds.has(id) ? -1 : has(id, "hn") ? 0 : has(id, "sel") ? 1 : has(id, "hit") ? 2 : has(id, "near") ? 3 : has(id, "on") ? 4 : 5);
     const inView = lay.nodes.filter(n => sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
-    inView.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
+    // only boxes something points at get a tag (hover, selection, search); the rest stay small solid blocks
+    const tagged = inView.filter(n => rank(n.id) < 5);
+    tagged.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
     // a box cut off at the left edge has its tag at the edge; the pinned lane names sit over the map, so no tag under them
-    const boxes = inView.map(n => {
+    const boxes = tagged.map(n => {
       const x0 = Math.max(sx(n.x), 0), yc = sy(n.y + n.h / 2);
       return { x0: x0 - 2, y0: yc - 11, x1: x0 + tagWidth(farName(n.label)) + 14, y1: yc + 11 };
     });
@@ -849,7 +866,7 @@ function app() {
     });
     const placed = new Set();
     for (const i of placeTags(boxes, blocked)) {
-      const n = inView[i], g = farEl[n.id], at = (boxes[i].x0 + 2 - m.e + r.left) / m.a;
+      const n = tagged[i], g = farEl[n.id], at = (boxes[i].x0 + 2 - m.e + r.left) / m.a;
       placed.add(n.id);
       g.setAttribute("transform", `translate(${at.toFixed(1)},${(n.y + n.h / 2).toFixed(1)}) scale(${(1 / s).toFixed(4)})`);
       g.setAttribute("class", "fl " + ["on", "near", "sel", "hit", "hn"].filter(c => has(n.id, c)).join(" "));
@@ -857,8 +874,8 @@ function app() {
     showFar(placed);
   }
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
-  /* Hovering a link (edge: its index in lay.edges) lights it and the boxes at its two ends, and a note by the pointer
-     names them and the link's label. */
+  /* Hovering a link (edge: its index in lay.edges) lights the whole chain it is on (linkChain) and tags its boxes, the
+     two ends first, and a note by the pointer names the ends and the link's label. */
   const etip = document.createElement("div");
   etip.id = "etip"; etip.className = "panel"; etip.hidden = true; document.getElementById("stage").append(etip);
   let hoverEdge = null;
@@ -876,9 +893,12 @@ function app() {
     hoverEdge = e ? i : null;
     svg.classList.toggle("hovering", !!e);
     etip.hidden = !e;
-    if (e) {
+    hoverEnds = new Set(e ? [e.from, e.to] : []);
+    if (e) {  // the whole chain the line is on: what feeds its start and what its end feeds
+      const c = linkChain(sub.edges, e.from, e.to, endsChain);
+      edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
-      [e.from, e.to].forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
+      c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
       etip.innerHTML = edgeTip(e, id => nodeOf(id).label);
       placeTip();
     }
@@ -946,7 +966,7 @@ function app() {
       for (const line of wrap(n.desc, WRAP)) { ty += 13; p.push(`<text class="d" x="14" y="${ty}">${esc(line)}</text>`); }
       p.push("</g>");
     }
-    // name tags for a zoomed-out view (updateFar): drawn at a fixed size on screen, the busiest boxes first
+    // name tags for a zoomed-out view (updateFar): drawn at a fixed size on screen for hovered, selected and found boxes
     p.push('</g><g id="far">');
     for (const n of lay.nodes) {
       const [, fill, ink] = DATA.kinds[n.kind], name = farName(n.label);
@@ -974,7 +994,7 @@ function app() {
     nodeEl = {};
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
-    farEl = {}; farShown = new Set(); degree = {}; edgesAt = {}; hoverId = null; hoverEdge = null; etip.hidden = true; laneBack = null;
+    farEl = {}; farShown = new Set(); degree = {}; edgesAt = {}; hoverId = null; hoverEdge = null; hoverEnds = new Set(); etip.hidden = true; laneBack = null;
     closeLens();  // the lens holds a copy of the old drawing
     svg.querySelectorAll(".fl").forEach(g => (farEl[g.dataset.id] = g));
     edgeEls.forEach(el => [el.dataset.from, el.dataset.to].forEach(v => { degree[v] = (degree[v] || 0) + 1; (edgesAt[v] ||= []).push(el); }));
@@ -1571,7 +1591,7 @@ function app() {
     { at: ["#lanes"], title: "Filter",
       text: "Filters picks the lanes and kinds of box, and whether parked and retired work shows. Clear filters, under the toolbar, puts them back." },
     { at: ["#btns"], title: "Move around and share",
-      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, the busiest boxes get name tags and hovering a box lights its links. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Share copies a link that opens this exact view. The ? button runs this tour again." },
+      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, boxes are small blocks without names: hover a line to name every box on its chain, or a box to light its links. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Share copies a link that opens this exact view. The ? button runs this tour again." },
   ];
   let tourAt = -1, tourOn = [];
   const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden
