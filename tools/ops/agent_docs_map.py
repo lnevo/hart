@@ -12,7 +12,8 @@ The set: DOCS and FOLDERS (each with its description), every file matching GLOBS
 and HAND_KEPT, boxes another pipeline owns (a generated doc, the map itself) that keep their hand-kept entry in the
 graph. A folder box stands for every file in it.
 
-The links, each marked "gen": "agent-docs" in the graph:
+The links, each marked "gen": "agent-docs" in the graph, and "side" ("pointer" or "check"): a hovered line's chain on the
+map does not walk on through them, since neither carries content:
 - "points to": doc A names doc B, by a Markdown link (read from A's folder) or a backticked repo path, as parsed by
   references() in tools/audit/check_agent_docs.py, the parser the agent-docs check uses. A backticked name of one of
   this repo's subagents (`panel-tracer`) or commands (`/done`) points at its file. A target inside a folder box
@@ -37,6 +38,7 @@ DOCS_CHECK = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(DOCS_CHECK)
 
 GEN = "agent-docs"
+SIDE = {"points to": "pointer", "check": "check"}  # the "side" each kind of link gets
 DOMAIN = "agents"
 CHECKER = "tools/audit/check_agent_docs.py"
 START = "AGENTS.md"     # where every agent starts reading; the links are drawn in reading order from here
@@ -211,7 +213,8 @@ def doc_edges(set_nodes: dict[str, str], tracked: frozenset[str], read, checked:
         edges[(owner, checker)] = "check"
     if not owners:
         raise AgentDocsMapError(f"{CHECKER} reads none of the agent docs; check its PATTERNS")
-    return [{"from": a, "to": b, "label": label, "gen": GEN} for (a, b), label in sorted(edges.items())]
+    # both kinds are side links: a chain does not walk on through them (see "side" in tools/ops/build_pipeline_map.py)
+    return [{"from": a, "to": b, "label": label, "gen": GEN, "side": SIDE[label]} for (a, b), label in sorted(edges.items())]
 
 
 def _read_file(rel: str) -> str:

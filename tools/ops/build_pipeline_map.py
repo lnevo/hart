@@ -18,7 +18,12 @@ cycles in node order, so a sorted file draws a much wider map. Locally the file 
 tools/ops/merge_pipeline_map.py is its git merge driver.
 
 The graph file holds domains (the horizontal lanes), nodes and edges. A node's `path` must exist in the checkout
-unless the node says `"local": true` (a gitignored mirror or a file made on a host). This script checks the graph and
+unless the node says `"local": true` (a gitignored mirror or a file made on a host). A node marked `"runner": true`
+only runs other steps (tools/check.sh, build_panels.sh). An edge may carry `"side"`, one of SIDES, for a link that
+carries no content on to the next step: "check" (a check or comparison reads it), "pointer" (a doc names another),
+"pull" (a Store pull back into the sources), "mirror" (a folder holds a copy), "capture" (a page screenshot),
+"history" (git history of a file). A hovered line's chain on the page stops at runners and does not walk side links;
+both are still drawn, and a click still traces the full reach. This script checks the graph and
 writes one self-contained page; the layout and the viewer are in tools/ops/pipeline_map.js, inlined into the page, so
 the page can redraw any subset (some lanes, or the chain around one file) without build tools.
 """
@@ -37,6 +42,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
+SIDES = ("check", "pointer", "pull", "mirror", "capture", "history")  # an edge's "side": why it carries no content on
 PAGE = ROOT / "docs" / "pipeline-map" / "index.html"
 SCRIPT = Path(__file__).resolve().with_name("pipeline_map.js")
 # the website copy, as tools/check.sh checks it
@@ -190,6 +196,8 @@ def validate(data: dict, tracked: bool = True) -> dict:
         seen_edges.add(key)
         if e["from"] == e["to"]:
             problems.append(f"edge {e['from']} points at itself")
+        if "side" in e and e["side"] not in SIDES:
+            problems.append(f"edge {e['from']} -> {e['to']}: side {e['side']!r} is not one of {', '.join(SIDES)}")
     for nid in sorted(ids - linked):
         problems.append(f"node {nid!r} has no links; link it or remove it")
     presets = data.get("presets", [])  # the page's start-here buttons
@@ -330,6 +338,10 @@ svg.far .eh{stroke-width:6px}
 #etip .off{color:#888;font-size:11px}
 svg.hovering .edge.he.he{stroke:#7c3aed;stroke-opacity:1;opacity:1;stroke-width:2.5px}
 svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
+svg.hovering .edge.he.he.he2{stroke-opacity:.7}
+svg.hovering .edge.he.he.he3{stroke-opacity:.45;stroke-width:1.75px}
+svg.hovering .node.hn.hn2 .box{stroke-opacity:.6}
+svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:1.75px}
 .node.mag .box{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
 svg.lhover .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
@@ -422,7 +434,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml: they light but the chain stops there; click a box for its full reach), and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Cmd-click (Ctrl-click off a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml) and runners such as check.sh (they light but the chain stops there), and not across side links that carry no content on (what a check reads, a doc pointer, a Store pull back into the sources); boxes and links more than two steps from the line are outlined fainter, more than four fainter still (still brighter than the rest of the map); click a box for its full reach, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Cmd-click (Ctrl-click off a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
@@ -533,10 +545,10 @@ def render(data: dict, back: str = "", site: bool = False) -> str:
     )
     page_data = {
         "nodes": [
-            {k: n[k] for k in ("id", "label", "kind", "status", "domain", "desc", "path", "local") if k in n}
+            {k: n[k] for k in ("id", "label", "kind", "status", "domain", "desc", "path", "local", "runner") if k in n}
             for n in data["nodes"]
         ],
-        "edges": [{k: e[k] for k in ("from", "to", "label") if k in e} for e in data["edges"]],
+        "edges": [{k: e[k] for k in ("from", "to", "label", "side") if k in e} for e in data["edges"]],
         "kinds": {k: list(v) for k, v in KINDS.items()},
         "presets": data.get("presets", []),
         "domains": [{"id": d["id"], "label": d["label"], "color": d["color"]} for d in data["domains"]],

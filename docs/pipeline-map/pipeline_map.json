@@ -335,7 +335,8 @@
    "status": "live",
    "domain": "extras",
    "desc": "Pre-commit runner executing every --check and audit as parallel jobs; skips a job whose stamped inputs are unchanged; includes the wiring-frozen audit (check_wiring_frozen.py); HART_TABLES overrides the tables file.",
-   "path": "tools/check.sh"
+   "path": "tools/check.sh",
+   "runner": true
   },
   {
    "id": "tools/ctc_history/make_ctc_evolution_video.py",
@@ -3275,7 +3276,8 @@
    "status": "live",
    "domain": "layout",
    "desc": "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan step and sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all).",
-   "path": "tools/schematic/build_panels.sh"
+   "path": "tools/schematic/build_panels.sh",
+   "runner": true
   },
   {
    "id": "jmri/layouts/hart/scripts/run_panelpro_smoke_test.sh",
@@ -3840,7 +3842,8 @@
   {
    "from": "cats/data/occupancy_bindings.csv",
    "to": "tools/audit/check_layout_facts.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "cats/data/occupancy_bindings.csv",
@@ -3859,7 +3862,8 @@
   {
    "from": "cats/panels/HART_ABS.xml",
    "to": "tools/schematic/approval.py",
-   "label": "check cats-abs"
+   "label": "check cats-abs",
+   "side": "check"
   },
   {
    "from": "cats/panels/HART_CTC.bindings.json",
@@ -3869,7 +3873,8 @@
   {
    "from": "cats/panels/HART_CTC.xml",
    "to": "cats/scripts/validate_cats_panel.py",
-   "label": "make desks check"
+   "label": "make desks check",
+   "side": "check"
   },
   {
    "from": "cats/panels/HART_CTC.xml",
@@ -3879,7 +3884,8 @@
   {
    "from": "cats/panels/HART_CTC.xml",
    "to": "tools/audit/check_layout_facts.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "cats/panels/HART_CTC.xml",
@@ -3889,7 +3895,8 @@
   {
    "from": "cats/panels/HART_CTC.xml",
    "to": "tools/schematic/approval.py",
-   "label": "check cats-ctc"
+   "label": "check cats-ctc",
+   "side": "check"
   },
   {
    "from": "cats/panels/HART_CTC.xml",
@@ -3967,7 +3974,8 @@
   {
    "from": "docs/ops/schematic-system-draft.svg",
    "to": "tools/schematic/evolution.py",
-   "label": "git history"
+   "label": "git history",
+   "side": "history"
   },
   {
    "from": "docs/ops/stations",
@@ -3991,7 +3999,8 @@
   {
    "from": "docs/wiring/lcos/lcos_signal_logic.csv",
    "to": "tools/check.sh",
-   "label": "unchecked inputs"
+   "label": "unchecked inputs",
+   "side": "check"
   },
   {
    "from": "docs/wiring/lcos/lcos_signal_logic.csv",
@@ -4228,7 +4237,8 @@
   {
    "from": "host:mac",
    "to": "tools/ops/pull_tables.sh",
-   "label": "reads Store"
+   "label": "reads Store",
+   "side": "pull"
   },
   {
    "from": "host:mosquitto",
@@ -4263,7 +4273,8 @@
   {
    "from": "host:pi",
    "to": "tools/ops/pull_tables_pi.sh",
-   "label": "reads Store"
+   "label": "reads Store",
+   "side": "pull"
   },
   {
    "from": "host:web-server",
@@ -4483,7 +4494,8 @@
   {
    "from": "jmri/layouts/hart/data/baselines",
    "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
-   "label": "compares"
+   "label": "compares",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/block_lengths.csv",
@@ -4522,7 +4534,8 @@
   {
    "from": "jmri/layouts/hart/data/mast_cells.csv",
    "to": "tools/audit/check_name_copies.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/new_locos.json",
@@ -4531,27 +4544,32 @@
   {
    "from": "jmri/layouts/hart/data/schematic/approved_cats_abs.sha256",
    "to": "tools/schematic/approval.py",
-   "label": "compares"
+   "label": "compares",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/approved_cats_ctc.sha256",
    "to": "tools/schematic/approval.py",
-   "label": "compares"
+   "label": "compares",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/approved_le_candidate.sha256",
    "to": "tools/schematic/approval.py",
-   "label": "compares"
+   "label": "compares",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/approved_le_panel.sha256",
    "to": "tools/schematic/approval.py",
-   "label": "compares"
+   "label": "compares",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/approved_staging.sha256",
    "to": "tools/schematic/build_layout_le.py",
-   "label": "checks"
+   "label": "checks",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/block_overrides.csv",
@@ -4679,7 +4697,8 @@
   {
    "from": "jmri/layouts/hart/data/schematic/masts.csv",
    "to": "tools/audit/check_wiring_crosswalk.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/masts.csv",
@@ -4754,7 +4773,8 @@
   {
    "from": "jmri/layouts/hart/data/schematic/masts.csv",
    "to": "tools/schematic/sync_signals.py",
-   "label": "check only"
+   "label": "check only",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/stations.csv",
@@ -4793,7 +4813,8 @@
   {
    "from": "jmri/layouts/hart/data/switches.csv",
    "to": "tools/audit/check_layout_facts.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/switches.csv",
@@ -4836,7 +4857,8 @@
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
    "to": "tools/audit/check_wiring_crosswalk.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/wiring.csv",
@@ -4895,12 +4917,14 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
-   "label": "audit"
+   "label": "audit",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py",
-   "label": "deploy check"
+   "label": "deploy check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -4910,22 +4934,26 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/audit/check_layout_facts.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/audit/check_sml_invariants.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/audit/check_wiring_crosswalk.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/hartlib/src/hartlib/parked.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -4943,7 +4971,8 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/approval.py",
-   "label": "check le-panel"
+   "label": "check le-panel",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -4953,17 +4982,20 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/check_device_master.py",
-   "label": "check only"
+   "label": "check only",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/split_store.py",
-   "label": "repo side"
+   "label": "repo side",
+   "side": "pull"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/schematic/sync_signals.py",
-   "label": "check only"
+   "label": "check only",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -4990,7 +5022,8 @@
   {
    "from": "jmri/layouts/hart/output/trial/tables_cutover.xml",
    "to": "tools/schematic/approval.py",
-   "label": "check le-candidate"
+   "label": "check le-candidate",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/parked",
@@ -5000,7 +5033,8 @@
   {
    "from": "jmri/layouts/hart/parked/tables_parked.xml",
    "to": "tools/hartlib/src/hartlib/parked.py",
-   "label": "checked against tables.xml"
+   "label": "checked against tables.xml",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
@@ -5009,7 +5043,8 @@
   {
    "from": "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
    "to": "tools/audit/check_mqtt_no_static_lists.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/scripts/discover_nx.py",
@@ -5034,7 +5069,8 @@
   {
    "from": "jmri/layouts/hart/scripts/export_track_lengths.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/scripts/gen_ctc_track_plan.py",
@@ -5116,7 +5152,8 @@
   {
    "from": "jmri/scripts/signal_coordinator.py",
    "to": "tools/audit/check_mqtt_no_static_lists.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/scripts/signal_coordinator.py",
@@ -5131,7 +5168,8 @@
   {
    "from": "jmri/scripts/sml_beans.py",
    "to": "tools/audit/check_mqtt_no_static_lists.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/scripts/sml_beans.py",
@@ -5146,7 +5184,8 @@
   {
    "from": "jmri/scripts/sml_claims.py",
    "to": "tools/audit/check_mqtt_no_static_lists.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/scripts/sml_claims.py",
@@ -5161,7 +5200,8 @@
   {
    "from": "jmri/scripts/sml_handoff.py",
    "to": "tools/audit/check_mqtt_no_static_lists.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/scripts/sml_handoff.py",
@@ -5181,12 +5221,14 @@
   {
    "from": "media",
    "to": "media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx",
-   "label": "mirror"
+   "label": "mirror",
+   "side": "mirror"
   },
   {
    "from": "media",
    "to": "media/promo/voice/ref.wav",
-   "label": "mirror"
+   "label": "mirror",
+   "side": "mirror"
   },
   {
    "from": "media",
@@ -5366,7 +5408,8 @@
   {
    "from": "ops/hart-ops/card_pipeline/publish_gate.py",
    "to": "ops/hart-ops/bin/cars",
-   "label": "gate checks"
+   "label": "gate checks",
+   "side": "check"
   },
   {
    "from": "ops/hart-ops/card_pipeline/site_gallery.py",
@@ -5495,7 +5538,8 @@
   {
    "from": "ops/hart-ops/operator_logos",
    "to": "www/scripts/deploy_hartrailroad.sh",
-   "label": "required guard"
+   "label": "required guard",
+   "side": "check"
   },
   {
    "from": "ops/hart-ops/operator_logos",
@@ -5575,7 +5619,8 @@
   {
    "from": "tools/anyrail/levels_page.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/anyrail/levels_page.py",
@@ -5589,7 +5634,8 @@
   {
    "from": "tools/anyrail/levels_svg.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/anyrail/prototype",
@@ -5599,47 +5645,56 @@
   {
    "from": "tools/audit/check_agent_docs.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_ai_speak.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_layout_facts.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_mqtt_no_static_lists.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_name_copies.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_public_text.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_sml_invariants.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_tracked_policy.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/audit/check_wiring_crosswalk.py",
    "to": "tools/check.sh",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/benchwork/helix",
@@ -5657,7 +5712,8 @@
   {
    "from": "tools/benchwork/station_maps_3d/check_stl.py",
    "to": "docs/benchwork/station_maps_3d/stl",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "tools/ctc_history/make_ctc_evolution_video.py",
@@ -5874,7 +5930,8 @@
   {
    "from": "tools/mqtt-mimic/qa/run_native_sml_qa.py",
    "to": "host:panelpro",
-   "label": "JSON check"
+   "label": "JSON check",
+   "side": "check"
   },
   {
    "from": "tools/hartlib/src/hartlib/hosts.py",
@@ -5903,7 +5960,8 @@
   {
    "from": "tools/ops/build_docs_index.py",
    "to": "tools/check.sh",
-   "label": "check docs-index"
+   "label": "check docs-index",
+   "side": "check"
   },
   {
    "from": "tools/ops/cs105_reboot.sh",
@@ -5947,7 +6005,8 @@
   {
    "from": "tools/ops/status_counts.py",
    "to": "tools/check.sh",
-   "label": "check status-counts"
+   "label": "check status-counts",
+   "side": "check"
   },
   {
    "from": "tools/ops/status_counts.py",
@@ -6063,12 +6122,14 @@
   {
    "from": "tools/schematic/split_store.py",
    "to": "jmri/layouts/hart/data/store_splits.csv",
-   "label": "records"
+   "label": "records",
+   "side": "pull"
   },
   {
    "from": "tools/schematic/split_store.py",
    "to": "jmri/layouts/hart/data/tables_template.xml",
-   "label": "kept items"
+   "label": "kept items",
+   "side": "pull"
   },
   {
    "from": "tools/schematic/split_store.py",
@@ -6099,17 +6160,20 @@
   {
    "from": "tools/wiring/write_inventory.py",
    "to": "tools/check.sh",
-   "label": "check wiring-v86"
+   "label": "check wiring-v86",
+   "side": "check"
   },
   {
    "from": "www",
    "to": "tools/audit/check_public_text.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "www",
    "to": "tools/promo/tiktok_promo.py",
-   "label": "page screenshots"
+   "label": "page screenshots",
+   "side": "capture"
   },
   {
    "from": "www/404.html",
@@ -6453,12 +6517,14 @@
   {
    "from": "www/index.html",
    "to": "tools/promo/tiktok_promo.py",
-   "label": "site captures"
+   "label": "site captures",
+   "side": "capture"
   },
   {
    "from": "www/index.html",
    "to": "www/scripts/make_share_cards.py",
-   "label": "page snapshots"
+   "label": "page snapshots",
+   "side": "capture"
   },
   {
    "from": "www/js",
@@ -6521,7 +6587,8 @@
   {
    "from": "www/scripts/build_wiring_json.py",
    "to": "tools/check.sh",
-   "label": "check wiring-json"
+   "label": "check wiring-json",
+   "side": "check"
   },
   {
    "from": "www/scripts/build_wiring_json.py",
@@ -6534,7 +6601,8 @@
   {
    "from": "www/scripts/check_portal_build.py",
    "to": "www/scripts/deploy_hartrailroad.sh",
-   "label": "manifest + guard"
+   "label": "manifest + guard",
+   "side": "check"
   },
   {
    "from": "www/scripts/deploy_hartrailroad.sh",
@@ -6666,7 +6734,8 @@
   {
    "from": "www/scripts/share_cards.py",
    "to": "www/scripts/check_portal_build.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "www/scripts/tables_page.py",
@@ -6720,7 +6789,8 @@
   {
    "from": "docs/INDEX.md",
    "to": "tools/check.sh",
-   "label": "docs-index --check"
+   "label": "docs-index --check",
+   "side": "check"
   },
   {
    "from": "docs/benchwork/main_level",
@@ -6735,7 +6805,8 @@
   {
    "from": "wiki/STATUS.md",
    "to": "tools/check.sh",
-   "label": "status-counts --check"
+   "label": "status-counts --check",
+   "side": "check"
   },
   {
    "from": "external/sts-docker-data/Rolling Stock photos",
@@ -6785,7 +6856,8 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/scripts/check_hart_phase02.py",
-   "label": "checks"
+   "label": "checks",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/switches.csv",
@@ -6795,7 +6867,8 @@
   {
    "from": "jmri/scripts/check_hart_phase02.py",
    "to": "tools/check.sh",
-   "label": "check phase02"
+   "label": "check phase02",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -6815,7 +6888,8 @@
   {
    "from": "jmri/layouts/hart/scripts/capture_public_name_baseline.py",
    "to": "tools/check.sh",
-   "label": "check baselines"
+   "label": "check baselines",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -6829,7 +6903,8 @@
   {
    "from": "jmri/layouts/hart/scripts/speedmatch/build_routes.py",
    "to": "tools/check.sh",
-   "label": "check speedmatch-routes"
+   "label": "check speedmatch-routes",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/schematic/panel_items.json",
@@ -6844,7 +6919,8 @@
   {
    "from": "tools/schematic/panel_items.py",
    "to": "tools/check.sh",
-   "label": "check panel-status"
+   "label": "check panel-status",
+   "side": "check"
   },
   {
    "from": "tools/schematic/build_panels.sh",
@@ -6854,7 +6930,8 @@
   {
    "from": "tools/schematic/check_sml_current.py",
    "to": "tools/schematic/build_panels.sh",
-   "label": "guard before tables"
+   "label": "guard before tables",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -6951,7 +7028,8 @@
   {
    "from": "tools/ops/build_pipeline_map.py",
    "to": "tools/check.sh",
-   "label": "check pipeline-map-site"
+   "label": "check pipeline-map-site",
+   "side": "check"
   },
   {
    "from": "tools/ops/merge_pipeline_map.py",
@@ -6979,7 +7057,8 @@
   {
    "from": "tools/ops/pipeline_map_coverage.py",
    "to": "tools/check.sh",
-   "label": "check pipeline-map-coverage"
+   "label": "check pipeline-map-coverage",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/scripts/speedmatch/routes.json",
@@ -7009,12 +7088,14 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/audit/check_layout_facts.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/audit/check_name_copies.py",
-   "label": "check"
+   "label": "check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
@@ -7048,7 +7129,8 @@
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
    "to": "tools/schematic/check_device_master.py",
-   "label": "check only"
+   "label": "check only",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/data/devices_generated.csv",
@@ -7081,7 +7163,8 @@
   {
    "from": "tools/schematic/split_store.py",
    "to": "jmri/layouts/hart/data/devices_field.csv",
-   "label": "merged cells"
+   "label": "merged cells",
+   "side": "pull"
   },
   {
    "from": "jmri/layouts/hart/data/devices_field.csv",
@@ -7131,7 +7214,8 @@
   {
    "from": "media/pulled-stores",
    "to": "tools/schematic/split_store.py",
-   "label": "reads Store"
+   "label": "reads Store",
+   "side": "pull"
   },
   {
    "from": "human:owner",
@@ -7236,7 +7320,8 @@
   {
    "from": "external/sts-helpers/seed/inputs",
    "to": "ops/hart-ops/bin/cars",
-   "label": "compare reads seed copies"
+   "label": "compare reads seed copies",
+   "side": "check"
   },
   {
    "from": "ext:web-jpeg-cache",
@@ -7311,7 +7396,8 @@
   {
    "from": "jmri/layouts/hart/data/schematic/discovered_sml.stamp",
    "to": "tools/schematic/check_sml_current.py",
-   "label": "compared"
+   "label": "compared",
+   "side": "check"
   },
   {
    "from": "tools/hosts/sync_hart_package.sh",
@@ -7362,355 +7448,414 @@
    "from": ".claude/agents/archive-researcher.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/agents/finding-verifier.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/agents/panel-tracer.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/agents/repo-auditor.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/agents/schematic-builder.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/agents/site-builder.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/agents/site-reviewer.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/agents/voice-reviewer.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/commands/done.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/deploy/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/handoff/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/operating-flag/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/ops-pull/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/panel-approval/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/panelpro/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/sts-live/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/tables-pull/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".claude/skills/whats-left/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": ".cursor",
    "to": ".claude/skills/whats-left/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": ".cursor",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/archive-researcher.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/finding-verifier.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/panel-tracer.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/repo-auditor.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/schematic-builder.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/site-builder.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/site-reviewer.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/voice-reviewer.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/commands/done.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/deploy/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/handoff/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/operating-flag/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/ops-pull/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/panel-approval/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/panelpro/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/sts-live/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/tables-pull/SKILL.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": ".cursor",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "cats/AGENTS.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "docs/INDEX.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "docs/pipeline-map/pipeline_map.json",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": "AGENTS.md",
    "to": "wiki/AGENTS_GIT.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "wiki/STATUS.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "wiki/STATUS_LOG.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "wiki/decisions",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "wiki/home.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "wiki/not-pending.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "AGENTS.md",
    "to": "wiki/pipelines",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "cats/AGENTS.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": "ops/hart-ops/AGENTS.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": "wiki/AGENTS_GIT.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": "wiki/STATUS.md",
    "to": "wiki/projects",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "wiki/STATUS_LOG.md",
    "to": "wiki/projects",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "wiki/home.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "check"
   },
   {
    "from": "wiki/home.md",
    "to": "wiki/projects",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "wiki/not-pending.md",
    "to": "wiki/projects",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "wiki/pipelines",
    "to": "ops/hart-ops/AGENTS.md",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   },
   {
    "from": "wiki/pipelines",
    "to": "wiki/projects",
    "label": "points to",
-   "gen": "agent-docs"
+   "gen": "agent-docs",
+   "side": "pointer"
   }
  ]
 }
