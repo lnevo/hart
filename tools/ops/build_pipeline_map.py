@@ -338,10 +338,10 @@ svg.far .eh{stroke-width:6px}
 #etip .off{color:#888;font-size:11px}
 svg.hovering .edge.he.he{stroke:#7c3aed;stroke-opacity:1;opacity:1;stroke-width:2.5px}
 svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
-svg.hovering .edge.he.he.he2{stroke-opacity:.5}
-svg.hovering .edge.he.he.he3{stroke-opacity:.22;stroke-width:1.5px}
-svg.hovering .node.hn.hn2{opacity:.6}
-svg.hovering .node.hn.hn3{opacity:.32}
+svg.hovering .edge.he.he.he2{stroke-opacity:.7}
+svg.hovering .edge.he.he.he3{stroke-opacity:.45;stroke-width:1.75px}
+svg.hovering .node.hn.hn2 .box{stroke-opacity:.6}
+svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:1.75px}
 .node.mag .box{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
 svg.lhover .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
@@ -434,7 +434,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml) and runners such as check.sh (they light but the chain stops there), and not across side links that carry no content on (what a check reads, a doc pointer, a Store pull back into the sources); boxes more than two steps from the line show fainter, more than four fainter still; click a box for its full reach, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Cmd-click (Ctrl-click off a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml) and runners such as check.sh (they light but the chain stops there), and not across side links that carry no content on (what a check reads, a doc pointer, a Store pull back into the sources); boxes and links more than two steps from the line are outlined fainter, more than four fainter still (still brighter than the rest of the map); click a box for its full reach, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Cmd-click (Ctrl-click off a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left

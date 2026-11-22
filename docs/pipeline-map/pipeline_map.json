@@ -3873,7 +3873,8 @@
   {
    "from": "cats/panels/HART_CTC.xml",
    "to": "cats/scripts/validate_cats_panel.py",
-   "label": "make desks check"
+   "label": "make desks check",
+   "side": "check"
   },
   {
    "from": "cats/panels/HART_CTC.xml",
@@ -3998,7 +3999,8 @@
   {
    "from": "docs/wiring/lcos/lcos_signal_logic.csv",
    "to": "tools/check.sh",
-   "label": "unchecked inputs"
+   "label": "unchecked inputs",
+   "side": "check"
   },
   {
    "from": "docs/wiring/lcos/lcos_signal_logic.csv",
@@ -4915,12 +4917,14 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/layouts/hart/scripts/audit_panel_contracts.py",
-   "label": "audit"
+   "label": "audit",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py",
-   "label": "deploy check"
+   "label": "deploy check",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -5404,7 +5408,8 @@
   {
    "from": "ops/hart-ops/card_pipeline/publish_gate.py",
    "to": "ops/hart-ops/bin/cars",
-   "label": "gate checks"
+   "label": "gate checks",
+   "side": "check"
   },
   {
    "from": "ops/hart-ops/card_pipeline/site_gallery.py",
@@ -5533,7 +5538,8 @@
   {
    "from": "ops/hart-ops/operator_logos",
    "to": "www/scripts/deploy_hartrailroad.sh",
-   "label": "required guard"
+   "label": "required guard",
+   "side": "check"
   },
   {
    "from": "ops/hart-ops/operator_logos",
@@ -5924,7 +5930,8 @@
   {
    "from": "tools/mqtt-mimic/qa/run_native_sml_qa.py",
    "to": "host:panelpro",
-   "label": "JSON check"
+   "label": "JSON check",
+   "side": "check"
   },
   {
    "from": "tools/hartlib/src/hartlib/hosts.py",
@@ -6165,7 +6172,8 @@
   {
    "from": "www",
    "to": "tools/promo/tiktok_promo.py",
-   "label": "page screenshots"
+   "label": "page screenshots",
+   "side": "capture"
   },
   {
    "from": "www/404.html",
@@ -6593,7 +6601,8 @@
   {
    "from": "www/scripts/check_portal_build.py",
    "to": "www/scripts/deploy_hartrailroad.sh",
-   "label": "manifest + guard"
+   "label": "manifest + guard",
+   "side": "check"
   },
   {
    "from": "www/scripts/deploy_hartrailroad.sh",
@@ -6780,7 +6789,8 @@
   {
    "from": "docs/INDEX.md",
    "to": "tools/check.sh",
-   "label": "docs-index --check"
+   "label": "docs-index --check",
+   "side": "check"
   },
   {
    "from": "docs/benchwork/main_level",
@@ -6795,7 +6805,8 @@
   {
    "from": "wiki/STATUS.md",
    "to": "tools/check.sh",
-   "label": "status-counts --check"
+   "label": "status-counts --check",
+   "side": "check"
   },
   {
    "from": "external/sts-docker-data/Rolling Stock photos",
@@ -6919,7 +6930,8 @@
   {
    "from": "tools/schematic/check_sml_current.py",
    "to": "tools/schematic/build_panels.sh",
-   "label": "guard before tables"
+   "label": "guard before tables",
+   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -7308,7 +7320,8 @@
   {
    "from": "external/sts-helpers/seed/inputs",
    "to": "ops/hart-ops/bin/cars",
-   "label": "compare reads seed copies"
+   "label": "compare reads seed copies",
+   "side": "check"
   },
   {
    "from": "ext:web-jpeg-cache",

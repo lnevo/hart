@@ -394,6 +394,24 @@ process.stdout.write(JSON.stringify(out));"""
         for past in ("tools/schematic/split_store.py", "tools/promo/tiktok_promo.py", "tools/check.sh"):
             self.assertNotIn(past, lit)
 
+    def test_side_survives_bridging_and_folders(self) -> None:
+        """contract keeps a link's side, and a bridged link is a side link when any hop is; groupByFolder keeps side on
+        a merged link only when every link in it is a side link."""
+        nodes = [{"id": i} for i in ("a", "h", "b", "c")]
+        edges = [{"from": "a", "to": "b", "side": "check"}, {"from": "a", "to": "h"}, {"from": "h", "to": "c", "side": "pull"},
+                 {"from": "b", "to": "c"}]
+        got = self.run_js("m.contract(a.nodes, a.edges, id => id === 'h').edges.map(e => e.from + e.to + ':' + (e.side || ''))",
+                          {"nodes": nodes, "edges": edges})
+        self.assertEqual(sorted(got), ["ab:check", "ac:pull", "bc:"])
+        nodes = [{"id": f"d/{i}", "path": f"d/{i}", "domain": "x"} for i in ("p", "q")] + \
+                [{"id": f"e/{i}", "path": f"e/{i}", "domain": "x"} for i in ("r", "s")] + [{"id": "f/t", "path": "f/t", "domain": "x"}]
+        edges = [{"from": "d/p", "to": "e/r", "side": "check"}, {"from": "d/q", "to": "e/s", "side": "check"},
+                 {"from": "d/p", "to": "f/t", "side": "pointer"}, {"from": "e/r", "to": "f/t"}]
+        got = self.run_js("m.groupByFolder(a.nodes, a.edges, new Set()).edges.map(e => e.from + '>' + e.to + ':' + (e.side || ''))",
+                          {"nodes": nodes, "edges": edges})
+        self.assertIn("folder:d>folder:e:check", got)  # both links are checks
+        self.assertIn("folder:d>f/t:pointer", got)
+
     def test_line_note_names_both_ends_escaped(self) -> None:
         """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
         names = {"a": "a<b>.py", "b": "out & more"}

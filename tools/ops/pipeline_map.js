@@ -452,7 +452,7 @@ function isCache(n) {
 }
 
 /* Whether a chain stops at box n: the hosts lane (deploy, hosts, runtime apps), host and hand-work boxes, and caches.
-   Runner boxes ("runner": true, such as check.sh) stop only a hovered line's chain (see hoverStops in app()). */
+   Runner boxes ("runner": true, such as check.sh) stop only a hovered line's chain (hoverStop). */
 function stopsChain(n) {
   return !!n && (n.domain === "hosts" || n.kind === "host" || n.kind === "human" || isCache(n));
 }
@@ -559,22 +559,25 @@ function contract(nodes, edges, hide) {
   const outs = {};
   edges.forEach(e => (outs[e.from] ||= []).push(e));
   const kept = nodes.filter(n => !hide(n.id)), out = [], seen = new Set();
-  const add = (from, to, label, via) => {
+  // a link keeps its side; a bridged one is a side link when any hop on it is (content does not cross that hop)
+  const add = (from, to, label, via, side) => {
     const key = from + "\u0000" + to;
     if (from === to || seen.has(key)) return;
     seen.add(key);
-    out.push(via.length ? { from, to, via } : (label ? { from, to, label } : { from, to }));
+    const e = via.length ? { from, to, via } : (label ? { from, to, label } : { from, to });
+    if (side) e.side = side;
+    out.push(e);
   };
   for (const n of kept) {
-    for (const e of outs[n.id] || []) if (!hide(e.to)) add(n.id, e.to, e.label, []);  // direct links win
+    for (const e of outs[n.id] || []) if (!hide(e.to)) add(n.id, e.to, e.label, [], e.side);  // direct links win
     for (const e of outs[n.id] || []) {
       if (!hide(e.to)) continue;
-      const stack = [[e.to, [e.to]]], visited = new Set([e.to]);  // depth first through hidden boxes
+      const stack = [[e.to, [e.to], e.side]], visited = new Set([e.to]);  // depth first through hidden boxes
       while (stack.length) {
-        const [v, via] = stack.pop();
+        const [v, via, side] = stack.pop();
         for (const f of outs[v] || []) {
-          if (!hide(f.to)) add(n.id, f.to, "", via);
-          else if (!visited.has(f.to)) { visited.add(f.to); stack.push([f.to, via.concat(f.to)]); }
+          if (!hide(f.to)) add(n.id, f.to, "", via, side || f.side);
+          else if (!visited.has(f.to)) { visited.add(f.to); stack.push([f.to, via.concat(f.to), side || f.side]); }
         }
       }
     }
@@ -610,13 +613,17 @@ function groupByFolder(nodes, edges, open) {
     const from = groupOf[e.from] || e.from, to = groupOf[e.to] || e.to;
     if (from === to) continue;
     const key = from + "\u0000" + to;
-    if (!merged.has(key)) merged.set(key, { from, to, n: 0, label: e.label });
-    merged.get(key).n++;
+    if (!merged.has(key)) merged.set(key, { from, to, n: 0, label: e.label, side: e.side });
+    const m = merged.get(key);
+    m.n++;
+    if (!e.side) m.side = undefined;  // a merged link is a side link only when every link in it is
   }
   const outEdges = [...merged.values()].map(m => {
     const grouped = groupOf[m.from] || groupOf[m.to] || m.from.startsWith("folder:") || m.to.startsWith("folder:");
     const label = m.n > 1 ? `${m.n} links` : grouped ? "" : m.label;
-    return label ? { from: m.from, to: m.to, label } : { from: m.from, to: m.to };
+    const e = label ? { from: m.from, to: m.to, label } : { from: m.from, to: m.to };
+    if (m.side) e.side = m.side;
+    return e;
   });
   return { nodes: out, edges: outEdges, members, groupOf };
 }
