@@ -69,6 +69,10 @@ class CountTest(unittest.TestCase):
     def test_br_counts_as_a_space(self) -> None:
         self.assertEqual(counts(HEAD + "| a<br>b | c |\n")[2][2], 2)
 
+    def test_br_variants_are_spaces(self) -> None:
+        for br in ("<br/>", "<br />", "<BR>"):
+            self.assertEqual(counts(HEAD + f"| a{br}b | c |\n")[2][2], 2, br)
+
     def test_table_without_outer_pipes(self) -> None:
         self.assertEqual(len(problems(f"A | B\n--|--\nx | {LONG}\n")), 1)
 
@@ -133,6 +137,12 @@ class ErrorTest(unittest.TestCase):
         with self.assertRaisesRegex(DOCS.AgentDocsError, r"wiki/x\.md:3: HTML comment never closed"):
             counts("a\n\n<!-- open\nmore\n")
 
+    def test_long_cells_lists_an_unclosed_fence_as_a_problem(self) -> None:
+        self.assertEqual(problems("a\n```\nb\n"), ["wiki/x.md:2: code fence never closed"])
+
+    def test_inline_code_line_is_not_a_fence(self) -> None:
+        self.assertEqual(counts("```foo``` bar\n"), [])
+
     def test_missing_file_is_a_domain_error(self) -> None:
         with self.assertRaisesRegex(DOCS.AgentDocsError, r"wiki/does-not-exist\.md: cannot read"):
             DOCS.long_cells("wiki/does-not-exist.md")
@@ -184,6 +194,10 @@ class RepoTest(unittest.TestCase):
         self.assertNotIn("wiki/STATUS_LOG.md", files)
         self.assertFalse([f for f in files if f.startswith("wiki/archive/")])
         self.assertTrue(all(f.endswith(".md") for f in files))
+
+    def test_tracked_file_missing_from_the_tree_is_skipped(self) -> None:
+        with mock.patch.object(DOCS, "_git", return_value=["wiki/gone-for-good.md", "wiki/home.md"]):
+            self.assertEqual(DOCS.cell_files(), ["wiki/home.md"])
 
     def test_tracked_files_have_no_long_cell(self) -> None:
         self.assertEqual([p for rel in DOCS.cell_files() for p in DOCS.long_cells(rel)], [])

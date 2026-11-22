@@ -32,7 +32,8 @@ MAX_CELL_WORDS = 80
 CELL_FILES = ("wiki", "AGENTS.md")
 CELL_EXEMPT_FILES = ("wiki/STATUS_LOG.md",)
 CELL_EXEMPT_DIRS = ("wiki/archive/",)
-FENCE = re.compile(r"^\s*(?P<run>`{3,}|~{3,})(?P<info>.*)$")
+FENCE = re.compile(r"^\s*(?P<run>`{3,}(?=[^`]*$)|~{3,})(?P<info>.*)$")   # a backtick fence has no backtick after it
+BR = re.compile(r"<br\s*/?>", re.I)
 DELIMITER_ROW = re.compile(r"^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$")
 
 
@@ -221,7 +222,7 @@ def cell_word_counts(rel: str, text: str) -> list[tuple[int, int, int]]:
             while row < len(clean) and clean[row].strip() and "|" in clean[row]:
                 if row != no + 1:
                     for col, cell in enumerate(split_cells(clean[row]), 1):
-                        found.append((row + 1, col, len(cell.replace("<br>", " ").split())))
+                        found.append((row + 1, col, len(BR.sub(" ", cell).split())))
                 row += 1
             no = row
         else:
@@ -231,7 +232,9 @@ def cell_word_counts(rel: str, text: str) -> list[tuple[int, int, int]]:
 
 def cell_files() -> list[str]:
     """The tracked Markdown files the cell-length rule covers: all of wiki/ and AGENTS.md, minus the history."""
-    return [p for p in _git("ls-files", "-z", *CELL_FILES) if p.endswith(".md") and not is_cell_exempt(p)]
+    # a file git still lists but the working tree no longer has (deleted, not yet staged) has nothing to read
+    return [p for p in _git("ls-files", "-z", *CELL_FILES)
+            if p.endswith(".md") and not is_cell_exempt(p) and (ROOT / p).exists()]
 
 
 def is_cell_exempt(rel: str) -> bool:
@@ -249,9 +252,12 @@ def long_cells(rel: str, text: str | None = None) -> list[str]:
             text = (ROOT / rel).read_text(encoding="utf-8")
         except (OSError, UnicodeDecodeError) as err:
             raise AgentDocsError(f"{rel}: cannot read: {err}") from None
+    try:
+        counted = cell_word_counts(rel, text)
+    except AgentDocsError as err:     # one malformed page is a problem to list, the other files are still read
+        return [str(err)]
     return [f"{rel}:{line}: table cell {col} has {words} words (limit {MAX_CELL_WORDS}); move the detail to a "
-            f"section below the table and link it" for line, col, words in cell_word_counts(rel, text)
-            if words > MAX_CELL_WORDS]
+            f"section below the table and link it" for line, col, words in counted if words > MAX_CELL_WORDS]
 
 
 def main() -> int:

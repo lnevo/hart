@@ -172,10 +172,6 @@ plan overrides section (or the strand names) for the rule to name it. Most diffe
 | Block lengths | `plan_lengths.py` (AnyRail 5.3c) for every level. Measured lengths are for speed profiling only, not block lengths: `block_lengths.csv` keeps `measured_in`, but JMRI's block takes `plan_in` (today the 21 timed staging blocks take `measured_in`, `export_track_lengths.py`). Main and upper's intermediates are placed by length: check none moves |
 | Helix | Named through `helix_tracks.csv` on every level and emitted once across levels (needed whatever else) |
 
-#### Owner decision, 2026-11-20: short pieces between two switches
-
-**`part_of` in `devices.csv` is the standard way** (owner, 2026-11-20): every track has a block row, and one inside another block names it in `part_of` (role `part`: no occupancy row or detector of its own; the block it names exists, is on the track's level and is no part itself). Staging's wiring facts stay data in one exceptions file with a level column, `block_exceptions.csv` (35-37 in 35a, 13-15 to 15, 23-31 to 31, the piece of Scale in OS 7, a part per end for 1-3 and 35-39). **A part is still a JMRI block, layout block and track on the panel, with the occupancy sensor of the OS block it is part of; it has no occupancy row or detector of its own, and the LCOS allocation drops it** (owner, 2026-11-20, main and upper: SML keeps all 177 pairs; staging's 14 folded pieces stay without JMRI blocks until the owner decides). Tight short blocks need no label; geometry stays fixed (labels adapt, never track). **Where a home mast stands at a switch's points facing a short piece, the piece joins the OS block at its other end: the block boundary is at the mast** (owner, 2026-11-20: 202R, 126RB, 228RA, 230LB stay at their switches; 201-205 in OS 205, 125-129 in OS 129, 227-231 in OS 231, 229-233 in OS 233). The lower-numbered rule applies only where no mast decides it; a piece with a mast facing it at both ends stops the build. A rule, not exception rows
-
 **Part 1: done** (branch `agent/claude/step5-one-block-builder`, 2026-11-20). One block process for every level,
 `tools/schematic/block_layer.py`; `build_device_map.py` writes staging's block and occupancy rows from it (written_by
 `build_device_map.py`) beside the main and upper rows. tables.xml, the CATS desks, the Layout Editor candidates and
@@ -284,6 +280,10 @@ Step 5 follow-ups (2026-11-20):
   `lamp_columns` gone, the lamp-offset check retired; no track, switch or mast moved, only 5 labels and 4 block
   contents icons), and the CATS control point plates come back from `stations.csv`'s `desk_plate` column (Brick,
   Plane, Barn, East End, Princess; `cats_panel_dress.station_plates`).
+
+#### Owner decision, 2026-11-20: short pieces between two switches
+
+**`part_of` in `devices.csv` is the standard way** (owner, 2026-11-20): every track has a block row, and one inside another block names it in `part_of` (role `part`: no occupancy row or detector of its own; the block it names exists, is on the track's level and is no part itself). Staging's wiring facts stay data in one exceptions file with a level column, `block_exceptions.csv` (35-37 in 35a, 13-15 to 15, 23-31 to 31, the piece of Scale in OS 7, a part per end for 1-3 and 35-39). **A part is still a JMRI block, layout block and track on the panel, with the occupancy sensor of the OS block it is part of; it has no occupancy row or detector of its own, and the LCOS allocation drops it** (owner, 2026-11-20, main and upper: SML keeps all 177 pairs; staging's 14 folded pieces stay without JMRI blocks until the owner decides). Tight short blocks need no label; geometry stays fixed (labels adapt, never track). **Where a home mast stands at a switch's points facing a short piece, the piece joins the OS block at its other end: the block boundary is at the mast** (owner, 2026-11-20: 202R, 126RB, 228RA, 230LB stay at their switches; 201-205 in OS 205, 125-129 in OS 129, 227-231 in OS 231, 229-233 in OS 233). The lower-numbered rule applies only where no mast decides it; a piece with a mast facing it at both ends stops the build. A rule, not exception rows
 
 ### Owner decisions, late 2026-11-20
 
@@ -428,13 +428,13 @@ Three hand lists reproduce exactly as rules, checked against the drawing:
 | Intermediates | One merged rule: one interlocking end is enough, the line code kept (A main, B upper, staging as today), main and upper's loop direction used; B92 and B93 stay, staging unchanged |
 | Virtual masts | Only as destinations (owner, 2026-11-20, after the count): place and prune the visible masts first (`reaches_signal` counts visible masts only, so 126L stays dropped), then walk every route of each kept visible mast; a route that reaches a buffer stop before a visible mast gets a virtual bumper mast there, facing it. Nothing else. Detail: [Owner decision, 2026-11-20: virtual masts](#owner-decision-2026-11-20-virtual-masts). |
 
-#### Owner decision, 2026-11-20: virtual masts
-
-29 in all: staging 5 (4LA, 4LB, 10LA, 10LB, 12L), main 10, upper 14. Staging loses 8LC, 10RA, 10RB, 12R and 14R, so no Signal Mast Logic starts from the engine house tracks and westbound routes over Scale run to 6LA (accepted). Main and upper letters close up (102RA, 102RB); a clash with a visible name takes the next letter (120RC)
-
 Hand facts left under the one process: `interlockings.csv`, `block_splits.csv`, the local-switch areas,
 `helix_tracks.csv`, staging's block rows and `block_lengths.csv` (main and upper still generate their own block
 layer, so the block layer is not yet one process), the wired heads and `retired_virtual_masts.csv`.
+
+#### Owner decision, 2026-11-20: virtual masts
+
+29 in all: staging 5 (4LA, 4LB, 10LA, 10LB, 12L), main 10, upper 14. Staging loses 8LC, 10RA, 10RB, 12R and 14R, so no Signal Mast Logic starts from the engine house tracks and westbound routes over Scale run to 6LA (accepted). Main and upper letters close up (102RA, 102RB); a clash with a visible name takes the next letter (120RC)
 
 ### Next
 

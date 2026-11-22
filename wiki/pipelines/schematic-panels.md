@@ -101,6 +101,10 @@ make desks            # only the CATS desks, then validate them
 | approved-desks | `check_approved.py cats-ctc cats-abs` | nothing: stops the run when a desk no longer matches the fingerprint the owner approved |
 | approved-live | `check_approved.py le-panel` | nothing: stops when the live panel in `tables.xml` drifts from the approved fingerprint |
 
+Each step reads the plugin's cache (`.cache/hart/schematic` in the main checkout, shared by every worktree), so a run after a small change redoes only what that
+change reaches. `tools/check.sh` runs `--check` on the hands, main route, masts, signals sync, staging map, signals, device map and CATS steps, and the approved fingerprints (`check_approved.py`); `make panels
+CHECK=1` checks them all.
+
 ### Row staging-sets: what it checks
 
 Stops with file, line and station on an unknown switch, a staging switch in no desk area, stations that partly overlap, a switch in two nested stations, a missing or double desk code, or a sheet naming a station that is not there
@@ -120,10 +124,6 @@ Both are built on the generator's base (`hartlib.tables_build.base`: `data/table
 ### Row device-master: which rows are read how
 
 The staging rows that carry no `written_by` (turnouts, feedback) are kept by hand and read against the staging band here, as are staging's block and occupancy rows, which `build_device_map.py` writes; `masts.csv` and the staging mast and head rows are generated (masts above), and the main and upper rows are `build_device_map.py`'s, whose `--check` reads them against the drawing
-
-Each step reads the plugin's cache (`.cache/hart/schematic` in the main checkout, shared by every worktree), so a run after a small change redoes only what that
-change reaches. `tools/check.sh` runs `--check` on the hands, main route, masts, signals sync, staging map, signals, device map and CATS steps, and the approved fingerprints (`check_approved.py`); `make panels
-CHECK=1` checks them all.
 
 ## A memory, clock or setting change
 
@@ -164,10 +164,6 @@ Source of track: AnyRail's JMRI export of plan 5.3c (5.3b until Phase 2, 2026-11
 | Stations | Brick (1, 3), Plane (5), Barn (7), South Yard (15–21), East End (23–33), Princess (35–39), Engine House (9–13, nested in Barn), the desk areas of `stations.csv` | None yet |
 | West end | W-1 | — |
 
-#### Main and upper switch numbers: crossovers and renumbering
-
-A crossover is one number with A and B (A the left half), numbered where its A half stands: the three-way's halves pair with T196 and T202 as 101 and 103, T5/T10 and T194/T20 are one crossover each on the ground (121, 125), the helix-top crossovers T215/T311 and T210/T281 are main level (127, 131), the double crossover is one part (225). Upper renumber (2026-11-19): 207 and 209 swapped, the 213 crossover became 211 and 211 became 213, 231 and 233 swapped, 239 became 241, the 241 crossover 243, and 243 became 239. The plan joins 121's and 125's halves leg C to leg B (AnyRail's leg B of T10 and T20 is the diagonal), and the plugin (schematic-maps 0.1.42, `crossover_halves`) pairs lettered halves joined B to C as one single crossover: each half is closed on its through leg (121B and 125B on their leg C) on the Layout Editor panel and the CATS desks, and the log asks for their machines to be wired reversed. The T-names stay as aliases, so the other layer files still use them
-
 Also a reader rule, not an override: two track ends on the same spot in the export are one track and are joined (two pairs in 5.3b, one of them the main level's loop at T204).
 
 Hands and legs of the staging switches 5.3b lacked were taken from the Layout Editor panel in `tables.xml` (owner, 2026-11-13); plan 5.3c draws them the same way:
@@ -180,6 +176,10 @@ Hands and legs of the staging switches 5.3b lacked were taken from the Layout Ed
 | 9 | Right | EH-3 | EH-2 (its normal route: the panel's continuing sense is thrown) |
 
 Where they sit along their runs comes from the plan 5.3c lengths in `block_lengths.csv` (`plan_in`, `plan_lengths.py`; owner, 2026-11-20): every block is drawn to its plan share, and the measured lengths never move a mast.
+
+#### Main and upper switch numbers: crossovers and renumbering
+
+A crossover is one number with A and B (A the left half), numbered where its A half stands: the three-way's halves pair with T196 and T202 as 101 and 103, T5/T10 and T194/T20 are one crossover each on the ground (121, 125), the helix-top crossovers T215/T311 and T210/T281 are main level (127, 131), the double crossover is one part (225). Upper renumber (2026-11-19): 207 and 209 swapped, the 213 crossover became 211 and 211 became 213, 231 and 233 swapped, 239 became 241, the 241 crossover 243, and 243 became 239. The plan joins 121's and 125's halves leg C to leg B (AnyRail's leg B of T10 and T20 is the diagonal), and the plugin (schematic-maps 0.1.42, `crossover_halves`) pairs lettered halves joined B to C as one single crossover: each half is closed on its through leg (121B and 125B on their leg C) on the Layout Editor panel and the CATS desks, and the log asks for their machines to be wired reversed. The T-names stay as aliases, so the other layer files still use them
 
 ### Layer 2: generation rules
 
