@@ -53,7 +53,8 @@ HOST_LISTS = {
 HOST_ORDER = ("Pi", "Windows", "Mac")
 HOST_NAMES = {"Pi": "the Pi", "Windows": "Windows", "Mac": "the Mac"}
 LIST_END = re.compile(r"^\s*\)\s*$", re.M)
-SCRIPTS = ("signal_coordinator.py", "panel_status.py", "hide_cats_desk_windows.py", "jmri_cmd_watcher.py",
+SCRIPTS = ("signal_coordinator.py", "panel_status.py", "hide_cats_desk_windows.py", "hide_band_panels.py",
+           "jmri_cmd_watcher.py",
            "sts_car_sync.py", "mimic_relay.py")
 
 

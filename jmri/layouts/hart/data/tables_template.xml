@@ -96,6 +96,7 @@
       <ConditionalNGs>
         <systemName>IQC:AUTO:0001</systemName>
         <systemName>IQC:AUTO:0004</systemName>
+        <systemName>IQC:AUTO:0005</systemName>
       </ConditionalNGs>
     </LogixNG>
     <InitializationTable>
@@ -126,6 +127,15 @@
       <Socket>
         <socketName>A</socketName>
         <systemName>IQDA:AUTO:0004</systemName>
+      </Socket>
+    </ConditionalNG>
+    <ConditionalNG enabled="yes">
+      <systemName>IQC:AUTO:0005</systemName>
+      <userName>Hide the band panels</userName>
+      <thread>0</thread>
+      <Socket>
+        <socketName>A</socketName>
+        <systemName>IQDA:AUTO:0005</systemName>
       </Socket>
     </ConditionalNG>
   </LogixNGConditionalNGs>
@@ -170,6 +180,29 @@
       <operationFormula />
       <scriptAddressing>Direct</scriptAddressing>
       <script>preference:jython/hide_cats_desk_windows.py</script>
+      <scriptReference />
+      <scriptLocalVariable />
+      <scriptFormula />
+      <scriptLanguage>
+        <language>python</language>
+      </scriptLanguage>
+      <MaleSocket>
+        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
+        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
+          <errorHandling>Default</errorHandling>
+        </AbstractMaleSocket>
+      </MaleSocket>
+    </ActionScript>
+    <ActionScript class="jmri.jmrit.logixng.actions.configurexml.ActionScriptXml">
+      <systemName>IQDA:AUTO:0005</systemName>
+      <userName>Hide the band panels</userName>
+      <operationAddressing>Direct</operationAddressing>
+      <operationType>RunScript</operationType>
+      <operationReference />
+      <operationLocalVariable />
+      <operationFormula />
+      <scriptAddressing>Direct</scriptAddressing>
+      <script>preference:jython/hide_band_panels.py</script>
       <scriptReference />
       <scriptLocalVariable />
       <scriptFormula />

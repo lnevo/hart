@@ -110,6 +110,7 @@ rm -f "$HART"/cats/panels/HART_Master*.xml "$HART"/launch_hart_master*.sh
 
 JYTHON=(
   "$HART/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
+  "$HART/jmri/layouts/hart/scripts/hide_band_panels.py"
   "$HART/jmri/layouts/hart/scripts/panel_status.py"
   "$HART/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$HART/jmri/layouts/hart/scripts/sts_car_sync.py"

@@ -46,6 +46,7 @@ LIVE_PANELS=(
 
 JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
+  "$ROOT/jmri/layouts/hart/scripts/hide_band_panels.py"
   "$ROOT/jmri/layouts/hart/scripts/panel_status.py"
   "$ROOT/jmri/layouts/hart/scripts/jmri_cmd_watcher.py"
   "$ROOT/jmri/layouts/hart/scripts/sts_car_sync.py"
@@ -77,6 +78,7 @@ load_parked() {
     jmri/layouts/hart/scripts/panel_status.py \
     jmri/layouts/hart/scripts/discover_sml.py \
     jmri/layouts/hart/scripts/hide_cats_desk_windows.py \
+    jmri/layouts/hart/scripts/hide_band_panels.py \
     jmri/layouts/hart/scripts/repair_dispatcher_traininfo.py \
     jmri/layouts/hart/scripts/jmri_cmd_watcher.py \
     jmri/layouts/hart/scripts/sts_car_sync.py \

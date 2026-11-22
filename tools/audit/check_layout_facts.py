@@ -179,9 +179,14 @@ class Tables:
             if user:
                 self.turnouts[user] = ((t.findtext("systemName") or "").strip(),
                                        (t.findtext("comment") or "").strip())
-        self.layout_turnouts = {lt.get("ident"): lt for lt in self.root.iter("layoutturnout")}
-        self.segments = {s.get("ident"): s for s in self.root.iter("tracksegment")}
-        self.points = {p.get("ident"): p for p in self.root.iter("positionablepoint")}
+        # the full panel only: the band panels (tables.BAND_PANEL_NAMES, 2026-11-22) copy its elements under the same
+        # idents, and a lookup over the whole file would take the copy
+        panel = hart_tables.layout_editor(self.root)
+        if panel is None:
+            raise ValueError(f"{path}: no main Layout Editor panel ({', '.join(hart_tables.MAIN_PANEL_NAMES)})")
+        self.layout_turnouts = {lt.get("ident"): lt for lt in panel.iter("layoutturnout")}
+        self.segments = {s.get("ident"): s for s in panel.iter("tracksegment")}
+        self.points = {p.get("ident"): p for p in panel.iter("positionablepoint")}
         self.paths_stored = bool(self.paths)
         # a part (the device master's part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
         # legs in switches.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)

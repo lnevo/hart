@@ -155,7 +155,7 @@ class Cutover(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_cutover.xml"
             path.write_bytes(self.data)
-            audit = AUDIT.audit_source("deployment", path, staging, generated=True)
+            audit = AUDIT.audit_source("deployment", path, staging, generated=True, band_panels=False)
             drift = AUDIT.report_drift([audit])
             with contextlib.redirect_stdout(io.StringIO()):
                 cli = AUDIT.main(["--strict", "--tables", str(path), "--generated"])
@@ -596,14 +596,19 @@ class ThreeLevels(unittest.TestCase):
     def test_audit_reconcile_and_facts_on_the_candidate(self) -> None:
         stations = T._load("reconcile_dispatcher_stations", paths.LAYOUT_SCRIPTS / "reconcile_dispatcher_stations.py")
         facts = T._load("check_layout_facts", T.ROOT / "tools/audit/check_layout_facts.py")
+        # the tables as build_tables.py writes them: the build with its band panels (band_panels.add)
+        bands_mod = importlib.import_module("band_panels")
+        doc = tables.loads(self.data)
+        bands_mod.add(doc.root, self.P, self.bands, B.plugin()[1].CHROME)
+        data = doc.tobytes()
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables.xml"
-            path.write_bytes(self.data)
+            path.write_bytes(data)
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(stations.main(["--panel", str(path), "--check", "--no-sync"]), 0)   # parked: skips
                 self.assertEqual(AUDIT.main(["--tables", str(path)]), 0)   # --strict waits for Stage 1
                 self.assertEqual(facts.main(["--tables", str(path)]), 0)
-            self.assertEqual(path.read_bytes(), self.data)
+            self.assertEqual(path.read_bytes(), data)
 
 
 class Rebuilt(unittest.TestCase):

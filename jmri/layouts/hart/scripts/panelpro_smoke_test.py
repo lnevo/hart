@@ -24,6 +24,9 @@ TRAININFO = 374
 # Entry/Exit is parked no pair is loaded.
 PARKED = set(os.environ.get("HART_PARKED", "").split())
 PARKED_WINDOWS = {"uss": u"USS CTC", "dispatcher": u"Dispatcher System"}
+# The hidden band panels (hartlib.tables.BAND_PANEL_NAMES; Jython cannot import hartlib, test_band_panels.py holds the
+# two lists equal): each loads as a Layout Editor panel and the "Hide windows on start" LogixNG hides its window.
+BAND_PANELS = (u"Staging Level", u"Main Level", u"Upper Level")
 if "dispatcher" in PARKED:
     SECTIONS = 0
     TRANSITS = 0
@@ -123,6 +126,34 @@ def parked_errors():
     return errors
 
 
+def band_panel_errors(wait):
+    """Each band panel loaded as a Layout Editor panel and its window hidden by the LogixNG's hide_band_panels.py,
+    which waits for the windows to open. First each band window must exist and have been hidden once (up to 30 s;
+    a window shown before the script reaches it is not a failure), then each must stay hidden over six polls in three
+    seconds, so a window PanelPro shows again later is still seen."""
+    editors = jmri.InstanceManager.getDefault(jmri.jmrit.display.EditorManager)
+    names = set(editor.getTitle() for editor in editors.getAll())
+    errors = ["band panel %s not loaded" % title for title in BAND_PANELS if title not in names]
+
+    def frame(title):
+        return jmri.util.JmriJFrame.getFrame(title)
+
+    hidden_once = set()
+    for _ in range(60):
+        hidden_once.update(t for t in BAND_PANELS if frame(t) is not None and not frame(t).isVisible())
+        if len(hidden_once) == len(BAND_PANELS):
+            break
+        wait(500)
+    errors.extend("band panel %s has no window" % t for t in BAND_PANELS if frame(t) is None)
+    errors.extend("band panel %s window never hidden; the LogixNG should hide it" % t for t in BAND_PANELS
+                  if frame(t) is not None and t not in hidden_once)
+    shown = set()
+    for _ in range(6):
+        wait(500)
+        shown.update(t for t in hidden_once if frame(t) is not None and frame(t).isVisible())
+    errors.extend("band panel %s window shown again after it was hidden" % t for t in sorted(shown))
+    return errors
+
 class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
     def handle(self):
         self.level_line = "main and upper block sensors not checked"
@@ -180,6 +211,7 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                     "transits=%s expected=%s" % (bean_count(transit_manager), TRANSITS)
                 )
             errors.extend(parked_errors())
+            errors.extend(band_panel_errors(self.waitMsec))
             block_manager = jmri.InstanceManager.getDefault(jmri.BlockManager)
             errors.extend(level_block_errors(block_manager, sensor_manager))
             # the LogixNG runs on its own thread after load, and each sensor it sets updates the blocks and
@@ -280,14 +312,15 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 handle.write("ok\n")
                 if "dispatcher" in PARKED:
                     handle.write(
-                        "%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window\n"
-                        % (MASTS, self.level_line, " ".join(sorted(PARKED)))
+                        "%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window; "
+                        "band panels %s loaded and hidden\n"
+                        % (MASTS, self.level_line, " ".join(sorted(PARKED)), ", ".join(BAND_PANELS))
                     )
                 else:
                     handle.write(
                         "%s masts; %s; 24 station sensors; %s sections; %s transits; "
-                        "%s ordered TrainInfo routes\n"
-                        % (MASTS, self.level_line, SECTIONS, TRANSITS, TRAININFO)
+                        "%s ordered TrainInfo routes; band panels %s loaded and hidden\n"
+                        % (MASTS, self.level_line, SECTIONS, TRANSITS, TRAININFO, ", ".join(BAND_PANELS))
                     )
         finally:
             handle.close()

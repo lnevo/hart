@@ -179,6 +179,7 @@ if (Test-Path (Join-Path $ctcSrc 'icons')) {
 
 $jythonSrc = @(
   (Join-Path $hart 'jmri\layouts\hart\scripts\hide_cats_desk_windows.py'),
+  (Join-Path $hart 'jmri\layouts\hart\scripts\hide_band_panels.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\panel_status.py'),
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
   (Join-Path $hart 'jmri\scripts\signal_coordinator.py'),

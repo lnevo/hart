@@ -204,9 +204,14 @@ def capture_ctc_trl(root: ET.Element) -> list[dict[str, str]]:
 
 
 def capture_le_mast_bindings(root: ET.Element) -> list[dict[str, str]]:
+    """The mast slots of the full panel's turnouts and points. The band panels (tables.BAND_PANEL_NAMES) are copies
+    of it under the same idents, so they are left out (counted they would double every binding)."""
     rows: list[dict[str, str]] = []
+    panel = tables.layout_editor(root)
+    if panel is None:
+        raise SystemExit(f"no main Layout Editor panel ({', '.join(tables.MAIN_PANEL_NAMES)}) in the tables")
 
-    for turnout in root.iter("layoutturnout"):
+    for turnout in panel.iter("layoutturnout"):
         ident = turnout.get("ident", "").strip()
         if not ident:
             continue
@@ -222,7 +227,7 @@ def capture_le_mast_bindings(root: ET.Element) -> list[dict[str, str]]:
                     }
                 )
 
-    for point in root.iter("positionablepoint"):
+    for point in panel.iter("positionablepoint"):
         ident = point.get("ident", "").strip()
         if not ident:
             continue
