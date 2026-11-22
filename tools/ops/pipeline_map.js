@@ -1803,12 +1803,19 @@ function app() {
      (filtered()). */
   const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder";
   kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
-    `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>`).join("<br>");
+    `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>` +
+    ` <a data-kindonly="${esc(k)}">only</a>`).join("<br>");
   kindsBox.addEventListener("change", e => {
     const k = e.target.dataset.kind;
     if (!k) return;
     if (e.target.checked) view.kindsOff.delete(k); else view.kindsOff.add(k);
     renderKeeping(); writeHash();
+  });
+  kindsBox.addEventListener("click", e => {  // "only": every other kind is hidden (bridged over), as a lane's "only" does for lanes
+    const only = e.target.dataset && e.target.dataset.kindonly;
+    if (!only) return;
+    view.kindsOff = new Set(Object.keys(DATA.kinds).filter(k => hideable(k) && k !== only));
+    syncControls(); renderKeeping(); writeHash();
   });
   document.getElementById("compact").onchange = e => { view.compact = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("group").onchange = e => { view.group = e.target.checked; view.open.clear(); renderKeeping(); writeHash(); };

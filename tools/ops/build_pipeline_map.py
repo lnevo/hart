@@ -456,7 +456,7 @@ end). <b>Start ▾</b> opens common chains. <b>Find</b> highlights the boxes tha
 <b>Hover highlights</b> and <b>Near pipeline on click</b>. Page: <b>Dark background</b> and <b>Clean view</b> (or H: hides the lane
 names, step headers, this legend and the overview).</div>
 <div><b>Filters ▾</b> picks the lanes and kinds of box to draw, and whether parked features and retired tools show. Untick a kind,
-such as scripts, and its boxes are left out with their links joined up. <b>Clear filters</b>, at the foot of Filters or in the
+such as scripts, and its boxes are left out with their links joined up; <b>only</b> beside a lane or kind shows just that one. <b>Clear filters</b>, at the foot of Filters or in the
 second row, puts them back and keeps the file and the selected box. <b>Whole map</b> appears when the view is cut down.
 <b>Share</b> copies a link to the view as it is, with the selected box, zoom and position. A first visit gets a short tour;
 <b>?</b> runs it again. On a phone, Browse, Start, View, Filters and the buttons are under <b>More ▾</b>; Fit stays out.</div>

@@ -447,6 +447,12 @@ process.stdout.write(JSON.stringify(out));"""
         note = self.run_js("m.stopsNote(a)", [["a<b>", "hub"], ["c", "runner"], ["d", "cache"], ["e", "hub"], ["f", "hub"]])
         self.assertEqual(note, '<div class="off">stops at a&lt;b&gt; (hub), c (runner), d (cache), e (hub) and 1 more</div>')
 
+    def test_page_has_only_links_for_kinds(self) -> None:
+        """The Filters menu offers "only" beside each kind, as beside each lane, from the same script."""
+        page = MAP.render(json.loads(MAP.GRAPH.read_text()))
+        self.assertIn('data-kindonly="${esc(k)}">only</a>', page)
+        self.assertIn('data-only="${esc(d.id)}">only</a>', page)
+
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
         boxes = [{"id": "a", "x": 0, "y": 0, "w": 10, "h": 5}, {"id": "b", "x": 20, "y": 0, "w": 10, "h": 5}]
