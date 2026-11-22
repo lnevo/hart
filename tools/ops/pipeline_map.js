@@ -367,6 +367,13 @@ function pointerPick(c) {
   return {};
 }
 
+/* The hidden kinds after a kind's "only" is clicked: every hideable kind but k (kinds: the hideable kinds, off: the
+   kinds hidden now). A second click on the kind already shown alone shows every kind again. */
+function onlyKind(kinds, off, k) {
+  const alone = kinds.every(x => x === k || off.includes(x)) && !off.includes(k);
+  return alone ? [] : kinds.filter(x => x !== k);
+}
+
 /* The id of the first box in boxes ({id, x, y, w, h}) that holds the point x, y, or null. */
 function boxAt(boxes, x, y) {
   const b = boxes.find(n => x >= n.x && x <= n.x + n.w && y >= n.y && y <= n.y + n.h);
@@ -714,7 +721,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { onlyKind, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1128,7 +1135,9 @@ function app() {
     const parts = [];
     if (view.focus) parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
     if (sub.trim) parts.push(selected === view.focus ? "highlighted only" : `only the chain of <b>${esc(nodeOf(selected).label)}</b>`);
-    if (view.kindsOff.size) parts.push(`${[...view.kindsOff].map(k => DATA.kinds[k][0].toLowerCase()).join(", ")} hidden`);
+    const kindsOn = Object.keys(DATA.kinds).filter(k => hideable(k) && !view.kindsOff.has(k));
+    if (view.kindsOff.size && kindsOn.length === 1) parts.push(`only ${esc(DATA.kinds[kindsOn[0]][0].toLowerCase())}`);
+    else if (view.kindsOff.size) parts.push(`${[...view.kindsOff].map(k => DATA.kinds[k][0].toLowerCase()).join(", ")} hidden`);
     if (view.group && !view.focus) parts.push("grouped by folder");
     const lanesOff = allLanes.filter(d => !view.lanes.has(d));
     if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
@@ -1803,12 +1812,21 @@ function app() {
      (filtered()). */
   const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder";
   kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
-    `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>`).join("<br>");
+    `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>` +
+    ` <a data-kindonly="${esc(k)}">only</a>`).join("<br>");
   kindsBox.addEventListener("change", e => {
     const k = e.target.dataset.kind;
     if (!k) return;
     if (e.target.checked) view.kindsOff.delete(k); else view.kindsOff.add(k);
     renderKeeping(); writeHash();
+  });
+  // "only": every other kind hidden as if unticked (bridged over, but chain stops left out with their links), and the
+  // view refit as a lane's "only" does; a second click on it shows every kind again (onlyKind)
+  kindsBox.addEventListener("click", e => {
+    const only = e.target.dataset && e.target.dataset.kindonly;
+    if (!only) return;
+    view.kindsOff = new Set(onlyKind(Object.keys(DATA.kinds).filter(hideable), [...view.kindsOff], only));
+    syncControls(); render(false); writeHash();
   });
   document.getElementById("compact").onchange = e => { view.compact = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("group").onchange = e => { view.group = e.target.checked; view.open.clear(); renderKeeping(); writeHash(); };
