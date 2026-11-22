@@ -66,6 +66,35 @@ class Worktree:
     head: str
     branch: str | None  # None when detached
     locked: bool = False
+    lock_reason: str = ""  # git's lock text; Claude Code's agent locks name the session's "pid N"
+
+
+LOCK_PID = re.compile(r"\bpid (\d+)\b")
+
+
+def pid_running(pid: int) -> bool:
+    """Whether a process with this id exists (one owned by another user counts as running)."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return True
+    return True
+
+
+def lock_held(tree: Worktree) -> bool:
+    """Whether the worktree's lock still binds: any lock, unless its text names a pid whose process is gone.
+
+    Claude Code locks each agent worktree to its session's pid so the agent can be resumed. Once that session
+    has exited the lock protects nothing, so the sweep treats it as no lock (owner, 2026-11-21). A live
+    session's lock, or a lock with no pid, is respected."""
+    if not tree.locked:
+        return False
+    m = LOCK_PID.search(tree.lock_reason)
+    return True if m is None else pid_running(int(m.group(1)))
 
 
 def git(*args: str, cwd: str | Path | None = None, check: bool = False) -> str:
@@ -87,6 +116,7 @@ def worktrees(cwd: str | Path | None = None) -> list[Worktree]:
             cur.branch = line[len("branch refs/heads/"):]
         elif cur and line.startswith("locked"):
             cur.locked = True
+            cur.lock_reason = line[len("locked"):].strip()
         elif not line and cur:
             found.append(cur)
             cur = None
@@ -201,7 +231,7 @@ def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | 
             continue  # open work or a fresh worktree
         if home is not None and not under(tree.path, home):
             kept.append((tree, "outside, kept (not under .claude/worktrees/ of its repository)"))
-        elif tree.locked:
+        elif lock_held(tree):
             kept.append((tree, "locked"))
         elif inside(tree.path, keep):
             kept.append((tree, "in use by this session; a later sweep removes it"))
@@ -359,6 +389,8 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
             continue
         began = time.monotonic()
         try:
+            if tree.locked:
+                git("worktree", "unlock", tree.path, cwd=main)  # planned only when its session has exited
             if os.path.isdir(tree.path):
                 why = remove_worktree(tree.path, main)
                 if why:

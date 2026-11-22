@@ -445,6 +445,22 @@ class SubmodulePlanTest(unittest.TestCase):
         self.assertEqual(remove, [])
         self.assertEqual(len(kept), 2)
 
+    def test_a_lock_whose_session_has_exited_does_not_keep_it(self):
+        dead = WT.Worktree("/r/dead", "abc", "b", True, "claude agent agent-x (pid 111 start Sat)")
+        live = WT.Worktree("/r/live", "abc", "b", True, "claude agent agent-y (pid 222 start Sat)")
+        bare = WT.Worktree("/r/bare", "abc", "b", True, "")
+        when = {t.path: SWEEP_NOW - timedelta(days=1) for t in (dead, live, bare)}
+        with mock.patch.object(WT, "pid_running", side_effect=lambda pid: pid == 222):
+            remove, kept = self.run_plan([dead, live, bare], when)
+        self.assertEqual(remove, [dead])
+        self.assertEqual({t.path: why for t, why in kept}, {live.path: "locked", bare.path: "locked"})
+
+    def test_pid_running_sees_this_process_and_not_a_finished_one(self):
+        self.assertTrue(WT.pid_running(os.getpid()))
+        done = subprocess.Popen(["true"])
+        done.wait()
+        self.assertFalse(WT.pid_running(done.pid))
+
     def test_a_merged_worktree_outside_the_home_folder_is_kept(self):
         inside, outside = fake_tree("main/.claude/worktrees/a"), fake_tree("elsewhere/b")
         when = {t.path: SWEEP_NOW - timedelta(days=1) for t in (inside, outside)}
