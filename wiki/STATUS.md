@@ -75,9 +75,7 @@ In order; the first two are the main track (owner, 2026-11-21).
 
 - **Time the next layout edit (owner, 2026-11-21):** the next real change (a block split, a Store, a mast or wiring change) is timed from the first edit to the deploy, with `make mqtt-watch` (the `_discard` watcher) running through it; the steps and what to record are in [`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#next-measure-a-real-edit).
 
-- **Web server upgrade (AWS):** move www.easte.net from Lightsail Ubuntu 18.04 with VestaCP to a new 24.04 instance with HestiaCP; planned, waits on the owner's AWS access key ([`projects/web-server-migration.md`](projects/web-server-migration.md)).
 - **Source-data exceptions (owner, 2026-11-20):** rows 1 to 9 are done or kept on purpose; row 10's live drawing workarounds wait for the owner's discussion ([`projects/source-data-exceptions-handoff.md`](projects/source-data-exceptions-handoff.md)).
-- **Roster sync generic detection:** draft [lnevo/jmri-cs105-roster-sync#1](https://github.com/lnevo/jmri-cs105-roster-sync/pull/1) (1.1.0) finds the command station by LCC event; it waits only on the MRC user's plan-only log, then merge, move the submodule pointer and deploy. HART stays on 1.0.0 until then.
 
 ## In progress
 
@@ -89,4 +87,6 @@ In order; the first two are the main track (owner, 2026-11-21).
 - Move the LCOS bridge from the Windows box to the Pi. The Pi is ready (2026-11-21; `lcos-bridge` service installed, stopped and off at boot); the cut-over steps are in the 2026-11-21 "Full text" log entry. Then merge the docs PR #846 with the submodule bump.
 - Speed matching (owner, 2026-11-21): read both decoders back on the programming track, the loop 2 lap survey, then measured profiles for the other 15 roster locos (CSX 2121 and CSX 2738 are done) ([`projects/speedmatching.md`](projects/speedmatching.md)).
 - Upgrade the Pi's OS (owner, 2026-11-21): its userland is 32-bit (`armhf`) on a 64-bit kernel ([ADR-020](decisions/ADR-020-live-sts-on-the-pi.md)). Save what the Pi holds first (`make ops-pull`, `make tables-pull-pi`, `make sts-pull`).
+- Web server upgrade (AWS): move www.easte.net from Lightsail Ubuntu 18.04 with VestaCP to a new 24.04 instance with HestiaCP; planned, waits on the owner's AWS access key ([`projects/web-server-migration.md`](projects/web-server-migration.md)).
+- Roster sync generic detection: draft [lnevo/jmri-cs105-roster-sync#1](https://github.com/lnevo/jmri-cs105-roster-sync/pull/1) (1.1.0) finds the command station by LCC event; it waits only on the MRC user's plan-only log, then merge, move the submodule pointer and deploy. HART stays on 1.0.0 until then.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
