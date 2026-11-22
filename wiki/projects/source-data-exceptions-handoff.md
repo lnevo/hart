@@ -150,7 +150,7 @@ Not tested: the owner's look settings (titles, dates, `capacity`, `detail_sheets
 Also open, smaller:
 - (done 2026-11-20: `le_signal_boundaries.csv` retired; the deploy audit reads `staging_masts.csv` instead);
 - (done 2026-11-21: the screen sizes are one `host_screen` setting, the layout hosts' screen; `le_window` and `cats_window` are derived from it);
-- the band names and the 5 cm cut kept in `plan_overrides.json` (main_upper section) `levels` "until B2";
+- (settled in the project-health hand-off: the band names and the 5 cm cut stay in `plan_overrides.json`, each band has a `level` field, and the stale "until B2" note is gone);
 
 ## Not checked by the audit
 
