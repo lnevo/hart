@@ -172,7 +172,8 @@ class CheckShModesTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             for mode in ("CHECK_RECORD_TO", "CHECK_SKIP_FROM"):
                 with self.subTest(mode):
-                    env = {k: v for k, v in os.environ.items() if not k.startswith("CHECK_")}
+                    # FULL=1 (a full check.sh run) takes the no-stamps branch: drop it, as check_sh() does
+                    env = {k: v for k, v in os.environ.items() if not k.startswith("CHECK_") and k != "FULL"}
                     done = subprocess.run(["bash", "-c", "STAMPS=0\nRECORD=0\n" + block + show],
                                           env={**env, "CI": "1", mode: d, "CHECK_SKIP_NOTE": "current on main abc"},
                                           capture_output=True, text=True, timeout=30)
