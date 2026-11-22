@@ -17,7 +17,7 @@
 #   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
 #                         reads, so it runs before publishing
 #   masts                 masts.csv, every level's masts (build_masts.py): staging's by the mast rule over its device
-#                         map, with their devices.csv rows, and main and upper's from the device map's rows; after
+#                         map, with their device-master rows, and main and upper's from the device map's rows; after
 #                         device-map, whose rows it reads
 #   signals               signals.json (a section per sheet), from the plan graph and masts.csv; the schematic reads it.
 #                         After masts, so one run draws the masts it writes. Nothing before it reads signals.json:
@@ -32,11 +32,11 @@
 #   sml-current           the discovered Signal Mast Logic was discovered from the beans the sources give now:
 #                         data/schematic/discovered_sml.stamp holds the sha256 of the discovery base it came from
 #                         (run_sml_discover.sh writes it); a mismatch says to rerun discovery on the Mac. Always runs
-#   tables                tables.xml (build_tables.py): the template, the staging beans of devices.csv, the Layout
+#   tables                tables.xml (build_tables.py): the template, the staging beans of the device master, the Layout
 #                         Editor build, the discovered Signal Mast Logic (ADR-029: tables.xml is an output)
 #   signals-sync          every level's heads and masts in tables.xml follow masts.csv (sync_signals.py
-#                         --check), in both modes; after tables, which generates them from devices.csv
-#   device-master         devices.csv is checked against tables.xml and the schematic (check_device_master.py
+#                         --check), in both modes; after tables, which generates them from the device master
+#   device-master         the device master is checked against tables.xml and the schematic (check_device_master.py
 #                         --check), in both modes; after tables, which it checks
 #   cats                  the CATS desks (build_cats_panel.py); after tables, whose turnouts, sensors, layout blocks
 #                         and masts they read, so one make panels leaves the desks current with the tables

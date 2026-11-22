@@ -213,7 +213,7 @@ The nodes, boards and pins of the main and upper levels are the device map's dra
 ## Refresh
 
 ```bash
-make panels    # runs build_device_map.py (device-map step): devices.csv's wiring cells, staging's from wiring.csv
+make panels    # runs build_device_map.py (device-map step): the device master's wiring cells, staging's from wiring.csv
 python3 tools/wiring/write_inventory.py        # v86 (tools/check.sh fails while it is stale)
 python3 www/scripts/build_wiring_json.py       # the website's wiring viewer
 # needs python-pptx:

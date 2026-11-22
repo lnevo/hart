@@ -274,7 +274,7 @@ None of this runs while the operating flag is set.
 
 W6b builds wait for R9b and the level-unification mast step, since both touch `mast_rule.py` and the device maps.
 
-**R9a (owner):** recorded in [ADR-029](../decisions/ADR-029-tables-xml-is-an-output.md). In short:
+**R9a (owner):** recorded in [ADR-029](../../../wiki/decisions/ADR-029-tables-xml-is-an-output.md). In short:
 - the master is `data/devices.csv`, with `devices.columns.csv` describing its columns;
 - the old pre-ADR-005 names and the retired names are dropped, and the spares are kept;
 - `assignment`, `role` and `written_by` columns, the last checked against one list of owning scripts;
@@ -325,7 +325,7 @@ The owner was offered a strict, simple split instead: split only when this check
 
 ## Carried from the archived hand-offs (2026-11-20)
 
-These were still open when the older hand-offs went to `archive/wiki/projects/` ([`review-2026-11-19-handoff.md`](../../archive/wiki/projects/review-2026-11-19-handoff.md), [`architecture-followups-handoff.md`](../../archive/wiki/projects/architecture-followups-handoff.md)). Each is small and none is scheduled.
+These were still open when the older hand-offs went to `archive/wiki/projects/` ([`review-2026-11-19-handoff.md`](review-2026-11-19-handoff.md), [`architecture-followups-handoff.md`](architecture-followups-handoff.md)). Each is small and none is scheduled.
 
 - **Hand-typed names, phases 2 and 3 (owner, 2026-11-14):** the desk, Layout Editor and wiring generators still hold some track, block and mast names typed by hand. They wait for the import of the main and upper levels. Phase 0 (`tools/audit/check_name_copies.py` in `check.sh`) and phase 1 are done.
 - **`signal_number` at MP 6.6 and 6.7:** it gives 67/66 at MP 6.6 and 67/68 at MP 6.7, so two pairs a tenth apart share a westward name, and MP 9.8 westward returns 99 although the message says names stop at 98. Pinned by the `test_open_question_...` tests in `tools/schematic/tests/test_build_masts.py`. The staging signal rule decides it.

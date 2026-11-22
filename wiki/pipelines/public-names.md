@@ -6,7 +6,7 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 
 ## Inputs
 
-- [`jmri/layouts/hart/data/devices.csv`](../../jmri/layouts/hart/data/devices.csv): the device master. A public name is a row's `user_name`. The old public name map and the two device maps are gone (ADR-029)
+- The device master: [`devices_field.csv`](../../jmri/layouts/hart/data/devices_field.csv) (hand-kept) and [`devices_generated.csv`](../../jmri/layouts/hart/data/devices_generated.csv) (generator output), read as one view by `hartlib.devices`. A public name is a row's `user_name`. The old public name map and the two device maps are gone (ADR-029)
 - Device-map comments (node / OU / ports / `DCC: NNN`)
 
 ## Outputs
@@ -19,7 +19,7 @@ Apply the live naming grammar to JMRI beans and generated panels. Hardware MQTT 
 
 ```bash
 export JMRI_LAYOUT=hart
-PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # after an edit to devices.csv
+PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # after an edit of the device master
 python3 jmri/layouts/hart/scripts/refresh_bean_comments.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py --strict
 ```
@@ -30,7 +30,7 @@ Writable tables: `jmri/layouts/hart/output/tables.xml`.
 
 ## Renaming
 
-A rename is an edit of the row's `user_name` in `devices.csv` (and of the bean in `tables.xml` while PanelPro owns that file), then `python3 -m hartlib.devices check` and the builds that bind the name. No old-name history is kept (ADR-029); `tools/audit/check_name_copies.py` finds hand-kept copies of Mast and OS names that are no longer current.
+A rename is an edit of the row's `user_name` in the device master: in `devices_field.csv` for a hand-kept row, in its builder's input for a row `devices_generated.csv` holds (and of the bean in `tables.xml` while PanelPro owns that file), then `python3 -m hartlib.devices check` and the builds that bind the name. No old-name history is kept (ADR-029); `tools/audit/check_name_copies.py` finds hand-kept copies of Mast and OS names that are no longer current.
 
 ## Do not
 

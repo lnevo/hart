@@ -2,7 +2,7 @@
 """Staging's facts in the device map's form: the source the Layout Editor build, the signals and the CATS desks read.
 
 The source since the device-map switch-over (owner, 2026-11-17), when the frozen hand-drawn files (staging_le/) and the
-conversion from them retired. The turnout and feedback rows of level 1 of devices.csv are kept by hand but for their wiring cells,
+conversion from them retired. The turnout and feedback rows of level 1 of the device master are kept by hand but for their wiring cells,
 which build_device_map.py writes from wiring.csv (stations.csv's desk areas are staging's control points, build_staging_sets.py); the block and occupancy
 rows are the one block builder's (build_device_map.py, block_layer: step 5 part 1, 2026-11-20), which carries each
 row's field facts over, writes its detector's wiring from wiring.csv (level 1 rows; step 6) and owns which
@@ -14,7 +14,7 @@ them (load, load_masts, load_signal_masts, mast_facts) and stops on a file not i
 Staging's objects are field devices: every system name, user name and binding here is the railroad's own.
 
 Files (jmri/layouts/hart/data/, schematic/ for the rest):
-- the level 1 rows of devices.csv (hartlib.devices.device_map_lines). Layers as main and upper: turnout (and its LCC alias
+- the level 1 rows of the device master (hartlib.devices.device_map_lines). Layers as main and upper: turnout (and its LCC alias
   "DCC Switch <n>"), fb, block, occupancy, mast, head. Staging is the field, so system_name is the live device;
   jmri_name is the name tables.xml and the panels bind it by: a turnout's is the Layout Editor's turnoutname (some
   bind "M2T408", some "Switch 23"), every other row's its system name. trial_name is the link to the drawing, as for
@@ -26,15 +26,15 @@ Files (jmri/layouts/hart/data/, schematic/ for the rest):
   keep are check_device_master.row_problems', which load() runs on these rows.
   A helix block (plan_overrides.json: Track Helix Outer, Track Helix Inner) is one JMRI block from its staging switch
   up the helix (owner, 2026-11-20): its staging piece is a block row here, and its detector is the occupancy row of
-  levels 2 and 3 of devices.csv, which name the same block for the piece on its level (check_device_master.check_rows).
-- parts (devices.csv part_of, role part; owner, 2026-11-20): a short piece of track between two switches has a block
+  levels 2 and 3 of the device master, which name the same block for the piece on its level (check_device_master.check_rows).
+- parts (the device master's part_of, role part; owner, 2026-11-20): a short piece of track between two switches has a block
   row of its own that names the block it is part of (the lower-numbered switch's OS block by rule, or the one
   block_overrides.csv gives it), and its trial_name. A part is a JMRI block of its own on that block's occupancy
   sensor (owner, 2026-11-20): load() draws its pieces as the part, and os_layer reads them inside its block, as the
   masts do. The device maps leave parts out (hartlib.devices.OUT_OF_MAPS), so load() reads them from the master.
 - stations.csv (level, station, switches, tracks, desk_code, notes): the stations, and through their desk codes
   staging's control points, the desk areas (hartlib.railroad_facts.read_desk_areas, the one reader; desk_areas()
-  here). build_staging_sets.py writes plan_overrides.json's staging section (control_points, stations and
+  here). build_staging_sets.py writes plan_generated.json's staging section (control_points, stations and
   station_tracks) and the `detail_sheets` preference from it and sheets.csv (other readers take the areas' rows
   through hartlib.railroad_facts.station_group_rows).
 - masts.csv (hartlib.level_masts, every level's masts), its level 1 rows. A mast's kind of slot follows from its
@@ -411,7 +411,7 @@ def load(band, device_map: Path = DEVICE_MAP, masts_path: Path = MASTS, stations
     """The plugin's names for the staging band from the three files alone: turnouts, os, blocks, normal (from
     switches.csv), masts, and with `turnout_idents` each turnout's Layout Editor ident from switches.csv
     (le_ident, ADR-021); with_masts False leaves the masts out. Stops on a row that breaks the rules every row of
-    devices.csv keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
+    the device master keeps (check_device_master.row_problems), any placeholder no row names, any row the drawing does not
     use, a piece of the drawing on no row or on two, a broken k/n run, or a mast row that is not well formed. A
     part (part_lines) is a JMRI block of its own on every level (owner, 2026-11-20): its pieces are its own block, and
     staging_parts gives {part: the block it is part of} (os_layer reads the blocks as the masts do)."""

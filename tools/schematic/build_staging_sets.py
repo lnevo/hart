@@ -9,7 +9,7 @@ edits (jmri/layouts/hart/data/schematic/):
   sheets.csv     level,sheet,stations,notes                       the station detail sheets of every level, each the
                  stations named in `stations` (";" between), its switches the sorted union of theirs
 
-The control points (the limits the drawings bracket and the CATS desk names, plan_overrides.json's control_points)
+The control points (the limits the drawings bracket and the CATS desk names, plan_generated.json's control_points)
 are the desk areas: the stations that share a desk code, named by the first of them, each holding its stations' own
 switches. A station whose switches all lie in another's is nested in it and takes them for its own desk area (Engine
 House in Barn: BN is Switch 7, EH Switches 9, 11, 13). hartlib.railroad_facts.read_desk_areas is the one reader;
@@ -21,7 +21,7 @@ Only staging (level 1) has stations so far; a row of another level stops the bui
 
 What it writes, and nothing else of those files:
 
-  plan_overrides.json   staging's section: the keys control_points, stations and station_tracks
+  plan_generated.json   staging's section: the keys control_points, stations and station_tracks
   preferences.json      staging's section: the key detail_sheets
 (through hartlib.layer_files, which keeps the other sections and the notes as they are).
 

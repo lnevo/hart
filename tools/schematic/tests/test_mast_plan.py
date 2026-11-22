@@ -85,6 +85,52 @@ class Numbers(unittest.TestCase):
         self.assertEqual(mp.LINE_CODE, {1: "", 2: "A", 3: "B"})
 
 
+class AssignNumbers(unittest.TestCase):
+    """Two pairs a tenth apart share a westward number (6.6 and 6.7 both give 67): the lower milepost keeps it, the
+    other takes the next number of its parity no intermediate holds or would hold, and the shift is printed (owner,
+    2026-11-22)."""
+
+    @staticmethod
+    def masts(*mps, code="", west=True):
+        return [dict(code=code, number=mp.signal_number(m, west, code), mp=m, dir="west" if west else "east",
+                     milepost=round(m, 3)) for m in mps]
+
+    def names(self, masts):
+        with unittest.mock.patch("sys.stderr") as err:
+            mp.assign_numbers(masts)
+        return [m["name"] for m in masts], "".join(c.args[0] for c in err.write.call_args_list)
+
+    def test_no_clash_keeps_every_natural_number_and_prints_nothing(self):
+        got, printed = self.names(self.masts(6.6) + self.masts(6.6, west=False) + self.masts(6.9))
+        self.assertEqual(got, ["67", "66", "69"])
+        self.assertEqual(printed, "")
+
+    def test_the_lower_milepost_keeps_the_number_whatever_the_order(self):
+        for order in ((6.6, 6.7), (6.7, 6.6)):
+            got, printed = self.names(self.masts(*order))
+            self.assertEqual(dict(zip(order, got)), {6.6: "67", 6.7: "69"})
+            self.assertIn("MP 6.700 would be intermediate 67, which MP 6.600 holds; named 69", printed)
+
+    def test_a_shift_never_takes_another_masts_natural_number(self):
+        got, _ = self.names(self.masts(6.6, 6.7, 6.9))
+        self.assertEqual(got, ["67", "71", "69"])
+
+    def test_name_comes_first_and_the_working_keys_are_dropped(self):
+        masts = self.masts(6.7)
+        self.names(masts)
+        self.assertEqual(masts, [dict(name="67", dir="west", milepost=6.7)])
+
+    def test_the_line_code_keeps_the_levels_apart(self):
+        got, _ = self.names(self.masts(6.7) + self.masts(6.7, code="A") + self.masts(6.6, code="A"))
+        self.assertEqual(got, ["67", "A69", "A67"])
+
+    def test_a_shift_past_98_with_no_line_code_stops_the_build(self):
+        with self.assertRaisesRegex(mr.MapError, "intermediate 97 is held by MP 9.600 and the next free number 99 "
+                                                 "is over 98"):
+            self.names(self.masts(9.6, 9.7))
+        got, _ = self.names(self.masts(9.6, 9.7, code="B"))
+        self.assertEqual(got, ["B97", "B99"])
+
 # ---------------------------------------------------------------- running track and exit dwarfs
 
 

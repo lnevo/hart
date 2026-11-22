@@ -7,7 +7,7 @@
 
 ## Context
 
-Device facts are kept three times: `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` each hold parts of them, and `tables.xml` holds them again. The DCC group is parsed from JMRI comments, and the build finds its own items by comment and name. Staging has no generator: `build_layout_le.py` builds on the live `tables.xml`, so for staging `tables.xml` is still a source. The inventory and design are in the project-health hand-off, row 9 ([`projects/project-health-handoff.md`](../projects/project-health-handoff.md)).
+Device facts are kept three times: `public_name_map.csv`, `device_map_staging.csv` and `device_map_main_upper.csv` each hold parts of them, and `tables.xml` holds them again. The DCC group is parsed from JMRI comments, and the build finds its own items by comment and name. Staging has no generator: `build_layout_le.py` builds on the live `tables.xml`, so for staging `tables.xml` is still a source. The inventory and design are in the project-health hand-off, row 9 ([`projects/project-health-handoff.md`](../../archive/wiki/projects/project-health-handoff.md)).
 
 ## Decision
 
@@ -50,7 +50,7 @@ The `AGENTS.md` rule "fix the data in `tables.xml`" becomes "fix the source data
 
 ## Open
 
-- R9b to R9e are built in that order ([`projects/project-health-handoff.md`](../projects/project-health-handoff.md)). The level-unification mast builder (step 2) waits on R9b.
+- R9b to R9e are built in that order ([`projects/project-health-handoff.md`](../../archive/wiki/projects/project-health-handoff.md)). The level-unification mast builder (step 2) waits on R9b.
 
 ## Amendment 2026-11-21: the device master is two files
 
@@ -69,7 +69,7 @@ Decided by the owner on 2026-11-21, from the pipeline-efficiency review (T6a). B
 **What changes in this ADR:** "one structure" now means one merged view, not one file. An empty `written_by` no longer marks a hand row (there are none), and the `adopts` mechanism goes. `devices.columns.csv` describes both files.
 
 **As built (2026-11-21):**
-- `FIELD_COLUMNS` are the cells the builders carried before: `role`, `assignment`, `cp`, `system_name`, `jmri_name`, `node`, `dcc`, `jmri_comment`, `trial_name`, `notes`, `detector`, `stop`, `layout_block`. The field file has 170 rows: staging's 80 turnouts, LCC aliases and feedback sensors, 45 blocks and 43 occupancy sensors (each with its identity, `role` and `assignment`), the wired Mast 6LB's node and Head 6LB's notes. `devices.columns.csv` says which file may hold each column. `tools/schematic/split_device_master.py` made the split and its test holds the rule.
+- `FIELD_COLUMNS` are the cells the builders carried before: `role`, `assignment`, `cp`, `system_name`, `jmri_name`, `node`, `dcc`, `jmri_comment`, `trial_name`, `notes`, `detector`, `stop`, `layout_block`. The field file has 170 rows: staging's 80 turnouts, LCC aliases and feedback sensors, 45 blocks and 43 occupancy sensors (each with its identity, `role` and `assignment`), the wired Mast 6LB's node and Head 6LB's notes. `devices.columns.csv` says which file may hold each column. `tools/schematic/split_device_master.py` made the split once; it and its test were deleted on 2026-11-22 (see git history at commit 6889bf0c), and `hartlib.devices` checks the column rule.
 - A wired block's comment is the owner's words with `{occupancy}` where the builder puts the detector's `wiring.csv` text, so a moved pin changes no hand file (`hartlib.devices.OCCUPANCY_MARK`).
 - A spare detector has no field row: `wiring.csv`'s spare inputs make it, and it holds no owner cell.
 - The one read-back a builder makes of its own output is its name numbering (`hartlib.devices.allocated_names`): staging parts' block and layout-block numbers and the virtual masts' ordinals on every level. The builders cannot write the owner's file, and numbering again would shift names, so they keep the numbers they gave. No owner cell is ever read back.

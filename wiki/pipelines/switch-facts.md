@@ -12,7 +12,7 @@ All in `jmri/layouts/hart/data/`, read through `jmri/layouts/hart/scripts/layout
 | `schematic/stations.csv` | station | its `level`, switches, counted `tracks` and `desk_code`. The stations that share a code are a desk area, a control point (station group): Brick and West Yard are BK. A station whose switches all lie in another's is nested in it and takes them for its own area (Engine House, Switches 9, 11, 13, in Barn: BN is Switch 7), though the desk has no plate for Engine House. Detail: [stations.csv: desk areas and nested stations](#stationscsv-desk-areas-and-nested-stations). |
 | `mast_cells.csv` | mast on the USS CTC board | its cell (`x`, `y`) on the board's grid (`uss_board_cells.csv`, the hand-wired desk's grid frozen 2026-11-15) and how the board draws it (`uss_facing`, `uss_kind` h2 or d1, `uss_head` for d1). For the hand-wired CATS desks only: the `edge` of its lamp in that cell and a lamp placement the Designer save gets wrong (`sig_location`, `sig_orient`); the generated desks do not read this file. Row order is the USS drawing order |
 | `uss_board_cells.csv`, `uss_board_plants.csv` | cell of the USS CTC board's grid; switch plant | each cell's track, label and block edges, and each OS block's plant cell, frozen from `HART_CTC.xml` and `PLANT_CELLS` on 2026-11-15 so the board builds without a desk. Plant row order is the drawing order |
-| `devices.csv` (staging's rows, level 1) | device | hardware ID (`system_name`), `dcc` address (turnouts), control point (`cp`), wiring (`wiring`, or `jmri_comment`) |
+| The device master (`devices_field.csv` + `devices_generated.csv`; staging's rows, level 1) | device | hardware ID (`system_name`), `dcc` address (turnouts), control point (`cp`), wiring (`wiring`, or `jmri_comment`) |
 
 ### switches.csv columns
 
@@ -51,20 +51,20 @@ Exceptions are made only on purpose, each with its reason beside it:
 ## Changing a switch
 
 1. Edit its rows in `switches.csv` (closed and thrown legs, hand, lever, inversion). A switch the AnyRail plan lacks or holds wrongly goes in `plan_overrides.json`'s `staging` section (`hand`, legs `b` and `c`; `branch_leg: "B"` when the added branch is the straight leg).
-2. The staging rows of `devices.csv` (`trial_name`) and `block_overrides.csv` name tracks by their switches and legs, so a new export needs no rebinding (2026-11-20). The virtual masts are placed by rule (ADR-024), so nothing needs rebinding when edge ids move (`n1`...).
+2. The staging rows of the device master (`trial_name`) and `block_overrides.csv` name tracks by their switches and legs, so a new export needs no rebinding (2026-11-20). The virtual masts are placed by rule (ADR-024), so nothing needs rebinding when edge ids move (`n1`...).
 3. Run `make panels`. A mast the rule can no longer place in one slot stops the build (`le_checks.check_masts`); the deploy audit holds the stored panel to `masts.csv` (`audit_panel_contracts.py`).
 4. Install the candidate in `~/JMRI_UserFiles`, relaunch PanelPro and get the owner's approval; then record it (`check_approved.py --approve`, `build_layout_le.py --approve-staging`) and take Signal Mast Logic from stock discovery in a sandbox (`tools/hosts/sandbox/README.md`).
 5. Run `./tools/check.sh`. Each failure names the switch or track and the two sources that disagree.
 
 ## Changing a mast
 
-- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), change its row's `user_name` in `devices.csv` and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv`, then run `make desks` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
+- **Rename** (as 32L to 16R, PR #441): rename it in PanelPro and Store (`make tables-pull`), change its row's `user_name` in the device master and apply it (ADR-005, `wiki/pipelines/public-names.md`). If it is on the CATS desk, change its `mast` in `mast_cells.csv`, then run `make desks` and `gen_ctc_track_plan.py`. Then rebuild the derived files that `check.sh` names as stale: `capture_public_name_baseline.py`, `www/scripts/build_tables_browser.py`, `www/scripts/build_layout_index.py`, then `www/scripts/build_cats_layout_index.py`.
 - **Move on the desk:** change its `x`, `y` or `edge` in `mast_cells.csv` (these cells fed the archived hand-wired desks and the USS board; the generated desks place masts from the schematic), then run `gen_ctc_track_plan.py`. The check fails if either desk has another lamp in that cell or the mast's heads in `tables.xml` do not fit its `uss_kind`.
 
 ## Rename checklist (a track, block or mast)
 
 1. **PanelPro:** rename it, Store, then `make tables-pull`. JMRI owns `tables.xml`; nothing renames there by script.
-2. **Device master:** apply the rename to the row's `user_name` in `devices.csv` (ADR-005, `wiki/pipelines/public-names.md`). The old name is no longer anything's. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
+2. **Device master:** apply the rename to the row's `user_name` in the device master (ADR-005, `wiki/pipelines/public-names.md`). The old name is no longer anything's. Do not add an identity row for a hidden throat block (Track S-R West and the others); `tables.xml` holding the block is what makes it current.
 3. **Data files** that key on the name: `mast_cells.csv` (`mast`), `switches.csv` (legs), `block_lengths.csv` (`user_name`), `cats/data/occupancy_bindings.csv`, and the wiring CSVs under `docs/wiring/`.
 4. **CATS:** the desks are generated, so nothing is renamed in them. After the data files above are changed, run `make desks` (writes and validates `HART_CTC.xml` and `HART_ABS.xml`) and `gen_ctc_track_plan.py` (USS plant cells: `uss_board_plants.csv`).
 5. **Dispatcher:** traininfo files carry block names; regenerate them in PanelPro (Dispatcher System) if a station block was renamed.
@@ -77,7 +77,7 @@ The speed-match routes (`speedmatch/analyze.py`) hold only the running order of 
 ## Changing a level or a control point
 
 - Move a control point to another level: staging's control points stay on level 1 (`build_staging_sets.py` refuses another); a main or upper interlocking's level is its row in `interlockings.csv`. Change it and the `level` of its switches in `switches.csv` together; the check fails if they differ.
-- A new `cp` value in `devices.csv` needs a desk area in `schematic/stations.csv` (a station row with that name and a `desk_code`) first, or the check fails.
+- A new `cp` value in the device master needs a desk area in `schematic/stations.csv` (a station row with that name and a `desk_code`) first, or the check fails.
 
 ## Adding a level
 
@@ -91,10 +91,10 @@ The speed-match routes (`speedmatch/analyze.py`) hold only the running order of 
 
 - **Layout Editor:** turnout hardware and DCC address, layout turnout name and OS block, the leg the continuing sense closes to, and the stored block paths for both legs.
 - **CATS desks** (`HART_CTC.xml`, `HART_ABS.xml`): the turnout on each plant, where the close and throw legs lead, which leg is Normal, that every desk block is a Layout Editor block, and that each named lamp is the `mast_cells.csv` mast for that cell and edge.
-- **Masts:** each `mast_cells.csv` mast is in `devices.csv` and `tables.xml`, with one head (the one named) for d1 and two for h2.
+- **Masts:** each `mast_cells.csv` mast is in the device master and `tables.xml`, with one head (the one named) for d1 and two for h2.
 - **Levels:** a control point's switches are on its level, every block's control point agrees with the switches whose legs reach it (throat blocks included), every `cp` has a row, and every mast and block resolves to one level.
 - **USS CTC:** each code button's turnout, OS sensors, lever and signal levers. In both copies of the panel, each column's lever and points dot, and the track jewels and labels matching a fresh build from the CATS desk.
 
 `KNOWN` in the check lists differences already reported to the owner, each by its exact message. They print without failing. Any other message fails, even on the same switch or track, and an entry that stops happening fails until someone removes it.
 
-Derived files with a `--check` in `check.sh`: the rename baselines, `www/data/tables-browser.json`, `www/data/layout-index.json` and `www/data/layout-index-cats.json`. The two index files record `image.inputs_sha256`, a hash of what their PNG is drawn from (panel geometry or desk track plan, and the renderer), so a PNG that needs re-rendering fails too; pixels are not compared because the renderers' fonts differ by machine; the CATS desks by `tools/schematic/build_cats_panel.py --check`. Also `jmri/layouts/hart/data/schematic/signals.json` (both sections), by `tools/schematic/build_signals.py --check` (from the frozen `schematic/staging_le/masts.csv`, each run checked against the plan graph in `schematic/inputs/`; skipped with a notice when the plugin submodule is absent, CI checks it out). The hand-kept device JSON and the two stale Designer CSVs are gone (2026-11-14); the layout index reads its devices from `tables.xml`. Hand-kept copies of track, block and mast names are held by `tools/audit/check_name_copies.py` (see the rename checklist).
+Derived files with a `--check` in `check.sh`: the rename baselines, `www/data/tables-browser.json`, `www/data/layout-index.json` and `www/data/layout-index-cats.json`. The two index files record `image.inputs_sha256`, a hash of what their PNG is drawn from (panel geometry or desk track plan, and the renderer), so a PNG that needs re-rendering fails too; pixels are not compared because the renderers' fonts differ by machine; the CATS desks by `tools/schematic/build_cats_panel.py --check`. Also `jmri/layouts/hart/data/schematic/signals.json` (both sections), by `tools/schematic/build_signals.py --check` (from the `schematic/masts.csv`, each run checked against the plan graph in `schematic/inputs/`; skipped with a notice when the plugin submodule is absent, CI checks it out). The hand-kept device JSON and the two stale Designer CSVs are gone (2026-11-14); the layout index reads its devices from `tables.xml`. Hand-kept copies of track, block and mast names are held by `tools/audit/check_name_copies.py` (see the rename checklist).

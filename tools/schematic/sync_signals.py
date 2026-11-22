@@ -5,7 +5,7 @@
     python3 tools/schematic/sync_signals.py --tables OTHER.xml      # edit another tables file
 
 tables.xml is generated since R9c (ADR-029): tools/schematic/build_tables.py writes its heads and masts from
-devices.csv (staging's beans) and the Layout Editor build (main and upper's), so this script only checks it and
+the device master (staging's beans) and the Layout Editor build (main and upper's), so this script only checks it and
 refuses to write it (hartlib.tables_build.refuse_generated).
 
 The masts it holds are the masts whose user name is a mast name of any level (hartlib.level_masts.MAST_USER:

@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  the pinned plugin and the sheet cache
 import mast_rule as mr  # noqa: E402  the helix tracks (plan_overrides.json)
-import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of devices.csv)
+import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the staging rows of the device master)
 from hartlib import paths, railroad  # noqa: E402
 from hartlib.cats import appearance_templates, mast_templates  # noqa: E402
 
@@ -16,7 +16,7 @@ sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]
 import cats_turnout_io as tio  # noqa: E402
 import digicon_lib as le  # noqa: E402
 
-DEVICE_MAP = railroad.Sources.under().devices      # devices.csv
+DEVICE_MAP = railroad.Sources.under().devices      # the device master
 
 
 class StagingTracks:
@@ -44,7 +44,7 @@ class StagingTracks:
         return blocks[0]
 
 
-# The main and upper rows of devices.csv: block rows (each with its level and the schematic tracks it holds, `trial`) and
+# The main and upper rows of the device master: block rows (each with its level and the schematic tracks it holds, `trial`) and
 # each block's occupancy row (its virtual sensor, and the planned detector when there is one); hartlib.railroad reads and
 # checks it.
 DeviceMap = railroad.DeviceMap

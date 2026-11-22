@@ -13,17 +13,17 @@ hand:
   switches.csv (level 1 rows)      which OS block each switch's points are in (and a crossover half's label, 23A
                                   or 23B, from its OS block's letter), which leg is closed and which thrown,
                                   and whether CATS normal is JMRI thrown (cats_inverted); Switch 9 and 13 follow them
-  devices.csv + tables.xml          each switch's M2T turnout (cats_turnout_io.load_turnouts)
+  The device master + tables.xml          each switch's M2T turnout (cats_turnout_io.load_turnouts)
   occupancy_bindings.csv + tables.xml  each block's M2S sensor and discipline (digicon_lib.load_occupancy: the
                                   layout block table and the sensors, not a Layout Editor panel)
   signals.json[staging] + signal_head_plan.csv the masts drawn on staging (field and planned) and their templates
-  devices.csv (level 1)   the block of a short unnamed track between two switches that has no JMRI block of its own:
+  The device master (level 1)   the block of a short unnamed track between two switches that has no JMRI block of its own:
                          the one block the staging device map's track between them holds
                          (staging_device_map.staging_chains)
 Main and upper blocks are CTC on the CTC desk, as staging's are (owner, 2026-11-17: CATS holds their signals and
 releases them, so a route set from staging up the helix stops at the first main or upper signal); the ABS twin
 turns them ABS with the rest. They take their names from the block rows of
-the main and upper rows of jmri/layouts/hart/data/devices.csv (by the schematic tracks each holds). Their switches
+the main and upper rows of the device master (by the schematic tracks each holds). Their switches
 command and report their internal turnouts (LEVEL_TURNOUT: IT:HART:C3:<n>, closed on the drawn leg B, which is
 NORMAL; double crossover 225 too, its one turnout moving all four points, and a desk block per corner as in the
 Layout Editor, OS Switch 225a to d on their corners' detectors, with the middle of its X a block of its own and no
@@ -63,7 +63,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
 import build_device_map as bdm  # noqa: E402  the device map's naming helpers (base, band_level, natural)
-import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the level 1 rows of devices.csv)
+import staging_device_map as sdm  # noqa: E402  the staging tracks and their blocks (the level 1 rows of the device master)
 from hartlib import level_devices, level_masts, paths, railroad  # noqa: E402
 
 sys.path[:0] = [str(paths.CATS_DIR / "scripts"), str(paths.LAYOUT_SCRIPTS)]

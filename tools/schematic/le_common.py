@@ -16,9 +16,9 @@ from hartlib import level_devices  # noqa: E402  the main and upper naming rule
 from hartlib import tables_build  # noqa: E402  GENERATED_LEVELS: the levels whose beans the base holds
 
 
-DEVICE_MAP = railroad.Sources.under().devices    # devices.csv: main and upper names (trial_name: the drawing's placeholder)
+DEVICE_MAP = railroad.Sources.under().devices    # the device master: main and upper names (trial_name: the drawing's placeholder)
 # The levels whose turnouts, blocks, sensors and masts the generator's base holds (hartlib.tables_build's
-# GENERATED_LEVELS: devices.csv's level 1 rows): a band of one of them binds the base's beans and adds none, and its
+# GENERATED_LEVELS: the device master's level 1 rows): a band of one of them binds the base's beans and adds none, and its
 # candidate is the one the owner approves alone (the staging candidate). Every other level's beans the build adds,
 # virtual (le_tables.add_level_objects, add_level_signals).
 BASE_LEVELS = frozenset(int(v) for v in tables_build.GENERATED_LEVELS)
@@ -306,7 +306,7 @@ def bare(label: str) -> str:
 @functools.lru_cache(maxsize=None)
 def staging_switches() -> dict[int, railroad.Switch]:
     """The staging switches, read once per run (hartlib.railroad: the level 1 rows of switches.csv and each switch's
-    turnout row of devices.csv). BuildError names the file and row that cannot be read."""
+    turnout row of the device master). BuildError names the file and row that cannot be read."""
     try:
         return railroad.Railroad(upto="inputs").switches
     except railroad.FactsError as exc:
@@ -319,7 +319,7 @@ def switch_idents() -> dict[str, str]:
 
 
 def main_upper_device_map(path: Path = DEVICE_MAP) -> railroad.DeviceMap:
-    """The main and upper rows of devices.csv (hartlib.railroad.read_device_map, every row checked); BuildError names the
+    """The main and upper rows of the device master (hartlib.railroad.read_device_map, every row checked); BuildError names the
     file and row that cannot be read."""
     try:
         return railroad.read_device_map(path)

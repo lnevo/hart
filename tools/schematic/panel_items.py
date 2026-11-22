@@ -261,9 +261,9 @@ def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int]
     return dict(count=n, size=(w, h), bottom=lowest)
 
 
-# ---------------------------------------------------------------- the status beans (devices.csv rows)
+# ---------------------------------------------------------------- the status beans (device-master rows)
 
-WRITER = "panel_items.json"      # the devices.csv written_by of the status beans, one of hartlib.devices.WRITERS
+WRITER = "panel_items.json"      # the device master written_by of the status beans, one of hartlib.devices.WRITERS
 ITEMS = Path(__file__).resolve().parents[2] / "jmri/layouts/hart/data/schematic/panel_items.json"
 # The beans the status cluster's icons show (panel_status.py finds them by name): (layer, user name, system name,
 # assignment, JMRI comment, the icon attribute that names it, what the row says).
@@ -292,7 +292,7 @@ def _devices():
 
 
 def status_rows(data: dict) -> list[dict]:
-    """The devices.csv rows (hartlib.devices.COLUMNS) of the status beans STATUS_BEANS, each held by this file
+    """The device master rows (hartlib.devices.COLUMNS) of the status beans STATUS_BEANS, each held by this file
     (written_by panel_items.json). ItemsError when no item of `data` (load()) has an icon naming one of them: the
     file and the rows would disagree about what the panel shows."""
     devices = _devices()
@@ -314,7 +314,7 @@ def status_rows(data: dict) -> list[dict]:
 
 
 def main(argv=None) -> int:
-    """python3 tools/schematic/panel_items.py [--check]: write the status beans' rows of devices.csv (and the files it
+    """python3 tools/schematic/panel_items.py [--check]: write the status beans' rows of the device master (and the files it
     generates), or, with --check, exit 1 when they are not as the items file gives them."""
     import argparse
     import sys

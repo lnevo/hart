@@ -7,7 +7,7 @@
 
 Run it when a control point is wired as the device map has it (owner, 2026-11-20: once main and upper are wired,
 their values are static; the rule is for the design while it is open). The control point's devices in
-jmri/layouts/hart/data/devices.csv (levels 2 and 3, its `cp`) become rows of jmri/layouts/hart/data/wiring.csv,
+the device master (levels 2 and 3, its `cp`) become rows of jmri/layouts/hart/data/wiring.csv,
 status wired:
   - each turnout ("Switch <n>"; its LCC alias follows it) and feedback sensor ("FB Switch <n> N|R"): node, LCOS
     number, board and ports;
@@ -89,7 +89,7 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
                                                                          for t in re.split(r"(\d+)", c)])
         raise FreezeError(f"no main or upper control point {cp!r}; they are {', '.join(cps)}")
     note = wiring.freeze_note(cp, today)
-    where = devices.index().where              # a row's line in devices.csv, for a message
+    where = devices.index().where              # a row's line in the device master, for a message
     out, bad = [], []
     for r in mine:
         base = {c: "" for c in wiring.COLUMNS} | dict(level=r["level"], status="wired", notes=note)

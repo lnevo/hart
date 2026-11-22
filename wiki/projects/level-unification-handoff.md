@@ -19,7 +19,7 @@ processes. Staging was built and approved first (ADR-024, ADR-027) and main and 
 The goal: one file per kind of fact and one builder per job, the level (or sheet) a column, and no hand-drawn facts
 where a rule can do the work.
 
-Out of scope here, because the [project health plan](project-health-handoff.md) covers them: the one device master
+Out of scope here, because the [project health plan](../../archive/wiki/projects/project-health-handoff.md) covers them: the one device master
 and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_staging_signals.py`), the name-prefix rules
 (row 8) and the drawing workarounds (row 10).
 
@@ -129,7 +129,7 @@ real facts until steps 5 and 6 or outside these files:
   The rest join a band to its plan-overrides entry by title, as `le_common` does; its place comes from the entry.
 
 Device-map part (2026-11-20, PR #798): the check moved out of `staging_device_map.py` (which keeps staging's
-loaders, the builders' import) into `check_device_master.py`, which holds every level of `devices.csv` to one set of
+loaders, the builders' import) into `check_device_master.py`, which holds every level of the device master to one set of
 rules: fact columns, a control point of the row's own level (or, for a block or its detector, the control point of
 an end switch of its track on another level: a row's level is the band its track is drawn on, so Track 127-221 on
 the upper band is in main level CP 127), all three names on a field device, trial names, hand-kept rows are field
@@ -202,7 +202,7 @@ and 14 staging OS rows' trial names, which lost the link pieces the part rows no
 - Staging's field facts stay in its rows and ride along (system and layout-block names, node, wiring, comment,
   notes, detector, stop, the station group in `cp`, the name-map columns, lengths in `block_lengths.csv`). **A
   staging block change made in PanelPro is carried by hand into the builder's data** (`block_exceptions.csv`,
-  `block_splits.csv`, `helix_tracks.csv`), not into `devices.csv`; a field fact (a new detector or system name) is
+  `block_splits.csv`, `helix_tracks.csv`), not into the device master; a field fact (a new detector or system name) is
   still edited in its row, which the builder keeps. A new staging block needs a hand-kept row with its field facts
   first, which the builder then adopts.
 - Readers: `staging_device_map.load` gives a part's pieces to its `part_of` block and stops on a piece on no row or
@@ -270,7 +270,7 @@ Step 5 follow-ups (2026-11-20):
   (35-37, OS 37, K-2), and JMRI's discovery followed the wrong way to its ttlSize of 50 and dropped the pair. The
   masts read a part inside its OS block (`staging_device_map.os_layer`) and face the JMRI block next to them: only
   Mast 32R changes (facing Track 29-31, edge_cm 23.4 to 14.7). Every level's part labels are optional
-  (`optional_block_contents` in preferences.json, a hand list held to devices.csv by `test_blocks_every_level`: the
+  (`optional_block_contents` in preferences.json, a hand list held to the device master by `test_blocks_every_level`: the
   plugin reads it from the preferences only); left without an icon: staging 11-13 and 13-15, main 115-117, upper
   227-231 and 229-233. Panel 2509 x 1424 (unchanged), 179 blocks (165 before), 174 block contents icons (163). Stock
   discovery in a sandbox: all 177 SML pairs, the same as main's (tables.xml's Signal Mast Logic is byte-identical).
@@ -283,7 +283,7 @@ Step 5 follow-ups (2026-11-20):
 
 #### Owner decision, 2026-11-20: short pieces between two switches
 
-**`part_of` in `devices.csv` is the standard way** (owner, 2026-11-20): every track has a block row, and one inside another block names it in `part_of` (role `part`: no occupancy row or detector of its own; the block it names exists, is on the track's level and is no part itself). Staging's wiring facts stay data in one exceptions file with a level column, `block_exceptions.csv` (35-37 in 35a, 13-15 to 15, 23-31 to 31, the piece of Scale in OS 7, a part per end for 1-3 and 35-39). **A part is still a JMRI block, layout block and track on the panel, with the occupancy sensor of the OS block it is part of; it has no occupancy row or detector of its own, and the LCOS allocation drops it** (owner, 2026-11-20, main and upper: SML keeps all 177 pairs; staging's 14 folded pieces stay without JMRI blocks until the owner decides). Tight short blocks need no label; geometry stays fixed (labels adapt, never track). **Where a home mast stands at a switch's points facing a short piece, the piece joins the OS block at its other end: the block boundary is at the mast** (owner, 2026-11-20: 202R, 126RB, 228RA, 230LB stay at their switches; 201-205 in OS 205, 125-129 in OS 129, 227-231 in OS 231, 229-233 in OS 233). The lower-numbered rule applies only where no mast decides it; a piece with a mast facing it at both ends stops the build. A rule, not exception rows
+**`part_of` in the device master is the standard way** (owner, 2026-11-20): every track has a block row, and one inside another block names it in `part_of` (role `part`: no occupancy row or detector of its own; the block it names exists, is on the track's level and is no part itself). Staging's wiring facts stay data in one exceptions file with a level column, `block_exceptions.csv` (35-37 in 35a, 13-15 to 15, 23-31 to 31, the piece of Scale in OS 7, a part per end for 1-3 and 35-39). **A part is still a JMRI block, layout block and track on the panel, with the occupancy sensor of the OS block it is part of; it has no occupancy row or detector of its own, and the LCOS allocation drops it** (owner, 2026-11-20, main and upper: SML keeps all 177 pairs; staging's 14 folded pieces stay without JMRI blocks until the owner decides). Tight short blocks need no label; geometry stays fixed (labels adapt, never track). **Where a home mast stands at a switch's points facing a short piece, the piece joins the OS block at its other end: the block boundary is at the mast** (owner, 2026-11-20: 202R, 126RB, 228RA, 230LB stay at their switches; 201-205 in OS 205, 125-129 in OS 129, 227-231 in OS 231, 229-233 in OS 233). The lower-numbered rule applies only where no mast decides it; a piece with a mast facing it at both ends stops the build. A rule, not exception rows
 
 ### Owner decisions, late 2026-11-20
 

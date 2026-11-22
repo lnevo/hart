@@ -115,7 +115,7 @@ def load_keyed(path: Path) -> dict[tuple[str, str], dict[str, str]]:
 
 
 def load_live_ids() -> tuple[dict[str, tuple[int, int]], dict[str, tuple[int, int]]]:
-    """Live BS name → (node, block) and Switch name → (node, turnout): the detectors and turnouts devices.csv holds
+    """Live BS name → (node, block) and Switch name → (node, turnout): the detectors and turnouts the device master holds
     (by layer and role, never by name: hand-off row 8), as tables.xml's comments place them."""
     root = ET.parse(TABLES).getroot()
     index = devices.index()

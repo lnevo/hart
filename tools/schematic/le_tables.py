@@ -442,7 +442,7 @@ def numbered_blocks(blocks, require_listed: bool = False) -> list:
 def level_sensors(path: Path = DEVICE_MAP) -> dict:
     """{block: (sensor system name, sensor user name, comment)} for every main and upper block of the device map:
     its occupancy row's virtual sensor (jmri_name, hartlib.level_devices.block_sensor) and, in the comment, the planned
-    detector or why there is none. A part (devices.csv part_of: a link inside an OS block) takes its OS block's
+    detector or why there is none. A part (the device master's part_of: a link inside an OS block) takes its OS block's
     sensor (owner, 2026-11-20). Stops on a block with no occupancy row, a row whose jmri_name is not the block's, or a
     part whose block has none."""
     device = main_upper_device_map(path)               # read and checked by hartlib.railroad

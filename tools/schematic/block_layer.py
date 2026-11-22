@@ -15,7 +15,7 @@ What it makes, for each level drawn on a band:
   parted at its turnback, half 1 at the lower-numbered switch (loop_halves); a half is named by its strand's plan name
   when the two halves carry different ones (Track K-2, Track K-1), else "<track> <half>" (half_block). A name given
   to two blocks of one level stops.
-- parts: a piece of track inside another block (devices.csv part_of; owner, 2026-11-20). A link, a track between two
+- parts: a piece of track inside another block (the device master's part_of; owner, 2026-11-20). A link, a track between two
   switches shorter than LINK_CM, is part of the lower-numbered switch's OS block (the one at that end: a crossover
   half's, when the half has its own; a double crossover's corner block of the leg it leaves, `corners`), on every
   level (step 5 part 2, owner 2026-11-20). A link drawn to a connector, whose lower-numbered switch is on another

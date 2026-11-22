@@ -7,7 +7,7 @@ One builder for all three levels. A band's level says where its facts come from,
   level      band                         switches and OS blocks              blocks                    masts
   bound (1)  bound_bi (staging)           switches.csv,                       occupancy_bindings.csv,   signals.json
                                           M2T turnouts (Facts.turnout_io)     M2S detectors             [staging]
-  2 and 3    level_band (bdm.band_level)  internal turnouts (LEVEL_TURNOUT),  devices.csv block rows,   main_upper_
+  2 and 3    level_band (bdm.band_level)  internal turnouts (LEVEL_TURNOUT),  the device master block rows,   main_upper_
                                           the drawing's crossover halves      virtual sensors           masts.csv
 
 Every binding is made by the same helpers whatever its level: turnout_routes (a switch's NORMAL leg and its close
@@ -259,7 +259,7 @@ def mast_bindings(opts, F):
     return out
 
 
-# --- main and upper (levels 2 and 3): devices.csv, internal turnouts, masts.csv --------------------------------------
+# --- main and upper (levels 2 and 3): the device master, internal turnouts, masts.csv --------------------------------------
 
 def xover_corners(name, F) -> list:
     """The device map's corner blocks of double crossover OS block `name` ("OS Switch <n>" -> "OS Switch <n>a" to
@@ -330,7 +330,7 @@ def name_loop_halves(bands, device=None):
 
 
 def part_blocks() -> dict[str, tuple[str, str]]:
-    """{trial name: (part name, the block it is part of)} of the main and upper parts (devices.csv part_of: a link
+    """{trial name: (part name, the block it is part of)} of the main and upper parts (the device master's part_of: a link
     inside an OS block, step 5 part 2, owner 2026-11-20), which the device maps leave out: a block of its own on the
     desk, bound to its OS block's sensor."""
     out = {}

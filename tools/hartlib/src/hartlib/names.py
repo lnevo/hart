@@ -1,6 +1,6 @@
-"""The DCC address of a devices.csv row and the JMRI comment it stands for.
+"""The DCC address of a device-master row and the JMRI comment it stands for.
 
-devices.csv keeps a turnout's DCC address in its own ``dcc`` column and the rest of the
+The device master keeps a turnout's DCC address in its own ``dcc`` column and the rest of the
 wiring text in ``wiring``. JMRI's turnout comment carries the address as the group
 after the first one (ADR-005), groups joined by exactly `` | ``::
 

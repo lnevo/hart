@@ -20,7 +20,7 @@ switches, halves from `block_overrides.csv` kind `split` (every level, the owner
 by the same rule (each helix track's two pieces, staging's and main or upper's, cut at the level split, carry one plan
 name, Helix Outer or Helix Inner, so they are one block, "Track <plan name>"; `plan_overrides.json` gives the names,
 the staging helix ends and the main_upper `helix` map, read by `hartlib.railroad.read_helix_tracks`, which replaced
-`helix_tracks.csv` on 2026-11-21), and parts. A part is a piece of track inside another block: a `devices.csv` row with
+`helix_tracks.csv` on 2026-11-21), and parts. A part is a piece of track inside another block: a device-master row (`devices_field.csv` + `devices_generated.csv`, read by `hartlib.devices`) with
 `part_of` naming that block, role `part`, no occupancy row or detector of its own (the device maps skip it:
 `hartlib.devices.OUT_OF_MAPS`). That is the standard way to put a short piece in an OS
 block. The rule, on every level: a track between two switches under 50 cm (`LINK_CM`) is part of the lower-numbered
@@ -34,7 +34,7 @@ generator writes staging's beans. The masts read a part inside its OS block (`st
 `block_layer.Layer.bands` on main and upper) and face the JMRI block next to them (Mast 32R faces Track 29-31).
 A part's block contents icon is optional on every level: `optional_block_contents` in `preferences.json` lists
 every level's parts (the plugin takes the list from the preferences only; `test_blocks_every_level` holds it to
-`devices.csv`). A piece that `block_overrides.csv` marks `inside` stays inside its OS block with no JMRI or
+the device master). A piece that `block_overrides.csv` marks `inside` stays inside its OS block with no JMRI or
 layout block of its own (owner, 2026-11-20: the two halves of 35-39, in OS 35b and OS 39, so Mast 36RB's route
 to Mast 68 is shorter than the wrong way round the Princess balloon, which JMRI's discovery otherwise follows
 until its ttlSize and drops the pair). `data/schematic/block_overrides.csv` (a `level` column, rows of any level, a
@@ -94,9 +94,9 @@ make desks            # only the CATS desks, then validate them
 | le-cutover | `build_layout_le.py --as-live` | the cut-over candidate `output/trial/tables_cutover.xml`, every level from its device map and the panel's own items from `panel_items.json`, and the staging candidate it holds, `tables_cutover_staging.xml`. Detail: [Row le-cutover: how it is built](#row-le-cutover-how-it-is-built). |
 | approved-candidate | `check_approved.py le-candidate` | nothing: stops when the cut-over candidate drifts from the approved fingerprint |
 | sml-current | `check_sml_current.py` | nothing: stops when `data/schematic/discovered_sml.stamp` (the sha256 of the discovery base `run_sml_discover.sh` discovered on) is not the base the sources give now (`build_tables.py --base-hash`). Run the discovery on the Mac, then `make panels`. Runs in both modes, before `tables` |
-| tables | `build_tables.py` | `output/tables.xml`, the file PanelPro and CATS load (ADR-029: an output): the template, the staging beans of `devices.csv`, the Layout Editor build, the discovered Signal Mast Logic (`data/schematic/discovered_sml.xml`, written only by `run_sml_discover.sh`) and the Digicon boot rule, in a fixed envelope. Detail: [Row tables: check and Store handling](#row-tables-check-and-store-handling). |
-| signals-sync | `sync_signals.py --check` | nothing: stops when the heads and masts of any level in `tables.xml` differ from `masts.csv`. It runs after `tables`, which generates them from `devices.csv` and the Layout Editor build |
-| device-master | `check_device_master.py --check` | nothing: checks every level of `devices.csv` against `tables.xml` and the schematic, after `tables` writes it, with one set of rules for every level (a rule that reads a file only one level has is that file's, not a level test). Detail: [Row device-master: which rows are read how](#row-device-master-which-rows-are-read-how). |
+| tables | `build_tables.py` | `output/tables.xml`, the file PanelPro and CATS load (ADR-029: an output): the template, the staging beans of the device master, the Layout Editor build, the discovered Signal Mast Logic (`data/schematic/discovered_sml.xml`, written only by `run_sml_discover.sh`) and the Digicon boot rule, in a fixed envelope. Detail: [Row tables: check and Store handling](#row-tables-check-and-store-handling). |
+| signals-sync | `sync_signals.py --check` | nothing: stops when the heads and masts of any level in `tables.xml` differ from `masts.csv`. It runs after `tables`, which generates them from the device master and the Layout Editor build |
+| device-master | `check_device_master.py --check` | nothing: checks every level of the device master against `tables.xml` and the schematic, after `tables` writes it, with one set of rules for every level (a rule that reads a file only one level has is that file's, not a level test). Detail: [Row device-master: which rows are read how](#row-device-master-which-rows-are-read-how). |
 | cats | `build_cats_panel.py` | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json`; it runs after `tables`, whose turnouts, sensors and masts the desks read. The bindings for every level come from one builder, `cats_panel.py` (facts in `cats_panel_facts.py`, header and plate in `cats_panel_dress.py`). The control point plates (BRICK, PLANE, BARN, EAST END, PRINCESS; owner, 2026-11-21) come from `stations.csv`'s `desk_plate` column: each in the free cell nearest its switches' plants, on both desks; the desk never grows, and a plate with no free cell stops the build (`cats_panel_dress.station_plates`) |
 | approved-desks | `check_approved.py cats-ctc cats-abs` | nothing: stops the run when a desk no longer matches the fingerprint the owner approved |
 | approved-live | `check_approved.py le-panel` | nothing: stops when the live panel in `tables.xml` drifts from the approved fingerprint |
@@ -115,11 +115,11 @@ Both from `main_lines.csv`, one file with a `sheet` column (staging or main_uppe
 
 ### Row le-cutover: how it is built
 
-Both are built on the generator's base (`hartlib.tables_build.base`: `data/tables_template.xml` and the staging beans of `devices.csv`; ADR-029), never on `tables.xml`. A band's level comes from its plan-overrides section; a level the base holds beans for (`tables_build.GENERATED_LEVELS`, staging) binds them, every other level's beans the build adds, virtual. One mast check (`le_checks.check_masts`) and one bound-names check (`le_tables.check_bound`) cover every level. The viewing trials (`tables_layout.xml`, `tables_layout_staging.xml`) are retired (owner, 2026-11-17): `build_layout_le.py` without `--as-live` stops with an error
+Both are built on the generator's base (`hartlib.tables_build.base`: `data/tables_template.xml` and the staging beans of the device master; ADR-029), never on `tables.xml`. A band's level comes from its plan-overrides section; a level the base holds beans for (`tables_build.GENERATED_LEVELS`, staging) binds them, every other level's beans the build adds, virtual. One mast check (`le_checks.check_masts`) and one bound-names check (`le_tables.check_bound`) cover every level. The viewing trials (`tables_layout.xml`, `tables_layout_staging.xml`) are retired (owner, 2026-11-17): `build_layout_le.py` without `--as-live` stops with an error
 
 ### Row tables: check and Store handling
 
-`--check` (also in `tools/check.sh`) fails on any difference. A PanelPro Store is never copied over it: `make tables-pull` keeps it in `media/pulled-stores/` in the main checkout, and `split_store.py` splits it into the template and `devices.csv` (R9d: the owner's settings kept, device changes reviewed, the repo wins on what the build makes). `--discovery-base` writes it with no Signal Mast Logic, for `run_sml_discover.sh`
+`--check` (also in `tools/check.sh`) fails on any difference. A PanelPro Store is never copied over it: `make tables-pull` keeps it in `media/pulled-stores/` in the main checkout, and `split_store.py` splits it into the template and the device master (R9d: the owner's settings kept, device changes reviewed, the repo wins on what the build makes). `--discovery-base` writes it with no Signal Mast Logic, for `run_sml_discover.sh`
 
 ### Row device-master: which rows are read how
 

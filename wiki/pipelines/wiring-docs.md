@@ -7,7 +7,7 @@ Refresh LCOS inventory workbooks and the per-node PowerPoint from hart CSVs.
 ## Inputs
 
 - `jmri/layouts/hart/data/wiring.csv`: the physical wiring source (`hartlib.wiring`; owner, 2026-11-20). Staging as JMRI has it wired, and the main and upper devices placed so far
-- `jmri/layouts/hart/data/devices.csv`: every level's devices with their wiring text (`build_device_map.py` writes staging's from `wiring.csv`, main and upper's by its rule: a proposal in `devices_generated.csv`, worked out from the LCOS node rules on every build and never written to `wiring.csv`)
+- The device master (`devices_field.csv` + `devices_generated.csv`, read by `hartlib.devices`): every level's devices with their wiring text (`build_device_map.py` writes staging's from `wiring.csv`, main and upper's by its rule: a proposal in `devices_generated.csv`, worked out from the LCOS node rules on every build and never written to `wiring.csv`)
 - `jmri/layouts/hart/data/schematic/lcos_nodes.csv`: every node
 - `jmri/layouts/hart/output/signal_head_plan.csv`: the Digicon masts, written by `build_hart_signal_heads.py --wiring-only` from `wiring.csv`'s heads (a `make panels` step, `head-plan`)
 - `docs/wiring/lcos/lcos_signal_logic.csv` → `docs/wiring/lcos/lcos_signal_manager_config_plan.xlsx` (Main/Diverged + OR)
@@ -38,5 +38,5 @@ python3 www/scripts/build_wiring_json.py   # site viewer; signal splits keep v85
 ## Do not
 
 - Write main or upper wiring into `wiring.csv` any way but `make wiring-freeze` (it copies a control point's proposal in as wired rows, noted "frozen from the device map's rule (CP n, date)"). Data flows one way: rules, proposal, freeze, `wiring.csv`, device map; for a frozen control point `build_device_map.py` reads `wiring.csv` through `hartlib.wiring.held` and proposes nothing (it stops on a device the rule would still give one). `tools/wiring/check_wiring_frozen.py` (in `check.sh`) fails on a main or upper row wired with no freeze note, a frozen control point with a row not wired, or text not in the freeze's format
-- Edit v86 or the wiring cells of `devices.csv` by hand: change `wiring.csv`, then rebuild
+- Edit v86 or the wiring cells of the device master by hand: change `wiring.csv`, then rebuild
 - Put packed MQTT on helix **D5**

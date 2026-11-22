@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-11-19
 - **Deciders:** lnevo
-- **Amended by:** ADR-029. `device_map_staging.csv` is now `devices.csv`. 2026-11-21 (owner: the level is a column): `staging_masts.csv`, `staging_signals.csv` and `main_upper_masts.csv` are one file, `data/schematic/masts.csv` with a `level` column (hartlib.level_masts); `build_staging_masts.py` and `build_main_upper_masts.py` are one builder, `build_masts.py`, and `sync_staging_signals.py` is `sync_signals.py`, a check of every level. No mast moved.
+- **Amended by:** ADR-029. `device_map_staging.csv` is now `devices.csv`. 2026-11-21 (owner: the level is a column): `staging_masts.csv`, `staging_signals.csv` and `main_upper_masts.csv` are one file, `data/schematic/masts.csv` with a `level` column (hartlib.level_masts); `build_staging_masts.py` and `build_main_upper_masts.py` are one builder, `build_masts.py`, and `sync_staging_signals.py` is `sync_signals.py`, a check of every level. No mast moved. 2026-11-22 (owner): when two intermediates would share a number (pairs under a tenth of a mile apart: MP 6.6 and 6.7 both give westward 67), the lower milepost keeps it and the other takes the next number of its parity that no intermediate holds or would hold; the build prints the shift (`mast_plan.assign_numbers`). No mast moved.
 
 ## Context
 

@@ -116,7 +116,7 @@ Lookups (all take the root element unless noted):
 
 `jmri/layouts/hart/data/wiring.csv`, the physical wiring source (owner, 2026-11-20): one row per device on an LCOS
 node. `wiring.read()` gives checked `Wire` rows; `w.address` is the JMRI system name (M2T408, M2S470, IH432, M2S1300)
-and `w.wiring_text` the wiring text devices.csv and the JMRI comments carry ("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2").
+and `w.wiring_text` the wiring text the device master and the JMRI comments carry ("Node: 4 Turnout: 0 | OU: 1 Ports: 1,2").
 Staging's rows are as wired in JMRI, plus the fascia buttons, relays and calibration relays, which have no JMRI
 device (kinds `button`, `relay` and `calibration`, no index); main and upper's are the detectors the owner placed (planned), the rest of those levels being
 given out by `build_device_map.py`'s rule.
@@ -128,20 +128,20 @@ checked together. `python3 -m hartlib.railroad check` (in `tools/check.sh`) runs
 
 ```python
 rr = railroad.Railroad()                  # this checkout's files; Railroad(Sources.under(data_dir), upto=...)
-rr.switches[9].legs[0].closed             # staging switches (the level 1 rows of switches.csv + devices.csv)
+rr.switches[9].legs[0].closed             # staging switches (the level 1 rows of switches.csv + the device master)
 rr.device_map.occupancy["OS Switch 101"].jmri_name    # IS:HART:C3:B:OS101
 rr.check()                                # [Problem(invariant, message)]
 ```
 
 The files come in **layers**, in the order `tools/schematic/build_panels.sh` makes them: `inputs` (hand-kept:
-`switches.csv` (every level's switches, ADR-021), staging's rows of `devices.csv`, `interlockings.csv` (every level),
+`switches.csv` (every level's switches, ADR-021), staging's rows of the device master, `interlockings.csv` (every level),
 `lcos_nodes.csv`, `plan_overrides.json` (its `main_upper` section), `block_lengths.csv`), `hands` (the main and upper hands of `switches.csv`, which `build_hands.py` writes into its plan rows), `device_map`, `masts` (`schematic/masts.csv`, every level's masts) and `tables`
 (`tables.xml`). `Railroad(upto=layer)` raises `LayerError` when asked for a later layer, so a builder never reads a
 stale copy of its own output: `build_device_map.py` loads `upto="inputs"`, `build_cats_panel.py` everything.
 
 | Name | What |
 |------|------|
-| `Railroad.staging_devices` | `StagingDevices`: staging's (level 1) rows of `devices.csv` in the device layers, `rows` (`StagingDevice`: the master's own columns), `by_name` ((layer, user name) -> row), `names(layer)` |
+| `Railroad.staging_devices` | `StagingDevices`: staging's (level 1) rows of the device master in the device layers, `rows` (`StagingDevice`: the master's own columns), `by_name` ((layer, user name) -> row), `names(layer)` |
 | `Railroad.switch_rows`, `switches` | `[SwitchRow]`: switches.csv as read (`read_switch_rows`, every row held to its level's shape); `{number: Switch}` of its staging rows (`Switch`, `Leg`; `layout_facts.py` re-exports them) |
 | `Railroad.interlockings` (every level), `level_control_points` (its main and upper rows), `local_switches`, `lcos_nodes`, `main_upper_switches` | `Interlocking`, `LocalSwitch`, `LcosNode`, `{number: MainUpperSwitch}` |
 | `Railroad.plan_overrides` | `PlanOverrides`: `data` (the whole file), `edits`, `relabel`, `helix` |
@@ -212,7 +212,7 @@ columns that kept the name map's copy (2026-11-21): their facts are in `cp`, `sy
 - `read_template()`: `jmri/layouts/hart/data/tables_template.xml`, what PanelPro owns (settings, memories, the clock
   sensor, the "Hide windows on start" LogixNG), in JMRI's format, every section of `SECTIONS` once and in order, with
   the fixed envelope (`PROLOG`, `EPILOG`) and none of what a Store writes each time (`ENVELOPE_DROPS`).
-- `base()`: the template with the staging beans of `devices.csv` (`master_beans`), comments from the wiring columns
+- `base()`: the template with the staging beans of the device master (`master_beans`), comments from the wiring columns
   (`bean_comment`), each section in JMRI's system-name order (`jmri_order`). `build_layout_le.py` draws on it.
 - `read_discovered()` / `discovered_from_store()` / `write_discovered()` / `merge_discovered()`:
   `data/schematic/discovered_sml.xml`, the Signal Mast Logic and mast properties stock discovery wrote. Only
@@ -236,7 +236,7 @@ compares the base (what the host had before the session), the repo's generated `
 normalised, item by item (`index`: a bean, a setting, a section's attributes, a Signal Mast Logic, an extra section,
 a panel). `plan()` sorts each item the owner changed: KEPT (a template item the repo did not change: the template
 takes it), CLASH (the repo changed it too, or there is no base: reviewed), DEVICE (a rename or comment on a hand-kept
-`devices.csv` row: reviewed, `Edit`s to write) and DROPPED (the build's: the repo wins, with what to change instead).
+device-master row: reviewed, `Edit`s to write) and DROPPED (the build's: the repo wins, with what to change instead).
 `new_template()` writes the chosen template items, `edited_rows()` the merged cells, and `verify()` checks a
 rebuild gives exactly what the plan promised. `read_template()` accepts an extra section a split kept (a Route
 table, say), never a second copy of a known one. Errors are `SplitError`.
@@ -244,7 +244,7 @@ table, say), never a second copy of a known one. Errors are `SplitError`.
 ### `hartlib.level_masts`
 
 Every level's masts, one file with a `level` column (owner, 2026-11-21: the level is a column): `PATH`
-(`schematic/masts.csv`, written by `tools/schematic/build_masts.py` from the mast and head rows of `devices.csv`),
+(`schematic/masts.csv`, written by `tools/schematic/build_masts.py` from the mast and head rows of the device master),
 `FIELDS` (`level`, the mast columns and `PLAN_FIELDS`, the plan facts the drawing places a mast by: filled for the
 masts `build_masts.py` places from a block layer of its own, staging today, and empty on main and upper, whose
 `build_signals.py` places from the plan graph), `read(path, levels=...)` (the rows of `levels`, by keyword, every level when `None`,
@@ -308,7 +308,7 @@ and `apply()` writes them. `tools/schematic/publish_draft.py` applies it after a
 
 ### `hartlib.names`
 
-`devices.csv` keeps a turnout's DCC address in its own `dcc` column; JMRI's comment carries it
+The device master keeps a turnout's DCC address in its own `dcc` column; JMRI's comment carries it
 as the second group (`Node: 4 Turnout: 0 | DCC: 100 | OU: 1 Ports: 1,2`). `jmri_comment(wiring, dcc)`
 builds one (`devices.comment_of(row)` gives a row's), and `split_dcc(comment)` takes the group out
 of a built comment, for the old-form device-map rows and for checks that hold tables.xml to the

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Every level's signal masts (owner, 2026-11-18/19/20/21): masts.csv, the level a column, and the planned level's
-mast and head rows of devices.csv.
+mast and head rows of the device master.
 
     python3 tools/schematic/build_masts.py           # write the files
     python3 tools/schematic/build_masts.py --check   # exit 1 if a file is stale
@@ -46,7 +46,7 @@ one the next ordinal of its level's thousand (mast_plan.virtual_system_names); a
 retired_virtual_masts.csv. The ordinals it gave are its one read-back of its own output (devices.allocated_names), so
 no name shifts.
 
-Writes (jmri/layouts/hart/data/schematic/): masts.csv, and the planned level's mast and head rows of ../devices.csv
+Writes (jmri/layouts/hart/data/schematic/): masts.csv, and the planned level's mast and head rows of ../devices_field.csv and devices_generated.csv
 (written_by build_masts.py; hartlib.devices holds it to those rows, and the master is read and written only through
 hartlib.devices). On staging each mast and head row's system_name and jmri_name are its JMRI name; on main and upper
 system_name is the planned physical part, so masts.csv's device_system_name keeps it.
@@ -71,9 +71,9 @@ import staging_device_map as sdm  # noqa: E402
 from hartlib import devices, level_masts, railroad, wiring  # noqa: E402
 
 DATA = pd.DATA
-MASTS, DEVICE_MAP = level_masts.PATH, sdm.DEVICE_MAP     # masts.csv, every level; devices.csv
-WRITER = Path(__file__).name           # the written_by of the devices.csv rows this script holds
-WRITES = ("mast", "head")              # the layers of the devices.csv rows this script holds (written_by below)
+MASTS, DEVICE_MAP = level_masts.PATH, sdm.DEVICE_MAP     # masts.csv, every level; the device master
+WRITER = Path(__file__).name           # the written_by of the device master rows this script holds
+WRITES = ("mast", "head")              # the layers of the device master rows this script holds (written_by below)
 
 
 def device_files() -> devices.Files:
@@ -254,7 +254,7 @@ def generate(band, names: dict, planned: dict, cm: dict, wired: dict, parts: dic
     the staging band (`names`: the device map's block layer, `cm`: block_cm; a mast in `wired`, from wired_heads, is a
     field signal): [{mast, cp, switch, facing, protects, kind, heads, dir, toward, run, names, edge_cm,
     cm_from_toward, edge, node, role}], in name order; role (hartlib.devices.ROLES) is home or intermediate, as the
-    plan places the mast, and goes to its devices.csv row (with_roles). A home mast stands at its switch's leg when the block boundary is
+    plan places the mast, and goes to its device-master row (with_roles). A home mast stands at its switch's leg when the block boundary is
     there (a turnout mast), else on the anchor where the switch's own OS block ends (an anchor mast, no switch); a
     part of the OS block (a JMRI block of its own, owner 2026-11-20) is inside it, as mast_plan reads the layer
     (staging_device_map.os_layer). It faces the JMRI block next to that boundary (Mast 32R: Track 29-31), and its

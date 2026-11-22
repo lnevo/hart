@@ -12,7 +12,9 @@ the level's block layer:
    inside one interlocking) with at least one end in an interlocking, where both blocks hold a train (over
    mast_rule.LONG_CM). Named from the milepost in tenths, odd westbound and even eastbound, after the level's line
    code (LINE_CODE: A main, B upper, none on staging, where a name stops at 98 so it never reads as a three-digit
-   home mast). West is toward the lower milepost; on a balloon loop, which starts and ends at one switch, the
+   home mast). A number another intermediate already holds moves on to the next free one of its parity
+   (assign_numbers).
+   West is toward the lower milepost; on a balloon loop, which starts and ends at one switch, the
    eastbound mast faces Loop 1 (the half from leg B).
 3. Virtual masts only as destinations: every route of each kept home mast is walked (mast_rule.route_ends) to the
    first visible mast; a route that reaches a buffer stop first gets a hidden bumper mast there, facing it. Nothing
@@ -31,6 +33,7 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -83,6 +86,34 @@ def signal_number(mp: float, west: bool, code: str = "") -> int:
     if not code and number > 98:
         raise mr.MapError(f"MP {mp:.2f} gives intermediate number {number}; names with no line code stop at 98")
     return number
+
+
+def assign_numbers(masts: list[dict]) -> None:
+    """Name each intermediate (`code`, `number`: its natural number from signal_number, `mp`: its milepost) in place:
+    `name` comes first and those three keys are dropped. Two pairs under a tenth of a mile apart share a westward number (6.6 and 6.7 both give 67: the odd and even
+    numbers give one number per two tenths). Every natural number is reserved first; of the masts that share one, the
+    lowest milepost keeps it and each other takes the next number of its parity that no intermediate holds or would
+    hold, so no mast without a clash is renamed (owner, 2026-11-22). Each shift is printed with both mileposts. With no
+    line code a shifted number stops at 98 like any other."""
+    natural = {f"{m['code']}{m['number']}" for m in masts}
+    holder = {}
+    for m in sorted(masts, key=lambda m: (m["code"], m["number"], m["mp"], m["dir"])):
+        code, number, mp = m["code"], m["number"], m["mp"]
+        name = f"{code}{number}"
+        if name in holder:
+            first, held = number, holder[name]
+            while f"{code}{number}" in natural or f"{code}{number}" in holder:
+                number += 2
+            if not code and number > 98:
+                raise mr.MapError(f"MP {mp:.3f}: intermediate {first} is held by MP {held['mp']:.3f} and the next free "
+                                  f"number {number} is over 98; names with no line code stop at 98")
+            name = f"{code}{number}"
+            print(f"mast_plan: MP {mp:.3f} would be intermediate {code}{first}, which MP {held['mp']:.3f} holds; "
+                  f"named {name}", file=sys.stderr)
+        holder[name] = m
+        m["name"] = name
+    masts[:] = [{"name": m["name"], **{k: v for k, v in m.items() if k not in ("name", "code", "number", "mp")}}
+                for m in masts]
 
 
 def letter_at(band, node: str, leg: str) -> str:
@@ -167,12 +198,13 @@ def intermediates(bands, found, runs_by_band: dict, layer: dict, cm: dict, cp_of
                     at_start = to is start
                     toward, other = (sw[0], sw[1]) if at_start else (sw[1], sw[0])
                     cp = cp_of.get(toward) or cp_of[other]
-                    out.append(dict(name=f"{code}{signal_number(mp, west, code)}", level=level, band=bi,
+                    out.append(dict(code=code, number=signal_number(mp, west, code), mp=mp, level=level, band=bi,
                                     dir="west" if west else "east",
                                     protects=a if at_start else b, facing=b if at_start else a,
                                     milepost=round(mp, 3), start=start, end=end, to=to, toward=toward, other=other,
                                     dist=round(from_start if at_start else total - from_start, 1),
                                     total=round(total, 1), cp=cp))
+    assign_numbers(out)
     return out
 
 

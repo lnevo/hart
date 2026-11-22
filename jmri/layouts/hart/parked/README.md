@@ -161,7 +161,7 @@ Dispatcher must restore the throat blocks and their rear and yard-end masts**. T
 `git show 5a5bff0a:<path>`.
 
 - **Blocks** (12, each a short block at one end of its yard track, sharing that track's detector and drawn at 15.748 in,
-  400 mm). The rows are the level 1 block rows of `jmri/layouts/hart/data/devices.csv` (before ADR-029, `device_map_staging.csv`), each a block row plus its name in
+  400 mm). The rows are the level 1 block rows of the device master (before ADR-029, `device_map_staging.csv`), each a block row plus its name in
   the occupancy row's `blocks ...` note. The yard track's `trial_name` took the middle share, `Track <edge> 2/3`, or
   `1/2` for East Lead and `2/2` for K-1. In `block_lengths.csv` they had source `stub`, and the tools of that commit
   read them: `plan_lengths.py` fixed lengths, speed-profile detector sums and the electrical drawings.

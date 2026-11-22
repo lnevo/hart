@@ -177,7 +177,7 @@ def load_layout(levels: bool = True) -> dict:
                     if name not in occ_names[un]:
                         occ_names[un].append(name)
 
-    # a device's kind is its devices.csv row's (layer, role), never its name (hand-off row 8)
+    # a device's kind is its device-master row's (layer, role), never its name (hand-off row 8)
     index = devices.index(DEVICES)
     detectors = set(index.names("occupancy", roles=set(devices.ROLES) - {"spare"}))
     switches = set(index.names("turnout", roles=("turnout",)))
@@ -391,7 +391,7 @@ def infer_plant(name: str, cp: str = "") -> str:
 
 
 def load_cps() -> dict[str, dict[str, str]]:
-    """Staging's rows of devices.csv: user name (and an occupancy sensor's system name) -> its cp, by layer. An LCC
+    """Staging's rows of the device master: user name (and an occupancy sensor's system name) -> its cp, by layer. An LCC
     alias (DCC Switch N) is grouped by its name alone (infer_plant), as the name map, which gave it no cp, had it."""
     turnout: dict[str, str] = {}
     occupancy: dict[str, str] = {}

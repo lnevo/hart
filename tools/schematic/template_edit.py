@@ -12,7 +12,7 @@ For a one-line memory, clock or manager setting, use this instead of PanelPro, S
 split_store.py (ADR-029). Each edit is checked, written through hartlib.tables (the bytes JMRI writes), and followed by
 build_tables.py and build_tables.py --check. --dry-run shows the change and writes nothing; --no-build skips the
 rebuild. A memory's value is not kept: a Store drops it (hartlib.tables_build.ENVELOPE_DROPS), so a value is set in
-JMRI at run time. Items outside what the template holds (turnouts, masts, blocks, the panel) come from devices.csv.
+JMRI at run time. Items outside what the template holds (turnouts, masts, blocks, the panel) come from the device master.
 Exit 0 done, 1 refused or the rebuild failed (the template is put back), 2 usage.
 """
 from __future__ import annotations

@@ -5,7 +5,7 @@
 
 The facts are the staging rows of jmri/layouts/hart/data/switches.csv (read by
 layout_facts.py), with hardware, DCC address and control point from
-staging's rows of devices.csv and the desk areas of stations.csv. For every switch this checks:
+staging's rows of the device master and the desk areas of stations.csv. For every switch this checks:
 
 Layout Editor (tables.xml)
   - the turnout's hardware and DCC address, and the layout turnout's name and OS block;
@@ -24,7 +24,7 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
     levels), and each main and upper desk block reports, occupied and unoccupied, the virtual sensor
     (IS:HART:C3:B:) its block has in tables.xml; only the desk-only middle of a double crossover's X reports none;
   - the desk's staging masts are mast_cells.csv's, each once, its lamp on the edge of the block it
-    protects (schematic/masts.csv's staging rows, hartlib.railroad); each is a staging mast row of devices.csv and in tables.xml, with one head
+    protects (schematic/masts.csv's staging rows, hartlib.railroad); each is a staging mast row of the device master and in tables.xml, with one head
     (the one named) for a d1 icon and two for h2;
   - main and upper (bound to their internal turnouts IT:HART:C3:<n>, their masts and their blocks' virtual
     sensors): each plant commands and reports one internal turnout of tables.xml, NORMAL on its close
@@ -32,7 +32,7 @@ CATS desks (HART_CTC.xml, HART_ABS.xml: the live desks, generated from the schem
     turnout has a plant (a double crossover four points, one turnout); each mast of
     masts.csv's main and upper rows has one lamp, on the edge of the block it protects (a double crossover's
     corner is its one desk block), and is that mast in tables.xml.
-Levels (stations.csv desk areas, switches.csv, staging's rows of devices.csv)
+Levels (stations.csv desk areas, switches.csv, staging's rows of the device master)
   - each control point's switches are on its level, and every cp of a staging row has a desk area;
   - every mast and block has one level: its switch's, its control point's, or, for a
     main between control points, the one level of the blocks it joins (its stored paths, else the panel's track).
@@ -82,7 +82,7 @@ MASTS = railroad.Sources.under().masts     # masts.csv: each mast's level, facin
 BASE_LEVELS = tuple(int(v) for v in tables_build.GENERATED_LEVELS)
 ADDED_LEVELS = tuple(lv for lv in level_masts.LEVELS if lv not in BASE_LEVELS)
 OCCUPANCY = ROOT / "cats/data/occupancy_bindings.csv"
-DEVICE_MAP = railroad.Sources.under().devices     # devices.csv: the main and upper block names
+DEVICE_MAP = railroad.Sources.under().devices     # the device master: the main and upper block names
 
 CLOSED, THROWN = "2", "4"
 PLAIN_TURNOUTS = {"RH_TURNOUT", "LH_TURNOUT", "WYE_TURNOUT"}
@@ -139,7 +139,7 @@ def parse_tables(path: Path) -> ET.Element:
 # ---------------------------------------------------------------- tables.xml
 
 def part_map(master: Path) -> dict[str, str]:
-    """{part: the block it is part of} of every level's parts (devices.csv part_of) in the master at `master`: the
+    """{part: the block it is part of} of every level's parts (the device master's part_of) in the master at `master`: the
     master that goes with the tables being checked."""
     return {r["user_name"]: r["part_of"] for _n, r in devices.part_lines(("1", "2", "3"), master)}
 
@@ -183,7 +183,7 @@ class Tables:
         self.segments = {s.get("ident"): s for s in self.root.iter("tracksegment")}
         self.points = {p.get("ident"): p for p in self.root.iter("positionablepoint")}
         self.paths_stored = bool(self.paths)
-        # a part (devices.csv part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
+        # a part (the device master's part_of) is a JMRI block of its own inside another block (owner, 2026-11-20); the
         # legs in switches.csv name the blocks a part is inside, as the masts read them (staging_device_map.os_layer)
         self.part_of: dict[str, str] = dict(parts or {})
         self.sensor_system = {
@@ -315,7 +315,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         return
     if sw.hardware and system != sw.hardware:
         r.add(f"le:{n}", f"{n}: tables.xml turnout is {system}, devices.csv says {sw.hardware}")
-    # a witness of tables.xml (an output) against devices.csv's dcc column: the address is read out of the built
+    # a witness of tables.xml (an output) against the device master's dcc column: the address is read out of the built
     # comment only to hold the build to the master, never used as a fact
     try:
         dcc = split_dcc(comment)[1]
@@ -382,12 +382,12 @@ def desk_plants(path: Path, r: Report) -> tuple[dict, dict[str, tuple[int, int]]
 
 @functools.cache
 def device_map_rows() -> frozenset[str]:
-    """The main and upper block names (the block rows of levels 2 and 3 of devices.csv)."""
+    """The main and upper block names (the block rows of levels 2 and 3 of the device master)."""
     return frozenset(block_rows())
 
 
 def block_rows() -> dict[str, tuple[int, dict[str, str]]]:
-    """{block name: (line, row)} of the block rows of levels 2 and 3 of devices.csv."""
+    """{block name: (line, row)} of the block rows of levels 2 and 3 of the device master."""
     rows = {row["user_name"]: (n, row) for n, row in devices.device_map_lines(("2", "3"), DEVICE_MAP)
             if row["layer"] == "block"}
     if not rows:
@@ -726,7 +726,7 @@ def staging_mast_rows(path: Path = MASTS) -> list[dict]:
 
 def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r: Report) -> None:
     """mast_cells.csv against the USS board's grid, the CATS desks (each of its masts once, its lamp on the edge of
-    the block it protects, and no other mast), staging's mast rows of devices.csv and the masts' heads in tables.xml."""
+    the block it protects, and no other mast), staging's mast rows of the device master and the masts' heads in tables.xml."""
     # the desks draw staging's visible masts, as the rule places them (masts.csv, ADR-024); mast_cells.csv
     # is the USS board's, checked only while the board is in the tables (it is parked with it, owner 2026-11-19)
     want = {m["mast"] for m in staging_mast_rows() if not m["system_name"].startswith("IF$vsm:")}
@@ -821,7 +821,7 @@ def run(data: Path = facts.DATA, tables: Path = TABLES, desks=DESKS, gui: Path =
     parts = part_map(device_map)
     t = Tables(tables, parts=parts)
     check_data(switches, data, r)
-    rows = facts.staging_rows(data)  # staging's rows of devices.csv, read once for the checks below
+    rows = facts.staging_rows(data)  # staging's rows of the device master, read once for the checks below
     check_levels(switches, data, rows, t, r)
     check_mast_cells(data, rows, desks, t, r)
     for sw in switches.values():

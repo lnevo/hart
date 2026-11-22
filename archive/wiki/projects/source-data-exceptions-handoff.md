@@ -3,7 +3,7 @@
 Status: done (2026-11-21)
 
 For a fresh agent session. Read `AGENTS.md`, then this page, then
-[`pipelines/schematic-panels.md`](../pipelines/schematic-panels.md).
+[`pipelines/schematic-panels.md`](../../../wiki/pipelines/schematic-panels.md).
 
 ## Why
 

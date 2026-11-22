@@ -24,7 +24,7 @@ Columns (COLUMNS):
 - status: wired or planned. notes: text for people. (Power districts are not mapped yet; the owner,
   2026-11-21: the inventory's were old names, not real.)
 
-The JMRI address follows from node and index (address), and the wiring text from all four (wiring_text): devices.csv
+The JMRI address follows from node and index (address), and the wiring text from all four (wiring_text): the device master
 holds both only as written from here.
 """
 from __future__ import annotations
@@ -98,7 +98,7 @@ class Wire(NamedTuple):
 
     @property
     def wiring_text(self) -> str:
-        """The device's wiring as devices.csv and the JMRI comment tell it: "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
+        """The device's wiring as the device master and the JMRI comment tell it: "Node: 4 Turnout: 0 | OU: 1 Ports: 1,2",
         a detector's "Node: 13 Block: 1"."""
         word = LCOS[self.kind][2]
         if self.kind in LOCAL:

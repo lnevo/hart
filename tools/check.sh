@@ -233,9 +233,9 @@ run schematic-staging-sets python3 tools/schematic/build_staging_sets.py --check
 run schematic-approved python3 tools/schematic/check_approved.py
 run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-masts python3 tools/schematic/build_masts.py --check
-# tables.xml is an output (ADR-029): it must be what build_tables.py writes from the template, devices.csv, the
+# tables.xml is an output (ADR-029): it must be what build_tables.py writes from the template, the device master, the
 # Layout Editor build and the discovered Signal Mast Logic; a Store is never copied over it (make tables-pull keeps
-# it in media/pulled-stores in the main checkout and tools/schematic/split_store.py splits it into the template and devices.csv)
+# it in media/pulled-stores in the main checkout and tools/schematic/split_store.py splits it into the template and the device master)
 run tables python3 tools/schematic/build_tables.py --check
 run schematic-device-master python3 tools/schematic/check_device_master.py --check
 run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
@@ -253,10 +253,10 @@ run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
 run wiring-frozen python3 tools/wiring/check_wiring_frozen.py
 run layout-facts python3 tools/audit/check_layout_facts.py
-# The fact files against each other (hartlib.railroad: devices.csv, switches.csv, masts.csv, the tables file);
+# The fact files against each other (hartlib.railroad: the device master, switches.csv, masts.csv, the tables file);
 # KNOWN in the module lists what is reported and left.
 run railroad-facts env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.railroad check
-# devices.csv and its column dictionary (python3 -m hartlib.devices)
+# the device master and its column dictionary (python3 -m hartlib.devices)
 run devices env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.devices check
 run panel-status python3 tools/schematic/panel_items.py --check
 run name-copies python3 tools/audit/check_name_copies.py

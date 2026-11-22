@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""MQTT M2T* plant <-> OpenLCB MTT{dcc} alias (devices.csv: DCC Switch N).
+"""MQTT M2T* plant <-> OpenLCB MTT{dcc} alias (the device master: DCC Switch N).
 
-Every field turnout row of devices.csv (an MQTT M2T* plant) has an LCC alias row ``DCC Switch N`` whose system name
+Every field turnout row of the device master (an MQTT M2T* plant) has an LCC alias row ``DCC Switch N`` whose system name
 is ``MTT{dcc}``, the turnout row's own ``dcc`` column. In tables.xml the alias bean has the alias row's user name and
 comment (its wiring, with no DCC group) and the same feedback sensors as the MQTT bean. Do not delete MTT* as
 leftovers. Nothing here reads a DCC address out of a comment: the address is the row's ``dcc``.
 
 Every LCOS turnout is a DCC turnout, but not every DCC turnout is LCOS (owner, 2026-11-20): an MTT* with no MQTT plant
-(a DCC accessory, a test turnout) is no problem. Only a devices.csv row that names itself an MQTT plant's alias needs
+(a DCC accessory, a test turnout) is no problem. Only a device-master row that names itself an MQTT plant's alias needs
 one.
 """
 
@@ -30,7 +30,7 @@ def child_text(element: ET.Element, tag: str) -> str:
 
 @dataclass(frozen=True)
 class Plant:
-    """A field turnout row of devices.csv and its LCC alias row."""
+    """A field turnout row of the device master and its LCC alias row."""
     key: tuple             # the turnout row's key (level, layer, user_name)
     user: str              # Switch N
     system: str            # M2T...
@@ -47,7 +47,7 @@ class Plant:
 
 
 def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]:
-    """({M2T system name: Plant} of the field turnout rows of devices.csv, the system names of the field turnout rows
+    """({M2T system name: Plant} of the field turnout rows of the device master, the system names of the field turnout rows
     refused, problems): a refused row is a field turnout with no DCC address or no LCC alias row, or one whose alias's
     system name is not MTT{dcc}; an alias with no turnout row is a problem too. DevicesError when the master cannot be
     read."""
@@ -75,7 +75,7 @@ def field_plants(csv_path: Path) -> tuple[dict[str, Plant], set[str], list[str]]
 
 
 def identity_lcc_rows(csv_path: Path) -> dict[str, tuple[str, str]]:
-    """MTT* -> (user name, JMRI comment) of the field LCC alias rows of devices.csv."""
+    """MTT* -> (user name, JMRI comment) of the field LCC alias rows of the device master."""
     if not csv_path.is_file():
         return {}
     plants, _refused, _bad = field_plants(csv_path)
@@ -92,8 +92,8 @@ def turnout_index(root: ET.Element) -> dict[str, ET.Element]:
 
 
 def contract_violations(root: ET.Element, csv_path: Path) -> list[str]:
-    """Human-readable failures of tables.xml `root` against the field turnouts of devices.csv `csv_path`; empty means
-    the contract holds. A devices.csv that cannot be read is one failure, naming it."""
+    """Human-readable failures of tables.xml `root` against the field turnouts of the device master `csv_path`; empty means
+    the contract holds. A device master that cannot be read is one failure, naming it."""
     beans = turnout_index(root)
     mqtt = {sn: el for sn, el in beans.items() if sn.startswith("M2T")}
     lcc = {sn: el for sn, el in beans.items() if sn.startswith("MTT")}

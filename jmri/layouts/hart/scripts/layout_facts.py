@@ -23,14 +23,14 @@
                      check_layout_facts.py)
 
 Hardware (``system_name``), DCC address (its own ``dcc`` column) and control point come from
-staging's turnout row of devices.csv; the desk areas of schematic/stations.csv list which
+staging's turnout row of the device master; the desk areas of schematic/stations.csv list which
 switches each control point holds and its level. Nothing here is copied from
 those files.
 
 Level is held once per switch (switches.csv) and once per control point
 (a station's, in stations.csv). A mast, head, block or occupancy sensor has no level of
 its own: it takes the level of its control point (the ``cp`` column of
-devices.csv), and an OS block or a switch leg takes its switch's.
+the device master), and an OS block or a switch leg takes its switch's.
 staging_levels() resolves them. No grouping above the control point exists
 yet, so there is no district column; when the new levels need one, it goes beside ``level`` on the control-point
 files (stations.csv, interlockings.csv).
@@ -81,7 +81,7 @@ def _rows(path: Path) -> list[dict[str, str]]:
 
 
 def staging_rows(data: Path = DATA) -> list[dict[str, str]]:
-    """Staging's rows of devices.csv (hartlib.railroad's read_staging_rows, so the master is read by one loader)."""
+    """Staging's rows of the device master (hartlib.railroad's read_staging_rows, so the master is read by one loader)."""
     return [row for _line, row in railroad.read_staging_rows(railroad.Sources.under(data).devices)]
 
 
@@ -237,7 +237,7 @@ def switch_block_levels(switches: dict[int, Switch]) -> dict[str, set[str]]:
 def staging_levels(data: Path = DATA, switches: dict[int, Switch] | None = None,
                    rows: list[dict[str, str]] | None = None,
                    track_name: Callable[[str], str] | None = None) -> dict[tuple[str, str], str]:
-    """(layer, user name) -> level for staging's rows of devices.csv (staging_rows).
+    """(layer, user name) -> level for staging's rows of the device master (staging_rows).
 
     A turnout or feedback sensor of Switch N (``Switch N``, ``DCC Switch N``,
     ``FB Switch N R``) takes switches.csv; an OS block or a block a switch leg
