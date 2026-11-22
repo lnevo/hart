@@ -1444,6 +1444,7 @@ function app() {
     if (want === view.steps) { syncSpread(); return; }
     // the drawing x at the middle of the free area (left of the info panel), as a share of the boxes' width
     const half = freeShare().right / 2, mid = lay && lay.width > 0 ? (vb.x + half * vb.width) / lay.width : 0;
+    const before = boxesOnScreen();  // where the preview left the boxes, so they glide to their places (settle)
     view.steps = want;
     render(false);
     capReady = false;  // the next drag works the cap out for the map as drawn now
@@ -1451,8 +1452,45 @@ function app() {
       const f = fitNow();
       setVB(mid * lay.width - half * f.width, f.y, f.width, f.height);
     }
+    settle(before);
     syncSpread();
     if (!quiet) writeHash();
+  }
+  /* The boxes on screen (id -> screen rect), and settle(before): after a Steps layout each box starts where it was on
+     screen and glides to its place, the links fading back in, so letting go of the slider does not snap. */
+  function boxesOnScreen() {
+    const out = new Map();
+    if (!svg) return out;
+    for (const id in nodeEl) {
+      const q = nodeEl[id].querySelector(".box").getBoundingClientRect();
+      if (q.width > 0 && q.right > 0 && q.left < innerWidth && q.bottom > 0 && q.top < innerHeight) out.set(id, q);
+    }
+    return out;
+  }
+  let settleEnd = 0;
+  // the CSS form of boxTransform (an SVG transform attribute does not animate; the style property does)
+  const cssBox = (x, y, k) => `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${k.toFixed(4)})`;
+  function settle(before) {
+    const m = svg && svg.getScreenCTM();
+    if (!m || !before.size || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const sc = lay.geo.scale || 1, moved = [];
+    lay.nodes.forEach(n => {
+      const b = before.get(n.id), g = nodeEl[n.id];
+      if (!b || !g) return;
+      const k = (b.width / m.a) / (n.w / sc);  // its own size times k filled the old rect
+      g.style.transition = "none";
+      g.style.transform = cssBox((b.left - m.e) / m.a, (b.top - m.f) / m.d, k);
+      moved.push([g, cssBox(n.x, n.y, sc)]);
+    });
+    if (!moved.length) return;
+    svg.classList.add("settling");
+    svg.getBoundingClientRect();  // the start places take effect before the glide
+    moved.forEach(([g, t]) => { g.style.transition = ""; g.style.transform = t; });
+    clearTimeout(settleEnd);
+    settleEnd = setTimeout(() => {  // the transform attribute, already the place, takes over again
+      moved.forEach(([g]) => { g.style.transform = ""; g.style.transition = ""; });
+      if (svg) svg.classList.remove("settling");
+    }, 320);
   }
   // dragging moves the label; letting go (or a key) lays the map out once; a drag ended where it began fires no change
   spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; capReady = false; clearTimeout(wheelRest); });
