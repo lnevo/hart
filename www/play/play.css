@@ -1,8 +1,8 @@
 /* Extra East: Neville Island. Extra East's layout (exam/run.css) with the coke works at dusk around the paper: steel, rust and sodium light. Own classes (xw-*) to stay clear of ops.css. */
 .xw{
-  --sheet:#efe9dc; --sheet-2:#e2d9c6; --line:#c4b7a0; --ink:#1c1b22; --muted:#5f5650;
-  --red:#a4472b; --rust:#a4472b; --blue:#2f4a6b; --green:#2f6b3f; --flimsy:#f1e6c8; --stamp:#a4472b; --glow:#e8913a;
-  --river:#3b4459; --land:#d9cfbb;
+  --sheet:#e8eaee; --sheet-2:#d7dbe2; --line:#a9b0bc; --ink:#1c1b22; --muted:#545b67;
+  --red:#a4472b; --rust:#a4472b; --blue:#2f4a6b; --green:#2f6b3f; --flimsy:#f2f4f7; --stamp:#a4472b; --glow:#e8913a;
+  --river:#3b4459; --land:#c9ced7;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   display:flex;flex-direction:column;gap:14px;color:var(--ink);font-family:var(--font-body);
   background:linear-gradient(180deg,#2c2142 0,#4a2a48 140px,#26232b 420px,#1f1d24 100%);padding:14px;border-radius:4px}
@@ -14,7 +14,7 @@
 .xw-btn.primary:hover{background:#3a3644}
 .xw-btn:disabled{opacity:.45;cursor:default}
 .xw-btn small{display:block;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.02em}
-.xw-btn.primary small{color:#d9d2bd}
+.xw-btn.primary small{color:#c9ced7}
 .xw-paper{background:var(--sheet);border:1.5px solid #141319;border-radius:2px;box-shadow:3px 4px 0 rgba(0,0,0,.28)}
 
 /* status strip */
@@ -60,7 +60,7 @@
 .xw-tt th small{display:block;font-weight:400;color:var(--muted)}
 .xw-tt td.stn{text-align:left;font-weight:600}
 .xw-tt td.stn small{display:block;font-weight:400;color:var(--muted);font-size:10px}
-.xw-tt tr.here td{background:#fbf6d9}
+.xw-tt tr.here td{background:#fbe9d4}
 .xw-tt tr.here td.stn::before{content:"\25B6 ";color:var(--red)}
 .xw-tt .pencil{color:var(--blue);font-style:italic}
 .xw-tt .late s{color:var(--muted)}

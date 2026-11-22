@@ -272,6 +272,11 @@
       "from": "www/assets/behind/sts/scale-instructions.jpg",
       "shared": true
     },
+    "play/index.html": {
+      "image": "assets/share/play-neville.jpg",
+      "alt": "A Pittsburgh & Ohio Valley switching order for job #105 with SW9 #4, 1981: ten loads of ore to the car dumper, fuel at South Yard, empties to the West Yard, stamped Extra East, Neville Island, on a desk lit like the coke works at dusk.",
+      "from": "drawn by make_share_cards.py play-neville, in the manner of ap-exam-run"
+    },
     "exam/run.html": {
       "image": "assets/share/ap-exam-run.jpg",
       "alt": "A Kestrel Valley Railroad Clearance Form A at Ashby: Extra 812 East has 2 orders, Nos 14 and 15, OK 6 14 am, stamped Extra East.",
