@@ -216,6 +216,7 @@ function finish(text,failed){
 /* ---------- start ---------- */
 let RUNS={};
 function begin(id,daily){
+  daily=null; // no daily shift: the draws barely change from day to day (owner, 2026-11-22); the daily path is kept for a pool-based draw later
   if(daily===true)daily=today();
   if(daily){R=seeded("neville|"+daily+"|"+id+"|setup")}else R=RO=Math.random;
   S=newState(id);S.daily=daily||null;queue=[];
