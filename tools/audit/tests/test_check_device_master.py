@@ -229,6 +229,19 @@ class TablesCheck(Master):
         self.assertIn("block Track 101-111: stop is yes, but its comment in tables.xml does not mark a station",
                       self.problems({("2", "Track 101-111"): dict(stop="yes")}))
 
+    def test_a_stop_comment_in_tables_with_an_empty_stop_is_a_problem(self):
+        """While the stations are parked, a "; stop" that comes back into tables.xml (a Stage 1 Store, a hand edit)
+        is reported against the master's empty stop."""
+        block = next(b for b in cdm.tables.blocks(self.rr.tables.root) if cdm.tables.user_name(b) == "Track Barn")
+        comment = block.find("comment")
+        was = comment.text
+        try:
+            comment.text = f"{was}; stop"
+            self.assertIn("block Track Barn: stop is empty, but its comment in tables.xml marks a station",
+                          self.problems())
+        finally:
+            comment.text = was
+
     def test_the_rows_of_a_helix_block_agree_on_its_stop(self):
         """A helix block's rows (staging and main or upper) agree on its stop, with no list of known exceptions."""
         self.assertFalse(hasattr(cdm, "KNOWN_STOP"))

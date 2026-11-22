@@ -11,7 +11,7 @@ Printed SoR: [`jmri/layouts/hart/dispatcher/JMRI_Dispatcher_System.pdf`](../../j
 ## Inputs
 
 - Hidden virtual masts + throat blocks ([`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md))
-- Block comments with `stop` on station bodies (throats: “not a station”, never “not a stop”)
+- Block comments with `stop` on station bodies (throats: “not a station”, never “not a stop”) (parked with the stations topic since 2026-11-22: no block carries `stop`; [`docs/parked/UNPARK.md`](../../docs/parked/UNPARK.md))
 - Roster speed profiles (synthetic today — pipeline 11)
 
 ## Outputs

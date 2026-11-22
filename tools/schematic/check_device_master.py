@@ -259,8 +259,9 @@ def bound_name(r: dict) -> str:
 
 def check_tables(rows: list[dict], rr: railroad.Railroad) -> list[str]:
     """Every row the bean tables.xml holds (the module text), as problems naming the device. The rows of one block
-    (a helix block's, one per level) agree on its stop. Every stop is empty while the Dispatcher stations are parked
-    (owner, 2026-11-22), so no block comment in tables.xml may mark a station."""
+    (a helix block's, one per level) agree on its stop, and a block's comment marks a station exactly when its stop
+    is yes. While the Dispatcher stations are parked (owner, 2026-11-22) the master's stop is empty, so a comment that
+    marks one is reported."""
     t = rr.tables
     heads = {tables.system_name(h): tables.user_name(h) for h in tables.signal_heads(t.root)}
     blocks = {tables.user_name(b): b for b in tables.blocks(t.root)}
