@@ -436,6 +436,17 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("a.map(m.pointerPick)", cases),
                          [{"box": "b"}, {"box": "s"}, {"box": "o"}, {"edge": 0}, {"box": "c"}, {"edge": 0}, {}])
 
+    def test_stop_kinds_and_note(self) -> None:
+        """stopKind names why a chain stops at a box; stopsNote lists up to four, escaped, and counts the rest."""
+        hub = "new Set(['h'])"
+        nodes = [{"id": "r", "runner": True}, {"label": ".cache/x"}, {"kind": "human"}, {"domain": "hosts"},
+                 {"id": "h"}, {"id": "p"}]
+        self.assertEqual(self.run_js(f"a.map(n => m.stopKind(n, {hub}))", nodes),
+                         ["runner", "cache", "hand work", "host", "hub", None])
+        self.assertEqual(self.run_js("m.stopsNote(a)", []), "")
+        note = self.run_js("m.stopsNote(a)", [["a<b>", "hub"], ["c", "runner"], ["d", "cache"], ["e", "hub"], ["f", "hub"]])
+        self.assertEqual(note, '<div class="off">stops at a&lt;b&gt; (hub), c (runner), d (cache), e (hub) and 1 more</div>')
+
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
         boxes = [{"id": "a", "x": 0, "y": 0, "w": 10, "h": 5}, {"id": "b", "x": 20, "y": 0, "w": 10, "h": 5}]
