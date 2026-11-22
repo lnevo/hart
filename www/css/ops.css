@@ -3116,11 +3116,7 @@ html.zoomer-open body {
   gap: 0.4rem;
 }
 
-/* Hub pages: the row sits under the intro; "Back to top" links return to it. */
-.jump {
-  scroll-margin-top: 6rem;
-}
-
+/* Hub pages: the "On this page" row under the title, and "Back to top" links (#top is the page top). */
 .jump-label {
   margin: 0 0 0.45rem;
   font-size: 0.74rem;
