@@ -480,6 +480,18 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
                                          "build adds; keep it"))
                     continue
                 text = text[: -len(tail)]
+            if r["layer"] == "mast" and r["dir"] in tb.DIRECTION_WORD:
+                word = tb.DIRECTION_WORD[r["dir"]]
+                parts = text.split(" | ")
+                if word not in parts:
+                    out.append((p, None, f"a mast's comment carries its direction {word!r}, which the build adds; "
+                                         "keep it"))
+                    continue
+                parts.remove(word)
+                text = " | ".join(parts)
+            if r["layer"] == "block" and text != tb.occupancy_first(text):
+                out.append((p, None, "the build puts a block's detector first; change the row's jmri_comment by hand"))
+                continue
             out.append((p, (Edit(devices.key_of(r), "jmri_comment", r["jmri_comment"], text),), f"{who}: jmri_comment"))
     return out, rest
 

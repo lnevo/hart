@@ -358,16 +358,62 @@ def _sub(el: ET.Element, tag: str, text: str | None = None, **attrs) -> ET.Eleme
     return child
 
 
-def bean_comment(r: Mapping[str, str]) -> str:
+DIRECTION_WORD = {"east": "East", "west": "West"}
+_OCCUPANCY = re.compile(r"(?:^|; )occupancy (Block \d+-\d+ / M2S\d+(?: \([^()]*\))?)(?=;|$)")
+_HEADS_OF_MAST = re.compile(r"\(([^()]+)\)")
+
+
+def with_direction(comment: str, direction: str) -> str:
+    """A mast's comment with the way it faces ("East" or "West", from the dir column) after its place, before a
+    "virtual (device map)" note (owner, 2026-11-22): "Brick | Switch 1 | West"."""
+    word = DIRECTION_WORD.get(direction)
+    if not word:
+        return comment
+    parts = comment.split(" | ") if comment else []
+    at = next((i for i, p in enumerate(parts) if p.startswith("virtual (")), len(parts))
+    return " | ".join(parts[:at] + [word] + parts[at:])
+
+
+def occupancy_first(comment: str) -> str:
+    """A block's comment with its detector first, without the word occupancy (owner, 2026-11-22):
+    "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop" -> "Block 1-1 / M2S100; Princess balloon,
+    Track K-1; stop". A comment with no detector text is as it was."""
+    m = _OCCUPANCY.search(comment)
+    if not m:
+        return comment
+    rest = (comment[: m.start()] + comment[m.end():]).strip("; ")
+    return "; ".join(x for x in (m.group(1), rest) if x)
+
+
+def mast_places(rows: Iterable[Mapping[str, str]]) -> dict[str, str]:
+    """{head jmri_name: the comment of the head mast it lights}, so a wired head reads its place first."""
+    out: dict[str, str] = {}
+    for r in rows:
+        if r["layer"] == "mast" and r["jmri_name"].startswith("IF$shsm:") and r["jmri_comment"]:
+            for h in _HEADS_OF_MAST.findall(r["jmri_name"]):
+                out.setdefault(h, r["jmri_comment"])
+    return out
+
+
+def bean_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) -> str:
     """The JMRI comment of a master row, from its wiring columns: the device-map comment (jmri_comment, else the
     wiring text with a field turnout's DCC group, hartlib.devices.device_map_row), and for a staging head on an
-    internal name VIRTUAL_HEAD_NOTE after it. TablesBuildError when the row gives no comment."""
+    internal name VIRTUAL_HEAD_NOTE after it. A wired head reads its mast's place first ("Plane | Switch 5 | Node:
+    4 ..."; `places`, mast_places), a mast its direction after its place (with_direction), a block its detector
+    first (occupancy_first). TablesBuildError when the row gives no comment."""
     comment = devices.device_map_row(r)["comment"]
     if not comment:
         raise TablesBuildError(f"devices.csv: {r['layer']} {r['user_name']!r} has neither wiring nor jmri_comment, "
                                "so it gives no JMRI comment")
-    if r["layer"] == "head" and r["role"] == "head" and r["assignment"] == "virtual":
+    layer = r["layer"]
+    if layer == "head" and r["role"] == "head" and r["assignment"] == "virtual":
         comment = f"{comment} | {VIRTUAL_HEAD_NOTE}"
+    elif layer == "head" and not r["jmri_comment"] and places and r["jmri_name"] in places:
+        comment = f"{places[r['jmri_name']]} | {comment}"
+    elif layer == "mast":
+        comment = with_direction(comment, r["dir"])
+    elif layer == "block":
+        comment = occupancy_first(comment)
     return comment
 
 
@@ -495,6 +541,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
     detectors, or a name given twice."""
     rows = [r for r in rows if r["level"] in GENERATED_LEVELS and r["assignment"] != "none"]
     by_user = {(r["layer"], r["user_name"]): r for r in rows}
+    places = mast_places(rows)
     detector: dict[str, list[str]] = {}
     for r in rows:
         if r["layer"] == "occupancy":
@@ -524,7 +571,7 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
             elif layer in ("fb", "occupancy", "sensor"):
                 add(_route(jn, SENSOR_SECTIONS, at), _named("sensor", {"inverted": "false"}, jn, user, bean_comment(r)))
             elif layer == "head":
-                add(HEADS, _named("signalhead", {"class": HEAD_CLASS}, jn, user, bean_comment(r)))
+                add(HEADS, _named("signalhead", {"class": HEAD_CLASS}, jn, user, bean_comment(r, places)))
             elif layer == "mast":
                 if jn.startswith("IF$vsm:"):
                     el = _named("virtualsignalmast", {"class": VIRTUAL_MAST_CLASS}, jn, user, bean_comment(r))
