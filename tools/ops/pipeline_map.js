@@ -374,6 +374,11 @@ function pathSegments(pts) {
   return out;
 }
 
+/* The room the step strip takes above the map, in px: none while the extras are hidden (clean) or the drawing has no
+   boxes. */
+const STRIP_H = 24;
+function stripRoom(clean, boxes) { return clean || !boxes ? 0 : STRIP_H + 4; }
+
 /* A #rrggbb colour halfway to white, for text in that colour on a dark background; any other value is returned as is. */
 function lighten(c) {
   if (!/^#[0-9a-f]{6}$/i.test(c)) return c;
@@ -555,7 +560,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, lighten, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -935,12 +940,11 @@ function app() {
   }
   /* ---- step headers along the top and lane names down the left, pinned to the screen while the map moves under them */
   const legend = document.getElementById("legend"), rulers = document.getElementById("rulers"), steps = document.getElementById("steps"), laneTags = document.getElementById("lanetags");
-  const STRIP_H = 24;
   legend.addEventListener("toggle", () => drawRulers());  // open, it is taller: the tags beside it move up
   let colKinds = [];  // per column: what its boxes are, for the header's tooltip
   let rawFirst = false;  // whether nothing in the whole graph builds any box of column 0 (a filtered view may hide what does)
   // the strip shows only over a drawing with boxes (sub is set before layout), and not while the extras are hidden
-  const showRulers = () => !clean && sub.nodes.length > 0;
+  const showRulers = () => stripRoom(clean, sub.nodes.length) > 0;
   /* ---- dark mode and hidden extras. Dark starts from the system setting and a choice is remembered on this browser;
      the lane names take a lighter shade of their colour on the dark background. Hide extras takes away the lane names,
      step headers, legend and overview, and gives the map the room the step strip had. */
@@ -958,6 +962,11 @@ function app() {
   try { darkSaved = localStorage.getItem(DARK_KEY); } catch (e) { darkSaved = null; }
   setDark(darkSaved === null ? matchMedia("(prefers-color-scheme: dark)").matches : darkSaved === "1", false);
   darkBox.onchange = e => setDark(e.target.checked, true);
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => {  // follows the system until a choice is saved
+    let saved = null;
+    try { saved = localStorage.getItem(DARK_KEY); } catch (err) { saved = null; }
+    if (saved === null) setDark(e.matches, false);
+  });
   const cleanBtn = document.getElementById("clean");
   function setClean(on) {
     clean = on;
@@ -1076,7 +1085,7 @@ function app() {
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
      on a phone, above it) while that is open. */
   function freeArea() {
-    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10 + (showRulers() ? STRIP_H + 4 : 0);  // under the step headers, when they show
+    const r = wrapEl.getBoundingClientRect(), top = document.getElementById("bar").getBoundingClientRect().bottom - r.top + 10 + stripRoom(clean, sub.nodes.length);  // under the step headers, when they show
     let right = r.width, bottom = r.height;
     if (info.style.display === "block") {
       const i = info.getBoundingClientRect();
@@ -1333,7 +1342,7 @@ function app() {
     if (e.target.matches("input:not([type=checkbox]):not([type=radio]):not([type=button]),textarea,select") || e.target.isContentEditable || e.metaKey || e.ctrlKey || e.altKey) return;  // typing in any field, the site header's search too
     if (e.key === "Escape") clearFocus(true);
     if (e.key === "f" || e.key === "F") fit();
-    if (e.key === "h" || e.key === "H") setClean(!clean);
+    if ((e.key === "h" || e.key === "H") && !e.shiftKey) setClean(!clean);  // not with Shift, held for the magnifier
   });
 
   /* ---- steps either side of a file: how far the chain runs left (what feeds it) and right (what it feeds) */

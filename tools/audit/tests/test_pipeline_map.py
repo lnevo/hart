@@ -273,6 +273,10 @@ process.stdout.write(JSON.stringify(out));"""
                                         text=True, check=True).stdout)
         self.assertEqual(out, {"NARROW": [], "WIDE": []})
 
+    def test_hidden_extras_give_the_strip_room_back(self) -> None:
+        """stripRoom: the step strip takes 28 px over a drawing with boxes, none with the extras hidden or no boxes."""
+        self.assertEqual(self.run_js("a.map(c => m.stripRoom(...c))", [[False, 5], [True, 5], [False, 0]]), [28, 0, 0])
+
     def test_lane_names_lighten_for_dark_mode(self) -> None:
         """lighten: a lane colour goes halfway to white for the dark background; anything not #rrggbb is left alone."""
         self.assertEqual(self.run_js("a.map(m.lighten)", ["#1d4ed8", "#000000", "red", "#fff"]),

@@ -369,7 +369,10 @@ html.dark #nav .vr{fill:rgba(248,113,113,.12);stroke:#f87171}
  #morebody #btns{flex-wrap:wrap;white-space:normal}
  #info{left:10px;width:auto;top:auto;height:45vh;z-index:7}
  #nav svg{max-width:150px;height:auto} #legend{max-width:calc(100% - 200px)}}
-__SITECSS__</style></head><body>__SITEHEADER__
+__SITECSS__</style>
+<script>/* dark before the first paint: the saved choice, else the system setting (app() keeps it in step after) */
+try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d === null && matchMedia("(prefers-color-scheme: dark)").matches)) document.documentElement.classList.add("dark"); } catch (e) {}</script>
+</head><body>__SITEHEADER__
 <div id="stage">
 <div id="wrap"></div>
 <div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
@@ -469,7 +472,7 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 svg.focus .edge.on{stroke:var(--brand-2)}
 svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
 .node .t,.node .d{font-family:var(--font-body)}
-html.dark{--paper:#0f172a;--paper-2:#0b1220;--card:#1e293b;--ink:#e2e8f0;--ink-soft:#cbd5e1;--rule:#334155;--muted:#94a3b8;
+html.dark #stage{--paper:#0f172a;--paper-2:#0b1220;--card:#1e293b;--ink:#e2e8f0;--ink-soft:#cbd5e1;--rule:#334155;--muted:#94a3b8;
  --brand:#93c5fd;--brand-2:#93c5fd}
 """
 
