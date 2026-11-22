@@ -13,7 +13,7 @@ sys.path.insert(0, str(ROOT / "tools" / "ci"))
 import stamp_gate as gate  # noqa: E402
 
 BASE = "a" * 40
-RUNNER = {"image_os": "ubuntu24", "image_version": "20261116.1", "runner_os": "Linux", "arch": "x86_64",
+RUNNER = {"image_os": "ubuntu24", "runner_os": "Linux", "arch": "x86_64", "git": "git version 2.53.0", "bash": "GNU bash, version 5.2.21",
           "python": "3.13.9 (main)", "executable": "/opt/hostedtoolcache/Python/3.13.9/x64/bin/python3.13"}
 DATA = ["www/data/fleet.json"]
 
@@ -56,7 +56,8 @@ class DecideTest(unittest.TestCase):
         self.assertIn("names no runner", self.decide())
 
     def test_another_runner_or_python_means_full(self) -> None:
-        for k, v in (("python", "3.13.10"), ("image_version", "20261123.2"), ("arch", "aarch64"), ("runner_os", "macOS")):
+        for k, v in (("python", "3.13.10"), ("image_os", "ubuntu26"), ("arch", "aarch64"), ("runner_os", "macOS"),
+                     ("git", "git version 2.54.0"), ("bash", "GNU bash, version 5.3")):
             with self.subTest(k):
                 self.assertIn(f"another runner ({k}", self.decide(now={**RUNNER, k: v}))
         self.assertIn("another runner (extra", self.decide(now={**RUNNER, "extra": "x"}))
