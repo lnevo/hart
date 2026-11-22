@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Builds www/play/answers.html, the answer key for Extra East: HART Railroad, from the island shifts in www/play/runs.js
-   and the road runs in www/play/road.js. Each run's build() is run many times with a
+   and the road runs in www/play/road.js and passenger.js (with the shared road-engine.js). Each run's build() is run many times with a
    seeded random stream and a stand-in for the game's helpers, so every branch a draw can take is seen. Each run lists
    every question it can ask; words a draw changes (a time, a count) show as [varies]. Questions asked from inside an
    after() or info callback are not seen; none are today. A road run lists the questions that depend on the path
@@ -13,7 +13,9 @@ const vm = require("vm");
 
 const PLAY = path.join(__dirname, "..", "play");
 const RUNS = path.join(PLAY, "runs.js");
-const ROAD = path.join(PLAY, "road.js");
+const EXAM = path.join(PLAY, "..", "exam");
+/* The road runs' scripts, in load order: the Standard Code signals, the shared engine, then the runs. */
+const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js")];
 const OUT = path.join(PLAY, "answers.html");
 const TUMBLR = "https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 const SEC = { gcor: "GCOR crew & speed", sig: "Signals & whistles", def: "Definitions", yl: "Yard limits", sup: "Superiority & movement", to: "Train orders", sem: "Semaphores", twc: "Track warrants" };
@@ -49,7 +51,7 @@ function groupOf(id, def) {
 function extract(src) {
   const sandbox = vm.createContext({ window: {} });
   vm.runInContext(src, sandbox, { filename: RUNS });
-  vm.runInContext(fs.readFileSync(ROAD, "utf8"), sandbox, { filename: ROAD });
+  for (const f of ROAD) vm.runInContext(fs.readFileSync(f, "utf8"), sandbox, { filename: f });
   const runs = sandbox.window.NevilleRuns;
   const shifts = [];
   for (const [id, def] of Object.entries(runs)) {

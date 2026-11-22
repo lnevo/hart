@@ -13,6 +13,8 @@ const WWW = path.join(__dirname, "..", "..");
 const read = (p) => fs.readFileSync(path.join(WWW, p), "utf8");
 const DRAWS = +process.argv[2] || 60;
 const MAX_STEPS = 4000;
+/* The road runs: the least and most questions on average over the draws that tie up, and the sections every such draw asks. */
+const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]] };
 
 /* ---------- a fake DOM: just the elements the game reads back (buttons, choices, the result box) ---------- */
 const VOID = new Set(["br", "hr", "img", "input", "line", "path", "circle", "rect", "meta", "link", "use"]);
@@ -82,7 +84,7 @@ function load(seedBox) {
     localStorage: { _d: {}, getItem(k) { return this._d[k] ?? null; }, setItem(k, v) { this._d[k] = String(v); } } });
   ctx.window = ctx; ctx.window.scrollTo = () => {};
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
-  for (const f of ["play/runs.js", "play/road.js"]) vm.runInContext(read(f), ctx, { filename: f });
+  for (const f of ["play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/passenger.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
   vm.runInContext(read("play/play.js"), ctx, { filename: "play/play.js" });
   return { ctx, ids, runBtns };
@@ -126,6 +128,7 @@ function play(env, id, seed, right, stats) {
       return;
     }
     if (!btns.length) throw new Error(`${id}: no button to press at step ${step}`);
+    if (process.env.PLAY_TRANSCRIPT === id + ":" + stats.draw) console.log(unesc(scene._inner.replace(/<svg.*?<\/svg>/g, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")).slice(0, 700)); // a draw's scenes, to read
     if (/Nothing comes/.test(scene._inner)) quiet = true;
     const go = btns.find((b) => b.id === "xwGo");
     if (go) { go.onclick(); continue; }
@@ -133,6 +136,7 @@ function play(env, id, seed, right, stats) {
     if (opts.length) {
       const title = (/<h2>([^<]*)<\/h2>/.exec(scene._inner) || [])[1] || "";
       stats.cur.n++; stats.cur.secs.add(right.sec(unesc(title)));
+      if (!right.sec(unesc(title))) stats.unlisted.add(unesc(title)); // a question the answer key does not list
       const good = opts.filter((b) => right.is(unesc(title), label(b)));
       (good.length && rand() < careful ? good[0] : opts[Math.floor(rand() * opts.length)]).onclick();
       continue;
@@ -151,7 +155,7 @@ function main() {
   const env = load();
   const failures = [];
   for (const id of env.ids) {
-    const stats = { ends: 0, tied: 0, verdicts: {}, done: [], all: [] };
+    const stats = { ends: 0, tied: 0, verdicts: {}, done: [], all: [], unlisted: new Set() };
     for (let d = 0; d < DRAWS; d++) {
       const seed = 7919 * (d + 1) + id.length * 104729;
       stats.draw = d;
@@ -159,12 +163,14 @@ function main() {
     }
     console.log(`${id}: ${stats.ends}/${DRAWS} ended, ${stats.tied} tied up. ${JSON.stringify(stats.verdicts)}`);
     if (!stats.tied) failures.push(`${id}: no draw reached a tied-up end screen`);
-    if (id === "coal") { // a road run asks 15 to 20 questions, and every draw that ends normally asks the sections only the road runs cover
+    if (id in ROAD) { // a road run asks about 15 to 20 questions (the passenger run up to 23), and every draw that ends normally asks the sections the run is about
+      const [lo, hi, secs] = ROAD[id];
       const ns = stats.done.map((d) => d.n), mean = ns.reduce((a, b) => a + b, 0) / ns.length, all = stats.all;
-      console.log(`coal questions per draw that tied up: mean ${mean.toFixed(1)}, min ${Math.min(...ns)}, max ${Math.max(...ns)}; all draws: mean ${(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1)}`);
-      if (mean < 14 || mean > 21) failures.push(`coal: mean ${mean.toFixed(1)} questions per draw is outside 14 to 21 (about 15 to 20)`);
-      stats.done.forEach((d) => { for (const sec of ["sup", "to", "sem"]) if (!d.secs.has(sec)) failures.push(`coal draw ${d.draw}: no ${sec} question`); });
+      console.log(`${id} questions per draw that tied up: mean ${mean.toFixed(1)}, min ${Math.min(...ns)}, max ${Math.max(...ns)}; all draws: mean ${(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1)}`);
+      if (mean < lo || mean > hi) failures.push(`${id}: mean ${mean.toFixed(1)} questions per draw is outside ${lo} to ${hi}`);
+      stats.done.forEach((d) => { for (const sec of secs) if (!d.secs.has(sec)) failures.push(`${id} draw ${d.draw}: no ${sec} question`); });
     }
+    if (stats.unlisted.size) failures.push(`${id}: asked questions that are not in the answer key: ${[...stats.unlisted].slice(0, 5).join(" | ")}`);
   }
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
   console.log("play-through OK");

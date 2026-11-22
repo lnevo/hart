@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Extra East: HART Railroad — HART</title>
-  <meta name="description" content="Work a shift on the Pittsburgh &amp; Ohio Valley, the railroad that switched the east end of Neville Island: the ore job, the furnace job, the second trick, the midnight job, the relief job, an extra, or the yardmaster's desk at South Yard; or work a freight extra up the Chartiers Branch in 1949. Jobs and moves from Mark Connolly's P&amp;OV blog; rules from the C&amp;E study deck.">
+  <meta name="description" content="Work a shift on the Pittsburgh &amp; Ohio Valley, the railroad that switched the east end of Neville Island: the ore job, the furnace job, the second trick, the midnight job, the relief job, an extra, or the yardmaster's desk at South Yard; or work a freight extra or the first-class passenger train up the Chartiers Branch in 1949. Jobs and moves from Mark Connolly's P&amp;OV blog; rules from the C&amp;E study deck.">
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="play.css">
 </head>
@@ -87,6 +87,12 @@
           <p>Empties up the double track to Houston for the Westland branch, then the single track to Arden for the Manifold branch. Regular passenger trains and another extra share the single track, and the time-table, a meet order and the semaphores at the interlockings decide who goes first.</p>
           <div class="xw-go"><button class="xw-btn primary" data-run="coal" aria-describedby="rcoal">Work this run<small>a new draw each time</small></button></div>
         </div>
+        <div class="card xw-paper wide">
+          <p class="kind">First-class passenger train · a weekday in 1949 · Carnegie to Washington</p>
+          <h3 id="rpass">No 307 South, the passenger train</h3>
+          <p>You are the conductor of No 307, the 9:06 first-class train from Carnegie to Washington. Take the orders and the clearance at Carnegie, protect the train when it stops on the main, meet No 92 on the single track, and meet a B&amp;O extra coming over the Tylerdale Connecting at Washington.</p>
+          <div class="xw-go"><button class="xw-btn primary" data-run="passenger" aria-describedby="rpass">Work this run<small>a new draw each time</small></button></div>
+        </div>
       </div>
       </section>
       <div class="xw-how xw-paper">
@@ -118,7 +124,10 @@
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js" defer></script>
   <script src="runs.js" defer></script>
+  <script src="../exam/signals.js" defer></script>
+  <script src="road-engine.js" defer></script>
   <script src="road.js" defer></script>
+  <script src="passenger.js" defer></script>
   <script src="play.js" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("play").catch(function (err) { console.error(err); }); });
