@@ -57,6 +57,7 @@ JYTHON_STARTUP_SCRIPTS=(
 JYTHON_SIBLING_MODULES=(
   "$ROOT/jmri/scripts/sml_beans.py"
   "$ROOT/jmri/scripts/sml_claims.py"
+  "$ROOT/jmri/scripts/sml_handoff.py"
 )
 
 # load_parked: the features parked out of the active tables (hartlib.parked.PARKED: Entry/Exit, the Dispatcher System,
