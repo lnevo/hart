@@ -334,6 +334,9 @@ svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
 svg.lhover .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
 .hidden{display:none}
+.band{fill-opacity:.07}
+.band.alt{fill-opacity:.17}
+.lanerule{stroke-opacity:.85;stroke-width:1.5px;vector-effect:non-scaling-stroke}
 body.clean #rulers,body.clean #legend,body.clean #nav{display:none!important}
 html.dark{color-scheme:dark}
 html.dark,html.dark body{background:#0f172a;color:#e2e8f0}
@@ -347,7 +350,8 @@ html.dark #info .off,html.dark #tree .c,html.dark #lanelist .note,html.dark #tou
 html.dark #steps{background:rgba(15,23,42,.9);border-bottom-color:#334155}
 html.dark #steps span{color:#cbd5e1}
 html.dark #lanetags span{background:rgba(15,23,42,.92)}
-html.dark #bands rect{fill-opacity:.17}
+html.dark .band{fill-opacity:.13}
+html.dark .band.alt{fill-opacity:.27}
 html.dark .edge{stroke:#94a3b8}
 html.dark svg.far .edge{stroke-opacity:.45}
 html.dark .elabel{fill:#e2e8f0;stroke:#0f172a}
@@ -418,7 +422,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its whole chain, everything that feeds it and everything it feeds, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its whole chain, everything that feeds it and everything it feeds, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Alt-click (Option on a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left

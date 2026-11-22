@@ -744,7 +744,7 @@ function app() {
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
-      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (nodeEl[e.to] ? '<div class="off">click to open the box it leads to</div>' : "");
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (nodeEl[e.to] ? '<div class="off">click: the box it leads to · Alt-click: the box it comes from</div>' : "");
       placeTip();
     }
     updateFar();
@@ -778,12 +778,13 @@ function app() {
     const p = [`<svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="${-LEFT} 0 ${W} ${H}">`,
       '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">',
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
-    for (const b of lay.bands) {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
+    lay.bands.forEach((b, i) => {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
       const c = esc(b.color);
-      // run on past both ends, so a drawing narrower than the screen at Fit has its lanes out to the screen's sides
-      p.push(`<rect x="${-LEFT - BAND_RUN}" y="${b.y}" width="${W + 2 * BAND_RUN}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
-        `<line x1="${-LEFT - BAND_RUN}" x2="${W - LEFT + BAND_RUN}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
-    }
+      // run on past both ends, so a drawing narrower than the screen at Fit has its lanes out to the screen's sides;
+      // every other lane is shaded stronger, so two lanes of near colours (deploy and agent docs) still part clearly
+      p.push(`<rect class="band${i % 2 ? " alt" : ""}" x="${-LEFT - BAND_RUN}" y="${b.y}" width="${W + 2 * BAND_RUN}" height="${b.h}" fill="${c}"/>`,
+        `<line class="lanerule" x1="${-LEFT - BAND_RUN}" x2="${W - LEFT + BAND_RUN}" y1="${b.y}" y2="${b.y}" stroke="${c}"/>`);
+    });
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
       p.push(`<path class="edge${e.back ? " back" : ""}" id="e${i}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" ` +
@@ -1300,7 +1301,8 @@ function app() {
     }) : null;
     // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
     const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
-    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, edge && nodeEl[edge.to] ? edge.to : null, lastPointer === "touch");
+    const end = edge && (e.altKey ? edge.from : edge.to);  // Alt (Option) opens the box the line comes from
+    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, end && nodeEl[end] ? end : null, lastPointer === "touch");
     if (t.clear) { clearFocus(true); return; }
     // a line's box is centred, which moves the map, and a trimmed redraw moves the boxes: either waits out a
     // double-click, so its second click does not land on whatever box moved under the pointer
