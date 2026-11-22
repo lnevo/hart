@@ -247,23 +247,49 @@ function reliefToday(){
   return `Today is ${n}: #115 has the day off.`;
 }
 /* The deck's eight sections in its order; each run lists the ones it asks (covers, checked against its questions by
-   test_play_answers.py). The strip shows only the sections some run covers. */
+   test_play_answers.py). TAG is the short name on a run's row. */
 const SECTIONS=[["def","Definitions"],["sup","Superiority & movement"],["to","Train orders"],["sig","Signals & whistles"],
   ["sem","Semaphores"],["yl","Yard limits"],["twc","Track warrants"],["gcor","GCOR crew & speed"]];
+const TAG={def:"Definitions",sup:"Superiority",to:"Train orders",sig:"Signals",sem:"Semaphores",yl:"Yard limits",twc:"Warrants",gcor:"GCOR"};
+/* The start screen, built from the cards in index.html: each group is a tab, each card a row that opens on a tap to
+   its story and its button, and a row of section chips shows only the runs that test that section. */
 function renderCover(){
   const box=$("xwCover");if(!box)return;
-  const ids=Object.keys(RUNS),secName=Object.fromEntries(SECTIONS);
-  document.querySelectorAll("[data-run]").forEach(b=>{
-    const def=RUNS[b.dataset.run],card=b.closest(".card");if(!def||!card||card.querySelector(".rules"))return;
-    const names=SECTIONS.filter(x=>(def.covers||[]).includes(x[0])).map(x=>x[1]);if(!names.length)return;
-    const p=document.createElement("p");p.className="rules";p.textContent="Tests: "+names.join(" · ");
-    card.insertBefore(p,card.querySelector(".xw-go"));
+  const groups=[...document.querySelectorAll(".xw-group")];if(!groups.length)return;
+  // rows: the title, the kind line and the section tags stay in view; the story and the button open on a tap
+  document.querySelectorAll(".xw-start .card").forEach(card=>{
+    const b=card.querySelector("[data-run]"),def=b&&RUNS[b.dataset.run];if(!def)return;
+    const det=document.createElement("details");det.className=card.className+" xw-run";det.dataset.secs=(def.covers||[]).join(" ");
+    const sum=document.createElement("summary"),h=card.querySelector("h3"),k=card.querySelector(".kind");
+    if(h)sum.appendChild(h);if(k)sum.appendChild(k);
+    const tags=SECTIONS.filter(x=>(def.covers||[]).includes(x[0])).map(x=>`<span>${esc(TAG[x[0]])}</span>`).join("");
+    if(tags){const t=document.createElement("p");t.className="xw-tags";t.innerHTML=tags;sum.appendChild(t)}
+    det.appendChild(sum);[...card.childNodes].forEach(n=>det.appendChild(n));
+    card.replaceWith(det);
   });
-  const rows=SECTIONS.map(([k,n])=>[n,ids.filter(id=>(RUNS[id].covers||[]).includes(k))]).filter(r=>r[1].length);
-  if(!rows.length)return;
-  box.innerHTML=`<b>Deck sections</b><ul>${rows.map(([n,rs])=>`<li><span>${esc(n)}</span> ${rs.map(id=>{
-    const b=document.querySelector(`[data-run="${id}"]`),h=b&&b.getAttribute("aria-describedby");
-    return h?`<a href="#${h}">${esc(RUNS[id].code)}</a>`:esc(RUNS[id].code)}).join(" ")}</li>`).join("")}</ul>`;
+  // tabs, one per group
+  const tabs=document.createElement("div");tabs.className="xw-tabs";tabs.setAttribute("role","tablist");
+  const pick=id=>{groups.forEach(g=>{g.hidden=g.id!==id});tabs.querySelectorAll("button").forEach(t=>t.setAttribute("aria-selected",String(t.dataset.g===id)));store.set("ni_tab",id)};
+  groups.forEach(g=>{
+    const h=g.querySelector(".xw-group-h"),t=document.createElement("button");
+    t.type="button";t.setAttribute("role","tab");t.dataset.g=g.id;t.setAttribute("aria-controls",g.id);
+    t.textContent=h?h.firstChild.textContent.trim():g.id;t.onclick=()=>{filter("");pick(g.id)};tabs.appendChild(t);
+  });
+  groups[0].before(tabs);
+  // section chips: All, then each section some run tests
+  const used=SECTIONS.filter(([k])=>Object.values(RUNS).some(d=>(d.covers||[]).includes(k)));
+  box.innerHTML=`<span class="lbl">Practise a section</span><div class="xw-chips">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
+    `<button type="button" data-sec="${k}" aria-pressed="${k===""}">${esc(n)}</button>`).join("")}</div>`;
+  function filter(sec){
+    box.querySelectorAll("button").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.sec===sec)));
+    document.querySelectorAll(".xw-run").forEach(r=>{r.hidden=!!sec&&!r.dataset.secs.split(" ").includes(sec)});
+    tabs.hidden=!!sec;
+    if(sec)groups.forEach(g=>{g.hidden=!g.querySelector(".xw-run:not([hidden])")});
+    else pick(groups.some(g=>g.id===store.get("ni_tab",""))?store.get("ni_tab",""):groups[0].id);
+  }
+  box.querySelectorAll("button").forEach(c=>c.onclick=()=>filter(c.dataset.sec));
+  const want=location.hash.slice(1);
+  filter("");if(groups.some(g=>g.id===want))pick(want);
   box.hidden=false;
 }
 function showStart(){

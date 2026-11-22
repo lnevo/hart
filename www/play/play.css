@@ -157,3 +157,34 @@
 .xw-cover li{font-family:var(--mono);font-size:12.5px}
 .xw-cover li span{font-family:var(--font-body);font-weight:600;font-size:14px;margin-right:4px}
 .xw-cover a{color:var(--rust)}
+
+/* start screen: tabs per group, a row per run that opens on a tap, section chips (2026-11-22) */
+.xw-tabs{display:flex;gap:6px;margin-top:14px;border-bottom:2px solid var(--glow)}
+.xw-tabs button{font:700 17px var(--font-display);letter-spacing:.02em;padding:8px 14px 6px;border:0;border-radius:4px 4px 0 0;
+  background:#2c2833;color:#c9c2b4;cursor:pointer}
+.xw-tabs button[aria-selected="true"]{background:var(--glow);color:#1c1b22}
+.xw-tabs button:focus-visible,.xw-chips button:focus-visible,.xw-run summary:focus-visible{outline:2px solid #efe6cf;outline-offset:2px}
+.xw-group{margin-top:12px}
+.xw-group .xw-group-h{font-size:20px;margin:0 0 4px}
+.xw-group-note{color:#c9c2b4;font-size:14px;line-height:1.5;margin:0 0 10px;max-width:70ch}
+.xw-group-note a{color:#efe6cf}
+.xw-start{grid-template-columns:minmax(0,1fr);gap:8px}
+.xw-start .card.xw-run{padding:0;gap:0;border-top-width:3px}
+.xw-run summary{list-style:none;cursor:pointer;padding:10px 40px 10px 14px;position:relative;display:flex;flex-direction:column;gap:3px}
+.xw-run summary::-webkit-details-marker{display:none}
+.xw-run summary::after{content:"▸";position:absolute;right:14px;top:12px;font-size:18px;color:var(--rust)}
+.xw-run[open] summary::after{content:"▾"}
+.xw-start .xw-run h3{font-size:20px;order:1}
+.xw-start .xw-run .kind{order:2}
+.xw-tags{order:3;display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 0!important}
+.xw-tags span{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
+.xw-run[open]>p,.xw-run[open]>.xw-go{margin:0 14px 12px}
+.xw-cover{padding:8px 12px}
+.xw-cover .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
+.xw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.xw-chips button{font:600 13px var(--font-body);padding:5px 10px;border:1.5px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}
+.xw-chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
+details.xw-how summary{cursor:pointer;font-weight:600}
+.xw-best{font-family:var(--mono);font-size:12px;color:#c9c2b4;margin-top:10px}
+.xw-tabs:not([hidden])~.xw-group .xw-group-h{font-size:0;margin-bottom:6px}
+.xw-tabs:not([hidden])~.xw-group .xw-group-h small{font-size:12px}
