@@ -226,6 +226,43 @@ function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
     }
   }
 
+  // level: each long link's waypoints (one per column it crosses) are set to one height for as long a run of columns
+  // as the boxes and links beside them allow, longest links first, so a long link runs straight across the steps
+  // instead of bending at each one. A run next to an end of the link takes that box's height when it can.
+  const slotOf = new Map();  // waypoint -> [its column's items in its lane, in order, and its index there]
+  layers.forEach(l => {
+    const byLane = new Map();
+    l.forEach(v => getList(byLane, domain(v)).push(v));
+    byLane.forEach(col => col.forEach((v, i) => slotOf.set(v, [col, i])));
+  });
+  const slot = v => {  // the tops v can take without passing the items above and below it
+    const [col, i] = slotOf.get(v), d = domain(v);
+    const lo = i === 0 ? bandTop.get(d) + BAND_PAD : ys.get(col[i - 1]) + room(col[i - 1]);
+    const hi = i === col.length - 1 ? bandTop.get(d) + bandH.get(d) - BAND_PAD - height(v) : ys.get(col[i + 1]) - room(v);
+    return [lo, hi];
+  };
+  const runsOf = chains.map(([, c]) => c).filter(c => c.length > 3).sort((a, b) => b.length - a.length);
+  // a few passes: a link levelled later can free room for one levelled earlier; stops once a pass moves nothing
+  for (let pass = 0, moved = true; pass < 6 && moved; pass++) for (const c of (moved = false, runsOf)) {
+    const way = c.slice(1, -1);
+    for (let start = 0; start < way.length;) {
+      let [lo, hi] = slot(way[start]), end = start + 1;
+      while (end < way.length) {
+        const [l2, h2] = slot(way[end]);
+        if (Math.max(lo, l2) > Math.min(hi, h2)) break;
+        lo = Math.max(lo, l2); hi = Math.min(hi, h2); end++;
+      }
+      if (end - start > 1) {
+        const run = way.slice(start, end), tops = run.map(v => ys.get(v)).sort((a, b) => a - b);
+        const fits = t => t >= lo && t <= hi;
+        const atA = centre(c[0]) - DUMMY_H / 2, atB = centre(c[c.length - 1]) - DUMMY_H / 2;
+        const top = start === 0 && fits(atA) ? atA : end === way.length && fits(atB) ? atB : Math.min(Math.max(tops[tops.length >> 1], lo), hi);
+        run.forEach(v => { if (Math.abs(ys.get(v) - top) > 0.01) { ys.set(v, top); moved = true; } });
+      }
+      start = end;
+    }
+  }
+
   // stretch: a drawing shorter than the screen's shape at Fit is stretched downward lane by lane, each lane getting an
   // equal share of the spare height. Box centres move apart in proportion and boxes keep their size, so each lane's
   // boxes spread over its new height, centred as they were, and no two come closer.
@@ -247,6 +284,8 @@ function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
   const outEdges = chains.map(([i, chain, flipped]) => {
     const pts = [];
     chain.forEach((v, j) => {
+      // a waypoint runs level through its column, in the slot kept for it, and bends only in the gaps between
+      // columns, so a link never crosses a box (the levelling above keeps those bends few)
       if (byId.has(v)) pts.push([j === 0 ? xOf(v) + NODE_W : xOf(v), centre(v)]);
       else { pts.push([xOf(v), centre(v)]); pts.push([xOf(v) + NODE_W, centre(v)]); }
     });
@@ -321,6 +360,18 @@ function growRect(cx, cy, hw, hh, area, fixed = false) {
   const inside = (c, h, lo, hi) => Math.min(Math.max(c, lo + h), Math.max(hi - h, lo + h)) - c;
   const dx = fixed ? 0 : inside(cx, hw + 4, area.left, area.right), dy = fixed ? 0 : inside(cy, hh + 4, area.top, area.bottom);
   return { x0: cx + dx - hw - 2, y0: cy + dy - hh - 2, x1: cx + dx + hw + 2, y1: cy + dy + hh + 2, dx, dy };
+}
+
+/* A link's drawn shape from its layout points: a straight piece where the height stays the same, otherwise an S-bend
+   with level ends between the two points. Each segment is [from, control1, control2, to], the controls null for a
+   straight piece. */
+function pathSegments(pts) {
+  const out = [];
+  for (let i = 1; i < pts.length; i++) {
+    const [px, py] = pts[i - 1], [x, y] = pts[i], mx = (px + x) / 2;
+    out.push(Math.abs(y - py) < 0.5 ? [pts[i - 1], null, null, pts[i]] : [pts[i - 1], [mx, py], [mx, y], pts[i]]);
+  }
+  return out;
 }
 
 /* Greedy label placement: boxes ({x0, y0, x1, y1}, screen px) in order of priority; each is placed unless it overlaps
@@ -497,7 +548,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -600,13 +651,8 @@ function app() {
 
   /* ---- drawing */
   function pathD(pts) {
-    let [px, py] = pts[0];
-    const d = [`M${px.toFixed(1)},${py.toFixed(1)}`];
-    for (const [x, y] of pts.slice(1)) {
-      if (Math.abs(y - py) < 0.5) d.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
-      else { const mx = ((px + x) / 2).toFixed(1); d.push(`C${mx},${py.toFixed(1)} ${mx},${y.toFixed(1)} ${x.toFixed(1)},${y.toFixed(1)}`); }
-      [px, py] = [x, y];
-    }
+    const f = v => v.toFixed(1), segs = pathSegments(pts), d = [`M${f(pts[0][0])},${f(pts[0][1])}`];
+    for (const [, c1, c2, q] of segs) d.push(c1 ? `C${f(c1[0])},${f(c1[1])} ${f(c2[0])},${f(c2[1])} ${f(q[0])},${f(q[1])}` : `L${f(q[0])},${f(q[1])}`);
     return d.join(" ");
   }
   /* ---- zoomed out: below FAR_PX screen px a drawing unit the boxes' text is too small to read. The edges and box
