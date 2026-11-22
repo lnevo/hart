@@ -23,7 +23,10 @@ Turnouts still use `track/cmd/turnout/{0}` and `track/turnout/{0}`.
 Do **not** put cleanup on `launch_cats.sh`. Launch must not publish, clear, or probe MQTT.
 
 ```bash
-python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
+make mqtt-clean    # python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
+make mqtt-watch    # python3 tools/mqtt/watch_discard.py: read-only, Ctrl-C stops
 ```
 
-Clears `track/cmd/sensor/#`, bare numeric ACTIVE/INACTIVE roots, and leftover `_discard/cmd/sensor/#`. Leaves `track/sensor/#` and `track/turnout/#` status retain alone.
+`mqtt-clean` clears `track/cmd/sensor/#`, bare numeric ACTIVE/INACTIVE roots, and leftover `_discard/cmd/sensor/#`. It leaves `track/sensor/#` and `track/turnout/#` status retain alone.
+
+`mqtt-watch` prints each `_discard` write with its time and retain flag. Run it while testing CATS, PanelPro or the mimic to see which action writes them (owner, 2026-11-21). No startup or deploy wrote any on 2026-11-21; the writer is still unknown.
