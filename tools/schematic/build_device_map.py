@@ -141,10 +141,9 @@ import block_layer  # noqa: E402  the one block process for every level
 import mast_plan  # noqa: E402  the one mast process for every level
 import mast_rule  # noqa: E402  read_block_splits, OVERRIDES_NAME
 from hartlib import devices, layer_files, level_devices, level_masts, railroad, wiring  # noqa: E402  names, facts, the master
-import device_map_inputs as inputs  # noqa: E402  the readers: wiring.csv, lcos_nodes.csv, the places
-from device_map_inputs import (  # noqa: E402,F401  re-exported: callers read them from this module
-    CPS, FIELD_LEVEL, NODES, OS_BLOCK, PINS, STATIONS, UID, WIRING, Places, StagingPin, frozen_wires, helix_pins,
-    loop_placeholder, read_places, read_staging_pins, staging_nodes, wiring_rows)
+from device_map_inputs import (  # noqa: E402,F401  the readers; re-exported: callers read them from this module
+    CPS, FIELD_LEVEL, NODES, OS_BLOCK, PINS, SOURCES, STATIONS, UID, WIRING, Places, StagingPin, frozen_wires,
+    helix_pins, loop_placeholder, read_places, read_staging_pins, staging_nodes, wiring_rows)
 from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported: callers read them from this module
     BEAN_NAME, FIELD_LAYERS, PART_BLOCK_FIRST, STAGING_SHEET, WIRED_LAYERS, alias_note, field_row, helix_ends,
     level_trials, line_cp, new_spare, part_bean_names, part_row, piece_trials, staging_field, staging_layer,
@@ -154,7 +153,6 @@ from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
     split_tracks, xover_corners)
 
-SOURCES = inputs.SOURCES
 SWITCHES = SOURCES.switches                     # switches.csv: its main and upper rows give the local switches' areas
 OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json, the owner's hand edits (read only)
 GENERATED = layer_files.path(layer_files.GENERATED, OVERRIDES.parent)   # plan_generated.json: this writes its main_upper keys
@@ -831,4 +829,6 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
+    # the modules that read this one at call time (device_map_schematic.builder) get this run, not a second copy
+    sys.modules.setdefault("build_device_map", sys.modules[__name__])
     sys.exit(main())

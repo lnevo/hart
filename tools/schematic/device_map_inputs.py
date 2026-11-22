@@ -8,6 +8,8 @@
 
 Each stops with a MapError naming the file and line. read_pins resolves a pin against the tracks it is given
 (build_device_map.read_pins gives the solved schematic's): nothing here solves the schematic or imports the builder.
+The default paths (WIRING, PINS, NODES, CPS, STATIONS) are this module's: build_device_map re-exports the same
+objects, so a test that wants another default file patches them here, not on the builder.
 """
 from __future__ import annotations
 
@@ -50,8 +52,9 @@ def wiring_rows(path: Path | None = None) -> list:
 
 
 def read_pins(path: Path | None, found: list, split: set) -> dict:
-    """{block name: (node, input index from 0)} of wiring.csv's main and upper detector rows: detectors the owner put
-    on a given input ("Block <k>" of a node, 1 to 8), which the rule then hands to no other block (owner, 2026-11-20:
+    """The low-level reader: callers that want the solved schematic's tracks by default use build_device_map.read_pins
+    (device_map_schematic.read_pins). {block name: (node, input index from 0)} of wiring.csv's main and upper
+    detector rows: detectors the owner put on a given input ("Block <k>" of a node, 1 to 8), which the rule then hands to no other block (owner, 2026-11-20:
     the helix node 41). `level` is the track's level (2 or 3; staging's rows, level 1, are read_staging_pins'), and
     the track is looked for on that level only. A track's block is named by its end switches (switch_a, switch_b,
     parallel), plus `half` for a balloon loop or a track in `split` (names, split_tracks): resolved in `found`

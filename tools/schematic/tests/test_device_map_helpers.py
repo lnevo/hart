@@ -203,11 +203,31 @@ class TheSplit(TempFiles):
     def test_the_staging_layer_reads_the_builders_paths_when_called(self):
         """builder() is the builder as it is then: a patched OUT reaches staging_field, as it did in one module."""
         self.assertIs(staging.builder(), bdm)
-        with tempfile.TemporaryDirectory() as d, unittest.mock.patch.object(bdm, "OUT", Path(d) / "devices.csv"):
+        with tempfile.TemporaryDirectory() as d, unittest.mock.patch.object(bdm, "OUT", Path(d) / devices.MASTER_FILE):
             with self.assertRaises(railroad.FactsError):     # no field file there: read from the patched folder
                 staging.staging_field()
         with unittest.mock.patch.object(bdm, "OVERRIDES", Path("/nonexistent/plan_overrides.json")):
             self.assertEqual(schematic.block_overrides(), Path("/nonexistent") / "block_overrides.csv")
+
+    def test_a_patched_reader_path_reaches_the_builders_readers(self):
+        """The readers' default paths are device_map_inputs' (its docstring): patched there, the builder reads it."""
+        p = self.file("wiring.csv", WIRING_HEAD + "3,detector,Track Helix Outer,,,,,41,3,,,planned,\n")
+        with unittest.mock.patch.object(inputs, "WIRING", p):
+            self.assertEqual(bdm.helix_pins(), {"Track Helix Outer": (41, 2)})
+
+    def test_run_as_a_script_the_builder_is_the_running_module(self):
+        """python3 build_device_map.py: builder() gets the running module, not a second copy loaded by name."""
+        code = ("import runpy, sys\n"
+                "sys.argv = ['build_device_map.py', '--check']\n"
+                "try:\n"
+                "    runpy.run_path('build_device_map.py', run_name='__main__')\n"
+                "except SystemExit:\n"
+                "    pass\n"
+                "import device_map_schematic\n"
+                "print(device_map_schematic.builder().__name__)\n")
+        got = subprocess.run([sys.executable, "-c", code], cwd=HERE.parent, capture_output=True, text=True)
+        self.assertEqual(got.returncode, 0, got.stderr)
+        self.assertEqual(got.stdout.strip().splitlines()[-1], "__main__")
 
     def test_read_pins_needs_its_tracks(self):
         """The reader takes the tracks it resolves against; the builder's read_pins gives the solved schematic's."""
