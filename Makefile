@@ -63,7 +63,7 @@ submodules:  ## Check out every external/ submodule at the commit hart records
 shot:  ## Screenshot a page: make shot PAGE=www/index.html
 	python3 tools/ops/screenshot.py $(PAGE)
 
-mqtt-clean:  ## Clear retained MQTT junk (_discard/cmd/sensor, track/cmd/sensor, bare numbers) on the layout broker
+mqtt-clean:  ## Clear the retained MQTT junk topics clear_mqtt_cmd_sensor_retain.py lists (_discard included) on the layout broker
 	python3 tools/mqtt/clear_mqtt_cmd_sensor_retain.py
 
 mqtt-watch:  ## Watch _discard writes on the layout broker with timestamps, read-only (Ctrl-C stops): run it while testing

@@ -163,6 +163,8 @@ def host_control(part, flag, exported=None):
         hosts = " ".join([a for a in args if a.startswith("HOSTS=")] + [assigned.get("HOSTS", "")])
         if HOST_TARGETS & set(args) or ("redeploy" in args and HOSTS_PI.search(hosts)):
             return "a deploy to the Pi or Windows"
+        if "mqtt-clean" in args:
+            return "make mqtt-clean, which writes to the layout broker on the Pi"
     if head in HOST_SCRIPTS:
         return f"{head}, which acts on the Pi"
     if head == "drop_job.sh" and flag.get("by") == "owner" and args and \
