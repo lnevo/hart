@@ -367,9 +367,9 @@ function pointerPick(c) {
   return {};
 }
 
-/* The hidden kinds after a kind's "only" is clicked: every hideable kind but k (kinds: the hideable kinds, off: the
-   kinds hidden now). A second click on the kind already shown alone shows every kind again. */
-function onlyKind(kinds, off, k) {
+/* What is hidden after an "only" beside k is clicked, for kinds or lanes: everything in all but k (off: what is hidden
+   now). A second click on the one already shown alone shows them all again. */
+function onlyOne(kinds, off, k) {
   const alone = kinds.every(x => x === k || off.includes(x)) && !off.includes(k);
   return alone ? [] : kinds.filter(x => x !== k);
 }
@@ -721,7 +721,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { onlyKind, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1821,11 +1821,11 @@ function app() {
     renderKeeping(); writeHash();
   });
   // "only": every other kind hidden as if unticked (bridged over, but chain stops left out with their links), and the
-  // view refit as a lane's "only" does; a second click on it shows every kind again (onlyKind)
+  // view refit as a lane's "only" does; a second click on it shows every kind again (onlyOne)
   kindsBox.addEventListener("click", e => {
     const only = e.target.dataset && e.target.dataset.kindonly;
     if (!only) return;
-    view.kindsOff = new Set(onlyKind(Object.keys(DATA.kinds).filter(hideable), [...view.kindsOff], only));
+    view.kindsOff = new Set(onlyOne(Object.keys(DATA.kinds).filter(hideable), [...view.kindsOff], only));
     syncControls(); render(false); writeHash();
   });
   document.getElementById("compact").onchange = e => { view.compact = e.target.checked; renderKeeping(); writeHash(); };
@@ -1854,7 +1854,9 @@ function app() {
   lanesBox.addEventListener("click", e => {
     const only = e.target.dataset && e.target.dataset.only;
     if (!only) return;
-    view.lanes = new Set([only]); syncControls(); render(false); writeHash();
+    // a second click on the lane shown alone shows every lane again, as a kind's "only" does (onlyOne)
+    const off = onlyOne(allLanes, allLanes.filter(d => !view.lanes.has(d)), only);
+    view.lanes = new Set(allLanes.filter(d => !off.includes(d))); syncControls(); render(false); writeHash();
   });
   document.getElementById("parked").onchange = e => { view.parked = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("retired").onchange = e => { view.retired = e.target.checked; renderKeeping(); writeHash(); };
