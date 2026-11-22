@@ -132,7 +132,7 @@
 /* Neville Island additions */
 .xw-map{background:var(--river)}
 .xw-map text.water{fill:#c9cfdc;letter-spacing:.12em}
-.xw-map text.lbl{fill:var(--muted)}
+.xw-map text.lbl{fill:var(--muted);letter-spacing:.04em}
 .xw-status .over{color:var(--red);font-style:normal;font-weight:700}
 .xw-start .kind{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
 .xw-start .card.wide{grid-column:1/-1}
@@ -147,4 +147,3 @@
 .xw-how{margin-top:14px}
 .xw-best{margin-top:6px}
 .xw-map svg{max-width:none}
-.xw-map text.lbl[opacity]{fill:#c9cfdc}

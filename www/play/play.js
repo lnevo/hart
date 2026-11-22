@@ -28,66 +28,73 @@ const TUMBLR="https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 /* ---------- the island ---------- */
 /* A sketch, not a survey: west on the left, the Ohio's main channel along the top, the back channel along
    the bottom. Places come from the blog's captions (see the P&OV page's Track and place names). */
+/* Four rows, west to east: the north line (y 40) from the foundry to E1, the scale track (y 68), the south line
+   (y 96) from the PC&Y to the Furnace Runner's bumping block, and the East Runner (y 132) along the back channel.
+   Every connection is at 45 degrees. x,y is where an engine stands; t is the label, drawn at lx,ly. */
 const LOC={
-  foundry:{x:16,y:70,n:"toward the foundry",t:"FOUNDRY ←",lx:6,ly:62,a:"start"},
-  yint:{x:46,y:112,n:"Y Interchange",t:"Y INT",lx:46,ly:124,a:"middle"},
-  gulf:{x:78,y:96,n:"Gulf Crossing",t:"GULF X",lx:78,ly:88,a:"middle"},
-  wyard:{x:124,y:70,n:"West Yard",t:"WEST YARD",lx:124,ly:62,a:"middle"},
-  stucki:{x:176,y:44,n:"Stucki",t:"STUCKI",lx:176,ly:36,a:"middle"},
-  srun:{x:170,y:96,n:"South Runner",t:"S RUNNER",lx:166,ly:108,a:"middle"},
-  shed:{x:214,y:112,n:"track gang shed by S1",t:"",lx:0,ly:0},
-  syard:{x:232,y:96,n:"South Yard",t:"SOUTH YARD",lx:232,ly:108,a:"middle"},
-  chem:{x:262,y:44,n:"chemical plant",t:"CHEMICAL",lx:262,ly:36,a:"middle"},
-  s9:{x:288,y:84,n:"S9, by the scale",t:"S9",lx:282,ly:78,a:"middle"},
-  scale:{x:312,y:84,n:"the yard office scale",t:"SCALE",lx:316,ly:78,a:"middle"},
-  xing:{x:342,y:84,n:"the main crossing",t:"",lx:0,ly:0},
-  cokelead:{x:384,y:70,n:"coke plant lead",t:"",lx:0,ly:0},
-  dumper:{x:404,y:30,n:"car dumper, E2",t:"DUMPER E2",lx:404,ly:22,a:"middle"},
-  coke:{x:452,y:58,n:"coke battery",t:"COKE OVENS",lx:452,ly:50,a:"middle"},
-  eyard:{x:402,y:110,n:"East Yard",t:"EAST YARD",lx:402,ly:104,a:"middle"},
-  e9:{x:436,y:118,n:"E9, the heat track",t:"",lx:0,ly:0},
-  ladle:{x:478,y:96,n:"ladle house",t:"LADLES",lx:478,ly:108,a:"middle"},
-  flead:{x:500,y:70,n:"furnace lead",t:"",lx:0,ly:0},
-  f1:{x:530,y:52,n:"F1, at the furnace",t:"F1 · B",lx:530,ly:44,a:"middle"},
-  pig:{x:540,y:84,n:"A furnace pig machine",t:"A · PIG",lx:546,ly:100,a:"middle"},
-  bump:{x:584,y:84,n:"Furnace Runner, by the bumping block",t:"",lx:0,ly:0},
-  e1:{x:578,y:28,n:"E1, the barge track",t:"E1",lx:584,ly:26,a:"start"},
-  erunner:{x:330,y:126,n:"East Runner",t:"EAST RUNNER",lx:300,ly:121,a:"middle"},
-  cement:{x:372,y:128,n:"the cement tower",t:"",lx:0,ly:0}
+  foundry:{x:22,y:40,n:"toward the foundry",t:"← FOUNDRY",lx:6,ly:33,a:"start"},
+  yint:{x:36,y:120,n:"Y Interchange",t:"Y INT · PC&Y",lx:46,ly:131,a:"start"},
+  gulf:{x:80,y:96,n:"Gulf Crossing",t:"GULF X",lx:80,ly:109,a:"middle"},
+  wyard:{x:140,y:40,n:"West Yard",t:"WEST YARD",lx:150,ly:24,a:"middle"},
+  stucki:{x:206,y:24,n:"Stucki",t:"STUCKI",lx:206,ly:17,a:"middle"},
+  srun:{x:150,y:96,n:"South Runner",t:"S RUNNER",lx:150,ly:109,a:"middle"},
+  shed:{x:212,y:112,n:"track gang shed by S1",t:"",lx:0,ly:0},
+  syard:{x:232,y:96,n:"South Yard",t:"SOUTH YARD",lx:232,ly:124,a:"middle"},
+  chem:{x:272,y:24,n:"chemical plant",t:"CHEMICAL",lx:272,ly:17,a:"middle"},
+  s9:{x:278,y:68,n:"S9, by the scale",t:"S9",lx:278,ly:60,a:"middle"},
+  scale:{x:312,y:68,n:"the yard office scale",t:"SCALE",lx:312,ly:60,a:"middle"},
+  xing:{x:345,y:68,n:"the main crossing",t:"",lx:0,ly:0},
+  cokelead:{x:414,y:54,n:"coke plant lead",t:"",lx:0,ly:0},
+  dumper:{x:452,y:24,n:"car dumper, E2",t:"DUMPER E2",lx:452,ly:17,a:"middle"},
+  coke:{x:488,y:40,n:"coke battery",t:"COKE OVENS",lx:488,ly:64,a:"middle"},
+  eyard:{x:428,y:112,n:"East Yard",t:"EAST YARD",lx:426,ly:105,a:"middle"},
+  e9:{x:440,y:112,n:"E9, the heat track",t:"",lx:0,ly:0},
+  ladle:{x:494,y:96,n:"ladle house",t:"LADLES",lx:494,ly:109,a:"middle"},
+  flead:{x:520,y:40,n:"furnace lead",t:"",lx:0,ly:0},
+  f1:{x:540,y:20,n:"F1, at the furnace",t:"F1 · B",lx:552,ly:23,a:"start"},
+  pig:{x:540,y:96,n:"A furnace pig machine",t:"A · PIG",lx:540,ly:109,a:"middle"},
+  bump:{x:576,y:96,n:"Furnace Runner, by the bumping block",t:"",lx:0,ly:0},
+  e1:{x:580,y:40,n:"E1, the barge track",t:"E1",lx:592,ly:33,a:"end"},
+  erunner:{x:330,y:132,n:"East Runner",t:"EAST RUNNER",lx:380,ly:127,a:"middle"},
+  cement:{x:352,y:132,n:"the cement tower",t:"",lx:0,ly:0}
 };
 let S=null;
 function newState(id){return {run:id,pace:1,clock:0,start:0,marks:0,misses:[],log:[],ended:false,jobs:[],parAdd:0,par:0,units:{},lead:"",d:{},plants:[]}}
 
 function renderMap(){
   const box=$("xwMap");if(!S)return;
-  const W=600,k=box.clientWidth&&box.clientWidth<560?1.6:1,fs=n=>(n*k).toFixed(1);
-  const R2=S.def.year;
-  let s=`<svg viewBox="0 0 ${W} 150" role="img" aria-label="Sketch of the east end of Neville Island, ${esc(S.def.code)} at ${esc(LOC[S.units[S.lead]]?LOC[S.units[S.lead]].n:"")}">`;
-  s+=`<rect x="0" y="0" width="${W}" height="150" fill="var(--river)"/>`;
-  s+=`<path d="M0 16 C120 10 380 8 600 14 L600 140 C470 144 200 143 0 140 Z" fill="var(--land)"/>`;
-  s+=`<text x="300" y="10" font-size="${fs(7.5)}" text-anchor="middle" class="water">OHIO RIVER · MAIN CHANNEL</text><text x="520" y="148.5" font-size="${fs(7.5)}" text-anchor="middle" class="water">BACK CHANNEL</text>`;
-  // tracks
-  const T="var(--ink)";
-  s+=`<g fill="none" stroke="${T}" stroke-width="2">`;
-  s+=`<path d="M30 150 L46 112 L78 96 L584 96"/>`; // PC&Y bridge, interchange, South Runner, the line east
-  s+=`<path d="M6 70 L384 70 L500 70 L530 52"/>`; // north line: foundry, West Yard, coke plant lead, furnace lead to F1
-  s+=`<path d="M232 96 L288 84 L384 84 L452 58"/>`; // South Yard past S9 and the scale, the main crossing, the coke lead
-  s+=`<path d="M500 70 L540 84 L584 84"/>`; // Furnace Runner past A furnace pig machine
-  s+=`<path d="M240 96 L270 126 L470 126 L478 96"/>`; // East Runner along the back channel
-  s+=`</g><g fill="none" stroke="${T}" stroke-width="1.3">`;
-  s+=`<path d="M384 70 L404 30"/><path d="M530 52 L578 28"/><path d="M124 70 L176 44"/><path d="M232 70 L262 44"/><path d="M402 96 L402 110 L436 118"/><path d="M170 96 L214 112"/>`;
+  const W=600,k=box.clientWidth&&box.clientWidth<560?1.3:1,fs=n=>(n*k).toFixed(1);
+  const where=LOC[S.units[S.lead]]?LOC[S.units[S.lead]].n:"";
+  let s=`<svg viewBox="0 0 ${W} 150" role="img" aria-label="Track sketch of the east end of Neville Island, ${esc(S.def.code)} at ${esc(where)}">`;
+  s+=`<rect x="0" y="0" width="${W}" height="150" fill="var(--river)"/><rect x="0" y="11" width="${W}" height="129" fill="var(--land)"/>`;
+  s+=`<text x="8" y="8" font-size="${fs(6.5)}" class="water">OHIO RIVER · MAIN CHANNEL</text><text x="${W-8}" y="148" font-size="${fs(6.5)}" text-anchor="end" class="water">BACK CHANNEL</text>`;
+  s+=`<text x="${W-8}" y="8" font-size="${fs(6)}" text-anchor="end" class="water">${esc(S.def.year)} · sketch, not to scale</text>`;
+  // the road across the island at the main crossing
+  s+=`<line x1="345" y1="11" x2="345" y2="140" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>`;
+  // running tracks
+  s+=`<g fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round">`;
+  s+=`<path d="M10 40 H590"/>`; // north line: foundry, West Yard, coke plant, furnace lead, E1
+  s+=`<path d="M16 140 L60 96 H576"/>`; // PC&Y off the bridge, Y Interchange, Gulf Crossing, South Runner, South Yard, ladles, Furnace Runner
+  s+=`<path d="M220 96 L248 68 H400 L428 40"/>`; // the scale track: South Yard, S9, the scale, the main crossing, coke plant lead
+  s+=`<path d="M100 96 L156 40"/>`; // West Yard ladder
+  s+=`<path d="M270 96 L306 132 H440 L476 96"/>`; // East Runner along the back channel
+  s+=`</g><g fill="none" stroke="var(--ink)" stroke-width="1.4" stroke-linecap="round">`;
+  s+=`<path d="M190 40 L206 24"/><path d="M256 40 L272 24"/><path d="M436 40 L452 24"/><path d="M520 40 L540 20"/>`; // Stucki, chemical, dumper, F1
+  s+=`<path d="M196 96 L204 104 H250 M204 104 L212 112 H250"/>`; // South Yard tracks
+  s+=`<path d="M392 96 L408 112 H448"/>`; // East Yard and E9
+  s+=`<path d="M120 40 L128 32 H170"/>`; // a West Yard track
   s+=`</g>`;
-  // the scale, the crossings, the furnaces and the battery as small marks
-  s+=`<rect x="306" y="81" width="12" height="6" fill="none" stroke="var(--rust)" stroke-width="1.4"/>`;
-  s+=`<line x1="342" y1="76" x2="342" y2="92" stroke="var(--muted)" stroke-dasharray="2 2"/><line x1="78" y1="88" x2="78" y2="104" stroke="var(--muted)" stroke-dasharray="2 2"/>`;
-  s+=`<g fill="var(--muted)"><rect x="440" y="60" width="26" height="6"/><rect x="522" y="58" width="5" height="10"/><rect x="532" y="88" width="5" height="10"/><rect x="368" y="130" width="5" height="9"/></g>`;
-  if(S.def.foundryClosed)s+=`<text x="6" y="80" font-size="${fs(6.5)}" class="lbl">closed</text>`;
-  Object.values(LOC).forEach(L=>{if(L.t)s+=`<text x="${L.lx}" y="${L.ly}" font-size="${fs(7)}" text-anchor="${L.a||"middle"}" class="lbl">${esc(L.t)}</text>`});
-  s+=`<text x="380" y="138" font-size="${fs(6.5)}" text-anchor="start" class="lbl">${esc((S.def.cement||"CEMENT").toUpperCase())}</text>`;
-  s+=`<text x="${W-4}" y="${12}" font-size="${fs(6)}" text-anchor="end" class="lbl" opacity=".7">${esc(R2)} · sketch, not to scale</text>`;
-  // the engines
+  // the scale, the Gulf Crossing, the bumping block, the plant
+  s+=`<rect x="305" y="64.5" width="14" height="7" fill="none" stroke="var(--rust)" stroke-width="1.6"/>`;
+  s+=`<line x1="80" y1="88" x2="80" y2="104" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 2"/>`;
+  s+=`<line x1="579" y1="91" x2="579" y2="101" stroke="var(--ink)" stroke-width="2.5"/>`;
+  s+=`<g fill="var(--muted)" opacity=".8"><rect x="472" y="46" width="32" height="8"/><rect x="528" y="12" width="7" height="14"/><rect x="532" y="80" width="7" height="10"/><rect x="350" y="107" width="5" height="10"/></g>`;
+  s+=`<text x="359" y="116" font-size="${fs(6)}" class="lbl">${esc((S.def.cement||"cement").toUpperCase())}</text>`;
+  if(S.def.foundryClosed)s+=`<text x="6" y="52" font-size="${fs(6)}" class="lbl">CLOSED</text>`;
+  Object.values(LOC).forEach(L=>{if(L.t)s+=`<text x="${L.lx}" y="${L.ly}" font-size="${fs(6.8)}" text-anchor="${L.a||"middle"}" class="lbl">${esc(L.t)}</text>`});
+  // the engines, the job's own lit
   Object.entries(S.units).forEach(([u,at])=>{const L=LOC[at];if(!L)return;const me=u===S.lead;
-    s+=`<g transform="translate(${L.x} ${L.y})"><rect x="-12" y="-6" width="24" height="10" rx="2" fill="${me?"var(--green)":"var(--muted)"}" stroke="${me?"var(--glow)":"none"}"/><text x="0" y="2" font-size="${fs(7)}" text-anchor="middle" fill="#fff" font-weight="700">${esc(u)}</text></g>`});
+    s+=`<g transform="translate(${L.x} ${L.y})"><rect x="-11" y="-5" width="22" height="10" rx="2" fill="${me?"var(--green)":"var(--muted)"}" stroke="${me?"var(--glow)":"#fff"}" stroke-width="${me?1.4:.8}"/><text x="0" y="2.6" font-size="${fs(6.8)}" text-anchor="middle" fill="#fff" font-weight="700">${esc(u)}</text></g>`});
   box.innerHTML=s+`</svg>`;
 }
 function renderStatus(){
