@@ -743,11 +743,11 @@ def play_neville():
     Drawn in the manner of ap-exam-run; the P&OV's own form is not known, so the layout is the game's switch list on paper."""
     body = f"""<div class="desk"><div class="form">
   <div class="hd"><img src="{_site}play/neville.svg" alt=""><div><div class="rr">PITTSBURGH &amp; OHIO VALLEY</div><div class="kind">SWITCHING ORDERS · NEVILLE ISLAND</div></div></div>
-  <div class="ln"><span>Job</span><span class="ty">#105</span><span>Engine</span><span class="ty">SW9 #4</span><span>Date</span><span class="ty wide">Mon., 1981</span></div>
+  <div class="ln"><span>Job</span><span class="ty">#105</span><span>Engine</span><span class="ty">SW9 #4</span><span>Date</span><span class="ty wide">1981</span></div>
   <ol class="work">
-    <li><span class="ty">10 loads ore, South Runner to the car dumper</span></li>
-    <li><span class="ty">Fuel #4 at South Yard between trips</span></li>
-    <li><span class="ty">Empties set over in the West Yard</span></li>
+    <li><span class="ty">2 ore drags to the car dumper</span></li>
+    <li><span class="ty">Fuel #4 between trips</span></li>
+    <li><span class="ty">Tie up West Yard, 3:30</span></li>
   </ol>
   <div class="ln foot"><span>Trainmaster</span><span class="ty wide">&nbsp;</span><span>On duty</span><span class="ty">7 00 am</span></div>
   <div class="stamp">EXTRA EAST<small>NEVILLE ISLAND</small></div>

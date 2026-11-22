@@ -1,7 +1,7 @@
-/* Extra East: Neville Island. Extra East's layout (exam/run.css) with the coke works at dusk around the paper: steel, rust and sodium light. Own classes (xw-*) to stay clear of ops.css. */
+/* Extra East: Neville Island. Extra East's layout (exam/run.css): steel-grey paper inside the coke works at dusk, with rust and sodium-light accents. Own classes (xw-*) to stay clear of ops.css. */
 .xw{
   --sheet:#e8eaee; --sheet-2:#d7dbe2; --line:#a9b0bc; --ink:#1c1b22; --muted:#545b67;
-  --red:#a4472b; --rust:#a4472b; --blue:#2f4a6b; --green:#2f6b3f; --flimsy:#f2f4f7; --stamp:#a4472b; --glow:#e8913a;
+  --red:#a4472b; --rust:#a4472b; --blue:#2f4a6b; --green:#2f6b3f; --flimsy:#f0f2f6; --stamp:#a4472b; --glow:#e8913a;
   --river:#3b4459; --land:#c9ced7;
   --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
   display:flex;flex-direction:column;gap:14px;color:var(--ink);font-family:var(--font-body);
