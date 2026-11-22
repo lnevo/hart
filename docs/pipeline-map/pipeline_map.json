@@ -3323,6 +3323,15 @@
    "path": "tools/ops/build_pipeline_map.py"
   },
   {
+   "id": "tools/ops/merge_pipeline_map.py",
+   "label": "merge_pipeline_map.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "extras",
+   "desc": "git merge driver for pipeline_map.json (by node id and edge ends) and its two pages (keep ours, rebuild); set by make wt and the session-start hook.",
+   "path": "tools/ops/merge_pipeline_map.py"
+  },
+  {
    "id": "tools/ops/pipeline_map.js",
    "label": "pipeline_map.js",
    "kind": "unstructured",
@@ -6832,6 +6841,11 @@
    "from": "tools/ops/build_pipeline_map.py",
    "to": "tools/check.sh",
    "label": "check pipeline-map-site"
+  },
+  {
+   "from": "tools/ops/merge_pipeline_map.py",
+   "to": "docs/pipeline-map/pipeline_map.json",
+   "label": "git merge driver"
   },
   {
    "from": "www/library/pipeline-map.html",
