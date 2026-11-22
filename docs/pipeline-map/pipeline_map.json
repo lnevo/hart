@@ -7314,18 +7314,6 @@
    "gen": "agent-docs"
   },
   {
-   "from": ".claude/skills/ops-pull/SKILL.md",
-   "to": "wiki/STATUS.md",
-   "label": "points to",
-   "gen": "agent-docs"
-  },
-  {
-   "from": ".claude/skills/ops-pull/SKILL.md",
-   "to": "wiki/decisions",
-   "label": "points to",
-   "gen": "agent-docs"
-  },
-  {
    "from": ".claude/skills/panel-approval/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -7430,6 +7418,12 @@
   {
    "from": "AGENTS.md",
    "to": ".claude/skills/operating-flag/SKILL.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/skills/ops-pull/SKILL.md",
    "label": "points to",
    "gen": "agent-docs"
   },

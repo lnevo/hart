@@ -86,6 +86,7 @@ Source of record (ADR-010) for the published crew and dispatcher Word and PowerP
 
 ## pipeline-map
 
+- [checks-and-remote.md](pipeline-map/checks-and-remote.md): How `./tools/check.sh` decides what to run, and how heavy jobs go to the Windows box instead of the Mac
 - [efficiency-plan.md](pipeline-map/efficiency-plan.md): Plan to cut panel rebuilds and full workflow runs, based on logged step timings, reviewed by the owner on 2026-11-21
 - Other files: [index.html](pipeline-map/index.html), [pipeline_map.json](pipeline-map/pipeline_map.json)
 
