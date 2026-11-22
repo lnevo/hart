@@ -1017,7 +1017,7 @@ function app() {
   const pickHover = (t, x, y) => pointerPick(pointerAt(t, x, y));
   let hoverAt = null, hoverFrame = 0;
   function hoverFrom(e) {
-    if (drag || !svg) return;
+    if (drag || !svg || spreadDrag) return;  // not while a Steps preview has the boxes away from their places
     if (!view.hover) { if (hoverId || hoverEdge !== null) { setHover(null); setEdgeHover(null); } return; }  // View: hover highlights off
     hoverAt = { t: e.target, x: e.clientX, y: e.clientY };
     if (hoverFrame) return;
@@ -1457,7 +1457,22 @@ function app() {
     if (!m) return;
     const cx = (r.left + freeArea().right / 2 - m.e) / m.a;  // the drawing x at the middle of the free area
     const t = Math.abs(sx - 1) < 1e-3 ? "" : `matrix(${sx.toFixed(4)},0,0,1,${(cx * (1 - sx)).toFixed(1)},0)`;
-    ["edges", "ehit", "elabels", "nodes"].forEach(id => { const g = svg.querySelector("#" + id); if (g) { if (t) g.setAttribute("transform", t); else g.removeAttribute("transform"); } });
+    // the links stretch across with the steps, dimmed: they meet the boxes again on release
+    ["edges", "ehit", "elabels"].forEach(id => { const g = svg.querySelector("#" + id); if (g) { if (t) g.setAttribute("transform", t); else g.removeAttribute("transform"); } });
+    svg.classList.add("previewing");
+    // each box moves with its step and grows whole, as wide and as tall; boxes spread up and down about their lane's
+    // middle as they grow, so a column does not pile up (the lanes settle on release)
+    const was = lay.geo.scale || 1, now = spreadGeo(view.compact ? NARROW : WIDE, view.spread * sx).scale || 1, ry = now / was;
+    svg.style.setProperty("--bscale", (1 / now).toFixed(4));  // outlines keep their width
+    const mid = {};
+    lay.bands.forEach(b => (mid[b.id] = b.y + b.h / 2));
+    lay.nodes.forEach(n => {
+      const g = nodeEl[n.id];
+      if (!g) return;
+      const w = n.w / was * now, h = n.h / was * now, mx = cx + (n.x + n.w / 2 - cx) * sx;
+      const lm = mid[n.domain] !== undefined ? mid[n.domain] : n.y + n.h / 2, my = lm + (n.y + n.h / 2 - lm) * ry;
+      g.setAttribute("transform", boxTransform({ x: mx - w / 2, y: my - h / 2 }, now));
+    });
   }
   spreadIn.addEventListener("input", () => {
     spreadOut.textContent = `${spreadIn.value} of ${spreadIn.max}`;
