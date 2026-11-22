@@ -616,7 +616,7 @@ class Rebuilt(unittest.TestCase):
         with contextlib.redirect_stdout(io.StringIO()):
             again = B.build(levels="all", as_live=True, base_data=B.base_tables())[0]
         self.assertEqual(again, data)
-        approval = T._load("approval", T.ROOT / "tools/schematic/approval.py")      # the fingerprints
+        approval = importlib.import_module("approval")      # the fingerprints (tools/schematic is on the path)
         out = next(o for o in approval.OUTPUTS if o.key == "le-panel")
         want = approval.parse_fingerprint(out.approved.read_text(encoding="utf-8"), out.key, out.kind)
         got = approval.fingerprint(tables.layout_editor(tables.loads(data).root, LIVE), out.kind, out.drop_attrs)

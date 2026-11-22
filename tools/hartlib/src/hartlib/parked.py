@@ -4,7 +4,7 @@ A parked feature is out of the active tables.xml with all its data kept in the r
 jmri/layouts/hart/parked/tables_parked.xml (README.md beside it): a frozen snapshot of the live elements, split once
 from the deployed tables.xml at a recorded commit (`freeze`, `python3 -m hartlib.parked freeze --from COMMIT`) and
 kept as data; nothing regenerates it. `PARKED` names the parked features; the Layout Editor cut-over build
-(tools/schematic/build_layout_le.py --as-live) calls `split` on the tables it writes and leaves their elements out.
+(build_layout_le.build, run by tools/schematic/build_tables.py) calls `split` on the tables it writes and leaves their elements out.
 Unpark a feature by taking it out of `PARKED` and rebuilding: the snapshot is the data that comes back, and Stage 1
 or NX Discover then refresh it against the current geometry. The deploy (tools/hosts/sync_hart_package.sh) reads
 `PARKED` too, through `shipped_dirs`.

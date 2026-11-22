@@ -1,4 +1,4 @@
-"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on the generator's
+"""build_layout_le.py: the three-level build (levels all), drawn like the schematic, on the generator's
 base (hartlib.tables_build.base: the template and the staging beans of devices.csv; ADR-029). The all-levels viewing trial these tests once read
 (tables_layout.xml) is retired (owner, 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py
 and test_le_mast_parity.py share."""

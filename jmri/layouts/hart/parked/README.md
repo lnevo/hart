@@ -39,7 +39,7 @@ sensors section holds only the parked sensors, a `LayoutEditor` element named "H
 icons), and `<bindings>` names each slot, list entry or child the split cleared (panel, element, ident, slot,
 value). It is not a JMRI file.
 
-The cut-over build (`tools/schematic/build_layout_le.py --as-live`) leaves the same features out of the candidate
+The Layout Editor build (`build_layout_le.build`, run by `tools/schematic/build_tables.py`) leaves the same features out of the tables it builds
 it builds from the live `tables.xml` (which holds none of them since the release); it does not write this file.
 
 Files outside tables.xml stay in the repo but are not shipped while their feature is parked
@@ -139,7 +139,7 @@ that is missing once the feature is back.
    put back: `hartlib.parked.with_parked_file([feature])` (`with_parked`, through `restore`, puts the elements and
    bindings in place; it does nothing for a feature already out of `PARKED`).
 2. Take the feature out of `PARKED` in `tools/hartlib/src/hartlib/parked.py`, then build on that copy
-   (`build_layout_le.py --as-live --tables <copy>`): the build starts from the tables it is given, and the live
+   (`build_layout_le.build(base_data=<copy>)`, then `build_tables.py`; there is no command-line option for this yet): the build starts from the tables it is given, and the live
    `tables.xml` holds none of the parked data. Its items on the "HART Railroad" panel (NX slots, MoveTo buttons
    and lamps) are not drawn by the build; Stage 1 or NX Discover in step 3 puts them back.
 3. The snapshot is the data that comes back; it matches the 3bd3ac64 geometry (helix unjoined). Refresh it against

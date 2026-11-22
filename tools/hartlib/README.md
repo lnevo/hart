@@ -100,7 +100,7 @@ Lookups (all take the root element unless noted):
 | `layout_blocks` | `<layoutblock>` beans |
 | `layout_editor(root, name=None)` | the main Layout Editor panel, or the one named |
 | `layout_editors` | every Layout Editor panel |
-| `generated_panel(panel)` | True when the panel holds the hidden marker label a generated panel carries (`build_layout_le.py --as-live`); two markers raise ValueError |
+| `generated_panel(panel)` | True when the panel holds the hidden marker label a generated panel carries (`build_layout_le.build`, written by `build_tables.py`); two markers raise ValueError |
 | `generated_marker_label()`, `GENERATED_PANEL_MARKER` | that label and its text |
 | `require_generated(panel, what)`, `require_generated_panel(root, what)` | the (main) panel when it is a generated one; else ValueError naming `what` |
 | `ensure_block_contents_visible(le, check=, spots=)`, `BCI_*` | block contents labels on level 4 in black, the plugin's font kept, optionally at given spots |
@@ -264,8 +264,8 @@ of theirs reaches MQTT); a virtual mast is in its level's thousand and stands at
 ### `hartlib.parked`
 
 The features parked out of the active tables (`PARKED`: Entry/Exit, the Dispatcher System, the USS CTC machine;
-`jmri/layouts/hart/parked/README.md`). `split(root)` moves their elements out of a tables root (`build_layout_le.py
---as-live` leaves them out of the candidate), `freeze(commit)` wrote the parked file `PARKED_XML` once from the live
+`jmri/layouts/hart/parked/README.md`). `split(root)` moves their elements out of a tables root (`build_layout_le.build`
+leaves them out of the tables it builds), `freeze(commit)` wrote the parked file `PARKED_XML` once from the live
 tables at a commit it records, `check(root, doc)` holds a tables file and the parked file to the rules, `parked_in(root)` names the parked features a tables file leaves out, and `restore`,
 `with_parked(features)` and `with_parked_file(features)` give the tables with a feature put back, for the checks of
 its data. `shipped_dirs()` and `shipped_jython()` list what the deploy leaves out; `python3 -m hartlib.parked
