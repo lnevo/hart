@@ -996,7 +996,7 @@ function showStart(){
   $("sigRules").textContent=sigEra()==="sigr"?"Rulebook: the Signals guide (route signals and plates)":"Rulebook: 1949 Standard Code Rules 281 to 292, with the Signals guide's plates";
   const runs=store.get("xw_runs",[]);
   const best=e=>{const r=runs.filter(x=>x.era===e&&!x.failed).sort((a,b)=>a.marks-b.marks||a.time-b.time)[0];return r?`${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}, ${Math.floor(r.time/60)}h ${String(r.time%60).padStart(2,"0")}`:"none yet"};
-  const d=today();[["tto","dTto"],["twc","dTwc"],[sigEra(),"dSig"],["yard","dYard"]].forEach(([e,id])=>{const r=store.get("xw_daily_"+d+"_"+e,null);$(id).textContent=r?`played: ${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}`:d});
+  const d=today();[["tto","dTto"],["twc","dTwc"],[sigEra(),"dSig"]].forEach(([e,id])=>{const r=store.get("xw_daily_"+d+"_"+e,null);$(id).textContent=r?`played: ${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}`:d});
   $("xwBest").textContent=runs.length?`Your best in this browser. ${Object.keys(RUNS).map(e=>RUNS[e].short+": "+best(e)).join(". ")}.`:"";
 }
 /* ---------- title screen (pixel art) ---------- */
