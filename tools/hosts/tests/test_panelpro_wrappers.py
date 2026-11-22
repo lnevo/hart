@@ -125,6 +125,11 @@ class Sandbox:
                         "else 0)\n", encoding="utf-8")
         stub.write_text(stub.read_text(encoding="utf-8").replace(
             "sys.exit(2 if", "print('ab' * 32) if sys.argv[1] == '--base-hash' else None\nsys.exit(2 if"), encoding="utf-8")
+        # check_approved.py stands in for the approval check (run_sml_discover.sh): it logs its arguments and passes
+        # unless FAKE_UNAPPROVED is set
+        approved = self.root / "tools/schematic/check_approved.py"
+        approved.write_text("import os, sys\nopen(sys.argv[0] + '.log', 'a').write(' '.join(sys.argv[1:]) + '\\n')\n"
+                            "sys.exit(1 if os.environ.get('FAKE_UNAPPROVED') else 0)\n", encoding="utf-8")
         (self.root / "jmri/layouts/hart/data/schematic").mkdir(parents=True)
         self.home = tmp / "home"
         self.profile = self.make_profile(self.home / "Library/Preferences/JMRI", "My_JMRI_Railroad", LIVE_ID,
@@ -318,6 +323,23 @@ class StartupScriptsOff(WrapperCase):
         self.assertIn("DONE", done.stdout)
         self.assertNotIn("discovery base", done.stderr)          # a run that finished leaves no note
         self.assert_restored()
+
+    def test_discovery_needs_the_approved_panel_unless_under_review(self) -> None:
+        """The staging guard is retired (2026-11-22), so the wrapper checks the base's panel against the owner's
+        approval (check_approved.py le-panel) before PanelPro starts; HART_TABLES_REVIEW=1 skips it for a review."""
+        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_UNAPPROVED="1")
+        done = self.box.run("run_sml_discover.sh", env)
+        self.assertEqual(1, done.returncode, done.stderr)
+        self.assertIn("not the one the owner approved; discovery not run", done.stderr)
+        self.assertIn("HART_TABLES_REVIEW=1", done.stderr)
+        self.assertFalse((self.box.state / "launch_arg").exists(), "PanelPro must not start")
+        log = (self.box.root / "tools/schematic/check_approved.py.log").read_text().splitlines()
+        self.assertEqual(["le-panel"], log)
+        self.assert_restored()
+        env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_UNAPPROVED="1",
+                           HART_TABLES_REVIEW="1")
+        done = self.box.run("run_sml_discover.sh", env)
+        self.assertEqual(0, done.returncode, done.stderr)
 
     def test_a_failed_take_keeps_the_discovery_store(self) -> None:
         env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_TABLES_FAIL="1")

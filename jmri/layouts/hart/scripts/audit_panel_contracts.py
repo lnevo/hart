@@ -411,7 +411,7 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 
 
 # What stock Discover and Dispatcher System Stage 1 store, per panel. The hand-drawn panel: staging only. The generated
-# three-level panel (build_layout_le.py --as-live): unjoined (2026-11-16 cut-over) staging kept its NX and transits but
+# three-level panel (build_layout_le.build, written by build_tables.py): unjoined (2026-11-16 cut-over) staging kept its NX and transits but
 # lost the 8 head-on pairs 10RA/10RB/12R/14R -> 22L/26L, and the main and upper control points added 71 SML destinations
 # and 98 sections of their own (163 SML, 197 sections). Joined at the helix (the helix-join release, owner 2026-11-17),
 # stock SML discovery in a sandbox stored 171: staging gains 10RA/10RB/12R/14R -> 16L and loses 36RB -> 40RB
@@ -421,7 +421,7 @@ def audit_nx_slots(root: ET.Element, problem) -> None:
 # gained, the head-on 10RA/10RB/12R/14R -> 22L/26L and 36RB -> 40RB. The Dispatcher graph is parked
 # (hartlib.parked): no section or transit while it is.
 EXPECTED_SML = {False: 100, True: 177}    # True: stock discovery from an empty list on the 2026-11-20 one-mast-process candidate (virtual masts only as destinations on every level: staging 5, main 10, upper 14; Scale running track)
-# A generated panel before stock discovery (the cut-over candidate as built, build_layout_le.py --as-live) carries the
+# A generated panel before stock discovery (the three-level build as built, build_layout_le.build) carries the
 # Signal Mast Logic of the live tables.xml it was built on (owner, 2026-11-18), less every logic and destination that
 # names a main or upper object (strip_build_owned): exactly the live tables' destinations between staging masts
 # (carried_destinations), allowed with a warning that discovery is still to run. Since the device-map switch-over
@@ -870,7 +870,7 @@ def audit_source(
         audit.error(str(exc))
         marked = True
     if generated and not marked:
-        audit.error("--generated, but the panel has no generated-panel marker (build_layout_le.py --as-live "
+        audit.error("--generated, but the panel has no generated-panel marker (tools/schematic/build_tables.py "
                     "writes it)")
     audit.facts["generated_panel"] = marked
     audit_block_contents_visible(panel, audit)
@@ -952,7 +952,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument(
         "--generated",
         action="store_true",
-        help="the panel is generated (build_layout_le.py --as-live): fail if it has no generated-panel "
+        help="the panel is generated (tools/schematic/build_tables.py): fail if it has no generated-panel "
         "marker (a marked panel is recognised without this flag)",
     )
     return parser.parse_args(argv)

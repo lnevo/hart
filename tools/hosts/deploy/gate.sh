@@ -114,6 +114,12 @@ elif [[ -n "$TABLES" && -f "$TABLES_BUILD" ]]; then
     echo "STOP: tables.xml is not what tools/schematic/build_tables.py writes from its sources; run make panels (or the script) and commit, then deploy. Nothing was sent to any host." >&2
     exit 1
   fi
+  # G4b: the panel and the CATS desks are the ones the owner approved (approval.py; the staging guard that build()
+  # ran is retired, 2026-11-22, so the approval is checked here, not only in make panels and check.sh)
+  if ! python3 "$ROOT/tools/schematic/check_approved.py" --check; then
+    echo "STOP: the Layout Editor panel or a CATS desk is not the one the owner approved (check_approved.py names it above); get the owner's approval and record it (check_approved.py --approve <key>), then deploy. Nothing was sent to any host." >&2
+    exit 1
+  fi
 fi
 # ---- G5 ----
 if [[ -n "$TABLES" ]] && ! python3 "$ROOT/jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py" --check --panel "$TABLES"; then

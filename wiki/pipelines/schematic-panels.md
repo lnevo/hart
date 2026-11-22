@@ -1,8 +1,8 @@
 # Pipeline 19 — Panels from the schematic
 
 Every panel is drawn from the approved schematic: the switch hands, the signal plan, the device map for the main and
-upper levels, the published schematic and station sheets, the CATS desks and the Layout Editor panel (built as
-a candidate beside `tables.xml`). The schematic-maps plugin (`external/model-railroad-skills`) solves the sheet; the scripts in
+upper levels, the published schematic and station sheets, the CATS desks and the Layout Editor panel (built into
+`tables.xml`). The schematic-maps plugin (`external/model-railroad-skills`) solves the sheet; the scripts in
 `tools/schematic/` turn it into each output. This replaced the AnyRail pipeline ([jmri-anyrail.md](jmri-anyrail.md)).
 
 **Status:** Live. The Layout Editor cut-over (2026-11-16) and the CATS desks (ADR-023) are built this way.
@@ -65,9 +65,7 @@ file, never back from its own last output; its one read-back is its name numberi
 part's block numbers, a virtual mast's ordinal), so a name never shifts. A builder that would drop a key the field
 file names stops: rename or remove the field row. `split_store.py` writes only the field file. Main and upper write their part rows the same
 way (25 links). Block lengths: JMRI's block takes `block_lengths.csv`'s `plan_in` on every level (`plan_lengths.py`,
-main and upper's rows too); a measured length is for speed profiling only. To review a candidate before the owner
-approves its staging panel: `build_layout_le.py --as-live --review`, `build_tables.py --review` and
-`HART_TABLES_REVIEW=1 run_sml_discover.sh` (sandbox). Pinned by `tests/test_blocks_every_level.py` and
+main and upper's rows too); a measured length is for speed profiling only. Pinned by `tests/test_blocks_every_level.py` and
 `tests/test_block_layer.py`.
 
 ## Run
@@ -91,10 +89,8 @@ make desks            # only the CATS desks, then validate them
 | signals | `build_signals.py` | `signals.json` (a section per sheet) from the plan graph and `masts.csv`: staging's rows by their plan facts, main and upper's placed from the plan graph. After masts, so one run draws the masts it writes; nothing before it reads `signals.json` (device-map and masts give the same outputs with every signal dropped from it), so there is no cycle |
 | head-plan | `build_hart_signal_heads.py --wiring-only` | `jmri/layouts/hart/output/signal_head_plan.csv` from `wiring.csv`'s wired heads (`--check` compares in memory). The CATS desks read its templates, so it runs before `cats` |
 | schematic | `publish_draft.py` | the schematic sheets and station pages |
-| le-cutover | `build_layout_le.py --as-live` | the cut-over candidate `output/trial/tables_cutover.xml`, every level from its device map and the panel's own items from `panel_items.json`, and the staging candidate it holds, `tables_cutover_staging.xml`. Detail: [Row le-cutover: how it is built](#row-le-cutover-how-it-is-built). |
-| approved-candidate | `check_approved.py le-candidate` | nothing: stops when the cut-over candidate drifts from the approved fingerprint |
 | sml-current | `check_sml_current.py` | nothing: stops when `data/schematic/discovered_sml.stamp` (the sha256 of the discovery base `run_sml_discover.sh` discovered on) is not the base the sources give now (`build_tables.py --base-hash`). Run the discovery on the Mac, then `make panels`. Runs in both modes, before `tables` |
-| tables | `build_tables.py` | `output/tables.xml`, the file PanelPro and CATS load (ADR-029: an output): the template, the staging beans of the device master, the Layout Editor build, the discovered Signal Mast Logic (`data/schematic/discovered_sml.xml`, written only by `run_sml_discover.sh`) and the Digicon boot rule, in a fixed envelope. Detail: [Row tables: check and Store handling](#row-tables-check-and-store-handling). |
+| tables | `build_tables.py` | `output/tables.xml`, the file PanelPro and CATS load (ADR-029: an output): the template, the staging beans of the device master, the Layout Editor build (`build_layout_le.build`, in memory; detail: [The Layout Editor build](#the-layout-editor-build)), the discovered Signal Mast Logic (`data/schematic/discovered_sml.xml`, written only by `run_sml_discover.sh`) and the Digicon boot rule, in a fixed envelope. Detail: [Row tables: check and Store handling](#row-tables-check-and-store-handling). |
 | signals-sync | `sync_signals.py --check` | nothing: stops when the heads and masts of any level in `tables.xml` differ from `masts.csv`. It runs after `tables`, which generates them from the device master and the Layout Editor build |
 | device-master | `check_device_master.py --check` | nothing: checks every level of the device master against `tables.xml` and the schematic, after `tables` writes it, with one set of rules for every level (a rule that reads a file only one level has is that file's, not a level test). Detail: [Row device-master: which rows are read how](#row-device-master-which-rows-are-read-how). |
 | cats | `build_cats_panel.py` | `cats/panels/HART_CTC.xml`, `HART_ABS.xml` and `HART_CTC.bindings.json`; it runs after `tables`, whose turnouts, sensors and masts the desks read. The bindings for every level come from one builder, `cats_panel.py` (facts in `cats_panel_facts.py`, header and plate in `cats_panel_dress.py`). The control point plates (BRICK, PLANE, BARN, EAST END, PRINCESS; owner, 2026-11-21) come from `stations.csv`'s `desk_plate` column: each in the free cell nearest its switches' plants, on both desks; the desk never grows, and a plate with no free cell stops the build (`cats_panel_dress.station_plates`) |
@@ -113,9 +109,9 @@ Stops with file, line and station on an unknown switch, a staging switch in no d
 
 Both from `main_lines.csv`, one file with a `sheet` column (staging or main_upper). Main and upper: worked out from its main_upper rows (the two main lines by helix end, end switch, turnback and double tracks) and the plan graph; stops when a stretch has two equally short ways or a pair of switches has two tracks nobody declared; staging: from its staging rows, each line naming the junctions it passes (a track must join each to the next; `count` yes marks the lines the mileposts run along)
 
-### Row le-cutover: how it is built
+### The Layout Editor build
 
-Both are built on the generator's base (`hartlib.tables_build.base`: `data/tables_template.xml` and the staging beans of the device master; ADR-029), never on `tables.xml`. A band's level comes from its plan-overrides section; a level the base holds beans for (`tables_build.GENERATED_LEVELS`, staging) binds them, every other level's beans the build adds, virtual. One mast check (`le_checks.check_masts`) and one bound-names check (`le_tables.check_bound`) cover every level. The viewing trials (`tables_layout.xml`, `tables_layout_staging.xml`) are retired (owner, 2026-11-17): `build_layout_le.py` without `--as-live` stops with an error
+`build_tables.py` calls `build_layout_le.build(levels="all", as_live=True)` in memory; nothing writes a copy of the panel beside `tables.xml`. The trial copies (`output/trial/tables_cutover.xml`, `tables_cutover_staging.xml`), their fingerprints (`approved_le_candidate.sha256`, `approved_staging.sha256`) and the staging guard are retired (owner, 2026-11-22): the fingerprint of the "HART Railroad" panel in `tables.xml` (`check_approved.py le-panel`) is the one approval check. `build_layout_le.py` run by hand builds in memory and prints what the panel holds. The three-level panel is drawn at the grid of staging drawn alone, which the build makes first. It is built on the generator's base (`hartlib.tables_build.base`: `data/tables_template.xml` and the staging beans of the device master; ADR-029), never on `tables.xml`. A band's level comes from its plan-overrides section; a level the base holds beans for (`tables_build.GENERATED_LEVELS`, staging) binds them, every other level's beans the build adds, virtual. One mast check (`le_checks.check_masts`) and one bound-names check (`le_tables.check_bound`) cover every level. The viewing trials (`tables_layout.xml`, `tables_layout_staging.xml`) are retired (owner, 2026-11-17): `build_layout_le.py` without `--as-live` stops with an error
 
 ### Row tables: check and Store handling
 
@@ -208,7 +204,7 @@ Already rules in the spike:
 
 ## Decisions that hold
 
-- **Rules (2026-11-17):** stock JMRI SML discovery is the reference; fix the tables, never patch JMRI or the Dispatcher System. Staging stays as the owner approved it (`approved_staging.sha256` guards it). Main and upper objects stay on internal names (`IT:HART:C3`, `IB:C3`, `IH9` heads, `IS:HART:C3` virtual sensors), numbers appended, never shifted. Read the data before building; take before and after pictures (`tools/hosts/sandbox/panel_snapshot.sh`); the sandbox is set up from `tools/hosts/sandbox/README.md`.
+- **Rules (2026-11-17):** stock JMRI SML discovery is the reference; fix the tables, never patch JMRI or the Dispatcher System. Staging stays as the owner approved it (the `le-panel` fingerprint guards the whole panel; the staging fingerprint `approved_staging.sha256` was retired on 2026-11-22). Main and upper objects stay on internal names (`IT:HART:C3`, `IB:C3`, `IH9` heads, `IS:HART:C3` virtual sensors), numbers appended, never shifted. Read the data before building; take before and after pictures (`tools/hosts/sandbox/panel_snapshot.sh`); the sandbox is set up from `tools/hosts/sandbox/README.md`.
 - **Side by side (owner, 2026-11-14, ADR-023):** a new generated panel, desk or crew page is written beside the live one and replaces it only on the owner's approval, then in one cut-over.
 - **Switch hands (owner, 2026-11-14):** main and upper hands come from the plan geometry (the `plan` rows of `switches.csv`, written by `build_hands.py`, `--check` in `check.sh`; 50 switch halves, 225 has a row and no hand as a double crossover; a row the owner sets to `hand_source` `owner` is never rewritten, 2026-11-21). The halves of crossovers 121 and 125 have opposite hands in `switches.csv` (121A L, 121B R; 125A R, 125B L), and that is real, not an error: the plan lays T1 and T14 with their straight route on the diagonal, so their leg B is the crossover's diagonal and the hand is read from it. Staging Switches 9 and 13 stay as the Layout Editor has them (both drawn right-hand; 9 normal is EH-2, 13 normal is Barn); `switches.csv` `hand` stays L for both, the physical hand.
 - **Helix joined (owner, 2026-11-17, release approved in a sandbox PanelPro and CATS):** staging's end bumpers at McKees Rocks and McKeesport are joins; `approved_staging.sha256` was unchanged. The system schematic and station sheets carry no DRAFT mark (revision 10; files keep their `-draft` names so links stay).

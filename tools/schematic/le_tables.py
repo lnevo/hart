@@ -1,13 +1,11 @@
 """XML assembly of the Layout Editor build: the main and upper turnouts, blocks, sensors, signals and LogixNG added to
-the tables, the panel put in place, and the staging guard that the three-level candidate holds the staging
-candidate unchanged."""
+the tables, and the panel put in place."""
 from __future__ import annotations
 
 import copy
 import csv
 import sys
 import xml.etree.ElementTree as ET
-from collections import defaultdict
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -18,7 +16,6 @@ from hartlib.tables_build import with_direction  # noqa: E402  a mast's comment 
 from le_common import (  # noqa: E402
     BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, main_upper_device_map, TURNOUT_SYS,
 )
-from approval import canon_sorted, element_label  # noqa: E402  as the approval fingerprints read an element
 
 
 # Blocks added after the cut-over take the next numbers at the end (owner, 2026-11-16: append), so no main or upper
@@ -111,7 +108,7 @@ def block_sort(name: str):
 
 
 # Retired (owner, 2026-11-17): the hand-wired Digicon desk's yard-ladder buttons, internal turnouts IT:HART:YL:*
-# and the routes IO:AUTO:0201-0210 they fire. No desk or panel uses them; the cut-over candidate leaves them out.
+# and the routes IO:AUTO:0201-0210 they fire. No desk or panel uses them; the build leaves them out.
 RETIRED_TURNOUT_PREFIX = "IT:HART:YL:"
 
 
@@ -150,7 +147,7 @@ def replace(parent: ET.Element, old: ET.Element, new: ET.Element, depth: int) ->
 
 
 def canon(el: ET.Element) -> str:
-    """An element as text without layout whitespace: what must match between the two candidates."""
+    """An element as text without layout whitespace."""
     e = copy.deepcopy(el)
     for c in e.iter():
         c.tail = None
@@ -250,180 +247,6 @@ def strip_build_owned(root: ET.Element) -> dict[str, int]:
     if left:
         raise BuildError(f"taking out what an earlier build added left some of it in {', '.join(left)}")
     return counts
-
-
-def level_items(P, panel_el: ET.Element, candidate: set[int]) -> set:
-    """ids of the panel elements that are not the staging candidate's: those of every band not in `candidate` (the
-    band indexes the staging candidate draws, the panel's first), by the plugin's own band of each: their turnouts,
-    points, track segments (and the hidden helix and connector joins, drawn with no band), circles, labels (band
-    titles have no band either: the first len(candidate) are the candidate's) and block contents icons. The plugin
-    writes its labels and block contents icons in P.labels and P.bcis order, before the carried items, so the n-th of
-    each on the panel is the n-th of the plugin's (checked by text and block)."""
-    if not candidate:
-        raise BuildError("staging guard: the staging candidate draws no band")
-    mine = {P.name(t["ident"]) for t in P.turnouts if t["band"] not in candidate} | \
-        {P.name(k) for k, p in P.points.items() if p["band"] not in candidate} | \
-        {P.name(s["ident"]) for s in P.segments if s.get("band") not in candidate} | \
-        {P.name(sh["ident"]) for sh in P.shapes if sh["band"] not in candidate}
-    titles = [i for i, lb in enumerate(P.labels) if lb.get("kind") == "title"]
-    if not titles:
-        raise BuildError("staging guard: the plugin wrote no band title")
-    if len(titles) < len(candidate):
-        raise BuildError(f"staging guard: the plugin wrote {len(titles)} band titles, the staging candidate draws "
-                         f"{len(candidate)} bands")
-    candidate_titles = set(titles[:len(candidate)])
-    labels = [el for el in panel_el.findall("positionablelabel")
-              if not (el.get("hidden") == "yes" and el.get("text") == tables.GENERATED_PANEL_MARKER)]
-    bcis = panel_el.findall("BlockContentsIcon")
-    if len(labels) < len(P.labels) or len(bcis) != len(P.bcis):
-        raise BuildError(f"staging guard: the panel holds {len(labels)} labels and {len(bcis)} block contents icons, "
-                         f"the plugin wrote {len(P.labels)} and {len(P.bcis)}")
-    out = {id(el) for el in panel_el if el.get("ident") in mine}
-    level_masts_ = {m["mast"] for m in P.masts if m["band"] not in candidate}
-    out |= {id(el) for el in panel_el.findall("signalmasticon") if el.get("signalmast") in level_masts_}
-    for i, (el, lb) in enumerate(zip(labels, P.labels)):
-        if el.get("text") != lb["text"]:
-            raise BuildError(f"staging guard: label {i} on the panel reads {el.get('text')!r}, the plugin wrote "
-                             f"{lb['text']!r}")
-        if lb["band"] not in candidate and i not in candidate_titles:
-            out.add(id(el))
-    for el, b in zip(bcis, P.bcis):
-        if el.get("blockcontents") != b["block"]:
-            raise BuildError(f"staging guard: a block contents icon on the panel is {el.get('blockcontents')}, the "
-                             f"plugin wrote {b['block']}")
-        if b["band"] not in candidate:
-            out.add(id(el))
-    return out
-
-
-# What the three-level candidate may change on the staging candidate's panel (owner, 2026-11-16): its size, and
-# what the helix joins change: the staging helix tracks run on to the main level instead of ending at a buffer stop,
-# so each of their end bumpers becomes an anchor where the hidden join starts (same place, same mast slot), and the
-# track segment reaching it is reconnected to it (helix_join_changes). The anchor is no block boundary (one helix block
-# runs through it, owner 2026-11-20), so no mast stands there.
-PANEL_SIZE_ATTRS = ("panelheight", "windowheight", "panelwidth", "windowwidth")
-
-
-def helix_join_changes(missing: list, extra: list, new_le: ET.Element, P, ends: set, joins: set) -> list[str]:
-    """Take out of `missing` (staging-candidate elements not in the three-level panel) and `extra` (the reverse) the
-    changes the helix joins make, and only those: a staging end bumper in `ends` that the three-level panel draws as
-    an anchor in `joins` at the same place, with the same attributes but its ident, its type ANCHOR and one more
-    connection, a hidden join segment (P.joins) starting there; and a track segment that ends at that bumper, with
-    the same attributes but that connection, now the anchor. Returns them as notes; anything else stays."""
-    notes = []
-    segs = {el.get("ident"): el for el in new_le.findall("tracksegment")}
-    join_segs = {P.name(i) for i in P.joins}
-    anchors = {(el.get("x"), el.get("y")): el for el in extra
-               if el.tag == "positionablepoint" and el.get("ident") in joins}
-    rename = {}
-    for old in [el for el in missing if el.tag == "positionablepoint" and el.get("ident") in ends]:
-        new = anchors.get((old.get("x"), old.get("y")))
-        if new is None or len(old) or len(new):
-            continue
-        added = {k: v for k, v in new.attrib.items() if k not in old.attrib}
-        want = dict(old.attrib, ident=new.get("ident"), type="ANCHOR")
-        seg = segs.get(added.get("connect2name"))
-        if set(added) != {"connect2name"} or old.get("type") != "END_BUMPER" or \
-                {k: new.get(k) for k in want} != want or seg is None or seg.get("ident") not in join_segs or \
-                seg.get("hidden") != "yes" or new.get("ident") not in (seg.get("connect1name"), seg.get("connect2name")):
-            continue
-        rename[old.get("ident")] = new.get("ident")
-        missing.remove(old)
-        extra.remove(new)
-        notes.append(f"end bumper {old.get('ident')} -> anchor {new.get('ident')} (hidden join {seg.get('ident')} to "
-                     f"{seg.get('blockname')}" + (f", {old.get('eastboundsignalmast') or old.get('westboundsignalmast')}"
-                                                  if old.get("eastboundsignalmast") or old.get("westboundsignalmast")
-                                                  else "") + ")")
-    by_ident = {el.get("ident"): el for el in extra if el.tag == "tracksegment"}
-    for old in [el for el in missing if el.tag == "tracksegment"]:
-        at = [k for k in ("connect1name", "connect2name") if old.get(k) in rename]
-        new = by_ident.get(old.get("ident"))
-        if len(at) != 1 or new is None or len(old) != len(new) or \
-                any(canon_sorted(a) != canon_sorted(b) for a, b in zip(old, new)):
-            continue
-        if dict(new.attrib) != dict(old.attrib, **{at[0]: rename[old.get(at[0])]}):
-            continue
-        missing.remove(old)
-        extra.remove(new)
-        notes.append(f"track segment {old.get('ident')} {at[0]} {old.get(at[0])} -> {new.get(at[0])}")
-    return notes
-
-
-def check_staging_unchanged(base, data: bytes, P, panel_name: str) -> list[str]:
-    """Stop with BuildError unless the three-level candidate `data` holds the staging candidate (`base`: build()'s
-    result for --levels staging --as-live) unchanged: every bean, every other panel and every element of the staging
-    panel (track, mast icons, labels, block contents icons, carried items), but the main and upper objects added
-    (level_items), the panel size (PANEL_SIZE_ATTRS: three levels are taller) and the helix-join changes the owner
-    accepted (2026-11-17, helix_join_changes). Returns those helix-join changes, as notes."""
-    S = base[1]
-    old_root, new_root = tables.loads(base[0]).root, tables.loads(data).root
-    bad = []
-    if [c.tag for c in old_root] != [c.tag for c in new_root]:
-        raise BuildError("staging guard: the top-level sections of the two candidates differ")
-    added = level_names(new_root)
-    for old, new in zip(old_root, new_root):
-        if old.tag == "LayoutEditor" and old.get("name") == panel_name:
-            continue
-        if old.attrib != new.attrib:
-            bad.append(f"<{old.tag}> attributes differ")
-        kept = [canon(without_level_detector(c, added)) for c in new if not is_level_bean(c)]
-        if kept != [canon(c) for c in old]:
-            bad.append(f"<{old.tag} {old.get('class') or old.get('name') or ''}> differs beyond the added main and "
-                       "upper beans")
-    old_le, new_le = tables.layout_editor(old_root, panel_name), tables.layout_editor(new_root, panel_name)
-    for k in sorted(set(old_le.attrib) | set(new_le.attrib)):
-        if old_le.get(k) != new_le.get(k) and k not in PANEL_SIZE_ATTRS:
-            bad.append(f"panel attribute {k}: {old_le.get(k)} -> {new_le.get(k)}")
-    # the bands the staging candidate draws are the three-level panel's first (build_layout_le.build draws them first)
-    candidate = set(range(len(S.band_boxes)))
-    if len(P.band_boxes) < len(candidate):
-        raise BuildError(f"staging guard: the staging candidate draws {len(candidate)} bands, the three-level panel "
-                         f"only {len(P.band_boxes)}")
-    ends = {S.name(k) for k, p in S.points.items() if p["type"] == "END_BUMPER"} - \
-        {P.name(k) for k, p in P.points.items() if p["type"] == "END_BUMPER"}
-    joins = {P.name(i) for (b, i) in P.join_ends if b in candidate}     # the staging anchors the hidden joins start at
-    if not ends or len(joins) != len(ends):
-        raise BuildError(f"staging guard: the helix is not joined: {len(ends)} staging end bumpers {sorted(ends)} "
-                         f"became anchors, but {len(joins)} hidden joins start at staging anchors {sorted(joins)}")
-    level = level_items(P, new_le, candidate)
-    old_els = defaultdict(list)
-    for el in old_le:
-        old_els[canon(el)].append(el)
-    extra = []
-    for el in new_le:
-        if id(el) in level:
-            continue
-        got = old_els.get(canon(el))
-        if got:
-            got.pop()
-        else:
-            extra.append(el)
-    missing = [el for v in old_els.values() for el in v]
-    notes = helix_join_changes(missing, extra, new_le, P, ends, joins)
-    if len(notes) != 2 * len(ends):
-        bad.append(f"{len(ends)} staging end bumpers ({', '.join(sorted(ends))}) are joined to the next level, but "
-                   f"only these helix-join changes are as expected: {notes}")
-    for i, el in enumerate(missing + extra):
-        bad.append(f"{element_label(el, i)} {'gone or changed' if el in missing else 'new or changed'}")
-    if bad:
-        raise BuildError("staging guard: the three-level candidate changes the approved staging panel: " +
-                         "; ".join(bad[:20]) + (f" (and {len(bad) - 20} more)" if len(bad) > 20 else ""))
-    return notes
-
-
-def without_level_detector(el: ET.Element, added: set) -> ET.Element:
-    """`el`, or for a block or layout block bound to a sensor in `added` (the main and upper names a build adds:
-    level_names) a copy without that binding: the helix blocks, staging blocks the three-level build binds to their
-    device-map sensor (add_level_objects), compare equal to the staging candidate's, which has none."""
-    if el.tag == "block":
-        occ = el.find("occupancysensor")
-        if occ is not None and (occ.text or "").strip() in added:
-            el = copy.deepcopy(el)
-            el.remove(el.find("occupancysensor"))
-    elif el.tag == "layoutblock" and el.get("occupancysensor") in added:
-        el = copy.deepcopy(el)
-        del el.attrib["occupancysensor"]
-    return el
 
 
 def numbered_blocks(blocks, require_listed: bool = False) -> list:

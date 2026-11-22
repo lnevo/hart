@@ -1,4 +1,4 @@
-"""build_layout_le.py: the three-level cut-over candidate (--as-live), drawn like the schematic, on the generator's
+"""build_layout_le.py: the three-level build (levels all), drawn like the schematic, on the generator's
 base (hartlib.tables_build.base: the template and the staging beans of devices.csv; ADR-029). The all-levels viewing trial these tests once read
 (tables_layout.xml) is retired (owner, 2026-11-17); its behaviour checks read the candidate, which test_le_cutover.py
 and test_le_mast_parity.py share."""
@@ -128,15 +128,23 @@ def crossover_legs(facts: dict) -> dict:
 
 @functools.lru_cache(maxsize=None)
 def built():
-    """(candidate bytes, Panel, names, bands) of the three-level cut-over candidate (--levels all --as-live; the
+    """(tables bytes, Panel, names, bands) of the three-level build (levels all, as build_tables.py builds it; the
     approval fingerprint is its own test, test_le_cutover.py): built once for every test module that needs it."""
     with mock.patch.object(B.sdm, "load", wraps=B.sdm.load) as load, contextlib.redirect_stdout(io.StringIO()):
-        out = B.build(levels="all", as_live=True, approved=None)
+        out = B.build(levels="all", as_live=True)
     STAGING_MAP_LOADS.append(load.call_count)
     return out
 
 
 STAGING_MAP_LOADS: list = []     # sdm.load calls in the one cached build above
+
+
+@functools.lru_cache(maxsize=None)
+def staging_alone():
+    """(tables bytes, Panel, names, bands) of staging drawn alone (levels staging), whose grid the three-level build
+    is drawn at: built once for every test module that needs it."""
+    with contextlib.redirect_stdout(io.StringIO()):
+        return B.build(levels="staging", as_live=True)
 
 
 @functools.lru_cache(maxsize=None)
@@ -156,7 +164,7 @@ class PagePreferences(unittest.TestCase):
                            ({"le_window": [1900]}, "le_window must be"), ({"le_row": 0}, "le_row must be")):
             bad = {k: v for k, v in dict(page, **prefs).items() if v is not None}
             with self.subTest(prefs=prefs), self.assertRaisesRegex(B.BuildError, why):
-                B.build(as_live=True, approved=None, page=bad)
+                B.build(as_live=True, page=bad)
 
 
 class Built(unittest.TestCase):
@@ -320,7 +328,7 @@ class Built(unittest.TestCase):
         with mock.patch.object(sys.modules["le_tables"], "add_level_sensors", return_value=[]), \
                 self.assertRaisesRegex(B.BuildError, "whose sensor was not added"):
             with contextlib.redirect_stdout(io.StringIO()):
-                B.build(as_live=True, approved=None)
+                B.build(as_live=True)
 
     def test_add_level_sensors_is_by_name_not_order(self) -> None:
         """The sensors a block gets do not depend on the order blocks come in: a block added earlier in the drawing
@@ -470,7 +478,7 @@ class Built(unittest.TestCase):
         objects = 39 + 3 * LEVEL_BLOCKS + LEVEL_SENSORS + 3 + LEVEL_SENSORS + 39 + LEVEL_HEADS + LEVEL_MASTS
         # the helix blocks' binding (block and layout block each) goes too: they are staging's beans
         self.assertEqual(removed, dict.fromkeys(B.STRIPPED, 0) | {B.STRIPPED[0]: objects, B.STRIPPED[5]: 4})
-        base = tables.loads(self.P.staging_data)
+        base = tables.loads(staging_alone()[0])
         B.parked.split(base.root, B.PARKED)
         B.retire_yard_ladder(base.root)
         self.assertEqual(no_panel(doc), no_panel(base))
@@ -503,16 +511,6 @@ class Built(unittest.TestCase):
             audit = AUDIT.audit_source("candidate", path, staging, generated=True)
         self.assertEqual(audit.errors, [])
         self.assertEqual(audit.facts["panel"], LIVE_PANEL)
-
-    def test_check_mode(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp, mock.patch.object(
-                B, "build", return_value=(self.data, self.P, self.names, self.bands)):
-            out = Path(tmp) / "t.xml"
-            with contextlib.redirect_stdout(io.StringIO()):
-                self.assertEqual(B.main(["--as-live", "--out", str(out)]), 0)
-                self.assertEqual(B.main(["--as-live", "--check", "--out", str(out)]), 0)
-                out.write_bytes(out.read_bytes() + b" ")
-                self.assertEqual(B.main(["--as-live", "--check", "--out", str(out)]), 1)
 
     def test_renderer_draws_arcs_and_labels(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -764,7 +762,7 @@ class ReviewFixes(unittest.TestCase):
         for b in tables.blocks(doc.root, full=False):
             blocks_el.remove(b)
         with contextlib.redirect_stdout(io.StringIO()), self.assertRaisesRegex(B.BuildError, "names-only"):
-            B.build(bands=Built.bands, as_live=True, approved=None, base_data=doc.tobytes())
+            B.build(bands=Built.bands, as_live=True, base_data=doc.tobytes())
 
 
 class BaseNames(unittest.TestCase):
@@ -777,7 +775,7 @@ class BaseNames(unittest.TestCase):
                    if any(name in (tables.system_name(e), tables.user_name(e)) for e in tables.elements(s)))
         sec.remove(next(e for e in tables.elements(sec) if name in (tables.system_name(e), tables.user_name(e))))
         with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
-            return B.build(levels="staging", as_live=True, approved=None, base_data=doc.tobytes())
+            return B.build(levels="staging", as_live=True, base_data=doc.tobytes())
 
     def test_a_staging_turnout_block_or_mast_the_base_lacks_stops(self) -> None:
         _data, _P, all_names, bands = built()
@@ -792,7 +790,7 @@ class BaseNames(unittest.TestCase):
     def test_the_staging_candidate_adds_no_bean(self) -> None:
         base = tables.loads(B.base_tables()).root
         with contextlib.redirect_stdout(io.StringIO()), B.pd.cache_on():
-            data = B.build(levels="staging", as_live=True, approved=None)[0]
+            data = B.build(levels="staging", as_live=True)[0]
         root = tables.loads(data).root
         for section in ("turnouts", "sensors", "blocks", "layoutblocks", "signalheads", "signalmasts"):
             with self.subTest(section=section):
@@ -840,19 +838,6 @@ class SecondReview(unittest.TestCase):
             B.check_masts(P, {"Staging": [dict(want["Staging"][0], mast="N")]}, le_mod, {})
         with self.assertRaisesRegex(B.BuildError, "M was not asked for"):      # a mast no band lists
             B.check_masts(P, {"Staging": []}, le_mod, {})
-
-    def test_the_build_is_never_written_over_the_live_tables(self) -> None:
-        self.assertTrue(B.live_target(paths.TABLES_XML))
-        self.assertTrue(B.live_target(paths.JMRI_USER_FILES / "tables.xml"))
-        for out in (B.CUTOVER, B.CUTOVER_STAGING):
-            self.assertFalse(B.live_target(out), out)
-        with mock.patch.object(B, "build") as built_, contextlib.redirect_stdout(io.StringIO()) as out:
-            self.assertEqual(B.main(["--as-live", "--out", str(paths.TABLES_XML)]), 1)
-            self.assertEqual(B.main(["--levels", "staging", "--as-live", "--out",
-                                     str(paths.JMRI_USER_FILES / "x.xml")]), 1)
-        built_.assert_not_called()
-        self.assertIn("written beside them, never over them", out.getvalue())
-        self.assertIn("for looking at only", B.__doc__)
 
     def test_renderer_sizes_icons_by_mast_type(self) -> None:
         data = built()[0]

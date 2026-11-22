@@ -7,7 +7,7 @@ same reconciliation independently to ``jmri/layouts/hart/output/tables.xml``;
 it never copies one complete configuration over the other.  Use ``--no-sync``
 to skip the deployment bundle.  ``--check`` validates without writing.
 
-The main panel must be a generated one (build_layout_le.py --as-live; it holds
+The main panel must be a generated one (tools/schematic/build_tables.py writes one; it holds
 hartlib.tables.GENERATED_PANEL_MARKER). Each cluster icon stays where it stands: where the same
 icon stands on the ``--reference`` panel (the copy taken before Stage 1, which deletes and
 re-adds the cluster icons; run_panelpro_stage1.sh passes it), else where the panel's own one

@@ -780,20 +780,18 @@ class IntermediateMasts(unittest.TestCase):
 
 
 class CommittedMainAndUpper(unittest.TestCase):
-    """The committed bindings and desk against the release candidate tables (every name bound must be in it)."""
+    """The committed bindings and desk against the committed tables.xml (every name bound must be in it)."""
 
     @classmethod
     def setUpClass(cls):
-        if not B.TABLES_CANDIDATE.exists():
-            raise unittest.SkipTest("no release candidate tables (make panels writes them)")
-        from hartlib import tables
-        root = tables.read(B.TABLES_CANDIDATE)
+        from hartlib import paths, tables
+        root = tables.read(paths.REPO_TABLES_XML)
         cls.turnouts = {tables.system_name(t): tables.user_name(t) for t in tables.turnouts(root)}
         cls.sensors = {tables.system_name(s): tables.user_name(s) for s in tables.sensors(root)}
         cls.masts = {tables.user_name(m) for m in tables.masts(root)}
         cls.bound = json.loads(B.BINDINGS.read_text(encoding="utf-8"))
 
-    def test_every_bound_name_is_in_the_candidate_tables(self):
+    def test_every_bound_name_is_in_the_tables(self):
         for key, e in self.bound["switches"].items():
             for leg in e["routes"].values():
                 for io in leg.values():

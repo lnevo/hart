@@ -168,65 +168,6 @@ class CheckBound(unittest.TestCase):
             self.check(root, self.P(), self.names(turnouts={"s1": "Switch 105"}), base)
 
 
-def label_panel(P) -> ET.Element:
-    """A panel holding P's elements as the plugin writes them, the marker label first."""
-    parts = [f'<positionablelabel hidden="yes" text="{tables.GENERATED_PANEL_MARKER}"/>']
-    parts += [f'<layoutturnout ident="{t["ident"]}"/>' for t in P.turnouts]
-    parts += [f'<positionablepoint ident="{k}"/>' for k in P.points]
-    parts += [f'<tracksegment ident="{s["ident"]}"/>' for s in P.segments]
-    parts += [f'<layoutShape ident="{s["ident"]}"/>' for s in P.shapes]
-    parts += [f'<positionablelabel text="{lb["text"]}"/>' for lb in P.labels]
-    parts += [f'<BlockContentsIcon blockcontents="{b["block"]}"/>' for b in P.bcis]
-    parts += [f'<signalmasticon signalmast="{m["mast"]}"/>' for m in P.masts]
-    return ET.fromstring("<LayoutEditor>" + "".join(parts) + "</LayoutEditor>")
-
-
-def fake_panel():
-    P = SimpleNamespace(
-        turnouts=[dict(ident="TO1", band=0), dict(ident="TO2", band=1)],
-        points={"A1": dict(band=0), "A2": dict(band=2)},
-        segments=[dict(ident="T1", band=0), dict(ident="T2", band=1), dict(ident="TJ")],    # TJ: a join, no band
-        shapes=[dict(ident="C1", band=0), dict(ident="C2", band=2)],
-        labels=[dict(text="STAGING LEVEL", kind="title", band=0), dict(text="MAIN LEVEL", kind="title", band=None),
-                dict(text="W-1", band=0), dict(text="105", band=1)],
-        bcis=[dict(block="Track W-1", band=0), dict(block="Track 105-109", band=1)],
-        masts=[dict(mast="Mast 2L", band=0), dict(mast="Mast 108LA", band=1)])
-    P.name = lambda i: i
-    return P
-
-
-class LevelItems(unittest.TestCase):
-    """level_items: the panel elements of every band but staging's (the plugin's band of each), a join's segment and
-    every band title but staging's among them."""
-
-    def test_the_other_bands_elements(self):
-        P = fake_panel()
-        panel = label_panel(P)
-        got = {el.get("ident") or el.get("text") or el.get("blockcontents") or el.get("signalmast")
-               for el in panel if id(el) in le_tables.level_items(P, panel, {0})}
-        self.assertEqual(got, {"TO2", "A2", "T2", "TJ", "C2", "MAIN LEVEL", "105", "Track 105-109", "Mast 108LA"})
-
-    def test_a_candidate_of_two_bands_keeps_both_and_their_titles(self):
-        P = fake_panel()
-        panel = label_panel(P)
-        got = {el.get("ident") or el.get("text") or el.get("blockcontents") or el.get("signalmast")
-               for el in panel if id(el) in le_tables.level_items(P, panel, {0, 1})}
-        self.assertEqual(got, {"A2", "TJ", "C2"})
-        with self.assertRaisesRegex(BuildError, "draws no band"):
-            le_tables.level_items(P, panel, set())
-
-    def test_a_label_or_icon_out_of_step_with_the_plugin_stops(self):
-        P = fake_panel()
-        panel = label_panel(P)
-        next(el for el in panel if el.get("text") == "W-1").set("text", "W-9")
-        with self.assertRaisesRegex(BuildError, "label 2 on the panel reads 'W-9'"):
-            le_tables.level_items(P, panel, {0})
-        P = fake_panel()
-        P.labels = [lb for lb in P.labels if lb.get("kind") != "title"]
-        with self.assertRaisesRegex(BuildError, "wrote no band title"):
-            le_tables.level_items(P, label_panel(P), {0})
-
-
 class IsLevelBean(unittest.TestCase):
     def test_by_the_naming_rule(self):
         def el(tag, sysname, user=""):

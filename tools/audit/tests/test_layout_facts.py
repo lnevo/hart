@@ -289,11 +289,8 @@ class LayoutFactsTest(unittest.TestCase):
 
     # ---- main and upper: plants on internal turnouts, masts from masts.csv
 
-    def test_main_and_upper_pass_on_the_release_candidate_tables(self) -> None:
-        candidate = check.HART / "output/trial/tables_cutover.xml"
-        if not candidate.exists():
-            self.skipTest("no release candidate tables (make panels writes them)")
-        self.assertEqual(self.failures(tables=candidate), [])
+    def test_main_and_upper_pass_on_the_live_tables(self) -> None:
+        self.assertEqual(self.failures(tables=check.HART / "output/tables.xml"), [])
 
     def level_plant(self, user: str):
         """(tree, the SECTION of the first plant commanding `user`) on a copy of the CTC desk."""

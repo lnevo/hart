@@ -189,18 +189,22 @@ class Skipped(unittest.TestCase):
             self.assertEqual(bt.EXIT_NO_PLUGIN, run()[0])         # a write needs the plugin
 
 
-class ReviewFlag(unittest.TestCase):
-    def test_review_writes_a_candidate_and_never_checks(self):
-        with contextlib.redirect_stderr(io.StringIO()) as err, self.assertRaises(SystemExit) as stop:
-            bt.main(["--check", "--review"])
-        self.assertEqual(stop.exception.code, 2)
-        self.assertIn("--review writes a candidate", err.getvalue())
+class ReviewFlagRetired(unittest.TestCase):
+    """--review skipped the staging fingerprint, retired with the staging guard (owner, 2026-11-22)."""
 
-    def test_the_discovery_wrapper_names_review_in_its_recovery_commands(self):
+    def test_review_is_no_option(self):
+        with contextlib.redirect_stderr(io.StringIO()), self.assertRaises(SystemExit) as stop:
+            bt.main(["--review"])
+        self.assertEqual(stop.exception.code, 2)
+
+    def test_the_discovery_wrapper_passes_no_review(self):
+        """build_tables.py has no --review any more; HART_TABLES_REVIEW only lets the wrapper skip its own approval
+        check (check_approved.py le-panel), never passed to build_tables.py."""
         text = (Path(__file__).resolve().parents[3] / "jmri/layouts/hart/scripts/run_sml_discover.sh").read_text()
+        self.assertNotIn("--review", text)
+        self.assertEqual([line for line in text.splitlines() if "REVIEW" in line and "build_tables.py" in line], [])
         notes = [line for line in text.splitlines() if "build_tables.py" in line and ("Restore" in line or "Fix" in line)]
         self.assertEqual(len(notes), 2)
-        self.assertTrue(all("${REVIEW[*]:+ ${REVIEW[*]}}" in line for line in notes), notes)
 
 
 if __name__ == "__main__":
