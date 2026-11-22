@@ -13,7 +13,7 @@ Chat is a scratchpad. Decisions that count live here.
 | Pipelines | [`pipelines/README.md`](pipelines/README.md) |
 | Pipeline map | [`../docs/pipeline-map/pipeline_map.json`](../docs/pipeline-map/pipeline_map.json) |
 
-**Active projects:** [CATS integration](projects/cats-integration.md) · [level unification](projects/level-unification-handoff.md) · [web server migration](projects/web-server-migration.md) · [3D station maps](../docs/benchwork/station_maps_3d/README.md)  
+**Active projects:** [CATS integration](projects/cats-integration.md) · [health round 2](projects/health-round2-handoff.md) · [level unification](projects/level-unification-handoff.md) · [web server migration](projects/web-server-migration.md) · [3D station maps](../docs/benchwork/station_maps_3d/README.md)  
 **Parked or done:** [speed matching](projects/speedmatching.md) (parked) · [project health hand-off](projects/project-health-handoff.md) (done). Each page in `projects/` opens with a `Status:` line.  
 **Public names:** [ADR-002](decisions/ADR-002-naming-contract.md) · [ADR-005](decisions/ADR-005-public-equipment-names.md) · [ADR-011](decisions/ADR-011-basic-signals.md) · [`devices_field.csv`](../jmri/layouts/hart/data/devices_field.csv) and [`devices_generated.csv`](../jmri/layouts/hart/data/devices_generated.csv) (the device master, ADR-029)
 **Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`  
