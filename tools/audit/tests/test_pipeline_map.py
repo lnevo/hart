@@ -465,6 +465,16 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("m.onlyOne(a, ['layout', 'wiring'], 'website')", lanes), [])
         self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
 
+    def test_layout_uses_spread_geometry(self) -> None:
+        """layout with spreadGeo: columns k steps apart and boxes at the spread width."""
+        got = self.run_js("(() => { const g = m.spreadGeo(m.NARROW, 3), l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW),"
+                          " l2 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, g);"
+                          " return [(l2.nodes[1].x - l2.nodes[0].x) / (l1.nodes[1].x - l1.nodes[0].x), l2.nodes[0].w, g.nodeW]; })()",
+                          {"nodes": [{"id": "a", "label": "a", "domain": "x"}, {"id": "b", "label": "b", "domain": "x"}],
+                           "edges": [{"from": "a", "to": "b"}]})
+        self.assertAlmostEqual(got[0], 3, places=2)
+        self.assertEqual(got[1], got[2])
+
     def test_steps_shown(self) -> None:
         """spreadFor: n spread steps and a spread box span what all cols steps and a box span, the boxes widening up to
         BOX_GROW times; all of them, more than all, or a map of one column is 1."""
@@ -472,7 +482,7 @@ process.stdout.write(JSON.stringify(out));"""
         for n in (40, 23, 5, 3):  # below and above the box cap
             span = self.run_js(f"(() => {{ const g = m.spreadGeo(m.NARROW, m.spreadFor(46, {n})), s = x => x.nodeW + x.colGap;"
                                f" return [{n - 1} * s(g) + g.nodeW, 45 * s(m.NARROW) + m.NARROW.nodeW]; }})()", None)
-            self.assertLessEqual(abs(span[0] - span[1]), n, n)  # the sizes are rounded to whole units
+            self.assertLessEqual(abs(span[0] - span[1]), 2 + 0.5 * (n - 1), n)  # each size is rounded to a whole unit
 
     def test_spread_geometry(self) -> None:
         """spreadGeo: a step k times as wide; the boxes widen with it up to BOX_GROW times, titles and descriptions too,

@@ -29,7 +29,7 @@ function spreadFor(cols, n, geo = NARROW) {
 const spreadGeo = (geo, k) => {
   if (k === 1) return geo;
   const g = Math.min(k, BOX_GROW), nodeW = Math.round(geo.nodeW * g);
-  return { nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), titleWrap: Math.round(geo.titleWrap * g),
+  return { ...geo, nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), titleWrap: Math.round(geo.titleWrap * g),
     descWrap: Math.round((geo.descWrap || WRAP) * g) };
 };
 
@@ -1086,7 +1086,7 @@ function app() {
     let geo = base;
     view.spread = 1;
     if (view.steps) {
-      const key = `${view.compact}|${sub.nodes.length}|${sub.edges.length}|${sub.nodes.map(n => n.id).join(",")}`;
+      const key = `${view.compact}|${sub.nodes.map(n => n.id).join(",")}|${sub.edges.map(e => e.from + ">" + e.to).join(",")}`;
       if (colsKey !== key) { colsKey = key; colsOf = layout(sub.nodes, sub.edges, DATA.domains, 0, base).columns; }  // once per map
       const cols = colsOf;
       view.spread = spreadFor(cols, Math.max(Math.min(3, cols), view.steps), base);
@@ -1273,6 +1273,7 @@ function app() {
     spreadCtl.style.top = `${top}px`; spreadCtl.style.left = `${Math.max(0, a.right - spreadCtl.offsetWidth - 8)}px`;
   }
   function drawRulers() {
+    steps.style.visibility = "";  // shown again after a Steps preview
     placeSpread(); syncSpread();
     if (!showRulers()) { rulers.hidden = true; return; }
     rulers.hidden = false;
@@ -1409,8 +1410,8 @@ function app() {
   // the width Fit shows: the whole drawing, or spread (Steps slider) the first steps shown, lanes filling the height
   const fitW = () => (view.spread > 1 ? (Math.min(view.steps, lay.columns) - 1) * stepOf(lay.geo) + lay.geo.nodeW + LEFT + 60 : W);
   /* The step strip's Steps slider: how many steps show across the screen, the lanes keeping their full height. The map
-     is laid out again with the steps spread apart (spreadFor, spreadGeo; the boxes keep their size), so fewer steps
-     fill the width and the boxes grown when zoomed out have room; the same part of the drawing stays in the middle. */
+     is laid out again with the steps spread apart (spreadFor, spreadGeo: the boxes widen up to BOX_GROW times and the
+     gap takes the rest), so fewer steps fill the width and each box has more room; the same part of the drawing stays in the middle. */
   let spreadDrag = false;  // while the thumb is held: the slider is left as the reader has it
   function syncSpread() {  // the slider and its label from the drawing: n of the columns across
     if (!lay || spreadDrag) return;
@@ -1433,7 +1434,7 @@ function app() {
     if (!quiet) writeHash();
   }
   // dragging moves the label; letting go (or a key) lays the map out once; a drag ended where it began fires no change
-  spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; });
+  spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; clearTimeout(wheelRest); });
   ["pointerup", "pointercancel", "blur"].forEach(t => spreadIn.addEventListener(t, () => { spreadDrag = false; }));
   /* While the thumb moves, the drawing stretches across at once as a preview (the steps spread about the middle of the
      view, the text drawn wide for the moment); letting go lays it out properly, once (a full layout takes a moment). */
@@ -1441,6 +1442,8 @@ function app() {
   function previewSteps() {
     previewFrame = 0;
     if (!svg || !lay) return;
+    if (magnified.size) { magnified.forEach(unmagnify); magnified = new Set(); }  // grown boxes would stretch with it
+    steps.style.visibility = "hidden";  // the step headers come back with the layout on release
     const cols = Math.max(lay.columns || 1, 1), n = Number(spreadIn.value);
     const sx = spreadFor(cols, n, view.compact ? NARROW : WIDE) / view.spread, m = svg.getScreenCTM(), r = wrapEl.getBoundingClientRect();
     if (!m) return;
@@ -1452,18 +1455,23 @@ function app() {
     spreadOut.textContent = `${spreadIn.value} of ${spreadIn.max}`;
     if (!previewFrame) previewFrame = requestAnimationFrame(previewSteps);
   });
-  // the wheel over the slider moves it a step at a time, like a zoom; the map is laid out when the wheel rests
-  let wheelRest = 0;
+  /* The wheel over the slider moves it a step for each notch (a trackpad's small deltas add up to one), like a zoom; the
+     map is laid out when the wheel rests. A sideways swipe or a pinch (Ctrl) is left alone. */
+  let wheelRest = 0, wheelSum = 0;
   spreadCtl.addEventListener("wheel", e => {
     e.preventDefault(); e.stopPropagation();
-    const n = Math.min(Number(spreadIn.max), Math.max(Number(spreadIn.min), Number(spreadIn.value) + (e.deltaY > 0 ? 1 : -1)));
+    if (e.ctrlKey || Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    wheelSum += e.deltaY * (e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 400 : 1);
+    if (Math.abs(wheelSum) < 50) return;
+    const dir = Math.sign(wheelSum); wheelSum = 0;
+    const n = Math.min(Number(spreadIn.max), Math.max(Number(spreadIn.min), Number(spreadIn.value) + dir));
     if (String(n) === spreadIn.value) return;
     spreadIn.value = String(n); spreadDrag = true;
     spreadIn.dispatchEvent(new Event("input"));
     clearTimeout(wheelRest);
-    wheelRest = setTimeout(() => { spreadDrag = false; setSteps(n); }, 250);
+    wheelRest = setTimeout(() => { spreadDrag = false; setSteps(Number(spreadIn.value)); }, 250);  // the value as it is then
   }, { passive: false });
-  spreadIn.addEventListener("change", () => { spreadDrag = false; setSteps(Number(spreadIn.value)); });
+  spreadIn.addEventListener("change", () => { spreadDrag = false; clearTimeout(wheelRest); setSteps(Number(spreadIn.value)); });
   function fit() {  // the whole drawing in the free area (spread: its lanes' full height, from the left)
     const f = fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
     setVB(f.x, f.y, f.width, f.height);
