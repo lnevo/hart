@@ -70,6 +70,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #steps{position:absolute;left:0;height:24px;overflow:hidden;background:rgba(250,250,250,.88);border-bottom:1px solid #ccc}
 #steps span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:600;color:#475569;pointer-events:auto;cursor:help}
 #lanetags span{position:absolute;box-sizing:border-box;height:22px;line-height:18px;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap;pointer-events:none}
+#wrap.onlane{cursor:zoom-in}
 #lens{position:fixed;width:320px;height:320px;border-radius:50%;overflow:hidden;z-index:9;pointer-events:none;background:#fafafa;
  border:3px solid #334155;box-shadow:0 4px 16px rgba(0,0,0,.3)}
 #lens[hidden]{display:none}
@@ -1085,7 +1086,7 @@ function app() {
   const chain = (edges, id) => (view.near ? chainOf(edges.filter(e => !overHub(e)), id, endsHover) : chainOf(edges, id, endsChain));
   function chainOnly(nodes, edges, id) {  // "highlighted only": drop what the selection leaves dim
     const c = chain(edges, id);
-    return { nodes: nodes.filter(n => c.up.has(n.id) || c.down.has(n.id)), edges: edges.filter(c.lit) };
+    return { nodes: nodes.filter(n => c.up.has(n.id) || c.down.has(n.id)), edges: edges.filter(e => c.lit(e) && !(view.near && overHub(e))) };
   }
 
   /* ---- drawing */
@@ -1186,9 +1187,12 @@ function app() {
       edgeEls[i].classList.remove("he2", "he3");
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => { if (!nodeEl[v]) return; nodeEl[v].classList.add("hn"); if (fade(v)) nodeEl[v].classList.add("hn" + fade(v)); });
-      const stops = [...c.boxes].filter(v => v !== e.from && v !== e.to && endsHover(v))
+      // the boxes it stopped at, the line's own ends included (not the start of a side link, which stops by its link);
+      // a closed folder takes the reason of the first box in it that stops
+      const kindOf = v => stopKind(nodeOf(v), hubSet) || (groups.members[v] || []).map(m => stopKind(nodeOf(m), hubSet)).find(Boolean) || "hub";
+      const stops = [...c.boxes].filter(v => endsHover(v) && !(e.side && v === e.from))
         .sort((p, q) => (c.steps.get(p) || 0) - (c.steps.get(q) || 0))
-        .map(v => [nodeOf(v).label, stopKind(nodeOf(v), hubSet) || "hub"]);
+        .map(v => [nodeOf(v).label, kindOf(v)]);
       etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + stopsNote(stops) + (() => {
         const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && lastPointer !== "touch" && `${SOURCE_KEY}-click: the box it comes from`].filter(Boolean);
         return hint.length ? `<div class="off">${hint.join(" · ")}</div>` : "";
@@ -1249,8 +1253,9 @@ function app() {
     if (hoverFrame) return;
     hoverFrame = requestAnimationFrame(() => {  // at most once a frame
       hoverFrame = 0;
-      if (!hoverAt || drag) return;
+      if (!hoverAt || drag || !view.hover) return;
       const h = pickHover(hoverAt.t, hoverAt.x, hoverAt.y);
+      laneHint(h.box || h.edge !== undefined ? null : laneAt(hoverAt.x, hoverAt.y));
       if (h.edge !== undefined) { setEdgeHover(h.edge); return; }
       setEdgeHover(null);
       setHover(h.box || null);
@@ -1516,6 +1521,14 @@ function app() {
     const t = [...laneTags.querySelectorAll("span[data-lane]")].find(el => inRect(el, x, y));
     return t ? Number(t.dataset.lane) : null;
   }
+  /* Over a lane name with no box or line under it: the zoom cursor and the lane name's hint (the names let the
+     pointer through, so they cannot show their own). */
+  function laneHint(i) {
+    const b = i === null ? null : lay.bands[i];
+    wrapEl.classList.toggle("onlane", !!b);
+    if (b) wrapEl.title = atLane(b.id) ? "Click to go back to the view before" : "Click to zoom to this lane";
+    else wrapEl.removeAttribute("title");
+  }
   function zoomLane(i) {
     const b = lay.bands[i];
     if (!b) return;
@@ -1529,7 +1542,8 @@ function app() {
     laneBack = { lane: b.id, v: was, at: [] };  // at is set once the view has moved
     setVB(x0 - 240 / s, (y0 + y1) / 2 - (a.top + a.bottom) / 2 / s, a.r.width / s, a.r.height / s);  // 240 px left of the first box, for the lane names
     laneBack.at = [vb.x, vb.y, vb.width];
-    drawRulers();  // the tag's hover text now says it goes back
+    drawRulers();
+    laneHint(i);  // the hint now says a second click goes back
   }
 
   function updateNav() {
@@ -1722,6 +1736,7 @@ function app() {
       const f = el.dataset.from, t = el.dataset.to;
       const isUp = upSet.has(f) && upSet.has(t), isDown = downSet.has(f) && downSet.has(t);
       if (!isUp && !isDown) return;
+      if (view.near && lay.edges[i] && overHub(lay.edges[i])) return;  // near: a link the walk did not follow stays dim
       el.classList.add("on");
       if (isUp && !isDown) el.classList.add("upstream");
       const near = f === id || t === id;
@@ -1797,7 +1812,11 @@ function app() {
     const edge = li !== null && li !== undefined ? lay.edges[li] : null;
     const end = edge && lineEnd(edge, back, id => !!nodeEl[id]);
     const card = got.box && got.box !== at.box ? got.box : null;
-    if (edge && !at.box && !card && !end) return;
+    if (edge && !at.box && !card && !end) {  // a line whose box is not drawn does nothing, unless a lane name is over it
+      const lane = laneAt(e.clientX, e.clientY);
+      if (lane !== null) zoomLane(lane);
+      return;
+    }
     const t = clickTarget(at.box, card, got.box && !lineFirst ? null : end, lineFirst);
     if (t.clear) {
       const lane = laneAt(e.clientX, e.clientY);  // a lane name over empty map: zoom to that lane
