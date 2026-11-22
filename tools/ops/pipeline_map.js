@@ -4,8 +4,14 @@
    the file only exports the layout, for the unit tests. */
 "use strict";
 
-const NODE_W = 250, COL_GAP = 150, V_GAP = 14, BAND_PAD = 40, DUMMY_H = 2, DUMMY_GAP = 3;
-const WRAP = 44, TITLE_WRAP = 30, LEFT = 180, BAND_RUN = 100000;  // BAND_RUN: how far the lane colours run past the drawing's ends
+const V_GAP = 14, BAND_PAD = 40, DUMMY_H = 2, DUMMY_GAP = 3;
+const WRAP = 44, LEFT = 180, BAND_RUN = 100000;  // BAND_RUN: how far the lane colours run past the drawing's ends
+/* Column geometry: box width, the gap between columns and the title's wrap width in characters. Full boxes carry a
+   path and a description; compact boxes (names only) are narrower with a smaller gap, so the whole map is about 35%
+   narrower and everything is drawn bigger at Fit. */
+const WIDE = { nodeW: 250, colGap: 150, titleWrap: 30 };
+const NARROW = { nodeW: 180, colGap: 80, titleWrap: 22 };
+const stepOf = geo => geo.nodeW + geo.colGap;
 
 /* Greedy word wrap; a word longer than the width is cut. */
 function wrap(text, width) {
@@ -26,14 +32,14 @@ function wrap(text, width) {
   return lines;
 }
 
-function titleLines(n) {
+function titleLines(n, geo = WIDE) {
   const status = n.status || "live";
-  const lines = wrap(n.label + (status === "live" ? "" : `  [${status}]`), TITLE_WRAP);
+  const lines = wrap(n.label + (status === "live" ? "" : `  [${status}]`), geo.titleWrap);
   return lines.length ? lines : [""];
 }
 
-function nodeHeight(n) {
-  return 8 + 16 * titleLines(n).length + (n.path ? 15 : 0) + 13 * wrap(n.desc, WRAP).length + 10;
+function nodeHeight(n, geo = WIDE) {
+  return 8 + 16 * titleLines(n, geo).length + (n.path ? 15 : 0) + 13 * wrap(n.desc, WRAP).length + 10;
 }
 
 /* Pairs i < j with arr[j] < arr[i], by merge sort. */
@@ -55,9 +61,10 @@ function inversions(arr) {
    turned round); the lanes (bands) with y and h; and the drawing's width and height. aspect (height over width of
    the screen area the map is fitted to, 0 for none) stretches the drawing downward to that shape when it would
    otherwise leave an empty band under its last lane at Fit: the lanes share the spare height evenly and their boxes
-   spread out over it. */
-function layout(nodes, edges, domains, aspect = 0) {
-  if (!nodes.length) return { nodes: [], edges: [], bands: [], width: NODE_W, height: 200 };
+   spread out over it. geo is the column geometry (WIDE or NARROW). */
+function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
+  const NODE_W = geo.nodeW, COL_GAP = geo.colGap;
+  if (!nodes.length) return { nodes: [], edges: [], bands: [], width: NODE_W, height: 200, geo };
   const byId = new Map(nodes.map(n => [n.id, n]));
   const ids = nodes.map(n => n.id);
   const domRank = new Map(domains.map((d, i) => [d.id, i]));
@@ -118,7 +125,7 @@ function layout(nodes, edges, domains, aspect = 0) {
     chains.push([i, chain, flipped]);
   });
   const domain = v => (byId.has(v) ? byId.get(v).domain : vdom.get(v));
-  const heights = new Map(ids.map(v => [v, nodeHeight(byId.get(v))]));
+  const heights = new Map(ids.map(v => [v, nodeHeight(byId.get(v), geo)]));
   const height = v => heights.get(v) ?? DUMMY_H;
   // the room a box or a passing link takes in its column; passing links pack close, so long links run as bundles
   const room = v => height(v) + (byId.has(v) ? V_GAP : DUMMY_GAP);
@@ -247,7 +254,7 @@ function layout(nodes, edges, domains, aspect = 0) {
     return { ...edges[i], pts, back: flipped };
   });
   const bands = domains.filter(d => bandH.get(d.id)).map(d => ({ ...d, y: bandTop.get(d.id), h: bandH.get(d.id) }));
-  return { nodes: outNodes, edges: outEdges, bands, columns: nRanks, width: drawW, height: totalH };
+  return { nodes: outNodes, edges: outEdges, bands, columns: nRanks, width: drawW, height: totalH, geo };
 }
 
 /* The step headers over the columns in view: column r is r links from a file nothing on the map builds (step 0). px is
@@ -256,18 +263,18 @@ function layout(nodes, edges, domains, aspect = 0) {
 /* Whether column 0 of a drawing is raw data: it has boxes and nothing in the whole graph (edges, every link, filtered
    or not) builds any of them. A filtered view can hide what builds its first column, and a folder box (unknown id)
    stands for files that may be built, so either makes it plain "Step 0". */
-function firstColumnIsRaw(layNodes, edges, known) {
-  const step = NODE_W + COL_GAP, fed = new Set(edges.map(e => e.to));
+function firstColumnIsRaw(layNodes, edges, known, geo = WIDE) {
+  const step = stepOf(geo), fed = new Set(edges.map(e => e.to));
   const first = layNodes.filter(n => Math.round(n.x / step) === 0);
   return first.length > 0 && first.every(n => known(n.id) && !fed.has(n.id));
 }
 
-function stepTicks(columns, x0, x1, px) {
-  const step = NODE_W + COL_GAP, wide = step * px;
+function stepTicks(columns, x0, x1, px, geo = WIDE) {
+  const step = stepOf(geo), wide = step * px;
   const every = [1, 2, 5, 10, 20, 50].find(k => k * wide >= 64) || 100;
   const cols = [];
   for (let r = 0; r < columns; r += every) {
-    const x = r * step + NODE_W / 2;
+    const x = r * step + geo.nodeW / 2;
     if (x >= x0 - step && x <= x1 + step) cols.push({ r, x });
   }
   return { every, cols };
@@ -285,6 +292,24 @@ function laneTagTops(lanes, floor, bottom, under) {
     const y = Math.min(Math.max(y0 + 6, floor), Math.min(y1, bottom, clip) - TAG_H);
     return y < Math.max(y0 + 2, floor) ? null : y;  // out of view, behind the legend, or too thin on screen
   });
+}
+
+/* Greedy label placement: boxes ({x0, y0, x1, y1}, screen px) in order of priority; each is placed unless it overlaps
+   one already placed or one of blocked (areas covered by something else). Returns the indexes placed. */
+function placeTags(boxes, blocked = []) {
+  const CELL = 64, grid = new Map(), placed = [];
+  const cells = (b, f) => {
+    for (let i = Math.floor(b.x0 / CELL); i <= Math.floor(b.x1 / CELL); i++)
+      for (let j = Math.floor(b.y0 / CELL); j <= Math.floor(b.y1 / CELL); j++) f(i + "," + j);
+  };
+  const keep = b => cells(b, k => { if (!grid.has(k)) grid.set(k, []); grid.get(k).push(b); });
+  blocked.forEach(keep);
+  boxes.forEach((b, i) => {
+    let clash = false;
+    cells(b, k => { if (!clash) clash = (grid.get(k) || []).some(o => o.x0 < b.x1 && b.x0 < o.x1 && o.y0 < b.y1 && b.y0 < o.y1); });
+    if (!clash) { keep(b); placed.push(i); }
+  });
+  return placed;
 }
 
 /* What a click on id lights up in a drawing of these edges: every box that feeds it (up) and every box it feeds
@@ -433,7 +458,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, placeTags, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -545,6 +570,79 @@ function app() {
     }
     return d.join(" ");
   }
+  /* ---- zoomed out: below FAR_PX screen px a drawing unit the boxes' own text is too small to read, so each box that
+     has room gets a name tag of a fixed size on screen instead; the edges and box outlines keep a fixed screen width. */
+  const FAR_PX = 0.7, TAG_FONT = '700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+  const farName = label => (label.length > 26 ? label.slice(0, 25) + "…" : label);
+  const measure = document.createElement("canvas").getContext("2d"), widths = new Map();
+  function tagWidth(text) {
+    if (!widths.has(text)) { measure.font = TAG_FONT; widths.set(text, measure.measureText(text).width); }
+    return widths.get(text);
+  }
+  let farEl = {}, degree = {}, edgesAt = {}, hoverId = null;
+  /* Which boxes get a tag: the boxes in view, in order of how much they matter now (hovered and its neighbours, the
+     selected box, search hits, the lit chain, then the most links), each placed unless it would overlap one already
+     placed. */
+  let farFrame = 0, farShown = new Set();
+  function updateFar() {  // at most once a frame: a drag or wheel calls it on every event
+    if (!farFrame) farFrame = requestAnimationFrame(() => { farFrame = 0; placeFar(); });
+  }
+  function showFar(placed) {
+    for (const id of farShown) if (!placed.has(id) && farEl[id]) farEl[id].setAttribute("display", "none");
+    for (const id of placed) if (!farShown.has(id)) farEl[id].setAttribute("display", "inline");
+    farShown = placed;
+  }
+  function placeFar() {
+    if (!svg) return;
+    const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a < FAR_PX;
+    svg.classList.toggle("far", far);
+    if (!far) { showFar(new Set()); return; }
+    const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a;
+    const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
+    const has = (id, c) => nodeEl[id].classList.contains(c);
+    const rank = id => (id === hoverId ? -1 : has(id, "hn") ? 0 : has(id, "sel") ? 1 : has(id, "hit") ? 2 : has(id, "near") ? 3 : has(id, "on") ? 4 : 5);
+    const inView = lay.nodes.filter(n => sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
+    inView.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
+    // a box cut off at the left edge has its tag at the edge; the pinned lane names sit over the map, so no tag under them
+    const boxes = inView.map(n => {
+      const x0 = Math.max(sx(n.x), 0), yc = sy(n.y + n.h / 2);
+      return { x0: x0 - 2, y0: yc - 11, x1: x0 + tagWidth(farName(n.label)) + 14, y1: yc + 11 };
+    });
+    const blocked = [...laneTags.querySelectorAll("span")].map(t => {
+      const q = t.getBoundingClientRect();
+      return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
+    });
+    const placed = new Set();
+    for (const i of placeTags(boxes, blocked)) {
+      const n = inView[i], g = farEl[n.id], at = (boxes[i].x0 + 2 - m.e + r.left) / m.a;
+      placed.add(n.id);
+      g.setAttribute("transform", `translate(${at.toFixed(1)},${(n.y + n.h / 2).toFixed(1)}) scale(${(1 / s).toFixed(4)})`);
+      g.setAttribute("class", "fl " + ["on", "near", "sel", "hit", "hn"].filter(c => has(n.id, c)).join(" "));
+    }
+    showFar(placed);
+  }
+  /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
+  function setHover(id) {
+    if (id === hoverId || !svg) return;
+    svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
+    hoverId = id && nodeEl[id] ? id : null;
+    svg.classList.toggle("hovering", !!hoverId);
+    if (hoverId) {
+      nodeEl[hoverId].classList.add("hn");
+      (edgesAt[hoverId] || []).forEach(el => {
+        el.classList.add("he");
+        [el.dataset.from, el.dataset.to].forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
+      });
+    }
+    updateFar();
+  }
+  wrapEl.addEventListener("pointerover", e => {
+    if (drag) return;
+    const g = e.target.closest && e.target.closest(".node,.fl");
+    setHover(g ? g.dataset.id : null);
+  });
+  wrapEl.addEventListener("pointerleave", () => setHover(null));
+
   function drawSvg(lay) {
     W = lay.width + LEFT + 60; H = Math.max(lay.height, 200);
     const p = [`<svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="${-LEFT} 0 ${W} ${H}">`,
@@ -570,7 +668,7 @@ function app() {
         `<rect class="box" width="${n.w}" height="${n.h}" rx="6" fill="${fill}" stroke="${ink}"/>`,
         `<rect width="6" height="${n.h}" rx="3" fill="${esc(DATA.domainColor[n.domain])}"/>`);
       let ty = 2;
-      for (const line of titleLines(n)) { ty += 16; p.push(`<text class="t" x="14" y="${ty}" fill="${ink}">${esc(line)}</text>`); }
+      for (const line of titleLines(n, lay.geo)) { ty += 16; p.push(`<text class="t" x="14" y="${ty}" fill="${ink}">${esc(line)}</text>`); }
       if (n.path) {
         ty += 15;
         const shown = n.path.length <= 37 ? n.path : "…" + n.path.slice(-36);
@@ -579,6 +677,15 @@ function app() {
       ty += 2;
       for (const line of wrap(n.desc, WRAP)) { ty += 13; p.push(`<text class="d" x="14" y="${ty}">${esc(line)}</text>`); }
       p.push("</g>");
+    }
+    // name tags for a zoomed-out view (updateFar): drawn at a fixed size on screen, the busiest boxes first
+    p.push('</g><g id="far">');
+    for (const n of lay.nodes) {
+      const [, fill, ink] = DATA.kinds[n.kind], name = farName(n.label);
+      p.push(`<g class="fl" data-id="${esc(n.id)}" display="none"><title>${esc(n.label)}</title>`,
+        `<rect class="fb" x="0" y="-9" width="${(tagWidth(name) + 12).toFixed(1)}" height="18" rx="4" fill="${fill}" stroke="${ink}"/>`,
+        `<rect x="0" y="-9" width="4" height="18" rx="2" fill="${esc(DATA.domainColor[n.domain])}"/>`,
+        `<text class="ft" x="7" y="4" fill="${ink}">${esc(name)}</text></g>`);
     }
     p.push("</g></svg>");
     return p.join("\n");
@@ -591,7 +698,7 @@ function app() {
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
     const asked = aspect !== undefined;
     if (!asked) aspect = fitAspect();
-    lay = layout(sub.nodes, sub.edges, DATA.domains, aspect);
+    lay = layout(sub.nodes, sub.edges, DATA.domains, aspect, view.compact ? NARROW : WIDE);
     lay.aspect = aspect;
     wrapEl.innerHTML = drawSvg(lay);
     svg = document.getElementById("map");
@@ -599,6 +706,10 @@ function app() {
     nodeEl = {};
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
+    farEl = {}; farShown = new Set(); degree = {}; edgesAt = {}; hoverId = null; laneBack = null;
+    closeLens();  // the lens holds a copy of the old drawing
+    svg.querySelectorAll(".fl").forEach(g => (farEl[g.dataset.id] = g));
+    edgeEls.forEach(el => [el.dataset.from, el.dataset.to].forEach(v => { degree[v] = (degree[v] || 0) + 1; (edgesAt[v] ||= []).push(el); }));
     drawNav();
     columnKinds();
     svg.querySelectorAll(".elabel").forEach(l => {
@@ -710,9 +821,9 @@ function app() {
   let rawFirst = false;  // whether nothing in the whole graph builds any box of column 0 (a filtered view may hide what does)
   const showRulers = () => sub.nodes.length > 0;  // the strip shows only over a drawing with boxes (sub is set before layout)
   function columnKinds() {
-    const step = NODE_W + COL_GAP, cols = Array.from({ length: lay.columns }, () => ({}));
+    const step = stepOf(lay.geo), cols = Array.from({ length: lay.columns }, () => ({}));
     lay.nodes.forEach(n => { const c = cols[Math.round(n.x / step)]; c[n.kind] = (c[n.kind] || 0) + 1; });
-    rawFirst = firstColumnIsRaw(lay.nodes, DATA.edges, id => Object.hasOwn(byId, id));
+    rawFirst = firstColumnIsRaw(lay.nodes, DATA.edges, id => Object.hasOwn(byId, id), lay.geo);
     colKinds = cols.map(c => Object.entries(c).sort((a, b) => b[1] - a[1])
       .map(([k, n]) => `${n} ${(DATA.kinds[k] ? DATA.kinds[k][0] : k).toLowerCase()}`).join(", "));
   }
@@ -725,7 +836,7 @@ function app() {
     const top = a.top - STRIP_H - 4;  // the strip sits in the room freeArea keeps for it, just under the toolbar
     steps.style.top = `${top}px`; steps.style.width = `${a.right}px`;
     const x0 = (0 - m.e + r.left) / m.a, x1 = (a.right - m.e + r.left) / m.a, last = lay.columns - 1;
-    const t = stepTicks(lay.columns, x0, x1, m.a), out = [];
+    const t = stepTicks(lay.columns, x0, x1, m.a, lay.geo), out = [];
     let edge = -Infinity;  // right end of the last label placed; a label that would overlap it is left out
     for (const c of t.cols) {
       const label = c.r === 0 ? (rawFirst ? "Step 0 · raw data" : "Step 0") : c.r === last && t.every === 1 ? `Step ${c.r} · built last` : `Step ${c.r}`;
@@ -743,12 +854,37 @@ function app() {
     const tops = laneTagTops(lay.bands.map(b => [sy(b.y), sy(b.y + b.h)]), floor, a.bottom, under), tags = [];
     lay.bands.forEach((b, i) => {
       if (tops[i] !== null)
-        tags.push(`<span style="top:${tops[i].toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
+        tags.push(`<span data-lane="${i}" title="${atLane(b.id) ? "Click to go back to the view before" : "Click to zoom to this lane"}" style="top:${tops[i].toFixed(0)}px;left:${left.toFixed(0)}px;color:${esc(b.color)};border-color:${esc(b.color)}">${esc(b.label)}</span>`);
     });
     laneTags.innerHTML = tags.join("");
   }
+  /* ---- a click on a lane's name: the lane's boxes fill the free area's height (at most at full size), from its first
+     box, so they are big enough to read and the reader pans along the lane; a second click on the same name goes back
+     to the view before. */
+  let laneBack = null;  // {lane, v: [x, y, width, height] before, at: the lane view} after a lane zoom
+  // whether the view is still the one the lane zoom set (a pan, zoom or Fit since leaves it)
+  const atLane = id => !!laneBack && laneBack.lane === id && laneBack.at.length > 0 && laneBack.at.every((t, i) => Math.abs(t - [vb.x, vb.y, vb.width][i]) <= 1);
+  laneTags.addEventListener("click", e => {
+    if (moved) return;
+    const t = e.target.closest("span[data-lane]"), b = t && lay.bands[Number(t.dataset.lane)];
+    if (!b) return;
+    if (atLane(b.id)) { const v = laneBack.v; laneBack = null; setVB(...v); return; }
+    if (laneBack && !lay.bands.some(o => atLane(o.id))) laneBack = null;  // moved away since: the view now is the one to go back to
+    const was = laneBack ? laneBack.v : [vb.x, vb.y, vb.width, vb.height], a = freeArea();
+    const mine = lay.nodes.filter(n => n.domain === b.id);
+    if (!mine.length) return;
+    const y0 = Math.min(...mine.map(n => n.y)) - 20, y1 = Math.max(...mine.map(n => n.y + n.h)) + 20;
+    const s = Math.min((a.bottom - a.top) / (y1 - y0), 1), x0 = Math.min(...mine.map(n => n.x));
+    laneBack = { lane: b.id, v: was, at: [] };  // at is set once the view has moved
+    setVB(x0 - 240 / s, (y0 + y1) / 2 - (a.top + a.bottom) / 2 / s, a.r.width / s, a.r.height / s);  // 240 px left of the first box, for the lane names
+    laneBack.at = [vb.x, vb.y, vb.width];
+    drawRulers();  // the tag's hover text now says it goes back
+  });
+
   function updateNav() {
     drawRulers();
+    updateFar();
+    if (lensSvg && ptr) moveLens();
     if (!navRect) return;
     const open = info.style.display === "block", narrow = innerWidth <= 900;
     // hidden while the whole drawing is in view below the toolbar, as at Fit, and on a phone under the open info panel
@@ -816,17 +952,20 @@ function app() {
     const cx = a.right / 2, cy = (a.top + a.bottom) / 2;
     setVB(n.x + n.w / 2 - cx * s, n.y + n.h / 2 - cy * s, w, h);
   }
-  wrapEl.addEventListener("wheel", e => {
+  const onWheel = e => {
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? wrapEl.clientHeight : 1;
     const dx = e.deltaX * unit, dy = e.deltaY * unit;
     if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { setVB(vb.x + dx * vb.width / wrapEl.getBoundingClientRect().width, vb.y, vb.width, vb.height); return; }
     zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY);
-  }, { passive: false });
+  };
+  wrapEl.addEventListener("wheel", onWheel, { passive: false });
+  laneTags.addEventListener("wheel", onWheel, { passive: false });  // the lane names take clicks, so they pass the wheel on
   let drag = null, moved = false;
   const startDrag = e => { drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; moved = false; wrapEl.classList.add("drag"); };
   wrapEl.addEventListener("pointerdown", startDrag);
-  steps.addEventListener("pointerdown", startDrag);  // a drag that starts on a step header pans the map too; the headers keep their hover text
+  steps.addEventListener("pointerdown", startDrag);
+  laneTags.addEventListener("pointerdown", startDrag);  // so does one on a lane name; a click without a drag zooms to the lane  // a drag that starts on a step header pans the map too; the headers keep their hover text
   window.addEventListener("pointermove", e => {
     if (!drag) return;
     const r = wrapEl.getBoundingClientRect(), dx = e.clientX - drag.x, dy = e.clientY - drag.y;
@@ -851,6 +990,40 @@ function app() {
   document.getElementById("zin").onclick = () => zoomCentre(0.6);
   document.getElementById("zout").onclick = () => zoomCentre(1.6);
 
+  /* ---- magnifier: while Shift is held over the map, a round lens under the pointer shows that part of the drawing
+     big enough to read (a copy of the drawing as it is, selection and search included). */
+  const lens = document.createElement("div"), LENS = 320;
+  lens.id = "lens"; lens.hidden = true; document.getElementById("stage").append(lens);
+  let ptr = null, lensSvg = null;
+  wrapEl.addEventListener("pointermove", e => { ptr = { x: e.clientX, y: e.clientY }; if (lensSvg) moveLens(); });
+  wrapEl.addEventListener("pointerleave", () => { ptr = null; closeLens(); });
+  function openLens() {
+    if (!ptr || !svg) return;
+    lensSvg = svg.cloneNode(true);
+    lensSvg.classList.remove("far", "hovering");
+    lensSvg.querySelectorAll("[id]").forEach(el => { if (el.tagName !== "marker") el.removeAttribute("id"); });
+    lensSvg.removeAttribute("id");
+    const farG = lensSvg.querySelector(".fl") && lensSvg.querySelector(".fl").parentNode;
+    if (farG) farG.remove();
+    lens.replaceChildren(lensSvg);
+    lens.hidden = false;
+    moveLens();
+  }
+  function moveLens() {
+    const m = svg.getScreenCTM(), s = Math.max(m.a * 2.5, 0.8), w = LENS / s;
+    const px = (ptr.x - m.e) / m.a, py = (ptr.y - m.f) / m.d;
+    lensSvg.setAttribute("viewBox", `${px - w / 2} ${py - w / 2} ${w} ${w}`);
+    lens.style.left = `${ptr.x - LENS / 2}px`; lens.style.top = `${ptr.y - LENS / 2}px`;
+  }
+  function closeLens() { lensSvg = null; lens.hidden = true; lens.replaceChildren(); }
+  document.addEventListener("keydown", e => {
+    if (e.key !== "Shift" || e.repeat || lensSvg) return;
+    if (e.target.matches && e.target.matches("input:not([type=checkbox]):not([type=radio]),textarea,select")) return;
+    openLens();
+  });
+  document.addEventListener("keyup", e => { if (e.key === "Shift") closeLens(); });
+  window.addEventListener("blur", closeLens);
+
   /* ---- selection */
   function walk(start, adj, key) { return reach(start, adj, key, Infinity); }
   function clearFocus(user) {
@@ -859,6 +1032,7 @@ function app() {
     info.style.display = "none";
     nav.classList.remove("focus"); nav.querySelectorAll("rect.on").forEach(r => r.classList.remove("on"));
     setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the wider free area
+    updateFar();
     if (!user) return;
     const was = trimmed();
     selected = null;
@@ -894,6 +1068,7 @@ function app() {
       const l = svg.querySelector(`.elabel[data-edge="e${i}"]`);
       if (l) { l.classList.add("on"); if (near) l.classList.add("near"); }
     });
+    updateFar();  // the tags take the new classes
     if (gNodes[id]) { folderInfo(id); return; }
     lastBox = id;
     const n = byId[id];
@@ -950,7 +1125,7 @@ function app() {
   }
   wrapEl.addEventListener("click", e => {
     if (moved) return;
-    const g = e.target.closest(".node");
+    const g = e.target.closest(".node,.fl");
     clearTimeout(pending);
     if (!g) { clearFocus(true); return; }
     // a trimmed redraw moves the boxes, so wait out a double-click before doing it
@@ -960,7 +1135,7 @@ function app() {
   let pending = null;
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
-    const g = e.target.closest(".node");
+    const g = e.target.closest(".node,.fl");
     if (g && gNodes[g.dataset.id]) openFolder(gNodes[g.dataset.id].folder);
     else if (g) focusOn(g.dataset.id, !view.focus);
   });
@@ -977,6 +1152,7 @@ function app() {
     shown.forEach(id => nodeEl[where(id)].classList.add("hit"));
     hits.textContent = !t ? "" : `${shown.length} found` + (found.length > shown.length ? ` (+${found.length - shown.length} not shown)` : "") + (found.length ? " · Enter steps" : "");
     if (!keepIndex) fi = 0;
+    updateFar();
   }
   q.addEventListener("input", () => runSearch(false));
   q.addEventListener("keydown", e => {
@@ -1122,7 +1298,7 @@ function app() {
     { at: ["#lanes"], title: "Filter",
       text: "Filters picks the lanes and kinds of box, and whether parked and retired work shows. Clear filters, under the toolbar, puts them back." },
     { at: ["#btns"], title: "Move around and share",
-      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Share copies a link that opens this exact view. The ? button runs this tour again." },
+      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, the busiest boxes get name tags and hovering a box lights its links. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Share copies a link that opens this exact view. The ? button runs this tour again." },
   ];
   let tourAt = -1, tourOn = [];
   const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden
