@@ -45,6 +45,7 @@ import copy
 import difflib
 import functools
 import hashlib
+import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from typing import Iterable, Mapping
@@ -489,8 +490,15 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
                     continue
                 parts.remove(word)
                 text = " | ".join(parts)
-            if r["layer"] == "block" and text != tb.occupancy_first(text):
-                out.append((p, None, "the build puts a block's detector first; change the row's jmri_comment by hand"))
+            if r["layer"] == "block" and re.search(devices.OCCUPANCY_TEXT, r["jmri_comment"]):
+                back = tb.occupancy_back(text)      # the build put the detector first; the master keeps it after
+                if back is None:
+                    out.append((p, None, "a block's comment starts with its detector (Block n-k / M2S...), which "
+                                         "the build puts there; keep it"))
+                    continue
+                text = back
+            elif r["layer"] == "block" and text != tb.occupancy_first(text):
+                out.append((p, None, "a block with no detector in the master gains one only by hand"))
                 continue
             out.append((p, (Edit(devices.key_of(r), "jmri_comment", r["jmri_comment"], text),), f"{who}: jmri_comment"))
     return out, rest

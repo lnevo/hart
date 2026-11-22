@@ -80,7 +80,8 @@ def load_devices(path: Path = PANEL, master_files: "device_master.Files | None" 
     address = re.compile(r"^(?:M2[ST]|IH)(\d+)$")  # hardware systems whose number is an MQTT address
 
     def node_comment(el):
-        return tables.text(el, "comment").startswith("Node:")
+        # "Node: ..." first, or after a wired head's place ("Plane | Switch 5 | Node: 4 ...")
+        return re.search(r"(?:^| \| )Node: ", tables.text(el, "comment")) is not None
 
     def add(el, kind):
         sn = tables.system_name(el)

@@ -370,6 +370,8 @@ def with_direction(comment: str, direction: str) -> str:
     if not word:
         return comment
     parts = comment.split(" | ") if comment else []
+    if word in parts:                       # a comment that names it already
+        return comment
     at = next((i for i, p in enumerate(parts) if p.startswith("virtual (")), len(parts))
     return " | ".join(parts[:at] + [word] + parts[at:])
 
@@ -383,6 +385,22 @@ def occupancy_first(comment: str) -> str:
         return comment
     rest = (comment[: m.start()] + comment[m.end():]).strip("; ")
     return "; ".join(x for x in (m.group(1), rest) if x)
+
+
+_DETECTOR_FIRST = re.compile(r"(Block \d+-\d+ / M2S\d+(?: \([^()]*\))?)(?:; (.*))?", re.S)
+
+
+def occupancy_back(comment: str) -> str | None:
+    """The master's form of a built block comment (occupancy_first undone): "Block 1-1 / M2S100; Princess balloon;
+    stop" -> "Princess balloon; occupancy Block 1-1 / M2S100; stop". None when it does not start with a detector."""
+    m = _DETECTOR_FIRST.fullmatch(comment)
+    if not m or "occupancy Block" in (m.group(2) or ""):
+        return None
+    det, rest = f"occupancy {m.group(1)}", m.group(2) or ""
+    if rest == "stop" or rest.endswith("; stop"):
+        head = rest[: -len("stop")].rstrip("; ")
+        return "; ".join(x for x in (head, det, "stop") if x)
+    return "; ".join(x for x in (rest, det) if x)
 
 
 def mast_places(rows: Iterable[Mapping[str, str]]) -> dict[str, str]:

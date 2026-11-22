@@ -245,6 +245,15 @@ class CommentOrder(unittest.TestCase):
         self.assertEqual("Switch 241 | East | virtual (device map); not on a node yet",
                          tb.with_direction("Switch 241 | virtual (device map); not on a node yet", "east"))
         self.assertEqual("Brick", tb.with_direction("Brick", ""))
+        self.assertEqual("Brick | West", tb.with_direction("Brick | West", "west"))      # named already: once
+
+    def test_occupancy_back_undoes_occupancy_first(self) -> None:
+        for master in ("Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",
+                       "Brick CP, Switch 1; occupancy Block 4-2 / M2S401",
+                       "Helix track; occupancy Block 41-2 / M2S4101 (main and upper device map); stop",
+                       "occupancy Block 4-2 / M2S401"):
+            self.assertEqual(master, tb.occupancy_back(tb.occupancy_first(master)))
+        self.assertIsNone(tb.occupancy_back("Brick CP, Switch 1; occupancy Block 4-2 / M2S401"))
 
     def test_a_block_puts_its_detector_first_without_the_word_occupancy(self) -> None:
         self.assertEqual("Block 1-1 / M2S100; Princess balloon, Track K-1; stop",
