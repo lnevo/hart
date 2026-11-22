@@ -453,6 +453,14 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertIn('data-kindonly="${esc(k)}">only</a>', page)
         self.assertIn('data-only="${esc(d.id)}">only</a>', page)
 
+    def test_only_kind(self) -> None:
+        """onlyKind: hides every other hideable kind; a second click on the kind shown alone shows them all again."""
+        kinds = ["structured", "generator", "output", "human"]
+        self.assertEqual(self.run_js("m.onlyKind(a, [], 'generator')", kinds), ["structured", "output", "human"])
+        self.assertEqual(self.run_js("m.onlyKind(a, ['structured', 'output', 'human'], 'generator')", kinds), [])
+        self.assertEqual(self.run_js("m.onlyKind(a, ['structured', 'output', 'human'], 'output')", kinds),
+                         ["structured", "generator", "human"])  # another kind's only moves to that kind
+
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
         boxes = [{"id": "a", "x": 0, "y": 0, "w": 10, "h": 5}, {"id": "b", "x": 20, "y": 0, "w": 10, "h": 5}]
