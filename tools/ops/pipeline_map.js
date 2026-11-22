@@ -559,12 +559,15 @@ function showsAll(v, W, H, left, free) {
   return v.x <= -left + 1 && top <= 1 && right >= W - left - 1 && bottom >= H - 1;
 }
 
-/* The viewBox that fits the whole drawing into the free area, for a map of sw x sh px: centred across, and against
-   the top of the area (just under the step strip) so a wide drawing leaves no empty band above its first lane. */
-function fitView(W, H, left, free, sw, sh) {
-  const w = free.right * sw, top = free.top * sh, h = Math.max(free.bottom * sh - top, 1);
+/* The viewBox that fits the whole drawing into the free area, for a map of sw x sh px, with pad px of margin on each
+   side: centred across, and pad below the top of the area (the step strip) so a wide drawing leaves no larger band
+   above its first lane. */
+function fitView(W, H, left, free, sw, sh, pad = 0) {
+  const top = free.top * sh;
+  const p = Math.max(0, Math.min(pad, (free.right * sw) / 4, (free.bottom * sh - top) / 4));  // a small map keeps most of it
+  const w = Math.max(free.right * sw - 2 * p, 1), h = Math.max(free.bottom * sh - top - 2 * p, 1);
   const s = Math.max(W / w, H / h);
-  const ox = (w - W / s) / 2, oy = top;  // where the drawing's top left lands, in px
+  const ox = p + (w - W / s) / 2, oy = top + p;  // where the drawing's top left lands, in px
   return { x: -left - ox * s, y: -oy * s, width: sw * s, height: sh * s };  // the viewBox's own field names
 }
 
@@ -1255,9 +1258,10 @@ function app() {
   nav.addEventListener("wheel", e => e.preventDefault(), { passive: false });
 
   /* ---- pan and zoom */
+  const FIT_PAD = 28;  // px of margin round the whole drawing at Fit, the furthest zoom out
   /* The widest view allowed: the Fit width (at least 200), or Infinity while the map has no size yet (hidden). */
   function maxWidth(free = freeShare()) {
-    const fw = fitView(W, H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight).width;
+    const fw = fitView(W, H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD).width;
     return Number.isFinite(fw) && fw > 0 ? Math.max(fw, 200) : Infinity;
   }
   /* The free area's height over its width, for layout's lanes; 0 while the map has no size yet (hidden). */
@@ -1285,7 +1289,7 @@ function app() {
   }
   let fitted = false;  // whether the whole drawing was in the free area at the last move (updateNav)
   function fit() {  // the whole drawing in the free area
-    const f = fitView(W, H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight);
+    const f = fitView(W, H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
     setVB(f.x, f.y, f.width, f.height);
   }
   function zoomAt(f, cx, cy) {

@@ -543,6 +543,23 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(opened["members"], {})
         self.assertEqual(len(opened["edges"]), 4)
 
+    def test_fit_keeps_a_margin(self) -> None:
+        """fitView with pad: the drawing sits pad px inside the free area on the limiting sides, centred the other way,
+        and showsAll still counts it as the whole map; clampView keeps that view as it is."""
+        free = {"top": 0.1, "right": 1, "bottom": 1}
+        out = self.run_js("(() => { const f = m.fitView(1000, 500, 100, a.free, 1000, 800, 28);"
+                          " return [f, m.showsAll(f, 1000, 500, 100, a.free), m.clampView(f, 1000, 500, 100, a.free, f.width)]; })()",
+                          {"free": free})
+        view, fits, clamped = out
+        s = view["width"] / 1000
+        left_px = (-100 - view["x"]) / s
+        self.assertAlmostEqual(left_px, 28, places=3)  # width-limited: 28 px in from each side
+        self.assertAlmostEqual(left_px + 1000 / s, 1000 - 28, places=3)
+        self.assertAlmostEqual(-view["y"] / s, 80 + 28, places=3)  # 28 px under the step strip
+        self.assertTrue(fits)
+        for k in ("x", "y", "width", "height"):
+            self.assertAlmostEqual(clamped[k], view[k], places=6)
+
     def test_fit_leaves_room_for_the_panel(self) -> None:
         """fitView: the drawing fills the free area left of an info panel, against its top, and showsAll agrees; the
         same view counts as not showing everything once the panel covers part of it."""
