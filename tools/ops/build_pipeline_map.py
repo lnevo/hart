@@ -298,7 +298,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
-.elabel{font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
+.elabel{pointer-events:none;font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
 .node .box{stroke-width:1.2}
 .node .t{font-size:13px;font-weight:700}
 .node .p{font:10.5px ui-monospace,Menlo,monospace;fill:#334155}
@@ -330,8 +330,8 @@ svg.focus .fl{opacity:.3}
 svg.focus .fl.on{opacity:.7}
 svg.focus .fl.near,svg.focus .fl.sel,svg.focus .fl.hn{opacity:1}
 svg.hovering .edge{stroke-opacity:.25}
-.eh{fill:none;stroke:transparent;stroke-width:10;pointer-events:stroke}
-svg.far .eh{vector-effect:non-scaling-stroke;stroke-width:6px}
+.eh{fill:none;stroke:transparent;stroke-width:8px;pointer-events:stroke;vector-effect:non-scaling-stroke}
+svg.far .eh{stroke-width:6px}
 #etip{position:fixed;z-index:9;pointer-events:none;padding:5px 8px;font-size:12px;max-width:360px}
 #etip[hidden]{display:none}
 #etip .off{color:#888;font-size:11px}

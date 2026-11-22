@@ -294,6 +294,14 @@ function laneTagTops(lanes, floor, bottom, under) {
   });
 }
 
+/* The note shown by the pointer over a link e ({from, to, label, back}): both ends' names (name(id) gives a box's
+   label) and the link's label, escaped. */
+function edgeTip(e, name) {
+  const h = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  return `<b>${h(name(e.from))}</b> → <b>${h(name(e.to))}</b>` + (e.label ? `<div>${h(e.label)}</div>` : "") +
+    (e.back ? '<div class="off">feeds back to an earlier step</div>' : "");
+}
+
 /* Greedy label placement: boxes ({x0, y0, x1, y1}, screen px) in order of priority; each is placed unless it overlaps
    one already placed or one of blocked (areas covered by something else). Returns the indexes placed. */
 function placeTags(boxes, blocked = []) {
@@ -458,7 +466,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, placeTags, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, placeTags, edgeTip, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -644,9 +652,7 @@ function app() {
     if (e) {
       edgeEls[i].classList.add("he");
       [e.from, e.to].forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
-      const name = id => esc(nodeOf(id).label);
-      etip.innerHTML = `<b>${name(e.from)}</b> → <b>${name(e.to)}</b>` + (e.label ? `<div>${esc(e.label)}</div>` : "") +
-        (e.back ? '<div class="off">feeds back to an earlier step</div>' : "");
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label);
       placeTip();
     }
     updateFar();
@@ -691,7 +697,7 @@ function app() {
       p.push(`<path class="edge${e.back ? " back" : ""}" id="e${i}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" ` +
         `d="${pathD(e.pts)}" marker-end="url(#arrow)"/>`);
     });
-    // a wide invisible copy of each link takes the pointer, so a thin line is easy to hover (setHover)
+    // a wide invisible copy of each link takes the pointer, so a thin line is easy to hover (setEdgeHover)
     p.push('</g><g id="ehit">');
     lay.edges.forEach((e, i) => p.push(`<path class="eh" data-edge="${i}" d="${pathD(e.pts)}"/>`));
     p.push(`</g><g id="elabels"${document.getElementById("labels").checked ? "" : ' class="hidden"'}>`);
@@ -955,7 +961,9 @@ function app() {
   }
   function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing (clampView)
     const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, lay && lay.nodes.length ? lay.height : H, LEFT, free, maxWidth(free));  // the drawn height, not the 200 minimum
-    vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height; updateNav();
+    vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height;
+    if (hoverEdge !== null) setEdgeHover(null);  // the line has moved from under the pointer
+    updateNav();
   }
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
      on a phone, above it) while that is open. */
@@ -1036,6 +1044,9 @@ function app() {
     if (!ptr || !svg) return;
     lensSvg = svg.cloneNode(true);
     lensSvg.classList.remove("far", "hovering");
+    const hit = lensSvg.querySelector(".eh");
+    if (hit) hit.parentNode.remove();
+    lensSvg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
     lensSvg.querySelectorAll("[id]").forEach(el => { if (el.tagName !== "marker") el.removeAttribute("id"); });
     lensSvg.removeAttribute("id");
     const farG = lensSvg.querySelector(".fl") && lensSvg.querySelector(".fl").parentNode;
