@@ -145,7 +145,26 @@ pp_launch() {
   PP_JPID=$!
   PP_PIDS="$PP_JPID"
   echo "$PP_JPID" >"$PP_PIDS_FILE"
-  # No tracking here: it would be a foreground command (see the header); the waits and the stop track.
+  _pp_wait_exec
+  # No tracking here (the waits and the stop track): java starts only after this.
+}
+
+# Until the launcher has exec'd (a few ms), ps shows this wrapper's command line, or none while the
+# exec runs, and a first poll that soon took it for a PanelPro that had quit ("PanelPro exited
+# before ..."). Wait for StartJMRI (or a java on this profile, should it exec one) to show; after
+# HART_PANELPRO_EXEC_WAIT seconds (default 10) say so and go on: the waits then judge the launcher.
+_pp_wait_exec() {
+  local cmd deadline=$((SECONDS + ${HART_PANELPRO_EXEC_WAIT:-10}))
+  while _pp_alive "$PP_JPID"; do
+    cmd="$(ps -o command= -p "$PP_JPID" 2>/dev/null)" || cmd=""      # gone meanwhile: the loop ends
+    [[ "$cmd" == *StartJMRI* || "$cmd" == *"org.jmri.profile=$PROFILE_ID"* ]] && return 0
+    if (( SECONDS >= deadline )); then
+      echo "The PanelPro launcher (pid $PP_JPID) still does not show as StartJMRI: ${cmd:-no command line}" >&2
+      return 0
+    fi
+    sleep 0.05
+  done
+  return 0          # gone already (it quit at once): the wait reports that
 }
 
 # Add every descendant of the processes already known (the launcher, then java) to PP_PIDS, so a
@@ -216,12 +235,7 @@ _pp_ours() {
   local cmd
   cmd="$(ps -o command= -p "$1" 2>/dev/null)"
   if [[ "$1" == "$PP_JPID" ]]; then
-    # just forked and not yet exec'd, the launcher still shows this wrapper's command line: a first
-    # poll that came that soon took it for a PanelPro that had quit
-    [[ "$cmd" == *StartJMRI* ]] && return 0
-    local ppid
-    ppid="$(ps -o ppid= -p "$1" 2>/dev/null | tr -d ' ')"
-    [[ "$ppid" == "$$" && -n "$cmd" && "$cmd" == "$(ps -o command= -p $$ 2>/dev/null)" ]]
+    [[ "$cmd" == *StartJMRI* ]]
   else
     [[ "$cmd" == *"org.jmri.profile=$PROFILE_ID"* ]]
   fi

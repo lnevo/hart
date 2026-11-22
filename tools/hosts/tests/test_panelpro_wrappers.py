@@ -461,31 +461,44 @@ class Cleanup(WrapperCase):
         self.assertFalse(java_left, err)
         self.assert_restored(box.profile, box.original)
 
-    def test_a_launcher_not_yet_execd_counts_as_running(self) -> None:
-        # Just after the fork the launcher still shows the wrapper's command line. A first poll that soon
-        # once took it for a PanelPro that had quit ("PanelPro exited before ...", 3 in 1000 loaded runs).
-        # Here the launcher holds that state for 1.5 s, then becomes StartJMRI; the wait must time out (2).
+    def launch_slow_exec(self, exec_wait: str | None = None) -> subprocess.CompletedProcess[str]:
+        """pp_launch on a launcher that shows another command line for 1.5 s before it becomes StartJMRI (as
+        every launcher does for a moment after the fork), then a 3 s pp_wait_marker; prints rc=<its result>."""
+        slow = self.box.tmp / "slow_start"
+        slow.write_text("sleep 1.5\nexec -a StartJMRI sleep 30\n", encoding="utf-8")
         script = self.box.tmp / "slow_exec.sh"
         script.write_text(f"""set -euo pipefail
 ROOT={self.box.root}
 source "$ROOT/tools/hosts/panelpro_session.sh"
 PROFILE_ID=x
-PP_PIDS_FILE="$(mktemp)"
-PP_TMP_FILES+=("$PP_PIDS_FILE")
-( sleep 1.5; exec -a StartJMRI sleep 30 ) &
-PP_JPID=$!
-PP_PIDS="$PP_JPID"
-echo "$PP_JPID" >"$PP_PIDS_FILE"
+STARTJMRI="{slow}"
+pp_launch "$FAKE_STATE/launch.log"
 rc=0
 pp_wait_marker "$FAKE_STATE/never" 3 0.1 || rc=$?
 kill "$PP_JPID"
-rm -f "$PP_PIDS_FILE"
+rm -f ${{PP_TMP_FILES[@]+"${{PP_TMP_FILES[@]}}"}}
 echo "rc=$rc"
 """, encoding="utf-8")
-        done = subprocess.run(["/bin/bash", str(script)], env=self.box.env(), capture_output=True, text=True,
+        slow.chmod(0o755)
+        env = self.box.env(**({"HART_PANELPRO_EXEC_WAIT": exec_wait} if exec_wait else {}))
+        return subprocess.run(["/bin/bash", str(script)], env=env, capture_output=True, text=True,
                               preexec_fn=_default_signals, timeout=60)
+
+    def test_the_first_poll_waits_for_the_launcher_to_exec(self) -> None:
+        # The wait must see the launcher as running, so it times out (2), not "PanelPro quit first" (1),
+        # which a poll right after the fork once reported (3 in about 1000 loaded runs).
+        done = self.launch_slow_exec()
         self.assertEqual(0, done.returncode, done.stderr)
         self.assertEqual("rc=2", done.stdout.strip(), done.stderr)
+        self.assertNotIn("still does not show", done.stderr)
+
+    def test_a_launcher_that_never_shows_as_startjmri_is_named(self) -> None:
+        # The exec wait is bounded: past it the run says so and the wait judges the launcher (here: not ours).
+        done = self.launch_slow_exec(exec_wait="0")
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertIn("The PanelPro launcher (pid", done.stderr)
+        self.assertIn("still does not show as StartJMRI", done.stderr)
+        self.assertEqual("rc=1", done.stdout.strip(), done.stderr)
 
     def test_the_wait_helper_quits_when_the_wrapper_is_killed(self) -> None:
         # SIGKILL cannot be trapped: the helper (a fork of the wrapper's shell, same command line) must not
