@@ -11,75 +11,135 @@
   <main>
     <div class="page-head">
       <h1>How the signals work</h1>
-      <p class="section-note">What happens between the dispatcher's mouse click and a light changing in the aisle.</p>
+      <p class="section-note">HART's signals have two controllers: the LCOS radio nodes under the layout and JMRI on the computer. This page covers how the masts are placed by prototype rules, how JMRI works out the routes between them, and how control passes between the two.</p>
     </div>
 
     <article class="explainer prose">
-      <h2>The computer in the middle</h2>
+      <h2>Two signal systems</h2>
       <p>
-        HART is run by JMRI, free and open-source software for model railroads. It keeps a list of every
-        switch, every section of track that has an occupancy detector, and every signal. The detectors and
-        switch motors report in over a radio network under the layout
-        (<a href="bridge.html">LCOS and the Arduino bridge</a>), so JMRI always knows which track is
-        occupied and which way each switch is lined.
+        Each signal head is a searchlight with a red, yellow and green LED, wired to three outputs on the
+        nearest LCOS radio node (<a href="bridge.html">LCOS and the Arduino bridge</a>). The node can run
+        the head by itself, from its own logic. JMRI, on the computer, can also run it, from Signal Mast
+        Logic built out of the track plan. Only one of them drives a head at a time. The node's logic works
+        with no computer running. JMRI's covers the whole railroad, and the dispatcher's panels work
+        through it.
+      </p>
+      <p>
+        Today one head is in the field: Mast 6LB at Switch 5, device 432. Every other
+        mast exists in JMRI and on the panels, with internal heads that send nothing to the layout. The
+        rest are wired control point by control point.
       </p>
 
-      <h2>The CTC panel</h2>
+      <h2>LCOS signals on the nodes</h2>
       <p>
-        The dispatcher controls the railroad from a CTC panel on screen. It is a Digicon-style panel from
-        CATS, open-source CTC software that runs on top of JMRI and is worked with a mouse. There are two
-        desks, one for CTC and one for ABS, and they cover all three levels. HART also had a Union Switch
-        &amp; Signal style lever machine, drawn in JMRI with switch levers, signal levers and code buttons.
-        It is parked since the helix-join release (November 2026), with its data kept in the repository.
+        LCOS has a Signal Manager on each node. Each head is one object with a Stop, Approach and Clear
+        output, set up with one rule: Clear when the switch it governs is lined for its route (Main for a
+        head on the straight route, Diverged for one on the diverging route), otherwise Stop. An occupied
+        block in front of it forces Stop. The rule uses only the switch and detectors the node can see.
+      </p>
+      <p>
+        A head has two states in LCOS. Unheld, it follows the Signal Manager rule. Held, it shows whatever
+        color it was last sent and ignores the rule until it is released. JMRI uses Held to take over a
+        head, and releasing it hands the head back.
+      </p>
+
+      <h2>JMRI signals</h2>
+      <p>
+        In JMRI every signal is a stock signal mast on the Basic signal system. A home signal with two
+        heads (two searchlights, one above the other) shows Clear (green over red), Approach (yellow over
+        red), Diverging Clear (red over green), Diverging Approach (red over yellow) and Stop (red over red).
+        A one-head mast or dwarf shows Clear, Approach and Stop. JMRI picks the aspect from the track ahead:
+        Stop when the block is occupied or a switch is against the train, Approach when the next signal is
+        at Stop, Clear when the next signal is showing a proceed aspect.
+      </p>
+      <p>
+        There are 98 masts on the three levels. 69 are real signals that appear on the panels. The other
+        29 are hidden masts at buffer stops: a route that ends at a bumper needs a mast there for JMRI to
+        have somewhere to end it.
+      </p>
+
+      <h2>Placed by prototype rules</h2>
+      <p>
+        No mast is placed by hand. A script reads the track plan and places each one by the rules a
+        prototype signal engineer would use, and the same rules apply on every level:
+      </p>
+      <ul>
+        <li><strong>Home signals</strong> stand where a track from outside an interlocking meets one of its switches.</li>
+        <li><strong>Two heads</strong> where a route the mast governs reaches facing points inside the interlocking before the next signal, so the signal can show which way the train will go. Otherwise one head.</li>
+        <li><strong>High or dwarf.</strong> A searchlight on a mast faces trains on running track: the main route, a long track inside an interlocking, or a track joining two interlockings. A dwarf faces trains coming off a yard, lead or industry track.</li>
+        <li><strong>Long tracks</strong> inside an interlocking that can hold a train (over 150 cm) get signals at both ends. A track ending at a bumper gets a dwarf only if it can hold a train.</li>
+        <li><strong>No signal where it would lead nowhere.</strong> If every route from a switch leg ends at a bumper or on track with no signal, no home signal is placed there.</li>
+        <li><strong>Intermediate signals</strong> (automatic permissive block) come in pairs at a block boundary on running track where both blocks can hold a train. No signal stands in the helix; the home signals at its top and foot govern it.</li>
+      </ul>
+      <p>
+        The names follow the CTC machine's lever numbering. Switches have odd numbers and signals even
+        ones, so the signals at Switch 5 are Mast 6. L is westbound and R eastbound, and A and B tell two
+        masts on the same lever apart: Mast 6LB is the second westbound signal at Switch 5.
+      </p>
+      <p>
+        Intermediate signals are named from their milepost, in tenths, odd westbound and even eastbound,
+        as prototype railroads number them. Mileposts start at MP 5.7 at staging Switch 1, where the P&amp;OV met
+        the P&amp;LE at Neville interlocking, and count up through the helix and along each level. Main-level
+        signals carry the line code A and upper-level ones B. The pair inside the Princess loop in staging
+        is Mast 67 and 68; the main level has A83 and A84 on 107 Loop, and the upper level B92 and B93.
+      </p>
+
+      <h2>Discovering the routes</h2>
+      <p>
+        Signal Mast Logic is the list of routes from each mast to the next one it can reach, with the
+        switches each route needs and the blocks it crosses. Nobody writes these. JMRI's Layout Editor has
+        a Discover function that walks the drawn track from every mast to every mast it can reach in the
+        direction it faces, and writes the logic itself. The masts are drawn at block boundaries on the
+        Layout Editor panel, so the panel drawing is all Discover needs.
+      </p>
+      <p>
+        Discover runs on a copy of the JMRI setup, never on a host the layout uses, and its result goes
+        into the generated tables file. Each run is compared with the last one's routes, so a changed
+        route shows up before it is deployed. The current set is 69 source masts with 177 routes between
+        them. JMRI also marks which masts are intermediate signals as it goes; the railroad takes its
+        answer as it is and does not set it by hand.
+      </p>
+
+      <h2>The hand-off between LCOS and JMRI</h2>
+      <p>
+        A button in JMRI's main window, <em>SML Enabled</em> or <em>SML Disabled</em>, says who has the
+        signals. JMRI takes them when it starts, unless another JMRI host already has them.
+      </p>
+      <ul>
+        <li><strong>Enabled.</strong> JMRI sends each head's color as a message (device 432 is <code>track/signalhead/432</code>). The bridge passes it to the node by radio, and the node holds the head at that color.</li>
+        <li><strong>Disabled.</strong> JMRI releases every head it holds. Each one goes back to its node's Signal Manager rule, and JMRI copies what the field reports onto its own heads, so the panels still show what the layout shows.</li>
+      </ul>
+      <p>
+        The bridge on the PC keeps a record of who has the signals, as a retained message both sides
+        read. If JMRI disappears while it had them, the bridge asks for it. With no answer it releases
+        every head itself: red for three seconds, then back to the node's rule, and records that nobody
+        has the signals. A JMRI that is still running answers, and the
+        bridge leaves the layout alone.
+      </p>
+      <p>
+        JMRI runs on the Raspberry Pi and on a Windows PC, and both can start at once. Each one that takes
+        the signals posts a claim with its name and the time. When two claim together, the earlier claim
+        wins and the other steps back, so the layout never has two JMRI hosts driving the same heads.
+      </p>
+
+      <h2>Dispatching on top</h2>
+      <p>
+        The dispatcher works from a CATS panel on screen, which sits on top of JMRI and uses its masts as
+        they are. On the CTC desk every home signal is held at Stop until the dispatcher lines a route.
+        Then CATS releases that signal and JMRI's logic picks the aspect. The ABS desk runs every signal
+        as an automatic block signal, and with no desk open JMRI's logic runs them the same way.
       </p>
       <figure>
         <img width="1024" height="216" src="../assets/panels/digicon-ctc.png" alt="The Digicon CTC panel: a dark track schematic with signals and switches for Neville Island" loading="lazy">
-        <figcaption>The Digicon panel, from Brick and Plane in the west to Princess and the two interchanges in the east. Lined routes show in green.</figcaption>
+        <figcaption>The CATS CTC desk. Lined routes show in green.</figcaption>
       </figure>
-      <figure>
-        <img width="1024" height="559" src="../assets/panels/classic-ctc.png" alt="The USS-style CTC machine with rows of switch and signal levers under a track diagram" loading="lazy">
-        <figcaption>The parked lever machine: switch levers on the top row, signal levers below, and a code button under each control point.</figcaption>
-      </figure>
-
-      <h2>Lining a route</h2>
-      <p>
-        On the Digicon panel every home signal starts at Stop. When the dispatcher clicks a signal to send
-        a train, the switches in the route throw and CATS releases that signal. JMRI's signal logic then
-        looks at the track ahead and picks what to show: Clear when the way is open, Approach when the
-        next signal is at Stop, and Stop when the block ahead is occupied or a switch is against the train.
-      </p>
-
-      <h2>When nobody is dispatching</h2>
-      <p>
-        Without CATS running, nothing holds the signals at Stop, and JMRI runs them as automatic block
-        signals that follow occupancy on their own. JMRI's own Dispatcher system, which could run
-        trains by itself, is parked too. Automatic running works best once every locomotive's real speed is measured, which is what
-        <a href="../ai/locomotives.html#speed">speed matching</a> is for.
-      </p>
-      <p>
-        When the railroad isn't running in CTC mode, crews use the Neville Island layout panel instead.
-        It is a JMRI Layout Editor drawing of the whole railroad, from West Yard to the McKees Rocks and
-        McKeesport interchanges, with every switch and signal in place. Click a switch to throw it.
-      </p>
-      <figure>
-        <a href="../assets/panels/neville-island-le.png"><img width="1024" height="375" src="../assets/panels/neville-island-le.png" alt="The Neville Island Layout Editor panel: the track plan from West Yard through South Yard to the East End and Princess, with numbered switches and signal heads" loading="lazy"></a>
-        <figcaption>The Layout Editor panel, used outside CTC mode. Switches are numbered SW-1 to SW-39; the lights at bottom left show whether LCOS, the turnouts and the signals are online.</figcaption>
-      </figure>
-
-      <h2>Out to the lamps</h2>
-      <p>
-        Each signal head on the layout is a searchlight with a red, yellow and green LED, wired to three
-        outputs on the nearest radio node. JMRI sends the color as a short message, the bridge passes it
-        on by radio, and the node lights the lamp. The signal rules are still being tuned.
-        The <a href="wiring.html">wiring viewer</a> lists the pins behind every head.
-      </p>
 
       <p class="explainer-more">
-        More: <a href="../guides/index.html">Dispatcher guides</a> ·
-        <a href="https://github.com/lnevo/hart/blob/main/docs/ctc/HART_DIGICON_SYSTEM.md">Digicon system overview (GitHub)</a> ·
-        <a href="bridge.html">LCOS and the Arduino bridge</a> ·
+        More: <a href="bridge.html">LCOS and the Arduino bridge</a> ·
         <a href="wiring.html">Wiring viewer</a> ·
-        <a href="../layout/index.html">Layout Explorer</a>
+        <a href="../guides/index.html">Dispatcher guides</a> ·
+        <a href="https://github.com/lnevo/hart/blob/main/docs/ctc/HART_DIGICON_SYSTEM.md">Digicon system overview (GitHub)</a> ·
+        <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS bridge (GitHub)</a>
       </p>
     </article>
   </main>
