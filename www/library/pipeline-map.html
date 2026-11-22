@@ -608,7 +608,8 @@ function clickTarget(box, card, line, lineFirst = false) {
   return { clear: true };
 }
 
-/* Whether a click e asks for a line's source: Cmd, Ctrl or Alt held (Shift is the magnifier). */
+/* Whether a click e asks for a line's source: Cmd or Alt held, or Ctrl off a Mac (a Mac turns Ctrl-click into a right
+   click, so no click arrives); Shift is the magnifier. */
 function sourceClick(e) {
   return !!(e.metaKey || e.ctrlKey || e.altKey);
 }
@@ -618,10 +619,10 @@ function sourceKey(platform) {
   return /Mac|iPhone|iPad/.test(platform || "") ? "Cmd" : "Ctrl";
 }
 
-/* The box a click on a line opens: where it leads, or with alt (sourceClick) where it comes from; null when that box is not drawn
+/* The box a click on a line opens: where it leads, or with source (sourceClick) where it comes from; null when that box is not drawn
    (drawn(id) is false). */
-function lineEnd(edge, alt, drawn) {
-  const id = alt ? edge.from : edge.to;
+function lineEnd(edge, source, drawn) {
+  const id = source ? edge.from : edge.to;
   return drawn(id) ? id : null;
 }
 
@@ -1058,7 +1059,7 @@ function app() {
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
       etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (() => {
-        const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && `${SOURCE_KEY}-click: the box it comes from`].filter(Boolean);
+        const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && lastPointer !== "touch" && `${SOURCE_KEY}-click: the box it comes from`].filter(Boolean);
         return hint.length ? `<div class="off">${hint.join(" · ")}</div>` : "";
       })();
       placeTip();
