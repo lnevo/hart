@@ -74,6 +74,8 @@ Deferred by the owner on 2026-10-31; none of these is urgent.
   - **Map the power districts.** None is recorded on any level (owner, 2026-11-21).
   - **Wire, freeze and swap, control point by control point** (the 35 main-line detectors with them): wire it as the device map has it, `make wiring-freeze CP="CP 123"`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now. Wiring flows one way (rules, proposal in the generated rows, `make wiring-freeze`, `wiring.csv`, device map), and `check_wiring_frozen.py` fails when `wiring.csv` changes any other way.
 
+- **Time the next layout edit (owner, 2026-11-21):** the next real change (a block split, a Store, a mast or wiring change) is timed from the first edit to the deploy, with `make mqtt-watch` (the `_discard` watcher) running through it; the steps and what to record are in [`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#next-measure-a-real-edit).
+
 - **Session #4 punch list (owner, 2026-11-21):** still open: CP signs, the crew board and mock signal designs (agent work); resistor wheels, mock signals at the rail gaps, the crew board mounted, the East End/Princess gap marked and the Barn lead drill signal wired (owner) ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
 
 ## In progress
