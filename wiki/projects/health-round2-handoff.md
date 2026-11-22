@@ -38,6 +38,8 @@ The file is one class, `DigiconMqttSml`, of about 1,800 lines, with 135 tests in
 
 Size: M. Done when the file is under 1,200 lines, the tests pass unchanged, and both hosts run it.
 
+Code split in PR #933 (2026-11-22): the script is 1,175 lines, with `sml_beans.py`, `sml_claims.py` and `sml_handoff.py` beside it; the PanelPro load, the live test and the deploy are pending.
+
 ## 2. `build_device_map.py` into three modules
 
 1. Check `test_build_device_map*` and the device-map guard tests cover the readers and the staging layer. Add tests where a moved function has none.
