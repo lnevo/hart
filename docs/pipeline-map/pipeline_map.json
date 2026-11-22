@@ -1310,7 +1310,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 7: writes level 2 and 3 rows of devices_generated.csv and (T6b) the plan_generated.json main_upper section from the solved sheet; reads the owner's cells from devices_field.csv.",
+   "desc": "make panels step 7, with its modules device_map_inputs.py (the readers), device_map_schematic.py (the drawing's tracks) and device_map_staging.py (staging's rows): writes level 2 and 3 rows of devices_generated.csv and (T6b) the plan_generated.json main_upper section from the solved sheet; reads the owner's cells from devices_field.csv.",
    "path": "tools/schematic/build_device_map.py"
   },
   {

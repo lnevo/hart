@@ -302,6 +302,27 @@ function edgeTip(e, name) {
     (e.back ? '<div class="off">feeds back to an earlier step</div>' : "");
 }
 
+/* What a click on the map does, given what is under it: box (a box's id, or null), card (a grown card's id drawn
+   over the pointer while a line is hovered, or null), line (the id of the box a clicked line leads to, or null) and
+   touch (a tap, whose hover grew the cards just before it). A box wins, then a grown card (what a mouse user sees
+   there), then the line; a tap on a line opens the line's box even if a card grew under the finger. Returns
+   {pick: id, line: true when it came from a line} or {clear: true}. */
+function clickTarget(box, card, line, touch = false) {
+  if (box) return { pick: box };
+  if (line && (touch || !card)) return { pick: line, line: true };
+  if (card) return { pick: card };
+  return { clear: true };
+}
+
+/* Where a box grown about its middle (cx, cy, half sizes hw, hh, all screen px) goes: moved in by dx, dy to stay whole
+   inside area ({left, top, right, bottom}), unless fixed (the hovered box itself, which must stay under the pointer).
+   Returns its rect with a 2 px margin and the move. */
+function growRect(cx, cy, hw, hh, area, fixed = false) {
+  const inside = (c, h, lo, hi) => Math.min(Math.max(c, lo + h), Math.max(hi - h, lo + h)) - c;
+  const dx = fixed ? 0 : inside(cx, hw + 4, area.left, area.right), dy = fixed ? 0 : inside(cy, hh + 4, area.top, area.bottom);
+  return { x0: cx + dx - hw - 2, y0: cy + dy - hh - 2, x1: cx + dx + hw + 2, y1: cy + dy + hh + 2, dx, dy };
+}
+
 /* Greedy label placement: boxes ({x0, y0, x1, y1}, screen px) in order of priority; each is placed unless it overlaps
    one already placed or one of blocked (areas covered by something else). Returns the indexes placed. */
 function placeTags(boxes, blocked = []) {
@@ -476,7 +497,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -488,11 +509,6 @@ function app() {
   const byId = {};
   DATA.nodes.forEach(n => (byId[n.id] = n));
   DATA.kinds.folder ||= ["Folder", "#f8fafc", "#334155"];
-  // zoomed out, each box is a solid block in its kind's ink, which stands out from the light lanes better than its fill
-  const farStyle = document.createElement("style");
-  farStyle.textContent = Object.entries(DATA.kinds).filter(([k]) => /^[\w-]+$/.test(k))
-    .map(([k, [, , ink]]) => `svg.far .node.${k}.live .box{fill:${String(ink).replace(/[^#\w(),. %]/g, "")}}`).join("\n");  // parked and retired keep their light fill, so their dashes show
-  document.head.append(farStyle);
   DATA.presets ||= [];
   const insAll = {}, outsAll = {};
   DATA.edges.forEach(e => { (outsAll[e.from] ||= []).push(e); (insAll[e.to] ||= []).push(e); });
@@ -593,58 +609,55 @@ function app() {
     }
     return d.join(" ");
   }
-  /* ---- zoomed out: below FAR_PX screen px a drawing unit the boxes' own text is too small to read, so each box that
-     has room gets a name tag of a fixed size on screen instead; the edges and box outlines keep a fixed screen width. */
-  const FAR_PX = 0.7, TAG_FONT = '700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
-  const farName = label => (label.length > 26 ? label.slice(0, 25) + "…" : label);
-  const measure = document.createElement("canvas").getContext("2d"), widths = new Map();
-  function tagWidth(text) {
-    if (!widths.has(text)) { measure.font = TAG_FONT; widths.set(text, measure.measureText(text).width); }
-    return widths.get(text);
-  }
-  let farEl = {}, degree = {}, edgesAt = {}, hoverId = null, hoverEnds = new Set();
-  /* Which boxes get a tag: only boxes in view that something points at, in order of how much they matter (the hovered
-     box or line's ends, the rest of the hovered chain, the selected box, search hits, the lit chain, then the most
-     links), each placed unless it would overlap one already placed. The others stay small solid blocks. */
-  let farFrame = 0, farShown = new Set();
+  /* ---- zoomed out: below FAR_PX screen px a drawing unit the boxes' text is too small to read. The edges and box
+     outlines then keep a fixed screen width, and the boxes a hover lights (a line's chain, or a box and its neighbours)
+     grow in place to a readable size, as many as fit without covering each other; the rest of them stay small, lit. */
+  const FAR_PX = 0.7, MAG_TITLE_PX = 12;  // a magnified box's title is drawn this big on screen
+  let degree = {}, edgesAt = {}, hoverId = null, hoverEnds = new Set(), magnified = new Set();
+  let farFrame = 0;
   function updateFar() {  // at most once a frame: a drag or wheel calls it on every event
     if (!farFrame) farFrame = requestAnimationFrame(() => { farFrame = 0; placeFar(); });
   }
-  function showFar(placed) {
-    for (const id of farShown) if (!placed.has(id) && farEl[id]) farEl[id].setAttribute("display", "none");
-    for (const id of placed) if (!farShown.has(id)) farEl[id].setAttribute("display", "inline");
-    farShown = placed;
+  const layNode = {};  // id -> its box in lay, set in render
+  function unmagnify(id) {
+    const n = layNode[id], g = nodeEl[id];
+    if (g && n) { g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); g.classList.remove("mag"); }
   }
   function placeFar() {
     if (!svg) return;
     const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a < FAR_PX;
     svg.classList.toggle("far", far);
-    if (!far) { showFar(new Set()); return; }
-    const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a;
-    const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
-    const has = (id, c) => nodeEl[id].classList.contains(c);
-    const rank = id => (id === hoverId || hoverEnds.has(id) ? -1 : has(id, "hn") ? 0 : has(id, "sel") ? 1 : has(id, "hit") ? 2 : has(id, "near") ? 3 : has(id, "on") ? 4 : 5);
-    const inView = lay.nodes.filter(n => sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
-    // only boxes something points at get a tag (hover, selection, search); the rest stay small solid blocks
-    const tagged = inView.filter(n => rank(n.id) < 5);
-    tagged.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
-    // a box cut off at the left edge has its tag at the edge; the pinned lane names sit over the map, so no tag under them
-    const boxes = tagged.map(n => {
-      const x0 = Math.max(sx(n.x), 0), yc = sy(n.y + n.h / 2);
-      return { x0: x0 - 2, y0: yc - 11, x1: x0 + tagWidth(farName(n.label)) + 14, y1: yc + 11 };
-    });
-    const blocked = [...laneTags.querySelectorAll("span")].map(t => {
-      const q = t.getBoundingClientRect();
-      return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
-    });
-    const placed = new Set();
-    for (const i of placeTags(boxes, blocked)) {
-      const n = tagged[i], g = farEl[n.id], at = (boxes[i].x0 + 2 - m.e + r.left) / m.a;
-      placed.add(n.id);
-      g.setAttribute("transform", `translate(${at.toFixed(1)},${(n.y + n.h / 2).toFixed(1)}) scale(${(1 / s).toFixed(4)})`);
-      g.setAttribute("class", "fl " + ["on", "near", "sel", "hit", "hn"].filter(c => has(n.id, c)).join(" "));
+    const want = [];
+    if (far) {
+      const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a, k = MAG_TITLE_PX / 13 / s;
+      const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
+      // grown: the hovered box or the hovered line's ends, then the rest the hover lights, the selected box and search
+      // hits, each group busiest first
+      const has = (id, c) => nodeEl[id].classList.contains(c);
+      const rank = id => (id === hoverId || hoverEnds.has(id) ? 0 : has(id, "hn") ? 1 : has(id, "sel") || has(id, "hit") ? 2 : 3);
+      const lit = lay.nodes.filter(n => rank(n.id) < 3 &&
+        sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
+      lit.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
+      const area = { left: 0, top: a.top, right: a.right, bottom: a.bottom };
+      const boxes = lit.map(n => growRect(sx(n.x + n.w / 2), sy(n.y + n.h / 2), n.w * s * k / 2, n.h * s * k / 2, area, n.id === hoverId));
+      const blocked = [...laneTags.querySelectorAll("span"), legend].map(t => {  // the lane names and the legend sit over the map
+        const q = t.getBoundingClientRect();
+        return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
+      });
+      for (const i of placeTags(boxes, blocked)) want.push([lit[i], k, boxes[i].dx / s, boxes[i].dy / s]);
     }
-    showFar(placed);
+    const now = new Set(want.map(([n]) => n.id));
+    magnified.forEach(id => { if (!now.has(id)) unmagnify(id); });
+    const top = svg.querySelector("#nodes");
+    for (const [n, k, dx, dy] of want) {  // grown about the box's middle, and drawn over the other boxes
+      const g = nodeEl[n.id];
+      g.setAttribute("transform", `translate(${(n.x + dx + n.w * (1 - k) / 2).toFixed(1)},${(n.y + dy + n.h * (1 - k) / 2).toFixed(1)}) scale(${k.toFixed(3)})`);
+      // drawn over the other boxes: moved to the end of the layer once, as it grows (the layer's order is only
+      // stacking, so it need not be put back)
+      if (!magnified.has(n.id)) top.appendChild(g);
+      g.classList.add("mag");
+    }
+    magnified = now;
   }
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
   /* Hovering a link (edge: its index in lay.edges) lights the whole chain it is on (linkChain) and tags its boxes, the
@@ -665,6 +678,7 @@ function app() {
     const e = i === null ? null : lay.edges[i];
     hoverEdge = e ? i : null;
     svg.classList.toggle("hovering", !!e);
+    svg.classList.toggle("lhover", !!e);  // the cards it grows let the pointer through to the line
     etip.hidden = !e;
     hoverEnds = new Set(e ? [e.from, e.to] : []);
     if (e) {  // the whole chain the line is on: what feeds its start and what its end feeds
@@ -672,7 +686,7 @@ function app() {
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
-      etip.innerHTML = edgeTip(e, id => nodeOf(id).label);
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (nodeEl[e.to] ? '<div class="off">click to open the box it leads to</div>' : "");
       placeTip();
     }
     updateFar();
@@ -694,7 +708,7 @@ function app() {
   }
   wrapEl.addEventListener("pointerover", e => {
     if (drag) return;
-    const g = e.target.closest && e.target.closest(".node,.fl");
+    const g = e.target.closest && e.target.closest(".node");
     if (!g && e.target.classList && e.target.classList.contains("eh")) { setEdgeHover(Number(e.target.dataset.edge)); return; }
     setEdgeHover(null);
     setHover(g ? g.dataset.id : null);
@@ -739,15 +753,6 @@ function app() {
       for (const line of wrap(n.desc, WRAP)) { ty += 13; p.push(`<text class="d" x="14" y="${ty}">${esc(line)}</text>`); }
       p.push("</g>");
     }
-    // name tags for a zoomed-out view (updateFar): drawn at a fixed size on screen for hovered, selected and found boxes
-    p.push('</g><g id="far">');
-    for (const n of lay.nodes) {
-      const [, fill, ink] = DATA.kinds[n.kind], name = farName(n.label);
-      p.push(`<g class="fl" data-id="${esc(n.id)}" display="none"><title>${esc(n.label)}</title>`,
-        `<rect class="fb" x="0" y="-9" width="${(tagWidth(name) + 12).toFixed(1)}" height="18" rx="4" fill="${fill}" stroke="${ink}"/>`,
-        `<rect x="0" y="-9" width="4" height="18" rx="2" fill="${esc(DATA.domainColor[n.domain])}"/>`,
-        `<text class="ft" x="7" y="4" fill="${ink}">${esc(name)}</text></g>`);
-    }
     p.push("</g></svg>");
     return p.join("\n");
   }
@@ -767,9 +772,10 @@ function app() {
     nodeEl = {};
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
-    farEl = {}; farShown = new Set(); degree = {}; edgesAt = {}; hoverId = null; hoverEdge = null; hoverEnds = new Set(); etip.hidden = true; laneBack = null;
+    magnified = new Set(); degree = {}; edgesAt = {}; hoverId = null; hoverEdge = null; hoverEnds = new Set(); etip.hidden = true; laneBack = null;
     closeLens();  // the lens holds a copy of the old drawing
-    svg.querySelectorAll(".fl").forEach(g => (farEl[g.dataset.id] = g));
+    for (const k in layNode) delete layNode[k];
+    lay.nodes.forEach(n => (layNode[n.id] = n));
     edgeEls.forEach(el => [el.dataset.from, el.dataset.to].forEach(v => { degree[v] = (degree[v] || 0) + 1; (edgesAt[v] ||= []).push(el); }));
     drawNav();
     columnKinds();
@@ -1067,10 +1073,13 @@ function app() {
     const hit = lensSvg.querySelector(".eh");
     if (hit) hit.parentNode.remove();
     lensSvg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
+    lensSvg.querySelectorAll(".node.mag").forEach(g => {  // the lens shows the boxes at their own size
+      const n = layNode[g.dataset.id];
+      g.classList.remove("mag");
+      if (n) g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`);
+    });
     lensSvg.querySelectorAll("[id]").forEach(el => { if (el.tagName !== "marker") el.removeAttribute("id"); });
     lensSvg.removeAttribute("id");
-    const farG = lensSvg.querySelector(".fl") && lensSvg.querySelector(".fl").parentNode;
-    if (farG) farG.remove();
     lens.replaceChildren(lensSvg);
     lens.hidden = false;
     moveLens();
@@ -1134,7 +1143,7 @@ function app() {
       const l = svg.querySelector(`.elabel[data-edge="e${i}"]`);
       if (l) { l.classList.add("on"); if (near) l.classList.add("near"); }
     });
-    updateFar();  // the tags take the new classes
+    updateFar();  // the selected box grows when zoomed out
     if (gNodes[id]) { folderInfo(id); return; }
     lastBox = id;
     const n = byId[id];
@@ -1191,17 +1200,28 @@ function app() {
   }
   wrapEl.addEventListener("click", e => {
     if (moved) return;
-    const g = e.target.closest(".node,.fl");
+    const box = e.target.closest(".node");
     clearTimeout(pending);
-    if (!g) { clearFocus(true); return; }
-    // a trimmed redraw moves the boxes, so wait out a double-click before doing it
-    if (view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(g.dataset.id), 300); }
-    else pick(g.dataset.id);
+    // a grown card lets the pointer through to the line under it: found by its place
+    const card = !box && svg.classList.contains("lhover") ? [...magnified].map(id => nodeEl[id]).find(c => {
+      const q = c.getBoundingClientRect();
+      return e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom;
+    }) : null;
+    // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
+    const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
+    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, edge && nodeEl[edge.to] ? edge.to : null, lastPointer === "touch");
+    if (t.clear) { clearFocus(true); return; }
+    // a line's box is centred, which moves the map, and a trimmed redraw moves the boxes: either waits out a
+    // double-click, so its second click does not land on whatever box moved under the pointer
+    if (t.line || view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(t.pick, t.line ? "pan" : undefined), 300); }
+    else pick(t.pick);
   });
-  let pending = null;
+  let pending = null, lastPointer = "mouse";
+  wrapEl.addEventListener("pointerdown", e => (lastPointer = e.pointerType), true);
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
-    const g = e.target.closest(".node,.fl");
+    if (e.target.classList && e.target.classList.contains("eh")) return;  // a double-click on a line is a click on it
+    const g = e.target.closest(".node");
     if (g && gNodes[g.dataset.id]) openFolder(gNodes[g.dataset.id].folder);
     else if (g) focusOn(g.dataset.id, !view.focus);
   });
@@ -1364,7 +1384,7 @@ function app() {
     { at: ["#lanes"], title: "Filter",
       text: "Filters picks the lanes and kinds of box, and whether parked and retired work shows. Clear filters, under the toolbar, puts them back." },
     { at: ["#btns"], title: "Move around and share",
-      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, boxes are small blocks without names: hover a line to name every box on its chain, or a box to light its links. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Share copies a link that opens this exact view. The ? button runs this tour again." },
+      text: "Scroll or pinch to zoom and drag to pan; Fit shows everything. Zoomed out, hover a line to light its whole chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. Click a lane's name to zoom to that lane, and hold Shift for a magnifier. Share copies a link that opens this exact view. The ? button runs this tour again." },
   ];
   let tourAt = -1, tourOn = [];
   const shown = el => el && el.offsetParent !== null && !(el.closest("#morebody") && !document.getElementById("more").open);  // inside a shut phone Menu counts as hidden

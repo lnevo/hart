@@ -214,6 +214,26 @@ class LayoutTest(unittest.TestCase):
         ticks = self.run_js("m.stepTicks(10, 0, 2600, 1, m.NARROW)", None)
         self.assertEqual(ticks["cols"][1]["x"], 260 + 90)
 
+    def test_click_picks_box_then_card_then_line(self) -> None:
+        """clickTarget: a box wins; a grown card over a line wins for a mouse, the line's box for a tap; a line alone
+        opens its box; nothing under the pointer clears."""
+        cases = [["b", "c", "l", False], [None, "c", "l", False], [None, "c", "l", True], [None, None, "l", False],
+                 [None, None, None, False]]
+        got = self.run_js("a.map(c => m.clickTarget(...c))", cases)
+        self.assertEqual(got, [{"pick": "b"}, {"pick": "c"}, {"pick": "l", "line": True}, {"pick": "l", "line": True},
+                               {"clear": True}])
+
+    def test_grown_box_moves_in_to_stay_on_screen_unless_hovered(self) -> None:
+        """growRect: a box grown past the screen's right edge or above the free area moves in; the hovered box stays
+        put, so it stays under the pointer."""
+        area = {"left": 0, "top": 100, "right": 1000, "bottom": 800}
+        mid = self.run_js("m.growRect(500, 400, 80, 20, a)", area)
+        self.assertEqual((mid["dx"], mid["dy"], mid["x0"], mid["y1"]), (0, 0, 418, 422))
+        edge = self.run_js("m.growRect(980, 110, 80, 20, a)", area)
+        self.assertEqual((edge["dx"], edge["dy"]), (1000 - 84 - 980, 124 - 110))
+        held = self.run_js("m.growRect(980, 110, 80, 20, a, true)", area)
+        self.assertEqual((held["dx"], held["dy"]), (0, 0))
+
     def test_name_tags_never_overlap(self) -> None:
         """placeTags: in priority order, a tag that overlaps one already placed or a blocked area is left out."""
         boxes = [{"x0": 0, "y0": 0, "x1": 100, "y1": 20},     # placed first
