@@ -151,6 +151,7 @@ class CheckShModesTest(unittest.TestCase):
             done = self.check_sh(CI="1", CHECK_SKIP_FROM=str(empty))
             self.assertIn("--- unit-mimic (", done.stdout)
             self.assertEqual([], sorted(p.name for p in empty.glob("unit_mimic-*.json")))
+            self.assertIn("runs: no stamp", done.stdout)
             # a stamp for a job whose inputs differ is not a skip: another key in the same file
             stamp = stamps / recorded[0]
             data = json.loads(stamp.read_text())
@@ -158,6 +159,7 @@ class CheckShModesTest(unittest.TestCase):
             stamp.write_text(json.dumps(data))
             done = self.check_sh(CI="1", CHECK_SKIP_FROM=str(stamps))
             self.assertIn("--- unit-mimic (", done.stdout)
+            self.assertIn("runs: the code, command, interpreter, plugin or environment changed", done.stdout)
 
     def test_the_jobs_never_inherit_the_modes(self) -> None:
         """A job that runs check.sh itself (test_check_stamps.AuditTest) must not see main's stamp folder."""

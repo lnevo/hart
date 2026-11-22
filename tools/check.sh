@@ -65,6 +65,7 @@ if [[ -n "${CI:-}" ]]; then RECORD=0; fi
 # runs check.sh itself) never inherits them or writes into main's stamps.
 SKIP_NOTE="current"
 STAMP_ENV=()
+STAMP_WHY=()     # a pull request run says why each job that runs did not match main's stamp
 if [[ -n "${CHECK_RECORD_TO:-}" || -n "${CHECK_SKIP_FROM:-}" ]]; then
   if [[ -z "${CI:-}" ]]; then echo "CHECK_RECORD_TO and CHECK_SKIP_FROM are for CI runs only" >&2; exit 2; fi
   if [[ -n "${CHECK_RECORD_TO:-}" && -n "${CHECK_SKIP_FROM:-}" ]]; then
@@ -79,6 +80,7 @@ if [[ -n "${CHECK_RECORD_TO:-}" || -n "${CHECK_SKIP_FROM:-}" ]]; then
     dir="$(cd "$CHECK_SKIP_FROM" && pwd)"
     rm -f "$dir/filehash.json"      # keyed on another checkout's mtimes: hash every file again
     STAMP_ENV=(CHECK_STAMPS_DIR="$dir")
+    STAMP_WHY=(--why)
     STAMPS=1
     SKIP_NOTE="${CHECK_SKIP_NOTE:-current on main}"
     echo "A job whose inputs match the stamps in $dir is skipped ($SKIP_NOTE)"
@@ -120,7 +122,7 @@ later() {
     pp=${PYTHONPATH-}
     src=2
     if (( STAMPS || RECORD )); then
-      env ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp" >"$JOBS/$n.stamplog" 2>&1
+      env ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp" ${STAMP_WHY[@]+"${STAMP_WHY[@]}"} >"$JOBS/$n.stamplog" 2>&1
       src=$?
       # anything but 0 (current) or 1 (not current) is run, don't record; so is a current verdict without a stamp file
       (( src == 0 || src == 1 )) || src=2
