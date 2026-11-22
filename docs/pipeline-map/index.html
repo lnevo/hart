@@ -177,7 +177,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <div id="stage">
 <div id="wrap"></div>
 <div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
-<label id="spreadctl" hidden title="How many steps show across the screen (drag, or turn the wheel over it); the boxes widen as fewer show, the lanes keep their full height and you pan sideways for the rest. All of them is the whole map">Steps <input type="range" id="spread" min="3" max="50" step="1" value="50"> <span id="spreadn"></span></label>
+<label id="spreadctl" hidden title="How many steps show across the screen (drag, or turn the wheel over it); the boxes grow as fewer show, the lanes keep their full height and you pan sideways for the rest. All of them is the whole map">Steps <input type="range" id="spread" min="3" max="50" step="1" value="50"> <span id="spreadn"></span></label>
 <div id="bar" class="panel"><div id="row1"><h1>HART pipeline map</h1>
 <label title="Type a file's name to draw its whole chain"><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
@@ -241,7 +241,7 @@ such as scripts, and its boxes are left out with their links joined up; <b>only<
 second row, puts them back and keeps the file and the selected box. <b>Whole map</b> appears when the view is cut down.
 <b>Share</b> copies a link to the view as it is, with the selected box, zoom and position. A first visit gets a short tour;
 <b>?</b> runs it again. On a phone, Browse, Start, View, Filters and the buttons are under <b>More ▾</b>; Fit stays out.</div>
-<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes widening with the steps (up to 2.5 times) and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
+<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes growing with the steps, text and all, up to 2.5 times, and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
 and again to go back (a box under the name takes the click first). Hold Shift for a magnifier. Zoomed in, the overview in the
 corner shows the whole drawing with a red box round what is in view; click or drag in it to move.</div>
 <div><b>Hover:</b> zoomed out, hover a line to light its chain, what feeds it and what it feeds, and grow its boxes to a readable
@@ -285,13 +285,15 @@ function spreadFor(cols, n, geo = NARROW) {
 }
 /* A geometry with its steps spread k times across: the boxes widen with the steps, up to BOX_GROW times (their title and
    description lines with them), and the gap between steps takes the rest, so fewer steps across give each box more
-   room without making it a bar the width of the screen. */
+   room without making it a bar the width of the screen. The boxes grow whole, text and all (scale): as wide and as tall
+   by the same factor, their lines wrapping as at 1x. */
 const spreadGeo = (geo, k) => {
   if (k === 1) return geo;
   const g = Math.min(k, BOX_GROW), nodeW = Math.round(geo.nodeW * g);
-  return { ...geo, nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), titleWrap: Math.round(geo.titleWrap * g),
-    descWrap: Math.round((geo.descWrap || WRAP) * g) };
+  return { ...geo, nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), scale: g };
 };
+/* A box's place and size on the map: moved to x, y and drawn scale times its own size (spreadGeo). */
+const boxTransform = (n, scale = 1) => `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})${scale !== 1 ? ` scale(${scale.toFixed(4)})` : ""}`;
 
 /* Greedy word wrap; a word longer than the width is cut. */
 function wrap(text, width) {
@@ -319,7 +321,7 @@ function titleLines(n, geo = WIDE) {
 }
 
 function nodeHeight(n, geo = WIDE) {
-  return 8 + 16 * titleLines(n, geo).length + (n.path ? 15 : 0) + 13 * wrap(n.desc, geo.descWrap || WRAP).length + 10;
+  return (8 + 16 * titleLines(n, geo).length + (n.path ? 15 : 0) + 13 * wrap(n.desc, geo.descWrap || WRAP).length + 10) * (geo.scale || 1);
 }
 
 /* Pairs i < j with arr[j] < arr[i], by merge sort. */
@@ -1001,7 +1003,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { BOX_GROW, spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { boxTransform, BOX_GROW, spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1132,11 +1134,11 @@ function app() {
   const layNode = {};  // id -> its box in lay, set in render
   function unmagnify(id) {
     const n = layNode[id], g = nodeEl[id];
-    if (g && n) { g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); g.classList.remove("mag"); }
+    if (g && n) { g.setAttribute("transform", boxTransform(n, lay.geo.scale || 1)); g.classList.remove("mag"); }
   }
   function placeFar() {
     if (!svg) return;
-    const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a < FAR_PX;
+    const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a * ((lay && lay.geo.scale) || 1) < FAR_PX;
     svg.classList.toggle("far", far);
     const want = [];
     if (far) {
@@ -1151,20 +1153,22 @@ function app() {
       const near = id => (hoverSteps && hoverSteps.has(id) ? hoverSteps.get(id) : 0);  // a hovered line's nearer boxes grow first
       lit.sort((p, q) => rank(p.id) - rank(q.id) || near(p.id) - near(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
       const area = { left: 0, top: a.top, right: a.right, bottom: a.bottom };
-      const boxes = lit.map(n => growRect(sx(n.x + n.w / 2), sy(n.y + n.h / 2), n.w * s * k / 2, n.h * s * k / 2, area));
+      const sc = lay.geo.scale || 1, kk = Math.max(k, sc);  // a box's own size times kk on the map (drawn sc times already)
+      const boxes = lit.map(n => growRect(sx(n.x + n.w / 2), sy(n.y + n.h / 2), n.w / sc * s * kk / 2, n.h / sc * s * kk / 2, area));
       const blocked = [...laneTags.querySelectorAll("span"), legend].map(t => {  // the lane names and the legend sit over the map
         const q = t.getBoundingClientRect();
         return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
       });
       lit.forEach((n, i) => { if (n.id === hoverId) boxes[i] = clearOf(boxes[i], blocked, area); });  // the hovered box always shows
-      for (const i of placeTags(boxes, blocked)) want.push([lit[i], k, boxes[i].dx / s, boxes[i].dy / s]);
+      for (const i of placeTags(boxes, blocked)) want.push([lit[i], kk, boxes[i].dx / s, boxes[i].dy / s]);
     }
     const now = new Set(want.map(([n]) => n.id));
     magnified.forEach(id => { if (!now.has(id)) unmagnify(id); });
     const top = svg.querySelector("#nodes");
     for (const [n, k, dx, dy] of want) {  // grown about the box's middle, and drawn over the other boxes
       const g = nodeEl[n.id];
-      g.setAttribute("transform", `translate(${(n.x + dx + n.w * (1 - k) / 2).toFixed(1)},${(n.y + dy + n.h * (1 - k) / 2).toFixed(1)}) scale(${k.toFixed(3)})`);
+      const sc = lay.geo.scale || 1, bw = n.w / sc * k, bh = n.h / sc * k;  // grown about the box's middle
+      g.setAttribute("transform", `translate(${(n.x + dx + (n.w - bw) / 2).toFixed(1)},${(n.y + dy + (n.h - bh) / 2).toFixed(1)}) scale(${k.toFixed(3)})`);
       // drawn over the other boxes: moved to the end of the layer once, as it grows (the layer's order is only
       // stacking, so it need not be put back)
       if (!magnified.has(n.id)) top.appendChild(g);
@@ -1315,9 +1319,10 @@ function app() {
     p.push('</g><g id="nodes">');
     for (const n of lay.nodes) {
       const [, fill, ink] = DATA.kinds[n.kind], status = n.status || "live";
-      p.push(`<g class="node ${n.kind} ${status}" data-id="${esc(n.id)}" transform="translate(${n.x.toFixed(1)},${n.y.toFixed(1)})">`,
-        `<rect class="box" width="${n.w}" height="${n.h}" rx="6" fill="${fill}" stroke="${ink}"/>`,
-        `<rect width="6" height="${n.h}" rx="3" fill="${esc(DATA.domainColor[n.domain])}"/>`);
+      const sc = lay.geo.scale || 1, bw = n.w / sc, bh = n.h / sc;  // drawn at its own size, scaled up as a whole
+      p.push(`<g class="node ${n.kind} ${status}" data-id="${esc(n.id)}" transform="${boxTransform(n, sc)}">`,
+        `<rect class="box" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="6" fill="${fill}" stroke="${ink}"/>`,
+        `<rect width="6" height="${bh.toFixed(1)}" rx="3" fill="${esc(DATA.domainColor[n.domain])}"/>`);
       let ty = 2;
       for (const line of titleLines(n, lay.geo)) { ty += 16; p.push(`<text class="t" x="14" y="${ty}" fill="${ink}">${esc(line)}</text>`); }
       if (n.path) {
@@ -1802,7 +1807,7 @@ function app() {
     lensSvg.querySelectorAll(".node.mag").forEach(g => {  // the lens shows the boxes at their own size
       const n = layNode[g.dataset.id];
       g.classList.remove("mag");
-      if (n) g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`);
+      if (n) g.setAttribute("transform", boxTransform(n, lay.geo.scale || 1));
     });
     lensSvg.querySelectorAll("[id]").forEach(el => { if (el.tagName !== "marker") el.removeAttribute("id"); });
     lensSvg.removeAttribute("id");

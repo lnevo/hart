@@ -402,7 +402,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <div id="stage">
 <div id="wrap"></div>
 <div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
-<label id="spreadctl" hidden title="How many steps show across the screen (drag, or turn the wheel over it); the boxes widen as fewer show, the lanes keep their full height and you pan sideways for the rest. All of them is the whole map">Steps <input type="range" id="spread" min="3" max="50" step="1" value="50"> <span id="spreadn"></span></label>
+<label id="spreadctl" hidden title="How many steps show across the screen (drag, or turn the wheel over it); the boxes grow as fewer show, the lanes keep their full height and you pan sideways for the rest. All of them is the whole map">Steps <input type="range" id="spread" min="3" max="50" step="1" value="50"> <span id="spreadn"></span></label>
 <div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
 <label title="Type a file's name to draw its whole chain"><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
@@ -466,7 +466,7 @@ such as scripts, and its boxes are left out with their links joined up; <b>only<
 second row, puts them back and keeps the file and the selected box. <b>Whole map</b> appears when the view is cut down.
 <b>Share</b> copies a link to the view as it is, with the selected box, zoom and position. A first visit gets a short tour;
 <b>?</b> runs it again. On a phone, Browse, Start, View, Filters and the buttons are under <b>More ▾</b>; Fit stays out.</div>
-<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes widening with the steps (up to 2.5 times) and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
+<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes growing with the steps, text and all, up to 2.5 times, and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
 and again to go back (a box under the name takes the click first). Hold Shift for a magnifier. Zoomed in, the overview in the
 corner shows the whole drawing with a red box round what is in view; click or drag in it to move.</div>
 <div><b>Hover:</b> zoomed out, hover a line to light its chain, what feeds it and what it feeds, and grow its boxes to a readable
