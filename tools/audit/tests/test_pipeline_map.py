@@ -214,6 +214,15 @@ class LayoutTest(unittest.TestCase):
         ticks = self.run_js("m.stepTicks(10, 0, 2600, 1, m.NARROW)", None)
         self.assertEqual(ticks["cols"][1]["x"], 260 + 90)
 
+    def test_click_picks_box_then_card_then_line(self) -> None:
+        """clickTarget: a box wins; a grown card over a line wins for a mouse, the line's box for a tap; a line alone
+        opens its box; nothing under the pointer clears."""
+        cases = [["b", "c", "l", False], [None, "c", "l", False], [None, "c", "l", True], [None, None, "l", False],
+                 [None, None, None, False]]
+        got = self.run_js("a.map(c => m.clickTarget(...c))", cases)
+        self.assertEqual(got, [{"pick": "b"}, {"pick": "c"}, {"pick": "l", "line": True}, {"pick": "l", "line": True},
+                               {"clear": True}])
+
     def test_grown_box_moves_in_to_stay_on_screen_unless_hovered(self) -> None:
         """growRect: a box grown past the screen's right edge or above the free area moves in; the hovered box stays
         put, so it stays under the pointer."""

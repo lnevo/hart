@@ -302,6 +302,18 @@ function edgeTip(e, name) {
     (e.back ? '<div class="off">feeds back to an earlier step</div>' : "");
 }
 
+/* What a click on the map does, given what is under it: box (a box's id, or null), card (a grown card's id drawn
+   over the pointer while a line is hovered, or null), line (the id of the box a clicked line leads to, or null) and
+   touch (a tap, whose hover grew the cards just before it). A box wins, then a grown card (what a mouse user sees
+   there), then the line; a tap on a line opens the line's box even if a card grew under the finger. Returns
+   {pick: id, line: true when it came from a line} or {clear: true}. */
+function clickTarget(box, card, line, touch = false) {
+  if (box) return { pick: box };
+  if (line && (touch || !card)) return { pick: line, line: true };
+  if (card) return { pick: card };
+  return { clear: true };
+}
+
 /* Where a box grown about its middle (cx, cy, half sizes hw, hh, all screen px) goes: moved in by dx, dy to stay whole
    inside area ({left, top, right, bottom}), unless fixed (the hovered box itself, which must stay under the pointer).
    Returns its rect with a 2 px margin and the move. */
@@ -485,7 +497,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -674,7 +686,7 @@ function app() {
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
-      etip.innerHTML = edgeTip(e, id => nodeOf(id).label);
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (nodeEl[e.to] ? '<div class="off">click to open the box it leads to</div>' : "");
       placeTip();
     }
     updateFar();
@@ -1188,18 +1200,27 @@ function app() {
   }
   wrapEl.addEventListener("click", e => {
     if (moved) return;
-    let g = e.target.closest(".node");
+    const box = e.target.closest(".node");
     clearTimeout(pending);
-    if (!g && svg.classList.contains("lhover"))  // a grown card lets the pointer through to the line: find it by its place
-      g = [...magnified].map(id => nodeEl[id]).find(c => { const q = c.getBoundingClientRect(); return e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom; });
-    if (!g) { clearFocus(true); return; }
-    // a trimmed redraw moves the boxes, so wait out a double-click before doing it
-    if (view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(g.dataset.id), 300); }
-    else pick(g.dataset.id);
+    // a grown card lets the pointer through to the line under it: found by its place
+    const card = !box && svg.classList.contains("lhover") ? [...magnified].map(id => nodeEl[id]).find(c => {
+      const q = c.getBoundingClientRect();
+      return e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom;
+    }) : null;
+    // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
+    const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
+    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, edge && nodeEl[edge.to] ? edge.to : null, lastPointer === "touch");
+    if (t.clear) { clearFocus(true); return; }
+    // a line's box is centred, which moves the map, and a trimmed redraw moves the boxes: either waits out a
+    // double-click, so its second click does not land on whatever box moved under the pointer
+    if (t.line || view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(t.pick, t.line ? "pan" : undefined), 300); }
+    else pick(t.pick);
   });
-  let pending = null;
+  let pending = null, lastPointer = "mouse";
+  wrapEl.addEventListener("pointerdown", e => (lastPointer = e.pointerType), true);
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
+    if (e.target.classList && e.target.classList.contains("eh")) return;  // a double-click on a line is a click on it
     const g = e.target.closest(".node");
     if (g && gNodes[g.dataset.id]) openFolder(gNodes[g.dataset.id].folder);
     else if (g) focusOn(g.dataset.id, !view.focus);
