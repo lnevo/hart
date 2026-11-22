@@ -418,8 +418,22 @@ function groupByFolder(nodes, edges, open) {
   return { nodes: out, edges: outEdges, members, groupOf };
 }
 
+/* The box's file on GitHub, or "" for a box with no path or one outside the tracked files (a gitignored mirror or a
+   host). links maps "" to this repository's base and each submodule path to its own repository's base; a path inside
+   a submodule goes to that repository, and the submodule itself to its root. Folders open too: GitHub sends /blob/ on
+   to /tree/. This repository's links go to main, so a file added on an unmerged branch has no page yet. */
+function githubUrl(n, links) {
+  if (!n.path || n.local || !links) return "";
+  const enc = p => p.split("/").map(encodeURIComponent).join("/");
+  const sub = Object.keys(links).filter(k => k && (n.path === k || n.path.startsWith(k + "/")))
+    .sort((a, b) => b.length - a.length)[0];
+  if (sub === undefined) return links[""] ? links[""] + enc(n.path) : "";
+  const rest = n.path.slice(sub.length + 1);
+  return rest ? links[sub] + enc(rest) : links[sub].replace(/\/blob\/[^/]+\/$/, "");
+}
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -887,7 +901,7 @@ function app() {
     const isFocus = view.focus === id;
     info.innerHTML = `<button class="close" title="Close (Esc)">×</button><h2>${esc(n.label)}</h2>
       <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
-      <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
+      <p><code>${esc(n.path || n.id)}</code>${githubUrl(n, DATA.codeLinks) ? ` · <a class="gh" href="${esc(githubUrl(n, DATA.codeLinks))}" target="_blank" rel="noopener" title="Open this file's code on GitHub">GitHub ↗</a>` : ""}</p><p>${esc(n.desc || "")}</p>
       ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
       ${view.kindsOff.size ? `<div class="off">Links as drawn: ${[...view.kindsOff].every(dropKind) ? "the hidden boxes left out with their links" : "hidden boxes bridged over, and those where chains stop (hosts lane, hand work) left out with their links"}.</div>` : ""}
       <b>Fed by</b><ul>${((view.kindsOff.size ? ins1 : insAll)[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>

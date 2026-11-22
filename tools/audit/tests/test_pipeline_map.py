@@ -235,6 +235,24 @@ class LayoutTest(unittest.TestCase):
         return json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(arg)], capture_output=True,
                                          text=True, check=True).stdout)
 
+    def test_github_link_only_for_tracked_paths(self) -> None:
+        """githubUrl: this repo's files and folders on main, submodules in their own repo, nothing for local boxes."""
+        links = {"": "https://github.com/o/r/blob/main/", "external/sub": "https://github.com/o/sub/blob/HEAD/"}
+        cases = [{"path": "www/data/a b.json"}, {"path": "docs/benchwork"}, {"path": "external/sub"},
+                 {"path": "external/sub/seed/x.py"}, {"path": "external/subway/y"}, {"path": "external/x", "local": True},
+                 {"path": ""}, {}]
+        out = self.run_js("a.cases.map(n => m.githubUrl(n, a.links))", {"cases": cases, "links": links})
+        self.assertEqual(out, ["https://github.com/o/r/blob/main/www/data/a%20b.json",
+                               "https://github.com/o/r/blob/main/docs/benchwork", "https://github.com/o/sub",
+                               "https://github.com/o/sub/blob/HEAD/seed/x.py",
+                               "https://github.com/o/r/blob/main/external/subway/y", "", "", ""])
+
+    def test_code_links_cover_every_submodule(self) -> None:
+        links = MAP.code_links()
+        self.assertEqual(links[""], "https://github.com/lnevo/hart/blob/main/")
+        self.assertEqual(links["external/sts-docker"], "https://github.com/lnevo/sts-docker/blob/HEAD/")
+        self.assertEqual(len(links) - 1, (ROOT / ".gitmodules").read_text().count("[submodule "))
+
     def test_hidden_kinds_are_bridged_over(self) -> None:
         """contract: links run on through hidden boxes, keep the hidden boxes in via, and a direct link wins."""
         edges = [{"from": "a", "to": "s"}, {"from": "s", "to": "t"}, {"from": "t", "to": "b"}, {"from": "s", "to": "c"},
