@@ -302,6 +302,15 @@ function edgeTip(e, name) {
     (e.back ? '<div class="off">feeds back to an earlier step</div>' : "");
 }
 
+/* Where a box grown about its middle (cx, cy, half sizes hw, hh, all screen px) goes: moved in by dx, dy to stay whole
+   inside area ({left, top, right, bottom}), unless fixed (the hovered box itself, which must stay under the pointer).
+   Returns its rect with a 2 px margin and the move. */
+function growRect(cx, cy, hw, hh, area, fixed = false) {
+  const inside = (c, h, lo, hi) => Math.min(Math.max(c, lo + h), Math.max(hi - h, lo + h)) - c;
+  const dx = fixed ? 0 : inside(cx, hw + 4, area.left, area.right), dy = fixed ? 0 : inside(cy, hh + 4, area.top, area.bottom);
+  return { x0: cx + dx - hw - 2, y0: cy + dy - hh - 2, x1: cx + dx + hw + 2, y1: cy + dy + hh + 2, dx, dy };
+}
+
 /* Greedy label placement: boxes ({x0, y0, x1, y1}, screen px) in order of priority; each is placed unless it overlaps
    one already placed or one of blocked (areas covered by something else). Returns the indexes placed. */
 function placeTags(boxes, blocked = []) {
@@ -476,7 +485,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -610,21 +619,20 @@ function app() {
     if (far) {
       const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a, k = MAG_TITLE_PX / 13 / s;
       const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
-      // the hovered box or the hovered line's ends first, then the most linked
-      const lit = lay.nodes.filter(n => nodeEl[n.id].classList.contains("hn") &&
+      // grown: the hovered box or the hovered line's ends, then the rest the hover lights, the selected box and search
+      // hits, each group busiest first
+      const has = (id, c) => nodeEl[id].classList.contains(c);
+      const rank = id => (id === hoverId || hoverEnds.has(id) ? 0 : has(id, "hn") ? 1 : has(id, "sel") || has(id, "hit") ? 2 : 3);
+      const lit = lay.nodes.filter(n => rank(n.id) < 3 &&
         sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
-      const first = id => (id === hoverId || hoverEnds.has(id) ? 0 : 1);
-      lit.sort((p, q) => first(p.id) - first(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
-      // a grown box near the screen's edge is moved in to stay whole on screen (dx, dy in px)
-      const inside = (c, h, lo, hi) => Math.min(Math.max(c, lo + h), Math.max(hi - h, lo + h)) - c;
-      const boxes = lit.map(n => {
-        const hw = n.w * s * k / 2, hh = n.h * s * k / 2;
-        let cx = sx(n.x + n.w / 2), cy = sy(n.y + n.h / 2);
-        const dx = inside(cx, hw + 4, 0, a.right), dy = inside(cy, hh + 4, a.top, a.bottom);
-        cx += dx; cy += dy;
-        return { x0: cx - hw - 2, y0: cy - hh - 2, x1: cx + hw + 2, y1: cy + hh + 2, dx: dx / s, dy: dy / s };
+      lit.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
+      const area = { left: 0, top: a.top, right: a.right, bottom: a.bottom };
+      const boxes = lit.map(n => growRect(sx(n.x + n.w / 2), sy(n.y + n.h / 2), n.w * s * k / 2, n.h * s * k / 2, area, n.id === hoverId));
+      const blocked = [...laneTags.querySelectorAll("span"), legend].map(t => {  // the lane names and the legend sit over the map
+        const q = t.getBoundingClientRect();
+        return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
       });
-      for (const i of placeTags(boxes)) want.push([lit[i], k, boxes[i].dx, boxes[i].dy]);
+      for (const i of placeTags(boxes, blocked)) want.push([lit[i], k, boxes[i].dx / s, boxes[i].dy / s]);
     }
     const now = new Set(want.map(([n]) => n.id));
     magnified.forEach(id => { if (!now.has(id)) unmagnify(id); });
@@ -632,8 +640,10 @@ function app() {
     for (const [n, k, dx, dy] of want) {  // grown about the box's middle, and drawn over the other boxes
       const g = nodeEl[n.id];
       g.setAttribute("transform", `translate(${(n.x + dx + n.w * (1 - k) / 2).toFixed(1)},${(n.y + dy + n.h * (1 - k) / 2).toFixed(1)}) scale(${k.toFixed(3)})`);
+      // drawn over the other boxes: moved to the end of the layer once, as it grows (the layer's order is only
+      // stacking, so it need not be put back)
+      if (!magnified.has(n.id)) top.appendChild(g);
       g.classList.add("mag");
-      top.appendChild(g);
     }
     magnified = now;
   }
@@ -1121,6 +1131,7 @@ function app() {
       const l = svg.querySelector(`.elabel[data-edge="e${i}"]`);
       if (l) { l.classList.add("on"); if (near) l.classList.add("near"); }
     });
+    updateFar();  // the selected box grows when zoomed out
     if (gNodes[id]) { folderInfo(id); return; }
     lastBox = id;
     const n = byId[id];
@@ -1177,8 +1188,10 @@ function app() {
   }
   wrapEl.addEventListener("click", e => {
     if (moved) return;
-    const g = e.target.closest(".node");
+    let g = e.target.closest(".node");
     clearTimeout(pending);
+    if (!g && svg.classList.contains("lhover"))  // a grown card lets the pointer through to the line: find it by its place
+      g = [...magnified].map(id => nodeEl[id]).find(c => { const q = c.getBoundingClientRect(); return e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom; });
     if (!g) { clearFocus(true); return; }
     // a trimmed redraw moves the boxes, so wait out a double-click before doing it
     if (view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(g.dataset.id), 300); }
