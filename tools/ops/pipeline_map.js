@@ -434,7 +434,12 @@ function chainOf(edges, id, stops) {
 /* Whether box n is a cache or stamp store under .cache/: it saves time, it does not feed content, so a chain does
    not run on through it (a builder that reads it gives the same result without it). */
 function isCache(n) {
-  return !!n && /(^|\/)\.cache\//.test(`${n.label || ""} ${n.path || ""}`);
+  return !!n && [n.label, n.path].some(t => /(^|[\/\s])\.cache\//.test(t || ""));
+}
+
+/* Whether a chain stops at box n: the hosts lane (deploy, hosts, runtime apps), host and hand-work boxes, and caches. */
+function stopsChain(n) {
+  return !!n && (n.domain === "hosts" || n.kind === "host" || n.kind === "human" || isCache(n));
 }
 
 /* The chain one link from -> to belongs to: everything that feeds from and everything to feeds (chainOf, not
@@ -482,7 +487,7 @@ function clampView(v, W, H, left, free, maxW) {
 }
 
 /* The graph with the boxes hide(id) is true for taken away: those drop(id) is also true for (where chains stop: the
-   hosts lane, host and hand-work boxes) are left out with their links, since bridging over a deploy script would
+   hosts lane, host, hand-work and cache boxes) are left out with their links, since bridging over a deploy script would
    link its every input to every host; the rest are bridged over (contract). */
 function hideBoxes(nodes, edges, hide, drop) {
   const kept = nodes.filter(n => !(hide(n.id) && drop(n.id))), ids = new Set(kept.map(n => n.id));
@@ -573,7 +578,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { isCache, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { isCache, stopsChain, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -605,12 +610,12 @@ function app() {
      they are shown, not walked through, because everything deploys and the Pi's saved state comes back, so walking
      through them would reach most of the map. A chain also stops at a cache (isCache): it only saves time, so what
      reads it does not depend on what wrote it. */
-  const endsChain = id => nodeOf(id).domain === "hosts" || nodeOf(id).kind === "host" || nodeOf(id).kind === "human" || isCache(nodeOf(id));
+  const endsChain = id => stopsChain(nodeOf(id));
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
-     are bridged over, so the links run on through them, except where chains stop (endsChain: the hosts lane, host
-     and hand-work boxes), which are left out with their links (hideBoxes). The picked file always stays. */
+     are bridged over, so the links run on through them, except where chains stop (endsChain: the hosts lane, host,
+     hand-work and cache boxes), which are left out with their links (hideBoxes). The picked file always stays. */
   const dropKind = k => k === "host" || k === "human";  // kinds whose every box is a chain stop
   let g1Key = null, g1 = null, ins1 = {}, outs1 = {};
   function filtered() {
@@ -1262,7 +1267,7 @@ function app() {
       <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
       <p><code>${esc(n.path || n.id)}</code>${githubUrl(n, DATA.codeLinks) ? ` · <a class="gh" href="${esc(githubUrl(n, DATA.codeLinks))}" target="_blank" rel="noopener" title="Open this file's code on GitHub">GitHub ↗</a>` : ""}</p><p>${esc(n.desc || "")}</p>
       ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
-      ${view.kindsOff.size ? `<div class="off">Links as drawn: ${[...view.kindsOff].every(dropKind) ? "the hidden boxes left out with their links" : "hidden boxes bridged over, and those where chains stop (hosts lane, hand work) left out with their links"}.</div>` : ""}
+      ${view.kindsOff.size ? `<div class="off">Links as drawn: ${[...view.kindsOff].every(dropKind) ? "the hidden boxes left out with their links" : "hidden boxes bridged over, and those where chains stop (hosts lane, hand work, caches) left out with their links"}.</div>` : ""}
       <b>Fed by</b><ul>${((view.kindsOff.size ? ins1 : insAll)[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
       <b>Feeds</b><ul>${((view.kindsOff.size ? outs1 : outsAll)[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
       <div style="color:#666">${fullUp} upstream, ${fullDown} downstream in the whole map.</div>`;

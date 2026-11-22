@@ -314,18 +314,18 @@ process.stdout.write(JSON.stringify(out));"""
         publish_draft.py (which writes the schematic cache) lights publish_draft's own outputs, not all tables.xml feeds."""
         self.assertEqual(self.run_js("a.map(m.isCache)", [{"label": "<main checkout>/.cache/hart/schematic"},
                                                          {"label": ".cache/panel-stamps (per checkout)"},
+                                                         {"label": "panel stamps", "path": ".cache/panel-stamps"},
                                                          {"label": "docs/cache_notes.md", "path": "docs/cache_notes.md"},
-                                                         None]), [True, True, False, False])
+                                                         None]), [True, True, True, False, False])
         graph = json.loads(MAP.GRAPH.read_text())
         call = ("(() => { const by = {}; a.nodes.forEach(n => { by[n.id] = n; });"
-                " const stops = id => by[id].domain === 'hosts' || by[id].kind === 'host' || by[id].kind === 'human'"
-                " || m.isCache(by[id]);"
                 " return [...m.linkChain(a.edges, 'jmri/layouts/hart/data/schematic/inputs/staging.json',"
-                " 'tools/schematic/publish_draft.py', stops).boxes]; })()")
+                " 'tools/schematic/publish_draft.py', id => m.stopsChain(by[id])).boxes]; })()")
         lit = self.run_js(call, graph)
         self.assertIn("ext:schematic-cache", lit)  # the cache itself still lights, as an end
-        self.assertNotIn("jmri/layouts/hart/output/tables.xml", lit)
-        self.assertLess(len(lit), 60)
+        self.assertIn("docs/ops/schematic-system-draft.pdf", lit)  # publish_draft's own output
+        for past in ("tools/schematic/build_tables.py", "jmri/layouts/hart/output/tables.xml"):
+            self.assertNotIn(past, lit)  # reached only through the cache
 
     def test_line_note_names_both_ends_escaped(self) -> None:
         """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
