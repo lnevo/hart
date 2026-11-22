@@ -5,7 +5,7 @@ name: check
 on:
   pull_request:           # no `labeled` trigger: a run for any label would cancel the PR's run in progress
   push:                   # main's run saves the schematic cache and the check stamps every PR can restore (a PR cannot read another's)
-    branches: [main, agent/claude/ci-changed-jobs]   # PROOF ONLY: dropped before merge
+    branches: [main]
   schedule:
     - cron: "17 7 * * 1"  # a weekly full run of main beside every push's: an extra net under the pull requests' skips
 permissions:
