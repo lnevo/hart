@@ -465,6 +465,18 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("m.onlyOne(a, ['layout', 'wiring'], 'website')", lanes), [])
         self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
 
+    def test_box_growth_cap(self) -> None:
+        """spreadGeo and spreadFor take a cap on box growth (the lanes' room): the boxes stop there, the steps go on, and n
+        steps still fill the width."""
+        g = self.run_js("m.spreadGeo(m.NARROW, 3, 1.5)", None)
+        self.assertEqual((g["nodeW"], g["scale"], g["nodeW"] + g["colGap"]), (270, 1.5, 3 * 260))
+        self.assertEqual(self.run_js("m.spreadGeo(m.NARROW, 3, 0.5).nodeW", None), 180)  # never smaller than 1x
+        span = self.run_js("(() => { const k = m.spreadFor(46, 6, m.NARROW, 1.5), g = m.spreadGeo(m.NARROW, k, 1.5);"
+                           " return [5 * (g.nodeW + g.colGap) + g.nodeW, 45 * 260 + 180]; })()", None)
+        self.assertLessEqual(abs(span[0] - span[1]), 5)
+        self.assertAlmostEqual(self.run_js("m.spreadFor(46, 6, m.NARROW, 0.5)", None),
+                               self.run_js("m.spreadFor(46, 6, m.NARROW, 1)", None))  # a cap below 1 is 1, as in spreadGeo
+
     def test_layout_uses_spread_geometry(self) -> None:
         """layout with spreadGeo: columns k steps apart and boxes at the spread width."""
         got = self.run_js("(() => { const g = m.spreadGeo(m.NARROW, 3), l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW),"
