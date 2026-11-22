@@ -821,9 +821,15 @@ function showsAll(v, W, H, left, free) {
 /* The viewBox that fits the whole drawing into the free area, for a map of sw x sh px, with pad px of margin on each
    side: centred across, and pad below the top of the area (the step strip) so a wide drawing leaves no larger band
    above its first lane. */
+/* The margin fitView keeps, in px: pad, but at most a quarter of the free area's width or height, so a small map
+   (a phone with the info panel open) keeps most of its room. */
+function fitPad(pad, free, sw, sh) {
+  return Math.max(0, Math.min(pad, (free.right * sw) / 4, ((free.bottom - free.top) * sh) / 4));
+}
+
 function fitView(W, H, left, free, sw, sh, pad = 0) {
   const top = free.top * sh;
-  const p = Math.max(0, Math.min(pad, (free.right * sw) / 4, (free.bottom * sh - top) / 4));  // a small map keeps most of it
+  const p = fitPad(pad, free, sw, sh);
   const w = Math.max(free.right * sw - 2 * p, 1), h = Math.max(free.bottom * sh - top - 2 * p, 1);
   const s = Math.max(W / w, H / h);
   const ox = p + (w - W / s) / 2, oy = top + p;  // where the drawing's top left lands, in px
@@ -834,14 +840,17 @@ function fitView(W, H, left, free, sw, sh, pad = 0) {
    W; y from 0, height H) does not leave the free area at any side: across, left of the info panel; down, between
    the step strip and the bottom (or the panel, on a phone). A drawing bigger than the free area covers it edge to
    edge; a smaller one stays wholly inside it. The height follows the width, and a view cut to maxW keeps its middle. */
-function clampView(v, W, H, left, free, maxW) {
+function clampView(v, W, H, left, free, maxW, padX = 0, padY = 0) {
   if (!(v.width > 0) || !(v.height > 0)) return v;  // a view with no size (a hidden map) is left alone
   const width = Math.min(v.width, maxW), height = v.height * width / v.width;
   const x0 = v.x + (v.width - width) / 2, y0 = v.y + (v.height - height) / 2;  // a cut width shrinks about the middle
   const between = (t, a, b) => Math.min(Math.max(t, Math.min(a, b)), Math.max(a, b));
   // the view's x with the drawing's left, or right, edge on the area's; and its y with the top, or bottom, on the area's
-  const x = between(x0, -left, W - left - free.right * width);
-  const y = between(y0, -free.top * height, H - free.bottom * height);
+  // padX, padY: the margin kept inside the area, as shares of the view's width and height (fitPad), so at the Fit
+  // width the drawing cannot be dragged into it
+  const mx = padX * width, my = padY * height;
+  const x = between(x0, -left - mx, W - left - free.right * width + mx);
+  const y = between(y0, -free.top * height - my, H - free.bottom * height + my);
   return { x, y, width, height };
 }
 
@@ -944,7 +953,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1525,11 +1534,14 @@ function app() {
   }
   /* The free area's height over its width, for layout's lanes; 0 while the map has no size yet (hidden). */
   function fitAspect() {
-    const a = freeArea(), w = a.right, h = a.bottom - a.top;
+    const a = freeArea(), p = fitPad(FIT_PAD, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight);
+    const w = a.right - 2 * p, h = a.bottom - a.top - 2 * p;  // the shape Fit fills, inside its margin
     return w > 0 && h > 0 ? h / w : 0;
   }
   function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing (clampView)
-    const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, lay && lay.nodes.length ? lay.height : H, LEFT, free, maxWidth(free));  // the drawn height, not the 200 minimum
+    const free = freeShare(), sw = wrapEl.clientWidth, sh = wrapEl.clientHeight, p = fitPad(FIT_PAD, free, sw, sh);
+    const c = clampView({ x, y, width: w, height: h }, W, lay && lay.nodes.length ? lay.height : H, LEFT, free, maxWidth(free),  // the drawn height, not the 200 minimum
+      sw > 0 ? p / sw : 0, sh > 0 ? p / sh : 0);
     vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height;
     if (hoverEdge !== null) setEdgeHover(null);  // the line has moved from under the pointer
     updateNav();
