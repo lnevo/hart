@@ -356,6 +356,44 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("a.map(m.sourceKey)", ["MacIntel", "Win32", "Linux x86_64", ""]),
                          ["Cmd", "Ctrl", "Ctrl", "Ctrl"])
 
+    def test_line_chain_fades_with_distance(self) -> None:
+        """linkChain gives each box its fewest links from the nearer end of the line; fadeOf shows up to 2 fully, 3 and 4
+        fainter, further fainter still."""
+        edges = [{"from": f"u{i + 1}", "to": f"u{i}"} for i in range(5)] + [{"from": "u0", "to": "d0"}] + \
+                [{"from": f"d{i}", "to": f"d{i + 1}"} for i in range(5)]
+        got = self.run_js("(c => Object.fromEntries(c.steps))(m.linkChain(a, 'u0', 'd0', () => false))", edges)
+        self.assertEqual(got, {**{f"u{i}": i for i in range(6)}, **{f"d{i}": i for i in range(6)}})
+        self.assertEqual(self.run_js("a.map(m.fadeOf)", [0, 1, 2, 3, 4, 5, 9]), ["", "", "", "2", "2", "3", "3"])
+
+    def test_hover_skips_side_links_and_runners(self) -> None:
+        """hoverStop, hoverWalks: a hovered line's chain stops at runners and hubs and does not walk side links or a
+        link bridged over a stop; on the real map every side value is known, and a line out of build_signals.py no
+        longer reaches through the Store pull or the page captures."""
+        hub = "new Set(['h'])"
+        self.assertEqual(self.run_js(f"a.map(n => m.hoverStop(n, {hub}))",
+                                     [{"id": "r", "runner": True}, {"id": "h"}, {"id": "x", "kind": "human"}, {"id": "p"}]),
+                         [True, True, True, False])
+        self.assertEqual(self.run_js("a.map(e => m.hoverWalks(e, id => id === 'h'))",
+                                     [{"side": "check"}, {"via": ["q", "h"]}, {"via": ["q"]}, {}]),
+                         [False, False, True, True])
+        graph = json.loads(MAP.GRAPH.read_text())
+        self.assertLessEqual({e["side"] for e in graph["edges"] if "side" in e}, set(MAP.SIDES))
+        self.assertEqual(sorted(n["id"] for n in graph["nodes"] if n.get("runner")),
+                         ["tools/check.sh", "tools/schematic/build_panels.sh"])
+        call = ("(g => { const by = {}; g.nodes.forEach(n => { by[n.id] = n; }); const hub = m.liveHubs(g);"
+                " const stop = id => m.hoverStop(by[id], hub);"
+                " const live = g.edges.filter(e => by[e.from].status === 'live' && by[e.to].status === 'live');"
+                " return [...m.linkChain(live.filter(e => m.hoverWalks(e, stop)), 'tools/schematic/build_signals.py',"
+                " 'jmri/layouts/hart/data/schematic/signals.json', stop).boxes]; })"
+                "(JSON.parse(require('fs').readFileSync(a, 'utf8')))")
+        lit = self.run_js(call, str(MAP.GRAPH))
+        page = MAP.render(graph)  # the page carries both marks, or the hover cannot see them
+        self.assertIn('"side":"pull"', page)
+        self.assertIn('"runner":true', page)
+        self.assertIn("tools/schematic/build_cats_panel.py", lit)  # signals.json's reader
+        for past in ("tools/schematic/split_store.py", "tools/promo/tiktok_promo.py", "tools/check.sh"):
+            self.assertNotIn(past, lit)
+
     def test_line_note_names_both_ends_escaped(self) -> None:
         """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
         names = {"a": "a<b>.py", "b": "out & more"}

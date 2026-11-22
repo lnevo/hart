@@ -423,23 +423,26 @@ function placeTags(boxes, blocked = []) {
 }
 
 /* What a click on id lights up in a drawing of these edges: every box that feeds it (up) and every box it feeds
-   (down), not walking on through a box where stops(box) is true, and the links inside one side (lit). */
+   (down), not walking on through a box where stops(box) is true, and the links inside one side (lit). steps maps
+   each box of a side to its fewest links from id (upSteps, downSteps). */
 function chainOf(edges, id, stops) {
   const walk = (key, other) => {
-    const seen = new Set([id]);
-    let frontier = [id];
+    const seen = new Map([[id, 0]]);
+    let frontier = [id], k = 0;
     while (frontier.length) {
       const next = [];
+      k++;
       for (const v of frontier) {
         if (v !== id && stops(v)) continue;
-        for (const e of edges) if (e[other] === v && !seen.has(e[key])) { seen.add(e[key]); next.push(e[key]); }
+        for (const e of edges) if (e[other] === v && !seen.has(e[key])) { seen.set(e[key], k); next.push(e[key]); }
       }
       frontier = next;
     }
     return seen;
   };
-  const up = walk("from", "to"), down = walk("to", "from");
-  return { up, down, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
+  const upSteps = walk("from", "to"), downSteps = walk("to", "from");
+  const up = new Set(upSteps.keys()), down = new Set(downSteps.keys());
+  return { up, down, upSteps, downSteps, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
 }
 
 /* Whether box n is a cache or stamp store under .cache/: it saves time, it does not feed content, so a chain does
@@ -448,7 +451,8 @@ function isCache(n) {
   return !!n && [n.label, n.path].some(t => /(^|[\/\s])\.cache\//.test(t || ""));
 }
 
-/* Whether a chain stops at box n: the hosts lane (deploy, hosts, runtime apps), host and hand-work boxes, and caches. */
+/* Whether a chain stops at box n: the hosts lane (deploy, hosts, runtime apps), host and hand-work boxes, and caches.
+   Runner boxes ("runner": true, such as check.sh) stop only a hovered line's chain (see hoverStops in app()). */
 function stopsChain(n) {
   return !!n && (n.domain === "hosts" || n.kind === "host" || n.kind === "human" || isCache(n));
 }
@@ -474,14 +478,36 @@ function liveHubs(data) {
   return hubs(data.edges.filter(e => live.has(e.from) && live.has(e.to)));
 }
 
+/* Whether a hovered line's chain stops at box n (hubs: liveHubs): where any chain stops (stopsChain), a hub, or a
+   runner ("runner": true, such as check.sh, which only runs other steps). */
+function hoverStop(n, hubSet) {
+  return !!n && (stopsChain(n) || hubSet.has(n.id) || !!n.runner);
+}
+
+/* Whether a hovered line's chain walks link e: not a side link ("side": a check's read, a doc pointer, a Store pull
+   back into the sources, a folder mirror, a page capture, git history), which carries no content on, nor one
+   bridged over a hidden box where it would stop (stopAt(id) true for one of e.via). */
+function hoverWalks(e, stopAt) {
+  return !e.side && !(e.via || []).some(stopAt);
+}
+
 /* The chain one link from -> to belongs to: everything that feeds from and everything to feeds (chainOf, not
    walking on through a box where stops(box) is true, an end of the link included: a line out of a host does not
    light everything deployed to it), and the links inside it (lit). */
 function linkChain(edges, from, to, stops) {
-  const up = stops(from) ? new Set([from]) : chainOf(edges, from, stops).up;
-  const down = stops(to) ? new Set([to]) : chainOf(edges, to, stops).down;
+  const upSteps = stops(from) ? new Map([[from, 0]]) : chainOf(edges, from, stops).upSteps;
+  const downSteps = stops(to) ? new Map([[to, 0]]) : chainOf(edges, to, stops).downSteps;
+  const up = new Set(upSteps.keys()), down = new Set(downSteps.keys());
   const lit = e => (e.from === from && e.to === to) || (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to));
-  return { boxes: new Set([...up, ...down]), lit };
+  // steps: each box's fewest links from the nearer end of the line (its ends 0), for the fade with distance
+  const steps = new Map(upSteps);
+  downSteps.forEach((k, v) => steps.set(v, Math.min(k, steps.has(v) ? steps.get(v) : k)));
+  return { boxes: new Set([...up, ...down]), lit, steps };
+}
+
+/* How faint a box or link steps links from a hovered line shows: "" (full) up to 2, "2" for 3 and 4, "3" beyond. */
+function fadeOf(steps) {
+  return steps <= 2 ? "" : steps <= 4 ? "2" : "3";
 }
 
 /* The free area is the part of the screen the reader can see the map in: below the toolbar and clear of the info
@@ -610,7 +636,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -646,8 +672,12 @@ function app() {
   /* The hubs of the live map (liveHubs), where a hovered line's chain stops too; worked out once, so filters do not move
      them. A closed folder holding a hub is a hub, and a link bridged over a hidden hub (its via) is not walked. */
   const hubSet = liveHubs(DATA);
-  const endsHover = id => endsChain(id) || hubSet.has(id) || (groups.members[id] || []).some(m => hubSet.has(m));
-  const overHub = e => (e.via || []).some(v => hubSet.has(v));
+  /* A hovered line's chain also stops at runner boxes ("runner": true: check.sh, build_panels.sh, which only run other
+     steps) and does not walk side links ("side": a check's read, a doc pointer, a Store pull back into the sources, a
+     folder mirror, a page capture, git history), which carry no content on to the next step. */
+  const isHub = id => hoverStop(nodeOf(id), hubSet);
+  const endsHover = id => isHub(id) || (groups.members[id] || []).some(isHub);
+  const overHub = e => !hoverWalks(e, isHub);
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
@@ -751,7 +781,8 @@ function app() {
       const rank = id => (id === hoverId || hoverEnds.has(id) ? 0 : has(id, "hn") ? 1 : has(id, "sel") || has(id, "hit") ? 2 : 3);
       const lit = lay.nodes.filter(n => rank(n.id) < 3 &&
         sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
-      lit.sort((p, q) => rank(p.id) - rank(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
+      const near = id => (hoverSteps && hoverSteps.has(id) ? hoverSteps.get(id) : 0);  // a hovered line's nearer boxes grow first
+      lit.sort((p, q) => rank(p.id) - rank(q.id) || near(p.id) - near(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
       const area = { left: 0, top: a.top, right: a.right, bottom: a.bottom };
       const boxes = lit.map(n => growRect(sx(n.x + n.w / 2), sy(n.y + n.h / 2), n.w * s * k / 2, n.h * s * k / 2, area, n.id === hoverId));
       const blocked = [...laneTags.querySelectorAll("span"), legend].map(t => {  // the lane names and the legend sit over the map
@@ -781,7 +812,7 @@ function app() {
   const SOURCE_KEY = sourceKey(navigator.platform || navigator.userAgent);
   const etip = document.createElement("div");
   etip.id = "etip"; etip.className = "panel"; etip.hidden = true; document.getElementById("stage").append(etip);
-  let hoverEdge = null;
+  let hoverEdge = null, hoverSteps = null;  // the hovered line and its boxes' steps from it
   function placeTip() {
     if (etip.hidden || !ptr) return;
     const w = etip.offsetWidth, h = etip.offsetHeight;
@@ -791,18 +822,29 @@ function app() {
   function setEdgeHover(i) {
     if (i === hoverEdge || !svg) return;
     if (hoverId) setHover(null);
-    svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
+    svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn", "he2", "he3", "hn2", "hn3"));
     const e = i === null ? null : lay.edges[i];
-    hoverEdge = e ? i : null;
+    hoverEdge = e ? i : null; hoverSteps = null;
     svg.classList.toggle("hovering", !!e);
     svg.classList.toggle("lhover", !!e);  // the cards it grows let the pointer through to the line
     etip.hidden = !e;
     hoverEnds = new Set(e ? [e.from, e.to] : []);
     if (e) {  // the whole chain the line is on: what feeds its start and what its end feeds
-      const c = linkChain(sub.edges.filter(x => !overHub(x)), e.from, e.to, endsHover);  // stops at hubs too: a hover shows the line's own pipeline
-      edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
+      // a side link carries nothing from its start, so hovering one lights its start alone on that side
+      const c = linkChain(sub.edges.filter(x => !overHub(x)), e.from, e.to, id => endsHover(id) || (!!e.side && id === e.from));  // stops at hubs too: a hover shows the line's own pipeline
+      // nearer boxes and links show fully, further ones fainter (fadeOf): a link takes its further end's distance
+      const fade = v => fadeOf(c.steps.get(v) || 0);
+      hoverSteps = c.steps;
+      edgeEls.forEach(el => {
+        const f = el.dataset.from, t = el.dataset.to;
+        if (!c.lit({ from: f, to: t })) return;
+        el.classList.add("he");
+        const k = fadeOf(Math.max(c.steps.get(f) || 0, c.steps.get(t) || 0));
+        if (k) el.classList.add("he" + k);
+      });
+      edgeEls[i].classList.remove("he2", "he3");
       edgeEls[i].classList.add("he");
-      c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
+      c.boxes.forEach(v => { if (!nodeEl[v]) return; nodeEl[v].classList.add("hn"); if (fade(v)) nodeEl[v].classList.add("hn" + fade(v)); });
       etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (() => {
         const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && lastPointer !== "touch" && `${SOURCE_KEY}-click: the box it comes from`].filter(Boolean);
         return hint.length ? `<div class="off">${hint.join(" · ")}</div>` : "";
@@ -814,7 +856,7 @@ function app() {
   function setHover(id) {
     if (id === hoverId || !svg) return;
     if (hoverEdge !== null) setEdgeHover(null);
-    svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
+    svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn", "he2", "he3", "hn2", "hn3"));
     hoverId = id && nodeEl[id] ? id : null;
     svg.classList.toggle("hovering", !!hoverId);
     if (hoverId) {
@@ -893,7 +935,7 @@ function app() {
     nodeEl = {};
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
-    magnified = new Set(); degree = {}; edgesAt = {}; hoverId = null; hoverEdge = null; hoverEnds = new Set(); etip.hidden = true; laneBack = null;
+    magnified = new Set(); degree = {}; edgesAt = {}; hoverId = null; hoverEdge = null; hoverSteps = null; hoverEnds = new Set(); etip.hidden = true; laneBack = null;
     closeLens();  // the lens holds a copy of the old drawing
     for (const k in layNode) delete layNode[k];
     lay.nodes.forEach(n => (layNode[n.id] = n));
@@ -1226,7 +1268,7 @@ function app() {
     lensSvg.classList.remove("far", "hovering");
     const hit = lensSvg.querySelector(".eh");
     if (hit) hit.parentNode.remove();
-    lensSvg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
+    lensSvg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn", "he2", "he3", "hn2", "hn3"));
     lensSvg.querySelectorAll(".node.mag").forEach(g => {  // the lens shows the boxes at their own size
       const n = layNode[g.dataset.id];
       g.classList.remove("mag");
