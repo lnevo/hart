@@ -45,7 +45,7 @@ fi
 fail=0
 # Local traced stamps (tools/audit/check_stamps.py, tools/audit/traced.py): a job whose recorded reads (the files its
 # Python opened, probed and listed) match its last pass is skipped, and prints "<job>: current, skipped"; a job that
-# ran a program the trace cannot see falls back to its declared folders. CI (CI is set), FULL=1 and an audit run never
+# ran a program the trace cannot see falls back to its declared folders. CI (CI is set; but see CHECK_SKIP_FROM below), FULL=1 and an audit run never
 # skip (FULL=1 records). CHECK_ONLY=<regex> runs only the
 # jobs whose name matches (a quick look at one job). CHECK_AUDIT=<folder> logs the repo files each job's Python
 # opens, for `check_stamps.py audit-report` and tools/audit/tests/test_check_stamps.py.
@@ -55,6 +55,31 @@ STAMPS=1
 RECORD=1
 if [[ -n "${CI:-}" || "${FULL:-}" == 1 || -n "${CHECK_AUDIT:-}" ]]; then STAMPS=0; fi
 if [[ -n "${CI:-}" ]]; then RECORD=0; fi
+# CI only (.github/workflows/check.yml, tools/ci/stamp_gate.py): CHECK_RECORD_TO=<folder> is main's push run, which runs
+# every job and records the stamps of the ones that passed there; CHECK_SKIP_FROM=<folder> is a pull request run with
+# main's stamps for its merge base, which skips a job whose inputs are byte-identical to that pass and records
+# nothing. CHECK_SKIP_NOTE says where the stamps came from in each skipped job's line. FULL=1 and CHECK_AUDIT still
+# run everything. Off CI both are refused: the Mac and WSL keep their own stamps (paths differ).
+if [[ -n "${CHECK_RECORD_TO:-}" || -n "${CHECK_SKIP_FROM:-}" ]]; then
+  if [[ -z "${CI:-}" ]]; then echo "CHECK_RECORD_TO and CHECK_SKIP_FROM are for CI runs only" >&2; exit 2; fi
+  if [[ -n "${CHECK_RECORD_TO:-}" && -n "${CHECK_SKIP_FROM:-}" ]]; then
+    echo "CHECK_RECORD_TO and CHECK_SKIP_FROM together: a run either records or skips" >&2; exit 2
+  fi
+  if [[ -n "${CHECK_RECORD_TO:-}" ]]; then
+    mkdir -p "$CHECK_RECORD_TO" || exit 2
+    CHECK_STAMPS_DIR="$(cd "$CHECK_RECORD_TO" && pwd)"
+    RECORD=1
+  elif [[ "${FULL:-}" != 1 && -z "${CHECK_AUDIT:-}" ]]; then
+    [[ -d "$CHECK_SKIP_FROM" ]] || { echo "CHECK_SKIP_FROM=$CHECK_SKIP_FROM: no such folder" >&2; exit 2; }
+    CHECK_STAMPS_DIR="$(cd "$CHECK_SKIP_FROM" && pwd)"
+    rm -f "$CHECK_STAMPS_DIR/filehash.json"      # keyed on another checkout's mtimes: hash every file again
+    STAMPS=1
+    echo "Stamps from ${CHECK_SKIP_NOTE:-$CHECK_SKIP_FROM}: a job whose inputs match them is skipped"
+  fi
+  export CHECK_STAMPS_DIR
+fi
+SKIP_NOTE="current"
+if (( STAMPS )) && [[ -n "${CHECK_SKIP_FROM:-}" ]]; then SKIP_NOTE="${CHECK_SKIP_NOTE:-current on main}"; fi
 if [[ -n "${CHECK_AUDIT:-}" ]]; then
   mkdir -p "$CHECK_AUDIT"
   CHECK_AUDIT="$(cd "$CHECK_AUDIT" && pwd)"
@@ -96,9 +121,10 @@ later() {
       (( src == 0 || src == 1 )) || src=2
       if (( src == 0 )) && [[ ! -s "$JOBS/$n.stamp" ]]; then src=2; fi
       if (( src == 0 && ! STAMPS )); then src=1; fi       # FULL=1 or an audit run: run it, and record
+      if (( src == 1 && ! RECORD )); then src=2; fi       # a pull request run on main's stamps: run it, untraced
     fi
     if (( src == 0 )); then
-      echo "$name: current, skipped" >"$JOBS/$n.log"
+      echo "$name: $SKIP_NOTE, skipped" >"$JOBS/$n.log"
       : >"$JOBS/$n.skip"
       rc=0
     else
@@ -148,7 +174,13 @@ collect() {
     fi
     cat "$JOBS/$i.log"
   done
-  if (( skipped > 0 )); then echo "$skipped of ${#names[@]} jobs current, skipped (FULL=1 runs them all)"; fi
+  if (( skipped > 0 )); then
+    if [[ "$SKIP_NOTE" == current ]]; then
+      echo "$skipped of ${#names[@]} jobs current, skipped (FULL=1 runs them all)"
+    else
+      echo "$skipped of ${#names[@]} jobs $SKIP_NOTE, skipped; $((${#names[@]} - skipped)) ran (the full-ci label runs them all)"
+    fi
+  fi
 }
 # Unit tests compare fixtures with the checkout's tables file, so HART_TABLES never reaches them.
 unit() {
