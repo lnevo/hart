@@ -246,16 +246,15 @@ class LayoutTest(unittest.TestCase):
                                         {"from": "a", "to": "b", "via": ["s", "t"]}])  # the s <-> t loop ends
 
     def test_hidden_chain_stops_are_left_out_not_bridged(self) -> None:
-        """hideBoxes: a hidden box that drop() marks (a host) goes with its links; a hidden deploy script between a
-        data file and the host is bridged over, so the file still reaches the host; with everything hidden, nothing
-        is left."""
+        """hideBoxes: a hidden box drop() marks (a chain stop: the host, the deploy script) goes with its links; a
+        hidden box it does not mark is bridged over; with everything hidden, nothing is left."""
         nodes = [{"id": i} for i in ("data", "deploy", "pi", "pull", "repo")]
         edges = [{"from": "data", "to": "deploy"}, {"from": "deploy", "to": "pi"}, {"from": "pi", "to": "pull"},
                  {"from": "pull", "to": "repo"}]
-        call = "m.hideBoxes(a.nodes, a.edges, id => a.hide.includes(id), id => id === 'pi')"
+        call = "m.hideBoxes(a.nodes, a.edges, id => a.hide.includes(id), id => ['pi', 'deploy'].includes(id))"
         scripts = self.run_js(call, {"nodes": nodes, "edges": edges, "hide": ["deploy", "pull"]})
         self.assertEqual([n["id"] for n in scripts["nodes"]], ["data", "pi", "repo"])
-        self.assertEqual({(e["from"], e["to"]) for e in scripts["edges"]}, {("data", "pi"), ("pi", "repo")})
+        self.assertEqual({(e["from"], e["to"]) for e in scripts["edges"]}, {("pi", "repo")})  # no data -> pi through the deploy
         host = self.run_js(call, {"nodes": nodes, "edges": edges, "hide": ["pi"]})
         self.assertEqual([n["id"] for n in host["nodes"]], ["data", "deploy", "pull", "repo"])
         self.assertEqual({(e["from"], e["to"]) for e in host["edges"]}, {("data", "deploy"), ("pull", "repo")})

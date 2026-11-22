@@ -344,7 +344,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 </div></details>
 <details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
 <b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">an unticked kind is bridged over, its links running straight through; host and hand-work boxes, where chains stop, are left out with their links</span><div id="kindlist"></div>
+<b>Kinds</b> <span class="note">an unticked kind is bridged over, its links running straight through; its boxes where chains stop (the hosts lane, host and hand work) are left out with their links</span><div id="kindlist"></div>
 <b>Also show</b>
 <label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
 <label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
