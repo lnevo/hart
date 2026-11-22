@@ -43,7 +43,7 @@ const plants=y=>[
   "A. Stucki, an occasional boxcar",
   "PC&Y at the Y Interchange: half P&LE, half "+(y<1976?"Penn Central":"Conrail")];
 const SI=["Plant tracks are not main track. Off the East Runner Main, GCOR 6.28 applies.",
-  "For the game: the East Runner Main is main track inside yard limits (GCOR 6.13). There are no block signals.",
+  "The East Runner Main is main track inside yard limits (GCOR 6.13). No block signals.",
   "Weigh what the switching order says at the yard office scale. Cars cross it at a walk."];
 
 const NevilleRuns={
@@ -59,7 +59,7 @@ j105:{pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981"
     for(let i=1;i<=drags;i++)work.push(`Shove drag ${i} of ${drags} to the car dumper`);
     work.push("Fuel #4 between trips","Tie up in the West Yard by 3:30");
     const steps=[
-      H.info("South Yard","On duty, 7:00",`<p>You are the conductor of #105, the ore job, with SW9 #4. Iron ore for Shenango's blast furnaces comes onto the island over the PC&amp;Y from Scully Yard. Your job shoves it from the West Yard to the Shenango car dumper in ten-car drags.</p><p>The trainmaster has written today's switching orders: ${drags} drags. Mark Connolly called this the clean end of the plant.</p>`,"Go to work"),
+      H.info("South Yard","On duty, 7:00",`<p>You are the conductor of #105, the ore job, with SW9 #4. Iron ore for Shenango's blast furnaces comes onto the island over the PC&amp;Y from Scully Yard. Your job shoves it from the West Yard to the Shenango car dumper in ten-car drags.</p><p>The trainmaster has written today's switching orders: ${drags} drags. This is the clean end of the plant, and the senior men hold the job.</p>`,"Go to work"),
       ask(H,Q.conductor,{body:"Your brakeman is new to #105 and the engineer has his own way of making up a drag. For the work on the switching order, whose instructions do they follow?"}),
       ask(H,Q.before,{title:gang?"The track gang at S1":"The car knocker",body:gang?"The track gang is working at the west end of S1, beside the South Runner. #4 is ready to move. What does the engineer do first?":"The car knocker is inspecting hoppers on the next track. #4 is ready to move. What does the engineer do first?"}),
       H.mv("srun",14,"Ten loads made up on the South Runner"),H.done(0),
@@ -106,7 +106,7 @@ j110:{pace:3.5,code:"#110",name:"furnace job",year:"1984",dateLine:"January 1984
     const ladles=3,spread=H.R()<.6,cast=H.pick(["9:40","10:10","10:40"]);
     const work=["Furnace coke from the battery to F1","Switch the ladles into the furnace's order","Take three ladles of hot metal out of the ladle house","Pull the two loads at the A pig machine; spot pig iron on E1","Bring the empty pig gons out of the East Yard"];
     const steps=[
-      H.info("East Yard","On duty, 7:00",`<p>January 1984, daylight. You are the conductor of #110, the furnace job. The blog names no engine for it; the game gives you SW9 #6. Your territory is the east end: Shenango's two blast furnaces, A and B, the pig machine at A, the ladle house and the coke battery.</p><p>The trainmaster's orders say B furnace will cast about ${cast}. Before then the furnace needs its coke and its ladles in order.</p>`,"Go to work"),
+      H.info("East Yard","On duty, 7:00",`<p>January 1984, daylight. You are the conductor of #110, the furnace job, with SW9 #6. Your territory is the east end: Shenango's two blast furnaces, A and B, the pig machine at A, the ladle house and the coke battery.</p><p>The trainmaster's orders say B furnace will cast about ${cast}. Before then the furnace needs its coke and its ladles in order.</p>`,"Go to work"),
       H.mv("coke",8,"At the coke battery"),
       H.ask({sec:"pov",src:"PV p.130",url:"45184819646",title:"Furnace coke",body:"You pull a string of furnace coke from the battery. Where does it go before F1 at the furnace?",
         right:"Across the yard office scale, to be weighed",wrong:[["Straight to F1: the furnace weighs its own coke"],["To the Y Interchange for the PC&Y"],["To E1 for the barge"]],
@@ -130,7 +130,7 @@ j110:{pace:3.5,code:"#110",name:"furnace job",year:"1984",dateLine:"January 1984
       H.mv("eyard",12,"Ladles switched E6 to E4"),H.done(1)
     ];
     if(spread)steps.push(
-      H.info("East Yard","E9 has spread",`<p>On E9, the heat track in the East Yard scrap yard, ladles stand until they are very hot. This January the heat has spread the rails. In January 1984 that happened on the real E9 (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/47021729095" rel="noopener">p.77</a>). The track gang comes out and puts working limits on E9.</p>`),
+      H.info("East Yard","E9 has spread",`<p>On E9, the heat track in the East Yard scrap yard, ladles stand until they are very hot. This January the heat has spread the rails (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/47021729095" rel="noopener">p.77</a>). The track gang comes out and puts working limits on E9.</p>`),
       ask(H,Q.working,{title:"Working limits on E9",body:"You need one more hot ladle off E9. The track gang's foreman has working limits on the track. How may #6 move inside them?"}));
     steps.push(
       H.mv("ladle",6,"At the ladle house"),
@@ -223,7 +223,7 @@ j205:{pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in
     work.push("Run around the Aristech tank cars on S9","Empty ladles back to the Y Interchange","Tie up by midnight");
     const steps=[
       H.info("the yard office","On duty, 4:00 p.m.",`<p>1987. You are the conductor of #205, the second trick: 4:00 p.m. to midnight, east end and west end as the plant needs. You have switcher #3. On the bulletin board in the yard office are the trainmaster's switching orders for the night, a lantern, the base radio and the track cards.</p>`,"Go to work"),
-      H.ask({sec:"gcor",src:"GC · 1.46",title:"The trainmaster's orders",body:"For the game, a yardmaster is on duty tonight. Under GCOR, whose instructions do the yard crews follow?",
+      H.ask({sec:"gcor",src:"GC · 1.46",title:"The trainmaster's orders",body:"A yardmaster is on duty tonight. Under GCOR, whose instructions do the yard crews follow?",
         right:"The yardmaster's: he directly supervises the yard crews",wrong:[["The conductor's, on everything"],["The PC&Y conductor's at the interchange"],["The engineer's, who runs the engine"]],
         why:"GCOR 1.46: the yardmaster directly supervises yard crews, clerks and others in the yard, and where a yardmaster is on duty, train, engine and yard crews follow the yardmaster's instructions. On the P&OV the trainmaster wrote the switching orders."}),
       H.mv("yint",16,"Interchange pulled from the Y"),
@@ -243,10 +243,10 @@ j205:{pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in
         why:"GCOR 1.47A: the conductor must advise the engineer and train dispatcher of any restriction placed on equipment being handled."}),
       H.mv("s9",8,"Tank cars run around on S9"),H.done(k),
       H.info("East Runner","Dark on the East Runner","<p>It is dark when you head east along the back channel on the East Runner Main, past the Lone Star cement tower toward the ladle house.</p>"),
-      H.ask({sec:"yl",src:"GC · 6.13",title:"No block signals",body:"For the game the East Runner Main is main track inside yard limits, with no block signals. At what speed do you run?",
+      H.ask({sec:"yl",src:"GC · 6.13",title:"No block signals",body:"The East Runner Main is main track inside yard limits, with no block signals. At what speed do you run?",
         right:"Restricted speed: able to stop within half the range of vision, not over 20 MPH",wrong:[["Track speed, since no train is lined up against you"],["Any speed: yard limits need no protection"],["10 MPH, as on a yard track"]],
         why:"GCOR 6.13: within yard limits, all movements at restricted speed unless under a block signal more favorable than Approach. GCOR 6.27: restricted speed allows stopping within half the range of vision, looking out for broken rail, not over 20 MPH."}));
-    if(crane)steps.push(H.info("East Runner","A crane on the main",`<p>Your headlight picks up a Shenango track crane, hung up on the East Runner Main with five loads. At restricted speed you stop short of it. In 1987 Jack Burik found the same thing there; the union grieved it and won (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371" rel="noopener">p.49</a>).</p><p>You wait while it is moved.</p>`,"Wait it out",()=>{H.S.parAdd+=H.addTime(25);H.log("Held for the Shenango crane on the East Runner")}));
+    if(crane)steps.push(H.info("East Runner","A crane on the main",`<p>Your headlight picks up a Shenango track crane, hung up on the East Runner Main with five loads (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371" rel="noopener">p.49</a>). At restricted speed you stop short of it.</p><p>You wait while it is moved.</p>`,"Wait it out",()=>{H.S.parAdd+=H.addTime(25);H.log("Held for the Shenango crane on the East Runner")}));
     steps.push(
       H.mv("ladle",14,"Empty ladles lifted at the house"),
       H.ask({sec:"sig",src:"GC · 5.8.3",title:"The whistle fails",body:"At 10 p.m. #3's whistle fails, and there is no other unit to lead. You still have the main crossing ahead. What now?",
@@ -263,7 +263,7 @@ j205:{pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in
 /* ===================== #305, midnight ===================== */
 j305:{pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a winter night, early 1980s",start:0,end:420,engine:"#3",units:{"#3":"scale"},
   cement:"Marquette",plants:plants(1981),si:SI,endPlace:"S9",tieUp:"#305 tied up at {t}, its engine on S9 for sand.",
-  coda:"The one task a caption names for the midnight job is the last one: the crew spotted the engine on S9 for sand and went home. In a 1980 photo that engine is #3, just west of the scale, with the track gang loading sand by the bucket (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">p.99</a>).",
+  coda:"The midnight crews finished by spotting the engine on S9 for sand and going home. In a 1980 photo that engine is #3, just west of the scale, with the track gang loading sand by the bucket (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">p.99</a>).",
   build(H){
     const work=["Pull the night's coke from the battery and weigh it","Coke to F1 for the morning","Line the West Yard over C9 for #105's first drag","Put #3 away for the day crew"];
     const steps=[
@@ -285,7 +285,7 @@ j305:{pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a wi
       H.ask({sec:"gcor",src:"GC · 6.28",title:"C9 is frozen",body:"C9 will not come over. You and the brakeman both bar on it and the points stop short of the stock rail. May #3 move over it?",
         right:"No: the move must stop short of a switch lined improperly",wrong:[["Yes, slowly, and let the wheels push the points over",{end:true,endText:"#3 went on the ground at the frozen C9 switch."}],["Yes, if the brakeman stands on the lever"],["Yes, at restricted speed"]],
         why:"GCOR 6.28: off main track, move at a speed that allows stopping short of a train, engine, car, men or equipment fouling the track, stop signal, or derail or switch lined improperly."}),
-      H.info("West Yard","Ten below","<p>In the early 1980s at −10 °F, Mark Connolly and John Iwanonkiw could not throw the frozen C9 switch. Bill McEwen Sr. told them: “If I could have thrown that switch you two would have both been up on the road.” Mark adds: “In this case we really could not throw the switch over.”</p><p>You report it to the yard office for the track gang and work the other ladder.</p>",
+      H.info("West Yard","Ten below","<p>Nobody throws C9 at ten below. In the early 1980s Bill McEwen Sr. told two crewmen who could not: “If I could have thrown that switch you two would have both been up on the road.”</p><p>You report it to the yard office for the track gang and work the other ladder.</p>",
         "Work around it",()=>{H.S.parAdd+=H.addTime(20);H.log("C9 frozen; reported, worked around")}),
       H.done(2),
       H.mv("srun",16),
@@ -344,7 +344,7 @@ extra:{pace:4,code:"EXTRA",name:"called off the extra board",year:"1988",dateLin
 
 /* ===================== South Yard: the yardmaster ===================== */
 ym:{pace:3,code:"YM",name:"yardmaster at South Yard",year:"1990",dateLine:"early December 1990",start:420,end:930,engine:"YM",units:{"YM":"scale","#4":"wyard","#6":"eyard"},
-  cement:"Lone Star",plants:plants(1990),foundryClosed:true,si:["You are the yardmaster in the yard office by South Yard. On the P&OV the trainmaster wrote the switching orders and did the weighing; for the game that is your desk.",SI[0],SI[1]],
+  cement:"Lone Star",plants:plants(1990),foundryClosed:true,si:["You are the yardmaster in the yard office by South Yard: the switching orders, the weigh and the yard are yours.",SI[0],SI[1]],
   endPlace:"the yard office",tieUp:"The day's work at South Yard was done at {t}.",
   coda:"B furnace's last casts came in December 1990, when the <i>Post-Gazette</i> expected it to run dry on the 5th or 6th, and the foundry had closed on 30 November by the same report. After that the east end was a coke plant (<a href=\"../library/pittsburgh-ohio-valley-railway.html\">the P&amp;OV page</a>).",
   build(H){
@@ -352,7 +352,7 @@ ym:{pace:3,code:"YM",name:"yardmaster at South Yard",year:"1990",dateLine:"early
     const work=["Give #4 (#105) and #6 (#110) their orders","Weigh #4's coke and the scrap loads","Spot gons for the scrap at A furnace","Take the PC&Y interchange","Keep the leads clear of fouled cars"];
     const moveU=(u,to,min,note)=>H.mv(to,min,note,u);
     const steps=[
-      H.info("the yard office","7:00, the yard office",`<p>Early December 1990. You are the yardmaster at South Yard. The yard office: a Toledo scale, a lantern, the base radio, phones, track cards, a hardhat, and a horseshoe above the door. “Yep, that's a yard office alright.”</p><p>A furnace is being cut up for scrap. B is running its last days. #105 has SW9 #4 in the West Yard; the game gives #110 SW9 #6, in the East Yard.</p>`,"Open the day"),
+      H.info("the yard office","7:00, the yard office",`<p>Early December 1990. You are the yardmaster at South Yard. The yard office: a Toledo scale, a lantern, the base radio, phones, track cards, a hardhat, and a horseshoe above the door. “Yep, that's a yard office alright.”</p><p>A furnace is being cut up for scrap. B is running its last days. #105 has SW9 #4 in the West Yard; #110 has SW9 #6 in the East Yard.</p>`,"Open the day"),
       H.ask({sec:"gcor",src:"GC · 1.46",title:"Your job",body:"What does a yardmaster answer for?",
         right:"Prompt movement of cars and proper make-up of trains, supervising the yard crews and clerks",wrong:[["Running the engines when the crews are short"],["Inspecting and repairing cars"],["Authorizing trains on the PC&Y"]],
         why:"GCOR 1.46: the yardmaster directly supervises yard crews, clerks and others in the yard, and is responsible for prompt movement of cars and proper make-up of trains."}),
@@ -378,7 +378,7 @@ ym:{pace:3,code:"YM",name:"yardmaster at South Yard",year:"1990",dateLine:"early
         right:"The conductor: he must advise the engineer of any restriction on equipment being handled",wrong:[["Nobody; the tag on the car is enough"],["The PC&Y, when the car is interchanged"],["The engineer finds out at the dumper"]],
         why:"GCOR 1.47A: the conductor must advise the engineer and train dispatcher of any restriction placed on equipment being handled."}),
       moveU("#4","f1",14,"#4: coke on F1"),
-      H.info("the yard office","The PC&Y is coming","<p>The radio: the PC&amp;Y is bringing ore from Scully Yard. For the game, a PC&amp;Y transfer runs the main track from the Y Interchange, inside yard limits.</p>"),
+      H.info("the yard office","The PC&Y is coming","<p>The radio: the PC&amp;Y transfer is coming onto the island with ore from Scully Yard. From the Y Interchange it runs the main track, inside yard limits.</p>"),
       H.ask({sec:"yl",src:"GC · 6.13",title:"Who gives way?",body:"#6 wants to use the same main track to bring scrap loads west while the PC&Y transfer, a train, approaches. Inside yard limits, who gives way?",
         right:"#6: engines give way to trains as they approach",wrong:[["The PC&Y transfer, since it is a guest on the island"],["Whoever got there first"],["Neither: inside yard limits nobody gives way"]],
         why:"GCOR 6.13: trains and engines may use the main track without protecting against other trains or engines, but engines give way to trains as they approach and must not delay passenger trains."}),
