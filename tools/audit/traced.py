@@ -517,6 +517,9 @@ def keep(path: str, root: str, skip: tuple[str, ...]) -> str | None:
         return rel
     if p.startswith(skip) or p + os.sep in skip:
         return None
+    real = os.path.realpath(p)          # a link to the interpreter (uv's cpython-3.13-<platform> folder)
+    if real != p and (real.startswith(skip) or real + os.sep in skip):
+        return None
     return p
 
 

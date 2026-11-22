@@ -264,7 +264,15 @@ class KeepTest(unittest.TestCase):
             with self.subTest(path=p):
                 self.assertIsNone(traced.keep(p, root, skip))
         self.assertEqual(traced.keep("/r/.git", root, skip), ".git")          # a worktree's .git file
-        self.assertEqual(traced.keep("/home/u/Documents/plan.any", root, skip), "/home/u/Documents/plan.any")
+        with tempfile.TemporaryDirectory() as home:
+            target = Path(home) / "cpython-3.13.7-platform"
+            target.mkdir()
+            link = Path(home) / "cpython-3.13-platform"       # uv's link to the interpreter it installed
+            link.symlink_to(target)
+            only_interpreter = (os.path.realpath(target) + os.sep,)
+            self.assertEqual(traced.keep(str(target / "x"), root, ()), str(target / "x"))
+            self.assertIsNone(traced.keep(str(link), root, only_interpreter))
+        self.assertEqual(traced.keep("/Volumes/u/Documents/plan.any", root, skip), "/Volumes/u/Documents/plan.any")
 
     def test_a_pyc_stands_for_its_source(self) -> None:
         traced._state.setdefault("prefix", None)
