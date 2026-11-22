@@ -29,6 +29,9 @@ The `whats-left` skill reads this page and drops everything it excludes. Add a r
 | MRE Electrical SOQ | Submitted and frozen. Never rebuild, refill or "tidy" its inputs; unfreeze only for evaluator feedback, and update `SUBMITTED.md` in the same PR. | [`docs/ap/electrical/SUBMITTED.md`](../docs/ap/electrical/SUBMITTED.md) | 2026-11-15 |
 | LCOS mimic publishing fake feedback on the Pi's live broker | Accepted. Never list as a risk or loose end; do not propose a separate broker for the owner's environments. | None; not tracked | 2026-11-12 |
 | Site wording about JMRI and CATS | Say they are stock installs as plain fact. Never "almost stock", and no sections that defend the approach. | None; a writing rule | 2026-11-12 |
+| Helix-top intermediate signals (A75/B75) | Dropped; the home signals at 129 and 135 govern the helix. Never list or re-propose them. | [ADR-031](decisions/ADR-031-signal-rule.md) | 2026-11-19 |
+| The Main West turnback (AnyRail draft 3) | Dropped and its branch deleted. Never propose it again. | [ADR-026](decisions/ADR-026-anyrail-5-3c-master-plan.md) | 2026-11-20 |
+| Further Layout Editor text-size steps (condensed-font metrics, helix label size, step C3) | Dropped after step C1 and the 14 px station names shipped (#898). The topic is closed; never list or propose it. | None; not tracked | 2026-11-21 |
 | Stock JMRI and CATS operating risks (MQTT startup race, CATS load risk) | Leave out of any "what is pending" answer. They are standing notes, not open work. | Operating notes in [`STATUS.md`](STATUS.md) | 2026-11-01 |
 
 ## Future goals
