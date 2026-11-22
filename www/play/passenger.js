@@ -128,14 +128,14 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
     const meetQ=(set==="A"?Qs.both:set==="B"?Qs.boOnly:Qs.rightOver)(nm);
     const clearQ=mode==="wire"?H.ask(RE.Q.wire()):lazy(()=>mode==="mismatch"?RE.Q.fix(shown.join(", "),nums.join(", ")):RE.Q.who(shown.join(", "),nums.join(", ")));
     const orderScenes=[
-      RE.paper(H,{place:"Carnegie",train:nm+" South",orders,shown,at:S.clock+4,wire:mode==="wire",note:set==="B"?" The operator says No 92 is reported running late.":""}),
-      clearQ,RE.take(H,G,orders,wrongClear),t92Late];
+      RE.paper(H,{place:"Carnegie",train:nm+" South",orders,shown,at:()=>S.clock+4,wire:mode==="wire",note:set==="B"?" The operator says No 92 is reported running late.":""}),
+      clearQ,RE.take(H,G,orders,wrongClear,mode==="wire"),t92Late];
     // the order that changes No 92's time or the meeting point first, then the meet, then the foreign engine in the last order
     const orderQs=[H.ask(first),H.ask(meetQ),H.ask(Qs.foreign)];
     if(F)orderQs.unshift(H.ask(Qs.formF),H.ask(Qs.flags));
 
     const steps=[
-      H.info("Carnegie","Called for 9:06",`<p>You are the conductor of No 307 South, the 9:06 first-class train to Washington on the Pennsylvania Railroad's Chartiers Branch (${lib("Railroads of the Chartiers Valley")}). The train came in from Pittsburgh at 9:03 behind a G5s, engine 5741, with a baggage-mail car and two coaches. The crew is the engineman, the fireman, the flagman and the head brakeman.</p><p>The time-table is on the right. No 307 is the column to read. The orders for the day are with the operator at the Carnegie office.</p>`,"Go to the office"),
+      H.info("Carnegie","Called for 9:06",`<p>You are the conductor of No 307 South, the 9:06 first-class train to Washington on the Pennsylvania Railroad's Chartiers Branch (${lib("Railroads of the Chartiers Valley")}). The train came in from Pittsburgh at 8:48 behind a G5s, engine 5741, with a baggage-mail car and two coaches. The crew is the engineman, the fireman, the flagman and the head brakeman.</p><p>The time-table is on the right. No 307 is the column to read. The orders for the day are with the operator at the Carnegie office.</p>`,"Go to the office"),
       H.ask(Qs.rule5),H.ask(Qs.board),
       ...orderScenes,...orderQs,H.done(0),
       ()=>{S.clock=Math.max(S.clock,DEPART-2);H.log("Brake test done");H.next()},
@@ -147,7 +147,7 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
       goTo(BOYCE,"Boyce"),
       // the stop on the main, a minute out of Boyce
       ()=>{G.moving="Boyce and Hills";G.to=HIL;S.clock+=1;H.log("Stopped on the main");H.renderStatus();H.next()},
-      H.info("Between Boyce and Hills","Stopped on the main",`<p>The engineman brings the train to a stop on the main track between Boyce and Hills. It is ${cause}. He cannot say how long the repair will take, and No 309, the next first-class train, is only forty minutes behind you.</p>`),
+      H.info("Between Boyce and Hills","Stopped on the main",`<p>The engineman brings the train to a stop on the main track between Boyce and Hills. It is ${cause}. He cannot say how long the repair will take, and ${F?"Second 307 is close behind you on the same schedule":"No 309, the next first-class train, is only forty minutes behind you"}.</p>`),
       H.ask(Qs.whistle),H.ask(Qs.stopped),
       H.wait(d,"Waited on the main for the repair"),
       H.info("Between Boyce and Hills","The repair is done",`<p>The repair took ${d} minutes. The engineman is ready to go and the flagman is still out at the rear.</p>`),
@@ -158,7 +158,7 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
       goTo(HOU,"Houston"),
       H.done(1),
       H.ask(Qs.s83),
-      H.info("Houston","Houston",set==="C"?`<p>No 307 stands in the clear at Houston, where the line goes to a single track. Your orders give you right over No 92 from Houston to Arden, so there is no meet here.</p>`:`<p>No 307 stands on the main at Houston, where the line goes to a single track. Your orders fix the meet with No 92 here${set==="B"?", in place of Arden":""}.</p>`),
+      H.info("Houston","Houston",set==="C"?`<p>No 307 stands on the main at Houston, where the line goes to a single track. Your orders give you right over No 92 from Houston to Arden, so there is no meet here.</p>`:`<p>No 307 stands on the main at Houston, where the line goes to a single track. Your orders fix the meet with No 92 here${set==="B"?", in place of Arden":""}.</p>`),
       ...(set==="C"?[]:[meetHou]),
       ...[draw("c",POOL_C)].filter(Boolean),
       goTo(ARD,"Arden"),
@@ -175,7 +175,7 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
       H.info("Washington","In at the station",`<p>No 307 comes to the station track. The B&amp;O extra goes out behind you, and the meet order is fulfilled.</p>`),
       H.ask(Qs.pass),H.done(4)
     ];
-    return {work,steps,noPar:true,end:()=>`${nm} is in at Washington at {t}. The train turns there as No 304, due out at 10:23.`};
+    return {work,steps,noPar:true,end:()=>`${nm} is in at Washington at {t}. ${S.clock<=623?"The train turns there as No 304, due out at 10:23.":"The train turns there as No 304, which was due out at 10:23 and leaves late."}`};
   }
 };
 

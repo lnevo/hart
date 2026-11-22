@@ -109,8 +109,9 @@ function play(env, id, seed, right, stats) {
   vm.runInContext("__s=" + (seed >>> 0), ctx);
   let r = seed >>> 0;
   const rand = () => { r = (Math.imul(r, 1103515245) + 12345) >>> 0; return r / 4294967296; };
-  const careful = rand() < 0.5 ? 0.95 : 0.6; // how often the player picks the right answer
-  const patient = rand() < 0.4;
+  const expert = id === "coal" && stats.draw % 5 === 0; // a player who knows the time-table: every answer right, and the coal run's sound path
+  const careful = expert ? 1 : rand() < 0.5 ? 0.95 : 0.6; // how often the player picks the right answer
+  const patient = !expert && rand() < 0.4;
   let quiet = false;
   stats.cur = { n: 0, secs: new Set(), draw: stats.draw };
   runBtns.find((b) => b.dataset.run === id).onclick();
@@ -124,11 +125,12 @@ function play(env, id, seed, right, stats) {
       stats.ends++; stats.verdicts[verdict ? verdict[1] : "?"] = (stats.verdicts[verdict ? verdict[1] : "?"] || 0) + 1;
       if (/Tied up/.test(html) && !/The shift ends/.test(html)) { stats.tied++; stats.done.push(stats.cur); }
       stats.all.push(stats.cur.n);
+      if (expert && !/Clean shift/.test(html)) stats.expertFail = (stats.expertFail || 0) + 1; // the sound path must come out clean
+      if (expert) stats.experts = (stats.experts || 0) + 1;
       const home = btns.find((b) => b.id === "home"); home.onclick();
       return;
     }
     if (!btns.length) throw new Error(`${id}: no button to press at step ${step}`);
-    if (process.env.PLAY_TRANSCRIPT === id + ":" + stats.draw) console.log(unesc(scene._inner.replace(/<svg.*?<\/svg>/g, "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")).slice(0, 700)); // a draw's scenes, to read
     if (/Nothing comes/.test(scene._inner)) quiet = true;
     const go = btns.find((b) => b.id === "xwGo");
     if (go) { go.onclick(); continue; }
@@ -144,6 +146,13 @@ function play(env, id, seed, right, stats) {
     // the road's station decision: run to a siding, or wait for the next train. A patient player waits until nothing
     // more is due at the station and then runs; the others choose at random.
     const wait = btns.find((b) => b.id === "dw"), runs = btns.filter((b) => b !== wait);
+    if (expert) { // Carnegie, Bridgeville (let No 305 by), Hills, Canonsburg, Houston; then wait for No 92 at Houston and run to Arden
+      const at = /<h2>At ([^<,]*)/.exec(scene._inner)[1];
+      const clk = (/<span>(\d+):(\d\d)<\/span>/.exec(scene._inner) || []).slice(1).reduce((h, m) => +h * 60 + +m);
+      const next = { Carnegie: "Bridgeville", Bridgeville: "Hills", Hills: "Canonsburg", Canonsburg: "Houston", Houston: "Arden" }[at];
+      const hold = (at === "Bridgeville" && clk < 453) || (at === "Houston" && clk < 554);
+      (hold ? wait : runs.find((b) => label(b) === "Run to " + next) || wait).onclick(); continue;
+    }
     if (patient) { if (quiet || !wait) { quiet = false; runs[0].onclick(); } else wait.onclick(); continue; }
     (rand() < 0.4 ? wait : runs[Math.floor(rand() * runs.length)] || wait).onclick();
   }
@@ -162,6 +171,7 @@ function main() {
       try { play(env, id, seed, right, stats); } catch (e) { failures.push(`${id} draw ${d}: ${e.stack.split("\n").slice(0, 4).join(" | ")}`); if (failures.length > 8) break; }
     }
     console.log(`${id}: ${stats.ends}/${DRAWS} ended, ${stats.tied} tied up. ${JSON.stringify(stats.verdicts)}`);
+    if (stats.expertFail) failures.push(`${id}: ${stats.expertFail} of ${stats.experts} well-played draws were not clean shifts`);
     if (!stats.tied) failures.push(`${id}: no draw reached a tied-up end screen`);
     if (id in ROAD) { // a road run asks about 15 to 20 questions (the passenger run up to 23), and every draw that ends normally asks the sections the run is about
       const [lo, hi, secs] = ROAD[id];

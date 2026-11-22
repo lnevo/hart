@@ -33,7 +33,6 @@ const ST=[
   {n:"Arden",mp:20.0,sd:1},
   {n:"Washington",mp:23.6,sd:1,off:1,yl:1,il:1}];
 const LAST=ST.length-1,HOU=10,ARD=11,BV=5,HIL=8;
-const MAXMARKS=5;
 
 /* ---------- the time-table ---------- */
 /* One table for every 1949 run, the same on every play, like an employee time-table: the draws change the orders, the late
@@ -136,12 +135,12 @@ function sheet(S,o){
     h+=`<tr class="${i===G.pos&&!G.moving?"here":""}"><td class="stn">${esc(st.n)}<small>MP ${st.mp.toFixed(1)}${st.off?" · D":""}${st.sd?"":" · no siding"}${st.il?" · interlocking":""}</small></td>`;
     tr.forEach(t=>{
       const m=t.id===o.mine?' mine':"";
-      h+=t.marked&&t.act[i]!==t.t[i]?`<td class="late${m}"><s>${fmt(t.t[i])}</s><b>${fmt(t.act[i])}</b></td>`:`<td${m?` class="mine"`:""}>${fmt(t.t[i])}${ar(t,i)}</td>`});
+      h+=t.marked&&t.act[i]!==t.t[i]?`<td class="late${m}"><s>${fmt(t.t[i])}</s><b>${fmt(t.act[i])}${ar(t,i)}</b></td>`:`<td${m?` class="mine"`:""}>${fmt(t.t[i])}${ar(t,i)}</td>`});
     if(o.runLabel)h+=`<td class="pencil">${i<LAST?G.tt.leg[i]:""}</td>`;
     h+=`</tr>`;
   });
   h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Northward trains are superior to southward trains of the same class.</li><li>One time shown is the leaving time (Rule 5).</li><li>Carnegie and Washington are inside yard limits.</li><li>Extras clear opposing regular trains by 5 minutes (Rule S-87).</li><li>Double track Carnegie to Houston: D- rules apply there.</li><li>Interlockings at Bridgeville, Hills and Washington.</li></ul></div>`;
-  if(G.orders.length)h+=`<div class="xw-orders"><b>Orders held</b>${G.orders.map(x=>`<div class="ord">No ${x.no}: ${esc(x.text)}<span class="ok">OK</span></div>`).join("")}</div>`;
+  if(G.orders.length)h+=`<div class="xw-orders"><b>Orders held</b>${G.orders.map(x=>`<div class="ord">No ${x.no}: ${esc(x.text)}<span class="ok">${x.wire?"wire failed":"OK"}</span></div>`).join("")}</div>`;
   h+=`<div class="xw-orders"><b>Work</b>${S.jobs.map(j=>`<div class="ord${j.done?" done":""}">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div>`;
   return h;
 }
@@ -150,14 +149,15 @@ function sheet(S,o){
 /* The order numbers the clearance shows: the right ones, or with the last one wrong. */
 const clearNums=(nums,wrong)=>wrong?nums.map((x,i)=>i===nums.length-1?x+3:x):nums;
 /* The orders and the Clearance Form A the operator hands up. o: place, train, orders [{no,text}], shown (the numbers on the
-   clearance), at (clock when the dispatcher gave the OK), wire (the wire failed before the OK), note (a line added after the greeting). */
-function paper(H,o){
-  const clearTxt=`CLEARANCE FORM A\nTo ${o.train}  at ${o.place.toUpperCase()}\nI have ${o.shown.length} order${o.shown.length>1?"s":""} for your train.\nNos ${o.shown.join(", ")}\n${o.wire?"Wire has failed":`OK  ${fmt(o.at)}  RK, dispatcher`}`;
+   clearance), at (clock when the dispatcher gave the OK, or a function that gives it), wire (the wire failed before the OK), note (a line added after the greeting). */
+function paper(H,o){return ()=>{ // built when the scene runs, so the OK time is the clock then
+  const at=typeof o.at==="function"?o.at():o.at;
+  const clearTxt=`CLEARANCE FORM A\nTo ${o.train}  at ${o.place.toUpperCase()}\nI have ${o.shown.length} order${o.shown.length>1?"s":""} for your train.\nNos ${o.shown.join(", ")}\n${o.wire?"Wire has failed":`OK  ${fmt(at)}  RK, dispatcher`}`;
   const ordTxt=o.orders.map(x=>`<span class="no">Order No ${x.no}</span>\n${esc(x.text)}`).join("\n\n");
-  return H.info(o.place,"Orders","<p>The operator hands up the orders and the clearance."+(o.note||"")+"</p><div class='xw-tele'>"+ordTxt+"</div><div class='xw-clear'>"+esc(clearTxt)+"</div>","Check them");
-}
+  return H.info(o.place,"Orders","<p>The operator hands up the orders and the clearance."+(o.note||"")+"</p><div class='xw-tele'>"+ordTxt+"</div><div class='xw-clear'>"+esc(clearTxt)+"</div>","Check them")();
+}}
 /* The crew takes the orders: they go on the sheet, and a clearance fixed with the dispatcher costs 6 minutes. */
-function take(H,G,orders,fixed){return ()=>{orders.forEach(x=>G.orders.push(x));if(fixed)H.addTime(6);H.log("Orders "+orders.map(x=>x.no).join(", ")+" received");H.next()}}
+function take(H,G,orders,fixed,wire){return ()=>{orders.forEach(x=>G.orders.push(wire?Object.assign({wire:true},x):x));if(fixed)H.addTime(6);H.log("Orders "+orders.map(x=>x.no).join(", ")+" received");H.next()}}
 
 /* ---------- questions the engine's own checks and papers raise ---------- */
 const Q={
@@ -182,5 +182,5 @@ function draw(G,R,H,key,pool,p){
   return H.ask(pool[b.pop()]);
 }
 
-window.RoadEngine={ST,LAST,HOU,ARD,BV,HIL,MAXMARKS,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,draw};
+window.RoadEngine={ST,LAST,HOU,ARD,BV,HIL,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,draw};
 })();
