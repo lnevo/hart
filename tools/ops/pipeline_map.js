@@ -523,6 +523,26 @@ function hoverStop(n, hubSet) {
   return !!n && (stopsChain(n) || hubSet.has(n.id) || !!n.runner);
 }
 
+/* Why a chain stops at box n (hubs: liveHubs), as the hover note names it: "runner", "cache", "hub", "host" (the
+   hosts lane and host boxes) or "hand work"; null when it does not stop there. */
+function stopKind(n, hubSet) {
+  if (!n) return null;
+  if (n.runner) return "runner";
+  if (isCache(n)) return "cache";
+  if (n.kind === "human") return "hand work";
+  if (n.domain === "hosts" || n.kind === "host") return "host";
+  return hubSet.has(n.id) ? "hub" : null;
+}
+
+/* The hover note's line naming where a hovered line's chain stopped: the stop boxes it lit (stops: [name, kind]),
+   escaped, at most four by name and a count of the rest; "" when none. */
+function stopsNote(stops) {
+  if (!stops.length) return "";
+  const h = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const named = stops.slice(0, 4).map(([name, kind]) => `${h(name)} (${kind})`).join(", ");
+  return `<div class="off">stops at ${named}${stops.length > 4 ? ` and ${stops.length - 4} more` : ""}</div>`;
+}
+
 /* Whether a hovered line's chain walks link e: not a side link ("side": a check's read, a doc pointer, a Store pull
    back into the sources, a folder mirror, a page capture, git history), which carries no content on, nor one
    bridged over a hidden box where it would stop (stopAt(id) true for one of e.via). */
@@ -694,7 +714,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -715,7 +735,7 @@ function app() {
   const allLanes = DATA.domains.map(d => d.id);
 
   const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false,
-                 kindsOff: new Set(), compact: true, group: false, open: new Set() };
+                 kindsOff: new Set(), compact: true, group: false, open: new Set(), hover: true, near: false };
   let groups = { members: {}, groupOf: {} }, gNodes = {}, lastBox = null;  // folder boxes in the current drawing; the last file box picked
   const nodeOf = id => byId[id] || gNodes[id];
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
@@ -799,7 +819,9 @@ function app() {
     return trimmed() && baseIds.has(selected) ? { ...chainOnly(nodes, edges, selected), trim: true } : { nodes, edges };
   }
   const trimmed = () => view.trim && selected !== null;
-  const chain = (edges, id) => chainOf(edges, id, endsChain);
+  /* A click lights everything up and downstream (endsChain stops only at hosts, hand work and caches); with View, near
+     pipeline on click (view.near), it stops where a hover does: hubs and runners, and not across side links. */
+  const chain = (edges, id) => (view.near ? chainOf(edges.filter(e => !overHub(e)), id, endsHover) : chainOf(edges, id, endsChain));
   function chainOnly(nodes, edges, id) {  // "highlighted only": drop what the selection leaves dim
     const c = chain(edges, id);
     return { nodes: nodes.filter(n => c.up.has(n.id) || c.down.has(n.id)), edges: edges.filter(c.lit) };
@@ -903,7 +925,10 @@ function app() {
       edgeEls[i].classList.remove("he2", "he3");
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => { if (!nodeEl[v]) return; nodeEl[v].classList.add("hn"); if (fade(v)) nodeEl[v].classList.add("hn" + fade(v)); });
-      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (() => {
+      const stops = [...c.boxes].filter(v => v !== e.from && v !== e.to && endsHover(v))
+        .sort((p, q) => (c.steps.get(p) || 0) - (c.steps.get(q) || 0))
+        .map(v => [nodeOf(v).label, stopKind(nodeOf(v), hubSet) || "hub"]);
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + stopsNote(stops) + (() => {
         const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && lastPointer !== "touch" && `${SOURCE_KEY}-click: the box it comes from`].filter(Boolean);
         return hint.length ? `<div class="off">${hint.join(" · ")}</div>` : "";
       })();
@@ -958,6 +983,7 @@ function app() {
   let hoverAt = null, hoverFrame = 0;
   function hoverFrom(e) {
     if (drag || !svg) return;
+    if (!view.hover) { if (hoverId || hoverEdge !== null) { setHover(null); setEdgeHover(null); } return; }  // View: hover highlights off
     hoverAt = { t: e.target, x: e.clientX, y: e.clientY };
     if (hoverFrame) return;
     hoverFrame = requestAnimationFrame(() => {  // at most once a frame
@@ -1223,9 +1249,14 @@ function app() {
   let laneBack = null;  // {lane, v: [x, y, width, height] before, at: the lane view} after a lane zoom
   // whether the view is still the one the lane zoom set (a pan, zoom or Fit since leaves it)
   const atLane = id => !!laneBack && laneBack.lane === id && laneBack.at.length > 0 && laneBack.at.every((t, i) => Math.abs(t - [vb.x, vb.y, vb.width][i]) <= 1);
-  laneTags.addEventListener("click", e => {
-    if (moved) return;
-    const t = e.target.closest("span[data-lane]"), b = t && lay.bands[Number(t.dataset.lane)];
+  /* The lane names let the pointer through (CSS), so the boxes under them hover and click; a click that finds no box
+     or line there zooms to the lane whose name is under it (laneAt). */
+  function laneAt(x, y) {
+    const t = [...laneTags.querySelectorAll("span[data-lane]")].find(el => inRect(el, x, y));
+    return t ? Number(t.dataset.lane) : null;
+  }
+  function zoomLane(i) {
+    const b = lay.bands[i];
     if (!b) return;
     if (atLane(b.id)) { const v = laneBack.v; laneBack = null; setVB(...v); return; }
     if (laneBack && !lay.bands.some(o => atLane(o.id))) laneBack = null;  // moved away since: the view now is the one to go back to
@@ -1238,7 +1269,7 @@ function app() {
     setVB(x0 - 240 / s, (y0 + y1) / 2 - (a.top + a.bottom) / 2 / s, a.r.width / s, a.r.height / s);  // 240 px left of the first box, for the lane names
     laneBack.at = [vb.x, vb.y, vb.width];
     drawRulers();  // the tag's hover text now says it goes back
-  });
+  }
 
   function updateNav() {
     drawRulers();
@@ -1325,12 +1356,10 @@ function app() {
     zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY);
   };
   wrapEl.addEventListener("wheel", onWheel, { passive: false });
-  laneTags.addEventListener("wheel", onWheel, { passive: false });  // the lane names take clicks, so they pass the wheel on
   let drag = null, moved = false;
   const startDrag = e => { drag = { x: e.clientX, y: e.clientY, vx: vb.x, vy: vb.y }; moved = false; wrapEl.classList.add("drag"); };
   wrapEl.addEventListener("pointerdown", startDrag);
   steps.addEventListener("pointerdown", startDrag);
-  laneTags.addEventListener("pointerdown", startDrag);  // so does one on a lane name; a click without a drag zooms to the lane  // a drag that starts on a step header pans the map too; the headers keep their hover text
   window.addEventListener("pointermove", e => {
     if (!drag) return;
     const r = wrapEl.getBoundingClientRect(), dx = e.clientX - drag.x, dy = e.clientY - drag.y;
@@ -1509,7 +1538,11 @@ function app() {
     const card = got.box && got.box !== at.box ? got.box : null;
     if (edge && !at.box && !card && !end) return;
     const t = clickTarget(at.box, card, got.box && !lineFirst ? null : end, lineFirst);
-    if (t.clear) { clearFocus(true); return; }
+    if (t.clear) {
+      const lane = laneAt(e.clientX, e.clientY);  // a lane name over empty map: zoom to that lane
+      if (lane !== null) { zoomLane(lane); return; }
+      clearFocus(true); return;
+    }
     // a line's box is centred, which moves the map, and a trimmed redraw moves the boxes: either waits out a
     // double-click, so its second click does not land on whatever box moved under the pointer
     if (t.line || view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(t.pick, t.line ? "pan" : undefined), 300); }
@@ -1764,6 +1797,8 @@ function app() {
     kindsBox.querySelectorAll("input[data-kind]").forEach(c => (c.checked = !view.kindsOff.has(c.dataset.kind)));
     document.getElementById("compact").checked = view.compact;
     document.getElementById("group").checked = view.group;
+    document.getElementById("hover").checked = view.hover;
+    document.getElementById("near").checked = view.near;
   }
   lanesBox.addEventListener("change", e => {
     const lane = e.target.dataset.lane;
@@ -1779,6 +1814,17 @@ function app() {
   document.getElementById("parked").onchange = e => { view.parked = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("retired").onchange = e => { view.retired = e.target.checked; renderKeeping(); writeHash(); };
   document.getElementById("trim").onchange = e => { view.trim = e.target.checked; render(selected === null); writeHash(); };
+  document.getElementById("hover").onchange = e => {  // hover highlights on or off; off clears a hover now showing
+    view.hover = e.target.checked;
+    if (!view.hover) { setHover(null); setEdgeHover(null); }
+    writeHash();
+  };
+  document.getElementById("near").onchange = e => {  // a click's chain stops where a hover's does: the lit box again
+    view.near = e.target.checked;
+    if (view.trim && selected !== null) render(false);
+    else if (selected !== null && nodeEl[selected]) select(selected, true);
+    writeHash();
+  };
   document.getElementById("labels").onchange = e => { document.getElementById("elabels").classList.toggle("hidden", !e.target.checked); showStatus(sub); };
 
   /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=0
@@ -1793,6 +1839,8 @@ function app() {
     if (view.trim) h.set("trim", "1");
     if (view.kindsOff.size) h.set("hidekind", [...view.kindsOff].join(","));
     if (!view.compact) h.set("compact", "0");  // compact is the default
+    if (!view.hover) h.set("hover", "0");  // hover highlights are on by default
+    if (view.near) h.set("near", "1");
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
     if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
@@ -1818,6 +1866,8 @@ function app() {
     view.trim = h.get("trim") === "1";
     view.kindsOff = new Set((h.get("hidekind") || "").split(",").filter(hideable));
     view.compact = h.get("compact") !== "0";
+    view.hover = h.get("hover") !== "0";
+    view.near = h.get("near") === "1";
     view.group = h.get("folders") === "1";
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");
