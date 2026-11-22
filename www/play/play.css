@@ -99,7 +99,7 @@
 .xw-switch span{color:var(--muted)}
 .xw-switch:not(.on) span:first-of-type,.xw-switch.on span:last-of-type{color:var(--ink)}
 .xw-start .card{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
-.xw-start h2{font-family:var(--font-display);font-size:26px;margin:0;font-weight:700}
+.xw-start h3{font-family:var(--font-display);font-size:26px;margin:0;font-weight:700}
 .xw-start p{margin:0;line-height:1.55}
 .xw-start .rules{font-family:var(--mono);font-size:12px;color:var(--muted)}
 .xw-how{padding:12px 16px;font-size:15px;line-height:1.55}

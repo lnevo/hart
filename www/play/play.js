@@ -247,8 +247,8 @@ function renderCover(){
   const ids=Object.keys(RUNS),secName=Object.fromEntries(SECTIONS);
   document.querySelectorAll("[data-run]").forEach(b=>{
     const def=RUNS[b.dataset.run],card=b.closest(".card");if(!def||!card||card.querySelector(".rules"))return;
-    const p=document.createElement("p");p.className="rules";
-    p.textContent="Tests: "+SECTIONS.filter(x=>(def.covers||[]).includes(x[0])).map(x=>x[1]).join(" · ");
+    const names=SECTIONS.filter(x=>(def.covers||[]).includes(x[0])).map(x=>x[1]);if(!names.length)return;
+    const p=document.createElement("p");p.className="rules";p.textContent="Tests: "+names.join(" · ");
     card.insertBefore(p,card.querySelector(".xw-go"));
   });
   const rows=SECTIONS.map(([k,n])=>[n,ids.filter(id=>(RUNS[id].covers||[]).includes(k))]).filter(r=>r[1].length);

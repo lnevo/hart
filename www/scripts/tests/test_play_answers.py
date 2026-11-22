@@ -28,6 +28,8 @@ class PlayAnswers(unittest.TestCase):
             self.assertEqual(shift["bad"], 0, shift["id"])
 
     def test_covers_matches_the_sections_each_shift_asks(self):
+        # extract() sees only questions asked from build(), not from after() or info callbacks; a run that asks a
+        # section only from a callback must move that question into build() or this test will miss it.
         code = (f"const m=require({json.dumps(str(SCRIPT))});"
                 f"const s=m.extract(require('fs').readFileSync({json.dumps(str(RUNS))},'utf8'));"
                 "console.log(JSON.stringify(s.map(x=>({id:x.id,covers:[...(x.def.covers||[])].sort(),asked:[...new Set(x.qs.map(q=>q.sec))].sort()}))))")
