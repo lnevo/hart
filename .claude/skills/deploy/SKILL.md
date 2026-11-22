@@ -19,16 +19,18 @@ Windows is kept matching the Pi, so both get every layout deploy (`make deploy-l
 
 Before you run it:
 
-- A Pi deploy stops before sending anything when the Pi's Operations Pro files or `tables.xml` changed since the last deploy or pull: run `make ops-pull` or `make tables-pull-pi` (see the `ops-pull` and `tables-pull` skills) and commit. `HART_DISCARD_PI_CHANGES=1` replaces them anyway, only on the owner's say. A Mac Store waiting: `make tables-pull`.
+- A Pi deploy stops before sending anything when the Pi's Operations Pro files or `tables.xml` changed since the last deploy or pull, and it saves them first (G2): it runs `tools/ops/pull_tables_pi.sh` for a Store (kept in `media/pulled-stores/` in the main checkout; it prints "kept the Pi's Store as <path>; split it ..."), and for Operations files quits PanelPro with `pi_quit_panelpro.sh --for-deploy` (the stop starts it again) and runs `tools/ops/pull_ops.sh --no-mark`, then stops. From the main checkout the Operations pull goes into an `ops-pull-<stamp>` worktree, which the message names; otherwise into the checkout it runs from. The Pi stays unmarked, so it counts as pulled only once the Operations files are committed and merged (a deploy before that stops again; from the updated main it passes) and the Store's split is merged (see the `ops-pull` and `tables-pull` skills). A pull failure stops saying nothing was kept. A redeploy never pulls: it stops as it did. `HART_NO_AUTOPULL=1` stops without pulling; `HART_DISCARD_PI_CHANGES=1` skips the check and replaces them, only on the owner's say. The operating flag blocks all of it first. A Mac Store waiting: `make tables-pull`.
+- The deploy leaves the DecoderPro roster alone; it ships only the roster photos.
 - `--dry-run` shows what would be sent (it still connects to the hosts).
 - `--stage-only DIR` builds the Pi and Windows packages into `DIR/pi` and `DIR/win` and stops: no ssh, no Mac install, `tables.xml` only checked. Use it to look at or compare a package.
 - A checkout with uncommitted or untracked files prints a WARNING and deploys anyway; the stamp records `dirty=yes`. Commit first unless the owner wants a work-in-progress deploy.
 
 What it does:
 
+- `sync_hart_package.sh` is the entry point; it runs the steps in `tools/hosts/deploy/` in order: `gate.sh` (every check), `stage.sh` (builds the host packages once), `ship_mac.sh`, `ship_pi.sh`, `ship_win.sh`, with `common.sh` holding what they share (host settings, stamp facts, ssh connections). Every check runs in `gate.sh` before anything is sent or installed: the host ssh answers, the Pi's unpulled files, the panel audit, the `tables.xml` checks, this Mac's own Store check, a trial build of the package (thrown away) and, for Windows, a probe that it can make a temp folder and has `tar` (the probe makes and removes a folder, and `scp` and `tar` must exist on the Mac). A failed check leaves the Mac, the Pi and Windows as they were, so a retry of one host after a fix starts from the same state. The steps can be run alone (`tools/hosts/deploy/ship_win.sh [--dry-run] DIR/win` on a package `stage.sh` built); the operating-flag hook refuses `ship_pi.sh`, `ship_win.sh` and `gate.sh --pi/--win` like the entry point.
 - With no flag it installs on the Mac only. A host flag also installs on the Mac, then sends one staged package: the Pi by rsync, Windows by tarball over ssh. Each host unpacks into a temporary folder, installs into `JMRI_UserFiles`, and removes the folder. The package is built once per run; the Pi and Windows copies differ only in the CATS panels (rewritten for each host's user files) and the stamp.
 - Each host's calls share one ssh connection: the Pi's ssh, rsync and restart-check calls on one socket, the Windows ssh and scp calls on another (masters in a folder made for the run, closed and removed on every way out). `HART_SSH_MUX=0` turns sharing off for both; `HART_WIN_SSH_MUX=0` turns it off for Windows only, if its OpenSSH server misbehaves with a shared connection.
-- It runs `audit_panel_contracts.py --strict` first and turns off the Digicon SML MQTT destinations in the shipped tables.
+- The gate runs `audit_panel_contracts.py --strict` and checks the Digicon SML MQTT destinations are off in the shipped tables (the generator turns them off).
 - Operations files are overwritten on every host once the Pi check passes (`HART_OVERWRITE_OPS=1` is the default; `0` restores the per-file guards).
 - Hosts come from `HART_PI_SSH`, `HART_WIN_SSH`, `HART_WIN_SSH_PORT`, `HART_PI_USERFILES`, `HART_WIN_USERFILES` and `HART_PI_WEB_HOST` (the Pi's name in the Mac web home's links), read by `tools/env/load_env.sh` like the Python tools read theirs: environment, then `tools/env/hart.env`, then the default in `tools/env/defaults.env`.
 - Edit host scripts in `tools/hosts/pi/` and `tools/hosts/windows/`; the package places them where the hosts expect them.
@@ -49,10 +51,10 @@ Redeploy an older commit (rollback):
 Hosts and failures:
 
 - The Pi is `RPi-JMRI.local` (10.0.0.150, ssh alias `pi`). Windows is `minipc-e5h6x.local` (ssh port 2222) and has had repeated hard power-offs.
-- A real deploy, and a redeploy of an older commit, first asks every host named on the command line for an ssh answer and stops (`STOP: cannot reach ... over ssh`) before the Pi's unpulled check, the Mac install, the `tables.xml` gates or any host step if one does not reply, so `--pi --win` with Windows down sends and installs nothing on the Pi. PanelPro quit there for the deploy is started again, and the output says so. A dry run skips this check.
-- With `--pi --win`, a Pi failure after that check (for example "Connection refused") exits before the Windows step runs.
+- A real deploy, and a redeploy of an older commit, first asks every host named on the command line for an ssh answer and stops (`STOP: cannot reach ... over ssh`) before the Pi's unpulled check, the Mac install, the `tables.xml` gates or any host step if one does not reply (the gate's first host check), so `--pi --win` with Windows down sends and installs nothing on the Pi. PanelPro quit there for the deploy is started again, and the output says so. A dry run skips this check.
+- With `--pi --win`, a Windows that cannot take the package (no temp folder or no `tar`) stops the run in the gate, before the Pi is touched; a Pi failure in its own step (for example "Connection refused") exits before the Windows step runs.
 - If the Pi step fails, run `--win` on its own, then `--pi` once the Pi accepts ssh on port 22, so the two match again.
-- If Windows fails after the Pi step finished (it answered the check, then dropped), the run names the commit the Pi got (and says Windows may be partly installed if its apply failed): once Windows answers, give it the same commit with `make redeploy COMMIT=<sha> HOSTS=--win`. A Windows temp folder that cannot be removed after a good apply is only a warning.
+- If Windows fails after the Pi step finished (it answered the gate, then dropped during the copy or the apply), the run names the commit the Pi got (and says Windows may be partly installed if its apply failed): once Windows answers, give it the same commit with `make redeploy COMMIT=<sha> HOSTS=--win`. A Windows temp folder that cannot be removed after a good apply is only a warning.
 - Quit PanelPro on the Pi with `tools/hosts/pi_quit_panelpro.sh --for-deploy` first; the Pi deploy starts it again afterwards, also if it fails. A plain quit, or PanelPro the owner closed, stays closed. `HART_PI_RESTART=0` skips the restart.
 - Check afterwards with `make deploy-status HOSTS="--pi --win"` (or `tools/hosts/deploy_status.sh`), which reads the stamp back and compares its commit with this checkout, and with a sha256 of `tables.xml` on each host.
 - Do not leave the LCOS bridge (`serial_to_mqtt`) running, and do not publish `track/cmd` from a deploy.
@@ -79,7 +81,7 @@ Name the hosts and sites deployed, or say which were skipped and why.
 
 ## Sources
 
-- `tools/hosts/sync_hart_package.sh`, `tools/hosts/redeploy_commit.sh`, `tools/hosts/deploy_status.sh`, `tools/env/load_env.sh`, `www/scripts/deploy_hartrailroad.sh`
+- `tools/hosts/sync_hart_package.sh`, `tools/hosts/deploy/` (the steps), `tools/hosts/redeploy_commit.sh`, `tools/hosts/deploy_status.sh`, `tools/env/load_env.sh`, `www/scripts/deploy_hartrailroad.sh`
 - `www/README.md` (Deploy safety, server notes)
 - `AGENTS.md` (close-out step 5), `wiki/STATUS.md`
 - `wiki/decisions/ADR-014-jmri-user-files.md`, `wiki/decisions/ADR-015-operations-files-in-repo.md`

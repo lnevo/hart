@@ -17,6 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
 SYNC = ROOT / "tools/hosts/sync_hart_package.sh"
+STEPS = ROOT / "tools/hosts/deploy"   # the entry point's steps: gate, stage, ship_mac, ship_pi, ship_win; common.sh is shared
 WRAPPER = ROOT / "cats/scripts/sync_hart_package.sh"
 PI_SRC = ROOT / "tools/hosts/pi"
 WIN_SRC = ROOT / "tools/hosts/windows"
@@ -101,13 +102,15 @@ def stage_env(tmp: Path) -> dict[str, str]:
         HART_WIN_SSH_PORT="1",
         HART_PI_USERFILES="/srv/fake-pi/JMRI_UserFiles",
         HART_WIN_USERFILES="X:/fake-win/JMRI_UserFiles",
+        # the gate's own pull of a changed Pi (autopull_pi_changes) runs only in the tests that stub it
+        HART_NO_AUTOPULL="1",
     )
     return env
 
 
 def run(script: Path, out: Path, env: dict[str, str], *flags: str, cwd: Path = ROOT) -> subprocess.CompletedProcess:
     return subprocess.run(["bash", str(script), *flags, "--stage-only", str(out)],
-                          cwd=cwd, env=env, capture_output=True, text=True, timeout=300)
+                          cwd=cwd, env=env, capture_output=True, text=True, timeout=600)  # 106 s alone, near 300 s on a loaded box
 
 
 def read_stamp(path: Path) -> dict[str, str]:
@@ -121,7 +124,7 @@ def tree(root: Path) -> list[str]:
 
 def live_panels() -> list[str]:
     """The panels the deploy ships: the LIVE_PANELS array in the script."""
-    src = SYNC.read_text(encoding="utf-8")
+    src = (STEPS / "common.sh").read_text(encoding="utf-8")
     block = src[src.index("LIVE_PANELS=(") + len("LIVE_PANELS=("):]
     return block[:block.index(")")].split()
 
@@ -187,7 +190,7 @@ class StageOnly(unittest.TestCase):
             self.assertTrue((pkg / "jmri/layouts/hart/scripts/hide_cats_desk_windows.py").is_file(), host)
 
     def test_apply_scripts_are_where_deploy_calls_them(self) -> None:
-        source = SYNC.read_text(encoding="utf-8")
+        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
         self.assertIn("${PI_DROP}/cats/scripts/pi/apply_hart_package_local.sh", source)
         self.assertIn("\\\\cats\\\\scripts\\\\windows\\\\apply_hart_package_local.ps1", source)
         self.assertTrue((self.out / "pi/cats/scripts/pi/apply_hart_package_local.sh").is_file())
@@ -228,13 +231,21 @@ class StagedOnce(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_name:
             tmp = Path(tmp_name)
             env = stage_env(tmp)
-            real = shutil.which("python3")
+            # Log every python3 call, then hand it to the shared stub (python_stub), which stands in for the deploy's
+            # build_tables.py --check. That check regenerates the whole panel: on a CI runner whose schematic cache is
+            # cold (a branch that bumps the plugin) it ran past 600 s (2026-11-21, #876, #889, #898). It is
+            # test_deploy_gates' and check.sh's job; this test counts the builds of the package.
+            python_stub(tmp)
+            stub = tmp / "bin/python3-stub"
+            (tmp / "bin/python3").rename(stub)
             tool = tmp / "bin/python3"
-            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{real}" "$@"\n', encoding="utf-8")
+            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{stub}" "$@"\n', encoding="utf-8")
             tool.chmod(0o755)
             done = run(SYNC, tmp / "stage", env, "--pi", "--win")
             self.assertEqual(done.returncode, 0, done.stderr[-2000:])
             calls = (tmp / "python.log").read_text(encoding="utf-8").splitlines()
+            # the tables check went to the stub, not a real whole-panel solve
+            self.assertIn("build_tables.py --check", (tmp / "tables_check.log").read_text(encoding="utf-8"))
             self.assertEqual(1, sum("build_mimic_web.py" in c for c in calls), calls)
             self.assertEqual(1, sum("publish_live.py --build-page" in c for c in calls), calls)
             # the panels are rewritten per host, each panel once per host
@@ -336,7 +347,7 @@ class StageOnlyRefusals(unittest.TestCase):
             self.assertFalse((Path(tmp) / "network.log").exists())
 
     def test_apply_steps_get_the_configured_user_files(self) -> None:
-        source = SYNC.read_text(encoding="utf-8")
+        source = (STEPS / "ship_pi.sh").read_text(encoding="utf-8") + (STEPS / "ship_win.sh").read_text(encoding="utf-8")
         self.assertIn("JMRI_USERFILES='${PI_USERFILES}'", source)
         self.assertIn('-UserFiles \\"${WIN_USERFILES}\\"', source)
         win = (WIN_SRC / "apply_hart_package_local.ps1").read_text(encoding="utf-8")
@@ -374,10 +385,10 @@ class DirtyListUnderPipefail(unittest.TestCase):
     """A long dirty-path list must warn, not kill the deploy with SIGPIPE (exit 141)."""
 
     def test_long_list_prints_ten_and_exits_zero(self) -> None:
-        line = next(l for l in SYNC.read_text(encoding="utf-8").splitlines()
-                    if 'printf \'%s\\n\' "$DEPLOY_CHANGES" |' in l and "wc -l" not in l)
+        line = next(l for l in (STEPS / "common.sh").read_text(encoding="utf-8").splitlines()
+                    if 'printf \'%s\\n\' "$changes" |' in l and "wc -l" not in l)
         script = ("set -euo pipefail\n"
-                  "DEPLOY_CHANGES=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
+                  "changes=\"$(seq 1 20000 | sed 's/^/ M file/')\"\n"
                   + line.strip() + "\necho done\n")
         done = subprocess.run(["bash", "-c", script], capture_output=True, text=True)
         self.assertEqual(done.returncode, 0, done.stderr)

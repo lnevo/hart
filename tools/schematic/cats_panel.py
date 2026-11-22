@@ -337,7 +337,8 @@ def part_blocks() -> dict[str, tuple[str, str]]:
     for line, r in bdm.devices.part_lines(("2", "3")):
         for t in (x.strip() for x in r["trial_name"].split(",") if x.strip()):
             if t in out:
-                raise SystemExit(f"{DEVICE_MAP.name} line {line}: trial name {t} is given to two parts")
+                raise SystemExit(f"{DEVICE_MAP.name}: {r['user_name']} (level {r['level']}, block): trial name {t} is "
+                                 "given to two parts")
             out[t] = (r["user_name"], r["part_of"])
     return out
 

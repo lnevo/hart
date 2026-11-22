@@ -1,5 +1,7 @@
 # HART main level: bill of materials
 
+Bill of materials and shopping list for the main level benchwork (plywood, lumber and hardware), with supplier SKUs and prices.
+
 From the framing drawings (`main_level_joist_construction.pdf`, closet boxes 2026-10-24, B1 joist 2026-10-25) and plywood cut plan v28.
 Supplier: Riverhead Building Supply (rbscorp.com). Prices as listed on 2026-10-21, before tax.
 1x3 count uses the 3 x 12 ft and 1 x 9 ft sticks on hand first.

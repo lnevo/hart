@@ -11,6 +11,12 @@ in docs/pipeline-map/pipeline_map.json.
 The website copy renames the gitignored mirrors (PUBLIC_NAMES), whose real paths the site build treats as leaks, and
 can carry a link back to the page that links to it.
 
+The agent-doc lane (domain "agents": boxes and links marked "gen": "agent-docs") is generated from the files by
+tools/ops/agent_docs_map.py: a plain run rewrites it in the graph file, and --check fails when the committed graph
+differs. Everything else in the graph is hand-kept. The order of the nodes is kept as it is: the layout breaks
+cycles in node order, so a sorted file draws a much wider map. Locally the file merges itself:
+tools/ops/merge_pipeline_map.py is its git merge driver.
+
 The graph file holds domains (the horizontal lanes), nodes and edges. A node's `path` must exist in the checkout
 unless the node says `"local": true` (a gitignored mirror or a file made on a host). This script checks the graph and
 writes one self-contained page; the layout and the viewer are in tools/ops/pipeline_map.js, inlined into the page, so
@@ -32,6 +38,9 @@ ROOT = Path(__file__).resolve().parents[2]
 GRAPH = ROOT / "docs" / "pipeline-map" / "pipeline_map.json"
 PAGE = ROOT / "docs" / "pipeline-map" / "index.html"
 SCRIPT = Path(__file__).resolve().with_name("pipeline_map.js")
+# the website copy, as tools/check.sh checks it
+SITE_BUILD = ("python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html "
+              "--back repository-guide.html")
 
 KINDS = {
     "structured": ("Structured data", "#dbeafe", "#1e40af"),
@@ -55,6 +64,11 @@ class GraphError(Exception):
     pass
 
 
+_agent_spec = importlib.util.spec_from_file_location("agent_docs_map", Path(__file__).resolve().with_name("agent_docs_map.py"))
+AGENT_DOCS = importlib.util.module_from_spec(_agent_spec)
+_agent_spec.loader.exec_module(AGENT_DOCS)
+
+
 @functools.cache
 def tracked_paths() -> frozenset[str]:
     """Every git-tracked file in the repo and every folder that holds one, so the check is the same on any clone."""
@@ -66,8 +80,59 @@ def tracked_paths() -> frozenset[str]:
     return frozenset(paths)
 
 
+def read(path: Path) -> dict:
+    """The graph file as data, with its three lists; not yet checked further (validate does that)."""
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except OSError as err:
+        raise GraphError(f"cannot read the graph: {err.strerror}") from None
+    except json.JSONDecodeError as err:
+        raise GraphError(f"the graph is not valid JSON: {err}") from None
+    if not isinstance(data, dict):
+        raise GraphError("the graph must be a JSON object")
+    for key in ("domains", "nodes", "edges"):
+        if not isinstance(data.get(key), list):
+            raise GraphError(f"the graph needs a {key!r} list")
+        bad = [item for item in data[key] if not isinstance(item, dict)]
+        if bad:
+            raise GraphError(f"every entry of {key!r} must be an object: {bad[0]!r}")
+    bad_paths = [n for n in data["nodes"] if not isinstance(n.get("path", ""), str)]
+    if bad_paths:
+        raise GraphError(f"a node's path must be text: {bad_paths[0]!r}")
+    return data
+
+
+def node_key(n: dict) -> str:
+    """What names a node: its id."""
+    return n["id"]
+
+
+def edge_key(e: dict) -> tuple[str, str]:
+    """What names an edge: its two ends (the graph holds one edge per pair)."""
+    return (e["from"], e["to"])
+
+
+def graph_text(data: dict) -> str:
+    """The graph as the committed file holds it."""
+    return json.dumps(data, indent=1, ensure_ascii=False) + "\n"
+
+
+def regenerate(data: dict) -> dict:
+    """The graph with its generated parts (the agent-doc lane, tools/ops/agent_docs_map.py) rebuilt from the files."""
+    try:
+        return AGENT_DOCS.regenerate(data)
+    except AGENT_DOCS.AgentDocsMapError as err:
+        raise GraphError(f"agent-doc lane: {err}") from None
+
+
 def load(path: Path) -> dict:
-    data = json.loads(path.read_text())
+    return validate(read(path))
+
+
+def validate(data: dict, tracked: bool = True) -> dict:
+    """The graph, or GraphError naming every problem. tracked=False leaves out only the check that each node's path
+    is tracked in git: the merge driver (tools/ops/merge_pipeline_map.py) runs before git has written the merged
+    tree, so the paths the other branch adds are not tracked yet; tools/check.sh checks them after the merge."""
     for key in ("domains", "nodes", "edges"):
         if not isinstance(data.get(key), list):
             raise GraphError(f"the graph needs a {key!r} list")
@@ -106,7 +171,7 @@ def load(path: Path) -> dict:
             problems.append(f"node {nid!r}: path {p} is already node {paths[p.rstrip('/')]!r}")
         if p:
             paths[p.rstrip("/")] = nid
-        if p and not n.get("local") and p.rstrip("/") not in tracked_paths():
+        if tracked and p and not n.get("local") and p.rstrip("/") not in tracked_paths():
             problems.append(f"node {nid!r}: path {p} does not exist in git (mark it \"local\": true if it is a gitignored mirror, a submodule file or made on a host)")
     seen_edges = set()
     linked: set[str] = set()
@@ -118,7 +183,7 @@ def load(path: Path) -> dict:
         for end in ("from", "to"):
             if e[end] not in ids:
                 problems.append(f"edge {e['from']} -> {e['to']}: {end} end is not a node")
-        key = (e["from"], e["to"])
+        key = edge_key(e)
         if key in seen_edges:
             problems.append(f"edge {e['from']} -> {e['to']} is listed twice")
         seen_edges.add(key)
@@ -215,6 +280,11 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #nav .vr{fill:rgba(220,38,38,.08);stroke:#dc2626;stroke-width:2;vector-effect:non-scaling-stroke}
 #nav.focus rect.n{opacity:.2}
 #nav.focus rect.n.on{opacity:1}
+#rulers{position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden}
+#rulers[hidden]{display:none}
+#steps{position:absolute;left:0;height:24px;overflow:hidden;background:rgba(250,250,250,.88);border-bottom:1px solid #ccc}
+#steps span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:600;color:#475569;pointer-events:auto;cursor:help}
+#lanetags span{position:absolute;box-sizing:border-box;height:22px;line-height:18px;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap}
 #info{position:absolute;top:10px;right:10px;bottom:10px;width:360px;z-index:5;padding:12px 14px;overflow:auto;display:none}
 #info h2{font-size:16px;margin:0 0 4px}
 #info code{font-size:12px;word-break:break-all}
@@ -222,7 +292,6 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #info a{cursor:pointer;color:#1d4ed8}
 #info .off{color:#888;font-size:11px}
 #info .close{float:right;cursor:pointer;border:0;background:none;font-size:18px}
-.band{font-weight:800;opacity:.45}
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
 .elabel{font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
@@ -259,6 +328,7 @@ svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
 __SITECSS__</style></head><body>__SITEHEADER__
 <div id="stage">
 <div id="wrap"></div>
+<div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
 <div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
 <label><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
@@ -274,7 +344,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 </div></details>
 <details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
 <b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through, except at deploy and host boxes, where chains stop</span><div id="kindlist"></div>
+<b>Kinds</b> <span class="note">an unticked kind is bridged over, its links running straight through; its boxes where chains stop (the hosts lane, host and hand work) are left out with their links</span><div id="kindlist"></div>
 <b>Also show</b>
 <label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
 <label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
@@ -347,6 +417,9 @@ body{display:flex;flex-direction:column;font:14px/1.4 var(--font-body);backgroun
 #legend summary{cursor:pointer}
 #legend b,#info b{color:var(--ink)}
 #nav .vr{fill:rgba(179,58,58,.08);stroke:var(--signal)}
+#steps{background:color-mix(in srgb,var(--paper-2) 90%,transparent);border-bottom-color:var(--rule)}
+#steps span{color:var(--ink-soft);font-family:var(--font-body)}
+#lanetags span{background:var(--card);font-family:var(--font-body)}
 svg.focus .edge.on{stroke:var(--brand-2)}
 svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
 .node .t,.node .d{font-family:var(--font-body)}
@@ -424,11 +497,25 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
     if args.public and args.out.resolve() == PAGE.resolve():
         ap.error("--public writes the website copy; give it --out")
+    again = shlex.join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
     try:
-        data = load(args.graph)
+        raw = read(args.graph)
+        data = validate(regenerate(raw))
     except GraphError as err:
         print(f"{args.graph}: the graph has problems:\n{err}", file=sys.stderr)
         return 1
+    fresh = graph_text(data)
+    plain = "python3 tools/ops/build_pipeline_map.py" + (
+        f" --graph {shlex.quote(str(args.graph))}" if args.graph.resolve() != GRAPH.resolve() else "")
+    if args.graph.read_text() != fresh:
+        # Only the plain build writes the graph, so a website build or a --check never changes a tracked source.
+        if args.check or args.public:
+            print(f"{args.graph} is out of date (its agent-doc lane is generated from the files): run {plain} "
+                  f"(it rewrites the graph and the docs page), then {SITE_BUILD}", file=sys.stderr)
+            return 1
+        args.graph.write_text(fresh)
+        print(f"updated {args.graph.name}: the agent-doc lane, from the files; rebuild the website copy too: "
+              f"{SITE_BUILD}")
     page = render(public_copy(data) if args.public else data, args.back, args.public)
     if args.public:
         try:
@@ -439,7 +526,6 @@ def main(argv: list[str] | None = None) -> int:
             return 1
     if args.check:
         if not args.out.exists() or args.out.read_text() != page:
-            again = shlex.join(a for a in (argv if argv is not None else sys.argv[1:]) if a != "--check")
             print(f"{args.out} is out of date: run python3 tools/ops/build_pipeline_map.py {again}".rstrip(), file=sys.stderr)
             return 1
         return 0

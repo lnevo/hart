@@ -38,4 +38,4 @@ hart bootstrap (one-time, already done; the script is kept for history at `archi
 - `fit_panel_height`, `fit_panel_canvas`, `polish_layout_geometry` (archived in `archive/jmri-scripts/`) unless asked
 - New track: set **Mainline → Yes** (`mainline="yes"`)
 
-Detail: [`jmri/README.md`](../../jmri/README.md) · [`docs/AI_CONTEXT.md`](../../docs/AI_CONTEXT.md)
+Detail: [`jmri/README.md`](../../jmri/README.md)

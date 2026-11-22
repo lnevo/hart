@@ -1,5 +1,7 @@
 # Project health: hand-off (2026-11-20)
 
+Status: done (2026-11-21)
+
 Comes from the 2026-11-20 quick review of open fixes, workflow and where facts are kept. The owner made these choices on 2026-11-20:
 
 - Source-data rows 8 and 10 are included, as proposals the owner reviews before anything is built.
@@ -116,7 +118,7 @@ The items are:
 - **Row 8:** kind and level read from the name prefixes (`Track `, `OS Switch `, `BS `, `Mast `), the crossover half read from A or B, a balloon loop read from a name ending " Loop", and the level read from a band title.
 - **Row 10:** the drawing workarounds in the preferences files: `level_leg`, `le_tight_crossovers`/`le_split_crossovers`, `le_shift`, `le_labels`. Say for each one whether it can become a plugin rule.
 - **`le_signal_boundaries.csv`:** is it still needed now that staging masts come from the rule?
-- **Screen sizes:** the owner's screen sizes (`le_window`, `cats_window`) in the committed preferences. Should they move to a host-local setting?
+- **Screen sizes:** decided 2026-11-21: one committed `host_screen` setting (the Pi's and the Windows box's shared 1920 x 1080 monitor, less a 48 px taskbar) that `le_window` and `cats_window` are derived from (`tools/schematic/host_screen.py`).
 - **Band names and the 5 cm cut:** these sit in `plan_overrides.json` (main_upper section) `levels` "until B2". What is B2, and can they go now?
 
 Output: `<scratchpad>/health/W6-proposals.md`, with decisions phrased so they can be asked as multiple choice. The coordinator reviews the proposals with the owner. Build only after the owner answers: the design stays in the main session, and the mechanical parts go to Sonnet worktree agents as W6b.
@@ -304,7 +306,7 @@ R9c is deployed to the Pi and Windows (7f2d3e26, `tables.xml` hash equal to the 
 - `split_at` runs this checkout's hartlib over the deployed commit's files.
 - An earlier-Store check failure can leave files written, and two messages are wrong.
 
-The owner was offered a strict, simple split instead: split only when this checkout's `tables.xml` equals the host's base, otherwise refuse with the worktree command, with no carry-forward or second-Store mode. Until the redesign below is built, R9c's behaviour stands: a pull keeps the Store in `~/JMRI_UserFiles-pulled/`, records it as taken, and the edits go into `devices.csv` or the template by hand.
+The owner was offered a strict, simple split instead: split only when this checkout's `tables.xml` equals the host's base, otherwise refuse with the worktree command, with no carry-forward or second-Store mode. Until the redesign below is built, R9c's behaviour stands: a pull keeps the Store in `media/pulled-stores/` in the main checkout, records it as taken, and the edits go into `devices.csv` or the template by hand.
 
 **R9d redesign (owner review, 2026-11-20).** It replaces both the parked branch and the strict split. A Store mostly holds non-device settings that must be kept, so the default is to keep, not to refuse:
 1. **Keep the Store.** Everything outside the generated sections (settings, memories, the clock sensor, LogixNG the owner made, manager options) is taken from the normalised Store and becomes the new `tables_template.xml`, with no review.

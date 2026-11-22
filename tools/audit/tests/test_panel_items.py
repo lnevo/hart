@@ -7,6 +7,7 @@ import tempfile
 import unittest
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT / "tools/schematic"))
@@ -62,6 +63,54 @@ class Load(unittest.TestCase):
             pi.load(write(items(one, dict(one))))
 
 
+class RightEdge(unittest.TestCase):
+    """A caption placed by its right edge (`right`): its width as JMRI draws Dialog on the Pi (pi_dialog)."""
+
+    def caption(self, text, **attrs):
+        extra = "".join(f' {k}="{v}"' for k, v in attrs.items())
+        return (f'<positionablelabel text="{text}" fontFamily="Dialog" fontname="Dialog" size="12" style="0"{extra} '
+                'class="jmri.jmrit.display.configurexml.PositionableLabelXml" />')
+
+    def test_the_pi_widths_are_what_java_measured_there(self):
+        # FontMetrics.stringWidth on the Pi (OpenJDK 17.0.21, Dialog = DejaVu Sans), 2026-11-21
+        self.assertEqual([pi.pi_dialog.width(t, 12) for t in ("LCOS", "Turnouts", "Signals", "Track Power")],
+                         [31, 56, 45, 76])
+        self.assertEqual(pi.pi_dialog.height(12), 15)
+        for (style, size), (_h, adv) in pi.pi_dialog.DIALOG.items():
+            self.assertEqual(len(adv), 95, (style, size))
+
+    def test_captions_line_up_on_their_right_edges(self):
+        members = [{"right": 76, "dy": 28 * k, "xml": self.caption(t)}
+                   for k, t in enumerate(("LCOS", "Turnouts", "Signals", "Track Power"))]
+        members.append({"dx": 80, "dy": 0, "size": [21, 21], "xml": LAMP})
+        data = pi.load(write(items({"id": "status", "anchor": {"to": "origin", "dx": 100, "dy": 50},
+                                    "members": members})))
+        panel = ET.Element("layout-config", panelwidth="10", panelheight="10")
+        with mock.patch.object(pi, "drawn_boxes", return_value=((0, 0, 1, 1), {})):
+            got = pi.place(panel, data, None, None, (2000, 2000), (0, 0))
+        labels = [el for el in panel if el.tag == "positionablelabel"]
+        rights = {int(el.get("x")) + pi.pi_dialog.width(el.get("text"), 12) for el in labels}
+        self.assertEqual(rights, {176})                                   # 4 px left of the lamp at 180
+        self.assertEqual([int(el.get("x")) for el in labels], [145, 120, 131, 100])
+        self.assertEqual(got["count"], 5)
+
+    def test_a_bad_right_member_stops_naming_it(self):
+        cases = [({"right": 76, "dx": 0, "xml": self.caption("A")}, "give no dx or size"),
+                 ({"right": 76, "size": [1, 1], "xml": self.caption("A")}, "give no dx or size"),
+                 ({"right": "76", "xml": self.caption("A")}, "is not a number"),
+                 ({"right": 76, "xml": LAMP}, "positionablelabel with text"),
+                 ({"right": 76, "xml": self.caption("A").replace('fontFamily="Dialog"', 'fontFamily="Serif"')},
+                  "measures the Dialog font"),
+                 ({"right": 76, "xml": self.caption("A").replace(' fontFamily="Dialog" fontname="Dialog"', "")},
+                  "must name fontFamily and fontname Dialog"),
+                 ({"right": 76, "xml": self.caption("A").replace('size="12"', 'size="13"')},
+                  "no Pi Dialog widths for size 13"),
+                 ({"right": 76, "xml": self.caption("A\u00e9")}, "not printable ASCII")]
+        for m, msg in cases:
+            with self.subTest(m=m), self.assertRaisesRegex(pi.ItemsError, msg):
+                pi.load(write(items({"id": "status", "anchor": {"to": "origin"}, "members": [m]})))
+
+
 class Anchor(unittest.TestCase):
     def test_points_of_the_box(self):
         whole, blocks = (10, 20, 110, 220), {"Track A": (0, 0, 50, 10)}
@@ -83,6 +132,11 @@ class Committed(unittest.TestCase):
         names = {ET.fromstring(m["xml"]).get("sensor") or ET.fromstring(m["xml"]).get("signalhead")
                  for m in status["members"]}
         self.assertTrue({"Bridge HBLOOP", "SML Mode", "Track Power", "IH9990"} <= names)
+        # the four captions stand by their right edges, on one line 4 px left of their lamps (owner, 2026-11-21)
+        captions = [m for m in status["members"] if ET.fromstring(m["xml"]).tag == "positionablelabel"]
+        lamps = {m["dx"] for m in status["members"] if ET.fromstring(m["xml"]).tag != "positionablelabel"}
+        self.assertEqual(len(captions), 4)
+        self.assertEqual({m["right"] for m in captions}, {min(lamps) - 4})
 
     def test_the_parked_lamps_load(self):
         data = pi.load(ROOT / "jmri/layouts/hart/parked/staging_panel_lamps.json")

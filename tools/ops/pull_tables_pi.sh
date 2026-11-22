@@ -6,7 +6,7 @@
 # over it. The Store counts as changed when the deploy's own check says so (tools/hosts/pi/unpulled_changes.sh: the
 # Pi's file against the newer of its .tables_deployed.sha256 and the deploy stamp's tables_sha256, with neither the
 # generated tables.xml; a Store already split in, store_splits.csv, is not changed). A changed Store is kept as
-# pi-<date>.xml in the pulled folder (~/JMRI_UserFiles-pulled, or HART_PULLED_DIR: outside every checkout,
+# pi-<date>.xml in the pulled folder (<main checkout>/media/pulled-stores, or HART_PULLED_DIR: gitignored, shared by every worktree,
 # profile_tables_guard.sh hart_pulled_dir), once per hash, with STORE.base beside it naming what the Pi had before
 # the session (tools/hosts/pi/tables_base.sh). It is not recorded as taken: the deploy stays stopped until
 # tools/schematic/split_store.py has split it into the sources in a task worktree and that is merged
@@ -40,7 +40,7 @@ PULLED="$(hart_pulled_dir)" || exit 1
 saved="$(hart_keep_store "$tmp" "$PULLED" pi "$base")" || exit 1
 base="$(<"$saved.base")"   # a Store kept before keeps the base it was kept with
 cat <<EOF
-Pulled: the Pi's Store is kept as $saved (outside every checkout), its base ($base) in $saved.base.
+Pulled: the Pi's Store is kept as $saved (in the main checkout's gitignored media/, shared by every worktree), its base ($base) in $saved.base.
 It is not recorded as taken: deploys to the Pi stay stopped until its split is merged.
 Next, in a task worktree (make wt TOPIC=store-split): python3 tools/schematic/split_store.py $saved
 That reports what goes into the template, what needs the owner's merge or drop, and what the repo keeps.

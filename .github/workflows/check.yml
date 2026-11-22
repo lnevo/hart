@@ -3,9 +3,11 @@
 # the gitignored photo mirrors, so tools/check.sh skips it here (CI=true).
 name: check
 on:
-  pull_request:
-  push:                   # main's run saves the schematic cache every PR can restore (a PR cannot read another's)
+  pull_request:           # no `labeled` trigger: a run for any label would cancel the PR's run in progress
+  push:                   # main's run saves the schematic cache and the check stamps every PR can restore (a PR cannot read another's)
     branches: [main]
+  schedule:
+    - cron: "17 7 * * 1"  # a weekly full run of main beside every push's: an extra net under the pull requests' skips
 permissions:
   contents: read
   actions: read           # the push run downloads the merged pull request's schematic cache artifact
@@ -15,13 +17,28 @@ permissions:
 # a group of its own and is never cancelled (it saves the schematic cache). A cancelled run saves no cache, pip or
 # schematic: both save in a post step that runs only when the job succeeded.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.event_name == 'pull_request' && format('check-pr-{0}', github.event.pull_request.number) || format('check-push-{0}', github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2        # a pull request's merge commit and its first parent (the base): the changed paths
+      # Docs-only pull requests (tools/ci/changed_kind.py) run the quick docs checks and skip the full check.sh, the
+      # schematic cache and its hand-off. This stays one job named "check", the required status check, so a docs-only
+      # pull request still gets a passing "check". A push to main always takes the full path (it saves the cache).
+      - name: What changed
+        id: kind
+        run: |
+          set -euo pipefail
+          kind=full
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            kind="$(git diff --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/changed_kind.py)"
+          fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          echo "changed paths take the $kind path"
       - run: 'git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init external/model-railroad-skills'
       - uses: actions/setup-python@v5
         with:
@@ -29,14 +46,74 @@ jobs:
           cache: pip
           cache-dependency-path: ops/hart-ops/requirements-test.txt
       - run: pip install -r ops/hart-ops/requirements-test.txt
+      # The plugin commit this run pins, and whether it differs from the base's (a pull request's merge commit has
+      # the base as its first parent; a push to main compares with the commit before it).
+      - name: Plugin pin
+        id: pin
+        if: steps.kind.outputs.kind != 'docs'
+        run: |
+          set -euo pipefail
+          pin="$(git rev-parse HEAD:external/model-railroad-skills)"
+          base="$(git rev-parse HEAD^1:external/model-railroad-skills 2>/dev/null || echo none)"
+          echo "pin=$pin" >> "$GITHUB_OUTPUT"
+          echo "changed=$([ "$pin" != "$base" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "plugin pinned at $pin (base $base)"
+      # Main's check stamps (tools/ci/stamp_gate.py): a push run of main runs every job and saves the stamps of the
+      # ones that passed, keyed on its commit. A pull request run restores the ones for its merge base (the merge
+      # commit's first parent) and skips a job whose inputs are byte-identical to that pass; any doubt (no stamps for
+      # that exact commit, another runner or Python, the plugin pin or the stamp machinery changed, the full-ci label,
+      # or [full-ci] in any of the pull request's commit messages) runs everything, with the reason in the log. The
+      # labels are read when the step runs: add full-ci, then re-run the job (or push a commit with [full-ci]).
+      - name: Merge base
+        id: base
+        if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'
+        run: echo "sha=$(git rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
+      - name: Check stamps from main
+        if: steps.base.outputs.sha != ''
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/ci/main-stamps
+          key: check-stamps-${{ steps.base.outputs.sha }}
+      - name: Skip what main covered?
+        id: gate
+        if: steps.base.outputs.sha != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          BASE: ${{ steps.base.outputs.sha }}
+          PIN_CHANGED: ${{ steps.pin.outputs.changed }}
+        run: |
+          set -uo pipefail
+          # the labels now (a re-run sees a label added since its event); a failed lookup counts as full-ci
+          labels="$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/labels" --jq 'map(.name) | join(",")')" || labels=full-ci
+          # every commit message of the pull request (the head may be an "Update branch" merge); failed: [full-ci]
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" --jq '.[].commit.message' \
+            > "$RUNNER_TEMP/pr-messages" || echo "[full-ci] (the commit messages cannot be read)" > "$RUNNER_TEMP/pr-messages"
+          # the step's shell is bash -e: the gate's "full" (exit 3) must reach the verdict below, not end the step
+          rc=0
+          verdict="$(git diff --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/stamp_gate.py decide \
+            .cache/ci/main-stamps --base "$BASE" --pin-changed "$PIN_CHANGED" --labels "$labels" \
+            --message-file "$RUNNER_TEMP/pr-messages")" || rc=$?
+          echo "$verdict"
+          if [ "$rc" -eq 0 ] && [ "$verdict" = skip ]; then
+            echo "skip_from=$GITHUB_WORKSPACE/.cache/ci/main-stamps" >> "$GITHUB_OUTPUT"
+            echo "note=current on main ${BASE:0:12}" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::every check.sh job runs: ${verdict#full: }"
+          fi
       # The schematic plugin's cache (tools/check.sh sets SCHEMATIC_CACHE to this folder). Each entry in it is keyed
       # on everything its solve reads, so an old one is never used for changed inputs; this key only decides when a
-      # run saves a new copy (the plugin, the builders or their data changed).
-      - uses: actions/cache@v4
+      # run saves a new copy (the plugin, the builders or their data changed). The key starts with the plugin pin, so
+      # a run restores a cache solved with its own plugin first, and main's latest (another pin) only when none is.
+      - if: steps.kind.outputs.kind != 'docs'
+        id: schematic-cache
+        uses: actions/cache@v4
         with:
-          path: ~/.cache/hart/schematic
-          key: schematic-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
-          restore-keys: schematic-
+          path: .cache/hart/schematic
+          key: schematic-${{ steps.pin.outputs.pin }}-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
+          restore-keys: |
+            schematic-${{ steps.pin.outputs.pin }}-
+            schematic-
       # A push run cannot restore a pull request run's cache (GitHub keeps each cache to its own ref), so the push
       # of a merge solved again what the pull request's run had just solved (408 s, then 406 s). The pull request
       # run hands its cache folder on as an artifact (the last step), and the push run adds the entries of the run
@@ -45,7 +122,7 @@ jobs:
       # from this repository counts, never a fork's. Without one (a direct push, an expired artifact) the run solves
       # as before.
       - name: Schematic cache from the merged pull request
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.kind.outputs.kind != 'docs'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -72,20 +149,59 @@ jobs:
             echo "pull request #$number, run $run: no schematic-cache artifact to download: only the cache restored above"
             exit 0
           fi
-          dir="$HOME/.cache/hart/schematic"
+          dir="$GITHUB_WORKSPACE/.cache/hart/schematic"
           mkdir -p "$dir"
           chmod 700 "$dir"
           find "$got" -maxdepth 1 -type f -name '*.pickle' -exec cp -f {} "$dir"/ \;
           echo "added $(find "$got" -maxdepth 1 -type f -name '*.pickle' | wc -l) entries from pull request #$number, run $run"
-      - run: ./tools/check.sh
+      - name: Quick docs checks
+        if: steps.kind.outputs.kind == 'docs'
+        run: |
+          set -euo pipefail
+          python3 tools/ops/build_docs_index.py --check --strict
+          python3 tools/ops/status_counts.py --check
+          python3 tools/audit/check_ai_speak.py
+          python3 tools/audit/check_agent_docs.py
+          python3 tools/audit/check_public_text.py
+          python3 www/scripts/repo_guide_page.py --check
+          python3 www/scripts/jmri_additions_page.py --check
+      # A run whose plugin pin differs from its base's (a pull request that bumps the plugin, or main's push of its
+      # merge) and whose exact cache key missed restores a cache solved with another plugin: it misses every entry,
+      # and check.sh's parallel jobs would each solve the sheet cold at once (12-34 min runs). Every other run skips
+      # this step (no added time), and so does the docs-only path.
+      # The panels pipeline in --check mode solves it once, one step after another (the first step solves, the rest
+      # read the cache), so the jobs after it start warm. Its verdict is not this step's: check.sh runs the same checks.
+      - name: Warm the schematic cache for a new plugin pin
+        if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true' && steps.pin.outputs.changed == 'true'
         env:
           SCHEMATIC_REQUIRED: "1"
+        run: |
+          start=$SECONDS
+          bash tools/schematic/build_panels.sh --check --full > /tmp/warm.log 2>&1 || echo "panels --check reported stale or failed steps; check.sh reports them"
+          grep -E '^== |: (ok|FAILED)' /tmp/warm.log || true
+          echo "cache warmed in $((SECONDS - start)) s: $(find .cache/hart/schematic -name '*.pickle' | wc -l) entries"
+      - if: steps.kind.outputs.kind != 'docs'
+        run: ./tools/check.sh
+        env:
+          SCHEMATIC_REQUIRED: "1"
+          CHECK_SKIP_FROM: ${{ steps.gate.outputs.skip_from }}
+          CHECK_SKIP_NOTE: ${{ steps.gate.outputs.note }}
+          CHECK_RECORD_TO: ${{ github.event_name == 'push' && format('{0}/.cache/ci/main-stamps', github.workspace) || '' }}
+      # Only a push run that passed gets here: its stamps are saved for the pull requests whose merge base it is.
+      - name: Save the check stamps for pull requests on this commit
+        if: github.event_name == 'push' && steps.kind.outputs.kind != 'docs'
+        run: python3 tools/ci/stamp_gate.py manifest .cache/ci/main-stamps --sha "$GITHUB_SHA"
+      - if: github.event_name == 'push' && steps.kind.outputs.kind != 'docs'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/ci/main-stamps
+          key: check-stamps-${{ github.sha }}
       - name: Hand the schematic cache to the push run of the merge
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.kind.outputs.kind != 'docs' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@v4
         with:
           name: schematic-cache
-          path: ~/.cache/hart/schematic/*.pickle
+          path: .cache/hart/schematic/*.pickle
           include-hidden-files: true
           retention-days: 7
           overwrite: true       # a re-run of the job uploads it again

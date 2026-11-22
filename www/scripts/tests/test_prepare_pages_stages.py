@@ -17,7 +17,7 @@ STAGE MAP (functions of prepare_github_pages.py; main() runs 1 to 14 in this ord
                  _vendor_archive_images, over gallery.json, fleet-gallery.json
                  and archive.json. Reads ../media/ and ../ops/car-cards/ originals. Writes
                  assets/{gallery,fleet,archive}/ and the thumb, width, height and src fields.
-                 Every resize goes through _web_jpeg and its cache in ~/.cache/hart/web-jpeg.
+                 Every resize goes through _web_jpeg and its cache in .cache/hart/web-jpeg.
                  Order inside the stage: vendor, then filter, then thumbs.
  6. Scrub data   _strip_external_data. Every data/*.json loses fields still
                  pointing at ../external, ../media, ../ops, ../docs. Must follow stages 4 and 5,
@@ -41,7 +41,7 @@ JPEGs of 5 and 10. 12 and 13 need the final tree. Stages 3 to 9, 12 and 13 touch
 5, 10, 11 and the thumbs part of 13 resize or read photos.
 
 Split point noted while writing these tests: stage 3 is inline in main(), so it is tested through
-main() on a fixture tree (FullBuild below); the rest are called directly. The ~/.cache/hart/web-jpeg path and SITE_URL are module state, patched here.
+main() on a fixture tree (FullBuild below); the rest are called directly. The .cache/hart/web-jpeg path and SITE_URL are module state, patched here.
 """
 import contextlib
 import hashlib

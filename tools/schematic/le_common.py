@@ -49,7 +49,10 @@ def plugin():
 def schematic():
     """(bands, page options) of the solved schematic (the inputs of publish_draft.py), solved once per run."""
     sheet = plugin()[0]
-    built = pd.solved_sheet(sheet)
+    try:
+        built = pd.solved_sheet(sheet)
+    except pd.host_screen.HostScreenError as exc:       # the panel's window: the page's host_screen
+        raise BuildError(str(exc)) from None
     return built.bands, built.opts
 
 
@@ -59,9 +62,16 @@ def slots_module():
 
 
 def plugin_module(name: str):
-    """The plugin's module schematic.<name> (the plugin found and checked once: plugin())."""
-    plugin()
-    return importlib.import_module(f"schematic.{name}")
+    """The plugin's module schematic.<name> (the plugin found and checked once: plugin()); BuildError when the plugin
+    has no such module (a SCHEMATIC_PLUGIN older than the module)."""
+    folder = plugin()[0].__file__
+    try:
+        return importlib.import_module(f"schematic.{name}")
+    except ModuleNotFoundError as exc:
+        if exc.name != f"schematic.{name}":
+            raise                       # the module is there but imports something missing: its own fault, shown
+        raise BuildError(f"the schematic-maps plugin at {Path(folder).parents[1]} has no schematic.{name}: "
+                         "update it (git submodule update, or a newer SCHEMATIC_PLUGIN)") from None
 
 
 def band_key(title: str) -> str:

@@ -22,7 +22,12 @@ ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(ROOT / "tools/hosts"))
 import live_paths  # noqa: E402
 
-SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
+STEPS = ROOT / "tools/hosts/deploy"
+SYNC = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")   # the entry point
+GATE = (STEPS / "gate.sh").read_text(encoding="utf-8")                             # runs the live paths check
+COMMON = (STEPS / "common.sh").read_text(encoding="utf-8")
+STAGE = (STEPS / "stage.sh").read_text(encoding="utf-8")
+MAC = (STEPS / "ship_mac.sh").read_text(encoding="utf-8")
 
 
 def git(repo: Path, *args: str) -> str:
@@ -172,10 +177,12 @@ class RealList(unittest.TestCase):
         self.assertNotIn("Traceback", done.stderr)
 
     def test_sync_runs_the_check(self) -> None:
-        self.assertIn('live_paths.py" check', SYNC)
+        self.assertIn('live_paths.py" check', GATE)
+        self.assertIn("gate.sh", SYNC)
 
     def test_sync_check_runs_after_argument_parsing(self) -> None:
-        self.assertGreater(SYNC.index('live_paths.py" check'), SYNC.index("Unknown option"))
+        self.assertGreater(SYNC.index('bash "$DEPLOY_STEPS/gate.sh"'), SYNC.index("Unknown option"))  # the entry parses its flags first
+        self.assertGreater(GATE.index('live_paths.py" check'), GATE.index("unknown option"))
 
     def test_sync_help_is_not_blocked_by_a_bad_list(self) -> None:
         done = self.sync_with_list("--help", "ghost/path\n")
@@ -202,6 +209,7 @@ class RealList(unittest.TestCase):
         hosts.mkdir()
         for f in ("sync_hart_package.sh", "live_paths.py", "profile_tables_guard.sh"):
             shutil.copy(ROOT / "tools/hosts" / f, hosts / f)
+        shutil.copytree(STEPS, hosts / "deploy")
         (hosts / "live_paths.txt").write_text(listing, encoding="utf-8")
         args = [flag] + ([str(tmp / "stage")] if flag == "--stage-only" else [])
         env = {k: v for k, v in os.environ.items() if not k.startswith("HART_") and k != "PI_HOST"}
@@ -229,7 +237,9 @@ class RealList(unittest.TestCase):
         done = subprocess.run([sys.executable, "-c", code, str(ROOT), *[a.replace("OUT", str(out)) for a in argv]],
                               capture_output=True, text=True, env=env, cwd=ROOT, timeout=120)
         self.assertEqual(done.returncode, 0, done.stderr)
-        return set(json.loads(done.stdout.strip().splitlines()[-1]))
+        # the check.sh hooks (the stamps' trace, the audit) load in every Python there: they are no builder input
+        hooks = ("tools/audit/traced.py", "tools/audit/trace_hook/", "tools/audit/stamp_audit/")
+        return {p for p in json.loads(done.stdout.strip().splitlines()[-1]) if not p.startswith(hooks)}
 
     def assert_inputs_listed(self, files: set[str]) -> None:
         listed = live_paths.read_list()
@@ -252,9 +262,9 @@ class RealList(unittest.TestCase):
     def test_deploy_script_paths_are_all_listed(self) -> None:
         """Every repo path stage_package and the jython lists name is under a live_paths.txt entry."""
         listed = live_paths.read_list()
-        start = SYNC.index("JYTHON_STARTUP_SCRIPTS=(")
-        end = SYNC.index("# stage_hosts DIR")
-        region = "\n".join(line for line in SYNC[start:end].splitlines()
+        text = (COMMON[COMMON.index("JYTHON_STARTUP_SCRIPTS=("):COMMON.index("# ---- the stamp")] + MAC
+                + STAGE[STAGE.index("stage_package() {"):STAGE.index("# stage_host_finish")])
+        region = "\n".join(line for line in text.splitlines()
                            if not line.strip().startswith("#") and "local sm=" not in line)
         sm = "jmri/layouts/hart/scripts/speedmatch"
         region = region.replace('"$sm', f'"$ROOT/{sm}')
@@ -265,7 +275,7 @@ class RealList(unittest.TestCase):
         self.assertGreater(len(found), 25, found)
         unlisted = sorted(t for t in found
                           if not any(t == p or t.startswith(p + "/") for p in listed))
-        self.assertEqual(unlisted, [], "named by sync_hart_package.sh but absent from tools/hosts/live_paths.txt")
+        self.assertEqual(unlisted, [], "named by the deploy steps (tools/hosts/deploy) but absent from tools/hosts/live_paths.txt")
 
 
 class DeployStatusReport(TempRepo):

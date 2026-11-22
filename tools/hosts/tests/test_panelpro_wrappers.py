@@ -282,7 +282,7 @@ class StartupScriptsOff(WrapperCase):
         env = self.box.env(FAKE_MODE="marker", FAKE_MARKER_FROM="HART_SML_DISCOVER_MARKER", FAKE_TABLES_FAIL="1")
         done = self.box.run("run_sml_discover.sh", env)
         self.assertEqual(1, done.returncode, done.stderr)
-        kept = sorted((self.box.home / "JMRI_UserFiles-pulled").glob("discovery-*.xml"))
+        kept = sorted((self.box.root / "media/pulled-stores").glob("discovery-*.xml"))
         self.assertEqual(1, len(kept), done.stderr)
         self.assertIn(f"kept as {kept[0]}", done.stderr)
         self.assertIn(f"--discovered-from {kept[0]}", done.stderr)
@@ -462,6 +462,10 @@ class Deploy(WrapperCase):
             dest = self.box.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / rel, dest)
+        shutil.copytree(ROOT / "tools/hosts/deploy", self.box.root / "tools/hosts/deploy")   # the entry point's steps
+        (self.box.root / "tools/env").mkdir(parents=True, exist_ok=True)
+        for name in ("load_env.sh", "defaults.env"):   # the steps' shared file reads the host settings first
+            shutil.copy2(ROOT / "tools/env" / name, self.box.root / "tools/env" / name)
         self.box.profile.with_name("profile.xml.hart-run.bak").write_bytes(self.box.original)
         env = self.box.env(HART_PI_SSH="nobody@example.invalid", HART_WIN_SSH="nobody@example.invalid")
         for rel, args in (("tools/hosts/sync_hart_package.sh", ["--stage-only", str(self.box.tmp / "stage")]),

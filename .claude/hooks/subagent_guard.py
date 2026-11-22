@@ -21,10 +21,11 @@ import sys
 
 BLOCKED_PROGRAMS = {
     "deploy_hartrailroad.sh", "sync_hart_package.sh", "redeploy_commit.sh", "flash_nano.py",
+    "ship_pi.sh", "ship_win.sh", "ship_mac.sh", "gate.sh",
     "serial_to_mqtt.py", "mosquitto_pub", "scp", "rsync", "pull_ops.sh",
 }
 BLOCKED_PREFIXES = ("run_serial_mqtt", "pi_")  # pi_*.sh in tools/hosts act on the Pi
-BLOCKED_MAKE = ("deploy-layout", "deploy-all", "deploy-site", "redeploy", "ops-pull", "sts-pull")
+BLOCKED_MAKE = ("deploy-layout", "deploy-all", "deploy-site", "redeploy", "ops-pull", "sts-pull", "mqtt-clean")
 BLOCKED_GIT = {"commit", "push", "pull", "merge", "rebase", "reset", "stash", "switch", "checkout", "restore",
                "clean", "cherry-pick", "revert", "am", "apply", "rm", "mv", "add", "fetch"}
 GIT_WRITING = {"branch": {"-d", "-D", "-m", "-M", "-c", "-C", "--delete", "--move", "--copy", "-f", "--force"},

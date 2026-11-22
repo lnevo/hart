@@ -88,7 +88,7 @@ def freeze_rows(cp: str, rows: list[dict], keys: dict[str, dict], helix: set[str
         cps = sorted({first(r) for r in rows if r["cp"]}, key=lambda c: [int(t) if t.isdigit() else t
                                                                          for t in re.split(r"(\d+)", c)])
         raise FreezeError(f"no main or upper control point {cp!r}; they are {', '.join(cps)}")
-    note = f"frozen from the device map's rule ({cp}, {today})"
+    note = wiring.freeze_note(cp, today)
     where = devices.index().where              # a row's line in devices.csv, for a message
     out, bad = [], []
     for r in mine:
@@ -163,13 +163,7 @@ def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
     if moved:
         raise FreezeError("planned rows the device map does not follow (rebuild it: "
                           "python3 tools/schematic/build_device_map.py): " + "; ".join(moved))
-    level = {"1": 0, "2": 1, "3": 2}
-    rows.sort(key=lambda r: level[r["level"]])                 # stable: staging, then main, then upper
-    buf = io.StringIO()
-    w = csv.DictWriter(buf, wiring.COLUMNS, lineterminator="\n")
-    w.writeheader()
-    w.writerows(rows)
-    return buf.getvalue(), added, turned
+    return wiring.canonical(rows), added, turned               # staging, then main, then upper: the one format
 
 
 def main(argv=None) -> int:

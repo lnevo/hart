@@ -141,8 +141,8 @@ STAGING_MAP_LOADS: list = []     # sdm.load calls in the one cached build above
 
 @functools.lru_cache(maxsize=None)
 def le_window() -> tuple:
-    """(width, height): the window the panels open in, the page's le_window (preferences.json[main_upper]), read by
-    the plugin as the build reads it."""
+    """(width, height): the window the panels open in, the page's le_window (derived from preferences.json[main_upper]
+    host_screen by publish_draft.solved_sheet), read by the plugin as the build reads it."""
     return B.plugin()[1].window(B.schematic()[1])
 
 
@@ -404,7 +404,7 @@ class Built(unittest.TestCase):
     # ---- size: the panel holds what it draws (the window: test_le_cutover.py, the panel scrolls)
     def test_everything_drawn_lies_on_the_panel(self) -> None:
         w, h = int(self.le.get("panelwidth")), int(self.le.get("panelheight"))
-        self.assertEqual(le_window(), (1900, 1140))                   # the preference: the owner's display
+        self.assertEqual(le_window(), (1920, 1032))   # host_screen: the layout hosts' 1920 x 1080 less the taskbar
         # everything drawn lies on the panel: track, turnout legs, labels (at the width JMRI draws) and icons
         xs, ys = [], []
         for p in self.le.findall("positionablepoint"):
@@ -440,9 +440,13 @@ class Built(unittest.TestCase):
         drawn = {(lb.get("text"), int(lb.get("size"))) for lb in self.le.findall("positionablelabel")
                  if lb.get("text") is not None}
         self.assertLessEqual({(lb["text"], lb["size"]) for lb in self.P.labels}, drawn)
+        # station names at the page's station_size (14, owner 2026-11-21), the rest at the drawing's own sizes
+        station = B.schematic()[1]["le_labels"]["station_size"]
+        number = B.schematic()[1]["le_labels"]["switch_size"]     # switch numbers at the page's size (C1: 12)
         unscaled = {le_mod.LABEL_SIZE, le_mod.LABEL_SIZE - 1, le_mod.LABEL_SIZE - 2, le_mod.NUMBER_SIZE,
-                    le_mod.TITLE_SIZE}
+                    le_mod.TITLE_SIZE, station, number}
         self.assertLessEqual(sizes, unscaled)
+        self.assertEqual({lb["size"] for lb in self.P.labels if lb["kind"] == "station"}, {station})
         self.assertIn(le_mod.TITLE_SIZE, sizes)
         self.assertNotEqual(self.P.scale, (1.0, 1.0))         # the grid is scaled (staging's fit, stretched)
 
@@ -557,7 +561,7 @@ class FactsReaders(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             rows = list(devices.load(B.DEVICE_MAP))
             block = next(r for r in rows if r["level"] == "2" and r["layer"] == "block")
-            bad = devices.write_master(rows + [block], devices.master_path(Path(tmp)))     # a block row twice
+            bad = devices.write_one_file(rows + [block], Path(tmp) / devices.ONE_FILE)     # a block row twice
             for read in (B.level_sensors, B.device_names):
                 with self.subTest(read=read.__name__), \
                         self.assertRaisesRegex(B.BuildError, r"^the device map: devices.csv: .*the same level, layer"):
@@ -596,7 +600,7 @@ class DeviceNames(unittest.TestCase):
         mine = [devices.master_row(dict(r, role=(roles or {}).get(r["user_name"]) or self.LAYER_ROLES[r["layer"]]),
                                    "build_device_map.py") for r in old]
         with tempfile.TemporaryDirectory() as tmp:
-            path = Path(tmp) / devices.MASTER_FILE
+            path = Path(tmp) / devices.ONE_FILE
             path.write_text(devices.master_text(devices.replace_rows([], "build_device_map.py", mine)), encoding="utf-8")
             return (reader or B.device_names)(path)
 
@@ -969,15 +973,18 @@ class FinalReview(unittest.TestCase):
         # through the page), and each level's own keys are band-keyed (le_band_labels), as the plugin combines them
         bands, page = B.schematic()
         _sheet, le_mod, _core = B.plugin()
-        self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 13})
+        self.assertEqual(page["le_labels"], {"switch_prefix": "SW-", "switch_size": 12, "station_size": 14,
+                                             "station_gap": 10})
         # a copy of the page, as the build passes it (dict(page, band_align=...)): a band-only key in the flat
         # le_labels would stop there
         opts = dict(zip((B.band_key(t) for t, _b, _o in bands), le_mod.le_labels.options(bands, dict(page))))
         for key in ("Staging", "Main", "Upper"):
-            self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 13), key)
-        self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 13))
+            self.assertEqual((opts[key]["switch_prefix"], opts[key]["switch_size"]), ("SW-", 12), key)
+            # station and CP names at 14, 10 px apart (owner, 2026-11-21)
+            self.assertEqual((opts[key]["station_size"], opts[key]["station_gap"]), (14, 10), key)
+        self.assertEqual((opts["Staging"]["names_last"], opts["Staging"]["block_contents_size"]), (False, 11))
         for key in ("Main", "Upper"):
-            self.assertEqual((opts[key]["names_last"], opts[key]["block_contents_size"]), (True, 12), key)
+            self.assertEqual((opts[key]["names_last"], opts[key]["block_contents_size"]), (True, 11), key)
         self.assertEqual((opts["Main"]["numbers_below"], opts["Upper"]["numbers_below"]), (["101"], []))
         self.assertEqual((opts["Main"]["hidden_names"], opts["Upper"]["hidden_names"]), (["101-103"], []))
         # every part's icon is optional on every level (owner, 2026-11-20): the level's parts in devices.csv

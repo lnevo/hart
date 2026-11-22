@@ -22,11 +22,12 @@ WIN="${HART_WIN_SSH:?HART_WIN_SSH is not set}"
 PORT="${HART_WIN_SSH_PORT:-2222}"
 DISTRO="${HART_WIN_WSL_DISTRO:-Ubuntu-24.04}"
 
-ref="" keep=0
+ref="" keep=0 print_script=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --ref) ref="${2:?--ref needs a value}"; shift 2 ;;
     --keep) keep=1; shift ;;
+    --print-script) print_script=1; shift ;;   # print what would run on Windows (sha = this HEAD) and stop: for tests
     --) shift; break ;;
     -h|--help) sed -n '2,17p' "$0"; exit 0 ;;
     -*) echo "win_run.sh: unknown option $1" >&2; exit 2 ;;
@@ -35,6 +36,7 @@ while [[ $# -gt 0 ]]; do
 done
 [[ $# -gt 0 ]] || { echo "win_run.sh: no command given (try --help)" >&2; exit 2; }
 
+if [[ $print_script -eq 0 ]]; then
 # operating.sh status: 0 = set, 1 = clear. Anything else (broken, missing) counts as set: fail closed.
 flag_rc=0
 "$ROOT/tools/hosts/operating.sh" status >/dev/null 2>&1 || flag_rc=$?
@@ -60,9 +62,15 @@ fi
 if [[ -n "$(git -C "$ROOT" status --porcelain --untracked-files=no)" ]]; then
   echo "win_run.sh: note: uncommitted changes here are not sent; the run uses $sha." >&2
 fi
+else
+  sha="$(git -C "$ROOT" rev-parse HEAD)"
+fi
 
 cmd="$(printf '%q ' "$@")"
 run_id="$(date +%Y%m%d-%H%M%S)-$$"
+# Concurrent runs allowed on the Windows box (WIN_RUN_SLOTS, default 2); each gets nproc/slots check.sh jobs.
+slots="${WIN_RUN_SLOTS:-2}"
+[[ "$slots" =~ ^[1-9][0-9]*$ ]] || { echo "win_run.sh: WIN_RUN_SLOTS must be a whole number above 0, got $slots" >&2; exit 2; }
 
 # The remote script goes over stdin to bash inside WSL, so no quoting passes through Windows' shell; the command
 # itself reads /dev/null, or it would eat the rest of the script. Exit codes: a setup failure there is 3 (use the
@@ -97,8 +105,26 @@ git -C "\$wt" config -f .gitmodules --get-regexp '\.path\$' | while read -r _ su
   fi
 done
 cd "\$wt"
+# --- slots (tests run this block alone)
+# At most $slots runs at once, each with its share of the CPUs: more runs only slow each other down (2026-11-21:
+# four checks at once each took three times as long). A run waits here for a free slot; the slot is held on fd 9
+# until the command ends.
+got=""; waited=0
+while [[ -z "\$got" ]]; do
+  for i in \$(seq 0 $((slots - 1))); do
+    exec 9>"\$main/.git/win_run.slot\$i"
+    if flock -n 9; then got=\$i; break; fi
+    exec 9>&-
+  done
+  if [[ -z "\$got" ]]; then
+    if [[ \$waited -eq 0 ]]; then echo "win_run.sh: $slots runs already going on Windows; waiting for a free slot" >&2; fi
+    waited=1; sleep 10
+  fi
+done
+export CHECK_MAX_JOBS=\$(( \$(nproc) / $slots > 1 ? \$(nproc) / $slots : 2 ))
+# --- end slots
 trap - ERR
-echo "win_run.sh: $sha on \$(hostname) (WSL, \$(nproc) CPUs): $cmd" >&2
+echo "win_run.sh: $sha on \$(hostname) (WSL, \$(nproc) CPUs, slot \$got of $slots, \$CHECK_MAX_JOBS jobs): $cmd" >&2
 set +e
 $cmd </dev/null
 rc=\$?
@@ -108,6 +134,7 @@ exit \$rc
 EOF
 }
 
+if [[ $print_script -eq 1 ]]; then remote_script; exit 0; fi
 set +e
 remote_script | ssh -o ConnectTimeout=8 -o LogLevel=ERROR -p "$PORT" "$WIN" "wsl.exe -d $DISTRO -- bash -s"
 rc=$?

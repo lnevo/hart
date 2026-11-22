@@ -1,5 +1,9 @@
 # HART Digicon schematic — plant map
 
+Describes the hand-wired Digicon plant map (rows, labels, lamps, switchpoints and occupancy cuts) that the generated CATS desks replaced; kept as history.
+
+Status: historical (2026-11-18). The hand-wired desks are archived; desks are generated from the schematic ([`cats-panels.md`](../../wiki/pipelines/cats-panels.md)).
+
 **History.** Since the CATS cut-over the live desks are generated from the schematic (`tools/schematic/build_cats_panel.py`; [pipelines/cats-panels.md](../../wiki/pipelines/cats-panels.md)). This page describes the hand-wired desks they replaced, whose last versions are in git at commit `42192d9c`, before the CATS cut-over (`git show 42192d9c:cats/panels/HART_CTC.xml`).
 
 Source: `archive/panels/HART_Digicon.xml` (Designer save, archived 2026-11-18, 63×16, 1920×540).  

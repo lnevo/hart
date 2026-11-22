@@ -1,4 +1,4 @@
-"""Test helper: change a copy of devices.csv through hartlib.devices (its loader and writer), never by text.
+"""Test helper: change a one-file copy of the master (devices.one_file_copy) through hartlib.devices, never by text.
 
     from master_edit import add, change, drop, find
     change(path, ("2", "turnout", "Switch 101"), jmri_name="IT:HART:C3:999")   # one row's columns
@@ -36,6 +36,20 @@ def _write(path: Path, rows: list[dict]) -> None:
 
 
 def change(path: Path, key: tuple[str, str, str], **columns: str) -> None:
+    """Change one row's columns. On a pair (a devices_generated.csv with its devices_field.csv) a column the key's
+    field row gives is changed there, as the owner would; any other in the generated file."""
+    if Path(path).name == devices.GENERATED_FILE:
+        files = devices.Files.of(path)
+        field = [dict(r) for r in devices.field_rows(files)]
+        gen = [dict(r) for r in devices.generated_rows(files)]
+        f = next((r for r in field if devices.key_of(r) == key), None)
+        g = find(gen, key)
+        for c, v in columns.items():
+            (f if f is not None and c in devices.FIELD_COLUMNS and f[c] else g)[c] = v
+        files.field.write_text(devices.master_text(field), encoding="utf-8")
+        files.master.write_text(devices.master_text(gen), encoding="utf-8")
+        devices.load(files)               # the edited pair must still merge
+        return
     rows = _rows(path)
     row = find(rows, key)
     unknown = set(columns) - set(devices.COLUMNS)

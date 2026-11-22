@@ -1,5 +1,9 @@
 # HART Railroad — Neville Island Helix Agent Handoff
 
+Design rationale, calculations, alternatives and failure modes for the Neville Island helix, for an agent continuing helix engineering; the as-built status file overrides it.
+
+Status: done (2026-10-31)
+
 **Purpose:** Give a new agent enough context to continue helix engineering, sourcing, troubleshooting, or documentation without reconstructing the full prior conversation.
 
 **Primary fabrication source of truth:** `helix_construction_plan_FINAL_31p75_18p75_2026-09-23.pdf` (supersedes `..._ENTRY_FLIPPED_CLEAN_2026-09-23.pdf` and `helix_plan_final.pdf`, both archived under `archive/docs/benchwork/helix/history/superseded/`; footer revision tags are now unified to "Locked Flat-Frame Rev. 2026-09-23" on every page, and page 1 carries an added DATUM CAUTION note distinguishing the Benchwork datum from the Structural datum.)

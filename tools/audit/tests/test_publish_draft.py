@@ -320,8 +320,8 @@ class Inputs(unittest.TestCase):
                 self.assertTrue(abs(e["x"]) > 1e-6 or abs(e["y"]) > 1e-6, "endpoint at the origin: corrupt read")
 
     def test_no_turnout_is_short(self) -> None:
-        """tools/anyrail/anyplan.py reads every turnout's three end points (the old reader lost part 0's in 5.3b): a
-        turnout part with fewer is a misread."""
+        """The plan reader (the schematic-maps plugin's `schematic anyplan`) reads every turnout's three end points
+        (the old reader lost part 0's in 5.3b): a turnout part with fewer is a misread."""
         parts = json.loads((PD.GRAPHS / "parts.json").read_text())
         turnouts = {p["name"] for p in parts if len(p["eps"]) >= 3}
         self.assertEqual([i for i, p in enumerate(parts) if p["name"] in turnouts and len(p["eps"]) < 3], [])

@@ -15,16 +15,18 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
-# The schematic plugin's cache, the folder the builds use (publish_draft.CACHE, private to this user), for every job
+# The schematic plugin's cache, the folder the builds use (publish_draft.CACHE: <main checkout>/.cache/hart/schematic, private to this user), for every job
 # here: the Layout Editor job calls the build directly and would otherwise solve the whole sheet in its one process
 # (about 3 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
 # the folder between runs (.github/workflows/check.yml).
 # A folder that cannot be made leaves the cache off, as before.
 if [[ -z "${SCHEMATIC_CACHE+set}" ]]; then
-  if mkdir -p "$HOME/.cache/hart/schematic" 2>/dev/null && chmod 700 "$HOME/.cache/hart/schematic"; then
-    export SCHEMATIC_CACHE="$HOME/.cache/hart/schematic"
+  source "$ROOT/tools/hosts/profile_tables_guard.sh"
+  cache="$(hart_cache_dir "$ROOT" schematic)"
+  if mkdir -p "$cache" 2>/dev/null && chmod 700 "$cache"; then
+    export SCHEMATIC_CACHE="$cache"
   else
-    echo "schematic cache off: cannot make $HOME/.cache/hart/schematic"
+    echo "schematic cache off: cannot make $cache"
   fi
 fi
 # A worktree not made by make wt (a subagent's isolation worktree, an older one) may lack the submodules the checks
@@ -33,22 +35,71 @@ fi
 if [[ -z "${CI:-}" && -f .git ]]; then
   python3 tools/agent/worktrees.py submodules "$ROOT" || echo "checks that need a missing submodule will skip or fail"
 fi
+# A plugin on another commit than the branch pins makes checks fail as if the code were wrong: stop before any job.
+source "$ROOT/tools/hosts/profile_tables_guard.sh"
+pin_problem="$(hart_plugin_pin_problem "$ROOT")"
+if [[ -n "$pin_problem" ]]; then
+  echo "STOP: $pin_problem" >&2
+  exit 2
+fi
 fail=0
-run() {
-  echo "--- $1"
-  shift
-  local start=$SECONDS
-  "$@" || fail=1
-  (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
-}
-# The slow part (unit tests, public text, the portal build) runs at the same time once the read-only
-# checks above it are done, at most one job per core. Every one works in its own temp folders. `later`
+# Local traced stamps (tools/audit/check_stamps.py, tools/audit/traced.py): a job whose recorded reads (the files its
+# Python opened, probed and listed) match its last pass is skipped, and prints "<job>: current, skipped"; a job that
+# ran a program the trace cannot see falls back to its declared folders. CI (CI is set, unless CHECK_SKIP_FROM below),
+# FULL=1 and an audit run never skip (FULL=1 records). CHECK_ONLY=<regex> runs only the jobs whose name matches (a
+# quick look at one job). CHECK_AUDIT=<folder> logs the repo files each job's Python opens, for
+# `check_stamps.py audit-report` and tools/audit/tests/test_check_stamps.py.
+# STAMPS: a job may be skipped; RECORD: a passing job records its traced stamp (FULL=1 and an audit run record, CI
+# only with CHECK_RECORD_TO). A recorded job runs under the trace hook (tools/audit/traced.py), which logs what its
+# Python reads.
+STAMPS=1
+RECORD=1
+if [[ -n "${CI:-}" || "${FULL:-}" == 1 || -n "${CHECK_AUDIT:-}" ]]; then STAMPS=0; fi
+if [[ -n "${CI:-}" ]]; then RECORD=0; fi
+# CI only (.github/workflows/check.yml, tools/ci/stamp_gate.py): CHECK_RECORD_TO=<folder> is main's push run, which runs
+# every job and records the stamps of the ones that passed there; CHECK_SKIP_FROM=<folder> is a pull request run with
+# main's stamps for its merge base, which skips a job whose inputs are byte-identical to that pass and records
+# nothing. CHECK_SKIP_NOTE says where the stamps came from in each skipped job's line. FULL=1 and CHECK_AUDIT still
+# run everything. Off CI both are refused: the Mac and WSL keep their own stamps (paths differ).
+# The folder goes to the stamp helper only (STAMP_ENV), and the three variables are unset here, so a job (a test that
+# runs check.sh itself) never inherits them or writes into main's stamps.
+SKIP_NOTE="current"
+STAMP_ENV=()
+STAMP_WHY=()     # a pull request run says why each job that runs did not match main's stamp
+if [[ -n "${CHECK_RECORD_TO:-}" || -n "${CHECK_SKIP_FROM:-}" ]]; then
+  if [[ -z "${CI:-}" ]]; then echo "CHECK_RECORD_TO and CHECK_SKIP_FROM are for CI runs only" >&2; exit 2; fi
+  if [[ -n "${CHECK_RECORD_TO:-}" && -n "${CHECK_SKIP_FROM:-}" ]]; then
+    echo "CHECK_RECORD_TO and CHECK_SKIP_FROM together: a run either records or skips" >&2; exit 2
+  fi
+  if [[ -n "${CHECK_RECORD_TO:-}" ]]; then
+    mkdir -p "$CHECK_RECORD_TO" || exit 2
+    STAMP_ENV=(CHECK_STAMPS_DIR="$(cd "$CHECK_RECORD_TO" && pwd)")
+    RECORD=1
+  elif [[ "${FULL:-}" != 1 && -z "${CHECK_AUDIT:-}" ]]; then
+    [[ -d "$CHECK_SKIP_FROM" ]] || { echo "CHECK_SKIP_FROM=$CHECK_SKIP_FROM: no such folder" >&2; exit 2; }
+    dir="$(cd "$CHECK_SKIP_FROM" && pwd)"
+    rm -f "$dir/filehash.json"      # keyed on another checkout's mtimes: hash every file again
+    STAMP_ENV=(CHECK_STAMPS_DIR="$dir")
+    STAMP_WHY=(--why)
+    STAMPS=1
+    SKIP_NOTE="${CHECK_SKIP_NOTE:-current on main}"
+    echo "A job whose inputs match the stamps in $dir is skipped ($SKIP_NOTE)"
+  fi
+fi
+unset CHECK_RECORD_TO CHECK_SKIP_FROM CHECK_SKIP_NOTE
+if [[ -n "${CHECK_AUDIT:-}" ]]; then
+  mkdir -p "$CHECK_AUDIT"
+  CHECK_AUDIT="$(cd "$CHECK_AUDIT" && pwd)"
+  rm -f "$CHECK_AUDIT"/*.log "$CHECK_AUDIT"/*.name
+fi
+# The jobs (the read-only checks as one "static" job, unit tests, public text, the portal build) run at the same time,
+# at most one job per core. Every one works in its own temp folders. `later`
 # starts a job with its output in a file; `collect` waits for each in the order started and prints its
 # output under its heading. Job control (set -m) gives each job its own process group with the signals a
 # terminal has (a plain background job ignores SIGINT), and Ctrl-C or TERM stops every group still running.
 set -m
 JOBS="$(mktemp -d)"
-MAX_JOBS="$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)"
+MAX_JOBS="${CHECK_MAX_JOBS:-$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 2)}"   # win_run.sh sets CHECK_MAX_JOBS to its share of the box
 (( MAX_JOBS >= 2 )) || MAX_JOBS=2
 names=()
 pids=()
@@ -62,17 +113,67 @@ trap 'stop_jobs; exit 143' TERM
 later() {
   local name="$1"
   shift
+  if [[ -n "${CHECK_ONLY:-}" && ! "$name" =~ $CHECK_ONLY ]]; then return 0; fi
   while (( $(jobs -rp | wc -l) >= MAX_JOBS )); do sleep 0.2; done
   local n="${#names[@]}"
-  (start=$SECONDS; "$@" >"$JOBS/$n.log" 2>&1; rc=$?; echo "$((SECONDS - start))" >"$JOBS/$n.time"; exit "$rc") &
+  (
+    start=$SECONDS
+    pp_set=${PYTHONPATH+1}
+    pp=${PYTHONPATH-}
+    src=2
+    if (( STAMPS || RECORD )); then
+      env ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp" ${STAMP_WHY[@]+"${STAMP_WHY[@]}"} >"$JOBS/$n.stamplog" 2>&1
+      src=$?
+      # anything but 0 (current) or 1 (not current) is run, don't record; so is a current verdict without a stamp file
+      (( src == 0 || src == 1 )) || src=2
+      if (( src == 0 )) && [[ ! -s "$JOBS/$n.stamp" ]]; then src=2; fi
+      if (( src == 0 && ! STAMPS )); then src=1; fi       # FULL=1 or an audit run: run it, and record
+      if (( src == 1 && ! RECORD )); then src=2; fi       # a pull request run on main's stamps: run it, untraced
+    fi
+    if (( src == 0 )); then
+      echo "$name: $SKIP_NOTE, skipped" >"$JOBS/$n.log"
+      : >"$JOBS/$n.skip"
+      rc=0
+    else
+      if [[ -n "${CHECK_AUDIT:-}" ]]; then
+        echo "$name" >"$CHECK_AUDIT/$n.name"
+        export CHECK_AUDIT_LOG="$CHECK_AUDIT/$n.log" CHECK_AUDIT_ROOT="$ROOT" PYTHONPATH="$ROOT/tools/audit/stamp_audit${PYTHONPATH:+:$PYTHONPATH}"
+      fi
+      unset HART_TRACE_LOG HART_TRACE_SPAWN
+      if (( src == 1 )); then
+        # the trace this job's stamp is recorded from; the job's own Python process (one per `run` in static) is
+        # expected in it ("b" lines), so a process that dropped the hook leaves the trace short and records nothing
+        export HART_TRACE_LOG="$JOBS/$n.trace" HART_TRACE_ROOT="$ROOT" PYTHONPATH="$ROOT/tools/audit/trace_hook${PYTHONPATH:+:$PYTHONPATH}"
+        : >"$HART_TRACE_LOG"
+        [[ "$(type -t "$1")" == function ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
+      fi
+      "$@" >"$JOBS/$n.log" 2>&1
+      rc=$?
+      # a check that printed SKIPPED did not really run: no stamp (a unit job's output may quote the word)
+      # and a unit job whose output shows skipped tests (their conditions are not in the stamp)
+      if (( rc == 0 && src == 1 )) && [[ -s "$JOBS/$n.stamp" ]] && ! grep -q "skipped=" "$JOBS/$n.log" \
+         && { [[ "$name" == unit-* ]] || ! grep -q SKIPPED "$JOBS/$n.log"; }; then
+        # with the environment `current` had (PYTHONPATH is in the key), untraced
+        if [[ -n "$pp_set" ]]; then ppenv=(PYTHONPATH="$pp"); else ppenv=(-u PYTHONPATH); fi
+        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" >>"$JOBS/$n.stamplog" 2>&1
+      fi
+      if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
+    fi
+    echo "$((SECONDS - start))" >"$JOBS/$n.time"
+    exit "$rc"
+  ) &
   pids+=("$!")
   names+=("$name")
 }
 collect() {
-  local i took
+  local i took skipped=0
   for i in "${!names[@]}"; do
     if wait "${pids[$i]}"; then
-      echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
+      if [[ -e "$JOBS/$i.skip" ]]; then
+        skipped=$((skipped + 1))
+      else
+        echo "--- ${names[$i]} ($(cat "$JOBS/$i.time")s)"
+      fi
     else
       fail=1
       took="$(cat "$JOBS/$i.time" 2>/dev/null)" || took="killed before it finished, no "
@@ -80,6 +181,13 @@ collect() {
     fi
     cat "$JOBS/$i.log"
   done
+  if (( skipped > 0 )); then
+    if [[ "$SKIP_NOTE" == current ]]; then
+      echo "$skipped of ${#names[@]} jobs current, skipped (FULL=1 runs them all)"
+    else
+      echo "$skipped of ${#names[@]} jobs $SKIP_NOTE, skipped; $((${#names[@]} - skipped)) ran (the full-ci label runs them all)"
+    fi
+  fi
 }
 # Unit tests compare fixtures with the checkout's tables file, so HART_TABLES never reaches them.
 unit() {
@@ -87,10 +195,25 @@ unit() {
   shift
   later "$name" env -u HART_TABLES "$@"
 }
+# The read-only checks run as one job ("static"), one after another, beside the unit jobs.
+run() {
+  echo "--- $1"
+  shift
+  local start=$SECONDS
+  # each check is one Python process the job's trace must show (check.sh `later`)
+  [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
+  "$@" || static_rc=1
+  (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
+}
+static_checks() {
+  local static_rc=0
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run repo-guide python3 www/scripts/repo_guide_page.py --check
 run pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out www/library/pipeline-map.html --back repository-guide.html --check
+# Every script this file, the Makefile, make panels and the deploys run, and every file in an output folder, is in the
+# map agents query (tools/ops/pipeline_query.py); the deliberate exceptions are ALLOWED in the script.
+run pipeline-map-coverage python3 tools/ops/pipeline_map_coverage.py
 run jmri-additions python3 www/scripts/jmri_additions_page.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check
 run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
@@ -112,7 +235,7 @@ run schematic-device-map python3 tools/schematic/build_device_map.py --check
 run schematic-masts python3 tools/schematic/build_masts.py --check
 # tables.xml is an output (ADR-029): it must be what build_tables.py writes from the template, devices.csv, the
 # Layout Editor build and the discovered Signal Mast Logic; a Store is never copied over it (make tables-pull keeps
-# it in ~/JMRI_UserFiles-pulled and tools/schematic/split_store.py splits it into the template and devices.csv)
+# it in media/pulled-stores in the main checkout and tools/schematic/split_store.py splits it into the template and devices.csv)
 run tables python3 tools/schematic/build_tables.py --check
 run schematic-device-master python3 tools/schematic/check_device_master.py --check
 run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
@@ -125,22 +248,27 @@ run wiring-v86 python3 tools/wiring/write_inventory.py --check
 run sml-invariants python3 tools/audit/check_sml_invariants.py
 # The parked features (Entry/Exit, Dispatcher System, USS CTC): none of their elements or names in the tables
 # file, all of them in jmri/layouts/hart/parked/tables_parked.xml (the live snapshot, with its source commit).
-run parked env PYTHONPATH=tools/hartlib/src python3 -m hartlib.parked check
+run parked env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.parked check
 run mqtt-static python3 tools/audit/check_mqtt_no_static_lists.py
 run wiring-crosswalk python3 tools/audit/check_wiring_crosswalk.py
+run wiring-frozen python3 tools/wiring/check_wiring_frozen.py
 run layout-facts python3 tools/audit/check_layout_facts.py
 # The fact files against each other (hartlib.railroad: devices.csv, switches.csv, masts.csv, the tables file);
 # KNOWN in the module lists what is reported and left.
-run railroad-facts env PYTHONPATH=tools/hartlib/src python3 -m hartlib.railroad check
+run railroad-facts env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.railroad check
 # devices.csv and its column dictionary (python3 -m hartlib.devices)
-run devices env PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check
+run devices env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.devices check
 run panel-status python3 tools/schematic/panel_items.py --check
 run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
 run agent-docs python3 tools/audit/check_agent_docs.py
-run docs-index python3 tools/ops/build_docs_index.py --check
+# Every Markdown document under docs/ needs a summary line (see summarize() in the script).
+run docs-index python3 tools/ops/build_docs_index.py --check --strict
 run desks python3 cats/scripts/validate_cats_panel.py
+  return "$static_rc"
+}
+later static static_checks
 # The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
 # the per-file guard and host jobs, with the files in SLOW of each folder (each 10-20 s) ahead of the rest.
 SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_deploy_gates.py test_redeploy_commit.py "
@@ -149,14 +277,16 @@ SLOW+="test_main_panel_names_copies.py test_polish_hart_layout_editor.py "
 # test_build_layout_le.built(), cached per process, so three jobs solved the sheet three times side by side with an
 # empty schematic cache (about 5 minutes each).
 LE_TESTS="test_build_layout_le test_le_cutover test_le_mast_parity"
+SLOW+=" test_panel_stamps.py test_build_tables.py test_build_panels.py "
 slow_first() {
   local f
   for f in "$@"; do [[ "$SLOW" == *" ${f##*/} "* ]] && echo "$f"; done
   for f in "$@"; do [[ "$SLOW" == *" ${f##*/} "* ]] || echo "$f"; done
   return 0
 }
-# shellcheck disable=SC2086  # LE_TESTS is a list of module names
-unit "unit-guards layout-editor ($LE_TESTS)" env PYTHONPATH=tools/audit/tests python3 -m unittest -q $LE_TESTS
+# PYTHONPATH is extended inside the job, where the trace hook is already on it (bash execs python: one process)
+# shellcheck disable=SC2016  # expanded by the inner bash
+unit "unit-guards layout-editor ($LE_TESTS)" bash -c 'PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -q '"$LE_TESTS"
 # unit-jmri runs one job per file on a local run, the slow files first: about 25 s in one job, 16 s spread over six
 # cores. CI keeps one job: its four cores are taken by the Layout Editor job and the guard files for minutes, so a
 # split would only add some 50 interpreter starts there.
@@ -172,23 +302,33 @@ fi
 # The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
 # both run one job per file, found as discover finds them, the files in SLOW first. A file in
 # BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
-for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests; do
+for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests tools/schematic/tests; do
   if [[ -n "$(find "$d" -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
     echo "--- $d: tests in a subfolder; give them their own job in check.sh"
     fail=1
   fi
 done
 BY_CLASS=" test_worktrees.py "
-for t in $(slow_first tools/hosts/tests/test*.py tools/audit/tests/test*.py); do
+BY_CLASS+=" test_panel_stamps.py "      # in tools/schematic/tests
+# A class in BY_METHOD runs one job per test (test_panel_stamps.ShellTest: eight runs of build_panels.sh in scratch repos).
+BY_METHOD=" test_panel_stamps.ShellTest "
+for t in $(slow_first tools/hosts/tests/test*.py tools/audit/tests/test*.py tools/schematic/tests/test*.py); do
   d="$(dirname "$t")"
   f="$(basename "$t")"
   [[ "$d" == tools/audit/tests && " $LE_TESTS " == *" ${f%.py} "* ]] && continue    # in the Layout Editor job above
   kind=unit-guards
   [[ "$d" == tools/hosts/tests ]] && kind=unit-hosts
+  [[ "$d" == tools/schematic/tests ]] && kind=unit-schematic
   if [[ "$BY_CLASS" == *" $f "* ]]; then
     classes="$(python3 tools/audit/test_classes.py "$t")" || { echo "--- $kind ${f%.py}: cannot list its test classes"; fail=1; continue; }
     for c in $classes; do
-      unit "$kind $c" python3 -m unittest discover -q -s "$d" -p "$f" -k "$c."
+      if [[ "$BY_METHOD" == *" $c "* ]]; then
+        for m in $(python3 tools/audit/test_classes.py "$t" --methods "$c"); do
+          unit "$kind $m" python3 -m unittest discover -q -s "$d" -p "$f" -k "$m"
+        done
+      else
+        unit "$kind $c" python3 -m unittest discover -q -s "$d" -p "$f" -k "$c."
+      fi
     done
   else
     unit "$kind ${f%.py}" python3 -m unittest discover -q -s "$d" -p "$f"
@@ -198,7 +338,6 @@ unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
 unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
 unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
 unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
-unit unit-schematic python3 -m unittest discover -q -s tools/schematic/tests
 unit unit-anyrail python3 -m unittest discover -q -s tools/anyrail/tests
 unit unit-portal python3 -m unittest discover -q -s www/scripts/tests
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout

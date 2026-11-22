@@ -29,7 +29,7 @@ The station map pages are drawn from this sheet, so publishing then copies the t
 them with hartlib.map_revision (also the command www/scripts/map_revision.py), and --check fails while any of them differs.
 After a commit that changes the drawing, run tools/schematic/evolution.py.
 
-The plugin's solved-sheet cache (SCHEMATIC_CACHE, default ~/.cache/hart/schematic, a folder only this user can open)
+The plugin's solved-sheet cache (SCHEMATIC_CACHE, default <main checkout>/.cache/hart/schematic, shared by every worktree; HART_CACHE_DIR moves the base; a folder only this user can open)
 is on for the plugin commands this runs and for solved_sheet(), the one way build_layout_le.py, build_cats_panel.py
 and build_device_map.py get the solved bands, so they and publishing solve the same inputs once between them. The
 key covers the source of the plugin code the solve runs, the graphs and the layer files, so a SCHEMATIC_PLUGIN trial
@@ -56,7 +56,7 @@ sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().p
 from hartlib import layer_files, map_revision, paths  # noqa: E402
 
 REPO = paths.REPO_ROOT
-CACHE = Path.home() / ".cache/hart/schematic"
+CACHE = paths.cache_dir("schematic")      # <main checkout>/.cache/hart/schematic, shared by every worktree
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 GRAPHS = DATA / "inputs"
 OUT = REPO / "docs/ops"
@@ -64,6 +64,8 @@ STATIONS = OUT / "stations"                                              # one S
 INPUTS = [("staging.json", "staging"), ("main.json", "main_upper")]     # graph, layer file stem; the last sets the page
 sys.path.insert(0, str(REPO / "tools/ops"))  # screenshot.py is a script, not a package: import it by folder
 from screenshot import find_chrome  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import host_screen  # noqa: E402
 
 # the plugin's title box (it grows for a long title line), drawn after the drawing itself
 TITLE_BOX = re.compile(r'<rect x="24" y="728" width="([\d.]+)" height="64"')
@@ -167,9 +169,26 @@ def cache_on():
 
 def solved_sheet(sheet):
     """The solved Sheet of the schematic (INPUTS from GRAPHS, layer files in DATA), from the plugin's `sheet` module,
-    through the cache. Every builder gets its bands here, so they share one cache key with publishing."""
+    through the cache. Every builder gets its bands here, so they share one cache key with publishing. Its page
+    options gain le_window and cats_window, both from the page's host_screen (apply_host_screen): the one place the
+    Layout Editor panel's and the CATS desks' windows are derived. host_screen.HostScreenError when that stops; a
+    caller turns it into its own error (le_common.schematic: BuildError)."""
     with cache_on():
-        return sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(DATA))
+        built = sheet.build([(str(GRAPHS / g), n) for g, n in INPUTS], str(layer_files.view(DATA)))
+    apply_host_screen(built.opts)
+    return built
+
+
+def apply_host_screen(opts, data=DATA):
+    """`opts` (the solved page options) with le_window and cats_window from preferences.json's host_screen
+    (host_screen.apply, over every section of the file in `data`). Every stop is a host_screen.HostScreenError,
+    a preferences file that cannot be read included."""
+    try:
+        map_revision.page_prefs(data)                   # stops on a sheet.preferences.json beside it
+        sections = layer_files.read_file("preferences", data)
+    except ValueError as exc:                           # LayerFileError is one
+        raise host_screen.HostScreenError(f"the page's preferences: {exc}") from None
+    return host_screen.apply(opts, sections, map_revision.PAGE_SHEET)
 
 
 STAMP_VERSION = b"publish_draft check 2"
@@ -277,7 +296,7 @@ def compare_drawing():
 def draw():
     with tempfile.TemporaryDirectory() as tmp:
         svg = Path(tmp) / "sheet.svg"
-        run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(DATA),
+        run = subprocess.run([str(plugin() / "bin/schematic"), "draw", str(svg), "--data", str(layer_files.view(DATA)),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")
@@ -290,7 +309,7 @@ def draw_stations():
     """{file name: SVG} of every station detail sheet (the detail_sheets preference), drawn from both
     inputs so the sheet-wide look (helix coils, mileposts) reaches them as it does the overall sheet."""
     with tempfile.TemporaryDirectory() as tmp:
-        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(DATA),
+        run = subprocess.run([str(plugin() / "bin/schematic"), "detail", f"{tmp}/", "--data", str(layer_files.view(DATA)),
                               *(f"{GRAPHS}/{g}:{n}" for g, n in INPUTS)],
                              capture_output=True, text=True, env=cache_env())
         print(run.stdout + run.stderr, end="")

@@ -3,107 +3,8 @@
  "_note": "Layer 1 for both sheets, one section per input name (publish_draft.INPUTS): facts about the railroad that the plan graph does not hold. Read with hartlib.layer_files; the schematic-maps plugin reads a section as it read the old <sheet>.plan_overrides.json.",
  "staging": {
   "_layer": 1,
-  "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Every output uses them. Since 5.3c (owner, 2026-11-19) the plan draws the Switch 7 crossover, Switches 13, 11 and 9 with EH-1 to EH-3, and no crossover T41/T43, all left-hand as built; the helix comes from the plan, cut at -5 cm (tools/anyrail/anyplan.py --cut -5 --stubs).",
+  "_note": "Facts about the railroad that the AnyRail plan 5.3c does not hold or holds wrongly. Every output uses them. Since 5.3c (owner, 2026-11-19) the plan draws the Switch 7 crossover, Switches 13, 11 and 9 with EH-1 to EH-3, and no crossover T41/T43, all left-hand as built; the helix comes from the plan, cut at -5 cm (the schematic-maps plugin's schematic anyplan --cut -5 --stubs).",
   "left_end": "W-1",
-  "stations": {
-   "Brick": [
-    "1",
-    "3"
-   ],
-   "West Yard": [
-    "3"
-   ],
-   "Plane": [
-    "5"
-   ],
-   "Barn": [
-    "7",
-    "9",
-    "11",
-    "13"
-   ],
-   "Engine House": [
-    "9",
-    "11",
-    "13"
-   ],
-   "South Yard": [
-    "15",
-    "17",
-    "19",
-    "21"
-   ],
-   "East End": [
-    "25",
-    "27",
-    "29",
-    "31",
-    "23",
-    "33"
-   ],
-   "Princess": [
-    "35",
-    "37",
-    "39"
-   ]
-  },
-  "control_points": {
-   "Brick": {
-    "switches": [
-     "1",
-     "3"
-    ],
-    "code": "BK"
-   },
-   "Plane": {
-    "switches": [
-     "5"
-    ],
-    "code": "PL"
-   },
-   "Barn": {
-    "switches": [
-     "7"
-    ],
-    "code": "BN"
-   },
-   "South Yard": {
-    "switches": [
-     "15",
-     "17",
-     "19",
-     "21"
-    ],
-    "code": "SY"
-   },
-   "East End": {
-    "switches": [
-     "25",
-     "27",
-     "29",
-     "31",
-     "23",
-     "33"
-    ],
-    "code": "EE"
-   },
-   "Princess": {
-    "switches": [
-     "35",
-     "37",
-     "39"
-    ],
-    "code": "PR"
-   },
-   "Engine House": {
-    "switches": [
-     "9",
-     "11",
-     "13"
-    ],
-    "code": "EH"
-   }
-  },
   "edits": [
    {
     "op": "relabel",
@@ -140,14 +41,12 @@
      [
       "1",
       "23@1",
-      "Main West",
-      "main"
+      "Main West"
      ],
      [
       "23@Main West",
       "35@23",
-      "West Ext",
-      "main"
+      "West Ext"
      ],
      [
       "15",
@@ -179,14 +78,12 @@
      [
       "33",
       "35@33",
-      "East Lead",
-      "main"
+      "East Lead"
      ],
      [
       "1",
       "5",
-      "Brick-Plane",
-      "main"
+      "Brick-Plane"
      ],
      [
       "39",
@@ -199,14 +96,12 @@
      [
       "5",
       "7@33",
-      "East Ext",
-      "main"
+      "East Ext"
      ],
      [
       "7@East Ext",
       "33",
-      "Main East",
-      "main"
+      "Main East"
      ],
      [
       "5",
@@ -221,14 +116,12 @@
      [
       "35@West Ext",
       "39",
-      "",
-      "main"
+      ""
      ],
      [
       "35@East Lead",
       "37",
-      "",
-      "main"
+      ""
      ]
     ]
    },
@@ -297,55 +190,8 @@
   },
   "_milepost_origin": "Switch 1 is MP 5.7 (owner, 2026-11-19): the P&OV met the P&LE at Neville interlocking, about PLE 5.7 (www/library/chartiers-valley-railroads.html). The count runs east in scale miles and carries on through the helix to the main and upper levels.",
   "scale_ratio": 87.1,
-  "milepost_route": [
-   [
-    "1",
-    "5"
-   ],
-   [
-    "5",
-    "7@East Ext"
-   ],
-   [
-    "7@East Ext",
-    "33"
-   ],
-   [
-    "33",
-    "35@East Lead"
-   ],
-   [
-    "35@East Lead",
-    "37"
-   ],
-   [
-    "37",
-    "Helix Inner"
-   ],
-   [
-    "35@East Lead",
-    "35@West Ext"
-   ],
-   [
-    "35@West Ext",
-    "39"
-   ],
-   [
-    "39",
-    "Helix Outer"
-   ]
-  ],
   "_milepost_route": "The count runs the long way round the staging main: Brick-Plane, East Ext, Main East, East Lead, then the two throats into the helix (through the Switch 35 crossover to 39). Main West and West Ext, the west part of the loop, carry none.",
-  "_stations": "West Yard is W-1 and W-2 with Switch 3 (owner, 2026-11-14). Brick is the interlocking between Switches 1 and 3: a control point, not a station.",
-  "station_tracks": {
-   "Brick": [],
-   "West Yard": [
-    "W-1",
-    "W-2"
-   ]
-  },
-  "_main_lines": "The main flags of the `name` edit and milepost_route are written by tools/schematic/build_main_route.py from the staging rows of main_lines.csv; edit that file, not these.",
-  "_control_points": "Written by tools/schematic/build_staging_sets.py from stations.csv (stations, station_tracks, and control_points: the desk areas, by desk_code); edit that file, not these keys."
+  "_stations": "West Yard is W-1 and W-2 with Switch 3 (owner, 2026-11-14). Brick is the interlocking between Switches 1 and 3: a control point, not a station."
  },
  "main_upper": {
   "_layer": 1,
@@ -411,6 +257,11 @@
    }
   ],
   "levels": {
+   "assign": {
+    "127B": 10.8,
+    "131B": 10.8
+   },
+   "_assign": "The level a junction is on, whatever its plan height: 127B and 131B are on the upper level (10.8 cm). A railroad fact, so layer 1 (owner, 2026-11-21; was in preferences.json).",
    "bands": [
     {
      "name": "Main level",
@@ -428,261 +279,9 @@
    "131A": "Helix Outer",
    "131B": "Helix Inner"
   },
-  "main_route": [
-   [
-    "Helix Outer",
-    "131A",
-    "direct"
-   ],
-   [
-    "131A",
-    "127A",
-    "direct"
-   ],
-   [
-    "127A",
-    "125A",
-    "direct"
-   ],
-   [
-    "125A",
-    "123",
-    "direct"
-   ],
-   [
-    "123",
-    "119A",
-    "direct"
-   ],
-   [
-    "119A",
-    "117",
-    "direct"
-   ],
-   [
-    "117",
-    "111",
-    "direct"
-   ],
-   [
-    "111",
-    "109",
-    "direct"
-   ],
-   [
-    "109",
-    "107",
-    "direct"
-   ],
-   [
-    "107",
-    "107",
-    "direct"
-   ],
-   [
-    "Helix Inner",
-    "131B",
-    "direct"
-   ],
-   [
-    "131B",
-    "127B",
-    "direct"
-   ],
-   [
-    "127B",
-    "221B",
-    "direct"
-   ],
-   [
-    "221B",
-    "217A",
-    "direct"
-   ],
-   [
-    "217A",
-    "211B",
-    "direct"
-   ],
-   [
-    "211B",
-    "203",
-    "direct"
-   ],
-   [
-    "203",
-    "201",
-    "direct"
-   ],
-   [
-    "201",
-    "219",
-    "direct"
-   ],
-   [
-    "219",
-    "221A",
-    "direct"
-   ],
-   [
-    "221A",
-    "223",
-    "direct"
-   ],
-   [
-    "223",
-    "225",
-    "direct"
-   ],
-   [
-    "225",
-    "229",
-    "direct"
-   ],
-   [
-    "229",
-    "241",
-    "direct"
-   ],
-   [
-    "241",
-    "227",
-    "direct"
-   ],
-   [
-    "227",
-    "225",
-    "direct"
-   ]
-  ],
   "helix_side": "east",
   "_helix_side": "Fact, not a preference: the helix is at the east end of every level (ADR-022: timetable east runs toward Princess and the helix).",
   "helix_to": "Staging",
-  "mast_prefix": "Mast ",
-  "control_points": {
-   "CP 107": {
-    "switches": [
-     "107",
-     "109",
-     "111",
-     "117",
-     "119A",
-     "119B"
-    ]
-   },
-   "CP 123": {
-    "switches": [
-     "123",
-     "125A",
-     "125B"
-    ]
-   },
-   "CP 127": {
-    "switches": [
-     "127A",
-     "131A"
-    ]
-   },
-   "CP 201": {
-    "switches": [
-     "201",
-     "203",
-     "219",
-     "221A",
-     "221B"
-    ]
-   },
-   "CP 211": {
-    "switches": [
-     "211A",
-     "211B"
-    ]
-   },
-   "CP 217": {
-    "switches": [
-     "217A",
-     "217B"
-    ]
-   },
-   "CP 223": {
-    "switches": [
-     "223"
-    ]
-   },
-   "CP 225": {
-    "switches": [
-     "225",
-     "227",
-     "229"
-    ]
-   }
-  },
-  "_control_points": "Placeholder control points 'CP <lowest switch>' (owner, 2026-11-15), written by tools/schematic/build_device_map.py from interlockings.csv; edit that file, not this key.",
-  "stations": {
-   "CP 107": {
-    "switches": [
-     "107",
-     "109",
-     "111",
-     "117",
-     "119A",
-     "119B"
-    ],
-    "tracks": []
-   },
-   "CP 123": {
-    "switches": [
-     "123",
-     "125A",
-     "125B"
-    ],
-    "tracks": []
-   },
-   "CP 127": {
-    "switches": [
-     "127A",
-     "131A"
-    ],
-    "tracks": []
-   },
-   "CP 201": {
-    "switches": [
-     "201",
-     "203",
-     "219",
-     "221A",
-     "221B"
-    ],
-    "tracks": []
-   },
-   "CP 211": {
-    "switches": [
-     "211A",
-     "211B"
-    ],
-    "tracks": []
-   },
-   "CP 217": {
-    "switches": [
-     "217A",
-     "217B"
-    ],
-    "tracks": []
-   },
-   "CP 223": {
-    "switches": [
-     "223"
-    ],
-    "tracks": []
-   },
-   "CP 225": {
-    "switches": [
-     "225",
-     "227",
-     "229"
-    ],
-    "tracks": []
-   }
-  }
+  "mast_prefix": "Mast "
  }
 }

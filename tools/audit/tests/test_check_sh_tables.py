@@ -53,7 +53,8 @@ class CheckShTables(unittest.TestCase):
                 break
             users |= more
         self.assertEqual(sorted(users), sorted(names))
-        self.assertIn('env PYTHONPATH=tools/audit/tests python3 -m unittest -q $LE_TESTS', text)
+        self.assertIn('PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -q \'"$LE_TESTS"',
+                      text)
         self.assertIn('" $LE_TESTS " == *" ${f%.py} "* ]] && continue', text)
 
     def test_every_import_form_is_seen(self) -> None:
@@ -68,19 +69,34 @@ class CheckShTables(unittest.TestCase):
             self.assertNotIn("test_build_layout_le", imported_modules(source), source)
 
     def cache_block(self, home: Path, **env: str) -> subprocess.CompletedProcess:
-        """Run check.sh's SCHEMATIC_CACHE block with HOME=home, then print the variable as the jobs see it."""
+        """Run check.sh's SCHEMATIC_CACHE block (cache folder HART_CACHE_DIR=home/.cache/hart unless given), then
+        print the variable as the jobs see it."""
         text = CHECK.read_text(encoding="utf-8")
         start = text.index("# The schematic plugin's cache")
         block = text[start:text.index("\nfi\n", text.index('if [[ -z "${SCHEMATIC_CACHE+set}" ]]', start)) + 4]
         base = {k: v for k, v in os.environ.items() if k != "SCHEMATIC_CACHE"}
-        return subprocess.run(["bash", "-c", block + 'echo "CACHE=${SCHEMATIC_CACHE-unset}"'],
-                              env={**base, "HOME": str(home), **env}, capture_output=True, text=True, timeout=30)
+        return subprocess.run(["bash", "-c", f'ROOT="{ROOT}"\n' + block + 'echo "CACHE=${SCHEMATIC_CACHE-unset}"'],
+                              env={**base, "HOME": str(home), "HART_CACHE_DIR": str(home / ".cache/hart"), **env},
+                              capture_output=True, text=True, timeout=30)
+
+    def test_ci_keys_the_schematic_cache_on_the_plugin_pin_and_warms_it_first(self) -> None:
+        """A run restores a cache solved with its own plugin pin before main's latest, and a run on another pin
+        solves the sheet once (build_panels.sh --check) before check.sh's parallel jobs start."""
+        text = (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8")
+        self.assertIn("key: schematic-${{ steps.pin.outputs.pin }}-", text)
+        self.assertIn("            schematic-${{ steps.pin.outputs.pin }}-\n            schematic-\n", text)
+        warm = text.index("name: Warm the schematic cache for a new plugin pin")
+        self.assertIn("bash tools/schematic/build_panels.sh --check --full", text[warm:])
+        # only for a new pin whose exact cache missed, never on the docs-only path: no time added to other runs
+        self.assertIn("if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true' "
+                      "&& steps.pin.outputs.changed == 'true'", text[warm:])
+        self.assertLess(warm, text.index("run: ./tools/check.sh"))
 
     def test_check_sh_turns_on_the_builds_schematic_cache(self) -> None:
         """The folder the builds use (publish_draft.CACHE), made private; read from the source, not imported."""
         source = (ROOT / "tools/schematic/publish_draft.py").read_text(encoding="utf-8")
-        self.assertIn('CACHE = Path.home() / ".cache/hart/schematic"', source)
-        self.assertIn("path: ~/.cache/hart/schematic", (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8"))
+        self.assertIn('CACHE = paths.cache_dir("schematic")', source)
+        self.assertIn("path: .cache/hart/schematic", (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as d:
             done = self.cache_block(Path(d))
             folder = Path(d) / ".cache/hart/schematic"

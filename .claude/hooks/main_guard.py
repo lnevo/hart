@@ -48,6 +48,10 @@ FILE_FLAGS = ("-F", "--file", "--body-file", "--notes-file")
 OPERATING_FLAG = os.environ.get("HART_OPERATING_FLAG") or os.path.expanduser("~/.hart_operating")
 HOST_SCRIPTS = {"pi_quit_panelpro.sh", "pi_start_panelpro.sh", "pi_sts_update.sh"}
 HOST_FLAGS = ("--pi", "--win", "--all")          # sync_hart_package.sh and redeploy_commit.sh: a layout host
+# The deploy steps in tools/hosts/deploy/: the entry point's own steps. The ship steps for a host always reach one;
+# the gate does with a host flag (it asks the hosts over ssh); the Mac step and staging never do.
+DEPLOY_ENTRY = ("sync_hart_package.sh", "redeploy_commit.sh")
+DEPLOY_SHIP_HOST = ("ship_pi.sh", "ship_win.sh")
 SSH_VALUE_OPTS = {"-b", "-c", "-D", "-E", "-e", "-F", "-I", "-i", "-J", "-L", "-l", "-m", "-O", "-o", "-p", "-Q",
                   "-R", "-S", "-W", "-w"}     # ssh options that take the next word as their value
 HOST_TARGETS = {"deploy-layout", "deploy-all"}    # make targets that deploy to the hosts (redeploy: by HOSTS)
@@ -149,13 +153,18 @@ def host_control(part, flag, exported=None):
     if not words:
         return None
     head, args = os.path.basename(words[0]), words[1:]
-    if head in ("sync_hart_package.sh", "redeploy_commit.sh") and \
-            any(a == f or a.startswith(f + "=") for a in args for f in HOST_FLAGS):
+    if head in DEPLOY_ENTRY and any(a == f or a.startswith(f + "=") for a in args for f in HOST_FLAGS):
+        return "a deploy to the Pi or Windows"
+    if head in DEPLOY_SHIP_HOST:
+        return "a deploy to the Pi or Windows"
+    if head == "gate.sh" and any(a in ("--pi", "--win") for a in args):
         return "a deploy to the Pi or Windows"
     if head == "make":
         hosts = " ".join([a for a in args if a.startswith("HOSTS=")] + [assigned.get("HOSTS", "")])
         if HOST_TARGETS & set(args) or ("redeploy" in args and HOSTS_PI.search(hosts)):
             return "a deploy to the Pi or Windows"
+        if "mqtt-clean" in args:
+            return "make mqtt-clean, which writes to the layout broker on the Pi"
     if head in HOST_SCRIPTS:
         return f"{head}, which acts on the Pi"
     if head == "drop_job.sh" and flag.get("by") == "owner" and args and \

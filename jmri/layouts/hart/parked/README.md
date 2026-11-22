@@ -1,5 +1,7 @@
 # Parked features
 
+Waking a feature up, and the log of warnings the parked features leave: [`docs/parked/UNPARK.md`](../../../../docs/parked/UNPARK.md).
+
 Since the helix-join release (owner, 2026-11-17) three features are out of the active
 `jmri/layouts/hart/output/tables.xml`, with all their data kept here. `tables_parked.xml` is a frozen snapshot of the
 live elements: split verbatim, once, from `tables.xml` as deployed at commit **3bd3ac64** (main before the release;

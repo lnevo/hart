@@ -98,7 +98,7 @@ class QuietStartup(HomeCase):
         self.assertIn("off: preference:jython/brand_new_publisher.py", notes)
 
     def test_every_deployed_startup_script_is_switched_off(self) -> None:
-        sync = (ROOT / "tools/hosts/sync_hart_package.sh").read_text(encoding="utf-8")
+        sync = (ROOT / "tools/hosts/deploy/common.sh").read_text(encoding="utf-8")
         block = re.search(r"JYTHON_STARTUP_SCRIPTS=\((.*?)\)", sync, re.S).group(1)
         deployed = {Path(s.strip().strip('"')).name for s in block.split() if s.strip()}
         pi = (ROOT / "tools/hosts/pi/apply_hart_package_local.sh").read_text(encoding="utf-8")
