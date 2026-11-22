@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /* Builds www/play/answers.html, the answer key for Extra East: Neville Island, from the shifts in www/play/runs.js.
    Each shift's build() is run many times with a seeded random stream and a stand-in for the game's helpers, so every
-   branch a draw can take is seen; a question is listed once, under the first shift that asks it.
+   branch a draw can take is seen. Each shift lists every question it can ask; words a draw changes (a time, a count)
+   show as [varies]. Questions asked from inside an after() or info callback are not seen; none are today.
    `--check` exits 1 when answers.html is out of date. */
 "use strict";
 const fs = require("fs");
@@ -25,26 +26,35 @@ function seeded(n) {
   return () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 
+/* One body for all the draws: where they differ word by word, the word shows as [varies]. */
+function merge(bodies) {
+  if (bodies.length === 1) return bodies[0];
+  const split = bodies.map((b) => b.split(" "));
+  if (split.some((w) => w.length !== split[0].length)) return bodies[0];
+  return split[0].map((w, i) => (split.every((x) => x[i] === w) ? w : "[varies]")).join(" ");
+}
+
 /* The shifts in the order the game lists them, with every question each can ask. */
 function extract(src) {
   const sandbox = { window: {} };
   vm.runInNewContext(src, sandbox, { filename: RUNS });
   const runs = sandbox.window.NevilleRuns;
-  const seen = new Set();
   const shifts = [];
   for (const [id, def] of Object.entries(runs)) {
-    const qs = [];
+    const byKey = new Map(); // title|right -> the question, with every body a draw gave it
+    const idSeed = [...id].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619), 2166136261);
     for (let d = 0; d < DRAWS; d++) {
-      const R = seeded(d * 7919 + id.length);
+      const R = seeded(idSeed + d * 7919);
       const S = { pace: 1, parAdd: 0, clock: 0 };
       const H = {
-        ask: (o) => { const key = o.title + "|" + o.right; if (!seen.has(key)) { seen.add(key); qs.push(o); } return null; },
+        ask: (o) => { const key = o.title + "|" + o.right; const q = byKey.get(key); if (q) q.bodies.add(o.body); else byKey.set(key, Object.assign({}, o, { bodies: new Set([o.body]) })); return null; },
         info: () => null, mv: () => null, wait: () => null, done: () => null,
         rnd: (a, b) => a + Math.floor(R() * (b - a + 1)), pick: (a) => a[Math.floor(R() * a.length)],
         fmt: (m) => String(m), esc, log: () => {}, addTime: () => 0, get S() { return S; }, get R() { return R; },
       };
       def.build(H);
     }
+    const qs = [...byKey.values()].map((q) => Object.assign(q, { body: merge([...q.bodies]) }));
     shifts.push({ id, def, qs });
   }
   return shifts;
@@ -57,7 +67,7 @@ function render(shifts) {
   const secs = shifts.map((s) => {
     const items = s.qs.map((o) => {
       n++;
-      const opts = [{ t: o.right, ok: true }, ...o.wrong.map((w) => ({ t: w[0], ok: false, why: w[2] }))].sort((a, b) => a.t.localeCompare(b.t));
+      const opts = [{ t: o.right, ok: true }, ...o.wrong.map((w) => ({ t: w[0], ok: false, why: w[2] }))].sort((a, b) => (a.t < b.t ? -1 : a.t > b.t ? 1 : 0)); // code-point order: the same on every host
       const link = o.url ? `<a href="${o.url.startsWith("http") ? o.url : TUMBLR + o.url}" rel="noopener">${esc(srcLabel(o.src))}</a>` : esc(srcLabel(o.src));
       const ow = opts.filter((x) => !x.ok && x.why).map((x) => `<p class="xa-ow">${esc(x.t)}: ${esc(x.why)}</p>`).join("");
       const search = [o.title, text(o.body), o.right, ...o.wrong.map((w) => w[0]), o.why, srcLabel(o.src)].join(" ").toLowerCase();
@@ -70,7 +80,7 @@ function render(shifts) {
   <p class="xa-meta">${link}</p>
 </article>`;
     }).join("\n");
-    return `<section class="xa-sec" id="${s.id}"><h2>${esc(s.def.code)}, ${esc(s.def.name)} <small>${esc(s.def.dateLine)} · ${s.qs.length}</small></h2>\n${items}\n</section>`;
+    return `<section class="xa-sec" id="${s.id}"><h2>${esc(s.def.code)}, ${esc(s.def.name)} <small>${esc(s.def.dateLine)} · ${s.qs.length} questions</small></h2>\n${items}\n</section>`;
   }).join("\n");
   return `<!DOCTYPE html>
 <html lang="en">
@@ -102,7 +112,7 @@ body.xa-hide .xa-why,body.xa-hide .xa-ow{display:none}
   <main class="ap-wrap">
     <div class="page-head">
       <h1>Extra East: Neville Island answer key</h1>
-      <p class="section-note">All ${total} questions in <a href="index.html">Extra East: Neville Island</a>, by shift, each listed once under the first shift that asks it. Each shows its choices in alphabetical order with the right one ticked, and the rule behind it. Some questions come up only on some draws. The rules are in the <a href="../exam/index.html">C&amp;E study deck</a>.</p>
+      <p class="section-note">Every question in <a href="index.html">Extra East: Neville Island</a>, by shift: ${total} in all, with a rule that comes up on several shifts listed under each. Each shows its choices in alphabetical order with the right one ticked, and the rule behind it. Some questions come up only on some draws, and a word that changes from draw to draw shows as [varies]. The rules are in the <a href="../exam/index.html">C&amp;E study deck</a>.</p>
     </div>
     <div class="xa-tools">
       <input type="search" id="xaFilter" placeholder="Filter by rule, word or answer" aria-label="Filter questions">
