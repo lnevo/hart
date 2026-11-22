@@ -321,7 +321,7 @@ svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
 svg.far.focus .edge.on{stroke-width:1.5px}
 svg.far.focus .edge.near{stroke-width:2.5px}
-svg.far .node.hit .box,svg.far.focus .node.sel .box{stroke-width:3px}
+svg.far .node.hit .box,svg.far.focus .node.sel .box{stroke-width:3px;stroke:#facc15}
 .fl{cursor:pointer}
 .fl .fb{stroke-width:1px}
 .fl .ft{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}

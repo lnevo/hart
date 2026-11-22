@@ -105,7 +105,7 @@ svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
 svg.far.focus .edge.on{stroke-width:1.5px}
 svg.far.focus .edge.near{stroke-width:2.5px}
-svg.far .node.hit .box,svg.far.focus .node.sel .box{stroke-width:3px}
+svg.far .node.hit .box,svg.far.focus .node.sel .box{stroke-width:3px;stroke:#facc15}
 .fl{cursor:pointer}
 .fl .fb{stroke-width:1px}
 .fl .ft{font:700 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
@@ -568,9 +568,11 @@ function chainOf(edges, id, stops) {
 }
 
 /* The chain one link from -> to belongs to: everything that feeds from and everything to feeds (chainOf, not
-   walking on through a box where stops(box) is true), and the links inside it (lit). */
+   walking on through a box where stops(box) is true, an end of the link included: a line out of a host does not
+   light everything deployed to it), and the links inside it (lit). */
 function linkChain(edges, from, to, stops) {
-  const up = chainOf(edges, from, stops).up, down = chainOf(edges, to, stops).down;
+  const up = stops(from) ? new Set([from]) : chainOf(edges, from, stops).up;
+  const down = stops(to) ? new Set([to]) : chainOf(edges, to, stops).down;
   const lit = e => (e.from === from && e.to === to) || (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to));
   return { boxes: new Set([...up, ...down]), lit };
 }
@@ -716,7 +718,7 @@ function app() {
   // zoomed out, each box is a solid block in its kind's ink, which stands out from the light lanes better than its fill
   const farStyle = document.createElement("style");
   farStyle.textContent = Object.entries(DATA.kinds).filter(([k]) => /^[\w-]+$/.test(k))
-    .map(([k, [, , ink]]) => `svg.far .node.${k} .box{fill:${String(ink).replace(/[^#\w(),. %]/g, "")}}`).join("\n");
+    .map(([k, [, , ink]]) => `svg.far .node.${k}.live .box{fill:${String(ink).replace(/[^#\w(),. %]/g, "")}}`).join("\n");  // parked and retired keep their light fill, so their dashes show
   document.head.append(farStyle);
   DATA.presets ||= [];
   const insAll = {}, outsAll = {};
@@ -872,8 +874,8 @@ function app() {
     showFar(placed);
   }
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
-  /* Hovering a link (edge: its index in lay.edges) lights it and the boxes at its two ends, and a note by the pointer
-     names them and the link's label. */
+  /* Hovering a link (edge: its index in lay.edges) lights the whole chain it is on (linkChain) and tags its boxes, the
+     two ends first, and a note by the pointer names the ends and the link's label. */
   const etip = document.createElement("div");
   etip.id = "etip"; etip.className = "panel"; etip.hidden = true; document.getElementById("stage").append(etip);
   let hoverEdge = null;
@@ -964,7 +966,7 @@ function app() {
       for (const line of wrap(n.desc, WRAP)) { ty += 13; p.push(`<text class="d" x="14" y="${ty}">${esc(line)}</text>`); }
       p.push("</g>");
     }
-    // name tags for a zoomed-out view (updateFar): drawn at a fixed size on screen, the busiest boxes first
+    // name tags for a zoomed-out view (updateFar): drawn at a fixed size on screen for hovered, selected and found boxes
     p.push('</g><g id="far">');
     for (const n of lay.nodes) {
       const [, fill, ink] = DATA.kinds[n.kind], name = farName(n.label);

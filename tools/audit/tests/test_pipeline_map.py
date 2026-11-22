@@ -231,6 +231,9 @@ class LayoutTest(unittest.TestCase):
         got = self.run_js("(c => [[...c.boxes].sort(), a.filter(c.lit).map(e => e.from + e.to)])"
                           "(m.linkChain(a, 'a', 'b', id => id === 'host'))", edges)
         self.assertEqual(got, [["a", "b", "c", "host", "s"], ["sa", "ab", "bc", "chost"]])
+        # a line out of a host lights only the host on that side, not everything that feeds the host
+        got = self.run_js("(c => [...c.boxes].sort())(m.linkChain(a, 'host', 'past', id => id === 'host'))", edges)
+        self.assertEqual(got, ["host", "past"])
 
     def test_line_note_names_both_ends_escaped(self) -> None:
         """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
