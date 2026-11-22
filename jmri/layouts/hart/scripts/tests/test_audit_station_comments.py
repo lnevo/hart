@@ -1,5 +1,6 @@
 """audit_panel_contracts.station_comments takes the Dispatcher stations and their comments from the device master's
-staging block rows marked `stop` (2026-11-22: it replaced the hand-kept copy in refresh_bean_comments.BLOCK_COMMENTS)."""
+staging block rows marked `stop` (2026-11-22: it replaced the hand-kept copy in refresh_bean_comments.BLOCK_COMMENTS).
+The stations are parked since 2026-11-22, so the live master marks none."""
 import sys
 import unittest
 import xml.etree.ElementTree as ET
@@ -17,11 +18,9 @@ def row(name, comment, *, level=devices.FIELD_LEVEL, layer="block", stop="yes"):
 
 
 class StationComments(unittest.TestCase):
-    def test_the_live_master_gives_the_twelve_staging_stations(self):
-        got = apc.station_comments()
-        self.assertEqual(len(got), 12)
-        self.assertEqual(got["Track K-1"], "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop")
-        self.assertTrue(all(c.endswith("; stop") or c == "stop" for c in got.values()))
+    def test_the_live_master_marks_no_station_while_they_are_parked(self):
+        """The stations are parked with the stations topic (owner, 2026-11-22): the master's `stop` is empty."""
+        self.assertEqual(apc.station_comments(), {})
 
     def test_only_staging_block_rows_marked_stop_count(self):
         got = apc.station_comments([

@@ -2155,7 +2155,7 @@
       "cp": "Princess",
       "hardware": "IB:AUTO:0010",
       "mqtt": "100",
-      "comment": "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",
+      "comment": "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100",
       "block": ""
     },
     {
@@ -2181,7 +2181,7 @@
       "cp": "Princess",
       "hardware": "IB:AUTO:0048",
       "mqtt": "101",
-      "comment": "Princess balloon, Track K-2; occupancy Block 1-2 / M2S101; stop",
+      "comment": "Princess balloon, Track K-2; occupancy Block 1-2 / M2S101",
       "block": ""
     },
     {
@@ -2324,7 +2324,7 @@
       "cp": "East End;Princess",
       "hardware": "IB:AUTO:0017",
       "mqtt": "106",
-      "comment": "South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106; stop",
+      "comment": "South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106",
       "block": ""
     },
     {
@@ -3117,7 +3117,7 @@
       "cp": "Brick;West Yard",
       "hardware": "IB:AUTO:0022",
       "mqtt": "402",
-      "comment": "Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402; stop",
+      "comment": "Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402",
       "block": ""
     },
     {
@@ -3143,7 +3143,7 @@
       "cp": "Brick;West Yard",
       "hardware": "IB:AUTO:0020",
       "mqtt": "403",
-      "comment": "Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403; stop",
+      "comment": "Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403",
       "block": ""
     },
     {
@@ -3247,7 +3247,7 @@
       "cp": "Plane;Barn",
       "hardware": "IB3",
       "mqtt": "407",
-      "comment": "Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407; stop",
+      "comment": "Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407",
       "block": ""
     },
     {
@@ -3923,7 +3923,7 @@
       "cp": "Barn;Engine House",
       "hardware": "IB15",
       "mqtt": "1300",
-      "comment": "Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300; stop",
+      "comment": "Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300",
       "block": ""
     },
     {
@@ -4040,7 +4040,7 @@
       "cp": "Barn;Engine House",
       "hardware": "IB22",
       "mqtt": "1304",
-      "comment": "Bottom house track; occupancy Block 13-5 / M2S1304; stop",
+      "comment": "Bottom house track; occupancy Block 13-5 / M2S1304",
       "block": ""
     },
     {
@@ -4066,7 +4066,7 @@
       "cp": "Barn;Engine House",
       "hardware": "IB21",
       "mqtt": "1305",
-      "comment": "Middle house track; occupancy Block 13-6 / M2S1305; stop",
+      "comment": "Middle house track; occupancy Block 13-6 / M2S1305",
       "block": ""
     },
     {
@@ -4092,7 +4092,7 @@
       "cp": "Barn;Engine House",
       "hardware": "IB20",
       "mqtt": "1306",
-      "comment": "Top house track; occupancy Block 13-7 / M2S1306; stop",
+      "comment": "Top house track; occupancy Block 13-7 / M2S1306",
       "block": ""
     },
     {
@@ -4261,7 +4261,7 @@
       "cp": "Princess;CP 127",
       "hardware": "IB23",
       "mqtt": "",
-      "comment": "Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map); stop",
+      "comment": "Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map)",
       "block": ""
     },
     {
@@ -4274,7 +4274,7 @@
       "cp": "Princess;CP 127",
       "hardware": "IB24",
       "mqtt": "",
-      "comment": "Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map); stop",
+      "comment": "Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map)",
       "block": ""
     },
     {

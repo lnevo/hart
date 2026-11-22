@@ -19,6 +19,7 @@ lists what has to be rebuilt, and every warning, skip and stale name the parked 
 | The 12 yard throat blocks, with their 10 yard-end masts and the 2 Dispatcher rear masts (36L, 40RB) | 2026-11-20 | `jmri/layouts/hart/data/schematic/retired_virtual_masts.csv`; the throat rows at commit 5a5bff0a (parked README, "Hidden yard throats") |
 | USS CTC machine: `<ctcdata>` (20 code buttons), its Panel Editor panel, 264 sensors, its Logix and LogixNG | 2026-11-17 | `tables_parked.xml` (feature `uss`); `GUIObjects.xml` and icons in `jmri/layouts/hart/ctc/`; `data/mast_cells.csv`, `data/uss_board_cells.csv`, `data/uss_board_plants.csv` |
 | Occupancy lamps and Dispatcher station clusters (79 panel items) | 2026-11-17 off the staging panel; 2026-11-21 on every level, with their code and checks | `jmri/layouts/hart/parked/staging_panel_lamps.json`, `parked/occupancy_lamps_display_only.py` and its test; the two staging `le_labels` rules in `preferences.json` |
+| Dispatcher stations: the `; stop` at the end of 12 staging block comments and the master's `stop` column (empty, kept in the schema) | 2026-11-22, with the stations topic | The station list and the rule below |
 
 `tables_parked.xml` is a frozen snapshot of the deployed tables at commit 3bd3ac64, before the helix was joined.
 `python3 -m hartlib.parked check` (in `tools/check.sh`) holds it and `tables.xml` apart. The CATS desks, the signal
@@ -47,9 +48,9 @@ masts and Signal Mast Logic stay live.
   `reconcile_dispatcher_stations.py` (48, the 12 stations and their icons), `refresh_bean_comments.py` (59 block
   comments in `BLOCK_COMMENTS`, the same text the master's `jmri_comment` holds), `nx_contract.py` (23),
   `ctc_logic_smoke.py` (23), `gen_ctc_track_plan.py` (18, board positions by block name), `build_ctc_full_15col.py`
-  (14), `discover_nx.py` (11) and the `STATIONS` list in `panelpro_smoke_test.py` (12). The live audit no longer reads
-  the station list or the comment copy: `audit_panel_contracts.station_comments` takes the stations from the master's
-  staging rows marked `stop` (it still imports `nx_contract.py` for the ISNX names).
+  (14), `discover_nx.py` (11) and the `STATIONS` list in `panelpro_smoke_test.py` (12). The live audit reads none of
+  them: `audit_panel_contracts.station_comments` takes the stations from the master's staging rows marked `stop`,
+  which is none while the stations are parked (it still imports `nx_contract.py` for the ISNX names).
 
 ### Today's sources
 
@@ -104,6 +105,15 @@ way to rebuild it.
 | `jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py`, `repair_dispatcher_traininfo.py`, `fix_traininfo_detection.py`, `run_panelpro_traininfo_repair.sh` | edit the 374 traininfo files, which name the 3bd3ac64 transits and masts; the retarget script defaults to the Pi's `tables.xml` path | traininfo generated from the transits the build writes, with HEAD_AND_TAIL detection set by the generator |
 | `jmri/layouts/hart/parked/occupancy_lamps_display_only.py` | the lamps' display-only check, out of `tools/check.sh` | back into `tools/check.sh` with the lamps |
 | The hidden yard throats | Stage 1 needs the 12 throat blocks and their 12 masts (the rows of `retired_virtual_masts.csv` marked "restore on unpark") | a rule in `build_masts.py` and `block_overrides.csv` rows, as the parked README describes |
+
+**The stations (parked 2026-11-22).** The stock Dispatcher System has no station table: a station is a block whose
+JMRI comment is "stop" or ends "; stop". Until 2026-11-22 the device master's `stop` column was `yes` on 12 staging
+blocks and the builders added "; stop" to their comments: Track K-1, Track K-2, Track East Lead, Track EH-1, Track EH-2,
+Track EH-3, Track Scale, Track Barn, Track W-1, Track W-2, Track Helix Outer and Track Helix Inner (commit 8066d2a6 has
+them). `build_device_map.py` also marked the main and upper helix rows a stop at their main-level switch (Switch 131A
+and 131B; `helix_stops`, removed the same day). To bring stations back, the owner first decides them for every level
+(the stations topic), then sets `stop` to `yes` in `devices_field.csv` (for a generated row, in its builder) and puts "; stop" back in those rows'
+`jmri_comment`; `check_device_master.py` and `audit_panel_contracts.py` hold `tables.xml` to the column.
 
 Put back with it: `audit_panel_contracts.py` `EXPECTED_GRAPH`, the counts in `panelpro_smoke_test.py`, the two
 checks taken out of `tools/check.sh` (`reconcile_dispatcher_stations.py --check --no-sync` and

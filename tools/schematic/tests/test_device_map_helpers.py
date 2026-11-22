@@ -183,7 +183,7 @@ class TheSplit(TempFiles):
             with self.subTest(name=name):
                 self.assertIs(getattr(bdm, name), getattr(staging, name))
 
-    SCHEMATIC = ("block_overrides", "check_helix_ends", "corner_blocks_of", "dx_corners", "helix_stops",
+    SCHEMATIC = ("block_overrides", "check_helix_ends", "corner_blocks_of", "dx_corners",
                  "helix_tracks", "home_and_posts", "labels_by_level", "line_role", "loop_halves", "main_upper_layer",
                  "named_tracks", "overrides_keys", "read_pins", "split_edges", "split_tracks", "xover_corners")
 

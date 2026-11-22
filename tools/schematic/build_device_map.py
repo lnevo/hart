@@ -71,8 +71,8 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   block (plan_overrides.json: Track Helix Outer from 131A, Track Helix Inner from 131B), one JMRI block with the staging
   track below it (owner, 2026-11-20): the staging device map names its staging piece, and the Layout Editor build
   binds this map's occupancy row to the one staging block. Its level_switch must be the switch the drawing gives, and
-  its row marks a stop there (stop yes, the parked Dispatcher's station mark, as its staging row does; helix_stops:
-  the helix stop on main and upper is at Switch 131A and 131B, owner 2026-11-20).
+  its `stop` stays empty: the Dispatcher stations are parked with the stations topic (owner, 2026-11-22;
+  docs/parked/UNPARK.md has the helix stop rule for the day they return).
   A balloon loop is two blocks, "Track <n> Loop 1" from the switch's leg B and "Track <n> Loop 2" from leg C, parted
   at the turnback halfway round (owner, 2026-11-16): JMRI keys a mast by its facing and protected blocks
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
@@ -149,7 +149,7 @@ from device_map_staging import (  # noqa: E402,F401  staging's rows; re-exported
     level_trials, line_cp, new_spare, part_bean_names, part_row, piece_trials, staging_field, staging_layer,
     staging_part_names, staging_rows, staging_trials, staging_wired_rows, taken_bean_names, wire_block, wire_occupancy)
 from device_map_schematic import (  # noqa: E402,F401  the drawing's tracks; re-exported: callers read them here
-    block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_stops, helix_tracks, home_and_posts,
+    block_overrides, check_helix_ends, corner_blocks_of, dx_corners, helix_tracks, home_and_posts,
     labels_by_level, line_role, loop_halves, main_upper_layer, named_tracks, overrides_keys, read_pins, split_edges,
     split_tracks, xover_corners)
 
@@ -456,7 +456,6 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
                        f"in {SWITCHES.name}")
     found = named_tracks(bands, joined, runs, overrides, helix)
     check_helix_ends(bands, joined, found, helix)
-    stops = helix_stops(helix)              # check_helix_ends: each helix track ends at its level_switch
     planned, corner_blocks, split_names, lay = plan_masts(bands, joined, runs, found, cp_of, corners)
     if lay.inside:          # the main and upper drawing gives each strand one block: a piece there is a part
         raise MapError(f"{mast_rule.OVERRIDES_NAME} keeps {', '.join(sorted(lay.inside))} inside an OS block on "
@@ -626,7 +625,7 @@ def build(bands, joined, runs, overrides, cps, node_rows, local=(), corners=None
             elif half:
                 note += f", half of the balloon loop from leg {'BC'[half - 1]}"
             add(t["level"], cp, "block", name, "", "", " / ".join(ends_cp),
-                trial_of(name), note, stop="yes" if name in stops else "", role=role)
+                trial_of(name), note, role=role)
             pinned = nodes.take_pinned(name)
             if not detect:
                 if pinned:
