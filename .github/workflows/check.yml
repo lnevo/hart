@@ -3,9 +3,11 @@
 # the gitignored photo mirrors, so tools/check.sh skips it here (CI=true).
 name: check
 on:
-  pull_request:
-  push:                   # main's run saves the schematic cache every PR can restore (a PR cannot read another's)
+  pull_request:           # no `labeled` trigger: a run for any label would cancel the PR's run in progress
+  push:                   # main's run saves the schematic cache and the check stamps every PR can restore (a PR cannot read another's)
     branches: [main]
+  schedule:
+    - cron: "17 7 * * 1"  # a weekly full run of main beside every push's: an extra net under the pull requests' skips
 permissions:
   contents: read
   actions: read           # the push run downloads the merged pull request's schematic cache artifact
@@ -56,6 +58,49 @@ jobs:
           echo "pin=$pin" >> "$GITHUB_OUTPUT"
           echo "changed=$([ "$pin" != "$base" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "plugin pinned at $pin (base $base)"
+      # Main's check stamps (tools/ci/stamp_gate.py): a push run of main runs every job and saves the stamps of the
+      # ones that passed, keyed on its commit. A pull request run restores the ones for its merge base (the merge
+      # commit's first parent) and skips a job whose inputs are byte-identical to that pass; any doubt (no stamps for
+      # that exact commit, another runner or Python, the plugin pin or the stamp machinery changed, the full-ci label,
+      # or [full-ci] in any of the pull request's commit messages) runs everything, with the reason in the log. The
+      # labels are read when the step runs: add full-ci, then re-run the job (or push a commit with [full-ci]).
+      - name: Merge base
+        id: base
+        if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'
+        run: echo "sha=$(git rev-parse HEAD^1)" >> "$GITHUB_OUTPUT"
+      - name: Check stamps from main
+        if: steps.base.outputs.sha != ''
+        uses: actions/cache/restore@v4
+        with:
+          path: .cache/ci/main-stamps
+          key: check-stamps-${{ steps.base.outputs.sha }}
+      - name: Skip what main covered?
+        id: gate
+        if: steps.base.outputs.sha != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR: ${{ github.event.pull_request.number }}
+          BASE: ${{ steps.base.outputs.sha }}
+          PIN_CHANGED: ${{ steps.pin.outputs.changed }}
+        run: |
+          set -uo pipefail
+          # the labels now (a re-run sees a label added since its event); a failed lookup counts as full-ci
+          labels="$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR/labels" --jq 'map(.name) | join(",")')" || labels=full-ci
+          # every commit message of the pull request (the head may be an "Update branch" merge); failed: [full-ci]
+          gh api --paginate "repos/$GITHUB_REPOSITORY/pulls/$PR/commits" --jq '.[].commit.message' \
+            > "$RUNNER_TEMP/pr-messages" || echo "[full-ci] (the commit messages cannot be read)" > "$RUNNER_TEMP/pr-messages"
+          # the step's shell is bash -e: the gate's "full" (exit 3) must reach the verdict below, not end the step
+          rc=0
+          verdict="$(git diff --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/stamp_gate.py decide \
+            .cache/ci/main-stamps --base "$BASE" --pin-changed "$PIN_CHANGED" --labels "$labels" \
+            --message-file "$RUNNER_TEMP/pr-messages")" || rc=$?
+          echo "$verdict"
+          if [ "$rc" -eq 0 ] && [ "$verdict" = skip ]; then
+            echo "skip_from=$GITHUB_WORKSPACE/.cache/ci/main-stamps" >> "$GITHUB_OUTPUT"
+            echo "note=current on main ${BASE:0:12}" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::every check.sh job runs: ${verdict#full: }"
+          fi
       # The schematic plugin's cache (tools/check.sh sets SCHEMATIC_CACHE to this folder). Each entry in it is keyed
       # on everything its solve reads, so an old one is never used for changed inputs; this key only decides when a
       # run saves a new copy (the plugin, the builders or their data changed). The key starts with the plugin pin, so
@@ -139,6 +184,18 @@ jobs:
         run: ./tools/check.sh
         env:
           SCHEMATIC_REQUIRED: "1"
+          CHECK_SKIP_FROM: ${{ steps.gate.outputs.skip_from }}
+          CHECK_SKIP_NOTE: ${{ steps.gate.outputs.note }}
+          CHECK_RECORD_TO: ${{ github.event_name == 'push' && format('{0}/.cache/ci/main-stamps', github.workspace) || '' }}
+      # Only a push run that passed gets here: its stamps are saved for the pull requests whose merge base it is.
+      - name: Save the check stamps for pull requests on this commit
+        if: github.event_name == 'push' && steps.kind.outputs.kind != 'docs'
+        run: python3 tools/ci/stamp_gate.py manifest .cache/ci/main-stamps --sha "$GITHUB_SHA"
+      - if: github.event_name == 'push' && steps.kind.outputs.kind != 'docs'
+        uses: actions/cache/save@v4
+        with:
+          path: .cache/ci/main-stamps
+          key: check-stamps-${{ github.sha }}
       - name: Hand the schematic cache to the push run of the merge
         if: steps.kind.outputs.kind != 'docs' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@v4

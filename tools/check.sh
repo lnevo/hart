@@ -45,16 +45,48 @@ fi
 fail=0
 # Local traced stamps (tools/audit/check_stamps.py, tools/audit/traced.py): a job whose recorded reads (the files its
 # Python opened, probed and listed) match its last pass is skipped, and prints "<job>: current, skipped"; a job that
-# ran a program the trace cannot see falls back to its declared folders. CI (CI is set), FULL=1 and an audit run never
-# skip (FULL=1 records). CHECK_ONLY=<regex> runs only the
-# jobs whose name matches (a quick look at one job). CHECK_AUDIT=<folder> logs the repo files each job's Python
-# opens, for `check_stamps.py audit-report` and tools/audit/tests/test_check_stamps.py.
+# ran a program the trace cannot see falls back to its declared folders. CI (CI is set, unless CHECK_SKIP_FROM below),
+# FULL=1 and an audit run never skip (FULL=1 records). CHECK_ONLY=<regex> runs only the jobs whose name matches (a
+# quick look at one job). CHECK_AUDIT=<folder> logs the repo files each job's Python opens, for
+# `check_stamps.py audit-report` and tools/audit/tests/test_check_stamps.py.
 # STAMPS: a job may be skipped; RECORD: a passing job records its traced stamp (FULL=1 and an audit run record, CI
-# never does). A recorded job runs under the trace hook (tools/audit/traced.py), which logs what its Python reads.
+# only with CHECK_RECORD_TO). A recorded job runs under the trace hook (tools/audit/traced.py), which logs what its
+# Python reads.
 STAMPS=1
 RECORD=1
 if [[ -n "${CI:-}" || "${FULL:-}" == 1 || -n "${CHECK_AUDIT:-}" ]]; then STAMPS=0; fi
 if [[ -n "${CI:-}" ]]; then RECORD=0; fi
+# CI only (.github/workflows/check.yml, tools/ci/stamp_gate.py): CHECK_RECORD_TO=<folder> is main's push run, which runs
+# every job and records the stamps of the ones that passed there; CHECK_SKIP_FROM=<folder> is a pull request run with
+# main's stamps for its merge base, which skips a job whose inputs are byte-identical to that pass and records
+# nothing. CHECK_SKIP_NOTE says where the stamps came from in each skipped job's line. FULL=1 and CHECK_AUDIT still
+# run everything. Off CI both are refused: the Mac and WSL keep their own stamps (paths differ).
+# The folder goes to the stamp helper only (STAMP_ENV), and the three variables are unset here, so a job (a test that
+# runs check.sh itself) never inherits them or writes into main's stamps.
+SKIP_NOTE="current"
+STAMP_ENV=()
+STAMP_WHY=()     # a pull request run says why each job that runs did not match main's stamp
+if [[ -n "${CHECK_RECORD_TO:-}" || -n "${CHECK_SKIP_FROM:-}" ]]; then
+  if [[ -z "${CI:-}" ]]; then echo "CHECK_RECORD_TO and CHECK_SKIP_FROM are for CI runs only" >&2; exit 2; fi
+  if [[ -n "${CHECK_RECORD_TO:-}" && -n "${CHECK_SKIP_FROM:-}" ]]; then
+    echo "CHECK_RECORD_TO and CHECK_SKIP_FROM together: a run either records or skips" >&2; exit 2
+  fi
+  if [[ -n "${CHECK_RECORD_TO:-}" ]]; then
+    mkdir -p "$CHECK_RECORD_TO" || exit 2
+    STAMP_ENV=(CHECK_STAMPS_DIR="$(cd "$CHECK_RECORD_TO" && pwd)")
+    RECORD=1
+  elif [[ "${FULL:-}" != 1 && -z "${CHECK_AUDIT:-}" ]]; then
+    [[ -d "$CHECK_SKIP_FROM" ]] || { echo "CHECK_SKIP_FROM=$CHECK_SKIP_FROM: no such folder" >&2; exit 2; }
+    dir="$(cd "$CHECK_SKIP_FROM" && pwd)"
+    rm -f "$dir/filehash.json"      # keyed on another checkout's mtimes: hash every file again
+    STAMP_ENV=(CHECK_STAMPS_DIR="$dir")
+    STAMP_WHY=(--why)
+    STAMPS=1
+    SKIP_NOTE="${CHECK_SKIP_NOTE:-current on main}"
+    echo "A job whose inputs match the stamps in $dir is skipped ($SKIP_NOTE)"
+  fi
+fi
+unset CHECK_RECORD_TO CHECK_SKIP_FROM CHECK_SKIP_NOTE
 if [[ -n "${CHECK_AUDIT:-}" ]]; then
   mkdir -p "$CHECK_AUDIT"
   CHECK_AUDIT="$(cd "$CHECK_AUDIT" && pwd)"
@@ -90,15 +122,16 @@ later() {
     pp=${PYTHONPATH-}
     src=2
     if (( STAMPS || RECORD )); then
-      python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp" >"$JOBS/$n.stamplog" 2>&1
+      env ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py current "$name" --save "$JOBS/$n.stamp" ${STAMP_WHY[@]+"${STAMP_WHY[@]}"} >"$JOBS/$n.stamplog" 2>&1
       src=$?
       # anything but 0 (current) or 1 (not current) is run, don't record; so is a current verdict without a stamp file
       (( src == 0 || src == 1 )) || src=2
       if (( src == 0 )) && [[ ! -s "$JOBS/$n.stamp" ]]; then src=2; fi
       if (( src == 0 && ! STAMPS )); then src=1; fi       # FULL=1 or an audit run: run it, and record
+      if (( src == 1 && ! RECORD )); then src=2; fi       # a pull request run on main's stamps: run it, untraced
     fi
     if (( src == 0 )); then
-      echo "$name: current, skipped" >"$JOBS/$n.log"
+      echo "$name: $SKIP_NOTE, skipped" >"$JOBS/$n.log"
       : >"$JOBS/$n.skip"
       rc=0
     else
@@ -122,7 +155,7 @@ later() {
          && { [[ "$name" == unit-* ]] || ! grep -q SKIPPED "$JOBS/$n.log"; }; then
         # with the environment `current` had (PYTHONPATH is in the key), untraced
         if [[ -n "$pp_set" ]]; then ppenv=(PYTHONPATH="$pp"); else ppenv=(-u PYTHONPATH); fi
-        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u CHECK_AUDIT_LOG "${ppenv[@]}" python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" >>"$JOBS/$n.stamplog" 2>&1
+        env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u CHECK_AUDIT_LOG "${ppenv[@]}" ${STAMP_ENV[@]+"${STAMP_ENV[@]}"} python3 tools/audit/check_stamps.py record "$name" "$JOBS/$n.stamp" --trace "$HART_TRACE_LOG" >>"$JOBS/$n.stamplog" 2>&1
       fi
       if [[ -s "$JOBS/$n.stamplog" ]]; then { echo "--- stamps ($name):"; cat "$JOBS/$n.stamplog"; } >>"$JOBS/$n.log"; fi
     fi
@@ -148,7 +181,13 @@ collect() {
     fi
     cat "$JOBS/$i.log"
   done
-  if (( skipped > 0 )); then echo "$skipped of ${#names[@]} jobs current, skipped (FULL=1 runs them all)"; fi
+  if (( skipped > 0 )); then
+    if [[ "$SKIP_NOTE" == current ]]; then
+      echo "$skipped of ${#names[@]} jobs current, skipped (FULL=1 runs them all)"
+    else
+      echo "$skipped of ${#names[@]} jobs $SKIP_NOTE, skipped; $((${#names[@]} - skipped)) ran (the full-ci label runs them all)"
+    fi
+  fi
 }
 # Unit tests compare fixtures with the checkout's tables file, so HART_TABLES never reaches them.
 unit() {

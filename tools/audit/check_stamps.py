@@ -375,12 +375,18 @@ def main(argv: list[str] | None = None) -> int:
         name, save = argv[1], None
         if "--save" in argv:
             save = Path(argv[argv.index("--save") + 1])
-        if not_stampable(name):
+        why = "--why" in argv              # say why it runs (a CI pull request run: check.sh CHECK_SKIP_FROM)
+        unstampable = not_stampable(name)
+        if unstampable:
+            if why:
+                print(f"runs: {unstampable}")
             return 2
-        ok = is_current(name)
+        reason = why_not_current(name)
         if save:
             save.write_text(snapshot(name) + "\n")
-        return 0 if ok else 1
+        if reason and why:
+            print(f"runs: {reason}")
+        return 0 if reason is None else 1
     if len(argv) == 2 and argv[0] == "why":
         print(not_stampable(argv[1]) or why_not_current(argv[1]) or "current")
         return 0
