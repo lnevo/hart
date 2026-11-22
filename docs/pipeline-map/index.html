@@ -623,12 +623,31 @@ function lineEnd(edge, source, drawn) {
 }
 
 /* Where a box grown about its middle (cx, cy, half sizes hw, hh, all screen px) goes: moved in by dx, dy to stay whole
-   inside area ({left, top, right, bottom}), unless fixed (the hovered box itself, which must stay under the pointer).
-   Returns its rect with a 2 px margin and the move. */
-function growRect(cx, cy, hw, hh, area, fixed = false) {
+   inside area ({left, top, right, bottom}), the hovered box too (its drawn spot keeps the hover, pointerPick, so its
+   card need not stay under the pointer). Returns its rect with a 2 px margin and the move. */
+function growRect(cx, cy, hw, hh, area) {
   const inside = (c, h, lo, hi) => Math.min(Math.max(c, lo + h), Math.max(hi - h, lo + h)) - c;
-  const dx = fixed ? 0 : inside(cx, hw + 4, area.left, area.right), dy = fixed ? 0 : inside(cy, hh + 4, area.top, area.bottom);
+  const dx = inside(cx, hw + 4, area.left, area.right), dy = inside(cy, hh + 4, area.top, area.bottom);
   return { x0: cx + dx - hw - 2, y0: cy + dy - hh - 2, x1: cx + dx + hw + 2, y1: cy + dy + hh + 2, dx, dy };
+}
+
+/* A grown rect b (from growRect) moved the least way clear of the blocked rects (the lane names and the legend), staying
+   inside area: right past one, or above or below it; up to four moves, then as it is. For the hovered box, which must
+   show even where it starts under a lane name. */
+function clearOf(b, blocked, area) {
+  const hit = r => blocked.find(o => o.x0 < r.x1 && r.x0 < o.x1 && o.y0 < r.y1 && r.y0 < o.y1);
+  const move = (r, mx, my) => ({ x0: r.x0 + mx, y0: r.y0 + my, x1: r.x1 + mx, y1: r.y1 + my, dx: r.dx + mx, dy: r.dy + my });
+  const fits = r => r.x0 >= area.left && r.x1 <= area.right && r.y0 >= area.top && r.y1 <= area.bottom;
+  let r = b;
+  for (let i = 0; i < 4; i++) {
+    const o = hit(r);
+    if (!o) return r;
+    const ways = [move(r, o.x1 + 1 - r.x0, 0), move(r, 0, o.y0 - 1 - r.y1), move(r, 0, o.y1 + 1 - r.y0)].filter(fits);
+    if (!ways.length) return r;
+    ways.sort((p, q) => Math.hypot(p.dx - r.dx, p.dy - r.dy) - Math.hypot(q.dx - r.dx, q.dy - r.dy));
+    r = ways[0];
+  }
+  return r;
 }
 
 /* A link's drawn shape from its layout points: a straight piece where the height stays the same, otherwise an S-bend
@@ -894,7 +913,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1042,11 +1061,12 @@ function app() {
       const near = id => (hoverSteps && hoverSteps.has(id) ? hoverSteps.get(id) : 0);  // a hovered line's nearer boxes grow first
       lit.sort((p, q) => rank(p.id) - rank(q.id) || near(p.id) - near(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
       const area = { left: 0, top: a.top, right: a.right, bottom: a.bottom };
-      const boxes = lit.map(n => growRect(sx(n.x + n.w / 2), sy(n.y + n.h / 2), n.w * s * k / 2, n.h * s * k / 2, area, n.id === hoverId));
+      const boxes = lit.map(n => growRect(sx(n.x + n.w / 2), sy(n.y + n.h / 2), n.w * s * k / 2, n.h * s * k / 2, area));
       const blocked = [...laneTags.querySelectorAll("span"), legend].map(t => {  // the lane names and the legend sit over the map
         const q = t.getBoundingClientRect();
         return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
       });
+      lit.forEach((n, i) => { if (n.id === hoverId) boxes[i] = clearOf(boxes[i], blocked, area); });  // the hovered box always shows
       for (const i of placeTags(boxes, blocked)) want.push([lit[i], k, boxes[i].dx / s, boxes[i].dy / s]);
     }
     const now = new Set(want.map(([n]) => n.id));
