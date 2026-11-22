@@ -2,7 +2,7 @@
 
 Status: active
 
-- **Owner:** lnevo. Plan agreed 2026-11-22; not started.
+- **Owner:** lnevo. Plan agreed 2026-11-22; step 1 (facts) done 2026-11-22, step 2 next.
 - **Goal:** one game at [`/play/`](https://www.hartrailroad.com/play/) that covers the whole C&E study deck. The Neville Island shifts cover the yard rules; new road runs "Up the Chartiers" cover what they cannot: the timetable, superiority, train orders, track warrants, signals and semaphores. One run carries passengers.
 - **Today:** `www/play/` holds seven P&OV shifts (`runs.js`), the engine (`play.js`), the answer key (`answers.html`, built by `www/scripts/build_play_answers.js`) and the share card (`make_share_cards.py play-neville`). Extra East on the invented Kestrel Valley stays at `exam/run.html`, unchanged.
 
@@ -19,22 +19,39 @@ Status: active
 | Track warrants | none | 1997 run |
 | GCOR crew & speed | 18 | more |
 
-## The runs (proposal, to check against the sources first)
+## The runs (decided 2026-11-22)
 
 | Run | Era | Railroad and route | Rules |
 |---|---|---|---|
-| Coal extra | 1949 | PRR Chartiers Branch, Carnegie toward Washington, with the mine branches | 1949 Standard Code: timetable, superiority, train orders, semaphores at the crossings with the Montour, P&WV and B&O |
-| Passenger train | 1949 | PRR Chartiers Branch passenger train, Pittsburgh to Washington (the branch ran passengers until 1952) | Standard Code: a first-class schedule, meets with freights and extras, orders at the open offices, protection when stopped |
-| Ore transfer | 1980s | PC&Y (half P&LE, half Conrail), Scully Yard to the Y Interchange on Neville Island; or the P&LE main through McKees Rocks | Signals and yard limits; ties the run to the island game |
-| Warrant run | 1997 | Pittsburgh & Ohio Central over the Chartiers Branch and the PC&Y, meeting NS at Duff Junction and CSX at POV Junction | GCOR track warrants, dark territory, yard limits |
+| Coal extra | 1949 | PRR Chartiers Branch, Carnegie toward Washington, with the mine branches | 1949 Standard Code: timetable, superiority, train orders, semaphores at the junctions with the P&WV, the Montour and the B&O |
+| Passenger train | 1949 | PRR Chartiers Branch passenger train, Pittsburgh to Washington. It meets a B&O train at Washington (Tylerdale); the run stays the PRR's | Standard Code: a first-class schedule, meets with freights and extras, orders at the open offices, protection when stopped |
+| Ore transfer | 1980s | PC&Y (half P&LE, half Conrail), Scully Yard to the Y Interchange on Neville Island | Signals and yard limits; ties the run to the island game |
+| Warrant run | 1997 | Pittsburgh Industrial Railroad (RailTex; POHC only from December 2000) over the Chartiers track and the PC&Y, meeting Conrail at Duff Junction and CSX at POV Junction | GCOR track warrants, dark territory, yard limits |
 
-Facts to confirm before any build (from `www/library/chartiers-valley-railroads.html`, `www/data/chartiers-lineage.json` and the archive): stations and mileposts on the Chartiers Branch; a 1949 passenger schedule; the P&LE's signals around McKees Rocks; whether the PC&Y ran under timetable and train orders or yard limits; what authority POHC used in 1997. Where a source is silent, fill the detail in without comment (rule 2 below).
+## Facts (step 1, 2026-11-22)
+
+Sources: `www/library/chartiers-valley-railroads.html` and its sources, [Wikipedia: Chartiers Branch](https://en.wikipedia.org/wiki/Chartiers_Branch), [Metzger, Pennsylvania Trolley Museum](https://pa-trolley.org/a-short-history-of-the-chartiers-valley-rr-line/), the 1996 STB notice and the 1998 RRB determination for PIR. The media archive holds nothing on the Chartiers.
+
+**Chartiers Branch, 1949**
+- Mileposts from Carnegie (Mansfield), MP 0: Bridgeville MP 4 (Bridgeville & McDonald branch to Cecil and Bishop), Hills MP 8.6 (Montour), Houston MP 15.3 (Westland branch), Washington about MP 23.6. Pittsburgh to Carnegie is about 8 miles (32 miles Pittsburgh–Washington in 1926).
+- Stations in order: Glenn, Woodville, Bower Hill, Kirwan, Bridgeville, Mayview, Boyce, Hills, Canonsburg, Houston, Arden, Washington. Mileposts not found for the others; place them between the known ones.
+- Track: double Carnegie–Houston (since 1904), single Houston–Washington (owner's choice; the source says only "single by 1951"). Bell's (Greer) Tunnel is double track; Glenn tunnel was opened to a cut in 1898.
+- Signals: the branch had signals until 4 August 1959; their type is not recorded. Offices, towers and the PRR division are not found.
+- Passenger service: nine daily round trips in 1926, about 1.5 hours (express about 1 hour); last train 20 July 1952. No 1949 schedule found.
+- Mine branches active in 1949: Bridgeville & McDonald (at Bridgeville), Westland (at Houston), Palanka and Manifold (junctions not found).
+- Junctions: PC&Y at Glenn and Woodville; P&WV near Bridgeville; Montour at Hills; B&O at Washington through the Tylerdale Connecting.
+
+**PC&Y, 1980s:** jointly owned, own operating staff; reached the island through Neville interlocking (about PLE 5.7) and crossed the P&LE main near McKees Rocks (about PLE 3.75). Not found: an ore move from Scully to Neville, the method of operation, the signal type.
+
+**PIR, 1997:** in business from 7 December 1996; interchange with Conrail, CSX and PAM; incidental CSX trackage rights on the island. Not found: its operating authority, dark territory, yard limits, the dispatcher.
+
+Everything marked not found is filled in by the game without comment (rule 2).
 
 ## Navigation (one game)
 
 - The start screen gets two groups: **On the island** (the seven P&OV shifts) and **Up the Chartiers** (the road runs). Each card shows its era and which deck sections it covers.
 - A coverage strip at the top shows the eight deck sections and which runs test each, so a player can pick a run for a weak section.
-- The game keeps the name Extra East: Neville Island unless the owner renames it (open question below). Page id `play` stays under Behind the Scenes in `site.json`.
+- The game is renamed **Extra East: HART Railroad** (owner, 2026-11-22). Page id `play` stays under Behind the Scenes in `site.json`.
 - One answer key, `play/answers.html`, grouped by group, then run. Extend `build_play_answers.js` to read the road runs.
 
 ## Engine
@@ -56,15 +73,17 @@ Facts to confirm before any build (from `www/library/chartiers-valley-railroads.
 
 ## Steps
 
-1. Confirm the facts above from the library and the archive; write them into this page.
+1. ~~Confirm the facts from the library and the archive.~~ Done 2026-11-22 (Facts above).
 2. Reorganize the start screen into the two groups and the coverage strip, with the seven shifts unchanged.
 3. Port the engine pieces and the Chartiers line data; build the 1949 coal extra first.
 4. Add the passenger run, then the 1980s signaled run, then the 1997 warrant run, one PR each.
 5. Extend the answer key and its test; add a share card if the title screen changes.
 6. Update `wiki/STATUS.md` and close this page.
 
-## Open questions for the owner
+## Decided 2026-11-22
 
-- The game's name once it spans the Chartiers (keep Extra East: Neville Island, or rename).
-- Which run carries the passengers: the 1949 PRR train (recommended, since it fits the Standard Code) or a later one.
-- Whether the 1980s run is the PC&Y ore transfer or the P&LE main through McKees Rocks.
+- Name: Extra East: HART Railroad.
+- Passengers: the 1949 PRR train, with a meet with a B&O train at Washington.
+- 1980s run: the PC&Y ore transfer.
+- 1949 track: double to Houston, single beyond.
+- Warrant run: stays 1997, as the Pittsburgh Industrial Railroad with Conrail at Duff.
