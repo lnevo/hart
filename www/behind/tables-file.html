@@ -73,11 +73,11 @@
         reads that file back, and the railroad is there again.
       </p>
       <p>
-        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->1.1 MB<!--/tf--> and <!--tf:lines-->13,056<!--/tf--> lines long, and it has
+        Ours is called <code>tables.xml</code>. It is about <!--tf:size-->1.1 MB<!--/tf--> and <!--tf:lines-->12,969<!--/tf--> lines long, and it has
         <!--tf:top-->20<!--/tf--> top-level sections. It is in the ordinary JMRI format. <code>build_tables.py</code> generates it from the device master and a template, and
         PanelPro <!--tf:version-->5.16<!--/tf-->, the main JMRI program, loads it. It holds no connection settings: how JMRI reaches the layout lives in the profile, a
-        separate set of preferences. Everything else is in here, including the <!--tf:panel-count-->four panels<!--/tf--> you see on
-        screen.
+        separate set of preferences. Everything else is in here, including the <!--tf:panel-count-->four panels<!--/tf-->, of which
+        the track diagram is the one shown on screen.
       </p>
 
       <h2 id="layout">How the file is laid out</h2>
@@ -105,10 +105,10 @@ userName    BS K-1<!--/tf--></code></pre>
         <svg class="jm-svg" viewBox="0 0 360 58" role="img" aria-labelledby="tf-o-t tf-o-d">
           <title id="tf-o-t">The file from top to bottom</title>
           <desc id="tf-o-d">A bar for the whole file. About <!--tf:objects-->46%<!--/tf--> is objects, then about <!--tf:panels-->54%<!--/tf--> panels.</desc>
-          <!--tf:bar--><rect class="own" x="8" y="14" width="160" height="34" rx="3"/>
-          <rect class="acc" x="168" y="14" width="183" height="34" rx="3"/>
+          <!--tf:bar--><rect class="own" x="8" y="14" width="159" height="34" rx="3"/>
+          <rect class="acc" x="167" y="14" width="184" height="34" rx="3"/>
           <rect class="own" x="351" y="14" width="1" height="34" rx="3" style="fill:var(--muted);stroke:var(--muted)"/>
-          <text class="t-b t-w" x="88" y="36" text-anchor="middle">Objects</text>
+          <text class="t-b t-w" x="87" y="36" text-anchor="middle">Objects</text>
           <text class="t-b t-d" x="259" y="36" text-anchor="middle">Panels</text><!--/tf-->
         </svg>
         <figcaption class="section-note">The file from top to bottom, left to right, drawn to scale.</figcaption>
@@ -133,7 +133,7 @@ userName    BS K-1<!--/tf--></code></pre>
             <tr><td>Logix</td><td>Older-style logic items. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Conditionals</td><td>The conditions and actions inside those Logix. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Fast clock</td><td>The settings of JMRI's fast clock.</td><td class="num">under 1%</td></tr>
-            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.</td><td class="num">14%</td></tr>
+            <tr><td>LogixNG</td><td>Newer logic that <a href="#logixng">hides windows and clears the main and upper block sensors at startup</a>: the LogixNGs, their ConditionalNGs and their actions.</td><td class="num">13%</td></tr>
             <tr><td>CTC data</td><td>The USS CTC machine's code buttons and settings. Parked.</td><td class="num">parked</td></tr>
             <tr><td>Entry/Exit</td><td>Pairs that line a route from a click on the panel. Parked.</td><td class="num">parked</td></tr>
             <tr><td colspan="3"><strong>Panels</strong></td></tr>
@@ -290,7 +290,7 @@ userName    BS K-1<!--/tf--></code></pre>
         state, described below the table.
       </p>
       <p>
-        "<!--tf:logixng-name-->Hide windows on start<!--/tf-->" has <!--tf:logixng-count-->five ConditionalNGs<!--/tf-->, each with one stock action:
+        "<!--tf:logixng-name-->Hide windows on start<!--/tf-->" has <!--tf:logixng-count-->three ConditionalNGs<!--/tf-->, each with one stock action:
       </p>
       <div class="table-wrap">
         <table class="roster jm-lamps">
@@ -298,17 +298,16 @@ userName    BS K-1<!--/tf--></code></pre>
           <tbody>
             <!--tf:logixng-rows--><tr><td>Hide WiThrottle</td><td>Window Management: hides the WiThrottle window</td></tr>
             <tr><td>Hide HART Railroad under CATS</td><td>Run Script: runs <code>hide_cats_desk_windows.py</code></td></tr>
-            <tr><td>Hide Staging Level</td><td>Window Management: hides the Staging Level window</td></tr>
-            <tr><td>Hide Main Level</td><td>Window Management: hides the Main Level window</td></tr>
-            <tr><td>Hide Upper Level</td><td>Window Management: hides the Upper Level window</td></tr><!--/tf-->
+            <tr><td>Hide the band panels</td><td>Run Script: runs <code>hide_band_panels.py</code></td></tr><!--/tf-->
           </tbody>
         </table>
       </div>
       <p>
-        The Run Script action calls an ordinary Jython file, described among
+        The two Run Script actions call ordinary Jython files, described among
         <a href="jmri-additions.html#scripts">the scripts</a>. A LogixNG runs wherever the tables load, so it fires under both PanelPro
-        and CATS with no condition of its own. The script does the checking: it looks at how JMRI was
-        started and at the open windows, and if CATS is not running it does nothing. A window action
+        and CATS with no condition of its own. <code>hide_cats_desk_windows.py</code> does the checking: it looks at how JMRI was
+        started and at the open windows, and if CATS is not running it does nothing. <code>hide_band_panels.py</code>
+        waits for the three level windows to open, then hides them. A window action
         ignores a window that is not there, so if one is missing, nothing happens.</p>
       <p>
         The second LogixNG, "<!--tf:clear-name-->Main and upper block sensors clear on start<!--/tf-->", sets the

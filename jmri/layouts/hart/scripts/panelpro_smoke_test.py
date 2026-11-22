@@ -127,19 +127,24 @@ def parked_errors():
 
 
 def band_panel_errors(wait):
-    """Each band panel loaded as a Layout Editor panel, its window hidden by the LogixNG (which runs after the load:
-    `wait(ms)` gives it up to ten seconds)."""
+    """Each band panel loaded as a Layout Editor panel and its window hidden by the LogixNG, which runs after the
+    load. First every band frame must exist (up to 20 s; a frame not made yet cannot be hidden yet), then each must
+    stay hidden over six polls in three seconds, so a window PanelPro shows after the first poll is still seen."""
     editors = jmri.InstanceManager.getDefault(jmri.jmrit.display.EditorManager)
     names = set(editor.getTitle() for editor in editors.getAll())
     errors = ["band panel %s not loaded" % title for title in BAND_PANELS if title not in names]
-    shown = []
-    for _ in range(20):
-        shown = [title for title in BAND_PANELS
-                 if jmri.util.JmriJFrame.getFrame(title) is not None and jmri.util.JmriJFrame.getFrame(title).isVisible()]
-        if not shown:
+    for _ in range(40):
+        if all(jmri.util.JmriJFrame.getFrame(title) is not None for title in BAND_PANELS):
             break
         wait(500)
-    errors.extend("band panel %s window shown; the LogixNG should hide it" % title for title in shown)
+    errors.extend("band panel %s has no window" % title for title in BAND_PANELS
+                  if jmri.util.JmriJFrame.getFrame(title) is None)
+    shown = set()
+    for _ in range(6):
+        wait(500)
+        shown.update(title for title in BAND_PANELS if jmri.util.JmriJFrame.getFrame(title) is not None
+                     and jmri.util.JmriJFrame.getFrame(title).isVisible())
+    errors.extend("band panel %s window shown; the LogixNG should hide it" % title for title in sorted(shown))
     return errors
 
 
@@ -308,8 +313,8 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 else:
                     handle.write(
                         "%s masts; %s; 24 station sensors; %s sections; %s transits; "
-                        "%s ordered TrainInfo routes\n"
-                        % (MASTS, self.level_line, SECTIONS, TRANSITS, TRAININFO)
+                        "%s ordered TrainInfo routes; band panels %s loaded and hidden\n"
+                        % (MASTS, self.level_line, SECTIONS, TRANSITS, TRAININFO, ", ".join(BAND_PANELS))
                     )
         finally:
             handle.close()

@@ -293,8 +293,8 @@ def facts(raw: bytes, root) -> dict:
         else:
             raise PageError(f"tables.xml: ConditionalNG {sysname} has a {a.tag} action the page does not describe")
         rows.append((c.findtext("userName") or sysname, *what))
-    if sum(1 for r in rows if r[3]) != 1:
-        raise PageError("tables.xml: the page says one ConditionalNG runs a script; "
+    if sum(1 for r in rows if r[3]) != 2:
+        raise PageError("tables.xml: the page says two ConditionalNGs run a script; "
                         f"{sum(1 for r in rows if r[3])} do")
     f["logixng"] = {"name": ng.findtext("userName") or ng_sys, "rows": rows}
     return f

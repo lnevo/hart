@@ -239,6 +239,9 @@ def translation(full: ET.Element, P, areas, bi: int, chrome) -> int:
     dy = P.band_boxes[0][1] - P.band_boxes[bi][1]
     if dy != int(dy):
         raise BandPanelError(f"band {bi}'s move up ({dy:g} px) is not whole")
+    if areas[bi][1] + dy > room:
+        raise BandPanelError(f"band {bi} is {areas[bi][1] + dy:g} px tall after its move up, more than the window's "
+                             f"{room} px: its window would not show the whole band")
     return int(dy)
 
 
@@ -262,6 +265,10 @@ def shift(el: ET.Element, dy: int) -> None:
 def edge_connector(point: ET.Element, join: str, linked: str, partner: str) -> ET.Element:
     """`point`, an anchor between the join segment `join` and its band's track, as an edge connector to `partner`
     on the panel `linked`."""
+    unknown = sorted(set(point.attrib) - set(POINT_ORDER))
+    if unknown or len(point):
+        raise BandPanelError(f"anchor {point.get('ident')} has {', '.join(unknown) or 'child elements'}, which an "
+                             "edge connector made from it would drop (POINT_ORDER)")
     keep = next(c for c in (point.get("connect1name"), point.get("connect2name")) if c != join)
     attrs = dict(point.attrib, type=EDGE, connect1name=keep, linkedpanel=linked, linkpointid=partner)
     attrs.pop("connect2name")

@@ -238,6 +238,30 @@ class SmallPanel(unittest.TestCase):
             self.membership(root, P)
 
 
+class EdgeConnectorAndMove(unittest.TestCase):
+    def test_an_anchor_with_an_attribute_the_connector_would_drop_stops(self) -> None:
+        point = ET.Element("positionablepoint", {"ident": "A1", "type": "ANCHOR", "x": "0", "y": "0",
+                                                 "connect1name": "T1", "connect2name": "J1", "decoration": "x"})
+        with self.assertRaisesRegex(bp.BandPanelError, "anchor A1 has decoration, which an edge connector"):
+            bp.edge_connector(point, "J1", "Two", "A2")
+        point.attrib.pop("decoration")
+        ET.SubElement(point, "something")
+        with self.assertRaisesRegex(bp.BandPanelError, "anchor A1 has child elements"):
+            bp.edge_connector(point, "J1", "Two", "A2")
+
+    def test_a_band_still_too_tall_after_its_move_stops(self) -> None:
+        full = ET.Element("LayoutEditor", windowheight="560")
+        P = SimpleNamespace(band_boxes=[(0, 100, 10, 400), (0, 600, 10, 1100)])
+        areas = [(0, 400), (400, 1100)]
+        self.assertEqual(0, bp.translation(full, P, areas, 0, (18, 60)))
+        with self.assertRaisesRegex(bp.BandPanelError, "band 1 is 600 px tall after its move up, more than the "
+                                                       "window's 500 px"):
+            bp.translation(full, P, areas, 1, (18, 60))
+        areas = [(0, 400), (400, 1000)]
+        P = SimpleNamespace(band_boxes=[(0, 100, 10, 400), (0, 600, 10, 1000)])
+        self.assertEqual(-500, bp.translation(full, P, areas, 1, (18, 60)))
+
+
 class SmokeTestNames(unittest.TestCase):
     def test_the_panelpro_smoke_test_checks_the_same_band_panels(self):
         """The Jython smoke test cannot import hartlib, so it keeps its own list; this holds the two equal."""

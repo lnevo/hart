@@ -778,7 +778,10 @@ def band_panels_in(root: ET.Element) -> bool:
     return True
 
 
-def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: bool = False) -> None:
+def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: bool = False,
+                               band_panels: bool = True) -> None:
+    """`band_panels`: the tables must hold the band panels (build_tables.py's output, the deployment); False for the
+    Layout Editor build alone, which must hold none."""
     ctc_bundle = (
         len(root.findall("ctcdata")),
         len(root.findall("paneleditor")),
@@ -789,8 +792,12 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
         bands = band_panels_in(root)
     except ValueError as exc:
         audit.error(str(exc))
-        bands = True
-    want_bundle = expected_bundle(left_out, bands)
+        bands = band_panels
+    if bands != band_panels:
+        audit.error("the band panels (" + ", ".join(tables.BAND_PANEL_NAMES.values()) + ") are "
+                    + ("missing: build_tables.py adds them" if band_panels else "in tables the Layout Editor build "
+                       "made alone"))
+    want_bundle = expected_bundle(left_out, band_panels)
     if ctc_bundle != want_bundle:
         audit.error(
             "deployment bundle expected ctcdata={}, paneleditor={}, LayoutEditor={}; found {}".format(
@@ -841,8 +848,10 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
 
 
 def audit_source(
-    label: str, path: Path, staging: list[railroad_facts.Mast], *, generated: bool = False
+    label: str, path: Path, staging: list[railroad_facts.Mast], *, generated: bool = False, band_panels: bool = True
 ) -> Audit:
+    """`band_panels` False: the tables are the Layout Editor build alone (a test), before build_tables.py adds the
+    band panels."""
     audit = Audit(label=label, path=path)
     try:
         root = tables.read(path)
@@ -871,7 +880,7 @@ def audit_source(
         audit_lcc_mqtt_turnout_aliases(root, audit, required=True)
         audit_dispatcher_startup(root, audit)
         if label == "deployment":
-            audit_generated_dispatcher(root, audit, generated=is_generated)
+            audit_generated_dispatcher(root, audit, generated=is_generated, band_panels=band_panels)
     else:
         # hart_prod.xml is intentionally a standalone monitor artifact, not a
         # complete JMRI configuration. Audit only its visual/topology contract.

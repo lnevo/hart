@@ -155,7 +155,7 @@ class Cutover(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "tables_cutover.xml"
             path.write_bytes(self.data)
-            audit = AUDIT.audit_source("deployment", path, staging, generated=True)
+            audit = AUDIT.audit_source("deployment", path, staging, generated=True, band_panels=False)
             drift = AUDIT.report_drift([audit])
             with contextlib.redirect_stdout(io.StringIO()):
                 cli = AUDIT.main(["--strict", "--tables", str(path), "--generated"])

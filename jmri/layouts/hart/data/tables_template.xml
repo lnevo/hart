@@ -97,8 +97,6 @@
         <systemName>IQC:AUTO:0001</systemName>
         <systemName>IQC:AUTO:0004</systemName>
         <systemName>IQC:AUTO:0005</systemName>
-        <systemName>IQC:AUTO:0006</systemName>
-        <systemName>IQC:AUTO:0007</systemName>
       </ConditionalNGs>
     </LogixNG>
     <InitializationTable>
@@ -133,29 +131,11 @@
     </ConditionalNG>
     <ConditionalNG enabled="yes">
       <systemName>IQC:AUTO:0005</systemName>
-      <userName>Hide Staging Level</userName>
+      <userName>Hide the band panels</userName>
       <thread>0</thread>
       <Socket>
         <socketName>A</socketName>
         <systemName>IQDA:AUTO:0005</systemName>
-      </Socket>
-    </ConditionalNG>
-    <ConditionalNG enabled="yes">
-      <systemName>IQC:AUTO:0006</systemName>
-      <userName>Hide Main Level</userName>
-      <thread>0</thread>
-      <Socket>
-        <socketName>A</socketName>
-        <systemName>IQDA:AUTO:0006</systemName>
-      </Socket>
-    </ConditionalNG>
-    <ConditionalNG enabled="yes">
-      <systemName>IQC:AUTO:0007</systemName>
-      <userName>Hide Upper Level</userName>
-      <thread>0</thread>
-      <Socket>
-        <socketName>A</socketName>
-        <systemName>IQDA:AUTO:0007</systemName>
       </Socket>
     </ConditionalNG>
   </LogixNGConditionalNGs>
@@ -213,95 +193,28 @@
         </AbstractMaleSocket>
       </MaleSocket>
     </ActionScript>
-    <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
+    <ActionScript class="jmri.jmrit.logixng.actions.configurexml.ActionScriptXml">
       <systemName>IQDA:AUTO:0005</systemName>
-      <jmriJFrameTitle>Staging Level</jmriJFrameTitle>
-      <addressing>Direct</addressing>
-      <reference />
-      <localVariable />
-      <formula />
-      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
-      <hideOrShow>
-        <addressing>Direct</addressing>
-        <enum>Hide</enum>
-        <listenToMemory>no</listenToMemory>
-      </hideOrShow>
-      <maximizeMinimizeNormalize>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </maximizeMinimizeNormalize>
-      <bringToFrontOrBack>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </bringToFrontOrBack>
+      <userName>Hide the band panels</userName>
+      <operationAddressing>Direct</operationAddressing>
+      <operationType>RunScript</operationType>
+      <operationReference />
+      <operationLocalVariable />
+      <operationFormula />
+      <scriptAddressing>Direct</scriptAddressing>
+      <script>preference:jython/hide_band_panels.py</script>
+      <scriptReference />
+      <scriptLocalVariable />
+      <scriptFormula />
+      <scriptLanguage>
+        <language>python</language>
+      </scriptLanguage>
       <MaleSocket>
         <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
         <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
           <errorHandling>Default</errorHandling>
         </AbstractMaleSocket>
       </MaleSocket>
-    </DisplayActionWindowManagement>
-    <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
-      <systemName>IQDA:AUTO:0006</systemName>
-      <jmriJFrameTitle>Main Level</jmriJFrameTitle>
-      <addressing>Direct</addressing>
-      <reference />
-      <localVariable />
-      <formula />
-      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
-      <hideOrShow>
-        <addressing>Direct</addressing>
-        <enum>Hide</enum>
-        <listenToMemory>no</listenToMemory>
-      </hideOrShow>
-      <maximizeMinimizeNormalize>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </maximizeMinimizeNormalize>
-      <bringToFrontOrBack>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </bringToFrontOrBack>
-      <MaleSocket>
-        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
-        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
-          <errorHandling>Default</errorHandling>
-        </AbstractMaleSocket>
-      </MaleSocket>
-    </DisplayActionWindowManagement>
-    <DisplayActionWindowManagement class="jmri.jmrit.display.logixng.configurexml.WindowManagementXml">
-      <systemName>IQDA:AUTO:0007</systemName>
-      <jmriJFrameTitle>Upper Level</jmriJFrameTitle>
-      <addressing>Direct</addressing>
-      <reference />
-      <localVariable />
-      <formula />
-      <ignoreWindowNotFound>yes</ignoreWindowNotFound>
-      <hideOrShow>
-        <addressing>Direct</addressing>
-        <enum>Hide</enum>
-        <listenToMemory>no</listenToMemory>
-      </hideOrShow>
-      <maximizeMinimizeNormalize>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </maximizeMinimizeNormalize>
-      <bringToFrontOrBack>
-        <addressing>Direct</addressing>
-        <enum>DoNothing</enum>
-        <listenToMemory>no</listenToMemory>
-      </bringToFrontOrBack>
-      <MaleSocket>
-        <AbstractDebuggerMaleSocket class="jmri.jmrit.logixng.tools.debugger.configurexml.DebuggerMaleDigitalActionSocketXml" />
-        <AbstractMaleSocket enabled="yes" locked="no" system="no" catchAbortExecution="no" class="jmri.jmrit.logixng.implementation.configurexml.DefaultMaleDigitalActionSocketXml">
-          <errorHandling>Default</errorHandling>
-        </AbstractMaleSocket>
-      </MaleSocket>
-    </DisplayActionWindowManagement>
+    </ActionScript>
   </LogixNGDigitalActions>
 </layout-config>
