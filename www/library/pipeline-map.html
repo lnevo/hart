@@ -119,7 +119,7 @@ svg.hovering .edge.he.he.he3{stroke-opacity:.45;stroke-width:1.75px}
 svg.hovering .node.hn.hn2 .box{stroke-opacity:.6}
 svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:1.75px}
 .node.mag .box{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
-svg.lhover .node.mag,.node.mag:not(.hov){pointer-events:none}
+.node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
 .hidden{display:none}
 .band{fill-opacity:.07}
@@ -1129,10 +1129,9 @@ function app() {
     if (id === hoverId || !svg) return;
     if (hoverEdge !== null) setEdgeHover(null);
     svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn", "he2", "he3", "hn2", "hn3"));
-    if (hoverId && nodeEl[hoverId]) nodeEl[hoverId].classList.remove("hov");
     hoverId = id && nodeEl[id] ? id : null;
-    if (hoverId) nodeEl[hoverId].classList.add("hov");  // its grown card alone takes the pointer; the others let it through
     svg.classList.toggle("hovering", !!hoverId);
+    if (hoverId) svg.dataset.hover = hoverId; else delete svg.dataset.hover;  // names the hovered box, for checks
     if (hoverId) {
       nodeEl[hoverId].classList.add("hn");
       (edgesAt[hoverId] || []).forEach(el => {
@@ -1143,11 +1142,10 @@ function app() {
     updateFar();
   }
   /* What the pointer hovers, worked out from where it is on every move (pointerover alone misses a card growing or
-     moving under a still target). A grown card other than the hovered box's lets the pointer through (CSS:
-     .node.mag:not(.hov)), so a box drawn under a neighbour's card is reached. In order: the hovered box's own card or
-     drawn spot keeps the hover; then a box drawn under the pointer; then a hovered line, while the pointer is on it;
-     then a grown card over the pointer (it is drawn over the lines); then a line; then the spot a grown box was drawn
-     at; else nothing. */
+     moving under a still target). Every grown card lets the pointer through (CSS: .node.mag), the hovered box's too,
+     so moving along a row reaches each box in turn, also those a card covers. In order: a box drawn under the
+     pointer; then the spot a grown box is drawn at; then the hovered box's own card keeps the hover; then a hovered
+     line, while on it; then a grown card over the pointer (it is drawn over the lines); then a line; else nothing. */
   const inRect = (el, x, y) => { const q = el.getBoundingClientRect(); return x >= q.left && x <= q.right && y >= q.top && y <= q.bottom; };
   function cardUnder(x, y) {  // the topmost grown card at screen point x, y
     return [...svg.querySelectorAll("#nodes > .node.mag")].reverse().find(c => inRect(c, x, y)) || null;
@@ -1159,17 +1157,17 @@ function app() {
     return boxAt(ids.map(id => layNode[id]).filter(Boolean), p.x, p.y);
   }
   function pickHover(t, x, y) {
-    const own = hoverId && nodeEl[hoverId];
-    if (own && ((own.classList.contains("mag") && inRect(own, x, y)) || spotUnder(x, y, [hoverId]))) return { box: hoverId };
     const g = t.closest && t.closest(".node");
-    if (g) return { box: g.dataset.id };
+    if (g) return { box: g.dataset.id };  // a box drawn under the pointer, even one the hovered box's card covers
+    const spot = spotUnder(x, y, [...magnified, ...(hoverId ? [hoverId] : [])]);
+    if (spot) return { box: spot };  // the spot a grown box is drawn at: the next box along a row is often one
+    const own = hoverId && nodeEl[hoverId];
+    if (own && own.classList.contains("mag") && inRect(own, x, y)) return { box: hoverId };
     const line = t.classList && t.classList.contains("eh") ? Number(t.dataset.edge) : null;
     if (line !== null && line === hoverEdge) return { edge: line };
     const c = cardUnder(x, y);
     if (c) return { box: c.dataset.id };
-    if (line !== null) return { edge: line };
-    const spot = spotUnder(x, y, [...magnified]);
-    return spot ? { box: spot } : {};
+    return line !== null ? { edge: line } : {};
   }
   let hoverAt = null, hoverFrame = 0;
   function hoverFrom(e) {
@@ -1583,7 +1581,7 @@ function app() {
     lensSvg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn", "he2", "he3", "hn2", "hn3"));
     lensSvg.querySelectorAll(".node.mag").forEach(g => {  // the lens shows the boxes at their own size
       const n = layNode[g.dataset.id];
-      g.classList.remove("mag", "hov");
+      g.classList.remove("mag");
       if (n) g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`);
     });
     lensSvg.querySelectorAll("[id]").forEach(el => { if (el.tagName !== "marker") el.removeAttribute("id"); });
@@ -1710,7 +1708,7 @@ function app() {
     if (moved) return;
     const box = e.target.closest(".node");
     clearTimeout(pending);
-    // a grown card lets the pointer through (only the hovered box's takes it): found by its place, as the hover is
+    // a grown card lets the pointer through: found by its place, after a box drawn under the pointer, as the hover is
     const card = !box ? cardUnder(e.clientX, e.clientY) : null;
     // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
     const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
