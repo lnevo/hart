@@ -11,8 +11,11 @@ class ChangedKind(unittest.TestCase):
     def test_docs_only(self):
         self.assertEqual(kind(["wiki/STATUS.md", "docs/INDEX.md", "tools/README.md", "www/notes.md"]), "docs")
 
-    def test_wiki_and_docs_any_file_type(self):
-        self.assertEqual(kind(["wiki/img/a.png", "docs/ap/x.csv"]), "docs")
+    def test_only_markdown_counts(self):
+        # other file types under wiki/ or docs/ are read by full-run checks (tracked-policy, page builders)
+        self.assertEqual(kind(["wiki/img/a.png"]), "full")
+        self.assertEqual(kind(["docs/wiring/bench/x.csv"]), "full")
+        self.assertEqual(kind(["docs/x.json", "wiki/a.md"]), "full")
 
     def test_mixed_is_full(self):
         self.assertEqual(kind(["wiki/STATUS.md", "tools/check.sh"]), "full")

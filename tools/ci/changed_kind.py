@@ -23,7 +23,7 @@ def is_docs(path: str) -> bool:
         return False
     if path.startswith(GENERATED):
         return False
-    return path.startswith(("wiki/", "docs/")) or path.endswith(".md")
+    return path.endswith(".md")
 
 
 def kind(paths: list[str]) -> str:
