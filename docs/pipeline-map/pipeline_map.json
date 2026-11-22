@@ -3515,6 +3515,16 @@
    "gen": "agent-docs"
   },
   {
+   "id": ".claude/agents/finding-verifier.md",
+   "label": "agent: finding-verifier",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Read-only check of one claimed bug against the code. Use to triage a single /code-review or audit finding. It answers CONFIRMED, PLAUSIBLE or WRONG with the file and line that show it.",
+   "path": ".claude/agents/finding-verifier.md",
+   "gen": "agent-docs"
+  },
+  {
    "id": ".claude/agents/panel-tracer.md",
    "label": "agent: panel-tracer",
    "kind": "unstructured",
@@ -3532,6 +3542,16 @@
    "domain": "agents",
    "desc": "Read-only audit of repository health: dead code, stale docs and wiki pages, structure and duplication. Use for periodic reviews, not for reviewing a diff.",
    "path": ".claude/agents/repo-auditor.md",
+   "gen": "agent-docs"
+  },
+  {
+   "id": ".claude/agents/schematic-builder.md",
+   "label": "agent: schematic-builder",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Edits the schematic and panel build code under tools/schematic/, tools/hartlib/ and the Layout Editor scripts. Use for schematic, Layout Editor, panel and device-map changes. Give it one bounded job; it always runs in a worktree.",
+   "path": ".claude/agents/schematic-builder.md",
    "gen": "agent-docs"
   },
   {
@@ -7254,6 +7274,12 @@
    "gen": "agent-docs"
   },
   {
+   "from": ".claude/agents/finding-verifier.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
    "from": ".claude/agents/panel-tracer.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -7261,6 +7287,12 @@
   },
   {
    "from": ".claude/agents/repo-auditor.md",
+   "to": "tools/audit/check_agent_docs.py",
+   "label": "check",
+   "gen": "agent-docs"
+  },
+  {
+   "from": ".claude/agents/schematic-builder.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
    "gen": "agent-docs"
@@ -7369,6 +7401,12 @@
   },
   {
    "from": "AGENTS.md",
+   "to": ".claude/agents/finding-verifier.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
    "to": ".claude/agents/panel-tracer.md",
    "label": "points to",
    "gen": "agent-docs"
@@ -7376,6 +7414,12 @@
   {
    "from": "AGENTS.md",
    "to": ".claude/agents/repo-auditor.md",
+   "label": "points to",
+   "gen": "agent-docs"
+  },
+  {
+   "from": "AGENTS.md",
+   "to": ".claude/agents/schematic-builder.md",
    "label": "points to",
    "gen": "agent-docs"
   },
