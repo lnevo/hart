@@ -16,7 +16,7 @@ interpreter, the plugin and the environment). Any doubt is a full run, with the 
 - the plugin pin differs from the base's;
 - the change touches the machinery that makes or reads the stamps, or the workflow itself (MACHINERY);
 - no manifest, an unreadable one, or one for another commit than the merge base, another runner image, OS,
-  architecture or Python;
+  architecture, Python, git or bash (runner());
 - no stamp files next to the manifest.
 
 Stamps are only ever compared on the GitHub runner they were made on: check.sh refuses CHECK_SKIP_FROM off CI.
@@ -28,6 +28,7 @@ import json
 import os
 import platform
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -52,15 +53,25 @@ MACHINERY = (
 SHA = re.compile(r"[0-9a-f]{40}")
 
 
+def _version(*cmd: str) -> str:
+    try:
+        done = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+    except (OSError, subprocess.SubprocessError) as e:
+        return f"unavailable: {e}"
+    return (done.stdout.splitlines() or [f"failed:{done.returncode}"])[0]
+
+
 def runner() -> dict[str, str]:
-    """The runner the stamps are tied to: GitHub's image name and version, the OS, the architecture and the Python."""
+    """The runner the stamps are tied to: GitHub's image (not its build number: runners of one image differ in it
+    from hour to hour), the OS, the architecture, the Python, and the git and bash the untraced jobs run."""
     return {
         "image_os": os.environ.get("ImageOS", ""),
-        "image_version": os.environ.get("ImageVersion", ""),
         "runner_os": os.environ.get("RUNNER_OS", ""),
         "arch": platform.machine(),
         "python": sys.version,
         "executable": os.path.realpath(sys.executable),
+        "git": _version("git", "--version"),
+        "bash": _version("bash", "--version"),
     }
 
 
