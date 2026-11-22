@@ -17,19 +17,19 @@ const stepOf = geo => geo.nodeW + geo.colGap;
    BOX_GROW times (spreadGeo). All of them, or a map of one or two columns, is 1; n is at least 2 here (the slider keeps
    it at 3 or more). */
 const BOX_GROW = 2.5;
-function spreadFor(cols, n, geo = NARROW) {
+function spreadFor(cols, n, geo = NARROW, cap = BOX_GROW) {
   if (cols < 2 || !(n < cols)) return 1;
   const step = stepOf(geo), span = (cols - 1) * step + geo.nodeW, gaps = (Math.max(2, Math.round(n)) - 1) * step;
   const k = span / (gaps + geo.nodeW);  // boxes widen as much as the steps
-  return k <= BOX_GROW ? k : (span - BOX_GROW * geo.nodeW) / gaps;  // past BOX_GROW the boxes stop and the steps go on
+  return k <= cap ? k : (span - cap * geo.nodeW) / gaps;  // past cap the boxes stop and the steps go on
 }
 /* A geometry with its steps spread k times across: the boxes widen with the steps, up to BOX_GROW times (their title and
    description lines with them), and the gap between steps takes the rest, so fewer steps across give each box more
    room without making it a bar the width of the screen. The boxes grow whole, text and all (scale): as wide and as tall
    by the same factor, their lines wrapping as at 1x. */
-const spreadGeo = (geo, k) => {
+const spreadGeo = (geo, k, cap = BOX_GROW) => {
   if (k === 1) return geo;
-  const nodeW = Math.round(geo.nodeW * Math.min(k, BOX_GROW));
+  const nodeW = Math.round(geo.nodeW * Math.max(1, Math.min(k, cap)));
   return { ...geo, nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), scale: nodeW / geo.nodeW };
 };
 /* A box's place and size on the map: moved to x, y and drawn scale times its own size (spreadGeo). */
@@ -1082,7 +1082,21 @@ function app() {
 
   /* aspect: the screen shape to stretch the lanes to (a shared link's own); by default the free area's now, and once
      the info panel has opened or closed the drawing is laid out again for the area as it is then. */
-  let colsKey = "", colsOf = 0;  // the column count of the map last drawn with the Steps slider set, and which map
+  let colsKey = "", colsOf = 0, natH = 0;  // the map's column count and unstretched height, and which map they are for
+  /* The columns of the map as drawn now, and view.boxCap: the boxes grow no more than the lanes have room for at their
+     height on screen, so every lane still fits top to bottom and n steps fill the width (only the steps spread, the
+     view does not zoom). Laid out once per map, unstretched, the first time the Steps slider needs it. */
+  function boxRoom(base, screen) {
+    const key = `${view.compact}|${sub.nodes.map(n => n.id).join(",")}|${sub.edges.map(e => e.from + ">" + e.to).join(",")}`;
+    if (colsKey !== key) {
+      colsKey = key;
+      const l0 = layout(sub.nodes, sub.edges, DATA.domains, 0, base);
+      colsOf = l0.columns; natH = l0.height;
+    }
+    const tall = screen > 0 && natH > 0 ? ((colsOf - 1) * stepOf(base) + base.nodeW + LEFT + 60) * screen / natH : BOX_GROW;
+    view.boxCap = Math.max(1, Math.min(BOX_GROW, tall));
+    return colsOf;
+  }
   function render(keepView, aspect, settled) {
     sub = subset();
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
@@ -1093,11 +1107,9 @@ function app() {
     let geo = base;
     view.spread = 1;
     if (view.steps) {
-      const key = `${view.compact}|${sub.nodes.map(n => n.id).join(",")}|${sub.edges.map(e => e.from + ">" + e.to).join(",")}`;
-      if (colsKey !== key) { colsKey = key; colsOf = layout(sub.nodes, sub.edges, DATA.domains, 0, base).columns; }  // once per map
-      const cols = colsOf;
-      view.spread = spreadFor(cols, Math.max(Math.min(3, cols), view.steps), base);
-      geo = spreadGeo(base, view.spread);
+      const cols = boxRoom(base, screen);
+      view.spread = spreadFor(cols, Math.max(Math.min(3, cols), view.steps), base, view.boxCap);
+      geo = spreadGeo(base, view.spread, view.boxCap);
       if (!asked) {
         const w1 = (cols - 1) * stepOf(base) + base.nodeW + LEFT + 60, wk = (cols - 1) * stepOf(geo) + geo.nodeW + LEFT + 60;
         aspect = screen * w1 / wk;
@@ -1165,7 +1177,7 @@ function app() {
   }
   // the filters as they start; Clear filters goes back to these and keeps the file and the selected box
   const filtersChanged = () => view.lanes.size !== allLanes.length || view.kindsOff.size || view.parked || view.retired ||
-    !view.compact || view.group || view.trim || !document.getElementById("labels").checked || !!view.steps;
+    !view.compact || view.group || view.trim || !document.getElementById("labels").checked;  // Steps is not counted: its row would push the map down on release
   function clearFilters() {
     view.lanes = new Set(allLanes); view.kindsOff.clear(); view.parked = view.retired = false;
     view.compact = true; view.group = false; view.open.clear(); view.trim = false;
@@ -1453,7 +1465,8 @@ function app() {
     if (magnified.size) { magnified.forEach(unmagnify); magnified = new Set(); }  // grown boxes would stretch with it
     steps.style.visibility = "hidden";  // the step headers come back with the layout on release
     const cols = Math.max(lay.columns || 1, 1), n = Number(spreadIn.value);
-    const sx = spreadFor(cols, n, view.compact ? NARROW : WIDE) / view.spread, m = svg.getScreenCTM(), r = wrapEl.getBoundingClientRect();
+    if (!view.steps) boxRoom(view.compact ? NARROW : WIDE, lay.screen || fitAspect());  // from all steps: the cap is not known yet
+    const sx = spreadFor(cols, n, view.compact ? NARROW : WIDE, view.boxCap) / view.spread, m = svg.getScreenCTM(), r = wrapEl.getBoundingClientRect();
     if (!m) return;
     const cx = (r.left + freeArea().right / 2 - m.e) / m.a;  // the drawing x at the middle of the free area
     const t = Math.abs(sx - 1) < 1e-3 ? "" : `matrix(${sx.toFixed(4)},0,0,1,${(cx * (1 - sx)).toFixed(1)},0)`;
@@ -1462,7 +1475,7 @@ function app() {
     svg.classList.add("previewing");
     // each box moves with its step and grows whole, as wide and as tall; boxes spread up and down about their lane's
     // middle as they grow, so a column does not pile up (the lanes settle on release)
-    const was = lay.geo.scale || 1, now = spreadGeo(view.compact ? NARROW : WIDE, view.spread * sx).scale || 1, ry = now / was;
+    const was = lay.geo.scale || 1, now = spreadGeo(view.compact ? NARROW : WIDE, view.spread * sx, view.boxCap).scale || 1, ry = now / was;
     svg.style.setProperty("--bscale", (1 / now).toFixed(4));  // outlines keep their width
     const mid = {};
     lay.bands.forEach(b => (mid[b.id] = b.y + b.h / 2));
@@ -1495,10 +1508,10 @@ function app() {
     wheelRest = setTimeout(() => { spreadDrag = false; setSteps(Number(spreadIn.value)); }, 250);  // the value as it is then
   }, { passive: false });
   spreadIn.addEventListener("change", () => { spreadDrag = false; clearTimeout(wheelRest); setSteps(Number(spreadIn.value)); });
-  /* The Fit view: the whole drawing in the free area, or with the Steps slider set exactly that many steps across from
-     the left (the boxes, grown in height, can make the lanes taller than the screen: then it pans up and down too). */
+  /* The Fit view: the whole drawing in the free area, or with the Steps slider set that many steps across from the left,
+     every lane top to bottom (the boxes grow only as far as the lanes have room). */
   function fitNow() {
-    return fitView(fitW(), view.spread > 1 ? 1 : H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
+    return fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
   }
   function fit() {
     const f = fitNow();
