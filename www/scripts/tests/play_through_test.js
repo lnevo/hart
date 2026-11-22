@@ -82,7 +82,7 @@ function load(seedBox) {
     localStorage: { _d: {}, getItem(k) { return this._d[k] ?? null; }, setItem(k, v) { this._d[k] = String(v); } } });
   ctx.window = ctx; ctx.window.scrollTo = () => {};
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
-  for (const f of ["exam/signals.js", "play/runs.js", "play/road.js"]) vm.runInContext(read(f), ctx, { filename: f });
+  for (const f of ["play/runs.js", "play/road.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
   vm.runInContext(read("play/play.js"), ctx, { filename: "play/play.js" });
   return { ctx, ids, runBtns };
@@ -94,8 +94,9 @@ function rightTexts() {
   const m = require(path.join(WWW, "scripts", "build_play_answers.js"));
   const pat = (t) => new RegExp("^" + t.split("[varies]").map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join(".+") + "$");
   const entries = [];
-  for (const s of m.extract(read("play/runs.js"))) for (const q of s.qs) entries.push({ t: pat(q.title), r: pat(q.right) });
-  return { is: (title, text) => entries.some((e) => e.t.test(title) && e.r.test(text)) };
+  for (const s of m.extract(read("play/runs.js"))) for (const q of s.qs) entries.push({ t: pat(q.title), r: pat(q.right), sec: q.sec });
+  return { is: (title, text) => entries.some((e) => e.t.test(title) && e.r.test(text)),
+    sec: (title) => (entries.find((e) => e.t.test(title)) || {}).sec };
 }
 /* the text of a button as the game wrote it: its label plus any small line */
 const unesc = (t) => t.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, "&");
@@ -109,6 +110,7 @@ function play(env, id, seed, right, stats) {
   const careful = rand() < 0.5 ? 0.95 : 0.6; // how often the player picks the right answer
   const patient = rand() < 0.4;
   let quiet = false;
+  stats.cur = { n: 0, secs: new Set() };
   runBtns.find((b) => b.dataset.run === id).onclick();
   const scene = doc.getElementById("xwScene");
   for (let step = 0; step < MAX_STEPS; step++) {
@@ -118,7 +120,8 @@ function play(env, id, seed, right, stats) {
       const html = scene._inner, verdict = /xw-stamp[^>]*>([^<]*)</.exec(html);
       if (process.env.PLAY_DEBUG) console.log(id, patient ? "patient" : "", careful, (/<p>([^<]*)<\/p>/.exec(html) || [])[1], [...html.matchAll(/<summary>([^<]*)<\/summary>/g)].map((x) => x[1]).join(" | "));
       stats.ends++; stats.verdicts[verdict ? verdict[1] : "?"] = (stats.verdicts[verdict ? verdict[1] : "?"] || 0) + 1;
-      if (/Tied up/.test(html) && !/The shift ends/.test(html)) stats.tied++;
+      if (/Tied up/.test(html) && !/The shift ends/.test(html)) { stats.tied++; stats.done.push(stats.cur); }
+      stats.all.push(stats.cur.n);
       const home = btns.find((b) => b.id === "home"); home.onclick();
       return;
     }
@@ -129,6 +132,7 @@ function play(env, id, seed, right, stats) {
     const opts = btns.filter((b) => b.cls.has("opt"));
     if (opts.length) {
       const title = (/<h2>([^<]*)<\/h2>/.exec(scene._inner) || [])[1] || "";
+      stats.cur.n++; stats.cur.secs.add(right.sec(unesc(title)));
       const good = opts.filter((b) => right.is(unesc(title), label(b)));
       (good.length && rand() < careful ? good[0] : opts[Math.floor(rand() * opts.length)]).onclick();
       continue;
@@ -147,13 +151,19 @@ function main() {
   const env = load();
   const failures = [];
   for (const id of env.ids) {
-    const stats = { ends: 0, tied: 0, verdicts: {} };
+    const stats = { ends: 0, tied: 0, verdicts: {}, done: [], all: [] };
     for (let d = 0; d < DRAWS; d++) {
       const seed = 7919 * (d + 1) + id.length * 104729;
       try { play(env, id, seed, right, stats); } catch (e) { failures.push(`${id} draw ${d}: ${e.stack.split("\n").slice(0, 4).join(" | ")}`); if (failures.length > 8) break; }
     }
     console.log(`${id}: ${stats.ends}/${DRAWS} ended, ${stats.tied} tied up. ${JSON.stringify(stats.verdicts)}`);
     if (!stats.tied) failures.push(`${id}: no draw reached a tied-up end screen`);
+    if (id === "coal") { // a road run asks 15 to 20 questions, and every draw that ends normally asks the sections only the road runs cover
+      const ns = stats.done.map((d) => d.n), mean = ns.reduce((a, b) => a + b, 0) / ns.length, all = stats.all;
+      console.log(`coal questions per draw that tied up: mean ${mean.toFixed(1)}, min ${Math.min(...ns)}, max ${Math.max(...ns)}; all draws: mean ${(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1)}`);
+      if (mean < 12 || mean > 22) failures.push(`coal: mean ${mean.toFixed(1)} questions per draw is outside 12 to 22`);
+      stats.done.forEach((d, i) => { for (const sec of ["sup", "to", "sem"]) if (!d.secs.has(sec)) failures.push(`coal draw ${i}: no ${sec} question`); });
+    }
   }
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
   console.log("play-through OK");

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Builds www/play/answers.html, the answer key for Extra East: HART Railroad, from the island shifts in www/play/runs.js
-   and the road runs in www/play/road.js (which needs exam/signals.js). Each run's build() is run many times with a
+   and the road runs in www/play/road.js. Each run's build() is run many times with a
    seeded random stream and a stand-in for the game's helpers, so every branch a draw can take is seen. Each run lists
    every question it can ask; words a draw changes (a time, a count) show as [varies]. Questions asked from inside an
    after() or info callback are not seen; none are today. A road run lists the questions that depend on the path
@@ -14,7 +14,6 @@ const vm = require("vm");
 const PLAY = path.join(__dirname, "..", "play");
 const RUNS = path.join(PLAY, "runs.js");
 const ROAD = path.join(PLAY, "road.js");
-const SIGNALS = path.join(PLAY, "..", "exam", "signals.js");
 const OUT = path.join(PLAY, "answers.html");
 const TUMBLR = "https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 const SEC = { gcor: "GCOR crew & speed", sig: "Signals & whistles", def: "Definitions", yl: "Yard limits", sup: "Superiority & movement", to: "Train orders", sem: "Semaphores", twc: "Track warrants" };
@@ -49,7 +48,6 @@ function groupOf(id, def) {
 
 function extract(src) {
   const sandbox = vm.createContext({ window: {} });
-  vm.runInContext(fs.readFileSync(SIGNALS, "utf8"), sandbox, { filename: SIGNALS });
   vm.runInContext(src, sandbox, { filename: RUNS });
   vm.runInContext(fs.readFileSync(ROAD, "utf8"), sandbox, { filename: ROAD });
   const runs = sandbox.window.NevilleRuns;
