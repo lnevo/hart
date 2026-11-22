@@ -66,6 +66,8 @@ Twelve table cells run over 80 words. The longest is row 8 of [`source-data-exce
 
 Size: S. Done when the check passes on `main`.
 
+Done (2026-11-22, PR open): all twelve cells cut with their detail in sections below the tables, and `check_agent_docs.py` fails a cell over 80 words.
+
 ## Done when
 
 All four items are merged, item 1 is deployed to the Pi and Windows, the 2026-12-05 agent count is recorded here, and this page is marked done.

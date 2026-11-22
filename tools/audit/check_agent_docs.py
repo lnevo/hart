@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
-"""Fail if agent instructions point at a repo path that does not exist.
+"""Fail if agent instructions point at a repo path that does not exist, or a wiki table cell runs too long.
 
 Covers the files agents load first, so a move or retirement cannot leave them
 stale. Checks relative Markdown links and backticked paths under a known root.
+A second rule keeps wiki/ and AGENTS.md tables readable: a table cell over MAX_CELL_WORDS words fails, naming file,
+line and count (wiki/STATUS_LOG.md and wiki/archive/ hold history and are exempt). Long detail goes in a section
+below the table, linked from the cell.
 
 `references()` is the one parser for what an agent doc points at; the pipeline
 map (tools/ops/agent_docs_map.py) draws its "points to" links from it too.
@@ -25,6 +28,12 @@ ROOTS = ("jmri", "cats", "docs", "www", "ops", "tools", "wiki", "archive", ".cur
 LINK = re.compile(r"\]\(\s*(?:<(?P<angled>[^>#]*)[^>]*>|(?P<bare>[^)#\s]+))")
 CODE = re.compile(r"`([^`\s]+)`")
 HTML_COMMENT = re.compile(r"<!--.*?-->", re.S)
+MAX_CELL_WORDS = 80
+CELL_FILES = ("wiki", "AGENTS.md")
+CELL_EXEMPT_FILES = ("wiki/STATUS_LOG.md",)
+CELL_EXEMPT_DIRS = ("wiki/archive/",)
+FENCE = re.compile(r"^\s*(?P<run>`{3,}|~{3,})(?P<info>.*)$")
+DELIMITER_ROW = re.compile(r"^\s*\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?\s*$")
 
 
 class AgentDocsError(Exception):
@@ -105,16 +114,158 @@ def problems_in(rel: str, text: str | None = None) -> list[str]:
     return found
 
 
+def _code_span_end(line: str, i: int) -> int:
+    """Where the backtick run at line[i] ends as code: just past the closing run of the same length, or past the
+    opening run alone when nothing closes it (then the backticks are plain text)."""
+    n = 1
+    while i + n < len(line) and line[i + n] == "`":
+        n += 1
+    j = i + n
+    while j < len(line):
+        if line[j] != "`":
+            j += 1
+            continue
+        m = 1
+        while j + m < len(line) and line[j + m] == "`":
+            m += 1
+        if m == n:
+            return j + m
+        j += m
+    return i + n
+
+
+def _without_comments(line: str, in_comment: bool) -> tuple[str, bool]:
+    """`line` with HTML comments cut out (code spans are not read for them), and whether one is still open."""
+    out, i = [], 0
+    while i < len(line):
+        if in_comment:
+            end = line.find("-->", i)
+            if end < 0:
+                return "".join(out), True
+            i, in_comment = end + 3, False
+        elif line[i] == "`":
+            end = _code_span_end(line, i)
+            out.append(line[i:end])
+            i = end
+        elif line.startswith("<!--", i):
+            in_comment = True
+            i += 4
+        else:
+            out.append(line[i])
+            i += 1
+    return "".join(out), in_comment
+
+
+def split_cells(row: str) -> list[str]:
+    """The cells of one table row. A `|` splits unless written `\\|` or inside an inline code span; the row's
+    outer pipes make no empty cells."""
+    cells, cur, i = [], [], 0
+    while i < len(row):
+        ch = row[i]
+        if ch == "\\" and row[i + 1:i + 2] == "|":
+            cur.append("\\|")
+            i += 2
+        elif ch == "`":
+            end = _code_span_end(row, i)
+            cur.append(row[i:end])
+            i = end
+        elif ch == "|":
+            cells.append("".join(cur))
+            cur = []
+            i += 1
+        else:
+            cur.append(ch)
+            i += 1
+    cells.append("".join(cur))
+    body = row.strip()
+    if body.startswith("|") and cells:
+        cells = cells[1:]
+    if body.endswith("|") and not body.endswith("\\|") and cells:
+        cells = cells[:-1]
+    return cells
+
+
+def cell_word_counts(rel: str, text: str) -> list[tuple[int, int, int]]:
+    """(line, column, words) for every table cell in the Markdown `text` of `rel`, 1-based. Code fences and HTML
+    comments are not read. A table is a header row, a delimiter row (`|---|---|`) and the rows after it up to a
+    line with no pipe. An unclosed code fence or comment is an error, not a silent skip of the rest of the file."""
+    lines = text.split("\n")
+    clean: list[str] = []
+    fence: tuple[str, int, int] | None = None   # (character, length, line it opened on)
+    comment_from = 0                            # line a still-open comment began on, 0 when none
+    for no, raw in enumerate(lines, 1):
+        if fence:
+            m = FENCE.match(raw)
+            if m and m["run"][0] == fence[0] and len(m["run"]) >= fence[1] and not m["info"].strip():
+                fence = None
+            clean.append("")
+            continue
+        was_open = bool(comment_from)
+        line, open_now = _without_comments(raw, bool(comment_from))
+        comment_from = (comment_from or no) if open_now else 0
+        m = None if was_open else FENCE.match(line)
+        if m:
+            fence = (m["run"][0], len(m["run"]), no)
+            line = ""
+        clean.append(line)
+    if fence:
+        raise AgentDocsError(f"{rel}:{fence[2]}: code fence never closed")
+    if comment_from:
+        raise AgentDocsError(f"{rel}:{comment_from}: HTML comment never closed")
+    found = []
+    no = 0
+    while no < len(clean) - 1:
+        head, delim = clean[no], clean[no + 1]
+        if "|" in head and "|" in delim and DELIMITER_ROW.match(delim) and len(split_cells(head)) == len(split_cells(delim)):
+            row = no
+            while row < len(clean) and clean[row].strip() and "|" in clean[row]:
+                if row != no + 1:
+                    for col, cell in enumerate(split_cells(clean[row]), 1):
+                        found.append((row + 1, col, len(cell.replace("<br>", " ").split())))
+                row += 1
+            no = row
+        else:
+            no += 1
+    return found
+
+
+def cell_files() -> list[str]:
+    """The tracked Markdown files the cell-length rule covers: all of wiki/ and AGENTS.md, minus the history."""
+    return [p for p in _git("ls-files", "-z", *CELL_FILES) if p.endswith(".md") and not is_cell_exempt(p)]
+
+
+def is_cell_exempt(rel: str) -> bool:
+    norm = os.path.normpath(rel)
+    return norm in CELL_EXEMPT_FILES or norm.startswith(CELL_EXEMPT_DIRS)
+
+
+def long_cells(rel: str, text: str | None = None) -> list[str]:
+    """One message per table cell of `rel` over MAX_CELL_WORDS words; `text` stands in for its content in tests.
+    A file under an exempt path has none."""
+    if is_cell_exempt(rel):
+        return []
+    if text is None:
+        try:
+            text = (ROOT / rel).read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError) as err:
+            raise AgentDocsError(f"{rel}: cannot read: {err}") from None
+    return [f"{rel}:{line}: table cell {col} has {words} words (limit {MAX_CELL_WORDS}); move the detail to a "
+            f"section below the table and link it" for line, col, words in cell_word_counts(rel, text)
+            if words > MAX_CELL_WORDS]
+
+
 def main() -> int:
     try:
         problems = [p for rel in agent_files() for p in problems_in(rel)]
+        problems += [p for rel in cell_files() for p in long_cells(rel)]
     except AgentDocsError as err:
         print(f"FAIL {err}")
         return 1
     for line in problems:
         print(f"FAIL {line}")
     if not problems:
-        print("OK: agent instructions point at real paths")
+        print("OK: agent instructions point at real paths; no wiki table cell over "
+              f"{MAX_CELL_WORDS} words")
     return 1 if problems else 0
 
 
