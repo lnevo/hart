@@ -367,11 +367,11 @@ function pointerPick(c) {
   return {};
 }
 
-/* What is hidden after an "only" beside k is clicked, for kinds or lanes: everything in all but k (off: what is hidden
+/* What is hidden after an "only" beside k is clicked, for kinds or lanes: everything in all (kind or lane ids) but k (off: what is hidden
    now). A second click on the one already shown alone shows them all again. */
-function onlyOne(kinds, off, k) {
-  const alone = kinds.every(x => x === k || off.includes(x)) && !off.includes(k);
-  return alone ? [] : kinds.filter(x => x !== k);
+function onlyOne(all, off, k) {
+  const alone = all.every(x => x === k || off.includes(x)) && !off.includes(k);
+  return alone ? [] : all.filter(x => x !== k);
 }
 
 /* The id of the first box in boxes ({id, x, y, w, h}) that holds the point x, y, or null. */

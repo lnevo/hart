@@ -460,6 +460,10 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("m.onlyOne(a, ['structured', 'output', 'human'], 'generator')", kinds), [])
         self.assertEqual(self.run_js("m.onlyOne(a, ['structured', 'output', 'human'], 'output')", kinds),
                          ["structured", "generator", "human"])  # another kind's only moves to that kind
+        lanes = ["layout", "wiring", "website"]  # lanes: shown alone, then all again; from no lanes, just that one
+        self.assertEqual(self.run_js("m.onlyOne(a, [], 'website')", lanes), ["layout", "wiring"])
+        self.assertEqual(self.run_js("m.onlyOne(a, ['layout', 'wiring'], 'website')", lanes), [])
+        self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
 
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
