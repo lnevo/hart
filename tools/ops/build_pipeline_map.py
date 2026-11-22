@@ -13,7 +13,9 @@ can carry a link back to the page that links to it.
 
 The agent-doc lane (domain "agents": boxes and links marked "gen": "agent-docs") is generated from the files by
 tools/ops/agent_docs_map.py: a plain run rewrites it in the graph file, and --check fails when the committed graph
-differs. Everything else in the graph is hand-kept.
+differs. Everything else in the graph is hand-kept. The order of the nodes is kept as it is: the layout breaks
+cycles in node order, so a sorted file draws a much wider map. Locally the file merges itself:
+tools/ops/merge_pipeline_map.py is its git merge driver.
 
 The graph file holds domains (the horizontal lanes), nodes and edges. A node's `path` must exist in the checkout
 unless the node says `"local": true` (a gitignored mirror or a file made on a host). This script checks the graph and
@@ -81,7 +83,7 @@ def tracked_paths() -> frozenset[str]:
 def read(path: Path) -> dict:
     """The graph file as data, with its three lists; not yet checked further (validate does that)."""
     try:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
     except OSError as err:
         raise GraphError(f"cannot read the graph: {err.strerror}") from None
     except json.JSONDecodeError as err:
@@ -98,6 +100,16 @@ def read(path: Path) -> dict:
     if bad_paths:
         raise GraphError(f"a node's path must be text: {bad_paths[0]!r}")
     return data
+
+
+def node_key(n: dict) -> str:
+    """What names a node: its id."""
+    return n["id"]
+
+
+def edge_key(e: dict) -> tuple[str, str]:
+    """What names an edge: its two ends (the graph holds one edge per pair)."""
+    return (e["from"], e["to"])
 
 
 def graph_text(data: dict) -> str:
@@ -117,7 +129,10 @@ def load(path: Path) -> dict:
     return validate(read(path))
 
 
-def validate(data: dict) -> dict:
+def validate(data: dict, tracked: bool = True) -> dict:
+    """The graph, or GraphError naming every problem. tracked=False leaves out only the check that each node's path
+    is tracked in git: the merge driver (tools/ops/merge_pipeline_map.py) runs before git has written the merged
+    tree, so the paths the other branch adds are not tracked yet; tools/check.sh checks them after the merge."""
     for key in ("domains", "nodes", "edges"):
         if not isinstance(data.get(key), list):
             raise GraphError(f"the graph needs a {key!r} list")
@@ -156,7 +171,7 @@ def validate(data: dict) -> dict:
             problems.append(f"node {nid!r}: path {p} is already node {paths[p.rstrip('/')]!r}")
         if p:
             paths[p.rstrip("/")] = nid
-        if p and not n.get("local") and p.rstrip("/") not in tracked_paths():
+        if tracked and p and not n.get("local") and p.rstrip("/") not in tracked_paths():
             problems.append(f"node {nid!r}: path {p} does not exist in git (mark it \"local\": true if it is a gitignored mirror, a submodule file or made on a host)")
     seen_edges = set()
     linked: set[str] = set()
@@ -168,7 +183,7 @@ def validate(data: dict) -> dict:
         for end in ("from", "to"):
             if e[end] not in ids:
                 problems.append(f"edge {e['from']} -> {e['to']}: {end} end is not a node")
-        key = (e["from"], e["to"])
+        key = edge_key(e)
         if key in seen_edges:
             problems.append(f"edge {e['from']} -> {e['to']} is listed twice")
         seen_edges.add(key)

@@ -541,7 +541,34 @@ def new(topic: str, agent: str) -> Path:
             dst.parent.mkdir(parents=True, exist_ok=True)
             dst.symlink_to(src)
     init_check_submodules(path, main)
+    install_merge_drivers(path)
     return path
+
+
+MERGE_DRIVERS = "tools/ops/merge_pipeline_map.py"  # sets the pipeline map's git merge drivers (--install)
+
+
+def install_merge_drivers(path: Path) -> bool:
+    """Set the repo's git merge drivers from the new worktree's own copy of MERGE_DRIVERS. git config is shared by
+    every worktree, so this is a no-op once set. A checkout without the script has no driver to set. Warn on stderr
+    and return False when it fails; what it changed goes to stderr too (stdout is the worktree path)."""
+    script = path / MERGE_DRIVERS
+    if not script.is_file():
+        return True
+    try:
+        done = subprocess.run([sys.executable, str(script), "--install", "--repo", str(path)], capture_output=True,
+                              text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as err:
+        print(f"warning: could not set the git merge drivers ({err}); run python3 {MERGE_DRIVERS} --install",
+              file=sys.stderr)
+        return False
+    if done.returncode != 0:
+        print(f"warning: could not set the git merge drivers: {done.stderr.strip()}; run python3 {MERGE_DRIVERS} "
+              f"--install", file=sys.stderr)
+        return False
+    if done.stdout.strip():
+        print(done.stdout.strip(), file=sys.stderr)
+    return True
 
 
 def init_check_submodules(path: Path, main: Path) -> bool:
