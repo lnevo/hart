@@ -447,6 +447,43 @@ function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
     }
   }
 
+  // level: each long link's waypoints (one per column it crosses) are set to one height for as long a run of columns
+  // as the boxes and links beside them allow, longest links first, so a long link runs straight across the steps
+  // instead of bending at each one. A run next to an end of the link takes that box's height when it can.
+  const slotOf = new Map();  // waypoint -> [its column's items in its lane, in order, and its index there]
+  layers.forEach(l => {
+    const byLane = new Map();
+    l.forEach(v => getList(byLane, domain(v)).push(v));
+    byLane.forEach(col => col.forEach((v, i) => slotOf.set(v, [col, i])));
+  });
+  const slot = v => {  // the tops v can take without passing the items above and below it
+    const [col, i] = slotOf.get(v), d = domain(v);
+    const lo = i === 0 ? bandTop.get(d) + BAND_PAD : ys.get(col[i - 1]) + room(col[i - 1]);
+    const hi = i === col.length - 1 ? bandTop.get(d) + bandH.get(d) - BAND_PAD - height(v) : ys.get(col[i + 1]) - room(v);
+    return [lo, hi];
+  };
+  const runsOf = chains.map(([, c]) => c).filter(c => c.length > 3).sort((a, b) => b.length - a.length);
+  // a few passes: a link levelled later can free room for one levelled earlier; stops once a pass moves nothing
+  for (let pass = 0, moved = true; pass < 6 && moved; pass++) for (const c of (moved = false, runsOf)) {
+    const way = c.slice(1, -1);
+    for (let start = 0; start < way.length;) {
+      let [lo, hi] = slot(way[start]), end = start + 1;
+      while (end < way.length) {
+        const [l2, h2] = slot(way[end]);
+        if (Math.max(lo, l2) > Math.min(hi, h2)) break;
+        lo = Math.max(lo, l2); hi = Math.min(hi, h2); end++;
+      }
+      if (end - start > 1) {
+        const run = way.slice(start, end), tops = run.map(v => ys.get(v)).sort((a, b) => a - b);
+        const fits = t => t >= lo && t <= hi;
+        const atA = centre(c[0]) - DUMMY_H / 2, atB = centre(c[c.length - 1]) - DUMMY_H / 2;
+        const top = start === 0 && fits(atA) ? atA : end === way.length && fits(atB) ? atB : Math.min(Math.max(tops[tops.length >> 1], lo), hi);
+        run.forEach(v => { if (Math.abs(ys.get(v) - top) > 0.01) { ys.set(v, top); moved = true; } });
+      }
+      start = end;
+    }
+  }
+
   // stretch: a drawing shorter than the screen's shape at Fit is stretched downward lane by lane, each lane getting an
   // equal share of the spare height. Box centres move apart in proportion and boxes keep their size, so each lane's
   // boxes spread over its new height, centred as they were, and no two come closer.
@@ -468,8 +505,10 @@ function layout(nodes, edges, domains, aspect = 0, geo = WIDE) {
   const outEdges = chains.map(([i, chain, flipped]) => {
     const pts = [];
     chain.forEach((v, j) => {
+      // a waypoint is one point in the middle of its column, so a change of height bends over a whole step, not
+      // only the gap between two columns
       if (byId.has(v)) pts.push([j === 0 ? xOf(v) + NODE_W : xOf(v), centre(v)]);
-      else { pts.push([xOf(v), centre(v)]); pts.push([xOf(v) + NODE_W, centre(v)]); }
+      else pts.push([xOf(v) + NODE_W / 2, centre(v)]);
     });
     if (flipped) pts.reverse();
     return { ...edges[i], pts, back: flipped };

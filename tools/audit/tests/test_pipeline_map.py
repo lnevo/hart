@@ -234,6 +234,19 @@ class LayoutTest(unittest.TestCase):
         held = self.run_js("m.growRect(980, 110, 80, 20, a, true)", area)
         self.assertEqual((held["dx"], held["dy"]), (0, 0))
 
+    def test_long_link_runs_level_with_one_point_a_column(self) -> None:
+        """layout: a link that skips three columns has one waypoint in the middle of each, all at one height, so it is
+        drawn as a straight run, not a bend at every step; the other boxes in those columns keep their lane."""
+        nodes = [node(f"c{i}") for i in range(5)] + [node("x1"), node("x2", domain="b"), node("x3")]
+        edges = [{"from": f"c{i}", "to": f"c{i + 1}"} for i in range(4)] + [{"from": "c0", "to": "c4"}]
+        edges += [{"from": "x1", "to": "c2"}, {"from": "x2", "to": "c3"}, {"from": "c1", "to": "x3"}]
+        lay = self.run_js("m.layout(a.nodes, a.edges, a.domains, 0, m.NARROW)", {"domains": DOMAINS, "nodes": nodes, "edges": edges})
+        long = next(e for e in lay["edges"] if (e["from"], e["to"]) == ("c0", "c4"))
+        way = long["pts"][1:-1]
+        self.assertEqual(len(way), 3)
+        self.assertEqual([x for x, _ in way], [260 + 90, 520 + 90, 780 + 90])
+        self.assertEqual(len({round(y, 3) for _, y in way}), 1)
+
     def test_name_tags_never_overlap(self) -> None:
         """placeTags: in priority order, a tag that overlaps one already placed or a blocked area is left out."""
         boxes = [{"x0": 0, "y0": 0, "x1": 100, "y1": 20},     # placed first
