@@ -183,7 +183,8 @@ $jythonSrc = @(
   (Join-Path $hart 'jmri\layouts\hart\scripts\jmri_cmd_watcher.py'),
   (Join-Path $hart 'jmri\scripts\signal_coordinator.py'),
   # signal_coordinator.py's SIBLING_MODULES: installed beside it, not Start Up items.
-  (Join-Path $hart 'jmri\scripts\sml_beans.py')
+  (Join-Path $hart 'jmri\scripts\sml_beans.py'),
+  (Join-Path $hart 'jmri\scripts\sml_claims.py')
 )
 $trainInfoSrc = Join-Path $hart 'jmri\layouts\hart\dispatcher\traininfo'
 $roots = New-Object System.Collections.Generic.List[string]

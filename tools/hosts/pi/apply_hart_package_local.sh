@@ -117,6 +117,7 @@ JYTHON=(
   "$HART/jmri/scripts/signal_coordinator.py"
   # signal_coordinator.py's SIBLING_MODULES: installed beside it, not Start Up items.
   "$HART/jmri/scripts/sml_beans.py"
+  "$HART/jmri/scripts/sml_claims.py"
 )
 mkdir -p "$UF/jython"
 for f in "${JYTHON[@]}"; do

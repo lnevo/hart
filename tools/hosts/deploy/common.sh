@@ -56,6 +56,7 @@ JYTHON_STARTUP_SCRIPTS=(
 # Start Up items. tools/hosts/tests/test_coordinator_shipping.py holds every host's list to that tuple.
 JYTHON_SIBLING_MODULES=(
   "$ROOT/jmri/scripts/sml_beans.py"
+  "$ROOT/jmri/scripts/sml_claims.py"
 )
 
 # load_parked: the features parked out of the active tables (hartlib.parked.PARKED: Entry/Exit, the Dispatcher System,

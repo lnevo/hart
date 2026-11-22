@@ -39,6 +39,7 @@ jmri/layouts/hart/data/schematic/interlockings.csv
 jmri/layouts/hart/data/switches.csv
 jmri/scripts/signal_coordinator.py
 jmri/scripts/sml_beans.py
+jmri/scripts/sml_claims.py
 jmri/layouts/hart/scripts/panel_status.py
 jmri/layouts/hart/scripts/discover_sml.py
 jmri/layouts/hart/scripts/hide_cats_desk_windows.py
