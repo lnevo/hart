@@ -56,7 +56,8 @@ TABLES = """\
 
 # Stands in for PanelPro.app/Contents/MacOS/StartJMRI. It saves the profile as JMRI would read it
 # and its environment, then either quits without a marker (FAKE_MODE=exit) or starts a "java"
-# that sleeps (FAKE_MODE=hang; FAKE_IGNORE_TERM=1 makes it ignore SIGTERM) and waits on it.
+# that sleeps (FAKE_MODE=hang; FAKE_IGNORE_TERM=1 makes it ignore SIGTERM) and waits on it
+# (FAKE_MODE=detach: quits a second after java started, leaving java running).
 # FAKE_MARKER_FROM names the variable holding the marker path: it writes an ok marker first, and
 # FAKE_MODE=marker then quits cleanly as JMRI does after the script's System.exit.
 FAKE_STARTJMRI = """\
@@ -69,7 +70,7 @@ if [[ -n "${FAKE_MARKER_FROM:-}" ]]; then
   printf 'ok\nfake detail\n' > "${!FAKE_MARKER_FROM}"
 fi
 [[ "$FAKE_MODE" == marker ]] && exit 0
-if [[ "$FAKE_MODE" == hang ]]; then
+if [[ "$FAKE_MODE" == hang || "$FAKE_MODE" == detach ]]; then
   python3 -c '
 import os, signal, sys, time
 if sys.argv[2] == "1":
@@ -78,6 +79,11 @@ open(sys.argv[1] + ".tmp", "w").write(str(os.getpid()))
 os.rename(sys.argv[1] + ".tmp", sys.argv[1])
 time.sleep(600)
 ' "$FAKE_STATE/java.pid" "${FAKE_IGNORE_TERM:-0}" "-Dorg.jmri.profile=$2" &
+  if [[ "$FAKE_MODE" == detach ]]; then
+    while [[ ! -f "$FAKE_STATE/java.pid" ]]; do sleep 0.1; done
+    sleep 1          # the wrapper's wait finds java as this launcher's child, then the launcher is gone
+    exit 0
+  fi
   wait
 fi
 exit 3
@@ -187,19 +193,49 @@ def _default_signals() -> None:
     signal.signal(signal.SIGQUIT, signal.SIG_DFL)
 
 
+def _wait_for(check, seconds: float) -> bool:
+    end = time.monotonic() + seconds
+    while time.monotonic() < end:
+        if check():
+            return True
+        time.sleep(0.1)
+    return check()
+
+
+def _group_commands(pgid: int) -> str:
+    """The command lines of the processes in process group PGID, one per line."""
+    out = subprocess.run(["ps", "-A", "-o", "pgid=,command="], capture_output=True, text=True, check=True).stdout
+    return "\n".join(line.split(None, 1)[1] for line in out.splitlines()
+                     if len(line.split(None, 1)) == 2 and line.split(None, 1)[0] == str(pgid))
+
+
+def _kill_group(pgid: int) -> None:
+    try:
+        os.killpg(pgid, signal.SIGKILL)
+    except ProcessLookupError:
+        pass
+
+
 class WrapperCase(unittest.TestCase):
     def setUp(self) -> None:
-        self._td = tempfile.TemporaryDirectory()
-        self.box = Sandbox(Path(self._td.name).resolve())
+        self.box = self.new_box()
 
-    def tearDown(self) -> None:
-        pid_file = self.box.state / "java.pid"
+    def new_box(self) -> Sandbox:
+        """A fresh sandbox, removed after the test with any fake java still running in it."""
+        td = tempfile.TemporaryDirectory()
+        box = Sandbox(Path(td.name).resolve())
+        self.addCleanup(td.cleanup)
+        self.addCleanup(self._kill_java, box)
+        return box
+
+    @staticmethod
+    def _kill_java(box: Sandbox) -> None:
+        pid_file = box.state / "java.pid"
         if pid_file.exists():
             try:
                 os.kill(int(pid_file.read_text()), signal.SIGKILL)
             except ProcessLookupError:
                 pass
-        self._td.cleanup()
 
     def assert_restored(self, profile: Path | None = None, original: bytes | None = None) -> None:
         profile = profile or self.box.profile
@@ -339,25 +375,85 @@ class Cleanup(WrapperCase):
         self.assertLess(time.monotonic() - started, 30)
         self.assert_restored()
 
+    def signal_run(self, box: Sandbox, wrapper: str, sig: signal.Signals, ready=None,
+                   **extra: str) -> tuple[int, str, bool]:
+        """Start WRAPPER with a hanging java, send SIG to the wrapper's pid alone once java runs (and READY(pgid),
+        when given, holds), and return (exit code, stderr, whether java still ran when the wrapper had exited).
+        The run is its own process group, so nothing it started outlives the test; a run that does not exit is
+        a failure that shows its output."""
+        env = box.env(**{"FAKE_MODE": "hang", "HART_PANELPRO_TIMEOUT": "60", **extra})
+        proc = subprocess.Popen(box.cmd(wrapper), env=env, cwd=box.tmp, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, text=True, preexec_fn=_default_signals,
+                                start_new_session=True)
+        try:
+            java = box.java_pid()
+            self.assertIn(b'enabled="no"', box.profile.read_bytes())   # patched while running
+            if ready is not None:
+                self.assertTrue(_wait_for(lambda: ready(proc.pid), 20), "the run never got ready for the signal")
+            proc.send_signal(sig)
+            try:
+                _out, err = proc.communicate(timeout=30)
+                java_left = _alive(java)          # before the group kill below can hide a java left running
+            except subprocess.TimeoutExpired:
+                _kill_group(proc.pid)
+                _out, err = proc.communicate()
+                self.fail(f"{wrapper} still ran 30 s after {sig.name}; its stderr:\n{err}")
+        finally:
+            _kill_group(proc.pid)          # also a java or helper a failed run left
+            if proc.returncode is None:
+                proc.communicate()
+        return proc.returncode, err, java_left
+
     def test_sigterm_sigint_and_sighup_stop_java_and_restore(self) -> None:
+        # Each signal on its own sandbox: a run that fails cannot leave a backup that fails the next.
         for sig, code in ((signal.SIGTERM, 143), (signal.SIGINT, 130), (signal.SIGHUP, 129)):
             with self.subTest(signal=sig.name):
-                (self.box.state / "java.pid").unlink(missing_ok=True)
-                env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")
-                proc = subprocess.Popen(self.box.cmd("run_sml_discover.sh"), env=env, cwd=self.box.tmp,
-                                        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                                        preexec_fn=_default_signals)
+                box = self.new_box()
+                rc, err, java_left = self.signal_run(box, "run_sml_discover.sh", sig)
+                self.assertEqual(code, rc, err)
+                self.assertIn("Stopping the PanelPro this run started", err)
+                self.assertFalse(java_left, err)
+                self.assert_restored(box.profile, box.original)
+
+    def test_a_signal_during_a_long_poll_acts_at_once(self) -> None:
+        """The waits poll in a background helper and the shell waits in `wait`, so a signal sent to the
+        wrapper's pid is acted on at once, not after the poll's sleep (bash can drop a signal that arrives
+        while a foreground command runs). A 30 s poll would hold a foreground sleep for 30 s."""
+        for sig in (signal.SIGTERM, signal.SIGINT):
+            with self.subTest(signal=sig.name):
+                box = self.new_box()
+                err_path = box.tmp / "stderr"
+                with open(err_path, "w", encoding="utf-8") as err_file:
+                    proc = subprocess.Popen(box.cmd("run_panelpro_smoke_test.sh"),
+                                            env=box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="600",
+                                                        HART_PANELPRO_POLL="30"),
+                                            cwd=box.tmp, stdout=subprocess.DEVNULL, stderr=err_file,
+                                            preexec_fn=_default_signals, start_new_session=True)
                 try:
-                    java = self.box.java_pid()
-                    self.assertIn(b'enabled="no"', self.box.profile.read_bytes())   # patched while running
+                    java = box.java_pid()
+                    self.assertTrue(_wait_for(lambda: "sleep 30" in _group_commands(proc.pid), 20),
+                                    "the wait never reached its 30 s sleep")
                     proc.send_signal(sig)
-                    _out, err = proc.communicate(timeout=30)
+                    stopped = _wait_for(lambda: "Stopping the PanelPro this run started"
+                                        in err_path.read_text(encoding="utf-8"), 10)
+                    self.assertTrue(stopped, f"no stop within 10 s of {sig.name} during a 30 s poll; stderr:\n"
+                                             + err_path.read_text(encoding="utf-8"))
+                    self.assertTrue(_wait_for(lambda: not _alive(java), 10))
                 finally:
-                    if proc.poll() is None:
-                        proc.kill()
-                self.assertEqual(code, proc.returncode, err)
-                self.assertFalse(_alive(java))
-                self.assert_restored()
+                    _kill_group(proc.pid)   # the stop's own 30 s poll is not under test here
+                    proc.wait()
+
+    def test_java_left_by_a_dead_launcher_is_stopped_on_a_signal(self) -> None:
+        # The launcher quits and leaves java: only the wait helper saw java as its child, and the stop
+        # after the signal still finds it (PP_PIDS_FILE).
+        box = self.new_box()
+        rc, err, java_left = self.signal_run(box, "run_sml_discover.sh", signal.SIGTERM, FAKE_MODE="detach",
+                                             ready=lambda pgid: "StartJMRI" not in _group_commands(pgid))
+        java = int((box.state / "java.pid").read_text())
+        self.assertEqual(143, rc, err)
+        self.assertIn(f"Stopping the PanelPro this run started (pids {java})", err)   # java alone: launcher gone
+        self.assertFalse(java_left, err)
+        self.assert_restored(box.profile, box.original)
 
     def test_after_sigkill_the_next_run_refuses_and_restore_recovers(self) -> None:
         env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")

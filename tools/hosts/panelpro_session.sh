@@ -23,6 +23,16 @@
 # recovery command. HART_PANELPRO_TIMEOUT overrides a wrapper's marker timeout. HART_PANELPRO_POLL
 # (seconds, fractions allowed) overrides every poll interval here; the tests set it short.
 #
+# The two waits poll in a background helper while the wrapper's shell sits in the `wait` builtin.
+# bash defers a trap while a foreground command runs, and in a loop that forks as these polls do it
+# sometimes drops the signal: measured on a signal sent to the shell's pid, 1 SIGINT in 700 for
+# bash 3.2 (the Mac), 11 SIGINTs in 700 and 2 SIGTERMs in 400 for bash 5.2 (Linux), and once in 400
+# for a SIGINT sent to the whole group as Ctrl-C does. The run then went on to its timeout. In `wait`
+# a trapped signal acts at once (0 in 1200 in the same trials). The pids the helper finds go to
+# PP_PIDS_FILE, so the cleanup still sees a java left behind by a dead launcher. The short steps
+# outside the waits (pp_begin, a wrapper's own commands, a pp_stop_jmri it calls) still run in the
+# foreground.
+#
 # PanelPro still connects to MQTT during a run. With the Start Up scripts off nothing HART-written
 # publishes, but JMRI's own listeners (Logix, LogixNG, SML, Dispatcher) still react to sensor and
 # turnout changes. A rehearsal should run with the broker unreachable.
@@ -47,6 +57,8 @@ PP_LIVE_PROFILE_ID="My_JMRI_Railroad.3ef75bfd"
 PP_PATCH="$ROOT/cats/scripts/patch_jmri_startup.py"
 PP_PROFILE_PY="$ROOT/tools/hosts/panelpro_profile.py"
 PP_PIDS=""
+PP_PIDS_FILE=""
+PP_WAITER=""
 PP_JPID=""
 PP_BACKED_UP=0
 PP_TMP_FILES=()
@@ -126,16 +138,30 @@ pp_launch() {
       fi
     done
   fi
+  PP_PIDS_FILE="$(mktemp "${TMPDIR:-/tmp}/hart_panelpro_pids.XXXXXX")" || exit 1
+  PP_TMP_FILES+=("$PP_PIDS_FILE")
   "$STARTJMRI" -p "$PROFILE_ID" >"$log" 2>&1 &
   PP_JPID=$!
   PP_PIDS="$PP_JPID"
-  _pp_track
+  echo "$PP_PIDS" >"$PP_PIDS_FILE"
+  # No tracking here: it would be a foreground command (see the header); the waits and the stop track.
 }
 
 # Add every descendant of the processes already known (the launcher, then java) to PP_PIDS, so a
-# java left behind by a dead launcher is still found.
+# java left behind by a dead launcher is still found. PP_PIDS_FILE carries the set between the
+# background wait helper and the shell.
 _pp_track() {
-  local todo="$PP_PIDS" pid kid
+  local todo saved="" pid kid
+  if [[ -n "$PP_PIDS_FILE" ]]; then
+    read -r saved <"$PP_PIDS_FILE" || true
+    for pid in $saved; do
+      case " $PP_PIDS " in
+        *" $pid "*) ;;
+        *) PP_PIDS="$PP_PIDS $pid" ;;
+      esac
+    done
+  fi
+  todo="$PP_PIDS"
   while [[ -n "$todo" ]]; do
     set -- $todo
     pid="$1"
@@ -148,6 +174,26 @@ _pp_track() {
       esac
     done
   done
+  [[ -z "$PP_PIDS_FILE" ]] || echo "$PP_PIDS" >"$PP_PIDS_FILE"
+}
+
+# Run "$@" in a background helper and wait for it with the `wait` builtin, where a trapped signal
+# acts at once (see the header); returns the helper's status.
+_pp_in_helper() {
+  local rc=0
+  "$@" &
+  PP_WAITER=$!
+  wait "$PP_WAITER" || rc=$?
+  PP_WAITER=""
+  return "$rc"
+}
+
+# Stop a wait helper a trap cut short, and its sleep, so neither outlives the run or holds its output.
+_pp_stop_helper() {
+  [[ -n "$PP_WAITER" ]] || return 0
+  kill -TERM "$PP_WAITER" $(pgrep -P "$PP_WAITER" 2>/dev/null) 2>/dev/null || true
+  wait "$PP_WAITER" 2>/dev/null || true
+  PP_WAITER=""
 }
 
 _pp_alive() {
@@ -192,6 +238,10 @@ _pp_poll() {
 }
 
 pp_wait_marker() {
+  _pp_in_helper _pp_poll_marker "$@"
+}
+
+_pp_poll_marker() {
   local marker="$1" deadline=$((SECONDS + $2)) interval="$3"
   while (( SECONDS < deadline )); do
     [[ -f "$marker" ]] && return 0
@@ -207,6 +257,10 @@ pp_wait_marker() {
 }
 
 pp_wait_exit() {
+  _pp_in_helper _pp_poll_exit "$@"
+}
+
+_pp_poll_exit() {
   local deadline=$((SECONDS + $1))
   _pp_track
   while [[ -n "$(_pp_live_pids)" ]]; do
@@ -251,6 +305,7 @@ pp_cleanup() {
   trap '' INT TERM HUP
   trap - EXIT
   set +e
+  _pp_stop_helper
   # a wrapper's note for a failed run (run_sml_discover.sh: tables.xml left as the discovery base)
   [[ "$rc" != 0 && -n "${PP_FAIL_NOTE:-}" ]] && echo "$PP_FAIL_NOTE" >&2
   if ! pp_stop_jmri; then
