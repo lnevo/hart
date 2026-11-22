@@ -271,6 +271,16 @@ tables at a commit it records, `check(root, doc)` holds a tables file and the pa
 its data. `shipped_dirs()` and `shipped_jython()` list what the deploy leaves out; `python3 -m hartlib.parked
 features|dirs|jython|check|freeze` prints them, runs the check or writes the snapshot.
 
+### `hartlib.coordinator`
+
+`jmri/scripts/signal_coordinator.py` loads its sibling modules (`SIBLING_MODULES`, in load order) from the jython
+folder it runs in. `sibling_modules()` reads that tuple from the script's source (it is Jython, so it is not imported)
+and stops with `CoordinatorError` (a `ValueError`) when the tuple is missing, given twice, not literal, empty, holds a
+name that is not a module name or a module with no `.py` beside the script. `files()` is the script then each module,
+and `source()` their text joined in that order, for the checks that read the code as text
+(`check_mqtt_no_static_lists.py`, `le_names.lcos_rule`, `cats/scripts/tests/test_signal_coordinator.py`) and the test
+that every deploy list ships each module (`tools/hosts/tests/test_coordinator_shipping.py`).
+
 ### `hartlib.map_revision`
 
 The station maps carry the system schematic's revision and date (the title block in `page_prefs()`). `fields(prefs)`
