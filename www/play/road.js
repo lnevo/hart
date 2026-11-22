@@ -1,7 +1,8 @@
 /* The road runs of Extra East: HART Railroad, "Up the Chartiers". The line, its stations, mileposts and junctions come
    from library/chartiers-valley-railroads.html and the sources it lists; the time-table, the other trains, the
    orders and the offices are the game's own. The engine is Extra East's time-table and train-order machinery
-   (exam/run.js: makeTT, checkMove, departTTO, orderBoard), rewritten for a line with single and double track. Every question is a rule from the C&E study deck (exam/deck-data.js), in the deck's words.
+   (exam/run.js: makeTT, checkMove, departTTO, orderBoard), rewritten for a line with single and double track. Every question is a rule from the C&E study
+   deck (exam/deck-data.js), in the deck's words..
  */
 (function(){
 "use strict";
@@ -41,7 +42,7 @@ const Qs={
   sa:{sec:"to",src:"SC · Form S-A",title:"The meet order",body:"Your order reads “Extra 4619 South meet Extra 2231 North at Arden.” What does it require?",right:"Neither train may proceed past Arden until both have arrived",wrong:[["Extra 2231 North waits at Houston for you"],["The train that arrives first goes on at once"],["Both trains clear each other's time by 5 minutes at Arden"]],why:"Form S-A fixes a meeting point for opposing trains. Neither train may proceed past it until both have arrived. Normally the superior train holds the main and the inferior takes the siding."},
   r104:{sec:"sup",src:"SC · Rule 104",title:"The Westland switch",body:"Your head brakeman lined the switch for the Westland branch and the engine took the empties in. Who is responsible for that switch now?",right:"You, the conductor: it must be lined back for the main track",wrong:[["The section foreman"],["The engineman"],["Nobody; leave it open for the next train"]],why:"Rule 104: conductors are responsible for the position of switches used by them and their crews, except where switch tenders are stationed. A switch must not be left open for another train unless a member of that train's crew is in charge of it."},
   hilSem:{sec:"sem",src:"SM",title:"The signal at Hills",body:"The Montour Railroad joins the line at Hills. The semaphore at the interlocking is an upper-quadrant signal. Through what positions does its blade move?",right:"0°, 45° and 90°, rising from horizontal",wrong:[["0°, 30° and 60°, dropping"],["0°, 60° and 90°"],["0° and 90° only"]],why:"Upper-quadrant blades rise to clear through 0°, 45° and 90°, and came about around 1900. Lower-quadrant blades drop through 0°, 30° and 60°."},
-  stopped:{sec:"sup",src:"SC · Rule 99",title:"Standing on the main at Arden",body:"The engine stops on the main track at Arden while the head brakeman lines the Manifold switch, and a superior train may come up behind you. What protects the rear?",right:"The flagman goes back at once with flagman's signals, placing two torpedoes and, when necessary, lighted fusees",wrong:[["The flagman drops lighted fusees at intervals until the train moves"],["The marker lamps are enough while the switch is being lined"],["The engineman sounds — o o o and the train waits for a reply"]],why:"Rule 99: a train stopped where it may be overtaken is protected by the flagman going back immediately with flagman's signals a sufficient distance to insure full protection, placing two torpedoes and, when necessary, lighted fusees. The engineman signals the flagman to go back, and recalls him when ready to proceed."},
+  stopped:{sec:"sup",src:"SC · Rule 99",title:"Standing on the main at Arden",body:"Extra 2231 North has gone by. You pull out of the siding and stop on the main track at Arden while the head brakeman lines the Manifold switch, and a superior train may come up behind you. What protects the rear?",right:"The flagman goes back at once with flagman's signals, placing two torpedoes and, when necessary, lighted fusees",wrong:[["The flagman drops lighted fusees at intervals until the train moves"],["The marker lamps are enough while the switch is being lined"],["The engineman sounds — o o o and the train waits for a reply"]],why:"Rule 99: a train stopped where it may be overtaken is protected by the flagman going back immediately with flagman's signals a sufficient distance to insure full protection, placing two torpedoes and, when necessary, lighted fusees. The engineman signals the flagman to go back, and recalls him when ready to proceed."},
   s88:{sec:"sup",src:"SC · Rule S-88",title:"Meeting Extra 2231 North",body:"Extra 2231 North is at Arden, and your order says the two extras meet there. Northward trains are superior by direction. Which extra takes the siding?",right:"Extra 4619 South, the train in the inferior time-table direction",wrong:[["Extra 2231 North, because it is the opposing train"],["Whichever arrives first"],["The one with the higher engine number"]],why:"Rule S-88: when two extras meet, the train in the inferior time-table direction takes the siding, unless otherwise provided. On Form S-A, neither train goes past Arden until both have arrived."},
   d71:{sec:"sup",src:"SC · Rule D-71",title:"The double track",body:"From Carnegie to Houston the line is double track. On two or more tracks, how is a train superior?",right:"By right or class only; direction no longer counts",wrong:[["By right, class or direction, as on single track"],["By direction only"],["By class or direction"]],why:"Rule D-71: on two or more tracks a train is superior by right or class only. Right is conferred by train order, class by time-table, and right is superior to class. The S- rules are the single-track versions."},
 };
@@ -228,6 +229,7 @@ const coal={group:"chartiers",covers:["sup","to","sem","yl"],code:"Extra 4619 So
     function passing(k,j){
       const out=[];
       if(k===0)out.push(H.ask(Qs.d71));
+      if(k===HOU)out.push(H.ask(Qs.s71)); // leaving Houston onto the single track
       for(let i=k+1;i<=j;i++){
         if(i===BV&&!G.used.has("bv")){G.used.add("bv");out.push(H.ask(Qs.bvSem),H.wait(4,"Waited for the route at Bridgeville"))}
         if(i===HIL&&!G.used.has("hil")){G.used.add("hil");out.push(H.ask(Qs.hilSem))}
@@ -306,6 +308,7 @@ const coal={group:"chartiers",covers:["sup","to","sem","yl"],code:"Extra 4619 So
         H.info("Arden","Extra 2231 North","<p>Extra 2231 North comes up from Washington and stops at Arden. The Manifold branch leaves the single track here.</p>"),
         H.ask(Qs.s88),H.done(2),
         H.info("Arden","The Manifold branch",`<p>The Manifold branch is one of the coal branches the Chartiers Branch served (${lib("Railroads of the Chartiers Valley")}). The head brakeman lines the switch and the engine goes in for the loads.</p>`),
+        ()=>{G.inSiding=false;H.next()}, // out of the siding onto the main for the Manifold switch
         H.ask(Qs.stopped),
         H.wait(30,"Manifold branch worked: loads out"),H.done(3));
       H.next();

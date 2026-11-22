@@ -110,7 +110,7 @@ function play(env, id, seed, right, stats) {
   const careful = rand() < 0.5 ? 0.95 : 0.6; // how often the player picks the right answer
   const patient = rand() < 0.4;
   let quiet = false;
-  stats.cur = { n: 0, secs: new Set() };
+  stats.cur = { n: 0, secs: new Set(), draw: stats.draw };
   runBtns.find((b) => b.dataset.run === id).onclick();
   const scene = doc.getElementById("xwScene");
   for (let step = 0; step < MAX_STEPS; step++) {
@@ -154,6 +154,7 @@ function main() {
     const stats = { ends: 0, tied: 0, verdicts: {}, done: [], all: [] };
     for (let d = 0; d < DRAWS; d++) {
       const seed = 7919 * (d + 1) + id.length * 104729;
+      stats.draw = d;
       try { play(env, id, seed, right, stats); } catch (e) { failures.push(`${id} draw ${d}: ${e.stack.split("\n").slice(0, 4).join(" | ")}`); if (failures.length > 8) break; }
     }
     console.log(`${id}: ${stats.ends}/${DRAWS} ended, ${stats.tied} tied up. ${JSON.stringify(stats.verdicts)}`);
@@ -161,8 +162,8 @@ function main() {
     if (id === "coal") { // a road run asks 15 to 20 questions, and every draw that ends normally asks the sections only the road runs cover
       const ns = stats.done.map((d) => d.n), mean = ns.reduce((a, b) => a + b, 0) / ns.length, all = stats.all;
       console.log(`coal questions per draw that tied up: mean ${mean.toFixed(1)}, min ${Math.min(...ns)}, max ${Math.max(...ns)}; all draws: mean ${(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1)}`);
-      if (mean < 12 || mean > 22) failures.push(`coal: mean ${mean.toFixed(1)} questions per draw is outside 12 to 22`);
-      stats.done.forEach((d, i) => { for (const sec of ["sup", "to", "sem"]) if (!d.secs.has(sec)) failures.push(`coal draw ${i}: no ${sec} question`); });
+      if (mean < 14 || mean > 21) failures.push(`coal: mean ${mean.toFixed(1)} questions per draw is outside 14 to 21 (about 15 to 20)`);
+      stats.done.forEach((d) => { for (const sec of ["sup", "to", "sem"]) if (!d.secs.has(sec)) failures.push(`coal draw ${d.draw}: no ${sec} question`); });
     }
   }
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
