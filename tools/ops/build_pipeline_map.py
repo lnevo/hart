@@ -276,6 +276,7 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #presets{display:flex;flex-direction:column;gap:4px;align-items:stretch}
 #more{display:none;position:static}
 svg{--bsc:var(--bscale,1)} svg.far{--bsc:1}
+svg.previewing #edges,svg.previewing #elabels{opacity:.3}
 .node.folder .box{stroke-dasharray:7 4;stroke-width:calc(2 * var(--bsc))}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
