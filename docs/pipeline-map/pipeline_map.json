@@ -1098,6 +1098,15 @@
    "path": "jmri/layouts/hart/scripts/hide_cats_desk_windows.py"
   },
   {
+   "id": "jmri/layouts/hart/scripts/hide_band_panels.py",
+   "label": "hide_band_panels.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Jython shipped to JMRI: hides the Staging Level, Main Level and Upper Level panels once they open.",
+   "path": "jmri/layouts/hart/scripts/hide_band_panels.py"
+  },
+  {
    "id": "jmri/layouts/hart/scripts/jmri_cmd_watcher.py",
    "label": "jmri_cmd_watcher.py",
    "kind": "generator",
@@ -7406,6 +7415,11 @@
    "from": "tools/schematic/band_panels.py",
    "to": "tools/schematic/build_tables.py",
    "label": "band panels"
+  },
+  {
+   "from": "jmri/layouts/hart/scripts/hide_band_panels.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
