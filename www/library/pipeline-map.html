@@ -118,6 +118,9 @@ svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
 svg.lhover .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
 .hidden{display:none}
+.band{fill-opacity:.07}
+.band.alt{fill-opacity:.17}
+.lanerule{stroke-opacity:.85;stroke-width:1.5px;vector-effect:non-scaling-stroke}
 body.clean #rulers,body.clean #legend,body.clean #nav{display:none!important}
 html.dark{color-scheme:dark}
 html.dark,html.dark body{background:#0f172a;color:#e2e8f0}
@@ -131,7 +134,8 @@ html.dark #info .off,html.dark #tree .c,html.dark #lanelist .note,html.dark #tou
 html.dark #steps{background:rgba(15,23,42,.9);border-bottom-color:#334155}
 html.dark #steps span{color:#cbd5e1}
 html.dark #lanetags span{background:rgba(15,23,42,.92)}
-html.dark #bands rect{fill-opacity:.17}
+html.dark .band{fill-opacity:.13}
+html.dark .band.alt{fill-opacity:.27}
 html.dark .edge{stroke:#94a3b8}
 html.dark svg.far .edge{stroke-opacity:.45}
 html.dark .elabel{fill:#e2e8f0;stroke:#0f172a}
@@ -229,7 +233,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)<div><span class="sw" style="background:#dbeafe;border-color:#1e40af"></span>Structured data</div><div><span class="sw" style="background:#fef3c7;border-color:#92400e"></span>Unstructured source</div><div><span class="sw" style="background:#dcfce7;border-color:#166534"></span>Generator / script</div><div><span class="sw" style="background:#f3e8ff;border-color:#6b21a8"></span>Generated output</div><div><span class="sw" style="background:#e5e7eb;border-color:#374151"></span>External tool / repo</div><div><span class="sw" style="background:#fee2e2;border-color:#991b1b"></span>Host / runtime</div><div><span class="sw" style="background:#fce7f3;border-color:#9d174d"></span>Hand work</div>
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its whole chain, everything that feeds it and everything it feeds, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its whole chain, everything that feeds it and everything it feeds, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Alt-click (Option on a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
@@ -594,14 +598,21 @@ function edgeTip(e, name) {
 
 /* What a click on the map does, given what is under it: box (a box's id, or null), card (a grown card's id drawn
    over the pointer while a line is hovered, or null), line (the id of the box a clicked line leads to, or null) and
-   touch (a tap, whose hover grew the cards just before it). A box wins, then a grown card (what a mouse user sees
-   there), then the line; a tap on a line opens the line's box even if a card grew under the finger. Returns
+   lineFirst (a tap, whose hover grew the cards just before it, or an Alt-click, which asks for the line itself). A box
+   wins, then a grown card (what a mouse user sees there), then the line; with lineFirst the line beats a card. Returns
    {pick: id, line: true when it came from a line} or {clear: true}. */
-function clickTarget(box, card, line, touch = false) {
+function clickTarget(box, card, line, lineFirst = false) {
   if (box) return { pick: box };
-  if (line && (touch || !card)) return { pick: line, line: true };
+  if (line && (lineFirst || !card)) return { pick: line, line: true };
   if (card) return { pick: card };
   return { clear: true };
+}
+
+/* The box a click on a line opens: where it leads, or with alt where it comes from; null when that box is not drawn
+   (drawn(id) is false). */
+function lineEnd(edge, alt, drawn) {
+  const id = alt ? edge.from : edge.to;
+  return drawn(id) ? id : null;
 }
 
 /* Where a box grown about its middle (cx, cy, half sizes hw, hh, all screen px) goes: moved in by dx, dy to stay whole
@@ -811,7 +822,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -995,7 +1006,10 @@ function app() {
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
-      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (nodeEl[e.to] ? '<div class="off">click to open the box it leads to</div>' : "");
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (() => {
+        const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && "Alt-click: the box it comes from"].filter(Boolean);
+        return hint.length ? `<div class="off">${hint.join(" · ")}</div>` : "";
+      })();
       placeTip();
     }
     updateFar();
@@ -1029,12 +1043,13 @@ function app() {
     const p = [`<svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="${-LEFT} 0 ${W} ${H}">`,
       '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">',
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
-    for (const b of lay.bands) {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
+    lay.bands.forEach((b, i) => {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
       const c = esc(b.color);
-      // run on past both ends, so a drawing narrower than the screen at Fit has its lanes out to the screen's sides
-      p.push(`<rect x="${-LEFT - BAND_RUN}" y="${b.y}" width="${W + 2 * BAND_RUN}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
-        `<line x1="${-LEFT - BAND_RUN}" x2="${W - LEFT + BAND_RUN}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
-    }
+      // run on past both ends, so a drawing narrower than the screen at Fit has its lanes out to the screen's sides;
+      // every other lane is shaded stronger, so two lanes of near colours (deploy and agent docs) still part clearly
+      p.push(`<rect class="band${i % 2 ? " alt" : ""}" x="${-LEFT - BAND_RUN}" y="${b.y}" width="${W + 2 * BAND_RUN}" height="${b.h}" fill="${c}"/>`,
+        `<line class="lanerule" x1="${-LEFT - BAND_RUN}" x2="${W - LEFT + BAND_RUN}" y1="${b.y}" y2="${b.y}" stroke="${c}"/>`);
+    });
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
       p.push(`<path class="edge${e.back ? " back" : ""}" id="e${i}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" ` +
@@ -1551,7 +1566,11 @@ function app() {
     }) : null;
     // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
     const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
-    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, edge && nodeEl[edge.to] ? edge.to : null, lastPointer === "touch");
+    // a click on a line opens the box it leads to, Alt (Option) the box it comes from; a line whose box is not drawn
+    // does nothing, rather than clearing the view as a click on empty map would
+    const end = edge && lineEnd(edge, e.altKey, id => !!nodeEl[id]);
+    if (edge && !box && !card && !end) return;
+    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, end, lastPointer === "touch" || (e.altKey && !!end));
     if (t.clear) { clearFocus(true); return; }
     // a line's box is centred, which moves the map, and a trimmed redraw moves the boxes: either waits out a
     // double-click, so its second click does not land on whatever box moved under the pointer

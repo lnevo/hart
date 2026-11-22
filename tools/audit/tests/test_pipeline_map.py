@@ -223,6 +223,12 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(got, [{"pick": "b"}, {"pick": "c"}, {"pick": "l", "line": True}, {"pick": "l", "line": True},
                                {"clear": True}])
 
+    def test_line_click_opens_its_end_or_with_alt_its_start(self) -> None:
+        """lineEnd: a click opens where the line leads, Alt where it comes from, nothing when that box is not drawn."""
+        edge = {"from": "a", "to": "b"}
+        got = self.run_js("[m.lineEnd(a, false, () => true), m.lineEnd(a, true, () => true), m.lineEnd(a, true, id => id === 'b')]", edge)
+        self.assertEqual(got, ["b", "a", None])
+
     def test_grown_box_moves_in_to_stay_on_screen_unless_hovered(self) -> None:
         """growRect: a box grown past the screen's right edge or above the free area moves in; the hovered box stays
         put, so it stays under the pointer."""
