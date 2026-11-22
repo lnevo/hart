@@ -176,6 +176,12 @@ class ExemptTest(unittest.TestCase):
         self.assertEqual(problems(text, "wiki/pipelines/../archive/old.md"), [])
         self.assertEqual(problems(text, "wiki/./STATUS_LOG.md"), [])
 
+    def test_exemption_keeps_forward_slashes_on_windows(self) -> None:
+        import ntpath
+        with mock.patch("os.path", ntpath):
+            self.assertTrue(DOCS.is_cell_exempt("wiki/./STATUS_LOG.md"))
+            self.assertTrue(DOCS.is_cell_exempt("wiki/archive/old.md"))
+
     def test_lookalike_names_are_not_exempt(self) -> None:
         text = f"{HEAD}| a | {LONG} |\n"
         self.assertEqual(len(problems(text, "wiki/archive-notes.md")), 1)

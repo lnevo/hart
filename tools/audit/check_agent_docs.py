@@ -13,6 +13,7 @@ map (tools/ops/agent_docs_map.py) draws its "points to" links from it too.
 from __future__ import annotations
 
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -238,7 +239,7 @@ def cell_files() -> list[str]:
 
 
 def is_cell_exempt(rel: str) -> bool:
-    norm = os.path.normpath(rel)
+    norm = posixpath.normpath(rel)      # repo paths use /; os.path would turn them into \ on Windows
     return norm in CELL_EXEMPT_FILES or norm.startswith(CELL_EXEMPT_DIRS)
 
 
