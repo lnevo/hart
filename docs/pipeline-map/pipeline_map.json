@@ -809,15 +809,6 @@
    "path": "jmri/layouts/hart/data/schematic/approved_cats_ctc.sha256"
   },
   {
-   "id": "jmri/layouts/hart/data/schematic/approved_le_candidate.sha256",
-   "label": "approved_le_candidate.sha256",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Approved fingerprint of the cut-over candidate panel before installation.",
-   "path": "jmri/layouts/hart/data/schematic/approved_le_candidate.sha256"
-  },
-  {
    "id": "jmri/layouts/hart/data/schematic/approved_le_panel.sha256",
    "label": "approved_le_panel.sha256",
    "kind": "structured",
@@ -825,15 +816,6 @@
    "domain": "layout",
    "desc": "Owner-approved fingerprint of the live three-level HART Railroad panel in tables.xml.",
    "path": "jmri/layouts/hart/data/schematic/approved_le_panel.sha256"
-  },
-  {
-   "id": "jmri/layouts/hart/data/schematic/approved_staging.sha256",
-   "label": "approved_staging.sha256",
-   "kind": "structured",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Approved fingerprint of the staging candidate panel; both cut-over builds check it.",
-   "path": "jmri/layouts/hart/data/schematic/approved_staging.sha256"
   },
   {
    "id": "jmri/layouts/hart/data/schematic/block_overrides.csv",
@@ -1033,16 +1015,6 @@
    "domain": "layout",
    "desc": "The one generated JMRI tables file: turnouts, sensors, blocks, masts, heads, SML, three-level HART Railroad Layout Editor panel. Shipped to all hosts.",
    "path": "jmri/layouts/hart/output/tables.xml"
-  },
-  {
-   "id": "jmri/layouts/hart/output/trial/tables_cutover.xml",
-   "label": "tables_cutover.xml",
-   "kind": "output",
-   "status": "live",
-   "domain": "layout",
-   "desc": "Cut-over candidate tables with the three-level panel; checked against the approved fingerprint before it is installed.",
-   "path": "jmri/layouts/hart/output/trial/tables_cutover.xml",
-   "local": true
   },
   {
    "id": "jmri/layouts/hart/parked",
@@ -1293,7 +1265,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Fingerprints panel elements; check_approved runs in make panels (candidate, desks, live panel) and stops drift from owner-approved hashes.",
+   "desc": "Fingerprints panel elements; check_approved runs in make panels (desks, live panel) and stops drift from owner-approved hashes.",
    "path": "tools/schematic/check_approved.py"
   },
   {
@@ -1329,7 +1301,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 10: builds the three-level Layout Editor cut-over candidate and staging candidate from the device master (devices_generated.csv and devices_field.csv) and the schematic; also used by build_tables.",
+   "desc": "Library build_tables calls in memory: the three-level Layout Editor panel from the device master (devices_generated.csv and devices_field.csv) and the schematic; writes no file of its own.",
    "path": "tools/schematic/build_layout_le.py"
   },
   {
@@ -3687,7 +3659,7 @@
    "kind": "unstructured",
    "status": "live",
    "domain": "agents",
-   "desc": "Use before asking the owner to approve a panel, CATS desk, schematic or other drawing, or a published look; when a panel, desk or drawing change is ready for the owner to look at; when an approval fingerprint (check_approved.py, approved_*.sha256, --approve-staging) changed; or before publishing a new look on the site.",
+   "desc": "Use before asking the owner to approve a panel, CATS desk, schematic or other drawing, or a published look; when a panel, desk or drawing change is ready for the owner to look at; when an approval fingerprint (check_approved.py, approved_*.sha256) changed; or before publishing a new look on the site.",
    "path": ".claude/skills/panel-approval/SKILL.md",
    "gen": "agent-docs"
   },
@@ -4563,21 +4535,9 @@
    "side": "check"
   },
   {
-   "from": "jmri/layouts/hart/data/schematic/approved_le_candidate.sha256",
-   "to": "tools/schematic/approval.py",
-   "label": "compares",
-   "side": "check"
-  },
-  {
    "from": "jmri/layouts/hart/data/schematic/approved_le_panel.sha256",
    "to": "tools/schematic/approval.py",
    "label": "compares",
-   "side": "check"
-  },
-  {
-   "from": "jmri/layouts/hart/data/schematic/approved_staging.sha256",
-   "to": "tools/schematic/build_layout_le.py",
-   "label": "checks",
    "side": "check"
   },
   {
@@ -5027,12 +4987,6 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "www/scripts/tables_page.py"
-  },
-  {
-   "from": "jmri/layouts/hart/output/trial/tables_cutover.xml",
-   "to": "tools/schematic/approval.py",
-   "label": "check le-candidate",
-   "side": "check"
   },
   {
    "from": "jmri/layouts/hart/parked",
@@ -6067,11 +6021,6 @@
    "from": "tools/schematic/build_hands.py",
    "to": "jmri/layouts/hart/data/switches.csv",
    "label": "step 1 hands"
-  },
-  {
-   "from": "tools/schematic/build_layout_le.py",
-   "to": "jmri/layouts/hart/output/trial/tables_cutover.xml",
-   "label": "step 10 le-cutover"
   },
   {
    "from": "tools/schematic/build_layout_le.py",

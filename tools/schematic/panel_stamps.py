@@ -102,7 +102,6 @@ STEPS: dict[str, Step] = {
         ("docs/ops/schematic-system-draft.*", "docs/ops/stations/*", "www/crew/maps/*/index.html",
          f"{SCH}/preferences.json"),
         publishes=True, programs={"chrom": ()}),
-    "le-cutover": Step((f"{OUT}/trial/*.xml",)),
     "tables": Step((f"{OUT}/tables.xml",)),
     "cats": Step(("cats/panels/HART_CTC.xml", "cats/panels/HART_ABS.xml", "cats/panels/HART_CTC.bindings.json")),
 }

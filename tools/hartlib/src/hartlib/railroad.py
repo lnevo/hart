@@ -24,7 +24,7 @@ stale copy of its own output. Each file is read the first time it is asked for, 
     hands       the hand of switches.csv's plan rows      build_hands.py
     device_map  the main and upper rows of the device master      build_device_map.py
     masts       schematic/masts.csv, every level's masts  build_masts.py (hartlib.level_masts)
-    tables      jmri/layouts/hart/output/tables.xml       build_layout_le.py --as-live, and PanelPro's Store
+    tables      jmri/layouts/hart/output/tables.xml       build_tables.py, and PanelPro's Store
 
 Every reader checks its own file's shape and stops with FactsError naming the file and line. The rules between files
 are INVARIANTS, each run by Railroad.check once every layer it reads is loaded; a problem names the files and rows

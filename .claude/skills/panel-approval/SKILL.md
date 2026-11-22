@@ -1,6 +1,6 @@
 ---
 name: panel-approval
-description: Use before asking the owner to approve a panel, CATS desk, schematic or other drawing, or a published look; when a panel, desk or drawing change is ready for the owner to look at; when an approval fingerprint (check_approved.py, approved_*.sha256, --approve-staging) changed; or before publishing a new look on the site.
+description: Use before asking the owner to approve a panel, CATS desk, schematic or other drawing, or a published look; when a panel, desk or drawing change is ready for the owner to look at; when an approval fingerprint (check_approved.py, approved_*.sha256) changed; or before publishing a new look on the site.
 ---
 
 # Before asking for an approval
@@ -8,7 +8,7 @@ description: Use before asking the owner to approve a panel, CATS desk, schemati
 ## Ask only for a new decision
 
 - Fingerprint unchanged (`python3 tools/schematic/check_approved.py --check`): nothing is needed.
-- Small change with a stated visible effect (a track loses one anchor, a label moves): record it yourself (`check_approved.py --approve <key>`, `build_layout_le.py --approve-staging`) and send a before/after crop of what changed, for example a pixel diff of `www/assets/layout/HART_le_schematic.png` against main. If the permission system blocks the command, give it to the owner to run.
+- Small change with a stated visible effect (a track loses one anchor, a label moves): record it yourself (`check_approved.py --approve <key>`) and send a before/after crop of what changed, for example a pixel diff of `www/assets/layout/HART_le_schematic.png` against main. If the permission system blocks the command, give it to the owner to run.
 - A refresh of something already published (a regenerated film, a page with the same look) or a step of a plan already reviewed: build, review, merge and deploy, then report. Stated constraints still hold.
 - Ask for a new look or drawing, layout moves, a design choice, a live write or a deletion.
 
@@ -20,7 +20,7 @@ description: Use before asking the owner to approve a panel, CATS desk, schemati
 
 ## Show it
 
-- Panel or `tables.xml`: first check that `~/JMRI_UserFiles/tables.xml` on the Mac matches main's (no unpulled Store) and keep a dated backup beside it. Install the exact file the approval covers, plus any new resources, then quit and relaunch PanelPro yourself (`panelpro` skill). For `le-panel` that is the live `tables.xml` after sandbox SML discovery, not the bare candidate. Say if it is view-only (no discovery run yet) and that it must not be Stored.
+- Panel or `tables.xml`: first check that `~/JMRI_UserFiles/tables.xml` on the Mac matches main's (no unpulled Store) and keep a dated backup beside it. Install the exact file the approval covers, plus any new resources, then quit and relaunch PanelPro yourself (`panelpro` skill). For `le-panel` that is the live `tables.xml` after sandbox SML discovery, not the discovery base. Say if it is view-only (no discovery run yet) and that it must not be Stored.
 - Never ask the owner to quit PanelPro between review rounds; they reload the panel without a Store.
 - A desk or panel look or fit on a layout host: offer to copy the built files to the host the owner uses, with backups of the old ones, how to roll back, and a warning that a deploy from main overwrites them. Copy only after a yes, and the operating flag still applies. Tests, reviews, the PR and a normal deploy follow the owner's verdict.
 - Site pages and mockups: build with `python3 www/scripts/prepare_github_pages.py`, serve the output with `python3 -m http.server`, and open the URL in the browser. Screenshots are for your own checks only. Stop the server when done.

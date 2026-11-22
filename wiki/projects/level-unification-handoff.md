@@ -40,7 +40,7 @@ and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_stagin
 | Hand lists | `short_tracks_staging.csv` | `running_tracks_`, `signalled_spurs_`, `split_tracks_`, `local_switches_main_upper.csv`; short tracks by a rule (`SHORT_CM` in `build_device_map.py`) |
 | Masts | `build_staging_masts.py`: `mast_rule.masts()` plus intermediates, anchor masts, virtual masts, interlockings | `build_device_map.py`: `mast_rule.masts()` plus running, spur and split lists, double-crossover corners; `build_main_upper_masts.py` copies them to `main_upper_masts.csv` |
 | Builders | `build_staging_sets.py`, `staging_device_map.py` | `build_device_map.py` (the CATS desk bindings are one builder for every level since step 4: `cats_panel.py`) |
-| Approval | `approved_staging.sha256` | its own fingerprints |
+| Approval | `approved_staging.sha256` | its own fingerprints | *(Retired 2026-11-22: the staging guard and its fingerprint are gone; `approved_le_panel.sha256` is the one Layout Editor approval.)*
 
 About 20 scripts in `tools/schematic` and hartlib branch on the level; the most are in `build_layout_le.py`,
 `staging_device_map.py` and `railroad_invariants.py`.
@@ -105,7 +105,7 @@ first (AGENTS.md "Working on existing scripts").
 `tools/schematic/tests/test_le_tables.py` and `test_build_layout_le.BaseNames`). `build_layout_le.py`, `le_tables.py`
 and `le_checks.py` read a band's level from its plan-overrides section (`le_common.band_levels`) and which levels the
 base holds from `tables_build.GENERATED_LEVELS` (`le_common.BASE_LEVELS`), not band index 0 or the `--levels` flag:
-the staging guard (`level_items`, `check_staging_unchanged`: the staging candidate's bands), the panel frame and the
+the staging guard (`level_items`, `check_staging_unchanged`: the staging candidate's bands), the panel frame and the *(Retired 2026-11-22: the staging guard and its fingerprint are gone; `approved_le_panel.sha256` is the one Layout Editor approval.)*
 startup positions follow that. One mast check for every level (`le_checks.check_masts`, with each mast file's switch
 turnout from `mast_turnouts`) replaces `check_device_masts` and `check_level_slots`; one bound-names check
 (`le_tables.check_bound`: a base level's names against the base as it was before the build adds beans, the others

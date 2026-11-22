@@ -459,7 +459,7 @@ def layout_editor(root: ET.Element, name: str | Iterable[str] | None = None) -> 
     return None
 
 
-# The generated Layout Editor panel (tools/schematic/build_layout_le.py --as-live) carries this hidden text label.
+# The generated Layout Editor panel (build_layout_le.build, written by tools/schematic/build_tables.py) carries this hidden text label.
 # The build starts only from tables that hold it (it replaces that panel), and the
 # Stage 1 repairs (parked/polish_hart_layout_editor.py, reconcile_dispatcher_stations.py) run only on a panel that holds it.
 # A label is used because a PanelPro Store keeps it (and a panel rename), where it drops XML comments and unknown
@@ -511,7 +511,7 @@ def require_generated(panel: ET.Element | None, what: str) -> ET.Element:
         raise ValueError(f"{what}: {exc}") from None
     if not generated:
         raise ValueError(f"{what}: the {panel.get('name')!r} panel is not a generated one "
-                         "(tools/schematic/build_layout_le.py --as-live)")
+                         "(tools/schematic/build_tables.py writes it)")
     return panel
 
 

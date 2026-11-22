@@ -254,15 +254,6 @@ class LayoutEditor(unittest.TestCase):
         self.assertIsNone(root.find("layoutblocks/layoutblock").get("occupancysensor"))
         self.assertEqual(root.findtext("blocks/block[@systemName='IB1']/occupancysensor"), "BS K-1")
 
-    def test_the_guard_compares_a_helix_block_without_its_binding(self):
-        b = ET.fromstring("<block><systemName>IB24</systemName><permissive>no</permissive>"
-                          "<occupancysensor>BS Helix Inner</occupancysensor></block>")
-        self.assertIsNone(T.without_level_detector(b, {"BS Helix Inner"}).find("occupancysensor"))
-        self.assertIsNotNone(b.find("occupancysensor"))                  # a copy: the candidate keeps it
-        self.assertIs(T.without_level_detector(b, {"BS K-1"}), b)
-        lb = ET.fromstring("<layoutblock occupancysensor='BS Helix Inner'><systemName>ILB77</systemName></layoutblock>")
-        self.assertIsNone(T.without_level_detector(lb, {"BS Helix Inner"}).get("occupancysensor"))
-
 
 if __name__ == "__main__":
     unittest.main()

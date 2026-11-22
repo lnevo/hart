@@ -19,9 +19,8 @@ once in the schematic-maps plugin's slots.py and read here from the XML of each 
 - turnout leg X: faces the block of the track on X and protects the turnout's (leg) block, or, when that track is
   in the turnout's own block, the blocks beyond (crossovers pair A with C and B with D by type).
 
-These checks read the three-level cut-over candidate (--as-live, owner 2026-11-16; the all-levels viewing trial they
-also read is retired, owner 2026-11-17). The staging-only candidate (--levels staging --as-live) ends both helix
-tracks at end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
+These checks read the three-level build (levels all, owner 2026-11-16; the all-levels viewing trial they also read
+is retired, owner 2026-11-17). The staging-only drawing (levels staging) ends both helix tracks at end bumpers as live, so there every mast matches exactly, with no exception (test_le_cutover.py).
 
 HELIX_ENTRANCE listed the helix-foot masts 38RA and 40RA as exceptions from the helix-join release (2026-11-17)
 until each helix track became one block (owner, 2026-11-20) and they went: it is empty now.

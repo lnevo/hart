@@ -31,8 +31,6 @@ STEPS = [
     ("signals", "tools/schematic/build_signals.py", False),
     ("head-plan", "jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only", False),
     ("schematic", "tools/schematic/publish_draft.py", False),
-    ("le-cutover", "tools/schematic/build_layout_le.py --as-live", False),
-    ("approved-candidate", "tools/schematic/check_approved.py le-candidate", True),
     ("sml-current", "tools/schematic/check_sml_current.py", True),
     ("tables", "tools/schematic/build_tables.py", False),
     ("signals-sync", "tools/schematic/sync_signals.py --check", True),
@@ -73,7 +71,7 @@ class StepList(unittest.TestCase):
         # signals.json is drawn from masts.csv: in one run, after the masts are written (review of #859); nothing
         # before signals reads signals.json (device-map and masts gave the same outputs with every signal dropped)
         self.assertLess(NAMES.index("masts"), NAMES.index("signals"))
-        for late in ("schematic", "cats", "le-cutover", "tables"):
+        for late in ("schematic", "cats", "tables"):
             self.assertLess(NAMES.index("masts"), NAMES.index(late), late)
         # what reads tables.xml runs after the step that writes it (ADR-029): the staging checks, the CATS desks
         # (their turnouts, sensors and masts) and the live fingerprint, so one make panels leaves them all current

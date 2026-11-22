@@ -30,14 +30,12 @@ class DeclarationTest(unittest.TestCase):
     def test_the_steps_run_in_the_order_the_pipeline_needs(self) -> None:
         order = [n for _, n, _ in LINES]
         for before, after in [("masts", "signals"), ("signals", "head-plan"), ("head-plan", "cats"),
-                              ("le-cutover", "sml-current"), ("sml-current", "tables"), ("tables", "cats")]:
+                              ("schematic", "sml-current"), ("sml-current", "tables"), ("tables", "cats")]:
             self.assertLess(order.index(before), order.index(after), f"{before} before {after}")
 
     def test_every_output_pattern_names_a_file(self) -> None:
         for name, step in ps.STEPS.items():
             for pat in step.outputs:
-                if "/trial/" in pat:      # gitignored, so a fresh checkout does not hold them yet
-                    continue
                 with self.subTest(step=name, output=pat):
                     self.assertTrue(ps.expand([pat]), f"{pat} matches nothing")
 
