@@ -54,6 +54,14 @@ class DeclarationTest(unittest.TestCase):
             self.assertIn(f, ps.CODE)
             self.assertTrue((REPO / f).is_file(), f)
 
+    def test_the_coordinator_and_its_modules_are_code_of_every_step(self) -> None:
+        # le_names.lcos_rule runs the LCOS head rule read from these files (hartlib.coordinator)
+        sys.path.insert(0, str(REPO / "tools/hartlib/src"))
+        from hartlib import coordinator
+        for path in coordinator.files():
+            rel = path.relative_to(REPO).as_posix()
+            self.assertTrue(any(ps._glob_match(rel, pat) for pat in ps.CODE), rel)
+
     def test_glob_matching_follows_path_glob(self) -> None:
         self.assertTrue(ps._glob_match("a/b/c.py", "a/**/*.py"))
         self.assertTrue(ps._glob_match("a/c.py", "a/**/*.py"))

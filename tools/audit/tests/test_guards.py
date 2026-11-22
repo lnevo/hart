@@ -505,8 +505,12 @@ class PrivateNameAndTables(unittest.TestCase):
         self.assertIn("jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py", tests)
         sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
         from hartlib import coordinator
-        for path in coordinator.files():    # an edit to the script or a module it loads is checked
-            self.assertTrue(after.WATCHED.search(path.relative_to(ROOT).as_posix()), path.name)
+        for path in coordinator.files():    # an edit to the script or a module it loads is checked, by its tests
+            rel = path.relative_to(ROOT).as_posix()
+            self.assertTrue(after.WATCHED.search(rel), path.name)
+            checks, _note = after.checks_for(str(ROOT), rel)
+            self.assertIn("unit jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py",
+                          [name for name, _argv in checks], path.name)
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
         for folder in after.TEST_DIRS:  # each searched folder is a unit job of check.sh, so nothing only runs here
             self.assertIn(f"python3 -m unittest discover -q -s {folder}\n", check_sh, folder)
