@@ -85,7 +85,8 @@
         "build",
         "build-track-plan",
         "helix",
-        "helix-status"
+        "helix-status",
+        "play"
       ]
     },
     {

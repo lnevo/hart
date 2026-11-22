@@ -77,6 +77,10 @@
 
     "crew/": {"class": "fiction", "note": "In-world operating paperwork for sessions on the model railroad: crew instructions, timetables, spot sheets and station maps. Real plant and railroad names appear, but the jobs, trains, schedules and stations are invented."},
     "exam/index.html": {"class": "hobby", "note": "Study deck for an NMRA OPSIG operating rules exam; the rules quoted are real."},
+    "play/": {
+      "class": "fiction",
+      "note": "A game set on the real Pittsburgh & Ohio Valley at Neville Island, 1979 to 1990. The jobs, their hours, engines, tracks and moves are from Mark Connolly's P&OV blog and each is linked; the order of each shift, the draws and the events are invented, and the operating rules it tests are real (GCOR)."
+    },
     "exam/": {"class": "fiction", "note": "A game on the Kestrel Valley, an invented railroad; the operating rules it tests are real (1949 Standard Code, GCOR) and each answer names its source."},
 
     "docs/html/HART_Railroad_Publication_Standards_v1.0.html": {"class": "hobby"},
