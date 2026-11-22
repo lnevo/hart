@@ -53,6 +53,7 @@ From 404 `general-purpose` launches between 2026-10-31 and 2026-11-21: about 114
 - **`schematic-builder`**: edits under `tools/schematic/`, `tools/hartlib/` and the Layout Editor scripts, run in a worktree. Its brief carries the rules agents keep needing: geometry 1:1, `mainline="yes"`, never `fit_panel_*` or `polish_layout_geometry`, approval fingerprints, `make panels CHECK=1`, outputs byte-identical unless the task changes them.
 - **`finding-verifier`**: read-only. It gets one claimed bug and the code, and answers confirmed, plausible or wrong, with the line that shows it. It is used to triage `/code-review` and audit findings.
 - Add both to the `AGENTS.md` subagent table and update `subagent_guard.py` if it lists agents.
+- Built 2026-11-22 (`.claude/agents/schematic-builder.md`, `finding-verifier.md`, table rows added; the guard lists no agents). Not done: the re-measure below is pending.
 - **Re-measure on 2026-12-05** with the same transcript count. Target: `general-purpose` under 50% of launches.
 
 Size: S.

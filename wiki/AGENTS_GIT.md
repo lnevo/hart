@@ -62,6 +62,8 @@ A fresh clone needs `git config core.hooksPath .githooks` to enable the pre-comm
 | `repo-auditor` | Dead code, stale docs, structure | Read-only | Sonnet |
 | `archive-researcher` | History and archive proposals | Read-only | Sonnet |
 | `voice-reviewer` | Any text against the writing rules | Read-only | Sonnet |
+| `schematic-builder` | Schematic, panel and device-map code | Edits in a worktree, no commit | Opus |
+| `finding-verifier` | One claimed bug against the code | Read-only | Sonnet |
 
 - The definition holds the standing rules. The brief holds only the goal, the scope and what is already ruled out.
 - The main session commits, pushes, deploys and verifies. `.claude/hooks/subagent_guard.py` blocks those commands in subagents, but `Bash` can still write, so read-only also rests on the agent's instructions.
