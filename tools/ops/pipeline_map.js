@@ -1141,6 +1141,7 @@ function app() {
       : `${DATA.nodes.length} boxes, ${DATA.edges.length} links`;
     document.getElementById("showall").hidden = !all;
     document.getElementById("clearf").hidden = !filtersChanged();
+    document.getElementById("clearf2").parentElement.hidden = !filtersChanged();  // its twin at the foot of Filters
     strip2.hidden = !(view.focus || filtersChanged());  // the second row only while there is a file view or a changed filter
   }
   const strip2 = document.getElementById("strip2");
@@ -1741,8 +1742,8 @@ function app() {
     { at: ["#q"], title: "Find text",
       text: "Find highlights the boxes whose name, path or description holds the text you type." },
     { at: [], title: "Hover",
-      text: "Zoomed out, hover a line to light its chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. The note by the pointer names where the chain stops. Click a line to open the box it leads to, Cmd-click for the box it comes from. Click a lane's name to zoom to that lane, and hold Shift for a magnifier." },
-    { at: ["#btns"], title: "Move around and share",
+      text: "Zoomed out, hover a line to light its chain and grow its boxes to a readable size, or hover a box to do the same for its neighbours. The note by the pointer names where the chain stops. Click a line to open the box it leads to, Cmd-click (Ctrl-click off a Mac) for the box it comes from. Click a lane's name to zoom to that lane, and hold Shift for a magnifier." },
+    { at: ["#fit", "#btns"], title: "Move around and share",
       text: "Scroll or pinch to zoom and drag to pan; Fit shows the whole map. Share copies a link that opens this exact view. The ? button runs this tour again." },
   ];
   let tourAt = -1, tourOn = [];

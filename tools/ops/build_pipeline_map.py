@@ -261,7 +261,6 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #viewlist label{display:block}
 #viewlist>b{display:block;margin-top:6px;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#666}
 #viewlist>b:first-child{margin-top:0}
-#viewlist label.sub{padding-left:18px}
 #lanelist .foot{margin-top:6px}
 #btns .gap{width:8px}
 #lanelist a{color:#1d4ed8;cursor:pointer;font-size:12px}
@@ -413,7 +412,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <label title="Leave out the boxes and links a clicked box does not light up, and redraw the rest close together"><input type="checkbox" id="trim"> Highlighted chain only</label>
 <b>Pointer</b>
 <label title="Hovering a box or line lights its chain and grows its boxes when zoomed out; untick for a still map"><input type="checkbox" id="hover" checked> Hover highlights</label>
-<label class="sub" title="A clicked box lights its near pipeline, stopping at hubs and runners as a hover does, not everything it reaches; works with hover on or off"><input type="checkbox" id="near"> Near pipeline on click</label>
+<label title="A clicked box lights its near pipeline, stopping at hubs and runners as a hover does, not everything it reaches; works with hover on or off"><input type="checkbox" id="near"> Near pipeline on click</label>
 <b>Page</b>
 <label title="Dark background; starts from the system setting and is remembered on this browser"><input type="checkbox" id="dark"> Dark background</label>
 <label title="Hide the lane names, step headers, legend and overview, for a clear view of the map (H)"><input type="checkbox" id="clean"> Clean view (H)</label>
@@ -424,7 +423,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <b>Include</b>
 <label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> Parked features</label>
 <label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> Retired tools</label>
-<div class="foot"><a id="clearf2" title="Every lane and kind, parked and retired hidden, compact on, no folders; keeps the file and the selected box">Clear filters</a></div>
+<div class="foot" hidden><a id="clearf2" title="Every lane and kind, parked and retired hidden; also puts View's boxes and links options back (compact on, no folders, edge labels on); keeps the file and the selected box">Clear filters</a></div>
 </div></details>
 <span id="btns"><button id="showall" hidden title="Back to the full map: all lanes and kinds, no folders. Parked and retired follow their ticks.">Whole map</button>
 <button id="fit" title="Show the whole map (F)">Fit</button><button id="zout" title="Zoom out (scroll or pinch)" aria-label="Zoom out">−</button><button id="zin" title="Zoom in (scroll or pinch)" aria-label="Zoom in">+</button>
