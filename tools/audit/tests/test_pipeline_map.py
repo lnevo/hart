@@ -348,6 +348,14 @@ process.stdout.write(JSON.stringify(out));"""
         for past in ("jmri/layouts/hart/output/tables.xml", "www/scripts/tables_page.py"):
             self.assertNotIn(past, lit)  # reached only through a hub
 
+    def test_source_click_keys(self) -> None:
+        """sourceClick, sourceKey: Cmd, Ctrl or Alt asks for a line's source, Shift (the magnifier) does not; the note
+        names Cmd on a Mac and Ctrl elsewhere."""
+        clicks = [{}, {"metaKey": True}, {"ctrlKey": True}, {"altKey": True}, {"shiftKey": True}]
+        self.assertEqual(self.run_js("a.map(m.sourceClick)", clicks), [False, True, True, True, False])
+        self.assertEqual(self.run_js("a.map(m.sourceKey)", ["MacIntel", "Win32", "Linux x86_64", ""]),
+                         ["Cmd", "Ctrl", "Ctrl", "Ctrl"])
+
     def test_line_note_names_both_ends_escaped(self) -> None:
         """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
         names = {"a": "a<b>.py", "b": "out & more"}

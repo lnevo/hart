@@ -233,7 +233,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)<div><span class="sw" style="background:#dbeafe;border-color:#1e40af"></span>Structured data</div><div><span class="sw" style="background:#fef3c7;border-color:#92400e"></span>Unstructured source</div><div><span class="sw" style="background:#dcfce7;border-color:#166534"></span>Generator / script</div><div><span class="sw" style="background:#f3e8ff;border-color:#6b21a8"></span>Generated output</div><div><span class="sw" style="background:#e5e7eb;border-color:#374151"></span>External tool / repo</div><div><span class="sw" style="background:#fee2e2;border-color:#991b1b"></span>Host / runtime</div><div><span class="sw" style="background:#fce7f3;border-color:#9d174d"></span>Hand work</div>
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml: they light but the chain stops there; click a box for its full reach), and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Alt-click (Option on a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its chain, what feeds it and what it feeds, up to the hub boxes where many pipelines meet (such as tables.xml: they light but the chain stops there; click a box for its full reach), and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to, or Cmd-click (Ctrl-click off a Mac) for the box it comes from; a click on empty map away from the lines, or Esc, clears the selection); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
@@ -598,7 +598,7 @@ function edgeTip(e, name) {
 
 /* What a click on the map does, given what is under it: box (a box's id, or null), card (a grown card's id drawn
    over the pointer while a line is hovered, or null), line (the id of the box a clicked line leads to, or null) and
-   lineFirst (a tap, whose hover grew the cards just before it, or an Alt-click, which asks for the line itself). A box
+   lineFirst (a tap, whose hover grew the cards just before it, or a Cmd-click, which asks for the line itself). A box
    wins, then a grown card (what a mouse user sees there), then the line; with lineFirst the line beats a card. Returns
    {pick: id, line: true when it came from a line} or {clear: true}. */
 function clickTarget(box, card, line, lineFirst = false) {
@@ -608,7 +608,17 @@ function clickTarget(box, card, line, lineFirst = false) {
   return { clear: true };
 }
 
-/* The box a click on a line opens: where it leads, or with alt where it comes from; null when that box is not drawn
+/* Whether a click e asks for a line's source: Cmd, Ctrl or Alt held (Shift is the magnifier). */
+function sourceClick(e) {
+  return !!(e.metaKey || e.ctrlKey || e.altKey);
+}
+
+/* The key the hover note names for that click on this platform: Cmd on a Mac (Ctrl-click is its right click), else Ctrl. */
+function sourceKey(platform) {
+  return /Mac|iPhone|iPad/.test(platform || "") ? "Cmd" : "Ctrl";
+}
+
+/* The box a click on a line opens: where it leads, or with alt (sourceClick) where it comes from; null when that box is not drawn
    (drawn(id) is false). */
 function lineEnd(edge, alt, drawn) {
   const id = alt ? edge.from : edge.to;
@@ -854,7 +864,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1020,6 +1030,9 @@ function app() {
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
   /* Hovering a link (edge: its index in lay.edges) lights the chain it is on (linkChain), up to the hubs, and tags its boxes, the
      two ends first, and a note by the pointer names the ends and the link's label. */
+  /* A click on a line with Cmd (Ctrl off a Mac) opens the box it comes from. Alt (Option) works too where the system
+     lets it through; some Mac window tools take Option-click for themselves, and Shift is the magnifier. */
+  const SOURCE_KEY = sourceKey(navigator.platform || navigator.userAgent);
   const etip = document.createElement("div");
   etip.id = "etip"; etip.className = "panel"; etip.hidden = true; document.getElementById("stage").append(etip);
   let hoverEdge = null;
@@ -1045,7 +1058,7 @@ function app() {
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
       etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + (() => {
-        const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && "Alt-click: the box it comes from"].filter(Boolean);
+        const hint = [nodeEl[e.to] && "click: the box it leads to", nodeEl[e.from] && `${SOURCE_KEY}-click: the box it comes from`].filter(Boolean);
         return hint.length ? `<div class="off">${hint.join(" · ")}</div>` : "";
       })();
       placeTip();
@@ -1604,11 +1617,12 @@ function app() {
     }) : null;
     // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
     const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
-    // a click on a line opens the box it leads to, Alt (Option) the box it comes from; a line whose box is not drawn
+    // a click on a line opens the box it leads to, Cmd (Ctrl off a Mac; Alt too) the box it comes from; a line whose box is not drawn
     // does nothing, rather than clearing the view as a click on empty map would
-    const end = edge && lineEnd(edge, e.altKey, id => !!nodeEl[id]);
+    const back = sourceClick(e);
+    const end = edge && lineEnd(edge, back, id => !!nodeEl[id]);
     if (edge && !box && !card && !end) return;
-    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, end, lastPointer === "touch" || (e.altKey && !!end));
+    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, end, lastPointer === "touch" || (back && !!end));
     if (t.clear) { clearFocus(true); return; }
     // a line's box is centred, which moves the map, and a trimmed redraw moves the boxes: either waits out a
     // double-click, so its second click does not land on whatever box moved under the pointer
