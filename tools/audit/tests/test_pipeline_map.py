@@ -239,6 +239,20 @@ class LayoutTest(unittest.TestCase):
         corner = self.run_js("m.growRect(5, 795, 80, 20, a)", area)  # bottom left: in from both edges
         self.assertEqual((corner["dx"], corner["dy"], corner["x0"], corner["y1"]), (79, -19, 2, 798))
 
+    def test_hovered_card_moves_clear_of_lane_names(self) -> None:
+        """clearOf: a grown rect under a lane name moves the least way clear of it inside the area; one already clear
+        stays."""
+        area = {"left": 0, "top": 100, "right": 1000, "bottom": 800}
+        tag = {"x0": 0, "y0": 200, "x1": 150, "y1": 220}
+        b = {"x0": 20, "y0": 190, "x1": 180, "y1": 240, "dx": 5, "dy": 0}  # down 31 beats up 41 and right 131
+        got = self.run_js("m.clearOf(a.b, [a.tag], a.area)", {"b": b, "tag": tag, "area": area})
+        self.assertEqual((got["y0"], got["dx"], got["dy"]), (221, 5, 31))
+        tall = {"x0": 20, "y0": 110, "x1": 180, "y1": 790, "dx": 0, "dy": 0}  # no room above or below: right
+        got = self.run_js("m.clearOf(a.b, [a.tag], a.area)", {"b": tall, "tag": tag, "area": area})
+        self.assertEqual((got["x0"], got["dx"]), (151, 131))
+        clear = {"x0": 300, "y0": 300, "x1": 400, "y1": 340, "dx": 0, "dy": 0}
+        self.assertEqual(self.run_js("m.clearOf(a.b, [a.tag], a.area)", {"b": clear, "tag": tag, "area": area}), clear)
+
     def test_long_link_runs_level_across_the_columns_it_skips(self) -> None:
         """layout: a link that skips three columns runs through each at one height, so it is drawn as a straight run,
         not a bend at every step; the other boxes in those columns keep their lane."""

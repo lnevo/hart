@@ -659,6 +659,25 @@ function growRect(cx, cy, hw, hh, area) {
   return { x0: cx + dx - hw - 2, y0: cy + dy - hh - 2, x1: cx + dx + hw + 2, y1: cy + dy + hh + 2, dx, dy };
 }
 
+/* A grown rect b (from growRect) moved the least way clear of the blocked rects (the lane names and the legend), staying
+   inside area: right past one, or above or below it; up to four moves, then as it is. For the hovered box, which must
+   show even where it starts under a lane name. */
+function clearOf(b, blocked, area) {
+  const hit = r => blocked.find(o => o.x0 < r.x1 && r.x0 < o.x1 && o.y0 < r.y1 && r.y0 < o.y1);
+  const move = (r, mx, my) => ({ x0: r.x0 + mx, y0: r.y0 + my, x1: r.x1 + mx, y1: r.y1 + my, dx: r.dx + mx, dy: r.dy + my });
+  const fits = r => r.x0 >= area.left && r.x1 <= area.right && r.y0 >= area.top && r.y1 <= area.bottom;
+  let r = b;
+  for (let i = 0; i < 4; i++) {
+    const o = hit(r);
+    if (!o) return r;
+    const ways = [move(r, o.x1 + 1 - r.x0, 0), move(r, 0, o.y0 - 1 - r.y1), move(r, 0, o.y1 + 1 - r.y0)].filter(fits);
+    if (!ways.length) return r;
+    ways.sort((p, q) => Math.hypot(p.dx - r.dx, p.dy - r.dy) - Math.hypot(q.dx - r.dx, q.dy - r.dy));
+    r = ways[0];
+  }
+  return r;
+}
+
 /* A link's drawn shape from its layout points: a straight piece where the height stays the same, otherwise an S-bend
    with level ends between the two points. Each segment is [from, control1, control2, to], the controls null for a
    straight piece. */
@@ -922,7 +941,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1075,6 +1094,7 @@ function app() {
         const q = t.getBoundingClientRect();
         return { x0: q.left - r.left, y0: q.top - r.top, x1: q.right - r.left, y1: q.bottom - r.top };
       });
+      lit.forEach((n, i) => { if (n.id === hoverId) boxes[i] = clearOf(boxes[i], blocked, area); });  // the hovered box always shows
       for (const i of placeTags(boxes, blocked)) want.push([lit[i], k, boxes[i].dx / s, boxes[i].dy / s]);
     }
     const now = new Set(want.map(([n]) => n.id));
