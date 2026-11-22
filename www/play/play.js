@@ -190,7 +190,7 @@ function finish(text,failed){
   const par=S.par?Math.round(S.par-S.start):null;
   let verdict,cls="";
   if(failed)verdict="Taken off the job";
-  else if(S.marks===0&&(par===null||time<=par+15*S.pace)){verdict="Clean shift";cls="good"}
+  else if(S.marks===0&&(par===null?S.clock<=D.end+15*S.pace:time<=par+15*S.pace)){verdict="Clean shift";cls="good"} // a road run has no par: it is on time if it is in before it quits
   else if(S.marks<=1){verdict="Good shift";cls="good"}
   else verdict="Marked up";
   const secs=[...new Set(S.misses.map(m=>m.sec))];
@@ -249,7 +249,7 @@ function reliefToday(){
 /* The deck's eight sections in its order; each run lists the ones it asks (covers, checked against its questions by
    test_play_answers.py). The strip shows only the sections some run covers. */
 const SECTIONS=[["def","Definitions"],["sup","Superiority & movement"],["to","Train orders"],["sig","Signals & whistles"],
-  ["sem","Semaphores"],["yl","Yard limits"],["tw","Track warrants"],["gcor","GCOR crew & speed"]];
+  ["sem","Semaphores"],["yl","Yard limits"],["twc","Track warrants"],["gcor","GCOR crew & speed"]];
 function renderCover(){
   const box=$("xwCover");if(!box)return;
   const ids=Object.keys(RUNS),secName=Object.fromEntries(SECTIONS);

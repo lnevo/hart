@@ -41,6 +41,12 @@ function merge(bodies) {
 }
 
 /* The shifts in the order the game lists them, with every question each can ask. */
+function groupOf(id, def) {
+  const g = def.group || "island";
+  if (!GROUPS[g]) throw new Error(`run ${id} has group "${g}", which is not in GROUPS`);
+  return g;
+}
+
 function extract(src) {
   const sandbox = vm.createContext({ window: {} });
   vm.runInContext(fs.readFileSync(SIGNALS, "utf8"), sandbox, { filename: SIGNALS });
@@ -65,7 +71,7 @@ function extract(src) {
       def.build(H);
     }
     const qs = [...byKey.values()].map((q) => Object.assign(q, { body: merge([...q.bodies]) }));
-    shifts.push({ id, def, qs, group: def.group || "island" });
+    shifts.push({ id, def, qs, group: groupOf(id, def) });
   }
   return shifts;
 }

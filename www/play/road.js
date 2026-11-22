@@ -135,8 +135,9 @@ const coal={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"E
     ST.forEach((st,i)=>{if(st.sd&&i>0&&i<LAST){const x=xs[i];s+=i<=HOU?`<path d="M${x-12} ${y} L${x-6} ${y-6} H${x+6} L${x+12} ${y}"/>`:`<path d="M${x-12} ${y} L${x-6} ${y+6} H${x+6} L${x+12} ${y}"/>`}});
     const lab=[];
     const up=(x,l)=>{s+=`<path d="M${x+14} ${y} L${x+26} ${y-12} H${x+40}"/>`;lab.push([x+28,y-16,l])};
-    up(xs[1],"PC&amp;Y");up(xs[2],"PC&amp;Y");up(xs[BV],"B&amp;McD");up(xs[7],"PALANKA");up(xs[HIL],"MONTOUR");up(xs[ARD],"MANIFOLD");
+    up(xs[1],"PC&amp;Y");up(xs[2],"PC&amp;Y");up(xs[BV],"B&amp;McD");up(xs[7],"PALANKA");up(xs[HIL],"MONTOUR");
     s+=`<path d="M${xs[BV]-14} ${y} L${xs[BV]-26} ${y-12} H${xs[BV]-38}"/>`; // P&WV, close by Bridgeville
+    s+=`<path d="M${xs[ARD]} ${y} L${xs[ARD]+12} ${y-12} H${xs[ARD]+24}"/>`; // Manifold, leaving at Arden
     s+=`<path d="M${xs[HOU]+8} ${y} L${xs[HOU]+20} ${y+12} H${xs[HOU]+34}"/>`; // Westland
     s+=`<path d="M${xs[LAST]+4} ${y} L${xs[LAST]+14} ${y+10} H${xs[LAST]+24}"/>`; // Tylerdale Connecting to the B&O
     s+=`</g>`;
@@ -145,7 +146,7 @@ const coal={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"E
       s+=`<text x="${x}" y="${i%2?112:101}" font-size="6.3" text-anchor="middle" class="lbl" font-weight="${i===at&&!G.moving?700:400}">${esc(st.n.toUpperCase())}</text>`;
       if(st.il)s+=`<rect x="${x-3}" y="${y-5}" width="6" height="6" fill="var(--rust)" opacity=".85"/>`});
     lab.forEach(([x,yy,t])=>{s+=`<text x="${x}" y="${yy}" font-size="5.8" class="lbl">${t}</text>`});
-    s+=`<text x="${xs[BV]-40}" y="${y-16}" font-size="5.8" text-anchor="end" class="lbl">P&amp;WV</text><text x="${xs[HOU]+36}" y="${y+25}" font-size="5.8" class="lbl">WESTLAND</text><text x="${xs[LAST]+26}" y="${y+13}" font-size="5.8" class="lbl">B&amp;O</text>`;
+    s+=`<text x="${xs[ARD]+16}" y="${y-16}" font-size="5.8" class="lbl">MANIFOLD</text><text x="${xs[BV]-40}" y="${y-16}" font-size="5.8" text-anchor="end" class="lbl">P&amp;WV</text><text x="${xs[HOU]+36}" y="${y+25}" font-size="5.8" class="lbl">WESTLAND</text><text x="${xs[LAST]+26}" y="${y+13}" font-size="5.8" class="lbl">B&amp;O</text>`;
     // the engine, the job's own lit
     s+=`<g transform="translate(${me} ${y-1})"><rect x="-13" y="-5" width="26" height="10" rx="2" fill="var(--green)" stroke="var(--glow)" stroke-width="1.4"/><text x="0" y="2.4" font-size="6.4" text-anchor="middle" fill="#fff" font-weight="700">4619</text></g>`;
     return s+`</svg>`;
@@ -220,15 +221,15 @@ const coal={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"E
 
     /* ----- the questions that depend on the draw: shown to the player, and listed once for the answer key ----- */
     const q={
-      margin:(name,where,mins)=>({miss:true,sec:"sup",src:"SC · Rule S-87",title:"Too close to "+name,body:`You got into the siding at ${where} only ${mins} minutes ahead of ${name}'s time there. By how much must an extra clear the time of an opposing regular train?`,right:"Not less than 5 minutes",wrong:[["Any margin, as long as it is in the clear"],["Not less than 2 minutes"],["Only to the leaving time"]],ok:{marks:1},okText:"Right, and you did not. +1 mark.",why:"Rule S-87: extras must clear the time of opposing regular trains by not less than 5 minutes unless otherwise provided. The TT&TO primer quotes 10 minutes."}),
-      r86:(name,where)=>({miss:true,sec:"sup",src:"SC · Rule 86",title:name+" was close behind",body:`${name} was due to leave the station behind you before you were in the clear at ${where}. When must an inferior train running ahead of a superior train be clear?`,right:"When the superior train is due to leave the next station in the rear where time is shown",wrong:[["5 minutes before the superior train is due at the station ahead"],["When the superior train comes in sight"],["At the superior train's arriving time at the station ahead"]],ok:{marks:1},okText:"Right, and you were not. +1 mark.",why:"Rule 86: unless otherwise provided, the inferior train must be clear at the time the superior train is due to leave the next station in the rear where time is shown."}),
+      margin:(name,where,mins)=>({miss:true,sec:"sup",src:"SC · Rule S-87",title:"Too close to "+name,body:`You got into the siding at ${where} only ${mins} minutes ahead of ${name}'s time there. By how much must an extra clear the time of an opposing regular train?`,right:"Not less than 5 minutes",wrong:[["Any margin, as long as it is in the clear"],["Not less than 2 minutes"],["Only to the leaving time"]],ok:{marks:1},okText:"Right, and you did not.",why:"Rule S-87: extras must clear the time of opposing regular trains by not less than 5 minutes unless otherwise provided. The TT&TO primer quotes 10 minutes."}),
+      r86:(name,where)=>({miss:true,sec:"sup",src:"SC · Rule 86",title:name+" was close behind",body:`${name} was due to leave the station behind you before you were in the clear at ${where}. When must an inferior train running ahead of a superior train be clear?`,right:"When the superior train is due to leave the next station in the rear where time is shown",wrong:[["5 minutes before the superior train is due at the station ahead"],["When the superior train comes in sight"],["At the superior train's arriving time at the station ahead"]],ok:{marks:1},okText:"Right, and you were not.",why:"Rule 86: unless otherwise provided, the inferior train must be clear at the time the superior train is due to leave the next station in the rear where time is shown."}),
       board:()=>({sec:"to",src:"SC · Rule 221",where:"Houston",title:"The train order board",body:"Coming into Houston, the semaphore at the open office shows its blade horizontal.",extra:semSvg(0),right:"Stop: an operator is on duty, and you must not leave without a Clearance Form A",wrong:[["Slow down and take orders on the fly"],["Proceed: it is only a block signal"],["Whistle — — and keep going"]],why:"Rule 221: the train order signal shows stop while an operator is on duty, and trains must not leave without a Clearance Form A. The semaphore guide adds that a horizontal blade is always stop."}),
       fix:(shown,nums)=>({sec:"to",src:"SC · Rule 211",title:"Check the clearance",body:`The clearance lists Nos ${shown}, but you hold Nos ${nums}. What do you do?`,right:"Do not leave; have the operator correct it with the dispatcher",wrong:[["Leave; the orders in hand are what count"],["Cross out the number and write the right one in"],["Leave and report it from the next office"]],why:"Rule 211: Clearance Form A is filled out without erasure or alteration, and conductors, enginemen and firemen must see that its information matches the orders received."}),
       who:(shown,nums)=>({sec:"to",src:"SC · Rule 211",title:"Check the clearance",body:`The clearance lists Nos ${shown} and you hold Nos ${nums}. Who on your crew must check that they match?`,right:"The conductor, the engineman and the fireman",wrong:[["Only the conductor"],["Only the engineman"],["The operator alone"]],why:"Rule 211: conductors, enginemen and firemen, and trainmen when practicable, must see that the information on Clearance Form A matches the train orders received."}),
       late:(no,text,name,L,where)=>({sec:"to",src:"SC · Form E",title:"Order No "+no,body:`“${text}.” What does this order do for you?`,right:`Run with respect to ${name}'s schedule ${L} minutes later`,wrong:[[`Ignore ${name} until Carnegie`],[`Wait at ${where} for ${name}`],[`You now have right over ${name}`]],why:"Form E, a time order: any train receiving it runs with respect to the later time exactly as it would to the regular schedule. The time-table on the right now shows the new times in red."})
     };
     // the answer key lists each draw-dependent question once
-    [q.margin("No 302","[varies]","[varies]"),q.r86("No 302","[varies]"),q.board(),q.fix("[varies]","[varies]"),q.who("[varies]","[varies]"),q.late("[varies]","No 302 run [varies] mins late Washington to Carnegie","No 302","[varies]","Houston")].forEach(H.key);
+    [q.margin("[varies]","[varies]","[varies]"),q.r86("[varies]","[varies]"),q.board(),q.fix("[varies]","[varies]"),q.who("[varies]","[varies]"),q.late("[varies]","[varies] run [varies] mins late Washington to Carnegie","[varies]","[varies]","Houston")].forEach(H.key);
     Object.values(Qs).forEach(o=>H.key(o));ROAD.forEach(o=>H.key(o));STN.forEach(o=>H.key(o));
     ["bvS","hilS","hilN","bvN"].forEach(k=>H.key(aspectQ(k)));
 
@@ -275,7 +276,7 @@ const coal={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"E
       const d=j>k?1:-1,out=[];
       if(k===HOU&&d===1)out.push(H.ask(Qs.s71));
       for(let i=k+d;i!==j+d;i+=d){
-        if(i===BV&&d===1&&!G.used.has("bvS")){G.used.add("bvS");out.push(H.ask(Qs.bvSem),H.ask(aspectQ("bvS")))}
+        if(i===BV&&d===1&&!G.used.has("bvS")){G.used.add("bvS");out.push(H.ask(Qs.bvSem),H.wait(4,"Waited for the route at Bridgeville"),H.ask(aspectQ("bvS")))}
         if(i===BV&&d===-1&&!G.used.has("bvN")){G.used.add("bvN");out.push(H.ask(aspectQ("bvN")),H.wait(4,"Waited for the route at Bridgeville"))}
         if(i===HIL&&d===1&&!G.used.has("hilS")){G.used.add("hilS");out.push(H.ask(Qs.ilDef),H.ask(aspectQ("hilS")))}
         if(i===HIL&&d===-1&&!G.used.has("hilN")){G.used.add("hilN");out.push(H.ask(aspectQ("hilN")))}
@@ -293,14 +294,14 @@ const coal={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"E
     }
     /* Wrong answers on the road cost time after arrival. Head-on and rear-end collisions end the run. */
     function resolveMove(k,j){
-      const dep=G.depAt,extra=S.clock-dep,a0=dep+run(k,j);
-      const fault=checkMove(k,j,dep,a0);
+      const dep=G.depAt,extra=S.clock-dep,c=dep+extra,a0=c+run(k,j); // minutes lost to wrong answers on the way count
+      const fault=checkMove(k,j,c,a0);
       const sev=fault.find(p=>p.kind==="headon"||p.kind==="rear");
       if(sev){crash(sev,k,j);return}
       const notes=[];
       fault.filter(p=>p.kind==="margin").forEach(p=>notes.push(H.ask(q.margin(p.tr.name,ST[p.at].n,Math.max(0,p.by)))));
       fault.filter(p=>p.kind==="r86").forEach(p=>notes.push(H.ask(q.r86(p.tr.name,ST[j].n))));
-      S.clock=a0+extra;G.pos=j;G.moving=null;G.inSiding=!!ST[j].sd&&j>0&&j<LAST;
+      S.clock=a0;G.pos=j;G.moving=null;G.inSiding=!!ST[j].sd&&j>0&&j<LAST;
       arrive(j,notes);
     }
     function crash(p,k,j){
@@ -346,11 +347,12 @@ const coal={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"E
         H.ask(q.board()),
         H.info("Houston","Orders","<p>The operator hands up the orders and the clearance.</p><div class='xw-tele'>"+ordTxt+"</div><div class='xw-clear'>"+esc(clearTxt)+"</div>","Check them"),
         wrongClear?H.ask(q.fix(shown.join(", "),nums.join(", "))):H.ask(q.who(shown.join(", "),nums.join(", ")))];
-      if(late)scenes.push(H.ask(q.late(late.no,late.text,late.tr.name,late.L,"Houston")));
-      scenes.push(H.ask(Qs.sa),()=>{
+      scenes.push(()=>{
         orders.forEach(o=>{G.orders.push(o);if(o.tr){const tr=o.tr;tr.late+=o.L;tr.lateAt=tr.act.map(x=>x>S.clock);tr.act=tr.act.map(x=>x>S.clock?x+o.L:x)}});
         if(wrongClear)H.addTime(6);
-        H.log("Orders "+nums.join(", ")+" received");H.next()},
+        H.log("Orders "+nums.join(", ")+" received");H.next()});
+      if(late)scenes.push(H.ask(q.late(late.no,late.text,late.tr.name,late.L,"Houston")));
+      scenes.push(H.ask(Qs.sa),
         H.ask(Qs.sh),
         H.info("Houston","The Westland branch",`<p>The Westland branch leaves the main at Houston (${lib("the Chartiers Branch's coal branches")}). Your crew pulls the empties off the main and sets them where the mine crew wants them, and picks up the loads.</p>`),
         H.ask(Qs.r104),H.ask(Qs.siding),
@@ -366,7 +368,7 @@ const coal={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"E
         H.info("Arden","The Manifold branch",`<p>The Manifold branch is one of the coal branches the Chartiers Branch served (${lib("Railroads of the Chartiers Valley")}). The head brakeman lines the switch and the engine goes in for the loads.</p>`),
         H.ask(Qs.back),H.ask(Qs.back2),
         H.wait(30,"Manifold branch worked: loads out"),H.done(3),
-        ()=>{G.phase="C";G.limit=0;G.dir=-1;G.inSiding=true;G.orders=[];H.log("Extra 4619 North ready at Arden");stationRoad()});
+        ()=>{G.phase="C";G.limit=0;G.dir=-1;G.inSiding=true;G.orders=G.orders.filter(o=>o.tr);H.log("Extra 4619 North ready at Arden");stationRoad()});
       H.next();
     }
     function carnegieEnd(){
