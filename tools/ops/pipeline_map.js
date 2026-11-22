@@ -5,7 +5,7 @@
 "use strict";
 
 const NODE_W = 250, COL_GAP = 150, V_GAP = 14, BAND_PAD = 40, DUMMY_H = 2, DUMMY_GAP = 3;
-const WRAP = 44, TITLE_WRAP = 30, LEFT = 180;
+const WRAP = 44, TITLE_WRAP = 30, LEFT = 180, BAND_RUN = 100000;  // BAND_RUN: how far the lane colours run past the drawing's ends
 
 /* Greedy word wrap; a word longer than the width is cut. */
 function wrap(text, width) {
@@ -52,8 +52,11 @@ function inversions(arr) {
 
 /* nodes: [{id, domain, label, desc, path, status}], edges: [{from, to}], domains: [{id}] in lane order.
    Returns the nodes with x, y, w, h; the edges with pts and back (true when the edge closes a cycle and was drawn
-   turned round); the lanes (bands) with y and h; and the drawing's width and height. */
-function layout(nodes, edges, domains) {
+   turned round); the lanes (bands) with y and h; and the drawing's width and height. aspect (height over width of
+   the screen area the map is fitted to, 0 for none) stretches the drawing downward to that shape when it would
+   otherwise leave an empty band under its last lane at Fit: the lanes share the spare height evenly and their boxes
+   spread out over it. */
+function layout(nodes, edges, domains, aspect = 0) {
   if (!nodes.length) return { nodes: [], edges: [], bands: [], width: NODE_W, height: 200 };
   const byId = new Map(nodes.map(n => [n.id, n]));
   const ids = nodes.map(n => n.id);
@@ -176,7 +179,8 @@ function layout(nodes, edges, domains) {
     bandTop.set(d.id, y);
     y += bandH.get(d.id);
   }
-  const totalH = y;
+  const drawW = nRanks * (NODE_W + COL_GAP) - COL_GAP;
+  let totalH = y;
   const ys = new Map();
   for (const layer of layers) {
     for (const d of domains) {
@@ -215,6 +219,22 @@ function layout(nodes, edges, domains) {
     }
   }
 
+  // stretch: a drawing shorter than the screen's shape at Fit is stretched downward lane by lane, each lane getting an
+  // equal share of the spare height. Box centres move apart in proportion and boxes keep their size, so each lane's
+  // boxes spread over its new height, centred as they were, and no two come closer.
+  const shown = domains.filter(d => bandH.get(d.id));
+  const spare = aspect > 0 && shown.length ? (drawW + LEFT + 60) * aspect - totalH : 0;  // the page's W is drawW + LEFT + 60
+  if (spare > 0) {
+    const was = new Map(shown.map(d => [d.id, [bandTop.get(d.id), bandH.get(d.id)]]));
+    let top = 0;
+    for (const d of domains) { bandTop.set(d.id, top); if (bandH.get(d.id)) bandH.set(d.id, bandH.get(d.id) + spare / shown.length); top += bandH.get(d.id); }
+    totalH = top;
+    for (const [v, vy] of ys) {
+      const d = domain(v), [t0, h0] = was.get(d), c = vy + height(v) / 2;
+      ys.set(v, bandTop.get(d) + (c - t0) * bandH.get(d) / h0 - height(v) / 2);
+    }
+  }
+
   const xOf = v => rank.get(v) * (NODE_W + COL_GAP);
   const outNodes = nodes.map(n => ({ ...n, x: xOf(n.id), y: ys.get(n.id), w: NODE_W, h: height(n.id) }));
   const outEdges = chains.map(([i, chain, flipped]) => {
@@ -227,7 +247,7 @@ function layout(nodes, edges, domains) {
     return { ...edges[i], pts, back: flipped };
   });
   const bands = domains.filter(d => bandH.get(d.id)).map(d => ({ ...d, y: bandTop.get(d.id), h: bandH.get(d.id) }));
-  return { nodes: outNodes, edges: outEdges, bands, columns: nRanks, width: nRanks * (NODE_W + COL_GAP) - COL_GAP, height: totalH };
+  return { nodes: outNodes, edges: outEdges, bands, columns: nRanks, width: drawW, height: totalH };
 }
 
 /* The step headers over the columns in view: column r is r links from a file nothing on the map builds (step 0). px is
@@ -306,6 +326,18 @@ function fitView(W, H, left, free, sw, sh) {
   return { x: -left - ox * s, y: -oy * s, width: sw * s, height: sh * s };  // the viewBox's own field names
 }
 
+/* The view v kept on the drawing sideways: no wider than maxW (the Fit width), and placed so the drawing (x from
+   -left, width W) does not leave the free area at either side. A drawing wider than the free area covers it edge to
+   edge; a narrower one stays wholly inside it. The height follows the width, and a view cut to maxW keeps its middle. */
+function clampView(v, W, left, free, maxW) {
+  if (!(v.width > 0) || !(v.height > 0)) return v;  // a view with no size (a hidden map) is left alone
+  const width = Math.min(v.width, maxW), height = v.height * width / v.width;
+  const x0 = v.x + (v.width - width) / 2, y = v.y + (v.height - height) / 2;  // a cut width shrinks about the middle
+  const a = -left, b = W - left - free.right * width;  // the view's x with the drawing's left, or right, edge on the area's
+  const x = Math.min(Math.max(x0, Math.min(a, b)), Math.max(a, b));
+  return { x, y, width, height };
+}
+
 /* The graph with the boxes hide(id) is true for taken out and bridged over: each link into a hidden box is joined to
    every shown box beyond it, through any run of hidden boxes, and the new link keeps the hidden boxes in via. So
    with the scripts hidden, a data file links straight to what it ends up in. */
@@ -376,7 +408,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -492,8 +524,9 @@ function app() {
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
     for (const b of lay.bands) {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
       const c = esc(b.color);
-      p.push(`<rect x="${-LEFT}" y="${b.y}" width="${W}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
-        `<line x1="${-LEFT}" x2="${W - LEFT}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
+      // run on past both ends, so a drawing narrower than the screen at Fit has its lanes out to the screen's sides
+      p.push(`<rect x="${-LEFT - BAND_RUN}" y="${b.y}" width="${W + 2 * BAND_RUN}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
+        `<line x1="${-LEFT - BAND_RUN}" x2="${W - LEFT + BAND_RUN}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
     }
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
@@ -523,10 +556,15 @@ function app() {
     return p.join("\n");
   }
 
-  function render(keepView) {
+  /* aspect: the screen shape to stretch the lanes to (a shared link's own); by default the free area's now, and once
+     the info panel has opened or closed the drawing is laid out again for the area as it is then. */
+  function render(keepView, aspect, settled) {
     sub = subset();
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
-    lay = layout(sub.nodes, sub.edges, DATA.domains);
+    const asked = aspect !== undefined;
+    if (!asked) aspect = fitAspect();
+    lay = layout(sub.nodes, sub.edges, DATA.domains, aspect);
+    lay.aspect = aspect;
     wrapEl.innerHTML = drawSvg(lay);
     svg = document.getElementById("map");
     vb = svg.viewBox.baseVal;
@@ -547,12 +585,15 @@ function app() {
     if (selected && !visible.has(selected) && visible.has(groups.groupOf[selected])) selected = groups.groupOf[selected];  // folded away: its folder
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
+    if (!old && !asked && !settled && Math.abs(fitAspect() - aspect) > 0.01) { render(false, undefined, true); return; }  // the panel changed the area
     if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
+    else setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again against the panel as it is now
     updateNav();
   }
 
   /* Redraw after a change that moves the boxes (compact, folders, a filter) without losing the reader's place: the
-     selected box, or else the box nearest the middle of the screen, stays where it was on screen at the same zoom.
+     selected box, or else the box nearest the middle of the screen, stays where it was on screen at the same zoom
+     (unless the new drawing is narrower than that view, when the sideways clamp moves it).
      A view that showed everything fits again; a box now inside a folder is followed to the folder, and a folder that
      opened to its boxes, to the first of them. */
   function renderKeeping() {
@@ -639,7 +680,7 @@ function app() {
   legend.addEventListener("toggle", () => drawRulers());  // open, it is taller: the tags beside it move up
   let colKinds = [];  // per column: what its boxes are, for the header's tooltip
   let rawFirst = false;  // whether nothing in the whole graph builds any box of column 0 (a filtered view may hide what does)
-  const showRulers = () => !!(lay && lay.nodes.length);  // the strip shows only over a drawing with boxes
+  const showRulers = () => sub.nodes.length > 0;  // the strip shows only over a drawing with boxes (sub is set before layout)
   function columnKinds() {
     const step = NODE_W + COL_GAP, cols = Array.from({ length: lay.columns }, () => ({}));
     lay.nodes.forEach(n => { const c = cols[Math.round(n.x / step)]; c[n.kind] = (c[n.kind] || 0) + 1; });
@@ -703,7 +744,20 @@ function app() {
   nav.addEventListener("wheel", e => e.preventDefault(), { passive: false });
 
   /* ---- pan and zoom */
-  function setVB(x, y, w, h) { vb.x = x; vb.y = y; vb.width = w; vb.height = h; updateNav(); }
+  /* The widest view allowed: the Fit width (at least 200), or Infinity while the map has no size yet (hidden). */
+  function maxWidth(free = freeShare()) {
+    const fw = fitView(W, H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight).width;
+    return Number.isFinite(fw) && fw > 0 ? Math.max(fw, 200) : Infinity;
+  }
+  /* The free area's height over its width, for layout's lanes; 0 while the map has no size yet (hidden). */
+  function fitAspect() {
+    const a = freeArea(), w = a.right, h = a.bottom - a.top;
+    return w > 0 && h > 0 ? h / w : 0;
+  }
+  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing sideways (clampView)
+    const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, LEFT, free, maxWidth(free));
+    vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height; updateNav();
+  }
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
      on a phone, above it) while that is open. */
   function freeArea() {
@@ -724,13 +778,13 @@ function app() {
   function zoomAt(f, cx, cy) {
     const r = wrapEl.getBoundingClientRect();
     const px = vb.x + (cx - r.left) / r.width * vb.width, py = vb.y + (cy - r.top) / r.height * vb.height;
-    const nw = Math.min(Math.max(vb.width * f, 200), Math.max(W, 2000) * 4), nh = nw * vb.height / vb.width;
+    const nw = Math.min(Math.max(vb.width * f, 200), Math.max(maxWidth(), vb.width)), nh = nw * vb.height / vb.width;  // capped before the corner is worked out, so a zoom-out at Fit stops instead of sliding the map
     setVB(px - (px - vb.x) * nw / vb.width, py - (py - vb.y) * nh / vb.height, nw, nh);
   }
   function centreOn(id, zoom) {  // the box in the middle of the free area, not under the toolbar or the info panel
     const n = lay.nodes.find(m => m.id === id), a = freeArea();
     if (!n) return;
-    const w = zoom ? 1800 : vb.width, h = w * a.r.height / a.r.width, s = w / a.r.width;
+    const w = zoom ? Math.min(1800, maxWidth()) : vb.width, h = w * a.r.height / a.r.width, s = w / a.r.width;  // capped first, so the box stays centred
     const cx = a.right / 2, cy = (a.top + a.bottom) / 2;
     setVB(n.x + n.w / 2 - cx * s, n.y + n.h / 2 - cy * s, w, h);
   }
@@ -738,7 +792,7 @@ function app() {
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? wrapEl.clientHeight : 1;
     const dx = e.deltaX * unit, dy = e.deltaY * unit;
-    if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { vb.x += dx * vb.width / wrapEl.getBoundingClientRect().width; updateNav(); return; }
+    if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { setVB(vb.x + dx * vb.width / wrapEl.getBoundingClientRect().width, vb.y, vb.width, vb.height); return; }
     zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY);
   }, { passive: false });
   let drag = null, moved = false;
@@ -749,12 +803,17 @@ function app() {
     if (!drag) return;
     const r = wrapEl.getBoundingClientRect(), dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
-    vb.x = drag.vx - dx * vb.width / r.width; vb.y = drag.vy - dy * vb.height / r.height;
-    updateNav();
+    setVB(drag.vx - dx * vb.width / r.width, drag.vy - dy * vb.height / r.height, vb.width, vb.height);
   });
   window.addEventListener("pointerup", () => { drag = null; wrapEl.classList.remove("drag"); });
+  let relayTimer = 0;
   window.addEventListener("resize", () => {  // a fitted view fits again (the panel may have moved); others keep their middle
-    if (fitted) { fit(); return; }
+    clearTimeout(relayTimer);
+    if (fitted) {  // fits now, and is laid out again once the resizing stops, so the lanes fill the new shape
+      fit();
+      relayTimer = setTimeout(() => { if (fitted) { render(true); fit(); } }, 150);
+      return;
+    }
     const r = wrapEl.getBoundingClientRect(), cy = vb.y + vb.height / 2, h = vb.width * r.height / r.width;
     setVB(vb.x, cy - h / 2, vb.width, h);
     if (selected && visible.has(selected)) centreOn(selected, false);
@@ -771,7 +830,7 @@ function app() {
     svg.querySelectorAll(".on,.sel,.upstream,.near").forEach(el => el.classList.remove("on", "sel", "upstream", "near"));
     info.style.display = "none";
     nav.classList.remove("focus"); nav.querySelectorAll("rect.on").forEach(r => r.classList.remove("on"));
-    updateNav();
+    setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the wider free area
     if (!user) return;
     const was = trimmed();
     selected = null;
@@ -823,7 +882,7 @@ function app() {
     info.style.display = "block";
     nav.classList.add("focus");
     nav.querySelectorAll("rect.n").forEach(r => { if (upSet.has(r.dataset.id) || downSet.has(r.dataset.id)) r.classList.add("on"); });
-    updateNav();
+    setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the narrower free area
     info.querySelector(".close").onclick = () => clearFocus(true);
     if (!isFocus) info.querySelector("#fgo").onclick = () => focusOn(id);
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
@@ -835,7 +894,7 @@ function app() {
       <p><button id="fopen">Open this folder</button></p>
       <b>Boxes in it</b><ul>${list.map(m => `<li><a data-go="${esc(m)}">${esc(byId[m].label)}</a></li>`).join("")}</ul>`;
     info.style.display = "block";
-    updateNav();
+    setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the narrower free area
     info.querySelector(".close").onclick = () => clearFocus(true);
     info.querySelector("#fopen").onclick = () => openFolder(g.folder);
     info.querySelectorAll("a[data-go]").forEach(a => (a.onclick = () => goTo(a.dataset.go)));
@@ -1133,7 +1192,7 @@ function app() {
   document.getElementById("labels").onchange = e => { document.getElementById("elabels").classList.toggle("hidden", !e.target.checked); showStatus(sub); };
 
   /* ---- address bar: #focus=<id>&up=all&down=2&lanes=a,b&show=parked,retired&trim=1&hidekind=generator&compact=0
-     &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width> (the zoom and position) */
+     &folders=1&open=<folder>,<folder>&node=<id>, and with share also at=<x>,<y>,<width>,<aspect> (the zoom, position and lane stretch) */
   function writeHash(withView = false) {
     const h = new URLSearchParams();
     const steps = n => (n === Infinity ? "all" : String(n));
@@ -1146,7 +1205,7 @@ function app() {
     if (!view.compact) h.set("compact", "0");  // compact is the default
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
-    if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).join(","));
+    if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
     const s = h.toString();
     history.replaceState(null, "", s ? "#" + s : location.pathname + location.search);
   }
@@ -1177,18 +1236,24 @@ function app() {
     fileIn.value = view.focus ? byId[view.focus].path || byId[view.focus].label : "";
     syncControls();
   }
-  /* A shared link's zoom and position (at=x,y,width), kept to the window's shape. */
-  function restoreView() {
+  /* A shared link's view: at=x,y,width[,aspect], the zoom and position, and the screen shape the sharer's lanes were
+     stretched to (so the same y lands in the same lane); null when there is none or it is malformed. */
+  function sharedView() {
     const at = (new URLSearchParams(location.hash.slice(1)).get("at") || "").split(",").map(Number);
-    if (at.length !== 3 || at.some(v => !Number.isFinite(v)) || at[2] <= 0) return false;
+    if (at.length < 3 || at.length > 4 || at.some(v => !Number.isFinite(v)) || at[2] <= 0 || at[3] < 0) return null;
+    return at;
+  }
+  function restoreView(at) {  // kept to the window's shape
+    if (!at) return false;
     const r = wrapEl.getBoundingClientRect();
     setVB(at[0], at[1], at[2], at[2] * r.height / r.width);
     return true;
   }
   function arrive(first) {  // first load: a file view opens at Fit; a later address change pans to the selected box
     readHash();
-    render(false);
-    if (restoreView() || !selected || !visible.has(selected) || view.trim) return;
+    const at = sharedView();
+    render(false, at ? at[3] || 0 : undefined);  // an older link without the shape: no stretch, as it was drawn then
+    if (restoreView(at) || !selected || !visible.has(selected) || view.trim) return;
     if (!view.focus) centreOn(selected, true);
     else if (!first) centreOn(selected, false);
   }

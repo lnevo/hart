@@ -102,12 +102,12 @@ class GraphChecksTest(unittest.TestCase):
 NODE = shutil.which("node")
 
 
-def js_layout(graph: dict) -> dict:
-    """Run tools/ops/pipeline_map.js's layout under node on this graph."""
+def js_layout(graph: dict, aspect: float = 0) -> dict:
+    """Run tools/ops/pipeline_map.js's layout under node on this graph (aspect: the screen's height over width)."""
     script = (
         "const m = require(process.argv[1]); let s = '';"
         "process.stdin.on('data', d => s += d).on('end', () => { const g = JSON.parse(s);"
-        "process.stdout.write(JSON.stringify(m.layout(g.nodes, g.edges, g.domains))); });"
+        f"process.stdout.write(JSON.stringify(m.layout(g.nodes, g.edges, g.domains, {aspect}))); }});"
     )
     out = subprocess.run([NODE, "-e", script, str(MAP.SCRIPT)], input=json.dumps(graph), capture_output=True,
                          text=True, check=True)
@@ -128,6 +128,26 @@ class LayoutTest(unittest.TestCase):
         self.assertLess(x["src"], x["gen"])
         back = [e for e in lay["edges"] if e["back"]]
         self.assertEqual([(e["from"], e["to"]) for e in back], [("out", "gen")])
+
+    def test_lanes_grow_to_fill_a_tall_screen(self) -> None:
+        """layout with an aspect: a short drawing is stretched, its lanes sharing the spare height evenly, so the drawing's height over
+        its page width (width + 240) matches the screen; boxes stay inside their lanes; a tall drawing is unchanged."""
+        plain, tall = js_layout(self.graph()), js_layout(self.graph(), 2.0)
+        page_w = tall["width"] + 240  # LEFT + 60 either side of the boxes, as drawSvg sets W
+        self.assertAlmostEqual(tall["height"] / page_w, 2.0, places=6)
+        grow = [t["h"] - p["h"] for p, t in zip(plain["bands"], tall["bands"])]
+        self.assertAlmostEqual(grow[0], grow[1], places=6)
+        self.assertGreater(grow[0], 0)
+        bands = {b["id"]: b for b in tall["bands"]}
+        for n in tall["nodes"]:
+            b = bands[n["domain"]]
+            self.assertTrue(b["y"] <= n["y"] and n["y"] + n["h"] <= b["y"] + b["h"], n["id"])
+        self.assertEqual(js_layout(self.graph(), 0.0001)["height"], plain["height"])
+        # stretched, not pushed to one edge: each box's centre keeps its share of the way down its lane
+        pb, pn = {b["id"]: b for b in plain["bands"]}, {n["id"]: n for n in plain["nodes"]}
+        for n in tall["nodes"]:
+            p, bp, bt = pn[n["id"]], pb[n["domain"]], bands[n["domain"]]
+            self.assertAlmostEqual((n["y"] + n["h"] / 2 - bt["y"]) / bt["h"], (p["y"] + p["h"] / 2 - bp["y"]) / bp["h"], places=6)
 
     def test_nodes_stay_in_their_lane_without_overlap(self) -> None:
         for graph in (self.graph(), json.loads(MAP.GRAPH.read_text())):
@@ -256,6 +276,31 @@ class LayoutTest(unittest.TestCase):
         self.assertAlmostEqual(top_px, 80, places=3)  # starts just under the toolbar and step strip, no band above
         self.assertTrue(fits)
         self.assertFalse(covered)
+
+    def test_view_stays_on_the_drawing_sideways(self) -> None:
+        """clampView: zooming out stops at the Fit width (cut about the view's middle), a view with no size is left alone, and a pan cannot take either side edge of the drawing past
+        the free area's edge, whether the drawing is wider than the area or narrower."""
+        free = {"top": 0.1, "right": 0.5, "bottom": 1}
+        call = "a.views.map(v => m.clampView(v, 1000, 100, a.free, 2000))"
+        views = [{"x": 5000, "y": 7, "width": 4000, "height": 2000},  # too far out and off to the right
+                 {"x": -900, "y": 7, "width": 400, "height": 200},    # zoomed in, panned past the left edge
+                 {"x": 5000, "y": 7, "width": 400, "height": 200},    # zoomed in, panned past the right edge
+                 {"x": 300, "y": 7, "width": 400, "height": 200}]     # inside: unchanged
+        out = self.run_js(call, {"free": free, "views": views})
+        self.assertEqual(out[0]["width"], 2000)
+        self.assertEqual(out[0]["height"], 1000)
+        self.assertEqual(out[0]["y"], 7 + (2000 - 1000) / 2)  # cut about the middle, not the top left corner
+        self.assertEqual(out[0]["x"], -100)  # area 1000 wide, drawing fills it from its left edge
+        self.assertEqual(out[1]["x"], -100)  # drawing's left edge on the screen's left edge
+        self.assertEqual(out[2]["x"], 1000 - 100 - 200)  # drawing's right edge on the area's right edge
+        self.assertEqual(out[3], views[3])
+        hidden = {"x": 1, "y": 2, "width": 0, "height": 0}
+        self.assertEqual(self.run_js("m.clampView(a.v, 1000, 100, a.free, 2000)", {"free": free, "v": hidden}), hidden)
+        narrow = self.run_js("[m.clampView(a.views[0], 600, 100, a.free, 2000), m.clampView(a.views[1], 600, 100, a.free, 2000)]",
+                             {"free": free, "views": [{"x": -900, "y": 0, "width": 2000, "height": 1000},
+                                                      {"x": 900, "y": 0, "width": 2000, "height": 1000}]})
+        self.assertEqual(narrow[0]["x"], 600 - 100 - 1000)  # a 600-wide drawing in a 1000-wide area: right edge on its right
+        self.assertEqual(narrow[1]["x"], -100)  # left edge on its left
 
     def test_empty_subset(self) -> None:
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])
