@@ -12,7 +12,8 @@ subfolders, and session scratchpads named after it, and gives two counts:
 
 - chosen: every Agent (or older Task) tool call, whoever made it (a main session or a subagent). A call with no
   subagent_type is the default, general-purpose. A resumed session repeats earlier calls in its transcript, so each
-  tool call id counts once. This is the count the 2026-11-21 baseline used (it gives 426 for that window).
+  tool call id counts once, dated by its earliest copy. This rebuilds the 2026-11-21 baseline's method as closely as
+  it can be: it gives 426 general-purpose of 620 (68.7%) for that window, against the recorded 404 and 68%.
 - every: every subagent Claude Code started, one subagents/agent-*.meta.json each, with its agentType. It adds the
   agents no session picks a type for: skill forks such as /code-review and the reviewers they start.
 
@@ -24,6 +25,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import re
 import subprocess
 import sys
 from collections import Counter
@@ -48,15 +50,39 @@ def main_checkout(root: Path = ROOT) -> Path:
     return Path(common).parent
 
 
-def project_key(checkout: Path) -> str:
-    """Claude Code's folder name for a project: the absolute path with every / and . made a -."""
-    return str(checkout).replace("/", "-").replace(".", "-")
+def project_key(path) -> str:
+    """Claude Code's folder name for a project: the absolute path with every character but a letter or digit made a -."""
+    return re.sub(r"[^A-Za-z0-9]", "-", str(path))
 
 
-def repo_project_dirs(projects: Path, key: str) -> list[Path]:
+_SCRATCH = r"-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-scratchpad(-|$)"
+
+
+def belongs(name: str, key: str, entries: tuple[str, ...]) -> bool:
+    """True for the checkout's own folder, a folder inside it (a worktree, a submodule) and a session scratchpad named
+    after it. A folder inside it must start with the key of one of the checkout's top-level entries, so a sibling such
+    as <repo>2 or <repo>-old is left out. The names are lossy: a sibling named after a top-level entry
+    (<repo>-ops beside <repo>/ops) cannot be told apart and counts."""
+    if name == key or re.search(re.escape(key) + _SCRATCH, name):
+        return True
+    if not name.startswith(key + "-"):
+        return False
+    rest = name[len(key) + 1:]
+    return any(rest == e or rest.startswith(e + "-") for e in entries)
+
+
+def repo_project_dirs(projects: Path, checkout: Path) -> list[Path]:
     if not projects.is_dir():
         raise CountError(f"no Claude Code projects folder at {projects}")
-    return sorted(d for d in projects.iterdir() if d.is_dir() and key in d.name)
+    key = project_key(checkout)
+    try:
+        entries = tuple(project_key(e.name) for e in checkout.iterdir())
+    except OSError as e:
+        raise CountError(f"cannot list the checkout {checkout}: {e}") from None
+    dirs = sorted(d for d in projects.iterdir() if d.is_dir() and belongs(d.name, key, entries))
+    if not dirs:
+        raise CountError(f"no project folder in {projects} belongs to {checkout} (looked for {key})")
+    return dirs
 
 
 def _local_date(stamp) -> dt.date | None:
@@ -69,10 +95,11 @@ def _local_date(stamp) -> dt.date | None:
 
 
 def launches(files, since: dt.date, until: dt.date) -> tuple[dict[str, str], int]:
-    """tool call id -> agent type for the launches dated since..until; also how many lines could not be read."""
+    """tool call id -> agent type for the launches dated since..until; also how many launch lines could not be read.
+    A call repeated in a resumed session keeps its earliest date."""
     if until < since:
         raise CountError(f"--until {until} is before --since {since}")
-    found: dict[str, str] = {}
+    first: dict[str, tuple[dt.date, str]] = {}
     unreadable = 0
     for f in files:
         with open(f, encoding="utf-8", errors="replace") as fh:
@@ -82,7 +109,8 @@ def launches(files, since: dt.date, until: dt.date) -> tuple[dict[str, str], int
                 try:
                     rec = json.loads(line)
                 except json.JSONDecodeError:
-                    unreadable += 1
+                    if re.search(r'"name"\s*:\s*"(Agent|Task)"', line):
+                        unreadable += 1
                     continue
                 day = _local_date(rec.get("timestamp"))
                 content = (rec.get("message") or {}).get("content")
@@ -92,12 +120,14 @@ def launches(files, since: dt.date, until: dt.date) -> tuple[dict[str, str], int
                     if not (isinstance(part, dict) and part.get("type") == "tool_use"
                             and part.get("name") in LAUNCH_TOOLS):
                         continue
-                    if day is None:
+                    if day is None or not part.get("id"):
                         unreadable += 1
                         continue
-                    if since <= day <= until and part.get("id"):
-                        found[part["id"]] = (part.get("input") or {}).get("subagent_type") or DEFAULT_TYPE
-    return found, unreadable
+                    kind = (part.get("input") or {}).get("subagent_type") or DEFAULT_TYPE
+                    seen = first.get(part["id"])
+                    if seen is None or day < seen[0]:
+                        first[part["id"]] = (day, kind)
+    return {i: kind for i, (day, kind) in first.items() if since <= day <= until}, unreadable
 
 
 def every_launch(files, since: dt.date, until: dt.date) -> tuple[list[str], int]:
@@ -159,7 +189,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--json", action="store_true")
     args = ap.parse_args(argv)
     try:
-        dirs = repo_project_dirs(args.projects, project_key(main_checkout()))
+        dirs = repo_project_dirs(args.projects, main_checkout())
         files = [f for d in dirs for f in sorted(d.rglob("*.jsonl"))]
         metas = [f for d in dirs for f in sorted(d.rglob("*.meta.json")) if f.parent.name == "subagents"]
         found, bad_lines = launches(files, args.since, args.until)
