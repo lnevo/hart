@@ -223,6 +223,15 @@ class LayoutTest(unittest.TestCase):
         got = self.run_js("m.placeTags(a, [{x0: 350, y0: 5, x1: 500, y1: 15}])", boxes)
         self.assertEqual(got, [0, 2])
 
+    def test_line_note_names_both_ends_escaped(self) -> None:
+        """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
+        names = {"a": "a<b>.py", "b": "out & more"}
+        got = self.run_js("m.edgeTip(a[0], id => a[1][id])", [{"from": "a", "to": "b", "label": 'x "y"', "back": True}, names])
+        self.assertEqual(got, '<b>a&lt;b&gt;.py</b> → <b>out &amp; more</b><div>x &quot;y&quot;</div>'
+                              '<div class="off">feeds back to an earlier step</div>')
+        self.assertEqual(self.run_js("m.edgeTip(a[0], id => a[1][id])", [{"from": "a", "to": "b"}, names]),
+                         "<b>a&lt;b&gt;.py</b> → <b>out &amp; more</b>")
+
     def test_step_zero_is_raw_data_only_when_the_whole_graph_feeds_none_of_it(self) -> None:
         """firstColumnIsRaw: a filtered view whose first column a hidden box builds, or a folder box, is plain step 0."""
         cases = {
