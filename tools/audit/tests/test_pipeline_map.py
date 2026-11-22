@@ -465,6 +465,14 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("m.onlyOne(a, ['layout', 'wiring'], 'website')", lanes), [])
         self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
 
+    def test_settle_start_and_transform_forms(self) -> None:
+        """settleFrom: a box's old screen rect in drawing units through the screen matrix, with the scale its own width
+        fills it at; boxTransform gives the SVG attribute and, with px, the CSS form the glide animates."""
+        got = self.run_js("m.settleFrom({left: 110, top: 70, width: 40}, {a: 0.5, d: 0.5, e: 10, f: 20}, 40)", None)
+        self.assertEqual(got, {"x": 200, "y": 100, "k": 2})
+        self.assertEqual(self.run_js("[m.boxTransform({x: 1, y: 2}, 1, true), m.boxTransform({x: 1, y: 2}, 2, true)]", None),
+                         ["translate(1.0px,2.0px) scale(1.0000)", "translate(1.0px,2.0px) scale(2.0000)"])
+
     def test_box_growth_cap(self) -> None:
         """spreadGeo and spreadFor take a cap on box growth (the lanes' room): the boxes stop there, the steps go on, and n
         steps still fill the width."""
