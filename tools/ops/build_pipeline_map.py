@@ -396,7 +396,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 </div></details>
 <details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
 <b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">an unticked kind is bridged over, its links running straight through; its boxes where chains stop (the hosts lane, host and hand work) are left out with their links</span><div id="kindlist"></div>
+<b>Kinds</b> <span class="note">an unticked kind is bridged over, its links running straight through; its boxes where chains stop (the hosts lane, host, hand work and caches) are left out with their links</span><div id="kindlist"></div>
 <b>Also show</b>
 <label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
 <label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
@@ -426,7 +426,7 @@ to an earlier step.</div>
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
-out. A chain stops at deploy, host and hand-work boxes: they show, but the chain does not run on through them. A second row under the toolbar
+out. A chain stops at deploy, host, hand-work and cache boxes: they show, but the chain does not run on through them. A second row under the toolbar
 names the file and holds the step counters: left is what feeds it, right is what it feeds (0 hides that side, all runs to the end).
 <b>Start ▾</b> opens the chains people ask about most. A first visit gets a short tour of the controls; <b>?</b> runs it again.
 <b>Find</b> highlights the boxes that hold a piece of text.</div>

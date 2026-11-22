@@ -431,6 +431,12 @@ function chainOf(edges, id, stops) {
   return { up, down, lit: e => (up.has(e.from) && up.has(e.to)) || (down.has(e.from) && down.has(e.to)) };
 }
 
+/* Whether box n is a cache or stamp store under .cache/: it saves time, it does not feed content, so a chain does
+   not run on through it (a builder that reads it gives the same result without it). */
+function isCache(n) {
+  return !!n && /(^|\/)\.cache\//.test(`${n.label || ""} ${n.path || ""}`);
+}
+
 /* The chain one link from -> to belongs to: everything that feeds from and everything to feeds (chainOf, not
    walking on through a box where stops(box) is true, an end of the link included: a line out of a host does not
    light everything deployed to it), and the links inside it (lit). */
@@ -567,7 +573,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { isCache, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -597,8 +603,9 @@ function app() {
   /* ---- which boxes are shown */
   /* A chain is drawn through boxes but stops at deploy, hosts and runtime apps (the "hosts" lane) and at hand work:
      they are shown, not walked through, because everything deploys and the Pi's saved state comes back, so walking
-     through them would reach most of the map. */
-  const endsChain = id => nodeOf(id).domain === "hosts" || nodeOf(id).kind === "host" || nodeOf(id).kind === "human";
+     through them would reach most of the map. A chain also stops at a cache (isCache): it only saves time, so what
+     reads it does not depend on what wrote it. */
+  const endsChain = id => nodeOf(id).domain === "hosts" || nodeOf(id).kind === "host" || nodeOf(id).kind === "human" || isCache(nodeOf(id));
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
