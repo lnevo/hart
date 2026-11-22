@@ -467,7 +467,7 @@ process.stdout.write(JSON.stringify(out));"""
 
     def test_spread_geometry(self) -> None:
         """spreadGeo: the Width slider widens boxes, gaps and title lines k times; 1x is the geometry as it is."""
-        self.assertEqual(self.run_js("m.spreadGeo(m.NARROW, 2)", None), {"nodeW": 360, "colGap": 160, "titleWrap": 44})
+        self.assertEqual(self.run_js("m.spreadGeo(m.NARROW, 2)", None), {"nodeW": 360, "colGap": 160, "titleWrap": 44, "descWrap": 88})
         self.assertEqual(self.run_js("m.spreadGeo(m.WIDE, 1) === m.WIDE", None), True)
         wide = self.run_js("(() => { const g = m.spreadGeo(m.NARROW, 2.5);"
                            " const l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW), l2 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.2, g);"

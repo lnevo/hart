@@ -296,6 +296,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #rulers{position:absolute;inset:0;pointer-events:none;z-index:4;overflow:hidden}
 #rulers[hidden]{display:none}
 #steps{position:absolute;left:0;height:24px;overflow:hidden;background:rgba(250,250,250,.88);border-bottom:1px solid #ccc}
+#spreadctl[hidden]{display:none}
 #spreadctl{position:absolute;z-index:5;display:flex;align-items:center;gap:4px;height:22px;padding:0 6px;font-size:11px;font-weight:600;color:#475569;background:rgba(250,250,250,.95);border:1px solid #ccc;border-radius:4px;pointer-events:auto}
 #spreadctl input{width:90px;margin:0}
 #spreadn{min-width:30px}
@@ -400,8 +401,8 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 </head><body>__SITEHEADER__
 <div id="stage">
 <div id="wrap"></div>
-<div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div>
-<label id="spreadctl" title="Spread the steps across: wider boxes and gaps, the lanes keeping their height; drag back to 1× for the whole map">Width <input type="range" id="spread" min="1" max="4" step="0.25" value="1"> <span id="spreadn">1×</span></label></div>
+<div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
+<label id="spreadctl" hidden title="Spread the steps across: wider boxes and gaps, the lanes keeping their height; drag back to 1× for the whole map">Width <input type="range" id="spread" min="1" max="4" step="0.25" value="1"> <span id="spreadn">1×</span></label>
 <div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
 <label title="Type a file's name to draw its whole chain"><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
