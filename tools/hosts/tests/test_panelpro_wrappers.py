@@ -461,6 +461,32 @@ class Cleanup(WrapperCase):
         self.assertFalse(java_left, err)
         self.assert_restored(box.profile, box.original)
 
+    def test_a_launcher_not_yet_execd_counts_as_running(self) -> None:
+        # Just after the fork the launcher still shows the wrapper's command line. A first poll that soon
+        # once took it for a PanelPro that had quit ("PanelPro exited before ...", 3 in 1000 loaded runs).
+        # Here the launcher holds that state for 1.5 s, then becomes StartJMRI; the wait must time out (2).
+        script = self.box.tmp / "slow_exec.sh"
+        script.write_text(f"""set -euo pipefail
+ROOT={self.box.root}
+source "$ROOT/tools/hosts/panelpro_session.sh"
+PROFILE_ID=x
+PP_PIDS_FILE="$(mktemp)"
+PP_TMP_FILES+=("$PP_PIDS_FILE")
+( sleep 1.5; exec -a StartJMRI sleep 30 ) &
+PP_JPID=$!
+PP_PIDS="$PP_JPID"
+echo "$PP_JPID" >"$PP_PIDS_FILE"
+rc=0
+pp_wait_marker "$FAKE_STATE/never" 3 0.1 || rc=$?
+kill "$PP_JPID"
+rm -f "$PP_PIDS_FILE"
+echo "rc=$rc"
+""", encoding="utf-8")
+        done = subprocess.run(["/bin/bash", str(script)], env=self.box.env(), capture_output=True, text=True,
+                              preexec_fn=_default_signals, timeout=60)
+        self.assertEqual(0, done.returncode, done.stderr)
+        self.assertEqual("rc=2", done.stdout.strip(), done.stderr)
+
     def test_the_wait_helper_quits_when_the_wrapper_is_killed(self) -> None:
         # SIGKILL cannot be trapped: the helper (a fork of the wrapper's shell, same command line) must not
         # go on polling to the 60 s timeout. Java stays, as after any SIGKILL (the recovery note says so).

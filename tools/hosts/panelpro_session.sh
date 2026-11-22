@@ -216,7 +216,12 @@ _pp_ours() {
   local cmd
   cmd="$(ps -o command= -p "$1" 2>/dev/null)"
   if [[ "$1" == "$PP_JPID" ]]; then
-    [[ "$cmd" == *StartJMRI* ]]
+    # just forked and not yet exec'd, the launcher still shows this wrapper's command line: a first
+    # poll that came that soon took it for a PanelPro that had quit
+    [[ "$cmd" == *StartJMRI* ]] && return 0
+    local ppid
+    ppid="$(ps -o ppid= -p "$1" 2>/dev/null | tr -d ' ')"
+    [[ "$ppid" == "$$" && -n "$cmd" && "$cmd" == "$(ps -o command= -p $$ 2>/dev/null)" ]]
   else
     [[ "$cmd" == *"org.jmri.profile=$PROFILE_ID"* ]]
   fi
