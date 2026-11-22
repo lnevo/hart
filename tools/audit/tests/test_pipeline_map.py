@@ -309,6 +309,25 @@ process.stdout.write(JSON.stringify(out));"""
         got = self.run_js("(c => [...c.boxes].sort())(m.linkChain(a, 'host', 'past', id => id === 'host'))", edges)
         self.assertEqual(got, ["host", "past"])
 
+    def test_cache_stops_a_chain(self) -> None:
+        """isCache: a .cache/ store saves time and feeds no content, so on the real map the line from staging.json to
+        publish_draft.py (which writes the schematic cache) lights publish_draft's own outputs, not all tables.xml feeds."""
+        self.assertEqual(self.run_js("a.map(m.isCache)", [{"label": "<main checkout>/.cache/hart/schematic"},
+                                                         {"label": ".cache/panel-stamps (per checkout)"},
+                                                         {"label": "panel stamps", "path": ".cache/panel-stamps"},
+                                                         {"label": "docs/cache_notes.md", "path": "docs/cache_notes.md"},
+                                                         None]), [True, True, True, False, False])
+        # the map is read from its file: passed on the command line it is over Linux's per-argument limit
+        call = ("(g => { const by = {}; g.nodes.forEach(n => { by[n.id] = n; });"
+                " return [...m.linkChain(g.edges, 'jmri/layouts/hart/data/schematic/inputs/staging.json',"
+                " 'tools/schematic/publish_draft.py', id => m.stopsChain(by[id])).boxes]; })"
+                "(JSON.parse(require('fs').readFileSync(a, 'utf8')))")
+        lit = self.run_js(call, str(MAP.GRAPH))
+        self.assertIn("ext:schematic-cache", lit)  # the cache itself still lights, as an end
+        self.assertIn("docs/ops/schematic-system-draft.pdf", lit)  # publish_draft's own output
+        for past in ("tools/schematic/build_tables.py", "jmri/layouts/hart/output/tables.xml"):
+            self.assertNotIn(past, lit)  # reached only through the cache
+
     def test_line_note_names_both_ends_escaped(self) -> None:
         """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
         names = {"a": "a<b>.py", "b": "out & more"}
