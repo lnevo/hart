@@ -209,6 +209,11 @@ def _group_commands(pgid: int) -> str:
                      if len(line.split(None, 1)) == 2 and line.split(None, 1)[0] == str(pgid))
 
 
+def _wrapper_shells(box: "Sandbox", wrapper: str, pgid: int) -> int:
+    """How many processes in group PGID run WRAPPER's command line: its shell, and its wait helper (a fork)."""
+    return _group_commands(pgid).splitlines().count(" ".join(box.cmd(wrapper)))
+
+
 def _kill_group(pgid: int) -> None:
     try:
         os.killpg(pgid, signal.SIGKILL)
@@ -377,8 +382,9 @@ class Cleanup(WrapperCase):
 
     def signal_run(self, box: Sandbox, wrapper: str, sig: signal.Signals, ready=None,
                    **extra: str) -> tuple[int, str, bool]:
-        """Start WRAPPER with a hanging java, send SIG to the wrapper's pid alone once java runs (and READY(pgid),
-        when given, holds), and return (exit code, stderr, whether java still ran when the wrapper had exited).
+        """Start WRAPPER with a hanging java, send SIG to the wrapper's pid alone once java runs and READY(pgid)
+        holds (by default: the wait helper runs beside the wrapper's shell, so the shell has only builtins left
+        before its `wait`, no foreground step), and return (exit code, stderr, whether java still ran when the wrapper had exited).
         The run is its own process group, so nothing it started outlives the test; a run that does not exit is
         a failure that shows its output."""
         env = box.env(**{"FAKE_MODE": "hang", "HART_PANELPRO_TIMEOUT": "60", **extra})
@@ -388,8 +394,8 @@ class Cleanup(WrapperCase):
         try:
             java = box.java_pid()
             self.assertIn(b'enabled="no"', box.profile.read_bytes())   # patched while running
-            if ready is not None:
-                self.assertTrue(_wait_for(lambda: ready(proc.pid), 20), "the run never got ready for the signal")
+            ready = ready or (lambda pgid: _wrapper_shells(box, wrapper, pgid) >= 2)
+            self.assertTrue(_wait_for(lambda: ready(proc.pid), 20), "the run never got ready for the signal")
             proc.send_signal(sig)
             try:
                 _out, err = proc.communicate(timeout=30)
@@ -454,6 +460,25 @@ class Cleanup(WrapperCase):
         self.assertIn(f"Stopping the PanelPro this run started (pids {java})", err)   # java alone: launcher gone
         self.assertFalse(java_left, err)
         self.assert_restored(box.profile, box.original)
+
+    def test_the_wait_helper_quits_when_the_wrapper_is_killed(self) -> None:
+        # SIGKILL cannot be trapped: the helper (a fork of the wrapper's shell, same command line) must not
+        # go on polling to the 60 s timeout. Java stays, as after any SIGKILL (the recovery note says so).
+        box = self.new_box()
+        proc = subprocess.Popen(box.cmd("run_sml_discover.sh"), env=box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60"),
+                                cwd=box.tmp, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                preexec_fn=_default_signals, start_new_session=True)
+        try:
+            box.java_pid()
+            self.assertTrue(_wait_for(lambda: _wrapper_shells(box, "run_sml_discover.sh", proc.pid) >= 2, 20),
+                            "no wait helper beside the wrapper's shell")
+            proc.kill()
+            proc.wait()
+            self.assertTrue(_wait_for(lambda: _wrapper_shells(box, "run_sml_discover.sh", proc.pid) == 0, 10),
+                            "the wait helper still runs 10 s after the wrapper was killed:\n"
+                            + _group_commands(proc.pid))
+        finally:
+            _kill_group(proc.pid)
 
     def test_after_sigkill_the_next_run_refuses_and_restore_recovers(self) -> None:
         env = self.box.env(FAKE_MODE="hang", HART_PANELPRO_TIMEOUT="60")
