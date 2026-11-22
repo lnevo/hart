@@ -16,7 +16,8 @@ GENERATED = ("docs/pipeline-map/",)
 
 def is_docs(path: str) -> bool:
     path = path.strip().removeprefix("./")
-    if not path:
+    # git quotes a path with odd bytes (non-ASCII, quotes) in double quotes: not a plain name, so full
+    if not path or path.startswith('"'):
         return False
     if path.startswith(".claude/") or path.split("/")[-1] in AGENT_FILES:
         return False

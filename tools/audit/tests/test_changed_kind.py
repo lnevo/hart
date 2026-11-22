@@ -36,6 +36,9 @@ class ChangedKind(unittest.TestCase):
         self.assertEqual(kind(["wikipedia/x.py"]), "full")
         self.assertEqual(kind(["docsx/a.py"]), "full")
 
+    def test_git_quoted_path_is_full(self):
+        self.assertEqual(kind(['"wiki/caf\\303\\251.md"']), "full")
+
     def test_cli(self):
         script = Path(__file__).resolve().parents[3] / "tools" / "ci" / "changed_kind.py"
         out = subprocess.run([sys.executable, str(script)], input="wiki/a.md\n", capture_output=True, text=True)
