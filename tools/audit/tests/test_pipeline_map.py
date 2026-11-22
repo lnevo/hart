@@ -235,6 +235,11 @@ class LayoutTest(unittest.TestCase):
         return json.loads(subprocess.run([NODE, "-e", script, str(MAP.SCRIPT), json.dumps(arg)], capture_output=True,
                                          text=True, check=True).stdout)
 
+    def test_github_link_only_for_tracked_paths(self) -> None:
+        cases = [{"path": "www/data/a b.json"}, {"path": "external/x", "local": True}, {"path": ""}, {}]
+        out = self.run_js("a.map(m.githubUrl)", cases)
+        self.assertEqual(out, ["https://github.com/lnevo/hart/blob/main/www/data/a%20b.json", "", "", ""])
+
     def test_hidden_kinds_are_bridged_over(self) -> None:
         """contract: links run on through hidden boxes, keep the hidden boxes in via, and a direct link wins."""
         edges = [{"from": "a", "to": "s"}, {"from": "s", "to": "t"}, {"from": "t", "to": "b"}, {"from": "s", "to": "c"},
