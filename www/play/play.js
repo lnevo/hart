@@ -186,7 +186,7 @@ function finish(text,failed){
   else if(S.marks<=1){verdict="Good shift";cls="good"}
   else verdict="Marked up";
   const secs=[...new Set(S.misses.map(m=>m.sec))];
-  const missHtml=S.misses.length?S.misses.map(m=>`<details${m.end?" open":""}><summary>${esc(m.title)}</summary><p>${esc(m.why)}</p><p class="src">${srcHtml(m)} · <a href="${studyHref(m.sec)}">${m.sec==="pov"?"Read: ":"Study: "}${esc(SEC[m.sec])}</a></p></details>`).join(""):"<p>No rules or practices missed.</p>";
+  const missHtml=S.misses.length?S.misses.map(m=>`<details${m.end?" open":""}><summary>${esc(m.title)}</summary><p>${esc(m.why)}</p><p class="src">${srcHtml(m)} · <a href="${studyHref(m.sec)}">${m.sec==="pov"?"Read: ":"Study: "}${esc(SEC[m.sec])}</a></p></details>`).join(""):"<p>No rules missed.</p>";
   const el=scene(failed?hereName():D.endPlace,failed?"The shift ends":"Tied up",
     `<span class="xw-stamp ${cls}">${verdict}</span><p>${esc(text)}</p>
      <div class="xw-end"><div class="score"><div><b>${failed?"—":fmt(S.clock)}</b><span>Tied up at</span></div><div><b>${Math.floor(time/60)}h ${String(time%60).padStart(2,"0")}</b><span>On the job</span></div>${par!==null&&!failed?`<div><b>${Math.floor(par/60)}h ${String(Math.round(par)%60).padStart(2,"0")}</b><span>The work, no mistakes</span></div>`:""}<div><b>${S.marks}</b><span>Marks</span></div></div>
