@@ -69,32 +69,77 @@ class Worktree:
     lock_reason: str = ""  # git's lock text; Claude Code's agent locks name the session's "pid N"
 
 
-LOCK_PID = re.compile(r"\bpid (\d+)\b")
+LOCK_PID = re.compile(r"\bpid (\d{1,9})\b")
+LOCK_START = re.compile(r"\bstart (\w{3} \w{3} +\d{1,2} \d{2}:\d{2}:\d{2} \d{4})\b")
+LOCK_IDLE = timedelta(hours=1)  # a dead session's worktree must also be untouched this long
 
 
 def pid_running(pid: int) -> bool:
-    """Whether a process with this id exists (one owned by another user counts as running)."""
+    """Whether a process with this id exists. Anything but a clear "no such process" counts as running, so an
+    odd answer keeps the worktree."""
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
         return False
-    except PermissionError:
-        return True
-    except OSError:
+    except (OSError, OverflowError, ValueError):
         return True
     return True
 
 
-def lock_held(tree: Worktree) -> bool:
-    """Whether the worktree's lock still binds: any lock, unless its text names a pid whose process is gone.
+def process_start(pid: int) -> datetime | None:
+    """When the process started (local time, as ps prints it), or None when ps cannot say."""
+    try:
+        out = subprocess.run(["ps", "-o", "lstart=", "-p", str(pid)], capture_output=True, text=True, timeout=10)
+        return datetime.strptime(" ".join(out.stdout.split()), "%a %b %d %H:%M:%S %Y")
+    except (OSError, subprocess.SubprocessError, ValueError):
+        return None
+
+
+def lock_session_gone(reason: str) -> bool:
+    """Whether the lock text names a session that has exited: its pid runs no process, or runs one that started
+    at another time than the lock records (the pid was reused). Unparseable text never counts as gone."""
+    m = LOCK_PID.search(reason)
+    if m is None:
+        return False
+    pid = int(m.group(1))
+    if not pid_running(pid):
+        return True
+    s = LOCK_START.search(reason)
+    if s is None:
+        return False
+    try:
+        recorded = datetime.strptime(" ".join(s.group(1).split()), "%a %b %d %H:%M:%S %Y")
+    except ValueError:
+        return False
+    started = process_start(pid)
+    return started is not None and abs((started - recorded).total_seconds()) > 2
+
+
+def idle_since(path: str) -> datetime | None:
+    """The latest change time of the worktree's own git files (HEAD, index), or None when unreadable."""
+    try:
+        gitdir = Path(path) / ".git"
+        base = Path(gitdir.read_text().split("gitdir:", 1)[1].strip()) if gitdir.is_file() else gitdir
+        stamps = [f.stat().st_mtime for f in (base / "HEAD", base / "index") if f.exists()]
+        return datetime.fromtimestamp(max(stamps), timezone.utc) if stamps else None
+    except (OSError, IndexError):
+        return None
+
+
+def lock_held(tree: Worktree, now: datetime | None = None) -> bool:
+    """Whether the worktree's lock still binds.
 
     Claude Code locks each agent worktree to its session's pid so the agent can be resumed. Once that session
-    has exited the lock protects nothing, so the sweep treats it as no lock (owner, 2026-11-21). A live
-    session's lock, or a lock with no pid, is respected."""
+    has exited the lock protects nothing (owner, 2026-11-21), so it no longer binds when the session is gone
+    and nothing in the worktree changed for LOCK_IDLE (a guard for a sweep that cannot see the session's
+    process, such as one in another pid namespace). A live session's lock, or one with no pid, still binds."""
     if not tree.locked:
         return False
-    m = LOCK_PID.search(tree.lock_reason)
-    return True if m is None else pid_running(int(m.group(1)))
+    if not lock_session_gone(tree.lock_reason):
+        return True
+    last = idle_since(tree.path)
+    now = now or datetime.now(timezone.utc)
+    return last is None or now - last < LOCK_IDLE
 
 
 def git(*args: str, cwd: str | Path | None = None, check: bool = False) -> str:
@@ -231,7 +276,7 @@ def plan(trees: list[Worktree], merged, keep: list[str], dirty, now: datetime | 
             continue  # open work or a fresh worktree
         if home is not None and not under(tree.path, home):
             kept.append((tree, "outside, kept (not under .claude/worktrees/ of its repository)"))
-        elif lock_held(tree):
+        elif lock_held(tree, now):
             kept.append((tree, "locked"))
         elif inside(tree.path, keep):
             kept.append((tree, "in use by this session; a later sweep removes it"))
@@ -389,11 +434,16 @@ def sweep_repo(main: str, trees: list[Worktree], dry_run: bool, keep: list[str],
             continue
         began = time.monotonic()
         try:
-            if tree.locked:
-                git("worktree", "unlock", tree.path, cwd=main)  # planned only when its session has exited
+            if tree.locked:  # planned only when its session has exited and it sat idle
+                unlocked = git_run("worktree", "unlock", tree.path, cwd=main)
+                if unlocked.returncode != 0:
+                    lines.append(f"kept {tree.path}: git worktree unlock refused: {unlocked.stderr.strip()}")
+                    continue
             if os.path.isdir(tree.path):
                 why = remove_worktree(tree.path, main)
                 if why:
+                    if tree.locked:  # put the lock back as it was, so the refusal changes nothing
+                        git_run("worktree", "lock", "--reason", tree.lock_reason, tree.path, cwd=main)
                     lines.append(f"kept {tree.path}: {why}")
                     continue
             git("worktree", "prune", cwd=main)
