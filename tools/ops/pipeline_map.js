@@ -341,6 +341,14 @@ function clampView(v, W, left, free, maxW) {
 /* The graph with the boxes hide(id) is true for taken out and bridged over: each link into a hidden box is joined to
    every shown box beyond it, through any run of hidden boxes, and the new link keeps the hidden boxes in via. So
    with the scripts hidden, a data file links straight to what it ends up in. */
+/* The graph with the boxes hide(id) is true for taken away: those drop(id) is also true for (host and hand-work
+   boxes, where chains stop) are left out with their links, since bridging over them would join most of the map;
+   the rest are bridged over (contract). */
+function hideBoxes(nodes, edges, hide, drop) {
+  const kept = nodes.filter(n => !(hide(n.id) && drop(n.id))), ids = new Set(kept.map(n => n.id));
+  return contract(kept, edges.filter(e => ids.has(e.from) && ids.has(e.to)), hide);
+}
+
 function contract(nodes, edges, hide) {
   const outs = {};
   edges.forEach(e => (outs[e.from] ||= []).push(e));
@@ -408,7 +416,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -443,18 +451,18 @@ function app() {
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
-     are bridged over (contract), so the links run on through them; a hidden box where chains stop (endsChain) is
-     left out with its links instead, since bridging over a deploy would join most of the map. The picked file always
-     stays. */
+     are bridged over, so the links run on through them, except host and hand-work boxes, which are left out with
+     their links (hideBoxes). The picked file always stays. */
+  const dropKind = k => k === "host" || k === "human";
   let g1Key = null, g1 = null, ins1 = {}, outs1 = {};
   function filtered() {
     const key = JSON.stringify([view.parked, view.retired, [...view.kindsOff].sort(), view.focus]);
     if (key === g1Key) return g1;
     const ok = n => n.id === view.focus || !n.status || n.status === "live" || view[n.status];
-    const hidden = id => id !== view.focus && view.kindsOff.has(byId[id].kind);
-    const nodes = DATA.nodes.filter(n => ok(n) && !(hidden(n.id) && endsChain(n.id))), ids = new Set(nodes.map(n => n.id));
+    const nodes = DATA.nodes.filter(ok), ids = new Set(nodes.map(n => n.id));
     const edges = DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to));
-    g1 = !view.kindsOff.size ? { nodes, edges } : contract(nodes, edges, hidden);
+    g1 = !view.kindsOff.size ? { nodes, edges }
+      : hideBoxes(nodes, edges, id => id !== view.focus && view.kindsOff.has(byId[id].kind), id => dropKind(byId[id].kind));
     g1.edges = g1.edges.map(e => !e.via ? e : { ...e, label: e.via.length === 1 ? "via " + byId[e.via[0]].label : `via ${e.via.length} steps` });
     ins1 = {}; outs1 = {};
     g1.edges.forEach(e => { (outs1[e.from] ||= []).push(e); (ins1[e.to] ||= []).push(e); });
@@ -636,7 +644,10 @@ function app() {
     const parts = [];
     if (view.focus) parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
     if (sub.trim) parts.push(selected === view.focus ? "highlighted only" : `only the chain of <b>${esc(nodeOf(selected).label)}</b>`);
-    if (view.kindsOff.size) parts.push(`${[...view.kindsOff].map(k => DATA.kinds[k][0].toLowerCase()).join(", ")} bridged over`);
+    const kindNames = ks => ks.map(k => DATA.kinds[k][0].toLowerCase()).join(", ");
+    const bridged = [...view.kindsOff].filter(k => !dropKind(k)), dropped = [...view.kindsOff].filter(dropKind);
+    if (bridged.length) parts.push(`${kindNames(bridged)} bridged over`);
+    if (dropped.length) parts.push(`${kindNames(dropped)} left out`);
     if (view.group && !view.focus) parts.push("grouped by folder");
     const lanesOff = allLanes.filter(d => !view.lanes.has(d));
     if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
@@ -878,7 +889,7 @@ function app() {
       <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
       <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
       ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
-      ${view.kindsOff.size ? '<div class="off">Links as drawn, with the hidden kinds bridged over.</div>' : ""}
+      ${view.kindsOff.size ? `<div class="off">Links as drawn, with the hidden kinds bridged over${[...view.kindsOff].some(dropKind) ? " (host and hand-work boxes left out)" : ""}.</div>` : ""}
       <b>Fed by</b><ul>${((view.kindsOff.size ? ins1 : insAll)[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
       <b>Feeds</b><ul>${((view.kindsOff.size ? outs1 : outsAll)[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
       <div style="color:#666">${fullUp} upstream, ${fullDown} downstream in the whole map.</div>`;
@@ -1152,8 +1163,8 @@ function app() {
 
   /* ---- lanes, kinds and status filters */
   const kindsBox = document.getElementById("kindlist");
-  /* Every kind but folder can be hidden; host and hand-work boxes, where chains stop, are then left out rather than
-     bridged over (filtered()). */
+  /* Every kind but folder can be hidden; host and hand-work boxes are then left out rather than bridged over
+     (filtered()). */
   const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder";
   kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
     `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>`).join("<br>");
