@@ -330,6 +330,11 @@ svg.focus .fl{opacity:.3}
 svg.focus .fl.on{opacity:.7}
 svg.focus .fl.near,svg.focus .fl.sel,svg.focus .fl.hn{opacity:1}
 svg.hovering .edge{stroke-opacity:.25}
+.eh{fill:none;stroke:transparent;stroke-width:10;pointer-events:stroke}
+svg.far .eh{vector-effect:non-scaling-stroke;stroke-width:6px}
+#etip{position:fixed;z-index:9;pointer-events:none;padding:5px 8px;font-size:12px;max-width:360px}
+#etip[hidden]{display:none}
+#etip .off{color:#888;font-size:11px}
 svg.hovering .edge.he.he{stroke:#7c3aed;stroke-opacity:1;opacity:1;stroke-width:2.5px}
 svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
 svg.hovering .fl.hn .fb{stroke:#7c3aed;stroke-width:2px}
@@ -391,7 +396,7 @@ __SITECSS__</style></head><body>__SITEHEADER__
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)__LEGEND__
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, the boxes' own text is too small to read, so the boxes with the most links get name tags, as many as fit; hover a box to light its links and tag the boxes at their other ends. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, the boxes' own text is too small to read, so the boxes with the most links get name tags, as many as fit; hover a box to light its links and tag the boxes at their other ends, or hover a line to see what it links. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left

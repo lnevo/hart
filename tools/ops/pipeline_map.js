@@ -622,8 +622,38 @@ function app() {
     showFar(placed);
   }
   /* Hovering a box lights its own links and the boxes at their other ends, at any zoom, without selecting it. */
+  /* Hovering a link (edge: its index in lay.edges) lights it and the boxes at its two ends, and a note by the pointer
+     names them and the link's label. */
+  const etip = document.createElement("div");
+  etip.id = "etip"; etip.className = "panel"; etip.hidden = true; document.getElementById("stage").append(etip);
+  let hoverEdge = null;
+  function placeTip() {
+    if (etip.hidden || !ptr) return;
+    const w = etip.offsetWidth, h = etip.offsetHeight;
+    etip.style.left = `${Math.min(ptr.x + 14, innerWidth - w - 8)}px`;
+    etip.style.top = `${ptr.y + 18 + h > innerHeight - 8 ? ptr.y - h - 12 : ptr.y + 18}px`;
+  }
+  function setEdgeHover(i) {
+    if (i === hoverEdge || !svg) return;
+    if (hoverId) setHover(null);
+    svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
+    const e = i === null ? null : lay.edges[i];
+    hoverEdge = e ? i : null;
+    svg.classList.toggle("hovering", !!e);
+    etip.hidden = !e;
+    if (e) {
+      edgeEls[i].classList.add("he");
+      [e.from, e.to].forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
+      const name = id => esc(nodeOf(id).label);
+      etip.innerHTML = `<b>${name(e.from)}</b> → <b>${name(e.to)}</b>` + (e.label ? `<div>${esc(e.label)}</div>` : "") +
+        (e.back ? '<div class="off">feeds back to an earlier step</div>' : "");
+      placeTip();
+    }
+    updateFar();
+  }
   function setHover(id) {
     if (id === hoverId || !svg) return;
+    if (hoverEdge !== null) setEdgeHover(null);
     svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn"));
     hoverId = id && nodeEl[id] ? id : null;
     svg.classList.toggle("hovering", !!hoverId);
@@ -639,9 +669,11 @@ function app() {
   wrapEl.addEventListener("pointerover", e => {
     if (drag) return;
     const g = e.target.closest && e.target.closest(".node,.fl");
+    if (!g && e.target.classList && e.target.classList.contains("eh")) { setEdgeHover(Number(e.target.dataset.edge)); return; }
+    setEdgeHover(null);
     setHover(g ? g.dataset.id : null);
   });
-  wrapEl.addEventListener("pointerleave", () => setHover(null));
+  wrapEl.addEventListener("pointerleave", () => { setHover(null); setEdgeHover(null); });
 
   function drawSvg(lay) {
     W = lay.width + LEFT + 60; H = Math.max(lay.height, 200);
@@ -657,8 +689,11 @@ function app() {
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
       p.push(`<path class="edge${e.back ? " back" : ""}" id="e${i}" data-from="${esc(e.from)}" data-to="${esc(e.to)}" ` +
-        `d="${pathD(e.pts)}" marker-end="url(#arrow)"><title>${esc(e.from)} → ${esc(e.to)}${e.label ? " (" + esc(e.label) + ")" : ""}</title></path>`);
+        `d="${pathD(e.pts)}" marker-end="url(#arrow)"/>`);
     });
+    // a wide invisible copy of each link takes the pointer, so a thin line is easy to hover (setHover)
+    p.push('</g><g id="ehit">');
+    lay.edges.forEach((e, i) => p.push(`<path class="eh" data-edge="${i}" d="${pathD(e.pts)}"/>`));
     p.push(`</g><g id="elabels"${document.getElementById("labels").checked ? "" : ' class="hidden"'}>`);
     lay.edges.forEach((e, i) => { if (e.label) p.push(`<text class="elabel" data-edge="e${i}">${esc(e.label)}</text>`); });
     p.push('</g><g id="nodes">');
@@ -706,7 +741,7 @@ function app() {
     nodeEl = {};
     svg.querySelectorAll(".node").forEach(g => (nodeEl[g.dataset.id] = g));
     edgeEls = [...svg.querySelectorAll(".edge")];
-    farEl = {}; farShown = new Set(); degree = {}; edgesAt = {}; hoverId = null; laneBack = null;
+    farEl = {}; farShown = new Set(); degree = {}; edgesAt = {}; hoverId = null; hoverEdge = null; etip.hidden = true; laneBack = null;
     closeLens();  // the lens holds a copy of the old drawing
     svg.querySelectorAll(".fl").forEach(g => (farEl[g.dataset.id] = g));
     edgeEls.forEach(el => [el.dataset.from, el.dataset.to].forEach(v => { degree[v] = (degree[v] || 0) + 1; (edgesAt[v] ||= []).push(el); }));
@@ -995,7 +1030,7 @@ function app() {
   const lens = document.createElement("div"), LENS = 320;
   lens.id = "lens"; lens.hidden = true; document.getElementById("stage").append(lens);
   let ptr = null, lensSvg = null;
-  wrapEl.addEventListener("pointermove", e => { ptr = { x: e.clientX, y: e.clientY }; if (lensSvg) moveLens(); });
+  wrapEl.addEventListener("pointermove", e => { ptr = { x: e.clientX, y: e.clientY }; if (lensSvg) moveLens(); placeTip(); });
   wrapEl.addEventListener("pointerleave", () => { ptr = null; closeLens(); });
   function openLens() {
     if (!ptr || !svg) return;
