@@ -1,25 +1,32 @@
 #!/usr/bin/env python3
-"""Stamps for the jobs of tools/check.sh: a job whose stamp equals its last pass is skipped on a local run.
+"""Traced stamps for the jobs of tools/check.sh: a job whose recorded reads are unchanged since its last pass is skipped.
 
-    check_stamps.py current NAME [--save FILE]   exit 0 when NAME's stamp equals the recorded one (skip the job),
-                                                 1 when it must run (the stamp it would record goes to FILE),
-                                                 2 when NAME is not stampable now (run it, record nothing)
-    check_stamps.py record  NAME FILE            record the stamp saved in FILE (check.sh does it after the job passed)
-    check_stamps.py declared NAME                the patterns NAME's stamp covers
-    check_stamps.py audit-report DIR             compare the files a CHECK_AUDIT run opened with the declarations
+    check_stamps.py current NAME [--save FILE]           exit 0 when NAME's stamp still holds (skip the job),
+                                                         1 when it must run (and may record: FILE is written),
+                                                         2 when NAME is not stampable now (run it, record nothing)
+    check_stamps.py record  NAME FILE --trace LOG        record NAME's stamp from the trace of the run that passed
+    check_stamps.py why     NAME                         say why NAME is not current
+    check_stamps.py declared NAME                        the patterns NAME falls back to (an untraceable program)
+    check_stamps.py audit-report DIR                     compare the files a CHECK_AUDIT run opened with the declarations
 
-A stamp is panel_stamps.digest over the job name, tools/check.sh itself, the Python and the plugin's state, and every
-file the job's declaration names (`declared`). It is taken before the job starts and recorded after it passed, so a file
-edited while the job ran leaves the next run to repeat it. Nothing is skipped or recorded while HART_TABLES is set or
-the schematic plugin is not at its pinned commit (panel_stamps.unstampable), and check.sh never asks when CI is set or
-FULL=1. Stamps hold content hashes, not paths, so they sit in one per-user folder (<main checkout>/.cache/hart/check-stamps, gitignored, or
-CHECK_STAMPS_DIR) that every worktree and `make remote` run shares; a file hash is reused while its size and mtime stay.
+check.sh runs each job under the trace hook of tools/audit/traced.py (shared with make panels): every repo file the
+job's Python processes open, every file they probe and find absent, every folder they list and every subprocess they
+start goes to a log. After a pass the stamp records that read set with its hashes and a key: panel_stamps.digest over
+the job name, tools/check.sh and the hook, the Python and the plugin's state, what the job reads from outside the
+repo (outside_state), and the output of each read-only git command it ran (run again at compare time). The next run
+skips the job only when the key and every read-set entry match, so an edit re-runs only the jobs that read the file.
+A job that ran a program the hook cannot see (bash, a writing git, a Python child with the hook dropped) inside the
+checkout falls back to its declaration (`declared`, wide on purpose: whole folders) as well, as before the traces.
+Nothing is skipped or recorded while HART_TABLES is set or the schematic plugin is not at its pinned commit
+(panel_stamps.unstampable), for a trace that is missing or short of a Python process, or when a file the job read
+changed while it ran; check.sh never skips when CI is set, FULL=1 or CHECK_AUDIT (FULL=1 still records). Stamps hold
+content hashes and repo-relative paths, so they sit in one per-user folder (<main checkout>/.cache/hart/check-stamps,
+gitignored, or CHECK_STAMPS_DIR) that every worktree and `make remote` run shares; a file hash is reused while its
+size and mtime stay.
 
-The risk is an input a declaration misses. tests/test_check_stamps.py runs check.sh under CHECK_AUDIT for the quick
-jobs: tools/audit/stamp_audit/sitecustomize.py logs every repo file the job's Python processes open or list, and the test
-fails for any the declaration does not cover. `CHECK_AUDIT=DIR FULL=1 tools/check.sh` then `audit-report DIR` does it for
-every job (unit-hosts test_live_paths fails there: it finds the hook an unlisted builder input). What the hook cannot see: a non-Python subprocess (git, bash) and the plugin's files (covered by its commit).
-Declarations are wide on purpose: a job names whole folders, so a new file in them can never be missed.
+tests/test_check_stamps.py checks that a recorded read set holds everything an independent audit hook
+(tools/audit/stamp_audit/sitecustomize.py, CHECK_AUDIT) saw the same jobs open or list. What neither hook can see:
+the plugin's files (covered by its commit).
 """
 from __future__ import annotations
 
@@ -35,6 +42,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools" / "schematic"))
 import panel_stamps as ps  # noqa: E402
 
+traced = ps.traced
 sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
 from hartlib.paths import cache_dir, main_checkout  # noqa: E402
 
@@ -214,14 +222,16 @@ def venv_state(python: Path) -> str:
     return "|".join(out)
 
 
-def outside_state(name: str, root: Path, cache: "HashCache") -> str:
-    """What the jobs read from outside the declared files: the private AnyRail plan, the interpreters and their
-    packages, the files git tracks (names only: a git-reading check follows a file being added or removed), the
-    environment that picks other inputs, and, for the checks that read git history, HEAD and the merge base."""
+def outside_state(name: str, root: Path, cache: "HashCache", wide: bool = False) -> str:
+    """What the jobs read from outside the traced files: the private AnyRail plan, the interpreters and their
+    packages, the environment that picks other inputs, and, for the checks that read git history, HEAD and the merge
+    base. `wide` (a job that ran an untraceable program) adds the names of the files git tracks or would add."""
     plan = plan_file()
     parts = [f"plan={cache(plan) if plan.is_file() else 'absent'}",
-             f"python3={venv_state(Path(sys.executable))}",
-             "tracked=" + hashlib.sha256(_run("git", "ls-files", "-co", "--exclude-standard", cwd=root).encode()).hexdigest()]
+             f"python3={venv_state(Path(sys.executable))}"]
+    if wide:
+        parts.append("tracked=" + hashlib.sha256(
+            _run("git", "ls-files", "-co", "--exclude-standard", cwd=root).encode()).hexdigest())
     hops = root / "ops/hart-ops/.venv/bin/python"
     if name in ("unit-hart-ops", "public-text") and hops.exists():
         parts.append(f"hops={venv_state(hops)}")
@@ -238,31 +248,80 @@ def not_stampable(name: str) -> str | None:
     return ps.unstampable(ROOT)         # also while HART_TABLES is set, for every job: the unit jobs run without it
 
 
-def stamp(name: str, root: Path = ROOT, store: Path = STORE) -> str:
-    pats = declared(name)
-    assert pats is not None
-    cache = HashCache(store / "filehash.json")
-    try:
-        return ps.digest(f"check:{name}", (), pats, root, hasher=cache, files=walk(pats, root),
-                         extra=outside_state(name, root, cache))
-    finally:
-        cache.save()
+ALWAYS = ("tools/check.sh", *traced.HOOK_FILES)
+
+
+def _patterns(name: str, programs: list[str]) -> tuple[str, ...]:
+    """What the key hashes by pattern: check.sh and the hook, and the whole declaration after an untraceable program."""
+    return (*ALWAYS, *(declared(name) or ())) if programs else ALWAYS
+
+
+def key(name: str, root: Path, cache: "HashCache", programs: list[str], gits: list) -> str:
+    """The stamp key: job, check.sh and the hook, interpreter, plugin, outside state and git output now, and, for a job
+    that ran an untraceable program, every file its declaration names."""
+    pats = _patterns(name, programs)
+    extra = (outside_state(name, root, cache, bool(programs)) + f"\nprograms={','.join(programs)}"
+             + f"\ngit={','.join(traced.git_replay(gits, str(root)))}")
+    return ps.digest(f"check:{name}", (), pats, root, hasher=cache, files=walk(pats, root), extra=extra)
 
 
 def _file(name: str, store: Path = STORE) -> Path:
     slug = "".join(c if c.isalnum() else "_" for c in name)[:60]
-    return store / f"{slug}-{hashlib.sha256(name.encode()).hexdigest()[:10]}.sha256"
+    return store / f"{slug}-{hashlib.sha256(name.encode()).hexdigest()[:10]}.json"
 
 
-def is_current(name: str, root: Path = ROOT, store: Path = STORE) -> tuple[bool, str]:
-    s = stamp(name, root, store)
-    f = _file(name, store)
-    return f.is_file() and f.read_text().strip() == s, s
+def why_not_current(name: str, root: Path = ROOT, store: Path = STORE) -> str | None:
+    """None when job `name` may be skipped, else why it must run."""
+    stamp = traced.load(_file(name, store))
+    if not stamp:
+        return "no stamp"
+    cache = HashCache(store / "filehash.json")
+    try:
+        k = key(name, root, cache, stamp.get("programs", []), stamp.get("git", []))
+        return traced.mismatch(stamp, k, str(root), hasher=lambda p: cache(Path(p)))
+    finally:
+        cache.save()
 
 
-def record(name: str, stamp_text: str, store: Path = STORE) -> None:
-    store.mkdir(parents=True, exist_ok=True)
-    _file(name, store).write_text(stamp_text.strip() + "\n")
+def is_current(name: str, root: Path = ROOT, store: Path = STORE) -> bool:
+    return why_not_current(name, root, store) is None
+
+
+def snapshot(name: str, root: Path = ROOT, store: Path = STORE) -> str:
+    """traced.snapshot with the plugin's and `name`'s outside state: saved before the job, compared at record."""
+    cache = HashCache(store / "filehash.json")
+    try:
+        return traced.snapshot(root, ps.plugin_state(root), outside_state(name, root, cache, True))
+    finally:
+        cache.save()
+
+
+def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before: str | None = None) -> str | None:
+    """Record `name`'s stamp from `trace_log`; None when recorded, else why not (any old stamp is dropped).
+    `before` is the snapshot() taken before the job: a different one now records nothing."""
+    t = traced.parse(trace_log)
+    reason = traced.problem(t)
+    if reason is None and before is not None and before != snapshot(name, root, store):
+        reason = "HEAD, origin/main, the plugin, an interpreter or the private plan changed while the job ran"
+    if reason is None:
+        main = main_checkout(root)
+        programs, gits = traced.untraced(t, str(root), (str(main),) if main else ())
+        rs = traced.read_set(t, str(root))
+        cache = HashCache(store / "filehash.json")
+        try:
+            hashed = [p.relative_to(root).as_posix() for p in walk(_patterns(name, programs), root)]
+            late = traced.changed_since(t, rs, str(root), hashed)
+            if late:
+                reason = f"{late[0]} changed while the job ran"
+            else:
+                k = key(name, root, cache, programs, gits)
+                traced.save(_file(name, store), traced.make_stamp(k, t, str(root), hasher=lambda p: cache(Path(p)),
+                                                                  programs=programs, git=gits))
+                return None
+        finally:
+            cache.save()
+    _file(name, store).unlink(missing_ok=True)
+    return reason
 
 
 # ---- the audit ----
@@ -318,13 +377,18 @@ def main(argv: list[str] | None = None) -> int:
             save = Path(argv[argv.index("--save") + 1])
         if not_stampable(name):
             return 2
-        ok, s = is_current(name)
+        ok = is_current(name)
         if save:
-            save.write_text(s + "\n")
+            save.write_text(snapshot(name) + "\n")
         return 0 if ok else 1
-    if len(argv) == 3 and argv[0] == "record":
+    if len(argv) == 2 and argv[0] == "why":
+        print(not_stampable(argv[1]) or why_not_current(argv[1]) or "current")
+        return 0
+    if len(argv) == 5 and argv[0] == "record" and argv[3] == "--trace":
         if not_stampable(argv[1]) is None:
-            record(argv[1], Path(argv[2]).read_text())
+            reason = record(argv[1], argv[4], before=Path(argv[2]).read_text().strip())
+            if reason:
+                print(f"not stamped: {reason}")
         return 0
     if len(argv) == 2 and argv[0] == "declared":
         print("\n".join(declared(argv[1]) or ()))

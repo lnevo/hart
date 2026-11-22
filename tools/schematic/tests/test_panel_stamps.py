@@ -1,5 +1,5 @@
-"""panel_stamps: the stamps that let `make panels` skip a step whose inputs and outputs are what its last run left,
-the sml-current guard, and the audit that pins every step's declared inputs."""
+"""panel_stamps: the traced stamps that let `make panels` skip a step whose reads and outputs are what its last run
+left, the sml-current guard, and the audit that the trace sees at least what an independent audit hook sees."""
 from __future__ import annotations
 
 import os
@@ -42,23 +42,17 @@ class DeclarationTest(unittest.TestCase):
                     self.assertTrue(ps.expand([pat]), f"{pat} matches nothing")
 
     def test_the_device_master_is_two_files(self) -> None:
-        """The device-map and masts steps write devices_generated.csv; every step that reads the master (its
-        generated file) reads the owner's field file too, so a hand edit there makes the step stale (ADR-029
-        amendment). The names are pinned to hartlib.devices by test_devices_one_path."""
+        """The device-map and masts steps write devices_generated.csv; no step writes the owner's field file, so a hand
+        edit there is an input (the trace sees every step that reads it). The names are pinned to hartlib.devices by
+        test_devices_one_path."""
         generated, field = f"{ps.DATA}/{ps.DEVICES_FILE}", f"{ps.DATA}/{ps.DEVICES_FIELD_FILE}"
         self.assertEqual([n for n, s in ps.STEPS.items() if generated in s.outputs], ["device-map", "masts"])
-        self.assertFalse([n for n, s in ps.STEPS.items() if field in s.outputs])     # the owner's: no step writes it
-        for name in ps.STEPS:
-            if ps.covered(generated, name):
-                with self.subTest(step=name):
-                    self.assertTrue(ps.covered(field, name), f"{name} reads the master but not {field}")
+        self.assertFalse([n for n, s in ps.STEPS.items() if field in s.outputs])
 
-    def test_the_shared_build_cache_is_no_input_and_no_undeclared_folder(self) -> None:
-        for name in ps.STEPS:
-            with self.subTest(step=name):
-                self.assertTrue(ps.covered(".cache/hart/plan-merged/abc/plan_overrides.json", name))
-                for folder in (".cache", ".cache/hart/plan-merged/abc"):
-                    self.assertTrue(ps.dir_covered(folder, name), folder)
+    def test_the_trace_hook_is_code_of_every_step(self) -> None:
+        for f in ps.traced.HOOK_FILES:
+            self.assertIn(f, ps.CODE)
+            self.assertTrue((REPO / f).is_file(), f)
 
     def test_glob_matching_follows_path_glob(self) -> None:
         self.assertTrue(ps._glob_match("a/b/c.py", "a/**/*.py"))
@@ -68,22 +62,43 @@ class DeclarationTest(unittest.TestCase):
 
 
 class StampTest(unittest.TestCase):
-    """A fake repo holding the head-plan step's files."""
+    """A fake repo holding the head-plan step's output; the step is a script run under the real trace hook."""
+
+    STEP = ("import os\n"
+            "open('jmri/layouts/hart/data/wiring.csv').read()\n"
+            "os.path.exists('jmri/layouts/hart/data/later.csv')\n"
+            "sorted(os.listdir('jmri/layouts/hart/data/schematic'))\n"
+            "open('.cache/hart/x.json').read()\n")
 
     def setUp(self) -> None:
-        self.tmp = Path(tempfile.mkdtemp())
+        self.tmp = Path(tempfile.mkdtemp()).resolve()
         self.addCleanup(shutil.rmtree, self.tmp)
         self.root, self.store = self.tmp / "repo", self.tmp / "stamps"
         for rel, text in {"jmri/layouts/hart/data/wiring.csv": "w\n",
                           "jmri/layouts/hart/data/schematic/lcos_nodes.csv": "n\n",
+                          "jmri/layouts/hart/data/switches.csv": "s\n",
                           "jmri/layouts/hart/output/signal_head_plan.csv": "p\n",
+                          ".cache/hart/x.json": "c\n",
                           "tools/schematic/x.py": "code\n"}.items():
             (self.root / rel).parent.mkdir(parents=True, exist_ok=True)
             (self.root / rel).write_text(text)
         self.cmd = ["python3", "build.py"]
-        patch = unittest.mock.patch.object(ps, "unstampable", return_value=None)
-        patch.start()
-        self.addCleanup(patch.stop)
+        for target in ("unstampable", "_main_checkout"):
+            patch = unittest.mock.patch.object(ps, target, return_value=None)
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def run_step(self, code: str | None = None, roots: int = 1) -> Path:
+        log = self.tmp / "trace.log"
+        log.write_text("0\tb\n" * roots)
+        (self.root / "build.py").write_text(code or self.STEP)
+        env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
+        env.update(HART_TRACE_LOG=str(log), HART_TRACE_ROOT=str(self.root), PYTHONPATH=ps.traced.HOOK_DIR)
+        subprocess.run([sys.executable, "build.py"], cwd=self.root, env=env, check=True, capture_output=True)
+        return log
+
+    def record(self, code: str | None = None, name: str = "head-plan", **kw) -> str | None:
+        return ps.record(name, self.run_step(code, **kw), self.cmd, self.root, self.store)
 
     def current(self, name="head-plan", cmd=None) -> bool:
         return ps.is_current(name, self.cmd if cmd is None else cmd, self.root, self.store)
@@ -92,36 +107,71 @@ class StampTest(unittest.TestCase):
         self.assertFalse(self.current())
 
     def test_hit_after_record(self) -> None:
-        ps.record("head-plan", self.cmd, self.root, self.store)
+        self.assertIsNone(self.record())
         self.assertTrue(self.current())
 
-    def test_miss_when_an_input_changes(self) -> None:
-        ps.record("head-plan", self.cmd, self.root, self.store)
+    def test_miss_when_a_file_it_read_changes_and_not_for_one_it_did_not(self) -> None:
+        self.record()
+        (self.root / "jmri/layouts/hart/data/switches.csv").write_text("s2\n")
+        self.assertTrue(self.current(), "switches.csv is data the step never read")
         (self.root / "jmri/layouts/hart/data/wiring.csv").write_text("w2\n")
         self.assertFalse(self.current())
 
+    def test_miss_when_a_listed_folder_gains_a_file(self) -> None:
+        self.record()
+        (self.root / "jmri/layouts/hart/data/schematic/new.csv").write_text("x\n")
+        self.assertFalse(self.current())
+
+    def test_miss_when_a_file_it_found_absent_appears(self) -> None:
+        self.record()
+        (self.root / "jmri/layouts/hart/data/later.csv").write_text("x\n")
+        self.assertFalse(self.current())
+
+    def test_cache_reads_are_no_input(self) -> None:
+        self.record()
+        (self.root / ".cache/hart/x.json").write_text("c2\n")
+        self.assertTrue(self.current())
+
     def test_miss_when_an_output_is_edited_or_removed(self) -> None:
         out = self.root / "jmri/layouts/hart/output/signal_head_plan.csv"
-        ps.record("head-plan", self.cmd, self.root, self.store)
+        self.record()
         out.write_text("hand edit\n")
         self.assertFalse(self.current())
-        ps.record("head-plan", self.cmd, self.root, self.store)
+        self.record()
         out.unlink()
         self.assertFalse(self.current())
 
     def test_miss_when_the_code_or_the_command_changes(self) -> None:
-        ps.record("head-plan", self.cmd, self.root, self.store)
+        self.record()
         self.assertFalse(self.current(cmd=["python3", "other.py"]))
         (self.root / "tools/schematic/x.py").write_text("code2\n")
         self.assertFalse(self.current())
 
-    def test_an_unrelated_file_does_not_miss(self) -> None:
-        ps.record("head-plan", self.cmd, self.root, self.store)
-        (self.root / "README.md").write_text("x\n")
-        self.assertTrue(self.current())
+    def test_no_trace_or_a_short_one_records_nothing(self) -> None:
+        self.record()
+        log = self.tmp / "empty.log"
+        log.write_text("0\tb\n")
+        self.assertIn("did not load", ps.record("head-plan", log, self.cmd, self.root, self.store))
+        self.assertFalse(self.current(), "the old stamp is dropped")
+        self.assertIn("1 of the 2", self.record(roots=2))
+        self.assertFalse(self.current())
+
+    def test_an_untraceable_subprocess_is_never_stamped_unless_declared(self) -> None:
+        code = self.STEP + "import subprocess\nsubprocess.run(['sh', '-c', 'cat jmri/layouts/hart/data/switches.csv'])\n"
+        self.assertIn("ran sh", self.record(code))
+        self.assertFalse(self.current())
+        with unittest.mock.patch.dict(ps.STEPS, {"head-plan": ps.Step(ps.STEPS["head-plan"].outputs,
+                                                                      programs={"sh": ("jmri/layouts/hart/data/switches.csv",)})}):
+            self.assertIsNone(self.record(code))
+            self.assertTrue(self.current())
+            (self.root / "jmri/layouts/hart/data/switches.csv").write_text("s2\n")
+            self.assertFalse(self.current(), "the declared program's files are hashed")
+
+    def test_every_step_that_runs_untraced_programs_declares_them(self) -> None:
+        self.assertEqual({n: list(s.programs) for n, s in ps.STEPS.items() if s.programs}, {"schematic": ["chrom"]})
 
     def test_a_trial_plugin_folder_and_the_required_flag_are_in_the_stamp(self) -> None:
-        ps.record("head-plan", self.cmd, self.root, self.store)
+        self.record()
         plugin = self.tmp / "plugin"
         plugin.mkdir()
         env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@e.invalid",
@@ -130,7 +180,7 @@ class StampTest(unittest.TestCase):
             subprocess.run(["git", *args], cwd=plugin, check=True, env=env)
         with unittest.mock.patch.dict(os.environ, {"SCHEMATIC_PLUGIN": str(plugin)}):
             self.assertFalse(self.current(), "a trial folder is another plugin")
-            ps.record("head-plan", self.cmd, self.root, self.store)
+            self.record()
             self.assertTrue(self.current())
             (plugin / "edit.py").write_text("x\n")
             subprocess.run(["git", "add", "edit.py"], cwd=plugin, check=True, env=env)
@@ -138,8 +188,15 @@ class StampTest(unittest.TestCase):
         with unittest.mock.patch.dict(os.environ, {"SCHEMATIC_REQUIRED": "1"}):
             self.assertFalse(self.current())
 
+    def test_git_or_plugin_state_that_changed_while_the_step_ran_records_nothing(self) -> None:
+        before = ps.snapshot(self.root)
+        self.assertIsNone(ps.record("head-plan", self.run_step(), self.cmd, self.root, self.store, before=before))
+        reason = ps.record("head-plan", self.run_step(), self.cmd, self.root, self.store, before="other " + before)
+        self.assertIn("changed while the step ran", reason)
+        self.assertFalse(self.current())
+
     def test_forget_drops_the_stamp(self) -> None:
-        ps.record("head-plan", self.cmd, self.root, self.store)
+        self.record()
         ps.forget("head-plan", self.store)
         self.assertFalse(self.current())
 
@@ -150,7 +207,7 @@ class UnstampableTest(unittest.TestCase):
             self.assertIn("HART_TABLES", ps.unstampable())
             tmp = Path(tempfile.mkdtemp())
             self.addCleanup(shutil.rmtree, tmp)
-            ps.record("hands", (), REPO, tmp)
+            self.assertIn("HART_TABLES", ps.record("hands", tmp / "no.log", (), REPO, tmp))
             self.assertEqual(list(tmp.iterdir()), [])
             self.assertFalse(ps.is_current("hands", (), REPO, tmp))
 
@@ -172,14 +229,22 @@ class ShellTest(unittest.TestCase):
         for _kind, _name, cmd in LINES:
             script = self.root / cmd[1]
             script.parent.mkdir(parents=True, exist_ok=True)
+            # each stub reads a file of its own (head-plan: wiring.csv), so an edit there reaches only that step
+            own = "jmri/layouts/hart/data/wiring.csv" if _name == "head-plan" else f"jmri/layouts/hart/data/{_name}.in"
             script.write_text("import os, sys\n"
+                              f"open({own!r}).read()\n"
                               f"open({str(self.log)!r}, 'a').write({cmd[1]!r} + ' ' + ' '.join(sys.argv[1:]) + '\\n')\n")
         (self.root / "tools/schematic").mkdir(parents=True, exist_ok=True)
         shutil.copy(REPO / "tools/schematic/build_panels.sh", self.root / "tools/schematic/build_panels.sh")
         shutil.copy(REPO / "tools/schematic/panel_stamps.py", self.root / "tools/schematic/panel_stamps.py")
+        for f in ps.traced.HOOK_FILES:
+            (self.root / f).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(REPO / f, self.root / f)
         wiring = self.root / "jmri/layouts/hart/data/wiring.csv"
         wiring.parent.mkdir(parents=True, exist_ok=True)
         wiring.write_text("w\n")
+        for _kind, name, _cmd in LINES:
+            (self.root / f"jmri/layouts/hart/data/{name}.in").write_text("v1\n")
         env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@e.invalid",
                "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@e.invalid"}
         self.env = {k: v for k, v in env.items() if k not in ("HART_TABLES", "SCHEMATIC_PLUGIN")}
@@ -228,6 +293,22 @@ class ShellTest(unittest.TestCase):
         self.assertIn("hands: current, skipped", out)
         self.assertTrue(any("build_hart_signal_heads" in l for l in again))
         self.assertFalse(any("build_hands" in l for l in again))
+
+    def test_an_edit_reruns_only_the_step_that_read_it(self) -> None:
+        self.run_panels()
+        (self.root / "jmri/layouts/hart/data/masts.in").write_text("v2\n")
+        out, again = self.run_panels()
+        steps = [n for k, n, _ in LINES if k == "step"]
+        self.assertEqual([n for n in steps if f"{n}: current, skipped" not in out], ["masts"], out)
+
+    def test_a_step_with_an_untraceable_subprocess_always_runs(self) -> None:
+        hands = self.root / "tools/schematic/build_hands.py"
+        hands.write_text(hands.read_text() + "import subprocess\nsubprocess.run(['sh', '-c', 'true'])\n")
+        out, _ = self.run_panels()
+        self.assertIn("hands: not stamped: ran sh", out)
+        out, second = self.run_panels()
+        self.assertNotIn("hands: current", out)
+        self.assertTrue(any("build_hands" in l for l in second))
 
     def test_full_ignores_the_stamps(self) -> None:
         self.run_panels()
@@ -282,28 +363,40 @@ class ShellTest(unittest.TestCase):
 
 
 class AuditTest(unittest.TestCase):
-    """Each step run once under an audit hook: every repo file it reads must be one its declaration covers."""
+    """Each step run once under two hooks: tools/schematic/audit_reads.py (in the process) and the trace hook. Every
+    repo file the audit sees read or found absent and every folder it sees listed must be in the trace's read set, so
+    the stamp misses nothing the step's own process touches; the trace also covers its Python children."""
 
-    def test_every_file_a_step_reads_is_declared(self) -> None:
+    def test_the_trace_holds_every_read_the_audit_sees(self) -> None:
         try:
             import build_layout_le as ble
             ble.plugin()
         except Exception as exc:  # noqa: BLE001 - no plugin checked out: nothing to audit
             self.skipTest(f"schematic-maps plugin: {exc}")
+        skip = ps.traced._skip_prefixes(str(REPO))
+
+        def kept(paths):
+            return {k for k in (ps.traced.keep(str(REPO / p), str(REPO), skip) for p in paths) if k is not None}
         for _kind, name, cmd in [l for l in LINES if l[0] == "step"]:
-            with self.subTest(step=name), tempfile.TemporaryDirectory() as pyc:
-                env = {**os.environ, "PYTHONPYCACHEPREFIX": pyc}      # imports read their source, not a cached copy
+            with self.subTest(step=name), tempfile.TemporaryDirectory() as tmp:
+                log = Path(tmp) / "trace.log"
+                log.write_text("0\tb\n")
+                env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
+                env.update(PYTHONPYCACHEPREFIX=str(Path(tmp) / "pyc"), HART_TRACE_LOG=str(log),
+                           HART_TRACE_ROOT=str(REPO), PYTHONPATH=ps.traced.HOOK_DIR)  # imports read their source
                 r = subprocess.run([sys.executable, str(REPO / "tools/schematic/audit_reads.py"), *cmd[1:], "--check"],
                                    cwd=REPO, capture_output=True, text=True, env=env)
                 self.assertEqual(r.returncode, 0, r.stderr[-600:])
-                read = [l[2:] for l in r.stdout.splitlines() if l.startswith("R ")]
-                self.assertTrue(read, f"{name}: the hook saw no reads")
-                missed = [p for p in read if not ps.covered(p, name)]
-                self.assertEqual(missed, [], f"{name} reads files its declaration in panel_stamps.STEPS does not cover")
-                absent = [l[2:] for l in r.stdout.splitlines() if l.startswith("M ") and not ps.covered(l[2:], name)]
-                self.assertEqual(absent, [], f"{name} looks for files its declaration does not cover")
-                listed = [l[2:] for l in r.stdout.splitlines() if l.startswith("D ") and not ps.dir_covered(l[2:], name)]
-                self.assertEqual(listed, [], f"{name} lists folders its declaration does not reach")
+                lines = r.stdout.splitlines()
+                audit = {kind: kept(l[2:] for l in lines if l.startswith(kind + " ")) for kind in "RMD"}
+                self.assertTrue(audit["R"], f"{name}: the audit hook saw no reads")
+                t = ps.traced.parse(log)
+                self.assertIsNone(ps.traced.problem(t))
+                rs = ps.traced.read_set(t, str(REPO))
+                files, missing, dirs = set(rs["files"]), set(rs["missing"]), set(rs["dirs"])
+                self.assertEqual(sorted(audit["R"] - files), [], f"{name}: read and not in the trace")
+                self.assertEqual(sorted(audit["M"] - missing - files), [], f"{name}: probed absent, not in the trace")
+                self.assertEqual(sorted(audit["D"] - dirs), [], f"{name}: listed and not in the trace")
 
 
 class SmlCurrentTest(unittest.TestCase):

@@ -7,8 +7,8 @@ How `./tools/check.sh` decides what to run, and how heavy jobs go to the Windows
 Run `./tools/check.sh` before any commit that changes tables or signals. CI runs it on every PR, without the portal build.
 
 - **Portal build.** It is skipped when the branch changes no site input. `PORTAL_CHECK=1` runs it anyway.
-- **Job stamps.** A job whose declared inputs match its last pass prints `<job>: current, skipped` and is not run again. Stamps are in `<main checkout>/.cache/hart/check-stamps`, shared by every worktree and by `make remote`. `tools/audit/check_stamps.py` declares each job's inputs.
-- `FULL=1` (or `CI` set) runs everything. `CHECK_ONLY=<regex>` runs only the jobs it matches.
+- **Job stamps.** Each job runs under a trace hook (`tools/audit/traced.py`) that records the files its Python processes opened, probed and listed. A job whose recorded reads are unchanged since its last pass prints `<job>: current, skipped` and is not run again, so an edit re-runs only the jobs that read the file. A job that ran bash, node or a writing git falls back to the folders `tools/audit/check_stamps.py` declares for it. `python3 tools/audit/check_stamps.py why <job>` says why a job ran. Stamps are in `<main checkout>/.cache/hart/check-stamps`, shared by every worktree and by `make remote`. `make panels` steps are stamped the same way (`python3 tools/schematic/panel_stamps.py why <step>`).
+- `FULL=1` runs everything and records the stamps; with `CI` set nothing is skipped or recorded. `CHECK_ONLY=<regex>` runs only the jobs it matches.
 - Logged times: a warm local run takes about 40 s, a full run 2 to 5 min. Grep earlier output (`--- job (Ns)`) before re-running just to time it.
 
 ## make remote
