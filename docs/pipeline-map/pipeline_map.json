@@ -2717,6 +2717,24 @@
    "path": "www/scripts/jmri_additions_page.py"
   },
   {
+   "id": "www/assets/behind/layout-docs/drawings",
+   "label": "layout-docs drawings",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "website",
+   "desc": "Hand-edited SVG drawings (D1-D6, P0-P5) of the layout documentation page; began as copies of the frozen SOQ's drawings (2026-11-22). D2 states the section count.",
+   "path": "www/assets/behind/layout-docs/drawings"
+  },
+  {
+   "id": "www/scripts/build_layout_docs.py",
+   "label": "build_layout_docs.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Writes behind/layout-docs.html from layout_docs_template.html, with the section list from block_lengths.csv; checks drawing D2's section count; --check. Drawings and photos are its own files (the frozen SOQ is not read).",
+   "path": "www/scripts/build_layout_docs.py"
+  },
+  {
    "id": "www/scripts/make_share_cards.py",
    "label": "make_share_cards.py",
    "kind": "generator",
@@ -3195,15 +3213,6 @@
    "domain": "ops",
    "desc": "Python behind bin/cars: review, approve, records, publish, cards, site, compare, seed-copy, sync and the other steps.",
    "path": "ops/hart-ops/card_pipeline/cars.py"
-  },
-  {
-   "id": "docs/ap/electrical/build_soq.py",
-   "label": "build_soq.py",
-   "kind": "generator",
-   "status": "live",
-   "domain": "wiring",
-   "desc": "Builds the MRE Electrical SOQ package PDF from the wiring decks, drawings and soq.html; the submitted package is frozen.",
-   "path": "docs/ap/electrical/build_soq.py"
   },
   {
    "id": "jmri/scripts/check_hart_phase02.py",
@@ -6816,11 +6825,6 @@
    "label": "served"
   },
   {
-   "from": "docs/wiring/Wiring_Schematic.pptx",
-   "to": "docs/ap/electrical/build_soq.py",
-   "label": "reads nodes deck"
-  },
-  {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "jmri/scripts/check_hart_phase02.py",
    "label": "checks",
@@ -7420,6 +7424,25 @@
    "from": "jmri/layouts/hart/scripts/hide_band_panels.py",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "jython"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "www/scripts/build_layout_docs.py"
+  },
+  {
+   "from": "www/scripts/build_layout_docs.py",
+   "to": "www/behind"
+  },
+  {
+   "from": "www/assets/behind/layout-docs/drawings",
+   "to": "www/scripts/build_layout_docs.py",
+   "label": "checks count",
+   "side": "check"
+  },
+  {
+   "from": "www/assets/behind/layout-docs/drawings",
+   "to": "www/behind",
+   "label": "shown on"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

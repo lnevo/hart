@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 358" width="680" height="358" role="img" aria-labelledby="t d" font-family="'Helvetica Neue',Helvetica,Arial,sans-serif">
+<title id="t">D6 · Computer-to-railroad interface: LCOS radio network to JMRI over MQTT</title><desc id="d">Block diagram: JMRI talks to an MQTT broker, which talks to the bridge program on a PC, which talks over USB to the bridge node, which talks by radio to the LCOS field nodes wired to the railroad. The bridge program and bridge node firmware were written for HART.</desc>
+<rect width="680" height="358" fill="#fff"/>
+<rect x="20" y="60" width="170" height="56" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="105.0" y="79.7" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">JMRI (Raspberry Pi)</text>
+<text x="105.0" y="91.2" font-size="9.5" text-anchor="middle" fill="#121a22">turnouts, sensors, signals</text>
+<text x="105.0" y="102.7" font-size="9.5" text-anchor="middle" fill="#121a22">MQTT connection</text>
+<rect x="250" y="60" width="150" height="56" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="325.0" y="79.7" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">MQTT broker</text>
+<text x="325.0" y="91.2" font-size="9.5" text-anchor="middle" fill="#121a22">Mosquitto</text>
+<text x="325.0" y="102.7" font-size="9.5" text-anchor="middle" fill="#121a22">topics track/...</text>
+<rect x="460" y="50" width="200" height="76" rx="3" fill="#fdf3e3" stroke="#121a22"/>
+<text x="560.0" y="73.9" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">Bridge program (PC)</text>
+<text x="560.0" y="85.4" font-size="9.5" text-anchor="middle" fill="#121a22">serial_to_mqtt.py</text>
+<text x="560.0" y="96.9" font-size="9.5" text-anchor="middle" fill="#121a22">serial lines &lt;-&gt; MQTT topics</text>
+<text x="560.0" y="108.4" font-size="9.5" text-anchor="middle" fill="#121a22">built for HART</text>
+<rect x="460" y="190" width="200" height="76" rx="3" fill="#fdf3e3" stroke="#121a22"/>
+<text x="560.0" y="213.9" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">Bridge node</text>
+<text x="560.0" y="225.4" font-size="9.5" text-anchor="middle" fill="#121a22">Arduino Nano + nRF24 radio</text>
+<text x="560.0" y="236.9" font-size="9.5" text-anchor="middle" fill="#121a22">bridge firmware</text>
+<text x="560.0" y="248.4" font-size="9.5" text-anchor="middle" fill="#121a22">built for HART</text>
+<rect x="250" y="190" width="150" height="76" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="325.0" y="219.7" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">LCOS field nodes</text>
+<text x="325.0" y="231.2" font-size="9.5" text-anchor="middle" fill="#121a22">Nano + radio + input,</text>
+<text x="325.0" y="242.7" font-size="9.5" text-anchor="middle" fill="#121a22">output, detector boards</text>
+<rect x="20" y="196" width="170" height="64" rx="3" fill="#e4ebf0" stroke="#121a22"/>
+<text x="105.0" y="219.7" font-size="9.5" text-anchor="middle" font-weight="bold" fill="#121a22">Railroad</text>
+<text x="105.0" y="231.2" font-size="9.5" text-anchor="middle" fill="#121a22">switch machines, signals,</text>
+<text x="105.0" y="242.7" font-size="9.5" text-anchor="middle" fill="#121a22">block detectors</text>
+<path d="M190,88 L250,88" fill="none" stroke="#1f5fa8" stroke-width="1.8"/>
+<path d="M400,88 L460,88" fill="none" stroke="#1f5fa8" stroke-width="1.8"/>
+<path d="M560,126 L560,190" fill="none" stroke="#1f5fa8" stroke-width="1.8"/>
+<path d="M460,228 L400,228" fill="none" stroke="#1f5fa8" stroke-width="1.8"/>
+<path d="M250,228 L190,228" fill="none" stroke="#1f5fa8" stroke-width="1.8"/>
+<text x="200" y="82" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">TCP/IP</text>
+<text x="408" y="82" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">TCP/IP</text>
+<text x="568" y="160" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">USB serial, 250000 baud</text>
+<text x="408" y="222" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">2.4 GHz</text>
+<text x="196" y="222" font-size="9" fill="#5f6e7a" text-anchor="start" font-weight="normal">wired</text>
+<text x="20" y="300" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">Turnout commands from JMRI go out as MQTT messages, which the bridge program writes to the bridge node as serial lines; the node sends</text>
+<text x="20" y="314" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">them by radio to the field node beside the switch. Field events (switch position, block occupied or clear, button presses) come back</text>
+<text x="20" y="328" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">the same way and appear in JMRI as sensors and turnout feedback. The shaded parts were designed and written for HART and are</text>
+<text x="20" y="342" font-size="9.5" fill="#121a22" text-anchor="start" font-weight="normal">published as open source; LCOS (the radio protocol and boards), JMRI and Mosquitto are existing products.</text>
+</svg>

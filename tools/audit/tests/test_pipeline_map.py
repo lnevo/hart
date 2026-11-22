@@ -465,17 +465,38 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("m.onlyOne(a, ['layout', 'wiring'], 'website')", lanes), [])
         self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
 
+    def test_layout_uses_spread_geometry(self) -> None:
+        """layout with spreadGeo: columns k steps apart and boxes at the spread width."""
+        got = self.run_js("(() => { const g = m.spreadGeo(m.NARROW, 3), l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW),"
+                          " l2 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, g);"
+                          " return [(l2.nodes[1].x - l2.nodes[0].x) / (l1.nodes[1].x - l1.nodes[0].x), l2.nodes[0].w, g.nodeW]; })()",
+                          {"nodes": [{"id": "a", "label": "a", "domain": "x"}, {"id": "b", "label": "b", "domain": "x"}],
+                           "edges": [{"from": "a", "to": "b"}]})
+        self.assertAlmostEqual(got[0], 3, places=2)
+        self.assertEqual(got[1], got[2])
+
+    def test_steps_shown(self) -> None:
+        """spreadFor: n spread steps and a spread box span what all cols steps and a box span, the boxes widening up to
+        BOX_GROW times; all of them, more than all, or a map of one column is 1."""
+        self.assertEqual(self.run_js("[m.spreadFor(46, 46), m.spreadFor(46, 99), m.spreadFor(1, 3)]", None), [1, 1, 1])
+        for n in (40, 23, 5, 3):  # below and above the box cap
+            span = self.run_js(f"(() => {{ const g = m.spreadGeo(m.NARROW, m.spreadFor(46, {n})), s = x => x.nodeW + x.colGap;"
+                               f" return [{n - 1} * s(g) + g.nodeW, 45 * s(m.NARROW) + m.NARROW.nodeW]; }})()", None)
+            self.assertLessEqual(abs(span[0] - span[1]), 2 + 0.5 * (n - 1), n)  # each size is rounded to a whole unit
+
     def test_spread_geometry(self) -> None:
-        """spreadGeo: the Width slider widens boxes, gaps and title lines k times; 1x is the geometry as it is."""
-        self.assertEqual(self.run_js("m.spreadGeo(m.NARROW, 2)", None), {"nodeW": 360, "colGap": 160, "titleWrap": 44, "descWrap": 88})
+        """spreadGeo: a step k times as wide; the boxes grow whole (scale) with it up to BOX_GROW times, as tall as wide,
+        their lines wrapping as at 1x, and the gap takes the rest; 1x is the geometry as it is."""
+        g = self.run_js("m.spreadGeo(m.NARROW, 2)", None)
+        self.assertEqual((g["nodeW"], g["scale"], g["titleWrap"], g["nodeW"] + g["colGap"]), (360, 2, 22, 2 * (180 + 80)))
+        g = self.run_js("m.spreadGeo(m.NARROW, 6)", None)
+        self.assertEqual((g["nodeW"], g["scale"], g["nodeW"] + g["colGap"]), (450, 2.5, 6 * 260))  # boxes stop at 2.5x
         self.assertEqual(self.run_js("m.spreadGeo(m.WIDE, 1) === m.WIDE", None), True)
-        wide = self.run_js("(() => { const g = m.spreadGeo(m.NARROW, 2.5);"
-                           " const l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW), l2 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.2, g);"
-                           " return [l2.width / l1.width, l2.nodes[0].w]; })()",
-                           {"nodes": [{"id": "a", "label": "a", "domain": "x"}, {"id": "b", "label": "b", "domain": "x"}],
-                            "edges": [{"from": "a", "to": "b"}]})
-        self.assertGreater(wide[0], 2)  # the drawing spreads across
-        self.assertEqual(wide[1], 450)  # and each box is wider
+        box = {"id": "a", "label": "a fairly long box name", "path": "x/y.py", "desc": "what it does"}
+        h = self.run_js("[m.nodeHeight(a, m.NARROW), m.nodeHeight(a, m.spreadGeo(m.NARROW, 2))]", box)
+        self.assertEqual(h[1], 2 * h[0])  # twice as tall too
+        self.assertEqual(self.run_js("[m.boxTransform({x: 1, y: 2}), m.boxTransform({x: 1, y: 2}, 2)]", None),
+                         ["translate(1.0,2.0)", "translate(1.0,2.0) scale(2.0000)"])
 
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
