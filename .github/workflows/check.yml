@@ -15,13 +15,28 @@ permissions:
 # a group of its own and is never cancelled (it saves the schematic cache). A cancelled run saves no cache, pip or
 # schematic: both save in a post step that runs only when the job succeeded.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.event_name == 'pull_request' && format('check-pr-{0}', github.event.pull_request.number) || format('check-push-{0}', github.run_id) }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2        # a pull request's merge commit and its first parent (the base): the changed paths
+      # Docs-only pull requests (tools/ci/changed_kind.py) run the quick docs checks and skip the full check.sh, the
+      # schematic cache and its hand-off. This stays one job named "check", the required status check, so a docs-only
+      # pull request still gets a passing "check". A push to main always takes the full path (it saves the cache).
+      - name: What changed
+        id: kind
+        run: |
+          set -euo pipefail
+          kind=full
+          if [ "${{ github.event_name }}" = pull_request ]; then
+            kind="$(git diff --no-renames --name-only HEAD^1 HEAD | python3 tools/ci/changed_kind.py)"
+          fi
+          echo "kind=$kind" >> "$GITHUB_OUTPUT"
+          echo "changed paths take the $kind path"
       - run: 'git -c url.https://github.com/.insteadOf=git@github.com: submodule update --init external/model-railroad-skills'
       - uses: actions/setup-python@v5
         with:
@@ -32,7 +47,8 @@ jobs:
       # The schematic plugin's cache (tools/check.sh sets SCHEMATIC_CACHE to this folder). Each entry in it is keyed
       # on everything its solve reads, so an old one is never used for changed inputs; this key only decides when a
       # run saves a new copy (the plugin, the builders or their data changed).
-      - uses: actions/cache@v4
+      - if: steps.kind.outputs.kind != 'docs'
+        uses: actions/cache@v4
         with:
           path: .cache/hart/schematic
           key: schematic-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
@@ -45,7 +61,7 @@ jobs:
       # from this repository counts, never a fork's. Without one (a direct push, an expired artifact) the run solves
       # as before.
       - name: Schematic cache from the merged pull request
-        if: github.event_name == 'push'
+        if: github.event_name == 'push' && steps.kind.outputs.kind != 'docs'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -77,11 +93,23 @@ jobs:
           chmod 700 "$dir"
           find "$got" -maxdepth 1 -type f -name '*.pickle' -exec cp -f {} "$dir"/ \;
           echo "added $(find "$got" -maxdepth 1 -type f -name '*.pickle' | wc -l) entries from pull request #$number, run $run"
-      - run: ./tools/check.sh
+      - name: Quick docs checks
+        if: steps.kind.outputs.kind == 'docs'
+        run: |
+          set -euo pipefail
+          python3 tools/ops/build_docs_index.py --check --strict
+          python3 tools/ops/status_counts.py --check
+          python3 tools/audit/check_ai_speak.py
+          python3 tools/audit/check_agent_docs.py
+          python3 tools/audit/check_public_text.py
+          python3 www/scripts/repo_guide_page.py --check
+          python3 www/scripts/jmri_additions_page.py --check
+      - if: steps.kind.outputs.kind != 'docs'
+        run: ./tools/check.sh
         env:
           SCHEMATIC_REQUIRED: "1"
       - name: Hand the schematic cache to the push run of the merge
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        if: steps.kind.outputs.kind != 'docs' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
         uses: actions/upload-artifact@v4
         with:
           name: schematic-cache

@@ -42,3 +42,12 @@ Every topic is merged and deployed (Pi and Windows from 1bc9cab8, website the sa
 
 Timings now: a warm `make panels` 4–6 s (was about 45 s), a warm local `check.sh` about 40 s (was 2–5 min), a text-only site build 3 s (was 8 s), a `--pi --win` deploy about 35 s with every check before anything ships.
 
+## Next: measure a real edit
+
+The speed-ups above are measured on repeat runs. The plan's real aim, fewer round trips on a layout change, has not been timed yet. On the next real change (a block split, a Store split, a mast or a wiring change; owner, 2026-11-21):
+
+1. Start `make mqtt-watch` (the `_discard` watcher, read-only) on the Mac before the first edit and leave it running until the deploy is done; note any `NEW` line.
+2. Log the time (`date +%H:%M`) at each step: first edit, each `make panels` (with its time and how many steps ran or skipped), each `check.sh` and CI run, each owner approval, any Store pull or split, any SML discovery on the Mac, the deploy.
+3. Count the round trips: how many rebuilds, checks and approvals the change took, and why each extra one happened.
+4. Put the result in this section, with the date, as the "after" figure for the plan.
+

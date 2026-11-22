@@ -88,6 +88,16 @@ class GraphChecksTest(unittest.TestCase):
         with self.assertRaisesRegex(MAP.GraphError, "edge x -> y is listed twice"):
             load([node("x"), node("y")], [{"from": "x", "to": "y"}, {"from": "x", "to": "y"}])
 
+    def test_tracked_false_leaves_out_only_the_tracked_check(self) -> None:
+        data = {"domains": DOMAINS, "nodes": [node("x", path="no/such/file.csv"), node("y")],
+                "edges": [{"from": "x", "to": "y"}]}
+        MAP.validate(data, tracked=False)
+        with self.assertRaisesRegex(MAP.GraphError, "does not exist in git"):
+            MAP.validate(data)
+        data["edges"].append({"from": "x", "to": "gone"})
+        with self.assertRaisesRegex(MAP.GraphError, "to end is not a node"):
+            MAP.validate(data, tracked=False)
+
 
 NODE = shutil.which("node")
 

@@ -96,6 +96,8 @@ EXTRA: dict[str, tuple[str, ...]] = {
                                                "docs/INDEX.md", "ops/hart-ops/AGENTS.md"),
     "unit-guards test_agent_docs_map": ("docs/pipeline-map/**/*", "www/scripts/**/*", "wiki/**/*", "docs/INDEX.md",
                                         "ops/hart-ops/AGENTS.md"),
+    # the merge drivers run under the repo's own .gitattributes in a scratch repo
+    "unit-guards test_merge_pipeline_map": (".gitattributes",),
     "unit-guards test_portal_inputs": ("www/scripts/**/*",),
     "unit-guards test_publish_draft": ("docs/ops/**/*", "ops/**/*"),
     "unit-guards test_site_device_names": ("www/data/**/*", "www/scripts/**/*"),

@@ -63,29 +63,29 @@ One or two lines per fact, with the owner and date and a link to the detail. PR 
 
 ## Owed
 
-Deferred by the owner on 2026-10-31; none of these is urgent.
+In order; the first two are the main track (owner, 2026-11-21).
 
-- **Roster sync generic detection:** draft [lnevo/jmri-cs105-roster-sync#1](https://github.com/lnevo/jmri-cs105-roster-sync/pull/1) (1.1.0) finds the command station by LCC event; it waits only on the MRC user's plan-only log, then merge, move the submodule pointer and deploy. HART stays on 1.0.0 until then.
-- **Source-data exceptions (owner, 2026-11-20):** rows 1 to 9 are done or kept on purpose; row 10's live drawing workarounds wait for the owner's discussion ([`projects/source-data-exceptions-handoff.md`](projects/source-data-exceptions-handoff.md)).
-- **Level unification (owner, 2026-11-20/21):** every step but 7 is done and deployed; open is step 7, the main and upper station maps (a map per control point at minimum) ([`projects/level-unification-handoff.md`](projects/level-unification-handoff.md)).
+- **Main and upper station maps (owner, 2026-11-20/21):** name the main and upper stations in PanelPro, add their rows to `stations.csv` and `sheets.csv` (already one file for every level; only staging has rows), drop the hand-kept sheet lists in `preferences.json`'s `main_upper` section, then draw a map per control point at minimum. This is level unification step 7, the only step left ([`projects/level-unification-handoff.md`](projects/level-unification-handoff.md)).
 - **Finalize wiring (owner, 2026-11-21):** what stands between the main and upper levels' draft wiring and their being in service:
   - **Place every head.** The draft board plan has no room for 14 heads: CP 107's 120RB (two heads), A83 and A84; CP 127's 132RA and 132RB (two each); CP 201's 222LB; CP 225's 230LB (two), B92 and B93; and 242L (no control point). A control point with an unplaced head cannot be frozen.
-  - **Name the main and upper stations** in PanelPro (level unification step 7): then `stations.csv` and `sheets.csv` take every level, the hand-kept sheet lists in `preferences.json`'s `main_upper` section go, and the station maps follow.
   - **Map the power districts.** None is recorded on any level (owner, 2026-11-21).
   - **Wire, freeze and swap, control point by control point** (the 35 main-line detectors with them): wire it as the device map has it, `make wiring-freeze CP="CP 123"`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now. Wiring flows one way (rules, proposal in the generated rows, `make wiring-freeze`, `wiring.csv`, device map), and `check_wiring_frozen.py` fails when `wiring.csv` changes any other way.
 
 - **Session #4 punch list (owner, 2026-11-21):** still open: CP signs, the crew board and mock signal designs (agent work); resistor wheels, mock signals at the rail gaps, the crew board mounted, the East End/Princess gap marked and the Barn lead drill signal wired (owner) ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
 
+- **Time the next layout edit (owner, 2026-11-21):** the next real change (a block split, a Store, a mast or wiring change) is timed from the first edit to the deploy, with `make mqtt-watch` (the `_discard` watcher) running through it; the steps and what to record are in [`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#next-measure-a-real-edit).
+
+
 ## In progress
 
-- 3D station maps: multi-colour fascia plates that hold Touch Toggles ([`docs/benchwork/station_maps_3d/`](../docs/benchwork/station_maps_3d/README.md)). Barn is the only map modelled; its outline, thickness and toggle pocket depth are placeholders until the frame is measured.
+- 3D station maps: multi-colour fascia plates that hold Touch Toggles ([`docs/benchwork/station_maps_3d/`](../docs/benchwork/station_maps_3d/README.md)). Barn is the only map modelled; its outline, thickness and toggle pocket depth are placeholders until the frame is measured. The main and upper station maps feed the same prints if the Barn trial works out.
 
 ## Future goals
 
 - Finish the Operations Pro build (owner moved it from parked to future, 2026-11-21): the live session test on the Pi, the plugin fixes, and real spur lengths ([`OPSPRO_FOLLOWUP.md`](../docs/ops/OPSPRO_FOLLOWUP.md)).
 - Move the LCOS bridge from the Windows box to the Pi. The Pi is ready (2026-11-21; `lcos-bridge` service installed, stopped and off at boot); the cut-over steps are in the 2026-11-21 "Full text" log entry. Then merge the docs PR #846 with the submodule bump.
-- Speed matching follow-ups (owner, 2026-11-21): read both decoders back on the programming track, and the loop 2 lap survey ([`projects/speedmatching.md`](projects/speedmatching.md)).
+- Speed matching (owner, 2026-11-21): read both decoders back on the programming track, the loop 2 lap survey, then measured profiles for the other 15 roster locos (CSX 2121 and CSX 2738 are done) ([`projects/speedmatching.md`](projects/speedmatching.md)).
 - Upgrade the Pi's OS (owner, 2026-11-21): its userland is 32-bit (`armhf`) on a 64-bit kernel ([ADR-020](decisions/ADR-020-live-sts-on-the-pi.md)). Save what the Pi holds first (`make ops-pull`, `make tables-pull-pi`, `make sts-pull`).
-- Station maps for the main and upper levels from the schematic diagrams, once those levels' stations are named; the same drawings would feed the 3D prints if the Barn trial works out.
-- Measured speed profiles for the other 15 roster locos ([`projects/speedmatching.md`](projects/speedmatching.md)); CSX 2121 and CSX 2738 are measured.
+- Web server upgrade (AWS): move www.easte.net from Lightsail Ubuntu 18.04 with VestaCP to a new 24.04 instance with HestiaCP; planned, waits on the owner's AWS access key ([`projects/web-server-migration.md`](projects/web-server-migration.md)).
+- Roster sync generic detection: draft [lnevo/jmri-cs105-roster-sync#1](https://github.com/lnevo/jmri-cs105-roster-sync/pull/1) (1.1.0) finds the command station by LCC event; it waits only on the MRC user's plan-only log, then merge, move the submodule pointer and deploy. HART stays on 1.0.0 until then.
 - Verify the stock bugs and send fixes upstream if they hold: the JMRI `MqttAdapter.messageArrived` listener race, plus the CATS items in [`CATS_OVERLAY_REVIEW.md`](../docs/ctc/CATS_OVERLAY_REVIEW.md). The JMRI fix is in `tools/jmri/patches` at `443b5f28~1`.
