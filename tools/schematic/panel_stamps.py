@@ -2,7 +2,9 @@
 """Traced stamps for the `step`s of build_panels.sh: a step whose recorded reads and outputs are unchanged is skipped.
 
     panel_stamps.py current NAME [CMD ...]               exit 0 when NAME's stamp still holds (the step may be skipped)
-    panel_stamps.py record  NAME --trace LOG [CMD ...]   record NAME's stamp from the trace of the run that just passed
+    panel_stamps.py snapshot FILE                        what the key takes from git and the plugin, before a run
+    panel_stamps.py record  NAME --trace LOG [--snapshot FILE] [CMD ...]
+                                                         record NAME's stamp from the trace of the run that just passed
     panel_stamps.py why     NAME [CMD ...]               say why NAME is not current
     panel_stamps.py unstampable                          prints why no stamp is recorded now and exits 1, or exits 0
     panel_stamps.py forget  NAME                         drop NAME's stamp (after a failure)
@@ -244,9 +246,17 @@ def is_current(name: str, cmd=(), root: Path = ROOT, store: Path = STORE) -> boo
     return why_not_current(name, cmd, root, store) is None
 
 
-def record(name: str, trace_log, cmd=(), root: Path = ROOT, store: Path = STORE) -> str | None:
-    """Record `name`'s stamp from `trace_log`; None when recorded, else why not (and any old stamp is dropped)."""
+def snapshot(root: Path = ROOT) -> str:
+    """traced.snapshot with the plugin's state: taken before a step runs and compared when it records."""
+    return traced.snapshot(root, plugin_state(root))
+
+
+def record(name: str, trace_log, cmd=(), root: Path = ROOT, store: Path = STORE, before: str | None = None) -> str | None:
+    """Record `name`'s stamp from `trace_log`; None when recorded, else why not (and any old stamp is dropped).
+    `before` is the snapshot() taken before the step ran: a different one now records nothing."""
     reason = unstampable(root)
+    if reason is None and before is not None and before != snapshot(root):
+        reason = "HEAD, origin/main or the plugin changed while the step ran"
     if reason is None:
         t = traced.parse(trace_log)
         reason = traced.problem(t)
@@ -288,6 +298,9 @@ def main(argv: list[str] | None = None) -> int:
         if reason:
             print(reason)
         return 1 if reason else 0
+    if len(argv) == 2 and argv[0] == "snapshot":
+        Path(argv[1]).write_text(snapshot() + "\n")
+        return 0
     if len(argv) < 2 or argv[0] not in ("current", "record", "forget", "why"):
         print(__doc__.split("\n\n")[0], file=sys.stderr)
         return 2
@@ -302,9 +315,14 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if action == "record":
         if rest[:1] != ["--trace"] or len(rest) < 2:
-            print("panel_stamps.py record NAME --trace LOG [CMD ...]", file=sys.stderr)
+            print("panel_stamps.py record NAME --trace LOG [--snapshot FILE] [CMD ...]", file=sys.stderr)
             return 2
-        reason = record(name, rest[1], rest[2:])
+        log, rest = rest[1], rest[2:]
+        before = None
+        if rest[:1] == ["--snapshot"] and len(rest) >= 2:
+            snap = Path(rest[1])
+            before, rest = (snap.read_text().strip() if snap.is_file() else "missing"), rest[2:]
+        reason = record(name, log, rest, before=before)
         if reason:
             print(f"   {name}: not stamped: {reason}")
         return 0

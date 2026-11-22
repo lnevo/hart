@@ -188,6 +188,13 @@ class StampTest(unittest.TestCase):
         with unittest.mock.patch.dict(os.environ, {"SCHEMATIC_REQUIRED": "1"}):
             self.assertFalse(self.current())
 
+    def test_git_or_plugin_state_that_changed_while_the_step_ran_records_nothing(self) -> None:
+        before = ps.snapshot(self.root)
+        self.assertIsNone(ps.record("head-plan", self.run_step(), self.cmd, self.root, self.store, before=before))
+        reason = ps.record("head-plan", self.run_step(), self.cmd, self.root, self.store, before="other " + before)
+        self.assertIn("changed while the step ran", reason)
+        self.assertFalse(self.current())
+
     def test_forget_drops_the_stamp(self) -> None:
         self.record()
         ps.forget("head-plan", self.store)

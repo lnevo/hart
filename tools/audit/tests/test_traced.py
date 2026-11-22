@@ -149,6 +149,67 @@ class ReadSetTest(unittest.TestCase):
         self.assertEqual(traced.untraced(traced.parse(self.log), str(self.root))[0], ["git init"])
 
 
+class ReviewTest(ReadSetTest):
+    """Cases from the code review of the traced stamps: each could have recorded a stamp that skips a stale job."""
+
+    def untraced(self, code: str) -> list[str]:
+        self.assertEqual(run_traced(self.root, code, self.log), 0)
+        return traced.untraced(traced.parse(self.log), str(self.root))[0]
+
+    def late(self, code: str, meanwhile) -> list[str]:
+        """changed_since after `code` ran and `meanwhile` changed the repo (as another session would, mid-run)."""
+        self.assertEqual(run_traced(self.root, code, self.log), 0)
+        meanwhile()
+        t = traced.parse(self.log)
+        return traced.changed_since(t, traced.read_set(t, str(self.root)), str(self.root))
+
+    def test_a_folder_that_gains_a_file_mid_run_records_nothing(self) -> None:
+        late = self.late("import os\nos.listdir('data/sub')\n", lambda: (self.root / "data/sub/new.csv").write_text("x"))
+        self.assertIn("data/sub", late)
+
+    def test_a_read_file_deleted_mid_run_records_nothing(self) -> None:
+        self.assertIn("data/a.csv", self.late("open('data/a.csv').read()\n", (self.root / "data/a.csv").unlink))
+
+    def test_an_absent_file_that_appears_mid_run_records_nothing(self) -> None:
+        late = self.late("import os\nos.path.exists('data/soon.csv')\n",
+                         lambda: (self.root / "data/soon.csv").write_text("x"))
+        self.assertIn("data/soon.csv", late)
+
+    def test_a_file_stated_for_its_size_misses_when_the_size_changes(self) -> None:
+        stamp = self.record("import os\nos.path.getsize('data/b.csv')\n")
+        (self.root / "data/b.csv").write_text("a longer v1\n")
+        self.assertFalse(self.current(stamp))
+
+    def test_a_python_started_by_a_shell_string_does_not_hide_the_shell(self) -> None:
+        code = ("import subprocess, sys\n"
+                "subprocess.run(f'cat data/a.csv >/dev/null; exec {sys.executable} -c 1', shell=True, check=True)\n")
+        self.assertEqual(self.untraced(code), ["sh"])
+
+    def test_a_stale_token_in_the_environment_does_not_mark_a_spawn_traced(self) -> None:
+        # the sh spawn leaves its token in os.environ; a multiprocessing worker (no Popen event) inherits it
+        code = ("import multiprocessing, subprocess\n"
+                "def work():\n    pass\n"
+                "if __name__ == '__main__':\n"
+                "    subprocess.run(['sh', '-c', 'cat data/a.csv >/dev/null'])\n"
+                "    p = multiprocessing.get_context('spawn').Process(target=work)\n"
+                "    p.start()\n    p.join()\n")
+        self.assertEqual(self.untraced(code), ["sh"])
+
+    def test_an_exec_keeps_the_tokens_apart(self) -> None:
+        code = ("import os, subprocess, sys\n"
+                "if len(sys.argv) == 1:\n"
+                "    subprocess.run(['sh', '-c', 'true'])\n"
+                "    os.execv(sys.executable, [sys.executable, sys.argv[0], 'again'])\n"
+                "subprocess.run([sys.executable, '-c', '1'], check=True)\n")
+        self.assertEqual(self.untraced(code), ["sh"])
+
+    def test_a_glob_with_a_root_dir_lists_that_folder(self) -> None:
+        stamp = self.record("import glob\nglob.glob('*.csv', root_dir='data/sub')\n")
+        self.assertIn("data/sub", stamp["state"]["dirs"])
+        self.assertIn("glob.glob/2", traced._EVENTS)        # the event that carries root_dir
+        self.assertNotIn("glob.glob", traced._EVENTS)       # the same call's plain event has none
+
+
 class ProblemTest(unittest.TestCase):
     def setUp(self) -> None:
         tmp = Path(tempfile.mkdtemp())

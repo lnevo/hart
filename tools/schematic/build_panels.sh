@@ -103,6 +103,7 @@ run_step() {
   if [ "$kind" = stamped ] && [ "$nostamp" -eq 0 ]; then
     trace=$(mktemp)
     printf '0\tb\n' >"$trace"      # the runner starts one Python process: its start must be in the trace
+    "${STAMPS[@]}" snapshot "$trace.before"     # git and plugin state now: a change while the step runs records nothing
   fi
   if traced "$trace" "$@" ${check[@]+"${check[@]}"} | tee "$out"; then
     echo "   $name: ok, $((SECONDS - start)) s"
@@ -112,12 +113,12 @@ run_step() {
         echo "   $name: printed SKIPPED, no stamp"
         "${STAMPS[@]}" forget "$name"
       else
-        "${STAMPS[@]}" record "$name" --trace "$trace" "$@"
+        "${STAMPS[@]}" record "$name" --trace "$trace" --snapshot "$trace.before" "$@"
       fi
     fi
-    rm -f "$out" ${trace:+"$trace"}
+    rm -f "$out" ${trace:+"$trace" "$trace.before"}
   else
-    rm -f "$out" ${trace:+"$trace"}
+    rm -f "$out" ${trace:+"$trace" "$trace.before"}
     echo "   $name: FAILED, $((SECONDS - start)) s"
     [ "$kind" = stamped ] && "${STAMPS[@]}" forget "$name"
     failed+=("$name")

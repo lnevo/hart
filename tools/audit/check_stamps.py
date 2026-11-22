@@ -287,10 +287,22 @@ def is_current(name: str, root: Path = ROOT, store: Path = STORE) -> bool:
     return why_not_current(name, root, store) is None
 
 
-def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE) -> str | None:
-    """Record `name`'s stamp from `trace_log`; None when recorded, else why not (any old stamp is dropped)."""
+def snapshot(name: str, root: Path = ROOT, store: Path = STORE) -> str:
+    """traced.snapshot with the plugin's and `name`'s outside state: saved before the job, compared at record."""
+    cache = HashCache(store / "filehash.json")
+    try:
+        return traced.snapshot(root, ps.plugin_state(root), outside_state(name, root, cache, True))
+    finally:
+        cache.save()
+
+
+def record(name: str, trace_log, root: Path = ROOT, store: Path = STORE, before: str | None = None) -> str | None:
+    """Record `name`'s stamp from `trace_log`; None when recorded, else why not (any old stamp is dropped).
+    `before` is the snapshot() taken before the job: a different one now records nothing."""
     t = traced.parse(trace_log)
     reason = traced.problem(t)
+    if reason is None and before is not None and before != snapshot(name, root, store):
+        reason = "HEAD, origin/main, the plugin, an interpreter or the private plan changed while the job ran"
     if reason is None:
         main = main_checkout(root)
         programs, gits = traced.untraced(t, str(root), (str(main),) if main else ())
@@ -367,14 +379,14 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         ok = is_current(name)
         if save:
-            save.write_text(f"{name}\n")
+            save.write_text(snapshot(name) + "\n")
         return 0 if ok else 1
     if len(argv) == 2 and argv[0] == "why":
         print(not_stampable(argv[1]) or why_not_current(argv[1]) or "current")
         return 0
     if len(argv) == 5 and argv[0] == "record" and argv[3] == "--trace":
         if not_stampable(argv[1]) is None:
-            reason = record(argv[1], argv[4])
+            reason = record(argv[1], argv[4], before=Path(argv[2]).read_text().strip())
             if reason:
                 print(f"not stamped: {reason}")
         return 0

@@ -21,10 +21,11 @@ Record and compare. read_set() turns a log into the files read (content), the mi
 listed (their names) and the paths stat'ed (still there, same type), leaving out .cache/ (shared caches keyed on
 content), __pycache__, .git internals and the schematic plugin (stamped by its commit). A stamp is JSON holding a key
 (the caller's digest of command, code, interpreter, plugin, environment) and that read set with its hashes;
-compare() is True only when the key and every entry match. The safety rules: no stamp means run; a log with no
-process start, fewer Python processes than the runner started, or a Python child that did not load the hook
-(problem()) means run and record nothing; a file the job read and did not write that changed after the job
-started (record_stamp) records nothing.
+mismatch() is None only when the key and every entry match. The safety rules: no stamp means run; a log with no
+process start, or fewer Python processes than the runner started (problem()), means run and record nothing; a
+spawn the hook did not see into (a Python child that dropped the hook counts) is listed by untraced(), and the
+callers either refuse to record (make panels) or add their wide declarations (check.sh); a file, folder or absence
+the job saw that changed after the job started (changed_since) records nothing.
 """
 from __future__ import annotations
 
@@ -48,10 +49,11 @@ def install() -> bool:
     import threading
     import time
     fd = os.open(log, os.O_WRONLY | os.O_APPEND | os.O_CREAT, 0o600)
+    now = time.time_ns()
     _state.update(fd=fd, root=os.path.normpath(root) + os.sep, pid=os.getpid(), n=0, lock=threading.Lock(),
-                  last_popen=None, prefix=getattr(sys, "pycache_prefix", None), busy=threading.local())
-    argv0 = (getattr(sys, "orig_argv", None) or sys.argv or [""])
-    _write("s", f"{os.getppid()}\t{os.environ.get(TOKEN_ENV, '')}\t{time.time_ns()}\t{' '.join(argv0)[:300]}")
+                  last_popen=None, prefix=getattr(sys, "pycache_prefix", None), busy=threading.local(), born=now)
+    argv = list(getattr(sys, "orig_argv", None) or sys.argv or [""])
+    _write("s", f"{os.getppid()}\t{os.environ.get(TOKEN_ENV, '')}\t{now}\t{_words(argv)}")
     os.register_at_fork(after_in_child=_after_fork)
     _patch_stat()
     sys.addaudithook(_hook)
@@ -60,8 +62,18 @@ def install() -> bool:
 
 def _after_fork() -> None:
     # a forked child (no exec) keeps the hook; its lines carry its own pid, attributed by its "s" line
-    _state["pid"] = os.getpid()
+    import time
+    _state["pid"], _state["born"], _state["n"] = os.getpid(), time.time_ns(), 0
     _write("s", f"{os.getppid()}\tfork\t0\tfork")
+
+
+def _words(argv) -> str:
+    """argv as tab-separated words (tabs and newlines inside a word made spaces)."""
+    try:
+        words = [os.fsdecode(a) for a in (argv if isinstance(argv, (list, tuple)) else [argv])]
+    except Exception:  # noqa: BLE001
+        words = [repr(argv)]
+    return "\t".join(w.replace("\t", " ").replace("\n", " ") for w in words)
 
 
 def _write(kind: str, data: str) -> None:
@@ -149,6 +161,7 @@ def _on_list(args) -> None:
 
 
 def _on_glob(args) -> None:
+    # "glob.glob/2" (pathname, recursive, root_dir, dir_fd); the plain "glob.glob" event of the same call is ignored
     pattern, root_dir = args[0], (args[2] if len(args) > 2 else None)
     if isinstance(pattern, (str, bytes)):
         pattern = os.fsdecode(pattern)
@@ -176,19 +189,16 @@ def _spawn(argv, cwd, env) -> None:
     """Note a spawn and hand the child its token: in the env mapping it is given, or in os.environ (inherited)."""
     with _state["lock"]:
         _state["n"] += 1
-        token = f"{_state['pid']}:{_state['n']}"
+        # pid, the process's start time and a count: unique even across an exec (same pid) or a reused pid
+        token = f"{_state['pid']}:{_state['born']}:{_state['n']}"
     target = env if isinstance(env, dict) else (os.environ if env is None else None)
     if target is not None:
         try:
             target[TOKEN_ENV] = token
         except Exception:  # noqa: BLE001
             pass
-    try:
-        words = [os.fsdecode(a) for a in (argv if isinstance(argv, (list, tuple)) else [argv])]
-    except Exception:  # noqa: BLE001
-        words = [repr(argv)]
     here = _path(cwd) if cwd is not None else os.getcwd()
-    _write("x", "\t".join([token, here or "", *(w.replace("\t", " ").replace("\n", " ") for w in words)]))
+    _write("x", f"{token}\t{here or ''}\t{_words(argv)}")
 
 
 def _on_popen(args) -> None:
@@ -221,7 +231,7 @@ def _on_spawn(args) -> None:
 
 
 _EVENTS = {
-    "open": _on_open, "os.listdir": _on_list, "os.scandir": _on_list, "glob.glob": _on_glob,
+    "open": _on_open, "os.listdir": _on_list, "os.scandir": _on_list, "glob.glob/2": _on_glob,
     "os.rename": _on_write, "os.replace": _on_write, "os.remove": _on_remove, "os.rmdir": _on_remove,
     "shutil.rmtree": _on_remove, "subprocess.Popen": _on_popen, "os.posix_spawn": _on_posix_spawn,
     "os.system": _on_system, "os.exec": _on_exec, "os.spawn": _on_spawn,
@@ -266,7 +276,7 @@ def _note_probe(path, dir_fd, st) -> None:
                 _write("m", p)
             else:
                 import stat as _st
-                _write("p", f"{'d' if _st.S_ISDIR(st.st_mode) else 'f'}\t{p}")
+                _write("p", f"{'d' if _st.S_ISDIR(st.st_mode) else f'f:{st.st_size}'}\t{p}")
     except Exception:  # noqa: BLE001
         pass
     finally:
@@ -286,6 +296,7 @@ class Trace:
         self.present: dict[str, str] = {}
         self.listed: set[str] = set()
         self.starts: list[tuple[int, int, str, int]] = []      # pid, ppid, token, time ns
+        self.start_argv: list[list[str]] = []                   # the argv of each start, in the same order
         self.spawns: list[tuple[int, str, str, list[str]]] = []  # pid, token, cwd, argv
         self.expected_roots = 0
 
@@ -316,6 +327,7 @@ def parse(log: str | os.PathLike) -> Trace:
         elif kind == "s" and len(rest) >= 3:
             try:
                 t.starts.append((pid, int(rest[0]), rest[1], int(rest[2])))
+                t.start_argv.append(rest[3:])
             except ValueError:
                 pass
         elif kind == "x" and len(rest) >= 2:
@@ -327,14 +339,22 @@ def parse(log: str | os.PathLike) -> Trace:
     return t
 
 
+PYTHON_NAME = __import__("re").compile(r"python[0-9.]*$|Python$")
+
+
 def traced_spawns(t: Trace) -> set[str]:
     """The tokens of the spawns whose child loaded the hook: a "s" line carrying the token, from the spawner's child
-    (fork and exec) or from the spawner itself (exec)."""
-    by_token = {s[1]: s[0] for s in t.spawns}
+    (fork and exec) or from the spawner itself (exec), whose own argv ends with the spawn's arguments. So a Python
+    started by a shell's -c string (its other commands unseen), or one that inherited a stale token, matches nothing;
+    a bare interpreter spawn (no arguments) matches only when it was a Python."""
+    by_token = {s[1]: (s[0], s[3]) for s in t.spawns}
     done = set()
-    for pid, ppid, token, _t in t.starts:
-        spawner = by_token.get(token)
-        if spawner is not None and spawner in (pid, ppid):
+    for (pid, ppid, token, _t), child in zip(t.starts, t.start_argv):
+        spawner, argv = by_token.get(token, (None, None))
+        if spawner is None or spawner not in (pid, ppid):
+            continue
+        args = argv[1:]
+        if args and child[-len(args):] == args or not args and PYTHON_NAME.search(program(argv)):
             done.add(token)
     return done
 
@@ -510,7 +530,13 @@ def listing(p: str) -> str | None:
 
 
 def kind_of(p: str) -> str:
-    return "d" if os.path.isdir(p) else ("f" if os.path.exists(p) else "-")
+    """"d" for a folder, "f:<size>" for a file (a check may decide on the size alone), "-" when absent."""
+    if os.path.isdir(p):
+        return "d"
+    try:
+        return f"f:{os.stat(p).st_size}"
+    except OSError:
+        return "-"
 
 
 def read_set(t: Trace, root: str) -> dict[str, list[str]]:
@@ -563,7 +589,23 @@ def changed_since(t: Trace, rs: dict[str, list[str]], root: str, extra_files=())
             if os.stat(_abs(n, root)).st_mtime_ns >= since:
                 late.append(n)
         except OSError:
-            pass
+            late.append(n)              # read, not written by the job, and gone now
+    holders = {os.path.dirname(w) or "." for w in written} | written
+    for n in rs["dirs"]:
+        if n in holders:
+            continue                    # the job made or removed something in it itself
+        try:
+            if os.stat(_abs(n, root)).st_mtime_ns >= since:
+                late.append(n)
+        except OSError:
+            late.append(n)
+    seen = {n: v for n, v in ((keep(p, root, skip), v) for p, v in t.present.items()) if n is not None}
+    for n in rs["missing"]:
+        if n not in written and kind_of(_abs(n, root)) != "-":
+            late.append(n)
+    for n in rs["present"]:
+        if n not in written and n not in holders and seen.get(n) not in (None, kind_of(_abs(n, root))):
+            late.append(n)
     return late
 
 
@@ -604,6 +646,25 @@ def save(path, stamp: dict) -> None:
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(stamp, f, sort_keys=True)
     os.replace(tmp, path)
+
+
+def snapshot(root, *parts: str) -> str:
+    """What the stamp key takes from outside the traced files and may change while a job runs (HEAD, origin/main,
+    their merge base, and the callers' `parts`: the plugin state, the outside state), as one sha256. A runner takes
+    it before the job and the recorder again after: a difference records nothing, since the key is worked out after
+    the job and would hold the new state as if the job had seen it."""
+    import hashlib
+    import subprocess
+
+    def run(*a) -> str:
+        try:
+            r = subprocess.run(["git", *a], cwd=root, capture_output=True, text=True, timeout=60)
+        except (OSError, subprocess.SubprocessError):
+            return "unavailable"
+        return r.stdout.strip() if r.returncode == 0 else f"failed:{r.returncode}"
+    text = "\0".join((run("rev-parse", "HEAD"), run("rev-parse", "origin/main"),
+                      run("merge-base", "HEAD", "origin/main"), *parts))
+    return hashlib.sha256(text.encode()).hexdigest()
 
 
 HOOK_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "trace_hook")

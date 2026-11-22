@@ -164,6 +164,16 @@ class StampTest(unittest.TestCase):
         (self.root / "tools/x/tests/test_a.py").write_text("v1\nand more\n")
         self.assertFalse(self.current())
 
+    def test_outside_state_that_changed_while_the_job_ran_records_nothing(self) -> None:
+        plan = self.tmp / "plan.any"
+        plan.write_text("p1\n")
+        with unittest.mock.patch.dict(os.environ, {"ANYRAIL_PLAN": str(plan)}):
+            before = cs.snapshot("static", self.root, self.store)
+            log = self.run_job()
+            plan.write_text("p2\n")             # the job saw p1; the key worked out now would hold p2
+            self.assertIn("changed while the job ran", cs.record("static", log, self.root, self.store, before=before))
+            self.assertFalse(self.current("static"))
+
     def test_a_short_trace_records_nothing_and_drops_the_old_stamp(self) -> None:
         self.record()
         log = self.tmp / "short.log"
