@@ -733,11 +733,13 @@ function app() {
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
     if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
+    else setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again against the panel as it is now
     updateNav();
   }
 
   /* Redraw after a change that moves the boxes (compact, folders, a filter) without losing the reader's place: the
-     selected box, or else the box nearest the middle of the screen, stays where it was on screen at the same zoom.
+     selected box, or else the box nearest the middle of the screen, stays where it was on screen at the same zoom
+     (unless the new drawing is narrower than that view, when the sideways clamp moves it).
      A view that showed everything fits again; a box now inside a folder is followed to the folder, and a folder that
      opened to its boxes, to the first of them. */
   function renderKeeping() {
@@ -888,10 +890,13 @@ function app() {
   nav.addEventListener("wheel", e => e.preventDefault(), { passive: false });
 
   /* ---- pan and zoom */
+  /* The widest view allowed: the Fit width (at least 200), or Infinity while the map has no size yet (hidden). */
+  function maxWidth(free = freeShare()) {
+    const fw = fitView(W, H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight).width;
+    return Number.isFinite(fw) && fw > 0 ? Math.max(fw, 200) : Infinity;
+  }
   function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing sideways (clampView)
-    const fw = fitView(W, H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight).width;
-    const c = Number.isFinite(fw) && fw > 0 ? clampView({ x, y, width: w, height: h }, W, LEFT, freeShare(), Math.max(fw, 200))
-      : { x, y, width: w, height: h };  // a map with no size yet (hidden) has nothing to clamp to
+    const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, LEFT, free, maxWidth(free));
     vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height; updateNav();
   }
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
@@ -914,13 +919,13 @@ function app() {
   function zoomAt(f, cx, cy) {
     const r = wrapEl.getBoundingClientRect();
     const px = vb.x + (cx - r.left) / r.width * vb.width, py = vb.y + (cy - r.top) / r.height * vb.height;
-    const nw = Math.max(vb.width * f, 200), nh = nw * vb.height / vb.width;  // setVB caps zooming out at Fit
+    const nw = Math.min(Math.max(vb.width * f, 200), Math.max(maxWidth(), vb.width)), nh = nw * vb.height / vb.width;  // capped before the corner is worked out, so a zoom-out at Fit stops instead of sliding the map
     setVB(px - (px - vb.x) * nw / vb.width, py - (py - vb.y) * nh / vb.height, nw, nh);
   }
   function centreOn(id, zoom) {  // the box in the middle of the free area, not under the toolbar or the info panel
     const n = lay.nodes.find(m => m.id === id), a = freeArea();
     if (!n) return;
-    const w = zoom ? 1800 : vb.width, h = w * a.r.height / a.r.width, s = w / a.r.width;
+    const w = zoom ? Math.min(1800, maxWidth()) : vb.width, h = w * a.r.height / a.r.width, s = w / a.r.width;  // capped first, so the box stays centred
     const cx = a.right / 2, cy = (a.top + a.bottom) / 2;
     setVB(n.x + n.w / 2 - cx * s, n.y + n.h / 2 - cy * s, w, h);
   }
