@@ -257,6 +257,11 @@
    }
   ],
   "levels": {
+   "assign": {
+    "127B": 10.8,
+    "131B": 10.8
+   },
+   "_assign": "The level a junction is on, whatever its plan height: 127B and 131B are on the upper level (10.8 cm). A railroad fact, so layer 1 (owner, 2026-11-21; was in preferences.json).",
    "bands": [
     {
      "name": "Main level",
