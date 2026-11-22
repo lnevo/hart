@@ -40,8 +40,8 @@ from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
 
 def station_comments(rows=None) -> dict[str, str]:
     """{block: its JMRI comment} of the Dispatcher stations: the device master's staging block rows marked `stop` (the
-    12 stations are all on staging; main and upper stations wait for the owner, and their helix rows' `stop` is the
-    level device map's). The master is the one copy of the station list and the comments (the parked scripts' own copies are listed in
+    Dispatcher stations are parked with the stations topic since 2026-11-22, so the master marks none and the audit
+    holds tables.xml to no block comment marking a stop; the 12 former stations are in docs/parked/UNPARK.md). The master is the one copy of the station list and the comments (the parked scripts' own copies are listed in
     docs/parked/UNPARK.md)."""
     out: dict[str, str] = {}
     for row in devices.load() if rows is None else rows:

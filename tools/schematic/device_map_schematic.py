@@ -1,7 +1,7 @@
 """The main and upper drawing as the device map reads it (build_device_map.py): its tracks with their names
 (named_tracks), the owner's block splits (split_tracks, split_edges), its balloon loop halves, its block layer and home
 masts (main_upper_layer, home_and_posts), its double crossovers' corners (dx_corners, xover_corners, corner_blocks_of),
-its helix blocks (helix_tracks, check_helix_ends, helix_stops), a line block's role (line_role) and the control points'
+its helix blocks (helix_tracks, check_helix_ends), a line block's role (line_role) and the control points'
 plan_overrides.json keys (labels_by_level, overrides_keys).
 
 The builder's paths and the levels they give (OVERRIDES, SHEET, LEVELS, band_level) and its solve() are read from
@@ -202,17 +202,6 @@ def check_helix_ends(bands, joined, found, helix) -> None:
     bad += [f"{b} is drawn on neither the main nor the upper band" for b in want if b not in drawn]
     if bad:
         raise MapError("helix tracks: " + "; ".join(bad))
-
-
-def helix_stops(helix: dict) -> dict[str, str]:
-    """{helix block: the switch its stop is at} of the main and upper helix blocks (`helix`: read_helix_tracks). The
-    helix stop on main and upper is at the helix's main-level end, plan_overrides.json's level_switch (owner, 2026-11-20:
-    Switch 131A and 131B), so each helix block's main or upper row marks a stop, as its staging row does. MapError on
-    an entry with no level_switch (railroad.read_helix_tracks needs one, so only a hand-made dict has none)."""
-    bad = sorted(h["block"] for h in helix.values() if not h["level_switch"])
-    if bad:
-        raise MapError(f"{', '.join(bad)}: no level_switch in {mast_rule.HELIX_SOURCE.name}, so no stop to mark")
-    return {h["block"]: h["level_switch"] for h in helix.values()}
 
 
 def line_role(t: dict, half: int | None) -> str:

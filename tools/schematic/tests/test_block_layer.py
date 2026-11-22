@@ -453,13 +453,13 @@ class StagingRows(RepoReadOnly, unittest.TestCase):
         self.assertEqual((occ["system_name"], occ["jmri_name"], occ["wiring"]),
                          ("M2S1306", "M2S1306", "Node: 13 Block: 7"))
         self.assertEqual(blk["node"], "13")
-        self.assertEqual(blk["jmri_comment"], "Lead Switch 7 to Switch 13; occupancy Block 13-7 / M2S1306; stop")
+        self.assertEqual(blk["jmri_comment"], "Lead Switch 7 to Switch 13; occupancy Block 13-7 / M2S1306")
         self.assertEqual(got[("occupancy", "BS EH-1")]["system_name"], "M2S1300")
         changed = {k for k in want if got[k] != want[k]}
         self.assertEqual(changed, {("occupancy", "BS Barn"), ("block", "Track Barn"),
                                    ("occupancy", "BS EH-1"), ("block", "Track EH-1")})
         self.assertEqual(self.field(devices.field_rows(self.files), "Track Barn")["jmri_comment"],
-                         "Lead Switch 7 to Switch 13; {occupancy}; stop")      # the owner's words, as they were
+                         "Lead Switch 7 to Switch 13; {occupancy}")      # the owner's words, as they were
 
     def test_a_parts_cells_follow_its_rewired_block(self):
         """OS Switch 9 and OS Switch 11 swap inputs in wiring.csv: their parts (Track 9-11 and Track 11-13) take the

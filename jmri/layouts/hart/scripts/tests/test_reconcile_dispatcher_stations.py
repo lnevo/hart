@@ -337,10 +337,14 @@ class StageOneLampsAndSensorsTest(unittest.TestCase):
         tree = reconciler.parse_xml(tables)
         # the stations' occupancy lamps were parked with the lamps of the generated panel, not in the parked tables
         # (jmri/layouts/hart/parked/staging_panel_lamps.json, owner 2026-11-17): put back from the tables alone, the
-        # reconciler adds exactly those, one per station, and nothing else
+        # reconciler adds exactly those, one per station; the stations' "; stop" marks were parked with the stations
+        # topic (owner, 2026-11-22, docs/parked/UNPARK.md), so it puts each of those back too, and nothing else
         details = reconciler.reconcile(tree).details
-        self.assertEqual(len(details), 12, details)
-        self.assertTrue(all(d.startswith("created icon BS ") for d in details), details)
+        self.assertEqual(len(details), 24, details)
+        icons = [d for d in details if d.startswith("created icon BS ")]
+        stops = sorted(d.removeprefix("added stop token: ") for d in details if d.startswith("added stop token: "))
+        self.assertEqual(len(icons), 12, details)
+        self.assertEqual(stops, sorted(reconciler.STATIONS), details)
 
 
 if __name__ == "__main__":

@@ -221,8 +221,9 @@ class TablesCheck(Master):
                       self.problems({("2", "Track 101-111"): dict(user_name="Track Nowhere")}))
 
     def test_a_station_is_its_comment(self):
-        self.assertIn("block Track Barn: stop is empty, but its comment in tables.xml marks a station",
-                      self.problems({("1", "Track Barn"): dict(stop="")}))
+        # the stations are parked (owner, 2026-11-22): no row is a stop and no comment marks one
+        self.assertIn("block Track Barn: stop is yes, but its comment in tables.xml does not mark a station",
+                      self.problems({("1", "Track Barn"): dict(stop="yes")}))
         self.assertIn("block Track East Ext: stop is yes, but its comment in tables.xml does not mark a station",
                       self.problems({("1", "Track East Ext"): dict(stop="yes")}))
         self.assertIn("block Track 101-111: stop is yes, but its comment in tables.xml does not mark a station",
@@ -231,10 +232,10 @@ class TablesCheck(Master):
     def test_the_rows_of_a_helix_block_agree_on_its_stop(self):
         """A helix block's rows (staging and main or upper) agree on its stop, with no list of known exceptions."""
         self.assertFalse(hasattr(cdm, "KNOWN_STOP"))
-        got = self.problems({("3", "Track Helix Inner"): dict(stop="")})
-        self.assertEqual(got, ["block Track Helix Inner: its rows disagree on stop (empty, yes)"])
-        got = self.problems({("1", "Track Helix Outer"): dict(stop="")})
-        self.assertEqual(got, ["block Track Helix Outer: its rows disagree on stop (empty, yes)"])
+        got = self.problems({("3", "Track Helix Inner"): dict(stop="yes")})
+        self.assertIn("block Track Helix Inner: its rows disagree on stop (empty, yes)", got)
+        got = self.problems({("1", "Track Helix Outer"): dict(stop="yes")})
+        self.assertIn("block Track Helix Outer: its rows disagree on stop (empty, yes)", got)
 
     def test_a_block_whose_detector_is_another(self):
         got = self.problems({("1", "BS Barn"): dict(user_name="BS Elsewhere", system_name="M2S9999",
