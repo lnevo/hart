@@ -3016,6 +3016,42 @@
    "path": "jmri/scripts/signal_coordinator.py"
   },
   {
+   "id": "jmri/scripts/sml_beans.py",
+   "label": "sml_beans.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython module of signal_coordinator.py: its constants, bean and name helpers, the Digicon bean roster.",
+   "path": "jmri/scripts/sml_beans.py"
+  },
+  {
+   "id": "jmri/scripts/sml_claims.py",
+   "label": "sml_claims.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython module of signal_coordinator.py: claim parsing and ordering, the claim race between hosts, the abort.",
+   "path": "jmri/scripts/sml_claims.py"
+  },
+  {
+   "id": "jmri/scripts/sml_handoff.py",
+   "label": "sml_handoff.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Jython module of signal_coordinator.py: the boot check, Enable / Disable, and each head's hand-off between SML and the field.",
+   "path": "jmri/scripts/sml_handoff.py"
+  },
+  {
+   "id": "tools/hartlib/src/hartlib/coordinator.py",
+   "label": "hartlib coordinator.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "wiring",
+   "desc": "Reads signal_coordinator.py's SIBLING_MODULES: the script's files for the checks that read its source and ship it.",
+   "path": "tools/hartlib/src/hartlib/coordinator.py"
+  },
+  {
    "id": "media/hart-research/wiring-drafts/lcos-node-grid-2025-10-06c.xlsx",
    "label": "lcos node grid xlsx",
    "kind": "unstructured",
@@ -5086,6 +5122,61 @@
    "from": "jmri/scripts/signal_coordinator.py",
    "to": "tools/hosts/sync_hart_package.sh",
    "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_beans.py",
+   "to": "jmri/scripts/signal_coordinator.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_beans.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check"
+  },
+  {
+   "from": "jmri/scripts/sml_beans.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_claims.py",
+   "to": "jmri/scripts/signal_coordinator.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_claims.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check"
+  },
+  {
+   "from": "jmri/scripts/sml_claims.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/sml_handoff.py",
+   "to": "jmri/scripts/signal_coordinator.py",
+   "label": "imports"
+  },
+  {
+   "from": "jmri/scripts/sml_handoff.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "check"
+  },
+  {
+   "from": "jmri/scripts/sml_handoff.py",
+   "to": "tools/hosts/sync_hart_package.sh",
+   "label": "jython"
+  },
+  {
+   "from": "jmri/scripts/signal_coordinator.py",
+   "to": "tools/hartlib/src/hartlib/coordinator.py",
+   "label": "reads"
+  },
+  {
+   "from": "tools/hartlib/src/hartlib/coordinator.py",
+   "to": "tools/audit/check_mqtt_no_static_lists.py",
+   "label": "imports"
   },
   {
    "from": "media",

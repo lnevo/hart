@@ -52,6 +52,14 @@ JYTHON_STARTUP_SCRIPTS=(
   "$ROOT/jmri/scripts/signal_coordinator.py"
 )
 
+# The modules signal_coordinator.py loads from preference:jython (its SIBLING_MODULES): copied beside it, never
+# Start Up items. tools/hosts/tests/test_coordinator_shipping.py holds every host's list to that tuple.
+JYTHON_SIBLING_MODULES=(
+  "$ROOT/jmri/scripts/sml_beans.py"
+  "$ROOT/jmri/scripts/sml_claims.py"
+  "$ROOT/jmri/scripts/sml_handoff.py"
+)
+
 # load_parked: the features parked out of the active tables (hartlib.parked.PARKED: Entry/Exit, the Dispatcher System,
 # the USS CTC machine). Their files outside tables.xml stay in the repo but are not shipped: the Dispatcher traininfo
 # and options (jmri/layouts/hart/dispatcher) and the USS CTC icons and GUIObjects.xml (jmri/layouts/hart/ctc), and

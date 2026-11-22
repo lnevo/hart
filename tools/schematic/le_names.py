@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import publish_draft as pd  # noqa: E402  DATA, GRAPHS, INPUTS, hartlib paths and the pinned plugin
-from hartlib import devices, paths, railroad, tables  # noqa: E402
+from hartlib import coordinator, devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
 from le_common import (  # noqa: E402
     band_key, band_levels, bare, BASE_LEVELS, BuildError, DEVICE_MAP, main_upper_device_map,
@@ -120,9 +120,12 @@ def read_level_masts(path: Path = MASTS) -> list[dict]:
 @functools.lru_cache(maxsize=None)
 def lcos_rule():
     """signal_coordinator.py's own test for an LCOS head's system name (_is_lcos_ih_sys) and the pattern it finds
-    heads in a mast's system name by (_HEAD_IN_MAST), read from its source (it is Jython and imports jmri): the
-    functions and constants they use, run here in CPython."""
-    src = (pd.REPO / "jmri/scripts/signal_coordinator.py").read_text(encoding="utf-8")
+    heads in a mast's system name by (_HEAD_IN_MAST), read from its source and its sibling modules' (hartlib.coordinator;
+    it is Jython and imports jmri): the functions and constants they use, run here in CPython."""
+    try:
+        src = coordinator.source()
+    except coordinator.CoordinatorError as exc:
+        raise BuildError(str(exc)) from None
     parts = []
     for name in ("_LCOS_SIGNAL_UID_MIN", "_LCOS_SIGNAL_UID_MAX", "_HEAD_IN_MAST"):
         m = re.search(rf"^{name} = .*$", src, re.M)
@@ -131,7 +134,8 @@ def lcos_rule():
         m = re.search(rf"^def {name}\(.*?(?=^\S)", src, re.M | re.S)
         parts.append(m.group(0) if m else None)
     if None in parts:
-        raise BuildError("signal_coordinator.py no longer defines its LCOS head test as lcos_rule reads it")
+        raise BuildError("signal_coordinator.py and its sibling modules no longer define its LCOS head test as "
+                         "lcos_rule reads it")
     ns = {"re": re}
     # the module is Jython (it imports jmri, and Java names CPython cannot parse), so only these pieces are run
     exec(compile("\n".join(parts), "signal_coordinator.py", "exec"), ns)  # noqa: S102

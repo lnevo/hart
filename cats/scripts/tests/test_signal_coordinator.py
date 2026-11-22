@@ -1,15 +1,27 @@
 from __future__ import annotations
 
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import coordinator  # noqa: E402
+
 PUBLISHER = ROOT / "jmri/scripts/signal_coordinator.py"
+
+
+def coordinator_text() -> str:
+    """The script, then its sibling modules in load order (hartlib.coordinator), as one text.
+
+    The checks below slice it from one def to the next: each slice's defs sit together in one file.
+    """
+    return coordinator.source(PUBLISHER)
 
 
 class MqttSignalheadPublisherTest(unittest.TestCase):
     def test_uses_jmri_mqtt_not_mosquitto(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         self.assertIn("MqttSystemConnectionMemo", text)
         self.assertIn("getMqttAdapter", text)
         self.assertIn("Aspect", text)
@@ -49,7 +61,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("import socket", text)
 
     def test_global_disable_hold_publishes_then_button_unheld(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         self.assertNotIn("SUPPRESS_SML_DURING_HANDOFF", text)
         self.assertIn("if self._is_busy() or self._boot_pending:", text)
         off = text.index("def _apply_global_disabled")
@@ -72,7 +84,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("_publish_unheld", abort)
 
     def test_shutdown_hold_release_then_disabled(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         start = text[text.index("def start") : text.index("def _stored_enabled")]
         self.assertIn("_register_shutdown_task()", start)
         self.assertIn("DigiconSmlQuitTask", start)
@@ -97,7 +109,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("self._shutting_down", enable)
 
     def test_per_mast_dest_uncheck_unhelds_immediately(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         self.assertIn("def _hand_source_to_field", text)
         self.assertIn("def _hand_source_to_sml", text)
         self.assertIn("def _dest_enable_map", text)
@@ -112,7 +124,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("last dest is off", chunk)
 
     def test_boot_abort_unchecks_without_hold_or_unheld(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         start = text[text.index("def start") : text.index("def _stored_enabled")]
         self.assertIn('_announce_enabling("stored dests", force=True)', start)
         self.assertIn("_schedule_enabled_after_enabling", start)
@@ -134,7 +146,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn('_publish_mode("enabling")', text[text.index("def _announce_enabling") :])
 
     def test_no_static_head_names_list(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         self.assertNotIn("# HEAD_NAMES_BEGIN", text)
         self.assertNotIn("HEAD_NAMES = [", text)
         self.assertIn("LCOS Virtual IH heads", text)
@@ -145,7 +157,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
     def test_the_roster_is_dynamic(self) -> None:
         """The Digicon publisher finds its masts from the LCOS heads and MQTT enrolment, with no head list to keep
         (what build_hart_signal_heads.py's full run used to check before it went)."""
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         self.assertIn("DigiconMqttSml()", text)
         self.assertIn("_enroll_packed", text)
         self.assertNotIn("HEAD_NAMES_BEGIN", text)
@@ -153,7 +165,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertNotIn("MQTT_HEAD_NAMES", text)
 
     def test_roster_enrolls_from_signalmast_not_signalhead(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         notify = text[text.index("def notifyMqttMessage") :]
         self.assertIn("_enroll_packed(leaf)", notify)
         enroll_at = notify.index("_enroll_packed(leaf)")
@@ -166,7 +178,7 @@ class MqttSignalheadPublisherTest(unittest.TestCase):
         self.assertIn("self.mqtt_wanted = set()", text)
 
     def test_sml_timing_ack_while_taking_or_holding(self) -> None:
-        text = PUBLISHER.read_text(encoding="utf-8")
+        text = coordinator_text()
         self.assertIn("HOLD_WAIT_MS = 3000", text)
         self.assertIn("BOOT_MODE_WAIT_MS = 1000", text)
         self.assertIn("SML_ABORT_RESUME_MS = 1000", text)

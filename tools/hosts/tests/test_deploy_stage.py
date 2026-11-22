@@ -159,6 +159,19 @@ class StageOnly(unittest.TestCase):
             self.assertTrue((pkg / "cats/panels/HART_CTC.xml").is_file(), host)
             self.assertTrue((pkg / "operations/Operations.xml").is_file(), host)
 
+    def test_signal_coordinator_ships_with_its_modules(self) -> None:
+        """The script and every sibling module it loads (hartlib.coordinator) land, unchanged, in both packages."""
+        import sys
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import coordinator
+        files = coordinator.files()
+        self.assertGreater(len(files), 1)
+        for host in ("pi", "win"):
+            for path in files:
+                staged = self.out / host / path.relative_to(ROOT)
+                self.assertTrue(staged.is_file(), f"{host}: {staged.name}")
+                self.assertTrue(filecmp.cmp(path, staged, shallow=False), f"{host}: {staged.name}")
+
     def test_host_scripts_keep_their_package_paths(self) -> None:
         """tools/hosts/pi and tools/hosts/windows land at cats/scripts/pi and cats/scripts/windows."""
         for host in ("pi", "win"):

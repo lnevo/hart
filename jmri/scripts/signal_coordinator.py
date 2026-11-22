@@ -60,7 +60,7 @@
 
 import java
 import jmri
-import re
+import sys
 import threading
 import time
 from java.beans import PropertyChangeListener
@@ -68,239 +68,94 @@ from java.lang import Runnable, Thread
 from javax.swing import JButton, JOptionPane, SwingUtilities
 from jmri.jmrix.mqtt import MqttEventListener
 
-TOPIC_PREFIX = "track/signalhead/"
-MAST_TOPIC_PREFIX = "track/signalmast/"
-SML_MODE_TOPIC = "track/bridge/sml_mode"
-# Coordinators only (the bridge never subscribes): who claims, and when.
-SML_CLAIM_TOPIC = "track/bridge/sml_claim"
-SML_MODE_SENSOR = "IS:SML_MODE"
-HOLD_WAIT_MS = 3000
-BOOT_MODE_WAIT_MS = 1000
-# After enabling, originator waits then Holds and announces sml_mode enabled.
-SML_ABORT_RESUME_MS = 1000
-# Operator Enable probe: wait for another instance to ACK enabled.
-PROBE_WAIT_MS = 1000
-# Only abort mutes bean MQTT: dests uncheck without Hold/Red/Unheld because
-# another agent owns Digicon. Operator Enable/Disable Hold wait publishes.
-
-# LCOS signal UIDs: UID_OFFSET_SIGNALS .. UID_OFFSET_CROSSINGS-1 (lcos.h).
-_LCOS_SIGNAL_UID_MIN = 32
-_LCOS_SIGNAL_UID_MAX = 47
-
-_HEAD_IN_MAST = re.compile(r"\(IH\d+\)")
-
-_ASPECT_TO_APPEARANCE = {
-    "stop": "Red",
-    "approach": "Yellow",
-    "clear": "Green",
-    "red": "Red",
-    "yellow": "Yellow",
-    "green": "Green",
-    "dark": "Dark",
-    "off": "Dark",
-}
+# Sibling modules beside this script in preference:jython, in load order: each comes after
+# every module it imports. The deploy ships each one beside it
+# (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to this tuple).
+SIBLING_MODULES = (
+    "sml_beans",
+    "sml_claims",
+    "sml_handoff",
+)
 
 
-def _ascii(s):
-    if s is None:
-        return ""
-    if not isinstance(s, str):
-        try:
-            s = str(s)
-        except Exception:
-            return repr(s)
-    try:
-        return s.encode("ascii", "replace").decode("ascii")
-    except Exception:
-        return repr(s)
+class SiblingModuleError(ImportError):
+    """A sibling module is missing from the jython folder, or was loaded from another one."""
 
 
-def _topic_suffix(sys_name):
-    """MQTT topic leaf: packed digits only (drop IH prefix)."""
-    if sys_name is None:
-        return ""
-    name = str(sys_name)
-    if len(name) > 2 and name[:2].upper() == "IH" and name[2:].isdigit():
-        return name[2:]
-    return name
+try:
+    _reload = reload  # Jython 2.7: a builtin
+except NameError:  # CPython 3, where the tests run the script
+    from importlib import reload as _reload
 
 
-def _packed_is_lcos_signal(packed):
-    """True if packed = display_node*100 + signal UID (32-47) and node is octal-legal."""
-    if packed is None:
-        return False
-    s = str(packed).strip()
-    if not s.isdigit():
-        return False
-    n = int(s)
-    node = n // 100
-    uid = n % 100
-    if uid < _LCOS_SIGNAL_UID_MIN or uid > _LCOS_SIGNAL_UID_MAX:
-        return False
-    try:
-        int(str(node), 8)
-    except Exception:
-        return False
-    return True
+def _load_siblings(names):
+    """Import each sibling from preference:jython, or reload it if an earlier run imported it.
 
-
-def _is_lcos_ih_sys(sys_name):
-    """True if system name is IH<packed> for an LCOS signal UID."""
-    if sys_name is None:
-        return False
-    name = str(sys_name)
-    if len(name) <= 2 or name[:2].upper() != "IH":
-        return False
-    return _packed_is_lcos_signal(name[2:])
-
-
-def _host_token(name):
-    """One lower-case word for the payload: first DNS label, [a-z0-9_-] only."""
-    s = _ascii(name).strip().lower().split(".")[0] if name else ""
-    s = re.sub(r"[^a-z0-9_-]+", "-", s).strip("-")
-    return s or "unknown"
-
-
-def _local_host_name():
-    name = None
-    try:
-        from java.net import InetAddress
-
-        name = InetAddress.getLocalHost().getHostName()
-    except Exception:
-        name = None
-    if not name:
-        try:
-            import platform
-
-            name = platform.node()
-        except Exception:
-            name = None
-    return _host_token(name)
-
-
-def _parse_claim(message):
-    """sml_claim payload -> (mode, host, stamp, force).
-
-    "enabling <host> <ms> [force]" or "enabled <host> <ms>". Anything shorter or without
-    a number gives host and stamp None.
+    JMRI runs this script with no __file__ and without its folder on sys.path, so the folder
+    is added. A re-run in the same JMRI would otherwise get the modules the earlier run
+    cached: a redeployed script with the old modules. Every file is found and compiled
+    before any is loaded, so a missing or broken one stops a re-run before it reloads the
+    earlier run's modules under its live controller.
     """
-    words = _ascii(message).split()
-    if not words:
-        return "", None, None, False
-    mode = words[0].lower()
-    if len(words) < 3:
-        return mode, None, None, False
-    try:
-        stamp = int(words[2])
-    except Exception:
-        return mode, None, None, False
-    force = "force" in [w.lower() for w in words[3:]]
-    return mode, words[1].lower(), stamp, force
+    import os
 
-
-def _claim_key(stamp, host, force):
-    """Smaller wins: a force claim first, then the earlier stamp, then the host name."""
-    return (0 if force else 1, stamp, host)
-
-
-def _owned_claim(old):
-    """The claim of an earlier run's controller if it owns Digicon and is not mid-change."""
-    try:
-        claim = getattr(old, "_claim", None)
-        if claim is None or not getattr(old, "_global_enabled", False):
-            return None
-        for busy in ("_busy", "_abort_in_progress", "_releasing", "_shutting_down"):
-            if getattr(old, busy, False):
-                return None
-        return claim
-    except Exception:
-        return None
-
-
-def _mqtt_adapter():
-    try:
-        memo = jmri.InstanceManager.getDefault(
-            jmri.jmrix.mqtt.MqttSystemConnectionMemo
+    folder = jmri.util.FileUtil.getExternalFilename("preference:jython")
+    if not folder or not os.path.isdir(folder):
+        raise SiblingModuleError(
+            "signal_coordinator: no jython folder (preference:jython is %r)" % (folder,)
         )
-        if memo is None:
-            return None
-        return memo.getMqttAdapter()
-    except Exception:
-        return None
-
-
-def _mast_manager():
-    try:
-        return masts
-    except NameError:
-        return jmri.InstanceManager.getDefault(jmri.SignalMastManager)
-
-
-def _head_manager():
-    try:
-        return signals
-    except NameError:
-        return jmri.InstanceManager.getDefault(jmri.SignalHeadManager)
-
-
-def _sml_manager():
-    return jmri.InstanceManager.getDefault(jmri.SignalMastLogicManager)
-
-
-def _head_names_on_mast(mast):
-    """IH* heads encoded on a SignalHeadSignalMast systemName."""
-    names = []
-    for token in _HEAD_IN_MAST.findall(str(mast.getSystemName())):
-        names.append(token[1:-1])
-    return names
-
-
-def _appearance_constant(name):
-    """Map appearance name to SignalHead int, or None."""
-    if name is None:
-        return None
-    key = str(name).strip()
-    # JMRI's names are the standard ("Flashing Red"); the LCOS firmware's tokens
-    # ("FlashRed") are accepted too.
-    upper = key.upper().replace(" ", "").replace("FLASHING", "FLASH")
-    table = {
-        "RED": jmri.SignalHead.RED,
-        "YELLOW": jmri.SignalHead.YELLOW,
-        "GREEN": jmri.SignalHead.GREEN,
-        "DARK": jmri.SignalHead.DARK,
-        "OFF": jmri.SignalHead.DARK,
-        "LUNAR": jmri.SignalHead.LUNAR,
-        "FLASHRED": jmri.SignalHead.FLASHRED,
-        "FLASHYELLOW": jmri.SignalHead.FLASHYELLOW,
-        "FLASHGREEN": jmri.SignalHead.FLASHGREEN,
-        "FLASHLUNAR": jmri.SignalHead.FLASHLUNAR,
-    }
-    return table.get(upper)
-
-
-def _dest_listed(sml, dest):
-    """True if dest is still one of the logic's destinations."""
-    try:
-        it = sml.getDestinationList().iterator()
-        while it.hasNext():
-            if it.next() == dest:
-                return True
-    except Exception:
-        return True  # cannot tell: count it as a failure
-    return False
-
-
-def _bean_label(bean):
-    """UserName, else system name, else text: for failure lines."""
-    for getter in ("getUserName", "getSystemName"):
+    if folder not in sys.path:
+        sys.path.insert(0, folder)
+    want = os.path.normcase(os.path.realpath(folder))
+    for name in names:
+        path = os.path.join(folder, name + ".py")
+        if not os.path.isfile(path):
+            raise SiblingModuleError(
+                "signal_coordinator: %s.py is missing from %s; the deploy ships it beside "
+                "this script" % (name, folder)
+            )
         try:
-            name = getattr(bean, getter)()
-            if name:
-                return _ascii(name)
-        except Exception:
-            pass
-    return _ascii(bean)
+            with open(path) as f:
+                compile(f.read(), path, "exec")
+        except Exception as exc:
+            raise SiblingModuleError(
+                "signal_coordinator: %s.py in %s does not compile: %s" % (name, folder, exc)
+            )
+    for name in names:
+        try:
+            module = sys.modules.get(name)
+            if module is None:
+                module = __import__(name)
+            else:
+                module = _reload(module)
+        except Exception as exc:
+            raise SiblingModuleError(
+                "signal_coordinator: cannot import %s from %s: %s" % (name, folder, exc)
+            )
+        got = os.path.dirname(getattr(module, "__file__", None) or "")
+        if os.path.normcase(os.path.realpath(got)) != want:
+            raise SiblingModuleError(
+                "signal_coordinator: %s was loaded from %r, not from %s" % (name, got, folder)
+            )
+    print("mqtt_signalhead: modules %s from %s" % (", ".join(names), folder))
+
+
+_load_siblings(SIBLING_MODULES)
+
+from sml_beans import (  # noqa: E402
+    TOPIC_PREFIX, MAST_TOPIC_PREFIX, SML_MODE_TOPIC, SML_CLAIM_TOPIC, SML_MODE_SENSOR,
+    HOLD_WAIT_MS, BOOT_MODE_WAIT_MS, SML_ABORT_RESUME_MS, PROBE_WAIT_MS,
+    _LCOS_SIGNAL_UID_MIN, _LCOS_SIGNAL_UID_MAX, _HEAD_IN_MAST, _ASPECT_TO_APPEARANCE,
+    _ascii, _topic_suffix, _packed_is_lcos_signal, _is_lcos_ih_sys, _mqtt_adapter,
+    _mast_manager, _head_manager, _sml_manager, _head_names_on_mast, _appearance_constant,
+    _dest_listed, _bean_label, SmlBeans,
+)
+from sml_claims import (  # noqa: E402
+    _host_token, _local_host_name, _parse_claim, _claim_key, _owned_claim, SmlClaims,
+)
+from sml_handoff import (  # noqa: E402
+    SmlHandoff,
+)
 
 
 class _BulkRun(object):
@@ -334,6 +189,9 @@ class _BulkRun(object):
 
 
 class DigiconMqttSml(
+    SmlBeans,
+    SmlClaims,
+    SmlHandoff,
     PropertyChangeListener,
     MqttEventListener,
 ):
@@ -711,177 +569,6 @@ class DigiconMqttSml(
         SwingUtilities.invokeLater(_Warn())
         return True
 
-    def _is_busy(self):
-        """A Disable/Enable worker or an abort is running."""
-        return self._busy or self._abort_in_progress
-
-    def _abort_sml_immediate(self):
-        """Uncheck Digicon SML now: aborting -> dests off (no Hold/Red/Unheld) -> aborted.
-
-        Called on JMRI's one MQTT callback thread. The bulk uncheck waits on the layout
-        thread, so it runs on a worker; SET stops and the ACK is refused here at once.
-        Leaves `_busy` alone: a Disable/Enable worker still running owns that flag.
-        """
-        if self._abort_in_progress:
-            return
-        self._abort_in_progress = True
-        self._abort_gen += 1
-        self._boot_pending = False
-        self._global_enabled = False
-        self._enabling_originator = False
-        self._claim = None
-        self._sync_sml_mode_sensor()
-        controller = self
-
-        class _Abort(Runnable):
-            def run(_self):
-                controller._run_abort()
-
-        Thread(_Abort(), "digicon-sml-abort").start()
-
-    def _run_abort(self):
-        self._suppress_sml = True
-        try:
-            print("mqtt_signalhead: sml_mode aborting (immediate uncheck, no RELEASE)")
-            self._publish_mode("aborting")
-            if self._set_all_digicon_sml_destinations(False) is not True:
-                self._retry_uncheck_loudly("abort")
-            self._snapshot_mast_sml_state()
-            self._publish_mode("aborted")
-            print("mqtt_signalhead: sml_mode aborted")
-        finally:
-            self._suppress_sml = False
-            self._abort_in_progress = False
-            # A Disable/Enable worker still running resets the button when it ends.
-            if not self._busy:
-                self._set_button_label()
-
-    def _stamp_claim(self, force=False):
-        """Start a claim: this host's stamp now. Published by _announce_enabling."""
-        with self._claim_lock:
-            self._claim = (self._now_ms(), bool(force))
-            self._enabling_originator = True
-
-    def _announce_enabling(self, reason, force=False):
-        """Publish enabling with this host's claim; a stamped claim keeps its stamp."""
-        with self._claim_lock:
-            if self._claim is None or not self._enabling_originator:
-                self._stamp_claim(force=force)
-            stamp, forced = self._claim
-            self._publish_mode("enabling")
-        print(
-            "mqtt_signalhead: sml_mode enabling (%s; claim %s %d%s)"
-            % (reason, self._host, stamp, " force" if forced else "")
-        )
-
-    def _my_claim_key(self):
-        stamp, force = self._claim
-        return _claim_key(stamp, self._host, force)
-
-    def _is_own_claim(self, host, stamp):
-        return (
-            self._claim is not None
-            and host == self._host
-            and stamp == self._claim[0]
-        )
-
-    def _lose_claim(self, why):
-        """Another host's claim won. Pending: cancel the Hold; with dests on: abort."""
-        print("mqtt_signalhead: %s -- stand down" % why)
-        self._claim = None
-        self._enabling_originator = False
-        if self._global_enabled or self._digicon_dests_on():
-            self._abort_sml_immediate()
-        else:
-            # A pending Hold reads the bump and leaves the pairs off, with no enabled.
-            self._abort_gen += 1
-            self._sync_sml_mode_sensor()
-
-    def _resolve_claim_race(self, mode, host, stamp, force):
-        """A claim (enabling) or ownership (enabled) from elsewhere while this host
-        claims or owns. The smaller key wins on both hosts, as each compares the
-        same two keys."""
-        if host == self._host:
-            print(
-                "mqtt_signalhead: %s from this host's earlier run (%d) -- ignored"
-                % (mode, stamp)
-            )
-            return
-        theirs = _claim_key(stamp, host, force)
-        if self._releasing or theirs < self._my_claim_key():
-            self._lose_claim(
-                "%s %s %d%s is first" % (mode, host, stamp, " force" if force else "")
-            )
-            return
-        if self._global_enabled:
-            # Still the owner: say so, so the later claimant stands down.
-            print(
-                "mqtt_signalhead: %s %s %d is later -- keep Digicon, re-announce enabled"
-                % (mode, host, stamp)
-            )
-            self._publish_mode("enabled")
-            return
-        print(
-            "mqtt_signalhead: %s %s %d is later -- keep taking" % (mode, host, stamp)
-        )
-
-    def _schedule_enabled_after_enabling(self):
-        """Originator only: dests stay on; after a short wait announce enabled."""
-        if self._enabling_wait_scheduled:
-            return
-        self._enabling_wait_scheduled = True
-        controller = self
-
-        class _Resume(Runnable):
-            def run(_self):
-                Thread.sleep(SML_ABORT_RESUME_MS)
-                controller._enabling_wait_scheduled = False
-                if controller._shutting_down:
-                    print("mqtt_signalhead: enabling announce skipped (shutting down)")
-                    return
-                if controller._global_enabled and str(
-                    controller._retained_mode or ""
-                ).strip().lower() == "enabled":
-                    print("mqtt_signalhead: enabling announce skipped (already enabled)")
-                    return
-                print("mqtt_signalhead: enabling -- take Digicon (enabled)")
-                controller._enter_enabled(force=True, from_boot=True, resume=True)
-
-        Thread(_Resume(), "digicon-sml-enabling").start()
-
-    def _boot_hold_sml_off(self):
-        """Force Digicon SML pairs off until boot check finishes. No MQTT mute."""
-        self._boot_pending = True
-        if self._set_all_digicon_sml_destinations(False) is not True:
-            self._retry_uncheck_loudly("boot hold")
-        self._global_enabled = False
-        self._sync_sml_mode_sensor()
-        self._snapshot_mast_sml_state()
-        self._set_button_label()
-
-    def _snapshot_mast_sml_state(self):
-        """Baseline dest Enabled maps. Bulk/boot must not Unheld from the listener.
-
-        Per-mast field ownership is dest checkboxes only. Global Disable is
-        `_global_enabled` in `_field_owns_mast` — do not fold it in here, or
-        Enable's snapshot (taken before `_global_enabled = True`) would leave
-        every source field-owned and block SET.
-        """
-        state = {}
-        owned = {}
-        dest_maps = {}
-        for mast in self._masts:
-            sml = self._sml_for_mast(mast)
-            dmap = self._dest_enable_map(sml) if sml is not None else {}
-            if sml is not None:
-                dest_maps[sml] = dmap
-            on = any(dmap.values())
-            state[mast] = on
-            owned[mast] = not on
-        self._mast_sml_was_enabled = state
-        self._source_field_owned = owned
-        self._dest_enable_maps = dest_maps
-
     def _set_all_digicon_sml_destinations(self, enabled):
         """Flip Enabled checkbox for every Digicon source→dest pair (SML table).
 
@@ -1012,63 +699,6 @@ class DigiconMqttSml(
             if queued.cancel():
                 return True
             return _do(_BulkRun())
-
-    def _collect_beans(self):
-        """Digicon plants = SHSM masts with LCOS Virtual IH heads (tables, not a static list).
-
-        MQTT SET/Unheld heads attach later via _enroll_packed from signalmast.
-        """
-        mm = _mast_manager()
-        self._masts = []
-        self._heads = []
-        self._head_to_mast = {}
-        if mm is None:
-            return
-        for mast in mm.getNamedBeanSet():
-            lcos_heads = [n for n in _head_names_on_mast(mast) if _is_lcos_ih_sys(n)]
-            if not lcos_heads:
-                continue
-            self._masts.append(mast)
-            for n in lcos_heads:
-                self._head_to_mast[n] = mast
-
-    def _attach_bean_listeners(self):
-        for mast in self._masts:
-            mast.addPropertyChangeListener(self)
-        for head in self._heads:
-            head.addPropertyChangeListener(self)
-
-    def _attach_sml_listeners(self, quiet=False):
-        smlm = _sml_manager()
-        if smlm is None:
-            return
-        for sml in self._smls:
-            try:
-                sml.removePropertyChangeListener(self)
-            except Exception:
-                pass
-        self._smls = []
-        self._sml_by_mast = {}
-        digicon = set(self._masts)
-        for sml in smlm.getSignalMastLogicList():
-            try:
-                src = sml.getSourceMast()
-            except Exception:
-                continue
-            if src not in digicon:
-                continue
-            sml.addPropertyChangeListener(self)
-            self._smls.append(sml)
-            self._sml_by_mast[src] = sml
-        n = len(self._smls)
-        # Refresh before bulk set is normal; only log when the count changes.
-        if quiet and n == getattr(self, "_sml_watch_logged", None):
-            return
-        print(
-            "mqtt_signalhead: watching %d Digicon SignalMastLogic sources"
-            % n
-        )
-        self._sml_watch_logged = n
 
     def _subscribe_mqtt(self):
         try:
@@ -1246,705 +876,6 @@ class DigiconMqttSml(
             payload += " force"
         self._retained_host = self._host
         self._publish(SML_CLAIM_TOPIC, payload, retain=True)
-
-    def _schedule_boot_check(self):
-        """After subscribe, read sml_mode (broker retain arrives as a message).
-
-        No publish during this decision. missing/disabled/query -> enable Digicon;
-        enabled -> stay Disabled with zero Unheld.
-        """
-        controller = self
-
-        class _Boot(Runnable):
-            def run(_self):
-                Thread.sleep(BOOT_MODE_WAIT_MS)
-                if controller._shutting_down:
-                    print("mqtt_signalhead: boot check skipped (shutting down)")
-                    return
-                # Read and claim in one step: a rival claim lands before (seen here) or after
-                # (compared with this claim).
-                with controller._claim_lock:
-                    mode = controller._retained_mode
-                    mode_s = "" if mode is None else str(mode).strip().lower()
-                    take = mode is None or mode_s in (
-                        "",
-                        "disabled",
-                        "query",
-                        "disabling",
-                    )
-                    # A claim with this host's own name was left by its earlier run.
-                    own_stale = (
-                        mode_s in ("enabled", "enabling")
-                        and controller._retained_host == controller._host
-                    )
-                    if take or own_stale:
-                        print(
-                            "mqtt_signalhead: boot mode=%s%s -- take Digicon (enable)"
-                            % (
-                                mode_s if mode_s else "missing",
-                                " (left by this host)" if own_stale else "",
-                            )
-                        )
-                        controller._boot_pending = False
-                        controller._enter_enabled(force=True, from_boot=True)
-                        return
-                print(
-                    "mqtt_signalhead: boot mode=%s -- stay SML Disabled "
-                    "(no Unheld, no mode publish)"
-                    % (mode_s if mode_s else "missing")
-                )
-                controller._boot_pending = False
-                controller._global_enabled = False
-                controller._snapshot_mast_sml_state()
-                controller._set_button_label()
-
-        Thread(_Boot(), "digicon-sml-boot").start()
-
-    def _on_toggle(self):
-        if self._is_busy():
-            return
-        if self._global_enabled:
-            self._enter_disabled(release=True)
-        else:
-            self._enter_enabled(force=False, from_boot=False)
-
-    def _ask_force_override_edt(self):
-        """Show override confirm on the EDT. Return True if Yes."""
-        holder = [JOptionPane.NO_OPTION]
-        msg = (
-            "track/bridge/sml_mode is already enabled "
-            "(another Digicon session or stale retain).\n"
-            "Force override Digicon control?"
-        )
-        title = "SML Enabled"
-
-        class _Ask(Runnable):
-            def run(_self):
-                try:
-                    from jmri.util.swing import JmriJOptionPane
-
-                    holder[0] = JmriJOptionPane.showConfirmDialog(
-                        None,
-                        msg,
-                        title,
-                        JmriJOptionPane.YES_NO_OPTION,
-                        JmriJOptionPane.WARNING_MESSAGE,
-                    )
-                except Exception:
-                    holder[0] = JOptionPane.showConfirmDialog(
-                        None,
-                        msg,
-                        title,
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.WARNING_MESSAGE,
-                    )
-
-        try:
-            if SwingUtilities.isEventDispatchThread():
-                _Ask().run()
-            else:
-                SwingUtilities.invokeAndWait(_Ask())
-        except Exception as exc:
-            print("mqtt_signalhead: override dialog failed: " + _ascii(exc))
-            return False
-        return holder[0] == JOptionPane.YES_OPTION
-
-    def _probe_and_confirm_override(self):
-        """If sml_mode is already enabled elsewhere, ask before taking control.
-
-        Return "ok" (take Digicon now), "force" (publish enabling so others
-        abort), or "cancel".
-        """
-        mode = self._retained_mode
-        if mode is not None and str(mode).strip().lower() == "enabled":
-            print("mqtt_signalhead: retain already enabled -- asking override")
-            if self._ask_force_override_edt():
-                return "force"
-            return "cancel"
-        # Live probe: another Enabled Digicon answers query with enabled.
-        self._probe_saw_enabled = False
-        self._probe_active = True
-        try:
-            self._publish(SML_MODE_TOPIC, "query", retain=False)
-            print("mqtt_signalhead: enable probe query (wait for enabled ACK)")
-            Thread.sleep(PROBE_WAIT_MS)
-        finally:
-            self._probe_active = False
-        if self._probe_saw_enabled:
-            print("mqtt_signalhead: probe saw enabled -- asking override")
-            if self._ask_force_override_edt():
-                return "force"
-            return "cancel"
-        print("mqtt_signalhead: probe clear -- enabling without override")
-        return "ok"
-
-    def _enter_enabled(self, force, from_boot, resume=False):
-        """Take Digicon on a worker. force/from_boot skip the operator probe.
-
-        A boot or bridge-release take claims here, on the deciding thread, so the claim
-        goes out at the moment of the decision. resume=True carries on the claim the
-        stored-dests boot announced, and skips if that claim was lost.
-        """
-        with self._claim_lock:
-            if self._is_busy() or self._shutting_down:
-                return
-            if resume:
-                if self._claim is None or not self._enabling_originator:
-                    print("mqtt_signalhead: enabling lost to another host -- no take")
-                    return
-            elif force or from_boot:
-                self._announce_enabling("take")
-            self._busy = True
-            abort_gen = self._abort_gen
-        self._set_button_busy()
-        controller = self
-
-        class _Run(Runnable):
-            def run(_self):
-                try:
-                    if controller._shutting_down:
-                        return
-                    if not force and not from_boot:
-                        result = controller._probe_and_confirm_override()
-                        if result == "cancel":
-                            print("mqtt_signalhead: enable aborted (no override)")
-                            return
-                        with controller._claim_lock:
-                            if controller._abort_gen != abort_gen:
-                                print(
-                                    "mqtt_signalhead: enable skipped (aborted during "
-                                    "probe; another agent is taking Digicon)"
-                                )
-                                return
-                            if result == "force":
-                                controller._announce_enabling("force override", force=True)
-                            else:
-                                controller._announce_enabling("operator enable")
-                        if result == "force":
-                            Thread.sleep(SML_ABORT_RESUME_MS)
-                    if controller._shutting_down:
-                        print("mqtt_signalhead: enable skipped (shutting down)")
-                        return
-                    controller._hand_off_enabled(abort_gen)
-                finally:
-                    controller._busy = False
-                    controller._set_button_label()
-                    controller._sync_sml_mode_sensor()
-
-        Thread(_Run(), "digicon-sml-enable").start()
-
-    def _enter_disabled(self, release):
-        if self._is_busy():
-            return
-        self._busy = True
-        self._set_button_busy()
-        controller = self
-        abort_gen = self._abort_gen
-
-        class _Run(Runnable):
-            def run(_self):
-                controller._releasing = True
-                try:
-                    controller._hand_off_disabled(release=release, abort_gen=abort_gen)
-                finally:
-                    controller._releasing = False
-                    controller._busy = False
-                    controller._set_button_label()
-                    controller._sync_sml_mode_sensor()
-
-        Thread(_Run(), "digicon-sml-disable").start()
-
-    def _apply_global_disabled(self, release, publish_mode, abort_gen=None):
-        """Disable Digicon SML in JMRI. RELEASE only when release=True.
-
-        If an abort ran since `abort_gen` was read, another agent owns Digicon: no
-        Unheld of its heads and no `disabled` over its enabling.
-        """
-        if abort_gen is None:
-            abort_gen = self._abort_gen
-        print(
-            "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML off / Unheld"
-            % HOLD_WAIT_MS
-        )
-        for mast in self._masts:
-            try:
-                mast.setHeld(True)
-            except Exception:
-                pass
-        Thread.sleep(HOLD_WAIT_MS)
-        print("mqtt_signalhead: Hold wait done -- disabling SML pairs")
-        off = self._try_set_all_digicon_sml(False)
-        aborted = self._abort_gen != abort_gen
-        if aborted:
-            print(
-                "mqtt_signalhead: aborted during Disable -- no Unheld, no disabled "
-                "(another agent owns Digicon)"
-            )
-        elif not off:
-            self._stay_owner_after_failed_disable(abort_gen)
-            return
-        if release and not aborted:
-            print(
-                "mqtt_signalhead: publishing Unheld for %d MQTT head(s)"
-                % len(self._heads)
-            )
-            for head in self._heads:
-                if self._abort_gen != abort_gen:
-                    break
-                self._publish_unheld(head)
-        for mast in self._masts:
-            try:
-                mast.setHeld(False)
-            except Exception:
-                pass
-        self._global_enabled = False
-        self._enabling_originator = False
-        self._claim = None
-        if publish_mode and self._abort_gen == abort_gen:
-            self._publish_mode("disabled")
-        self._sync_sml_mode_sensor()
-
-    def _try_set_all_digicon_sml(self, enabled):
-        """Bulk set, then snapshot; False (printed) if any pair may be left as it was."""
-        ok = False
-        try:
-            ok = self._set_all_digicon_sml_destinations(enabled) is True
-            self._snapshot_mast_sml_state()
-        except Exception as exc:
-            print(
-                "mqtt_signalhead: %s SML pairs failed: %s"
-                % ("enabling" if enabled else "disabling", _ascii(exc))
-            )
-            ok = False
-        return ok
-
-    def _set_masts_held(self, held):
-        for mast in self._masts:
-            try:
-                mast.setHeld(held)
-            except Exception:
-                pass
-
-    def _stay_owner_after_failed_disable(self, abort_gen):
-        """Pairs may still be on: handing off now would make two owners. Keep Digicon.
-
-        After an abort another agent owns Digicon: no re-enable and no enabled.
-        """
-        print("mqtt_signalhead: Disable FAILED -- SML pairs may still be on")
-        if self._abort_gen != abort_gen:
-            print("mqtt_signalhead: taken over during the failed Disable -- no enabled")
-            self._set_masts_held(False)
-            self._sync_sml_mode_sensor()
-            return
-        # Best effort: all pairs on again, so this host owns consistently.
-        on = self._try_set_all_digicon_sml(True)
-        if self._abort_gen != abort_gen:
-            print("mqtt_signalhead: taken over during the failed Disable -- pairs off, no enabled")
-            if self._set_all_digicon_sml_destinations(False) is not True:
-                self._retry_uncheck_loudly("taken over during the failed Disable")
-            self._snapshot_mast_sml_state()
-            self._set_masts_held(False)
-            self._sync_sml_mode_sensor()
-            return
-        print(
-            "mqtt_signalhead: keeping Digicon (enabled) after the failed Disable. "
-            "Check the SML table, then try Disable again."
-        )
-        self._set_masts_held(False)
-        if not on:
-            self._unheld_heads_of_dark_masts(abort_gen)
-        with self._claim_lock:
-            if self._abort_gen == abort_gen:
-                self._publish_mode("enabled")
-        self._sync_sml_mode_sensor()
-
-    def _unheld_heads_of_dark_masts(self, abort_gen):
-        """Owning with some pairs off: their masts send no SET, so let the field drive
-        their heads (Unheld) rather than freeze them."""
-        names = []
-        for mast in self._masts:
-            if self._mast_logic_enabled(mast):
-                continue
-            names.append(_bean_label(mast))
-            for head in self._mqtt_heads_on_mast(mast):
-                if self._abort_gen != abort_gen:
-                    return
-                self._publish_unheld(head)
-        if names:
-            print(
-                "mqtt_signalhead: owning with these masts' pairs off -- Unheld their "
-                "heads: %s" % ", ".join(names)
-            )
-
-    def _pairs_still_on(self):
-        """'source -> dest' for every Digicon pair still Enabled, for failure lines."""
-        out = []
-        for sml in self._smls:
-            try:
-                it = sml.getDestinationList().iterator()
-                while it.hasNext():
-                    dest = it.next()
-                    if sml.isEnabled(dest):
-                        out.append(
-                            "%s -> %s" % (_bean_label(sml.getSourceMast()), _bean_label(dest))
-                        )
-            except Exception:
-                continue
-        return ", ".join(out) or "none listed"
-
-    def _retry_uncheck_loudly(self, why):
-        """After a bulk uncheck that failed: print the pairs still on and retry once.
-        Always retry, as before: in JMRI runOnLayout blocks until the work is done, so
-        a timeout cannot be told apart reliably, and a missed retry can leave pairs on
-        while another host owns Digicon."""
-        print(
-            "mqtt_signalhead: %s FAILED to turn all SML pairs off (still on: %s) -- "
-            "retrying once" % (why, self._pairs_still_on())
-        )
-        if self._set_all_digicon_sml_destinations(False) is True:
-            return True
-        print(
-            "mqtt_signalhead: %s retry FAILED -- SML pairs still on: %s"
-            % (why, self._pairs_still_on())
-        )
-        return False
-
-    def _hand_off_disabled(self, release, abort_gen=None):
-        print("mqtt_signalhead: global -> SML Disabled (release=%s)" % release)
-        self._apply_global_disabled(
-            release=release, publish_mode=True, abort_gen=abort_gen
-        )
-
-    def _hand_off_enabled(self, abort_gen=None):
-        if self._shutting_down:
-            print("mqtt_signalhead: enable skipped (shutting down)")
-            return
-        if abort_gen is None:
-            abort_gen = self._abort_gen
-        if self._abort_gen != abort_gen or self._claim is None:
-            print("mqtt_signalhead: enable skipped (aborted; another agent is taking Digicon)")
-            self._enabling_originator = False
-            return
-        # ACK query/disabling during Hold (not yet _global_enabled). The Hold is also the
-        # window in which a rival claim is heard and compared.
-        self._enabling_originator = True
-        print("mqtt_signalhead: global -> SML Enabled")
-        print(
-            "mqtt_signalhead: Hold Digicon masts, wait %d ms before SML on"
-            % HOLD_WAIT_MS
-        )
-        for mast in self._masts:
-            try:
-                mast.setHeld(True)
-            except Exception:
-                pass
-        Thread.sleep(HOLD_WAIT_MS)
-        # Commit under the claim lock: a rival claim is handled either before (this claim
-        # lost, or kept) or after (this host owns; the rival is compared with an owner).
-        with self._claim_lock:
-            lost = (
-                self._shutting_down
-                or self._abort_gen != abort_gen
-                or self._claim is None
-            )
-            if not lost:
-                self._global_enabled = True
-        if lost:
-            print(
-                "mqtt_signalhead: enable Hold done but shutting down, aborted or lost "
-                "to another host -- leave dests, no enabled"
-            )
-            if self._abort_gen != abort_gen:
-                self._enabling_originator = False
-            for mast in self._masts:
-                try:
-                    mast.setHeld(False)
-                except Exception:
-                    pass
-            return
-        print("mqtt_signalhead: Hold wait done -- enabling SML pairs")
-        on = self._try_set_all_digicon_sml(True)
-        if self._abort_gen != abort_gen:
-            # Taken over while the pairs went on: the abort's uncheck may have run first.
-            print("mqtt_signalhead: taken over during enable -- pairs off, no enabled")
-            if self._set_all_digicon_sml_destinations(False) is not True:
-                self._retry_uncheck_loudly("taken over during enable")
-            self._snapshot_mast_sml_state()
-            for mast in self._masts:
-                try:
-                    mast.setHeld(False)
-                except Exception:
-                    pass
-            return
-        if not on:
-            if self._back_out_failed_enable(abort_gen):
-                return
-            self._unheld_heads_of_dark_masts(abort_gen)
-        for mast in self._masts:
-            try:
-                mast.setHeld(False)
-            except Exception:
-                pass
-        # Ownership announce for the bridge and the other host (not a boot retain republish).
-        # Under the lock, so an abort that lands now cannot be followed by our enabled.
-        with self._claim_lock:
-            if self._abort_gen == abort_gen and self._claim is not None:
-                self._publish_mode("enabled")
-            self._enabling_originator = False
-        self._sync_sml_mode_sensor()
-        # Push current appearances once Digicon owns SET again.
-        for head in self._heads:
-            if self._mast_logic_enabled(self._mast_for_head(head)):
-                self._publish_head_set(head, force=True)
-
-    def _back_out_failed_enable(self, abort_gen):
-        """The pairs did not all go on: never announce enabled with pairs off.
-
-        Turn them off again and hand off as Disable does (True). If that fails too,
-        some pairs may be on: return False, and the caller stays the owner and
-        announces enabled. One owner, possibly partial, beats two.
-        """
-        print("mqtt_signalhead: Enable FAILED -- not all SML pairs went on; no enabled")
-        off = self._try_set_all_digicon_sml(False)
-        if not off:
-            print(
-                "mqtt_signalhead: and turning them off FAILED -- keeping Digicon "
-                "(enabled). Check the SML table."
-            )
-            return False
-        print(
-            "mqtt_signalhead: SML pairs off again -- publishing Unheld for %d MQTT head(s)"
-            % len(self._heads)
-        )
-        for head in self._heads:
-            if self._abort_gen != abort_gen:
-                break
-            self._publish_unheld(head)
-        self._set_masts_held(False)
-        with self._claim_lock:
-            self._global_enabled = False
-            self._enabling_originator = False
-            self._claim = None
-            if self._abort_gen == abort_gen:
-                self._publish_mode("disabled")
-        self._sync_sml_mode_sensor()
-        return True
-
-    def _mast_for_head(self, head):
-        if head is None:
-            return None
-        return self._head_to_mast.get(head.getSystemName())
-
-    def _sml_for_mast(self, mast):
-        if mast is None:
-            return None
-        return self._sml_by_mast.get(mast)
-
-    def _mast_logic_enabled(self, mast):
-        """True if Digicon source mast has any destination Enabled in the SML table."""
-        return self._enabled_dest_count(mast) > 0
-
-    def _enabled_dest_count(self, mast):
-        if mast is None:
-            return 0
-        sml = self._sml_for_mast(mast)
-        if sml is None:
-            return 0
-        n = 0
-        try:
-            dests = sml.getDestinationList()
-            if dests is None or dests.isEmpty():
-                return 0
-            it = dests.iterator()
-            while it.hasNext():
-                dest = it.next()
-                try:
-                    if sml.isEnabled(dest):
-                        n += 1
-                except Exception:
-                    continue
-        except Exception:
-            return 0
-        return n
-
-    def _dest_enable_map(self, sml):
-        """dest systemName -> isEnabled for one source logic."""
-        out = {}
-        if sml is None:
-            return out
-        try:
-            dests = sml.getDestinationList()
-            if dests is None or dests.isEmpty():
-                return out
-            it = dests.iterator()
-            while it.hasNext():
-                dest = it.next()
-                try:
-                    key = dest.getSystemName()
-                    out[key] = bool(sml.isEnabled(dest))
-                except Exception:
-                    continue
-        except Exception:
-            return out
-        return out
-
-    def _field_owns_mast(self, mast):
-        """Field owns heads when global SML is off or this source was unchecked."""
-        if mast is None:
-            return False
-        if not self._global_enabled:
-            return True
-        if self._source_field_owned.get(mast):
-            return True
-        return not self._mast_logic_enabled(mast)
-
-    def _publish_unheld(self, head):
-        if head is None:
-            return
-        sys_name = head.getSystemName()
-        if sys_name not in self.mqtt_wanted:
-            return
-        topic = TOPIC_PREFIX + _topic_suffix(sys_name)
-        prev = self._last_mqtt_appearance.get(sys_name)
-        if prev == "Unheld":
-            return
-        self._last_mqtt_appearance[sys_name] = "Unheld"
-        self._publish(topic, "Unheld", retain=True)
-
-    def _mqtt_heads_on_mast(self, mast):
-        heads = []
-        hm = _head_manager()
-        if hm is None or mast is None:
-            return heads
-        for sys_name in _head_names_on_mast(mast):
-            if sys_name not in self.mqtt_wanted:
-                continue
-            head = hm.getSignalHead(sys_name)
-            if head is not None:
-                heads.append(head)
-        return heads
-
-    def _hand_source_to_field(self, mast):
-        """Uncheck Enable: Unheld this source's heads; field owns until re-enabled."""
-        if self._source_field_owned.get(mast):
-            return
-        self._source_field_owned[mast] = True
-        heads = self._mqtt_heads_on_mast(mast)
-        if not heads:
-            print(
-                "mqtt_signalhead: SML dest off %s — no MQTT heads "
-                "(roster=%s)"
-                % (
-                    _ascii(mast.getDisplayName()),
-                    ",".join(sorted(self.mqtt_wanted)),
-                )
-            )
-            return
-        for head in heads:
-            self._publish_unheld(head)
-        print(
-            "mqtt_signalhead: SML dest off -> Unheld %s (field owns)"
-            % _ascii(mast.getDisplayName())
-        )
-
-    def _hand_source_to_sml(self, mast):
-        """Re-check Enable: Digicon SET again."""
-        self._source_field_owned[mast] = False
-        heads = self._mqtt_heads_on_mast(mast)
-        for head in heads:
-            self._publish_head_set(head, force=True)
-        print(
-            "mqtt_signalhead: SML dest on -> SET %s (Digicon owns)"
-            % _ascii(mast.getDisplayName())
-        )
-
-    def _publish_head_set(self, head, force=False):
-        if self.mqtt is None or head is None:
-            return
-        if not self._global_enabled:
-            return
-        mast = self._mast_for_head(head)
-        if self._field_owns_mast(mast):
-            return
-        sys_name = head.getSystemName()
-        if sys_name not in self.mqtt_wanted:
-            return
-        topic = TOPIC_PREFIX + _topic_suffix(sys_name)
-        data = head.getAppearanceName()
-        prev = self._last_mqtt_appearance.get(sys_name)
-        # Skip unchanged chatter on property churn — but Enable must always SET
-        # so the field/bridge re-applies even if the aspect string is the same.
-        if not force and prev is not None and prev == data:
-            return
-        self._last_mqtt_appearance[sys_name] = data
-        # Retain so LCOS bridge can resume Flashing Red / … after restart
-        # (color/Dark toggles stay bridge-local and never appear on MQTT).
-        self._publish(topic, data, retain=True)
-
-    def _apply_mast_payload_to_head(self, packed, payload):
-        """track/signalmast/<packed> -> IH heads + source SignalMast when field owns."""
-        sys_name = "IH" + str(packed)
-        if sys_name not in self.mqtt_wanted:
-            return
-        mast = self._head_to_mast.get(sys_name)
-        if self._global_enabled and not self._field_owns_mast(mast):
-            return
-        parts = [p.strip() for p in str(payload).split(";") if p.strip()]
-        if not parts:
-            return
-        aspect = parts[0]
-        head = _head_manager().getSignalHead(sys_name)
-        if head is not None:
-            mapped = _ASPECT_TO_APPEARANCE.get(aspect.lower())
-            if mapped is None:
-                mapped = aspect
-            const = _appearance_constant(mapped)
-            if const is not None:
-                try:
-                    if head.getAppearance() != const:
-                        head.setAppearance(const)
-                except Exception as exc:
-                    print(
-                        "mqtt_signalhead: setAppearance %s %s: %s"
-                        % (_ascii(sys_name), _ascii(mapped), _ascii(exc))
-                    )
-        if mast is None:
-            return
-        mast_aspect = aspect
-        if aspect.lower() in _ASPECT_TO_APPEARANCE:
-            appearance = _ASPECT_TO_APPEARANCE[aspect.lower()]
-            mast_aspect = {
-                "Red": "Stop",
-                "Yellow": "Approach",
-                "Green": "Clear",
-                "Dark": "Dark",
-            }.get(appearance, aspect)
-        try:
-            current = None
-            try:
-                current = mast.getAspect()
-            except Exception:
-                pass
-            if current != mast_aspect:
-                mast.setAspect(mast_aspect)
-        except Exception as exc:
-            print(
-                "mqtt_signalhead: setAspect %s %s: %s"
-                % (_ascii(mast.getDisplayName()), _ascii(mast_aspect), _ascii(exc))
-            )
-        for token in parts[1:]:
-            low = token.lower()
-            try:
-                if low == "lit":
-                    mast.setLit(True)
-                elif low == "unlit":
-                    mast.setLit(False)
-                elif low == "held":
-                    mast.setHeld(True)
-                elif low == "unheld":
-                    mast.setHeld(False)
-            except Exception:
-                pass
 
     def notifyMqttMessage(self, topic, message):
         topic = _ascii(topic)

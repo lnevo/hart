@@ -101,6 +101,7 @@ HARTLIB_OTHER = {
     "layer_files": "the schematic's layer files, a section per sheet",
     "wiring": "the physical wiring source (wiring.csv)",
     "film_pace": "the pace of the panel and schematic films",
+    "coordinator": "the signal coordinator script and the modules it loads",
 }
 
 

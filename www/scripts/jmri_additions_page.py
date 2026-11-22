@@ -10,7 +10,7 @@ fill() replaces each region's contents with the value read from the checkout:
 - the masts the device master plans (devices.csv, all levels), split into those with
   lamps and the hidden staging masts (virtual, IF$vsm);
 - the masts signal_coordinator.py hands over (those whose heads are LCOS heads, IH plus node and signal number, the
-  same rule as its _collect_beans) and their Signal Mast Logic destinations in tables.xml, against the rest;
+  same rule as its _collect_beans, now in sml_beans.py) and their Signal Mast Logic destinations in tables.xml, against the rest;
 - the plant switches panel_status.py flips (M2T/MTT turnouts with both feedback sensors, its
   _included_plant_turnouts);
 - which hosts install each Jython script (tools/hosts/deploy/common.sh for the Mac, the Pi and Windows apply scripts).
@@ -32,7 +32,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path[:0] = [str(ROOT / "tools/hartlib/src")]
-from hartlib import devices, tables as T  # noqa: E402
+from hartlib import coordinator, devices, tables as T  # noqa: E402
 
 PAGE_REL = "behind/jmri-additions.html"
 REGION = re.compile(r"<!--ja:([a-z0-9-]+)-->(.*?)<!--/ja-->", re.S)
@@ -71,9 +71,20 @@ def _and(items: list[str]) -> str:
     return items[0] if len(items) == 1 else ", ".join(items[:-1]) + " and " + items[-1]
 
 
+def _siblings(root: Path) -> set[str]:
+    """The .py files of the modules signal_coordinator.py loads (hartlib.coordinator): shipped as parts of it."""
+    try:
+        return {f"{m}.py" for m in coordinator.sibling_modules(root / COORDINATOR)}
+    except coordinator.CoordinatorError as e:
+        raise PageError(str(e)) from None
+
+
 def _lcos_range(root: Path) -> tuple[int, int]:
-    """The LCOS signal numbers signal_coordinator.py accepts, read from it so the two cannot differ."""
-    src = (root / COORDINATOR).read_text(encoding="utf-8")
+    """The LCOS signal numbers signal_coordinator.py accepts, read from it and its modules so the two cannot differ."""
+    try:
+        src = coordinator.source(root / COORDINATOR)
+    except coordinator.CoordinatorError as e:
+        raise PageError(str(e)) from None
     got = {k: int(v) for k, v in re.findall(r"^_LCOS_SIGNAL_UID_(MIN|MAX)\s*=\s*(\d+)", src, re.M)}
     if set(got) != {"MIN", "MAX"}:
         raise PageError("signal_coordinator.py no longer sets _LCOS_SIGNAL_UID_MIN and _MAX; update this script")
@@ -87,7 +98,9 @@ def is_lcos_head(packed: str, lo: int, hi: int) -> bool:
 
 
 def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
-    """The Jython scripts each host's deploy copies into its profile's jython folder."""
+    """The Jython scripts each host's deploy copies into its profile's jython folder. The modules
+    signal_coordinator.py loads are parts of it, not scripts of their own, so they are left out."""
+    parts = _siblings(root)
     out = {}
     for host, (rel, opener) in HOST_LISTS.items():
         text = (root / rel).read_text(encoding="utf-8")
@@ -95,7 +108,7 @@ def host_lists(root: Path = ROOT) -> dict[str, set[str]]:
         end = LIST_END.search(text, start + len(opener)) if start >= 0 else None
         if end is None:
             raise PageError("%s: no %r list of Jython scripts closed by a line holding only ')'" % (rel, opener))
-        out[host] = set(re.findall(r"([a-z_]+\.py)", text[start + len(opener):end.start()]))
+        out[host] = set(re.findall(r"([a-z_]+\.py)", text[start + len(opener):end.start()])) - parts
     unknown = set().union(*out.values()) - set(SCRIPTS)
     if unknown:
         raise PageError("hosts install Jython scripts the page does not list: %s" % sorted(unknown))

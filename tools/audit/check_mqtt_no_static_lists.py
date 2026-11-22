@@ -7,13 +7,18 @@ from pathlib import Path
 
 sys.path[:0] = [str(p / "tools/hartlib/src") for p in Path(__file__).resolve().parents
                 if (p / "tools/hartlib/src").is_dir()][:1] or sys.exit(f"no tools/hartlib/src above {__file__}")
-from hartlib import paths  # noqa: E402
+from hartlib import coordinator, paths  # noqa: E402
 
 HART_ROOT = paths.REPO_ROOT
 LCOS = paths.lcos_bridge()
 
+try:
+    COORDINATOR = coordinator.files()   # signal_coordinator.py and every sibling module it loads
+except coordinator.CoordinatorError as exc:
+    sys.exit(f"FAIL {exc}")
+
 TARGETS_STRICT = [
-    HART_ROOT / "jmri/scripts/signal_coordinator.py",
+    *COORDINATOR,
     LCOS / "serial_to_mqtt.py",
     LCOS / "lcos_mqtt_bridge.cpp",
 ]

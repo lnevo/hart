@@ -21,7 +21,7 @@ WATCHED = re.compile(
     r"(^|/)(jmri/layouts/hart/output/tables\.xml"
     r"|jmri/layouts/hart/data/schematic/(staging|main_upper)_masts\.csv"
     r"|jmri/layouts/hart/output/signal_head_plan\.csv"
-    r"|jmri/scripts/signal_coordinator\.py)$"
+    r"|jmri/scripts/(signal_coordinator|sml_[a-z_]+)\.py)$"  # the script and the sibling modules it loads
 )
 CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is still there
     ("phase02", ["python3", "jmri/scripts/check_hart_phase02.py"]),
@@ -34,6 +34,7 @@ CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is 
     ("unit-jmri", ["python3", "-m", "unittest", "discover", "-q", "-s", "jmri/layouts/hart/scripts/tests"]),
 ]
 UNIT_JMRI = "unit-jmri"
+SIBLING = re.compile(r"(?<=jmri/scripts/)sml_[a-z_]+\.py$")
 # Folders whose test files are searched for the edited script's name; each is a unit job in tools/check.sh.
 TEST_DIRS = ["jmri/layouts/hart/scripts/tests", "jmri/scripts/tests", "cats/scripts/tests"]
 BUDGET = 20.0
@@ -79,7 +80,8 @@ def checks_for(root, path):
     """(checks, note) for an edit to path: CHECKS, with unit-jmri narrowed when path is a script."""
     if not path.endswith(".py"):
         return CHECKS, ""
-    tests = matching_tests(root, path)
+    # A module signal_coordinator.py loads is tested through the script: its tests name the script.
+    tests = matching_tests(root, SIBLING.sub("signal_coordinator.py", path))
     name = os.path.basename(path)
     if not tests:
         return CHECKS, f"no test file names {name}; ran the whole {UNIT_JMRI} job instead"

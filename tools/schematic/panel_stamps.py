@@ -74,6 +74,7 @@ CODE = (
     "jmri/layouts/hart/scripts/layout_facts.py",
     "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
     "jmri/scripts/signal_coordinator.py",
+    "jmri/scripts/sml_*.py",     # its modules: le_names.lcos_rule runs the LCOS head rule from sml_beans.py
     *traced.HOOK_FILES,
 )
 

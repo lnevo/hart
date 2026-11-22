@@ -20,8 +20,10 @@ install_jython_scripts() {
     local dest="$profile/jython"
     mkdir -p "$dest"
     local f
-    for f in "${JYTHON_STARTUP_SCRIPTS[@]}"; do
+    for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}"; do
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
+      # Jython's compiled copy of a module it imported: one not older than the new .py would be reused.
+      rm -f "$dest/$(basename "$f" .py)\$py.class"
     done
     rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"
     (cd "$dest" && rm -f sync_turnout_buttons.py sync_yard_ladder_buttons.py apply_dispatcher_roster_profiles.py SetBlockPreviewValues.py sync_layout_button.py mqtt_signalhead_publisher.py)

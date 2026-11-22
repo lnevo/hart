@@ -83,7 +83,7 @@ stage_package() {
   for f in "${HART_JYTHON_SCRIPTS[@]}"; do
     [[ -f "$ROOT/$f" ]] && cp -f "$ROOT/$f" "$stage/$(dirname "$f")/"
   done
-  cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "$stage/jmri/scripts/"
+  cp -f "$ROOT/jmri/scripts/signal_coordinator.py" "${JYTHON_SIBLING_MODULES[@]}" "$stage/jmri/scripts/"
 
   # A parked feature's folder is left out of the package; the host apply scripts install only what the package
   # holds, so the copies already on a host stay as they are.
