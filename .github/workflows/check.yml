@@ -6,7 +6,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]     # labeled: adding the full-ci label starts a full run
   push:                   # main's run saves the schematic cache and the check stamps every PR can restore (a PR cannot read another's)
-    branches: [main]
+    branches: [main, agent/claude/ci-changed-jobs]   # PROOF ONLY: dropped before merge
   schedule:
     - cron: "17 7 * * 1"  # a weekly full run of main beside every push's: an extra net under the pull requests' skips
 permissions:
