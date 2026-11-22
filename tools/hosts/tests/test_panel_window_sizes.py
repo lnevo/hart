@@ -67,6 +67,13 @@ class PanelWindowSizes(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("every saved panel window already has the tables' size", lines)
 
+    def test_a_panel_name_with_an_escaped_character_is_matched(self):
+        t, u = self.files(ui=UI.replace("LayoutEditor:Main Level", "LayoutEditor:P&amp;CV Yard"))
+        t.write_text(TABLES.replace('name="Main Level"', 'name="P&amp;CV Yard"'))
+        code, lines = self.run_main(str(u), "--tables", str(t))
+        self.assertIn("P&CV Yard: 1920.0x408.0 -> 1920.0x385.0", lines)
+        self.assertIn('LayoutEditor:P&amp;CV Yard" height="385.0"', u.read_text())
+
     def test_a_file_that_is_not_a_user_interface_file_stops(self):
         t, u = self.files(ui="<other/>")
         with self.assertRaisesRegex(SystemExit, "no <windowDetails>"):

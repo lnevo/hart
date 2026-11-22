@@ -21,6 +21,7 @@ tools/hosts/pi_panel_window_sizes.sh, which quits and starts PanelPro round it. 
 from __future__ import annotations
 
 import argparse
+import html
 import re
 import sys
 from pathlib import Path
@@ -73,7 +74,7 @@ def resize(text: str, sizes: dict[str, tuple[str, str]]) -> tuple[str, list[tupl
     changes = []
 
     def one(m: re.Match) -> str:
-        name = m.group("name")
+        name = html.unescape(m.group("name"))     # the attribute as written: P&amp;CV is P&CV
         if name not in sizes:
             return m.group(0)
         tag = m.group(0)
@@ -90,7 +91,7 @@ def resize(text: str, sizes: dict[str, tuple[str, str]]) -> tuple[str, list[tupl
 
 def saved_windows(text: str) -> list[str]:
     """The panel names user-interface.xml holds a window for."""
-    return [m.group("name") for m in WINDOW.finditer(text)]
+    return [html.unescape(m.group("name")) for m in WINDOW.finditer(text)]
 
 
 def _get(tag: str, name: str) -> str:
