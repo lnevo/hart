@@ -24,6 +24,9 @@ TRAININFO = 374
 # Entry/Exit is parked no pair is loaded.
 PARKED = set(os.environ.get("HART_PARKED", "").split())
 PARKED_WINDOWS = {"uss": u"USS CTC", "dispatcher": u"Dispatcher System"}
+# The hidden band panels (hartlib.tables.BAND_PANEL_NAMES; Jython cannot import hartlib, test_band_panels.py holds the
+# two lists equal): each loads as a Layout Editor panel and the "Hide windows on start" LogixNG hides its window.
+BAND_PANELS = (u"Staging Level", u"Main Level", u"Upper Level")
 if "dispatcher" in PARKED:
     SECTIONS = 0
     TRANSITS = 0
@@ -123,6 +126,23 @@ def parked_errors():
     return errors
 
 
+def band_panel_errors(wait):
+    """Each band panel loaded as a Layout Editor panel, its window hidden by the LogixNG (which runs after the load:
+    `wait(ms)` gives it up to ten seconds)."""
+    editors = jmri.InstanceManager.getDefault(jmri.jmrit.display.EditorManager)
+    names = set(editor.getTitle() for editor in editors.getAll())
+    errors = ["band panel %s not loaded" % title for title in BAND_PANELS if title not in names]
+    shown = []
+    for _ in range(20):
+        shown = [title for title in BAND_PANELS
+                 if jmri.util.JmriJFrame.getFrame(title) is not None and jmri.util.JmriJFrame.getFrame(title).isVisible()]
+        if not shown:
+            break
+        wait(500)
+    errors.extend("band panel %s window shown; the LogixNG should hide it" % title for title in shown)
+    return errors
+
+
 class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
     def handle(self):
         self.level_line = "main and upper block sensors not checked"
@@ -180,6 +200,7 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                     "transits=%s expected=%s" % (bean_count(transit_manager), TRANSITS)
                 )
             errors.extend(parked_errors())
+            errors.extend(band_panel_errors(self.waitMsec))
             block_manager = jmri.InstanceManager.getDefault(jmri.BlockManager)
             errors.extend(level_block_errors(block_manager, sensor_manager))
             # the LogixNG runs on its own thread after load, and each sensor it sets updates the blocks and
@@ -280,8 +301,9 @@ class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
                 handle.write("ok\n")
                 if "dispatcher" in PARKED:
                     handle.write(
-                        "%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window\n"
-                        % (MASTS, self.level_line, " ".join(sorted(PARKED)))
+                        "%s masts; %s; parked %s: no section, transit, Dispatcher sensor or parked window; "
+                        "band panels %s loaded and hidden\n"
+                        % (MASTS, self.level_line, " ".join(sorted(PARKED)), ", ".join(BAND_PANELS))
                     )
                 else:
                     handle.write(

@@ -17,7 +17,9 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
    in JMRI's system-name order (hartlib.tables_build.base);
 3. the Layout Editor build on that base (build_layout_le.build, levels all): the main and upper turnouts, blocks,
    sensors, heads, masts and the startup LogixNG from the device master, and the "HART Railroad" panel (make panels
-   checks it against the owner-approved fingerprint after this writes it: check_approved.py le-panel);
+   checks it against the owner-approved fingerprint after this writes it: check_approved.py le-panel), then the
+   three band panels after it, "Staging Level", "Main Level" and "Upper Level": copies of that panel trimmed to one
+   band each, joined by edge connectors where the full panel joins two bands (band_panels.add);
 4. the discovered Signal Mast Logic and mast properties, data/schematic/discovered_sml.xml, which only
    --discovered-from writes. The build stops when that file names a mast the tables no longer hold (a mast renamed
    or removed since discovery) and when a mast has no discovered logic it needs (missing_logic: every head mast is a
@@ -45,6 +47,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import build_layout_le as ble  # noqa: E402  the Layout Editor build (and hartlib on the path)
+import band_panels  # noqa: E402  the three band panels copied from the built panel
 import publish_draft as pd  # noqa: E402  the plugin's cache
 from hartlib import devices, paths, tables  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
@@ -57,11 +60,12 @@ def generate(discovered: tuple | None = None, with_logic: bool = True) -> tuple[
     """(tables bytes, counts) from the sources (module text). `discovered`: (logics, properties) to use in place of
     the discovered file's. `with_logic` False: the discovery base, with no Signal Mast Logic and no mast properties
     (the discovered file is not read). tb.TablesBuildError or ble.BuildError on anything that stops it."""
-    data, _P, _names, _bands = ble.build(levels="all", as_live=True)
+    data, P, _names, bands = ble.build(levels="all", as_live=True)
     doc = tables.loads(data)
     root = doc.root
     if doc.prolog != tb.PROLOG or doc.epilog != tb.EPILOG:
         raise tb.TablesBuildError("the Layout Editor build changed the envelope")
+    band_panels.add(root, P, bands, ble.plugin()[1].CHROME)
     if with_logic:
         logics, props = discovered if discovered is not None else tb.read_discovered(tb.DISCOVERED)
     else:

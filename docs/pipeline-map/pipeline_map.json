@@ -1341,6 +1341,15 @@
    "path": "tools/schematic/build_staging_sets.py"
   },
   {
+   "id": "tools/schematic/band_panels.py",
+   "label": "band_panels.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "layout",
+   "desc": "Library build_tables calls after the Layout Editor build: the Staging Level, Main Level and Upper Level panels, copies of the HART Railroad panel trimmed to one band each, joined by edge connectors.",
+   "path": "tools/schematic/band_panels.py"
+  },
+  {
    "id": "tools/schematic/build_tables.py",
    "label": "build_tables.py",
    "kind": "generator",
@@ -7392,6 +7401,11 @@
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_signals.py",
    "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": "tools/schematic/band_panels.py",
+   "to": "tools/schematic/build_tables.py",
+   "label": "band panels"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

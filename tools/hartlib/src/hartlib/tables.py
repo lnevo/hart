@@ -52,6 +52,8 @@ from . import paths
 # Names the main Layout Editor panel has had; the first is the live one.
 MAIN_PANEL_NAMES = ("HART Railroad", "HART", "My Layout")
 DISPATCHER_PANEL_NAME = "Dispatcher System"
+# The hidden reference panels, one per band, by the level of the band (tools/schematic/band_panels.py, owner 2026-11-22)
+BAND_PANEL_NAMES = {1: "Staging Level", 2: "Main Level", 3: "Upper Level"}
 
 # jmri.Turnout constants, as Layout Editor stores continuingSense in ``continuing``.
 UNKNOWN, CLOSED, THROWN = 1, 2, 4

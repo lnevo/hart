@@ -757,10 +757,11 @@ def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
 
 def expected_bundle(parked_features=None) -> tuple[int, int, int]:
     """(ctcdata, Panel Editor panels, Layout Editor panels) the deployment tables hold: the USS CTC machine's data and
-    panel, the main panel and the Dispatcher System's, less those parked (hartlib.parked)."""
+    panel, the main panel, its band panels (tables.BAND_PANEL_NAMES, 2026-11-22) and the Dispatcher System's, less
+    those parked (hartlib.parked)."""
     parked_features = parked.PARKED if parked_features is None else parked_features
     uss = 0 if "uss" in parked_features else 1
-    return uss, uss, 1 if "dispatcher" in parked_features else 2
+    return uss, uss, 1 + len(tables.BAND_PANEL_NAMES) + (0 if "dispatcher" in parked_features else 1)
 
 
 def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: bool = False) -> None:
