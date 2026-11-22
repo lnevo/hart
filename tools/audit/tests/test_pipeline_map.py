@@ -543,6 +543,40 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(opened["members"], {})
         self.assertEqual(len(opened["edges"]), 4)
 
+    def test_fit_keeps_a_margin(self) -> None:
+        """fitView with pad: the drawing sits pad px inside the free area on the limiting sides, centred the other way,
+        and showsAll still counts it as the whole map; clampView keeps that view as it is."""
+        free = {"top": 0.1, "right": 1, "bottom": 1}
+        out = self.run_js("(() => { const f = m.fitView(1000, 500, 100, a.free, 1000, 800, 28);"
+                          " const c = v => m.clampView(v, 1000, 500, 100, a.free, f.width, 28 / 1000, 28 / 800);"
+                          " return [f, m.showsAll(f, 1000, 500, 100, a.free), c(f),"
+                          " c({...f, x: f.x + 40 * f.width / 1000}), c({...f, x: f.x - 40 * f.width / 1000})]; })()",
+                          {"free": free})
+        view, fits, clamped, right, left = out
+        for dragged in (right, left):  # at the Fit width a drag across cannot eat the margin
+            self.assertAlmostEqual(dragged["x"], view["x"], places=6)
+        s = view["width"] / 1000
+        left_px = (-100 - view["x"]) / s
+        self.assertAlmostEqual(left_px, 28, places=3)  # width-limited: 28 px in from each side
+        self.assertAlmostEqual(left_px + 1000 / s, 1000 - 28, places=3)
+        self.assertAlmostEqual(-view["y"] / s, 80 + 28, places=3)  # 28 px under the step strip
+        self.assertTrue(fits)
+        for k in ("x", "y", "width", "height"):
+            self.assertAlmostEqual(clamped[k], view[k], places=6)
+
+    def test_fit_margin_when_height_limits_or_room_is_small(self) -> None:
+        """fitView: a tall drawing is limited by height and sits pad px below the strip and above the bottom; fitPad
+        keeps at most a quarter of a small area (a phone with the panel open) as margin."""
+        free = {"top": 0.1, "right": 1, "bottom": 1}
+        view = self.run_js("m.fitView(100, 1000, 0, a, 1000, 800, 28)", free)
+        s = view["width"] / 1000
+        top_px = -view["y"] / s
+        self.assertAlmostEqual(top_px, 80 + 28, places=3)
+        self.assertAlmostEqual(top_px + 1000 / s, 800 - 28, places=3)
+        pads = self.run_js("[m.fitPad(28, a, 1000, 800), m.fitPad(28, {top: 0.9, right: 1, bottom: 0.95}, 1000, 800)]", free)
+        self.assertEqual(pads[0], 28)
+        self.assertAlmostEqual(pads[1], 10, places=6)  # a 40 px high area keeps 10 px each side
+
     def test_fit_leaves_room_for_the_panel(self) -> None:
         """fitView: the drawing fills the free area left of an info panel, against its top, and showsAll agrees; the
         same view counts as not showing everything once the panel covers part of it."""
