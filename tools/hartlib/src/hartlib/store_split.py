@@ -1,5 +1,5 @@
 """Split a PanelPro Store back into the sources of tables.xml (ADR-029, R9d; the owner's design of 2026-11-20 in
-wiki/projects/project-health-handoff.md, "R9d redesign").
+archive/wiki/projects/project-health-handoff.md, "R9d redesign").
 
 A Store mostly holds settings the owner made in PanelPro that must survive the next deploy, so the default is to keep
 it. Three files are compared item by item, all normalised (tables_build.normalise_store):
@@ -18,7 +18,7 @@ content matching, an edit to a copy shows as that copy deleted and an edited one
 
 - the template (data/tables_template.xml): every item it holds, and a new memory, internal sensor, LogixNG part,
   setting or extra section of the Store on a name nothing else claims (claimed_by);
-- the build: everything else, the devices.csv beans, the Layout Editor panel and its LogixNG, the Signal Mast Logic,
+- the build: everything else, the device-master beans, the Layout Editor panel and its LogixNG, the Signal Mast Logic,
   the Digicon boot rule.
 
 What happens to an item the owner changed (store differs from base):
@@ -285,7 +285,7 @@ def change_text(a: ET.Element | None, b: ET.Element | None) -> str:
 
 
 def row_index(rows: Iterable[Mapping[str, str]]) -> dict[tuple[str, str], list[int]]:
-    """{(section tag, bean name): [devices.csv row numbers]}: the rows a bean of the tables comes from. A turnout by
+    """{(section tag, bean name): [device-master row numbers]}: the rows a bean of the tables comes from. A turnout by
     its system or JMRI name; a sensor, head, mast or block by its JMRI name; a layout block by its layout_block or
     "user:" and its block's user name (the main and upper layout blocks are numbered by the Layout Editor build)."""
     out: dict[tuple[str, str], list[int]] = {}
@@ -311,7 +311,7 @@ def row_index(rows: Iterable[Mapping[str, str]]) -> dict[tuple[str, str], list[i
 
 
 def rows_of(rindex: Mapping[tuple[str, str], list[int]], key: tuple, el: ET.Element) -> list[int]:
-    """The devices.csv rows the bean `key` (element `el`, the repo's or the base's) comes from."""
+    """The device-master rows the bean `key` (element `el`, the repo's or the base's) comes from."""
     tag = key[1][0]
     got = rindex.get((tag, key[4]), [])
     if not got and tag == "layoutblocks":
@@ -321,8 +321,8 @@ def rows_of(rindex: Mapping[tuple[str, str], list[int]], key: tuple, el: ET.Elem
 
 def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
     """What claims a new item of the Store, so it cannot go into the template; None when nothing does. A bean in a
-    section devices.csv gives (tables_build.MASTER_SECTIONS), Signal Mast Logic, a panel, a parked feature's section
-    or name, the build's names, the main and upper naming rule or a devices.csv row's name."""
+    section the device master gives (tables_build.MASTER_SECTIONS), Signal Mast Logic, a panel, a parked feature's section
+    or name, the build's names, the main and upper naming rule or a device-master row's name."""
     kind = key[0]
     if kind in ("panel", "logic"):
         return "the build" if kind == "logic" else "the schematic (the Layout Editor build)"
@@ -344,7 +344,7 @@ def claimed_by(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) ->
 
 def claimed_name(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
     """What claims a bean by its system or user name (claimed_by's checks after the section's): the build's names,
-    the main and upper naming rule, a parked feature or a devices.csv row's name; None when nothing does."""
+    the main and upper naming rule, a parked feature or a device-master row's name; None when nothing does."""
     names = [n for n in (key[4], tables.user_name(el)) if n]
     for name in names:
         if name.startswith(BUILD_PREFIXES) or level_devices.is_level_name(name):
@@ -376,7 +376,7 @@ class Edit:
 
 @dataclass(frozen=True)
 class RowAdd:
-    """A devices.csv row a DEVICE merge adds: a device added in the Store, kept by its beans with no level yet."""
+    """A device-master row a DEVICE merge adds: a device added in the Store, kept by its beans with no level yet."""
     cells: tuple[tuple[str, str], ...]      # (column, value) in devices.COLUMNS order
 
     @property
@@ -492,7 +492,7 @@ LAYER_OF = {"turnouts": "turnout", "sensors": "sensor", "signalheads": "head", "
 
 
 def _name_holder(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) -> str | None:
-    """Why a bean the Store added cannot be a new row because a devices.csv row holds one of its names, with what to do;
+    """Why a bean the Store added cannot be a new row because a device-master row holds one of its names, with what to do;
     None when no row does."""
     names = [(n, what, cols) for n, what, cols in (
         (key[4], "system name", ("system_name", "jmri_name", "user_name")),
@@ -512,7 +512,7 @@ def _name_holder(key: tuple, el: ET.Element, rows: Iterable[Mapping[str, str]]) 
 
 
 def unplaced_row(beans: list[tuple[tuple, ET.Element]], old: Mapping[str, str] | None = None) -> dict[str, str]:
-    """The level-less devices.csv row of a device's Store beans ((section key, element)): its names and comment
+    """The level-less device-master row of a device's Store beans ((section key, element)): its names and comment
     from the main bean (a block's full pass, else the one bean), the rest of the beans in jmri_bean. `old`, the row
     as it was, keeps its description."""
     layer = LAYER_OF[beans[0][0][0]]

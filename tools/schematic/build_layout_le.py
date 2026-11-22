@@ -13,9 +13,9 @@ tables_layout_staging.xml of staging alone), are retired (owner, 2026-11-17): th
 without --as-live stops and says so.
 
 One input path (owner, 2026-11-17, the device-map switch-over). Every level is drawn from its device map: staging
-from the level 1 rows of devices.csv, stations.csv (its desk areas) and masts.csv (staging_device_map.load: each switch's
+from the level 1 rows of the device master, stations.csv (its desk areas) and masts.csv (staging_device_map.load: each switch's
 turnout and OS block, each track's blocks in order by the drawing's keys, each switch's normal leg from
-switches.csv, its turnout ident from the same file), main and upper from the rest of devices.csv and
+switches.csv, its turnout ident from the same file), main and upper from the rest of the device master and
 masts.csv's other rows (level_names, level_masts). The panel's own icons and labels, and its attributes, are
 panel_items.json (panel_items.py): the status cluster panel_status.py drives, the frame captions, the helix
 destination labels and the backdrop, each tied to the staging track. The occupancy lamps and station clusters are
@@ -49,7 +49,7 @@ jmri/layouts/hart/parked/tables_parked.xml. The released tables are that candida
 stock discovery in a sandbox (jmri/layouts/hart/parked/README.md).
 
 The tables it builds on (ADR-029, R9c): the generator's base (hartlib.tables_build.base), the template
-(data/tables_template.xml) with the staging beans of devices.csv, never the live tables.xml, which is an output
+(data/tables_template.xml) with the staging beans of the device master, never the live tables.xml, which is an output
 (tools/schematic/build_tables.py writes it from this build, the discovered Signal Mast Logic and the template). The
 base holds no panel and no Signal Mast Logic; the build adds the main and upper objects and the panel after the
 template's sections.
@@ -147,7 +147,7 @@ BASE_NAME = "the generated base (data/tables_template.xml and devices.csv)"
 
 
 def base_tables() -> bytes:
-    """The tables a build draws on: hartlib.tables_build.base, the template with the staging beans of devices.csv.
+    """The tables a build draws on: hartlib.tables_build.base, the template with the staging beans of the device master.
     BuildError on anything that stops it, naming the file."""
     try:
         return tables_build.base().tobytes()
@@ -226,7 +226,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
         raise BuildError(f"{BASE_NAME} holds a Layout Editor panel; the build adds the one panel")
     panel_name = TEMPLATE_PANEL
 
-    # the names and masts of the levels the build adds: from devices.csv and masts.csv
+    # the names and masts of the levels the build adds: from the device master and masts.csv
     names, lengths = level_names(bands, le_mod, page=page) if adds else ({}, {})
     level_rows = read_level_masts() if adds else []
     skip = base_keys(bands)             # the staging band's: its names are the staging device map's
@@ -273,7 +273,7 @@ def build(bands=None, levels: str = "all", as_live: bool = False,
     # every level's masts, each in the one slot its blocks fit, on its switch's turnout (one check for all levels)
     check_masts(P, {k: v.get("masts", []) for k, v in names.items()}, le_mod, mast_turnouts(level_rows))
 
-    # the beans of the levels the build adds (the base's levels' are the base's, from devices.csv), then one check
+    # the beans of the levels the build adds (the base's levels' are the base's, from the device master), then one check
     # for every level: each name the panel binds is a bean of the tables
     base_ix = {i for i, lv in enumerate(levels_of) if lv in BASE_LEVELS}    # a hidden join has band None: in none
     base_beans = bean_names(root)       # before the build adds any: a base level's names must be the base's own

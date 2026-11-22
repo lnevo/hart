@@ -3,7 +3,7 @@
 
 Writes live userNames / bindings from tables.xml (and the live CATS CTC
 hold panel when present). Re-run before a rename pass so the names in
-devices.csv can be diffed against this snapshot.
+The device master can be diffed against this snapshot.
 """
 
 from __future__ import annotations

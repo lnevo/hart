@@ -13,7 +13,7 @@ from .railroad_facts import (LEVEL_NUMBERS, STAGING_LEVEL, StagingDevice, UNIQUE
 if TYPE_CHECKING:
     from .railroad import Railroad
 
-# ---------------------------------------------------------------- the rows of devices.csv, every level
+# ---------------------------------------------------------------- the rows of the device master, every level
 
 def _key(r) -> str:
     """A master row's key as a message names it (hartlib.devices.key_text)."""
@@ -32,7 +32,7 @@ def _obj_at(path, r) -> str:
 
 def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
                         helix_file: str = "plan_overrides.json") -> list[str]:
-    """The rules between the rows of devices.csv, one for every level, as problems naming the rows. `lines` are
+    """The rules between the rows of the device master, one for every level, as problems naming the rows. `lines` are
     (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the helix tracks' blocks.
     - every block has exactly one occupancy row naming it, on any level; a block named on more than one level is a
       helix block (one JMRI block from its staging switch up the helix, owner 2026-11-20), and every helix block is;
@@ -101,7 +101,7 @@ def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv
 
 
 def master_rows(rr: Railroad) -> list[tuple[int, dict]]:
-    """(line, row) of every level's rows of devices.csv that a device map holds (hartlib.devices): not a level-less
+    """(line, row) of every level's rows of the device master that a device map holds (hartlib.devices): not a level-less
     device, which is on no level's map yet."""
     from . import devices
     return [(n, r) for n, r in enumerate(devices.load(rr.sources.devices), 2)
@@ -198,7 +198,7 @@ def _packed_addresses(r: StagingDevice) -> list[str]:
 @invariant("lcos-nodes", "inputs")
 def _lcos_nodes(rr: Railroad) -> list[str]:
     """Every level and area a main or upper switch is in has an LCOS node to put it on; every staging node (the node
-    of a staging turnout's, sensor's, head's or mast head's packed address in its system_name, devices.csv) is a
+    of a staging turnout's, sensor's, head's or mast head's packed address in its system_name, the device master) is a
     staging row of the node file and is the row's own node column; and no main or upper row is a staging node."""
     pool = {(n.level, n.area) for n in rr.lcos_nodes}
     bad = [f"no node in {rr.sources.lcos_nodes.name} for level {lv} {area} (switches "
@@ -230,7 +230,7 @@ def _lcos_nodes(rr: Railroad) -> list[str]:
 
 @invariant("staging-devices", "inputs")
 def _staging_devices(rr: Railroad) -> list[str]:
-    """Staging's rows of devices.csv resolve: every staging switch has a turnout row with a system name and a DCC
+    """Staging's rows of the device master resolve: every staging switch has a turnout row with a system name and a DCC
     address; no two staging turnouts share a DCC address; and no two staging turnouts, feedback sensors, occupancy
     sensors or heads share a system name."""
     sd, name = rr.staging_devices, rr.sources.devices.name
@@ -258,7 +258,7 @@ def _staging_devices(rr: Railroad) -> list[str]:
 @invariant("staging-blocks", "inputs")
 def _staging_blocks(rr: Railroad) -> list[str]:
     """Every block a staging switch leg (switches.csv) or a measured length (block_lengths.csv) names is a block
-    row of devices.csv (the masts' blocks are the masts invariant's: masts.csv is a later layer)."""
+    row of the device master (the masts' blocks are the masts invariant's: masts.csv is a later layer)."""
     blocks = rr.staging_devices.names("block")
     bad = []
     for sw in rr.switches.values():
@@ -267,7 +267,7 @@ def _staging_blocks(rr: Railroad) -> list[str]:
                 if b not in blocks:
                     bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of devices.csv")
     # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
-    # block rows of devices.csv, their parts among them (a main or upper part is a JMRI block of its own on its OS
+    # block rows of the device master, their parts among them (a main or upper part is a JMRI block of its own on its OS
     # block's sensor, owner 2026-11-20)
     from hartlib import devices
     level_blocks = {r["user_name"] for r in devices.load(rr.sources.devices)
@@ -339,7 +339,7 @@ def _device_map(rr: Railroad) -> list[str]:
 
 @invariant("name-clash", "device_map")
 def _name_clash(rr: Railroad) -> list[str]:
-    """No staging row of devices.csv uses a name the device map gives a main or upper device of the same layer. A
+    """No staging row of the device master uses a name the device map gives a main or upper device of the same layer. A
     helix block (Track <plan name>) is one block from staging up the helix, so its staging row names the device map's
     block too."""
     dm = {(r.layer, r.user_name): r for r in rr.device_map.rows}
@@ -363,7 +363,7 @@ def _masts(rr: Railroad) -> list[str]:
     dwarf at a local switch has no control point, ADR-024); its facing and protected blocks are device map blocks;
     and every device map mast has a row. A virtual mast (a destination at a buffer stop) stands at no switch,
     protects nothing, and its control point is its track's switch's, if any. A main or upper part (a link inside an
-    OS block, devices.csv part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or protect it,
+    OS block, the device master part_of) is a JMRI block of its own (owner, 2026-11-20), so a mast may face or protect it,
     as Signal Mast Logic discovery does."""
     name = rr.sources.masts.name
     staging = {int(STAGING_LEVEL)}                      # the level the staging rows (rr.staging_devices) are
@@ -426,7 +426,7 @@ def _device_map_masts(rr: Railroad) -> list[str]:
 @invariant("tables", "tables")
 def _tables(rr: Railroad) -> list[str]:
     """tables.xml holds the fact files' devices: every staging switch's turnout and the blocks of its legs
-    (switches.csv), and every mast of masts.csv on the system name the file gives it. The rows of devices.csv, every level's, are held to their beans by
+    (switches.csv), and every mast of masts.csv on the system name the file gives it. The rows of the device master, every level's, are held to their beans by
     tools/schematic/check_device_master.py (check_tables)."""
     t, bad = rr.tables, []
     for sw in rr.switches.values():

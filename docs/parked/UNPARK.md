@@ -31,7 +31,7 @@ masts and Signal Mast Logic stay live.
 - `tables.xml` is an output (ADR-029). Nothing is patched into it by hand or by a script, and no Store is copied
   over it. A feature that comes back is built from source data by `tools/schematic/build_tables.py` and the Layout
   Editor build, or its Store is taken back through `make tables-pull` and `tools/schematic/split_store.py`.
-- The level is a column (ADR-030). A reader takes a device's kind, level and role from its `devices.csv` row
+- The level is a column (ADR-030). A reader takes a device's kind, level and role from its device-master row (`devices_field.csv` + `devices_generated.csv`)
   (`layer`, `level`, `role`, through `hartlib.devices`), never from its name. Jython inside JMRI is the one
   exception, since it cannot import `hartlib`.
 - Never run CATS CTC and the USS CTC machine at the same time, and never run the Dispatcher System from inside
@@ -41,12 +41,21 @@ masts and Signal Mast Logic stay live.
   succeed. The known traps are in [`DISPATCHER_LAYOUT_HOOPS.md`](../../jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md).
 - Try the feature in a sandbox first (`tools/hosts/sandbox/README.md`), then get the owner's approval of any panel
   it changes.
+- Names come from the device master (owner, 2026-11-22). A rebuilt script looks every track, block and mast name up
+  in the master, `switches.csv` or `masts.csv` and types none. The parked scripts still hold their own copies, which
+  `tools/audit/check_name_copies.py` keeps current but does not remove. On 2026-11-22 the copies typed in quotes were:
+  `reconcile_dispatcher_stations.py` (48, the 12 stations and their icons), `refresh_bean_comments.py` (59 block
+  comments in `BLOCK_COMMENTS`, the same text the master's `jmri_comment` holds), `nx_contract.py` (23),
+  `ctc_logic_smoke.py` (23), `gen_ctc_track_plan.py` (18, board positions by block name), `build_ctc_full_15col.py`
+  (14), `discover_nx.py` (11) and the `STATIONS` list in `panelpro_smoke_test.py` (12). The live audit no longer reads
+  the station list or the comment copy: `audit_panel_contracts.station_comments` takes the stations from the master's
+  staging rows marked `stop` (it still imports `nx_contract.py` for the ISNX names).
 
 ### Today's sources
 
 A rebuilt script reads these and nothing older:
 
-- `jmri/layouts/hart/data/devices.csv` through `hartlib.devices` (role, level, cp, system_name, dcc, wiring,
+- The device master (`devices_field.csv` + `devices_generated.csv`) through `hartlib.devices` (role, level, cp, system_name, dcc, wiring,
   jmri_comment, notes). The `pnm_*` columns, `public_name_map.csv` and the device-map files are gone. The coming
   split (ADR-029 amendment) makes it `devices_generated.csv` (written by the build scripts) and `devices_field.csv`
   (the owner's cells and Store-added devices), merged by `hartlib.devices`, so a reader that goes through
@@ -79,7 +88,7 @@ way to rebuild it.
 
 | Script | What it reads or does today | Rebuild against |
 |--------|-----------------------------|-----------------|
-| `jmri/layouts/hart/parked/apply_nx_layer.py` | writes ISNX sensors and slot bindings into `tables.xml` by default (`paths.TABLES_XML`) | a step of the Layout Editor and tables build, from `masts.csv` and `devices.csv`; never an edit of `tables.xml` |
+| `jmri/layouts/hart/parked/apply_nx_layer.py` | writes ISNX sensors and slot bindings into `tables.xml` by default (`paths.TABLES_XML`) | a step of the Layout Editor and tables build, from `masts.csv` and the device master; never an edit of `tables.xml` |
 | `jmri/layouts/hart/scripts/run_nx_discover.sh` | sets `blockrouting="yes"` in `tables.xml` by text replacement, then Stores NX Discover over `tables.xml` | Store to the pulled folder, as `run_panelpro_stage1.sh` does, and split it back with `split_store.py`; `blockrouting` from the template |
 | `jmri/layouts/hart/scripts/discover_nx.py` (Jython) | finds block sensors by the `BS ` name prefix | the prefix is allowed in Jython; pass the sensor list in from a CPython step if it needs roles |
 | `jmri/scripts/generate_nx_pairs.py` | writes a pair list for adding by hand | the pairs from Discover, kept as source data like `discovered_sml.stamp` |
@@ -90,9 +99,9 @@ way to rebuild it.
 | Script | What it reads or does today | Rebuild against |
 |--------|-----------------------------|-----------------|
 | `jmri/layouts/hart/scripts/run_panelpro_stage1.sh`, `run_dispatcher_stage1.py` | runs stock Stage 1 and Stores to the pulled folder; its header says to decide how Stage 1's output becomes source data before relying on it | sections, transits and traininfo as source data the tables build writes, refreshed by a sandbox Stage 1 run and split back |
-| `jmri/layouts/hart/scripts/refresh_bean_comments.py` (a repair step of the Stage 1 wrapper) | now only checks the staging head comments in `devices.csv`; it no longer writes comments | drop the step: `build_tables.py` writes every comment from `devices.csv` |
+| `jmri/layouts/hart/scripts/refresh_bean_comments.py` (a repair step of the Stage 1 wrapper) | now only checks the staging head comments in the device master; it no longer writes comments | drop the step: `build_tables.py` writes every comment from the device master |
 | `jmri/layouts/hart/scripts/reconcile_dispatcher_stations.py` | the 12 stations as a hard-coded `STATIONS` list of block names, cluster icons placed from a reference panel | the stations from the block comments or a `stations.csv` column, the clusters from `staging_panel_lamps.json` through `panel_items.json` |
-| `jmri/layouts/hart/parked/polish_hart_layout_editor.py` | puts Stage 1's lamps and labels back after the Store; finds block sensors by the `BS ` prefix | gone once the lamps and labels are drawn by the build; any reader that stays takes the role from `devices.csv` |
+| `jmri/layouts/hart/parked/polish_hart_layout_editor.py` | puts Stage 1's lamps and labels back after the Store; finds block sensors by the `BS ` prefix | gone once the lamps and labels are drawn by the build; any reader that stays takes the role from the device master |
 | `jmri/layouts/hart/parked/retarget_dispatcher_traininfo_transits.py`, `repair_dispatcher_traininfo.py`, `fix_traininfo_detection.py`, `run_panelpro_traininfo_repair.sh` | edit the 374 traininfo files, which name the 3bd3ac64 transits and masts; the retarget script defaults to the Pi's `tables.xml` path | traininfo generated from the transits the build writes, with HEAD_AND_TAIL detection set by the generator |
 | `jmri/layouts/hart/parked/occupancy_lamps_display_only.py` | the lamps' display-only check, out of `tools/check.sh` | back into `tools/check.sh` with the lamps |
 | The hidden yard throats | Stage 1 needs the 12 throat blocks and their 12 masts (the rows of `retired_virtual_masts.csv` marked "restore on unpark") | a rule in `build_masts.py` and `block_overrides.csv` rows, as the parked README describes |
@@ -138,12 +147,12 @@ Windows box). Normal runs print none of these as a warning.
 | 14 | `jmri/layouts/hart/scripts/audit_panel_contracts.py` `EXPECTED_GRAPH`, `panelpro_smoke_test.py` | expect 0 sections and transits and no parked window while parked | Dispatcher, USS, NX | put the counts back |
 | 15 | `jmri/layouts/hart/parked/tables_parked.xml` | the snapshot matches the 3bd3ac64 geometry (helix unjoined, the throats still there) | all | refresh by Stage 1 or NX Discover in a sandbox, as data the build takes in |
 | 16 | `jmri/layouts/hart/dispatcher/traininfo/` (374 files) | name the 3bd3ac64 transits and the masts of that day | Dispatcher | regenerate after Stage 1 on the rule-built masts |
-| 17 | `jmri/layouts/hart/parked/staging_panel_lamps.json` | one block is gone from `devices.csv`: `Track K-1 West` (a throat block, dropped 2026-11-20) | lamps, Dispatcher | restore the throat or move the lamp to Track K-1 |
+| 17 | `jmri/layouts/hart/parked/staging_panel_lamps.json` | one block is gone from the device master: `Track K-1 West` (a throat block, dropped 2026-11-20) | lamps, Dispatcher | restore the throat or move the lamp to Track K-1 |
 | 18 | `jmri/layouts/hart/data/schematic/retired_virtual_masts.csv` | the 19 hidden masts dropped 2026-11-20, with their system names; 12 are the Dispatcher's (yard-end and rear masts, marked "restore on unpark"), the other 7 went for reasons of their own (helix ends, anchor and stub-leaving masts) | Dispatcher | restore the 12 by a rule in `build_masts.py`, reusing their system names |
 | 19 | `jmri/layouts/hart/data/schematic/preferences.json` `staging.le_labels` `extra_steps`, `extra_follow` | the two label rules kept only for the parked station clusters (EH-1 to EH-3 step alike, W-2 follows W-1); `test_build_layout_le.py:961`, `test_le_cutover.py:493` hold them | lamps, Dispatcher | used again when the clusters return as plugin `extras` |
 | 20 | `preferences.json` `staging.le_labels` `lamp_columns` (removed); `test_le_cutover.py` lamp-offset check (retired) | the South Yard lamp column is gone | lamps | give `lamp_columns` back and the lamp-offset check with it |
 | 21 | the station clusters as plugin `extras` (the retired `le_overlay.station_extras`) | without them 14 block contents icons sit elsewhere than they did with the clusters (OS Switch 7, OS Switch 9, Barn, EH-2, EH-3, East Lead, East Lead East, K-1, K-2, McKees Rocks, McKeesport, Scale, W-1, W-2) | lamps, Dispatcher | give the clusters to the plugin again |
-| 22 | `jmri/layouts/hart/scripts/render_le_layout.py:248`, `:344`, `:446` | finds MoveTo sensors and OS blocks by name prefix; kept on purpose (source-data hand-off row 8): it draws any panel file, including old and trial panels whose blocks `devices.csv` lacks | Dispatcher | keep the prefix test, or pass roles in when it draws only current panels |
+| 22 | `jmri/layouts/hart/scripts/render_le_layout.py:248`, `:344`, `:446` | finds MoveTo sensors and OS blocks by name prefix; kept on purpose (source-data hand-off row 8): it draws any panel file, including old and trial panels whose blocks the device master lacks | Dispatcher | keep the prefix test, or pass roles in when it draws only current panels |
 | 23 | `jmri/layouts/hart/scripts/refresh_bean_comments.py` | check-only since R9c; still a "repair" step in `run_panelpro_stage1.sh:83`, where it no longer restores comments | Dispatcher | drop the step (section 2) |
 | 24 | `wiki/pipelines/public-names.md:23` | lists `refresh_bean_comments.py` as a step that writes comments | Dispatcher | update with the Stage 1 rebuild |
 | 25 | `jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md:75` | says the Stage 1 wrapper restores bean comments through `refresh_bean_comments.py` | Dispatcher | update with the Stage 1 rebuild |
@@ -151,7 +160,7 @@ Windows box). Normal runs print none of these as a warning.
 | 27 | `docs/ctc/TURNOUT_STATE_SOURCES.md:11`, `:12`, `:43`, `:44`, `:59` | the same Digicon-era OS names for switches 114 and 115 | USS | rename to OS Switch 37 and 39 |
 | 28 | `docs/ctc/SIGNAL_FACING.md:100` | "OS McKees Rocks/OS McKeesport" | USS | rename to OS Switch 37 and 39 |
 | 29 | `jmri/layouts/hart/parked/apply_nx_layer.py`, `run_nx_discover.sh` | write `tables.xml` directly | NX | rebuild (section 2) |
-| 30 | `jmri/layouts/hart/scripts/discover_nx.py`, `parked/polish_hart_layout_editor.py` | read block sensors by the `BS ` prefix | NX, Dispatcher | Jython may keep it; CPython takes the role from `devices.csv` (ADR-030) |
+| 30 | `jmri/layouts/hart/scripts/discover_nx.py`, `parked/polish_hart_layout_editor.py` | read block sensors by the `BS ` prefix | NX, Dispatcher | Jython may keep it; CPython takes the role from the device master (ADR-030) |
 
 Checked and clean: `jmri/scripts/check_hart_phase02.py` prints nothing from a parked feature. `make panels CHECK=1`
 prints no parked line. The portal build prints no parked line; the tables page shows the parked features as a note

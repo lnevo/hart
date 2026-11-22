@@ -7461,12 +7461,6 @@
    "gen": "agent-docs"
   },
   {
-   "from": ".claude/skills/tables-pull/SKILL.md",
-   "to": "wiki/projects",
-   "label": "points to",
-   "gen": "agent-docs"
-  },
-  {
    "from": ".claude/skills/whats-left/SKILL.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
@@ -7684,12 +7678,6 @@
   },
   {
    "from": "wiki/STATUS_LOG.md",
-   "to": "wiki/projects",
-   "label": "points to",
-   "gen": "agent-docs"
-  },
-  {
-   "from": "wiki/decisions",
    "to": "wiki/projects",
    "label": "points to",
    "gen": "agent-docs"

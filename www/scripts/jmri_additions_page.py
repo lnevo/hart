@@ -7,7 +7,7 @@ railroad's data with a region:
 
 fill() replaces each region's contents with the value read from the checkout:
 
-- the masts the device master plans (devices.csv, all levels), split into those with
+- the masts the device master plans (the device master, all levels), split into those with
   lamps and the hidden staging masts (virtual, IF$vsm);
 - the masts signal_coordinator.py hands over (those whose heads are LCOS heads, IH plus node and signal number, the
   same rule as its _collect_beans, now in sml_beans.py) and their Signal Mast Logic destinations in tables.xml, against the rest;

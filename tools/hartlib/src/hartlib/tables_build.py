@@ -10,7 +10,7 @@ tables.xml is an output. tools/schematic/build_tables.py writes it from:
                                                       blockrouting, logicDelay, the timebase), the memories, the clock
                                                       sensor, and the "Hide windows on start" LogixNG with its thread,
                                                       initialisation table and clipboard
-    jmri/layouts/hart/data/devices.csv                the level 1 rows (staging and the panel status beans): turnouts,
+    The device master                the level 1 rows (staging and the panel status beans): turnouts,
                                                       sensors, heads, masts, blocks and layout blocks (base). The main
                                                       and upper rows are drawn into the tables by the Layout Editor
                                                       build (tools/schematic/le_tables.py), on top of this base
@@ -389,7 +389,7 @@ def _named(tag: str, attrs: dict, system: str, user: str, comment: str) -> ET.El
 
 # ---------------------------------------------------------------- a device not on the layout yet (jmri_bean)
 #
-# A device the owner adds in PanelPro (a test turnout, a DCC accessory) has a devices.csv row with no level, cp or role
+# A device the owner adds in PanelPro (a test turnout, a DCC accessory) has a device-master row with no level, cp or role
 # until its details are known (owner, 2026-11-20), and the beans exactly as the Store wrote them in its jmri_bean
 # column, as compact JSON:
 #     {"beans": [{"section": [tag, class], "element": NODE}, ...]}
@@ -846,7 +846,7 @@ def read_path_counts(path: Path) -> dict[str, tuple[str, int]]:
 
 def roundtrip_report(store: Path, counts: Path, generated: Path) -> tuple[bool, list[str]]:
     """(passed, lines) of a PanelPro round trip: the normalised Store against the generated file, and the block
-    paths JMRI derived for the blocks of devices.csv (every staging block must have at least one)."""
+    paths JMRI derived for the blocks of the device master (every staging block must have at least one)."""
     lines, ok = [], True
     try:
         diff = roundtrip_differences(store.read_bytes(), generated.read_bytes())

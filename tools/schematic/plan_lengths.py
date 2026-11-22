@@ -20,7 +20,7 @@ only (level unification step 5 part 2).
 - A track that holds an OS block too (Scale ends in OS Switch 7) keeps its whole run: the OS block is the turnout,
   which the run leaves out.
 
-Main and upper (main_upper_lengths), from devices.csv's level 2 and 3 block rows and main.json, the plan graph of
+Main and upper (main_upper_lengths), from the device master's level 2 and 3 block rows and main.json, the plan graph of
 those levels:
 - a track block takes its plan edges' runs in the plan file (main_edge_inches), its share of each: each row's trial
   names are switch-and-leg keys ("Track 101BA-111C", "Track 107B-107C #1" for half of a balloon loop), resolved on
@@ -38,7 +38,7 @@ those levels:
 Track lengths need the plan file itself (PLAN, private, never committed; ANYRAIL_PLAN overrides the path). Without it,
 --check checks the OS rows only and says so; a write stops. OS lengths need only parts.json (committed). Which block
 is on which track comes from the staging device map (staging_device_map.load) on the staging band, and from
-devices.csv on main and upper.
+the device master on main and upper.
 """
 from __future__ import annotations
 
@@ -417,7 +417,7 @@ def track_inches(r: dict, pieces: dict, edge_in: dict, bad: list) -> float | Non
 
 
 def main_upper_lengths(plan: Path) -> dict:
-    """{block: (level, inches, the block whose occupancy sensor it has)} of every main and upper block of devices.csv,
+    """{block: (level, inches, the block whose occupancy sensor it has)} of every main and upper block of the device master,
     its parts too (a JMRI block of their own whose sensor is their OS block's; a link whose turnouts touch in the plan
     is 0 in long), but the helix blocks (staging's rows; module
     text). LengthError on a row whose trial names give no plan edge, or a block left with no length."""

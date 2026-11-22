@@ -12,11 +12,11 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
 1. the template, data/tables_template.xml: what PanelPro owns (settings, memories, the clock sensor, the "Hide windows
    on start" LogixNG), and the fixed envelope (hartlib.tables_build: no file history, "Written by" comment, clock
    time or memory values);
-2. the staging beans of data/devices.csv: turnouts, sensors, heads, masts, blocks (lengths from block_lengths.csv) and
+2. the staging beans of the device master: turnouts, sensors, heads, masts, blocks (lengths from block_lengths.csv) and
    layout blocks, their comments generated from the wiring columns (hartlib.tables_build.bean_comment), each section
    in JMRI's system-name order (hartlib.tables_build.base);
 3. the Layout Editor build on that base (build_layout_le.build, levels all): the main and upper turnouts, blocks,
-   sensors, heads, masts and the startup LogixNG from devices.csv, and the "HART Railroad" panel, which must match the
+   sensors, heads, masts and the startup LogixNG from the device master, and the "HART Railroad" panel, which must match the
    owner-approved staging fingerprint;
 4. the discovered Signal Mast Logic and mast properties, data/schematic/discovered_sml.xml, which only
    --discovered-from writes. The build stops when that file names a mast the tables no longer hold (a mast renamed
@@ -29,7 +29,7 @@ tables.xml is an output; nothing reads it as a source. It is, in this order:
 
 A PanelPro Store of tables.xml is never copied over it: make tables-pull and tables-pull-pi keep the Store in
 media/pulled-stores in the main checkout (gitignored, shared by every worktree), and tools/schematic/split_store.py splits it into the template and
-devices.csv (R9d). Exit codes: 0 written or current, 1 stale (--check), 2 a source cannot make the tables, 3 the schematic-maps
+the device master (R9d). Exit codes: 0 written or current, 1 stale (--check), 2 a source cannot make the tables, 3 the schematic-maps
 plugin is missing or not at its pin (EXIT_NO_PLUGIN; --check prints SKIPPED and exits 0 instead unless
 SCHEMATIC_REQUIRED=1, which the deploy sets).
 """

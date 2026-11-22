@@ -85,6 +85,34 @@ class Numbers(unittest.TestCase):
         self.assertEqual(mp.LINE_CODE, {1: "", 2: "A", 3: "B"})
 
 
+class FreeNumbers(unittest.TestCase):
+    """Two pairs a tenth apart share a westward number (6.6 and 6.7 both give 67): the second takes the next free one
+    of its parity and the shift is printed (owner, 2026-11-22)."""
+
+    def test_a_free_number_is_kept_and_prints_nothing(self):
+        with unittest.mock.patch("sys.stderr") as err:
+            self.assertEqual(mp.free_number(67, "", {"66", "A67"}, 6.6), 67)
+        err.write.assert_not_called()
+
+    def test_a_taken_number_moves_to_the_next_free_one_of_its_parity(self):
+        with unittest.mock.patch("sys.stderr") as err:
+            self.assertEqual(mp.free_number(67, "", {"67", "69"}, 6.7), 71)
+        printed = "".join(c.args[0] for c in err.write.call_args_list)
+        self.assertIn("MP 6.700 would be intermediate 67", printed)
+        self.assertIn("named 71", printed)
+
+    def test_the_line_code_keeps_the_levels_apart(self):
+        self.assertEqual(mp.free_number(67, "A", {"67", "B67"}, 6.7), 67)
+        with unittest.mock.patch("sys.stderr"):
+            self.assertEqual(mp.free_number(67, "A", {"A67"}, 6.7), 69)
+
+    def test_a_shift_past_98_with_no_line_code_stops_the_build(self):
+        with self.assertRaisesRegex(mr.MapError, "intermediate 97 is taken and the next free number 99 is over 98"):
+            mp.free_number(97, "", {"97"}, 9.7)
+        with unittest.mock.patch("sys.stderr"):
+            self.assertEqual(mp.free_number(97, "B", {"B97"}, 9.7), 99)
+
+
 # ---------------------------------------------------------------- running track and exit dwarfs
 
 

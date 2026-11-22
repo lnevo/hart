@@ -46,7 +46,7 @@ def load_render_mod():
 
 
 def load_names(path: Path):
-    """({system name: record}, {user name: record}) of staging's rows of devices.csv: its user name (current and
+    """({system name: record}, {user name: record}) of staging's rows of the device master: its user name (current and
     proposed, as the page keys them), cp, system name (hardware) and JMRI comment (hartlib.devices.comment_of)."""
     by_hw, by_name = {}, {}
     for row in device_master.load(path):
@@ -115,7 +115,7 @@ def load_devices(path: Path = PANEL, master_files: "device_master.Files | None" 
     for el in tables.blocks(root):
         if tables.text(el, "comment").startswith("Hidden"):
             continue
-        # its kind is its devices.csv role, never its name (hand-off row 8)
+        # its kind is its device-master role, never its name (hand-off row 8)
         # a device not on the layout yet (no level, no role: its beans come from its jmri_bean) is a plain block
         name = tables.user_name(el)
         add(el, "block" if master.is_unplaced("block", name) or not master.is_os(name) else "os block")

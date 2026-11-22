@@ -12,7 +12,8 @@ the level's block layer:
    inside one interlocking) with at least one end in an interlocking, where both blocks hold a train (over
    mast_rule.LONG_CM). Named from the milepost in tenths, odd westbound and even eastbound, after the level's line
    code (LINE_CODE: A main, B upper, none on staging, where a name stops at 98 so it never reads as a three-digit
-   home mast). West is toward the lower milepost; on a balloon loop, which starts and ends at one switch, the
+   home mast). A number another intermediate already holds moves on to the next free one of its parity (free_number).
+   West is toward the lower milepost; on a balloon loop, which starts and ends at one switch, the
    eastbound mast faces Loop 1 (the half from leg B).
 3. Virtual masts only as destinations: every route of each kept home mast is walked (mast_rule.route_ends) to the
    first visible mast; a route that reaches a buffer stop first gets a hidden bumper mast there, facing it. Nothing
@@ -31,6 +32,7 @@ from __future__ import annotations
 
 import csv
 import re
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -85,6 +87,23 @@ def signal_number(mp: float, west: bool, code: str = "") -> int:
     return number
 
 
+def free_number(number: int, code: str, taken: set, mp: float) -> int:
+    """`number`, or when another intermediate already holds `code` + `number` (two pairs under a tenth of a mile
+    apart: the odd and even numbers give one number per two tenths), the next free number of the same parity (owner,
+    2026-11-22). A shift is printed with both mileposts, so the build log shows it. With no line code the shifted
+    number stops at 98 like any other."""
+    first = number
+    while f"{code}{number}" in taken:
+        number += 2
+    if number != first:
+        if not code and number > 98:
+            raise mr.MapError(f"MP {mp:.2f}: intermediate {first} is taken and the next free number {number} is over 98; "
+                              "names with no line code stop at 98")
+        print(f"mast_plan: MP {mp:.3f} would be intermediate {code}{first}, which another intermediate holds; "
+              f"named {code}{number}", file=sys.stderr)
+    return number
+
+
 def letter_at(band, node: str, leg: str) -> str:
     """The direction letter of a mast at switch `node`'s `leg` facing into the switch, as mast_rule.masts names it."""
     return "L" if mr.TAU[leg] * band["rail"][node] == 1 else "R"
@@ -128,6 +147,7 @@ def intermediates(bands, found, runs_by_band: dict, layer: dict, cm: dict, cp_of
     else of `other`)."""
     legs = mr.by_leg(found)
     out = []
+    taken = set()
     for bi, runs in sorted(runs_by_band.items()):
         band = bands[bi][1]
         level = mr.band_level(bands[bi][0], levels)
@@ -167,7 +187,9 @@ def intermediates(bands, found, runs_by_band: dict, layer: dict, cm: dict, cp_of
                     at_start = to is start
                     toward, other = (sw[0], sw[1]) if at_start else (sw[1], sw[0])
                     cp = cp_of.get(toward) or cp_of[other]
-                    out.append(dict(name=f"{code}{signal_number(mp, west, code)}", level=level, band=bi,
+                    name = f"{code}{free_number(signal_number(mp, west, code), code, taken, mp)}"
+                    taken.add(name)
+                    out.append(dict(name=name, level=level, band=bi,
                                     dir="west" if west else "east",
                                     protects=a if at_start else b, facing=b if at_start else a,
                                     milepost=round(mp, 3), start=start, end=end, to=to, toward=toward, other=other,

@@ -276,7 +276,7 @@ def device_names(path: Path = DEVICE_MAP) -> dict:
     """{placeholder: device-map user name} for the main and upper turnouts and blocks: each turnout or block row's
     `trial_name` (comma separated: a crossover's two halves are one turnout, "Switch 101A, Switch 101B" -> "Switch
     101") is the placeholder placeholder_names gives. Stops on a row with no trial name, a trial name given twice, a
-    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (devices.csv part_of: a
+    turnout not named "Switch <n>" or a block not named "Track ..." or "OS Switch <n>". A part (the device master's part_of: a
     link inside an OS block) is a JMRI block of its own under its own name (owner, 2026-11-20), whose occupancy sensor
     is its OS block's (le_tables.level_sensors); the block it names must be a main or upper block row."""
     out, bad = {}, []

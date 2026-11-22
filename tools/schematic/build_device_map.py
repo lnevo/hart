@@ -30,7 +30,7 @@ Outputs:
   point may list only switches on one band, so a crossover whose halves sit on two bands (127, 131) lists the half
   on the control point's level. The bars make the page taller; at the smaller scale the plugin's label check counts 7 milepost labels against their
   markers (draft, 2026-11-15; labels are placed before the page is scaled).
-- devices.csv (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
+- The device master (hartlib.devices): the rows of levels 2 and 3 are this script's (written_by build_device_map.py), and
   so are staging's block and occupancy rows (staging_rows, below). The main and upper rows are the one mapping from
   each main and upper JMRI device to its planned physical part. Per
   row: the user name under ADR-005; jmri_name, the virtual device tables.xml and the CATS desks use now; system_name,
@@ -40,7 +40,7 @@ Outputs:
 
 Blocks: one block process for every level (block_layer.py, level unification step 5 part 1, owner 2026-11-20): OS
 blocks, track blocks, halves (block_overrides.csv kind split, every level: 227-241 and staging's K-1 and K-2), helix blocks named
-through plan_overrides.json, and parts (devices.csv part_of: a piece of track inside another block, by the rule or
+through plan_overrides.json, and parts (the device master's part_of: a piece of track inside another block, by the rule or
 block_overrides.csv). Staging's rows, built on the owner's field rows: device_map_staging.py.
 
 Virtual names (owner, 2026-11-17), from each device's stable identity:
@@ -78,7 +78,7 @@ Naming rules (ADR-005 grammar, LCOS conventions):
   (LayoutBlockManager.getFacingBean returns one), so two masts facing one loop block into one OS block would leave
   one of them out of Signal Mast Logic discovery. Loop 1 keeps the loop's detector; Loop 2's is not on a node until it is
   wired (NOT_WIRED), so no node or input assignment moves.
-  A link, a track under block_layer.LINK_CM (50 cm) between two switches, is a part (devices.csv part_of) of an OS
+  A link, a track under block_layer.LINK_CM (50 cm) between two switches, is a part (the device master's part_of) of an OS
   block (step 5 part 2, owner 2026-11-20): the lower-numbered switch's, or, where a home mast stands at a switch's
   points facing it, the OS block at its other end (the block boundary is at the mast). On main and upper a part is
   still a JMRI block and layout block of its own, drawn on the panel, whose occupancy sensor is its OS block's
@@ -157,7 +157,7 @@ SWITCHES = SOURCES.switches                     # switches.csv: its main and upp
 OVERRIDES = SOURCES.plan_overrides               # plan_overrides.json, the owner's hand edits (read only)
 GENERATED = layer_files.path(layer_files.GENERATED, OVERRIDES.parent)   # plan_generated.json: this writes its main_upper keys
 SHEET = railroad.PlanOverrides.SHEET
-OUT = SOURCES.devices                             # devices.csv, whose levels 2 and 3 this script writes
+OUT = SOURCES.devices                             # the device master, whose levels 2 and 3 this script writes
 LEVELS = band_levels(layer_files.read("plan_overrides", SHEET, OVERRIDES.parent))     # {band title: level} of main and upper
 STAGING_LEVEL = 1                                 # staging: its nodes are as built (lcos_nodes.csv)
 

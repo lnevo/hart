@@ -4,7 +4,7 @@
     python3 tools/audit/check_name_copies.py          # the checkout's tracked files
     python3 tools/audit/check_name_copies.py --list   # also print every file that holds a name
 
-A name is current when it is the user name of a staging block or mast row of jmri/layouts/hart/data/devices.csv,
+A name is current when it is the user name of a staging block or mast row of the device master,
 or, for a block, when tables.xml holds a block with that user name (a block JMRI holds that the master has no row for
 yet; the hidden South Yard throat blocks were such blocks until 2026-11-17). A rename changes the row's user name
 (ADR-005), so after a rename the old name is no longer current, and every hand-kept copy of it fails here with its
@@ -19,7 +19,7 @@ What counts as a name:
     not current fails.
 
 Data files that key on a name (mast_cells.csv, switches.csv, block_lengths.csv ...)
-are read: a rename has to change them too. Left out: devices.csv and tables.xml (the
+are read: a rename has to change them too. Left out: the device master and tables.xml (the
 sources), files a generator writes and a `--check` holds (SKIP_PREFIXES), tests, and the
 dated records in ALLOW, each with its reason (a key ending in "/" covers every file under that folder).
 Markdown is prose (the wiki and docs may keep a name; a record is not a copy) and is
@@ -124,7 +124,7 @@ class Hit:
 
 def load_names(devices_csv: Path) -> tuple[set[str], set[str]]:
     """(current names, every name the master holds: the same set, as it keeps no alias rows) of staging's blocks and
-    masts, the user names of their rows in devices.csv. DevicesError when it cannot be read."""
+    masts, the user names of their rows in the device master. DevicesError when it cannot be read."""
     names = {row["user_name"].strip() for row in devices.load(devices_csv)
              if row["level"] == devices.FIELD_LEVEL and row["layer"] in LAYERS}
     return names, set(names)

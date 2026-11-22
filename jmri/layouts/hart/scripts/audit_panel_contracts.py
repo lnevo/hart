@@ -36,11 +36,28 @@ MQTT_SENSOR_SYSNAME = re.compile(r"^M2S\d+$")
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
 from lcc_turnout_contract import contract_violations
 from nx_contract import EXPECTED_NX_PAIRS, ISNX_SYSTEM, LAYOUT_PANEL, NXTYPE_SML
-from refresh_bean_comments import BLOCK_COMMENTS
-from reconcile_dispatcher_stations import STATIONS as DISPATCHER_STATIONS
 
-# The Dispatcher stations come from reconcile_dispatcher_stations.STATIONS.
-STATION_COMMENTS = {name: BLOCK_COMMENTS[name] for name in DISPATCHER_STATIONS}
+
+def station_comments(rows=None) -> dict[str, str]:
+    """{block: its JMRI comment} of the Dispatcher stations: the device master's staging block rows marked `stop` (the
+    12 stations are all on staging; main and upper stations wait for the owner, and their helix rows' `stop` is the
+    level device map's). The master is the one copy of the station list and the comments (the parked scripts' own copies are listed in
+    docs/parked/UNPARK.md)."""
+    out: dict[str, str] = {}
+    for row in devices.load() if rows is None else rows:
+        if row["level"] != devices.FIELD_LEVEL or row["layer"] != "block" or row.get("stop") != "yes":
+            continue
+        name, comment = row["user_name"], row["jmri_comment"]
+        if not (comment == "stop" or comment.endswith("; stop")):
+            raise devices.DevicesError(f"station {name!r} is marked stop in the device master but its comment "
+                                       f"{comment!r} does not end in 'stop'")
+        if out.setdefault(name, comment) != comment:
+            raise devices.DevicesError(f"station {name!r} has two comments in the device master: "
+                                       f"{out[name]!r} and {comment!r}")
+    return out
+
+
+STATION_COMMENTS = station_comments()
 
 def text(element: ET.Element | None, child: str) -> str:
     if element is None:
@@ -154,7 +171,7 @@ def audit_forbidden_mqtt_sensors(root: ET.Element, audit: Audit) -> None:
 
 def dispatcher_virtuals(expected: set[str], devices_csv: Path = devices.MASTER) -> set[str]:
     """The expected masts that are hidden virtual masts for Dispatcher Stage 1, not field
-    masts: staging's hidden masts in devices.csv (role hidden, a virtual signal mast IF$vsm:...($10nn))."""
+    masts: staging's hidden masts in the device master (role hidden, a virtual signal mast IF$vsm:...($10nn))."""
     virtual = {
         row["user_name"] for row in devices.load(devices_csv)
         if row["level"] == devices.FIELD_LEVEL and row["layer"] == "mast" and row["role"] == "hidden"

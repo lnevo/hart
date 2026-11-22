@@ -33,7 +33,7 @@ contains the Layout Editor and native SML. The Dispatcher System, Entry/Exit (NX
 ```bash
 python3 jmri/scripts/check_hart_phase02.py
 python3 jmri/layouts/hart/scripts/audit_panel_contracts.py
-PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # devices.csv and the files it generates agree
+PYTHONPATH=tools/hartlib/src python3 -m hartlib.devices check   # the device master and the files it generates agree
 
 ```
 

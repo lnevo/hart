@@ -90,9 +90,9 @@ HARTLIB_MAIN = ("paths", "tables", "hosts", "railroad")
 HARTLIB_PARTS = {"railroad_facts": "railroad", "railroad_invariants": "railroad"}
 HARTLIB_OTHER = {
     "names": "the DCC group of a JMRI comment",
-    "devices": "the device master (devices.csv), its dictionary and its checks",
+    "devices": "the device master, its dictionary and its checks",
     "tables_build": "the template and the other parts the generated tables.xml is built from",
-    "store_split": "the split of a pulled PanelPro Store back into the template and devices.csv",
+    "store_split": "the split of a pulled PanelPro Store back into the template and the device master",
     "cats": "the CATS desk conventions",
     "parked": "the parked features",
     "level_devices": "the main and upper levels' device names",

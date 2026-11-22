@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """The device master's rules on every level, and its rows against tables.xml and the schematic.
 
-    python3 tools/schematic/check_device_master.py --check   # exit 1 unless devices.csv holds its rules
+    python3 tools/schematic/check_device_master.py --check   # exit 1 unless the device master holds its rules
 
 `make panels` (its device-master step) and tools/check.sh run it. Every rule is one rule for every level of
-devices.csv (staging, main, upper: hartlib.devices); where a rule reads a file only one level has, it is that file's
+the device master (staging, main, upper: hartlib.devices); where a rule reads a file only one level has, it is that file's
 rule, named for the file, not a level test.
 
 Every row (row_problems), each naming the file, line, level, layer and device:

@@ -4,7 +4,7 @@
   var base = HARTOps.base;
   var esc = HARTOps.esc;
 
-  // a line block's cp lists the stations or control points it joins, ";" between (devices.csv)
+  // a line block's cp lists the stations or control points it joins, ";" between (the device master)
   function places(item) {
     return (item.cp || "").split(";").filter(Boolean);
   }

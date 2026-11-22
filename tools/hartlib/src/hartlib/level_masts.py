@@ -1,6 +1,6 @@
 """Every level's signal masts: schematic/masts.csv, one row per mast with its `level` (owner, 2026-11-21: the level is
 a column, never a file per level), written by tools/schematic/build_masts.py from the mast and head rows of
-devices.csv; its reader (read) and the naming rules the file keeps.
+The device master: its reader (read) and the naming rules the file keeps.
 
 Columns (FIELDS):
 - level: 1 staging, 2 main, 3 upper.

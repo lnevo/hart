@@ -5,7 +5,7 @@
     python3 tools/wiring/write_inventory.py --check   # exit 1 if v86 differs from what the sources give
 
 The workbook is a view: nobody edits it (owner, 2026-11-20). It is written from scratch from
-  jmri/layouts/hart/data/devices.csv           every level's turnouts, feedback, heads, masts and detectors, with the
+  The device master           every level's turnouts, feedback, heads, masts and detectors, with the
                                                ports in their wiring text. Staging's are written from wiring.csv (the
                                                physical wiring source, as JMRI has it wired), main and upper's by
                                                tools/schematic/build_device_map.py's rule (a draft) but for the rows

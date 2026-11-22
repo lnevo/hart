@@ -15,14 +15,14 @@ read a later one: build_device_map.py loads upto="inputs", because it writes the
 stale copy of its own output. Each file is read the first time it is asked for, once.
 
     inputs      hand-kept: switches.csv (every level's switches, one row per OS block or half, ADR-021; its main and
-                upper hands are the hands layer), staging's rows of devices.csv,
+                upper hands are the hands layer), staging's rows of the device master,
                 schematic/interlockings.csv (every level's), lcos_nodes.csv (every level),
                 the helix tracks (plan_overrides.json's helix ends and map, preferences.json's track_labels: each
                 helix track one block, Track <plan name>, from staging up the helix, owner 2026-11-20/21),
                 plan_overrides.json's main_upper section (its edits; build_device_map.py rewrites only its
                 control_points and stations keys), block_lengths.csv
     hands       the hand of switches.csv's plan rows      build_hands.py
-    device_map  the main and upper rows of devices.csv      build_device_map.py
+    device_map  the main and upper rows of the device master      build_device_map.py
     masts       schematic/masts.csv, every level's masts  build_masts.py (hartlib.level_masts)
     tables      jmri/layouts/hart/output/tables.xml       build_layout_le.py --as-live, and PanelPro's Store
 
@@ -76,7 +76,7 @@ class Railroad:
     # inputs
     @cached_property
     def staging_rows(self) -> list[tuple[int, dict[str, str]]]:
-        """Staging's rows of devices.csv as read, once: staging_devices checks every row, switches look only at
+        """Staging's rows of the device master as read, once: staging_devices checks every row, switches look only at
         theirs."""
         return read_staging_rows(self.sources.devices)
 

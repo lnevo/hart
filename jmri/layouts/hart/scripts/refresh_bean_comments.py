@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Rename public labels and write meaningful JMRI comments.
 
-Since R9c (ADR-029) tables.xml is generated (tools/schematic/build_tables.py) and its comments come from devices.csv;
-the command only checks that the staging heads' wiring comments in devices.csv (written by
+Since R9c (ADR-029) tables.xml is generated (tools/schematic/build_tables.py) and its comments come from the device master;
+the command only checks that the staging heads' wiring comments in the device master (written by
 tools/schematic/build_masts.py from wiring.csv) are wiring.csv's. The comment rules below stay for
 the parked USS CTC scripts (cleanup_uss_ctc_leftovers.py, uss_switch_only_columns.py) and audit_panel_contracts.py.
 
@@ -29,7 +29,7 @@ from hartlib.names import jmri_comment  # noqa: E402
 
 ROOT = paths.REPO_ROOT
 sys.path.insert(0, str(paths.LAYOUT_SCRIPTS))
-from lcc_turnout_contract import identity_lcc_rows  # noqa: E402  the one reader of the MTT rows of devices.csv
+from lcc_turnout_contract import identity_lcc_rows  # noqa: E402  the one reader of the MTT rows of the device master
 
 WIRING = paths.WIRING                       # wiring.csv: the wired heads (hartlib.wiring.digicon_rows)
 SIGNAL_HEAD_PLAN = paths.SIGNAL_HEAD_PLAN
@@ -262,7 +262,7 @@ def load_wiring_head_comments(
 
 
 def stale_head_comments(files: devices.Files | None = None, path: Path | None = None) -> list[str]:
-    """The staging head rows of devices.csv whose wiring is not the comment wiring.csv gives them
+    """The staging head rows of the device master whose wiring is not the comment wiring.csv gives them
     (load_wiring_head_comments of `path`), one line each; [] when they agree. build_masts.py writes the head
     rows' wiring from wiring.csv, so a line here means it has not been run since wiring.csv changed. DevicesError
     when the master cannot be read."""
@@ -729,7 +729,7 @@ def ctc_comment(system_name: str) -> str | None:
 
 
 def load_device_map_comments() -> tuple[dict[str, str], dict[tuple[str, str], str]]:
-    """The JMRI comments of staging's rows of devices.csv (hartlib.devices.comment_of), by the LCOS or LCC system names
+    """The JMRI comments of staging's rows of the device master (hartlib.devices.comment_of), by the LCOS or LCC system names
     in their system_name and by (bean kind, user name)."""
     path = DEVICES
     by_sys: dict[str, str] = {}
@@ -911,9 +911,9 @@ def refresh_comments(text: str) -> tuple[str, int]:
 
 
 def main() -> int:
-    """Check the wiring comments of the staging signal heads in devices.csv against wiring.csv
+    """Check the wiring comments of the staging signal heads in the device master against wiring.csv
     (stale_head_comments); 1 when they differ (run tools/schematic/build_masts.py). tables.xml is an output
-    since R9c (ADR-029): its comments come from devices.csv through tools/schematic/build_tables.py, so this script
+    since R9c (ADR-029): its comments come from the device master through tools/schematic/build_tables.py, so this script
     no longer edits it; refresh_comments stays for the parked USS CTC scripts that import it."""
     paths.exit_if_overridden(Path(__file__).name)
     try:

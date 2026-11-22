@@ -150,11 +150,11 @@ def natural(name: str) -> list:
     return [int(t) if t.isdigit() else t for t in re.split(r"(\d+)", name)]
 
 
-# ---------------------------------------------------------------- inputs: staging's rows of devices.csv
+# ---------------------------------------------------------------- inputs: staging's rows of the device master
 
 @dataclass(frozen=True)
 class StagingDevice:
-    """A staging (level 1) row of devices.csv in one of NAME_LAYERS, in the master's own columns."""
+    """A staging (level 1) row of the device master in one of NAME_LAYERS, in the master's own columns."""
     line: int
     layer: str
     user_name: str
@@ -186,7 +186,7 @@ STAGING_COLUMNS = ("layer", "user_name", "role", "assignment", "system_name", "j
 
 
 def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
-    """(line, row) of staging's rows of devices.csv in NAME_LAYERS (STAGING_COLUMNS, values stripped), in master order,
+    """(line, row) of staging's rows of the device master in NAME_LAYERS (STAGING_COLUMNS, values stripped), in master order,
     unchecked beyond the master's own checks (read_staging_devices checks them)."""
     from . import devices
     return [(n, {c: r[c].strip() for c in STAGING_COLUMNS}) for n, r in enumerate(devices.load(path), 2)
@@ -194,7 +194,7 @@ def read_staging_rows(path: Path) -> list[tuple[int, dict[str, str]]]:
 
 
 def read_staging_devices(path: Path, rows: list[tuple[int, dict[str, str]]] | None = None) -> StagingDevices:
-    """Staging's rows of devices.csv at `path` (or its `rows`, read_staging_rows, which keeps NAME_LAYERS only), every
+    """Staging's rows of the device master at `path` (or its `rows`, read_staging_rows, which keeps NAME_LAYERS only), every
     row checked. Stops on an empty user name or a DCC address that is not a number (the master's own check holds the
     keys unique)."""
     out = []
@@ -343,7 +343,7 @@ class Leg:
 @dataclass(frozen=True)
 class Switch:
     """A staging switch (its level 1 rows of switches.csv: the first row's whole-switch columns and hand, and every
-    row's legs) with, from its turnout row in devices.csv (staging's "Switch <n>"), its hardware (system_name), DCC
+    row's legs) with, from its turnout row in the device master (staging's "Switch <n>"), its hardware (system_name), DCC
     address and control point."""
     number: int
     level: str
@@ -381,7 +381,7 @@ def _yes(value: str, where: str) -> bool:
 
 def switch_turnouts(devices_csv: Path, rows: list[tuple[int, dict[str, str]]] | None = None,
                     numbers: Iterable[int] = ()) -> dict[int, dict[str, str]]:
-    """Switch number -> staging's turnout row "Switch <n>" of devices.csv (read_staging_rows), for the switches
+    """Switch number -> staging's turnout row "Switch <n>" of the device master (read_staging_rows), for the switches
     `numbers`. Only those rows are looked at; a fault of another row (an unknown layer, a bad DCC address:
     read_staging_devices) is the railroad-facts check's to report. A bad row ANYWHERE in the master stops the load
     first (hartlib.devices.load checks the whole file, naming its line and row). Stops on a switch with two rows."""
@@ -513,7 +513,7 @@ class DeskArea:
     """A desk area (owner, 2026-11-20): the stations of one level that share a desk code, named by the first of them in
     the file. Its switches are its stations' own: a station's switches less those of the stations nested in it (a
     station whose switches all lie in another's, as Engine House in Barn), in file order. These are the control
-    points the drawings bracket and the CATS desks name (plan_overrides.json's control_points, build_staging_sets)."""
+    points the drawings bracket and the CATS desks name (plan_generated.json's control_points, build_staging_sets)."""
     line: int                       # the naming station's line
     level: int
     name: str
@@ -959,7 +959,7 @@ def read_hands(path: Path) -> dict[str, Hand]:
 
 @dataclass(frozen=True)
 class DeviceRow:
-    """A main or upper row of devices.csv: a JMRI device (jmri_name, virtual) and its planned physical part
+    """A main or upper row of the device master: a JMRI device (jmri_name, virtual) and its planned physical part
     (system_name, a draft). `role` is what the device is (devices.ROLES), given by the row or its writer; readers test
     it, not the name."""
     level: int
@@ -1090,7 +1090,7 @@ def device_facts(r: dict) -> list[str]:
 
 
 def read_device_map(path: Path) -> DeviceMap:
-    """The main and upper rows of devices.csv at `path` (devices.device_map_lines). Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
+    """The main and upper rows of the device master at `path` (devices.device_map_lines). Stops on an unknown layer, a bad level, a (layer, user name) given twice (a turnout's LCC alias is its own
     row), a row whose fact columns do not hold (device_facts), an occupancy row whose jmri_name is not a virtual block
     sensor, whose planned detector is not M2S, or whose blocks are not the one block it is named for."""
     out = DeviceMap(path=path)

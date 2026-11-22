@@ -45,7 +45,7 @@ def render(rows):
     notes = {r["user_name"]: r["note"] for r in csv.DictReader(CSV.open(encoding="utf-8"))}
     head = ("| Block | Occupancy sensor | Plan in | Measured in | Source | JMRI mm | Note |\n"
             "|---|---|---|---|---|---|---|")
-    index = devices.index()         # a block's kind is its devices.csv role, never its name (hand-off row 8)
+    index = devices.index()         # a block's kind is its device-master role, never its name (hand-off row 8)
     tracks = [b for b in rows.values() if not index.is_os(b.user_name)]
     osb = [b for b in rows.values() if index.is_os(b.user_name)]
     return f"""# Track and spur lengths
