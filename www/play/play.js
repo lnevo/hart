@@ -256,40 +256,49 @@ const TAG={def:"Definitions",sup:"Superiority",to:"Train orders",sig:"Signals",s
 function renderCover(){
   const box=$("xwCover");if(!box)return;
   const groups=[...document.querySelectorAll(".xw-group")];if(!groups.length)return;
-  // rows: the title, the kind line and the section tags stay in view; the story and the button open on a tap
+  // rows: the title, the kind line and the section tags stay in view; the story and the button open on a tap.
+  // A summary holds phrasing content and one heading, so the kind line and the tags become spans.
   document.querySelectorAll(".xw-start .card").forEach(card=>{
     const b=card.querySelector("[data-run]"),def=b&&RUNS[b.dataset.run];if(!def)return;
     const det=document.createElement("details");det.className=card.className+" xw-run";det.dataset.secs=(def.covers||[]).join(" ");
     const sum=document.createElement("summary"),h=card.querySelector("h3"),k=card.querySelector(".kind");
-    if(h)sum.appendChild(h);if(k)sum.appendChild(k);
+    if(h)sum.appendChild(h);
+    const meta=document.createElement("span");meta.className="xw-meta";
+    if(k){meta.insertAdjacentHTML("beforeend",`<span class="kind">${k.innerHTML}</span>`);k.remove()}
     const tags=SECTIONS.filter(x=>(def.covers||[]).includes(x[0])).map(x=>`<span>${esc(TAG[x[0]])}</span>`).join("");
-    if(tags){const t=document.createElement("p");t.className="xw-tags";t.innerHTML=tags;sum.appendChild(t)}
-    det.appendChild(sum);[...card.childNodes].forEach(n=>det.appendChild(n));
+    if(tags)meta.insertAdjacentHTML("beforeend",`<span class="xw-tags">${tags}</span>`);
+    sum.appendChild(meta);det.appendChild(sum);[...card.childNodes].forEach(n=>det.appendChild(n));
     card.replaceWith(det);
   });
-  // tabs, one per group
-  const tabs=document.createElement("div");tabs.className="xw-tabs";tabs.setAttribute("role","tablist");
-  const pick=id=>{groups.forEach(g=>{g.hidden=g.id!==id});tabs.querySelectorAll("button").forEach(t=>t.setAttribute("aria-selected",String(t.dataset.g===id)));store.set("ni_tab",id)};
+  // one button per group; only the chosen group shows
+  const tabs=document.createElement("div");tabs.className="xw-tabs";tabs.setAttribute("aria-label","Groups of runs");
+  const pick=id=>{groups.forEach(g=>{g.hidden=g.id!==id});tabs.querySelectorAll("button").forEach(t=>t.setAttribute("aria-pressed",String(t.dataset.g===id)));store.set("ni_tab",id)};
   groups.forEach(g=>{
     const h=g.querySelector(".xw-group-h"),t=document.createElement("button");
-    t.type="button";t.setAttribute("role","tab");t.dataset.g=g.id;t.setAttribute("aria-controls",g.id);
-    t.textContent=h?h.firstChild.textContent.trim():g.id;t.onclick=()=>{filter("");pick(g.id)};tabs.appendChild(t);
+    t.type="button";t.dataset.g=g.id;t.setAttribute("aria-controls",g.id);
+    t.textContent=h?h.firstChild.textContent.trim():g.id;t.onclick=()=>{clear();pick(g.id)};tabs.appendChild(t);
   });
   groups[0].before(tabs);
   // section chips: All, then each section some run tests
   const used=SECTIONS.filter(([k])=>Object.values(RUNS).some(d=>(d.covers||[]).includes(k)));
-  box.innerHTML=`<span class="lbl">Practise a section</span><div class="xw-chips">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
+  box.innerHTML=`<span class="lbl">Practice a section</span><div class="xw-chips">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
     `<button type="button" data-sec="${k}" aria-pressed="${k===""}">${esc(n)}</button>`).join("")}</div>`;
+  const chips=sec=>box.querySelectorAll("button").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.sec===sec)));
+  function clear(){chips("");document.querySelectorAll(".xw-run").forEach(r=>{r.hidden=false});tabs.hidden=false}
   function filter(sec){
-    box.querySelectorAll("button").forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.sec===sec)));
-    document.querySelectorAll(".xw-run").forEach(r=>{r.hidden=!!sec&&!r.dataset.secs.split(" ").includes(sec)});
-    tabs.hidden=!!sec;
-    if(sec)groups.forEach(g=>{g.hidden=!g.querySelector(".xw-run:not([hidden])")});
-    else pick(groups.some(g=>g.id===store.get("ni_tab",""))?store.get("ni_tab",""):groups[0].id);
+    if(!sec){clear();const t=store.get("ni_tab","");pick(groups.some(g=>g.id===t)?t:groups[0].id);return}
+    chips(sec);tabs.hidden=true;
+    document.querySelectorAll(".xw-run").forEach(r=>{r.hidden=!r.dataset.secs.split(" ").includes(sec)});
+    groups.forEach(g=>{g.hidden=!g.querySelector(".xw-run:not([hidden])")});
   }
   box.querySelectorAll("button").forEach(c=>c.onclick=()=>filter(c.dataset.sec));
-  const want=location.hash.slice(1);
-  filter("");if(groups.some(g=>g.id===want))pick(want);
+  // a link to a group (#gChartiers) or to a run's title (#rcoal) shows that group and opens that run
+  function follow(){
+    const el=location.hash.length>1&&document.getElementById(decodeURIComponent(location.hash.slice(1)));
+    const g=el&&(el.classList.contains("xw-group")?el:el.closest(".xw-group"));if(!g)return;
+    clear();pick(g.id);const run=el.closest(".xw-run");if(run){run.open=true;el.scrollIntoView({block:"start"})}
+  }
+  filter("");follow();window.addEventListener("hashchange",follow);
   box.hidden=false;
 }
 function showStart(){
