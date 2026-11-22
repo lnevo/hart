@@ -412,6 +412,17 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertIn("folder:d>folder:e:check", got)  # both links are checks
         self.assertIn("folder:d>f/t:pointer", got)
 
+    def test_pointer_pick_order(self) -> None:
+        """pointerPick: a box drawn under the pointer, then a grown box's drawn spot, then the hovered box's own card,
+        then the hovered line, then a grown card, then a line; else nothing."""
+        cases = [{"box": "b", "spot": "s", "own": "o", "hovered": 1, "card": "c", "line": 2},
+                 {"spot": "s", "own": "o", "hovered": 1, "card": "c", "line": 2},
+                 {"own": "o", "hovered": 1, "card": "c", "line": 2},
+                 {"hovered": 0, "card": "c", "line": 0},
+                 {"card": "c", "line": 2}, {"line": 0}, {"box": None, "line": None}]
+        self.assertEqual(self.run_js("a.map(m.pointerPick)", cases),
+                         [{"box": "b"}, {"box": "s"}, {"box": "o"}, {"edge": 0}, {"box": "c"}, {"edge": 0}, {}])
+
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
         boxes = [{"id": "a", "x": 0, "y": 0, "w": 10, "h": 5}, {"id": "b", "x": 20, "y": 0, "w": 10, "h": 5}]

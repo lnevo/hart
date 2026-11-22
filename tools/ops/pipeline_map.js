@@ -341,8 +341,8 @@ function edgeTip(e, name) {
     (e.back ? '<div class="off">feeds back to an earlier step</div>' : "");
 }
 
-/* What a click on the map does, given what is under it: box (a box's id, or null), card (a grown card's id drawn
-   over the pointer while a line is hovered, or null), line (the id of the box a clicked line leads to, or null) and
+/* What a click on the map does, given what is under it: box (a box's id, or null), card (the grown box the pointer
+   picks, pointerPick, when no box is drawn under it, or null), line (the id of the box a clicked line leads to, or null) and
    lineFirst (a tap, whose hover grew the cards just before it, or a Cmd-click, which asks for the line itself). A box
    wins, then a grown card (what a mouse user sees there), then the line; with lineFirst the line beats a card. Returns
    {pick: id, line: true when it came from a line} or {clear: true}. */
@@ -351,6 +351,20 @@ function clickTarget(box, card, line, lineFirst = false) {
   if (line && (lineFirst || !card)) return { pick: line, line: true };
   if (card) return { pick: card };
   return { clear: true };
+}
+
+/* What the pointer is over on the map, from what is at its place (each an id, a line index, or null): box (a box drawn
+   under it), spot (a grown box whose drawn spot holds it), own (the hovered box, when its grown card holds it),
+   hovered (the hovered line, when it is under the pointer), card (the topmost grown card over it), line (a line under
+   it). A box drawn there wins, so moving along a row reaches each box, also those a card covers; then a grown box's
+   spot (often the next box along a row); then the hovered box's own card; then the hovered line, while on it; then a
+   grown card (drawn over the lines); then a line. Returns {box}, {edge} or {}. Hover and click both use it. */
+function pointerPick(c) {
+  for (const k of ["box", "spot", "own"]) if (c[k]) return { box: c[k] };
+  if (c.hovered !== null && c.hovered !== undefined) return { edge: c.hovered };
+  if (c.card) return { box: c.card };
+  if (c.line !== null && c.line !== undefined) return { edge: c.line };
+  return {};
 }
 
 /* The id of the first box in boxes ({id, x, y, w, h}) that holds the point x, y, or null. */
@@ -649,7 +663,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -839,7 +853,6 @@ function app() {
     const e = i === null ? null : lay.edges[i];
     hoverEdge = e ? i : null; hoverSteps = null;
     svg.classList.toggle("hovering", !!e);
-    svg.classList.toggle("lhover", !!e);  // the cards it grows let the pointer through to the line
     etip.hidden = !e;
     hoverEnds = new Set(e ? [e.from, e.to] : []);
     if (e) {  // the whole chain the line is on: what feeds its start and what its end feeds
@@ -897,19 +910,19 @@ function app() {
     const p = new DOMPoint(x, y).matrixTransform(m.inverse());
     return boxAt(ids.map(id => layNode[id]).filter(Boolean), p.x, p.y);
   }
-  function pickHover(t, x, y) {
-    const g = t.closest && t.closest(".node");
-    if (g) return { box: g.dataset.id };  // a box drawn under the pointer, even one the hovered box's card covers
-    const spot = spotUnder(x, y, [...magnified, ...(hoverId ? [hoverId] : [])]);
-    if (spot) return { box: spot };  // the spot a grown box is drawn at: the next box along a row is often one
-    const own = hoverId && nodeEl[hoverId];
-    if (own && own.classList.contains("mag") && inRect(own, x, y)) return { box: hoverId };
-    const line = t.classList && t.classList.contains("eh") ? Number(t.dataset.edge) : null;
-    if (line !== null && line === hoverEdge) return { edge: line };
-    const c = cardUnder(x, y);
-    if (c) return { box: c.dataset.id };
-    return line !== null ? { edge: line } : {};
+  function pointerAt(t, x, y) {  // what is at the pointer's place, for pointerPick
+    const g = t.closest && t.closest(".node"), own = hoverId && nodeEl[hoverId];
+    const line = t.classList && t.classList.contains("eh") ? Number(t.dataset.edge) : null, c = cardUnder(x, y);
+    return {
+      box: g ? g.dataset.id : null,
+      spot: spotUnder(x, y, [...magnified, ...(hoverId ? [hoverId] : [])]),
+      own: own && own.classList.contains("mag") && inRect(own, x, y) ? hoverId : null,
+      hovered: line !== null && line === hoverEdge ? line : null,
+      card: c ? c.dataset.id : null,
+      line,
+    };
   }
+  const pickHover = (t, x, y) => pointerPick(pointerAt(t, x, y));
   let hoverAt = null, hoverFrame = 0;
   function hoverFrom(e) {
     if (drag || !svg) return;
@@ -1447,18 +1460,19 @@ function app() {
   }
   wrapEl.addEventListener("click", e => {
     if (moved) return;
-    const box = e.target.closest(".node");
     clearTimeout(pending);
-    // a grown card lets the pointer through: found by its place, after a box drawn under the pointer, as the hover is
-    const card = !box ? cardUnder(e.clientX, e.clientY) : null;
-    // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
-    const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
-    // a click on a line opens the box it leads to, Cmd (Ctrl off a Mac; Alt too) the box it comes from; a line whose box is not drawn
-    // does nothing, rather than clearing the view as a click on empty map would
-    const back = sourceClick(e);
+    // what the pointer is over, as the hover found it (pointerPick): a click opens what the hover lit
+    const at = pointerAt(e.target, e.clientX, e.clientY), got = pointerPick(at);
+    const back = sourceClick(e), lineFirst = lastPointer === "touch" || (back && at.line !== null);
+    // a click on a line opens the box it leads to, Cmd (Ctrl off a Mac; Alt too) the box it comes from; a tap or a
+    // Cmd-click takes the line under the pointer over a grown card; a line whose box is not drawn does nothing, rather
+    // than clearing the view as a click on empty map would
+    const li = lineFirst && at.line !== null ? at.line : got.edge !== undefined ? got.edge : at.line;
+    const edge = li !== null && li !== undefined ? lay.edges[li] : null;
     const end = edge && lineEnd(edge, back, id => !!nodeEl[id]);
-    if (edge && !box && !card && !end) return;
-    const t = clickTarget(box && box.dataset.id, card && card.dataset.id, end, lastPointer === "touch" || (back && !!end));
+    const card = got.box && got.box !== at.box ? got.box : null;
+    if (edge && !at.box && !card && !end) return;
+    const t = clickTarget(at.box, card, got.box && !lineFirst ? null : end, lineFirst);
     if (t.clear) { clearFocus(true); return; }
     // a line's box is centred, which moves the map, and a trimmed redraw moves the boxes: either waits out a
     // double-click, so its second click does not land on whatever box moved under the pointer
@@ -1470,7 +1484,7 @@ function app() {
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
     if (e.target.classList && e.target.classList.contains("eh")) return;  // a double-click on a line is a click on it
-    const g = e.target.closest(".node") || cardUnder(e.clientX, e.clientY);
+    const got = pickHover(e.target, e.clientX, e.clientY), g = got.box ? nodeEl[got.box] : null;
     if (g && gNodes[g.dataset.id]) openFolder(gNodes[g.dataset.id].folder);
     else if (g) focusOn(g.dataset.id, !view.focus);
   });
