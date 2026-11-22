@@ -40,6 +40,11 @@ picture {
   display: contents;
 }
 
+/* Its <source> must take no box either, or a grid gives it a cell and pushes the img and what follows along one place. */
+picture > source {
+  display: none;
+}
+
 /* Keyboard focus: one visible ring everywhere (mouse clicks don't show it). */
 :focus-visible {
   outline: 3px solid var(--brand-2);
