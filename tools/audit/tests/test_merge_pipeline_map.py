@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -126,7 +127,7 @@ class MergeTest(unittest.TestCase):
         theirs = graph([node("x"), node("y"), node("z", desc="edited")], [edge("x", "y"), edge("y", "z")])
         rc, err, out = self.merge(ours, theirs, base)
         self.assertEqual(rc, 1)
-        self.assertIn("<<<<<<< ours: node 'z' (deleted)\n=======\n", out)
+        self.assertIn("<<<<<<< ours: node 'z' (deleted; if you keep this side, drop the comma the entry before it ends with)\n=======\n", out)
         self.assertIn('"desc": "edited"', out)
 
     def test_both_add_one_key_differently_is_a_conflict(self) -> None:
@@ -179,6 +180,26 @@ class MergeTest(unittest.TestCase):
         self.assertEqual([d["id"] for d in data["domains"]], ["b", "c", "a"])
         self.assertEqual([p["label"] for p in data["presets"]], ["P", "Q"])
 
+    def test_presets_removed_on_one_side_and_changed_on_the_other_is_a_conflict(self) -> None:
+        pre = [{"label": "P", "focus": "x", "up": 1, "down": 1}]
+        base = {**BASE, "presets": pre}
+        theirs = {**base, "presets": pre + [{"label": "Q", "focus": "y", "up": 0, "down": "all"}]}
+        rc, err, out = self.merge(copy.deepcopy(BASE), theirs, base)
+        self.assertEqual(rc, 1)
+        self.assertIn("the 'presets' list (one side removed it", err)
+        self.assertEqual([p["label"] for p in json.loads(out)["presets"]], ["P", "Q"])
+        rc, err, out = self.merge(copy.deepcopy(BASE), base, base)  # removed, other side unchanged: removed
+        self.assertEqual(rc, 0, err)
+        self.assertNotIn("presets", json.loads(out))
+
+    def test_deleted_last_entry_says_to_drop_the_comma(self) -> None:
+        base = graph([node("x"), node("y")], [edge("x", "y"), edge("y", "x")])
+        ours = graph([node("x"), node("y")], [edge("x", "y")])
+        theirs = graph([node("x"), node("y")], [edge("x", "y"), edge("y", "x", label="t")])
+        rc, _, out = self.merge(ours, theirs, base)
+        self.assertEqual(rc, 1)
+        self.assertIn("<<<<<<< ours: edge y -> x (deleted; if you keep this side, drop the comma", out)
+
     def test_both_reorder_differently_is_a_conflict(self) -> None:
         base = {**BASE, "domains": DOMAINS + [{"id": "c", "label": "C", "color": "#222"}]}
         ours = {**base, "domains": [base["domains"][i] for i in (2, 0, 1)]}
@@ -196,7 +217,33 @@ class BadInputTest(unittest.TestCase):
             self.assertEqual(rc, 2, err)
             self.assertIn(needle, err)
             self.assertNotIn("Traceback", err)
-            self.assertEqual(f.result, text(BASE))  # ours untouched
+            self.assertIn("Falling back to git's line merge", err)
+            # ours equals base here, so git's line merge takes theirs: nothing of either side is dropped
+            self.assertEqual(f.result, theirs if isinstance(theirs, str) else text(theirs))
+
+    def test_unmergeable_input_leaves_markers_not_ours(self) -> None:
+        """Both sides changed and one cannot be merged by key: the file shows both, never ours alone."""
+        ours = graph([node("x", desc="ours"), node("y")], [edge("x", "y")])
+        theirs = graph([node("x", desc="theirs"), node("y"), node("y")], [edge("x", "y")])
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Files(tmp, BASE, ours, theirs)
+            rc, err = f.run()
+            self.assertEqual(rc, 2)
+            self.assertIn("node 'y' is listed twice", err)
+            self.assertIn("<<<<<<< ours", f.result)
+            self.assertIn('"desc": "theirs"', f.result)
+
+    def test_internal_error_still_leaves_markers(self) -> None:
+        ours = graph([node("x", desc="ours"), node("y")], [edge("x", "y")])
+        theirs = graph([node("x", desc="theirs"), node("y")], [edge("x", "y")])
+        with tempfile.TemporaryDirectory() as tmp, \
+                unittest.mock.patch.object(MERGE, "merge_graphs", side_effect=KeyError("boom")):
+            f = Files(tmp, BASE, ours, theirs)
+            rc, err = f.run()
+            self.assertEqual(rc, 2)
+            self.assertIn("internal error: KeyError", err)
+            self.assertNotIn("Traceback", err)
+            self.assertIn("<<<<<<< ours", f.result)
 
     def test_not_json(self) -> None:
         self.check("{ nope", "theirs")
@@ -312,7 +359,7 @@ class GitMergeTest(unittest.TestCase):
         data = json.loads((self.repo / GRAPH).read_text())
         self.assertEqual([n["id"] for n in data["nodes"]], ["x", "y", "o", "t"])
         self.assertEqual((self.repo / PAGE).read_text(), "page ours\n")
-        self.assertIn("rebuild it after the merge", done.stderr)
+        self.assertIn("and commit the pages", done.stderr)
         self.assertEqual(sh("git", "status", "--porcelain", cwd=self.repo).stdout, "")
 
     def test_conflicting_edit_stops_the_merge(self) -> None:

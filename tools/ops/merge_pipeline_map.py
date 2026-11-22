@@ -22,7 +22,8 @@ The pages (docs/pipeline-map/index.html, www/library/pipeline-map.html) hold the
 changes conflict; the page driver keeps this branch's copy and prints the rebuild commands, and the page checks
 in tools/check.sh fail until they are run.
 
-Exit codes: 0 merged, 1 conflict left in OURS, 2 the inputs cannot be merged (OURS left as it was).
+Exit codes: 0 merged, 1 conflict left in OURS, 2 the inputs cannot be merged by key: OURS then holds git's own
+line merge (git merge-file), so the clash still shows as conflict markers.
 --install changes the shared git config of this clone and all its worktrees, and prints only what it changed.
 In a checkout without this script (a branch from before it) the configured drivers run git's own line merge.
 """
@@ -107,7 +108,7 @@ def load_side(path: Path, side: str) -> dict:
         data = MAP.read(path)
     except MAP.GraphError as err:
         raise MergeError(f"{side} ({path}): {err}") from None
-    if SENTINEL_STEM in path.read_text():
+    if SENTINEL_STEM in path.read_text(encoding="utf-8"):
         raise MergeError(f"{side} ({path}) already holds a conflict entry from this driver; resolve it first")
     for name, fields in KEY_FIELDS.items():
         if name in OPTIONAL and name not in data:
@@ -201,6 +202,13 @@ def merge_graphs(base: dict, ours: dict, theirs: dict) -> tuple[dict, list[Confl
     for key in dict.fromkeys([*ours, *theirs, *base]):
         if key in KEY_FIELDS:
             present = three_way(key in base, key in ours, key in theirs)  # True/False never conflict
+            kept = [side for side in (ours, theirs) if key in side]
+            if key in base and len(kept) == 1 and kept[0][key] != base[key]:
+                # one side dropped the whole list, the other changed it: delete against edit
+                conflicts.append(Conflict(f"the {key!r} list (one side removed it, the other changed it; this file "
+                                          f"keeps the changed list)", ABSENT, ABSENT, inline=False))
+                out[key] = kept[0][key]
+                continue
             if present:
                 out[key] = merge_list(key, base, ours, theirs, conflicts)
             continue
@@ -242,7 +250,9 @@ def render(data: dict, conflicts: list[Conflict]) -> str:
         done.add(i)
         sides = []
         for label, value in (("ours", c.ours), ("theirs", c.theirs)):
-            sides.append(f"{label}: {c.where}" + (" (deleted)" if value is ABSENT else ""))
+            gone = " (deleted; if you keep this side, drop the comma the entry before it ends with)" if not comma \
+                else " (deleted)"
+            sides.append(f"{label}: {c.where}" + (gone if value is ABSENT else ""))
             sides.append("" if value is ABSENT else entry_text(value, indent, prefix, comma) + "\n")
         return (f"<<<<<<< {sides[0]}\n{sides[1]}=======\n{sides[3]}>>>>>>> {sides[2]}")
 
@@ -258,7 +268,7 @@ def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int
     data, conflicts = merge_graphs(base, ours, theirs)
     text = render(data, conflicts)
     if conflicts:
-        ours_path.write_text(text)
+        ours_path.write_text(text, encoding="utf-8")
         print(f"{name}: {len(conflicts)} conflict(s) the driver will not pick for you:", file=sys.stderr)
         for c in conflicts:
             print(f"  {c.where}", file=sys.stderr)
@@ -266,7 +276,7 @@ def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int
         return 1
     if json.loads(text) != data:
         raise MergeError("internal: the written file does not read back as the merged graph")
-    ours_path.write_text(text)
+    ours_path.write_text(text, encoding="utf-8")
     try:
         MAP.validate(json.loads(text), tracked=False)
     except MAP.GraphError as err:
@@ -279,9 +289,29 @@ def merge(base_path: Path, ours_path: Path, theirs_path: Path, name: str) -> int
 
 
 def keep_page(ours_path: Path, name: str) -> int:
-    print(f"{name}: built from docs/pipeline-map/pipeline_map.json, so this branch's copy is kept; rebuild it after "
-          f"the merge: {REBUILD} (tools/check.sh fails until then)", file=sys.stderr)
+    """Keep ours and exit 0, so a clean graph merge commits on its own: the merge commit carries stale pages, and
+    the rebuild is a commit after it (tools/check.sh and CI fail until it is made)."""
+    print(f"{name}: built from docs/pipeline-map/pipeline_map.json, so this branch's copy is kept; after the merge "
+          f"run {REBUILD} and commit the pages (tools/check.sh fails until then)", file=sys.stderr)
     return 0
+
+
+def line_merge(base: Path, ours: Path, theirs: Path, name: str, why: str) -> int:
+    """The driver could not merge by key: leave git's own line merge in OURS, so the clash shows as conflict
+    markers instead of a clean-looking copy of ours that a git add would commit. Always exits 2."""
+    print(f"merge_pipeline_map: {name}: {why}\nFalling back to git's line merge (conflict markers in the file).",
+          file=sys.stderr)
+    try:
+        done = subprocess.run(["git", "merge-file", "-L", "ours", "-L", "base", "-L", "theirs", str(ours), str(base),
+                               str(theirs)], capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as err:
+        print(f"merge_pipeline_map: git merge-file could not run either ({err}); {name} still holds ours only: "
+              f"merge it by hand", file=sys.stderr)
+        return 2
+    if done.returncode < 0 or done.returncode > 127:
+        print(f"merge_pipeline_map: git merge-file failed ({done.stderr.strip()}); {name} still holds ours only: "
+              f"merge it by hand", file=sys.stderr)
+    return 2
 
 
 def git_config(repo: Path, *args: str) -> subprocess.CompletedProcess:
@@ -337,7 +367,14 @@ def main(argv: list[str] | None = None) -> int:
         missing = [str(p) for p in (base, ours, theirs) if not p.is_file()]
         if missing:
             raise MergeError(f"no such file: {', '.join(missing)}")
-        return keep_page(ours, name) if args.page else merge(base, ours, theirs, name)
+        if args.page:
+            return keep_page(ours, name)
+        try:
+            return merge(base, ours, theirs, name)
+        except MergeError as err:
+            return line_merge(base, ours, theirs, name, str(err))
+        except Exception as err:  # a bug here must still leave a visible conflict, not ours alone
+            return line_merge(base, ours, theirs, name, f"internal error: {type(err).__name__}: {err}")
     except MergeError as err:
         print(f"merge_pipeline_map: {err}", file=sys.stderr)
         return 2

@@ -83,7 +83,7 @@ def tracked_paths() -> frozenset[str]:
 def read(path: Path) -> dict:
     """The graph file as data, with its three lists; not yet checked further (validate does that)."""
     try:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
     except OSError as err:
         raise GraphError(f"cannot read the graph: {err.strerror}") from None
     except json.JSONDecodeError as err:
