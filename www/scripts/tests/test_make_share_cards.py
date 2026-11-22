@@ -1,6 +1,7 @@
 """The drawn share thumbnails: every recipe has a card entry, and the pure drawing helpers hold."""
 import sys
 import unittest
+from unittest import mock
 from pathlib import Path
 
 SCRIPTS = Path(__file__).resolve().parents[1]
@@ -66,3 +67,32 @@ class Drawing(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExamRunTitleTest(unittest.TestCase):
+    def test_shot_passes_extra_flags_to_chrome(self):
+        with mock.patch.object(gen, "_chrome", return_value="chrome"), \
+                mock.patch.object(gen.subprocess, "run") as run, \
+                mock.patch.object(gen, "_tmp", Path("/tmp")), \
+                mock.patch("PIL.Image.open"):
+            gen.shot("file:///x.html", flags=("--force-prefers-reduced-motion",))
+        cmd = run.call_args.args[0]
+        self.assertIn("--force-prefers-reduced-motion", cmd)
+        self.assertEqual(cmd[-1], "file:///x.html")
+
+    def test_title_capture_fills_the_frame_with_the_canvas_and_stills_the_train(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(gen, "_tmp", Path(tmp)), \
+                mock.patch.object(gen, "shot", return_value="im") as shot, \
+                mock.patch.object(gen, "card", side_effect=lambda im: im):
+            self.assertEqual(gen.link_exam_run_title(), "im")
+            html = (Path(tmp) / "exam-run-title.html").read_text(encoding="utf-8")
+        self.assertIn('<base href="', html)
+        self.assertIn(f"#xwTitleCv{{position:fixed!important;left:0!important;top:0!important;width:{gen.W}px", html)
+        self.assertEqual(shot.call_args.kwargs["flags"], ("--force-prefers-reduced-motion",))
+
+    def test_title_capture_stops_when_the_head_tag_changes(self):
+        with mock.patch.object(gen.Path, "read_text", return_value="<html><head lang=en></head></html>"):
+            with self.assertRaises(SystemExit):
+                gen.link_exam_run_title()

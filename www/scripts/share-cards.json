@@ -396,6 +396,11 @@
     }
   },
   "links": {
+    "exam/run.html#xw": {
+      "image": "assets/share/link-exam-run-title.jpg",
+      "alt": "The Extra East title screen in pixel art: Kestrel Valley Railroad, Extra East, Ashby to Ironton, 46 miles, with the steam freight and its red caboose on the line below the tan hills.",
+      "from": "make_share_cards.py link-exam-run-title (the title canvas on exam/run.html)"
+    },
     "build/index.html#staging": {
       "image": "assets/share/link-build-staging.jpg",
       "alt": "A camera-car view along the staging level tracks with a train of passenger cars beside the backdrop.",

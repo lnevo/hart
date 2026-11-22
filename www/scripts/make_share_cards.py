@@ -85,15 +85,15 @@ def _chrome() -> str:
     raise SystemExit("Google Chrome not found")
 
 
-def shot(url: str, size: tuple[int, int] = (W, H), scale: int = 2):
-    """A headless Chrome screenshot of URL as a Pillow image, `scale` device pixels per CSS pixel."""
+def shot(url: str, size: tuple[int, int] = (W, H), scale: int = 2, flags: tuple[str, ...] = ()):
+    """A headless Chrome screenshot of URL as a Pillow image, `scale` device pixels per CSS pixel; `flags` go to Chrome."""
     from PIL import Image
 
-    out = _tmp / f"shot-{abs(hash((url, size, scale)))}.png"
+    out = _tmp / f"shot-{abs(hash((url, size, scale, flags)))}.png"
     subprocess.run(
         [_chrome(), "--headless=new", "--disable-gpu", "--hide-scrollbars", "--allow-file-access-from-files",
          f"--force-device-scale-factor={scale}", f"--window-size={size[0]},{size[1]}",
-         "--virtual-time-budget=8000", f"--screenshot={out}", url],
+         "--virtual-time-budget=8000", *flags, f"--screenshot={out}", url],
         check=True, capture_output=True,
     )
     return Image.open(out).convert("RGB")
@@ -495,6 +495,21 @@ def link_build_main_level():
     return card(im.crop((0, top, w, top + ch)))
 
 
+def link_exam_run_title():
+    """link-exam-run-title: the game's own pixel-art title screen with the train standing in it, the canvas at the top of Extra East (hub card for exam/run.html#xw)."""
+    page = (PORTAL / "exam/run.html").read_text(encoding="utf-8")
+    if "<head>" not in page or "</head>" not in page:  # without them the style and base are skipped and the wrong picture is written
+        raise SystemExit("link-exam-run-title: exam/run.html has no plain <head> ... </head>; fix the patch below")
+    # the canvas fills the frame, cropped evenly at the sides so the whole title stays in; the rest of the page is hidden under it
+    fill = (f"<style>#xwTitleCv{{position:fixed!important;left:0!important;top:0!important;width:{W}px!important;height:{H}px!important;"
+            "object-fit:cover;object-position:center;z-index:9999}</style>")
+    out = _tmp / "exam-run-title.html"
+    base = f'<base href="{(PORTAL / "exam").as_uri()}/">'  # the copy sits in a temp folder: load run.js and the CSS from www/
+    out.write_text(page.replace("<head>", "<head>" + base, 1).replace("</head>", fill + "</head>", 1), encoding="utf-8")
+    # with reduced motion the game draws the train standing still mid-picture instead of running it across
+    return card(shot(out.as_uri(), flags=("--force-prefers-reduced-motion",)))
+
+
 def build_track_plan():
     """build-track-plan: the three level drawings of the track plan article side by side, the helix ramps dotted in orange."""
     text = (PORTAL / "build/track-plan.html").read_text(encoding="utf-8")
@@ -749,6 +764,7 @@ CARDS = {
     "crew-maps-east-end": station_map_east_end,
     "crew-tt23": tt23,
     "link-build-main-level": link_build_main_level,
+    "link-exam-run-title": link_exam_run_title,
     "build-track-plan": build_track_plan,
     "crew-nvl": crew_nvl,
     "crew-dispatcher": crew_dispatcher,
