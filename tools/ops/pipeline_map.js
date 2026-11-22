@@ -674,7 +674,7 @@ function app() {
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
-      etip.innerHTML = edgeTip(e, id => nodeOf(id).label);
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + '<div class="off">click to open the box it leads to</div>';
       placeTip();
     }
     updateFar();
@@ -1192,6 +1192,9 @@ function app() {
     clearTimeout(pending);
     if (!g && svg.classList.contains("lhover"))  // a grown card lets the pointer through to the line: find it by its place
       g = [...magnified].map(id => nodeEl[id]).find(c => { const q = c.getBoundingClientRect(); return e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom; });
+    // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
+    const hit = !g && e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
+    if (hit && nodeEl[hit.to]) { pick(hit.to, "pan"); return; }
     if (!g) { clearFocus(true); return; }
     // a trimmed redraw moves the boxes, so wait out a double-click before doing it
     if (view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(g.dataset.id), 300); }

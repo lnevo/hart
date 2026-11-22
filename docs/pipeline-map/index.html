@@ -173,7 +173,7 @@ svg.focus.hovering .node.hn{opacity:1}
 <details id="legend" class="panel"><summary><b>Legend and help</b></summary><b>Kind</b> (box colour)<div><span class="sw" style="background:#dbeafe;border-color:#1e40af"></span>Structured data</div><div><span class="sw" style="background:#fef3c7;border-color:#92400e"></span>Unstructured source</div><div><span class="sw" style="background:#dcfce7;border-color:#166534"></span>Generator / script</div><div><span class="sw" style="background:#f3e8ff;border-color:#6b21a8"></span>Generated output</div><div><span class="sw" style="background:#e5e7eb;border-color:#374151"></span>External tool / repo</div><div><span class="sw" style="background:#fee2e2;border-color:#991b1b"></span>Host / runtime</div><div><span class="sw" style="background:#fce7f3;border-color:#9d174d"></span>Hand work</div>
 <div style="margin-top:6px"><b>Lane stripe</b> = domain. Dashed box = parked, dotted = retired, dashed line = feeds back
 to an earlier step.</div>
-<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its whole chain, everything that feeds it and everything it feeds, and grow the chain's boxes to a readable size, as many as fit without covering each other; hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
+<div>Scroll or pinch to zoom, drag to pan, F fits, Esc clears. Zoomed out, hover a line to light its whole chain, everything that feeds it and everything it feeds, and grow the chain's boxes to a readable size, as many as fit without covering each other (click the line to open the box it leads to); hover a box to do the same for the boxes it links to. Click a lane's name on the left to zoom to that lane, and click it again to go back. Hold Shift over the map for a magnifier. When zoomed in, the overview in the corner shows the whole drawing with a red box round what is in view; click or drag in it to move. Click a box for what feeds it (amber) and what it feeds
 (blue). Tick <b>highlighted only</b> to leave out everything else and draw that chain on its own.</div>
 <div><b>One file:</b> type or pick it in the File box, find it under <b>Browse ▾</b> by folder (or double-click its box) to draw its whole chain: everything
 that feeds it, back to the sources, and everything it feeds, out to the end products. Boxes off that chain are left
@@ -869,7 +869,7 @@ function app() {
       edgeEls.forEach(el => { if (c.lit({ from: el.dataset.from, to: el.dataset.to })) el.classList.add("he"); });
       edgeEls[i].classList.add("he");
       c.boxes.forEach(v => nodeEl[v] && nodeEl[v].classList.add("hn"));
-      etip.innerHTML = edgeTip(e, id => nodeOf(id).label);
+      etip.innerHTML = edgeTip(e, id => nodeOf(id).label) + '<div class="off">click to open the box it leads to</div>';
       placeTip();
     }
     updateFar();
@@ -1387,6 +1387,9 @@ function app() {
     clearTimeout(pending);
     if (!g && svg.classList.contains("lhover"))  // a grown card lets the pointer through to the line: find it by its place
       g = [...magnified].map(id => nodeEl[id]).find(c => { const q = c.getBoundingClientRect(); return e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom; });
+    // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
+    const hit = !g && e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
+    if (hit && nodeEl[hit.to]) { pick(hit.to, "pan"); return; }
     if (!g) { clearFocus(true); return; }
     // a trimmed redraw moves the boxes, so wait out a double-click before doing it
     if (view.trim) { if (e.detail === 1) pending = setTimeout(() => pick(g.dataset.id), 300); }
