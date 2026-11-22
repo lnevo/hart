@@ -79,6 +79,19 @@ class CheckShTables(unittest.TestCase):
                               env={**base, "HOME": str(home), "HART_CACHE_DIR": str(home / ".cache/hart"), **env},
                               capture_output=True, text=True, timeout=30)
 
+    def test_ci_keys_the_schematic_cache_on_the_plugin_pin_and_warms_it_first(self) -> None:
+        """A run restores a cache solved with its own plugin pin before main's latest, and a run on another pin
+        solves the sheet once (build_panels.sh --check) before check.sh's parallel jobs start."""
+        text = (ROOT / ".github/workflows/check.yml").read_text(encoding="utf-8")
+        self.assertIn("key: schematic-${{ steps.pin.outputs.pin }}-", text)
+        self.assertIn("            schematic-${{ steps.pin.outputs.pin }}-\n            schematic-\n", text)
+        warm = text.index("name: Warm the schematic cache for a new plugin pin")
+        self.assertIn("bash tools/schematic/build_panels.sh --check --full", text[warm:])
+        # only for a new pin whose exact cache missed, never on the docs-only path: no time added to other runs
+        self.assertIn("if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true' "
+                      "&& steps.pin.outputs.changed == 'true'", text[warm:])
+        self.assertLess(warm, text.index("run: ./tools/check.sh"))
+
     def test_check_sh_turns_on_the_builds_schematic_cache(self) -> None:
         """The folder the builds use (publish_draft.CACHE), made private; read from the source, not imported."""
         source = (ROOT / "tools/schematic/publish_draft.py").read_text(encoding="utf-8")

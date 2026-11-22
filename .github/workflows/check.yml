@@ -44,15 +44,31 @@ jobs:
           cache: pip
           cache-dependency-path: ops/hart-ops/requirements-test.txt
       - run: pip install -r ops/hart-ops/requirements-test.txt
+      # The plugin commit this run pins, and whether it differs from the base's (a pull request's merge commit has
+      # the base as its first parent; a push to main compares with the commit before it).
+      - name: Plugin pin
+        id: pin
+        if: steps.kind.outputs.kind != 'docs'
+        run: |
+          set -euo pipefail
+          pin="$(git rev-parse HEAD:external/model-railroad-skills)"
+          base="$(git rev-parse HEAD^1:external/model-railroad-skills 2>/dev/null || echo none)"
+          echo "pin=$pin" >> "$GITHUB_OUTPUT"
+          echo "changed=$([ "$pin" != "$base" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "plugin pinned at $pin (base $base)"
       # The schematic plugin's cache (tools/check.sh sets SCHEMATIC_CACHE to this folder). Each entry in it is keyed
       # on everything its solve reads, so an old one is never used for changed inputs; this key only decides when a
-      # run saves a new copy (the plugin, the builders or their data changed).
+      # run saves a new copy (the plugin, the builders or their data changed). The key starts with the plugin pin, so
+      # a run restores a cache solved with its own plugin first, and main's latest (another pin) only when none is.
       - if: steps.kind.outputs.kind != 'docs'
+        id: schematic-cache
         uses: actions/cache@v4
         with:
           path: .cache/hart/schematic
-          key: schematic-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
-          restore-keys: schematic-
+          key: schematic-${{ steps.pin.outputs.pin }}-${{ hashFiles('external/model-railroad-skills/plugins/schematic-maps/schematic/**', 'tools/schematic/**', 'jmri/layouts/hart/data/**', 'jmri/layouts/hart/output/tables.xml') }}
+          restore-keys: |
+            schematic-${{ steps.pin.outputs.pin }}-
+            schematic-
       # A push run cannot restore a pull request run's cache (GitHub keeps each cache to its own ref), so the push
       # of a merge solved again what the pull request's run had just solved (408 s, then 406 s). The pull request
       # run hands its cache folder on as an artifact (the last step), and the push run adds the entries of the run
@@ -104,6 +120,21 @@ jobs:
           python3 tools/audit/check_public_text.py
           python3 www/scripts/repo_guide_page.py --check
           python3 www/scripts/jmri_additions_page.py --check
+      # A run whose plugin pin differs from its base's (a pull request that bumps the plugin, or main's push of its
+      # merge) and whose exact cache key missed restores a cache solved with another plugin: it misses every entry,
+      # and check.sh's parallel jobs would each solve the sheet cold at once (12-34 min runs). Every other run skips
+      # this step (no added time), and so does the docs-only path.
+      # The panels pipeline in --check mode solves it once, one step after another (the first step solves, the rest
+      # read the cache), so the jobs after it start warm. Its verdict is not this step's: check.sh runs the same checks.
+      - name: Warm the schematic cache for a new plugin pin
+        if: steps.kind.outputs.kind != 'docs' && steps.schematic-cache.outputs.cache-hit != 'true' && steps.pin.outputs.changed == 'true'
+        env:
+          SCHEMATIC_REQUIRED: "1"
+        run: |
+          start=$SECONDS
+          bash tools/schematic/build_panels.sh --check --full > /tmp/warm.log 2>&1 || echo "panels --check reported stale or failed steps; check.sh reports them"
+          grep -E '^== |: (ok|FAILED)' /tmp/warm.log || true
+          echo "cache warmed in $((SECONDS - start)) s: $(find .cache/hart/schematic -name '*.pickle' | wc -l) entries"
       - if: steps.kind.outputs.kind != 'docs'
         run: ./tools/check.sh
         env:
