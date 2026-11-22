@@ -102,12 +102,12 @@ class GraphChecksTest(unittest.TestCase):
 NODE = shutil.which("node")
 
 
-def js_layout(graph: dict) -> dict:
-    """Run tools/ops/pipeline_map.js's layout under node on this graph."""
+def js_layout(graph: dict, aspect: float = 0) -> dict:
+    """Run tools/ops/pipeline_map.js's layout under node on this graph (aspect: the screen's height over width)."""
     script = (
         "const m = require(process.argv[1]); let s = '';"
         "process.stdin.on('data', d => s += d).on('end', () => { const g = JSON.parse(s);"
-        "process.stdout.write(JSON.stringify(m.layout(g.nodes, g.edges, g.domains))); });"
+        f"process.stdout.write(JSON.stringify(m.layout(g.nodes, g.edges, g.domains, {aspect}))); }});"
     )
     out = subprocess.run([NODE, "-e", script, str(MAP.SCRIPT)], input=json.dumps(graph), capture_output=True,
                          text=True, check=True)
@@ -128,6 +128,21 @@ class LayoutTest(unittest.TestCase):
         self.assertLess(x["src"], x["gen"])
         back = [e for e in lay["edges"] if e["back"]]
         self.assertEqual([(e["from"], e["to"]) for e in back], [("out", "gen")])
+
+    def test_lanes_grow_to_fill_a_tall_screen(self) -> None:
+        """layout with an aspect: a short drawing's lanes share the spare height evenly, so the drawing's height over
+        its page width (width + 240) matches the screen; boxes stay inside their lanes; a tall drawing is unchanged."""
+        plain, tall = js_layout(self.graph()), js_layout(self.graph(), 2.0)
+        page_w = tall["width"] + 240  # LEFT + 60 either side of the boxes, as drawSvg sets W
+        self.assertAlmostEqual(tall["height"] / page_w, 2.0, places=6)
+        grow = [t["h"] - p["h"] for p, t in zip(plain["bands"], tall["bands"])]
+        self.assertAlmostEqual(grow[0], grow[1], places=6)
+        self.assertGreater(grow[0], 0)
+        bands = {b["id"]: b for b in tall["bands"]}
+        for n in tall["nodes"]:
+            b = bands[n["domain"]]
+            self.assertTrue(b["y"] <= n["y"] and n["y"] + n["h"] <= b["y"] + b["h"], n["id"])
+        self.assertEqual(js_layout(self.graph(), 0.0001)["height"], plain["height"])
 
     def test_nodes_stay_in_their_lane_without_overlap(self) -> None:
         for graph in (self.graph(), json.loads(MAP.GRAPH.read_text())):

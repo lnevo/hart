@@ -180,7 +180,7 @@ with the selected box, zoom and position; the address bar also keeps the view, w
 "use strict";
 
 const NODE_W = 250, COL_GAP = 150, V_GAP = 14, BAND_PAD = 40, DUMMY_H = 2, DUMMY_GAP = 3;
-const WRAP = 44, TITLE_WRAP = 30, LEFT = 180;
+const WRAP = 44, TITLE_WRAP = 30, LEFT = 180, BAND_RUN = 100000;  // BAND_RUN: how far the lane colours run past the drawing's ends
 
 /* Greedy word wrap; a word longer than the width is cut. */
 function wrap(text, width) {
@@ -227,8 +227,10 @@ function inversions(arr) {
 
 /* nodes: [{id, domain, label, desc, path, status}], edges: [{from, to}], domains: [{id}] in lane order.
    Returns the nodes with x, y, w, h; the edges with pts and back (true when the edge closes a cycle and was drawn
-   turned round); the lanes (bands) with y and h; and the drawing's width and height. */
-function layout(nodes, edges, domains) {
+   turned round); the lanes (bands) with y and h; and the drawing's width and height. aspect (height over width of
+   the screen area the map is fitted to, 0 for none) makes the lanes taller, sharing out the spare height evenly, when
+   the drawing would otherwise leave an empty band under its last lane at Fit. */
+function layout(nodes, edges, domains, aspect = 0) {
   if (!nodes.length) return { nodes: [], edges: [], bands: [], width: NODE_W, height: 200 };
   const byId = new Map(nodes.map(n => [n.id, n]));
   const ids = nodes.map(n => n.id);
@@ -351,6 +353,12 @@ function layout(nodes, edges, domains) {
     bandTop.set(d.id, y);
     y += bandH.get(d.id);
   }
+  const shown = domains.filter(d => bandH.get(d.id)), drawW = nRanks * (NODE_W + COL_GAP) - COL_GAP;
+  const spare = aspect > 0 && shown.length ? (drawW + LEFT + 60) * aspect - y : 0;  // the page's W is drawW + LEFT + 60
+  if (spare > 0) {  // lanes fill the screen's height at Fit: each gets an equal share of the spare height
+    y = 0;
+    for (const d of domains) { bandTop.set(d.id, y); if (bandH.get(d.id)) bandH.set(d.id, bandH.get(d.id) + spare / shown.length); y += bandH.get(d.id); }
+  }
   const totalH = y;
   const ys = new Map();
   for (const layer of layers) {
@@ -402,7 +410,7 @@ function layout(nodes, edges, domains) {
     return { ...edges[i], pts, back: flipped };
   });
   const bands = domains.filter(d => bandH.get(d.id)).map(d => ({ ...d, y: bandTop.get(d.id), h: bandH.get(d.id) }));
-  return { nodes: outNodes, edges: outEdges, bands, columns: nRanks, width: nRanks * (NODE_W + COL_GAP) - COL_GAP, height: totalH };
+  return { nodes: outNodes, edges: outEdges, bands, columns: nRanks, width: drawW, height: totalH };
 }
 
 /* The step headers over the columns in view: column r is r links from a file nothing on the map builds (step 0). px is
@@ -677,8 +685,9 @@ function app() {
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
     for (const b of lay.bands) {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
       const c = esc(b.color);
-      p.push(`<rect x="${-LEFT}" y="${b.y}" width="${W}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
-        `<line x1="${-LEFT}" x2="${W - LEFT}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
+      // run on past both ends, so a drawing narrower than the screen at Fit has its lanes out to the screen's sides
+      p.push(`<rect x="${-LEFT - BAND_RUN}" y="${b.y}" width="${W + 2 * BAND_RUN}" height="${b.h}" fill="${c}" fill-opacity="0.10"/>`,
+        `<line x1="${-LEFT - BAND_RUN}" x2="${W - LEFT + BAND_RUN}" y1="${b.y}" y2="${b.y}" stroke="${c}" stroke-opacity="0.5"/>`);
     }
     p.push('</g><g id="edges">');
     lay.edges.forEach((e, i) => {
@@ -711,7 +720,7 @@ function app() {
   function render(keepView) {
     sub = subset();
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
-    lay = layout(sub.nodes, sub.edges, DATA.domains);
+    lay = layout(sub.nodes, sub.edges, DATA.domains, fitAspect());
     wrapEl.innerHTML = drawSvg(lay);
     svg = document.getElementById("map");
     vb = svg.viewBox.baseVal;
@@ -895,6 +904,11 @@ function app() {
     const fw = fitView(W, H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight).width;
     return Number.isFinite(fw) && fw > 0 ? Math.max(fw, 200) : Infinity;
   }
+  /* The free area's height over its width, for layout's lanes; 0 while the map has no size yet (hidden). */
+  function fitAspect() {
+    const a = freeArea(), w = a.right, h = a.bottom - a.top;
+    return w > 0 && h > 0 ? h / w : 0;
+  }
   function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing sideways (clampView)
     const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, LEFT, free, maxWidth(free));
     vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height; updateNav();
@@ -948,7 +962,7 @@ function app() {
   });
   window.addEventListener("pointerup", () => { drag = null; wrapEl.classList.remove("drag"); });
   window.addEventListener("resize", () => {  // a fitted view fits again (the panel may have moved); others keep their middle
-    if (fitted) { fit(); return; }
+    if (fitted) { render(true); fit(); return; }  // laid out again, so the lanes fill the new shape
     const r = wrapEl.getBoundingClientRect(), cy = vb.y + vb.height / 2, h = vb.width * r.height / r.width;
     setVB(vb.x, cy - h / 2, vb.width, h);
     if (selected && visible.has(selected)) centreOn(selected, false);
