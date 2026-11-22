@@ -75,7 +75,6 @@ In order; the first two are the main track (owner, 2026-11-21).
 
 - **Time the next layout edit (owner, 2026-11-21):** the next real change (a block split, a Store, a mast or wiring change) is timed from the first edit to the deploy, with `make mqtt-watch` (the `_discard` watcher) running through it; the steps and what to record are in [`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#next-measure-a-real-edit).
 
-- **Source-data exceptions (owner, 2026-11-20):** rows 1 to 9 are done or kept on purpose; row 10's live drawing workarounds wait for the owner's discussion ([`projects/source-data-exceptions-handoff.md`](projects/source-data-exceptions-handoff.md)).
 
 ## In progress
 
