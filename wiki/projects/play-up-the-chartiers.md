@@ -28,6 +28,19 @@ Status: active
 | Ore transfer | 1980s | PC&Y (half P&LE, half Conrail), Scully Yard to the Y Interchange on Neville Island | Signals and yard limits; ties the run to the island game |
 | Warrant run | 1997 | Pittsburgh Industrial Railroad (RailTex; POHC only from December 2000) over the Chartiers track and the PC&Y, meeting Conrail at Duff Junction and CSX at POV Junction | GCOR track warrants, dark territory, yard limits |
 
+## Focus of each run (owner, 2026-11-22)
+
+Coverage is judged across the whole game: the island shifts and all four Chartiers runs together. Runs may overlap; each has a focus and stays a working day, not a quiz.
+
+| Run | Focus | Also comes up |
+|---|---|---|
+| 1949 coal extra | Superiority and movement (an extra against regular trains, S-87 margins, Rule 86, double-track D-rules); semaphores at the interlockings | One meet order; yard limits at Carnegie |
+| 1949 passenger train | Train orders (forms, clearance, the order board, the B&O meet at Washington); the first-class schedule; protection when stopped (Rule 99) | Whistles, semaphores |
+| 1980s PC&Y ore transfer | Signals (block and interlocking aspects at the P&LE crossing and Neville); yard limits | Definitions, GCOR crew rules |
+| 1997 PIR warrant run | Track warrants, dark territory | Yard limits, GCOR |
+
+A run asks about 15 to 20 questions, near the island shifts' 7 to 13. The coal extra ties up at Arden once the Manifold loads are out.
+
 ## Facts (step 1, 2026-11-22)
 
 Sources: `www/library/chartiers-valley-railroads.html` and its sources, [Wikipedia: Chartiers Branch](https://en.wikipedia.org/wiki/Chartiers_Branch), [Metzger, Pennsylvania Trolley Museum](https://pa-trolley.org/a-short-history-of-the-chartiers-valley-rr-line/), the 1996 STB notice and the 1998 RRB determination for PIR. The media archive holds nothing on the Chartiers.

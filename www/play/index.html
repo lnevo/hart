@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Extra East: HART Railroad — HART</title>
-  <meta name="description" content="Work a shift on the Pittsburgh &amp; Ohio Valley, the railroad that switched the east end of Neville Island: the ore job, the furnace job, the second trick, the midnight job, the relief job, an extra, or the yardmaster's desk at South Yard. Jobs and moves from Mark Connolly's P&amp;OV blog; rules from the C&amp;E study deck.">
+  <meta name="description" content="Work a shift on the Pittsburgh &amp; Ohio Valley, the railroad that switched the east end of Neville Island: the ore job, the furnace job, the second trick, the midnight job, the relief job, an extra, or the yardmaster's desk at South Yard; or work a freight extra up the Chartiers Branch in 1949. Jobs and moves from Mark Connolly's P&amp;OV blog; rules from the C&amp;E study deck.">
   <link rel="stylesheet" href="../css/ops.css">
   <link rel="stylesheet" href="play.css">
 </head>
@@ -20,12 +20,14 @@
         Each decision tests a rule from the <a href="../exam/index.html">C&amp;E study deck</a>,
         set in the P&amp;OV's own work, and the rule is shown after every answer. The jobs, crews, tracks and moves come from Mark Connolly's blog of his years on the P&amp;OV,
         1977 to 1991, and the game fills in the rest of each shift.
+        Up the Chartiers is an extra on the Pennsylvania Railroad's Chartiers Branch in 1949, run by the time-table and train orders.
+        Its line, stations and junctions come from the <a href="../library/chartiers-valley-railroads.html">Railroads of the Chartiers Valley</a> page and the sources listed there, and the game fills in the rest.
       </p>
     </div>
 
   <div class="xw" id="xw">
     <div id="xwStart">
-      <div class="xw-title" role="img" aria-label="Title screen in pixel art: Extra East, HART Railroad, Neville Island. At dusk a green switcher shoves ore hoppers along the river in front of the coke ovens and a glowing blast furnace.">
+      <div class="xw-title" role="img" aria-label="Title screen in pixel art: Extra East, HART Railroad, Neville Island, Up the Chartiers. At dusk a green switcher shoves ore hoppers along the river in front of the coke ovens and a glowing blast furnace.">
         <canvas id="xwTitleCv" width="256" height="114"></canvas>
       </div>
       <div class="xw-cover xw-paper" id="xwCover" hidden></div>
@@ -76,6 +78,17 @@
         </div>
       </div>
       </section>
+      <section class="xw-group" id="gChartiers" aria-labelledby="gChartiersH">
+      <h2 class="xw-group-h" id="gChartiersH">Up the Chartiers<small>Pennsylvania Railroad · 1949</small></h2>
+      <div class="xw-start">
+        <div class="card xw-paper wide">
+          <p class="kind">Freight extra · a weekday in 1949 · Carnegie to Arden</p>
+          <h3 id="rcoal">Extra 4619 South, the coal extra</h3>
+          <p>Empties up the double track to Houston for the Westland branch, then the single track to Arden for the Manifold branch. Regular passenger trains and another extra share the single track, and the time-table, a meet order and the semaphores at the interlockings decide who goes first.</p>
+          <div class="xw-go"><button class="xw-btn primary" data-run="coal" aria-describedby="rcoal">Work this run<small>a new draw each time</small></button></div>
+        </div>
+      </div>
+      </section>
       <div class="xw-how xw-paper">
         <b>How a shift works</b>
         <ul>
@@ -84,6 +97,7 @@
           <li>At the end the shift is scored on time and marks, and your misses are listed with links to the study deck.</li>
           <li>Each shift is a new draw: the work, the events and the order of the answers change from one shift to the next.</li>
           <li>The jobs, their hours, the engines, tracks and moves come from Mark Connolly's <a href="https://www.tumblr.com/pittsburghohiovalleyrailroad" rel="noopener">P&amp;OV blog</a>, collected on the <a href="../library/pittsburgh-ohio-valley-railway.html">Pittsburgh &amp; Ohio Valley</a> page. The rules are GCOR's.</li>
+          <li>The Chartiers run is worked the same way: the map shows the line, the sheet on the right is the time-table and the orders you hold, and at each siding you choose how far to run or whether to wait for a train. A wrong choice can cost a collision, which ends the run.</li>
           <li>Every question, with its answer and rule, is in the <a href="answers.html">answer key</a>.</li>
         </ul>
         <div class="xw-best" id="xwBest"></div>
@@ -104,6 +118,7 @@
   <footer class="site-footer" data-ops-footer></footer>
   <script src="../js/nav.js" defer></script>
   <script src="runs.js" defer></script>
+  <script src="road.js" defer></script>
   <script src="play.js" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", function () { HARTOps.mountChrome("play").catch(function (err) { console.error(err); }); });
