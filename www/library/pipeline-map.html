@@ -507,6 +507,16 @@ function fitView(W, H, left, free, sw, sh) {
   return { x: -left - ox * s, y: -oy * s, width: sw * s, height: sh * s };  // the viewBox's own field names
 }
 
+/* The view v kept on the drawing sideways: no wider than maxW (the Fit width), and placed so the drawing (x from
+   -left, width W) does not leave the free area at either side. A drawing wider than the free area covers it edge to
+   edge; a narrower one stays wholly inside it. The height follows the width; y is left as it is. */
+function clampView(v, W, left, free, maxW) {
+  const width = Math.min(v.width, maxW), height = v.height * width / v.width;
+  const a = -left, b = W - left - free.right * width;  // the view's x with the drawing's left, or right, edge on the area's
+  const x = Math.min(Math.max(v.x, Math.min(a, b)), Math.max(a, b));
+  return { x, y: v.y, width, height };
+}
+
 /* The graph with the boxes hide(id) is true for taken out and bridged over: each link into a hidden box is joined to
    every shown box beyond it, through any run of hidden boxes, and the new link keeps the hidden boxes in via. So
    with the scripts hidden, a data file links straight to what it ends up in. */
@@ -577,7 +587,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -904,7 +914,12 @@ function app() {
   nav.addEventListener("wheel", e => e.preventDefault(), { passive: false });
 
   /* ---- pan and zoom */
-  function setVB(x, y, w, h) { vb.x = x; vb.y = y; vb.width = w; vb.height = h; updateNav(); }
+  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing sideways (clampView)
+    const fw = fitView(W, H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight).width;
+    const c = Number.isFinite(fw) && fw > 0 ? clampView({ x, y, width: w, height: h }, W, LEFT, freeShare(), Math.max(fw, 200))
+      : { x, y, width: w, height: h };  // a map with no size yet (hidden) has nothing to clamp to
+    vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height; updateNav();
+  }
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
      on a phone, above it) while that is open. */
   function freeArea() {
@@ -925,7 +940,7 @@ function app() {
   function zoomAt(f, cx, cy) {
     const r = wrapEl.getBoundingClientRect();
     const px = vb.x + (cx - r.left) / r.width * vb.width, py = vb.y + (cy - r.top) / r.height * vb.height;
-    const nw = Math.min(Math.max(vb.width * f, 200), Math.max(W, 2000) * 4), nh = nw * vb.height / vb.width;
+    const nw = Math.max(vb.width * f, 200), nh = nw * vb.height / vb.width;  // setVB caps zooming out at Fit
     setVB(px - (px - vb.x) * nw / vb.width, py - (py - vb.y) * nh / vb.height, nw, nh);
   }
   function centreOn(id, zoom) {  // the box in the middle of the free area, not under the toolbar or the info panel
@@ -939,7 +954,7 @@ function app() {
     e.preventDefault();
     const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? wrapEl.clientHeight : 1;
     const dx = e.deltaX * unit, dy = e.deltaY * unit;
-    if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { vb.x += dx * vb.width / wrapEl.getBoundingClientRect().width; updateNav(); return; }
+    if (!e.ctrlKey && Math.abs(dx) > Math.abs(dy)) { setVB(vb.x + dx * vb.width / wrapEl.getBoundingClientRect().width, vb.y, vb.width, vb.height); return; }
     zoomAt(Math.exp((e.ctrlKey ? 0.012 : 0.0025) * dy), e.clientX, e.clientY);
   }, { passive: false });
   let drag = null, moved = false;
@@ -950,8 +965,7 @@ function app() {
     if (!drag) return;
     const r = wrapEl.getBoundingClientRect(), dx = e.clientX - drag.x, dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 3) moved = true;
-    vb.x = drag.vx - dx * vb.width / r.width; vb.y = drag.vy - dy * vb.height / r.height;
-    updateNav();
+    setVB(drag.vx - dx * vb.width / r.width, drag.vy - dy * vb.height / r.height, vb.width, vb.height);
   });
   window.addEventListener("pointerup", () => { drag = null; wrapEl.classList.remove("drag"); });
   window.addEventListener("resize", () => {  // a fitted view fits again (the panel may have moved); others keep their middle

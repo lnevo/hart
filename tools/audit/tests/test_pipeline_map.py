@@ -257,6 +257,29 @@ class LayoutTest(unittest.TestCase):
         self.assertTrue(fits)
         self.assertFalse(covered)
 
+    def test_view_stays_on_the_drawing_sideways(self) -> None:
+        """clampView: zooming out stops at the Fit width, and a pan cannot take either side edge of the drawing past
+        the free area's edge, whether the drawing is wider than the area or narrower."""
+        free = {"top": 0.1, "right": 0.5, "bottom": 1}
+        call = "a.views.map(v => m.clampView(v, 1000, 100, a.free, 2000))"
+        views = [{"x": 5000, "y": 7, "width": 4000, "height": 2000},  # too far out and off to the right
+                 {"x": -900, "y": 7, "width": 400, "height": 200},    # zoomed in, panned past the left edge
+                 {"x": 5000, "y": 7, "width": 400, "height": 200},    # zoomed in, panned past the right edge
+                 {"x": 300, "y": 7, "width": 400, "height": 200}]     # inside: unchanged
+        out = self.run_js(call, {"free": free, "views": views})
+        self.assertEqual(out[0]["width"], 2000)
+        self.assertEqual(out[0]["height"], 1000)
+        self.assertEqual(out[0]["y"], 7)
+        self.assertEqual(out[0]["x"], -100)  # area 1000 wide, drawing fills it from its left edge
+        self.assertEqual(out[1]["x"], -100)  # drawing's left edge on the screen's left edge
+        self.assertEqual(out[2]["x"], 1000 - 100 - 200)  # drawing's right edge on the area's right edge
+        self.assertEqual(out[3], views[3])
+        narrow = self.run_js("[m.clampView(a.views[0], 600, 100, a.free, 2000), m.clampView(a.views[1], 600, 100, a.free, 2000)]",
+                             {"free": free, "views": [{"x": -900, "y": 0, "width": 2000, "height": 1000},
+                                                      {"x": 900, "y": 0, "width": 2000, "height": 1000}]})
+        self.assertEqual(narrow[0]["x"], 600 - 100 - 1000)  # a 600-wide drawing in a 1000-wide area: right edge on its right
+        self.assertEqual(narrow[1]["x"], -100)  # left edge on its left
+
     def test_empty_subset(self) -> None:
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])
 
