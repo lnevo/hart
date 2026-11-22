@@ -59,6 +59,7 @@ From 404 `general-purpose` launches between 2026-10-31 and 2026-11-21: about 114
 - Add both to the `AGENTS.md` subagent table and update `subagent_guard.py` if it lists agents.
 - Built 2026-11-22 (`.claude/agents/schematic-builder.md`, `finding-verifier.md`, table rows added; the guard lists no agents). Not done: the re-measure below is pending.
 - **Re-measure on 2026-12-05** with the same transcript count. Target: `general-purpose` under 50% of launches.
+- **How to count** (owner, 2026-11-22: run it when the owner asks; every launch counts; compare with 404 and 68%): `python3 tools/ops/agent_launch_count.py --since 2026-11-22 --until 2026-12-05`. It prints two counts: the Agent calls sessions chose, which rebuilds the baseline's method (it gives 426 general-purpose of 620, 68.7%, for 2026-10-31 to 2026-11-21, against the recorded 404 and 68%), and every launch, which adds skill forks such as `/code-review` and their reviewers (911 and 82.4% for the same window). Only the first compares with 404 and 68%.
 
 Size: S.
 
