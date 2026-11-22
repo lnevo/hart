@@ -22,6 +22,10 @@ class StationComments(unittest.TestCase):
         """The stations are parked with the stations topic (owner, 2026-11-22): the master's `stop` is empty."""
         self.assertEqual(apc.station_comments(), {})
 
+    def test_the_detector_reads_first_as_the_tables_build_writes_it(self):
+        got = apc.station_comments([row("Track K-1", "Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop")])
+        self.assertEqual(got, {"Track K-1": "Block 1-1 / M2S100; Princess balloon, Track K-1; stop"})
+
     def test_only_staging_block_rows_marked_stop_count(self):
         got = apc.station_comments([
             row("Track A", "a; stop"),

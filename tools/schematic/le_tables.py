@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from hartlib import devices, paths, railroad, tables  # noqa: E402
 from hartlib import level_devices  # noqa: E402  the main and upper virtual names and the sensors-clear LogixNG
 from hartlib import level_masts as level_masts_lib  # noqa: E402  masts.csv and its virtual names
+from hartlib.tables_build import with_direction  # noqa: E402  a mast's comment names the way it faces
 from le_common import (  # noqa: E402
     BLOCK_SYS, BuildError, DEVICE_MAP, LAYOUT_BLOCK_FIRST, main_upper_device_map, TURNOUT_SYS,
 )
@@ -589,7 +590,8 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
             el = ET.Element("virtualsignalmast", {"class": VIRTUAL_MAST_CLASS})
             ET.SubElement(el, "systemName").text = r["system_name"]
             ET.SubElement(el, "userName").text = r["mast"]
-            ET.SubElement(el, "comment").text = " | ".join(x for x in (r["cp"], "buffer stop") if x)
+            ET.SubElement(el, "comment").text = with_direction(" | ".join(x for x in (r["cp"], "buffer stop") if x),
+                                                               r["dir"])
             ET.SubElement(el, "unlit", {"allowed": "yes"})
             masts.append(el)
             continue
@@ -604,7 +606,8 @@ def add_level_signals(root: ET.Element, rows: list[dict]) -> None:
         el = ET.Element("signalmast", {"class": MAST_CLASS})
         ET.SubElement(el, "systemName").text = r["system_name"]
         ET.SubElement(el, "userName").text = r["mast"]
-        ET.SubElement(el, "comment").text = f"{where} | {signal_note(r['device_system_name'])}"
+        ET.SubElement(el, "comment").text = with_direction(f"{where} | {signal_note(r['device_system_name'])}",
+                                                           r["dir"])
         ET.SubElement(el, "unlit", {"allowed": "no"})
         masts.append(el)
     new = [x for e in heads + masts for x in (e.findtext("systemName"), e.findtext("userName"))]
