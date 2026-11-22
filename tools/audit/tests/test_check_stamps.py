@@ -214,7 +214,9 @@ class AuditTest(unittest.TestCase):
                         self.assertEqual(cs.uncovered(name, files, dirs), [])
                         continue
                     kept = {k for k in (cs.traced.keep(str(REPO / f), str(REPO), skip) for f in files) if k}
-                    kept_dirs = {k for k in (cs.traced.keep(str(REPO / d), str(REPO), skip) for d in dirs) if k}
+                    # the two hooks' own folders (sys.path entries the audit run adds) are no input
+                    kept_dirs = {k for k in (cs.traced.keep(str(REPO / d), str(REPO), skip) for d in dirs) if k} \
+                        - {"tools/audit/stamp_audit", "tools/audit/trace_hook"}
                     st = stamp["state"]
                     self.assertEqual(sorted(kept - set(st["files"])), [])
                     self.assertEqual(sorted(kept_dirs - set(st["dirs"]) - set(st["files"])), [])
