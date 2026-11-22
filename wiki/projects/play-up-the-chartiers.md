@@ -2,7 +2,7 @@
 
 Status: active
 
-- **Owner:** lnevo. Plan agreed 2026-11-22; steps 1 and 2 done 2026-11-22, step 3 (engine port and the coal extra) next.
+- **Owner:** lnevo. Plan agreed 2026-11-22; steps 1 to 3 done 2026-11-22 (the coal extra is live); step 4, the passenger train No 307 South, in progress.
 - **Goal:** one game at [`/play/`](https://www.hartrailroad.com/play/) that covers the whole C&E study deck. The Neville Island shifts cover the yard rules; new road runs "Up the Chartiers" cover what they cannot: the timetable, superiority, train orders, track warrants, signals and semaphores. One run carries passengers.
 - **Today:** `www/play/` holds seven P&OV shifts (`runs.js`), the engine (`play.js`), the answer key (`answers.html`, built by `www/scripts/build_play_answers.js`) and the share card (`make_share_cards.py play-neville`). Extra East on the invented Kestrel Valley stays at `exam/run.html`, unchanged.
 
@@ -39,7 +39,7 @@ Coverage is judged across the whole game: the island shifts and all four Chartie
 | 1980s PC&Y ore transfer | Signals (block and interlocking aspects at the P&LE crossing and Neville); yard limits | Definitions, GCOR crew rules |
 | 1997 PIR warrant run | Track warrants, dark territory | Yard limits, GCOR |
 
-A run asks about 15 to 20 questions, near the island shifts' 7 to 13. The coal extra ties up at Arden once the Manifold loads are out.
+A run asks about 15 to 20 questions, near the island shifts' 7 to 13; the passenger run, the train-order run, may ask up to 23. The coal extra ties up at Arden once the Manifold loads are out. Both 1949 runs share one fixed time-table, as an employee time-table would; the draws vary the orders, late trains and events, not the schedule.
 
 ## Facts (step 1, 2026-11-22)
 
@@ -88,7 +88,7 @@ Everything marked not found is filled in by the game without comment (rule 2).
 
 1. ~~Confirm the facts from the library and the archive.~~ Done 2026-11-22 (Facts above).
 2. ~~Reorganize the start screen into the groups and the coverage strip.~~ Done 2026-11-22: the rename, the On the island group, a deck-section strip and a Tests line on each card, from a `covers` list on each run (checked by `test_play_answers.py`). The Up the Chartiers group goes in with its first run, so the page never shows an empty group.
-3. Port the engine pieces and the Chartiers line data; build the 1949 coal extra first.
+3. ~~Port the engine pieces and the Chartiers line data; build the 1949 coal extra.~~ Done 2026-11-22 (PR #993): Extra 4619 South, Carnegie to Arden, about 15 questions, focused on superiority and semaphores.
 4. Add the passenger run, then the 1980s signaled run, then the 1997 warrant run, one PR each.
 5. Extend the answer key and its test; add a share card if the title screen changes.
 6. Update `wiki/STATUS.md` and close this page.
