@@ -202,6 +202,27 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual((far["every"], [c["r"] for c in far["cols"]]), (20, [0, 20, 40, 60]))
         self.assertEqual(far["cols"][1]["x"], 20 * 400 + 125)  # the middle of the column's boxes
 
+    def test_compact_geometry_is_narrower_and_the_headers_follow_it(self) -> None:
+        """layout with NARROW (compact boxes): the same columns at 250 units a column instead of 400, and stepTicks
+        given the same geometry puts each header over the middle of its column's boxes."""
+        g = self.graph()
+        wide = self.run_js("m.layout(a.nodes, a.edges, a.domains, 0, m.WIDE)", g)
+        narrow = self.run_js("m.layout(a.nodes, a.edges, a.domains, 0, m.NARROW)", g)
+        self.assertEqual(narrow["columns"], wide["columns"])
+        self.assertEqual(narrow["width"], wide["columns"] * 250 - 80)
+        self.assertTrue(all(n["w"] == 170 and n["x"] % 250 == 0 for n in narrow["nodes"]))
+        ticks = self.run_js("m.stepTicks(10, 0, 2500, 1, m.NARROW)", None)
+        self.assertEqual(ticks["cols"][1]["x"], 250 + 85)
+
+    def test_name_tags_never_overlap(self) -> None:
+        """placeTags: in priority order, a tag that overlaps one already placed or a blocked area is left out."""
+        boxes = [{"x0": 0, "y0": 0, "x1": 100, "y1": 20},     # placed first
+                 {"x0": 50, "y0": 10, "x1": 150, "y1": 30},   # overlaps the first
+                 {"x0": 100, "y0": 0, "x1": 200, "y1": 20},   # touches the first only at its edge
+                 {"x0": 300, "y0": 0, "x1": 400, "y1": 20}]   # under the blocked area
+        got = self.run_js("m.placeTags(a, [{x0: 350, y0: 5, x1: 500, y1: 15}])", boxes)
+        self.assertEqual(got, [0, 2])
+
     def test_step_zero_is_raw_data_only_when_the_whole_graph_feeds_none_of_it(self) -> None:
         """firstColumnIsRaw: a filtered view whose first column a hidden box builds, or a folder box, is plain step 0."""
         cases = {
