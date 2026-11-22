@@ -299,7 +299,13 @@ const spreadGeo = (geo, k, cap = BOX_GROW) => {
   return { ...geo, nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), scale: nodeW / geo.nodeW };
 };
 /* A box's place and size on the map: moved to x, y and drawn scale times its own size (spreadGeo). */
-const boxTransform = (n, scale = 1) => `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})${scale !== 1 ? ` scale(${scale.toFixed(4)})` : ""}`;
+const boxTransform = (n, scale = 1, px = false) => {  // px: the CSS form, with units (a style transform animates)
+  const u = px ? "px" : "";
+  return `translate(${n.x.toFixed(1)}${u},${n.y.toFixed(1)}${u})${scale !== 1 || px ? ` scale(${scale.toFixed(4)})` : ""}`;
+};
+/* Where a box glides from after a Steps layout: its screen rect b ({left, top, width}) before, in drawing units through
+   the map's screen matrix m ({a, d, e, f}), and the scale its own width own fills that rect at. */
+const settleFrom = (b, m, own) => ({ x: (b.left - m.e) / m.a, y: (b.top - m.f) / m.d, k: b.width / m.a / own });
 
 /* Greedy word wrap; a word longer than the width is cut. */
 function wrap(text, width) {
@@ -1009,7 +1015,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { boxTransform, BOX_GROW, spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { settleFrom, boxTransform, BOX_GROW, spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1143,7 +1149,7 @@ function app() {
     if (g && n) { g.setAttribute("transform", boxTransform(n, lay.geo.scale || 1)); g.classList.remove("mag"); }
   }
   function placeFar() {
-    if (!svg) return;
+    if (!svg || svg.classList.contains("settling")) return;  // after a Steps glide (settle calls it again at the end)
     const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a < FAR_PX;
     svg.classList.toggle("far", far);
     const want = [];
@@ -1706,7 +1712,10 @@ function app() {
   }
   function setSteps(n, quiet) {  // n steps across, or all of them (0)
     const cols = lay ? Math.max(lay.columns || 1, 1) : 0, want = !cols || n >= cols ? 0 : Math.max(Math.min(3, cols), Math.round(n));
-    if (want === view.steps) { syncSpread(); return; }
+    if (want === view.steps) {  // back where it began: put a preview's stretch back
+      if (svg && svg.classList.contains("previewing")) render(true);
+      syncSpread(); return;
+    }
     // the drawing x at the middle of the free area (left of the info panel), as a share of the boxes' width
     const half = freeShare().right / 2, mid = lay && lay.width > 0 ? (vb.x + half * vb.width) / lay.width : 0;
     const before = boxesOnScreen();  // where the preview left the boxes, so they glide to their places (settle)
@@ -1726,15 +1735,14 @@ function app() {
   function boxesOnScreen() {
     const out = new Map();
     if (!svg) return out;
+    const r = wrapEl.getBoundingClientRect(), a = freeArea();  // the part of the map the reader sees
     for (const id in nodeEl) {
       const q = nodeEl[id].querySelector(".box").getBoundingClientRect();
-      if (q.width > 0 && q.right > 0 && q.left < innerWidth && q.bottom > 0 && q.top < innerHeight) out.set(id, q);
+      if (q.width > 0 && q.right > r.left && q.left < r.left + a.right && q.bottom > r.top + a.top && q.top < r.top + a.bottom) out.set(id, q);
     }
     return out;
   }
   let settleEnd = 0;
-  // the CSS form of boxTransform (an SVG transform attribute does not animate; the style property does)
-  const cssBox = (x, y, k) => `translate(${x.toFixed(1)}px,${y.toFixed(1)}px) scale(${k.toFixed(4)})`;
   function settle(before) {
     const m = svg && svg.getScreenCTM();
     if (!m || !before.size || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -1742,10 +1750,10 @@ function app() {
     lay.nodes.forEach(n => {
       const b = before.get(n.id), g = nodeEl[n.id];
       if (!b || !g) return;
-      const k = (b.width / m.a) / (n.w / sc);  // its own size times k filled the old rect
+      const f = settleFrom(b, m, n.w / sc);  // its own size times f.k filled the old rect
       g.style.transition = "none";
-      g.style.transform = cssBox((b.left - m.e) / m.a, (b.top - m.f) / m.d, k);
-      moved.push([g, cssBox(n.x, n.y, sc)]);
+      g.style.transform = boxTransform(f, f.k, true);
+      moved.push([g, boxTransform(n, sc, true)]);
     });
     if (!moved.length) return;
     svg.classList.add("settling");
@@ -1755,11 +1763,16 @@ function app() {
     settleEnd = setTimeout(() => {  // the transform attribute, already the place, takes over again
       moved.forEach(([g]) => { g.style.transform = ""; g.style.transition = ""; });
       if (svg) svg.classList.remove("settling");
+      updateFar();  // the boxes that grow when zoomed out take their places now
     }, 320);
   }
   // dragging moves the label; letting go (or a key) lays the map out once; a drag ended where it began fires no change
   spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; capReady = false; clearTimeout(wheelRest); });
-  ["pointerup", "pointercancel", "blur"].forEach(t => spreadIn.addEventListener(t, () => { spreadDrag = false; }));
+  ["pointerup", "pointercancel", "blur"].forEach(t => spreadIn.addEventListener(t, () => {
+    spreadDrag = false;
+    // a drag let go where it began fires no change: undo its preview (change, when it fires, has already laid out)
+    setTimeout(() => { if (svg && svg.classList.contains("previewing")) setSteps(Number(spreadIn.value)); }, 0);
+  }));
   /* While the thumb moves, the drawing stretches across at once as a preview (the steps spread about the middle of the
      view, the boxes and text drawn wide for the moment); letting go lays it out properly, once (a full layout takes a
      moment), and the boxes then grow in height too, so the lanes settle on release. */
