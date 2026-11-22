@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import csv
 import html
+import importlib.util
 import re
 import sys
 from pathlib import Path
@@ -34,6 +35,7 @@ DRAWINGS = ["D1-propulsion-one-line", "D2-propulsion-sections", "D3-turnout-frog
 # Text in the SOQ drawings that points into the SOQ: (drawing, old, new). Each must be found.
 FIXES = [
     ("D2-propulsion-sections", "are wired this way; Appendix B lists them.", "are wired this way."),
+    ("D2-propulsion-sections", "All 43 detected sections", "All {count} detected sections"),
     ("D3-turnout-frog-indication", " (Section 5.1).", "."),
     ("D6-computer-interface", "my own work", "built for HART"),
     ("D6-computer-interface", "were designed and written by me and are", "were designed and written for HART and are"),
@@ -59,7 +61,8 @@ def detected_sections() -> list[dict]:
         m = re.fullmatch(r"Block (\d+)-(\d+)", r["occupancy_sensor"])
         if not m:
             continue
-        part = "a part of" in r["note"]
+        whole = re.search(r"a part of (.+?),", r["note"])
+        part = bool(whole)
         s = by_sensor.setdefault(r["occupancy_sensor"], {"node": int(m.group(1)), "ch": int(m.group(2)),
                                                          "name": None, "plan": 0.0, "measured": None})
         s["plan"] += float(r["plan_in"])
@@ -69,8 +72,13 @@ def detected_sections() -> list[dict]:
             s["name"] = r["user_name"].replace("Track ", "")
             if r["source"] == "timed":
                 s["measured"] = float(r["measured_in"])
+        if part:
+            s.setdefault("parts", []).append((r["user_name"], whole.group(1)))
     out = []
     for sensor, s in by_sensor.items():
+        for piece, owner in s.get("parts", []):
+            if owner != s["name"]:
+                raise SystemExit(f"build_layout_docs: {piece} is noted as a part of {owner} but is on {sensor}, {s['name']}'s detector")
         if not s["name"]:
             raise SystemExit(f"build_layout_docs: {sensor} has only parts, no section of its own")
         timed = s["measured"] is not None
@@ -79,9 +87,16 @@ def detected_sections() -> list[dict]:
     return sorted(out, key=lambda s: (s["node"], s["ch"]))
 
 
+def _build_soq():
+    """The frozen SOQ builder, loaded from its file so docs/ap/electrical never goes on sys.path."""
+    spec = importlib.util.spec_from_file_location("build_soq", SOQ / "build_soq.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
 def sections_table() -> tuple[str, int]:
-    sys.path.insert(0, str(SOQ))
-    import build_soq
+    build_soq = _build_soq()
     rows = detected_sections()
     body = "".join(
         f"<tr><td class=\"num\">{i}</td><td>{html.escape(build_soq.generic(s['name']))}</td>"
@@ -95,15 +110,15 @@ def sections_table() -> tuple[str, int]:
     return table, len(rows)
 
 
-def drawing(name: str) -> str:
+def drawing(name: str, count: int) -> str:
     svg = (SOQ / "drawings" / f"{name}.svg").read_text()
     for d, old, new in FIXES:
         if d != name:
             continue
         if old not in svg:
             raise SystemExit(f"build_layout_docs: {name}.svg no longer has {old!r}; update FIXES")
-        svg = svg.replace(old, new)
-    text = " ".join(t.split(">", 1)[-1] for t in svg.split("</text>"))
+        svg = svg.replace(old, new.format(count=count))
+    text = " ".join(re.findall(r"<(?:text|tspan|title|desc)\b[^>]*>([^<]*)", svg))
     for word in LEFTOVER:
         if word in text:
             raise SystemExit(f"build_layout_docs: {name}.svg still says {word!r}; add it to FIXES")
@@ -116,7 +131,7 @@ def outputs() -> dict[Path, str]:
     if "{{" in page:
         raise SystemExit("build_layout_docs: a placeholder is left in the page")
     out = {PAGE: page}
-    out.update({DRAWINGS_OUT / f"{n}.svg": drawing(n) for n in DRAWINGS})
+    out.update({DRAWINGS_OUT / f"{n}.svg": drawing(n, count) for n in DRAWINGS})
     return out
 
 

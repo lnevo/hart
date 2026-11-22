@@ -49,6 +49,19 @@ class LayoutDocs(unittest.TestCase):
                 got = ld.detected_sections()
         self.assertEqual([(s["name"], s["inches"], s["estimate"]) for s in got],
                          [("OS Switch 1", 22.6, False), ("OS Switch 9", 19.5, True)])
+        rows[3]["occupancy_sensor"] = "Block 4-2"        # 9-11 put on OS Switch 1's detector by mistake
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "b.csv"
+            with path.open("w", newline="") as f:
+                w = csv.DictWriter(f, fieldnames=list(rows[0]))
+                w.writeheader()
+                w.writerows(rows)
+            with mock.patch.object(ld, "BLOCKS", path), self.assertRaises(SystemExit):
+                ld.detected_sections()
+
+    def test_d2_states_the_live_count(self):
+        d2 = (ld.DRAWINGS_OUT / "D2-propulsion-sections.svg").read_text()
+        self.assertIn(f"All {len(ld.detected_sections())} detected sections", d2)
 
 
 if __name__ == "__main__":

@@ -216,6 +216,7 @@ run pipeline-map-site python3 tools/ops/build_pipeline_map.py --public --out www
 run pipeline-map-coverage python3 tools/ops/pipeline_map_coverage.py
 run jmri-additions python3 www/scripts/jmri_additions_page.py --check
 run layout-index python3 www/scripts/build_layout_index.py --check
+run layout-docs python3 www/scripts/build_layout_docs.py --check
 run layout-index-cats python3 www/scripts/build_cats_layout_index.py --check
 run wiring-json python3 www/scripts/build_wiring_json.py --check
 run track-lengths python3 jmri/layouts/hart/scripts/export_track_lengths.py --check
