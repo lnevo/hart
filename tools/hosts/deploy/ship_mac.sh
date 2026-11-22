@@ -20,7 +20,7 @@ install_jython_scripts() {
     local dest="$profile/jython"
     mkdir -p "$dest"
     local f
-    for f in "${JYTHON_STARTUP_SCRIPTS[@]}"; do
+    for f in "${JYTHON_STARTUP_SCRIPTS[@]}" "${JYTHON_SIBLING_MODULES[@]}"; do
       [[ -f "$f" ]] && cp -f "$f" "$dest/"
     done
     rm -f "$dest/hart_dispatcher_startup.py" "$dest/patch_dispatcher_facing.py"

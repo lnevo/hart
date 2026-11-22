@@ -61,6 +61,7 @@
 import java
 import jmri
 import re
+import sys
 import threading
 import time
 from java.beans import PropertyChangeListener
@@ -68,90 +69,74 @@ from java.lang import Runnable, Thread
 from javax.swing import JButton, JOptionPane, SwingUtilities
 from jmri.jmrix.mqtt import MqttEventListener
 
-TOPIC_PREFIX = "track/signalhead/"
-MAST_TOPIC_PREFIX = "track/signalmast/"
-SML_MODE_TOPIC = "track/bridge/sml_mode"
-# Coordinators only (the bridge never subscribes): who claims, and when.
-SML_CLAIM_TOPIC = "track/bridge/sml_claim"
-SML_MODE_SENSOR = "IS:SML_MODE"
-HOLD_WAIT_MS = 3000
-BOOT_MODE_WAIT_MS = 1000
-# After enabling, originator waits then Holds and announces sml_mode enabled.
-SML_ABORT_RESUME_MS = 1000
-# Operator Enable probe: wait for another instance to ACK enabled.
-PROBE_WAIT_MS = 1000
-# Only abort mutes bean MQTT: dests uncheck without Hold/Red/Unheld because
-# another agent owns Digicon. Operator Enable/Disable Hold wait publishes.
-
-# LCOS signal UIDs: UID_OFFSET_SIGNALS .. UID_OFFSET_CROSSINGS-1 (lcos.h).
-_LCOS_SIGNAL_UID_MIN = 32
-_LCOS_SIGNAL_UID_MAX = 47
-
-_HEAD_IN_MAST = re.compile(r"\(IH\d+\)")
-
-_ASPECT_TO_APPEARANCE = {
-    "stop": "Red",
-    "approach": "Yellow",
-    "clear": "Green",
-    "red": "Red",
-    "yellow": "Yellow",
-    "green": "Green",
-    "dark": "Dark",
-    "off": "Dark",
-}
+# Sibling modules beside this script in preference:jython, in load order: each comes after
+# every module it imports. The deploy ships each one beside it
+# (tools/hosts/tests/test_coordinator_shipping.py holds every host's list to this tuple).
+SIBLING_MODULES = (
+    "sml_beans",
+)
 
 
-def _ascii(s):
-    if s is None:
-        return ""
-    if not isinstance(s, str):
+class SiblingModuleError(ImportError):
+    """A sibling module is missing from the jython folder, or was loaded from another one."""
+
+
+try:
+    _reload = reload  # Jython 2.7: a builtin
+except NameError:  # CPython 3, where the tests run the script
+    from importlib import reload as _reload
+
+
+def _load_siblings(names):
+    """Import each sibling from preference:jython, or reload it if an earlier run imported it.
+
+    JMRI runs this script with no __file__ and without its folder on sys.path, so the folder
+    is added. A re-run in the same JMRI would otherwise get the modules the earlier run
+    cached: a redeployed script with the old modules.
+    """
+    import os
+
+    folder = jmri.util.FileUtil.getExternalFilename("preference:jython")
+    if not folder or not os.path.isdir(folder):
+        raise SiblingModuleError(
+            "signal_coordinator: no jython folder (preference:jython is %r)" % (folder,)
+        )
+    if folder not in sys.path:
+        sys.path.insert(0, folder)
+    want = os.path.normcase(os.path.realpath(folder))
+    for name in names:
+        if not os.path.isfile(os.path.join(folder, name + ".py")):
+            raise SiblingModuleError(
+                "signal_coordinator: %s.py is missing from %s; the deploy ships it beside "
+                "this script" % (name, folder)
+            )
         try:
-            s = str(s)
-        except Exception:
-            return repr(s)
-    try:
-        return s.encode("ascii", "replace").decode("ascii")
-    except Exception:
-        return repr(s)
+            module = sys.modules.get(name)
+            if module is None:
+                module = __import__(name)
+            else:
+                module = _reload(module)
+        except ImportError as exc:
+            raise SiblingModuleError(
+                "signal_coordinator: cannot import %s from %s: %s" % (name, folder, exc)
+            )
+        got = os.path.dirname(getattr(module, "__file__", None) or "")
+        if os.path.normcase(os.path.realpath(got)) != want:
+            raise SiblingModuleError(
+                "signal_coordinator: %s was loaded from %r, not from %s" % (name, got, folder)
+            )
 
 
-def _topic_suffix(sys_name):
-    """MQTT topic leaf: packed digits only (drop IH prefix)."""
-    if sys_name is None:
-        return ""
-    name = str(sys_name)
-    if len(name) > 2 and name[:2].upper() == "IH" and name[2:].isdigit():
-        return name[2:]
-    return name
+_load_siblings(SIBLING_MODULES)
 
-
-def _packed_is_lcos_signal(packed):
-    """True if packed = display_node*100 + signal UID (32-47) and node is octal-legal."""
-    if packed is None:
-        return False
-    s = str(packed).strip()
-    if not s.isdigit():
-        return False
-    n = int(s)
-    node = n // 100
-    uid = n % 100
-    if uid < _LCOS_SIGNAL_UID_MIN or uid > _LCOS_SIGNAL_UID_MAX:
-        return False
-    try:
-        int(str(node), 8)
-    except Exception:
-        return False
-    return True
-
-
-def _is_lcos_ih_sys(sys_name):
-    """True if system name is IH<packed> for an LCOS signal UID."""
-    if sys_name is None:
-        return False
-    name = str(sys_name)
-    if len(name) <= 2 or name[:2].upper() != "IH":
-        return False
-    return _packed_is_lcos_signal(name[2:])
+from sml_beans import (  # noqa: E402
+    TOPIC_PREFIX, MAST_TOPIC_PREFIX, SML_MODE_TOPIC, SML_CLAIM_TOPIC, SML_MODE_SENSOR,
+    HOLD_WAIT_MS, BOOT_MODE_WAIT_MS, SML_ABORT_RESUME_MS, PROBE_WAIT_MS,
+    _LCOS_SIGNAL_UID_MIN, _LCOS_SIGNAL_UID_MAX, _HEAD_IN_MAST, _ASPECT_TO_APPEARANCE,
+    _ascii, _topic_suffix, _packed_is_lcos_signal, _is_lcos_ih_sys, _mqtt_adapter,
+    _mast_manager, _head_manager, _sml_manager, _head_names_on_mast, _appearance_constant,
+    _dest_listed, _bean_label, SmlBeans,
+)
 
 
 def _host_token(name):
@@ -218,91 +203,6 @@ def _owned_claim(old):
         return None
 
 
-def _mqtt_adapter():
-    try:
-        memo = jmri.InstanceManager.getDefault(
-            jmri.jmrix.mqtt.MqttSystemConnectionMemo
-        )
-        if memo is None:
-            return None
-        return memo.getMqttAdapter()
-    except Exception:
-        return None
-
-
-def _mast_manager():
-    try:
-        return masts
-    except NameError:
-        return jmri.InstanceManager.getDefault(jmri.SignalMastManager)
-
-
-def _head_manager():
-    try:
-        return signals
-    except NameError:
-        return jmri.InstanceManager.getDefault(jmri.SignalHeadManager)
-
-
-def _sml_manager():
-    return jmri.InstanceManager.getDefault(jmri.SignalMastLogicManager)
-
-
-def _head_names_on_mast(mast):
-    """IH* heads encoded on a SignalHeadSignalMast systemName."""
-    names = []
-    for token in _HEAD_IN_MAST.findall(str(mast.getSystemName())):
-        names.append(token[1:-1])
-    return names
-
-
-def _appearance_constant(name):
-    """Map appearance name to SignalHead int, or None."""
-    if name is None:
-        return None
-    key = str(name).strip()
-    # JMRI's names are the standard ("Flashing Red"); the LCOS firmware's tokens
-    # ("FlashRed") are accepted too.
-    upper = key.upper().replace(" ", "").replace("FLASHING", "FLASH")
-    table = {
-        "RED": jmri.SignalHead.RED,
-        "YELLOW": jmri.SignalHead.YELLOW,
-        "GREEN": jmri.SignalHead.GREEN,
-        "DARK": jmri.SignalHead.DARK,
-        "OFF": jmri.SignalHead.DARK,
-        "LUNAR": jmri.SignalHead.LUNAR,
-        "FLASHRED": jmri.SignalHead.FLASHRED,
-        "FLASHYELLOW": jmri.SignalHead.FLASHYELLOW,
-        "FLASHGREEN": jmri.SignalHead.FLASHGREEN,
-        "FLASHLUNAR": jmri.SignalHead.FLASHLUNAR,
-    }
-    return table.get(upper)
-
-
-def _dest_listed(sml, dest):
-    """True if dest is still one of the logic's destinations."""
-    try:
-        it = sml.getDestinationList().iterator()
-        while it.hasNext():
-            if it.next() == dest:
-                return True
-    except Exception:
-        return True  # cannot tell: count it as a failure
-    return False
-
-
-def _bean_label(bean):
-    """UserName, else system name, else text: for failure lines."""
-    for getter in ("getUserName", "getSystemName"):
-        try:
-            name = getattr(bean, getter)()
-            if name:
-                return _ascii(name)
-        except Exception:
-            pass
-    return _ascii(bean)
-
-
 class _BulkRun(object):
     """One bulk SML set's run. cancel() stops the pair flips not yet made.
 
@@ -334,6 +234,7 @@ class _BulkRun(object):
 
 
 class DigiconMqttSml(
+    SmlBeans,
     PropertyChangeListener,
     MqttEventListener,
 ):
@@ -859,29 +760,6 @@ class DigiconMqttSml(
         self._snapshot_mast_sml_state()
         self._set_button_label()
 
-    def _snapshot_mast_sml_state(self):
-        """Baseline dest Enabled maps. Bulk/boot must not Unheld from the listener.
-
-        Per-mast field ownership is dest checkboxes only. Global Disable is
-        `_global_enabled` in `_field_owns_mast` — do not fold it in here, or
-        Enable's snapshot (taken before `_global_enabled = True`) would leave
-        every source field-owned and block SET.
-        """
-        state = {}
-        owned = {}
-        dest_maps = {}
-        for mast in self._masts:
-            sml = self._sml_for_mast(mast)
-            dmap = self._dest_enable_map(sml) if sml is not None else {}
-            if sml is not None:
-                dest_maps[sml] = dmap
-            on = any(dmap.values())
-            state[mast] = on
-            owned[mast] = not on
-        self._mast_sml_was_enabled = state
-        self._source_field_owned = owned
-        self._dest_enable_maps = dest_maps
-
     def _set_all_digicon_sml_destinations(self, enabled):
         """Flip Enabled checkbox for every Digicon source→dest pair (SML table).
 
@@ -1012,63 +890,6 @@ class DigiconMqttSml(
             if queued.cancel():
                 return True
             return _do(_BulkRun())
-
-    def _collect_beans(self):
-        """Digicon plants = SHSM masts with LCOS Virtual IH heads (tables, not a static list).
-
-        MQTT SET/Unheld heads attach later via _enroll_packed from signalmast.
-        """
-        mm = _mast_manager()
-        self._masts = []
-        self._heads = []
-        self._head_to_mast = {}
-        if mm is None:
-            return
-        for mast in mm.getNamedBeanSet():
-            lcos_heads = [n for n in _head_names_on_mast(mast) if _is_lcos_ih_sys(n)]
-            if not lcos_heads:
-                continue
-            self._masts.append(mast)
-            for n in lcos_heads:
-                self._head_to_mast[n] = mast
-
-    def _attach_bean_listeners(self):
-        for mast in self._masts:
-            mast.addPropertyChangeListener(self)
-        for head in self._heads:
-            head.addPropertyChangeListener(self)
-
-    def _attach_sml_listeners(self, quiet=False):
-        smlm = _sml_manager()
-        if smlm is None:
-            return
-        for sml in self._smls:
-            try:
-                sml.removePropertyChangeListener(self)
-            except Exception:
-                pass
-        self._smls = []
-        self._sml_by_mast = {}
-        digicon = set(self._masts)
-        for sml in smlm.getSignalMastLogicList():
-            try:
-                src = sml.getSourceMast()
-            except Exception:
-                continue
-            if src not in digicon:
-                continue
-            sml.addPropertyChangeListener(self)
-            self._smls.append(sml)
-            self._sml_by_mast[src] = sml
-        n = len(self._smls)
-        # Refresh before bulk set is normal; only log when the count changes.
-        if quiet and n == getattr(self, "_sml_watch_logged", None):
-            return
-        print(
-            "mqtt_signalhead: watching %d Digicon SignalMastLogic sources"
-            % n
-        )
-        self._sml_watch_logged = n
 
     def _subscribe_mqtt(self):
         try:

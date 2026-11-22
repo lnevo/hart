@@ -419,6 +419,8 @@ class Layout:
         self.editors = []
         self.shutdown = FakeShutDownManager()
         self.button_space = None  # Apps.buttonSpace(); a test sets one to have a main window
+        # FileUtil's preference:jython; load_script sets it to the script's own folder when a test does not.
+        self.jython_dir = None
 
     def instance(self, cls):
         return {
@@ -465,6 +467,13 @@ def _modules(layout):
         def setDoRun(self, value):
             pass
 
+    def external_filename(name):
+        if name != "preference:jython":
+            raise ValueError(f"jmri_fake FileUtil knows only preference:jython, not {name!r}")
+        if layout.jython_dir is None:
+            raise ValueError("jmri_fake: no jython folder set (load_script sets it)")
+        return str(layout.jython_dir)
+
     power_cls = type("PowerManager", (PowerManager,), {})
     instance_manager = types.SimpleNamespace(getDefault=layout.instance)
     mqtt = mod("jmri.jmrix.mqtt", MqttSystemConnectionMemo=MqttSystemConnectionMemo,
@@ -479,6 +488,7 @@ def _modules(layout):
                ShutDownManager=ShutDownManager, implementation=implementation,
                jmrix=mod("jmri.jmrix", mqtt=mqtt), jmrit=mod("jmri.jmrit", display=display),
                util=mod("jmri.util", ThreadingUtil=types.SimpleNamespace(),
+                        FileUtil=types.SimpleNamespace(getExternalFilename=external_filename),
                         swing=mod("jmri.util.swing", JmriJOptionPane=types.SimpleNamespace())))
     lang = mod("java.lang", Runnable=iface("Runnable"), Thread=Thread)
     awt_event = mod("java.awt.event", ActionListener=iface("ActionListener"), MouseAdapter=iface("MouseAdapter"),
@@ -536,20 +546,56 @@ def jmri_modules(layout):
         yield
 
 
-def load_script(path: Path, layout: Layout) -> dict:
+class ScriptGlobals(dict):
+    """A loaded script's globals. A test's write to a name also reaches each sibling module the
+    script loaded (its SIBLING_MODULES) that holds the same object under that name.
+
+    So `env["Thread"] = Recorder` patches the Thread that code moved into a sibling reads too,
+    as it did when that code was in the script. A sibling's own, different object of that name
+    is left alone. The script's own assignments do not pass through here.
+    """
+
+    siblings = ()
+
+    def __setitem__(self, key, value):
+        old = self.get(key, _UNSET)
+        if old is not _UNSET:
+            for module in self.siblings:
+                if getattr(module, key, _UNSET) is old:
+                    setattr(module, key, value)
+        super().__setitem__(key, value)
+
+
+_UNSET = object()
+
+
+def load_script(path: Path, layout: Layout) -> ScriptGlobals:
     """Run a Jython script against `layout`; returns its globals for the test to drive.
 
     Jython names a Java method `await`, a reserved word in Python 3; it is renamed in the
-    loaded copy only (the script on disk is untouched).
+    loaded copy only (the script on disk is untouched), so sibling modules must not call it.
+    preference:jython is the script's own folder unless the test set `layout.jython_dir`. The
+    sys.path entry a script adds for its siblings is taken out again afterwards, and no
+    bytecode is written beside them.
     """
     Timer.pending.clear()
     Thread.started.clear()
-    source = Path(path).read_text(encoding="utf-8").replace(".await(", ".await_(")
-    env = {"__name__": "hart_script_under_test", "turnouts": layout.turnouts, "sensors": layout.sensors,
-           "routes": layout.routes, "signals": layout.heads, "masts": layout.masts,
-           "memories": layout.memories}
-    with jmri_modules(layout), contextlib.redirect_stdout(_Quiet()):
-        exec(compile(source, str(path), "exec"), env)
+    path = Path(path)
+    if layout.jython_dir is None:
+        layout.jython_dir = path.resolve().parent
+    source = path.read_text(encoding="utf-8").replace(".await(", ".await_(")
+    env = ScriptGlobals(__name__="hart_script_under_test", turnouts=layout.turnouts, sensors=layout.sensors,
+                        routes=layout.routes, signals=layout.heads, masts=layout.masts,
+                        memories=layout.memories)
+    saved_path, saved_bytecode = list(sys.path), sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
+    try:
+        with jmri_modules(layout), contextlib.redirect_stdout(_Quiet()):
+            exec(compile(source, str(path), "exec"), env)
+    finally:
+        sys.path[:] = saved_path
+        sys.dont_write_bytecode = saved_bytecode
+    env.siblings = tuple(sys.modules[name] for name in env.get("SIBLING_MODULES", ()))
     return env
 
 

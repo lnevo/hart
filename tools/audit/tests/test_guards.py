@@ -503,6 +503,10 @@ class PrivateNameAndTables(unittest.TestCase):
         after = load(ROOT / ".claude/hooks/check_after_edit.py", "hart_check_after_edit_real_test")
         tests = after.matching_tests(str(ROOT), "jmri/scripts/signal_coordinator.py")
         self.assertIn("jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py", tests)
+        sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+        from hartlib import coordinator
+        for path in coordinator.files():    # an edit to the script or a module it loads is checked
+            self.assertTrue(after.WATCHED.search(path.relative_to(ROOT).as_posix()), path.name)
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
         for folder in after.TEST_DIRS:  # each searched folder is a unit job of check.sh, so nothing only runs here
             self.assertIn(f"python3 -m unittest discover -q -s {folder}\n", check_sh, folder)

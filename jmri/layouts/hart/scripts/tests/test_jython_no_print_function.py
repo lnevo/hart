@@ -9,10 +9,14 @@ jmri/layouts/hart/parked/DISPATCHER_LAYOUT_HOOPS.md.
 from __future__ import annotations
 
 import re
+import sys
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[5]
+sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
+from hartlib import coordinator  # noqa: E402
+
 SYNC = ROOT / "tools/hosts/deploy"   # the deploy steps: the lists of scripts are in common.sh, stage.sh and ship_mac.sh
 FUTURE = re.compile(r"^\s*from\s+__future__\s+import\s+[^#\n]*\bprint_function\b", re.M)
 
@@ -39,6 +43,8 @@ class NoPrintFunction(unittest.TestCase):
         scripts = deployed_scripts()
         self.assertIn("jmri/layouts/hart/scripts/sts_car_sync.py", scripts)
         self.assertIn("jmri/scripts/signal_coordinator.py", scripts)
+        for path in coordinator.files()[1:]:   # the modules it loads ship beside it, so they are checked too
+            self.assertIn(path.relative_to(ROOT).as_posix(), scripts)
 
     def test_no_jmri_script_imports_print_function(self) -> None:
         offenders = [path for path in deployed_scripts() + LAUNCHED

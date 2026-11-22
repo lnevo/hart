@@ -21,7 +21,7 @@ WATCHED = re.compile(
     r"(^|/)(jmri/layouts/hart/output/tables\.xml"
     r"|jmri/layouts/hart/data/schematic/(staging|main_upper)_masts\.csv"
     r"|jmri/layouts/hart/output/signal_head_plan\.csv"
-    r"|jmri/scripts/signal_coordinator\.py)$"
+    r"|jmri/scripts/(signal_coordinator|sml_[a-z_]+)\.py)$"  # the script and the sibling modules it loads
 )
 CHECKS = [  # (name, argv) as in tools/check.sh; test_guards checks each one is still there
     ("phase02", ["python3", "jmri/scripts/check_hart_phase02.py"]),
