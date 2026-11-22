@@ -145,6 +145,8 @@ class RealBuild(unittest.TestCase):
             ys = [float(e.get(a)) for el in band for e in el.iter() for a in bp.Y_ATTRS if e.get(a) is not None]
             self.assertEqual(round(min(ys)), bp.MARGIN, name)
             self.assertEqual(int(p.get("panelheight")), round(max(ys)) + bp.MARGIN, name)
+            self.assertEqual(int(p.get("windowheight")), int(p.get("panelheight")) + 60, name)     # le.CHROME
+            self.assertEqual(p.get("windowwidth"), self.full.get("windowwidth"), name)
 
 
 # ---------------------------------------------------------------- a small panel

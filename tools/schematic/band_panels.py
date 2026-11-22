@@ -24,7 +24,9 @@ connector is no block boundary and carries no mast.
 Each band panel opens on its own band (owner, 2026-11-22): the band is moved up by one translation, so that its
 topmost element stands MARGIN px below the top of the panel, and the panel is as tall as its lowest element plus
 MARGIN. The margin gives the level room above and below that the full panel, packed level under level, does not.
-The move is in whole px; a band that would still not fit the window stops the build (BandPanelError).
+The move is in whole px; a band that would still not fit the window stops the build (BandPanelError). The band
+panel's window is as tall as the panel and the frame Layout Editor draws round it (`chrome`), and keeps the full panel's
+width (owner, 2026-11-22: open at the size the level needs, at the common window width).
 """
 from __future__ import annotations
 
@@ -69,7 +71,7 @@ def add(root: ET.Element, P, bands, chrome: tuple[int, int]) -> list[dict]:
     after = full
     for bi, name in names.items():
         dy, height = translation(full, of, bi, chrome)
-        panel = band_panel(full, of, joins, names, bi, name, dy, height)
+        panel = band_panel(full, of, joins, names, bi, name, dy, height, chrome)
         check_links(panel)
         root.insert(list(root).index(after) + 1, panel)
         after = panel
@@ -287,7 +289,8 @@ def edge_connector(point: ET.Element, join: str, linked: str, partner: str) -> E
     return el
 
 
-def band_panel(full: ET.Element, of, joins, names, bi: int, name: str, dy: int, height: int) -> ET.Element:
+def band_panel(full: ET.Element, of, joins, names, bi: int, name: str, dy: int, height: int,
+               chrome: tuple[int, int]) -> ET.Element:
     """The band panel of band `bi` (module text)."""
     edges = {}
     for ident, (a, b) in joins.items():
@@ -308,6 +311,8 @@ def band_panel(full: ET.Element, of, joins, names, bi: int, name: str, dy: int, 
         panel.append(new)
     panel.set("name", name)
     panel.set("panelheight", str(height))
+    # the window opens just tall enough for the panel and its frame, at the full panel's width (the page's le_window)
+    panel.set("windowheight", str(height + chrome[1]))
     return panel
 
 
