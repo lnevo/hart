@@ -980,6 +980,7 @@ function renderSheet(){
 
 /* ---------- start ---------- */
 function begin(era,daily){
+  if(era==="yard")daily=null; // the yard job has no daily run: its draw barely changes from day to day
   if(daily===true)daily=today();
   if(daily){const k="extra-west|"+daily+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders")} // seed key keeps the old name on purpose: renaming it changes every daily run
   else R=RW=RO=Math.random;
