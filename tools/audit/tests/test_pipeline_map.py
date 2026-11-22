@@ -466,30 +466,22 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
 
     def test_steps_shown(self) -> None:
-        """spreadFor: n spread steps span what all cols steps span, so a step is (cols-1)/(n-1) times wider; all of them,
-        more than all, or a map of one column is 1."""
-        got = self.run_js("[m.spreadFor(46, 46), m.spreadFor(46, 23), m.spreadFor(46, 3), m.spreadFor(46, 99), m.spreadFor(1, 3)]", None)
-        self.assertEqual(got[0], 1)
-        self.assertAlmostEqual(got[1], 45 / 22)
-        self.assertAlmostEqual(got[2], 45 / 2)
-        self.assertEqual(got[3:], [1, 1])
-        # n steps then fill exactly the width all of them fill unspread
-        span = self.run_js("(() => { const g = m.spreadGeo(m.NARROW, m.spreadFor(46, 5)), s = x => x.nodeW + x.colGap;"
-                           " return [4 * s(g) + g.nodeW, 45 * s(m.NARROW) + m.NARROW.nodeW]; })()", None)
-        self.assertLessEqual(abs(span[0] - span[1]), 4)  # the gap is rounded to whole units
+        """spreadFor: n spread steps and a spread box span what all cols steps and a box span, the boxes widening up to
+        BOX_GROW times; all of them, more than all, or a map of one column is 1."""
+        self.assertEqual(self.run_js("[m.spreadFor(46, 46), m.spreadFor(46, 99), m.spreadFor(1, 3)]", None), [1, 1, 1])
+        for n in (40, 23, 5, 3):  # below and above the box cap
+            span = self.run_js(f"(() => {{ const g = m.spreadGeo(m.NARROW, m.spreadFor(46, {n})), s = x => x.nodeW + x.colGap;"
+                               f" return [{n - 1} * s(g) + g.nodeW, 45 * s(m.NARROW) + m.NARROW.nodeW]; }})()", None)
+            self.assertLessEqual(abs(span[0] - span[1]), n, n)  # the sizes are rounded to whole units
 
     def test_spread_geometry(self) -> None:
-        """spreadGeo: the Width slider makes each step k times as wide; the boxes keep their size; 1x is as it is."""
+        """spreadGeo: a step k times as wide; the boxes widen with it up to BOX_GROW times, titles and descriptions too,
+        and the gap takes the rest; 1x is the geometry as it is."""
         g = self.run_js("m.spreadGeo(m.NARROW, 2)", None)
-        self.assertEqual((g["nodeW"], g["titleWrap"], g["nodeW"] + g["colGap"]), (180, 22, 2 * (180 + 80)))
+        self.assertEqual((g["nodeW"], g["titleWrap"], g["descWrap"], g["nodeW"] + g["colGap"]), (360, 44, 88, 2 * (180 + 80)))
+        g = self.run_js("m.spreadGeo(m.NARROW, 6)", None)
+        self.assertEqual((g["nodeW"], g["nodeW"] + g["colGap"]), (450, 6 * 260))  # boxes stop at 2.5x, steps go on
         self.assertEqual(self.run_js("m.spreadGeo(m.WIDE, 1) === m.WIDE", None), True)
-        wide = self.run_js("(() => { const l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW),"
-                           " l2 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.2, m.spreadGeo(m.NARROW, 2.5));"
-                           " return [(l2.nodes[1].x - l2.nodes[0].x) / (l1.nodes[1].x - l1.nodes[0].x), l2.nodes[0].w]; })()",
-                           {"nodes": [{"id": "a", "label": "a", "domain": "x"}, {"id": "b", "label": "b", "domain": "x"}],
-                            "edges": [{"from": "a", "to": "b"}]})
-        self.assertAlmostEqual(wide[0], 2.5, places=2)  # the steps spread
-        self.assertEqual(wide[1], 180)  # the boxes do not
 
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""

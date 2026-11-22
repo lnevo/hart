@@ -12,13 +12,26 @@ const WRAP = 44, LEFT = 180, BAND_RUN = 100000;  // BAND_RUN: how far the lane c
 const WIDE = { nodeW: 250, colGap: 150, titleWrap: 30, descWrap: 44 };
 const NARROW = { nodeW: 180, colGap: 80, titleWrap: 22, descWrap: 44 };
 const stepOf = geo => geo.nodeW + geo.colGap;
-/* How many times wider a step is when n of cols steps fill the width all of them fill (the Steps slider): n spread steps
-   span what cols steps span, (n - 1) spread steps = (cols - 1) steps, as the boxes keep their size. All of them, or a
-   map of one or two columns, is 1; n is at least 2 here (the slider keeps it at 3 or more). */
-const spreadFor = (cols, n) => (cols < 2 || !(n < cols) ? 1 : (cols - 1) / (Math.max(2, Math.round(n)) - 1));
-/* A geometry with its steps spread k times across: the boxes keep their size and the gap between steps takes the rest,
-   so a step is k times as wide and the boxes grown when zoomed out have room. */
-const spreadGeo = (geo, k) => (k === 1 ? geo : { ...geo, colGap: Math.round((geo.nodeW + geo.colGap) * k - geo.nodeW) });
+/* How many times wider a step is when n of cols steps of geometry geo fill the width all of them fill unspread (the
+   Steps slider): (n - 1) spread steps and one spread box span (cols - 1) steps and one box, the boxes widening up to
+   BOX_GROW times (spreadGeo). All of them, or a map of one or two columns, is 1; n is at least 2 here (the slider keeps
+   it at 3 or more). */
+const BOX_GROW = 2.5;
+function spreadFor(cols, n, geo = NARROW) {
+  if (cols < 2 || !(n < cols)) return 1;
+  const step = stepOf(geo), span = (cols - 1) * step + geo.nodeW, gaps = (Math.max(2, Math.round(n)) - 1) * step;
+  const k = span / (gaps + geo.nodeW);  // boxes widen as much as the steps
+  return k <= BOX_GROW ? k : (span - BOX_GROW * geo.nodeW) / gaps;  // past BOX_GROW the boxes stop and the steps go on
+}
+/* A geometry with its steps spread k times across: the boxes widen with the steps, up to BOX_GROW times (their title and
+   description lines with them), and the gap between steps takes the rest, so fewer steps across give each box more
+   room without making it a bar the width of the screen. */
+const spreadGeo = (geo, k) => {
+  if (k === 1) return geo;
+  const g = Math.min(k, BOX_GROW), nodeW = Math.round(geo.nodeW * g);
+  return { nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), titleWrap: Math.round(geo.titleWrap * g),
+    descWrap: Math.round((geo.descWrap || WRAP) * g) };
+};
 
 /* Greedy word wrap; a word longer than the width is cut. */
 function wrap(text, width) {
@@ -728,7 +741,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { BOX_GROW, spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -1062,6 +1075,7 @@ function app() {
 
   /* aspect: the screen shape to stretch the lanes to (a shared link's own); by default the free area's now, and once
      the info panel has opened or closed the drawing is laid out again for the area as it is then. */
+  let colsKey = "", colsOf = 0;  // the column count of the map last drawn with the Steps slider set, and which map
   function render(keepView, aspect, settled) {
     sub = subset();
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
@@ -1072,8 +1086,10 @@ function app() {
     let geo = base;
     view.spread = 1;
     if (view.steps) {
-      const cols = layout(sub.nodes, sub.edges, DATA.domains, 0, base).columns;
-      view.spread = spreadFor(cols, Math.max(Math.min(3, cols), view.steps));
+      const key = `${view.compact}|${sub.nodes.length}|${sub.edges.length}|${sub.nodes.map(n => n.id).join(",")}`;
+      if (colsKey !== key) { colsKey = key; colsOf = layout(sub.nodes, sub.edges, DATA.domains, 0, base).columns; }  // once per map
+      const cols = colsOf;
+      view.spread = spreadFor(cols, Math.max(Math.min(3, cols), view.steps), base);
       geo = spreadGeo(base, view.spread);
       if (!asked) {
         const w1 = (cols - 1) * stepOf(base) + base.nodeW + LEFT + 60, wk = (cols - 1) * stepOf(geo) + geo.nodeW + LEFT + 60;
@@ -1419,7 +1435,34 @@ function app() {
   // dragging moves the label; letting go (or a key) lays the map out once; a drag ended where it began fires no change
   spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; });
   ["pointerup", "pointercancel", "blur"].forEach(t => spreadIn.addEventListener(t, () => { spreadDrag = false; }));
-  spreadIn.addEventListener("input", () => { spreadOut.textContent = `${spreadIn.value} of ${spreadIn.max}`; });
+  /* While the thumb moves, the drawing stretches across at once as a preview (the steps spread about the middle of the
+     view, the text drawn wide for the moment); letting go lays it out properly, once (a full layout takes a moment). */
+  let previewFrame = 0;
+  function previewSteps() {
+    previewFrame = 0;
+    if (!svg || !lay) return;
+    const cols = Math.max(lay.columns || 1, 1), n = Number(spreadIn.value);
+    const sx = spreadFor(cols, n, view.compact ? NARROW : WIDE) / view.spread, m = svg.getScreenCTM(), r = wrapEl.getBoundingClientRect();
+    if (!m) return;
+    const cx = (r.left + freeArea().right / 2 - m.e) / m.a;  // the drawing x at the middle of the free area
+    const t = Math.abs(sx - 1) < 1e-3 ? "" : `matrix(${sx.toFixed(4)},0,0,1,${(cx * (1 - sx)).toFixed(1)},0)`;
+    ["edges", "ehit", "elabels", "nodes"].forEach(id => { const g = svg.querySelector("#" + id); if (g) { if (t) g.setAttribute("transform", t); else g.removeAttribute("transform"); } });
+  }
+  spreadIn.addEventListener("input", () => {
+    spreadOut.textContent = `${spreadIn.value} of ${spreadIn.max}`;
+    if (!previewFrame) previewFrame = requestAnimationFrame(previewSteps);
+  });
+  // the wheel over the slider moves it a step at a time, like a zoom; the map is laid out when the wheel rests
+  let wheelRest = 0;
+  spreadCtl.addEventListener("wheel", e => {
+    e.preventDefault(); e.stopPropagation();
+    const n = Math.min(Number(spreadIn.max), Math.max(Number(spreadIn.min), Number(spreadIn.value) + (e.deltaY > 0 ? 1 : -1)));
+    if (String(n) === spreadIn.value) return;
+    spreadIn.value = String(n); spreadDrag = true;
+    spreadIn.dispatchEvent(new Event("input"));
+    clearTimeout(wheelRest);
+    wheelRest = setTimeout(() => { spreadDrag = false; setSteps(n); }, 250);
+  }, { passive: false });
   spreadIn.addEventListener("change", () => { spreadDrag = false; setSteps(Number(spreadIn.value)); });
   function fit() {  // the whole drawing in the free area (spread: its lanes' full height, from the left)
     const f = fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
