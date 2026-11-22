@@ -1037,7 +1037,7 @@ function app() {
   const layNode = {};  // id -> its box in lay, set in render
   function unmagnify(id) {
     const n = layNode[id], g = nodeEl[id];
-    if (g && n) { g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); g.classList.remove("mag", "hov"); }
+    if (g && n) { g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); g.classList.remove("mag"); }
   }
   function placeFar() {
     if (!svg) return;
@@ -1142,22 +1142,52 @@ function app() {
     }
     updateFar();
   }
-  /* A grown card other than the hovered box's lets the pointer through (CSS: .node.mag:not(.hov)), so what is under
-     the pointer is what it is over in the drawing; the spot a grown box was drawn at still hovers that box. */
-  function grownUnder(e) {
-    const m = svg.getScreenCTM();
-    if (!m || !magnified.size) return null;
-    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
-    return boxAt([...magnified].filter(id => id !== hoverId).map(id => layNode[id]).filter(Boolean), p.x, p.y);
+  /* What the pointer hovers, worked out from where it is on every move (pointerover alone misses a card growing or
+     moving under a still target). A grown card other than the hovered box's lets the pointer through (CSS:
+     .node.mag:not(.hov)), so a box drawn under a neighbour's card is reached. In order: the hovered box's own card or
+     drawn spot keeps the hover; then a box drawn under the pointer; then a hovered line, while the pointer is on it;
+     then a grown card over the pointer (it is drawn over the lines); then a line; then the spot a grown box was drawn
+     at; else nothing. */
+  const inRect = (el, x, y) => { const q = el.getBoundingClientRect(); return x >= q.left && x <= q.right && y >= q.top && y <= q.bottom; };
+  function cardUnder(x, y) {  // the topmost grown card at screen point x, y
+    return [...svg.querySelectorAll("#nodes > .node.mag")].reverse().find(c => inRect(c, x, y)) || null;
   }
-  wrapEl.addEventListener("pointerover", e => {
-    if (drag) return;
-    const g = (e.target.closest && e.target.closest(".node")) || (nodeEl[grownUnder(e)] || null);
-    if (!g && e.target.classList && e.target.classList.contains("eh")) { setEdgeHover(Number(e.target.dataset.edge)); return; }
-    setEdgeHover(null);
-    setHover(g ? g.dataset.id : null);
-  });
-  wrapEl.addEventListener("pointerleave", () => { setHover(null); setEdgeHover(null); });
+  function spotUnder(x, y, ids) {  // the box among ids whose drawn spot holds screen point x, y
+    const m = svg.getScreenCTM();
+    if (!m) return null;
+    const p = new DOMPoint(x, y).matrixTransform(m.inverse());
+    return boxAt(ids.map(id => layNode[id]).filter(Boolean), p.x, p.y);
+  }
+  function pickHover(t, x, y) {
+    const own = hoverId && nodeEl[hoverId];
+    if (own && ((own.classList.contains("mag") && inRect(own, x, y)) || spotUnder(x, y, [hoverId]))) return { box: hoverId };
+    const g = t.closest && t.closest(".node");
+    if (g) return { box: g.dataset.id };
+    const line = t.classList && t.classList.contains("eh") ? Number(t.dataset.edge) : null;
+    if (line !== null && line === hoverEdge) return { edge: line };
+    const c = cardUnder(x, y);
+    if (c) return { box: c.dataset.id };
+    if (line !== null) return { edge: line };
+    const spot = spotUnder(x, y, [...magnified]);
+    return spot ? { box: spot } : {};
+  }
+  let hoverAt = null, hoverFrame = 0;
+  function hoverFrom(e) {
+    if (drag || !svg) return;
+    hoverAt = { t: e.target, x: e.clientX, y: e.clientY };
+    if (hoverFrame) return;
+    hoverFrame = requestAnimationFrame(() => {  // at most once a frame
+      hoverFrame = 0;
+      if (!hoverAt || drag) return;
+      const h = pickHover(hoverAt.t, hoverAt.x, hoverAt.y);
+      if (h.edge !== undefined) { setEdgeHover(h.edge); return; }
+      setEdgeHover(null);
+      setHover(h.box || null);
+    });
+  }
+  wrapEl.addEventListener("pointerover", hoverFrom);
+  wrapEl.addEventListener("pointermove", hoverFrom);
+  wrapEl.addEventListener("pointerleave", () => { hoverAt = null; setHover(null); setEdgeHover(null); });
 
   function drawSvg(lay) {
     W = lay.width + LEFT + 60; H = Math.max(lay.height, 200);
@@ -1553,7 +1583,7 @@ function app() {
     lensSvg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn", "he2", "he3", "hn2", "hn3"));
     lensSvg.querySelectorAll(".node.mag").forEach(g => {  // the lens shows the boxes at their own size
       const n = layNode[g.dataset.id];
-      g.classList.remove("mag");
+      g.classList.remove("mag", "hov");
       if (n) g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`);
     });
     lensSvg.querySelectorAll("[id]").forEach(el => { if (el.tagName !== "marker") el.removeAttribute("id"); });
@@ -1680,11 +1710,8 @@ function app() {
     if (moved) return;
     const box = e.target.closest(".node");
     clearTimeout(pending);
-    // a grown card lets the pointer through to the line under it: found by its place
-    const card = !box && svg.classList.contains("lhover") ? [...magnified].map(id => nodeEl[id]).find(c => {
-      const q = c.getBoundingClientRect();
-      return e.clientX >= q.left && e.clientX <= q.right && e.clientY >= q.top && e.clientY <= q.bottom;
-    }) : null;
+    // a grown card lets the pointer through (only the hovered box's takes it): found by its place, as the hover is
+    const card = !box ? cardUnder(e.clientX, e.clientY) : null;
     // a click on a line (its wide hit path) opens the box it leads to: selected, with its details, in the middle
     const edge = e.target.classList && e.target.classList.contains("eh") ? lay.edges[Number(e.target.dataset.edge)] : null;
     // a click on a line opens the box it leads to, Cmd (Ctrl off a Mac; Alt too) the box it comes from; a line whose box is not drawn
@@ -1704,7 +1731,7 @@ function app() {
   wrapEl.addEventListener("dblclick", e => {
     clearTimeout(pending);
     if (e.target.classList && e.target.classList.contains("eh")) return;  // a double-click on a line is a click on it
-    const g = e.target.closest(".node");
+    const g = e.target.closest(".node") || cardUnder(e.clientX, e.clientY);
     if (g && gNodes[g.dataset.id]) openFolder(gNodes[g.dataset.id].folder);
     else if (g) focusOn(g.dataset.id, !view.focus);
   });
