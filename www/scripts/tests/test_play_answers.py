@@ -1,4 +1,4 @@
-"""Extra East: Neville Island answer key: play/answers.html is current with runs.js, and every shift has questions.
+"""Extra East: HART Railroad answer key: play/answers.html is current with runs.js, and every shift has questions.
 Runs build_play_answers.js with node; skipped when node is missing."""
 import json
 import shutil
@@ -26,6 +26,14 @@ class PlayAnswers(unittest.TestCase):
         for shift in out:
             self.assertGreater(shift["n"], 0, shift["id"])
             self.assertEqual(shift["bad"], 0, shift["id"])
+
+    def test_covers_matches_the_sections_each_shift_asks(self):
+        code = (f"const m=require({json.dumps(str(SCRIPT))});"
+                f"const s=m.extract(require('fs').readFileSync({json.dumps(str(RUNS))},'utf8'));"
+                "console.log(JSON.stringify(s.map(x=>({id:x.id,covers:[...(x.def.covers||[])].sort(),asked:[...new Set(x.qs.map(q=>q.sec))].sort()}))))")
+        out = json.loads(subprocess.run(["node", "-e", code], capture_output=True, text=True, timeout=60, check=True).stdout)
+        for shift in out:
+            self.assertEqual(shift["covers"], shift["asked"], shift["id"])
 
 
 if __name__ == "__main__":

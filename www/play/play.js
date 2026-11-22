@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-/* Extra East: Neville Island. The engine is Extra East's (exam/run.js): a queue of scenes, each a
+/* Extra East: HART Railroad. The engine is Extra East's (exam/run.js): a queue of scenes, each a
    decision with a source. The runs themselves are in runs.js; this file draws the island, keeps the
    clock and the record, and scores the shift. */
 const $=id=>document.getElementById(id);
@@ -202,7 +202,7 @@ function finish(text,failed){
     const first=stored&&stored.id!==S.attempt?stored:null;
     if(!first)store.set(key,mine);
     const rec=first||mine;
-    const line=`Extra East: Neville Island, ${daily}, ${D.code} ${D.name}: ${rec.verdict}, ${rec.marks} mark${rec.marks===1?"":"s"}${rec.failed?"":", "+Math.floor(rec.time/60)+"h "+String(rec.time%60).padStart(2,"0")+"m on the job"}. ${location.origin.startsWith("http")?location.origin+location.pathname:"hartrailroad.com/play/"}`;
+    const line=`Extra East: HART Railroad, ${daily}, ${D.code} ${D.name}: ${rec.verdict}, ${rec.marks} mark${rec.marks===1?"":"s"}${rec.failed?"":", "+Math.floor(rec.time/60)+"h "+String(rec.time%60).padStart(2,"0")+"m on the job"}. ${location.origin.startsWith("http")?location.origin+location.pathname:"hartrailroad.com/play/"}`;
     const box=document.createElement("div");box.className="xw-daily";
     box.innerHTML=`<p>${first?"Your first try at today's shift counts for the day; this replay does not change it.":"This is your result for today's shift. Replays are for practice and do not change it."}</p><div class="xw-share">${esc(line)}</div><div><button class="xw-btn" id="copy">Copy the result</button></div>`;
     el.querySelector(".xw-end").appendChild(box);
@@ -237,6 +237,26 @@ function reliefToday(){
   if(d===3)return `Today is ${n}: #115 works the second trick, while #205 is off.`;
   if(d===0||d===6)return `Today is ${n}: #115 is the daylight crew, with #105 and #110 off.`;
   return `Today is ${n}: #115 has the day off.`;
+}
+/* The deck's eight sections in its order; each run lists the ones it asks (covers, checked against its questions by
+   test_play_answers.py). The strip shows only the sections some run covers. */
+const SECTIONS=[["def","Definitions"],["sup","Superiority & movement"],["to","Train orders"],["sig","Signals & whistles"],
+  ["sem","Semaphores"],["yl","Yard limits"],["tw","Track warrants"],["gcor","GCOR crew & speed"]];
+function renderCover(){
+  const box=$("xwCover");if(!box)return;
+  const ids=Object.keys(RUNS),secName=Object.fromEntries(SECTIONS);
+  document.querySelectorAll("[data-run]").forEach(b=>{
+    const def=RUNS[b.dataset.run],card=b.closest(".card");if(!def||!card||card.querySelector(".rules"))return;
+    const p=document.createElement("p");p.className="rules";
+    p.textContent="Tests: "+SECTIONS.filter(x=>(def.covers||[]).includes(x[0])).map(x=>x[1]).join(" · ");
+    card.insertBefore(p,card.querySelector(".xw-go"));
+  });
+  const rows=SECTIONS.map(([k,n])=>[n,ids.filter(id=>(RUNS[id].covers||[]).includes(k))]).filter(r=>r[1].length);
+  if(!rows.length)return;
+  box.innerHTML=`<b>Deck sections</b><ul>${rows.map(([n,rs])=>`<li><span>${esc(n)}</span> ${rs.map(id=>{
+    const b=document.querySelector(`[data-run="${id}"]`),h=b&&b.getAttribute("aria-describedby");
+    return h?`<a href="#${h}">${esc(RUNS[id].code)}</a>`:esc(RUNS[id].code)}).join(" ")}</li>`).join("")}</ul>`;
+  box.hidden=false;
 }
 function showStart(){
   $("xwStart").hidden=false;$("xwGame").hidden=true;
@@ -306,9 +326,9 @@ function title(){
   // the lettering sits on its own layer, drawn over the smoke
   const fg=document.createElement("canvas");fg.width=W;fg.height=H;
   {const keep=g;g=fg.getContext("2d");
-    text("PITTSBURGH & OHIO VALLEY","c",4,1,"#f4d9a0","#1b1830");
+    text("NEVILLE ISLAND","c",4,1,"#f4d9a0","#1b1830");
     text("EXTRA EAST","c",14,3,C.cream,"#7a2a24");
-    text("NEVILLE ISLAND","c",39,1,C.glow,"#1b1830");
+    text("HART RAILROAD","c",39,1,C.glow,"#1b1830");
     g=keep}
   // smoke and steam, drawn each frame
   function smoke(t){
@@ -342,6 +362,7 @@ function title(){
 }
 
 RUNS=window.NevilleRuns||{};
+renderCover();
 title();
 document.querySelectorAll("[data-run]").forEach(b=>b.onclick=()=>begin(b.dataset.run,b.hasAttribute("data-daily")));
 showStart();
