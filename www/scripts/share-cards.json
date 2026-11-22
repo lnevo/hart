@@ -85,8 +85,8 @@
     },
     "behind/layout-docs.html": {
       "image": "assets/share/behind-layout-docs.jpg",
-      "alt": "A bus wiring slide from the layout documentation, showing boosters, control nodes and the DCC control bus.",
-      "from": "www/assets/behind/layout-docs/slide-04.png"
+      "alt": "The power panel: DCC Specialties circuit breaker boards with their green lamps lit, terminal strips with red and black wire, and the TCS B-106 booster.",
+      "from": "docs/ap/electrical/photos/power-board.jpg"
     },
     "behind/panel-evolution.html": {
       "image": "assets/share/behind-panel-evolution.jpg",
