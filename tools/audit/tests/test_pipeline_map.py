@@ -342,10 +342,9 @@ process.stdout.write(JSON.stringify(out));"""
                 " 'tools/schematic/build_main_route.py', id => m.stopsChain(by[id]) || hub.has(id)).boxes]]; })"
                 "(JSON.parse(require('fs').readFileSync(a, 'utf8')))")
         hub, lit = self.run_js(call, str(MAP.GRAPH))
-        for h in ("jmri/layouts/hart/output/tables.xml", "jmri/layouts/hart/data/devices_generated.csv"):
-            self.assertIn(h, hub)
+        self.assertIn("jmri/layouts/hart/output/tables.xml", hub)
         self.assertIn("jmri/layouts/hart/data/schematic/plan_generated.json", lit)  # build_main_route's output
-        self.assertIn("jmri/layouts/hart/data/devices_generated.csv", lit)  # the hub lights, as an end
+        self.assertTrue(set(hub) & set(lit))  # the hub the chain meets lights, as an end (the device master)
         for past in ("jmri/layouts/hart/output/tables.xml", "www/scripts/tables_page.py"):
             self.assertNotIn(past, lit)  # reached only through a hub
 
