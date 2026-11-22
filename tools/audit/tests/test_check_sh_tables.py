@@ -53,7 +53,8 @@ class CheckShTables(unittest.TestCase):
                 break
             users |= more
         self.assertEqual(sorted(users), sorted(names))
-        self.assertIn('env PYTHONPATH=tools/audit/tests python3 -m unittest -q $LE_TESTS', text)
+        self.assertIn('PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -q \'"$LE_TESTS"',
+                      text)
         self.assertIn('" $LE_TESTS " == *" ${f%.py} "* ]] && continue', text)
 
     def test_every_import_form_is_seen(self) -> None:

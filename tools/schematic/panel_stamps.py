@@ -1,47 +1,69 @@
 #!/usr/bin/env python3
-"""Stamps for the `step`s of build_panels.sh: a step whose stamp equals its last successful run's is skipped.
+"""Traced stamps for the `step`s of build_panels.sh: a step whose recorded reads and outputs are unchanged is skipped.
 
-    panel_stamps.py current NAME [CMD ...]   exit 0 when NAME's stamp equals the recorded one (the step may be skipped)
-    panel_stamps.py record  NAME [CMD ...]   record NAME's stamp now (build_panels.sh does it after the step passed)
-    panel_stamps.py unstampable              prints why no stamp is recorded now and exits 1, or exits 0
-    panel_stamps.py forget  NAME             drop NAME's stamp (after a failure)
+    panel_stamps.py current NAME [CMD ...]               exit 0 when NAME's stamp still holds (the step may be skipped)
+    panel_stamps.py record  NAME --trace LOG [CMD ...]   record NAME's stamp from the trace of the run that just passed
+    panel_stamps.py why     NAME [CMD ...]               say why NAME is not current
+    panel_stamps.py unstampable                          prints why no stamp is recorded now and exits 1, or exits 0
+    panel_stamps.py forget  NAME                         drop NAME's stamp (after a failure)
 
-A stamp is the sha256 over the step's command line, every file its declaration names (STEPS: the inputs, the code that
-runs, the outputs), the schematic-maps plugin's commit and uncommitted changes (of the SCHEMATIC_PLUGIN folder when set), the
-Python (version, real path, PYTHONPATH), SCHEMATIC_REQUIRED, and, for the steps that publish, the merge base with origin/main. The outputs are in it, so an edited or
-deleted output makes the step run again, and the same stamp means "this step's inputs and outputs are what its last
-successful run left". Nothing is recorded, and nothing skipped, while HART_TABLES is set or the plugin is not at
-its pinned commit (unstampable), and build_panels.sh records nothing for a step that printed SKIPPED. The stamps are kept per checkout in .cache/panel-stamps/ (gitignored). `make panels FULL=1`
-ignores them. Guards never use them: they are cheap and they check.
+build_panels.sh runs each step with the trace hook of tools/audit/traced.py, which logs every repo file the step's
+Python processes open, every file they probe and find absent, every folder they list and every subprocess they
+start. After a pass the stamp records that read set with its hashes, and a key: the sha256 over the step's command
+line, its outputs (STEPS), the code every step may run (CODE, whole), the schematic-maps plugin's commit and
+uncommitted changes (of the SCHEMATIC_PLUGIN folder when set), the Python (version, real path, PYTHONPATH),
+SCHEMATIC_REQUIRED, and, for the steps that publish, the merge base with origin/main. The next run skips the step
+only when the key and every read-set entry match: each file's content, each miss's absence, each listing's names,
+and the output of each read-only git command the step ran (run again). An edit to one data file re-runs only the
+steps that read it.
 
-The risk is an input the declaration misses, so tests/test_panel_stamps.py runs every step under an audit hook and fails
-for any repo file it reads that its declaration does not cover. What the hook cannot see: a subprocess of a step (git,
-Chrome's PDF print of `schematic`) and the plugin's reads (covered by its commit). The `data` folder is declared whole
-for the heavy steps ("coarse" below), so a new data file can never be missed there.
+What the hook cannot see is a subprocess that is not a traced Python (bash, Chrome, git that writes). A step that
+ran one records nothing, so it always runs, unless STEPS names that program with the files it reads (`programs`;
+an output it reads is hashed already). Nothing is recorded, and nothing skipped, while HART_TABLES is set or the
+plugin is not at its pinned commit (unstampable), when the trace is missing or a Python child did not load the
+hook, or when a file the step read and did not write changed while it ran; build_panels.sh records nothing for a
+step that printed SKIPPED. The stamps are kept per checkout in .cache/panel-stamps/ (gitignored). `make panels
+FULL=1` ignores them (and records). Guards never use them: they are cheap and they check.
 """
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import os
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 STORE = ROOT / ".cache" / "panel-stamps"
 PLUGIN = ROOT / "external" / "model-railroad-skills"
 
+
+def _load_traced():
+    """tools/audit/traced.py, by path (this script cannot import hartlib: the shell test runs a copy of it)."""
+    if "_hart_traced" in sys.modules:
+        return sys.modules["_hart_traced"]
+    path = Path(__file__).resolve().parents[1] / "audit" / "traced.py"
+    spec = importlib.util.spec_from_file_location("_hart_traced", path)
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["_hart_traced"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+traced = _load_traced()
+
 DATA = "jmri/layouts/hart/data"
 # The device master's file names: the generated file the device-map and masts steps write, and the owner's field
-# file every step that reads the master reads (it is in ALL_DATA). This script cannot import hartlib (the shell test
-# runs a copy of it alone), so the names are here, and test_devices_one_path pins them to hartlib.devices.
+# file. This script cannot import hartlib (the shell test runs a copy of it alone), so the names are here, and
+# test_devices_one_path pins them to hartlib.devices.
 DEVICES_FILE = "devices_generated.csv"
 DEVICES_FIELD_FILE = "devices_field.csv"
 SCH = f"{DATA}/schematic"
 OUT = "jmri/layouts/hart/output"
 
-# The code every step may run, declared whole (coarse): hartlib, the schematic tools, the helpers they import.
+# The code every step may run, declared whole: hartlib, the schematic tools, the helpers they import, the trace hook.
 CODE = (
     "tools/hartlib/src/**/*.py",
     "tools/schematic/*.py",
@@ -50,47 +72,36 @@ CODE = (
     "jmri/layouts/hart/scripts/layout_facts.py",
     "jmri/layouts/hart/scripts/build_hart_signal_heads.py",
     "jmri/scripts/signal_coordinator.py",
+    *traced.HOOK_FILES,
 )
-# The shared source data: the whole data folder (coarse: a new file there is covered) and the parked tables.
-ALL_DATA = (f"{DATA}/**/*", "jmri/layouts/hart/parked/tables_parked.xml")
 
 
 @dataclass(frozen=True)
 class Step:
-    inputs: tuple[str, ...]
     outputs: tuple[str, ...]
     publishes: bool = False       # reads main's published files through git: the merge base with origin/main is input
+    # untraceable programs the step may run (matched by name, case-insensitive substring) -> the files they read
+    programs: dict[str, tuple[str, ...]] = field(default_factory=dict)
 
 
 STEPS: dict[str, Step] = {
-    "hands": Step(
-        (f"{SCH}/inputs/main.json", f"{SCH}/plan_overrides.json", f"{DATA}/switches.csv"),
-        (f"{DATA}/switches.csv",)),
+    "hands": Step((f"{DATA}/switches.csv",)),
     # plan_generated.json is an output of staging-sets, main-route and device-map (each replaces only its own keys, so it
     # reads the file it writes to carry the others' keys over) and an input of every step that draws from the plan.
-    "staging-sets": Step(
-        (f"{SCH}/plan_generated.json", f"{SCH}/preferences.json", f"{SCH}/sheets.csv", f"{SCH}/stations.csv",
-         f"{DATA}/switches.csv"),
-        (f"{SCH}/plan_generated.json", f"{SCH}/preferences.json")),
-    "main-route": Step(
-        (f"{SCH}/block_numbering.csv", f"{SCH}/inputs/*.json", f"{SCH}/main_lines.csv", f"{SCH}/plan_overrides.json",
-         f"{SCH}/plan_generated.json", f"{SCH}/preferences.json", f"{SCH}/signals.json", f"{SCH}/stations.csv",
-         f"{SCH}/sheets.csv", f"{DATA}/switches.csv"),
-        (f"{SCH}/plan_generated.json",)),
-    "device-map": Step(ALL_DATA, (f"{SCH}/plan_generated.json", f"{DATA}/{DEVICES_FILE}")),
-    "masts": Step(ALL_DATA, (f"{SCH}/masts.csv", f"{DATA}/{DEVICES_FILE}")),
-    "signals": Step(ALL_DATA, (f"{SCH}/signals.json",)),
-    "head-plan": Step((f"{DATA}/wiring.csv", f"{SCH}/lcos_nodes.csv"), (f"{OUT}/signal_head_plan.csv",)),
+    "staging-sets": Step((f"{SCH}/plan_generated.json", f"{SCH}/preferences.json")),
+    "main-route": Step((f"{SCH}/plan_generated.json",)),
+    "device-map": Step((f"{SCH}/plan_generated.json", f"{DATA}/{DEVICES_FILE}")),
+    "masts": Step((f"{SCH}/masts.csv", f"{DATA}/{DEVICES_FILE}")),
+    "signals": Step((f"{SCH}/signals.json",)),
+    "head-plan": Step((f"{OUT}/signal_head_plan.csv",)),
+    # Chrome prints the drawn sheet (an output) to PDF
     "schematic": Step(
-        (*ALL_DATA, "www/data/*.json", "www/crew/maps/*/index.html"),
         ("docs/ops/schematic-system-draft.*", "docs/ops/stations/*", "www/crew/maps/*/index.html",
          f"{SCH}/preferences.json"),
-        publishes=True),
-    "le-cutover": Step(ALL_DATA, (f"{OUT}/trial/*.xml",)),
-    "tables": Step((*ALL_DATA, f"{OUT}/trial/*.xml"), (f"{OUT}/tables.xml",)),
-    "cats": Step(
-        (*ALL_DATA, f"{OUT}/tables.xml", f"{OUT}/signal_head_plan.csv", f"{OUT}/trial/*.xml", "cats/data/*"),
-        ("cats/panels/HART_CTC.xml", "cats/panels/HART_ABS.xml", "cats/panels/HART_CTC.bindings.json")),
+        publishes=True, programs={"chrom": ()}),
+    "le-cutover": Step((f"{OUT}/trial/*.xml",)),
+    "tables": Step((f"{OUT}/tables.xml",)),
+    "cats": Step(("cats/panels/HART_CTC.xml", "cats/panels/HART_ABS.xml", "cats/panels/HART_CTC.bindings.json")),
 }
 
 SKIP_PARTS = {"__pycache__", ".DS_Store"}
@@ -104,39 +115,6 @@ def expand(patterns, root: Path = ROOT) -> list[Path]:
             if p.is_file() and not SKIP_PARTS & set(p.relative_to(root).parts):
                 found.add(p)
     return sorted(found)
-
-
-def covered(rel: str, step: str) -> bool:
-    """Is repo file `rel` named by `step`'s declaration (its inputs, outputs or the code every step may run), or the
-    plugin (stamped by its commit)?"""
-    if rel.startswith("external/model-railroad-skills/"):
-        return True
-    if rel.startswith(".cache/"):
-        # the shared build cache (hartlib.paths.cache_dir, in the main checkout since 2026-11-21): keyed on the
-        # real inputs, so it is no input of its own
-        return True
-    if "__pycache__" in rel.split("/"):
-        return True
-    s = STEPS[step]
-    for pat in (*s.inputs, *s.outputs, *CODE):
-        # glob "**/" matches zero or more folders; "*" stays within one folder, as in Path.glob
-        if _glob_match(rel, pat):
-            return True
-    return False
-
-
-def dir_covered(rel: str, step: str) -> bool:
-    """Is folder `rel` (listed or globbed by `step`) one a declaration reaches: a declared pattern's fixed folder is it,
-    inside it, or above it."""
-    if rel.startswith("external/model-railroad-skills") or rel == ".cache" or rel.startswith(".cache/") or rel in (".", "") or "__pycache__" in rel.split("/"):
-        return True
-    s = STEPS[step]
-    for pat in (*s.inputs, *s.outputs, *CODE):
-        head = pat.split("*", 1)[0]                     # the part before the first glob character
-        literal = head.rsplit("/", 1)[0] if "/" in head else ""
-        if rel == literal or rel.startswith(literal + "/") or literal.startswith(rel + "/"):
-            return True
-    return False
 
 
 def _glob_match(rel: str, pat: str) -> bool:
@@ -230,30 +208,77 @@ def digest(label: str, cmd, patterns, root: Path = ROOT, publishes: bool = False
     return h.hexdigest()
 
 
-def stamp(name: str, cmd: list[str] | tuple[str, ...] = (), root: Path = ROOT) -> str:
-    """The sha256 of step `name` as described in the module docstring."""
+def allowed(name: str, programs: list[str]) -> tuple[list[str], list[str]]:
+    """(the programs STEPS lets `name` run untraced, the ones it does not)."""
+    rules = STEPS[name].programs
+    ok = [p for p in programs if any(k.lower() in p.lower() for k in rules)]
+    return ok, [p for p in programs if p not in ok]
+
+
+def key(name: str, cmd, root: Path, programs: list[str], gits: list) -> str:
+    """The stamp key: the step's command, outputs, code, plugin, interpreter and environment, the untraced programs it
+    ran with the files STEPS says they read, and its git commands' output now."""
     step = STEPS[name]
-    return digest(name, cmd, (*step.inputs, *step.outputs, *CODE), root, step.publishes)
+    extra_pats = [pat for k, pats in step.programs.items() if any(k.lower() in p.lower() for p in programs)
+                  for pat in pats]
+    extra = f"programs={','.join(programs)}\ngit={','.join(traced.git_replay(gits, str(root)))}"
+    return digest(name, cmd, (*step.outputs, *CODE, *extra_pats), root, step.publishes, extra=extra)
 
 
 def _file(name: str, store: Path) -> Path:
-    return store / f"{name}.sha256"
+    return store / f"{name}.json"
+
+
+def why_not_current(name: str, cmd=(), root: Path = ROOT, store: Path = STORE) -> str | None:
+    """None when step `name` may be skipped, else why it must run."""
+    reason = unstampable(root)
+    if reason:
+        return reason
+    stamp = traced.load(_file(name, store))
+    if not stamp:
+        return "no stamp"
+    return traced.mismatch(stamp, key(name, cmd, root, stamp.get("programs", []), stamp.get("git", [])), str(root))
 
 
 def is_current(name: str, cmd=(), root: Path = ROOT, store: Path = STORE) -> bool:
-    f = _file(name, store)
-    return unstampable(root) is None and f.is_file() and f.read_text().strip() == stamp(name, cmd, root)
+    return why_not_current(name, cmd, root, store) is None
 
 
-def record(name: str, cmd=(), root: Path = ROOT, store: Path = STORE) -> None:
-    if unstampable(root) is not None:
-        return
-    store.mkdir(parents=True, exist_ok=True)
-    _file(name, store).write_text(stamp(name, cmd, root) + "\n")
+def record(name: str, trace_log, cmd=(), root: Path = ROOT, store: Path = STORE) -> str | None:
+    """Record `name`'s stamp from `trace_log`; None when recorded, else why not (and any old stamp is dropped)."""
+    reason = unstampable(root)
+    if reason is None:
+        t = traced.parse(trace_log)
+        reason = traced.problem(t)
+        if reason is None:
+            from_main = _main_checkout(root)
+            programs, gits = traced.untraced(t, str(root), (from_main,) if from_main else ())
+            ok, bad = allowed(name, programs)
+            if bad:
+                reason = f"ran {', '.join(bad)}, which the trace cannot see and STEPS does not declare"
+            else:
+                rs = traced.read_set(t, str(root))
+                late = traced.changed_since(t, rs, str(root), [p.relative_to(root).as_posix() for p in expand(CODE, root)])
+                if late:
+                    reason = f"{late[0]} changed while the step ran"
+                else:
+                    k = key(name, cmd, root, ok, gits)
+                    traced.save(_file(name, store), traced.make_stamp(k, t, str(root), programs=ok, git=gits))
+                    return None
+    forget(name, store)
+    return reason
+
+
+def _main_checkout(root: Path) -> str | None:
+    common = _git("rev-parse", "--path-format=absolute", "--git-common-dir", cwd=root)
+    if common.startswith("git-"):
+        return None
+    return str(Path(common).parent)
 
 
 def forget(name: str, store: Path = STORE) -> None:
     _file(name, store).unlink(missing_ok=True)
+    (store / f"{name}.sha256").unlink(missing_ok=True)      # the declared-input stamps before the traced ones
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -263,19 +288,27 @@ def main(argv: list[str] | None = None) -> int:
         if reason:
             print(reason)
         return 1 if reason else 0
-    if len(argv) < 2 or argv[0] not in ("current", "record", "forget"):
+    if len(argv) < 2 or argv[0] not in ("current", "record", "forget", "why"):
         print(__doc__.split("\n\n")[0], file=sys.stderr)
         return 2
-    action, name, cmd = argv[0], argv[1], argv[2:]
+    action, name, rest = argv[0], argv[1], argv[2:]
     if name not in STEPS:
         print(f"panel_stamps.py: no step {name!r} (known: {', '.join(STEPS)})", file=sys.stderr)
         return 2
     if action == "current":
-        return 0 if is_current(name, cmd) else 1
+        return 0 if is_current(name, rest) else 1
+    if action == "why":
+        print(why_not_current(name, rest) or "current")
+        return 0
     if action == "record":
-        record(name, cmd)
-    else:
-        forget(name)
+        if rest[:1] != ["--trace"] or len(rest) < 2:
+            print("panel_stamps.py record NAME --trace LOG [CMD ...]", file=sys.stderr)
+            return 2
+        reason = record(name, rest[1], rest[2:])
+        if reason:
+            print(f"   {name}: not stamped: {reason}")
+        return 0
+    forget(name)
     return 0
 
 

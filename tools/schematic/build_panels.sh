@@ -50,9 +50,12 @@
 # reaches. A write stops at the first failure, since what follows reads that step's output (step) or the files it
 # checks (guard); --check runs every step and names each stale one.
 #
-# Each step also has a stamp (tools/schematic/panel_stamps.py): while its inputs, its code, the plugin's commit and its
-# outputs are what its last successful run left, it prints "<name>: current, skipped" and does not run. The stamps are
-# kept per checkout in .cache/panel-stamps/; --full (make panels FULL=1) ignores them. Guards always run.
+# Each step also has a traced stamp (tools/schematic/panel_stamps.py, tools/audit/traced.py): a step runs under a hook
+# that logs the repo files its Python processes read, probe and list; while all of those, its outputs, its code and the
+# plugin's commit are what its last successful run left, it prints "<name>: current, skipped" and does not run, so an
+# edit re-runs only the steps that read the file. A step that ran a program the hook cannot see records nothing and
+# runs every time. The stamps are kept per checkout in .cache/panel-stamps/; --full (make panels FULL=1) ignores them
+# and records. Guards always run.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 
@@ -77,6 +80,14 @@ else
 fi
 
 failed=()
+# traced LOG CMD...: run CMD with the trace hook logging into LOG (tools/audit/traced.py), or plainly when LOG is empty.
+traced() {
+  local log=$1
+  shift
+  if [ -z "$log" ]; then "$@"; return; fi
+  env -u HART_TRACE_SPAWN HART_TRACE_LOG="$log" HART_TRACE_ROOT="$PWD" \
+    PYTHONPATH="$PWD/tools/audit/trace_hook${PYTHONPATH:+:$PYTHONPATH}" "$@"
+}
 # run_step STOP KIND NAME CMD...: KIND is "stamped" for a step (skipped while its stamp is the last successful run's,
 # tools/schematic/panel_stamps.py; --full ignores the stamps) and "guard" for a check that always runs.
 run_step() {
@@ -88,15 +99,25 @@ run_step() {
     return
   fi
   local out; out=$(mktemp)
-  if "$@" ${check[@]+"${check[@]}"} | tee "$out"; then
+  local trace=""
+  if [ "$kind" = stamped ] && [ "$nostamp" -eq 0 ]; then
+    trace=$(mktemp)
+    printf '0\tb\n' >"$trace"      # the runner starts one Python process: its start must be in the trace
+  fi
+  if traced "$trace" "$@" ${check[@]+"${check[@]}"} | tee "$out"; then
     echo "   $name: ok, $((SECONDS - start)) s"
     # a step that printed SKIPPED did not really run (plugin off its pin): it must not stamp
-    if [ "$kind" = stamped ] && [ "$nostamp" -eq 0 ]; then
-      if grep -q '^SKIPPED' "$out"; then echo "   $name: printed SKIPPED, no stamp"; else "${STAMPS[@]}" record "$name" "$@"; fi
+    if [ -n "$trace" ]; then
+      if grep -q '^SKIPPED' "$out"; then
+        echo "   $name: printed SKIPPED, no stamp"
+        "${STAMPS[@]}" forget "$name"
+      else
+        "${STAMPS[@]}" record "$name" --trace "$trace" "$@"
+      fi
     fi
-    rm -f "$out"
+    rm -f "$out" ${trace:+"$trace"}
   else
-    rm -f "$out"
+    rm -f "$out" ${trace:+"$trace"}
     echo "   $name: FAILED, $((SECONDS - start)) s"
     [ "$kind" = stamped ] && "${STAMPS[@]}" forget "$name"
     failed+=("$name")
