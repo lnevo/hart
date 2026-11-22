@@ -412,6 +412,13 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertIn("folder:d>folder:e:check", got)  # both links are checks
         self.assertIn("folder:d>f/t:pointer", got)
 
+    def test_box_at_a_point(self) -> None:
+        """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
+        boxes = [{"id": "a", "x": 0, "y": 0, "w": 10, "h": 5}, {"id": "b", "x": 20, "y": 0, "w": 10, "h": 5}]
+        self.assertEqual(self.run_js("a.pts.map(([x, y]) => m.boxAt(a.boxes, x, y))",
+                                     {"boxes": boxes, "pts": [[5, 2], [10, 5], [15, 2], [25, 4], [25, 6]]}),
+                         ["a", "a", None, "b", None])
+
     def test_line_note_names_both_ends_escaped(self) -> None:
         """edgeTip: the note over a hovered link names its ends and label, escaped, and says when it feeds back."""
         names = {"a": "a<b>.py", "b": "out & more"}

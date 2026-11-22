@@ -343,7 +343,7 @@ svg.hovering .edge.he.he.he3{stroke-opacity:.45;stroke-width:1.75px}
 svg.hovering .node.hn.hn2 .box{stroke-opacity:.6}
 svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:1.75px}
 .node.mag .box{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
-svg.lhover .node.mag{pointer-events:none}
+svg.lhover .node.mag,.node.mag:not(.hov){pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
 .hidden{display:none}
 .band{fill-opacity:.07}

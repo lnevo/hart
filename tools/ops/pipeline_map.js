@@ -353,6 +353,12 @@ function clickTarget(box, card, line, lineFirst = false) {
   return { clear: true };
 }
 
+/* The id of the first box in boxes ({id, x, y, w, h}) that holds the point x, y, or null. */
+function boxAt(boxes, x, y) {
+  const b = boxes.find(n => x >= n.x && x <= n.x + n.w && y >= n.y && y <= n.y + n.h);
+  return b ? b.id : null;
+}
+
 /* Whether a click e asks for a line's source: Cmd or Alt held, or Ctrl off a Mac (a Mac turns Ctrl-click into a right
    click, so no click arrives); Shift is the magnifier. */
 function sourceClick(e) {
@@ -643,7 +649,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -772,7 +778,7 @@ function app() {
   const layNode = {};  // id -> its box in lay, set in render
   function unmagnify(id) {
     const n = layNode[id], g = nodeEl[id];
-    if (g && n) { g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); g.classList.remove("mag"); }
+    if (g && n) { g.setAttribute("transform", `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`); g.classList.remove("mag", "hov"); }
   }
   function placeFar() {
     if (!svg) return;
@@ -864,7 +870,9 @@ function app() {
     if (id === hoverId || !svg) return;
     if (hoverEdge !== null) setEdgeHover(null);
     svg.querySelectorAll(".he,.hn").forEach(el => el.classList.remove("he", "hn", "he2", "he3", "hn2", "hn3"));
+    if (hoverId && nodeEl[hoverId]) nodeEl[hoverId].classList.remove("hov");
     hoverId = id && nodeEl[id] ? id : null;
+    if (hoverId) nodeEl[hoverId].classList.add("hov");  // its grown card alone takes the pointer; the others let it through
     svg.classList.toggle("hovering", !!hoverId);
     if (hoverId) {
       nodeEl[hoverId].classList.add("hn");
@@ -875,9 +883,17 @@ function app() {
     }
     updateFar();
   }
+  /* A grown card other than the hovered box's lets the pointer through (CSS: .node.mag:not(.hov)), so what is under
+     the pointer is what it is over in the drawing; the spot a grown box was drawn at still hovers that box. */
+  function grownUnder(e) {
+    const m = svg.getScreenCTM();
+    if (!m || !magnified.size) return null;
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    return boxAt([...magnified].filter(id => id !== hoverId).map(id => layNode[id]).filter(Boolean), p.x, p.y);
+  }
   wrapEl.addEventListener("pointerover", e => {
     if (drag) return;
-    const g = e.target.closest && e.target.closest(".node");
+    const g = (e.target.closest && e.target.closest(".node")) || (nodeEl[grownUnder(e)] || null);
     if (!g && e.target.classList && e.target.classList.contains("eh")) { setEdgeHover(Number(e.target.dataset.edge)); return; }
     setEdgeHover(null);
     setHover(g ? g.dataset.id : null);
