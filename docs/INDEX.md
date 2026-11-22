@@ -42,6 +42,10 @@ Documents about the CATS Digicon CTC desks, how their signals and turnouts get t
 - [history/README.md](ctc/history/README.md): Index of the dated screenshots kept to show how the USS CTC, CATS and Layout Editor panels grew, used for the evolution videos
 - Plus 22 image, css or script files
 
+## hosts
+
+- [PI_OS_REBUILD.md](hosts/PI_OS_REBUILD.md): This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi
+
 ## jmri
 
 Reference notes for JMRI work on the layout: block lengths, the CS-105 roster sync and the speed-matching record

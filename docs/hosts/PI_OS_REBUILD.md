@@ -1,0 +1,174 @@
+# Pi OS rebuild plan (draft, 2026-11-21)
+
+This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21, and this file is the written copy. Nothing has been built yet and nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
+
+## What the Pi runs now
+
+| | |
+|---|---|
+| Board | Raspberry Pi 5 Model B, 8 GB |
+| OS | Raspbian 12 (bookworm), 32-bit userland (`armhf`) |
+| Kernel | 6.12.115, 64-bit (updated 2026-11-17) |
+| Image | Built from "Raspberry Pi reference 2023-12-05", the bookworm base of Steve Todd's RPi-JMRI image |
+| Storage | 32 GB SD card, 40% used |
+| Software | Java 17 (32-bit), Python 3.11, JMRI 5.16; Docker runs STS from static 64-bit binaries ([ADR-020](../../wiki/decisions/ADR-020-live-sts-on-the-pi.md)) |
+
+Bookworm is one release behind. Raspberry Pi OS moved to Debian 13 (trixie) in October 2025, and bookworm is in Debian LTS. Because the userland is 32-bit, anything that ships only for 64-bit Linux needs workarounds or won't run at all: Docker, the ARMv7 build of arduino-cli, and Claude Code, which could not be installed on 2026-11-21.
+
+## Why rebuild, and why from scratch
+
+- Raspberry Pi doesn't support an in-place upgrade from bookworm to trixie, and that upgrade would keep the 32-bit userland anyway.
+- Steve Todd's RPi-JMRI image still uses a bookworm base, and probably a 32-bit one. Its page couldn't be read directly (it returns 403 to automated fetches), and the newest image found was July 2026 with JMRI 5.16. A new copy of it would bring a newer JMRI but neither trixie nor 64-bit.
+- So the new system starts from stock Raspberry Pi OS 64-bit (trixie). Steve's documented steps are followed, changed where trixie or HART differs.
+
+## How the card differs from Steve's setup
+
+- **Network:** the Pi isn't a hotspot. It joins the house Wi-Fi by DHCP and gets 10.0.0.150. The `RPi-JMRI` hotspot profile is still there but doesn't connect on its own.
+- **PanelPro:** it starts with the fixed `TCS_MQTT` profile, launched by the deploy scripts (`pi_start_panelpro.sh`), not at login and not through AutoIdentify.
+- **These exist only on this card, not in the repo:**
+  - the Wi-Fi watchdog in `/usr/local/sbin`
+  - the display setup (below)
+  - an iptables rule that forwards port 12090 to 10.42.0.222
+  - the Mosquitto config
+- **Extra services:** the Mosquitto broker, Docker running STS, the speed-match publisher (`hart-speedmatch-live`), and the `lcos-bridge` service with its udev rule. The bridge service is installed but turned off.
+
+## Build method: the image is made on the Mac
+
+The image is built and loaded with software before any card is written, and the Pi keeps running meanwhile.
+
+- **Where:** the Mac is an Apple M1 with Docker Desktop, and both are arm64 like the Pi 5. A privileged Debian arm64 container can open the downloaded Raspberry Pi OS trixie image, `chroot` into it and run `apt` natively, with no emulation. The Windows box would need qemu emulation, which is slower.
+- **Tool:** sdm (gitbls/sdm). It customises a stock Raspberry Pi OS image: packages, users, Wi-Fi, locale, files and services, plus first-boot steps. Its config and our files go in `tools/hosts/pi/os/`, so a rebuild is one command. The alternatives are Raspberry Pi's `rpi-image-gen` (more work to set up) or a plain loop-mount and chroot script.
+- **Time:** about 20 to 40 minutes to build, then Raspberry Pi Imager or `dd` writes the card.
+
+### Baked into the image
+
+- trixie 64-bit, fully upgraded: hostname `RPi-JMRI`, user `pi`, locale `en_US`, time zone `America/New_York`, IPv6 off
+- Java 21, Samba, CUPS (decision 5), Mosquitto with its config, wayvnc, Docker from docker.com's trixie arm64 repo, and the Python packages
+- the house Wi-Fi profile with power save off, and the hotspot profile if it's kept (decision 1), written as NetworkManager files
+- JMRI 5.16 unpacked to `~/JMRI.5.16` with `~/JMRI` linked to it, the desktop icons, the log link and the autostart choice (decision 3)
+- the Wi-Fi watchdog, the display files, `config.txt` and `cmdline.txt`, the iptables rules, the udev rule, the speed-match user service, and the `lcos-bridge` checkout with its service off
+- the old ssh host keys and `authorized_keys`, so the Mac and Windows don't see a changed host
+- `~/sts` checked out, with the STS Docker images pulled on the Mac and loaded at first boot
+- `JMRI_UserFiles` from the repo build (what `sync_hart_package.sh` ships)
+- Claude Code (normal installer, 64-bit)
+
+### Has to wait for the Pi
+
+- **First boot, automatic:** Docker loads the saved images and starts STS. With NVMe, the boot order goes into the Pi's EEPROM, which only the Pi can do.
+- **At swap time:** live data, copied from the old card at the last moment: the `~/.jmri` profile and preferences, the DecoderPro roster, the STS database (from a fresh `make sts-pull`), `mosquitto.db`, the speed-match ledger, and any Store or Operations Pro changes through the usual pulls.
+
+### Testing before the card is written
+
+There's no QEMU model of the Pi 5, so the image can't be booted on the Mac. What can be checked there: the image's userland in an arm64 container (Java starts JMRI headless, Mosquitto runs, the STS containers start), config linting, and a diff of the file list against the current card. PanelPro's screen, HDMI, Wi-Fi and the watchdog can only be tested on the Pi.
+
+## Phase 0: owner decisions
+
+1. Keep the hotspot profile (off, for a show or club setup), or drop it?
+2. Stay on an SD card, or move to an NVMe drive or USB SSD (faster, wears less)?
+3. Start PanelPro at login, or keep starting it only from deploys and `pi_start_panelpro.sh`?
+4. The 12090 forward to 10.42.0.222: drop it? It looks like an old WiThrottle setup.
+5. Printing (CUPS): keep or drop?
+
+Decided: Claude Code goes on the Pi with the rebuild, not before (owner, 2026-11-21).
+
+## Phase 1: copy everything off the current card
+
+With JMRI closed, after `make tables-pull-pi` and `make ops-pull`, and with nothing left unmerged:
+
+- `~/.jmri`: the TCS_MQTT profile and preferences. Copy the profile, don't rebuild it.
+- `~/JMRI_UserFiles`, mainly the DecoderPro roster. The deploy doesn't ship it, so the Pi's copy is the master.
+- STS: a fresh `make sts-pull` backup and `~/sts/sts-docker-data`.
+- `~/speedmatch` (ledger and rollback files) and the `lcos-bridge` checkout.
+- The Mosquitto config and `/var/lib/mosquitto/mosquitto.db` (retained messages).
+- The ssh host keys and `authorized_keys`.
+- The watchdog script and unit, the EDID files, `config.txt`, `cmdline.txt`, the kanshi configs, the udev rule, the NetworkManager profiles and the iptables rules.
+
+Most of this goes into the repo under `tools/hosts/pi/os/`. Secrets don't: Wi-Fi passwords and keys stay in a private backup.
+
+## Phase 2: Steve's steps, adapted
+
+| Steve's step | New build |
+|---|---|
+| Bookworm desktop image | Raspberry Pi OS 64-bit trixie desktop; hostname, user, ssh key, Wi-Fi, locale and time zone set by the image build (this replaces his Raspberry Pi Configuration step) |
+| `apt full-upgrade` | Same |
+| `openjdk-17-jre samba cups-bsd labwc` | trixie probably no longer ships Java 17, so `openjdk-21-jre`; check that JMRI 5.16 runs on it. labwc is already the default. Add `mosquitto mosquitto-clients python3-paho-mqtt python3-serial python3-flask git rsync`, plus Docker from docker.com |
+| Hotspot 192.168.6.1/24 | Only if kept (decision 1). The main link is the house Wi-Fi client connection |
+| Wired DHCP, IPv6 off | Same, on both connections |
+| `RPi-JMRI.local` | avahi does this by default |
+| Samba share | Two shares, as now: `JMRI_UserFiles` and `JMRI_Settings` (`~/.jmri`), plus `smbpasswd -a pi` |
+| `vncpasswd -service` (RealVNC) | wayvnc, the trixie default |
+| raspi-config → Wayland → labwc | Not needed, already the default |
+| Wi-Fi power save off | `nmcli c modify <house Wi-Fi> 802-11-wireless.powersave 2`, and the hotspot too if kept |
+| JMRI to `~/JMRI` | `~/JMRI.5.16` with `~/JMRI` linked to it, as the deploy scripts expect |
+| Hardware profiles, WiThrottle and web server autostart | Restore the copied `TCS_MQTT` profile (WiThrottle 12090 and web 12080 already set). Skip his set of hardware profiles |
+| Log symlink | Same: `~/JMRI_UserFiles/log` → `~/.jmri/log` |
+| Desktop icons, File Manager setting | `tools/hosts/pi/install_desktop_icons.sh` (CATS ABS and CTC, TrainStat), his log and user-files icons, and the File Manager option |
+| PanelPro autostart | Per decision 3. AutoIdentify isn't needed with one fixed profile |
+| `usermod -aG lpadmin` | Per decision 5. Also add `dialout`, `docker` and `gpio` |
+| Cleanup and Win32DiskImager image | Not needed, since nothing is published. Keep the old card as the rollback; once the new card is accepted, take a private image of it as a golden copy (it holds keys and Wi-Fi passwords, so it is never published) |
+
+## Phase 3: HART additions
+
+1. **Mosquitto:** listener on 1883, anonymous access and persistence as now, and `mosquitto.db` restored.
+2. **Docker and STS:** `sts-docker` and `sts-plugins` cloned into `~/sts`, started with `docker-compose.yml` plus `docker-compose.release.yml`, database restored from the Phase 1 backup. Per ADR-020 the Pi gets STS only by git pull and rebuild.
+3. **System files:** the Wi-Fi watchdog (script and unit), the display setup, and the iptables rules (without the 12090 forward if it's dropped).
+4. **Services:** `hart-speedmatch-live` (already in the repo), and `lcos-bridge` with its udev rule and service, left off unless the bridge has moved to the Pi by then.
+5. **Deploy:** `sync_hart_package.sh --pi --win` puts `JMRI_UserFiles` back from the repo; the roster is copied over the result.
+
+## Displays
+
+Each Pi HDMI port goes into an SFX HDMI Matrix: one directly, the other through a KVM shared with the Windows box. The matrix feeds the local monitor and the crew lounge screen, so the lounge can show the Pi while the local monitor is on Windows. Both outputs are needed. Nothing is set on the matrix or the monitors themselves.
+
+### Setup on the card (made 2026-02-21)
+
+- **Stored EDID:** the matrix's EDID was copied from `/sys/class/drm/card1-HDMI-A-{1,2}/edid` to `/lib/firmware/edid/edid.bin` and `edid2.bin`. The two files are identical, 256 bytes each.
+- **Kernel command line** (`/boot/firmware/cmdline.txt`):
+  ```
+  drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin
+  video=HDMI-A-1:1920x1080M@60,HDMI-A-2:1920x1080M@60
+  ```
+  `config.txt` also has `hdmi_edid_file=1`, an old firmware setting that the KMS driver probably ignores.
+- **Mirroring through kanshi:** both outputs at 1920×1080@60, position 0,0, in `~/.config/kanshi/config` (desktop) and `/etc/xdg/labwc-greeter/config.kanshi` (login screen).
+
+### What is wrong with it
+
+- **The stored EDID has never loaded.** Every boot logs `Requesting EDID firmware "edid/edid.bin" failed (err=-2)` for both ports. The initramfs (`auto_initramfs=1`) holds the graphics driver `vc4.ko` but not the EDID files, and the driver starts before the root filesystem is mounted. It falls back to whatever the matrix reports at that moment.
+- **The outputs seem to swap.** HDMI-A-1 and HDMI-A-2 are fixed to the physical sockets, so the names don't actually swap. The likely cause is the KVM: switched to Windows, it can drop the Pi's KVM-side output, and a boot in that state starts with one output. Then the kanshi profile, which needs both outputs, doesn't match, and labwc lays the outputs side by side. The matrix reports identical monitors on both ports, so make-and-model matching can't tell them apart. A `desktop-items-NOOP-1.conf` shows the Pi has booted at least once with no screen detected.
+- **The menu bar shows on one monitor.** labwc has no real mirror mode; outputs at 0,0 overlap, but the panel is drawn per output, and `wf-panel-pi` is pinned to `monitor=HDMI-A-1`.
+
+### Fixes
+
+1. **Keep both outputs present** whatever the KVM or matrix does: an initramfs hook so the stored EDID loads, and the `D` suffix on `video=` (`video=HDMI-A-1:1920x1080M@60D`, the same for HDMI-A-2) to force each port on.
+2. **Menu bar on both monitors:** a second `wf-panel-pi` started from the labwc autostart with its own `-c` config and `monitor=HDMI-A-2`. If the panel refuses to run twice, put the one panel on the port that goes straight to the matrix, so the crew lounge always has it.
+3. **Fallback kanshi profiles** for the one-output and no-output cases, so an odd boot still gets 1920×1080 at 0,0.
+4. **VNC** shows one output; with the overlap reliable, both show the same picture.
+
+On trixie, check whether vc4 still loads from the initramfs, and that the new Control Centre still uses kanshi and these paths and doesn't overwrite the mirror profile.
+
+### Next steps (waiting on the owner)
+
+1. **KVM flip test:** the owner switches the KVM to Windows and back while `/sys/class/drm/*/status` is watched over ssh, to find which Pi port goes to the KVM and whether it drops.
+2. **Trial on the current card** in a non-operating window: fixes 1 to 3, all reversible over ssh, or from the Mac if the Pi won't boot. Success: no EDID errors in the boot log, both outputs survive a KVM flip, and the menu bar is on both monitors.
+3. The proven setup then goes into the image (`tools/hosts/pi/os/display/`).
+
+## Phase 4: swap, with a way back
+
+There is one Pi 5, so this needs a maintenance window. Turn the operating flag on, pull, shut down, put in the new card or drive, boot, restore the live data and deploy. If anything fails, put the old card back; it isn't touched at any point.
+
+## Phase 5: acceptance checks
+
+1. `uname -m` and `dpkg --print-architecture` report `aarch64` and `arm64`.
+2. ssh from the Mac and Windows works with no host-key warning.
+3. Mosquitto answers on 10.0.0.150:1883 and the retained topics are back.
+4. PanelPro starts with TCS_MQTT; the web server (12080) and WiThrottle (12090) respond.
+5. CATS ABS and CTC open from their icons.
+6. STS on port 8980 shows the restored data.
+7. `make deploy-status` matches and `make panelpro-test` passes on the Mac.
+8. VNC and both Samba shares work.
+9. The watchdog runs, and after a cold boot both outputs show 1920×1080 mirrored on the login screen and the desktop, also when the matrix or KVM comes up late.
+10. A short operating session runs with the LCOS bridge.
+11. `claude --version` works.
+
+## Phase 6: write it down
+
+An ADR for the OS base (64-bit trixie built from the repo, not the RPi-JMRI image), `wiki/STATUS.md` updated, and the old card kept for about a month before reuse.
