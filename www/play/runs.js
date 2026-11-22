@@ -1,4 +1,4 @@
-/* The shifts of Extra East: Neville Island. The jobs, their hours, the tracks and the moves come from
+/* The shifts of Extra East: HART Railroad. The jobs, their hours, the tracks and the moves come from
    Mark Connolly's P&OV blog (see library/pittsburgh-ohio-valley-railway.html); the order of each shift,
    the draws and the events around them are invented for the game. Each decision names its source:
    GC/YL are the C&E study deck's GCOR and Yard Limits cards, PV a post on the blog.
@@ -49,7 +49,7 @@ const SI=["Plant tracks are not main track. Off the East Runner Main, GCOR 6.28 
 const NevilleRuns={
 
 /* ===================== #105, the ore job ===================== */
-j105:{pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981",start:420,end:930,engine:"#4",units:{"#4":"syard"},
+j105:{covers:["def","sig","gcor"],pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981",start:420,end:930,engine:"#4",units:{"#4":"syard"},
   cement:"Marquette",plants:plants(1981),si:SI,endPlace:"West Yard",
   tieUp:"#105 tied up at {t}.",
   coda:"The ore job was the one men wanted: daylight, Monday to Friday, on the clean end of the plant, and the senior men held it. In the early 1980s its engine was SW9 #4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/96556993685\" rel=\"noopener\">p.37</a>).",
@@ -97,7 +97,7 @@ j105:{pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981"
   }},
 
 /* ===================== #110, the furnace job ===================== */
-j110:{pace:3.5,code:"#110",name:"furnace job",year:"1984",dateLine:"January 1984",start:420,end:930,engine:"#6",units:{"#6":"eyard"},
+j110:{covers:["def","sig","gcor"],pace:3.5,code:"#110",name:"furnace job",year:"1984",dateLine:"January 1984",start:420,end:930,engine:"#6",units:{"#6":"eyard"},
   cement:"Lone Star",plants:plants(1984),si:SI,endPlace:"East Yard",tieUp:"#110 tied up at {t}.",
   coda:"The furnace job worked the east end, which Mark Connolly called a graphite and coke dust area: the two blast furnaces, the pig machine and the coke plant. John Doubt ran it often enough that a caption names it the Furnace Job (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783\" rel=\"noopener\">p.139</a>).",
   build(H){
@@ -161,7 +161,7 @@ j110:{pace:3.5,code:"#110",name:"furnace job",year:"1984",dateLine:"January 1984
   }},
 
 /* ===================== #115, the relief job ===================== */
-j115:{pace:3.5,code:"#115",name:"relief job",year:"1979",dateLine:"a Saturday in August 1979",start:420,end:930,engine:"#6",units:{"#6":"syard"},
+j115:{covers:["def","sig","yl","gcor"],pace:3.5,code:"#115",name:"relief job",year:"1979",dateLine:"a Saturday in August 1979",start:420,end:930,engine:"#6",units:{"#6":"syard"},
   cement:"Marquette",plants:plants(1979),si:SI,endPlace:"South Yard",tieUp:"#115 tied up at {t}.",
   coda:"Mark Connolly lists the relief job's week: Monday and Tuesday midnight, Wednesday on the second trick, Saturday and Sunday daylight. In August 1979 Larry Obusek had SW9 #6 on it, with Joe Adamcik on the front of the engine, about to roll across the scale (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45196985396\" rel=\"noopener\">p.126</a>).",
   build(H){
@@ -206,7 +206,7 @@ j115:{pace:3.5,code:"#115",name:"relief job",year:"1979",dateLine:"a Saturday in
   }},
 
 /* ===================== #205, second trick ===================== */
-j205:{pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in 1987",start:960,end:1440,engine:"#3",units:{"#3":"scale"},
+j205:{covers:["def","sig","yl","gcor"],pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in 1987",start:960,end:1440,engine:"#3",units:{"#3":"scale"},
   cement:"Lone Star",plants:plants(1987),si:SI,endPlace:"the yard office",tieUp:"#205 tied up at {t}.",
   coda:"Elmer Picard held the second trick as a steady job and came to work in a sport coat and tie. Mark Connolly said he looked like he owned the place when he filled out his time sheet (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060\" rel=\"noopener\">p.67</a>).",
   build(H){
@@ -254,7 +254,7 @@ j205:{pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in
   }},
 
 /* ===================== #305, midnight ===================== */
-j305:{pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a winter night, early 1980s",start:0,end:420,engine:"#3",units:{"#3":"scale"},
+j305:{covers:["sig","gcor"],pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a winter night, early 1980s",start:0,end:420,engine:"#3",units:{"#3":"scale"},
   cement:"Marquette",plants:plants(1981),si:SI,endPlace:"S9",tieUp:"#305 tied up at {t}, its engine on S9 for sand.",
   coda:"The midnight crews finished by spotting the engine on S9 for sand and going home. In a 1980 photo that engine is #3, just west of the scale, with the track gang loading sand by the bucket (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">p.99</a>).",
   build(H){
@@ -293,7 +293,7 @@ j305:{pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a wi
   }},
 
 /* ===================== EXTRA ===================== */
-extra:{pace:4,code:"EXTRA",name:"called off the extra board",year:"1988",dateLine:"1988",start:780,end:1260,engine:"#4",units:{"#4":"scale"},
+extra:{covers:["def","sig","gcor"],pace:4,code:"EXTRA",name:"called off the extra board",year:"1988",dateLine:"1988",start:780,end:1260,engine:"#4",units:{"#4":"scale"},
   cement:"Lone Star",plants:plants(1988),si:SI,endPlace:"the yard office",tieUp:"The extra tied up at {t}.",
   coda:"An extra was called when the plant was super busy or the scale was down. Asked in 1988 why railroad employees were not guaranteed 40 hours a week, John Iwanonkiw answered: “Cause we were on the extra board for all those years!” (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/60848620277\" rel=\"noopener\">p.62</a>).",
   build(H){
@@ -336,7 +336,7 @@ extra:{pace:4,code:"EXTRA",name:"called off the extra board",year:"1988",dateLin
   }},
 
 /* ===================== South Yard: the yardmaster ===================== */
-ym:{pace:3,code:"YM",name:"yardmaster at South Yard",year:"1990",dateLine:"early December 1990",start:420,end:930,engine:"YM",units:{"YM":"scale","#4":"wyard","#6":"eyard"},
+ym:{covers:["def","sig","yl","gcor"],pace:3,code:"YM",name:"yardmaster at South Yard",year:"1990",dateLine:"early December 1990",start:420,end:930,engine:"YM",units:{"YM":"scale","#4":"wyard","#6":"eyard"},
   cement:"Lone Star",plants:plants(1990),foundryClosed:true,si:["You are the yardmaster in the yard office by South Yard: the switching orders, the weigh and the yard are yours.",SI[0],SI[1]],
   endPlace:"the yard office",tieUp:"The day's work at South Yard was done at {t}.",
   coda:"B furnace's last casts came in December 1990, when the <i>Post-Gazette</i> expected it to run dry on the 5th or 6th, and the foundry had closed on 30 November by the same report. After that the east end was a coke plant (<a href=\"../library/pittsburgh-ohio-valley-railway.html\">the P&amp;OV page</a>).",
