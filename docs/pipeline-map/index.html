@@ -228,8 +228,9 @@ function inversions(arr) {
 /* nodes: [{id, domain, label, desc, path, status}], edges: [{from, to}], domains: [{id}] in lane order.
    Returns the nodes with x, y, w, h; the edges with pts and back (true when the edge closes a cycle and was drawn
    turned round); the lanes (bands) with y and h; and the drawing's width and height. aspect (height over width of
-   the screen area the map is fitted to, 0 for none) makes the lanes taller, sharing out the spare height evenly, when
-   the drawing would otherwise leave an empty band under its last lane at Fit. */
+   the screen area the map is fitted to, 0 for none) stretches the drawing downward to that shape when it would
+   otherwise leave an empty band under its last lane at Fit: the lanes share the spare height evenly and their boxes
+   spread out over it. */
 function layout(nodes, edges, domains, aspect = 0) {
   if (!nodes.length) return { nodes: [], edges: [], bands: [], width: NODE_W, height: 200 };
   const byId = new Map(nodes.map(n => [n.id, n]));
@@ -353,13 +354,8 @@ function layout(nodes, edges, domains, aspect = 0) {
     bandTop.set(d.id, y);
     y += bandH.get(d.id);
   }
-  const shown = domains.filter(d => bandH.get(d.id)), drawW = nRanks * (NODE_W + COL_GAP) - COL_GAP;
-  const spare = aspect > 0 && shown.length ? (drawW + LEFT + 60) * aspect - y : 0;  // the page's W is drawW + LEFT + 60
-  if (spare > 0) {  // lanes fill the screen's height at Fit: each gets an equal share of the spare height
-    y = 0;
-    for (const d of domains) { bandTop.set(d.id, y); if (bandH.get(d.id)) bandH.set(d.id, bandH.get(d.id) + spare / shown.length); y += bandH.get(d.id); }
-  }
-  const totalH = y;
+  const drawW = nRanks * (NODE_W + COL_GAP) - COL_GAP;
+  let totalH = y;
   const ys = new Map();
   for (const layer of layers) {
     for (const d of domains) {
@@ -395,6 +391,22 @@ function layout(nodes, edges, domains, aspect = 0) {
         }
         col.forEach((v, i) => ys.set(v, place[i]));
       }
+    }
+  }
+
+  // stretch: a drawing shorter than the screen's shape at Fit is stretched downward lane by lane, each lane getting an
+  // equal share of the spare height. Box centres move apart in proportion and boxes keep their size, so each lane's
+  // boxes spread over its new height, centred as they were, and no two come closer.
+  const shown = domains.filter(d => bandH.get(d.id));
+  const spare = aspect > 0 && shown.length ? (drawW + LEFT + 60) * aspect - totalH : 0;  // the page's W is drawW + LEFT + 60
+  if (spare > 0) {
+    const was = new Map(shown.map(d => [d.id, [bandTop.get(d.id), bandH.get(d.id)]]));
+    let top = 0;
+    for (const d of domains) { bandTop.set(d.id, top); if (bandH.get(d.id)) bandH.set(d.id, bandH.get(d.id) + spare / shown.length); top += bandH.get(d.id); }
+    totalH = top;
+    for (const [v, vy] of ys) {
+      const d = domain(v), [t0, h0] = was.get(d), c = vy + height(v) / 2;
+      ys.set(v, bandTop.get(d) + (c - t0) * bandH.get(d) / h0 - height(v) / 2);
     }
   }
 

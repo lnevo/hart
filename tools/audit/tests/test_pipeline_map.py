@@ -130,7 +130,7 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual([(e["from"], e["to"]) for e in back], [("out", "gen")])
 
     def test_lanes_grow_to_fill_a_tall_screen(self) -> None:
-        """layout with an aspect: a short drawing's lanes share the spare height evenly, so the drawing's height over
+        """layout with an aspect: a short drawing is stretched, its lanes sharing the spare height evenly, so the drawing's height over
         its page width (width + 240) matches the screen; boxes stay inside their lanes; a tall drawing is unchanged."""
         plain, tall = js_layout(self.graph()), js_layout(self.graph(), 2.0)
         page_w = tall["width"] + 240  # LEFT + 60 either side of the boxes, as drawSvg sets W
@@ -143,6 +143,11 @@ class LayoutTest(unittest.TestCase):
             b = bands[n["domain"]]
             self.assertTrue(b["y"] <= n["y"] and n["y"] + n["h"] <= b["y"] + b["h"], n["id"])
         self.assertEqual(js_layout(self.graph(), 0.0001)["height"], plain["height"])
+        # stretched, not pushed to one edge: each box's centre keeps its share of the way down its lane
+        pb, pn = {b["id"]: b for b in plain["bands"]}, {n["id"]: n for n in plain["nodes"]}
+        for n in tall["nodes"]:
+            p, bp, bt = pn[n["id"]], pb[n["domain"]], bands[n["domain"]]
+            self.assertAlmostEqual((n["y"] + n["h"] / 2 - bt["y"]) / bt["h"], (p["y"] + p["h"] / 2 - bp["y"]) / bp["h"], places=6)
 
     def test_nodes_stay_in_their_lane_without_overlap(self) -> None:
         for graph in (self.graph(), json.loads(MAP.GRAPH.read_text())):
