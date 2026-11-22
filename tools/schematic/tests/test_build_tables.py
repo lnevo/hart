@@ -70,7 +70,9 @@ class Generated(unittest.TestCase):
     def test_the_output_holds_its_sources_once(self) -> None:
         root = tables.loads(generated()[0]).root
         bt.check(root)                                   # the invariants hold on the committed output
-        self.assertEqual(1, len(root.findall("LayoutEditor")))
+        # the full panel and its three band panels (band_panels.py, 2026-11-22)
+        self.assertEqual(["HART Railroad", *tables.BAND_PANEL_NAMES.values()],
+                         [p.get("name") for p in root.findall("LayoutEditor")])
         self.assertEqual("LayoutEditor", list(tables.elements(root))[-1].tag)
         dup = tables.loads(generated()[0]).root
         dup.find("memories").append(tables.section(dup, "memories", "memory")[0].__copy__())

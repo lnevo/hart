@@ -71,6 +71,9 @@ GROUP_HEADS = {"start": "At the start", "objects": "Objects", "panels": "Panels"
 PANELS = {
     "USS CTC": "The lever machine, a Panel Editor screen.",
     "HART Railroad": "The track diagram, a Layout Editor panel.",
+    "Staging Level": "The staging level alone, a copy of the track diagram; hidden when the file loads.",
+    "Main Level": "The main level alone, a copy of the track diagram; hidden when the file loads.",
+    "Upper Level": "The upper level alone, a copy of the track diagram; hidden when the file loads.",
     "Dispatcher System": "A Layout Editor panel drawn by the Dispatcher System package.",
 }
 # The parked features (hartlib.parked.PARKED): their sections and panels are not in the file; the page lists them in
@@ -290,8 +293,9 @@ def facts(raw: bytes, root) -> dict:
         else:
             raise PageError(f"tables.xml: ConditionalNG {sysname} has a {a.tag} action the page does not describe")
         rows.append((c.findtext("userName") or sysname, *what))
-    if not rows or not rows[-1][3]:
-        raise PageError("tables.xml: the last ConditionalNG no longer runs a script, as the page says")
+    if sum(1 for r in rows if r[3]) != 1:
+        raise PageError("tables.xml: the page says one ConditionalNG runs a script; "
+                        f"{sum(1 for r in rows if r[3])} do")
     f["logixng"] = {"name": ng.findtext("userName") or ng_sys, "rows": rows}
     return f
 

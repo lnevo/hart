@@ -755,13 +755,27 @@ def audit_dispatcher_startup(root: ET.Element, audit: Audit) -> None:
     audit.facts["dispatcher_startup_script"] = tuple(actions)
 
 
-def expected_bundle(parked_features=None) -> tuple[int, int, int]:
+def expected_bundle(parked_features=None, band_panels: bool = True) -> tuple[int, int, int]:
     """(ctcdata, Panel Editor panels, Layout Editor panels) the deployment tables hold: the USS CTC machine's data and
-    panel, the main panel, its band panels (tables.BAND_PANEL_NAMES, 2026-11-22) and the Dispatcher System's, less
-    those parked (hartlib.parked)."""
+    panel, the main panel, its band panels (tables.BAND_PANEL_NAMES, 2026-11-22; `band_panels` False for the Layout
+    Editor build alone, before build_tables.py adds them) and the Dispatcher System's, less those parked
+    (hartlib.parked)."""
     parked_features = parked.PARKED if parked_features is None else parked_features
     uss = 0 if "uss" in parked_features else 1
-    return uss, uss, 1 + len(tables.BAND_PANEL_NAMES) + (0 if "dispatcher" in parked_features else 1)
+    bands = len(tables.BAND_PANEL_NAMES) if band_panels else 0
+    return uss, uss, 1 + bands + (0 if "dispatcher" in parked_features else 1)
+
+
+def band_panels_in(root: ET.Element) -> bool:
+    """Whether the tables hold the band panels: all of them (True) or none (False, the Layout Editor build before
+    build_tables.py adds them); ValueError on some but not all, naming the missing ones."""
+    names = {(p.get("name") or "").strip() for p in tables.layout_editors(root)}
+    want = set(tables.BAND_PANEL_NAMES.values())
+    if not names & want:
+        return False
+    if want - names:
+        raise ValueError(f"band panels missing: {', '.join(sorted(want - names))} (build_tables.py adds all three)")
+    return True
 
 
 def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: bool = False) -> None:
@@ -771,7 +785,12 @@ def audit_generated_dispatcher(root: ET.Element, audit: Audit, *, generated: boo
         len(root.findall("LayoutEditor")),
     )
     left_out = parked.parked_in(root)      # the parked features these tables leave out (hartlib.parked)
-    want_bundle = expected_bundle(left_out)
+    try:
+        bands = band_panels_in(root)
+    except ValueError as exc:
+        audit.error(str(exc))
+        bands = True
+    want_bundle = expected_bundle(left_out, bands)
     if ctc_bundle != want_bundle:
         audit.error(
             "deployment bundle expected ctcdata={}, paneleditor={}, LayoutEditor={}; found {}".format(
