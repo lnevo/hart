@@ -12,6 +12,9 @@ const WRAP = 44, LEFT = 180, BAND_RUN = 100000;  // BAND_RUN: how far the lane c
 const WIDE = { nodeW: 250, colGap: 150, titleWrap: 30 };
 const NARROW = { nodeW: 180, colGap: 80, titleWrap: 22 };
 const stepOf = geo => geo.nodeW + geo.colGap;
+/* A geometry spread k times across (the step strip's Width slider): wider boxes, wider gaps and longer title lines, so
+   zooming into the width gives the boxes the room instead of stretching their text. */
+const spreadGeo = (geo, k) => (k === 1 ? geo : { nodeW: Math.round(geo.nodeW * k), colGap: Math.round(geo.colGap * k), titleWrap: Math.round(geo.titleWrap * k) });
 
 /* Greedy word wrap; a word longer than the width is cut. */
 function wrap(text, width) {
@@ -721,7 +724,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -742,7 +745,7 @@ function app() {
   const allLanes = DATA.domains.map(d => d.id);
 
   const view = { lanes: new Set(allLanes), parked: false, retired: false, focus: null, up: Infinity, down: Infinity, trim: false,
-                 kindsOff: new Set(), compact: true, group: false, open: new Set(), hover: true, near: false };
+                 kindsOff: new Set(), compact: true, group: false, open: new Set(), hover: true, near: false, spread: 1 };
   let groups = { members: {}, groupOf: {} }, gNodes = {}, lastBox = null;  // folder boxes in the current drawing; the last file box picked
   const nodeOf = id => byId[id] || gNodes[id];
   let selected = null, lay = null, svg = null, vb = null, W = 0, H = 0;
@@ -1059,8 +1062,8 @@ function app() {
     sub = subset();
     const old = vb && keepView ? { x: vb.x, y: vb.y, w: vb.width, h: vb.height } : null;
     const asked = aspect !== undefined;
-    if (!asked) aspect = fitAspect();
-    lay = layout(sub.nodes, sub.edges, DATA.domains, aspect, view.compact ? NARROW : WIDE);
+    if (!asked) aspect = fitAspect() / view.spread;  // spread across: the lanes keep the height they have at 1x
+    lay = layout(sub.nodes, sub.edges, DATA.domains, aspect, spreadGeo(view.compact ? NARROW : WIDE, view.spread));
     lay.aspect = aspect;
     wrapEl.innerHTML = drawSvg(lay);
     svg = document.getElementById("map");
@@ -1087,7 +1090,7 @@ function app() {
     if (selected && !visible.has(selected) && visible.has(groups.groupOf[selected])) selected = groups.groupOf[selected];  // folded away: its folder
     if (selected && visible.has(selected)) select(selected, true);
     else { const had = selected; selected = null; info.style.display = "none"; if (had) writeHash(); }
-    if (!old && !asked && !settled && Math.abs(fitAspect() - aspect) > 0.01) { render(false, undefined, true); return; }  // the panel changed the area
+    if (!old && !asked && !settled && Math.abs(fitAspect() / view.spread - aspect) > 0.01) { render(false, undefined, true); return; }  // the panel changed the area
     if (!old) fit();  // after the info panel is shown or hidden, so the fit leaves room for it
     else setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again against the panel as it is now
     updateNav();
@@ -1181,6 +1184,7 @@ function app() {
     return { top: a.top / a.r.height, right: a.right / a.r.width, bottom: a.bottom / a.r.height };
   }
   /* ---- step headers along the top and lane names down the left, pinned to the screen while the map moves under them */
+  const spreadCtl = document.getElementById("spreadctl"), spreadIn = document.getElementById("spread"), spreadOut = document.getElementById("spreadn");
   const legend = document.getElementById("legend"), rulers = document.getElementById("rulers"), steps = document.getElementById("steps"), laneTags = document.getElementById("lanetags");
   legend.addEventListener("toggle", () => drawRulers());  // open, it is taller: the tags beside it move up
   let colKinds = [];  // per column: what its boxes are, for the header's tooltip
@@ -1234,6 +1238,7 @@ function app() {
     const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
     const top = a.top - STRIP_H - 4;  // the strip sits in the room freeArea keeps for it, just under the toolbar
     steps.style.top = `${top}px`; steps.style.width = `${a.right}px`;
+    spreadCtl.style.top = `${top + 1}px`; spreadCtl.style.left = `${Math.max(0, a.right - spreadCtl.offsetWidth - 8)}px`;
     const x0 = (0 - m.e + r.left) / m.a, x1 = (a.right - m.e + r.left) / m.a, last = lay.columns - 1;
     const t = stepTicks(lay.columns, x0, x1, m.a, lay.geo), out = [];
     let edge = -Infinity;  // right end of the last label placed; a label that would overlap it is left out
@@ -1324,7 +1329,7 @@ function app() {
   const FIT_PAD = 28;  // px of margin round the whole drawing at Fit, the furthest zoom out
   /* The widest view allowed: the Fit width (at least 200), or Infinity while the map has no size yet (hidden). */
   function maxWidth(free = freeShare()) {
-    const fw = fitView(W, H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD).width;
+    const fw = fitView(fitW(), H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD).width;
     return Number.isFinite(fw) && fw > 0 ? Math.max(fw, 200) : Infinity;
   }
   /* The free area's height over its width, for layout's lanes; 0 while the map has no size yet (hidden). */
@@ -1354,8 +1359,26 @@ function app() {
     return { r, top, right, bottom };
   }
   let fitted = false;  // whether the whole drawing was in the free area at the last move (updateNav)
-  function fit() {  // the whole drawing in the free area
-    const f = fitView(W, H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
+  // the width Fit shows: the whole drawing, or spread across (Width slider) the first 1/k of it, lanes filling the height
+  const fitW = () => (view.spread > 1 ? (W - LEFT - 60) / view.spread + LEFT + 60 : W);
+  /* The step strip's Width slider: spreads the steps k times across (spreadGeo) and lays the map out again; the same
+     part of the drawing stays in the middle of the view, its lanes filling the height. */
+  function setSpread(k, quiet) {
+    k = Math.min(4, Math.max(1, Math.round(k * 4) / 4));
+    spreadIn.value = String(k); spreadOut.textContent = `${k}×`;
+    if (k === view.spread) return;
+    const mid = lay && W > 0 ? (vb.x + vb.width / 2 + LEFT) / W : 0;  // the middle of the view, as a share of the width
+    view.spread = k;
+    render(false);
+    if (mid > 0 && k > 1) {  // back to the same part of the drawing, lanes still filling the height
+      const f = fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
+      setVB(mid * W - LEFT - f.width / 2, f.y, f.width, f.height);
+    }
+    if (!quiet) writeHash();
+  }
+  spreadIn.addEventListener("input", () => setSpread(Number(spreadIn.value)));
+  function fit() {  // the whole drawing in the free area (spread: its lanes' full height, from the left)
+    const f = fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
     setVB(f.x, f.y, f.width, f.height);
   }
   function zoomAt(f, cx, cy) {
@@ -1844,6 +1867,7 @@ function app() {
     document.getElementById("group").checked = view.group;
     document.getElementById("hover").checked = view.hover;
     document.getElementById("near").checked = view.near;
+    spreadIn.value = String(view.spread); spreadOut.textContent = `${view.spread}×`;
   }
   lanesBox.addEventListener("change", e => {
     const lane = e.target.dataset.lane;
@@ -1888,6 +1912,7 @@ function app() {
     if (!view.compact) h.set("compact", "0");  // compact is the default
     if (!view.hover) h.set("hover", "0");  // hover highlights are on by default
     if (view.near) h.set("near", "1");
+    if (view.spread > 1) h.set("width", String(view.spread));
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
     if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
@@ -1915,6 +1940,7 @@ function app() {
     view.compact = h.get("compact") !== "0";
     view.hover = h.get("hover") !== "0";
     view.near = h.get("near") === "1";
+    view.spread = Math.min(4, Math.max(1, Math.round((Number(h.get("width")) || 1) * 4) / 4));
     view.group = h.get("folders") === "1";
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");
