@@ -231,13 +231,21 @@ class StagedOnce(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp_name:
             tmp = Path(tmp_name)
             env = stage_env(tmp)
-            real = shutil.which("python3")
+            # Log every python3 call, then hand it to the shared stub (python_stub), which stands in for the deploy's
+            # build_tables.py --check. That check regenerates the whole panel: on a CI runner whose schematic cache is
+            # cold (a branch that bumps the plugin) it ran past 600 s (2026-11-21, #876, #889, #898). It is
+            # test_deploy_gates' and check.sh's job; this test counts the builds of the package.
+            python_stub(tmp)
+            stub = tmp / "bin/python3-stub"
+            (tmp / "bin/python3").rename(stub)
             tool = tmp / "bin/python3"
-            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{real}" "$@"\n', encoding="utf-8")
+            tool.write_text(f'#!/bin/bash\necho "$*" >>"{tmp}/python.log"\nexec "{stub}" "$@"\n', encoding="utf-8")
             tool.chmod(0o755)
             done = run(SYNC, tmp / "stage", env, "--pi", "--win")
             self.assertEqual(done.returncode, 0, done.stderr[-2000:])
             calls = (tmp / "python.log").read_text(encoding="utf-8").splitlines()
+            # the tables check went to the stub, not a real whole-panel solve
+            self.assertIn("build_tables.py --check", (tmp / "tables_check.log").read_text(encoding="utf-8"))
             self.assertEqual(1, sum("build_mimic_web.py" in c for c in calls), calls)
             self.assertEqual(1, sum("publish_live.py --build-page" in c for c in calls), calls)
             # the panels are rewritten per host, each panel once per host
