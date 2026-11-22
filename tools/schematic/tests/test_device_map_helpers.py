@@ -4,6 +4,7 @@ taken_bean_names. They pin the behaviour the split of build_device_map.py into d
 device_map_staging.py keeps; none needs the schematic plugin."""
 from __future__ import annotations
 
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -13,6 +14,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 sys.path[:0] = [str(HERE.parent), str(ROOT / "tools/hartlib/src")]
 import build_device_map as bdm  # noqa: E402
+import device_map_inputs as inputs  # noqa: E402
 from hartlib import devices, railroad, wiring  # noqa: E402
 
 WIRING_HEAD = ",".join(wiring.COLUMNS) + "\n"
@@ -154,6 +156,32 @@ class StagingHelpers(unittest.TestCase):
         self.assertNotIn("IB:AUTO:0060", got)
         self.assertNotIn("ILB60", got)
         self.assertLessEqual({"IB:AUTO:0061", "ILB61", "IB:AUTO:0010", "ILB10"}, got)
+
+
+class TheSplit(TempFiles):
+    """The readers live in device_map_inputs.py, which never loads the builder; build_device_map re-exports them."""
+    READERS = ("CPS", "FIELD_LEVEL", "NODES", "OS_BLOCK", "PINS", "STATIONS", "UID", "WIRING", "Places", "StagingPin",
+               "frozen_wires", "helix_pins", "loop_placeholder", "read_places", "read_staging_pins", "staging_nodes",
+               "wiring_rows")
+
+    def test_the_builder_re_exports_the_readers(self):
+        for name in self.READERS:
+            with self.subTest(name=name):
+                self.assertIs(getattr(bdm, name), getattr(inputs, name))
+        self.assertIs(bdm.SOURCES, inputs.SOURCES)
+
+    def test_the_readers_do_not_load_the_builder(self):
+        code = "import sys; import device_map_inputs; sys.exit('build_device_map' in sys.modules)"
+        got = subprocess.run([sys.executable, "-c", code], cwd=HERE.parent, capture_output=True, text=True)
+        self.assertEqual(got.returncode, 0, got.stderr)
+
+    def test_read_pins_needs_its_tracks(self):
+        """The reader takes the tracks it resolves against; the builder's read_pins gives the solved schematic's."""
+        with self.assertRaises(TypeError):
+            inputs.read_pins(None)          # pylint: disable=no-value-for-parameter
+        p = self.file("wiring.csv", WIRING_HEAD + "2,detector,OS Switch 123,,,,,42,1,,,planned,\n")
+        self.assertEqual(inputs.read_pins(p, [], set()), {"OS Switch 123": (42, 0)})
+        self.assertEqual(bdm.read_pins(p, found=[], split=set()), {"OS Switch 123": (42, 0)})
 
 
 if __name__ == "__main__":
