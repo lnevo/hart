@@ -230,7 +230,7 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(len(opened["edges"]), 4)
 
     def test_fit_leaves_room_for_the_panel(self) -> None:
-        """fitView: the drawing fills the free area left of an info panel, centred there, and showsAll agrees; the
+        """fitView: the drawing fills the free area left of an info panel, against its top, and showsAll agrees; the
         same view counts as not showing everything once the panel covers part of it."""
         free = {"top": 0.1, "right": 0.6, "bottom": 1}
         out = self.run_js("(() => { const f = m.fitView(1000, 500, 100, a.free, 1000, 800);"
@@ -242,8 +242,8 @@ class LayoutTest(unittest.TestCase):
         right_px = left_px + 1000 / s
         self.assertAlmostEqual(left_px, 0, places=3)  # width-limited: it spans the 600 px left of the panel
         self.assertAlmostEqual(right_px, 600, places=3)
-        top_px, bottom_px = -view["y"] / s, (-view["y"] + 500) / s
-        self.assertAlmostEqual((top_px + bottom_px) / 2, (80 + 800) / 2, places=3)  # centred below the toolbar
+        top_px = -view["y"] / s
+        self.assertAlmostEqual(top_px, 80, places=3)  # starts just under the toolbar and step strip, no band above
         self.assertTrue(fits)
         self.assertFalse(covered)
 

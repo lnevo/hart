@@ -472,11 +472,12 @@ function showsAll(v, W, H, left, free) {
   return v.x <= -left + 1 && top <= 1 && right >= W - left - 1 && bottom >= H - 1;
 }
 
-/* The viewBox that fits the whole drawing into the free area, centred there, for a map of sw x sh px. */
+/* The viewBox that fits the whole drawing into the free area, for a map of sw x sh px: centred across, and against
+   the top of the area (just under the step strip) so a wide drawing leaves no empty band above its first lane. */
 function fitView(W, H, left, free, sw, sh) {
   const w = free.right * sw, top = free.top * sh, h = Math.max(free.bottom * sh - top, 1);
   const s = Math.max(W / w, H / h);
-  const ox = (w - W / s) / 2, oy = top + (h - H / s) / 2;  // where the drawing's top left lands, in px
+  const ox = (w - W / s) / 2, oy = top;  // where the drawing's top left lands, in px
   return { x: -left - ox * s, y: -oy * s, width: sw * s, height: sh * s };  // the viewBox's own field names
 }
 
