@@ -229,16 +229,15 @@ class LayoutTest(unittest.TestCase):
         got = self.run_js("[m.lineEnd(a, false, () => true), m.lineEnd(a, true, () => true), m.lineEnd(a, true, id => id === 'b')]", edge)
         self.assertEqual(got, ["b", "a", None])
 
-    def test_grown_box_moves_in_to_stay_on_screen_unless_hovered(self) -> None:
-        """growRect: a box grown past the screen's right edge or above the free area moves in; the hovered box stays
-        put, so it stays under the pointer."""
+    def test_grown_box_moves_in_to_stay_on_screen(self) -> None:
+        """growRect: a box grown past the screen's right edge or above the free area moves in, the hovered one too."""
         area = {"left": 0, "top": 100, "right": 1000, "bottom": 800}
         mid = self.run_js("m.growRect(500, 400, 80, 20, a)", area)
         self.assertEqual((mid["dx"], mid["dy"], mid["x0"], mid["y1"]), (0, 0, 418, 422))
         edge = self.run_js("m.growRect(980, 110, 80, 20, a)", area)
         self.assertEqual((edge["dx"], edge["dy"]), (1000 - 84 - 980, 124 - 110))
-        held = self.run_js("m.growRect(980, 110, 80, 20, a, true)", area)
-        self.assertEqual((held["dx"], held["dy"]), (0, 0))
+        corner = self.run_js("m.growRect(5, 795, 80, 20, a)", area)  # bottom left: in from both edges
+        self.assertEqual((corner["dx"], corner["dy"], corner["x0"], corner["y1"]), (79, -19, 2, 798))
 
     def test_long_link_runs_level_across_the_columns_it_skips(self) -> None:
         """layout: a link that skips three columns runs through each at one height, so it is drawn as a straight run,
