@@ -465,17 +465,23 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(self.run_js("m.onlyOne(a, ['layout', 'wiring'], 'website')", lanes), [])
         self.assertEqual(self.run_js("m.onlyOne(a, a, 'wiring')", lanes), ["layout", "website"])
 
+    def test_steps_shown(self) -> None:
+        """spreadFor: showing n of cols steps spreads them cols/n times; at least 3 and at most all are shown."""
+        self.assertEqual(self.run_js("[m.spreadFor(46, 46), m.spreadFor(46, 23), m.spreadFor(46, 1), m.spreadFor(46, 99), m.spreadFor(2, 1)]", None),
+                         [1, 2, 46 / 3, 1, 1])
+
     def test_spread_geometry(self) -> None:
-        """spreadGeo: the Width slider widens boxes, gaps and title lines k times; 1x is the geometry as it is."""
-        self.assertEqual(self.run_js("m.spreadGeo(m.NARROW, 2)", None), {"nodeW": 360, "colGap": 160, "titleWrap": 44, "descWrap": 88})
+        """spreadGeo: the Width slider makes each step k times as wide; the boxes keep their size; 1x is as it is."""
+        g = self.run_js("m.spreadGeo(m.NARROW, 2)", None)
+        self.assertEqual((g["nodeW"], g["titleWrap"], g["nodeW"] + g["colGap"]), (180, 22, 2 * (180 + 80)))
         self.assertEqual(self.run_js("m.spreadGeo(m.WIDE, 1) === m.WIDE", None), True)
-        wide = self.run_js("(() => { const g = m.spreadGeo(m.NARROW, 2.5);"
-                           " const l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW), l2 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.2, g);"
-                           " return [l2.width / l1.width, l2.nodes[0].w]; })()",
+        wide = self.run_js("(() => { const l1 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.5, m.NARROW),"
+                           " l2 = m.layout(a.nodes, a.edges, [{id: 'x'}], 0.2, m.spreadGeo(m.NARROW, 2.5));"
+                           " return [(l2.nodes[1].x - l2.nodes[0].x) / (l1.nodes[1].x - l1.nodes[0].x), l2.nodes[0].w]; })()",
                            {"nodes": [{"id": "a", "label": "a", "domain": "x"}, {"id": "b", "label": "b", "domain": "x"}],
                             "edges": [{"from": "a", "to": "b"}]})
-        self.assertGreater(wide[0], 2)  # the drawing spreads across
-        self.assertEqual(wide[1], 450)  # and each box is wider
+        self.assertAlmostEqual(wide[0], 2.5, places=2)  # the steps spread
+        self.assertEqual(wide[1], 180)  # the boxes do not
 
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""
