@@ -369,3 +369,4 @@ fi
 collect
 if [[ "$fail" -eq 0 ]]; then echo "ALL PASSED"; else echo "FAILED"; fi
 exit "$fail"
+# proof only (PR #924): a comment change
