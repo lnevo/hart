@@ -317,11 +317,12 @@ process.stdout.write(JSON.stringify(out));"""
                                                          {"label": "panel stamps", "path": ".cache/panel-stamps"},
                                                          {"label": "docs/cache_notes.md", "path": "docs/cache_notes.md"},
                                                          None]), [True, True, True, False, False])
-        graph = json.loads(MAP.GRAPH.read_text())
-        call = ("(() => { const by = {}; a.nodes.forEach(n => { by[n.id] = n; });"
-                " return [...m.linkChain(a.edges, 'jmri/layouts/hart/data/schematic/inputs/staging.json',"
-                " 'tools/schematic/publish_draft.py', id => m.stopsChain(by[id])).boxes]; })()")
-        lit = self.run_js(call, graph)
+        # the map is read from its file: passed on the command line it is over Linux's per-argument limit
+        call = ("(g => { const by = {}; g.nodes.forEach(n => { by[n.id] = n; });"
+                " return [...m.linkChain(g.edges, 'jmri/layouts/hart/data/schematic/inputs/staging.json',"
+                " 'tools/schematic/publish_draft.py', id => m.stopsChain(by[id])).boxes]; })"
+                "(JSON.parse(require('fs').readFileSync(a, 'utf8')))")
+        lit = self.run_js(call, str(MAP.GRAPH))
         self.assertIn("ext:schematic-cache", lit)  # the cache itself still lights, as an end
         self.assertIn("docs/ops/schematic-system-draft.pdf", lit)  # publish_draft's own output
         for past in ("tools/schematic/build_tables.py", "jmri/layouts/hart/output/tables.xml"):
