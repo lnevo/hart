@@ -12,7 +12,7 @@ from actions/cache, then asks `decide`. A skip means: a job whose stamp matches 
 it passed with on that main commit (tools/audit/check_stamps.py: its traced read set, check.sh and the hook, the
 interpreter, the plugin and the environment). Any doubt is a full run, with the reason in the log:
 
-- the full-ci label on the pull request, or [full-ci] in its head commit's message;
+- the full-ci label on the pull request, or [full-ci] in one of its commit messages;
 - the plugin pin differs from the base's;
 - the change touches the machinery that makes or reads the stamps, or the workflow itself (MACHINERY);
 - no manifest, an unreadable one, or one for another commit than the merge base, another runner image, OS,
@@ -46,6 +46,8 @@ MACHINERY = (
     "tools/audit/trace_hook/",
     "tools/schematic/panel_stamps.py",
     "tools/hosts/profile_tables_guard.sh",
+    "tools/hartlib/src/hartlib/paths.py",     # check_stamps: the stamp folder and main_checkout (what counts as traced)
+    "tools/audit/stamp_audit/",
 )
 SHA = re.compile(r"[0-9a-f]{40}")
 
@@ -91,7 +93,7 @@ def decide(folder: Path, base: str, changed: list[str], pin_changed: bool = Fals
     if LABEL in labels:
         return f"the pull request has the {LABEL} label"
     if TOKEN in message:
-        return f"the head commit's message has {TOKEN}"
+        return f"a commit message of the pull request has {TOKEN}"
     if pin_changed:
         return "the plugin pin differs from the base's"
     touched = machinery(changed)
@@ -144,7 +146,7 @@ def main(argv: list[str] | None = None) -> int:
     try:
         message = a.message_file.read_text(encoding="utf-8", errors="replace") if a.message_file else ""
     except OSError as e:
-        print(f"full: the head commit's message cannot be read: {e}")
+        print(f"full: the commit messages cannot be read: {e}")
         return 3
     reason = decide(a.dir, a.base, sys.stdin.read().splitlines(), a.pin_changed == "true", a.labels.split(","), message)
     print("skip" if reason is None else f"full: {reason}")

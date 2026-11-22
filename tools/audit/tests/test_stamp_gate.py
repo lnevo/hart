@@ -78,7 +78,8 @@ class DecideTest(unittest.TestCase):
     def test_a_change_to_check_sh_the_workflow_or_the_stamp_code_forces_full(self) -> None:
         for p in ("tools/check.sh", ".github/workflows/check.yml", "tools/ci/stamp_gate.py", "tools/ci/changed_kind.py",
                   "tools/audit/check_stamps.py", "tools/audit/traced.py", "tools/audit/trace_hook/sitecustomize.py",
-                  "tools/schematic/panel_stamps.py", "./tools/check.sh"):
+                  "tools/schematic/panel_stamps.py", "tools/hartlib/src/hartlib/paths.py",
+                  "tools/audit/stamp_audit/sitecustomize.py", "./tools/check.sh"):
             with self.subTest(p):
                 self.assertIn("machinery", self.decide(changed=[*DATA, p]))
         for p in ("tools/check.sh.bak", "tools/cia.py", ".github/workflows/other.yml", "tools/audit/tracedx.py"):
@@ -158,6 +159,24 @@ class CheckShModesTest(unittest.TestCase):
             done = self.check_sh(CI="1", CHECK_SKIP_FROM=str(stamps))
             self.assertIn("--- unit-mimic (", done.stdout)
 
+    def test_the_jobs_never_inherit_the_modes(self) -> None:
+        """A job that runs check.sh itself (test_check_stamps.AuditTest) must not see main's stamp folder."""
+        text = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
+        start = text.index('SKIP_NOTE="current"')
+        block = text[start:text.index("\n", text.index("unset CHECK_RECORD_TO")) + 1]
+        show = ('env | grep -E "^CHECK_(RECORD_TO|SKIP_FROM|SKIP_NOTE|STAMPS_DIR)=" || true\n'
+                'echo "NOTE=$SKIP_NOTE ENV=${STAMP_ENV[*]}"\n')
+        with tempfile.TemporaryDirectory() as d:
+            for mode in ("CHECK_RECORD_TO", "CHECK_SKIP_FROM"):
+                with self.subTest(mode):
+                    env = {k: v for k, v in os.environ.items() if not k.startswith("CHECK_")}
+                    done = subprocess.run(["bash", "-c", "STAMPS=0\nRECORD=0\n" + block + show],
+                                          env={**env, "CI": "1", mode: d, "CHECK_SKIP_NOTE": "current on main abc"},
+                                          capture_output=True, text=True, timeout=30)
+                    self.assertEqual(0, done.returncode, done.stderr)
+                    self.assertNotRegex(done.stdout, r"(?m)^CHECK_")
+                    self.assertIn(f"ENV=CHECK_STAMPS_DIR={d}", done.stdout)
+
     def test_the_modes_are_for_ci_only_and_one_at_a_time(self) -> None:
         with tempfile.TemporaryDirectory() as d:
             done = self.check_sh(CHECK_SKIP_FROM=d)
@@ -190,10 +209,50 @@ class WorkflowTest(unittest.TestCase):
         self.assertIn("key: check-stamps-${{ github.sha }}", self.text[save:])
         self.assertLess(self.text.index("run: ./tools/check.sh"), save)
 
-    def test_the_docs_path_and_the_label_trigger(self) -> None:
+    def test_the_docs_path_and_no_label_trigger(self) -> None:
+        """No `labeled` trigger: a run for any label would cancel the pull request's run in progress (the gate reads
+        the labels live, so a re-run after adding full-ci sees it)."""
         self.assertIn("if: github.event_name == 'pull_request' && steps.kind.outputs.kind != 'docs'", self.text)
-        self.assertIn("labeled", self.text[:self.text.index("push:")])
+        self.assertNotIn("types:", self.text[:self.text.index("push:")])
         self.assertIn("|| labels=full-ci", self.text)
+
+    def gate_block(self) -> str:
+        start = self.text.index("        run: |", self.text.index("name: Skip what main covered?"))
+        lines = []
+        for line in self.text[start:].splitlines()[1:]:
+            if line.strip() and not line.startswith("          "):
+                break
+            lines.append(line[10:])
+        return "\n".join(lines) + "\n"
+
+    def run_gate(self, gh: str, base: str) -> tuple[subprocess.CompletedProcess, str]:
+        """The gate step's script under `bash -e` (GitHub's default shell), with a stand-in gh on PATH, in this
+        checkout (HEAD^1 and HEAD are any two commits: the paths between them are what the gate sees)."""
+        with tempfile.TemporaryDirectory() as d:
+            stub = Path(d) / "bin"
+            stub.mkdir()
+            (stub / "gh").write_text("#!/bin/sh\n" + gh)
+            (stub / "gh").chmod(0o755)
+            out = Path(d) / "out"
+            env = {**os.environ, "PATH": f"{stub}:{os.environ['PATH']}", "GITHUB_OUTPUT": str(out),
+                   "GITHUB_REPOSITORY": "o/r", "GITHUB_WORKSPACE": str(ROOT), "RUNNER_TEMP": d, "PR": "1",
+                   "BASE": base, "PIN_CHANGED": "false", "GH_TOKEN": "x"}
+            done = subprocess.run(["bash", "-e", "-c", self.gate_block()], cwd=ROOT, env=env, capture_output=True,
+                                  text=True, timeout=60)
+            return done, out.read_text() if out.exists() else ""
+
+    def test_a_full_verdict_runs_everything_and_does_not_end_the_step(self) -> None:
+        done, out = self.run_gate('case "$*" in *labels*) echo docs;; *) echo "fix: a thing";; esac\n', "b" * 40)
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertIn("full: ", done.stdout)
+        self.assertIn("::notice::every check.sh job runs", done.stdout)
+        self.assertNotIn("skip_from=", out)
+
+    def test_a_failed_label_or_message_lookup_runs_everything(self) -> None:
+        done, out = self.run_gate("exit 1\n", "b" * 40)
+        self.assertEqual(0, done.returncode, done.stdout + done.stderr)
+        self.assertIn("full: the pull request has the full-ci label", done.stdout)
+        self.assertNotIn("skip_from=", out)
 
 
 if __name__ == "__main__":
