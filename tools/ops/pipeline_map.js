@@ -19,6 +19,7 @@ const stepOf = geo => geo.nodeW + geo.colGap;
 const BOX_GROW = 2.5;
 function spreadFor(cols, n, geo = NARROW, cap = BOX_GROW) {
   if (cols < 2 || !(n < cols)) return 1;
+  cap = Math.max(1, cap);  // boxes never shrink (spreadGeo)
   const step = stepOf(geo), span = (cols - 1) * step + geo.nodeW, gaps = (Math.max(2, Math.round(n)) - 1) * step;
   const k = span / (gaps + geo.nodeW);  // boxes widen as much as the steps
   return k <= cap ? k : (span - cap * geo.nodeW) / gaps;  // past cap the boxes stop and the steps go on
@@ -1093,7 +1094,8 @@ function app() {
       const l0 = layout(sub.nodes, sub.edges, DATA.domains, 0, base);
       colsOf = l0.columns; natH = l0.height;
     }
-    const tall = screen > 0 && natH > 0 ? ((colsOf - 1) * stepOf(base) + base.nodeW + LEFT + 60) * screen / natH : BOX_GROW;
+    // a shared view (its own lane stretch, no screen of ours) takes the sharer's cap, so the boxes come out as they had them
+    const tall = screen > 0 && natH > 0 ? ((colsOf - 1) * stepOf(base) + base.nodeW + LEFT + 60) * screen / natH : view.sharedCap || BOX_GROW;
     view.boxCap = Math.max(1, Math.min(BOX_GROW, tall));
     return colsOf;
   }
@@ -1182,7 +1184,6 @@ function app() {
     view.lanes = new Set(allLanes); view.kindsOff.clear(); view.parked = view.retired = false;
     view.compact = true; view.group = false; view.open.clear(); view.trim = false;
     document.getElementById("labels").checked = true;
-    if (view.steps) { view.steps = 0; syncControls(); render(false); writeHash(); return; }  // Steps back to all: the whole map
     syncControls(); renderKeeping(); writeHash();
   }
 
@@ -1427,7 +1428,7 @@ function app() {
     return Math.abs(vb.width - f.width) <= t && Math.abs(vb.x - f.x) <= t && Math.abs(vb.y - f.y) <= t;
   }
   // the width Fit shows: the whole drawing, or spread (Steps slider) the first steps shown, lanes filling the height
-  const fitW = () => (view.spread > 1 ? (Math.min(view.steps, lay.columns) - 1) * stepOf(lay.geo) + lay.geo.nodeW + LEFT + 60 : W);
+  const fitW = () => (view.spread > 1 ? (Math.min(Math.max(view.steps, Math.min(3, lay.columns)), lay.columns) - 1) * stepOf(lay.geo) + lay.geo.nodeW + LEFT + 60 : W);
   /* The step strip's Steps slider: how many steps show across the screen, the lanes keeping their full height. The map
      is laid out again with the steps spread apart (spreadFor, spreadGeo: the boxes widen up to BOX_GROW times and the
      gap takes the rest), so fewer steps fill the width and each box has more room; the same part of the drawing stays in the middle. */
@@ -1445,6 +1446,7 @@ function app() {
     const half = freeShare().right / 2, mid = lay && lay.width > 0 ? (vb.x + half * vb.width) / lay.width : 0;
     view.steps = want;
     render(false);
+    capReady = false;  // the next drag works the cap out for the map as drawn now
     if (mid > 0 && view.spread > 1) {  // back to the same part of the drawing, lanes still filling the height
       const f = fitNow();
       setVB(mid * lay.width - half * f.width, f.y, f.width, f.height);
@@ -1453,19 +1455,19 @@ function app() {
     if (!quiet) writeHash();
   }
   // dragging moves the label; letting go (or a key) lays the map out once; a drag ended where it began fires no change
-  spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; clearTimeout(wheelRest); });
+  spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; capReady = false; clearTimeout(wheelRest); });
   ["pointerup", "pointercancel", "blur"].forEach(t => spreadIn.addEventListener(t, () => { spreadDrag = false; }));
   /* While the thumb moves, the drawing stretches across at once as a preview (the steps spread about the middle of the
      view, the boxes and text drawn wide for the moment); letting go lays it out properly, once (a full layout takes a
      moment), and the boxes then grow in height too, so the lanes settle on release. */
-  let previewFrame = 0;
+  let previewFrame = 0, capReady = false;  // capReady: boxRoom worked out for this drag
   function previewSteps() {
     previewFrame = 0;
     if (!svg || !lay) return;
     if (magnified.size) { magnified.forEach(unmagnify); magnified = new Set(); }  // grown boxes would stretch with it
     steps.style.visibility = "hidden";  // the step headers come back with the layout on release
     const cols = Math.max(lay.columns || 1, 1), n = Number(spreadIn.value);
-    if (!view.steps) boxRoom(view.compact ? NARROW : WIDE, lay.screen || fitAspect());  // from all steps: the cap is not known yet
+    if (!view.steps && !capReady) { boxRoom(view.compact ? NARROW : WIDE, lay.screen || fitAspect()); capReady = true; }  // from all steps: once a drag
     const sx = spreadFor(cols, n, view.compact ? NARROW : WIDE, view.boxCap) / view.spread, m = svg.getScreenCTM(), r = wrapEl.getBoundingClientRect();
     if (!m) return;
     const cx = (r.left + freeArea().right / 2 - m.e) / m.a;  // the drawing x at the middle of the free area
@@ -1511,7 +1513,9 @@ function app() {
   /* The Fit view: the whole drawing in the free area, or with the Steps slider set that many steps across from the left,
      every lane top to bottom (the boxes grow only as far as the lanes have room). */
   function fitNow() {
-    return fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
+    // lanes taller than the screen's shape for those steps (a map already tall at 1x): fit the steps across, pan down
+    const tooTall = view.spread > 1 && lay.screen > 0 && H > fitW() * lay.screen * 1.02;
+    return fitView(fitW(), tooTall ? 1 : H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
   }
   function fit() {
     const f = fitNow();
@@ -2048,7 +2052,8 @@ function app() {
     if (!view.compact) h.set("compact", "0");  // compact is the default
     if (!view.hover) h.set("hover", "0");  // hover highlights are on by default
     if (view.near) h.set("near", "1");
-    if (view.steps) h.set("steps", String(view.steps));  // (an older width= link is ignored: it meant wider boxes)
+    if (view.steps) h.set("steps", String(view.steps));
+    if (withView && view.steps && view.boxCap) h.set("cap", String(+view.boxCap.toFixed(3)));  // with the sharer's box size  // (an older width= link is ignored: it meant wider boxes)
     if (view.group) { h.set("folders", "1"); if (view.open.size) h.set("open", [...view.open].join(",")); }
     if (selected) h.set("node", selected);
     if (withView) h.set("at", [vb.x, vb.y, vb.width].map(v => Math.round(v)).concat(lay.aspect ? [+lay.aspect.toFixed(4)] : []).join(","));  // with the sharer's lane stretch
@@ -2076,7 +2081,10 @@ function app() {
     view.compact = h.get("compact") !== "0";
     view.hover = h.get("hover") !== "0";
     view.near = h.get("near") === "1";
-    view.steps = Math.max(0, Math.round(Number(h.get("steps")) || 0));  // clamped to the map's columns when it is drawn
+    const st = Math.round(Number(h.get("steps")) || 0);
+    view.steps = st > 0 ? Math.max(3, st) : 0;  // at least 3, as the slider; clamped to the map's columns when it is drawn
+    const cap = Number(h.get("cap"));
+    view.sharedCap = cap > 0 ? Math.min(BOX_GROW, Math.max(1, cap)) : 0;
     view.group = h.get("folders") === "1";
     view.open = new Set(view.group && h.get("open") ? h.get("open").split(",") : []);
     const node = h.get("node");

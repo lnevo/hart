@@ -474,6 +474,8 @@ process.stdout.write(JSON.stringify(out));"""
         span = self.run_js("(() => { const k = m.spreadFor(46, 6, m.NARROW, 1.5), g = m.spreadGeo(m.NARROW, k, 1.5);"
                            " return [5 * (g.nodeW + g.colGap) + g.nodeW, 45 * 260 + 180]; })()", None)
         self.assertLessEqual(abs(span[0] - span[1]), 5)
+        self.assertAlmostEqual(self.run_js("m.spreadFor(46, 6, m.NARROW, 0.5)", None),
+                               self.run_js("m.spreadFor(46, 6, m.NARROW, 1)", None))  # a cap below 1 is 1, as in spreadGeo
 
     def test_layout_uses_spread_geometry(self) -> None:
         """layout with spreadGeo: columns k steps apart and boxes at the spread width."""
