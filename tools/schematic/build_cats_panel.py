@@ -84,8 +84,6 @@ OUT = pd.REPO / "cats/panels/HART_CTC.xml"
 OUT_ABS = OUT.with_name("HART_ABS.xml")
 BINDINGS = OUT.with_name("HART_CTC.bindings.json")
 BOUND_LEVEL = 1        # the level bound to JMRI: staging's band (its `level` in plan_overrides.json's staging section)
-# The release candidate tables (build_layout_le.py --as-live): every name the desk binds must be in it
-TABLES_CANDIDATE = paths.LAYOUT_OUTPUT / "trial/tables_cutover.xml"
 # The desks' window, cells per grid unit, helix blocks and row gaps are page preferences (preferences.json[main_upper]:
 # cats_window, cats_cells_per_unit, cats_helix_blocks, cats_band_gap, cats_title_gap) the plugin reads (schematic/cats_prefs.py, cats.options),
 # which also gives the cells the desk must fit in that window. cats_window is not set there: publish_draft.solved_sheet

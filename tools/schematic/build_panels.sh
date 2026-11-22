@@ -26,14 +26,12 @@
 #   head-plan             signal_head_plan.csv (build_hart_signal_heads.py --wiring-only), from wiring.csv's wired heads;
 #                         the CATS desks read its templates, so it runs before cats
 #   schematic             the schematic draft and stations (publish_draft.py)
-#   le-cutover            build_layout_le.py --as-live: the three-level candidate and the staging candidate it holds
-#                         (the viewing trials are retired, owner 2026-11-17: the candidates show every level)
-#   approved-candidate    check_approved.py on the cut-over candidate, straight after it is written
 #   sml-current           the discovered Signal Mast Logic was discovered from the beans the sources give now:
 #                         data/schematic/discovered_sml.stamp holds the sha256 of the discovery base it came from
 #                         (run_sml_discover.sh writes it); a mismatch says to rerun discovery on the Mac. Always runs
 #   tables                tables.xml (build_tables.py): the template, the staging beans of the device master, the Layout
-#                         Editor build, the discovered Signal Mast Logic (ADR-029: tables.xml is an output)
+#                         Editor build (build_layout_le.build, in memory), the discovered Signal Mast Logic (ADR-029:
+#                         tables.xml is an output)
 #   signals-sync          every level's heads and masts in tables.xml follow masts.csv (sync_signals.py
 #                         --check), in both modes; after tables, which generates them from the device master
 #   device-master         the device master is checked against tables.xml and the schematic (check_device_master.py
@@ -139,8 +137,6 @@ step masts python3 tools/schematic/build_masts.py
 step signals python3 tools/schematic/build_signals.py
 step head-plan python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 step schematic python3 tools/schematic/publish_draft.py
-step le-cutover python3 tools/schematic/build_layout_le.py --as-live
-guard approved-candidate python3 tools/schematic/check_approved.py le-candidate
 guard sml-current python3 tools/schematic/check_sml_current.py
 step tables python3 tools/schematic/build_tables.py
 guard signals-sync python3 tools/schematic/sync_signals.py --check
