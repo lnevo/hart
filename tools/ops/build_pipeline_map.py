@@ -29,6 +29,7 @@ import functools
 import html
 import importlib.util
 import json
+import re
 import shlex
 import subprocess
 import sys
@@ -455,6 +456,22 @@ def check_public_page(page: str) -> None:
         raise GraphError("the public page holds the private name")
 
 
+REPO_URL = "https://github.com/lnevo/hart"
+
+
+def code_links() -> dict:
+    """Where the sidebar's GitHub link points: this repository's main branch, and each submodule's own repository at its
+    default branch (GitHub has no page for a submodule path inside this repository)."""
+    links = {"": REPO_URL + "/blob/main/"}
+    gm = ROOT / ".gitmodules"
+    text = gm.read_text() if gm.exists() else ""
+    for path, url in re.findall(r"^\s*path = (\S+)\s*\n\s*url = (\S+)", text, re.M):
+        m = re.match(r"(?:git@github\.com:|https://github\.com/)([^/]+/[^/]+?)(?:\.git)?$", url)
+        if m:
+            links[path] = f"https://github.com/{m.group(1)}/blob/HEAD/"
+    return links
+
+
 def render(data: dict, back: str = "", site: bool = False) -> str:
     legend = "".join(
         f'<div><span class="sw" style="background:{fill};border-color:{ink}"></span>{esc(label)}</div>'
@@ -470,6 +487,7 @@ def render(data: dict, back: str = "", site: bool = False) -> str:
         "presets": data.get("presets", []),
         "domains": [{"id": d["id"], "label": d["label"], "color": d["color"]} for d in data["domains"]],
         "domainColor": {d["id"]: d["color"] for d in data["domains"]},
+        "codeLinks": code_links(),
     }
     counts = f'{len(data["nodes"])} boxes, {len(data["edges"])} links'
     back_link = f'<a id="back" href="{esc(back)}" title="Back to Inside the repository">←</a>' if back else ""
