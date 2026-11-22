@@ -3303,19 +3303,6 @@
       "block": ""
     },
     {
-      "id": "dev-IH432",
-      "kind": "signal",
-      "x": null,
-      "y": null,
-      "systemName": "IH432",
-      "publicName": "Head 6LB",
-      "cp": "Plane",
-      "hardware": "IH432",
-      "mqtt": "432",
-      "comment": "Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3",
-      "block": ""
-    },
-    {
       "id": "dev-M2S470",
       "kind": "sensor",
       "x": null,
@@ -5840,10 +5827,10 @@
   ],
   "counts": {
     "turnout": 85,
-    "signal": 99,
+    "signal": 98,
     "occupancy": 224,
     "sensor": 40,
     "mapped": 163,
-    "total": 448
+    "total": 447
   }
 }

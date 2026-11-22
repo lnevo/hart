@@ -1400,7 +1400,7 @@
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH432</systemName>
       <userName>Head 6LB</userName>
-      <comment>Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
+      <comment>Plane | Switch 5 | Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3</comment>
     </signalhead>
     <signalhead class="jmri.implementation.configurexml.VirtualSignalHeadXml">
       <systemName>IH9990</systemName>
@@ -1962,91 +1962,91 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-low(IH:HART:C1:4RA)</systemName>
       <userName>Mast 4RA</userName>
-      <comment>Brick | Switch 3</comment>
+      <comment>Brick | Switch 3 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-low(IH:HART:C1:4RB)</systemName>
       <userName>Mast 4RB</userName>
-      <comment>Brick | Switch 3</comment>
+      <comment>Brick | Switch 3 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-low(IH:HART:C1:24RB)</systemName>
       <userName>Mast 24RB</userName>
-      <comment>East End | Switch 23</comment>
+      <comment>East End | Switch 23 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-low(IH:HART:C1:32R)</systemName>
       <userName>Mast 32R</userName>
-      <comment>East End | Switch 31</comment>
+      <comment>East End | Switch 31 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-low(IH:HART:C3:242L)</systemName>
       <userName>Mast 242L</userName>
-      <comment>Switch 241 | virtual (device map); not on a node yet</comment>
+      <comment>Switch 241 | West | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH432)</systemName>
       <userName>Mast 6LB</userName>
-      <comment>Plane | Switch 5</comment>
+      <comment>Plane | Switch 5 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:2R)</systemName>
       <userName>Mast 2R</userName>
-      <comment>Brick | Switch 1</comment>
+      <comment>Brick | Switch 1 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:6LA)</systemName>
       <userName>Mast 6LA</userName>
-      <comment>Plane | Switch 5</comment>
+      <comment>Plane | Switch 5 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8LB)</systemName>
       <userName>Mast 8LB</userName>
-      <comment>Barn | Switch 7</comment>
+      <comment>Barn | Switch 7 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:8RA)</systemName>
       <userName>Mast 8RA</userName>
-      <comment>Barn | Switch 7</comment>
+      <comment>Barn | Switch 7 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:24L)</systemName>
       <userName>Mast 24L</userName>
-      <comment>East End | Switch 23</comment>
+      <comment>East End | Switch 23 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:34R)</systemName>
       <userName>Mast 34R</userName>
-      <comment>East End | Switch 33</comment>
+      <comment>East End | Switch 33 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:38LA)</systemName>
       <userName>Mast 38LA</userName>
-      <comment>Princess | Switch 37</comment>
+      <comment>Princess | Switch 37 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:38LB)</systemName>
       <userName>Mast 38LB</userName>
-      <comment>Princess | Switch 37</comment>
+      <comment>Princess | Switch 37 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:67)</systemName>
       <userName>Mast 67</userName>
-      <comment>Princess</comment>
+      <comment>Princess | West</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2058,7 +2058,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C1:68)</systemName>
       <userName>Mast 68</userName>
-      <comment>Princess</comment>
+      <comment>Princess | East</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2070,49 +2070,49 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212LB)</systemName>
       <userName>Mast 212LB</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5436)</comment>
+      <comment>CP 211 | Switch 211 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5436)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:212RA)</systemName>
       <userName>Mast 212RA</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5437)</comment>
+      <comment>CP 211 | Switch 211 | East | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5437)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218LA)</systemName>
       <userName>Mast 218LA</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5438)</comment>
+      <comment>CP 217 | Switch 217 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5438)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:218RB)</systemName>
       <userName>Mast 218RB</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5439)</comment>
+      <comment>CP 217 | Switch 217 | East | virtual (device map); planned IF$shsm:basic:one-searchlight(IH5439)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:222LB)</systemName>
       <userName>Mast 222LB</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); not on a node yet</comment>
+      <comment>CP 201 | Switch 221 | West | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LA)</systemName>
       <userName>Mast 224LA</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2234)</comment>
+      <comment>CP 223 | Switch 223 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2234)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:224LB)</systemName>
       <userName>Mast 224LB</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2235)</comment>
+      <comment>CP 223 | Switch 223 | West | virtual (device map); planned IF$shsm:basic:one-searchlight(IH2235)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A83)</systemName>
       <userName>Mast A83</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | intermediate | West | virtual (device map); not on a node yet</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2124,7 +2124,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:A84)</systemName>
       <userName>Mast A84</userName>
-      <comment>CP 107 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | intermediate | East | virtual (device map); not on a node yet</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2136,7 +2136,7 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B92)</systemName>
       <userName>Mast B92</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | intermediate | East | virtual (device map); not on a node yet</comment>
       <properties>
         <property>
           <key>intermediateSignal</key>
@@ -2148,433 +2148,433 @@
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:one-searchlight(IH:HART:C3:B93)</systemName>
       <userName>Mast B93</userName>
-      <comment>CP 225 | intermediate | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | intermediate | West | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C1:8LA_Top)(IH:HART:C1:8LA_Bottom)</systemName>
       <userName>Mast 8LA</userName>
-      <comment>Barn | Switch 7</comment>
+      <comment>Barn | Switch 7 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:110L_Top)(IH:HART:C3:110L_Bottom)</systemName>
       <userName>Mast 110L</userName>
-      <comment>CP 107 | Switch 109 | virtual (device map); planned IF$shsm:basic:two-low(IH4332)(IH4333)</comment>
+      <comment>CP 107 | Switch 109 | West | virtual (device map); planned IF$shsm:basic:two-low(IH4332)(IH4333)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:112L_Top)(IH:HART:C3:112L_Bottom)</systemName>
       <userName>Mast 112L</userName>
-      <comment>CP 107 | Switch 111 | virtual (device map); planned IF$shsm:basic:two-low(IH4334)(IH4335)</comment>
+      <comment>CP 107 | Switch 111 | West | virtual (device map); planned IF$shsm:basic:two-low(IH4334)(IH4335)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:118L_Top)(IH:HART:C3:118L_Bottom)</systemName>
       <userName>Mast 118L</userName>
-      <comment>CP 107 | Switch 117 | virtual (device map); planned IF$shsm:basic:two-low(IH4336)(IH4337)</comment>
+      <comment>CP 107 | Switch 117 | West | virtual (device map); planned IF$shsm:basic:two-low(IH4336)(IH4337)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:126RB_Top)(IH:HART:C3:126RB_Bottom)</systemName>
       <userName>Mast 126RB</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IF$shsm:basic:two-low(IH5234)(IH5235)</comment>
+      <comment>CP 123 | Switch 125 | East | virtual (device map); planned IF$shsm:basic:two-low(IH5234)(IH5235)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:202R_Top)(IH:HART:C3:202R_Bottom)</systemName>
       <userName>Mast 202R</userName>
-      <comment>CP 201 | Switch 201 | virtual (device map); planned IF$shsm:basic:two-low(IH2332)(IH2333)</comment>
+      <comment>CP 201 | Switch 201 | East | virtual (device map); planned IF$shsm:basic:two-low(IH2332)(IH2333)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:204RA_Top)(IH:HART:C3:204RA_Bottom)</systemName>
       <userName>Mast 204RA</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IF$shsm:basic:two-low(IH2334)(IH2335)</comment>
+      <comment>CP 201 | Switch 203 | East | virtual (device map); planned IF$shsm:basic:two-low(IH2334)(IH2335)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:212LA_Top)(IH:HART:C3:212LA_Bottom)</systemName>
       <userName>Mast 212LA</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:two-low(IH2432)(IH2433)</comment>
+      <comment>CP 211 | Switch 211 | West | virtual (device map); planned IF$shsm:basic:two-low(IH2432)(IH2433)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:228RA_Top)(IH:HART:C3:228RA_Bottom)</systemName>
       <userName>Mast 228RA</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IF$shsm:basic:two-low(IH4132)(IH4133)</comment>
+      <comment>CP 225 | Switch 227 | East | virtual (device map); planned IF$shsm:basic:two-low(IH4132)(IH4133)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-low(IH:HART:C3:230LB_Top)(IH:HART:C3:230LB_Bottom)</systemName>
       <userName>Mast 230LB</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); not on a node yet</comment>
+      <comment>CP 225 | Switch 229 | West | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:2L_Top)(IH:HART:C1:2L_Bottom)</systemName>
       <userName>Mast 2L</userName>
-      <comment>Brick | Switch 1</comment>
+      <comment>Brick | Switch 1 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:6R_Top)(IH:HART:C1:6R_Bottom)</systemName>
       <userName>Mast 6R</userName>
-      <comment>Plane | Switch 5</comment>
+      <comment>Plane | Switch 5 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:8RB_Top)(IH:HART:C1:8RB_Bottom)</systemName>
       <userName>Mast 8RB</userName>
-      <comment>Barn | Switch 7</comment>
+      <comment>Barn | Switch 7 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:24RA_Top)(IH:HART:C1:24RA_Bottom)</systemName>
       <userName>Mast 24RA</userName>
-      <comment>East End | Switch 23</comment>
+      <comment>East End | Switch 23 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:34L_Top)(IH:HART:C1:34L_Bottom)</systemName>
       <userName>Mast 34L</userName>
-      <comment>East End | Switch 33</comment>
+      <comment>East End | Switch 33 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:36RA_Top)(IH:HART:C1:36RA_Bottom)</systemName>
       <userName>Mast 36RA</userName>
-      <comment>Princess | Switch 35</comment>
+      <comment>Princess | Switch 35 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:36RB_Top)(IH:HART:C1:36RB_Bottom)</systemName>
       <userName>Mast 36RB</userName>
-      <comment>Princess | Switch 35</comment>
+      <comment>Princess | Switch 35 | East</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:40LA_Top)(IH:HART:C1:40LA_Bottom)</systemName>
       <userName>Mast 40LA</userName>
-      <comment>Princess | Switch 39</comment>
+      <comment>Princess | Switch 39 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C1:40LB_Top)(IH:HART:C1:40LB_Bottom)</systemName>
       <userName>Mast 40LB</userName>
-      <comment>Princess | Switch 39</comment>
+      <comment>Princess | Switch 39 | West</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LA_Top)(IH:HART:C3:108LA_Bottom)</systemName>
       <userName>Mast 108LA</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3332)(IH3333)</comment>
+      <comment>CP 107 | Switch 107 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3332)(IH3333)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:108LB_Top)(IH:HART:C3:108LB_Bottom)</systemName>
       <userName>Mast 108LB</userName>
-      <comment>CP 107 | Switch 107 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3334)(IH3335)</comment>
+      <comment>CP 107 | Switch 107 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH3334)(IH3335)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RA_Top)(IH:HART:C3:120RA_Bottom)</systemName>
       <userName>Mast 120RA</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4338)(IH4339)</comment>
+      <comment>CP 107 | Switch 119 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4338)(IH4339)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:120RB_Top)(IH:HART:C3:120RB_Bottom)</systemName>
       <userName>Mast 120RB</userName>
-      <comment>CP 107 | Switch 119 | virtual (device map); not on a node yet</comment>
+      <comment>CP 107 | Switch 119 | East | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LA_Top)(IH:HART:C3:124LA_Bottom)</systemName>
       <userName>Mast 124LA</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4232)(IH4233)</comment>
+      <comment>CP 123 | Switch 123 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4232)(IH4233)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:124LB_Top)(IH:HART:C3:124LB_Bottom)</systemName>
       <userName>Mast 124LB</userName>
-      <comment>CP 123 | Switch 123 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4234)(IH4235)</comment>
+      <comment>CP 123 | Switch 123 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4234)(IH4235)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:126RA_Top)(IH:HART:C3:126RA_Bottom)</systemName>
       <userName>Mast 126RA</userName>
-      <comment>CP 123 | Switch 125 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5232)(IH5233)</comment>
+      <comment>CP 123 | Switch 125 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5232)(IH5233)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LA_Top)(IH:HART:C3:128LA_Bottom)</systemName>
       <userName>Mast 128LA</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5236)(IH5237)</comment>
+      <comment>CP 127 | Switch 127 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5236)(IH5237)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:128LB_Top)(IH:HART:C3:128LB_Bottom)</systemName>
       <userName>Mast 128LB</userName>
-      <comment>CP 127 | Switch 127 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5238)(IH5239)</comment>
+      <comment>CP 127 | Switch 127 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5238)(IH5239)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RA_Top)(IH:HART:C3:132RA_Bottom)</systemName>
       <userName>Mast 132RA</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | East | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:132RB_Top)(IH:HART:C3:132RB_Bottom)</systemName>
       <userName>Mast 132RB</userName>
-      <comment>CP 127 | Switch 131 | virtual (device map); not on a node yet</comment>
+      <comment>CP 127 | Switch 131 | East | virtual (device map); not on a node yet</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:204RB_Top)(IH:HART:C3:204RB_Bottom)</systemName>
       <userName>Mast 204RB</userName>
-      <comment>CP 201 | Switch 203 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1432)(IH1433)</comment>
+      <comment>CP 201 | Switch 203 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1432)(IH1433)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:212RB_Top)(IH:HART:C3:212RB_Bottom)</systemName>
       <userName>Mast 212RB</userName>
-      <comment>CP 211 | Switch 211 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2434)(IH2435)</comment>
+      <comment>CP 211 | Switch 211 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2434)(IH2435)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218LB_Top)(IH:HART:C3:218LB_Bottom)</systemName>
       <userName>Mast 218LB</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5432)(IH5433)</comment>
+      <comment>CP 217 | Switch 217 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5432)(IH5433)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:218RA_Top)(IH:HART:C3:218RA_Bottom)</systemName>
       <userName>Mast 218RA</userName>
-      <comment>CP 217 | Switch 217 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5434)(IH5435)</comment>
+      <comment>CP 217 | Switch 217 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH5434)(IH5435)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:220R_Top)(IH:HART:C3:220R_Bottom)</systemName>
       <userName>Mast 220R</userName>
-      <comment>CP 201 | Switch 219 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1434)(IH1435)</comment>
+      <comment>CP 201 | Switch 219 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1434)(IH1435)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222LA_Top)(IH:HART:C3:222LA_Bottom)</systemName>
       <userName>Mast 222LA</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1436)(IH1437)</comment>
+      <comment>CP 201 | Switch 221 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1436)(IH1437)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:222R_Top)(IH:HART:C3:222R_Bottom)</systemName>
       <userName>Mast 222R</userName>
-      <comment>CP 201 | Switch 221 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1438)(IH1439)</comment>
+      <comment>CP 201 | Switch 221 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH1438)(IH1439)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:224R_Top)(IH:HART:C3:224R_Bottom)</systemName>
       <userName>Mast 224R</userName>
-      <comment>CP 223 | Switch 223 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2232)(IH2233)</comment>
+      <comment>CP 223 | Switch 223 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2232)(IH2233)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RA_Top)(IH:HART:C3:226RA_Bottom)</systemName>
       <userName>Mast 226RA</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2132)(IH2133)</comment>
+      <comment>CP 225 | Switch 225 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2132)(IH2133)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:226RB_Top)(IH:HART:C3:226RB_Bottom)</systemName>
       <userName>Mast 226RB</userName>
-      <comment>CP 225 | Switch 225 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2134)(IH2135)</comment>
+      <comment>CP 225 | Switch 225 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH2134)(IH2135)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:228RB_Top)(IH:HART:C3:228RB_Bottom)</systemName>
       <userName>Mast 228RB</userName>
-      <comment>CP 225 | Switch 227 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4134)(IH4135)</comment>
+      <comment>CP 225 | Switch 227 | East | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4134)(IH4135)</comment>
       <unlit allowed="no" />
     </signalmast>
     <signalmast class="jmri.implementation.configurexml.SignalHeadSignalMastXml">
       <systemName>IF$shsm:basic:two-searchlight(IH:HART:C3:230LA_Top)(IH:HART:C3:230LA_Bottom)</systemName>
       <userName>Mast 230LA</userName>
-      <comment>CP 225 | Switch 229 | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4136)(IH4137)</comment>
+      <comment>CP 225 | Switch 229 | West | virtual (device map); planned IF$shsm:basic:two-searchlight(IH4136)(IH4137)</comment>
       <unlit allowed="no" />
     </signalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1001)</systemName>
       <userName>Mast 4LA</userName>
-      <comment>Brick | Switch 3</comment>
+      <comment>Brick | Switch 3 | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1002)</systemName>
       <userName>Mast 4LB</userName>
-      <comment>Brick | Switch 3</comment>
+      <comment>Brick | Switch 3 | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1005)</systemName>
       <userName>Mast 12L</userName>
-      <comment>Engine House | Switch 11</comment>
+      <comment>Engine House | Switch 11 | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1006)</systemName>
       <userName>Mast 10LA</userName>
-      <comment>Engine House | Switch 9</comment>
+      <comment>Engine House | Switch 9 | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($1007)</systemName>
       <userName>Mast 10LB</userName>
-      <comment>Engine House | Switch 9</comment>
+      <comment>Engine House | Switch 9 | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2001)</systemName>
       <userName>Mast 102RA</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2002)</systemName>
       <userName>Mast 102RB</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2003)</systemName>
       <userName>Mast 104R</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2004)</systemName>
       <userName>Mast 114RA</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2005)</systemName>
       <userName>Mast 114RB</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2006)</systemName>
       <userName>Mast 116R</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2007)</systemName>
       <userName>Mast 120RC</userName>
-      <comment>CP 107 | buffer stop</comment>
+      <comment>CP 107 | buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2008)</systemName>
       <userName>Mast 122R</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2009)</systemName>
       <userName>Mast 130LA</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($2010)</systemName>
       <userName>Mast 130LB</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3001)</systemName>
       <userName>Mast 206L</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3002)</systemName>
       <userName>Mast 210LA</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3003)</systemName>
       <userName>Mast 210LB</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3004)</systemName>
       <userName>Mast 214L</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3005)</systemName>
       <userName>Mast 216LA</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3006)</systemName>
       <userName>Mast 216LB</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3007)</systemName>
       <userName>Mast 232L</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3008)</systemName>
       <userName>Mast 236R</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3009)</systemName>
       <userName>Mast 240L</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3010)</systemName>
       <userName>Mast 242R</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3011)</systemName>
       <userName>Mast 244RA</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3012)</systemName>
       <userName>Mast 244RB</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | East</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3013)</systemName>
       <userName>Mast 246LA</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
     <virtualsignalmast class="jmri.implementation.configurexml.VirtualSignalMastXml">
       <systemName>IF$vsm:basic:one-low($3014)</systemName>
       <userName>Mast 246LB</userName>
-      <comment>buffer stop</comment>
+      <comment>buffer stop | West</comment>
       <unlit allowed="yes" />
     </virtualsignalmast>
   </signalmasts>
@@ -3299,413 +3299,413 @@
     <block systemName="IB1" length="281.9" curve="0">
       <systemName>IB1</systemName>
       <userName>OS Switch 13</userName>
-      <comment>Hand-throw west of South Yard Switch 15; occupancy Block 3-1 / M2S300</comment>
+      <comment>Block 3-1 / M2S300; Hand-throw west of South Yard Switch 15</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 13</occupancysensor>
     </block>
     <block systemName="IB3" length="4013.2" curve="0">
       <systemName>IB3</systemName>
       <userName>Track Scale</userName>
-      <comment>Plane diverging lead to Track Barn; occupancy Block 4-8 / M2S407</comment>
+      <comment>Block 4-8 / M2S407; Plane diverging lead to Track Barn</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Scale</occupancysensor>
     </block>
     <block systemName="IB6" length="233.7" curve="0">
       <systemName>IB6</systemName>
       <userName>OS Switch 7b</userName>
-      <comment>Track Barn CP crossover south/east leg; occupancy Block 13-4 / M2S1303</comment>
+      <comment>Block 13-4 / M2S1303; Track Barn CP crossover south/east leg</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7b</occupancysensor>
     </block>
     <block systemName="IB8" length="233.7" curve="0">
       <systemName>IB8</systemName>
       <userName>OS Switch 7</userName>
-      <comment>Track Barn CP crossover north/west leg; occupancy Block 13-3 / M2S1302</comment>
+      <comment>Block 13-3 / M2S1302; Track Barn CP crossover north/west leg</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 7</occupancysensor>
     </block>
     <block systemName="IB15" length="795.0" curve="0">
       <systemName>IB15</systemName>
       <userName>Track Barn</userName>
-      <comment>Lead Switch 7 to Switch 13; occupancy Block 13-1 / M2S1300</comment>
+      <comment>Block 13-1 / M2S1300; Lead Switch 7 to Switch 13</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Barn</occupancysensor>
     </block>
     <block systemName="IB18" length="233.7" curve="0">
       <systemName>IB18</systemName>
       <userName>OS Switch 9</userName>
-      <comment>Hand-throw Engine House; occupancy Block 13-8 / M2S1307</comment>
+      <comment>Block 13-8 / M2S1307; Hand-throw Engine House</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 9</occupancysensor>
     </block>
     <block systemName="IB19" length="281.9" curve="0">
       <systemName>IB19</systemName>
       <userName>OS Switch 11</userName>
-      <comment>Hand-throw Engine House lead; occupancy Block 13-2 / M2S1301</comment>
+      <comment>Block 13-2 / M2S1301; Hand-throw Engine House lead</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 11</occupancysensor>
     </block>
     <block systemName="IB20" length="1303.0" curve="0">
       <systemName>IB20</systemName>
       <userName>Track EH-1</userName>
-      <comment>Top house track; occupancy Block 13-7 / M2S1306</comment>
+      <comment>Block 13-7 / M2S1306; Top house track</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-1</occupancysensor>
     </block>
     <block systemName="IB21" length="769.6" curve="0">
       <systemName>IB21</systemName>
       <userName>Track EH-2</userName>
-      <comment>Middle house track; occupancy Block 13-6 / M2S1305</comment>
+      <comment>Block 13-6 / M2S1305; Middle house track</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-2</occupancysensor>
     </block>
     <block systemName="IB22" length="764.5" curve="0">
       <systemName>IB22</systemName>
       <userName>Track EH-3</userName>
-      <comment>Bottom house track; occupancy Block 13-5 / M2S1304</comment>
+      <comment>Block 13-5 / M2S1304; Bottom house track</comment>
       <permissive>no</permissive>
       <occupancysensor>BS EH-3</occupancysensor>
     </block>
     <block systemName="IB23" length="24058.9" curve="0">
       <systemName>IB23</systemName>
       <userName>Track Helix Outer</userName>
-      <comment>Helix track, outer: Switch 39 up to Switch 131A, one block; occupancy Block 41-2 / M2S4101 (main and upper device map)</comment>
+      <comment>Block 41-2 / M2S4101 (main and upper device map); Helix track, outer: Switch 39 up to Switch 131A, one block</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Helix Outer</occupancysensor>
     </block>
     <block systemName="IB24" length="23279.1" curve="0">
       <systemName>IB24</systemName>
       <userName>Track Helix Inner</userName>
-      <comment>Helix track, inner: Switch 37 up to Switch 131B, one block; occupancy Block 41-1 / M2S4100 (main and upper device map)</comment>
+      <comment>Block 41-1 / M2S4100 (main and upper device map); Helix track, inner: Switch 37 up to Switch 131B, one block</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Helix Inner</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0001" length="7866.4" curve="0">
       <systemName>IB:AUTO:0001</systemName>
       <userName>Track Main East</userName>
-      <comment>Main east of East End; occupancy Block 2-3 / M2S202</comment>
+      <comment>Block 2-3 / M2S202; Main east of East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main East</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0003" length="5867.4" curve="0">
       <systemName>IB:AUTO:0003</systemName>
       <userName>Track Main West</userName>
-      <comment>Main west of Brick toward East End; occupancy Block 2-1 / M2S200</comment>
+      <comment>Block 2-1 / M2S200; Main west of Brick toward East End</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Main West</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0005" length="1818.6" curve="0">
       <systemName>IB:AUTO:0005</systemName>
       <userName>Track Brick-Plane</userName>
-      <comment>Track Main West between Brick and Plane; occupancy Block 4-6 / M2S405</comment>
+      <comment>Block 4-6 / M2S405; Track Main West between Brick and Plane</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Brick-Plane</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0007" length="3586.5" curve="0">
       <systemName>IB:AUTO:0007</systemName>
       <userName>Track S-4</userName>
-      <comment>South Yard body; occupancy Block 2-4 / M2S203</comment>
+      <comment>Block 2-4 / M2S203; South Yard body</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-4</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0008" length="3672.8" curve="0">
       <systemName>IB:AUTO:0008</systemName>
       <userName>Track S-3</userName>
-      <comment>South Yard body; occupancy Block 2-5 / M2S204</comment>
+      <comment>Block 2-5 / M2S204; South Yard body</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-3</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0010" length="3121.7" curve="0">
       <systemName>IB:AUTO:0010</systemName>
       <userName>Track K-1</userName>
-      <comment>Princess balloon, Track K-1; occupancy Block 1-1 / M2S100</comment>
+      <comment>Block 1-1 / M2S100; Princess balloon, Track K-1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-1</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0012" length="5857.2" curve="0">
       <systemName>IB:AUTO:0012</systemName>
       <userName>Track S-R</userName>
-      <comment>Run-through east of Switch 15; occupancy Block 2-8 / M2S207</comment>
+      <comment>Block 2-8 / M2S207; Run-through east of Switch 15</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-R</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0016" length="5377.2" curve="0">
       <systemName>IB:AUTO:0016</systemName>
       <userName>Track S-1</userName>
-      <comment>South Yard body; occupancy Block 2-7 / M2S206</comment>
+      <comment>Block 2-7 / M2S206; South Yard body</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-1</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0017" length="2740.7" curve="0">
       <systemName>IB:AUTO:0017</systemName>
       <userName>Track East Lead</userName>
-      <comment>South Yard lead east of Switch 31/33 toward Princess; occupancy Block 1-7 / M2S106</comment>
+      <comment>Block 1-7 / M2S106; South Yard lead east of Switch 31/33 toward Princess</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Lead</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0020" length="2672.1" curve="0">
       <systemName>IB:AUTO:0020</systemName>
       <userName>Track W-1</userName>
-      <comment>Brick yard Track W-1; access Switch 3 only; occupancy Block 4-4 / M2S403</comment>
+      <comment>Block 4-4 / M2S403; Brick yard Track W-1; access Switch 3 only</comment>
       <permissive>no</permissive>
       <occupancysensor>BS W-1</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0022" length="2677.2" curve="0">
       <systemName>IB:AUTO:0022</systemName>
       <userName>Track W-2</userName>
-      <comment>Brick yard Track W-2; access Switch 3 only; occupancy Block 4-3 / M2S402</comment>
+      <comment>Block 4-3 / M2S402; Brick yard Track W-2; access Switch 3 only</comment>
       <permissive>no</permissive>
       <occupancysensor>BS W-2</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0026" length="4526.3" curve="0">
       <systemName>IB:AUTO:0026</systemName>
       <userName>Track S-2</userName>
-      <comment>South Yard body; occupancy Block 2-6 / M2S205</comment>
+      <comment>Block 2-6 / M2S205; South Yard body</comment>
       <permissive>no</permissive>
       <occupancysensor>BS S-2</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0030" length="233.7" curve="0">
       <systemName>IB:AUTO:0030</systemName>
       <userName>OS Switch 33</userName>
-      <comment>East End, Switch 33; occupancy Block 12-8 / M2S1207</comment>
+      <comment>Block 12-8 / M2S1207; East End, Switch 33</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 33</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0031" length="281.9" curve="0">
       <systemName>IB:AUTO:0031</systemName>
       <userName>OS Switch 5</userName>
-      <comment>Plane CP, Switch 5; occupancy Block 4-5 / M2S404</comment>
+      <comment>Block 4-5 / M2S404; Plane CP, Switch 5</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 5</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0032" length="233.7" curve="0">
       <systemName>IB:AUTO:0032</systemName>
       <userName>OS Switch 37</userName>
-      <comment>Princess, Switch 37; occupancy Block 1-3 / M2S102</comment>
+      <comment>Block 1-3 / M2S102; Princess, Switch 37</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 37</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0033" length="233.7" curve="0">
       <systemName>IB:AUTO:0033</systemName>
       <userName>OS Switch 1</userName>
-      <comment>Brick CP, Switch 1; occupancy Block 4-2 / M2S401</comment>
+      <comment>Block 4-2 / M2S401; Brick CP, Switch 1</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0034" length="233.7" curve="0">
       <systemName>IB:AUTO:0034</systemName>
       <userName>OS Switch 23a</userName>
-      <comment>East End crossover Switch 23 north/west leg; occupancy Block 12-4 / M2S1203</comment>
+      <comment>Block 12-4 / M2S1203; East End crossover Switch 23 north/west leg</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23a</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0035" length="233.7" curve="0">
       <systemName>IB:AUTO:0035</systemName>
       <userName>OS Switch 3</userName>
-      <comment>Brick CP, Switch 3; occupancy Block 4-1 / M2S400</comment>
+      <comment>Block 4-1 / M2S400; Brick CP, Switch 3</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 3</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0036" length="233.7" curve="0">
       <systemName>IB:AUTO:0036</systemName>
       <userName>OS Switch 25</userName>
-      <comment>East End, Switch 25; occupancy Block 12-1 / M2S1200</comment>
+      <comment>Block 12-1 / M2S1200; East End, Switch 25</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 25</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0037" length="233.7" curve="0">
       <systemName>IB:AUTO:0037</systemName>
       <userName>OS Switch 27</userName>
-      <comment>East End, Switch 27; occupancy Block 12-3 / M2S1202</comment>
+      <comment>Block 12-3 / M2S1202; East End, Switch 27</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 27</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0038" length="233.7" curve="0">
       <systemName>IB:AUTO:0038</systemName>
       <userName>OS Switch 21</userName>
-      <comment>South Yard, Switch 21; occupancy Block 3-7 / M2S306</comment>
+      <comment>Block 3-7 / M2S306; South Yard, Switch 21</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 21</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0039" length="233.7" curve="0">
       <systemName>IB:AUTO:0039</systemName>
       <userName>OS Switch 23b</userName>
-      <comment>East End crossover Switch 23 south/east leg; occupancy Block 12-6 / M2S1205</comment>
+      <comment>Block 12-6 / M2S1205; East End crossover Switch 23 south/east leg</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 23b</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0040" length="233.7" curve="0">
       <systemName>IB:AUTO:0040</systemName>
       <userName>OS Switch 39</userName>
-      <comment>Princess, Switch 39; occupancy Block 1-4 / M2S103</comment>
+      <comment>Block 1-4 / M2S103; Princess, Switch 39</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 39</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0041" length="233.7" curve="0">
       <systemName>IB:AUTO:0041</systemName>
       <userName>OS Switch 15</userName>
-      <comment>South Yard, Switch 15; occupancy Block 3-2 / M2S301</comment>
+      <comment>Block 3-2 / M2S301; South Yard, Switch 15</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0042" length="233.7" curve="0">
       <systemName>IB:AUTO:0042</systemName>
       <userName>OS Switch 31</userName>
-      <comment>East End, Switch 31; occupancy Block 12-7 / M2S1206</comment>
+      <comment>Block 12-7 / M2S1206; East End, Switch 31</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0043" length="233.7" curve="0">
       <systemName>IB:AUTO:0043</systemName>
       <userName>OS Switch 29</userName>
-      <comment>East End, Switch 29; occupancy Block 12-5 / M2S1204</comment>
+      <comment>Block 12-5 / M2S1204; East End, Switch 29</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 29</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0044" length="233.7" curve="0">
       <systemName>IB:AUTO:0044</systemName>
       <userName>OS Switch 17</userName>
-      <comment>South Yard, Switch 17; occupancy Block 3-3 / M2S302</comment>
+      <comment>Block 3-3 / M2S302; South Yard, Switch 17</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 17</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0045" length="233.7" curve="0">
       <systemName>IB:AUTO:0045</systemName>
       <userName>OS Switch 19</userName>
-      <comment>South Yard, Switch 19; occupancy Block 3-5 / M2S304</comment>
+      <comment>Block 3-5 / M2S304; South Yard, Switch 19</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0046" length="233.7" curve="0">
       <systemName>IB:AUTO:0046</systemName>
       <userName>OS Switch 35a</userName>
-      <comment>Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points); occupancy Block 1-6 / M2S105</comment>
+      <comment>Block 1-6 / M2S105; Princess crossover Switch 35 south/yard leg, with the track to Switch 37 (gap at Switch 37's points)</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0047" length="233.7" curve="0">
       <systemName>IB:AUTO:0047</systemName>
       <userName>OS Switch 35b</userName>
-      <comment>Princess crossover Switch 35 north/main leg; occupancy Block 1-5 / M2S104</comment>
+      <comment>Block 1-5 / M2S104; Princess crossover Switch 35 north/main leg</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35b</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0048" length="3121.7" curve="0">
       <systemName>IB:AUTO:0048</systemName>
       <userName>Track K-2</userName>
-      <comment>Princess balloon, Track K-2; occupancy Block 1-2 / M2S101</comment>
+      <comment>Block 1-2 / M2S101; Princess balloon, Track K-2</comment>
       <permissive>no</permissive>
       <occupancysensor>BS K-2</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0050" length="4297.7" curve="0">
       <systemName>IB:AUTO:0050</systemName>
       <userName>Track West Ext</userName>
-      <comment>Track Main West stub west of Switch 23; occupancy Block 1-8 / M2S107</comment>
+      <comment>Block 1-8 / M2S107; Track Main West stub west of Switch 23</comment>
       <permissive>no</permissive>
       <occupancysensor>BS West Ext</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0051" length="3926.8" curve="0">
       <systemName>IB:AUTO:0051</systemName>
       <userName>Track East Ext</userName>
-      <comment>Main east of Plane toward Track Barn; occupancy Block 4-7 / M2S406</comment>
+      <comment>Block 4-7 / M2S406; Main east of Plane toward Track Barn</comment>
       <permissive>no</permissive>
       <occupancysensor>BS East Ext</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0052" length="127.0" curve="0">
       <systemName>IB:AUTO:0052</systemName>
       <userName>Track 1-3 at 1</userName>
-      <comment>Part of OS Switch 1, the track from Switch 1 to Switch 3; occupancy Block 4-2 / M2S401</comment>
+      <comment>Block 4-2 / M2S401; Part of OS Switch 1, the track from Switch 1 to Switch 3</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 1</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0054" length="127.0" curve="0">
       <systemName>IB:AUTO:0054</systemName>
       <userName>Track 1-3 at 3</userName>
-      <comment>Part of OS Switch 3, the track from Switch 1 to Switch 3; occupancy Block 4-1 / M2S400</comment>
+      <comment>Block 4-1 / M2S400; Part of OS Switch 3, the track from Switch 1 to Switch 3</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 3</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0056" length="261.6" curve="0">
       <systemName>IB:AUTO:0056</systemName>
       <userName>Track 9-11</userName>
-      <comment>Part of OS Switch 9, the track from Switch 9 to Switch 11; occupancy Block 13-8 / M2S1307</comment>
+      <comment>Block 13-8 / M2S1307; Part of OS Switch 9, the track from Switch 9 to Switch 11</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 9</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0057" length="279.4" curve="0">
       <systemName>IB:AUTO:0057</systemName>
       <userName>Track 11-13</userName>
-      <comment>Part of OS Switch 11, the track from Switch 11 to Switch 13; occupancy Block 13-2 / M2S1301</comment>
+      <comment>Block 13-2 / M2S1301; Part of OS Switch 11, the track from Switch 11 to Switch 13</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 11</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0058" length="193.0" curve="0">
       <systemName>IB:AUTO:0058</systemName>
       <userName>Track 13-15</userName>
-      <comment>Part of OS Switch 15, the track from Switch 13 to Switch 15; occupancy Block 3-2 / M2S301</comment>
+      <comment>Block 3-2 / M2S301; Part of OS Switch 15, the track from Switch 13 to Switch 15</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0059" length="147.3" curve="0">
       <systemName>IB:AUTO:0059</systemName>
       <userName>Track 15-17</userName>
-      <comment>Part of OS Switch 15, the track from Switch 15 to Switch 17; occupancy Block 3-2 / M2S301</comment>
+      <comment>Block 3-2 / M2S301; Part of OS Switch 15, the track from Switch 15 to Switch 17</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 15</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0060" length="147.3" curve="0">
       <systemName>IB:AUTO:0060</systemName>
       <userName>Track 17-19</userName>
-      <comment>Part of OS Switch 17, the track from Switch 17 to Switch 19; occupancy Block 3-3 / M2S302</comment>
+      <comment>Block 3-3 / M2S302; Part of OS Switch 17, the track from Switch 17 to Switch 19</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 17</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0061" length="147.3" curve="0">
       <systemName>IB:AUTO:0061</systemName>
       <userName>Track 19-21</userName>
-      <comment>Part of OS Switch 19, the track from Switch 19 to Switch 21; occupancy Block 3-5 / M2S304</comment>
+      <comment>Block 3-5 / M2S304; Part of OS Switch 19, the track from Switch 19 to Switch 21</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 19</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0063" length="147.3" curve="0">
       <systemName>IB:AUTO:0063</systemName>
       <userName>Track 23-31</userName>
-      <comment>Part of OS Switch 31, the track from Switch 23 to Switch 31; occupancy Block 12-7 / M2S1206</comment>
+      <comment>Block 12-7 / M2S1206; Part of OS Switch 31, the track from Switch 23 to Switch 31</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0064" length="147.3" curve="0">
       <systemName>IB:AUTO:0064</systemName>
       <userName>Track 25-27</userName>
-      <comment>Part of OS Switch 25, the track from Switch 25 to Switch 27; occupancy Block 12-1 / M2S1200</comment>
+      <comment>Block 12-1 / M2S1200; Part of OS Switch 25, the track from Switch 25 to Switch 27</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 25</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0070" length="147.3" curve="0">
       <systemName>IB:AUTO:0070</systemName>
       <userName>Track 27-29</userName>
-      <comment>Part of OS Switch 27, the track from Switch 27 to Switch 29; occupancy Block 12-3 / M2S1202</comment>
+      <comment>Block 12-3 / M2S1202; Part of OS Switch 27, the track from Switch 27 to Switch 29</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 27</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0071" length="147.3" curve="0">
       <systemName>IB:AUTO:0071</systemName>
       <userName>Track 29-31</userName>
-      <comment>Part of OS Switch 29, the track from Switch 29 to Switch 31; occupancy Block 12-5 / M2S1204</comment>
+      <comment>Block 12-5 / M2S1204; Part of OS Switch 29, the track from Switch 29 to Switch 31</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 29</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0073" length="132.1" curve="0">
       <systemName>IB:AUTO:0073</systemName>
       <userName>Track 31-33</userName>
-      <comment>Part of OS Switch 31, the track from Switch 31 to Switch 33; occupancy Block 12-7 / M2S1206</comment>
+      <comment>Block 12-7 / M2S1206; Part of OS Switch 31, the track from Switch 31 to Switch 33</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 31</occupancysensor>
     </block>
     <block systemName="IB:AUTO:0078" length="190.5" curve="0">
       <systemName>IB:AUTO:0078</systemName>
       <userName>Track 35-37</userName>
-      <comment>Part of OS Switch 35a, the track from Switch 35 to Switch 37; occupancy Block 1-6 / M2S105</comment>
+      <comment>Block 1-6 / M2S105; Part of OS Switch 35a, the track from Switch 35 to Switch 37</comment>
       <permissive>no</permissive>
       <occupancysensor>BS Switch 35a</occupancysensor>
     </block>
