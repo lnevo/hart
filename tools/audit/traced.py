@@ -144,7 +144,7 @@ def _on_open(args) -> None:
     if reads:
         p = _source_of_pyc(p)
         if os.path.isdir(p):
-            _write("d", p)          # a folder opened by os.open (os.walk with fd, shutil) is a listing
+            _write_listing(p)       # a folder opened by os.open (os.walk with fd, shutil) is a listing
         elif os.path.exists(p):
             _write("r", p)
             real = os.path.realpath(p)
@@ -157,7 +157,13 @@ def _on_open(args) -> None:
 def _on_list(args) -> None:
     p = _path(args[0] if args and args[0] is not None else ".")
     if p is not None:
-        _write("d", p)
+        _write_listing(p)
+
+
+def _write_listing(p: str) -> None:
+    """A listing with the hash of the names the folder held when it was listed (the same as listing() at compare
+    time), so a name added or removed while the job still runs is told from the job's own view."""
+    _write("d", f"{p}\t{listing(p) or kind_of(p)}")
 
 
 def _on_glob(args) -> None:
@@ -169,7 +175,7 @@ def _on_glob(args) -> None:
         folder = os.path.dirname(head) or "."
         p = _path(os.path.join(os.fsdecode(root_dir), folder) if root_dir else folder)
         if p is not None:
-            _write("d", p)
+            _write_listing(p)
 
 
 def _on_write(args) -> None:
@@ -295,6 +301,7 @@ class Trace:
         self.misses: set[str] = set()
         self.present: dict[str, str] = {}
         self.listed: set[str] = set()
+        self.listed_as: dict[str, str] = {}                     # folder -> its names' hash when first listed
         self.starts: list[tuple[int, int, str, int]] = []      # pid, ppid, token, time ns
         self.start_argv: list[list[str]] = []                   # the argv of each start, in the same order
         self.spawns: list[tuple[int, str, str, list[str]]] = []  # pid, token, cwd, argv
@@ -332,6 +339,9 @@ def parse(log: str | os.PathLike) -> Trace:
                 pass
         elif kind == "x" and len(rest) >= 2:
             t.spawns.append((pid, rest[0], rest[1], rest[2:]))
+        elif kind == "d" and len(rest) == 2:
+            t.listed.add(rest[0])
+            t.listed_as.setdefault(rest[0], rest[1])
         elif kind == "p" and len(rest) == 2:
             t.present.setdefault(rest[1], rest[0])
         elif rest:
@@ -591,14 +601,13 @@ def changed_since(t: Trace, rs: dict[str, list[str]], root: str, extra_files=())
         except OSError:
             late.append(n)              # read, not written by the job, and gone now
     holders = {os.path.dirname(w) or "." for w in written} | written
+    as_listed = {n: v for n, v in ((keep(p, root, skip), v) for p, v in t.listed_as.items()) if n is not None}
     for n in rs["dirs"]:
         if n in holders:
             continue                    # the job made or removed something in it itself
-        try:
-            if os.stat(_abs(n, root)).st_mtime_ns >= since:
-                late.append(n)
-        except OSError:
-            late.append(n)
+        p = _abs(n, root)
+        if as_listed.get(n, None) not in (None, listing(p) or kind_of(p)):
+            late.append(n)              # its names now are not the ones the job listed
     seen = {n: v for n, v in ((keep(p, root, skip), v) for p, v in t.present.items()) if n is not None}
     for n in rs["missing"]:
         if n not in written and kind_of(_abs(n, root)) != "-":

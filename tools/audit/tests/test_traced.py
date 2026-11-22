@@ -167,6 +167,12 @@ class ReviewTest(ReadSetTest):
         late = self.late("import os\nos.listdir('data/sub')\n", lambda: (self.root / "data/sub/new.csv").write_text("x"))
         self.assertIn("data/sub", late)
 
+    def test_litter_or_a_missing_folder_mid_run_still_records(self) -> None:
+        # a first run elsewhere makes __pycache__ in listed folders (the Windows box's fresh worktrees did)
+        late = self.late("import os\nos.listdir('data/sub')\ntry:\n    os.listdir('data/none')\nexcept OSError:\n    pass\n",
+                         lambda: (self.root / "data/sub/__pycache__").mkdir())
+        self.assertEqual(late, [])
+
     def test_a_read_file_deleted_mid_run_records_nothing(self) -> None:
         self.assertIn("data/a.csv", self.late("open('data/a.csv').read()\n", (self.root / "data/a.csv").unlink))
 
