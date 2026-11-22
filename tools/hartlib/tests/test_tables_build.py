@@ -237,6 +237,53 @@ class MasterBeans(unittest.TestCase):
         self.assertEqual([], tables.mast_logics(root))
 
 
+class CommentOrder(unittest.TestCase):
+    """The data reads first, the way the owner reads the tables (2026-11-22)."""
+
+    def test_a_mast_names_its_direction_after_its_place(self) -> None:
+        self.assertEqual("Brick | Switch 1 | West", tb.with_direction("Brick | Switch 1", "west"))
+        self.assertEqual("Switch 241 | East | virtual (device map); not on a node yet",
+                         tb.with_direction("Switch 241 | virtual (device map); not on a node yet", "east"))
+        self.assertEqual("Brick", tb.with_direction("Brick", ""))
+        self.assertEqual("Brick | West", tb.with_direction("Brick | West", "west"))      # named already: once
+
+    def test_occupancy_back_undoes_occupancy_first(self) -> None:
+        for master in ("Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop",
+                       "Brick CP, Switch 1; occupancy Block 4-2 / M2S401",
+                       "Helix track; occupancy Block 41-2 / M2S4101 (main and upper device map); stop",
+                       "occupancy Block 4-2 / M2S401"):
+            self.assertEqual(master, tb.occupancy_back(tb.occupancy_first(master)))
+        self.assertIsNone(tb.occupancy_back("Brick CP, Switch 1; occupancy Block 4-2 / M2S401"))
+
+    def test_a_block_puts_its_detector_first_without_the_word_occupancy(self) -> None:
+        self.assertEqual("Block 1-1 / M2S100; Princess balloon, Track K-1; stop",
+                         tb.occupancy_first("Princess balloon, Track K-1; occupancy Block 1-1 / M2S100; stop"))
+        self.assertEqual("Block 41-2 / M2S4101 (main and upper device map); Helix track, outer; stop",
+                         tb.occupancy_first("Helix track, outer; occupancy Block 41-2 / M2S4101 "
+                                            "(main and upper device map); stop"))
+        self.assertEqual("Block 4-2 / M2S401", tb.occupancy_first("occupancy Block 4-2 / M2S401"))
+        self.assertEqual("Brick CP, Switch 1", tb.occupancy_first("Brick CP, Switch 1"))
+
+    def test_the_built_tables_carry_the_new_order(self) -> None:
+        rs = rows()
+        for r in rs:
+            if r["user_name"] == "Mast 2L":
+                r["dir"] = "west"
+            if r["user_name"] == "OS Switch 1":
+                r["jmri_comment"] = "Brick CP, Switch 1; occupancy Block 4-2 / M2S401"
+        rs.append(blank(layer="mast", role="home", user_name="Mast 6LB", assignment="field", dir="west",
+                        system_name="IF$shsm:basic:one-searchlight(IH432)",
+                        jmri_name="IF$shsm:basic:one-searchlight(IH432)", jmri_comment="Plane | Switch 5"))
+        root = tb.base(rs, lengths=LENGTHS).root
+        heads = {tables.system_name(h): h.findtext("comment") for h in tables.signal_heads(root)}
+        self.assertEqual("Plane | Switch 5 | Node: 4 Signal: 0 | OU: 2 Ports: 1,2,3", heads["IH432"])
+        self.assertEqual("Brick | Switch 1 | internal, not wired", heads["IH:HART:C1:2L"])   # a virtual head as it was
+        masts = {tables.user_name(m): m.findtext("comment") for m in tables.masts(root)}
+        self.assertEqual("Brick | Switch 1 | West", masts["Mast 2L"])
+        self.assertEqual("Brick", masts["Mast 4LA"])                          # no dir: nothing added
+        self.assertEqual("Block 4-2 / M2S401; Brick CP, Switch 1", tables.blocks(root)[0].findtext("comment"))
+
+
 class MissingLogic(unittest.TestCase):
     def test_head_masts_need_a_source_and_virtual_masts_a_mention(self) -> None:
         root = tables.loads(STORE).root

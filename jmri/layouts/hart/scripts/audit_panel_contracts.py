@@ -51,6 +51,7 @@ def station_comments(rows=None) -> dict[str, str]:
         if not (comment == "stop" or comment.endswith("; stop")):
             raise devices.DevicesError(f"station {name!r} is marked stop in the device master but its comment "
                                        f"{comment!r} does not end in 'stop'")
+        comment = tables_build.occupancy_first(comment)       # as the tables build writes it: detector first
         if out.setdefault(name, comment) != comment:
             raise devices.DevicesError(f"station {name!r} has two comments in the device master: "
                                        f"{out[name]!r} and {comment!r}")

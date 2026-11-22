@@ -307,6 +307,49 @@ class DeviceItems(unittest.TestCase):
         [d] = p.of(ss.DEVICE)
         self.assertEqual((ss.Edit(("1", "block", "OS Switch 1"), "jmri_comment", "Brick CP, Switch 1", "Owner note"),), d.edits)
 
+    def detected(self) -> list[dict]:
+        """ROWS with OS Switch 1's detector in its comment, as build_device_map.py fills it in."""
+        return [dict(r, jmri_comment="Brick CP, Switch 1; occupancy Block 4-2 / M2S401")
+                if r["user_name"] == "OS Switch 1" else r for r in ROWS]
+
+    def blocks(self, comment: str) -> str:
+        return bean("block", "IB:AUTO:0033", "OS Switch 1", comment, systemName="IB:AUTO:0033")
+
+    def test_a_detector_first_block_comment_goes_back_in_the_masters_order(self) -> None:
+        built = doc(blocks=self.blocks("Block 4-2 / M2S401; Brick CP, Switch 1"))
+        store = doc(blocks=self.blocks("Block 4-2 / M2S401; Brick CP, Switch 1 east"))
+        [d] = plan(built, built, store, rows=self.detected()).of(ss.DEVICE)
+        self.assertEqual(["Brick CP, Switch 1 east; occupancy Block 4-2 / M2S401"], [e.new for e in d.edits])
+
+    def test_a_block_comment_without_its_detector_first_is_dropped(self) -> None:
+        built = doc(blocks=self.blocks("Block 4-2 / M2S401; Brick CP, Switch 1"))
+        store = doc(blocks=self.blocks("Brick CP, Switch 1; occupancy Block 4-2 / M2S401"))
+        p = plan(built, built, store, rows=self.detected())
+        self.assertEqual([], p.of(ss.DEVICE))
+        self.assertIn("starts with its detector", p.of(ss.DROPPED)[0].note)
+
+    MAST = blank(layer="mast", role="home", user_name="Mast 2L", assignment="virtual", dir="west",
+                 system_name="IF$shsm:basic:one-searchlight(IH:HART:C1:2L)",
+                 jmri_name="IF$shsm:basic:one-searchlight(IH:HART:C1:2L)", jmri_comment="Brick | Switch 1")
+
+    def masts(self, comment: str) -> str:
+        return (f'<signalmasts class="jmri.managers.configurexml.DefaultSignalMastManagerXml">'
+                + bean("signalmast", self.MAST["jmri_name"], "Mast 2L", comment,
+                       **{"class": "jmri.implementation.configurexml.SignalHeadSignalMastXml"})
+                + "</signalmasts>")
+
+    def test_a_masts_direction_is_left_out_of_its_jmri_comment(self) -> None:
+        built = doc(extra=self.masts("Brick | Switch 1 | West"))
+        store = doc(extra=self.masts("Brick | Switch 1 | West | home"))
+        [d] = plan(built, built, store, rows=ROWS + [self.MAST]).of(ss.DEVICE)
+        self.assertEqual(["Brick | Switch 1 | home"], [e.new for e in d.edits])
+
+    def test_a_mast_comment_without_its_direction_is_dropped(self) -> None:
+        built = doc(extra=self.masts("Brick | Switch 1 | West"))
+        p = plan(built, built, doc(extra=self.masts("Brick | Switch 1")), rows=ROWS + [self.MAST])
+        self.assertEqual([], p.of(ss.DEVICE))
+        self.assertIn("direction", p.of(ss.DROPPED)[0].note)
+
     def test_a_wiring_comment_is_dropped(self) -> None:
         turnouts = (bean("turnout", "MTT100", "DCC Switch 1", "Owner note")
                     + bean("turnout", "M2T408", "Switch 1", "bound by its user name"))

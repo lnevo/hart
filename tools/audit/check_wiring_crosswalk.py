@@ -160,10 +160,26 @@ def read_tables(
     return head_comments, masts, bad
 
 
+DIRECTIONS = ("East", "West")       # the word a mast's comment carries after its place (tables_build.with_direction)
+
+
+def mast_places(root: ET.Element) -> dict[str, str]:
+    """{head system name: its head mast's place}, the mast's comment without its direction, as a wired head's
+    comment starts (tables_build.bean_comment)."""
+    out: dict[str, str] = {}
+    for el in tables.masts(root, tags=("signalmast",)):
+        place = " | ".join(x for x in tables.text(el, "comment").split(" | ") if x and x not in DIRECTIONS)
+        for h in re.findall(r"\(([^()]+)\)", tables.text(el, "systemName")):
+            if place:
+                out.setdefault(h, place)
+    return out
+
+
 def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list[str]:
     heads = load_wiring(wiring_rows)
     plan = planned_masts(heads)
     head_comments, masts, out = read_tables(tables_root)
+    places = mast_places(tables_root)
 
     for mast, want in sorted(plan.items()):
         have = masts.get(mast)
@@ -191,7 +207,11 @@ def problems(wiring_rows: list[dict[str, str]], tables_root: ET.Element) -> list
         if name not in on_mast:
             out.append(f"{name} ({h['mast']} {h['role']}): wired head is on no mast")
         want = expected_comment(h)
-        if head_comments[name] != want:
+        place = places.get(name)        # a wired head reads its mast's place first: "Plane | Switch 5 | Node: 4 ..."
+        if place:
+            want = f"{place} | {want}"
+        got = head_comments[name]
+        if got != want:
             out.append(f"{name}: comment {head_comments[name]!r}, wiring {want!r}")
     return out
 
