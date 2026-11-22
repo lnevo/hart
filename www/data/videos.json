@@ -1,5 +1,5 @@
 {
-  "_note": "Videos from the owner's YouTube channel. Pages show one with <div class=\"video\" data-video=\"<id>\">, which js/video.js fills from this list. \"pages\" lists where each is shown.",
+  "_note": "The videos from the owner's YouTube channel. Pages show one with <div class=\"video\" data-video=\"<id>\">, which js/video.js fills from this list. \"pages\" lists where each is shown.",
   "channel": "https://www.youtube.com/@leenevo6566",
   "videos": [
     {
