@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import unittest.mock
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -15,6 +16,7 @@ ROOT = HERE.parents[2]
 sys.path[:0] = [str(HERE.parent), str(ROOT / "tools/hartlib/src")]
 import build_device_map as bdm  # noqa: E402
 import device_map_inputs as inputs  # noqa: E402
+import device_map_staging as staging  # noqa: E402
 from hartlib import devices, railroad, wiring  # noqa: E402
 
 WIRING_HEAD = ",".join(wiring.COLUMNS) + "\n"
@@ -170,10 +172,29 @@ class TheSplit(TempFiles):
                 self.assertIs(getattr(bdm, name), getattr(inputs, name))
         self.assertIs(bdm.SOURCES, inputs.SOURCES)
 
-    def test_the_readers_do_not_load_the_builder(self):
-        code = "import sys; import device_map_inputs; sys.exit('build_device_map' in sys.modules)"
-        got = subprocess.run([sys.executable, "-c", code], cwd=HERE.parent, capture_output=True, text=True)
-        self.assertEqual(got.returncode, 0, got.stderr)
+    STAGING = ("BEAN_NAME", "FIELD_LAYERS", "PART_BLOCK_FIRST", "STAGING_SHEET", "WIRED_LAYERS", "alias_note",
+               "field_row", "helix_ends", "level_trials", "line_cp", "new_spare", "part_bean_names", "part_row",
+               "piece_trials", "staging_field", "staging_layer", "staging_part_names", "staging_rows",
+               "staging_trials", "staging_wired_rows", "taken_bean_names", "wire_block", "wire_occupancy")
+
+    def test_the_builder_re_exports_the_staging_layer(self):
+        for name in self.STAGING:
+            with self.subTest(name=name):
+                self.assertIs(getattr(bdm, name), getattr(staging, name))
+
+    def test_neither_module_loads_the_builder_at_import(self):
+        for mod in ("device_map_inputs", "device_map_staging"):
+            with self.subTest(mod=mod):
+                code = f"import sys; import {mod}; sys.exit('build_device_map' in sys.modules)"
+                got = subprocess.run([sys.executable, "-c", code], cwd=HERE.parent, capture_output=True, text=True)
+                self.assertEqual(got.returncode, 0, got.stderr)
+
+    def test_the_staging_layer_reads_the_builders_paths_when_called(self):
+        """builder() is the builder as it is then: a patched OUT reaches staging_field, as it did in one module."""
+        self.assertIs(staging.builder(), bdm)
+        with tempfile.TemporaryDirectory() as d, unittest.mock.patch.object(bdm, "OUT", Path(d) / "devices.csv"):
+            with self.assertRaises(railroad.FactsError):     # no field file there: read from the patched folder
+                staging.staging_field()
 
     def test_read_pins_needs_its_tracks(self):
         """The reader takes the tracks it resolves against; the builder's read_pins gives the solved schematic's."""
