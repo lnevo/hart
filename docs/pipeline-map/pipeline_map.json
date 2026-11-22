@@ -2699,6 +2699,15 @@
    "path": "www/scripts/jmri_additions_page.py"
   },
   {
+   "id": "www/scripts/build_layout_docs.py",
+   "label": "build_layout_docs.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "website",
+   "desc": "Writes behind/layout-docs.html from layout_docs_template.html and the SOQ's drawings (SOQ references removed), with the section list from block_lengths.csv; --check.",
+   "path": "www/scripts/build_layout_docs.py"
+  },
+  {
    "id": "www/scripts/make_share_cards.py",
    "label": "make_share_cards.py",
    "kind": "generator",
@@ -7392,6 +7401,19 @@
    "from": "jmri/layouts/hart/data/schematic/plan_overrides.json",
    "to": "tools/schematic/build_signals.py",
    "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/block_lengths.csv",
+   "to": "www/scripts/build_layout_docs.py"
+  },
+  {
+   "from": "docs/ap/electrical/build_soq.py",
+   "to": "www/scripts/build_layout_docs.py",
+   "label": "imports"
+  },
+  {
+   "from": "www/scripts/build_layout_docs.py",
+   "to": "www/behind"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

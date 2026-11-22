@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Layout documentation — HART</title>
+  <link rel="stylesheet" href="../css/ops.css">
+  <style>
+    /* Drawings at their own size (the width attribute), never wider than the column */
+    .explainer figure.plan img, .explainer figure.drawing img, .explainer figure.small img { width: auto; max-width: 100%; height: auto; display: block; }
+    .explainer figure.small img { max-width: min(100%, 44rem); }
+    .explainer .photo-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1rem; align-items: start; }
+    .explainer .photo-row figure { margin: 0.6rem 0; }
+    .explainer figure.photo img { height: auto; max-height: 28rem; object-fit: contain; }
+    .explainer figure.photo.single img { max-width: 34rem; }
+    .explainer .table-wrap { overflow-x: auto; margin: 0.8rem 0 1.2rem; }
+    .explainer table.data-table caption { caption-side: top; text-align: left; font-weight: 700; padding-bottom: 0.4rem; }
+    .explainer .swatch { display: inline-block; width: 0.9em; height: 0.9em; border: 1px solid #666; vertical-align: -0.1em; margin-right: 0.2em; }
+    .explainer pre.console { font-size: 0.8rem; overflow-x: auto; background: #10161c; color: #d8e2ea; padding: 0.8rem 1rem; }
+    .explainer td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body>
+  <header class="site-header" data-ops-header></header>
+  <main>
+    <div class="page-head">
+      <h1>Layout documentation</h1>
+      <p class="section-note">How the staging level and the helix are wired: power districts, track sections and detection, turnouts and crossovers, the reversing sections, and the link to the computer. The two upper levels are still being built.</p>
+      <p class="small"><a href="#overview">Overview</a> · <a href="#power">Power and protection</a> · <a href="#sections">Sections and gaps</a> · <a href="#detection">Detection</a> · <a href="#turnouts">Turnouts and crossovers</a> · <a href="#reversing">Reversing sections</a> · <a href="#tracks">Siding, yard and engine storage</a> · <a href="#computer">The computer link</a> · <a href="#nodes">Radio nodes</a> · <a href="#section-list">Section list</a> · <a href="#parts">Parts</a></p>
+    </div>
+
+    <article class="explainer prose">
+      <h2 id="overview">Overview</h2>
+      <p>The layout has three levels joined by a two-track helix. The lowest, the staging level, is finished, wired and used for operating sessions. Everything on this page is on the staging level and the helix.</p>
+      <p>The layout runs on DCC. The main parts of the electrical system are:</p>
+      <ul>
+        <li>a TCS CS-105 command station and a TCS B-106 booster;</li>
+        <li>six power districts, each with its own circuit breaker or auto-reverser;</li>
+        <li>LCOS radio control nodes from Beagle Bay under the layout, which drive the switch machines and read the block detectors;</li>
+        <li>JMRI on a Raspberry Pi for the control panels;</li>
+        <li>a bridge, built for HART, that connects the LCOS radio network to JMRI.</li>
+      </ul>
+      <p>Every locomotive has a decoder with its own address and follows only the commands sent to that address, so two trains can run at once anywhere on the main line, in either direction, each on its own throttle.</p>
+
+      <figure class="plan" id="fig-p1">
+        <a href="../assets/behind/layout-docs/drawings/P1-staging-plan.svg"><img width="1000" height="352" src="../assets/behind/layout-docs/drawings/P1-staging-plan.svg" alt="Track diagram of the staging level with labels for the main line, the two reversing sections, the passing siding, the yard, the yard lead and the engine storage tracks." loading="lazy"></a>
+        <figcaption>Plan P1: the staging level, not to scale. Switch numbers match the fascia. The <a href="#section-list">section list</a> has the same track drawn to scale.</figcaption>
+      </figure>
+      <p>The drawings on this page use short labels. This table matches them to the names on the layout, the panels and the <a href="wiring.html">wiring viewer</a>.</p>
+      <div class="table-wrap">
+        <table class="data-table" id="tab-labels">
+          <thead><tr><th scope="col">Label</th><th scope="col">What it is</th><th scope="col">Name on the layout</th></tr></thead>
+          <tbody>
+            <tr><td>RS-1</td><td>Reversing section 1: the west part of the main line, Switch 1 to Switch 23</td><td>Main West</td></tr>
+            <tr><td>Main line, east</td><td>The rest of the main loop</td><td>Brick-Plane, East Ext, Main East</td></tr>
+            <tr><td>Double track</td><td>The two tracks at the east end</td><td>West Ext and East Lead</td></tr>
+            <tr><td>RS-2</td><td>Reversing section 2: the return loop at the east end</td><td>K-1 and K-2, the loop at Princess</td></tr>
+            <tr><td>Passing siding</td><td>The siding beside the main line, Switch 5 to Switch 7</td><td>Scale, at Plane</td></tr>
+            <tr><td>Yard lead</td><td>The track that serves the yard, Switch 7 to Switch 15</td><td>Barn</td></tr>
+            <tr><td>Y1 to Y5</td><td>The five yard tracks</td><td>South Yard S-R, S-1, S-2, S-3, S-4</td></tr>
+            <tr><td>E1 to E3</td><td>The three engine storage tracks</td><td>EH-1, EH-2, EH-3</td></tr>
+            <tr><td>Holding tracks</td><td>Two tracks off the main line</td><td>W-1 and W-2, West Yard</td></tr>
+            <tr><td>Section</td><td>A piece of track with gaps in both rails at both ends and its own feeders and detector</td><td>Block</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <figure class="photo single" id="photo-two-trains">
+        <a href="../assets/behind/layout-docs/photos/two-trains.jpg"><img width="787" height="1400" src="../assets/behind/layout-docs/photos/two-trains.jpg" alt="Locomotives 2091 and Conrail 1993 side by side on two tracks, each pulling its own train." loading="lazy"></a>
+        <figcaption>Two trains running at once, each under its own control: 2091 (left) and 1993 (right).</figcaption>
+      </figure>
+
+      <h2 id="power">Power and protection</h2>
+      <p>The command station and booster feed the districts through a set of terminal strips, the booster matrix. Each district has its own protection:</p>
+      <ul>
+        <li>Districts A to D: one DCC Specialties PSX circuit breaker each. The breaker cuts power within milliseconds of a short and turns it back on when the short is cleared.</li>
+        <li>RS-1 and RS-2: an NCE AR10 and a DCC Specialties PSXX-AR auto-reverser. They flip polarity when a train crosses the gap, and shut off if a short lasts.</li>
+      </ul>
+      <p>A short shuts down only its own district, and the board's light shows which one tripped. The command station and booster also have their own short protection. The booster matrix has room for a second booster.</p>
+      <figure class="drawing" id="fig-d1">
+        <a href="../assets/behind/layout-docs/drawings/D1-propulsion-one-line.svg"><img width="1000" height="312" src="../assets/behind/layout-docs/drawings/D1-propulsion-one-line.svg" alt="Drawing D1: throttles, command station, booster, booster matrix, and the six breakers and auto-reversers feeding the district buses." loading="lazy"></a>
+        <figcaption>Drawing D1: power and control. Red is track power, blue is detection and data. Each locomotive gets its speed and direction from the DCC commands sent to its address.</figcaption>
+      </figure>
+      <figure class="photo single" id="photo-power">
+        <a href="../assets/behind/layout-docs/photos/power-board.jpg"><img width="1050" height="1400" src="../assets/behind/layout-docs/photos/power-board.jpg" alt="A plywood panel holding a TCS CS-105 command station, a TCS B-106 booster, five green DCC Specialties boards with their status lamps lit, and terminal strips joining them with red and black wire." loading="lazy"></a>
+        <figcaption>The power panel: the TCS CS-105 command station (top right), the TCS B-106 booster (below it), and the DCC Specialties circuit breakers and auto-reverser (left), joined by the terminal strips of the booster matrix.</figcaption>
+      </figure>
+
+      <h2 id="sections">Sections, gaps and feeders</h2>
+      <p>The six power districts are split again into {{SECTION_COUNT}} sections. Each section has gaps in both rails at both ends and its own pair of feeders from the district bus (drawing D2). To find a fault, one section's feeders can be disconnected at its terminal strip. The <a href="#section-list">section list</a> has every one.</p>
+      <figure class="drawing" id="fig-d2">
+        <a href="../assets/behind/layout-docs/drawings/D2-propulsion-sections.svg"><img width="920" height="376" src="../assets/behind/layout-docs/drawings/D2-propulsion-sections.svg" alt="Drawing D2: the district bus feeding a DNCT2B detector's rail input; its two outputs feeding the feeders of two sections, each gapped in both rails at both ends; and the DNCT2B's network cable to a DNCTA and the LCOS client node." loading="lazy"></a>
+        <figcaption>Drawing D2: a typical section. Every section on the staging level and the helix is wired this way.</figcaption>
+      </figure>
+      <div class="photo-row">
+        <figure class="photo" id="photo-bus">
+          <a href="../assets/behind/layout-docs/photos/bus-terminal-strip.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/bus-terminal-strip.jpg" alt="An eight-position terminal strip mounted under the benchwork with red, black, white, blue, yellow and orange wires connected to it." loading="lazy"></a>
+          <figcaption>A terminal strip under the layout, where bus and feeder wires join.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-gap">
+          <a href="../assets/behind/layout-docs/photos/gap-both-rails.jpg"><img width="912" height="631" src="../assets/behind/layout-docs/photos/gap-both-rails.jpg" alt="Close-up of straight track with a gap cut in each rail at a section boundary, the two gaps a few ties apart." loading="lazy"></a>
+          <figcaption>A section boundary with gaps in both rails.</figcaption>
+        </figure>
+      </div>
+      <p>Every terminal strip under the layout uses the same eight positions and wire colors, so any bus or feeder can be traced the same way at every strip.</p>
+      <div class="table-wrap">
+        <table class="data-table" id="tab-terminal">
+          <thead><tr><th scope="col">Terminal</th><th scope="col">Carries</th><th scope="col">Wire color</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>DCC1 +</td><td><span class="swatch" style="background:#e01b1b"></span><span class="swatch" style="background:#1d8a2e"></span> Red, or green on a secondary bus</td></tr>
+            <tr><td>2</td><td>DCC1 –</td><td><span class="swatch" style="background:#111111"></span><span class="swatch" style="background:#7a5524"></span> Black, or brown on a secondary bus</td></tr>
+            <tr><td>3</td><td>DCC2 +</td><td><span class="swatch" style="background:#ffffff"></span> White</td></tr>
+            <tr><td>4</td><td>DCC2 –</td><td><span class="swatch" style="background:#1f4fd6"></span> Blue</td></tr>
+            <tr><td>5</td><td>+12 V (switch machines, accessories)</td><td><span class="swatch" style="background:#f5e400"></span> Yellow</td></tr>
+            <tr><td>6</td><td>+5 V</td><td><span class="swatch" style="background:#e01b1b"></span> Red</td></tr>
+            <tr><td>7</td><td>+3.3 V</td><td><span class="swatch" style="background:#f59a00"></span> Orange</td></tr>
+            <tr><td>8</td><td>Ground</td><td><span class="swatch" style="background:#111111"></span> Black</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2 id="detection">Detection</h2>
+      <p>Every section is detected. A section shows as occupied on the panels when a locomotive, or a car with resistor wheelsets, is on it.</p>
+      <p>Detection senses current. The district bus feeds both rails into a DNCT2B detector's rail input. The DNCT2B has two outputs, and each one feeds the feeders of one section, so the detector sees any current drawn in that section. Each DNCT2B plugs into a DNCTA by network cable, and one DNCTA connects up to four DNCT2Bs to the nearby LCOS client node, which reports each section as occupied or clear (drawing D2).</p>
+      <div class="photo-row">
+        <figure class="photo" id="photo-dnct">
+          <a href="../assets/behind/layout-docs/photos/dnct2b-feeders.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/dnct2b-feeders.jpg" alt="A DNCT2B detector board mounted under the layout, with track wiring in its screw terminals and a network cable to its DNCTA." loading="lazy"></a>
+          <figcaption>A DNCT2B detector: rail input from the bus, two outputs to the track, and the network cable to its DNCTA.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-occ">
+          <a href="../assets/behind/layout-docs/photos/occupancy-panel.png"><img width="787" height="305" src="../assets/behind/layout-docs/photos/occupancy-panel.png" alt="Part of the dispatcher panel for the west end of the staging level, with occupied sections shown in red." loading="lazy"></a>
+          <figcaption>The dispatcher panel, with occupied sections in red.</figcaption>
+        </figure>
+      </div>
+
+      <h2 id="turnouts">Turnouts and crossovers</h2>
+      <p>Every turnout on the staging level is a Peco turnout with a powered frog, thrown by an MTB MP4 slow-motion switch machine under the layout. The MP4 has two built-in SPDT contacts that move with the points (drawing D3):</p>
+      <ul>
+        <li>Contact 1 powers the frog. It connects the frog to whichever stock rail the points are against, so the frog always has the right polarity. Both frog rails are gapped past the frog.</li>
+        <li>Contact 2 reports which way the turnout is set.</li>
+      </ul>
+      <p>The switch machine runs off a 12 V output on the nearby LCOS node, so a turnout can be thrown from the fascia button, a DCC throttle or the computer.</p>
+      <figure class="drawing" id="fig-d3">
+        <a href="../assets/behind/layout-docs/drawings/D3-turnout-frog-indication.svg"><img width="620" height="516" src="../assets/behind/layout-docs/drawings/D3-turnout-frog-indication.svg" alt="Drawing D3: a turnout with the MP4's contact 1 powering the frog and contact 2 reporting the position." loading="lazy"></a>
+        <figcaption>Drawing D3: turnout frog power and position contact.</figcaption>
+      </figure>
+      <p>Each turnout shows its position in two places, both driven by contact 2, so they show where the points really are however the turnout was thrown:</p>
+      <ul>
+        <li>On the fascia, the turnout's Touch Toggle button lights, through a Touch Toggle Universal Translator. A framed track diagram on the fascia also has a light at each of its turnouts.</li>
+        <li>On the panels in JMRI, each switch shows normal or reverse. An LCOS input board reads the same contact.</li>
+      </ul>
+      <div class="photo-row">
+        <figure class="photo" id="photo-mp4">
+          <a href="../assets/behind/layout-docs/photos/touch-toggle-mp4.jpg"><img width="1400" height="1120" src="../assets/behind/layout-docs/photos/touch-toggle-mp4.jpg" alt="An MTB MP4 switch machine and a round Touch Toggle push button with a green lamp." loading="lazy"></a>
+          <figcaption>An MTB MP4 switch machine (bottom) and a Touch Toggle fascia button (center).</figcaption>
+        </figure>
+        <figure class="photo" id="photo-frog">
+          <a href="../assets/behind/layout-docs/photos/mp4-frog-wiring.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/mp4-frog-wiring.jpg" alt="Two MTB MP4 switch machines mounted under the layout, with their frog and position wiring joined by lever connectors." loading="lazy"></a>
+          <figcaption>Two MP4 switch machines under the layout, with their frog and position wiring.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-tt">
+          <a href="../assets/behind/layout-docs/photos/touch-toggle-translator.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/touch-toggle-translator.jpg" alt="A yellow Touch Toggle Universal Translator board wired to a lit green indicator lamp and a push button." loading="lazy"></a>
+          <figcaption>A Universal Translator wired to its button and light, before mounting.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-panel">
+          <a href="../assets/behind/layout-docs/photos/fascia-indication-panel.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/fascia-indication-panel.jpg" alt="A framed track diagram on the fascia with green and red lights at three turnouts." loading="lazy"></a>
+          <figcaption>A framed track diagram on the fascia with a light at each turnout.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-ind-n">
+          <a href="../assets/behind/layout-docs/photos/indication-normal.jpg"><img width="1400" height="925" src="../assets/behind/layout-docs/photos/indication-normal.jpg" alt="Switch 3 (DCC address 102) set normal, and its Touch Toggle on the fascia lit green." loading="lazy"></a>
+          <figcaption>Switch 3 (DCC address 102) set normal, its fascia light green.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-ind-r">
+          <a href="../assets/behind/layout-docs/photos/indication-reverse.jpg"><img width="1400" height="925" src="../assets/behind/layout-docs/photos/indication-reverse.jpg" alt="Switch 3 set reverse, and its Touch Toggle lit red." loading="lazy"></a>
+          <figcaption>The same switch set reverse: the light turns red.</figcaption>
+        </figure>
+      </div>
+      <p>There are crossovers at Switches 7, 23 and 35. Each is two turnouts wired like any other, and both machines throw together. Each frog has its own polarity, so both rails between the two frogs are gapped, and each half is its own detected section (drawing D4).</p>
+      <p>The two halves share one pair of position inputs on the node. Their position contacts are wired in series, so the panel shows normal only when both halves are normal and reverse only when both are reverse. If the halves disagree, neither light comes on and JMRI shows the crossover as inconsistent.</p>
+      <figure class="drawing" id="fig-d4">
+        <a href="../assets/behind/layout-docs/drawings/D4-crossover.svg"><img width="1000" height="580" src="../assets/behind/layout-docs/drawings/D4-crossover.svg" alt="Drawing D4: a crossover of two turnouts with both rails gapped between the frogs, and below it the position contacts of the two machines wired in series to one normal and one reverse input, with a table of what the panel shows." loading="lazy"></a>
+        <figcaption>Drawing D4: crossover. Top: frogs and gaps. Bottom: the two machines' position contacts in series, so a position shows only when both halves agree.</figcaption>
+      </figure>
+      <div class="photo-row">
+        <figure class="photo" id="photo-crossover">
+          <a href="../assets/behind/layout-docs/photos/crossover-gaps.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/crossover-gaps.jpg" alt="The Switch 7 crossover seen from above, showing both frogs and the gaps in the crossover rails between them." loading="lazy"></a>
+          <figcaption>The Switch 7 crossover, with gaps in both rails between the frogs.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-turnouts">
+          <a href="../assets/behind/layout-docs/photos/staging-turnouts.jpg"><img width="1050" height="1400" src="../assets/behind/layout-docs/photos/staging-turnouts.jpg" alt="Peco turnouts on cork roadbed." loading="lazy"></a>
+          <figcaption>Peco turnouts on the staging level.</figcaption>
+        </figure>
+      </div>
+
+      <h2 id="reversing">Reversing sections</h2>
+      <p>At the east end of the main line is a return loop, RS-2 (plan P2). A train goes out on one track, around the loop, and comes back on the other facing the other way. The loop is powered through a DCC Specialties PSXX-AR auto-reverser. It is two detected sections on the two outputs of one DNCT2B, and because both get power from the one auto-reverser they change polarity together, so for wiring and troubleshooting they are one reversing section.</p>
+      <p>The main line also loops back on itself at the west end, so its west part, RS-1, is a second reversing section, wired the same way on an NCE AR10. RS-1 is 217 in long, longer than any train on the level.</p>
+      <figure class="plan" id="fig-p2">
+        <a href="../assets/behind/layout-docs/drawings/P2-reversing-sections.svg"><img width="1000" height="189" src="../assets/behind/layout-docs/drawings/P2-reversing-sections.svg" alt="Track diagram with the two reversing sections highlighted and the gaps at their ends marked." loading="lazy"></a>
+        <figcaption>Plan P2: the two reversing sections and their gaps.</figcaption>
+      </figure>
+      <p>Each reversing section has gaps in both rails at both ends. The auto-reverser's output feeds the rail input of a DNCT2B, and the DNCT2B's outputs feed the track, so the reversing sections are detected like every other section. When a train's wheels bridge a gap with the wrong polarity, the auto-reverser senses the short and flips the section's polarity in a few milliseconds, and the train keeps going. Each section is longer than the longest train, so the flip finishes before the train reaches the far gap.</p>
+      <figure class="drawing" id="fig-d5">
+        <a href="../assets/behind/layout-docs/drawings/D5-reversing-section.svg"><img width="740" height="440" src="../assets/behind/layout-docs/drawings/D5-reversing-section.svg" alt="Drawing D5: an auto-reverser whose output feeds a DNCT2B detector's rail input; the DNCT2B's two outputs feed two detected sections of one reversing section, gapped at both outer ends and between the two sections." loading="lazy"></a>
+        <figcaption>Drawing D5: a reversing section on an auto-reverser. The two detected sections share the auto-reverser and change polarity together.</figcaption>
+      </figure>
+      <div class="photo-row">
+        <figure class="photo" id="photo-loop">
+          <a href="../assets/behind/layout-docs/photos/return-loop.jpg"><img width="1050" height="1400" src="../assets/behind/layout-docs/photos/return-loop.jpg" alt="The two tracks of the return loop RS-2 leaving the switches, with red tape marking the gaps." loading="lazy"></a>
+          <figcaption>The return loop RS-2, its gaps marked with red tape.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-ar">
+          <a href="../assets/behind/layout-docs/photos/auto-reverser-ar10.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/auto-reverser-ar10.jpg" alt="An NCE AR10 auto-reverser board mounted on the benchwork, its output wired into the rail input of a DNCT2B detector beside it." loading="lazy"></a>
+          <figcaption>RS-1: the NCE AR10 (right), its output going through the DNCT2B (left) to the track.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-psxx">
+          <a href="../assets/behind/layout-docs/photos/auto-reverser-psxx-ar.jpg"><img width="1050" height="1400" src="../assets/behind/layout-docs/photos/auto-reverser-psxx-ar.jpg" alt="Two DCC Specialties boards on the power panel with their status lights lit: a PSXX-AR auto-reverser above and a PSXX-2 circuit breaker below." loading="lazy"></a>
+          <figcaption>RS-2: the DCC Specialties PSXX-AR (top), with a PSXX-2 circuit breaker below it.</figcaption>
+        </figure>
+      </div>
+
+      <h2 id="tracks">Passing siding, yard and engine storage</h2>
+      <p>The passing siding runs beside the main line from Switch 5 to Switch 7 (plan P3). It is 144 in long, about 19 cars, and joins the main line at both ends, so one train can wait on the siding while another passes on the main.</p>
+      <figure class="small" id="fig-p3">
+        <a href="../assets/behind/layout-docs/drawings/P3-passing-siding.svg"><img width="1000" height="382" src="../assets/behind/layout-docs/drawings/P3-passing-siding.svg" alt="Close-up track diagram of the passing siding beside the main line between Switch 5 and Switch 7." loading="lazy"></a>
+        <figcaption>Plan P3: the passing siding.</figcaption>
+      </figure>
+      <p>The yard has five tracks, Y1 to Y5, from 100 to 218 in long (plan P4). A switcher works the yard from the yard lead, which leaves the main line at Switch 7 and runs on its own track to the yard ladder, so trains keep running on the main line while the yard is switched.</p>
+      <figure class="plan" id="fig-p4">
+        <a href="../assets/behind/layout-docs/drawings/P4-yard.svg"><img width="1000" height="342" src="../assets/behind/layout-docs/drawings/P4-yard.svg" alt="Close-up track diagram of the five-track yard and its lead." loading="lazy"></a>
+        <figcaption>Plan P4: the yard and its lead.</figcaption>
+      </figure>
+      <p>Three engine storage tracks, E1 to E3, branch off the yard lead at Switches 9 and 11 (plan P5). Each holds at least one locomotive.</p>
+      <figure class="small" id="fig-p5">
+        <a href="../assets/behind/layout-docs/drawings/P5-engine-storage.svg"><img width="1000" height="536" src="../assets/behind/layout-docs/drawings/P5-engine-storage.svg" alt="Close-up track diagram of the three engine storage tracks off the yard lead." loading="lazy"></a>
+        <figcaption>Plan P5: engine storage.</figcaption>
+      </figure>
+      <div class="photo-row">
+        <figure class="photo" id="photo-siding">
+          <a href="../assets/behind/layout-docs/photos/passing-siding.jpg"><img width="787" height="1400" src="../assets/behind/layout-docs/photos/passing-siding.jpg" alt="Conrail 1993 running through Switch 5 on the main line while 2091 waits beside it on the passing siding." loading="lazy"></a>
+          <figcaption>1993 runs through Switch 5 on the main line while 2091 waits on the passing siding.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-lead">
+          <a href="../assets/behind/layout-docs/photos/yard-lead.jpg"><img width="1050" height="1400" src="../assets/behind/layout-docs/photos/yard-lead.jpg" alt="A long view along the yard: the yard lead and the yard tracks beside the main line." loading="lazy"></a>
+          <figcaption>The yard lead, beside the main line.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-engine">
+          <a href="../assets/behind/layout-docs/photos/engine-storage.jpg"><img width="1050" height="1400" src="../assets/behind/layout-docs/photos/engine-storage.jpg" alt="Diesel locomotives standing on the engine storage tracks in front of a two-stall engine house." loading="lazy"></a>
+          <figcaption>Locomotives on the engine storage tracks.</figcaption>
+        </figure>
+      </div>
+      <figure class="photo" id="photo-yard">
+        <a href="../assets/behind/layout-docs/photos/yard.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/yard.jpg" alt="The yard seen along its length, with freight cars on several tracks." loading="lazy"></a>
+        <figcaption>The yard.</figcaption>
+      </figure>
+
+      <h2 id="computer">The computer link</h2>
+      <p>The LCOS nodes under the layout talk to each other by radio. Each node is an Arduino Nano with an nRF24L01 radio. LCOS has no connection to JMRI of its own, so HART has a bridge in two parts (drawing D6):</p>
+      <ul>
+        <li><strong>The bridge node:</strong> an LCOS node running HART's own C++ firmware. It joins the radio network and listens for events from the other nodes: a turnout moved, a section became occupied or clear, a button was pressed. It sends each event to the PC over USB as one line of text, and takes commands from the PC, such as "throw turnout 1308", and sends them by radio to the right node.</li>
+        <li><strong>The bridge program:</strong> a Python program on the PC. It passes each line from the node to an MQTT message server, and each command from the server back to the node.</li>
+      </ul>
+      <p>JMRI has a built-in MQTT connection, so every LCOS turnout, sensor and signal shows up in JMRI as a normal turnout, sensor or signal. The address is the node number and the device number: turnout 1308 is turnout 8 on node 13, and the line <code>track/turnout/1308 THROWN</code> means that turnout has thrown.</p>
+      <p>The program checks the USB link about every 12 seconds and reconnects if it stops answering. After the layout power is turned off and on, it tells the node to sign up for events again, and it reports whether the link is up so the panels can show it. The code is open source on GitHub: <a href="https://github.com/lnevo/LCOS_ESP32_MQTT_Client">LCOS_ESP32_MQTT_Client</a>. <a href="bridge.html">LCOS and the Arduino bridge</a> has more.</p>
+      <figure class="drawing" id="fig-d6">
+        <a href="../assets/behind/layout-docs/drawings/D6-computer-interface.svg"><img width="680" height="358" src="../assets/behind/layout-docs/drawings/D6-computer-interface.svg" alt="Drawing D6: JMRI, the MQTT server, the bridge program, the bridge node, the LCOS nodes and the railroad, with the links between them." loading="lazy"></a>
+        <figcaption>Drawing D6: the bridge between the LCOS radio network and JMRI. The shaded boxes are built for HART.</figcaption>
+      </figure>
+      <div class="photo-row">
+        <figure class="photo" id="photo-node">
+          <a href="../assets/behind/layout-docs/photos/primary-node.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/primary-node.jpg" alt="The primary LCOS node, an Arduino Nano with its radio on an LCOS board, mounted under the benchwork." loading="lazy"></a>
+          <figcaption>The primary LCOS node, which runs the radio network. The bridge node is the same hardware with HART's firmware.</figcaption>
+        </figure>
+        <figure class="photo" id="photo-bridge">
+          <a href="../assets/behind/layout-docs/photos/bridge-node.jpg"><img width="1400" height="1050" src="../assets/behind/layout-docs/photos/bridge-node.jpg" alt="The bridge node on a shelf, connected by USB to the PC that runs the bridge program, with the Raspberry Pi that runs JMRI beside them." loading="lazy"></a>
+          <figcaption>The bridge node (right) connected by USB to the PC, with the Raspberry Pi that runs JMRI.</figcaption>
+        </figure>
+      </div>
+      <figure id="photo-console">
+        <pre class="console" aria-label="Bridge program output">MQTT RX turnout cmd topic='track/cmd/turnout/1308' qos=1 retain=False raw_bytes=b'THROWN'
+MQTT turnout queued for serial: 'track/cmd/turnout/1308 THROWN'
+MQTT -&gt; serial b'track/cmd/turnout/1308 THROWN\n'
+ACK track/cmd/turnout/1308 THROWN
+TX -&gt; track/turnout/1308 THROWN
+TX -&gt; track/sensor/1367 INACTIVE
+TX -&gt; track/sensor/1368 ACTIVE
+TX -&gt; track/sensor/1368 ACTIVE
+MQTT RX turnout cmd topic='track/cmd/turnout/1308' qos=1 retain=False raw_bytes=b'CLOSED'
+MQTT turnout queued for serial: 'track/cmd/turnout/1308 CLOSED'
+MQTT -&gt; serial b'track/cmd/turnout/1308 CLOSED\n'
+ACK track/cmd/turnout/1308 CLOSED
+TX -&gt; track/turnout/1308 CLOSED
+TX -&gt; track/sensor/1367 ACTIVE
+TX -&gt; track/sensor/1368 INACTIVE
+TX -&gt; track/sensor/1368 INACTIVE</pre>
+        <figcaption>The bridge program's window, 15 November 2026. JMRI throws turnout 1308, the node acknowledges (ACK), the turnout reports THROWN and its two position sensors (1367 and 1368) change; then the same for CLOSED. Lines that start with MQTT are commands from JMRI; lines that start with TX are reports from the layout.</figcaption>
+      </figure>
+      <p>JMRI also runs the signals and the CATS dispatcher panel from the same turnouts and sensors: <a href="signals.html">how the signals work</a>.</p>
+
+      <h2 id="nodes">Radio nodes</h2>
+      <figure class="tall" id="fig-grid">
+        <a href="../assets/behind/lcos-node-grid.svg"><img src="../assets/behind/lcos-node-grid.svg" alt="Floor plan grid of the layout room. Orange squares are benchwork; each LCOS radio node address sits in the square where that node is mounted." width="542" height="632" loading="lazy"></a>
+        <figcaption>Radio addresses on a floor plan of the layout room. Orange squares are benchwork, and each address is in the square where its node sits. Yellow squares mark the master (00), the five nodes that talk to it directly (01 to 05), 012 at East End, 013 at the Barn, and the bridge node, 015.</figcaption>
+      </figure>
+      <p>Pin-by-pin wiring for every node is in the <a href="wiring.html">wiring viewer</a>.</p>
+
+      <h2 id="section-list">Section list</h2>
+      <figure class="small" id="fig-p0">
+        <a href="../assets/behind/layout-docs/drawings/P0-staging-to-scale.svg"><img width="600" height="684" src="../assets/behind/layout-docs/drawings/P0-staging-to-scale.svg" alt="To-scale track plan of the staging level, with switch numbers and a 100 cm scale bar." loading="lazy"></a>
+        <figcaption>Plan P0: the staging level to scale. Switch numbers match plan P1. Scale bar 100 cm.</figcaption>
+      </figure>
+      <p>Every detected section on the staging level and the helix, wired as in drawing D2. "Node · ch" is the LCOS node and detector channel. Lengths marked ≈ are estimates.</p>
+      {{SECTIONS_TABLE}}
+
+      <h2 id="parts">Parts</h2>
+      <div class="table-wrap">
+        <table class="data-table" id="tab-parts">
+          <thead><tr><th scope="col">Part</th><th scope="col">Maker</th><th scope="col">Used for</th></tr></thead>
+          <tbody>
+            <tr><td>CS-105 command station</td><td>TCS</td><td>DCC command station</td></tr>
+            <tr><td>B-106 booster</td><td>TCS</td><td>Track power</td></tr>
+            <tr><td>PSX circuit breakers</td><td>DCC Specialties</td><td>Districts A to D</td></tr>
+            <tr><td>AR10 auto-reverser</td><td>NCE</td><td>RS-1</td></tr>
+            <tr><td>PSXX-AR auto-reverser</td><td>DCC Specialties</td><td>RS-2</td></tr>
+            <tr><td>Turnouts</td><td>Peco</td><td>All turnouts and crossovers</td></tr>
+            <tr><td>MP4 switch machines</td><td>MTB</td><td>Throwing turnouts, frog power, position contact</td></tr>
+            <tr><td>Touch Toggles, Universal Translator</td><td>Berrett Hill</td><td>Fascia buttons and lights</td></tr>
+            <tr><td>LCOS nodes and boards</td><td>Beagle Bay</td><td>Switch machine outputs, inputs</td></tr>
+            <tr><td>DNCT2B detectors, DNCTA</td><td>Beagle Bay</td><td>Block detection (DNCT2B, two sections each); linking up to four DNCT2Bs to a node (DNCTA)</td></tr>
+            <tr><td>Arduino Nano, nRF24L01 radio</td><td>Arduino; various</td><td>Bridge node</td></tr>
+            <tr><td>Raspberry Pi</td><td>Raspberry Pi Ltd</td><td>Runs JMRI and the MQTT server</td></tr>
+            <tr><td>JMRI, Mosquitto</td><td>Free software</td><td>Panels; MQTT server</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="explainer-more">
+        More: <a href="wiring.html">Wiring viewer</a> ·
+        <a href="bridge.html">LCOS and the Arduino bridge</a> ·
+        <a href="signals.html">How the signals work</a> ·
+        <a href="../build/track-plan.html">Track plan</a>
+      </p>
+    </article>
+  </main>
+  <footer class="site-footer" data-ops-footer></footer>
+  <script src="../js/nav.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      HARTOps.mountChrome("behind-docs").catch(function (err) {
+        console.error(err);
+      });
+    });
+  </script>
+</body>
+</html>
