@@ -26,7 +26,11 @@ ROOT = PORTAL.parent
 BLOCKS = ROOT / "jmri/layouts/hart/data/block_lengths.csv"
 TEMPLATE = PORTAL / "scripts/layout_docs_template.html"
 PAGE = PORTAL / "behind/layout-docs.html"
-D2 = PORTAL / "assets/behind/layout-docs/drawings/D2-propulsion-sections.svg"
+DRAWINGS = PORTAL / "assets/behind/layout-docs/drawings"
+D2 = DRAWINGS / "D2-propulsion-sections.svg"
+# SOQ wording that must not come back into the page's drawings (they began as SOQ copies).
+SOQ_WORDS = ("Section 3.", "Section 4.", "Section 5.", "Appendix", "SOQ", "my own", "by me", "witness", "evaluator",
+             "Requirement", "claim")
 
 # Labels used on the page for the layout's section names (the overview's label table).
 YARD = {"S-R": "Y1", "S-1": "Y2", "S-2": "Y3", "S-3": "Y4", "S-4": "Y5"}
@@ -36,6 +40,8 @@ FIXED = {"Main West": "Main line (west), RS-1", "West Ext": "Double-track sectio
          "W-1": "Holding track", "W-2": "Holding track"}
 
 
+# label() began as a copy of the frozen docs/ap/electrical/build_soq.py generic() (2026-11-22); this is
+# the maintained one. Add a new section name here, not there.
 def label(name: str) -> str:
     """The page's description of a detected section, from its layout name."""
     if name in YARD:
@@ -106,10 +112,21 @@ def sections_table() -> tuple[str, int]:
 
 def check_d2(count: int) -> None:
     """Drawing D2 says how many sections are wired its way; it must match the section list."""
+    if not D2.is_file():
+        raise SystemExit(f"build_layout_docs: {D2.relative_to(ROOT)} is missing; the section count check reads it")
     said = re.search(r"All (\d+) detected sections", D2.read_text())
     if not said or int(said.group(1)) != count:
         raise SystemExit(f"build_layout_docs: {D2.relative_to(ROOT)} says {said.group(1) if said else 'no'} detected "
                          f"sections, block_lengths.csv has {count}; edit the drawing")
+
+
+def check_drawings() -> None:
+    """No SOQ wording in the visible text of the page's drawings."""
+    for svg in sorted(DRAWINGS.glob("*.svg")):
+        text = " ".join(re.findall(r"<(?:text|tspan|title|desc)\b[^>]*>([^<]*)", svg.read_text()))
+        for word in SOQ_WORDS:
+            if word in text:
+                raise SystemExit(f"build_layout_docs: {svg.relative_to(ROOT)} says {word!r}, SOQ wording; edit the drawing")
 
 
 def outputs() -> dict[Path, str]:
@@ -118,6 +135,7 @@ def outputs() -> dict[Path, str]:
     if "{{" in page:
         raise SystemExit("build_layout_docs: a placeholder is left in the page")
     check_d2(count)
+    check_drawings()
     return {PAGE: page}
 
 

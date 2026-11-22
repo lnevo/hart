@@ -1,8 +1,11 @@
-"""The layout documentation page and its drawings match their sources, one row per detector."""
+"""The layout documentation page matches its template and block_lengths.csv (one row per detector), drawing D2
+states the same section count, and the hand-edited drawings carry no SOQ wording."""
 import csv
+import io
 import re
 import sys
 import tempfile
+import tokenize
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -22,9 +25,14 @@ class LayoutDocs(unittest.TestCase):
         # The SOQ is submitted and frozen; the page is maintained on its own (owner, 2026-11-22).
         page = ld.PAGE.read_text()
         self.assertNotIn("docs/ap/electrical", page)
-        self.assertNotIn("ap/electrical", (SCRIPTS / "build_layout_docs.py").read_text().split('"""', 2)[2])
+        src = (SCRIPTS / "build_layout_docs.py").read_text()
+        strings = [t.string for t in tokenize.generate_tokens(io.StringIO(src).readline) if t.type == tokenize.STRING]
+        self.assertFalse([s for s in strings[1:] if "ap/electrical" in s or "build_soq" in s])   # [0] is the docstring
         for rel in set(re.findall(r'\.\./(assets/behind/layout-docs/[\w./-]+)', page)):
             self.assertTrue((ld.PORTAL / rel).is_file(), rel)
+
+    def test_drawings_carry_no_soq_wording(self):
+        ld.check_drawings()
 
     def test_every_section_has_a_label(self):
         for s in ld.detected_sections():

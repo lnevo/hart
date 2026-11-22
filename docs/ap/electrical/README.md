@@ -2,7 +2,7 @@
 
 Index of the Model Railroad Engineer Electrical SOQ package: its source, builders, photographs and the frozen submitted PDF.
 
-**Submitted 15 November 2026 and frozen.** See [SUBMITTED.md](SUBMITTED.md): the build refuses to run unless the evaluator asks for changes.
+**Submitted 15 November 2026 and frozen.** See [SUBMITTED.md](SUBMITTED.md). The build is kept as a record and is not expected to run.
 
 **Not part of the pipeline (owner, 2026-11-22).** Nothing reads from this folder, and the build is not kept working against the live sources it once read (`block_lengths.csv` has since gained part rows, so its 43-section check would now fail). An evaluator's change is a one-off edit by hand. The layout documentation that grew out of the SOQ is maintained on its own at `www/behind/layout-docs.html` (`www/scripts/build_layout_docs.py`).
 

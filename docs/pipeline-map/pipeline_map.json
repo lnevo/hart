@@ -2699,6 +2699,15 @@
    "path": "www/scripts/jmri_additions_page.py"
   },
   {
+   "id": "www/assets/behind/layout-docs/drawings",
+   "label": "layout-docs drawings",
+   "kind": "unstructured",
+   "status": "live",
+   "domain": "website",
+   "desc": "Hand-edited SVG drawings (D1-D6, P0-P5) of the layout documentation page; began as copies of the frozen SOQ's drawings (2026-11-22). D2 states the section count.",
+   "path": "www/assets/behind/layout-docs/drawings"
+  },
+  {
    "id": "www/scripts/build_layout_docs.py",
    "label": "build_layout_docs.py",
    "kind": "generator",
@@ -7395,6 +7404,17 @@
   {
    "from": "www/scripts/build_layout_docs.py",
    "to": "www/behind"
+  },
+  {
+   "from": "www/assets/behind/layout-docs/drawings",
+   "to": "www/scripts/build_layout_docs.py",
+   "label": "checks count",
+   "side": "check"
+  },
+  {
+   "from": "www/assets/behind/layout-docs/drawings",
+   "to": "www/behind",
+   "label": "shown on"
   },
   {
    "from": ".claude/agents/archive-researcher.md",
