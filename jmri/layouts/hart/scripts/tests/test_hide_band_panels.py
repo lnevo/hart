@@ -44,7 +44,7 @@ class Jvm:
         self.frames[title] = Frame(title, visible)
         return self.frames[title]
 
-    def load(self, case):
+    def load(self, case, scope=None):
         def mod(name, **attrs):
             m = types.ModuleType(name)
             m.__dict__.update(attrs)
@@ -65,7 +65,8 @@ class Jvm:
                     sys.modules[k] = v
         case.addCleanup(restore)
         with contextlib.redirect_stdout(self.out):
-            exec(compile(SCRIPT.read_text(encoding="ascii"), str(SCRIPT), "exec"), {"__name__": "under_test"})
+            exec(compile(SCRIPT.read_text(encoding="ascii"), str(SCRIPT), "exec"),
+                 {"__name__": "under_test"} if scope is None else scope)
 
     def tick(self, n=1000, between=None):
         ran = 0
@@ -84,9 +85,20 @@ class Jvm:
 
 class HideBandPanels(unittest.TestCase):
     def test_the_names_are_hartlibs(self):
-        node = next(n for n in ast.parse(SCRIPT.read_text()).body if isinstance(n, ast.Assign)
-                    and getattr(n.targets[0], "id", "") == "BAND_PANELS")
+        cls = next(n for n in ast.parse(SCRIPT.read_text()).body if isinstance(n, ast.ClassDef))
+        node = next(n for n in cls.body if isinstance(n, ast.Assign) and n.targets[0].id == "BAND_PANELS")
         self.assertEqual(tuple(ast.literal_eval(node.value)), tuple(tables.BAND_PANEL_NAMES.values()))
+
+    def test_it_defines_one_module_name_and_leaves_the_cats_scripts_names_alone(self):
+        """The shared Jython engine: hide_cats_desk_windows.py's queued passes look up _state and _pass again."""
+        tree = ast.parse(SCRIPT.read_text())
+        names = {t.id for n in tree.body if isinstance(n, ast.Assign) for t in n.targets}
+        names |= {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.ClassDef))}
+        self.assertEqual(names, {"HartBandPanelHider"})
+        jvm = Jvm()
+        shared = {"__name__": "shared", "_state": {"hid": False}, "_pass": "cats"}
+        jvm.load(self, scope=shared)
+        self.assertEqual((shared["_state"], shared["_pass"]), ({"hid": False}, "cats"))
 
     def test_open_windows_are_hidden_and_the_passes_stop_once_stable(self):
         jvm = Jvm()

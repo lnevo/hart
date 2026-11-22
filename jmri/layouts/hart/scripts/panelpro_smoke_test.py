@@ -127,26 +127,32 @@ def parked_errors():
 
 
 def band_panel_errors(wait):
-    """Each band panel loaded as a Layout Editor panel and its window hidden by the LogixNG, which runs after the
-    load. First every band frame must exist (up to 20 s; a frame not made yet cannot be hidden yet), then each must
-    stay hidden over six polls in three seconds, so a window PanelPro shows after the first poll is still seen."""
+    """Each band panel loaded as a Layout Editor panel and its window hidden by the LogixNG's hide_band_panels.py,
+    which waits for the windows to open. First each band window must exist and have been hidden once (up to 30 s;
+    a window shown before the script reaches it is not a failure), then each must stay hidden over six polls in three
+    seconds, so a window PanelPro shows again later is still seen."""
     editors = jmri.InstanceManager.getDefault(jmri.jmrit.display.EditorManager)
     names = set(editor.getTitle() for editor in editors.getAll())
     errors = ["band panel %s not loaded" % title for title in BAND_PANELS if title not in names]
-    for _ in range(40):
-        if all(jmri.util.JmriJFrame.getFrame(title) is not None for title in BAND_PANELS):
+
+    def frame(title):
+        return jmri.util.JmriJFrame.getFrame(title)
+
+    hidden_once = set()
+    for _ in range(60):
+        hidden_once.update(t for t in BAND_PANELS if frame(t) is not None and not frame(t).isVisible())
+        if len(hidden_once) == len(BAND_PANELS):
             break
         wait(500)
-    errors.extend("band panel %s has no window" % title for title in BAND_PANELS
-                  if jmri.util.JmriJFrame.getFrame(title) is None)
+    errors.extend("band panel %s has no window" % t for t in BAND_PANELS if frame(t) is None)
+    errors.extend("band panel %s window never hidden; the LogixNG should hide it" % t for t in BAND_PANELS
+                  if frame(t) is not None and t not in hidden_once)
     shown = set()
     for _ in range(6):
         wait(500)
-        shown.update(title for title in BAND_PANELS if jmri.util.JmriJFrame.getFrame(title) is not None
-                     and jmri.util.JmriJFrame.getFrame(title).isVisible())
-    errors.extend("band panel %s window shown; the LogixNG should hide it" % title for title in sorted(shown))
+        shown.update(t for t in hidden_once if frame(t) is not None and frame(t).isVisible())
+    errors.extend("band panel %s window shown again after it was hidden" % t for t in sorted(shown))
     return errors
-
 
 class HartSmoke(jmri.jmrit.automat.AbstractAutomaton):
     def handle(self):

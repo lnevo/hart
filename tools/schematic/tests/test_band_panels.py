@@ -133,11 +133,18 @@ class RealBuild(unittest.TestCase):
                 self.assertEqual((bp.EDGE, name, el.get("ident")),
                                  (partner.get("type"), partner.get("linkedpanel"), partner.get("linkpointid")))
 
-    def test_only_the_upper_level_moves_up_to_where_staging_stands(self) -> None:
+    def test_each_band_opens_on_its_track_with_a_margin_above_and_below(self) -> None:
+        """Owner, 2026-11-22: every band panel's topmost element MARGIN px from the top, the panel its band plus
+        MARGIN below."""
         moves = {r["name"]: r["translation"] for r in self.report}
-        self.assertEqual((0, 0), moves["Staging Level"])
-        self.assertEqual((0, 0), moves["Main Level"])
+        self.assertLess(moves["Main Level"][1], 0)
         self.assertLess(moves["Upper Level"][1], 0)
+        for name in bp.tables.BAND_PANEL_NAMES.values():
+            p = self.bands[name]
+            band = [el for el in p if el.tag not in bp.EVERY_PANEL and not marker(el)]     # the band's own
+            ys = [float(e.get(a)) for el in band for e in el.iter() for a in bp.Y_ATTRS if e.get(a) is not None]
+            self.assertEqual(round(min(ys)), bp.MARGIN, name)
+            self.assertEqual(int(p.get("panelheight")), round(max(ys)) + bp.MARGIN, name)
 
 
 # ---------------------------------------------------------------- a small panel
@@ -191,7 +198,7 @@ class SmallPanel(unittest.TestCase):
         self.assertEqual(["layoutTrackDrawingOptions", "positionablepoint", "tracksegment", "positionablepoint"],
                          [el.tag for el in one])
         self.assertEqual("One", one.find("layoutTrackDrawingOptions").get("name"))
-        self.assertEqual({"ident": "A1", "type": "EDGE_CONNECTOR", "x": "0.0", "y": "20.0", "connect1name": "T1",
+        self.assertEqual({"ident": "A1", "type": "EDGE_CONNECTOR", "x": "0.0", "y": f"{float(bp.MARGIN):.1f}", "connect1name": "T1",
                           "linkedpanel": "Two", "linkpointid": "A2"}, one[3].attrib)
 
     def test_an_element_in_no_band_stops(self) -> None:
@@ -249,17 +256,15 @@ class EdgeConnectorAndMove(unittest.TestCase):
         with self.assertRaisesRegex(bp.BandPanelError, "anchor A1 has child elements"):
             bp.edge_connector(point, "J1", "Two", "A2")
 
-    def test_a_band_still_too_tall_after_its_move_stops(self) -> None:
-        full = ET.Element("LayoutEditor", windowheight="560")
-        P = SimpleNamespace(band_boxes=[(0, 100, 10, 400), (0, 600, 10, 1100)])
-        areas = [(0, 400), (400, 1100)]
-        self.assertEqual(0, bp.translation(full, P, areas, 0, (18, 60)))
-        with self.assertRaisesRegex(bp.BandPanelError, "band 1 is 600 px tall after its move up, more than the "
-                                                       "window's 500 px"):
-            bp.translation(full, P, areas, 1, (18, 60))
-        areas = [(0, 400), (400, 1000)]
-        P = SimpleNamespace(band_boxes=[(0, 100, 10, 400), (0, 600, 10, 1000)])
-        self.assertEqual(-500, bp.translation(full, P, areas, 1, (18, 60)))
+    def test_a_band_moves_to_the_margin_and_one_too_tall_for_the_window_stops(self) -> None:
+        root, P = small()
+        full = root.find("LayoutEditor")
+        _, of = SmallPanel().membership(root, P)
+        self.assertEqual((bp.MARGIN - 70, bp.MARGIN * 2), bp.translation(full, of, 1, (18, 60)))
+        full.set("windowheight", str(60 + bp.MARGIN * 2 - 1))
+        with self.assertRaisesRegex(bp.BandPanelError, f"band 1 needs a {bp.MARGIN * 2} px panel with its "
+                                                       f"margins, more than the window's {bp.MARGIN * 2 - 1} px"):
+            bp.translation(full, of, 1, (18, 60))
 
 
 class SmokeTestNames(unittest.TestCase):

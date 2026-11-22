@@ -21,9 +21,10 @@ linkedpanel the other band panel's name and linkpointid the anchor at the far en
 PositionablePointViewXml; the link is made when the second panel loads). A join is inside one block, so the
 connector is no block boundary and carries no mast.
 
-A band panel keeps the full panel's coordinates unless the window, which opens at the top left of the panel, would
-not show the whole height of the band. Then the band is moved up by one translation, so that its box stands where the
-staging band's box stands (the upper level). A band panel's height is its area's bottom, after that translation.
+Each band panel opens on its own band (owner, 2026-11-22): the band is moved up by one translation, so that its
+topmost element stands MARGIN px below the top of the panel, and the panel is as tall as its lowest element plus
+MARGIN. The margin gives the level room above and below that the full panel, packed level under level, does not.
+The move is in whole px; a band that would still not fit the window stops the build (BandPanelError).
 """
 from __future__ import annotations
 
@@ -43,6 +44,7 @@ EDGE = "EDGE_CONNECTOR"
 EVERY_PANEL = ("layoutTrackDrawingOptions",)           # and the generated-panel marker label
 AREA_TAGS = ("positionablelabel", "sensoricon", "signalheadicon", "memoryicon", "MemoryIcon", "LocoIcon")
 Y_ATTRS = ("y", "ycen", "ya", "yb", "yc", "yd")
+MARGIN = 40          # px above and below a band in its panel (module text)
 # where JMRI 5.16 writes linkedpanel and linkpointid on a positionablepoint: after the slots, before class
 POINT_ORDER = ("ident", "type", "x", "y", "connect1name", "connect2name", "eastboundsignal", "westboundsignal",
                "eastboundsignalmast", "westboundsignalmast", "eastboundsensor", "westboundsensor", "linkedpanel",
@@ -66,8 +68,8 @@ def add(root: ET.Element, P, bands, chrome: tuple[int, int]) -> list[dict]:
     out = []
     after = full
     for bi, name in names.items():
-        dy = translation(full, P, areas, bi, chrome)
-        panel = band_panel(full, of, joins, names, bi, name, dy, areas[bi][1])
+        dy, height = translation(full, of, bi, chrome)
+        panel = band_panel(full, of, joins, names, bi, name, dy, height)
         check_links(panel)
         root.insert(list(root).index(after) + 1, panel)
         after = panel
@@ -230,19 +232,27 @@ def band_joins(full: ET.Element, P, of) -> dict[str, tuple[ET.Element, ET.Elemen
     return out
 
 
-def translation(full: ET.Element, P, areas, bi: int, chrome) -> int:
-    """0, or the one upward move (module text) for band `bi`, in whole px. BandPanelError when the move would not
-    be whole."""
+def band_extent(full: ET.Element, of, bi: int) -> tuple[float, float]:
+    """(top, bottom): the least and greatest y (Y_ATTRS) of band `bi`'s elements in the full panel. BandPanelError when
+    the band has no element with a y."""
+    ys = [float(e.get(a)) for el in tables.elements(full) if of[id(el)] == bi
+          for e in el.iter() for a in Y_ATTRS if e.get(a) is not None]
+    if not ys:
+        raise BandPanelError(f"band {bi} has no element with a position")
+    return min(ys), max(ys)
+
+
+def translation(full: ET.Element, of, bi: int, chrome) -> tuple[int, int]:
+    """(dy, panel height) for band `bi` (module text): the move that puts its topmost element MARGIN px from the top,
+    and its lowest element plus MARGIN after that move. BandPanelError when the band does not fit the window."""
+    top, bottom = band_extent(full, of, bi)
+    dy = round(MARGIN - top)
+    height = round(bottom + dy + MARGIN)
     room = int(full.get("windowheight")) - chrome[1]
-    if areas[bi][1] <= room:
-        return 0
-    dy = P.band_boxes[0][1] - P.band_boxes[bi][1]
-    if dy != int(dy):
-        raise BandPanelError(f"band {bi}'s move up ({dy:g} px) is not whole")
-    if areas[bi][1] + dy > room:
-        raise BandPanelError(f"band {bi} is {areas[bi][1] + dy:g} px tall after its move up, more than the window's "
-                             f"{room} px: its window would not show the whole band")
-    return int(dy)
+    if height > room:
+        raise BandPanelError(f"band {bi} needs a {height} px panel with its margins, more than the window's {room} px: "
+                             "its window would not show the whole band")
+    return dy, height
 
 
 def _num(text: str, dy: int) -> str:
@@ -277,7 +287,7 @@ def edge_connector(point: ET.Element, join: str, linked: str, partner: str) -> E
     return el
 
 
-def band_panel(full: ET.Element, of, joins, names, bi: int, name: str, dy: int, bottom: float) -> ET.Element:
+def band_panel(full: ET.Element, of, joins, names, bi: int, name: str, dy: int, height: int) -> ET.Element:
     """The band panel of band `bi` (module text)."""
     edges = {}
     for ident, (a, b) in joins.items():
@@ -297,7 +307,7 @@ def band_panel(full: ET.Element, of, joins, names, bi: int, name: str, dy: int, 
             shift(new, dy)
         panel.append(new)
     panel.set("name", name)
-    panel.set("panelheight", str(round(bottom + dy)))
+    panel.set("panelheight", str(height))
     return panel
 
 
