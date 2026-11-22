@@ -485,13 +485,18 @@ process.stdout.write(JSON.stringify(out));"""
             self.assertLessEqual(abs(span[0] - span[1]), 2 + 0.5 * (n - 1), n)  # each size is rounded to a whole unit
 
     def test_spread_geometry(self) -> None:
-        """spreadGeo: a step k times as wide; the boxes widen with it up to BOX_GROW times, titles and descriptions too,
-        and the gap takes the rest; 1x is the geometry as it is."""
+        """spreadGeo: a step k times as wide; the boxes grow whole (scale) with it up to BOX_GROW times, as tall as wide,
+        their lines wrapping as at 1x, and the gap takes the rest; 1x is the geometry as it is."""
         g = self.run_js("m.spreadGeo(m.NARROW, 2)", None)
-        self.assertEqual((g["nodeW"], g["titleWrap"], g["descWrap"], g["nodeW"] + g["colGap"]), (360, 44, 88, 2 * (180 + 80)))
+        self.assertEqual((g["nodeW"], g["scale"], g["titleWrap"], g["nodeW"] + g["colGap"]), (360, 2, 22, 2 * (180 + 80)))
         g = self.run_js("m.spreadGeo(m.NARROW, 6)", None)
-        self.assertEqual((g["nodeW"], g["nodeW"] + g["colGap"]), (450, 6 * 260))  # boxes stop at 2.5x, steps go on
+        self.assertEqual((g["nodeW"], g["scale"], g["nodeW"] + g["colGap"]), (450, 2.5, 6 * 260))  # boxes stop at 2.5x
         self.assertEqual(self.run_js("m.spreadGeo(m.WIDE, 1) === m.WIDE", None), True)
+        box = {"id": "a", "label": "a fairly long box name", "path": "x/y.py", "desc": "what it does"}
+        h = self.run_js("[m.nodeHeight(a, m.NARROW), m.nodeHeight(a, m.spreadGeo(m.NARROW, 2))]", box)
+        self.assertEqual(h[1], 2 * h[0])  # twice as tall too
+        self.assertEqual(self.run_js("[m.boxTransform({x: 1, y: 2}), m.boxTransform({x: 1, y: 2}, 2)]", None),
+                         ["translate(1.0,2.0)", "translate(1.0,2.0) scale(2.0000)"])
 
     def test_box_at_a_point(self) -> None:
         """boxAt: the box drawn at a point (a grown card lets the pointer through to it), edges included, else null."""

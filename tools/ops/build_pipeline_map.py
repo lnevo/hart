@@ -275,7 +275,8 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #lanelist>label.inl{display:inline-block;margin-right:10px}
 #presets{display:flex;flex-direction:column;gap:4px;align-items:stretch}
 #more{display:none;position:static}
-.node.folder .box{stroke-dasharray:7 4;stroke-width:2}
+svg{--bsc:var(--bscale,1)} svg.far{--bsc:1}
+.node.folder .box{stroke-dasharray:7 4;stroke-width:calc(2 * var(--bsc))}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
@@ -316,7 +317,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
 .elabel{pointer-events:none;font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
-.node .box{stroke-width:1.2}
+.node .box{stroke-width:calc(1.2 * var(--bsc))}
 .node .t{font-size:13px;font-weight:700}
 .node .p{font:10.5px ui-monospace,Menlo,monospace;fill:#334155}
 .node .d{font-size:11px;fill:#1f2937}
@@ -324,7 +325,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 .node.parked .box{stroke-dasharray:6 3}
 .node.retired .box{stroke-dasharray:2 3}
 .node.parked,.node.retired{opacity:.7}
-.node.hit .box{stroke:#dc2626;stroke-width:4}
+.node.hit .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
 svg.focus .node,svg.focus .edge,svg.focus .elabel{opacity:.12}
 svg.focus .node.on{opacity:.5}
 svg.focus .node.near,svg.focus .elabel.near{opacity:1}
@@ -332,7 +333,7 @@ svg.focus .elabel.on:not(.near){opacity:0}
 svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
-svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
+svg.focus .node.sel .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
 svg.far #elabels{display:none}
 svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1px}
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
@@ -346,11 +347,11 @@ svg.far .eh{stroke-width:6px}
 #etip[hidden]{display:none}
 #etip .off{color:#888;font-size:11px}
 svg.hovering .edge.he.he{stroke:#7c3aed;stroke-opacity:1;opacity:1;stroke-width:2.5px}
-svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
+svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:calc(2.5px * var(--bsc))}
 svg.hovering .edge.he.he.he2{stroke-opacity:.7}
 svg.hovering .edge.he.he.he3{stroke-opacity:.45;stroke-width:1.75px}
 svg.hovering .node.hn.hn2 .box{stroke-opacity:.6}
-svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:1.75px}
+svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:calc(1.75px * var(--bsc))}
 .node.mag .box{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
 .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
@@ -402,7 +403,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <div id="stage">
 <div id="wrap"></div>
 <div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
-<label id="spreadctl" hidden title="How many steps show across the screen (drag, or turn the wheel over it); the boxes widen as fewer show, the lanes keep their full height and you pan sideways for the rest. All of them is the whole map">Steps <input type="range" id="spread" min="3" max="50" step="1" value="50"> <span id="spreadn"></span></label>
+<label id="spreadctl" hidden title="How many steps show across the screen (drag, or turn the wheel over it); the boxes grow as fewer show, the lanes keep their full height and you pan sideways for the rest. All of them is the whole map">Steps <input type="range" id="spread" min="3" max="50" step="1" value="50"> <span id="spreadn"></span></label>
 <div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
 <label title="Type a file's name to draw its whole chain"><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
@@ -466,7 +467,7 @@ such as scripts, and its boxes are left out with their links joined up; <b>only<
 second row, puts them back and keeps the file and the selected box. <b>Whole map</b> appears when the view is cut down.
 <b>Share</b> copies a link to the view as it is, with the selected box, zoom and position. A first visit gets a short tour;
 <b>?</b> runs it again. On a phone, Browse, Start, View, Filters and the buttons are under <b>More ▾</b>; Fit stays out.</div>
-<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes widening with the steps (up to 2.5 times) and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
+<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes growing with the steps, text and all, up to 2.5 times, and the gap taking the rest; the drawing follows the slider as you drag it (or turn the wheel over it) and is laid out properly when you let go; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
 and again to go back (a box under the name takes the click first). Hold Shift for a magnifier. Zoomed in, the overview in the
 corner shows the whole drawing with a red box round what is in view; click or drag in it to move.</div>
 <div><b>Hover:</b> zoomed out, hover a line to light its chain, what feeds it and what it feeds, and grow its boxes to a readable
