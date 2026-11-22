@@ -29,8 +29,8 @@ function spreadFor(cols, n, geo = NARROW) {
    by the same factor, their lines wrapping as at 1x. */
 const spreadGeo = (geo, k) => {
   if (k === 1) return geo;
-  const g = Math.min(k, BOX_GROW), nodeW = Math.round(geo.nodeW * g);
-  return { ...geo, nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), scale: g };
+  const nodeW = Math.round(geo.nodeW * Math.min(k, BOX_GROW));
+  return { ...geo, nodeW, colGap: Math.round((geo.nodeW + geo.colGap) * k - nodeW), scale: nodeW / geo.nodeW };
 };
 /* A box's place and size on the map: moved to x, y and drawn scale times its own size (spreadGeo). */
 const boxTransform = (n, scale = 1) => `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})${scale !== 1 ? ` scale(${scale.toFixed(4)})` : ""}`;
@@ -878,10 +878,11 @@ function app() {
   }
   function placeFar() {
     if (!svg) return;
-    const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a * ((lay && lay.geo.scale) || 1) < FAR_PX;
+    const m = svg.getScreenCTM(), far = !!m && m.a > 0 && m.a < FAR_PX;
     svg.classList.toggle("far", far);
     const want = [];
-    if (far) {
+    // boxes grow while their own text is too small to read: drawn larger (spreadGeo scale), they read at a smaller zoom
+    if (far && m.a * ((lay && lay.geo.scale) || 1) < FAR_PX) {
       const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a, k = MAG_TITLE_PX / 13 / s;
       const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
       // grown: the hovered box or the hovered line's ends, then the rest the hover lights, the selected box and search
@@ -1036,7 +1037,8 @@ function app() {
 
   function drawSvg(lay) {
     W = lay.width + LEFT + 60; H = Math.max(lay.height, 200);
-    const p = [`<svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="${-LEFT} 0 ${W} ${H}">`,
+    // --bscale: the box outlines keep their width when the boxes are drawn larger (spreadGeo scale)
+    const p = [`<svg id="map" xmlns="http://www.w3.org/2000/svg" viewBox="${-LEFT} 0 ${W} ${H}" style="--bscale:${(1 / (lay.geo.scale || 1)).toFixed(4)}">`,
       '<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">',
       '<path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs><g id="bands">'];
     lay.bands.forEach((b, i) => {  // the lane names are pinned to the screen's left edge (drawRulers), not drawn here
@@ -1378,7 +1380,7 @@ function app() {
   const FIT_PAD = 28;  // px of margin round the whole drawing at Fit, the furthest zoom out
   /* The widest view allowed: the Fit width (at least 200), or Infinity while the map has no size yet (hidden). */
   function maxWidth(free = freeShare()) {
-    const fw = fitView(fitW(), H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD).width;
+    const fw = fitView(W, H, LEFT, free, wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD).width;  // out to the whole drawing
     return Number.isFinite(fw) && fw > 0 ? Math.max(fw, 200) : Infinity;
   }
   /* The free area's height over its width, for layout's lanes; 0 while the map has no size yet (hidden). */
@@ -1409,7 +1411,7 @@ function app() {
   }
   let fitted = false;  // whether the whole drawing was in the free area at the last move (updateNav)
   function atSpreadFit() {  // spread across: whether the view is the Fit view (the lanes' full height, from the left)
-    const f = fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD), t = f.width / 200;
+    const f = fitNow(), t = f.width / 200;
     return Math.abs(vb.width - f.width) <= t && Math.abs(vb.x - f.x) <= t && Math.abs(vb.y - f.y) <= t;
   }
   // the width Fit shows: the whole drawing, or spread (Steps slider) the first steps shown, lanes filling the height
@@ -1432,7 +1434,7 @@ function app() {
     view.steps = want;
     render(false);
     if (mid > 0 && view.spread > 1) {  // back to the same part of the drawing, lanes still filling the height
-      const f = fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
+      const f = fitNow();
       setVB(mid * lay.width - half * f.width, f.y, f.width, f.height);
     }
     syncSpread();
@@ -1442,7 +1444,8 @@ function app() {
   spreadIn.addEventListener("pointerdown", () => { spreadDrag = true; clearTimeout(wheelRest); });
   ["pointerup", "pointercancel", "blur"].forEach(t => spreadIn.addEventListener(t, () => { spreadDrag = false; }));
   /* While the thumb moves, the drawing stretches across at once as a preview (the steps spread about the middle of the
-     view, the text drawn wide for the moment); letting go lays it out properly, once (a full layout takes a moment). */
+     view, the boxes and text drawn wide for the moment); letting go lays it out properly, once (a full layout takes a
+     moment), and the boxes then grow in height too, so the lanes settle on release. */
   let previewFrame = 0;
   function previewSteps() {
     previewFrame = 0;
@@ -1477,8 +1480,13 @@ function app() {
     wheelRest = setTimeout(() => { spreadDrag = false; setSteps(Number(spreadIn.value)); }, 250);  // the value as it is then
   }, { passive: false });
   spreadIn.addEventListener("change", () => { spreadDrag = false; clearTimeout(wheelRest); setSteps(Number(spreadIn.value)); });
-  function fit() {  // the whole drawing in the free area (spread: its lanes' full height, from the left)
-    const f = fitView(fitW(), H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
+  /* The Fit view: the whole drawing in the free area, or with the Steps slider set exactly that many steps across from
+     the left (the boxes, grown in height, can make the lanes taller than the screen: then it pans up and down too). */
+  function fitNow() {
+    return fitView(fitW(), view.spread > 1 ? 1 : H, LEFT, freeShare(), wrapEl.clientWidth, wrapEl.clientHeight, FIT_PAD);
+  }
+  function fit() {
+    const f = fitNow();
     setVB(f.x, f.y, f.width, f.height);
   }
   function zoomAt(f, cx, cy) {

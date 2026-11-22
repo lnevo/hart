@@ -275,7 +275,8 @@ svg{width:100%;height:100%;display:block;user-select:none}
 #lanelist>label.inl{display:inline-block;margin-right:10px}
 #presets{display:flex;flex-direction:column;gap:4px;align-items:stretch}
 #more{display:none;position:static}
-.node.folder .box{stroke-dasharray:7 4;stroke-width:2}
+svg{--bsc:var(--bscale,1)} svg.far{--bsc:1}
+.node.folder .box{stroke-dasharray:7 4;stroke-width:calc(2 * var(--bsc))}
 span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent;border-radius:3px;vertical-align:-1px;margin-right:4px}
 #legend{position:absolute;bottom:10px;left:10px;max-width:440px;z-index:5;padding:8px 10px;font-size:12px}
 #legend div{margin:2px 0}
@@ -316,7 +317,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 .edge{fill:none;stroke:#64748b;stroke-width:1.3;stroke-opacity:.55}
 .edge.back{stroke-dasharray:6 4}
 .elabel{pointer-events:none;font-size:10px;fill:#334155;paint-order:stroke;stroke:#fff;stroke-width:3px}
-.node .box{stroke-width:1.2}
+.node .box{stroke-width:calc(1.2 * var(--bsc))}
 .node .t{font-size:13px;font-weight:700}
 .node .p{font:10.5px ui-monospace,Menlo,monospace;fill:#334155}
 .node .d{font-size:11px;fill:#1f2937}
@@ -324,7 +325,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 .node.parked .box{stroke-dasharray:6 3}
 .node.retired .box{stroke-dasharray:2 3}
 .node.parked,.node.retired{opacity:.7}
-.node.hit .box{stroke:#dc2626;stroke-width:4}
+.node.hit .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
 svg.focus .node,svg.focus .edge,svg.focus .elabel{opacity:.12}
 svg.focus .node.on{opacity:.5}
 svg.focus .node.near,svg.focus .elabel.near{opacity:1}
@@ -332,7 +333,7 @@ svg.focus .elabel.on:not(.near){opacity:0}
 svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
 svg.focus .edge.on.upstream{stroke:#b45309}
-svg.focus .node.sel .box{stroke:#dc2626;stroke-width:4}
+svg.focus .node.sel .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
 svg.far #elabels{display:none}
 svg.far .edge,svg.far .node .box{vector-effect:non-scaling-stroke;stroke-width:1px}
 svg.far .edge{stroke-width:.8px;stroke-opacity:.35}
@@ -346,11 +347,11 @@ svg.far .eh{stroke-width:6px}
 #etip[hidden]{display:none}
 #etip .off{color:#888;font-size:11px}
 svg.hovering .edge.he.he{stroke:#7c3aed;stroke-opacity:1;opacity:1;stroke-width:2.5px}
-svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:2.5px}
+svg.hovering .node.hn .box{stroke:#7c3aed;stroke-width:calc(2.5px * var(--bsc))}
 svg.hovering .edge.he.he.he2{stroke-opacity:.7}
 svg.hovering .edge.he.he.he3{stroke-opacity:.45;stroke-width:1.75px}
 svg.hovering .node.hn.hn2 .box{stroke-opacity:.6}
-svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:1.75px}
+svg.hovering .node.hn.hn3 .box{stroke-opacity:.35;stroke-width:calc(1.75px * var(--bsc))}
 .node.mag .box{filter:drop-shadow(0 2px 4px rgba(0,0,0,.35))}
 .node.mag{pointer-events:none}
 svg.focus.hovering .node.hn{opacity:1}
