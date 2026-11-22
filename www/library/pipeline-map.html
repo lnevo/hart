@@ -154,7 +154,7 @@ svg.focus .node.sel .box,.node.hit .box{stroke:var(--signal)}
 </div></details>
 <details id="lanes" class="menu"><summary>Filters ▾</summary><div id="lanelist" class="pop panel">
 <b>Lanes</b><div id="lanerows"></div>
-<b>Kinds</b> <span class="note">an unticked kind is bridged over: its links run straight through, except at deploy and host boxes, where chains stop</span><div id="kindlist"></div>
+<b>Kinds</b> <span class="note">an unticked kind is bridged over, its links running straight through; its boxes where chains stop (the hosts lane, host and hand work) are left out with their links</span><div id="kindlist"></div>
 <b>Also show</b>
 <label class="inl" title="Parked features (NX, Dispatcher System, USS CTC)"><input type="checkbox" id="parked"> parked</label>
 <label class="inl" title="Retired tools kept for reference"><input type="checkbox" id="retired"> retired</label>
@@ -527,16 +527,27 @@ function fitView(W, H, left, free, sw, sh) {
   return { x: -left - ox * s, y: -oy * s, width: sw * s, height: sh * s };  // the viewBox's own field names
 }
 
-/* The view v kept on the drawing sideways: no wider than maxW (the Fit width), and placed so the drawing (x from
-   -left, width W) does not leave the free area at either side. A drawing wider than the free area covers it edge to
-   edge; a narrower one stays wholly inside it. The height follows the width, and a view cut to maxW keeps its middle. */
-function clampView(v, W, left, free, maxW) {
+/* The view v kept on the drawing: no wider than maxW (the Fit width), and placed so the drawing (x from -left, width
+   W; y from 0, height H) does not leave the free area at any side: across, left of the info panel; down, between
+   the step strip and the bottom (or the panel, on a phone). A drawing bigger than the free area covers it edge to
+   edge; a smaller one stays wholly inside it. The height follows the width, and a view cut to maxW keeps its middle. */
+function clampView(v, W, H, left, free, maxW) {
   if (!(v.width > 0) || !(v.height > 0)) return v;  // a view with no size (a hidden map) is left alone
   const width = Math.min(v.width, maxW), height = v.height * width / v.width;
-  const x0 = v.x + (v.width - width) / 2, y = v.y + (v.height - height) / 2;  // a cut width shrinks about the middle
-  const a = -left, b = W - left - free.right * width;  // the view's x with the drawing's left, or right, edge on the area's
-  const x = Math.min(Math.max(x0, Math.min(a, b)), Math.max(a, b));
+  const x0 = v.x + (v.width - width) / 2, y0 = v.y + (v.height - height) / 2;  // a cut width shrinks about the middle
+  const between = (t, a, b) => Math.min(Math.max(t, Math.min(a, b)), Math.max(a, b));
+  // the view's x with the drawing's left, or right, edge on the area's; and its y with the top, or bottom, on the area's
+  const x = between(x0, -left, W - left - free.right * width);
+  const y = between(y0, -free.top * height, H - free.bottom * height);
   return { x, y, width, height };
+}
+
+/* The graph with the boxes hide(id) is true for taken away: those drop(id) is also true for (where chains stop: the
+   hosts lane, host and hand-work boxes) are left out with their links, since bridging over a deploy script would
+   link its every input to every host; the rest are bridged over (contract). */
+function hideBoxes(nodes, edges, hide, drop) {
+  const kept = nodes.filter(n => !(hide(n.id) && drop(n.id))), ids = new Set(kept.map(n => n.id));
+  return contract(kept, edges.filter(e => ids.has(e.from) && ids.has(e.to)), hide);
 }
 
 /* The graph with the boxes hide(id) is true for taken out and bridged over: each link into a hidden box is joined to
@@ -609,7 +620,7 @@ function groupByFolder(nodes, edges, open) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, folderOf, groupByFolder };
+  module.exports = { layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder };
 } else {
   app();
 }
@@ -644,7 +655,9 @@ function app() {
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
-     are bridged over (contract), so the links run on through them. The picked file always stays. */
+     are bridged over, so the links run on through them, except where chains stop (endsChain: the hosts lane, host
+     and hand-work boxes), which are left out with their links (hideBoxes). The picked file always stays. */
+  const dropKind = k => k === "host" || k === "human";  // kinds whose every box is a chain stop
   let g1Key = null, g1 = null, ins1 = {}, outs1 = {};
   function filtered() {
     const key = JSON.stringify([view.parked, view.retired, [...view.kindsOff].sort(), view.focus]);
@@ -652,7 +665,8 @@ function app() {
     const ok = n => n.id === view.focus || !n.status || n.status === "live" || view[n.status];
     const nodes = DATA.nodes.filter(ok), ids = new Set(nodes.map(n => n.id));
     const edges = DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to));
-    g1 = !view.kindsOff.size ? { nodes, edges } : contract(nodes, edges, id => id !== view.focus && view.kindsOff.has(byId[id].kind) && !endsChain(id));  // chain stops stay
+    g1 = !view.kindsOff.size ? { nodes, edges }
+      : hideBoxes(nodes, edges, id => id !== view.focus && view.kindsOff.has(byId[id].kind), endsChain);
     g1.edges = g1.edges.map(e => !e.via ? e : { ...e, label: e.via.length === 1 ? "via " + byId[e.via[0]].label : `via ${e.via.length} steps` });
     ins1 = {}; outs1 = {};
     g1.edges.forEach(e => { (outs1[e.from] ||= []).push(e); (ins1[e.to] ||= []).push(e); });
@@ -834,7 +848,7 @@ function app() {
     const parts = [];
     if (view.focus) parts.push(`<b>${esc(byId[view.focus].label)}</b>`);
     if (sub.trim) parts.push(selected === view.focus ? "highlighted only" : `only the chain of <b>${esc(nodeOf(selected).label)}</b>`);
-    if (view.kindsOff.size) parts.push(`${[...view.kindsOff].map(k => DATA.kinds[k][0].toLowerCase()).join(", ")} bridged over`);
+    if (view.kindsOff.size) parts.push(`${[...view.kindsOff].map(k => DATA.kinds[k][0].toLowerCase()).join(", ")} hidden`);
     if (view.group && !view.focus) parts.push("grouped by folder");
     const lanesOff = allLanes.filter(d => !view.lanes.has(d));
     if (lanesOff.length) parts.push(`${view.lanes.size} of ${allLanes.length} lanes`);
@@ -955,8 +969,8 @@ function app() {
     const a = freeArea(), w = a.right, h = a.bottom - a.top;
     return w > 0 && h > 0 ? h / w : 0;
   }
-  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing sideways (clampView)
-    const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, LEFT, free, maxWidth(free));
+  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing (clampView)
+    const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, lay && lay.nodes.length ? lay.height : H, LEFT, free, maxWidth(free));  // the drawn height, not the 200 minimum
     vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height; updateNav();
   }
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
@@ -1076,7 +1090,7 @@ function app() {
       <div>${esc(DATA.kinds[n.kind][0])} · ${esc(domainLabel[n.domain])} · ${esc(n.status || "live")}${n.local ? " · not in this checkout's tracked files (gitignored mirror, submodule or host)" : ""}</div>
       <p><code>${esc(n.path || n.id)}</code></p><p>${esc(n.desc || "")}</p>
       ${isFocus ? "" : '<p><button id="fgo">Show only this file\'s chain</button></p>'}
-      ${view.kindsOff.size ? '<div class="off">Links as drawn, with the hidden kinds bridged over.</div>' : ""}
+      ${view.kindsOff.size ? `<div class="off">Links as drawn: ${[...view.kindsOff].every(dropKind) ? "the hidden boxes left out with their links" : "hidden boxes bridged over, and those where chains stop (hosts lane, hand work) left out with their links"}.</div>` : ""}
       <b>Fed by</b><ul>${((view.kindsOff.size ? ins1 : insAll)[id] || []).map(e => `<li>${link(e.from)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (a source)</li>"}</ul>
       <b>Feeds</b><ul>${((view.kindsOff.size ? outs1 : outsAll)[id] || []).map(e => `<li>${link(e.to)}${e.label ? " — " + esc(e.label) : ""}</li>`).join("") || "<li>nothing (an end product)</li>"}</ul>
       <div style="color:#666">${fullUp} upstream, ${fullDown} downstream in the whole map.</div>`;
@@ -1350,9 +1364,9 @@ function app() {
 
   /* ---- lanes, kinds and status filters */
   const kindsBox = document.getElementById("kindlist");
-  /* Host and hand-work boxes are where a chain stops (endsChain), so they are not offered: bridging over them would
-     run every chain on through the deploys. */
-  const hideable = k => Object.hasOwn(DATA.kinds, k) && !["folder", "host", "human"].includes(k);
+  /* Every kind but folder can be hidden; boxes where chains stop are then left out rather than bridged over
+     (filtered()). */
+  const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder";
   kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
     `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>`).join("<br>");
   kindsBox.addEventListener("change", e => {
