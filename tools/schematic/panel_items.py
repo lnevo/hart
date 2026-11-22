@@ -23,22 +23,31 @@ at its anchor point plus dx, dy (plus the member's dx, dy):
 `at` is one of the nine points of the box: top-left, top, top-right, left, centre, right, bottom-left, bottom and
 bottom-right. `xml` is a Layout Editor element without x and y (the placement writes them). `size` is the item's
 drawn size in px [w, h]: the panel grows to hold every item EDGE px beyond the furthest one (a [0, 0] backdrop
-does not count). Only the item tags below are taken, and an item whose element names a sensor, head or text it
-had before keeps it as written, so panel_status.py finds its icons by the same names.
+does not count). A text label member may give `right` in place of dx and size: its right edge stands at that dx,
+its size measured from its text, font size and style with the Pi's Dialog widths (pi_dialog: what JMRI draws on
+the Pi), so captions of different lengths line up on their right edges beside their lamps there (on the Mac and
+Windows, whose Dialog is another font, they may differ by a pixel). The label must name fontFamily and fontname
+Dialog. Only the item tags below are taken, and an item whose element names a sensor, head or text it had before
+keeps it as written, so panel_status.py finds its icons by the same names.
 """
 from __future__ import annotations
 
 import json
 import math
+import sys
 import xml.etree.ElementTree as ET
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+
+import pi_dialog  # noqa: E402  the Pi's Dialog widths, for a member placed by its right edge
 
 POINTS = {"top-left": (0, 0), "top": (0.5, 0), "top-right": (1, 0), "left": (0, 0.5), "centre": (0.5, 0.5),
           "right": (1, 0.5), "bottom-left": (0, 1), "bottom": (0.5, 1), "bottom-right": (1, 1)}
 TAGS = ("sensoricon", "positionablelabel", "signalheadicon", "turnouticon", "memoryicon", "signalmasticon")
 EDGE = 20               # px kept free beyond the furthest item at the right and the bottom
 ITEM_FIELDS = {"id", "anchor", "xml", "size", "members", "note"}
-MEMBER_FIELDS = {"dx", "dy", "xml", "size"}
+MEMBER_FIELDS = {"dx", "dy", "xml", "size", "right"}
 ANCHOR_FIELDS = {"to", "at", "block", "dx", "dy"}
 FILE_FIELDS = {"_note", "attributes", "drawing_options", "items"}    # the panel is the build's (TEMPLATE_PANEL)
 # the panel attributes the build writes (the plugin's to_xml: name, place and size), never the file
@@ -84,6 +93,31 @@ def _element(text, what) -> ET.Element:
     if "x" in el.attrib or "y" in el.attrib:
         raise ItemsError(f"{what}: xml holds x or y; the placement writes them")
     return el
+
+
+def member_box(m: dict, what: str) -> tuple[float, tuple[float, float]]:
+    """(dx, (w, h)) of a member: as written, or for one with `right`, its text label's width and height on the Pi
+    (pi_dialog) and the dx that puts its right edge at `right`. ItemsError names the member."""
+    if "right" not in m:
+        return _number(m.get("dx", 0), what), _size(m.get("size"), what)
+    if "dx" in m or "size" in m:
+        raise ItemsError(f"{what}: right places a label by its right edge and measures its size; give no dx or size")
+    right = _number(m["right"], what)
+    el = _element(m.get("xml"), what)
+    text, size, style = el.get("text"), el.get("size"), el.get("style", "0")
+    if el.tag != "positionablelabel" or not text:
+        raise ItemsError(f"{what}: right needs a positionablelabel with text")
+    if el.get("fontFamily") != "Dialog" or el.get("fontname") != "Dialog":
+        raise ItemsError(f"{what}: right measures the Dialog font; the label must name fontFamily and fontname "
+                         f"Dialog, not {el.get('fontFamily')!r} and {el.get('fontname')!r}")
+    if style not in ("0", "1") or not (size or "").isdigit():
+        raise ItemsError(f"{what}: right needs a whole font size and style 0 or 1, not size {size!r} style {style!r}")
+    bold = style == "1"
+    try:
+        w, h = pi_dialog.width(text, int(size), bold), pi_dialog.height(int(size), bold)
+    except pi_dialog.PiTextError as exc:
+        raise ItemsError(f"{what}: {exc}") from None
+    return right - w, (float(w), float(h))
 
 
 def load(path: Path) -> dict:
@@ -134,11 +168,10 @@ def load(path: Path) -> dict:
         for k, m in enumerate(members):
             mw = f"{what} member {k}"
             if not isinstance(m, dict) or set(m) - MEMBER_FIELDS:
-                raise ItemsError(f"{mw}: fields are dx, dy, xml, size")
-            _number(m.get("dx", 0), mw)
+                raise ItemsError(f"{mw}: fields are dx, dy, xml, size (or right in place of dx and size)")
             _number(m.get("dy", 0), mw)
-            _size(m.get("size"), mw)
             _element(m.get("xml"), mw)
+            member_box(m, mw)
     return data
 
 
@@ -209,12 +242,12 @@ def place(panel: ET.Element, data: dict, le_mod, slots_mod, fit: tuple[int, int]
         members = it.get("members") or [dict(dx=0, dy=0, xml=it["xml"], size=it["size"])]
         for m in members:
             el = _element(m["xml"], what)
-            x, y = round(ax + m.get("dx", 0)), round(ay + m.get("dy", 0))
+            dx, (w, h) = member_box(m, what)
+            x, y = round(ax + dx), round(ay + m.get("dy", 0))
             if x < 0 or y < 0:
                 raise ItemsError(f"{what}: placed at {x}, {y}, off the panel")
             el.set("x", str(x))
             el.set("y", str(y))
-            w, h = _size(m["size"], what)
             if w and h:
                 right, bottom = max(right, x + w + EDGE), max(bottom, y + h + EDGE)
                 lowest = y + h if lowest is None else max(lowest, y + h)

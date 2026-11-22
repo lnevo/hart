@@ -202,9 +202,9 @@ class Cutover(unittest.TestCase):
         self.assertNotIn("Neville Island", texts)
         bcis = Counter(i.get("blockcontents") for i in self.le.findall("BlockContentsIcon"))
         self.assertEqual(set(bcis.values()), {1})              # one block contents icon per block
-        # but the optional ones with no clean spot (logged): staging's Track 27-29 and 31-33 at the layout hosts'
-        # 1920 x 1032 window's grid (2026-11-21; Track 11-13 and 13-15 at the 1900 x 1140 one)
-        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 27-29", "Track 31-33"})
+        # but the optional ones with no clean spot (logged): staging's Track 29-31 at candidate C1's grid (owner,
+        # 2026-11-21; Track 27-29 and 31-33 at the 1920 x 1032 window's grid before it, 11-13 and 13-15 at 1900 x 1140)
+        self.assertEqual(T.used_blocks(self.le) - set(bcis), {"Track 29-31"})
         self.assertLessEqual(T.used_blocks(self.le) - set(bcis), optional_staging())
         # the lamps and station clusters are parked: only the status cluster's sensor icons are on the panel
         self.assertEqual({i.get("sensor") for i in self.le.findall("sensoricon")}, STATUS["sensoricon"])
@@ -430,13 +430,12 @@ class ThreeLevels(unittest.TestCase):
                 rows.setdefault(el.tag == "positionablelabel", []).append(el)
         captions, lamps = rows[True], rows[False]
         self.assertEqual((len(captions), len(lamps)), (4, 4))
-        B.plugin()
-        jt = importlib.import_module("schematic.jmri_text")
-        rights = {box(c)[0] + jt.width(c.get("text"), 12) for c in captions}
+        # right edges in one line as JMRI draws Dialog on the Pi (pi_dialog), 4 px left of the lamps (owner, 2026-11-21)
+        rights = {box(c)[0] + B.panel_items.pi_dialog.width(c.get("text"), 12) for c in captions}
         self.assertEqual(len(rights), 1)                    # right-justified ...
         self.assertTrue(all(c.get("justification") == "right" for c in captions))
         self.assertEqual(len({box(l)[0] for l in lamps}), 1)                     # ... lamps in a column beside them
-        self.assertGreater(min(box(l)[0] for l in lamps), rights.pop())
+        self.assertEqual(min(box(l)[0] for l in lamps) - rights.pop(), 4)
         right = max(box(l)[0] + 21 for l in lamps)          # the lamps' right edge: by the panel's right edge
         width = int(tables.layout_editor(tables.loads(self.base[0]).root, LIVE).get("panelwidth"))
         self.assertLessEqual(right, width - B.panel_items.EDGE)
@@ -679,9 +678,9 @@ class ThreeLevels(unittest.TestCase):
         self.assertEqual(set(icons) | left_out, T.used_blocks(self.le))
         self.assertEqual(set(icons.values()), {1})
         staging = {b["block"] for b in self.base[1].bcis}
-        self.assertEqual(len(staging), 57)        # 45 blocks and 14 parts (owner, 2026-11-20), less 11-13 and 13-15
+        self.assertEqual(len(staging), 58)        # 45 blocks and 14 parts (owner, 2026-11-20), less 29-31 (C1)
         size = {el.get("blockcontents"): el.get("size") for el in self.le.iter("BlockContentsIcon")}
-        self.assertEqual({size[b] for b in staging}, {"13"})
+        self.assertEqual({size[b] for b in staging}, {"11"})         # candidate C1 (owner, 2026-11-21)
         # each level's icons at that level's own size (a level with the wrong size must not hide behind another's)
         per_level = defaultdict(set)
         for b in self.P.bcis:
@@ -704,7 +703,7 @@ class ThreeLevels(unittest.TestCase):
         for n in ("121", "125"):
             self.assertEqual([t for t in numbers if re.fullmatch(rf"SW-{n}[AB]?", t)], [f"SW-{n}"], n)
         self.assertNotIn("SW-101A", numbers)
-        self.assertEqual(set(numbers.values()), {"13"})
+        self.assertEqual(set(numbers.values()), {"12"})             # candidate C1: SW- kept, 12 px (2026-11-21)
         names = {lb["text"] for lb in self.P.labels if lb.get("kind") == "name" and lb["band"]}
         tracks = {v.removeprefix("Track ") for v in self.device.values() if v.startswith("Track ")}
         self.assertTrue(names)
