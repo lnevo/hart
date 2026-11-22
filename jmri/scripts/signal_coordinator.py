@@ -93,7 +93,9 @@ def _load_siblings(names):
 
     JMRI runs this script with no __file__ and without its folder on sys.path, so the folder
     is added. A re-run in the same JMRI would otherwise get the modules the earlier run
-    cached: a redeployed script with the old modules.
+    cached: a redeployed script with the old modules. Every file is found and compiled
+    before any is loaded, so a missing or broken one stops a re-run before it reloads the
+    earlier run's modules under its live controller.
     """
     import os
 
@@ -106,18 +108,27 @@ def _load_siblings(names):
         sys.path.insert(0, folder)
     want = os.path.normcase(os.path.realpath(folder))
     for name in names:
-        if not os.path.isfile(os.path.join(folder, name + ".py")):
+        path = os.path.join(folder, name + ".py")
+        if not os.path.isfile(path):
             raise SiblingModuleError(
                 "signal_coordinator: %s.py is missing from %s; the deploy ships it beside "
                 "this script" % (name, folder)
             )
+        try:
+            with open(path) as f:
+                compile(f.read(), path, "exec")
+        except Exception as exc:
+            raise SiblingModuleError(
+                "signal_coordinator: %s.py in %s does not compile: %s" % (name, folder, exc)
+            )
+    for name in names:
         try:
             module = sys.modules.get(name)
             if module is None:
                 module = __import__(name)
             else:
                 module = _reload(module)
-        except ImportError as exc:
+        except Exception as exc:
             raise SiblingModuleError(
                 "signal_coordinator: cannot import %s from %s: %s" % (name, folder, exc)
             )
@@ -126,6 +137,7 @@ def _load_siblings(names):
             raise SiblingModuleError(
                 "signal_coordinator: %s was loaded from %r, not from %s" % (name, got, folder)
             )
+    print("mqtt_signalhead: modules %s from %s" % (", ".join(names), folder))
 
 
 _load_siblings(SIBLING_MODULES)

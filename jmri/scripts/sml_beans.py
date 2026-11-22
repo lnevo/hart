@@ -187,7 +187,7 @@ class SmlBeans(object):
         """Baseline dest Enabled maps. Bulk/boot must not Unheld from the listener.
 
         Per-mast field ownership is dest checkboxes only. Global Disable is
-        `_global_enabled` in `_field_owns_mast` — do not fold it in here, or
+        `_global_enabled` in `_field_owns_mast` -- do not fold it in here, or
         Enable's snapshot (taken before `_global_enabled = True`) would leave
         every source field-owned and block SET.
         """

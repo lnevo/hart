@@ -8,6 +8,7 @@ the module and the folder when one is missing or comes from elsewhere.
 from __future__ import annotations
 
 import contextlib
+import re
 import shutil
 import sys
 import tempfile
@@ -110,6 +111,32 @@ class Loader(unittest.TestCase):
         self.assertIn("no jython folder", str(caught.exception))
         self.assertIn("absent", str(caught.exception))
 
+
+    def test_every_sibling_is_ascii_or_declares_its_encoding(self) -> None:
+        # JMRI runs the script from a string, but imports the modules: Jython 2.7 applies PEP 263 to them and
+        # refuses a non-ASCII byte in a file with no coding line (seen in PanelPro 2026-11-22).
+        coding = re.compile(rb"^[ \t\f]*#.*?coding[:=][ \t]*[-\w.]+")
+        for path in coordinator.files()[1:]:
+            data = path.read_bytes()
+            declared = any(coding.match(line) for line in data.splitlines()[:2])
+            self.assertTrue(data.isascii() or declared, f"{path.name} has non-ASCII bytes and no coding line")
+
+    def test_a_sibling_that_does_not_compile_stops_before_any_reload(self) -> None:
+        self.load()
+        before = {name: sys.modules[name] for name in SIBLINGS}
+        last = self.folder / f"{SIBLINGS[-1]}.py"
+        last.write_text(last.read_text(encoding="utf-8") + "\ndef broken(:\n", encoding="utf-8")
+        beans = self.folder / "sml_beans.py"
+        beans.write_text(beans.read_text(encoding="utf-8") + "\nRELOADED = True\n", encoding="utf-8")
+        self.assert_load_fails(f"{SIBLINGS[-1]}.py in {self.folder} does not compile")
+        self.assertFalse(hasattr(sys.modules["sml_beans"], "RELOADED"))     # nothing was reloaded first
+        self.assertIs(sys.modules["sml_beans"], before["sml_beans"])
+
+    def test_a_sibling_that_fails_to_import_names_the_module(self) -> None:
+        last = self.folder / f"{SIBLINGS[-1]}.py"
+        last.write_text(last.read_text(encoding="utf-8") + "\nraise RuntimeError('boom at import')\n",
+                        encoding="utf-8")
+        self.assert_load_fails(f"cannot import {SIBLINGS[-1]} from {self.folder}", "boom at import")
 
     def test_no_sibling_calls_await(self) -> None:
         # jmri_fake renames Jython's .await( only in the script it loads; a module with it fails to import here.

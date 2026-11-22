@@ -622,7 +622,7 @@ class SmlHandoff(object):
         heads = self._mqtt_heads_on_mast(mast)
         if not heads:
             print(
-                "mqtt_signalhead: SML dest off %s — no MQTT heads "
+                "mqtt_signalhead: SML dest off %s -- no MQTT heads "
                 "(roster=%s)"
                 % (
                     _ascii(mast.getDisplayName()),
@@ -662,12 +662,12 @@ class SmlHandoff(object):
         topic = TOPIC_PREFIX + _topic_suffix(sys_name)
         data = head.getAppearanceName()
         prev = self._last_mqtt_appearance.get(sys_name)
-        # Skip unchanged chatter on property churn — but Enable must always SET
+        # Skip unchanged chatter on property churn -- but Enable must always SET
         # so the field/bridge re-applies even if the aspect string is the same.
         if not force and prev is not None and prev == data:
             return
         self._last_mqtt_appearance[sys_name] = data
-        # Retain so LCOS bridge can resume Flashing Red / … after restart
+        # Retain so LCOS bridge can resume Flashing Red / ... after restart
         # (color/Dark toggles stay bridge-local and never appear on MQTT).
         self._publish(topic, data, retain=True)
 
