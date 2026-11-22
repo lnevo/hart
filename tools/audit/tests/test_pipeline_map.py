@@ -298,7 +298,7 @@ class LayoutTest(unittest.TestCase):
         """clampView: zooming out stops at the Fit width (cut about the view's middle), a view with no size is left alone, and a pan cannot take either side edge of the drawing past
         the free area's edge, whether the drawing is wider than the area or narrower."""
         free = {"top": 0.1, "right": 0.5, "bottom": 1}
-        call = "a.views.map(v => m.clampView(v, 1000, 100, a.free, 2000))"
+        call = "a.views.map(v => m.clampView(v, 1000, 100000, 100, a.free, 2000))"
         views = [{"x": 5000, "y": 7, "width": 4000, "height": 2000},  # too far out and off to the right
                  {"x": -900, "y": 7, "width": 400, "height": 200},    # zoomed in, panned past the left edge
                  {"x": 5000, "y": 7, "width": 400, "height": 200},    # zoomed in, panned past the right edge
@@ -312,12 +312,27 @@ class LayoutTest(unittest.TestCase):
         self.assertEqual(out[2]["x"], 1000 - 100 - 200)  # drawing's right edge on the area's right edge
         self.assertEqual(out[3], views[3])
         hidden = {"x": 1, "y": 2, "width": 0, "height": 0}
-        self.assertEqual(self.run_js("m.clampView(a.v, 1000, 100, a.free, 2000)", {"free": free, "v": hidden}), hidden)
-        narrow = self.run_js("[m.clampView(a.views[0], 600, 100, a.free, 2000), m.clampView(a.views[1], 600, 100, a.free, 2000)]",
+        self.assertEqual(self.run_js("m.clampView(a.v, 1000, 100000, 100, a.free, 2000)", {"free": free, "v": hidden}), hidden)
+        narrow = self.run_js("[m.clampView(a.views[0], 600, 100000, 100, a.free, 2000), m.clampView(a.views[1], 600, 100000, 100, a.free, 2000)]",
                              {"free": free, "views": [{"x": -900, "y": 0, "width": 2000, "height": 1000},
                                                       {"x": 900, "y": 0, "width": 2000, "height": 1000}]})
         self.assertEqual(narrow[0]["x"], 600 - 100 - 1000)  # a 600-wide drawing in a 1000-wide area: right edge on its right
         self.assertEqual(narrow[1]["x"], -100)  # left edge on its left
+
+    def test_view_stays_on_the_drawing_up_and_down(self) -> None:
+        """clampView down the page: the drawing's top stays at or below the step strip's edge of the free area and its
+        bottom at or above the area's bottom; a drawing shorter than the area stays wholly inside it."""
+        free = {"top": 0.1, "right": 1, "bottom": 0.9}
+        views = [{"x": 0, "y": -5000, "width": 1000, "height": 500},  # dragged far down: the top of the drawing shows
+                 {"x": 0, "y": 9000, "width": 1000, "height": 500},   # dragged far up: past the bottom
+                 {"x": 0, "y": 300, "width": 1000, "height": 500}]    # inside: unchanged
+        out = self.run_js("a.views.map(v => m.clampView(v, 1000, 2000, 0, a.free, 5000))", {"free": free, "views": views})
+        self.assertEqual(out[0]["y"], -50)  # drawing top on the area's top (0.1 of 500 down the view)
+        self.assertEqual(out[1]["y"], 2000 - 450)  # drawing bottom on the area's bottom (0.9 of 500 down)
+        self.assertEqual(out[2]["y"], 300)
+        short = self.run_js("[-900, 900].map(y => m.clampView({x: 0, y, width: 1000, height: 1000}, 1000, 300, 0, a.free, 5000).y)",
+                            {"free": free})
+        self.assertEqual(short, [300 - 900, -100])  # 300 tall in an 800 tall area: bottom on its bottom, top on its top
 
     def test_empty_subset(self) -> None:
         self.assertEqual(js_layout({"domains": DOMAINS, "nodes": [], "edges": []})["nodes"], [])

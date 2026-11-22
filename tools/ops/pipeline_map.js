@@ -326,15 +326,18 @@ function fitView(W, H, left, free, sw, sh) {
   return { x: -left - ox * s, y: -oy * s, width: sw * s, height: sh * s };  // the viewBox's own field names
 }
 
-/* The view v kept on the drawing sideways: no wider than maxW (the Fit width), and placed so the drawing (x from
-   -left, width W) does not leave the free area at either side. A drawing wider than the free area covers it edge to
-   edge; a narrower one stays wholly inside it. The height follows the width, and a view cut to maxW keeps its middle. */
-function clampView(v, W, left, free, maxW) {
+/* The view v kept on the drawing: no wider than maxW (the Fit width), and placed so the drawing (x from -left, width
+   W; y from 0, height H) does not leave the free area at any side: across, left of the info panel; down, between
+   the step strip and the bottom (or the panel, on a phone). A drawing bigger than the free area covers it edge to
+   edge; a smaller one stays wholly inside it. The height follows the width, and a view cut to maxW keeps its middle. */
+function clampView(v, W, H, left, free, maxW) {
   if (!(v.width > 0) || !(v.height > 0)) return v;  // a view with no size (a hidden map) is left alone
   const width = Math.min(v.width, maxW), height = v.height * width / v.width;
-  const x0 = v.x + (v.width - width) / 2, y = v.y + (v.height - height) / 2;  // a cut width shrinks about the middle
-  const a = -left, b = W - left - free.right * width;  // the view's x with the drawing's left, or right, edge on the area's
-  const x = Math.min(Math.max(x0, Math.min(a, b)), Math.max(a, b));
+  const x0 = v.x + (v.width - width) / 2, y0 = v.y + (v.height - height) / 2;  // a cut width shrinks about the middle
+  const between = (t, a, b) => Math.min(Math.max(t, Math.min(a, b)), Math.max(a, b));
+  // the view's x with the drawing's left, or right, edge on the area's; and its y with the top, or bottom, on the area's
+  const x = between(x0, -left, W - left - free.right * width);
+  const y = between(y0, -free.top * height, H - free.bottom * height);
   return { x, y, width, height };
 }
 
@@ -768,8 +771,8 @@ function app() {
     const a = freeArea(), w = a.right, h = a.bottom - a.top;
     return w > 0 && h > 0 ? h / w : 0;
   }
-  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing sideways (clampView)
-    const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, LEFT, free, maxWidth(free));
+  function setVB(x, y, w, h) {  // every move goes through here, kept on the drawing (clampView)
+    const free = freeShare(), c = clampView({ x, y, width: w, height: h }, W, H, LEFT, free, maxWidth(free));
     vb.x = c.x; vb.y = c.y; vb.width = c.width; vb.height = c.height; updateNav();
   }
   /* The part of the map the reader can see, in px inside #wrap: below the toolbar, and left of the info panel (or,
