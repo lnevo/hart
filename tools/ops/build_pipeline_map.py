@@ -299,7 +299,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 #spreadctl[hidden]{display:none}
 #spreadctl{position:absolute;z-index:5;display:flex;align-items:center;gap:4px;height:22px;padding:0 6px;font-size:11px;font-weight:600;color:#475569;background:rgba(250,250,250,.95);border:1px solid #ccc;border-radius:4px;pointer-events:auto}
 #spreadctl input{width:90px;margin:0}
-#spreadn{min-width:30px}
+#spreadn{min-width:44px}
 #steps span{position:absolute;top:4px;transform:translateX(-50%);white-space:nowrap;font-size:12px;font-weight:600;color:#475569;pointer-events:auto;cursor:help}
 #lanetags span{position:absolute;box-sizing:border-box;height:22px;line-height:18px;padding:1px 7px;font-size:12px;font-weight:800;background:rgba(255,255,255,.9);border:1px solid;border-radius:4px;white-space:nowrap;pointer-events:none}
 #wrap.onlane{cursor:zoom-in}
@@ -402,7 +402,7 @@ try { const d = localStorage.getItem("pipelineMapDark"); if (d === "1" || (d ===
 <div id="stage">
 <div id="wrap"></div>
 <div id="rulers" hidden><div id="steps"></div><div id="lanetags"></div></div>
-<label id="spreadctl" hidden title="Spread the steps across: wider boxes and gaps, the lanes keeping their height; drag back to 1× for the whole map">Width <input type="range" id="spread" min="1" max="4" step="0.25" value="1"> <span id="spreadn">1×</span></label>
+<label id="spreadctl" hidden title="How many steps show across the screen; the lanes keep their full height and you pan sideways for the rest. All of them is the whole map">Steps <input type="range" id="spread" min="3" max="50" step="1" value="50"> <span id="spreadn"></span></label>
 <div id="bar" class="panel"><div id="row1">__BACK__<h1>HART pipeline map</h1>
 <label title="Type a file's name to draw its whole chain"><span class="lbl">File </span><input list="files" id="file" placeholder="Pick a file to see its chain…" autocomplete="off"></label>
 <datalist id="files"></datalist>
@@ -466,7 +466,7 @@ such as scripts, and its boxes are left out with their links joined up; <b>only<
 second row, puts them back and keeps the file and the selected box. <b>Whole map</b> appears when the view is cut down.
 <b>Share</b> copies a link to the view as it is, with the selected box, zoom and position. A first visit gets a short tour;
 <b>?</b> runs it again. On a phone, Browse, Start, View, Filters and the buttons are under <b>More ▾</b>; Fit stays out.</div>
-<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Width</b>, at the right of the step headers, spreads the steps across (up to 4×): boxes and gaps widen and the lanes keep their height, so you pan sideways and the boxes use the room; Fit then shows the lanes' full height from the left, and 1× brings back the whole map. Click a lane's name on the left to zoom to that lane,
+<div><b>Move:</b> scroll or pinch to zoom, drag to pan, F fits, Esc clears. <b>Steps</b>, at the right of the step headers, sets how many steps show across the screen: the lanes keep their full height and you pan sideways for the rest, the boxes keeping their size with more room between steps for the boxes grown when zoomed out; Fit then shows the first of them from the left, and all of them is the whole map. Click a lane's name on the left to zoom to that lane,
 and again to go back (a box under the name takes the click first). Hold Shift for a magnifier. Zoomed in, the overview in the
 corner shows the whole drawing with a red box round what is in view; click or drag in it to move.</div>
 <div><b>Hover:</b> zoomed out, hover a line to light its chain, what feeds it and what it feeds, and grow its boxes to a readable
