@@ -443,15 +443,18 @@ function app() {
   // whether the lane filter draws a box (status and kind are applied in filtered()); the picked file always shows
   const isShown = id => id === view.focus || view.lanes.has(nodeOf(id).domain);
   /* The graph after the status and kind filters: parked and retired boxes are left out, and boxes of a hidden kind
-     are bridged over (contract), so the links run on through them. The picked file always stays. */
+     are bridged over (contract), so the links run on through them; a hidden box where chains stop (endsChain) is
+     left out with its links instead, since bridging over a deploy would join most of the map. The picked file always
+     stays. */
   let g1Key = null, g1 = null, ins1 = {}, outs1 = {};
   function filtered() {
     const key = JSON.stringify([view.parked, view.retired, [...view.kindsOff].sort(), view.focus]);
     if (key === g1Key) return g1;
     const ok = n => n.id === view.focus || !n.status || n.status === "live" || view[n.status];
-    const nodes = DATA.nodes.filter(ok), ids = new Set(nodes.map(n => n.id));
+    const hidden = id => id !== view.focus && view.kindsOff.has(byId[id].kind);
+    const nodes = DATA.nodes.filter(n => ok(n) && !(hidden(n.id) && endsChain(n.id))), ids = new Set(nodes.map(n => n.id));
     const edges = DATA.edges.filter(e => ids.has(e.from) && ids.has(e.to));
-    g1 = !view.kindsOff.size ? { nodes, edges } : contract(nodes, edges, id => id !== view.focus && view.kindsOff.has(byId[id].kind) && !endsChain(id));  // chain stops stay
+    g1 = !view.kindsOff.size ? { nodes, edges } : contract(nodes, edges, hidden);
     g1.edges = g1.edges.map(e => !e.via ? e : { ...e, label: e.via.length === 1 ? "via " + byId[e.via[0]].label : `via ${e.via.length} steps` });
     ins1 = {}; outs1 = {};
     g1.edges.forEach(e => { (outs1[e.from] ||= []).push(e); (ins1[e.to] ||= []).push(e); });
@@ -1149,9 +1152,9 @@ function app() {
 
   /* ---- lanes, kinds and status filters */
   const kindsBox = document.getElementById("kindlist");
-  /* Host and hand-work boxes are where a chain stops (endsChain), so they are not offered: bridging over them would
-     run every chain on through the deploys. */
-  const hideable = k => Object.hasOwn(DATA.kinds, k) && !["folder", "host", "human"].includes(k);
+  /* Every kind but folder can be hidden; host and hand-work boxes, where chains stop, are then left out rather than
+     bridged over (filtered()). */
+  const hideable = k => Object.hasOwn(DATA.kinds, k) && k !== "folder";
   kindsBox.innerHTML = Object.entries(DATA.kinds).filter(([k]) => hideable(k)).map(([k, [label, fill, ink]]) =>
     `<label><input type="checkbox" data-kind="${esc(k)}" checked> <span class="sw" style="background:${esc(fill)};border-color:${esc(ink)}"></span>${esc(label)}</label>`).join("<br>");
   kindsBox.addEventListener("change", e => {
