@@ -71,6 +71,8 @@ The cold Layout Editor build is 80% of the run. The 40 s full rebuild in "What t
 
 So the solve costs the same either way (38 s); the preferences' Layout Editor passes cost about 5.5 minutes on a cold cache. The HART builders cannot run without the preferences: with `preferences.json` cut to `host_screen`, `build_device_map.py` stops (a band with no `rail`) and the `plan-lengths` guard stops on new track names (1A-23A, 1C-5A). The raw files were put in `~/JMRI_UserFiles/raw-experiment/` on the Mac for the owner to look at; nothing was deployed.
 
+**One railroad, one band (owner, 2026-11-23):** the raw run above still drew three bands, because the cut into levels is in layer 1 (`levels`, `helix`) and staging is its own input. As an experiment, staging's and main's plan graphs were joined into one, the two helix cuts spliced (39 to 131A as Helix Outer, 37 to 131B as Helix Inner), and the plugin given one input with the switch numbers, track names and signals but no `levels`, `helix` or helix ends. The plugin's facing search allows at most 5 turnbacks on a plan this big and found none; with the cap raised to 7 from a wrapper (plugin files unchanged) it found an orientation in 37 s with 6 turnbacks: staging 23-1 and 39-37, the main's 107 loop, upper 241-227 and the two runs between 211 and 217. The row search then ran 43 minutes and the column placement stopped (`columns: constraints do not settle`), so no drawing came out; a sketch of the facing, columns and sweep order was shown instead. The plugin does not yet lay out the whole railroad as one band.
+
 ## Measure a real edit (replaced by the full rebuild above)
 
 
