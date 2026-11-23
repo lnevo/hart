@@ -82,6 +82,7 @@ In order; the first two are the main track (owner, 2026-11-21).
 - **Session #4 punch list (owner, 2026-11-21):** still open: CP signs, the crew board and mock signal designs (agent work); resistor wheels, mock signals at the rail gaps, the crew board mounted, the East End/Princess gap marked and the Barn lead drill signal wired (owner) ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
 
 - **Full rebuild timed (owner, 2026-11-23):** done. A cold `make panels FULL=1` takes 431 s, 343 s of it the Layout Editor build; the plugin alone with no preferences solves in the same 38 s and draws the Layout Editor panel in 1.5 s and the CATS desk in 0.2 s, but too wide for the hosts' window ([`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#full-rebuild-timed-2026-11-23)).
+- **Schematic solver on any plan (owner, 2026-11-23):** the plugin is to draw any AnyRail plan with no hints in bounded time, HART as one band included, while HART with its layer files stays byte-identical; test plan in [`projects/one-band-solver.md`](projects/one-band-solver.md).
 
 
 ## In progress
