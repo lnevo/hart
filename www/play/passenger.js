@@ -1,14 +1,14 @@
 /* The 1949 passenger run of Extra East: HART Railroad, "Up the Chartiers": No 307 South, the first-class train from
    Carnegie to Washington on the Pennsylvania Railroad's Chartiers Branch. It runs on the road engine (road-engine.js)
    and the one fixed time-table the coal extra uses. The player is the conductor: the orders and the Clearance Form A at
-   Carnegie, the stop on the main, the meet with No 92, and the meet with a B&O extra at Washington. The run is scripted
+   Carnegie, the stop on the main, the meet with No 92, and the meet with a B&O extra at Tylerdale. The run is scripted
    on its schedule; the draws change the orders, how late No 92 is, the stop and the B&O train, never the table. Every
    question is a rule from the C&E study deck (exam/deck-data.js), in the deck's words.
  */
 (function(){
 "use strict";
 const RE=window.RoadEngine;
-const {ST,LAST,HOU,ARD,BV,HIL,lib,fmt,esc,semSvg,WIKI}=RE;
+const {ST,LAST,HOU,ARD,TYL,BV,HIL,lib,fmt,esc,semSvg,WIKI}=RE;
 const BOYCE=7,DEPART=546; // 9:06, the time-table's leaving time at Carnegie
 
 /* ---------- questions that do not change with the draw ---------- */
@@ -16,8 +16,8 @@ const Qs={
   rule5:{sec:"def",src:"SC · Rule 5",where:"Carnegie",title:"One time in the table",body:"The time-table shows 9:06 for No 307 at Carnegie, and no second time. Unless otherwise indicated, that time is the…",right:"Leaving time",wrong:[["Arriving time"],["Meeting time"],["Time the train must be in the clear"]],why:"Rule 5: not more than two times are given for a train at any station. One time is the leaving time unless otherwise indicated; two times are the arriving and leaving times."},
   board:{sec:"to",src:"SC · Rule 221",where:"Carnegie",title:"The order board at Carnegie",body:"The semaphore at the Carnegie office shows its blade horizontal, and an operator is on duty. The train may leave only…",extra:semSvg(0),right:"With a Clearance Form A",wrong:[["After waiting 5 minutes"],["When the operator waves it by"],["If it has no orders"]],why:"Rule 221: a fixed signal at each train order office shows stop when an operator is on duty, and while it shows stop, trains must not leave without a Clearance Form A. The semaphore guide adds that a horizontal blade is always stop."},
   late:L=>({sec:"to",src:"SC · Form E",where:"Carnegie",title:"A late order for No 92",body:`Your first order reads “No 92 run ${L} mins late Washington to Carnegie.” What does it do for your train?`,right:"You run with respect to the later time, exactly as to the regular schedule",wrong:[["You may ignore No 92 between Washington and Carnegie"],["You must wait at Washington until No 92 passes"],["You get right over No 92"]],why:"Form E: a train named in the order has its schedule made later between the points. Any train receiving the order runs with respect to the later time exactly as it would to the regular schedule."}),
-  both:nm=>({sec:"to",src:"SC · Form S-A",where:"Carnegie",title:"Two meets in one order",body:`One order reads “${nm} meet No 92 at Houston and Extra B&amp;O 6129 North at Washington.” What does an order for two meets do?`,right:"It fixes both meeting points; your train runs with respect to each train to its point and meets it as the rules prescribe",wrong:[["It is not a proper form; each meet needs its own order"],["It requires your train to take the siding at Houston and at Washington"],["It gives your train right over both trains"]],why:"Form S-A (2) fixes several meets in one order. Trains receiving it run with respect to each other to the designated points and there meet in the manner prescribed by the rules."}),
-  boOnly:nm=>({sec:"to",src:"SC · Form S-A",where:"Carnegie",title:"The meet order for Washington",body:`One order reads “${nm} meet Extra B&amp;O 6129 North at Washington.” What does it require?`,right:"Neither train may go past Washington until both have arrived",wrong:[["Your train must take the siding at Washington"],["The extra must wait at Washington 10 minutes"],["Your train has right over the extra to Washington"]],why:"Form S-A fixes a meeting point for opposing trains. Neither train may proceed past it until both have arrived. Normally the superior train holds the main and the inferior takes the siding."}),
+  both:nm=>({sec:"to",src:"SC · Form S-A",where:"Carnegie",title:"Two meets in one order",body:`One order reads “${nm} meet No 92 at Houston and Extra B&amp;O 6129 North at Tylerdale.” What does an order for two meets do?`,right:"It fixes both meeting points; your train runs with respect to each train to its point and meets it as the rules prescribe",wrong:[["It is not a proper form; each meet needs its own order"],["It requires your train to take the siding at Houston and at Tylerdale"],["It gives your train right over both trains"]],why:"Form S-A (2) fixes several meets in one order. Trains receiving it run with respect to each other to the designated points and there meet in the manner prescribed by the rules."}),
+  boOnly:nm=>({sec:"to",src:"SC · Form S-A",where:"Carnegie",title:"The meet order for Tylerdale",body:`One order reads “${nm} meet Extra B&amp;O 6129 North at Tylerdale.” What does it require?`,right:"Neither train may go past Tylerdale until both have arrived",wrong:[["Your train must take the siding at Tylerdale"],["The extra must wait at Tylerdale 10 minutes"],["Your train has right over the extra to Tylerdale"]],why:"Form S-A fixes a meeting point for opposing trains. Neither train may proceed past it until both have arrived. Normally the superior train holds the main and the inferior takes the siding."}),
   superseded:nm=>({sec:"to",src:"SC · Form S-P",where:"Carnegie",title:"An order that replaces another",body:`Two of your orders concern No 92. The first names Arden as the meeting point. The second reads “${nm} meet No 92 at Houston instead of Arden.” What has happened to the first?`,right:"The meet at Arden is superseded; the meet is at Houston",wrong:[["There are now two meets, at Arden and at Houston"],["The first order is annulled and no meet remains"],["You wait at Arden, then at Houston"]],why:"Form S-P: “instead of” supersedes an order. A superseded order is not reissued under its original number. Any part of an order specifying a particular movement may be superseded or annulled (Rule 220)."}),
   rightOver:nm=>({sec:"to",src:"SC · Form S-C",where:"Carnegie",title:"Right over No 92",body:`One order reads “${nm} has right over No 92 Houston to Arden.” No 92 must not go beyond…`,right:"Arden, until your train has arrived",wrong:[["Houston, until your train has left"],["Any station without a new order"],["Arden, until 5 minutes after your train's time"]],why:"Form S-C (2): the second-named train must not go beyond the point last named until the first-named train has arrived, unless authorized by train order."}),
   foreign:{sec:"to",src:"SC · Rule 206",where:"Carnegie",title:"Naming the B&O engine",body:"Your orders name the B&amp;O's engine, Extra B&amp;O 6129 North. What goes with a foreign road's engine number in a train order?",right:"The railroad's initials, ahead of the number",wrong:[["The railroad's full name, after the number"],["Nothing; the direction names it"],["A letter F, ahead of the number"]],why:"Rule 206: regular trains are named by number and extras by engine number and direction, “Extra 798 East”. A foreign road's engine has its initials ahead of the engine number."},
@@ -33,9 +33,9 @@ const Qs={
   yl:{sec:"yl",src:"SC · Rule 93",where:"Washington",title:"A switch engine on the main",body:"Washington is inside yard limits, and a switch engine is working the main track. Your train is first class. Under Rule 93, what must the switch engine do?",right:"Clear the time of first-class trains at the next station where time is shown",wrong:[["Clear the time of all regular trains by 5 minutes"],["Clear the time of extra trains only"],["Nothing; yard limits give it the main"]],why:"Rule 93: within yard limits the main track may be used, clearing the time of first-class trains at the next station where time is shown. Protection against second-class trains, extra trains and engines is not required."},
   pass:{sec:"to",src:"SC · Rule 220",where:"Washington",title:"How long the orders ran",body:"No 307 is in at Washington and its orders are fulfilled. How long is a train order in effect?",right:"Until it is fulfilled, superseded or annulled",wrong:[["Until the train reaches its terminal"],["Until midnight"],["For 12 hours after it was issued"]],why:"Rule 220: a train order is in effect until it is fulfilled, superseded or annulled. Any part of an order specifying a particular movement may be superseded or annulled."}
 };
-/* The extra at Washington, as the order words it. */
+/* The extra at Tylerdale, as the order words it. */
 const BO="Extra B&amp;O 6129 North";
-const Q17=(n,nm)=>({sec:"to",src:"SC · Form S-A",where:"Washington",title:"The B&O extra at Washington",body:`Order No ${n} fixed the meet at Washington. ${BO} is an extra, and ${nm} is a regular first-class train. Who holds the main, and who takes the siding on the Connecting?`,right:"The regular train holds the main; the extra, the inferior train, takes the siding",wrong:[["The B&O extra holds the main because it arrived first"],["Both stop short of the interlocking until the dispatcher speaks"],["The B&O extra holds the main, as a foreign train with the right"]],why:"Rule 73: extra trains are inferior to regular trains. Form S-A: neither train goes past the meeting point until both have arrived, and normally the superior train holds the main and the inferior takes the siding."});
+const Q17=(n,nm)=>({sec:"to",src:"SC · Form S-A",where:"Tylerdale",title:"The B&O extra at Tylerdale",body:`Order No ${n} fixed the meet at Tylerdale. ${BO} is an extra, and ${nm} is a regular first-class train. Who holds the main, and who takes the siding on the Connecting?`,right:"The regular train holds the main; the extra, the inferior train, takes the siding",wrong:[["The B&O extra holds the main because it arrived first"],["Both stop short of the interlocking until the dispatcher speaks"],["The B&O extra holds the main, as a foreign train with the right"]],why:"Rule 73: extra trains are inferior to regular trains. Form S-A: neither train goes past the meeting point until both have arrived, and normally the superior train holds the main and the inferior takes the siding."});
 /* Questions drawn from a pool on the way, each once per run. The pool is the stretch it comes up on. */
 const POOL_A=[ // Bridgeville to Boyce
   {sec:"sig",src:"SC · Rule 14(l)",where:"Mayview",title:"A crossing at Mayview",body:"A public road crosses the line at grade ahead. Which whistle signal does the engineman sound?",right:"— — o —, prolonged or repeated until the crossing is reached",wrong:[["— o o o"],["o o o"],["— — —"]],why:"Rule 14(l): — — o — is the signal for approaching public crossings at grade, prolonged or repeated until the crossing is reached (GCOR: until the engine completely occupies the crossing)."},
@@ -47,8 +47,8 @@ const POOL_B=[ // the stop to Hills
 const POOL_C=[ // Houston to Arden
   {sec:"to",src:"SC · Rule 222",where:"Houston",title:"The operator at Houston",body:"As No 307 leaves, the operator at Houston picks up the telephone. What does he report?",right:"The time of arrival and departure of your train",wrong:[["Only the number of cars"],["Nothing, unless your train had orders"],["Its tonnage and the crew's names"]],why:"Rule 222: operators promptly record and report the time of arrival and departure of all trains and the direction of extra trains."},
   {sec:"sem",src:"SM · Forms",title:"How the signals are worked",body:"The fireman wonders how the signals at the interlockings are worked. How were semaphores operated?",right:"By mechanical means (pipes or cables), pneumatic, electro-pneumatic or electrical",wrong:[["By gravity alone"],["By the engine's whistle"],["By hand at the mast only"]],why:"Semaphores were operated by mechanical means, either pipes or cables (wires), or pneumatic, electro-pneumatic or electrical power. The power unit can be at the base or the top of the mast."}];
-const SIG292={rule:"292",where:"Washington",title:"The home signal at Washington",body:"The home signal of the Washington interlocking, where the Tylerdale Connecting joins the main, is lit against you."};
-const SIG287={rule:"287",where:"Washington",title:"Into the station",body:"The route is lined and the home signal changes."};
+const SIG292={rule:"292",where:"Tylerdale",title:"The home signal at Tylerdale",body:"The home signal of the Tylerdale interlocking, where the Tylerdale Connecting joins the main, is lit against you."};
+const SIG287={rule:"287",where:"Tylerdale",title:"The route is lined",body:"The route is lined and the home signal changes."};
 const early=t=>({sec:"sup",src:"SC · Rule 92",where:"Carnegie",title:"Not before 9:06",body:`The brake test is done at ${t}, ahead of the 9:06 on the time-table, and the engineman is ready to go. May he leave?`,right:"No; a train must not leave a station in advance of its schedule leaving time",wrong:[["Yes; it is a first-class train"],["Yes, if the dispatcher says so by phone"],["Yes, if no opposing train is due"]],why:"Rule 92: a train must not leave a station in advance of its schedule leaving time."});
 
 /* ---------- the run ---------- */
@@ -64,7 +64,7 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
     const G={pos:0,moving:null,orders:[],bag:{},tt:RE.newTT()};
     S.road=G;
     const T=RE.train(G,"307").t,t92=RE.train(G,"92");
-    const work=["Take the orders and the clearance at Carnegie","Run the double track to Houston","Protect the train when it stops on the main","Meet No 92 and run the single track to Washington","Meet the B&O train at Washington"];
+    const work=["Take the orders and the clearance at Carnegie","Run the double track to Houston","Protect the train when it stops on the main","Meet No 92 and run the single track to Washington","Meet the B&O train at Tylerdale"];
 
     /* ----- the draws ----- */
     const set=["A","B","C"][Math.floor(R()*3)];         // the three order sets
@@ -78,9 +78,9 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
     const texts=[];
     if(F)texts.push("Eng 5741 display signals and run as First 307 Carnegie to Washington");
     const iE=texts.length;
-    if(set==="A")texts.push(`No 92 run ${L} mins late Washington to Carnegie`,`${nm} meet No 92 at Houston and Extra B&O 6129 North at Washington`);
-    if(set==="B")texts.push(`${nm} meet No 92 at Arden`,`${nm} meet No 92 at Houston instead of Arden`,`${nm} meet Extra B&O 6129 North at Washington`);
-    if(set==="C")texts.push(`No 92 run ${L} mins late Washington to Carnegie`,`${nm} has right over No 92 Houston to Arden`,`${nm} meet Extra B&O 6129 North at Washington`);
+    if(set==="A")texts.push(`No 92 run ${L} mins late Washington to Carnegie`,`${nm} meet No 92 at Houston and Extra B&O 6129 North at Tylerdale`);
+    if(set==="B")texts.push(`${nm} meet No 92 at Arden`,`${nm} meet No 92 at Houston instead of Arden`,`${nm} meet Extra B&O 6129 North at Tylerdale`);
+    if(set==="C")texts.push(`No 92 run ${L} mins late Washington to Carnegie`,`${nm} has right over No 92 Houston to Arden`,`${nm} meet Extra B&O 6129 North at Tylerdale`);
     const base=rnd(11,19),orders=texts.map((text,i)=>({no:base+i,text}));
     const boNo=orders[orders.length-1].no;
     const nums=orders.map(o=>o.no),wrongClear=mode==="mismatch",shown=RE.clearNums(nums,wrongClear);
@@ -164,15 +164,17 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
       goTo(ARD,"Arden"),
       ...(set==="C"?[meetArd]:[]),
       H.done(3),
-      goTo(LAST,"Washington"),
-      H.info("Washington","Washington",`<p>No 307 comes down to Washington, where the Tylerdale Connecting joins the main and the line from Carnegie ends. ${waiting?"Extra B&amp;O 6129 North is already on the Connecting, waiting for the route.":"Extra B&amp;O 6129 North is coming over the Connecting as you come down to the interlocking."}</p>`),
-      H.ask(Qs.yl),
+      goTo(TYL,"Tylerdale"),
+      H.info("Tylerdale","Tylerdale",`<p>No 307 comes down to Tylerdale, 1.8 miles short of Washington, where the Tylerdale Connecting joins the main. ${waiting?"Extra B&amp;O 6129 North is already on the Connecting, waiting for the route.":"Extra B&amp;O 6129 North is coming over the Connecting as you come down to the interlocking."}</p>`),
       H.ask(RE.aspectQ(SIG292)),
-      H.wait(waiting?3:8,"Waited for the route at Washington"),
-      H.info("Washington","The route clears",`<p>The route is lined. The B&amp;O extra pulls into the siding on the Connecting, and No 307 holds the main.</p>`),
+      H.wait(waiting?3:8,"Waited for the route at Tylerdale"),
+      H.info("Tylerdale","The route clears",`<p>The route is lined. The B&amp;O extra pulls into the siding on the Connecting, and No 307 holds the main.</p>`),
       lazy(()=>Q17(boNo,nm)),
       H.ask(RE.aspectQ(SIG287)),
-      H.info("Washington","In at the station",`<p>No 307 comes to the station track. The B&amp;O extra goes out behind you, and the meet order is fulfilled.</p>`),
+      H.info("Tylerdale","The meet is made",`<p>No 307 goes by. The B&amp;O extra pulls out onto the main, bound north, and the meet order is fulfilled.</p>`),
+      goTo(LAST,"Washington"),
+      H.info("Washington","Washington",`<p>No 307 comes down to Washington, where the line from Carnegie ends, and stops at the station track.</p>`),
+      H.ask(Qs.yl),
       H.ask(Qs.pass),H.done(4)
     ];
     return {work,steps,noPar:true,end:()=>`${nm} is in at Washington at {t}. ${S.clock<=623?"The train turns there as No 304, due out at 10:23.":"The train turns there as No 304, which was due out at 10:23 and leaves late."}`};
