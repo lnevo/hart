@@ -2,7 +2,7 @@
 
 Status: active
 
-- **Owner:** lnevo. Plan agreed 2026-11-22; steps 1 to 3 done 2026-11-22 (the coal extra is live); step 4, the passenger train No 307 South, in progress.
+- **Owner:** lnevo. Plan agreed 2026-11-22; steps 1 to 3 and the passenger run done 2026-11-22 (both 1949 runs are live); next, the 1980s PC&Y ore transfer.
 - **Goal:** one game at [`/play/`](https://www.hartrailroad.com/play/) that covers the whole C&E study deck. The Neville Island shifts cover the yard rules; new road runs "Up the Chartiers" cover what they cannot: the timetable, superiority, train orders, track warrants, signals and semaphores. One run carries passengers.
 - **Today:** `www/play/` holds seven P&OV shifts (`runs.js`), the engine (`play.js`), the answer key (`answers.html`, built by `www/scripts/build_play_answers.js`) and the share card (`make_share_cards.py play-neville`). Extra East on the invented Kestrel Valley stays at `exam/run.html`, unchanged.
 
@@ -89,7 +89,7 @@ Everything marked not found is filled in by the game without comment (rule 2).
 1. ~~Confirm the facts from the library and the archive.~~ Done 2026-11-22 (Facts above).
 2. ~~Reorganize the start screen into the groups and the coverage strip.~~ Done 2026-11-22: the rename, the On the island group, a deck-section strip and a Tests line on each card, from a `covers` list on each run (checked by `test_play_answers.py`). The Up the Chartiers group goes in with its first run, so the page never shows an empty group.
 3. ~~Port the engine pieces and the Chartiers line data; build the 1949 coal extra.~~ Done 2026-11-22 (PR #993): Extra 4619 South, Carnegie to Arden, about 15 questions, focused on superiority and semaphores.
-4. Add the passenger run, then the 1980s signaled run, then the 1997 warrant run, one PR each.
+4. Add the passenger run, then the 1980s signaled run, then the 1997 warrant run, one PR each. Passenger run done 2026-11-22 (PR #996): No 307 South, Carnegie to Washington, three drawn order sets, a Rule 99 stop, the B&O meet at Washington, about 20 questions; with a shared road engine (`www/play/road-engine.js`) and one fixed 1949 time-table. The start screen was made compact the same day (PR #995): groups as tabs, a row per run, section chips.
 5. Extend the answer key and its test; add a share card if the title screen changes.
 6. Update `wiki/STATUS.md` and close this page.
 
