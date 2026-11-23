@@ -1,10 +1,10 @@
 # Web server migration
 
-Status: active
+Status: done (2026-11-23)
 
 - **Owner:** lnevo
-- **Status:** 2026-11-23. Steps 1 to 3 done: the new server is built and serves nothing yet. Next is step 4, moving the sites ([survey](../../docs/website/old-server-survey.md)).
-- **Server today:** www.easte.net, the host of www.hartrailroad.com ([`www/README.md`](../../www/README.md), server notes). It is an Amazon Lightsail instance (512 MB RAM, 20 GB disk) running Ubuntu 18.04, VestaCP 0.9.8, nginx 1.25.0 from nginx.org, PHP 7.2 and MySQL 5.7 from Ubuntu, and Exim and Dovecot for mail. Besides hartrailroad.com it hosts the owner's easte.net sites and WordPress sites for other users (WordPress 6.9.12, auto-update on).
+- **Status:** 2026-11-23. Done. Every site moved and checked, the static IP moved to `www-2026` the same day, and the old instance was deleted after a final snapshot. Left: see the end of this page.
+- **Server before the move:** www.easte.net, the host of www.hartrailroad.com ([`www/README.md`](../../www/README.md), server notes). It is an Amazon Lightsail instance (512 MB RAM, 20 GB disk) running Ubuntu 18.04, VestaCP 0.9.8, nginx 1.25.0 from nginx.org, PHP 7.2 and MySQL 5.7 from Ubuntu, and Exim and Dovecot for mail. Besides hartrailroad.com it hosts the owner's easte.net sites and WordPress sites for other users (WordPress 6.9.12, auto-update on).
 
 ## Why
 
@@ -35,6 +35,26 @@ Ubuntu 18.04 gets security updates only through Ubuntu Pro ESM, which ends in Ap
 5. **Agent:** rebuild the hartrailroad.com setup: the rsync-only deploy key (`Host hart-deploy`), the `static-revalidate` nginx template with its 404 and header lines, and the panel and phpMyAdmin restrictions. Update the server notes in `www/README.md` and, if a path changes, `www/scripts/deploy_hartrailroad.sh`.
 6. **Owner and agent:** move the Lightsail static IP to the new instance (no DNS change), then issue the Let's Encrypt certificates there. Take a final snapshot of the old instance and delete it (a stopped instance is still billed in full); the snapshot is the fallback for a few weeks. Then delete the snapshot and the IAM user.
 
-## Open questions
+## Move done on 2026-11-23
+
+- **Checks.** Before the move, the old server's answers were recorded for all 90 hartrailroad.com sitemap pages, the other sites' main pages and every published WordPress post and page. After the restore and again after the switch, the new server gave the same status codes and redirects. All 90 hartrailroad.com pages and its file list (1,352 files) were byte-identical, with the same security headers and `no-cache`. On the WordPress sites, 18 of 22 pages were byte-identical; the other four differ only in a random "related products" box.
+- **Accounts.** `lnevo`, `dnevo` and `br2fi` were restored from fresh Vesta backups with `v-restore-user`. Vesta's `admin` account could not be restored, because Ubuntu 24.04 has a system group `admin`. Its one site, dashboard.easte.net, was rebuilt by hand under `lnevo`, with its database renamed to `lnevo_wp90`.
+- **Templates.** `static-revalidate` was rebuilt for HestiaCP, including the hand edit of 2026-11-09 that serves the site's own `404.html`. `force-https` is a copy of HestiaCP's default, and HTTPS is forced with HestiaCP's own setting.
+- **PHP.** The WordPress sites run on PHP 8.5. easte.net runs on PHP 7.4 for its old aquarium pages. WPBakery on debbies.kitchen logs a deprecation warning on 8.5.
+- **easte.net pages.** These fetch `www.easte.net` from the server itself, so `/etc/hosts` maps that name to the private address 172.26.2.161, where nginx listens (backup `/etc/hosts.bak-20261123`).
+- **Cron and pequott.** The six aquarium and MRTG jobs are in HestiaCP but suspended. pequott.easte.net is suspended.
+- **SSH and deploy.** The old server's SSH host keys were copied over, so neither logins nor the hartrailroad.com deploy see a new host. rrsync is linked at `/usr/local/bin/rrsync` for the deploy key, and a dry run with the deploy key passed.
+- **Switch.** The static IP was moved, HestiaCP's NAT address set to it, and Let's Encrypt certificates reissued for the five HTTPS sites. They are valid to 2027-02-21 and HestiaCP renews them.
+- **Lightsail.** Daily automatic snapshots are on for `www-2026`. The old instance's final snapshot is `Ubuntu-1-final-2026-11-23`.
+
+## Left
+
+- Delete the snapshot `Ubuntu-1-final-2026-11-23` once nothing more is needed from the old server (about $1 a month while kept).
+- The panel at `https://www.easte.net:8083` uses HestiaCP's own certificate: HestiaCP issues a hostname certificate only when `www.easte.net` is its own web domain, and here it is an alias of easte.net.
+- easte.net without `www` points in DNS to another host (66.96.149.32), as it did before the move.
+- debbies.kitchen cannot send email (no mail server, no SMTP plugin), as before the move.
+- Optional: an AWS Budget alarm (needs billing rights the `lnevo-agent` user does not have).
+
+## Open questions (2026-11-19, answered by the survey)
 
 - The five questions at the end of the [survey](../../docs/website/old-server-survey.md): the aquarium jobs, pequott.easte.net, MainWP, a server without mail, and the other users' checks.
