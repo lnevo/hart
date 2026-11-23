@@ -63,6 +63,8 @@
 .xw-tt tr.here td{background:#fbe9d4}
 .xw-tt tr.here td.stn::before{content:"\25B6 ";color:var(--red)}
 .xw-tt .pencil{color:var(--blue);font-style:italic}
+.xw-tt th.mine,.xw-tt td.mine{background:#e8eef7;font-weight:700}
+.xw-tt tr.here td.mine{background:#fbe9d4}
 .xw-tt .late s{color:var(--muted)}
 .xw-tt .late b{color:var(--red);font-weight:700;display:block}
 .xw-tt .gone{color:var(--muted);text-decoration:line-through}

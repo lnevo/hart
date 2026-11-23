@@ -13,6 +13,8 @@ const WWW = path.join(__dirname, "..", "..");
 const read = (p) => fs.readFileSync(path.join(WWW, p), "utf8");
 const DRAWS = +process.argv[2] || 60;
 const MAX_STEPS = 4000;
+/* The road runs: the least and most questions on average over the draws that tie up, and the sections every such draw asks. */
+const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]] };
 
 /* ---------- a fake DOM: just the elements the game reads back (buttons, choices, the result box) ---------- */
 const VOID = new Set(["br", "hr", "img", "input", "line", "path", "circle", "rect", "meta", "link", "use"]);
@@ -72,7 +74,7 @@ const doc = {
 };
 
 /* ---------- load the page's scripts into one context ---------- */
-function load(seedBox) {
+function load(seedBox, phone) { // phone: { scroll(o) } pretends to be a phone and records window.scrollTo
   roots.length = 0;
   ["xw", "xwStart", "xwGame", "xwStatus", "xwMap", "xwScene", "xwSheet", "xwLog", "xwBest"].forEach((id) => mk(id));
   const game = doc.getElementById("xwGame"); game.hidden = true;
@@ -81,8 +83,9 @@ function load(seedBox) {
   const ctx = vm.createContext({ document: doc, console, location: { origin: "http://localhost", pathname: "/play/" }, scrollY: 0,
     localStorage: { _d: {}, getItem(k) { return this._d[k] ?? null; }, setItem(k, v) { this._d[k] = String(v); } } });
   ctx.window = ctx; ctx.window.scrollTo = () => {};
+  if (phone) { ctx.innerHeight = 844; ctx.matchMedia = () => ({ matches: true }); ctx.window.scrollTo = phone.scroll; }
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
-  for (const f of ["play/runs.js", "play/road.js"]) vm.runInContext(read(f), ctx, { filename: f });
+  for (const f of ["play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/passenger.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
   vm.runInContext(read("play/play.js"), ctx, { filename: "play/play.js" });
   return { ctx, ids, runBtns };
@@ -107,8 +110,9 @@ function play(env, id, seed, right, stats) {
   vm.runInContext("__s=" + (seed >>> 0), ctx);
   let r = seed >>> 0;
   const rand = () => { r = (Math.imul(r, 1103515245) + 12345) >>> 0; return r / 4294967296; };
-  const careful = rand() < 0.5 ? 0.95 : 0.6; // how often the player picks the right answer
-  const patient = rand() < 0.4;
+  const expert = id === "coal" && stats.draw % 5 === 0; // a player who knows the time-table: every answer right, and the coal run's sound path
+  const careful = expert ? 1 : rand() < 0.5 ? 0.95 : 0.6; // how often the player picks the right answer
+  const patient = !expert && rand() < 0.4;
   let quiet = false;
   stats.cur = { n: 0, secs: new Set(), draw: stats.draw };
   runBtns.find((b) => b.dataset.run === id).onclick();
@@ -122,6 +126,8 @@ function play(env, id, seed, right, stats) {
       stats.ends++; stats.verdicts[verdict ? verdict[1] : "?"] = (stats.verdicts[verdict ? verdict[1] : "?"] || 0) + 1;
       if (/Tied up/.test(html) && !/The shift ends/.test(html)) { stats.tied++; stats.done.push(stats.cur); }
       stats.all.push(stats.cur.n);
+      if (expert && !/Clean shift/.test(html)) stats.expertFail = (stats.expertFail || 0) + 1; // the sound path must come out clean
+      if (expert) stats.experts = (stats.experts || 0) + 1;
       const home = btns.find((b) => b.id === "home"); home.onclick();
       return;
     }
@@ -133,6 +139,7 @@ function play(env, id, seed, right, stats) {
     if (opts.length) {
       const title = (/<h2>([^<]*)<\/h2>/.exec(scene._inner) || [])[1] || "";
       stats.cur.n++; stats.cur.secs.add(right.sec(unesc(title)));
+      if (!right.sec(unesc(title))) stats.unlisted.add(unesc(title)); // a question the answer key does not list
       const good = opts.filter((b) => right.is(unesc(title), label(b)));
       (good.length && rand() < careful ? good[0] : opts[Math.floor(rand() * opts.length)]).onclick();
       continue;
@@ -140,6 +147,13 @@ function play(env, id, seed, right, stats) {
     // the road's station decision: run to a siding, or wait for the next train. A patient player waits until nothing
     // more is due at the station and then runs; the others choose at random.
     const wait = btns.find((b) => b.id === "dw"), runs = btns.filter((b) => b !== wait);
+    if (expert) { // Carnegie, Bridgeville (let No 305 by), Hills, Canonsburg, Houston; then wait for No 92 at Houston and run to Arden
+      const at = /<h2>At ([^<,]*)/.exec(scene._inner)[1];
+      const clk = (/<span>(\d+):(\d\d)<\/span>/.exec(scene._inner) || []).slice(1).reduce((h, m) => +h * 60 + +m);
+      const next = { Carnegie: "Bridgeville", Bridgeville: "Hills", Hills: "Canonsburg", Canonsburg: "Houston", Houston: "Arden" }[at];
+      const hold = (at === "Bridgeville" && clk < 453) || (at === "Houston" && clk < 554);
+      (hold ? wait : runs.find((b) => label(b) === "Run to " + next) || wait).onclick(); continue;
+    }
     if (patient) { if (quiet || !wait) { quiet = false; runs[0].onclick(); } else wait.onclick(); continue; }
     (rand() < 0.4 ? wait : runs[Math.floor(rand() * runs.length)] || wait).onclick();
   }
@@ -151,22 +165,44 @@ function main() {
   const env = load();
   const failures = [];
   for (const id of env.ids) {
-    const stats = { ends: 0, tied: 0, verdicts: {}, done: [], all: [] };
+    const stats = { ends: 0, tied: 0, verdicts: {}, done: [], all: [], unlisted: new Set() };
     for (let d = 0; d < DRAWS; d++) {
       const seed = 7919 * (d + 1) + id.length * 104729;
       stats.draw = d;
       try { play(env, id, seed, right, stats); } catch (e) { failures.push(`${id} draw ${d}: ${e.stack.split("\n").slice(0, 4).join(" | ")}`); if (failures.length > 8) break; }
     }
     console.log(`${id}: ${stats.ends}/${DRAWS} ended, ${stats.tied} tied up. ${JSON.stringify(stats.verdicts)}`);
+    if (stats.expertFail) failures.push(`${id}: ${stats.expertFail} of ${stats.experts} well-played draws were not clean shifts`);
     if (!stats.tied) failures.push(`${id}: no draw reached a tied-up end screen`);
-    if (id === "coal") { // a road run asks 15 to 20 questions, and every draw that ends normally asks the sections only the road runs cover
+    if (id in ROAD) { // a road run asks about 15 to 20 questions (the passenger run up to 23), and every draw that ends normally asks the sections the run is about
+      const [lo, hi, secs] = ROAD[id];
       const ns = stats.done.map((d) => d.n), mean = ns.reduce((a, b) => a + b, 0) / ns.length, all = stats.all;
-      console.log(`coal questions per draw that tied up: mean ${mean.toFixed(1)}, min ${Math.min(...ns)}, max ${Math.max(...ns)}; all draws: mean ${(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1)}`);
-      if (mean < 14 || mean > 21) failures.push(`coal: mean ${mean.toFixed(1)} questions per draw is outside 14 to 21 (about 15 to 20)`);
-      stats.done.forEach((d) => { for (const sec of ["sup", "to", "sem"]) if (!d.secs.has(sec)) failures.push(`coal draw ${d.draw}: no ${sec} question`); });
+      console.log(`${id} questions per draw that tied up: mean ${mean.toFixed(1)}, min ${Math.min(...ns)}, max ${Math.max(...ns)}; all draws: mean ${(all.reduce((a, b) => a + b, 0) / all.length).toFixed(1)}`);
+      if (mean < lo || mean > hi) failures.push(`${id}: mean ${mean.toFixed(1)} questions per draw is outside ${lo} to ${hi}`);
+      stats.done.forEach((d) => { for (const sec of secs) if (!d.secs.has(sec)) failures.push(`${id} draw ${d.draw}: no ${sec} question`); });
     }
+    if (stats.unlisted.size) failures.push(`${id}: asked questions that are not in the answer key: ${[...stats.unlisted].slice(0, 5).join(" | ")}`);
   }
+  scrollCheck(failures);
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
   console.log("play-through OK");
+}
+/* On a phone a new scene that is off the screen brings the status bar (clock, marks, map) back into view; one that is
+   already in view, and the first scene of a run, leave the page where it is. */
+function scrollCheck(failures) {
+  const calls = [];
+  const env = load(undefined, { scroll: (o) => calls.push(o.top) });
+  const scene = doc.getElementById("xwScene"), status = doc.getElementById("xwStatus");
+  status.getBoundingClientRect = () => ({ top: 500 });
+  let top = 900; scene.getBoundingClientRect = () => ({ top });
+  env.runBtns.find((b) => b.dataset.run === "j105").onclick();
+  if (calls.length !== 1) failures.push(`scroll: starting a run scrolled ${calls.length} times, not once`);
+  const press = (n) => { for (let i = 0; i < n; i++) { const b = scene.querySelectorAll("button").filter((x) => !x.disabled)[0]; if (b) b.onclick(); } };
+  const n1 = calls.length; press(4);
+  if (!calls.slice(n1).includes(430)) failures.push(`scroll: a scene below the screen did not bring the status bar into view (${calls.slice(n1)})`);
+  top = 300; const n2 = calls.length; press(4);
+  if (calls.length !== n2) failures.push("scroll: a scene already in view moved the page");
+  top = -50; const n3 = calls.length; press(4);
+  if (!calls.slice(n3).includes(430)) failures.push("scroll: a scene above the screen did not bring the status bar into view");
 }
 main();
