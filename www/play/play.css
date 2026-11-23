@@ -97,8 +97,6 @@
 .xw-title canvas{width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 /* start screen */
 .xw-fig{display:flex;justify-content:center;margin:6px 0;color:var(--ink)}
-.xw-start{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media (max-width:700px){.xw-start{grid-template-columns:minmax(0,1fr)}}
 .xw-switch{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;cursor:pointer;flex-wrap:wrap}
 .xw-switch input{position:absolute;opacity:0;width:1px;height:1px}
 .xw-switch i{position:relative;width:44px;height:24px;border:1.5px solid var(--ink);border-radius:12px;background:var(--sheet-2);flex:none}
@@ -107,9 +105,6 @@
 .xw-switch input:focus-visible+i{outline:2px solid var(--red);outline-offset:2px}
 .xw-switch span{color:var(--muted)}
 .xw-switch:not(.on) span:first-of-type,.xw-switch.on span:last-of-type{color:var(--ink)}
-.xw-start .card{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
-.xw-start h3{font-family:var(--font-display);font-size:26px;margin:0;font-weight:700}
-.xw-start p{margin:0;line-height:1.55}
 .xw-how{padding:12px 16px;font-size:15px;line-height:1.55}
 .xw-how ul{margin:6px 0;padding-left:20px}
 .xw-go{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}.xw-go .xw-btn{flex:1 1 180px}
@@ -141,9 +136,6 @@
 .xw-map text.water{fill:#c9cfdc;letter-spacing:.12em}
 .xw-map text.lbl{fill:var(--muted);letter-spacing:.04em}
 .xw-status .over{color:var(--red);font-style:normal;font-weight:700}
-.xw-start .kind{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
-.xw-start .card.wide{grid-column:1/-1}
-.xw-start .card{border-top:4px solid var(--glow)}
 .xw-orders .ord.done{color:var(--muted);background:var(--sheet-2)}
 .xw-coda{font-size:14px;line-height:1.55;background:var(--flimsy);border-left:3px solid var(--glow);padding:8px 12px;margin-top:10px}
 .xw-end .rec{font-family:var(--font-display);margin:12px 0 4px;font-size:20px}
@@ -160,9 +152,14 @@
 .xw.on-start .xw-title{margin-bottom:6px}
 .xw-group-h small{display:block;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rust);margin-top:2px}
 .xw-group{margin:18px 0 0}
-.xw-start.card-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.xw-start.card-grid{grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr))} /* the site's narrow topic cards; one column on a narrow phone */
+.xw-card{border-top:4px solid var(--glow);scroll-margin-top:6rem}
+.xw-card:hover{transform:none;border-color:var(--rule);border-top-color:var(--glow)} /* only Start acts, so the card does not lift like a link card */
+.xw-card .card-thumb{object-fit:cover;background:#2c2142;filter:none;opacity:1} /* drawn icons, not photos: full colour always */
+/* a visually hidden run name inside each Start button, so screen readers and voice control tell the eleven apart */
+.xw-vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 .xw-card{display:flex;flex-direction:column;gap:8px}
-.xw-card h3{margin:0;font-family:var(--font-display);font-size:1.3rem}
+.xw-card h3{margin:0;font-family:var(--font-display);font-size:1.25rem}
 .xw-card p{margin:0;line-height:1.5}
 .xw-card .xw-go{margin-top:auto;padding-top:4px}
 .xw-card .xw-go .xw-btn{flex:none;min-width:120px;text-align:center}

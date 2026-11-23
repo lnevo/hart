@@ -114,7 +114,7 @@ function exitClick(e){
   const b=e&&e.target&&e.target.closest&&e.target.closest("[data-exit]");if(!b||!S)return;
   const a=b.dataset.exit;
   if(a==="yes"){S.ended=true;S.leaving=false;queue=[];showStart();window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:"auto"});
-    // the first control still on screen: a group button, the section chip's clear link, or the first Work button
+    // the first control still on screen: the section chip's clear link, the start-here link, or the first Start button
     const f=document.querySelector&&["#xwClear","#xwHint a","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
   S.leaving=a==="ask";renderStatus();
   const f=$("xwStatus").querySelector(S.leaving?".xw-stay":".xw-ask");if(f)f.focus();
@@ -287,7 +287,7 @@ function nextRun(runs,current,done,secs){
   return order.map((k,j)=>[rank(k),j,k]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>x[2])[0]||"";
 }
 const suggest=secs=>nextRun(RUNS,S.run,new Set(store.get("ni_runs",[]).filter(r=>!r.failed).map(r=>r.run)),secs);
-/* Which runs the start screen shows: view {g: a group id or "all", sec: a section or ""}. A section chip shows the runs of both groups that test it; All shows every run; a group shows its own. */
+/* Which cards the start screen shows: covers is the run's list of sections, sec the chip that is on ("" for All). */
 const rowShown=(covers,sec)=>!sec||covers.includes(sec); // a card shows with no section chip on, or when its run tests that section
 window.PlayLogic={nextRun,rowShown};
 
@@ -321,12 +321,12 @@ function reliefToday(){
 const SECTIONS=[["def","Definitions"],["sup","Superiority & movement"],["to","Train orders"],["sig","Signals & whistles"],
   ["sem","Semaphores"],["yl","Yard limits"],["twc","Track warrants"],["gcor","GCOR crew & speed"]];
 const TAG={def:"Definitions",sup:"Superiority",to:"Train orders",sig:"Signals",sem:"Semaphores",yl:"Yard limits",twc:"Warrants",gcor:"GCOR"};
-/* How long a run is, for its row: the typical number of questions over many draws (play_through_test.js prints the means). */
+/* How long a run is, for its card: the typical number of questions over many draws (play_through_test.js prints the means). */
 const LEN={j105:"about 10 questions",j110:"about 13 questions",j205:"about 8 questions",j305:"about 7 questions",j115:"about 8 questions",extra:"about 6 questions",ym:"about 8 questions",
   coal:"about 15 questions",passenger:"about 20 questions",pcy:"about 18 questions",pir:"about 19 questions"};
-/* The start screen, built from the cards in index.html. Each run is a row: the title, the kind line, the section tags and the
-   Work button with the run's length stay in view, and the story opens on a tap. Two buttons pick a group; chips pick a section,
-   and All shows both groups under their headings. */
+/* The start screen, built from the cards in index.html: each run is a topic card in its section (the site's own
+   section and card styles) with its icon, kind line, title, one-line story, section tags, length and Start. The section
+   chips hide the cards whose run does not test that section, and a section with no card left; All shows every card. */
 function renderCover(){
   const box=$("xwCover");if(!box)return;
   const groups=[...document.querySelectorAll(".xw-group")];if(!groups.length)return;
@@ -339,6 +339,7 @@ function renderCover(){
     const meta=document.createElement("p");meta.className="xw-tags";
     meta.innerHTML=tags+(LEN[b.dataset.run]?`<span class="xw-len">${esc(LEN[b.dataset.run])}</span>`:"");
     card.insertBefore(meta,card.querySelector(".xw-go"));
+    const h=card.querySelector("h3");if(h&&!b.querySelector(".xw-vh"))b.insertAdjacentHTML("beforeend",`<span class="xw-vh"> ${esc(h.textContent)}</span>`);
   });
   // section chips: All, then each section some run tests
   const used=SECTIONS.filter(([k])=>Object.values(RUNS).some(d=>(d.covers||[]).includes(k)));
@@ -359,10 +360,11 @@ function renderCover(){
   chips.forEach(c=>c.onclick=()=>{sec=c.dataset.sec;show()});
   // a link to a section (#gChartiers) or to a run's title (#rcoal) clears a filter that hides it and scrolls to it
   function follow(){
+    if($("xwStart").hidden)return; // a link followed during a run leaves the start screen's filter alone
     const el=location.hash.length>1&&document.getElementById(decodeURIComponent(location.hash.slice(1)));
     if(!el||!el.closest(".xw-group"))return;
     if(el.closest("[hidden]")){sec="";show()}
-    el.scrollIntoView({block:"start"});
+    (el.closest(".card")||el).scrollIntoView({block:"start"}); // cards and sections keep clear of the sticky header (scroll-margin-top)
   }
   show();follow();window.addEventListener("hashchange",follow);
   const hint=$("xwHint");if(hint){const a=hint.querySelector("a");if(a)a.addEventListener("click",()=>setTimeout(follow,0))}
