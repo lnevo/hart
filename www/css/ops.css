@@ -2063,6 +2063,7 @@ table.roster th {
   grid-template-columns: auto 1fr;
   align-items: center;
   margin: 1.25rem 0 0;
+  scroll-margin-top: 6rem; /* the intro links here; clear the site header */
   overflow: hidden;
   background: var(--brand);
   box-shadow: var(--shadow);
