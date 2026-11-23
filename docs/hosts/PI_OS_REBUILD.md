@@ -120,7 +120,7 @@ Most of this goes into the repo under `tools/hosts/pi-os/`. Secrets don't: Wi-Fi
 
 ## Displays
 
-Each Pi HDMI port goes into an SFX HDMI Matrix: one directly, the other through a KVM shared with the Windows box. The matrix feeds the local monitor and the crew lounge screen, so the lounge can show the Pi while the local monitor is on Windows. Both outputs are needed. Nothing is set on the matrix or the monitors themselves.
+Each Pi HDMI port goes into an SFX HDMI Matrix: HDMI-A-2 directly, HDMI-A-1 through a KVM shared with the Windows box (found by the KVM flip test, 2026-11-23). The matrix feeds the local monitor and the crew lounge screen, so the lounge can show the Pi while the local monitor is on Windows. Both outputs are needed. Nothing is set on the matrix or the monitors themselves.
 
 ### Setup on the card (made 2026-02-21)
 
@@ -131,19 +131,19 @@ Each Pi HDMI port goes into an SFX HDMI Matrix: one directly, the other through 
   video=HDMI-A-1:1920x1080M@60,HDMI-A-2:1920x1080M@60
   ```
   `config.txt` also has `hdmi_edid_file=1`, an old firmware setting that the KMS driver probably ignores.
-  The two outputs share one `video=` with a comma. The kernel expects one `video=` per output, so the HDMI-A-2 mode is probably ignored (unverified; the trial below should use two).
+  This `video=` setting forces nothing: vc4 rejects it, logging `User-defined mode not supported: "1920x1080": 60 148500 …` (the `M` makes it a CVT mode at 148.5 MHz). The two outputs also share one `video=` with a comma, where the kernel expects one per output.
 - **Mirroring through kanshi:** both outputs at 1920×1080@60, position 0,0, in `~/.config/kanshi/config` (desktop) and `/etc/xdg/labwc-greeter/config.kanshi` (login screen).
 
 ### What is wrong with it
 
 - **The stored EDID has never loaded.** Every boot logs `Requesting EDID firmware "edid/edid.bin" failed (err=-2)` for both ports. The initramfs (`auto_initramfs=1`) holds the graphics driver `vc4.ko` but not the EDID files, and the driver starts before the root filesystem is mounted. It falls back to whatever the matrix reports at that moment.
-- **The outputs seem to swap.** HDMI-A-1 and HDMI-A-2 are fixed to the physical sockets, so the names don't actually swap. The likely cause is the KVM: switched to Windows, it can drop the Pi's KVM-side output, and a boot in that state starts with one output. Then the kanshi profile, which needs both outputs, doesn't match, and labwc lays the outputs side by side. The matrix reports identical monitors on both ports, so make-and-model matching can't tell them apart. A `desktop-items-NOOP-1.conf` shows the Pi has booted at least once with no screen detected.
-- **The menu bar shows on one monitor.** labwc has no real mirror mode; outputs at 0,0 overlap, but the panel is drawn per output, and `wf-panel-pi` is pinned to `monitor=HDMI-A-1`.
+- **The outputs seem to swap.** HDMI-A-1 and HDMI-A-2 are fixed to the physical sockets, so the names don't actually swap. The likely cause is the KVM at boot: if the Pi boots while the KVM is on Windows, HDMI-A-1 may be missing, and the boot starts with one output (not tested yet). With the Pi running, a flip does no harm: in the KVM flip test HDMI-A-1 went disconnected, lost its EDID and came back with the same EDID within about 0.5 s, and HDMI-A-2 never changed. Then the kanshi profile, which needs both outputs, doesn't match, and labwc lays the outputs side by side. The matrix reports identical monitors on both ports, so make-and-model matching can't tell them apart. A `desktop-items-NOOP-1.conf` shows the Pi has booted at least once with no screen detected.
+- **The menu bar shows on one monitor.** labwc has no real mirror mode; outputs at 0,0 overlap, but the panel is drawn per output, and `wf-panel-pi` is pinned to `monitor=HDMI-A-1`, the port behind the KVM.
 
 ### Fixes
 
-1. **Keep both outputs present** whatever the KVM or matrix does: an initramfs hook so the stored EDID loads, and the `D` suffix on `video=` (`video=HDMI-A-1:1920x1080M@60D`, the same for HDMI-A-2) to force each port on.
-2. **Menu bar on both monitors:** a second `wf-panel-pi` started from the labwc autostart with its own `-c` config and `monitor=HDMI-A-2`. If the panel refuses to run twice, put the one panel on the port that goes straight to the matrix, so the crew lounge always has it.
+1. **Keep both outputs present** whatever the KVM or matrix does: an initramfs hook so the stored EDID loads, and the `D` suffix on `video=` to force each port on, one `video=` per output. The mode must be one vc4 accepts: `1920x1080M@60` is rejected, so the trial tries `video=HDMI-A-1:1920x1080@60D` (no `M`) and checks the kernel log.
+2. **Menu bar on both monitors:** a second `wf-panel-pi` started from the labwc autostart with its own `-c` config and `monitor=HDMI-A-2`. If the panel refuses to run twice, pin the one panel to HDMI-A-2, the port that goes straight to the matrix, so the crew lounge always has it.
 3. **Fallback kanshi profiles** for the one-output and no-output cases, so an odd boot still gets 1920×1080 at 0,0.
 4. **VNC** shows one output; with the overlap reliable, both show the same picture.
 
@@ -151,8 +151,8 @@ On trixie, check whether vc4 still loads from the initramfs, and that the new Co
 
 ### Next steps (waiting on the owner)
 
-1. **KVM flip test:** the owner switches the KVM to Windows and back while `/sys/class/drm/*/status` is watched over ssh, to find which Pi port goes to the KVM and whether it drops.
-2. **Trial on the current card** in a non-operating window: fixes 1 to 3, all reversible over ssh, or from the Mac if the Pi won't boot. Success: no EDID errors in the boot log, both outputs survive a KVM flip, and the menu bar is on both monitors.
+1. **KVM flip test:** done 2026-11-23, read-only over ssh with the owner flipping the KVM. HDMI-A-1 is the KVM port and blinks for about 0.5 s on a flip; HDMI-A-2 is direct and never changed; both report the matrix's identical 256-byte EDID (md5 prefix `2402b21d`); vc4 rejects the `video=` mode.
+2. **Trial on the current card** in a non-operating window: fixes 1 to 3, all reversible over ssh, or from the Mac if the Pi won't boot. Include a boot with the KVM on Windows, the case the flip test could not cover. Success: no EDID errors and no `User-defined mode not supported` in the boot log, both outputs present after that boot and after a KVM flip, and the menu bar on both monitors or at least on HDMI-A-2.
 3. The proven setup then goes into the image (`tools/hosts/pi-os/display/`).
 
 ## Phase 4: swap, with a way back
