@@ -3,12 +3,8 @@
 /* ---------- helpers ---------- */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-/* Random streams: R sets up the run, RW writes the train orders, RO orders the answers on a free run.
-   A daily run seeds R and RW from the date; events (drawFrom) and answer order (ask) have their own daily seeds. */
+/* Random streams: R sets up the run, RW writes the train orders, RO orders the answers. */
 let R=Math.random,RW=Math.random,RO=Math.random;
-function seeded(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}
-  let a=h>>>0;return ()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
 const rnd=(a,b,r=R)=>a+Math.floor(r()*(b-a+1));
 const pick=(a,r=R)=>a[Math.floor(r()*a.length)];
 const shuffle=(a,r=R)=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
@@ -68,7 +64,7 @@ function hereName(){if(S.era==="yard")return YLOC[S.yloc].n;return S.moving?S.mo
    why = explanation shown after any answer; src = deck source; sec = deck section. */
 function ask(o){
   return ()=>{
-    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))],S.daily?seeded(S.daily+"|"+o.title+"|"+o.right):RO);
+    const opts=shuffle([{t:o.right,ok:true,c:o.ok||{}},...o.wrong.map(w=>({t:w[0],ok:false,c:w[1]||{min:5,marks:1},why:w[2]}))],RO);
     const el=scene(o.where||hereName(),o.title,`<p>${o.body}</p>${o.extra||""}<div class="choices">${opts.map((x,i)=>`<button class="xw-btn opt" data-i="${i}">${esc(x.t)}</button>`).join("")}</div><div class="result" hidden></div>`);
     const box=el.querySelector(".choices");
     box.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
@@ -153,7 +149,7 @@ function animateTo(idx,done){
 /* ---------- status ---------- */
 function renderStatus(){
   const at=S.era==="yard"?(/Ironton/.test(YLOC[S.yloc].n)?"":"Ironton, ")+YLOC[S.yloc].n:S.moving?("between "+S.moving):ST[S.pos].n+(S.inSiding&&S.pos>0&&S.pos<LAST?" (siding)":"");
-  let h=`<span><span class="lbl">Time</span><b>${fmt(S.clock)}</b></span><span><span class="lbl">At</span>${esc(at)}</span><span><span class="lbl">${S.era==="yard"?"Job":"Train"}</span>${RUNS[S.era].train}</span>${S.daily?`<span><span class="lbl">Daily run</span>${esc(S.daily)}</span>`:""}<span class="marks"><span class="lbl">Marks</span><b>${S.marks}</b>/${MAXMARKS}</span>`;
+  let h=`<span><span class="lbl">Time</span><b>${fmt(S.clock)}</b></span><span><span class="lbl">At</span>${esc(at)}</span><span><span class="lbl">${S.era==="yard"?"Job":"Train"}</span>${RUNS[S.era].train}</span><span class="marks"><span class="lbl">Marks</span><b>${S.marks}</b>/${MAXMARKS}</span>`;
   if(S.era==="tto")h+=`<span><span class="lbl">Caboose</span>${S.fus} fusees · ${S.torp} torpedoes</span>`;
   $("xwStatus").innerHTML=h;
   renderMap();
@@ -507,7 +503,7 @@ function drawFrom(key,pool,p){
   if(!pool.length)return null;
   // Each kind of draw has its own stream, so the n-th draw does not depend on how many draws of other kinds came first.
   S.pools=S.pools||{};
-  const st=S.pools[key]=S.pools[key]||{r:S.daily?seeded("extra-west|"+S.daily+"|"+S.era+"|"+key):Math.random,left:[]};
+  const st=S.pools[key]=S.pools[key]||{r:Math.random,left:[]};
   if(st.r()>p)return null;
   if(!st.left.length)st.left=shuffle(pool.map((_,i)=>i),st.r);
   const i=st.left.pop();
@@ -730,8 +726,7 @@ function startSIG(sys){
   const f=sys==="speed"?0:f0;
   const meet=R()<.5;              // at Granite: lined into the siding for a meet, or held at the home signal
   const meets=new Set();          // stations where the train takes the siding for an opposing train
-  // The stories come from their own seeded stream, so the other draws of today's run stay as they were.
-  const RS=S.daily?seeded("extra-west|"+S.daily+"|"+S.era+"|stories"):Math.random;
+  const RS=Math.random;
   /* Ordinary legs in block signal territory draw one of these stories (pickStories in signals.js); the set pieces
      (a train ahead, the P and G plates, Granite, CP Hollis, Hollis) keep theirs, keyed the same way. */
   const leadNext="The next block signal shows this aspect.",leadAfter="The signal after it shows this aspect.";
@@ -762,7 +757,7 @@ function startSIG(sys){
     {key:"hollisA",ev:w=>[sig("283A","",w,"At Hollis, lined onto Main 1 with the Ironton local two signals ahead, the home signal shows this aspect."),sig("285","",w,leadAfter),sig("291","",w,marked)]},
     {key:"hollisM",ev:w=>[sig("286","",w,"At Hollis, lined onto Main 1 with the Ironton local one signal ahead, the home signal shows this aspect."),sig("291","",w,marked)]},
     {key:"hollisS",ev:w=>[sig("288","",w,"At Hollis, lined through the crossover onto Main 1, the home signal shows this aspect."),sig("291","",w,marked)]}];
-  const RI=S.daily?seeded("extra-west|"+S.daily+"|"+S.era+"|interlocking"):Math.random; // own stream: the leg stories stay as drawn
+  const RI=Math.random;
   const gIn=sp?pick(GRANITE_IN,RI):null,gOut=sp?pick(GRANITE_OUT,RI):null,hol=sp?pick(HOLLIS,RI):null; // speed run only
   /* Stories that show the same signals count as repeats: the Hollis home sequences end in a marked 291 or open with
      285, as ahead1 and ahead2 do, and Restricting matches the Hollis 290. */
@@ -860,7 +855,7 @@ const yMove=(to,min,note)=>()=>{S.yloc=to;addTime(min);S.parAdd+=min;if(note)log
 const yDone=i=>()=>{S.jobs[i].done=true;renderSheet();next()};
 function startYARD(){
   S.clock=S.start=420;S.tt={}; // the yard job starts at 7:00
-  // the day's draw (seeded for today's yard job): which track to pull, how many cars, and the block signal at the lead
+  // the draw: which track to pull, how many cars, and the block signal at the lead
   S.ytrack=pick([3,4,5]);const cars=rnd(2,4),leadClear=R()<.5;YLOC.t4.n="yard track "+S.ytrack;
   S.jobs=[{t:`Pull the ${cars} cars on track ${S.ytrack}`},{t:"Spot 2 loads at Kestrel Feed (spur off Main 2)"},{t:"Clear the main for the trains"},{t:"Set the cars on track 2, clear of the clearance point"},{t:"Take 2 empties to CP Ironton East for the eastward local"}];
   push(
@@ -916,23 +911,10 @@ function finish(text,failed){
      <div class="xw-end"><div class="score"><div><b>${failed?"—":fmt(S.clock)}</b><span>${S.era==="yard"?"Tied up at":"In at"}</span></div><div><b>${Math.floor(time/60)}h ${String(time%60).padStart(2,"0")}</b><span>${S.era==="yard"?"On the job":"On the road"}</span></div>${par!==null&&!failed?`<div><b>${Math.floor(par/60)}h ${String(Math.round(par)%60).padStart(2,"0")}</b><span>Fastest legal run${S.hotDelay?", no hot box":""}</span></div>`:""}<div><b>${S.marks}</b><span>Marks</span></div>${S.era==="tto"?`<div><b>${S.fus}/${S.torp}</b><span>Fusees/torpedoes left</span></div>`:""}</div>
      <h3 style="font-family:var(--font-display);margin:10px 0 4px;font-size:20px">Service record</h3><div style="display:flex;flex-direction:column;gap:6px">${missHtml}</div>
      ${secs.length?`<p style="margin-top:8px">Study next: ${secs.map(s=>`<a href="index.html#learn-${s}">${esc(SEC[s])}</a>`).join(" · ")}</p>`:""}</div>
-     <div class="choices" style="flex-direction:row;flex-wrap:wrap"><button class="xw-btn primary" id="again">${S.daily?"Replay today's run":"Run it again"}</button><button class="xw-btn" id="home">Choose another run</button></div>`);
-  const runs=store.get("xw_runs",[]);runs.unshift({era:S.era,when:Date.now(),marks:S.marks,time,failed,verdict,daily:S.daily});store.set("xw_runs",runs.slice(0,20));
-  const era=S.era,daily=S.daily;
-  if(daily){
-    const key="xw_daily_"+daily+"_"+era,stored=store.get(key,null);
-    const mine={id:S.attempt,verdict,marks:S.marks,time,failed};
-    const first=stored&&stored.id!==S.attempt?stored:null;
-    if(!first)store.set(key,mine);
-    const rec=first||mine;
-    const line=`Extra East, daily run ${daily}, ${RUNS[era].name}: ${rec.verdict}, ${rec.marks} mark${rec.marks===1?"":"s"}${rec.failed?"":", "+Math.floor(rec.time/60)+"h "+String(rec.time%60).padStart(2,"0")+"m "+(era==="yard"?"on the job":"on the road")}. ${location.origin.startsWith("http")?location.origin+location.pathname:"hartrailroad.com/exam/run.html"}`;
-    const box=document.createElement("div");box.className="xw-daily";
-    box.innerHTML=`<p>${first?"Your first try at today's run counts for the day; this replay does not change it.":"This is your result for today's run. Replays are for practice and do not change it."}</p><div class="xw-share">${esc(line)}</div><div><button class="xw-btn" id="copy">Copy the result</button></div>`;
-    el.querySelector(".xw-end").appendChild(box);
-    $("copy").onclick=()=>{const done=()=>{$("copy").textContent="Copied"};
-      if(navigator.clipboard)navigator.clipboard.writeText(line).then(done,()=>{$("copy").textContent="Select the text above to copy it"});else $("copy").textContent="Select the text above to copy it"};
-  }
-  $("again").onclick=()=>begin(era,daily);
+     <div class="choices" style="flex-direction:row;flex-wrap:wrap"><button class="xw-btn primary" id="again">Run it again</button><button class="xw-btn" id="home">Choose another run</button></div>`);
+  const runs=store.get("xw_runs",[]);runs.unshift({era:S.era,when:Date.now(),marks:S.marks,time,failed,verdict});store.set("xw_runs",runs.slice(0,20));
+  const era=S.era;
+  $("again").onclick=()=>begin(era);
   $("home").onclick=showStart;
 }
 
@@ -979,13 +961,10 @@ function renderSheet(){
 }
 
 /* ---------- start ---------- */
-function begin(era,daily){
-  if(era==="yard")daily=null; // the yard job has no daily run: its draw barely changes from day to day
-  if(daily===true)daily=today();
-  if(daily){const k="extra-west|"+daily+"|"+era;R=seeded(k+"|setup");RW=seeded(k+"|orders")} // seed key keeps the old name on purpose: renaming it changes every daily run
-  else R=RW=RO=Math.random;
-  S=newState(era);S.daily=daily||null;queue=[];
-  if(daily){S.attempt=Date.now();const key="xw_daily_"+S.daily+"_"+era;if(!store.get(key,null))store.set(key,{id:S.attempt,verdict:"Did not finish",marks:0,time:0,failed:true})}$("xwLog").innerHTML="";trainMp=100;
+function begin(era){
+  R=RW=RO=Math.random;
+  S=newState(era);queue=[];
+  $("xwLog").innerHTML="";trainMp=100;
   $("xwStart").hidden=true;$("xwGame").hidden=false;
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
@@ -997,7 +976,6 @@ function showStart(){
   $("sigRules").textContent=sigEra()==="sigr"?"Rulebook: the Signals guide (route signals and plates)":"Rulebook: 1949 Standard Code Rules 281 to 292, with the Signals guide's plates";
   const runs=store.get("xw_runs",[]);
   const best=e=>{const r=runs.filter(x=>x.era===e&&!x.failed).sort((a,b)=>a.marks-b.marks||a.time-b.time)[0];return r?`${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}, ${Math.floor(r.time/60)}h ${String(r.time%60).padStart(2,"0")}`:"none yet"};
-  const d=today();[["tto","dTto"],["twc","dTwc"],[sigEra(),"dSig"]].forEach(([e,id])=>{const r=store.get("xw_daily_"+d+"_"+e,null);$(id).textContent=r?`played: ${r.verdict}, ${r.marks} mark${r.marks===1?"":"s"}`:d});
   $("xwBest").textContent=runs.length?`Your best in this browser. ${Object.keys(RUNS).map(e=>RUNS[e].short+": "+best(e)).join(". ")}.`:"";
 }
 /* ---------- title screen (pixel art) ---------- */
@@ -1067,6 +1045,6 @@ function showStart(){
 const sigEra=()=>$("sigSys").checked?"sigr":"sigs";
 $("sigSys").checked=store.get("xw_sigsys","sigs")==="sigr";
 $("sigSys").onchange=()=>{store.set("xw_sigsys",sigEra());showStart()};
-document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era==="sig"?sigEra():b.dataset.era,b.hasAttribute("data-daily")));
+document.querySelectorAll("[data-era]").forEach(b=>b.onclick=()=>begin(b.dataset.era==="sig"?sigEra():b.dataset.era));
 showStart();
 })();
