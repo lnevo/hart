@@ -29,7 +29,7 @@ Found in the one-band run; each is checked by step 2 before it is changed.
 |---|---|---|
 | A | HART with every layer file: the approved output | This repo (`make panels FULL=1`, `check_approved.py`) |
 | B | HART raw: the two inputs, `--no-preferences` | This repo; commands in the efficiency plan |
-| C | HART one band: the joined graph | Script `tools/schematic/experiments/one_band.py` (to write, from the scratch script of 2026-11-23) |
+| C | HART one band: the joined graph | Script `tools/schematic/experiments/one_band.py` (`--cap`, `--seconds`, `--profile`) |
 | D | Other people's plans: about 10 AnyRail plans of different sizes and shapes (a shelf switcher, a loop with a yard, a dogbone, a two-level plan with a helix, a large club plan) | Local only, outside the repo: their track graphs are made with `schematic anyplan`/`plan`; the plans, and the objects and buildings in them, are other people's work and are not published |
 | E | Made-up plans in the plugin's tests: the Pine Hollow & Eastern (`tests/example.py`) and new generated ones: random loops, ladders, reversing loops, crossovers, two levels joined by a helix | The plugin repo, public; generic, no HART names |
 
@@ -41,8 +41,8 @@ Plugin work is on a branch of model-railroad-skills in its own worktree; HART on
 
 | # | Step | Done when | Estimate |
 |---|---|---|---|
-| 1 | Baseline: run sets A to E on the current plugin (b0bc62ee), cold cache, each with its time and result; sets D and E under a 10 minute cap each | Results table below filled in | 1–2 h, mostly waiting; long runs on the Windows box (`make remote`) |
-| 2 | Profile the one-band run (set C) and the slowest set D plan with `cProfile`: where the time goes in orient, rows and columns | The table above says which faults are real and where | 1 h |
+| 1 | **Done 2026-11-23.** Baseline: run sets A to E on the current plugin (b0bc62ee), cold cache, each with its time and result; sets D and E under a 10 minute cap each | Results table below filled in | 1–2 h, mostly waiting; long runs on the Windows box (`make remote`) |
+| 2 | **Set C done 2026-11-23** (below). Profile the one-band run (set C) and the slowest set D plan with `cProfile`: where the time goes in orient, rows and columns | The table above says which faults are real and where | 1 h |
 | 3 | Make the set E plans: one per fault seen in steps 1 and 2, each small enough to solve in seconds when fixed | Each fails on the current plugin for the reason found | 2 h |
 | 4 | Fix F2 and F3 (orientation order, fall back on `Unsettled`), tests first | Set E's tests for F2 and F3 pass; set A byte-identical | 2 h |
 | 5 | Fix F1 and F4 (cap from loops, row budget); F5 only if step 2 says so | Set C draws in the budget; set A byte-identical | 2–3 h |
@@ -71,3 +71,20 @@ Every step that changes plugin code reruns set A before it is committed: a chang
 | A | HART approved | 431 s cold full rebuild, all steps pass (2026-11-23) | |
 | B | HART raw | solve 38 s, 0 faults; LE 1.5 s; CATS 0.2 s (2026-11-23) | |
 | C | HART one band | orient 37 s (cap raised to 7, 6 turnbacks); rows 43 min; columns did not settle (2026-11-23) | |
+| C | HART one band, plugin's own cap | 3.5 s: stops, `no orientation found; raise max_turnbacks` (F1) | |
+| D | 38 AnyRail sample plans, JMRI exports | 13 drawn (3 to 31 switches, slowest 20 s; 12 with 0 faults, one reports "1 drawing faults" with an empty list); 2 stopped on the turnback cap (8 and 20 switches, F1); 21 stop in `plan` with a `KeyError` traceback at `plan_reader.py:147` (slips 12, crossings 7, turntables 3 counted with one other part); 2 stop on unsupported LH/RH crossovers | |
+| E | Plugin tests (Pine Hollow & Eastern and the rest) | 764 tests pass in 91 s; slowest test 11 s | |
+
+Set D notes: the plans and the D-number to file mapping are local only (`~/Documents/Layout/anyrail-samples/`). `schematic anyplan` reads only 2 of the 38 `.any` files (the rest: no track end points found, older file layout), and it writes no graph, so the owner exported each plan from AnyRail as JMRI XML. Nothing above 31 switches got past the plan reader, so set D does not yet test the solver at HART's size.
+
+## Profile of set C (2026-11-23)
+
+`one_band.py --cap 7 --seconds 600 --profile`, cold cache, Mac; cProfile slows the run about 2x.
+
+| Phase | Time in 600 s | What it is |
+|---|---|---|
+| orient | 76 s (37 s without the profiler) | `orient.colour` called 971,712 times: every combination of up to 6 of 26 candidate runs. F5 is real. |
+| rows | 335 s and not finished | `rows.descend_rows`, 13,500 row solves, 10.2 million `push_rows` calls; no limit (F4) |
+| columns inside rows | 347 s, overlapping rows | `columns.place` runs for every row solve (`columns.cost` 120 s, `push` 3.3 million calls) |
+
+The earlier 43 minute run ended in a `schematic.columns.Unsettled` traceback, not a clean stop (F3, and acceptance 2).
