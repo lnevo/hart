@@ -89,7 +89,7 @@ function title(){
     g.fillStyle=`rgba(255,179,71,${.35+.25*Math.sin(t/220)})`;g.fillRect(146,58,18,6);
   }
   const still=reduced;
-  if(still){draw(0);return}
+  if(still||typeof IntersectionObserver!=="function"){draw(0);return}
   let raf=0;const loop=t=>{draw(t);raf=requestAnimationFrame(loop)};
   const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&!raf)raf=requestAnimationFrame(loop);else if(!e.isIntersecting&&raf){cancelAnimationFrame(raf);raf=0}})});
   io.observe(cv);draw(0);

@@ -2064,7 +2064,7 @@ table.roster th {
   --dusk-ember: #e08a3c;
   --dusk-text: #d9cfe0;
   display: grid;
-  grid-template-columns: 420px 1fr;
+  grid-template-columns: min(420px, 45%) 1fr;
   align-items: center;
   margin: 1.25rem 0 0;
   overflow: hidden;
@@ -2086,7 +2086,7 @@ table.roster th {
 
 .play-band-art canvas {
   display: block;
-  width: 420px;
+  width: 100%;
   height: auto;
   image-rendering: pixelated;
 }
@@ -2167,10 +2167,6 @@ table.roster th {
 @media (max-width: 760px) {
   .play-band {
     grid-template-columns: 1fr;
-  }
-
-  .play-band-art canvas {
-    width: 100%;
   }
 }
 
