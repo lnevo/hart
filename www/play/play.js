@@ -115,7 +115,7 @@ function exitClick(e){
   const a=b.dataset.exit;
   if(a==="yes"){S.ended=true;S.leaving=false;queue=[];showStart();window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:"auto"});
     // the first control still on screen: a group button, the section chip's clear link, or the first Work button
-    const f=document.querySelector&&[".xw-tabs button","#xwClear","#xwHint a","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
+    const f=document.querySelector&&["#xwClear","#xwHint a","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
   S.leaving=a==="ask";renderStatus();
   const f=$("xwStatus").querySelector(S.leaving?".xw-stay":".xw-ask");if(f)f.focus();
 }
@@ -288,7 +288,7 @@ function nextRun(runs,current,done,secs){
 }
 const suggest=secs=>nextRun(RUNS,S.run,new Set(store.get("ni_runs",[]).filter(r=>!r.failed).map(r=>r.run)),secs);
 /* Which runs the start screen shows: view {g: a group id or "all", sec: a section or ""}. A section chip shows the runs of both groups that test it; All shows every run; a group shows its own. */
-const rowShown=(group,covers,view)=>view.sec?covers.includes(view.sec):view.g==="all"||group===view.g;
+const rowShown=(covers,sec)=>!sec||covers.includes(sec); // a card shows with no section chip on, or when its run tests that section
 window.PlayLogic={nextRun,rowShown};
 
 /* ---------- start ---------- */
@@ -303,7 +303,7 @@ function begin(id,daily){
   const def=RUNS[id];S.def=def;S.pace=def.pace||1;S.clock=S.start=def.start;S.lead=def.engine;S.units=Object.assign({},def.units);
   const shift=def.build(H);S.jobs=shift.work.map(t=>({t,done:false}));
   queue=shift.steps.concat([()=>{S.par=shift.noPar?0:S.start+S.parAdd;const t=shift.end?shift.end():def.tieUp;log("Tied up");finish(t.replace("{t}",fmt(S.clock)),false)}]);
-  $("xwStart").hidden=true;$("xwGame").hidden=false;
+  $("xwStart").hidden=true;$("xwGame").hidden=false;$("xw").classList.remove("on-start");
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
   firstScene=true;next();
@@ -330,71 +330,46 @@ const LEN={j105:"about 10 questions",j110:"about 13 questions",j205:"about 8 que
 function renderCover(){
   const box=$("xwCover");if(!box)return;
   const groups=[...document.querySelectorAll(".xw-group")];if(!groups.length)return;
-  // A summary holds phrasing content and one heading, so the kind line and the tags become spans.
-  document.querySelectorAll(".xw-start .card").forEach(card=>{
+  // each run is a topic card, as on the rest of the site: kind line, title, story, the sections it tests and its length, Start
+  const cards=[...document.querySelectorAll(".xw-group .card")];
+  cards.forEach(card=>{
     const b=card.querySelector("[data-run]"),def=b&&RUNS[b.dataset.run];if(!def)return;
-    const row=document.createElement("div");row.className=card.className+" xw-run";row.dataset.secs=(def.covers||[]).join(" ");
-    const det=document.createElement("details");
-    const sum=document.createElement("summary"),h=card.querySelector("h3"),k=card.querySelector(".kind"),go=card.querySelector(".xw-go");
-    if(h)sum.appendChild(h);
-    const meta=document.createElement("span");meta.className="xw-meta";
-    if(k){meta.insertAdjacentHTML("beforeend",`<span class="kind">${k.innerHTML}</span>`);k.remove()}
+    card.dataset.secs=(def.covers||[]).join(" ");
     const tags=SECTIONS.filter(x=>(def.covers||[]).includes(x[0])).map(x=>`<span>${esc(TAG[x[0]])}</span>`).join("");
-    if(tags)meta.insertAdjacentHTML("beforeend",`<span class="xw-tags">${tags}</span>`);
-    sum.appendChild(meta);det.appendChild(sum);
-    [...card.childNodes].filter(n=>n!==go).forEach(n=>det.appendChild(n));
-    row.appendChild(det);
-    if(go){const sm=b.querySelector("small");if(sm&&LEN[b.dataset.run])sm.textContent=LEN[b.dataset.run];row.appendChild(go)}
-    card.replaceWith(row);
+    const meta=document.createElement("p");meta.className="xw-tags";
+    meta.innerHTML=tags+(LEN[b.dataset.run]?`<span class="xw-len">${esc(LEN[b.dataset.run])}</span>`:"");
+    card.insertBefore(meta,card.querySelector(".xw-go"));
   });
-  const all=()=>document.querySelectorAll(".xw-run");
-  // one button per group, in a labelled group
-  const tabs=document.createElement("div");tabs.className="xw-tabs";tabs.setAttribute("role","group");tabs.setAttribute("aria-label","Show the runs of");
-  groups.forEach(g=>{
-    const h=g.querySelector(".xw-group-h"),t=document.createElement("button");
-    t.type="button";t.dataset.g=g.id;t.setAttribute("aria-controls",g.id);
-    t.textContent=h?h.firstChild.textContent.trim():g.id;t.onclick=()=>{cur={g:g.id,sec:""};show()};tabs.appendChild(t);
-  });
-  const hint=$("xwHint");
-  if(hint)hint.before(tabs);else groups[0].before(tabs);
   // section chips: All, then each section some run tests
   const used=SECTIONS.filter(([k])=>Object.values(RUNS).some(d=>(d.covers||[]).includes(k)));
   box.innerHTML=`<div class="xw-coverhead"><span class="lbl" id="xwCoverLbl">Practice a section</span><a class="xw-keylink" href="answers.html">Answer key: every question</a></div><div class="xw-chips" role="group" aria-labelledby="xwCoverLbl">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
     `<button type="button" data-sec="${k}" aria-pressed="false">${esc(n)}</button>`).join("")}</div><p class="xw-showing" id="xwShowing" role="status" hidden></p>`;
   const chips=[...box.querySelectorAll(".xw-chips button")],showing=$("xwShowing");
-  const saved=store.get("ni_tab","");
-  let cur={g:saved==="all"||groups.some(g=>g.id===saved)?saved:groups[0].id,sec:""};
+  let sec="";
   function show(){
-    const sec=cur.sec,many=!!sec||cur.g==="all";
-    groups.forEach(g=>{
-      const runs=[...g.querySelectorAll(".xw-run")];
-      runs.forEach(r=>{r.hidden=!rowShown(g.id,r.dataset.secs.split(" "),cur)});
-      g.hidden=many?!runs.some(r=>!r.hidden):g.id!==cur.g;
-      g.classList.toggle("multi",many); // headings show and the long notes go while several groups show
-      const h=g.querySelector(".xw-group-h");if(h)h.classList.toggle("xw-vh",!many);
-    });
-    tabs.hidden=!!sec;
-    tabs.querySelectorAll("button").forEach(t=>t.setAttribute("aria-pressed",String(!sec&&t.dataset.g===cur.g)));
-    chips.forEach(c=>c.setAttribute("aria-pressed",String(sec?c.dataset.sec===sec:cur.g==="all"&&c.dataset.sec==="")));
+    cards.forEach(c=>{c.hidden=!rowShown((c.dataset.secs||"").split(" "),sec)});
+    groups.forEach(g=>{g.hidden=!g.querySelector(".card:not([hidden])");const n=g.querySelector(".xw-group-note");if(n)n.hidden=!!sec});
+    chips.forEach(c=>c.setAttribute("aria-pressed",String(c.dataset.sec===sec)));
     if(sec){
-      const n=[...all()].filter(r=>!r.hidden).length;
-      showing.innerHTML=`Showing ${n} run${n===1?"":"s"} that test ${esc(TAG[sec])} · <button type="button" class="xw-link" id="xwClear">clear</button>`;
-      showing.hidden=false;$("xwClear").onclick=()=>{cur.sec="";show();const c=chips.find(x=>x.dataset.sec===sec);if(c)c.focus()};
-    }else{showing.hidden=true;store.set("ni_tab",cur.g)}
+      const n=cards.filter(c=>!c.hidden).length;
+      showing.innerHTML=`Showing ${n} run${n===1?"":"s"} that test${n===1?"s":""} ${esc(TAG[sec])} · <button type="button" class="xw-link" id="xwClear">clear</button>`;
+      showing.hidden=false;$("xwClear").onclick=()=>{const was=sec;sec="";show();const c=chips.find(x=>x.dataset.sec===was);if(c)c.focus()};
+    }else showing.hidden=true;
   }
-  chips.forEach(c=>c.onclick=()=>{if(c.dataset.sec==="")cur={g:"all",sec:""};else cur.sec=c.dataset.sec;show()});
-  // a link to a group (#gChartiers) or to a run's title (#rcoal) shows that group and opens that run
+  chips.forEach(c=>c.onclick=()=>{sec=c.dataset.sec;show()});
+  // a link to a section (#gChartiers) or to a run's title (#rcoal) clears a filter that hides it and scrolls to it
   function follow(){
     const el=location.hash.length>1&&document.getElementById(decodeURIComponent(location.hash.slice(1)));
-    const g=el&&(el.classList.contains("xw-group")?el:el.closest(".xw-group"));if(!g)return;
-    cur={g:g.id,sec:""};show();const run=el.closest(".xw-run");if(run){const d=run.querySelector("details");if(d)d.open=true;el.scrollIntoView({block:"start"})}
+    if(!el||!el.closest(".xw-group"))return;
+    if(el.closest("[hidden]")){sec="";show()}
+    el.scrollIntoView({block:"start"});
   }
   show();follow();window.addEventListener("hashchange",follow);
-  if(hint){const a=hint.querySelector("a");if(a)a.addEventListener("click",()=>setTimeout(follow,0))}
+  const hint=$("xwHint");if(hint){const a=hint.querySelector("a");if(a)a.addEventListener("click",()=>setTimeout(follow,0))}
   box.hidden=false;
 }
 function showStart(){
-  $("xwStart").hidden=false;$("xwGame").hidden=true;
+  $("xwStart").hidden=false;$("xwGame").hidden=true;$("xw").classList.add("on-start");
   const runs=store.get("ni_runs",[]),d=today();
   document.querySelectorAll("[data-run]").forEach(b=>{
     if(!b.hasAttribute("data-daily"))return;

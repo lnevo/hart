@@ -154,75 +154,43 @@
 .xw-how{margin-top:14px}
 .xw-map svg{max-width:none}
 
-/* groups and the deck-section strip */
-.xw-group-h{font-family:var(--font-display);font-size:30px;margin:0 0 10px;color:#efe6cf;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.xw-group-h small{font-family:var(--mono);font-size:12px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--glow)}
-
-/* start screen: tabs per group, a row per run that opens on a tap, section chips (2026-11-22) */
-.xw-tabs{display:flex;gap:6px;margin-top:14px;border-bottom:2px solid var(--glow)}
-.xw-tabs button{font:700 17px var(--font-display);letter-spacing:.02em;padding:8px 14px 6px;border:0;border-radius:4px 4px 0 0;
-  background:#2c2833;color:#c9c2b4;cursor:pointer}
-.xw-tabs button[aria-pressed="true"]{background:var(--glow);color:#1c1b22}
-.xw-tabs button:focus-visible,.xw-chips button:focus-visible,.xw-run summary:focus-visible{outline:2px solid #efe6cf;outline-offset:2px}
-.xw-group{margin-top:12px}
-.xw-group .xw-group-h{font-size:20px;margin:0 0 4px}
-.xw-group-note{color:#c9c2b4;font-size:14px;line-height:1.5;margin:0 0 10px;max-width:70ch}
-.xw-group-note a{color:#efe6cf}
-.xw-start{grid-template-columns:minmax(0,1fr);gap:8px}
-.xw-start .card.xw-run{padding:0;gap:0;border-top-width:3px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start}
-.xw-run details>p{margin:0 14px 12px}
-.xw-run .xw-go{margin:10px 12px 10px 0;align-self:center;flex-wrap:nowrap}
-.xw-run .xw-go .xw-btn{flex:none;min-width:170px}
-@media (max-width:700px){.xw-start .card.xw-run{grid-template-columns:minmax(0,1fr)}.xw-run .xw-go{margin:0 14px 12px}.xw-run .xw-go .xw-btn{flex:1 1 auto}}
-.xw-run summary{list-style:none;cursor:pointer;padding:10px 74px 10px 14px;position:relative;display:block}
-.xw-run summary::-webkit-details-marker{display:none}
-.xw-run summary::after{content:"story ▸";position:absolute;right:10px;top:12px;font:600 12px var(--mono);color:var(--rust)}
-.xw-run details[open] summary::after{content:"story ▾"}
-.xw-start .xw-run h3{font-size:20px}
-.xw-meta{display:block;margin-top:3px}
-.xw-meta .kind{display:block}
-.xw-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+/* start screen (owner, 2026-11-22): the full pixel-art banner, then the site's own sections and topic cards on the light
+   page; the dark frame is for the game itself. Section chips filter the cards. */
+.xw.on-start{background:none;padding:0;border-radius:0}
+.xw.on-start .xw-title{margin-bottom:6px}
+.xw-group-h small{display:block;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rust);margin-top:2px}
+.xw-group{margin:18px 0 0}
+.xw-start.card-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+.xw-card{display:flex;flex-direction:column;gap:8px}
+.xw-card h3{margin:0;font-family:var(--font-display);font-size:1.3rem}
+.xw-card p{margin:0;line-height:1.5}
+.xw-card .xw-go{margin-top:auto;padding-top:4px}
+.xw-card .xw-go .xw-btn{flex:none;min-width:120px;text-align:center}
+.xw-tags{display:flex;flex-wrap:wrap;gap:4px}
 .xw-tags span{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
-.xw-cover{padding:8px 12px;margin-top:14px}
+.xw-tags .xw-len{border-color:transparent;background:none;padding-left:2px}
+.xw-cover{padding:8px 12px;margin-top:6px}
 .xw-cover .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
 .xw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .xw-chips button{font:600 13px var(--font-body);padding:5px 10px;border:1.5px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}
 .xw-chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
 details.xw-how summary{cursor:pointer;font-weight:600}
-.xw-best{font-family:var(--mono);font-size:12px;color:#c9c2b4;margin-top:10px}
-
-
-/* a visually hidden class: the group heading stays for assistive tools while one group shows (2026-11-22) */
-.xw-vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
-.xw-group.multi .xw-group-note{display:none}
-.xw-group.multi{margin-top:18px}
-.xw-hint{margin:8px 0 0;color:#efe6cf;font-size:15px;line-height:1.45}
-.xw-hint a{color:var(--glow);font-weight:600}
+.xw-best{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px}
+.xw-hint{margin:10px 0 0;font-size:15px;line-height:1.45}
+.xw-hint a{color:var(--rust);font-weight:600}
 .xw-coverhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px}
 .xw-keylink{font-size:14px;font-weight:600;color:var(--blue)}
 .xw-showing{margin:8px 0 0;font-size:14px}
 .xw-link{background:none;border:0;padding:0;font:inherit;font-weight:600;text-decoration:underline;color:var(--blue);cursor:pointer}
 .xw-exit{margin-left:auto;display:inline-flex;gap:12px;align-items:baseline;font-family:var(--font-body);font-size:14px}
 
-/* visible focus: ink or rust on the light cards, cream only on the dark page (2026-11-22) */
-.xw-btn:focus-visible,.xw-chips button:focus-visible,.xw-run summary:focus-visible,.xw-link:focus-visible,.xw-keylink:focus-visible,
+/* visible focus: ink or rust on light ground */
+.xw-btn:focus-visible,.xw-chips button:focus-visible,.xw-link:focus-visible,.xw-keylink:focus-visible,.xw-hint a:focus-visible,.xw-group-note a:focus-visible,
 .xw-tw select:focus-visible,.xw-tw input:focus-visible,.xw-tt:focus-visible,.xw-scene a:focus-visible,.xw-end summary:focus-visible,.xw-how summary:focus-visible,.xw-log summary:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
-.xw-run summary:focus-visible{outline-offset:-3px}
-.xw-hint a:focus-visible,.xw-group-note a:focus-visible{outline:2px solid #efe6cf;outline-offset:2px}
 
-/* wide screens: the title picture is a banner, so the runs show without scrolling */
-@media (min-width:861px){
-  .xw-title{margin-bottom:8px;text-align:center;background:#1b1830}
-  .xw-title canvas{width:auto;height:120px;margin:0 auto}
-  .xw-cover{margin-top:8px}
-  .xw-tabs{margin-top:10px}
-  .xw-group-note{max-width:none;margin-bottom:8px}
-  .xw-group{margin-top:8px}
-}
 /* phones: targets of at least 44 px */
 @media (max-width:860px){
-  .xw-tabs button,.xw-chips button,.xw-link,.xw-btn{min-height:44px}
+  .xw-chips button,.xw-link,.xw-btn{min-height:44px}
   .xw-exit{width:100%;margin-left:0}
   .xw-chips button{padding:0 14px}
-  .xw-tabs button{padding:0 16px}
 }

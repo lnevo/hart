@@ -262,15 +262,11 @@ function logicCheck(ctx, failures) {
   if (c !== "pir") failures.push(`suggest: a run that missed ${sec} should be sent to a run that tests it, got ${c} (${want})`);
   if (L.nextRun(runs, keys[0], new Set(), []) === keys[0]) failures.push("suggest: suggested the run just played");
   const group = (k) => runs[k].group || "island", covers = (k) => runs[k].covers || [];
-  const all = keys.filter((k) => L.rowShown(group(k), covers(k), { g: "all", sec: "" }));
+  const all = keys.filter((k) => L.rowShown(covers(k), ""));
   if (all.length !== keys.length || new Set(all.map(group)).size < 2) failures.push("filter: All did not show every run of both groups");
-  for (const g of ["island", "chartiers"]) {
-    const got = keys.filter((k) => L.rowShown(group(k), covers(k), { g, sec: "" }));
-    if (!got.length || got.some((k) => group(k) !== g)) failures.push(`filter: the ${g} button showed another group's runs`);
-  }
   for (const s of ["def", "sup", "to", "sig", "sem", "yl", "twc", "gcor"]) {
-    const got = keys.filter((k) => L.rowShown(group(k), covers(k), { g: "island", sec: s })), exp = keys.filter((k) => covers(k).includes(s));
-    if (got.join() !== exp.join()) failures.push(`filter: chip ${s} showed ${got} instead of ${exp}`);
+    const got = keys.filter((k) => L.rowShown(covers(k), s)), exp = keys.filter((k) => covers(k).includes(s));
+    if (!got.length || got.join() !== exp.join()) failures.push(`filter: chip ${s} showed ${got} instead of ${exp}`);
   }
 }
 main();
