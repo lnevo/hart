@@ -79,6 +79,22 @@ Every step that changes plugin code reruns set A before it is committed: a chang
 
 Set D notes: the plans and the D-number to file mapping are local only (`~/Documents/Layout/anyrail-samples/`). `schematic anyplan` reads only 2 of the 38 `.any` files (the rest: no track end points found, older file layout), and it writes no graph, so the owner exported each plan from AnyRail as JMRI XML. Nothing above 31 switches got past the plan reader, so set D does not yet test the solver at HART's size.
 
+## Set D: track left out, and the plans with no sheet (2026-11-23)
+
+**Track left out.** The plan reader kept only the largest connected piece of track and dropped the rest without a word: 27 of the 38 samples lost 460 of their 2,395 switches. Most of the breaks were the cuts at crossings, slips and turntables (PR #86); a few were ends that nearly meet or truly separate track. Plugin [PR #87](https://github.com/lnevo/model-railroad-skills/pull/87) keeps every piece with a switch and draws each as its own band, joins ends up to 5 cm apart that face each other, and lists what it leaves out; a read with a section filter or height range (HART's) keeps the largest piece as before and lists the rest. HART's graphs and outputs are byte-identical. Crossings and slips are still cut, so those plans show many small bands with open ends.
+
+**No sheet (11 plans).** Three groups:
+
+| Group | Plans | Cause |
+|---|---|---|
+| No orientation | D35 (10 switches) | A balloon loop closed on a switch's through route (A to B): no legal facing exists |
+| | D13, D7, D17 | Need turnbacks on straight runs, which the plans-over-40-runs filter (`udot > -0.5`) hides; with them they orient |
+| | D10 | An orientation exists (15 turnbacks); the 60 s search limit stops first |
+| Columns do not settle | D24, D38, D11 | Being diagnosed |
+| Time out in rows and columns | D34, D18, D6 | Size: the same as set C |
+
+Fix under way (plugin branch `orient-fallback`): an A-B balloon loop drawn as its own reversing loop, and a second orientation pass over all runs, only when the first pass finds nothing, so plans that draw today are unchanged.
+
 ## Set C drawn (2026-11-23)
 
 `one_band.py OUT --row-seconds 120 --panels`, plugin 1b108f7, cold cache, Mac. The sheet, the Layout Editor panel and the CATS desk come from one solve (`--panels` keeps it in a new cache folder inside OUT for the two panels). The script writes `one_band.svg` and `one_band_le.xml` in OUT; copies are in `~/JMRI_UserFiles/raw-experiment/` on the Mac as `HART_one_band_schematic.svg` and `HART_one_band_LE.xml` (wrapped in `layout-config` by hand, panel renamed "HART One Band"); nothing was deployed.
