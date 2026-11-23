@@ -56,6 +56,7 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
   dateLine:"a weekday in 1949",start:532,end:623,endPlace:"Washington",tieUp:"{t}",
   coda:`The Chartiers Branch carried nine daily round trips in 1926, about an hour and a half from Pittsburgh to Washington, and its last passenger train ran on 20 July 1952 (${lib("Railroads of the Chartiers Valley")}, <a href="${WIKI}" rel="noopener">Wikipedia: Chartiers Branch</a>).`,
   where(S){const G=S.road;if(!G)return "Carnegie";return G.moving?"between "+G.moving:ST[G.pos].n},
+  next(S){const G=S.road;if(!G)return "";if(G.moving&&G.to!==undefined)return ST[G.to].n;const j=[BV,BOYCE,HIL,9,HOU,ARD,TYL,LAST].find(x=>x>G.pos);return j===undefined?"":ST[j].n}, // the stops it makes, in order
   map(S){return RE.map(S,{label:"307"})},
   sheet(S){return RE.sheet(S,{mine:"307"})},
 

@@ -100,11 +100,10 @@ function renderMap(){
     s+=`<g transform="translate(${L.x} ${L.y})"><rect x="-11" y="-5" width="22" height="10" rx="2" fill="${me?"var(--green)":"var(--muted)"}" stroke="${me?"var(--glow)":"#fff"}" stroke-width="${me?1.4:.8}"/><text x="0" y="2.6" font-size="${fs(6.8)}" text-anchor="middle" fill="#fff" font-weight="700">${esc(u)}</text></g>`});
   box.innerHTML=s+`</svg>`;
 }
-/* The next stop on a road run, from the run's own position (a run may give next(S); No 307 runs down the line station by station). Nothing on a run where the player chooses the next stop. */
+/* The next stop on a road run, from the run's own position (a run gives next(S)). Nothing on a run where the player chooses the next stop. */
 function nextName(){
-  const D=S.def,G=S.road;
+  const D=S.def;
   if(D.next)return D.next(S)||"";
-  if(S.run==="passenger"&&G&&typeof G.pos==="number"&&window.RoadEngine&&RoadEngine.ST){const i=G.moving&&G.to!==undefined?G.to:G.pos+1;return RoadEngine.ST[i]?RoadEngine.ST[i].n:""}
   return "";
 }
 /* The way out of a run: a link in the status bar that asks first, in the page, then goes back to the start screen. */
@@ -114,7 +113,9 @@ const exitHtml=()=>S.ended?"":S.leaving
 function exitClick(e){
   const b=e&&e.target&&e.target.closest&&e.target.closest("[data-exit]");if(!b||!S)return;
   const a=b.dataset.exit;
-  if(a==="yes"){S.ended=true;S.leaving=false;queue=[];showStart();window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:"auto"});return}
+  if(a==="yes"){S.ended=true;S.leaving=false;queue=[];showStart();window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:"auto"});
+    // the first control still on screen: a group button, the section chip's clear link, or the first Work button
+    const f=document.querySelector&&[".xw-tabs button","#xwClear","#xwHint a","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
   S.leaving=a==="ask";renderStatus();
   const f=$("xwStatus").querySelector(S.leaving?".xw-stay":".xw-ask");if(f)f.focus();
 }
@@ -215,6 +216,8 @@ const H={ask,info,mv,wait,done,rnd,pick,fmt,esc,log,addTime,front,scene,key,next
 /* ---------- the switch list ---------- */
 /* The sheet is drawn again at every scene: keep a table's sideways scroll, and when the table runs wider than the sheet show
    a fade at the right edge and a "more trains" line above it until the last column is in view. */
+let cue=null; // redraws the current table's fade and hint; the window calls it on resize
+if(typeof window.addEventListener==="function")window.addEventListener("resize",()=>{if(cue)cue()});
 function renderSheet(){
   const el=$("xwSheet"),old=S&&el.querySelector(".xw-tt"),sl=old&&old.scrollLeft||0;
   paintSheet();
@@ -223,7 +226,7 @@ function renderSheet(){
   tt.insertAdjacentElement("beforebegin",hint);
   tt.scrollLeft=sl;
   const upd=()=>{const over=tt.scrollWidth>tt.clientWidth+2&&tt.scrollLeft+tt.clientWidth<tt.scrollWidth-2;hint.hidden=!over;tt.classList.toggle("fade",over)};
-  tt.addEventListener("scroll",upd,{passive:true});upd();
+  tt.addEventListener("scroll",upd,{passive:true});upd();cue=upd;
 }
 function paintSheet(){
   const el=$("xwSheet");if(!S){el.innerHTML="";return}
@@ -277,12 +280,16 @@ function finish(text,failed){
   $("home").onclick=showStart;
 }
 /* The run to suggest next, going down the list from this one: a run that tests a section the player missed, else one not finished in this browser, else the next in the list. */
-function suggest(secs){
-  const keys=Object.keys(RUNS),i=keys.indexOf(S.run),done=new Set(store.get("ni_runs",[]).filter(r=>!r.failed).map(r=>r.run));
-  const order=keys.slice(i+1).concat(keys.slice(0,Math.max(i,0))).filter(k=>k!==S.run);
-  const rank=k=>(secs.length&&!secs.some(s=>(RUNS[k].covers||[]).includes(s))?2:0)+(done.has(k)?1:0);
+function nextRun(runs,current,done,secs){
+  const keys=Object.keys(runs),i=keys.indexOf(current);
+  const order=keys.slice(i+1).concat(keys.slice(0,Math.max(i,0))).filter(k=>k!==current);
+  const rank=k=>(secs.length&&!secs.some(x=>(runs[k].covers||[]).includes(x))?2:0)+(done.has(k)?1:0);
   return order.map((k,j)=>[rank(k),j,k]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>x[2])[0]||"";
 }
+const suggest=secs=>nextRun(RUNS,S.run,new Set(store.get("ni_runs",[]).filter(r=>!r.failed).map(r=>r.run)),secs);
+/* Which runs the start screen shows: view {g: a group id or "all", sec: a section or ""}. A section chip shows the runs of both groups that test it; All shows every run; a group shows its own. */
+const rowShown=(group,covers,view)=>view.sec?covers.includes(view.sec):view.g==="all"||group===view.g;
+window.PlayLogic={nextRun,rowShown};
 
 /* ---------- start ---------- */
 let RUNS={};
@@ -361,7 +368,7 @@ function renderCover(){
     const sec=cur.sec,many=!!sec||cur.g==="all";
     groups.forEach(g=>{
       const runs=[...g.querySelectorAll(".xw-run")];
-      runs.forEach(r=>{r.hidden=!!sec&&!r.dataset.secs.split(" ").includes(sec)});
+      runs.forEach(r=>{r.hidden=!rowShown(g.id,r.dataset.secs.split(" "),cur)});
       g.hidden=many?!runs.some(r=>!r.hidden):g.id!==cur.g;
       g.classList.toggle("multi",many); // headings show and the long notes go while several groups show
       const h=g.querySelector(".xw-group-h");if(h)h.classList.toggle("xw-vh",!many);

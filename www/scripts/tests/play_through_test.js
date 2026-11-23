@@ -203,6 +203,7 @@ function main() {
     if (stats.unlisted.size) failures.push(`${id}: asked questions that are not in the answer key: ${[...stats.unlisted].slice(0, 5).join(" | ")}`);
   }
   scrollCheck(failures);
+  logicCheck(env.ctx, failures);
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
   console.log("play-through OK");
 }
@@ -245,5 +246,31 @@ function scrollCheck(failures) {
   if (/Leave this run\?/.test(st._inner)) failures.push("exit: Stay did not close the question");
   click("ask"); click("yes");
   if (doc.getElementById("xwStart").hidden) failures.push("exit: Leave did not return to the start screen");
+}
+/* The start screen's choices: the run suggested after a run, and which rows each view shows. */
+function logicCheck(ctx, failures) {
+  const L = ctx.window.PlayLogic, runs = ctx.window.NevilleRuns, keys = Object.keys(runs);
+  if (!L) { failures.push("logic: window.PlayLogic is missing"); return; }
+  const a = L.nextRun(runs, keys[0], new Set(), []);
+  if (a !== keys[1]) failures.push(`suggest: after ${keys[0]} with nothing missed and nothing played, expected ${keys[1]}, got ${a}`);
+  const b = L.nextRun(runs, keys[0], new Set([keys[1]]), []);
+  if (b !== keys[2]) failures.push(`suggest: a run already finished should come after one not finished (got ${b})`);
+  const last = keys[keys.length - 1];
+  if (L.nextRun(runs, last, new Set(), []) !== keys[0]) failures.push("suggest: the list does not wrap round to its first run");
+  const sec = "twc", want = keys.filter((k) => k !== "pir" && (runs[k].covers || []).includes(sec));
+  const c = L.nextRun(runs, "coal", new Set(), [sec]);
+  if (c !== "pir") failures.push(`suggest: a run that missed ${sec} should be sent to a run that tests it, got ${c} (${want})`);
+  if (L.nextRun(runs, keys[0], new Set(), []) === keys[0]) failures.push("suggest: suggested the run just played");
+  const group = (k) => runs[k].group || "island", covers = (k) => runs[k].covers || [];
+  const all = keys.filter((k) => L.rowShown(group(k), covers(k), { g: "all", sec: "" }));
+  if (all.length !== keys.length || new Set(all.map(group)).size < 2) failures.push("filter: All did not show every run of both groups");
+  for (const g of ["island", "chartiers"]) {
+    const got = keys.filter((k) => L.rowShown(group(k), covers(k), { g, sec: "" }));
+    if (!got.length || got.some((k) => group(k) !== g)) failures.push(`filter: the ${g} button showed another group's runs`);
+  }
+  for (const s of ["def", "sup", "to", "sig", "sem", "yl", "twc", "gcor"]) {
+    const got = keys.filter((k) => L.rowShown(group(k), covers(k), { g: "island", sec: s })), exp = keys.filter((k) => covers(k).includes(s));
+    if (got.join() !== exp.join()) failures.push(`filter: chip ${s} showed ${got} instead of ${exp}`);
+  }
 }
 main();

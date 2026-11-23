@@ -185,7 +185,7 @@ const run={group:"chartiers",covers:["def","sig","yl","twc","gcor"],code:"PIR Lo
       H.wait(waitX,"Waited at the diamond for the CSX train"),train(null),seen("home","GRR"),
       info("McKees Rocks diamond","The route clears",`<p>The CSX train is clear of the diamond and the operator lines the route. The home signal changes.</p>`),
       go(POV,10,"At POV Junction"),
-      info("POV Junction","POV Junction",`<p>The cut goes onto the interchange track at Neville, about milepost 5.7, for the CSX local.</p>`),
+      info("POV Junction","POV Junction",`<p>The cut goes onto the interchange track at Neville, about P&amp;LE milepost 5.7, for the CSX local.</p>`),
       H.done(4)
     ].filter(Boolean);
     return {work,steps,noPar:true,end:()=>`The cut for CSX is on the interchange track at POV Junction at {t}.${S.clock<=run.end+15?"":" "}`};
@@ -216,7 +216,7 @@ function map(S){
   // labels, clear of track
   s+=`<g class="lbl" font-size="6.3" text-anchor="middle"><text x="198" y="66">DARK TERRITORY · TRACK WARRANTS</text>`;
   [[CAN,"CANONSBURG",108],[HIL,"HILLS",118],[BRV,"BRIDGEVILLE",108],[CAR,"CARNEGIE",118],[DUFF,"DUFF JUNCTION",108]].forEach(([i,t,y])=>{s+=`<text x="${X(i)}" y="${y}" font-weight="${G.pos===i?700:400}">${t}</text>`});
-  s+=`<text x="350" y="68" text-anchor="end">CONRAIL</text><text x="440" y="76" font-weight="${G.pos===MKR?700:400}">MCKEES ROCKS</text><text x="490" y="86" font-weight="${G.pos===DIA?700:400}">DIAMOND · PLE 3.75</text><text x="${W-8}" y="76" text-anchor="end" font-weight="${G.pos===POV?700:400}">POV JCT · PLE 5.7</text><text x="522" y="36">CSX</text></g>`;
+  s+=`<text x="350" y="68" text-anchor="end">CONRAIL</text><text x="440" y="76" font-weight="${G.pos===MKR?700:400}">MCKEES ROCKS</text><text x="490" y="86" font-weight="${G.pos===DIA?700:400}">DIAMOND · P&amp;LE MP 3.75</text><text x="${W-8}" y="76" text-anchor="end" font-weight="${G.pos===POV?700:400}">POV JCT · P&amp;LE MP 5.7</text><text x="522" y="36">CSX</text></g>`;
   s+=`<g transform="translate(${P.x} ${P.y-1})"><rect x="-13" y="-5" width="26" height="10" rx="2" fill="var(--green)" stroke="var(--glow)" stroke-width="1.4"/><text x="0" y="2.4" font-size="6.4" text-anchor="middle" fill="#fff" font-weight="700">PIR</text></g>`;
   return s+`</svg>`;
 }
@@ -226,7 +226,7 @@ function map(S){
 function sheet(S){
   const G=S.road;if(!G)return "";
   let h=`<h3>PIR Chartiers Subdivision</h3><div class="sub">Special instructions · McKees Rocks to Canonsburg · ${esc(S.def.dateLine)}</div>`;
-  h+=`<div class="xw-si"><b>Special instructions</b><ul><li>Rules: yard limits, warrants and crew duties by the GCOR; the boxes of the warrant form by the track warrant guide; the plates on signals by the Signals guide.</li><li>McKees Rocks to Duff Junction: yard limits, no signals.</li><li>Duff Junction to Arden: track warrant control, no signals. Sidings at Bridgeville, Hills, Canonsburg, Houston and Arden.</li><li>Mileposts from Carnegie: Bridgeville 4.0, Hills 8.6, Canonsburg 11.8, Houston 15.3, Arden 20.0.</li><li>McKees Rocks, about PLE 3.75: crossing of the CSX main, an interlocking with a distant signal.</li><li>Neville, POV Junction, about PLE 5.7: interchange with CSX. Interchange with Conrail at Duff Junction.</li></ul></div>`;
+  h+=`<div class="xw-si"><b>Special instructions</b><ul><li>Rules: yard limits, warrants and crew duties by the GCOR; the boxes of the warrant form by the track warrant guide; the plates on signals by the Signals guide.</li><li>McKees Rocks to Duff Junction: yard limits, no signals.</li><li>Duff Junction to Arden: track warrant control, no signals. Sidings at Bridgeville, Hills, Canonsburg, Houston and Arden.</li><li>Mileposts from Carnegie: Bridgeville 4.0, Hills 8.6, Canonsburg 11.8, Houston 15.3, Arden 20.0.</li><li>McKees Rocks, about P&amp;LE MP 3.75: crossing of the CSX main, an interlocking with a distant signal.</li><li>Neville, POV Junction, about P&amp;LE MP 5.7: interchange with CSX. Interchange with Conrail at Duff Junction.</li></ul></div>`;
   h+=TW.held(G);
   h+=`<div class="xw-orders"><b>Work</b>${S.jobs.map(j=>`<div class="ord${j.done?" done":""}">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div>`;
   return h;

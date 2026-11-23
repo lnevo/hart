@@ -33,7 +33,7 @@ const ST=[
   {n:"Canonsburg",mp:11.8,sd:1,off:1},
   {n:"Houston",mp:15.3,sd:1,off:1},
   {n:"Arden",mp:20.0,sd:1},
-  {n:"Tylerdale",mp:21.8,sd:0,il:1},
+  {n:"Tylerdale",mp:21.8,sd:0,cs:1,il:1},
   {n:"Washington",mp:23.6,sd:1,off:1,yl:1}];
 const LAST=ST.length-1,HOU=10,ARD=11,TYL=12,BV=5,HIL=8;
 
@@ -135,7 +135,7 @@ function sheet(S,o){
   if(o.runLabel)h+=`<th>${esc(o.runLabel)}<small>run min</small></th>`;
   h+=`</tr></thead><tbody>`;
   ST.forEach((st,i)=>{
-    h+=`<tr class="${i===G.pos&&!G.moving?"here":""}"><td class="stn">${esc(st.n)}<small>MP ${st.mp.toFixed(1)}${st.off?" · D":""}${st.sd?"":" · no siding"}${st.il?" · interlocking":""}</small></td>`;
+    h+=`<tr class="${i===G.pos&&!G.moving?"here":""}"><td class="stn">${esc(st.n)}<small>MP ${st.mp.toFixed(1)}${st.off?" · D":""}${st.sd?"":st.cs?" · siding on the Connecting":" · no siding"}${st.il?" · interlocking":""}</small></td>`;
     tr.forEach(t=>{
       const m=t.id===o.mine?' mine':"";
       h+=t.marked&&t.act[i]!==t.t[i]?`<td class="late${m}"><s>${fmt(t.t[i])}</s><b>${fmt(t.act[i])}${ar(t,i)}</b></td>`:`<td${m?` class="mine"`:""}>${fmt(t.t[i])}${ar(t,i)}</td>`});

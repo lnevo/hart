@@ -178,7 +178,7 @@ function map(S){
   SIGS.forEach(sg=>{s+=RE.sigDots(G,sg)});
   s+=`<path d="M224 59 L229 64 L224 69 L219 64 Z" fill="var(--rust)" opacity=".85" stroke="var(--ink)" stroke-width=".8"/><rect x="427" y="61" width="6" height="6" fill="var(--rust)" opacity=".85"/>`;
   // labels, clear of the track
-  s+=`<g class="lbl" font-size="6.3" text-anchor="middle"><text x="30" y="110" font-weight="${G.pos===0?700:400}">SCULLY YARD</text><text x="105" y="110">PC&amp;Y MAIN</text><text x="224" y="52" font-weight="${G.pos===2?700:400}">MCKEES ROCKS · MP 3.75</text><text x="335" y="102">P&amp;LE MAIN</text><text x="426" y="52" text-anchor="end" font-weight="${G.pos===4?700:400}">NEVILLE · MP 5.7</text><text x="${W-8}" y="58" text-anchor="end" font-weight="${G.pos===6?700:400}">Y INTERCHANGE</text></g>`;
+  s+=`<g class="lbl" font-size="6.3" text-anchor="middle"><text x="30" y="110" font-weight="${G.pos===0?700:400}">SCULLY YARD</text><text x="105" y="110">PC&amp;Y MAIN</text><text x="224" y="52" font-weight="${G.pos===2?700:400}">MCKEES ROCKS · P&amp;LE MP 3.75</text><text x="335" y="102">P&amp;LE MAIN</text><text x="426" y="52" text-anchor="end" font-weight="${G.pos===4?700:400}">NEVILLE · P&amp;LE MP 5.7</text><text x="${W-8}" y="58" text-anchor="end" font-weight="${G.pos===6?700:400}">Y INTERCHANGE</text></g>`;
   s+=`<g transform="translate(${P.x} ${P.y-1})"><rect x="-13" y="-5" width="26" height="10" rx="2" fill="var(--green)" stroke="var(--glow)" stroke-width="1.4"/><text x="0" y="2.4" font-size="6.4" text-anchor="middle" fill="#fff" font-weight="700">PC&amp;Y</text></g>`;
   return s+`</svg>`;
 }
@@ -194,7 +194,7 @@ function sheet(S){
     return `<div class="ord">${esc(sg.t)}: Rule ${A.r}, ${esc(A.name)}</div>`;
   });
   let h=`<h3>PC&amp;Y Transfer</h3><div class="sub">Special instructions · Scully Yard to the Y Interchange · ${esc(S.def.dateLine)}</div>`;
-  h+=`<div class="xw-si"><b>Special instructions</b><ul><li>Rules: yard limits, restricted speed and crew duties by the GCOR; what a fixed signal shows by the Standard Code speed signals, Rules 281 to 292; the plates on masts by the Signals guide.</li><li>Scully Yard and the PC&amp;Y main to McKees Rocks: yard limits, no block signals.</li><li>McKees Rocks, about milepost 3.75: interlocking, with a distant signal.</li><li>P&amp;LE main to Neville: yard limits, CTC, block signals.</li><li>Neville, about milepost 5.7: interlocking.</li><li>Y Interchange: the East Runner Main is main track inside yard limits; the interchange track is not main track.</li></ul></div>`;
+  h+=`<div class="xw-si"><b>Special instructions</b><ul><li>Rules: yard limits, restricted speed and crew duties by the GCOR; what a fixed signal shows by the Standard Code speed signals, Rules 281 to 292; the plates on masts by the Signals guide.</li><li>Scully Yard and the PC&amp;Y main to McKees Rocks: yard limits, no block signals.</li><li>McKees Rocks, about P&amp;LE milepost 3.75: interlocking, with a distant signal.</li><li>P&amp;LE main to Neville: yard limits, CTC, block signals.</li><li>Neville, about P&amp;LE milepost 5.7: interlocking.</li><li>Y Interchange: the East Runner Main is main track inside yard limits; the interchange track is not main track.</li></ul></div>`;
   h+=`<div class="xw-orders"><b>Signals met</b>${met.length?met.join(""):`<div class="ord">None yet</div>`}</div>`;
   h+=`<div class="xw-orders"><b>Work</b>${S.jobs.map(j=>`<div class="ord${j.done?" done":""}">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div>`;
   return h;
