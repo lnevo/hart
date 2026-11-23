@@ -190,6 +190,18 @@ function plateQ(key,where,place){
 const PAIR={limited:{app:"281B",home:"281C"},medium:{app:"282",home:"283"},slow:{app:"284",home:"287"}};
 const SPEEDS=Object.keys(PAIR);
 
+/* A signal on the map: dots stacked up from the rail or down from it, the aspect's colours once the player has met it,
+   a ring while it has not been read. "D" is a distant signal, shown as a ring with no colour. */
+function sigDots(g,s){
+  const arms=g.sig[s.k],n=arms&&arms!=="D"?arms.length:1,dy=s.up?-1:1,y0=s.y+dy*5;
+  let o=`<line x1="${s.x}" y1="${s.y}" x2="${s.x}" y2="${s.y+dy*(5+n*5)}" stroke="var(--ink)" stroke-width="1"/>`;
+  for(let i=0;i<n;i++){
+    const cy=s.y+dy*(8+i*5),k=arms&&arms!=="D"?arms[i]:null;
+    o+=`<circle cx="${s.x}" cy="${cy}" r="2.2" fill="${k?ARM[k].c:"var(--sheet-2)"}" stroke="var(--ink)" stroke-width=".8"/>`;
+  }
+  return o;
+}
+
 /* ---------- a draw from a pool, each question once per run ---------- */
 function draw(G,R,H,key,pool,p){
   if(R()>p)return null;
@@ -197,5 +209,5 @@ function draw(G,R,H,key,pool,p){
   return H.ask(pool[b.pop()]);
 }
 
-window.RoadEngine={ST,LAST,HOU,ARD,BV,HIL,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,plateQ,PAIR,SPEEDS,draw};
+window.RoadEngine={ST,LAST,HOU,ARD,BV,HIL,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,plateQ,PAIR,SPEEDS,sigDots,draw};
 })();

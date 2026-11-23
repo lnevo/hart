@@ -135,7 +135,7 @@ const run={group:"chartiers",covers:["def","sup","to","sig","sem","yl"],code:"No
     if(F)orderQs.unshift(H.ask(Qs.formF),H.ask(Qs.flags));
 
     const steps=[
-      H.info("Carnegie","Called for 9:06",`<p>You are the conductor of No 307 South, the 9:06 first-class train to Washington on the Pennsylvania Railroad's Chartiers Branch (${lib("Railroads of the Chartiers Valley")}). The train came in from Pittsburgh at 8:48 behind a G5s, engine 5741, with a baggage-mail car and two coaches. The crew is the engineman, the fireman, the flagman and the head brakeman.</p><p>The time-table is on the right. No 307 is the column to read. The orders for the day are with the operator at the Carnegie office.</p>`,"Go to the office"),
+      H.info("Carnegie","Called for 9:06",`<p>You are the conductor of No 307 South, the 9:06 first-class train to Washington on the Pennsylvania Railroad's Chartiers Branch (${lib("Railroads of the Chartiers Valley")}). The train came in from Pittsburgh at 8:48 behind a G5s, engine 5741, with a baggage-mail car and two coaches. The crew is the engineman, the fireman, the flagman and the head brakeman.</p><p>The time-table is on the right, with No 307's column marked. The orders for the day are with the operator at the Carnegie office.</p>`,"Go to the office"),
       H.ask(Qs.rule5),H.ask(Qs.board),
       ...orderScenes,...orderQs,H.done(0),
       ()=>{S.clock=Math.max(S.clock,DEPART-2);H.log("Brake test done");H.next()},

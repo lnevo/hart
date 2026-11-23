@@ -1,4 +1,4 @@
-"""Extra East: HART Railroad answer key: play/answers.html is current with runs.js, road.js, passenger.js and pcy.js, and every run has questions.
+"""Extra East: HART Railroad answer key: play/answers.html is current with runs.js, road.js, passenger.js, pcy.js and pir.js, and every run has questions.
 Runs build_play_answers.js with node; skipped when node is missing."""
 import json
 import shutil
@@ -23,7 +23,7 @@ class PlayAnswers(unittest.TestCase):
                 f"const s=m.extract(require('fs').readFileSync({json.dumps(str(RUNS))},'utf8'));"
                 "console.log(JSON.stringify(s.map(x=>({id:x.id,n:x.qs.length,bad:x.qs.filter(q=>!q.right||!q.wrong.length||q.wrong.some(w=>w[0]===q.right)).length}))))")
         out = json.loads(subprocess.run(["node", "-e", code], capture_output=True, text=True, timeout=60, check=True).stdout)
-        self.assertEqual(len(out), 10)  # seven island shifts and the three Chartiers runs
+        self.assertEqual(len(out), 11)  # seven island shifts and the four Chartiers runs
         for shift in out:
             self.assertGreater(shift["n"], 0, shift["id"])
             self.assertEqual(shift["bad"], 0, shift["id"])
