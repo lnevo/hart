@@ -2056,6 +2056,126 @@ table.roster th {
   color: var(--muted);
 }
 
+/* Home: the band under the section doors that leads to the Extra East game (play/). It takes the game's
+   dusk colours on purpose, so the one playful thing on the page reads as apart from the four sections. */
+.play-band {
+  --dusk-ink: #1b1830;
+  --dusk-glow: #ffb347;
+  --dusk-ember: #e08a3c;
+  --dusk-text: #d9cfe0;
+  display: grid;
+  grid-template-columns: min(420px, 45%) 1fr;
+  align-items: center;
+  margin: 1.25rem 0 0;
+  overflow: hidden;
+  background: linear-gradient(100deg, var(--dusk-ink) 0%, #2c2142 55%, #4a2a48 100%);
+  box-shadow: var(--shadow);
+  color: var(--dusk-text);
+  text-decoration: none;
+}
+
+.play-band:hover,
+.play-band:focus-visible {
+  color: var(--dusk-text);
+}
+
+.play-band:focus-visible {
+  outline: 3px solid var(--dusk-glow);
+  outline-offset: 3px;
+}
+
+.play-band-art canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.play-band-text {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 1.5rem;
+  row-gap: 0.3rem;
+  align-items: center;
+  padding: 1rem 1.6rem;
+}
+
+.play-band-kind,
+.play-band-h,
+.play-band-p {
+  grid-column: 1;
+}
+
+.play-band-kind {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--dusk-ember);
+}
+
+.play-band-h {
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1.05;
+  color: var(--dusk-glow);
+}
+
+.play-band-p {
+  max-width: 52ch;
+}
+
+.play-band-go {
+  grid-column: 2;
+  grid-row: 1 / 4;
+  white-space: nowrap;
+  padding: 0.45rem 0.95rem;
+  border-radius: 3px;
+  background: var(--dusk-glow);
+  color: var(--dusk-ink);
+  font-weight: 700;
+}
+
+.play-band-go b {
+  display: inline-block;
+  transition: transform 0.15s;
+}
+
+.play-band:hover .play-band-go {
+  background: #ffd08a;
+}
+
+.play-band:hover .play-band-go b {
+  transform: translateX(4px);
+}
+
+@media (max-width: 960px) {
+  .play-band-text {
+    grid-template-columns: 1fr;
+  }
+
+  .play-band-go {
+    grid-column: 1;
+    grid-row: auto;
+    justify-self: start;
+    margin-top: 0.3rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .play-band {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .play-band-go b {
+    transition: none;
+  }
+}
+
 .hub-group {
   margin: 0 0 2rem;
   scroll-margin-top: 6rem; /* homepage links jump here; clear the site header */
