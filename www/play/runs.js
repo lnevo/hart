@@ -36,7 +36,7 @@ const ask=(H,base,o)=>H.ask(Object.assign({},base,o));
 /* plant names by year, from the industry chart */
 const plants=y=>[
   y<1990?"Shenango Inc.: coke plant, blast furnaces A and B, and the pig machine at A":"Shenango Inc.: coke plant and B furnace; A is being cut up",
-  y<1990?"Shenango-Penn foundry, about two miles west":"Shenango-Penn foundry, closed 30 November 1990",
+  y<1990?"Shenango-Penn foundry, about two miles west":"Shenango-Penn foundry, closed in 1990",
   y<1982?"Marquette Cement (Gulf & Western), tower on the East Runner":"Lone Star Cement, tower on the East Runner",
   y<1986?"USS Chemicals, the chemical plant":"Aristech Chemical, the chemical plant",
   y<1985?"Calgon Corporation (Merck), activated carbon":"Calgon Carbon, activated carbon",
@@ -51,62 +51,63 @@ const NevilleRuns={
 /* ===================== #105, the ore job ===================== */
 j105:{covers:["def","sig","gcor"],pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981",start:420,end:930,engine:"#4",units:{"#4":"syard"},
   cement:"Marquette",plants:plants(1981),si:SI,endPlace:"West Yard",
+  verdicts:{"Clean shift":"Qualified","Good shift":"Qualified","Marked up":"Not yet","Taken off the job":"Not yet"}, // a new conductor's first shift: one mark or none qualifies
   tieUp:"#105 tied up at {t}.",
-  coda:"The ore job was the one men wanted: daylight, Monday to Friday, on the clean end of the plant, and the senior men held it. In the early 1980s its engine was SW9 #4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/96556993685\" rel=\"noopener\">p.37</a>).",
+  coda:"The new man's trip, with its crew and trainmaster, is the game's own. The ore job was the one men wanted: daylight, Monday to Friday, on the clean end of the plant, and the senior men held it. In the early 1980s its engine was SW9 #4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">blog, p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/96556993685\" rel=\"noopener\">p.37</a>).",
   build(H){
     const drags=H.rnd(2,3),gang=H.R()<.5,relief=H.R()<.5;
     const work=["Make up a ten-car ore drag on the South Runner"];
     for(let i=1;i<=drags;i++)work.push(`Shove drag ${i} of ${drags} to the car dumper`);
     work.push("Fuel #4 between trips","Tie up in the West Yard by 3:30");
     const steps=[
-      H.info("South Yard","On duty, 7:00",`<p>You are the conductor of #105, the ore job, with SW9 #4. Iron ore for Shenango's blast furnaces comes onto the island over the PC&amp;Y from Scully Yard. Your job shoves it from the West Yard to the Shenango car dumper in ten-car drags.</p><p>The trainmaster has written today's switching orders: ${drags} drags. This is the clean end of the plant, and the senior men hold the job.</p>`,"Go to work"),
-      ask(H,Q.conductor,{body:"Your brakeman is new to #105 and the engineer has his own way of making up a drag. For the work on the switching order, whose instructions do they follow?"}),
-      ask(H,Q.before,{title:gang?"The track gang at S1":"The car knocker",body:gang?"The track gang is working at the west end of S1, beside the South Runner. #4 is ready to move. What does the engineer do first?":"The car knocker is inspecting hoppers on the next track. #4 is ready to move. What does the engineer do first?"}),
+      H.info("South Yard","On duty, 7:00",`<p>You hired on with the P&amp;OV this month and want your conductor's mark-up. Today is your first shift on #105, the ore job, with the regular daylight crew and SW9 #4. Iron ore for Shenango's blast furnaces comes onto the island over the PC&amp;Y from Scully Yard, and the job shoves it from the West Yard to the Shenango car dumper in ten-car drags.</p><p>The trainmaster has written today's switching orders: ${drags} drags. He rides along and checks you as the work goes on. One mark or none, and he signs you off as a conductor. This is the clean end of the plant, and the senior men hold the job.</p>`,"Go to work"),
+      ask(H,Q.conductor,{body:"The engineer has his own way of making up a drag, and the regular conductor has told him to make it up another way. The trainmaster asks you: for the work on the switching order, whose instructions does the crew follow?"}),
+      ask(H,Q.before,{title:gang?"The track gang at S1":"The car knocker",body:gang?"The track gang is working at the west end of S1, beside the South Runner. #4 is ready to move, and the trainmaster asks what the engineer does first.":"The car knocker is inspecting hoppers on the next track. #4 is ready to move, and the trainmaster asks what the engineer does first."}),
       H.mv("srun",14,"Ten loads made up on the South Runner"),H.done(0),
-      H.ask({sec:"def",src:"GC · Glossary",title:"Engine or train?",body:"The drag is ready: ten loaded hoppers, #4 on the west end shoving east, the brakeman riding the fifth car (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46501750755\" rel=\"noopener\">p.84</a>). There is no marker on the rear, and you will stay on plant track. Under GCOR, what is the movement?",
+      H.ask({sec:"def",src:"GC · Glossary",title:"Engine or train?",body:"The drag is ready: ten loaded hoppers, #4 on the west end shoving east, the brakeman riding the fifth car (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46501750755\" rel=\"noopener\">blog, p.84</a>). There is no marker on the rear, and you will stay on plant track. The conductor asks you to fill in the card: under GCOR, what is the movement?",
         right:"An engine with cars, not a train",wrong:[["A train, because it has cars"],["An extra train"],["A work train"]],
         why:"GCOR glossary: a train is one or more engines coupled, with or without cars, displaying a marker, and authorized to operate on a main track. An engine is a unit propelled by any form of energy."}),
-      H.ask({sec:"sig",src:"GC · 5.8.2",title:"Backing up",body:"#4 stands with its cab to the east, coupled to the drag. To shove east toward the dumper, the engine backs up. Which whistle signal does the engineer sound before the move?",
+      H.ask({sec:"sig",src:"GC · 5.8.2",title:"Backing up",body:"#4 stands with its cab to the east, coupled to the drag. To shove east toward the dumper, the engine backs up. The conductor asks which whistle signal the engineer sounds before the move.",
         right:"Three short sounds (o o o): when stopped, back up",wrong:[["Two long sounds (— —): release brakes, proceed"],["Two short sounds (o o): acknowledgment"],["One long sound (—): air brakes applied"]],
         why:"GCOR 5.8.2: (5) o o o, when stopped, back up. (3) — — is release brakes and proceed, (4) o o an acknowledgment, (2) — air brakes applied, pressure equalized."}),
-      ask(H,Q.speed,{title:"Up to the coke yard switch",body:"You shove the drag along the plant tracks toward the coke yard switch. This is not main track and there are no block signals. At what speed?"}),
+      ask(H,Q.speed,{title:"Up to the coke yard switch",body:"You shove the drag along the plant tracks toward the coke yard switch. This is not main track and there are no block signals. The trainmaster asks at what speed."}),
       H.mv("cokelead",10,"Drag 1 at the coke yard switch"),
-      ask(H,Q.variable,{body:"The coke yard switch has its bowl painted yellow. The brakeman calls that the drag trailed through it on the last trip and nobody lined it back. Where are its points?"}),
+      ask(H,Q.variable,{body:"The coke yard switch has its bowl painted yellow. The brakeman calls that the drag trailed through it on the last trip and nobody lined it back. The conductor asks you where its points are."}),
       H.mv("dumper",8,"Drag 1 shoved up to the car dumper"),H.done(1),
-      H.ask({sec:"def",src:"GC · Glossary",title:"The ore yard",body:"At the dumper the hoppers are turned over on E2, and a car rider takes the empties down the hill in strings, braking by hand (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/87216028880\" rel=\"noopener\">p.39</a>). The tracks they come down to are used for storing cars and making up drags. Under GCOR, what are they?",
+      H.ask({sec:"def",src:"GC · Glossary",title:"The ore yard",body:"At the dumper the hoppers are turned over on E2, and a car rider takes the empties down the hill in strings, braking by hand (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/87216028880\" rel=\"noopener\">blog, p.39</a>). The tracks they come down to are used for storing cars and making up drags. The trainmaster asks what GCOR calls them.",
         right:"A yard: tracks other than main tracks and sidings, used for making up trains, storing cars and other purposes",wrong:[["Yard limits"],["A siding"],["Main track, since the drags run on it"]],
         why:"GCOR glossary: a yard is a system of tracks, other than main tracks and sidings, used for making up trains, storing cars and other purposes. Yard limits are a portion of main track designated by signs and special instructions or a track bulletin."}),
       H.info("furnace lead","Coffee",`<p>Mid-morning. After a drag to the dumper, around 10:00 or 10:30, the ore job stopped at the millwrights on the furnace lead and brought coffee back for the yard office. A four-cup holder hung on the bulletin board there.</p>`,"Back to work",()=>{H.S.parAdd+=H.addTime(10);H.log("Coffee from the millwrights for the yard office")}),
-      H.ask(Object.assign({},Q.foul,{title:"At the fuel track",body:"Between drags #4 goes to South Yard for fuel (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/61429804213\" rel=\"noopener\">p.58</a>). You leave the cut on the lead, and the last hopper stops between the clearance point and the switch points. What is that?"})),
+      H.ask(Object.assign({},Q.foul,{title:"At the fuel track",body:"Between drags #4 goes to South Yard for fuel (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/61429804213\" rel=\"noopener\">blog, p.58</a>). You leave the cut on the lead, and the last hopper stops between the clearance point and the switch points. The conductor asks you what that is."})),
       H.mv("syard",10,"#4 fueled at South Yard"),H.done(drags+1),
       H.mv("srun",8,"Drag 2 made up"),
-      ask(H,Q.men,{title:"Men by the coke plant lead",body:"Shoving drag 2, you come up on the track gang working beside the coke plant lead. What does the engineer sound?"}),
+      ask(H,Q.men,{title:"Men by the coke plant lead",body:"Shoving drag 2, you come up on the track gang working beside the coke plant lead. The conductor asks what the engineer sounds."}),
       H.mv("dumper",16,"Drag 2 at the car dumper"),H.done(2)
     ];
     if(drags===3)steps.push(
       H.mv("srun",14,"Drag 3 made up"),
-      H.ask({sec:"sig",src:"GC · 5.8.1",title:"The main crossing",body:"Drag 3 goes over the main crossing, the road crossing by the yard office. When does the engineer ring the bell?",
+      H.ask({sec:"sig",src:"GC · 5.8.1",title:"The main crossing",body:"Drag 3 goes over the main crossing, the road crossing by the yard office. The trainmaster asks when the engineer rings the bell.",
         right:"Start at the crossing sign and ring until the crossing is occupied",wrong:[["Only if road traffic is in sight"],["Only on a train, not an engine with cars"],["From the yard office to the dumper, the whole way"]],
         why:"GCOR 5.8.1: ring the bell before moving (except momentary stop-and-start switching), as a warning when necessary, approaching men or equipment, and approaching public crossings, starting at the sign and ringing until the crossing is occupied."}),
       H.mv("dumper",16,"Drag 3 at the car dumper"),H.done(3));
-    steps.push(ask(H,Q.clear,{title:"The last empties",body:"The last string of empties comes down and you set it on the West Yard track off the ladder. Where must the last car stand?"}),
+    steps.push(ask(H,Q.clear,{title:"The last empties",body:"The last string of empties comes down and the conductor has you set it on the West Yard track off the ladder. Where must the last car stand?"}),
       H.mv("wyard",12,"Empties set over in the West Yard"));
-    if(relief)steps.push(H.info("West Yard","Relief on the footboard",`<p>The second-trick crew comes out early. Their engineer steps up on the footboard and offers to take the last move so your crew can get home a little early. Crews on the P&amp;OV did that for each other: weigh the cars, or take one more drag.</p>`,"Take the early quit",()=>{H.S.parAdd+=H.addTime(-8);H.log("Relieved on the footboard: an early quit")}));
+    if(relief)steps.push(H.info("West Yard","Relief on the footboard",`<p>The second-trick crew comes out early. Their engineer steps up on the footboard and offers to take the last move so your crew can get home a little early. Crews on the P&amp;OV did that for each other: weigh the cars, or take one more drag. The regular conductor nods, and the trainmaster has seen enough of your trip.</p>`,"Take the early quit",()=>{H.S.parAdd+=H.addTime(-8);H.log("Relieved on the footboard: an early quit")}));
     steps.push(H.done(drags+2));
-    return {work,steps,end:()=>relief?"#105 tied up at {t}: an early quit.":"#105 tied up at {t}."};
+    return {work,steps,end:()=>`#105 tied up at {t}${relief?", an early quit":""}. `+(H.S.marks<=1?"Qualified: the trainmaster marks you up as a conductor.":"Not yet: the trainmaster sends you out for another trip with the crew.")};
   }},
 
 /* ===================== #110, the furnace job ===================== */
 j110:{covers:["def","sig","gcor"],pace:3.5,code:"#110",name:"furnace job",year:"1984",dateLine:"January 1984",start:420,end:930,engine:"#6",units:{"#6":"eyard"},
   cement:"Lone Star",plants:plants(1984),si:SI,endPlace:"East Yard",tieUp:"#110 tied up at {t}.",
-  coda:"The furnace job worked the east end, which Mark Connolly called a graphite and coke dust area: the two blast furnaces, the pig machine and the coke plant. John Doubt ran it often enough that a caption names it the Furnace Job (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783\" rel=\"noopener\">p.139</a>).",
+  coda:"The furnace job worked the east end, which Mark Connolly called a graphite and coke dust area: the two blast furnaces, the pig machine and the coke plant. John Doubt ran it often enough that a caption names it the Furnace Job (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">blog, p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44864748783\" rel=\"noopener\">p.139</a>).",
   build(H){
     const ladles=3,spread=H.R()<.6,cast=H.pick(["9:40","10:10","10:40"]);
     const work=["Furnace coke from the battery to F1","Switch the ladles into the furnace's order","Take three ladles of hot metal out of the ladle house","Pull the two loads at the A pig machine; spot pig iron on E1","Bring the empty pig gons out of the East Yard"];
     const steps=[
       H.info("East Yard","On duty, 7:00",`<p>January 1984, daylight. You are the conductor of #110, the furnace job, with SW9 #6. Your territory is the east end: Shenango's two blast furnaces, A and B, the pig machine at A, the ladle house and the coke battery.</p><p>The trainmaster's orders say B furnace will cast about ${cast}. Before then the furnace needs its coke and its ladles in order.</p>`,"Go to work"),
       H.mv("coke",8,"At the coke battery"),
-      H.ask({sec:"def",src:"GC · Glossary",title:"Rail and road",body:"You pull furnace coke from the battery. It goes over the yard office scale before F1 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646\" rel=\"noopener\">p.130</a>), and on the way it crosses the road at the main crossing, rail and road on the same level. What does GCOR call that?",
+      H.ask({sec:"def",src:"GC · Glossary",title:"Rail and road",body:"You pull furnace coke from the battery. It goes over the yard office scale before F1 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646\" rel=\"noopener\">blog, p.130</a>), and on the way it crosses the road at the main crossing, rail and road on the same level. What does GCOR call that?",
         right:"A crossing at grade",wrong:[["A crossover"],["Interlocking limits"],["A whistle quiet zone"]],
         why:"GCOR glossary: crossings at grade are crossings that intersect at the same level. A crossover is a track connection between two adjacent tracks."}),
       H.mv("xing",8),
@@ -114,30 +115,30 @@ j110:{covers:["def","sig","gcor"],pace:3.5,code:"#110",name:"furnace job",year:"
         right:"Start at the crossing sign and ring until the crossing is occupied",wrong:[["Only if road traffic is in sight"],["Only on a train, not an engine with cars"],["Not at all on plant track"]],
         why:"GCOR 5.8.1: ring the bell approaching public crossings, starting at the sign and ringing until the crossing is occupied."}),
       H.mv("scale",4),
-      H.ask({sec:"sig",src:"GC · 5.8.2",title:"Off the scale",body:"The coke string is on the Toledo scale. You cut away and back off so the weight can be read; the trainmaster has the buzzer going before you are clear (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">p.95</a>). #4 is stopped facing the scale. Which whistle signal before backing away?",
+      H.ask({sec:"sig",src:"GC · 5.8.2",title:"Off the scale",body:"The coke string is on the Toledo scale. You cut away and back off so the weight can be read; the trainmaster has the buzzer going before you are clear (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">blog, p.95</a>). #4 is stopped facing the scale. Which whistle signal before backing away?",
         right:"Three short sounds (o o o): when stopped, back up",wrong:[["Two long sounds (— —)"],["Two short sounds (o o)"],["Four short sounds (o o o o)"]],
         why:"GCOR 5.8.2: (5) o o o, when stopped, back up. (3) — — is release brakes, proceed; (4) o o an acknowledgment; (6) o o o o a request for a signal to be given or repeated."}),
       H.mv("f1",10,"Furnace coke spotted on F1"),
-      H.ask({sec:"gcor",src:"GC · 1.47A",title:"Riding the lead hopper",body:"You ride the lead hopper of the coke string up to F1, as the furnace job's conductors did (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646\" rel=\"noopener\">p.130</a>). The weigh slip is in your pocket. Who answers for the coke reaching the furnace with its paperwork?",
+      H.ask({sec:"gcor",src:"GC · 1.47A",title:"Riding the lead hopper",body:"You ride the lead hopper of the coke string up to F1, as the furnace job's conductors did (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45184819646\" rel=\"noopener\">blog, p.130</a>). The weigh slip is in your pocket. Who answers for the coke reaching the furnace with its paperwork?",
         right:"The conductor: freight conductors are responsible for the freight and its documents to destination",wrong:[["The yard clerk who weighed it"],["The engineer"],["The furnace foreman, once it is on F1"]],
         why:"GCOR 1.47A: freight conductors are responsible for the freight carried by their train and for ensuring it is delivered with any accompanying documents to its destination, and they maintain any required records."}),
       H.done(0),
-      H.ask({sec:"def",src:"GC · Glossary",title:"From E6 to E4",body:"The ladles are rarely in the order the furnace wants, so you switch them from E6 to E4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46331368911\" rel=\"noopener\">p.91</a>). The move from one track to the other goes through two switches joined by a short track. What is that connection?",
+      H.ask({sec:"def",src:"GC · Glossary",title:"From E6 to E4",body:"The ladles are rarely in the order the furnace wants, so you switch them from E6 to E4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46331368911\" rel=\"noopener\">blog, p.91</a>). The move from one track to the other goes through two switches joined by a short track. What is that connection?",
         right:"A crossover",wrong:[["A siding"],["A dual control switch"],["A spring switch"]],
         why:"GCOR glossary: a crossover is a track connection between two adjacent tracks, consisting of two switches, intended to be used primarily for crossing over from one track to the other."}),
       H.mv("eyard",12,"Ladles switched E6 to E4"),H.done(1)
     ];
     if(spread)steps.push(
-      H.info("East Yard","E9 has spread",`<p>On E9, the heat track in the East Yard scrap yard, ladles stand until they are very hot. This January the heat has spread the rails (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/47021729095" rel="noopener">p.77</a>). The track gang comes out and puts working limits on E9.</p>`),
+      H.info("East Yard","E9 has spread",`<p>On E9, the heat track in the East Yard scrap yard, ladles stand until they are very hot. This January the heat has spread the rails (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/47021729095" rel="noopener">blog, p.77</a>). The track gang comes out and puts working limits on E9.</p>`),
       ask(H,Q.working,{title:"Working limits on E9",body:"You need one more hot ladle off E9. The track gang's foreman has working limits on the track. How may #6 move inside them?"}));
     steps.push(
       H.mv("ladle",6,"At the ladle house"),
-      H.ask({sec:"gcor",src:"GC · 1.47B",title:"Hot metal",body:"You take hot metal out of the ladle house two ladles at a time; with more weight the cut can run on to the quench car at the battery (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/139367141870\" rel=\"noopener\">p.14</a>). Before the move, what must the engineer check with you?",
+      H.ask({sec:"gcor",src:"GC · 1.47B",title:"Hot metal",body:"You take hot metal out of the ladle house two ladles at a time; with more weight the cut can run on to the quench car at the battery (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/139367141870\" rel=\"noopener\">blog, p.14</a>). Before the move, what must the engineer check with you?",
         right:"Whether any cars need special handling",wrong:[["Only the ladle numbers for the time sheet"],["Nothing: the ladle house sets the weight"],["The weights from the scale"]],
         why:"GCOR 1.47B: the engineer must check with the conductor whether any cars or units need special handling."}),
-      H.ask(Object.assign({},Q.speed,{title:"B is still casting",body:`It is past ${cast} and B is still casting. You back toward the rear of the Furnace Runner to wait short of the bumping block, as the crews did (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/139367141870\" rel=\"noopener\">p.14</a>), in graphite dust that hides the block until you are close. At what speed?`})),
+      H.ask(Object.assign({},Q.speed,{title:"B is still casting",body:`It is past ${cast} and B is still casting. You back toward the rear of the Furnace Runner to wait short of the bumping block, as the crews did (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/139367141870\" rel=\"noopener\">blog, p.14</a>), in graphite dust that hides the block until you are close. At what speed?`})),
       H.mv("bump",14,"B furnace cast; ladles spotted"),
-      H.ask({sec:"sig",src:"GC · 5.8.2",title:"Air applied",body:"Three ladles are out of the house: one for the foundry, one for the pig machine, one for recast (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44865298831\" rel=\"noopener\">p.138</a>). You stop with them and the engineer makes an air brake application. Which whistle signal means stopped, air brakes applied, pressure equalized?",
+      H.ask({sec:"sig",src:"GC · 5.8.2",title:"Air applied",body:"Three ladles are out of the house: one for the foundry, one for the pig machine, one for recast (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44865298831\" rel=\"noopener\">blog, p.138</a>). You stop with them and the engineer makes an air brake application. Which whistle signal means stopped, air brakes applied, pressure equalized?",
         right:"One long sound (—)",wrong:[["Two long sounds (— —)"],["Two short sounds (o o)"],["A succession of short sounds"]],
         why:"GCOR 5.8.2: (2) —, when stopped, air brakes applied, pressure equalized. (3) — — is release brakes, proceed."}),
       H.mv("gulf",16,"Foundry ladle out by the pig-yard lead"),
@@ -145,12 +146,12 @@ j110:{covers:["def","sig","gcor"],pace:3.5,code:"#110",name:"furnace job",year:"
         right:"No: starting less than 1/4 mile away, it may be sounded less than 15 seconds before when no traffic is approaching or stopped",wrong:[["Yes: always 15 to 20 seconds"],["Yes, and from 1/4 mile away"],["No signal is needed at a plant crossing"]],
         why:"GCOR 5.8.2(7): when a movement starts less than 1/4 mile from a crossing, the signal may be sounded less than 15 seconds before the crossing when it is clearly seen traffic is not approaching or stopped at the crossing, or when crossing gates are fully lowered."}),
       H.mv("yint",6,"At the Y Interchange"),
-      H.ask({sec:"sig",src:"GC · 5.8.2",title:"At the Y Interchange",body:"Empty ladles and gons change roads with the PC&amp;Y here, and you bleed the air off them first (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45668500339\" rel=\"noopener\">p.105</a>). Done, the brakeman signals you ahead. Which whistle signal means release brakes, proceed?",
+      H.ask({sec:"sig",src:"GC · 5.8.2",title:"At the Y Interchange",body:"Empty ladles and gons change roads with the PC&amp;Y here, and you bleed the air off them first (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45668500339\" rel=\"noopener\">blog, p.105</a>). Done, the brakeman signals you ahead. Which whistle signal means release brakes, proceed?",
         right:"Two long sounds (— —)",wrong:[["One long sound (—)"],["Three short sounds (o o o)"],["Long, short (— o)"]],
         why:"GCOR 5.8.2: (3) — —, release brakes, proceed. (2) — is stopped, air brakes applied, pressure equalized."}),
       H.done(2),
       H.mv("pig",18,"At the A furnace pig machine"),
-      H.ask({sec:"def",src:"GC · Glossary",title:"The East Runner Main",body:"At A furnace the pig machine drops bars into gondolas two loads at a time. You pull the two loads and keep the safety car clear of the East Runner (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45279964421\" rel=\"noopener\">p.110</a>). The East Runner Main is a track through the plant that must not be occupied without authority or protection. What is it?",
+      H.ask({sec:"def",src:"GC · Glossary",title:"The East Runner Main",body:"At A furnace the pig machine drops bars into gondolas two loads at a time. You pull the two loads and keep the safety car clear of the East Runner (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45279964421\" rel=\"noopener\">blog, p.110</a>). The East Runner Main is a track through the plant that must not be occupied without authority or protection. What is it?",
         right:"Main track",wrong:[["A yard track"],["A siding"],["Working limits"]],
         why:"GCOR glossary: main track is a track extending through yards and between stations that must not be occupied without authority or protection."}),
       H.mv("e1",8,"Pig iron spotted on E1 for the barge"),
@@ -163,7 +164,7 @@ j110:{covers:["def","sig","gcor"],pace:3.5,code:"#110",name:"furnace job",year:"
 /* ===================== #115, the relief job ===================== */
 j115:{covers:["def","sig","yl","gcor"],pace:3.5,code:"#115",name:"relief job",year:"1979",dateLine:"a Saturday in August 1979",start:420,end:930,engine:"#6",units:{"#6":"syard"},
   cement:"Marquette",plants:plants(1979),si:SI,endPlace:"South Yard",tieUp:"#115 tied up at {t}.",
-  coda:"Mark Connolly lists the relief job's week: Monday and Tuesday midnight, Wednesday on the second trick, Saturday and Sunday daylight. In August 1979 Larry Obusek had SW9 #6 on it, with Joe Adamcik on the front of the engine, about to roll across the scale (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45196985396\" rel=\"noopener\">p.126</a>).",
+  coda:"Mark Connolly lists the relief job's week: Monday and Tuesday midnight, Wednesday on the second trick, Saturday and Sunday daylight. In August 1979 Larry Obusek had SW9 #6 on it, with Joe Adamcik on the front of the engine, about to roll across the scale (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45196985396\" rel=\"noopener\">blog, p.126</a>).",
   build(H){
     const tanks=H.rnd(2,4),signal=H.R()<.5;
     const work=["Shove one ore drag to the car dumper",`Run around ${tanks} outbound tank cars from the chemical plant`,"Weigh the tank cars and set them out for the PC&Y","Furnace coke to F1"];
@@ -184,7 +185,7 @@ j115:{covers:["def","sig","yl","gcor"],pace:3.5,code:"#115",name:"relief job",ye
       H.ask({sec:"gcor",src:"GC · 1.47B",title:"Tank cars",body:`${tanks} loaded tank cars from USS Chemicals are going out to the PC&Y. What must the engineer check with the conductor before handling them?`,
         right:"Whether any cars need special handling",wrong:[["Only the car numbers for the time sheet"],["Nothing: that is the conductor's paperwork"],["The weights, before they are weighed"]],
         why:"GCOR 1.47B: the engineer must check with the conductor whether any cars or units need special handling."}),
-      H.ask({sec:"def",src:"GC · Glossary",title:"S9",body:"You run around the tank cars on S9, just west of the scale, where outbound tank cars were run around (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46415908175\" rel=\"noopener\">p.90</a>). Is S9 a siding?",
+      H.ask({sec:"def",src:"GC · Glossary",title:"S9",body:"You run around the tank cars on S9, just west of the scale, where outbound tank cars were run around (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46415908175\" rel=\"noopener\">blog, p.90</a>). Is S9 a siding?",
         right:"No: a siding is connected to the main track, used for meeting or passing trains, and shown in the timetable",wrong:[["Yes: any track used to run around cars is a siding"],["Yes, because it parallels the scale track"],["Only when a train uses it"]],
         why:"GCOR glossary: a siding is a track connected to the main track and used for meeting or passing trains; sidings are shown in the timetable."}),
       H.mv("s9",8,"Tank cars run around on S9"),
@@ -192,7 +193,7 @@ j115:{covers:["def","sig","yl","gcor"],pace:3.5,code:"#115",name:"relief job",ye
       signal?H.ask({sec:"gcor",src:"GC · 6.28",title:"The scale is thrown red",body:"You start to roll the tank cars toward the scale. The signal at the scale has been thrown red. What do you do?",
         right:"Stop short of it: the move must be able to stop short of a stop signal",wrong:[["Keep rolling at a walk: it only means weighing is in progress",{min:10,marks:2}],["Sound two shorts and go across"],["Back off and go around by the East Runner"]],
         why:"GCOR 6.28: off main track, move at a speed that allows stopping within half the range of vision short of a train, engine, car, men or equipment fouling the track, stop signal, or derail or switch lined improperly. Mark Connolly thought the scale had been thrown red in the 1979 photo of #6."})
-        :H.ask(Object.assign({},Q.speed,{title:"Over the scale",body:"The tank cars go over the Toledo scale at a walk; the weight is read the moment you cut away and back off (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">p.95</a>). The scale track is plant track. At what speed?"})),
+        :H.ask(Object.assign({},Q.speed,{title:"Over the scale",body:"The tank cars go over the Toledo scale at a walk; the weight is read the moment you cut away and back off (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">blog, p.95</a>). The scale track is plant track. At what speed?"})),
       H.mv("scale",8,"Tank cars weighed"),
       H.mv("yint",16,"Tank cars set out for the PC&Y"),
       ask(H,Q.clear,{title:"For the PC&Y",body:"You set the tank cars on the interchange track for the PC&Y. Where must the last car stand?"}),
@@ -208,7 +209,7 @@ j115:{covers:["def","sig","yl","gcor"],pace:3.5,code:"#115",name:"relief job",ye
 /* ===================== #205, second trick ===================== */
 j205:{covers:["def","sig","yl","gcor"],pace:3,code:"#205",name:"second trick",year:"1987",dateLine:"an evening in 1987",start:960,end:1440,engine:"#3",units:{"#3":"scale"},
   cement:"Lone Star",plants:plants(1987),si:SI,endPlace:"the yard office",tieUp:"#205 tied up at {t}.",
-  coda:"Elmer Picard held the second trick as a steady job and came to work in a sport coat and tie. Mark Connolly said he looked like he owned the place when he filled out his time sheet (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060\" rel=\"noopener\">p.67</a>).",
+  coda:"Elmer Picard held the second trick as a steady job and came to work in a sport coat and tie. Mark Connolly said he looked like he owned the place when he filled out his time sheet (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/44871790060\" rel=\"noopener\">blog, p.67</a>).",
   build(H){
     const crane=H.R()<.6,boxcar=H.R()<.6;
     const work=["Pull the interchange from the PC&Y at the Y Interchange","Weigh the interchange at the yard office"];
@@ -239,7 +240,7 @@ j205:{covers:["def","sig","yl","gcor"],pace:3,code:"#205",name:"second trick",ye
       H.ask({sec:"yl",src:"GC · 6.13",title:"No block signals",body:"The East Runner Main is main track inside yard limits, with no block signals. At what speed do you run?",
         right:"Restricted speed: able to stop within half the range of vision, not over 20 MPH",wrong:[["Track speed, since no train is lined up against you"],["Any speed: yard limits need no protection"],["10 MPH, as on a yard track"]],
         why:"GCOR 6.13: within yard limits, all movements at restricted speed unless under a block signal more favorable than Approach. GCOR 6.27: restricted speed allows stopping within half the range of vision, looking out for broken rail, not over 20 MPH."}));
-    if(crane)steps.push(H.info("East Runner","A crane on the main",`<p>Your headlight picks up a Shenango track crane, hung up on the East Runner Main with five loads (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371" rel="noopener">p.49</a>). At restricted speed you stop short of it.</p><p>You wait while it is moved.</p>`,"Wait it out",()=>{H.S.parAdd+=H.addTime(25);H.log("Held for the Shenango crane on the East Runner")}));
+    if(crane)steps.push(H.info("East Runner","A crane on the main",`<p>Your headlight picks up a Shenango track crane, hung up on the East Runner Main with five loads (<a href="https://www.tumblr.com/pittsburghohiovalleyrailroad/65065960371" rel="noopener">blog, p.49</a>). At restricted speed you stop short of it.</p><p>You wait while it is moved.</p>`,"Wait it out",()=>{H.S.parAdd+=H.addTime(25);H.log("Held for the Shenango crane on the East Runner")}));
     steps.push(
       H.mv("ladle",14,"Empty ladles lifted at the house"),
       H.ask({sec:"sig",src:"GC · 5.8.3",title:"The whistle fails",body:"At 10 p.m. #3's whistle fails, and there is no other unit to lead. You still have the main crossing ahead. What now?",
@@ -256,7 +257,7 @@ j205:{covers:["def","sig","yl","gcor"],pace:3,code:"#205",name:"second trick",ye
 /* ===================== #305, midnight ===================== */
 j305:{covers:["sig","gcor"],pace:3.2,code:"#305",name:"midnight job",year:"early 1980s",dateLine:"a winter night, early 1980s",start:0,end:420,engine:"#3",units:{"#3":"scale"},
   cement:"Marquette",plants:plants(1981),si:SI,endPlace:"S9",tieUp:"#305 tied up at {t}, its engine on S9 for sand.",
-  coda:"The midnight crews finished by spotting the engine on S9 for sand and going home. In a 1980 photo that engine is #3, just west of the scale, with the track gang loading sand by the bucket (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">p.99</a>).",
+  coda:"The midnight crews finished by spotting the engine on S9 for sand and going home. In a 1980 photo that engine is #3, just west of the scale, with the track gang loading sand by the bucket (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">blog, p.99</a>).",
   build(H){
     const work=["Pull the night's coke from the battery and weigh it","Coke to F1 for the morning","Line the West Yard over C9 for #105's first drag","Put #3 away for the day crew"];
     const steps=[
@@ -283,7 +284,7 @@ j305:{covers:["sig","gcor"],pace:3.2,code:"#305",name:"midnight job",year:"early
       H.done(2),
       H.mv("srun",16),
       ask(H,Q.men,{title:"The track gang at daybreak",body:"Near 6:30 the track gang is out by S1 with buckets for the sand. You come up on them with #3. What does the engineer sound?"}),
-      H.ask({sec:"sig",src:"GC · 5.8.1",title:"Onto S9",body:"Last move of the night: #3 onto S9 for sand, where the midnight crews left the engine and went home (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">p.99</a>). The gang is waiting with buckets. When must the bell be rung?",
+      H.ask({sec:"sig",src:"GC · 5.8.1",title:"Onto S9",body:"Last move of the night: #3 onto S9 for sand, where the midnight crews left the engine and went home (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45830819194\" rel=\"noopener\">blog, p.99</a>). The gang is waiting with buckets. When must the bell be rung?",
         right:"Before moving, as a warning when necessary, and approaching men or equipment",wrong:[["Only at public crossings"],["Never on plant track"],["Only if the whistle has failed"]],
         why:"GCOR 5.8.1: ring the bell before moving (except momentary stop-and-start switching), as a warning when necessary, approaching men or equipment, and approaching public crossings."}),
       H.mv("s9",14,"#3 on S9 for sand"),
@@ -295,7 +296,7 @@ j305:{covers:["sig","gcor"],pace:3.2,code:"#305",name:"midnight job",year:"early
 /* ===================== EXTRA ===================== */
 extra:{covers:["def","sig","gcor"],pace:4,code:"EXTRA",name:"called off the extra board",year:"1988",dateLine:"1988",start:780,end:1260,engine:"#4",units:{"#4":"scale"},
   cement:"Lone Star",plants:plants(1988),si:SI,endPlace:"the yard office",tieUp:"The extra tied up at {t}.",
-  coda:"An extra was called when the plant was super busy or the scale was down. Asked in 1988 why railroad employees were not guaranteed 40 hours a week, John Iwanonkiw answered: “Cause we were on the extra board for all those years!” (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/60848620277\" rel=\"noopener\">p.62</a>).",
+  coda:"An extra was called when the plant was super busy or the scale was down. Asked in 1988 why railroad employees were not guaranteed 40 hours a week, John Iwanonkiw answered: “Cause we were on the extra board for all those years!” (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">blog, p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/60848620277\" rel=\"noopener\">p.62</a>).",
   build(H){
     const why=H.pick(["busy","scale"]);
     const work=why==="scale"?["Water #4 at the scale house","Hold the cars for weighing on S9 until the scale is back","Extra ore drag to the dumper","Weigh the held cars when the scale returns"]
@@ -321,7 +322,7 @@ extra:{covers:["def","sig","gcor"],pace:4,code:"EXTRA",name:"called off the extr
     if(why==="scale")steps.push(
       H.wait(40,"The scale is back"),
       H.mv("scale",16,"Held cars weighed"),
-      H.ask({sec:"gcor",src:"GC · 1.46",title:"Catching up",body:"The scale is back and the held cars go across. The yard clerks and the trainmaster do the weighing at the beam (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">p.95</a>). Where a yardmaster is on duty, who directly supervises the clerks?",
+      H.ask({sec:"gcor",src:"GC · 1.46",title:"Catching up",body:"The scale is back and the held cars go across. The yard clerks and the trainmaster do the weighing at the beam (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">blog, p.95</a>). Where a yardmaster is on duty, who directly supervises the clerks?",
         right:"The yardmaster",wrong:[["The conductor of the extra"],["The engineer"],["The car knocker"]],
         why:"GCOR 1.46: the yardmaster directly supervises yard crews, clerks and others in the yard, and is responsible for prompt movement of cars and proper make-up of trains."}),
       ask(H,Q.foul,{title:"Back on S9",body:"You shove the weighed cars back onto S9 and the last one stops between the clearance point and the switch points. What is it now?"}),H.done(3));
@@ -339,7 +340,7 @@ extra:{covers:["def","sig","gcor"],pace:4,code:"EXTRA",name:"called off the extr
 ym:{covers:["def","sig","yl","gcor"],pace:3,code:"YM",name:"yardmaster at South Yard",year:"1990",dateLine:"early December 1990",start:420,end:930,engine:"YM",units:{"YM":"scale","#4":"wyard","#6":"eyard"},
   cement:"Lone Star",plants:plants(1990),foundryClosed:true,si:["You are the yardmaster in the yard office by South Yard: the switching orders, the weigh and the yard are yours.",SI[0],SI[1]],
   endPlace:"the yard office",tieUp:"The day's work at South Yard was done at {t}.",
-  coda:"B furnace's last casts came in December 1990, when the <i>Post-Gazette</i> expected it to run dry on the 5th or 6th, and the foundry had closed on 30 November by the same report. After that the east end was a coke plant (<a href=\"../library/pittsburgh-ohio-valley-railway.html\">the P&amp;OV page</a>).",
+  coda:"B furnace's last casts came in December 1990, when the <i>Post-Gazette</i> expected it to run dry on the 5th or 6th, and by that report the foundry had closed on 30 November, though veterans remember January 1990. After that the east end was a coke plant (<a href=\"../library/pittsburgh-ohio-valley-railway.html\">the P&amp;OV page</a>).",
   build(H){
     const lad=H.R()<.5;
     const work=["Give #4 (#105) and #6 (#110) their orders","Weigh #4's coke and the scrap loads","Spot gons for the scrap at A furnace","Take the PC&Y interchange","Keep the leads clear of fouled cars"];
@@ -350,18 +351,18 @@ ym:{covers:["def","sig","yl","gcor"],pace:3,code:"YM",name:"yardmaster at South 
         right:"Prompt movement of cars and proper make-up of trains, supervising the yard crews and clerks",wrong:[["Running the engines when the crews are short"],["Inspecting and repairing cars"],["Authorizing trains on the PC&Y"]],
         why:"GCOR 1.46: the yardmaster directly supervises yard crews, clerks and others in the yard, and is responsible for prompt movement of cars and proper make-up of trains."}),
       H.done(0),
-      H.ask({sec:"def",src:"GC · Glossary",title:"Scrap at A furnace",body:"A furnace is coming down. You have #110 spot gons on the old pig-iron holding track beside the East Runner for the scrap (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/61428754567\" rel=\"noopener\">p.60</a>). The cutting crew's boss is in charge of the work. What does GCOR call him?",
+      H.ask({sec:"def",src:"GC · Glossary",title:"Scrap at A furnace",body:"A furnace is coming down. You have #110 spot gons on the old pig-iron holding track beside the East Runner for the scrap (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/61428754567\" rel=\"noopener\">blog, p.60</a>). The cutting crew's boss is in charge of the work. What does GCOR call him?",
         right:"The foreman: the employee in charge of work",wrong:[["The conductor"],["The flagman"],["The pilot"]],
         why:"GCOR glossary: a conductor is the crew member in charge of a train or yard crew; a foreman is the employee in charge of work."}),
       moveU("#6","pig",20,"#6: scrap gons spotted at A furnace"),H.done(2)
     ];
-    if(lad)steps.push(H.ask(Object.assign({},Q.clear,{title:"B's last casts",body:"B casts this morning and the ladles are out of order again, so #110 switches them from E6 to E4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46331368911\" rel=\"noopener\">p.91</a>). Where must #110 leave the last ladle on E4?"})),
+    if(lad)steps.push(H.ask(Object.assign({},Q.clear,{title:"B's last casts",body:"B casts this morning and the ladles are out of order again, so #110 switches them from E6 to E4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/46331368911\" rel=\"noopener\">blog, p.91</a>). Where must #110 leave the last ladle on E4?"})),
       moveU("#6","ladle",14,"#6: ladles switched E6 to E4"));
     steps.push(
       H.info("the yard office","No foundry ladle","<p>The Shenango foundry closed on 30 November, by the <i>Post-Gazette</i>'s report. No ladle goes to the other end of the island today.</p>"),
       moveU("#4","coke",22,"#4: coke pulled at the battery"),
       moveU("#4","scale",12,"#4 on the scale"),
-      H.ask({sec:"sig",src:"GC · 5.8.2",title:"At the beam",body:"#4's coke string is on the scale. The weight comes up as soon as the crew cuts away and backs off (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">p.95</a>). As the cut comes off, #4's engineer loses the brakeman's hand signal. Which whistle signal does he sound to have it given again?",
+      H.ask({sec:"sig",src:"GC · 5.8.2",title:"At the beam",body:"#4's coke string is on the scale. The weight comes up as soon as the crew cuts away and backs off (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/45908061832\" rel=\"noopener\">blog, p.95</a>). As the cut comes off, #4's engineer loses the brakeman's hand signal. Which whistle signal does he sound to have it given again?",
         right:"Four short sounds (o o o o)",wrong:[["Two short sounds (o o)"],["Three short sounds (o o o)"],["One long sound (—)"]],
         why:"GCOR 5.8.2: (6) o o o o, request for a signal to be given or repeated."}),
       H.done(1),
