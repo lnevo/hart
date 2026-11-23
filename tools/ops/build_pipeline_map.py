@@ -332,7 +332,7 @@ span.sw{display:inline-block;width:14px;height:11px;border:1px solid transparent
 .node.hit .box{stroke:#dc2626;stroke-width:calc(4 * var(--bsc))}
 svg.focus .node,svg.focus .edge,svg.focus .elabel{opacity:.12}
 svg.focus .node.on{opacity:.5}
-svg.focus .node.near,svg.focus .elabel.near{opacity:1}
+svg.focus .node.near,svg.focus .node.sn,svg.focus .elabel.near{opacity:1}
 svg.focus .elabel.on:not(.near){opacity:0}
 svg.focus .edge.on{opacity:.45;stroke-opacity:1;stroke-width:1.6;stroke:#1d4ed8}
 svg.focus .edge.near{opacity:1;stroke-width:3}
