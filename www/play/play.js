@@ -179,7 +179,7 @@ function info(where,title,html,btn,after){
 const mv=(to,min,note,unit)=>()=>{S.units[unit||S.lead]=to;S.parAdd+=addTime(min);if(note)log(note);renderStatus();next()};
 const wait=(min,note)=>()=>{S.parAdd+=addTime(min);if(note)log(note);renderStatus();next()};
 const done=i=>()=>{S.jobs[i].done=true;renderSheet();next()};
-/* What a road run (road-engine.js, road.js, passenger.js, pcy.js) needs besides the island's helpers: put scenes at the front of the queue, draw its own
+/* What a road run (road-engine.js, road.js, passenger.js, pcy.js, pir.js) needs besides the island's helpers: put scenes at the front of the queue, draw its own
    scene, and list a question the player may meet only on some paths (key: no-op here, the answer key's build reads it). */
 const front=(...f)=>queue.unshift(...f);
 const key=()=>null;

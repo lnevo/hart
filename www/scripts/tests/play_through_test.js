@@ -14,7 +14,7 @@ const read = (p) => fs.readFileSync(path.join(WWW, p), "utf8");
 const DRAWS = +process.argv[2] || 60;
 const MAX_STEPS = 4000;
 /* The road runs: the least and most questions on average over the draws that tie up, and the sections every such draw asks. */
-const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]], pcy: [15, 22, ["sig", "yl"]] };
+const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]], pcy: [15, 22, ["sig", "yl"]], pir: [15, 22, ["twc"]] };
 
 /* ---------- a fake DOM: just the elements the game reads back (buttons, choices, the result box) ---------- */
 const VOID = new Set(["br", "hr", "img", "input", "line", "path", "circle", "rect", "meta", "link", "use"]);
@@ -85,9 +85,18 @@ function load(seedBox, phone) { // phone: { scroll(o) } pretends to be a phone a
   ctx.window = ctx; ctx.window.scrollTo = () => {};
   if (phone) { ctx.innerHeight = 844; ctx.matchMedia = () => ({ matches: true }); ctx.window.scrollTo = phone.scroll; }
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
-  for (const f of ["play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/passenger.js", "play/pcy.js"]) vm.runInContext(read(f), ctx, { filename: f });
+  for (const f of ["play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/warrant.js", "play/passenger.js", "play/pcy.js", "play/pir.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
   vm.runInContext(read("play/play.js"), ctx, { filename: "play/play.js" });
+  /* The fake page has no checkboxes, so the warrant copy is read from this hook instead of the form: the warrant as the
+     dispatcher gave it, or on some draws with one box wrong on the first read-back (twice on a few). */
+  const twc = ctx.window.RoadEngine.twc;
+  twc.read = (w, el, tries) => {
+    const got = {};
+    twc.BOXES.forEach(([n]) => { const want = w.boxes[n]; got[n] = { on: !!want, v: want ? want.slice() : [] }; });
+    if (ctx.__wrongCopy && tries < ctx.__wrongCopy) got[16].on = !got[16].on;
+    return got;
+  };
   return { ctx, ids, runBtns };
 }
 
@@ -115,6 +124,7 @@ function play(env, id, seed, right, stats) {
   const patient = !expert && rand() < 0.4;
   let quiet = false;
   stats.cur = { n: 0, secs: new Set(), draw: stats.draw };
+  ctx.__wrongCopy = id === "pir" ? [0, 1, 0, 2][stats.draw % 4] : 0; // read-backs of each warrant that come out wrong first
   runBtns.find((b) => b.dataset.run === id).onclick();
   const scene = doc.getElementById("xwScene");
   for (let step = 0; step < MAX_STEPS; step++) {
@@ -126,12 +136,15 @@ function play(env, id, seed, right, stats) {
       stats.ends++; stats.verdicts[verdict ? verdict[1] : "?"] = (stats.verdicts[verdict ? verdict[1] : "?"] || 0) + 1;
       if (/Tied up/.test(html) && !/The shift ends/.test(html)) { stats.tied++; stats.done.push(stats.cur); }
       stats.all.push(stats.cur.n);
+      if (id === "pir") { const copyMiss = /Copying track warrant/.test(html); if (ctx.__wrongCopy && !copyMiss) stats.badCopy = (stats.badCopy || 0) + 1; if (!ctx.__wrongCopy && copyMiss) stats.badCopy = (stats.badCopy || 0) + 1; if (ctx.__wrongCopy) stats.wrongCopies = (stats.wrongCopies || 0) + 1; }
       if (expert && !/Clean shift/.test(html)) stats.expertFail = (stats.expertFail || 0) + 1; // the sound path must come out clean
       if (expert) stats.experts = (stats.experts || 0) + 1;
       const home = btns.find((b) => b.id === "home"); home.onclick();
       return;
     }
     if (!btns.length) throw new Error(`${id}: no button to press at step ${step}`);
+    const rb = btns.find((b) => b.id === "rb"); // a warrant copy: repeat it to the dispatcher
+    if (rb) { rb.onclick(); continue; }
     if (/Nothing comes/.test(scene._inner)) quiet = true;
     const go = btns.find((b) => b.id === "xwGo");
     if (go) { go.onclick(); continue; }
@@ -172,6 +185,10 @@ function main() {
       try { play(env, id, seed, right, stats); } catch (e) { failures.push(`${id} draw ${d}: ${e.stack.split("\n").slice(0, 4).join(" | ")}`); if (failures.length > 8) break; }
     }
     console.log(`${id}: ${stats.ends}/${DRAWS} ended, ${stats.tied} tied up. ${JSON.stringify(stats.verdicts)}`);
+    if (id === "pir") { // the warrant copy: right on some draws, wrong first on others, and a wrong copy is a miss, not a mark
+      if (!stats.wrongCopies) failures.push("pir: no draw read a warrant back wrong");
+      if (stats.badCopy) failures.push(`pir: ${stats.badCopy} draws had a wrong read-back that was not recorded, or a right one that was`);
+    }
     if (stats.expertFail) failures.push(`${id}: ${stats.expertFail} of ${stats.experts} well-played draws were not clean shifts`);
     if (!stats.tied) failures.push(`${id}: no draw reached a tied-up end screen`);
     if (id in ROAD) { // a road run asks about 15 to 20 questions (the passenger run up to 23), and every draw that ends normally asks the sections the run is about

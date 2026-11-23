@@ -163,17 +163,6 @@ const run={group:"chartiers",covers:["def","sig","yl","gcor"],code:"PC&Y Transfe
 function ASPECT_ARMS(rule){return ASPECTS.find(a=>a.r===rule).arms}
 
 /* ---------- the map ---------- */
-/* A signal on the map: dots stacked up from the rail or down from it, the aspect's colours once the player has met it,
-   a ring while it has not been read. "D" is a distant signal, shown as a ring with no colour. */
-function sigDots(g,s){
-  const arms=g.sig[s.k],n=arms&&arms!=="D"?arms.length:1,dy=s.up?-1:1,y0=s.y+dy*5;
-  let o=`<line x1="${s.x}" y1="${s.y}" x2="${s.x}" y2="${s.y+dy*(5+n*5)}" stroke="var(--ink)" stroke-width="1"/>`;
-  for(let i=0;i<n;i++){
-    const cy=s.y+dy*(8+i*5),k=arms&&arms!=="D"?arms[i]:null;
-    o+=`<circle cx="${s.x}" cy="${cy}" r="2.2" fill="${k?ARM[k].c:"var(--sheet-2)"}" stroke="var(--ink)" stroke-width=".8"/>`;
-  }
-  return o;
-}
 function map(S){
   const G=S.road,W=600,P=POINTS[G.pos];
   let s=`<svg viewBox="0 0 ${W} 122" role="img" aria-label="Line sketch of the PC&amp;Y transfer route from Scully Yard to the Y Interchange, ${esc(S.def.code)} at ${esc(G.at)}">`;
@@ -186,7 +175,7 @@ function map(S){
   s+=`<g fill="none" stroke="var(--ink)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.2" d="M14 92 H196 L224 64 L231 57"/><path stroke-width="3.4" d="M150 64 H470"/><path stroke-width="2.2" d="M430 64 L454 40 H575"/><path stroke-width="3.6" d="M470 40 H502"/><path stroke-width="2.2" d="M575 33 V47"/></g>`;
   if(G.train){const x=G.train==="xing"?228:372;s+=`<rect x="${x}" y="59" width="40" height="10" rx="2" fill="var(--muted)" stroke="#fff" stroke-width=".8"/><text x="${x+20}" y="66.4" font-size="6" text-anchor="middle" fill="#fff" font-weight="700">P&amp;LE</text>`}
   // the signals and the interlockings
-  SIGS.forEach(sg=>{s+=sigDots(G,sg)});
+  SIGS.forEach(sg=>{s+=RE.sigDots(G,sg)});
   s+=`<path d="M224 59 L229 64 L224 69 L219 64 Z" fill="var(--rust)" opacity=".85" stroke="var(--ink)" stroke-width=".8"/><rect x="427" y="61" width="6" height="6" fill="var(--rust)" opacity=".85"/>`;
   // labels, clear of the track
   s+=`<g class="lbl" font-size="6.3" text-anchor="middle"><text x="30" y="110" font-weight="${G.pos===0?700:400}">SCULLY YARD</text><text x="105" y="110">PC&amp;Y MAIN</text><text x="224" y="52" font-weight="${G.pos===2?700:400}">MCKEES ROCKS · PLE 3.75</text><text x="335" y="102">P&amp;LE MAIN</text><text x="426" y="52" text-anchor="end" font-weight="${G.pos===4?700:400}">NEVILLE · PLE 5.7</text><text x="${W-8}" y="58" text-anchor="end" font-weight="${G.pos===6?700:400}">Y INTERCHANGE</text></g>`;

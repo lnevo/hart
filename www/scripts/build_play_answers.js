@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 /* Builds www/play/answers.html, the answer key for Extra East: HART Railroad, from the island shifts in www/play/runs.js
-   and the road runs in www/play/road.js, passenger.js and pcy.js (with the shared road-engine.js). Each run's build() is run many times with a
+   and the road runs in www/play/road.js, passenger.js, pcy.js and pir.js (with the shared road-engine.js and warrant.js). Each run's build() is run many times with a
    seeded random stream and a stand-in for the game's helpers, so every branch a draw can take is seen. Each run lists
    every question it can ask; words a draw changes (a time, a count) show as [varies]. Questions asked from inside an
    after() or info callback are not seen; none are today. A road run lists the questions that depend on the path
    through H.key(question), which the game ignores.
+   A run with a `warrants` list (the PIR run) gets a Warrants block: each warrant it can give, a box to a line.
    `--check` exits 1 when answers.html is out of date. */
 "use strict";
 const fs = require("fs");
@@ -15,7 +16,7 @@ const PLAY = path.join(__dirname, "..", "play");
 const RUNS = path.join(PLAY, "runs.js");
 const EXAM = path.join(PLAY, "..", "exam");
 /* The road runs' scripts, in load order: the Standard Code signals, the shared engine, then the runs. */
-const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js"), path.join(PLAY, "pcy.js")];
+const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "warrant.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js"), path.join(PLAY, "pcy.js"), path.join(PLAY, "pir.js")];
 const OUT = path.join(PLAY, "answers.html");
 const TUMBLR = "https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 const SEC = { gcor: "GCOR crew & speed", sig: "Signals & whistles", def: "Definitions", yl: "Yard limits", sup: "Superiority & movement", to: "Train orders", sem: "Semaphores", twc: "Track warrants" };
@@ -71,9 +72,17 @@ function extract(src) {
       def.build(H);
     }
     const qs = [...byKey.values()].map((q) => Object.assign(q, { body: merge([...q.bodies]) }));
-    shifts.push({ id, def, qs, group: groupOf(id, def) });
+    shifts.push({ id, def, qs, group: groupOf(id, def), say: sandbox.window.RoadEngine && sandbox.window.RoadEngine.twc ? sandbox.window.RoadEngine.twc.SAY : null });
   }
   return shifts;
+}
+
+/* The warrants a run can give, each box as the dispatcher reads it, so a player can check a copy. */
+function warrantsHtml(s) {
+  if (!s.def.warrants) return "";
+  const lines = (w) => Object.keys(w.boxes).map(Number).sort((a, b) => a - b).map((b) => `<li>Box ${b}. ${esc(s.say[b](w.boxes[b]))}.</li>`).join("");
+  const one = (x) => `<div class="xa-w"><p class="xa-meta">Warrant ${esc(x.no)} · read at ${esc(x.at)}${x.note ? " · " + esc(x.note) : ""}</p>${x.forms.map((f) => `${f.label ? `<p class="xa-meta">${esc(f.label)}</p>` : ""}<ul class="xa-wl">${lines(f.w)}</ul>`).join("")}</div>`;
+  return `<div class="xa-q xa-warrants" data-s="warrants track warrant boxes copy"><h4>Warrants</h4><p>The dispatcher reads each warrant to PIR Local 1. Check the boxes below and fill in their blanks to match your copy.</p>${s.def.warrants.map(one).join("")}</div>\n`;
 }
 
 function render(shifts) {
@@ -97,7 +106,7 @@ function render(shifts) {
   <p class="xa-meta">${link}</p>
 </article>`;
     }).join("\n");
-    return `<section class="xa-sec" id="${s.id}"><h3>${esc(s.def.code)}, ${esc(s.def.name)} <small>${esc(s.def.dateLine)} · ${s.qs.length} questions</small></h3>\n${items}\n</section>`;
+    return `<section class="xa-sec" id="${s.id}"><h3>${esc(s.def.code)}, ${esc(s.def.name)} <small>${esc(s.def.dateLine)} · ${s.qs.length} questions</small></h3>\n${warrantsHtml(s)}${items}\n</section>`;
   };
   const secs = Object.keys(GROUPS).map((g) => `<section class="xa-grp"><h2>${esc(GROUPS[g][0])} <small>${esc(GROUPS[g][1])}</small></h2>\n${inGroup(g).map(runHtml).join("\n")}\n</section>`).join("\n");
   return `<!DOCTYPE html>
@@ -119,6 +128,7 @@ function render(shifts) {
 .xa-opts{margin:6px 0;padding-left:22px}
 .xa-opts li{margin:2px 0}
 .xa-opts li.ok{font-weight:600;color:#2f6b3f;list-style:"✓  "}
+.xa-wl{margin:2px 0 8px;padding-left:22px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:13px}
 .xa-ow,.xa-why{color:#545b67;font-size:14px}
 .xa-sec h3 small,.xa-grp h2 small{font-weight:400;color:#545b67}
 body.xa-hide .xa-opts li.ok{font-weight:inherit;color:inherit;list-style:disc}
