@@ -58,11 +58,11 @@ Every step that changes plugin code reruns set A before it is committed: a chang
 - No new setting the owner must fill in for HART: a new option defaults to today's behaviour on a plan HART's size, so set A needs no layer file change.
 - A drawing with faults is a result, not a crash: it is drawn, with its faults listed, and the run exits non-zero only when asked to check.
 
-## Decisions for the owner
+## Owner's decisions (2026-11-23)
 
-1. Where set D's plans come from (AnyRail's sample layouts, plans the owner has, or both).
-2. The time budget for a plan with no hints (suggested: 2 minutes for any plan up to HART's size).
-3. Whether one band becomes something the HART sheet can use (a preference), or stays a test case only.
+1. Set D: AnyRail's published sample layouts where they can be had; the owner may add plans later. The aim is a plugin that helps other people's plans, not only HART.
+2. Time budget: 2 minutes for any plan up to HART's size, no hints, cold cache.
+3. HART as one band stays a test case only; the approved three-band sheet is unchanged.
 
 ## Results
 
