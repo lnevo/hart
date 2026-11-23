@@ -53,6 +53,7 @@ render() { # template -> file, filling @KEY@ from secrets.env; values are taken 
 }
 render "$HERE/network/Easte.nmconnection.in" "$STAGE/net/Easte.nmconnection"
 render "$HERE/network/RPi-JMRI.nmconnection.in" "$STAGE/net/RPi-JMRI.nmconnection"
+printf '%s\n' "$PI_PASSWORD_HASH" > "$STAGE/private/pi.hash"
 umask 022
 
 # Checkouts and JMRI go to /home/pi as they are in home/.
