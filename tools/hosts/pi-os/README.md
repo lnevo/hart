@@ -6,7 +6,8 @@ This folder (kept outside `tools/hosts/pi/`, which every deploy ships to the hos
 
 ```sh
 tools/hosts/pi-os/pull_from_pi.sh     # read-only on the Pi: secrets and the JMRI install
-tools/hosts/pi-os/build_image.sh      # Lima VM on the Mac; about 30 to 60 minutes
+tools/hosts/pi-os/build_image.sh      # Lima VM on the Mac; 13 minutes the first time, 5 once cached
+tools/hosts/pi-os/check_image.sh      # run by build_image.sh; checks the newest image read-only
 tools/hosts/pi-os/build_image.sh --stop
 ```
 
@@ -24,9 +25,10 @@ The image lands in `~/.cache/hart/pi-os/out/` with a `.sha256` and a `.base` fil
 | `samba-shares.conf` | the `JMRI_UserFiles` and `JMRI_Settings` shares |
 | `firstboot.sh` | run once on the Pi: `docker` and `lpadmin` groups, lingering for user services |
 | `pull_from_pi.sh` | copies secrets to `~/.config/hart/pi-os` (mode 700) and JMRI to `~/.cache/hart/pi-os` |
+| `check_image.sh` | mounts the newest image read-only in the VM and fails on anything wrong: architecture, `/lib`, packages, the `pi` account and its hash, modes, profiles, keys, hostname, services, leftover secrets |
 | `build_image.sh`, `inside_vm.sh` | the build: stage, Lima VM, sdm customize, sdm burnfile with the hostname `RPi-JMRI` |
 
-Secrets never enter the repo. `secrets.env` holds `HOUSE_WIFI_PSK`, `HOTSPOT_PSK` and `PI_PASSWORD_HASH`; the build copies them into a stage folder and deletes them from it when it ends.
+Secrets never enter the repo. `secrets.env` holds `HOUSE_WIFI_PSK`, `HOTSPOT_PSK` and `PI_PASSWORD_HASH`; the build copies them into a stage folder and deletes them from it when it ends. In the image, the hash goes only into `/etc/shadow`: the file that carries it in is deleted at post-install, and `check_image.sh` fails if any copy is left.
 
 ## Not in the image
 

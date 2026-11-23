@@ -10,8 +10,6 @@ for g in docker lpadmin; do
 done
 echo "pi groups: $(id -nG pi)"
 
-# The copies into /home/pi set it to the stage folder's 755; Debian's default is 700.
-chmod 700 /home/pi
 
 # The pi user's services (speed-match publisher) run without a login, as on the old card.
 loginctl enable-linger pi && echo "linger on for pi"

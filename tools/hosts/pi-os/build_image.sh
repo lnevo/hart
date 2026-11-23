@@ -2,7 +2,8 @@
 # Build the layout Pi's Raspberry Pi OS image on the Mac (docs/hosts/PI_OS_REBUILD.md).
 #
 #   tools/hosts/pi-os/pull_from_pi.sh      # once, and again after secrets or JMRI change
-#   tools/hosts/pi-os/build_image.sh       # about 30 to 60 minutes
+#   tools/hosts/pi-os/build_image.sh       # about 13 minutes the first time, 5 once cached
+#   tools/hosts/pi-os/check_image.sh       # checks the newest image read-only in the VM
 #   tools/hosts/pi-os/build_image.sh --stop   # stop the build VM afterwards
 #
 # sdm does not run in Docker, so the build runs in a Lima VM (Debian 13, arm64,
@@ -53,6 +54,7 @@ render() { # template -> file, filling @KEY@ from secrets.env; values are taken 
 }
 render "$HERE/network/Easte.nmconnection.in" "$STAGE/net/Easte.nmconnection"
 render "$HERE/network/RPi-JMRI.nmconnection.in" "$STAGE/net/RPi-JMRI.nmconnection"
+[[ "${PI_PASSWORD_HASH:-}" == \$* ]] || { echo "PI_PASSWORD_HASH in secrets.env is not a crypt hash: run pull_from_pi.sh" >&2; exit 1; }
 printf '%s\n' "$PI_PASSWORD_HASH" > "$STAGE/private/pi.hash"
 umask 022
 
@@ -79,3 +81,5 @@ limactl list --format '{{.Status}}' "$VM" 2>/dev/null | grep -q Running || { log
 log "building in $VM (sdm customize, then burnfile with the hostname)"
 limactl shell --workdir / "$VM" sudo bash "$STAGE/os/inside_vm.sh" "$STAGE" "$WORK"
 log "done: $(ls -1t "$WORK"/out/*.img | head -1)"
+log "checking the image"
+"$HERE/check_image.sh"
