@@ -1392,6 +1392,50 @@
       "max_px": 6000
     },
     {
+      "id": "icc-valuation-map-pcy-railway",
+      "src": "../media/hart-research/prototype/icc-valuation-map-pcy-railway.jpg",
+      "bucket": "curated",
+      "kind": "map",
+      "title": "ICC valuation map of the Pittsburgh, Chartiers & Youghiogheny Railway, 1916",
+      "caption": "Map of the Pittsburgh Chartiers & Youghiogheny Railway, dated June 30, 1916. The PC&Y is drawn as a heavy line from Beechmont and Beadling through Woodville, Carnegie, Scully Yard and Duff Jct to McKees Rocks and North McKees Rocks, then along Neville Island on the Ohio River; the legend marks trackage rights separately. The P&LE, B&O, PCC&StL, Montour, W.S.B. and Union railroads are drawn thinly, with Pittsburgh at the right.",
+      "date": "1916-06-30",
+      "tags": [
+        "pc-y",
+        "neville-island",
+        "mckees-rocks",
+        "map"
+      ],
+      "credit": "Interstate Commerce Commission, Bureau of Valuation, Washington DC. The scan is stamped as reproduced from the holdings of the National Archives; where this copy came from was not recorded.",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "Work of a U.S. government agency, public domain. Scan source not recorded.",
+      "reason": "",
+      "origin": "Scan in media/hart-research/prototype, source not recorded; the ICC and National Archives stamps are on the image.",
+      "max_px": 5100
+    },
+    {
+      "id": "icc-valuation-map-pa-mckees-rocks-1917",
+      "src": "../media/hart-research/prototype/icc-valuation-map-pa-mckees-rocks-1917-06-30.jpg",
+      "bucket": "curated",
+      "kind": "map",
+      "title": "ICC valuation map of the Pittsburgh Allegheny & McKees Rocks Railroad, 1917",
+      "caption": "Map of the Pittsburgh Allegheny & McKees Rocks Railroad, dated June 30, 1917. The road is drawn as heavy track at North McKees Rocks and at Woods Run, with a dashed ferry connection across the Ohio River between them and the Fidelity Ferry Co. named beside it. The map also shows the P&LE, the PC&Y at McKees Rocks and Duffs Jct, the Ohio Connecting railroad and Pennsylvania System lines, with Chartiers Creek, Crafton, West Belt Jct and Pittsburgh to the south.",
+      "date": "1917-06-30",
+      "tags": [
+        "pa-mckees-rocks",
+        "pc-y",
+        "mckees-rocks",
+        "map"
+      ],
+      "credit": "Interstate Commerce Commission, Bureau of Valuation, Washington DC. The scan is stamped as reproduced from the holdings of the National Archives; where this copy came from was not recorded.",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "Work of a U.S. government agency, public domain. Scan source not recorded.",
+      "reason": "",
+      "origin": "Scan in media/hart-research/prototype, source not recorded; the ICC and National Archives stamps are on the image.",
+      "max_px": 5100
+    },
+    {
       "id": "pcy-stations-sidings-1969",
       "src": "../media/hart-research/pdf-covers/pcy-stations-and-siding-numbers-1969.jpg",
       "bucket": "curated",

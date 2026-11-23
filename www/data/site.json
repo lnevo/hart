@@ -84,6 +84,7 @@
         "behind-pipeline-map",
         "build",
         "build-track-plan",
+        "build-roadbed",
         "helix",
         "helix-status",
         "play"
@@ -126,6 +127,12 @@
       }
     ],
     "build-track-plan": [
+      {
+        "label": "The Build",
+        "href": "build/index.html"
+      }
+    ],
+    "build-roadbed": [
       {
         "label": "The Build",
         "href": "build/index.html"
