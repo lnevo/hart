@@ -893,10 +893,11 @@ function app() {
       const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a, k = MAG_TITLE_PX / 13 / s;
       const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
       // grown: the hovered box or the hovered line's ends, then the rest the hover lights, the selected box and search
-      // hits, each group busiest first
+      // hits, then the selected box's neighbours (select tags them near), so the boxes a hover grew stay grown after
+      // the click; each group busiest first
       const has = (id, c) => nodeEl[id].classList.contains(c);
-      const rank = id => (id === hoverId || hoverEnds.has(id) ? 0 : has(id, "hn") ? 1 : has(id, "sel") || has(id, "hit") ? 2 : 3);
-      const lit = lay.nodes.filter(n => rank(n.id) < 3 &&
+      const rank = id => (id === hoverId || hoverEnds.has(id) ? 0 : has(id, "hn") ? 1 : has(id, "sel") || has(id, "hit") ? 2 : has(id, "near") ? 3 : 4);
+      const lit = lay.nodes.filter(n => rank(n.id) < 4 &&
         sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
       const near = id => (hoverSteps && hoverSteps.has(id) ? hoverSteps.get(id) : 0);  // a hovered line's nearer boxes grow first
       lit.sort((p, q) => rank(p.id) - rank(q.id) || near(p.id) - near(q.id) || (degree[q.id] || 0) - (degree[p.id] || 0));
