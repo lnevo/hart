@@ -5,14 +5,18 @@ Staging's and main's plan graphs are joined into one graph, the two helix cuts s
 with the switch numbers, track names and signals but no `levels`, `helix` or helix ends.
 The approved three-band sheet is not touched; this writes only to OUT.
 
-    python3 tools/schematic/experiments/one_band.py OUT [--cap N] [--seconds S] [--profile]
+    python3 tools/schematic/experiments/one_band.py OUT [--cap N] [--row-seconds R] [--panels] [--seconds S] [--profile]
 
 OUT gets whole.json, data/ and one_band.svg. `--cap` raises the plugin's turnback cap from a
 wrapper (plugin files unchanged; the cap is fault F1 on the project page). `--seconds` stops the
-run after S seconds; with `--profile` the cProfile stats so far are written to OUT/profile.txt.
+run after S seconds; with `--profile` the cProfile stats so far are written to OUT/profile.txt. `--row-seconds` puts a
+time limit on the row search (fault F4) from a wrapper. `--panels` also builds the Layout Editor panel and the CATS
+desk from the same solve, with labels that find no clean spot listed and left out. Every run prints the time spent in
+the orientation, the rows and the columns.
 """
 import argparse
 import cProfile
+import collections
 import io
 import itertools
 import json
@@ -133,6 +137,114 @@ def raise_cap(cap):
     L.orient = search
 
 
+def limit_rows(seconds):
+    """A time limit on the row search (fault F4), from a wrapper; the plugin's files are unchanged. Once the limit
+    has passed, each row optimisation keeps the best arrangement it has and stops improving it."""
+    from schematic import rows as R
+    deadline = time.monotonic() + seconds
+    hit = []
+
+    def late():
+        if time.monotonic() > deadline:
+            if not hit:
+                hit.append(1)
+                print(f"one_band: row limit of {seconds} s reached; keeping the best rows found", file=sys.stderr)
+            return True
+        return False
+
+    def optimise_from_here(self):
+        self.tolerant = True
+
+        def score(r):
+            return (self.dropped, r["cost"] + self.broken())
+
+        def flip(n):
+            self.flat[n] = "C" if self.flat[n] == "B" else "B"
+
+        best = self.solve()
+        best_score = score(best)
+        improved = True
+        while improved and not late():
+            improved = False
+            for n in self.flat:
+                if n in self.pins:
+                    continue
+                if late():
+                    break
+                flip(n)
+                r = self.solve()
+                sc = score(r)
+                if sc[0] < best_score[0] or (sc[0] == best_score[0] and sc[1] < best_score[1] - 1e-9):
+                    best, best_score, improved = r, sc, True
+                else:
+                    flip(n)
+            if improved or late():
+                continue
+            pairs = {tuple(sorted((d["src"][0], d["dst"][0]))) for d in self.strands.values()
+                     if d["src"][0] in self.flat and d["dst"][0] in self.flat}
+            for a, b in sorted(pairs):
+                if a in self.pins or b in self.pins:
+                    continue
+                if late():
+                    break
+                flip(a)
+                flip(b)
+                r = self.solve()
+                sc = score(r)
+                if sc[0] < best_score[0] or (sc[0] == best_score[0] and sc[1] < best_score[1] - 1e-9):
+                    best, best_score, improved = r, sc, True
+                    break
+                flip(a)
+                flip(b)
+        self.dropped = best_score[0]
+        return best
+
+    R.Rows.optimise_from_here = optimise_from_here
+
+
+TIMES = collections.defaultdict(float)
+CALLS = collections.Counter()
+
+
+def timed(owner, name, label):
+    """Add the wall time of the outermost calls of owner.name to TIMES[label]."""
+    fn = getattr(owner, name)
+    depth = [0]
+
+    def wrap(*args, **kw):
+        depth[0] += 1
+        t = time.monotonic()
+        try:
+            return fn(*args, **kw)
+        finally:
+            depth[0] -= 1
+            if not depth[0]:
+                TIMES[label] += time.monotonic() - t
+                CALLS[label] += 1
+    setattr(owner, name, wrap)
+
+
+def time_phases():
+    from schematic import layout as L, rows as R
+    timed(L, "orient", "orient")
+    timed(R.Rows, "optimise", "rows")
+    timed(L, "place", "columns")
+
+
+def loose_labels():
+    """Layout Editor labels with no clean spot are listed and left out instead of stopping the panel (the plugin's
+    own strict=False, which `le` does not offer)."""
+    from schematic import le_labels as LL
+    place = LL.place
+
+    def loose(P, bands, opts, strict=True, **kw):
+        out = place(P, bands, opts, strict=False, **kw)
+        for _k, msg in P.labels_unplaced:
+            print(f"one_band: left out: {msg}", file=sys.stderr)
+        return out
+    LL.place = loose
+
+
 class Stop(BaseException):  # not Exception: the plugin's `except Exception` must not swallow it
     pass
 
@@ -142,16 +254,32 @@ def main(argv):
     ap.add_argument("out", type=Path)
     ap.add_argument("--cap", type=int, help="turnback cap (wrapper; default: the plugin's own)")
     ap.add_argument("--seconds", type=int, help="stop the run after this many seconds")
+    ap.add_argument("--row-seconds", type=int, help="time limit on the row search (wrapper; F4)")
+    ap.add_argument("--panels", action="store_true",
+                    help="also build the Layout Editor panel and the CATS desk from the same solve, each timed")
+    ap.add_argument("--window", default="1920x1032", help="the CATS window (default the hosts' 1920x1032)")
     ap.add_argument("--profile", action="store_true", help="write cProfile stats to OUT/profile.txt")
     a = ap.parse_args(argv)
     if (a.cap is not None and a.cap < 0) or (a.seconds is not None and a.seconds < 1):
         ap.error("--cap must be 0 or more and --seconds 1 or more")
-    # Always cold: the cache key cannot see the --cap wrapper, and the results are timed cold.
-    os.environ["SCHEMATIC_CACHE"] = ""
+    # Always cold: the cache key cannot see the wrappers, and the results are timed cold. With --panels, a new empty
+    # cache in OUT holds this run's solve so the panels reuse it; nothing else reads that folder.
+    cache = a.out / "cache"
+    if cache.exists():
+        import shutil
+        shutil.rmtree(cache)
+    if a.panels:
+        cache.mkdir(parents=True)
+    os.environ["SCHEMATIC_CACHE"] = str(cache) if a.panels else ""
     a.out.mkdir(parents=True, exist_ok=True)
     build(a.out)
     sys.path.insert(0, str(PLUGIN))
     from schematic import cli
+    time_phases()
+    if a.panels:
+        loose_labels()
+    if a.row_seconds is not None:
+        limit_rows(a.row_seconds)
     if a.cap is not None:
         raise_cap(a.cap)
     if a.seconds is not None:
@@ -165,6 +293,14 @@ def main(argv):
         if prof:
             prof.enable()
         rc = cli.run(["draw"] + args)
+        TIMES["draw (whole command)"] = time.time() - t
+        if a.panels and rc == 0:
+            src = [str(x) for x in args[1:]]
+            for label, cmd in (("le", ["le", str(a.out / "one_band_le.xml")] + src),
+                               ("cats", ["cats", str(a.out / "one_band_cats.xml")] + src + ["--window", a.window])):
+                t1 = time.time()
+                rc = cli.run(cmd) or rc
+                TIMES[label + " (whole command)"] = time.time() - t1
     except Stop:
         print(f"one_band: stopped at {a.seconds} s", file=sys.stderr)
     finally:
@@ -176,6 +312,8 @@ def main(argv):
             st.print_stats(60)
             st.sort_stats("tottime").print_stats(30)
             (a.out / "profile.txt").write_text(buf.getvalue())
+        for k, v in TIMES.items():
+            print(f"one_band: {k}: {v:.1f} s" + (f" ({CALLS[k]} calls)" if CALLS[k] else ""), file=sys.stderr)
         print(f"one_band: {time.time() - t:.1f} s, exit {rc}", file=sys.stderr)
     return rc
 

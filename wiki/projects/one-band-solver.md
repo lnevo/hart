@@ -11,7 +11,7 @@ The schematic-maps plugin draws HART as approved in 38 s, but given HART as one 
 3. **HART as one band.** The joined HART graph (staging and main spliced at the helix, no `levels` or `helix`) draws within the budget.
 4. **Timed.** Every run records its time, cold cache, in a results table on this page.
 
-**Where it stands (2026-11-23):** the owner chose the quick wins only after the baseline. Plugin [PR #86](https://github.com/lnevo/model-railroad-skills/pull/86) makes the reader cut the track at crossings, slips and turntables instead of crashing, and makes the solve fall back on `Unsettled` (F3) and raise the turnback cap by itself (F1). No plan ends in a traceback or asks for a setting now. HART is unchanged (set A). Left: F4, a time limit on the row search, which is what keeps set C and three set D plans from drawing; then F5 and the five plans with no orientation. The work is parked here until the owner picks it up again.
+**Where it stands (2026-11-23):** the owner chose the quick wins only after the baseline. Plugin [PR #86](https://github.com/lnevo/model-railroad-skills/pull/86) makes the reader cut the track at crossings, slips and turntables instead of crashing, and makes the solve fall back on `Unsettled` (F3) and raise the turnback cap by itself (F1). No plan ends in a traceback or asks for a setting now. HART is unchanged (set A). With a 2 minute row limit added from `one_band.py --row-seconds 120` (the plugin unchanged), HART draws as one band with no hints: one sheet, 2 crossings and 12 label faults, in 518 s, and the Layout Editor panel builds from it with 5 block contents icons left out; the CATS desk does not build (see "Set C drawn" below). Left: the time goes to the column placement, which runs again for every row arrangement tried, so F4 is that, not the row search alone; then F5 and the five set D plans with no orientation. The work is parked here until the owner picks it up again.
 
 ## What failed, and the fix to try for each
 
@@ -78,6 +78,21 @@ Every step that changes plugin code reruns set A before it is committed: a chang
 | E | Plugin tests (Pine Hollow & Eastern and the rest) | 764 tests pass in 91 s; slowest test 11 s | 780 pass in 99 s; new made-up plans for cut parts, crossovers of each hand, the cap raise and the `Unsettled` fallback |
 
 Set D notes: the plans and the D-number to file mapping are local only (`~/Documents/Layout/anyrail-samples/`). `schematic anyplan` reads only 2 of the 38 `.any` files (the rest: no track end points found, older file layout), and it writes no graph, so the owner exported each plan from AnyRail as JMRI XML. Nothing above 31 switches got past the plan reader, so set D does not yet test the solver at HART's size.
+
+## Set C drawn (2026-11-23)
+
+`one_band.py OUT --row-seconds 120 --panels`, plugin 1b108f7, cold cache, Mac. The sheet, the Layout Editor panel and the CATS desk come from one solve (`--panels` keeps it in a new cache folder inside OUT for the two panels). The files are in `~/JMRI_UserFiles/raw-experiment/` on the Mac (`HART_one_band_schematic.svg`, `HART_one_band_LE.xml`, panel "HART One Band"); nothing was deployed.
+
+| Phase | Set A, approved | Set B, raw (three bands) | Set C, one band |
+|---|---|---|---|
+| Orientation | | | 11 s (the cap raised itself to 6 turnbacks) |
+| Rows | | | 65 s in 23 optimisations; the row limit was reached |
+| Columns | | | 440 s in 995 placements, about 0.44 s each |
+| Sheet (`draw`) | 35 s | 38 s | 518 s; 2 crossings (near 221B and the 225 crossover), 12 label faults |
+| Layout Editor panel | about 325 s with the preferences' passes | 1.5 s | 7 s; 5 block contents icons in the 201 to 211 area left out (`le` stops on them; the plugin's own `strict=False` lists them instead) |
+| CATS desk | 2 s | 0.2 s | stops: double crossover 225's through tracks are not level beside it (rows 1 and 4), which CATS needs; forcing it means a plugin change |
+
+The two crossings and the CATS stop come from the orientation, which the plugin had warned of (switches 221B and 39 each have a leg that must cross other track).
 
 ## Profile of set C (2026-11-23)
 
