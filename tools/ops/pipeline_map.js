@@ -604,6 +604,12 @@ function linkChain(edges, from, to, stops) {
 function fadeOf(steps) {
   return steps <= 2 ? "" : steps <= 4 ? "2" : "3";
 }
+/* Which boxes grow first when zoomed out (lower first; 4: not grown): the hovered box or the hovered line's ends (0),
+   the rest the hover lights (1), the selected box and search hits (2), then the selected box's neighbours (3, class
+   "sn": every box a hover on it grew, so they stay grown after the click). has(c): whether the box has class c. */
+function growRank(isHovered, has) {
+  return isHovered ? 0 : has("hn") ? 1 : has("sel") || has("hit") ? 2 : has("sn") ? 3 : 4;
+}
 
 /* The free area is the part of the screen the reader can see the map in: below the toolbar and clear of the info
    panel. free gives it as shares of the map's width and height: {top, right, bottom}, each 0 to 1. */
@@ -750,7 +756,7 @@ function githubUrl(n, links) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { settleFrom, boxTransform, BOX_GROW, spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
+  module.exports = { settleFrom, boxTransform, BOX_GROW, spreadFor, spreadGeo, onlyOne, stopKind, stopsNote, fitPad, clearOf, pointerPick, boxAt, hoverStop, hoverWalks, fadeOf, growRank, sourceClick, sourceKey, isCache, stopsChain, hubs, liveHubs, HUB_OUT, WIDE, NARROW, lineEnd, lighten, stripRoom, pathSegments, clickTarget, growRect, placeTags, edgeTip, linkChain, layout, wrap, nodeHeight, inversions, stepTicks, laneTagTops, firstColumnIsRaw, chainOf, showsAll, fitView, clampView, contract, hideBoxes, folderOf, groupByFolder, githubUrl };
 } else {
   app();
 }
@@ -892,11 +898,8 @@ function app() {
     if (far && m.a * ((lay && lay.geo.scale) || 1) < FAR_PX) {
       const r = wrapEl.getBoundingClientRect(), a = freeArea(), s = m.a, k = MAG_TITLE_PX / 13 / s;
       const sx = x => m.a * x + m.e - r.left, sy = y => m.d * y + m.f - r.top;
-      // grown: the hovered box or the hovered line's ends, then the rest the hover lights, the selected box and search
-      // hits, then the selected box's neighbours (select tags them near), so the boxes a hover grew stay grown after
-      // the click; each group busiest first
-      const has = (id, c) => nodeEl[id].classList.contains(c);
-      const rank = id => (id === hoverId || hoverEnds.has(id) ? 0 : has(id, "hn") ? 1 : has(id, "sel") || has(id, "hit") ? 2 : has(id, "near") ? 3 : 4);
+      // grown in growRank's order, each group busiest first
+      const rank = id => growRank(id === hoverId || hoverEnds.has(id), c => nodeEl[id].classList.contains(c));
       const lit = lay.nodes.filter(n => rank(n.id) < 4 &&
         sx(n.x + n.w) > 0 && sx(n.x) < a.right && sy(n.y + n.h) > a.top && sy(n.y) < a.bottom);
       const near = id => (hoverSteps && hoverSteps.has(id) ? hoverSteps.get(id) : 0);  // a hovered line's nearer boxes grow first
@@ -1666,7 +1669,7 @@ function app() {
   function walk(start, adj, key) { return reach(start, adj, key, Infinity); }
   function clearFocus(user) {
     svg.classList.remove("focus");
-    svg.querySelectorAll(".on,.sel,.upstream,.near").forEach(el => el.classList.remove("on", "sel", "upstream", "near"));
+    svg.querySelectorAll(".on,.sel,.upstream,.near,.sn").forEach(el => el.classList.remove("on", "sel", "upstream", "near", "sn"));
     info.style.display = "none";
     nav.classList.remove("focus"); nav.querySelectorAll("rect.on").forEach(r => r.classList.remove("on"));
     setVB(vb.x, vb.y, vb.width, vb.height);  // clamped again for the wider free area
@@ -1693,6 +1696,8 @@ function app() {
     const { up: upSet, down: downSet } = chain(sub.edges, id);
     svg.classList.add("focus");
     nodeEl[id].classList.add("sel");
+    // the boxes a hover on it grew (every link's other end, as setHover lights them) stay grown and lit after the click
+    (edgesAt[id] || []).forEach(el => [el.dataset.from, el.dataset.to].forEach(v => nodeEl[v] && nodeEl[v].classList.add("sn")));
     upSet.forEach(v => nodeEl[v].classList.add("on"));
     downSet.forEach(v => nodeEl[v].classList.add("on"));
     edgeEls.forEach((el, i) => {

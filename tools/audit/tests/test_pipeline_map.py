@@ -378,6 +378,14 @@ process.stdout.write(JSON.stringify(out));"""
         self.assertEqual(got, {**{f"u{i}": i for i in range(6)}, **{f"d{i}": i for i in range(6)}})
         self.assertEqual(self.run_js("a.map(m.fadeOf)", [0, 1, 2, 3, 4, 5, 9]), ["", "", "", "2", "2", "3", "3"])
 
+    def test_grow_rank_keeps_selected_neighbours(self) -> None:
+        """growRank: the hover first, then what it lights, the selection and hits, then the selected box's neighbours
+        (sn, so the boxes a hover grew stay grown after the click); a box with none of these does not grow."""
+        cases = [[True, []], [False, ["hn"]], [False, ["sel"]], [False, ["hit"]], [False, ["sn"]], [False, ["sn", "hn"]],
+                 [False, ["near"]], [False, []]]
+        got = self.run_js("a.map(([h, cs]) => m.growRank(h, c => cs.includes(c)))", cases)
+        self.assertEqual(got, [0, 1, 2, 2, 3, 1, 4, 4])
+
     def test_hover_skips_side_links_and_runners(self) -> None:
         """hoverStop, hoverWalks: a hovered line's chain stops at runners and hubs and does not walk side links or a
         link bridged over a stop; on the real map every side value is known, and a line out of build_signals.py no
