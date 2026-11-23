@@ -64,7 +64,9 @@ log "sdm --customize"
 stamp="$(date +%Y%m%d-%H%M)"
 final="$TMP/hart-pi-os-$stamp.img"
 log "sdm --burnfile (hostname $HOSTNAME_PI)"
-/usr/local/sdm/sdm --burnfile "$final" --hostname "$HOSTNAME_PI" "$base"
+# --expand-at-boot keeps `resize` in cmdline.txt, so the first boot grows the root filesystem
+# to the whole card; without it sdm removes `resize`, expecting to expand during a --burn.
+/usr/local/sdm/sdm --burnfile "$final" --hostname "$HOSTNAME_PI" --expand-at-boot "$base"
 
 mv "$final" "$OUT/"
 (cd "$OUT" && sha256sum "$(basename "$final")" > "$(basename "$final").sha256")

@@ -68,6 +68,8 @@ is "ssh host keys" "$(ls "$m"/etc/ssh/ssh_host_*_key 2>/dev/null | wc -l)" 3
 [[ -s "$m/var/lib/samba/private/passdb.tdb" ]] && ok "Samba passwords" || bad "Samba passwords missing"
 is "hostname" "$(cat "$m/etc/hostname")" RPi-JMRI
 cl="$(cat "$m/boot/firmware/cmdline.txt")"
+grep -qE '(^| )resize( |$)' <<< "$cl" && ok "cmdline has resize (first boot grows the root filesystem)" || bad "cmdline has no resize: the root filesystem stays at the image size"
+[[ -L "$m/etc/systemd/system/sysinit.target.wants/rpi-resize.service" ]] && ok "rpi-resize.service enabled" || bad "rpi-resize.service not enabled: the filesystem would not grow"
 grep -q 'drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin' <<< "$cl" && ok "cmdline EDID" || bad "cmdline has no EDID setting"
 is "cmdline video=" "$(grep -o 'video=[^ ]*' <<< "$cl" | tr '\n' ' ')" "video=HDMI-A-1:1920x1080@60D video=HDMI-A-2:1920x1080@60D "
 [[ ! -e "$m/etc/initramfs-tools/conf.d/zz-hart-image-build" ]] && ok "build-only initramfs setting removed" || bad "zz-hart-image-build left in the image"
@@ -82,6 +84,8 @@ for ird in "${irds[@]}"; do
   is "EDID files in $n" "$(grep -cE 'usr/lib/firmware/edid/edid2?\.bin$' <<< "$list")" 2
   grep -qE ' lib -> usr/lib$' <<< "$list" && ok "$n has lib -> usr/lib (firmware loader path)" || bad "$n has no lib -> usr/lib link"
   grep -q '/vc4/vc4\.ko' <<< "$list" && ok "$n has vc4" || bad "$n has no vc4"
+  grep -q 'scripts/local-premount/resize_early$' <<< "$list" && grep -q 'usr/s\?bin/parted$' <<< "$list" \
+    && ok "$n has resize_early and parted" || bad "$n lacks resize_early or parted: the partition would not grow"
 done
 
 for b in lwrespawn wf-panel-pi kanshi lxsession-xdg-autostart; do [[ -x "$m/usr/bin/$b" ]] && ok "/usr/bin/$b" || bad "/usr/bin/$b missing (the display setup starts it)"; done

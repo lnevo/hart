@@ -11,7 +11,7 @@ tools/hosts/pi-os/check_image.sh      # run by build_image.sh; checks the newest
 tools/hosts/pi-os/build_image.sh --stop
 ```
 
-The image lands in `~/.cache/hart/pi-os/out/` with a `.sha256` and a `.base` file naming the stock image it came from. Write it to the new SD card with Raspberry Pi Imager ("Use custom", no OS customisation) or `dd`. It holds the Wi-Fi passwords and ssh host keys, so it never leaves the Mac.
+The image lands in `~/.cache/hart/pi-os/out/` with a `.sha256` and a `.base` file naming the stock image it came from. The root filesystem is about 12 GB in the image and grows to fill the card on first boot (`resize` in `cmdline.txt`). Write it to the new SD card with Raspberry Pi Imager ("Use custom", no OS customisation) or `dd`. It holds the Wi-Fi passwords and ssh host keys, so it never leaves the Mac.
 
 ## What is where
 
