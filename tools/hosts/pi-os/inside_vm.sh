@@ -42,16 +42,13 @@ log "base image $name (sha256 ok)"
 base="$TMP/base.img"
 xz -dc "$WORK/cache/$name" > "$base"
 
-# 3. The pluglist, filled in. Kept on the VM disk only (it holds the password hash).
-# shellcheck disable=SC1091
-source "$STAGE/private/secrets.env"
+# 3. The pluglist, filled in.
 # Literal replacements: bash 5.2 would otherwise treat & as the match.
 shopt -u patsub_replacement 2>/dev/null || true
 umask 077
 trap 'rm -f "$TMP/hart.pluglist"' EXIT
 t="$(<"$STAGE/os/hart.pluglist.in")"
 t="${t//@STAGE@/$STAGE}"
-t="${t//@PI_PASSWORD_HASH@/$PI_PASSWORD_HASH}"
 printf '%s\n' "$t" > "$TMP/hart.pluglist"
 umask 022
 

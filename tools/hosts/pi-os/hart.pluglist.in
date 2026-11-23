@@ -1,11 +1,12 @@
 # sdm pluglist for the layout Pi (docs/hosts/PI_OS_REBUILD.md).
 # inside_vm.sh fills @STAGE@ (the staged copy of this folder, the secrets and the
-# checkouts) and @PI_PASSWORD_HASH@, then runs sdm --customize with it.
+# checkouts), then runs sdm --customize with it.
 # Syntax: https://github.com/gitbls/sdm/blob/master/Docs/Plugins.md
 
-# Same user, uid and password as the old card; groups are sdm's defaults
-# (dialout, gpio, video and the rest). docker and lpadmin are added at first boot.
-user:adduser=pi|uid=1000|password-hash=@PI_PASSWORD_HASH@
+# The trixie image already has a locked placeholder pi (uid 1000, nologin), so sdm's
+# adduser only marks pi as its main user (desktop autologin); the account itself is
+# fixed in post-install below. docker and lpadmin are added at first boot.
+user:adduser=pi|uid=1000
 L10n:keymap=us|locale=en_US.UTF-8|timezone=America/New_York|wificountry=US
 # cloud-init and netplan would move the NetworkManager profiles to /run (sdm Hints-Trixie).
 disables:cloudinit|piwiz|triggerhappy
@@ -30,6 +31,11 @@ copydir:from=@STAGE@/os/rootfs/home-pi/|to=/home/pi/|rsyncopts=-rlptK --chown=10
 # JMRI 5.16 as it runs on the old card (CATS installed into it), STS and the bridge checkouts.
 copydir:from=@STAGE@/home/|to=/home/pi/|rsyncopts=-rlptK --chown=1000:1000
 runcommand:command=ln -sfn JMRI.5.16 /home/pi/JMRI && chown -h 1000:1000 /home/pi/JMRI|runphase=post-install
+# pi gets a login shell and the old card's password hash, from a root-only file; then that
+# file and copyfile's staged copy are removed, and home and .ssh get the modes ssh insists on.
+# The grep refuses anything that is not a crypt hash, so pi can never end up passwordless.
+copyfile:from=@STAGE@/private/pi.hash|to=/etc/sdm/assets/hart|chown=root:root|chmod=600|mkdirif
+runcommand:command=grep -q '^[$]' /etc/sdm/assets/hart/pi.hash && usermod -s /bin/bash -p "$(cat /etc/sdm/assets/hart/pi.hash)" pi && rm -f /etc/sdm/assets/hart/pi.hash /etc/sdm/assets/copyfile/*/pi.hash && chown -R 1000:1000 /home/pi/.ssh && chmod 700 /home/pi /home/pi/.ssh|runphase=post-install
 
 system:name=hart|service-enable=wifi-watchdog,mosquitto,smbd,nmbd,cups|service-disable=lcos-bridge|service-mask=samba-ad-dc
 # Display: today's settings, carried over unchanged until the trial on the old card is done.

@@ -1,6 +1,6 @@
 # Pi OS rebuild plan (2026-11-21, decisions 2026-11-23)
 
-This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); no image has been built yet and nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
+This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); a first image was built and checked on the Mac on 2026-11-23; nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
 
 ## What the Pi runs now
 
@@ -38,7 +38,8 @@ The image is built and loaded with software before any card is written, and the 
 
 - **Where:** a Lima VM on the Mac (Debian 13, arm64, Apple virtualization), the same architecture as the Pi 5, so `apt` runs natively with no emulation. The first draft used a Docker container, but sdm's own docs say it does not work in Docker (it needs systemd-nspawn and loop devices); a full VM has both. The Windows box would need qemu emulation, which is slower.
 - **Tool:** sdm (gitbls/sdm, pinned to V16.2). It customises a stock Raspberry Pi OS image: packages, users, Wi-Fi, locale, files and services, plus first-boot steps. Its config and our files are in `tools/hosts/pi-os/`, so a rebuild is one command (`build_image.sh`). The alternatives are Raspberry Pi's `rpi-image-gen` (more work to set up) or a plain loop-mount and chroot script.
-- **Time:** about 20 to 40 minutes to build, then Raspberry Pi Imager or `dd` writes the card.
+- **Time:** about 5 minutes once the VM and the stock image are cached (13 minutes the first time, 2026-11-23), then Raspberry Pi Imager or `dd` writes the 13 GB image to the card.
+- **First build (2026-11-23):** the image checked out read-only in the VM: trixie arm64, all packages and Docker installed, `/lib` intact, the house Wi-Fi and hotspot profiles, the old ssh host keys and Samba passwords, hostname `RPi-JMRI`, and the planned services enabled. Stock trixie ships a locked placeholder `pi` (no password, `nologin`), so the build now gives it a shell and the old card's password hash; the rebuilt image has both. Not yet booted on a Pi.
 
 ### Baked into the image
 
