@@ -33,16 +33,20 @@ A survey down Chartiers Creek toward Pittsburgh was made in **1831** (Washington
 
 **8 December 1871** — leased to the Pittsburgh, Cincinnati & St. Louis Railway (Panhandle) as the **Chartiers Branch**. PCC&StL acquired the company **20–21 November 1907**.
 
-The line was double-tracked Carnegie–Houston (about 15 miles) by 1904. Coal branches left at Bridgeville (Bridgeville & McDonald, 1890, toward Cecil/Bishop) and later to Westland, Palanka, and Manifold (1904). Connections included:
+The line was double-tracked Carnegie–Houston (about 15 miles) by 1904. Coal branches left at Bridgeville (Bridgeville & McDonald, 1890, toward Cecil/Bishop), and from 1904 to Westland, Palanka and Manifold, built to tap new mines in the Pittsburgh coal seam. The Westland Branch left the main at Houston (MP 15.3), and two spurs off it served the Palanka mines. Connections included:
 
 - PC&Y at Glenn and Woodville
 - **Montour Railroad** at Hills (about MP 8.6)
 - **Pittsburgh & West Virginia** (P&WV) near Bridgeville
-- B&O at Washington, via the jointly owned Tylerdale Connecting, and the narrow-gauge **Waynesburg & Washington**
+- B&O at Washington, by the jointly owned Tylerdale Connecting, which joined the main at Tylerdale (about MP 21.8); and the narrow-gauge **Waynesburg & Washington**
 
 Nine daily Pittsburgh–Washington passenger round trips in 1926. Last scheduled passenger train **July 1952**. Reduced to single track by 1951. Most mine branches gone by 1972. Conrail abandoned Tylerdale–Washington (1.8 miles) in 1982 and Tylerdale–near Arden (1.4 miles) in 1984. The remaining Chartiers industrial track was sold in **1996**. The Pennsylvania Trolley Museum’s standard-gauge neighbor at Washington is this line.
 
 Stations along the valley (Chartiers Branch employee lists and valuation maps): Glenn, Woodville, Bower Hill, Kirwan, Bridgeville, Mayview, Boyce, Hills, Canonsburg, Houston, Arden, Washington. Several stations still stand (Bridgeville passenger; the old freight station is built into Silhol’s warehouse; Boyce; Canonsburg; Washington freight and passenger).
+
+### Palanka
+
+Palanka, known locally as Midland, was a coal company town north and west of Houston. The Midland Coal Company laid it out in 1900, built 150 to 200 company houses, and began its Midland No. 1 mine in 1901; its Midland Nos. 2 and 3 were on the Little Chartiers at Westland. The Pittsburgh Coal Company later bought much of Midland's land. The mine shipped steam coal by lake from Ashtabula and Sandusky, employed 1,180 men in 1936, and closed on 9 March 1949. The Westland and Palanka branches were abandoned in 1955 (Wikipedia; not confirmed elsewhere). Midland history after Daniel Giosta (1970), by way of Coal Camp USA.
 
 ---
 
@@ -187,3 +191,7 @@ The **Pittsburgh, Allegheny & McKees Rocks Railroad (PAM)** is the switching roa
 16. UW-Madison / Howard Shipyards: *Steel Queen* (Pressed Steel Car), burned Woods Run 16 Oct 1926.
 17. Wikipedia, Pittsburgh and West Virginia Railway (N&W lease and NKP merger, 16 Oct 1964); List of CSX Transportation predecessor railroads (P&LE: part sold to CSX 1991, remainder via Three Rivers Railway 1992).  
     https://en.wikipedia.org/wiki/Pittsburgh_and_West_Virginia_Railway
+18. Wikipedia, “Chartiers Branch” (mileposts; Westland Branch from Houston, MP 15.3; the Palanka spurs; abandonment 1955).  
+    https://en.wikipedia.org/wiki/Chartiers_Branch
+19. Coal Camp USA, “Palanka, PA (Midland)”, after Daniel Giosta, 1970.  
+    https://coalcampusa.com/westpa/pittsburgh/palanka/palanka.htm

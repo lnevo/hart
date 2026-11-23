@@ -45,7 +45,7 @@ const STN=[
 /* ---------- the coal extra ---------- */
 const coal={group:"chartiers",covers:["sup","to","sem","yl"],code:"Extra 4619 South",name:"the coal extra",year:"1949",
   dateLine:"a weekday in 1949",start:420,end:720,endPlace:"Arden",tieUp:"{t}",
-  coda:`The Chartiers Branch ran from Carnegie (Mansfield) to Washington, double track to Houston by 1904. Coal branches left it at Bridgeville from 1890 and, from 1904, for Westland, Palanka and Manifold (${lib("Railroads of the Chartiers Valley")}, <a href="${WIKI}" rel="noopener">Wikipedia: Chartiers Branch</a>).`,
+  coda:`The Chartiers Branch ran from Carnegie (Mansfield) to Washington, double track to Houston by 1904. Coal branches left it at Bridgeville from 1890 and, from 1904, at Houston for Westland and the Palanka mines, and for Manifold. Palanka's mine closed in March 1949 (${lib("Railroads of the Chartiers Valley")}, <a href="${WIKI}" rel="noopener">Wikipedia: Chartiers Branch</a>).`,
   where(S){const G=S.road;if(!G)return "Carnegie";return G.moving?"between "+G.moving:ST[G.pos].n+(G.inSiding&&G.pos>0&&G.pos<LAST?" (siding)":"")},
 
   map(S){return RE.map(S,{label:"4619"})},
