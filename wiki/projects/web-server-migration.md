@@ -50,6 +50,8 @@ Ubuntu 18.04 gets security updates only through Ubuntu Pro ESM, which ends in Ap
 
 ## Left
 
+Closed by the owner on 2026-11-23: these are a record, never listed as pending ([`not-pending.md`](../not-pending.md)).
+
 - Delete the snapshot `Ubuntu-1-final-2026-11-23` once nothing more is needed from the old server (about $1 a month while kept).
 - The panel at `https://www.easte.net:8083` uses HestiaCP's own certificate: HestiaCP issues a hostname certificate only when `www.easte.net` is its own web domain, and here it is an alias of easte.net.
 - debbies.kitchen cannot send email (no mail server, no SMTP plugin), as before the move.

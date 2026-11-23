@@ -120,6 +120,8 @@ Most of this goes into the repo under `tools/hosts/pi-os/`. Secrets don't: Wi-Fi
 
 ## Displays
 
+Status: done (2026-11-23). The owner closed the display topic: the fix is live on the current card and in the image. What only the new card can show (the trixie Control Centre and kanshi, the kernel the Pi 5 boots) is checked in Phase 5, item 9.
+
 Each Pi HDMI port goes into an SFX HDMI Matrix: HDMI-A-2 directly, HDMI-A-1 through a KVM shared with the Windows box (found by the KVM flip test, 2026-11-23). The matrix feeds the local monitor and the crew lounge screen, so the lounge can show the Pi while the local monitor is on Windows. Both outputs are needed. Nothing is set on the matrix or the monitors themselves.
 
 ### Setup on the card (made 2026-02-21)
