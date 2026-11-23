@@ -74,7 +74,7 @@ const doc = {
 };
 
 /* ---------- load the page's scripts into one context ---------- */
-function load(seedBox) {
+function load(seedBox, phone) { // phone: { scroll(o) } pretends to be a phone and records window.scrollTo
   roots.length = 0;
   ["xw", "xwStart", "xwGame", "xwStatus", "xwMap", "xwScene", "xwSheet", "xwLog", "xwBest"].forEach((id) => mk(id));
   const game = doc.getElementById("xwGame"); game.hidden = true;
@@ -83,6 +83,7 @@ function load(seedBox) {
   const ctx = vm.createContext({ document: doc, console, location: { origin: "http://localhost", pathname: "/play/" }, scrollY: 0,
     localStorage: { _d: {}, getItem(k) { return this._d[k] ?? null; }, setItem(k, v) { this._d[k] = String(v); } } });
   ctx.window = ctx; ctx.window.scrollTo = () => {};
+  if (phone) { ctx.innerHeight = 844; ctx.matchMedia = () => ({ matches: true }); ctx.window.scrollTo = phone.scroll; }
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
   for (const f of ["play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/passenger.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
@@ -182,7 +183,26 @@ function main() {
     }
     if (stats.unlisted.size) failures.push(`${id}: asked questions that are not in the answer key: ${[...stats.unlisted].slice(0, 5).join(" | ")}`);
   }
+  scrollCheck(failures);
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
   console.log("play-through OK");
+}
+/* On a phone a new scene that is off the screen brings the status bar (clock, marks, map) back into view; one that is
+   already in view, and the first scene of a run, leave the page where it is. */
+function scrollCheck(failures) {
+  const calls = [];
+  const env = load(undefined, { scroll: (o) => calls.push(o.top) });
+  const scene = doc.getElementById("xwScene"), status = doc.getElementById("xwStatus");
+  status.getBoundingClientRect = () => ({ top: 500 });
+  let top = 900; scene.getBoundingClientRect = () => ({ top });
+  env.runBtns.find((b) => b.dataset.run === "j105").onclick();
+  if (calls.length !== 1) failures.push(`scroll: starting a run scrolled ${calls.length} times, not once`);
+  const press = (n) => { for (let i = 0; i < n; i++) { const b = scene.querySelectorAll("button").filter((x) => !x.disabled)[0]; if (b) b.onclick(); } };
+  const n1 = calls.length; press(4);
+  if (!calls.slice(n1).includes(430)) failures.push(`scroll: a scene below the screen did not bring the status bar into view (${calls.slice(n1)})`);
+  top = 300; const n2 = calls.length; press(4);
+  if (calls.length !== n2) failures.push("scroll: a scene already in view moved the page");
+  top = -50; const n3 = calls.length; press(4);
+  if (!calls.slice(n3).includes(430)) failures.push("scroll: a scene above the screen did not bring the status bar into view");
 }
 main();

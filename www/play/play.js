@@ -119,10 +119,20 @@ function scene(where,title,html){
   const el=$("xwScene");el.classList.remove("in");void el.offsetWidth;el.classList.add("in");
   el.innerHTML=`<div class="where"><span>${esc(where)}</span><span>${fmt(S.clock)}</span></div><h2>${esc(title)}</h2>${html}`;
   renderStatus();renderSheet();
-  // on a phone the sheet sits under the scene: bring a new scene into view if the player was reading further down
-  const top=el.getBoundingClientRect().top,vh=window.innerHeight||0;
-  if(vh&&(top<60||top>vh*.6))window.scrollTo({top:top+scrollY-70,behavior:reduced?"auto":"smooth"});
+  sceneIntoView(el);
   return el;
+}
+/* On a phone the sheet sits under the scene (the .xw-grid breakpoint, 860px), so a player who was reading the
+   time-table would not see the next scene. When its top is above the screen or low on it, scroll to the status bar,
+   which keeps the clock, the marks and the map in view with the scene under them. Not on a wide screen, not for a
+   run's first scene (begin() scrolls), and not when the scene is already in view, e.g. while the map is being read. */
+let firstScene=false;
+function sceneIntoView(el){
+  if(firstScene){firstScene=false;return}
+  const vh=window.innerHeight||0;if(!vh||!(window.matchMedia&&matchMedia("(max-width:860px)").matches))return;
+  const top=el.getBoundingClientRect().top-(reduced?0:6); // the xw-in animation starts 6px low
+  if(top>=0&&top<=vh*.6)return;
+  window.scrollTo({top:$("xwStatus").getBoundingClientRect().top+scrollY-70,behavior:reduced?"auto":"smooth"});
 }
 const srcHtml=o=>{const t=esc(srcLabel(o.src));return o.url?`<a href="${o.url.startsWith("http")?o.url:TUMBLR+o.url}" rel="noopener">${t}</a>`:t};
 /* A decision. right = the answer; wrong = [[text, cost, why?]]; cost {min, marks, end, endText}. */
@@ -239,7 +249,7 @@ function begin(id,daily){
   $("xwStart").hidden=true;$("xwGame").hidden=false;
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
-  next();
+  firstScene=true;next();
 }
 const DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 function reliefToday(){
