@@ -68,6 +68,7 @@ is "ssh host keys" "$(ls "$m"/etc/ssh/ssh_host_*_key 2>/dev/null | wc -l)" 3
 [[ -s "$m/var/lib/samba/private/passdb.tdb" ]] && ok "Samba passwords" || bad "Samba passwords missing"
 is "hostname" "$(cat "$m/etc/hostname")" RPi-JMRI
 cl="$(cat "$m/boot/firmware/cmdline.txt")"
+grep -qw resize <<< "$cl" && ok "first boot grows the root filesystem (resize)" || bad "cmdline has no resize: the root filesystem stays at the image size"
 grep -q 'drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin' <<< "$cl" && ok "cmdline EDID" || bad "cmdline has no EDID setting"
 is "cmdline video=" "$(grep -o 'video=[^ ]*' <<< "$cl" | tr '\n' ' ')" "video=HDMI-A-1:1920x1080@60D video=HDMI-A-2:1920x1080@60D "
 [[ ! -e "$m/etc/initramfs-tools/conf.d/zz-hart-image-build" ]] && ok "build-only initramfs setting removed" || bad "zz-hart-image-build left in the image"
