@@ -198,3 +198,5 @@ details.xw-how summary{cursor:pointer;font-weight:600}
 .xw-cta{margin:0 0 .5rem;display:flex;flex-wrap:wrap;gap:.6rem}
 .xw-cta button.btn{cursor:pointer;font-family:var(--font-body)}
 .xw-group .back-top{margin-top:.75rem}
+.xw-keyfoot{margin:.75rem 0 0;font-size:.85rem;text-align:right}
+.xw-keyfoot a{color:var(--muted)}
