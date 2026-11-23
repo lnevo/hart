@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* Builds www/play/answers.html, the answer key for Extra East: HART Railroad, from the island shifts in www/play/runs.js
-   and the road runs in www/play/road.js and passenger.js (with the shared road-engine.js). Each run's build() is run many times with a
+   and the road runs in www/play/road.js, passenger.js and pcy.js (with the shared road-engine.js). Each run's build() is run many times with a
    seeded random stream and a stand-in for the game's helpers, so every branch a draw can take is seen. Each run lists
    every question it can ask; words a draw changes (a time, a count) show as [varies]. Questions asked from inside an
    after() or info callback are not seen; none are today. A road run lists the questions that depend on the path
@@ -15,13 +15,13 @@ const PLAY = path.join(__dirname, "..", "play");
 const RUNS = path.join(PLAY, "runs.js");
 const EXAM = path.join(PLAY, "..", "exam");
 /* The road runs' scripts, in load order: the Standard Code signals, the shared engine, then the runs. */
-const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js")];
+const ROAD = [path.join(EXAM, "signals.js"), path.join(PLAY, "road-engine.js"), path.join(PLAY, "road.js"), path.join(PLAY, "passenger.js"), path.join(PLAY, "pcy.js")];
 const OUT = path.join(PLAY, "answers.html");
 const TUMBLR = "https://www.tumblr.com/pittsburghohiovalleyrailroad/";
 const SEC = { gcor: "GCOR crew & speed", sig: "Signals & whistles", def: "Definitions", yl: "Yard limits", sup: "Superiority & movement", to: "Train orders", sem: "Semaphores", twc: "Track warrants" };
 const SRC = { GC: "GCOR", YL: "Yard Limits guide", PV: "Mark Connolly's P&OV blog,", SC: "1949 Standard Code", TT: "TT&TO primer", SG: "Signals guide", SM: "Semaphores guide" };
 /* The start screen's groups: the heading and its line, in the order the key lists them. */
-const GROUPS = { island: ["On the island", "Pittsburgh & Ohio Valley · 1979 to 1990"], chartiers: ["Up the Chartiers", "Pennsylvania Railroad · 1949"] };
+const GROUPS = { island: ["On the island", "Pittsburgh & Ohio Valley · 1979 to 1990"], chartiers: ["Up the Chartiers", "Chartiers Valley · 1949 to 1997"] };
 const DRAWS = 400; // runs per shift; enough to see every branch of today's draws
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);

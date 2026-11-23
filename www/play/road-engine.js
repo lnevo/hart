@@ -4,7 +4,8 @@
    No 307) load after it and register in window.NevilleRuns. The line comes from library/chartiers-valley-railroads.html
    and the sources it lists; the time-table, the other trains, the orders and the offices are the game's own. Every
    question is a rule from the C&E study deck (exam/deck-data.js), in the deck's words. Question wording that comes
-   from the Standard Code speed signals uses exam/signals.js, which loads first.
+   from the Standard Code speed signals uses exam/signals.js, which loads first. A second line (pcy.js, the PC&Y run) shares
+   only the parts that are not the Chartiers Branch's own: the helpers, the draw and the signal toolkit at the end.
  */
 (function(){
 "use strict";
@@ -175,6 +176,20 @@ function aspectQ(o){
     wrong:A.w.map(r=>[by(r).ind]),why:`Rule ${A.r}, ${A.name}: ${A.ind}.`};
 }
 
+/* ---------- the signal toolkit: shared by any run that has signals instead of a time-table ---------- */
+/* What to do at a signal showing Stop, by its plate (Signals guide, exam/signals.js PLATES). Passing an absolute signal
+   without permission ends the run. Each plate has exactly three wrong choices, so the answer key lists them all. */
+function plateQ(key,where,place){
+  const P=PLATES[key];
+  return {sec:"sig",src:"SG · Signal signage",where,title:P.name+" at "+place,body:`The signal shows Stop and carries ${P.with}. What do you do?`,
+    extra:`<div class="xw-fig">${sigFig("RRR",key==="none"?"":key)}</div>`,right:P.act,
+    wrong:plateWrongs(key).map(w=>w.ends?[w.t,{end:true,endText:"You passed a signal at Stop without permission."}]:[w.t]),why:P.note};
+}
+/* The Standard Code pairs a home signal that is cleared with the approach signal before it by the speed of the route:
+   the aspect of the approach signal, then the home signal's own. A home signal at Stop is preceded by Approach (285). */
+const PAIR={limited:{app:"281B",home:"281C"},medium:{app:"282",home:"283"},slow:{app:"284",home:"287"}};
+const SPEEDS=Object.keys(PAIR);
+
 /* ---------- a draw from a pool, each question once per run ---------- */
 function draw(G,R,H,key,pool,p){
   if(R()>p)return null;
@@ -182,5 +197,5 @@ function draw(G,R,H,key,pool,p){
   return H.ask(pool[b.pop()]);
 }
 
-window.RoadEngine={ST,LAST,HOU,ARD,BV,HIL,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,draw};
+window.RoadEngine={ST,LAST,HOU,ARD,BV,HIL,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,plateQ,PAIR,SPEEDS,draw};
 })();

@@ -14,7 +14,7 @@ const read = (p) => fs.readFileSync(path.join(WWW, p), "utf8");
 const DRAWS = +process.argv[2] || 60;
 const MAX_STEPS = 4000;
 /* The road runs: the least and most questions on average over the draws that tie up, and the sections every such draw asks. */
-const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]] };
+const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]], pcy: [15, 20, ["sig", "yl"]] };
 
 /* ---------- a fake DOM: just the elements the game reads back (buttons, choices, the result box) ---------- */
 const VOID = new Set(["br", "hr", "img", "input", "line", "path", "circle", "rect", "meta", "link", "use"]);
@@ -85,7 +85,7 @@ function load(seedBox, phone) { // phone: { scroll(o) } pretends to be a phone a
   ctx.window = ctx; ctx.window.scrollTo = () => {};
   if (phone) { ctx.innerHeight = 844; ctx.matchMedia = () => ({ matches: true }); ctx.window.scrollTo = phone.scroll; }
   vm.runInContext("var __s=1;Math.random=function(){__s=(Math.imul(__s,1664525)+1013904223)>>>0;return __s/4294967296}", ctx);
-  for (const f of ["play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/passenger.js"]) vm.runInContext(read(f), ctx, { filename: f });
+  for (const f of ["play/runs.js", "exam/signals.js", "play/road-engine.js", "play/road.js", "play/passenger.js", "play/pcy.js"]) vm.runInContext(read(f), ctx, { filename: f });
   for (const id of Object.keys(ctx.window.NevilleRuns)) { const b = new El("button", { "data-run": id }); roots.push(b); runBtns.push(b); ids.push(id); }
   vm.runInContext(read("play/play.js"), ctx, { filename: "play/play.js" });
   return { ctx, ids, runBtns };
