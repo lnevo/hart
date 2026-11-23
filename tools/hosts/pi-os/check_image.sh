@@ -71,9 +71,17 @@ cl="$(cat "$m/boot/firmware/cmdline.txt")"
 grep -q 'drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin' <<< "$cl" && ok "cmdline EDID" || bad "cmdline has no EDID setting"
 is "cmdline video=" "$(grep -o 'video=[^ ]*' <<< "$cl" | tr '\n' ' ')" "video=HDMI-A-1:1920x1080@60D video=HDMI-A-2:1920x1080@60D "
 [[ ! -e "$m/etc/initramfs-tools/conf.d/zz-hart-image-build" ]] && ok "build-only initramfs setting removed" || bad "zz-hart-image-build left in the image"
-for ird in "$m"/boot/firmware/initramfs*; do
-  n="$(chroot "$m" lsinitramfs "/boot/firmware/$(basename "$ird")" 2>/dev/null | grep -c 'firmware/edid/edid2\?\.bin$')"
-  is "EDID in $(basename "$ird")" "$n" 2
+grep -qx vc4 "$m/etc/initramfs-tools/modules" && ok "vc4 listed for every initramfs" || bad "vc4 not in /etc/initramfs-tools/modules"
+shopt -s nullglob
+irds=("$m"/boot/firmware/initramfs*)
+shopt -u nullglob
+(( ${#irds[@]} )) || bad "no initramfs in /boot/firmware"
+for ird in "${irds[@]}"; do
+  n="$(basename "$ird")"
+  if ! list="$(chroot "$m" lsinitramfs -l "/boot/firmware/$n")"; then bad "cannot list $n"; continue; fi
+  is "EDID files in $n" "$(grep -cE 'usr/lib/firmware/edid/edid2?\.bin$' <<< "$list")" 2
+  grep -qE ' lib -> usr/lib$' <<< "$list" && ok "$n has lib -> usr/lib (firmware loader path)" || bad "$n has no lib -> usr/lib link"
+  grep -q '/vc4/vc4\.ko' <<< "$list" && ok "$n has vc4" || bad "$n has no vc4"
 done
 
 w="$m/etc/systemd/system/multi-user.target.wants"
