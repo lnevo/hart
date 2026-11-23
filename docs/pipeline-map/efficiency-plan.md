@@ -42,7 +42,37 @@ Every topic is merged and deployed (Pi and Windows from 1bc9cab8, website the sa
 
 Timings now: a warm `make panels` 4–6 s (was about 45 s), a warm local `check.sh` about 40 s (was 2–5 min), a text-only site build 3 s (was 8 s), a `--pi --win` deploy about 35 s with every check before anything ships.
 
-## Next: measure a real edit
+## Full rebuild timed (2026-11-23)
+
+The owner chose a full rebuild as the timed run in place of a real edit (2026-11-22). Both runs on the Mac, plugin b0bc62ee, each with a new empty plugin cache (`SCHEMATIC_CACHE`), so nothing was read back.
+
+**As approved** (`make panels FULL=1` on main c44a00db): 431 s, every step passed.
+
+| Step | Time |
+|---|---|
+| plan-lengths (reads the AnyRail plan) | 37 s |
+| schematic (the solve, sheet and station pages) | 38 s |
+| sml-current (builds `tables.xml` in memory, the Layout Editor panel first) | 343 s |
+| cats | 4 s |
+| tables (reads the panel back from the cache) | 2 s |
+| the other eleven steps | 7 s together |
+
+The cold Layout Editor build is 80% of the run. The 40 s full rebuild in "What the timings show" and the warm 4–6 s above both had a warm cache.
+
+**Raw, from the plugin alone:** the plugin's own commands with `--no-preferences` on the same plan graphs, plan facts and signals (no band order, width, alignment or shift, no `level_leg` pins, no turnbacks, no Layout Editor or CATS tuning):
+
+| Command | Time | Result |
+|---|---|---|
+| `draw` (the solve, cold) | 38 s | 3 bands, 0 crossings or overlaps, 0 label faults; the main slopes at 4 switches (33, 109, 219, 229) |
+| `report` | 0.2 s | as above |
+| `le` at the plugin's grid | 1.5 s | 61 turnouts, 216 track segments, 187 blocks; 2370 x 1236 px, wider than the hosts' 1920 x 1032 window |
+| `le --fit 1920x1032` | 17.7 s | stopped: 20 block contents labels found no clean spot on the shrunk grid |
+| `cats --window 1920x1032` | 0.2 s | 0 desk faults; 116 x 57 cells, so CATS scrolls |
+
+So the solve costs the same either way (38 s); the preferences' Layout Editor passes cost about 5.5 minutes on a cold cache. The HART builders cannot run without the preferences: with `preferences.json` cut to `host_screen`, `build_device_map.py` stops (a band with no `rail`) and the `plan-lengths` guard stops on new track names (1A-23A, 1C-5A). The raw files were put in `~/JMRI_UserFiles/raw-experiment/` on the Mac for the owner to look at; nothing was deployed.
+
+## Measure a real edit (replaced by the full rebuild above)
+
 
 The speed-ups above are measured on repeat runs. The plan's real aim, fewer round trips on a layout change, has not been timed yet. On the next real change (a block split, a Store split, a mast or a wiring change; owner, 2026-11-21):
 
