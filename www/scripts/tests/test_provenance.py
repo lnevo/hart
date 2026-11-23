@@ -177,6 +177,8 @@ class RealMap(unittest.TestCase):
             rel = Path(name)
             if rel in pgp.SKIP_FILES or any(d in rel.parents for d in pgp.SKIP_DIRS) or not (PORTAL / rel).is_file():
                 continue
+            if rel.as_posix() in pgp.INDEX_SKIP_PAGES:  # the build's provenance step leaves these out too
+                continue
             pages[rel] = (PORTAL / rel).read_text(encoding="utf-8")
         self.assertEqual(provenance.unclassified(pages, data), [])
 
