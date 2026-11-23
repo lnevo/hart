@@ -90,7 +90,7 @@ const api={BOXES,SAY,TW_SEL,compare,
         const body=esc(txt).replace(/\{(\w+)\}/g,(_,t)=>{const id=`b${n}_${k++}`;return `<select id="${id}" aria-label="Box ${n} blank ${k}"><option value="">—</option>${TW_SEL[t].map(v=>`<option>${esc(v)}</option>`).join("")}</select>`});
         return `<label class="box" id="row${n}"><input type="checkbox" id="c${n}"><span class="n">${n}</span><span>${body}</span></label>`;
       }).join("");
-      const el=H.scene(w.at,"Copy track warrant "+w.no,`<p>The dispatcher reads the warrant at copying speed. Check each box he gives and fill in its blanks, then repeat it back.</p><div class="xw-dict" id="dict"></div>
+      const el=H.scene(w.at,"Copy track warrant "+w.no,`<p>The dispatcher reads the warrant at copying speed, slowly enough for you to write it down. Check each box he gives and fill in its blanks, then repeat it back.</p><div class="xw-dict" id="dict"></div>
       <div class="xw-tw"><div class="hd">TRACK WARRANT No ${esc(w.no)} · Oct 15 1997<br><span style="font-weight:400">To ${esc(to)} at ${esc(w.at)}</span></div>${form}<div class="okline">OK ____  Dispatcher ____</div></div>
       <div class="choices"><button class="xw-btn primary" id="rb">Repeat it to the dispatcher</button></div><div class="result" hidden></div>`);
       // read it out a line at a time

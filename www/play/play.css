@@ -13,14 +13,14 @@
 .xw-btn.primary{background:var(--ink);color:var(--sheet)}
 .xw-btn.primary:hover{background:#3a3644}
 .xw-btn:disabled{opacity:.45;cursor:default}
-.xw-btn small{display:block;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.02em}
+.xw-btn small{display:block;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.02em}
 .xw-btn.primary small{color:#c9ced7}
 .xw-paper{background:var(--sheet);border:1.5px solid #141319;border-radius:2px;box-shadow:3px 4px 0 rgba(0,0,0,.28)}
 
 /* status strip */
 .xw-status{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:8px 14px;font-family:var(--mono);font-size:13px}
 .xw-status b{font-size:18px;font-weight:700}
-.xw-status .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:5px}
+.xw-status .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:5px}
 .xw-status .marks b{color:var(--red)}
 
 /* line map */
@@ -33,7 +33,7 @@
 
 /* the scene card */
 .xw-scene{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px;min-height:280px}
-.xw-scene .where{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);border-bottom:1.5px solid var(--ink);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.xw-scene .where{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);border-bottom:1.5px solid var(--ink);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
 .xw-scene h2{font-family:var(--font-display);font-size:clamp(24px,4vw,30px);line-height:1.15;margin:0;font-weight:700}
 .xw-scene p{margin:0;font-size:16px;line-height:1.55;max-width:66ch}
 .xw-scene .choices{display:flex;flex-direction:column;gap:8px}
@@ -52,14 +52,21 @@
 /* the train sheet */
 .xw-sheet{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .xw-sheet h3{font-family:var(--font-display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0;font-weight:700;text-align:center;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
-.xw-sheet .sub{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:-6px}
+.xw-sheet .sub{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-top:-6px}
 .xw-tt{overflow-x:auto}
+.xw-tt.fade{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent)}
+.xw-more{margin:0;text-align:right;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--rust)}
+/* the station column stays while the trains scroll under it */
+.xw-tt th:first-child,.xw-tt td.stn{position:sticky;left:0;z-index:1;background:var(--sheet-2);box-shadow:1px 0 0 var(--line)}
+.xw-tt td.stn{background:var(--sheet);white-space:normal;min-width:82px;max-width:94px;line-height:1.25}
+.xw-tt th:first-child{max-width:88px}
+.xw-tt tr.here td.stn{background:#fbe9d4}
 .xw-tt table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px}
 .xw-tt th,.xw-tt td{border:1px solid var(--line);padding:3px 4px;text-align:center;white-space:nowrap}
-.xw-tt th{font-size:10.5px;font-weight:600;background:var(--sheet-2);line-height:1.25}
+.xw-tt th{font-size:12px;font-weight:600;background:var(--sheet-2);line-height:1.25}
 .xw-tt th small{display:block;font-weight:400;color:var(--muted)}
 .xw-tt td.stn{text-align:left;font-weight:600}
-.xw-tt td.stn small{display:block;font-weight:400;color:var(--muted);font-size:10px}
+.xw-tt td.stn small{display:block;font-weight:400;color:var(--muted);font-size:12px;line-height:1.2}
 .xw-tt tr.here td{background:#fbe9d4}
 .xw-tt tr.here td.stn::before{content:"\25B6 ";color:var(--red)}
 .xw-tt .pencil{color:var(--blue);font-style:italic}
@@ -72,7 +79,7 @@
 .xw-si ul{margin:4px 0;padding-left:18px}
 .xw-orders{display:flex;flex-direction:column;gap:6px}
 .xw-orders .ord{font-family:var(--mono);font-size:12.5px;background:var(--flimsy);border:1px solid var(--line);padding:6px 9px;line-height:1.45}
-.xw-orders .ord .ok{color:var(--stamp);font-weight:700;border:1.5px solid var(--stamp);padding:0 4px;margin-left:6px;font-size:11px}
+.xw-orders .ord .ok{color:var(--stamp);font-weight:700;border:1.5px solid var(--stamp);padding:0 4px;margin-left:6px;font-size:12px}
 
 /* track warrant form */
 .xw-tw{font-family:var(--mono);font-size:13px;background:#fff;border:1.5px solid var(--ink);padding:10px 12px;display:flex;flex-direction:column;gap:3px}
@@ -114,7 +121,7 @@
 .xw-end .score{display:flex;flex-wrap:wrap;gap:8px 26px;font-family:var(--mono)}
 .xw-end .score div{display:flex;flex-direction:column}
 .xw-end .score b{font-size:30px;font-family:var(--font-display)}
-.xw-end .score span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.xw-end .score span{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .xw-end details{border:1px solid var(--line);background:#fff;border-radius:3px;padding:7px 10px}
 .xw-end summary{cursor:pointer;font-weight:600}
 .xw-end details p{font-size:14px;margin:6px 0 0}
@@ -134,7 +141,7 @@
 .xw-map text.water{fill:#c9cfdc;letter-spacing:.12em}
 .xw-map text.lbl{fill:var(--muted);letter-spacing:.04em}
 .xw-status .over{color:var(--red);font-style:normal;font-weight:700}
-.xw-start .kind{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
+.xw-start .kind{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
 .xw-start .card.wide{grid-column:1/-1}
 .xw-start .card{border-top:4px solid var(--glow)}
 .xw-orders .ord.done{color:var(--muted);background:var(--sheet-2)}
@@ -162,23 +169,60 @@
 .xw-group-note{color:#c9c2b4;font-size:14px;line-height:1.5;margin:0 0 10px;max-width:70ch}
 .xw-group-note a{color:#efe6cf}
 .xw-start{grid-template-columns:minmax(0,1fr);gap:8px}
-.xw-start .card.xw-run{padding:0;gap:0;border-top-width:3px}
-.xw-run summary{list-style:none;cursor:pointer;padding:10px 40px 10px 14px;position:relative;display:block}
+.xw-start .card.xw-run{padding:0;gap:0;border-top-width:3px;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start}
+.xw-run details>p{margin:0 14px 12px}
+.xw-run .xw-go{margin:10px 12px 10px 0;align-self:center;flex-wrap:nowrap}
+.xw-run .xw-go .xw-btn{flex:none;min-width:170px}
+@media (max-width:700px){.xw-start .card.xw-run{grid-template-columns:minmax(0,1fr)}.xw-run .xw-go{margin:0 14px 12px}.xw-run .xw-go .xw-btn{flex:1 1 auto}}
+.xw-run summary{list-style:none;cursor:pointer;padding:10px 74px 10px 14px;position:relative;display:block}
 .xw-run summary::-webkit-details-marker{display:none}
-.xw-run summary::after{content:"▸";position:absolute;right:14px;top:12px;font-size:18px;color:var(--rust)}
-.xw-run[open] summary::after{content:"▾"}
+.xw-run summary::after{content:"story ▸";position:absolute;right:10px;top:12px;font:600 12px var(--mono);color:var(--rust)}
+.xw-run details[open] summary::after{content:"story ▾"}
 .xw-start .xw-run h3{font-size:20px}
 .xw-meta{display:block;margin-top:3px}
 .xw-meta .kind{display:block}
 .xw-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.xw-tags span{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
-.xw-run[open]>p,.xw-run[open]>.xw-go{margin:0 14px 12px}
+.xw-tags span{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
 .xw-cover{padding:8px 12px;margin-top:14px}
-.xw-cover .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
+.xw-cover .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
 .xw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .xw-chips button{font:600 13px var(--font-body);padding:5px 10px;border:1.5px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}
 .xw-chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
 details.xw-how summary{cursor:pointer;font-weight:600}
 .xw-best{font-family:var(--mono);font-size:12px;color:#c9c2b4;margin-top:10px}
-.xw-tabs:not([hidden])~.xw-group .xw-group-h{font-size:0;margin-bottom:6px}
-.xw-tabs:not([hidden])~.xw-group .xw-group-h small{font-size:12px}
+
+
+/* a visually hidden class: the group heading stays for assistive tools while one group shows (2026-11-22) */
+.xw-vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.xw-group.multi .xw-group-note{display:none}
+.xw-group.multi{margin-top:18px}
+.xw-hint{margin:8px 0 0;color:#efe6cf;font-size:15px;line-height:1.45}
+.xw-hint a{color:var(--glow);font-weight:600}
+.xw-coverhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px}
+.xw-keylink{font-size:14px;font-weight:600;color:var(--blue)}
+.xw-showing{margin:8px 0 0;font-size:14px}
+.xw-link{background:none;border:0;padding:0;font:inherit;font-weight:600;text-decoration:underline;color:var(--blue);cursor:pointer}
+.xw-exit{margin-left:auto;display:inline-flex;gap:12px;align-items:baseline;font-family:var(--font-body);font-size:14px}
+
+/* visible focus: ink or rust on the light cards, cream only on the dark page (2026-11-22) */
+.xw-btn:focus-visible,.xw-chips button:focus-visible,.xw-run summary:focus-visible,.xw-link:focus-visible,.xw-keylink:focus-visible,
+.xw-tw select:focus-visible,.xw-tw input:focus-visible,.xw-tt:focus-visible,.xw-scene a:focus-visible,.xw-end summary:focus-visible,.xw-how summary:focus-visible,.xw-log summary:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+.xw-run summary:focus-visible{outline-offset:-3px}
+.xw-hint a:focus-visible,.xw-group-note a:focus-visible{outline:2px solid #efe6cf;outline-offset:2px}
+
+/* wide screens: the title picture is a banner, so the runs show without scrolling */
+@media (min-width:861px){
+  .xw-title{margin-bottom:8px;text-align:center;background:#1b1830}
+  .xw-title canvas{width:auto;height:120px;margin:0 auto}
+  .xw-cover{margin-top:8px}
+  .xw-tabs{margin-top:10px}
+  .xw-group-note{max-width:none;margin-bottom:8px}
+  .xw-group{margin-top:8px}
+}
+/* phones: targets of at least 44 px */
+@media (max-width:860px){
+  .xw-tabs button,.xw-chips button,.xw-link,.xw-btn{min-height:44px}
+  .xw-exit{width:100%;margin-left:0}
+  .xw-chips button{padding:0 14px}
+  .xw-tabs button{padding:0 16px}
+}
