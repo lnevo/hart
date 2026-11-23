@@ -12,9 +12,9 @@ const fmt=m=>{m=Math.round(m);const h=Math.floor(m/60),mm=m%60;return h+":"+Stri
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 /* deck sections, for the links back to the study guide */
-/* the runs: label for the share text, best list and finish screen */
-const RUNS={tto:{name:"1949 time-table and train orders",short:"1949",train:"Extra 812 East"},twc:{name:"modern track warrants",short:"Modern",train:"KV 812 East"},yard:{name:"Ironton yard job",short:"Yard job",train:"Ironton yard job"},
-  sigs:{name:"signals run, speed semaphores",short:"Speed signals",train:"Extra 812 East"},sigr:{name:"signals run, route signals",short:"Route signals",train:"KV 812 East"}};
+/* the runs: labels for the status line and best list */
+const RUNS={tto:{short:"1949",train:"Extra 812 East"},twc:{short:"Modern",train:"KV 812 East"},yard:{short:"Yard job",train:"Ironton yard job"},
+  sigs:{short:"Speed signals",train:"Extra 812 East"},sigr:{short:"Route signals",train:"KV 812 East"}};
 const SEC={def:"Definitions",sup:"Superiority & movement",to:"Train orders",sig:"Signals & whistles",sem:"Semaphores",yl:"Yard limits",twc:"Track warrants",gcor:"GCOR crew & speed"};
 const SRC={SC:"1949 Standard Code",GC:"GCOR",TT:"TT&TO primer",YL:"Yard Limits guide",TW:"Track Warrants guide",SG:"Signals guide",SM:"Semaphores guide"};
 const srcLabel=s=>s.replace(/^(SC|GC|TT|YL|TW|SG|SM)\b/,m=>SRC[m]||m);
