@@ -169,23 +169,16 @@
 .xw-tags{display:flex;flex-wrap:wrap;gap:4px}
 .xw-tags span{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
 .xw-tags .xw-len{border-color:transparent;background:none;padding-left:2px}
-.xw-cover{padding:8px 12px;margin-top:6px}
-.xw-cover .lbl{font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
-.xw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.xw-chips button{font:600 13px var(--font-body);padding:5px 10px;border:1.5px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}
-.xw-chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
 details.xw-how summary{cursor:pointer;font-weight:600}
 .xw-best{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px}
 .xw-hint{margin:10px 0 0;font-size:15px;line-height:1.45}
 .xw-hint a{color:var(--rust);font-weight:600}
-.xw-coverhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:4px 16px}
-.xw-keylink{font-size:14px;font-weight:600;color:var(--blue)}
 .xw-showing{margin:8px 0 0;font-size:14px}
 .xw-link{background:none;border:0;padding:0;font:inherit;font-weight:600;text-decoration:underline;color:var(--blue);cursor:pointer}
 .xw-exit{margin-left:auto;display:inline-flex;gap:12px;align-items:baseline;font-family:var(--font-body);font-size:14px}
 
 /* visible focus: ink or rust on light ground */
-.xw-btn:focus-visible,.xw-chips button:focus-visible,.xw-link:focus-visible,.xw-keylink:focus-visible,.xw-hint a:focus-visible,.xw-group-note a:focus-visible,
+.xw-btn:focus-visible,.xw-chips button:focus-visible,.xw-link:focus-visible,.xw-hint a:focus-visible,.xw-group-note a:focus-visible,
 .xw-tw select:focus-visible,.xw-tw input:focus-visible,.xw-tt:focus-visible,.xw-scene a:focus-visible,.xw-end summary:focus-visible,.xw-how summary:focus-visible,.xw-log summary:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
 
 /* phones: targets of at least 44 px */
@@ -194,3 +187,16 @@ details.xw-how summary{cursor:pointer;font-weight:600}
   .xw-exit{width:100%;margin-left:0}
   .xw-chips button{padding:0 14px}
 }
+
+/* the section filter in the site's "On this page" style (ops.css .jump), the intro and the random-shift button under the banner */
+.xw-filter{margin-top:.6rem}
+.xw-filter .xw-chips{margin:0}
+.xw-filter button{display:inline-flex;align-items:center;padding:.4rem .65rem;min-height:2.5rem;background:var(--card);border:1px solid var(--rule);
+  font:600 .9rem var(--font-body);color:var(--ink);cursor:pointer}
+.xw-filter button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.xw-filter button:focus-visible,.xw-filter a:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+.xw-filter .xw-showing{margin:.5rem 0 0}
+.xw-intro{margin:.25rem 0 .75rem}
+.xw-cta{margin:0 0 .5rem}
+.xw-cta .btn{border:0;cursor:pointer;font-family:var(--font-body)}
+.xw-group .back-top{margin-top:.75rem}

@@ -115,7 +115,7 @@ function exitClick(e){
   const a=b.dataset.exit;
   if(a==="yes"){S.ended=true;S.leaving=false;queue=[];showStart();window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:"auto"});
     // the first control still on screen: the section chip's clear link, the start-here link, or the first Start button
-    const f=document.querySelector&&["#xwClear","#xwHint a","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
+    const f=document.querySelector&&["#xwClear","#xwRandom","#xwHint a","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
   S.leaving=a==="ask";renderStatus();
   const f=$("xwStatus").querySelector(S.leaving?".xw-stay":".xw-ask");if(f)f.focus();
 }
@@ -303,7 +303,7 @@ function begin(id,daily){
   const def=RUNS[id];S.def=def;S.pace=def.pace||1;S.clock=S.start=def.start;S.lead=def.engine;S.units=Object.assign({},def.units);
   const shift=def.build(H);S.jobs=shift.work.map(t=>({t,done:false}));
   queue=shift.steps.concat([()=>{S.par=shift.noPar?0:S.start+S.parAdd;const t=shift.end?shift.end():def.tieUp;log("Tied up");finish(t.replace("{t}",fmt(S.clock)),false)}]);
-  $("xwStart").hidden=true;$("xwGame").hidden=false;$("xw").classList.remove("on-start");
+  $("xwStart").hidden=true;$("xwGame").hidden=false;$("xw").classList.remove("on-start");if($("xwCover"))$("xwCover").hidden=true;
   renderStatus();renderSheet();
   window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:reduced?"auto":"smooth"});
   firstScene=true;next();
@@ -343,9 +343,12 @@ function renderCover(){
   });
   // section chips: All, then each section some run tests
   const used=SECTIONS.filter(([k])=>Object.values(RUNS).some(d=>(d.covers||[]).includes(k)));
-  box.innerHTML=`<div class="xw-coverhead"><span class="lbl" id="xwCoverLbl">Practice a section</span><a class="xw-keylink" href="answers.html">Answer key: every question</a></div><div class="xw-chips" role="group" aria-labelledby="xwCoverLbl">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
-    `<button type="button" data-sec="${k}" aria-pressed="false">${esc(n)}</button>`).join("")}</div><p class="xw-showing" id="xwShowing" role="status" hidden></p>`;
-  const chips=[...box.querySelectorAll(".xw-chips button")],showing=$("xwShowing");
+  // the section filter sits under the title like the site's "On this page" row (nav.jump)
+  box.innerHTML=`<p class="jump-label" id="xwCoverLbl">Practice a section</p><ul class="xw-chips" role="group" aria-labelledby="xwCoverLbl">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
+    `<li><button type="button" data-sec="${k}" aria-pressed="false">${esc(n)}</button></li>`).join("")}<li><a href="answers.html">Answer key</a></li></ul><p class="xw-showing" id="xwShowing" role="status" hidden></p>`;
+  const chips=[...box.querySelectorAll("button[data-sec]")],showing=$("xwShowing");
+  // Play a random shift: any run whose card is showing, so it follows the section filter
+  const rnd=$("xwRandom");if(rnd)rnd.onclick=()=>{const ids=cards.filter(c=>!c.hidden).map(c=>c.querySelector("[data-run]").dataset.run);if(ids.length)begin(ids[Math.floor(Math.random()*ids.length)])};
   let sec="";
   function show(){
     cards.forEach(c=>{c.hidden=!rowShown((c.dataset.secs||"").split(" "),sec)});
@@ -371,7 +374,7 @@ function renderCover(){
   box.hidden=false;
 }
 function showStart(){
-  $("xwStart").hidden=false;$("xwGame").hidden=true;$("xw").classList.add("on-start");
+  $("xwStart").hidden=false;$("xwGame").hidden=true;$("xw").classList.add("on-start");if($("xwCover")&&$("xwCover").innerHTML)$("xwCover").hidden=false;
   const runs=store.get("ni_runs",[]),d=today();
   document.querySelectorAll("[data-run]").forEach(b=>{
     if(!b.hasAttribute("data-daily"))return;
