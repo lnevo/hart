@@ -45,7 +45,7 @@ const STN=[
 /* ---------- the coal extra ---------- */
 const coal={group:"chartiers",covers:["sup","to","sem","yl"],code:"Extra 4619 South",name:"the coal extra",year:"1949",
   dateLine:"a weekday in 1949",start:420,end:720,endPlace:"Arden",tieUp:"{t}",
-  coda:`The Chartiers Branch ran from Carnegie (Mansfield) to Washington, double track to Houston by 1904. Coal branches left it at Bridgeville, Houston, and later at Palanka and Manifold (${lib("Railroads of the Chartiers Valley")}, <a href="${WIKI}" rel="noopener">Wikipedia: Chartiers Branch</a>).`,
+  coda:`The Chartiers Branch ran from Carnegie (Mansfield) to Washington, double track to Houston by 1904. Coal branches left it at Bridgeville from 1890 and, from 1904, for Westland, Palanka and Manifold (${lib("Railroads of the Chartiers Valley")}, <a href="${WIKI}" rel="noopener">Wikipedia: Chartiers Branch</a>).`,
   where(S){const G=S.road;if(!G)return "Carnegie";return G.moving?"between "+G.moving:ST[G.pos].n+(G.inSiding&&G.pos>0&&G.pos<LAST?" (siding)":"")},
 
   map(S){return RE.map(S,{label:"4619"})},
@@ -163,7 +163,7 @@ const coal={group:"chartiers",covers:["sup","to","sem","yl"],code:"Extra 4619 So
       const nums=orders.map(o=>o.no),wrongClear=R()<.5,shown=RE.clearNums(nums,wrongClear);
       const scenes=[
         H.done(0),
-        H.info("Houston","Houston","<p>Extra 4619 South stands on the main at Houston, where the Westland branch leaves. The empties go to the mine; the order board is next.</p>"),
+        H.info("Houston","Houston","<p>Extra 4619 South stands on the main at Houston, where the Westland branch leaves. The empties go to the mine.</p>"),
         H.ask(q.board()),
         RE.paper(H,{place:"Houston",train:"Extra 4619 South",orders,shown,at:S.clock+3}),
         wrongClear?H.ask(q.fix(shown.join(", "),nums.join(", "))):H.ask(q.who(shown.join(", "),nums.join(", ")))];

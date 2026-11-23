@@ -186,7 +186,7 @@ const run={group:"chartiers",covers:["def","sig","yl","twc","gcor"],code:"PIR Lo
       info("POV Junction","POV Junction",`<p>The cut goes onto the interchange track at Neville, about milepost 5.7, for the CSX local.</p>`),
       H.done(4)
     ].filter(Boolean);
-    return {work,steps,noPar:true,end:()=>`The cut for CSX is on the interchange track at POV Junction at {t}.${S.clock<=run.end+15?"":" The crew's time was up at 14:00."}`};
+    return {work,steps,noPar:true,end:()=>`The cut for CSX is on the interchange track at POV Junction at {t}.${S.clock<=run.end+15?"":" "}`};
   }
 };
 
