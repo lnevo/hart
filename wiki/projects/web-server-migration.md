@@ -44,6 +44,7 @@ Ubuntu 18.04 gets security updates only through Ubuntu Pro ESM, which ends in Ap
 - **easte.net pages.** These fetch `www.easte.net` from the server itself, so `/etc/hosts` maps that name to the private address 172.26.2.161, where nginx listens (backup `/etc/hosts.bak-20261123`).
 - **Cron and pequott.** The six aquarium and MRTG jobs are in HestiaCP but suspended. pequott.easte.net is suspended.
 - **SSH and deploy.** The old server's SSH host keys were copied over, so neither logins nor the hartrailroad.com deploy see a new host. rrsync is linked at `/usr/local/bin/rrsync` for the deploy key, and a dry run with the deploy key passed.
+- **Bare easte.net (2026-11-23, after the switch).** The owner pointed the Cloudflare A record for `easte.net` at 35.169.202.14 (it had pointed at a domain-parking host since 2020). easte.net and www.easte.net now have a Let's Encrypt certificate; plain HTTP is still served, as before.
 - **Switch.** The static IP was moved, HestiaCP's NAT address set to it, and Let's Encrypt certificates reissued for the five HTTPS sites. They are valid to 2027-02-21 and HestiaCP renews them.
 - **Lightsail.** Daily automatic snapshots are on for `www-2026`. The old instance's final snapshot is `Ubuntu-1-final-2026-11-23`.
 
@@ -51,7 +52,6 @@ Ubuntu 18.04 gets security updates only through Ubuntu Pro ESM, which ends in Ap
 
 - Delete the snapshot `Ubuntu-1-final-2026-11-23` once nothing more is needed from the old server (about $1 a month while kept).
 - The panel at `https://www.easte.net:8083` uses HestiaCP's own certificate: HestiaCP issues a hostname certificate only when `www.easte.net` is its own web domain, and here it is an alias of easte.net.
-- easte.net without `www` points in Cloudflare DNS to a domain-parking host (66.96.149.32), as it did before the move. To serve it from the new server, the A record must point to 35.169.202.14; then the site needs a Let's Encrypt certificate for `easte.net` and `www.easte.net`.
 - debbies.kitchen cannot send email (no mail server, no SMTP plugin), as before the move.
 - Optional: an AWS Budget alarm (needs billing rights the `lnevo-agent` user does not have).
 
