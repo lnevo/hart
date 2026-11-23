@@ -2056,37 +2056,36 @@ table.roster th {
   color: var(--muted);
 }
 
-/* Home: the band under the section doors that leads to the Extra East game (play/). It takes the game's
-   dusk colours on purpose, so the one playful thing on the page reads as apart from the four sections. */
+/* Home: the band above the section doors that leads to the Extra East game (play/). The game's title
+   screen at its own 256 px, so the pixel art stays sharp, fading from its dusk into the site's teal. */
 .play-band {
-  --dusk-ink: #1b1830;
-  --dusk-glow: #ffb347;
-  --dusk-ember: #e08a3c;
-  --dusk-text: #d9cfe0;
   display: grid;
-  grid-template-columns: min(420px, 45%) 1fr;
+  grid-template-columns: 256px 1fr;
   align-items: center;
-  margin: 1.25rem 0 0;
+  margin: 1.25rem 0 1rem;
   overflow: hidden;
-  background: linear-gradient(100deg, var(--dusk-ink) 0%, #2c2142 55%, #4a2a48 100%);
+  background: linear-gradient(90deg, #2c2142 0, var(--brand) 300px, var(--brand) 100%);
   box-shadow: var(--shadow);
-  color: var(--dusk-text);
+  color: #d6e4ea;
   text-decoration: none;
 }
 
 .play-band:hover,
 .play-band:focus-visible {
-  color: var(--dusk-text);
+  color: #d6e4ea;
 }
 
-.play-band:focus-visible {
-  outline: 3px solid var(--dusk-glow);
-  outline-offset: 3px;
+/* The art cell keeps the canvas's night sky above and below it when the text column is taller (tablet widths). */
+.play-band-art {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  background: #1b1830;
 }
 
 .play-band-art canvas {
   display: block;
-  width: 100%;
+  width: 256px;
   height: auto;
   image-rendering: pixelated;
 }
@@ -2095,9 +2094,9 @@ table.roster th {
   display: grid;
   grid-template-columns: 1fr auto;
   column-gap: 1.5rem;
-  row-gap: 0.3rem;
+  row-gap: 0.15rem;
   align-items: center;
-  padding: 1rem 1.6rem;
+  padding: 0.6rem 1.4rem;
 }
 
 .play-band-kind,
@@ -2111,30 +2110,29 @@ table.roster th {
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--dusk-ember);
+  color: var(--accent-on-dark);
 }
 
 .play-band-h {
   font-family: var(--font-display);
-  font-size: clamp(1.6rem, 3vw, 2rem);
+  font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   line-height: 1.05;
-  color: var(--dusk-glow);
+  color: #fff;
 }
 
 .play-band-p {
-  max-width: 52ch;
+  font-size: 0.95rem;
 }
 
 .play-band-go {
   grid-column: 2;
   grid-row: 1 / 4;
   white-space: nowrap;
-  padding: 0.45rem 0.95rem;
-  border-radius: 3px;
-  background: var(--dusk-glow);
-  color: var(--dusk-ink);
+  padding: 0.6rem 1.05rem;
+  background: var(--accent);
+  color: #1a1406;
   font-weight: 700;
 }
 
@@ -2144,7 +2142,7 @@ table.roster th {
 }
 
 .play-band:hover .play-band-go {
-  background: #ffd08a;
+  background: var(--accent-on-dark);
 }
 
 .play-band:hover .play-band-go b {
@@ -2167,6 +2165,11 @@ table.roster th {
 @media (max-width: 760px) {
   .play-band {
     grid-template-columns: 1fr;
+    background: var(--brand);
+  }
+
+  .play-band-art canvas {
+    width: 100%;
   }
 }
 
