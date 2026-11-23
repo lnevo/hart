@@ -401,6 +401,11 @@
     }
   },
   "links": {
+    "play/index.html": {
+      "image": "assets/share/link-play-title.jpg",
+      "alt": "The Extra East: HART Railroad title screen in pixel art: Pittsburgh & Chartiers Valley, with a green switcher shoving ore hoppers along the river at dusk in front of the coke works and furnace.",
+      "from": "make_share_cards.py link-play-title (the title canvas on play/index.html)"
+    },
     "exam/run.html#xw": {
       "image": "assets/share/link-exam-run-title.jpg",
       "alt": "The Extra East title screen in pixel art: Kestrel Valley Railroad, Extra East, Ashby to Ironton, 46 miles, with the steam freight and its red caboose on the line below the tan hills.",

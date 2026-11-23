@@ -495,19 +495,29 @@ def link_build_main_level():
     return card(im.crop((0, top, w, top + ch)))
 
 
-def link_exam_run_title():
-    """link-exam-run-title: the game's own pixel-art title screen with the train standing in it, the canvas at the top of Extra East (hub card for exam/run.html#xw)."""
-    page = (PORTAL / "exam/run.html").read_text(encoding="utf-8")
+def _title_canvas(name: str, rel: str):
+    """Shoot the pixel-art title canvas (#xwTitleCv) of the game page REL so it fills the card, the rest of the page hidden under it."""
+    page = (PORTAL / rel).read_text(encoding="utf-8")
     if "<head>" not in page or "</head>" not in page:  # without them the style and base are skipped and the wrong picture is written
-        raise SystemExit("link-exam-run-title: exam/run.html has no plain <head> ... </head>; fix the patch below")
-    # the canvas fills the frame, cropped evenly at the sides so the whole title stays in; the rest of the page is hidden under it
+        raise SystemExit(f"{name}: {rel} has no plain <head> ... </head>; fix the patch in _title_canvas")
+    # the canvas fills the frame, cropped evenly at the sides so the whole title stays in
     fill = (f"<style>#xwTitleCv{{position:fixed!important;left:0!important;top:0!important;width:{W}px!important;height:{H}px!important;"
             "object-fit:cover;object-position:center;z-index:9999}</style>")
-    out = _tmp / "exam-run-title.html"
-    base = f'<base href="{(PORTAL / "exam").as_uri()}/">'  # the copy sits in a temp folder: load run.js and the CSS from www/
+    out = _tmp / f"{name}.html"
+    base = f'<base href="{(PORTAL / rel).parent.as_uri()}/">'  # the copy sits in a temp folder: load the scripts and CSS from www/
     out.write_text(page.replace("<head>", "<head>" + base, 1).replace("</head>", fill + "</head>", 1), encoding="utf-8")
-    # with reduced motion the game draws the train standing still mid-picture instead of running it across
+    # with reduced motion the title art draws one still frame, the train standing mid-picture
     return card(shot(out.as_uri(), flags=("--force-prefers-reduced-motion",)))
+
+
+def link_exam_run_title():
+    """link-exam-run-title: the game's own pixel-art title screen with the train standing in it, the canvas at the top of Extra East (hub card for exam/run.html#xw)."""
+    return _title_canvas("link-exam-run-title", "exam/run.html")
+
+
+def link_play_title():
+    """link-play-title: the pixel-art title screen of Extra East: HART Railroad, the canvas at the top of play/ (hub card for play/index.html)."""
+    return _title_canvas("link-play-title", "play/index.html")
 
 
 def build_track_plan():
@@ -795,6 +805,7 @@ CARDS = {
     "ap-exam": ap_exam,
     "ap-exam-run": ap_exam_run,
     "play-neville": play_neville,
+    "link-play-title": link_play_title,
     "behind-wiring": wiring_node,
     "behind-jmri-additions": jmri_additions,
     "behind-panel-evolution": panel_evolution,

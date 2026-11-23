@@ -87,9 +87,22 @@ class ExamRunTitleTest(unittest.TestCase):
                 mock.patch.object(gen, "shot", return_value="im") as shot, \
                 mock.patch.object(gen, "card", side_effect=lambda im: im):
             self.assertEqual(gen.link_exam_run_title(), "im")
-            html = (Path(tmp) / "exam-run-title.html").read_text(encoding="utf-8")
+            html = (Path(tmp) / "link-exam-run-title.html").read_text(encoding="utf-8")
         self.assertIn('<base href="', html)
         self.assertIn(f"#xwTitleCv{{position:fixed!important;left:0!important;top:0!important;width:{gen.W}px", html)
+        self.assertEqual(shot.call_args.kwargs["flags"], ("--force-prefers-reduced-motion",))
+
+    def test_play_title_capture_loads_the_play_page_from_its_own_folder(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp, \
+                mock.patch.object(gen, "_tmp", Path(tmp)), \
+                mock.patch.object(gen, "shot", return_value="im") as shot, \
+                mock.patch.object(gen, "card", side_effect=lambda im: im):
+            self.assertEqual(gen.link_play_title(), "im")
+            html = (Path(tmp) / "link-play-title.html").read_text(encoding="utf-8")
+        self.assertIn(f'<base href="{(gen.PORTAL / "play").as_uri()}/">', html)
+        self.assertIn('src="title-art.js"', html)
+        self.assertIn("#xwTitleCv{position:fixed!important", html)
         self.assertEqual(shot.call_args.kwargs["flags"], ("--force-prefers-reduced-motion",))
 
     def test_title_capture_stops_when_the_head_tag_changes(self):
