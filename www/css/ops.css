@@ -2057,14 +2057,14 @@ table.roster th {
 }
 
 /* Home: the band above the section doors that leads to the Extra East game (play/). The game's title
-   screen at its own 256 px, so the pixel art stays sharp, fading from its dusk into the site's teal. */
+   screen as one still frame, set in the teal with a margin. */
 .play-band {
   display: grid;
-  grid-template-columns: 256px 1fr;
+  grid-template-columns: auto 1fr;
   align-items: center;
   margin: 1.25rem 0 1rem;
   overflow: hidden;
-  background: linear-gradient(90deg, #2c2142 0, var(--brand) 300px, var(--brand) 100%);
+  background: var(--brand);
   box-shadow: var(--shadow);
   color: #d6e4ea;
   text-decoration: none;
@@ -2075,19 +2075,15 @@ table.roster th {
   color: #d6e4ea;
 }
 
-/* The art cell keeps the canvas's night sky above and below it when the text column is taller (tablet widths). */
 .play-band-art {
-  align-self: stretch;
-  display: flex;
-  align-items: center;
-  background: #1b1830;
+  padding: 0.75rem 0 0.75rem 0.75rem;
 }
 
 .play-band-art canvas {
   display: block;
-  width: 256px;
+  width: 192px;
   height: auto;
-  image-rendering: pixelated;
+  outline: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .play-band-text {
@@ -2166,7 +2162,10 @@ table.roster th {
 @media (max-width: 760px) {
   .play-band {
     grid-template-columns: 1fr;
-    background: var(--brand);
+  }
+
+  .play-band-art {
+    padding: 0.75rem 0.75rem 0;
   }
 
   .play-band-art canvas {
