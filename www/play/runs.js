@@ -51,7 +51,7 @@ const NevilleRuns={
 /* ===================== #105, the ore job ===================== */
 j105:{covers:["def","sig","gcor"],pace:4,code:"#105",name:"ore job",year:"1981",dateLine:"a weekday in 1981",start:420,end:930,engine:"#4",units:{"#4":"syard"},
   cement:"Marquette",plants:plants(1981),si:SI,endPlace:"West Yard",
-  verdicts:{"Clean shift":"Qualified","Good shift":"Qualified","Marked up":"Not yet","Taken off the job":"Not yet"}, // a qualifying trip: one mark or none qualifies
+  verdicts:{"Clean shift":"Qualified","Good shift":"Qualified","Marked up":"Not yet","Taken off the job":"Not yet"}, // a new conductor's first shift: one mark or none qualifies
   tieUp:"#105 tied up at {t}.",
   coda:"The new man's trip, with its crew and trainmaster, is the game's own. The ore job was the one men wanted: daylight, Monday to Friday, on the clean end of the plant, and the senior men held it. In the early 1980s its engine was SW9 #4 (<a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/809168349703602176\" rel=\"noopener\">blog, p.2</a>, <a href=\"https://www.tumblr.com/pittsburghohiovalleyrailroad/96556993685\" rel=\"noopener\">p.37</a>).",
   build(H){
@@ -60,7 +60,7 @@ j105:{covers:["def","sig","gcor"],pace:4,code:"#105",name:"ore job",year:"1981",
     for(let i=1;i<=drags;i++)work.push(`Shove drag ${i} of ${drags} to the car dumper`);
     work.push("Fuel #4 between trips","Tie up in the West Yard by 3:30");
     const steps=[
-      H.info("South Yard","On duty, 7:00",`<p>You hired on with the P&amp;OV this month and want your conductor's mark-up. Today is your qualifying trip on #105, the ore job, with the regular daylight crew and SW9 #4. Iron ore for Shenango's blast furnaces comes onto the island over the PC&amp;Y from Scully Yard, and the job shoves it from the West Yard to the Shenango car dumper in ten-car drags.</p><p>The trainmaster has written today's switching orders: ${drags} drags. He rides along and checks you as the work goes on. One mark or none, and he signs you off as a conductor. This is the clean end of the plant, and the senior men hold the job.</p>`,"Go to work"),
+      H.info("South Yard","On duty, 7:00",`<p>You hired on with the P&amp;OV this month and want your conductor's mark-up. Today is your first shift on #105, the ore job, with the regular daylight crew and SW9 #4. Iron ore for Shenango's blast furnaces comes onto the island over the PC&amp;Y from Scully Yard, and the job shoves it from the West Yard to the Shenango car dumper in ten-car drags.</p><p>The trainmaster has written today's switching orders: ${drags} drags. He rides along and checks you as the work goes on. One mark or none, and he signs you off as a conductor. This is the clean end of the plant, and the senior men hold the job.</p>`,"Go to work"),
       ask(H,Q.conductor,{body:"The engineer has his own way of making up a drag, and the regular conductor has told him to make it up another way. The trainmaster asks you: for the work on the switching order, whose instructions does the crew follow?"}),
       ask(H,Q.before,{title:gang?"The track gang at S1":"The car knocker",body:gang?"The track gang is working at the west end of S1, beside the South Runner. #4 is ready to move, and the trainmaster asks what the engineer does first.":"The car knocker is inspecting hoppers on the next track. #4 is ready to move, and the trainmaster asks what the engineer does first."}),
       H.mv("srun",14,"Ten loads made up on the South Runner"),H.done(0),

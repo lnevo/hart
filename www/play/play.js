@@ -114,7 +114,7 @@ function exitClick(e){
   const b=e&&e.target&&e.target.closest&&e.target.closest("[data-exit]");if(!b||!S)return;
   const a=b.dataset.exit;
   if(a==="yes"){S.ended=true;S.leaving=false;queue=[];showStart();window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:"auto"});
-    // the first control still on screen: the section chip's clear link, the qualifying-trip link, or the first Start button
+    // the first control still on screen: the section chip's clear link, the first-shift link, or the first Start button
     const f=document.querySelector&&["#xwClear","#xwNewJob","#xwRandom","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
   S.leaving=a==="ask";renderStatus();
   const f=$("xwStatus").querySelector(S.leaving?".xw-stay":".xw-ask");if(f)f.focus();
@@ -248,7 +248,7 @@ function finish(text,failed){
   else if(S.marks===0&&(par===null?S.clock<=D.end+15*S.pace:time<=par+15*S.pace)){verdict="Clean shift";cls="good"} // a road run has no par: it is on time if it is in before it quits
   else if(S.marks<=1){verdict="Good shift";cls="good"}
   else verdict="Marked up";
-  if(D.verdicts)verdict=D.verdicts[verdict]||verdict; // a run may name its own verdicts (the qualifying trip)
+  if(D.verdicts)verdict=D.verdicts[verdict]||verdict; // a run may name its own verdicts (the new conductor's first shift)
   const secs=[...new Set(S.misses.map(m=>m.sec))];
   const slip=par!==null&&!failed?Math.round(time-par):0; // minutes the misses added to the work, so the tie-up time and the last scene's clock agree
   const missHtml=S.misses.length?S.misses.map(m=>`<details${m.end?" open":""}><summary>${esc(m.title)}</summary><p>${esc(m.why)}</p><p class="src">${srcHtml(m)} · <a href="${studyHref(m.sec)}">${m.sec==="pov"?"Read: ":"Study: "}${esc(SEC[m.sec])}</a></p></details>`).join(""):"<p>No rules missed.</p>";
@@ -370,7 +370,7 @@ function renderCover(){
     (el.closest(".card")||el).scrollIntoView({block:"start"}); // cards and sections keep clear of the sticky header (scroll-margin-top)
   }
   show();follow();window.addEventListener("hashchange",follow);
-  const nj=$("xwNewJob");if(nj&&RUNS.j105)nj.onclick=e=>{e.preventDefault();begin("j105")}; // the new conductor's qualifying trip; without the script the link goes to its card
+  const nj=$("xwNewJob");if(nj&&RUNS.j105)nj.onclick=e=>{e.preventDefault();begin("j105")}; // the new conductor's first shift; without the script the link goes to its card
   box.hidden=false;
 }
 function showStart(){
