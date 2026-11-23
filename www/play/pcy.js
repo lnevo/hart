@@ -18,7 +18,7 @@ const POV="../library/pittsburgh-ohio-valley-railway.html";
 const POINTS=[
   {n:"Scully Yard",x:30,y:92,limits:"yard limits"},
   {n:"PC&Y main",x:105,y:92,limits:"yard limits"},
-  {n:"McKees Rocks",x:224,y:64,limits:"interlocking limits"},
+  {n:"McKees Rocks",x:200,y:92,limits:"interlocking limits"},
   {n:"P&LE main",x:320,y:64,limits:"yard limits, CTC"},
   {n:"Neville",x:430,y:64,limits:"interlocking limits"},
   {n:"Back channel",x:486,y:40,limits:"inside Neville's limits"},
@@ -26,7 +26,7 @@ const POINTS=[
 /* The fixed signals the map draws: where, and which way the dots stack (up from the rail or down). */
 const SIGS=[
   {k:"dist",x:140,y:92,up:1,t:"Distant, D plate"},
-  {k:"xhome",x:190,y:92,up:1,t:"McKees Rocks home"},
+  {k:"xhome",x:176,y:92,up:1,t:"McKees Rocks home"},
   {k:"blk",x:300,y:64,up:0,t:"P&LE block signal"},
   {k:"nvApp",x:370,y:64,up:0,t:"Neville approach"},
   {k:"nvHome",x:412,y:64,up:0,t:"Neville home"}];
@@ -108,15 +108,14 @@ const run={group:"chartiers",covers:["def","sig","yl","gcor"],code:"PC&Y Transfe
       info("Scully Yard","The yardmaster",`<p>The Conrail yardmaster gives the job to you, the engineman and the head brakeman: the cut is on the lead, the PC&amp;Y main is clear to McKees Rocks, and the transfer is to be on the island before #105 goes on duty.</p>`),
       H.ask(Qs.yardmaster),
       go(0,15,"Brake test done"),
-      H.done(0),
       info("Scully Yard","Ready to leave",`<p>The brake test is done and the marker is on the caboose. ${lead[0].toUpperCase()+lead.slice(1)} is on the point. The PC&amp;Y main runs down the valley to McKees Rocks, about four miles, inside yard limits the whole way with no block signals.</p>`),
       H.ask(Qs.speed),H.ask(Qs.mph),
-      go(1,12,"On the PC&Y main"),
+      go(1,12,"On the PC&Y main"),H.done(0),
       local
         ?info("PC&Y main","The Conrail local",`<p>The Conrail local is working the main ahead, and its engine is backing up toward Scully. The engineman slows to a stop and waits for the move to clear.</p>`)
         :info("PC&Y main","A yard engine on the main",`<p>A Conrail yard engine is working a track off the main ahead. There is no yardmaster on this stretch, and the engineman slows to a stop short of it.</p>`),
       H.ask(local?Qs.against:Qs.charge),
-      H.wait(waitA,"Waited for the Conrail engine to clear"),H.done(1),
+      H.wait(waitA,"Waited for the Conrail engine to clear"),
       seen("dist","D"),
       info("PC&Y main","A signal ahead",`<p>A signal stands at the side of the main with a D on its plate, ahead of McKees Rocks. The head brakeman calls it. The engineman calls it a second time and reads it differently.</p>`),
       H.ask(Qs.distant),H.ask(Qs.disagree),
@@ -130,7 +129,7 @@ const run={group:"chartiers",covers:["def","sig","yl","gcor"],code:"PC&Y Transfe
           info("McKees Rocks","The manifest is by",`<p>The manifest clears the diamond. The operator lines the route and the home signal changes.</p>`),
           H.ask(xHome(RE.PAIR[xs].home,false))]
         :[H.ask(xHome(RE.PAIR[xs].home,false))]),
-      H.ask(Qs.limits),
+      H.ask(Qs.limits),H.done(1),
       go(3,6,"On the P&LE main"),
       seen("blk","GRR"),
       info("P&LE main","The P&LE main",`<p>The transfer runs the P&amp;LE main toward Neville, about two miles, under the P&amp;LE's dispatcher. The McKees Rocks yard is on the left. A block signal stands ahead.</p>`),
@@ -139,7 +138,7 @@ const run={group:"chartiers",covers:["def","sig","yl","gcor"],code:"PC&Y Transfe
       go(3,5,"Approaching Neville"),
       seen("nvApp",ASPECT_ARMS(nvStop?"285":RE.PAIR[nv].app)),
       info("P&LE main","The approach to Neville",`<p>${nvStop?"A P&amp;LE yard engine is lined into the McKees Rocks yard ahead of you at Neville.":"The route is lined for the PC&amp;Y at Neville."} The approach signal stands ahead.</p>`),
-      H.ask(nvApp(nvStop?"285":RE.PAIR[nv].app)),H.ask(Qs.blockRs),
+      H.ask(nvApp(nvStop?"285":RE.PAIR[nv].app)),...(nvStop?[H.ask(Qs.blockRs)]:[]),
       go(4,4,"At Neville"),
       train(nvStop?"nv":null),
       seen("nvHome",nvStop?"RRR":ASPECT_ARMS(RE.PAIR[nv].home)),
@@ -184,11 +183,11 @@ function map(S){
   // yard limits shaded: the PC&Y main from Scully to the plant, and the P&LE's McKees Rocks yard
   s+=`<rect x="14" y="82" width="184" height="20" fill="var(--sheet-2)"/><rect x="224" y="54" width="120" height="20" fill="var(--sheet-2)"/>`;
   // track: the PC&Y main, the 45 degree connection to the P&LE main, the P&LE main (heavier), the connection to the island, the bridge and the island track
-  s+=`<g fill="none" stroke="var(--ink)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.2" d="M14 92 H196 L224 64"/><path stroke-width="3.4" d="M150 64 H470"/><path stroke-width="2.2" d="M430 64 L454 40 H575"/><path stroke-width="3.6" d="M470 40 H502"/><path stroke-width="2.2" d="M575 33 V47"/></g>`;
-  if(G.train){const x=G.train==="xing"?262:372;s+=`<rect x="${x}" y="59" width="40" height="10" rx="2" fill="var(--muted)" stroke="#fff" stroke-width=".8"/><text x="${x+20}" y="66.4" font-size="6" text-anchor="middle" fill="#fff" font-weight="700">P&amp;LE</text>`}
+  s+=`<g fill="none" stroke="var(--ink)" stroke-linecap="round" stroke-linejoin="round"><path stroke-width="2.2" d="M14 92 H196 L224 64 L231 57"/><path stroke-width="3.4" d="M150 64 H470"/><path stroke-width="2.2" d="M430 64 L454 40 H575"/><path stroke-width="3.6" d="M470 40 H502"/><path stroke-width="2.2" d="M575 33 V47"/></g>`;
+  if(G.train){const x=G.train==="xing"?228:372;s+=`<rect x="${x}" y="59" width="40" height="10" rx="2" fill="var(--muted)" stroke="#fff" stroke-width=".8"/><text x="${x+20}" y="66.4" font-size="6" text-anchor="middle" fill="#fff" font-weight="700">P&amp;LE</text>`}
   // the signals and the interlockings
   SIGS.forEach(sg=>{s+=sigDots(G,sg)});
-  s+=`<rect x="221" y="61" width="6" height="6" fill="var(--rust)" opacity=".85"/><rect x="427" y="61" width="6" height="6" fill="var(--rust)" opacity=".85"/>`;
+  s+=`<path d="M224 59 L229 64 L224 69 L219 64 Z" fill="var(--rust)" opacity=".85" stroke="var(--ink)" stroke-width=".8"/><rect x="427" y="61" width="6" height="6" fill="var(--rust)" opacity=".85"/>`;
   // labels, clear of the track
   s+=`<g class="lbl" font-size="6.3" text-anchor="middle"><text x="30" y="110" font-weight="${G.pos===0?700:400}">SCULLY YARD</text><text x="105" y="110">PC&amp;Y MAIN</text><text x="224" y="52" font-weight="${G.pos===2?700:400}">MCKEES ROCKS · PLE 3.75</text><text x="335" y="102">P&amp;LE MAIN</text><text x="426" y="52" text-anchor="end" font-weight="${G.pos===4?700:400}">NEVILLE · PLE 5.7</text><text x="${W-8}" y="58" text-anchor="end" font-weight="${G.pos===6?700:400}">Y INTERCHANGE</text></g>`;
   s+=`<g transform="translate(${P.x} ${P.y-1})"><rect x="-13" y="-5" width="26" height="10" rx="2" fill="var(--green)" stroke="var(--glow)" stroke-width="1.4"/><text x="0" y="2.4" font-size="6.4" text-anchor="middle" fill="#fff" font-weight="700">PC&amp;Y</text></g>`;
@@ -201,7 +200,7 @@ function sheet(S){
   const G=S.road;if(!G)return "";
   const met=SIGS.filter(sg=>G.sig[sg.k]).map(sg=>{
     const a=G.sig[sg.k];
-    if(a==="D")return `<div class="ord">${esc(sg.t)}: ahead</div>`;
+    if(a==="D")return `<div class="ord">${esc(sg.t)}: ${G.pos>=2?"passed":"ahead"}</div>`;
     const A=ASPECTS.find(x=>x.arms===a&&["281","281B","281C","282","283","284","285","287","292"].includes(x.r));
     return `<div class="ord">${esc(sg.t)}: Rule ${A.r}, ${esc(A.name)}</div>`;
   });

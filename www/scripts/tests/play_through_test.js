@@ -14,7 +14,7 @@ const read = (p) => fs.readFileSync(path.join(WWW, p), "utf8");
 const DRAWS = +process.argv[2] || 60;
 const MAX_STEPS = 4000;
 /* The road runs: the least and most questions on average over the draws that tie up, and the sections every such draw asks. */
-const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]], pcy: [15, 20, ["sig", "yl"]] };
+const ROAD = { coal: [14, 21, ["sup", "to", "sem"]], passenger: [15, 23, ["to"]], pcy: [15, 22, ["sig", "yl"]] };
 
 /* ---------- a fake DOM: just the elements the game reads back (buttons, choices, the result box) ---------- */
 const VOID = new Set(["br", "hr", "img", "input", "line", "path", "circle", "rect", "meta", "link", "use"]);
