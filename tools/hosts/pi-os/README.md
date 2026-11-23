@@ -34,4 +34,4 @@ Secrets never enter the repo. `secrets.env` holds `HOUSE_WIFI_PSK`, `HOTSPOT_PSK
 
 The swap brings these from the old card: the `~/.jmri` profile, the DecoderPro roster, the STS database, `mosquitto.db`, the speed-match ledger and `~/lcos-bridge/.bridgerc`. The first `sync_hart_package.sh --pi --win` deploy installs `JMRI_UserFiles`, the desktop icons and the speed-match service. STS is built on the Pi after its database is restored.
 
-Display fix 1 is in the image: one forced `video=` per output, set by `rootfs/system/usr/local/lib/hart/display-setup.sh` at post-install, and the stored EDID in the initramfs through `rootfs/system/etc/initramfs-tools/hooks/hart-edid`. The menu bar and kanshi files are still today's settings.
+The display setup proven in the trial of 2026-11-23 is in the image: one forced `video=` per output, set by `rootfs/system/usr/local/lib/hart/display-setup.sh` at post-install; the stored EDID in the initramfs through `rootfs/system/etc/initramfs-tools/hooks/hart-edid`; a second menu bar on HDMI-A-2 (`wf-panel-pi-2.ini`, `autostart/hart-panel-2.desktop`); and kanshi profiles for both screens or either one alone.

@@ -84,6 +84,15 @@ for ird in "${irds[@]}"; do
   grep -q '/vc4/vc4\.ko' <<< "$list" && ok "$n has vc4" || bad "$n has no vc4"
 done
 
+for b in lwrespawn wf-panel-pi kanshi lxsession-xdg-autostart; do [[ -x "$m/usr/bin/$b" ]] && ok "/usr/bin/$b" || bad "/usr/bin/$b missing (the display setup starts it)"; done
+for k in "$m/home/pi/.config/kanshi/config" "$m/etc/xdg/labwc-greeter/config.kanshi"; do
+  is "kanshi profiles in ${k#"$m"}" "$(grep -oE '^profile [a-z-]+' "$k" | tr '\n' ' ')" "profile both profile kvm-only profile direct-only "
+done
+is "panel 1 monitor" "$(grep '^monitor=' "$m/home/pi/.config/wf-panel-pi.ini")" "monitor=HDMI-A-1"
+is "panel 2 monitor" "$(grep '^monitor=' "$m/home/pi/.config/wf-panel-pi-2.ini" 2>/dev/null)" "monitor=HDMI-A-2"
+grep -q '^Exec=/usr/bin/lwrespawn /usr/bin/wf-panel-pi -c /home/pi/.config/wf-panel-pi-2.ini$' "$m/home/pi/.config/autostart/hart-panel-2.desktop" 2>/dev/null \
+  && ok "second panel autostarts" || bad "second panel autostart missing"
+
 w="$m/etc/systemd/system/multi-user.target.wants"
 # Enable links are absolute paths into the image, so test the link, not its target.
 for s in wifi-watchdog mosquitto smbd nmbd docker ssh; do [[ -L "$w/$s.service" ]] && ok "$s enabled" || bad "$s not enabled"; done
