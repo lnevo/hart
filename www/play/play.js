@@ -114,8 +114,8 @@ function exitClick(e){
   const b=e&&e.target&&e.target.closest&&e.target.closest("[data-exit]");if(!b||!S)return;
   const a=b.dataset.exit;
   if(a==="yes"){S.ended=true;S.leaving=false;queue=[];showStart();window.scrollTo({top:$("xw").getBoundingClientRect().top+scrollY-80,behavior:"auto"});
-    // the first control still on screen: the section chip's clear link, the start-here link, or the first Start button
-    const f=document.querySelector&&["#xwClear","#xwRandom","#xwHint a","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
+    // the first control still on screen: the section chip's clear link, the qualifying-trip link, or the first Start button
+    const f=document.querySelector&&["#xwClear","#xwNewJob","#xwRandom","[data-run]"].flatMap(q=>[...document.querySelectorAll(q)]).find(e=>e.offsetParent!==null);if(f&&f.focus)f.focus();return}
   S.leaving=a==="ask";renderStatus();
   const f=$("xwStatus").querySelector(S.leaving?".xw-stay":".xw-ask");if(f)f.focus();
 }
@@ -370,7 +370,7 @@ function renderCover(){
     (el.closest(".card")||el).scrollIntoView({block:"start"}); // cards and sections keep clear of the sticky header (scroll-margin-top)
   }
   show();follow();window.addEventListener("hashchange",follow);
-  const hint=$("xwHint");if(hint){const a=hint.querySelector("a");if(a)a.addEventListener("click",()=>setTimeout(follow,0))}
+  const nj=$("xwNewJob");if(nj&&RUNS.j105)nj.onclick=e=>{e.preventDefault();begin("j105")}; // the new conductor's qualifying trip; without the script the link goes to its card
   box.hidden=false;
 }
 function showStart(){
