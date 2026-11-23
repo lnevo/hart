@@ -1,6 +1,6 @@
 # Schematic solver on any plan: test plan (2026-11-23)
 
-Status: active
+Status: parked (2026-11-23)
 
 The schematic-maps plugin draws HART as approved in 38 s, but given HART as one continuous railroad (one input, no level cuts, no preferences) it needed a turnback cap it does not allow, then spent 43 minutes on rows and stopped with `columns: constraints do not settle` ([efficiency plan](../../docs/pipeline-map/efficiency-plan.md#full-rebuild-timed-2026-11-23)). The aim (owner, 2026-11-23): the plugin solves any AnyRail plan it is given, with no hand hints, in bounded time, and HART with the owner's layer files still comes out exactly as approved.
 
@@ -11,16 +11,18 @@ The schematic-maps plugin draws HART as approved in 38 s, but given HART as one 
 3. **HART as one band.** The joined HART graph (staging and main spliced at the helix, no `levels` or `helix`) draws within the budget.
 4. **Timed.** Every run records its time, cold cache, in a results table on this page.
 
+**Where it stands (2026-11-23):** the owner chose the quick wins only after the baseline. Plugin [PR #86](https://github.com/lnevo/model-railroad-skills/pull/86) makes the reader cut the track at crossings, slips and turntables instead of crashing, and makes the solve fall back on `Unsettled` (F3) and raise the turnback cap by itself (F1). No plan ends in a traceback or asks for a setting now. HART is unchanged (set A). Left: F4, a time limit on the row search, which is what keeps set C and three set D plans from drawing; then F5 and the five plans with no orientation. The work is parked here until the owner picks it up again.
+
 ## What failed, and the fix to try for each
 
 Found in the one-band run; each is checked by step 2 before it is changed.
 
 | # | Fault | Fix to try |
 |---|---|---|
-| F1 | The turnback cap is fixed (3, or 5 on a plan with more than 40 switch-to-switch runs) and the run stops when it is too low | Raise the cap until an orientation is found, bounded by the plan's independent loops (edges minus nodes plus components) plus a margin; never stop on the cap alone |
+| F1 | **Fixed in PR #86.** The turnback cap is fixed (3, or 5 on a plan with more than 40 switch-to-switch runs) and the run stops when it is too low | Raise the cap until an orientation is found, bounded by the plan's independent loops (edges minus nodes plus components) plus a margin; never stop on the cap alone |
 | F2 | Orientations are tried in cost order even when the sweep already says a leg must cross other track (217B, 221B, 39 in the one-band run) | Run the sweep on each kept orientation first (cheap) and try those with no forced crossing before the others |
-| F3 | `Unsettled` from the column placement ends the whole solve instead of moving to the next orientation | Catch it per orientation, log it, try the next; fail only when all have failed, with the best drawing and its faults |
-| F4 | The row search has no time limit | A budget per band (setting, default from the band's size) that returns the best rows found so far |
+| F3 | **Fixed in PR #86.** `Unsettled` from the column placement ends the whole solve instead of moving to the next orientation | Catch it per orientation, log it, try the next; fail only when all have failed, with the best drawing and its faults |
+| F4 | **Still open:** it alone keeps set C from drawing (2026-11-23 profile). The row search has no time limit | A budget per band (setting, default from the band's size) that returns the best rows found so far |
 | F5 | The turnback search tries every combination of candidate runs | Only if step 2 shows it matters: prune by loops (each fold must break a cycle) before combining |
 
 ## Test set
@@ -68,12 +70,12 @@ Every step that changes plugin code reruns set A before it is committed: a chang
 
 | Set | Plan | Before: time, result | After: time, result |
 |---|---|---|---|
-| A | HART approved | 431 s cold full rebuild, all steps pass (2026-11-23) | |
+| A | HART approved | 431 s cold full rebuild, all steps pass (2026-11-23) | plugin 9d40e3a: byte-identical, all three approved fingerprints match; about 400 s cold (2026-11-23) |
 | B | HART raw | solve 38 s, 0 faults; LE 1.5 s; CATS 0.2 s (2026-11-23) | |
-| C | HART one band | orient 37 s (cap raised to 7, 6 turnbacks); rows 43 min; columns did not settle (2026-11-23) | |
-| C | HART one band, plugin's own cap | 3.5 s: stops, `no orientation found; raise max_turnbacks` (F1) | |
-| D | 38 AnyRail sample plans, JMRI exports | 13 drawn (3 to 31 switches, slowest 20 s; 12 with 0 faults, one reports "1 drawing faults" with an empty list); 2 stopped on the turnback cap (8 and 20 switches, F1); 21 stop in `plan` with a `KeyError` traceback at `plan_reader.py:147` (slips 12, crossings 7, turntables 3 counted with one other part); 2 stop on unsupported LH/RH crossovers | |
-| E | Plugin tests (Pine Hollow & Eastern and the rest) | 764 tests pass in 91 s; slowest test 11 s | |
+| C | HART one band | orient 37 s (cap raised to 7, 6 turnbacks); rows 43 min; columns did not settle (2026-11-23) | no hints: the cap is raised by itself, orient about 24 s under the profiler; the row search still runs past 10 min (F4) |
+| C | HART one band, plugin's own cap | 3.5 s: stops, `no orientation found; raise max_turnbacks` (F1) | see the row above: no stop on the cap |
+| D | 38 AnyRail sample plans, JMRI exports | 13 drawn (3 to 31 switches, slowest 20 s; 12 with 0 faults, one reports "1 drawing faults" with an empty list); 2 stopped on the turnback cap (8 and 20 switches, F1); 21 stop in `plan` with a `KeyError` traceback at `plan_reader.py:147` (slips 12, crossings 7, turntables 3 counted with one other part); 2 stop on unsupported LH/RH crossovers | 27 drawn (20 with 0 faults, 7 with 1 to 6 faults listed; up to 39 switches, slowest 76 s); 8 clean errors (5 no orientation, two of them on the new 60 s search limit, 96 and 149 switches; 3 columns do not settle, 44 to 73 switches); 3 timeouts in the row search (53, 67 and 1077 switches); 0 tracebacks |
+| E | Plugin tests (Pine Hollow & Eastern and the rest) | 764 tests pass in 91 s; slowest test 11 s | 780 pass in 99 s; new made-up plans for cut parts, crossovers of each hand, the cap raise and the `Unsettled` fallback |
 
 Set D notes: the plans and the D-number to file mapping are local only (`~/Documents/Layout/anyrail-samples/`). `schematic anyplan` reads only 2 of the 38 `.any` files (the rest: no track end points found, older file layout), and it writes no graph, so the owner exported each plan from AnyRail as JMRI XML. Nothing above 31 switches got past the plan reader, so set D does not yet test the solver at HART's size.
 
