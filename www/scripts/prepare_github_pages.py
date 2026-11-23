@@ -829,11 +829,24 @@ def _gallery_thumbs(path: Path, dest_root: Path, subdir: str, thumb_px: int = 64
     path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
 
+ARCHIVE_MAX_PX = 6000  # the largest web copy an archive item may ask for
+
+
+def _archive_px(asked, default: int) -> int:
+    """An item's own "max_px", kept between the default and ARCHIVE_MAX_PX; the default when unset or not a number."""
+    try:
+        px = int(asked)
+    except (TypeError, ValueError):
+        return default
+    return max(default, min(px, ARCHIVE_MAX_PX))
+
+
 def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thumb_px: int = 640) -> None:
     """Resize historical-archive images from ../external/ mirrors into assets/archive/.
 
     Every item gets a small grid thumbnail; mirror-only originals also get a web-sized
-    copy. Items marked "public": false or whose original is missing (no mirrors)
+    copy, max_px on its long side unless the item sets its own "max_px" (a map or drawing
+    meant to be zoomed into), kept between max_px and ARCHIVE_MAX_PX. Items marked "public": false or whose original is missing (no mirrors)
     are dropped, and local-only
     fields (PDF paths, where the owner found the file) are stripped.
     """
@@ -851,9 +864,10 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
         if not src_rel or not src.is_file():
             continue
         slug = re.sub(r"[^a-z0-9]+", "-", str(item.get("id") or src.stem).lower()).strip("-")
+        size = _archive_px(item.pop("max_px", None), max_px)
         if src_rel.startswith("../"):
             rel = Path("assets") / "archive" / f"{slug}.jpg"
-            if not _web_jpeg(src, dest_root / rel, max_px):
+            if not _web_jpeg(src, dest_root / rel, size):
                 continue
             item["src"] = rel.as_posix()
         thumb = Path("assets") / "archive" / "thumbs" / f"{slug}.jpg"

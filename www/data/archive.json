@@ -1278,6 +1278,176 @@
       "credit_confidence": "none",
       "rights": "",
       "reason": "Sent back from the layout room gallery."
+    },
+    {
+      "id": "raques-topo-composite-railroads",
+      "src": "../media/hart-research/raques-2026-11-22/pittsburgh-railroads-topo-composite-map.jpg",
+      "bucket": "curated",
+      "kind": "map",
+      "title": "Railroads west of Pittsburgh on USGS topo maps",
+      "caption": "USGS topographic quadrangles cut along the lines and joined into one map, each railroad in its own colour: P&LE, Montour, PC&Y, P&OV, PA&McKR, Monongahela Connecting, Penn Central, B&O, N&W and Union. It runs from Neville Island and McKees Rocks to downtown Pittsburgh, and along the Montour through Imperial, McDonald and Library to Snowden. Open the full image to zoom in.",
+      "date": "",
+      "tags": [
+        "neville-island",
+        "pc-y",
+        "pittsburgh-ohio-valley",
+        "p-le",
+        "montour",
+        "map"
+      ],
+      "credit": "Steve Raques (composite of USGS topographic maps)",
+      "source_url": "",
+      "credit_confidence": "verified",
+      "rights": "Steve Raques's own work; shown with his permission. USGS maps are public domain.",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)",
+      "max_px": 6000
+    },
+    {
+      "id": "raques-neville-island-aerial-mosaic",
+      "src": "../media/hart-research/raques-2026-11-22/neville-island-aerial-mosaic.jpg",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "Neville Island from the air, stitched",
+      "caption": "Aerial photographs joined into one view of the industrial part of Neville Island. The coke works loop at the east end (lower right) matches the 1961 P&OV property plan.",
+      "date": "",
+      "tags": [
+        "neville-island",
+        "aerial",
+        "shenango"
+      ],
+      "credit": "Steve Raques (composite of aerial photographs)",
+      "source_url": "",
+      "credit_confidence": "verified",
+      "rights": "Steve Raques's own work; shown with his permission.",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)",
+      "max_px": 5220
+    },
+    {
+      "id": "pov-property-plan-1961",
+      "src": "../media/hart-research/raques-2026-11-22/pov-property-plan-1961-nf3737h.jpg",
+      "bucket": "curated",
+      "kind": "map",
+      "title": "P&OV property plan, 1961",
+      "caption": "Property Plan of the Pittsburgh & Ohio Valley Railway, May 1961, drawing NF 3737-H, stamped Record Print 12-31-62. It shows the loop around the coke works at the east end of the island, with the tracks, ovens, boiler houses and the Green Bag Cement Co. plant.",
+      "date": "1961-05",
+      "tags": [
+        "pittsburgh-ohio-valley",
+        "neville-island",
+        "coke",
+        "map"
+      ],
+      "credit": "Via Steve Raques",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "Public domain, per Steve Raques.",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)",
+      "max_px": 3718
+    },
+    {
+      "id": "pcy-track-chart-neville-island",
+      "src": "../media/hart-research/raques-2026-11-22/pcy-track-chart-west-end.jpg",
+      "bucket": "curated",
+      "kind": "map",
+      "title": "PC&Y track chart, Neville Island end",
+      "caption": "Pittsburgh, Chartiers & Youghiogheny track chart from the Main Line onto the Neville Island Branch: Point of Rocks, North McKees Rocks, Pressed Steel Car Co., the P&LE yards, P&OV Junction and the island's industries, with the profile and curves below.",
+      "date": "",
+      "tags": [
+        "pc-y",
+        "neville-island",
+        "mckees-rocks",
+        "map"
+      ],
+      "credit": "Via Steve Raques",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "Public domain, per Steve Raques.",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)",
+      "max_px": 3942
+    },
+    {
+      "id": "pcy-neville-island-branch-1982",
+      "src": "../media/hart-research/raques-2026-11-22/pcy-neville-island-branch-1982-car-data.gif",
+      "bucket": "curated",
+      "kind": "map",
+      "title": "PC&Y Neville Island Branch with 1982 car counts",
+      "caption": "Track diagram of the PC&Y Neville Island Branch and North McKees Rocks, with the 1982 number of cars for each customer (Shenango 558, Vulcan Detinning 2,113, USS Chemical 290). Boxes give the PC&Y and P&OV interchange tracks and the P&LE trackage rights agreements of 1902 and 1969. Drawn 17 April 1984.",
+      "date": "1984-04-17",
+      "tags": [
+        "pc-y",
+        "pittsburgh-ohio-valley",
+        "neville-island",
+        "p-le",
+        "map"
+      ],
+      "credit": "Via Steve Raques (drawing marked RSIE/PGH/JRM)",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "Public domain, per Steve Raques.",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)",
+      "max_px": 6000
+    },
+    {
+      "id": "pcy-stations-sidings-1969",
+      "src": "../media/hart-research/pdf-covers/pcy-stations-and-siding-numbers-1969.jpg",
+      "bucket": "curated",
+      "kind": "document",
+      "title": "PC&Y list of stations and siding numbers, 1969",
+      "caption": "Pittsburgh, Chartiers & Youghiogheny Railway list of stations and siding numbers, with instructions for reporting car movements, issued 16 March 1969 by G. E. Maas, Superintendent. The Neville Island Branch tracks run from N1 to N56, with mileages from Point of Rocks at McKees Rocks.",
+      "date": "1969-03-16",
+      "tags": [
+        "pc-y",
+        "neville-island",
+        "paperwork"
+      ],
+      "credit": "Via Steve Raques",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "Public domain, per Steve Raques.",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)",
+      "pdf": "../media/hart-research/raques-2026-11-22/pcy-stations-and-siding-numbers-1969-03-16.pdf"
+    },
+    {
+      "id": "pov-herald-raques",
+      "src": "../media/hart-research/raques-2026-11-22/pov-railway-company-herald.jpg",
+      "bucket": "curated",
+      "kind": "graphic",
+      "title": "P&OV herald, redrawn",
+      "caption": "The Pittsburgh & Ohio Valley Railway Company herald in red and white, traced by Steve Raques from the stencil on a P&OV locomotive.",
+      "date": "",
+      "tags": [
+        "pittsburgh-ohio-valley"
+      ],
+      "credit": "Steve Raques",
+      "source_url": "",
+      "credit_confidence": "verified",
+      "rights": "Steve Raques's own work; shown with his permission.",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)"
+    },
+    {
+      "id": "pov-herald-locomotive",
+      "src": "../media/hart-research/raques-2026-11-22/pov-herald-on-locomotive-photo.jpg",
+      "bucket": "curated",
+      "kind": "photo",
+      "title": "P&OV herald on a locomotive",
+      "caption": "The stencilled Pittsburgh & Ohio Valley Railway Company herald on the side of a P&OV locomotive. Steve Raques traced his redrawn herald from it.",
+      "date": "",
+      "tags": [
+        "pittsburgh-ohio-valley",
+        "locomotive"
+      ],
+      "credit": "Photographer unknown, via Steve Raques",
+      "source_url": "",
+      "credit_confidence": "likely",
+      "rights": "",
+      "reason": "",
+      "origin": "Email from Steve Raques, 2026-11-19 (full-size files 2026-11-22)"
     }
   ]
 }
