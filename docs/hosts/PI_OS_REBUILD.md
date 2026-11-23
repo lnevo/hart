@@ -1,6 +1,6 @@
 # Pi OS rebuild plan (2026-11-21, decisions 2026-11-23)
 
-This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); a first image was built and checked on the Mac on 2026-11-23; nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
+This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); a first image was built and checked on the Mac on 2026-11-23. On the Pi, only the display trial has changed anything: its settings stay live on the current card, with a revert script (Displays, Steps). It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
 
 ## What the Pi runs now
 

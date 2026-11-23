@@ -41,5 +41,5 @@ system:name=hart|service-enable=wifi-watchdog,mosquitto,smbd,nmbd,cups|service-d
 # Display fix 1: the stored EDID for each port; the video= entries and the initramfs come from
 # display-setup.sh (sdm's cmdline add keeps only one entry per name, and we need two video=).
 cmdline:add=cfg80211.ieee80211_regdom=US drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin
-runcommand:command=/usr/local/lib/hart/display-setup.sh|runphase=post-install
+runcommand:command=/usr/local/lib/hart/display-setup.sh && rm -f /usr/local/lib/hart/display-setup.sh|runphase=post-install
 runatboot:script=@STAGE@/os/firstboot.sh|output=/var/log/hart-firstboot.log

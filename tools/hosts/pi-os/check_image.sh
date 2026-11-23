@@ -98,6 +98,7 @@ w="$m/etc/systemd/system/multi-user.target.wants"
 for s in wifi-watchdog mosquitto smbd nmbd docker ssh; do [[ -L "$w/$s.service" ]] && ok "$s enabled" || bad "$s not enabled"; done
 [[ -L "$w/lcos-bridge.service" ]] && bad "lcos-bridge enabled" || ok "lcos-bridge off"
 [[ -f "$m/etc/cloud/cloud-init.disabled" ]] && ok "cloud-init disabled" || bad "cloud-init not disabled"
+[[ ! -e "$m/usr/local/lib/hart/display-setup.sh" ]] && ok "build-only display-setup.sh removed" || bad "display-setup.sh left in the image"
 [[ -e "$m/etc/sdm/0piboot/060-runatboot.sh" ]] && ok "first-boot script queued" || bad "first-boot script missing"
 
 echo "$fails failure(s)"

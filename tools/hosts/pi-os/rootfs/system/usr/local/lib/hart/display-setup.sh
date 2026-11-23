@@ -1,5 +1,6 @@
 #!/bin/bash
-# Display fix 1 (docs/hosts/PI_OS_REBUILD.md, Displays), run at image build (sdm post-install):
+# Display fix 1 (docs/hosts/PI_OS_REBUILD.md, Displays), run once at image build (sdm post-install),
+# which then deletes it: on the Pi it would rebuild the initramfs with the build-only MODULES=most.
 #  - one video= per output, a mode vc4 accepts (no M: the CEA 1080p60 mode from the EDID,
 #    not a computed CVT mode, which vc4 rejected) and D to keep each port on when the KVM
 #    or the matrix reports nothing;

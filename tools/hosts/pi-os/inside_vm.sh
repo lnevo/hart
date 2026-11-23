@@ -40,6 +40,9 @@ have="$(sha256sum "$WORK/cache/$name" | awk '{print $1}')"
 log "base image $name (sha256 ok)"
 
 base="$TMP/base.img"
+# A failed sdm run can leave its loop device attached; detach it before reusing the file.
+losetup -j "$base" 2>/dev/null | cut -d: -f1 | xargs -r -n1 losetup -d
+udevadm settle 2>/dev/null || true
 xz -dc "$WORK/cache/$name" > "$base"
 
 # 3. The pluglist, filled in.
