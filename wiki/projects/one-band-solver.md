@@ -90,10 +90,24 @@ Set D notes: the plans and the D-number to file mapping are local only (`~/Docum
 | No orientation | D35 (10 switches) | A balloon loop closed on a switch's through route (A to B): no legal facing exists |
 | | D13, D7, D17 | Need turnbacks on straight runs, which the plans-over-40-runs filter (`udot > -0.5`) hides; with them they orient |
 | | D10 | An orientation exists (15 turnbacks); the 60 s search limit stops first |
-| Columns do not settle | D24, D38, D11 | Being diagnosed |
+| Columns do not settle | D24, D38, D11 | Constraints that clash: a short siding read as a diagonal with level ends (D11), a short link forced to an exact span in a small ring (D24), two turnbacks at one switch that enclose each other (D38) |
 | Time out in rows and columns | D34, D18, D6 | Size: the same as set C |
 
-Fix under way (plugin branch `orient-fallback`): an A-B balloon loop drawn as its own reversing loop, and a second orientation pass over all runs, only when the first pass finds nothing, so plans that draw today are unchanged.
+**Fix (plugin [PR #88](https://github.com/lnevo/model-railroad-skills/pull/88), merged 2026-11-23, pinned here).** Each fallback runs only when the usual path fails:
+- an A-B balloon loop is drawn as two stubs beside the switch, with a warning;
+- a second orientation pass, a seeded local search bounded by steps, runs when the first pass finds nothing, and shares the first pass's time limit;
+- when no orientation of a band settles, the columns try once more with the clashing constraints relaxed, and each relaxation is listed as a drawing fault.
+
+Results on set D, 240 s cap:
+- D35 and D38 now draw.
+- D14 draws a piece it left out.
+- Every other plan that drew is byte-identical.
+- D24 draws in about 10 min alone, still over the cap.
+- D7, D11 and D13 get past orientation but run over the cap.
+- D10 and D17 stop after about 70 s with "no orientation found".
+- D6, D18 and D34 are size.
+
+The six plans that remain are a speed problem, not a missing fallback, and stay parked with set C. Set A matches all three fingerprints; 818 plugin tests.
 
 ## Set C drawn (2026-11-23)
 
