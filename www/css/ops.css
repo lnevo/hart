@@ -2056,13 +2056,13 @@ table.roster th {
   color: var(--muted);
 }
 
-/* Home: the band above the section doors that leads to the Extra East game (play/). The game's title
+/* Home: the band under the section doors that leads to the Extra East game (play/). The game's title
    screen as one still frame, set in the teal with a margin. */
 .play-band {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
-  margin: 1.25rem 0 1rem;
+  margin: 1.25rem 0 0;
   overflow: hidden;
   background: var(--brand);
   box-shadow: var(--shadow);
