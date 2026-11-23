@@ -24,7 +24,7 @@ Status: done (2026-11-22)
 | Run | Era | Railroad and route | Rules |
 |---|---|---|---|
 | Coal extra | 1949 | PRR Chartiers Branch, Carnegie toward Washington, with the mine branches | 1949 Standard Code: timetable, superiority, train orders, semaphores at the junctions with the P&WV, the Montour and the B&O |
-| Passenger train | 1949 | PRR Chartiers Branch passenger train, Pittsburgh to Washington. It meets a B&O train at Washington (Tylerdale); the run stays the PRR's | Standard Code: a first-class schedule, meets with freights and extras, orders at the open offices, protection when stopped |
+| Passenger train | 1949 | PRR Chartiers Branch passenger train, Pittsburgh to Washington. It meets a B&O train at Tylerdale (MP 21.8), where the Tylerdale Connecting joins the main; the run stays the PRR's | Standard Code: a first-class schedule, meets with freights and extras, orders at the open offices, protection when stopped |
 | Ore transfer | 1980s | PC&Y (half P&LE, half Conrail), Scully Yard to the Y Interchange on Neville Island | Signals and yard limits; ties the run to the island game |
 | Warrant run | 1997 | Pittsburgh Industrial Railroad (RailTex; POHC only from December 2000) over the Chartiers track and the PC&Y, meeting Conrail at Duff Junction and CSX at POV Junction | GCOR track warrants, dark territory, yard limits |
 
@@ -35,7 +35,7 @@ Coverage is judged across the whole game: the island shifts and all four Chartie
 | Run | Focus | Also comes up |
 |---|---|---|
 | 1949 coal extra | Superiority and movement (an extra against regular trains, S-87 margins, Rule 86, double-track D-rules); semaphores at the interlockings | One meet order; yard limits at Carnegie |
-| 1949 passenger train | Train orders (forms, clearance, the order board, the B&O meet at Washington); the first-class schedule; protection when stopped (Rule 99) | Whistles, semaphores |
+| 1949 passenger train | Train orders (forms, clearance, the order board, the B&O meet at Tylerdale); the first-class schedule; protection when stopped (Rule 99) | Whistles, semaphores |
 | 1980s PC&Y ore transfer | Signals (block and interlocking aspects at the P&LE crossing and Neville); yard limits | Definitions, GCOR crew rules |
 | 1997 PIR warrant run | Track warrants, dark territory | Yard limits, GCOR |
 
@@ -51,8 +51,8 @@ Sources: `www/library/chartiers-valley-railroads.html` and its sources, [Wikiped
 - Track: double Carnegie–Houston (since 1904), single Houston–Washington (owner's choice; the source says only "single by 1951"). Bell's (Greer) Tunnel is double track; Glenn tunnel was opened to a cut in 1898.
 - Signals: the branch had signals until 4 August 1959; their type is not recorded. Offices, towers and the PRR division are not found.
 - Passenger service: nine daily round trips in 1926, about 1.5 hours (express about 1 hour); last train 20 July 1952. No 1949 schedule found.
-- Mine branches active in 1949: Bridgeville & McDonald (at Bridgeville), Westland (at Houston), Palanka and Manifold (junctions not found).
-- Junctions: PC&Y at Glenn and Woodville; P&WV near Bridgeville; Montour at Hills; B&O at Washington through the Tylerdale Connecting.
+- Mine branches in 1949: Bridgeville & McDonald (at Bridgeville), Westland (at Houston, MP 15.3), with two spurs off it to the Palanka mines (Midland No. 1 closed 9 March 1949, so the 1949 runs do not work it; not drawn), and Manifold (junction not found; the game puts it at Arden). Palanka research 2026-11-22: Wikipedia Chartiers Branch, Coal Camp USA after Giosta 1970.
+- Junctions: PC&Y at Glenn and Woodville; P&WV about a mile west of Bridgeville (Washington side); Montour at Hills; B&O by the Tylerdale Connecting, which joins the main at Tylerdale, about MP 21.8 (moved there from Washington 2026-11-22 after the prototype review).
 
 **PC&Y, 1980s:** jointly owned, own operating staff; reached the island through Neville interlocking (about PLE 5.7) and crossed the P&LE main near McKees Rocks (about PLE 3.75). Not found: an ore move from Scully to Neville, the method of operation, the signal type.
 
@@ -96,7 +96,7 @@ Everything marked not found is filled in by the game without comment (rule 2).
 ## Decided 2026-11-22
 
 - Name: Extra East: HART Railroad.
-- Passengers: the 1949 PRR train, with a meet with a B&O train at Washington.
+- Passengers: the 1949 PRR train, with a meet with a B&O train at Tylerdale, short of Washington.
 - 1980s run: the PC&Y ore transfer.
 - 1949 track: double to Houston, single beyond.
 - Warrant run: stays 1997, as the Pittsburgh Industrial Railroad with Conrail at Duff.

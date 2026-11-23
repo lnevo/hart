@@ -18,7 +18,8 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"
 /* ---------- the line ---------- */
 /* Carnegie (Mansfield) to Washington. mp: milepost from Carnegie. sd: siding. off: train order office. il: interlocking.
    Double track Carnegie to Houston (HOU), single track beyond. The stations and the mileposts of Bridgeville, Hills,
-   Houston and Washington are the sources'; the other mileposts are placed between them. */
+   Houston and Washington are the sources'; the other mileposts are placed between them. Tylerdale is 1.8 miles from
+   Washington (the library page); the Tylerdale Connecting to the B&O joins the main there. */
 const ST=[
   {n:"Carnegie",mp:0,sd:1,off:1,yl:1,reg:1},
   {n:"Glenn",mp:0.9,sd:0},
@@ -32,8 +33,9 @@ const ST=[
   {n:"Canonsburg",mp:11.8,sd:1,off:1},
   {n:"Houston",mp:15.3,sd:1,off:1},
   {n:"Arden",mp:20.0,sd:1},
-  {n:"Washington",mp:23.6,sd:1,off:1,yl:1,il:1}];
-const LAST=ST.length-1,HOU=10,ARD=11,BV=5,HIL=8;
+  {n:"Tylerdale",mp:21.8,sd:0,il:1},
+  {n:"Washington",mp:23.6,sd:1,off:1,yl:1}];
+const LAST=ST.length-1,HOU=10,ARD=11,TYL=12,BV=5,HIL=8;
 
 /* ---------- the time-table ---------- */
 /* One table for every 1949 run, the same on every play, like an employee time-table: the draws change the orders, the late
@@ -41,14 +43,14 @@ const LAST=ST.length-1,HOU=10,ARD=11,BV=5,HIL=8;
    is the leaving time (Rule 5), except the arriving time at Washington southbound and at Carnegie northbound.
    Passenger trains run 2.2 minutes a mile, No 92 3.2, anchored at Houston. */
 const TT=[
-  {id:"305",name:"No 305",dir:1,cls:"First class",t:[444,446,449,451,452,453,457,460,463,470,478,488,496]},
-  {id:"307",name:"No 307",dir:1,cls:"First class",t:[546,548,551,553,554,555,559,562,565,572,580,590,598]},
-  {id:"309",name:"No 309",dir:1,cls:"First class",t:[586,588,591,593,594,595,599,602,605,612,620,630,638]},
-  {id:"302",name:"No 302",dir:-1,cls:"First class",t:[560,558,555,553,552,551,547,544,541,534,526,516,508]},
-  {id:"92",name:"No 92",dir:-1,cls:"Second class",t:[603,600,597,594,592,590,585,581,575,565,554,539,527]},
-  {id:"304",name:"No 304",dir:-1,cls:"First class",t:[675,673,670,668,667,666,662,659,656,649,641,631,623]}];
+  {id:"305",name:"No 305",dir:1,cls:"First class",t:[444,446,449,451,452,453,457,460,463,470,478,488,492,496]},
+  {id:"307",name:"No 307",dir:1,cls:"First class",t:[546,548,551,553,554,555,559,562,565,572,580,590,594,598]},
+  {id:"309",name:"No 309",dir:1,cls:"First class",t:[586,588,591,593,594,595,599,602,605,612,620,630,634,638]},
+  {id:"302",name:"No 302",dir:-1,cls:"First class",t:[560,558,555,553,552,551,547,544,541,534,526,516,512,508]},
+  {id:"92",name:"No 92",dir:-1,cls:"Second class",t:[603,600,597,594,592,590,585,581,575,565,554,539,533,527]},
+  {id:"304",name:"No 304",dir:-1,cls:"First class",t:[675,673,670,668,667,666,662,659,656,649,641,631,627,623]}];
 /* An extra's own running time between each pair of stations, minutes: 3.5 a mile. */
-const LEG=[3,4,3,2,2,6,5,6,11,12,16,13];
+const LEG=[3,4,3,2,2,6,5,6,11,12,16,6,7];
 /* A fresh copy for one play: act is where each train actually is (a late order moves it), t stays as printed. */
 function newTT(){return {trains:TT.map(x=>({id:x.id,name:x.name,dir:x.dir,cls:x.cls,t:x.t.slice(),act:x.t.slice(),marked:false})),leg:LEG.slice()}}
 const train=(G,id)=>G.tt.trains.find(t=>t.id===id);
@@ -89,7 +91,7 @@ function semSvg(a){
 /* The line sketch: Carnegie to Washington, the branches and junctions at 45 degrees, the player's engine lit at its station.
    o.label is the number on the engine. The run's where(S) names the place in the picture's label. */
 function map(S,o){
-  const G=S.road,W=600,xs=ST.map((s,i)=>26+i*44),y=72,y2=79;
+  const G=S.road,W=600,xs=ST.map((s,i)=>26+i*42),y=72,y2=79;
   const at=G.pos,me=xs[at];
   let s=`<svg viewBox="0 0 ${W} 122" role="img" aria-label="Line sketch of the Chartiers Branch from Carnegie to Washington, ${esc(S.def.code)} at ${esc(S.def.where(S))}">`;
   s+=`<rect x="0" y="0" width="${W}" height="122" fill="var(--land)"/>`;
@@ -102,18 +104,18 @@ function map(S,o){
   ST.forEach((st,i)=>{if(st.sd&&i>0&&i<LAST){const x=xs[i];s+=i<=HOU?`<path d="M${x-12} ${y} L${x-6} ${y-6} H${x+6} L${x+12} ${y}"/>`:`<path d="M${x-12} ${y} L${x-6} ${y+6} H${x+6} L${x+12} ${y}"/>`}});
   const lab=[];
   const up=(x,l)=>{s+=`<path d="M${x+14} ${y} L${x+26} ${y-12} H${x+40}"/>`;lab.push([x+28,y-16,l])};
-  up(xs[1],"PC&amp;Y");up(xs[2],"PC&amp;Y");up(xs[BV],"B&amp;McD");up(xs[7],"PALANKA");up(xs[HIL],"MONTOUR");
-  s+=`<path d="M${xs[BV]-14} ${y} L${xs[BV]-26} ${y-12} H${xs[BV]-38}"/>`; // P&WV, close by Bridgeville
+  up(xs[1],"PC&amp;Y");up(xs[2],"PC&amp;Y");up(xs[BV],"B&amp;McD");up(xs[HIL],"MONTOUR");
+  s+=`<path d="M${xs[BV]+20} ${y2} L${xs[BV]+28} ${y2+8} H${xs[BV]+36}"/>`; // P&WV, about a mile west of Bridgeville, the Washington side, off the second main
   s+=`<path d="M${xs[ARD]} ${y} L${xs[ARD]+12} ${y-12} H${xs[ARD]+24}"/>`; // Manifold, leaving at Arden
   s+=`<path d="M${xs[HOU]+8} ${y} L${xs[HOU]+20} ${y+12} H${xs[HOU]+34}"/>`; // Westland
-  s+=`<path d="M${xs[LAST]+4} ${y} L${xs[LAST]+14} ${y+10} H${xs[LAST]+24}"/>`; // Tylerdale Connecting to the B&O
+  s+=`<path d="M${xs[TYL]+4} ${y} L${xs[TYL]+14} ${y+10} H${xs[TYL]+24}"/>`; // Tylerdale Connecting to the B&O
   s+=`</g>`;
   // stations
   ST.forEach((st,i)=>{const x=xs[i];s+=`<line x1="${x}" y1="${y+9}" x2="${x}" y2="${y+13}" stroke="var(--ink)" stroke-width="1.2"/>`;
     s+=`<text x="${x}" y="${i%2?112:101}" font-size="6.3" text-anchor="middle" class="lbl" font-weight="${i===at&&!G.moving?700:400}">${esc(st.n.toUpperCase())}</text>`;
     if(st.il)s+=`<rect x="${x-3}" y="${y-5}" width="6" height="6" fill="var(--rust)" opacity=".85"/>`});
   lab.forEach(([x,yy,t])=>{s+=`<text x="${x}" y="${yy}" font-size="5.8" class="lbl">${t}</text>`});
-  s+=`<text x="${xs[ARD]+16}" y="${y-16}" font-size="5.8" class="lbl">MANIFOLD</text><text x="${xs[BV]-40}" y="${y-16}" font-size="5.8" text-anchor="end" class="lbl">P&amp;WV</text><text x="${xs[HOU]+36}" y="${y+25}" font-size="5.8" class="lbl">WESTLAND</text><text x="${xs[LAST]+26}" y="${y+13}" font-size="5.8" class="lbl">B&amp;O</text>`;
+  s+=`<text x="${xs[ARD]+16}" y="${y-16}" font-size="5.8" class="lbl">MANIFOLD</text><text x="${xs[BV]+38}" y="${y2+11}" font-size="5.8" class="lbl">P&amp;WV</text><text x="${xs[HOU]+24}" y="${y+25}" font-size="5.8" class="lbl">WESTLAND</text><text x="${xs[TYL]+26}" y="${y+13}" font-size="5.8" class="lbl">B&amp;O</text>`;
   // the engine, the job's own lit; between two stations it stands midway
   const ex=G.moving&&G.to!==undefined?(xs[at]+xs[G.to])/2:me;
   s+=`<g transform="translate(${ex} ${y-1})"><rect x="-13" y="-5" width="26" height="10" rx="2" fill="var(--green)" stroke="var(--glow)" stroke-width="1.4"/><text x="0" y="2.4" font-size="6.4" text-anchor="middle" fill="#fff" font-weight="700">${esc(o.label)}</text></g>`;
@@ -140,7 +142,7 @@ function sheet(S,o){
     if(o.runLabel)h+=`<td class="pencil">${i<LAST?G.tt.leg[i]:""}</td>`;
     h+=`</tr>`;
   });
-  h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Northward trains are superior to southward trains of the same class.</li><li>One time shown is the leaving time (Rule 5).</li><li>Carnegie and Washington are inside yard limits.</li><li>Extras clear opposing regular trains by 5 minutes (Rule S-87).</li><li>Double track Carnegie to Houston: D- rules apply there.</li><li>Interlockings at Bridgeville, Hills and Washington.</li></ul></div>`;
+  h+=`</tbody></table></div><div class="xw-si"><b>Special instructions</b><ul><li>Northward trains are superior to southward trains of the same class.</li><li>One time shown is the leaving time (Rule 5).</li><li>Carnegie and Washington are inside yard limits.</li><li>Extras clear opposing regular trains by 5 minutes (Rule S-87).</li><li>Double track Carnegie to Houston: D- rules apply there.</li><li>Interlockings at Bridgeville, Hills and Tylerdale.</li></ul></div>`;
   if(G.orders.length)h+=`<div class="xw-orders"><b>Orders held</b>${G.orders.map(x=>`<div class="ord">No ${x.no}: ${esc(x.text)}<span class="ok">${x.wire?"wire failed":"OK"}</span></div>`).join("")}</div>`;
   h+=`<div class="xw-orders"><b>Work</b>${S.jobs.map(j=>`<div class="ord${j.done?" done":""}">${j.done?"✓ ":""}${esc(j.t)}</div>`).join("")}</div>`;
   return h;
@@ -209,5 +211,5 @@ function draw(G,R,H,key,pool,p){
   return H.ask(pool[b.pop()]);
 }
 
-window.RoadEngine={ST,LAST,HOU,ARD,BV,HIL,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,plateQ,PAIR,SPEEDS,sigDots,draw};
+window.RoadEngine={ST,LAST,HOU,ARD,TYL,BV,HIL,LIB,WIKI,lib,fmt,esc,TT,newTT,train,run,checkMove,semSvg,map,sheet,clearNums,paper,take,Q,aspectQ,plateQ,PAIR,SPEEDS,sigDots,draw};
 })();
