@@ -1,4 +1,5 @@
 """prepare_github_pages: an archive item's "max_px" sets the size of its web copy, within limits."""
+import io
 import json
 import os
 import sys
@@ -20,7 +21,9 @@ except ImportError:
 class ArchivePx(unittest.TestCase):
     def test_unset_or_junk_keeps_the_default(self):
         self.assertEqual(build._archive_px(None, 1600), 1600)
-        self.assertEqual(build._archive_px("big", 1600), 1600)
+        with mock.patch("sys.stderr", new_callable=io.StringIO) as err:
+            self.assertEqual(build._archive_px("5220px", 1600, "map"), 1600)
+        self.assertIn("map max_px '5220px' not usable", err.getvalue())
 
     def test_kept_between_default_and_the_cap(self):
         self.assertEqual(build._archive_px(4000, 1600), 4000)
@@ -53,17 +56,21 @@ class VendorArchive(unittest.TestCase):
         with mock.patch.object(build, "_source", return_value=self.big):
             build._vendor_archive_images(data, dest)
         out = json.loads(data.read_text())["items"][0]
-        with Image.open(dest / out["src"]) as im:
-            return out, im.size
+        sizes = {}
+        for key in ("src", "full"):
+            if key in out:
+                with Image.open(dest / out[key]) as im:
+                    sizes[key] = im.size
+        return out, sizes
 
-    def test_an_item_max_px_gives_a_larger_copy_and_is_not_published(self):
-        out, size = self.build({"id": "map", "src": "../media/big.png", "bucket": "curated", "max_px": 2400})
-        self.assertEqual(size, (2400, 1200))
+    def test_max_px_adds_a_large_full_copy_and_keeps_src_small(self):
+        out, sizes = self.build({"id": "map", "src": "../media/big.png", "bucket": "curated", "max_px": 2400})
+        self.assertEqual(sizes, {"src": (1600, 800), "full": (2400, 1200)})
         self.assertNotIn("max_px", out)
 
-    def test_without_max_px_the_copy_is_1600(self):
-        _, size = self.build({"id": "map", "src": "../media/big.png", "bucket": "curated"})
-        self.assertEqual(size, (1600, 800))
+    def test_without_max_px_there_is_no_full_copy(self):
+        out, sizes = self.build({"id": "map", "src": "../media/big.png", "bucket": "curated"})
+        self.assertEqual(sizes, {"src": (1600, 800)})
 
 
 if __name__ == "__main__":

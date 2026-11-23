@@ -832,21 +832,28 @@ def _gallery_thumbs(path: Path, dest_root: Path, subdir: str, thumb_px: int = 64
 ARCHIVE_MAX_PX = 6000  # the largest web copy an archive item may ask for
 
 
-def _archive_px(asked, default: int) -> int:
-    """An item's own "max_px", kept between the default and ARCHIVE_MAX_PX; the default when unset or not a number."""
+def _archive_px(asked, default: int, name: str = "") -> int:
+    """An item's own "max_px", kept between the default and ARCHIVE_MAX_PX; the default when unset.
+    A value that is not a whole number, or falls outside those limits, is reported on stderr."""
+    if asked is None:
+        return default
     try:
         px = int(asked)
     except (TypeError, ValueError):
-        return default
-    return max(default, min(px, ARCHIVE_MAX_PX))
+        px = None
+    used = default if px is None else max(default, min(px, ARCHIVE_MAX_PX))
+    if px != used:
+        print(f"archive: {name or '?'} max_px {asked!r} not usable; using {used}", file=sys.stderr)
+    return used
 
 
 def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thumb_px: int = 640) -> None:
     """Resize historical-archive images from ../external/ mirrors into assets/archive/.
 
     Every item gets a small grid thumbnail; mirror-only originals also get a web-sized
-    copy, max_px on its long side unless the item sets its own "max_px" (a map or drawing
-    meant to be zoomed into), kept between max_px and ARCHIVE_MAX_PX. Items marked "public": false or whose original is missing (no mirrors)
+    copy, max_px on its long side. An item that sets its own "max_px" (a map or drawing
+    meant to be zoomed into) also gets item["full"], a larger copy that only the lightbox's
+    open-full link loads, so pages never fetch it on their own. Items marked "public": false or whose original is missing (no mirrors)
     are dropped, and local-only
     fields (PDF paths, where the owner found the file) are stripped.
     """
@@ -864,12 +871,15 @@ def _vendor_archive_images(path: Path, dest_root: Path, max_px: int = 1600, thum
         if not src_rel or not src.is_file():
             continue
         slug = re.sub(r"[^a-z0-9]+", "-", str(item.get("id") or src.stem).lower()).strip("-")
-        size = _archive_px(item.pop("max_px", None), max_px)
+        size = _archive_px(item.pop("max_px", None), max_px, slug)
         if src_rel.startswith("../"):
             rel = Path("assets") / "archive" / f"{slug}.jpg"
-            if not _web_jpeg(src, dest_root / rel, size):
+            if not _web_jpeg(src, dest_root / rel, max_px):
                 continue
             item["src"] = rel.as_posix()
+            full = Path("assets") / "archive" / "full" / f"{slug}.jpg"
+            if size > max_px and _web_jpeg(src, dest_root / full, size):
+                item["full"] = full.as_posix()
         thumb = Path("assets") / "archive" / "thumbs" / f"{slug}.jpg"
         if _web_jpeg(src, dest_root / thumb, thumb_px):
             item["thumb"] = thumb.as_posix()
