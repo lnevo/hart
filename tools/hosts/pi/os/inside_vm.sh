@@ -45,9 +45,14 @@ xz -dc "$WORK/cache/$name" > "$base"
 # 3. The pluglist, filled in. Kept on the VM disk only (it holds the password hash).
 # shellcheck disable=SC1091
 source "$STAGE/private/secrets.env"
+# Literal replacements: bash 5.2 would otherwise treat & as the match.
+shopt -u patsub_replacement 2>/dev/null || true
 umask 077
-sed -e "s|@STAGE@|$STAGE|g" -e "s|@PI_PASSWORD_HASH@|${PI_PASSWORD_HASH//|/\\|}|g" \
-  "$STAGE/os/hart.pluglist.in" > "$TMP/hart.pluglist"
+trap 'rm -f "$TMP/hart.pluglist"' EXIT
+t="$(<"$STAGE/os/hart.pluglist.in")"
+t="${t//@STAGE@/$STAGE}"
+t="${t//@PI_PASSWORD_HASH@/$PI_PASSWORD_HASH}"
+printf '%s\n' "$t" > "$TMP/hart.pluglist"
 umask 022
 
 # 4. Customize (Phase 0, Phase 1 and post-install run natively: arm64 VM, arm64 image).

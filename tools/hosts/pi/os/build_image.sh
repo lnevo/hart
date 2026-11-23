@@ -36,15 +36,20 @@ done
 # The stage is the only folder the VM sees. Secrets are removed from it when the build ends.
 log "staging into $STAGE"
 mkdir -p "$STAGE" "$WORK/out" "$WORK/cache"
-trap 'rm -rf "$STAGE/private" "$STAGE/net" "$STAGE/hart.pluglist"' EXIT
+trap 'rm -rf "$STAGE/private" "$STAGE/net"' EXIT
 rsync -a --delete "$HERE/" "$STAGE/os/"
 umask 077
 rsync -a --delete "$PRIV/" "$STAGE/private/"
 mkdir -p "$STAGE/net"
 # shellcheck disable=SC1091
 source "$PRIV/secrets.env"
-render() { # template -> file, filling @KEY@ from secrets.env
-  sed -e "s|@HOUSE_WIFI_PSK@|${HOUSE_WIFI_PSK//|/\\|}|" -e "s|@HOTSPOT_PSK@|${HOTSPOT_PSK//|/\\|}|" "$1" > "$2"
+# Unquoted replacements are literal in bash 3.2 (macOS) and, with this off, in 5.2.
+shopt -u patsub_replacement 2>/dev/null || true
+render() { # template -> file, filling @KEY@ from secrets.env; values are taken literally
+  local t; t="$(<"$1")"
+  t="${t//@HOUSE_WIFI_PSK@/$HOUSE_WIFI_PSK}"
+  t="${t//@HOTSPOT_PSK@/$HOTSPOT_PSK}"
+  printf '%s\n' "$t" > "$2"
 }
 render "$HERE/network/Easte.nmconnection.in" "$STAGE/net/Easte.nmconnection"
 render "$HERE/network/RPi-JMRI.nmconnection.in" "$STAGE/net/RPi-JMRI.nmconnection"
@@ -68,7 +73,7 @@ if ! limactl list -q 2>/dev/null | grep -qx "$VM"; then
   limactl create --tty=false --name="$VM" --vm-type=vz --arch=aarch64 \
     --cpus=4 --memory=6 --disk=40 --mount-only="$WORK:w" template:debian-13
 fi
-limactl list -q --format '{{.Status}}' "$VM" 2>/dev/null | grep -q Running || { log "starting $VM"; limactl start --tty=false "$VM"; }
+limactl list --format '{{.Status}}' "$VM" 2>/dev/null | grep -q Running || { log "starting $VM"; limactl start --tty=false "$VM"; }
 
 log "building in $VM (sdm customize, then burnfile with the hostname)"
 limactl shell --workdir / "$VM" sudo bash "$STAGE/os/inside_vm.sh" "$STAGE" "$WORK"

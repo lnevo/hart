@@ -19,7 +19,7 @@ The image lands in `~/.cache/hart/pi-os/out/` with a `.sha256` and a `.base` fil
 | `hart.pluglist.in` | sdm plugins: user, locale, network, packages, Docker, Samba, wayvnc, files, services, kernel command line |
 | `apps.txt` | apt packages added to the stock desktop image |
 | `network/` | NetworkManager profiles; the two Wi-Fi ones are templates filled from `secrets.env` |
-| `rootfs/system/` | copied to `/` as root: Wi-Fi watchdog, `lcos-bridge` unit, udev rule, Mosquitto config, EDID files, greeter kanshi profile |
+| `rootfs/system/` | copied to `/` as root: Wi-Fi watchdog, `lcos-bridge` unit, udev rule, Mosquitto config, EDID files (in `usr/lib`, as trixie merges `/lib` into `/usr`), greeter kanshi profile |
 | `rootfs/home-pi/` | copied to `/home/pi`: kanshi, labwc environment, panel settings, aliases |
 | `samba-shares.conf` | the `JMRI_UserFiles` and `JMRI_Settings` shares |
 | `firstboot.sh` | run once on the Pi: `docker` and `lpadmin` groups, lingering for user services |

@@ -14,3 +14,8 @@ python3-pip
 git
 rsync
 nmap
+# The Wi-Fi watchdog calls these; without tcpdump it thinks the link is deaf and reconnects.
+tcpdump
+avahi-utils
+iw
+wpasupplicant

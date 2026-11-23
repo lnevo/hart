@@ -20,13 +20,15 @@ vnc:wayvnc
 
 sshhostkey:import-keys=@STAGE@/private/ssh-host-keys
 copyfile:from=@STAGE@/private/authorized_keys|to=/home/pi/.ssh|chown=pi:pi|chmod=600|mkdirif
+# sdm spells the phase two ways: copyfile takes postinstall, runcommand post-install.
 copyfile:from=@STAGE@/private/passdb.tdb|to=/var/lib/samba/private|chown=root:root|chmod=600|mkdirif|runphase=postinstall
 
 # Card-only system files and the pi user's desktop settings, kept in rootfs/.
-copydir:from=@STAGE@/os/rootfs/system/|to=/|rsyncopts=-rlpt --chown=root:root
-copydir:from=@STAGE@/os/rootfs/home-pi/|to=/home/pi/|rsyncopts=-rlpt --chown=1000:1000
+# -K keeps the image's merged-/usr links (/lib -> usr/lib) instead of replacing them.
+copydir:from=@STAGE@/os/rootfs/system/|to=/|rsyncopts=-rlptK --chown=root:root
+copydir:from=@STAGE@/os/rootfs/home-pi/|to=/home/pi/|rsyncopts=-rlptK --chown=1000:1000
 # JMRI 5.16 as it runs on the old card (CATS installed into it), STS and the bridge checkouts.
-copydir:from=@STAGE@/home/|to=/home/pi/|rsyncopts=-rlpt --chown=1000:1000
+copydir:from=@STAGE@/home/|to=/home/pi/|rsyncopts=-rlptK --chown=1000:1000
 runcommand:command=ln -sfn JMRI.5.16 /home/pi/JMRI && chown -h 1000:1000 /home/pi/JMRI|runphase=post-install
 
 system:name=hart|service-enable=wifi-watchdog,mosquitto,smbd,nmbd,cups|service-disable=lcos-bridge|service-mask=samba-ad-dc

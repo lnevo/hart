@@ -33,19 +33,20 @@ echo "[pull] secrets -> $PRIV"
 "${SSH[@]}" 'cat ~/.ssh/authorized_keys' > "$PRIV/authorized_keys"
 "${SSH[@]}" 'sudo -n cat /var/lib/samba/private/passdb.tdb' > "$PRIV/passdb.tdb"
 
-# secrets.env: one KEY='value' per line, read by build_image.sh.
+# secrets.env: one KEY=value per line (printf %q quoting), read by build_image.sh.
 "${SSH[@]}" 'sudo -n sh -c '\''
   psk() { sed -n "s/^psk=//p" "/etc/NetworkManager/system-connections/$1.nmconnection"; }
   printf "HOUSE_WIFI_PSK=%s\n" "$(psk Easte)"
   printf "HOTSPOT_PSK=%s\n" "$(psk RPi-JMRI)"
   printf "PI_PASSWORD_HASH=%s\n" "$(getent shadow pi | cut -d: -f2)"
 '\''' > "$PRIV/secrets.env.tmp"
-# Quote each value so $ in the password hash survives sourcing.
-sed -E "s/^([A-Z_]+)=(.*)$/\1='\2'/" "$PRIV/secrets.env.tmp" > "$PRIV/secrets.env"
+# Re-quote each value with printf %q so any character survives sourcing.
+: > "$PRIV/secrets.env"
+while IFS='=' read -r k v; do
+  [[ -n "$v" ]] || { echo "[pull] $k is empty" >&2; exit 1; }
+  printf '%s=%q\n' "$k" "$v" >> "$PRIV/secrets.env"
+done < "$PRIV/secrets.env.tmp"
 rm -f "$PRIV/secrets.env.tmp"
-for k in HOUSE_WIFI_PSK HOTSPOT_PSK PI_PASSWORD_HASH; do
-  grep -q "^$k='.\+'$" "$PRIV/secrets.env" || { echo "[pull] $k is empty" >&2; exit 1; }
-done
 echo "[pull] secrets.env has $(wc -l < "$PRIV/secrets.env" | tr -d ' ') values; $(ls "$PRIV/ssh-host-keys" | wc -l | tr -d ' ') host key files"
 
 echo "[pull] JMRI install -> $WORK/jmri"
