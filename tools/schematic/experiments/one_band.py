@@ -16,6 +16,7 @@ import cProfile
 import io
 import itertools
 import json
+import os
 import pstats
 import signal
 import sys
@@ -32,15 +33,25 @@ def load(p):
     return json.loads(Path(p).read_text())
 
 
+def disjoint(what, a, b):
+    both = set(a) & set(b)
+    if both:
+        sys.exit(f"one_band: staging and main share {what} keys {sorted(both)[:5]}; the join would lose one")
+
+
 def build(out):
     """Write the joined graph and its layer files into OUT."""
     (out / "data").mkdir(parents=True, exist_ok=True)
     s, m = load(DATA / "inputs/staging.json"), load(DATA / "inputs/main.json")
+    disjoint("nodes", s["nodes"], m["nodes"])
     nodes = {**s["nodes"], **m["nodes"]}
     edges = [dict(e, id=pre + e["id"]) for pre, g in (("s", s), ("m", m)) for e in g["edges"]]
 
     def cut_edge(cut):
-        (e,) = [e for e in edges if cut in (e["u"], e["v"])]
+        found = [e for e in edges if cut in (e["u"], e["v"])]
+        if len(found) != 1:
+            sys.exit(f"one_band: helix cut {cut} has {len(found)} tracks, expected 1; were the inputs re-exported?")
+        (e,) = found
         return (e, e["v"], e["vp"]) if e["u"] == cut else (e, e["u"], e["up"])
 
     for a, b, name in HELIX:
@@ -59,7 +70,10 @@ def build(out):
     for sec in (st, mu):
         for e in sec["edits"]:
             if e["op"] == "relabel":
+                disjoint("relabel", relabel, e["map"])
                 relabel.update(e["map"])
+    if any(e["op"] in ("name", "end") for e in mu["edits"]) or "name_main" in gen["main_upper"]:
+        sys.exit("one_band: main_upper now has name/end edits or name_main; carry them into the whole plan")
     ed = [{"op": "relabel", "map": relabel}]
     for e in st["edits"]:
         if e["op"] == "name":
@@ -68,6 +82,7 @@ def build(out):
             ed.append(dict(e, ends=[x for x in e["ends"] if x[3] != "helix"]))
     whole = {"edits": ed, "mast_prefix": "Mast ", "level_title": "HART Railroad", "left_end": st["left_end"]}
     for k in ("stations", "control_points"):
+        disjoint(k, gen["staging"].get(k, {}), gen["main_upper"].get(k, {}))
         whole[k] = {**gen["staging"].get(k, {}), **gen["main_upper"].get(k, {})}
     whole["name_main"] = gen["staging"]["name_main"]
     (out / "data/plan_overrides.json").write_text(json.dumps({"_sections": True, "whole": whole}, indent=1))
@@ -78,7 +93,8 @@ def build(out):
 
 
 def raise_cap(cap):
-    """Wrap the plugin's orient with a fixed turnback cap (the same search, own cap)."""
+    """Wrap the plugin's orient with a fixed turnback cap: the plugin's search (its candidate filter
+    on plans with more than 40 runs included) with only the cap changed."""
     from schematic import layout as L, orient as O
 
     def search(g, max_turnbacks=3, keep=10, require=()):
@@ -86,7 +102,9 @@ def raise_cap(cap):
         sw = [e for e in g["edges"] if all(g["nodes"][n]["kind"] in O.JUNCTION for n in (e["u"], e["v"]))]
         req = set(require)
         must = [e for e in sw if e["id"] in req]
-        cand = [e for e in sw if not e["link"] and O.udot(g, e) > -0.5 and e["id"] not in req]
+        cand = [e for e in sw if not e["link"] and e["id"] not in req]
+        if len(cand) > 40:
+            cand = [e for e in cand if O.udot(g, e) > -0.5]
         print(f"orient: {len(sw)} switch-to-switch runs, {len(cand)} may turn back, cap {cap}", file=sys.stderr)
         best, found = None, []
         for k in range(cap + 1):
@@ -115,7 +133,7 @@ def raise_cap(cap):
     L.orient = search
 
 
-class Stop(Exception):
+class Stop(BaseException):  # not Exception: the plugin's `except Exception` must not swallow it
     pass
 
 
@@ -126,13 +144,17 @@ def main(argv):
     ap.add_argument("--seconds", type=int, help="stop the run after this many seconds")
     ap.add_argument("--profile", action="store_true", help="write cProfile stats to OUT/profile.txt")
     a = ap.parse_args(argv)
+    if (a.cap is not None and a.cap < 0) or (a.seconds is not None and a.seconds < 1):
+        ap.error("--cap must be 0 or more and --seconds 1 or more")
+    # Always cold: the cache key cannot see the --cap wrapper, and the results are timed cold.
+    os.environ["SCHEMATIC_CACHE"] = ""
     a.out.mkdir(parents=True, exist_ok=True)
     build(a.out)
     sys.path.insert(0, str(PLUGIN))
     from schematic import cli
-    if a.cap:
+    if a.cap is not None:
         raise_cap(a.cap)
-    if a.seconds:
+    if a.seconds is not None:
         signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(Stop()))
         signal.alarm(a.seconds)
     args = [str(a.out / "one_band.svg"), "--data", str(a.out / "data"), f"{a.out / 'whole.json'}:whole",
@@ -146,6 +168,7 @@ def main(argv):
     except Stop:
         print(f"one_band: stopped at {a.seconds} s", file=sys.stderr)
     finally:
+        signal.alarm(0)
         if prof:
             prof.disable()
             buf = io.StringIO()
