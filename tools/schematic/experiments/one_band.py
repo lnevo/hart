@@ -101,7 +101,7 @@ def raise_cap(cap):
     on plans with more than 40 runs included) with only the cap changed."""
     from schematic import layout as L, orient as O
 
-    def search(g, max_turnbacks=3, keep=10, require=()):
+    def search(g, max_turnbacks=3, keep=10, require=(), log=None, seconds=None, **_):
         t = time.time()
         sw = [e for e in g["edges"] if all(g["nodes"][n]["kind"] in O.JUNCTION for n in (e["u"], e["v"]))]
         req = set(require)
@@ -138,14 +138,17 @@ def raise_cap(cap):
 
 
 def limit_rows(seconds):
-    """A time limit on the row search (fault F4), from a wrapper; the plugin's files are unchanged. Once the limit
-    has passed, each row optimisation keeps the best arrangement it has and stops improving it."""
+    """A time limit on the row search (fault F4), from a wrapper; the plugin's files are unchanged. Only the time
+    spent inside the row optimisations counts. Once the limit has passed, each optimisation keeps the best
+    arrangement it has and stops improving it."""
     from schematic import rows as R
-    deadline = time.monotonic() + seconds
+    spent = [0.0]          # seconds spent inside Rows.optimise so far, this call's included from `entered`
+    entered = [None]
     hit = []
 
     def late():
-        if time.monotonic() > deadline:
+        now = spent[0] + (time.monotonic() - entered[0] if entered[0] is not None else 0.0)
+        if now > seconds:
             if not hit:
                 hit.append(1)
                 print(f"one_band: row limit of {seconds} s reached; keeping the best rows found", file=sys.stderr)
@@ -199,7 +202,18 @@ def limit_rows(seconds):
         self.dropped = best_score[0]
         return best
 
+    optimise = R.Rows.optimise
+
+    def timed_optimise(self):
+        entered[0] = time.monotonic()
+        try:
+            return optimise(self)
+        finally:
+            spent[0] += time.monotonic() - entered[0]
+            entered[0] = None
+
     R.Rows.optimise_from_here = optimise_from_here
+    R.Rows.optimise = timed_optimise
 
 
 TIMES = collections.defaultdict(float)
@@ -240,7 +254,12 @@ def loose_labels():
     def loose(P, bands, opts, strict=True, **kw):
         out = place(P, bands, opts, strict=False, **kw)
         for _k, msg in P.labels_unplaced:
-            print(f"one_band: left out: {msg}", file=sys.stderr)
+            print(f"one_band: left out: {P.text(msg)}", file=sys.stderr)
+        try:            # strict=False skips the plugin's check of the placed labels: run it on what was placed
+            LL.verify(P)
+            print("one_band: the placed labels pass the label check", file=sys.stderr)
+        except Exception as e:
+            print(f"one_band: label check FAILED: {P.text(str(e))}", file=sys.stderr)
         return out
     LL.place = loose
 
@@ -264,24 +283,27 @@ def main(argv):
         ap.error("--cap must be 0 or more and --seconds 1 or more")
     # Always cold: the cache key cannot see the wrappers, and the results are timed cold. With --panels, a new empty
     # cache in OUT holds this run's solve so the panels reuse it; nothing else reads that folder.
-    cache = a.out / "cache"
+    cache, mark = a.out / "cache", a.out / "cache" / ".one_band"
     if cache.exists():
+        if not mark.exists():
+            sys.exit(f"one_band: {cache} exists and this script did not make it; choose another OUT")
         import shutil
         shutil.rmtree(cache)
     if a.panels:
         cache.mkdir(parents=True)
+        mark.touch()
     os.environ["SCHEMATIC_CACHE"] = str(cache) if a.panels else ""
     a.out.mkdir(parents=True, exist_ok=True)
     build(a.out)
     sys.path.insert(0, str(PLUGIN))
     from schematic import cli
-    time_phases()
+    if a.cap is not None:
+        raise_cap(a.cap)
+    time_phases()           # after raise_cap, so the orientation it installs is the one timed
     if a.panels:
         loose_labels()
     if a.row_seconds is not None:
         limit_rows(a.row_seconds)
-    if a.cap is not None:
-        raise_cap(a.cap)
     if a.seconds is not None:
         signal.signal(signal.SIGALRM, lambda *_: (_ for _ in ()).throw(Stop()))
         signal.alarm(a.seconds)
@@ -298,8 +320,11 @@ def main(argv):
             src = [str(x) for x in args[1:]]
             for label, cmd in (("le", ["le", str(a.out / "one_band_le.xml")] + src),
                                ("cats", ["cats", str(a.out / "one_band_cats.xml")] + src + ["--window", a.window])):
-                t1 = time.time()
+                t1, before = time.time(), dict(CALLS)
                 rc = cli.run(cmd) or rc
+                if CALLS != before:
+                    print(f"one_band: {label} solved again (not from this run's cache); the phase totals include it",
+                          file=sys.stderr)
                 TIMES[label + " (whole command)"] = time.time() - t1
     except Stop:
         print(f"one_band: stopped at {a.seconds} s", file=sys.stderr)
