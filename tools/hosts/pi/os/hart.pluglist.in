@@ -1,0 +1,35 @@
+# sdm pluglist for the layout Pi (docs/hosts/PI_OS_REBUILD.md).
+# inside_vm.sh fills @STAGE@ (the staged copy of this folder, the secrets and the
+# checkouts) and @PI_PASSWORD_HASH@, then runs sdm --customize with it.
+# Syntax: https://github.com/gitbls/sdm/blob/master/Docs/Plugins.md
+
+# Same user, uid and password as the old card; groups are sdm's defaults
+# (dialout, gpio, video and the rest). docker and lpadmin are added at first boot.
+user:adduser=pi|uid=1000|password-hash=@PI_PASSWORD_HASH@
+L10n:keymap=us|locale=en_US.UTF-8|timezone=America/New_York|wificountry=US
+# cloud-init and netplan would move the NetworkManager profiles to /run (sdm Hints-Trixie).
+disables:cloudinit|piwiz|triggerhappy
+network:netman=nm|nmconn=@STAGE@/net/Easte.nmconnection,@STAGE@/net/RPi-JMRI.nmconnection,@STAGE@/os/network/Ethernet.nmconnection
+network:cname=lo|ifname=lo|ctype=loopback|ipv4-static-ip=127.0.0.1/8|autoconnect=no
+
+apps:name=hart|apps=@@STAGE@/os/apps.txt
+docker-install
+samba:shares=@STAGE@/os/samba-shares.conf
+vnc:wayvnc
+# Printing stays (owner, 2026-11-23); the two HP printers are added again from the CUPS page.
+
+sshhostkey:import-keys=@STAGE@/private/ssh-host-keys
+copyfile:from=@STAGE@/private/authorized_keys|to=/home/pi/.ssh|chown=pi:pi|chmod=600|mkdirif
+copyfile:from=@STAGE@/private/passdb.tdb|to=/var/lib/samba/private|chown=root:root|chmod=600|mkdirif|runphase=postinstall
+
+# Card-only system files and the pi user's desktop settings, kept in rootfs/.
+copydir:from=@STAGE@/os/rootfs/system/|to=/|rsyncopts=-rlpt --chown=root:root
+copydir:from=@STAGE@/os/rootfs/home-pi/|to=/home/pi/|rsyncopts=-rlpt --chown=1000:1000
+# JMRI 5.16 as it runs on the old card (CATS installed into it), STS and the bridge checkouts.
+copydir:from=@STAGE@/home/|to=/home/pi/|rsyncopts=-rlpt --chown=1000:1000
+runcommand:command=ln -sfn JMRI.5.16 /home/pi/JMRI && chown -h 1000:1000 /home/pi/JMRI|runphase=post-install
+
+system:name=hart|service-enable=wifi-watchdog,mosquitto,smbd,nmbd,cups|service-disable=lcos-bridge|service-mask=samba-ad-dc
+# Display: today's settings, carried over unchanged until the trial on the old card is done.
+cmdline:add=cfg80211.ieee80211_regdom=US drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin video=HDMI-A-1:1920x1080M@60,HDMI-A-2:1920x1080M@60
+runatboot:script=@STAGE@/os/firstboot.sh|output=/var/log/hart-firstboot.log

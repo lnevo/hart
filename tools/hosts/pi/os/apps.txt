@@ -1,0 +1,16 @@
+# Packages added to stock Raspberry Pi OS (trixie, 64-bit desktop) for the layout Pi.
+# Docker comes from the docker-install plugin, Samba from the samba plugin, wayvnc from the vnc plugin.
+openjdk-21-jre
+cups
+cups-bsd
+mosquitto
+mosquitto-clients
+python3-paho-mqtt
+python3-serial
+python3-flask
+python3-numpy
+python3-venv
+python3-pip
+git
+rsync
+nmap

@@ -1,6 +1,6 @@
-# Pi OS rebuild plan (draft, 2026-11-21)
+# Pi OS rebuild plan (2026-11-21, decisions 2026-11-23)
 
-This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21, and this file is the written copy. Nothing has been built yet and nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
+This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi/os/`](../../tools/hosts/pi/os/README.md); no image has been built yet and nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
 
 ## What the Pi runs now
 
@@ -36,42 +36,44 @@ Bookworm is one release behind. Raspberry Pi OS moved to Debian 13 (trixie) in O
 
 The image is built and loaded with software before any card is written, and the Pi keeps running meanwhile.
 
-- **Where:** the Mac is an Apple M1 with Docker Desktop, and both are arm64 like the Pi 5. A privileged Debian arm64 container can open the downloaded Raspberry Pi OS trixie image, `chroot` into it and run `apt` natively, with no emulation. The Windows box would need qemu emulation, which is slower.
-- **Tool:** sdm (gitbls/sdm). It customises a stock Raspberry Pi OS image: packages, users, Wi-Fi, locale, files and services, plus first-boot steps. Its config and our files go in `tools/hosts/pi/os/`, so a rebuild is one command. The alternatives are Raspberry Pi's `rpi-image-gen` (more work to set up) or a plain loop-mount and chroot script.
+- **Where:** a Lima VM on the Mac (Debian 13, arm64, Apple virtualization), the same architecture as the Pi 5, so `apt` runs natively with no emulation. The first draft used a Docker container, but sdm's own docs say it does not work in Docker (it needs systemd-nspawn and loop devices); a full VM has both. The Windows box would need qemu emulation, which is slower.
+- **Tool:** sdm (gitbls/sdm, pinned to V16.2). It customises a stock Raspberry Pi OS image: packages, users, Wi-Fi, locale, files and services, plus first-boot steps. Its config and our files are in `tools/hosts/pi/os/`, so a rebuild is one command (`build_image.sh`). The alternatives are Raspberry Pi's `rpi-image-gen` (more work to set up) or a plain loop-mount and chroot script.
 - **Time:** about 20 to 40 minutes to build, then Raspberry Pi Imager or `dd` writes the card.
 
 ### Baked into the image
 
 - trixie 64-bit, fully upgraded: hostname `RPi-JMRI`, user `pi`, locale `en_US`, time zone `America/New_York`, IPv6 off
 - Java 21, Samba, CUPS (decision 5), Mosquitto with its config, wayvnc, Docker from docker.com's trixie arm64 repo, and the Python packages
-- the house Wi-Fi profile with power save off, and the hotspot profile if it's kept (decision 1), written as NetworkManager files
-- JMRI 5.16 unpacked to `~/JMRI.5.16` with `~/JMRI` linked to it, the desktop icons, the log link and the autostart choice (decision 3)
-- the Wi-Fi watchdog, the display files, `config.txt` and `cmdline.txt`, the iptables rules, the udev rule, the speed-match user service, and the `lcos-bridge` checkout with its service off
+- the house Wi-Fi profile with power save off, and the hotspot profile (kept, never autoconnects), written as NetworkManager files
+- JMRI 5.16 copied from the old card to `~/JMRI.5.16` (CATS is installed into it) with `~/JMRI` linked to it; the desktop icons and log link come from the first deploy; no PanelPro autostart (decision 3)
+- the Wi-Fi watchdog, the display files and `cmdline.txt` settings, the udev rule, and the `lcos-bridge` checkout with its service off. No iptables rules: with the 12090 forward dropped (decision 4) nothing is left but Docker's own. The speed-match user service comes from the first deploy
 - the old ssh host keys and `authorized_keys`, so the Mac and Windows don't see a changed host
-- `~/sts` checked out, with the STS Docker images pulled on the Mac and loaded at first boot
+- `~/sts` checked out (`sts-docker` on `active`, `sts-plugins` on `main`). The STS images are built on the Pi at swap time, after the database is restored, the way ADR-020 updates it anyway
 - `JMRI_UserFiles` from the repo build (what `sync_hart_package.sh` ships)
 - Claude Code (normal installer, 64-bit)
 
 ### Has to wait for the Pi
 
-- **First boot, automatic:** Docker loads the saved images and starts STS. With NVMe, the boot order goes into the Pi's EEPROM, which only the Pi can do.
-- **At swap time:** live data, copied from the old card at the last moment: the `~/.jmri` profile and preferences, the DecoderPro roster, the STS database (from a fresh `make sts-pull`), `mosquitto.db`, the speed-match ledger, and any Store or Operations Pro changes through the usual pulls.
+- **First boot, automatic:** `firstboot.sh` adds `pi` to the `docker` and `lpadmin` groups and turns on lingering for the speed-match service. The card is an SD card (decision 2), so the EEPROM boot order stays.
+- **At swap time:** live data, copied from the old card at the last moment: the `~/.jmri` profile and preferences, the DecoderPro roster, the STS database (from a fresh `make sts-pull`), `mosquitto.db`, the speed-match ledger, `~/lcos-bridge/.bridgerc`, and any Store or Operations Pro changes through the usual pulls. The two HP printers are added again in CUPS.
 
 ### Testing before the card is written
 
 There's no QEMU model of the Pi 5, so the image can't be booted on the Mac. What can be checked there: the image's userland in an arm64 container (Java starts JMRI headless, Mosquitto runs, the STS containers start), config linting, and a diff of the file list against the current card. PanelPro's screen, HDMI, Wi-Fi and the watchdog can only be tested on the Pi.
 
-## Phase 0: owner decisions
+## Phase 0: owner decisions (done 2026-11-23)
 
-1. Keep the hotspot profile (off, for a show or club setup), or drop it?
-2. Stay on an SD card, or move to an NVMe drive or USB SSD (faster, wears less)?
-3. Start PanelPro at login, or keep starting it only from deploys and `pi_start_panelpro.sh`?
-4. The 12090 forward to 10.42.0.222: drop it? It looks like an old WiThrottle setup.
-5. Printing (CUPS): keep or drop?
+1. Hotspot profile: **kept**, never connects on its own.
+2. Storage: **a new SD card**. The old card is the rollback; NVMe can come later.
+3. PanelPro: **started only by deploys** and `pi_start_panelpro.sh`, not at login.
+4. The 12090 forward to 10.42.0.222: **dropped**, with the NAT rules that served it.
+5. Printing (CUPS): **kept**. Two HP printers are set up on the old card.
 
-Decided: Claude Code goes on the Pi with the rebuild, not before (owner, 2026-11-21).
+Also decided: Claude Code goes on the Pi with the rebuild, not before (owner, 2026-11-21).
 
 ## Phase 1: copy everything off the current card
+
+Done for the build inputs on 2026-11-23: the card-only files are in `tools/hosts/pi/os/`, and `pull_from_pi.sh` copied the secrets (Wi-Fi PSKs, the `pi` password hash, ssh host keys, `authorized_keys`, Samba passwords) to `~/.config/hart/pi-os` and the JMRI install to `~/.cache/hart/pi-os` on the Mac. The live data below is copied again at swap time.
 
 With JMRI closed, after `make tables-pull-pi` and `make ops-pull`, and with nothing left unmerged:
 
@@ -128,6 +130,7 @@ Each Pi HDMI port goes into an SFX HDMI Matrix: one directly, the other through 
   video=HDMI-A-1:1920x1080M@60,HDMI-A-2:1920x1080M@60
   ```
   `config.txt` also has `hdmi_edid_file=1`, an old firmware setting that the KMS driver probably ignores.
+  The two outputs share one `video=` with a comma. The kernel expects one `video=` per output, so the HDMI-A-2 mode is probably ignored (unverified; the trial below should use two).
 - **Mirroring through kanshi:** both outputs at 1920×1080@60, position 0,0, in `~/.config/kanshi/config` (desktop) and `/etc/xdg/labwc-greeter/config.kanshi` (login screen).
 
 ### What is wrong with it

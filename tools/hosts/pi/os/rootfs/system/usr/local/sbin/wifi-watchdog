@@ -1,0 +1,274 @@
+#!/bin/bash
+# wifi-watchdog — detect the RPi-JMRI "silent Wi-Fi stall", capture diagnostics,
+# then try recovery steps from lightest to heaviest, recording which one worked.
+# Also keeps the avahi mDNS hostname (RPi-JMRI.local) alive, and logs JMRI's WiThrottle advert state.
+# Also detects "broadcast deafness" (link up, unicast fine, but no broadcast/multicast frames received,
+# e.g. a stale group key) — other hosts then can't ARP the Pi — and fixes it with a full NM reconnect.
+#
+# Logs (all under /var/log/wifi-watchdog/):
+#   stats.csv          one line/min of link + driver counters (baseline / precursor data)
+#   events.log         one line per detection / step / outcome
+#   incident-<ts>/     full snapshots: initial state + after each recovery step
+# Journal tag: wifi-watchdog   (journalctl -t wifi-watchdog)
+#
+# Install: /usr/local/sbin/wifi-watchdog + wifi-watchdog.service (Restart=always)
+# Remove:  systemctl disable --now wifi-watchdog; rm /usr/local/sbin/wifi-watchdog \
+#          /etc/systemd/system/wifi-watchdog.service; (logs: rm -r /var/log/wifi-watchdog)
+
+set -u
+IF=wlan0
+CON=Easte
+GW=10.0.0.1
+ALT=(10.0.0.36 10.0.0.60)      # Sat-2, MT300N — "is it only the router?" check
+DBG=/sys/kernel/debug/ieee80211/phy0
+LOG=/var/log/wifi-watchdog
+CHECK_EVERY=15                 # seconds between health checks
+FAIL_LIMIT=4                   # consecutive failed checks before acting (~1 min)
+STATS_EVERY=60                 # seconds between stats.csv lines
+STEP_SETTLE=10                 # seconds to wait after each recovery step
+COOLDOWN=600                   # after a failed ladder, wait this long before retrying
+MAX_CSV=$((20*1024*1024))
+MDNS_EVERY=60                  # seconds between mDNS (avahi hostname) checks, only while the link is up
+MDNS_FAIL_LIMIT=2              # consecutive failed mDNS checks before repairing
+MDNS_RESTART_GAP=600           # at most one avahi restart per this many seconds
+JMRI_MDNS_EVERY=300            # seconds between JMRI WiThrottle advert checks (log only)
+BCAST_EVERY=300                # seconds between broadcast-reception checks, only while the link is up
+BCAST_WINDOW=30                # first listen window (s); a healthy house sends ~2 group frames/s
+BCAST_CONFIRM=60               # second, longer window before declaring deafness (so >=90 s of silence)
+BCAST_FIX_GAP=1800             # at most one deafness reconnect per this many seconds
+
+mkdir -p "$LOG"
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+ts()   { date '+%Y-%m-%dT%H:%M:%S%z'; }
+log()  { echo "$(ts) $*" >> "$LOG/events.log"; logger -t wifi-watchdog -- "$*"; }
+
+ping_ok() {  # $1 host -> 0 if any reply within ~4 s
+  ping -n -q -c 2 -W 2 -I "$IF" "$1" >/dev/null 2>&1
+}
+gw_rtt() {
+  ping -n -c 1 -W 2 -I "$IF" "$GW" 2>/dev/null | sed -n 's/.*time=\([0-9.]*\).*/\1/p'
+}
+link_ok() {  # router, or else any alternate host
+  ping_ok "$GW" && return 0
+  local h; for h in "${ALT[@]}"; do ping_ok "$h" && return 0; done
+  return 1
+}
+
+sysstat() { cat "/sys/class/net/$IF/statistics/$1" 2>/dev/null || echo; }
+dbgval()  { awk -v k="$2:" '$1==k{print $2}' "$DBG/$1" 2>/dev/null; }
+station() { # key from `iw station dump` (e.g. "tx retries")
+  iw dev "$IF" station dump 2>/dev/null | awk -F'\t' -v k="$1:" '$2==k{gsub(/ .*/,"",$3); print $3; exit}'
+}
+linkval() { # key from `iw link` (signal, rx bitrate, tx bitrate)
+  iw dev "$IF" link 2>/dev/null | awk -v k="$1:" '{sub(/^[ \t]+/,"")} index($0,k)==1{sub(k" *",""); split($0,a," "); print a[1]; exit}'
+}
+
+CSV_HDR="ts,gw_ms,bssid,freq,signal,rx_rate,tx_rate,st_inactive_ms,st_rx_pkts,st_tx_pkts,st_tx_retries,st_tx_failed,st_beacon_loss,rx_packets,tx_packets,rx_errors,tx_errors,rx_dropped,tx_dropped,intrcount,f2rxdata,f2txdata,fc_xoff,fcqueued,rx_badseq,tx_sderrs,rxc_errors,tx_ctlerrs,rx_ctlerrs,state"
+stats_line() { # $1 = state label
+  local f="$LOG/stats.csv"
+  if [ -f "$f" ] && [ "$(stat -c %s "$f")" -gt "$MAX_CSV" ]; then mv -f "$f" "$f.1"; fi
+  [ -s "$f" ] || echo "$CSV_HDR" > "$f"
+  local bssid freq
+  bssid=$(iw dev "$IF" link 2>/dev/null | awk '/^Connected to/{print $3}')
+  freq=$(linkval freq)
+  echo "$(ts),$(gw_rtt),$bssid,$freq,$(linkval signal),$(linkval 'rx bitrate'),$(linkval 'tx bitrate'),$(station 'inactive time'),$(station 'rx packets'),$(station 'tx packets'),$(station 'tx retries'),$(station 'tx failed'),$(station 'beacon loss'),$(sysstat rx_packets),$(sysstat tx_packets),$(sysstat rx_errors),$(sysstat tx_errors),$(sysstat rx_dropped),$(sysstat tx_dropped),$(dbgval counters intrcount),$(dbgval counters f2rxdata),$(dbgval counters f2txdata),$(dbgval counters fc_xoff),$(dbgval counters fcqueued),$(dbgval counters rx_badseq),$(dbgval counters tx_sderrs),$(dbgval counters rxc_errors),$(dbgval counters tx_ctlerrs),$(dbgval counters rx_ctlerrs),$1" >> "$f"
+}
+
+snapshot() { # $1 dir, $2 label — everything we can learn without changing state
+  local d="$1/$2"; mkdir -p "$d"
+  {
+    echo "### $(ts) $2"
+    echo "## iw link";            timeout 5 iw dev "$IF" link
+    echo "## iw station dump";    timeout 5 iw dev "$IF" station dump
+    echo "## iw info";            timeout 5 iw dev "$IF" info
+    echo "## /proc/net/wireless"; cat /proc/net/wireless
+    echo "## ip addr/route/neigh"; ip addr show "$IF"; ip route; ip neigh show dev "$IF"; ip -6 neigh show dev "$IF"
+    echo "## sysfs statistics";   grep -H . /sys/class/net/$IF/statistics/* 2>/dev/null | sed 's#.*/##'
+    echo "## carrier/operstate";  cat /sys/class/net/$IF/carrier /sys/class/net/$IF/operstate
+    echo "## wpa_cli status";     timeout 5 wpa_cli -i "$IF" status
+    echo "## wpa_cli signal_poll (asks firmware — timeout = fw not answering)"; timeout 5 wpa_cli -i "$IF" signal_poll; echo "rc=$?"
+    echo "## nmcli";              timeout 5 nmcli -f GENERAL,IP4,WIFI-PROPERTIES dev show "$IF"
+    echo "## rfkill";             rfkill list
+    echo "## throttled";          vcgencmd get_throttled 2>/dev/null
+    for f in counters fws_stats; do echo "## debugfs $f"; cat "$DBG/$f" 2>/dev/null; done
+  } > "$d/state.txt" 2>&1
+  timeout 5 cat "$DBG/forensics" > "$d/forensics.txt" 2>&1
+  # reachability matrix
+  {
+    for h in "$GW" "${ALT[@]}" 1.1.1.1; do
+      if ping_ok "$h"; then echo "$h OK"; else echo "$h FAIL"; fi
+    done
+  } > "$d/reach.txt" 2>&1
+  # is anything arriving at all? 8 s capture + rx/tx counter deltas
+  local rx0 tx0 i0
+  rx0=$(sysstat rx_packets); tx0=$(sysstat tx_packets); i0=$(dbgval counters intrcount)
+  timeout 8 tcpdump -n -e -i "$IF" -c 60 > "$d/tcpdump.txt" 2>&1
+  echo "rx_packets +$(( $(sysstat rx_packets) - rx0 ))  tx_packets +$(( $(sysstat tx_packets) - tx0 ))  sdio_intr +$(( $(dbgval counters intrcount) - i0 ))  over ~8s" > "$d/deltas.txt"
+}
+
+journal_dump() { # $1 dir
+  journalctl --since "-20 min" --no-pager -o short-iso 2>/dev/null | grep -v 'RRM: Ignoring' > "$1/journal-20min.txt"
+  dmesg -T 2>/dev/null | tail -100 > "$1/dmesg-tail.txt"
+  tail -40 "$LOG/stats.csv" > "$1/stats-before.csv" 2>/dev/null
+}
+
+# ---- recovery ladder: lightest first. Each returns after the action; caller tests. ----
+step_wait()      { :; }                                              # 1: maybe it clears on its own
+step_neigh()     { ip neigh flush dev "$IF"; ip -6 neigh flush dev "$IF"; }   # 2: stale ARP?
+step_scan()      { timeout 10 wpa_cli -i "$IF" scan; sleep 5; }     # 3: poke firmware with a scan
+# (no `wpa_cli reassociate` step: on 2026-11-21 it put the Pi on the router's 2.4 BSS with a dead data path)
+step_nmup()      { timeout 40 nmcli con up "$CON"; }                 # 4: full NM reconnect (fixed 2026-11-21)
+step_radio()     { nmcli radio wifi off; sleep 2; nmcli radio wifi on; sleep 8; }  # 5: what the user does
+step_fwreset()   { echo 1 > "$DBG/reset"; sleep 15; nmcli radio wifi on; }        # 6: firmware reset (last resort)
+
+# ---- broadcast-deafness check ----
+# 2026-11-21: for hours the Pi received NO broadcast/multicast frames while unicast worked (stale GTK?).
+# Peers' ARP requests never arrived, so hosts without a cached entry couldn't reach it. Pings to the
+# router still worked, so link_ok() never noticed. The sysfs multicast counter is useless here (barely
+# moves even when healthy), so we listen for group-addressed frames from anyone else instead.
+MY_MAC=$(cat /sys/class/net/$IF/address 2>/dev/null)
+bcast_heard() { # $1 seconds -> 0 if at least one group-addressed frame from someone else arrives
+  local n
+  n=$(timeout "$1" tcpdump -i "$IF" -nn -q -l -c 1 "(ether broadcast or ether multicast) and not ether src $MY_MAC" 2>/dev/null | wc -l)
+  [ "$n" -ge 1 ]
+}
+bcast_state=""; last_bcast_fix=0
+bcast_check() {
+  if bcast_heard "$BCAST_WINDOW" || bcast_heard "$BCAST_CONFIRM"; then
+    [ "$bcast_state" = deaf ] && log "BCAST OK again: group frames arriving"
+    bcast_state=ok; return 0
+  fi
+  link_ok || return 0               # link dropped meanwhile: the stall ladder owns that
+  [ "$bcast_state" != deaf ] && log "BCAST DEAF: no broadcast/multicast received for $((BCAST_WINDOW+BCAST_CONFIRM))s while unicast works"
+  bcast_state=deaf
+  local now; now=$(date +%s)
+  if [ $((now - last_bcast_fix)) -lt $BCAST_FIX_GAP ]; then return 0; fi
+  last_bcast_fix=$now
+  local dir="$LOG/incident-$(date +%Y%m%d-%H%M%S)-bcast"
+  mkdir -p "$dir"; journal_dump "$dir"; snapshot "$dir" 00-deaf
+  stats_line bcast-deaf
+  log "BCAST fix: nmcli con up $CON (incident $dir)"
+  timeout 40 nmcli con up "$CON" >> "$dir/actions.txt" 2>&1
+  sleep "$STEP_SETTLE"
+  if bcast_heard "$BCAST_CONFIRM"; then
+    log "BCAST RECOVERED by nmcli con up"; echo "fixed_by=nmup kind=bcast end=$(ts)" > "$dir/RESULT"; bcast_state=ok
+  else
+    snapshot "$dir" 01-after-nmup-FAIL
+    log "BCAST still deaf after nmcli con up (next try in ${BCAST_FIX_GAP}s)"; echo "fixed_by=NONE kind=bcast end=$(ts)" > "$dir/RESULT"
+  fi
+  stats_line "bcast-$bcast_state"
+}
+
+# ---- mDNS (avahi) hostname keeper ----
+# avahi publishes <hostname>.local. It can stop, or rename itself to e.g. RPi-JMRI-2.local after a
+# (possibly false) name conflict and never switch back. We check and repair only that.
+# JMRI's own adverts (_withrottle/_http, jmri-*.local) come from JMRI's jmDNS: log only, never act.
+MDNS_NAME="$(hostname).local"
+my_ip()    { ip -4 -o addr show dev "$IF" 2>/dev/null | awk '{sub(/\/.*/,"",$4); print $4; exit}'; }
+mdns_problem() { # prints a reason and returns 1 if broken
+  systemctl is-active --quiet avahi-daemon || { echo "avahi-daemon not active"; return 1; }
+  local ip; ip=$(my_ip); [ -n "$ip" ] || return 0     # no address: not an mDNS problem
+  local fwd rev
+  fwd=$(timeout 6 avahi-resolve -4 -n "$MDNS_NAME" 2>/dev/null | awk '{print $2}')
+  [ "$fwd" = "$ip" ] || { echo "$MDNS_NAME resolves to '${fwd:-nothing}', expected $ip"; return 1; }
+  rev=$(timeout 6 avahi-resolve -a "$ip" 2>/dev/null | awk '{print $2}')
+  [ "${rev,,}" = "${MDNS_NAME,,}" ] || { echo "avahi publishes $ip as '${rev:-nothing}', expected $MDNS_NAME"; return 1; }
+  return 0
+}
+mdns_fails=0; mdns_down_since=""; last_avahi_restart=0
+mdns_check() {
+  local why
+  if why=$(mdns_problem); then
+    [ $mdns_fails -ge $MDNS_FAIL_LIMIT ] && log "MDNS OK again ($MDNS_NAME), was broken since $mdns_down_since"
+    mdns_fails=0; mdns_down_since=""; return 0
+  fi
+  [ $mdns_fails -eq 0 ] && mdns_down_since=$(ts)
+  mdns_fails=$((mdns_fails+1))
+  [ $mdns_fails -lt $MDNS_FAIL_LIMIT ] && return 0
+  log "MDNS problem ($mdns_fails checks): $why"
+  # 1: name drifted (conflict rename) -> set it back
+  if systemctl is-active --quiet avahi-daemon && [[ "$why" == *"publishes"* ]]; then
+    timeout 10 avahi-set-host-name "$(hostname)" >/dev/null 2>&1; sleep 8
+    if mdns_problem >/dev/null; then log "MDNS fixed by avahi-set-host-name $(hostname)"; mdns_fails=0; mdns_down_since=""; return 0; fi
+  fi
+  # 2: restart avahi (rate-limited)
+  local now; now=$(date +%s)
+  if [ $((now - last_avahi_restart)) -ge $MDNS_RESTART_GAP ]; then
+    last_avahi_restart=$now
+    systemctl restart avahi-daemon; sleep 8
+    if mdns_problem >/dev/null; then log "MDNS fixed by restarting avahi-daemon"; mdns_fails=0; mdns_down_since=""; return 0; fi
+    log "MDNS still broken after avahi restart: $(mdns_problem)"
+  fi
+}
+jmri_adv_state=""
+jmri_mdns_check() { # log-only: is JMRI listening, and is its WiThrottle advert visible on wlan0?
+  local st
+  if ! ss -Htln 'sport = :12090' 2>/dev/null | grep -q .; then st="jmri-not-running"
+  elif timeout 8 avahi-browse -t -p -r _withrottle._tcp 2>/dev/null | grep -q "^=;$IF;"; then st="advertised"
+  else st="listening-but-not-advertised"; fi
+  [ "$st" != "$jmri_adv_state" ] && log "JMRI mDNS: $st"
+  jmri_adv_state=$st
+}
+
+STEPS=(wait neigh scan nmup radio fwreset)
+
+recover() {
+  local start=$1 dir="$LOG/incident-$(date +%Y%m%d-%H%M%S)"
+  mkdir -p "$dir"
+  log "STALL detected (failing since $start). Capturing to $dir"
+  stats_line stalled
+  journal_dump "$dir"
+  snapshot "$dir" 00-initial
+  local n=1 s
+  for s in "${STEPS[@]}"; do
+    log "step $n/$((${#STEPS[@]})): $s"
+    "step_$s" >> "$dir/actions.txt" 2>&1
+    sleep "$STEP_SETTLE"
+    local ok=0 t
+    for t in 1 2 3; do link_ok && { ok=1; break; }; sleep 5; done
+    if [ $ok = 1 ]; then
+      snapshot "$dir" "$(printf '%02d' $n)-after-$s-OK"
+      log "RECOVERED by step $n ($s). Stall began ~$start, recovered $(ts). Incident: $dir"
+      echo "fixed_by=$s step=$n start=$start end=$(ts)" > "$dir/RESULT"
+      stats_line "recovered:$s"
+      return 0
+    fi
+    snapshot "$dir" "$(printf '%02d' $n)-after-$s-FAIL"
+    n=$((n+1))
+  done
+  log "NOT RECOVERED after all steps. Will retry after ${COOLDOWN}s. Incident: $dir"
+  echo "fixed_by=NONE start=$start end=$(ts)" > "$dir/RESULT"
+  return 1
+}
+
+# ---- main loop ----
+log "started (pid $$): check every ${CHECK_EVERY}s, act after ${FAIL_LIMIT} failures"
+fails=0; first_fail=""; last_stats=0; last_mdns=0; last_jmri=0; last_bcast=0
+while true; do
+  now=$(date +%s)
+  if [ $((now - last_stats)) -ge $STATS_EVERY ]; then
+    stats_line "$([ $fails -gt 0 ] && echo "failing:$fails" || echo ok)"; last_stats=$now
+  fi
+  if link_ok; then
+    [ $fails -gt 0 ] && log "transient: $fails failed check(s) since $first_fail, cleared by itself"
+    fails=0; first_fail=""
+    now=$(date +%s)
+    if [ $((now - last_mdns)) -ge $MDNS_EVERY ]; then mdns_check; last_mdns=$(date +%s); fi
+    if [ $((now - last_jmri)) -ge $JMRI_MDNS_EVERY ]; then jmri_mdns_check; last_jmri=$(date +%s); fi
+    if [ $((now - last_bcast)) -ge $BCAST_EVERY ]; then bcast_check; last_bcast=$(date +%s); fi
+  else
+    [ $fails -eq 0 ] && first_fail=$(ts)
+    fails=$((fails+1))
+    stats_line "failing:$fails"; last_stats=$(date +%s)
+    if [ $fails -ge $FAIL_LIMIT ]; then
+      if ! iw dev "$IF" link 2>/dev/null | grep -q '^Connected'; then
+        # Not associated: NetworkManager is already reconnecting. Give it time first.
+        [ $fails -lt $((FAIL_LIMIT*3)) ] && { sleep "$CHECK_EVERY"; continue; }
+      fi
+      if recover "$first_fail"; then fails=0; first_fail=""; else sleep "$COOLDOWN"; fi
+      continue
+    fi
+  fi
+  sleep "$CHECK_EVERY"
+done

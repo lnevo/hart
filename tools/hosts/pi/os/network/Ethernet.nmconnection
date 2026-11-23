@@ -1,0 +1,17 @@
+[connection]
+id=Ethernet
+type=ethernet
+autoconnect-priority=-999
+interface-name=eth0
+
+[ethernet]
+auto-negotiate=true
+
+[ipv4]
+method=auto
+
+[ipv6]
+addr-gen-mode=stable-privacy
+method=auto
+
+[proxy]
