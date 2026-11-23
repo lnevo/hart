@@ -33,7 +33,7 @@ class El {
   getAttribute(a) { return this.attrs[a] ?? null; }
   closest() { return null; }
   focus() {}
-  getBoundingClientRect() { return { top: 0 }; }
+  getBoundingClientRect() { return (this.cls.has("result") ? rects.result : this.id === "xwGo" ? rects.go : null) || { top: 0, bottom: 0 }; }
   insertBefore(c) { return this.appendChild(c); }
   all() { const out = []; const walk = (e) => e.children.forEach((c) => { out.push(c); walk(c); }); walk(this); return out; }
   querySelectorAll(sel) { return select(this.all(), sel); }
@@ -64,6 +64,7 @@ function matches(e, sel) {
 }
 const select = (els, sel) => els.filter((e) => matches(e, sel));
 
+const rects = {}; // the boxes a phone check gives to the result and the Continue button
 const roots = [];
 const mk = (id, attrs = {}) => { const e = new El("div", Object.assign({ id }, attrs)); roots.push(e); return e; };
 const doc = {
@@ -191,6 +192,7 @@ function main() {
     }
     if (stats.expertFail) failures.push(`${id}: ${stats.expertFail} of ${stats.experts} well-played draws were not clean shifts`);
     if (!stats.tied) failures.push(`${id}: no draw reached a tied-up end screen`);
+    if (!(id in ROAD) && stats.done.length) { const ns = stats.done.map((d) => d.n); console.log(`${id} questions per draw that tied up: mean ${(ns.reduce((x, y) => x + y, 0) / ns.length).toFixed(1)}, min ${Math.min(...ns)}, max ${Math.max(...ns)}`); }
     if (id in ROAD) { // a road run asks about 15 to 20 questions (the passenger run up to 23), and every draw that ends normally asks the sections the run is about
       const [lo, hi, secs] = ROAD[id];
       const ns = stats.done.map((d) => d.n), mean = ns.reduce((a, b) => a + b, 0) / ns.length, all = stats.all;
@@ -201,6 +203,7 @@ function main() {
     if (stats.unlisted.size) failures.push(`${id}: asked questions that are not in the answer key: ${[...stats.unlisted].slice(0, 5).join(" | ")}`);
   }
   scrollCheck(failures);
+  logicCheck(env.ctx, failures);
   if (failures.length) { console.error("FAIL\n" + failures.join("\n")); process.exit(1); }
   console.log("play-through OK");
 }
@@ -221,5 +224,49 @@ function scrollCheck(failures) {
   if (calls.length !== n2) failures.push("scroll: a scene already in view moved the page");
   top = -50; const n3 = calls.length; press(4);
   if (!calls.slice(n3).includes(430)) failures.push("scroll: a scene above the screen did not bring the status bar into view");
+  // after a choice the verdict and Continue come into view; when they are already in view the page stays
+  top = 300;
+  const toQuestion = () => { for (let i = 0; i < 40 && !scene.querySelectorAll("button").some((b) => b.cls.has("opt")); i++) { const b = scene.querySelectorAll("button").filter((x) => !x.disabled)[0]; if (!b) break; b.onclick(); } };
+  const answer = () => scene.querySelectorAll("button").filter((b) => b.cls.has("opt"))[0].onclick();
+  toQuestion();
+  rects.result = { top: 700, bottom: 900 }; rects.go = { top: 840, bottom: 890 };
+  const n4 = calls.length; answer();
+  if (!calls.slice(n4).includes(630)) failures.push(`scroll: a verdict below the screen did not come into view (${calls.slice(n4)})`);
+  scene.querySelectorAll("button").filter((b) => b.id === "xwGo")[0].onclick(); toQuestion();
+  rects.result = { top: 200, bottom: 420 }; rects.go = { top: 360, bottom: 410 };
+  const n5 = calls.length; answer();
+  if (calls.length !== n5) failures.push("scroll: a verdict already in view moved the page");
+  // the way out of a run: a link in the status bar that asks first
+  const st = doc.getElementById("xwStatus");
+  if (!/data-exit="ask"/.test(st._inner)) failures.push("exit: no Choose another run link in the status bar during a run");
+  const click = (v) => st.onclick({ target: { closest: () => ({ dataset: { exit: v } }) } });
+  click("ask");
+  if (!/Leave this run\?/.test(st._inner)) failures.push("exit: the link did not ask first");
+  click("no");
+  if (/Leave this run\?/.test(st._inner)) failures.push("exit: Stay did not close the question");
+  click("ask"); click("yes");
+  if (doc.getElementById("xwStart").hidden) failures.push("exit: Leave did not return to the start screen");
+}
+/* The start screen's choices: the run suggested after a run, and which rows each view shows. */
+function logicCheck(ctx, failures) {
+  const L = ctx.window.PlayLogic, runs = ctx.window.NevilleRuns, keys = Object.keys(runs);
+  if (!L) { failures.push("logic: window.PlayLogic is missing"); return; }
+  const a = L.nextRun(runs, keys[0], new Set(), []);
+  if (a !== keys[1]) failures.push(`suggest: after ${keys[0]} with nothing missed and nothing played, expected ${keys[1]}, got ${a}`);
+  const b = L.nextRun(runs, keys[0], new Set([keys[1]]), []);
+  if (b !== keys[2]) failures.push(`suggest: a run already finished should come after one not finished (got ${b})`);
+  const last = keys[keys.length - 1];
+  if (L.nextRun(runs, last, new Set(), []) !== keys[0]) failures.push("suggest: the list does not wrap round to its first run");
+  const sec = "twc", want = keys.filter((k) => k !== "pir" && (runs[k].covers || []).includes(sec));
+  const c = L.nextRun(runs, "coal", new Set(), [sec]);
+  if (c !== "pir") failures.push(`suggest: a run that missed ${sec} should be sent to a run that tests it, got ${c} (${want})`);
+  if (L.nextRun(runs, keys[0], new Set(), []) === keys[0]) failures.push("suggest: suggested the run just played");
+  const group = (k) => runs[k].group || "island", covers = (k) => runs[k].covers || [];
+  const all = keys.filter((k) => L.rowShown(covers(k), ""));
+  if (all.length !== keys.length || new Set(all.map(group)).size < 2) failures.push("filter: All did not show every run of both groups");
+  for (const s of ["def", "sup", "to", "sig", "sem", "yl", "twc", "gcor"]) {
+    const got = keys.filter((k) => L.rowShown(covers(k), s)), exp = keys.filter((k) => covers(k).includes(s));
+    if (!got.length || got.join() !== exp.join()) failures.push(`filter: chip ${s} showed ${got} instead of ${exp}`);
+  }
 }
 main();

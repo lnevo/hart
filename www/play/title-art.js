@@ -61,7 +61,7 @@ function title(){
   // the lettering sits on its own layer, drawn over the smoke
   const fg=document.createElement("canvas");fg.width=W;fg.height=H;
   {const keep=g;g=fg.getContext("2d");
-    text("NEVILLE ISLAND · UP THE CHARTIERS","c",4,1,"#f4d9a0","#1b1830");
+    text("PITTSBURGH & CHARTIERS VALLEY","c",4,1,"#f4d9a0","#1b1830");
     text("EXTRA EAST","c",14,3,C.cream,"#7a2a24");
     text("HART RAILROAD","c",39,1,C.glow,"#1b1830");
     g=keep}

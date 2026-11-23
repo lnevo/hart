@@ -13,14 +13,14 @@
 .xw-btn.primary{background:var(--ink);color:var(--sheet)}
 .xw-btn.primary:hover{background:#3a3644}
 .xw-btn:disabled{opacity:.45;cursor:default}
-.xw-btn small{display:block;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--muted);letter-spacing:.02em}
+.xw-btn small{display:block;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.02em}
 .xw-btn.primary small{color:#c9ced7}
 .xw-paper{background:var(--sheet);border:1.5px solid #141319;border-radius:2px;box-shadow:3px 4px 0 rgba(0,0,0,.28)}
 
 /* status strip */
 .xw-status{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline;padding:8px 14px;font-family:var(--mono);font-size:13px}
 .xw-status b{font-size:18px;font-weight:700}
-.xw-status .lbl{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:5px}
+.xw-status .lbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:5px}
 .xw-status .marks b{color:var(--red)}
 
 /* line map */
@@ -33,7 +33,7 @@
 
 /* the scene card */
 .xw-scene{padding:16px 18px 18px;display:flex;flex-direction:column;gap:12px;min-height:280px}
-.xw-scene .where{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);border-bottom:1.5px solid var(--ink);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
+.xw-scene .where{font-family:var(--mono);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--red);border-bottom:1.5px solid var(--ink);padding-bottom:6px;display:flex;justify-content:space-between;gap:8px}
 .xw-scene h2{font-family:var(--font-display);font-size:clamp(24px,4vw,30px);line-height:1.15;margin:0;font-weight:700}
 .xw-scene p{margin:0;font-size:16px;line-height:1.55;max-width:66ch}
 .xw-scene .choices{display:flex;flex-direction:column;gap:8px}
@@ -52,14 +52,21 @@
 /* the train sheet */
 .xw-sheet{padding:12px 14px;display:flex;flex-direction:column;gap:10px}
 .xw-sheet h3{font-family:var(--font-display);font-size:15px;letter-spacing:.08em;text-transform:uppercase;margin:0;font-weight:700;text-align:center;border-bottom:1.5px solid var(--ink);padding-bottom:4px}
-.xw-sheet .sub{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;margin-top:-6px}
+.xw-sheet .sub{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:center;margin-top:-6px}
 .xw-tt{overflow-x:auto}
+.xw-tt.fade{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 34px),transparent)}
+.xw-more{margin:0;text-align:right;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--rust)}
+/* the station column stays while the trains scroll under it */
+.xw-tt th:first-child,.xw-tt td.stn{position:sticky;left:0;z-index:1;background:var(--sheet-2);box-shadow:1px 0 0 var(--line)}
+.xw-tt td.stn{background:var(--sheet);white-space:normal;min-width:82px;max-width:94px;line-height:1.25}
+.xw-tt th:first-child{max-width:88px}
+.xw-tt tr.here td.stn{background:#fbe9d4}
 .xw-tt table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px}
 .xw-tt th,.xw-tt td{border:1px solid var(--line);padding:3px 4px;text-align:center;white-space:nowrap}
-.xw-tt th{font-size:10.5px;font-weight:600;background:var(--sheet-2);line-height:1.25}
+.xw-tt th{font-size:12px;font-weight:600;background:var(--sheet-2);line-height:1.25}
 .xw-tt th small{display:block;font-weight:400;color:var(--muted)}
 .xw-tt td.stn{text-align:left;font-weight:600}
-.xw-tt td.stn small{display:block;font-weight:400;color:var(--muted);font-size:10px}
+.xw-tt td.stn small{display:block;font-weight:400;color:var(--muted);font-size:12px;line-height:1.2}
 .xw-tt tr.here td{background:#fbe9d4}
 .xw-tt tr.here td.stn::before{content:"\25B6 ";color:var(--red)}
 .xw-tt .pencil{color:var(--blue);font-style:italic}
@@ -72,7 +79,7 @@
 .xw-si ul{margin:4px 0;padding-left:18px}
 .xw-orders{display:flex;flex-direction:column;gap:6px}
 .xw-orders .ord{font-family:var(--mono);font-size:12.5px;background:var(--flimsy);border:1px solid var(--line);padding:6px 9px;line-height:1.45}
-.xw-orders .ord .ok{color:var(--stamp);font-weight:700;border:1.5px solid var(--stamp);padding:0 4px;margin-left:6px;font-size:11px}
+.xw-orders .ord .ok{color:var(--stamp);font-weight:700;border:1.5px solid var(--stamp);padding:0 4px;margin-left:6px;font-size:12px}
 
 /* track warrant form */
 .xw-tw{font-family:var(--mono);font-size:13px;background:#fff;border:1.5px solid var(--ink);padding:10px 12px;display:flex;flex-direction:column;gap:3px}
@@ -90,8 +97,6 @@
 .xw-title canvas{width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges;display:block}
 /* start screen */
 .xw-fig{display:flex;justify-content:center;margin:6px 0;color:var(--ink)}
-.xw-start{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-@media (max-width:700px){.xw-start{grid-template-columns:minmax(0,1fr)}}
 .xw-switch{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;cursor:pointer;flex-wrap:wrap}
 .xw-switch input{position:absolute;opacity:0;width:1px;height:1px}
 .xw-switch i{position:relative;width:44px;height:24px;border:1.5px solid var(--ink);border-radius:12px;background:var(--sheet-2);flex:none}
@@ -100,9 +105,6 @@
 .xw-switch input:focus-visible+i{outline:2px solid var(--red);outline-offset:2px}
 .xw-switch span{color:var(--muted)}
 .xw-switch:not(.on) span:first-of-type,.xw-switch.on span:last-of-type{color:var(--ink)}
-.xw-start .card{padding:16px 18px;display:flex;flex-direction:column;gap:10px}
-.xw-start h3{font-family:var(--font-display);font-size:26px;margin:0;font-weight:700}
-.xw-start p{margin:0;line-height:1.55}
 .xw-how{padding:12px 16px;font-size:15px;line-height:1.55}
 .xw-how ul{margin:6px 0;padding-left:20px}
 .xw-go{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto}.xw-go .xw-btn{flex:1 1 180px}
@@ -114,7 +116,7 @@
 .xw-end .score{display:flex;flex-wrap:wrap;gap:8px 26px;font-family:var(--mono)}
 .xw-end .score div{display:flex;flex-direction:column}
 .xw-end .score b{font-size:30px;font-family:var(--font-display)}
-.xw-end .score span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.xw-end .score span{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .xw-end details{border:1px solid var(--line);background:#fff;border-radius:3px;padding:7px 10px}
 .xw-end summary{cursor:pointer;font-weight:600}
 .xw-end details p{font-size:14px;margin:6px 0 0}
@@ -134,9 +136,6 @@
 .xw-map text.water{fill:#c9cfdc;letter-spacing:.12em}
 .xw-map text.lbl{fill:var(--muted);letter-spacing:.04em}
 .xw-status .over{color:var(--red);font-style:normal;font-weight:700}
-.xw-start .kind{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
-.xw-start .card.wide{grid-column:1/-1}
-.xw-start .card{border-top:4px solid var(--glow)}
 .xw-orders .ord.done{color:var(--muted);background:var(--sheet-2)}
 .xw-coda{font-size:14px;line-height:1.55;background:var(--flimsy);border-left:3px solid var(--glow);padding:8px 12px;margin-top:10px}
 .xw-end .rec{font-family:var(--font-display);margin:12px 0 4px;font-size:20px}
@@ -147,38 +146,56 @@
 .xw-how{margin-top:14px}
 .xw-map svg{max-width:none}
 
-/* groups and the deck-section strip */
-.xw-group-h{font-family:var(--font-display);font-size:30px;margin:0 0 10px;color:#efe6cf;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.xw-group-h small{font-family:var(--mono);font-size:12px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--glow)}
-
-/* start screen: tabs per group, a row per run that opens on a tap, section chips (2026-11-22) */
-.xw-tabs{display:flex;gap:6px;margin-top:14px;border-bottom:2px solid var(--glow)}
-.xw-tabs button{font:700 17px var(--font-display);letter-spacing:.02em;padding:8px 14px 6px;border:0;border-radius:4px 4px 0 0;
-  background:#2c2833;color:#c9c2b4;cursor:pointer}
-.xw-tabs button[aria-pressed="true"]{background:var(--glow);color:#1c1b22}
-.xw-tabs button:focus-visible,.xw-chips button:focus-visible,.xw-run summary:focus-visible{outline:2px solid #efe6cf;outline-offset:2px}
-.xw-group{margin-top:12px}
-.xw-group .xw-group-h{font-size:20px;margin:0 0 4px}
-.xw-group-note{color:#c9c2b4;font-size:14px;line-height:1.5;margin:0 0 10px;max-width:70ch}
-.xw-group-note a{color:#efe6cf}
-.xw-start{grid-template-columns:minmax(0,1fr);gap:8px}
-.xw-start .card.xw-run{padding:0;gap:0;border-top-width:3px}
-.xw-run summary{list-style:none;cursor:pointer;padding:10px 40px 10px 14px;position:relative;display:block}
-.xw-run summary::-webkit-details-marker{display:none}
-.xw-run summary::after{content:"▸";position:absolute;right:14px;top:12px;font-size:18px;color:var(--rust)}
-.xw-run[open] summary::after{content:"▾"}
-.xw-start .xw-run h3{font-size:20px}
-.xw-meta{display:block;margin-top:3px}
-.xw-meta .kind{display:block}
-.xw-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.xw-tags span{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
-.xw-run[open]>p,.xw-run[open]>.xw-go{margin:0 14px 12px}
-.xw-cover{padding:8px 12px;margin-top:14px}
-.xw-cover .lbl{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--rust)}
-.xw-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.xw-chips button{font:600 13px var(--font-body);padding:5px 10px;border:1.5px solid var(--ink);border-radius:14px;background:#fff;color:var(--ink);cursor:pointer}
-.xw-chips button[aria-pressed="true"]{background:var(--ink);color:#fff}
+/* start screen (owner, 2026-11-22): the full pixel-art banner, then the site's own sections and topic cards on the light
+   page; the dark frame is for the game itself. Section chips filter the cards. */
+.xw.on-start{background:none;padding:0;border-radius:0}
+.xw.on-start .xw-title{margin-bottom:6px}
+.xw-group-h small{display:block;font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--rust);margin-top:2px}
+.xw-group{margin:18px 0 0}
+.xw-start.card-grid{grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr))} /* the site's narrow topic cards; one column on a narrow phone */
+.xw-card{border-top:4px solid var(--glow);scroll-margin-top:6rem}
+.xw-card:hover{transform:none;border-color:var(--rule);border-top-color:var(--glow)} /* only Start acts, so the card does not lift like a link card */
+.xw-ascii{aspect-ratio:5/2;container-type:inline-size;display:flex;align-items:center;justify-content:center;margin:0 -1.15rem .85rem;border-bottom:1px solid var(--rule);overflow:hidden}
+.xw-ascii pre{margin:0;font:600 clamp(9px,4cqi,15px)/1.2 var(--mono);white-space:pre;letter-spacing:0} /* about 34 columns fill the card's width */
+.xw-ascii.day{background:#fff;color:#111}
+.xw-ascii.night{background:#111;color:#f2f2f2} /* the night runs: #205, #305 and the PC&Y transfer called at 5:00 */
+/* a visually hidden run name inside each Start button, so screen readers and voice control tell the eleven apart */
+.xw-vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+.xw-card{display:flex;flex-direction:column;gap:8px}
+.xw-card h3{margin:0;font-family:var(--font-display);font-size:1.25rem}
+.xw-card p{margin:0;line-height:1.5}
+.xw-card .xw-go{margin-top:auto;padding-top:4px}
+.xw-card .xw-go .xw-btn{flex:none;min-width:120px;text-align:center}
+.xw-tags{display:flex;flex-wrap:wrap;gap:4px}
+.xw-tags span{font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:1px 6px;border:1px solid var(--line);border-radius:3px;color:var(--muted);background:var(--flimsy)}
+.xw-tags .xw-len{border-color:transparent;background:none;padding-left:2px}
 details.xw-how summary{cursor:pointer;font-weight:600}
-.xw-best{font-family:var(--mono);font-size:12px;color:#c9c2b4;margin-top:10px}
-.xw-tabs:not([hidden])~.xw-group .xw-group-h{font-size:0;margin-bottom:6px}
-.xw-tabs:not([hidden])~.xw-group .xw-group-h small{font-size:12px}
+.xw-best{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px}
+.xw-showing{margin:8px 0 0;font-size:14px}
+.xw-link{background:none;border:0;padding:0;font:inherit;font-weight:600;text-decoration:underline;color:var(--blue);cursor:pointer}
+.xw-exit{margin-left:auto;display:inline-flex;gap:12px;align-items:baseline;font-family:var(--font-body);font-size:14px}
+
+/* visible focus: ink or rust on light ground */
+.xw-btn:focus-visible,.xw-chips button:focus-visible,.xw-link:focus-visible,.xw-group-note a:focus-visible,
+.xw-tw select:focus-visible,.xw-tw input:focus-visible,.xw-tt:focus-visible,.xw-scene a:focus-visible,.xw-end summary:focus-visible,.xw-how summary:focus-visible,.xw-log summary:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+
+/* phones: targets of at least 44 px */
+@media (max-width:860px){
+  .xw-chips button,.xw-link,.xw-btn{min-height:44px}
+  .xw-exit{width:100%;margin-left:0}
+  .xw-chips button{padding:0 14px}
+}
+
+/* the section filter in the site's "On this page" style (ops.css .jump), the intro and the random-shift button under the banner */
+.xw-filter{margin:.25rem 0 .5rem}
+.xw-filter .xw-chips{margin:0}
+.xw-filter .xw-chips button{display:inline-flex;align-items:center;padding:.4rem .65rem;min-height:2.5rem;background:var(--card);border:1px solid var(--rule);
+  font:600 .9rem var(--font-body);color:var(--ink);cursor:pointer}
+.xw-filter .xw-chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.xw-filter .xw-chips button:focus-visible,.xw-filter a:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+.xw-filter .xw-showing{margin:.5rem 0 0}
+.xw-intro{margin:.25rem 0 .75rem}
+.xw-cta{margin:0 0 .5rem;display:flex;flex-wrap:wrap;gap:.6rem}
+.xw-cta button.btn{cursor:pointer;font-family:var(--font-body)}
+.xw-group .back-top{margin-top:.75rem}
+@media (max-width:860px){.xw-filter .xw-chips button{min-height:44px}} /* after the filter rule, so phones keep 44 px targets */
