@@ -245,6 +245,7 @@ function finish(text,failed){
   else if(S.marks===0&&(par===null?S.clock<=D.end+15*S.pace:time<=par+15*S.pace)){verdict="Clean shift";cls="good"} // a road run has no par: it is on time if it is in before it quits
   else if(S.marks<=1){verdict="Good shift";cls="good"}
   else verdict="Marked up";
+  if(D.verdicts)verdict=D.verdicts[verdict]||verdict; // a run may name its own verdicts (the qualifying trip)
   const secs=[...new Set(S.misses.map(m=>m.sec))];
   const slip=par!==null&&!failed?Math.round(time-par):0; // minutes the misses added to the work, so the tie-up time and the last scene's clock agree
   const missHtml=S.misses.length?S.misses.map(m=>`<details${m.end?" open":""}><summary>${esc(m.title)}</summary><p>${esc(m.why)}</p><p class="src">${srcHtml(m)} · <a href="${studyHref(m.sec)}">${m.sec==="pov"?"Read: ":"Study: "}${esc(SEC[m.sec])}</a></p></details>`).join(""):"<p>No rules missed.</p>";
