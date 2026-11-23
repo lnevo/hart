@@ -81,7 +81,7 @@ In order; the first two are the main track (owner, 2026-11-21).
 
 - **Session #4 punch list (owner, 2026-11-21):** still open: CP signs, the crew board and mock signal designs (agent work); resistor wheels, mock signals at the rail gaps, the crew board mounted, the East End/Princess gap marked and the Barn lead drill signal wired (owner) ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
 
-- **Time the next layout edit (owner, 2026-11-21):** the next real change (a block split, a Store, a mast or wiring change) is timed from the first edit to the deploy, with `make mqtt-watch` (the `_discard` watcher) running through it; the steps and what to record are in [`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#next-measure-a-real-edit).
+- **Full rebuild timed (owner, 2026-11-23):** done. A cold `make panels FULL=1` takes 431 s, 343 s of it the Layout Editor build; the plugin alone with no preferences solves in the same 38 s and draws the Layout Editor panel in 1.5 s and the CATS desk in 0.2 s, but too wide for the hosts' window ([`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#full-rebuild-timed-2026-11-23)).
 
 
 ## In progress
