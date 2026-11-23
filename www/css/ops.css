@@ -2075,9 +2075,12 @@ table.roster th {
   color: #d6e4ea;
 }
 
-.play-band:focus-visible {
-  outline: 3px solid var(--accent-on-dark);
-  outline-offset: 3px;
+/* The art cell keeps the canvas's night sky above and below it when the text column is taller (tablet widths). */
+.play-band-art {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  background: #1b1830;
 }
 
 .play-band-art canvas {
