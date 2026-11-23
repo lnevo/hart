@@ -2124,6 +2124,7 @@ table.roster th {
 
 .play-band-p {
   font-size: 0.95rem;
+  max-width: 68ch;
 }
 
 .play-band-go {
