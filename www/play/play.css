@@ -189,12 +189,13 @@ details.xw-how summary{cursor:pointer;font-weight:600}
 /* the section filter in the site's "On this page" style (ops.css .jump), the intro and the random-shift button under the banner */
 .xw-filter{margin:.25rem 0 .5rem}
 .xw-filter .xw-chips{margin:0}
-.xw-filter button{display:inline-flex;align-items:center;padding:.4rem .65rem;min-height:2.5rem;background:var(--card);border:1px solid var(--rule);
+.xw-filter .xw-chips button{display:inline-flex;align-items:center;padding:.4rem .65rem;min-height:2.5rem;background:var(--card);border:1px solid var(--rule);
   font:600 .9rem var(--font-body);color:var(--ink);cursor:pointer}
-.xw-filter button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
-.xw-filter button:focus-visible,.xw-filter a:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
+.xw-filter .xw-chips button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.xw-filter .xw-chips button:focus-visible,.xw-filter a:focus-visible{outline:3px solid var(--rust);outline-offset:2px}
 .xw-filter .xw-showing{margin:.5rem 0 0}
 .xw-intro{margin:.25rem 0 .75rem}
 .xw-cta{margin:0 0 .5rem;display:flex;flex-wrap:wrap;gap:.6rem}
 .xw-cta button.btn{cursor:pointer;font-family:var(--font-body)}
 .xw-group .back-top{margin-top:.75rem}
+@media (max-width:860px){.xw-filter .xw-chips button{min-height:44px}} /* after the filter rule, so phones keep 44 px targets */

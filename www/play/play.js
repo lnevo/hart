@@ -344,11 +344,11 @@ function renderCover(){
   // section chips: All, then each section some run tests
   const used=SECTIONS.filter(([k])=>Object.values(RUNS).some(d=>(d.covers||[]).includes(k)));
   // the section filter sits under the title like the site's "On this page" row (nav.jump)
-  box.innerHTML=`<p class="jump-label" id="xwCoverLbl">Practice a section</p><ul class="xw-chips" role="group" aria-labelledby="xwCoverLbl">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
+  box.innerHTML=`<p class="jump-label" id="xwCoverLbl">Practice a section</p><ul class="xw-chips" aria-labelledby="xwCoverLbl">${[["","All"]].concat(used.map(([k])=>[k,TAG[k]])).map(([k,n])=>
     `<li><button type="button" data-sec="${k}" aria-pressed="false">${esc(n)}</button></li>`).join("")}</ul><p class="xw-showing" id="xwShowing" role="status" hidden></p>`;
   const chips=[...box.querySelectorAll("button[data-sec]")],showing=$("xwShowing");
   // Take a call off the extra board: a random run among the cards showing, so it follows the section filter
-  const rnd=$("xwRandom");if(rnd)rnd.onclick=()=>{const ids=cards.filter(c=>!c.hidden).map(c=>c.querySelector("[data-run]").dataset.run);if(ids.length)begin(ids[Math.floor(Math.random()*ids.length)])};
+  const rnd=$("xwRandom");if(rnd)rnd.hidden=false;if(rnd)rnd.onclick=()=>{const ids=cards.filter(c=>!c.hidden).map(c=>c.querySelector("[data-run]").dataset.run).filter(id=>RUNS[id]);if(ids.length)begin(ids[Math.floor(Math.random()*ids.length)])};
   let sec="";
   function show(){
     cards.forEach(c=>{c.hidden=!rowShown((c.dataset.secs||"").split(" "),sec)});
