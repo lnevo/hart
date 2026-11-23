@@ -40,7 +40,7 @@ Ubuntu 18.04 gets security updates only through Ubuntu Pro ESM, which ends in Ap
 - **Checks.** Before the move, the old server's answers were recorded for all 90 hartrailroad.com sitemap pages, the other sites' main pages and every published WordPress post and page. After the restore and again after the switch, the new server gave the same status codes and redirects. All 90 hartrailroad.com pages and its file list (1,352 files) were byte-identical, with the same security headers and `no-cache`. On the WordPress sites, 18 of 22 pages were byte-identical; the other four differ only in a random "related products" box.
 - **Accounts.** `lnevo`, `dnevo` and `br2fi` were restored from fresh Vesta backups with `v-restore-user`. Vesta's `admin` account could not be restored, because Ubuntu 24.04 has a system group `admin`. Its one site, dashboard.easte.net, was rebuilt by hand under `lnevo`, with its database renamed to `lnevo_wp90`.
 - **Templates.** `static-revalidate` was rebuilt for HestiaCP, including the hand edit of 2026-11-09 that serves the site's own `404.html`. `force-https` is a copy of HestiaCP's default, and HTTPS is forced with HestiaCP's own setting.
-- **PHP.** The WordPress sites run on PHP 8.5. easte.net runs on PHP 7.4 for its old aquarium pages. WPBakery on debbies.kitchen logs a deprecation warning on 8.5.
+- **PHP.** Every site runs on PHP 8.5. WPBakery on debbies.kitchen logs a deprecation warning. The aquarium pages on easte.net needed five small fixes in `radb/` (2026-11-23), after which all 33 PHP files give byte-identical output on 7.4 and 8.5. In `utils.php`, `switchStatus`, `relayLED` and `relay2LED` cast their values to `int`, because `"" == 0` is false in PHP 8 and the lights turned green; `getBin` casts to `int` for `decbin`; and `${x}` became `{$x}`. `ra_labels.php` and `all_data_json.php` pass `0` instead of `null` to `SimpleXMLElement`. The originals are kept as `*.bak-php74` next to each file. PHP 7.4 is still installed but no site uses it.
 - **easte.net pages.** These fetch `www.easte.net` from the server itself, so `/etc/hosts` maps that name to the private address 172.26.2.161, where nginx listens (backup `/etc/hosts.bak-20261123`).
 - **Cron and pequott.** The six aquarium and MRTG jobs are in HestiaCP but suspended. pequott.easte.net is suspended.
 - **SSH and deploy.** The old server's SSH host keys were copied over, so neither logins nor the hartrailroad.com deploy see a new host. rrsync is linked at `/usr/local/bin/rrsync` for the deploy key, and a dry run with the deploy key passed.
@@ -51,7 +51,7 @@ Ubuntu 18.04 gets security updates only through Ubuntu Pro ESM, which ends in Ap
 
 - Delete the snapshot `Ubuntu-1-final-2026-11-23` once nothing more is needed from the old server (about $1 a month while kept).
 - The panel at `https://www.easte.net:8083` uses HestiaCP's own certificate: HestiaCP issues a hostname certificate only when `www.easte.net` is its own web domain, and here it is an alias of easte.net.
-- easte.net without `www` points in DNS to another host (66.96.149.32), as it did before the move.
+- easte.net without `www` points in Cloudflare DNS to a domain-parking host (66.96.149.32), as it did before the move. To serve it from the new server, the A record must point to 35.169.202.14; then the site needs a Let's Encrypt certificate for `easte.net` and `www.easte.net`.
 - debbies.kitchen cannot send email (no mail server, no SMTP plugin), as before the move.
 - Optional: an AWS Budget alarm (needs billing rights the `lnevo-agent` user does not have).
 
