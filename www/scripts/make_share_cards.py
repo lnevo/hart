@@ -506,7 +506,7 @@ def _title_canvas(name: str, rel: str):
     out = _tmp / f"{name}.html"
     base = f'<base href="{(PORTAL / rel).parent.as_uri()}/">'  # the copy sits in a temp folder: load the scripts and CSS from www/
     out.write_text(page.replace("<head>", "<head>" + base, 1).replace("</head>", fill + "</head>", 1), encoding="utf-8")
-    # with reduced motion the game draws its title as a still frame
+    # with reduced motion the title art draws one still frame, the train standing mid-picture
     return card(shot(out.as_uri(), flags=("--force-prefers-reduced-motion",)))
 
 
