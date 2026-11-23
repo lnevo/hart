@@ -2,7 +2,8 @@
 "use strict";
 /* The Extra East: HART Railroad title screen: the coke works at dusk, in pixel art. Drawn into
    #xwTitleCv on the game page (play/index.html) and in the game band on the home page (index.html).
-   It stands still when the reader asks for reduced motion, and pauses while scrolled out of view. */
+   It stands still when the reader asks for reduced motion or the canvas has data-still (the home page),
+   and pauses while scrolled out of view. */
 const $=id=>document.getElementById(id);
 const reduced=window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -88,7 +89,7 @@ function title(){
     // the cast flickers
     g.fillStyle=`rgba(255,179,71,${.35+.25*Math.sin(t/220)})`;g.fillRect(146,58,18,6);
   }
-  const still=reduced;
+  const still=reduced||cv.hasAttribute("data-still"); // the home page shows one frame
   if(still||typeof IntersectionObserver!=="function"){draw(0);return}
   let raf=0;const loop=t=>{draw(t);raf=requestAnimationFrame(loop)};
   const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting&&!raf)raf=requestAnimationFrame(loop);else if(!e.isIntersecting&&raf){cancelAnimationFrame(raf);raf=0}})});
