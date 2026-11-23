@@ -67,7 +67,14 @@ grep -q '^autoconnect=false' "$m/etc/NetworkManager/system-connections/RPi-JMRI.
 is "ssh host keys" "$(ls "$m"/etc/ssh/ssh_host_*_key 2>/dev/null | wc -l)" 3
 [[ -s "$m/var/lib/samba/private/passdb.tdb" ]] && ok "Samba passwords" || bad "Samba passwords missing"
 is "hostname" "$(cat "$m/etc/hostname")" RPi-JMRI
-grep -q 'drm.edid_firmware=' "$m/boot/firmware/cmdline.txt" && ok "cmdline EDID" || bad "cmdline has no EDID setting"
+cl="$(cat "$m/boot/firmware/cmdline.txt")"
+grep -q 'drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin' <<< "$cl" && ok "cmdline EDID" || bad "cmdline has no EDID setting"
+is "cmdline video=" "$(grep -o 'video=[^ ]*' <<< "$cl" | tr '\n' ' ')" "video=HDMI-A-1:1920x1080@60D video=HDMI-A-2:1920x1080@60D "
+[[ ! -e "$m/etc/initramfs-tools/conf.d/zz-hart-image-build" ]] && ok "build-only initramfs setting removed" || bad "zz-hart-image-build left in the image"
+for ird in "$m"/boot/firmware/initramfs*; do
+  n="$(chroot "$m" lsinitramfs "/boot/firmware/$(basename "$ird")" 2>/dev/null | grep -c 'firmware/edid/edid2\?\.bin$')"
+  is "EDID in $(basename "$ird")" "$n" 2
+done
 
 w="$m/etc/systemd/system/multi-user.target.wants"
 # Enable links are absolute paths into the image, so test the link, not its target.

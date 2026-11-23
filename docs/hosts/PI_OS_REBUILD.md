@@ -153,7 +153,9 @@ On trixie, check whether vc4 still loads from the initramfs, and that the new Co
 
 1. **KVM flip test:** done 2026-11-23, read-only over ssh with the owner flipping the KVM. HDMI-A-1 is the KVM port and blinks for about 0.5 s on a flip; HDMI-A-2 is direct and never changed; both report the matrix's identical 256-byte EDID (md5 prefix `2402b21d`); vc4 rejects the `video=` mode.
 2. **Trial on the current card** in a non-operating window: fixes 1 to 3, all reversible over ssh, or from the Mac if the Pi won't boot. Include a boot with the KVM on Windows, the case the flip test could not cover. Success: no EDID errors and no `User-defined mode not supported` in the boot log, both outputs present after that boot and after a KVM flip, and the menu bar on both monitors or at least on HDMI-A-2.
-3. The proven setup then goes into the image (`tools/hosts/pi-os/display/`).
+3. The proven setup then goes into the image.
+
+Fix 1 went into the image on 2026-11-23 at the owner's request, ahead of the trial, so the new card is the trial: `display-setup.sh` writes `video=HDMI-A-1:1920x1080@60D video=HDMI-A-2:1920x1080@60D` and rebuilds the initramfs, and the `hart-edid` initramfs hook puts both EDID files in it (the image check confirms all three). The menu bar and the kanshi fallbacks (fixes 2 and 3) are still today's settings. If the card shows no picture, take `D` off the two `video=` entries in `cmdline.txt` from the Mac.
 
 ## Phase 4: swap, with a way back
 
