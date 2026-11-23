@@ -190,8 +190,9 @@ def _check_leaks(dest_root: Path) -> list[str]:
 INDEX_NAME = "search-index.json"
 INDEX_VERSION = 1
 SNIPPET_MAX, TEXT_MAX = 160, 8000  # about 95 KB gzipped for the whole index, fetched on first open
-# Pages that are never found: the 404 page and the document viewer shell.
-INDEX_SKIP_PAGES = {"404.html", "docs/view.html"}
+# Pages that are never found: the 404 page, the document viewer shell, and Google's Search Console
+# ownership file, which must be served byte for byte (no provenance tag, not in the sitemap).
+INDEX_SKIP_PAGES = {"404.html", "docs/view.html", "google542f49f1175c633f.html"}
 # Pages whose content is rows drawn by script: only the title and the intro paragraph are indexed.
 INDEX_TITLE_ONLY = {"behind/tables-file.html", "behind/wiring.html"}
 _INDEX_SKIP_TAGS = {"script", "style", "template", "noscript", "svg", "header", "nav", "footer", "button", "select", "option"}
