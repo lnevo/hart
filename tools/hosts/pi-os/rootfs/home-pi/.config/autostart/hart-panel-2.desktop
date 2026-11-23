@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Second panel (HDMI-A-2)
+Comment=Menu bar (display trial 2026-11-23) on the port that goes straight to the matrix
+Exec=/usr/bin/lwrespawn /usr/bin/wf-panel-pi -c /home/pi/.config/wf-panel-pi-2.ini

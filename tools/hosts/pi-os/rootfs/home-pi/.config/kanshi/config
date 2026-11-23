@@ -1,5 +1,15 @@
-profile {
-		output HDMI-A-2 enable mode 1920x1080@60.000 position 0,0 transform normal
-		output HDMI-A-1 enable mode 1920x1080@60.000 position 0,0 transform normal
+# Proven in the display trial 2026-11-23 (docs/hosts/PI_OS_REBUILD.md, Displays, fix 3).
+# HDMI-A-1 goes through the KVM, HDMI-A-2 straight to the matrix. kanshi picks the profile whose
+# outputs match exactly, so the one-output profiles keep a lone port at 1920x1080, 0,0.
+# While cmdline.txt forces both ports on (video=...D) only `both` matches; the other two
+# apply if D is taken off.
+profile both {
+	output HDMI-A-1 enable mode 1920x1080@60.000 position 0,0 transform normal
+	output HDMI-A-2 enable mode 1920x1080@60.000 position 0,0 transform normal
 }
-
+profile kvm-only {
+	output HDMI-A-1 enable mode 1920x1080@60.000 position 0,0 transform normal
+}
+profile direct-only {
+	output HDMI-A-2 enable mode 1920x1080@60.000 position 0,0 transform normal
+}

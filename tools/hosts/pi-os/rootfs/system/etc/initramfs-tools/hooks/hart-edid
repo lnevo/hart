@@ -1,0 +1,14 @@
+#!/bin/sh
+# Put the matrix's stored EDID into the initramfs: vc4 starts from the initramfs, before
+# the root filesystem is mounted, so drm.edid_firmware could never find the files there
+# (docs/hosts/PI_OS_REBUILD.md, Displays, fix 1).
+PREREQ=""
+prereqs() { echo "$PREREQ"; }
+case "$1" in
+  prereqs) prereqs; exit 0 ;;
+esac
+. /usr/share/initramfs-tools/hook-functions
+for f in /usr/lib/firmware/edid/*.bin; do
+  [ -f "$f" ] && copy_file firmware "$f" "/usr/lib/firmware/edid/$(basename "$f")"
+done
+exit 0

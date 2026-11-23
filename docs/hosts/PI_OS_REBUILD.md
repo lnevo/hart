@@ -1,6 +1,6 @@
 # Pi OS rebuild plan (2026-11-21, decisions 2026-11-23)
 
-This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); a first image was built and checked on the Mac on 2026-11-23; nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
+This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); a first image was built and checked on the Mac on 2026-11-23. On the Pi, only the display trial has changed anything: its settings stay live on the current card, with a revert script (Displays, Steps). It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
 
 ## What the Pi runs now
 
@@ -149,11 +149,11 @@ Each Pi HDMI port goes into an SFX HDMI Matrix: HDMI-A-2 directly, HDMI-A-1 thro
 
 On trixie, check whether vc4 still loads from the initramfs, and that the new Control Centre still uses kanshi and these paths and doesn't overwrite the mirror profile.
 
-### Next steps (waiting on the owner)
+### Steps (done 2026-11-23)
 
 1. **KVM flip test:** done 2026-11-23, read-only over ssh with the owner flipping the KVM. HDMI-A-1 is the KVM port and blinks for about 0.5 s on a flip; HDMI-A-2 is direct and never changed; both report the matrix's identical 256-byte EDID (md5 prefix `2402b21d`); vc4 rejects the `video=` mode.
-2. **Trial on the current card** in a non-operating window: fixes 1 to 3, all reversible over ssh, or from the Mac if the Pi won't boot. Include a boot with the KVM on Windows, the case the flip test could not cover. Success: no EDID errors and no `User-defined mode not supported` in the boot log, both outputs present after that boot and after a KVM flip, and the menu bar on both monitors or at least on HDMI-A-2.
-3. The proven setup then goes into the image (`tools/hosts/pi-os/display/`).
+2. **Trial on the current card:** passed 2026-11-23 (session hart-6d, the owner checked it at the screens). Round 1: fixes 2 and 3; `wf-panel-pi` runs twice without trouble, the second copy from `~/.config/autostart/hart-panel-2.desktop` with `~/.config/wf-panel-pi-2.ini` (`monitor=HDMI-A-2`), and kanshi has the profiles `both`, `kvm-only` and `direct-only` in the desktop and login-screen configs. Round 2: fix 1, the repo's `hart-edid` hook and `video=HDMI-A-1:1920x1080@60D video=HDMI-A-2:1920x1080@60D`; three boots each logged `[drm] forcing HDMI-A-n connector on` for both ports, no `EDID firmware … failed` and no `User-defined mode not supported`, and `wlr-randr` showed both ports at 1920x1080@60, 0,0. Mirroring and a menu bar on both screens held through KVM flips and reboots. Not measured: whether HDMI-A-1's status still blinks on a flip with `D` (the owner says it no longer matters). The trial stays on the current card; `~/display-trial-revert.sh` (with sudo, then reboot) restores the backups in `/boot/firmware/*.pre-trial` and `~/display-trial-backup/`.
+3. **Into the image:** done 2026-11-23. Fix 1: `display-setup.sh` writes the two `video=` entries and rebuilds the initramfs, and the `hart-edid` hook puts both EDID files in it, with `vc4` listed in `/etc/initramfs-tools/modules` so initramfs files rebuilt by kernel updates keep both. The build makes its one initramfs with `MODULES=most`, because `mkinitramfs` cannot find the root device inside sdm's container; the Pi's own rebuilds use the default. Fixes 2 and 3: the trial's files, copied from the Pi unchanged except their comments. `check_image.sh` checks all of it. If the new card shows no picture, take `D` off the two `video=` entries in `cmdline.txt` from the Mac.
 
 ## Phase 4: swap, with a way back
 

@@ -38,6 +38,8 @@ copyfile:from=@STAGE@/private/pi.hash|to=/etc/sdm/assets/hart|chown=root:root|ch
 runcommand:command=grep -q '^[$]' /etc/sdm/assets/hart/pi.hash && usermod -s /bin/bash -p "$(cat /etc/sdm/assets/hart/pi.hash)" pi && rm -f /etc/sdm/assets/hart/pi.hash /etc/sdm/assets/copyfile/*/pi.hash && chown -R 1000:1000 /home/pi/.ssh && chmod 700 /home/pi /home/pi/.ssh|runphase=post-install
 
 system:name=hart|service-enable=wifi-watchdog,mosquitto,smbd,nmbd,cups|service-disable=lcos-bridge|service-mask=samba-ad-dc
-# Display: today's settings, carried over unchanged until the trial on the old card is done.
-cmdline:add=cfg80211.ieee80211_regdom=US drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin video=HDMI-A-1:1920x1080M@60,HDMI-A-2:1920x1080M@60
+# Display fix 1: the stored EDID for each port; the video= entries and the initramfs come from
+# display-setup.sh (sdm's cmdline add keeps only one entry per name, and we need two video=).
+cmdline:add=cfg80211.ieee80211_regdom=US drm.edid_firmware=HDMI-A-1:edid/edid.bin,HDMI-A-2:edid/edid2.bin
+runcommand:command=/usr/local/lib/hart/display-setup.sh && rm -f /usr/local/lib/hart/display-setup.sh|runphase=post-install
 runatboot:script=@STAGE@/os/firstboot.sh|output=/var/log/hart-firstboot.log
