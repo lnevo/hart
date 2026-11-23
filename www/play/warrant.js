@@ -9,12 +9,13 @@
 const RE=window.RoadEngine;
 const {esc,fmt}=RE;
 const mins=t=>{const [h,m]=t.split(":");return +h*60+ +m};
+const BASE_TIMES=["6:30","7:00","7:15","7:20","7:25","7:30","8:00"];
 const reduced=typeof matchMedia==="function"&&matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* The choices in the blanks of the form: stations, tracks, warrant numbers, trains, speeds, the times and the "other
    specific instructions" the run's warrants use. time grows when a Box 5 time is read (see addTime). */
 const TW_SEL={s:["Duff Junction","McKees Rocks","Carnegie","Bridgeville","Hills","Canonsburg","Houston","Arden"],t:["Main"],w:["112","114","118","121","125"],
-  train:["Local 1","Local 2","PIR work train"],time:["6:30","7:00","7:15","7:20","7:25","7:30","8:00"],mph:["10","15","20","25","30"],
+  train:["Local 1","Local 2","PIR work train"],time:BASE_TIMES.slice(),mph:["10","15","20","25","30"],
   txt:["Joint with PIR work train between Hills and Canonsburg","Joint with Local 2 between Bridgeville and Canonsburg","Joint with Local 1 between Duff Junction and Bridgeville"]};
 /* The seventeen boxes of the form, with their blanks. */
 const BOXES=[
@@ -66,6 +67,8 @@ const api={BOXES,SAY,TW_SEL,compare,
   /* The words of one warrant, a box to a line, as the sheet prints them. */
   words(w){return Object.keys(w.boxes).map(Number).sort((a,b)=>a-b).map(b=>`Box ${b}. ${SAY[b](w.boxes[b])}.`)},
   /* The dispatcher's call: a time the warrant takes effect shows in the blank list. */
+  /* A new run starts with the printed list of times. */
+  resetTimes(){TW_SEL.time.length=0;TW_SEL.time.push(...BASE_TIMES)},
   addTime(t){if(!TW_SEL.time.includes(t)){TW_SEL.time.push(t);TW_SEL.time.sort((a,b)=>mins(a)-mins(b))}},
   /* A warrant is in effect once its OK time is on it, unless Box 5 or Box 7 holds it back. */
   effect(G,no){const w=G.warrants.find(x=>x.no===no);if(w)w.eff=true},
