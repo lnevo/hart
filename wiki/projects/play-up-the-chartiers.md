@@ -79,7 +79,7 @@ Everything marked not found is filled in by the game without comment (rule 2).
 2. **No disclaimers in play.** Cards, scenes and instructions stay in the story. The introduction says once where the material comes from and that the game fills in the rest. No "for the game", "invented" or "the blog does not say".
 3. **Real people** appear only in history notes and quotes, never as a character who makes a mistake. Tragedies (the 1945 carbon plant explosion, the 1987 ladle house death) stay out.
 4. **Names follow the year:** plants, railroads and owners as they were in the run's year (`plants-lineage.json`, `chartiers-lineage.json`).
-5. **Daily only where the draw varies.** A run gets Today's run only if its draws change it meaningfully from day to day (Extra East's 1949, modern and signals runs do); otherwise practice only, with the guard in `begin()`.
+5. **No daily run.** Every run is a new draw. Extra East's daily run was removed on 2026-11-22 (owner), so neither game has one.
 6. **Look:** the dusk coke-works theme with steel-grey paper, no tan. The pixel-art title and share card style stay. Maps follow the cleaned schematic: even rows, 45° connections, labels clear of track and engines, no "not to scale" note.
 7. **Writing:** the site voice rules; `tools/audit/check_ai_speak.py` and the `voice-reviewer` agent on all new text.
 8. **Checks before merge:** the fake-DOM play-through (every run to the end, many draws), the portal unit tests, `build_play_answers.js --check`, `/code-review medium`, and a look in Chrome. Then deploy with `www/scripts/deploy_hartrailroad.sh`.
