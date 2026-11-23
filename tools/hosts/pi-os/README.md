@@ -1,13 +1,13 @@
 # Layout Pi OS image
 
-This folder holds the build for the layout Pi's new 64-bit Raspberry Pi OS (trixie) card: an sdm pluglist, the files that only lived on the old card, and the scripts that build the image on the Mac. The plan, decisions and swap steps are in [`docs/hosts/PI_OS_REBUILD.md`](../../../../docs/hosts/PI_OS_REBUILD.md).
+This folder (kept outside `tools/hosts/pi/`, which every deploy ships to the hosts) holds the build for the layout Pi's new 64-bit Raspberry Pi OS (trixie) card: an sdm pluglist, the files that only lived on the old card, and the scripts that build the image on the Mac. The plan, decisions and swap steps are in [`docs/hosts/PI_OS_REBUILD.md`](../../../docs/hosts/PI_OS_REBUILD.md).
 
 ## Build
 
 ```sh
-tools/hosts/pi/os/pull_from_pi.sh     # read-only on the Pi: secrets and the JMRI install
-tools/hosts/pi/os/build_image.sh      # Lima VM on the Mac; about 30 to 60 minutes
-tools/hosts/pi/os/build_image.sh --stop
+tools/hosts/pi-os/pull_from_pi.sh     # read-only on the Pi: secrets and the JMRI install
+tools/hosts/pi-os/build_image.sh      # Lima VM on the Mac; about 30 to 60 minutes
+tools/hosts/pi-os/build_image.sh --stop
 ```
 
 The image lands in `~/.cache/hart/pi-os/out/` with a `.sha256` and a `.base` file naming the stock image it came from. Write it to the new SD card with Raspberry Pi Imager ("Use custom", no OS customisation) or `dd`. It holds the Wi-Fi passwords and ssh host keys, so it never leaves the Mac.

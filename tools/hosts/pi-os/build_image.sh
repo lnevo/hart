@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # Build the layout Pi's Raspberry Pi OS image on the Mac (docs/hosts/PI_OS_REBUILD.md).
 #
-#   tools/hosts/pi/os/pull_from_pi.sh      # once, and again after secrets or JMRI change
-#   tools/hosts/pi/os/build_image.sh       # about 30 to 60 minutes
-#   tools/hosts/pi/os/build_image.sh --stop   # stop the build VM afterwards
+#   tools/hosts/pi-os/pull_from_pi.sh      # once, and again after secrets or JMRI change
+#   tools/hosts/pi-os/build_image.sh       # about 30 to 60 minutes
+#   tools/hosts/pi-os/build_image.sh --stop   # stop the build VM afterwards
 #
 # sdm does not run in Docker, so the build runs in a Lima VM (Debian 13, arm64,
 # Apple virtualization), the same architecture as the Pi 5: no emulation.

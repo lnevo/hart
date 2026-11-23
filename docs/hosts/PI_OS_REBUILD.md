@@ -1,6 +1,6 @@
 # Pi OS rebuild plan (2026-11-21, decisions 2026-11-23)
 
-This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi/os/`](../../tools/hosts/pi/os/README.md); no image has been built yet and nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
+This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); no image has been built yet and nothing on the Pi has changed. It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
 
 ## What the Pi runs now
 
@@ -37,7 +37,7 @@ Bookworm is one release behind. Raspberry Pi OS moved to Debian 13 (trixie) in O
 The image is built and loaded with software before any card is written, and the Pi keeps running meanwhile.
 
 - **Where:** a Lima VM on the Mac (Debian 13, arm64, Apple virtualization), the same architecture as the Pi 5, so `apt` runs natively with no emulation. The first draft used a Docker container, but sdm's own docs say it does not work in Docker (it needs systemd-nspawn and loop devices); a full VM has both. The Windows box would need qemu emulation, which is slower.
-- **Tool:** sdm (gitbls/sdm, pinned to V16.2). It customises a stock Raspberry Pi OS image: packages, users, Wi-Fi, locale, files and services, plus first-boot steps. Its config and our files are in `tools/hosts/pi/os/`, so a rebuild is one command (`build_image.sh`). The alternatives are Raspberry Pi's `rpi-image-gen` (more work to set up) or a plain loop-mount and chroot script.
+- **Tool:** sdm (gitbls/sdm, pinned to V16.2). It customises a stock Raspberry Pi OS image: packages, users, Wi-Fi, locale, files and services, plus first-boot steps. Its config and our files are in `tools/hosts/pi-os/`, so a rebuild is one command (`build_image.sh`). The alternatives are Raspberry Pi's `rpi-image-gen` (more work to set up) or a plain loop-mount and chroot script.
 - **Time:** about 20 to 40 minutes to build, then Raspberry Pi Imager or `dd` writes the card.
 
 ### Baked into the image
@@ -73,7 +73,7 @@ Also decided: Claude Code goes on the Pi with the rebuild, not before (owner, 20
 
 ## Phase 1: copy everything off the current card
 
-Done for the build inputs on 2026-11-23: the card-only files are in `tools/hosts/pi/os/`, and `pull_from_pi.sh` copied the secrets (Wi-Fi PSKs, the `pi` password hash, ssh host keys, `authorized_keys`, Samba passwords) to `~/.config/hart/pi-os` and the JMRI install to `~/.cache/hart/pi-os` on the Mac. The live data below is copied again at swap time.
+Done for the build inputs on 2026-11-23: the card-only files are in `tools/hosts/pi-os/`, and `pull_from_pi.sh` copied the secrets (Wi-Fi PSKs, the `pi` password hash, ssh host keys, `authorized_keys`, Samba passwords) to `~/.config/hart/pi-os` and the JMRI install to `~/.cache/hart/pi-os` on the Mac. The live data below is copied again at swap time.
 
 With JMRI closed, after `make tables-pull-pi` and `make ops-pull`, and with nothing left unmerged:
 
@@ -85,7 +85,7 @@ With JMRI closed, after `make tables-pull-pi` and `make ops-pull`, and with noth
 - The ssh host keys and `authorized_keys`.
 - The watchdog script and unit, the EDID files, `config.txt`, `cmdline.txt`, the kanshi configs, the udev rule, the NetworkManager profiles and the iptables rules.
 
-Most of this goes into the repo under `tools/hosts/pi/os/`. Secrets don't: Wi-Fi passwords and keys stay in a private backup.
+Most of this goes into the repo under `tools/hosts/pi-os/`. Secrets don't: Wi-Fi passwords and keys stay in a private backup.
 
 ## Phase 2: Steve's steps, adapted
 
@@ -152,7 +152,7 @@ On trixie, check whether vc4 still loads from the initramfs, and that the new Co
 
 1. **KVM flip test:** the owner switches the KVM to Windows and back while `/sys/class/drm/*/status` is watched over ssh, to find which Pi port goes to the KVM and whether it drops.
 2. **Trial on the current card** in a non-operating window: fixes 1 to 3, all reversible over ssh, or from the Mac if the Pi won't boot. Success: no EDID errors in the boot log, both outputs survive a KVM flip, and the menu bar is on both monitors.
-3. The proven setup then goes into the image (`tools/hosts/pi/os/display/`).
+3. The proven setup then goes into the image (`tools/hosts/pi-os/display/`).
 
 ## Phase 4: swap, with a way back
 

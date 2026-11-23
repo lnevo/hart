@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Copy what the new Pi image needs from the running Pi, read-only on the Pi.
 #
-#   tools/hosts/pi/os/pull_from_pi.sh
+#   tools/hosts/pi-os/pull_from_pi.sh
 #
 # Writes two places, both outside the repo:
 #   $HART_PI_OS_PRIVATE (default ~/.config/hart/pi-os, mode 700): secrets
