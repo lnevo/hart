@@ -1,0 +1,42 @@
+# ADR-033: Generated values, then the owner's, then frozen wiring
+
+- **Status:** Proposed (2026-11-24), waiting for the owner's answers in the [hand-off](../projects/naming-layers-handoff.md)
+- **Date:** 2026-11-24
+- **Deciders:** lnevo
+- **Amends:** ADR-027 (staging from its device map), ADR-028 (main and upper virtual devices), ADR-029 amendment (the device master's key)
+- **Builds on:** ADR-026 (AnyRail plan 5.3c), ADR-030 (the level is a column)
+
+## Context
+
+Staging was drawn by hand and named over time; main and upper were built later through a generator. The code still carries that history:
+
+- **Staging is "the field".** `FIELD_LEVEL = "1"` in `hartlib.devices`. The generator finds staging's blocks from the plan through the same block process as main and upper (`block_layer`), but stops on any staging device that has no owner row in `devices_field.csv`. Staging's turnouts, aliases and feedback come from the owner's rows and `wiring.csv`, not from the generator. About 17 scripts under `tools/schematic/` and `tools/hartlib/` test the level to tell the two apart.
+- **The name is the identity.** Both device files key a row on `(level, layer, user_name)`. A name change, from a new AnyRail file or a new naming rule, makes a different device, and the owner's cells for the old name stop the build.
+- **The owner's values sit in several files.** Device cells in `devices_field.csv` (staging only); staging's track names and bumpers in `plan_overrides.json` (the `name` and `end` edits); switch numbers in the `relabel` edits; splits in `block_overrides.csv`; hands in `switches.csv` (`hand_source owner`).
+- **A physical swap is not a data change.** `cats_panel.py` and `le_tables.py` build main and upper beans as virtual names (`IT:HART:C3:<n>`), so a physical `jmri_name` stops `make panels`. That tied the cleanup to the wiring work.
+
+The wiring side already works as intended: `make wiring-freeze` writes `wiring.csv`, the generator keeps its pins, and `check_wiring_frozen.py` fails on any other change.
+
+## Decision
+
+Every device on every level gets its values from three layers, always in this order (owner, 2026-11-24):
+
+| Layer | What it holds | Where |
+|---|---|---|
+| 1. Generated | Every device the plan has, with a generated name, label, virtual JMRI name and proposed wiring | `devices_generated.csv`, written by the builders from the AnyRail plan and the naming rules |
+| 2. Owner | Any value the owner has set: user name, label, comment, system name, DCC address | `devices_field.csv` and the owner's edits in `plan_overrides.json` |
+| 3. Frozen wiring | Node and pin of a wired device | `wiring.csv`, written only by `make wiring-freeze` |
+
+- **An owner value always wins.** A non-empty owner cell replaces the generated one. A regenerate never changes it. No level is special: staging is a level where the owner has named everything, main and upper are levels where the owner has named little yet.
+- **A device has an ID that is not its name.** The generator derives it from the plan: a switch by its number and half, a block by the switches and legs at its ends (today's `trial_name` grammar), a detector by its block, a mast by the switch, leg and direction it protects. Both files key rows on the ID. The user name is an ordinary column.
+- **Renames and re-imports.** A new naming rule changes generated names only; owner names stay. A new AnyRail file is matched by ID, and the build lists the IDs that are new and those that are gone. A gone ID that still has owner values stops the build until the owner moves or drops them; it is never renamed silently.
+- **Frozen wiring is fixed, labels are not.** Once a control point is frozen, the generator stops proposing its pins. Its names, labels and comments are still the owner's layer and can change at any time.
+- **A physical swap is one owner edit.** The owner sets the device's `system_name` (and so `jmri_name`) in its owner row. The ID and user name stay the same, so the panels, desks and SML follow it. No reader builds a JMRI name from a pattern.
+
+## Consequences
+
+- One flow for every level. `FIELD_LEVEL` and the level tests go; the parked [builder merge](../projects/builder-merge.md) (one bean, row and mast process) becomes part of this work instead of waiting for main and upper wiring.
+- Staging's current names, comments and system names become owner values on generated rows. `tables.xml`, the desks and the panels do not change.
+- The first main or upper swap no longer needs a code change.
+- A device the plan no longer has cannot keep its owner values by accident.
+- Each step is a refactor with byte-identical layout outputs, except where its PR lists a diff (the bean comments the owner already chose to unify on 2026-11-23).
