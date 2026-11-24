@@ -56,6 +56,9 @@
 # and records. Guards always run.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
+# A step that cannot load the schematic-maps plugin fails rather than printing SKIPPED and passing, as in CI (owner,
+# 2026-11-23): a worktree without the submodule must not look current. SCHEMATIC_REQUIRED=0 lets those steps skip.
+export SCHEMATIC_REQUIRED="${SCHEMATIC_REQUIRED:-1}"
 
 check=()
 full=0

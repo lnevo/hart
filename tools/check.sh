@@ -42,6 +42,9 @@ if [[ -n "$pin_problem" ]]; then
   echo "STOP: $pin_problem" >&2
   exit 2
 fi
+# A schematic check that cannot load the plugin fails rather than printing SKIPPED and passing, as in CI (owner,
+# 2026-11-23): a checkout without the submodule must not report ALL PASSED. SCHEMATIC_REQUIRED=0 lets those checks skip.
+export SCHEMATIC_REQUIRED="${SCHEMATIC_REQUIRED:-1}"
 fail=0
 # Local traced stamps (tools/audit/check_stamps.py, tools/audit/traced.py): a job whose recorded reads (the files its
 # Python opened, probed and listed) match its last pass is skipped, and prints "<job>: current, skipped"; a job that
@@ -181,6 +184,15 @@ collect() {
     fi
     cat "$JOBS/$i.log"
   done
+  # A job that printed SKIPPED did not really check (a unit job's output may quote the word, as for the stamps above).
+  local i2 said=()
+  for i2 in "${!names[@]}"; do
+    [[ "${names[$i2]}" == unit-* || -e "$JOBS/$i2.skip" ]] && continue
+    grep -q SKIPPED "$JOBS/$i2.log" 2>/dev/null && said+=("${names[$i2]}")
+  done
+  if (( ${#said[@]} > 0 )); then
+    echo "${#said[@]} job(s) printed SKIPPED and checked only part of their inputs: ${said[*]}"
+  fi
   if (( skipped > 0 )); then
     if [[ "$SKIP_NOTE" == current ]]; then
       echo "$skipped of ${#names[@]} jobs current, skipped (FULL=1 runs them all)"
@@ -225,7 +237,7 @@ run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py -
 run baselines python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py --check
 run digicon-disabled python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check
 run status-counts python3 tools/ops/status_counts.py --check
-# Prints SKIPPED and passes when the schematic-maps plugin submodule is not checked out (fails in CI, SCHEMATIC_REQUIRED=1).
+# Fails when the schematic-maps plugin submodule is not checked out; SCHEMATIC_REQUIRED=0 makes them print SKIPPED and pass.
 run schematic-signals python3 tools/schematic/build_signals.py --check
 run schematic-cats python3 tools/schematic/build_cats_panel.py --check
 run schematic-hands python3 tools/schematic/build_hands.py --check

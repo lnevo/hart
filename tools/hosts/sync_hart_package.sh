@@ -84,6 +84,12 @@ if [[ -n "$STAGE_ONLY" ]]; then
   DRY_RUN=1
 fi
 
+# While the owner operates (the operating flag, ADR-025), a real deploy to the Pi or Windows stops before anything is
+# read or sent. A Mac-only install, --dry-run, --check-only and --stage-only stay open.
+if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$DRY_RUN" -eq 0 && "$CHECK_ONLY" -eq 0 ]]; then
+  "$ROOT/tools/hosts/operating.sh" guard "a deploy to the Pi or Windows" || exit $?
+fi
+
 # What is being shipped: the facts every step writes into the stamp (cats/deploy_stamp.txt on each host this run
 # installs; tools/hosts/deploy_status.sh reads it back), taken once here, before any check touches tables.xml,
 # and passed to the steps in the environment.

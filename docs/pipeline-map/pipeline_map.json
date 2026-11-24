@@ -3569,6 +3569,15 @@
    "path": "tools/hosts/pi-os"
   },
   {
+   "id": "tools/hosts/operating.sh",
+   "label": "operating.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Sets, clears and prints the operating flag (~/.hart_operating, ADR-025); its guard subcommand stops a layout deploy to the Pi or Windows while the flag is set (HART_DEPLOY_WHILE_OPERATING=1 overrides).",
+   "path": "tools/hosts/operating.sh"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -7490,6 +7499,16 @@
    "from": "tools/hosts/pi-os",
    "to": "host:pi",
    "label": "SD card image"
+  },
+  {
+   "from": "tools/hosts/sync_hart_package.sh",
+   "to": "tools/hosts/operating.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/redeploy_commit.sh",
+   "to": "tools/hosts/operating.sh",
+   "label": "runs"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

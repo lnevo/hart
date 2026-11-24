@@ -51,6 +51,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_deploy_preflight import FAKE_RSYNC, PI, ROOT, SYNC, WIN, DeployHarness  # noqa: E402
 
+REDEPLOY = ROOT / "tools/hosts/redeploy_commit.sh"
+
 sys.path.insert(0, str(ROOT / "tools/hartlib/src"))
 HOOK = ROOT / ".claude/hooks/main_guard.py"
 OPERATING = ROOT / "tools/hosts/operating.sh"
@@ -853,7 +855,8 @@ class ParkedFeaturesAreNotInstalled(GateHarness):
 
 
 class OperatingFlagRefusal(unittest.TestCase):
-    """The script does not read the operating flag: the main guard hook refuses the command that runs it.
+    """Two guards: the main guard hook refuses an agent's command, and sync_hart_package.sh and redeploy_commit.sh
+    refuse a real deploy to the Pi or Windows themselves, so one run from a terminal stops too (owner, 2026-11-23).
     A ship step split out under another name stays open to a host while the flag is set until the hook names it."""
 
     def setUp(self) -> None:
@@ -872,10 +875,32 @@ class OperatingFlagRefusal(unittest.TestCase):
         return subprocess.run([sys.executable, str(HOOK)], input=payload, env=self.env,
                               capture_output=True, text=True, timeout=60)
 
-    def test_the_script_has_no_flag_check_of_its_own(self) -> None:
-        text = SYNC.read_text(encoding="utf-8").lower()
-        for needle in ("hart_operating", "operating.sh", ".hart_operating"):
-            self.assertNotIn(needle, text, "the script reads the operating flag now: update the map and this test")
+    def deploy(self, script: Path, *args: str, **extra: str) -> subprocess.CompletedProcess:
+        """Run a deploy script with a temporary HOME (no profile, no hart.env) and no ssh on PATH."""
+        env = dict(self.env, HOME=str(self.flag.parent), HART_ENV_FILE=str(self.flag.parent / "none"), **extra)
+        return subprocess.run(["bash", str(script), *args], cwd=ROOT, env=env, capture_output=True, text=True,
+                              timeout=120)
+
+    def test_the_deploy_scripts_refuse_a_host_while_the_flag_is_set(self) -> None:
+        self.operating("on", "ops session")
+        for script, args in ((SYNC, ("--pi",)), (SYNC, ("--win",)), (SYNC, ("--all",)),
+                             (REDEPLOY, ("HEAD", "--pi")), (REDEPLOY, ("HEAD", "--pi", "--win"))):
+            with self.subTest(script=script.name, args=args):
+                done = self.deploy(script, *args)
+                self.assertEqual(3, done.returncode, done.stdout + done.stderr)
+                self.assertIn("the operating flag is set", done.stderr)
+                self.assertIn("ops session", done.stderr)
+
+    def test_the_owner_override_and_the_read_only_runs_pass_the_flag(self) -> None:
+        """HART_DEPLOY_WHILE_OPERATING=1, --dry-run and --check-only get past the flag (they stop later, here at
+        the missing ssh, which is not the flag's refusal)."""
+        self.operating("on", "ops session")
+        for script, args, extra in ((SYNC, ("--pi",), {"HART_DEPLOY_WHILE_OPERATING": "1"}),
+                                    (SYNC, ("--pi", "--dry-run"), {}), (SYNC, ("--check-only", "--pi"), {}),
+                                    (REDEPLOY, ("HEAD", "--pi", "--dry-run"), {})):
+            with self.subTest(script=script.name, args=args, extra=extra):
+                done = self.deploy(script, *args, **extra)
+                self.assertNotIn("REFUSED: the operating flag", done.stderr)
 
     def test_deploys_to_a_host_are_refused_while_the_flag_is_set(self) -> None:
         self.operating("on", "ops session")

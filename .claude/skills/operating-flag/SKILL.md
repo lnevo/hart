@@ -14,6 +14,7 @@ The flag says the layout is in use. `tools/hosts/operating.sh` keeps it in `~/.h
 | Set it when the owner says they are operating | `tools/hosts/operating.sh on [reason]` |
 | Clear it when the owner says they are done | `tools/hosts/operating.sh off --owner` |
 | Read it | `tools/hosts/operating.sh status` (exit 0 when set, 1 when clear) |
+| Deploy anyway (owner only) | `HART_DEPLOY_WHILE_OPERATING=1` before the deploy: `sync_hart_package.sh` and `redeploy_commit.sh` to the Pi or Windows refuse on their own while the flag is set (ADR-025 amendment) |
 | Set it for a speed-matching job | `tools/hosts/operating.sh on --by speedmatch [reason]`; a job drop sets it |
 | Clear it after a speed-matching run | `tools/hosts/operating.sh off`, once the run's log ends |
 
