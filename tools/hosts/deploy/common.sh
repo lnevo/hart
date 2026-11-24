@@ -135,6 +135,42 @@ deploy_facts() {
     HART_DEPLOY_REDEPLOY_FROM="$DEPLOY_REDEPLOY_FROM" HART_DEPLOY_DATE="$DEPLOY_DATE" HART_DEPLOY_FROM="$DEPLOY_FROM"
 }
 
+# check_on_main: a deploy to a host ships origin/main itself, so the hosts run what was merged and never go back to an
+# older commit by accident; an older commit goes through redeploy_commit.sh (a rollback), which checks it. It fetches
+# origin/main first (time-limited) and refuses with nothing sent when the deploy commit is not origin/main.
+# HART_ALLOW_UNMERGED=1 deploys another commit (a test on the hosts, a fix that cannot wait); the stamp names its
+# branch. A redeploy is not checked here: redeploy_commit.sh checked the commit before it ran this one. Uncommitted
+# files are not held here: deploy_facts warns and the stamp says dirty=yes.
+# HART_MAIN_REF names another ref to check against, and skips the fetch (the tests).
+check_on_main() {
+  [[ -z "${HART_REDEPLOY_FROM:-}" ]] || return 0
+  local commit="${DEPLOY_COMMIT:-$(git -C "$ROOT" rev-parse HEAD 2>/dev/null)}"
+  if [[ "${HART_ALLOW_UNMERGED:-0}" == 1 ]]; then
+    echo "HART_ALLOW_UNMERGED=1: deploying ${commit:0:12} (${DEPLOY_BRANCH:-?}) without checking it is origin/main." >&2
+    return 0
+  fi
+  local ref="${HART_MAIN_REF:-}" stale=""
+  if [[ -z "$ref" ]]; then
+    ref=refs/remotes/origin/main
+    if ! GIT_TERMINAL_PROMPT=0 GIT_SSH_COMMAND="ssh -o ConnectTimeout=10 -o BatchMode=yes" \
+        git -C "$ROOT" -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=15 fetch -q origin main 2>/dev/null; then
+      stale=" (git fetch origin main failed, so this checkout's origin/main may be out of date)"
+    fi
+  fi
+  local main
+  if ! main="$(git -C "$ROOT" rev-parse --verify -q "$ref^{commit}")"; then
+    echo "STOP: no $ref here to check ${commit:0:12} against$stale; git fetch first, or HART_ALLOW_UNMERGED=1 to deploy it anyway. Nothing was sent to any host." >&2
+    return 1
+  fi
+  [[ "$commit" != "$main" ]] || return 0
+  if git -C "$ROOT" merge-base --is-ancestor "$commit" "$main" 2>/dev/null; then
+    echo "STOP: ${commit:0:12} (${DEPLOY_BRANCH:-?}) is behind origin/main ${main:0:12}$stale. Deploy from the updated main (git pull), or roll back on purpose with tools/hosts/redeploy_commit.sh. Nothing was sent to any host." >&2
+  else
+    echo "STOP: ${commit:0:12} (${DEPLOY_BRANCH:-?}) is not on origin/main$stale. Merge it and deploy from the updated main, or HART_ALLOW_UNMERGED=1 to deploy it anyway (say so in the report). Nothing was sent to any host." >&2
+  fi
+  return 1
+}
+
 # tables_facts WARN: the tables.xml shipped (hash) and whether it differs from the committed file. The Digicon boot
 # rule is applied by the generator and only checked by the gate, so the hosts get exactly the committed bytes:
 # nothing here rewrites tables.xml. With WARN=1 an uncommitted difference is a warning, not a stop.

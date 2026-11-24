@@ -106,6 +106,8 @@ def stage_env(tmp: Path) -> dict[str, str]:
         HART_NO_AUTOPULL="1",
         # the owner's own operating flag must not stop a test deploy
         HART_OPERATING_FLAG=str(tmp / "no-operating-flag"),
+        # the gate's origin/main check (check_on_main) against HEAD itself: passes on any branch, and no fetch
+        HART_MAIN_REF="HEAD",
     )
     return env
 

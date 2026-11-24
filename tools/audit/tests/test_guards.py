@@ -513,7 +513,7 @@ class PrivateNameAndTables(unittest.TestCase):
                           [name for name, _argv in checks], path.name)
         check_sh = (ROOT / "tools/check.sh").read_text(encoding="utf-8")
         for folder in after.TEST_DIRS:  # each searched folder is a unit job of check.sh, so nothing only runs here
-            self.assertIn(f"python3 -m unittest discover -q -s {folder}\n", check_sh, folder)
+            self.assertIn(f"python3 -m unittest discover -b -q -s {folder}\n", check_sh, folder)
 
     def test_real_name_check_loads_and_passes_clean_text(self) -> None:
         guard = load(MAIN_GUARD, "hart_main_guard_real_name_test")
@@ -569,7 +569,8 @@ class AfterEditMatchingTests(unittest.TestCase):
             sys.stdin = saved
 
     def unit_runs(self) -> list[list[str]]:
-        return [argv[5:] for argv in self.ran if "unittest" in argv]
+        """What follows `python3 -m unittest discover -b -q` in each unit run."""
+        return [argv[6:] for argv in self.ran if "unittest" in argv]
 
     def every_check(self) -> list[list[str]]:
         return [argv for name, argv in self.after.CHECKS]

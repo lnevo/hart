@@ -244,7 +244,8 @@ def pass_centres(events, route, pins, targets=("Switch 7", "Switch 13"), frm="Sw
 def plan_rows(result, csv_path=CSV, route=DEFAULT_ROUTE, only=None):
     """The CSV rows with the new lengths, not yet written. Returns (fields, rows, mm by row).
     only: the sensors to write (default all of the route's)."""
-    rows = list(csv.DictReader(open(csv_path, newline="")))
+    with open(csv_path, newline="") as f:
+        rows = list(csv.DictReader(f))
     fields = list(rows[0].keys())
     by_name = {r["user_name"]: r for r in rows}
     sensor_rows = {s: n for s, n in route_rows(route).items() if only is None or s in only}

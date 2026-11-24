@@ -299,17 +299,17 @@ slow_first() {
 }
 # PYTHONPATH is extended inside the job, where the trace hook is already on it (bash execs python: one process)
 # shellcheck disable=SC2016  # expanded by the inner bash
-unit "unit-guards layout-editor ($LE_TESTS)" bash -c 'PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -q '"$LE_TESTS"
+unit "unit-guards layout-editor ($LE_TESTS)" bash -c 'PYTHONPATH="tools/audit/tests${PYTHONPATH:+:$PYTHONPATH}" exec python3 -m unittest -b -q '"$LE_TESTS"
 # unit-jmri runs one job per file on a local run, the slow files first: about 25 s in one job, 16 s spread over six
 # cores. CI keeps one job: its four cores are taken by the Layout Editor job and the guard files for minutes, so a
 # split would only add some 50 interpreter starts there.
 JMRI_TESTS=jmri/layouts/hart/scripts/tests
 if [[ -n "${CI:-}" ]]; then
-  unit unit-jmri python3 -m unittest discover -q -s jmri/layouts/hart/scripts/tests
+  unit unit-jmri python3 -m unittest discover -b -q -s jmri/layouts/hart/scripts/tests
 else
   for t in $(slow_first "$JMRI_TESTS"/test*.py); do
     f="$(basename "$t")"
-    unit "unit-jmri ${f%.py}" python3 -m unittest discover -q -s "$JMRI_TESTS" -p "$f"
+    unit "unit-jmri ${f%.py}" python3 -m unittest discover -b -q -s "$JMRI_TESTS" -p "$f"
   done
 fi
 # The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
@@ -337,22 +337,22 @@ for t in $(slow_first tools/hosts/tests/test*.py tools/audit/tests/test*.py tool
     for c in $classes; do
       if [[ "$BY_METHOD" == *" $c "* ]]; then
         for m in $(python3 tools/audit/test_classes.py "$t" --methods "$c"); do
-          unit "$kind $m" python3 -m unittest discover -q -s "$d" -p "$f" -k "$m"
+          unit "$kind $m" python3 -m unittest discover -b -q -s "$d" -p "$f" -k "$m"
         done
       else
-        unit "$kind $c" python3 -m unittest discover -q -s "$d" -p "$f" -k "$c."
+        unit "$kind $c" python3 -m unittest discover -b -q -s "$d" -p "$f" -k "$c."
       fi
     done
   else
-    unit "$kind ${f%.py}" python3 -m unittest discover -q -s "$d" -p "$f"
+    unit "$kind ${f%.py}" python3 -m unittest discover -b -q -s "$d" -p "$f"
   fi
 done
-unit unit-jmri-scripts python3 -m unittest discover -q -s jmri/scripts/tests
-unit unit-cats python3 -m unittest discover -q -s cats/scripts/tests
-unit unit-mimic python3 -m unittest discover -q -s tools/mqtt-mimic/tests
-unit unit-hartlib python3 -m unittest discover -q -s tools/hartlib/tests
-unit unit-anyrail python3 -m unittest discover -q -s tools/anyrail/tests
-unit unit-portal python3 -m unittest discover -q -s www/scripts/tests
+unit unit-jmri-scripts python3 -m unittest discover -b -q -s jmri/scripts/tests
+unit unit-cats python3 -m unittest discover -b -q -s cats/scripts/tests
+unit unit-mimic python3 -m unittest discover -b -q -s tools/mqtt-mimic/tests
+unit unit-hartlib python3 -m unittest discover -b -q -s tools/hartlib/tests
+unit unit-anyrail python3 -m unittest discover -b -q -s tools/anyrail/tests
+unit unit-portal python3 -m unittest discover -b -q -s www/scripts/tests
 # Car cards, intake and publications. Uses ops/hart-ops/.venv when it exists; a checkout
 # without it (a worktree) skips, CI installs ops/hart-ops/requirements-test.txt.
 HOPS_PY=python3
@@ -360,7 +360,7 @@ HOPS_PY=python3
 # The venv carries pypdf for the PDF part; plain python3 checks everything else.
 later public-text "$HOPS_PY" tools/audit/check_public_text.py
 if [[ -n "${CI:-}" ]] || "$HOPS_PY" -c "import numpy, scipy, docx, pytesseract" 2>/dev/null; then
-  unit unit-hart-ops "$HOPS_PY" -m unittest discover -q -s ops/hart-ops/tests
+  unit unit-hart-ops "$HOPS_PY" -m unittest discover -b -q -s ops/hart-ops/tests
 else
   later "unit-hart-ops skipped (no ops/hart-ops/.venv)" true
 fi

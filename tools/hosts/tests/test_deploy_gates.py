@@ -282,6 +282,71 @@ class EveryGateStopsBeforeAnythingShips(GateHarness):
         self.assertFalse((self.tmp / "tables_check.log").exists())
 
 
+class OnlyMergedCommitsShip(GateHarness):
+    """G0b (check_on_main, common.sh): a real deploy to a host ships a commit on origin/main, as a rollback does.
+    HART_MAIN_REF=HEAD~1 stands in for an origin/main the checkout's HEAD is not on (CI fetches two commits)."""
+
+    def test_a_commit_not_on_main_stops_before_any_ssh(self) -> None:
+        self.env["HART_MAIN_REF"] = "HEAD~1"
+        for flags in (("--pi",), ("--win",), ("--pi", "--win")):
+            with self.subTest(flags=flags):
+                done = self.deploy(*flags)
+                self.assertIn("is not on origin/main", done.stderr)
+                self.assertIn("HART_ALLOW_UNMERGED=1", done.stderr)
+                self.assert_nothing_shipped(done)
+                self.assertEqual([], self.calls())
+
+    def test_no_main_ref_stops(self) -> None:
+        self.env["HART_MAIN_REF"] = "refs/remotes/nowhere/main"
+        done = self.deploy("--pi", "--win")
+        self.assertIn("STOP: no refs/remotes/nowhere/main here", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_the_override_ships_and_says_so(self) -> None:
+        self.env.update(HART_MAIN_REF="HEAD~1", HART_ALLOW_UNMERGED="1")
+        self.hosts_ok()
+        done = self.deploy("--pi", "--win")
+        self.assertEqual(0, done.returncode, done.stderr[-2000:])
+        self.assertIn("HART_ALLOW_UNMERGED=1: deploying", done.stderr)
+        self.assertIn("Windows deploy done.", done.stdout)
+        self.assertIn("Pi deploy done.", done.stdout)
+
+    def test_a_commit_behind_main_stops_and_names_the_rollback(self) -> None:
+        """A merged but older commit (a stale main checkout) would roll the hosts back: it stops too. The newer
+        origin/main is a commit on top of HEAD, made with fixed dates so every run makes the same object."""
+        env = dict(git_env(), GIT_AUTHOR_DATE="2026-01-01T00:00:00Z", GIT_COMMITTER_DATE="2026-01-01T00:00:00Z")
+        newer = subprocess.run(["git", "-C", str(ROOT), "commit-tree", "HEAD^{tree}", "-p", "HEAD", "-m", "newer main"],
+                               env=env, capture_output=True, text=True, check=True).stdout.strip()
+        self.env["HART_MAIN_REF"] = newer
+        done = self.deploy("--pi", "--win")
+        self.assertIn("is behind origin/main", done.stderr)
+        self.assertIn("redeploy_commit.sh", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_dry_run_and_check_only_get_past_it(self) -> None:
+        self.env["HART_MAIN_REF"] = "HEAD~1"
+        self.hosts_ok()
+        for flags in (("--pi", "--win", "--dry-run"), ("--check-only", "--pi", "--win")):
+            with self.subTest(flags=flags):
+                done = self.deploy(*flags)
+                self.assertEqual(0, done.returncode, done.stderr[-2000:])
+                self.assertNotIn("origin/main", done.stderr)
+
+    def test_a_ship_step_run_alone_checks_it_too(self) -> None:
+        self.env["HART_MAIN_REF"] = "HEAD~1"
+        self.hosts_ok()
+        for script in ("ship_pi.sh", "ship_win.sh"):
+            with self.subTest(script=script):
+                folder = self.tmp / "staged" / script
+                folder.mkdir(parents=True)
+                (folder / "tables.xml").write_text("<x/>\n", encoding="utf-8")
+                done = subprocess.run(["bash", str(ROOT / "tools/hosts/deploy" / script), str(folder)], cwd=ROOT,
+                                      env=self.env, capture_output=True, text=True, timeout=300)
+                self.assertEqual(1, done.returncode, done.stderr[-1500:])
+                self.assertIn("is not on origin/main", done.stderr)
+                self.assertEqual([], self.calls())
+
+
 class PiChangedSinceLastDeploy(GateHarness):
     """The Pi's Operations Pro files or tables.xml changed since the last deploy or pull: stop before anything
     is sent, and name the way out. HART_NO_AUTOPULL=1 here: the plain stop (the gate's own pull is below)."""
