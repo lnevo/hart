@@ -1,6 +1,7 @@
 """tools/audit/test_classes.py: the classes check.sh runs as separate jobs for a BY_CLASS file."""
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 import tempfile
@@ -54,10 +55,16 @@ class TestClasses(unittest.TestCase):
 
     def test_every_by_class_file_exists_and_splits(self) -> None:
         text = CHECK.read_text(encoding="utf-8")
-        # every BY_CLASS= and BY_CLASS+= line, each file found in one of the folders check.sh splits
-        names = [n for x in text.splitlines() if x.startswith(("BY_CLASS=", "BY_CLASS+="))
-                 for n in x.split('"')[1].split()]
-        self.assertIn("test_deploy_gates.py", names)
+        # every line that sets BY_CLASS (BY_CLASS= or BY_CLASS+=, plain or behind a CI test), each file found in one
+        # of the folders check.sh splits
+        names = []
+        for x in text.splitlines():
+            if re.match(r"(\[\[.*\]\] \|\| )?BY_CLASS\+?=", x):
+                m = re.search(r'BY_CLASS\+?="([^"]*)"', x)
+                self.assertIsNotNone(m, f"check.sh: a BY_CLASS line with no double-quoted value: {x!r}")
+                names += m.group(1).split()
+        for need in ("test_worktrees.py", "test_panel_stamps.py", "test_deploy_gates.py", "test_deploy_preflight.py"):
+            self.assertIn(need, names)
         folders = [ROOT / d for d in ("tools/audit/tests", "tools/hosts/tests", "tools/schematic/tests")]
         for name in names:
             found = [d / name for d in folders if (d / name).is_file()]
