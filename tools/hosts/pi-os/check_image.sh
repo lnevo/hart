@@ -96,6 +96,8 @@ is "panel 1 monitor" "$(grep '^monitor=' "$m/home/pi/.config/wf-panel-pi.ini")" 
 is "panel 2 monitor" "$(grep '^monitor=' "$m/home/pi/.config/wf-panel-pi-2.ini" 2>/dev/null)" "monitor=HDMI-A-2"
 grep -q '^Exec=/usr/bin/lwrespawn /usr/bin/wf-panel-pi -c /home/pi/.config/wf-panel-pi-2.ini$' "$m/home/pi/.config/autostart/hart-panel-2.desktop" 2>/dev/null \
   && ok "second panel autostarts" || bad "second panel autostart missing"
+grep -qx 'autologin-user=pi' "$m/etc/lightdm/lightdm.conf.d/hart-autologin.conf" 2>/dev/null \
+  && ok "desktop logs pi in at boot" || bad "no desktop autologin: every boot asks for a login"
 
 w="$m/etc/systemd/system/multi-user.target.wants"
 # Enable links are absolute paths into the image, so test the link, not its target.

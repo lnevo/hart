@@ -69,6 +69,7 @@ There's no QEMU model of the Pi 5, so the image can't be booted on the Mac. What
 3. PanelPro: **started only by deploys** and `pi_start_panelpro.sh`, not at login.
 4. The 12090 forward to 10.42.0.222: **dropped**, with the NAT rules that served it.
 5. Printing (CUPS): **kept**. Two HP printers are set up on the old card.
+6. Desktop login: **pi logs in at boot** (2026-11-23). The first boot of the new card asked for a login, because sdm's `adduser` set no `autologin-user` on trixie; `rootfs/system/etc/lightdm/lightdm.conf.d/hart-autologin.conf` sets it now.
 
 Also decided: Claude Code goes on the Pi with the rebuild, not before (owner, 2026-11-21).
 
