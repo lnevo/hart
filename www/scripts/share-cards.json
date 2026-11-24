@@ -398,6 +398,11 @@
       "image": "assets/share/roster-index.jpg",
       "alt": "The Brick control point on the panel beside its device viewer rows: two switches, two signal masts and two occupancy detectors with their hardware addresses.",
       "from": "live image of the HART Railroad panel from JMRI's web server (2026-11-09, Brick) with six Brick rows from www/data/layout-index.json"
+    },
+    "build/roadbed.html": {
+      "image": "assets/share/build-roadbed.jpg",
+      "alt": "Cork roadbed sheet laid along the plywood edge of the main level, with the printed backdrop of a plant and hills behind it.",
+      "from": "hart-research photos/cork-roadbed-main-level-2025-12-21.heic (iPhone photo, 2025-12-21), centre crop focus 78,50 zoom 1.2"
     }
   },
   "links": {
