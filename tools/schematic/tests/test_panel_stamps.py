@@ -40,11 +40,12 @@ class DeclarationTest(unittest.TestCase):
                     self.assertTrue(ps.expand([pat]), f"{pat} matches nothing")
 
     def test_the_device_master_is_two_files(self) -> None:
-        """The device-map and masts steps write devices_generated.csv; no step writes the owner's field file, so a hand
-        edit there is an input (the trace sees every step that reads it). The names are pinned to hartlib.devices by
-        test_devices_one_path."""
+        """The device-map, masts and panel-items steps write devices_generated.csv; no step writes the owner's field
+        file, so a hand edit there is an input (the trace sees every step that reads it). The names are pinned to
+        hartlib.devices by test_devices_one_path."""
         generated, field = f"{ps.DATA}/{ps.DEVICES_FILE}", f"{ps.DATA}/{ps.DEVICES_FIELD_FILE}"
-        self.assertEqual([n for n, s in ps.STEPS.items() if generated in s.outputs], ["device-map", "masts"])
+        self.assertEqual([n for n, s in ps.STEPS.items() if generated in s.outputs],
+                         ["device-map", "masts", "panel-items"])
         self.assertFalse([n for n, s in ps.STEPS.items() if field in s.outputs])
 
     def test_the_trace_hook_is_code_of_every_step(self) -> None:

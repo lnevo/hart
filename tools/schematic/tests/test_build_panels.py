@@ -25,9 +25,10 @@ STEPS = [
     ("hands", "tools/schematic/build_hands.py", False),
     ("staging-sets", "tools/schematic/build_staging_sets.py", False),
     ("main-route", "tools/schematic/build_main_route.py", False),
-    ("plan-lengths", "tools/schematic/plan_lengths.py --check", True),
     ("device-map", "tools/schematic/build_device_map.py", False),
+    ("plan-lengths", "tools/schematic/plan_lengths.py --check", True),
     ("masts", "tools/schematic/build_masts.py", False),
+    ("panel-items", "tools/schematic/panel_items.py", False),
     ("signals", "tools/schematic/build_signals.py", False),
     ("head-plan", "jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only", False),
     ("schematic", "tools/schematic/publish_draft.py", False),
@@ -77,6 +78,14 @@ class StepList(unittest.TestCase):
         # (their turnouts, sensors and masts) and the live fingerprint, so one make panels leaves them all current
         for check in ("signals-sync", "device-master", "cats", "approved-desks", "approved-live"):
             self.assertLess(NAMES.index("tables"), NAMES.index(check), check)
+
+    def test_every_device_master_writer_runs_before_tables_and_plan_lengths_checks_the_new_blocks(self):
+        # device-map, masts and panel_items.py write the device master (hartlib.devices.WRITERS); tables reads it,
+        # so an edit to panel_items.json reaches tables.xml in one make panels
+        for writer in ("device-map", "masts", "panel-items"):
+            self.assertLess(NAMES.index(writer), NAMES.index("tables"), writer)
+        # plan_lengths.py --check finds the OS blocks in the device master: it checks the ones device-map just wrote
+        self.assertEqual(NAMES.index("plan-lengths"), NAMES.index("device-map") + 1)
 
 
 class DryRun(unittest.TestCase):
