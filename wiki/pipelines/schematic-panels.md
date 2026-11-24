@@ -90,7 +90,7 @@ make desks            # only the CATS desks, then validate them
 | signals | `build_signals.py` | `signals.json` (a section per sheet) from the plan graph and `masts.csv`: staging's rows by their plan facts, main and upper's placed from the plan graph. After masts, so one run draws the masts it writes; nothing before it reads `signals.json` (device-map and masts give the same outputs with every signal dropped from it), so there is no cycle |
 | head-plan | `build_hart_signal_heads.py --wiring-only` | `jmri/layouts/hart/output/signal_head_plan.csv` from `wiring.csv`'s wired heads (`--check` compares in memory). The CATS desks read its templates, so it runs before `cats` |
 | schematic | `publish_draft.py` | the schematic sheets and station pages |
-| sml-current | `check_sml_current.py` | nothing: stops when `data/schematic/discovered_sml.stamp` (the sha256 of the discovery base `run_sml_discover.sh` discovered on) is not the base the sources give now (`build_tables.py --base-hash`). A write on the Mac then runs `run_sml_discover.sh` itself (PanelPro, about 3 min) and checks again; off the Mac, in CI, while the operating flag is set or with `HART_SML_AUTO_DISCOVER=0` it stops and names the command, and the script's own refusals (PanelPro or CATS running, an unapproved panel) stop the run (owner, 2026-11-24). Runs in both modes, before `tables` |
+| sml-current | `check_sml_current.py` | nothing: stops when `data/schematic/discovered_sml.stamp` (the sha256 of the discovery base `run_sml_discover.sh` discovered on) is not the base the sources give now (`build_tables.py --base-hash`). A write on the Mac then discovers itself ([SML discovery in a run](#sml-discovery-in-a-run)). Runs in both modes, before `tables` |
 | tables | `build_tables.py` | `output/tables.xml`, the file PanelPro and CATS load (ADR-029: an output): the template, the staging beans of the device master, the Layout Editor build (`build_layout_le.build`, in memory; detail: [The Layout Editor build](#the-layout-editor-build)), the discovered Signal Mast Logic (`data/schematic/discovered_sml.xml`, written only by `run_sml_discover.sh`) and the Digicon boot rule, in a fixed envelope. Detail: [Row tables: check and Store handling](#row-tables-check-and-store-handling). |
 | signals-sync | `sync_signals.py --check` | nothing: stops when the heads and masts of any level in `tables.xml` differ from `masts.csv`. It runs after `tables`, which generates them from the device master and the Layout Editor build |
 | device-master | `check_device_master.py --check` | nothing: checks every level of the device master against `tables.xml` and the schematic, after `tables` writes it, with one set of rules for every level (a rule that reads a file only one level has is that file's, not a level test). Detail: [Row device-master: which rows are read how](#row-device-master-which-rows-are-read-how). |
@@ -127,6 +127,10 @@ Both from `main_lines.csv`, one file with a `sheet` column (staging or main_uppe
 ### Row device-master: which rows are read how
 
 The staging rows that carry no `written_by` (turnouts, feedback) are kept by hand and read against the staging band here, as are staging's block and occupancy rows, which `build_device_map.py` writes; `masts.csv` and the staging mast and head rows are generated (masts above), and the main and upper rows are `build_device_map.py`'s, whose `--check` reads them against the drawing
+
+## SML discovery in a run
+
+When `sml-current` says stale (exit 4), a write on the Mac runs `run_sml_discover.sh` itself (PanelPro, about 3 min) and checks again (owner, 2026-11-24). Off the Mac, in CI, while the operating flag is set, with `HART_TABLES` set, with `HART_SML_AUTO_DISCOVER=0` or while another run is discovering, it stops and names the command. The script's own refusals (PanelPro or CATS running, an unapproved panel) stop the run; a refused discovery leaves `tables.xml` as it was.
 
 ## A memory, clock or setting change
 
