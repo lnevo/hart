@@ -12,7 +12,7 @@ Every row (row_problems), each naming the file, line, level, layer and device:
 - its cp is a control point of its own level: stations.csv's desk areas or interlockings.csv's rows of that
   level; or, for a block or occupancy row, the control point of a switch at its block's ends on another level (a
   row's level is the band its track is drawn on: Track 127-221 is drawn on the upper band from main level CP 127);
-- a field device names its user, system and jmri names;
+- (a field device names its user, system and jmri names: hartlib.devices.check_rows holds it on every load);
 - only a turnout or block row has a trial_name, and no two rows of one level share one;
 - an occupancy row is a field device exactly when its detector is wired.
 

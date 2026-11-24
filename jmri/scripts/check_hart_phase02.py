@@ -80,7 +80,7 @@ def main() -> int:
     if not clock:
         errors.append("ISCLOCKRUNNING missing")
 
-    # The panel's name: audit_panel_contracts.py (select_panel) holds it, exactly one "HART Railroad" panel.
+    # The panel's name: audit_panel_contracts.py (select_panel) holds it: exactly one panel named HART or HART Railroad (PANEL_NAMES).
 
     # No duplicate block userNames
     from collections import Counter
