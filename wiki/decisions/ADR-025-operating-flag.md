@@ -41,7 +41,7 @@ One flag file on the Mac, `~/.hart_operating`, says the layout is in use. `tools
 
 An architecture review found the flag stopped only agent commands, so a deploy run from a terminal during a session went through. The owner chose to guard the layout deploys only.
 
-- `tools/hosts/sync_hart_package.sh` with `--pi`, `--win` or `--all`, and `tools/hosts/redeploy_commit.sh` with those flags, call `operating.sh guard` before anything is read or sent. While the flag is set they stop (exit 3); an unreadable flag counts as set.
+- `tools/hosts/sync_hart_package.sh` with `--pi`, `--win` or `--all`, and `tools/hosts/redeploy_commit.sh` with those flags, call `operating.sh guard` before any host is contacted or anything is staged (the profile and tables refusals run first). While the flag is set they stop (exit 3); an unreadable flag counts as set.
 - `HART_DEPLOY_WHILE_OPERATING=1` is the owner's override. `redeploy_commit.sh` passes it to the older commit's deploy.
 - `--dry-run`, `--check-only`, `--stage-only` and the Mac-only install stay open.
 - `pi_quit_panelpro.sh`, `pi_start_panelpro.sh`, `pi_sts_update.sh` and ssh commands stay guarded by the hook only.

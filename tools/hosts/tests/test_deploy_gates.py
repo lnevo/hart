@@ -50,6 +50,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from test_deploy_preflight import FAKE_RSYNC, PI, ROOT, SYNC, WIN, DeployHarness  # noqa: E402
+from test_deploy_stage import stage_env  # noqa: E402
 
 REDEPLOY = ROOT / "tools/hosts/redeploy_commit.sh"
 
@@ -876,10 +877,13 @@ class OperatingFlagRefusal(unittest.TestCase):
                               capture_output=True, text=True, timeout=60)
 
     def deploy(self, script: Path, *args: str, **extra: str) -> subprocess.CompletedProcess:
-        """Run a deploy script with a temporary HOME (no profile, no hart.env) and no ssh on PATH."""
-        env = dict(self.env, HOME=str(self.flag.parent), HART_ENV_FILE=str(self.flag.parent / "none"), **extra)
+        """Run a deploy script as the staging tests do (stage_env: hosts that cannot resolve, ssh and scp stubs that log
+        to network.log and fail, no autopull), with a temporary HOME and this test's flag file. Nothing reaches a host."""
+        tmp = Path(tempfile.mkdtemp(dir=self.flag.parent))
+        env = dict(stage_env(tmp), HOME=str(tmp), HART_OPERATING_FLAG=str(self.flag), **extra)
+        self.network_log = tmp / "network.log"
         return subprocess.run(["bash", str(script), *args], cwd=ROOT, env=env, capture_output=True, text=True,
-                              timeout=120)
+                              timeout=300)
 
     def test_the_deploy_scripts_refuse_a_host_while_the_flag_is_set(self) -> None:
         self.operating("on", "ops session")
@@ -890,10 +894,11 @@ class OperatingFlagRefusal(unittest.TestCase):
                 self.assertEqual(3, done.returncode, done.stdout + done.stderr)
                 self.assertIn("the operating flag is set", done.stderr)
                 self.assertIn("ops session", done.stderr)
+                self.assertFalse(self.network_log.exists(), "the refusal comes before any host is asked")
 
     def test_the_owner_override_and_the_read_only_runs_pass_the_flag(self) -> None:
-        """HART_DEPLOY_WHILE_OPERATING=1, --dry-run and --check-only get past the flag (they stop later, here at
-        the missing ssh, which is not the flag's refusal)."""
+        """HART_DEPLOY_WHILE_OPERATING=1, --dry-run and --check-only get past the flag; they stop later, at the stub
+        ssh or another gate, never at the flag's refusal, and never reach a real host (stage_env)."""
         self.operating("on", "ops session")
         for script, args, extra in ((SYNC, ("--pi",), {"HART_DEPLOY_WHILE_OPERATING": "1"}),
                                     (SYNC, ("--pi", "--dry-run"), {}), (SYNC, ("--check-only", "--pi"), {}),
@@ -901,6 +906,7 @@ class OperatingFlagRefusal(unittest.TestCase):
             with self.subTest(script=script.name, args=args, extra=extra):
                 done = self.deploy(script, *args, **extra)
                 self.assertNotIn("REFUSED: the operating flag", done.stderr)
+                self.assertNotEqual(0, done.returncode, "a stub host cannot take a deploy: " + done.stdout + done.stderr)
 
     def test_deploys_to_a_host_are_refused_while_the_flag_is_set(self) -> None:
         self.operating("on", "ops session")

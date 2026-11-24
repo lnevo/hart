@@ -33,7 +33,7 @@ fi
 # import (CHECK_SUBMODULES in tools/agent/worktrees.py); check them out the way make wt does. Only in a worktree
 # (.git is a file there): the main checkout is not changed, and CI checks them out itself (.github/workflows/check.yml).
 if [[ -z "${CI:-}" && -f .git ]]; then
-  python3 tools/agent/worktrees.py submodules "$ROOT" || echo "checks that need a missing submodule will skip or fail"
+  python3 tools/agent/worktrees.py submodules "$ROOT" || echo "checks that need a missing submodule will fail (SCHEMATIC_REQUIRED=0 lets the schematic ones skip)"
 fi
 # A plugin on another commit than the branch pins makes checks fail as if the code were wrong: stop before any job.
 source "$ROOT/tools/hosts/profile_tables_guard.sh"
