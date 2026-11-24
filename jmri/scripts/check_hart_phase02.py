@@ -80,10 +80,7 @@ def main() -> int:
     if not clock:
         errors.append("ISCLOCKRUNNING missing")
 
-    # Panel title
-    le_names = [le.get("name") for le in root.iter("LayoutEditor")]
-    if not any(name in {"HART Railroad", "HART"} for name in le_names):
-        errors.append(f"LayoutEditor name not HART Railroad: {le_names}")
+    # The panel's name: audit_panel_contracts.py (select_panel) holds it: exactly one panel named HART or HART Railroad (PANEL_NAMES).
 
     # No duplicate block userNames
     from collections import Counter
