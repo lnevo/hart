@@ -108,7 +108,7 @@ class Template(unittest.TestCase):
         def add_block(root):
             el = ET.SubElement(root.find("blocks"), "block", systemName="IB99")
             ET.SubElement(el, "systemName").text = "IB99"
-        with self.assertRaisesRegex(tb.TablesBuildError, "holds block IB99, but .* come from devices.csv"):
+        with self.assertRaisesRegex(tb.TablesBuildError, "holds block IB99, but .* come from the device master"):
             tb.read_template(self.copy(add_block))
 
         def add_mast(root):

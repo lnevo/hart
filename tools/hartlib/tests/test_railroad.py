@@ -570,12 +570,12 @@ class Invariants(Copy):
 
     def test_a_staging_mast_on_a_block_staging_has_not(self) -> None:
         self.edit("masts", "1,Mast 2L,Brick,1,Track Main West,", "1,Mast 2L,Brick,1,Track Nowhere,")
-        self.assertIn("masts.csv: Mast 2L: block Track Nowhere is no level 1 block row of devices.csv",
+        self.assertIn("masts.csv: Mast 2L: block Track Nowhere is no level 1 block row of the device master",
                       self.problems("masts"))
 
     def test_staging_blocks(self) -> None:
         self.edit("switches", "1,1,,OS Switch 1,OS Switch 3,Track Brick-Plane", "1,1,,OS Switch 1,OS Switch 3,Track Nowhere")
-        self.assertIn("Switch 1 (switches.csv): thrown leg Track Nowhere is no staging block row of devices.csv",
+        self.assertIn("Switch 1 (switches.csv): thrown leg Track Nowhere is no staging block row of the device master",
                       self.problems("staging-blocks"))
 
     def test_plan_overrides(self) -> None:
