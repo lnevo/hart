@@ -135,3 +135,21 @@ The two crossings and the CATS stop come from the orientation, which the plugin 
 | columns inside rows | 347 s, overlapping rows | `columns.place` runs for every row solve (`columns.cost` 120 s, `push` 3.3 million calls) |
 
 The earlier 43 minute run ended in a `schematic.columns.Unsettled` traceback, not a clean stop (F3, and acceptance 2).
+
+## Solver speed, set D (2026-11-23)
+
+Plugin PR [lnevo/model-railroad-skills#89](https://github.com/lnevo/model-railroad-skills/pull/89), from 1926199. The six set D plans that did not draw now draw. Most of the time had gone into whole-band work repeated for each switch: every trial flip of a switch's level leg re-ran the row search over the whole band, 8 starts per settle round, and each clearance rule probe spread the columns in full.
+
+- **Exact changes** (the 29 plans that drew give byte-identical `sheet.svg`; set A fingerprints match): column moves priced from the tracks they move, a feasibility-only probe for clearance rules, descents that stop one sweep after their last gain, row flips that cannot win skip their search, and a loop-parity test before colouring a turnback set. D38 went from 171 s to 41 s, D3 from 24 s to 3 s.
+- **Big bands** (100+ switches or 20+ loops; HART's bands have at most 14 loops): the 3 cheapest orientations only, the other row starts in the first round only, and a flipped switch re-solves only the rows next to it. Logged as a warning.
+
+| Plan | out7 (240 s cap) | Now (out17, 3 runs at a time) |
+|---|---|---|
+| D7 | timeout | 230 s, 1 fault |
+| D13 | timeout | 313 s, 5 faults |
+| D11 | timeout | 22 s, 22 faults (the exact search: 189 s, 20) |
+| D24 | timeout | 63 s, 13 faults (the exact search: 343 s, 14) |
+| D10 | no orientation | 265 s, 12 faults |
+| D17 | no orientation | 578 s, 24 faults |
+
+Left: D7, D10, D13 and D17 are over 240 s with three runs at a time; D17's time is in the column search and the local row searches (a 149-switch band, laid out twice for the label room round). D18 and D6 still time out. Outputs: `~/Documents/Layout/anyrail-samples/out11` to `out17` (out17 is the merged code).
