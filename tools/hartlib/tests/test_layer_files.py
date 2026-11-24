@@ -231,5 +231,91 @@ class PlanGenerated(unittest.TestCase):
                 self.assertEqual((folder / "plan_overrides.json").stat().st_mtime_ns, stamp)
 
 
+class PreferencesGenerated(unittest.TestCase):
+    """preferences_generated.json: merged under preferences.json by the plan_generated rule (hand values win)."""
+
+    def setUp(self) -> None:
+        self.data = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.data)
+        self.hand = {"_sections": True, "_note": "hand", "staging": {"title": "S", "capacity": 1},
+                     "main_upper": {"detail_sheets": {"Main level": ["1"]}}}
+        self.gen = {"_sections": True, "_note": "gen", "staging": {"detail_sheets": {"Barn": ["7", "9"]}}}
+        (self.data / "preferences.json").write_text(L.dumps(self.hand), encoding="utf-8")
+        (self.data / "preferences_generated.json").write_text(L.dumps(self.gen), encoding="utf-8")
+        (self.data / "plan_overrides.json").write_text(L.dumps({"_sections": True, "staging": {"a": 1}}),
+                                                       encoding="utf-8")
+
+    def test_the_view_is_the_hand_keys_then_the_generated_ones(self) -> None:
+        merged = L.merged(self.data, "preferences")
+        self.assertEqual(list(merged["staging"]), ["title", "capacity", "detail_sheets"])
+        self.assertEqual(merged["staging"]["detail_sheets"], {"Barn": ["7", "9"]})
+        self.assertEqual(merged["main_upper"], self.hand["main_upper"])
+        self.assertEqual(merged["_note"], "hand")
+        self.assertEqual(L.merged(self.data), L.read_file("plan_overrides", self.data))   # no plan_generated here
+
+    def test_a_hand_value_wins_as_in_plan_generated(self) -> None:
+        self.hand["staging"]["detail_sheets"] = {"Hand": ["1"]}
+        (self.data / "preferences.json").write_text(L.dumps(self.hand), encoding="utf-8")
+        self.assertEqual(L.merged(self.data, "preferences")["staging"]["detail_sheets"], {"Hand": ["1"]})
+
+    def test_a_generated_write_goes_to_its_own_file_and_never_the_hand_file(self) -> None:
+        before = (self.data / "preferences.json").read_bytes()
+        changed = L.write_generated({"staging": {"detail_sheets": {"Barn": ["7"]}}}, self.data, L.PREFS_GENERATED)
+        self.assertEqual([p.name for p in changed], ["preferences_generated.json"])
+        self.assertEqual((self.data / "preferences.json").read_bytes(), before)
+        self.assertEqual(L.read(L.PREFS_GENERATED, "staging", self.data), {"detail_sheets": {"Barn": ["7"]}})
+        self.assertEqual(L.write_generated({"staging": {"detail_sheets": {"Barn": ["7"]}}}, self.data,
+                                           L.PREFS_GENERATED), [])
+
+    def test_errors_name_the_file(self) -> None:
+        with self.assertRaisesRegex(L.LayerFileError, "written key by key"):
+            L.texts({(L.PREFS_GENERATED, "staging"): {}}, self.data)
+        with self.assertRaisesRegex(L.LayerFileError, "'preferences' is no generated layer"):
+            L.generated_texts({"staging": {}}, self.data, "preferences")
+        with self.assertRaisesRegex(L.LayerFileError, "'signals' has no generated layer"):
+            L.merged(self.data, "signals")
+        with self.assertRaisesRegex(L.LayerFileError, r"preferences_generated.json: no section 'main_upper'"):
+            L.generated_texts({"main_upper": {"x": 1}}, self.data, L.PREFS_GENERATED)
+        self.gen["staging"][L.NAME_MAIN] = [0]
+        (self.data / "preferences_generated.json").write_text(L.dumps(self.gen), encoding="utf-8")
+        with self.assertRaisesRegex(L.LayerFileError, r"preferences_generated.json\[staging\]: name_main belongs in "
+                                                      "plan_generated.json"):
+            L.merged(self.data, "preferences")
+        (self.data / "preferences_generated.json").write_text("[]", encoding="utf-8")
+        with self.assertRaisesRegex(L.LayerFileError, "preferences_generated.json: not a layer file"):
+            L.merged(self.data, "preferences")
+
+    def test_the_plugin_folder_holds_the_merged_preferences(self) -> None:
+        with tempfile.TemporaryDirectory() as cache, \
+                unittest.mock.patch.dict("os.environ", {"HART_CACHE_DIR": cache}):
+            folder = L.view(self.data)
+            self.assertNotEqual(folder, self.data.resolve())
+            self.assertFalse((folder / "preferences.json").is_symlink())
+            self.assertEqual(json.loads((folder / "preferences.json").read_text(encoding="utf-8")),
+                             L.merged(self.data, "preferences"))
+            self.assertTrue((folder / "plan_overrides.json").is_symlink())   # nothing generated for the plan here
+            self.assertFalse((folder / "preferences_generated.json").exists())
+            stamp = (folder / "preferences.json").stat().st_mtime_ns
+            self.assertEqual(L.view(self.data), folder)
+            self.assertEqual((folder / "preferences.json").stat().st_mtime_ns, stamp)
+            (self.data / "preferences_generated.json").unlink()                 # nothing generated: the folder itself
+            self.assertEqual(L.view(self.data), self.data.resolve())
+
+    def test_an_older_view_with_a_linked_preferences_file_gets_the_merged_one(self) -> None:
+        with tempfile.TemporaryDirectory() as cache, \
+                unittest.mock.patch.dict("os.environ", {"HART_CACHE_DIR": cache}):
+            folder = L.view(self.data)
+            (folder / "preferences.json").unlink()
+            (folder / "preferences.json").symlink_to(self.data / "preferences.json")
+            self.assertEqual(L.view(self.data), folder)
+            self.assertFalse((folder / "preferences.json").is_symlink())
+            self.assertIn("detail_sheets", json.loads((folder / "preferences.json").read_text())["staging"])
+
+    def test_the_repo_files_split_detail_sheets_out_of_the_hand_file(self) -> None:
+        self.assertNotIn("detail_sheets", L.read("preferences", "staging"))
+        self.assertIn("detail_sheets", L.read(L.PREFS_GENERATED, "staging"))
+        self.assertIn("detail_sheets", L.merged(kind="preferences")["staging"])
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -91,7 +91,7 @@ STEPS: dict[str, Step] = {
     "hands": Step((f"{DATA}/switches.csv",)),
     # plan_generated.json is an output of staging-sets, main-route and device-map (each replaces only its own keys, so it
     # reads the file it writes to carry the others' keys over) and an input of every step that draws from the plan.
-    "staging-sets": Step((f"{SCH}/plan_generated.json", f"{SCH}/preferences.json")),
+    "staging-sets": Step((f"{SCH}/plan_generated.json", f"{SCH}/preferences_generated.json")),
     "main-route": Step((f"{SCH}/plan_generated.json",)),
     "device-map": Step((f"{SCH}/plan_generated.json", f"{DATA}/{DEVICES_FILE}")),
     "masts": Step((f"{SCH}/masts.csv", f"{DATA}/{DEVICES_FILE}")),

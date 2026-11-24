@@ -142,6 +142,108 @@ class CheckShTables(unittest.TestCase):
             self.assertIn("no such file", self.resolve("nope.xml", d, d).stdout)
 
 
+class StaticPanelChecks(unittest.TestCase):
+    """The static job checks the panel outputs through build_panels.sh --check, one list for check.sh and make panels,
+    and its run() puts that bash run into the job's trace as a program the hook cannot see."""
+
+    def static_runs(self) -> list[str]:
+        text = CHECK.read_text(encoding="utf-8")
+        body = text[text.index("\nstatic_checks() {\n"):text.index("\nlater static static_checks\n")]
+        return [line for line in body.splitlines() if line.startswith("run ")]
+
+    def test_static_checks_the_panel_outputs_once_through_their_pipeline(self) -> None:
+        runs = self.static_runs()
+        self.assertTrue(any(r.startswith("run panels bash tools/schematic/build_panels.sh --check") for r in runs))
+        steps = re.findall(r"^(?:step|guard) [a-z-]+ python3 (\S+\.py)", (ROOT / "tools/schematic/build_panels.sh")
+                           .read_text(encoding="utf-8"), re.M)
+        self.assertGreaterEqual(len(steps), 16, "build_panels.sh's step lines were not found")
+        for script in steps:
+            for line in runs:
+                self.assertNotIn(f" {script}", line, "a panel step checked twice: build_panels.sh --check runs it")
+
+    @staticmethod
+    def caller_block() -> str:
+        """check.sh's lines that keep the caller's PYTHONPATH."""
+        text = CHECK.read_text(encoding="utf-8")
+        start = text.index("CALLER_PYTHONPATH=()\n")
+        return text[start:text.index("\n", text.index('if [[ -n "${PYTHONPATH+set}" ]]', start)) + 1]
+
+    def run_function(self, log: Path, *calls: str, **extra_env: str) -> subprocess.CompletedProcess:
+        """check.sh's run() as the static job has it, with `log` as the job's trace, then `calls`; prints static_rc."""
+        text = CHECK.read_text(encoding="utf-8")
+        start = text.index("\nrun() {\n") + 1
+        body = text[start:text.index("\n}\n", start) + 3]
+        script = f'ROOT="{ROOT}"\n{self.caller_block()}static_rc=0\n{body}' + "\n".join(calls) + '\necho "static_rc=$static_rc"\n'
+        env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
+        env.update(HART_TRACE_LOG=str(log), **extra_env)
+        return subprocess.run(["bash", "-c", script], cwd=ROOT, env=env, capture_output=True, text=True, timeout=60)
+
+    def test_a_bash_check_is_an_untraced_program_and_a_python_one_an_expected_process(self) -> None:
+        sys.path.insert(0, str(ROOT / "tools/audit"))
+        import traced
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / "trace.log"
+            done = self.run_function(log, "run sh-check bash -c true", "run py-check python3 -c pass")
+            self.assertIn("static_rc=0", done.stdout, done.stderr)
+            t = traced.parse(log)
+            self.assertEqual(1, t.expected_roots)
+            programs, gits = traced.untraced(t, str(ROOT))
+            self.assertEqual((["bash"], []), (programs, gits))
+
+    def test_a_failing_bash_check_fails_the_job(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            done = self.run_function(Path(d) / "trace.log", "run bad bash -c 'exit 3'")
+            self.assertIn("static_rc=1", done.stdout)
+
+    def test_another_program_is_refused_and_not_run(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            marker = Path(d) / "ran"
+            done = self.run_function(Path(d) / "trace.log", f"run other sh -c 'touch {marker}'")
+            self.assertIn("static_rc=1", done.stdout)
+            self.assertIn("other: check.sh's run() takes python3, env VAR=... python3 or bash, not sh; not run", done.stdout)
+            self.assertFalse(marker.exists())
+            self.assertFalse((Path(d) / "trace.log").exists(), "a refused check wrote to the trace")
+
+
+    def test_bash_runs_with_the_callers_pythonpath_and_outside_the_jobs_trace(self) -> None:
+        """build_panels.sh's stamps key on PYTHONPATH: with the job's hook on it, check.sh and make panels would
+        overwrite each other's stamps."""
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / "trace.log"
+            # the job puts its hook on PYTHONPATH after check.sh read the caller's
+            done = self.run_function(log, 'PYTHONPATH="/hook:$PYTHONPATH"; export HART_TRACE_SPAWN=t CHECK_AUDIT_LOG=a',
+                                     "run see bash -c 'echo \"PP=${PYTHONPATH-unset} LOG=${HART_TRACE_LOG-unset} "
+                                     "SPAWN=${HART_TRACE_SPAWN-unset} AUDIT=${CHECK_AUDIT_LOG-unset}\"'",
+                                     PYTHONPATH="/caller")
+            self.assertIn("PP=/caller LOG=unset SPAWN=unset AUDIT=unset", done.stdout, done.stderr)
+            env = {k: v for k, v in os.environ.items() if k != "PYTHONPATH"}
+            done = subprocess.run(["bash", "-c", self.caller_block() + 'echo "${CALLER_PYTHONPATH[*]}"'], env=env,
+                                  capture_output=True, text=True, timeout=30)
+            self.assertEqual("-u PYTHONPATH\n", done.stdout, "a caller with no PYTHONPATH: unset, not empty")
+
+    def test_env_is_taken_only_for_a_python_check(self) -> None:
+        sys.path.insert(0, str(ROOT / "tools/audit"))
+        import traced
+        with tempfile.TemporaryDirectory() as d:
+            log, marker = Path(d) / "trace.log", Path(d) / "ran"
+            done = self.run_function(log, "run py env FOO=1 python3 -c pass",
+                                     f"run sh env FOO=1 sh -c 'touch {marker}'")
+            self.assertIn("sh: check.sh's run() takes python3, env VAR=... python3 or bash, not env sh; not run",
+                          done.stdout)
+            self.assertIn("static_rc=1", done.stdout)
+            self.assertFalse(marker.exists())
+            self.assertEqual(1, traced.parse(log).expected_roots)
+
+    def test_a_run_that_skips_no_job_skips_no_panel_step(self) -> None:
+        text = CHECK.read_text(encoding="utf-8")
+        body = text[text.index("\nstatic_checks() {\n"):text.index("\nlater static static_checks\n")]
+        self.assertIn("(( STAMPS )) || panels_full=(--full)", body)
+        self.assertLess(text.index("if [[ -n \"${CI:-}\" || \"${FULL:-}\" == 1 || -n \"${CHECK_AUDIT:-}\" ]]; then STAMPS=0; fi"),
+                        text.index("\nstatic_checks() {\n"))
+        self.assertIn('run panels bash tools/schematic/build_panels.sh --check ${panels_full[@]+"${panels_full[@]}"}',
+                      self.static_runs())
+
+
 class LayoutIndexSource(unittest.TestCase):
     def test_the_index_names_the_checkout_file_when_hart_tables_points_elsewhere(self) -> None:
         with tempfile.TemporaryDirectory() as d:

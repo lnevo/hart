@@ -8,7 +8,7 @@
 #
 #   hands                 the plan rows' hands in switches.csv, from the plan graph
 #   staging-sets          staging's control points, stations and detail sheets in the staging sections of
-#                         plan_overrides.json and preferences.json, from stations.csv (the desk areas by its
+#                         plan_generated.json and preferences_generated.json, from stations.csv (the desk areas by its
 #                         desk_code column) and sheets.csv (the layer files hold a section per sheet: hartlib.layer_files)
 #   main-route            main_route in plan_overrides.json's main_upper section, from main_lines.csv (main_upper
 #                         rows) and the plan graph; staging's main flags and milepost_route, from its staging rows

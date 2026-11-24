@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23",
+ "updated": "2026-11-24",
  "domains": [
   {
    "id": "layout",
@@ -1346,7 +1346,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences.json.",
+   "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences_generated.json.",
    "path": "tools/schematic/build_staging_sets.py"
   },
   {
@@ -3542,6 +3542,15 @@
    "path": "jmri/layouts/hart/data/schematic/plan_generated.json"
   },
   {
+   "id": "jmri/layouts/hart/data/schematic/preferences_generated.json",
+   "label": "preferences_generated.json",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The generated half of preferences: staging's detail_sheets, from sheets.csv. hartlib.layer_files merges it under preferences.json (hand values win).",
+   "path": "jmri/layouts/hart/data/schematic/preferences_generated.json"
+  },
+  {
    "id": "tools/hosts/panel_window_sizes.py",
    "label": "panel_window_sizes.py",
    "kind": "generator",
@@ -4990,7 +4999,7 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/hosts/sync_hart_package.sh",
-   "label": "ships; build_tables --check gate"
+   "label": "ships; build_tables --check gate unless CI's full pass covers the commit"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
@@ -6102,7 +6111,7 @@
   },
   {
    "from": "tools/schematic/build_staging_sets.py",
-   "to": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "jmri/layouts/hart/data/schematic/preferences_generated.json",
    "label": "detail_sheets"
   },
   {
@@ -6933,9 +6942,9 @@
    "label": "placed items"
   },
   {
-   "from": "tools/schematic/panel_items.py",
+   "from": "tools/schematic/build_panels.sh",
    "to": "tools/check.sh",
-   "label": "check panel-status",
+   "label": "check panels (every step --check)",
    "side": "check"
   },
   {
@@ -7458,6 +7467,11 @@
   {
    "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
    "to": "tools/schematic/build_signals.py",
+   "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences_generated.json",
+   "to": "tools/schematic/publish_draft.py",
    "label": "merged view (layer_files.view)"
   },
   {
