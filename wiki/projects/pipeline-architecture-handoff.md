@@ -1,6 +1,6 @@
 # Pipeline architecture review: hand-off (2026-11-24)
 
-Status: active
+Status: done (2026-11-24)
 
 The 2026-11-24 architecture review of the panel pipeline (`make panels`, `check.sh`, CI, the deploy gate) found no runaway recursion: a second `make panels` on main d6944380 skipped every step. It found one manual loop that costs a round trip on every layout change, steps run outside or out of order, and the same check lists kept in four places. Six items follow, each its own PR, in this order.
 
@@ -12,6 +12,17 @@ The 2026-11-24 architecture review of the panel pipeline (`make panels`, `check.
 | 4 | `detail_sheets` moves out of the hand-edited `preferences.json` | S | none needed, if the plugin can read it from a generated file (check first) |
 | 5 | The deploy gate trusts CI's pass of the `origin/main` commit it ships | M | **owner**, before building |
 | 6 | Profile the cold Layout Editor build | L | none; do it before the next plugin update |
+
+## Outcome (2026-11-24)
+
+| # | PR |
+|---|---|
+| 1 | #1066: `check.sh` runs `build_panels.sh --check` once; `panel-status` went with it |
+| 2 | #1068: `panel-items` step; `plan-lengths` after `device-map` |
+| 3 | #1067: owner chose the automatic run on the Mac; stale is exit 4, a lock in /tmp allows one discovery at a time, and a refused discovery restores `tables.xml` |
+| 4 | #1069: `preferences_generated.json` |
+| 5 | #1070: owner chose to trust CI; `tools/hosts/deploy/ci_pass.py` decides, and any doubt runs G4 |
+| 6 | profiled, cuts proposed in [`efficiency-plan.md`](../../docs/pipeline-map/efficiency-plan.md) ("Cold Layout Editor build profiled"); they are plugin changes, not built yet |
 
 ## How to run this
 

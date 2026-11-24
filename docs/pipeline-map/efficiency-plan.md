@@ -73,6 +73,26 @@ So the solve costs the same either way (38 s); the preferences' Layout Editor pa
 
 **One railroad, one band (owner, 2026-11-23):** the raw run above still drew three bands, because the cut into levels is in layer 1 (`levels`, `helix`) and staging is its own input. As an experiment, staging's and main's plan graphs were joined into one, the two helix cuts spliced (39 to 131A as Helix Outer, 37 to 131B as Helix Inner), and the plugin given one input with the switch numbers, track names and signals but no `levels`, `helix` or helix ends. The plugin's facing search allows at most 5 turnbacks on a plan this big and found none; with the cap raised to 7 from a wrapper (plugin files unchanged) it found an orientation in 37 s with 6 turnbacks: staging 23-1 and 39-37, the main's 107 loop, upper 241-227 and the two runs between 211 and 217. The row search then ran 43 minutes and the column placement stopped (`columns: constraints do not settle`), so no drawing came out; a sketch of the facing, columns and sweep order was shown instead. The plugin does not yet lay out the whole railroad as one band.
 
+## Cold Layout Editor build profiled (2026-11-24)
+
+`python3 -m cProfile` on `check_sml_current.py` (it builds `tables.xml` in memory, the Layout Editor panel first) with `SCHEMATIC_CACHE=` empty, plugin 19261998, main 33abbf05: 957 s under the profiler (the 431 s run above is the same work without it). Shares of the run:
+
+| Pass | Share | Where |
+|---|---|---|
+| Label placement | 71% | `le_labels.place`: 130,000 `take` calls try about 180 spots each, so 23 million `fault` checks; inside them about 190 million segment tests (`within`, `touches`) and 250 million grid lookups (`Grid.near`) |
+| The sheet solve | 24% | `sheet.solve` (`layout.settle`, `rows.optimise`) |
+| The device map's solve | 16% | `build_device_map.solve` through `le_names.placeholder_names`; overlaps the row above |
+
+`settle_gaps` (`le.py`) draws the panel twice, the first time at the default gaps between bands and again at the gaps that drawing asks for. Each drawing runs the whole label placement, so half of the 71% is the first drawing.
+
+Proposed cuts, each one byte-identical because the drawing that is kept does not change. They are plugin changes (`external/model-railroad-skills`) and are not built yet:
+
+1. **Start `settle_gaps` from the last settled gaps.** Keep `P.gaps` with the panel's inputs and try them first. The loop already accepts a guess only when the drawing asks for exactly those gaps, so a right guess draws once and a wrong one costs what it does now. Saves about half of the label placement.
+2. **Remember the fixed part of `fault`.** Track lines, turnout circles, the panel edge and `reads_other` do not change while labels are placed; only the placed boxes do. Cache that verdict per (item, spot, on) for the whole placement, and check the placed boxes live as now. The same spots come up again across the 797 placement attempts, so this removes most of the 190 million segment tests.
+3. **One solve per sheet in a run.** With the cache off, the device map solves the same sheets a second time. A real cold run has the cache on but empty, so its memo may already share them: check before building anything.
+
+Do 1 and 2 before the next plugin pin bump, which empties the cache.
+
 ## Measure a real edit (replaced by the full rebuild above)
 
 
