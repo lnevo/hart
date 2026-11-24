@@ -299,7 +299,8 @@ run desks python3 cats/scripts/validate_cats_panel.py
 later static static_checks
 # The longest jobs start first, so none of them waits behind the quick ones: the Layout Editor job, unit-jmri, then
 # the per-file guard and host jobs, with the files in SLOW of each folder (each 10-20 s) ahead of the rest.
-SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_deploy_gates.py test_redeploy_commit.py "
+SLOW=" test_worktrees.py test_panelpro_wrappers.py test_deploy_stage.py test_deploy_gates.py test_deploy_preflight.py "
+SLOW+="test_redeploy_commit.py "
 SLOW+="test_main_panel_names_copies.py test_polish_hart_layout_editor.py "
 # The Layout Editor test files run as one job in one process: each builds the three-level candidate through
 # test_build_layout_le.built(), cached per process, so three jobs solved the sheet three times side by side with an
@@ -329,7 +330,7 @@ else
 fi
 # The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
 # both run one job per file, found as discover finds them, the files in SLOW first. A file in
-# BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
+# BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job; the deploy tests).
 for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests tools/schematic/tests; do
   if [[ -n "$(find "$d" -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
     echo "--- $d: tests in a subfolder; give them their own job in check.sh"
@@ -338,6 +339,10 @@ for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests tools/schematic/tests
 done
 BY_CLASS=" test_worktrees.py "
 BY_CLASS+=" test_panel_stamps.py "      # in tools/schematic/tests
+# in tools/hosts/tests: the deploy scripts run in scratch repos; one job per file took 456 s and 274 s, the longest
+# jobs of a full local run, and 94 s at most per class side by side (2026-11-24). CI keeps one job per file, as for
+# unit-jmri: its four cores are already full, and these tests wait on subprocess timeouts.
+[[ -n "${CI:-}" ]] || BY_CLASS+=" test_deploy_gates.py test_deploy_preflight.py "
 # A class in BY_METHOD runs one job per test (test_panel_stamps.ShellTest: eight runs of build_panels.sh in scratch repos).
 BY_METHOD=" test_panel_stamps.ShellTest "
 for t in $(slow_first tools/hosts/tests/test*.py tools/audit/tests/test*.py tools/schematic/tests/test*.py); do
