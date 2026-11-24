@@ -17,7 +17,8 @@ MAP, in the order it runs (entry point = tools/hosts/sync_hart_package.sh):
     G2           the Pi's unpulled check (Operations Pro files, Store); pi_stop starts PanelPro again; only with
                  --pi; HART_DISCARD_PI_CHANGES=1 skips it. --check-only stops after it.
     G3           audit_panel_contracts.py --strict                               needs: schematic-maps plugin
-    G4           build_tables.py --check (not on a redeploy); exit 3/2/other
+    G4           build_tables.py --check (not on a redeploy, nor on a real host deploy that CI's full pass
+                 covers: ci_pass.py); exit 3/2/other
     G5           disable_digicon_sml_in_tables.py --check
     G6           the Mac's own Store check ("tables.xml changed since the last deploy (a PanelPro Store)"), for a run
                  that installs on the Mac (was inside the Mac install, after it had begun)
@@ -280,6 +281,50 @@ class EveryGateStopsBeforeAnythingShips(GateHarness):
         done = self.deploy("--pi", "--win")
         self.assertIn("STOP: cannot reach Windows", done.stderr)
         self.assertFalse((self.tmp / "tables_check.log").exists())
+
+
+class G4TrustsCiPass(GateHarness):
+    """G4 (build_tables.py --check) is skipped only when ci_pass.py says CI's full check.sh pass covers the commit
+    shipped, and only for a real deploy to a host; G4b and G5 run either way, and the gate says which way G4 went.
+    ci_pass.py's own decision is tested in test_ci_pass.py; here the python3 stand-in answers for it."""
+
+    def test_a_ci_pass_skips_the_regeneration_and_g5_still_runs(self) -> None:
+        for marker in ("ci_pass_skip", "tables_stale", "digicon_enabled"):
+            (self.tmp / marker).touch()
+        done = self.deploy("--pi", "--win")
+        self.assertIn("skipped G4: CI full pass for", done.stdout)
+        self.assertFalse((self.tmp / "tables_check.log").exists(), "G4 regenerated tables.xml after a CI pass")
+        self.assertIn("STOP: a Digicon mast's Signal Mast Logic is stored enabled", done.stderr)
+        self.assert_nothing_shipped(done)
+        self.assertIn("--commit", (self.tmp / "ci_pass.log").read_text())
+
+    def test_no_ci_pass_runs_g4_and_says_why(self) -> None:
+        """The real ci_pass.py against the gh stand-in, which fails: G4 runs and stops the stale file."""
+        (self.tmp / "tables_stale").touch()
+        done = self.deploy("--pi", "--win")
+        self.assertRegex(done.stdout, r"ran G4: (CI stamps unreadable|no CI pass) for [0-9a-f]{12}: ")
+        self.assertIn("STOP: tables.xml is not what tools/schematic/build_tables.py writes", done.stderr)
+        self.assertNotIn("Traceback", done.stdout + done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_a_crashed_check_runs_g4(self) -> None:
+        for marker in ("ci_pass_crash", "tables_stale"):
+            (self.tmp / marker).touch()
+        done = self.deploy("--pi", "--win")
+        self.assertIn("ran G4: the CI pass check failed (exit 7)", done.stdout)
+        self.assertIn("STOP: tables.xml is not what", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_dry_staging_and_mac_only_runs_do_not_ask_ci(self) -> None:
+        for marker in ("ci_pass_skip", "tables_stale"):
+            (self.tmp / marker).touch()
+        for flags in (("--pi", "--win", "--dry-run"), ("--pi", "--win", "--stage-only", str(self.tmp / "stage")), ()):
+            with self.subTest(flags=flags):
+                done = self.deploy(*flags)
+                self.assertIn("ran G4: a dry run, a staging run or the Mac alone does not ask CI", done.stdout)
+                self.assertIn("STOP: tables.xml is not what", done.stderr)
+                self.assertFalse((self.tmp / "ci_pass.log").exists())
+                self.assertFalse((self.tmp / "gh.log").exists())
 
 
 class OnlyMergedCommitsShip(GateHarness):

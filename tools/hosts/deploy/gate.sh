@@ -16,6 +16,8 @@
 #   G1  one ssh no-op to each host named
 #   G2  the Pi's unpulled files (Operations Pro files, a PanelPro Store)
 #   G3  the panel audit          G4  tables.xml is what the generator writes     G5  the Digicon mast check
+#       (G4 is skipped for a real deploy to a host when CI's full check.sh pass covers the commit shipped:
+#       ci_pass.py; it says which way it went)
 #   G6  the Mac's own Store check
 #   G7  a trial staging into a folder that is thrown away (a real deploy to a host only)
 #   G8  Windows can take the package: scp and tar here, a temp folder and tar there (ssh read-only)
@@ -97,6 +99,23 @@ if [[ -n "$TABLES" && -f "$PANEL_AUDIT" ]]; then
   python3 "$PANEL_AUDIT" --strict
 fi
 
+# g4_covered_by_ci: 0 when CI's full check.sh pass covers the commit shipped (ci_pass.py), so G4's regeneration is
+# skipped; 1 otherwise. It prints which way it went. Only a real deploy to the Pi or Windows asks (the one run that
+# held its commit to origin/main); a dry run, --stage-only and the Mac alone run G4 and need no network.
+g4_covered_by_ci() {
+  if [[ ( "$DO_PI" -eq 0 && "$DO_WIN" -eq 0 ) || "$DRY_RUN" -eq 1 ]]; then
+    echo "ran G4: a dry run, a staging run or the Mac alone does not ask CI"
+    return 1
+  fi
+  local verdict ci_rc=0
+  verdict="$(python3 "$DEPLOY_STEPS_DIR/ci_pass.py" --commit "$DEPLOY_COMMIT")" || ci_rc=$?
+  case "$ci_rc" in
+    0) echo "$verdict"; return 0 ;;
+    1) echo "$verdict"; return 1 ;;
+    *) echo "ran G4: the CI pass check failed (exit $ci_rc)${verdict:+: $verdict}"; return 1 ;;
+  esac
+}
+
 # ---- G4: tables.xml is generated (ADR-029, R9c): ship it only when it is what build_tables.py writes from its
 # sources, and with the Digicon masts' Signal Mast Logic stored disabled. A redeploy of a commit before R9c has no
 # generator.
@@ -107,8 +126,13 @@ if [[ -n "$TABLES" && -f "$TABLES_BUILD" && -n "${HART_REDEPLOY_FROM:-}" ]]; the
   # was checked when it was committed. The Digicon check below still runs.
   echo "Redeploy of an older commit: not regenerating tables.xml to check it (it was checked when committed); the Digicon check still runs."
 elif [[ -n "$TABLES" && -f "$TABLES_BUILD" ]]; then
+  # A real deploy to a host ships origin/main itself (G0b), and CI ran the full check.sh, the same
+  # build_tables.py --check included, on that commit: ci_pass.py reads that record and the regeneration is skipped
+  # when it covers the exact commit and clean checkout shipped. Any doubt runs G4 as before.
   tables_rc=0
-  SCHEMATIC_REQUIRED=1 python3 "$TABLES_BUILD" --check || tables_rc=$?
+  if ! g4_covered_by_ci; then
+    SCHEMATIC_REQUIRED=1 python3 "$TABLES_BUILD" --check || tables_rc=$?
+  fi
   if (( tables_rc == 3 )); then
     echo "STOP: the tables check needs the schematic-maps plugin at its pin: run git submodule update --init external/model-railroad-skills, or set SCHEMATIC_PLUGIN. Nothing was sent to any host." >&2
     exit 1

@@ -30,7 +30,9 @@ def python_stub(tmp: Path, digicon_dry: bool = False) -> None:
     which regenerates the whole panel and is tools/check.sh's own job): it logs the call in tables_check.log and
     passes, or fails as a stale file does while `tmp`/tables_stale exists (as a missing plugin does, exit 3, while
     `tmp`/tables_no_plugin exists, and a source error, exit 2, while `tmp`/tables_source_error exists); the Digicon check fails while
-    `tmp`/digicon_enabled exists. With `digicon_dry` (keep_repo_tables) a
+    `tmp`/digicon_enabled exists. The gate's CI pass check (ci_pass.py) is logged in ci_pass.log and says CI covers
+    the commit while `tmp`/ci_pass_skip exists, crashes (exit 7) while `tmp`/ci_pass_crash exists, and otherwise
+    runs for real against the gh stand-in (fake_bin), which fails. With `digicon_dry` (keep_repo_tables) a
     writing call of the Digicon SML script runs as a dry run and is logged in gates.log. Every other python3 call
     goes to the real one unchanged."""
     real = shutil.which("python3")
@@ -45,6 +47,17 @@ for a in "$@"; do
 {dry}  if [[ "$a" == */disable_digicon_sml_in_tables.py && -f "{tmp}/digicon_enabled" ]]; then
     echo "ERROR: tables.xml has 1 Digicon SML destination(s) Enabled=yes" >&2
     exit 1
+  fi
+  if [[ "$a" == */tools/hosts/deploy/ci_pass.py ]]; then
+    echo "python3 $*" >>"{tmp}/ci_pass.log"
+    if [[ -f "{tmp}/ci_pass_skip" ]]; then
+      echo "skipped G4: CI full pass for 0123456789ab (stand-in)"
+      exit 0
+    fi
+    if [[ -f "{tmp}/ci_pass_crash" ]]; then
+      echo "Traceback (stand-in)" >&2
+      exit 7
+    fi
   fi
   if [[ "$a" == */tools/schematic/build_tables.py ]]; then
     echo "python3 $*" >>"{tmp}/tables_check.log"
@@ -69,14 +82,19 @@ exec "{real}" "$@"
 
 
 def fake_bin(tmp: Path) -> Path:
-    """ssh and scp that record any call and fail, so a stage that reached for the network fails; and the python3
-    stand-in for the tables freshness check (python_stub)."""
+    """ssh and scp that record any call and fail, so a stage that reached for the network fails; a gh that logs to
+    gh.log and fails, so the gate's CI pass check (tools/hosts/deploy/ci_pass.py) never reaches GitHub and G4 runs;
+    and the python3 stand-in for the tables freshness check (python_stub)."""
     bin_dir = tmp / "bin"
     bin_dir.mkdir()
     for name in ("ssh", "scp"):
         tool = bin_dir / name
         tool.write_text(f'#!/bin/sh\necho "{name} $*" >>"{tmp}/network.log"\nexit 99\n', encoding="utf-8")
         tool.chmod(0o755)
+    gh = bin_dir / "gh"
+    gh.write_text(f'#!/bin/sh\necho "gh $*" >>"{tmp}/gh.log"\necho "stand-in: no GitHub in the tests" >&2\nexit 4\n',
+                  encoding="utf-8")
+    gh.chmod(0o755)
     python_stub(tmp)
     return bin_dir
 
