@@ -24,7 +24,8 @@ def retained_topics(port: int, wait: float = 1.5) -> set[str]:
     c = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
     c.on_message = lambda _c, _u, m: seen.add(m.topic) if m.retain and m.payload else None
     c.connect(HOST, port)
-    c.subscribe("#")
+    # EMQX does not send retained messages to a bare "#"; track/# covers ours.
+    c.subscribe([("#", 0), ("track/#", 0)])
     c.loop_start()
     time.sleep(wait)
     c.loop_stop()

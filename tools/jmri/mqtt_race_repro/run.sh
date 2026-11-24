@@ -9,7 +9,10 @@
 #   TAG     results folder name
 # env: WORK (default: a temp dir), JFR=1 records every thrown exception,
 #      JMRI_DIR (default /Applications/JMRI), PORT (default 18830, never 1883),
-#      PY (a python with paho-mqtt; default the repo .venv)
+#      PY (a python with paho-mqtt; default the repo .venv),
+#      BROKER=external uses a broker already listening on PORT (Docker, another
+#      product) instead of starting Mosquitto,
+#      LAUNCHER (default JmriFaceless.command, or JmriFaceless on Linux)
 # See docs/jmri/MQTT_STARTUP_RACE.md.
 set -u
 N=$1; RET=$2; RUNS=$3; TAG=$4
@@ -55,7 +58,7 @@ python3 "$HERE/gen_tables.py" "$N" > "$WORK/userfiles/tables.xml"
 
 # One broker per WORK and PORT; its config path carries the port.
 CONF="$WORK/broker/mosquitto-$PORT.conf"
-if ! pgrep -f "mosquitto -c $CONF" >/dev/null; then
+if [ "${BROKER:-}" != external ] && ! pgrep -f "mosquitto -c $CONF" >/dev/null; then
   printf 'listener %s 127.0.0.1\nallow_anonymous true\npersistence false\n' "$PORT" > "$CONF"
   mosquitto -c "$CONF" -d
   sleep 1
@@ -77,11 +80,12 @@ EOF
 fi
 
 cd "$JMRI_DIR" || exit 1
+LAUNCHER=${LAUNCHER:-$([ -x ./JmriFaceless.command ] && echo JmriFaceless.command || echo JmriFaceless)}
 for r in $(seq 1 "$RUNS"); do
   JFROPT=""
   [ -n "${JFR:-}" ] && JFROPT="-J-XX:StartFlightRecording=filename=$WORK/results/$TAG/rec$r.jfr,settings=$WORK/exc.jfc,dumponexit=true"
   rm -f "$WORK/settings/log/session.log"
-  ./JmriFaceless.command $JFROPT --settingsdir="$WORK/settings" --profile=$PROFILE > "$WORK/results/$TAG/out$r.txt" 2>&1 &
+  ./$LAUNCHER $JFROPT --settingsdir="$WORK/settings" --profile=$PROFILE > "$WORK/results/$TAG/out$r.txt" 2>&1 &
   for _ in $(seq 1 60); do grep -q "Loading file" "$WORK/settings/log/session.log" 2>/dev/null && break; sleep 1; done
   sleep 14
   pkill -f "jmri.prefsdir=$WORK/settings"
@@ -97,4 +101,4 @@ for r in $(seq 1 "$RUNS"); do
   fi
   echo "$TAG run $r: lost=$(grep -c 'Lost MQTT broker connection' "$L") CME=$(grep -c ConcurrentModificationException "$L") cantsub=$(grep -c "Can't subscribe" "$L") reconnect=$(grep -c 'Succeeded to reconnect' "$L")"
 done
-echo "results in $WORK/results/$TAG; stop the broker with: pkill -f 'mosquitto -c $CONF'"
+echo "results in $WORK/results/$TAG; stop a Mosquitto this script started with: pkill -f 'mosquitto -c $CONF'"
