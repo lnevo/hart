@@ -149,7 +149,7 @@ def check(root) -> None:
             if r["level"] in tb.GENERATED_LEVELS and r["assignment"] != "none"}
     lost = sorted(want - names)
     if lost:
-        raise tb.TablesBuildError(f"staging beans of devices.csv missing from the output: {', '.join(lost[:8])}")
+        raise tb.TablesBuildError(f"staging beans of the device master missing from the output: {', '.join(lost[:8])}")
     still = tb.enabled_digicon(root, tb.digicon_masts(root))
     if still:
         raise tb.TablesBuildError(f"Digicon destinations still enabled: {still[:4]}")

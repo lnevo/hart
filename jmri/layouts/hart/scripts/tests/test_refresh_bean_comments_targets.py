@@ -57,7 +57,7 @@ class StaleHeadCommentsTest(unittest.TestCase):
         head["wiring"] = "Node: 4 Signal: 9"
         devices.write_one_file(rows, self.files)
         self.assertEqual(refresh_bean_comments.stale_head_comments(self.files),
-                         [f"Head 6LB: wiring.csv gives {want!r}, devices.csv has 'Node: 4 Signal: 9'"])
+                         [f"Head 6LB: wiring.csv gives {want!r}, the device master has 'Node: 4 Signal: 9'"])
 
 
 if __name__ == "__main__":

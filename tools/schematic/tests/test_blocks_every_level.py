@@ -1,4 +1,4 @@
-"""The block layer of every level, pinned (wiki/projects/level-unification-handoff.md, step 5). Two views:
+"""The block layer of every level, pinned (archive/wiki/projects/level-unification-handoff.md, step 5). Two views:
 
 - the committed block and occupancy rows of devices.csv, read as plain CSV: staging's row by row (name, role, control
   point, trial name; its parts: name, part_of, trial name; occupancy: blocks and detector), and every level's other

@@ -168,7 +168,7 @@ def merge(text: str, new: list[dict]) -> tuple[str, list[dict], list[dict]]:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--cp", required=True, help='the control point, as devices.csv names it ("CP 107")')
+    ap.add_argument("--cp", required=True, help='the control point, as the device master names it ("CP 107")')
     ap.add_argument("--dry-run", action="store_true", help="print the rows; write nothing")
     args = ap.parse_args(argv)
     try:

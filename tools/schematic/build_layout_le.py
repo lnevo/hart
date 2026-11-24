@@ -126,7 +126,7 @@ RETIRED_TRIAL = ("the viewing trials (tables_layout.xml, tables_layout_staging.x
 PARKED = parked.PARKED
 
 
-BASE_NAME = "the generated base (data/tables_template.xml and devices.csv)"
+BASE_NAME = "the generated base (data/tables_template.xml and the device master)"
 
 
 def base_tables() -> bytes:

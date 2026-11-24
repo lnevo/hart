@@ -692,7 +692,7 @@ def main() -> int:
     try:
         layout = load_layout(levels=False)
     except devices.DevicesError as exc:      # a bad row anywhere in the master stops the load, naming file, line and row
-        raise SystemExit(f"lcos_mqtt_mimic.py: devices.csv cannot be used: {exc}") from None
+        raise SystemExit(f"lcos_mqtt_mimic.py: the device master cannot be used: {exc}") from None
     bus = Bus(host)
     bus.start()
     html = HTML.read_bytes()

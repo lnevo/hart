@@ -71,7 +71,7 @@ class LcosMimicNamingTest(unittest.TestCase):
 
 
 class LcosMimicNameMapTest(unittest.TestCase):
-    """load_cps reads staging's rows of devices.csv (hartlib.devices.load), cp per user name."""
+    """load_cps reads staging's rows of the device master (hartlib.devices.load), cp per user name."""
 
     @classmethod
     def setUpClass(cls) -> None:
@@ -107,7 +107,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
 
 
     def test_the_kinds_come_from_devices_csv_and_an_unlisted_bean_is_named(self) -> None:
-        """A sensor or turnout's kind is its devices.csv row's (hand-off row 8). A device not on the layout yet (a
+        """A sensor or turnout's kind is its device master row's (hand-off row 8). A device not on the layout yet (a
         level-less row) is no detector and stops nothing; a tables.xml bean with no row is left out with a warning
         naming it (a Store not split yet can hold one)."""
         import contextlib
@@ -159,7 +159,7 @@ class LcosMimicNameMapTest(unittest.TestCase):
                 mock.patch.object(sys, "argv", ["lcos_mqtt_mimic.py"]), \
                 self.assertRaises(SystemExit) as stop:
             self.m.main()
-        self.assertEqual(stop.exception.code, f"lcos_mqtt_mimic.py: devices.csv cannot be used: {err}")
+        self.assertEqual(stop.exception.code, f"lcos_mqtt_mimic.py: the device master cannot be used: {err}")
 
 
 if __name__ == "__main__":

@@ -238,9 +238,9 @@ def audit_masts(root: ET.Element, staging: list[railroad_facts.Mast], audit: Aud
     virtuals = {m.mast for m in staging if m.system_name.startswith("IF$vsm:")}     # masts.csv's own word
     in_devices = dispatcher_virtuals(expected, devices_csv)
     if in_devices != virtuals:
-        audit.error(f"virtual staging masts differ between {MASTS.name} and devices.csv: only in "
+        audit.error(f"virtual staging masts differ between {MASTS.name} and the device master: only in "
                     f"{MASTS.name}={sorted(virtuals - in_devices) or 'none'}, only in "
-                    f"devices.csv={sorted(in_devices - virtuals) or 'none'}")
+                    f"the device master={sorted(in_devices - virtuals) or 'none'}")
     field_expected = expected - virtuals
     missing = sorted(field_expected - names)
     extra = sorted(names - field_expected)

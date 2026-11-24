@@ -1,11 +1,11 @@
-"""HART as one band: a test case for the schematic plugin (wiki/projects/one-band-solver.md, set C).
+"""HART as one band: a test case for the schematic plugin (archive/wiki/projects/one-band-solver.md, set C).
 
 Staging's and main's plan graphs are joined into one graph, the two helix cuts spliced
 (39 to 131A as Helix Outer, 37 to 131B as Helix Inner), and the plugin is given one input
 with the switch numbers, track names and signals but no `levels`, `helix` or helix ends.
 The approved three-band sheet is not touched; this writes only to OUT.
 
-    python3 tools/schematic/experiments/one_band.py OUT [--cap N] [--row-seconds R] [--panels] [--seconds S] [--profile]
+    python3 archive/tools-schematic-experiments/one_band.py OUT [--cap N] [--row-seconds R] [--panels] [--seconds S] [--profile]
 
 OUT gets whole.json, data/ and one_band.svg. `--cap` raises the plugin's turnback cap from a
 wrapper (plugin files unchanged; the cap is fault F1 on the project page). `--seconds` stops the
@@ -27,7 +27,7 @@ import sys
 import time
 from pathlib import Path
 
-REPO = Path(__file__).resolve().parents[3]
+REPO = Path(__file__).resolve().parents[2]
 DATA = REPO / "jmri/layouts/hart/data/schematic"
 PLUGIN = REPO / "external/model-railroad-skills/plugins/schematic-maps"
 HELIX = (("CUT:T55", "CUT:T210", "Helix Outer"), ("CUT:T78", "CUT:T281", "Helix Inner"))

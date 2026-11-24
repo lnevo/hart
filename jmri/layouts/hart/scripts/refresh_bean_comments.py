@@ -268,9 +268,9 @@ def stale_head_comments(files: devices.Files | None = None, path: Path | None = 
     when the master cannot be read."""
     comments = load_wiring_head_comments(path)
     heads = {r["user_name"]: r for r in devices.load(files) if r["level"] == devices.FIELD_LEVEL and r["layer"] == "head"}
-    out = [f"{name}: wiring.csv gives {want!r}, devices.csv has {heads[name]['wiring']!r}"
+    out = [f"{name}: wiring.csv gives {want!r}, the device master has {heads[name]['wiring']!r}"
            for name, want in sorted(comments.items()) if name in heads and heads[name]["wiring"] != want]
-    out += [f"{name}: in wiring.csv but no staging head row of devices.csv" for name in sorted(set(comments) - set(heads))]
+    out += [f"{name}: in wiring.csv but no staging head row of the device master" for name in sorted(set(comments) - set(heads))]
     return out
 
 
@@ -926,7 +926,7 @@ def main() -> int:
     if stale:
         print("refresh_bean_comments.py: run python3 tools/schematic/build_masts.py", file=sys.stderr)
         return 1
-    print("devices.csv: head comments current")
+    print("device master: head comments current")
     return 0
 
 

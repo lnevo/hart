@@ -163,7 +163,7 @@ class AuditSettings(unittest.TestCase):
                    for m in staging]
         audit = self.apc.Audit("t", Path("t"))
         self.apc.audit_masts(root, flipped, audit)
-        self.assertTrue(any("differ between masts.csv and devices.csv" in e for e in audit.errors))
+        self.assertTrue(any("differ between masts.csv and the device master" in e for e in audit.errors))
 
 
 if __name__ == "__main__":
