@@ -14,7 +14,7 @@ Chat is a scratchpad. Decisions that count live here.
 | Pipeline map | [`../docs/pipeline-map/pipeline_map.json`](../docs/pipeline-map/pipeline_map.json) |
 
 **Active projects:** [CATS integration](projects/cats-integration.md) · [health round 2](projects/health-round2-handoff.md) · [level unification](projects/level-unification-handoff.md) · [3D station maps](../docs/benchwork/station_maps_3d/README.md)  
-**Parked or done:** [speed matching](projects/speedmatching.md) (parked) · [schematic solver on any plan](projects/one-band-solver.md) (parked after the quick wins; F4 left). Each page in `projects/` opens with a `Status:` line.  
+**Parked or done:** [speed matching](projects/speedmatching.md) (parked) · [schematic solver on any plan](projects/one-band-solver.md) (done 2026-11-23: 37 of 38 sample plans draw). Each page in `projects/` opens with a `Status:` line.  
 **Public names:** [ADR-002](decisions/ADR-002-naming-contract.md) · [ADR-005](decisions/ADR-005-public-equipment-names.md) · [ADR-011](decisions/ADR-011-basic-signals.md) · [`devices_field.csv`](../jmri/layouts/hart/data/devices_field.csv) and [`devices_generated.csv`](../jmri/layouts/hart/data/devices_generated.csv) (the device master, ADR-029)
 **Active layout:** `jmri/layouts/hart/` · `JMRI_LAYOUT=hart`  
 **CTC path:** [`cats/`](../cats/) ([CATS](http://cats4ctc.wikidot.com/) Digicon-style; source [Kb0oys/cats](https://bitbucket.org/Kb0oys/cats/src/master/))  
