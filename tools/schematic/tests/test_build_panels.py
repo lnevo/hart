@@ -176,7 +176,8 @@ class SmlDiscovery(unittest.TestCase):
             lock = tmp / "discover.lock"
             if lock_pid is not None:
                 lock.mkdir()
-                (lock / "pid").write_text(f"{lock_pid}\n", encoding="utf-8")
+                if lock_pid != "":
+                    (lock / "pid").write_text(f"{lock_pid}\n", encoding="utf-8")
             env.update(PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        DISCOVERED=str(tmp / "discovered"), HART_PANELS_OS=os_name,
                        HART_SML_DISCOVER_CMD=str(discover), HART_OPERATING_FLAG=str(flag),
@@ -224,6 +225,7 @@ class SmlDiscovery(unittest.TestCase):
             "turned off with false": (dict(HART_SML_AUTO_DISCOVER="false"), "HART_SML_AUTO_DISCOVER=false"),
             "HART_TABLES": (dict(HART_TABLES="/elsewhere/tables.xml"), "HART_TABLES is set"),
             "another run discovering": (dict(lock_pid=os.getpid()), f"another make panels (pid {os.getpid()})"),
+            "another run starting": (dict(lock_pid=""), "another make panels is starting a discovery"),
         }
         for label, (kw, why) in cases.items():
             with self.subTest(label):

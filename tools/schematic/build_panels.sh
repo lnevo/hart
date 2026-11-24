@@ -172,11 +172,15 @@ discover_sml() {
   local lock=${HART_SML_DISCOVER_LOCK:-/tmp/hart_sml_discover.lock} holder
   if ! mkdir "$lock" 2>/dev/null; then
     holder=$(cat "$lock/pid" 2>/dev/null)
-    if [ -n "$holder" ] && kill -0 "$holder" 2>/dev/null; then
+    if [ -z "$holder" ]; then     # another run made the lock and has not written its pid yet
+      echo "   sml-current: not discovering here: another make panels is starting a discovery ($lock has no pid yet; remove it if no run is)"
+      return 1
+    fi
+    if kill -0 "$holder" 2>/dev/null; then
       echo "   sml-current: not discovering here: another make panels (pid $holder) is discovering; make panels again when it ends"
       return 1
     fi
-    echo "   sml-discover: taking over $lock from pid ${holder:-unknown}, which is gone"
+    echo "   sml-discover: taking over $lock from pid $holder, which is gone"
   fi
   echo $$ >"$lock/pid"
   discovered=1
