@@ -1,10 +1,11 @@
 # docs/jmri
 
-Reference notes for JMRI work on the layout: block lengths, the CS-105 roster sync and the speed-matching record.
+Reference notes for JMRI work on the layout: block lengths, the MQTT startup race, the CS-105 roster sync and the speed-matching record.
 
 | Document | What it is for | State |
 |----------|----------------|-------|
 | `TRACK_LENGTHS.md` | Generated table of track and spur lengths per block; change `block_lengths.csv`, not this page | Current, regenerated |
+| `MQTT_STARTUP_RACE.md` | The MQTT connection drop at PanelPro start: a stock JMRI 5.16 race, reproduced on a bare profile; repro in `tools/jmri/mqtt_race_repro/` | Current |
 | `CS105_ROSTER_SYNC.md` | Copying the JMRI roster into the TCS CS-105 command station so UWT-100 throttles show every loco | Current |
 | `speedmatching/` | Speed matching of CSX 2121 and CSX 2738: `RUNBOOK.md` (how), `RERUN_PLAN.md` (plan), `POM_GUARD.md` (CV write guard), `DASHBOARD.md` (live view), `ANYRAIL_LENGTHS.md` (block lengths) | Tools current; the 2026-11-13 re-run is done |
 | `speedmatching/profile-2026-11-08/` | First measured profile and the CV changes programmed that day | Historical, superseded by 2026-11-13 |
