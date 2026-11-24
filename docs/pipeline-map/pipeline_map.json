@@ -1346,7 +1346,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences.json.",
+   "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences_generated.json.",
    "path": "tools/schematic/build_staging_sets.py"
   },
   {
@@ -3540,6 +3540,15 @@
    "domain": "layout",
    "desc": "The generated half of plan_overrides: staging control points and stations, name_main and milepost_route, main_upper main_route, control_points and stations. Each of three builders replaces only its own keys (T6b).",
    "path": "jmri/layouts/hart/data/schematic/plan_generated.json"
+  },
+  {
+   "id": "jmri/layouts/hart/data/schematic/preferences_generated.json",
+   "label": "preferences_generated.json",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The generated half of preferences: staging's detail_sheets, from sheets.csv. hartlib.layer_files merges it under preferences.json (hand values win).",
+   "path": "jmri/layouts/hart/data/schematic/preferences_generated.json"
   },
   {
    "id": "tools/hosts/panel_window_sizes.py",
@@ -6102,7 +6111,7 @@
   },
   {
    "from": "tools/schematic/build_staging_sets.py",
-   "to": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "jmri/layouts/hart/data/schematic/preferences_generated.json",
    "label": "detail_sheets"
   },
   {
@@ -7458,6 +7467,11 @@
   {
    "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
    "to": "tools/schematic/build_signals.py",
+   "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences_generated.json",
+   "to": "tools/schematic/publish_draft.py",
    "label": "merged view (layer_files.view)"
   },
   {
