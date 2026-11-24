@@ -42,7 +42,6 @@ The `whats-left` skill reads this page and drops everything it excludes. Add a r
 |------|------|------------------|------------|
 | Operations Pro build follow-up (R1-R8, plugin fixes P1-P19) | Side project. List only under future goals; do not raise R2 or the follow-up list in what's-next answers. | [`docs/ops/OPSPRO_FOLLOWUP.md`](../docs/ops/OPSPRO_FOLLOWUP.md); "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
 | LCOS bridge move to the Pi | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
-| Pi OS upgrade | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md) | 2026-11-21 |
 | Speed matching follow-ups (decoder read-back, loop 2 lap survey) | Future goal, not next. | "Future goals" in [`STATUS.md`](STATUS.md); [`projects/speedmatching.md`](projects/speedmatching.md) | 2026-11-21 |
 
 ## Watch-only items
