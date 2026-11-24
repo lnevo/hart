@@ -25,11 +25,18 @@ pp_begin "$SCRIPT"
 # The base discovery runs on: the generated tables with no logic and no mast properties. From here on a failed
 # run leaves tables.xml as that base, and the exit says so (panelpro_session.sh PP_FAIL_NOTE).
 PP_FAIL_NOTE="tables.xml is now the discovery base (no Signal Mast Logic). Restore it: python3 tools/schematic/build_tables.py (or run this wrapper again)"
+# A copy of tables.xml as it is, put back when the approval check refuses: a refusal leaves the file as it found it.
+TABLES="$ROOT/jmri/layouts/hart/output/tables.xml"
+BEFORE="$(mktemp "${TMPDIR:-/tmp}/hart_sml_before.XXXXXX")"
+PP_TMP_FILES+=("$BEFORE")
+cp "$TABLES" "$BEFORE"
 python3 "$ROOT/tools/schematic/build_tables.py" --discovery-base
 # Discover only on the panel the owner approved (approval.py le-panel), as before the staging guard was retired
 # (2026-11-22). HART_TABLES_REVIEW=1: discover on a panel the owner has not approved yet (a new look under review).
 if [[ "${HART_TABLES_REVIEW:-}" != 1 ]] && ! python3 "$ROOT/tools/schematic/check_approved.py" le-panel; then
-  echo "The Layout Editor panel is not the one the owner approved; discovery not run. ${PP_FAIL_NOTE} Set HART_TABLES_REVIEW=1 to discover on it for a review." >&2
+  cp "$BEFORE" "$TABLES"
+  PP_FAIL_NOTE=""
+  echo "The Layout Editor panel is not the one the owner approved; discovery not run, tables.xml is back as it was. Set HART_TABLES_REVIEW=1 to discover on it for a review." >&2
   exit 1
 fi
 # The stamp of this discovery: the sha256 of that base, so make panels' sml-current guard can tell when a later

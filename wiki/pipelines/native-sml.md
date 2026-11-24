@@ -22,7 +22,7 @@ NX is **SML mode** (`nxType="signalmastlogic"`). JMRI computes auto-turnouts at 
 ## Run
 
 ```bash
-# PanelPro, not CATS. Modal dialogs — do not hide them.
+# PanelPro, not CATS. Modal dialogs — do not hide them. On the Mac, make panels runs it itself when sml-current is stale.
 ./jmri/layouts/hart/scripts/run_sml_discover.sh
 # the wrapper Stores to a temporary file, then: python3 tools/schematic/build_tables.py --discovered-from <Store>
 # (the generator stores the Digicon destinations disabled)

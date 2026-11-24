@@ -22,8 +22,11 @@ from hartlib import paths  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 STAMP = tb.DISCOVERED.with_suffix(".stamp")
-STALE = ("SML discovery is stale: run jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac (PanelPro), "
-         "then make panels")
+STALE = ("SML discovery is stale: make panels on the Mac discovers itself; elsewhere run "
+         "jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac (PanelPro), then make panels")
+# The exit code for stale, apart from 1 (an uncaught exception) and 2 (a build error): make panels on the Mac discovers
+# only on this one (build_panels.sh, discover_sml).
+EXIT_STALE = 4
 
 
 def verdict(stamp: Path, current: str) -> str | None:
@@ -58,7 +61,7 @@ def main() -> int:
     message = verdict(STAMP, current)
     if message:
         print(message, file=sys.stderr)
-        return 1
+        return EXIT_STALE
     print(f"ok: {paths.rel(STAMP)} matches the discovery base")
     return 0
 
