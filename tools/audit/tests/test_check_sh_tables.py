@@ -142,6 +142,62 @@ class CheckShTables(unittest.TestCase):
             self.assertIn("no such file", self.resolve("nope.xml", d, d).stdout)
 
 
+class StaticPanelChecks(unittest.TestCase):
+    """The static job checks the panel outputs through build_panels.sh --check, one list for check.sh and make panels,
+    and its run() puts that bash run into the job's trace as a program the hook cannot see."""
+
+    def static_runs(self) -> list[str]:
+        text = CHECK.read_text(encoding="utf-8")
+        body = text[text.index("\nstatic_checks() {\n"):text.index("\nlater static static_checks\n")]
+        return [line for line in body.splitlines() if line.startswith("run ")]
+
+    def test_static_checks_the_panel_outputs_once_through_their_pipeline(self) -> None:
+        runs = self.static_runs()
+        self.assertIn("run panels bash tools/schematic/build_panels.sh --check", runs)
+        steps = re.findall(r"^(?:step|guard) [a-z-]+ python3 (\S+\.py)", (ROOT / "tools/schematic/build_panels.sh")
+                           .read_text(encoding="utf-8"), re.M)
+        self.assertGreaterEqual(len(steps), 16, "build_panels.sh's step lines were not found")
+        for script in steps:
+            for line in runs:
+                self.assertNotIn(f" {script}", line, "a panel step checked twice: build_panels.sh --check runs it")
+
+    def run_function(self, log: Path, *calls: str) -> subprocess.CompletedProcess:
+        """check.sh's run() as the static job has it, with `log` as the job's trace, then `calls`; prints static_rc."""
+        text = CHECK.read_text(encoding="utf-8")
+        start = text.index("\nrun() {\n") + 1
+        body = text[start:text.index("\n}\n", start) + 3]
+        script = f'ROOT="{ROOT}"\nstatic_rc=0\n{body}' + "\n".join(calls) + '\necho "static_rc=$static_rc"\n'
+        env = {k: v for k, v in os.environ.items() if not k.startswith("HART_TRACE")}
+        env["HART_TRACE_LOG"] = str(log)
+        return subprocess.run(["bash", "-c", script], cwd=ROOT, env=env, capture_output=True, text=True, timeout=60)
+
+    def test_a_bash_check_is_an_untraced_program_and_a_python_one_an_expected_process(self) -> None:
+        sys.path.insert(0, str(ROOT / "tools/audit"))
+        import traced
+        with tempfile.TemporaryDirectory() as d:
+            log = Path(d) / "trace.log"
+            done = self.run_function(log, "run sh-check bash -c true", "run py-check python3 -c pass")
+            self.assertIn("static_rc=0", done.stdout, done.stderr)
+            t = traced.parse(log)
+            self.assertEqual(1, t.expected_roots)
+            programs, gits = traced.untraced(t, str(ROOT))
+            self.assertEqual((["bash"], []), (programs, gits))
+
+    def test_a_failing_bash_check_fails_the_job(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            done = self.run_function(Path(d) / "trace.log", "run bad bash -c 'exit 3'")
+            self.assertIn("static_rc=1", done.stdout)
+
+    def test_another_program_is_refused_and_not_run(self) -> None:
+        with tempfile.TemporaryDirectory() as d:
+            marker = Path(d) / "ran"
+            done = self.run_function(Path(d) / "trace.log", f"run other sh -c 'touch {marker}'")
+            self.assertIn("static_rc=1", done.stdout)
+            self.assertIn("other: check.sh's run() takes python3, env or bash, not sh; not run", done.stdout)
+            self.assertFalse(marker.exists())
+            self.assertFalse((Path(d) / "trace.log").exists(), "a refused check wrote to the trace")
+
+
 class LayoutIndexSource(unittest.TestCase):
     def test_the_index_names_the_checkout_file_when_hart_tables_points_elsewhere(self) -> None:
         with tempfile.TemporaryDirectory() as d:

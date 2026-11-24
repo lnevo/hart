@@ -210,10 +210,18 @@ unit() {
 # The read-only checks run as one job ("static"), one after another, beside the unit jobs.
 run() {
   echo "--- $1"
+  local name=$1
   shift
   local start=$SECONDS
-  # each check is one Python process the job's trace must show (check.sh `later`)
-  [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
+  # What the job's trace (check.sh `later`) must show for this check: a Python check is one Python process it
+  # expects ("b"); bash (build_panels.sh) is a program the hook cannot see into, whose steps may trace into logs of
+  # their own, so it goes in as a spawn nothing loaded the hook for ("x"), and the job's stamp falls back to its
+  # declaration (tools/audit/check_stamps.py). Any other program is refused: its reads would be missing.
+  case "$1" in
+    python3|env) [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG" ;;
+    bash) [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tx\tcheck.sh-run\t%s\t%s\n' "$ROOT" "$(IFS=$'\t'; echo "$*")" >>"$HART_TRACE_LOG" ;;
+    *) echo "    $name: check.sh's run() takes python3, env or bash, not $1; not run"; static_rc=1; return ;;
+  esac
   "$@" || static_rc=1
   (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
 }
@@ -237,22 +245,13 @@ run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py -
 run baselines python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py --check
 run digicon-disabled python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check
 run status-counts python3 tools/ops/status_counts.py --check
-# Fails when the schematic-maps plugin submodule is not checked out; SCHEMATIC_REQUIRED=0 makes them print SKIPPED and pass.
-run schematic-signals python3 tools/schematic/build_signals.py --check
-run schematic-cats python3 tools/schematic/build_cats_panel.py --check
-run schematic-hands python3 tools/schematic/build_hands.py --check
-run schematic-main-route python3 tools/schematic/build_main_route.py --check
-run schematic-staging-sets python3 tools/schematic/build_staging_sets.py --check
-run schematic-approved python3 tools/schematic/check_approved.py
-run schematic-device-map python3 tools/schematic/build_device_map.py --check
-run schematic-masts python3 tools/schematic/build_masts.py --check
-# tables.xml is an output (ADR-029): it must be what build_tables.py writes from the template, the device master, the
-# Layout Editor build and the discovered Signal Mast Logic; a Store is never copied over it (make tables-pull keeps
-# it in media/pulled-stores in the main checkout and tools/schematic/split_store.py splits it into the template and the device master)
-run tables python3 tools/schematic/build_tables.py --check
-run schematic-device-master python3 tools/schematic/check_device_master.py --check
-run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
-run schematic-signals-sync python3 tools/schematic/sync_signals.py --check
+# Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
+# tools/schematic/build_panels.sh with --check, in build order, from the hands to the approved fingerprints, with
+# tables.xml among them (an output, ADR-029: a Store is never copied over it; make tables-pull and split_store.py).
+# One list of panel checks for check.sh, CI and make panels. Its own stamps skip the steps current here; CI has none
+# and runs them all, and so does a run with HART_TABLES (stamps off; the table steps read that file). Fails when the
+# schematic-maps plugin submodule is not checked out; SCHEMATIC_REQUIRED=0 makes its steps print SKIPPED and pass.
+run panels bash tools/schematic/build_panels.sh --check
 # The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article
 # against its drawings and the block lengths.
 run levels-svg python3 tools/anyrail/levels_svg.py --check

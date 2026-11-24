@@ -98,8 +98,8 @@ make desks            # only the CATS desks, then validate them
 | approved-live | `check_approved.py le-panel` | nothing: stops when the live panel in `tables.xml` drifts from the approved fingerprint |
 
 Each step reads the plugin's cache (`.cache/hart/schematic` in the main checkout, shared by every worktree), so a run after a small change redoes only what that
-change reaches. `tools/check.sh` runs `--check` on the hands, main route, masts, signals sync, staging map, signals, device map and CATS steps, and the approved fingerprints (`check_approved.py`); `make panels
-CHECK=1` checks them all.
+change reaches. `tools/check.sh` (and so CI) runs `build_panels.sh --check` as one line, `panels` in its static job: every step above, the same list as `make panels
+CHECK=1`. Steps whose stamps are current are skipped there too; CI has no stamps and runs them all.
 
 ### Row staging-sets: what it checks
 

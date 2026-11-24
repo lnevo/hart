@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23",
+ "updated": "2026-11-24",
  "domains": [
   {
    "id": "layout",
@@ -6936,6 +6936,12 @@
    "from": "tools/schematic/panel_items.py",
    "to": "tools/check.sh",
    "label": "check panel-status",
+   "side": "check"
+  },
+  {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/check.sh",
+   "label": "check panels (every step --check)",
    "side": "check"
   },
   {
