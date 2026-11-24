@@ -3578,6 +3578,15 @@
    "path": "tools/hosts/operating.sh"
   },
   {
+   "id": "tools/ops/move_path.py",
+   "label": "move_path.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "agents",
+   "desc": "Moves or renames a tracked file or folder (git mv) and rewrites every repo-root path, relative link and a moved script's repo-root depth that names it; lists name-only mentions to check by hand; rebuilds the docs index and map pages.",
+   "path": "tools/ops/move_path.py"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -7508,6 +7517,16 @@
   {
    "from": "tools/hosts/redeploy_commit.sh",
    "to": "tools/hosts/operating.sh",
+   "label": "runs"
+  },
+  {
+   "from": "tools/ops/move_path.py",
+   "to": "tools/ops/build_docs_index.py",
+   "label": "runs"
+  },
+  {
+   "from": "tools/ops/move_path.py",
+   "to": "tools/ops/build_pipeline_map.py",
    "label": "runs"
   },
   {
