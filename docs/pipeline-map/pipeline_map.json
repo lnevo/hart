@@ -4999,7 +4999,7 @@
   {
    "from": "jmri/layouts/hart/output/tables.xml",
    "to": "tools/hosts/sync_hart_package.sh",
-   "label": "ships; build_tables --check gate"
+   "label": "ships; build_tables --check gate unless CI's full pass covers the commit"
   },
   {
    "from": "jmri/layouts/hart/output/tables.xml",
