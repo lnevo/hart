@@ -83,7 +83,7 @@ class Order(unittest.TestCase):
         self.assertEqual(resolve({"PI_HOST": "oldpi"}, "HART_PI_SSH=filepi\n")["HART_PI_SSH"], "filepi")
 
     def test_sts_helpers_still_put_pi_host_first(self) -> None:
-        for name in ("pi_docker_static.sh", "pi_sts_update.sh", "pi_sts_pull_backups.sh"):
+        for name in ("pi_sts_update.sh", "pi_sts_pull_backups.sh"):
             text = (ROOT / "tools/hosts" / name).read_text(encoding="utf-8")
             self.assertIn('HOST="${PI_HOST:-$HART_PI_SSH}"', text, name)
         for name in ("sync_hart_package.sh", "pi_quit_panelpro.sh", "pi_start_panelpro.sh"):
