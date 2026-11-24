@@ -65,6 +65,33 @@ class OperatingFlag(unittest.TestCase):
         self.assertFalse(self.flag.exists())
         self.assertEqual(self.run_it("sideways").returncode, 2)
 
+    def test_guard_is_open_when_clear_and_refuses_when_set(self) -> None:
+        self.assertEqual(self.run_it("guard", "a test deploy").returncode, 0)
+        self.run_it("on", "ops", "session")
+        done = self.run_it("guard", "a test deploy")
+        self.assertEqual(done.returncode, 3)
+        self.assertIn("the operating flag is set", done.stderr)
+        self.assertIn("ops session", done.stderr)
+        self.assertIn("a test deploy waits", done.stderr)
+
+    def test_guard_override_goes_ahead_and_says_so(self) -> None:
+        self.run_it("on", "ops")
+        env = dict(os.environ, HART_OPERATING_FLAG=str(self.flag), HART_DEPLOY_WHILE_OPERATING="1")
+        done = subprocess.run(["bash", str(SCRIPT), "guard"], capture_output=True, text=True, env=env)
+        self.assertEqual(done.returncode, 0)
+        self.assertIn("HART_DEPLOY_WHILE_OPERATING=1", done.stderr)
+
+    @unittest.skipIf(os.geteuid() == 0, "root reads any file")
+    def test_guard_fails_closed_on_an_unreadable_flag(self) -> None:
+        self.run_it("on", "ops")
+        self.flag.chmod(0)
+        try:
+            done = self.run_it("guard")
+        finally:
+            self.flag.chmod(0o600)
+        self.assertEqual(done.returncode, 3)
+        self.assertIn("cannot be read", done.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()
