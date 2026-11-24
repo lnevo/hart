@@ -35,6 +35,8 @@ The `whats-left` skill reads this page and drops everything it excludes. Add a r
 | The Main West turnback (AnyRail draft 3) | Dropped and its branch deleted. Never propose it again. | [ADR-026](decisions/ADR-026-anyrail-5-3c-master-plan.md) | 2026-11-20 |
 | Further Layout Editor text-size steps (condensed-font metrics, helix label size, step C3) | Dropped after step C1 and the 14 px station names shipped (#898). The topic is closed; never list or propose it. | None; not tracked | 2026-11-21 |
 | Stock JMRI and CATS operating risks (MQTT startup race, CATS load risk) | Leave out of any "what is pending" answer. They are standing notes, not open work. | Operating notes in [`STATUS.md`](STATUS.md) | 2026-11-01 |
+| CPython repo tools in `jmri/layouts/hart/scripts/` beside the Jython scripts JMRI runs (19 of 39 files on 2026-11-23) | Leave them there; do not propose moving them. | Architecture review of 2026-11-23 (`wiki/STATUS_LOG.md`) | 2026-11-23 |
+| An audit that a Jython script never imports `hartlib` | Not needed; do not propose it. The rule stays in AGENTS.md and the scripts' comments. | Architecture review of 2026-11-23 (`wiki/STATUS_LOG.md`) | 2026-11-23 |
 
 ## Future goals
 
