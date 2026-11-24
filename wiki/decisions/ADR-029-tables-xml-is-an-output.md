@@ -50,7 +50,7 @@ The `AGENTS.md` rule "fix the data in `tables.xml`" becomes "fix the source data
 
 ## Open
 
-- R9b to R9e are built in that order ([`projects/project-health-handoff.md`](../../archive/wiki/projects/project-health-handoff.md)). The level-unification mast builder (step 2) waits on R9b.
+- R9b to R9e were built in that order and are done (2026-11-21; [`project-health-handoff.md`](../../archive/wiki/projects/project-health-handoff.md)). `devices.csv` in the Decision above is now two files, merged by `hartlib.devices` (amendment below).
 
 ## Amendment 2026-11-21: the device master is two files
 

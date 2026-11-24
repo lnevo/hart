@@ -3,7 +3,7 @@
 - **Status:** Accepted
 - **Date:** 2026-11-17 (recorded 2026-11-19)
 - **Deciders:** lnevo
-- **Amended by:** ADR-029. `device_map_main_upper.csv` was retired (R9e); its rows are the level 2 and 3 rows of `devices.csv`.
+- **Amended by:** ADR-029. `device_map_main_upper.csv` was retired (R9e); its rows are the level 2 and 3 rows of the device master (`devices_field.csv` and `devices_generated.csv`, read through `hartlib.devices`; ADR-029 amendment of 2026-11-21).
 
 ## Context
 
@@ -20,7 +20,7 @@ Every main and upper turnout, block sensor, signal head and mast in JMRI is an i
 - Masts are stock signal-head masts (`IF$shsm:basic:…`) on those heads.
 
 **The device map**
-- `jmri/layouts/hart/data/schematic/device_map_main_upper.csv` is the one mapping from each device to its planned physical part. `tools/schematic/build_device_map.py` writes it from the control points, the local switch list and the LCOS node list.
+- `jmri/layouts/hart/data/schematic/device_map_main_upper.csv` (since R9e, the level 2 and 3 rows of the device master) is the one mapping from each device to its planned physical part. `tools/schematic/build_device_map.py` writes it from the control points, the local switch list and the LCOS node list.
 - Per row, `jmri_name` is the virtual device that `tables.xml` and the CATS desks use now. `system_name` is the planned physical device, a draft.
 - A physical device is swapped in through the map's `jmri_name` column alone.
 

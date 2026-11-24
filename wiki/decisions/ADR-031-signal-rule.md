@@ -1,8 +1,10 @@
 # ADR-031 — Signals by rule, with prototype mileposts
 
-- **Status:** Accepted
+- **Status:** Superseded by [ADR-024](ADR-024-signals-by-rule.md) (2026-11-23)
 - **Date:** 2026-11-19
 - **Deciders:** lnevo
+
+> Superseded on 2026-11-23 (repo review): ADR-024 records the same signal rule, with every later change. Kept as written on 2026-11-21; its names are out of date. The loop turnback pairs are A83/A84 and B92/B93 now (ADR-024, "Intermediate (APB) signals"), `interlockings_staging.csv` is the level 1 rows of `interlockings.csv`, 239 Spur is 241 Spur, and the helix home signals are at 127 and 131.
 
 ## Context
 
