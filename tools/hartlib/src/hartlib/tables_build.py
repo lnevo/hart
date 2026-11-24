@@ -104,7 +104,7 @@ class TablesBuildError(ValueError):
     """The template, the master rows, the discovered logic or the result cannot make a tables file."""
 
 
-GENERATED_NOTE = ("tables.xml is generated (ADR-029): change devices.csv, the template (data/tables_template.xml) "
+GENERATED_NOTE = ("tables.xml is generated (ADR-029): change the device master, the template (data/tables_template.xml) "
                   "or the other sources, then run python3 tools/schematic/build_tables.py")
 
 
@@ -184,7 +184,7 @@ def read_template(path: Path = TEMPLATE) -> tables.Tables:
              if section_key(sec) in MASTER_SECTIONS for el in tables.elements(sec) if tables.system_name(el)]
     if owned:
         raise TablesBuildError(f"{where}: holds {', '.join(owned[:6])}, but turnouts, MQTT sensors, heads, masts, "
-                               "blocks and layout blocks come from devices.csv and the Layout Editor build")
+                               "blocks and layout blocks come from the device master and the Layout Editor build")
     return doc
 
 
@@ -421,7 +421,7 @@ def bean_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) 
     first (occupancy_first). TablesBuildError when the row gives no comment."""
     comment = devices.device_map_row(r)["comment"]
     if not comment:
-        raise TablesBuildError(f"devices.csv: {r['layer']} {r['user_name']!r} has neither wiring nor jmri_comment, "
+        raise TablesBuildError(f"the device master: {r['layer']} {r['user_name']!r} has neither wiring nor jmri_comment, "
                                "so it gives no JMRI comment")
     layer = r["layer"]
     if layer == "head" and r["role"] == "head" and r["assignment"] == "virtual":
@@ -439,7 +439,7 @@ def _route(name: str, table, what: str) -> tuple[str, str]:
     for prefix, key in table:
         if name.startswith(prefix):
             return key
-    raise TablesBuildError(f"devices.csv: {what} {name!r} has no manager section for its prefix "
+    raise TablesBuildError(f"the device master: {what} {name!r} has no manager section for its prefix "
                            f"({', '.join(p for p, _ in table)})")
 
 
@@ -510,7 +510,7 @@ def bean_json(beans: Iterable[tuple[tuple[str, str | None], ET.Element]], row: M
 def row_beans(row: Mapping[str, str]) -> list[tuple[tuple[str, str | None], ET.Element]]:
     """[(section key, element)] of a row's jmri_bean (bean_json); TablesBuildError when the text is not that shape, a
     section is not one the master gives (MASTER_SECTIONS), or a bean names no system name."""
-    where = f"devices.csv: {row['layer']} {row['user_name']!r}"
+    where = f"the device master: {row['layer']} {row['user_name']!r}"
     try:
         doc = json.loads(row["jmri_bean"])
     except json.JSONDecodeError as exc:
@@ -522,7 +522,7 @@ def row_beans(row: Mapping[str, str]) -> list[tuple[tuple[str, str | None], ET.E
     for b in beans:
         sec = tuple(b.get("section") or ()) if isinstance(b, dict) else ()
         if sec not in MASTER_SECTIONS:
-            raise TablesBuildError(f"{where}: jmri_bean section {list(sec)} is not one a devices.csv row gives")
+            raise TablesBuildError(f"{where}: jmri_bean section {list(sec)} is not one a device master row gives")
         el = _element(b.get("element"), row, where)
         if not tables.system_name(el):
             raise TablesBuildError(f"{where}: a <{el.tag}> in jmri_bean has no system name")
@@ -543,9 +543,9 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
                 key = ("blocks-names",) + BLOCKS if sec == BLOCKS and _sort_group(el) == "block-names" else sec
                 out.setdefault(key, []).append(el)
         except TablesBuildError as exc:
-            bad.append(str(exc).removeprefix("devices.csv: "))
+            bad.append(str(exc).removeprefix("the device master: "))
     if bad:
-        raise TablesBuildError("devices.csv: " + "; ".join(bad))
+        raise TablesBuildError("the device master: " + "; ".join(bad))
     return out
 
 
@@ -632,9 +632,9 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
             else:
                 bad.append(f"{at}: no bean for layer {layer!r}")
         except TablesBuildError as exc:
-            bad.append(str(exc).removeprefix("devices.csv: "))
+            bad.append(str(exc).removeprefix("the device master: "))
     if bad:
-        raise TablesBuildError("devices.csv: " + "; ".join(bad))
+        raise TablesBuildError("the device master: " + "; ".join(bad))
     return out
 
 
@@ -655,7 +655,7 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     twice = sorted({tables.system_name(el) for key, els in kept.items() if key[0] != "blocks-names" for el in els
                     if tables.system_name(el) in made})
     if twice:
-        raise TablesBuildError(f"devices.csv: a level-less device's jmri_bean names a bean a level row makes too "
+        raise TablesBuildError(f"the device master: a level-less device's jmri_bean names a bean a level row makes too "
                                f"({', '.join(twice[:8])}); a bean has one source")
     for key, els in kept.items():
         beans.setdefault(key, []).extend(els)

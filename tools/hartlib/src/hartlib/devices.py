@@ -437,9 +437,10 @@ def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = No
 
 # ---------------------------------------------------------------- a device's kind, from its row
 
-def row_role(row: Mapping[str, str], where: str = "devices.csv") -> str:
-    """The role column of `row` (ROLES). DevicesError naming `where` (the file and line) and the row when the row has
-    no role column or an empty one: a reader asks the row what a device is, never its name (hand-off row 8)."""
+def row_role(row: Mapping[str, str], where: str = "the device master") -> str:
+    """The role column of `row` (ROLES). DevicesError naming `where` (a file and line when the caller has one, else
+    "the device master") and the row when the row has no role column or an empty one: a reader asks the row what a
+    device is, never its name (hand-off row 8)."""
     role = row.get("role", "")
     if not role:
         raise DevicesError(f"{where}: {row.get('layer', '?')} {row.get('user_name', '?')!r} has no role "
@@ -447,7 +448,7 @@ def row_role(row: Mapping[str, str], where: str = "devices.csv") -> str:
     return role
 
 
-def is_os(row: Mapping[str, str], where: str = "devices.csv") -> bool:
+def is_os(row: Mapping[str, str], where: str = "the device master") -> bool:
     """Whether a block or occupancy row is the block through a switch's points (OS_ROLES), by its role."""
     return row_role(row, where) in OS_ROLES
 
@@ -630,7 +631,7 @@ def _unplaced_problems(r: Mapping[str, str]) -> list[str]:
     return bad
 
 
-def check_rows(rows: Iterable[Mapping[str, str]], where: str = "devices.csv") -> None:
+def check_rows(rows: Iterable[Mapping[str, str]], where: str = "the device master") -> None:
     """The master's invariants; DevicesError listing every problem (a row is named by its key: name, level and
     layer, never a line, as the merged view is two files). Run on every load and after every write."""
     bad, keys, jmri, field_systems = [], {}, {}, {}

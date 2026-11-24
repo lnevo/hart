@@ -30,7 +30,7 @@ def _obj_at(path, r) -> str:
     return master_at(path, r.user_name, getattr(r, "level", STAGING_LEVEL), r.layer)
 
 
-def device_row_problems(lines, helix_blocks: set[str], where: str = "devices.csv",
+def device_row_problems(lines, helix_blocks: set[str], where: str = "the device master",
                         helix_file: str = "plan_overrides.json") -> list[str]:
     """The rules between the rows of the device master, one for every level, as problems naming the rows. `lines` are
     (line, master row) of every level (outside devices.OUT_OF_MAPS); `helix_blocks` the helix tracks' blocks.
@@ -265,7 +265,7 @@ def _staging_blocks(rr: Railroad) -> list[str]:
         for leg in sw.legs:
             for what, b in (("OS block", leg.os_block), ("closed leg", leg.closed), ("thrown leg", leg.thrown)):
                 if b not in blocks:
-                    bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of devices.csv")
+                    bad.append(f"Switch {sw.number} (switches.csv): {what} {b} is no staging block row of the device master")
     # block_lengths.csv holds every level's JMRI blocks (step 5 part 2): staging's blocks and main and upper's
     # block rows of the device master, their parts among them (a main or upper part is a JMRI block of its own on its OS
     # block's sensor, owner 2026-11-20)
@@ -273,7 +273,7 @@ def _staging_blocks(rr: Railroad) -> list[str]:
     level_blocks = {r["user_name"] for r in devices.load(rr.sources.devices)
                     if r["level"] in ("2", "3") and r["layer"] == "block"}
     bad += [f"{rr.sources.block_lengths.name}: {name} is no staging, main or upper block row "
-            "of devices.csv" for name in rr.block_lengths if name not in blocks | level_blocks]
+            "of the device master" for name in rr.block_lengths if name not in blocks | level_blocks]
     return bad
 
 
@@ -372,8 +372,8 @@ def _masts(rr: Railroad) -> list[str]:
     for r in (r for r in rr.masts if r["level"] in staging):
         where = f"{name}: {r['mast']}"
         if r["mast"] not in st_masts:
-            bad.append(f"{where}: no level {r['level']} mast row {r['mast']} in devices.csv")
-        bad += [f"{where}: block {b} is no level {r['level']} block row of devices.csv"
+            bad.append(f"{where}: no level {r['level']} mast row {r['mast']} in the device master")
+        bad += [f"{where}: block {b} is no level {r['level']} block row of the device master"
                 for b in (r["facing"], *(x for x in r["protects"].split(";") if x)) if b not in st_blocks]
     return bad + _device_map_masts(rr)
 
