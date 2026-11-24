@@ -1,6 +1,8 @@
 # One bean and row process for every level: plan (2026-11-23)
 
-Status: parked (2026-11-23)
+Status: done (2026-11-24)
+
+Folded into [the naming-layers plan](naming-layers-handoff.md) (ADR-033) on 2026-11-24: its steps 1 to 8 are steps 1 and 5 to 11 there, and it no longer waits for main and upper wiring. The findings and the owner's answers below still hold.
 
 The owner parked this on 2026-11-23: it is about 8 PRs and 7 to 9 agent-days, and staging is not harmed by the split today. Pick it up when the main and upper levels' wiring (STATUS, Owed, "Finalize wiring") is close: today's main and upper bean code makes virtual beans only, so the first physical swap needs either this merge or a branch added to code the merge would delete.
 
