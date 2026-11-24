@@ -16,12 +16,12 @@ So step 4 below (staging generated like main and upper) is a medium change, not 
 
 ## Owner decisions before building
 
-| # | Question | Options (recommended first) |
+| # | Question | Answer |
 |---|---|---|
-| 1 | What is a device's ID? | **The plan's geometry:** switch number and half, a block by its end switches and legs, a detector by its block, a mast by the switch, leg and direction it protects. Changes only when a switch is renumbered or track is moved. / The AnyRail part tag (changes with every new file). / A number given once and kept in a file (stable, but means nothing and still needs a geometry match on import). |
-| 2 | Where do the owner's track names live? | **Stay in `plan_overrides.json`'s `name` edit,** which the schematic plugin reads and which is already keyed by end switches; every other owner value in `devices_field.csv`. / Move them to `devices_field.csv` (needs a plugin change). |
-| 3 | A new AnyRail file drops an ID that has owner values | **Stop and list it;** the owner moves the values to the new ID or drops them. / Carry them over when exactly one new ID sits in the same place, and list it. |
-| 4 | Order against the main and upper station maps (STATUS Owed, first) and the wiring freeze | **This first, then the station maps,** so the new main and upper names land as owner values in the new layout; freezing CP 123, 211, 217 and 223 can go on in parallel, only the swap waits. / Station maps first. |
+| 1 | What is a device's ID? | **Open.** Proposed: the plan geometry (switch number and half; a block by the objects at its ends; a detector by its block; a mast by the switch, leg and direction it protects), with the tracks at a switch's legs used only on a re-import, to match a replaced switch part to its old ID. The owner asked whether the objects at each end should be part of the ID itself (2026-11-24). |
+| 2 | Where do the owner's track names live? | **Open.** Proposed: stay in `plan_overrides.json`'s `name` edit (names on the drawing, read by the plugin, keyed by end switches); `devices_field.csv` keeps the owner's JMRI-side values. |
+| 3 | A new AnyRail file drops an ID that has owner values | **Decided (owner, 2026-11-24): stop and list it;** the owner moves the values to the new ID or drops them. |
+| 4 | What gets named, and the order | **Decided (owner, 2026-11-24):** nothing is named before the owner is ready. The control points in `interlockings.csv` are owner values and stay; every other main and upper name stays generated or blank. This plan needs no new names; the main and upper station maps wait until the owner names those stations. |
 
 ## Staged plan
 
@@ -43,7 +43,7 @@ Each PR leaves `tables.xml`, the desks, the Layout Editor panel and the approved
 
 ## How to run this
 
-- Wait for the owner's answers to the four decisions; record them in the table above and in ADR-033.
+- Wait for the owner's answers to decisions 1 and 2; record them in the table above and in ADR-033.
 - One PR per step, in order, each in its own `make wt` worktree. Steps 2 to 4 are `hartlib` and `tools/schematic/` work (`schematic-builder`); steps 8 and 11 need the Mac's PanelPro and stay in the main session.
 - Steps that add or move a pipeline step update `docs/pipeline-map/pipeline_map.json`.
 - Docs to update as steps land: `tools/hartlib/README.md` (`hartlib.devices`), `wiki/pipelines/schematic-panels.md`, `jmri/layouts/hart/data/devices.columns.csv`, ADR-027, 028 and 029 (amended by 033).

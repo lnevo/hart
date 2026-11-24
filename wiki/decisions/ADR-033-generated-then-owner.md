@@ -28,8 +28,9 @@ Every device on every level gets its values from three layers, always in this or
 | 3. Frozen wiring | Node and pin of a wired device | `wiring.csv`, written only by `make wiring-freeze` |
 
 - **An owner value always wins.** A non-empty owner cell replaces the generated one. A regenerate never changes it. No level is special: staging is a level where the owner has named everything, main and upper are levels where the owner has named little yet.
+- **Nothing is named before the owner is ready** (owner, 2026-11-24). A value the owner has not set stays generated or blank. The control points in `interlockings.csv` are owner values.
 - **A device has an ID that is not its name.** The generator derives it from the plan: a switch by its number and half, a block by the switches and legs at its ends (today's `trial_name` grammar), a detector by its block, a mast by the switch, leg and direction it protects. Both files key rows on the ID. The user name is an ordinary column.
-- **Renames and re-imports.** A new naming rule changes generated names only; owner names stay. A new AnyRail file is matched by ID, and the build lists the IDs that are new and those that are gone. A gone ID that still has owner values stops the build until the owner moves or drops them; it is never renamed silently.
+- **Renames and re-imports.** A new naming rule changes generated names only; owner names stay. A new AnyRail file is matched by ID, and the build lists the IDs that are new and those that are gone. A gone ID that still has owner values stops the build and is listed until the owner moves or drops them (owner, 2026-11-24); it is never renamed silently.
 - **Frozen wiring is fixed, labels are not.** Once a control point is frozen, the generator stops proposing its pins. Its names, labels and comments are still the owner's layer and can change at any time.
 - **A physical swap is one owner edit.** The owner sets the device's `system_name` (and so `jmri_name`) in its owner row. The ID and user name stay the same, so the panels, desks and SML follow it. No reader builds a JMRI name from a pattern.
 
