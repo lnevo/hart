@@ -15,21 +15,23 @@ JMRI's `connectionLost()` does not log the cause, so most drops show no `Concurr
 - a private Mosquitto on 127.0.0.1:18830, not the layout broker
 - a new JMRI profile with one MQTT connection on stock options and one startup action, loading `tables.xml`; no panels, scripts, Logix, LogixNG, signal logic, CATS or Operations Pro
 - a generated `tables.xml` holding only N MQTT sensors and N MQTT turnouts on the stock topics (`track/sensor/<n>`, `track/turnout/<n>`)
-- optionally one retained message per bean
+- optionally one retained message per bean, set by `retain.py` (Python, 127.0.0.1 only)
 - JMRI started with `JmriFaceless` N times, stopped about 15 s after the table load, each `session.log` kept
 
 `JFR=1` adds the exception recording; read it with `jfr print --events jdk.JavaExceptionThrow --stack-depth 20 recN.jfr`.
 
 ## Results (Mac, JMRI 5.16, Java 17.0.1, 2026-11-23)
 
-| Beans | Retained | Starts | Connection dropped |
-|-------|----------|--------|--------------------|
-| 1000 | yes | 5 | 5 |
-| 1000 | no | 5 | 0 |
-| 106 (the layout's MQTT count) | yes | 12 | 11 |
-| 20 | yes | 5 | 0 |
+Beans is the total: `run.sh N` makes N sensors and N turnouts, so 2N beans.
 
-Two of the 1000-bean starts and both 106-bean starts in the script check ran with the exception recording; every drop was the `ConcurrentModificationException` above. Every start that dropped also logged `Succeeded to reconnect`.
+| `run.sh` N | Beans | Retained | Starts | Connection dropped | Starts with an exception recording |
+|---|---|---|---|---|---|
+| 500 | 1000 | yes | 5 | 5 | 2 |
+| 500 | 1000 | no | 5 | 0 | 0 |
+| 53 | 106 (the layout's MQTT count: 86 sensors, 20 turnouts) | yes | 12 | 11 | 2 |
+| 10 | 20 | yes | 5 | 0 | 0 |
+
+All 4 recorded starts dropped, and in each the recording shows the `ConcurrentModificationException` above; the other drops are inferred from the same log pattern. Every start that dropped also logged `Succeeded to reconnect`. Every start in the table loaded `tables.xml`, connected and shut down normally, so the zero rows are real starts, not failed ones.
 
 ## What it rules out
 
