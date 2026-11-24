@@ -37,7 +37,7 @@ HISTORY_FILES = ("wiki/STATUS_LOG.md",)
 LINK_SUFFIXES = (".md", ".html", ".htm")
 MAX_BYTES = 4 * 1024 * 1024
 # a markdown link target, or an HTML href/src value
-LINK_RE = re.compile(r'(\]\()([^)\s]+)(\))|((?:href|src)=")([^"]+)(")')
+LINK_RE = re.compile(r'(\]\()([^)\s]+)((?:\s+"[^"]*")?\))|((?:href|src)=")([^"]+)(")')
 PARENTS_RE = re.compile(r"(Path\(__file__\)\.resolve\(\)\.parents\[)(\d+)(\])")
 
 
@@ -87,7 +87,8 @@ def clean(path: str) -> str:
 
 
 def plan_moves(root: Path, old: str, new: str, files: list[str]) -> dict[str, str]:
-    if (root / new).exists():
+    same_name = new.lower() == old.lower()          # a case-only rename on a case-insensitive disk (the Mac)
+    if (root / new).exists() and not same_name:
         raise MoveError(f"{new} already exists")
     if new == old or new.startswith(old + "/"):
         raise MoveError(f"cannot move {old} into itself")
@@ -123,15 +124,22 @@ def read_text(path: Path) -> str | None:
         return None
 
 
+REPO_VARS = re.compile(r"(ROOT|REPO|\w*_ROOT|\w*REPO\w*)$")   # shell variables that hold the repo root
+
+
 def root_path_re(old: str) -> re.Pattern:
     """`old` as a whole repo-root path: at a start, after a character that cannot be part of a path, or after a
     leading `./` (not `../`, a relative path the link rewrite handles); and not running on into a longer name."""
-    return re.compile(r"(?:(?<![\w.\-/])|(?<=\./)(?<!\.\./))" + re.escape(old) + r"(?![\w\-]|\.\w)")
+    before = r"(?:(?<![\w.\-/])|(?<=\./)(?<!\.\./))"
+    if "/" not in old:
+        # one segment (docs, Makefile) is also a word: a path only with a slash after it, or alone in quotes
+        return re.compile(before + re.escape(old) + r"(?=/)|(?<=[`'\"])" + re.escape(old) + r"(?=[`'\"])")
+    return re.compile(before + re.escape(old) + r"(?![\w\-]|\.\w)")
 
 
 def var_path_re(old: str) -> re.Pattern:
-    """`old` after a shell variable and a slash (`"$ROOT/tools/x.sh"`, `${ROOT}/tools/x.sh`)."""
-    return re.compile(r"(\$\{?[A-Za-z_]\w*\}?/)" + re.escape(old) + r"(?![\w\-]|\.\w)")
+    """`old` after a shell variable and a slash (`"$ROOT/tools/x.sh"`, `${ROOT}/tools/x.sh`); group 2 is the name."""
+    return re.compile(r"(\$\{?([A-Za-z_]\w*)\}?/)" + re.escape(old) + r"(?![\w\-]|\.\w)")
 
 
 def map_path(target: str, old: str, moves: dict[str, str], new: str) -> str | None:
@@ -151,7 +159,9 @@ def rewrite_links(text: str, here_old: str, here_new: str, plan: Plan, known: se
 
     def fix(m: re.Match) -> str:
         pre, target, post = (m.group(1), m.group(2), m.group(3)) if m.group(1) else (m.group(4), m.group(5), m.group(6))
-        path, sep, frag = target.partition("#")
+        cut = min([i for i in (target.find("#"), target.find("?")) if i >= 0], default=len(target))
+        path, frag = target[:cut], target[cut:]
+        sep = ""
         if not path or re.match(r"^[a-z][a-z0-9+.-]*:", path, re.I) or path.startswith(("/", "<", "{", "$")):
             return m.group(0)
         resolved = posixpath.normpath(posixpath.join(dir_old, path))
@@ -195,7 +205,10 @@ def build_plan(root: Path, old: str, new: str, include_history: bool = False) ->
         if f.endswith(LINK_SUFFIXES):
             out = rewrite_links(out, f, here_new, plan, known, root)
         out = path_re.sub(lambda m: new, out)
-        out = var_re.sub(lambda m: m.group(1) + new, out)
+        out = var_re.sub(lambda m: m.group(1) + new if REPO_VARS.match(m.group(2)) else m.group(0), out)
+        for n, line in enumerate(out.splitlines(), 1):
+            for m in var_re.finditer(line):
+                plan.notes.append(f"{here_new}:{n}: {old} after ${m.group(2)}, not the repo root: {line.strip()[:120]}")
         if moved and f.endswith(".py"):
             out = fix_depth(out, f, here_new, plan)
         if out != text:
@@ -215,20 +228,24 @@ def fix_depth(text: str, old_file: str, new_file: str, plan: Plan) -> str:
             return f"{m.group(1)}{d_new}{m.group(3)}"
         return m.group(0)
 
-    out = PARENTS_RE.sub(fix, text)
-    for n, line in enumerate(out.splitlines(), 1):
-        if "__file__" in line and not (PARENTS_RE.search(line) and f"parents[{d_new}]" in line):
+    lines = text.splitlines(keepends=True)
+    out = []
+    for n, line in enumerate(lines, 1):
+        fixed = PARENTS_RE.sub(fix, line)
+        if "__file__" in line and fixed == line:
             plan.notes.append(f"{new_file}:{n}: a __file__ lookup; the file is now {d_new} folder(s) deep, "
                               f"was {d_old}: {line.strip()[:120]}")
-    return out
+        out.append(fixed)
+    return "".join(out)
 
 
 def note_names(f: str, text: str, names: dict[str, str], modules: dict[str, str], plan: Plan) -> None:
     """Lines that still name a moved file by its file name alone, or import a moved module."""
     where = plan.moves.get(f, f)
+    name_res = {name: re.compile(r"(?<![\w.\-])" + re.escape(name) + r"(?![\w\-])") for name in names}
     for n, line in enumerate(text.splitlines(), 1):
         for name, src in names.items():
-            if name in line and plan.moves[src] not in line and src != f:
+            if name_res[name].search(line) and plan.moves[src] not in line and src != f:
                 plan.notes.append(f"{where}:{n}: names {name} without its path: {line.strip()[:120]}")
         if f.endswith(".py"):
             for mod, src in modules.items():
@@ -260,17 +277,17 @@ def apply_plan(root: Path, plan: Plan) -> None:
     (root / plan.new).parent.mkdir(parents=True, exist_ok=True)
     git(root, "mv", plan.old, plan.new)
     for f, (_, text) in plan.edits.items():
-        (root / plan.moves.get(f, f)).write_text(text, encoding="utf-8")
+        (root / plan.moves.get(f, f)).write_bytes(text.encode("utf-8"))    # line endings as read
 
 
 def rebuild(root: Path, plan: Plan) -> None:
     """The generated pages that list paths: the docs index, and the pipeline-map pages when the map changed."""
     steps = []
     if (root / "tools/ops/build_docs_index.py").is_file():
-        steps.append(["python3", "tools/ops/build_docs_index.py"])
+        steps.append([sys.executable, "tools/ops/build_docs_index.py"])
     if "docs/pipeline-map/pipeline_map.json" in plan.edits and (root / "tools/ops/build_pipeline_map.py").is_file():
-        steps.append(["python3", "tools/ops/build_pipeline_map.py"])
-        steps.append(["python3", "tools/ops/build_pipeline_map.py", "--public", "--out", "www/library/pipeline-map.html",
+        steps.append([sys.executable, "tools/ops/build_pipeline_map.py"])
+        steps.append([sys.executable, "tools/ops/build_pipeline_map.py", "--public", "--out", "www/library/pipeline-map.html",
                       "--back", "repository-guide.html"])
     for cmd in steps:
         done = subprocess.run(cmd, cwd=root, capture_output=True, text=True)

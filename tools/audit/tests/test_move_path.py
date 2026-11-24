@@ -16,13 +16,19 @@ FILES = {
                     'REPO = Path(__file__).resolve().parents[2]\nHERE = Path(__file__).resolve().parents[0]\n',
     "tools/a/helper.py": "VALUE = 1\n",
     "tools/a/README.md": "# a\n\nSee [the guide](../../docs/guide.md).\n",
-    "tools/run.sh": 'python3 "$ROOT/tools/a/x.py"\nbash ${ROOT}/tools/a/x.py\n',
+    "tools/run.sh": 'python3 "$ROOT/tools/a/x.py"\nbash ${ROOT}/tools/a/x.py\ncp y "$OUT/tools/a/x.py"\n',
+    "tools/deep/c/z.py": "from pathlib import Path\nTOOLS = Path(__file__).resolve().parents[2]\n"
+                         "REPO = Path(__file__).resolve().parents[3]\n",
+    "docs/README.md": "Read the docs here. See docs/guide.md and `docs`.\n",
+    "docs/Mixed.md": "# Mixed\n",
     "tools/use.py": "import helper\nfrom helper import VALUE\n",
     "docs/guide.md": "# Guide\n\nRun `./tools/a/x.py` or tools/a/x.py.\n[x](../tools/a/x.py) [a](../tools/a/) "
                      "[web](https://example.com/tools/a/x.py) [anchor](#top)\n"
                      "Not these: mytools/a/x.py, tools/a/x.pyc, tools/a/x.py_old.\n",
-    "docs/page.html": '<a href="../tools/a/x.py">x</a> <img src="../tools/a/pic.png">\n',
+    "docs/page.html": '<a href="../tools/a/x.py">x</a> <img src="../tools/a/pic.png">\n'
+                      '<img src="../tools/a/pic.png?v=2"> [t](../tools/a/x.py "The script")\n',
     "docs/notes.md": "x.py is the script; helper.py too.\n",
+    "docs/other.md": "index.py is another script.\n",
     "Makefile": "x:\n\tpython3 tools/a/x.py\n",
     "wiki/STATUS_LOG.md": "Updated: tools/a/x.py was added.\n",
     "archive/old.md": "tools/a/x.py, [x](../tools/a/x.py)\n",
@@ -70,8 +76,12 @@ class MovePathTest(unittest.TestCase):
         self.assertIn("[x](../tools/b/y.py)", guide)
         self.assertIn("[web](https://example.com/tools/a/x.py)", guide)
         self.assertIn("Not these: mytools/a/x.py, tools/a/x.pyc, tools/a/x.py_old.", guide)
-        self.assertEqual('<a href="../tools/b/y.py">x</a> <img src="../tools/a/pic.png">\n', self.read("docs/page.html"))
-        self.assertEqual('python3 "$ROOT/tools/b/y.py"\nbash ${ROOT}/tools/b/y.py\n', self.read("tools/run.sh"))
+        page = self.read("docs/page.html")
+        self.assertIn('<a href="../tools/b/y.py">x</a> <img src="../tools/a/pic.png">', page)
+        self.assertIn('[t](../tools/b/y.py "The script")', page)
+        self.assertEqual('python3 "$ROOT/tools/b/y.py"\nbash ${ROOT}/tools/b/y.py\ncp y "$OUT/tools/a/x.py"\n',
+                         self.read("tools/run.sh"))
+        self.assertIn("tools/a/x.py after $OUT, not the repo root", done.stdout)
         self.assertIn("python3 tools/b/y.py", self.read("Makefile"))
         self.assertIn('"""Usage: python3 tools/b/y.py OUT"""', self.read("tools/b/y.py"))
 
@@ -100,6 +110,7 @@ class MovePathTest(unittest.TestCase):
         guide = self.read("docs/guide.md")
         self.assertIn("[x](../archive/tools-a/x.py) [a](../archive/tools-a/)", guide)
         self.assertIn('src="../archive/tools-a/pic.png"', self.read("docs/page.html"))
+        self.assertIn('src="../archive/tools-a/pic.png?v=2"', self.read("docs/page.html"))
         self.assertIn("[the guide](../../docs/guide.md)", self.read("archive/tools-a/README.md"))
         self.assertIn("REPO = Path(__file__).resolve().parents[2]", self.read("archive/tools-a/x.py"))
         self.assertIn("imports helper, which moved to archive/tools-a/", done.stdout)
@@ -112,7 +123,34 @@ class MovePathTest(unittest.TestCase):
     def test_a_name_alone_is_reported_not_changed(self) -> None:
         done = self.run_it("tools/a/x.py", "tools/b/y.py", "--apply")
         self.assertIn("docs/notes.md:1: names x.py without its path", done.stdout)
+        self.assertNotIn("docs/other.md", done.stdout)
         self.assertEqual(FILES["docs/notes.md"], self.read("docs/notes.md"))
+
+    def test_a_one_word_folder_is_rewritten_as_a_path_only(self) -> None:
+        self.run_it("docs", "documentation", "--apply")
+        self.assertEqual("Read the docs here. See documentation/guide.md and `documentation`.\n",
+                         self.read("documentation/README.md"))
+
+    def test_a_lookup_the_move_did_not_change_is_reported(self) -> None:
+        done = self.run_it("tools/deep/c/z.py", "tools/z.py", "--apply")
+        text = self.read("tools/z.py")
+        self.assertIn("REPO = Path(__file__).resolve().parents[1]", text)
+        self.assertIn("TOOLS = Path(__file__).resolve().parents[2]", text)
+        self.assertIn("tools/z.py:2: a __file__ lookup", done.stdout)
+        self.assertNotIn("tools/z.py:3:", done.stdout)
+
+    def test_a_case_only_rename(self) -> None:
+        done = self.run_it("docs/Mixed.md", "docs/mixed.md", "--apply")
+        self.assertEqual(0, done.returncode, done.stderr)
+        listed = subprocess.run(["git", "ls-files", "docs"], cwd=self.repo, capture_output=True, text=True).stdout
+        self.assertIn("docs/mixed.md", listed.split())
+        self.assertNotIn("docs/Mixed.md", listed.split())
+
+    def test_line_endings_are_kept(self) -> None:
+        (self.repo / "docs/crlf.md").write_bytes(b"see tools/a/x.py\r\nend\r\n")
+        subprocess.run(["git", "add", "docs/crlf.md"], cwd=self.repo, check=True)
+        self.run_it("tools/a/x.py", "tools/b/y.py", "--apply")
+        self.assertEqual(b"see tools/b/y.py\r\nend\r\n", (self.repo / "docs/crlf.md").read_bytes())
 
     def test_refusals(self) -> None:
         for args, says in ((("tools/nope.py", "tools/b.py"), "not a tracked file"),
