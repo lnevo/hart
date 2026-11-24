@@ -605,3 +605,31 @@
   overflow-x: auto;
   line-height: 1.5;
 }
+
+/* —— Banner photo at the top of an article (optional) —— */
+.feature-head:has(> .feature-banner) {
+  max-width: none;
+}
+
+.feature-head:has(> .feature-banner) > :not(.feature-banner) {
+  max-width: 46rem;
+}
+
+.feature-banner {
+  margin: 0 0 1.25rem;
+}
+
+.feature-banner img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 8 / 3;
+  object-fit: cover;
+  border: 1px solid var(--rule);
+}
+
+.feature-banner figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
