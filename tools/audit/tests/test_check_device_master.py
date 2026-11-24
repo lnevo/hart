@@ -120,10 +120,12 @@ class RowRules(Master):
                                   cdm.railroad.Railroad().interlockings)
 
     def test_a_field_row_names_all_three(self):
-        for col in ("user_name", "system_name", "jmri_name"):
+        """hartlib.devices.check_rows holds it on every load, so a row that reaches row_problems already has all three."""
+        for col, why in (("user_name", "user_name is empty"), ("system_name", "a field device needs a system_name"),
+                         ("jmri_name", "a field device needs a system_name and a jmri_name")):
             with self.subTest(col=col):
-                got = cdm.row_problems(self.edited({("1", "Switch 1"): {col: ""}}), self.cps)
-                self.assertProblem(r"a field device needs a user_name, a system_name and a jmri_name", got)
+                with self.assertRaisesRegex(cdm.devices.DevicesError, why):
+                    cdm.devices.check_rows([r for _n, r in self.edited({("1", "Switch 1"): {col: ""}})])
 
     def test_a_jmri_name_given_twice(self):
         got = cdm.check_rows(self.edited({("1", "Switch 3"): dict(jmri_name="M2T408"),

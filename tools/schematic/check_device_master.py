@@ -212,8 +212,6 @@ def row_problems(lines: list[tuple[int, dict]], cps: dict[str, set[str]], where:
             bad.append(f"{at}: a device map holds no {layer} rows (layers {', '.join(sdm.LAYERS)})")
             continue
         bad += [f"{at}: {p}" for p in railroad.device_facts(r)]
-        if r["assignment"] == "field" and not (r["user_name"] and r["system_name"] and r["jmri_name"]):
-            bad.append(f"{at}: a field device needs a user_name, a system_name and a jmri_name")
         if r["role"] in devices.LINE_ROLES:
             unknown = [p for p in devices.cp_list(r) if p not in places]
             if unknown:
