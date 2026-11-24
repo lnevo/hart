@@ -1,5 +1,5 @@
 """The block layer of every level: one process from the drawing, rules and the owner's hand data (level unification
-step 5, owner 2026-11-20; wiki/projects/level-unification-handoff.md).
+step 5, owner 2026-11-20; archive/wiki/projects/level-unification-handoff.md).
 
     from block_layer import layer, name_tracks
 

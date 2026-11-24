@@ -319,7 +319,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         r.add(f"le:{n}", f"{n}: no turnout {sw.turnout!r} in tables.xml")
         return
     if sw.hardware and system != sw.hardware:
-        r.add(f"le:{n}", f"{n}: tables.xml turnout is {system}, devices.csv says {sw.hardware}")
+        r.add(f"le:{n}", f"{n}: tables.xml turnout is {system}, the device master says {sw.hardware}")
     # a witness of tables.xml (an output) against the device master's dcc column: the address is read out of the built
     # comment only to hold the build to the master, never used as a fact
     try:
@@ -329,7 +329,7 @@ def check_tables(sw: facts.Switch, t: Tables, r: Report) -> None:
         r.add(f"le:{n}", f"{n}: tables.xml {err}")
     if sw.dcc and dcc != sw.dcc:
         r.add(f"le:{n}", f"{n}: tables.xml comment DCC {dcc or '-'}, "
-                         f"devices.csv says DCC {sw.dcc}")
+                         f"the device master says DCC {sw.dcc}")
     lt = t.layout_turnouts.get(sw.le_ident)
     if lt is None:
         r.add(f"le:{n}", f"{n}: switches.csv names layout turnout {sw.le_ident}, not in tables.xml")
@@ -687,10 +687,10 @@ def check_data(switches: dict[int, facts.Switch], data: Path, r: Report) -> None
     for sw in switches.values():
         n = f"Switch {sw.number}"
         if not sw.hardware:
-            r.add(f"data:{n}", f"{n}: no staging turnout row with a system_name in devices.csv")
+            r.add(f"data:{n}", f"{n}: no staging turnout row with a system_name in the device master")
         if sw.number in listed and sw.cp != listed[sw.number]:
             r.add(f"data:{n}", f"{n}: stations.csv puts it at {listed[sw.number]}, "
-                               f"devices.csv at {sw.cp or '-'}")
+                               f"the device master at {sw.cp or '-'}")
     for num in sorted(set(listed) - set(switches)):
         r.add(f"data:Switch {num}", f"Switch {num}: in stations.csv, not in switches.csv")
 
@@ -762,7 +762,7 @@ def check_mast_cells(data: Path, rows: list[dict[str, str]], desks, t: Tables, r
         heads[hart_tables.user_name(m)] = re.findall(r"\((IH\d+)\)", hart_tables.system_name(m))
     for c in cells:
         if c.mast not in named:
-            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a staging mast row of devices.csv")
+            r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a staging mast row of the device master")
         if c.mast not in heads:
             r.add(f"mast:{c.mast}", f"{c.mast}: in mast_cells.csv, not a mast in tables.xml")
             continue
@@ -786,7 +786,7 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
     # a line block's cp lists stations and control points of any level (check_device_master holds it); one row's is
     # a desk area of stations.csv
     for cp in sorted({row["cp"] for row in rows if row["cp"] and row["role"] not in devices.LINE_ROLES} - set(by_cp)):
-        r.add(f"level:{cp}", f"{cp}: a cp of a staging row of devices.csv with no desk area (and no level) in stations.csv")
+        r.add(f"level:{cp}", f"{cp}: a cp of a staging row of the device master with no desk area (and no level) in stations.csv")
     # A block's level from its switches (throat blocks through their track) against its control point's.
     by_block = facts.switch_block_levels(switches)
     block_cp = {row["user_name"]: row["cp"] for row in rows if row["layer"] == "block"}
@@ -811,7 +811,7 @@ def check_levels(switches: dict[int, facts.Switch], data: Path, rows: list[dict[
             r.add(f"level:{name}", str(exc))
             continue
         if len(near) != 1:
-            r.add(f"level:{name}", f"{name}: no control point and no switch in devices.csv or "
+            r.add(f"level:{name}", f"{name}: no control point and no switch in the device master or "
                                    f"switches.csv, and the blocks it joins in tables.xml are on levels "
                                    f"{sorted(near) or 'none'}; give it a cp")
 

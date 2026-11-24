@@ -44,7 +44,7 @@ Documents about the CATS Digicon CTC desks, how their signals and turnouts get t
 
 ## hosts
 
-- [PI_OS_REBUILD.md](hosts/PI_OS_REBUILD.md): This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi
+- [PI_OS_REBUILD.md](hosts/PI_OS_REBUILD.md): The layout Pi runs the new 64-bit Raspberry Pi OS (trixie) card since 2026-11-23, built from scripts and config files in the repo; the old bookworm card is...
 
 ## jmri
 

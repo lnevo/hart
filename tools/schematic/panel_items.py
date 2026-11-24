@@ -319,7 +319,7 @@ def main(argv=None) -> int:
     import argparse
     import sys
     ap = argparse.ArgumentParser(description=main.__doc__.split("\n")[0])
-    ap.add_argument("--check", action="store_true", help="exit 1 if devices.csv is out of date")
+    ap.add_argument("--check", action="store_true", help="exit 1 if the device master is out of date")
     args = ap.parse_args(argv)
     try:
         devices = _devices()

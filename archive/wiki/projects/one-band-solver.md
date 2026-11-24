@@ -2,7 +2,7 @@
 
 Status: done (2026-11-23)
 
-The schematic-maps plugin draws HART as approved in 38 s, but given HART as one continuous railroad (one input, no level cuts, no preferences) it needed a turnback cap it does not allow, then spent 43 minutes on rows and stopped with `columns: constraints do not settle` ([efficiency plan](../../docs/pipeline-map/efficiency-plan.md#full-rebuild-timed-2026-11-23)). The aim (owner, 2026-11-23): the plugin solves any AnyRail plan it is given, with no hand hints, in bounded time, and HART with the owner's layer files still comes out exactly as approved.
+The schematic-maps plugin draws HART as approved in 38 s, but given HART as one continuous railroad (one input, no level cuts, no preferences) it needed a turnback cap it does not allow, then spent 43 minutes on rows and stopped with `columns: constraints do not settle` ([efficiency plan](../../../docs/pipeline-map/efficiency-plan.md#full-rebuild-timed-2026-11-23)). The aim (owner, 2026-11-23): the plugin solves any AnyRail plan it is given, with no hand hints, in bounded time, and HART with the owner's layer files still comes out exactly as approved.
 
 ## Acceptance
 
@@ -31,7 +31,7 @@ Found in the one-band run; each is checked by step 2 before it is changed.
 |---|---|---|
 | A | HART with every layer file: the approved output | This repo (`make panels FULL=1`, `check_approved.py`) |
 | B | HART raw: the two inputs, `--no-preferences` | This repo; commands in the efficiency plan |
-| C | HART one band: the joined graph | Script `tools/schematic/experiments/one_band.py` (`--cap`, `--seconds`, `--profile`) |
+| C | HART one band: the joined graph | Script `archive/tools-schematic-experiments/one_band.py` (archived 2026-11-23; it was `tools/schematic/experiments/one_band.py`) (`--cap`, `--seconds`, `--profile`) |
 | D | Other people's plans: about 10 AnyRail plans of different sizes and shapes (a shelf switcher, a loop with a yard, a dogbone, a two-level plan with a helix, a large club plan) | Local only, outside the repo: their track graphs are made with `schematic anyplan`/`plan`; the plans, and the objects and buildings in them, are other people's work and are not published |
 | E | Made-up plans in the plugin's tests: the Pine Hollow & Eastern (`tests/example.py`) and new generated ones: random loops, ladders, reversing loops, crossovers, two levels joined by a helix | The plugin repo, public; generic, no HART names |
 
@@ -56,7 +56,7 @@ Every step that changes plugin code reruns set A before it is committed: a chang
 
 ## Rules for the work
 
-- No HART names, plan file names or the owner's name in the plugin, its tests or its commit text (the plugin is public and generic: [REPOS](../REPOS.md)).
+- No HART names, plan file names or the owner's name in the plugin, its tests or its commit text (the plugin is public and generic: [REPOS](../../../wiki/REPOS.md)).
 - No new setting the owner must fill in for HART: a new option defaults to today's behaviour on a plan HART's size, so set A needs no layer file change.
 - A drawing with faults is a result, not a crash: it is drawn, with its faults listed, and the run exits non-zero only when asked to check.
 

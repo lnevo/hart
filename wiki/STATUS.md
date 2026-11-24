@@ -74,16 +74,13 @@ One or two lines per fact, with the owner and date and a link to the detail. PR 
 
 In order; the first two are the main track (owner, 2026-11-21).
 
-- **Main and upper station maps (owner, 2026-11-20/21):** name the main and upper stations in PanelPro, add their rows to `stations.csv` and `sheets.csv` (already one file for every level; only staging has rows), drop the hand-kept sheet lists in `preferences.json`'s `main_upper` section, then draw a map per control point at minimum. This is level unification step 7, the only step left ([`projects/level-unification-handoff.md`](projects/level-unification-handoff.md)).
+- **Main and upper station maps (owner, 2026-11-20/21):** name the main and upper stations in PanelPro, add their rows to `stations.csv` and `sheets.csv` (already one file for every level; only staging has rows), drop the hand-kept sheet lists in `preferences.json`'s `main_upper` section, then draw a map per control point at minimum. This is level unification step 7, the only step left ([archived hand-off](../archive/wiki/projects/level-unification-handoff.md)).
 - **Finalize wiring (owner, 2026-11-21):** what stands between the main and upper levels' draft wiring and their being in service:
   - **Place every head.** The draft board plan has no room for 14 heads: CP 107's 120RB (two heads), A83 and A84; CP 127's 132RA and 132RB (two each); CP 201's 222LB; CP 225's 230LB (two), B92 and B93; and 242L (no control point). A control point with an unplaced head cannot be frozen.
   - **Map the power districts.** None is recorded on any level (owner, 2026-11-21).
   - **Wire, freeze and swap, control point by control point** (the 35 main-line detectors with them): wire it as the device map has it, `make wiring-freeze CP="CP 123"`, then swap its virtual devices for the physical ones through the device map (`jmri_name`), with stock SML discovery and the owner's approval of the panel and desks. CP 123, 211, 217 and 223 can be frozen now. Wiring flows one way (rules, proposal in the generated rows, `make wiring-freeze`, `wiring.csv`, device map), and `check_wiring_frozen.py` fails when `wiring.csv` changes any other way.
 
 - **Session #4 punch list (owner, 2026-11-21):** still open: CP signs, the crew board and mock signal designs (agent work); resistor wheels, mock signals at the rail gaps, the crew board mounted, the East End/Princess gap marked and the Barn lead drill signal wired (owner) ([`docs/ops/SESSION4_PUNCH_LIST.md`](../docs/ops/SESSION4_PUNCH_LIST.md)).
-
-- **Full rebuild timed (owner, 2026-11-23):** done. A cold `make panels FULL=1` takes 431 s, 343 s of it the Layout Editor build; the plugin alone with no preferences solves in the same 38 s and draws the Layout Editor panel in 1.5 s and the CATS desk in 0.2 s, but too wide for the hosts' window ([`docs/pipeline-map/efficiency-plan.md`](../docs/pipeline-map/efficiency-plan.md#full-rebuild-timed-2026-11-23)).
-- **Schematic solver on any plan (owner, 2026-11-23, done):** plugin 0.1.53 draws 37 of the 38 sample plans with no hints and HART as one band in 57 s, while HART's approved panels stay byte-identical; the one-band CATS desk is too big for future builds and D24 waits for review ([`projects/one-band-solver.md`](projects/one-band-solver.md)).
 
 
 ## In progress
