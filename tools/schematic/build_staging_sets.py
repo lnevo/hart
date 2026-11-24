@@ -165,7 +165,7 @@ def generated_keys(cps, stations) -> dict:
     return over
 
 
-DETAIL_NOTE = ("Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations above. "
+DETAIL_NOTE = ("Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations (stations.csv). "
                "South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick "
                "and Plane; Princess is the hand map's Shenango. Written by tools/schematic/build_staging_sets.py from "
                "sheets.csv (each sheet the sorted union of its stations' switches); edit that file, not this key.")
@@ -180,7 +180,7 @@ def check_hand_preferences(data: Path) -> None:
     """Stop when preferences.json's staging section holds a key this writes: the merge keeps a hand value over a
     generated one (hartlib.layer_files.merge), so a hand copy would hide what sheets.csv says."""
     hand = layer_files.read("preferences", SHEET, data)
-    clash = [k for k in generated_preferences([], []) if k in hand]
+    clash = [k for k in generated_preferences([], []) if k in hand and not k.startswith("_")]  # a note hides nothing
     if clash:
         raise SetsError(f"preferences.json[{SHEET}] holds {', '.join(clash)}: build_staging_sets.py writes "
                         f"{'it' if len(clash) == 1 else 'them'} to preferences_generated.json from sheets.csv; "

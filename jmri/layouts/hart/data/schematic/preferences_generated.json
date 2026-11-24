@@ -72,6 +72,6 @@
     "39"
    ]
   },
-  "_detail_sheets": "Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations above. South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick and Plane; Princess is the hand map's Shenango. Written by tools/schematic/build_staging_sets.py from sheets.csv (each sheet the sorted union of its stations' switches); edit that file, not this key."
+  "_detail_sheets": "Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations (stations.csv). South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick and Plane; Princess is the hand map's Shenango. Written by tools/schematic/build_staging_sets.py from sheets.csv (each sheet the sorted union of its stations' switches); edit that file, not this key."
  }
 }

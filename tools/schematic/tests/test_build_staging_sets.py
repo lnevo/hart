@@ -82,6 +82,16 @@ class RealFiles(unittest.TestCase):
         with self.assertRaisesRegex(S.SetsError, r"preferences.json\[staging\] holds detail_sheets: .*delete the hand"):
             S.wanted(tmp)
 
+    def test_a_hand_note_alone_does_not_stop(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for kind in KINDS:
+            shutil.copyfile(S.layer_files.path(kind, S.pd.DATA), S.layer_files.path(kind, tmp))
+        prefs = S.layer_files.read("preferences", "staging", tmp)
+        prefs["_detail_sheets"] = "a hand note"
+        S.layer_files.write({("preferences", "staging"): prefs}, tmp)
+        S.wanted(tmp)  # no SetsError: a note hides no drawn value
+
     def test_a_missing_generated_preferences_file_stops_clearly(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)

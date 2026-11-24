@@ -149,7 +149,7 @@ PLAN_GENERATED_FILE = f"{GENERATED}.json"
 
 
 def merge(hand: dict, generated: dict) -> dict:
-    """The whole plan_overrides view from the hand file's and the generated file's contents: per section the hand
+    """The whole view of a kind (plan_overrides or preferences) from the hand file's and the generated file's contents: per section the hand
     keys, then the generated keys the hand section lacks. The generated `name_main` is not a key of the view: it flags
     those tracks of the staging `name` edit "main" (last in the entry), as the one file used to hold them."""
     out = dict(hand)
