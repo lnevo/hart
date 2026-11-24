@@ -61,6 +61,21 @@ The race needs only stock JMRI, many MQTT beans subscribing at load and retained
 
 Why the new Pi card shows it more often than the old one is not measured; a faster CPU or Java 21 changing the timing is a guess.
 
+## Proposed fix, tested (2026-11-23)
+
+[`mqtt-adapter-fix.diff`](mqtt-adapter-fix.diff) is against 5.19.1's `MqttAdapter.java`: 18 lines in, 19 out, one file. The listener map becomes a `ConcurrentHashMap` of `CopyOnWriteArrayList`s, which can be read while another thread adds to them, so `messageArrived()` walks it directly with no copy. `subscribe()` and `unsubscribe()` create and remove a topic's entry in one step (`computeIfAbsent`, `remove(key, value)`). No lock is held while calling the MQTT client or a listener. Two hardening lines: `connectionLost()` logs its cause, and `messageArrived()` logs an unknown topic instead of throwing. JMRI's `MqttAdapterTest` sets the map directly in 4 places and needs the same type change.
+
+Test: the class compiled against the 5.16 jars and loaded ahead of `jmri.jar` (`--cp:p`) for the bare profile only, confirmed by the JVM's class-load log. 106 beans, retained messages, exception recording on every start, Mac, Java 17.0.1.
+
+| JMRI | Broker | Starts | Connection dropped | Recorded `ConcurrentModificationException` in `MqttAdapter` |
+|---|---|---|---|---|
+| fixed | Mosquitto 2.1.2 | 20 | 0 | 0 |
+| fixed | EMQX 5.8.6 | 20 | 0 | 0 |
+| stock, same session | Mosquitto 2.1.2 | 5 | 5 | 5 |
+| stock, same session | EMQX 5.8.6 | 5 | 4 | 4 |
+
+No fixed start logged `No one subscribed`, so the map change does the work, not the hardening line. That each sensor and turnout received its retained state with the fix was not checked bean by bean.
+
 ## Next
 
-The reproduction stopped at the owner's word (2026-11-23): the bug is in JMRI and an earlier fix for it is on record. Next is a JMRI issue citing #10280 and these results, and a pull request. Possible fixes: a `ConcurrentHashMap` (or a synchronized copy) for `mqttEventListeners`, and catching exceptions inside `messageArrived()` so one bad delivery cannot close the connection.
+The reproduction stopped at the owner's word (2026-11-23): the bug is in JMRI and an earlier fix for it is on record. Next is a JMRI issue citing #10280 and these results, and a pull request with the diff above and the test change. Possible fixes: a `ConcurrentHashMap` (or a synchronized copy) for `mqttEventListeners`, and catching exceptions inside `messageArrived()` so one bad delivery cannot close the connection.
