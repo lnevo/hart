@@ -22,6 +22,10 @@ hand keys, then the generated keys the hand section lacks (a hand value wins), w
 put back on the staging `name` edit. `view` writes that merged view as a folder the schematic plugin reads with
 `--data`. A generated write goes through `generated_texts` / `write_generated`, which replace only the keys given
 and never touch the hand file.
+
+preferences.json is split the same way: build_staging_sets.py writes staging's `detail_sheets` (from sheets.csv) to
+preferences_generated.json (GENERATED_OF), merged under preferences.json by the same rule. `merged(data,
+"preferences")` gives that view, and `view` puts both merged files in the plugin's folder.
 """
 from __future__ import annotations
 
@@ -37,6 +41,8 @@ from . import paths
 SCHEMATIC = paths.LAYOUT_DATA / "schematic"
 KINDS = ("plan_overrides", "preferences", "signals")
 GENERATED = "plan_generated"  # the generated half of plan_overrides: same sections, written by three builders
+PREFS_GENERATED = "preferences_generated"  # the generated half of preferences: written by build_staging_sets.py
+GENERATED_OF = {"plan_overrides": GENERATED, "preferences": PREFS_GENERATED}   # hand kind -> its generated kind
 NAME_MAIN = "name_main"       # staging's generated key: the indexes of the `name` edit's tracks flagged "main"
 SECTIONS = "_sections"        # the key a combined file holds, true (the plugin's layers.SECTIONS)
 
@@ -47,8 +53,8 @@ class LayerFileError(ValueError):
 
 def path(kind: str, data: Path = SCHEMATIC) -> Path:
     """The one file of `kind`: <data>/<kind>.json."""
-    if kind not in KINDS and kind != GENERATED:
-        raise LayerFileError(f"layer kind {kind!r}: the layer files are {', '.join((*KINDS, GENERATED))}")
+    if kind not in KINDS and kind not in GENERATED_OF.values():
+        raise LayerFileError(f"layer kind {kind!r}: the layer files are {', '.join((*KINDS, *GENERATED_OF.values()))}")
     return Path(data) / f"{kind}.json"
 
 
@@ -118,7 +124,7 @@ def texts(updates: Mapping[tuple[str, str], dict], data: Path = SCHEMATIC) -> di
         by_kind.setdefault(kind, {})[sheet] = section
     out = {}
     for kind, new in by_kind.items():
-        if kind == GENERATED:
+        if kind in GENERATED_OF.values():
             raise LayerFileError(f"{path(kind, data).name} is written key by key: use generated_texts")
         p = path(kind, data)
         whole = read_file(kind, data)
@@ -143,7 +149,7 @@ PLAN_GENERATED_FILE = f"{GENERATED}.json"
 
 
 def merge(hand: dict, generated: dict) -> dict:
-    """The whole plan_overrides view from the hand file's and the generated file's contents: per section the hand
+    """The whole view of a kind (plan_overrides or preferences) from the hand file's and the generated file's contents: per section the hand
     keys, then the generated keys the hand section lacks. The generated `name_main` is not a key of the view: it flags
     those tracks of the staging `name` edit "main" (last in the entry), as the one file used to hold them."""
     out = dict(hand)
@@ -175,13 +181,27 @@ def merge(hand: dict, generated: dict) -> dict:
 PLAN_OVERRIDES_FILE = "plan_overrides.json"
 
 
-def merged(data: Path = SCHEMATIC) -> dict:
-    """The whole plan_overrides view (the generated file under the hand file). A folder with no plan_generated.json
-    (a test's copy of the data) has nothing generated."""
-    hand = read_file("plan_overrides", data)
-    if not path(GENERATED, data).exists():
+def generated_kind(kind: str) -> str:
+    """The generated kind merged under the hand kind `kind` (plan_overrides or preferences)."""
+    if kind not in GENERATED_OF:
+        raise LayerFileError(f"layer kind {kind!r} has no generated layer (those that do: {', '.join(GENERATED_OF)})")
+    return GENERATED_OF[kind]
+
+
+def merged(data: Path = SCHEMATIC, kind: str = "plan_overrides") -> dict:
+    """The whole view of `kind` (its generated file under the hand file). A folder with no generated file of that
+    kind (a test's copy of the data) has nothing generated. Only plan_generated.json may hold `name_main`."""
+    gen_kind = generated_kind(kind)
+    hand = read_file(kind, data)
+    if not path(gen_kind, data).exists():
         return hand
-    return merge(hand, read_file(GENERATED, data))
+    gen = read_file(gen_kind, data)
+    if gen_kind != GENERATED:
+        flagged = sorted(k for k, v in gen.items() if not k.startswith("_") and NAME_MAIN in v)
+        if flagged:
+            raise LayerFileError(f"{path(gen_kind, data).name}[{', '.join(flagged)}]: {NAME_MAIN} belongs in "
+                                 f"{PLAN_GENERATED_FILE}")
+    return merge(hand, gen)
 
 
 def merged_section(sheet: str, data: Path = SCHEMATIC) -> dict:
@@ -189,11 +209,14 @@ def merged_section(sheet: str, data: Path = SCHEMATIC) -> dict:
     return section_of(merged(data), sheet, f"{PLAN_OVERRIDES_FILE}+{PLAN_GENERATED_FILE}")
 
 
-def generated_texts(updates: Mapping[str, dict], data: Path = SCHEMATIC) -> dict[Path, str]:
-    """{plan_generated.json: its whole text} with each sheet's given keys replaced (a new key goes last); the keys
-    a builder does not own stay as they are. `updates`: {sheet: {key: value}}. The hand file is never touched."""
-    p = path(GENERATED, data)
-    whole = read_file(GENERATED, data)
+def generated_texts(updates: Mapping[str, dict], data: Path = SCHEMATIC, kind: str = GENERATED) -> dict[Path, str]:
+    """{the generated file of `kind` (plan_generated unless given): its whole text} with each sheet's given keys
+    replaced (a new key goes last); the keys a builder does not own stay as they are. `updates`: {sheet: {key:
+    value}}. The hand file is never touched."""
+    if kind not in GENERATED_OF.values():
+        raise LayerFileError(f"{kind!r} is no generated layer (those are {', '.join(GENERATED_OF.values())})")
+    p = path(kind, data)
+    whole = read_file(kind, data)
     for sheet, keys in updates.items():
         sec = dict(section_of(whole, sheet, str(p)))
         sec.update(keys)
@@ -201,10 +224,10 @@ def generated_texts(updates: Mapping[str, dict], data: Path = SCHEMATIC) -> dict
     return {p: dumps(whole)}
 
 
-def write_generated(updates: Mapping[str, dict], data: Path = SCHEMATIC) -> list[Path]:
-    """Write generated_texts(updates); returns the file when its text changed."""
+def write_generated(updates: Mapping[str, dict], data: Path = SCHEMATIC, kind: str = GENERATED) -> list[Path]:
+    """Write generated_texts(updates, data, kind); returns the file when its text changed."""
     changed = []
-    for p, text in generated_texts(updates, data).items():
+    for p, text in generated_texts(updates, data, kind).items():
         if p.read_text(encoding="utf-8") != text:
             p.write_text(text, encoding="utf-8")
             changed.append(p)
@@ -213,18 +236,20 @@ def write_generated(updates: Mapping[str, dict], data: Path = SCHEMATIC) -> list
 
 def view(data: Path = SCHEMATIC) -> Path:
     """A folder the schematic plugin reads as its `--data`: `data` itself when nothing is generated there, else a
-    stable folder under paths.cache_dir("plan-merged") holding the merged plan_overrides.json and links to the rest
-    of `data`. A file is rewritten only when its bytes change, so every mtime and path stays put (the plugin's cache
-    keys on content and relative paths)."""
+    stable folder under paths.cache_dir("plan-merged") holding the merged plan_overrides.json and preferences.json
+    (each kind whose generated file is there) and links to the rest of `data`. A file is rewritten only when its
+    bytes change, so every mtime and path stays put (the plugin's cache keys on content and relative paths)."""
     data = Path(data).resolve()
-    if not path(GENERATED, data).exists():
+    whole_texts = {f"{kind}.json": dumps(merged(data, kind)) for kind, gen in GENERATED_OF.items()
+                   if path(gen, data).exists()}
+    if not whole_texts:
         return data
-    text = dumps(merged(data))
     root = paths.cache_dir("plan-merged") / hashlib.sha256(str(data).encode()).hexdigest()[:12]
     root.mkdir(parents=True, exist_ok=True)
-    keep = {PLAN_OVERRIDES_FILE}
+    keep = set(whole_texts)
+    skip = keep | {f"{gen}.json" for gen in GENERATED_OF.values()}
     for entry in data.iterdir():
-        if entry.name in (PLAN_OVERRIDES_FILE, PLAN_GENERATED_FILE):
+        if entry.name in skip:
             continue
         keep.add(entry.name)
         link = root / entry.name
@@ -234,11 +259,12 @@ def view(data: Path = SCHEMATIC) -> Path:
         tmp_link.unlink(missing_ok=True)
         tmp_link.symlink_to(entry)
         os.replace(tmp_link, link)
-    target = root / PLAN_OVERRIDES_FILE
-    if not target.exists() or target.read_text(encoding="utf-8") != text:
-        tmp = root / f".plan_overrides.{os.getpid()}.tmp"            # one name per process, replaced whole
-        tmp.write_text(text, encoding="utf-8")
-        os.replace(tmp, target)
+    for name, text in whole_texts.items():
+        target = root / name                 # a link left by an older view (preferences.json was one) is replaced
+        if target.is_symlink() or not target.exists() or target.read_text(encoding="utf-8") != text:
+            tmp = root / f".{name}.{os.getpid()}.tmp"                  # one name per process, replaced whole
+            tmp.write_text(text, encoding="utf-8")
+            os.replace(tmp, target)
     for stale in root.iterdir():
         if stale.name not in keep and not stale.name.startswith("."):
             stale.unlink()

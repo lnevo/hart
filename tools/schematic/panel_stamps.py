@@ -57,9 +57,9 @@ def _load_traced():
 traced = _load_traced()
 
 DATA = "jmri/layouts/hart/data"
-# The device master's file names: the generated file the device-map and masts steps write, and the owner's field
-# file. This script cannot import hartlib (the shell test runs a copy of it alone), so the names are here, and
-# test_devices_one_path pins them to hartlib.devices.
+# The device master's file names: the generated file the device-map, masts and panel-items steps write, and the
+# owner's field file. This script cannot import hartlib (the shell test runs a copy of it alone), so the names are
+# here, and test_devices_one_path pins them to hartlib.devices.
 DEVICES_FILE = "devices_generated.csv"
 DEVICES_FIELD_FILE = "devices_field.csv"
 SCH = f"{DATA}/schematic"
@@ -91,10 +91,12 @@ STEPS: dict[str, Step] = {
     "hands": Step((f"{DATA}/switches.csv",)),
     # plan_generated.json is an output of staging-sets, main-route and device-map (each replaces only its own keys, so it
     # reads the file it writes to carry the others' keys over) and an input of every step that draws from the plan.
-    "staging-sets": Step((f"{SCH}/plan_generated.json", f"{SCH}/preferences.json")),
+    "staging-sets": Step((f"{SCH}/plan_generated.json", f"{SCH}/preferences_generated.json")),
     "main-route": Step((f"{SCH}/plan_generated.json",)),
     "device-map": Step((f"{SCH}/plan_generated.json", f"{DATA}/{DEVICES_FILE}")),
     "masts": Step((f"{SCH}/masts.csv", f"{DATA}/{DEVICES_FILE}")),
+    # the status beans' rows of the device master (panel_items.py); panel_items.json is read, so the trace holds it
+    "panel-items": Step((f"{DATA}/{DEVICES_FILE}",)),
     "signals": Step((f"{SCH}/signals.json",)),
     "head-plan": Step((f"{OUT}/signal_head_plan.csv",)),
     # Chrome prints the drawn sheet (an output) to PDF

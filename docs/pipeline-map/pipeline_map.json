@@ -1346,7 +1346,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences.json.",
+   "desc": "make panels step 2: writes staging control points and stations into plan_generated.json and detail sheets into preferences_generated.json.",
    "path": "tools/schematic/build_staging_sets.py"
   },
   {
@@ -3256,7 +3256,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv; --check in check.sh.",
+   "desc": "Reads panel_items.json (fixed icons, labels, status cluster, panel attributes) for build_layout_le.py and writes the status beans' rows of devices_generated.csv (make panels' panel-items step, before tables); --check in check.sh.",
    "path": "tools/schematic/panel_items.py"
   },
   {
@@ -3274,7 +3274,7 @@
    "kind": "generator",
    "status": "live",
    "domain": "layout",
-   "desc": "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan step and sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all).",
+   "desc": "make panels: runs the schematic builders and guards in order (hands to CATS: head-plan and panel-items steps and the sml-current guard included), skipping a step whose stamped inputs are unchanged (FULL=1 runs all).",
    "path": "tools/schematic/build_panels.sh",
    "runner": true
   },
@@ -3540,6 +3540,15 @@
    "domain": "layout",
    "desc": "The generated half of plan_overrides: staging control points and stations, name_main and milepost_route, main_upper main_route, control_points and stations. Each of three builders replaces only its own keys (T6b).",
    "path": "jmri/layouts/hart/data/schematic/plan_generated.json"
+  },
+  {
+   "id": "jmri/layouts/hart/data/schematic/preferences_generated.json",
+   "label": "preferences_generated.json",
+   "kind": "output",
+   "status": "live",
+   "domain": "layout",
+   "desc": "The generated half of preferences: staging's detail_sheets, from sheets.csv. hartlib.layer_files merges it under preferences.json (hand values win).",
+   "path": "jmri/layouts/hart/data/schematic/preferences_generated.json"
   },
   {
    "id": "tools/hosts/panel_window_sizes.py",
@@ -6102,7 +6111,7 @@
   },
   {
    "from": "tools/schematic/build_staging_sets.py",
-   "to": "jmri/layouts/hart/data/schematic/preferences.json",
+   "to": "jmri/layouts/hart/data/schematic/preferences_generated.json",
    "label": "detail_sheets"
   },
   {
@@ -7411,6 +7420,11 @@
    "label": "head-plan step (--wiring-only)"
   },
   {
+   "from": "tools/schematic/build_panels.sh",
+   "to": "tools/schematic/panel_items.py",
+   "label": "panel-items step, before tables"
+  },
+  {
    "from": "jmri/layouts/hart/scripts/run_sml_discover.sh",
    "to": "jmri/layouts/hart/data/schematic/discovered_sml.stamp",
    "label": "writes with discovered_sml.xml"
@@ -7459,6 +7473,11 @@
   {
    "from": "jmri/layouts/hart/data/schematic/plan_generated.json",
    "to": "tools/schematic/build_signals.py",
+   "label": "merged view (layer_files.view)"
+  },
+  {
+   "from": "jmri/layouts/hart/data/schematic/preferences_generated.json",
+   "to": "tools/schematic/publish_draft.py",
    "label": "merged view (layer_files.view)"
   },
   {
