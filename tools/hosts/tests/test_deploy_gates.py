@@ -302,7 +302,7 @@ class G4TrustsCiPass(GateHarness):
         """The real ci_pass.py against the gh stand-in, which fails: G4 runs and stops the stale file."""
         (self.tmp / "tables_stale").touch()
         done = self.deploy("--pi", "--win")
-        self.assertRegex(done.stdout, r"ran G4: (CI stamps unreadable|no CI pass) for [0-9a-f]{12}: ")
+        self.assertRegex(done.stdout, r"ran G4: (CI stamps unreadable|no CI pass|the checkout cannot be read) for [0-9a-f]{12}: ")
         self.assertIn("STOP: tables.xml is not what tools/schematic/build_tables.py writes", done.stderr)
         self.assertNotIn("Traceback", done.stdout + done.stderr)
         self.assert_nothing_shipped(done)
@@ -312,6 +312,14 @@ class G4TrustsCiPass(GateHarness):
             (self.tmp / marker).touch()
         done = self.deploy("--pi", "--win")
         self.assertIn("ran G4: the CI pass check failed (exit 7)", done.stdout)
+        self.assertIn("STOP: tables.xml is not what", done.stderr)
+        self.assert_nothing_shipped(done)
+
+    def test_a_silent_no_still_says_g4_ran(self) -> None:
+        for marker in ("ci_pass_silent", "tables_stale"):
+            (self.tmp / marker).touch()
+        done = self.deploy("--pi", "--win")
+        self.assertIn("ran G4: the CI pass check said no and gave no reason (exit 1)", done.stdout)
         self.assertIn("STOP: tables.xml is not what", done.stderr)
         self.assert_nothing_shipped(done)
 

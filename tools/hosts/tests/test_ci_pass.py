@@ -246,6 +246,35 @@ class CiPassTest(unittest.TestCase):
         out = self.assert_runs_g4("git rev-parse --verify HEAD^{commit} failed (exit", lead="the checkout cannot be read")
         self.assertNotIn("Traceback", out)
 
+    def test_a_submodule_at_another_commit_counts_and_edits_inside_one_do_not(self) -> None:
+        """Review finding (2026-11-24): local edits inside a submodule (sts-docker's compose data) must not block
+        the skip; a submodule checked out at another commit than the one recorded must."""
+        sub = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, sub, True)
+        git(sub, "init", "-q", "-b", "main")
+        git(sub, "commit", "-q", "--allow-empty", "-m", "one")
+        git(self.repo, "-c", "protocol.file.allow=always", "submodule", "add", "-q", str(sub), "ext")
+        git(self.repo, "commit", "-q", "-m", "add ext")
+        self.sha = git(self.repo, "rev-parse", "HEAD")
+        self.gh = FakeGitHub(self.sha)
+        (self.repo / "ext/local.txt").write_text("compose data\n", encoding="utf-8")
+        self.assertEqual(0, self.verdict()[0], "an untracked file inside a submodule blocked the skip")
+        git(self.repo / "ext", "commit", "-q", "--allow-empty", "-m", "two")
+        self.assert_runs_g4("uncommitted or untracked path(s) (first: M ext)")
+
+    def test_an_unexpected_failure_is_exit_3_with_its_reason(self) -> None:
+        def boom(args, timeout):
+            raise KeyError("a bug")
+        rc, out = self.verdict_with(boom)
+        self.assertEqual(3, rc, out)
+        self.assertIn(f"ran G4: the CI pass check failed for {self.sha[:12]}: KeyError", out)
+
+    def verdict_with(self, gh) -> tuple[int, str]:
+        out = io.StringIO()
+        with redirect_stdout(out), redirect_stderr(out):
+            rc = ci_pass.main(["--commit", self.sha], root=self.repo, gh=gh)
+        return rc, out.getvalue()
+
     def test_a_bad_commit_is_refused_up_front(self) -> None:
         for bad in ("abc", self.sha.upper(), self.sha + "0", "HEAD"):
             with self.subTest(bad=bad):
@@ -276,6 +305,14 @@ class RunGhTest(unittest.TestCase):
         os.environ["PATH"] = f"{self.bin}{os.pathsep}{self.path}"
         with self.assertRaisesRegex(ci_pass.Unreadable, r"gh api repos/x failed \(exit 1\): HTTP 404: Not Found"):
             ci_pass.run_gh(["api", "repos/x"], 5)
+
+    def test_bytes_that_are_not_utf8_are_unreadable(self) -> None:
+        gh = self.bin / "gh"
+        gh.write_text("#!/bin/sh\nprintf 'log \\377\\376 bytes\\n'\n", encoding="utf-8")
+        gh.chmod(0o755)
+        os.environ["PATH"] = f"{self.bin}{os.pathsep}{self.path}"
+        with self.assertRaisesRegex(ci_pass.Unreadable, "not UTF-8"):
+            ci_pass.run_gh(["api", "repos/x/logs"], 5)
 
     def test_a_hung_gh_times_out(self) -> None:
         gh = self.bin / "gh"

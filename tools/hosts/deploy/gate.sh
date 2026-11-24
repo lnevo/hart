@@ -111,7 +111,7 @@ g4_covered_by_ci() {
   verdict="$(python3 "$DEPLOY_STEPS_DIR/ci_pass.py" --commit "$DEPLOY_COMMIT")" || ci_rc=$?
   case "$ci_rc" in
     0) echo "$verdict"; return 0 ;;
-    1) echo "$verdict"; return 1 ;;
+    1|3) echo "${verdict:-ran G4: the CI pass check said no and gave no reason (exit $ci_rc)}"; return 1 ;;
     *) echo "ran G4: the CI pass check failed (exit $ci_rc)${verdict:+: $verdict}"; return 1 ;;
   esac
 }

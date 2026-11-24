@@ -3,14 +3,17 @@
 
     ci_pass.py --commit SHA     exit 0 and print "skipped G4: CI full pass for <sha> ..." when every point below holds;
                                 exit 1 and print "ran G4: <why>" when one does not (the gate then runs G4 as before);
-                                exit 2 for a bad call (the gate runs G4 too)
+                                exit 2 for a bad call, 3 for a failure of this script itself (the gate runs G4
+                                for both)
 
 The gate (tools/hosts/deploy/gate.sh) asks this only for a real deploy to the Pi or Windows, after check_on_main
 (common.sh) has held the commit to origin/main. A skip needs all of these, read in this order; the first that fails
 names the reason:
 
-1. the checkout is SHA itself: HEAD is SHA and `git status --porcelain` is empty (the deploy ships the working tree,
-   and CI checked the commit, not files beside it; a submodule at another commit counts as a change);
+1. the checkout is SHA itself: HEAD is SHA and `git status --porcelain --ignore-submodules=dirty` is empty (the
+   deploy ships the working tree, and CI checked the commit, not files beside it). A submodule at another commit
+   counts as a change; local edits inside a submodule do not (the deploy ships none of their files, and the schematic
+   plugin enters tables.xml by its pinned commit);
 2. GitHub has a push run of .github/workflows/check.yml on main for SHA, the newest one completed with success;
 3. its one job "check" passed, with its "Run ./tools/check.sh" step a success;
 4. main's check stamps for SHA (the actions/cache entry check-stamps-SHA on refs/heads/main, which that run saves only
@@ -72,7 +75,7 @@ Gh = Callable[[list[str], int], str]
 def git(root: Path, *args: str) -> str:
     try:
         done = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, timeout=GH_TIMEOUT)
-    except (OSError, subprocess.SubprocessError) as e:
+    except (OSError, subprocess.SubprocessError, UnicodeDecodeError) as e:
         raise CheckoutUnreadable(f"git {args[0]} could not run: {e}") from None
     if done.returncode != 0:
         tail = (done.stderr.strip().splitlines() or ["no message"])[-1]
@@ -91,6 +94,8 @@ def run_gh(args: list[str], timeout: int) -> str:
         raise Unreadable(f"gh {' '.join(args[:2])} took over {timeout} s") from None
     except OSError as e:
         raise Unreadable(f"gh could not run: {e}") from None
+    except UnicodeDecodeError as e:
+        raise Unreadable(f"gh {' '.join(args[:2])} answered with bytes that are not UTF-8: {e}") from None
     if done.returncode != 0:
         tail = (done.stderr.strip().splitlines() or ["no message"])[-1]
         raise Unreadable(f"gh {' '.join(args[:2])} failed (exit {done.returncode}): {tail}")
@@ -109,7 +114,7 @@ def check_checkout(root: Path, sha: str) -> None:
     head = git(root, "rev-parse", "--verify", "HEAD^{commit}").strip()
     if head != sha:
         raise NoPass(f"the checkout is at {head[:12]}, not the commit {sha[:12]} the deploy names")
-    changes = [line for line in git(root, "status", "--porcelain").splitlines() if line.strip()]
+    changes = [line for line in git(root, "status", "--porcelain", "--ignore-submodules=dirty").splitlines() if line.strip()]
     if changes:
         raise NoPass(f"the checkout has {len(changes)} uncommitted or untracked path(s) (first: {changes[0].strip()}); "
                      "CI checked the commit, not these files")
@@ -270,6 +275,9 @@ def main(argv: list[str] | None = None, root: Path = ROOT, gh: Gh = run_gh) -> i
     except CiPassError as e:
         print(f"ran G4: {e.lead} for {a.commit[:12]}: {e}")
         return 1
+    except Exception as e:  # a bug here: say so in the gate's line (exit 3), never as exit 1 with no reason
+        print(f"ran G4: the CI pass check failed for {a.commit[:12]}: {type(e).__name__}: {e}")
+        return 3
     print(f"skipped G4: CI full pass for {a.commit[:12]} (check.yml run {run_id}, stamps check-stamps-{a.commit[:12]}...)")
     return 0
 

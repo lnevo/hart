@@ -31,7 +31,7 @@ def python_stub(tmp: Path, digicon_dry: bool = False) -> None:
     passes, or fails as a stale file does while `tmp`/tables_stale exists (as a missing plugin does, exit 3, while
     `tmp`/tables_no_plugin exists, and a source error, exit 2, while `tmp`/tables_source_error exists); the Digicon check fails while
     `tmp`/digicon_enabled exists. The gate's CI pass check (ci_pass.py) is logged in ci_pass.log and says CI covers
-    the commit while `tmp`/ci_pass_skip exists, crashes (exit 7) while `tmp`/ci_pass_crash exists, and otherwise
+    the commit while `tmp`/ci_pass_skip exists, crashes (exit 7) while `tmp`/ci_pass_crash exists, says no with no reason while `tmp`/ci_pass_silent exists, and otherwise
     runs for real against the gh stand-in (fake_bin), which fails. With `digicon_dry` (keep_repo_tables) a
     writing call of the Digicon SML script runs as a dry run and is logged in gates.log. Every other python3 call
     goes to the real one unchanged."""
@@ -53,6 +53,9 @@ for a in "$@"; do
     if [[ -f "{tmp}/ci_pass_skip" ]]; then
       echo "skipped G4: CI full pass for 0123456789ab (stand-in)"
       exit 0
+    fi
+    if [[ -f "{tmp}/ci_pass_silent" ]]; then
+      exit 1
     fi
     if [[ -f "{tmp}/ci_pass_crash" ]]; then
       echo "Traceback (stand-in)" >&2
