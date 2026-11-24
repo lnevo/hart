@@ -85,13 +85,20 @@ So the solve costs the same either way (38 s); the preferences' Layout Editor pa
 
 `settle_gaps` (`le.py`) draws the panel twice, the first time at the default gaps between bands and again at the gaps that drawing asks for. Each drawing runs the whole label placement, so half of the 71% is the first drawing.
 
-Proposed cuts, each one byte-identical because the drawing that is kept does not change. They are plugin changes (`external/model-railroad-skills`) and are not built yet:
+Three cuts were proposed. Cut 2 is built in plugin 0.1.54 ([model-railroad-skills#91](https://github.com/lnevo/model-railroad-skills/pull/91)); cut 1 was dropped and cut 3 needed no change.
 
-1. **Start `settle_gaps` from the last settled gaps.** Keep `P.gaps` with the panel's inputs and try them first. The loop already accepts a guess only when the drawing asks for exactly those gaps, so a right guess draws once and a wrong one costs what it does now. Saves about half of the label placement.
-2. **Remember the fixed part of `fault`.** Track lines, turnout circles, the panel edge and `reads_other` do not change while labels are placed; only the placed boxes do. Cache that verdict per (item, spot, on) for the whole placement, and check the placed boxes live as now. The same spots come up again across the 797 placement attempts, so this removes most of the 190 million segment tests.
-3. **One solve per sheet in a run.** With the cache off, the device map solves the same sheets a second time. A real cold run has the cache on but empty, so its memo may already share them: check before building anything.
+1. **Start `settle_gaps` from the last settled gaps: dropped.** Built and measured (the Layout Editor step went from 69 s to 40 s more), then taken out after review. To outlive a pin bump, the kept gaps must be keyed without the plugin code. After a code change, a kept guess that still settles could then give a different panel than a cold build reaching other gaps from the default, so the panel would depend on what was in the cache.
+2. **Remember the fixed part of `fault`: built.** The verdict against the track lines, turnout circles, panel edge and `reads_other` is kept per (item, spot, on) for the whole placement; the placed boxes are still checked each time, in the same order, so every reason and log line is as before.
+3. **One solve per sheet in a run: already true with the cache on.** Every builder gets its bands from `publish_draft.solved_sheet`, which goes through the plugin cache, so the device-map step solves the sheet (21 s) and later steps read it back. The second solve in the profile came from running with the cache off.
 
-Do 1 and 2 before the next plugin pin bump, which empties the cache.
+**Measured (2026-11-24),** `make panels FULL=1 CHECK=1` on the Mac, main 051906f7, empty cache, every check passed (outputs byte-identical):
+
+| Plugin | Total | `sml-current` |
+|---|---|---|
+| 2fcd085 (origin/main, 0.1.53) | 368 s | 317 s |
+| 0.1.54 (cut 2) | 120 s | 69 s |
+
+The 0.1.53 run shared the Mac with the plugin's test suite for its first two minutes; the 2026-11-23 run above took 343 s in `sml-current` on an older plugin. Peak memory with cut 2 stayed under 100 MB.
 
 ## Measure a real edit (replaced by the full rebuild above)
 
