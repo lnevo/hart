@@ -48,6 +48,7 @@ have_sha="$(awk -F: '$1=="pi"{printf "%s", $2}' "$m/etc/shadow" | sha256sum | cu
 is "/home/pi mode" "$(stat -c '%a %u' "$m/home/pi")" "700 1000"
 is ".ssh mode" "$(stat -c '%a %u' "$m/home/pi/.ssh")" "700 1000"
 is "authorized_keys mode" "$(stat -c '%a %u' "$m/home/pi/.ssh/authorized_keys")" "600 1000"
+grep -qx 'allow-interfaces=wlan0,eth0' "$m/etc/avahi/avahi-daemon.conf" && ok "avahi only on wlan0 and eth0" || bad "avahi publishes on every interface (Docker included)"
 is "pi sudoers" "$(stat -c '%a %u' "$m/etc/sudoers.d/010_pi-nopasswd" 2>/dev/null) $(cat "$m/etc/sudoers.d/010_pi-nopasswd" 2>/dev/null)" "440 0 pi ALL=(ALL) NOPASSWD: ALL"
 for o in HDMI-A-1 HDMI-A-2; do
   grep -q '^wallpaper=/home/pi/JMRI_UserFiles/JMRI transparent logo 800w671h.png$' "$m/home/pi/.config/pcmanfm/default/desktop-items-$o.conf" 2>/dev/null \

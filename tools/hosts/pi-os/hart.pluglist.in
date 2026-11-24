@@ -41,6 +41,10 @@ runcommand:command=grep -q '^[$]' /etc/sdm/assets/hart/pi.hash && usermod -s /bi
 # Its own step, so a failure above cannot leave the file with git's mode; visudo checks it.
 runcommand:command=chmod 440 /etc/sudoers.d/010_pi-nopasswd && visudo -cf /etc/sudoers.d/010_pi-nopasswd|runphase=post-install
 
+# avahi only on the real interfaces (fix of 2026-11-18): published on docker0 and the STS bridge,
+# RPi-JMRI.local resolved to 172.x locally and the Wi-Fi watchdog restarted avahi. sdm cuts a
+# pluglist line at a hash sign, so the commented-out line is matched with a dot.
+runcommand:command=sed -i 's/^.allow-interfaces=eth0$/allow-interfaces=wlan0,eth0/' /etc/avahi/avahi-daemon.conf && grep -qx 'allow-interfaces=wlan0,eth0' /etc/avahi/avahi-daemon.conf|runphase=post-install
 system:name=hart|service-enable=wifi-watchdog,mosquitto,smbd,nmbd,cups|service-disable=lcos-bridge|service-mask=samba-ad-dc
 # Display fix 1: the stored EDID for each port; the video= entries and the initramfs come from
 # display-setup.sh (sdm's cmdline add keeps only one entry per name, and we need two video=).
