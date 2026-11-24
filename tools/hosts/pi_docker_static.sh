@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Install or update Docker on the Pi from Docker's static 64-bit binaries
-# (ADR-020). The Pi runs 32-bit Raspberry Pi OS on a 64-bit kernel, so apt's
+# (ADR-020). Retired 2026-11-23 (ADR-032): the Pi now runs 64-bit trixie with Docker from
+# apt, and this script refuses to run there, since it would purge that Docker.
+# It was for the old card: the Pi ran 32-bit Raspberry Pi OS on a 64-bit kernel, so apt's
 # Docker is 32-bit, and MariaDB publishes no 32-bit ARM image. The static
 # aarch64 builds need no 64-bit libraries and leave the 32-bit system alone.
 #
@@ -34,6 +36,7 @@ fi
 ssh "$HOST" sudo bash -s <<EOF
 set -euo pipefail
 [ "\$(uname -m)" = aarch64 ] || { echo "kernel is not aarch64" >&2; exit 1; }
+[ "\$(dpkg --print-architecture)" = armhf ] || { echo "STOP: this Pi's userland is \$(dpkg --print-architecture), not armhf; Docker comes from apt here (ADR-032). Nothing changed." >&2; exit 1; }
 tmp=\$(mktemp -d); trap 'rm -rf "\$tmp"' EXIT
 cd "\$tmp"
 

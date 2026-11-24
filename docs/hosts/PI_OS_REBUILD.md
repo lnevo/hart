@@ -164,7 +164,7 @@ There is one Pi 5, so this needs a maintenance window. Turn the operating flag o
 
 ### The swap, 2026-11-23
 
-- **Card:** the 17:52 image, written with `dd` to a 128 GB card (old contents erased with the owner's yes). That image predates `--expand-at-boot`, so ` resize` was added to its `cmdline.txt` by hand before the first boot; the first boot grew the root filesystem to 117 GB.
+- **Card:** the 17:52 image, written with `dd` to a 128 GB card (old contents erased with the owner's yes). That image predates `--expand-at-boot`, so the word `resize` was added to its `cmdline.txt` line by hand before the first boot; the first boot grew the root filesystem to 117 GB.
 - **First boot:** `hart-firstboot.log` shows the `docker` and `lpadmin` groups and lingering for `pi`. Both screens came up mirrored; the owner confirmed the desktop works.
 - **Reading the old card:** macOS cannot read ext4, so the owner copied its root partition with `sudo dd if=/dev/rdisk4s2` into `~/.cache/hart/pi-os/oldroot.img`, mounted read-only in the build VM. The old card itself stays untouched.
 - **Restored from it:** `~/.jmri`, all of `~/JMRI_UserFiles` (roster and the JMRI background logo), `~/Desktop` (PanelPro, CATS ABS and CTC, TrainStat, user files, session log), `~/.local/share/applications`, `~/.java`, `~/speedmatch`, `jmrihelp` and Steve's helper scripts, `~/.bash_history` (old lines first), `~/.ssh/known_hosts`, `~/sts/sts-docker-data` with numeric owners, and `/var/lib/mosquitto/mosquitto.db` (202 retained topics). There was no `lcos-bridge/.bridgerc`.
