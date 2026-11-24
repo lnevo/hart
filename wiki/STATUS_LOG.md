@@ -1,5 +1,6 @@
 # Status log
 
+Updated: 2026-11-23 — Builder merge (ADR-030: one bean and row process for every level) planned and parked by the owner (about 8 PRs, 7 to 9 agent-days); plan and answers in [`projects/builder-merge.md`](projects/builder-merge.md).
 Updated: 2026-11-23 — Architecture review (repo-auditor) decisions: layout deploys (`sync_hart_package.sh`, `redeploy_commit.sh` to the Pi or Windows) now refuse on their own while the operating flag is set (ADR-025 amendment, `HART_DEPLOY_WHILE_OPERATING=1` overrides); `check.sh` and `make panels` default `SCHEMATIC_REQUIRED=1`, so a missing plugin fails locally as in CI (the stamps key on it, so the first local `check.sh` and `make panels` after this run in full, about 7 minutes); the main/upper swap-in fix is deferred to before the first swap (STATUS Owed).
 Updated: 2026-11-23 — MQTT startup race checked on more systems and stopped at the owner's word: macOS with EMQX, HiveMQ CE and NanoMQ, and Linux with Mosquitto, all drop; JMRI's 2021 fix (#10280) is the copy that still fails, and 5.17.5 and 5.19.1 are unchanged. Replaced in STATUS: "(confirmed in stock JMRI 2026-11-23; next a standalone test, then an issue and PR)".
 Updated: 2026-11-23 — Asset check (repo review, owner's choice): three unused images (`coal-types.png`, `freight-flow-map.png`, `icon-192.png`) moved from `www/assets/` to `archive/www-assets/`.
