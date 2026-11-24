@@ -438,8 +438,9 @@ def part_lines(levels: tuple[str, ...], source: "Files | Path | str | None" = No
 # ---------------------------------------------------------------- a device's kind, from its row
 
 def row_role(row: Mapping[str, str], where: str = "the device master") -> str:
-    """The role column of `row` (ROLES). DevicesError naming `where` (the file and line) and the row when the row has
-    no role column or an empty one: a reader asks the row what a device is, never its name (hand-off row 8)."""
+    """The role column of `row` (ROLES). DevicesError naming `where` (a file and line when the caller has one, else
+    "the device master") and the row when the row has no role column or an empty one: a reader asks the row what a
+    device is, never its name (hand-off row 8)."""
     role = row.get("role", "")
     if not role:
         raise DevicesError(f"{where}: {row.get('layer', '?')} {row.get('user_name', '?')!r} has no role "

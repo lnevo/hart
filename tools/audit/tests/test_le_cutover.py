@@ -642,9 +642,9 @@ class Rebuilt(unittest.TestCase):
             B.build(levels="staging", as_live=True, base_data=doc.tobytes())
 
     def test_a_bad_base_stops_naming_the_file(self) -> None:
-        err = B.tables_build.TablesBuildError("devices.csv: x")
+        err = B.tables_build.TablesBuildError("the device master: x")
         with mock.patch.object(B.tables_build, "base", side_effect=err):
-            with self.assertRaisesRegex(B.BuildError, "tables base: devices.csv: x"):
+            with self.assertRaisesRegex(B.BuildError, "tables base: the device master: x"):
                 B.base_tables()
 
 

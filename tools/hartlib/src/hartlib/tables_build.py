@@ -421,7 +421,7 @@ def bean_comment(r: Mapping[str, str], places: Mapping[str, str] | None = None) 
     first (occupancy_first). TablesBuildError when the row gives no comment."""
     comment = devices.device_map_row(r)["comment"]
     if not comment:
-        raise TablesBuildError(f"device master: {r['layer']} {r['user_name']!r} has neither wiring nor jmri_comment, "
+        raise TablesBuildError(f"the device master: {r['layer']} {r['user_name']!r} has neither wiring nor jmri_comment, "
                                "so it gives no JMRI comment")
     layer = r["layer"]
     if layer == "head" and r["role"] == "head" and r["assignment"] == "virtual":
@@ -439,7 +439,7 @@ def _route(name: str, table, what: str) -> tuple[str, str]:
     for prefix, key in table:
         if name.startswith(prefix):
             return key
-    raise TablesBuildError(f"device master: {what} {name!r} has no manager section for its prefix "
+    raise TablesBuildError(f"the device master: {what} {name!r} has no manager section for its prefix "
                            f"({', '.join(p for p, _ in table)})")
 
 
@@ -510,7 +510,7 @@ def bean_json(beans: Iterable[tuple[tuple[str, str | None], ET.Element]], row: M
 def row_beans(row: Mapping[str, str]) -> list[tuple[tuple[str, str | None], ET.Element]]:
     """[(section key, element)] of a row's jmri_bean (bean_json); TablesBuildError when the text is not that shape, a
     section is not one the master gives (MASTER_SECTIONS), or a bean names no system name."""
-    where = f"device master: {row['layer']} {row['user_name']!r}"
+    where = f"the device master: {row['layer']} {row['user_name']!r}"
     try:
         doc = json.loads(row["jmri_bean"])
     except json.JSONDecodeError as exc:
@@ -543,9 +543,9 @@ def kept_beans(rows: Iterable[Mapping[str, str]]) -> dict[tuple, list[ET.Element
                 key = ("blocks-names",) + BLOCKS if sec == BLOCKS and _sort_group(el) == "block-names" else sec
                 out.setdefault(key, []).append(el)
         except TablesBuildError as exc:
-            bad.append(str(exc).removeprefix("device master: "))
+            bad.append(str(exc).removeprefix("the device master: "))
     if bad:
-        raise TablesBuildError("device master: " + "; ".join(bad))
+        raise TablesBuildError("the device master: " + "; ".join(bad))
     return out
 
 
@@ -632,9 +632,9 @@ def master_beans(rows: Iterable[Mapping[str, str]], lengths: Mapping[str, railro
             else:
                 bad.append(f"{at}: no bean for layer {layer!r}")
         except TablesBuildError as exc:
-            bad.append(str(exc).removeprefix("device master: "))
+            bad.append(str(exc).removeprefix("the device master: "))
     if bad:
-        raise TablesBuildError("device master: " + "; ".join(bad))
+        raise TablesBuildError("the device master: " + "; ".join(bad))
     return out
 
 
@@ -655,7 +655,7 @@ def base(rows: Iterable[Mapping[str, str]] | None = None, template: Path = TEMPL
     twice = sorted({tables.system_name(el) for key, els in kept.items() if key[0] != "blocks-names" for el in els
                     if tables.system_name(el) in made})
     if twice:
-        raise TablesBuildError(f"device master: a level-less device's jmri_bean names a bean a level row makes too "
+        raise TablesBuildError(f"the device master: a level-less device's jmri_bean names a bean a level row makes too "
                                f"({', '.join(twice[:8])}); a bean has one source")
     for key, els in kept.items():
         beans.setdefault(key, []).extend(els)
