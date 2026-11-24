@@ -2,7 +2,7 @@
 
 The layout Pi runs the new 64-bit Raspberry Pi OS (trixie) card since 2026-11-23, built from scripts and config files in the repo; the old bookworm card is kept as the way back until 2026-12-23. This file is the plan, the owner's decisions, the build, the display fix and the swap as it went. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); [ADR-032](../../wiki/decisions/ADR-032-pi-os-trixie-64-bit.md) records the decision.
 
-## What the Pi runs now
+## What the old card ran (until 2026-11-23)
 
 | | |
 |---|---|
@@ -160,7 +160,7 @@ On trixie, check whether vc4 still loads from the initramfs, and that the new Co
 
 ## Phase 4: swap, with a way back
 
-There is one Pi 5, so this needs a maintenance window. Turn the operating flag on, pull, shut down, put in the new card or drive, boot, restore the live data and deploy. If anything fails, put the old card back; it isn't touched at any point.
+There is one Pi 5, so this needs a maintenance window. Turn the operating flag on, pull, shut down, put in the new card or drive, boot, restore the live data and deploy. If anything fails, put the old card back; it isn't touched at any point. Its Docker was updated by `tools/hosts/pi_docker_static.sh`, removed from the tree after the swap; `git show 3de97e59:tools/hosts/pi_docker_static.sh` brings it back if the old card returns.
 
 ### The swap, 2026-11-23
 
@@ -172,7 +172,7 @@ There is one Pi 5, so this needs a maintenance window. Turn the operating flag o
 - **sudo:** trixie's placeholder `pi` had no `/etc/sudoers.d/010_pi-nopasswd`; the owner put it back with the old line (`pi ALL=(ALL) NOPASSWD: ALL`). The image now has it.
 - **STS:** MariaDB 13.0.2, the same version as on the old card, refused the copied database at first: `Can't init tc log`. The old `tc.log` was laid out in 4 KB pages, and the Pi 5 kernel (`6.18.50+rpt-rpi-2712`) uses 16 KB pages. With `tc.log` set aside (kept as `tc.log.old-card-4k`) the database started cleanly; the data is all there (1169 history rows, 115 locations, 80 cars, 70 shipments). STS answers on 8980.
 - **Deploy:** `sync_hart_package.sh --pi --win` from a clean worktree at `ede88044`. The Pi had no unpulled Store or Operations Pro changes; both hosts match.
-- **PanelPro:** started by `pi_start_panelpro.sh` with `TCS_MQTT`, JMRI 5.16 under Java 21.0.13.1. On every start, JMRI's MQTT adapter can drop the broker connection while `tables.xml` loads: retained messages arrive while turnouts subscribe, and `MqttAdapter.messageArrived` throws a `ConcurrentModificationException`. It reconnects about 15 seconds later and resubscribes; every MQTT turnout then has its state. This is the known JMRI startup race in STATUS ("MQTT startup race"); the old card's last 13 PanelPro starts did not show it, and on the new card it showed on the first. JMRI is stock (AGENTS.md), so it is not patched here.
+- **PanelPro:** started by `pi_start_panelpro.sh` with `TCS_MQTT`, JMRI 5.16 under Java 21.0.13.1. On a start, JMRI's MQTT adapter can drop the broker connection while `tables.xml` loads: retained messages arrive while turnouts subscribe, and `MqttAdapter.messageArrived` throws a `ConcurrentModificationException`. It reconnects about 15 seconds later and resubscribes; every MQTT turnout then has its state. This is the known JMRI startup race in STATUS ("MQTT startup race"); the old card's JMRI logs that came over with `~/.jmri` (`messages.log`, `.1`, `.2`: 14 starts from 2026-11-21 to 2026-11-23) do not show it, and on the new card it showed on the first start. JMRI is stock (AGENTS.md), so it is not patched here.
 - **Claude Code:** installed for `pi` (2.1.331); first boot installs it on later cards.
 
 ## Phase 5: acceptance checks

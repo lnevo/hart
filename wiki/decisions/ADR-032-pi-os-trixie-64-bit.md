@@ -21,5 +21,5 @@ The Pi 5 ran Steve Todd's RPi-JMRI image on a bookworm base with a 32-bit userla
 
 - A rebuild is `pull_from_pi.sh` and `build_image.sh`, about 5 minutes once cached. Live data (profile, roster, STS database, `mosquitto.db`) still moves at swap time.
 - Data files laid out in memory pages need care when moving from the old 4 KB-page kernel to the Pi 5's 16 KB pages: MariaDB's `tc.log` had to be set aside.
-- JMRI's known MQTT startup race (STATUS, "MQTT startup race") showed on the new card's first PanelPro start, after none in the old card's last 13: it drops and restores the broker connection within about 15 seconds. JMRI stays stock.
+- JMRI's known MQTT startup race (STATUS, "MQTT startup race") showed on the new card's first PanelPro start, after none in the 14 starts in the old card's JMRI logs (2026-11-21 to 2026-11-23): it drops and restores the broker connection within about 15 seconds. JMRI stays stock.
 - The swap, the checks and what is open are in [`docs/hosts/PI_OS_REBUILD.md`](../../docs/hosts/PI_OS_REBUILD.md).
