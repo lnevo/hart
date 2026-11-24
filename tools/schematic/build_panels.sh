@@ -12,13 +12,17 @@
 #                         desk_code column) and sheets.csv (the layer files hold a section per sheet: hartlib.layer_files)
 #   main-route            main_route in plan_overrides.json's main_upper section, from main_lines.csv (main_upper
 #                         rows) and the plan graph; staging's main flags and milepost_route, from its staging rows
-#   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
-#                         run by hand (it reads the private plan file): this only checks it (--check), in both modes
 #   device-map            from the solved sheet; writes plan_overrides.json's main_upper section, which the schematic
 #                         reads, so it runs before publishing
+#   plan-lengths          block_lengths.csv's plan_in (the AnyRail plan 5.3c lengths) is written by plan_lengths.py,
+#                         run by hand (it reads the private plan file): this only checks it (--check), in both modes.
+#                         After device-map, since it finds the OS blocks in the device master that device-map writes
 #   masts                 masts.csv, every level's masts (build_masts.py): staging's by the mast rule over its device
 #                         map, with their device-master rows, and main and upper's from the device map's rows; after
 #                         device-map, whose rows it reads
+#   panel-items           the status beans' device-master rows (panel_items.py, written_by panel_items.json), from
+#                         panel_items.json; like device-map and masts it writes the device master, so it runs
+#                         before tables, which reads its rows
 #   signals               signals.json (a section per sheet), from the plan graph and masts.csv; the schematic reads it.
 #                         After masts, so one run draws the masts it writes. Nothing before it reads signals.json:
 #                         device-map and masts give the same outputs with every signal dropped from it (the solve's
@@ -134,9 +138,10 @@ guard() { run_step "$1 only checks and it failed; later steps read the files it 
 step hands python3 tools/schematic/build_hands.py
 step staging-sets python3 tools/schematic/build_staging_sets.py
 step main-route python3 tools/schematic/build_main_route.py
-guard plan-lengths python3 tools/schematic/plan_lengths.py --check
 step device-map python3 tools/schematic/build_device_map.py
+guard plan-lengths python3 tools/schematic/plan_lengths.py --check
 step masts python3 tools/schematic/build_masts.py
+step panel-items python3 tools/schematic/panel_items.py
 step signals python3 tools/schematic/build_signals.py
 step head-plan python3 jmri/layouts/hart/scripts/build_hart_signal_heads.py --wiring-only
 step schematic python3 tools/schematic/publish_draft.py
