@@ -28,7 +28,9 @@
 #   schematic             the schematic draft and stations (publish_draft.py)
 #   sml-current           the discovered Signal Mast Logic was discovered from the beans the sources give now:
 #                         data/schematic/discovered_sml.stamp holds the sha256 of the discovery base it came from
-#                         (run_sml_discover.sh writes it); a mismatch says to rerun discovery on the Mac. Always runs
+#                         (run_sml_discover.sh writes it). Always runs. On a mismatch, a write on the Mac runs
+#                         run_sml_discover.sh itself (PanelPro, about 3 min) and checks again (owner, 2026-11-24); see
+#                         "SML discovery" below for when it does not. --check only names it stale
 #   tables                tables.xml (build_tables.py): the template, the staging beans of the device master, the Layout
 #                         Editor build (build_layout_le.build, in memory), the discovered Signal Mast Logic (ADR-029:
 #                         tables.xml is an output)
@@ -54,6 +56,12 @@
 # edit re-runs only the steps that read the file. A step that ran a program the hook cannot see records nothing and
 # runs every time. The stamps are kept per checkout in .cache/panel-stamps/; --full (make panels FULL=1) ignores them
 # and records. Guards always run.
+#
+# SML discovery: when sml-current says stale (exit 1) in a write, the run discovers and goes on to tables, but only
+# on the Mac (uname Darwin), outside CI, while the operating flag is clear (tools/hosts/operating.sh) and with
+# HART_SML_AUTO_DISCOVER not 0. Anywhere else it stops as before and names the command. run_sml_discover.sh keeps its
+# own refusals: PanelPro or CATS running, HART_TABLES set, a Layout Editor panel the owner has not approved
+# (HART_TABLES_REVIEW=1 discovers on one under review). A failed discovery stops the run with its message.
 set -uo pipefail
 cd "$(git rev-parse --show-toplevel)" || exit 1
 # A step that cannot load the schematic-maps plugin fails rather than printing SKIPPED and passing, as in CI (owner,
@@ -106,7 +114,9 @@ run_step() {
     printf '0\tb\n' >"$trace"      # the runner starts one Python process: its start must be in the trace
     "${STAMPS[@]}" snapshot "$trace.before"     # git and plugin state now: a change while the step runs records nothing
   fi
-  if traced "$trace" "$@" ${check[@]+"${check[@]}"} | tee "$out"; then
+  traced "$trace" "$@" ${check[@]+"${check[@]}"} | tee "$out"
+  local rc=${PIPESTATUS[0]}
+  if [ "$rc" -eq 0 ]; then
     echo "   $name: ok, $((SECONDS - start)) s"
     # a step that printed SKIPPED did not really run (plugin off its pin): it must not stamp
     if [ -n "$trace" ]; then
@@ -122,9 +132,39 @@ run_step() {
     rm -f "$out" ${trace:+"$trace" "$trace.before"}
     echo "   $name: FAILED, $((SECONDS - start)) s"
     [ "$kind" = stamped ] && "${STAMPS[@]}" forget "$name"
+    if [ "$name" = sml-current ] && [ "$rc" -eq 1 ] && [ "$discovered" -eq 0 ] && discover_sml; then
+      run_step "$stop" "$kind" "$name" "$@"     # once: discovered=1 now, so a second stale verdict stops the run
+      return
+    fi
     failed+=("$name")
     [ ${#check[@]} -eq 0 ] && { echo "stopped: $stop"; exit 1; }
   fi
+}
+# discover_sml: in a write on the Mac, run SML discovery after sml-current said stale (header, "SML discovery").
+# Returns 1 when discovery is not for this run (and says why); exits when discovery itself fails.
+discovered=0
+discover_sml() {
+  local cmd=${HART_SML_DISCOVER_CMD:-jmri/layouts/hart/scripts/run_sml_discover.sh} os=${HART_PANELS_OS:-$(uname -s)}
+  local why=""
+  if [ ${#check[@]} -gt 0 ]; then return 1
+  elif [ "${HART_SML_AUTO_DISCOVER:-1}" = 0 ]; then why="HART_SML_AUTO_DISCOVER=0"
+  elif [ -n "${CI:-}" ]; then why="this is CI"
+  elif [ "$os" != Darwin ]; then why="discovery runs PanelPro on the Mac, and this is $os"
+  elif bash tools/hosts/operating.sh status >/dev/null 2>&1; then why="the operating flag is set (tools/hosts/operating.sh status)"
+  fi
+  if [ -n "$why" ]; then
+    echo "   sml-current: not discovering here: $why"
+    return 1
+  fi
+  discovered=1
+  local t0=$SECONDS
+  echo "== sml-discover: $cmd (PanelPro on the Mac, about 3 min)"
+  if ! bash "$cmd"; then
+    echo "   sml-discover: FAILED, $((SECONDS - t0)) s"
+    echo "stopped: SML discovery failed (its message is above); make panels again once it is fixed"
+    exit 1
+  fi
+  echo "   sml-discover: ok, $((SECONDS - t0)) s"
 }
 # A step that writes its outputs (or checks them, with --check).
 step() { run_step "later steps read what $1 writes" stamped "$@"; }

@@ -22,8 +22,8 @@ from hartlib import paths  # noqa: E402
 from hartlib import tables_build as tb  # noqa: E402
 
 STAMP = tb.DISCOVERED.with_suffix(".stamp")
-STALE = ("SML discovery is stale: run jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac (PanelPro), "
-         "then make panels")
+STALE = ("SML discovery is stale: make panels on the Mac discovers itself; elsewhere run "
+         "jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac (PanelPro), then make panels")
 
 
 def verdict(stamp: Path, current: str) -> str | None:

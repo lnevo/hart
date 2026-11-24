@@ -420,8 +420,8 @@ class SmlCurrentTest(unittest.TestCase):
     def test_mismatch_says_what_to_run(self) -> None:
         self.stamp.write_text("abc123\n")
         msg = self.cs.verdict(self.stamp, "def456")
-        self.assertEqual(msg, "SML discovery is stale: run jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac "
-                              "(PanelPro), then make panels")
+        self.assertEqual(msg, "SML discovery is stale: make panels on the Mac discovers itself; elsewhere run "
+                              "jmri/layouts/hart/scripts/run_sml_discover.sh on the Mac (PanelPro), then make panels")
 
     def test_missing_stamp_is_stale(self) -> None:
         self.assertIn("SML discovery is stale", self.cs.verdict(self.stamp, "abc"))
