@@ -57,9 +57,10 @@
 # runs every time. The stamps are kept per checkout in .cache/panel-stamps/; --full (make panels FULL=1) ignores them
 # and records. Guards always run.
 #
-# SML discovery: when sml-current says stale (exit 1) in a write, the run discovers and goes on to tables, but only
+# SML discovery: when sml-current says stale (exit 4) in a write, the run discovers and goes on to tables, but only
 # on the Mac (uname Darwin), outside CI, while the operating flag is clear (tools/hosts/operating.sh) and with
-# HART_SML_AUTO_DISCOVER not 0. Anywhere else it stops as before and names the command. run_sml_discover.sh keeps its
+# HART_SML_AUTO_DISCOVER not 0 (or false, no, off), with HART_TABLES unset and one discovery at a
+# time (a lock in /tmp). Anywhere else it stops as before and names the command. run_sml_discover.sh keeps its
 # own refusals: PanelPro or CATS running, HART_TABLES set, a Layout Editor panel the owner has not approved
 # (HART_TABLES_REVIEW=1 discovers on one under review). A failed discovery stops the run with its message.
 set -uo pipefail
@@ -115,7 +116,8 @@ run_step() {
     "${STAMPS[@]}" snapshot "$trace.before"     # git and plugin state now: a change while the step runs records nothing
   fi
   traced "$trace" "$@" ${check[@]+"${check[@]}"} | tee "$out"
-  local rc=${PIPESTATUS[0]}
+  local rc=${PIPESTATUS[0]} tee_rc=${PIPESTATUS[1]}
+  [ "$rc" -eq 0 ] && [ "$tee_rc" -ne 0 ] && { echo "   $name: could not save its output ($out)"; rc=$tee_rc; }
   if [ "$rc" -eq 0 ]; then
     echo "   $name: ok, $((SECONDS - start)) s"
     # a step that printed SKIPPED did not really run (plugin off its pin): it must not stamp
@@ -132,7 +134,7 @@ run_step() {
     rm -f "$out" ${trace:+"$trace" "$trace.before"}
     echo "   $name: FAILED, $((SECONDS - start)) s"
     [ "$kind" = stamped ] && "${STAMPS[@]}" forget "$name"
-    if [ "$name" = sml-current ] && [ "$rc" -eq 1 ] && [ "$discovered" -eq 0 ] && discover_sml; then
+    if [ "$name" = sml-current ] && [ "$rc" -eq 4 ] && [ "$discovered" -eq 0 ] && discover_sml; then
       run_step "$stop" "$kind" "$name" "$@"     # once: discovered=1 now, so a second stale verdict stops the run
       return
     fi
@@ -147,8 +149,13 @@ discover_sml() {
   local cmd=${HART_SML_DISCOVER_CMD:-jmri/layouts/hart/scripts/run_sml_discover.sh} os=${HART_PANELS_OS:-$(uname -s)}
   local why=""
   if [ ${#check[@]} -gt 0 ]; then return 1
-  elif [ "${HART_SML_AUTO_DISCOVER:-1}" = 0 ]; then why="HART_SML_AUTO_DISCOVER=0"
+  fi
+  case "${HART_SML_AUTO_DISCOVER:-1}" in
+    0|false|no|off) why="HART_SML_AUTO_DISCOVER=${HART_SML_AUTO_DISCOVER}" ;;
+  esac
+  if [ -n "$why" ]; then :
   elif [ -n "${CI:-}" ]; then why="this is CI"
+  elif [ -n "${HART_TABLES:-}" ]; then why="HART_TABLES is set (discovery runs on the repo's tables.xml only)"
   elif [ "$os" != Darwin ]; then why="discovery runs PanelPro on the Mac, and this is $os"
   elif bash tools/hosts/operating.sh status >/dev/null 2>&1; then why="the operating flag is set (tools/hosts/operating.sh status)"
   fi
@@ -156,10 +163,24 @@ discover_sml() {
     echo "   sml-current: not discovering here: $why"
     return 1
   fi
+  # One discovery at a time on this Mac: worktrees share the PanelPro profile and the script's /tmp marker. The lock
+  # holds the owner's pid, so a run that was killed leaves a lock the next one takes over.
+  local lock=${HART_SML_DISCOVER_LOCK:-/tmp/hart_sml_discover.lock} holder
+  if ! mkdir "$lock" 2>/dev/null; then
+    holder=$(cat "$lock/pid" 2>/dev/null)
+    if [ -n "$holder" ] && kill -0 "$holder" 2>/dev/null; then
+      echo "   sml-current: not discovering here: another make panels (pid $holder) is discovering; make panels again when it ends"
+      return 1
+    fi
+    echo "   sml-discover: taking over $lock from pid ${holder:-unknown}, which is gone"
+  fi
+  echo $$ >"$lock/pid"
   discovered=1
-  local t0=$SECONDS
+  local t0=$SECONDS rc=0
   echo "== sml-discover: $cmd (PanelPro on the Mac, about 3 min)"
-  if ! bash "$cmd"; then
+  bash "$cmd" || rc=$?
+  rm -rf "$lock"
+  if [ "$rc" -ne 0 ]; then
     echo "   sml-discover: FAILED, $((SECONDS - t0)) s"
     echo "stopped: SML discovery failed (its message is above); make panels again once it is fixed"
     exit 1

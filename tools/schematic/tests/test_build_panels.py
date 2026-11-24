@@ -126,15 +126,15 @@ class DryRun(unittest.TestCase):
         self.assertEqual((code, ran), (2, []), out)
 
 
-# A python3 stand-in whose sml-current guard says stale (exit 1) until the stand-in discovery has run, and which
-# fails it with SML_RC when that is set (2: a build error, not staleness).
+# A python3 stand-in whose sml-current guard says stale (exit 4, check_sml_current.EXIT_STALE) until the stand-in
+# discovery has run, and which fails it with SML_RC when that is set (1: a crash, 2: a build error; not staleness).
 SML_PYTHON = """#!/bin/sh
 case "$1" in */panel_stamps.py) [ "$2" = current ] && exit 1; exit 0 ;; esac
 echo "$*" >> "$PANELS_LOG"
 case "$1" in */check_sml_current.py)
   [ -n "$SML_RC" ] && exit "$SML_RC"
   [ -f "$DISCOVERED" ] && exit 0
-  exit 1 ;;
+  exit 4 ;;
 esac
 exit 0
 """
@@ -150,7 +150,7 @@ class SmlDiscovery(unittest.TestCase):
     """A write on the Mac discovers when sml-current says stale, then checks again and goes on to tables
     (owner, 2026-11-24). Off the Mac, in CI, while operating, in --check or on a build error it stops as before."""
 
-    def run_script(self, *args, os_name="Darwin", operating=False, **extra):
+    def run_script(self, *args, os_name="Darwin", operating=False, lock_pid=None, **extra):
         with tempfile.TemporaryDirectory() as tmp:
             tmp = Path(tmp)
             fake = tmp / "python3"
@@ -164,10 +164,16 @@ class SmlDiscovery(unittest.TestCase):
             if operating:
                 flag.write_text("by=owner\nsince=now\nreason=test\n", encoding="utf-8")
             env = {k: v for k, v in os.environ.items() if k not in ("CI", "HART_SML_AUTO_DISCOVER", "HART_TABLES")}
+            lock = tmp / "discover.lock"
+            if lock_pid is not None:
+                lock.mkdir()
+                (lock / "pid").write_text(f"{lock_pid}\n", encoding="utf-8")
             env.update(PATH=f"{tmp}{os.pathsep}{os.environ['PATH']}", PANELS_LOG=str(log),
                        DISCOVERED=str(tmp / "discovered"), HART_PANELS_OS=os_name,
-                       HART_SML_DISCOVER_CMD=str(discover), HART_OPERATING_FLAG=str(flag), **extra)
+                       HART_SML_DISCOVER_CMD=str(discover), HART_OPERATING_FLAG=str(flag),
+                       HART_SML_DISCOVER_LOCK=str(lock), **extra)
             r = subprocess.run(["bash", str(SCRIPT), *args], cwd=REPO, env=env, capture_output=True, text=True)
+            self.lock_left = lock.exists()
             return r.returncode, r.stdout + r.stderr, log.read_text(encoding="utf-8").splitlines()
 
     def scripts(self, ran):
@@ -206,6 +212,9 @@ class SmlDiscovery(unittest.TestCase):
             "CI": (dict(CI="true"), "this is CI"),
             "operating": (dict(operating=True), "the operating flag is set"),
             "turned off": (dict(HART_SML_AUTO_DISCOVER="0"), "HART_SML_AUTO_DISCOVER=0"),
+            "turned off with false": (dict(HART_SML_AUTO_DISCOVER="false"), "HART_SML_AUTO_DISCOVER=false"),
+            "HART_TABLES": (dict(HART_TABLES="/elsewhere/tables.xml"), "HART_TABLES is set"),
+            "another run discovering": (dict(lock_pid=os.getpid()), f"another make panels (pid {os.getpid()})"),
         }
         for label, (kw, why) in cases.items():
             with self.subTest(label):
@@ -215,11 +224,26 @@ class SmlDiscovery(unittest.TestCase):
                 self.assertIn(f"not discovering here: {why}", out)
                 self.assertIn("stopped: sml-current only checks and it failed", out)
 
-    def test_a_build_error_is_not_staleness(self):
-        code, out, ran = self.run_script(SML_RC="2")
-        self.assertEqual(code, 1, out)
-        self.assertNotIn("discover", self.scripts(ran))
-        self.assertNotIn("not discovering", out)
+    def test_a_build_error_or_a_crash_is_not_staleness(self):
+        for rc in ("1", "2"):
+            with self.subTest(rc):
+                code, out, ran = self.run_script(SML_RC=rc)
+                self.assertEqual(code, 1, out)
+                self.assertNotIn("discover", self.scripts(ran))
+                self.assertNotIn("not discovering", out)
+
+    def test_the_lock_is_released_and_a_dead_holder_is_taken_over(self):
+        code, out, _ran = self.run_script()
+        self.assertEqual(code, 0, out)
+        self.assertFalse(self.lock_left)
+        dead = subprocess.run(["sh", "-c", "echo $$"], capture_output=True, text=True).stdout.strip()
+        code, out, ran = self.run_script(lock_pid=int(dead))
+        self.assertEqual(code, 0, out)
+        self.assertIn(f"taking over", out)
+        self.assertEqual(self.scripts(ran).count("discover"), 1)
+        self.assertFalse(self.lock_left)
+        code, out, _ran = self.run_script(DISCOVER_FAIL="1")
+        self.assertFalse(self.lock_left, out)
 
     def test_a_check_never_discovers(self):
         code, out, ran = self.run_script("--check")
