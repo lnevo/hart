@@ -7927,6 +7927,13 @@
    "side": "pointer"
   },
   {
+   "from": "wiki/decisions",
+   "to": "wiki/projects",
+   "label": "points to",
+   "gen": "agent-docs",
+   "side": "pointer"
+  },
+  {
    "from": "wiki/home.md",
    "to": "tools/audit/check_agent_docs.py",
    "label": "check",
