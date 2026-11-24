@@ -44,14 +44,15 @@ Documents about the CATS Digicon CTC desks, how their signals and turnouts get t
 
 ## hosts
 
-- [PI_OS_REBUILD.md](hosts/PI_OS_REBUILD.md): This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi
+- [PI_OS_REBUILD.md](hosts/PI_OS_REBUILD.md): The layout Pi runs the new 64-bit Raspberry Pi OS (trixie) card since 2026-11-23, built from scripts and config files in the repo; the old bookworm card is...
 
 ## jmri
 
-Reference notes for JMRI work on the layout: block lengths, the CS-105 roster sync and the speed-matching record
+Reference notes for JMRI work on the layout: block lengths, the MQTT startup race, the CS-105 roster sync and the speed-matching record
 
 - [CS105_ROSTER_SYNC.md](jmri/CS105_ROSTER_SYNC.md): Copy the JMRI roster (names, DCC addresses, function labels) into the TCS CS-105 command station so UWT-100 throttles see every locomotive with its labels
-- [README.md](jmri/README.md): Reference notes for JMRI work on the layout: block lengths, the CS-105 roster sync and the speed-matching record
+- [MQTT_STARTUP_RACE.md](jmri/MQTT_STARTUP_RACE.md): The connection drop at PanelPro start is a bug in stock JMRI 5.16, reproduced on a bare profile with nothing from the layout in it (2026-11-23)
+- [README.md](jmri/README.md): Reference notes for JMRI work on the layout: block lengths, the MQTT startup race, the CS-105 roster sync and the speed-matching record
 - [TRACK_LENGTHS.md](jmri/TRACK_LENGTHS.md): Track and spur lengths per block, generated from block_lengths.csv and checked against the JMRI block lengths in tables.xml
 - [speedmatching/ANYRAIL_LENGTHS.md](jmri/speedmatching/ANYRAIL_LENGTHS.md): First-pass block lengths for the 17 blocks of the speed-matching test loop, read from the AnyRail plan to feed Part A of the re-run plan
 - [speedmatching/DASHBOARD.md](jmri/speedmatching/DASHBOARD.md): Describes the read-only browser dashboard on the Mac that shows a speed-match run live, and how to start it
