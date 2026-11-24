@@ -1,6 +1,6 @@
 # Schematic solver on any plan: test plan (2026-11-23)
 
-Status: parked (2026-11-23)
+Status: done (2026-11-23)
 
 The schematic-maps plugin draws HART as approved in 38 s, but given HART as one continuous railroad (one input, no level cuts, no preferences) it needed a turnback cap it does not allow, then spent 43 minutes on rows and stopped with `columns: constraints do not settle` ([efficiency plan](../../docs/pipeline-map/efficiency-plan.md#full-rebuild-timed-2026-11-23)). The aim (owner, 2026-11-23): the plugin solves any AnyRail plan it is given, with no hand hints, in bounded time, and HART with the owner's layer files still comes out exactly as approved.
 
@@ -153,3 +153,11 @@ Plugin PR [lnevo/model-railroad-skills#89](https://github.com/lnevo/model-railro
 | D17 | no orientation | 578 s, 24 faults |
 
 Left: D7, D10, D13 and D17 are over 240 s with three runs at a time; D17's time is in the column search and the local row searches (a 149-switch band, laid out twice for the label room round). D18 and D6 still time out. Outputs: `~/Documents/Layout/anyrail-samples/out11` to `out17` (out17 is the merged code).
+
+## Closed (2026-11-23)
+
+The owner closed the experiment. With plugin 0.1.53, 37 of the 38 set D plans draw (D34 in 573 s and D18 in 833 s, both never drawn before); D6 (1105 switches) still times out at 900 s. HART 5.3c as one band (set C) draws its sheet, Layout Editor panel and CATS desk in 57 s (sheet 55 s, 2 crossings, 14 label faults; CATS desk 0 faults, 167 blocks).
+
+- Latest build: `~/Documents/Layout/anyrail-samples/review.html` (every plan, AnyRail picture beside its sheet), the SVGs in `anyrail-samples/sheets/`, set C's files in `anyrail-samples/setC-0153/` and `~/JMRI_UserFiles/raw-experiment/HART_one_band_0153_*`. Older review pages are in `anyrail-samples/old-reviews/`.
+- For future builds (owner): the one-band CATS desk is far too big, 334 by 31 cells in a 1920 px window; CATS also warns of block cells defined twice at sections (140,21), (198,26), (259,27) and (260,27).
+- To review later (owner): D24's sheet draws but looks poor (13 faults).
