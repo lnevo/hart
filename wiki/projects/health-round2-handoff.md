@@ -23,6 +23,8 @@ On 2026-11-21 a cold `./tools/check.sh` on clean `main` ended `FAILED` after 3m2
 
 2026-11-22: two cold `FULL=1` runs failed on different tests. `test_stamp_gate` copied `FULL=1` into its own check.sh call and skipped the stamp branch it tests (fixed in PR #930). `test_panelpro_wrappers` (the SIGINT and SIGHUP cleanup) fails under the full parallel load and in CI, and passes alone; PR #938 fixes the lost signal in `panelpro_session.sh`. The 2026-11-21 log is gone, so which of the two failed then is not known. The venv line is a warning that only leaves `unit-hart-ops` unstamped; it did not recur.
 
+Done 2026-11-22: both fixes merged (PR #930, PR #938).
+
 ## 1. `signal_coordinator.py` into sibling modules
 
 The file is one class, `DigiconMqttSml`, of about 1,800 lines, with 135 tests in `jmri/layouts/hart/scripts/tests/test_signal_coordinator_behaviour.py`. It runs on the Pi and Windows from `JMRI_UserFiles/jython/`. No HART Jython script imports a sibling today.
@@ -50,6 +52,8 @@ Done 2026-11-22 (PR #933, deployed `--pi --win` at f0e6ac0c): the script is 1,18
 
 Size: M. Done when `build_device_map.py` is under 900 lines and every output is byte-identical.
 
+Done 2026-11-22 (PR #935): `build_device_map.py` is 833 lines, with `device_map_inputs.py`, `device_map_staging.py` and a third module, `device_map_schematic.py`, for the drawing's track helpers, which the 900-line target needed. The builder re-exports every moved name. `make panels CHECK=1` passed all 18 steps and the Layout Editor candidates were byte-identical.
+
 ## 3. Two new agents
 
 From 404 `general-purpose` launches between 2026-10-31 and 2026-11-21: about 114 were schematic, Layout Editor, panel or device-map edits, and about 65 were verifying review findings.
@@ -72,8 +76,10 @@ Twelve table cells run over 80 words. The longest is row 8 of [`source-data-exce
 
 Size: S. Done when the check passes on `main`.
 
-Done (2026-11-22, PR open): all twelve cells cut with their detail in sections below the tables, and `check_agent_docs.py` fails a cell over 80 words.
+Done 2026-11-22 (PR #928): all twelve cells cut with their detail in sections below the tables, and `check_agent_docs.py` fails a cell over 80 words.
 
 ## Done when
+
+Left on 2026-11-23: only the 2026-12-05 agent count. Items 0, 1, 2 and 4 are merged, and item 1 is deployed.
 
 All four items are merged, item 1 is deployed to the Pi and Windows, the 2026-12-05 agent count is recorded here, and this page is marked done.
