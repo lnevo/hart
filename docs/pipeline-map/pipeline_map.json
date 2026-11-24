@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-21",
+ "updated": "2026-11-23",
  "domains": [
   {
    "id": "layout",
@@ -1188,13 +1188,13 @@
    "path": "tools/anyrail/levels_svg.py"
   },
   {
-   "id": "tools/anyrail/prototype",
-   "label": "anyrail/prototype",
+   "id": "archive/tools-anyrail-prototype",
+   "label": "anyrail prototype (archived)",
    "kind": "generator",
    "status": "retired",
    "domain": "layout",
-   "desc": "Early graph and route parsing prototypes (parse1/2, hartgraph, loop_route); superseded by the schematic-maps plugin's anyplan reader.",
-   "path": "tools/anyrail/prototype"
+   "desc": "Early graph and route parsing prototypes (parse1/2, hartgraph, loop_route); superseded by the schematic-maps plugin's anyplan reader. Archived 2026-11-23; nothing calls it.",
+   "path": "archive/tools-anyrail-prototype"
   },
   {
    "id": "tools/hartlib/src/hartlib/devices.py",
@@ -3542,6 +3542,33 @@
    "path": "jmri/layouts/hart/data/schematic/plan_generated.json"
   },
   {
+   "id": "tools/hosts/panel_window_sizes.py",
+   "label": "panel_window_sizes.py",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Sets each Layout Editor panel window size a JMRI profile remembers (user-interface.xml) to the size tables.xml gives it; run by hand with JMRI closed, not part of make panels or a deploy.",
+   "path": "tools/hosts/panel_window_sizes.py"
+  },
+  {
+   "id": "tools/hosts/pi_panel_window_sizes.sh",
+   "label": "pi_panel_window_sizes.sh",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Runs panel_window_sizes.py on the Pi's profile: checks first, quits PanelPro, sets the sizes, keeps a backup and starts PanelPro again.",
+   "path": "tools/hosts/pi_panel_window_sizes.sh"
+  },
+  {
+   "id": "tools/hosts/pi-os",
+   "label": "pi-os image build",
+   "kind": "generator",
+   "status": "live",
+   "domain": "hosts",
+   "desc": "Builds the layout Pi's 64-bit trixie SD card image on the Mac (sdm pluglist, Lima VM); the image holds secrets and never leaves the Mac.",
+   "path": "tools/hosts/pi-os"
+  },
+  {
    "id": ".claude/agents/archive-researcher.md",
    "label": "agent: archive-researcher",
    "kind": "unstructured",
@@ -5619,7 +5646,7 @@
    "side": "check"
   },
   {
-   "from": "tools/anyrail/prototype",
+   "from": "archive/tools-anyrail-prototype",
    "to": "ext:anyrail-plan",
    "label": "reads"
   },
@@ -7443,6 +7470,26 @@
    "from": "www/assets/behind/layout-docs/drawings",
    "to": "www/behind",
    "label": "shown on"
+  },
+  {
+   "from": "tools/hosts/panel_window_sizes.py",
+   "to": "jmri/layouts/hart/output/tables.xml",
+   "label": "reads"
+  },
+  {
+   "from": "tools/hosts/pi_panel_window_sizes.sh",
+   "to": "tools/hosts/panel_window_sizes.py",
+   "label": "runs"
+  },
+  {
+   "from": "tools/hosts/pi_panel_window_sizes.sh",
+   "to": "host:pi",
+   "label": "sets saved panel sizes"
+  },
+  {
+   "from": "tools/hosts/pi-os",
+   "to": "host:pi",
+   "label": "SD card image"
   },
   {
    "from": ".claude/agents/archive-researcher.md",

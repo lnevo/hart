@@ -1,6 +1,8 @@
 # Level unification: hand-off (2026-11-20)
 
-Status: active
+Status: done (2026-11-23)
+
+Closed in the 2026-11-23 repo review: steps 1 to 6 and the mast build are done. Step 7 (the main and upper station maps) is the one item left; it is tracked under Owed in `wiki/STATUS.md`. The "Order", "Next session" and "Next" sections below are kept as they were written.
 
 Since 2026-11-21 `block_exceptions.csv` and `block_splits.csv`, named below as they were, are one file,
 `data/schematic/block_overrides.csv`, with a `kind` column (`split`, `track`, `crossover_half`), and
@@ -19,7 +21,7 @@ processes. Staging was built and approved first (ADR-024, ADR-027) and main and 
 The goal: one file per kind of fact and one builder per job, the level (or sheet) a column, and no hand-drawn facts
 where a rule can do the work.
 
-Out of scope here, because the [project health plan](../../archive/wiki/projects/project-health-handoff.md) covers them: the one device master
+Out of scope here, because the [project health plan](project-health-handoff.md) covers them: the one device master
 and `tables.xml` as an output (row 9, R9a to R9e, which also retire `sync_staging_signals.py`), the name-prefix rules
 (row 8) and the drawing workarounds (row 10).
 
@@ -141,7 +143,7 @@ device_map` finds them before `tables.xml` is built. Staging-only parts are the 
 hand-kept rows read against the staging band (`load`), its helix drawing and its mast files.
 `railroad_invariants`: one switch-numbers rule for every level, one mast rule over both mast files. The helix
 blocks' rows agree on `stop` (owner, 2026-11-20: on main and upper the helix stop is at Switch 131A and 131B, the
-helix's main-level end): `build_device_map.helix_stops` marks the main and upper helix rows from helix_tracks.csv's *(Parked 2026-11-22 with the stations topic: `helix_stops` is removed and the helix rows' `stop` is empty; see [`docs/parked/UNPARK.md`](../../docs/parked/UNPARK.md).)*
+helix's main-level end): `build_device_map.helix_stops` marks the main and upper helix rows from helix_tracks.csv's *(Parked 2026-11-22 with the stations topic: `helix_stops` is removed and the helix rows' `stop` is empty; see [`docs/parked/UNPARK.md`](../../../docs/parked/UNPARK.md).)*
 `level_switch`, and `KNOWN_STOP` is gone from the check (tables.xml unchanged: the staging row already marked it).
 Main and upper have no other stations until the owner defines them (step 7).
 
@@ -258,7 +260,7 @@ Step 5 follow-ups (2026-11-20):
   the candidates, the desks and every fingerprint unchanged. Pinned by `test_blocks_every_level`
   (`MAIN_UPPER_TRIALS` and the renumber test). `mast_rule.tracks` keeps an edge-keyed `trial` list internally (the
   tie-break for parallel track numbers and `block_splits.csv`'s edge lookup); it is never written.
-- **Helix stop** (owner, 2026-11-20): see step 4's device-map part above (`helix_stops`, `KNOWN_STOP` gone). *(Parked 2026-11-22 with the stations topic: `helix_stops` is removed and the helix rows' `stop` is empty; see [`docs/parked/UNPARK.md`](../../docs/parked/UNPARK.md).)*
+- **Helix stop** (owner, 2026-11-20): see step 4's device-map part above (`helix_stops`, `KNOWN_STOP` gone). *(Parked 2026-11-22 with the stations topic: `helix_stops` is removed and the helix rows' `stop` is empty; see [`docs/parked/UNPARK.md`](../../../docs/parked/UNPARK.md).)*
 - **Staging's parts as JMRI blocks** (owner decision 2026-11-20, branch `agent/claude/staging-parts-blocks`, a
   candidate waiting on the owner's approval). One rule for every level: a part is a JMRI block on its OS block's
   sensor (`hartlib.devices` has no staging case left). Staging gets 14 part blocks; its part rows carry IB:AUTO:<n> and
@@ -289,7 +291,7 @@ Step 5 follow-ups (2026-11-20):
 
 - **Desk codes** (BK, PL, BN, SY, EE, PR, EH) are layout-specific: they go back to the station map data, a desk-code column in `stations.csv`, and `control_points_staging.csv` goes. They do not line up with the interlockings (Brick's interlocking holds the BK and PL areas; South Yard and Engine House have none). Brick and West Yard share BK. **Done** (desk-areas-from-stations PR): `stations.csv` has a `desk_code` column and `control_points_staging.csv` is gone; `hartlib.railroad_facts.read_desk_areas` is the one reader. Engine House got a station row nested in Barn (owner chose this 2026-11-20 after seeing the trial): a station whose switches all lie in another's takes them for its own desk area (BN = 7, EH = 9, 11, 13), areas named by a nested station come after the others, and partial overlap or a switch in two nested stations stops. The drawings gained the Engine House bar (18 cars) under Barn; desks, tables.xml and the desk areas are unchanged. The Layout Editor panel does not name Engine House: staging's `le_nested_station_labels` preference (false) leaves a desk area nested in another station's out of the panel's station names (owner, 2026-11-20; `le_common.le_station_labels`); West Yard, nested in Brick's own BK area, keeps its name.
 - **Station maps for main and upper (step 7, stays on the to-do list):** a station map per control point from `interlockings.csv` is the minimum template for a station, not the whole definition; the owner extends it.
-- **Helix stop** on main and upper is at Switch 131A/131B: built with the trial-names PR (`helix_stops`, above). *(Parked 2026-11-22 with the stations topic: `helix_stops` is removed and the helix rows' `stop` is empty; see [`docs/parked/UNPARK.md`](../../docs/parked/UNPARK.md).)*
+- **Helix stop** on main and upper is at Switch 131A/131B: built with the trial-names PR (`helix_stops`, above). *(Parked 2026-11-22 with the stations topic: `helix_stops` is removed and the helix rows' `stop` is empty; see [`docs/parked/UNPARK.md`](../../../docs/parked/UNPARK.md).)*
 - **#5 turnout** class is the SL-8351/8352 at 8.3 in (confirmed).
 - **Step 6**: start with a read-only comparison, and discuss with the owner first. Nodes and pins done (below).
 

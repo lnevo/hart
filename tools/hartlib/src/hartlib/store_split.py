@@ -467,7 +467,7 @@ def _device_items(key: tuple, b: ET.Element | None, g: ET.Element, s: ET.Element
             out.append((p, tuple(edits), f"{who}: user_name" + (" and jmri_name" if len(edits) > 1 else "")))
         else:
             if r["level"] not in tb.GENERATED_LEVELS:
-                out.append((p, None, "the Layout Editor build writes main and upper comments from devices.csv; "
+                out.append((p, None, "the Layout Editor build writes main and upper comments from the device master; "
                                      "change the row's columns"))
                 continue
             if r["wiring"] or not r["jmri_comment"]:

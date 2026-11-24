@@ -397,10 +397,10 @@ def check(band=None) -> list[str]:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--check", action="store_true", help="exit 1 unless devices.csv holds its rules")
+    ap.add_argument("--check", action="store_true", help="exit 1 unless the device master holds its rules")
     args = ap.parse_args(argv)
     if not args.check:
-        ap.error("devices.csv is checked here, never written; --check is the only mode")
+        ap.error("the device master is checked here, never written; --check is the only mode")
     band, skipped = None, None
     try:
         lc.plugin()

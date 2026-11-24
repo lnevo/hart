@@ -1,7 +1,7 @@
 """le_tables and le_checks, the Layout Editor build's tables assembly and mast checks, on small made-up tables and panels
 (no plugin, no solve): which bands' turnouts and blocks the build adds as virtual beans, which panel elements the staging
 guard counts as the other levels', and what the mast checks stop on. These pin the behaviour the level unification
-(wiki/projects/level-unification-handoff.md, step 4) keeps while it takes the level branches out.
+(archive/wiki/projects/level-unification-handoff.md, step 4) keeps while it takes the level branches out.
 """
 import sys
 import unittest

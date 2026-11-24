@@ -215,7 +215,7 @@ class LayoutFactsTest(unittest.TestCase):
         stations.write_text("".join(line for line in stations.read_text().splitlines(True)
                                     if not line.startswith("1,Engine House,")))
         out = self.failures(data=data)
-        self.assertIn("Engine House: a cp of a staging row of devices.csv with no desk area (and no level) in "
+        self.assertIn("Engine House: a cp of a staging row of the device master with no desk area (and no level) in "
                       "stations.csv", out)
 
     def test_a_block_in_no_place_takes_the_level_of_the_blocks_it_joins(self) -> None:
