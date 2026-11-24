@@ -23,7 +23,7 @@ The image lands in `~/.cache/hart/pi-os/out/` with a `.sha256` and a `.base` fil
 | `rootfs/system/` | copied to `/` as root: Wi-Fi watchdog, `lcos-bridge` unit, udev rule, Mosquitto config, EDID files (in `usr/lib`, as trixie merges `/lib` into `/usr`), greeter kanshi profile |
 | `rootfs/home-pi/` | copied to `/home/pi`: kanshi, labwc environment, panel settings, aliases |
 | `samba-shares.conf` | the `JMRI_UserFiles` and `JMRI_Settings` shares |
-| `firstboot.sh` | run once on the Pi: `docker` and `lpadmin` groups, lingering for user services |
+| `firstboot.sh` | run once on the Pi: `docker` and `lpadmin` groups, lingering for user services, Claude Code |
 | `pull_from_pi.sh` | copies secrets to `~/.config/hart/pi-os` (mode 700) and JMRI to `~/.cache/hart/pi-os` |
 | `check_image.sh` | mounts the newest image read-only in the VM and fails on anything wrong: architecture, `/lib`, packages, the `pi` account and its hash, modes, profiles, keys, hostname, services, leftover secrets |
 | `build_image.sh`, `inside_vm.sh` | the build: stage, Lima VM, sdm customize, sdm burnfile with the hostname `RPi-JMRI` |
