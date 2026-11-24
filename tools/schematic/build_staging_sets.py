@@ -21,9 +21,12 @@ Only staging (level 1) has stations so far; a row of another level stops the bui
 
 What it writes, and nothing else of those files:
 
-  plan_generated.json   staging's section: the keys control_points, stations and station_tracks
-  preferences.json      staging's section: the key detail_sheets
-(through hartlib.layer_files, which keeps the other sections and the notes as they are).
+  plan_generated.json          staging's section: the keys control_points, stations and station_tracks
+  preferences_generated.json   staging's section: the key detail_sheets
+(through hartlib.layer_files, which keeps the other sections and the notes as they are, and merges each file under
+the owner's hand file, plan_overrides.json and preferences.json, for every reader). It writes neither hand file, and
+stops when preferences.json's staging section holds detail_sheets: a hand value wins the merge and would hide the
+generated one.
 
 The older data/control_points.csv and schematic/control_points_staging.csv are gone (level-unification step 8; owner
 2026-11-20): their readers build the same rows from stations.csv and switches.csv
@@ -51,7 +54,7 @@ from hartlib.railroad_facts import DeskArea, FactsError, read_rows, station_grou
 LEVEL = "1"
 STATIONS = pd.DATA / "stations.csv"
 SHEETS = pd.DATA / "sheets.csv"
-SHEET = "staging"     # the sections of plan_overrides.json and preferences.json this writes
+SHEET = "staging"     # the sections of plan_generated.json and preferences_generated.json this writes
 SWITCHES = paths.LAYOUT_DATA / "switches.csv"
 NONE = "none"        # the `tracks` cell of a station that counts no track
 
@@ -162,10 +165,26 @@ def generated_keys(cps, stations) -> dict:
     return over
 
 
-def preferences_section(prefs: dict, sheets, stations) -> dict:
-    prefs = dict(prefs)
-    prefs["detail_sheets"] = {s.name: sheet_switches(s, stations) for s in sheets}
-    return prefs
+DETAIL_NOTE = ("Layer 3: the station sheets `schematic detail` draws, name to switches. May overlap the stations above. "
+               "South Yard covers the yard and the Barn (owner, 2026-11-14); West Yard pairs the hand map with Brick "
+               "and Plane; Princess is the hand map's Shenango. Written by tools/schematic/build_staging_sets.py from "
+               "sheets.csv (each sheet the sorted union of its stations' switches); edit that file, not this key.")
+
+
+def generated_preferences(sheets, stations) -> dict:
+    """The keys of preferences_generated.json's staging section this writes, from sheets.csv and stations.csv."""
+    return {"detail_sheets": {s.name: sheet_switches(s, stations) for s in sheets}, "_detail_sheets": DETAIL_NOTE}
+
+
+def check_hand_preferences(data: Path) -> None:
+    """Stop when preferences.json's staging section holds a key this writes: the merge keeps a hand value over a
+    generated one (hartlib.layer_files.merge), so a hand copy would hide what sheets.csv says."""
+    hand = layer_files.read("preferences", SHEET, data)
+    clash = [k for k in generated_preferences([], []) if k in hand]
+    if clash:
+        raise SetsError(f"preferences.json[{SHEET}] holds {', '.join(clash)}: build_staging_sets.py writes "
+                        f"{'it' if len(clash) == 1 else 'them'} to preferences_generated.json from sheets.csv; "
+                        "delete the hand copy")
 
 
 def wanted(data: Path | None = None) -> dict[Path, str]:
@@ -179,10 +198,10 @@ def wanted(data: Path | None = None) -> dict[Path, str]:
     except FactsError as exc:
         raise SetsError(str(exc)) from None
     try:
+        check_hand_preferences(data)
         return {**layer_files.generated_texts({SHEET: generated_keys(cps, stations)}, data),
-                **layer_files.texts({
-                    ("preferences", SHEET): preferences_section(layer_files.read("preferences", SHEET, data),
-                                                                sheets, stations)}, data)}
+                **layer_files.generated_texts({SHEET: generated_preferences(sheets, stations)}, data,
+                                              layer_files.PREFS_GENERATED)}
     except layer_files.LayerFileError as exc:
         raise SetsError(str(exc)) from None
 

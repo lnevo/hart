@@ -15,6 +15,7 @@ import build_staging_sets as S  # noqa: E402
 
 HEAD = "level,station,switches,tracks,desk_code,notes\n"
 SWITCHES = {"1", "3", "5"}
+KINDS = ("plan_overrides", "plan_generated", "preferences", "preferences_generated")   # the layer files it reads
 
 
 class Tmp(unittest.TestCase):
@@ -45,7 +46,7 @@ class RealFiles(unittest.TestCase):
             self.assertEqual(S.main(["--check"]), 0)
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        for kind in ("plan_overrides", "plan_generated", "preferences"):
+        for kind in KINDS:
             shutil.copyfile(S.layer_files.path(kind, S.pd.DATA), S.layer_files.path(kind, tmp))
         over = S.layer_files.read("plan_generated", "staging", tmp)
         over["control_points"]["Brick"]["switches"] = ["1"]
@@ -54,19 +55,45 @@ class RealFiles(unittest.TestCase):
         with mock.patch.object(S.pd, "DATA", tmp), contextlib.redirect_stderr(err):
             self.assertEqual(S.main(["--check"]), 1)
         self.assertIn("plan_generated.json is stale", err.getvalue())
-        self.assertNotIn("preferences.json", err.getvalue())
+        self.assertNotIn("preferences", err.getvalue())
 
-    def test_writes_only_staging_sections(self):
+    def test_writes_only_staging_sections_of_the_generated_files(self):
         got = S.wanted()
-        self.assertEqual(sorted(p.name for p in got), ["plan_generated.json", "preferences.json"])
+        self.assertEqual(sorted(p.name for p in got), ["plan_generated.json", "preferences_generated.json"])
         for p, text in got.items():
             whole = json.loads(text)
-            self.assertEqual(whole["main_upper"], json.loads(p.read_text(encoding="utf-8"))["main_upper"], p.name)
+            self.assertEqual(whole.get("main_upper"), json.loads(p.read_text(encoding="utf-8")).get("main_upper"),
+                             p.name)
+
+    def test_detail_sheets_reach_the_merged_preferences_and_not_the_hand_file(self):
+        self.assertNotIn("detail_sheets", S.layer_files.read("preferences", "staging"))
+        merged = S.layer_files.merged(kind="preferences")["staging"]["detail_sheets"]
+        self.assertEqual(merged["South Yard"], ["7", "9", "11", "13", "15", "17", "19", "21"])
+        self.assertIn("Main level", S.layer_files.read("preferences", "main_upper")["detail_sheets"])
+
+    def test_a_hand_detail_sheets_in_staging_stops(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for kind in KINDS:
+            shutil.copyfile(S.layer_files.path(kind, S.pd.DATA), S.layer_files.path(kind, tmp))
+        prefs = S.layer_files.read("preferences", "staging", tmp)
+        prefs["detail_sheets"] = {"Barn": ["7"]}
+        S.layer_files.write({("preferences", "staging"): prefs}, tmp)
+        with self.assertRaisesRegex(S.SetsError, r"preferences.json\[staging\] holds detail_sheets: .*delete the hand"):
+            S.wanted(tmp)
+
+    def test_a_missing_generated_preferences_file_stops_clearly(self):
+        tmp = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, tmp)
+        for kind in KINDS[:-1]:
+            shutil.copyfile(S.layer_files.path(kind, S.pd.DATA), S.layer_files.path(kind, tmp))
+        with self.assertRaisesRegex(S.SetsError, "preferences_generated.json: cannot be read"):
+            S.wanted(tmp)
 
     def test_a_missing_section_stops_clearly(self):
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(shutil.rmtree, tmp)
-        for kind in ("plan_generated", "preferences"):
+        for kind in ("plan_generated", "preferences", "preferences_generated"):
             whole = S.layer_files.read_file(kind, S.pd.DATA)
             del whole["staging"]
             S.layer_files.path(kind, tmp).write_text(S.layer_files.dumps(whole), encoding="utf-8")
