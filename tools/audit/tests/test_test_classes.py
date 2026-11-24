@@ -54,11 +54,15 @@ class TestClasses(unittest.TestCase):
 
     def test_every_by_class_file_exists_and_splits(self) -> None:
         text = CHECK.read_text(encoding="utf-8")
-        line = next(x for x in text.splitlines() if x.startswith("BY_CLASS="))
-        names = line.split('"')[1].split()
-        self.assertTrue(names)
+        # every BY_CLASS= and BY_CLASS+= line, each file found in one of the folders check.sh splits
+        names = [n for x in text.splitlines() if x.startswith(("BY_CLASS=", "BY_CLASS+="))
+                 for n in x.split('"')[1].split()]
+        self.assertIn("test_deploy_gates.py", names)
+        folders = [ROOT / d for d in ("tools/audit/tests", "tools/hosts/tests", "tools/schematic/tests")]
         for name in names:
-            path = ROOT / "tools/audit/tests" / name
+            found = [d / name for d in folders if (d / name).is_file()]
+            self.assertEqual(1, len(found), f"{name}: in one of {[str(d) for d in folders]}")
+            path = found[0]
             done = subprocess.run([sys.executable, str(SCRIPT), str(path)], capture_output=True, text=True, timeout=60)
             self.assertEqual(0, done.returncode, done.stderr)
             printed = done.stdout.split()

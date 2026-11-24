@@ -329,7 +329,7 @@ else
 fi
 # The host tests start real processes and wait out their timers, and the guard tests are many separate modules:
 # both run one job per file, found as discover finds them, the files in SLOW first. A file in
-# BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job).
+# BY_CLASS runs one job per test class instead (test_worktrees: about 40 tests of git calls, 20 s in one job; the deploy tests).
 for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests tools/schematic/tests; do
   if [[ -n "$(find "$d" -mindepth 2 -name 'test*.py' -print -quit)" ]]; then
     echo "--- $d: tests in a subfolder; give them their own job in check.sh"
@@ -338,6 +338,9 @@ for d in "$JMRI_TESTS" tools/hosts/tests tools/audit/tests tools/schematic/tests
 done
 BY_CLASS=" test_worktrees.py "
 BY_CLASS+=" test_panel_stamps.py "      # in tools/schematic/tests
+# in tools/hosts/tests: the deploy scripts run in scratch repos; one job per file took 456 s and 274 s, the longest
+# jobs of a full run, and 94 s at most per class side by side (2026-11-24)
+BY_CLASS+=" test_deploy_gates.py test_deploy_preflight.py "
 # A class in BY_METHOD runs one job per test (test_panel_stamps.ShellTest: eight runs of build_panels.sh in scratch repos).
 BY_METHOD=" test_panel_stamps.ShellTest "
 for t in $(slow_first tools/hosts/tests/test*.py tools/audit/tests/test*.py tools/schematic/tests/test*.py); do
