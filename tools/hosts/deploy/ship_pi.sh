@@ -22,6 +22,10 @@ done
 [[ -d "$STAGE" ]] || { echo "Usage: ship_pi.sh [--dry-run] STAGED_PI_DIR" >&2; exit 1; }
 deploy_facts
 refuse_before_changing
+# run alone, the gate's origin/main check too (G0b, check_on_main)
+if [[ "${HART_GATED:-0}" != 1 && "$DRY_RUN" -eq 0 ]]; then
+  check_on_main || exit 1
+fi
 
 PI_STEP=0   # 1 until the Pi step is done: PanelPro quit for this deploy comes back on any way out
 on_exit() {

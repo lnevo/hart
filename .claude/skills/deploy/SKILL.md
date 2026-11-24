@@ -23,7 +23,7 @@ Before you run it:
 - The deploy leaves the DecoderPro roster alone; it ships only the roster photos.
 - `--dry-run` shows what would be sent (it still connects to the hosts).
 - `--stage-only DIR` builds the Pi and Windows packages into `DIR/pi` and `DIR/win` and stops: no ssh, no Mac install, `tables.xml` only checked. Use it to look at or compare a package.
-- A deploy to the Pi or Windows ships a commit on `origin/main`: it fetches `origin/main` and stops before any ssh when HEAD is not on it (G0b). Merge first and deploy from the updated main. `HART_ALLOW_UNMERGED=1` deploys another commit (a test on the hosts, a fix that cannot wait); say so in the report. `--dry-run`, `--check-only` and a Mac-only run are not held.
+- A deploy to the Pi or Windows ships `origin/main` itself: it fetches `origin/main` and stops before any ssh when HEAD is not on it, or is behind it (G0b; `ship_pi.sh` and `ship_win.sh` run alone check it too). Merge first and deploy from the updated main; an older commit goes through `redeploy_commit.sh`. `HART_ALLOW_UNMERGED=1` deploys another commit (a test on the hosts, a fix that cannot wait); say so in the report. `--dry-run`, `--check-only` and a Mac-only run are not held. Uncommitted files are not held either: see the next line.
 - A checkout with uncommitted or untracked files prints a WARNING and deploys anyway; the stamp records `dirty=yes`. Commit first unless the owner wants a work-in-progress deploy.
 
 What it does:

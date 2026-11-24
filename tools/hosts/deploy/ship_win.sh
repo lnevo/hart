@@ -23,6 +23,10 @@ done
 [[ -d "$STAGE" ]] || { echo "Usage: ship_win.sh [--dry-run] STAGED_WIN_DIR" >&2; exit 1; }
 deploy_facts
 refuse_before_changing
+# run alone, the gate's origin/main check too (G0b, check_on_main)
+if [[ "${HART_GATED:-0}" != 1 && "$DRY_RUN" -eq 0 ]]; then
+  check_on_main || exit 1
+fi
 
 WIN_TGZ=""      # the Windows tarball
 WIN_STEP=1      # 1 until Windows' apply succeeds

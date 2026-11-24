@@ -12,7 +12,7 @@
 #
 # Order (the first failure stops it; nothing has changed on any host or on the Mac):
 #   G0  the HART_TABLES and unrestored-profile refusals, the live paths list, the parked features; a real deploy to
-#       a host ships a commit on origin/main (HART_ALLOW_UNMERGED=1 overrides)
+#       a host ships origin/main itself (HART_ALLOW_UNMERGED=1 overrides)
 #   G1  one ssh no-op to each host named
 #   G2  the Pi's unpulled files (Operations Pro files, a PanelPro Store)
 #   G3  the panel audit          G4  tables.xml is what the generator writes     G5  the Digicon mast check
@@ -62,7 +62,7 @@ if [[ "$CHECK_ONLY" -eq 0 && "$DRY_RUN" -eq 0 || "$STAGE_ONLY" -eq 1 ]]; then
   python3 "$ROOT/tools/hosts/live_paths.py" check || exit 1
 fi
 deploy_facts
-# G0b: a real deploy to a host ships a commit on origin/main (check_on_main, common.sh); the Mac alone is not checked
+# G0b: a real deploy to a host ships origin/main itself (check_on_main, common.sh); the Mac alone is not checked
 if [[ ( "$DO_PI" -eq 1 || "$DO_WIN" -eq 1 ) && "$DRY_RUN" -eq 0 && "$CHECK_ONLY" -eq 0 ]]; then
   check_on_main || exit 1
 fi
