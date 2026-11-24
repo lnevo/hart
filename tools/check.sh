@@ -15,6 +15,9 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
+# The caller's PYTHONPATH, before any job puts a hook on it: build_panels.sh runs with it (panel_stamps keys on it).
+CALLER_PYTHONPATH=()
+if [[ -n "${PYTHONPATH+set}" ]]; then CALLER_PYTHONPATH=(PYTHONPATH="$PYTHONPATH"); else CALLER_PYTHONPATH=(-u PYTHONPATH); fi
 # The schematic plugin's cache, the folder the builds use (publish_draft.CACHE: <main checkout>/.cache/hart/schematic, private to this user), for every job
 # here: the Layout Editor job calls the build directly and would otherwise solve the whole sheet in its one process
 # (about 3 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
@@ -210,15 +213,36 @@ unit() {
 # The read-only checks run as one job ("static"), one after another, beside the unit jobs.
 run() {
   echo "--- $1"
+  local name=$1
   shift
   local start=$SECONDS
-  # each check is one Python process the job's trace must show (check.sh `later`)
-  [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
-  "$@" || static_rc=1
+  # What the job's trace (check.sh `later`) must show for this check: a Python check (python3, or env VAR=... python3)
+  # is one Python process it expects ("b"); bash (build_panels.sh) is a program the hook cannot see into, so it goes
+  # in as a spawn nothing loaded the hook for ("x"), and the job's stamp falls back to its declaration
+  # (tools/audit/check_stamps.py). bash runs outside the job's hooks, with the caller's PYTHONPATH: build_panels.sh
+  # traces its steps into logs of its own, and its stamps key on PYTHONPATH, so make panels' stamps hold here too.
+  # Any other program is refused: its reads would be missing.
+  local prog=$1 i
+  if [[ "$prog" == env ]]; then
+    for (( i = 2; i <= $#; i++ )); do [[ "${!i}" == *=* ]] || { prog="env ${!i}"; break; }; done
+  fi
+  case "$prog" in
+    python3|"env python3")
+      [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
+      "$@" || static_rc=1 ;;
+    bash)
+      [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tx\tcheck.sh-run\t%s\t%s\n' "$ROOT" "$(IFS=$'\t'; echo "$*")" >>"$HART_TRACE_LOG"
+      env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_ROOT -u CHECK_AUDIT_LOG ${CALLER_PYTHONPATH[@]+"${CALLER_PYTHONPATH[@]}"} "$@" \
+        || static_rc=1 ;;
+    *) echo "    $name: check.sh's run() takes python3, env VAR=... python3 or bash, not $prog; not run"; static_rc=1; return ;;
+  esac
   (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
 }
 static_checks() {
   local static_rc=0
+  # a run that skips no job (CI, FULL=1, an audit run) skips no panel step either
+  local panels_full=()
+  (( STAMPS )) || panels_full=(--full)
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run repo-guide python3 www/scripts/repo_guide_page.py --check
@@ -237,22 +261,14 @@ run panel-contracts python3 jmri/layouts/hart/scripts/audit_panel_contracts.py -
 run baselines python3 jmri/layouts/hart/scripts/capture_public_name_baseline.py --check
 run digicon-disabled python3 jmri/layouts/hart/scripts/disable_digicon_sml_in_tables.py --check
 run status-counts python3 tools/ops/status_counts.py --check
-# Fails when the schematic-maps plugin submodule is not checked out; SCHEMATIC_REQUIRED=0 makes them print SKIPPED and pass.
-run schematic-signals python3 tools/schematic/build_signals.py --check
-run schematic-cats python3 tools/schematic/build_cats_panel.py --check
-run schematic-hands python3 tools/schematic/build_hands.py --check
-run schematic-main-route python3 tools/schematic/build_main_route.py --check
-run schematic-staging-sets python3 tools/schematic/build_staging_sets.py --check
-run schematic-approved python3 tools/schematic/check_approved.py
-run schematic-device-map python3 tools/schematic/build_device_map.py --check
-run schematic-masts python3 tools/schematic/build_masts.py --check
-# tables.xml is an output (ADR-029): it must be what build_tables.py writes from the template, the device master, the
-# Layout Editor build and the discovered Signal Mast Logic; a Store is never copied over it (make tables-pull keeps
-# it in media/pulled-stores in the main checkout and tools/schematic/split_store.py splits it into the template and the device master)
-run tables python3 tools/schematic/build_tables.py --check
-run schematic-device-master python3 tools/schematic/check_device_master.py --check
-run schematic-plan-lengths python3 tools/schematic/plan_lengths.py --check
-run schematic-signals-sync python3 tools/schematic/sync_signals.py --check
+# Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
+# tools/schematic/build_panels.sh with --check, in build order, from the hands to the approved fingerprints, with
+# tables.xml among them (an output, ADR-029: a Store is never copied over it; make tables-pull and split_store.py).
+# One list of panel checks for check.sh, CI and make panels. Its own stamps (shared with make panels) skip the steps
+# current here; CI, FULL=1 and an audit run pass --full and run them all, and so does a run with HART_TABLES (stamps
+# off; the table steps read that file). Fails when the schematic-maps plugin submodule is not checked out, even with
+# SCHEMATIC_REQUIRED=0: its schematic step (publish_draft.py --check) has no SKIPPED path.
+run panels bash tools/schematic/build_panels.sh --check ${panels_full[@]+"${panels_full[@]}"}
 # The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article
 # against its drawings and the block lengths.
 run levels-svg python3 tools/anyrail/levels_svg.py --check
@@ -271,7 +287,6 @@ run layout-facts python3 tools/audit/check_layout_facts.py
 run railroad-facts env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.railroad check
 # the device master and its column dictionary (python3 -m hartlib.devices)
 run devices env PYTHONPATH="tools/hartlib/src${PYTHONPATH:+:$PYTHONPATH}" python3 -m hartlib.devices check
-run panel-status python3 tools/schematic/panel_items.py --check
 run name-copies python3 tools/audit/check_name_copies.py
 run ai-speak python3 tools/audit/check_ai_speak.py
 run tracked-policy python3 tools/audit/check_tracked_policy.py
