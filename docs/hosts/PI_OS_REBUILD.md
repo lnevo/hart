@@ -1,6 +1,6 @@
-# Pi OS rebuild plan (2026-11-21, decisions 2026-11-23)
+# Pi OS rebuild (2026-11-21, done 2026-11-23)
 
-This is a plan for a new 64-bit Raspberry Pi OS (trixie) system on the layout Pi. It is built from scripts and config files kept in the repo, and the current card stays as the way back. The owner worked out the plan in a chat on 2026-11-21 and made the Phase 0 decisions on 2026-11-23. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); a first image was built and checked on the Mac on 2026-11-23. On the Pi, only the display trial has changed anything: its settings stay live on the current card, with a revert script (Displays, Steps). It is a future goal in [`wiki/STATUS.md`](../../wiki/STATUS.md).
+The layout Pi runs the new 64-bit Raspberry Pi OS (trixie) card since 2026-11-23, built from scripts and config files in the repo; the old bookworm card is kept as the way back until 2026-12-23. This file is the plan, the owner's decisions, the build, the display fix and the swap as it went. The build files are in [`tools/hosts/pi-os/`](../../tools/hosts/pi-os/README.md); [ADR-032](../../wiki/decisions/ADR-032-pi-os-trixie-64-bit.md) records the decision.
 
 ## What the Pi runs now
 
@@ -162,6 +162,19 @@ On trixie, check whether vc4 still loads from the initramfs, and that the new Co
 
 There is one Pi 5, so this needs a maintenance window. Turn the operating flag on, pull, shut down, put in the new card or drive, boot, restore the live data and deploy. If anything fails, put the old card back; it isn't touched at any point.
 
+### The swap, 2026-11-23
+
+- **Card:** the 17:52 image, written with `dd` to a 128 GB card (old contents erased with the owner's yes). That image predates `--expand-at-boot`, so the word `resize` was added to its `cmdline.txt` line by hand before the first boot; the first boot grew the root filesystem to 117 GB.
+- **First boot:** `hart-firstboot.log` shows the `docker` and `lpadmin` groups and lingering for `pi`. Both screens came up mirrored; the owner confirmed the desktop works.
+- **Reading the old card:** macOS cannot read ext4, so the owner copied its root partition with `sudo dd if=/dev/rdisk4s2` into `~/.cache/hart/pi-os/oldroot.img`, mounted read-only in the build VM. The old card itself stays untouched.
+- **Restored from it:** `~/.jmri`, all of `~/JMRI_UserFiles` (roster and the JMRI background logo), `~/Desktop` (PanelPro, CATS ABS and CTC, TrainStat, user files, session log), `~/.local/share/applications`, `~/.java`, `~/speedmatch`, `jmrihelp` and Steve's helper scripts, `~/.bash_history` (old lines first), `~/.ssh/known_hosts`, `~/sts/sts-docker-data` with numeric owners, and `/var/lib/mosquitto/mosquitto.db` (202 retained topics). There was no `lcos-bridge/.bridgerc`.
+- **Background:** trixie's desktop runs the `default` profile, the old one `LXDE-pi`, so the JMRI logo settings went to `~/.config/pcmanfm/default/`. They are in the image now.
+- **sudo:** trixie's placeholder `pi` had no `/etc/sudoers.d/010_pi-nopasswd`; the owner put it back with the old line (`pi ALL=(ALL) NOPASSWD: ALL`). The image now has it.
+- **STS:** MariaDB 13.0.2, the same version as on the old card, refused the copied database at first: `Can't init tc log`. The old `tc.log` was laid out in 4 KB pages, and the Pi 5 kernel (`6.18.50+rpt-rpi-2712`) uses 16 KB pages. With `tc.log` set aside (kept as `tc.log.old-card-4k`) the database started cleanly; the data is all there (1169 history rows, 115 locations, 80 cars, 70 shipments). STS answers on 8980.
+- **Deploy:** `sync_hart_package.sh --pi --win` from a clean worktree at `ede88044`. The Pi had no unpulled Store or Operations Pro changes; both hosts match.
+- **PanelPro:** started by `pi_start_panelpro.sh` with `TCS_MQTT`, JMRI 5.16 under Java 21.0.13.1. On every start, JMRI's MQTT adapter can drop the broker connection while `tables.xml` loads: retained messages arrive while turnouts subscribe, and `MqttAdapter.messageArrived` throws a `ConcurrentModificationException`. It reconnects about 15 seconds later and resubscribes; every MQTT turnout then has its state. The old Pi never hit this race. JMRI is stock (AGENTS.md), so it is recorded here, not patched.
+- **Claude Code:** installed for `pi` (2.1.331); first boot installs it on later cards.
+
 ## Phase 5: acceptance checks
 
 1. `uname -m` and `dpkg --print-architecture` report `aarch64` and `arm64`.
@@ -176,6 +189,22 @@ There is one Pi 5, so this needs a maintenance window. Turn the operating flag o
 10. A short operating session runs with the LCOS bridge.
 11. `claude --version` works.
 
+### Results, 2026-11-23
+
+1. `aarch64` and `arm64`: pass.
+2. ssh from the Mac and Windows with the old host keys: pass.
+3. Mosquitto on 1883 with the retained topics back: pass.
+4. PanelPro with TCS_MQTT, web 12080 and WiThrottle 12090: pass, with the startup MQTT drop above.
+5. CATS ABS and CTC icons on the desktop: present; not opened.
+6. STS on 8980 with the restored data: pass.
+7. `make deploy-status` matches on both hosts: pass. `make panelpro-test` not run: no tables or panels changed.
+8. VNC (5900) and both Samba shares: pass.
+9. Watchdog running; both screens 1920x1080 mirrored after the first boot: pass (owner). A late matrix or KVM was not tried on this card.
+10. Operating session with the LCOS bridge: not yet.
+11. `claude --version`: 2.1.331.
+
+Open: trixie's first menu bar reads `~/.config/wf-panel-pi/wf-panel-pi.ini` (empty, so trixie's defaults), not the old `~/.config/wf-panel-pi.ini`; the second bar works through `-c`. If the first bar should be pinned to HDMI-A-1 with the old launchers, that settings file moves to the new place.
+
 ## Phase 6: write it down
 
-An ADR for the OS base (64-bit trixie built from the repo, not the RPi-JMRI image), `wiki/STATUS.md` updated, and the old card kept for about a month before reuse.
+Done 2026-11-23: [ADR-032](../../wiki/decisions/ADR-032-pi-os-trixie-64-bit.md), `wiki/STATUS.md`, the STS skill and ADR-020 (Docker now comes from apt). The old 32 GB card is kept until 2026-12-23 before reuse.

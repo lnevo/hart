@@ -23,7 +23,7 @@ The image lands in `~/.cache/hart/pi-os/out/` with a `.sha256` and a `.base` fil
 | `rootfs/system/` | copied to `/` as root: Wi-Fi watchdog, `lcos-bridge` unit, udev rule, Mosquitto config, EDID files (in `usr/lib`, as trixie merges `/lib` into `/usr`), greeter kanshi profile |
 | `rootfs/home-pi/` | copied to `/home/pi`: kanshi, labwc environment, panel settings, aliases |
 | `samba-shares.conf` | the `JMRI_UserFiles` and `JMRI_Settings` shares |
-| `firstboot.sh` | run once on the Pi: `docker` and `lpadmin` groups, lingering for user services |
+| `firstboot.sh` | run once on the Pi: `docker` and `lpadmin` groups, lingering for user services, Claude Code |
 | `pull_from_pi.sh` | copies secrets to `~/.config/hart/pi-os` (mode 700) and JMRI to `~/.cache/hart/pi-os` |
 | `check_image.sh` | mounts the newest image read-only in the VM and fails on anything wrong: architecture, `/lib`, packages, the `pi` account and its hash, modes, profiles, keys, hostname, services, leftover secrets |
 | `build_image.sh`, `inside_vm.sh` | the build: stage, Lima VM, sdm customize, sdm burnfile with the hostname `RPi-JMRI` |
@@ -34,4 +34,4 @@ Secrets never enter the repo. `secrets.env` holds `HOUSE_WIFI_PSK`, `HOTSPOT_PSK
 
 The swap brings these from the old card: the `~/.jmri` profile, the DecoderPro roster, the STS database, `mosquitto.db`, the speed-match ledger and `~/lcos-bridge/.bridgerc`. The first `sync_hart_package.sh --pi --win` deploy installs `JMRI_UserFiles`, the desktop icons and the speed-match service. STS is built on the Pi after its database is restored.
 
-The display setup proven in the trial of 2026-11-23 is in the image: one forced `video=` per output, set by `rootfs/system/usr/local/lib/hart/display-setup.sh` at post-install; the stored EDID in the initramfs through `rootfs/system/etc/initramfs-tools/hooks/hart-edid`; a second menu bar on HDMI-A-2 (`wf-panel-pi-2.ini`, `autostart/hart-panel-2.desktop`); and kanshi profiles for both screens or either one alone.
+The display setup proven in the trial of 2026-11-23 is in the image: one forced `video=` per output, set by `rootfs/system/usr/local/lib/hart/display-setup.sh` at post-install; the stored EDID in the initramfs through `rootfs/system/etc/initramfs-tools/hooks/hart-edid`; a second menu bar on HDMI-A-2 (`wf-panel-pi-2.ini`, `autostart/hart-panel-2.desktop`); and kanshi profiles for both screens or either one alone. The JMRI background setting is in the image, but its picture lives in `JMRI_UserFiles`, so it shows once that is restored at the swap. trixie's first menu bar reads `~/.config/wf-panel-pi/wf-panel-pi.ini`, not the `~/.config/wf-panel-pi.ini` kept here, so it runs on trixie's defaults (open, docs/hosts/PI_OS_REBUILD.md).
