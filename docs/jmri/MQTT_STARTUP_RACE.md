@@ -14,7 +14,7 @@ The same race has a second symptom. In 2 of the 9 Linux drops the recording show
 
 ## Upstream history
 
-JMRI pull request [#10280](https://github.com/JMRI/JMRI/pull/10280), "Mqtt concurrency fix" (merged 2021-11-10), added the copy: "Cache an iteration list to avoid ConcurrentModificationException during startup." Copying a `HashMap` iterates it, so the copy can still fail while another thread adds to it. `MqttAdapter.java` in 5.17.5 is identical to 5.16; 5.19.1 changes only payload encoding (UTF-8). No JMRI issue for the remaining race was found on 2026-11-23.
+JMRI pull request [#10280](https://github.com/JMRI/JMRI/pull/10280), "Mqtt concurrency fix" (merged 2021-11-10), added the copy: "Cache an iteration list to avoid ConcurrentModificationException during startup." Copying a `HashMap` iterates it, so the copy can still fail while another thread adds to it. `MqttAdapter.java` in 5.17.5 and the `pre-release-5.17.6` branch (the 5.18 candidate) is identical to 5.16; 5.19.1 and `master` change only payload encoding (UTF-8). The diff below targets the 5.19 development series and applies cleanly to `master`; it is not proposed for 5.18. No JMRI issue for the remaining race was found on 2026-11-23.
 
 ## The bare setup
 
