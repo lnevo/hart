@@ -78,4 +78,4 @@ No fixed start logged `No one subscribed`, so the map change does the work, not 
 
 ## Next
 
-The reproduction stopped at the owner's word (2026-11-23): the bug is in JMRI and an earlier fix for it is on record. Next is a JMRI issue citing #10280 and these results, and a pull request with the diff above and the test change. Possible fixes: a `ConcurrentHashMap` (or a synchronized copy) for `mqttEventListeners`, and catching exceptions inside `messageArrived()` so one bad delivery cannot close the connection.
+The reproduction stopped at the owner's word (2026-11-23): the bug is in JMRI and an earlier fix for it is on record. Reported with the diff and these results as [JMRI/JMRI#16003](https://github.com/JMRI/JMRI/issues/16003) (2026-11-23). A pull request would add the `MqttAdapterTest` change and run JMRI's tests. Possible fixes: a `ConcurrentHashMap` (or a synchronized copy) for `mqttEventListeners`, and catching exceptions inside `messageArrived()` so one bad delivery cannot close the connection.
