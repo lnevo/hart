@@ -1,12 +1,14 @@
 # JMRI MQTT startup race
 
-The connection drop at PanelPro start is a bug in stock JMRI 5.16, reproduced on a bare profile with nothing from the layout in it, on macOS and Linux and with four brokers (2026-11-23). JMRI tried to fix it in 2021; 5.17.5 and 5.19.1 have the same code.
+The connection drop at PanelPro start is a stock JMRI bug, reproduced on bare profiles on macOS and Linux with four brokers (2026-11-23).
+
+JMRI tried to fix it in 2021; 5.17.5 and 5.19.1 have the same code as 5.16.
 
 ## What happens
 
 `jmri.jmrix.mqtt.MqttAdapter` keeps its subscriptions in a plain `HashMap` (`mqttEventListeners`) with no lock. While `tables.xml` loads, each MQTT sensor and turnout calls `subscribe()`, which adds to that map. At the same time the broker sends the retained message for each topic already subscribed, and Paho's callback thread runs `messageArrived()`, which copies the map (`new HashMap<>(mqttEventListeners)`, source comment "Avoid ConcurrentModificationException"). If a `subscribe()` lands during the copy, the copy throws `ConcurrentModificationException`. The exception leaves `messageArrived()`, so Paho closes the connection. Every `subscribe()` after that logs `ERROR Can't subscribe`, JMRI retries every 500 ms, logs `Succeeded to reconnect` and subscribes to every topic again, which brings the retained states back.
 
-JMRI's `connectionLost()` does not log the cause, so most drops show no `ConcurrentModificationException` in the log at all. It appears only when the first failed `subscribe()` happens to carry it as its cause. An exception recording (Java Flight Recorder, `jdk.JavaExceptionThrow`) shows the same throw at `MqttAdapter.messageArrived` (line 382 in the 5.16 build) for every drop checked on the Mac.
+JMRI's `connectionLost()` does not log the cause. The `ConcurrentModificationException` reaches the log only when the first failed `subscribe()` happens to carry it as its cause, which depends on timing: with Mosquitto on the Mac most drops did not show it, with the Docker brokers 19 of 20 did. An exception recording (Java Flight Recorder, `jdk.JavaExceptionThrow`) shows the same throw at `MqttAdapter.messageArrived` (line 382 in the 5.16 build) for every drop checked on the Mac.
 
 The same race has a second symptom. In 2 of the 9 Linux drops the recording shows no `ConcurrentModificationException`; instead `messageArrived()` threw `No subscriber for MQTT topic track/turnout/42` (line 401) for a topic that had been added to the map before it was subscribed. The likely reading is that the unlocked copy missed that entry without failing; that is inferred from the code, not traced. The exception closes the connection the same way.
 
@@ -51,7 +53,7 @@ Same bare setup, N=53 (106 beans), retained messages on, 10 starts each.
 | Linux (Ubuntu 24.04 in WSL2, x86_64) | 21.0.13.1 | Mosquitto 2.0.18, same machine | 9 |
 | Windows 11 (x86_64) | 21.0.11 | Mosquitto 2.0.18 in WSL2, through its network bridge | 0 |
 
-The Linux starts all ran with the exception recording: 7 drops show the `ConcurrentModificationException`, 2 the missing-subscriber exception. The Docker rows and the Windows row had no recording; in the Docker rows 19 of the 20 drops logged the `ConcurrentModificationException` directly. The Windows row is not a clean test: its broker sat behind the WSL2 network bridge, not on the same machine, which changes the timing, and the run stopped there once the upstream history settled the question. How often each broker hits it depends on how fast it returns retained messages, which was not measured. EMQX holds retained messages but does not send them to a bare `#` subscription, so `retain.py` also subscribes to `track/#` when counting.
+The Linux starts all ran with the exception recording: 7 drops show the `ConcurrentModificationException`, 2 the missing-subscriber exception. The Windows row was run with an ad hoc script, not `run.sh`: native `java.exe` with the installed JMRI jars and the same profile and tables. The Docker rows and the Windows row had no recording; in the Docker rows 19 of the 20 drops logged the `ConcurrentModificationException` directly. The Windows row is not a clean test: its broker sat behind the WSL2 network bridge, not on the same machine, which changes the timing, and the run stopped there once the upstream history settled the question. How often each broker hits it depends on how fast it returns retained messages, which was not measured. EMQX holds retained messages but does not send them to a bare `#` subscription, so `retain.py` subscribes to `track/sensor/#` and `track/turnout/#` and clears only those.
 
 ## What it rules out
 

@@ -11,8 +11,10 @@
 #      JMRI_DIR (default /Applications/JMRI), PORT (default 18830, never 1883),
 #      PY (a python with paho-mqtt; default the repo .venv),
 #      BROKER=external uses a broker already listening on PORT (Docker, another
-#      product) instead of starting Mosquitto,
-#      LAUNCHER (default JmriFaceless.command, or JmriFaceless on Linux)
+#      product) instead of starting Mosquitto; its retained track/sensor/* and
+#      track/turnout/* topics are cleared, so never point it at a real broker,
+#      LAUNCHER (a name in JMRI_DIR or a path; default JmriFaceless.command,
+#      or JmriFaceless on Linux)
 # See docs/jmri/MQTT_STARTUP_RACE.md.
 set -u
 N=$1; RET=$2; RUNS=$3; TAG=$4
@@ -81,11 +83,13 @@ fi
 
 cd "$JMRI_DIR" || exit 1
 LAUNCHER=${LAUNCHER:-$([ -x ./JmriFaceless.command ] && echo JmriFaceless.command || echo JmriFaceless)}
+case "$LAUNCHER" in */*) ;; *) LAUNCHER="./$LAUNCHER" ;; esac
+[ -x "$LAUNCHER" ] || { echo "no JMRI launcher $LAUNCHER in $JMRI_DIR" >&2; exit 1; }
 for r in $(seq 1 "$RUNS"); do
   JFROPT=""
   [ -n "${JFR:-}" ] && JFROPT="-J-XX:StartFlightRecording=filename=$WORK/results/$TAG/rec$r.jfr,settings=$WORK/exc.jfc,dumponexit=true"
   rm -f "$WORK/settings/log/session.log"
-  ./$LAUNCHER $JFROPT --settingsdir="$WORK/settings" --profile=$PROFILE > "$WORK/results/$TAG/out$r.txt" 2>&1 &
+  "$LAUNCHER" $JFROPT --settingsdir="$WORK/settings" --profile=$PROFILE > "$WORK/results/$TAG/out$r.txt" 2>&1 &
   for _ in $(seq 1 60); do grep -q "Loading file" "$WORK/settings/log/session.log" 2>/dev/null && break; sleep 1; done
   sleep 14
   pkill -f "jmri.prefsdir=$WORK/settings"
