@@ -15,6 +15,9 @@ fi
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 export JMRI_LAYOUT=hart
+# The caller's PYTHONPATH, before any job puts a hook on it: build_panels.sh runs with it (panel_stamps keys on it).
+CALLER_PYTHONPATH=()
+if [[ -n "${PYTHONPATH+set}" ]]; then CALLER_PYTHONPATH=(PYTHONPATH="$PYTHONPATH"); else CALLER_PYTHONPATH=(-u PYTHONPATH); fi
 # The schematic plugin's cache, the folder the builds use (publish_draft.CACHE: <main checkout>/.cache/hart/schematic, private to this user), for every job
 # here: the Layout Editor job calls the build directly and would otherwise solve the whole sheet in its one process
 # (about 3 minutes; seconds with the cache warm). An empty SCHEMATIC_CACHE (set by the caller) keeps it off. CI keeps
@@ -213,20 +216,33 @@ run() {
   local name=$1
   shift
   local start=$SECONDS
-  # What the job's trace (check.sh `later`) must show for this check: a Python check is one Python process it
-  # expects ("b"); bash (build_panels.sh) is a program the hook cannot see into, whose steps may trace into logs of
-  # their own, so it goes in as a spawn nothing loaded the hook for ("x"), and the job's stamp falls back to its
-  # declaration (tools/audit/check_stamps.py). Any other program is refused: its reads would be missing.
-  case "$1" in
-    python3|env) [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG" ;;
-    bash) [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tx\tcheck.sh-run\t%s\t%s\n' "$ROOT" "$(IFS=$'\t'; echo "$*")" >>"$HART_TRACE_LOG" ;;
-    *) echo "    $name: check.sh's run() takes python3, env or bash, not $1; not run"; static_rc=1; return ;;
+  # What the job's trace (check.sh `later`) must show for this check: a Python check (python3, or env VAR=... python3)
+  # is one Python process it expects ("b"); bash (build_panels.sh) is a program the hook cannot see into, so it goes
+  # in as a spawn nothing loaded the hook for ("x"), and the job's stamp falls back to its declaration
+  # (tools/audit/check_stamps.py). bash runs outside the job's hooks, with the caller's PYTHONPATH: build_panels.sh
+  # traces its steps into logs of its own, and its stamps key on PYTHONPATH, so make panels' stamps hold here too.
+  # Any other program is refused: its reads would be missing.
+  local prog=$1 i
+  if [[ "$prog" == env ]]; then
+    for (( i = 2; i <= $#; i++ )); do [[ "${!i}" == *=* ]] || { prog="env ${!i}"; break; }; done
+  fi
+  case "$prog" in
+    python3|"env python3")
+      [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tb\n' >>"$HART_TRACE_LOG"
+      "$@" || static_rc=1 ;;
+    bash)
+      [[ -z "${HART_TRACE_LOG:-}" ]] || printf '0\tx\tcheck.sh-run\t%s\t%s\n' "$ROOT" "$(IFS=$'\t'; echo "$*")" >>"$HART_TRACE_LOG"
+      env -u HART_TRACE_LOG -u HART_TRACE_SPAWN -u HART_TRACE_ROOT -u CHECK_AUDIT_LOG ${CALLER_PYTHONPATH[@]+"${CALLER_PYTHONPATH[@]}"} "$@" \
+        || static_rc=1 ;;
+    *) echo "    $name: check.sh's run() takes python3, env VAR=... python3 or bash, not $prog; not run"; static_rc=1; return ;;
   esac
-  "$@" || static_rc=1
   (( SECONDS - start < 5 )) || echo "    ($((SECONDS - start))s)"
 }
 static_checks() {
   local static_rc=0
+  # a run that skips no job (CI, FULL=1, an audit run) skips no panel step either
+  local panels_full=()
+  (( STAMPS )) || panels_full=(--full)
 run phase02 python3 jmri/scripts/check_hart_phase02.py
 run tables-browser python3 www/scripts/build_tables_browser.py --check
 run repo-guide python3 www/scripts/repo_guide_page.py --check
@@ -248,10 +264,11 @@ run status-counts python3 tools/ops/status_counts.py --check
 # Every output drawn from the schematic, checked by its own pipeline (make panels CHECK=1): each step of
 # tools/schematic/build_panels.sh with --check, in build order, from the hands to the approved fingerprints, with
 # tables.xml among them (an output, ADR-029: a Store is never copied over it; make tables-pull and split_store.py).
-# One list of panel checks for check.sh, CI and make panels. Its own stamps skip the steps current here; CI has none
-# and runs them all, and so does a run with HART_TABLES (stamps off; the table steps read that file). Fails when the
-# schematic-maps plugin submodule is not checked out; SCHEMATIC_REQUIRED=0 makes its steps print SKIPPED and pass.
-run panels bash tools/schematic/build_panels.sh --check
+# One list of panel checks for check.sh, CI and make panels. Its own stamps (shared with make panels) skip the steps
+# current here; CI, FULL=1 and an audit run pass --full and run them all, and so does a run with HART_TABLES (stamps
+# off; the table steps read that file). Fails when the schematic-maps plugin submodule is not checked out, even with
+# SCHEMATIC_REQUIRED=0: its schematic step (publish_draft.py --check) has no SKIPPED path.
+run panels bash tools/schematic/build_panels.sh --check ${panels_full[@]+"${panels_full[@]}"}
 # The track plan article: its drawings against the owner's plan (SKIPPED where the plan is not), and the article
 # against its drawings and the block lengths.
 run levels-svg python3 tools/anyrail/levels_svg.py --check
